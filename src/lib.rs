@@ -19,6 +19,10 @@
 //! - **CBD Gate**: Centered Binomial Distribution sampling for error polynomials
 //! - **NTT/FMA Gates**: Reused from Dilithium with Q=3329
 //!
+//! ## SPHINCS+ (FIPS 205) - Phase IV-C
+//! - **Merkle Path Gate**: Authentication path verification in Merkle trees
+//! - **Hash Chain Gate**: Iterative hash computation for WOTS+ chains
+//!
 //! # Formal Verification
 //!
 //! The `formal_verification` module provides logical specifications
@@ -28,6 +32,7 @@ pub mod air;
 pub mod constants;
 pub mod formal_verification;
 pub mod kyber;
+pub mod sphincs;
 pub mod prover;
 pub mod trace;
 
@@ -151,4 +156,48 @@ pub use kyber::{
     // Prover
     KyberProver,
     build_kyber_trace_table,
+};
+
+// Phase IV-C: SPHINCS+ exports
+pub use sphincs::{
+    // Constants
+    N_DEFAULT,
+    W_DEFAULT,
+    WOTS_CHAIN_LENGTH,
+    FORS_K_DEFAULT,
+    FORS_A_DEFAULT,
+    MAX_MERKLE_DEPTH,
+    MAX_CHAIN_LENGTH,
+    TRACE_WIDTH_SPHINCS,
+    sphincs_columns,
+    SphincsSecurityLevel,
+    AddressType,
+    // Merkle Path Gate
+    MerklePathTraceRow,
+    MerklePathVerificationResult,
+    MerklePathConstraintVerifier,
+    generate_merkle_trace_row,
+    generate_merkle_path_trace,
+    test_hash_fn,
+    // Hash Chain Gate
+    HashChainTraceRow,
+    HashChainVerificationResult,
+    HashChainConstraintVerifier,
+    generate_hash_chain_trace_row,
+    generate_hash_chain_trace,
+    generate_wots_chains_trace,
+    test_chain_hash_fn,
+    // AIR
+    SphincsAir,
+    SphincsPublicInputs,
+    // Trace generation
+    SphincsTraceRow,
+    SphincsTraceBuilder,
+    build_sphincs_test_trace,
+    build_sphincs_wots_trace,
+    build_sphincs_merkle_trace,
+    build_sphincs_full_trace,
+    // Prover
+    SphincsProver,
+    build_sphincs_trace_table,
 };
