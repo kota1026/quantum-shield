@@ -27,10 +27,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev build-essential
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust toolchain and Components
+        uses: actions-rs/toolchain@v1
         with:
-          components: rustfmt, clippy
+          toolchain: nightly
+          override: true
+          components: llvm-tools
+
+      - name: Install SP1 RISC-V Target
+        run: rustup target add riscv32im-unknown-none-elf || true
 
       - name: Cache Cargo registry
         uses: actions/cache@v4
