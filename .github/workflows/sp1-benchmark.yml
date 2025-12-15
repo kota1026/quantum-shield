@@ -1,0 +1,76 @@
+name: SP1 Dilithium Benchmark
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - phase4c-sphincs-analysis
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  SP1_PROVER: local
+
+jobs:
+  benchmark:
+    name: SP1 Benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev build-essential
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install SP1 toolchain
+        run: |
+          curl -L https://sp1up.succinct.xyz | bash
+          echo "$HOME/.sp1/bin" >> $GITHUB_PATH
+
+      - name: Setup SP1
+        run: |
+          export PATH="$HOME/.sp1/bin:$PATH"
+          sp1up
+
+      - name: Build main project
+        run: cargo build --release
+
+      - name: Run SP1 Benchmark
+        run: |
+          export PATH="$HOME/.sp1/bin:$PATH"
+          cd sp1-bench/script
+          cargo run --release 2>&1 | tee benchmark-output.txt
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: sp1-bench/script/benchmark-output.txt
+          retention-days: 30
+
+      - name: Display benchmark summary
+        run: |
+          echo "=== Benchmark Results ==="
+          cat sp1-bench/script/benchmark-output.txt || echo "No output file found"
