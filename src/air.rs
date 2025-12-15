@@ -140,6 +140,38 @@ pub mod columns {
     pub const Z_NORM_H: usize = 34;
     pub const Z_NORM_L: usize = 35;
     pub const S_NORM: usize = 36;
+
+    // ========================================================================
+    // Phase II Extension: Sampler Gate Columns (37-41)
+    // ========================================================================
+    /// Challenge coefficient c_i ∈ {-1, 0, 1}
+    /// Represented as field element where -1 = Q-1 in F_Q
+    pub const CHALLENGE_C: usize = 37;
+
+    /// Indicator I_i ∈ {0, 1}: 1 if c_i ≠ 0, 0 otherwise
+    pub const C_INDICATOR: usize = 38;
+
+    /// Sign bit for c_i: 0 = positive (+1), 1 = negative (-1)
+    /// Only meaningful when C_INDICATOR = 1
+    pub const C_SIGN: usize = 39;
+
+    /// Keccak output bit used for position/sign selection
+    pub const KECCAK_BIT: usize = 40;
+
+    /// Sampler operation selector: 1 if sampling row, 0 otherwise
+    pub const S_SAMPLE: usize = 41;
+
+    // ========================================================================
+    // Phase II Extension: Hint Gate Columns (42-44)
+    // ========================================================================
+    /// Hint value h_i ∈ {0, 1}
+    pub const HINT_H: usize = 42;
+
+    /// Accumulated hint sum: running total of h_i values
+    pub const HINT_ACC: usize = 43;
+
+    /// Hint operation selector: 1 if hint processing row, 0 otherwise
+    pub const S_HINT: usize = 44;
 }
 
 /// AIR for Dilithium Signature Verification STARK proof
@@ -527,5 +559,469 @@ mod tests {
         assert_eq!(elements[0], BaseElement::from(100u64));
         assert_eq!(elements[8], BaseElement::ONE);
         assert_eq!(elements[9], BaseElement::ONE);
+    }
+}
+
+// ============================================================================
+// Phase II Extension: Extended AIR with Sampler Gate and Hint Gate
+// ============================================================================
+
+/// Extended public inputs for Phase II (includes challenge weight and hint sum)
+#[derive(Clone, Debug)]
+pub struct ExtendedPublicInputs {
+    /// Base public inputs (inherited from Phase I)
+    pub base: DilithiumNttPublicInputs,
+
+    /// Expected challenge weight τ (number of ±1 coefficients in c)
+    /// For Dilithium Level 3: τ = 49
+    pub challenge_weight: BaseElement,
+
+    /// Expected hint sum (total number of 1s in hint vector)
+    /// Must be ≤ ω (omega) for valid signatures
+    pub hint_sum: BaseElement,
+
+    /// Maximum allowed hint weight ω
+    pub max_hint_weight: BaseElement,
+}
+
+impl ExtendedPublicInputs {
+    /// Create default extended public inputs for testing
+    pub fn default_for_test() -> Self {
+        Self {
+            base: DilithiumNttPublicInputs::default_for_test(),
+            challenge_weight: BaseElement::from(crate::constants::CHALLENGE_WEIGHT),
+            hint_sum: BaseElement::ZERO,
+            max_hint_weight: BaseElement::from(crate::constants::OMEGA),
+        }
+    }
+}
+
+impl ToElements<BaseElement> for ExtendedPublicInputs {
+    fn to_elements(&self) -> Vec<BaseElement> {
+        let mut elements = self.base.to_elements();
+        elements.push(self.challenge_weight);
+        elements.push(self.hint_sum);
+        elements.push(self.max_hint_weight);
+        elements
+    }
+}
+
+/// Extended AIR with Sampler Gate and Hint Gate constraints
+///
+/// # New Constraints (Phase II)
+///
+/// ## Sampler Gate (C_Sample)
+/// Proves that challenge coefficient c_i ∈ {-1, 0, 1}
+///
+/// Constraint: C² * (C² - 1) = 0
+/// - If C = 0: 0 * (0 - 1) = 0 ✓
+/// - If C = 1: 1 * (1 - 1) = 0 ✓
+/// - If C = -1: 1 * (1 - 1) = 0 ✓ (since (-1)² = 1)
+///
+/// Additional constraints:
+/// - C_INDICATOR ∈ {0, 1}
+/// - C_SIGN ∈ {0, 1}
+/// - C = C_INDICATOR * (1 - 2 * C_SIGN) (encodes sign)
+///
+/// ## Hint Gate (C_Hint)
+/// Proves that hint value h_i ∈ {0, 1}
+///
+/// Constraint: H * (H - 1) = 0
+///
+/// Accumulator constraint:
+/// HINT_ACC_next = HINT_ACC + H * S_HINT
+pub struct ExtendedDilithiumAir {
+    context: AirContext<BaseElement>,
+    pub_inputs: ExtendedPublicInputs,
+    q_elem: BaseElement,
+    r_elem: BaseElement,
+    r_sqrt_elem: BaseElement,
+    two_pow_k_elem: BaseElement,
+}
+
+impl ExtendedDilithiumAir {
+    /// Number of transition constraints in extended AIR
+    /// Base: 25, Sampler Gate: 6, Hint Gate: 4
+    pub const NUM_CONSTRAINTS: usize = 35;
+
+    /// Create new Extended AIR
+    pub fn new(trace_info: TraceInfo, pub_inputs: ExtendedPublicInputs, options: ProofOptions) -> Self {
+        // Define constraint degrees
+        let degrees = vec![
+            // === Base Constraints (0-24) - same as DilithiumNttAir ===
+            // NTT Constraints (0-7)
+            TransitionConstraintDegree::new(1),  // C_Decomp_NTT
+            TransitionConstraintDegree::new(2),  // Bit 0
+            TransitionConstraintDegree::new(2),  // Bit 1
+            TransitionConstraintDegree::new(2),  // Bit 2
+            TransitionConstraintDegree::new(2),  // Bit 3
+            TransitionConstraintDegree::new(2),  // Bit 4
+            TransitionConstraintDegree::new(2),  // Bit 5
+            TransitionConstraintDegree::new(2),  // Bit 6
+            // FMA Constraints (8-9)
+            TransitionConstraintDegree::new(1),  // C_Decomp_FMA
+            TransitionConstraintDegree::new(2),  // C_FMA
+            // Truncation Constraints (10-11)
+            TransitionConstraintDegree::new(1),  // C_Trunc
+            TransitionConstraintDegree::new(1),  // C_Decomp_W0
+            // Selector and PRC Constraints (12-15)
+            TransitionConstraintDegree::new(1),  // S_OP binary
+            TransitionConstraintDegree::new(1),  // OP_TYPE consistency
+            TransitionConstraintDegree::new(1),  // Z consistency (op rows)
+            TransitionConstraintDegree::new(1),  // Z consistency (pad rows)
+            // Keccak χ Step Constraints (16-21)
+            TransitionConstraintDegree::new(2),  // K_A binary
+            TransitionConstraintDegree::new(2),  // K_B binary
+            TransitionConstraintDegree::new(2),  // K_C binary
+            TransitionConstraintDegree::new(2),  // K_AND
+            TransitionConstraintDegree::new(2),  // K_OUT
+            TransitionConstraintDegree::new(1),  // S_KECCAK binary
+            // Norm Check Constraints (22-24)
+            TransitionConstraintDegree::new(1),  // C_Norm_Decomp
+            TransitionConstraintDegree::new(1),  // C_Norm_Range
+            TransitionConstraintDegree::new(1),  // S_NORM binary
+
+            // === Phase II: Sampler Gate Constraints (25-30) ===
+            // C_Sample: C² * (C² - 1) = 0 (degree 4)
+            TransitionConstraintDegree::new(4),
+            // C_INDICATOR binary (degree 2)
+            TransitionConstraintDegree::new(2),
+            // C_SIGN binary (degree 2)
+            TransitionConstraintDegree::new(2),
+            // C = C_INDICATOR * (1 - 2 * C_SIGN) (degree 2)
+            TransitionConstraintDegree::new(2),
+            // KECCAK_BIT binary (degree 2)
+            TransitionConstraintDegree::new(2),
+            // S_SAMPLE binary (degree 2)
+            TransitionConstraintDegree::new(2),
+
+            // === Phase II: Hint Gate Constraints (31-34) ===
+            // H binary: H * (H - 1) = 0 (degree 2)
+            TransitionConstraintDegree::new(2),
+            // HINT_ACC accumulation (degree 2)
+            TransitionConstraintDegree::new(2),
+            // S_HINT binary (degree 2)
+            TransitionConstraintDegree::new(2),
+            // Unused placeholder for alignment (degree 1)
+            TransitionConstraintDegree::new(1),
+        ];
+
+        // Boundary assertions: base 8 + 2 new (challenge weight, hint sum)
+        let num_assertions = 10;
+        let context = AirContext::new(trace_info, degrees, num_assertions, options);
+
+        Self {
+            context,
+            pub_inputs,
+            q_elem: BaseElement::from(Q),
+            r_elem: BaseElement::from(R),
+            r_sqrt_elem: BaseElement::from(R_SQRT),
+            two_pow_k_elem: BaseElement::from(TWO_POW_K),
+        }
+    }
+}
+
+impl Air for ExtendedDilithiumAir {
+    type BaseField = BaseElement;
+    type PublicInputs = ExtendedPublicInputs;
+    type GkrProof = ();
+    type GkrVerifier = ();
+
+    fn new(trace_info: TraceInfo, pub_inputs: Self::PublicInputs, options: ProofOptions) -> Self {
+        ExtendedDilithiumAir::new(trace_info, pub_inputs, options)
+    }
+
+    fn context(&self) -> &AirContext<Self::BaseField> {
+        &self.context
+    }
+
+    fn evaluate_transition<E: FieldElement + From<Self::BaseField>>(
+        &self,
+        frame: &EvaluationFrame<E>,
+        _periodic_values: &[E],
+        result: &mut [E],
+    ) {
+        let current = frame.current();
+        let next = frame.next();
+
+        // Convert constants to evaluation field
+        let q: E = E::from(self.q_elem);
+        let r: E = E::from(self.r_elem);
+        let r_sqrt: E = E::from(self.r_sqrt_elem);
+        let two_pow_k: E = E::from(self.two_pow_k_elem);
+        let two: E = E::ONE + E::ONE;
+
+        // ===================================================================
+        // Base Constraints (0-24) - Same as DilithiumNttAir
+        // ===================================================================
+
+        // NTT Constraints (0-7)
+        let m_ntt = current[columns::M_NTT];
+        let m_h = current[columns::M_H];
+        let m_l = current[columns::M_L];
+        result[0] = m_ntt - (m_h * r_sqrt + m_l);
+
+        for i in 0..7 {
+            let b_i = current[columns::BITS_START + i];
+            result[1 + i] = b_i * (E::ONE - b_i);
+        }
+
+        // FMA Constraints (8-9)
+        let m_fma = current[columns::M_FMA];
+        let m_fma_h = current[columns::M_FMA_H];
+        let m_fma_l = current[columns::M_FMA_L];
+        result[8] = m_fma - (m_fma_h * r_sqrt + m_fma_l);
+
+        let a = current[columns::A];
+        let b = current[columns::B];
+        let c = current[columns::C];
+        let r_fma = current[columns::R_FMA];
+        result[9] = a * b + c + m_fma * q - r_fma * r;
+
+        // Truncation Constraints (10-11)
+        let w_in = current[columns::W_IN];
+        let w_1 = current[columns::W_1];
+        let w_0 = current[columns::W_0];
+        result[10] = w_in - (w_1 * two_pow_k + w_0);
+
+        let w_0_h = current[columns::W_0_H];
+        let w_0_l = current[columns::W_0_L];
+        result[11] = w_0 - (w_0_h * r_sqrt + w_0_l);
+
+        // Selector Constraints (12-13)
+        let s_op = current[columns::S_OP];
+        result[12] = s_op * (E::ONE - s_op);
+
+        let op_type = current[columns::OP_TYPE];
+        let op_type_next = next[columns::OP_TYPE];
+        result[13] = (op_type_next - op_type) * (E::ONE - s_op);
+
+        // PRC Constraints (14-15)
+        let z = current[columns::Z];
+        let z_next = next[columns::Z];
+        result[14] = (z_next - z) * s_op;
+        result[15] = (z_next - z) * (E::ONE - s_op);
+
+        // Keccak χ Step Constraints (16-21)
+        let k_a = current[columns::K_A];
+        let k_b = current[columns::K_B];
+        let k_c = current[columns::K_C];
+        let k_and = current[columns::K_AND];
+        let k_out = current[columns::K_OUT];
+        let s_keccak = current[columns::S_KECCAK];
+
+        result[16] = k_a * (E::ONE - k_a);
+        result[17] = k_b * (E::ONE - k_b);
+        result[18] = k_c * (E::ONE - k_c);
+        result[19] = k_and - (E::ONE - k_b) * k_c;
+        result[20] = k_out - (k_a + k_and - two * k_a * k_and);
+        result[21] = s_keccak * (E::ONE - s_keccak);
+
+        // Norm Check Constraints (22-24)
+        let z_norm = current[columns::Z_NORM];
+        let z_norm_h = current[columns::Z_NORM_H];
+        let z_norm_l = current[columns::Z_NORM_L];
+        let s_norm = current[columns::S_NORM];
+
+        result[22] = z_norm - (z_norm_h * r_sqrt + z_norm_l);
+        result[23] = z_norm_h;
+        result[24] = s_norm * (E::ONE - s_norm);
+
+        // ===================================================================
+        // Phase II: Sampler Gate Constraints (25-30)
+        // ===================================================================
+        // Proves challenge coefficient c_i ∈ {-1, 0, 1}
+
+        let challenge_c = current[columns::CHALLENGE_C];
+        let c_indicator = current[columns::C_INDICATOR];
+        let c_sign = current[columns::C_SIGN];
+        let keccak_bit = current[columns::KECCAK_BIT];
+        let s_sample = current[columns::S_SAMPLE];
+
+        // 25. C_Sample: C² * (C² - 1) = 0
+        // This constraint enforces C ∈ {-1, 0, 1}
+        // - C = 0: 0 * (0 - 1) = 0 ✓
+        // - C = 1: 1 * (1 - 1) = 0 ✓
+        // - C = -1 (= P-1 in field): (P-1)² = 1, so 1 * (1 - 1) = 0 ✓
+        let c_squared = challenge_c * challenge_c;
+        result[25] = c_squared * (c_squared - E::ONE);
+
+        // 26. C_INDICATOR binary: I * (1 - I) = 0
+        result[26] = c_indicator * (E::ONE - c_indicator);
+
+        // 27. C_SIGN binary: S * (1 - S) = 0
+        result[27] = c_sign * (E::ONE - c_sign);
+
+        // 28. C = I * (1 - 2 * S) when sampling
+        // This encodes: C = +1 when I=1, S=0; C = -1 when I=1, S=1; C = 0 when I=0
+        // Note: In field, -1 is represented as P-1, but 1 - 2 = -1 works correctly
+        let expected_c = c_indicator * (E::ONE - two * c_sign);
+        result[28] = (challenge_c - expected_c) * s_sample;
+
+        // 29. KECCAK_BIT binary
+        result[29] = keccak_bit * (E::ONE - keccak_bit);
+
+        // 30. S_SAMPLE binary
+        result[30] = s_sample * (E::ONE - s_sample);
+
+        // ===================================================================
+        // Phase II: Hint Gate Constraints (31-34)
+        // ===================================================================
+        // Proves hint value h_i ∈ {0, 1} and accumulates sum
+
+        let hint_h = current[columns::HINT_H];
+        let hint_acc = current[columns::HINT_ACC];
+        let hint_acc_next = next[columns::HINT_ACC];
+        let s_hint = current[columns::S_HINT];
+
+        // 31. H binary: H * (H - 1) = 0
+        result[31] = hint_h * (E::ONE - hint_h);
+
+        // 32. HINT_ACC accumulation: ACC_next = ACC + H * S_HINT
+        // When S_HINT = 1, add H to accumulator
+        // When S_HINT = 0, accumulator stays constant
+        result[32] = hint_acc_next - hint_acc - hint_h * s_hint;
+
+        // 33. S_HINT binary
+        result[33] = s_hint * (E::ONE - s_hint);
+
+        // 34. Placeholder (unused)
+        result[34] = E::ZERO;
+    }
+
+    fn get_assertions(&self) -> Vec<Assertion<Self::BaseField>> {
+        let trace_len = self.context().trace_info().length();
+        let last_step = trace_len - 1;
+
+        vec![
+            // === Base Assertions (same as DilithiumNttAir) ===
+            // Initial row
+            Assertion::single(columns::A, 0, self.pub_inputs.base.ntt_input_a),
+            Assertion::single(columns::B, 0, self.pub_inputs.base.ntt_input_b),
+            Assertion::single(columns::Z, 0, self.pub_inputs.base.z_init),
+            Assertion::single(columns::S_OP, 0, BaseElement::ONE),
+
+            // Final row
+            Assertion::single(columns::Z, last_step, self.pub_inputs.base.z_final),
+            Assertion::single(columns::W_1, last_step, self.pub_inputs.base.final_w1),
+            Assertion::single(columns::R_FMA, last_step, self.pub_inputs.base.final_fma_result),
+            Assertion::single(columns::Z_NORM_H, last_step, BaseElement::ZERO),
+
+            // === Phase II Assertions ===
+            // Initial hint accumulator = 0
+            Assertion::single(columns::HINT_ACC, 0, BaseElement::ZERO),
+
+            // Final hint accumulator = expected hint sum
+            Assertion::single(columns::HINT_ACC, last_step, self.pub_inputs.hint_sum),
+        ]
+    }
+}
+
+#[cfg(test)]
+mod extended_tests {
+    use super::*;
+    use crate::constants::TRACE_WIDTH_EXTENDED;
+
+    #[test]
+    fn test_extended_air_creation() {
+        let trace_info = TraceInfo::new(TRACE_WIDTH_EXTENDED, 64);
+        let pub_inputs = ExtendedPublicInputs::default_for_test();
+        let options = ProofOptions::new(
+            16, 4, 0,
+            winterfell::FieldExtension::None,
+            8, 31,
+        );
+
+        let air = ExtendedDilithiumAir::new(trace_info, pub_inputs, options);
+        assert_eq!(air.context().trace_info().width(), TRACE_WIDTH_EXTENDED);
+    }
+
+    #[test]
+    fn test_extended_constraint_count() {
+        let trace_info = TraceInfo::new(TRACE_WIDTH_EXTENDED, 64);
+        let pub_inputs = ExtendedPublicInputs::default_for_test();
+        let options = ProofOptions::new(16, 4, 0, winterfell::FieldExtension::None, 8, 31);
+
+        let air = ExtendedDilithiumAir::new(trace_info, pub_inputs, options);
+        // Base: 25, Sampler: 6, Hint: 4 = 35 total
+        assert_eq!(air.context().num_transition_constraints(), 35);
+    }
+
+    #[test]
+    fn test_extended_boundary_assertions() {
+        let trace_info = TraceInfo::new(TRACE_WIDTH_EXTENDED, 64);
+        let pub_inputs = ExtendedPublicInputs::default_for_test();
+        let options = ProofOptions::new(16, 4, 0, winterfell::FieldExtension::None, 8, 31);
+
+        let air = ExtendedDilithiumAir::new(trace_info, pub_inputs, options);
+        let assertions = air.get_assertions();
+
+        // Base: 8, Phase II: 2 (hint_acc init and final) = 10
+        assert_eq!(assertions.len(), 10);
+    }
+
+    #[test]
+    fn test_sampler_constraint_values() {
+        // Test that C² * (C² - 1) = 0 for valid values
+
+        // C = 0
+        let c0 = BaseElement::ZERO;
+        let c0_sq = c0 * c0;
+        assert_eq!(c0_sq * (c0_sq - BaseElement::ONE), BaseElement::ZERO);
+
+        // C = 1
+        let c1 = BaseElement::ONE;
+        let c1_sq = c1 * c1;
+        assert_eq!(c1_sq * (c1_sq - BaseElement::ONE), BaseElement::ZERO);
+
+        // C = -1 (represented as field element)
+        let c_neg1 = BaseElement::ZERO - BaseElement::ONE;
+        let c_neg1_sq = c_neg1 * c_neg1;
+        assert_eq!(c_neg1_sq, BaseElement::ONE); // (-1)² = 1
+        assert_eq!(c_neg1_sq * (c_neg1_sq - BaseElement::ONE), BaseElement::ZERO);
+    }
+
+    #[test]
+    fn test_hint_binary_constraint() {
+        // H * (H - 1) = 0 for H ∈ {0, 1}
+
+        let h0 = BaseElement::ZERO;
+        assert_eq!(h0 * (h0 - BaseElement::ONE), BaseElement::ZERO);
+
+        let h1 = BaseElement::ONE;
+        assert_eq!(h1 * (h1 - BaseElement::ONE), BaseElement::ZERO);
+
+        // H = 2 should NOT satisfy the constraint
+        let h2 = BaseElement::ONE + BaseElement::ONE;
+        assert_ne!(h2 * (h2 - BaseElement::ONE), BaseElement::ZERO);
+    }
+
+    #[test]
+    fn test_challenge_encoding() {
+        // C = I * (1 - 2 * S)
+        // I=1, S=0 -> C = 1 * (1 - 0) = 1
+        // I=1, S=1 -> C = 1 * (1 - 2) = -1
+        // I=0, S=* -> C = 0
+
+        let one = BaseElement::ONE;
+        let zero = BaseElement::ZERO;
+        let two = one + one;
+
+        // I=1, S=0 -> C=1
+        let i1_s0 = one * (one - two * zero);
+        assert_eq!(i1_s0, one);
+
+        // I=1, S=1 -> C=-1
+        let i1_s1 = one * (one - two * one);
+        let neg_one = zero - one;
+        assert_eq!(i1_s1, neg_one);
+
+        // I=0, S=0 -> C=0
+        let i0_s0 = zero * (one - two * zero);
+        assert_eq!(i0_s0, zero);
+
+        // I=0, S=1 -> C=0
+        let i0_s1 = zero * (one - two * one);
+        assert_eq!(i0_s1, zero);
     }
 }

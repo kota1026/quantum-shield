@@ -418,6 +418,324 @@ pub fn generate_test_coefficients(n: usize) -> Vec<u64> {
     coeffs
 }
 
+// ============================================================================
+// Phase II Extension: Sampler Gate and Hint Gate Trace Generation
+// ============================================================================
+
+use crate::constants::TRACE_WIDTH_EXTENDED;
+
+/// Challenge coefficient representation
+/// c_i ∈ {-1, 0, 1} encoded as:
+/// - 0: c = 0, indicator = 0, sign = 0
+/// - 1: c = 1, indicator = 1, sign = 0
+/// - -1: c = P-1 (field representation), indicator = 1, sign = 1
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ChallengeCoeff {
+    /// The coefficient value (0, 1, or -1 as field element)
+    pub value: i8,
+    /// Indicator: 1 if non-zero, 0 if zero
+    pub indicator: u8,
+    /// Sign: 0 for positive, 1 for negative
+    pub sign: u8,
+}
+
+impl ChallengeCoeff {
+    /// Create a zero coefficient
+    pub fn zero() -> Self {
+        Self { value: 0, indicator: 0, sign: 0 }
+    }
+
+    /// Create a +1 coefficient
+    pub fn plus_one() -> Self {
+        Self { value: 1, indicator: 1, sign: 0 }
+    }
+
+    /// Create a -1 coefficient
+    pub fn minus_one() -> Self {
+        Self { value: -1, indicator: 1, sign: 1 }
+    }
+
+    /// Create from value
+    pub fn from_value(v: i8) -> Self {
+        match v {
+            0 => Self::zero(),
+            1 => Self::plus_one(),
+            -1 => Self::minus_one(),
+            _ => panic!("Challenge coefficient must be -1, 0, or 1"),
+        }
+    }
+
+    /// Convert to field element
+    pub fn to_field(&self) -> BaseElement {
+        match self.value {
+            0 => BaseElement::ZERO,
+            1 => BaseElement::ONE,
+            -1 => BaseElement::ZERO - BaseElement::ONE, // P - 1
+            _ => unreachable!(),
+        }
+    }
+}
+
+/// Generate a challenge polynomial with τ non-zero coefficients
+///
+/// In Dilithium, the challenge c is a polynomial with exactly τ coefficients
+/// equal to ±1, and the rest equal to 0.
+///
+/// # Arguments
+/// * `n` - Number of coefficients (typically 256)
+/// * `tau` - Number of non-zero coefficients
+/// * `seed` - Seed for deterministic generation (for testing)
+pub fn generate_challenge_polynomial(n: usize, tau: usize, seed: u64) -> Vec<ChallengeCoeff> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    assert!(tau <= n, "τ must be <= n");
+
+    let mut coeffs = vec![ChallengeCoeff::zero(); n];
+
+    // Deterministically select τ positions and signs
+    for i in 0..tau {
+        let mut hasher = DefaultHasher::new();
+        (seed, i, "pos").hash(&mut hasher);
+        let pos = (hasher.finish() as usize) % n;
+
+        // If position already taken, find next available
+        let mut actual_pos = pos;
+        while coeffs[actual_pos].indicator == 1 {
+            actual_pos = (actual_pos + 1) % n;
+        }
+
+        // Determine sign
+        let mut sign_hasher = DefaultHasher::new();
+        (seed, i, "sign").hash(&mut sign_hasher);
+        let sign = (sign_hasher.finish() & 1) as u8;
+
+        coeffs[actual_pos] = if sign == 0 {
+            ChallengeCoeff::plus_one()
+        } else {
+            ChallengeCoeff::minus_one()
+        };
+    }
+
+    coeffs
+}
+
+/// Generate hint values for Dilithium signature verification
+///
+/// Hint h is a binary vector indicating where rounding adjustments are needed.
+/// The sum of hints must be ≤ ω (omega) for valid signatures.
+///
+/// # Arguments
+/// * `n` - Number of hint bits
+/// * `hint_sum` - Target sum of hints (number of 1s)
+/// * `seed` - Seed for deterministic generation
+pub fn generate_hint_vector(n: usize, hint_sum: usize, seed: u64) -> Vec<u8> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    assert!(hint_sum <= n, "hint_sum must be <= n");
+
+    let mut hints = vec![0u8; n];
+
+    // Deterministically select hint_sum positions to set to 1
+    for i in 0..hint_sum {
+        let mut hasher = DefaultHasher::new();
+        (seed, i, "hint").hash(&mut hasher);
+        let pos = (hasher.finish() as usize) % n;
+
+        // If position already set, find next available
+        let mut actual_pos = pos;
+        while hints[actual_pos] == 1 {
+            actual_pos = (actual_pos + 1) % n;
+        }
+        hints[actual_pos] = 1;
+    }
+
+    hints
+}
+
+/// Build extended trace with Sampler Gate and Hint Gate columns
+///
+/// This function generates a trace for the extended AIR that includes
+/// challenge sampling and hint processing.
+///
+/// # Arguments
+/// * `num_rows` - Number of rows in the trace (must be power of 2)
+/// * `input_coeffs` - Input polynomial coefficients
+/// * `challenge` - Challenge polynomial coefficients
+/// * `hints` - Hint values
+pub fn build_extended_trace(
+    num_rows: usize,
+    input_coeffs: &[u64],
+    challenge: &[ChallengeCoeff],
+    hints: &[u8],
+) -> TraceTable<BaseElement> {
+    assert!(num_rows.is_power_of_two(), "Trace length must be power of 2");
+
+    let mut trace = TraceTable::new(TRACE_WIDTH_EXTENDED, num_rows);
+
+    // Track hint accumulator
+    let mut hint_acc: u64 = 0;
+
+    trace.fill(
+        |state| {
+            // Initial state (row 0)
+            fill_base_columns(state, input_coeffs, 0);
+
+            // Fill Sampler Gate columns
+            let c = if !challenge.is_empty() {
+                challenge[0]
+            } else {
+                ChallengeCoeff::zero()
+            };
+            state[columns::CHALLENGE_C] = c.to_field();
+            state[columns::C_INDICATOR] = BaseElement::from(c.indicator as u64);
+            state[columns::C_SIGN] = BaseElement::from(c.sign as u64);
+            state[columns::KECCAK_BIT] = BaseElement::ZERO;
+            state[columns::S_SAMPLE] = BaseElement::ONE; // Row 0 is sampling row
+
+            // Fill Hint Gate columns
+            let h = if !hints.is_empty() { hints[0] } else { 0 };
+            state[columns::HINT_H] = BaseElement::from(h as u64);
+            state[columns::HINT_ACC] = BaseElement::ZERO; // Starts at 0
+            state[columns::S_HINT] = BaseElement::ONE; // Row 0 is hint row
+        },
+        |step, state| {
+            let row_idx = step + 1;
+
+            // Fill base columns (same as build_ntt_trace)
+            fill_base_columns(state, input_coeffs, row_idx);
+
+            // Fill Sampler Gate columns
+            let c = if row_idx < challenge.len() {
+                challenge[row_idx]
+            } else {
+                ChallengeCoeff::zero()
+            };
+            state[columns::CHALLENGE_C] = c.to_field();
+            state[columns::C_INDICATOR] = BaseElement::from(c.indicator as u64);
+            state[columns::C_SIGN] = BaseElement::from(c.sign as u64);
+            state[columns::KECCAK_BIT] = BaseElement::ZERO;
+            state[columns::S_SAMPLE] = if row_idx < challenge.len() {
+                BaseElement::ONE
+            } else {
+                BaseElement::ZERO
+            };
+
+            // Fill Hint Gate columns
+            let h = if row_idx < hints.len() { hints[row_idx] } else { 0 };
+
+            // Update accumulator from previous row's hint
+            let prev_h = if step < hints.len() { hints[step] } else { 0 };
+            let prev_s_hint = if step < hints.len() { 1u64 } else { 0u64 };
+            hint_acc += (prev_h as u64) * prev_s_hint;
+
+            state[columns::HINT_H] = BaseElement::from(h as u64);
+            state[columns::HINT_ACC] = BaseElement::from(hint_acc);
+            state[columns::S_HINT] = if row_idx < hints.len() {
+                BaseElement::ONE
+            } else {
+                BaseElement::ZERO
+            };
+        },
+    );
+
+    trace
+}
+
+/// Fill base columns (reused from build_ntt_trace logic)
+fn fill_base_columns(state: &mut [BaseElement], input_coeffs: &[u64], row_idx: usize) {
+    // Get coefficients for this row
+    let coeff_idx = (row_idx * 2) % input_coeffs.len().max(1);
+    let a = if coeff_idx < input_coeffs.len() {
+        input_coeffs[coeff_idx]
+    } else {
+        0
+    };
+    let b = if coeff_idx + 1 < input_coeffs.len() {
+        input_coeffs[coeff_idx + 1]
+    } else {
+        0
+    };
+    let c = if coeff_idx + 2 < input_coeffs.len() {
+        input_coeffs[(coeff_idx + 2) % input_coeffs.len()]
+    } else {
+        0
+    };
+
+    let omega_idx = row_idx % TWIDDLE_FACTORS.len();
+    let omega = TWIDDLE_FACTORS[omega_idx];
+
+    // Compute operations
+    let (b_prime, m_ntt) = montgomery_butterfly(a, b, omega);
+    let (r_fma, m_fma) = montgomery_fma(a, b, c);
+    let (w_1, w_0) = truncate(r_fma);
+
+    // Decompositions
+    let m_h = m_ntt >> 16;
+    let m_l = m_ntt & 0xFFFF;
+    let m_fma_h = m_fma >> 16;
+    let m_fma_l = m_fma & 0xFFFF;
+    let w_0_h = w_0 >> 16;
+    let w_0_l = w_0 & 0xFFFF;
+    let b_prime_h = (b_prime >> 16) & 0x7F;
+
+    // NTT columns
+    state[columns::A] = BaseElement::from(a);
+    state[columns::B] = BaseElement::from(b);
+    state[columns::M_NTT] = BaseElement::from(m_ntt);
+    state[columns::B_PRIME] = BaseElement::from(b_prime);
+    state[columns::M_H] = BaseElement::from(m_h);
+    state[columns::M_L] = BaseElement::from(m_l);
+    state[columns::Z] = BaseElement::ONE;
+    state[columns::T_16] = BaseElement::from(m_h);
+
+    // Bit columns
+    for i in 0..7 {
+        state[columns::BITS_START + i] = BaseElement::from(((b_prime_h >> i) & 1) as u64);
+    }
+
+    // FMA columns
+    state[columns::C] = BaseElement::from(c);
+    state[columns::M_FMA] = BaseElement::from(m_fma);
+    state[columns::R_FMA] = BaseElement::from(r_fma);
+    state[columns::M_FMA_H] = BaseElement::from(m_fma_h);
+    state[columns::M_FMA_L] = BaseElement::from(m_fma_l);
+
+    // Truncation columns
+    state[columns::W_IN] = BaseElement::from(r_fma);
+    state[columns::W_1] = BaseElement::from(w_1);
+    state[columns::W_0] = BaseElement::from(w_0);
+    state[columns::W_0_H] = BaseElement::from(w_0_h);
+    state[columns::W_0_L] = BaseElement::from(w_0_l);
+
+    // Selector columns
+    state[columns::S_OP] = BaseElement::ONE;
+    state[columns::OP_TYPE] = BaseElement::ZERO;
+
+    // Keccak columns (simplified)
+    let k_a = (a & 1) as u64;
+    let k_b = ((a >> 1) & 1) as u64;
+    let k_c = ((a >> 2) & 1) as u64;
+    let (k_and, k_out) = keccak_chi_step(k_a, k_b, k_c);
+
+    state[columns::K_A] = BaseElement::from(k_a);
+    state[columns::K_B] = BaseElement::from(k_b);
+    state[columns::K_C] = BaseElement::from(k_c);
+    state[columns::K_AND] = BaseElement::from(k_and);
+    state[columns::K_OUT] = BaseElement::from(k_out);
+    state[columns::S_KECCAK] = BaseElement::ZERO;
+
+    // Norm columns
+    let z_norm = (a % NORM_BOUND) as u64;
+    let (z_norm_h, z_norm_l) = norm_decompose(z_norm);
+
+    state[columns::Z_NORM] = BaseElement::from(z_norm);
+    state[columns::Z_NORM_H] = BaseElement::from(z_norm_h);
+    state[columns::Z_NORM_L] = BaseElement::from(z_norm_l);
+    state[columns::S_NORM] = BaseElement::ZERO;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -963,5 +1281,279 @@ mod tests {
         }
 
         println!("✅ All Dilithium signature verification constraints passed!");
+    }
+
+    // ========================================================================
+    // Phase II Extension Tests
+    // ========================================================================
+
+    #[test]
+    fn test_challenge_coeff_creation() {
+        // Test zero coefficient
+        let c0 = ChallengeCoeff::zero();
+        assert_eq!(c0.value, 0);
+        assert_eq!(c0.indicator, 0);
+        assert_eq!(c0.sign, 0);
+        assert_eq!(c0.to_field(), BaseElement::ZERO);
+
+        // Test +1 coefficient
+        let c1 = ChallengeCoeff::plus_one();
+        assert_eq!(c1.value, 1);
+        assert_eq!(c1.indicator, 1);
+        assert_eq!(c1.sign, 0);
+        assert_eq!(c1.to_field(), BaseElement::ONE);
+
+        // Test -1 coefficient
+        let cm1 = ChallengeCoeff::minus_one();
+        assert_eq!(cm1.value, -1);
+        assert_eq!(cm1.indicator, 1);
+        assert_eq!(cm1.sign, 1);
+        let neg_one = BaseElement::ZERO - BaseElement::ONE;
+        assert_eq!(cm1.to_field(), neg_one);
+    }
+
+    #[test]
+    fn test_challenge_coeff_from_value() {
+        assert_eq!(ChallengeCoeff::from_value(0), ChallengeCoeff::zero());
+        assert_eq!(ChallengeCoeff::from_value(1), ChallengeCoeff::plus_one());
+        assert_eq!(ChallengeCoeff::from_value(-1), ChallengeCoeff::minus_one());
+    }
+
+    #[test]
+    fn test_generate_challenge_polynomial() {
+        let n = 256;
+        let tau = 49; // Dilithium Level 3
+        let seed = 12345u64;
+
+        let challenge = generate_challenge_polynomial(n, tau, seed);
+
+        // Check length
+        assert_eq!(challenge.len(), n);
+
+        // Count non-zero coefficients
+        let non_zero_count: usize = challenge.iter()
+            .filter(|c| c.indicator == 1)
+            .count();
+        assert_eq!(non_zero_count, tau, "Should have exactly τ non-zero coefficients");
+
+        // Verify all coefficients are in {-1, 0, 1}
+        for c in &challenge {
+            assert!(
+                c.value == -1 || c.value == 0 || c.value == 1,
+                "Coefficient value {} not in {{-1, 0, 1}}", c.value
+            );
+        }
+
+        // Verify deterministic generation
+        let challenge2 = generate_challenge_polynomial(n, tau, seed);
+        assert_eq!(challenge, challenge2, "Same seed should produce same challenge");
+    }
+
+    #[test]
+    fn test_generate_hint_vector() {
+        let n = 256;
+        let hint_sum = 30; // Less than ω = 55
+        let seed = 54321u64;
+
+        let hints = generate_hint_vector(n, hint_sum, seed);
+
+        // Check length
+        assert_eq!(hints.len(), n);
+
+        // Count ones
+        let ones_count: usize = hints.iter().filter(|&&h| h == 1).count();
+        assert_eq!(ones_count, hint_sum, "Should have exactly hint_sum ones");
+
+        // Verify all values are binary
+        for &h in &hints {
+            assert!(h == 0 || h == 1, "Hint value {} not binary", h);
+        }
+
+        // Verify deterministic generation
+        let hints2 = generate_hint_vector(n, hint_sum, seed);
+        assert_eq!(hints, hints2, "Same seed should produce same hints");
+    }
+
+    #[test]
+    fn test_build_extended_trace() {
+        let num_rows = 64;
+        let input_coeffs = generate_test_coefficients(num_rows * 2);
+        let challenge = generate_challenge_polynomial(num_rows, 10, 12345);
+        let hints = generate_hint_vector(num_rows, 5, 54321);
+
+        let trace = build_extended_trace(num_rows, &input_coeffs, &challenge, &hints);
+
+        // Verify trace dimensions
+        assert_eq!(trace.width(), TRACE_WIDTH_EXTENDED);
+        assert_eq!(trace.length(), num_rows);
+    }
+
+    #[test]
+    fn test_extended_trace_sampler_constraints() {
+        let num_rows = 64;
+        let input_coeffs = generate_test_coefficients(num_rows * 2);
+        let challenge = generate_challenge_polynomial(num_rows, 10, 12345);
+        let hints = generate_hint_vector(num_rows, 5, 54321);
+
+        let trace = build_extended_trace(num_rows, &input_coeffs, &challenge, &hints);
+
+        let two = BaseElement::ONE + BaseElement::ONE;
+
+        // Verify Sampler Gate constraints
+        for row in 0..num_rows {
+            let c_val = trace.get(columns::CHALLENGE_C, row);
+            let c_indicator = trace.get(columns::C_INDICATOR, row);
+            let c_sign = trace.get(columns::C_SIGN, row);
+            let s_sample = trace.get(columns::S_SAMPLE, row);
+
+            // C_Sample: C² * (C² - 1) = 0
+            let c_sq = c_val * c_val;
+            let c_sample = c_sq * (c_sq - BaseElement::ONE);
+            assert_eq!(
+                c_sample, BaseElement::ZERO,
+                "C_Sample constraint failed at row {}", row
+            );
+
+            // C_INDICATOR binary
+            let c_ind_binary = c_indicator * (BaseElement::ONE - c_indicator);
+            assert_eq!(
+                c_ind_binary, BaseElement::ZERO,
+                "C_INDICATOR binary failed at row {}", row
+            );
+
+            // C_SIGN binary
+            let c_sign_binary = c_sign * (BaseElement::ONE - c_sign);
+            assert_eq!(
+                c_sign_binary, BaseElement::ZERO,
+                "C_SIGN binary failed at row {}", row
+            );
+
+            // C = I * (1 - 2 * S) when S_SAMPLE = 1
+            let expected_c = c_indicator * (BaseElement::ONE - two * c_sign);
+            let c_encoding = (c_val - expected_c) * s_sample;
+            assert_eq!(
+                c_encoding, BaseElement::ZERO,
+                "C encoding constraint failed at row {}", row
+            );
+        }
+
+        println!("✅ All Sampler Gate constraints passed!");
+    }
+
+    #[test]
+    fn test_extended_trace_hint_constraints() {
+        let num_rows = 64;
+        let input_coeffs = generate_test_coefficients(num_rows * 2);
+        let challenge = generate_challenge_polynomial(num_rows, 10, 12345);
+        let hints = generate_hint_vector(num_rows, 5, 54321);
+
+        let trace = build_extended_trace(num_rows, &input_coeffs, &challenge, &hints);
+
+        // Verify Hint Gate constraints
+        for row in 0..num_rows {
+            let h = trace.get(columns::HINT_H, row);
+            let s_hint = trace.get(columns::S_HINT, row);
+
+            // H binary: H * (H - 1) = 0
+            let h_binary = h * (h - BaseElement::ONE);
+            assert_eq!(
+                h_binary, BaseElement::ZERO,
+                "H binary constraint failed at row {}", row
+            );
+
+            // S_HINT binary
+            let s_binary = s_hint * (BaseElement::ONE - s_hint);
+            assert_eq!(
+                s_binary, BaseElement::ZERO,
+                "S_HINT binary failed at row {}", row
+            );
+        }
+
+        // Verify accumulator transition
+        for row in 0..(num_rows - 1) {
+            let h = trace.get(columns::HINT_H, row);
+            let acc = trace.get(columns::HINT_ACC, row);
+            let acc_next = trace.get(columns::HINT_ACC, row + 1);
+            let s_hint = trace.get(columns::S_HINT, row);
+
+            // ACC_next = ACC + H * S_HINT
+            let expected_acc_next = acc + h * s_hint;
+            assert_eq!(
+                acc_next, expected_acc_next,
+                "Hint accumulator transition failed at row {}", row
+            );
+        }
+
+        // Verify initial and final accumulator values
+        let initial_acc = trace.get(columns::HINT_ACC, 0);
+        assert_eq!(
+            initial_acc, BaseElement::ZERO,
+            "Initial hint accumulator should be 0"
+        );
+
+        // Final accumulator should equal hint sum
+        let final_acc = trace.get(columns::HINT_ACC, num_rows - 1);
+        let expected_sum: u64 = hints.iter().take(num_rows - 1).map(|&h| h as u64).sum();
+        assert_eq!(
+            final_acc, BaseElement::from(expected_sum),
+            "Final hint accumulator should equal sum of hints"
+        );
+
+        println!("✅ All Hint Gate constraints passed!");
+    }
+
+    #[test]
+    fn test_extended_trace_full_integration() {
+        // Full integration test for Phase II extended trace
+        let num_rows = 256;
+        let input_coeffs = generate_test_coefficients(num_rows * 2);
+        let tau = 49; // Dilithium Level 3 challenge weight
+        let hint_sum = 30; // Example hint sum
+
+        let challenge = generate_challenge_polynomial(num_rows, tau, 12345);
+        let hints = generate_hint_vector(num_rows, hint_sum, 54321);
+
+        let trace = build_extended_trace(num_rows, &input_coeffs, &challenge, &hints);
+
+        let _two = BaseElement::ONE + BaseElement::ONE;
+        let r_sqrt = BaseElement::from(R_SQRT);
+        let _q = BaseElement::from(Q);
+        let _r = BaseElement::from(crate::constants::R);
+        let _two_pow_k = BaseElement::from(TWO_POW_K);
+
+        println!("Testing Phase II extended trace ({} rows)...", num_rows);
+
+        for row in 0..(num_rows - 1) {
+            // === Base Constraints (sampled) ===
+            let m_ntt = trace.get(columns::M_NTT, row);
+            let m_h = trace.get(columns::M_H, row);
+            let m_l = trace.get(columns::M_L, row);
+            let c_decomp = m_ntt - (m_h * r_sqrt + m_l);
+            assert_eq!(c_decomp, BaseElement::ZERO, "NTT decomp failed at row {}", row);
+
+            // === Sampler Constraints ===
+            let c_val = trace.get(columns::CHALLENGE_C, row);
+            let c_sq = c_val * c_val;
+            let c_sample = c_sq * (c_sq - BaseElement::ONE);
+            assert_eq!(c_sample, BaseElement::ZERO, "C_Sample failed at row {}", row);
+
+            // === Hint Constraints ===
+            let h = trace.get(columns::HINT_H, row);
+            let h_binary = h * (h - BaseElement::ONE);
+            assert_eq!(h_binary, BaseElement::ZERO, "H binary failed at row {}", row);
+        }
+
+        // Verify challenge weight (count of non-zero coefficients)
+        let actual_tau: usize = (0..num_rows)
+            .filter(|&row| {
+                let c_indicator = trace.get(columns::C_INDICATOR, row);
+                c_indicator == BaseElement::ONE
+            })
+            .count();
+        assert_eq!(actual_tau, tau, "Challenge weight mismatch");
+
+        println!("✅ Phase II extended trace integration test passed!");
+        println!("   Challenge weight τ = {}", tau);
+        println!("   Hint sum = {}", hint_sum);
     }
 }

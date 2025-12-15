@@ -109,3 +109,33 @@ pub const GAMMA1: u64 = 1u64 << 17;
 /// Dilithium γ2 parameter (low-order rounding range)
 /// For Dilithium2: γ2 = (Q-1)/88 = 95232
 pub const GAMMA2: u64 = 95232;
+
+// ============================================================================
+// Phase II Extension: Sampler Gate and Hint Gate Constants
+// ============================================================================
+
+/// Extended trace width for Phase II (37 + 8 = 45 columns)
+/// New columns for Sampler Gate and Hint Gate:
+/// 37: CHALLENGE_C - Challenge coefficient c_i ∈ {-1, 0, 1}
+/// 38: C_INDICATOR - Indicator I_i ∈ {0, 1} for non-zero c_i
+/// 39: C_SIGN - Sign bit for c_i: 0 = +1, 1 = -1
+/// 40: KECCAK_BIT - Keccak output bit for position selection
+/// 41: S_SAMPLE - Sampler operation selector
+/// 42: HINT_H - Hint value h_i ∈ {0, 1}
+/// 43: HINT_ACC - Accumulated hint sum
+/// 44: S_HINT - Hint operation selector
+pub const TRACE_WIDTH_EXTENDED: usize = 45;
+
+/// Number of non-zero coefficients in challenge polynomial c
+/// For Dilithium Level 3: τ = 49
+pub const TAU: usize = 49;
+
+/// Dilithium parameter τ (number of ±1 coefficients in challenge c)
+/// For Dilithium2: τ = 39
+/// For Dilithium3: τ = 49
+/// For Dilithium5: τ = 60
+pub const CHALLENGE_WEIGHT: u64 = 49;
+
+/// Maximum hint weight (number of 1s in hint vector)
+/// For Dilithium Level 3: ω = 55
+pub const OMEGA: u64 = 55;
