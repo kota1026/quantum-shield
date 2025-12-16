@@ -210,6 +210,7 @@ fn dilithium_verification(input_coeffs: &[u64], trace_size: usize) -> Verificati
     if coeffs.len() < trace_size {
         coeffs.resize(trace_size, 0);
     }
+    let coeffs_len = coeffs.len();
 
     // Perform NTT butterfly operations
     for i in 0..trace_size.min(input_coeffs.len()).saturating_sub(1) {
@@ -217,7 +218,7 @@ fn dilithium_verification(input_coeffs: &[u64], trace_size: usize) -> Verificati
         let omega = TWIDDLE_FACTORS[omega_idx];
 
         let a = coeffs[i];
-        let b = coeffs[(i + 1) % coeffs.len()];
+        let b = coeffs[(i + 1) % coeffs_len];
 
         let (b_prime, m_ntt) = montgomery_butterfly(a, b, omega);
 
@@ -230,15 +231,15 @@ fn dilithium_verification(input_coeffs: &[u64], trace_size: usize) -> Verificati
             result.all_constraints_passed = false;
         }
 
-        coeffs[(i + 1) % coeffs.len()] = b_prime % Q;
+        coeffs[(i + 1) % coeffs_len] = b_prime % Q;
         result.ntt_operations += 1;
     }
 
     // 2. FMA operations (matrix-vector multiplication in Dilithium)
     for i in 0..trace_size.min(input_coeffs.len()).saturating_sub(2) {
         let a = coeffs[i];
-        let b = coeffs[(i + 1) % coeffs.len()];
-        let c = coeffs[(i + 2) % coeffs.len()];
+        let b = coeffs[(i + 1) % coeffs_len];
+        let c = coeffs[(i + 2) % coeffs_len];
 
         let (r_fma, m_fma) = montgomery_fma(a, b, c);
 
@@ -299,9 +300,9 @@ fn dilithium_verification(input_coeffs: &[u64], trace_size: usize) -> Verificati
 
     // 5. Keccak chi step verification (for SHAKE256 in Dilithium)
     for i in 0..trace_size.min(8) {
-        let a = (coeffs[i % coeffs.len()] & 1) as u64;
-        let b = ((coeffs[i % coeffs.len()] >> 1) & 1) as u64;
-        let c = ((coeffs[i % coeffs.len()] >> 2) & 1) as u64;
+        let a = (coeffs[i % coeffs_len] & 1) as u64;
+        let b = ((coeffs[i % coeffs_len] >> 1) & 1) as u64;
+        let c = ((coeffs[i % coeffs_len] >> 2) & 1) as u64;
 
         let (k_and, k_out) = keccak_chi_step(a, b, c);
 
