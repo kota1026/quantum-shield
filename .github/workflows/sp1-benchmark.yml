@@ -35,7 +35,7 @@ jobs:
           components: llvm-tools
 
       - name: Install SP1 RISC-V Target
-        run: rustup target add riscv32im-unknown-none-elf || true
+        run: rustup target add riscv32im-succinct-zkvm || true
 
       - name: Cache Cargo registry
         uses: actions/cache@v4
