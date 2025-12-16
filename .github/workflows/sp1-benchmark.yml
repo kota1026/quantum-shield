@@ -19,8 +19,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Rust default toolchain
-        run: rustup default stable
+      - name: Clear conflicting environment variables
+        run: |
+          # RUSTUP_TOOLCHAINが設定されている場合、それをunsetで削除
+          unset RUSTUP_TOOLCHAIN
+          # $HOME/.sp1/bin にパスが通っているか確認し、通っていなければ通す
+          if [ -d "$HOME/.sp1/bin" ]; then
+            echo "$HOME/.sp1/bin" >> $GITHUB_PATH
+          fi
 
       - name: Build and Run Benchmark in Docker
         run: cd sp1-bench/script && cargo run --release 2>&1 | tee benchmark-output.txt
