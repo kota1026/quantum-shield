@@ -19,6 +19,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Rust default toolchain
+        run: rustup default stable
+
       - name: Build and Run Benchmark in Docker
         run: cd sp1-bench/script && cargo run --release 2>&1 | tee benchmark-output.txt
 
