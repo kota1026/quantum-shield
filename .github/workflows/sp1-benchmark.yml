@@ -16,7 +16,7 @@ jobs:
   benchmark:
     name: SP1 Benchmark
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -26,16 +26,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev build-essential
-
-      - name: Setup Rust toolchain and Components
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          components: llvm-tools
-
-      - name: Install SP1 RISC-V Target
-        run: rustup target add riscv32im-succinct-zkvm || true
 
       - name: Cache Cargo registry
         uses: actions/cache@v4
@@ -48,15 +38,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Install SP1 toolchain
+      - name: Install SP1 Toolchain and Components
         run: |
-          curl -L https://sp1up.succinct.xyz | bash
-          echo "$HOME/.sp1/bin" >> $GITHUB_PATH
+          # 1. Install Nightly with llvm-tools component
+          rustup toolchain install nightly --component llvm-tools
+          rustup default nightly
 
-      - name: Setup SP1
-        run: |
+          # 2. Install SP1 official toolchain
+          curl -L https://sp1up.succinct.xyz | bash
           export PATH="$HOME/.sp1/bin:$PATH"
+          echo "$HOME/.sp1/bin" >> $GITHUB_PATH
           sp1up
+
+          # 3. Install SP1 RISC-V target (if not already installed by sp1up)
+          rustup target add riscv32im-succinct-zkvm || true
 
       - name: Build main project
         run: cargo build --release
