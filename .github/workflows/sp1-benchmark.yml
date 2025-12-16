@@ -11,26 +11,15 @@ on:
 jobs:
   sp1-benchmark:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/succinctlabs/sp1:latest
     timeout-minutes: 60
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev build-essential
-
-      - name: Set up SP1 Build Environment (Final Attempt)
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2024-05-01
-          override: true
-          components: rust-src, llvm-tools
-          target: riscv32im-succinct-zkvm
-
-      - name: Build and Run Benchmark
+      - name: Build and Run Benchmark in Docker
         run: cd sp1-bench/script && cargo run --release 2>&1 | tee benchmark-output.txt
 
       - name: Upload benchmark results
