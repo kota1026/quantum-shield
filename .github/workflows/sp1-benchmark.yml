@@ -21,7 +21,7 @@ jobs:
 
       - name: Clear conflicting environment variables
         run: |
-          unset RUSTUP_TOOLCHAIN
+          echo "RUSTUP_TOOLCHAIN=" >> $GITHUB_ENV
           if [ -d "$HOME/.sp1/bin" ]; then
             echo "$HOME/.sp1/bin" >> $GITHUB_PATH
           fi
@@ -30,6 +30,8 @@ jobs:
         run: rustup default stable
 
       - name: Build and Run Benchmark in Docker
+        env:
+          RUSTUP_TOOLCHAIN: ""
         run: cd sp1-bench/script && cargo run --release 2>&1 | tee benchmark-output.txt
 
       - name: Upload benchmark results
