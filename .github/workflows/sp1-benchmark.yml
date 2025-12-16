@@ -38,19 +38,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Install SP1 Toolchain and Components (Official Method)
+      - name: Install SP1 Toolchain and Components (Path Fix)
         run: |
-          # 1. SP1公式インストールを実行。これにより、必要なNightlyとLLVMがインストールされる
+          # 1. SP1公式インストールを実行 (HOME/.sp1/bin にインストールされる)
           curl -L https://sp1up.succinct.xyz | bash
 
-          # 2. SP1のbinディレクトリを現在のセッションの$PATHに永続的に追加
+          # 2. SP1のインストールディレクトリを$PATHに追加 (ACTIONSに確実に認識させる)
           echo "$HOME/.sp1/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.sp1/bin:$PATH"
 
-          # 3. RISC-Vターゲットをインストール
-          rustup target add riscv32im-succinct-zkvm
+          # 3. sp1upを実行してツールチェーンをセットアップ
+          sp1up
 
-          # 4. 依存するLLVMコンポーネントを確実に追加
-          rustup component add llvm-tools --toolchain nightly
+          # 4. RISC-Vターゲットをインストール
+          rustup target add riscv32im-succinct-zkvm || true
+
+          # 5. 依存するLLVMコンポーネントを確実に追加
+          rustup component add llvm-tools --toolchain nightly || true
 
       - name: Build and Run Benchmark
         run: cd sp1-bench/script && cargo run --release 2>&1 | tee benchmark-output.txt
