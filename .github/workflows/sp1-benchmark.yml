@@ -23,18 +23,19 @@ jobs:
         run: |
           echo "=== Environment diagnostics ==="
           echo "PATH: $PATH"
-          which cargo || echo "cargo not in PATH"
-          which rustc || echo "rustc not in PATH"
-          which sp1up || echo "sp1up not in PATH"
-          ls -la /root/.sp1/bin/ 2>/dev/null || echo "No /root/.sp1/bin"
-          ls -la /home/*/.sp1/bin/ 2>/dev/null || echo "No home .sp1/bin"
-          ls -la ~/.cargo/bin/ 2>/dev/null || echo "No ~/.cargo/bin"
+          which cargo && cargo --version
+          which rustc && rustc --version
           echo "=== rustup status ==="
           rustup show 2>/dev/null || echo "rustup show failed"
+          # Install stable toolchain and set as default
+          rustup install stable
+          rustup default stable
 
       - name: Install SP1 toolchain
         run: |
-          # Install SP1 if not present
+          # Install wget and curl if not present
+          apt-get update && apt-get install -y curl wget || true
+          # Install SP1
           curl -L https://sp1up.succinct.xyz | bash
           export PATH="$HOME/.sp1/bin:$PATH"
           sp1up
