@@ -7,8 +7,11 @@
 //! 4. Reports performance metrics
 
 use serde::{Deserialize, Serialize};
-use sp1_sdk::{ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, ProverClient, SP1Stdin};
 use std::time::Instant;
+
+/// The ELF we want to execute inside the zkVM.
+pub const GUEST_ELF: &[u8] = include_elf!("dilithium-sp1-program");
 
 /// Input structure matching the guest program
 #[derive(Serialize, Deserialize, Clone)]
@@ -57,7 +60,7 @@ fn main() {
 
     // Load the ELF (compiled guest program)
     println!("[2/4] Loading compiled guest program (ELF)...");
-    let elf = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
+    let elf = GUEST_ELF;
 
     let config = BenchmarkConfig::default();
 
