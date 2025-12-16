@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sp1-zkvm = "3.0"
+sp1-zkvm = "5.2"
 
 # Winterfell STARK prover/verifier
 winterfell = { version = "0.10", default-features = false }
