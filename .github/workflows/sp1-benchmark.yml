@@ -19,22 +19,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup SP1 environment
+      - name: Setup Rust toolchain
         run: |
           echo "=== Environment diagnostics ==="
           echo "PATH: $PATH"
-          which cargo && cargo --version
-          which rustc && rustc --version
-          echo "=== rustup status ==="
-          rustup show 2>/dev/null || echo "rustup show failed"
+          which cargo || echo "cargo not found"
+          which rustc || echo "rustc not found"
+          which rustup || echo "rustup not found"
           # Install stable toolchain and set as default
-          rustup install stable
+          rustup install stable || true
           rustup default stable
 
-      - name: Install SP1 toolchain
+      - name: Install dependencies
         run: |
           # Install wget and curl if not present
           apt-get update && apt-get install -y curl wget || true
+
+      - name: Install SP1 toolchain
+        run: |
           # Install SP1
           curl -L https://sp1up.succinct.xyz | bash
           export PATH="$HOME/.sp1/bin:$PATH"
