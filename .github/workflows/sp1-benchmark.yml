@@ -11,37 +11,27 @@ on:
 jobs:
   sp1-benchmark:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/succinctlabs/sp1:latest
     timeout-minutes: 60
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Rust toolchain
-        run: |
-          echo "=== Environment diagnostics ==="
-          echo "PATH: $PATH"
-          which cargo || echo "cargo not found"
-          which rustc || echo "rustc not found"
-          which rustup || echo "rustup not found"
-          # Install stable toolchain and set as default
-          rustup install stable || true
-          rustup default stable
-
-      - name: Install dependencies
-        run: |
-          # Install wget and curl if not present
-          apt-get update && apt-get install -y curl wget || true
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install SP1 toolchain
         run: |
           # Install SP1
           curl -L https://sp1up.succinct.xyz | bash
-          export PATH="$HOME/.sp1/bin:$PATH"
-          sp1up
+          source ~/.bashrc || true
+          ~/.sp1/bin/sp1up
           echo "$HOME/.sp1/bin" >> $GITHUB_PATH
+
+      - name: Verify SP1 installation
+        run: |
+          export PATH="$HOME/.sp1/bin:$PATH"
+          cargo prove --version || echo "cargo prove not found"
 
       - name: Build and Run Benchmark
         run: |
