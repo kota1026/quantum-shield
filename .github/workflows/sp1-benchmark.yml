@@ -22,32 +22,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev build-essential
 
-      # 1. 最優先でRUSTUP_TOOLCHAINをクリアする
-      - name: Clear conflicting RUSTUP_TOOLCHAIN variable
-        run: |
-          # $GITHUB_ENV に空の値を書き込み、以降のステップに確実に引き継ぐ
-          echo "RUSTUP_TOOLCHAIN=" >> $GITHUB_ENV
-
-      # 2. Nightly Rust Toolchainをインストール
-      - name: Setup Nightly Rust Toolchain
-        uses: dtolnay/rust-toolchain@nightly
+      - name: Set up SP1 Build Environment (Final Attempt)
+        uses: actions-rs/toolchain@v1
         with:
-          components: llvm-tools
+          toolchain: nightly-2024-05-01
+          override: true
+          components: rust-src, llvm-tools
+          target: riscv32im-succinct-zkvm
 
-      # 3. SP1の依存関係をインストール
-      - name: Install SP1 Toolchain and Dependencies
-        run: |
-          # SP1公式インストールを実行
-          curl -L https://sp1up.succinct.xyz | bash
-
-          # RISC-Vターゲットを追加 (Nightly環境へ)
-          rustup target add riscv32im-succinct-zkvm || true
-
-      # 4. ビルドとベンチマークの実行
       - name: Build and Run Benchmark
         run: cd sp1-bench/script && cargo run --release 2>&1 | tee benchmark-output.txt
-        env:
-          PATH: ${{ github.workspace }}/.sp1/bin:/home/runner/.sp1/bin:${{ env.PATH }}
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
