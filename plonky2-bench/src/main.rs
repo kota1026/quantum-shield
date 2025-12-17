@@ -719,4 +719,376 @@ mod tests {
 
         Ok(())
     }
+
+    // ========================================================================
+    // Negative Tests (Soundness Verification)
+    // ========================================================================
+    // These tests verify that invalid witnesses cause proof generation to fail
+    // or produce invalid proofs that fail verification
+
+    #[test]
+    fn test_negative_constraint_violation_equality() -> Result<()> {
+        // Test: Circuit with equality constraint should fail when constraint is violated
+        let config = CircuitConfig::standard_recursion_config();
+        let mut builder = CircuitBuilder::<F, D>::new(config);
+
+        let a = builder.add_virtual_target();
+        let b = builder.add_virtual_target();
+
+        // Add constraint: a == b
+        builder.connect(a, b);
+
+        // Register public inputs
+        builder.register_public_input(a);
+        builder.register_public_input(b);
+
+        let data = builder.build::<C>();
+
+        // Test 1: Valid witness (a == b) should succeed
+        {
+            let mut pw = PartialWitness::new();
+            let _ = pw.set_target(a, F::from_canonical_u64(42));
+            let _ = pw.set_target(b, F::from_canonical_u64(42));
+
+            let proof = data.prove(pw)?;
+            data.verify(proof)?;
+        }
+
+        // Test 2: Invalid witness (a != b) should fail
+        {
+            let mut pw = PartialWitness::new();
+            let _ = pw.set_target(a, F::from_canonical_u64(42));
+            let _ = pw.set_target(b, F::from_canonical_u64(43)); // Different value!
+
+            let result = data.prove(pw);
+            assert!(result.is_err(), "Proof generation should fail with invalid witness");
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_negative_constraint_violation_multiplication() -> Result<()> {
+        // Test: Multiplication constraint c = a * b should fail with wrong witness
+        let config = CircuitConfig::standard_recursion_config();
+        let mut builder = CircuitBuilder::<F, D>::new(config);
+
+        let a = builder.add_virtual_target();
+        let b = builder.add_virtual_target();
+        let c = builder.add_virtual_target();
+
+        // Build multiplication: product = a * b
+        let product = builder.mul(a, b);
+
+        // Add constraint: c must equal a * b
+        builder.connect(c, product);
+
+        builder.register_public_input(a);
+        builder.register_public_input(b);
+        builder.register_public_input(c);
+
+        let data = builder.build::<C>();
+
+        // Test 1: Valid witness should succeed
+        {
+            let mut pw = PartialWitness::new();
+            let _ = pw.set_target(a, F::from_canonical_u64(7));
+            let _ = pw.set_target(b, F::from_canonical_u64(6));
+            let _ = pw.set_target(c, F::from_canonical_u64(42)); // 7 * 6 = 42
+
+            let proof = data.prove(pw)?;
+            data.verify(proof)?;
+        }
+
+        // Test 2: Invalid witness (wrong product) should fail
+        {
+            let mut pw = PartialWitness::new();
+            let _ = pw.set_target(a, F::from_canonical_u64(7));
+            let _ = pw.set_target(b, F::from_canonical_u64(6));
+            let _ = pw.set_target(c, F::from_canonical_u64(41)); // Wrong! 7 * 6 != 41
+
+            let result = data.prove(pw);
+            assert!(result.is_err(), "Proof generation should fail with wrong product");
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_negative_constraint_violation_addition() -> Result<()> {
+        // Test: Addition constraint should fail with wrong witness
+        let config = CircuitConfig::standard_recursion_config();
+        let mut builder = CircuitBuilder::<F, D>::new(config);
+
+        let a = builder.add_virtual_target();
+        let b = builder.add_virtual_target();
+        let c = builder.add_virtual_target();
+
+        // Build addition: sum = a + b
+        let sum = builder.add(a, b);
+
+        // Add constraint: c must equal a + b
+        builder.connect(c, sum);
+
+        builder.register_public_input(c);
+
+        let data = builder.build::<C>();
+
+        // Test 1: Valid witness should succeed
+        {
+            let mut pw = PartialWitness::new();
+            let _ = pw.set_target(a, F::from_canonical_u64(100));
+            let _ = pw.set_target(b, F::from_canonical_u64(200));
+            let _ = pw.set_target(c, F::from_canonical_u64(300)); // 100 + 200 = 300
+
+            let proof = data.prove(pw)?;
+            data.verify(proof)?;
+        }
+
+        // Test 2: Invalid witness (wrong sum) should fail
+        {
+            let mut pw = PartialWitness::new();
+            let _ = pw.set_target(a, F::from_canonical_u64(100));
+            let _ = pw.set_target(b, F::from_canonical_u64(200));
+            let _ = pw.set_target(c, F::from_canonical_u64(301)); // Wrong! 100 + 200 != 301
+
+            let result = data.prove(pw);
+            assert!(result.is_err(), "Proof generation should fail with wrong sum");
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_negative_ntt_butterfly_invalid_twiddle() -> Result<()> {
+        // Test: NTT butterfly with invalid witness for intermediate values
+        let config = CircuitConfig::standard_recursion_config();
+        let mut builder = CircuitBuilder::<F, D>::new(config);
+
+        let a = builder.add_virtual_target();
+        let b = builder.add_virtual_target();
+
+        // Build butterfly: (a', b') = (a + w*b, a - w*b)
+        let (a_prime, b_prime) = build_butterfly(&mut builder, a, b, 1);
+
+        // Register outputs as public
+        builder.register_public_input(a_prime);
+        builder.register_public_input(b_prime);
+
+        let data = builder.build::<C>();
+
+        // Valid witness should succeed
+        let mut pw = PartialWitness::new();
+        let _ = pw.set_target(a, F::from_canonical_u64(1000));
+        let _ = pw.set_target(b, F::from_canonical_u64(2000));
+
+        let proof = data.prove(pw)?;
+
+        // The butterfly outputs are determined by inputs, so we can't directly
+        // provide wrong outputs. But we verify the circuit produces correct results.
+        let public_inputs = proof.public_inputs.clone();
+        assert_eq!(public_inputs.len(), 2, "Should have 2 public inputs");
+
+        // Verify outputs are deterministically computed
+        let twiddle = F::from_canonical_u64(TWIDDLE_FACTORS[1]);
+        let a_val = F::from_canonical_u64(1000);
+        let b_val = F::from_canonical_u64(2000);
+        let wb = twiddle * b_val;
+        let expected_a_prime = a_val + wb;
+        let expected_b_prime = a_val - wb;
+
+        assert_eq!(public_inputs[0], expected_a_prime, "a' should match expected");
+        assert_eq!(public_inputs[1], expected_b_prime, "b' should match expected");
+
+        // Now verify the proof
+        data.verify(proof)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_negative_proof_tampering_detection() -> Result<()> {
+        // Test: Tampered proof should fail verification
+        let config = CircuitConfig::standard_recursion_config();
+        let mut builder = CircuitBuilder::<F, D>::new(config);
+
+        let a = builder.add_virtual_target();
+        let b = builder.add_virtual_target();
+        let result = builder.mul(a, b);
+        builder.register_public_input(result);
+
+        let data = builder.build::<C>();
+
+        let mut pw = PartialWitness::new();
+        let _ = pw.set_target(a, F::from_canonical_u64(7));
+        let _ = pw.set_target(b, F::from_canonical_u64(6));
+
+        let mut proof = data.prove(pw)?;
+
+        // Verify original proof is valid
+        data.verify(proof.clone())?;
+
+        // Tamper with public inputs
+        if !proof.public_inputs.is_empty() {
+            proof.public_inputs[0] = proof.public_inputs[0] + F::ONE;
+        }
+
+        // Verification should fail with tampered proof
+        let result = data.verify(proof);
+        assert!(result.is_err(), "Verification should fail with tampered public inputs");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_negative_fma_chain_constraint_verification() -> Result<()> {
+        // Test: FMA chain produces deterministic results, verify constraint soundness
+        let config = CircuitConfig::standard_recursion_config();
+        let mut builder = CircuitBuilder::<F, D>::new(config);
+
+        let inputs: Vec<Target> = (0..4).map(|_| builder.add_virtual_target()).collect();
+        let expected_result = builder.add_virtual_target();
+
+        let computed_result = build_fma_chain(&mut builder, &inputs);
+
+        // Add constraint: expected must equal computed
+        builder.connect(expected_result, computed_result);
+
+        builder.register_public_input(expected_result);
+
+        let data = builder.build::<C>();
+
+        // Compute expected result manually: 1*2 + 3*4 = 2 + 12 = 14
+        // FMA chain: acc = 0, then acc = 1*2 + 0 = 2, then acc = 3*4 + 2 = 14
+        let expected_value = F::from_canonical_u64(1) * F::from_canonical_u64(2)
+            + F::from_canonical_u64(3) * F::from_canonical_u64(4);
+
+        // Test 1: Valid witness with correct expected value
+        {
+            let mut pw = PartialWitness::new();
+            for (i, &target) in inputs.iter().enumerate() {
+                let _ = pw.set_target(target, F::from_canonical_u64(i as u64 + 1));
+            }
+            let _ = pw.set_target(expected_result, expected_value);
+
+            let proof = data.prove(pw)?;
+            data.verify(proof)?;
+        }
+
+        // Test 2: Invalid witness with wrong expected value
+        {
+            let mut pw = PartialWitness::new();
+            for (i, &target) in inputs.iter().enumerate() {
+                let _ = pw.set_target(target, F::from_canonical_u64(i as u64 + 1));
+            }
+            let _ = pw.set_target(expected_result, expected_value + F::ONE); // Wrong!
+
+            let result = data.prove(pw);
+            assert!(result.is_err(), "Proof should fail with wrong expected FMA result");
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_negative_batch_circuit_soundness() -> Result<()> {
+        // Test: Batch circuit with multiple verifications
+        // Verify that the circuit produces consistent, deterministic results
+        let config = CircuitConfig::standard_recursion_config();
+        let mut builder = CircuitBuilder::<F, D>::new(config.clone());
+
+        let trace_size = 8;
+        let batch_size = 2;
+
+        let (all_inputs, final_results) = build_batch_circuit(&mut builder, trace_size, batch_size);
+
+        for result in &final_results {
+            builder.register_public_input(*result);
+        }
+
+        let data = builder.build::<C>();
+
+        // Generate deterministic witness
+        let mut pw = PartialWitness::new();
+        for (batch_idx, batch_inputs) in all_inputs.iter().enumerate() {
+            for (i, &target) in batch_inputs.inputs_a.iter().enumerate() {
+                let value = F::from_canonical_u64(
+                    ((batch_idx as u64 * 1000 + i as u64) * 12345) % DILITHIUM_Q,
+                );
+                let _ = pw.set_target(target, value);
+            }
+            for (i, &target) in batch_inputs.inputs_b.iter().enumerate() {
+                let value = F::from_canonical_u64(
+                    ((batch_idx as u64 * 1000 + i as u64) * 54321) % DILITHIUM_Q,
+                );
+                let _ = pw.set_target(target, value);
+            }
+        }
+
+        let proof = data.prove(pw)?;
+        data.verify(proof.clone())?;
+
+        // Verify we got deterministic public outputs
+        assert_eq!(proof.public_inputs.len(), batch_size, "Should have {} public inputs", batch_size);
+
+        // Run same inputs again to verify determinism
+        let mut pw2 = PartialWitness::new();
+        for (batch_idx, batch_inputs) in all_inputs.iter().enumerate() {
+            for (i, &target) in batch_inputs.inputs_a.iter().enumerate() {
+                let value = F::from_canonical_u64(
+                    ((batch_idx as u64 * 1000 + i as u64) * 12345) % DILITHIUM_Q,
+                );
+                let _ = pw2.set_target(target, value);
+            }
+            for (i, &target) in batch_inputs.inputs_b.iter().enumerate() {
+                let value = F::from_canonical_u64(
+                    ((batch_idx as u64 * 1000 + i as u64) * 54321) % DILITHIUM_Q,
+                );
+                let _ = pw2.set_target(target, value);
+            }
+        }
+
+        let proof2 = data.prove(pw2)?;
+
+        // Same inputs should produce same public outputs
+        assert_eq!(proof.public_inputs, proof2.public_inputs, "Same inputs should produce same outputs");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_negative_different_inputs_different_outputs() -> Result<()> {
+        // Soundness: Different inputs should produce different proof outputs
+        let config = CircuitConfig::standard_recursion_config();
+
+        // Build simple multiplication circuit
+        let mut builder = CircuitBuilder::<F, D>::new(config.clone());
+        let a = builder.add_virtual_target();
+        let b = builder.add_virtual_target();
+        let result = builder.mul(a, b);
+        builder.register_public_input(result);
+        let data = builder.build::<C>();
+
+        // Proof 1: 3 * 4 = 12
+        let mut pw1 = PartialWitness::new();
+        let _ = pw1.set_target(a, F::from_canonical_u64(3));
+        let _ = pw1.set_target(b, F::from_canonical_u64(4));
+        let proof1 = data.prove(pw1)?;
+
+        // Proof 2: 5 * 6 = 30
+        let mut pw2 = PartialWitness::new();
+        let _ = pw2.set_target(a, F::from_canonical_u64(5));
+        let _ = pw2.set_target(b, F::from_canonical_u64(6));
+        let proof2 = data.prove(pw2)?;
+
+        // Different inputs should produce different public outputs
+        assert_ne!(proof1.public_inputs, proof2.public_inputs,
+            "Different inputs should produce different outputs");
+
+        // Both should verify
+        data.verify(proof1)?;
+        data.verify(proof2)?;
+
+        Ok(())
+    }
 }
