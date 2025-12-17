@@ -6,12 +6,15 @@
 //! Features:
 //! - Montgomery reduction gadget optimized for Goldilocks field
 //! - Batch NTT verification circuit
+//! - Bridge aggregation circuit for Quantum Shield Bridge
 //! - Detailed metrics: proof size, gate count, constraint degree
 //!
 //! Dilithium constants from zk-dilithium-ntt:
 //! - Q = 8,380,417 (Dilithium prime modulus)
 //! - N = 256 (NTT coefficients)
 //! - ZETA = 1753 (primitive 512-th root of unity mod Q)
+
+pub mod bridge_aggregation;
 
 use anyhow::Result;
 use plonky2::field::goldilocks_field::GoldilocksField;
@@ -609,6 +612,38 @@ fn main() -> Result<()> {
             prove_ratio, first.prove_ms, last.prove_ms
         );
         println!("  Efficiency gain:  {:.2}x ops/ms", amortization);
+    }
+
+    // Phase 4: Bridge Aggregation Circuit
+    println!();
+    println!("============================================================");
+    println!("Phase 4: Bridge Aggregation Circuit (Quantum Shield Bridge)");
+    println!("============================================================");
+    println!();
+    println!("Target: 8 transfers aggregated in < 2 seconds");
+    println!();
+
+    let bridge_batch_sizes = vec![1, 2, 4, 8];
+    match bridge_aggregation::run_bridge_benchmark(&bridge_batch_sizes) {
+        Ok(results) => {
+            println!();
+            println!("Bridge Aggregation Summary:");
+            println!("{:<12} {:>12} {:>12} {:>12} {:>10}",
+                "Batch", "Prove(ms)", "Verify(ms)", "Proof(bytes)", "Target");
+            println!("{}", "-".repeat(60));
+            for r in &results {
+                println!("{:<12} {:>12.2} {:>12.2} {:>12} {:>10}",
+                    r.batch_size,
+                    r.prove_ms,
+                    r.verify_ms,
+                    r.proof_size_bytes,
+                    if r.meets_target { "PASS" } else { "FAIL" }
+                );
+            }
+        }
+        Err(e) => {
+            warn!("Bridge aggregation benchmark failed: {}", e);
+        }
     }
 
     // SP1 Comparison Notes

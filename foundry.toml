@@ -1,0 +1,37 @@
+[profile.default]
+src = "contracts"
+out = "out"
+libs = ["lib"]
+test = "test"
+script = "scripts"
+
+# Solidity settings
+solc = "0.8.20"
+optimizer = true
+optimizer_runs = 200
+via_ir = false
+
+# Testing
+fuzz = { runs = 256 }
+verbosity = 2
+
+# Gas reporting
+gas_reports = ["QuantumShieldBridge", "SP1Groth16Verifier"]
+
+# Remappings
+remappings = [
+    "forge-std/=lib/forge-std/src/"
+]
+
+[profile.ci]
+fuzz = { runs = 10000 }
+verbosity = 3
+
+[fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = true
+
+[doc]
+out = "docs"
+title = "Quantum Shield Bridge"
