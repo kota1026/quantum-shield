@@ -1,0 +1,21 @@
+[package]
+name = "plonky2-verifier-core"
+version = "0.1.0"
+edition = "2021"
+description = "Lightweight Plonky2 proof verifier for no_std environments (SP1 zkVM compatible)"
+
+[dependencies]
+# Serialization (no_std compatible)
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+
+# Core field arithmetic (extracted from plonky2_field for no_std)
+# We implement our own Goldilocks field for no_std
+
+[features]
+default = ["std"]
+std = []
+
+[dev-dependencies]
+# For testing (plonky2 requires nightly, so we test our implementation standalone)
+bincode = "1.3"
+rand = "0.8"

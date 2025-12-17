@@ -2096,6 +2096,7 @@ dependencies = [
 name = "dilithium-sp1-program"
 version = "0.1.0"
 dependencies = [
+ "plonky2-verifier-core",
  "serde",
  "sp1-zkvm",
 ]
@@ -4143,6 +4144,13 @@ checksum = "f950b2377845cebe5cf8b5165cb3cc1a5e0fa5cfa3e1f7f55707d8fd82e0a7b7"
 dependencies = [
  "der",
  "spki",
+]
+
+[[package]]
+name = "plonky2-verifier-core"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
