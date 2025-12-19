@@ -2,7 +2,7 @@
 name = "shared-types"
 version = "0.1.0"
 edition = "2021"
-description = "Shared types for SP1-Plonky2 recursive proof system"
+description = "Shared types for Quantum Shield Optimistic Attestation Bridge"
 
 [dependencies]
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }

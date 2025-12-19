@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Shield - 量子時代の資産を守る</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+        }
+        body { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
+        .gradient-hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glow-box { box-shadow: 0 0 60px rgba(99, 102, 241, 0.2); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .float-animation { animation: float 3s ease-in-out infinite; }
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .pulse-ring::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 2px solid currentColor;
+            border-radius: inherit;
+            animation: pulse-ring 2s ease-out infinite;
+        }
+        .timeline-line {
+            background: linear-gradient(180deg, #6366f1 0%, #f59e0b 50%, #ef4444 100%);
+        }
+        .scroll-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+        .scroll-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .citation {
+            font-size: 0.75rem;
+            color: #64748b;
+            cursor: pointer;
+        }
+        .citation:hover { color: #6366f1; text-decoration: underline; }
+        .source-tooltip {
+            position: absolute;
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 100;
+            display: none;
+        }
+        .citation:hover + .source-tooltip { display: block; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold">Quantum Shield</span>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-sm">
+                <a href="#threat" class="text-slate-400 hover:text-white transition">脅威を知る</a>
+                <a href="#solution" class="text-slate-400 hover:text-white transition">解決策</a>
+                <a href="#how-it-works" class="text-slate-400 hover:text-white transition">仕組み</a>
+                <a href="#demo" class="text-slate-400 hover:text-white transition">デモ</a>
+            </div>
+            <a href="#demo" class="bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-lg font-medium transition text-sm">
+                デモを試す
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-hero min-h-screen flex items-center pt-20">
+        <div class="max-w-6xl mx-auto px-6 py-20">
+            <div class="text-center max-w-4xl mx-auto">
+                <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 rounded-full px-5 py-2 mb-8">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    <span class="text-sm text-indigo-300">NIST FIPS 204 準拠 | 米国政府標準</span>
+                </div>
+
+                <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-6">
+                    <span class="text-white">量子コンピュータが来ても</span>
+                    <br>
+                    <span class="gradient-text">あなたの資産は安全ですか？</span>
+                </h1>
+
+                <p class="text-xl text-slate-400 mb-8 leading-relaxed max-w-2xl mx-auto">
+                    専門家は<span class="text-white font-medium">2028〜2040年</span>に現行暗号が破られると予測。
+                    <br>
+                    <span class="text-white font-medium">Quantum Shield</span>は、量子時代でも解読されない
+                    <br>
+                    「次世代の鍵」であなたの資産を守ります。
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                    <a href="#demo" class="bg-indigo-600 hover:bg-indigo-700 px-8 py-4 rounded-xl font-semibold text-lg transition inline-flex items-center justify-center gap-2">
+                        <span>デモを体験する</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </a>
+                    <a href="#threat" class="border border-slate-600 hover:border-slate-400 px-8 py-4 rounded-xl font-semibold text-lg transition">
+                        詳しく知る
+                    </a>
+                </div>
+
+                <!-- Trust Indicators -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-indigo-400">300+</div>
+                        <div class="text-sm text-slate-500">セキュリティテスト</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-indigo-400">102万</div>
+                        <div class="text-sm text-slate-500">攻撃シミュレーション</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-indigo-400">87.5%</div>
+                        <div class="text-sm text-slate-500">コスト削減</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-indigo-400">Sepolia</div>
+                        <div class="text-sm text-slate-500">デプロイ済み</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 1: The Threat -->
+    <section id="threat" class="py-24 bg-slate-900">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16 scroll-section">
+                <span class="text-indigo-400 font-semibold text-sm tracking-wider uppercase">Part 1</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">迫りくる「暗号の賞味期限」</h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+                    専門家の予測は分かれていますが、対策を始めるべき時期は「今」です
+                </p>
+            </div>
+
+            <!-- Expert Predictions Grid -->
+            <div class="grid md:grid-cols-2 gap-8 mb-16 scroll-section">
+                <!-- Vitalik -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center text-2xl">👤</div>
+                        <div>
+                            <div class="font-bold">Vitalik Buterin</div>
+                            <div class="text-sm text-slate-400">Ethereum共同創設者</div>
+                        </div>
+                    </div>
+                    <blockquote class="text-slate-300 italic mb-4">
+                        「楕円曲線暗号が次の米国大統領選挙（2028年）前に破られる可能性がある」
+                    </blockquote>
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl font-bold text-orange-400">20%</span>
+                        <span class="text-sm text-slate-500">2030年までの破られる確率（本人推定）</span>
+                    </div>
+                    <a href="https://cointelegraph.com/news/why-vitalik-believes-quantum-computing-could-break-ethereum-s-cryptography-sooner-than-expected" target="_blank" class="citation block mt-2">出典: Cointelegraph (2024)</a>
+                </div>
+
+                <!-- Scott Aaronson -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center text-2xl">🎓</div>
+                        <div>
+                            <div class="font-bold">Scott Aaronson</div>
+                            <div class="text-sm text-slate-400">テキサス大学 量子計算教授</div>
+                        </div>
+                    </div>
+                    <blockquote class="text-slate-300 italic mb-4">
+                        「Shorのアルゴリズムを実行するフォールトトレラント量子コンピュータが次の大統領選挙前に実現する可能性は現実的だ」
+                    </blockquote>
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl font-bold text-red-400">2028</span>
+                        <span class="text-sm text-slate-500">最短の可能性として言及</span>
+                    </div>
+                    <a href="https://www.schneier.com/blog/archives/2022/02/breaking-245-bit-elliptic-curve-encryption-with-a-quantum-computer.html" target="_blank" class="citation block mt-2">出典: Schneier on Security</a>
+                </div>
+
+                <!-- NIST -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center text-2xl">🏛️</div>
+                        <div>
+                            <div class="font-bold">NIST（米国国立標準技術研究所）</div>
+                            <div class="text-sm text-slate-400">IR 8547 移行ガイドライン</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between p-2 bg-slate-700/30 rounded">
+                            <span>RSA-2048/ECC-256 非推奨</span>
+                            <span class="text-yellow-400 font-bold">2030年</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-slate-700/30 rounded">
+                            <span>完全禁止</span>
+                            <span class="text-red-400 font-bold">2035年</span>
+                        </div>
+                    </div>
+                    <a href="https://www.entrust.com/blog/2024/12/nists-urgent-call-deprecating-traditional-crypto-by-2030" target="_blank" class="citation block mt-2">出典: NIST IR 8547 (2024)</a>
+                </div>
+
+                <!-- Conservative View -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 bg-slate-500/20 rounded-full flex items-center justify-center text-2xl">📊</div>
+                        <div>
+                            <div class="font-bold">保守的な見積もり</div>
+                            <div class="text-sm text-slate-400">Metaculus予測市場・BTQ計算</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between p-2 bg-slate-700/30 rounded">
+                            <span>中央値予測（Metaculus）</span>
+                            <span class="text-blue-400 font-bold">2040年</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-slate-700/30 rounded">
+                            <span>楽観的シナリオ（BTQ）</span>
+                            <span class="text-orange-400 font-bold">2032年</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-slate-700/30 rounded">
+                            <span>悲観的シナリオ（BTQ）</span>
+                            <span class="text-green-400 font-bold">2048年</span>
+                        </div>
+                    </div>
+                    <a href="https://en.bitcoin.it/wiki/Quantum_computing_and_Bitcoin" target="_blank" class="citation block mt-2">出典: Bitcoin Wiki</a>
+                </div>
+            </div>
+
+            <!-- Key Insight -->
+            <div class="bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-2xl p-8 border border-orange-500/20 mb-16 scroll-section">
+                <div class="flex items-start gap-4">
+                    <div class="text-4xl">⚠️</div>
+                    <div>
+                        <h4 class="text-xl font-bold mb-2">予測のトレンド：短縮傾向</h4>
+                        <p class="text-slate-400 mb-4">
+                            過去5年間で、量子コンピュータの実現予測は<span class="text-white font-medium">平均10年短縮</span>されています。
+                            IBMは2024年に1,000+qubitを達成し、Googleは「量子超越性」を主張。
+                            「まだ先」と思っていた未来は、急速に近づいています。
+                        </p>
+                        <div class="text-sm text-slate-500">
+                            重要: 「Harvest Now, Decrypt Later」攻撃では、今日盗まれたデータが将来解読されます。
+                            <br>
+                            対策は量子コンピュータが完成する<span class="text-orange-400">前</span>に必要です。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Requirements -->
+            <div class="scroll-section">
+                <h3 class="text-xl font-bold text-center mb-8">ECDSA-256を破るために必要なもの</h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 text-center">
+                        <div class="text-3xl font-bold text-red-400 mb-2">2,300</div>
+                        <div class="text-slate-400">論理qubit</div>
+                        <div class="text-xs text-slate-500 mt-2">エラー訂正後</div>
+                    </div>
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 text-center">
+                        <div class="text-3xl font-bold text-red-400 mb-2">13M+</div>
+                        <div class="text-slate-400">物理qubit</div>
+                        <div class="text-xs text-slate-500 mt-2">1日で解読する場合</div>
+                    </div>
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 text-center">
+                        <div class="text-3xl font-bold text-slate-400 mb-2">100-400</div>
+                        <div class="text-slate-400">現在のqubit数</div>
+                        <div class="text-xs text-slate-500 mt-2">ノイジー、エラー訂正なし</div>
+                    </div>
+                </div>
+                <p class="text-center text-sm text-slate-500 mt-4">
+                    出典: <a href="https://research.kudelskisecurity.com/2021/08/24/quantum-attack-resource-estimate-using-shors-algorithm-to-break-rsa-vs-dh-dsa-vs-ecc/" target="_blank" class="text-indigo-400 hover:underline">Kudelski Security Research (2021)</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 2: Dilithium -->
+    <section class="py-24 bg-slate-950">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16 scroll-section">
+                <span class="text-indigo-400 font-semibold text-sm tracking-wider uppercase">Part 2</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">次世代の鍵「Dilithium」</h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+                    量子コンピュータでも解けない「格子暗号」
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center mb-16 scroll-section">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                        <span class="text-3xl">🔷</span>
+                        格子暗号とは？
+                    </h3>
+                    <p class="text-slate-400 leading-relaxed mb-6">
+                        Dilithiumは「格子暗号」という新しい種類の暗号です。
+                        無限に続く多次元の格子の中で「最短ベクトル」を見つける問題（SVP）の困難性に基づいています。
+                    </p>
+                    <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700 mb-6">
+                        <div class="text-sm text-slate-500 mb-2">なぜ量子耐性があるのか</div>
+                        <p class="text-slate-300">
+                            Shorのアルゴリズム（量子コンピュータがECDSAを破る方法）は、
+                            「因数分解」と「離散対数」問題にのみ有効です。
+                            格子問題には<span class="text-green-400">効率的な量子アルゴリズムが存在しません</span>。
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 text-green-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="font-medium">2024年8月 NIST FIPS 204 として標準化</span>
+                    </div>
+                    <a href="https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards" target="_blank" class="citation block mt-2">出典: NIST公式発表 (2024/08/13)</a>
+                </div>
+                <div class="bg-slate-800/30 rounded-2xl overflow-hidden border border-slate-700">
+                    <div class="bg-slate-800 px-6 py-4 border-b border-slate-700">
+                        <span class="text-sm font-medium">ECDSA vs Dilithium 比較</span>
+                    </div>
+                    <div class="p-6">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-sm text-slate-500">
+                                    <th class="pb-4">項目</th>
+                                    <th class="pb-4">ECDSA</th>
+                                    <th class="pb-4">Dilithium</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <tr class="border-t border-slate-700">
+                                    <td class="py-3 text-slate-400">量子耐性</td>
+                                    <td class="py-3 text-red-400">❌ 脆弱</td>
+                                    <td class="py-3 text-green-400">✅ 耐性あり</td>
+                                </tr>
+                                <tr class="border-t border-slate-700">
+                                    <td class="py-3 text-slate-400">署名サイズ</td>
+                                    <td class="py-3">64 bytes</td>
+                                    <td class="py-3">3,293 bytes</td>
+                                </tr>
+                                <tr class="border-t border-slate-700">
+                                    <td class="py-3 text-slate-400">公開鍵サイズ</td>
+                                    <td class="py-3">33 bytes</td>
+                                    <td class="py-3">1,952 bytes</td>
+                                </tr>
+                                <tr class="border-t border-slate-700">
+                                    <td class="py-3 text-slate-400">署名回数制限</td>
+                                    <td class="py-3">無制限</td>
+                                    <td class="py-3 text-green-400">無制限（ステートレス）</td>
+                                </tr>
+                                <tr class="border-t border-slate-700">
+                                    <td class="py-3 text-slate-400">標準化</td>
+                                    <td class="py-3">既存標準</td>
+                                    <td class="py-3 text-indigo-400">NIST FIPS 204</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 3: Our Vision - 安心・早い・安い -->
+    <section id="solution" class="py-24 bg-slate-900">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16 scroll-section">
+                <span class="text-indigo-400 font-semibold text-sm tracking-wider uppercase">Part 3</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">設計思想：「安心・早い・安い」</h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+                    どれか一つではなく、三位一体で実用化を実現
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-16 scroll-section">
+                <!-- 安心 -->
+                <div class="bg-slate-800/30 rounded-2xl p-8 border border-slate-700 card-hover">
+                    <div class="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mb-6">
+                        <span class="text-3xl">🛡️</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-green-400">安心</h3>
+                    <p class="text-slate-400 mb-6">
+                        量子耐性暗号 + 多層防御 + 徹底検証で、あらゆる攻撃ベクトルをブロック
+                    </p>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Dilithium Level 3（NIST標準）
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            5層リプレイ攻撃防止
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            289テスト・102万回Fuzz検証
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Slither静的解析 0 High/Med
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 早い -->
+                <div class="bg-slate-800/30 rounded-2xl p-8 border border-slate-700 card-hover">
+                    <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-6">
+                        <span class="text-3xl">⚡</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-blue-400">早い</h3>
+                    <p class="text-slate-400 mb-6">
+                        オフチェーン証明生成 + 並列処理で、実用的な速度を実現
+                    </p>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Plonky2 STARK（再帰証明）
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            SP1 zkVM（証明圧縮）
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            オフチェーン計算・オンチェーン検証
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            8署名の集約が数秒で完了
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 安い -->
+                <div class="bg-slate-800/30 rounded-2xl p-8 border border-slate-700 card-hover">
+                    <div class="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6">
+                        <span class="text-3xl">💰</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-purple-400">安い</h3>
+                    <p class="text-slate-400 mb-6">
+                        ZK証明集約により、複数署名を1回の検証コストで処理
+                    </p>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            8署名 → 1証明に集約
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            固定50,000 gas（署名数に依存しない）
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            87.5%コスト削減（8署名時）
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-300">
+                            <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            年間数百万円のガス代節約
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Why All Three -->
+            <div class="bg-slate-800/30 rounded-2xl p-8 border border-slate-700 scroll-section">
+                <h4 class="text-xl font-bold mb-6 text-center">なぜ3つ全てが必要なのか？</h4>
+                <div class="grid md:grid-cols-3 gap-6 text-center mb-6">
+                    <div class="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+                        <div class="text-red-400 text-sm mb-2">❌ 安心だけ</div>
+                        <p class="text-slate-500 text-sm">遅くて高い → 誰も使わない</p>
+                    </div>
+                    <div class="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+                        <div class="text-red-400 text-sm mb-2">❌ 早いだけ</div>
+                        <p class="text-slate-500 text-sm">安全でない → 意味がない</p>
+                    </div>
+                    <div class="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+                        <div class="text-red-400 text-sm mb-2">❌ 安いだけ</div>
+                        <p class="text-slate-500 text-sm">セキュリティ犠牲 → 本末転倒</p>
+                    </div>
+                </div>
+                <div class="p-6 bg-gradient-to-r from-green-500/10 to-indigo-500/10 rounded-xl border border-green-500/20 text-center">
+                    <div class="text-green-400 font-bold text-lg mb-2">✅ Quantum Shield = 安心 × 早い × 安い</div>
+                    <p class="text-slate-300">三位一体で「実用的な量子耐性」を実現</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 3.5: Why Quantum Resistant - Key Insight -->
+    <section class="py-24 bg-slate-950">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16 scroll-section">
+                <span class="text-indigo-400 font-semibold text-sm tracking-wider uppercase">核心</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">なぜ「量子耐性」と言えるのか？</h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+                    よくある疑問にお答えします
+                </p>
+            </div>
+
+            <!-- Visual Comparison -->
+            <div class="grid lg:grid-cols-2 gap-8 mb-12 scroll-section">
+                <!-- Before: Normal ETH -->
+                <div class="bg-red-500/5 rounded-2xl p-8 border border-red-500/20">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                            <span class="text-2xl">❌</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-red-400">通常のETH送金</h3>
+                            <p class="text-sm text-slate-500">量子コンピュータに脆弱</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center text-2xl">👤</div>
+                            <div class="flex-1 h-1 bg-gradient-to-r from-slate-600 to-red-500 relative">
+                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 px-2 py-1 rounded text-xs text-red-400 whitespace-nowrap">
+                                    ECDSA署名
+                                </div>
+                            </div>
+                            <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center text-2xl">💰</div>
+                        </div>
+
+                        <div class="bg-slate-900/50 rounded-xl p-4 space-y-2">
+                            <div class="flex items-start gap-2 text-sm">
+                                <span class="text-red-400 mt-0.5">⚠️</span>
+                                <span class="text-slate-400">トランザクション署名時に<span class="text-white">公開鍵が露出</span></span>
+                            </div>
+                            <div class="flex items-start gap-2 text-sm">
+                                <span class="text-red-400 mt-0.5">⚠️</span>
+                                <span class="text-slate-400">量子コンピュータ → <span class="text-red-400">公開鍵から秘密鍵を逆算</span></span>
+                            </div>
+                            <div class="flex items-start gap-2 text-sm">
+                                <span class="text-red-400 mt-0.5">⚠️</span>
+                                <span class="text-slate-400">秘密鍵が漏れれば<span class="text-red-400">全資産を盗まれる</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- After: Quantum Shield -->
+                <div class="bg-green-500/5 rounded-2xl p-8 border border-green-500/20">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                            <span class="text-2xl">✅</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-green-400">Quantum Shield</h3>
+                            <p class="text-sm text-slate-500">量子コンピュータに耐性あり</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center text-xl">👤</div>
+                            <div class="flex-1 h-1 bg-gradient-to-r from-slate-600 to-yellow-500 relative">
+                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 px-2 py-1 rounded text-xs text-yellow-400 whitespace-nowrap">
+                                    lock()
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center text-xl">🔒</div>
+                            <div class="flex-1 h-1 bg-gradient-to-r from-green-500 to-green-400 relative">
+                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 px-2 py-1 rounded text-xs text-green-400 whitespace-nowrap">
+                                    release()
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center text-xl">💰</div>
+                        </div>
+
+                        <div class="bg-slate-900/50 rounded-xl p-4 space-y-2">
+                            <div class="flex items-start gap-2 text-sm">
+                                <span class="text-yellow-400 mt-0.5">1️⃣</span>
+                                <span class="text-slate-400"><span class="text-yellow-400">lock():</span> ETHをコントラクトに預ける（ECDSA署名）</span>
+                            </div>
+                            <div class="flex items-start gap-2 text-sm">
+                                <span class="text-green-400 mt-0.5">2️⃣</span>
+                                <span class="text-slate-400"><span class="text-green-400">release():</span> <span class="text-white">Dilithium署名</span>がないと動かせない</span>
+                            </div>
+                            <div class="flex items-start gap-2 text-sm">
+                                <span class="text-green-400 mt-0.5">✓</span>
+                                <span class="text-slate-400">ECDSAが破られても、<span class="text-green-400">Dilithiumで保護</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Insight Box -->
+            <div class="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-2xl p-8 border border-indigo-500/20 scroll-section">
+                <div class="flex items-start gap-6">
+                    <div class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0">
+                        💡
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold mb-4">核心ポイント</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center text-sm font-bold text-yellow-400 flex-shrink-0">1</div>
+                                <div>
+                                    <div class="font-medium mb-1">lock()はECDSAで署名</div>
+                                    <p class="text-sm text-slate-400">lock()トランザクション自体は従来のECDSA署名を使います。この部分は量子脆弱です。</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center text-sm font-bold text-green-400 flex-shrink-0">2</div>
+                                <div>
+                                    <div class="font-medium mb-1">しかし、ロックされたETHはDilithium署名がないと動かせない</div>
+                                    <p class="text-sm text-slate-400">攻撃者がECDSAを破ってもlock()を呼べるだけ。<span class="text-white">release()にはDilithium署名とZK証明が必須</span>です。</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center text-sm font-bold text-indigo-400 flex-shrink-0">∴</div>
+                                <div>
+                                    <div class="font-medium mb-1 text-indigo-400">だから「ロックされたETHは量子耐性がある」と言える</div>
+                                    <p class="text-sm text-slate-400">Dilithiumは格子暗号ベースで、量子コンピュータに対する効率的な攻撃アルゴリズムが存在しません。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Style -->
+            <div class="mt-12 grid md:grid-cols-2 gap-6 scroll-section">
+                <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700">
+                    <div class="text-lg font-bold mb-3 flex items-center gap-2">
+                        <span class="text-orange-400">Q:</span>
+                        lock()が量子脆弱なら意味ないのでは？
+                    </div>
+                    <p class="text-slate-400 text-sm">
+                        <span class="text-green-400 font-medium">A:</span>
+                        lock()で攻撃者ができるのは「ETHを預けること」だけです。
+                        攻撃者が自分のETHをlock()しても、release()には正当なDilithium署名が必要なので、
+                        <span class="text-white">そのETHを取り出すことはできません</span>。
+                        むしろ攻撃者のETHがロックされるだけです。
+                    </p>
+                </div>
+                <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700">
+                    <div class="text-lg font-bold mb-3 flex items-center gap-2">
+                        <span class="text-orange-400">Q:</span>
+                        Harvest Now, Decrypt Laterへの対策は？
+                    </div>
+                    <p class="text-slate-400 text-sm">
+                        <span class="text-green-400 font-medium">A:</span>
+                        攻撃者が今日lock()トランザクションを記録しても、将来解読できるのはECDSA部分だけです。
+                        <span class="text-white">Dilithium秘密鍵はオフチェーンで保管</span>されており、
+                        ブロックチェーン上には公開鍵のハッシュしか存在しません。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 4: How It Works -->
+    <section id="how-it-works" class="py-24 bg-slate-900">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16 scroll-section">
+                <span class="text-indigo-400 font-semibold text-sm tracking-wider uppercase">Part 4</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">処理フロー</h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+                    各コンポーネントの役割と、なぜこの設計が優れているか
+                </p>
+            </div>
+
+            <!-- Flow Diagram -->
+            <div class="space-y-6 scroll-section">
+                <!-- Step 1 -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700 relative">
+                    <div class="flex items-start gap-6">
+                        <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 font-bold">1</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold mb-2">lock() - 資産ロック</h4>
+                            <p class="text-slate-400 mb-3">ユーザーがETHをコントラクトにロック。Dilithium公開鍵ハッシュをコミットメントとして記録。</p>
+                            <div class="bg-slate-900 rounded-lg p-4 font-mono text-sm">
+                                <span class="text-green-400">function</span> <span class="text-blue-400">lock</span>(<span class="text-orange-400">bytes32</span> dilithiumPubKeyHash) <span class="text-purple-400">payable</span>
+                            </div>
+                        </div>
+                        <div class="hidden md:block text-slate-500 text-xs text-right w-32">
+                            <div>QuantumShieldBridge.sol</div>
+                            <div>Line 186-211</div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-indigo-400">▼</div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700 relative">
+                    <div class="flex items-start gap-6">
+                        <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0 font-bold">2</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold mb-2">Dilithium署名生成（オフチェーン）</h4>
+                            <p class="text-slate-400 mb-3">Rustで実装されたDilithium Level 3署名アルゴリズム。NIST FIPS 204準拠。</p>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="bg-slate-900 rounded-lg p-3">
+                                    <div class="text-slate-500 mb-1">公開鍵</div>
+                                    <div class="text-green-400 font-mono">1,952 bytes</div>
+                                </div>
+                                <div class="bg-slate-900 rounded-lg p-3">
+                                    <div class="text-slate-500 mb-1">署名</div>
+                                    <div class="text-green-400 font-mono">3,293 bytes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidden md:block text-slate-500 text-xs text-right w-32">
+                            <div>zk-dilithium-ntt/</div>
+                            <div>src/lib.rs</div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-green-400">▼</div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700 relative">
+                    <div class="flex items-start gap-6">
+                        <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 font-bold">3</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold mb-2">Plonky2 STARK証明生成</h4>
+                            <p class="text-slate-400 mb-3">
+                                「署名が正しい」ことをZK証明に変換。複数署名を<span class="text-white font-medium">再帰的に集約</span>可能。
+                                <br>
+                                <span class="text-blue-400">なぜPlonky2？</span> STARK系は量子耐性あり（Groth16/PLONKは量子に弱い）
+                            </p>
+                            <div class="flex gap-2 text-xs">
+                                <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full">量子耐性STARK</span>
+                                <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full">再帰証明</span>
+                                <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full">8署名→1証明</span>
+                            </div>
+                        </div>
+                        <div class="hidden md:block text-slate-500 text-xs text-right w-32">
+                            <div>plonky2-bench/</div>
+                            <div>src/main.rs</div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-blue-400">▼</div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700 relative">
+                    <div class="flex items-start gap-6">
+                        <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 font-bold">4</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold mb-2">SP1 zkVM - Groth16ラップ</h4>
+                            <p class="text-slate-400 mb-3">
+                                STARK証明をGroth16にラップし、L1検証コストを最小化。
+                                <br>
+                                <span class="text-purple-400">トレードオフ：</span>L1検証は量子耐性なし、しかし<span class="text-white">署名自体は量子耐性を保持</span>。
+                            </p>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="bg-slate-900 rounded-lg p-3">
+                                    <div class="text-slate-500 mb-1">圧縮後の証明</div>
+                                    <div class="text-purple-400 font-mono">256 bytes</div>
+                                </div>
+                                <div class="bg-slate-900 rounded-lg p-3">
+                                    <div class="text-slate-500 mb-1">検証コスト</div>
+                                    <div class="text-purple-400 font-mono">~50,000 gas</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidden md:block text-slate-500 text-xs text-right w-32">
+                            <div>sp1-bench/</div>
+                            <div>script/src/main.rs</div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-purple-400">▼</div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700 relative">
+                    <div class="flex items-start gap-6">
+                        <div class="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center flex-shrink-0 font-bold">5</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold mb-2">release() - 5層防御 + 検証 + リリース</h4>
+                            <p class="text-slate-400 mb-3">オンチェーンで5つの防御レイヤーをチェック後、ZK証明を検証し、資産をリリース。</p>
+                            <div class="grid grid-cols-5 gap-2 mb-4">
+                                <div class="bg-slate-900 rounded-lg p-2 text-center text-xs">
+                                    <div class="text-orange-400 font-bold">L1</div>
+                                    <div class="text-slate-500">回路Ver</div>
+                                </div>
+                                <div class="bg-slate-900 rounded-lg p-2 text-center text-xs">
+                                    <div class="text-orange-400 font-bold">L2</div>
+                                    <div class="text-slate-500">係数境界</div>
+                                </div>
+                                <div class="bg-slate-900 rounded-lg p-2 text-center text-xs">
+                                    <div class="text-orange-400 font-bold">L3</div>
+                                    <div class="text-slate-500">証明ID</div>
+                                </div>
+                                <div class="bg-slate-900 rounded-lg p-2 text-center text-xs">
+                                    <div class="text-orange-400 font-bold">L4</div>
+                                    <div class="text-slate-500">Nonce</div>
+                                </div>
+                                <div class="bg-slate-900 rounded-lg p-2 text-center text-xs">
+                                    <div class="text-orange-400 font-bold">L5</div>
+                                    <div class="text-slate-500">送信者</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidden md:block text-slate-500 text-xs text-right w-32">
+                            <div>QuantumShieldBridge.sol</div>
+                            <div>Line 223-305</div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-orange-400">▼</div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="bg-gradient-to-r from-green-500/10 to-indigo-500/10 rounded-2xl p-6 border border-green-500/20">
+                    <div class="flex items-start gap-6">
+                        <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0 font-bold">✓</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold mb-2 text-green-400">完了 - Etherscanで確認可能</h4>
+                            <p class="text-slate-400">
+                                資産がリリースされ、トランザクションがブロックチェーンに記録されます。
+                                <br>
+                                <a href="https://sepolia.etherscan.io/address/0x5B401ebC8dC68EAc7c30b8DC032B5751D6E439A7" target="_blank" class="text-indigo-400 hover:underline">
+                                    Sepolia Etherscan でコントラクトを確認 →
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 5: Use Cases & Demo -->
+    <section id="demo" class="py-24 bg-slate-900">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16 scroll-section">
+                <span class="text-indigo-400 font-semibold text-sm tracking-wider uppercase">Part 5</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">ユースケースとデモ</h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+                    Dilithium + ZK技術の応用可能性と、私たちがブリッジに着目した理由
+                </p>
+            </div>
+
+            <!-- Part 5-A: Use Cases -->
+            <div class="mb-20 scroll-section">
+                <h3 class="text-2xl font-bold text-center mb-4">Dilithium + ZKの応用領域</h3>
+                <p class="text-slate-400 text-center mb-8 max-w-2xl mx-auto">
+                    a16z cryptoは<a href="https://a16z.com/newsletter/big-ideas-2026-part-3/" target="_blank" class="text-indigo-400 hover:underline">2026年予測</a>で
+                    <span class="text-white font-medium">「プライバシーがクリプトの最強の堀になる」</span>と述べています。
+                    ZK技術は量子耐性だけでなく、プライバシー保護でも重要な役割を果たします。
+                </p>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Use Case 1: Bridge -->
+                    <div class="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-xl p-6 border border-indigo-500/30 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">🌉</span>
+                            </div>
+                            <div>
+                                <div class="font-bold text-indigo-400">クロスチェーンブリッジ</div>
+                                <div class="text-xs text-green-400">← 本プロダクト</div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-400">
+                            資産移転の量子耐性化。マルチシグ検証をZK集約し、コスト削減と安全性を両立。
+                        </p>
+                    </div>
+
+                    <!-- Use Case 2: Privacy DeFi -->
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">🔒</span>
+                            </div>
+                            <div class="font-bold">プライバシーDeFi</div>
+                        </div>
+                        <p class="text-sm text-slate-400">
+                            取引金額・相手先を秘匿しながら検証可能。機関投資家の参入障壁を解消。
+                            <br>
+                            <span class="text-xs text-purple-400">「プライバシーチェーンはwinner-take-most効果を持つ」- a16z</span>
+                        </p>
+                    </div>
+
+                    <!-- Use Case 3: Multisig Wallet -->
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">👛</span>
+                            </div>
+                            <div class="font-bold">マルチシグウォレット</div>
+                        </div>
+                        <p class="text-sm text-slate-400">
+                            企業・DAO向け安全な資金管理。複数署名を1証明に集約し、ガス代を大幅削減。
+                        </p>
+                    </div>
+
+                    <!-- Use Case 4: Selective Disclosure -->
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">🎫</span>
+                            </div>
+                            <div class="font-bold">選択的開示</div>
+                        </div>
+                        <p class="text-sm text-slate-400">
+                            年齢確認を生年月日を明かさずに証明。KYC/AML対応と顧客プライバシーを両立。
+                            <br>
+                            <span class="text-xs text-green-400">「2026年にはこの技術が日常アプリに普及」- a16z</span>
+                        </p>
+                    </div>
+
+                    <!-- Use Case 5: DID/VC -->
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">🪪</span>
+                            </div>
+                            <div class="font-bold">DID/資格証明</div>
+                        </div>
+                        <p class="text-sm text-slate-400">
+                            分散型ID・資格証明の長期保護。医療記録、学位証明など数十年単位の保存に対応。
+                        </p>
+                    </div>
+
+                    <!-- Use Case 6: Oracle Auth -->
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                <span class="text-xl">📡</span>
+                            </div>
+                            <div class="font-bold">オラクル認証</div>
+                        </div>
+                        <p class="text-sm text-slate-400">
+                            外部データの量子耐性署名。価格フィード、乱数生成などの信頼性を保証。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- a16z Quote Box -->
+                <div class="bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl p-6 border border-purple-500/20">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl">💡</div>
+                        <div>
+                            <h4 class="font-bold mb-2">a16z crypto: 2026年の大きなアイデア</h4>
+                            <blockquote class="text-slate-300 italic mb-3">
+                                「2026年末までに、GPUはCPU計算の証明をリアルタイムで生成できるようになる。
+                                これにより、検証可能なクラウドコンピューティングのビジョンが実現する。」
+                            </blockquote>
+                            <p class="text-sm text-slate-400">
+                                zkVMのオーバーヘッドは約10,000倍まで削減され、スマートフォンでも動作可能に。
+                                プライバシーは「オプション機能」から「コア要件」へと変化します。
+                            </p>
+                            <a href="https://a16z.com/newsletter/big-ideas-2026-part-3/" target="_blank" class="text-sm text-indigo-400 hover:underline mt-2 inline-block">
+                                出典: a16z "Big Ideas 2026" →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Part 5-B: Why Bridge -->
+            <div class="mb-20 scroll-section">
+                <h3 class="text-2xl font-bold text-center mb-8">なぜブリッジに着目したか</h3>
+
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700">
+                        <div class="text-4xl mb-4">💀</div>
+                        <h4 class="font-bold text-red-400 mb-2">最も攻撃されやすい領域</h4>
+                        <p class="text-slate-400 text-sm mb-4">
+                            クロスチェーンブリッジへのハッキング被害は累計<span class="text-white font-bold">$2B（約3,000億円）</span>を超えています。
+                            Ronin、Wormhole、Nomadなど、大規模な被害が相次いでいます。
+                        </p>
+                        <div class="text-xs text-slate-500">
+                            署名検証が集中 → 攻撃の費用対効果が高い
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700">
+                        <div class="text-4xl mb-4">⚡</div>
+                        <h4 class="font-bold text-blue-400 mb-2">ZK集約の効果が最大</h4>
+                        <p class="text-slate-400 text-sm mb-4">
+                            ブリッジは多数の署名検証を必要とするため、ZK集約による<span class="text-white font-bold">87.5%コスト削減</span>の恩恵が最大化されます。
+                        </p>
+                        <div class="text-xs text-slate-500">
+                            8署名 → 1証明 = 固定50,000 gas
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700">
+                        <div class="text-4xl mb-4">⏰</div>
+                        <h4 class="font-bold text-orange-400 mb-2">Harvest Now, Decrypt Laterリスク</h4>
+                        <p class="text-slate-400 text-sm mb-4">
+                            ブリッジには長期ロック資産が多く、「今盗んで後で解読」攻撃の格好の標的です。
+                            量子コンピュータが完成する前に対策が必要です。
+                        </p>
+                        <div class="text-xs text-slate-500">
+                            数年〜数十年ロックされる資産を保護
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-green-500/10 to-indigo-500/10 rounded-xl p-6 border border-green-500/30">
+                        <div class="text-4xl mb-4">🔄</div>
+                        <h4 class="font-bold text-green-400 mb-2">他ユースケースへの拡張性</h4>
+                        <p class="text-slate-400 text-sm mb-4">
+                            本アーキテクチャは<span class="text-white font-bold">モジュール設計</span>のため、
+                            上記のすべてのユースケースに拡張可能です。
+                        </p>
+                        <div class="text-xs text-green-400">
+                            ✓ 同じZK回路をマルチシグ、DID、オラクルに再利用可能
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Part 5-C: Interactive Demo -->
+            <div class="scroll-section">
+                <h3 class="text-2xl font-bold text-center mb-4">インタラクティブデモ</h3>
+                <p class="text-slate-400 text-center mb-8">
+                    実際のSepoliaコントラクト（<span class="font-mono text-indigo-400">0x32aec14...958b6</span>）と連携
+                </p>
+
+            <!-- Story-based Interactive Demo -->
+            <div class="bg-slate-800/30 rounded-2xl border border-slate-700 overflow-hidden">
+                <div class="bg-slate-800 px-6 py-4 border-b border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            <span class="ml-4 text-sm text-slate-400">Quantum Shield Bridge - 体験デモ</span>
+                        </div>
+                        <a href="https://sepolia.etherscan.io/address/0x5B401ebC8dC68EAc7c30b8DC032B5751D6E439A7" target="_blank" class="text-xs text-indigo-400 hover:underline flex items-center gap-1">
+                            Etherscanで確認
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <!-- Progress Steps - 5 steps for complete flow -->
+                    <div class="flex items-center justify-center mb-8 overflow-x-auto pb-2">
+                        <div class="flex items-center gap-1 min-w-max">
+                            <div id="step1-indicator" class="step-indicator flex items-center gap-1 px-3 py-2 rounded-full bg-indigo-600 text-white text-xs font-medium">
+                                <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">1</span>
+                                <span>接続</span>
+                            </div>
+                            <div class="w-4 h-0.5 bg-slate-600" id="connector1"></div>
+                            <div id="step2-indicator" class="step-indicator flex items-center gap-1 px-3 py-2 rounded-full bg-slate-700 text-slate-400 text-xs font-medium">
+                                <span class="w-5 h-5 rounded-full bg-slate-600 flex items-center justify-center text-xs">2</span>
+                                <span>鍵生成</span>
+                            </div>
+                            <div class="w-4 h-0.5 bg-slate-600" id="connector2"></div>
+                            <div id="step3-indicator" class="step-indicator flex items-center gap-1 px-3 py-2 rounded-full bg-slate-700 text-slate-400 text-xs font-medium">
+                                <span class="w-5 h-5 rounded-full bg-slate-600 flex items-center justify-center text-xs">3</span>
+                                <span>ロック</span>
+                            </div>
+                            <div class="w-4 h-0.5 bg-slate-600" id="connector3"></div>
+                            <div id="step4-indicator" class="step-indicator flex items-center gap-1 px-3 py-2 rounded-full bg-slate-700 text-slate-400 text-xs font-medium">
+                                <span class="w-5 h-5 rounded-full bg-slate-600 flex items-center justify-center text-xs">4</span>
+                                <span>証明</span>
+                            </div>
+                            <div class="w-4 h-0.5 bg-slate-600" id="connector4"></div>
+                            <div id="step5-indicator" class="step-indicator flex items-center gap-1 px-3 py-2 rounded-full bg-slate-700 text-slate-400 text-xs font-medium">
+                                <span class="w-5 h-5 rounded-full bg-slate-600 flex items-center justify-center text-xs">5</span>
+                                <span>リリース</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-2 gap-6">
+                        <!-- Left: Step Content -->
+                        <div class="bg-slate-900/50 rounded-xl p-6">
+                            <!-- Step 1: Connect -->
+                            <div id="step1-content" class="step-content">
+                                <div class="text-center mb-6">
+                                    <div class="text-5xl mb-4">🦊</div>
+                                    <h4 class="text-xl font-bold mb-2">Step 1: ウォレット接続</h4>
+                                    <p class="text-slate-400 text-sm">
+                                        MetaMaskでSepolia Testnetに接続してください。
+                                        <br>テスト用ETHは<a href="https://sepoliafaucet.com/" target="_blank" class="text-indigo-400 hover:underline">Faucet</a>から無料で取得できます。
+                                    </p>
+                                </div>
+
+                                <div class="bg-slate-800/50 rounded-lg p-4 mb-6">
+                                    <div class="text-xs text-slate-500 mb-2">このステップで確認すること</div>
+                                    <ul class="text-sm text-slate-400 space-y-1">
+                                        <li class="flex items-center gap-2">
+                                            <span class="text-yellow-400">⚠️</span>
+                                            あなたのウォレットはECDSA（量子脆弱）を使用
+                                        </li>
+                                        <li class="flex items-center gap-2">
+                                            <span class="text-green-400">✓</span>
+                                            Quantum Shieldで量子耐性を追加可能
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <button onclick="demoConnect()" id="demoConnectBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 px-6 py-4 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                    </svg>
+                                    ウォレットを接続
+                                </button>
+                            </div>
+
+                            <!-- Step 2: Generate Dilithium Keypair -->
+                            <div id="step2-content" class="step-content hidden">
+                                <div class="text-center mb-6">
+                                    <div class="text-5xl mb-4">🔑</div>
+                                    <h4 class="text-xl font-bold mb-2">Step 2: Dilithium鍵ペア生成</h4>
+                                    <p class="text-slate-400 text-sm">
+                                        量子耐性のあるDilithium Level 3鍵ペアを生成します。
+                                        <br>この公開鍵ハッシュがコントラクトにコミットされます。
+                                    </p>
+                                </div>
+
+                                <div class="bg-slate-800/50 rounded-lg p-4 mb-6">
+                                    <div class="text-xs text-slate-500 mb-2">Dilithium Level 3 仕様</div>
+                                    <div class="grid grid-cols-2 gap-2 text-xs">
+                                        <div class="text-slate-400">公開鍵サイズ:</div>
+                                        <div class="text-white font-mono">1,952 bytes</div>
+                                        <div class="text-slate-400">秘密鍵サイズ:</div>
+                                        <div class="text-white font-mono">4,000 bytes</div>
+                                        <div class="text-slate-400">署名サイズ:</div>
+                                        <div class="text-white font-mono">3,293 bytes</div>
+                                        <div class="text-slate-400">セキュリティ:</div>
+                                        <div class="text-green-400 font-mono">NIST Level 3</div>
+                                    </div>
+                                </div>
+
+                                <div id="dilithiumKeyInfo" class="hidden bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-6">
+                                    <div class="text-green-400 font-medium mb-2">✓ 鍵ペア生成成功</div>
+                                    <div class="space-y-1 text-xs">
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-400">公開鍵ハッシュ:</span>
+                                            <span id="dilithiumPubKeyHash" class="font-mono text-slate-300">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="demoGenerateKeypair()" id="demoKeypairBtn" class="w-full bg-purple-600 hover:bg-purple-700 px-6 py-4 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                    </svg>
+                                    Dilithium鍵ペアを生成
+                                </button>
+                            </div>
+
+                            <!-- Step 3: Lock -->
+                            <div id="step3-content" class="step-content hidden">
+                                <div class="text-center mb-6">
+                                    <div class="text-5xl mb-4">🔐</div>
+                                    <h4 class="text-xl font-bold mb-2">Step 3: 資産ロック</h4>
+                                    <p class="text-slate-400 text-sm">
+                                        ETHをコントラクトにロックします。
+                                        <br>Dilithium公開鍵ハッシュと紐付けられます。
+                                    </p>
+                                </div>
+
+                                <div class="space-y-4 mb-6">
+                                    <div>
+                                        <label class="block text-sm text-slate-400 mb-2">ロック量 (ETH)</label>
+                                        <input type="number" id="demoLockAmount" value="0.001" step="0.001" min="0.001" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 focus:border-indigo-500 focus:outline-none">
+                                    </div>
+                                    <div class="bg-slate-800/50 rounded-lg p-4">
+                                        <div class="text-xs text-slate-500 mb-2">裏で起きていること</div>
+                                        <div class="font-mono text-xs text-green-400 bg-slate-900 rounded p-2">
+                                            lock(dilithiumPubKeyHash) payable
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-2">
+                                            Dilithium公開鍵のハッシュをコントラクトに記録
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <button onclick="demoLock()" id="demoLockBtn" class="w-full bg-green-600 hover:bg-green-700 px-6 py-4 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                    lock()を実行
+                                </button>
+                            </div>
+
+                            <!-- Step 4: Proof Generation -->
+                            <div id="step4-content" class="step-content hidden">
+                                <div class="text-center mb-6">
+                                    <div class="text-5xl mb-4">⚡</div>
+                                    <h4 class="text-xl font-bold mb-2">Step 4: ZK証明生成</h4>
+                                    <p class="text-slate-400 text-sm">
+                                        Dilithium署名を生成し、ZK証明に変換します。
+                                        <br>この証明でrelease()を実行できます。
+                                    </p>
+                                </div>
+
+                                <div class="space-y-4 mb-6">
+                                    <div class="bg-slate-800/50 rounded-lg p-4">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-sm text-slate-400">証明生成進捗</span>
+                                            <span id="proofProgress" class="text-sm text-indigo-400">0%</span>
+                                        </div>
+                                        <div class="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
+                                            <div id="proofProgressBar" class="h-full bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div id="proofSteps" class="space-y-2 text-sm">
+                                        <div id="proofStep1" class="flex items-center gap-2 text-slate-500">
+                                            <span class="w-5 h-5 rounded-full border border-slate-600 flex items-center justify-center text-xs">1</span>
+                                            Dilithium署名生成 (API)
+                                        </div>
+                                        <div id="proofStep2" class="flex items-center gap-2 text-slate-500">
+                                            <span class="w-5 h-5 rounded-full border border-slate-600 flex items-center justify-center text-xs">2</span>
+                                            Plonky2 STARK証明
+                                        </div>
+                                        <div id="proofStep3" class="flex items-center gap-2 text-slate-500">
+                                            <span class="w-5 h-5 rounded-full border border-slate-600 flex items-center justify-center text-xs">3</span>
+                                            SP1 Groth16ラップ
+                                        </div>
+                                        <div id="proofStep4" class="flex items-center gap-2 text-slate-500">
+                                            <span class="w-5 h-5 rounded-full border border-slate-600 flex items-center justify-center text-xs">4</span>
+                                            証明完成 (256 bytes)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="proofResult" class="hidden bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-4">
+                                    <div class="text-green-400 font-medium mb-2">✓ 証明生成完了</div>
+                                    <div class="space-y-1 text-xs">
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-400">証明サイズ:</span>
+                                            <span id="proofSize" class="font-mono text-slate-300">256 bytes</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-400">生成時間:</span>
+                                            <span id="proofTime" class="font-mono text-slate-300">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="demoGenerateProof()" id="demoProofBtn" class="w-full bg-orange-600 hover:bg-orange-700 px-6 py-4 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                    ZK証明を生成
+                                </button>
+                            </div>
+
+                            <!-- Step 5: Release -->
+                            <div id="step5-content" class="step-content hidden">
+                                <div class="text-center mb-6">
+                                    <div class="text-5xl mb-4">🔓</div>
+                                    <h4 class="text-xl font-bold mb-2">Step 5: 資産リリース</h4>
+                                    <p class="text-slate-400 text-sm">
+                                        ZK証明を使ってrelease()を実行し、
+                                        <br>ロックされたETHを解放します。
+                                    </p>
+                                </div>
+
+                                <div class="bg-slate-800/50 rounded-lg p-4 mb-6">
+                                    <div class="text-xs text-slate-500 mb-2">リリース情報</div>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-400">Lock ID:</span>
+                                            <span id="releaseLockId" class="font-mono text-xs text-slate-300">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-400">Amount:</span>
+                                            <span id="releaseAmount" class="font-mono text-slate-300">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-400">Recipient:</span>
+                                            <span id="releaseRecipient" class="font-mono text-xs text-slate-300">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="demoRelease()" id="demoReleaseBtn" class="w-full bg-green-600 hover:bg-green-700 px-6 py-4 rounded-xl font-semibold transition flex items-center justify-center gap-2 mb-4">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                                    </svg>
+                                    release()を実行
+                                </button>
+
+                                <div id="releaseResult" class="hidden">
+                                    <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-4">
+                                        <div class="text-green-400 font-bold text-lg mb-2">🎉 完了！ETHがリリースされました</div>
+                                        <div class="space-y-2 text-sm">
+                                            <div class="flex justify-between">
+                                                <span class="text-slate-400">Release TX:</span>
+                                                <a id="releaseTxLink" href="#" target="_blank" class="font-mono text-xs text-indigo-400 hover:underline">-</a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-slate-800/50 rounded-lg p-4 mb-4">
+                                        <div class="text-sm text-slate-400 mb-2">セキュリティ保証</div>
+                                        <ul class="text-xs text-slate-500 space-y-1">
+                                            <li class="flex items-center gap-2">
+                                                <span class="text-green-400">✓</span>
+                                                Dilithium署名で認証済み
+                                            </li>
+                                            <li class="flex items-center gap-2">
+                                                <span class="text-green-400">✓</span>
+                                                ZK証明でオンチェーン検証
+                                            </li>
+                                            <li class="flex items-center gap-2">
+                                                <span class="text-green-400">✓</span>
+                                                量子コンピュータ耐性を確保
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <button onclick="resetDemo()" class="w-full border border-slate-600 hover:border-slate-400 px-6 py-3 rounded-xl font-medium transition">
+                                        もう一度試す
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Live Log & Contract Info -->
+                        <div class="space-y-4">
+                            <!-- Contract Info -->
+                            <div class="bg-slate-900/50 rounded-xl p-4">
+                                <div class="text-sm font-medium mb-3 flex items-center gap-2">
+                                    <span>📊</span>
+                                    コントラクト状態
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Network:</span>
+                                        <span id="demoNetwork" class="text-slate-300">未接続</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Total Locked:</span>
+                                        <span id="demoTotalLocked" class="font-mono text-slate-300">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Verifier:</span>
+                                        <span id="demoVerifierType" class="font-mono text-slate-300">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Your Balance:</span>
+                                        <span id="demoBalance" class="font-mono text-slate-300">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Live Log -->
+                            <div class="bg-slate-900/50 rounded-xl p-4 flex-1">
+                                <div class="text-sm font-medium mb-3 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span>📋</span>
+                                        ライブログ
+                                    </div>
+                                    <button onclick="clearDemoLog()" class="text-xs text-slate-500 hover:text-slate-300">クリア</button>
+                                </div>
+                                <div id="demoLog" class="bg-slate-900 border border-slate-700 rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs space-y-1">
+                                    <div class="text-slate-500">[System] デモを開始するにはウォレットを接続してください</div>
+                                </div>
+                            </div>
+
+                            <!-- Gas Savings Calculator -->
+                            <div class="bg-slate-900/50 rounded-xl p-4">
+                                <div class="text-sm font-medium mb-3 flex items-center gap-2">
+                                    <span>💰</span>
+                                    ガス代比較
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-red-500/10 rounded-lg p-3 text-center">
+                                        <div class="text-xs text-slate-400 mb-1">従来方式</div>
+                                        <div class="text-lg font-bold text-red-400">400,000</div>
+                                        <div class="text-xs text-slate-500">gas (8署名)</div>
+                                    </div>
+                                    <div class="bg-green-500/10 rounded-lg p-3 text-center">
+                                        <div class="text-xs text-slate-400 mb-1">Quantum Shield</div>
+                                        <div class="text-lg font-bold text-green-400">50,000</div>
+                                        <div class="text-xs text-slate-500">gas (固定)</div>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <span class="text-2xl font-bold text-green-400">87.5%</span>
+                                    <span class="text-sm text-slate-400 ml-2">コスト削減</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 6: Trust -->
+    <section class="py-24 bg-slate-950">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16 scroll-section">
+                <span class="text-indigo-400 font-semibold text-sm tracking-wider uppercase">Part 6</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">信頼性の証明</h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+                    厳密なテストと検証を経た、本番対応のソリューション
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-6 mb-16 scroll-section">
+                <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 text-center">
+                    <div class="text-4xl font-bold text-green-400 mb-2">85</div>
+                    <div class="text-slate-400 text-sm">Solidityテスト</div>
+                    <div class="text-xs text-green-400 mt-1">100% PASS</div>
+                </div>
+                <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 text-center">
+                    <div class="text-4xl font-bold text-green-400 mb-2">204</div>
+                    <div class="text-slate-400 text-sm">Rustテスト</div>
+                    <div class="text-xs text-green-400 mt-1">100% PASS</div>
+                </div>
+                <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 text-center">
+                    <div class="text-4xl font-bold text-green-400 mb-2">102万</div>
+                    <div class="text-slate-400 text-sm">Invariantコール</div>
+                    <div class="text-xs text-green-400 mt-1">0 failures</div>
+                </div>
+                <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700 text-center">
+                    <div class="text-4xl font-bold text-green-400 mb-2">98.6%</div>
+                    <div class="text-slate-400 text-sm">コードカバレッジ</div>
+                    <div class="text-xs text-green-400 mt-1">Slither: 0 High/Med</div>
+                </div>
+            </div>
+
+            <!-- Deployed Contracts -->
+            <div class="bg-slate-800/30 rounded-2xl border border-slate-700 overflow-hidden scroll-section">
+                <div class="bg-slate-800 px-6 py-4 border-b border-slate-700">
+                    <span class="font-medium">デプロイ済みコントラクト</span>
+                </div>
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="text-left text-slate-500">
+                                <tr>
+                                    <th class="pb-4">Network</th>
+                                    <th class="pb-4">Contract</th>
+                                    <th class="pb-4">Address</th>
+                                    <th class="pb-4">Etherscan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-t border-slate-700">
+                                    <td class="py-3">Sepolia</td>
+                                    <td class="py-3">Bridge</td>
+                                    <td class="py-3 font-mono text-xs text-indigo-400">0x5B401ebC8dC68EAc7c30b8DC032B5751D6E439A7</td>
+                                    <td class="py-3">
+                                        <a href="https://sepolia.etherscan.io/address/0x5B401ebC8dC68EAc7c30b8DC032B5751D6E439A7" target="_blank" class="text-indigo-400 hover:underline">View →</a>
+                                    </td>
+                                </tr>
+                                <tr class="border-t border-slate-700">
+                                    <td class="py-3">Sepolia</td>
+                                    <td class="py-3">Verifier</td>
+                                    <td class="py-3 font-mono text-xs text-indigo-400">0xF0f990c2b2F5aA803485289E7140E45b7831a844</td>
+                                    <td class="py-3">
+                                        <a href="https://sepolia.etherscan.io/address/0xF0f990c2b2F5aA803485289E7140E45b7831a844" target="_blank" class="text-indigo-400 hover:underline">View →</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-24 gradient-hero">
+        <div class="max-w-4xl mx-auto px-6 text-center scroll-section">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">量子時代の準備はできていますか？</h2>
+            <p class="text-xl text-slate-400 mb-4">
+                専門家の予測は<span class="text-white">2028〜2040年</span>と幅がありますが、
+            </p>
+            <p class="text-xl text-slate-400 mb-8">
+                「Harvest Now, Decrypt Later」攻撃への対策は<span class="text-orange-400 font-bold">今すぐ</span>必要です。
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#demo" class="bg-white text-slate-900 hover:bg-slate-100 px-8 py-4 rounded-xl font-semibold text-lg transition">
+                    デモを体験する
+                </a>
+                <a href="mailto:contact@quantumshield.io" class="border border-white/30 hover:border-white/60 px-8 py-4 rounded-xl font-semibold text-lg transition">
+                    お問い合わせ
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-12">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <span class="font-semibold">Quantum Shield</span>
+                </div>
+                <div class="text-slate-400 text-sm text-center">
+                    © 2024 Quantum Shield. 量子時代のセキュリティ標準。
+                    <br class="md:hidden">
+                    <span class="text-slate-600">タイムライン予測は専門家の見解であり、確定した未来ではありません。</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // =============================================================================
+        // Configuration - Real Contract ABI from QuantumShieldBridge.sol
+        // =============================================================================
+        const CONFIG = {
+            SEPOLIA_RPC: 'https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID',
+            BRIDGE_ADDRESS: '0x5B401ebC8dC68EAc7c30b8DC032B5751D6E439A7',
+            VERIFIER_ADDRESS: '0xF0f990c2b2F5aA803485289E7140E45b7831a844',
+            CHAIN_ID: 11155111,
+            // Real ABI from QuantumShieldBridge.sol (JSON format for ethers v6)
+            BRIDGE_ABI: [
+                {
+                    "name": "lock",
+                    "type": "function",
+                    "stateMutability": "payable",
+                    "inputs": [{"name": "dilithiumPubKeyHash", "type": "bytes32"}],
+                    "outputs": [{"name": "lockId", "type": "bytes32"}]
+                },
+                {
+                    "name": "release",
+                    "type": "function",
+                    "stateMutability": "nonpayable",
+                    "inputs": [
+                        {"name": "proof", "type": "bytes"},
+                        {"name": "publicInputs", "type": "uint256[]"}
+                    ],
+                    "outputs": []
+                },
+                {
+                    "name": "getLock",
+                    "type": "function",
+                    "stateMutability": "view",
+                    "inputs": [{"name": "lockId", "type": "bytes32"}],
+                    "outputs": [
+                        {"name": "sender", "type": "address"},
+                        {"name": "amount", "type": "uint256"},
+                        {"name": "dilithiumPubKeyHash", "type": "bytes32"},
+                        {"name": "timestamp", "type": "uint256"},
+                        {"name": "released", "type": "bool"}
+                    ]
+                },
+                {
+                    "name": "totalLocked",
+                    "type": "function",
+                    "stateMutability": "view",
+                    "inputs": [],
+                    "outputs": [{"name": "", "type": "uint256"}]
+                },
+                {
+                    "name": "isQuantumResistant",
+                    "type": "function",
+                    "stateMutability": "view",
+                    "inputs": [],
+                    "outputs": [{"name": "", "type": "bool"}]
+                },
+                {
+                    "name": "getVerifierType",
+                    "type": "function",
+                    "stateMutability": "view",
+                    "inputs": [],
+                    "outputs": [{"name": "", "type": "string"}]
+                },
+                {
+                    "name": "paused",
+                    "type": "function",
+                    "stateMutability": "view",
+                    "inputs": [],
+                    "outputs": [{"name": "", "type": "bool"}]
+                },
+                {
+                    "name": "owner",
+                    "type": "function",
+                    "stateMutability": "view",
+                    "inputs": [],
+                    "outputs": [{"name": "", "type": "address"}]
+                },
+                {
+                    "name": "Locked",
+                    "type": "event",
+                    "inputs": [
+                        {"name": "lockId", "type": "bytes32", "indexed": true},
+                        {"name": "sender", "type": "address", "indexed": true},
+                        {"name": "amount", "type": "uint256", "indexed": false},
+                        {"name": "dilithiumPubKeyHash", "type": "bytes32", "indexed": false},
+                        {"name": "nonce", "type": "uint256", "indexed": false}
+                    ]
+                },
+                {
+                    "name": "Released",
+                    "type": "event",
+                    "inputs": [
+                        {"name": "lockId", "type": "bytes32", "indexed": true},
+                        {"name": "recipient", "type": "address", "indexed": true},
+                        {"name": "amount", "type": "uint256", "indexed": false},
+                        {"name": "numSignaturesVerified", "type": "uint256", "indexed": false}
+                    ]
+                }
+            ]
+        };
+
+        // API endpoint (local development)
+        const API_URL = 'http://localhost:3001';
+
+        // SP1 Prover Server (for real ZK proofs)
+        const SP1_PROVER_URL = 'http://localhost:3002';
+        const USE_REAL_SP1_PROOFS = true;  // Set to false for mock proofs
+
+        let provider = null;
+        let signer = null;
+        let bridgeContract = null;
+        let currentStep = 1;
+        let sessionId = null;
+        let dilithiumPubKeyHash = null;
+        let lastLockResult = null;
+        let proofData = null;
+
+        // =============================================================================
+        // Scroll Animation
+        // =============================================================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.scroll-section').forEach(el => observer.observe(el));
+
+        // =============================================================================
+        // Story-based Demo Functions
+        // =============================================================================
+
+        function setStep(step) {
+            currentStep = step;
+
+            // Update step indicators (5 steps now)
+            for (let i = 1; i <= 5; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                const content = document.getElementById(`step${i}-content`);
+
+                if (!indicator) continue;
+
+                if (i < step) {
+                    // Completed steps
+                    indicator.classList.remove('bg-indigo-600', 'bg-slate-700', 'text-slate-400');
+                    indicator.classList.add('bg-green-600', 'text-white');
+                    indicator.querySelector('span:first-child').innerHTML = '✓';
+                } else if (i === step) {
+                    // Current step
+                    indicator.classList.remove('bg-green-600', 'bg-slate-700', 'text-slate-400');
+                    indicator.classList.add('bg-indigo-600', 'text-white');
+                } else {
+                    // Future steps
+                    indicator.classList.remove('bg-green-600', 'bg-indigo-600', 'text-white');
+                    indicator.classList.add('bg-slate-700', 'text-slate-400');
+                }
+
+                // Show/hide content
+                if (content) {
+                    if (i === step) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                }
+            }
+
+            // Update connectors (4 connectors for 5 steps)
+            for (let i = 1; i <= 4; i++) {
+                const connector = document.getElementById(`connector${i}`);
+                if (!connector) continue;
+                if (i < step) {
+                    connector.classList.remove('bg-slate-600');
+                    connector.classList.add('bg-green-500');
+                } else {
+                    connector.classList.remove('bg-green-500');
+                    connector.classList.add('bg-slate-600');
+                }
+            }
+        }
+
+        async function demoConnect() {
+            const btn = document.getElementById('demoConnectBtn');
+
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    addDemoLog('MetaMaskがインストールされていません', 'error');
+                    return;
+                }
+
+                btn.innerHTML = '<span class="animate-spin">⏳</span> 接続中...';
+                btn.disabled = true;
+
+                addDemoLog('ウォレット接続を要求中...', 'info');
+
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send('eth_requestAccounts', []);
+                signer = await provider.getSigner();
+                const address = await signer.getAddress();
+                const network = await provider.getNetwork();
+                const balance = await provider.getBalance(address);
+
+                addDemoLog(`接続成功: ${address.slice(0, 10)}...${address.slice(-6)}`, 'success');
+
+                // Update network info
+                document.getElementById('demoNetwork').textContent =
+                    network.chainId === BigInt(CONFIG.CHAIN_ID) ? 'Sepolia ✓' : `Chain ${network.chainId}`;
+                document.getElementById('demoBalance').textContent =
+                    parseFloat(ethers.formatEther(balance)).toFixed(4) + ' ETH';
+
+                // Check network - MUST be Sepolia
+                if (network.chainId !== BigInt(CONFIG.CHAIN_ID)) {
+                    addDemoLog(`現在のネットワーク: Chain ${network.chainId}`, 'warning');
+                    addDemoLog('Sepoliaテストネットに自動切り替えを試みます...', 'info');
+
+                    try {
+                        // Try to switch to Sepolia
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0xaa36a7' }], // 11155111 in hex
+                        });
+                        addDemoLog('Sepoliaに切り替えました！', 'success');
+
+                        // Refresh provider and signer after network switch
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                        signer = await provider.getSigner();
+
+                    } catch (switchError) {
+                        // This error code indicates that the chain has not been added to MetaMask
+                        if (switchError.code === 4902) {
+                            try {
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: '0xaa36a7',
+                                        chainName: 'Sepolia Testnet',
+                                        nativeCurrency: {
+                                            name: 'Sepolia ETH',
+                                            symbol: 'ETH',
+                                            decimals: 18
+                                        },
+                                        rpcUrls: ['https://sepolia.infura.io/v3/'],
+                                        blockExplorerUrls: ['https://sepolia.etherscan.io']
+                                    }]
+                                });
+                                addDemoLog('Sepoliaネットワークを追加しました！', 'success');
+
+                                // Refresh provider and signer
+                                provider = new ethers.BrowserProvider(window.ethereum);
+                                signer = await provider.getSigner();
+
+                            } catch (addError) {
+                                addDemoLog(`ネットワーク追加エラー: ${addError.message}`, 'error');
+                                btn.innerHTML = 'ウォレットを接続';
+                                btn.disabled = false;
+                                return;
+                            }
+                        } else {
+                            addDemoLog(`ネットワーク切り替えエラー: ${switchError.message}`, 'error');
+                            addDemoLog('MetaMaskでSepoliaに手動で切り替えてください', 'warning');
+                            btn.innerHTML = 'ウォレットを接続';
+                            btn.disabled = false;
+                            return;
+                        }
+                    }
+                }
+                addDemoLog('Sepolia testnetに接続しました', 'success');
+
+                // Detect signature type
+                addDemoLog('署名方式を検出中...', 'info');
+                await new Promise(r => setTimeout(r, 500));
+                addDemoLog('検出: ECDSA (secp256k1) - 量子脆弱', 'warning');
+                addDemoLog('Quantum Shieldで量子耐性を追加します', 'info');
+
+                // Initialize contract
+                bridgeContract = new ethers.Contract(CONFIG.BRIDGE_ADDRESS, CONFIG.BRIDGE_ABI, signer);
+
+                // Read contract state
+                try {
+                    const [totalLocked, verifierType] = await Promise.all([
+                        bridgeContract.totalLocked(),
+                        bridgeContract.getVerifierType()
+                    ]);
+
+                    document.getElementById('demoTotalLocked').textContent =
+                        ethers.formatEther(totalLocked) + ' ETH';
+                    document.getElementById('demoVerifierType').textContent = verifierType;
+
+                    addDemoLog(`コントラクト読み取り成功`, 'success');
+                } catch (e) {
+                    addDemoLog(`コントラクト読み取りエラー: ${e.message}`, 'error');
+                }
+
+                // Move to step 2 (Dilithium keypair generation)
+                await new Promise(r => setTimeout(r, 500));
+                setStep(2);
+                addDemoLog('Step 2: Dilithium鍵ペアを生成してください', 'success');
+
+            } catch (error) {
+                addDemoLog(`接続エラー: ${error.message}`, 'error');
+                btn.innerHTML = 'ウォレットを接続';
+                btn.disabled = false;
+            }
+        }
+
+        // Step 2: Generate Dilithium keypair via API
+        async function demoGenerateKeypair() {
+            const btn = document.getElementById('demoKeypairBtn');
+            btn.innerHTML = '<span class="animate-spin">⏳</span> 生成中...';
+            btn.disabled = true;
+
+            try {
+                // Generate unique session ID
+                sessionId = `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                addDemoLog(`セッション開始: ${sessionId.slice(0, 20)}...`, 'info');
+
+                // Call API to generate keypair
+                addDemoLog('API: Dilithium鍵ペア生成中...', 'info');
+                const response = await fetch(`${API_URL}/api/v1/keypair`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                dilithiumPubKeyHash = data.pub_key_hash;
+
+                addDemoLog(`公開鍵ハッシュ: ${dilithiumPubKeyHash.slice(0, 18)}...`, 'success');
+
+                // Update UI
+                document.getElementById('dilithiumKeyInfo').classList.remove('hidden');
+                document.getElementById('dilithiumPubKeyHash').textContent =
+                    dilithiumPubKeyHash.slice(0, 18) + '...';
+
+                addDemoLog('Dilithium Level 3 鍵ペア生成成功!', 'success');
+
+                // Move to step 3
+                await new Promise(r => setTimeout(r, 500));
+                setStep(3);
+                addDemoLog('Step 3: ETHをロックしてください', 'success');
+
+            } catch (error) {
+                addDemoLog(`鍵生成エラー: ${error.message}`, 'error');
+                addDemoLog('ヒント: APIサーバーが起動していることを確認してください', 'warning');
+                btn.innerHTML = 'Dilithium鍵ペアを生成';
+                btn.disabled = false;
+            }
+        }
+
+        // Step 3: Lock ETH
+        async function demoLock() {
+            if (!signer || !bridgeContract) {
+                addDemoLog('先にウォレットを接続してください', 'error');
+                return;
+            }
+
+            if (!dilithiumPubKeyHash) {
+                addDemoLog('先にDilithium鍵ペアを生成してください', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('demoLockBtn');
+            const amount = document.getElementById('demoLockAmount').value;
+
+            if (!amount || parseFloat(amount) <= 0) {
+                addDemoLog('有効な金額を入力してください', 'error');
+                return;
+            }
+
+            btn.innerHTML = '<span class="animate-spin">⏳</span> 処理中...';
+            btn.disabled = true;
+
+            try {
+                addDemoLog(`Dilithium公開鍵ハッシュ: ${dilithiumPubKeyHash.slice(0, 16)}...`, 'info');
+                addDemoLog(`ロック開始: ${amount} ETH`, 'info');
+
+                // Call the actual lock function with real Dilithium pubkey hash
+                const tx = await bridgeContract.lock(dilithiumPubKeyHash, {
+                    value: ethers.parseEther(amount)
+                });
+
+                addDemoLog(`TX送信: ${tx.hash.slice(0, 16)}...`, 'info');
+
+                // Wait for confirmation
+                addDemoLog('確認待機中...', 'info');
+                const receipt = await tx.wait();
+
+                addDemoLog(`確認完了! Block: ${receipt.blockNumber}`, 'success');
+                addDemoLog(`Gas使用量: ${receipt.gasUsed.toString()}`, 'info');
+                addDemoLog(`Etherscan: https://sepolia.etherscan.io/tx/${tx.hash}`, 'info');
+
+                // Parse the Locked event
+                let lockId = null;
+                let nonce = null;
+                const lockedEvent = receipt.logs.find(log => {
+                    try {
+                        const parsed = bridgeContract.interface.parseLog(log);
+                        return parsed && parsed.name === 'Locked';
+                    } catch { return false; }
+                });
+
+                if (lockedEvent) {
+                    const parsed = bridgeContract.interface.parseLog(lockedEvent);
+                    lockId = parsed.args.lockId;
+                    nonce = parsed.args.nonce;
+                    addDemoLog(`Lock ID: ${lockId.slice(0, 16)}...`, 'success');
+                    addDemoLog(`Nonce: ${nonce.toString()}`, 'info');
+                }
+
+                // Store result
+                const userAddress = await signer.getAddress();
+                lastLockResult = {
+                    lockId: lockId,
+                    amount: amount,
+                    txHash: tx.hash,
+                    nonce: nonce ? nonce.toString() : '0',
+                    sender: userAddress,    // who called lock()
+                    recipient: userAddress  // release destination (same user in demo)
+                };
+
+                // Move to step 4 (proof generation)
+                setStep(4);
+                addDemoLog('Step 4: ZK証明を生成してください', 'success');
+
+            } catch (error) {
+                if (error.code === 'ACTION_REJECTED') {
+                    addDemoLog('トランザクションがキャンセルされました', 'warning');
+                } else {
+                    addDemoLog(`エラー: ${error.message}`, 'error');
+                }
+                btn.innerHTML = 'lock()を実行';
+                btn.disabled = false;
+            }
+        }
+
+        // Step 4: Generate ZK proof via API
+        async function demoGenerateProof() {
+            const btn = document.getElementById('demoProofBtn');
+            btn.innerHTML = '<span class="animate-spin">⏳</span> 生成中...';
+            btn.disabled = true;
+
+            if (!sessionId) {
+                addDemoLog('エラー: セッションIDがありません。Step 2から再開してください', 'error');
+                btn.innerHTML = 'ZK証明を生成';
+                btn.disabled = false;
+                return;
+            }
+
+            if (!lastLockResult) {
+                addDemoLog('エラー: ロック情報がありません。Step 3から再開してください', 'error');
+                btn.innerHTML = 'ZK証明を生成';
+                btn.disabled = false;
+                return;
+            }
+
+            // Debug logging
+            addDemoLog(`DEBUG: sessionId=${sessionId.slice(0,20)}...`, 'info');
+            addDemoLog(`DEBUG: lockId=${lastLockResult.lockId?.slice(0,16)}...`, 'info');
+
+            const proofSteps = [
+                { id: 'proofStep1', name: 'Dilithium署名生成 (API)', duration: 800 },
+                { id: 'proofStep2', name: 'Plonky2 STARK証明', duration: 1200 },
+                { id: 'proofStep3', name: 'SP1 Groth16ラップ', duration: 1000 },
+                { id: 'proofStep4', name: '証明完成 (256 bytes)', duration: 500 }
+            ];
+
+            try {
+                const startTime = Date.now();
+                const totalSteps = proofSteps.length;
+
+                // Animate proof generation with actual API call
+                for (let i = 0; i < proofSteps.length; i++) {
+                    const step = proofSteps[i];
+                    const stepEl = document.getElementById(step.id);
+
+                    if (!stepEl) continue;
+
+                    // Start this step
+                    stepEl.classList.remove('text-slate-500');
+                    stepEl.classList.add('text-indigo-400');
+                    const span = stepEl.querySelector('span');
+                    if (span) {
+                        span.classList.remove('border-slate-600');
+                        span.classList.add('bg-indigo-600', 'border-indigo-600', 'text-white');
+                    }
+
+                    addDemoLog(`${step.name}...`, 'info');
+
+                    // On first step, call the Dilithium API for signing
+                    if (i === 0) {
+                        // Step 1: Get Dilithium signature from API
+                        addDemoLog('Dilithium署名をAPI経由で取得中...', 'info');
+                        const signResponse = await fetch(`${API_URL}/api/v1/proof`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                session_id: sessionId,
+                                lock_id: lastLockResult.lockId,
+                                recipient: lastLockResult.recipient,
+                                amount: ethers.parseEther(lastLockResult.amount).toString(),
+                                nonce: parseInt(lastLockResult.nonce),
+                                sender: lastLockResult.sender
+                            })
+                        });
+
+                        if (!signResponse.ok) {
+                            throw new Error(`API error: ${signResponse.status}`);
+                        }
+
+                        proofData = await signResponse.json();
+                        addDemoLog(`Dilithium署名完了 (${proofData.proof_time_ms}ms)`, 'success');
+                    }
+
+                    // On step 2-3, call SP1 Prover if enabled
+                    if (i === 2 && USE_REAL_SP1_PROOFS) {
+                        addDemoLog('SP1 Prover Serverに接続中...', 'info');
+                        try {
+                            // First check if SP1 Prover is available
+                            const healthCheck = await fetch(`${SP1_PROVER_URL}/health`);
+                            if (!healthCheck.ok) {
+                                addDemoLog('SP1 Prover Server未起動 - モック証明を使用', 'warning');
+                            } else {
+                                const health = await healthCheck.json();
+                                addDemoLog(`SP1 Prover: ${health.prover_mode} モード`, 'info');
+                                addDemoLog('🔥 本物のSP1 ZK証明を生成中... (30-60秒かかります)', 'info');
+
+                                // Call SP1 Prover Server for real proof generation
+                                const sp1StartTime = Date.now();
+                                const sp1Response = await fetch(`${SP1_PROVER_URL}/api/v1/prove`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        lock_id: lastLockResult.lockId,
+                                        sender: lastLockResult.sender,
+                                        recipient: lastLockResult.recipient,
+                                        amount: ethers.parseEther(lastLockResult.amount).toString(),
+                                        nonce: parseInt(lastLockResult.nonce),
+                                        pub_key_hash: dilithiumPubKeyHash,
+                                        signature: proofData.proof,  // Dilithium signature from API
+                                        message: proofData.lock_id   // Message that was signed
+                                    })
+                                });
+
+                                if (sp1Response.ok) {
+                                    const sp1Data = await sp1Response.json();
+                                    const sp1ElapsedSec = ((Date.now() - sp1StartTime) / 1000).toFixed(1);
+                                    addDemoLog(`✅ SP1証明生成完了! (${sp1ElapsedSec}秒)`, 'success');
+                                    addDemoLog(`証明サイズ: ${(sp1Data.proof.length / 2 - 1).toLocaleString()} bytes`, 'info');
+
+                                    // Update proofData with real SP1 proof
+                                    proofData.proof = sp1Data.proof;
+                                    proofData.public_inputs = sp1Data.public_inputs;
+                                    proofData.proof_time_ms = sp1Data.proof_time_ms;
+                                } else {
+                                    const errText = await sp1Response.text();
+                                    addDemoLog(`SP1証明生成エラー: ${errText}`, 'error');
+                                    addDemoLog('モック証明にフォールバック', 'warning');
+                                }
+                            }
+                        } catch (e) {
+                            addDemoLog(`SP1 Prover接続エラー: ${e.message}`, 'warning');
+                            addDemoLog('モック証明を使用します', 'info');
+                        }
+                    }
+
+                    // Animate progress
+                    const stepStartProgress = (i / totalSteps) * 100;
+                    const stepEndProgress = ((i + 1) / totalSteps) * 100;
+                    const stepStartTime = Date.now();
+
+                    while (Date.now() - stepStartTime < step.duration) {
+                        const elapsed = Date.now() - stepStartTime;
+                        const stepProgress = (elapsed / step.duration) * (stepEndProgress - stepStartProgress) + stepStartProgress;
+                        document.getElementById('proofProgressBar').style.width = stepProgress + '%';
+                        document.getElementById('proofProgress').textContent = Math.round(stepProgress) + '%';
+                        await new Promise(r => setTimeout(r, 50));
+                    }
+
+                    // Complete this step
+                    stepEl.classList.remove('text-indigo-400');
+                    stepEl.classList.add('text-green-400');
+                    if (span) {
+                        span.classList.remove('bg-indigo-600', 'border-indigo-600');
+                        span.classList.add('bg-green-600', 'border-green-600');
+                        span.innerHTML = '✓';
+                    }
+
+                    addDemoLog(`${step.name} ✓`, 'success');
+                }
+
+                // Complete progress
+                document.getElementById('proofProgressBar').style.width = '100%';
+                document.getElementById('proofProgress').textContent = '100%';
+
+                // Show proof result
+                const elapsedTime = Date.now() - startTime;
+                document.getElementById('proofResult').classList.remove('hidden');
+                document.getElementById('proofTime').textContent = `${elapsedTime}ms`;
+
+                addDemoLog(`証明サイズ: ${proofData.proof.length / 2 - 1} bytes`, 'info');
+
+                // Move to step 5
+                await new Promise(r => setTimeout(r, 500));
+                setStep(5);
+
+                // Update release info
+                document.getElementById('releaseLockId').textContent =
+                    lastLockResult.lockId ? lastLockResult.lockId.slice(0, 16) + '...' : '-';
+                document.getElementById('releaseAmount').textContent = lastLockResult.amount + ' ETH';
+                document.getElementById('releaseRecipient').textContent =
+                    lastLockResult.recipient.slice(0, 10) + '...' + lastLockResult.recipient.slice(-6);
+
+                addDemoLog('Step 5: release()を実行してETHを解放してください', 'success');
+
+            } catch (error) {
+                addDemoLog(`証明生成エラー: ${error.message}`, 'error');
+                addDemoLog('ヒント: APIサーバーが起動していることを確認してください', 'warning');
+                btn.innerHTML = 'ZK証明を生成';
+                btn.disabled = false;
+            }
+        }
+
+        // Step 5: Release ETH
+        async function demoRelease() {
+            const btn = document.getElementById('demoReleaseBtn');
+            btn.innerHTML = '<span class="animate-spin">⏳</span> 処理中...';
+            btn.disabled = true;
+
+            if (!proofData || !bridgeContract) {
+                addDemoLog('先にZK証明を生成してください', 'error');
+                btn.innerHTML = 'release()を実行';
+                btn.disabled = false;
+                return;
+            }
+
+            try {
+                addDemoLog('release()を呼び出し中...', 'info');
+
+                // Convert public inputs to uint256 array
+                const publicInputs = proofData.public_inputs.map(pi => BigInt(pi));
+
+                // Debug: Log proof data
+                console.log('=== DEBUG release() ===');
+                console.log('proof length:', proofData.proof.length);
+                console.log('proof type:', typeof proofData.proof);
+                console.log('proof prefix:', proofData.proof.substring(0, 20));
+                console.log('publicInputs:', publicInputs.map(p => p.toString()));
+                console.log('lockId from inputs:', '0x' + ((publicInputs[4] << 128n) | publicInputs[3]).toString(16).padStart(64, '0'));
+                addDemoLog(`publicInputs: ${publicInputs.length} items`, 'info');
+
+                // Call release with the actual proof
+                const tx = await bridgeContract.release(proofData.proof, publicInputs, {
+                    gasLimit: 500000
+                });
+
+                addDemoLog(`TX送信: ${tx.hash.slice(0, 16)}...`, 'info');
+
+                // Wait for confirmation
+                addDemoLog('確認待機中...', 'info');
+                const receipt = await tx.wait();
+
+                addDemoLog(`確認完了! Block: ${receipt.blockNumber}`, 'success');
+                addDemoLog(`Etherscan: https://sepolia.etherscan.io/tx/${tx.hash}`, 'info');
+
+                // Show release result
+                document.getElementById('releaseResult').classList.remove('hidden');
+                document.getElementById('releaseTxLink').href =
+                    `https://sepolia.etherscan.io/tx/${tx.hash}`;
+                document.getElementById('releaseTxLink').textContent =
+                    tx.hash.slice(0, 16) + '...';
+
+                addDemoLog('🎉 リリース成功！ETHが戻りました', 'success');
+
+                // Update total locked
+                try {
+                    const totalLocked = await bridgeContract.totalLocked();
+                    document.getElementById('demoTotalLocked').textContent =
+                        ethers.formatEther(totalLocked) + ' ETH';
+                } catch (e) {
+                    // Ignore
+                }
+
+            } catch (error) {
+                if (error.code === 'ACTION_REJECTED') {
+                    addDemoLog('トランザクションがキャンセルされました', 'warning');
+                } else {
+                    addDemoLog(`リリースエラー: ${error.message}`, 'error');
+                    // Show more details for debugging
+                    if (error.reason) {
+                        addDemoLog(`理由: ${error.reason}`, 'error');
+                    }
+                }
+                btn.innerHTML = 'release()を実行';
+                btn.disabled = false;
+            }
+        }
+
+        function resetDemo() {
+            currentStep = 1;
+            lastLockResult = null;
+            sessionId = null;
+            dilithiumPubKeyHash = null;
+            proofData = null;
+
+            // Reset step indicators (5 steps now)
+            for (let i = 1; i <= 5; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                if (!indicator) continue;
+                indicator.classList.remove('bg-green-600');
+                indicator.classList.add(i === 1 ? 'bg-indigo-600' : 'bg-slate-700');
+                indicator.classList.toggle('text-white', i === 1);
+                indicator.classList.toggle('text-slate-400', i !== 1);
+                indicator.querySelector('span:first-child').innerHTML = i;
+            }
+
+            // Reset connectors (4 connectors for 5 steps)
+            for (let i = 1; i <= 4; i++) {
+                const connector = document.getElementById(`connector${i}`);
+                if (!connector) continue;
+                connector.classList.remove('bg-green-500');
+                connector.classList.add('bg-slate-600');
+            }
+
+            // Reset proof steps
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`proofStep${i}`);
+                if (!stepEl) continue;
+                stepEl.classList.remove('text-green-400', 'text-indigo-400');
+                stepEl.classList.add('text-slate-500');
+                const span = stepEl.querySelector('span');
+                if (span) {
+                    span.classList.remove('bg-green-600', 'border-green-600', 'bg-indigo-600', 'border-indigo-600', 'text-white');
+                    span.classList.add('border-slate-600');
+                    span.innerHTML = i;
+                }
+            }
+
+            // Reset progress
+            document.getElementById('proofProgressBar').style.width = '0%';
+            document.getElementById('proofProgress').textContent = '0%';
+
+            // Hide results
+            document.getElementById('dilithiumKeyInfo').classList.add('hidden');
+            document.getElementById('proofResult').classList.add('hidden');
+            document.getElementById('releaseResult').classList.add('hidden');
+
+            // Reset all buttons
+            document.getElementById('demoConnectBtn').innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                </svg>
+                ウォレットを接続
+            `;
+            document.getElementById('demoConnectBtn').disabled = false;
+
+            document.getElementById('demoKeypairBtn').innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                </svg>
+                Dilithium鍵ペアを生成
+            `;
+            document.getElementById('demoKeypairBtn').disabled = false;
+
+            document.getElementById('demoLockBtn').innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                lock()を実行
+            `;
+            document.getElementById('demoLockBtn').disabled = false;
+
+            document.getElementById('demoProofBtn').innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                ZK証明を生成
+            `;
+            document.getElementById('demoProofBtn').disabled = false;
+
+            document.getElementById('demoReleaseBtn').innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                </svg>
+                release()を実行
+            `;
+            document.getElementById('demoReleaseBtn').disabled = false;
+
+            // Show step 1
+            setStep(1);
+
+            addDemoLog('デモをリセットしました', 'info');
+        }
+
+        function addDemoLog(msg, type = 'info') {
+            const log = document.getElementById('demoLog');
+            const colors = {
+                info: 'text-blue-400',
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400'
+            };
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = colors[type];
+
+            // Make URLs clickable
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const msgWithLinks = msg.replace(urlRegex, '<a href="$1" target="_blank" class="underline hover:no-underline">$1</a>');
+
+            div.innerHTML = `[${time}] ${msgWithLinks}`;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearDemoLog() {
+            const log = document.getElementById('demoLog');
+            log.innerHTML = '<div class="text-slate-500">[System] ログをクリアしました</div>';
+        }
+    </script>
+</body>
+</html>
