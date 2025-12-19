@@ -1,0 +1,9 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "verifier": "0x0803d1FD2A88F06097721F960eF53dE176fbB26B",
+  "bridge": "0x5B401ebC8dC68EAc7c30b8DC032B5751D6E439A7",
+  "verifierType": "AlwaysTrueVerifier",
+  "deployer": "0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3",
+  "timestamp": "1766051244"
+}
