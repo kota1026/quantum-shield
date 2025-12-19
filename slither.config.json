@@ -1,0 +1,13 @@
+{
+  "detectors_to_run": "all",
+  "exclude_informational": false,
+  "exclude_low": false,
+  "exclude_medium": false,
+  "exclude_high": false,
+  "exclude_optimization": false,
+  "filter_paths": "node_modules,lib,test",
+  "solc_remaps": "@openzeppelin/=lib/openzeppelin-contracts/,forge-std/=lib/forge-std/src/",
+  "compile_force_framework": "foundry",
+  "show_ignored_findings": false,
+  "json": "slither-report.json"
+}

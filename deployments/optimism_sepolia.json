@@ -1,0 +1,8 @@
+{
+  "network": "optimism_sepolia",
+  "chainId": 11155420,
+  "verifier": "0x898e26853675368AC051b74809Ac5d0b02f19937",
+  "bridge": "0xe93b8129DC3dBD48E5d78C5A4C156DD1BFa8D65B",
+  "deployer": "0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3",
+  "timestamp": "1765981076"
+}
