@@ -1,2 +1,1 @@
-# No external dependencies needed
-# This file tells Vercel this is a Python project
+anthropic
