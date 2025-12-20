@@ -1,0 +1,44 @@
+name: Agent Progress Report (90min)
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+    - cron: '30 1,3,5,7,9,11,13,15,17,19,21,23 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [progress-report]
+
+permissions:
+  contents: write
+  issues: write
+
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/phase2-native-stark
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install anthropic requests
+      
+      - name: Run Progress Report
+        run: python scripts/progress_report.py
+      
+      - name: Commit consultation logs
+        run: |
+          git config --local user.email "agent-army@quantum-shield.dev"
+          git config --local user.name "Quantum Shield Agent Army"
+          git add consultations/ || true
+          git diff --staged --quiet || git commit -m "📊 進捗報告"
+          git push || echo "No changes"
