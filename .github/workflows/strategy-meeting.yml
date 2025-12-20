@@ -8,6 +8,9 @@ on:
         description: 'Mode: full, quick, security'
         default: 'quick'
 
+permissions:
+  contents: write
+
 env:
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
