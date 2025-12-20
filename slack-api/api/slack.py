@@ -53,9 +53,11 @@ class handler(BaseHTTPRequestHandler):
                 
                 # Handle app mentions
                 if event.get('type') == 'app_mention':
-                    text = event.get('text', '').lower()
+                    text = event.get('text', '')
                     channel = event.get('channel', '')
-                    self._handle_mention(text, channel)
+                    # Remove bot mention from text
+                    clean_text = self._remove_mention(text)
+                    self._handle_mention(clean_text, channel)
             
             self.send_response(200)
             self.end_headers()
@@ -65,6 +67,11 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
+    
+    def _remove_mention(self, text):
+        """Remove bot mention from text"""
+        import re
+        return re.sub(r'<@[A-Z0-9]+>', '', text).strip()
     
     def _verify_signature(self, body, timestamp, signature):
         """Verify Slack request signature"""
@@ -89,42 +96,78 @@ class handler(BaseHTTPRequestHandler):
     
     def _handle_mention(self, text, channel):
         """Handle app mention events"""
+        text_lower = text.lower()
         
-        if '戦略会議' in text or 'strategy' in text:
+        if '戦略会議' in text_lower or 'strategy' in text_lower:
             mode = 'full'
-            if 'クイック' in text or 'quick' in text:
+            if 'クイック' in text_lower or 'quick' in text_lower:
                 mode = 'quick'
-            elif 'セキュリティ' in text or 'security' in text:
+            elif 'セキュリティ' in text_lower or 'security' in text_lower:
                 mode = 'security'
             
             self._send_slack_message(f"🚀 戦略会議を開始します！モード: {mode}\n11体のエージェントを召集中...")
             
-            # Trigger GitHub Actions
             success = self._trigger_github_actions(mode, channel)
             if success:
                 self._send_slack_message("✅ GitHub Actions をトリガーしました。エージェントが分析を開始します...")
             else:
                 self._send_slack_message("❌ GitHub Actions のトリガーに失敗しました。GITHUB_TOKEN を確認してください。")
                 
-        elif 'ヘルプ' in text or 'help' in text:
+        elif 'ヘルプ' in text_lower or 'help' in text_lower:
             message = """*Quantum Shield Agent Commands:*
 • `戦略会議を開始` - 11エージェント全員で戦略会議
 • `クイックチェック` - CSO/Engineer/DevOpsで簡易確認
 • `セキュリティ優先` - セキュリティ重点レビュー
 • `承認` / `OK` - 提案を承認
-• `拒否` / `待って` - 提案を拒否"""
+• `拒否` / `待って` - 提案を拒否
+• または自由に話しかけてください！"""
             self._send_slack_message(message)
             
-        elif '承認' in text or 'ok' in text or '進めて' in text:
+        elif '承認' in text_lower or '進めて' in text_lower:
             self._send_slack_message("✅ 承認を受け付けました。処理を進めます。")
             self._trigger_github_actions('approval', channel, approved=True)
             
-        elif '拒否' in text or '止めて' in text or '待って' in text:
+        elif '拒否' in text_lower or '止めて' in text_lower or '待って' in text_lower:
             self._send_slack_message("🛑 拒否を受け付けました。処理を中断します。")
             self._trigger_github_actions('approval', channel, approved=False)
             
         else:
-            self._send_slack_message("👋 こんにちは！`ヘルプ` と言うとコマンド一覧を表示します。")
+            # Free conversation with Claude
+            response = self._chat_with_claude(text)
+            self._send_slack_message(response)
+    
+    def _chat_with_claude(self, user_message):
+        """Chat with Claude for free conversation"""
+        import anthropic
+        
+        api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+        if not api_key:
+            return "🤖 AI応答機能が設定されていません。ANTHROPIC_API_KEY を確認してください。"
+        
+        try:
+            client = anthropic.Anthropic(api_key=api_key)
+            
+            system_prompt = """あなたは Quantum Shield Bot です。
+耐量子暗号とゼロ知識証明を組み合わせたクロスチェーンブリッジプロジェクト「Quantum Shield」のAIアシスタントです。
+
+特徴:
+- 量子コンピュータ耐性のある暗号技術（Dilithium署名）
+- SP1 zkVM を使用したゼロ知識証明
+- EVM互換チェーン間のブリッジ
+
+親切で、技術的な質問にも答えられます。日本語で回答してください。簡潔に、2-3文で回答してください。"""
+            
+            message = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=300,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_message}]
+            )
+            
+            return f"🤖 {message.content[0].text}"
+            
+        except Exception as e:
+            return f"🤖 エラーが発生しました: {str(e)}"
     
     def _trigger_github_actions(self, mode, channel, approved=None):
         """Trigger GitHub Actions workflow"""
