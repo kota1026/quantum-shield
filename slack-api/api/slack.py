@@ -79,8 +79,8 @@ class handler(BaseHTTPRequestHandler):
     def _handle_mention(self, text, channel):
         text_lower = text.lower()
         
-        # 戦略会議
-        if '戦略会議' in text_lower or 'strategy' in text_lower:
+        # 戦略会議（最優先）
+        if '戦略会議' in text_lower or 'strategy meeting' in text_lower:
             mode = 'full'
             if 'クイック' in text_lower or 'quick' in text_lower:
                 mode = 'quick'
@@ -93,9 +93,10 @@ class handler(BaseHTTPRequestHandler):
                 self._send_slack_message("✅ GitHub Actions をトリガーしました。")
             else:
                 self._send_slack_message("❌ GitHub Actions のトリガーに失敗しました。")
+            return
         
         # ヘルプ
-        elif 'ヘルプ' in text_lower or 'help' in text_lower:
+        if 'ヘルプ' in text_lower or text_lower == 'help':
             self._send_slack_message("""🔒 *CSO（チーフセキュリティオフィサー）です*
 
 私が11体のエージェントチームを統括しています。
@@ -109,31 +110,32 @@ class handler(BaseHTTPRequestHandler):
 🛡️ Purpose Guardian | 🔐 Crypto Auditor | 🔴 Red Team
 🏗️ CTO | 🔒 CSO | 💰 CFO | 📊 CBO
 ⚙️ Engineer | 🔬 Researcher | 🚀 DevOps | ⚖️ Legal""")
+            return
         
-        # 進捗報告
-        elif '進捗' in text_lower or 'status' in text_lower or '報告' in text_lower:
+        # タスク依頼を先に判定（長文で作業指示っぽいもの）
+        if self._is_task_request(text):
+            self._handle_task_request(text, channel)
+            return
+        
+        # 進捗報告（短文の場合のみ）
+        if len(text) < 30 and ('進捗' in text_lower or 'status' in text_lower):
             self._send_slack_message("📊 進捗報告を準備中...")
             self._trigger_github_actions('progress-report', {'channel': channel})
-        
-        # タスク依頼を検出（長文 or 特定キーワード）
-        elif self._is_task_request(text):
-            self._handle_task_request(text, channel)
+            return
         
         # 通常の会話
-        else:
-            response = self._chat_with_agent_team(text)
-            self._send_slack_message(response)
+        response = self._chat_with_agent_team(text)
+        self._send_slack_message(response)
     
     def _is_task_request(self, text):
         """タスク依頼かどうかを判定"""
-        task_keywords = ['進めて', '対策', '実行', '実装', '検討', 'お願い', 
-                        '報告して', '確認して', '調査', 'タスク', '作業']
+        task_keywords = ['進めて', '対策', '実行して', '実装して', '検討して', 'お願い', 
+                        '報告して', '確認して', '調査して', '対応して', '準備して',
+                        '整えて', '精査して']
         text_lower = text.lower()
         
-        # キーワードが含まれているか
         has_keyword = any(kw in text_lower for kw in task_keywords)
-        # ある程度の長さがあるか
-        is_long = len(text) > 50
+        is_long = len(text) > 80  # 長文
         
         return has_keyword and is_long
     
@@ -141,7 +143,7 @@ class handler(BaseHTTPRequestHandler):
         """タスク依頼を処理"""
         import anthropic
         
-        self._send_slack_message("📋 タスク依頼を受け付けました。分析中...")
+        self._send_slack_message("📋 *タスク依頼を受け付けました*\n\n🤖 AIがタスクを分析し、担当エージェントに振り分けています...")
         
         api_key = os.environ.get('ANTHROPIC_API_KEY', '')
         if not api_key:
@@ -151,51 +153,50 @@ class handler(BaseHTTPRequestHandler):
         try:
             client = anthropic.Anthropic(api_key=api_key)
             
-            # タスクを分解して担当を割り当て
             system_prompt = """あなたはQuantum Shieldプロジェクトのタスク管理AIです。
 ユーザーからの依頼を分析し、以下のJSON形式で出力してください。
 
 {
   "tasks": [
     {
-      "title": "タスクタイトル（簡潔に）",
-      "description": "詳細な説明",
-      "assignee": "担当エージェント名",
+      "title": "タスクタイトル（簡潔に日本語で）",
+      "description": "詳細な説明（日本語で）",
+      "assignee": "担当エージェント名（英語）",
       "priority": "high/medium/low",
-      "labels": ["ラベル1", "ラベル2"]
+      "labels": ["security", "implementation"]
     }
   ],
-  "summary": "依頼全体の要約（1-2文）"
+  "summary": "依頼全体の要約（日本語1-2文）"
 }
 
-担当エージェント:
-- Crypto Auditor: 暗号実装、Dilithium、署名
-- Red Team: 脆弱性、攻撃対策、セキュリティテスト
-- Engineer: コード実装、開発
-- DevOps: CI/CD、インフラ
-- CBO: ビジネス検討、部品売り
-- Researcher: 技術調査、最新動向
+担当エージェント（assignee）の選択:
+- Crypto Auditor: 暗号実装、Dilithium署名、暗号学的検証
+- Red Team: 脆弱性対策、攻撃シミュレーション、セキュリティテスト
+- Engineer: コード実装、開発作業
+- DevOps: CI/CD、インフラ、テスト自動化
+- CBO: ビジネス検討、部品売り、市場調査
+- Researcher: 技術調査、最新動向リサーチ
 - Legal: 法務、コンプライアンス
-- CSO: セキュリティ総括
+- CSO: セキュリティ総括、監査準備
 
-必ずJSON形式のみで回答してください。"""
+複数の作業がある場合は、複数のtasksに分けてください。
+必ず有効なJSON形式のみで回答してください。"""
 
             message = client.messages.create(
                 model="claude-sonnet-4-20250514",
-                max_tokens=1500,
+                max_tokens=2000,
                 system=system_prompt,
                 messages=[{"role": "user", "content": text}]
             )
             
             response_text = message.content[0].text
             
-            # JSONを抽出
             import re
             json_match = re.search(r'\{[\s\S]*\}', response_text)
             if json_match:
                 task_data = json.loads(json_match.group())
             else:
-                raise ValueError("JSON not found")
+                raise ValueError("JSON not found in response")
             
             # GitHub Issuesを作成
             created_issues = []
@@ -204,9 +205,9 @@ class handler(BaseHTTPRequestHandler):
             for task in task_data.get('tasks', []):
                 issue = self._create_github_issue(
                     github_token,
-                    task['title'],
-                    task['description'],
-                    task['assignee'],
+                    task.get('title', 'Untitled'),
+                    task.get('description', ''),
+                    task.get('assignee', 'CSO'),
                     task.get('priority', 'medium'),
                     task.get('labels', [])
                 )
@@ -222,18 +223,17 @@ class handler(BaseHTTPRequestHandler):
 *作成したIssue ({len(created_issues)}件):*
 """
             for issue in created_issues:
-                report += f"• [{issue['title']}]({issue['url']}) → {issue['assignee']}\n"
+                report += f"• <{issue['url']}|{issue['title']}> → *{issue['assignee']}*\n"
             
-            report += "\n各エージェントが担当タスクを確認し、作業を開始します。"
+            report += """
+---
+各担当エージェントがタスクを確認し、作業を開始します。
+進捗は随時Slackで報告します。問題があれば相談してください。"""
             
             self._send_slack_message(report)
             
-            # GitHub Actionsでタスクファイル保存をトリガー
-            self._trigger_github_actions('task-created', {
-                'channel': channel,
-                'tasks': task_data
-            })
-            
+        except json.JSONDecodeError as e:
+            self._send_slack_message(f"❌ JSON解析エラー: タスク分析に失敗しました。もう一度お試しください。")
         except Exception as e:
             self._send_slack_message(f"❌ タスク処理エラー: {str(e)}")
     
@@ -244,16 +244,16 @@ class handler(BaseHTTPRequestHandler):
         
         url = "https://api.github.com/repos/kota1026/quantum-shield/issues"
         
-        # 優先度をラベルに追加
-        all_labels = labels + [f"priority:{priority}", f"agent:{assignee}"]
+        all_labels = list(set(labels + [f"priority:{priority}", f"agent:{assignee}"]))
         
         body = f"""## タスク詳細
 {description}
 
 ---
-**担当エージェント**: {assignee}
-**優先度**: {priority}
-**作成元**: Slack Bot
+- **担当エージェント**: {assignee}
+- **優先度**: {priority}
+- **作成元**: Slack Bot
+- **ステータス**: 🟡 作業中
 """
         
         payload = {
