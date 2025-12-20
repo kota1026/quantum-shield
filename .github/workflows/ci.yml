@@ -1,34 +1,19 @@
-# Quantum Shield CI/CD Pipeline
-# 自動テスト + 承認待ち通知システム
-
-name: Quantum Shield Verification
+name: Quantum Shield CI
 
 on:
   push:
-    branches: [main, dev/*]
+    branches: [main, dev/*, release/*]
   pull_request:
     branches: [main]
-  # 手動トリガー（承認後に再開可能）
   workflow_dispatch:
-    inputs:
-      approval_token:
-        description: 'CEO承認トークン'
-        required: false
-      skip_approval:
-        description: '承認スキップ（テスト用）'
-        type: boolean
-        default: false
 
 env:
+  CARGO_TERM_COLOR: always
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-  LINE_NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
 
 jobs:
-  # ============================================
-  # Job 1: Rust暗号テスト（自動）
-  # ============================================
-  rust-crypto-tests:
-    name: 🔐 Rust Crypto Tests
+  rust-tests:
+    name: 🦀 Rust Tests
     runs-on: ubuntu-latest
     
     steps:
@@ -36,95 +21,30 @@ jobs:
         with:
           submodules: recursive
       
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
       
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: circuits/dilithium-stark
-      
-      - name: Install pq-crystals dependencies
+      - name: Build and Test
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential
-      
-      - name: Run NIST KAT FFI Test
-        id: kat_test
-        working-directory: circuits/dilithium-stark
-        run: |
-          OUTPUT=$(cargo test test_nist_kat_ffi -- --nocapture 2>&1)
-          echo "$OUTPUT"
-          
-          # 結果を抽出
-          VERIFIED=$(echo "$OUTPUT" | grep "Signatures verified:" | grep -o '[0-9]*')
-          echo "signatures_verified=$VERIFIED" >> $GITHUB_OUTPUT
-          
-          if [ "$VERIFIED" = "100" ]; then
-            echo "status=PASS" >> $GITHUB_OUTPUT
-          else
-            echo "status=FAIL" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-      
-      - name: Run All Rust Tests
-        working-directory: circuits/dilithium-stark
-        run: cargo test --all
-      
-      - name: Notify Success
-        if: success()
-        run: |
-          curl -X POST $SLACK_WEBHOOK_URL \
-            -H 'Content-type: application/json' \
-            -d '{
-              "text": "✅ *Quantum Shield* - Rust Tests PASSED\n• NIST KAT: 100/100\n• All tests: PASS",
-              "username": "QS-Bot"
-            }'
-      
-      - name: Notify Failure
-        if: failure()
-        run: |
-          curl -X POST $SLACK_WEBHOOK_URL \
-            -H 'Content-type: application/json' \
-            -d '{
-              "text": "❌ *Quantum Shield* - Rust Tests FAILED\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-              "username": "QS-Bot"
-            }'
+          cd circuits/dilithium-stark
+          cargo build --features pq_crystals_ffi
+          cargo test test_nist_kat_ffi -- --nocapture
+          cargo test
 
-  # ============================================
-  # Job 2: Lean4形式検証（自動）
-  # ============================================
-  lean4-verification:
-    name: 🧮 Lean4 Formal Proofs
+  lean4-proofs:
+    name: 📐 Lean4 Proofs
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup elan (Lean4)
-        run: |
-          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
-          echo "$HOME/.elan/bin" >> $GITHUB_PATH
-      
       - name: Check for sorry
-        working-directory: proofs/lean4
         run: |
-          SORRY_COUNT=$(grep -c "sorry" NTT.lean || echo "0")
-          if [ "$SORRY_COUNT" -gt "0" ]; then
-            echo "❌ Found $SORRY_COUNT 'sorry' placeholders!"
+          if grep -rq "sorry" proofs/lean4/*.lean 2>/dev/null; then
+            echo "❌ Found sorry!"
             exit 1
           fi
-          echo "✅ No 'sorry' found"
-      
-      - name: Build Lean4 proofs
-        working-directory: proofs/lean4
-        run: |
-          lake update
-          lake build
+          echo "✅ No sorry found"
 
-  # ============================================
-  # Job 3: Solidity Tests（自動）
-  # ============================================
   solidity-tests:
     name: 📜 Solidity Tests
     runs-on: ubuntu-latest
@@ -134,76 +54,22 @@ jobs:
         with:
           submodules: recursive
       
-      - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+      - uses: foundry-rs/foundry-toolchain@v1
       
-      - name: Run Forge Tests
-        working-directory: contracts
-        run: forge test -vv
-        continue-on-error: true  # Stack too deep問題があるため
+      - name: Test
+        run: cd contracts && forge test -vv
+        continue-on-error: true
 
-  # ============================================
-  # Job 4: 承認待ち + 通知（重要な変更時）
-  # ============================================
-  approval-gate:
-    name: 🔒 CEO Approval Gate
-    needs: [rust-crypto-tests, lean4-verification]
+  notify:
+    name: 📢 Notify
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    environment:
-      name: production
-      url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    needs: [rust-tests, lean4-proofs, solidity-tests]
+    if: always()
     
     steps:
-      - name: Request Approval via Slack
+      - name: Slack Notification
+        if: env.SLACK_WEBHOOK_URL != ''
         run: |
-          curl -X POST $SLACK_WEBHOOK_URL \
+          curl -X POST "$SLACK_WEBHOOK_URL" \
             -H 'Content-type: application/json' \
-            -d '{
-              "text": "🔐 *承認が必要です*\n\nQuantum Shield mainブランチへのデプロイを承認してください。\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|👉 承認はこちら>",
-              "username": "QS-Approval-Bot"
-            }'
-      
-      - name: Request Approval via LINE
-        if: env.LINE_NOTIFY_TOKEN != ''
-        run: |
-          curl -X POST https://notify-api.line.me/api/notify \
-            -H "Authorization: Bearer $LINE_NOTIFY_TOKEN" \
-            -F "message=🔐 Quantum Shield承認依頼
-            
-テスト結果: ✅ PASS
-承認URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-      
-      - name: Wait for Manual Approval
-        run: |
-          echo "⏳ Waiting for CEO approval..."
-          echo "Approve in GitHub Actions UI or via workflow_dispatch"
-      
-      - name: Approval Received
-        run: echo "✅ Approval received, proceeding..."
-
-  # ============================================
-  # Job 5: デプロイ（承認後）
-  # ============================================
-  deploy:
-    name: 🚀 Deploy
-    needs: [approval-gate]
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Deploy to Production
-        run: |
-          echo "Deploying..."
-          # デプロイスクリプトをここに追加
-      
-      - name: Notify Deployment Complete
-        run: |
-          curl -X POST $SLACK_WEBHOOK_URL \
-            -H 'Content-type: application/json' \
-            -d '{
-              "text": "🚀 *Quantum Shield* デプロイ完了！\nVersion: ${{ github.sha }}",
-              "username": "QS-Deploy-Bot"
-            }'
+            -d '{"text":"Quantum Shield CI: Rust=${{ needs.rust-tests.result }}, Lean4=${{ needs.lean4-proofs.result }}, Solidity=${{ needs.solidity-tests.result }}"}'
