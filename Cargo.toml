@@ -1,19 +1,20 @@
 [workspace]
 members = [
     "client",
-    "prover",
     "shared-types",
+    "circuits/dilithium-stark",
+    "stark-prover",
 ]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Quantum Shield Team"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-# Dilithium
+# Dilithium (FIPS 204)
 pqcrypto-dilithium = "0.5"
 pqcrypto-traits = "0.3"
 
@@ -24,6 +25,7 @@ sha3 = "0.10"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 hex = "0.4"
+bincode = "1.3"
 
 # Async
 tokio = { version = "1", features = ["full"] }
@@ -31,7 +33,19 @@ tokio = { version = "1", features = ["full"] }
 # Web
 axum = "0.7"
 
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# ZK Proving (Plonky3)
+# Note: These will be added when Plonky3 circuit implementation begins
+# p3-field = { git = "https://github.com/Plonky3/Plonky3", branch = "main" }
+# p3-air = { git = "https://github.com/Plonky3/Plonky3", branch = "main" }
+
 [profile.release]
 opt-level = 3
 lto = "fat"
 codegen-units = 1
+
+[profile.dev]
+opt-level = 1
