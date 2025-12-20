@@ -3,15 +3,19 @@
   "framework": null,
   "buildCommand": "",
   "installCommand": "",
-  "outputDirectory": "api",
+  "outputDirectory": "slack-api",
   "routes": [
     {
       "src": "/api/slack",
-      "dest": "/api/slack/index.py"
+      "dest": "/index.py"
     },
     {
       "src": "/api/health",
-      "dest": "/api/slack/index.py"
+      "dest": "/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.py"
     }
   ]
 }
