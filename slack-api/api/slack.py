@@ -8,16 +8,13 @@ import urllib.request
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        """Health check endpoint"""
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps({'status': 'ok', 'service': 'quantum-shield-slack-api'}).encode())
     
     def do_POST(self):
-        """Handle Slack events"""
         try:
-            # Ignore Slack retries
             retry_num = self.headers.get('X-Slack-Retry-Num')
             if retry_num:
                 self.send_response(200)
@@ -28,7 +25,6 @@ class handler(BaseHTTPRequestHandler):
             body = self.rfile.read(content_length).decode('utf-8')
             data = json.loads(body)
             
-            # Handle URL verification
             if data.get('type') == 'url_verification':
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/plain')
@@ -36,7 +32,6 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(data.get('challenge', '').encode())
                 return
             
-            # Verify signature
             timestamp = self.headers.get('X-Slack-Request-Timestamp', '')
             signature = self.headers.get('X-Slack-Signature', '')
             if not self._verify_signature(body, timestamp, signature):
@@ -44,7 +39,6 @@ class handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 return
             
-            # Handle events
             if data.get('type') == 'event_callback':
                 event = data.get('event', {})
                 if event.get('bot_id'):
@@ -85,7 +79,7 @@ class handler(BaseHTTPRequestHandler):
     def _handle_mention(self, text, channel):
         text_lower = text.lower()
         
-        # 戦略会議コマンド
+        # 戦略会議
         if '戦略会議' in text_lower or 'strategy' in text_lower:
             mode = 'full'
             if 'クイック' in text_lower or 'quick' in text_lower:
@@ -94,9 +88,9 @@ class handler(BaseHTTPRequestHandler):
                 mode = 'security'
             
             self._send_slack_message(f"🚀 戦略会議を開始します！モード: {mode}\n11体のエージェントを召集中...")
-            success = self._trigger_github_actions(mode, channel)
+            success = self._trigger_github_actions('strategy-meeting', {'mode': mode, 'channel': channel})
             if success:
-                self._send_slack_message("✅ GitHub Actions をトリガーしました。エージェントが分析を開始します...")
+                self._send_slack_message("✅ GitHub Actions をトリガーしました。")
             else:
                 self._send_slack_message("❌ GitHub Actions のトリガーに失敗しました。")
         
@@ -108,31 +102,193 @@ class handler(BaseHTTPRequestHandler):
 
 *コマンド:*
 • `戦略会議を開始` - 全エージェントで正式な分析会議
-• `クイックチェック` - 簡易確認（CSO/Engineer/DevOps）
-• `セキュリティ優先` - セキュリティ重点レビュー
-
-*自由に話しかけてください:*
-• 質問や相談 → 私がチームと協議して回答
-• `〇〇に詳しく聞きたい` → 担当エージェントが直接回答
+• `進捗報告` - 現在のタスク状況を報告
+• タスク依頼 → 自動的にIssue作成＆担当割り当て
 
 *エージェントチーム:*
 🛡️ Purpose Guardian | 🔐 Crypto Auditor | 🔴 Red Team
 🏗️ CTO | 🔒 CSO | 💰 CFO | 📊 CBO
 ⚙️ Engineer | 🔬 Researcher | 🚀 DevOps | ⚖️ Legal""")
         
-        # 承認/拒否
-        elif '承認' in text_lower or '進めて' in text_lower:
-            self._send_slack_message("✅ 承認を受け付けました。処理を進めます。")
-        elif '拒否' in text_lower or '止めて' in text_lower or '待って' in text_lower:
-            self._send_slack_message("🛑 拒否を受け付けました。処理を中断します。")
+        # 進捗報告
+        elif '進捗' in text_lower or 'status' in text_lower or '報告' in text_lower:
+            self._send_slack_message("📊 進捗報告を準備中...")
+            self._trigger_github_actions('progress-report', {'channel': channel})
         
-        # 特定エージェントへの質問
+        # タスク依頼を検出（長文 or 特定キーワード）
+        elif self._is_task_request(text):
+            self._handle_task_request(text, channel)
+        
+        # 通常の会話
         else:
             response = self._chat_with_agent_team(text)
             self._send_slack_message(response)
     
+    def _is_task_request(self, text):
+        """タスク依頼かどうかを判定"""
+        task_keywords = ['進めて', '対策', '実行', '実装', '検討', 'お願い', 
+                        '報告して', '確認して', '調査', 'タスク', '作業']
+        text_lower = text.lower()
+        
+        # キーワードが含まれているか
+        has_keyword = any(kw in text_lower for kw in task_keywords)
+        # ある程度の長さがあるか
+        is_long = len(text) > 50
+        
+        return has_keyword and is_long
+    
+    def _handle_task_request(self, text, channel):
+        """タスク依頼を処理"""
+        import anthropic
+        
+        self._send_slack_message("📋 タスク依頼を受け付けました。分析中...")
+        
+        api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+        if not api_key:
+            self._send_slack_message("❌ API設定エラー")
+            return
+        
+        try:
+            client = anthropic.Anthropic(api_key=api_key)
+            
+            # タスクを分解して担当を割り当て
+            system_prompt = """あなたはQuantum Shieldプロジェクトのタスク管理AIです。
+ユーザーからの依頼を分析し、以下のJSON形式で出力してください。
+
+{
+  "tasks": [
+    {
+      "title": "タスクタイトル（簡潔に）",
+      "description": "詳細な説明",
+      "assignee": "担当エージェント名",
+      "priority": "high/medium/low",
+      "labels": ["ラベル1", "ラベル2"]
+    }
+  ],
+  "summary": "依頼全体の要約（1-2文）"
+}
+
+担当エージェント:
+- Crypto Auditor: 暗号実装、Dilithium、署名
+- Red Team: 脆弱性、攻撃対策、セキュリティテスト
+- Engineer: コード実装、開発
+- DevOps: CI/CD、インフラ
+- CBO: ビジネス検討、部品売り
+- Researcher: 技術調査、最新動向
+- Legal: 法務、コンプライアンス
+- CSO: セキュリティ総括
+
+必ずJSON形式のみで回答してください。"""
+
+            message = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=1500,
+                system=system_prompt,
+                messages=[{"role": "user", "content": text}]
+            )
+            
+            response_text = message.content[0].text
+            
+            # JSONを抽出
+            import re
+            json_match = re.search(r'\{[\s\S]*\}', response_text)
+            if json_match:
+                task_data = json.loads(json_match.group())
+            else:
+                raise ValueError("JSON not found")
+            
+            # GitHub Issuesを作成
+            created_issues = []
+            github_token = os.environ.get('GITHUB_TOKEN', '')
+            
+            for task in task_data.get('tasks', []):
+                issue = self._create_github_issue(
+                    github_token,
+                    task['title'],
+                    task['description'],
+                    task['assignee'],
+                    task.get('priority', 'medium'),
+                    task.get('labels', [])
+                )
+                if issue:
+                    created_issues.append(issue)
+            
+            # Slackに報告
+            summary = task_data.get('summary', '')
+            report = f"""✅ *タスク登録完了*
+
+📝 *要約*: {summary}
+
+*作成したIssue ({len(created_issues)}件):*
+"""
+            for issue in created_issues:
+                report += f"• [{issue['title']}]({issue['url']}) → {issue['assignee']}\n"
+            
+            report += "\n各エージェントが担当タスクを確認し、作業を開始します。"
+            
+            self._send_slack_message(report)
+            
+            # GitHub Actionsでタスクファイル保存をトリガー
+            self._trigger_github_actions('task-created', {
+                'channel': channel,
+                'tasks': task_data
+            })
+            
+        except Exception as e:
+            self._send_slack_message(f"❌ タスク処理エラー: {str(e)}")
+    
+    def _create_github_issue(self, token, title, description, assignee, priority, labels):
+        """GitHub Issueを作成"""
+        if not token:
+            return None
+        
+        url = "https://api.github.com/repos/kota1026/quantum-shield/issues"
+        
+        # 優先度をラベルに追加
+        all_labels = labels + [f"priority:{priority}", f"agent:{assignee}"]
+        
+        body = f"""## タスク詳細
+{description}
+
+---
+**担当エージェント**: {assignee}
+**優先度**: {priority}
+**作成元**: Slack Bot
+"""
+        
+        payload = {
+            "title": f"[{assignee}] {title}",
+            "body": body,
+            "labels": all_labels
+        }
+        
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'token {token}',
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Quantum-Shield-Bot'
+            },
+            method='POST'
+        )
+        
+        try:
+            response = urllib.request.urlopen(req)
+            issue_data = json.loads(response.read().decode('utf-8'))
+            return {
+                'title': title,
+                'url': issue_data['html_url'],
+                'number': issue_data['number'],
+                'assignee': assignee
+            }
+        except Exception as e:
+            print(f"Issue creation failed: {e}")
+            return None
+    
     def _chat_with_agent_team(self, user_message):
-        """Chat with agent team - CSO coordinates, specific agents can answer directly"""
+        """エージェントチームとの会話"""
         import anthropic
         
         api_key = os.environ.get('ANTHROPIC_API_KEY', '')
@@ -142,103 +298,61 @@ class handler(BaseHTTPRequestHandler):
         try:
             client = anthropic.Anthropic(api_key=api_key)
             
-            # 特定エージェントへの直接質問を検出
             agent_keywords = {
-                "purpose guardian": ("Purpose Guardian", "🛡️", "PURPOSE.md準拠とミッション整合性の専門家"),
-                "crypto auditor": ("Crypto Auditor", "🔐", "暗号実装とDilithium署名の専門家"),
-                "red team": ("Red Team", "🔴", "脆弱性発見と攻撃シミュレーションの専門家"),
-                "cto": ("CTO", "🏗️", "技術戦略とアーキテクチャの専門家"),
-                "cso": ("CSO", "🔒", "セキュリティ総括とリスク管理の専門家"),
-                "cfo": ("CFO", "💰", "コスト分析とリソース最適化の専門家"),
-                "cbo": ("CBO", "📊", "ビジネス価値と市場戦略の専門家"),
-                "engineer": ("Engineer", "⚙️", "コード品質と実装の専門家"),
-                "researcher": ("Researcher", "🔬", "最新技術研究と革新性の専門家"),
-                "devops": ("DevOps", "🚀", "インフラとCI/CDの専門家"),
-                "legal": ("Legal", "⚖️", "コンプライアンスと法務の専門家"),
+                "purpose guardian": ("Purpose Guardian", "🛡️"),
+                "crypto auditor": ("Crypto Auditor", "🔐"),
+                "red team": ("Red Team", "🔴"),
+                "cto": ("CTO", "🏗️"),
+                "cso": ("CSO", "🔒"),
+                "cfo": ("CFO", "💰"),
+                "cbo": ("CBO", "📊"),
+                "engineer": ("Engineer", "⚙️"),
+                "researcher": ("Researcher", "🔬"),
+                "devops": ("DevOps", "🚀"),
+                "legal": ("Legal", "⚖️"),
             }
             
             user_lower = user_message.lower()
             selected_agent = None
             
             for keyword, agent_info in agent_keywords.items():
-                if keyword in user_lower or agent_info[0].lower() in user_lower:
+                if keyword in user_lower:
                     selected_agent = agent_info
                     break
             
             if selected_agent:
-                # 特定エージェントが直接回答
-                agent_name, emoji, role = selected_agent
-                system_prompt = f"""あなたは Quantum Shield プロジェクトの {agent_name} です。
-{role}です。
-
-プロジェクト概要:
-- 耐量子暗号（Dilithium署名）とゼロ知識証明を組み合わせたクロスチェーンブリッジ
-- SP1 zkVM を使用
-- EVM互換チェーン間のブリッジ
-
-あなたの専門分野について、具体的かつ実践的なアドバイスをしてください。
-日本語で、2-4文で回答してください。"""
-                
-                message = client.messages.create(
-                    model="claude-sonnet-4-20250514",
-                    max_tokens=400,
-                    system=system_prompt,
-                    messages=[{"role": "user", "content": user_message}]
-                )
-                return f"{emoji} *{agent_name}*: {message.content[0].text}"
-            
+                agent_name, emoji = selected_agent
+                system_prompt = f"あなたはQuantum Shieldの{agent_name}です。専門分野について具体的に回答。日本語で2-4文。"
             else:
-                # CSOがチームを代表して回答
-                system_prompt = """あなたは Quantum Shield プロジェクトの CSO（チーフセキュリティオフィサー）です。
-11体のエージェントチームを統括しています。
-
-チームメンバー:
-- 🛡️ Purpose Guardian: ミッション整合性
-- 🔐 Crypto Auditor: 暗号実装
-- 🔴 Red Team: 脆弱性発見
-- 🏗️ CTO: 技術戦略
-- 💰 CFO: コスト分析
-- 📊 CBO: ビジネス価値
-- ⚙️ Engineer: 実装品質
-- 🔬 Researcher: 最新研究
-- 🚀 DevOps: インフラ
-- ⚖️ Legal: コンプライアンス
-
-プロジェクト概要:
-- 耐量子暗号（Dilithium署名）とゼロ知識証明を組み合わせたクロスチェーンブリッジ
-- SP1 zkVM を使用
-- EVM互換チェーン間のブリッジ
-
-あなたはチームの意見を統括して回答します。
-必要に応じて「〇〇（エージェント名）によると...」のように他のエージェントの見解も含めてください。
-重要な場合は「詳しくは〇〇に聞いてください」と案内してください。
-日本語で、3-5文で回答してください。"""
-                
-                message = client.messages.create(
-                    model="claude-sonnet-4-20250514",
-                    max_tokens=500,
-                    system=system_prompt,
-                    messages=[{"role": "user", "content": user_message}]
-                )
-                return f"🔒 *CSO*: {message.content[0].text}"
+                agent_name, emoji = "CSO", "🔒"
+                system_prompt = """あなたはQuantum ShieldのCSO。11体のエージェントを統括。
+チームの見解をまとめて回答。日本語で3-5文。"""
+            
+            message = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=500,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_message}]
+            )
+            return f"{emoji} *{agent_name}*: {message.content[0].text}"
             
         except Exception as e:
-            return f"🔒 CSO: エラーが発生しました: {str(e)}"
+            return f"🔒 CSO: エラー: {str(e)}"
     
-    def _trigger_github_actions(self, mode, channel, approved=None):
+    def _trigger_github_actions(self, event_type, payload):
         github_token = os.environ.get('GITHUB_TOKEN', '')
         if not github_token:
             return False
         
         url = "https://api.github.com/repos/kota1026/quantum-shield/dispatches"
-        payload = {
-            "event_type": "strategy-meeting" if approved is None else "approval-response",
-            "client_payload": {"mode": mode, "channel": channel, "approved": approved}
+        data = {
+            "event_type": event_type,
+            "client_payload": payload
         }
         
         req = urllib.request.Request(
             url,
-            data=json.dumps(payload).encode('utf-8'),
+            data=json.dumps(data).encode('utf-8'),
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': f'token {github_token}',
