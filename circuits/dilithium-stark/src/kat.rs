@@ -1314,7 +1314,7 @@ mod tests {
         }
 
         // Path to KAT file
-        let kat_path = "../../pq-crystals-dilithium/PQCsignKAT_Dilithium3.rsp";
+        let kat_path = "test-vectors/PQCsignKAT_Dilithium3.rsp";
 
         if !std::path::Path::new(kat_path).exists() {
             println!("SKIP: NIST KAT file not found at {}", kat_path);
