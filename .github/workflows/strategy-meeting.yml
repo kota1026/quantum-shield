@@ -25,7 +25,7 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: pip install anthropic requests
+        run: pip install anthropic
       
       - name: Get Mode
         id: mode
@@ -37,23 +37,4 @@ jobs:
           fi
       
       - name: Run Agent Analysis
-        run: |
-          python3 << 'EOF'
-          import anthropic
-          import json
-          import os
-          import urllib.request
-          
-          client = anthropic.Anthropic()
-          mode = "${{ steps.mode.outputs.mode }}" or "quick"
-          webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
-          
-          def send_slack(text):
-              payload = json.dumps({"text": text}).encode('utf-8')
-              req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'})
-              urllib.request.urlopen(req)
-          
-          send_slack(f"🎯 *戦略会議開始* - モード: {mode}\n\n🤖 AIエージェントがコード分析中...")
-          
-          files_to_analyze = []
-          for path in ["PURPOSE.md", "README.md", "Cargo.toml"]
+        run: python scripts/agent_meeting.py ${{ steps.mode.outputs.mode }}
