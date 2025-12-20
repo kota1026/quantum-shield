@@ -3,23 +3,115 @@ on:
   repository_dispatch:
     types: [strategy-meeting]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Mode: full, quick, security'
+        default: 'quick'
 
 env:
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:
   meeting:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/phase2-native-stark
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install anthropic requests
+      
+      - name: Get Mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            echo "mode=${{ github.event.client_payload.mode }}" >> $GITHUB_OUTPUT
+          else
+            echo "mode=${{ github.event.inputs.mode || 'quick' }}" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Notify Start
         run: |
-          curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-type: application/json' -d '{"text":"🎯 戦略会議開始！エージェント分析中..."}'
+          curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-type: application/json' \
+            -d '{"text":"🎯 *戦略会議開始* - モード: ${{ steps.mode.outputs.mode }}\n\n🤖 AIエージェントがコード分析中..."}'
       
-      - name: Run Analysis
+      - name: Run Agent Analysis
         run: |
-          echo "Analyzing..."
-          sleep 3
-      
-      - name: Notify Complete
-        run: |
-          curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-type: application/json' -d '{"text":"✅ 戦略会議完了！\n\n📊 参加エージェント:\n🔒 CSO: PASS\n⚙️ Engineer: PASS\n🚀 DevOps: PASS\n\n🏥 総合: HEALTHY"}'
+          python3 << 'EOF'
+          import anthropic
+          import json
+          import os
+          import urllib.request
+
+          client = anthropic.Anthropic()
+          mode = "${{ steps.mode.outputs.mode }}"
+          webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+
+          # Read key files for analysis
+          files_to_analyze = []
+          for path in ["PURPOSE.md", "README.md", "Cargo.toml"]:
+              try:
+                  with open(path, "r") as f:
+                      files_to_analyze.append(f"=== {path} ===\n{f.read()[:2000]}")
+              except:
+                  pass
+
+          context = "\n\n".join(files_to_analyze)
+
+          agents = {
+              "full": ["CSO", "Engineer", "DevOps", "Crypto Auditor", "Red Team"],
+              "quick": ["CSO", "Engineer", "DevOps"],
+              "security": ["CSO", "Crypto Auditor", "Red Team"]
+          }
+
+          agent_prompts = {
+              "CSO": "セキュリティ責任者として、このプロジェクトのセキュリティ状況を1-2文で評価してください。",
+              "Engineer": "エンジニアとして、コード品質と実装状況を1-2文で評価してください。",
+              "DevOps": "DevOpsとして、インフラとCI/CD状況を1-2文で評価してください。",
+              "Crypto Auditor": "暗号監査者として、暗号実装の安全性を1-2文で評価してください。",
+              "Red Team": "Red Teamとして、潜在的な脆弱性を1-2文で指摘してください。"
+          }
+
+          agent_emojis = {
+              "CSO": "🔒", "Engineer": "⚙️", "DevOps": "🚀",
+              "Crypto Auditor": "🔐", "Red Team": "🔴"
+          }
+
+          selected_agents = agents.get(mode, agents["quick"])
+          results = []
+
+          for agent in selected_agents:
+              prompt = agent_prompts[agent]
+              message = client.messages.create(
+                  model="claude-sonnet-4-20250514",
+                  max_tokens=200,
+                  messages=[{
+                      "role": "user",
+                      "content": f"あなたは{agent}です。\n\nプロジェクト情報:\n{context}\n\n{prompt}"
+                  }]
+              )
+              response = message.content[0].text
+              results.append(f"{agent_emojis[agent]} *{agent}*: {response}")
+
+          # Send results to Slack
+          report = "\n\n".join(results)
+          slack_message = f"🎯 *戦略会議完了* - モード: {mode}\n\n📊 *エージェントレポート* ({len(selected_agents)}体)\n\n{report}\n\n✅ *総合*: 分析完了\n_Quantum Shield Agent Army v1.0_"
+
+          payload = json.dumps({"text": slack_message}).encode('utf-8')
+          req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'})
+          urllib.request.urlopen(req)
+          EOF
+```
+
+---
+
+**Commit changes** したら、Slack でテスト：
+```
+@Quantum Shield Bot 戦略会議を開始
+          con
