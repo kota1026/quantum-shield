@@ -3,11 +3,51 @@ import json
 import os
 import sys
 import urllib.request
+from datetime import datetime
 
 def send_slack(webhook_url, text):
     payload = json.dumps({"text": text}).encode('utf-8')
     req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'})
     urllib.request.urlopen(req)
+
+def save_meeting_minutes(mode, results, summary):
+    """議事録をファイルに保存"""
+    now = datetime.now()
+    filename = f"meetings/{now.strftime('%Y-%m-%d')}-{mode}-meeting.md"
+    
+    content = f"""# 戦略会議議事録
+**日時**: {now.strftime('%Y年%m月%d日 %H:%M')}
+**モード**: {mode}
+**参加エージェント**: {len(results)}体
+
+---
+
+## エージェントレポート
+
+"""
+    for result in results:
+        content += f"{result}\n\n"
+    
+    content += f"""---
+
+## サマリー（CSO総括）
+
+{summary}
+
+---
+
+## 次のアクション
+
+_会議結果に基づいて更新_
+
+---
+_Quantum Shield Agent Army v1.0_
+"""
+    
+    with open(filename, "w") as f:
+        f.write(content)
+    
+    return filename
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "quick"
@@ -15,10 +55,11 @@ def main():
     
     client = anthropic.Anthropic()
     
-    send_slack(webhook_url, f"🎯 *戦略会議開始* - モード: {mode}\n\n🤖 AIエージェントがコード分析中...")
+    send_slack(webhook_url, f"🎯 *戦略会議開始* - モード: {mode}\n\n🤖 11体のAIエージェントがコード分析中...")
     
+    # プロジェクト情報を読み込み
     files_to_analyze = []
-    for path in ["PURPOSE.md", "README.md", "Cargo.toml"]:
+    for path in ["PURPOSE.md", "README.md", "Cargo.toml", "meetings/PROJECT_STATE.md"]:
         try:
             with open(path, "r") as f:
                 files_to_analyze.append(f"=== {path} ===\n{f.read()[:2000]}")
@@ -66,6 +107,7 @@ def main():
     
     selected_agents = agents.get(mode, agents["quick"])
     results = []
+    raw_results = []
     
     for agent in selected_agents:
         prompt = agent_prompts[agent]
@@ -76,9 +118,43 @@ def main():
         )
         response = message.content[0].text
         results.append(f"{agent_emojis[agent]} *{agent}*: {response}")
+        raw_results.append({"agent": agent, "emoji": agent_emojis[agent], "response": response})
     
+    # CSO による総括
+    all_reports = "\n".join([f"{r['agent']}: {r['response']}" for r in raw_results])
+    summary_message = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=300,
+        messages=[{"role": "user", "content": f"""あなたはCSO（チーフセキュリティオフィサー）です。
+以下の各エージェントのレポートを総括し、3-4文でまとめてください。
+重要なポイントと推奨アクションを含めてください。
+
+{all_reports}"""}]
+    )
+    summary = summary_message.content[0].text
+    
+    # 議事録を保存
+    try:
+        minutes_file = save_meeting_minutes(mode, results, summary)
+        send_slack(webhook_url, f"📝 議事録を保存しました: `{minutes_file}`")
+    except Exception as e:
+        send_slack(webhook_url, f"⚠️ 議事録保存エラー: {str(e)}")
+    
+    # Slackに結果を送信
     report = "\n\n".join(results)
-    send_slack(webhook_url, f"🎯 *戦略会議完了* - モード: {mode}\n\n📊 *エージェントレポート* ({len(selected_agents)}体)\n\n{report}\n\n✅ 分析完了\n_Quantum Shield Agent Army v1.0_")
+    send_slack(webhook_url, f"""🎯 *戦略会議完了* - モード: {mode}
+
+📊 *エージェントレポート* ({len(selected_agents)}体)
+
+{report}
+
+---
+
+🔒 *CSO総括*:
+{summary}
+
+✅ 分析完了
+_Quantum Shield Agent Army v1.0_""")
 
 if __name__ == "__main__":
     main()
