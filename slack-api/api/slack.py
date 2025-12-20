@@ -91,20 +91,21 @@ class handler(BaseHTTPRequestHandler):
             success = self._trigger_github_actions('strategy-meeting', {'mode': mode, 'channel': channel})
             if success:
                 self._send_slack_message("✅ GitHub Actions をトリガーしました。")
-            else:
-                self._send_slack_message("❌ GitHub Actions のトリガーに失敗しました。")
             return
         
-        # ヘルプ
-        if 'ヘルプ' in text_lower or text_lower == 'help':
+        # ヘルプ（完全一致に近い形）
+        if text_lower.strip() in ['ヘルプ', 'help', 'へるぷ']:
             self._send_slack_message("""🔒 *CSO（チーフセキュリティオフィサー）です*
 
 私が11体のエージェントチームを統括しています。
 
 *コマンド:*
 • `戦略会議を開始` - 全エージェントで正式な分析会議
-• `進捗報告` - 現在のタスク状況を報告
-• タスク依頼 → 自動的にIssue作成＆担当割り当て
+• `進捗は？` - 現在のタスク状況を報告
+
+*依頼の仕方:*
+• `〇〇を進めてください` → タスク自動作成
+• `〇〇を実装して` → GitHub Issue作成＆担当割り当て
 
 *エージェントチーム:*
 🛡️ Purpose Guardian | 🔐 Crypto Auditor | 🔴 Red Team
@@ -112,13 +113,13 @@ class handler(BaseHTTPRequestHandler):
 ⚙️ Engineer | 🔬 Researcher | 🚀 DevOps | ⚖️ Legal""")
             return
         
-        # タスク依頼を先に判定（長文で作業指示っぽいもの）
+        # タスク依頼を判定（命令・依頼形の文脈）
         if self._is_task_request(text):
             self._handle_task_request(text, channel)
             return
         
-        # 進捗報告（短文の場合のみ）
-        if len(text) < 30 and ('進捗' in text_lower or 'status' in text_lower):
+        # 進捗報告（質問形式のみ）
+        if self._is_status_request(text):
             self._send_slack_message("📊 進捗報告を準備中...")
             self._trigger_github_actions('progress-report', {'channel': channel})
             return
@@ -128,16 +129,31 @@ class handler(BaseHTTPRequestHandler):
         self._send_slack_message(response)
     
     def _is_task_request(self, text):
-        """タスク依頼かどうかを判定"""
-        task_keywords = ['進めて', '対策', '実行して', '実装して', '検討して', 'お願い', 
-                        '報告して', '確認して', '調査して', '対応して', '準備して',
-                        '整えて', '精査して']
+        """タスク依頼かどうかを文脈で判定"""
+        # 命令・依頼形のパターン
+        request_patterns = [
+            'してください', 'して下さい', 'しておいて',
+            'お願い', 'をお願い', 'おねがい',
+            '進めて', '実行して', '実装して', '対応して',
+            '検討して', '調査して', '確認して', '報告して',
+            '準備して', '整えて', '精査して', '作成して',
+            '修正して', '追加して', '削除して', '更新して',
+            'やって', 'よろしく', '頼む', '頼みます',
+            'ように', '進めるように', '対応するように'
+        ]
+        
         text_lower = text.lower()
-        
-        has_keyword = any(kw in text_lower for kw in task_keywords)
-        is_long = len(text) > 80  # 長文
-        
-        return has_keyword and is_long
+        return any(pattern in text_lower for pattern in request_patterns)
+    
+    def _is_status_request(self, text):
+        """進捗確認の質問かどうかを判定"""
+        status_patterns = [
+            '進捗は', '進捗を教えて', '進捗どう', '進捗状況',
+            'ステータス', 'status', '状況は', '状況を教えて',
+            'どうなってる', 'どうなった', '進んでる'
+        ]
+        text_lower = text.lower()
+        return any(pattern in text_lower for pattern in status_patterns)
     
     def _handle_task_request(self, text, channel):
         """タスク依頼を処理"""
