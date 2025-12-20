@@ -26,19 +26,43 @@ def main():
             pass
     context = "\n\n".join(files_to_analyze)
     
+    # 11体のエージェント定義
     agents = {
-        "full": ["CSO", "Engineer", "DevOps", "Crypto Auditor", "Red Team"],
+        "full": [
+            "Purpose Guardian", "Crypto Auditor", "Red Team", "CTO", "CSO",
+            "CFO", "CBO", "Engineer", "Researcher", "DevOps", "Legal"
+        ],
         "quick": ["CSO", "Engineer", "DevOps"],
-        "security": ["CSO", "Crypto Auditor", "Red Team"]
+        "security": ["Purpose Guardian", "Crypto Auditor", "Red Team", "CSO"]
     }
+    
     agent_prompts = {
-        "CSO": "セキュリティ責任者として、このプロジェクトのセキュリティ状況を1-2文で評価してください。",
-        "Engineer": "エンジニアとして、コード品質と実装状況を1-2文で評価してください。",
-        "DevOps": "DevOpsとして、インフラとCI/CD状況を1-2文で評価してください。",
+        "Purpose Guardian": "PURPOSE.md準拠の守護者として、このプロジェクトがミッションに沿っているか1-2文で評価してください。",
         "Crypto Auditor": "暗号監査者として、暗号実装の安全性を1-2文で評価してください。",
-        "Red Team": "Red Teamとして、潜在的な脆弱性を1-2文で指摘してください。"
+        "Red Team": "Red Teamとして、潜在的な脆弱性を1-2文で指摘してください。",
+        "CTO": "CTOとして、技術戦略とアーキテクチャを1-2文で評価してください。",
+        "CSO": "セキュリティ責任者として、このプロジェクトのセキュリティ状況を1-2文で評価してください。",
+        "CFO": "CFOとして、開発コストとリソース効率を1-2文で評価してください。",
+        "CBO": "ビジネス責任者として、このプロジェクトのビジネス価値を1-2文で評価してください。",
+        "Engineer": "エンジニアとして、コード品質と実装状況を1-2文で評価してください。",
+        "Researcher": "研究者として、使用している技術の最新性と革新性を1-2文で評価してください。",
+        "DevOps": "DevOpsとして、インフラとCI/CD状況を1-2文で評価してください。",
+        "Legal": "法務担当として、コンプライアンスと規制リスクを1-2文で評価してください。"
     }
-    agent_emojis = {"CSO": "🔒", "Engineer": "⚙️", "DevOps": "🚀", "Crypto Auditor": "🔐", "Red Team": "🔴"}
+    
+    agent_emojis = {
+        "Purpose Guardian": "🛡️",
+        "Crypto Auditor": "🔐",
+        "Red Team": "🔴",
+        "CTO": "🏗️",
+        "CSO": "🔒",
+        "CFO": "💰",
+        "CBO": "📊",
+        "Engineer": "⚙️",
+        "Researcher": "🔬",
+        "DevOps": "🚀",
+        "Legal": "⚖️"
+    }
     
     selected_agents = agents.get(mode, agents["quick"])
     results = []
