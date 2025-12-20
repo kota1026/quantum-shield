@@ -1,0 +1,157 @@
+# Quantum Shield - Agent Configuration
+# 11 Agent Army Definition
+
+version: "1.0"
+updated: "2024-12-20"
+
+agents:
+  purpose_guardian:
+    name: "Purpose Guardian"
+    role: "理念の番人"
+    description: "プロジェクトの核心的価値とPURPOSE.mdを守る"
+    is_critical: true
+    default_trust_level: 3
+    emoji: "🛡️"
+
+  crypto_auditor:
+    name: "Crypto Auditor"
+    role: "暗号監査官"
+    description: "NIST準拠とセキュリティを検証"
+    is_critical: true
+    default_trust_level: 2
+    emoji: "🔐"
+
+  red_team:
+    name: "Red Team"
+    role: "攻撃シミュレーター"
+    description: "攻撃者の視点でセキュリティ脆弱性を発見"
+    is_critical: true
+    default_trust_level: 2
+    emoji: "🔴"
+
+  cto:
+    name: "CTO"
+    role: "技術責任者"
+    description: "アーキテクチャと技術戦略を管理"
+    is_critical: false
+    default_trust_level: 2
+    emoji: "🏗️"
+
+  cso:
+    name: "CSO"
+    role: "セキュリティ責任者"
+    description: "全体的なセキュリティ戦略を管理"
+    is_critical: false
+    default_trust_level: 2
+    emoji: "🔒"
+
+  cfo:
+    name: "CFO"
+    role: "財務責任者"
+    description: "コストとリソースを管理"
+    is_critical: false
+    default_trust_level: 3
+    emoji: "💰"
+
+  cbo:
+    name: "CBO"
+    role: "事業責任者"
+    description: "外部連携とビジネス戦略を管理"
+    is_critical: false
+    default_trust_level: 3
+    emoji: "📊"
+
+  engineer:
+    name: "Engineer"
+    role: "実装担当"
+    description: "コード品質と実装を管理"
+    is_critical: false
+    default_trust_level: 1
+    emoji: "⚙️"
+
+  researcher:
+    name: "Researcher"
+    role: "研究担当"
+    description: "最新技術の調査と提案"
+    is_critical: false
+    default_trust_level: 1
+    emoji: "🔬"
+
+  devops:
+    name: "DevOps"
+    role: "インフラ担当"
+    description: "CI/CDとデプロイメントを管理"
+    is_critical: false
+    default_trust_level: 2
+    emoji: "🚀"
+
+  legal:
+    name: "Legal"
+    role: "法務担当"
+    description: "ライセンスとコンプライアンスを管理"
+    is_critical: false
+    default_trust_level: 3
+    emoji: "⚖️"
+
+strategic_agents:
+  ceo:
+    name: "CEO"
+    role: "最高経営責任者"
+    description: "全エージェントの報告を統合し戦略的決定を下す"
+    emoji: "👔"
+
+  strategy_advisor:
+    name: "Strategy Advisor"
+    role: "戦略アドバイザー"
+    description: "ロードマップ整合性とリソース配分を分析"
+    emoji: "📈"
+
+  risk_analyst:
+    name: "Risk Analyst"
+    role: "リスク分析官"
+    description: "多角的なリスク評価と軽減策提案"
+    emoji: "🎯"
+
+meeting_modes:
+  full:
+    description: "全エージェント参加のフル会議"
+    agents: "all"
+    estimated_duration: "5-10 minutes"
+
+  quick:
+    description: "主要エージェントのクイックレビュー"
+    agents: ["cso", "engineer", "devops"]
+    estimated_duration: "1-2 minutes"
+
+  security:
+    description: "セキュリティ重点レビュー"
+    agents: ["cso", "crypto_auditor", "red_team"]
+    estimated_duration: "2-3 minutes"
+
+slack:
+  channels:
+    alerts: "#quantum-shield-alerts"
+    reports: "#quantum-shield-reports"
+    approvals: "#quantum-shield-approvals"
+
+  commands:
+    strategy_meeting:
+      triggers:
+        - "戦略会議を開始"
+        - "戦略会議を開いて"
+        - "ミーティングを開始"
+        - "start meeting"
+
+    quick_check:
+      triggers:
+        - "クイックチェック"
+        - "状況は?"
+        - "進捗は?"
+        - "quick check"
+        - "status"
+
+    security_focus:
+      triggers:
+        - "セキュリティ優先"
+        - "セキュリティチェック"
+        - "security check"
