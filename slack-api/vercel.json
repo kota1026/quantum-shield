@@ -1,8 +1,3 @@
 {
-  "version": 2,
-  "rewrites": [
-    { "source": "/api/slack", "destination": "/index.py" },
-    { "source": "/api/health", "destination": "/index.py" },
-    { "source": "/(.*)", "destination": "/index.py" }
-  ]
+  "version": 2
 }
