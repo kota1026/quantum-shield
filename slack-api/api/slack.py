@@ -17,6 +17,13 @@ class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         """Handle Slack events"""
         try:
+            # Ignore Slack retries to prevent duplicate messages
+            retry_num = self.headers.get('X-Slack-Retry-Num')
+            if retry_num:
+                self.send_response(200)
+                self.end_headers()
+                return
+            
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length).decode('utf-8')
             
@@ -55,7 +62,6 @@ class handler(BaseHTTPRequestHandler):
                 if event.get('type') == 'app_mention':
                     text = event.get('text', '')
                     channel = event.get('channel', '')
-                    # Remove bot mention from text
                     clean_text = self._remove_mention(text)
                     self._handle_mention(clean_text, channel)
             
@@ -132,7 +138,6 @@ class handler(BaseHTTPRequestHandler):
             self._trigger_github_actions('approval', channel, approved=False)
             
         else:
-            # Free conversation with Claude
             response = self._chat_with_claude(text)
             self._send_slack_message(response)
     
