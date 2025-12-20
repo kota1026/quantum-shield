@@ -2,11 +2,6 @@
   "version": 2,
   "buildCommand": "",
   "outputDirectory": "api",
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "python3.9"
-    }
-  },
   "routes": [
     {
       "src": "/api/slack",
