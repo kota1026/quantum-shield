@@ -205,5 +205,114 @@
     ],
     "recommendation": "A: Dilithium署名の暗号学的実装が最も重要なので、まずRustコア実装を調査",
     "resolved": false
+  },
+  {
+    "timestamp": "2025-12-20T20:21:48.104728",
+    "issue_number": 9,
+    "issue_title": "[Researcher] プランB関連の興味深い事象監視体制構築",
+    "assignee": "Researcher",
+    "question": "監視体制の緊急度レベル設定について",
+    "options": [
+      "A: 保守的アプローチ - 小さな進展も全て報告",
+      "B: 実用的アプローチ - プロジェクトに直接影響する重要事象のみ",
+      "C: ハイブリッド - 通常は重要事象のみ、量子分野は詳細監視"
+    ],
+    "recommendation": "C",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-20T20:22:14.569535",
+    "issue_number": 7,
+    "issue_title": "[DevOps] タスク管理と進捗報告体制の構築",
+    "assignee": "DevOps",
+    "question": "タスク管理システムの実装方針について相談があります。現在11体のエージェントが稼働していますが、どちらの管理アプローチを採用すべきでしょうか？",
+    "options": [
+      "A: GitHub Issues + Projects中心 - 技術的で開発者フレンドリー、コード連携が強い",
+      "B: Slack + 簡易ダッシュボード - リアルタイム性重視、コミュニケーション中心"
+    ],
+    "recommendation": "A: GitHub Issues + Projects中心。技術プロジェクトなので開発フローとの連携が重要。週次報告はSlackで自動化し、詳細管理はGitHubで行う混合型が最適。",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-20T20:22:25.775589",
+    "issue_number": 6,
+    "issue_title": "[Researcher] 量子暗号・ポスト量子暗号の最新動向調査",
+    "assignee": "Researcher",
+    "question": "調査の重点領域について相談したい。プロジェクトの必達要件（証明10秒以内、ガス代87.5%削減）を考慮すると、どこに焦点を当てるべきか？",
+    "options": [
+      "A: Dilithiumの最適化手法（バッチ検証、並列化等）に集中",
+      "B: 他のNIST承認アルゴリズム（Kyber、SPHINCS+等）との性能比較",
+      "C: 量子鍵配送（QKD）など次世代技術の実用性評価"
+    ],
+    "recommendation": "A: 既にDilithiumを採用しているため、その最適化に集中することでプロジェクトの必達要件達成により直結する",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-20T20:22:39.270218",
+    "issue_number": 5,
+    "issue_title": "[CBO] 開発済み技術の部品売り可能性調査",
+    "assignee": "CBO",
+    "question": "部品販売戦略の方針について相談したい。収益最大化のため、どのアプローチを優先すべきか？",
+    "options": [
+      "A: 高価格・専門特化戦略（大手企業・研究機関向けにプレミアム価格で販売）",
+      "B: 薄利多売戦略（オープンソースベースで広く普及させ、サポート・カスタマイズで収益）",
+      "C: ハイブリッド戦略（コア技術は有償、周辺ツールは無償で普及促進）"
+    ],
+    "recommendation": "C: ハイブリッド戦略 - Dilithiumコア実装は有償ライセンスで差別化を図り、開発ツールやサンプルコードは無償提供で市場浸透を加速する",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-20T20:22:50.947899",
+    "issue_number": 4,
+    "issue_title": "[CSO] 内製セキュリティ監査の準備と実行計画策定",
+    "assignee": "CSO",
+    "question": "内製監査の範囲をどこまで設定すべきか。予算と専門性のバランスを考慮して判断したい。",
+    "options": [
+      "A: 基本的なスマートコントラクト監査のみ（工数小、リスク中）",
+      "B: 量子耐性暗号実装まで含む包括監査（工数大、リスク小）",
+      "C: ハイブリッド（内製+外部専門家スポット相談）"
+    ],
+    "recommendation": "C",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-20T20:23:04.567493",
+    "issue_number": 3,
+    "issue_title": "[Red Team] クロスチェーンブリッジのreplay攻撃・二重支払い対策実装",
+    "assignee": "Red Team",
+    "question": "クロスチェーンブリッジのセキュリティ対策において、パフォーマンス要件（証明生成10秒以内、ガス代87.5%削減）とのトレードオフが発生します。どのアプローチを優先すべきでしょうか？",
+    "options": [
+      "A: セキュリティ最優先 - 複雑な検証ロジックでも確実な攻撃対策を実装",
+      "B: パフォーマンス重視 - 軽量な対策のみで必達要件を確実に達成",
+      "C: バランス型 - 段階的セキュリティで初期はシンプル、後で強化"
+    ],
+    "recommendation": "C",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-20T20:23:15.740472",
+    "issue_number": 2,
+    "issue_title": "[Red Team] クロスチェーンブリッジの署名偽造対策実装",
+    "assignee": "Red Team",
+    "question": "署名偽造対策の実装方針について相談です。Dilithium署名の量子耐性は確保されていますが、実装レベルでの攻撃対策が必要です。どちらを優先すべきでしょうか？",
+    "options": [
+      "A: SP1 zkVM内での署名検証強化（証明生成時間への影響あり）",
+      "B: スマートコントラクト側でのnonce・timestamp厳格化（ガス代への影響あり）"
+    ],
+    "recommendation": "A",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-20T20:23:25.766118",
+    "issue_number": 1,
+    "issue_title": "[Crypto Auditor] Dilithium署名実装の完成と暗号学的安全性検証",
+    "assignee": "Crypto Auditor",
+    "question": "Dilithium署名実装の詳細調査を進める前に、現在のコードベース構造を確認したいのですが、どのディレクトリやファイルに実装が存在するか教えていただけますか？",
+    "options": [
+      "A: 既存実装の場所を教えてもらい詳細分析を開始",
+      "B: プロジェクト全体のファイル構造を先に把握してから実装箇所を特定"
+    ],
+    "recommendation": "A",
+    "resolved": false
   }
 ]
