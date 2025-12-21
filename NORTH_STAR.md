@@ -1,88 +1,51 @@
-# 🌟 NORTH STAR - 週次目標
+# 🎯 北極星（現在の目標）
 
-> **最終更新**: 2025-12-21
-> **管理者**: CSO (Chief Security Officer)
+## 必達要件
+- NIST FIPS 204 (ML-DSA/Dilithium) 準拠
+- 形式検証に耐えられる実装
+- 完全量子耐性
+- L1/L2相互運用性（既存資産を量子耐性化できるレイヤー）
+- NIST採用の暗号証明生成 → zk検証 → 資産ロック → リリースできるProverまでセット
+- 証明時間10秒以内
+- ガス代を安く
+
+## キーワード
+dilithium, 署名, signature, 暗号, crypto, stark, proof, 証明,
+verify, replay, 偽造, security, セキュリティ, fips, nist, ml-dsa,
+zk, prover, verifier, 実装, implement, 量子, quantum, bridge
+
+## 禁止事項
+- テストで勝手にずる（検証しなきゃいけないことを検証せずにOKとする等）
+- コードで勝手にずる（検証しなきゃいけないことを検証せずにOKとする等）
+
+## 現在の優先順位
+1. Dilithium署名のSP1 zkVM統合（量子耐性の実現）
+2. 証明生成時間の最適化（10秒以内達成）
+3. ガス効率化のためのコントラクト設計
 
 ---
-
-## 今週の北極星 🎯
-
-### **目標: Dilithium署名の10秒証明を達成する**
-
-Phase 2の必達要件である「証明生成10秒以内」を達成し、セキュリティ監査可能な状態にする。
-
----
-
-## 必達マイルストーン
-
-| # | マイルストーン | 担当 | 依存 | 状態 |
-|---|---------------|------|------|------|
-| 1 | Dilithium実装の現状調査完了 | Crypto Auditor | - | 🟡 進行中 |
-| 2 | 署名生成・検証コード完成 | Crypto Auditor + Engineer | #1 | ⚪ 待機 |
-| 3 | 署名偽造対策実装 | Red Team | #2 | ⚪ 待機 |
-| 4 | replay攻撃対策実装 | Red Team | #2 | ⚪ 待機 |
-| 5 | 統合テスト・ベンチマーク | DevOps | #2,#3,#4 | ⚪ 待機 |
-| 6 | 10秒以内達成確認 | CSO | #5 | ⚪ 待機 |
-
----
-
-## 優先順位
-
-```
-🔴 最優先: #1 Dilithium調査 → 他の全てがこれに依存
-🟡 高: #2 署名実装
-🟢 中: #3, #4 セキュリティ対策
-⚪ 低: 調査・ビジネス系タスク
+*最終更新: 2024-12-21 by Owner*
 ```
 
 ---
 
-## チーム間依存関係
+## 📋 更新チェックリスト
 
+| # | ファイル | リンク | 操作 |
+|---|----------|--------|------|
+| 1 | `scripts/agent_worker.py` | [編集](https://github.com/kota1026/quantum-shield/edit/dev/phase2-native-stark/scripts/agent_worker.py) | 全置換 |
+| 2 | `.github/workflows/agent-worker.yml` | [編集](https://github.com/kota1026/quantum-shield/edit/dev/phase2-native-stark/.github/workflows/agent-worker.yml) | 全置換 |
+| 3 | `NORTH_STAR.md` | [編集](https://github.com/kota1026/quantum-shield/edit/dev/phase2-native-stark/NORTH_STAR.md) | 更新 or 新規 |
+
+---
+
+## 変更後の動き
 ```
-Crypto Auditor ──→ Engineer
-       ↓              ↓
-   Red Team ←─────────┘
-       ↓
-    DevOps
-       ↓
-     CSO（最終確認）
-```
-
----
-
-## 今日の優先アクション
-
-1. **Crypto Auditor**: ファイル構造調査を完了し、既存実装の評価結果を報告
-2. **Engineer**: Crypto Auditorの調査結果を待機しつつ、署名API設計を準備
-3. **Red Team**: 署名偽造・replay攻撃の攻撃ベクトルを事前分析
-4. **その他**: 北極星に直接貢献しないタスクは優先度を下げる
-
----
-
-## エージェント間相談ルール
-
-### すぐに相談すべき時
-- 他エージェントの成果物が必要な時
-- 技術的判断で迷った時
-- 依存タスクの進捗を確認したい時
-
-### オーナー（人間）に相談すべき時
-- エージェント間で合意できない時
-- ビジネス判断が必要な時
-- リスクの高い決定をする時
-
----
-
-## 進捗サマリー
-
-| 指標 | 現在 | 目標 |
-|------|------|------|
-| 北極星達成率 | 15% | 100% |
-| ブロッカー数 | 1 | 0 |
-| 未解決相談 | 0 | 0 |
-
----
+You: Slackで「北極星を〜に変更」
+  ↓
+NORTH_STAR.md を編集
+  ↓
+次サイクル（15分後）から新しい北極星で自律実行！
 
 ## 備考
 
