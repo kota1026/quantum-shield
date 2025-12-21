@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""技術ブレイクスルー探索 - Researcher & Crypto Auditor が課題を分析し解決策を提案"""
+"""技術ブレイクスルー探索 - 既存ライブラリ探索 + 新技術の理論設計"""
 
 import anthropic
 import requests
 import json
 import os
 import base64
+import re
 from datetime import datetime
 
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
@@ -33,10 +34,9 @@ def get_file_content(path):
 def get_open_issues():
     return github_api('GET', f'/repos/{REPO}/issues?state=open&per_page=50') or []
 
-def get_engineering_challenges(client, issues, context):
-    """CTO/Engineerの課題を収集"""
+def collect_engineering_challenges(client, issues, context):
+    """CTO/Engineerが感じている課題を収集"""
     
-    # 関連Issueを抽出
     eng_issues = [i for i in issues if any(
         l['name'] in ['agent:Engineer', 'agent:CTO', 'agent:Crypto Auditor', 'priority:high']
         for l in i.get('labels', [])
@@ -48,19 +48,24 @@ def get_engineering_challenges(client, issues, context):
     ])
     
     system_prompt = """あなたはQuantum ShieldのCTOです。
-現在のIssueとプロジェクト状況から、技術的な課題・ボトルネックを特定してください。
+現在の技術的課題・ボトルネックを特定してください。
+
+特に以下を明確にしてください：
+1. パフォーマンス課題（速度、メモリ、サイズ）
+2. 実装困難な部分（既存ライブラリでは解決できない）
+3. 理論的に解決方法が不明な問題
 
 JSON形式で回答:
 {
-  "challenges": [
-    {
-      "title": "課題のタイトル",
-      "description": "詳細な説明",
-      "impact": "high/medium/low",
-      "category": "performance/security/implementation/architecture"
-    }
+  "performance_challenges": [
+    {"title": "課題", "current": "現状値", "target": "目標値", "gap": "ギャップ"}
   ],
-  "blockers": ["ブロッカー1", "ブロッカー2"],
+  "implementation_blockers": [
+    {"title": "課題", "why_hard": "なぜ難しいか", "existing_attempts": "試したこと"}
+  ],
+  "theoretical_unknowns": [
+    {"title": "課題", "question": "解決すべき理論的問題"}
+  ],
   "wishlist": ["こういう技術があれば解決できる"]
 }
 """
@@ -73,7 +78,6 @@ JSON形式で回答:
             messages=[{'role': 'user', 'content': f"プロジェクト情報:\n{context[:3000]}\n\n現在のIssue:\n{issues_text}"}]
         )
         
-        import re
         text = message.content[0].text
         match = re.search(r'\{[\s\S]*\}', text)
         return json.loads(match.group()) if match else None
@@ -81,44 +85,172 @@ JSON形式で回答:
         print(f"Error: {e}")
         return None
 
-def research_solutions(client, challenges, context):
-    """Researcher が解決策をリサーチ"""
+def search_existing_solutions(client, challenges, context):
+    """Researcher: 既存ライブラリ・論文を探索"""
     
     challenges_text = json.dumps(challenges, ensure_ascii=False, indent=2)
     
     system_prompt = """あなたはQuantum Shieldの Researcher です。
-暗号技術、ブロックチェーン、ZK証明の最新動向に精通しています。
-
-提示された課題に対して、技術的なブレイクスルーの可能性を調査・提案してください。
+提示された課題に対して、既存のライブラリ・論文・実装を調査してください。
 
 JSON形式で回答:
 {
-  "research_findings": [
+  "existing_solutions": [
     {
-      "challenge_addressed": "対象の課題",
-      "solution_type": "algorithm/library/architecture/optimization",
-      "title": "解決策のタイトル",
-      "description": "詳細な説明",
-      "technical_details": "技術的な詳細",
-      "implementation_effort": "high/medium/low",
-      "expected_improvement": "期待される改善（例：50%高速化）",
-      "references": ["参考文献・プロジェクト"]
+      "challenge": "対象の課題",
+      "solution_type": "library/paper/implementation",
+      "name": "名前",
+      "description": "説明",
+      "url_or_reference": "参照先",
+      "applicability": "high/medium/low",
+      "limitations": ["制限事項"]
     }
   ],
-  "breakthrough_ideas": [
+  "gaps": [
     {
-      "idea": "革新的なアイデア",
-      "rationale": "根拠",
-      "risk": "リスク"
+      "challenge": "課題",
+      "why_no_existing_solution": "なぜ既存解決策がないか",
+      "needs_new_invention": true/false
     }
-  ],
-  "recommended_priority": ["優先的に検討すべき解決策"]
+  ]
 }
+"""
+    
+    try:
+        message = client.messages.create(
+            model='claude-sonnet-4-20250514',
+            max_tokens=2500,
+            system=system_prompt,
+            messages=[{'role': 'user', 'content': f"課題:\n{challenges_text}"}]
+        )
+        
+        text = message.content[0].text
+        match = re.search(r'\{[\s\S]*\}', text)
+        return json.loads(match.group()) if match else None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
-重要:
-- 必達要件: 証明生成10秒以内、ガス代87.5%削減
-- Dilithium署名の最適化が最優先
-- 実装可能性を重視
+def design_new_solutions(client, gaps, context):
+    """Crypto Auditor + Researcher: 新技術の理論設計"""
+    
+    gaps_text = json.dumps(gaps, ensure_ascii=False, indent=2)
+    
+    system_prompt = """あなたはQuantum Shieldの暗号数学専門家（Crypto Auditor + Researcher）です。
+
+既存ソリューションでは解決できない課題に対して、
+**新しい技術・アルゴリズムを数学的に設計**してください。
+
+重要：
+- 単なる調査ではなく、**発明・設計**を行う
+- 数学的根拠を明確にする
+- 実装可能性を考慮する
+- 安全性の証明または根拠を示す
+
+JSON形式で回答:
+{
+  "theoretical_designs": [
+    {
+      "challenge": "対象の課題",
+      "invention_title": "発明のタイトル",
+      "concept": "コンセプト（1-2文）",
+      "mathematical_basis": {
+        "key_theorem": "利用する定理・原理",
+        "proof_sketch": "証明のスケッチ",
+        "assumptions": ["仮定1", "仮定2"]
+      },
+      "algorithm_design": {
+        "input": "入力",
+        "output": "出力",
+        "steps": ["ステップ1", "ステップ2", "ステップ3"],
+        "complexity": "計算量（例: O(n log n)）"
+      },
+      "expected_improvement": {
+        "metric": "改善指標",
+        "current": "現状",
+        "projected": "予測値",
+        "theoretical_limit": "理論限界"
+      },
+      "security_analysis": {
+        "security_level": "ビット数",
+        "attack_resistance": ["耐性のある攻撃"],
+        "potential_vulnerabilities": ["潜在的脆弱性"]
+      },
+      "implementation_roadmap": {
+        "difficulty": "high/medium/low",
+        "estimated_effort": "見積もり工数",
+        "prerequisites": ["前提条件"],
+        "recommended_language": "推奨言語"
+      },
+      "references": ["参考文献"]
+    }
+  ],
+  "breakthrough_potential": {
+    "highest_impact": "最も影響の大きい発明",
+    "rationale": "理由",
+    "recommendation": "CTO/Engineerへの推奨"
+  }
+}
+"""
+    
+    try:
+        message = client.messages.create(
+            model='claude-sonnet-4-20250514',
+            max_tokens=4000,
+            system=system_prompt,
+            messages=[{'role': 'user', 'content': f"プロジェクト情報:\n{context[:2000]}\n\n既存で解決できないギャップ:\n{gaps_text}"}]
+        )
+        
+        text = message.content[0].text
+        match = re.search(r'\{[\s\S]*\}', text)
+        return json.loads(match.group()) if match else None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+def validate_theoretical_design(client, designs, context):
+    """Crypto Auditor: 理論設計の暗号学的検証"""
+    
+    designs_text = json.dumps(designs, ensure_ascii=False, indent=2)
+    
+    system_prompt = """あなたはQuantum Shieldの Crypto Auditor です。
+提案された理論設計を**厳密に暗号学的観点から検証**してください。
+
+特に以下を検証：
+1. 数学的証明の妥当性
+2. 安全性の仮定が現実的か
+3. 既知の攻撃への耐性
+4. 量子コンピュータへの耐性
+5. 実装時のサイドチャネル攻撃リスク
+
+JSON形式で回答:
+{
+  "validations": [
+    {
+      "design_title": "設計タイトル",
+      "mathematical_validity": {
+        "is_sound": true/false,
+        "issues": ["問題点"],
+        "corrections": ["修正案"]
+      },
+      "security_validation": {
+        "claimed_security": "主張されたセキュリティレベル",
+        "verified_security": "検証されたセキュリティレベル",
+        "gap_analysis": "ギャップ分析"
+      },
+      "quantum_resistance": {
+        "is_quantum_safe": true/false,
+        "vulnerable_components": ["脆弱なコンポーネント"],
+        "mitigation": "緩和策"
+      },
+      "practical_concerns": ["実装上の懸念"],
+      "verdict": "approved/conditional/rejected",
+      "conditions_for_approval": ["承認条件"]
+    }
+  ],
+  "overall_assessment": "全体評価",
+  "recommended_next_steps": ["推奨アクション"]
+}
 """
     
     try:
@@ -126,10 +258,9 @@ JSON形式で回答:
             model='claude-sonnet-4-20250514',
             max_tokens=3000,
             system=system_prompt,
-            messages=[{'role': 'user', 'content': f"プロジェクト情報:\n{context[:2000]}\n\n課題:\n{challenges_text}"}]
+            messages=[{'role': 'user', 'content': f"理論設計:\n{designs_text}"}]
         )
         
-        import re
         text = message.content[0].text
         match = re.search(r'\{[\s\S]*\}', text)
         return json.loads(match.group()) if match else None
@@ -137,110 +268,144 @@ JSON形式で回答:
         print(f"Error: {e}")
         return None
 
-def crypto_audit_solutions(client, research_findings, context):
-    """Crypto Auditor が暗号学的観点から検証"""
+def create_comprehensive_report(challenges, existing, designs, validation):
+    """総合レポート作成"""
     
-    findings_text = json.dumps(research_findings, ensure_ascii=False, indent=2)
-    
-    system_prompt = """あなたはQuantum Shieldの Crypto Auditor です。
-暗号学の専門家として、提案された解決策を検証してください。
-
-JSON形式で回答:
-{
-  "verified_solutions": [
-    {
-      "solution_title": "解決策タイトル",
-      "cryptographic_validity": true/false,
-      "security_assessment": "セキュリティ評価",
-      "concerns": ["懸念点"],
-      "recommendations": ["推奨事項"],
-      "approval": "approved/conditional/rejected"
-    }
-  ],
-  "additional_insights": [
-    {
-      "insight": "追加の暗号学的知見",
-      "application": "適用方法"
-    }
-  ],
-  "final_recommendation": "最終推奨事項"
-}
-"""
-    
-    try:
-        message = client.messages.create(
-            model='claude-sonnet-4-20250514',
-            max_tokens=2000,
-            system=system_prompt,
-            messages=[{'role': 'user', 'content': f"プロジェクト情報:\n{context[:1500]}\n\nResearcherの調査結果:\n{findings_text}"}]
-        )
-        
-        import re
-        text = message.content[0].text
-        match = re.search(r'\{[\s\S]*\}', text)
-        return json.loads(match.group()) if match else None
-    except Exception as e:
-        print(f"Error: {e}")
-        return None
-
-def create_breakthrough_report(challenges, research, audit):
-    """ブレイクスルーレポートを作成"""
-    
-    report = f"""# 🔬 技術ブレイクスルーレポート
+    report = f"""# 🔬 技術ブレイクスルー総合レポート
 
 **生成日時**: {datetime.now().strftime('%Y-%m-%d %H:%M')}
+**目的**: 既存技術の探索 + 新技術の理論設計
 
 ---
 
-## 📋 特定された課題
+## 📋 Phase 1: 課題特定
+
+### パフォーマンス課題
+"""
+    
+    for c in challenges.get('performance_challenges', [])[:3]:
+        report += f"- **{c.get('title', 'N/A')}**: {c.get('current', '?')} → {c.get('target', '?')}\n"
+    
+    report += "\n### 実装ブロッカー\n"
+    for c in challenges.get('implementation_blockers', [])[:3]:
+        report += f"- **{c.get('title', 'N/A')}**: {c.get('why_hard', 'N/A')}\n"
+    
+    report += """
+---
+
+## 🔍 Phase 2: 既存ソリューション探索
 
 """
     
-    for c in challenges.get('challenges', [])[:5]:
-        report += f"### {c.get('title', 'N/A')}\n"
-        report += f"- **影響度**: {c.get('impact', 'N/A')}\n"
-        report += f"- **カテゴリ**: {c.get('category', 'N/A')}\n"
-        report += f"- **説明**: {c.get('description', 'N/A')}\n\n"
+    for s in existing.get('existing_solutions', [])[:5]:
+        applicability = "✅" if s.get('applicability') == 'high' else "⚠️" if s.get('applicability') == 'medium' else "❌"
+        report += f"### {applicability} {s.get('name', 'N/A')}\n"
+        report += f"- **課題**: {s.get('challenge', 'N/A')}\n"
+        report += f"- **タイプ**: {s.get('solution_type', 'N/A')}\n"
+        report += f"- **説明**: {s.get('description', 'N/A')}\n"
+        report += f"- **制限**: {', '.join(s.get('limitations', []))}\n\n"
     
-    report += """---
+    report += "### 既存で解決できないギャップ\n"
+    for g in existing.get('gaps', [])[:3]:
+        if g.get('needs_new_invention'):
+            report += f"- 🚨 **{g.get('challenge', 'N/A')}**: {g.get('why_no_existing_solution', 'N/A')}\n"
+    
+    report += """
+---
 
-## 💡 Researcher の調査結果
+## 💡 Phase 3: 新技術の理論設計
+
+**ここからが本番！既存にないものを設計する**
 
 """
     
-    for f in research.get('research_findings', [])[:5]:
-        report += f"### {f.get('title', 'N/A')}\n"
-        report += f"- **対象課題**: {f.get('challenge_addressed', 'N/A')}\n"
-        report += f"- **タイプ**: {f.get('solution_type', 'N/A')}\n"
-        report += f"- **期待改善**: {f.get('expected_improvement', 'N/A')}\n"
-        report += f"- **実装工数**: {f.get('implementation_effort', 'N/A')}\n"
-        report += f"- **詳細**: {f.get('description', 'N/A')}\n\n"
+    for d in designs.get('theoretical_designs', [])[:3]:
+        report += f"### 🆕 {d.get('invention_title', 'N/A')}\n\n"
+        report += f"**コンセプト**: {d.get('concept', 'N/A')}\n\n"
+        
+        math = d.get('mathematical_basis', {})
+        report += f"**数学的基盤**:\n"
+        report += f"- 利用定理: {math.get('key_theorem', 'N/A')}\n"
+        report += f"- 証明スケッチ: {math.get('proof_sketch', 'N/A')}\n"
+        report += f"- 仮定: {', '.join(math.get('assumptions', []))}\n\n"
+        
+        algo = d.get('algorithm_design', {})
+        report += f"**アルゴリズム設計**:\n"
+        report += f"- 入力: {algo.get('input', 'N/A')}\n"
+        report += f"- 出力: {algo.get('output', 'N/A')}\n"
+        report += f"- 計算量: {algo.get('complexity', 'N/A')}\n"
+        report += f"- ステップ:\n"
+        for i, step in enumerate(algo.get('steps', [])[:5], 1):
+            report += f"  {i}. {step}\n"
+        report += "\n"
+        
+        improvement = d.get('expected_improvement', {})
+        report += f"**期待される改善**:\n"
+        report += f"- 指標: {improvement.get('metric', 'N/A')}\n"
+        report += f"- 現状: {improvement.get('current', '?')} → 予測: {improvement.get('projected', '?')}\n"
+        report += f"- 理論限界: {improvement.get('theoretical_limit', 'N/A')}\n\n"
+        
+        security = d.get('security_analysis', {})
+        report += f"**セキュリティ分析**:\n"
+        report += f"- セキュリティレベル: {security.get('security_level', 'N/A')}\n"
+        report += f"- 耐性: {', '.join(security.get('attack_resistance', []))}\n\n"
+        
+        roadmap = d.get('implementation_roadmap', {})
+        report += f"**実装ロードマップ**:\n"
+        report += f"- 難易度: {roadmap.get('difficulty', 'N/A')}\n"
+        report += f"- 工数: {roadmap.get('estimated_effort', 'N/A')}\n"
+        report += f"- 推奨言語: {roadmap.get('recommended_language', 'N/A')}\n\n"
+        report += "---\n\n"
     
-    report += """---
-
-## 🔐 Crypto Auditor の検証結果
+    report += """
+## 🔐 Phase 4: 暗号学的検証
 
 """
     
-    for v in audit.get('verified_solutions', [])[:5]:
-        status = "✅" if v.get('approval') == 'approved' else "⚠️" if v.get('approval') == 'conditional' else "❌"
-        report += f"### {status} {v.get('solution_title', 'N/A')}\n"
-        report += f"- **暗号学的妥当性**: {'有効' if v.get('cryptographic_validity') else '要検討'}\n"
-        report += f"- **セキュリティ評価**: {v.get('security_assessment', 'N/A')}\n"
-        report += f"- **推奨事項**: {', '.join(v.get('recommendations', []))}\n\n"
+    for v in validation.get('validations', [])[:3]:
+        verdict_emoji = "✅" if v.get('verdict') == 'approved' else "⚠️" if v.get('verdict') == 'conditional' else "❌"
+        report += f"### {verdict_emoji} {v.get('design_title', 'N/A')}\n\n"
+        
+        math_v = v.get('mathematical_validity', {})
+        report += f"**数学的妥当性**: {'✅ 健全' if math_v.get('is_sound') else '❌ 問題あり'}\n"
+        if math_v.get('issues'):
+            report += f"- 問題: {', '.join(math_v.get('issues', []))}\n"
+        if math_v.get('corrections'):
+            report += f"- 修正案: {', '.join(math_v.get('corrections', []))}\n"
+        
+        qr = v.get('quantum_resistance', {})
+        report += f"\n**量子耐性**: {'✅ あり' if qr.get('is_quantum_safe') else '⚠️ 要検討'}\n"
+        
+        if v.get('conditions_for_approval'):
+            report += f"\n**承認条件**: {', '.join(v.get('conditions_for_approval', []))}\n"
+        
+        report += "\n---\n\n"
     
-    report += f"""---
+    breakthrough = designs.get('breakthrough_potential', {})
+    report += f"""
+## 🎯 最終推奨
 
-## 🎯 最終推奨事項
+**最も影響の大きい発明**: {breakthrough.get('highest_impact', 'N/A')}
 
-{audit.get('final_recommendation', 'N/A')}
+**理由**: {breakthrough.get('rationale', 'N/A')}
+
+**CTO/Engineerへの推奨**:
+{breakthrough.get('recommendation', 'N/A')}
+
+**全体評価**: {validation.get('overall_assessment', 'N/A')}
 
 ---
 
 ## 🚀 次のアクション
 
-CTO/Engineer チームは上記の検証済み解決策を検討し、実装の優先順位を決定してください。
-
+"""
+    
+    for step in validation.get('recommended_next_steps', [])[:5]:
+        report += f"1. {step}\n"
+    
+    report += """
+---
+*このレポートはResearcher + Crypto Auditorの協調により自動生成されました*
 """
     
     return report
@@ -252,103 +417,127 @@ def main():
     
     client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
     
-    send_slack("🔬 *技術ブレイクスルー探索を開始します*")
+    send_slack("🔬 *技術ブレイクスルー探索を開始*\n\n📍 既存探索 + 新技術の理論設計")
     
     # コンテキスト収集
     context = ""
-    for path in ['NORTH_STAR.md', 'PURPOSE.md', 'README.md', 'meetings/PROJECT_STATE.md']:
+    for path in ['NORTH_STAR.md', 'PURPOSE.md', 'README.md']:
         context += get_file_content(path)[:2000] + "\n"
     
     issues = get_open_issues()
     
-    # Step 1: CTO/Engineer の課題収集
-    send_slack("📋 *Step 1*: CTO/Engineer の課題を収集中...")
-    challenges = get_engineering_challenges(client, issues, context)
-    
+    # Phase 1: 課題収集
+    send_slack("📋 *Phase 1*: CTO/Engineerの課題を収集中...")
+    challenges = collect_engineering_challenges(client, issues, context)
     if not challenges:
-        send_slack("❌ 課題収集に失敗しました")
+        send_slack("❌ 課題収集に失敗")
         return
     
-    challenge_count = len(challenges.get('challenges', []))
-    send_slack(f"✅ {challenge_count}件の課題を特定しました")
+    perf_count = len(challenges.get('performance_challenges', []))
+    blocker_count = len(challenges.get('implementation_blockers', []))
+    send_slack(f"✅ パフォーマンス課題: {perf_count}件 / ブロッカー: {blocker_count}件")
     
-    # Step 2: Researcher のリサーチ
-    send_slack("🔬 *Step 2*: Researcher が解決策をリサーチ中...")
-    research = research_solutions(client, challenges, context)
-    
-    if not research:
-        send_slack("❌ リサーチに失敗しました")
+    # Phase 2: 既存ソリューション探索
+    send_slack("🔍 *Phase 2*: 既存ライブラリ・論文を探索中...")
+    existing = search_existing_solutions(client, challenges, context)
+    if not existing:
+        send_slack("❌ 既存探索に失敗")
         return
     
-    findings_count = len(research.get('research_findings', []))
-    send_slack(f"✅ {findings_count}件の解決策を発見しました")
+    existing_count = len(existing.get('existing_solutions', []))
+    gap_count = len([g for g in existing.get('gaps', []) if g.get('needs_new_invention')])
+    send_slack(f"✅ 既存解決策: {existing_count}件 / 新発明が必要: {gap_count}件")
     
-    # Step 3: Crypto Auditor の検証
-    send_slack("🔐 *Step 3*: Crypto Auditor が暗号学的観点から検証中...")
-    audit = crypto_audit_solutions(client, research, context)
+    # Phase 3: 新技術の理論設計
+    if gap_count > 0:
+        send_slack("💡 *Phase 3*: 新技術の理論設計中... 🧮")
+        designs = design_new_solutions(client, existing.get('gaps', []), context)
+        if not designs:
+            send_slack("❌ 理論設計に失敗")
+            return
+        
+        design_count = len(designs.get('theoretical_designs', []))
+        send_slack(f"✅ 新技術を{design_count}件設計しました！")
+        
+        # Phase 4: 暗号学的検証
+        send_slack("🔐 *Phase 4*: 暗号学的観点から検証中...")
+        validation = validate_theoretical_design(client, designs, context)
+        if not validation:
+            send_slack("❌ 検証に失敗")
+            return
+        
+        approved = len([v for v in validation.get('validations', []) if v.get('verdict') == 'approved'])
+        conditional = len([v for v in validation.get('validations', []) if v.get('verdict') == 'conditional'])
+        send_slack(f"✅ 検証完了: 承認{approved}件 / 条件付き{conditional}件")
+    else:
+        designs = {'theoretical_designs': [], 'breakthrough_potential': {}}
+        validation = {'validations': [], 'overall_assessment': '既存ソリューションで対応可能', 'recommended_next_steps': []}
+        send_slack("ℹ️ 既存ソリューションで対応可能なため、新設計はスキップ")
     
-    if not audit:
-        send_slack("❌ 検証に失敗しました")
-        return
-    
-    approved = len([v for v in audit.get('verified_solutions', []) if v.get('approval') == 'approved'])
-    send_slack(f"✅ {approved}件の解決策が承認されました")
-    
-    # Step 4: レポート作成
-    report = create_breakthrough_report(challenges, research, audit)
+    # レポート作成
+    report = create_comprehensive_report(challenges, existing, designs, validation)
     
     # GitHubに保存
-    report_path = f"research/breakthrough-{datetime.now().strftime('%Y%m%d-%H%M')}.md"
+    timestamp = datetime.now().strftime('%Y%m%d-%H%M')
+    report_path = f"research/breakthrough-{timestamp}.md"
     
     github_api('PUT', f'/repos/{REPO}/contents/{report_path}', {
-        'message': f'🔬 技術ブレイクスルーレポート ({datetime.now().strftime("%Y-%m-%d")})',
+        'message': f'🔬 技術ブレイクスルーレポート ({timestamp})',
         'content': base64.b64encode(report.encode()).decode(),
         'branch': BASE_BRANCH
     })
     
-    # Slackに要約を送信
-    summary = f"""🔬 *技術ブレイクスルーレポート完成*
+    # Issue作成
+    breakthrough = designs.get('breakthrough_potential', {})
+    issue_body = f"""## 🔬 技術ブレイクスルー提案
 
-📋 *特定された課題*: {challenge_count}件
-💡 *発見された解決策*: {findings_count}件
-✅ *承認された解決策*: {approved}件
+### 📋 特定された課題
+- パフォーマンス課題: {perf_count}件
+- 実装ブロッカー: {blocker_count}件
 
-🎯 *最終推奨*:
-{audit.get('final_recommendation', 'N/A')[:300]}...
+### 🔍 既存ソリューション
+- 発見: {existing_count}件
+- 新発明が必要: {gap_count}件
 
-📄 *詳細レポート*: `{report_path}`
+### 💡 新技術の理論設計
+- 設計数: {len(designs.get('theoretical_designs', []))}件
+- 承認: {len([v for v in validation.get('validations', []) if v.get('verdict') == 'approved'])}件
+
+### 🎯 最も影響の大きい発明
+**{breakthrough.get('highest_impact', 'N/A')}**
+
+{breakthrough.get('rationale', '')}
+
+### CTO/Engineerへの推奨
+{breakthrough.get('recommendation', 'N/A')}
+
+---
+📄 詳細レポート: `{report_path}`
+"""
+    
+    github_api('POST', f'/repos/{REPO}/issues', {
+        'title': f'[Research] 技術ブレイクスルー提案 ({datetime.now().strftime("%Y-%m-%d")})',
+        'body': issue_body,
+        'labels': ['research', 'breakthrough', 'agent:Researcher', 'agent:Crypto Auditor']
+    })
+    
+    # Slack最終報告
+    summary = f"""🔬 *技術ブレイクスルー探索完了！*
+
+📋 *課題*: {perf_count + blocker_count}件特定
+🔍 *既存解決策*: {existing_count}件発見
+💡 *新技術設計*: {len(designs.get('theoretical_designs', []))}件
+
+🎯 *最も影響の大きい発明*:
+{breakthrough.get('highest_impact', 'N/A')}
+
+📄 詳細: `{report_path}`
 
 ---
 CTO/Engineer チームは上記を確認し、実装を検討してください。
 """
     
     send_slack(summary)
-    
-    # Issueを作成して連携
-    github_api('POST', f'/repos/{REPO}/issues', {
-        'title': f'[Research] 技術ブレイクスルー提案 ({datetime.now().strftime("%Y-%m-%d")})',
-        'body': f"""## 🔬 技術ブレイクスルー提案
-
-Researcher と Crypto Auditor が課題を分析し、解決策を提案しました。
-
-### 📋 特定された課題
-{json.dumps(challenges.get('challenges', [])[:3], ensure_ascii=False, indent=2)}
-
-### 💡 承認された解決策
-{json.dumps([v for v in audit.get('verified_solutions', []) if v.get('approval') == 'approved'][:3], ensure_ascii=False, indent=2)}
-
-### 🎯 最終推奨
-{audit.get('final_recommendation', 'N/A')}
-
----
-📄 詳細レポート: `{report_path}`
-
-**CTO/Engineer チームへ**: 上記の解決策を検討し、実装の可否を判断してください。
-""",
-        'labels': ['research', 'breakthrough', 'agent:Researcher', 'agent:Crypto Auditor']
-    })
-    
-    send_slack("✅ *技術ブレイクスルー探索完了！* Issue を作成しました。")
 
 if __name__ == '__main__':
     main()
