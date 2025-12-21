@@ -301,13 +301,25 @@ def main():
     
     # 北極星を動的に取得
     north_star = get_north_star()
+    print(f"DEBUG: North Star keywords: {north_star.get('keywords', [])}")
+    
     context = get_project_context(north_star.get('content', ''))
     
+    # 全Issueを取得してデバッグ
+    all_issues = github_api('GET', f'/repos/{REPO}/issues?state=open&per_page=50')
+    print(f"DEBUG: Total open issues: {len(all_issues or [])}")
+    
+    for issue in (all_issues or [])[:5]:
+        labels = [l['name'] for l in issue.get('labels', [])]
+        print(f"DEBUG: Issue #{issue['number']}: {issue['title'][:30]}... | Labels: {labels}")
+    
     autonomous_issues = get_autonomous_issues(north_star)
+    print(f"DEBUG: Autonomous issues count: {len(autonomous_issues)}")
     
     if not autonomous_issues:
         send_slack("📋 *自律実行可能なタスクなし*\n新しいタスクを作成するか、`priority:high` ラベルを追加してください。")
         return
+    # ... 以下同じ
     
     send_slack(f"""🚀 *自律実行モード v2*
 
