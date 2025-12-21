@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""エージェントが自律的・協調的にコードを書き、テスト、レビュー、修正する"""
+"""エージェントが自律的・協調的にコードを書き、テスト、レビュー、修正する
++ Researcher/Crypto Auditor による技術ブレイクスルー探索"""
 
 import anthropic
 import requests
@@ -15,14 +16,15 @@ ANTHROPIC_KEY = os.environ.get('ANTHROPIC_API_KEY')
 REPO = 'kota1026/quantum-shield'
 BASE_BRANCH = 'dev/phase2-native-stark'
 
-# エージェント定義
+# エージェント定義（役割強化）
 AGENTS = {
     'CSO': {'emoji': '🔒', 'role': 'セキュリティ総括、チーム統括、最終判断'},
-    'Crypto Auditor': {'emoji': '🔐', 'role': '暗号実装、Dilithium署名、暗号学的検証'},
+    'Crypto Auditor': {'emoji': '🔐', 'role': '暗号実装、暗号学的検証、新暗号アルゴリズムの理論設計'},
     'Red Team': {'emoji': '🔴', 'role': '脆弱性対策、攻撃シミュレーション、セキュリティテスト'},
     'Engineer': {'emoji': '⚙️', 'role': 'コード実装、開発作業、API設計'},
+    'CTO': {'emoji': '🏗️', 'role': '技術戦略、アーキテクチャ設計、技術的意思決定'},
     'DevOps': {'emoji': '🚀', 'role': 'CI/CD、インフラ、テスト自動化'},
-    'Researcher': {'emoji': '🔬', 'role': '技術調査、最新動向リサーチ'},
+    'Researcher': {'emoji': '🔬', 'role': '技術調査、既存ライブラリ探索、新技術の理論設計・発明'},
     'CBO': {'emoji': '📊', 'role': 'ビジネス検討、市場調査'},
 }
 
@@ -68,21 +70,26 @@ def update_issue(issue_number, progress, status, comment):
     github_api('PATCH', f'/repos/{REPO}/issues/{issue_number}', {'labels': current_labels})
     github_api('POST', f'/repos/{REPO}/issues/{issue_number}/comments', {'body': f'## 🤖 進捗更新 ({progress}%)\n\n**ステータス**: {status}\n\n{comment}'})
 
-def get_north_star():
-    """NORTH_STAR.mdを読み込んで週次目標を取得"""
-    file_data = github_api('GET', f'/repos/{REPO}/contents/NORTH_STAR.md?ref={BASE_BRANCH}')
-    if file_data and 'content' in file_data:
-        return base64.b64decode(file_data['content']).decode('utf-8')
-    return ""
-
 def get_project_context():
-    """プロジェクトコンテキストを取得（NORTH_STAR含む）"""
+    """プロジェクトコンテキストを取得（NORTH_STAR + 最新リサーチ含む）"""
     context = ""
     for path in ['NORTH_STAR.md', 'PURPOSE.md', 'README.md', 'meetings/PROJECT_STATE.md']:
         file_data = github_api('GET', f'/repos/{REPO}/contents/{path}?ref={BASE_BRANCH}')
         if file_data and 'content' in file_data:
             content = base64.b64decode(file_data['content']).decode('utf-8')
             context += f"\n=== {path} ===\n{content[:3000]}\n"
+    
+    # 最新のリサーチレポートを取得
+    research_files = github_api('GET', f'/repos/{REPO}/contents/research?ref={BASE_BRANCH}')
+    if research_files and isinstance(research_files, list):
+        latest = sorted([f for f in research_files if f['name'].endswith('.md')], 
+                       key=lambda x: x['name'], reverse=True)[:1]
+        for f in latest:
+            file_data = github_api('GET', f'/repos/{REPO}/contents/{f["path"]}?ref={BASE_BRANCH}')
+            if file_data and 'content' in file_data:
+                content = base64.b64decode(file_data['content']).decode('utf-8')
+                context += f"\n=== 最新リサーチ: {f['name']} ===\n{content[:2000]}\n"
+    
     return context
 
 def get_approved_issues():
@@ -97,14 +104,160 @@ def get_approved_issues():
                     approved.append(issue)
                     break
     
-    # 優先度でソート（high > medium > low）
     priority_order = {'priority:high': 0, 'priority:medium': 1, 'priority:low': 2}
     approved.sort(key=lambda x: min([priority_order.get(l['name'], 99) for l in x.get('labels', [])] or [99]))
     
     return approved
 
+def consult_researcher_for_breakthrough(client, from_agent, challenge, context):
+    """Researcher に技術的ブレイクスルーを相談（既存探索 + 理論設計）"""
+    
+    send_slack(f"🔬 *{from_agent}* → *Researcher* に技術相談中...\n課題: {challenge[:100]}...")
+    
+    system_prompt = f"""あなたは Quantum Shield の Researcher + 暗号数学専門家 です。
+
+{from_agent} から技術的な課題の相談を受けています。
+
+【Phase 1】まず既存のライブラリ・論文・実装を探してください。
+【Phase 2】既存で解決できない場合、新しい技術・アルゴリズムを数学的に設計してください。
+
+JSON形式で回答:
+{{
+  "existing_solutions": [
+    {{
+      "name": "名前",
+      "type": "library/paper/implementation",
+      "description": "説明",
+      "applicability": "high/medium/low",
+      "url": "参照先"
+    }}
+  ],
+  "needs_new_invention": true/false,
+  "theoretical_design": {{
+    "title": "発明のタイトル（既存で解決できる場合は空）",
+    "concept": "コンセプト",
+    "mathematical_basis": "数学的根拠（定理、証明スケッチ）",
+    "algorithm_steps": ["ステップ1", "ステップ2"],
+    "expected_improvement": "期待される改善",
+    "implementation_hint": "実装のヒント"
+  }},
+  "recommendation": "最終的な推奨（{from_agent}への具体的アドバイス）"
+}}
+
+プロジェクト情報:
+{context[:3000]}
+"""
+    
+    try:
+        message = client.messages.create(
+            model='claude-sonnet-4-20250514',
+            max_tokens=2500,
+            system=system_prompt,
+            messages=[{'role': 'user', 'content': f"【{from_agent}からの技術相談】\n{challenge}"}]
+        )
+        
+        text = message.content[0].text
+        match = re.search(r'\{[\s\S]*\}', text)
+        result = json.loads(match.group()) if match else None
+        
+        if result:
+            # Slack に結果を報告
+            existing_count = len(result.get('existing_solutions', []))
+            needs_invention = result.get('needs_new_invention', False)
+            
+            if needs_invention and result.get('theoretical_design', {}).get('title'):
+                design = result['theoretical_design']
+                send_slack(f"""💡 *Researcher* の回答:
+
+🔍 既存ソリューション: {existing_count}件発見
+🆕 *新技術の理論設計*: {design.get('title', 'N/A')}
+
+📐 数学的根拠: {design.get('mathematical_basis', 'N/A')[:150]}...
+
+🎯 推奨: {result.get('recommendation', 'N/A')[:200]}...""")
+            else:
+                best = result.get('existing_solutions', [{}])[0] if result.get('existing_solutions') else {}
+                send_slack(f"""✅ *Researcher* の回答:
+
+🔍 既存ソリューション: {existing_count}件発見
+📦 ベスト: {best.get('name', 'N/A')} ({best.get('applicability', '?')})
+
+🎯 推奨: {result.get('recommendation', 'N/A')[:200]}...""")
+        
+        return result
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+def consult_crypto_auditor_for_validation(client, design, context):
+    """Crypto Auditor に理論設計の検証を依頼"""
+    
+    send_slack("🔐 *Crypto Auditor* が理論設計を検証中...")
+    
+    system_prompt = f"""あなたは Quantum Shield の Crypto Auditor（暗号数学専門家）です。
+
+提案された理論設計を厳密に検証してください。
+
+JSON形式で回答:
+{{
+  "mathematical_validity": true/false,
+  "security_level": "推定セキュリティレベル（ビット）",
+  "quantum_safe": true/false,
+  "issues": ["問題点"],
+  "corrections": ["修正案"],
+  "verdict": "approved/conditional/rejected",
+  "final_advice": "最終アドバイス"
+}}
+
+プロジェクト情報:
+{context[:2000]}
+"""
+    
+    try:
+        message = client.messages.create(
+            model='claude-sonnet-4-20250514',
+            max_tokens=1500,
+            system=system_prompt,
+            messages=[{'role': 'user', 'content': f"理論設計の検証:\n{json.dumps(design, ensure_ascii=False, indent=2)}"}]
+        )
+        
+        text = message.content[0].text
+        match = re.search(r'\{[\s\S]*\}', text)
+        result = json.loads(match.group()) if match else None
+        
+        if result:
+            verdict_emoji = "✅" if result.get('verdict') == 'approved' else "⚠️" if result.get('verdict') == 'conditional' else "❌"
+            send_slack(f"""{verdict_emoji} *Crypto Auditor* の検証結果:
+
+数学的妥当性: {'✅' if result.get('mathematical_validity') else '❌'}
+量子耐性: {'✅' if result.get('quantum_safe') else '⚠️'}
+判定: {result.get('verdict', 'N/A')}
+
+💬 {result.get('final_advice', 'N/A')[:200]}...""")
+        
+        return result
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
 def consult_agent(client, from_agent, to_agent, question, context):
-    """エージェント間でリアルタイム相談"""
+    """エージェント間でリアルタイム相談（Researcher は特別処理）"""
+    
+    # Researcher への技術相談は特別処理
+    if to_agent == 'Researcher' and ('技術' in question or '実装' in question or 'どうすれば' in question or 'ライブラリ' in question or 'アルゴリズム' in question):
+        result = consult_researcher_for_breakthrough(client, from_agent, question, context)
+        if result:
+            # 理論設計があればCrypto Auditorに検証依頼
+            if result.get('needs_new_invention') and result.get('theoretical_design', {}).get('title'):
+                validation = consult_crypto_auditor_for_validation(client, result['theoretical_design'], context)
+                if validation:
+                    result['crypto_validation'] = validation
+            
+            return json.dumps(result, ensure_ascii=False, indent=2)[:1500]
+    
+    # 通常のエージェント相談
     agent_info = AGENTS.get(to_agent, {'emoji': '🤖', 'role': '専門家'})
     
     system_prompt = f"""あなたは Quantum Shield の {to_agent} です。
@@ -143,11 +296,8 @@ def cso_coordinate(client, issues, context):
 
 JSON形式で回答:
 {{
-  "priority_order": [1, 3, 2],  // Issue番号の優先順
-  "blocked_issues": {{
-    "2": "Issue #1の完了待ち",
-    "3": "Issue #1の完了待ち"
-  }},
+  "priority_order": [1, 3, 2],
+  "blocked_issues": {{"2": "Issue #1の完了待ち"}},
   "immediate_action": "今すぐ取り組むべきIssue番号",
   "team_instructions": "チームへの指示"
 }}
@@ -168,12 +318,11 @@ JSON形式で回答:
         return None
 
 def agent_work_with_collaboration(client, issue, context):
-    """協調型でタスクを実行"""
+    """協調型でタスクを実行（Researcher/Crypto Auditor の理論設計含む）"""
     title = issue.get('title', '')
     body = issue.get('body', '')
     number = issue.get('number')
     
-    # 担当エージェントを取得
     assignee = 'Engineer'
     for label in issue.get('labels', []):
         if label['name'].startswith('agent:'):
@@ -182,7 +331,6 @@ def agent_work_with_collaboration(client, issue, context):
     
     agent_info = AGENTS.get(assignee, {'emoji': '⚙️', 'role': '開発者'})
     
-    # 承認コメントを取得
     comments = github_api('GET', f'/repos/{REPO}/issues/{number}/comments') or []
     approval_comment = ""
     for c in comments:
@@ -194,7 +342,8 @@ def agent_work_with_collaboration(client, issue, context):
 役割: {agent_info['role']}
 
 【重要】NORTH_STAR（週次目標）に沿って作業してください。
-【重要】他のエージェントに相談が必要な場合は、consult_requests に記載してください。
+【重要】技術的に難しい課題があれば、必ず Researcher に相談してください。
+【重要】Researcher は既存ライブラリ探索 + 新技術の理論設計ができます。
 
 プロジェクト情報:
 {context}
@@ -202,8 +351,9 @@ def agent_work_with_collaboration(client, issue, context):
 JSON形式で回答:
 {{
   "analysis": "タスクの分析結果",
+  "technical_challenges": ["技術的な課題（あれば）"],
   "consult_requests": [
-    {{"to": "エージェント名", "question": "相談内容"}}
+    {{"to": "Researcher", "question": "技術的な相談内容"}}
   ],
   "files": [
     {{"path": "ファイルパス", "content": "ファイル内容", "description": "説明"}}
@@ -212,15 +362,15 @@ JSON形式で回答:
     {{"path": "テストファイルパス", "content": "テスト内容"}}
   ],
   "summary": "実装内容の要約",
-  "needs_review_by": ["Red Team"],
+  "needs_review_by": ["Red Team", "Crypto Auditor"],
   "confidence": "high/medium/low",
-  "owner_questions": []  // エージェント間で解決できない場合のみ
+  "owner_questions": []
 }}
 
 注意:
-- 必達要件: 証明生成10秒以内、ガス代87.5%削減
-- 不明点はまず他エージェントに相談（consult_requests）
-- それでも解決できない場合のみ owner_questions に記載
+- 技術的に難しければ Researcher に相談（既存探索 + 理論設計してくれる）
+- 暗号関連で不安があれば Crypto Auditor に相談
+- エージェント間で解決できない場合のみ owner_questions に記載
 """
     
     user_prompt = f"""## Issue #{number}: {title}
@@ -230,7 +380,7 @@ JSON形式で回答:
 ## オーナー承認内容:
 {approval_comment}
 
-このタスクを分析し、必要に応じて他エージェントに相談しながら実装してください。
+このタスクを分析し、必要に応じて Researcher や他エージェントに相談しながら実装してください。
 """
     
     try:
@@ -263,8 +413,6 @@ JSON形式で回答:
                 'question': question,
                 'answer': answer
             })
-            
-            send_slack(f"✅ *{to_agent}* の回答: {answer[:200]}...")
         
         result['consult_results'] = consult_results
         return result
@@ -321,7 +469,6 @@ def process_issue_collaboratively(client, issue, context):
     number = issue['number']
     title = issue['title']
     
-    # 担当エージェントを取得
     assignee = 'Engineer'
     for label in issue.get('labels', []):
         if label['name'].startswith('agent:'):
@@ -342,11 +489,11 @@ def process_issue_collaboratively(client, issue, context):
     # 相談結果をIssueにコメント
     if work_result.get('consult_results'):
         consult_summary = "\n".join([
-            f"**{c['from']}** → **{c['to']}**: {c['question']}\n> 回答: {c['answer'][:200]}"
+            f"**{c['from']}** → **{c['to']}**: {c['question']}\n> 回答: {str(c['answer'])[:300]}"
             for c in work_result['consult_results']
         ])
         github_api('POST', f'/repos/{REPO}/issues/{number}/comments', {
-            'body': f"## 💬 エージェント間相談\n\n{consult_summary}"
+            'body': f"## 💬 エージェント間相談（技術ブレイクスルー含む）\n\n{consult_summary}"
         })
     
     # オーナーへの相談が必要な場合
@@ -391,7 +538,6 @@ def process_issue_collaboratively(client, issue, context):
     if not all_approved:
         update_issue(number, 60, 'review_failed', f'レビュー結果:\n' + '\n'.join(review_comments))
         send_slack(f"⚠️ *Issue #{number}* レビューで問題検出。自律修正を試みます...")
-        # TODO: 自動修正ロジックを追加
         return
     
     update_issue(number, 75, 'approved', f'レビュー完了:\n' + '\n'.join(review_comments))
@@ -413,7 +559,7 @@ def process_issue_collaboratively(client, issue, context):
 
 {work_result.get('summary', '')}
 
-### エージェント間相談
+### エージェント間相談（技術ブレイクスルー含む）
 {chr(10).join([f"- {c['from']} → {c['to']}: {c['question'][:50]}..." for c in work_result.get('consult_results', [])])}
 
 ### 生成ファイル
@@ -423,7 +569,7 @@ def process_issue_collaboratively(client, issue, context):
 {chr(10).join(review_comments)}
 
 ---
-🤖 Generated by Quantum Shield Agent Army (Collaborative Mode)
+🤖 Generated by Quantum Shield Agent Army (Collaborative + Research Mode)
 """
     
     pr_url = create_pull_request(branch_name, f'[Agent] {title}', pr_body)
@@ -463,7 +609,6 @@ def main():
     for issue in approved_issues[:3]:
         process_issue_collaboratively(client, issue, context)
     
-    # 完了報告
     send_slack("✅ *本サイクルの作業完了*\n\n次回: 30分後に再実行")
 
 if __name__ == '__main__':
