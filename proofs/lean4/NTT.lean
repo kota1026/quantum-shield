@@ -76,35 +76,32 @@ theorem two_not_dvd_Q : ¬(2 ∣ Q) := by
   unfold Q
   decide
 
-/-- R does not divide Q -/
-theorem R_not_dvd_Q : ¬(R ∣ Q) := by
+/-- R mod Q is nonzero -/
+theorem R_mod_Q_ne_zero : (R : ZMod Q) ≠ 0 := by
   unfold R Q
   native_decide
 
-/-- 2 does not divide Q (for isUnit) -/
-theorem two_not_dvd_Q' : ¬((2 : ℕ) ∣ Q) := by
+/-- 2 mod Q is nonzero -/
+theorem two_mod_Q_ne_zero : (2 : ZMod Q) ≠ 0 := by
   unfold Q
   native_decide
 
-/-- N does not divide Q -/
-theorem N_not_dvd_Q : ¬(N ∣ Q) := by
+/-- N mod Q is nonzero -/
+theorem N_mod_Q_ne_zero : (N : ZMod Q) ≠ 0 := by
   unfold N Q
   native_decide
 
-/-- R is invertible modulo Q -/
+/-- R is invertible modulo Q (nonzero in a field is a unit) -/
 theorem R_inv_exists : IsUnit (R : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
-  exact R_not_dvd_Q
+  exact (R : ZMod Q).isUnit_of_ne_zero R_mod_Q_ne_zero
 
 /-- 2 is invertible modulo Q -/
 theorem two_inv_exists : IsUnit (2 : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
-  exact two_not_dvd_Q'
+  exact (2 : ZMod Q).isUnit_of_ne_zero two_mod_Q_ne_zero
 
 /-- N is invertible modulo Q -/
 theorem N_inv_exists : IsUnit (N : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
-  exact N_not_dvd_Q
+  exact (N : ZMod Q).isUnit_of_ne_zero N_mod_Q_ne_zero
 
 /-- Montgomery reduction preserves value modulo Q -/
 theorem montgomery_preserve_mod (a : ℤ) :
