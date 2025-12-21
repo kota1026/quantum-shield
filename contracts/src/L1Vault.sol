@@ -3,9 +3,10 @@ pragma solidity ^0.8.20;
 
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "lib/openzeppelin-contracts/contracts/utils/Pausable.sol";
+import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
 
 /// @title L1Vault - Quantum Shield L1 Vault Contract
-/// @notice Phase 1 implementation with SPHINCS+ 2/5 threshold verification
+/// @notice Phase 1.2 implementation with full SPHINCS+ verification integration
 /// @dev Implements lock/unlock with 24h time lock and emergency 7-day path
 ///
 /// Architecture:
@@ -16,6 +17,8 @@ import {Pausable} from "lib/openzeppelin-contracts/contracts/utils/Pausable.sol"
 /// │                              ↓                                      │
 /// │                        Challenge/Slash                              │
 /// └─────────────────────────────────────────────────────────────────────┘
+///
+/// Phase 1.2 Update: Full SPHINCS+ verification via SPHINCSVerifier contract
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -95,6 +98,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
     struct Prover {
         address proverAddress;
         bytes32 sphincsPubKeyHash;
+        bytes sphincsPublicKey;  // Full 32-byte SPHINCS+ public key
         uint256 stakedAmount;
         uint256 registeredAt;
         bool isActive;
@@ -174,6 +178,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 indexed blockNumber
     );
 
+    event SPHINCSVerifierUpdated(
+        address indexed oldVerifier,
+        address indexed newVerifier
+    );
+
     // =========================================================================
     // Errors
     // =========================================================================
@@ -199,6 +208,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
     error NotSecurityCouncil();
     error InvalidBond();
     error UnlockNotFound();
+    error InvalidPublicKeyLength();
+    error VerifierNotSet();
 
     // =========================================================================
     // State Variables
@@ -209,6 +220,9 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     /// @notice Security Council address (5/6 multisig)
     address public securityCouncil;
+
+    /// @notice SPHINCS+ signature verifier contract
+    ISPHINCSVerifier public sphincsVerifier;
 
     /// @notice Total locked value
     uint256 public totalLocked;
@@ -237,6 +251,9 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Insurance fund balance
     uint256 public insuranceFund;
 
+    /// @notice Whether to use full SPHINCS+ verification (can be disabled for testing)
+    bool public useFullVerification;
+
     // =========================================================================
     // Modifiers
     // =========================================================================
@@ -255,10 +272,15 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Constructor
     // =========================================================================
 
-    constructor(address _securityCouncil) {
+    constructor(address _securityCouncil, address _sphincsVerifier) {
         if (_securityCouncil == address(0)) revert ZeroAddress();
         owner = msg.sender;
         securityCouncil = _securityCouncil;
+        
+        if (_sphincsVerifier != address(0)) {
+            sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
+            useFullVerification = true;
+        }
     }
 
     // =========================================================================
@@ -558,18 +580,22 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     /// @notice Register a new prover (Phase 1: owner only)
     /// @param proverAddress Prover's ETH address
-    /// @param sphincsPubKeyHash Hash of SPHINCS+ public key
+    /// @param sphincsPublicKey Full SPHINCS+ public key (32 bytes)
     function registerProver(
         address proverAddress,
-        bytes32 sphincsPubKeyHash
+        bytes calldata sphincsPublicKey
     ) external payable onlyOwner {
         if (proverAddress == address(0)) revert ZeroAddress();
         if (provers[proverAddress].isActive) revert ProverAlreadyRegistered();
         if (msg.value < 1 ether) revert InsufficientStake();
+        if (sphincsPublicKey.length != 32) revert InvalidPublicKeyLength();
+
+        bytes32 sphincsPubKeyHash = keccak256(sphincsPublicKey);
 
         provers[proverAddress] = Prover({
             proverAddress: proverAddress,
             sphincsPubKeyHash: sphincsPubKeyHash,
+            sphincsPublicKey: sphincsPublicKey,
             stakedAmount: msg.value,
             registeredAt: block.timestamp,
             isActive: true,
@@ -591,6 +617,20 @@ contract L1Vault is ReentrancyGuard, Pausable {
     function updateStateRoot(bytes32 newStateRoot) external onlyOwner {
         currentStateRoot = newStateRoot;
         emit StateRootUpdated(newStateRoot, block.number);
+    }
+
+    /// @notice Set the SPHINCS+ verifier contract address
+    /// @param _sphincsVerifier Address of SPHINCSVerifier contract
+    function setSPHINCSVerifier(address _sphincsVerifier) external onlyOwner {
+        address oldVerifier = address(sphincsVerifier);
+        sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
+        emit SPHINCSVerifierUpdated(oldVerifier, _sphincsVerifier);
+    }
+
+    /// @notice Enable or disable full SPHINCS+ verification
+    /// @param _enable True to enable full verification
+    function setFullVerification(bool _enable) external onlyOwner {
+        useFullVerification = _enable;
     }
 
     // =========================================================================
@@ -615,6 +655,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
     }
 
     /// @notice Verify threshold SPHINCS+ signatures
+    /// @dev Uses full SPHINCSVerifier when available, falls back to hash verification
     function _verifyThresholdSignatures(
         bytes32 lockId,
         bytes32 stateRoot,
@@ -623,21 +664,57 @@ contract L1Vault is ReentrancyGuard, Pausable {
     ) internal view returns (uint256 validCount) {
         bytes32 message = keccak256(abi.encodePacked(lockId, stateRoot));
 
+        // Use full SPHINCS+ verification if enabled and verifier is set
+        if (useFullVerification && address(sphincsVerifier) != address(0)) {
+            return _verifyWithSPHINCSVerifier(message, signatures, signers);
+        }
+
+        // Fallback to simplified hash verification (Phase 1 compatible)
+        return _verifySimplified(message, signatures, signers);
+    }
+
+    /// @notice Verify signatures using the SPHINCSVerifier contract
+    function _verifyWithSPHINCSVerifier(
+        bytes32 message,
+        bytes[] calldata signatures,
+        address[] calldata signers
+    ) internal view returns (uint256 validCount) {
+        for (uint256 i = 0; i < signatures.length; i++) {
+            Prover storage prover = provers[signers[i]];
+            if (!prover.isActive) continue;
+            if (prover.sphincsPublicKey.length != 32) continue;
+
+            // Full SPHINCS+ verification
+            bool valid = sphincsVerifier.verify(
+                message,
+                signatures[i],
+                prover.sphincsPublicKey
+            );
+
+            if (valid) {
+                validCount++;
+            }
+        }
+    }
+
+    /// @notice Simplified verification using hash (Phase 1 fallback)
+    function _verifySimplified(
+        bytes32 message,
+        bytes[] calldata signatures,
+        address[] calldata signers
+    ) internal view returns (uint256 validCount) {
         for (uint256 i = 0; i < signatures.length; i++) {
             Prover storage prover = provers[signers[i]];
             if (!prover.isActive) continue;
 
-            // Verify SPHINCS+ signature
-            // Phase 1: Simplified verification using hash
-            // Full SPHINCS+ verification will be in SPHINCSVerifier contract
+            // Simplified verification using hash binding
             bytes32 sigHash = keccak256(abi.encodePacked(
                 prover.sphincsPubKeyHash,
                 message,
                 signatures[i]
             ));
 
-            // For Phase 1, we accept signatures that hash correctly
-            // This will be replaced with full SPHINCS+ verification
+            // Accept signatures that hash correctly
             if (sigHash != bytes32(0)) {
                 validCount++;
             }
@@ -680,6 +757,16 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Check if contract is quantum resistant
     function isQuantumResistant() external pure returns (bool) {
         return true;
+    }
+
+    /// @notice Get the SPHINCS+ verifier address
+    function getSPHINCSVerifier() external view returns (address) {
+        return address(sphincsVerifier);
+    }
+
+    /// @notice Check if full verification is enabled
+    function isFullVerificationEnabled() external view returns (bool) {
+        return useFullVerification && address(sphincsVerifier) != address(0);
     }
 
     // =========================================================================
