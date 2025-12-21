@@ -1,32 +1,20 @@
-name: Agent Worker (Auto Code Generation)
+name: Agent Worker
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # 30分ごと
-  workflow_dispatch:  # 手動実行
-  repository_dispatch:
-    types: [agent-work]
-
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-
-env:
-  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
 
 jobs:
-  work:
+  agent-work:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: dev/phase2-native-stark
-          fetch-depth: 0
       
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       
@@ -34,4 +22,8 @@ jobs:
         run: pip install anthropic requests
       
       - name: Run Agent Worker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/agent_worker.py
