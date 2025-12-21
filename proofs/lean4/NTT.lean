@@ -113,7 +113,6 @@ theorem montgomery_preserve_mod (a : ℤ) :
   rw [Int.cast_mul, Int.cast_natCast]
   have h : IsUnit (R : ZMod Q) := R_inv_exists
   field_simp
-  ring
 
 /-- Montgomery multiplication is commutative -/
 theorem montgomery_mul_comm (a b : ZMod Q) :
