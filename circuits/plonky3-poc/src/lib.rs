@@ -14,9 +14,9 @@ pub mod trace;
 pub mod prover;
 
 pub use constants::*;
-pub use air::DilithiumAir;
-pub use trace::DilithiumTrace;
-pub use prover::prove_dilithium;
+pub use air::{DilithiumAir, SimpleNttAir};
+pub use trace::{DilithiumTrace, generate_random_coefficients, generate_dilithium_polynomial};
+pub use prover::{prove_dilithium, benchmark_all_sizes, compare_with_sp1, ProofResult, FriConfig};
 
 #[cfg(test)]
 mod tests {
@@ -38,5 +38,12 @@ mod tests {
         let (sum, diff) = constants::ntt_butterfly(a, b, omega);
         assert!(sum < Q);
         assert!(diff < Q);
+    }
+
+    #[test]
+    fn test_full_benchmark() {
+        let result = prove_dilithium(256);
+        assert!(result.verified);
+        assert!(result.estimated_cycles() < 1_000_000);
     }
 }
