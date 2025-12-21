@@ -2,8 +2,10 @@ name: Agent Worker
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
+    # 1日2回: 朝9時と夜21時（JST）
+    - cron: '0 0 * * *'   # 09:00 JST (00:00 UTC)
+    - cron: '0 12 * * *'  # 21:00 JST (12:00 UTC)
+  workflow_dispatch:  # 手動 + Slackトリガー
 
 permissions:
   contents: write
