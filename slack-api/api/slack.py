@@ -93,6 +93,16 @@ class handler(BaseHTTPRequestHandler):
             if success:
                 self._send_slack_message("✅ GitHub Actions をトリガーしました。")
             return
+
+    　　　# 緊急トリガー - Agent Worker を即座に起動
+        if '緊急' in text_lower or 'urgent' in text_lower or 'エージェント実行' in text_lower or 'agent run' in text_lower:
+            self._send_slack_message("🚨 *緊急モード起動！*\n\nAgent Worker を即座に実行します...")
+            success = self._trigger_agent_worker()
+            if success:
+                self._send_slack_message("✅ Agent Worker をトリガーしました。数分後に結果を報告します。")
+            else:
+                self._send_slack_message("❌ Agent Worker の起動に失敗しました。")
+            return
         
         # ヘルプ（完全一致に近い形）
         if text_lower.strip() in ['ヘルプ', 'help', 'へるぷ']:
@@ -558,3 +568,32 @@ class handler(BaseHTTPRequestHandler):
             urllib.request.urlopen(req)
         except:
             pass
+
+　　　def _trigger_agent_worker(self):
+        """Agent Worker を即座にトリガー"""
+        github_token = os.environ.get('GITHUB_TOKEN', '')
+        if not github_token:
+            return False
+        
+        # workflow_dispatch でAgent Workerを起動
+        url = "https://api.github.com/repos/kota1026/quantum-shield/actions/workflows/agent-worker.yml/dispatches"
+        data = {"ref": "dev/phase2-native-stark"}
+        
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(data).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'token {github_token}',
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Quantum-Shield-Bot'
+            },
+            method='POST'
+        )
+        
+        try:
+            urllib.request.urlopen(req)
+            return True
+        except Exception as e:
+            print(f"Agent Worker trigger failed: {e}")
+            return False
