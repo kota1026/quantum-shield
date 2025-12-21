@@ -1,7 +1,5 @@
 name: Quantum Shield CI
 
-name: Quantum Shield CI
-
 on:
   push:
     branches: [main, dev/*, release/*]
