@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""エージェントが自律的にコードを書き、テスト、レビュー、修正する"""
+"""エージェントが自律的・協調的にコードを書き、テスト、レビュー、修正する"""
 
 import anthropic
 import requests
 import json
 import os
 import base64
+import re
 from datetime import datetime
 
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
@@ -13,6 +14,17 @@ SLACK_WEBHOOK = os.environ.get('SLACK_WEBHOOK_URL')
 ANTHROPIC_KEY = os.environ.get('ANTHROPIC_API_KEY')
 REPO = 'kota1026/quantum-shield'
 BASE_BRANCH = 'dev/phase2-native-stark'
+
+# エージェント定義
+AGENTS = {
+    'CSO': {'emoji': '🔒', 'role': 'セキュリティ総括、チーム統括、最終判断'},
+    'Crypto Auditor': {'emoji': '🔐', 'role': '暗号実装、Dilithium署名、暗号学的検証'},
+    'Red Team': {'emoji': '🔴', 'role': '脆弱性対策、攻撃シミュレーション、セキュリティテスト'},
+    'Engineer': {'emoji': '⚙️', 'role': 'コード実装、開発作業、API設計'},
+    'DevOps': {'emoji': '🚀', 'role': 'CI/CD、インフラ、テスト自動化'},
+    'Researcher': {'emoji': '🔬', 'role': '技術調査、最新動向リサーチ'},
+    'CBO': {'emoji': '📊', 'role': 'ビジネス検討、市場調査'},
+}
 
 def send_slack(text):
     if SLACK_WEBHOOK:
@@ -48,24 +60,33 @@ def create_pull_request(branch, title, body):
     return result.get('html_url') if result else None
 
 def update_issue(issue_number, progress, status, comment):
-    labels = github_api('GET', f'/repos/{REPO}/issues/{issue_number}')
-    if not labels:
+    labels_data = github_api('GET', f'/repos/{REPO}/issues/{issue_number}')
+    if not labels_data:
         return
-    current_labels = [l['name'] for l in labels.get('labels', []) if not l['name'].startswith('status:')]
+    current_labels = [l['name'] for l in labels_data.get('labels', []) if not l['name'].startswith('status:')]
     current_labels.append(f'status:{status}')
     github_api('PATCH', f'/repos/{REPO}/issues/{issue_number}', {'labels': current_labels})
     github_api('POST', f'/repos/{REPO}/issues/{issue_number}/comments', {'body': f'## 🤖 進捗更新 ({progress}%)\n\n**ステータス**: {status}\n\n{comment}'})
 
+def get_north_star():
+    """NORTH_STAR.mdを読み込んで週次目標を取得"""
+    file_data = github_api('GET', f'/repos/{REPO}/contents/NORTH_STAR.md?ref={BASE_BRANCH}')
+    if file_data and 'content' in file_data:
+        return base64.b64decode(file_data['content']).decode('utf-8')
+    return ""
+
 def get_project_context():
+    """プロジェクトコンテキストを取得（NORTH_STAR含む）"""
     context = ""
-    for path in ['PURPOSE.md', 'README.md', 'meetings/PROJECT_STATE.md', 'Cargo.toml']:
+    for path in ['NORTH_STAR.md', 'PURPOSE.md', 'README.md', 'meetings/PROJECT_STATE.md']:
         file_data = github_api('GET', f'/repos/{REPO}/contents/{path}?ref={BASE_BRANCH}')
         if file_data and 'content' in file_data:
             content = base64.b64decode(file_data['content']).decode('utf-8')
-            context += f"\n=== {path} ===\n{content[:2000]}\n"
+            context += f"\n=== {path} ===\n{content[:3000]}\n"
     return context
 
 def get_approved_issues():
+    """承認済みIssueを依存関係順にソート"""
     issues = github_api('GET', f'/repos/{REPO}/issues?state=open&per_page=50')
     approved = []
     for issue in issues or []:
@@ -75,19 +96,93 @@ def get_approved_issues():
                 if '✅ オーナー承認' in c.get('body', ''):
                     approved.append(issue)
                     break
+    
+    # 優先度でソート（high > medium > low）
+    priority_order = {'priority:high': 0, 'priority:medium': 1, 'priority:low': 2}
+    approved.sort(key=lambda x: min([priority_order.get(l['name'], 99) for l in x.get('labels', [])] or [99]))
+    
     return approved
 
-def agent_generate_code(client, issue, context):
+def consult_agent(client, from_agent, to_agent, question, context):
+    """エージェント間でリアルタイム相談"""
+    agent_info = AGENTS.get(to_agent, {'emoji': '🤖', 'role': '専門家'})
+    
+    system_prompt = f"""あなたは Quantum Shield の {to_agent} です。
+役割: {agent_info['role']}
+
+{from_agent} から相談を受けています。
+専門家として簡潔に回答してください（3-5文）。
+
+プロジェクト情報:
+{context[:2000]}
+"""
+    
+    try:
+        message = client.messages.create(
+            model='claude-sonnet-4-20250514',
+            max_tokens=500,
+            system=system_prompt,
+            messages=[{'role': 'user', 'content': f"【{from_agent}からの相談】\n{question}"}]
+        )
+        return message.content[0].text
+    except Exception as e:
+        return f"相談エラー: {e}"
+
+def cso_coordinate(client, issues, context):
+    """CSOが全体を統括し、優先順位と依存関係を判断"""
+    issues_summary = "\n".join([
+        f"#{i['number']}: {i['title']} (ラベル: {', '.join([l['name'] for l in i.get('labels', [])])})"
+        for i in issues[:10]
+    ])
+    
+    system_prompt = f"""あなたは Quantum Shield の CSO（Chief Security Officer）です。
+チーム全体を統括し、タスクの優先順位と依存関係を判断してください。
+
+プロジェクト情報:
+{context[:3000]}
+
+JSON形式で回答:
+{{
+  "priority_order": [1, 3, 2],  // Issue番号の優先順
+  "blocked_issues": {{
+    "2": "Issue #1の完了待ち",
+    "3": "Issue #1の完了待ち"
+  }},
+  "immediate_action": "今すぐ取り組むべきIssue番号",
+  "team_instructions": "チームへの指示"
+}}
+"""
+    
+    try:
+        message = client.messages.create(
+            model='claude-sonnet-4-20250514',
+            max_tokens=1000,
+            system=system_prompt,
+            messages=[{'role': 'user', 'content': f"現在のIssue一覧:\n{issues_summary}\n\n優先順位と依存関係を判断してください。"}]
+        )
+        
+        text = message.content[0].text
+        match = re.search(r'\{[\s\S]*\}', text)
+        return json.loads(match.group()) if match else None
+    except:
+        return None
+
+def agent_work_with_collaboration(client, issue, context):
+    """協調型でタスクを実行"""
     title = issue.get('title', '')
     body = issue.get('body', '')
     number = issue.get('number')
     
+    # 担当エージェントを取得
     assignee = 'Engineer'
     for label in issue.get('labels', []):
         if label['name'].startswith('agent:'):
             assignee = label['name'].replace('agent:', '')
             break
     
+    agent_info = AGENTS.get(assignee, {'emoji': '⚙️', 'role': '開発者'})
+    
+    # 承認コメントを取得
     comments = github_api('GET', f'/repos/{REPO}/issues/{number}/comments') or []
     approval_comment = ""
     for c in comments:
@@ -95,14 +190,21 @@ def agent_generate_code(client, issue, context):
             approval_comment = c['body']
             break
     
-    system_prompt = f"""あなたは Quantum Shield プロジェクトの {assignee} エージェントです。
-タスクに基づいてコードを生成してください。
+    system_prompt = f"""あなたは Quantum Shield の {assignee} です。
+役割: {agent_info['role']}
+
+【重要】NORTH_STAR（週次目標）に沿って作業してください。
+【重要】他のエージェントに相談が必要な場合は、consult_requests に記載してください。
 
 プロジェクト情報:
 {context}
 
 JSON形式で回答:
 {{
+  "analysis": "タスクの分析結果",
+  "consult_requests": [
+    {{"to": "エージェント名", "question": "相談内容"}}
+  ],
   "files": [
     {{"path": "ファイルパス", "content": "ファイル内容", "description": "説明"}}
   ],
@@ -110,15 +212,15 @@ JSON形式で回答:
     {{"path": "テストファイルパス", "content": "テスト内容"}}
   ],
   "summary": "実装内容の要約",
-  "needs_review_by": ["Red Team", "Crypto Auditor"],
+  "needs_review_by": ["Red Team"],
   "confidence": "high/medium/low",
-  "questions": []
+  "owner_questions": []  // エージェント間で解決できない場合のみ
 }}
 
-重要:
+注意:
 - 必達要件: 証明生成10秒以内、ガス代87.5%削減
-- Rustコードの場合はcargo testが通るように
-- 不明点があればquestionsに記載（【ご相談】としてオーナーに通知）
+- 不明点はまず他エージェントに相談（consult_requests）
+- それでも解決できない場合のみ owner_questions に記載
 """
     
     user_prompt = f"""## Issue #{number}: {title}
@@ -128,7 +230,8 @@ JSON形式で回答:
 ## オーナー承認内容:
 {approval_comment}
 
-このタスクを実装してください。"""
+このタスクを分析し、必要に応じて他エージェントに相談しながら実装してください。
+"""
     
     try:
         message = client.messages.create(
@@ -138,20 +241,49 @@ JSON形式で回答:
             messages=[{'role': 'user', 'content': user_prompt}]
         )
         
-        import re
         text = message.content[0].text
         match = re.search(r'\{[\s\S]*\}', text)
-        return json.loads(match.group()) if match else None
+        if not match:
+            return None
+        
+        result = json.loads(match.group())
+        
+        # エージェント間相談を処理
+        consult_results = []
+        for consult in result.get('consult_requests', []):
+            to_agent = consult.get('to', 'Engineer')
+            question = consult.get('question', '')
+            
+            send_slack(f"💬 *{assignee}* → *{to_agent}* に相談中...")
+            
+            answer = consult_agent(client, assignee, to_agent, question, context)
+            consult_results.append({
+                'from': assignee,
+                'to': to_agent,
+                'question': question,
+                'answer': answer
+            })
+            
+            send_slack(f"✅ *{to_agent}* の回答: {answer[:200]}...")
+        
+        result['consult_results'] = consult_results
+        return result
+        
     except Exception as e:
         print(f"Error: {e}")
         return None
 
 def agent_review_code(client, issue, code_result, context, reviewer):
+    """レビューエージェント"""
+    agent_info = AGENTS.get(reviewer, {'emoji': '🤖', 'role': 'レビュアー'})
+    
     system_prompt = f"""あなたは Quantum Shield の {reviewer} です。
+役割: {agent_info['role']}
+
 以下のコードをレビューしてください。
 
 プロジェクト情報:
-{context}
+{context[:2000]}
 
 JSON形式で回答:
 {{
@@ -165,9 +297,10 @@ JSON形式で回答:
 """
     
     user_prompt = f"""## レビュー対象
-{json.dumps(code_result, ensure_ascii=False, indent=2)}
+{json.dumps(code_result, ensure_ascii=False, indent=2)[:3000]}
 
-セキュリティと品質の観点からレビューしてください。"""
+セキュリティと品質の観点からレビューしてください。
+"""
     
     try:
         message = client.messages.create(
@@ -177,47 +310,73 @@ JSON形式で回答:
             messages=[{'role': 'user', 'content': user_prompt}]
         )
         
-        import re
         text = message.content[0].text
         match = re.search(r'\{[\s\S]*\}', text)
         return json.loads(match.group()) if match else None
     except:
         return None
 
-def process_issue(client, issue, context):
+def process_issue_collaboratively(client, issue, context):
+    """協調型でIssueを処理"""
     number = issue['number']
     title = issue['title']
     
-    send_slack(f"🚀 *Issue #{number}* の作業を開始: {title}")
-    update_issue(number, 25, 'working', 'コード生成を開始しました')
+    # 担当エージェントを取得
+    assignee = 'Engineer'
+    for label in issue.get('labels', []):
+        if label['name'].startswith('agent:'):
+            assignee = label['name'].replace('agent:', '')
+            break
     
-    # Step 1: コード生成
-    code_result = agent_generate_code(client, issue, context)
-    if not code_result:
-        update_issue(number, 25, 'blocked', '❌ コード生成に失敗しました')
+    agent_info = AGENTS.get(assignee, {'emoji': '⚙️'})
+    
+    send_slack(f"{agent_info['emoji']} *{assignee}* が *Issue #{number}* の作業を開始: {title}")
+    update_issue(number, 25, 'working', f'{assignee}がコード生成を開始しました')
+    
+    # Step 1: 協調型でタスク実行
+    work_result = agent_work_with_collaboration(client, issue, context)
+    if not work_result:
+        update_issue(number, 25, 'blocked', '❌ タスク分析に失敗しました')
         return
     
-    # 相談事項があれば即時通知
-    if code_result.get('questions'):
-        questions = '\n'.join([f"• {q}" for q in code_result['questions']])
+    # 相談結果をIssueにコメント
+    if work_result.get('consult_results'):
+        consult_summary = "\n".join([
+            f"**{c['from']}** → **{c['to']}**: {c['question']}\n> 回答: {c['answer'][:200]}"
+            for c in work_result['consult_results']
+        ])
+        github_api('POST', f'/repos/{REPO}/issues/{number}/comments', {
+            'body': f"## 💬 エージェント間相談\n\n{consult_summary}"
+        })
+    
+    # オーナーへの相談が必要な場合
+    if work_result.get('owner_questions'):
+        questions = '\n'.join([f"• {q}" for q in work_result['owner_questions']])
         send_slack(f"""🚨 *【ご相談】Issue #{number}*
 
-❓ 確認事項:
+❓ エージェント間で解決できなかった事項:
 {questions}
 
 ご判断をお願いします。""")
         update_issue(number, 30, 'need_consultation', f'確認事項があります:\n{questions}')
         return
     
-    update_issue(number, 50, 'testing', f'コード生成完了。レビュー中...\n\n生成ファイル数: {len(code_result.get("files", []))}')
+    # ファイルがなければ完了
+    if not work_result.get('files'):
+        update_issue(number, 100, 'completed', f"分析完了:\n{work_result.get('summary', '')}")
+        send_slack(f"✅ *Issue #{number}* 分析完了！")
+        return
+    
+    update_issue(number, 50, 'testing', f'コード生成完了。レビュー中...\n\n生成ファイル数: {len(work_result.get("files", []))}')
     
     # Step 2: レビュー
-    reviewers = code_result.get('needs_review_by', ['Engineer'])
+    reviewers = work_result.get('needs_review_by', ['Engineer'])
     all_approved = True
     review_comments = []
     
     for reviewer in reviewers[:2]:
-        review = agent_review_code(client, issue, code_result, context, reviewer)
+        send_slack(f"🔍 *{reviewer}* がレビュー中...")
+        review = agent_review_code(client, issue, work_result, context, reviewer)
         if review:
             if not review.get('approved'):
                 all_approved = False
@@ -232,6 +391,7 @@ def process_issue(client, issue, context):
     if not all_approved:
         update_issue(number, 60, 'review_failed', f'レビュー結果:\n' + '\n'.join(review_comments))
         send_slack(f"⚠️ *Issue #{number}* レビューで問題検出。自律修正を試みます...")
+        # TODO: 自動修正ロジックを追加
         return
     
     update_issue(number, 75, 'approved', f'レビュー完了:\n' + '\n'.join(review_comments))
@@ -242,25 +402,28 @@ def process_issue(client, issue, context):
         update_issue(number, 75, 'blocked', 'ブランチ作成に失敗')
         return
     
-    for file in code_result.get('files', []):
+    for file in work_result.get('files', []):
         create_or_update_file(branch_name, file['path'], file['content'], f'[#{number}] {file.get("description", "Add file")}')
     
-    for test_file in code_result.get('test_files', []):
+    for test_file in work_result.get('test_files', []):
         create_or_update_file(branch_name, test_file['path'], test_file['content'], f'[#{number}] Add test')
     
     # Step 4: PR作成
     pr_body = f"""## Issue #{number} 対応
 
-{code_result.get('summary', '')}
+{work_result.get('summary', '')}
+
+### エージェント間相談
+{chr(10).join([f"- {c['from']} → {c['to']}: {c['question'][:50]}..." for c in work_result.get('consult_results', [])])}
 
 ### 生成ファイル
-{chr(10).join(['- ' + f['path'] for f in code_result.get('files', [])])}
+{chr(10).join(['- ' + f['path'] for f in work_result.get('files', [])])}
 
 ### レビュー結果
 {chr(10).join(review_comments)}
 
 ---
-🤖 Generated by Quantum Shield Agent Army
+🤖 Generated by Quantum Shield Agent Army (Collaborative Mode)
 """
     
     pr_url = create_pull_request(branch_name, f'[Agent] {title}', pr_body)
@@ -284,10 +447,24 @@ def main():
         print('No approved issues to process')
         return
     
-    send_slack(f"🤖 *エージェント作業開始*\n\n承認済みタスク: {len(approved_issues)}件")
+    # CSOによる統括
+    send_slack("🔒 *CSO* がタスクの優先順位と依存関係を分析中...")
+    coordination = cso_coordinate(client, approved_issues, context)
+    
+    if coordination:
+        send_slack(f"""📋 *CSO統括レポート*
+
+🎯 *即時対応*: Issue #{coordination.get('immediate_action', '?')}
+📝 *チームへの指示*: {coordination.get('team_instructions', 'N/A')}
+""")
+    
+    send_slack(f"🤖 *エージェント協調作業開始*\n\n承認済みタスク: {len(approved_issues)}件")
     
     for issue in approved_issues[:3]:
-        process_issue(client, issue, context)
+        process_issue_collaboratively(client, issue, context)
+    
+    # 完了報告
+    send_slack("✅ *本サイクルの作業完了*\n\n次回: 30分後に再実行")
 
 if __name__ == '__main__':
     main()
