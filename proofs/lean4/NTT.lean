@@ -111,8 +111,8 @@ theorem montgomery_preserve_mod (a : ℤ) :
     fromMontgomery (toMontgomery a) = (a : ZMod Q) := by
   simp only [toMontgomery, fromMontgomery]
   rw [Int.cast_mul, Int.cast_natCast]
-  have h : IsUnit (R : ZMod Q) := R_inv_exists
-  field_simp
+  have h : (R : ZMod Q) ≠ 0 := R_mod_Q_ne_zero
+  field_simp [h]
 
 /-- Montgomery multiplication is commutative -/
 theorem montgomery_mul_comm (a b : ZMod Q) :
