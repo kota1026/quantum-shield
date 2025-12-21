@@ -25,27 +25,6 @@ zk, prover, verifier, 実装, implement, 量子, quantum, bridge
 
 ---
 *最終更新: 2024-12-21 by Owner*
-```
-
----
-
-## 📋 更新チェックリスト
-
-| # | ファイル | リンク | 操作 |
-|---|----------|--------|------|
-| 1 | `scripts/agent_worker.py` | [編集](https://github.com/kota1026/quantum-shield/edit/dev/phase2-native-stark/scripts/agent_worker.py) | 全置換 |
-| 2 | `.github/workflows/agent-worker.yml` | [編集](https://github.com/kota1026/quantum-shield/edit/dev/phase2-native-stark/.github/workflows/agent-worker.yml) | 全置換 |
-| 3 | `NORTH_STAR.md` | [編集](https://github.com/kota1026/quantum-shield/edit/dev/phase2-native-stark/NORTH_STAR.md) | 更新 or 新規 |
-
----
-
-## 変更後の動き
-```
-You: Slackで「北極星を〜に変更」
-  ↓
-NORTH_STAR.md を編集
-  ↓
-次サイクル（15分後）から新しい北極星で自律実行！
 
 ## 備考
 
