@@ -37,6 +37,9 @@ def Q : ℕ := 8380417
 /-- Q is prime -/
 theorem Q_prime : Nat.Prime Q := by native_decide
 
+/-- Fact instance for Q being prime (needed for ZMod field instance) -/
+instance : Fact (Nat.Prime Q) := ⟨Q_prime⟩
+
 /-- Polynomial degree N = 256 -/
 def N : ℕ := 256
 
@@ -60,8 +63,6 @@ def fromMontgomery (a : ZMod Q) : ZMod Q :=
 
 /-- R is coprime to Q (needed for Montgomery reduction) -/
 theorem R_coprime_Q : Nat.Coprime R Q := by
-  -- R = 2^32, Q = 8380417 = 2^23 - 2^13 + 1
-  -- Q is odd (ends in 7), so gcd(2^32, Q) = 1
   unfold R Q
   native_decide
 
@@ -75,31 +76,41 @@ theorem two_not_dvd_Q : ¬(2 ∣ Q) := by
   unfold Q
   decide
 
-/-- R is invertible modulo Q (since gcd(R, Q) = 1) -/
-theorem R_inv_exists : IsUnit (R : ZMod Q) := by
-  -- Since R and Q are coprime, R is a unit in ZMod Q
-  rw [ZMod.isUnit_prime_iff_not_dvd Q_prime]
-  -- Need to show 2^32 is not divisible by Q
-  -- Equivalently, R mod Q ≠ 0
+/-- Q does not divide R (since R = 2^32 and Q is odd prime) -/
+theorem Q_not_dvd_R : ¬(Q ∣ R) := by
   unfold R Q
-  native_decide
+  decide
+
+/-- Q does not divide 2 -/
+theorem Q_not_dvd_2 : ¬(Q ∣ 2) := by
+  unfold Q
+  decide
+
+/-- Q does not divide N -/
+theorem Q_not_dvd_N : ¬(Q ∣ N) := by
+  unfold Q N
+  decide
+
+/-- R is invertible modulo Q (since Q does not divide R) -/
+theorem R_inv_exists : IsUnit (R : ZMod Q) := by
+  rw [ZMod.isUnit_prime_iff_not_dvd]
+  exact Q_not_dvd_R
 
 /-- 2 is invertible modulo Q (since Q is odd prime) -/
 theorem two_inv_exists : IsUnit (2 : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd Q_prime]
-  exact two_not_dvd_Q
+  rw [ZMod.isUnit_prime_iff_not_dvd]
+  exact Q_not_dvd_2
 
 /-- Montgomery reduction preserves value modulo Q -/
 theorem montgomery_preserve_mod (a : ℤ) :
     fromMontgomery (toMontgomery a) = (a : ZMod Q) := by
   simp only [toMontgomery, fromMontgomery]
-  -- (a * R) * R^(-1) = a (mod Q)
   rw [Int.cast_mul, Int.cast_natCast]
-  ring_nf
-  rw [mul_comm (↑R : ZMod Q)⁻¹ _, mul_assoc]
-  have h : (R : ZMod Q) * (R : ZMod Q)⁻¹ = 1 := by
-    exact IsUnit.mul_val_inv R_inv_exists
-  rw [h, mul_one]
+  have h : (R : ZMod Q) * (R : ZMod Q)⁻¹ = 1 := IsUnit.mul_val_inv R_inv_exists
+  calc (↑a * ↑R) * (↑R)⁻¹
+      = ↑a * (↑R * (↑R)⁻¹) := by ring
+    _ = ↑a * 1 := by rw [h]
+    _ = ↑a := by ring
 
 /-- Montgomery multiplication is commutative -/
 theorem montgomery_mul_comm (a b : ZMod Q) :
@@ -148,8 +159,8 @@ def butterfly (a b ω : ZMod Q) : ZMod Q × ZMod Q :=
   (a + ω * b, a - ω * b)
 
 /-- Butterfly is reversible -/
-theorem butterfly_inverse (a b ω : ZMod Q) (hω : ω ≠ 0) :
-    let (a', b') := butterfly a b ω
+theorem butterfly_inverse (a b ω : ZMod Q) (_hω : ω ≠ 0) :
+    let (_, _) := butterfly a b ω
     ∃ (a'' b'' : ZMod Q), a'' = a ∧ b'' = b := by
   use a, b
 
@@ -190,21 +201,16 @@ theorem caddq_nonneg (a : ℤ) (ha : -Q_half ≤ a ∧ a ≤ Q_half) :
     0 ≤ caddq a := by
   simp only [caddq, Q_half, Q] at *
   split_ifs with h
-  · -- Case a < 0: result is a + Q
-    -- a >= -Q/2 = -4190208, so a + Q >= 4190209 > 0
-    omega
-  · -- Case a >= 0: result is a
-    omega
+  · omega
+  · omega
 
 /-- caddq result is less than Q for centered input -/
 theorem caddq_lt_Q (a : ℤ) (ha : -Q_half ≤ a ∧ a ≤ Q_half) :
     caddq a < Q := by
   simp only [caddq, Q_half, Q] at *
   split_ifs with h
-  · -- Case a < 0: a + Q < Q iff a < 0 ✓
-    omega
-  · -- Case a >= 0: a < Q for a <= Q/2
-    omega
+  · omega
+  · omega
 
 /-- caddq is idempotent for values in [0, Q) -/
 theorem caddq_idempotent (a : ℤ) (ha : 0 ≤ a ∧ a < Q) :
@@ -244,7 +250,7 @@ theorem zetas_zero : (0 : ZMod Q) = 0 := rfl
 theorem zetas_one_correct : (25847 : ZMod Q) = (25847 : ZMod Q) := rfl
 
 /-- ZETAS values are in valid range -/
-theorem zetas_in_range (z : ℤ) (hz : -Q < z ∧ z < Q) :
+theorem zetas_in_range (z : ℤ) (_hz : -Q < z ∧ z < Q) :
     ∃ (z' : ZMod Q), (z : ZMod Q) = z' := by
   use (z : ZMod Q)
 
@@ -263,9 +269,8 @@ theorem ntt_bound_preserve (f : Fin N → ZMod Q) (bound : ℕ)
     (hbound : ∀ i, (f i).val < bound) :
     ∀ i, (f i).val < bound := hbound
 
-/-- ZMod Q is a field (needed for NTT correctness) -/
-theorem zmod_q_field : Field (ZMod Q) := by
-  exact ZMod.instField Q
+/-- ZMod Q is a field (follows from Q being prime) -/
+example : Field (ZMod Q) := inferInstance
 
 /-!
 # Montgomery Constants Verification
@@ -278,14 +283,10 @@ theorem mont_value : (R : ZMod Q).val = 4193792 := by
   unfold R Q
   native_decide
 
-/-- Q^(-1) mod 2^32 = 58728449 (QINV constant) -/
--- This is verified in the Rust implementation via Montgomery reduction tests
-
-/-- N^(-1) mod Q = 8347681 (for scaling after inverse NTT) -/
+/-- N is invertible modulo Q -/
 theorem n_inv_exists : IsUnit (N : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd Q_prime]
-  unfold N Q
-  native_decide
+  rw [ZMod.isUnit_prime_iff_not_dvd]
+  exact Q_not_dvd_N
 
 /-!
 # Summary
@@ -314,7 +315,7 @@ These Lean4 proofs establish the mathematical foundation for:
 
 5. **Field Properties** ✓
    - `Q_prime`: Q is prime
-   - `zmod_q_field`: ZMod Q is a field
+   - `Fact (Nat.Prime Q)`: Instance for field inference
    - `n_inv_exists`: N is invertible mod Q
 
 All theorems are proven completely. Run `lake build` to verify.
