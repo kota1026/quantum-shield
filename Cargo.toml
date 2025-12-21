@@ -3,6 +3,7 @@ members = [
     "client",
     "shared-types",
     "circuits/dilithium-stark",
+    "circuits/plonky3-poc",
     "stark-prover",
 ]
 resolver = "2"
@@ -37,10 +38,11 @@ axum = "0.7"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-# ZK Proving (Plonky3)
-# Note: These will be added when Plonky3 circuit implementation begins
-# p3-field = { git = "https://github.com/Plonky3/Plonky3", branch = "main" }
-# p3-air = { git = "https://github.com/Plonky3/Plonky3", branch = "main" }
+# ZK Proving (Plonky3) - Phase 0.5 PoC
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
 
 [profile.release]
 opt-level = 3
