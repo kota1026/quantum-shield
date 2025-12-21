@@ -76,23 +76,28 @@ theorem two_not_dvd_Q : ¬(2 ∣ Q) := by
   unfold Q
   decide
 
+/-- R mod Q is nonzero -/
+theorem R_mod_Q_ne_zero : (R : ZMod Q) ≠ 0 := by
+  unfold R Q
+  native_decide
+
 /-- R is invertible modulo Q -/
 theorem R_inv_exists : IsUnit (R : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
+  rw [ZMod.isUnit_prime_iff_not_dvd Q_prime]
   unfold R Q
-  decide
+  native_decide
 
 /-- 2 is invertible modulo Q -/
 theorem two_inv_exists : IsUnit (2 : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
+  rw [ZMod.isUnit_prime_iff_not_dvd Q_prime]
   unfold Q
-  decide
+  native_decide
 
 /-- N is invertible modulo Q -/
 theorem N_inv_exists : IsUnit (N : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
+  rw [ZMod.isUnit_prime_iff_not_dvd Q_prime]
   unfold N Q
-  decide
+  native_decide
 
 /-- Montgomery reduction preserves value modulo Q -/
 theorem montgomery_preserve_mod (a : ℤ) :
