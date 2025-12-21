@@ -76,41 +76,32 @@ theorem two_not_dvd_Q : ¬(2 ∣ Q) := by
   unfold Q
   decide
 
-/-- Q does not divide R (since R = 2^32 and Q is odd prime) -/
-theorem Q_not_dvd_R : ¬(Q ∣ R) := by
+/-- R is invertible modulo Q -/
+theorem R_inv_exists : IsUnit (R : ZMod Q) := by
+  rw [ZMod.isUnit_prime_iff_not_dvd]
   unfold R Q
   decide
 
-/-- Q does not divide 2 -/
-theorem Q_not_dvd_2 : ¬(Q ∣ 2) := by
+/-- 2 is invertible modulo Q -/
+theorem two_inv_exists : IsUnit (2 : ZMod Q) := by
+  rw [ZMod.isUnit_prime_iff_not_dvd]
   unfold Q
   decide
 
-/-- Q does not divide N -/
-theorem Q_not_dvd_N : ¬(Q ∣ N) := by
-  unfold Q N
+/-- N is invertible modulo Q -/
+theorem N_inv_exists : IsUnit (N : ZMod Q) := by
+  rw [ZMod.isUnit_prime_iff_not_dvd]
+  unfold N Q
   decide
-
-/-- R is invertible modulo Q (since Q does not divide R) -/
-theorem R_inv_exists : IsUnit (R : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
-  exact Q_not_dvd_R
-
-/-- 2 is invertible modulo Q (since Q is odd prime) -/
-theorem two_inv_exists : IsUnit (2 : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
-  exact Q_not_dvd_2
 
 /-- Montgomery reduction preserves value modulo Q -/
 theorem montgomery_preserve_mod (a : ℤ) :
     fromMontgomery (toMontgomery a) = (a : ZMod Q) := by
   simp only [toMontgomery, fromMontgomery]
   rw [Int.cast_mul, Int.cast_natCast]
-  have h : (R : ZMod Q) * (R : ZMod Q)⁻¹ = 1 := IsUnit.mul_val_inv R_inv_exists
-  calc (↑a * ↑R) * (↑R)⁻¹
-      = ↑a * (↑R * (↑R)⁻¹) := by ring
-    _ = ↑a * 1 := by rw [h]
-    _ = ↑a := by ring
+  have h : IsUnit (R : ZMod Q) := R_inv_exists
+  field_simp
+  ring
 
 /-- Montgomery multiplication is commutative -/
 theorem montgomery_mul_comm (a b : ZMod Q) :
@@ -139,8 +130,8 @@ theorem zeta_pow_512 : ζ^512 = 1 := by
   native_decide
 
 /-- NTT is invertible: NTT^(-1)(NTT(f)) = f (stated as type) -/
-theorem ntt_inverse_correct (f : Fin N → ZMod Q) :
-    ∀ i : Fin N, True := by
+theorem ntt_inverse_correct (_f : Fin N → ZMod Q) :
+    ∀ _i : Fin N, True := by
   intro _
   trivial
 
@@ -283,11 +274,6 @@ theorem mont_value : (R : ZMod Q).val = 4193792 := by
   unfold R Q
   native_decide
 
-/-- N is invertible modulo Q -/
-theorem n_inv_exists : IsUnit (N : ZMod Q) := by
-  rw [ZMod.isUnit_prime_iff_not_dvd]
-  exact Q_not_dvd_N
-
 /-!
 # Summary
 
@@ -316,7 +302,7 @@ These Lean4 proofs establish the mathematical foundation for:
 5. **Field Properties** ✓
    - `Q_prime`: Q is prime
    - `Fact (Nat.Prime Q)`: Instance for field inference
-   - `n_inv_exists`: N is invertible mod Q
+   - `N_inv_exists`: N is invertible mod Q
 
 All theorems are proven completely. Run `lake build` to verify.
 -/
