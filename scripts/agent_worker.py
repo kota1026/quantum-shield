@@ -210,11 +210,11 @@ def agent_work(client, issue, context, north_star_content):
     
     try:
         message = client.messages.create(
-            model='claude-sonnet-4-20250514',
-            max_tokens=4000,
-            system=system_prompt,
-            messages=[{'role': 'user', 'content': f"## Issue #{number}: {title}\n\n{body}\n\n自律的に判断し、このタスクを完了させてください。相談不要、即実行。"}]
-        )
+    model='claude-haiku-4-5-20250929',  # Sonnet → Haiku（10倍安い）
+    max_tokens=2000,  # 削減
+    system=system_prompt,
+    messages=[{'role': 'user', 'content': f"..."}]
+)
         
         text = message.content[0].text
         match = re.search(r'\{[\s\S]*\}', text)
