@@ -1,14 +1,18 @@
 name: Quantum Shield CI
 
+name: Quantum Shield CI
+
 on:
   push:
     branches: [main, dev/*, release/*]
-    paths:
-      - 'circuits/**'
-      - 'contracts/**'
-      - 'proofs/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
+    paths-ignore:
+      - 'scripts/**'
+      - 'docs/**'
+      - '*.md'
+      - '.github/workflows/agent-worker.yml'
+      - '.github/workflows/slack-bot.yml'
+      - '.github/workflows/daily-standup.yml'
+      - '.github/workflows/research-breakthrough.yml'
   pull_request:
     branches: [main]
   workflow_dispatch:
