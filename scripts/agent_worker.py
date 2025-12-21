@@ -128,9 +128,13 @@ def is_north_star_aligned(issue, north_star):
     return False
 
 def is_already_working(issue):
-    """既に作業中かどうか"""
+    """既に作業中かどうか（status:open以外はスキップ）"""
     labels = [l['name'] for l in issue.get('labels', [])]
-    return any(l.startswith('status:') and l not in ['status:open', 'status:blocked'] for l in labels)
+    # status:open 以外のstatusラベルがあればスキップ
+    for label in labels:
+        if label.startswith('status:') and label != 'status:open':
+            return True
+    return False
 
 def get_autonomous_issues(north_star):
     """自律実行可能なIssueを取得"""
