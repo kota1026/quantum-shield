@@ -1,0 +1,32 @@
+[package]
+name = "plonky3-poc"
+version = "0.1.0"
+edition = "2021"
+description = "Plonky3 STARK PoC for Dilithium verification"
+
+[dependencies]
+# Plonky3 core
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-goldilocks = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-poseidon2 = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+
+# Utilities
+tracing = "0.1"
+rand = "0.8"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "plonky3_dilithium"
+harness = false
