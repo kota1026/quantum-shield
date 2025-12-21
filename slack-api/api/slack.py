@@ -5,6 +5,7 @@ import hmac
 import time
 import os
 import urllib.request
+import re
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -49,8 +50,9 @@ class handler(BaseHTTPRequestHandler):
                 if event.get('type') == 'app_mention':
                     text = event.get('text', '')
                     channel = event.get('channel', '')
+                    thread_ts = event.get('thread_ts', '')
                     clean_text = self._remove_mention(text)
-                    self._handle_mention(clean_text, channel)
+                    self._handle_mention(clean_text, channel, thread_ts)
             
             self.send_response(200)
             self.end_headers()
@@ -60,7 +62,6 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
     
     def _remove_mention(self, text):
-        import re
         return re.sub(r'<@[A-Z0-9]+>', '', text).strip()
     
     def _verify_signature(self, body, timestamp, signature):
@@ -76,7 +77,7 @@ class handler(BaseHTTPRequestHandler):
         my_signature = 'v0=' + hmac.new(signing_secret.encode(), sig_basestring.encode(), hashlib.sha256).hexdigest()
         return hmac.compare_digest(my_signature, signature)
     
-    def _handle_mention(self, text, channel):
+    def _handle_mention(self, text, channel, thread_ts=''):
         text_lower = text.lower()
         
         # 戦略会議（最優先）
@@ -107,10 +108,19 @@ class handler(BaseHTTPRequestHandler):
 • `〇〇を進めてください` → タスク自動作成
 • `〇〇を実装して` → GitHub Issue作成＆担当割り当て
 
+*相談への回答:*
+• `Aで行こう` / `Bでいい` → 該当Issueに自動反映
+
 *エージェントチーム:*
 🛡️ Purpose Guardian | 🔐 Crypto Auditor | 🔴 Red Team
 🏗️ CTO | 🔒 CSO | 💰 CFO | 📊 CBO
 ⚙️ Engineer | 🔬 Researcher | 🚀 DevOps | ⚖️ Legal""")
+            return
+        
+        # 選択肢への回答を検出（スレッド返信の場合に特に有効）
+        choice_response = self._detect_choice_response(text)
+        if choice_response:
+            self._handle_choice_response(choice_response, text, channel)
             return
         
         # タスク依頼を判定（命令・依頼形の文脈）
@@ -128,9 +138,165 @@ class handler(BaseHTTPRequestHandler):
         response = self._chat_with_agent_team(text)
         self._send_slack_message(response)
     
+    def _detect_choice_response(self, text):
+        """選択肢への回答を検出"""
+        text_clean = text.strip().upper()
+        text_lower = text.lower()
+        
+        # 単純な選択肢パターン
+        simple_patterns = {
+            'A': ['a', 'aで', 'aでいい', 'aで行こう', 'aでお願い', 'aを選択', 'aがいい', 'aで進めて', '推奨で', '推奨案で', '推奨でいい', '推奨で行こう'],
+            'B': ['b', 'bで', 'bでいい', 'bで行こう', 'bでお願い', 'bを選択', 'bがいい', 'bで進めて'],
+            'C': ['c', 'cで', 'cでいい', 'cで行こう', 'cでお願い', 'cを選択', 'cがいい', 'cで進めて'],
+            'BOTH': ['両方', '両面', 'どちらも', '両方検討', '両面検討', '両方で'],
+        }
+        
+        for choice, patterns in simple_patterns.items():
+            for pattern in patterns:
+                if text_lower == pattern or text_lower.startswith(pattern + ' ') or text_lower.startswith(pattern + '!') or text_lower.startswith(pattern + '！'):
+                    return choice
+        
+        # より複雑なパターン
+        if re.match(r'^a\s*(で|が|を|でいい|で行こう|でお願い)', text_lower):
+            return 'A'
+        if re.match(r'^b\s*(で|が|を|でいい|で行こう|でお願い)', text_lower):
+            return 'B'
+        if re.match(r'^c\s*(で|が|を|でいい|で行こう|でお願い)', text_lower):
+            return 'C'
+        
+        # 「週次」「隔日」などの具体的な回答
+        if '週次' in text_lower and ('でいい' in text_lower or 'で行こう' in text_lower or 'お願い' in text_lower):
+            return 'A'  # 週次詳細報告
+        if '隔日' in text_lower and ('でいい' in text_lower or 'で行こう' in text_lower or 'お願い' in text_lower):
+            return 'B'  # 隔日簡易報告
+        
+        return None
+    
+    def _handle_choice_response(self, choice, original_text, channel):
+        """選択肢への回答を処理"""
+        # pending.jsonから未解決の相談を取得
+        pending = self._get_pending_consultations()
+        
+        if not pending:
+            self._send_slack_message("📋 現在、未解決の相談事項はありません。")
+            return
+        
+        # 最新の未解決相談を取得
+        unresolved = [p for p in pending if not p.get('resolved', False)]
+        if not unresolved:
+            self._send_slack_message("✅ 全ての相談事項は解決済みです。")
+            return
+        
+        # 最新の相談を対象に
+        latest = unresolved[-1]
+        issue_number = latest.get('issue_number')
+        issue_title = latest.get('issue_title', '')
+        assignee = latest.get('assignee', '')
+        question = latest.get('question', '')
+        options = latest.get('options', [])
+        
+        # 選択肢の内容を特定
+        if choice == 'BOTH':
+            decision = "両面から検討"
+            decision_detail = "A・B両方の観点から検討してください"
+        elif choice == 'A' and options:
+            decision = f"A: {options[0][:50]}..." if len(options[0]) > 50 else f"A: {options[0]}"
+            decision_detail = options[0]
+        elif choice == 'B' and len(options) > 1:
+            decision = f"B: {options[1][:50]}..." if len(options[1]) > 50 else f"B: {options[1]}"
+            decision_detail = options[1]
+        elif choice == 'C' and len(options) > 2:
+            decision = f"C: {options[2][:50]}..." if len(options[2]) > 50 else f"C: {options[2]}"
+            decision_detail = options[2]
+        else:
+            decision = choice
+            decision_detail = original_text
+        
+        # GitHub Issueにコメント追加
+        success = self._add_approval_comment(issue_number, decision_detail, original_text)
+        
+        if success:
+            # pending.jsonを更新
+            self._resolve_consultation(issue_number)
+            
+            self._send_slack_message(f"""✅ *回答を反映しました*
+
+📋 *Issue*: #{issue_number} {issue_title}
+👤 *担当*: {assignee}
+✨ *決定*: {decision}
+
+エージェントが作業を開始します！""")
+        else:
+            self._send_slack_message(f"❌ Issue #{issue_number} への反映に失敗しました。手動で確認してください。")
+    
+    def _get_pending_consultations(self):
+        """GitHubからpending.jsonを取得"""
+        github_token = os.environ.get('GITHUB_TOKEN', '')
+        if not github_token:
+            return []
+        
+        url = "https://api.github.com/repos/kota1026/quantum-shield/contents/consultations/pending.json?ref=dev/phase2-native-stark"
+        req = urllib.request.Request(
+            url,
+            headers={
+                'Authorization': f'token {github_token}',
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Quantum-Shield-Bot'
+            }
+        )
+        
+        try:
+            response = urllib.request.urlopen(req)
+            data = json.loads(response.read().decode('utf-8'))
+            import base64
+            content = base64.b64decode(data['content']).decode('utf-8')
+            return json.loads(content)
+        except:
+            return []
+    
+    def _add_approval_comment(self, issue_number, decision, original_text):
+        """Issueに承認コメントを追加"""
+        github_token = os.environ.get('GITHUB_TOKEN', '')
+        if not github_token:
+            return False
+        
+        comment_body = f"""## ✅ オーナー承認
+
+**決定**: {decision}
+
+> 原文: {original_text}
+
+---
+
+🚀 **アクション**: この決定に基づいて作業を進めてください。"""
+        
+        url = f"https://api.github.com/repos/kota1026/quantum-shield/issues/{issue_number}/comments"
+        payload = {"body": comment_body}
+        
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'token {github_token}',
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Quantum-Shield-Bot'
+            },
+            method='POST'
+        )
+        
+        try:
+            urllib.request.urlopen(req)
+            return True
+        except:
+            return False
+    
+    def _resolve_consultation(self, issue_number):
+        """相談を解決済みにマーク（GitHub Actionsで処理）"""
+        self._trigger_github_actions('resolve-consultation', {'issue_number': issue_number})
+    
     def _is_task_request(self, text):
         """タスク依頼かどうかを文脈で判定"""
-        # 命令・依頼形のパターン
         request_patterns = [
             'してください', 'して下さい', 'しておいて',
             'お願い', 'をお願い', 'おねがい',
@@ -207,14 +373,12 @@ class handler(BaseHTTPRequestHandler):
             
             response_text = message.content[0].text
             
-            import re
             json_match = re.search(r'\{[\s\S]*\}', response_text)
             if json_match:
                 task_data = json.loads(json_match.group())
             else:
                 raise ValueError("JSON not found in response")
             
-            # GitHub Issuesを作成
             created_issues = []
             github_token = os.environ.get('GITHUB_TOKEN', '')
             
@@ -230,7 +394,6 @@ class handler(BaseHTTPRequestHandler):
                 if issue:
                     created_issues.append(issue)
             
-            # Slackに報告
             summary = task_data.get('summary', '')
             report = f"""✅ *タスク登録完了*
 
