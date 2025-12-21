@@ -3,10 +3,15 @@ name: Quantum Shield CI
 on:
   push:
     branches: [main, dev/*, release/*]
+    paths:
+      - 'circuits/**'
+      - 'contracts/**'
+      - 'proofs/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
   pull_request:
     branches: [main]
   workflow_dispatch:
-
 env:
   CARGO_TERM_COLOR: always
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
