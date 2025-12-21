@@ -671,5 +671,129 @@
     ],
     "recommendation": "A: まずプロジェクト全体の構造を把握し、その後Dilithium実装の詳細分析を行う方が効率的",
     "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:51:34.069198",
+    "issue_number": 13,
+    "issue_title": "[DevOps] インフラ・CI/CD設定確認",
+    "assignee": "DevOps",
+    "question": "現在のプロジェクトでCI/CD関連のファイル（.github/workflows/、docker設定、テスト設定等）が見当たりません。インフラ設定の優先順位を教えてください",
+    "options": [
+      "A: 基本的なCI/CD（Rust+Solidity）から開始し、段階的にZK証明テストを追加",
+      "B: ZK証明の性能テスト（10秒以内）を最優先としたCI/CD設計",
+      "C: セキュリティ監査対応のためのセキュリティ特化CI/CD構築"
+    ],
+    "recommendation": "A",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:51:48.439011",
+    "issue_number": 12,
+    "issue_title": "[Red Team] セキュリティ脆弱性スキャン",
+    "assignee": "Red Team",
+    "question": "セキュリティスキャンを効果的に進めるため、以下どちらを優先すべきでしょうか？",
+    "options": [
+      "A: まず暗号実装（Dilithium署名）の詳細解析から開始 - 量子耐性の核心部分",
+      "B: ブリッジコントラクトの従来型脆弱性から開始 - 既知攻撃パターンの確認"
+    ],
+    "recommendation": "A: Dilithiumは新しい暗号方式でサイドチャネル攻撃等の対策が重要。また「量子耐性」が本プロジェクトの核心価値なので、ここに致命的脆弱性があると全体が無意味になる",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:52:01.169343",
+    "issue_number": 11,
+    "issue_title": "[Crypto Auditor] コードベース詳細分析",
+    "assignee": "Crypto Auditor",
+    "question": "コードベースの詳細分析を実行するため、プロジェクトのディレクトリ構造とソースファイルの内容を確認する必要があります。どの方法で進めるべきでしょうか？",
+    "options": [
+      "ディレクトリ構造の一覧表示を依頼",
+      "主要なソースファイル（Dilithium実装、スマートコントラクト等）の内容を順次確認",
+      "テストファイルとドキュメントから実装状況を推測"
+    ],
+    "recommendation": "ディレクトリ構造の一覧表示を依頼",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:52:18.121637",
+    "issue_number": 9,
+    "issue_title": "[Researcher] プランB関連の興味深い事象監視体制構築",
+    "assignee": "Researcher",
+    "question": "プランB監視体制の範囲について相談。現在のQuantum Shield Bridgeプロジェクトにおいて、どの代替技術領域を重点的に監視すべきか？",
+    "options": [
+      "A: 暗号方式のみ（Dilithium以外のpost-quantum署名、格子暗号の新動向）",
+      "B: 包括的監視（暗号+zkVM+ブリッジ技術+規制動向すべて）",
+      "C: 競合プロダクト重視（他のpost-quantumブリッジ、量子耐性DeFiプロトコル）"
+    ],
+    "recommendation": "B",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:52:26.990014",
+    "issue_number": 8,
+    "issue_title": "[Engineer] プランA実装の詳細仕様確定",
+    "assignee": "Engineer",
+    "question": "プランAの実装において、最初に着手すべきコンポーネントはどれか？",
+    "options": [
+      "A) SP1 zkVM内でのDilithium署名検証回路の実装",
+      "B) Plonky2による証明集約システムの実装",
+      "C) スマートコントラクトのブリッジロジック実装"
+    ],
+    "recommendation": "A) SP1 zkVM内でのDilithium署名検証回路の実装 - これが量子耐性の核心部分であり、他のコンポーネントの設計に影響するため",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:52:36.680991",
+    "issue_number": 7,
+    "issue_title": "[DevOps] タスク管理と進捗報告体制の構築",
+    "assignee": "DevOps",
+    "question": "タスク管理システムの構成について相談したい。11体のエージェントが効率的に連携し、必達要件（証明10秒、ガス87.5%削減）を達成するための体制をどう設計すべきか？",
+    "options": [
+      "A: GitHub Issues + 週次スタンドアップ + 必達要件トラッキング重視の体制",
+      "B: Slack中心 + リアルタイム進捗共有 + 技術チーム連携重視の体制",
+      "C: ハイブリッド（GitHub + Slack + 日次チェックイン）+ KPI重視の体制"
+    ],
+    "recommendation": "C",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:52:47.588665",
+    "issue_number": 6,
+    "issue_title": "[Researcher] 量子暗号・ポスト量子暗号の最新動向調査",
+    "assignee": "Researcher",
+    "question": "調査の焦点をどこに置くべきでしょうか？",
+    "options": [
+      "A: Dilithium署名の性能最適化技術（実装面重視）",
+      "B: ポスト量子暗号全般の技術比較（戦略面重視）",
+      "C: 量子脅威タイムラインと対応策（リスク評価重視）"
+    ],
+    "recommendation": "A: プロジェクトの実用性を重視し、Dilithium署名の性能最適化に焦点を当てることを推奨。10秒以内の証明生成という必達要件達成に直結する",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:53:06.484317",
+    "issue_number": 5,
+    "issue_title": "[CBO] 開発済み技術の部品売り可能性調査",
+    "assignee": "CBO",
+    "question": "部品販売戦略について重要な決定が必要です。我々の技術の商品化において、どのアプローチを取るべきでしょうか？",
+    "options": [
+      "A. オープンソース + サポート契約モデル（継続収益、コミュニティ構築）",
+      "B. プロプライエタリライセンス + 高価格戦略（高収益、限定顧客）",
+      "C. ハイブリッドモデル（基本版OSS、エンタープライズ版有料）"
+    ],
+    "recommendation": "C. ハイブリッドモデルを推奨。理由：(1)開発者エコシステム構築によるマーケットシェア獲得、(2)エンタープライズ顧客からの高収益確保、(3)段階的な収益化が可能。特にDilithium署名ライブラリは基本機能をOSSとし、高度な最適化やサポートを有料化することで市場浸透と収益を両立できる。",
+    "resolved": false
+  },
+  {
+    "timestamp": "2025-12-21T01:53:18.906566",
+    "issue_number": 4,
+    "issue_title": "[CSO] 内製セキュリティ監査の準備と実行計画策定",
+    "assignee": "CSO",
+    "question": "内製セキュリティ監査の実行体制について、どちらのアプローチを採用すべきか？",
+    "options": [
+      "A: 各技術領域担当者による相互監査（開発者同士でクロスチェック）",
+      "B: 専門監査チーム設立（CTO、Lead Engineer等で独立した監査組織）"
+    ],
+    "recommendation": "B: 専門監査チーム設立。量子耐性暗号とzkVMという高度技術の組み合わせでは、開発と独立した専門チームによる客観的監査が必須。特に必達要件（証明10秒、ガス削減87.5%）達成のための最適化が、セキュリティホールを生む可能性があるため。",
+    "resolved": false
   }
 ]
