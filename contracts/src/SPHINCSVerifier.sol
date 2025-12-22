@@ -30,7 +30,13 @@ contract SPHINCSVerifier {
     /// @notice Winternitz parameter (w = 16)
     uint256 public constant W = 16;
 
-    /// @notice WOTS+ signature length (len = len1 + len2)
+    /// @notice WOTS+ message length (len1 = 32 for n=16, w=16)
+    uint256 public constant WOTS_LEN1 = 32;
+
+    /// @notice WOTS+ checksum length (len2 = 3)
+    uint256 public constant WOTS_LEN2 = 3;
+
+    /// @notice WOTS+ total signature length (len = len1 + len2 = 35)
     uint256 public constant WOTS_LEN = 35;
 
     /// @notice Hypertree height
@@ -448,6 +454,7 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Compute WOTS+ checksum from message
+    /// @dev For SPHINCS+-SHA2-128s: n=16, w=16, len1=32, len2=3, len=35
     function _computeWOTSChecksum(bytes32 message) 
         internal 
         pure 
@@ -455,19 +462,25 @@ contract SPHINCSVerifier {
     {
         uint256 checksum = 0;
 
-        // Extract base-16 digits from message (len1 = 32 chunks)
-        for (uint256 i = 0; i < 32; i++) {
+        // Extract base-16 digits from message (len1 = 32 nibbles from first 16 bytes)
+        // For n=16 bytes, we process 16 bytes = 32 nibbles
+        for (uint256 i = 0; i < N; i++) {
             uint8 byte_val = uint8(message[i]);
-            lengths[i * 2] = byte_val >> 4;
-            lengths[i * 2 + 1] = byte_val & 0x0F;
-            checksum += (W - 1) - lengths[i * 2];
-            checksum += (W - 1) - lengths[i * 2 + 1];
+            uint256 highNibble = byte_val >> 4;
+            uint256 lowNibble = byte_val & 0x0F;
+            
+            lengths[i * 2] = highNibble;
+            lengths[i * 2 + 1] = lowNibble;
+            
+            checksum += (W - 1) - highNibble;
+            checksum += (W - 1) - lowNibble;
         }
 
         // Append checksum (len2 = 3 chunks for w=16)
-        lengths[64] = (checksum >> 8) & 0x0F;
-        lengths[65] = (checksum >> 4) & 0x0F;
-        lengths[66] = checksum & 0x0F;
+        // checksum fits in 12 bits max (32 * 15 = 480 < 4096)
+        lengths[32] = (checksum >> 8) & 0x0F;
+        lengths[33] = (checksum >> 4) & 0x0F;
+        lengths[34] = checksum & 0x0F;
     }
 
     /// @notice Compute WOTS+ chain value
