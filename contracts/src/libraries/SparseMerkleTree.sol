@@ -51,11 +51,21 @@ library SparseMerkleTree {
     /// @notice Legacy empty leaf hash (keccak256) for backward compatibility
     bytes32 public constant EMPTY_LEAF_LEGACY = 0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563;
 
-    /// @notice Domain separator for leaf hashing
-    bytes32 public constant LEAF_DOMAIN = 0x51535f534d545f4c4541465f563100000000000000000000000000000000000000; // "QS_SMT_LEAF_V1"
+    // =========================================================================
+    // Domain Separator Functions
+    // =========================================================================
 
-    /// @notice Domain separator for node hashing
-    bytes32 public constant NODE_DOMAIN = 0x51535f534d545f4e4f44455f563100000000000000000000000000000000000000; // "QS_SMT_NODE_V1"
+    /// @notice Get domain separator for leaf hashing
+    /// @return Domain separator bytes32 "QS_SMT_LEAF_V1"
+    function LEAF_DOMAIN() internal pure returns (bytes32) {
+        return keccak256("QS_SMT_LEAF_V1");
+    }
+
+    /// @notice Get domain separator for node hashing
+    /// @return Domain separator bytes32 "QS_SMT_NODE_V1"
+    function NODE_DOMAIN() internal pure returns (bytes32) {
+        return keccak256("QS_SMT_NODE_V1");
+    }
 
     // =========================================================================
     // Structs
@@ -157,7 +167,7 @@ library SparseMerkleTree {
     function computeRoot(
         bytes32 leaf,
         uint256 index,
-        bytes32[] calldata siblings
+        bytes32[] memory siblings
     ) internal pure returns (bytes32 root) {
         if (siblings.length != TREE_DEPTH) revert InvalidProofLength();
         if (index > MAX_LEAF_INDEX) revert IndexOutOfBounds();
@@ -189,7 +199,7 @@ library SparseMerkleTree {
     /// @return parent Parent node hash
     function hashNodes(bytes32 left, bytes32 right) internal pure returns (bytes32 parent) {
         // Domain-separated hashing using SHA3-256 (FIPS 202)
-        bytes memory data = abi.encodePacked(NODE_DOMAIN, left, right);
+        bytes memory data = abi.encodePacked(NODE_DOMAIN(), left, right);
         parent = SHA3_256.hash(data);
     }
 
@@ -207,7 +217,7 @@ library SparseMerkleTree {
     ) internal pure returns (bytes32 leaf) {
         // Domain-separated leaf hashing using SHA3-256 (FIPS 202)
         bytes memory data = abi.encodePacked(
-            LEAF_DOMAIN,
+            LEAF_DOMAIN(),
             lockId,
             amount,
             recipient,
@@ -223,7 +233,7 @@ library SparseMerkleTree {
         if (data.lockId == bytes32(0)) revert InvalidLeafData();
         
         bytes memory encoded = abi.encodePacked(
-            LEAF_DOMAIN,
+            LEAF_DOMAIN(),
             data.lockId,
             data.amount,
             data.recipient,
@@ -242,7 +252,7 @@ library SparseMerkleTree {
     /// @param right Right child hash
     /// @return parent Parent node hash
     function hashNodesLegacy(bytes32 left, bytes32 right) internal pure returns (bytes32 parent) {
-        parent = keccak256(abi.encodePacked(NODE_DOMAIN, left, right));
+        parent = keccak256(abi.encodePacked(NODE_DOMAIN(), left, right));
     }
 
     /// @notice Compute leaf using legacy keccak256 (for migration only)
@@ -254,7 +264,7 @@ library SparseMerkleTree {
         bytes32 pubKeyHash
     ) internal pure returns (bytes32 leaf) {
         leaf = keccak256(abi.encodePacked(
-            LEAF_DOMAIN,
+            LEAF_DOMAIN(),
             lockId,
             amount,
             recipient,
@@ -268,20 +278,20 @@ library SparseMerkleTree {
 
     /// @notice Get the default hash for an empty subtree at given height
     /// @param height Height of the subtree (0 = leaf level)
-    /// @return hash The default hash at that height
-    function getDefaultHash(uint256 height) internal pure returns (bytes32 hash) {
-        hash = EMPTY_LEAF_SHA3;
+    /// @return defaultHash The default hash at that height
+    function getDefaultHash(uint256 height) internal pure returns (bytes32 defaultHash) {
+        defaultHash = EMPTY_LEAF_SHA3;
         for (uint256 i = 0; i < height; i++) {
-            hash = hashNodes(hash, hash);
+            defaultHash = hashNodes(defaultHash, defaultHash);
         }
     }
 
     /// @notice Get legacy default hash (keccak256) for migration
     /// @dev DEPRECATED - Use getDefaultHash() for new implementations
-    function getDefaultHashLegacy(uint256 height) internal pure returns (bytes32 hash) {
-        hash = EMPTY_LEAF_LEGACY;
+    function getDefaultHashLegacy(uint256 height) internal pure returns (bytes32 defaultHash) {
+        defaultHash = EMPTY_LEAF_LEGACY;
         for (uint256 i = 0; i < height; i++) {
-            hash = hashNodesLegacy(hash, hash);
+            defaultHash = hashNodesLegacy(defaultHash, defaultHash);
         }
     }
 
