@@ -25,6 +25,10 @@ contract StateRootCalculatorTest is Test {
     address constant TEST_SENDER = address(0xABCDEF);
     uint256 constant TEST_TIMESTAMP = 1735000000;
 
+    // Expected domain separators (copied from library for testing)
+    bytes32 constant EXPECTED_DOMAIN_LOCK = keccak256("QS_LOCK_V1");
+    bytes32 constant EXPECTED_DOMAIN_UNLOCK = keccak256("QS_UNLOCK_V1");
+
     // =========================================================================
     // SR_0 Tests
     // =========================================================================
@@ -459,15 +463,22 @@ contract StateRootCalculatorTest is Test {
     // =========================================================================
 
     function test_DomainSeparators_Unique() public pure {
+        // Domain separators should be different
         assertTrue(
-            StateRootCalculator.DOMAIN_LOCK() != StateRootCalculator.DOMAIN_UNLOCK(),
+            EXPECTED_DOMAIN_LOCK != EXPECTED_DOMAIN_UNLOCK,
             "DOMAIN_LOCK and DOMAIN_UNLOCK should be different"
         );
     }
 
     function test_DomainSeparators_NonZero() public pure {
-        assertTrue(StateRootCalculator.DOMAIN_LOCK() != bytes32(0), "DOMAIN_LOCK should not be zero");
-        assertTrue(StateRootCalculator.DOMAIN_UNLOCK() != bytes32(0), "DOMAIN_UNLOCK should not be zero");
+        assertTrue(EXPECTED_DOMAIN_LOCK != bytes32(0), "DOMAIN_LOCK should not be zero");
+        assertTrue(EXPECTED_DOMAIN_UNLOCK != bytes32(0), "DOMAIN_UNLOCK should not be zero");
+    }
+
+    function test_DomainSeparators_MatchLibrary() public pure {
+        // Verify library uses expected domain separators
+        assertEq(StateRootCalculator.DOMAIN_LOCK, EXPECTED_DOMAIN_LOCK, "DOMAIN_LOCK should match expected");
+        assertEq(StateRootCalculator.DOMAIN_UNLOCK, EXPECTED_DOMAIN_UNLOCK, "DOMAIN_UNLOCK should match expected");
     }
 
     // =========================================================================
