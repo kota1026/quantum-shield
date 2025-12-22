@@ -1,19 +1,28 @@
-# Project Aegis - Work Breakdown Structure (WBS) v2.5
+# Project Aegis - Work Breakdown Structure (WBS) v2.6
 
-> **Version**: 2.5 (PIR-004 SR_0/SR_1 Complete)  
-> **Last Updated**: 2025-12-22 14:30 JST  
+> **Version**: 2.6 (PIR-004 Complete with Code Review Routine)  
+> **Last Updated**: 2025-12-22 14:45 JST  
 > **Project Duration**: 24 months  
 > **NOTICE**: 本WBSは正規ドキュメント（QUANTUM_SHIELD_*）に基づき再作成
 > **正規ドキュメント**:  
 > - QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md  
 > - QUANTUM_SHIELD_SEQUENCES_v2.0.md  
-> - AGENT_MEETING_PROTOCOL_v3.5.md (PIR Gateway追加)
+> - AGENT_MEETING_PROTOCOL_v3.5.md (PIR Gateway追加)  
+> - **PIR_CODE_REVIEW_ROUTINE.md** (v1.0 - 新規追加)
 
 ---
 
 ## ⭐ PIR (Post-Implementation Review) 必須ルール
 
 > **CEO承認日**: 2025-12-22 10:55 JST
+
+### PIRワークフロー
+
+```
+実装完了 → テスト実行 → PIR Code Review Routine → PIR会議 → 判定
+                              ↓
+                    📋 PIR_CODE_REVIEW_ROUTINE.md を参照
+```
 
 ### PIR必須タイミング
 
@@ -32,16 +41,17 @@
 5. ❌ 仕様書との重大な乖離
 6. ❌ セキュリティ上の脆弱性
 
-### PIR必須レビュー項目（PIR-002教訓より追加）
+### PIR Code Review Routine（PIR-004より必須化）
 
-> **追加日**: 2025-12-22 13:35 JST
+> **必須化日**: 2025-12-22 14:45 JST  
+> **ドキュメント**: `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md`
 
-| # | 項目 | 確認内容 |
-|---|------|---------|
-| 1 | テストコードのロジックレビュー | アサーションが仕様を正しく検証しているか |
-| 2 | エッジケースの網羅性 | 境界条件が適切にテストされているか |
-| 3 | イベント検証 | 状態変更を伴う関数のイベント発火確認 |
-| 4 | テストの独立性 | 各テストが他に依存せず実行可能か |
+| Phase | チェック内容 |
+|-------|-------------|
+| Phase 1 | 実装コード・テストコード取得 |
+| Phase 2 | 仕様準拠、セキュリティ、イベント発行、エラー処理 |
+| Phase 3 | 正常系、異常系、境界値、イベント検証、Fuzzテスト |
+| Phase 4 | 11エージェントレビュー |
 
 ### PIR記録
 
@@ -59,6 +69,7 @@
 
 | Date | 変更内容 |
 |------|---------|
+| 2025-12-22 14:45 | v2.6: PIR Code Review Routine必須化、テスト191件に更新 |
 | 2025-12-22 14:30 | v2.5: PIR-004完了（186 tests PASS）- SR_0/SR_1実装、StateRootCalculator、ReentrancyGuard修正 |
 | 2025-12-22 13:35 | v2.4: PIR-002コードレビュー完了（140 tests PASS）- PIR必須レビュー項目追加 |
 | 2025-12-22 13:15 | v2.3: PIR-002完了（Day 5 Unit Test Update） - 133 tests PASS |
@@ -74,7 +85,7 @@
 
 > **CEO承認日**: 2025-12-22 09:41 JST  
 > **計画期間**: Day 1-14  
-> **PIR必須**: 各Day完了時にPIR実施
+> **PIR必須**: 各Day完了時にPIR実施（Code Review Routine適用）
 
 ### Day 1-7: セキュリティ最優先 ✅ ALL Complete
 
@@ -90,6 +101,7 @@
 | 6-7 | ✅ SR_0/SR_1計算式実装 | Cryptographer, Engineer | ✅ Complete | ✅ PIR-004 |
 | 6-7 | ✅ StateRootCalculatorライブラリ (38テスト) | Engineer | ✅ Complete | ✅ PIR-004 |
 | 6-7 | ✅ L1Vault SR統合 + ReentrancyGuard修正 | Engineer | ✅ Complete | ✅ PIR-004 |
+| 6-7 | ✅ PIR Code Review Routine策定・適用 | All | ✅ Complete | ✅ PIR-004 |
 
 ### Day 8-10: 仕様完全準拠 🔄 In Progress
 
@@ -179,7 +191,7 @@ Project Aegis
 | 1.1.6 | Emergency Path実装 | ✅ | 完了 | - | Bond計算確認済 |
 | 1.1.7 | Challenge/Slashing実装 | ✅ | 完了 | PIR-001 | Day 1修正完了 |
 | 1.1.8 | StateRootCalculator | ✅ | 完了 | PIR-004 | SR_0/SR_1計算 |
-| 1.1.9 | 単体テスト | ✅ | 完了 | PIR-002/004 | 186テスト全パス |
+| 1.1.9 | 単体テスト | ✅ | 完了 | PIR-002/004 | 191テスト全パス |
 | 1.1.10 | 統合テスト | ⬜ | Day 10 | PIR-006 | E2Eシナリオ確認 |
 
 ### PIR-004 実装内容
@@ -192,6 +204,8 @@ Project Aegis
 | 4 | L1VaultIntegration SR Tests | 8テスト追加 | 6d7e59c |
 | 5 | Stack too deep修正 | ヘルパー関数抽出 | 78a33e3 |
 | 6 | ReentrancyGuard修正 | 重複modifier削除 | 843e25f |
+| 7 | PIR Code Review Routine | v1.0ドキュメント作成 | 7ede279 |
+| 8 | Event/Boundary Tests | +5テスト（イベント検証、境界値） | fe4409c |
 
 ### PIR-003 未解決事項（Day 11で対応）
 
@@ -205,37 +219,36 @@ Project Aegis
 
 ## テスト結果サマリー
 
-### 最新テスト実行（2025-12-22 14:30 JST）
+### 最新テスト実行（2025-12-22 14:45 JST）
 
 ```
-Ran 6 test suites: 186 tests passed, 0 failed, 0 skipped
+Ran 6 test suites: 191 tests passed, 0 failed, 0 skipped
 
 - SPHINCSVerifierTest: 13/13 ✅
 - QuantumShieldTest: 35/35 ✅
-- L1VaultIntegrationTest: 46/46 ✅ (+8 SR_0/SR_1 tests)
+- L1VaultIntegrationTest: 51/51 ✅ (+5 PIR-004 Code Review追加)
 - SHA3_256Test: 24/24 ✅
 - SparseMerkleTreeTest: 30/30 ✅
-- StateRootCalculatorTest: 38/38 ✅ (NEW - PIR-004)
+- StateRootCalculatorTest: 38/38 ✅ (PIR-004)
 ```
 
-### Day 6-7追加テスト (46テスト)
+### Day 6-7追加テスト (51テスト)
 
 | カテゴリ | テスト数 | 対象 |
 |---------|---------|------|
 | StateRootCalculator | 38 | SR_0/SR_1計算、lockId生成、検証 |
 | L1Vault SR Integration | 8 | Lock時SR_0計算、SR_1依存性、決定論性 |
+| PIR-004 Code Review追加 | 5 | イベント検証(stateRoot)、境界値テスト |
 
-### Day 5追加テスト (22テスト)
+### PIR-004 Code Review追加テスト
 
-| カテゴリ | テスト数 | 対象 |
-|---------|---------|------|
-| Defense Period | 6 | 48時間期限、Prover権限、境界値 |
-| Auto-Resolve | 3 | 自動解決メカニズム、境界値 |
-| Resolution | 4 | Slashing配分、Defender報酬、Insurance/Burn |
-| Event Verification | 3 | ChallengeFiled, DefenseSubmitted, ChallengeResolved |
-| Slashing | 2 | 定数、N²×10%計算式 |
-| Integration | 1 | Challenge完全フロー |
-| Edge Cases | 3 | 最小Bond、二重Challenge |
+| テスト名 | 内容 |
+|---------|------|
+| test_Lock_EmitsEvent_WithCorrectStateRoot | stateRoot値の完全検証 |
+| test_Lock_EventParameters_AllVerifiable | 全イベントパラメータの復元検証 |
+| test_Lock_MinimumAmount | MIN_LOCK_AMOUNT境界値 |
+| test_Lock_MinimumExpiry | 最小有効expiry境界値 |
+| test_Lock_ExactCurrentTimestamp_Reverts | expiry=現在時刻のrevert |
 
 ---
 
@@ -253,12 +266,14 @@ Ran 6 test suites: 186 tests passed, 0 failed, 0 skipped
 9. ~~StateRootCalculatorライブラリ~~ [PIR-004]
 10. ~~L1Vault SR統合~~ [PIR-004]
 11. ~~ReentrancyGuard修正~~ [PIR-004]
-12. ~~全テスト186件パス~~ [PIR-004]
+12. ~~PIR Code Review Routine策定~~ [PIR-004]
+13. ~~全テスト191件パス~~ [PIR-004]
 
 ### 次のステップ（Day 8-9）🔄
 1. **VRF統合 (Chainlink)** [PIR-005]
 2. **SR_0/SR_1へのVRF値組み込み**
 3. **テスト追加** - VRF統合テスト
+4. **PIR Code Review Routine適用**
 
 ### 今後（Day 10以降）
 1. 統合テスト（Day 10）[PIR-006]
@@ -269,23 +284,30 @@ Ran 6 test suites: 186 tests passed, 0 failed, 0 skipped
 
 ---
 
-## PIR-004教訓
+## PIR教訓集
 
-### 技術的注意点
+### PIR-004教訓
 
 | # | 教訓 | 対応 |
 |---|------|------|
-| 1 | Stack too deep問題 | 複雑な関数はヘルパー関数に分割 |
+| 1 | テスト実行だけでは不十分 | PIR Code Review Routine必須化 |
+| 2 | イベント検証はパラメータ全検証 | `vm.recordLogs()`による完全検証 |
+| 3 | 境界値テストは必須 | MIN/MAX/エッジケースを必ずテスト |
+
+### PIR-002教訓（継続適用）
+
+| # | 教訓 | 対応 |
+|---|------|------|
+| 1 | テストコード自体の品質レビュー | 11エージェントによるコードレビュー |
+| 2 | 時間制限機能の境界値テスト | 48h, 48h+1s, 48h-1sすべてテスト |
+
+### 技術的注意点（PIR-004）
+
+| # | 問題 | 解決策 |
+|---|------|--------|
+| 1 | Stack too deep | 複雑な関数はヘルパー関数に分割 |
 | 2 | ReentrancyGuard重複 | 委譲パターンでは呼び出し先のみにmodifier |
 | 3 | ドメインセパレータ | SHA3-256ではinternal定数としてアクセス |
-
-### プロセス改善（PIR-002より継続）
-
-| # | 教訓 | 対応 |
-|---|------|------|
-| 1 | テスト実行だけでは不十分 | テストコード自体の品質レビューを必須化 |
-| 2 | イベント検証の欠如 | 状態変更を伴う関数には必ずイベント検証テストを追加 |
-| 3 | 境界値テスト不足 | 時間制限のある機能には境界値テストを必須化 |
 
 ---
 
