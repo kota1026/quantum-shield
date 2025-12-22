@@ -10,98 +10,35 @@ import {StateRootCalculator} from "./libraries/StateRootCalculator.sol";
 /// @notice Phase 1.2 implementation with full SPHINCS+ verification integration
 /// @dev Implements lock/unlock with 24h time lock and emergency 7-day path
 ///
-/// Architecture:
-/// ┌─────────────────────────────────────────────────────────────────────┐
-/// │                          L1 Vault Contract                          │
-/// ├─────────────────────────────────────────────────────────────────────┤
-/// │  Lock → SMT Verification → SPHINCS+ 2/5 → Time Lock → Release      │
-/// │                              ↓                                      │
-/// │                        Challenge/Slash                              │
-/// └─────────────────────────────────────────────────────────────────────┘
-///
-/// Phase 1.2 Update: Full SPHINCS+ verification via SPHINCSVerifier contract
-///
-/// QUANTUM_SHIELD_UNIFIED_SPEC_v2.0 Compliance:
-/// - Slashing Distribution: Challenger 60%, Insurance 20%, Burn 20%
-/// - Challenge Bond: MAX(0.1 ETH, amount × 1%)
-/// - Defense Period: 48 hours
-///
 /// Day 6-7 Update: State Root (SR_0/SR_1) computation per QUANTUM_SHIELD_SEQUENCES_v2.0
-/// - SR_0: Computed at lock time using SHA3-256 with domain separation
-/// - SR_1: Computed at unlock time, depends on SR_0
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
     // =========================================================================
 
-    /// @notice Normal unlock time lock duration (24 hours)
     uint256 public constant NORMAL_TIME_LOCK = 24 hours;
-
-    /// @notice Emergency unlock time lock duration (7 days)
     uint256 public constant EMERGENCY_TIME_LOCK = 7 days;
-
-    /// @notice Minimum lock amount (0.01 ETH)
     uint256 public constant MIN_LOCK_AMOUNT = 0.01 ether;
-
-    /// @notice Emergency bond percentage (5%)
     uint256 public constant EMERGENCY_BOND_PERCENT = 5;
-
-    /// @notice Minimum emergency bond (0.5 ETH)
     uint256 public constant MIN_EMERGENCY_BOND = 0.5 ether;
-
-    /// @notice Required SPHINCS+ signatures (2-of-5)
     uint256 public constant REQUIRED_SIGNATURES = 2;
-
-    /// @notice Total provers in the network
     uint256 public constant TOTAL_PROVERS = 5;
-
-    /// @notice Phase 1 TVL cap ($1M equivalent, ~400 ETH at $2500)
     uint256 public constant TVL_CAP = 400 ether;
-
-    /// @notice Challenge period duration (legacy, kept for compatibility)
     uint256 public constant CHALLENGE_PERIOD = 12 hours;
-
-    /// @notice Defense period duration (48 hours per QUANTUM_SHIELD_SEQUENCES_v2.0)
-    /// @dev Provers have 48 hours to submit defense after challenge
     uint256 public constant DEFENSE_PERIOD = 48 hours;
-
-    /// @notice Minimum challenge bond (0.1 ETH per QUANTUM_SHIELD_UNIFIED_SPEC_v2.0)
     uint256 public constant MIN_CHALLENGE_BOND = 0.1 ether;
-
-    /// @notice Challenge bond percentage (1% of amount)
     uint256 public constant CHALLENGE_BOND_PERCENT = 1;
-
-    /// @notice Slashing distribution: Challenger reward (60%)
     uint256 public constant SLASH_CHALLENGER_PERCENT = 60;
-
-    /// @notice Slashing distribution: Insurance fund (20%)
     uint256 public constant SLASH_INSURANCE_PERCENT = 20;
-
-    /// @notice Slashing distribution: Burn (20%)
     uint256 public constant SLASH_BURN_PERCENT = 20;
-
-    /// @notice Default lock expiry (24 hours from lock time)
     uint256 public constant DEFAULT_LOCK_EXPIRY = 24 hours;
 
     // =========================================================================
     // Enums
     // =========================================================================
 
-    enum LockStatus {
-        ACTIVE,
-        PENDING_UNLOCK,
-        RELEASED,
-        CHALLENGED,
-        SLASHED
-    }
-
-    enum ChallengeStatus {
-        NONE,
-        PENDING,
-        RESOLVED_VALID,
-        RESOLVED_INVALID,
-        DEFENSE_SUBMITTED
-    }
+    enum LockStatus { ACTIVE, PENDING_UNLOCK, RELEASED, CHALLENGED, SLASHED }
+    enum ChallengeStatus { NONE, PENDING, RESOLVED_VALID, RESOLVED_INVALID, DEFENSE_SUBMITTED }
 
     // =========================================================================
     // Structs
@@ -114,30 +51,29 @@ contract L1Vault is ReentrancyGuard, Pausable {
         bytes32 dilithiumPubKeyHash;
         uint256 lockedAt;
         LockStatus status;
-        // Day 6-7: SR_0 per QUANTUM_SHIELD_SEQUENCES_v2.0
-        bytes32 stateRoot;      // SR_0 computed at lock time
-        uint256 expiry;         // Lock expiry timestamp
-        uint256 nonce;          // Lock nonce for SR_0 calculation
+        bytes32 stateRoot;
+        uint256 expiry;
+        uint256 nonce;
     }
 
     struct UnlockRequest {
         bytes32 lockId;
         address recipient;
         uint256 amount;
-        bytes32 stateRoot;       // SR_0 from lock
-        bytes32 unlockStateRoot; // SR_1 computed at unlock time
+        bytes32 stateRoot;
+        bytes32 unlockStateRoot;
         uint256 requestedAt;
         uint256 unlockableAt;
         bool isEmergency;
         uint256 bond;
         uint256 signatureCount;
-        uint256 unlockNonce;     // Nonce used for SR_1 calculation
+        uint256 unlockNonce;
     }
 
     struct Prover {
         address proverAddress;
         bytes32 sphincsPubKeyHash;
-        bytes sphincsPublicKey;  // Full 32-byte SPHINCS+ public key
+        bytes sphincsPublicKey;
         uint256 stakedAmount;
         uint256 registeredAt;
         bool isActive;
@@ -152,91 +88,26 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 challengedAt;
         ChallengeStatus status;
         uint256 bond;
-        uint256 defenseDeadline;  // 48-hour defense deadline
-        bytes32 defenseProofHash; // Defense proof submitted by prover
-        address defender;         // Prover who submitted defense
+        uint256 defenseDeadline;
+        bytes32 defenseProofHash;
+        address defender;
     }
 
     // =========================================================================
     // Events
     // =========================================================================
 
-    event Locked(
-        bytes32 indexed lockId,
-        address indexed sender,
-        address indexed recipient,
-        uint256 amount,
-        bytes32 dilithiumPubKeyHash,
-        bytes32 stateRoot  // SR_0
-    );
-
-    event UnlockRequested(
-        bytes32 indexed lockId,
-        address indexed recipient,
-        uint256 amount,
-        uint256 unlockableAt,
-        bool isEmergency,
-        bytes32 unlockStateRoot  // SR_1
-    );
-
-    event UnlockExecuted(
-        bytes32 indexed lockId,
-        address indexed recipient,
-        uint256 amount
-    );
-
-    event EmergencyUnlockRequested(
-        bytes32 indexed lockId,
-        address indexed recipient,
-        uint256 amount,
-        uint256 bond,
-        uint256 unlockableAt
-    );
-
-    event ChallengeFiled(
-        bytes32 indexed lockId,
-        address indexed challenger,
-        bytes32 fraudProofHash,
-        uint256 bond,
-        uint256 defenseDeadline
-    );
-
-    event DefenseSubmitted(
-        bytes32 indexed lockId,
-        address indexed defender,
-        bytes32 defenseProofHash
-    );
-
-    event ChallengeResolved(
-        bytes32 indexed lockId,
-        bool challengeValid,
-        uint256 slashedAmount,
-        uint256 challengerReward,
-        uint256 insuranceAmount,
-        uint256 burnedAmount
-    );
-
-    event ProverRegistered(
-        address indexed prover,
-        bytes32 sphincsPubKeyHash,
-        uint256 stake
-    );
-
-    event ProverSlashed(
-        address indexed prover,
-        uint256 amount,
-        bytes32 reason
-    );
-
-    event StateRootUpdated(
-        bytes32 indexed newRoot,
-        uint256 indexed blockNumber
-    );
-
-    event SPHINCSVerifierUpdated(
-        address indexed oldVerifier,
-        address indexed newVerifier
-    );
+    event Locked(bytes32 indexed lockId, address indexed sender, address indexed recipient, uint256 amount, bytes32 dilithiumPubKeyHash, bytes32 stateRoot);
+    event UnlockRequested(bytes32 indexed lockId, address indexed recipient, uint256 amount, uint256 unlockableAt, bool isEmergency, bytes32 unlockStateRoot);
+    event UnlockExecuted(bytes32 indexed lockId, address indexed recipient, uint256 amount);
+    event EmergencyUnlockRequested(bytes32 indexed lockId, address indexed recipient, uint256 amount, uint256 bond, uint256 unlockableAt);
+    event ChallengeFiled(bytes32 indexed lockId, address indexed challenger, bytes32 fraudProofHash, uint256 bond, uint256 defenseDeadline);
+    event DefenseSubmitted(bytes32 indexed lockId, address indexed defender, bytes32 defenseProofHash);
+    event ChallengeResolved(bytes32 indexed lockId, bool challengeValid, uint256 slashedAmount, uint256 challengerReward, uint256 insuranceAmount, uint256 burnedAmount);
+    event ProverRegistered(address indexed prover, bytes32 sphincsPubKeyHash, uint256 stake);
+    event ProverSlashed(address indexed prover, uint256 amount, bytes32 reason);
+    event StateRootUpdated(bytes32 indexed newRoot, uint256 indexed blockNumber);
+    event SPHINCSVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 
     // =========================================================================
     // Errors
@@ -275,49 +146,20 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // State Variables
     // =========================================================================
 
-    /// @notice Contract owner (for Phase 1, will be Security Council in Phase 2)
     address public owner;
-
-    /// @notice Security Council address (5/6 multisig)
     address public securityCouncil;
-
-    /// @notice SPHINCS+ signature verifier contract
     ISPHINCSVerifier public sphincsVerifier;
-
-    /// @notice Total locked value
     uint256 public totalLocked;
-
-    /// @notice Global nonce counter for locks
     uint256 public nonceCounter;
-
-    /// @notice Global nonce counter for unlocks
     uint256 public unlockNonceCounter;
-
-    /// @notice Current L3 state root
     bytes32 public currentStateRoot;
-
-    /// @notice Lock storage
     mapping(bytes32 => Lock) public locks;
-
-    /// @notice Unlock request storage
     mapping(bytes32 => UnlockRequest) public unlockRequests;
-
-    /// @notice Prover storage
     mapping(address => Prover) public provers;
-
-    /// @notice Active prover list
     address[] public activeProvers;
-
-    /// @notice Challenge storage
     mapping(bytes32 => Challenge) public challenges;
-
-    /// @notice Insurance fund balance
     uint256 public insuranceFund;
-
-    /// @notice Total burned amount (for transparency)
     uint256 public totalBurned;
-
-    /// @notice Whether to use full SPHINCS+ verification (can be disabled for testing)
     bool public useFullVerification;
 
     // =========================================================================
@@ -358,29 +200,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Lock Functions
     // =========================================================================
 
-    /// @notice Lock ETH for cross-chain transfer
-    /// @dev Computes SR_0 per QUANTUM_SHIELD_SEQUENCES_v2.0
-    /// @param recipient L3 recipient address
-    /// @param dilithiumPubKey Full Dilithium public key (1952 bytes for Level 3)
-    /// @return lockId Unique lock identifier
-    function lock(
-        address recipient,
-        bytes calldata dilithiumPubKey
-    ) external payable whenNotPaused nonReentrant returns (bytes32 lockId) {
+    function lock(address recipient, bytes calldata dilithiumPubKey) external payable whenNotPaused nonReentrant returns (bytes32 lockId) {
         return lockWithExpiry(recipient, dilithiumPubKey, block.timestamp + DEFAULT_LOCK_EXPIRY);
     }
 
-    /// @notice Lock ETH with custom expiry
-    /// @dev Computes SR_0 per QUANTUM_SHIELD_SEQUENCES_v2.0
-    /// @param recipient L3 recipient address
-    /// @param dilithiumPubKey Full Dilithium public key
-    /// @param expiry Lock expiry timestamp
-    /// @return lockId Unique lock identifier
-    function lockWithExpiry(
-        address recipient,
-        bytes calldata dilithiumPubKey,
-        uint256 expiry
-    ) public payable whenNotPaused nonReentrant returns (bytes32 lockId) {
+    function lockWithExpiry(address recipient, bytes calldata dilithiumPubKey, uint256 expiry) public payable whenNotPaused nonReentrant returns (bytes32 lockId) {
         if (msg.value < MIN_LOCK_AMOUNT) revert InsufficientAmount();
         if (totalLocked + msg.value > TVL_CAP) revert TVLCapExceeded();
         if (recipient == address(0)) revert ZeroAddress();
@@ -389,24 +213,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
         bytes32 dilithiumPubKeyHash = keccak256(dilithiumPubKey);
         uint256 nonce = nonceCounter++;
 
-        // Compute SR_0 per QUANTUM_SHIELD_SEQUENCES_v2.0
-        // SR_0 = SHA3-256("QS_LOCK_V1" || chain_id || asset || amount || dest_addr || expiry || nonce || pk_dilithium)
         bytes32 stateRoot = StateRootCalculator.computeSR0(
-            block.chainid,           // chain_id
-            address(0),              // asset (ETH = address(0))
-            msg.value,               // amount
-            recipient,               // dest_addr
-            expiry,                  // expiry
-            nonce,                   // nonce
-            dilithiumPubKeyHash      // pk_dilithium (hashed)
+            block.chainid, address(0), msg.value, recipient, expiry, nonce, dilithiumPubKeyHash
         );
 
-        // Generate lock ID from SR_0
-        lockId = StateRootCalculator.generateLockId(
-            stateRoot,
-            msg.sender,
-            block.timestamp
-        );
+        lockId = StateRootCalculator.generateLockId(stateRoot, msg.sender, block.timestamp);
 
         locks[lockId] = Lock({
             sender: msg.sender,
@@ -415,13 +226,12 @@ contract L1Vault is ReentrancyGuard, Pausable {
             dilithiumPubKeyHash: dilithiumPubKeyHash,
             lockedAt: block.timestamp,
             status: LockStatus.ACTIVE,
-            stateRoot: stateRoot,    // SR_0
+            stateRoot: stateRoot,
             expiry: expiry,
             nonce: nonce
         });
 
         totalLocked += msg.value;
-
         emit Locked(lockId, msg.sender, recipient, msg.value, dilithiumPubKeyHash, stateRoot);
     }
 
@@ -429,14 +239,6 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Unlock Functions
     // =========================================================================
 
-    /// @notice Request normal unlock with Prover signatures
-    /// @dev Computes SR_1 and verifies it matches expected state transition
-    /// @param lockId Lock to unlock
-    /// @param recipient ETH recipient address
-    /// @param smtProof Sparse Merkle Tree inclusion proof
-    /// @param expectedSR1 Expected SR_1 from L3
-    /// @param sphincsSignatures Array of SPHINCS+ signatures (min 2)
-    /// @param signingProvers Array of prover addresses who signed
     function requestUnlock(
         bytes32 lockId,
         address recipient,
@@ -450,70 +252,21 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
         if (recipient == address(0)) revert ZeroAddress();
 
-        // Get unlock nonce
         uint256 unlockNonce = unlockNonceCounter++;
+        bytes32 computedSR1 = StateRootCalculator.computeSR1(lockData.stateRoot, lockId, recipient, lockData.amount, unlockNonce);
 
-        // Compute SR_1 per QUANTUM_SHIELD_SEQUENCES_v2.0
-        // SR_1 = SHA3-256("QS_UNLOCK_V1" || SR_0 || lock_id || dest_addr || amount || nonce)
-        bytes32 computedSR1 = StateRootCalculator.computeSR1(
-            lockData.stateRoot,    // SR_0
-            lockId,                // lock_id
-            recipient,             // dest_addr
-            lockData.amount,       // amount
-            unlockNonce            // nonce
-        );
-
-        // Verify SR_1 matches expected (from L3)
         if (computedSR1 != expectedSR1) revert InvalidStateRoot();
+        if (!_verifySMTProof(lockId, smtProof, expectedSR1)) revert InvalidProof();
+        if (sphincsSignatures.length < REQUIRED_SIGNATURES) revert InsufficientSignatures();
+        if (sphincsSignatures.length != signingProvers.length) revert InvalidSignatures();
 
-        // Verify SMT proof against SR_1
-        if (!_verifySMTProof(lockId, smtProof, expectedSR1)) {
-            revert InvalidProof();
-        }
+        uint256 validSignatures = _verifyThresholdSignatures(lockId, expectedSR1, sphincsSignatures, signingProvers);
+        if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
 
-        // Verify SPHINCS+ signatures (2-of-5)
-        if (sphincsSignatures.length < REQUIRED_SIGNATURES) {
-            revert InsufficientSignatures();
-        }
-        if (sphincsSignatures.length != signingProvers.length) {
-            revert InvalidSignatures();
-        }
-
-        uint256 validSignatures = _verifyThresholdSignatures(
-            lockId,
-            expectedSR1,
-            sphincsSignatures,
-            signingProvers
-        );
-
-        if (validSignatures < REQUIRED_SIGNATURES) {
-            revert InsufficientSignatures();
-        }
-
-        // Create unlock request
-        uint256 unlockableAt = block.timestamp + NORMAL_TIME_LOCK;
-
-        unlockRequests[lockId] = UnlockRequest({
-            lockId: lockId,
-            recipient: recipient,
-            amount: lockData.amount,
-            stateRoot: lockData.stateRoot,     // SR_0
-            unlockStateRoot: computedSR1,      // SR_1
-            requestedAt: block.timestamp,
-            unlockableAt: unlockableAt,
-            isEmergency: false,
-            bond: 0,
-            signatureCount: validSignatures,
-            unlockNonce: unlockNonce
-        });
-
+        _createUnlockRequest(lockId, recipient, lockData.amount, lockData.stateRoot, computedSR1, false, 0, validSignatures, unlockNonce);
         lockData.status = LockStatus.PENDING_UNLOCK;
-
-        emit UnlockRequested(lockId, recipient, lockData.amount, unlockableAt, false, computedSR1);
     }
 
-    /// @notice Request normal unlock (legacy compatibility - without SR_1 verification)
-    /// @dev For backward compatibility with existing tests
     function requestUnlockLegacy(
         bytes32 lockId,
         address recipient,
@@ -527,105 +280,68 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
         if (recipient == address(0)) revert ZeroAddress();
 
-        // Verify SMT proof
-        if (!_verifySMTProof(lockId, smtProof, stateRoot)) {
-            revert InvalidProof();
-        }
+        if (!_verifySMTProof(lockId, smtProof, stateRoot)) revert InvalidProof();
+        if (sphincsSignatures.length < REQUIRED_SIGNATURES) revert InsufficientSignatures();
+        if (sphincsSignatures.length != signingProvers.length) revert InvalidSignatures();
 
-        // Verify SPHINCS+ signatures (2-of-5)
-        if (sphincsSignatures.length < REQUIRED_SIGNATURES) {
-            revert InsufficientSignatures();
-        }
-        if (sphincsSignatures.length != signingProvers.length) {
-            revert InvalidSignatures();
-        }
+        uint256 validSignatures = _verifyThresholdSignatures(lockId, stateRoot, sphincsSignatures, signingProvers);
+        if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
 
-        uint256 validSignatures = _verifyThresholdSignatures(
-            lockId,
-            stateRoot,
-            sphincsSignatures,
-            signingProvers
-        );
-
-        if (validSignatures < REQUIRED_SIGNATURES) {
-            revert InsufficientSignatures();
-        }
-
-        // Create unlock request
-        uint256 unlockableAt = block.timestamp + NORMAL_TIME_LOCK;
         uint256 unlockNonce = unlockNonceCounter++;
-
-        unlockRequests[lockId] = UnlockRequest({
-            lockId: lockId,
-            recipient: recipient,
-            amount: lockData.amount,
-            stateRoot: stateRoot,
-            unlockStateRoot: bytes32(0),  // Not computed in legacy mode
-            requestedAt: block.timestamp,
-            unlockableAt: unlockableAt,
-            isEmergency: false,
-            bond: 0,
-            signatureCount: validSignatures,
-            unlockNonce: unlockNonce
-        });
-
+        _createUnlockRequest(lockId, recipient, lockData.amount, stateRoot, bytes32(0), false, 0, validSignatures, unlockNonce);
         lockData.status = LockStatus.PENDING_UNLOCK;
-
-        emit UnlockRequested(lockId, recipient, lockData.amount, unlockableAt, false, bytes32(0));
     }
 
-    /// @notice Request emergency unlock (bypass L3, requires bond)
-    /// @param lockId Lock to unlock
-    /// @param recipient ETH recipient address
-    function requestEmergencyUnlock(
-        bytes32 lockId,
-        address recipient
-    ) external payable whenNotPaused nonReentrant {
+    function requestEmergencyUnlock(bytes32 lockId, address recipient) external payable whenNotPaused nonReentrant {
         Lock storage lockData = locks[lockId];
         if (lockData.sender == address(0)) revert LockNotFound();
         if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
         if (recipient == address(0)) revert ZeroAddress();
-
-        // Only original sender can request emergency unlock
         if (msg.sender != lockData.sender) revert NotOwner();
 
-        // Calculate required bond: MAX(0.5 ETH, amount × 5%)
         uint256 requiredBond = (lockData.amount * EMERGENCY_BOND_PERCENT) / 100;
-        if (requiredBond < MIN_EMERGENCY_BOND) {
-            requiredBond = MIN_EMERGENCY_BOND;
-        }
+        if (requiredBond < MIN_EMERGENCY_BOND) requiredBond = MIN_EMERGENCY_BOND;
         if (msg.value < requiredBond) revert InvalidBond();
 
-        uint256 unlockableAt = block.timestamp + EMERGENCY_TIME_LOCK;
         uint256 unlockNonce = unlockNonceCounter++;
-
-        unlockRequests[lockId] = UnlockRequest({
-            lockId: lockId,
-            recipient: recipient,
-            amount: lockData.amount,
-            stateRoot: lockData.stateRoot,    // SR_0
-            unlockStateRoot: bytes32(0),      // No SR_1 for emergency
-            requestedAt: block.timestamp,
-            unlockableAt: unlockableAt,
-            isEmergency: true,
-            bond: msg.value,
-            signatureCount: 0,
-            unlockNonce: unlockNonce
-        });
-
+        _createUnlockRequest(lockId, recipient, lockData.amount, lockData.stateRoot, bytes32(0), true, msg.value, 0, unlockNonce);
         lockData.status = LockStatus.PENDING_UNLOCK;
 
-        emit EmergencyUnlockRequested(
-            lockId,
-            recipient,
-            lockData.amount,
-            msg.value,
-            unlockableAt
-        );
+        emit EmergencyUnlockRequested(lockId, recipient, lockData.amount, msg.value, block.timestamp + EMERGENCY_TIME_LOCK);
     }
 
-    /// @notice Execute unlock after time lock expires
-    /// @param lockId Lock to execute unlock for
+    /// @notice Internal helper to create unlock request (reduces stack depth)
+    function _createUnlockRequest(
+        bytes32 lockId,
+        address recipient,
+        uint256 amount,
+        bytes32 sr0,
+        bytes32 sr1,
+        bool isEmergency,
+        uint256 bond,
+        uint256 sigCount,
+        uint256 unlockNonce
+    ) internal {
+        uint256 unlockableAt = block.timestamp + (isEmergency ? EMERGENCY_TIME_LOCK : NORMAL_TIME_LOCK);
+        
+        UnlockRequest storage req = unlockRequests[lockId];
+        req.lockId = lockId;
+        req.recipient = recipient;
+        req.amount = amount;
+        req.stateRoot = sr0;
+        req.unlockStateRoot = sr1;
+        req.requestedAt = block.timestamp;
+        req.unlockableAt = unlockableAt;
+        req.isEmergency = isEmergency;
+        req.bond = bond;
+        req.signatureCount = sigCount;
+        req.unlockNonce = unlockNonce;
+
+        if (!isEmergency) {
+            emit UnlockRequested(lockId, recipient, amount, unlockableAt, false, sr1);
+        }
+    }
+
     function executeUnlock(bytes32 lockId) external nonReentrant {
         UnlockRequest storage request = unlockRequests[lockId];
         if (request.lockId == bytes32(0)) revert UnlockNotFound();
@@ -635,26 +351,19 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (lockData.status == LockStatus.CHALLENGED) revert ChallengePeriodActive();
         if (lockData.status == LockStatus.RELEASED) revert LockAlreadyReleased();
 
-        // Check if within challenge period (for normal unlocks)
         if (!request.isEmergency) {
             Challenge storage challengeData = challenges[lockId];
-            if (challengeData.status == ChallengeStatus.PENDING) {
-                revert ChallengePeriodActive();
-            }
+            if (challengeData.status == ChallengeStatus.PENDING) revert ChallengePeriodActive();
         }
 
-        // Update state
         lockData.status = LockStatus.RELEASED;
         totalLocked -= request.amount;
 
-        // Return emergency bond if applicable
         uint256 bondToReturn = request.bond;
 
-        // Transfer funds
         (bool success, ) = request.recipient.call{value: request.amount}("");
         if (!success) revert TransferFailed();
 
-        // Return bond for emergency unlocks
         if (bondToReturn > 0) {
             (bool bondSuccess, ) = lockData.sender.call{value: bondToReturn}("");
             if (!bondSuccess) revert TransferFailed();
@@ -664,17 +373,10 @@ contract L1Vault is ReentrancyGuard, Pausable {
     }
 
     // =========================================================================
-    // Challenge Functions (QUANTUM_SHIELD_SEQUENCES_v2.0 Compliant)
+    // Challenge Functions
     // =========================================================================
 
-    /// @notice Challenge a pending unlock
-    /// @dev Challenge bond: MAX(0.1 ETH, amount × 1%) per QUANTUM_SHIELD_UNIFIED_SPEC_v2.0
-    /// @param lockId Lock being unlocked
-    /// @param fraudProof Proof of fraud
-    function challenge(
-        bytes32 lockId,
-        bytes calldata fraudProof
-    ) external payable whenNotPaused nonReentrant {
+    function challenge(bytes32 lockId, bytes calldata fraudProof) external payable whenNotPaused nonReentrant {
         UnlockRequest storage request = unlockRequests[lockId];
         if (request.lockId == bytes32(0)) revert UnlockNotFound();
         if (block.timestamp > request.unlockableAt) revert UnlockNotReady();
@@ -682,23 +384,16 @@ contract L1Vault is ReentrancyGuard, Pausable {
         Lock storage lockData = locks[lockId];
         if (lockData.status != LockStatus.PENDING_UNLOCK) revert LockAlreadyReleased();
 
-        // Calculate required bond: MAX(0.1 ETH, amount × 1%)
-        // Per QUANTUM_SHIELD_UNIFIED_SPEC_v2.0 Section 7.2
         uint256 requiredBond = (request.amount * CHALLENGE_BOND_PERCENT) / 100;
-        if (requiredBond < MIN_CHALLENGE_BOND) {
-            requiredBond = MIN_CHALLENGE_BOND;
-        }
+        if (requiredBond < MIN_CHALLENGE_BOND) requiredBond = MIN_CHALLENGE_BOND;
         if (msg.value < requiredBond) revert InvalidBond();
 
-        bytes32 fraudProofHash = keccak256(fraudProof);
-        
-        // Set 48-hour defense deadline per QUANTUM_SHIELD_SEQUENCES_v2.0
         uint256 defenseDeadline = block.timestamp + DEFENSE_PERIOD;
 
         challenges[lockId] = Challenge({
             lockId: lockId,
             challenger: msg.sender,
-            fraudProofHash: fraudProofHash,
+            fraudProofHash: keccak256(fraudProof),
             challengedAt: block.timestamp,
             status: ChallengeStatus.PENDING,
             bond: msg.value,
@@ -708,28 +403,15 @@ contract L1Vault is ReentrancyGuard, Pausable {
         });
 
         lockData.status = LockStatus.CHALLENGED;
-
-        emit ChallengeFiled(lockId, msg.sender, fraudProofHash, msg.value, defenseDeadline);
+        emit ChallengeFiled(lockId, msg.sender, keccak256(fraudProof), msg.value, defenseDeadline);
     }
 
-    /// @notice Submit defense against a challenge (Provers only)
-    /// @dev Must be submitted within 48-hour defense period
-    /// @param lockId Challenged lock
-    /// @param defenseProof Proof that the unlock is valid
-    function submitDefense(
-        bytes32 lockId,
-        bytes calldata defenseProof
-    ) external whenNotPaused onlyActiveProver {
+    function submitDefense(bytes32 lockId, bytes calldata defenseProof) external whenNotPaused onlyActiveProver {
         Challenge storage challengeData = challenges[lockId];
-        if (challengeData.status != ChallengeStatus.PENDING) {
-            revert ChallengeAlreadyResolved();
-        }
-        if (block.timestamp > challengeData.defenseDeadline) {
-            revert DefensePeriodExpired();
-        }
+        if (challengeData.status != ChallengeStatus.PENDING) revert ChallengeAlreadyResolved();
+        if (block.timestamp > challengeData.defenseDeadline) revert DefensePeriodExpired();
 
         bytes32 defenseProofHash = keccak256(defenseProof);
-        
         challengeData.status = ChallengeStatus.DEFENSE_SUBMITTED;
         challengeData.defenseProofHash = defenseProofHash;
         challengeData.defender = msg.sender;
@@ -737,23 +419,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
         emit DefenseSubmitted(lockId, msg.sender, defenseProofHash);
     }
 
-    /// @notice Resolve a challenge (Security Council in Phase 1)
-    /// @dev Slashing distribution: Challenger 60%, Insurance 20%, Burn 20%
-    /// @param lockId Challenged lock
-    /// @param challengeValid Whether the challenge is valid
-    function resolveChallenge(
-        bytes32 lockId,
-        bool challengeValid
-    ) external onlySecurityCouncil nonReentrant {
+    function resolveChallenge(bytes32 lockId, bool challengeValid) external onlySecurityCouncil nonReentrant {
         Challenge storage challengeData = challenges[lockId];
-        if (challengeData.status != ChallengeStatus.PENDING && 
-            challengeData.status != ChallengeStatus.DEFENSE_SUBMITTED) {
+        if (challengeData.status != ChallengeStatus.PENDING && challengeData.status != ChallengeStatus.DEFENSE_SUBMITTED) {
             revert ChallengeAlreadyResolved();
         }
-
-        // If no defense was submitted and defense period hasn't expired,
-        // wait for defense period to expire (unless Security Council overrides)
-        // This check can be bypassed by Security Council for urgent cases
 
         Lock storage lockData = locks[lockId];
         UnlockRequest storage request = unlockRequests[lockId];
@@ -764,132 +434,98 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 burnedAmount = 0;
 
         if (challengeValid) {
-            // Challenge is valid - cancel unlock, slash provers
-            challengeData.status = ChallengeStatus.RESOLVED_VALID;
-            lockData.status = LockStatus.SLASHED;
-
-            // Quadratic slashing: N² × 10%
-            uint256 numColluding = request.signatureCount;
-            slashedAmount = _calculateSlash(numColluding, lockData.amount);
-
-            // Distribution per QUANTUM_SHIELD_UNIFIED_SPEC_v2.0:
-            // Challenger: 60%, Insurance: 20%, Burn: 20%
+            _resolveValidChallenge(lockId, challengeData, lockData, request);
+            slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
             challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
             insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
             burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
-
-            // Return challenger bond + reward
-            (bool success, ) = challengeData.challenger.call{
-                value: challengeData.bond + challengerReward
-            }("");
-            if (!success) revert TransferFailed();
-
-            // Add to insurance fund
-            insuranceFund += insuranceAmount;
-
-            // Track burned amount (ETH sent to zero address or just not distributed)
-            totalBurned += burnedAmount;
-
-            // Return locked funds to original sender
-            (bool refundSuccess, ) = lockData.sender.call{value: lockData.amount}("");
-            if (!refundSuccess) revert TransferFailed();
-
-            totalLocked -= lockData.amount;
         } else {
-            // Challenge is invalid - resume unlock
-            challengeData.status = ChallengeStatus.RESOLVED_INVALID;
-            lockData.status = LockStatus.PENDING_UNLOCK;
-
-            // Slash challenger's bond: 60% to defender, 20% insurance, 20% burn
+            _resolveInvalidChallenge(lockId, challengeData, lockData);
             if (challengeData.defender != address(0)) {
-                uint256 defenderReward = (challengeData.bond * SLASH_CHALLENGER_PERCENT) / 100;
-                (bool defenderSuccess, ) = challengeData.defender.call{value: defenderReward}("");
-                if (!defenderSuccess) revert TransferFailed();
-                
                 insuranceAmount = (challengeData.bond * SLASH_INSURANCE_PERCENT) / 100;
                 burnedAmount = (challengeData.bond * SLASH_BURN_PERCENT) / 100;
             } else {
-                // No defender - all to insurance
                 insuranceAmount = challengeData.bond;
             }
-            
-            insuranceFund += insuranceAmount;
-            totalBurned += burnedAmount;
         }
 
-        emit ChallengeResolved(
-            lockId, 
-            challengeValid, 
-            slashedAmount,
-            challengerReward,
-            insuranceAmount,
-            burnedAmount
-        );
+        emit ChallengeResolved(lockId, challengeValid, slashedAmount, challengerReward, insuranceAmount, burnedAmount);
     }
 
-    /// @notice Auto-resolve challenge after defense period expires without defense
-    /// @param lockId Challenged lock
+    function _resolveValidChallenge(bytes32 lockId, Challenge storage challengeData, Lock storage lockData, UnlockRequest storage request) internal {
+        challengeData.status = ChallengeStatus.RESOLVED_VALID;
+        lockData.status = LockStatus.SLASHED;
+
+        uint256 slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
+        uint256 challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
+        uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
+        uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
+
+        (bool success, ) = challengeData.challenger.call{value: challengeData.bond + challengerReward}("");
+        if (!success) revert TransferFailed();
+
+        insuranceFund += insuranceAmount;
+        totalBurned += burnedAmount;
+
+        (bool refundSuccess, ) = lockData.sender.call{value: lockData.amount}("");
+        if (!refundSuccess) revert TransferFailed();
+
+        totalLocked -= lockData.amount;
+    }
+
+    function _resolveInvalidChallenge(bytes32 lockId, Challenge storage challengeData, Lock storage lockData) internal {
+        challengeData.status = ChallengeStatus.RESOLVED_INVALID;
+        lockData.status = LockStatus.PENDING_UNLOCK;
+
+        if (challengeData.defender != address(0)) {
+            uint256 defenderReward = (challengeData.bond * SLASH_CHALLENGER_PERCENT) / 100;
+            (bool defenderSuccess, ) = challengeData.defender.call{value: defenderReward}("");
+            if (!defenderSuccess) revert TransferFailed();
+            
+            uint256 insuranceAmount = (challengeData.bond * SLASH_INSURANCE_PERCENT) / 100;
+            uint256 burnedAmount = (challengeData.bond * SLASH_BURN_PERCENT) / 100;
+            insuranceFund += insuranceAmount;
+            totalBurned += burnedAmount;
+        } else {
+            insuranceFund += challengeData.bond;
+        }
+    }
+
     function autoResolveChallenge(bytes32 lockId) external nonReentrant {
         Challenge storage challengeData = challenges[lockId];
-        if (challengeData.status != ChallengeStatus.PENDING) {
-            revert ChallengeAlreadyResolved();
-        }
-        if (block.timestamp <= challengeData.defenseDeadline) {
-            revert DefensePeriodNotExpired();
-        }
+        if (challengeData.status != ChallengeStatus.PENDING) revert ChallengeAlreadyResolved();
+        if (block.timestamp <= challengeData.defenseDeadline) revert DefensePeriodNotExpired();
 
-        // No defense submitted within 48 hours - challenge is valid
         Lock storage lockData = locks[lockId];
         UnlockRequest storage request = unlockRequests[lockId];
 
         challengeData.status = ChallengeStatus.RESOLVED_VALID;
         lockData.status = LockStatus.SLASHED;
 
-        // Quadratic slashing
-        uint256 numColluding = request.signatureCount;
-        uint256 slashedAmount = _calculateSlash(numColluding, lockData.amount);
-
-        // Distribution: Challenger 60%, Insurance 20%, Burn 20%
+        uint256 slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
         uint256 challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
         uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
         uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
 
-        // Return challenger bond + reward
-        (bool success, ) = challengeData.challenger.call{
-            value: challengeData.bond + challengerReward
-        }("");
+        (bool success, ) = challengeData.challenger.call{value: challengeData.bond + challengerReward}("");
         if (!success) revert TransferFailed();
 
         insuranceFund += insuranceAmount;
         totalBurned += burnedAmount;
 
-        // Return locked funds to original sender
         (bool refundSuccess, ) = lockData.sender.call{value: lockData.amount}("");
         if (!refundSuccess) revert TransferFailed();
 
         totalLocked -= lockData.amount;
 
-        emit ChallengeResolved(
-            lockId, 
-            true, 
-            slashedAmount,
-            challengerReward,
-            insuranceAmount,
-            burnedAmount
-        );
+        emit ChallengeResolved(lockId, true, slashedAmount, challengerReward, insuranceAmount, burnedAmount);
     }
 
     // =========================================================================
     // Prover Management
     // =========================================================================
 
-    /// @notice Register a new prover (Phase 1: owner only)
-    /// @param proverAddress Prover's ETH address
-    /// @param sphincsPublicKey Full SPHINCS+ public key (32 bytes)
-    function registerProver(
-        address proverAddress,
-        bytes calldata sphincsPublicKey
-    ) external payable onlyOwner {
+    function registerProver(address proverAddress, bytes calldata sphincsPublicKey) external payable onlyOwner {
         if (proverAddress == address(0)) revert ZeroAddress();
         if (provers[proverAddress].isActive) revert ProverAlreadyRegistered();
         if (msg.value < 1 ether) revert InsufficientStake();
@@ -909,7 +545,6 @@ contract L1Vault is ReentrancyGuard, Pausable {
         });
 
         activeProvers.push(proverAddress);
-
         emit ProverRegistered(proverAddress, sphincsPubKeyHash, msg.value);
     }
 
@@ -917,23 +552,17 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // State Management
     // =========================================================================
 
-    /// @notice Update L3 state root (called by L3 Aegis nodes)
-    /// @param newStateRoot New state root from L3
     function updateStateRoot(bytes32 newStateRoot) external onlyOwner {
         currentStateRoot = newStateRoot;
         emit StateRootUpdated(newStateRoot, block.number);
     }
 
-    /// @notice Set the SPHINCS+ verifier contract address
-    /// @param _sphincsVerifier Address of SPHINCSVerifier contract
     function setSPHINCSVerifier(address _sphincsVerifier) external onlyOwner {
         address oldVerifier = address(sphincsVerifier);
         sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
         emit SPHINCSVerifierUpdated(oldVerifier, _sphincsVerifier);
     }
 
-    /// @notice Enable or disable full SPHINCS+ verification
-    /// @param _enable True to enable full verification
     function setFullVerification(bool _enable) external onlyOwner {
         useFullVerification = _enable;
     }
@@ -942,12 +571,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Internal Functions
     // =========================================================================
 
-    /// @notice Verify SMT inclusion proof
-    function _verifySMTProof(
-        bytes32 leaf,
-        bytes32[] calldata proof,
-        bytes32 root
-    ) internal pure returns (bool) {
+    function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) internal pure returns (bool) {
         bytes32 computedRoot = leaf;
         for (uint256 i = 0; i < proof.length; i++) {
             if (computedRoot < proof[i]) {
@@ -959,81 +583,33 @@ contract L1Vault is ReentrancyGuard, Pausable {
         return computedRoot == root;
     }
 
-    /// @notice Verify threshold SPHINCS+ signatures
-    /// @dev Uses full SPHINCSVerifier when available, falls back to hash verification
-    function _verifyThresholdSignatures(
-        bytes32 lockId,
-        bytes32 stateRoot,
-        bytes[] calldata signatures,
-        address[] calldata signers
-    ) internal view returns (uint256 validCount) {
+    function _verifyThresholdSignatures(bytes32 lockId, bytes32 stateRoot, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         bytes32 message = keccak256(abi.encodePacked(lockId, stateRoot));
-
-        // Use full SPHINCS+ verification if enabled and verifier is set
         if (useFullVerification && address(sphincsVerifier) != address(0)) {
             return _verifyWithSPHINCSVerifier(message, signatures, signers);
         }
-
-        // Fallback to simplified hash verification (Phase 1 compatible)
         return _verifySimplified(message, signatures, signers);
     }
 
-    /// @notice Verify signatures using the SPHINCSVerifier contract
-    function _verifyWithSPHINCSVerifier(
-        bytes32 message,
-        bytes[] calldata signatures,
-        address[] calldata signers
-    ) internal view returns (uint256 validCount) {
+    function _verifyWithSPHINCSVerifier(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         for (uint256 i = 0; i < signatures.length; i++) {
             Prover storage prover = provers[signers[i]];
             if (!prover.isActive) continue;
             if (prover.sphincsPublicKey.length != 32) continue;
-
-            // Full SPHINCS+ verification
-            bool valid = sphincsVerifier.verify(
-                message,
-                signatures[i],
-                prover.sphincsPublicKey
-            );
-
-            if (valid) {
-                validCount++;
-            }
+            if (sphincsVerifier.verify(message, signatures[i], prover.sphincsPublicKey)) validCount++;
         }
     }
 
-    /// @notice Simplified verification using hash (Phase 1 fallback)
-    function _verifySimplified(
-        bytes32 message,
-        bytes[] calldata signatures,
-        address[] calldata signers
-    ) internal view returns (uint256 validCount) {
+    function _verifySimplified(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         for (uint256 i = 0; i < signatures.length; i++) {
             Prover storage prover = provers[signers[i]];
             if (!prover.isActive) continue;
-
-            // Simplified verification using hash binding
-            bytes32 sigHash = keccak256(abi.encodePacked(
-                prover.sphincsPubKeyHash,
-                message,
-                signatures[i]
-            ));
-
-            // Accept signatures that hash correctly
-            if (sigHash != bytes32(0)) {
-                validCount++;
-            }
+            bytes32 sigHash = keccak256(abi.encodePacked(prover.sphincsPubKeyHash, message, signatures[i]));
+            if (sigHash != bytes32(0)) validCount++;
         }
     }
 
-    /// @notice Calculate quadratic slash amount
-    /// @dev Quadratic: N² × 10%, capped at 100%
-    /// @param numColluding Number of colluding provers
-    /// @param amount Amount to calculate slash from
-    /// @return Slashed amount in wei
     function _calculateSlash(uint256 numColluding, uint256 amount) internal pure returns (uint256) {
-        // Quadratic: N² × 10%
-        // 1 prover = 10%, 2 provers = 40%, 3 provers = 90%, 4+ provers = 100%
         uint256 slashPercent = numColluding * numColluding * 10;
         if (slashPercent > 100) slashPercent = 100;
         return (amount * slashPercent) / 100;
@@ -1043,96 +619,30 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // View Functions
     // =========================================================================
 
-    /// @notice Get lock details
-    function getLock(bytes32 lockId) external view returns (Lock memory) {
-        return locks[lockId];
-    }
+    function getLock(bytes32 lockId) external view returns (Lock memory) { return locks[lockId]; }
+    function getUnlockRequest(bytes32 lockId) external view returns (UnlockRequest memory) { return unlockRequests[lockId]; }
+    function getChallenge(bytes32 lockId) external view returns (Challenge memory) { return challenges[lockId]; }
+    function getProver(address proverAddress) external view returns (Prover memory) { return provers[proverAddress]; }
+    function getActiveProverCount() external view returns (uint256) { return activeProvers.length; }
 
-    /// @notice Get unlock request details
-    function getUnlockRequest(bytes32 lockId) external view returns (UnlockRequest memory) {
-        return unlockRequests[lockId];
-    }
-
-    /// @notice Get challenge details
-    function getChallenge(bytes32 lockId) external view returns (Challenge memory) {
-        return challenges[lockId];
-    }
-
-    /// @notice Get prover details
-    function getProver(address proverAddress) external view returns (Prover memory) {
-        return provers[proverAddress];
-    }
-
-    /// @notice Get active prover count
-    function getActiveProverCount() external view returns (uint256) {
-        return activeProvers.length;
-    }
-
-    /// @notice Calculate required challenge bond for an amount
-    /// @param amount The unlock amount
-    /// @return Required bond: MAX(0.1 ETH, amount × 1%)
     function calculateChallengeBond(uint256 amount) external pure returns (uint256) {
         uint256 bond = (amount * CHALLENGE_BOND_PERCENT) / 100;
         return bond < MIN_CHALLENGE_BOND ? MIN_CHALLENGE_BOND : bond;
     }
 
-    /// @notice Check if contract is quantum resistant
-    function isQuantumResistant() external pure returns (bool) {
-        return true;
-    }
+    function isQuantumResistant() external pure returns (bool) { return true; }
+    function getSPHINCSVerifier() external view returns (address) { return address(sphincsVerifier); }
+    function isFullVerificationEnabled() external view returns (bool) { return useFullVerification && address(sphincsVerifier) != address(0); }
 
-    /// @notice Get the SPHINCS+ verifier address
-    function getSPHINCSVerifier() external view returns (address) {
-        return address(sphincsVerifier);
-    }
-
-    /// @notice Check if full verification is enabled
-    function isFullVerificationEnabled() external view returns (bool) {
-        return useFullVerification && address(sphincsVerifier) != address(0);
-    }
-
-    /// @notice Get slashing distribution percentages
-    /// @return challenger Challenger reward percentage (60%)
-    /// @return insurance Insurance fund percentage (20%)
-    /// @return burn Burn percentage (20%)
-    function getSlashingDistribution() external pure returns (
-        uint256 challenger,
-        uint256 insurance,
-        uint256 burn
-    ) {
+    function getSlashingDistribution() external pure returns (uint256 challenger, uint256 insurance, uint256 burn) {
         return (SLASH_CHALLENGER_PERCENT, SLASH_INSURANCE_PERCENT, SLASH_BURN_PERCENT);
     }
 
-    /// @notice Compute SR_0 for verification (external helper)
-    /// @dev Allows external verification of state root computation
-    function computeStateRoot(
-        uint256 chainId,
-        address asset,
-        uint256 amount,
-        address destAddr,
-        uint256 expiry,
-        uint256 nonce,
-        bytes32 pkDilithium
-    ) external pure returns (bytes32) {
-        return StateRootCalculator.computeSR0(
-            chainId,
-            asset,
-            amount,
-            destAddr,
-            expiry,
-            nonce,
-            pkDilithium
-        );
+    function computeStateRoot(uint256 chainId, address asset, uint256 amount, address destAddr, uint256 expiry, uint256 nonce, bytes32 pkDilithium) external pure returns (bytes32) {
+        return StateRootCalculator.computeSR0(chainId, asset, amount, destAddr, expiry, nonce, pkDilithium);
     }
 
-    /// @notice Compute SR_1 for verification (external helper)
-    function computeUnlockStateRoot(
-        bytes32 sr0,
-        bytes32 lockId,
-        address destAddr,
-        uint256 amount,
-        uint256 nonce
-    ) external pure returns (bytes32) {
+    function computeUnlockStateRoot(bytes32 sr0, bytes32 lockId, address destAddr, uint256 amount, uint256 nonce) external pure returns (bytes32) {
         return StateRootCalculator.computeSR1(sr0, lockId, destAddr, amount, nonce);
     }
 
@@ -1140,31 +650,18 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Admin Functions
     // =========================================================================
 
-    /// @notice Pause contract (Security Council)
-    function pause() external onlySecurityCouncil {
-        _pause();
-    }
+    function pause() external onlySecurityCouncil { _pause(); }
+    function unpause() external onlySecurityCouncil { _unpause(); }
 
-    /// @notice Unpause contract (Security Council)
-    function unpause() external onlySecurityCouncil {
-        _unpause();
-    }
-
-    /// @notice Transfer ownership
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
         owner = newOwner;
     }
 
-    /// @notice Update Security Council address
     function updateSecurityCouncil(address newCouncil) external onlySecurityCouncil {
         if (newCouncil == address(0)) revert ZeroAddress();
         securityCouncil = newCouncil;
     }
-
-    // =========================================================================
-    // Receive
-    // =========================================================================
 
     receive() external payable {}
 }
