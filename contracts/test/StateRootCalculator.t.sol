@@ -35,39 +35,18 @@ contract StateRootCalculatorTest is Test {
 
     function test_ComputeSR0_Deterministic() public pure {
         bytes32 sr0_1 = StateRootCalculator.computeSR0(
-            TEST_CHAIN_ID,
-            TEST_ASSET,
-            TEST_AMOUNT,
-            TEST_DEST_ADDR,
-            TEST_EXPIRY,
-            TEST_NONCE,
-            TEST_PK_DILITHIUM
+            TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 sr0_2 = StateRootCalculator.computeSR0(
-            TEST_CHAIN_ID,
-            TEST_ASSET,
-            TEST_AMOUNT,
-            TEST_DEST_ADDR,
-            TEST_EXPIRY,
-            TEST_NONCE,
-            TEST_PK_DILITHIUM
+            TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertEq(sr0_1, sr0_2, "SR_0 should be deterministic");
     }
 
     function test_ComputeSR0_NonZero() public pure {
         bytes32 sr0 = StateRootCalculator.computeSR0(
-            TEST_CHAIN_ID,
-            TEST_ASSET,
-            TEST_AMOUNT,
-            TEST_DEST_ADDR,
-            TEST_EXPIRY,
-            TEST_NONCE,
-            TEST_PK_DILITHIUM
+            TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertTrue(sr0 != bytes32(0), "SR_0 should not be zero");
     }
 
@@ -75,11 +54,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_chain1 = StateRootCalculator.computeSR0(
             1, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 sr0_chain2 = StateRootCalculator.computeSR0(
             2, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertTrue(sr0_chain1 != sr0_chain2, "Different chain_id should produce different SR_0");
     }
 
@@ -87,11 +64,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_eth = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, address(0), TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 sr0_token = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, address(0x1111), TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertTrue(sr0_eth != sr0_token, "Different asset should produce different SR_0");
     }
 
@@ -99,11 +74,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_1eth = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, 1 ether, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 sr0_2eth = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, 2 ether, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertTrue(sr0_1eth != sr0_2eth, "Different amount should produce different SR_0");
     }
 
@@ -111,11 +84,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_addr1 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, address(0x1111), TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 sr0_addr2 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, address(0x2222), TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertTrue(sr0_addr1 != sr0_addr2, "Different dest_addr should produce different SR_0");
     }
 
@@ -123,11 +94,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_exp1 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, 1000, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 sr0_exp2 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, 2000, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertTrue(sr0_exp1 != sr0_exp2, "Different expiry should produce different SR_0");
     }
 
@@ -135,11 +104,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_nonce1 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, 1, TEST_PK_DILITHIUM
         );
-
         bytes32 sr0_nonce2 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, 2, TEST_PK_DILITHIUM
         );
-
         assertTrue(sr0_nonce1 != sr0_nonce2, "Different nonce should produce different SR_0");
     }
 
@@ -147,11 +114,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_pk1 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, keccak256("pk1")
         );
-
         bytes32 sr0_pk2 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, keccak256("pk2")
         );
-
         assertTrue(sr0_pk1 != sr0_pk2, "Different pk_dilithium should produce different SR_0");
     }
 
@@ -164,23 +129,10 @@ contract StateRootCalculatorTest is Test {
         bytes32 expectedPkHash = keccak256(rawKey);
 
         bytes32 sr0_raw = StateRootCalculator.computeSR0WithRawKey(
-            TEST_CHAIN_ID,
-            TEST_ASSET,
-            TEST_AMOUNT,
-            TEST_DEST_ADDR,
-            TEST_EXPIRY,
-            TEST_NONCE,
-            rawKey
+            TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, rawKey
         );
-
         bytes32 sr0_hash = StateRootCalculator.computeSR0(
-            TEST_CHAIN_ID,
-            TEST_ASSET,
-            TEST_AMOUNT,
-            TEST_DEST_ADDR,
-            TEST_EXPIRY,
-            TEST_NONCE,
-            expectedPkHash
+            TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, expectedPkHash
         );
 
         assertEq(sr0_raw, sr0_hash, "computeSR0WithRawKey should match computeSR0 with hashed key");
@@ -194,15 +146,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1_1 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
-        bytes32 sr1_2 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
+        bytes32 sr1_1 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
+        bytes32 sr1_2 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
         assertEq(sr1_1, sr1_2, "SR_1 should be deterministic");
     }
 
@@ -210,11 +155,7 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
+        bytes32 sr1 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
         assertTrue(sr1 != bytes32(0), "SR_1 should not be zero");
     }
 
@@ -225,14 +166,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_2 = StateRootCalculator.computeSR0(
             2, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1_1 = StateRootCalculator.computeSR1(
-            sr0_1, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-        bytes32 sr1_2 = StateRootCalculator.computeSR1(
-            sr0_2, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
+        bytes32 sr1_1 = StateRootCalculator.computeSR1(sr0_1, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
+        bytes32 sr1_2 = StateRootCalculator.computeSR1(sr0_2, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
         assertTrue(sr1_1 != sr1_2, "Different SR_0 should produce different SR_1");
     }
 
@@ -240,14 +175,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1_1 = StateRootCalculator.computeSR1(
-            sr0, keccak256("lock1"), TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-        bytes32 sr1_2 = StateRootCalculator.computeSR1(
-            sr0, keccak256("lock2"), TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
+        bytes32 sr1_1 = StateRootCalculator.computeSR1(sr0, keccak256("lock1"), TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
+        bytes32 sr1_2 = StateRootCalculator.computeSR1(sr0, keccak256("lock2"), TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
         assertTrue(sr1_1 != sr1_2, "Different lock_id should produce different SR_1");
     }
 
@@ -255,14 +184,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1_1 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, address(0x1111), TEST_AMOUNT, TEST_NONCE
-        );
-        bytes32 sr1_2 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, address(0x2222), TEST_AMOUNT, TEST_NONCE
-        );
-
+        bytes32 sr1_1 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, address(0x1111), TEST_AMOUNT, TEST_NONCE);
+        bytes32 sr1_2 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, address(0x2222), TEST_AMOUNT, TEST_NONCE);
         assertTrue(sr1_1 != sr1_2, "Different dest_addr should produce different SR_1");
     }
 
@@ -270,14 +193,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1_1 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, 1 ether, TEST_NONCE
-        );
-        bytes32 sr1_2 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, 2 ether, TEST_NONCE
-        );
-
+        bytes32 sr1_1 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, 1 ether, TEST_NONCE);
+        bytes32 sr1_2 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, 2 ether, TEST_NONCE);
         assertTrue(sr1_1 != sr1_2, "Different amount should produce different SR_1");
     }
 
@@ -285,14 +202,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1_1 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, 1
-        );
-        bytes32 sr1_2 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, 2
-        );
-
+        bytes32 sr1_1 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, 1);
+        bytes32 sr1_2 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, 2);
         assertTrue(sr1_1 != sr1_2, "Different nonce should produce different SR_1");
     }
 
@@ -301,23 +212,14 @@ contract StateRootCalculatorTest is Test {
     // =========================================================================
 
     function test_SR1_DependsOn_SR0() public pure {
-        // Verify that SR_1 changes when any SR_0 parameter changes
         bytes32 sr0_original = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 sr0_modified = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID + 1, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1_original = StateRootCalculator.computeSR1(
-            sr0_original, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
-        bytes32 sr1_modified = StateRootCalculator.computeSR1(
-            sr0_modified, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
+        bytes32 sr1_original = StateRootCalculator.computeSR1(sr0_original, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
+        bytes32 sr1_modified = StateRootCalculator.computeSR1(sr0_modified, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
         assertTrue(sr1_original != sr1_modified, "SR_1 should change when SR_0 changes");
     }
 
@@ -329,10 +231,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 lockId1 = StateRootCalculator.generateLockId(sr0, TEST_SENDER, TEST_TIMESTAMP);
         bytes32 lockId2 = StateRootCalculator.generateLockId(sr0, TEST_SENDER, TEST_TIMESTAMP);
-
         assertEq(lockId1, lockId2, "Lock ID should be deterministic");
     }
 
@@ -340,9 +240,7 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 lockId = StateRootCalculator.generateLockId(sr0, TEST_SENDER, TEST_TIMESTAMP);
-
         assertTrue(lockId != bytes32(0), "Lock ID should not be zero");
     }
 
@@ -353,10 +251,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0_2 = StateRootCalculator.computeSR0(
             2, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 lockId1 = StateRootCalculator.generateLockId(sr0_1, TEST_SENDER, TEST_TIMESTAMP);
         bytes32 lockId2 = StateRootCalculator.generateLockId(sr0_2, TEST_SENDER, TEST_TIMESTAMP);
-
         assertTrue(lockId1 != lockId2, "Different SR_0 should produce different lock ID");
     }
 
@@ -364,10 +260,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 lockId1 = StateRootCalculator.generateLockId(sr0, address(0x1111), TEST_TIMESTAMP);
         bytes32 lockId2 = StateRootCalculator.generateLockId(sr0, address(0x2222), TEST_TIMESTAMP);
-
         assertTrue(lockId1 != lockId2, "Different sender should produce different lock ID");
     }
 
@@ -375,10 +269,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bytes32 lockId1 = StateRootCalculator.generateLockId(sr0, TEST_SENDER, 1000);
         bytes32 lockId2 = StateRootCalculator.generateLockId(sr0, TEST_SENDER, 2000);
-
         assertTrue(lockId1 != lockId2, "Different timestamp should produce different lock ID");
     }
 
@@ -390,18 +282,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         bool valid = StateRootCalculator.verifySR0(
-            sr0,
-            TEST_CHAIN_ID,
-            TEST_ASSET,
-            TEST_AMOUNT,
-            TEST_DEST_ADDR,
-            TEST_EXPIRY,
-            TEST_NONCE,
-            TEST_PK_DILITHIUM
+            sr0, TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertTrue(valid, "verifySR0 should return true for matching parameters");
     }
 
@@ -409,19 +292,9 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        // Wrong chain_id
         bool valid = StateRootCalculator.verifySR0(
-            sr0,
-            TEST_CHAIN_ID + 1,  // Different chain_id
-            TEST_ASSET,
-            TEST_AMOUNT,
-            TEST_DEST_ADDR,
-            TEST_EXPIRY,
-            TEST_NONCE,
-            TEST_PK_DILITHIUM
+            sr0, TEST_CHAIN_ID + 1, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         assertFalse(valid, "verifySR0 should return false for non-matching parameters");
     }
 
@@ -429,15 +302,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
-        bool valid = StateRootCalculator.verifySR1(
-            sr1, sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
+        bytes32 sr1 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
+        bool valid = StateRootCalculator.verifySR1(sr1, sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
         assertTrue(valid, "verifySR1 should return true for matching parameters");
     }
 
@@ -445,16 +311,8 @@ contract StateRootCalculatorTest is Test {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
-        bytes32 sr1 = StateRootCalculator.computeSR1(
-            sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
-        // Wrong lock_id
-        bool valid = StateRootCalculator.verifySR1(
-            sr1, sr0, keccak256("wrong_lock_id"), TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE
-        );
-
+        bytes32 sr1 = StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
+        bool valid = StateRootCalculator.verifySR1(sr1, sr0, keccak256("wrong_lock_id"), TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
         assertFalse(valid, "verifySR1 should return false for non-matching parameters");
     }
 
@@ -463,11 +321,7 @@ contract StateRootCalculatorTest is Test {
     // =========================================================================
 
     function test_DomainSeparators_Unique() public pure {
-        // Domain separators should be different
-        assertTrue(
-            EXPECTED_DOMAIN_LOCK != EXPECTED_DOMAIN_UNLOCK,
-            "DOMAIN_LOCK and DOMAIN_UNLOCK should be different"
-        );
+        assertTrue(EXPECTED_DOMAIN_LOCK != EXPECTED_DOMAIN_UNLOCK, "DOMAIN_LOCK and DOMAIN_UNLOCK should be different");
     }
 
     function test_DomainSeparators_NonZero() public pure {
@@ -476,7 +330,6 @@ contract StateRootCalculatorTest is Test {
     }
 
     function test_DomainSeparators_MatchLibrary() public pure {
-        // Verify library uses expected domain separators
         assertEq(StateRootCalculator.DOMAIN_LOCK, EXPECTED_DOMAIN_LOCK, "DOMAIN_LOCK should match expected");
         assertEq(StateRootCalculator.DOMAIN_UNLOCK, EXPECTED_DOMAIN_UNLOCK, "DOMAIN_UNLOCK should match expected");
     }
@@ -500,84 +353,57 @@ contract StateRootCalculatorTest is Test {
     // =========================================================================
 
     function testFuzz_ComputeSR0_Deterministic(
-        uint256 chainId,
-        address asset,
-        uint256 amount,
-        address destAddr,
-        uint256 expiry,
-        uint256 nonce,
-        bytes32 pkDilithium
+        uint256 chainId, address asset, uint256 amount, address destAddr, uint256 expiry, uint256 nonce, bytes32 pkDilithium
     ) public pure {
-        bytes32 sr0_1 = StateRootCalculator.computeSR0(
-            chainId, asset, amount, destAddr, expiry, nonce, pkDilithium
-        );
-        bytes32 sr0_2 = StateRootCalculator.computeSR0(
-            chainId, asset, amount, destAddr, expiry, nonce, pkDilithium
-        );
-
+        bytes32 sr0_1 = StateRootCalculator.computeSR0(chainId, asset, amount, destAddr, expiry, nonce, pkDilithium);
+        bytes32 sr0_2 = StateRootCalculator.computeSR0(chainId, asset, amount, destAddr, expiry, nonce, pkDilithium);
         assertEq(sr0_1, sr0_2, "SR_0 should be deterministic for any input");
     }
 
     function testFuzz_ComputeSR1_Deterministic(
-        bytes32 sr0,
-        bytes32 lockId,
-        address destAddr,
-        uint256 amount,
-        uint256 nonce
+        bytes32 sr0, bytes32 lockId, address destAddr, uint256 amount, uint256 nonce
     ) public pure {
         bytes32 sr1_1 = StateRootCalculator.computeSR1(sr0, lockId, destAddr, amount, nonce);
         bytes32 sr1_2 = StateRootCalculator.computeSR1(sr0, lockId, destAddr, amount, nonce);
-
         assertEq(sr1_1, sr1_2, "SR_1 should be deterministic for any input");
     }
 
-    function testFuzz_GenerateLockId_Deterministic(
-        bytes32 sr0,
-        address sender,
-        uint256 timestamp
-    ) public pure {
+    function testFuzz_GenerateLockId_Deterministic(bytes32 sr0, address sender, uint256 timestamp) public pure {
         bytes32 lockId1 = StateRootCalculator.generateLockId(sr0, sender, timestamp);
         bytes32 lockId2 = StateRootCalculator.generateLockId(sr0, sender, timestamp);
-
         assertEq(lockId1, lockId2, "Lock ID should be deterministic for any input");
     }
 
     // =========================================================================
-    // Gas Benchmarks
+    // Gas Benchmarks (non-view functions to allow logging)
     // =========================================================================
 
-    function test_Gas_ComputeSR0() public view {
+    function test_Gas_ComputeSR0() public {
         uint256 gasBefore = gasleft();
         StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
         uint256 gasUsed = gasBefore - gasleft();
-        
         emit log_named_uint("Gas used for computeSR0", gasUsed);
-        // SR_0 uses SHA3-256, expect ~1.3M gas
     }
 
-    function test_Gas_ComputeSR1() public view {
+    function test_Gas_ComputeSR1() public {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         uint256 gasBefore = gasleft();
         StateRootCalculator.computeSR1(sr0, TEST_LOCK_ID, TEST_DEST_ADDR, TEST_AMOUNT, TEST_NONCE);
         uint256 gasUsed = gasBefore - gasleft();
-        
         emit log_named_uint("Gas used for computeSR1", gasUsed);
     }
 
-    function test_Gas_GenerateLockId() public view {
+    function test_Gas_GenerateLockId() public {
         bytes32 sr0 = StateRootCalculator.computeSR0(
             TEST_CHAIN_ID, TEST_ASSET, TEST_AMOUNT, TEST_DEST_ADDR, TEST_EXPIRY, TEST_NONCE, TEST_PK_DILITHIUM
         );
-
         uint256 gasBefore = gasleft();
         StateRootCalculator.generateLockId(sr0, TEST_SENDER, TEST_TIMESTAMP);
         uint256 gasUsed = gasBefore - gasleft();
-        
         emit log_named_uint("Gas used for generateLockId", gasUsed);
     }
 }
