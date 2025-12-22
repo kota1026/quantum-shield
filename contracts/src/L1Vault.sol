@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "lib/openzeppelin-contracts/contracts/utils/Pausable.sol";
 import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
+import {StateRootCalculator} from "./libraries/StateRootCalculator.sol";
 
 /// @title L1Vault - Quantum Shield L1 Vault Contract
 /// @notice Phase 1.2 implementation with full SPHINCS+ verification integration
@@ -24,6 +25,10 @@ import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
 /// - Slashing Distribution: Challenger 60%, Insurance 20%, Burn 20%
 /// - Challenge Bond: MAX(0.1 ETH, amount × 1%)
 /// - Defense Period: 48 hours
+///
+/// Day 6-7 Update: State Root (SR_0/SR_1) computation per QUANTUM_SHIELD_SEQUENCES_v2.0
+/// - SR_0: Computed at lock time using SHA3-256 with domain separation
+/// - SR_1: Computed at unlock time, depends on SR_0
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -75,6 +80,9 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Slashing distribution: Burn (20%)
     uint256 public constant SLASH_BURN_PERCENT = 20;
 
+    /// @notice Default lock expiry (24 hours from lock time)
+    uint256 public constant DEFAULT_LOCK_EXPIRY = 24 hours;
+
     // =========================================================================
     // Enums
     // =========================================================================
@@ -106,18 +114,24 @@ contract L1Vault is ReentrancyGuard, Pausable {
         bytes32 dilithiumPubKeyHash;
         uint256 lockedAt;
         LockStatus status;
+        // Day 6-7: SR_0 per QUANTUM_SHIELD_SEQUENCES_v2.0
+        bytes32 stateRoot;      // SR_0 computed at lock time
+        uint256 expiry;         // Lock expiry timestamp
+        uint256 nonce;          // Lock nonce for SR_0 calculation
     }
 
     struct UnlockRequest {
         bytes32 lockId;
         address recipient;
         uint256 amount;
-        bytes32 stateRoot;
+        bytes32 stateRoot;       // SR_0 from lock
+        bytes32 unlockStateRoot; // SR_1 computed at unlock time
         uint256 requestedAt;
         uint256 unlockableAt;
         bool isEmergency;
         uint256 bond;
         uint256 signatureCount;
+        uint256 unlockNonce;     // Nonce used for SR_1 calculation
     }
 
     struct Prover {
@@ -152,7 +166,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
         address indexed sender,
         address indexed recipient,
         uint256 amount,
-        bytes32 dilithiumPubKeyHash
+        bytes32 dilithiumPubKeyHash,
+        bytes32 stateRoot  // SR_0
     );
 
     event UnlockRequested(
@@ -160,7 +175,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
         address indexed recipient,
         uint256 amount,
         uint256 unlockableAt,
-        bool isEmergency
+        bool isEmergency,
+        bytes32 unlockStateRoot  // SR_1
     );
 
     event UnlockExecuted(
@@ -252,6 +268,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
     error DefensePeriodNotExpired();
     error DefensePeriodExpired();
     error NotActiveProver();
+    error LockExpired();
+    error InvalidStateRoot();
 
     // =========================================================================
     // State Variables
@@ -269,8 +287,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Total locked value
     uint256 public totalLocked;
 
-    /// @notice Global nonce counter
+    /// @notice Global nonce counter for locks
     uint256 public nonceCounter;
+
+    /// @notice Global nonce counter for unlocks
+    uint256 public unlockNonceCounter;
 
     /// @notice Current L3 state root
     bytes32 public currentStateRoot;
@@ -338,6 +359,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
 
     /// @notice Lock ETH for cross-chain transfer
+    /// @dev Computes SR_0 per QUANTUM_SHIELD_SEQUENCES_v2.0
     /// @param recipient L3 recipient address
     /// @param dilithiumPubKey Full Dilithium public key (1952 bytes for Level 3)
     /// @return lockId Unique lock identifier
@@ -345,21 +367,46 @@ contract L1Vault is ReentrancyGuard, Pausable {
         address recipient,
         bytes calldata dilithiumPubKey
     ) external payable whenNotPaused nonReentrant returns (bytes32 lockId) {
+        return lockWithExpiry(recipient, dilithiumPubKey, block.timestamp + DEFAULT_LOCK_EXPIRY);
+    }
+
+    /// @notice Lock ETH with custom expiry
+    /// @dev Computes SR_0 per QUANTUM_SHIELD_SEQUENCES_v2.0
+    /// @param recipient L3 recipient address
+    /// @param dilithiumPubKey Full Dilithium public key
+    /// @param expiry Lock expiry timestamp
+    /// @return lockId Unique lock identifier
+    function lockWithExpiry(
+        address recipient,
+        bytes calldata dilithiumPubKey,
+        uint256 expiry
+    ) public payable whenNotPaused nonReentrant returns (bytes32 lockId) {
         if (msg.value < MIN_LOCK_AMOUNT) revert InsufficientAmount();
         if (totalLocked + msg.value > TVL_CAP) revert TVLCapExceeded();
         if (recipient == address(0)) revert ZeroAddress();
+        if (expiry <= block.timestamp) revert LockExpired();
 
         bytes32 dilithiumPubKeyHash = keccak256(dilithiumPubKey);
         uint256 nonce = nonceCounter++;
 
-        lockId = keccak256(abi.encodePacked(
+        // Compute SR_0 per QUANTUM_SHIELD_SEQUENCES_v2.0
+        // SR_0 = SHA3-256("QS_LOCK_V1" || chain_id || asset || amount || dest_addr || expiry || nonce || pk_dilithium)
+        bytes32 stateRoot = StateRootCalculator.computeSR0(
+            block.chainid,           // chain_id
+            address(0),              // asset (ETH = address(0))
+            msg.value,               // amount
+            recipient,               // dest_addr
+            expiry,                  // expiry
+            nonce,                   // nonce
+            dilithiumPubKeyHash      // pk_dilithium (hashed)
+        );
+
+        // Generate lock ID from SR_0
+        lockId = StateRootCalculator.generateLockId(
+            stateRoot,
             msg.sender,
-            recipient,
-            msg.value,
-            dilithiumPubKeyHash,
-            nonce,
             block.timestamp
-        ));
+        );
 
         locks[lockId] = Lock({
             sender: msg.sender,
@@ -367,12 +414,15 @@ contract L1Vault is ReentrancyGuard, Pausable {
             amount: msg.value,
             dilithiumPubKeyHash: dilithiumPubKeyHash,
             lockedAt: block.timestamp,
-            status: LockStatus.ACTIVE
+            status: LockStatus.ACTIVE,
+            stateRoot: stateRoot,    // SR_0
+            expiry: expiry,
+            nonce: nonce
         });
 
         totalLocked += msg.value;
 
-        emit Locked(lockId, msg.sender, recipient, msg.value, dilithiumPubKeyHash);
+        emit Locked(lockId, msg.sender, recipient, msg.value, dilithiumPubKeyHash, stateRoot);
     }
 
     // =========================================================================
@@ -380,13 +430,91 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
 
     /// @notice Request normal unlock with Prover signatures
+    /// @dev Computes SR_1 and verifies it matches expected state transition
     /// @param lockId Lock to unlock
     /// @param recipient ETH recipient address
     /// @param smtProof Sparse Merkle Tree inclusion proof
-    /// @param stateRoot L3 state root
+    /// @param expectedSR1 Expected SR_1 from L3
     /// @param sphincsSignatures Array of SPHINCS+ signatures (min 2)
     /// @param signingProvers Array of prover addresses who signed
     function requestUnlock(
+        bytes32 lockId,
+        address recipient,
+        bytes32[] calldata smtProof,
+        bytes32 expectedSR1,
+        bytes[] calldata sphincsSignatures,
+        address[] calldata signingProvers
+    ) external whenNotPaused nonReentrant {
+        Lock storage lockData = locks[lockId];
+        if (lockData.sender == address(0)) revert LockNotFound();
+        if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
+        if (recipient == address(0)) revert ZeroAddress();
+
+        // Get unlock nonce
+        uint256 unlockNonce = unlockNonceCounter++;
+
+        // Compute SR_1 per QUANTUM_SHIELD_SEQUENCES_v2.0
+        // SR_1 = SHA3-256("QS_UNLOCK_V1" || SR_0 || lock_id || dest_addr || amount || nonce)
+        bytes32 computedSR1 = StateRootCalculator.computeSR1(
+            lockData.stateRoot,    // SR_0
+            lockId,                // lock_id
+            recipient,             // dest_addr
+            lockData.amount,       // amount
+            unlockNonce            // nonce
+        );
+
+        // Verify SR_1 matches expected (from L3)
+        if (computedSR1 != expectedSR1) revert InvalidStateRoot();
+
+        // Verify SMT proof against SR_1
+        if (!_verifySMTProof(lockId, smtProof, expectedSR1)) {
+            revert InvalidProof();
+        }
+
+        // Verify SPHINCS+ signatures (2-of-5)
+        if (sphincsSignatures.length < REQUIRED_SIGNATURES) {
+            revert InsufficientSignatures();
+        }
+        if (sphincsSignatures.length != signingProvers.length) {
+            revert InvalidSignatures();
+        }
+
+        uint256 validSignatures = _verifyThresholdSignatures(
+            lockId,
+            expectedSR1,
+            sphincsSignatures,
+            signingProvers
+        );
+
+        if (validSignatures < REQUIRED_SIGNATURES) {
+            revert InsufficientSignatures();
+        }
+
+        // Create unlock request
+        uint256 unlockableAt = block.timestamp + NORMAL_TIME_LOCK;
+
+        unlockRequests[lockId] = UnlockRequest({
+            lockId: lockId,
+            recipient: recipient,
+            amount: lockData.amount,
+            stateRoot: lockData.stateRoot,     // SR_0
+            unlockStateRoot: computedSR1,      // SR_1
+            requestedAt: block.timestamp,
+            unlockableAt: unlockableAt,
+            isEmergency: false,
+            bond: 0,
+            signatureCount: validSignatures,
+            unlockNonce: unlockNonce
+        });
+
+        lockData.status = LockStatus.PENDING_UNLOCK;
+
+        emit UnlockRequested(lockId, recipient, lockData.amount, unlockableAt, false, computedSR1);
+    }
+
+    /// @notice Request normal unlock (legacy compatibility - without SR_1 verification)
+    /// @dev For backward compatibility with existing tests
+    function requestUnlockLegacy(
         bytes32 lockId,
         address recipient,
         bytes32[] calldata smtProof,
@@ -425,22 +553,25 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
         // Create unlock request
         uint256 unlockableAt = block.timestamp + NORMAL_TIME_LOCK;
+        uint256 unlockNonce = unlockNonceCounter++;
 
         unlockRequests[lockId] = UnlockRequest({
             lockId: lockId,
             recipient: recipient,
             amount: lockData.amount,
             stateRoot: stateRoot,
+            unlockStateRoot: bytes32(0),  // Not computed in legacy mode
             requestedAt: block.timestamp,
             unlockableAt: unlockableAt,
             isEmergency: false,
             bond: 0,
-            signatureCount: validSignatures
+            signatureCount: validSignatures,
+            unlockNonce: unlockNonce
         });
 
         lockData.status = LockStatus.PENDING_UNLOCK;
 
-        emit UnlockRequested(lockId, recipient, lockData.amount, unlockableAt, false);
+        emit UnlockRequested(lockId, recipient, lockData.amount, unlockableAt, false, bytes32(0));
     }
 
     /// @notice Request emergency unlock (bypass L3, requires bond)
@@ -466,17 +597,20 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (msg.value < requiredBond) revert InvalidBond();
 
         uint256 unlockableAt = block.timestamp + EMERGENCY_TIME_LOCK;
+        uint256 unlockNonce = unlockNonceCounter++;
 
         unlockRequests[lockId] = UnlockRequest({
             lockId: lockId,
             recipient: recipient,
             amount: lockData.amount,
-            stateRoot: bytes32(0),
+            stateRoot: lockData.stateRoot,    // SR_0
+            unlockStateRoot: bytes32(0),      // No SR_1 for emergency
             requestedAt: block.timestamp,
             unlockableAt: unlockableAt,
             isEmergency: true,
             bond: msg.value,
-            signatureCount: 0
+            signatureCount: 0,
+            unlockNonce: unlockNonce
         });
 
         lockData.status = LockStatus.PENDING_UNLOCK;
@@ -967,6 +1101,39 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 burn
     ) {
         return (SLASH_CHALLENGER_PERCENT, SLASH_INSURANCE_PERCENT, SLASH_BURN_PERCENT);
+    }
+
+    /// @notice Compute SR_0 for verification (external helper)
+    /// @dev Allows external verification of state root computation
+    function computeStateRoot(
+        uint256 chainId,
+        address asset,
+        uint256 amount,
+        address destAddr,
+        uint256 expiry,
+        uint256 nonce,
+        bytes32 pkDilithium
+    ) external pure returns (bytes32) {
+        return StateRootCalculator.computeSR0(
+            chainId,
+            asset,
+            amount,
+            destAddr,
+            expiry,
+            nonce,
+            pkDilithium
+        );
+    }
+
+    /// @notice Compute SR_1 for verification (external helper)
+    function computeUnlockStateRoot(
+        bytes32 sr0,
+        bytes32 lockId,
+        address destAddr,
+        uint256 amount,
+        uint256 nonce
+    ) external pure returns (bytes32) {
+        return StateRootCalculator.computeSR1(sr0, lockId, destAddr, amount, nonce);
     }
 
     // =========================================================================
