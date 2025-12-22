@@ -17,6 +17,42 @@
 |------|---------|
 | 2025-12-22 | 旧WBSが承認されていないドキュメントに基づいていたため全面改訂 |
 | 2025-12-22 | 正規ドキュメント（QUANTUM_SHIELD_*）に基づき再作成 |
+| 2025-12-22 | Day 1修正完了: Slashing配分、Challenge Bond、Defense期限 |
+
+---
+
+## 🚀 14日間修正計画 進捗
+
+> **CEO承認日**: 2025-12-22 09:41 JST  
+> **計画期間**: Day 1-14
+
+### Day 1-5: セキュリティ最優先 🔄 IN PROGRESS
+
+| Day | タスク | 担当 | Status |
+|-----|--------|------|--------|
+| 1 | ✅ Slashing配分修正 (60/20/20) | Engineer | ✅ Complete |
+| 1 | ✅ Challenge Bond修正 (MAX(0.1 ETH, amount × 1%)) | Engineer | ✅ Complete |
+| 1 | ✅ Defense期限実装 (48時間) | Engineer | ✅ Complete |
+| 2-3 | SHA3-256 Assembly実装 | Cryptographer, Engineer | ⬜ Pending |
+| 4 | SHA3-256 Pure Solidityフォールバック | Engineer | ⬜ Pending |
+| 5 | 単体テスト更新・検証 | QA, Engineer | ⬜ Pending |
+
+### Day 6-10: 仕様完全準拠
+
+| Day | タスク | 担当 | Status |
+|-----|--------|------|--------|
+| 6-7 | SR_0/SR_1計算式実装 | Cryptographer, Engineer | ⬜ Pending |
+| 8-9 | VRF統合 (Chainlink) | Engineer, DevOps | ⬜ Pending |
+| 10 | 統合テスト | QA, Engineer | ⬜ Pending |
+
+### Day 11-14: 品質保証
+
+| Day | タスク | 担当 | Status |
+|-----|--------|------|--------|
+| 11 | Gas最適化 | Engineer | ⬜ Pending |
+| 12 | Fuzzテスト | QA | ⬜ Pending |
+| 13 | 外部レビュー | Red Team | ⬜ Pending |
+| 14 | 最終検証・ドキュメント更新 | All | ⬜ Pending |
 
 ---
 
@@ -25,7 +61,7 @@
 ```
 Project Aegis
 ├── 0. Phase 0.5: STARK PoC (Week 1-2) ✅ COMPLETE
-├── 1. Phase 1: Foundation Bootstrap (Month 1-6) 🔄 REQUIRES REVIEW
+├── 1. Phase 1: Foundation Bootstrap (Month 1-6) 🔄 CORRECTION IN PROGRESS
 │   ├── 1.1 Smart Contract Development
 │   ├── 1.2 L3 Aegis Development
 │   ├── 1.3 Prover System
@@ -56,37 +92,40 @@ Project Aegis
 
 ---
 
-## Phase 1: Foundation Bootstrap 🔄 REQUIRES REVIEW
+## Phase 1: Foundation Bootstrap 🔄 CORRECTION IN PROGRESS
 
 **Duration**: Month 1-6  
 **TVL Cap**: $1M  
-**Status**: 実施内容の正規仕様との整合性確認が必要
+**Status**: 14日間修正計画実行中
 
 ### 1.1 Smart Contract Development
 
 **正規仕様要件（QUANTUM_SHIELD_UNIFIED_SPEC_v2.0）**:
 
-| 項目 | 仕様 |
-|------|------|
-| User署名 | Dilithium-III (FIPS 204) |
-| Prover署名 | SPHINCS+-128s (FIPS 205, 8KB/署名) |
-| State Hash | SHA3-256 (FIPS 202) |
-| Normal Time Lock | 24時間 |
-| Emergency Time Lock | 7日 |
-| Emergency Bond | MAX(0.5 ETH, amount × 5%) |
-| Slashing | Quadratic: N² × 10% |
+| 項目 | 仕様 | 実装状態 |
+|------|------|---------|
+| User署名 | Dilithium-III (FIPS 204) | ⚠️要確認 |
+| Prover署名 | SPHINCS+-128s (FIPS 205, 8KB/署名) | ⚠️要確認 |
+| State Hash | SHA3-256 (FIPS 202) | 🔴 keccak256使用中 → Day 2-4で修正 |
+| Normal Time Lock | 24時間 | ✅ 完了 |
+| Emergency Time Lock | 7日 | ✅ 完了 |
+| Emergency Bond | MAX(0.5 ETH, amount × 5%) | ✅ 完了 |
+| Challenge Bond | MAX(0.1 ETH, amount × 1%) | ✅ Day 1修正完了 |
+| Defense Period | 48時間 | ✅ Day 1修正完了 |
+| Slashing配分 | 60/20/20 | ✅ Day 1修正完了 |
+| Slashing計算 | Quadratic: N² × 10% | ✅ 完了 |
 
 | ID | Task | 仕様準拠 | Status | Notes |
 |----|------|---------|--------|-------|
-| 1.1.1 | L1 Vault Contract設計 | ⚠️要確認 | 完了 | 正規仕様との整合性確認必要 |
-| 1.1.2 | L1 Vault Contract実装 | ⚠️要確認 | 完了 | 正規仕様との整合性確認必要 |
+| 1.1.1 | L1 Vault Contract設計 | ✅ | 完了 | Day 1修正完了 |
+| 1.1.2 | L1 Vault Contract実装 | ✅ | 完了 | Day 1修正完了 |
 | 1.1.3 | SPHINCS+検証コントラクト | ⚠️要確認 | 完了 | 8KB署名対応確認 |
-| 1.1.4 | SMT検証ロジック | ⚠️要確認 | 完了 | SHA3-256使用確認 |
-| 1.1.5 | Time Lock機構 | ⚠️要確認 | 完了 | 24h/7d対応確認 |
-| 1.1.6 | Emergency Path実装 | ⚠️要確認 | 完了 | Bond計算確認 |
-| 1.1.7 | Challenge/Slashing実装 | ⚠️要確認 | 完了 | Quadratic Slashing確認 |
-| 1.1.8 | 単体テスト | ⚠️要確認 | 完了 | 仕様カバレッジ確認 |
-| 1.1.9 | 統合テスト | ⚠️要確認 | 完了 | E2Eシナリオ確認 |
+| 1.1.4 | SMT検証ロジック | 🔴 | 修正必要 | SHA3-256へ移行必要 |
+| 1.1.5 | Time Lock機構 | ✅ | 完了 | 24h/7d確認済 |
+| 1.1.6 | Emergency Path実装 | ✅ | 完了 | Bond計算確認済 |
+| 1.1.7 | Challenge/Slashing実装 | ✅ | 完了 | Day 1修正完了 |
+| 1.1.8 | 単体テスト | ⬜ | Day 5 | 仕様カバレッジ確認 |
+| 1.1.9 | 統合テスト | ⬜ | Day 10 | E2Eシナリオ確認 |
 
 ### 1.2 L3 Aegis Development
 
@@ -106,8 +145,8 @@ Project Aegis
 | 1.2.1 | L3ノードアーキテクチャ設計 | ⚠️要確認 | 完了 | 4ノード構成確認 |
 | 1.2.2 | BFTコンセンサス実装 | ⚠️要確認 | 完了 | 1障害耐性確認 |
 | 1.2.3 | Dilithium検証モジュール | ⚠️要確認 | 完了 | FIPS 204準拠確認 |
-| 1.2.4 | SMT管理モジュール | ⚠️要確認 | 完了 | SHA3-256確認 |
-| 1.2.5 | VRF統合（Chainlink） | - | 未着手 | |
+| 1.2.4 | SMT管理モジュール | 🔴 | 修正必要 | SHA3-256確認 |
+| 1.2.5 | VRF統合（Chainlink） | - | Day 8-9 | |
 | 1.2.6 | Prover通信プロトコル | - | 未着手 | 5分タイムアウト |
 | 1.2.7 | L1同期モジュール | - | 未着手 | Event監視 |
 | 1.2.8 | 4ノード分散設定 | - | 未着手 | 地理分散 |
@@ -140,20 +179,20 @@ Project Aegis
 
 **正規仕様要件（QUANTUM_SHIELD_SEQUENCES_v2.0）**:
 
-| 項目 | 仕様 |
-|------|------|
-| Challenge Bond | MAX(0.1 ETH, amount × 1%) |
-| Defense期限 | 48時間 |
-| Slashing配分 | Challenger 60%, Insurance 20%, Burn 20% |
-| Emergency Path発動 | 72時間Prover応答なし |
+| 項目 | 仕様 | 実装状態 |
+|------|------|---------|
+| Challenge Bond | MAX(0.1 ETH, amount × 1%) | ✅ Day 1修正完了 |
+| Defense期限 | 48時間 | ✅ Day 1修正完了 |
+| Slashing配分 | Challenger 60%, Insurance 20%, Burn 20% | ✅ Day 1修正完了 |
+| Emergency Path発動 | 72時間Prover応答なし | ⚠️要確認 |
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
 | 1.4.1 | 監視ボット実装 | ⬜ | Sequence #4参照 |
-| 1.4.2 | Challenge検証ロジック | ⬜ | 48h Defense |
-| 1.4.3 | Quadratic Slashing実装 | ⬜ | N² × 10% |
-| 1.4.4 | 報酬配分ロジック | ⬜ | 60/20/20 |
-| 1.4.5 | 72時間Emergency Path | ⬜ | Sequence #3 |
+| 1.4.2 | Challenge検証ロジック | ✅ | 48h Defense完了 |
+| 1.4.3 | Quadratic Slashing実装 | ✅ | N² × 10%完了 |
+| 1.4.4 | 報酬配分ロジック | ✅ | 60/20/20完了 |
+| 1.4.5 | 72時間Emergency Path | ⚠️ | 確認必要 |
 | 1.4.6 | Whistleblower報奨金 | ⬜ | $100K |
 
 ### 1.5 Monitoring & Operations
@@ -183,11 +222,11 @@ Project Aegis
 
 | Sequence | 対応タスク | 実装状態 |
 |----------|-----------|---------|
-| #1: Lock | 1.1.2, 1.2.1 | ⚠️要確認 |
+| #1: Lock | 1.1.2, 1.2.1 | ⚠️要確認（SHA3-256移行必要）|
 | #2: Unlock (Normal) | 1.1.2, 1.2.x, 1.3.x | ⚠️要確認 |
-| #3: Unlock (Emergency) | 1.1.6, 1.4.5 | ⚠️要確認 |
+| #3: Unlock (Emergency) | 1.1.6, 1.4.5 | ✅ 仕様準拠 |
 | #3': Resync | 1.2.7 | 未着手 |
-| #4: Challenge + Slashing | 1.1.7, 1.4.x | ⚠️要確認 |
+| #4: Challenge + Slashing | 1.1.7, 1.4.x | ✅ Day 1修正完了 |
 | #5: Prover Registration | 1.3.5 | 未着手 |
 | #6: Prover Exit | 1.3.5 | 未着手 |
 
@@ -219,8 +258,8 @@ Project Aegis
 | Milestone | Target | 正規仕様対応 | Status |
 |-----------|--------|------------|--------|
 | M0.5 | Week 2 | - | ✅ Complete |
-| M1.1 | Month 2 | Phase 1技術仕様 | ⚠️要確認 |
-| M1.2 | Month 4 | 8 Sequences対応 | 未確認 |
+| M1.1 | Month 2 | Phase 1技術仕様 | 🔄 Day 1完了、継続中 |
+| M1.2 | Month 4 | 8 Sequences対応 | Day 6-10 |
 | M1.3 | Month 5 | Prover稼働 | 未着手 |
 | M1.4 | Month 6 | Limited Beta | 未着手 |
 
@@ -228,10 +267,21 @@ Project Aegis
 
 ## 次のアクション
 
-1. **即時**: 既存実装と正規仕様の整合性確認（②で実施）
-2. **即時**: 不整合の特定と修正計画
-3. **優先**: Sequence #1-#6の完全実装
-4. **優先**: Prover System構築
+### 完了 ✅
+1. ~~Slashing配分修正 (30/50/20 → 60/20/20)~~
+2. ~~Challenge Bond修正 (MAX(0.1 ETH, amount × 1%))~~
+3. ~~Defense期限実装 (48時間)~~
+
+### 次の優先タスク（Day 2-4）
+1. **SHA3-256 Assembly実装** - keccak256からの移行
+2. **SHA3-256 Pure Solidityフォールバック**
+3. **SparseMerkleTree.solのハッシュ関数更新**
+
+### 今後（Day 5以降）
+1. 単体テスト更新（Day 5）
+2. SR_0/SR_1計算式実装（Day 6-7）
+3. VRF統合（Day 8-9）
+4. 統合テスト（Day 10）
 
 ---
 
