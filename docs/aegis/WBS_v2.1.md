@@ -1,7 +1,7 @@
-# Project Aegis - Work Breakdown Structure (WBS) v2.3
+# Project Aegis - Work Breakdown Structure (WBS) v2.4
 
-> **Version**: 2.3 (PIR-002 Complete)  
-> **Last Updated**: 2025-12-22 13:15 JST  
+> **Version**: 2.4 (PIR-002 Code Review Complete)  
+> **Last Updated**: 2025-12-22 13:35 JST  
 > **Project Duration**: 24 months  
 > **NOTICE**: 本WBSは正規ドキュメント（QUANTUM_SHIELD_*）に基づき再作成
 > **正規ドキュメント**:  
@@ -32,13 +32,24 @@
 5. ❌ 仕様書との重大な乖離
 6. ❌ セキュリティ上の脆弱性
 
+### PIR必須レビュー項目（PIR-002教訓より追加）
+
+> **追加日**: 2025-12-22 13:35 JST
+
+| # | 項目 | 確認内容 |
+|---|------|---------|
+| 1 | テストコードのロジックレビュー | アサーションが仕様を正しく検証しているか |
+| 2 | エッジケースの網羅性 | 境界条件が適切にテストされているか |
+| 3 | イベント検証 | 状態変更を伴う関数のイベント発火確認 |
+| 4 | テストの独立性 | 各テストが他に依存せず実行可能か |
+
 ### PIR記録
 
 | PIR ID | Day | タスク | 判定 | 日付 |
 |--------|-----|-------|------|------|
 | PIR-001 | Day 1 | L1Vault Security Corrections | ⚠️ CONDITIONAL PASS | 2025-12-22 |
 | PIR-003 | Day 2-4 | SHA3-256 Native STARK実装 | ⚠️ CONDITIONAL PASS | 2025-12-22 |
-| PIR-002 | Day 5 | Day 1テスト追加 (118→133 tests) | ✅ PASS | 2025-12-22 |
+| PIR-002 | Day 5 | Day 1テスト追加 (118→140 tests) | ✅ PASS | 2025-12-22 |
 | PIR-004 | Day 6-7 | SR_0/SR_1計算式 | ⬜ 予定 | - |
 
 ---
@@ -47,6 +58,7 @@
 
 | Date | 変更内容 |
 |------|---------|
+| 2025-12-22 13:35 | v2.4: PIR-002コードレビュー完了（140 tests PASS）- PIR必須レビュー項目追加 |
 | 2025-12-22 13:15 | v2.3: PIR-002完了（Day 5 Unit Test Update） - 133 tests PASS |
 | 2025-12-22 12:50 | v2.2: PIR-003完了（Phase 2 Native STARK） - CONDITIONAL PASS |
 | 2025-12-22 | v2.1: PIR必須ルール追加（CEO承認） |
@@ -72,7 +84,7 @@
 | 2-4 | ✅ SHA3-256 Pure Solidity実装 | Cryptographer, Engineer | ✅ Complete | ⚠️ PIR-003 |
 | 2-4 | ✅ SparseMerkleTree SHA3-256対応 | Engineer | ✅ Complete | ⚠️ PIR-003 |
 | 2-4 | ✅ 全テストスイート更新 (118/118 Pass) | QA, Engineer | ✅ Complete | ⚠️ PIR-003 |
-| 5 | ✅ 単体テスト更新・検証（Day 1機能 +15テスト） | QA, Engineer | ✅ Complete | ✅ PIR-002 |
+| 5 | ✅ 単体テスト更新・検証（+22テスト、コードレビュー含む） | QA, Engineer | ✅ Complete | ✅ PIR-002 |
 
 ### Day 6-10: 仕様完全準拠
 
@@ -161,7 +173,7 @@ Project Aegis
 | 1.1.5 | Time Lock機構 | ✅ | 完了 | - | 24h/7d確認済 |
 | 1.1.6 | Emergency Path実装 | ✅ | 完了 | - | Bond計算確認済 |
 | 1.1.7 | Challenge/Slashing実装 | ✅ | 完了 | PIR-001 | Day 1修正完了 |
-| 1.1.8 | 単体テスト | ✅ | 完了 | PIR-002 | 133テスト全パス |
+| 1.1.8 | 単体テスト | ✅ | 完了 | PIR-002 | 140テスト全パス |
 | 1.1.9 | 統合テスト | ⬜ | Day 10 | PIR-006 | E2Eシナリオ確認 |
 
 ### PIR-003 未解決事項（Day 11で対応）
@@ -176,25 +188,27 @@ Project Aegis
 
 ## テスト結果サマリー
 
-### 最新テスト実行（2025-12-22 13:10 JST）
+### 最新テスト実行（2025-12-22 13:35 JST）
 
 ```
-Ran 5 test suites in 5.89s: 133 tests passed, 0 failed, 0 skipped
+Ran 5 test suites: 140 tests passed, 0 failed, 0 skipped
 
 - SPHINCSVerifierTest: 13/13 ✅
 - QuantumShieldTest: 35/35 ✅
-- L1VaultIntegrationTest: 31/31 ✅ (+15 Day 5)
+- L1VaultIntegrationTest: 38/38 ✅ (+22 Day 5 + コードレビュー)
 - SHA3_256Test: 24/24 ✅
 - SparseMerkleTreeTest: 30/30 ✅
 ```
 
-### Day 5追加テスト (15テスト)
+### Day 5追加テスト (22テスト)
 
 | カテゴリ | テスト数 | 対象 |
 |---------|---------|------|
-| Defense Period | 5 | 48時間期限、Prover権限 |
-| Auto-Resolve | 2 | 自動解決メカニズム |
-| Resolution | 3 | Slashing配分、Defender報酬 |
+| Defense Period | 6 | 48時間期限、Prover権限、境界値 |
+| Auto-Resolve | 3 | 自動解決メカニズム、境界値 |
+| Resolution | 4 | Slashing配分、Defender報酬、Insurance/Burn |
+| Event Verification | 3 | ChallengeFiled, DefenseSubmitted, ChallengeResolved |
+| Slashing | 2 | 定数、N²×10%計算式 |
 | Integration | 1 | Challenge完全フロー |
 | Edge Cases | 3 | 最小Bond、二重Challenge |
 
@@ -209,7 +223,7 @@ Ran 5 test suites in 5.89s: 133 tests passed, 0 failed, 0 skipped
 4. ~~SHA3-256 Pure Solidity実装~~ [PIR-003]
 5. ~~SparseMerkleTree SHA3-256対応~~ [PIR-003]
 6. ~~全テストスイート更新 (118/118 Pass)~~ [PIR-003]
-7. ~~単体テスト更新 (118→133, +15テスト)~~ [PIR-002]
+7. ~~単体テスト更新 (118→140, +22テスト、コードレビュー含む)~~ [PIR-002]
 
 ### 次のステップ（Day 6-7）🔄
 1. **SR_0/SR_1計算式実装** - 乱数ソース計算式 [PIR-004]
@@ -220,6 +234,18 @@ Ran 5 test suites in 5.89s: 133 tests passed, 0 failed, 0 skipped
 2. 統合テスト（Day 10）[PIR-006]
 3. ガス最適化（Day 11）[PIR-007] - SHA3-256対応
 4. Fuzzテスト（Day 12）[PIR-008]
+
+---
+
+## PIR-002教訓
+
+### プロセス改善
+
+| # | 教訓 | 対応 |
+|---|------|------|
+| 1 | テスト実行だけでは不十分 | テストコード自体の品質レビューを必須化 |
+| 2 | イベント検証の欠如 | 状態変更を伴う関数には必ずイベント検証テストを追加 |
+| 3 | 境界値テスト不足 | 時間制限のある機能には境界値テストを必須化 |
 
 ---
 
