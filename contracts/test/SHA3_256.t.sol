@@ -208,7 +208,7 @@ contract SHA3_256Test is Test {
     // =========================================================================
 
     /// @notice Benchmark SHA3-256 gas cost for 32 bytes
-    function test_Gas_SHA3_32Bytes() public view {
+    function test_Gas_SHA3_32Bytes() public {
         bytes memory input = abi.encodePacked(bytes32(uint256(1)));
         
         uint256 gasBefore = gasleft();
@@ -223,7 +223,7 @@ contract SHA3_256Test is Test {
     }
 
     /// @notice Benchmark SHA3-256 gas cost for 64 bytes
-    function test_Gas_SHA3_64Bytes() public view {
+    function test_Gas_SHA3_64Bytes() public {
         bytes memory input = abi.encodePacked(bytes32(uint256(1)), bytes32(uint256(2)));
         
         uint256 gasBefore = gasleft();
@@ -238,7 +238,7 @@ contract SHA3_256Test is Test {
     }
 
     /// @notice Compare SHA3-256 vs keccak256 gas
-    function test_Gas_Comparison() public view {
+    function test_Gas_Comparison() public {
         bytes memory input = "test input for gas comparison";
         
         uint256 gasBefore = gasleft();
@@ -294,7 +294,7 @@ contract SHA3_256Test is Test {
 
     /// @notice Fuzz test - all inputs should produce non-zero output
     function testFuzz_SHA3_NonZeroOutput(bytes memory input) public pure {
-        bytes32 result = SHA3_256.hash(input);
+        SHA3_256.hash(input);
         // Note: Technically a hash could be zero, but probability is 1/2^256
         // For practical purposes, we just verify the function doesn't revert
         assertTrue(true, "Hash completed without revert");
