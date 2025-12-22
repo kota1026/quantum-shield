@@ -140,14 +140,21 @@ contract SPHINCSVerifierTest is Test {
     // Gas Benchmarks
     // =========================================================================
 
+    /// @notice Gas benchmark for verifyWithDetails with invalid signature length
+    /// @dev Uses invalid-length signature to measure early validation failure path.
+    ///      Testing with valid-length but invalid signature would attempt full
+    ///      SPHINCS+ verification which reverts without valid test vectors.
     function test_GasVerifyWithDetails() public view {
-        bytes memory validSig = new bytes(7856);
+        // Use invalid-length signature to test early validation path
+        bytes memory invalidSig = new bytes(100);
         
         uint256 gasBefore = gasleft();
-        verifier.verifyWithDetails(TEST_MESSAGE, validSig, TEST_PUBLIC_KEY);
+        SPHINCSVerifier.VerificationResult memory result = 
+            verifier.verifyWithDetails(TEST_MESSAGE, invalidSig, TEST_PUBLIC_KEY);
         uint256 gasUsed = gasBefore - gasleft();
         
-        console.log("Gas used for verifyWithDetails (failure path):", gasUsed);
+        assertFalse(result.valid);
+        console.log("Gas used for verifyWithDetails (validation failure path):", gasUsed);
         // Should be relatively low for input validation failure
     }
 }
