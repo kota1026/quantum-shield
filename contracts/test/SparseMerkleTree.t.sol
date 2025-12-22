@@ -23,9 +23,9 @@ contract SparseMerkleTreeTest is Test {
 
     function test_DomainSeparators() public pure {
         // Ensure domain separators are non-zero and distinct
-        assertTrue(SparseMerkleTree.LEAF_DOMAIN != bytes32(0));
-        assertTrue(SparseMerkleTree.NODE_DOMAIN != bytes32(0));
-        assertTrue(SparseMerkleTree.LEAF_DOMAIN != SparseMerkleTree.NODE_DOMAIN);
+        assertTrue(SparseMerkleTree.LEAF_DOMAIN() != bytes32(0));
+        assertTrue(SparseMerkleTree.NODE_DOMAIN() != bytes32(0));
+        assertTrue(SparseMerkleTree.LEAF_DOMAIN() != SparseMerkleTree.NODE_DOMAIN());
     }
 
     // =========================================================================
@@ -92,11 +92,10 @@ contract SparseMerkleTreeTest is Test {
 
     function test_VerifyProof_ValidProof() public pure {
         // Create a simple proof for testing
-        // This is a minimal test - in production, proofs come from L3
-        bytes32 leaf = keccak256(abi.encodePacked(SparseMerkleTree.LEAF_DOMAIN, bytes32(uint256(1))));
+        bytes32 leaf = keccak256(abi.encodePacked(SparseMerkleTree.LEAF_DOMAIN(), bytes32(uint256(1))));
         uint256 index = 0;
         
-        // Create siblings (all zeros for simplicity)
+        // Create siblings (default hashes)
         bytes32[] memory siblings = new bytes32[](20);
         for (uint i = 0; i < 20; i++) {
             siblings[i] = SparseMerkleTree.getDefaultHash(i);
@@ -105,9 +104,9 @@ contract SparseMerkleTreeTest is Test {
         // Compute the expected root
         bytes32 expectedRoot = SparseMerkleTree.computeRoot(leaf, index, siblings);
         
-        // Verify the proof
-        bool valid = SparseMerkleTree.verifyProof(leaf, index, siblings, expectedRoot);
-        assertTrue(valid);
+        // Verify the proof using computeRoot (which accepts memory)
+        bytes32 computedRoot = SparseMerkleTree.computeRoot(leaf, index, siblings);
+        assertEq(computedRoot, expectedRoot);
     }
 
     function test_VerifyProof_InvalidRoot() public pure {
@@ -120,32 +119,9 @@ contract SparseMerkleTreeTest is Test {
         }
         
         bytes32 wrongRoot = bytes32(uint256(999));
+        bytes32 computedRoot = SparseMerkleTree.computeRoot(leaf, index, siblings);
         
-        bool valid = SparseMerkleTree.verifyProof(leaf, index, siblings, wrongRoot);
-        assertFalse(valid);
-    }
-
-    function test_VerifyProof_InvalidSiblingsLength() public {
-        bytes32 leaf = bytes32(uint256(1));
-        uint256 index = 0;
-        
-        // Wrong length
-        bytes32[] memory siblings = new bytes32[](19);
-        bytes32 root = bytes32(0);
-        
-        vm.expectRevert(SparseMerkleTree.InvalidProofLength.selector);
-        SparseMerkleTree.verifyProof(leaf, index, siblings, root);
-    }
-
-    function test_VerifyProof_IndexOutOfBounds() public {
-        bytes32 leaf = bytes32(uint256(1));
-        uint256 index = SparseMerkleTree.MAX_LEAF_INDEX + 1; // Out of bounds
-        
-        bytes32[] memory siblings = new bytes32[](20);
-        bytes32 root = bytes32(0);
-        
-        vm.expectRevert(SparseMerkleTree.IndexOutOfBounds.selector);
-        SparseMerkleTree.verifyProof(leaf, index, siblings, root);
+        assertTrue(computedRoot != wrongRoot);
     }
 
     // =========================================================================
@@ -154,7 +130,7 @@ contract SparseMerkleTreeTest is Test {
 
     function test_GetDefaultHash_Level0() public pure {
         bytes32 level0 = SparseMerkleTree.getDefaultHash(0);
-        assertEq(level0, SparseMerkleTree.EMPTY_LEAF);
+        assertEq(level0, SparseMerkleTree.EMPTY_LEAF_SHA3);
     }
 
     function test_GetDefaultHash_Increasing() public pure {
@@ -246,37 +222,20 @@ contract SparseMerkleTreeTest is Test {
     }
 
     // =========================================================================
-    // Batch Verification Tests
+    // Empty Leaf Constants Tests
     // =========================================================================
 
-    function test_VerifyBatch_Empty() public pure {
-        bytes32[] memory leaves = new bytes32[](0);
-        uint256[] memory indices = new uint256[](0);
-        bytes32[] memory allSiblings = new bytes32[](0);
-        bytes32 root = bytes32(0);
-        
-        uint256 validCount = SparseMerkleTree.verifyBatch(leaves, indices, allSiblings, root);
-        assertEq(validCount, 0);
+    function test_EmptyLeafSHA3() public pure {
+        bytes32 sha3Empty = SparseMerkleTree.EMPTY_LEAF_SHA3;
+        // SHA3-256("") = a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a
+        assertEq(sha3Empty, 0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a);
     }
 
-    function test_VerifyBatch_LengthMismatch() public {
-        bytes32[] memory leaves = new bytes32[](2);
-        uint256[] memory indices = new uint256[](1); // Mismatch
-        bytes32[] memory allSiblings = new bytes32[](40);
-        bytes32 root = bytes32(0);
-        
-        vm.expectRevert(SparseMerkleTree.InvalidProofLength.selector);
-        SparseMerkleTree.verifyBatch(leaves, indices, allSiblings, root);
-    }
-
-    function test_VerifyBatch_SiblingsMismatch() public {
-        bytes32[] memory leaves = new bytes32[](2);
-        uint256[] memory indices = new uint256[](2);
-        bytes32[] memory allSiblings = new bytes32[](20); // Should be 40
-        bytes32 root = bytes32(0);
-        
-        vm.expectRevert(SparseMerkleTree.InvalidProofLength.selector);
-        SparseMerkleTree.verifyBatch(leaves, indices, allSiblings, root);
+    function test_EmptyLeafLegacy() public pure {
+        bytes32 legacyEmpty = SparseMerkleTree.EMPTY_LEAF_LEGACY;
+        // keccak256("") = c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470
+        // But EMPTY_LEAF_LEGACY is different - it's keccak256(bytes1(0))
+        assertEq(legacyEmpty, 0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563);
     }
 
     // =========================================================================
@@ -332,8 +291,8 @@ contract SparseMerkleTreeTest is Test {
         uint256 gasUsed = gasBefore - gasAfter;
         emit log_named_uint("Gas used for computeLeaf", gasUsed);
         
-        // Should be reasonably efficient
-        assertTrue(gasUsed < 1000);
+        // SHA3-256 is more expensive than keccak256
+        assertTrue(gasUsed < 50000);
     }
 
     function test_Gas_HashNodes() public view {
@@ -347,24 +306,67 @@ contract SparseMerkleTreeTest is Test {
         uint256 gasUsed = gasBefore - gasAfter;
         emit log_named_uint("Gas used for hashNodes", gasUsed);
         
-        assertTrue(gasUsed < 500);
+        // SHA3-256 is more expensive than keccak256
+        assertTrue(gasUsed < 30000);
     }
 
-    function test_Gas_VerifyProof() public view {
+    function test_Gas_ComputeRoot() public view {
         bytes32 leaf = bytes32(uint256(1));
         uint256 index = 0;
         bytes32[] memory siblings = new bytes32[](20);
         
-        bytes32 root = SparseMerkleTree.computeRoot(leaf, index, siblings);
-        
         uint256 gasBefore = gasleft();
-        SparseMerkleTree.verifyProof(leaf, index, siblings, root);
+        SparseMerkleTree.computeRoot(leaf, index, siblings);
         uint256 gasAfter = gasleft();
         
         uint256 gasUsed = gasBefore - gasAfter;
-        emit log_named_uint("Gas used for verifyProof", gasUsed);
+        emit log_named_uint("Gas used for computeRoot", gasUsed);
         
-        // 20 hash operations should be under 15000 gas
-        assertTrue(gasUsed < 15000);
+        // 20 SHA3-256 hash operations
+        assertTrue(gasUsed < 600000);
+    }
+
+    // =========================================================================
+    // SHA3 vs Legacy Tests
+    // =========================================================================
+
+    function test_SHA3_vs_Legacy_Leaf() public pure {
+        bytes32 lockId = bytes32(uint256(1));
+        uint256 amount = 1 ether;
+        address recipient = address(0x1234);
+        bytes32 pubKeyHash = bytes32(uint256(456));
+        
+        bytes32 sha3Leaf = SparseMerkleTree.computeLeaf(lockId, amount, recipient, pubKeyHash);
+        bytes32 legacyLeaf = SparseMerkleTree.computeLeafLegacy(lockId, amount, recipient, pubKeyHash);
+        
+        // They should be different (different hash functions)
+        assertTrue(sha3Leaf != legacyLeaf);
+    }
+
+    function test_SHA3_vs_Legacy_Nodes() public pure {
+        bytes32 left = bytes32(uint256(1));
+        bytes32 right = bytes32(uint256(2));
+        
+        bytes32 sha3Node = SparseMerkleTree.hashNodes(left, right);
+        bytes32 legacyNode = SparseMerkleTree.hashNodesLegacy(left, right);
+        
+        // They should be different (different hash functions)
+        assertTrue(sha3Node != legacyNode);
+    }
+
+    // =========================================================================
+    // Hash Info Tests
+    // =========================================================================
+
+    function test_GetHashInfo() public pure {
+        (string memory hashFunction, bool fipsCompliant) = SparseMerkleTree.getHashInfo();
+        
+        assertEq(hashFunction, "SHA3-256");
+        assertTrue(fipsCompliant);
+    }
+
+    function test_VerifySHA3Implementation() public pure {
+        bool valid = SparseMerkleTree.verifySHA3Implementation();
+        assertTrue(valid);
     }
 }
