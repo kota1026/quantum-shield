@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {SHA3_256} from "./SHA3_256.sol";
+
 /// @title SparseMerkleTree - Optimized SMT for Quantum Shield
 /// @notice Sparse Merkle Tree implementation for L1 state verification
-/// @dev Implements SMT with depth 20 as specified in UNIFIED_SPEC_v2.0
+/// @dev Implements SMT with depth 20 using SHA3-256 (FIPS 202)
 ///
 /// Architecture:
 /// ┌─────────────────────────────────────────────────────────────────────┐
@@ -13,17 +15,24 @@ pragma solidity ^0.8.20;
 /// │   ├── [0] ────────────────────────────────────────                 │
 /// │   │    ├── [00] ─────────────────────                              │
 /// │   │    │    ├── ...                                                │
-/// │   │    │    └── Leaf: H(lockId || amount || recipient || pubkey)   │
+/// │   │    │    └── Leaf: SHA3(lockId || amount || recipient || pubkey)│
 /// │   │    └── [01] ─────────────────────                              │
 /// │   └── [1] ────────────────────────────────────────                 │
 /// │        └── ...                                                      │
 /// └─────────────────────────────────────────────────────────────────────┘
 ///
+/// IMPORTANT UPDATE (Day 2-4):
+/// - Changed from keccak256 to SHA3-256 for FIPS 202 compliance
+/// - SHA3-256 uses padding 0x06 (NIST standard)
+/// - keccak256 uses padding 0x01 (Ethereum standard)
+/// - This change is required for QUANTUM_SHIELD_UNIFIED_SPEC_v2.0 compliance
+///
 /// Features:
-/// - SHA3-256 hashing (FIPS 202 compliant)
+/// - SHA3-256 hashing (FIPS 202 compliant) ✅
 /// - Depth 20 (2^20 = 1,048,576 possible leaves)
 /// - Optimized proof verification
 /// - Domain separation for security
+/// - Backward compatibility mode (keccak256) for migration
 library SparseMerkleTree {
     // =========================================================================
     // Constants
@@ -36,13 +45,17 @@ library SparseMerkleTree {
     uint256 public constant MAX_LEAF_INDEX = (1 << TREE_DEPTH) - 1;
 
     /// @notice Empty leaf hash (SHA3-256 of empty bytes)
-    bytes32 public constant EMPTY_LEAF = 0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563;
+    /// @dev SHA3-256("") = 0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a
+    bytes32 public constant EMPTY_LEAF_SHA3 = 0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a;
+
+    /// @notice Legacy empty leaf hash (keccak256) for backward compatibility
+    bytes32 public constant EMPTY_LEAF_LEGACY = 0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563;
 
     /// @notice Domain separator for leaf hashing
-    bytes32 public constant LEAF_DOMAIN = keccak256("QS_SMT_LEAF_V1");
+    bytes32 public constant LEAF_DOMAIN = 0x51535f534d545f4c4541465f563100000000000000000000000000000000000000; // "QS_SMT_LEAF_V1"
 
     /// @notice Domain separator for node hashing
-    bytes32 public constant NODE_DOMAIN = keccak256("QS_SMT_NODE_V1");
+    bytes32 public constant NODE_DOMAIN = 0x51535f534d545f4e4f44455f563100000000000000000000000000000000000000; // "QS_SMT_NODE_V1"
 
     // =========================================================================
     // Structs
@@ -72,10 +85,10 @@ library SparseMerkleTree {
     error InvalidLeafData();
 
     // =========================================================================
-    // Core Functions
+    // Core Functions (SHA3-256)
     // =========================================================================
 
-    /// @notice Verify an SMT inclusion proof
+    /// @notice Verify an SMT inclusion proof using SHA3-256
     /// @param leaf The leaf value to verify
     /// @param index The leaf index in the tree
     /// @param siblings Array of sibling hashes (length = TREE_DEPTH)
@@ -136,7 +149,7 @@ library SparseMerkleTree {
         return computedHash == root;
     }
 
-    /// @notice Compute root from leaf and proof (for testing)
+    /// @notice Compute root from leaf and proof
     /// @param leaf The leaf value
     /// @param index The leaf index
     /// @param siblings Array of sibling hashes
@@ -166,20 +179,21 @@ library SparseMerkleTree {
     }
 
     // =========================================================================
-    // Hashing Functions
+    // Hashing Functions (SHA3-256)
     // =========================================================================
 
-    /// @notice Hash two child nodes into parent node
-    /// @dev Uses SHA3-256 with domain separation for security
+    /// @notice Hash two child nodes into parent node using SHA3-256
+    /// @dev FIPS 202 compliant - uses SHA3-256 with domain separation
     /// @param left Left child hash
     /// @param right Right child hash
     /// @return parent Parent node hash
     function hashNodes(bytes32 left, bytes32 right) internal pure returns (bytes32 parent) {
-        // Domain-separated hashing per UNIFIED_SPEC_v2.0
-        parent = keccak256(abi.encodePacked(NODE_DOMAIN, left, right));
+        // Domain-separated hashing using SHA3-256 (FIPS 202)
+        bytes memory data = abi.encodePacked(NODE_DOMAIN, left, right);
+        parent = SHA3_256.hash(data);
     }
 
-    /// @notice Compute leaf hash from lock data
+    /// @notice Compute leaf hash from lock data using SHA3-256
     /// @param lockId Unique lock identifier
     /// @param amount Locked amount in wei
     /// @param recipient Recipient address
@@ -191,14 +205,15 @@ library SparseMerkleTree {
         address recipient,
         bytes32 pubKeyHash
     ) internal pure returns (bytes32 leaf) {
-        // Domain-separated leaf hashing
-        leaf = keccak256(abi.encodePacked(
+        // Domain-separated leaf hashing using SHA3-256 (FIPS 202)
+        bytes memory data = abi.encodePacked(
             LEAF_DOMAIN,
             lockId,
             amount,
             recipient,
             pubKeyHash
-        ));
+        );
+        leaf = SHA3_256.hash(data);
     }
 
     /// @notice Compute leaf hash from struct
@@ -207,12 +222,43 @@ library SparseMerkleTree {
     function computeLeafFromData(LockData memory data) internal pure returns (bytes32 leaf) {
         if (data.lockId == bytes32(0)) revert InvalidLeafData();
         
-        leaf = keccak256(abi.encodePacked(
+        bytes memory encoded = abi.encodePacked(
             LEAF_DOMAIN,
             data.lockId,
             data.amount,
             data.recipient,
             data.pubKeyHash
+        );
+        leaf = SHA3_256.hash(encoded);
+    }
+
+    // =========================================================================
+    // Legacy Functions (keccak256) - For Migration
+    // =========================================================================
+
+    /// @notice Hash nodes using legacy keccak256 (for migration only)
+    /// @dev DEPRECATED - Use hashNodes() for new implementations
+    /// @param left Left child hash
+    /// @param right Right child hash
+    /// @return parent Parent node hash
+    function hashNodesLegacy(bytes32 left, bytes32 right) internal pure returns (bytes32 parent) {
+        parent = keccak256(abi.encodePacked(NODE_DOMAIN, left, right));
+    }
+
+    /// @notice Compute leaf using legacy keccak256 (for migration only)
+    /// @dev DEPRECATED - Use computeLeaf() for new implementations
+    function computeLeafLegacy(
+        bytes32 lockId,
+        uint256 amount,
+        address recipient,
+        bytes32 pubKeyHash
+    ) internal pure returns (bytes32 leaf) {
+        leaf = keccak256(abi.encodePacked(
+            LEAF_DOMAIN,
+            lockId,
+            amount,
+            recipient,
+            pubKeyHash
         ));
     }
 
@@ -224,9 +270,18 @@ library SparseMerkleTree {
     /// @param height Height of the subtree (0 = leaf level)
     /// @return hash The default hash at that height
     function getDefaultHash(uint256 height) internal pure returns (bytes32 hash) {
-        hash = EMPTY_LEAF;
+        hash = EMPTY_LEAF_SHA3;
         for (uint256 i = 0; i < height; i++) {
             hash = hashNodes(hash, hash);
+        }
+    }
+
+    /// @notice Get legacy default hash (keccak256) for migration
+    /// @dev DEPRECATED - Use getDefaultHash() for new implementations
+    function getDefaultHashLegacy(uint256 height) internal pure returns (bytes32 hash) {
+        hash = EMPTY_LEAF_LEGACY;
+        for (uint256 i = 0; i < height; i++) {
+            hash = hashNodesLegacy(hash, hash);
         }
     }
 
@@ -240,8 +295,9 @@ library SparseMerkleTree {
     /// @param lockId The lock identifier
     /// @return index The leaf index (mod 2^20)
     function getLeafIndex(bytes32 lockId) internal pure returns (uint256 index) {
-        // Use first 20 bits of lockId hash as index
-        index = uint256(keccak256(abi.encodePacked(lockId))) & MAX_LEAF_INDEX;
+        // Use SHA3-256 for index derivation
+        bytes32 indexHash = SHA3_256.hash(abi.encodePacked(lockId));
+        index = uint256(indexHash) & MAX_LEAF_INDEX;
     }
 
     /// @notice Verify proof and check leaf matches lock data
@@ -306,5 +362,22 @@ library SparseMerkleTree {
                 validCount++;
             }
         }
+    }
+
+    // =========================================================================
+    // Verification
+    // =========================================================================
+
+    /// @notice Verify SHA3-256 implementation is correct
+    /// @return valid True if SHA3-256 passes NIST test vector
+    function verifySHA3Implementation() internal pure returns (bool valid) {
+        return SHA3_256.verifySHA3Implementation();
+    }
+
+    /// @notice Get hash function info
+    /// @return hashFunction Name of hash function
+    /// @return fipsCompliant FIPS 202 compliance status
+    function getHashInfo() internal pure returns (string memory hashFunction, bool fipsCompliant) {
+        return ("SHA3-256", true);
     }
 }
