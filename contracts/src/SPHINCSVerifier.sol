@@ -129,7 +129,7 @@ contract SPHINCSVerifier {
         bytes32 message,
         bytes calldata signature,
         bytes calldata publicKey
-    ) external view returns (bool valid) {
+    ) external pure returns (bool valid) {
         // Validate input lengths
         if (signature.length != SIGNATURE_SIZE) revert InvalidSignatureLength();
         if (publicKey.length != PUBLIC_KEY_SIZE) revert InvalidPublicKeyLength();
@@ -160,7 +160,7 @@ contract SPHINCSVerifier {
         bytes32[] calldata messages,
         bytes[] calldata signatures,
         bytes[] calldata publicKeys
-    ) external view returns (uint256 validCount) {
+    ) external returns (uint256 validCount) {
         if (messages.length != signatures.length || 
             signatures.length != publicKeys.length) {
             revert BatchSizeMismatch();
@@ -187,7 +187,7 @@ contract SPHINCSVerifier {
         bytes32 message,
         bytes calldata signature,
         bytes calldata publicKey
-    ) external view returns (VerificationResult memory result) {
+    ) external pure returns (VerificationResult memory result) {
         uint256 startGas = gasleft();
 
         if (signature.length != SIGNATURE_SIZE) {
