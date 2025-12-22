@@ -43,27 +43,70 @@ library SHA3_256 {
     /// @notice Number of Keccak-f rounds
     uint256 internal constant ROUNDS = 24;
 
-    /// @notice Round constants for Keccak-f[1600]
-    /// @dev Precomputed values for iota step
-    uint64[24] internal constant RC = [
-        0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
-        0x8000000080008000, 0x000000000000808b, 0x0000000080000001,
-        0x8000000080008081, 0x8000000000008009, 0x000000000000008a,
-        0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
-        0x000000008000808b, 0x800000000000008b, 0x8000000000008089,
-        0x8000000000008003, 0x8000000000008002, 0x8000000000000080,
-        0x000000000000800a, 0x800000008000000a, 0x8000000080008081,
-        0x8000000000008080, 0x0000000080000001, 0x8000000080008008
-    ];
+    // =========================================================================
+    // Round Constants Function
+    // =========================================================================
 
-    /// @notice Rotation offsets for rho step
-    uint256[25] internal constant RHO_OFFSETS = [
-         0,  1, 62, 28, 27,
-        36, 44,  6, 55, 20,
-         3, 10, 43, 25, 39,
-        41, 45, 15, 21,  8,
-        18,  2, 61, 56, 14
-    ];
+    /// @notice Get round constant for Keccak-f[1600]
+    /// @param round Round number (0-23)
+    /// @return Round constant value
+    function _getRoundConstant(uint256 round) internal pure returns (uint64) {
+        if (round == 0) return 0x0000000000000001;
+        if (round == 1) return 0x0000000000008082;
+        if (round == 2) return 0x800000000000808a;
+        if (round == 3) return 0x8000000080008000;
+        if (round == 4) return 0x000000000000808b;
+        if (round == 5) return 0x0000000080000001;
+        if (round == 6) return 0x8000000080008081;
+        if (round == 7) return 0x8000000000008009;
+        if (round == 8) return 0x000000000000008a;
+        if (round == 9) return 0x0000000000000088;
+        if (round == 10) return 0x0000000080008009;
+        if (round == 11) return 0x000000008000000a;
+        if (round == 12) return 0x000000008000808b;
+        if (round == 13) return 0x800000000000008b;
+        if (round == 14) return 0x8000000000008089;
+        if (round == 15) return 0x8000000000008003;
+        if (round == 16) return 0x8000000000008002;
+        if (round == 17) return 0x8000000000000080;
+        if (round == 18) return 0x000000000000800a;
+        if (round == 19) return 0x800000008000000a;
+        if (round == 20) return 0x8000000080008081;
+        if (round == 21) return 0x8000000000008080;
+        if (round == 22) return 0x0000000080000001;
+        return 0x8000000080008008; // round == 23
+    }
+
+    /// @notice Get rho offset for Keccak-f[1600]
+    /// @param i Lane index (0-24)
+    /// @return Rotation offset
+    function _getRhoOffset(uint256 i) internal pure returns (uint256) {
+        if (i == 0) return 0;
+        if (i == 1) return 1;
+        if (i == 2) return 62;
+        if (i == 3) return 28;
+        if (i == 4) return 27;
+        if (i == 5) return 36;
+        if (i == 6) return 44;
+        if (i == 7) return 6;
+        if (i == 8) return 55;
+        if (i == 9) return 20;
+        if (i == 10) return 3;
+        if (i == 11) return 10;
+        if (i == 12) return 43;
+        if (i == 13) return 25;
+        if (i == 14) return 39;
+        if (i == 15) return 41;
+        if (i == 16) return 45;
+        if (i == 17) return 15;
+        if (i == 18) return 21;
+        if (i == 19) return 8;
+        if (i == 20) return 18;
+        if (i == 21) return 2;
+        if (i == 22) return 61;
+        if (i == 23) return 56;
+        return 14; // i == 24
+    }
 
     // =========================================================================
     // Main Function
@@ -80,9 +123,9 @@ library SHA3_256 {
         uint256 dataLen = data.length;
         uint256 blockCount = (dataLen + 1) / RATE + 1; // +1 for padding
         
-        for (uint256 block = 0; block < blockCount; block++) {
+        for (uint256 blockIdx = 0; blockIdx < blockCount; blockIdx++) {
             // XOR block into state
-            uint256 offset = block * RATE;
+            uint256 offset = blockIdx * RATE;
             
             for (uint256 i = 0; i < 17; i++) { // 17 lanes = 136 bytes = RATE
                 uint64 lane = 0;
@@ -181,7 +224,7 @@ library SHA3_256 {
                 uint256 y = i / 5;
                 uint256 newX = y;
                 uint256 newY = (2 * x + 3 * y) % 5;
-                b[newX + 5 * newY] = _rotl64(s[i], RHO_OFFSETS[i]);
+                b[newX + 5 * newY] = _rotl64(s[i], _getRhoOffset(i));
             }
 
             // χ (chi) step
@@ -201,7 +244,7 @@ library SHA3_256 {
             }
 
             // ι (iota) step
-            s[0] ^= RC[round];
+            s[0] ^= _getRoundConstant(round);
         }
 
         return s;
@@ -213,6 +256,7 @@ library SHA3_256 {
 
     /// @notice 64-bit left rotation
     function _rotl64(uint64 x, uint256 n) internal pure returns (uint64) {
+        if (n == 0) return x;
         return (x << n) | (x >> (64 - n));
     }
 
