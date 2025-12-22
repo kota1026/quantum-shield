@@ -13,17 +13,17 @@ contract L1VaultIntegrationTest is Test {
     L1Vault public vault;
     SPHINCSVerifier public sphincsVerifier;
 
-    // Test accounts
-    address public admin = address(0xADMIN);
+    // Test accounts - using valid hex addresses
+    address public admin = address(0xAD01);
     address public user1 = address(0x1111);
     address public user2 = address(0x2222);
     
-    // Test prover addresses
-    address public prover1 = address(0xP001);
-    address public prover2 = address(0xP002);
-    address public prover3 = address(0xP003);
-    address public prover4 = address(0xP004);
-    address public prover5 = address(0xP005);
+    // Test prover addresses - using valid hex addresses
+    address public prover1 = address(0x5001);
+    address public prover2 = address(0x5002);
+    address public prover3 = address(0x5003);
+    address public prover4 = address(0x5004);
+    address public prover5 = address(0x5005);
 
     // Constants
     uint256 public constant MIN_LOCK_AMOUNT = 0.01 ether;
@@ -251,8 +251,8 @@ contract L1VaultIntegrationTest is Test {
         vm.prank(admin);
         vault.submitUnlock(lockId, amount, user2, stateRoot, smtProof, signatures, signers);
         
-        // Challenge the unlock
-        address challenger = address(0xCHAL);
+        // Challenge the unlock - using valid hex address
+        address challenger = address(0xC4A1);
         bytes memory fraudProof = abi.encodePacked("fraud_proof_data");
         
         vm.prank(challenger);
@@ -299,7 +299,7 @@ contract L1VaultIntegrationTest is Test {
 
     function test_SMT_ProofVerification() public pure {
         // Create a simple proof
-        bytes32 leaf = keccak256(abi.encodePacked(SparseMerkleTree.LEAF_DOMAIN, bytes32(uint256(1))));
+        bytes32 leaf = keccak256(abi.encodePacked(SparseMerkleTree.LEAF_DOMAIN(), bytes32(uint256(1))));
         uint256 index = 0;
         
         bytes32[] memory siblings = new bytes32[](20);
@@ -318,7 +318,7 @@ contract L1VaultIntegrationTest is Test {
     // =========================================================================
 
     function test_ProverRegistration() public {
-        address newProver = address(0xNEW);
+        address newProver = address(0x6001);
         bytes memory newPubKey = _generatePublicKey(6);
         
         vm.prank(admin);
@@ -346,7 +346,7 @@ contract L1VaultIntegrationTest is Test {
     // =========================================================================
 
     function test_OnlyAdmin_RegisterProver() public {
-        address newProver = address(0xNEW);
+        address newProver = address(0x7001);
         bytes memory newPubKey = _generatePublicKey(7);
         
         vm.prank(user1);
