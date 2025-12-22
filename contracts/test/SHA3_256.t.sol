@@ -162,8 +162,8 @@ contract SHA3_256Test is Test {
 
     /// @notice Test SMT empty leaf constant
     function test_SMT_EmptyLeaf() public pure {
-        bytes32 sha3Empty = SparseMerkleTree.EMPTY_LEAF_SHA3();
-        bytes32 legacyEmpty = SparseMerkleTree.EMPTY_LEAF_LEGACY();
+        bytes32 sha3Empty = SparseMerkleTree.EMPTY_LEAF_SHA3;
+        bytes32 legacyEmpty = SparseMerkleTree.EMPTY_LEAF_LEGACY;
         
         // Verify constants are correct
         assertEq(sha3Empty, 0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a);
