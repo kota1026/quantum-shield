@@ -200,10 +200,13 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Lock Functions
     // =========================================================================
 
-    function lock(address recipient, bytes calldata dilithiumPubKey) external payable whenNotPaused nonReentrant returns (bytes32 lockId) {
+    /// @notice Lock funds with default expiry (delegates to lockWithExpiry)
+    /// @dev No nonReentrant here since lockWithExpiry has it
+    function lock(address recipient, bytes calldata dilithiumPubKey) external payable whenNotPaused returns (bytes32 lockId) {
         return lockWithExpiry(recipient, dilithiumPubKey, block.timestamp + DEFAULT_LOCK_EXPIRY);
     }
 
+    /// @notice Lock funds with custom expiry
     function lockWithExpiry(address recipient, bytes calldata dilithiumPubKey, uint256 expiry) public payable whenNotPaused nonReentrant returns (bytes32 lockId) {
         if (msg.value < MIN_LOCK_AMOUNT) revert InsufficientAmount();
         if (totalLocked + msg.value > TVL_CAP) revert TVLCapExceeded();
