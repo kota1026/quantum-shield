@@ -1,7 +1,7 @@
-# Project Aegis - Work Breakdown Structure (WBS) v2.4
+# Project Aegis - Work Breakdown Structure (WBS) v2.5
 
-> **Version**: 2.4 (PIR-002 Code Review Complete)  
-> **Last Updated**: 2025-12-22 13:35 JST  
+> **Version**: 2.5 (PIR-004 SR_0/SR_1 Complete)  
+> **Last Updated**: 2025-12-22 14:30 JST  
 > **Project Duration**: 24 months  
 > **NOTICE**: 本WBSは正規ドキュメント（QUANTUM_SHIELD_*）に基づき再作成
 > **正規ドキュメント**:  
@@ -50,7 +50,8 @@
 | PIR-001 | Day 1 | L1Vault Security Corrections | ⚠️ CONDITIONAL PASS | 2025-12-22 |
 | PIR-003 | Day 2-4 | SHA3-256 Native STARK実装 | ⚠️ CONDITIONAL PASS | 2025-12-22 |
 | PIR-002 | Day 5 | Day 1テスト追加 (118→140 tests) | ✅ PASS | 2025-12-22 |
-| PIR-004 | Day 6-7 | SR_0/SR_1計算式 | ⬜ 予定 | - |
+| PIR-004 | Day 6-7 | SR_0/SR_1計算式 + StateRootCalculator | ✅ PASS | 2025-12-22 |
+| PIR-005 | Day 8-9 | VRF統合 (Chainlink) | ⬜ 予定 | - |
 
 ---
 
@@ -58,6 +59,7 @@
 
 | Date | 変更内容 |
 |------|---------|
+| 2025-12-22 14:30 | v2.5: PIR-004完了（186 tests PASS）- SR_0/SR_1実装、StateRootCalculator、ReentrancyGuard修正 |
 | 2025-12-22 13:35 | v2.4: PIR-002コードレビュー完了（140 tests PASS）- PIR必須レビュー項目追加 |
 | 2025-12-22 13:15 | v2.3: PIR-002完了（Day 5 Unit Test Update） - 133 tests PASS |
 | 2025-12-22 12:50 | v2.2: PIR-003完了（Phase 2 Native STARK） - CONDITIONAL PASS |
@@ -74,7 +76,7 @@
 > **計画期間**: Day 1-14  
 > **PIR必須**: 各Day完了時にPIR実施
 
-### Day 1-5: セキュリティ最優先 ✅ ALL Complete
+### Day 1-7: セキュリティ最優先 ✅ ALL Complete
 
 | Day | タスク | 担当 | Status | PIR |
 |-----|--------|------|--------|-----|
@@ -85,13 +87,15 @@
 | 2-4 | ✅ SparseMerkleTree SHA3-256対応 | Engineer | ✅ Complete | ⚠️ PIR-003 |
 | 2-4 | ✅ 全テストスイート更新 (118/118 Pass) | QA, Engineer | ✅ Complete | ⚠️ PIR-003 |
 | 5 | ✅ 単体テスト更新・検証（+22テスト、コードレビュー含む） | QA, Engineer | ✅ Complete | ✅ PIR-002 |
+| 6-7 | ✅ SR_0/SR_1計算式実装 | Cryptographer, Engineer | ✅ Complete | ✅ PIR-004 |
+| 6-7 | ✅ StateRootCalculatorライブラリ (38テスト) | Engineer | ✅ Complete | ✅ PIR-004 |
+| 6-7 | ✅ L1Vault SR統合 + ReentrancyGuard修正 | Engineer | ✅ Complete | ✅ PIR-004 |
 
-### Day 6-10: 仕様完全準拠
+### Day 8-10: 仕様完全準拠 🔄 In Progress
 
 | Day | タスク | 担当 | Status | PIR |
 |-----|--------|------|--------|-----|
-| 6-7 | SR_0/SR_1計算式実装 | Cryptographer, Engineer | 🔄 Next | ⬜ PIR-004 |
-| 8-9 | VRF統合 (Chainlink) | Engineer, DevOps | ⬜ Pending | ⬜ PIR-005 |
+| 8-9 | VRF統合 (Chainlink) | Engineer, DevOps | 🔄 Next | ⬜ PIR-005 |
 | 10 | 統合テスト | QA, Engineer | ⬜ Pending | ⬜ PIR-006 |
 
 ### Day 11-14: 品質保証
@@ -145,7 +149,7 @@ Project Aegis
 
 **Duration**: Month 1-6  
 **TVL Cap**: $1M  
-**Status**: 14日間修正計画実行中（Day 5完了 → Day 6開始）
+**Status**: 14日間修正計画実行中（Day 7完了 → Day 8開始）
 
 ### 1.1 Smart Contract Development
 
@@ -156,6 +160,7 @@ Project Aegis
 | User署名 | Dilithium-III (FIPS 204) | ⚠️要確認 |
 | Prover署名 | SPHINCS+-128s (FIPS 205, 8KB/署名) | ⚠️要確認 |
 | State Hash | SHA3-256 (FIPS 202) | ✅ Complete (PIR-003) |
+| State Root (SR_0/SR_1) | SHA3-256 based | ✅ Complete (PIR-004) |
 | Normal Time Lock | 24時間 | ✅ 完了 |
 | Emergency Time Lock | 7日 | ✅ 完了 |
 | Emergency Bond | MAX(0.5 ETH, amount × 5%) | ✅ 完了 |
@@ -167,14 +172,26 @@ Project Aegis
 | ID | Task | 仕様準拠 | Status | PIR | Notes |
 |----|------|---------|--------|-----|-------|
 | 1.1.1 | L1 Vault Contract設計 | ✅ | 完了 | PIR-001 | Day 1修正完了 |
-| 1.1.2 | L1 Vault Contract実装 | ✅ | 完了 | PIR-001 | Day 1修正完了 |
+| 1.1.2 | L1 Vault Contract実装 | ✅ | 完了 | PIR-001/004 | Day 1修正 + SR統合 |
 | 1.1.3 | SPHINCS+検証コントラクト | ⚠️要確認 | 完了 | - | 8KB署名対応確認 |
 | 1.1.4 | SMT検証ロジック | ✅ | 完了 | PIR-003 | SHA3-256移行完了 |
 | 1.1.5 | Time Lock機構 | ✅ | 完了 | - | 24h/7d確認済 |
 | 1.1.6 | Emergency Path実装 | ✅ | 完了 | - | Bond計算確認済 |
 | 1.1.7 | Challenge/Slashing実装 | ✅ | 完了 | PIR-001 | Day 1修正完了 |
-| 1.1.8 | 単体テスト | ✅ | 完了 | PIR-002 | 140テスト全パス |
-| 1.1.9 | 統合テスト | ⬜ | Day 10 | PIR-006 | E2Eシナリオ確認 |
+| 1.1.8 | StateRootCalculator | ✅ | 完了 | PIR-004 | SR_0/SR_1計算 |
+| 1.1.9 | 単体テスト | ✅ | 完了 | PIR-002/004 | 186テスト全パス |
+| 1.1.10 | 統合テスト | ⬜ | Day 10 | PIR-006 | E2Eシナリオ確認 |
+
+### PIR-004 実装内容
+
+| # | 実装 | 詳細 | コミット |
+|---|------|------|---------|
+| 1 | StateRootCalculator Library | SR_0/SR_1計算、lockId生成 | 7888d55 |
+| 2 | L1Vault SR統合 | Lock/UnlockにSR組み込み | 17f2ea0 |
+| 3 | StateRootCalculator Tests | 38テスト | 2b1817e |
+| 4 | L1VaultIntegration SR Tests | 8テスト追加 | 6d7e59c |
+| 5 | Stack too deep修正 | ヘルパー関数抽出 | 78a33e3 |
+| 6 | ReentrancyGuard修正 | 重複modifier削除 | 843e25f |
 
 ### PIR-003 未解決事項（Day 11で対応）
 
@@ -188,17 +205,25 @@ Project Aegis
 
 ## テスト結果サマリー
 
-### 最新テスト実行（2025-12-22 13:35 JST）
+### 最新テスト実行（2025-12-22 14:30 JST）
 
 ```
-Ran 5 test suites: 140 tests passed, 0 failed, 0 skipped
+Ran 6 test suites: 186 tests passed, 0 failed, 0 skipped
 
 - SPHINCSVerifierTest: 13/13 ✅
 - QuantumShieldTest: 35/35 ✅
-- L1VaultIntegrationTest: 38/38 ✅ (+22 Day 5 + コードレビュー)
+- L1VaultIntegrationTest: 46/46 ✅ (+8 SR_0/SR_1 tests)
 - SHA3_256Test: 24/24 ✅
 - SparseMerkleTreeTest: 30/30 ✅
+- StateRootCalculatorTest: 38/38 ✅ (NEW - PIR-004)
 ```
+
+### Day 6-7追加テスト (46テスト)
+
+| カテゴリ | テスト数 | 対象 |
+|---------|---------|------|
+| StateRootCalculator | 38 | SR_0/SR_1計算、lockId生成、検証 |
+| L1Vault SR Integration | 8 | Lock時SR_0計算、SR_1依存性、決定論性 |
 
 ### Day 5追加テスト (22テスト)
 
@@ -224,22 +249,37 @@ Ran 5 test suites: 140 tests passed, 0 failed, 0 skipped
 5. ~~SparseMerkleTree SHA3-256対応~~ [PIR-003]
 6. ~~全テストスイート更新 (118/118 Pass)~~ [PIR-003]
 7. ~~単体テスト更新 (118→140, +22テスト、コードレビュー含む)~~ [PIR-002]
+8. ~~SR_0/SR_1計算式実装~~ [PIR-004]
+9. ~~StateRootCalculatorライブラリ~~ [PIR-004]
+10. ~~L1Vault SR統合~~ [PIR-004]
+11. ~~ReentrancyGuard修正~~ [PIR-004]
+12. ~~全テスト186件パス~~ [PIR-004]
 
-### 次のステップ（Day 6-7）🔄
-1. **SR_0/SR_1計算式実装** - 乱数ソース計算式 [PIR-004]
-2. **テスト追加** - SR計算のテスト
+### 次のステップ（Day 8-9）🔄
+1. **VRF統合 (Chainlink)** [PIR-005]
+2. **SR_0/SR_1へのVRF値組み込み**
+3. **テスト追加** - VRF統合テスト
 
-### 今後（Day 8以降）
-1. VRF統合（Day 8-9）[PIR-005]
-2. 統合テスト（Day 10）[PIR-006]
-3. ガス最適化（Day 11）[PIR-007] - SHA3-256対応
-4. Fuzzテスト（Day 12）[PIR-008]
+### 今後（Day 10以降）
+1. 統合テスト（Day 10）[PIR-006]
+2. ガス最適化（Day 11）[PIR-007] - SHA3-256対応
+3. Fuzzテスト（Day 12）[PIR-008]
+4. 外部レビュー（Day 13）[PIR-009]
+5. 最終検証（Day 14）[PIR-010]
 
 ---
 
-## PIR-002教訓
+## PIR-004教訓
 
-### プロセス改善
+### 技術的注意点
+
+| # | 教訓 | 対応 |
+|---|------|------|
+| 1 | Stack too deep問題 | 複雑な関数はヘルパー関数に分割 |
+| 2 | ReentrancyGuard重複 | 委譲パターンでは呼び出し先のみにmodifier |
+| 3 | ドメインセパレータ | SHA3-256ではinternal定数としてアクセス |
+
+### プロセス改善（PIR-002より継続）
 
 | # | 教訓 | 対応 |
 |---|------|------|
