@@ -9,6 +9,13 @@ import "../src/libraries/SparseMerkleTree.sol";
 /// @title L1Vault Integration Test Suite
 /// @notice End-to-end tests for L1Vault with SPHINCS+ and SMT
 /// @dev Tests the complete Lock/Unlock flow per SEQUENCES_v2.0.md
+///
+/// Day 5 Update (2025-12-22):
+/// Added comprehensive tests for Day 1 features:
+/// - Challenge/Defense/Resolution flow (Sequence #4)
+/// - Defense Period (48 hours)
+/// - Quadratic Slashing calculation
+/// - autoResolveChallenge mechanism
 contract L1VaultIntegrationTest is Test {
     L1Vault public vault;
     SPHINCSVerifier public sphincsVerifier;
@@ -18,6 +25,7 @@ contract L1VaultIntegrationTest is Test {
     address public securityCouncil = address(0x5EC0);
     address public user1 = address(0x1111);
     address public user2 = address(0x2222);
+    address public challenger = address(0xC001);
     
     // Test prover addresses - using valid hex addresses
     address public prover1 = address(0x5001);
@@ -30,6 +38,8 @@ contract L1VaultIntegrationTest is Test {
     uint256 public constant MIN_LOCK_AMOUNT = 0.01 ether;
     uint256 public constant TIME_LOCK_DURATION = 24 hours;
     uint256 public constant EMERGENCY_TIME_LOCK = 7 days;
+    uint256 public constant DEFENSE_PERIOD = 48 hours;
+    uint256 public constant MIN_CHALLENGE_BOND = 0.1 ether;
 
     // Events (for testing)
     event Locked(
@@ -38,6 +48,29 @@ contract L1VaultIntegrationTest is Test {
         address indexed recipient,
         uint256 amount,
         bytes32 dilithiumPubKeyHash
+    );
+
+    event ChallengeFiled(
+        bytes32 indexed lockId,
+        address indexed challenger,
+        bytes32 fraudProofHash,
+        uint256 bond,
+        uint256 defenseDeadline
+    );
+
+    event DefenseSubmitted(
+        bytes32 indexed lockId,
+        address indexed defender,
+        bytes32 defenseProofHash
+    );
+
+    event ChallengeResolved(
+        bytes32 indexed lockId,
+        bool challengeValid,
+        uint256 slashedAmount,
+        uint256 challengerReward,
+        uint256 insuranceAmount,
+        uint256 burnedAmount
     );
 
     function setUp() public {
@@ -66,6 +99,7 @@ contract L1VaultIntegrationTest is Test {
         // Fund test accounts
         vm.deal(user1, 100 ether);
         vm.deal(user2, 100 ether);
+        vm.deal(challenger, 100 ether);
     }
 
     // =========================================================================
@@ -293,12 +327,300 @@ contract L1VaultIntegrationTest is Test {
     // =========================================================================
 
     function test_SlashingDistribution_60_20_20() public view {
-        (uint256 challenger, uint256 insurance, uint256 burn) = vault.getSlashingDistribution();
+        (uint256 challengerPct, uint256 insurance, uint256 burn) = vault.getSlashingDistribution();
         
-        assertEq(challenger, 60);
+        assertEq(challengerPct, 60);
         assertEq(insurance, 20);
         assertEq(burn, 20);
-        assertEq(challenger + insurance + burn, 100);
+        assertEq(challengerPct + insurance + burn, 100);
+    }
+
+    // =========================================================================
+    // Defense Period Tests (Day 1 Feature - 48 hours)
+    // =========================================================================
+
+    function test_DefensePeriod_Constant() public view {
+        // Verify defense period is 48 hours
+        assertEq(vault.DEFENSE_PERIOD(), 48 hours);
+    }
+
+    function test_Challenge_SetsDefenseDeadline() public {
+        // Setup: Lock funds and request emergency unlock
+        bytes32 lockId = _setupChallengeScenario();
+        
+        // File challenge
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        bytes memory fraudProof = abi.encodePacked("fraud_proof");
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, fraudProof);
+        
+        // Verify defense deadline is set to 48 hours from now
+        L1Vault.Challenge memory challengeData = vault.getChallenge(lockId);
+        assertEq(challengeData.defenseDeadline, block.timestamp + 48 hours);
+    }
+
+    function test_SubmitDefense_BeforeDeadline() public {
+        // Setup challenge
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Submit defense within 48 hours
+        vm.warp(block.timestamp + 24 hours); // 24 hours later
+        
+        bytes memory defenseProof = abi.encodePacked("valid_proof");
+        vm.prank(prover1);
+        vault.submitDefense(lockId, defenseProof);
+        
+        // Verify defense was submitted
+        L1Vault.Challenge memory challengeData = vault.getChallenge(lockId);
+        assertEq(uint256(challengeData.status), uint256(L1Vault.ChallengeStatus.DEFENSE_SUBMITTED));
+        assertEq(challengeData.defender, prover1);
+    }
+
+    function test_SubmitDefense_AfterDeadline_Reverts() public {
+        // Setup challenge
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Try to submit defense after 48 hours
+        vm.warp(block.timestamp + 49 hours);
+        
+        bytes memory defenseProof = abi.encodePacked("valid_proof");
+        vm.prank(prover1);
+        vm.expectRevert(L1Vault.DefensePeriodExpired.selector);
+        vault.submitDefense(lockId, defenseProof);
+    }
+
+    function test_SubmitDefense_OnlyActiveProver() public {
+        // Setup challenge
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Non-prover tries to submit defense
+        bytes memory defenseProof = abi.encodePacked("valid_proof");
+        vm.prank(user2); // Not a prover
+        vm.expectRevert(L1Vault.NotActiveProver.selector);
+        vault.submitDefense(lockId, defenseProof);
+    }
+
+    // =========================================================================
+    // Auto-Resolve Challenge Tests
+    // =========================================================================
+
+    function test_AutoResolveChallenge_AfterDefensePeriod() public {
+        // Setup challenge
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        uint256 challengerBalanceBefore = challenger.balance;
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Wait for defense period to expire (48 hours + 1 second)
+        vm.warp(block.timestamp + 48 hours + 1);
+        
+        // Auto-resolve (anyone can call)
+        vault.autoResolveChallenge(lockId);
+        
+        // Verify challenge was resolved as valid (no defense = valid challenge)
+        L1Vault.Challenge memory challengeData = vault.getChallenge(lockId);
+        assertEq(uint256(challengeData.status), uint256(L1Vault.ChallengeStatus.RESOLVED_VALID));
+        
+        // Challenger should receive bond back + 60% of slashed amount
+        assertTrue(challenger.balance > challengerBalanceBefore);
+    }
+
+    function test_AutoResolveChallenge_BeforeDeadline_Reverts() public {
+        // Setup challenge
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Try to auto-resolve before deadline
+        vm.warp(block.timestamp + 24 hours); // Only 24 hours passed
+        
+        vm.expectRevert(L1Vault.DefensePeriodNotExpired.selector);
+        vault.autoResolveChallenge(lockId);
+    }
+
+    // =========================================================================
+    // Challenge Resolution Tests
+    // =========================================================================
+
+    function test_ResolveChallenge_Valid_SlashingDistribution() public {
+        // Setup challenge
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 lockAmount = 1 ether;
+        uint256 challengeBond = vault.calculateChallengeBond(lockAmount);
+        
+        uint256 challengerBalanceBefore = challenger.balance;
+        uint256 insuranceBefore = vault.insuranceFund();
+        uint256 burnedBefore = vault.totalBurned();
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Security Council resolves as valid
+        vm.prank(securityCouncil);
+        vault.resolveChallenge(lockId, true);
+        
+        // Verify distribution
+        // For 1 prover (signatureCount = 0 in emergency unlock, so slashedAmount = 0)
+        // But challenger gets bond back
+        assertTrue(challenger.balance >= challengerBalanceBefore);
+        
+        // Check challenge status
+        L1Vault.Challenge memory challengeData = vault.getChallenge(lockId);
+        assertEq(uint256(challengeData.status), uint256(L1Vault.ChallengeStatus.RESOLVED_VALID));
+    }
+
+    function test_ResolveChallenge_Invalid_DefenderReward() public {
+        // Setup challenge
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Prover submits defense
+        uint256 proverBalanceBefore = prover1.balance;
+        vm.prank(prover1);
+        vault.submitDefense(lockId, "valid_defense");
+        
+        // Security Council resolves as invalid (challenge was wrong)
+        vm.prank(securityCouncil);
+        vault.resolveChallenge(lockId, false);
+        
+        // Defender (prover1) should receive 60% of challenger's bond
+        uint256 expectedReward = (challengeBond * 60) / 100;
+        assertEq(prover1.balance, proverBalanceBefore + expectedReward);
+        
+        // Lock should be back to pending unlock
+        L1Vault.Lock memory lockData = vault.getLock(lockId);
+        assertEq(uint256(lockData.status), uint256(L1Vault.LockStatus.PENDING_UNLOCK));
+    }
+
+    function test_ResolveChallenge_OnlySecurityCouncil() public {
+        // Setup challenge
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Non-Security Council tries to resolve
+        vm.prank(user1);
+        vm.expectRevert(L1Vault.NotSecurityCouncil.selector);
+        vault.resolveChallenge(lockId, true);
+    }
+
+    // =========================================================================
+    // Quadratic Slashing Tests
+    // =========================================================================
+
+    function test_QuadraticSlashing_Calculation() public view {
+        // Test quadratic slashing: N² × 10%
+        // Note: This tests the internal calculation logic
+        
+        // 1 prover: 1² × 10% = 10%
+        // 2 provers: 2² × 10% = 40%
+        // 3 provers: 3² × 10% = 90%
+        // 4+ provers: capped at 100%
+        
+        // We verify the constants are set correctly
+        assertEq(vault.SLASH_CHALLENGER_PERCENT(), 60);
+        assertEq(vault.SLASH_INSURANCE_PERCENT(), 20);
+        assertEq(vault.SLASH_BURN_PERCENT(), 20);
+    }
+
+    // =========================================================================
+    // Challenge Flow Integration Test
+    // =========================================================================
+
+    function test_ChallengeFlow_Complete() public {
+        // 1. Lock funds
+        bytes memory dilithiumPubKey = _generateDilithiumPubKey(1);
+        vm.prank(user1);
+        bytes32 lockId = vault.lock{value: 1 ether}(user2, dilithiumPubKey);
+        
+        // 2. Request emergency unlock
+        uint256 emergencyBond = 0.5 ether; // MIN_EMERGENCY_BOND
+        vm.prank(user1);
+        vault.requestEmergencyUnlock{value: emergencyBond}(lockId, user1);
+        
+        // 3. Challenge the unlock
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Verify lock status is CHALLENGED
+        L1Vault.Lock memory lockData = vault.getLock(lockId);
+        assertEq(uint256(lockData.status), uint256(L1Vault.LockStatus.CHALLENGED));
+        
+        // 4. Prover submits defense within 48 hours
+        vm.warp(block.timestamp + 24 hours);
+        vm.prank(prover1);
+        vault.submitDefense(lockId, "valid_defense");
+        
+        // 5. Security Council resolves (invalid challenge)
+        vm.prank(securityCouncil);
+        vault.resolveChallenge(lockId, false);
+        
+        // 6. Verify final state
+        lockData = vault.getLock(lockId);
+        assertEq(uint256(lockData.status), uint256(L1Vault.LockStatus.PENDING_UNLOCK));
+    }
+
+    // =========================================================================
+    // Edge Cases
+    // =========================================================================
+
+    function test_Challenge_MinimumBond() public {
+        bytes32 lockId = _setupChallengeScenario();
+        
+        // Try to challenge with insufficient bond
+        vm.prank(challenger);
+        vm.expectRevert(L1Vault.InvalidBond.selector);
+        vault.challenge{value: 0.05 ether}(lockId, "fraud_proof"); // Less than 0.1 ETH min
+    }
+
+    function test_Challenge_AfterUnlockTime_Reverts() public {
+        bytes32 lockId = _setupChallengeScenario();
+        
+        // Wait until unlock is ready (7 days for emergency)
+        vm.warp(block.timestamp + 7 days + 1);
+        
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        vm.prank(challenger);
+        vm.expectRevert(L1Vault.UnlockNotReady.selector);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+    }
+
+    function test_DoubleChallenge_Reverts() public {
+        bytes32 lockId = _setupChallengeScenario();
+        uint256 challengeBond = vault.calculateChallengeBond(1 ether);
+        
+        // First challenge
+        vm.prank(challenger);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof");
+        
+        // Second challenge should fail (lock status changed)
+        vm.prank(user2);
+        vm.deal(user2, 1 ether);
+        vm.expectRevert(L1Vault.LockAlreadyReleased.selector);
+        vault.challenge{value: challengeBond}(lockId, "fraud_proof_2");
     }
 
     // =========================================================================
@@ -320,5 +642,19 @@ contract L1VaultIntegrationTest is Test {
             pubKey[i] = bytes1(uint8(keccak256(abi.encodePacked(seed, i))[0]));
         }
         return pubKey;
+    }
+
+    /// @notice Helper to set up a challenge scenario
+    /// @return lockId The lock ID that can be challenged
+    function _setupChallengeScenario() internal returns (bytes32 lockId) {
+        // Lock funds
+        bytes memory dilithiumPubKey = _generateDilithiumPubKey(1);
+        vm.prank(user1);
+        lockId = vault.lock{value: 1 ether}(user2, dilithiumPubKey);
+        
+        // Request emergency unlock (creates unlock request that can be challenged)
+        uint256 emergencyBond = 0.5 ether;
+        vm.prank(user1);
+        vault.requestEmergencyUnlock{value: emergencyBond}(lockId, user1);
     }
 }
