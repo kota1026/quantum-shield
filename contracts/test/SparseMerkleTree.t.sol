@@ -278,7 +278,7 @@ contract SparseMerkleTreeTest is Test {
     // Gas Benchmarks
     // =========================================================================
 
-    function test_Gas_ComputeLeaf() public view {
+    function test_Gas_ComputeLeaf() public {
         bytes32 lockId = bytes32(uint256(1));
         uint256 amount = 1 ether;
         address recipient = address(0x1234);
@@ -295,7 +295,7 @@ contract SparseMerkleTreeTest is Test {
         assertTrue(gasUsed < 50000);
     }
 
-    function test_Gas_HashNodes() public view {
+    function test_Gas_HashNodes() public {
         bytes32 left = bytes32(uint256(1));
         bytes32 right = bytes32(uint256(2));
         
@@ -310,7 +310,7 @@ contract SparseMerkleTreeTest is Test {
         assertTrue(gasUsed < 30000);
     }
 
-    function test_Gas_ComputeRoot() public view {
+    function test_Gas_ComputeRoot() public {
         bytes32 leaf = bytes32(uint256(1));
         uint256 index = 0;
         bytes32[] memory siblings = new bytes32[](20);
