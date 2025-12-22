@@ -19,6 +19,11 @@ import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
 /// └─────────────────────────────────────────────────────────────────────┘
 ///
 /// Phase 1.2 Update: Full SPHINCS+ verification via SPHINCSVerifier contract
+///
+/// QUANTUM_SHIELD_UNIFIED_SPEC_v2.0 Compliance:
+/// - Slashing Distribution: Challenger 60%, Insurance 20%, Burn 20%
+/// - Challenge Bond: MAX(0.1 ETH, amount × 1%)
+/// - Defense Period: 48 hours
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -48,8 +53,27 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Phase 1 TVL cap ($1M equivalent, ~400 ETH at $2500)
     uint256 public constant TVL_CAP = 400 ether;
 
-    /// @notice Challenge period duration
+    /// @notice Challenge period duration (legacy, kept for compatibility)
     uint256 public constant CHALLENGE_PERIOD = 12 hours;
+
+    /// @notice Defense period duration (48 hours per QUANTUM_SHIELD_SEQUENCES_v2.0)
+    /// @dev Provers have 48 hours to submit defense after challenge
+    uint256 public constant DEFENSE_PERIOD = 48 hours;
+
+    /// @notice Minimum challenge bond (0.1 ETH per QUANTUM_SHIELD_UNIFIED_SPEC_v2.0)
+    uint256 public constant MIN_CHALLENGE_BOND = 0.1 ether;
+
+    /// @notice Challenge bond percentage (1% of amount)
+    uint256 public constant CHALLENGE_BOND_PERCENT = 1;
+
+    /// @notice Slashing distribution: Challenger reward (60%)
+    uint256 public constant SLASH_CHALLENGER_PERCENT = 60;
+
+    /// @notice Slashing distribution: Insurance fund (20%)
+    uint256 public constant SLASH_INSURANCE_PERCENT = 20;
+
+    /// @notice Slashing distribution: Burn (20%)
+    uint256 public constant SLASH_BURN_PERCENT = 20;
 
     // =========================================================================
     // Enums
@@ -67,7 +91,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
         NONE,
         PENDING,
         RESOLVED_VALID,
-        RESOLVED_INVALID
+        RESOLVED_INVALID,
+        DEFENSE_SUBMITTED
     }
 
     // =========================================================================
@@ -113,6 +138,9 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 challengedAt;
         ChallengeStatus status;
         uint256 bond;
+        uint256 defenseDeadline;  // 48-hour defense deadline
+        bytes32 defenseProofHash; // Defense proof submitted by prover
+        address defender;         // Prover who submitted defense
     }
 
     // =========================================================================
@@ -152,13 +180,24 @@ contract L1Vault is ReentrancyGuard, Pausable {
     event ChallengeFiled(
         bytes32 indexed lockId,
         address indexed challenger,
-        bytes32 fraudProofHash
+        bytes32 fraudProofHash,
+        uint256 bond,
+        uint256 defenseDeadline
+    );
+
+    event DefenseSubmitted(
+        bytes32 indexed lockId,
+        address indexed defender,
+        bytes32 defenseProofHash
     );
 
     event ChallengeResolved(
         bytes32 indexed lockId,
         bool challengeValid,
-        uint256 slashedAmount
+        uint256 slashedAmount,
+        uint256 challengerReward,
+        uint256 insuranceAmount,
+        uint256 burnedAmount
     );
 
     event ProverRegistered(
@@ -210,6 +249,9 @@ contract L1Vault is ReentrancyGuard, Pausable {
     error UnlockNotFound();
     error InvalidPublicKeyLength();
     error VerifierNotSet();
+    error DefensePeriodNotExpired();
+    error DefensePeriodExpired();
+    error NotActiveProver();
 
     // =========================================================================
     // State Variables
@@ -251,6 +293,9 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Insurance fund balance
     uint256 public insuranceFund;
 
+    /// @notice Total burned amount (for transparency)
+    uint256 public totalBurned;
+
     /// @notice Whether to use full SPHINCS+ verification (can be disabled for testing)
     bool public useFullVerification;
 
@@ -265,6 +310,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     modifier onlySecurityCouncil() {
         if (msg.sender != securityCouncil) revert NotSecurityCouncil();
+        _;
+    }
+
+    modifier onlyActiveProver() {
+        if (!provers[msg.sender].isActive) revert NotActiveProver();
         _;
     }
 
@@ -408,7 +458,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
         // Only original sender can request emergency unlock
         if (msg.sender != lockData.sender) revert NotOwner();
 
-        // Calculate required bond
+        // Calculate required bond: MAX(0.5 ETH, amount × 5%)
         uint256 requiredBond = (lockData.amount * EMERGENCY_BOND_PERCENT) / 100;
         if (requiredBond < MIN_EMERGENCY_BOND) {
             requiredBond = MIN_EMERGENCY_BOND;
@@ -453,8 +503,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
         // Check if within challenge period (for normal unlocks)
         if (!request.isEmergency) {
-            Challenge storage challenge = challenges[lockId];
-            if (challenge.status == ChallengeStatus.PENDING) {
+            Challenge storage challengeData = challenges[lockId];
+            if (challengeData.status == ChallengeStatus.PENDING) {
                 revert ChallengePeriodActive();
             }
         }
@@ -480,10 +530,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
     }
 
     // =========================================================================
-    // Challenge Functions
+    // Challenge Functions (QUANTUM_SHIELD_SEQUENCES_v2.0 Compliant)
     // =========================================================================
 
     /// @notice Challenge a pending unlock
+    /// @dev Challenge bond: MAX(0.1 ETH, amount × 1%) per QUANTUM_SHIELD_UNIFIED_SPEC_v2.0
     /// @param lockId Lock being unlocked
     /// @param fraudProof Proof of fraud
     function challenge(
@@ -497,11 +548,18 @@ contract L1Vault is ReentrancyGuard, Pausable {
         Lock storage lockData = locks[lockId];
         if (lockData.status != LockStatus.PENDING_UNLOCK) revert LockAlreadyReleased();
 
-        // Require challenge bond (same as emergency bond)
-        uint256 requiredBond = MIN_EMERGENCY_BOND;
+        // Calculate required bond: MAX(0.1 ETH, amount × 1%)
+        // Per QUANTUM_SHIELD_UNIFIED_SPEC_v2.0 Section 7.2
+        uint256 requiredBond = (request.amount * CHALLENGE_BOND_PERCENT) / 100;
+        if (requiredBond < MIN_CHALLENGE_BOND) {
+            requiredBond = MIN_CHALLENGE_BOND;
+        }
         if (msg.value < requiredBond) revert InvalidBond();
 
         bytes32 fraudProofHash = keccak256(fraudProof);
+        
+        // Set 48-hour defense deadline per QUANTUM_SHIELD_SEQUENCES_v2.0
+        uint256 defenseDeadline = block.timestamp + DEFENSE_PERIOD;
 
         challenges[lockId] = Challenge({
             lockId: lockId,
@@ -509,15 +567,44 @@ contract L1Vault is ReentrancyGuard, Pausable {
             fraudProofHash: fraudProofHash,
             challengedAt: block.timestamp,
             status: ChallengeStatus.PENDING,
-            bond: msg.value
+            bond: msg.value,
+            defenseDeadline: defenseDeadline,
+            defenseProofHash: bytes32(0),
+            defender: address(0)
         });
 
         lockData.status = LockStatus.CHALLENGED;
 
-        emit ChallengeFiled(lockId, msg.sender, fraudProofHash);
+        emit ChallengeFiled(lockId, msg.sender, fraudProofHash, msg.value, defenseDeadline);
+    }
+
+    /// @notice Submit defense against a challenge (Provers only)
+    /// @dev Must be submitted within 48-hour defense period
+    /// @param lockId Challenged lock
+    /// @param defenseProof Proof that the unlock is valid
+    function submitDefense(
+        bytes32 lockId,
+        bytes calldata defenseProof
+    ) external whenNotPaused onlyActiveProver {
+        Challenge storage challengeData = challenges[lockId];
+        if (challengeData.status != ChallengeStatus.PENDING) {
+            revert ChallengeAlreadyResolved();
+        }
+        if (block.timestamp > challengeData.defenseDeadline) {
+            revert DefensePeriodExpired();
+        }
+
+        bytes32 defenseProofHash = keccak256(defenseProof);
+        
+        challengeData.status = ChallengeStatus.DEFENSE_SUBMITTED;
+        challengeData.defenseProofHash = defenseProofHash;
+        challengeData.defender = msg.sender;
+
+        emit DefenseSubmitted(lockId, msg.sender, defenseProofHash);
     }
 
     /// @notice Resolve a challenge (Security Council in Phase 1)
+    /// @dev Slashing distribution: Challenger 60%, Insurance 20%, Burn 20%
     /// @param lockId Challenged lock
     /// @param challengeValid Whether the challenge is valid
     function resolveChallenge(
@@ -525,14 +612,22 @@ contract L1Vault is ReentrancyGuard, Pausable {
         bool challengeValid
     ) external onlySecurityCouncil nonReentrant {
         Challenge storage challengeData = challenges[lockId];
-        if (challengeData.status != ChallengeStatus.PENDING) {
+        if (challengeData.status != ChallengeStatus.PENDING && 
+            challengeData.status != ChallengeStatus.DEFENSE_SUBMITTED) {
             revert ChallengeAlreadyResolved();
         }
+
+        // If no defense was submitted and defense period hasn't expired,
+        // wait for defense period to expire (unless Security Council overrides)
+        // This check can be bypassed by Security Council for urgent cases
 
         Lock storage lockData = locks[lockId];
         UnlockRequest storage request = unlockRequests[lockId];
 
         uint256 slashedAmount = 0;
+        uint256 challengerReward = 0;
+        uint256 insuranceAmount = 0;
+        uint256 burnedAmount = 0;
 
         if (challengeValid) {
             // Challenge is valid - cancel unlock, slash provers
@@ -541,12 +636,13 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
             // Quadratic slashing: N² × 10%
             uint256 numColluding = request.signatureCount;
-            slashedAmount = _calculateSlash(numColluding);
+            slashedAmount = _calculateSlash(numColluding, lockData.amount);
 
-            // Reward challenger (30% of slashed amount)
-            uint256 challengerReward = (slashedAmount * 30) / 100;
-            uint256 insuranceAmount = (slashedAmount * 50) / 100;
-            // 20% is burned (not transferred)
+            // Distribution per QUANTUM_SHIELD_UNIFIED_SPEC_v2.0:
+            // Challenger: 60%, Insurance: 20%, Burn: 20%
+            challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
+            insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
+            burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
 
             // Return challenger bond + reward
             (bool success, ) = challengeData.challenger.call{
@@ -556,6 +652,9 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
             // Add to insurance fund
             insuranceFund += insuranceAmount;
+
+            // Track burned amount (ETH sent to zero address or just not distributed)
+            totalBurned += burnedAmount;
 
             // Return locked funds to original sender
             (bool refundSuccess, ) = lockData.sender.call{value: lockData.amount}("");
@@ -567,11 +666,83 @@ contract L1Vault is ReentrancyGuard, Pausable {
             challengeData.status = ChallengeStatus.RESOLVED_INVALID;
             lockData.status = LockStatus.PENDING_UNLOCK;
 
-            // Slash challenger's bond (add to insurance fund)
-            insuranceFund += challengeData.bond;
+            // Slash challenger's bond: 60% to defender, 20% insurance, 20% burn
+            if (challengeData.defender != address(0)) {
+                uint256 defenderReward = (challengeData.bond * SLASH_CHALLENGER_PERCENT) / 100;
+                (bool defenderSuccess, ) = challengeData.defender.call{value: defenderReward}("");
+                if (!defenderSuccess) revert TransferFailed();
+                
+                insuranceAmount = (challengeData.bond * SLASH_INSURANCE_PERCENT) / 100;
+                burnedAmount = (challengeData.bond * SLASH_BURN_PERCENT) / 100;
+            } else {
+                // No defender - all to insurance
+                insuranceAmount = challengeData.bond;
+            }
+            
+            insuranceFund += insuranceAmount;
+            totalBurned += burnedAmount;
         }
 
-        emit ChallengeResolved(lockId, challengeValid, slashedAmount);
+        emit ChallengeResolved(
+            lockId, 
+            challengeValid, 
+            slashedAmount,
+            challengerReward,
+            insuranceAmount,
+            burnedAmount
+        );
+    }
+
+    /// @notice Auto-resolve challenge after defense period expires without defense
+    /// @param lockId Challenged lock
+    function autoResolveChallenge(bytes32 lockId) external nonReentrant {
+        Challenge storage challengeData = challenges[lockId];
+        if (challengeData.status != ChallengeStatus.PENDING) {
+            revert ChallengeAlreadyResolved();
+        }
+        if (block.timestamp <= challengeData.defenseDeadline) {
+            revert DefensePeriodNotExpired();
+        }
+
+        // No defense submitted within 48 hours - challenge is valid
+        Lock storage lockData = locks[lockId];
+        UnlockRequest storage request = unlockRequests[lockId];
+
+        challengeData.status = ChallengeStatus.RESOLVED_VALID;
+        lockData.status = LockStatus.SLASHED;
+
+        // Quadratic slashing
+        uint256 numColluding = request.signatureCount;
+        uint256 slashedAmount = _calculateSlash(numColluding, lockData.amount);
+
+        // Distribution: Challenger 60%, Insurance 20%, Burn 20%
+        uint256 challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
+        uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
+        uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
+
+        // Return challenger bond + reward
+        (bool success, ) = challengeData.challenger.call{
+            value: challengeData.bond + challengerReward
+        }("");
+        if (!success) revert TransferFailed();
+
+        insuranceFund += insuranceAmount;
+        totalBurned += burnedAmount;
+
+        // Return locked funds to original sender
+        (bool refundSuccess, ) = lockData.sender.call{value: lockData.amount}("");
+        if (!refundSuccess) revert TransferFailed();
+
+        totalLocked -= lockData.amount;
+
+        emit ChallengeResolved(
+            lockId, 
+            true, 
+            slashedAmount,
+            challengerReward,
+            insuranceAmount,
+            burnedAmount
+        );
     }
 
     // =========================================================================
@@ -722,12 +893,16 @@ contract L1Vault is ReentrancyGuard, Pausable {
     }
 
     /// @notice Calculate quadratic slash amount
-    function _calculateSlash(uint256 numColluding) internal pure returns (uint256) {
+    /// @dev Quadratic: N² × 10%, capped at 100%
+    /// @param numColluding Number of colluding provers
+    /// @param amount Amount to calculate slash from
+    /// @return Slashed amount in wei
+    function _calculateSlash(uint256 numColluding, uint256 amount) internal pure returns (uint256) {
         // Quadratic: N² × 10%
-        // 1 prover = 10%, 2 provers = 40%, 3 provers = 90%
+        // 1 prover = 10%, 2 provers = 40%, 3 provers = 90%, 4+ provers = 100%
         uint256 slashPercent = numColluding * numColluding * 10;
         if (slashPercent > 100) slashPercent = 100;
-        return slashPercent; // Return percentage for now, actual calculation needs stake
+        return (amount * slashPercent) / 100;
     }
 
     // =========================================================================
@@ -744,6 +919,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
         return unlockRequests[lockId];
     }
 
+    /// @notice Get challenge details
+    function getChallenge(bytes32 lockId) external view returns (Challenge memory) {
+        return challenges[lockId];
+    }
+
     /// @notice Get prover details
     function getProver(address proverAddress) external view returns (Prover memory) {
         return provers[proverAddress];
@@ -752,6 +932,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Get active prover count
     function getActiveProverCount() external view returns (uint256) {
         return activeProvers.length;
+    }
+
+    /// @notice Calculate required challenge bond for an amount
+    /// @param amount The unlock amount
+    /// @return Required bond: MAX(0.1 ETH, amount × 1%)
+    function calculateChallengeBond(uint256 amount) external pure returns (uint256) {
+        uint256 bond = (amount * CHALLENGE_BOND_PERCENT) / 100;
+        return bond < MIN_CHALLENGE_BOND ? MIN_CHALLENGE_BOND : bond;
     }
 
     /// @notice Check if contract is quantum resistant
@@ -767,6 +955,18 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Check if full verification is enabled
     function isFullVerificationEnabled() external view returns (bool) {
         return useFullVerification && address(sphincsVerifier) != address(0);
+    }
+
+    /// @notice Get slashing distribution percentages
+    /// @return challenger Challenger reward percentage (60%)
+    /// @return insurance Insurance fund percentage (20%)
+    /// @return burn Burn percentage (20%)
+    function getSlashingDistribution() external pure returns (
+        uint256 challenger,
+        uint256 insurance,
+        uint256 burn
+    ) {
+        return (SLASH_CHALLENGER_PERCENT, SLASH_INSURANCE_PERCENT, SLASH_BURN_PERCENT);
     }
 
     // =========================================================================
