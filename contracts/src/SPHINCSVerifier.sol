@@ -187,7 +187,7 @@ contract SPHINCSVerifier {
         bytes32 message,
         bytes calldata signature,
         bytes calldata publicKey
-    ) external pure returns (VerificationResult memory result) {
+    ) external view returns (VerificationResult memory result) {
         uint256 startGas = gasleft();
 
         if (signature.length != SIGNATURE_SIZE) {
