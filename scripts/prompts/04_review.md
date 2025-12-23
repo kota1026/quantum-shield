@@ -56,3 +56,39 @@ slither src/
 - [ ] ⚠️ CONDITIONAL - 修正後に再レビュー
 - [ ] ❌ FAIL - 実装に差し戻し
 ```
+
+### 5.5 状態更新（CONDITIONAL/FAIL時必須）
+
+判定が ⚠️ CONDITIONAL または ❌ FAIL の場合、以下を**必ず**実行：
+
+#### Step 1: CURRENT_STATE.md の「🚧 ブロッカー / 懸念事項」に追記
+
+```markdown
+| # | 懸念 | 重要度 | 対応予定 |
+|---|------|--------|----------|
+| N | [レビュー発見事項の要約] | 🔴 Critical / 🟠 High / 🟡 Medium | 次回Plan |
+```
+
+#### Step 2: PIR記録を更新
+
+CURRENT_STATE.md の「📝 PIR記録」セクション：
+```markdown
+| PIR-XXX | [対象] | ⚠️ CONDITIONAL / ❌ FAIL | [日付] |
+```
+
+詳細レポートは `docs/aegis/pir/PIR-XXX.md` に保存。
+
+#### Step 3: 「🔜 次のアクション」に修正タスクを追記
+
+```markdown
+### 修正必須（前回レビューより）
+
+1. **[発見事項タイトル]**
+   - 重要度: Critical/High/Medium
+   - 対象ファイル: `src/xxx.sol`
+   - 対策: [具体的な修正内容]
+```
+
+---
+
+**重要**: この状態更新により、次回の `01_plan.md` 実行時に課題が自動的に計画に組み込まれます。
