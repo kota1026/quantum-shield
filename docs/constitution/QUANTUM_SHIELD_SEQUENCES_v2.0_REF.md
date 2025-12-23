@@ -8,17 +8,17 @@
 
 ## 📋 Sequence Overview
 
-| Seq# | Sequence | Category | Description |
-|------|----------|----------|-------------|
-| 1 | Lock | User Flow | 資産をL1 Vaultにロック |
-| 2 | Unlock (Normal) | User Flow | 通常のアンロック（24h Time Lock） |
-| 3 | Unlock (Emergency) | User Flow | 緊急アンロック（7日 Time Lock） |
-| 3' | Resync | User Flow | L2状態の再同期 |
-| 4 | Challenge + Slashing | Security | 不正検知とSlashing |
-| 5 | Prover Registration | Prover Mgmt | Prover登録（ステーク） |
-| 6 | Prover Exit | Prover Mgmt | Prover退出 |
-| 7 | Governance Proposal | Governance | 提案・投票 |
-| 8 | Emergency Pause | Governance | 緊急停止 |
+| # | Sequence | Category | Phase | Gas (est.) |
+|---|----------|----------|-------|------------|
+| 1 | Lock | User Flow | All | ~135K (~$7) |
+| 2 | Unlock (Normal) | User Flow | All | ~490K (~$27) |
+| 3 | Unlock (Emergency) | User Flow | All | ~150K + Bond |
+| 3' | Resync | User Flow | All | - |
+| 4 | Challenge + Slashing | Security | All | ~100K + Bond |
+| 5 | Prover Registration | Prover Mgmt | P1-3 | ~200K |
+| 6 | Prover Exit | Prover Mgmt | P1-3 | ~100K |
+| 7 | Governance Proposal | Governance | P3-4 | ~150K |
+| 8 | Emergency Pause | Governance | P2-4 | ~50K |
 
 ---
 
@@ -69,7 +69,7 @@ SR_1 = SHA3-256(
 ### Quadratic Slashing
 
 | 同時不正数 | Slash率 |
-|-----------|---------| 
+|-----------|---------|
 | 1社 | 10% |
 | 2社 | 40% |
 | 3社 | 90% |
