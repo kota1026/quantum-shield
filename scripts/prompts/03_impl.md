@@ -54,7 +54,32 @@ forge test
 ```
 全テストがpassすることを確認。
 
-### Step 4: 完了報告
+### Step 4: SPEC_REVIEW.md 更新（該当する場合）
+`docs/planning/SPEC_REVIEW.md` が存在する場合、以下を更新：
+
+1. **各指摘事項のチェックボックスを更新**
+```markdown
+- [x] 対応済み
+- **対応内容**: [具体的に何をしたか]
+- **対応コミット**: [コミットSHA]
+```
+
+2. **ステータスを更新**（全て対応完了の場合）
+```markdown
+## ステータス
+✅ 全て対応済み - セキュリティレビューへ進むこと
+```
+
+3. **Resolution Log に追記**
+```markdown
+---
+## Resolution Log
+| ISSUE | 対応者 | 日時 | コミット |
+|-------|-------|------|---------|
+| ISSUE-001 | Engineer | YYYY-MM-DD HH:MM | abc1234 |
+```
+
+### Step 5: 完了報告
 以下のフォーマットで報告：
 ```
 ## 実装完了報告
@@ -65,6 +90,7 @@ forge test
 ### SPEC_REVIEW対応（該当する場合）
 - [ISSUE-001]: ✅ [対応内容]
 - [ISSUE-002]: ✅ [対応内容]
+- SPEC_REVIEW.md 更新済み
 
 ### テスト結果
 - 新規テスト数: +XX
