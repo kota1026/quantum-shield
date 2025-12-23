@@ -9,7 +9,7 @@ CURRENT_PLAN Day 8 スコープ:
 - [IMPL-001〜007] VRF統合
 
 ## ステータス
-⚠️ 指摘事項あり - 対応後に実装へ進むこと
+✅ ISSUE-001対応済み - VRF統合の実装へ進むこと
 
 ---
 
@@ -65,7 +65,9 @@ function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) i
 
 既存の`SparseMerkleTree.hashNodes()`を使用する方法もあるが、ドメイン分離が追加されるため、Proof生成側との整合性確認が必要。
 
-- [ ] 対応済み
+- [x] 対応済み
+- **対応内容**: Option Aを採用。SHA3_256ライブラリをimportし、`_verifySMTProof()`内のkeccak256をSHA3_256.hashPair()に置換
+- **対応コミット**: 8ec31f15f70508e30e7fe60decaa7fdbf2a469fe
 
 ---
 
@@ -87,7 +89,7 @@ function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) i
 
 ## 実装時の注意事項
 
-1. **FIX-001を最優先で実行**
+1. **FIX-001を最優先で実行** ✅ 完了
    - SHA3_256のimportを追加
    - `_verifySMTProof()`内のkeccak256をSHA3_256.hashPair()に置換
 
@@ -96,11 +98,19 @@ function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) i
    - SMT Proofの生成側も確認（テストで生成されるProofがSHA3-256ベースか確認）
 
 3. **VRF統合はSMT修正完了後**
-   - HIGHリスク課題が解決するまでVRF実装は保留
+   - HIGHリスク課題が解決したためVRF実装に進行可能
 
 4. **Gas増加の許容**
    - SHA3-256はkeccak256より高コスト
    - Day 11の最適化フェーズで対応予定
+
+---
+
+## Resolution Log
+
+| ISSUE | 対応者 | 日時 | コミット |
+|-------|-------|------|---------|
+| ISSUE-001 | Engineer | 2025-12-24 02:28 JST | 8ec31f15f70508e30e7fe60decaa7fdbf2a469fe |
 
 ---
 
@@ -110,6 +120,6 @@ function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) i
 
 ---
 
-**⚠️ HIGHリスクの指摘があるため、ISSUE-001対応後に実装へ進んでください。**
+**✅ HIGHリスクの指摘は全て対応済み。VRF統合（Phase B）の実装へ進んでください。**
 
 **END OF SPEC REVIEW**
