@@ -53,13 +53,14 @@ library ProverSelector {
     // =========================================================================
 
     /// @notice Select a prover based on VRF random value and stake weights
-    /// @param randomValue The random value from VRF (256-bit)
+    /// @dev Argument order is (provers, randomValue) to support `using for` syntax
     /// @param provers Array of prover information
+    /// @param randomValue The random value from VRF (256-bit)
     /// @return selected The address of the selected prover
     /// @return index The index of the selected prover in the array
     function selectProver(
-        uint256 randomValue,
-        ProverInfo[] memory provers
+        ProverInfo[] memory provers,
+        uint256 randomValue
     ) internal pure returns (address selected, uint256 index) {
         if (randomValue == 0) revert InvalidRandomValue();
         
@@ -145,16 +146,16 @@ library ProverSelector {
     }
 
     /// @notice Verify that a prover was correctly selected
-    /// @param randomValue The VRF random value used
     /// @param provers Array of prover information
+    /// @param randomValue The VRF random value used
     /// @param selectedProver The supposedly selected prover
     /// @return isValid True if the selection is valid
     function verifySelection(
-        uint256 randomValue,
         ProverInfo[] memory provers,
+        uint256 randomValue,
         address selectedProver
     ) internal pure returns (bool isValid) {
-        (address computed, ) = selectProver(randomValue, provers);
+        (address computed, ) = selectProver(provers, randomValue);
         return computed == selectedProver;
     }
 
