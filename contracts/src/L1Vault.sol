@@ -10,7 +10,7 @@ import {StateRootCalculator} from "./libraries/StateRootCalculator.sol";
 /// @notice Phase 1.2 implementation with full SPHINCS+ verification integration
 /// @dev Implements lock/unlock with 24h time lock and emergency 7-day path
 ///
-/// Day 6-7 Update: State Root (SR_0/SR_1) computation per QUANTUM_SHIELD_SEQUENCES_v2.0
+/// Sequence #3 Update: Full Emergency Unlock implementation with 72h timeout detection
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -32,13 +32,21 @@ contract L1Vault is ReentrancyGuard, Pausable {
     uint256 public constant SLASH_INSURANCE_PERCENT = 20;
     uint256 public constant SLASH_BURN_PERCENT = 20;
     uint256 public constant DEFAULT_LOCK_EXPIRY = 24 hours;
+    
+    /// @notice Prover response timeout - triggers Emergency path
+    /// @dev Sequence #3: TRIG-001
+    uint256 public constant PROVER_TIMEOUT = 72 hours;
 
     // =========================================================================
     // Enums
     // =========================================================================
 
-    enum LockStatus { ACTIVE, PENDING_UNLOCK, RELEASED, CHALLENGED, SLASHED }
+    enum LockStatus { ACTIVE, PENDING_UNLOCK, RELEASED, CHALLENGED, SLASHED, EMERGENCY_PENDING }
     enum ChallengeStatus { NONE, PENDING, RESOLVED_VALID, RESOLVED_INVALID, DEFENSE_SUBMITTED }
+    
+    /// @notice Emergency unlock status tracking
+    /// @dev Sequence #3: Emergency state machine
+    enum EmergencyStatus { NONE, INITIATED, BOND_RECEIVED, MONITORING, FINALIZED }
 
     // =========================================================================
     // Structs
@@ -68,6 +76,10 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 bond;
         uint256 signatureCount;
         uint256 unlockNonce;
+        /// @dev Sequence #3: Prover response tracking (TRIG-002)
+        uint256 proverRequestedAt;
+        /// @dev Sequence #3: Emergency unlock ready timestamp (TL7-004)
+        uint256 emergencyReadyAt;
     }
 
     struct Prover {
@@ -92,6 +104,19 @@ contract L1Vault is ReentrancyGuard, Pausable {
         bytes32 defenseProofHash;
         address defender;
     }
+    
+    /// @notice Emergency unlock tracking structure
+    /// @dev Sequence #3: Complete emergency state tracking
+    struct EmergencyUnlock {
+        bytes32 lockId;
+        address initiator;
+        uint256 bondAmount;
+        uint256 initiatedAt;
+        uint256 emergencyReadyAt;
+        EmergencyStatus status;
+        bool enhancedMonitoring;
+        bool fromTimeout;
+    }
 
     // =========================================================================
     // Events
@@ -108,6 +133,42 @@ contract L1Vault is ReentrancyGuard, Pausable {
     event ProverSlashed(address indexed prover, uint256 amount, bytes32 reason);
     event StateRootUpdated(bytes32 indexed newRoot, uint256 indexed blockNumber);
     event SPHINCSVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+    
+    /// @notice Emitted when Emergency unlock is initiated (manual or timeout)
+    /// @dev Sequence #3: EVT-001
+    event EmergencyUnlockInitiated(
+        bytes32 indexed lockId, 
+        address indexed initiator, 
+        bool fromTimeout,
+        uint256 timestamp
+    );
+    
+    /// @notice Emitted when Emergency bond is received
+    /// @dev Sequence #3: EVT-002
+    event EmergencyBondReceived(
+        bytes32 indexed lockId, 
+        address indexed payer, 
+        uint256 bondAmount,
+        uint256 requiredBond
+    );
+    
+    /// @notice Emitted when Emergency unlock is finalized
+    /// @dev Sequence #3: EVT-003
+    event EmergencyUnlockFinalized(
+        bytes32 indexed lockId, 
+        address indexed recipient, 
+        uint256 amount,
+        uint256 bondReturned,
+        bool wasSlashed
+    );
+    
+    /// @notice Emitted when enhanced monitoring is activated
+    /// @dev Sequence #3: MON-001
+    event EnhancedMonitoringActivated(bytes32 indexed lockId, uint256 timestamp);
+    
+    /// @notice Emitted when 72h prover timeout is detected
+    /// @dev Sequence #3: TRIG-001
+    event ProverTimeoutDetected(bytes32 indexed lockId, uint256 requestedAt, uint256 detectedAt);
 
     // =========================================================================
     // Errors
@@ -141,6 +202,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
     error NotActiveProver();
     error LockExpired();
     error InvalidStateRoot();
+    /// @dev Sequence #3: Prover timeout not reached
+    error ProverTimeoutNotReached();
+    /// @dev Sequence #3: Emergency already initiated
+    error EmergencyAlreadyInitiated();
+    /// @dev Sequence #3: Not in emergency state
+    error NotInEmergencyState();
+    /// @dev Sequence #3: Emergency time lock not expired
+    error EmergencyTimeLockActive();
 
     // =========================================================================
     // State Variables
@@ -161,6 +230,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
     uint256 public insuranceFund;
     uint256 public totalBurned;
     bool public useFullVerification;
+    
+    /// @notice Emergency unlock tracking per lock
+    /// @dev Sequence #3: Complete emergency state
+    mapping(bytes32 => EmergencyUnlock) public emergencyUnlocks;
+    
+    /// @notice Enhanced monitoring flag per lock
+    /// @dev Sequence #3: MON-001
+    mapping(bytes32 => bool) public enhancedMonitoring;
 
     // =========================================================================
     // Modifiers
@@ -295,22 +372,146 @@ contract L1Vault is ReentrancyGuard, Pausable {
         lockData.status = LockStatus.PENDING_UNLOCK;
     }
 
+    /// @notice Request emergency unlock with bond payment
+    /// @dev Sequence #3: TRIG-004 - User manual Emergency option
     function requestEmergencyUnlock(bytes32 lockId, address recipient) external payable whenNotPaused nonReentrant {
         Lock storage lockData = locks[lockId];
         if (lockData.sender == address(0)) revert LockNotFound();
         if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
         if (recipient == address(0)) revert ZeroAddress();
         if (msg.sender != lockData.sender) revert NotOwner();
+        
+        // Check if emergency already initiated
+        if (emergencyUnlocks[lockId].status != EmergencyStatus.NONE) revert EmergencyAlreadyInitiated();
 
-        uint256 requiredBond = (lockData.amount * EMERGENCY_BOND_PERCENT) / 100;
-        if (requiredBond < MIN_EMERGENCY_BOND) requiredBond = MIN_EMERGENCY_BOND;
+        uint256 requiredBond = _calculateEmergencyBond(lockData.amount);
         if (msg.value < requiredBond) revert InvalidBond();
 
         uint256 unlockNonce = unlockNonceCounter++;
+        uint256 emergencyReadyAt = block.timestamp + EMERGENCY_TIME_LOCK;
+        
         _createUnlockRequest(lockId, recipient, lockData.amount, lockData.stateRoot, bytes32(0), true, msg.value, 0, unlockNonce);
-        lockData.status = LockStatus.PENDING_UNLOCK;
+        
+        // Update unlock request with emergency-specific fields
+        unlockRequests[lockId].emergencyReadyAt = emergencyReadyAt;
+        
+        // Create emergency unlock tracking
+        emergencyUnlocks[lockId] = EmergencyUnlock({
+            lockId: lockId,
+            initiator: msg.sender,
+            bondAmount: msg.value,
+            initiatedAt: block.timestamp,
+            emergencyReadyAt: emergencyReadyAt,
+            status: EmergencyStatus.BOND_RECEIVED,
+            enhancedMonitoring: true,
+            fromTimeout: false
+        });
+        
+        // Activate enhanced monitoring
+        enhancedMonitoring[lockId] = true;
+        
+        lockData.status = LockStatus.EMERGENCY_PENDING;
 
-        emit EmergencyUnlockRequested(lockId, recipient, lockData.amount, msg.value, block.timestamp + EMERGENCY_TIME_LOCK);
+        emit EmergencyUnlockInitiated(lockId, msg.sender, false, block.timestamp);
+        emit EmergencyBondReceived(lockId, msg.sender, msg.value, requiredBond);
+        emit EnhancedMonitoringActivated(lockId, block.timestamp);
+        emit EmergencyUnlockRequested(lockId, recipient, lockData.amount, msg.value, emergencyReadyAt);
+    }
+    
+    /// @notice Check if prover timeout has occurred for a pending unlock
+    /// @dev Sequence #3: TRIG-001 - 72h timeout detection
+    /// @param lockId The lock ID to check
+    /// @return isTimedOut True if 72h has passed since prover was requested
+    /// @return proverRequestedAt When the prover was requested
+    /// @return timeRemaining Seconds remaining until timeout (0 if already timed out)
+    function checkProverTimeout(bytes32 lockId) public view returns (
+        bool isTimedOut,
+        uint256 proverRequestedAt,
+        uint256 timeRemaining
+    ) {
+        UnlockRequest storage request = unlockRequests[lockId];
+        if (request.lockId == bytes32(0)) {
+            return (false, 0, 0);
+        }
+        
+        proverRequestedAt = request.proverRequestedAt;
+        if (proverRequestedAt == 0) {
+            // Prover not yet requested, use requestedAt as fallback
+            proverRequestedAt = request.requestedAt;
+        }
+        
+        uint256 deadline = proverRequestedAt + PROVER_TIMEOUT;
+        if (block.timestamp >= deadline) {
+            isTimedOut = true;
+            timeRemaining = 0;
+        } else {
+            isTimedOut = false;
+            timeRemaining = deadline - block.timestamp;
+        }
+    }
+    
+    /// @notice Initiate emergency unlock due to 72h prover timeout
+    /// @dev Sequence #3: TRIG-003 - Emergency Path auto switch
+    /// @param lockId The lock ID to switch to emergency path
+    function initiateEmergencyFromTimeout(bytes32 lockId) external payable whenNotPaused nonReentrant {
+        Lock storage lockData = locks[lockId];
+        if (lockData.sender == address(0)) revert LockNotFound();
+        if (lockData.status != LockStatus.PENDING_UNLOCK) revert LockAlreadyReleased();
+        
+        // Check if emergency already initiated
+        if (emergencyUnlocks[lockId].status != EmergencyStatus.NONE) revert EmergencyAlreadyInitiated();
+        
+        // Verify 72h timeout has occurred
+        (bool isTimedOut, uint256 proverRequestedAt,) = checkProverTimeout(lockId);
+        if (!isTimedOut) revert ProverTimeoutNotReached();
+        
+        // Calculate and verify bond
+        uint256 requiredBond = _calculateEmergencyBond(lockData.amount);
+        if (msg.value < requiredBond) revert InvalidBond();
+        
+        uint256 emergencyReadyAt = block.timestamp + EMERGENCY_TIME_LOCK;
+        
+        // Update existing unlock request to emergency
+        UnlockRequest storage request = unlockRequests[lockId];
+        request.isEmergency = true;
+        request.bond = msg.value;
+        request.unlockableAt = emergencyReadyAt;
+        request.emergencyReadyAt = emergencyReadyAt;
+        
+        // Create emergency unlock tracking
+        emergencyUnlocks[lockId] = EmergencyUnlock({
+            lockId: lockId,
+            initiator: msg.sender,
+            bondAmount: msg.value,
+            initiatedAt: block.timestamp,
+            emergencyReadyAt: emergencyReadyAt,
+            status: EmergencyStatus.MONITORING,
+            enhancedMonitoring: true,
+            fromTimeout: true
+        });
+        
+        // Activate enhanced monitoring
+        enhancedMonitoring[lockId] = true;
+        
+        lockData.status = LockStatus.EMERGENCY_PENDING;
+        
+        emit ProverTimeoutDetected(lockId, proverRequestedAt, block.timestamp);
+        emit EmergencyUnlockInitiated(lockId, msg.sender, true, block.timestamp);
+        emit EmergencyBondReceived(lockId, msg.sender, msg.value, requiredBond);
+        emit EnhancedMonitoringActivated(lockId, block.timestamp);
+        emit EmergencyUnlockRequested(lockId, request.recipient, request.amount, msg.value, emergencyReadyAt);
+    }
+    
+    /// @notice Record prover request timestamp for timeout tracking
+    /// @dev Sequence #3: TRIG-002 - Prover response state tracking
+    function recordProverRequest(bytes32 lockId) external onlyActiveProver {
+        UnlockRequest storage request = unlockRequests[lockId];
+        if (request.lockId == bytes32(0)) revert UnlockNotFound();
+        
+        // Only record if not already set
+        if (request.proverRequestedAt == 0) {
+            request.proverRequestedAt = block.timestamp;
+        }
     }
 
     /// @notice Internal helper to create unlock request (reduces stack depth)
@@ -339,6 +540,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
         req.bond = bond;
         req.signatureCount = sigCount;
         req.unlockNonce = unlockNonce;
+        req.proverRequestedAt = block.timestamp; // Initialize prover tracking
 
         if (!isEmergency) {
             emit UnlockRequested(lockId, recipient, amount, unlockableAt, false, sr1);
@@ -363,6 +565,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
         totalLocked -= request.amount;
 
         uint256 bondToReturn = request.bond;
+        bool wasSlashed = false;
+        
+        // Check if emergency was slashed
+        EmergencyUnlock storage emergencyData = emergencyUnlocks[lockId];
+        if (emergencyData.status == EmergencyStatus.MONITORING || emergencyData.status == EmergencyStatus.BOND_RECEIVED) {
+            emergencyData.status = EmergencyStatus.FINALIZED;
+            enhancedMonitoring[lockId] = false;
+        }
 
         (bool success, ) = request.recipient.call{value: request.amount}("");
         if (!success) revert TransferFailed();
@@ -373,6 +583,35 @@ contract L1Vault is ReentrancyGuard, Pausable {
         }
 
         emit UnlockExecuted(lockId, request.recipient, request.amount);
+        
+        if (request.isEmergency) {
+            emit EmergencyUnlockFinalized(lockId, request.recipient, request.amount, bondToReturn, wasSlashed);
+        }
+    }
+    
+    /// @notice Calculate emergency bond amount
+    /// @dev Sequence #3: BOND-001 - MAX(0.5 ETH, amount × 5%)
+    function _calculateEmergencyBond(uint256 amount) internal pure returns (uint256) {
+        uint256 percentBond = (amount * EMERGENCY_BOND_PERCENT) / 100;
+        return percentBond > MIN_EMERGENCY_BOND ? percentBond : MIN_EMERGENCY_BOND;
+    }
+    
+    /// @notice Get calculated emergency bond for an amount
+    /// @dev Public view for UI/testing
+    function calculateEmergencyBond(uint256 amount) external pure returns (uint256) {
+        return _calculateEmergencyBond(amount);
+    }
+    
+    /// @notice Get emergency unlock details
+    /// @dev Sequence #3: View function for emergency state
+    function getEmergencyUnlock(bytes32 lockId) external view returns (EmergencyUnlock memory) {
+        return emergencyUnlocks[lockId];
+    }
+    
+    /// @notice Check if lock is in enhanced monitoring mode
+    /// @dev Sequence #3: MON-001
+    function isEnhancedMonitoring(bytes32 lockId) external view returns (bool) {
+        return enhancedMonitoring[lockId];
     }
 
     // =========================================================================
@@ -385,7 +624,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (block.timestamp > request.unlockableAt) revert UnlockNotReady();
 
         Lock storage lockData = locks[lockId];
-        if (lockData.status != LockStatus.PENDING_UNLOCK) revert LockAlreadyReleased();
+        if (lockData.status != LockStatus.PENDING_UNLOCK && lockData.status != LockStatus.EMERGENCY_PENDING) revert LockAlreadyReleased();
 
         uint256 requiredBond = (request.amount * CHALLENGE_BOND_PERCENT) / 100;
         if (requiredBond < MIN_CHALLENGE_BOND) requiredBond = MIN_CHALLENGE_BOND;
@@ -406,6 +645,15 @@ contract L1Vault is ReentrancyGuard, Pausable {
         });
 
         lockData.status = LockStatus.CHALLENGED;
+        
+        // Extend time lock if challenged during emergency (TL7-003)
+        if (request.isEmergency) {
+            request.unlockableAt = request.unlockableAt + EMERGENCY_TIME_LOCK;
+            if (emergencyUnlocks[lockId].emergencyReadyAt > 0) {
+                emergencyUnlocks[lockId].emergencyReadyAt = request.unlockableAt;
+            }
+        }
+        
         emit ChallengeFiled(lockId, msg.sender, keccak256(fraudProof), msg.value, defenseDeadline);
     }
 
@@ -442,6 +690,13 @@ contract L1Vault is ReentrancyGuard, Pausable {
             challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
             insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
             burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
+            
+            // Forfeit emergency bond if challenge is valid (BOND-004)
+            if (request.isEmergency && request.bond > 0) {
+                insuranceFund += request.bond;
+                request.bond = 0;
+                emergencyUnlocks[lockId].bondAmount = 0;
+            }
         } else {
             _resolveInvalidChallenge(lockId, challengeData, lockData);
             if (challengeData.defender != address(0)) {
@@ -478,7 +733,13 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     function _resolveInvalidChallenge(bytes32 lockId, Challenge storage challengeData, Lock storage lockData) internal {
         challengeData.status = ChallengeStatus.RESOLVED_INVALID;
-        lockData.status = LockStatus.PENDING_UNLOCK;
+        
+        // Restore to appropriate pending state
+        if (emergencyUnlocks[lockId].status != EmergencyStatus.NONE) {
+            lockData.status = LockStatus.EMERGENCY_PENDING;
+        } else {
+            lockData.status = LockStatus.PENDING_UNLOCK;
+        }
 
         if (challengeData.defender != address(0)) {
             uint256 defenderReward = (challengeData.bond * SLASH_CHALLENGER_PERCENT) / 100;
@@ -515,6 +776,12 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
         insuranceFund += insuranceAmount;
         totalBurned += burnedAmount;
+        
+        // Forfeit emergency bond if applicable
+        if (request.isEmergency && request.bond > 0) {
+            insuranceFund += request.bond;
+            request.bond = 0;
+        }
 
         (bool refundSuccess, ) = lockData.sender.call{value: lockData.amount}("");
         if (!refundSuccess) revert TransferFailed();
