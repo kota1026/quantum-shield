@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-23 22:00 JST  
+> **Last Updated**: 2025-12-24 10:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -51,7 +51,7 @@
 
 | Day | タスク | Status | PIR |
 |-----|--------|--------|-----|
-| **8-9** | **VRF統合 (Chainlink)** | 🔄 NEXT | PIR-005 |
+| **8-9** | **VRF統合 (Chainlink)** | ⚠️ CONDITIONAL | PIR-005 |
 | 10 | 統合テスト | ⬜ | PIR-006 |
 
 ### Day 11-14: 品質保証
@@ -81,7 +81,8 @@
 | SHA3_256Test | 24/24 | ✅ PASS |
 | SparseMerkleTreeTest | 30/30 | ✅ PASS |
 | StateRootCalculatorTest | 38/38 | ✅ PASS |
-| **Total** | **191/191** | ✅ ALL PASS |
+| VRFConsumerMockTest | TBD | 🔄 PENDING |
+| **Total** | **191+/191+** | 🔄 IN PROGRESS |
 
 ---
 
@@ -93,7 +94,7 @@
 | PIR-002 | Day 5 Unit Tests | ✅ PASS | 2025-12-22 |
 | PIR-003 | Day 2-4 Native STARK | ⚠️ CONDITIONAL | 2025-12-22 |
 | PIR-004 | Day 6-7 SR Implementation | ✅ PASS | 2025-12-22 |
-| PIR-005 | Day 8-9 VRF Integration | ⬜ PENDING | - |
+| PIR-005 | Day 8-9 VRF Integration | ⚠️ CONDITIONAL | 2025-12-24 |
 
 ---
 
@@ -104,22 +105,33 @@
 | 1 | SHA3-256 Gas最適化（~1.3M） | 🟡 Medium | Day 11 |
 | 2 | Dilithium Lean4形式検証なし | 🔴 High | Month 2-3 |
 | 3 | SPHINCS+形式検証なし | 🔴 High | Phase 2 |
+| 4 | **L1Vault SMT検証でkeccak256使用（CP-1違反リスク）** | 🔴 High | 次回Plan |
 
 ---
 
 ## 🔜 次のアクション
 
-### 即座に実行（Day 8-9）
+### 修正必須（PIR-005レビューより）
 
-1. **VRF統合 (Chainlink)**
+1. **SMT証明検証のSHA3-256移行**
+   - 重要度: 🔴 High (CP-1違反リスク)
+   - 対象ファイル: `contracts/src/L1Vault.sol`
+   - 場所: `_verifySMTProof()` 関数 (L794-802)
+   - 対策: keccak256 → SHA3_256.hash() に変更
+   - 詳細: `docs/aegis/pir/PIR-005.md`
+
+### 即座に実行（Day 8-9 継続）
+
+1. **SMT検証修正後、VRF統合再レビュー**
    - チェックリスト: `docs/planning/checklists/phase1_day8-10_vrf.md`
-   - 担当: Engineer
-   - 成果物: VRFConsumer.sol
+   - 担当: Engineer, Red Team
+   - 成果物: 修正済みL1Vault.sol
 
-2. **SR_0/SR_1へのVRF値組み込み**
-   - 担当: Cryptographer, Engineer
+2. **Slitherローカル実行**
+   - 担当: QA
+   - 成果物: 静的解析レポート
 
-3. **VRF統合テスト追加**
+3. **VRF統合テスト実行確認**
    - 担当: QA
 
 ---
@@ -144,6 +156,7 @@
 | 開発計画 | `docs/planning/DEVELOPMENT_PLAN_v1.0.md` |
 | 現在のチェックリスト | `docs/planning/checklists/phase1_day8-10_vrf.md` |
 | WBS | `docs/aegis/WBS_v2.1.md` |
+| PIR-005レポート | `docs/aegis/pir/PIR-005.md` |
 
 ---
 
