@@ -1,212 +1,107 @@
-# Quantum Shield - CURRENT_PLAN.md
+# Current Plan
 
-> **Version**: 1.0  
-> **Created**: 2025-12-23  
-> **Status**: Phase 0.5 再始動  
-> **Branch**: dev/restructure
+> **Generated**: 2025-12-24 (JST)
+> **Phase**: 1 - Foundation Bootstrap
+> **Day**: 8 (14日間修正計画)
 
----
+## 対象チェックリスト
 
-## 📍 現状認識
+`docs/planning/checklists/phase1_day8-10_vrf.md`
 
-### ブランチ状況
+## 今回のスコープ
 
-| ブランチ | 状態 | 内容 |
-|---------|------|------|
-| `dev/phase2-native-stark` | Day 9完了 | VRF統合済、250+テスト |
-| `dev/restructure` | 初期構築中 | Stateless Architecture基盤 |
+### 実装項目 (Day 8-9: VRF統合)
 
-### 問題認識
+#### 8-9.1 VRFConsumer実装 (`contracts/src/VRFConsumerMock.sol`)
+- [x] [IMPL-001] VRFConsumerBase継承 → Mock版として IVRFConsumer実装済み
+- [x] [IMPL-002] requestRandomWords関数実装 → requestProverSelection実装済み
+- [x] [IMPL-003] fulfillRandomWords関数実装 → mockFulfillRandomWords実装済み
+- [x] [IMPL-004] Prover選出ロジック（2/5）→ ProverSelector library使用
+- [x] [IMPL-005] 5分タイムアウト実装 → VRF_TIMEOUT = 5 minutes
+- [x] [IMPL-006] Fallbackメカニズム → triggerFallback実装済み
 
-dev/phase2-native-starkでの実装は技術的には進んでいるが、以下の課題が発生：
+#### 8-9.2 L1Vault統合 (`contracts/src/L1Vault.sol`)
+- [ ] [INTEG-001] VRFConsumerとの接続
+- [ ] [INTEG-002] Unlock時のVRF呼び出し
+- [ ] [INTEG-003] Prover署名要求への連携
+- [ ] [INTEG-004] Emergency Path切り替え（72h）
 
-1. **仕様との乖離**: 実装が仕様書から逸脱している可能性（文書改竄問題の経験）
-2. **検証不足**: Sequence単位での仕様準拠確認が未実施
-3. **アーキテクチャ変更**: Stateless Architecture導入により、プロジェクト管理方法が変更
+### テスト項目 (`contracts/test/VRFConsumerMockTest.t.sol`)
+- [x] [TEST-001] VRF正常系テスト
+- [x] [TEST-002] VRFタイムアウトテスト
+- [x] [TEST-003] Prover選出確率テスト
+- [x] [TEST-004] Fallbackテスト
+- [ ] [TEST-005] 境界値テスト（5分±1s）
 
----
+### 仕様準拠確認
+- [ ] [SPEC-001] QUANTUM_SHIELD_SEQUENCES_v2.0 Sequence#2準拠
+- [ ] [SPEC-002] VRF選出式: P(i) = Stake_i / Σ Stake
+- [ ] [SPEC-003] 署名期限: VRF後5分以内
+- [ ] [SPEC-004] 72hタイムアウト→Emergency Path
 
-## 🔄 Phase 0.5: Stateless Architecture 再始動
+### 参照ドキュメント
+- Sequence: `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` (Sequence#2: Unlock Normal)
+- 仕様: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md`
+- 憲法: `docs/constitution/CORE_PRINCIPLES.md`
+- PIRルーチン: `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md`
 
-### 目的
+## 成果物
 
-**ゼロベースで仕様準拠を検証し、Stateless Architectureの下で実装状況を正確にマッピングする**
+| ファイル | 説明 | Status |
+|---------|------|--------|
+| `contracts/src/VRFConsumerMock.sol` | Mock VRFコントラクト | ✅ 実装済み |
+| `contracts/src/interfaces/IVRFConsumer.sol` | VRF Interface | ✅ 実装済み |
+| `contracts/src/libraries/ProverSelector.sol` | Prover選出ロジック | ✅ 実装済み |
+| `contracts/test/VRFConsumerMockTest.t.sol` | VRFテスト | ✅ 存在 |
+| `contracts/src/L1Vault.sol` | VRF統合更新 | 🔄 要確認 |
+| `docs/aegis/PIR-005_VRF_REVIEW.md` | PIRレポート | ⬜ 未作成 |
 
-### Phase 0.5 タスク一覧
+## 実行順序
 
-| # | タスク | 担当 | 状態 | 成果物 |
-|---|--------|------|------|--------|
-| 0.5.1 | Stateless Architecture基盤完成 | Engineer | 🟡 進行中 | docs/constitution/, docs/planning/ |
-| 0.5.2 | 既存実装の仕様準拠監査 | All Agents | ⬜ 未着手 | AUDIT_REPORT.md |
-| 0.5.3 | Sequence別チェックリスト作成 | Engineer | 🟡 一部完了 | docs/planning/checklists/ |
-| 0.5.4 | ブランチ統合計画策定 | CTO | ⬜ 未着手 | MERGE_PLAN.md |
-| 0.5.5 | dev/restructure完成・マージ | Engineer | ⬜ 未着手 | PR |
+### 本日のタスク
 
----
+1. **L1Vault.sol のVRF統合状態確認**
+   - VRFConsumerとの接続状況を確認
+   - Unlock処理フローの確認
 
-## 📋 Phase 0.5.1: Stateless Architecture 基盤完成
+2. **INTEG-001〜004 の実装/修正**
+   - L1VaultへのVRF呼び出し統合
+   - Emergency Path (72h) の確認
 
-### 必要ファイル構成
+3. **TEST-005 境界値テスト追加**
+   - 5分タイムアウトの境界値テスト
 
-```
-docs/
-├── constitution/               # 不変の原則（CEO承認必要）
-│   ├── CORE_PRINCIPLES.md     ✅ 作成済
-│   ├── QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md  ✅ 作成済
-│   └── QUANTUM_SHIELD_UNIFIED_SPEC_v2.0_REF.md  ⬜ 要作成
-│
-├── rules/                      # 運用ルール
-│   ├── BOOTLOADER.md          ⬜ 要作成
-│   ├── AGENT_MEETING_PROTOCOL.md  ⬜ 要作成
-│   └── PIR_CODE_REVIEW_ROUTINE.md  ⬜ 要作成
-│
-├── planning/                   # プロジェクト状態（毎セッション更新）
-│   ├── CURRENT_STATE.md       ✅ 作成済
-│   ├── CURRENT_PLAN.md        ✅ 作成済（本ファイル）
-│   ├── checklists/            🟡 一部作成
-│   │   ├── sequence_1_lock.md ✅ 作成済
-│   │   ├── sequence_2_unlock_normal.md  ⬜ 要作成
-│   │   ├── sequence_3_unlock_emergency.md  ⬜ 要作成
-│   │   ├── sequence_4_challenge.md  ⬜ 要作成
-│   │   └── ...
-│   └── logs/                   # セッションログ
-│       └── .gitkeep           ✅ 作成済
-│
-└── memory/                     # 旧アーキテクチャ（移行後削除）
-    ├── rules.md               → constitution/ へ移行
-    ├── state.json             → planning/CURRENT_STATE.md へ移行
-    └── context.md             → 廃止（各チャットは使い捨て）
-```
+4. **SPEC-001〜004 仕様準拠確認**
+   - Sequence#2との整合性確認
+   - VRF選出式の検証
 
-### Phase 0.5.1 アクションアイテム
+5. **PIR-005レポート作成準備**
+   - 全テスト実行・合格確認
+   - Slither セキュリティチェック
 
-| # | アクション | 優先度 | 所要時間 |
-|---|----------|--------|---------|
-| 1 | QUANTUM_SHIELD_UNIFIED_SPEC_v2.0_REF.md 作成 | High | 30分 |
-| 2 | BOOTLOADER.md 作成 | High | 30分 |
-| 3 | 残りのSequenceチェックリスト作成 (7ファイル) | Medium | 2時間 |
-| 4 | rules/ディレクトリへのプロトコル移行 | Medium | 30分 |
+## Core Principles確認
 
----
+- [x] CP-1: 完全量子耐性 - VRFはDilithium署名と併用のみ（違反なし）
+- [x] CP-2: Self-Custody - ユーザー鍵は保存しない（違反なし）
+- [x] CP-3: Time Lock存在 - 24h（Normal）/ 7日（Emergency）維持（違反なし）
+- [x] CP-4: Slashing存在 - 機能削除していない（違反なし）
+- [x] CP-5: 透明性 - 全操作がオンチェーン（違反なし）
 
-## 📋 Phase 0.5.2: 既存実装の仕様準拠監査
+## リスク・懸念事項
 
-### 目的
+| # | 懸念 | 重要度 | 対応 |
+|---|------|--------|------|
+| 1 | L1Vault統合の既存実装確認が必要 | 🟡 Medium | 本日確認 |
+| 2 | 72h Emergency Path遷移ロジック | 🟡 Medium | 仕様確認 |
+| 3 | VRF正式版(Chainlink)への移行計画 | 🟢 Low | Phase2以降 |
 
-dev/phase2-native-starkの実装が、正規仕様（QUANTUM_SHIELD_*）に準拠しているか検証
+## 次のアクション
 
-### 監査対象
-
-| # | 実装 | 仕様準拠確認項目 | 担当Agent |
-|---|------|-----------------|-----------|
-| 1 | L1Vault.sol | Slashing配分60/20/20、Bond計算、Defense期間 | CSO, Engineer |
-| 2 | SHA3_256.sol | FIPS 202準拠（keccak256ではない） | Crypto Auditor |
-| 3 | SparseMerkleTree.sol | SHA3-256使用 | Crypto Auditor |
-| 4 | StateRootCalculator.sol | SR_0/SR_1計算式 | Engineer |
-| 5 | ProverSelector.sol | VRF確率計算 P(i) = Stake_i / Σ Stake | Engineer |
-| 6 | VRFConsumerMock.sol | Fallback機構 | QA |
-
-### 監査手順
-
-```
-1. QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md から該当仕様を抽出
-2. QUANTUM_SHIELD_SEQUENCES_v2.0.md からフローを確認
-3. 実装コードと仕様を1行ずつ照合
-4. 乖離があれば AUDIT_REPORT.md に記録
-5. 修正が必要な場合、PIR会議で決議
-```
+1. `contracts/src/L1Vault.sol` の VRF統合状態を確認
+2. 未完了のINTEG項目を特定・実装
+3. 全テスト実行 (`forge test`)
+4. PIR-005準備
 
 ---
 
-## 📋 Phase 0.5.3: Sequence別チェックリスト作成
-
-### 作成すべきチェックリスト
-
-| # | Sequence | ファイル名 | 状態 |
-|---|----------|-----------|------|
-| 1 | Lock | sequence_1_lock.md | ✅ 作成済 |
-| 2 | Unlock (Normal) | sequence_2_unlock_normal.md | ⬜ 未着手 |
-| 3 | Unlock (Emergency) | sequence_3_unlock_emergency.md | ⬜ 未着手 |
-| 3' | Resync | sequence_3_resync.md | ⬜ 未着手 |
-| 4 | Challenge + Slashing | sequence_4_challenge.md | ⬜ 未着手 |
-| 5 | Prover Registration | sequence_5_prover_registration.md | ⬜ 未着手 |
-| 6 | Prover Exit | sequence_6_prover_exit.md | ⬜ 未着手 |
-| 7 | Governance Proposal | sequence_7_governance.md | ⬜ 未着手 |
-| 8 | Emergency Pause | sequence_8_emergency_pause.md | ⬜ 未着手 |
-
-### チェックリストテンプレート
-
-各チェックリストは以下の構造を持つ：
-
-1. **仕様参照** (SEQUENCES_v2.0からの引用)
-2. **実装項目** (コード、テスト、レビュー)
-3. **成果物リンク** (commit SHA, ファイルパス)
-4. **PIR決議** (会議ID、日付、判定)
-
----
-
-## 📋 Phase 0.5.4: ブランチ統合計画
-
-### 統合戦略
-
-```
-Option A: dev/restructure を main にマージ → dev/phase2-native-stark をリベース
-Option B: dev/phase2-native-stark の実装を dev/restructure にチェリーピック
-Option C: 新ブランチ dev/phase3-unified を作成し、両方から必要な部分を移植
-```
-
-### 推奨: Option B
-
-**理由**:
-1. dev/restructure の構造が「正」となるべき
-2. 既存実装は監査後にチェリーピック
-3. 監査で問題が見つかった実装は移植しない
-
-### 統合手順
-
-```
-1. dev/restructure で Stateless Architecture 完成
-2. Phase 0.5.2 監査完了
-3. 監査PASSした実装のみチェリーピック
-4. dev/restructure を main にマージ
-5. dev/phase2-native-stark をアーカイブ
-```
-
----
-
-## 🗓️ Phase 0.5 スケジュール
-
-| Day | タスク | 成果物 |
-|-----|--------|--------|
-| 0.5-Day1 | Stateless Architecture基盤完成 | docs/constitution/, docs/rules/ |
-| 0.5-Day2 | 全Sequenceチェックリスト作成 | docs/planning/checklists/*.md |
-| 0.5-Day3 | 既存実装監査 (L1Vault, SHA3) | AUDIT_REPORT.md Part 1 |
-| 0.5-Day4 | 既存実装監査 (VRF, StateRoot) | AUDIT_REPORT.md Part 2 |
-| 0.5-Day5 | ブランチ統合・PIR会議 | MERGE_PLAN.md, PIR-011 |
-
----
-
-## ✅ 次のアクション
-
-### 即時実行（このセッション）
-
-1. [x] 本ファイル (CURRENT_PLAN.md) をGitHubにプッシュ
-2. [ ] BOOTLOADER.md を作成
-3. [ ] QUANTUM_SHIELD_UNIFIED_SPEC_v2.0_REF.md を作成
-
-### 次セッション
-
-1. [ ] 残りのSequenceチェックリスト作成
-2. [ ] 既存実装監査開始
-
----
-
-## 📝 Change Log
-
-| Date | Author | Change |
-|------|--------|--------|
-| 2025-12-24 | CEO/Claude | Phase 0.5 再始動計画策定、GitHubプッシュ |
-
----
-
-**END OF DOCUMENT**
+**END OF CURRENT PLAN**
