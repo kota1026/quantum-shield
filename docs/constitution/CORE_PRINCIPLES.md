@@ -104,7 +104,7 @@
 
 | ドキュメント | パス | 用途 |
 |-------------|------|------|
-| シーケンス参照 | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` | フロー参照 |
+| シーケンスカタログ | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` | フロー参照 |
 | 統合仕様書 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | 詳細仕様 |
 | 開発計画書 | `docs/planning/DEVELOPMENT_PLAN_v1.0.md` | スケジュール |
 
