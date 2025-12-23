@@ -13,6 +13,8 @@ import {ProverSelector} from "./libraries/ProverSelector.sol";
 /// - Subscription-based or direct funding
 /// - Proper callback security
 contract VRFConsumerMock is IVRFConsumer {
+    using ProverSelector for ProverSelector.ProverInfo[];
+
     // =========================================================================
     // Constants
     // =========================================================================
@@ -310,14 +312,14 @@ contract VRFConsumerMock is IVRFConsumer {
     // Internal Functions
     // =========================================================================
 
-    /// @notice Internal prover selection
+    /// @notice Internal prover selection using library with `using for` syntax
     function _selectProver(uint256 randomValue) internal view returns (address) {
         if (proverPool.length == 0) revert ProverSelector.NoActiveProvers();
         
         // Create memory copy for library function
         ProverSelector.ProverInfo[] memory provers = proverPool;
-        // Call library function directly with correct argument order
-        (address selected, ) = ProverSelector.selectProver(randomValue, provers);
+        // Use `using for` syntax: provers.selectProver(randomValue)
+        (address selected, ) = provers.selectProver(randomValue);
         return selected;
     }
 }
