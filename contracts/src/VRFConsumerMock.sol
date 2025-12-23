@@ -13,8 +13,6 @@ import {ProverSelector} from "./libraries/ProverSelector.sol";
 /// - Subscription-based or direct funding
 /// - Proper callback security
 contract VRFConsumerMock is IVRFConsumer {
-    using ProverSelector for ProverSelector.ProverInfo[];
-
     // =========================================================================
     // Constants
     // =========================================================================
@@ -318,7 +316,8 @@ contract VRFConsumerMock is IVRFConsumer {
         
         // Create memory copy for library function
         ProverSelector.ProverInfo[] memory provers = proverPool;
-        (address selected, ) = provers.selectProver(randomValue);
+        // Call library function directly with correct argument order
+        (address selected, ) = ProverSelector.selectProver(randomValue, provers);
         return selected;
     }
 }
