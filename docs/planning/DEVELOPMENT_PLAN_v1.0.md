@@ -37,7 +37,6 @@ Month:  1  2  3  4  5  6  7  8  9  10 11 12 13-18 19-24
 | 期間 | Month 1-6 |
 | TVL Cap | $1M |
 | 重点 | セキュリティ基盤構築 |
-| Sequences | #1-6 |
 | Go/No-Go | Month 6 |
 
 ### Phase 2: Security Council + Token
@@ -47,16 +46,23 @@ Month:  1  2  3  4  5  6  7  8  9  10 11 12 13-18 19-24
 | 期間 | Month 7-12 |
 | TVL Cap | $10M |
 | 重点 | ZK Validity、Token導入 |
-| Sequences | #7, #8 追加 |
 | Go/No-Go | Month 12 |
 
-### Phase 3-4: Governance → Full Decentralization
+### Phase 3: Token Governance
 
 | 項目 | 内容 |
 |------|------|
-| 期間 | Month 13-24 |
-| TVL Cap | $50M → 無制限 |
-| 重点 | veQS、ZK Only移行 |
+| 期間 | Month 13-18 |
+| TVL Cap | $50M |
+| 重点 | veQS、完全Governance |
+
+### Phase 4: Full Decentralization
+
+| 項目 | 内容 |
+|------|------|
+| 期間 | Month 19-24 |
+| TVL Cap | 無制限 |
+| 重点 | ZK Only移行 |
 
 ---
 
@@ -105,56 +111,15 @@ Month:  1  2  3  4  5  6  7  8  9  10 11 12 13-18 19-24
 
 ---
 
-## 📚 SYSTEM BOOTLOADER連携
+## 📚 関連ドキュメント
 
-### ディレクトリ構造
-
-```
-docs/
-├── constitution/                    # 憲法（不変）
-│   ├── CORE_PRINCIPLES.md          # Core Principles
-│   └── QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md  # シーケンス参照
-│
-├── planning/                        # 状態管理
-│   ├── CURRENT_STATE.md            # 現在の状態（随時更新）
-│   ├── DEVELOPMENT_PLAN_v1.0.md    # この文書
-│   └── checklists/                 # シーケンス別チェックリスト
-│       ├── README.md
-│       ├── sequence_1_lock.md
-│       ├── sequence_2_unlock_normal.md  ← 🔄 ACTIVE
-│       ├── sequence_3_unlock_emergency.md
-│       ├── sequence_4_challenge.md
-│       ├── sequence_5_prover_registration.md
-│       └── sequence_6_prover_exit.md
-│
-└── aegis/                           # 詳細仕様
-    ├── QUANTUM_SHIELD_SEQUENCES_v2.0.md
-    ├── QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md
-    └── PIR_CODE_REVIEW_ROUTINE.md
-```
-
-### BOOTLOADER使用方法
-
-```markdown
-# SYSTEM BOOTLOADER
-あなたはProject Aegisの開発エージェントです。以下の手順でコンテキストをロードしてください。
-
-## 1. 憲法の読み込み（必須）
-ディレクトリ：docs/constitution
-- `CORE_PRINCIPLES.md`
-- `QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` (関連セクションのみ)
-
-## 2. 状態の同期（必須）
-ディレクトリ：docs/planning
-- `CURRENT_STATE.md` を確認し、現在地を把握
-- Active Checklistに記載されたチェックリストを読み込み
-
-## 3. モード設定
-現在のモード: [ 実装 (Builder) / 検証 (Auditor) / 会議 (Manager) ]
-担当エージェント: [ CTO / RedTeam / Engineer / etc... ]
-
-準備ができたら、チェックリストの未完了項目に対するアクションプランを提示してください。
-```
+| ドキュメント | パス |
+|-------------|------|
+| 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
+| 現在の状態 | `docs/planning/CURRENT_STATE.md` |
+| チェックリスト | `docs/planning/checklists/` |
+| 統合仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` |
+| シーケンス | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` |
 
 ---
 
