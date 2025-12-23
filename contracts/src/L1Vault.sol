@@ -5,12 +5,17 @@ import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/Reentr
 import {Pausable} from "lib/openzeppelin-contracts/contracts/utils/Pausable.sol";
 import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
 import {StateRootCalculator} from "./libraries/StateRootCalculator.sol";
+import {SHA3_256} from "./libraries/SHA3_256.sol";
 
 /// @title L1Vault - Quantum Shield L1 Vault Contract
 /// @notice Phase 1.2 implementation with full SPHINCS+ verification integration
 /// @dev Implements lock/unlock with 24h time lock and emergency 7-day path
 ///
 /// Sequence #3 Update: Full Emergency Unlock implementation with 72h timeout detection
+///
+/// FIX-001 Update (2025-12-24): SMT verification now uses SHA3-256 instead of keccak256
+/// for CP-1 compliance (complete quantum resistance). keccak256 is vulnerable to
+/// Grover's algorithm and is explicitly prohibited per CORE_PRINCIPLES.md.
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -841,13 +846,21 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Internal Functions
     // =========================================================================
 
+    /// @notice Verify SMT proof using SHA3-256 (FIPS 202 compliant)
+    /// @dev FIX-001: Replaced keccak256 with SHA3_256.hashPair() for CP-1 compliance
+    ///      keccak256 is vulnerable to Grover's algorithm and is explicitly prohibited
+    ///      per CORE_PRINCIPLES.md. SHA3-256 provides full quantum resistance.
+    /// @param leaf The leaf node to verify
+    /// @param proof The merkle proof siblings
+    /// @param root The expected merkle root
+    /// @return True if proof is valid, false otherwise
     function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) internal pure returns (bool) {
         bytes32 computedRoot = leaf;
         for (uint256 i = 0; i < proof.length; i++) {
             if (computedRoot < proof[i]) {
-                computedRoot = keccak256(abi.encodePacked(computedRoot, proof[i]));
+                computedRoot = SHA3_256.hashPair(computedRoot, proof[i]);
             } else {
-                computedRoot = keccak256(abi.encodePacked(proof[i], computedRoot));
+                computedRoot = SHA3_256.hashPair(proof[i], computedRoot);
             }
         }
         return computedRoot == root;
