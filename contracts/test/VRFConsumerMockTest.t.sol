@@ -187,6 +187,8 @@ contract VRFConsumerMockTest is Test {
     // triggerFallback Tests
     // =========================================================================
 
+    /// @notice Test fallback after timeout selects a valid prover
+    /// @dev FIX: checkTopic2=false because we don't know the selected prover address beforehand
     function test_TriggerFallback_AfterTimeout() public {
         vm.prank(l1Vault);
         vrfConsumer.requestProverSelection(unlockRequestId);
@@ -194,8 +196,10 @@ contract VRFConsumerMockTest is Test {
         // Advance time past VRF_TIMEOUT (5 minutes)
         vm.warp(block.timestamp + 5 minutes + 1);
 
-        vm.expectEmit(true, true, false, false);
-        emit FallbackProverSelected(unlockRequestId, address(0)); // We don't know prover address yet
+        // FIX: Changed checkTopic2 from true to false because fallback selects a valid prover,
+        // not address(0). We only check that the event is emitted with correct unlockRequestId.
+        vm.expectEmit(true, false, false, false);
+        emit FallbackProverSelected(unlockRequestId, address(0)); // prover address will be determined at runtime
 
         address fallbackProver = vrfConsumer.triggerFallback(unlockRequestId);
         assertTrue(fallbackProver != address(0));
@@ -238,6 +242,18 @@ contract VRFConsumerMockTest is Test {
         
         address prover = vrfConsumer.triggerFallback(unlockRequestId);
         assertTrue(prover != address(0));
+    }
+
+    function test_TriggerFallback_CannotCallTwice() public {
+        vm.prank(l1Vault);
+        vrfConsumer.requestProverSelection(unlockRequestId);
+
+        vm.warp(block.timestamp + 5 minutes + 1);
+        vrfConsumer.triggerFallback(unlockRequestId);
+
+        // Second call should fail
+        vm.expectRevert(VRFConsumerMock.RequestAlreadyFulfilled.selector);
+        vrfConsumer.triggerFallback(unlockRequestId);
     }
 
     // =========================================================================
