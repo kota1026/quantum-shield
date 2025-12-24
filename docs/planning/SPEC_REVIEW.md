@@ -1,15 +1,18 @@
 # 仕様レビュー結果
 
 ## 日時
-2025-12-24 15:30 JST
+2025-12-24 15:30 JST（初回）
+2025-12-24 11:36 JST（FIX-002/FIX-003検証完了）
 
 ## 対象
 CURRENT_PLAN Day 8 スコープ:
 - [FIX-001] `_verifySMTProof()` keccak256→SHA3-256移行
+- [FIX-002] SMTテストのSHA3-256合格確認
+- [FIX-003] L1VaultIntegrationTest再実行
 - [IMPL-001〜007] VRF統合
 
 ## ステータス
-✅ 全て対応済み - セキュリティレビューへ進むこと
+✅ 全て対応済み・検証完了 - セキュリティレビューへ進むこと
 
 ---
 
@@ -71,6 +74,33 @@ function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) i
 
 ---
 
+## 修正項目（FIX）検証結果
+
+| 項目 | 内容 | ステータス | 対応コミット |
+|------|------|----------|-------------|
+| FIX-001 | keccak256→SHA3-256修正 | ✅ 完了 | 8ec31f15 |
+| FIX-002 | SMTテストSHA3-256合格確認 | ✅ 検証完了 | - |
+| FIX-003 | L1VaultIntegrationTest再実行 | ✅ 検証完了（51/51 PASS） | 48e0e74c |
+
+### FIX-002/FIX-003 検証詳細
+
+**テスト実行結果（2025-12-24 11:36 JST）:**
+
+```
+forge test --match-contract L1VaultSMTSHA3 -vv
+Suite result: ok. 7 passed; 0 failed; 0 skipped
+
+forge test --match-contract L1VaultIntegration -vv
+Suite result: ok. 51 passed; 0 failed; 0 skipped
+```
+
+**修正内容:**
+- `test_ChallengeFlow_Complete()` の期待値修正
+  - Emergency Unlock経由のChallenge棄却後は `EMERGENCY_PENDING` に戻る（正しい動作）
+  - 旧: `PENDING_UNLOCK (1)` → 新: `EMERGENCY_PENDING (5)`
+
+---
+
 ## VRF統合（IMPL-001〜007）対応結果
 
 ### ✅ 全項目対応完了
@@ -122,9 +152,9 @@ function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) i
    - SHA3_256のimportを追加
    - `_verifySMTProof()`内のkeccak256をSHA3_256.hashPair()に置換
 
-2. **テスト実行で整合性確認**
-   - 既存L1VaultIntegrationTestの再実行
-   - SMT Proofの生成側も確認（テストで生成されるProofがSHA3-256ベースか確認）
+2. **テスト実行で整合性確認** ✅ 完了
+   - 既存L1VaultIntegrationTestの再実行: 51/51 PASS
+   - L1VaultSMTSHA3Testの実行: 7/7 PASS
 
 3. **VRF統合完了** ✅ 完了
    - VRFConsumer.sol作成済み
@@ -143,6 +173,7 @@ function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) i
 | ISSUE-001 | Engineer | 2025-12-24 02:28 JST | 8ec31f15f70508e30e7fe60decaa7fdbf2a469fe |
 | IMPL-001〜007 | Engineer | 2025-12-24 10:07 JST | 3c7d536a8b0f7e57c49c6cfbaf4a514387e91827 |
 | TEST-001〜005 | QA | 2025-12-24 10:04 JST | 734634a518e5bac2a0c00881c5a1fb86569d1309 |
+| FIX-002/003検証 | QA | 2025-12-24 11:36 JST | 48e0e74c13d7b84044cae944adf3022fb6e3fe0f |
 
 ---
 
@@ -152,6 +183,6 @@ function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) i
 
 ---
 
-**✅ 全ての対応項目が完了。セキュリティレビュー（PIR-006）へ進んでください。**
+**✅ 全ての対応項目が完了・検証済み。セキュリティレビュー（PIR-006）へ進んでください。**
 
 **END OF SPEC REVIEW**
