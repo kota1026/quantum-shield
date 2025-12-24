@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
+import {Vm} from "forge-std/Vm.sol";
 import {L1Vault} from "../src/L1Vault.sol";
 import {SPHINCSVerifier} from "../src/SPHINCSVerifier.sol";
 import {VRFConsumer} from "../src/VRFConsumer.sol";
