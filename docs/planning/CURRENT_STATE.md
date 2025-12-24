@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-24 10:30 JST  
+> **Last Updated**: 2025-12-24 16:00 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -11,7 +11,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 1 - Foundation Bootstrap                            │
 │  Week: 3 / 24                                               │
-│  Day: 8 (14日間修正計画)                                      │
+│  Day: 8-9 (14日間修正計画) ✅ COMPLETE                        │
 │  Next Milestone: MS-1 (Month 4)                             │
 │  Status: 🔄 IN PROGRESS                                     │
 └─────────────────────────────────────────────────────────────┘
@@ -24,7 +24,7 @@
 | Phase | 期間 | 進捗 | Status |
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
-| **Phase 1** | Month 1-6 | **35%** | 🔄 IN PROGRESS |
+| **Phase 1** | Month 1-6 | **40%** | 🔄 IN PROGRESS |
 | Phase 2 | Month 7-12 | 0% | ⬜ NOT STARTED |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
@@ -47,21 +47,22 @@
 | 6-7 | StateRootCalculator | ✅ | PIR-004 |
 | 6-7 | PIR Code Review Routine | ✅ | PIR-004 |
 
-### Day 8-10: 仕様完全準拠 🔄 Current
+### Day 8-10: 仕様完全準拠 ✅ Day 8-9 Complete
 
 | Day | タスク | Status | PIR |
 |-----|--------|--------|-----|
-| **8-9** | **VRF統合 (Chainlink)** | ⚠️ CONDITIONAL | PIR-005 |
-| 10 | 統合テスト | ⬜ | PIR-006 |
+| **8-9** | **VRF統合 (Chainlink)** | ✅ PASS | PIR-005 |
+| **8-9** | **セキュリティレビュー** | ✅ PASS | PIR-006 |
+| 10 | 統合テスト | ⬜ | PIR-007 |
 
 ### Day 11-14: 品質保証
 
 | Day | タスク | Status | PIR |
 |-----|--------|--------|-----|
-| 11 | Gas最適化 | ⬜ | PIR-007 |
-| 12 | Fuzzテスト | ⬜ | PIR-008 |
-| 13 | 外部レビュー | ⬜ | PIR-009 |
-| 14 | 最終検証 | ⬜ | PIR-010 |
+| 11 | Gas最適化 + 署名メッセージSHA3化 | ⬜ | PIR-008 |
+| 12 | Fuzzテスト | ⬜ | PIR-009 |
+| 13 | 外部レビュー | ⬜ | PIR-010 |
+| 14 | 最終検証 | ⬜ | PIR-011 |
 
 ---
 
@@ -81,8 +82,9 @@
 | SHA3_256Test | 24/24 | ✅ PASS |
 | SparseMerkleTreeTest | 30/30 | ✅ PASS |
 | StateRootCalculatorTest | 38/38 | ✅ PASS |
-| VRFConsumerMockTest | TBD | 🔄 PENDING |
-| **Total** | **191+/191+** | 🔄 IN PROGRESS |
+| L1VaultSMTSHA3Test | 7/7 | ✅ PASS |
+| VRFConsumerTest | 20+/20+ | ✅ PASS |
+| **Total** | **218+/218+** | ✅ PASS |
 
 ---
 
@@ -94,7 +96,8 @@
 | PIR-002 | Day 5 Unit Tests | ✅ PASS | 2025-12-22 |
 | PIR-003 | Day 2-4 Native STARK | ⚠️ CONDITIONAL | 2025-12-22 |
 | PIR-004 | Day 6-7 SR Implementation | ✅ PASS | 2025-12-22 |
-| PIR-005 | Day 8-9 VRF Integration | ⚠️ CONDITIONAL | 2025-12-24 |
+| PIR-005 | Day 8-9 VRF Integration | ✅ PASS | 2025-12-24 |
+| PIR-006 | Day 8-9 Security Review | ✅ PASS | 2025-12-24 |
 
 ---
 
@@ -103,36 +106,40 @@
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
 | 1 | SHA3-256 Gas最適化（~1.3M） | 🟡 Medium | Day 11 |
-| 2 | Dilithium Lean4形式検証なし | 🔴 High | Month 2-3 |
-| 3 | SPHINCS+形式検証なし | 🔴 High | Phase 2 |
-| 4 | **L1Vault SMT検証でkeccak256使用（CP-1違反リスク）** | 🔴 High | 次回Plan |
+| 2 | 署名メッセージ作成のSHA3-256化 | 🟡 Medium | Day 11 |
+| 3 | Dilithium Lean4形式検証なし | 🔴 High | Month 2-3 |
+| 4 | SPHINCS+形式検証なし | 🔴 High | Phase 2 |
+
+> **解決済み**: L1Vault SMT検証のkeccak256→SHA3-256移行完了（PIR-006確認済）
 
 ---
 
 ## 🔜 次のアクション
 
-### 修正必須（PIR-005レビューより）
+### Day 10: 統合テスト
 
-1. **SMT証明検証のSHA3-256移行**
-   - 重要度: 🔴 High (CP-1違反リスク)
-   - 対象ファイル: `contracts/src/L1Vault.sol`
-   - 場所: `_verifySMTProof()` 関数 (L794-802)
-   - 対策: keccak256 → SHA3_256.hash() に変更
-   - 詳細: `docs/aegis/pir/PIR-005.md`
-
-### 即座に実行（Day 8-9 継続）
-
-1. **SMT検証修正後、VRF統合再レビュー**
+1. **L1Vault + VRFConsumer統合テスト**
    - チェックリスト: `docs/planning/checklists/phase1_day8-10_vrf.md`
-   - 担当: Engineer, Red Team
-   - 成果物: 修正済みL1Vault.sol
+   - 担当: QA, Engineer
+   - 成果物: 統合テストスイート
 
-2. **Slitherローカル実行**
+2. **End-to-Endフロー確認**
+   - Lock → Unlock → VRF → Prover選出
+   - Emergency Path テスト
+
+### Day 11: Gas最適化
+
+1. **SHA3-256 Gas最適化**
+   - 担当: Engineer
+   - 目標: ~1.3M → ~800K
+
+2. **署名メッセージ作成のSHA3-256化**
+   - 対象: `_verifyThresholdSignatures()` 内のkeccak256
+   - 重要度: Medium
+
+3. **Slither静的解析**
    - 担当: QA
    - 成果物: 静的解析レポート
-
-3. **VRF統合テスト実行確認**
-   - 担当: QA
 
 ---
 
@@ -140,7 +147,7 @@
 
 | マイルストーン | 時期 | Status |
 |---------------|------|--------|
-| 14日間修正計画完了 | Day 14 | 🔄 50% |
+| 14日間修正計画完了 | Day 14 | 🔄 60% |
 | MS-1: コア完了 | Month 4 | ⬜ |
 | MS-2: Phase 1 Gate | Month 6 | ⬜ |
 | Go/No-Go会議 | Month 6 | ⬜ |
@@ -156,7 +163,8 @@
 | 開発計画 | `docs/planning/DEVELOPMENT_PLAN_v1.0.md` |
 | 現在のチェックリスト | `docs/planning/checklists/phase1_day8-10_vrf.md` |
 | WBS | `docs/aegis/WBS_v2.1.md` |
-| PIR-005レポート | `docs/aegis/pir/PIR-005.md` |
+| PIR-006レポート | `docs/aegis/pir/PIR-006.md` |
+| SPEC_REVIEWアーカイブ | `docs/planning/archive/SPEC_REVIEW_2025-12-24.md` |
 
 ---
 
