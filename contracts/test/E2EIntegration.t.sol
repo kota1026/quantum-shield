@@ -12,10 +12,10 @@ import {StateRootCalculator} from "../src/libraries/StateRootCalculator.sol";
 /// @dev Tests full operational flows per QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md
 ///
 /// PIR-007 Test Coverage:
-/// - [E2E-001] Lock → Unlock (Normal) complete flow
-/// - [E2E-002] Lock → Unlock (Emergency) complete flow
-/// - [E2E-003] Challenge → Slashing flow with 60/20/20 distribution
-/// - [E2E-004] VRF timeout → Emergency fallback mechanism
+/// - [E2E-001] Lock -> Unlock (Normal) complete flow
+/// - [E2E-002] Lock -> Unlock (Emergency) complete flow
+/// - [E2E-003] Challenge -> Slashing flow with 60/20/20 distribution
+/// - [E2E-004] VRF timeout -> Emergency fallback mechanism
 ///
 /// Core Principles Compliance:
 /// - [CP-1] Complete quantum resistance (SHA3-256, Dilithium, SPHINCS+)
@@ -121,7 +121,7 @@ contract E2EIntegrationTest is Test {
     }
 
     // =========================================================================
-    // [E2E-001] Lock → Unlock (Normal) Complete Flow
+    // [E2E-001] Lock -> Unlock (Normal) Complete Flow
     // =========================================================================
 
     /// @notice E2E-001: Complete Normal Unlock flow with all steps
@@ -192,7 +192,7 @@ contract E2EIntegrationTest is Test {
     }
 
     // =========================================================================
-    // [E2E-002] Lock → Unlock (Emergency) Complete Flow
+    // [E2E-002] Lock -> Unlock (Emergency) Complete Flow
     // =========================================================================
 
     /// @notice E2E-002: Complete Emergency Unlock flow
@@ -295,10 +295,10 @@ contract E2EIntegrationTest is Test {
     }
 
     // =========================================================================
-    // [E2E-003] Challenge → Slashing Flow
+    // [E2E-003] Challenge -> Slashing Flow
     // =========================================================================
 
-    /// @notice E2E-003: Complete Challenge → Slashing flow
+    /// @notice E2E-003: Complete Challenge -> Slashing flow
     /// @dev Sequence #4: Challenge + Slashing with 60/20/20 distribution
     ///      - User locks and requests emergency unlock
     ///      - Challenger files challenge with bond
@@ -371,7 +371,7 @@ contract E2EIntegrationTest is Test {
         // Total burned should increase
         assertTrue(vault.totalBurned() >= burnedBefore, "E2E-003: Burned amount should increase");
         
-        console.log("E2E-003: Challenge → Slashing completed");
+        console.log("E2E-003: Challenge -> Slashing completed");
         console.log("E2E-003: Insurance fund:", vault.insuranceFund() / 1e18, "ETH");
         console.log("E2E-003: Total burned:", vault.totalBurned() / 1e18, "ETH");
     }
@@ -421,7 +421,7 @@ contract E2EIntegrationTest is Test {
     }
 
     // =========================================================================
-    // [E2E-004] VRF Timeout → Emergency Fallback
+    // [E2E-004] VRF Timeout -> Emergency Fallback
     // =========================================================================
 
     /// @notice E2E-004: VRF 72h timeout triggers Emergency path switch
