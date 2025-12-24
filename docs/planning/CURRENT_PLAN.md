@@ -1,8 +1,8 @@
 # Current Plan
 
-> **Generated**: 2025-12-24 15:00 JST
+> **Generated**: 2025-12-24 18:30 JST
 > **Phase**: 1 - Foundation Bootstrap
-> **Day**: 8 (14日間修正計画)
+> **Day**: 10 (14日間修正計画)
 
 ## 対象チェックリスト
 
@@ -10,51 +10,58 @@
 
 ---
 
-## 前回レビュー課題（PIR-005より）
+## 前回レビュー課題（CURRENT_STATE.mdより）
 
-> CURRENT_STATE.mdより自動取得
-
-| # | 重要度 | 課題 | 対策 |
-|---|--------|------|------|
-| 1 | 🔴 Critical | L1Vault SMT検証で`keccak256`使用（CP-1違反リスク） | `_verifySMTProof()`をSHA3_256.hash()に変更 |
+| # | 重要度 | 課題 | Status |
+|---|--------|------|--------|
+| 1 | ✅ 解決済 | L1Vault SMT検証のkeccak256→SHA3-256移行 | PIR-006で確認完了 |
 | 2 | 🔴 High | Dilithium Lean4形式検証なし | Month 2-3で対応予定 |
 | 3 | 🔴 High | SPHINCS+形式検証なし | Phase 2で対応予定 |
 | 4 | 🟡 Medium | SHA3-256 Gas最適化（~1.3M） | Day 11で対応予定 |
+| 5 | 🟡 Medium | 署名メッセージ作成のSHA3-256化 | Day 11で対応予定 |
+
+> **Note**: 🔴 High項目はMonth 2-3 / Phase 2で対応予定のため、Day 10のブロッカーではない
 
 ---
 
-## 今回のスコープ
+## 前回完了項目（Day 8-9）
 
-### 修正項目（レビュー課題より）⚡ 最優先
+| PIR | 対象 | 判定 |
+|-----|------|------|
+| PIR-005 | VRF Integration | ✅ PASS |
+| PIR-006 | Security Review | ✅ PASS |
 
-- [ ] [FIX-001] `_verifySMTProof()`内のkeccak256をSHA3_256.hash()に変更
-- [ ] [FIX-002] 既存SMTテストがSHA3-256で合格することを確認
-- [ ] [FIX-003] L1VaultIntegrationTestの再実行・確認
+### 完了した実装
+- ✅ VRFConsumer.sol作成・テスト合格
+- ✅ L1Vault + VRFConsumer統合
+- ✅ L1Vault SMT検証のSHA3-256化
+- ✅ セキュリティレビュー合格
 
-### 実装項目
+---
 
-- [ ] [IMPL-001] VRFConsumer.sol作成（Day 8-9チェックリスト）
-- [ ] [IMPL-002] VRFConsumerBase継承
-- [ ] [IMPL-003] requestRandomWords関数実装
-- [ ] [IMPL-004] fulfillRandomWords関数実装
-- [ ] [IMPL-005] Prover選出ロジック（2/5閾値）
-- [ ] [IMPL-006] 5分タイムアウト実装
-- [ ] [IMPL-007] Fallbackメカニズム
+## 今回のスコープ（Day 10: 統合テスト）
 
-### 統合項目
+### E2Eテスト項目（チェックリストより）
 
-- [ ] [INTEG-001] L1VaultとVRFConsumerの接続
-- [ ] [INTEG-002] Unlock時のVRF呼び出し
-- [ ] [INTEG-003] Prover署名要求への連携
-- [ ] [INTEG-004] Emergency Path切り替え（72h）
+- [ ] [E2E-001] Lock → Unlock (Normal) 完全フロー
+- [ ] [E2E-002] Lock → Unlock (Emergency) 完全フロー
+- [ ] [E2E-003] Challenge → Slashing フロー
+- [ ] [E2E-004] VRF障害時のEmergency切り替え
 
-### テスト項目
+### 統合テスト合格基準
 
-- [ ] [TEST-001] VRF正常系テスト
-- [ ] [TEST-002] VRFタイムアウトテスト
-- [ ] [TEST-003] Prover選出確率テスト
-- [ ] [TEST-004] Fallbackテスト
-- [ ] [TEST-005] 境界値テスト（5分±1s）
+- [ ] [PASS-001] 全E2Eテスト合格
+- [ ] [PASS-002] ガス使用量確認（Unlock < 500K）
+- [ ] [PASS-003] イベント発行確認
+- [ ] [PASS-004] State Root遷移確認
+
+### Core Principles準拠確認
+
+- [ ] [CP-1] 量子耐性: VRFはDilithium署名と併用のみ
+- [ ] [CP-2] Self-Custody: ユーザー鍵は保存しない
+- [ ] [CP-3] Time Lock: 24h（Normal）/ 7日（Emergency）維持
+- [ ] [CP-4] Slashing: 機能削除していない
+- [ ] [CP-5] 透明性: 全操作がオンチェーン
 
 ---
 
@@ -63,10 +70,11 @@
 | 種類 | パス |
 |------|------|
 | 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
-| Sequence参照 | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` (Sequence#2) |
+| Sequence参照 | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
 | 詳細仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` |
-| SHA3実装 | `contracts/src/libraries/SHA3_256.sol` |
-| SMT実装 | `contracts/src/libraries/SparseMerkleTree.sol` |
+| PIR-005レポート | `docs/aegis/pir/PIR-005.md` |
+| PIR-006レポート | `docs/aegis/pir/PIR-006.md` |
+| PIRコードレビュールーチン | `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md` |
 
 ---
 
@@ -74,38 +82,71 @@
 
 | ファイル | 説明 |
 |---------|------|
-| `contracts/src/L1Vault.sol` | SMT検証SHA3-256修正版 |
-| `contracts/src/VRFConsumer.sol` | VRF統合コントラクト（新規） |
-| `contracts/test/VRFConsumer.t.sol` | VRFテスト（新規） |
+| `contracts/test/E2EIntegration.t.sol` | E2E統合テスト（新規） |
+| `docs/aegis/pir/PIR-007.md` | Day 10 PIRレポート（新規） |
 
 ---
 
 ## 実行順序
 
-### Phase A: SMT SHA3-256修正（最優先）
+### Step 1: テスト準備
 
-1. `SHA3_256.sol`のimport確認
-2. `L1Vault.sol`の`_verifySMTProof()`関数を修正
-   ```solidity
-   // Before: keccak256(abi.encodePacked(...))
-   // After:  SHA3_256.hash(abi.encodePacked(...))
+1. 既存テストスイートの状態確認
+   ```bash
+   cd contracts && forge test --summary
    ```
-3. コンパイル確認（`forge build`）
-4. 既存テスト実行（`forge test --match-contract L1Vault`）
-5. 全テスト合格確認
+2. E2E統合テストファイルの作成/確認
 
-### Phase B: VRF統合（SMT修正完了後）
+### Step 2: E2E-001 Normal Unlock フロー
 
-6. VRFConsumer.sol作成
-7. L1Vault統合
-8. VRFテスト作成・実行
-9. PIR-005再レビュー
+3. Lock → Unlock (Normal Path) テスト実装
+   - User Lock操作
+   - 24h Time Lock経過
+   - VRF Prover選出
+   - 2/5 Threshold署名
+   - Unlock完了確認
+
+### Step 3: E2E-002 Emergency フロー
+
+4. Lock → Unlock (Emergency Path) テスト実装
+   - Emergency申請（7日 Time Lock）
+   - Bond預託確認
+   - 7日経過後のUnlock
+
+### Step 4: E2E-003 Challenge/Slashing フロー
+
+5. Challenge → Slashing テスト実装
+   - 不正Proof提出
+   - Challenge期間（48h）
+   - Defense失敗
+   - Slashing実行（60/20/20配分確認）
+
+### Step 5: E2E-004 VRF障害時フロー
+
+6. VRF障害時Emergency切り替えテスト
+   - VRF 72hタイムアウト
+   - 自動Emergency Path切り替え
+
+### Step 6: 品質確認
+
+7. 全E2Eテスト実行
+   ```bash
+   forge test --match-contract E2EIntegration -vvv
+   ```
+8. Gas使用量確認（Unlock < 500K目標）
+9. イベント発行ログ確認
+10. State Root遷移の正確性確認
+
+### Step 7: PIR-007準備
+
+11. PIR-007レポートドラフト作成
+12. PIRコードレビュールーチン実行
 
 ---
 
 ## Core Principles確認
 
-- [ ] CP-1: 完全量子耐性 - ⚠️ **keccak256→SHA3-256修正必須**
+- [ ] CP-1: 完全量子耐性 - 違反なし（SHA3-256, Dilithium使用確認）
 - [ ] CP-2: Self-Custody - 違反なし
 - [ ] CP-3: Time Lock存在 - 違反なし（24h/7日維持）
 - [ ] CP-4: Slashing存在 - 違反なし（60/20/20維持）
@@ -117,24 +158,52 @@
 
 | リスク | 重要度 | 緩和策 |
 |--------|--------|--------|
-| SHA3-256によるGas増加 | 🟡 Medium | Day 11の最適化フェーズで対応 |
-| SMT Proof検証ロジック変更による既存テスト失敗 | 🟠 High | 段階的修正、テスト駆動開発 |
-| VRF統合の複雑さ | 🟡 Medium | Chainlink公式ドキュメント参照 |
+| E2Eテストの複雑さ | 🟡 Medium | Sequenceドキュメントを参照し段階的実装 |
+| Gas使用量が目標超過の可能性 | 🟡 Medium | Day 11の最適化フェーズで対応 |
+| VRFモック精度 | 🟡 Medium | Chainlink VRF Mockを活用 |
 
 ---
 
-## 特記事項
+## PIR-007 要件（Day 10用）
 
-### PIR-005 CONDITIONAL理由
+| 項目 | 要件 |
+|------|------|
+| E2Eテスト存在 | E2EIntegration.t.sol存在 |
+| 全E2Eテスト合格 | 4シナリオ全合格 |
+| Gas確認 | Unlock < 500K gas |
+| 統合確認 | L1Vault + VRFConsumer + SMT連携確認 |
+| イベント確認 | 全操作でイベント発行 |
 
-PIR-005はCONDITIONAL PASSとなっています。主な理由：
+---
 
-1. **L1Vault._verifySMTProof()でkeccak256使用**
-   - 場所: L794-804付近
-   - 現状: `keccak256(abi.encodePacked(...))`
-   - 対策: `SHA3_256.hash(abi.encodePacked(...))`に変更
+## 完了報告テンプレート
 
-この修正が完了するまでVRF統合は一時保留し、CP-1準拠を優先します。
+```markdown
+## Day 10 完了報告
+
+**日時**: YYYY-MM-DD HH:MM JST
+**担当**: Engineer, QA
+
+### 完了項目
+- [ ] E2E-001〜004
+- [ ] PASS-001〜004
+
+### テスト結果
+- E2EIntegrationTest: XX/XX ✅
+- 総テスト数: XXX
+
+### Gas使用量
+- Unlock (Normal): XXX gas
+- Unlock (Emergency): XXX gas
+
+### PIR判定
+- [ ] PIR-007 PASS
+- [ ] PIR-007 CONDITIONAL PASS
+- [ ] PIR-007 FAIL
+
+### 次のアクション
+- Day 11: Gas最適化 + 署名メッセージSHA3化
+```
 
 ---
 
