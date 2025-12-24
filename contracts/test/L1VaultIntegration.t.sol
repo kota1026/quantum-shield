@@ -32,6 +32,10 @@ import "../src/libraries/StateRootCalculator.sol";
 /// - Locked Event stateRoot full verification
 /// - UnlockRequested Event unlockStateRoot verification
 /// - Boundary value tests
+///
+/// Day 8 Update (2025-12-24):
+/// Fixed test_ChallengeFlow_Complete() expectation:
+/// - Emergency Unlock経由のChallenge棄却後はEMERGENCY_PENDINGに戻る
 contract L1VaultIntegrationTest is Test {
     L1Vault public vault;
     SPHINCSVerifier public sphincsVerifier;
@@ -826,6 +830,8 @@ contract L1VaultIntegrationTest is Test {
     // Complete Challenge Flow Test
     // =========================================================================
 
+    /// @notice Test complete challenge flow: Lock → Emergency Unlock → Challenge → Defense → Resolve
+    /// @dev Day 8 Fix: Emergency Unlock経由の場合、Challenge棄却後はEMERGENCY_PENDINGに戻る
     function test_ChallengeFlow_Complete() public {
         bytes memory dilithiumPubKey = _generateDilithiumPubKey(1);
         vm.prank(user1);
@@ -849,8 +855,10 @@ contract L1VaultIntegrationTest is Test {
         vm.prank(securityCouncil);
         vault.resolveChallenge(lockId, false);
         
+        // Day 8 Fix: Emergency Unlock経由なのでEMERGENCY_PENDINGに戻る
+        // (通常Unlockの場合はPENDING_UNLOCKに戻る)
         lockData = vault.getLock(lockId);
-        assertEq(uint256(lockData.status), uint256(L1Vault.LockStatus.PENDING_UNLOCK));
+        assertEq(uint256(lockData.status), uint256(L1Vault.LockStatus.EMERGENCY_PENDING));
     }
 
     // =========================================================================
