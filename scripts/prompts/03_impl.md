@@ -79,8 +79,53 @@ forge test
 | ISSUE-001 | Engineer | YYYY-MM-DD HH:MM | abc1234 |
 ```
 
-### Step 5: 完了報告
-以下のフォーマットで報告：
+### Step 5: CURRENT_STATE.md 更新（必須）
+
+`docs/planning/CURRENT_STATE.md` の「📦 最新実装レポート」セクションを更新：
+
+```markdown
+## 📦 最新実装レポート
+
+> **用途**: 03_impl.md → 04_review.md への情報引継ぎ  
+> **更新タイミング**: 03_impl.md の Step 5 完了時
+
+| 項目 | 値 |
+|------|-----|
+| **対象Plan** | [CURRENT_PLANのタイトルまたはID] |
+| **実装日時** | YYYY-MM-DD HH:MM JST |
+| **ステータス** | ✅ 実装完了 |
+
+### 作成ファイル
+
+- `[ファイルパス]`: [説明]
+- `[ファイルパス]`: [説明]
+
+### SPEC_REVIEW対応
+
+（SPEC_REVIEW.mdが存在した場合）
+- [ISSUE-001]: ✅ [対応内容]
+- [ISSUE-002]: ✅ [対応内容]
+
+（存在しなかった場合）
+（該当なし - SPEC_REVIEW.mdなし）
+
+### テスト結果
+
+| 項目 | 値 |
+|------|-----|
+| 新規テスト数 | +XX |
+| 総テスト数 | XXX |
+| 結果 | ✅ ALL PASS / ❌ X件FAIL |
+
+### 備考
+
+[特記事項があれば記載]
+```
+
+### Step 6: 完了報告
+
+以下のフォーマットでチャット上に報告：
+
 ```
 ## 実装完了報告
 
@@ -96,6 +141,9 @@ forge test
 - 新規テスト数: +XX
 - 総テスト数: XXX
 - 結果: ✅ ALL PASS / ❌ X件FAIL
+
+### 状態更新
+- ✅ CURRENT_STATE.md「最新実装レポート」更新済み
 
 ### 次のステップ
 → ④ セキュリティレビュー
