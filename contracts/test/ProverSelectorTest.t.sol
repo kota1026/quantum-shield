@@ -4,11 +4,49 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import {ProverSelector} from "../src/libraries/ProverSelector.sol";
 
+/// @title ProverSelectorWrapper - Wrapper contract for testing library reverts
+/// @dev Required because vm.expectRevert doesn't work with library internal calls
+contract ProverSelectorWrapper {
+    using ProverSelector for ProverSelector.ProverInfo[];
+
+    ProverSelector.ProverInfo[] public provers;
+
+    function addProver(address prover, uint256 stake, bool active) external {
+        provers.push(ProverSelector.ProverInfo({
+            prover: prover,
+            stake: stake,
+            active: active
+        }));
+    }
+
+    function selectProver(uint256 randomValue) external view returns (address, uint256) {
+        return provers.selectProver(randomValue);
+    }
+
+    function calculateTotalStake() external view returns (uint256, uint256) {
+        return provers.calculateTotalStake();
+    }
+
+    function verifySelection(uint256 randomValue, address expectedProver) external view returns (bool) {
+        return provers.verifySelection(randomValue, expectedProver);
+    }
+
+    function getActiveProvers() external view returns (ProverSelector.ProverInfo[] memory) {
+        return provers.getActiveProvers();
+    }
+
+    function getProversLength() external view returns (uint256) {
+        return provers.length;
+    }
+}
+
 /// @title ProverSelectorTest - Unit tests for ProverSelector library
 /// @notice Tests stake-weighted VRF selection logic
 /// @dev PIR-005 Day 8-9
 contract ProverSelectorTest is Test {
     using ProverSelector for ProverSelector.ProverInfo[];
+
+    ProverSelectorWrapper public wrapper;
 
     // Test addresses
     address constant PROVER_1 = address(0x1001);
@@ -16,6 +54,10 @@ contract ProverSelectorTest is Test {
     address constant PROVER_3 = address(0x1003);
     address constant PROVER_4 = address(0x1004);
     address constant PROVER_5 = address(0x1005);
+
+    function setUp() public {
+        wrapper = new ProverSelectorWrapper();
+    }
 
     // =========================================================================
     // selectProver Tests
@@ -107,21 +149,23 @@ contract ProverSelectorTest is Test {
         assertEq(index, 1);
     }
 
+    /// @notice Test revert when no active provers exist
+    /// @dev Uses wrapper contract to properly test library revert
     function test_SelectProver_RevertNoActiveProvers() public {
-        ProverSelector.ProverInfo[] memory provers = new ProverSelector.ProverInfo[](2);
-        provers[0] = ProverSelector.ProverInfo({prover: PROVER_1, stake: 10 ether, active: false});
-        provers[1] = ProverSelector.ProverInfo({prover: PROVER_2, stake: 10 ether, active: false});
+        wrapper.addProver(PROVER_1, 10 ether, false);
+        wrapper.addProver(PROVER_2, 10 ether, false);
 
         vm.expectRevert(ProverSelector.NoActiveProvers.selector);
-        provers.selectProver(12345);
+        wrapper.selectProver(12345);
     }
 
+    /// @notice Test revert when random value is zero
+    /// @dev Uses wrapper contract to properly test library revert
     function test_SelectProver_RevertInvalidRandomValue() public {
-        ProverSelector.ProverInfo[] memory provers = new ProverSelector.ProverInfo[](1);
-        provers[0] = ProverSelector.ProverInfo({prover: PROVER_1, stake: 10 ether, active: true});
+        wrapper.addProver(PROVER_1, 10 ether, true);
 
         vm.expectRevert(ProverSelector.InvalidRandomValue.selector);
-        provers.selectProver(0);
+        wrapper.selectProver(0);
     }
 
     // =========================================================================
