@@ -1,210 +1,178 @@
 # Current Plan
 
-> **Generated**: 2025-12-24 18:30 JST
+> **Generated**: 2025-12-24 20:00 JST
 > **Phase**: 1 - Foundation Bootstrap
-> **Day**: 10 (14日間修正計画)
+> **Day**: 11 (14日間修正計画)
 
 ## 対象チェックリスト
 
-`docs/planning/checklists/phase1_day8-10_vrf.md`
+`docs/planning/checklists/phase1_day11_gas.md` (本プランで作成予定)
 
----
+## 前回レビュー課題（PIR-006より自動取得）
 
-## 前回レビュー課題（CURRENT_STATE.mdより）
+| # | 重要度 | 課題 | 対策 |
+|---|--------|------|------|
+| 1 | 🟡 Medium | `_verifyThresholdSignatures()`内の`keccak256(abi.encodePacked(lockId, stateRoot))`はGrover攻撃リスク | SHA3-256への移行 |
+| 2 | 🟡 Medium | SHA3-256 Gas消費量が高い（~1.3M目標~800K） | ループ最適化・定数テーブル化 |
+| 3 | 🟡 Medium | Slither静的解析未実施 | Day 11で実施 |
 
-| # | 重要度 | 課題 | Status |
-|---|--------|------|--------|
-| 1 | ✅ 解決済 | L1Vault SMT検証のkeccak256→SHA3-256移行 | PIR-006で確認完了 |
-| 2 | 🔴 High | Dilithium Lean4形式検証なし | Month 2-3で対応予定 |
-| 3 | 🔴 High | SPHINCS+形式検証なし | Phase 2で対応予定 |
-| 4 | 🟡 Medium | SHA3-256 Gas最適化（~1.3M） | Day 11で対応予定 |
-| 5 | 🟡 Medium | 署名メッセージ作成のSHA3-256化 | Day 11で対応予定 |
+## 今回のスコープ
 
-> **Note**: 🔴 High項目はMonth 2-3 / Phase 2で対応予定のため、Day 10のブロッカーではない
+### 修正項目（レビュー課題より）
 
----
+- [ ] [FIX-008] `_verifyThresholdSignatures()` 内の署名メッセージ作成をSHA3-256に変更
+- [ ] [FIX-009] `_verifySimplified()` 内のkeccak256をSHA3-256に変更（識別用途確認後）
 
-## 前回完了項目（Day 8-9）
+### 実装項目
 
-| PIR | 対象 | 判定 |
-|-----|------|------|
-| PIR-005 | VRF Integration | ✅ PASS |
-| PIR-006 | Security Review | ✅ PASS |
+- [ ] [IMPL-010] SHA3_256.sol Gas最適化
+  - Round定数を配列に変換（if/else連鎖削除）
+  - Rhoオフセットを配列に変換
+  - ループ展開の検討
+  - アセンブリ最適化（必要に応じて）
+- [ ] [IMPL-011] 署名メッセージ用SHA3-256ヘルパー関数追加
 
-### 完了した実装
-- ✅ VRFConsumer.sol作成・テスト合格
-- ✅ L1Vault + VRFConsumer統合
-- ✅ L1Vault SMT検証のSHA3-256化
-- ✅ セキュリティレビュー合格
+### テスト項目
 
----
+- [ ] [TEST-010] SHA3_256 Gas最適化後の正確性テスト（既存テスト24件パス確認）
+- [ ] [TEST-011] 署名メッセージSHA3-256化の単体テスト
+- [ ] [TEST-012] Gas消費量ベンチマークテスト
+- [ ] [TEST-013] 統合テスト再実行（233件全パス確認）
 
-## 今回のスコープ（Day 10: 統合テスト）
+### 静的解析
 
-### E2Eテスト項目（チェックリストより）
+- [ ] [QA-001] Slither静的解析実行
+- [ ] [QA-002] 検出項目の分類とトリアージ
+- [ ] [QA-003] Critical/High項目の修正
 
-- [ ] [E2E-001] Lock → Unlock (Normal) 完全フロー
-- [ ] [E2E-002] Lock → Unlock (Emergency) 完全フロー
-- [ ] [E2E-003] Challenge → Slashing フロー
-- [ ] [E2E-004] VRF障害時のEmergency切り替え
+### 参照ドキュメント
 
-### 統合テスト合格基準
-
-- [ ] [PASS-001] 全E2Eテスト合格
-- [ ] [PASS-002] ガス使用量確認（Unlock < 500K）
-- [ ] [PASS-003] イベント発行確認
-- [ ] [PASS-004] State Root遷移確認
-
-### Core Principles準拠確認
-
-- [ ] [CP-1] 量子耐性: VRFはDilithium署名と併用のみ
-- [ ] [CP-2] Self-Custody: ユーザー鍵は保存しない
-- [ ] [CP-3] Time Lock: 24h（Normal）/ 7日（Emergency）維持
-- [ ] [CP-4] Slashing: 機能削除していない
-- [ ] [CP-5] 透明性: 全操作がオンチェーン
-
----
-
-## 参照ドキュメント
-
-| 種類 | パス |
-|------|------|
-| 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
-| Sequence参照 | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
-| 詳細仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` |
-| PIR-005レポート | `docs/aegis/pir/PIR-005.md` |
-| PIR-006レポート | `docs/aegis/pir/PIR-006.md` |
-| PIRコードレビュールーチン | `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md` |
-
----
+- Sequence: `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md`
+- 仕様: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md`
+- PIR-006: `docs/aegis/pir/PIR-006.md`
+- 憲法: `docs/constitution/CORE_PRINCIPLES.md`
 
 ## 成果物
 
 | ファイル | 説明 |
 |---------|------|
-| `contracts/test/E2EIntegration.t.sol` | E2E統合テスト（新規） |
-| `docs/aegis/pir/PIR-007.md` | Day 10 PIRレポート（新規） |
-
----
+| `contracts/src/libraries/SHA3_256.sol` | Gas最適化版（目標: ~800K） |
+| `contracts/src/L1Vault.sol` | 署名メッセージSHA3-256化 |
+| `contracts/test/SHA3_256Gas.t.sol` | Gasベンチマークテスト |
+| `docs/planning/checklists/phase1_day11_gas.md` | Day 11チェックリスト |
+| `docs/aegis/pir/PIR-008.md` | Day 11 PIRレポート |
 
 ## 実行順序
 
-### Step 1: テスト準備
+### Phase A: SHA3-256 Gas最適化（3-4時間）
 
-1. 既存テストスイートの状態確認
-   ```bash
-   cd contracts && forge test --summary
-   ```
-2. E2E統合テストファイルの作成/確認
+1. SHA3_256.sol の分析
+   - 現在のGas消費量測定
+   - ボトルネック特定
+   
+2. 最適化実装
+   - Round定数を `uint64[24]` 配列に変換
+   - Rhoオフセットを `uint256[25]` 配列に変換
+   - 内部ループの最適化
+   
+3. テスト実行
+   - 既存24件のテストパス確認
+   - Gas消費量比較
 
-### Step 2: E2E-001 Normal Unlock フロー
+### Phase B: 署名メッセージSHA3-256化（2時間）
 
-3. Lock → Unlock (Normal Path) テスト実装
-   - User Lock操作
-   - 24h Time Lock経過
-   - VRF Prover選出
-   - 2/5 Threshold署名
-   - Unlock完了確認
+4. L1Vault.sol 修正
+   - `_verifyThresholdSignatures()` 修正
+   - 新規ヘルパー関数追加（必要に応じて）
+   
+5. 関連テスト更新
+   - 署名検証テストの更新
+   - 統合テスト再実行
 
-### Step 3: E2E-002 Emergency フロー
+### Phase C: 静的解析（1-2時間）
 
-4. Lock → Unlock (Emergency Path) テスト実装
-   - Emergency申請（7日 Time Lock）
-   - Bond預託確認
-   - 7日経過後のUnlock
+6. Slither実行
+   - ローカル環境でSlither実行
+   - 結果の分類・トリアージ
+   
+7. 修正実施（Critical/Highのみ）
+   - 検出項目の修正
+   - 再スキャン
 
-### Step 4: E2E-003 Challenge/Slashing フロー
+### Phase D: 統合検証（1時間）
 
-5. Challenge → Slashing テスト実装
-   - 不正Proof提出
-   - Challenge期間（48h）
-   - Defense失敗
-   - Slashing実行（60/20/20配分確認）
+8. 全テスト実行
+   - `forge test --gas-report`
+   - 233件全パス確認
+   
+9. PIR-008作成
+   - 結果ドキュメント化
+   - CURRENT_STATE.md更新
 
-### Step 5: E2E-004 VRF障害時フロー
+## 技術詳細
 
-6. VRF障害時Emergency切り替えテスト
-   - VRF 72hタイムアウト
-   - 自動Emergency Path切り替え
+### FIX-008: 署名メッセージSHA3-256化
 
-### Step 6: 品質確認
+**現在の実装** (L1Vault.sol L769):
+```solidity
+bytes32 message = keccak256(abi.encodePacked(lockId, stateRoot));
+```
 
-7. 全E2Eテスト実行
-   ```bash
-   forge test --match-contract E2EIntegration -vvv
-   ```
-8. Gas使用量確認（Unlock < 500K目標）
-9. イベント発行ログ確認
-10. State Root遷移の正確性確認
+**修正後**:
+```solidity
+bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
+```
 
-### Step 7: PIR-007準備
+**理由**: 
+- keccak256はGrover攻撃により安全性が256bit→128bitに低下
+- SHA3-256はNIST FIPS 202準拠、量子耐性を維持
+- CP-1（完全量子耐性）への完全準拠
 
-11. PIR-007レポートドラフト作成
-12. PIRコードレビュールーチン実行
+### IMPL-010: SHA3-256 Gas最適化
 
----
+**最適化戦略**:
+
+1. **定数テーブル化**
+   - `_getRoundConstant()` → 静的配列
+   - `_getRhoOffset()` → 静的配列
+   - 期待効果: 条件分岐削除で~30%削減
+
+2. **ループ展開**
+   - 24ラウンドの一部を展開
+   - 期待効果: ジャンプ削減で~10%削減
+
+3. **メモリ最適化**
+   - 中間配列の削減
+   - 期待効果: メモリ操作削減で~10%削減
+
+**目標**: 1.3M gas → 800K gas（約40%削減）
 
 ## Core Principles確認
 
-- [ ] CP-1: 完全量子耐性 - 違反なし（SHA3-256, Dilithium使用確認）
-- [ ] CP-2: Self-Custody - 違反なし
-- [ ] CP-3: Time Lock存在 - 違反なし（24h/7日維持）
-- [ ] CP-4: Slashing存在 - 違反なし（60/20/20維持）
-- [ ] CP-5: 透明性 - 違反なし
-
----
+- [ ] CP-1: 完全量子耐性 - SHA3-256使用で違反なし
+- [ ] CP-2: Self-Custody - 変更なし、違反なし
+- [ ] CP-3: Time Lock存在 - 変更なし、違反なし
+- [ ] CP-4: Slashing存在 - 変更なし、違反なし
+- [ ] CP-5: 透明性 - 変更なし、違反なし
 
 ## リスク・懸念事項
 
-| リスク | 重要度 | 緩和策 |
+| リスク | 影響度 | 緩和策 |
 |--------|--------|--------|
-| E2Eテストの複雑さ | 🟡 Medium | Sequenceドキュメントを参照し段階的実装 |
-| Gas使用量が目標超過の可能性 | 🟡 Medium | Day 11の最適化フェーズで対応 |
-| VRFモック精度 | 🟡 Medium | Chainlink VRF Mockを活用 |
+| SHA3-256最適化によるバグ導入 | High | 既存24件テストで検証 |
+| Gas最適化目標未達成 | Medium | 段階的最適化、許容範囲設定 |
+| Slitherで重大な脆弱性検出 | High | 即座に修正、Phase中断も検討 |
+
+## 完了条件
+
+1. SHA3-256 Gas消費量 ≤ 1M gas（理想800K）
+2. 署名メッセージのSHA3-256化完了
+3. テスト233件全パス
+4. Slither Critical/High項目ゼロ
+5. PIR-008で✅ PASS判定
 
 ---
 
-## PIR-007 要件（Day 10用）
-
-| 項目 | 要件 |
-|------|------|
-| E2Eテスト存在 | E2EIntegration.t.sol存在 |
-| 全E2Eテスト合格 | 4シナリオ全合格 |
-| Gas確認 | Unlock < 500K gas |
-| 統合確認 | L1Vault + VRFConsumer + SMT連携確認 |
-| イベント確認 | 全操作でイベント発行 |
-
----
-
-## 完了報告テンプレート
-
-```markdown
-## Day 10 完了報告
-
-**日時**: YYYY-MM-DD HH:MM JST
-**担当**: Engineer, QA
-
-### 完了項目
-- [ ] E2E-001〜004
-- [ ] PASS-001〜004
-
-### テスト結果
-- E2EIntegrationTest: XX/XX ✅
-- 総テスト数: XXX
-
-### Gas使用量
-- Unlock (Normal): XXX gas
-- Unlock (Emergency): XXX gas
-
-### PIR判定
-- [ ] PIR-007 PASS
-- [ ] PIR-007 CONDITIONAL PASS
-- [ ] PIR-007 FAIL
-
-### 次のアクション
-- Day 11: Gas最適化 + 署名メッセージSHA3化
-```
-
----
+**このプランは01_plan.md により自動生成されました。**
 
 **END OF CURRENT PLAN**
