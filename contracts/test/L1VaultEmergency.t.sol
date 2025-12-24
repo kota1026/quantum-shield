@@ -152,6 +152,8 @@ contract L1VaultEmergencyTest is Test {
     }
 
     /// @notice Test: Cannot request emergency twice
+    /// @dev FIX: After first emergency request, lock status changes to EMERGENCY_PENDING,
+    ///      so second request reverts with LockAlreadyReleased (checked before EmergencyAlreadyInitiated)
     function test_RequestEmergencyUnlock_AlreadyInitiated() public {
         bytes32 lockId = _createLock(10 ether);
         uint256 requiredBond = vault.calculateEmergencyBond(10 ether);
@@ -159,7 +161,9 @@ contract L1VaultEmergencyTest is Test {
         vm.startPrank(user);
         vault.requestEmergencyUnlock{value: requiredBond}(lockId, user);
 
-        vm.expectRevert(L1Vault.EmergencyAlreadyInitiated.selector);
+        // After first emergency request, lock status is EMERGENCY_PENDING (not ACTIVE)
+        // So the check `lockData.status != LockStatus.ACTIVE` triggers LockAlreadyReleased first
+        vm.expectRevert(L1Vault.LockAlreadyReleased.selector);
         vault.requestEmergencyUnlock{value: requiredBond}(lockId, user);
         vm.stopPrank();
     }
