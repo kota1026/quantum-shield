@@ -151,7 +151,7 @@ contract L1VaultSMTSHA3Test is Test {
         (string memory name, string memory version, bool fipsCompliant) = SHA3_256.getImplementationInfo();
         
         assertEq(name, "SHA3-256 Pure Solidity", "Implementation name should match");
-        assertEq(version, "1.0.0", "Version should match");
+        assertEq(version, "1.1.0", "Version should match");  // Updated for Day 11 optimization
         assertTrue(fipsCompliant, "Should be FIPS compliant");
     }
 
