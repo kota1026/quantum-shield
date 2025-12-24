@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @title SHA3_256 - FIPS 202 Compliant SHA3-256 Implementation
+/// @title SHA3_256 - FIPS 202 Compliant SHA3-256 Implementation (Optimized)
 /// @notice Pure Solidity implementation of SHA3-256 for Quantum Shield
 /// @dev Implements Keccak-f[1600] with SHA3 padding (domain separation byte 0x06)
 ///
@@ -14,10 +14,10 @@ pragma solidity ^0.8.20;
 /// - Interoperability with external systems using standard SHA3
 /// - QUANTUM_SHIELD_UNIFIED_SPEC_v2.0 compliance
 ///
-/// Gas Costs (approximate):
-/// - 32 bytes input: ~8,000 gas
-/// - 64 bytes input: ~8,500 gas
-/// - 128 bytes input: ~15,000 gas
+/// Optimizations (Day 11 - IMPL-010):
+/// - Round constants converted to static array (eliminates 24 if/else branches)
+/// - Rho offsets converted to static array (eliminates 25 if/else branches)
+/// - Expected gas reduction: ~30-40%
 ///
 /// Architecture:
 /// ┌─────────────────────────────────────────────────────────────────────┐
@@ -44,68 +44,60 @@ library SHA3_256 {
     uint256 internal constant ROUNDS = 24;
 
     // =========================================================================
-    // Round Constants Function
+    // Optimized Static Arrays (IMPL-010)
     // =========================================================================
 
-    /// @notice Get round constant for Keccak-f[1600]
+    /// @notice Get round constant for Keccak-f[1600] from static array
+    /// @dev Optimization: Replaced 24 if/else branches with array lookup
     /// @param round Round number (0-23)
     /// @return Round constant value
     function _getRoundConstant(uint256 round) internal pure returns (uint64) {
-        if (round == 0) return 0x0000000000000001;
-        if (round == 1) return 0x0000000000008082;
-        if (round == 2) return 0x800000000000808a;
-        if (round == 3) return 0x8000000080008000;
-        if (round == 4) return 0x000000000000808b;
-        if (round == 5) return 0x0000000080000001;
-        if (round == 6) return 0x8000000080008081;
-        if (round == 7) return 0x8000000000008009;
-        if (round == 8) return 0x000000000000008a;
-        if (round == 9) return 0x0000000000000088;
-        if (round == 10) return 0x0000000080008009;
-        if (round == 11) return 0x000000008000000a;
-        if (round == 12) return 0x000000008000808b;
-        if (round == 13) return 0x800000000000008b;
-        if (round == 14) return 0x8000000000008089;
-        if (round == 15) return 0x8000000000008003;
-        if (round == 16) return 0x8000000000008002;
-        if (round == 17) return 0x8000000000000080;
-        if (round == 18) return 0x000000000000800a;
-        if (round == 19) return 0x800000008000000a;
-        if (round == 20) return 0x8000000080008081;
-        if (round == 21) return 0x8000000000008080;
-        if (round == 22) return 0x0000000080000001;
-        return 0x8000000080008008; // round == 23
+        // Static array stored in memory for each call
+        // This is more gas-efficient than if/else chain
+        uint64[24] memory RC = [
+            uint64(0x0000000000000001),
+            uint64(0x0000000000008082),
+            uint64(0x800000000000808a),
+            uint64(0x8000000080008000),
+            uint64(0x000000000000808b),
+            uint64(0x0000000080000001),
+            uint64(0x8000000080008081),
+            uint64(0x8000000000008009),
+            uint64(0x000000000000008a),
+            uint64(0x0000000000000088),
+            uint64(0x0000000080008009),
+            uint64(0x000000008000000a),
+            uint64(0x000000008000808b),
+            uint64(0x800000000000008b),
+            uint64(0x8000000000008089),
+            uint64(0x8000000000008003),
+            uint64(0x8000000000008002),
+            uint64(0x8000000000000080),
+            uint64(0x000000000000800a),
+            uint64(0x800000008000000a),
+            uint64(0x8000000080008081),
+            uint64(0x8000000000008080),
+            uint64(0x0000000080000001),
+            uint64(0x8000000080008008)
+        ];
+        return RC[round];
     }
 
-    /// @notice Get rho offset for Keccak-f[1600]
+    /// @notice Get rho offset for Keccak-f[1600] from static array
+    /// @dev Optimization: Replaced 25 if/else branches with array lookup
     /// @param i Lane index (0-24)
     /// @return Rotation offset
     function _getRhoOffset(uint256 i) internal pure returns (uint256) {
-        if (i == 0) return 0;
-        if (i == 1) return 1;
-        if (i == 2) return 62;
-        if (i == 3) return 28;
-        if (i == 4) return 27;
-        if (i == 5) return 36;
-        if (i == 6) return 44;
-        if (i == 7) return 6;
-        if (i == 8) return 55;
-        if (i == 9) return 20;
-        if (i == 10) return 3;
-        if (i == 11) return 10;
-        if (i == 12) return 43;
-        if (i == 13) return 25;
-        if (i == 14) return 39;
-        if (i == 15) return 41;
-        if (i == 16) return 45;
-        if (i == 17) return 15;
-        if (i == 18) return 21;
-        if (i == 19) return 8;
-        if (i == 20) return 18;
-        if (i == 21) return 2;
-        if (i == 22) return 61;
-        if (i == 23) return 56;
-        return 14; // i == 24
+        // Static array stored in memory for each call
+        // Eliminates condition checking overhead
+        uint256[25] memory RHO = [
+            uint256(0), uint256(1), uint256(62), uint256(28), uint256(27),
+            uint256(36), uint256(44), uint256(6), uint256(55), uint256(20),
+            uint256(3), uint256(10), uint256(43), uint256(25), uint256(39),
+            uint256(41), uint256(45), uint256(15), uint256(21), uint256(8),
+            uint256(18), uint256(2), uint256(61), uint256(56), uint256(14)
+        ];
+        return RHO[i];
     }
 
     // =========================================================================
@@ -188,16 +180,54 @@ library SHA3_256 {
     }
 
     // =========================================================================
-    // Keccak-f[1600] Permutation
+    // Keccak-f[1600] Permutation (Optimized)
     // =========================================================================
 
     /// @notice Apply Keccak-f[1600] permutation
+    /// @dev Uses optimized array-based constants
     /// @param state 25 x 64-bit state array
     /// @return newState Permuted state
     function keccakF(uint64[25] memory state) internal pure returns (uint64[25] memory newState) {
         uint64[25] memory s = state;
         uint64[5] memory c;
         uint64[5] memory d;
+        
+        // Pre-compute rho offsets array once for all rounds
+        uint256[25] memory rhoOffsets = [
+            uint256(0), uint256(1), uint256(62), uint256(28), uint256(27),
+            uint256(36), uint256(44), uint256(6), uint256(55), uint256(20),
+            uint256(3), uint256(10), uint256(43), uint256(25), uint256(39),
+            uint256(41), uint256(45), uint256(15), uint256(21), uint256(8),
+            uint256(18), uint256(2), uint256(61), uint256(56), uint256(14)
+        ];
+        
+        // Pre-compute round constants array
+        uint64[24] memory roundConstants = [
+            uint64(0x0000000000000001),
+            uint64(0x0000000000008082),
+            uint64(0x800000000000808a),
+            uint64(0x8000000080008000),
+            uint64(0x000000000000808b),
+            uint64(0x0000000080000001),
+            uint64(0x8000000080008081),
+            uint64(0x8000000000008009),
+            uint64(0x000000000000008a),
+            uint64(0x0000000000000088),
+            uint64(0x0000000080008009),
+            uint64(0x000000008000000a),
+            uint64(0x000000008000808b),
+            uint64(0x800000000000008b),
+            uint64(0x8000000000008089),
+            uint64(0x8000000000008003),
+            uint64(0x8000000000008002),
+            uint64(0x8000000000000080),
+            uint64(0x000000000000800a),
+            uint64(0x800000008000000a),
+            uint64(0x8000000080008081),
+            uint64(0x8000000000008080),
+            uint64(0x0000000080000001),
+            uint64(0x8000000080008008)
+        ];
         
         for (uint256 round = 0; round < ROUNDS; round++) {
             // θ (theta) step
@@ -213,9 +243,12 @@ library SHA3_256 {
             d[3] = c[2] ^ _rotl64(c[4], 1);
             d[4] = c[3] ^ _rotl64(c[0], 1);
 
-            for (uint256 i = 0; i < 25; i++) {
-                s[i] ^= d[i % 5];
-            }
+            // Unrolled theta application for better gas efficiency
+            s[0] ^= d[0]; s[1] ^= d[1]; s[2] ^= d[2]; s[3] ^= d[3]; s[4] ^= d[4];
+            s[5] ^= d[0]; s[6] ^= d[1]; s[7] ^= d[2]; s[8] ^= d[3]; s[9] ^= d[4];
+            s[10] ^= d[0]; s[11] ^= d[1]; s[12] ^= d[2]; s[13] ^= d[3]; s[14] ^= d[4];
+            s[15] ^= d[0]; s[16] ^= d[1]; s[17] ^= d[2]; s[18] ^= d[3]; s[19] ^= d[4];
+            s[20] ^= d[0]; s[21] ^= d[1]; s[22] ^= d[2]; s[23] ^= d[3]; s[24] ^= d[4];
 
             // ρ (rho) and π (pi) steps combined
             uint64[25] memory b;
@@ -224,7 +257,7 @@ library SHA3_256 {
                 uint256 y = i / 5;
                 uint256 newX = y;
                 uint256 newY = (2 * x + 3 * y) % 5;
-                b[newX + 5 * newY] = _rotl64(s[i], _getRhoOffset(i));
+                b[newX + 5 * newY] = _rotl64(s[i], rhoOffsets[i]);
             }
 
             // χ (chi) step
@@ -243,8 +276,8 @@ library SHA3_256 {
                 s[base + 4] = t4 ^ ((~t0) & t1);
             }
 
-            // ι (iota) step
-            s[0] ^= _getRoundConstant(round);
+            // ι (iota) step - using pre-computed array
+            s[0] ^= roundConstants[round];
         }
 
         return s;
@@ -303,6 +336,6 @@ library SHA3_256 {
         string memory version,
         bool fipsCompliant
     ) {
-        return ("SHA3-256 Pure Solidity", "1.0.0", true);
+        return ("SHA3-256 Pure Solidity", "1.1.0", true);
     }
 }
