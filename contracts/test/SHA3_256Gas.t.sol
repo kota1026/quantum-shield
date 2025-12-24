@@ -50,9 +50,9 @@ contract SHA3_256GasTest is Test {
         
         // Secondary check: Under optimization target
         if (gasUsed <= GAS_TARGET_32_BYTES) {
-            emit log("✅ PASS: Under target threshold");
+            emit log("[PASS] Under target threshold");
         } else {
-            emit log("⚠️  WARN: Above target, optimization may be needed");
+            emit log("[WARN] Above target, optimization may be needed");
         }
     }
 
@@ -280,11 +280,11 @@ contract SHA3_256GasTest is Test {
         emit log("");
         
         if (gas32 <= 800_000) {
-            emit log("Status: ✅ OPTIMIZATION TARGET MET");
+            emit log("Status: [OK] OPTIMIZATION TARGET MET");
         } else if (gas32 <= 1_000_000) {
-            emit log("Status: ⚠️  CLOSE TO TARGET");
+            emit log("Status: [WARN] CLOSE TO TARGET");
         } else {
-            emit log("Status: ❌ OPTIMIZATION NEEDED");
+            emit log("Status: [FAIL] OPTIMIZATION NEEDED");
         }
     }
 }
