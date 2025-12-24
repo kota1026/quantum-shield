@@ -20,7 +20,8 @@ contract L1VaultEmergencyTest is Test {
     address public challenger;
 
     bytes public constant DILITHIUM_PUBKEY = hex"0102030405060708091011121314151617181920212223242526272829303132";
-    bytes public constant SPHINCS_PUBKEY = hex"0102030405060708091011121314151617181920212223242526272829303132";
+    bytes public constant SPHINCS_PUBKEY_1 = hex"0102030405060708091011121314151617181920212223242526272829303132";
+    bytes public constant SPHINCS_PUBKEY_2 = hex"1112131415161718192021222324252627282930313233343536373839404142";
 
     // =========================================================================
     // Events for testing
@@ -45,13 +46,16 @@ contract L1VaultEmergencyTest is Test {
         prover2 = makeAddr("prover2");
         challenger = makeAddr("challenger");
 
+        // Fund owner for prover registration
+        vm.deal(owner, 10 ether);
+
         vm.startPrank(owner);
         verifier = new SPHINCSVerifier();
         vault = new L1Vault(securityCouncil, address(verifier));
 
-        // Register provers
-        vault.registerProver{value: 1 ether}(prover1, SPHINCS_PUBKEY);
-        vault.registerProver{value: 1 ether}(prover2, SPHINCS_PUBKEY);
+        // Register provers with different public keys
+        vault.registerProver{value: 1 ether}(prover1, SPHINCS_PUBKEY_1);
+        vault.registerProver{value: 1 ether}(prover2, SPHINCS_PUBKEY_2);
         vm.stopPrank();
 
         // Fund accounts
@@ -428,7 +432,7 @@ contract L1VaultEmergencyTest is Test {
     }
 
     /// @notice Test: CP-3 Time Lock exists - 7 day emergency time lock
-    function test_CorePrinciple_TimeLockExists() public {
+    function test_CorePrinciple_TimeLockExists() public view {
         assertEq(vault.EMERGENCY_TIME_LOCK(), 7 days, "Emergency time lock should be 7 days");
     }
 
