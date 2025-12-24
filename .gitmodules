@@ -7,3 +7,6 @@
 [submodule "pq-crystals-dilithium"]
 	path = pq-crystals-dilithium
 	url = https://github.com/pq-crystals/dilithium
+[submodule "contracts/lib/openzeppelin-contracts"]
+	path = contracts/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git
