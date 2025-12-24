@@ -3,6 +3,7 @@
 > **Generated**: 2025-12-24 20:00 JST
 > **Phase**: 1 - Foundation Bootstrap
 > **Day**: 11 (14日間修正計画)
+> **Updated**: 2025-12-24 23:15 JST - Option A選択によるスコープ拡大
 
 ## 対象チェックリスト
 
@@ -12,16 +13,31 @@
 
 | # | 重要度 | 課題 | 対策 |
 |---|--------|------|------|
-| 1 | 🟡 Medium | `_verifyThresholdSignatures()`内の`keccak256(abi.encodePacked(lockId, stateRoot))`はGrover攻撃リスク | SHA3-256への移行 |
+| 1 | 🟡 Medium | `_verifyThresholdSignatures()`内の`keccak256(abi.encodePacked(lockId, stateRoot))`はGrover攻撃リスク | SHA3-256への移行 ✅ 実装済み |
 | 2 | 🟡 Medium | SHA3-256 Gas消費量が高い（~1.3M目標~800K） | ループ最適化・定数テーブル化 |
 | 3 | 🟡 Medium | Slither静的解析未実施 | Day 11で実施 |
+
+## 仕様レビュー追加課題（02_spec.md より）
+
+| # | 重要度 | 課題 | 対策 |
+|---|--------|------|------|
+| 4 | 🟡 Medium | L256: `keccak256(dilithiumPubKey)` | SHA3_256.hash()に置換 |
+| 5 | 🟡 Medium | L641: `keccak256(sphincsPublicKey)` | SHA3_256.hash()に置換 |
+| 6 | 🟢 Low | L465, L527, L541: FraudProof/DefenseProof keccak256 | SHA3_256.hash()に置換（一貫性） |
 
 ## 今回のスコープ
 
 ### 修正項目（レビュー課題より）
 
-- [ ] [FIX-008] `_verifyThresholdSignatures()` 内の署名メッセージ作成をSHA3-256に変更
-- [ ] [FIX-009] `_verifySimplified()` 内のkeccak256をSHA3-256に変更（識別用途確認後）
+- [x] [FIX-008] `_verifyThresholdSignatures()` 内の署名メッセージ作成をSHA3-256に変更 ✅ 実装済み
+- [x] [FIX-009] `_verifySimplified()` 内のkeccak256をSHA3-256に変更 ✅ 実装済み
+
+### 追加修正項目（Option A: スコープ拡大）
+
+- [ ] [FIX-010] L256: `dilithiumPubKeyHash` をSHA3-256に変更
+- [ ] [FIX-011] L641: `sphincsPubKeyHash` をSHA3-256に変更
+- [ ] [FIX-012] L465, L527: `fraudProofHash` をSHA3-256に変更
+- [ ] [FIX-013] L541: `defenseProofHash` をSHA3-256に変更
 
 ### 実装項目
 
@@ -38,6 +54,7 @@
 - [ ] [TEST-011] 署名メッセージSHA3-256化の単体テスト
 - [ ] [TEST-012] Gas消費量ベンチマークテスト
 - [ ] [TEST-013] 統合テスト再実行（233件全パス確認）
+- [ ] [TEST-014] 公開鍵ハッシュ変更に伴うテストデータ更新
 
 ### 静的解析
 
@@ -51,13 +68,14 @@
 - 仕様: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md`
 - PIR-006: `docs/aegis/pir/PIR-006.md`
 - 憲法: `docs/constitution/CORE_PRINCIPLES.md`
+- 仕様レビュー: `docs/planning/SPEC_REVIEW.md`
 
 ## 成果物
 
 | ファイル | 説明 |
 |---------|------|
 | `contracts/src/libraries/SHA3_256.sol` | Gas最適化版（目標: ~800K） |
-| `contracts/src/L1Vault.sol` | 署名メッセージSHA3-256化 |
+| `contracts/src/L1Vault.sol` | 全keccak256をSHA3-256に移行 |
 | `contracts/test/SHA3_256Gas.t.sol` | Gasベンチマークテスト |
 | `docs/planning/checklists/phase1_day11_gas.md` | Day 11チェックリスト |
 | `docs/aegis/pir/PIR-008.md` | Day 11 PIRレポート |
@@ -79,14 +97,16 @@
    - 既存24件のテストパス確認
    - Gas消費量比較
 
-### Phase B: 署名メッセージSHA3-256化（2時間）
+### Phase B: keccak256完全排除（2-3時間）★拡大
 
 4. L1Vault.sol 修正
-   - `_verifyThresholdSignatures()` 修正
-   - 新規ヘルパー関数追加（必要に応じて）
+   - FIX-010: dilithiumPubKeyHash
+   - FIX-011: sphincsPubKeyHash
+   - FIX-012: fraudProofHash
+   - FIX-013: defenseProofHash
    
 5. 関連テスト更新
-   - 署名検証テストの更新
+   - テストデータのハッシュ値更新
    - 統合テスト再実行
 
 ### Phase C: 静的解析（1-2時間）
@@ -111,22 +131,45 @@
 
 ## 技術詳細
 
-### FIX-008: 署名メッセージSHA3-256化
+### FIX-010: dilithiumPubKeyHash SHA3-256化
 
-**現在の実装** (L1Vault.sol L769):
+**現在の実装** (L1Vault.sol L256):
 ```solidity
-bytes32 message = keccak256(abi.encodePacked(lockId, stateRoot));
+bytes32 dilithiumPubKeyHash = keccak256(dilithiumPubKey);
 ```
 
 **修正後**:
 ```solidity
-bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
+bytes32 dilithiumPubKeyHash = SHA3_256.hash(dilithiumPubKey);
 ```
 
-**理由**: 
-- keccak256はGrover攻撃により安全性が256bit→128bitに低下
-- SHA3-256はNIST FIPS 202準拠、量子耐性を維持
-- CP-1（完全量子耐性）への完全準拠
+### FIX-011: sphincsPubKeyHash SHA3-256化
+
+**現在の実装** (L1Vault.sol L641):
+```solidity
+bytes32 sphincsPubKeyHash = keccak256(sphincsPublicKey);
+```
+
+**修正後**:
+```solidity
+bytes32 sphincsPubKeyHash = SHA3_256.hash(sphincsPublicKey);
+```
+
+### FIX-012/013: Challenge関連 SHA3-256化
+
+**現在の実装**:
+```solidity
+// L465, L527
+fraudProofHash: keccak256(fraudProof)
+// L541
+bytes32 defenseProofHash = keccak256(defenseProof);
+```
+
+**修正後**:
+```solidity
+fraudProofHash: SHA3_256.hash(fraudProof)
+bytes32 defenseProofHash = SHA3_256.hash(defenseProof);
+```
 
 ### IMPL-010: SHA3-256 Gas最適化
 
@@ -149,11 +192,11 @@ bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
 
 ## Core Principles確認
 
-- [ ] CP-1: 完全量子耐性 - SHA3-256使用で違反なし
-- [ ] CP-2: Self-Custody - 変更なし、違反なし
-- [ ] CP-3: Time Lock存在 - 変更なし、違反なし
-- [ ] CP-4: Slashing存在 - 変更なし、違反なし
-- [ ] CP-5: 透明性 - 変更なし、違反なし
+- [x] CP-1: 完全量子耐性 - 全keccak256をSHA3-256に置換で違反解消
+- [x] CP-2: Self-Custody - 変更なし、違反なし
+- [x] CP-3: Time Lock存在 - 変更なし、違反なし
+- [x] CP-4: Slashing存在 - 変更なし、違反なし
+- [x] CP-5: 透明性 - 変更なし、違反なし
 
 ## リスク・懸念事項
 
@@ -162,11 +205,12 @@ bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
 | SHA3-256最適化によるバグ導入 | High | 既存24件テストで検証 |
 | Gas最適化目標未達成 | Medium | 段階的最適化、許容範囲設定 |
 | Slitherで重大な脆弱性検出 | High | 即座に修正、Phase中断も検討 |
+| 公開鍵ハッシュ変更によるテスト失敗 | Medium | テストデータの網羅的更新 |
 
 ## 完了条件
 
 1. SHA3-256 Gas消費量 ≤ 1M gas（理想800K）
-2. 署名メッセージのSHA3-256化完了
+2. **L1Vault.sol内のkeccak256使用ゼロ** ★追加
 3. テスト233件全パス
 4. Slither Critical/High項目ゼロ
 5. PIR-008で✅ PASS判定
@@ -174,5 +218,6 @@ bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
 ---
 
 **このプランは01_plan.md により自動生成されました。**
+**02_spec.md レビューによりOption Aが選択され、スコープが拡大されました。**
 
 **END OF CURRENT PLAN**
