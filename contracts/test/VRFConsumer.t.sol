@@ -115,6 +115,8 @@ contract VRFConsumerTest is Test {
         vrfConsumer.triggerFallback(unlockRequestId);
     }
 
+    /// @notice Test fallback after timeout selects a valid prover
+    /// @dev FIX: checkTopic2=false because we don't know the selected prover address beforehand
     function test_TEST002_VRFTimeout_CanFallbackAfterTimeout() public {
         vm.prank(l1Vault);
         vrfConsumer.requestProverSelection(unlockRequestId);
@@ -122,7 +124,9 @@ contract VRFConsumerTest is Test {
         // Advance time past timeout
         vm.warp(block.timestamp + 5 minutes + 1);
 
-        vm.expectEmit(true, true, false, false);
+        // FIX: Changed checkTopic2 from true to false because fallback selects a valid prover,
+        // not address(0). We only check that the event is emitted with correct unlockRequestId.
+        vm.expectEmit(true, false, false, false);
         emit FallbackProverSelected(unlockRequestId, address(0));
 
         address fallbackProver = vrfConsumer.triggerFallback(unlockRequestId);
