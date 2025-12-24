@@ -53,7 +53,7 @@ contract SHA3_256Test is Test {
     // SHA3-256 vs keccak256 Difference Tests
     // =========================================================================
 
-    /// @notice Verify SHA3-256 ≠ keccak256
+    /// @notice Verify SHA3-256 != keccak256
     function test_SHA3_DifferentFromKeccak() public pure {
         bytes memory input = "test";
         
@@ -116,7 +116,7 @@ contract SHA3_256Test is Test {
         (string memory name, string memory version, bool fipsCompliant) = SHA3_256.getImplementationInfo();
         
         assertEq(name, "SHA3-256 Pure Solidity");
-        assertEq(version, "1.0.0");
+        assertEq(version, "1.1.0");  // Updated for Day 11 optimization
         assertTrue(fipsCompliant, "Should be FIPS compliant");
     }
 
