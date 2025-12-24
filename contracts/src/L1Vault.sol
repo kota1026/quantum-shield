@@ -16,6 +16,10 @@ import {SHA3_256} from "./libraries/SHA3_256.sol";
 /// FIX-001 Update (2025-12-24): SMT verification now uses SHA3-256 instead of keccak256
 /// for CP-1 compliance (complete quantum resistance). keccak256 is vulnerable to
 /// Grover's algorithm and is explicitly prohibited per CORE_PRINCIPLES.md.
+///
+/// FIX-008/009 Update (2025-12-24): Signature verification now uses SHA3-256
+/// for message hash and simplified verification hash. This completes the
+/// migration from keccak256 in all security-critical paths.
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -866,8 +870,17 @@ contract L1Vault is ReentrancyGuard, Pausable {
         return computedRoot == root;
     }
 
+    /// @notice Verify threshold signatures from provers
+    /// @dev FIX-008: Now uses SHA3-256 for message hash instead of keccak256
+    ///      This provides quantum resistance per CP-1 requirements.
+    /// @param lockId The lock ID being verified
+    /// @param stateRoot The state root to sign
+    /// @param signatures Array of SPHINCS+ signatures
+    /// @param signers Array of prover addresses who signed
+    /// @return validCount Number of valid signatures
     function _verifyThresholdSignatures(bytes32 lockId, bytes32 stateRoot, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
-        bytes32 message = keccak256(abi.encodePacked(lockId, stateRoot));
+        // FIX-008: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
         if (useFullVerification && address(sphincsVerifier) != address(0)) {
             return _verifyWithSPHINCSVerifier(message, signatures, signers);
         }
@@ -883,11 +896,19 @@ contract L1Vault is ReentrancyGuard, Pausable {
         }
     }
 
+    /// @notice Simplified signature verification (for testing/non-SPHINCS mode)
+    /// @dev FIX-009: Now uses SHA3-256 for signature hash instead of keccak256
+    ///      This provides quantum resistance per CP-1 requirements.
+    /// @param message The message that was signed
+    /// @param signatures Array of signatures
+    /// @param signers Array of signer addresses
+    /// @return validCount Number of valid signatures
     function _verifySimplified(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         for (uint256 i = 0; i < signatures.length; i++) {
             Prover storage prover = provers[signers[i]];
             if (!prover.isActive) continue;
-            bytes32 sigHash = keccak256(abi.encodePacked(prover.sphincsPubKeyHash, message, signatures[i]));
+            // FIX-009: Use SHA3-256 instead of keccak256 for quantum resistance
+            bytes32 sigHash = SHA3_256.hash(abi.encodePacked(prover.sphincsPubKeyHash, message, signatures[i]));
             if (sigHash != bytes32(0)) validCount++;
         }
     }
