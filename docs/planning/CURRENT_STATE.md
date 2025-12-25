@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-25 13:30 JST  
+> **Last Updated**: 2025-12-25 11:45 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,7 +13,7 @@
 │  Week: 3 / 24                                               │
 │  Day: 13 (14日間修正計画)                                    │
 │  Next Milestone: MS-1 (Month 4)                             │
-│  Status: 🔄 Day 13 SPHINCS+形式検証 + 外部レビュー準備        │
+│  Status: 🔄 SPHINCS+-SHAKE-128s移行 + 形式検証               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -24,7 +24,7 @@
 | Phase | 期間 | 進捗 | Status |
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
-| **Phase 1** | Month 1-6 | **86%** | 🔄 IN PROGRESS |
+| **Phase 1** | Month 1-6 | **90%** | 🔄 IN PROGRESS |
 | Phase 2 | Month 7-12 | 0% | ⬜ NOT STARTED |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
@@ -65,6 +65,8 @@
 | **11** | **セキュリティレビュー** | ✅ PASS | PIR-008 |
 | **12** | **Dilithium形式検証** | ✅ PASS | PIR-009 |
 | **12** | **セキュリティレビュー** | ✅ PASS | PIR-009 |
+| **13** | **SPHINCS+-SHAKE移行** | ✅ **IMPL完了** | PIR-010 |
+| **13** | **SHAKE256ライブラリ** | ✅ **作成完了** | PIR-010 |
 | **13** | **SPHINCS+形式検証** | 🔄 IN PROGRESS | PIR-010 |
 | **13** | **外部レビュー準備** | 🔄 IN PROGRESS | PIR-010 |
 | 14 | 最終検証 | ⬜ | PIR-011 |
@@ -74,7 +76,7 @@
 ## 📋 現在のチェックリスト
 
 **Active Checklist**: `docs/planning/checklists/phase1_day11-14_qa.md`
-**Active Plan**: `docs/planning/CURRENT_PLAN.md` 🔄 Day 13 SPHINCS+形式検証
+**Active Plan**: `docs/planning/CURRENT_PLAN.md` 🔄 Day 13 SPHINCS+-SHAKE移行
 
 ### Day 12 結果サマリー（2025-12-25）
 
@@ -86,40 +88,31 @@
 | NIST KAT (Dilithium) | ✅ 100ベクターPASS |
 | セキュリティレビュー | ✅ PASS |
 
-### Day 13 目標（2025-12-25）
+### Day 13 進捗（2025-12-25）
 
-| カテゴリ | 目標 |
-|---------|------|
-| SPHINCS+ Lean4形式検証 | ⬜ sorry 0件 |
-| SPHINCS+ NIST KAT | ⬜ 10+ベクターPASS |
-| 外部レビュー資料 | ⬜ 攻撃ベクター分析 |
-| PIR-010 | ⬜ SPHINCS+形式検証レポート |
+| カテゴリ | 目標 | 状態 |
+|---------|------|------|
+| SHAKE256ライブラリ | 新規作成 | ✅ **完了** |
+| SPHINCSVerifier SHAKE移行 | sha256→SHAKE256 | ✅ **完了** |
+| computePublicKeyHash | keccak256→SHA3-256 | ✅ **完了** |
+| テスト更新 | SHA3-256期待値 | ✅ **完了** |
+| SPHINCS+ Lean4形式検証 | sorry 0件 | 🔄 予定 |
+| SPHINCS+ NIST KAT | 10+ベクターPASS | 🔄 予定 |
+| 外部レビュー資料 | 攻撃ベクター分析 | 🔄 予定 |
 
 ---
 
 ## 🧪 テスト状態
 
-### 結果: 371/371 (100% PASS) ✅
+### 結果: 要確認（実装更新後）
 
 | Suite | Tests | Status |
 |-------|-------|--------|
-| E2EIntegrationTest | 15/15 | ✅ PASS |
-| L1VaultEmergencyTest | 24/24 | ✅ PASS |
-| L1VaultIntegrationTest | 51/51 | ✅ PASS |
-| L1VaultSMTSHA3Test | 7/7 | ✅ PASS |
-| L1VaultSignatureSHA3Test | 11/11 | ✅ PASS |
-| L1VaultVRFIntegrationTest | 12/12 | ✅ PASS |
-| ProverSelectorTest | 20/20 | ✅ PASS |
-| QuantumShieldTest | 35/35 | ✅ PASS |
-| SHA3_256Test | 24/24 | ✅ PASS |
-| SHA3_256GasTest | 13/13 | ✅ PASS |
-| SPHINCSVerifierTest | 13/13 | ✅ PASS |
-| SparseMerkleTreeTest | 30/30 | ✅ PASS |
-| StateRootCalculatorTest | 38/38 | ✅ PASS |
-| VRFConsumerTest | 28/28 | ✅ PASS |
-| VRFConsumerMockTest | 40/40 | ✅ PASS |
-| VRFTimeoutBoundaryTest | 10/10 | ✅ PASS |
-| **Total** | **371/371** | ✅ **100% PASS** |
+| SHAKE256Test | 新規追加 | 🔄 確認待ち |
+| SPHINCSVerifierSHAKETest | 新規追加 | 🔄 確認待ち |
+| 既存テスト（371件） | 更新 | 🔄 確認待ち |
+
+> **Note**: ローカル実行環境制限のため、テスト実行は別途必要
 
 ---
 
@@ -130,34 +123,58 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Day 13 SPHINCS+形式検証 |
-| **実装日時** | 2025-12-25 |
-| **ステータス** | 🔄 IN PROGRESS |
+| **対象Plan** | Day 13: SPHINCS+-SHAKE-128s移行 (CEO決定) |
+| **実装日時** | 2025-12-25 11:45 JST |
+| **ステータス** | ✅ SHAKE移行実装完了 / 🔄 テスト確認待ち |
 
 ### 作成ファイル
 
-| ファイル | 状態 |
-|---------|------|
-| `proofs/lean4/SPHINCS.lean` | ⬜ 予定 |
-| `proofs/lean4/SPHINCSConstants.lean` | ⬜ 予定 |
-| `scripts/verify_sphincs_constants.sh` | ⬜ 予定 |
-| `docs/aegis/pir/PIR-010_SPHINCS_FV.md` | ⬜ 予定 |
+| ファイル | 説明 | コミット |
+|---------|------|---------|
+| `contracts/src/libraries/SHAKE256.sol` | **SHAKE256 XOFライブラリ（新規）** | feb8f8c |
+| `contracts/src/SPHINCSVerifier.sol` | **SHAKE-128s版に改修** | 310e9db |
+| `contracts/test/SHAKE256.t.sol` | **SHAKE256単体テスト（新規）** | 143885a |
+| `contracts/test/SPHINCSVerifierSHAKE.t.sol` | **SPHINCS+ SHAKE検証テスト（新規）** | 1879a90 |
+| `contracts/test/SPHINCSVerifier.t.sol` | **既存テスト更新（SHA3-256対応）** | fd119f8 |
+
+### 変更内容詳細
+
+#### SHAKE256.sol (新規)
+- FIPS 202準拠 SHAKE256 XOF実装
+- ドメインセパレータ 0x1F（SHA3の0x06、keccakの0x01と異なる）
+- 可変長出力サポート（XOF特性）
+- Keccak-f[1600]最適化実装
+
+#### SPHINCSVerifier.sol (更新)
+- `_computeDigest()`: sha256 → SHAKE256.hash256()
+- `_computeFORSTreeRoot()`: sha256 → SHAKE256.hash256()
+- `_hashFORSRoots()`: sha256 → SHAKE256.hash256()
+- `_computeWOTSChain()`: sha256 → SHAKE256.hash256()
+- `_compressWOTSPublicKey()`: sha256 → SHAKE256.hash256()
+- `_climbMerkleTree()`: sha256 → SHAKE256.hash256()
+- `computePublicKeyHash()`: keccak256 → SHA3_256.hash()
+- ドキュメント・コメント更新（SHA2→SHAKE）
 
 ### SPEC_REVIEW対応
 
-（該当なし - 形式検証はスペック外の品質強化）
+| ISSUE | 対応内容 | コミット |
+|-------|---------|---------|
+| ISSUE-001 | keccak256→SHA3-256変更 (computePublicKeyHash) | 310e9db |
+| ISSUE-002 | SPHINCS+-SHAKE-128s移行完了 | 310e9db |
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | - |
-| 総テスト数 | 371 |
-| 結果 | ✅ 100% PASS |
+| 新規テスト数 | +約25件（SHAKE256.t.sol + SPHINCSVerifierSHAKE.t.sol） |
+| 総テスト数 | 約396件（推定） |
+| 結果 | 🔄 **要確認（forge test実行待ち）** |
 
 ### 備考
 
-CEO判断: SPHINCS+形式検証をPhase 2からDay 13に前倒し
+- CEO判断（2025-12-25）: SPHINCS+-SHA2-128s → SPHINCS+-SHAKE-128s移行承認
+- CP-1完全準拠: sha256()、keccak256()を暗号関数から完全排除
+- Lean4形式検証は次ステップで実施予定
 
 ---
 
@@ -174,7 +191,7 @@ CEO判断: SPHINCS+形式検証をPhase 2からDay 13に前倒し
 | PIR-007 | Day 10 E2E Integration Tests | ✅ PASS | 2025-12-24 |
 | PIR-008 | Day 11 SHA3 + QA Complete | ✅ PASS | 2025-12-25 |
 | PIR-009 | Day 12 Dilithium形式検証 | ✅ PASS | 2025-12-25 |
-| **PIR-010** | **Day 13 SPHINCS+形式検証** | 🔄 **PENDING** | 2025-12-25 |
+| **PIR-010** | **Day 13 SPHINCS+-SHAKE移行** | 🔄 **PENDING** | 2025-12-25 |
 
 ---
 
@@ -186,9 +203,11 @@ CEO判断: SPHINCS+形式検証をPhase 2からDay 13に前倒し
 | ~~2~~ | ~~署名メッセージ作成のSHA3-256化~~ | ~~🟡 Medium~~ | ✅ FIX-008/009完了 |
 | ~~3~~ | ~~5件の既存テスト失敗~~ | ~~🟢 Low~~ | ✅ All Fixed |
 | ~~4~~ | ~~Dilithium Lean4形式検証~~ | ~~🔴 High~~ | ✅ **PIR-009 PASS** |
-| **5** | **SPHINCS+形式検証** | 🔴 High | 🔄 **Day 13対応中** |
-| 6 | Compiler Warnings (未使用変数) | 🟢 Low | Phase 2 |
-| ~~7~~ | ~~NIST KATテスト未実装~~ | ~~🔴 High~~ | ✅ **100ベクターPASS** |
+| ~~5~~ | ~~SPHINCS+-SHAKE移行~~ | ~~🔴 High~~ | ✅ **実装完了** |
+| **6** | **SPHINCS+形式検証** | 🔴 High | 🔄 **Day 13後半** |
+| 7 | Compiler Warnings (未使用変数) | 🟢 Low | Phase 2 |
+| ~~8~~ | ~~NIST KATテスト未実装~~ | ~~🔴 High~~ | ✅ **100ベクターPASS** |
+| **9** | **SHAKE256 Gas最適化** | 🟡 Medium | 🔄 ベンチマーク後 |
 
 > **解決済み**:
 > - L1Vault SMT検証のkeccak256→SHA3-256移行完了（PIR-006確認済）
@@ -198,37 +217,33 @@ CEO判断: SPHINCS+形式検証をPhase 2からDay 13に前倒し
 > - **Dilithium Lean4形式検証完了（PIR-009 PASS）**
 > - **Dilithium NIST KATテスト100ベクターPASS**
 > - **Day 12 セキュリティレビュー完了（PIR-009 PASS）**
+> - **SPHINCS+-SHAKE-128s移行実装完了**
 
 ---
 
 ## 🔜 次のアクション
 
-### Day 13: SPHINCS+形式検証 + 外部レビュー準備
+### Day 13後半: 形式検証 + テスト確認
 
-#### 📝 SPHINCS+形式検証（最優先）
+1. **テスト実行確認**
+   ```bash
+   forge test
+   ```
+   - 全テストPASS確認
+   - SHAKE256テストベクター検証
 
-1. **Lean4証明作成**
+2. **SPHINCS+ Lean4形式検証**
    - WOTS+チェーン計算の正当性証明
    - FORSツリールート計算の正当性証明
    - Merkleツリー認証パス検証の正当性証明
 
-2. **定数整合性検証**
-   - Solidity ↔ Lean4 定数比較
-   - FIPS 205準拠確認
-
-3. **NIST KATテスト**
+3. **NIST KATテスト（SHAKE版）**
    - 公式KATベクター取得
    - 10+ベクターPASS確認
 
-#### 📝 外部レビュー準備
-
-4. **セキュリティレビュー資料作成**
-   - 攻撃ベクター分析
-   - コード品質レポート
-
 ### Day 14: 最終検証
 
-5. **Go/No-Go判定準備**
+4. **Go/No-Go判定準備**
    - 全PIRレポート確認
    - Phase 2移行チェックリスト
 
@@ -240,7 +255,7 @@ CEO判断: SPHINCS+形式検証をPhase 2からDay 13に前倒し
 
 | マイルストーン | 時期 | Status |
 |---------------|------|--------|
-| 14日間修正計画完了 | Day 14 | 🔄 86% (12/14日完了) |
+| 14日間修正計画完了 | Day 14 | 🔄 90% (SHAKE移行完了) |
 | MS-1: コア完了 | Month 4 | ⬜ |
 | MS-2: Phase 1 Gate | Month 6 | ⬜ |
 | Go/No-Go会議 | Month 6 | ⬜ |
@@ -249,18 +264,20 @@ CEO判断: SPHINCS+形式検証をPhase 2からDay 13に前倒し
 
 ## 🔒 Phase 1終了条件（更新）
 
-> 2025-12-25 CEO判断により更新: SPHINCS+形式検証をPhase 1に追加
+> 2025-12-25 CEO判断により更新: SPHINCS+-SHAKE-128s移行をDay 13で実施
 
 | 条件 | 基準 | 現状 |
 |------|------|------|
 | Dilithium Lean4形式検証 | sorry 0件 | ✅ 確認済み |
+| **SPHINCS+-SHAKE移行** | **実装完了** | ✅ **完了** |
+| **SHA3/keccak256排除** | **0件** | ✅ **完了** |
 | **SPHINCS+ Lean4形式検証** | **sorry 0件** | 🔄 **Day 13対応中** |
 | Dilithium NIST KAT | 10+ベクターPASS | ✅ 100ベクターPASS |
-| **SPHINCS+ NIST KAT** | **10+ベクターPASS** | 🔄 **Day 13対応中** |
-| 全テスト | 100% PASS | ✅ 371/371 |
+| **SPHINCS+-SHAKE NIST KAT** | **10+ベクターPASS** | 🔄 **Day 13対応中** |
+| 全テスト | 100% PASS | 🔄 確認待ち |
 | Slither静的解析 | PASS | ✅ 確認済み |
 
-**🔄 SPHINCS+形式検証完了後、Phase 2移行可能**
+**🔄 形式検証完了後、Phase 2移行可能**
 
 ---
 
@@ -275,8 +292,8 @@ CEO判断: SPHINCS+形式検証をPhase 2からDay 13に前倒し
 | PIR-009レポート | `docs/aegis/pir/PIR-009_FORMAL_VERIFICATION.md` |
 | PIR-008レポート | `docs/aegis/pir/PIR-008.md` |
 | WBS | `docs/aegis/WBS_v2.1.md` |
-| Lean4-Rust整合性スクリプト | `scripts/verify_lean_rust_consistency.sh` |
-| SPHINCSVerifier | `contracts/src/SPHINCSVerifier.sol` |
+| **SHAKE256ライブラリ** | `contracts/src/libraries/SHAKE256.sol` |
+| **SPHINCSVerifier** | `contracts/src/SPHINCSVerifier.sol` |
 
 ---
 
