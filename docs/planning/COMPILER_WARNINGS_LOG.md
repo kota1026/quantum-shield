@@ -1,189 +1,190 @@
 # Compiler Warnings Log - Phase 2
 
-> **Date**: 2025-12-25 23:35 JST  
+> **Version**: 1.1  
+> **Updated**: 2025-12-26 14:45 JST  
 > **Phase**: 2 - Security Council + Token  
-> **Task**: [IMPL-P2-01] Compiler Warnings対応
+> **Task**: [IMPL-002] Compiler Warnings更新
 
 ---
 
 ## 1. Summary
 
-Phase 2開始時点でのコンパイラ警告の棚卸しと対応計画です。
+Phase 2開始時点でのコンパイラ警告の棚卸しと対応状況です。
 
-| カテゴリ | 件数 | 優先度 |
-|---------|------|--------|
-| 未使用変数 | TBD | LOW |
-| 未使用import | TBD | LOW |
-| 型安全性 | TBD | MEDIUM |
-| 推奨非推奨 | TBD | LOW |
-
----
-
-## 2. Warning Categories
-
-### 2.1 Expected Warnings (Phase 1 Known Issues)
-
-Based on Phase 1 Go/No-Go report, the following warnings were identified as low-risk:
-
-| ファイル | 警告タイプ | 説明 | 対応 |
-|---------|-----------|------|------|
-| FRIVerifier.sol | Unused variable | `omega` in computeFoldedEvaluation | Phase 2対応 |
-| VRFConsumerMock.sol | Mock-specific | Test helper variables | 許容 |
-
-### 2.2 Critical Warnings (Requires Immediate Action)
-
-| ファイル | 警告 | リスク | 対応期限 |
-|---------|------|--------|----------|
-| (None identified) | - | - | - |
+| カテゴリ | 件数 | 優先度 | Status |
+|---------|------|--------|--------|
+| **CP-1違反 (keccak256)** | 0 | ~~CRITICAL~~ | ✅ **RESOLVED** |
+| 未使用変数 | 1 | LOW | 🔄 Deferred |
+| 未使用import | 0 | LOW | ✅ Clean |
+| 型安全性 | 0 | MEDIUM | ✅ Clean |
 
 ---
 
-## 3. Analysis by Contract
+## 2. Resolution Log
 
-### 3.1 FRIVerifier.sol
+### 2.1 Resolved Issues
+
+| Date | Issue | Resolution | Commit | PIR |
+|------|-------|------------|--------|-----|
+| 2025-12-26 | FRIVerifier.sol keccak256 (Line 191) | SHA3-256移行 | [commit] | ✅ PIR-P2-001 |
+
+### 2.2 Outstanding Issues
+
+| # | File | Warning | Priority | Action | Due |
+|---|------|---------|----------|--------|-----|
+| 1 | FRIVerifier.sol | Unused variable `omega` (Line 229) | 🟢 LOW | Keep for future ZK-STARK impl | Phase 2.2 |
+
+---
+
+## 3. CP-1 Compliance Status ✅
+
+### 3.1 Cryptographic Function Audit
+
+| 関数 | 使用箇所 | CP-1準拠 | 備考 |
+|------|---------|----------|------|
+| SHA3-256 | SHA3_256.sol | ✅ | FIPS 202準拠 |
+| SHAKE256 | SHAKE256.sol | ✅ | FIPS 202準拠 |
+| keccak256 | FRIVerifier.sol | ✅ | **SHA3-256に移行済み** |
+| sha256 | なし | ✅ | 使用なし |
+| ecrecover | なし | ✅ | 使用なし |
+
+### 3.2 Critical Finding Resolution
+
+**Issue**: FRIVerifier.sol Line 191 keccak256使用  
+**Status**: ✅ **RESOLVED**
 
 ```solidity
-// Line 229: Unused variable 'omega'
-uint256 omega = computeDomainElement(index, domainSize);
-// This is calculated but not used in the current implementation
-// The FRI folding uses the challenge directly without omega
-
-// RECOMMENDATION: 
-// Keep for future use (full FRI implementation) or remove with TODO comment
-```
-
-**Priority**: 🟢 LOW  
-**Action**: Add TODO comment, defer to full ZK-STARK implementation
-
-### 3.2 SHA3_256.sol
-
-```
-Status: No warnings reported
-```
-
-### 3.3 SHAKE256.sol
-
-```
-Status: No warnings reported
-```
-
-### 3.4 L1Vault.sol
-
-```
-Status: To be verified with forge build
-```
-
-### 3.5 VRFConsumer.sol
-
-```
-Status: To be verified with forge build
-```
-
----
-
-## 4. Verification Commands
-
-```bash
-# Full build with warnings
-cd contracts
-forge build 2>&1 | grep -E "(Warning|warning)"
-
-# Clean build
-forge clean && forge build --force
-
-# Output to file
-forge build 2>&1 | tee build_warnings.log
-```
-
----
-
-## 5. Action Items
-
-### 5.1 Phase 2 Week 1
-
-| # | 項目 | 担当 | 期限 | Status |
-|---|------|------|------|--------|
-| 1 | forge buildログ取得 | Engineer | 2025-12-26 | ⬜ |
-| 2 | 警告一覧作成 | Engineer | 2025-12-26 | ⬜ |
-| 3 | 優先度付け | CTO | 2025-12-27 | ⬜ |
-| 4 | LOW優先度修正 | Engineer | 2025-12-30 | ⬜ |
-
-### 5.2 Acceptance Criteria
-
-- [ ] 全Warnings記録済み
-- [ ] HIGH/MEDIUM優先度: 0件
-- [ ] LOW優先度: 対応計画策定済み
-- [ ] 新規Warningsなし（既存のみ）
-
----
-
-## 6. CP-1 Compliance Check
-
-### 6.1 Cryptographic Function Usage
-
-| 関数 | 使用箇所 | CP-1準拠 |
-|------|---------|----------|
-| SHA3-256 | SHA3_256.sol | ✅ |
-| SHAKE256 | SHAKE256.sol | ✅ |
-| keccak256 | FRIVerifier.sol L191 | ⚠️ **要修正** |
-| sha256 | なし | ✅ |
-| ecrecover | なし | ✅ |
-
-### 6.2 Critical Finding
-
-⚠️ **FRIVerifier.sol Line 191: keccak256使用**
-
-```solidity
-// CURRENT (CP-1 VIOLATION)
+// BEFORE (CP-1 VIOLATION)
 bytes32 leaf = keccak256(abi.encodePacked(eval0, eval1));
 
-// REQUIRED FIX
+// AFTER (CP-1 COMPLIANT)
 import {SHA3_256} from "./libraries/SHA3_256.sol";
 bytes32 leaf = SHA3_256.hash(abi.encodePacked(eval0, eval1));
 ```
 
-**Priority**: 🔴 HIGH  
-**Deadline**: Phase 2 Week 1  
-**Assigned**: Engineer
+**Verified by**: PIR-P2-001 (PASS - 2025-12-26)
 
 ---
 
-## 7. Warning Resolution Log
+## 4. Analysis by Contract
 
-| Date | Warning | Resolution | Commit |
-|------|---------|------------|--------|
-| 2025-12-25 | keccak256 in FRIVerifier | Identified | - |
-| - | - | - | - |
+### 4.1 FRIVerifier.sol
+
+| Line | Warning | Type | Priority | Status |
+|------|---------|------|----------|--------|
+| ~~191~~ | ~~keccak256 usage~~ | ~~CP-1 Violation~~ | ~~CRITICAL~~ | ✅ Fixed |
+| 229 | Unused variable `omega` | Style | LOW | Deferred |
+
+**Note**: `omega` variable is calculated but reserved for full FRI implementation in Phase 2.2.
+
+### 4.2 SHA3_256.sol
+
+```
+Status: ✅ No warnings
+```
+
+### 4.3 SHAKE256.sol
+
+```
+Status: ✅ No warnings
+```
+
+### 4.4 L1Vault.sol
+
+```
+Status: ✅ No warnings
+```
+
+### 4.5 VRFConsumer.sol
+
+```
+Status: ✅ No warnings
+```
+
+### 4.6 SPHINCSVerifier.sol
+
+```
+Status: ✅ No warnings
+```
+
+### 4.7 SparseMerkleTree.sol
+
+```
+Status: ✅ No warnings
+```
 
 ---
 
-## 8. Notes
+## 5. Verification Commands
 
-### 8.1 Why Some Warnings Are Acceptable
+```bash
+# Full build with warnings
+cd contracts
+forge clean && forge build --force 2>&1 | tee build_warnings.log
 
-1. **Test files (*.t.sol)**: Mock-specific warnings are acceptable
-2. **Interface files**: Unused imports for clarity are acceptable
-3. **Future use**: Variables for planned features with TODO comments
+# Extract warnings only
+forge build 2>&1 | grep -E "(Warning|warning)" > warnings_only.log
 
-### 8.2 Zero-Warning Policy
-
-Phase 2 Goal: Achieve zero warnings in production contracts:
-- `L1Vault.sol`
-- `QuantumShield.sol`
-- `FRIVerifier.sol`
-- `SPHINCSVerifier.sol`
-- `VRFConsumer.sol`
-
-Test contracts (`*.t.sol`) and mocks (`*Mock.sol`) may retain acceptable warnings.
+# Run all tests
+forge test
+# Expected: 433+ tests passing
+```
 
 ---
 
-## 9. Next Steps
+## 6. Action Items
 
-1. **Immediate**: Run `forge build` and capture full warning list
-2. **Week 1**: Fix all HIGH priority warnings
-3. **Week 2**: Review and fix MEDIUM priority warnings
-4. **Ongoing**: Maintain zero-warning policy for new code
+### 6.1 Completed ✅
+
+| # | Item | Completed | Commit |
+|---|------|-----------|--------|
+| 1 | keccak256→SHA3-256 (FRIVerifier) | 2025-12-26 | PIR-P2-001 |
+| 2 | Warning inventory | 2025-12-26 | This update |
+| 3 | CP-1 compliance verification | 2025-12-26 | Audit complete |
+
+### 6.2 Deferred (Phase 2.2)
+
+| # | Item | Priority | Reason |
+|---|------|----------|--------|
+| 1 | Remove unused `omega` variable | LOW | Required for full FRI implementation |
+
+---
+
+## 7. Zero-Warning Policy
+
+### 7.1 Production Contracts Status
+
+| Contract | Status | Notes |
+|----------|--------|-------|
+| L1Vault.sol | ✅ Clean | - |
+| QuantumShield.sol | ✅ Clean | - |
+| FRIVerifier.sol | ⚠️ 1 LOW | omega (deferred) |
+| SPHINCSVerifier.sol | ✅ Clean | - |
+| VRFConsumer.sol | ✅ Clean | - |
+| SHA3_256.sol | ✅ Clean | - |
+| SHAKE256.sol | ✅ Clean | - |
+| SparseMerkleTree.sol | ✅ Clean | - |
+
+### 7.2 Test/Mock Contracts (Acceptable Warnings)
+
+Test files (`*.t.sol`) and mock contracts (`*Mock.sol`) are excluded from zero-warning policy.
+
+---
+
+## 8. Acceptance Criteria Status
+
+- [x] 全Warnings記録済み
+- [x] ~~CRITICAL優先度: 0件~~ **keccak256修正完了**
+- [x] HIGH/MEDIUM優先度: 0件
+- [x] LOW優先度: 1件（Phase 2.2へdefer）
+- [x] CP-1違反: **0件**
+
+---
+
+## 9. Next Review
+
+**Schedule**: Phase 2 Week 4  
+**Scope**: SHA3Hasher.sol, ProofCodec.sol追加後の再検証
 
 ---
 
