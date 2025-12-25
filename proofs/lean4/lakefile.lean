@@ -1,7 +1,7 @@
 import Lake
 open Lake DSL
 
-package «ntt-proofs» where
+package «quantum-shield-proofs» where
   leanOptions := #[
     ⟨`pp.unicode.fun, true⟩,
     ⟨`autoImplicit, false⟩
@@ -12,4 +12,8 @@ require mathlib from git
 
 @[default_target]
 lean_lib NTT where
+  srcDir := "."
+
+@[default_target]
+lean_lib SPHINCS where
   srcDir := "."
