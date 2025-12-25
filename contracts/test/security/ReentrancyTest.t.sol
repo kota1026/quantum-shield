@@ -69,10 +69,14 @@ contract ReentrancyTest is Test {
     // =========================================================================
 
     /// @notice Test that autoResolveChallenge is protected against reentrancy
-    /// @dev FIX-001: CEI pattern must be applied
+    /// @dev FIX-001: CEI pattern must be applied - reentrancy attempts should fail
     function test_AutoResolveChallenge_ReentrancyProtection() public {
         // Setup: Create a pending unlock request via emergency path (no SMT proof needed)
         _createPendingUnlockViaEmergency();
+        
+        // Configure malicious challenger to attempt reentrancy
+        maliciousChallenger.setAttackVector(MaliciousChallenger.AttackVector.AUTO_RESOLVE);
+        maliciousChallenger.setTargetLock(lockId);
         
         // Malicious challenger files a challenge
         uint256 challengeBond = vault.calculateChallengeBond(1 ether);
@@ -82,14 +86,15 @@ contract ReentrancyTest is Test {
         // Fast forward past defense period
         vm.warp(block.timestamp + 48 hours + 1);
         
-        // Reset attack counter
-        maliciousChallenger.resetAttackCount();
+        // Reset counters
+        maliciousChallenger.resetCounters();
         
         // Try to auto-resolve - should succeed without allowing reentrancy
         vault.autoResolveChallenge(lockId);
         
-        // Verify attack was not successful (reentry should have been blocked)
-        assertEq(maliciousChallenger.attackCount(), 0, "Reentrancy attack should have been blocked");
+        // Verify: receive() was called (attack was attempted) but reentrancy failed
+        assertGt(maliciousChallenger.attackAttempts(), 0, "Attack should have been attempted");
+        assertEq(maliciousChallenger.successfulAttacks(), 0, "No reentrancy attacks should have succeeded");
     }
 
     /// @notice Test that resolveChallenge is protected against reentrancy
@@ -98,20 +103,25 @@ contract ReentrancyTest is Test {
         // Setup: Create a pending unlock request via emergency path
         _createPendingUnlockViaEmergency();
         
+        // Configure malicious challenger
+        maliciousChallenger.setAttackVector(MaliciousChallenger.AttackVector.RESOLVE_CHALLENGE);
+        maliciousChallenger.setTargetLock(lockId);
+        
         // Malicious challenger files a challenge
         uint256 challengeBond = vault.calculateChallengeBond(1 ether);
         vm.prank(address(maliciousChallenger));
         vault.challenge{value: challengeBond}(lockId, abi.encodePacked("fraud"));
         
-        // Reset attack counter
-        maliciousChallenger.resetAttackCount();
+        // Reset counters
+        maliciousChallenger.resetCounters();
         
         // Security council resolves as valid (challenger wins)
         vm.prank(securityCouncil);
         vault.resolveChallenge(lockId, true);
         
-        // Verify attack was not successful
-        assertEq(maliciousChallenger.attackCount(), 0, "Reentrancy attack should have been blocked");
+        // Verify: attack was attempted but reentrancy failed
+        assertGt(maliciousChallenger.attackAttempts(), 0, "Attack should have been attempted");
+        assertEq(maliciousChallenger.successfulAttacks(), 0, "No reentrancy attacks should have succeeded");
     }
 
     /// @notice Test that resolveChallenge with invalid challenge is protected
@@ -135,18 +145,22 @@ contract ReentrancyTest is Test {
         vault.registerProver{value: 1 ether}(address(maliciousDefender), sphincsKey);
         vm.stopPrank();
         
+        // Configure malicious defender
+        maliciousDefender.setTargetLock(lockId);
+        
         vm.prank(address(maliciousDefender));
         vault.submitDefense(lockId, abi.encodePacked("defense"));
         
-        // Reset attack counter
-        maliciousDefender.resetAttackCount();
+        // Reset counters
+        maliciousDefender.resetCounters();
         
         // Security council resolves as invalid (defender wins)
         vm.prank(securityCouncil);
         vault.resolveChallenge(lockId, false);
         
-        // Verify attack was not successful
-        assertEq(maliciousDefender.attackCount(), 0, "Reentrancy attack should have been blocked");
+        // Verify: attack was attempted but reentrancy failed
+        assertGt(maliciousDefender.attackAttempts(), 0, "Attack should have been attempted");
+        assertEq(maliciousDefender.successfulAttacks(), 0, "No reentrancy attacks should have succeeded");
     }
 
     /// @notice Test that state is updated before external calls in autoResolve
@@ -186,16 +200,20 @@ contract ReentrancyTest is Test {
         // Setup via emergency path
         _createPendingUnlockViaEmergency();
         
+        // Configure malicious contract to attempt multiple attack vectors
+        maliciousChallenger.setAttackVector(MaliciousChallenger.AttackVector.AUTO_RESOLVE);
+        maliciousChallenger.setTargetLock(lockId);
+        
         // File challenge with malicious contract
         uint256 challengeBond = vault.calculateChallengeBond(1 ether);
         vm.prank(address(maliciousChallenger));
         vault.challenge{value: challengeBond}(lockId, abi.encodePacked("fraud"));
         
-        // Configure malicious contract to attempt multiple attack vectors
-        maliciousChallenger.setAttackVector(MaliciousChallenger.AttackVector.AUTO_RESOLVE);
-        
         // Fast forward past defense period
         vm.warp(block.timestamp + 48 hours + 1);
+        
+        // Reset counters
+        maliciousChallenger.resetCounters();
         
         // Auto resolve should complete without successful reentry
         vault.autoResolveChallenge(lockId);
@@ -203,6 +221,9 @@ contract ReentrancyTest is Test {
         // Challenge should be resolved despite malicious attempts
         L1Vault.Challenge memory challenge = vault.getChallenge(lockId);
         assertEq(uint8(challenge.status), uint8(L1Vault.ChallengeStatus.RESOLVED_VALID));
+        
+        // Verify no successful attacks
+        assertEq(maliciousChallenger.successfulAttacks(), 0, "No reentrancy attacks should have succeeded");
     }
 
     // =========================================================================
@@ -266,7 +287,8 @@ contract ReentrancyTest is Test {
 
 contract MaliciousChallenger {
     L1Vault public vault;
-    uint256 public attackCount;
+    uint256 public attackAttempts;
+    uint256 public successfulAttacks;
     AttackVector public currentVector;
     bytes32 public targetLockId;
     
@@ -284,28 +306,44 @@ contract MaliciousChallenger {
         targetLockId = _lockId;
     }
     
-    function resetAttackCount() external {
-        attackCount = 0;
+    function resetCounters() external {
+        attackAttempts = 0;
+        successfulAttacks = 0;
     }
     
     receive() external payable {
-        // Attempt reentrancy attack when receiving ETH
-        if (attackCount < 3) {
-            attackCount++;
-            
-            if (currentVector == AttackVector.AUTO_RESOLVE && targetLockId != bytes32(0)) {
-                // Try to call autoResolveChallenge again
-                try vault.autoResolveChallenge(targetLockId) {
-                    // Attack succeeded - this should not happen with proper CEI
-                } catch {
-                    // Expected - reentrancy blocked
-                }
-            } else if (currentVector == AttackVector.EXECUTE_UNLOCK && targetLockId != bytes32(0)) {
-                try vault.executeUnlock(targetLockId) {
-                    // Attack succeeded
-                } catch {
-                    // Expected
-                }
+        // Only attempt reentrancy if configured
+        if (currentVector == AttackVector.NONE || targetLockId == bytes32(0)) {
+            return;
+        }
+        
+        // Limit attempts to prevent infinite loops
+        if (attackAttempts >= 3) {
+            return;
+        }
+        
+        attackAttempts++;
+        
+        if (currentVector == AttackVector.AUTO_RESOLVE) {
+            // Try to call autoResolveChallenge again
+            try vault.autoResolveChallenge(targetLockId) {
+                // Attack succeeded - this should not happen with proper CEI
+                successfulAttacks++;
+            } catch {
+                // Expected - reentrancy blocked (either by CEI or nonReentrant)
+            }
+        } else if (currentVector == AttackVector.RESOLVE_CHALLENGE) {
+            // Try to resolve challenge again
+            try vault.resolveChallenge(targetLockId, true) {
+                successfulAttacks++;
+            } catch {
+                // Expected
+            }
+        } else if (currentVector == AttackVector.EXECUTE_UNLOCK) {
+            try vault.executeUnlock(targetLockId) {
+                successfulAttacks++;
+            } catch {
+                // Expected
             }
         }
     }
@@ -315,7 +353,8 @@ contract MaliciousChallenger {
 
 contract MaliciousDefender {
     L1Vault public vault;
-    uint256 public attackCount;
+    uint256 public attackAttempts;
+    uint256 public successfulAttacks;
     bytes32 public targetLockId;
     
     constructor(address _vault) {
@@ -326,15 +365,23 @@ contract MaliciousDefender {
         targetLockId = _lockId;
     }
     
-    function resetAttackCount() external {
-        attackCount = 0;
+    function resetCounters() external {
+        attackAttempts = 0;
+        successfulAttacks = 0;
     }
     
     receive() external payable {
-        if (attackCount < 3 && targetLockId != bytes32(0)) {
-            attackCount++;
-            // Attempt to re-enter via executeUnlock
-            try vault.executeUnlock(targetLockId) {} catch {}
+        if (targetLockId == bytes32(0) || attackAttempts >= 3) {
+            return;
+        }
+        
+        attackAttempts++;
+        
+        // Attempt to re-enter via executeUnlock
+        try vault.executeUnlock(targetLockId) {
+            successfulAttacks++;
+        } catch {
+            // Expected - reentrancy blocked
         }
     }
     
@@ -343,7 +390,8 @@ contract MaliciousDefender {
 
 contract MaliciousRecipient {
     L1Vault public vault;
-    uint256 public attackCount;
+    uint256 public attackAttempts;
+    uint256 public successfulAttacks;
     bytes32 public targetLockId;
     
     constructor(address _vault) {
@@ -354,14 +402,22 @@ contract MaliciousRecipient {
         targetLockId = _lockId;
     }
     
-    function resetAttackCount() external {
-        attackCount = 0;
+    function resetCounters() external {
+        attackAttempts = 0;
+        successfulAttacks = 0;
     }
     
     receive() external payable {
-        if (attackCount < 3 && targetLockId != bytes32(0)) {
-            attackCount++;
-            try vault.executeUnlock(targetLockId) {} catch {}
+        if (targetLockId == bytes32(0) || attackAttempts >= 3) {
+            return;
+        }
+        
+        attackAttempts++;
+        
+        try vault.executeUnlock(targetLockId) {
+            successfulAttacks++;
+        } catch {
+            // Expected
         }
     }
     
