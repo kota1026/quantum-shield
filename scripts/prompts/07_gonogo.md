@@ -73,3 +73,44 @@ DEVELOPMENT_PLANとActive Checklistに記載された基準を確認：
 - [改善が必要な項目]
 - 再判定時期: [日付]
 ```
+
+6. 出力（必須）
+6.1 判定記録の作成
+Go/No-Go会議の結果は、以下のパスに保存してください：
+docs/decisions/GONOGO_PHASE{N}_{PHASE_NAME}_{YYYY-MM-DD}.md
+例: docs/decisions/GONOGO_PHASE1_FOUNDATION_2025-12-26.md
+6.2 判定記録に含める内容
+
+日時・議長・対象Phase
+達成状況レビュー（完了した主要成果のサマリー）
+11エージェント投票結果（全員の判定と根拠）
+各基準の達成状況とスコア
+総合スコアと最終判定（GO / NO-GO）
+次Phaseへの移行アクション（GO判定時）
+署名（Purpose Guardian承認）
+
+6.3 CURRENT_STATE.md の更新
+判定完了後、docs/planning/CURRENT_STATE.md に以下を追記してください：
+markdown## Phase {N} 完了記録
+- Go/No-Go判定: 🟢 GO / 🔴 NO-GO
+- 判定日: YYYY-MM-DD
+- 総合スコア: XX.X / 100
+- 記録: [GONOGO_PHASE{N}_{NAME}_{DATE}.md](../decisions/GONOGO_PHASE{N}_{NAME}_{DATE}.md)
+これにより、次回の ① 状態確認・計画立案 実行時に、過去のPhase判定結果を自然に参照できます。
+
+📊 フロー図
+Phase完了
+    │
+    ▼
+⑦ Go/No-Go会議
+    │
+    ├─→ 判定記録作成 → docs/decisions/GONOGO_PHASE{N}_*.md
+    │
+    └─→ CURRENT_STATE.md 更新 → 参照リンク追加
+            │
+            ▼
+        次Phase開始時
+            │
+            ▼
+    ① 状態確認・計画立案
+        （CURRENT_STATE.md読み込み → 判定記録を自動参照）
