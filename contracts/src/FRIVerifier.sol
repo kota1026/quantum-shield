@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {SHA3_256} from "./libraries/SHA3_256.sol";
+
 /// @title FRIVerifier - Level 2 FRI Low-Degree Test Implementation
 /// @notice Full FRI verification for STARK proofs
 /// @dev Implements the complete FRI low-degree test as described in STARK papers
@@ -13,6 +15,10 @@ pragma solidity ^0.8.20;
 /// 5. Verifier checks consistency at random query points
 ///
 /// Security: 128-bit security requires ~80 queries with blowup factor 8
+///
+/// QUANTUM SHIELD COMPLIANCE:
+/// - CP-1: Uses SHA3-256 (FIPS 202) instead of keccak256 for quantum resistance
+/// - All hash operations use the SHA3_256 library
 library FRIVerifier {
     // =========================================================================
     // Constants
@@ -185,10 +191,17 @@ library FRIVerifier {
     }
 
     // =========================================================================
-    // Merkle Verification
+    // Merkle Verification (SHA3-256 - CP-1 Compliant)
     // =========================================================================
 
-    /// @notice Verify Merkle proof for evaluation
+    /// @notice Verify Merkle proof for evaluation using SHA3-256 (FIPS 202)
+    /// @dev CP-1 COMPLIANCE: Uses SHA3-256 instead of keccak256 for quantum resistance
+    /// @param root The Merkle root to verify against
+    /// @param index The index of the leaf in the tree
+    /// @param eval0 First evaluation value
+    /// @param eval1 Second evaluation value (sibling)
+    /// @param merkleProof The Merkle proof path
+    /// @return True if the proof is valid
     function verifyMerkleProof(
         bytes32 root,
         uint256 index,
@@ -196,18 +209,20 @@ library FRIVerifier {
         uint256 eval1,
         bytes32[] memory merkleProof
     ) internal pure returns (bool) {
-        // Compute leaf hash
-        bytes32 leaf = keccak256(abi.encodePacked(eval0, eval1));
+        // Compute leaf hash using SHA3-256 (CP-1: Quantum Resistant)
+        bytes32 leaf = SHA3_256.hash(abi.encodePacked(eval0, eval1));
 
-        // Verify path to root
+        // Verify path to root using SHA3-256
         bytes32 current = leaf;
         uint256 pathIndex = index / 2; // Pair index
 
         for (uint256 i = 0; i < merkleProof.length; i++) {
             if (pathIndex % 2 == 0) {
-                current = keccak256(abi.encodePacked(current, merkleProof[i]));
+                // Current node is on the left, sibling on the right
+                current = SHA3_256.hashPair(current, merkleProof[i]);
             } else {
-                current = keccak256(abi.encodePacked(merkleProof[i], current));
+                // Current node is on the right, sibling on the left
+                current = SHA3_256.hashPair(merkleProof[i], current);
             }
             pathIndex /= 2;
         }
