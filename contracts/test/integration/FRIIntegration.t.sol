@@ -240,7 +240,7 @@ contract FRIIntegrationTest is Test {
     // Gas Efficiency Tests
     // =========================================================================
 
-    function test_GasEfficiency_SingleHash() public view {
+    function test_GasEfficiency_SingleHash() public {
         bytes memory data = abi.encodePacked(uint256(1), uint256(2), uint256(3));
         
         uint256 gasBefore = gasleft();
@@ -251,7 +251,7 @@ contract FRIIntegrationTest is Test {
         assertTrue(gasUsed < 2_000_000, "Single hash should be gas efficient");
     }
 
-    function test_GasEfficiency_HashPair() public view {
+    function test_GasEfficiency_HashPair() public {
         bytes32 left = bytes32(uint256(1));
         bytes32 right = bytes32(uint256(2));
         
@@ -263,7 +263,7 @@ contract FRIIntegrationTest is Test {
         assertTrue(gasUsed < 2_000_000, "Hash pair should be gas efficient");
     }
 
-    function test_GasEfficiency_MerkleTree8Leaves() public view {
+    function test_GasEfficiency_MerkleTree8Leaves() public {
         bytes32[] memory leaves = new bytes32[](8);
         for (uint256 i = 0; i < 8; i++) {
             leaves[i] = SHA3_256.hash(abi.encodePacked(i));
