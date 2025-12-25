@@ -34,6 +34,7 @@ import {ProverSelector} from "./libraries/ProverSelector.sol";
 /// - [FIX-009] Added OwnershipTransferred event to transferOwnership()
 /// - [FIX-010] Added zero-address check to setVRFConfig() for coordinator
 /// - [FIX-011] Improved _selectProver() return value handling
+/// - [FIX-012] Added zero-address check to constructor for l1Vault
 contract VRFConsumer is IVRFConsumer {
     using ProverSelector for ProverSelector.ProverInfo[];
 
@@ -158,8 +159,10 @@ contract VRFConsumer is IVRFConsumer {
     // =========================================================================
 
     /// @notice Initialize VRF Consumer
+    /// @dev SEC-002 FIX-012: Added zero-address check for l1Vault
     /// @param _l1Vault L1Vault contract address
     constructor(address _l1Vault) {
+        if (_l1Vault == address(0)) revert ZeroAddress();
         owner = msg.sender;
         l1Vault = _l1Vault;
         _requestIdCounter = 1;
