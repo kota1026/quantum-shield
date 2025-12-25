@@ -71,8 +71,8 @@ contract ReentrancyTest is Test {
     /// @notice Test that autoResolveChallenge is protected against reentrancy
     /// @dev FIX-001: CEI pattern must be applied
     function test_AutoResolveChallenge_ReentrancyProtection() public {
-        // Setup: Create a pending unlock request
-        _createPendingUnlock();
+        // Setup: Create a pending unlock request via emergency path (no SMT proof needed)
+        _createPendingUnlockViaEmergency();
         
         // Malicious challenger files a challenge
         uint256 challengeBond = vault.calculateChallengeBond(1 ether);
@@ -95,8 +95,8 @@ contract ReentrancyTest is Test {
     /// @notice Test that resolveChallenge is protected against reentrancy
     /// @dev FIX-002: CEI pattern must be applied
     function test_ResolveChallenge_ReentrancyProtection_ValidChallenge() public {
-        // Setup: Create a pending unlock request
-        _createPendingUnlock();
+        // Setup: Create a pending unlock request via emergency path
+        _createPendingUnlockViaEmergency();
         
         // Malicious challenger files a challenge
         uint256 challengeBond = vault.calculateChallengeBond(1 ether);
@@ -117,8 +117,8 @@ contract ReentrancyTest is Test {
     /// @notice Test that resolveChallenge with invalid challenge is protected
     /// @dev FIX-002/FIX-004: CEI pattern for invalid challenge resolution
     function test_ResolveChallenge_ReentrancyProtection_InvalidChallenge() public {
-        // Setup: Create a pending unlock request
-        _createPendingUnlock();
+        // Setup: Create a pending unlock request via emergency path
+        _createPendingUnlockViaEmergency();
         
         // Regular challenger files a challenge
         address regularChallenger = makeAddr("regularChallenger");
@@ -127,10 +127,6 @@ contract ReentrancyTest is Test {
         uint256 challengeBond = vault.calculateChallengeBond(1 ether);
         vm.prank(regularChallenger);
         vault.challenge{value: challengeBond}(lockId, abi.encodePacked("fraud"));
-        
-        // Malicious defender submits defense
-        vm.prank(address(maliciousDefender));
-        // Note: submitDefense requires active prover, so we test via resolution
         
         // Make malicious defender an active prover for testing
         vm.deal(owner, 10 ether);
@@ -156,8 +152,8 @@ contract ReentrancyTest is Test {
     /// @notice Test that state is updated before external calls in autoResolve
     /// @dev Verify CEI pattern - state should be finalized before ETH transfer
     function test_AutoResolve_StateUpdatedBeforeTransfer() public {
-        // Setup
-        _createPendingUnlock();
+        // Setup via emergency path
+        _createPendingUnlockViaEmergency();
         
         address regularChallenger = makeAddr("regularChallenger");
         vm.deal(regularChallenger, 10 ether);
@@ -187,8 +183,8 @@ contract ReentrancyTest is Test {
     /// @notice Test multiple reentrancy attempts fail
     /// @dev Ensure nonReentrant modifier works across all entry points
     function test_MultipleReentrancyAttempts_AllFail() public {
-        // Setup
-        _createPendingUnlock();
+        // Setup via emergency path
+        _createPendingUnlockViaEmergency();
         
         // File challenge with malicious contract
         uint256 challengeBond = vault.calculateChallengeBond(1 ether);
@@ -227,7 +223,7 @@ contract ReentrancyTest is Test {
 
     /// @notice Test challenge flow still works after CEI fixes
     function test_ChallengeFlow_StillWorks() public {
-        _createPendingUnlock();
+        _createPendingUnlockViaEmergency();
         
         address regularChallenger = makeAddr("regularChallenger");
         vm.deal(regularChallenger, 10 ether);
@@ -246,27 +242,21 @@ contract ReentrancyTest is Test {
     // Helper Functions
     // =========================================================================
 
-    function _createPendingUnlock() internal {
-        // Create state root and proof for unlock request
+    /// @notice Create a pending unlock via emergency path (no SMT proof needed)
+    /// @dev Uses requestEmergencyUnlock which doesn't require cryptographic proofs
+    function _createPendingUnlockViaEmergency() internal {
         L1Vault.Lock memory lockData = vault.getLock(lockId);
         
-        bytes32[] memory smtProof = new bytes32[](1);
-        smtProof[0] = bytes32(uint256(1));
+        // Calculate required bond
+        uint256 requiredBond = vault.calculateEmergencyBond(lockData.amount);
         
-        // Create signatures from provers
-        bytes[] memory signatures = new bytes[](2);
-        signatures[0] = abi.encodePacked(bytes32(uint256(1)));
-        signatures[1] = abi.encodePacked(bytes32(uint256(2)));
-        
-        address[] memory signers = new address[](2);
-        signers[0] = prover1;
-        signers[1] = prover2;
-        
-        // Compute expected SR1
-        bytes32 sr1 = StateRootCalculator.computeSR1(lockData.stateRoot, lockId, user, lockData.amount, 0);
-        
+        // Request emergency unlock (doesn't need SMT proof)
         vm.prank(user);
-        vault.requestUnlock(lockId, user, smtProof, sr1, signatures, signers);
+        vault.requestEmergencyUnlock{value: requiredBond}(lockId, user);
+        
+        // Verify status is EMERGENCY_PENDING (challengeable)
+        L1Vault.Lock memory updatedLock = vault.getLock(lockId);
+        assertEq(uint8(updatedLock.status), uint8(L1Vault.LockStatus.EMERGENCY_PENDING));
     }
 }
 
