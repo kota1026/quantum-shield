@@ -1,155 +1,163 @@
 # Current Plan
 
-> **Generated**: 2025-12-26 00:30 JST
-> **Phase**: 2 - Security Council + Token
-> **Week**: 6 (SEC-003開始)
+> **Generated**: 2025-12-26 00:45 JST  
+> **Phase**: 2 - Security Council + Token  
+> **Week**: 6  
+> **Engineer Agent**: Active
 
 ---
 
-## 🎯 対象タスク
-
-**SEC-003: QuantumShield.sol keccak256移行**
-
-CP-1（完全量子耐性）違反を解消するため、QuantumShield.solで使用されているkeccak256をSHA3_256.hash()に移行する。
-
----
-
-## 📋 対象チェックリスト
+## 対象チェックリスト
 
 `docs/planning/PHASE2_CHECKLIST.md`
 
 ---
 
-## ✅ 前回完了タスク (Week 5)
+## 前回レビュー課題
 
-| # | タスク | 判定 | 日付 |
+> CURRENT_STATE.md より自動取得
+
+| # | 重要度 | 課題 | 対策 |
 |---|--------|------|------|
-| 1 | SEC-001 リエントランシー修正 | ✅ COMPLETE | 2025-12-25 |
-| 2 | SEC-002 Events/ZeroCheck修正 | ✅ COMPLETE | 2025-12-25 |
-| 3 | セキュリティレビュー 04_review.md | ✅ PASS | 2025-12-25 |
-| 4 | PIR会議 05_pir.md | ✅ PIR-SEC-001 PASS | 2025-12-26 |
-| 5 | Slither検証 | ✅ HIGH 0 / MEDIUM 0 | 2025-12-25 |
-| 6 | 全テスト | ✅ 557/557 PASS | 2025-12-25 |
+| 1 | 🟠 High | QuantumShield.sol keccak256使用 (ISSUE-001) | SEC-003で移行 |
 
 ---
 
-## 🔄 今回のスコープ (SEC-003)
+## 今回のスコープ
 
-### 影響範囲
+### SEC-003: QuantumShield.sol keccak256 → SHA3_256 移行
 
-| ファイル | 関数 | 問題 | 修正方針 |
-|---------|------|------|----------|
-| QuantumShield.sol | `lock()` | keccak256使用 | SHA3_256.hash() |
-| QuantumShield.sol | `_hashPublicInputs()` | keccak256使用 | SHA3_256.hash() |
-| QuantumShield.sol | `_verifyStarkProofInternal()` | keccak256使用 | SHA3_256.hash() |
+**背景**: CP-1（完全量子耐性）において、keccak256は禁止アルゴリズムとして明記されている。QuantumShield.solには3箇所のkeccak256使用が残存しており、これを全てSHA3_256.hash()に移行する必要がある。
+
+**影響範囲**: QuantumShield.sol 3関数
+
+| 関数 | 行番号 | 現状 | 移行先 |
+|------|--------|------|--------|
+| `lock()` | ~193 | `keccak256(abi.encodePacked(...))` | `SHA3_256.hash(abi.encodePacked(...))` |
+| `_verifyStarkProofInternal()` | ~358, ~368 | `keccak256(abi.encodePacked(...))` ×2 | `SHA3_256.hash(abi.encodePacked(...))` |
+| `_hashPublicInputs()` | ~560 | `keccak256(abi.encodePacked(...))` | `SHA3_256.hash(abi.encodePacked(...))` |
+
+---
+
+### 修正項目（レビュー課題より）
+
+- [ ] [FIX-015] `lock()` 関数の keccak256 → SHA3_256.hash() 移行
+- [ ] [FIX-016] `_verifyStarkProofInternal()` 関数の keccak256 → SHA3_256.hash() 移行（2箇所）
+- [ ] [FIX-017] `_hashPublicInputs()` 関数の keccak256 → SHA3_256.hash() 移行
+- [ ] [FIX-018] SHA3_256ライブラリのインポート追加
 
 ### 実装項目
 
-- [ ] [IMPL-SEC-003-1] SHA3_256ライブラリのインポート追加
-- [ ] [IMPL-SEC-003-2] `lock()` keccak256 → SHA3_256.hash()
-- [ ] [IMPL-SEC-003-3] `_hashPublicInputs()` keccak256 → SHA3_256.hash()
-- [ ] [IMPL-SEC-003-4] `_verifyStarkProofInternal()` keccak256 → SHA3_256.hash()
+- [ ] [IMPL-SEC003-01] QuantumShield.sol への SHA3_256 インポート追加
+- [ ] [IMPL-SEC003-02] lock() 関数の修正
+- [ ] [IMPL-SEC003-03] _verifyStarkProofInternal() 関数の修正
+- [ ] [IMPL-SEC003-04] _hashPublicInputs() 関数の修正
+- [ ] [IMPL-SEC003-05] NatSpec コメント更新
 
 ### テスト項目
 
-- [ ] [TEST-SEC-003-1] 既存QuantumShieldテスト全PASS確認
-- [ ] [TEST-SEC-003-2] lock() ハッシュ検証テスト
-- [ ] [TEST-SEC-003-3] publicInputs ハッシュ整合性テスト
-- [ ] [TEST-SEC-003-4] STARK proof検証のSHA3対応テスト
-- [ ] [TEST-REGRESSION] 全557テスト + 新規テストの回帰テスト
-
-### セキュリティレビュー
-
-- [ ] [REVIEW-SEC-003] 04_review.md セキュリティレビュー
-- [ ] [PIR-SEC-003] 05_pir.md PIR会議
+- [ ] [TEST-SEC003-01] 既存テストの実行・回帰確認
+- [ ] [TEST-SEC003-02] lock() 関数のハッシュ整合性テスト
+- [ ] [TEST-SEC003-03] releaseWithProof() 統合テスト
+- [ ] [TEST-SEC003-04] _hashPublicInputs() 単体テスト
+- [ ] [TEST-SEC003-05] Gas消費量ベンチマーク
 
 ---
 
-## 📚 参照ドキュメント
+### 参照ドキュメント
 
-| ドキュメント | パス |
-|-------------|------|
-| Constitution | `docs/constitution/CORE_PRINCIPLES.md` |
-| Sequence | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
-| 仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` |
-| Slither Report | `docs/aegis/security/SLITHER_REPORT_2025-12-25.md` |
-| ZK-STARK計画 | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
+| 種別 | パス |
+|------|------|
+| 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
 | SHA3_256実装 | `contracts/src/libraries/SHA3_256.sol` |
+| 既存テスト | `contracts/test/QuantumShieldTest.t.sol` |
+| Slitherレポート | `docs/aegis/security/SLITHER_REPORT_2025-12-25.md` |
 
 ---
 
-## 📦 成果物
+## 成果物
 
 | ファイル | 説明 |
 |---------|------|
-| `contracts/src/QuantumShield.sol` | keccak256 → SHA3_256.hash() 移行 |
-| `contracts/test/QuantumShieldSHA3Test.t.sol` | SHA3移行テスト（新規） |
-| `docs/aegis/pir/PIR-SEC-003_REVIEW.md` | SEC-003レビューレポート |
+| `contracts/src/QuantumShield.sol` | keccak256 → SHA3_256 移行 |
+| `contracts/test/security/SEC003Test.t.sol` | SEC-003専用テストスイート |
+| `docs/planning/CURRENT_STATE.md` | 状態更新（SEC-003完了） |
 
 ---
 
-## 🔧 実行順序
+## 実行順序
 
-### Step 1: 計画策定 (01_plan.md)
-- [ ] SEC-003 計画確認
-- [ ] 仕様レビュー準備
+### Step 1: 事前確認
+1. SHA3_256ライブラリの存在確認 (`contracts/src/libraries/SHA3_256.sol`)
+2. 現行テストの全PASS確認 (`forge test`)
+3. 現行Gasベースラインの記録
 
-### Step 2: 仕様レビュー (02_spec.md)
-- [ ] QuantumShield.sol 該当箇所の仕様確認
-- [ ] SHA3_256.hash() インターフェース確認
-- [ ] 入出力フォーマットの互換性確認
+### Step 2: 実装
+1. QuantumShield.sol に `import {SHA3_256} from "./libraries/SHA3_256.sol";` 追加
+2. `lock()` 関数の修正
+   - `keccak256(abi.encodePacked(...))` → `SHA3_256.hash(abi.encodePacked(...))`
+3. `_verifyStarkProofInternal()` 関数の修正（2箇所）
+   - proofBinding 計算
+   - expectedBinding 計算
+4. `_hashPublicInputs()` 関数の修正
+5. NatSpecコメント更新（SEC-003対応記載）
 
-### Step 3: 実装 (03_impl.md)
-- [ ] SHA3_256ライブラリのインポート
-- [ ] 3箇所のkeccak256置換
-- [ ] 既存テスト実行・全PASS確認
-- [ ] 新規テスト作成・実行
+### Step 3: テスト
+1. 既存テストの回帰テスト実行
+2. SEC-003専用テストケース作成
+3. 全テストPASS確認
+4. Gasベンチマーク比較
 
-### Step 4: セキュリティレビュー (04_review.md)
-- [ ] CP-1 完全量子耐性確認
-- [ ] Slither再実行
-- [ ] ガス使用量ベンチマーク
+### Step 4: 静的解析
+1. Slither実行
+2. HIGH/MEDIUM 0件確認
 
-### Step 5: PIR会議 (05_pir.md)
-- [ ] PIR-SEC-003 実施
-- [ ] PASS判定取得
-
-### Step 6: 状態更新 (06_update.md)
-- [ ] CURRENT_STATE.md 更新
-- [ ] PHASE2_CHECKLIST.md 更新
+### Step 5: 完了処理
+1. CURRENT_STATE.md 更新
+2. Git commit & push
 
 ---
 
-## ⚠️ リスク・懸念事項
+## Core Principles確認
+
+- [ ] CP-1: 完全量子耐性 - **対応中**（keccak256 → SHA3_256移行で解消）
+- [ ] CP-2: Self-Custody - 違反なし
+- [ ] CP-3: Time Lock存在 - 違反なし
+- [ ] CP-4: Slashing存在 - 違反なし
+- [ ] CP-5: 透明性 - 違反なし
+
+---
+
+## リスク・懸念事項
 
 | # | リスク | 重要度 | 対策 |
 |---|--------|--------|------|
-| 1 | SHA3_256.hash()のGasコスト増加 | Medium | ベンチマーク実施、許容範囲確認 |
-| 2 | 既存テストのハッシュ値依存 | Medium | テストのハッシュ期待値更新 |
-| 3 | STARK proof検証への影響 | Medium | 統合テストで検証 |
+| 1 | Gas消費増加 | MEDIUM | SHA3_256はkeccak256より高コスト。ベンチマーク実施で影響確認 |
+| 2 | 既存ロックの互換性 | HIGH | lockId計算方法が変わるため、移行前のロックは解除不可になる可能性 |
+| 3 | 証明システムとの整合性 | HIGH | 外部Proverが生成する証明も対応が必要 |
+
+### 互換性に関する注意
+
+**重要**: `lock()` 関数のハッシュアルゴリズム変更により、lockIdの計算方法が変わります。
+
+- 既存ロック（移行前）: keccak256で計算されたlockId
+- 新規ロック（移行後）: SHA3_256で計算されたlockId
+
+**対策オプション**:
+1. **Option A**: 既存ロックは全て解除済みであることを確認後に移行
+2. **Option B**: 既存ロックの解除用にkeccak256ベースの関数を残す（非推奨：CP-1違反）
+3. **Option C**: テストネット環境のため既存ロックは考慮不要
+
+→ **推奨**: Option C（現在はテストネット/開発環境のため、互換性は考慮不要）
 
 ---
 
-## ✅ Core Principles確認
+## 次のステップ
 
-- [x] CP-1: 完全量子耐性 - **今回の修正で強化**（keccak256排除）
-- [x] CP-2: Self-Custody - 違反なし
-- [x] CP-3: Time Lock存在 - 違反なし
-- [x] CP-4: Slashing存在 - 違反なし
-- [x] CP-5: 透明性 - 違反なし
-
----
-
-## ✅ 前提条件
-
-- [x] SEC-001/SEC-002 完了
-- [x] PIR-SEC-001 PASS
-- [x] 557/557 テスト PASS
-- [x] Slither HIGH 0 / MEDIUM 0
-
----
-
-**次のステップ**: `01_plan.md` を実行してSEC-003の計画策定を開始してください。
+1. `02_spec.md` で仕様レビュー実施
+2. `03_impl.md` で実装
+3. `04_review.md` でセキュリティレビュー
+4. `05_pir.md` で PIR-SEC-003 会議
 
 ---
 
