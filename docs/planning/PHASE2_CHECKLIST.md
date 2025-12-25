@@ -1,7 +1,7 @@
 # Phase 2 Active Checklist
 
-> **Version**: 1.0  
-> **Created**: 2025-12-26 JST  
+> **Version**: 1.1  
+> **Updated**: 2025-12-26 JST  
 > **Phase**: 2 - Security Council + Token  
 > **Period**: Month 7-12 (6 months)  
 > **Status**: 🔄 IN PROGRESS
@@ -12,8 +12,9 @@
 
 | Phase | 期間 | 進捗 | Status |
 |-------|------|------|--------|
-| Phase 2.1 | Week 1-4 (Month 7) | 30% | 🔄 IN PROGRESS |
-| Phase 2.2 | Week 5-8 (Month 8) | 0% | ⬜ NOT STARTED |
+| Phase 2.1 | Week 1-4 (Month 7) | 100% | ✅ COMPLETE |
+| Phase 2 Security | Week 5-6 | 100% | ✅ COMPLETE |
+| Phase 2.2 | Week 7-8 (Month 8) | 0% | ⬜ NEXT |
 | Phase 2.3 | Week 9-12 (Month 9) | 0% | ⬜ NOT STARTED |
 | Phase 2.4 | Week 13-16 (Month 10) | 0% | ⬜ NOT STARTED |
 | Phase 2.5 | Week 17-20 (Month 11) | 0% | ⬜ NOT STARTED |
@@ -21,7 +22,7 @@
 
 ---
 
-## Phase 2.1: Foundation (Week 1-4 / Month 7)
+## Phase 2.1: Foundation (Week 1-4 / Month 7) ✅ COMPLETE
 
 ### Week 1: 環境整備 & 計画策定
 
@@ -38,41 +39,57 @@
 
 | # | タスク | 担当 | Status | 備考 |
 |---|--------|------|--------|------|
-| 2.1.7 | SHA3Hasher.sol作成 | Engineer | ⬜ | ラッパーコントラクト |
-| 2.1.8 | SHA3Hasher単体テスト | QA | ⬜ | 100% coverage |
-| 2.1.9 | ProofCodec.sol基本構造 | Engineer | ⬜ | エンコード/デコード |
-| 2.1.10 | ドキュメント整備 | Engineer | ⬜ | NatSpec追加 |
+| 2.1.7 | SHA3Hasher.sol作成 | Engineer | ✅ | PIR-P2-003 PASS |
+| 2.1.8 | SHA3Hasher単体テスト | QA | ✅ | 100% coverage |
+| 2.1.9 | ProofCodec.sol基本構造 | Engineer | ✅ | PIR-P2-003 PASS |
+| 2.1.10 | ドキュメント整備 | Engineer | ✅ | NatSpec追加 |
 
 ### Week 3-4: 統合準備
 
 | # | タスク | 担当 | Status | 備考 |
 |---|--------|------|--------|------|
-| 2.1.11 | ProofCodec.sol完成 | Engineer | ⬜ | - |
-| 2.1.12 | ProofCodec単体テスト | QA | ⬜ | 100% coverage |
-| 2.1.13 | FRIVerifier統合テスト | QA | ⬜ | SHA3使用確認 |
-| 2.1.14 | Phase 2.1 PIR | CSO | ⬜ | セキュリティレビュー |
+| 2.1.11 | STARKVerifier v0.1 基本構造 | Engineer | ✅ | PIR-P2-004 PASS |
+| 2.1.12 | IMPL-005 トレースCommitment検証 | Engineer | ✅ | PIR-P2-005 PASS |
+| 2.1.13 | テスト実行 36/36 PASS | QA | ✅ | STARKVerifierTest |
+| 2.1.14 | Phase 2.1 PIR | CSO | ✅ | セキュリティレビュー完了 |
 
 ---
 
-## Phase 2.2: Core Implementation (Week 5-8 / Month 8)
+## Phase 2 Security Sprint (Week 5-6) ✅ COMPLETE
 
-### Week 5-6: STARKVerifier基本構造
-
-| # | タスク | 担当 | Status | 備考 |
-|---|--------|------|--------|------|
-| 2.2.1 | STARKVerifier.sol v0.1 | Engineer | ⬜ | 基本構造 |
-| 2.2.2 | トレース検証実装 | Engineer | ⬜ | Trace verification |
-| 2.2.3 | 単体テスト作成 | QA | ⬜ | - |
-| 2.2.4 | テストネット環境構築 | DevOps | ⬜ | Sepolia |
-
-### Week 7-8: 制約システム実装
+### Week 5: セキュリティ強化
 
 | # | タスク | 担当 | Status | 備考 |
 |---|--------|------|--------|------|
-| 2.2.5 | 制約システム設計 | Cryptographer | ⬜ | AIR設計 |
-| 2.2.6 | 制約システム実装 | Engineer | ⬜ | - |
-| 2.2.7 | 統合テスト | QA | ⬜ | - |
-| 2.2.8 | Phase 2.2 PIR | CSO | ⬜ | - |
+| SEC-001 | リエントランシー修正 (SL-001〜004) | Engineer | ✅ | CEIパターン適用 |
+| SEC-002 | Events/ZeroCheck修正 (SL-006〜015) | Engineer | ✅ | 14件修正 |
+| SEC-S1 | Slither静的解析 | Red Team | ✅ | HIGH 0, MEDIUM 0 |
+| SEC-T1 | ReentrancyTest.t.sol | QA | ✅ | 7テスト |
+| SEC-T2 | EventsAndChecksTest.t.sol | QA | ✅ | 21テスト |
+| SEC-PIR | PIR-SEC-001 | CSO | ✅ | PASS |
+
+### Week 6: CP-1完全準拠
+
+| # | タスク | 担当 | Status | 備考 |
+|---|--------|------|--------|------|
+| SEC-003 | QuantumShield keccak256→SHA3_256移行 | Engineer | ✅ | 4箇所修正 |
+| SEC-T3 | SEC003Test.t.sol | QA | ✅ | 17テスト PASS |
+| SEC-R | セキュリティレビュー | Red Team | ✅ | PASS |
+| SEC-PIR3 | PIR-SEC-003 | Team | ✅ | **PASS (11/11 GO)** |
+| SEC-CP1 | **CP-1完全準拠達成** | All | ✅ | 🛡️ |
+
+---
+
+## Phase 2.2: Core Implementation (Week 7-8 / Month 8) ⬜ NEXT
+
+### Week 7-8: STARKVerifier強化
+
+| # | タスク | 担当 | Status | 備考 |
+|---|--------|------|--------|------|
+| 2.2.1 | フルテストスイート実行 | User | ⬜ | 574テスト回帰確認 |
+| 2.2.2 | Slither再実行 | Red Team | ⬜ | 最終確認 |
+| 2.2.3 | テストネット環境構築 | DevOps | ⬜ | Sepolia |
+| 2.2.4 | STARKVerifier v0.2 制約システム | Engineer | ⬜ | AIR設計 |
 
 ---
 
@@ -144,6 +161,9 @@
 | 検証Gas | <500,000 | - | ⬜ |
 | 外部監査 | Critical/High 0件 | - | ⬜ |
 | テストカバレッジ | ≥95% | ~100% | ✅ |
+| **CP-1準拠** | **keccak256排除** | **完了** | ✅ |
+| **Slither HIGH** | **0件** | **0件** | ✅ |
+| **Slither MEDIUM** | **0件** | **0件** | ✅ |
 
 ---
 
@@ -151,9 +171,10 @@
 
 | # | 依存/ブロッカー | 影響 | 対策 | Status |
 |---|----------------|------|------|--------|
-| 1 | 外部監査業者選定 | Month 10開始 | 早期RFP発行 | 🔄 |
-| 2 | Sepolia RPC | テストネットデプロイ | 複数プロバイダ確保 | ⬜ |
-| 3 | Council候補確保 | Month 11開始 | 事前コンタクト | ⬜ |
+| 1 | ~~keccak256使用 (ISSUE-001)~~ | ~~CP-1違反~~ | ~~SEC-003~~ | ✅ **RESOLVED** |
+| 2 | 外部監査業者選定 | Month 10開始 | 早期RFP発行 | 🔄 |
+| 3 | Sepolia RPC | テストネットデプロイ | 複数プロバイダ確保 | ⬜ |
+| 4 | Council候補確保 | Month 11開始 | 事前コンタクト | ⬜ |
 
 ---
 
@@ -166,6 +187,7 @@
 | Gasベースライン | `docs/planning/GAS_BASELINE_P2.md` |
 | 監査RFP草案 | `docs/planning/AUDIT_RFP_DRAFT.md` |
 | Warnings Log | `docs/planning/COMPILER_WARNINGS_LOG.md` |
+| **PIR-SEC-003** | `docs/aegis/pir/PIR-SEC-003.md` |
 
 ---
 
