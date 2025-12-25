@@ -7,6 +7,7 @@ import {L1Vault} from "../src/L1Vault.sol";
 import {SPHINCSVerifier} from "../src/SPHINCSVerifier.sol";
 import {VRFConsumer} from "../src/VRFConsumer.sol";
 import {StateRootCalculator} from "../src/libraries/StateRootCalculator.sol";
+import {SHA3_256} from "../src/libraries/SHA3_256.sol";
 
 /// @title E2EIntegration Test Suite
 /// @notice Day 10: Complete End-to-End Integration Tests for Quantum Shield
@@ -323,7 +324,8 @@ contract E2EIntegrationTest is Test {
         assertEq(challengeBond, 0.1 ether, "E2E-003: Challenge bond should be 0.1 ETH");
         
         bytes memory fraudProof = abi.encodePacked("fraudulent_proof_data");
-        bytes32 fraudProofHash = keccak256(fraudProof);
+        // FIX-012: Use SHA3_256 instead of keccak256 for quantum resistance
+        bytes32 fraudProofHash = SHA3_256.hash(fraudProof);
         
         uint256 challengerBalanceBefore = challenger.balance;
         uint256 expectedDefenseDeadline = block.timestamp + 48 hours;
@@ -507,8 +509,9 @@ contract E2EIntegrationTest is Test {
         bytes32 lockId = vault.lock{value: 1 ether}(recipient, DILITHIUM_PUBKEY);
         
         // User's key hash is stored, but not the actual key
+        // FIX-010: Now uses SHA3_256 instead of keccak256
         L1Vault.Lock memory lockData = vault.getLock(lockId);
-        assertEq(lockData.dilithiumPubKeyHash, keccak256(DILITHIUM_PUBKEY), "CP-2: Only key hash should be stored");
+        assertEq(lockData.dilithiumPubKeyHash, SHA3_256.hash(DILITHIUM_PUBKEY), "CP-2: Only key hash should be stored");
         
         // Verify funds are held by vault, not a third party
         assertEq(address(vault).balance >= 1 ether, true, "CP-2: Vault should hold funds");
