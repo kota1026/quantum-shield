@@ -7,54 +7,69 @@
 Day 13: SPHINCS+ SHAKE移行 + Lean4形式検証 + 外部レビュー準備
 
 ## ステータス
-✅ 仕様確認完了 - **CEO判断済み** - 実装に進んでください
+✅ **SHAKE移行完了** - 形式検証に進んでください
 
 ---
 
 ## CEO判断（2025-12-25）
 
-| 項目 | 判断 | 対応 |
-|------|------|------|
-| ISSUE-002 | **厳格解釈採用** | SPHINCS+-SHAKE-128sへ移行 |
-| ISSUE-001 | **対応する** | keccak256→SHA3-256変更 |
+| 項目 | 判断 | 対応 | 状態 |
+|------|------|------|------|
+| ISSUE-002 | **厳格解釈採用** | SPHINCS+-SHAKE-128sへ移行 | ✅ **完了** |
+| ISSUE-001 | **対応する** | keccak256→SHA3-256変更 | ✅ **完了** |
 
 ---
 
-## 変更スコープ（Day 13 拡張）
+## 指摘事項対応状況
 
-### 🔴 最優先: SPHINCS+-SHAKE-128s移行
+### ISSUE-001: keccak256→SHA3-256変更
+- [x] 対応済み
+- **対応内容**: `computePublicKeyHash()`をkeccak256()からSHA3_256.hash()に変更
+- **対応コミット**: 310e9db92a8b6f7d58589dd52f8411464140e5bc
 
-#### SPHINCSVerifier.sol 全面改修
+### ISSUE-002: SPHINCS+-SHAKE-128s移行
+- [x] 対応済み
+- **対応内容**: 
+  - SHAKE256ライブラリ新規作成 (`contracts/src/libraries/SHAKE256.sol`)
+  - SPHINCSVerifier.sol内の全sha256()呼び出しをSHAKE256.hash256()に変更
+  - ドキュメント・コメント更新
+- **対応コミット**: 
+  - feb8f8c156acfe00fb4e0d202a8e72ec2af59c9b (SHAKE256.sol)
+  - 310e9db92a8b6f7d58589dd52f8411464140e5bc (SPHINCSVerifier.sol)
 
-| 変更箇所 | 現行 | 変更後 | 行番号(目安) |
-|---------|------|--------|-------------|
-| `_computeDigest()` | `sha256()` | SHAKE256 | ~197 |
-| `_computeFORSTreeRoot()` | `sha256()` | SHAKE256 | ~242, 257, 265 |
-| `_hashFORSRoots()` | `sha256()` | SHAKE256 | ~281 |
-| `_computeWOTSChain()` | `sha256()` | SHAKE256 | ~338 |
-| `_compressWOTSPublicKey()` | `sha256()` | SHAKE256 | ~351 |
-| `_climbMerkleTree()` | `sha256()` | SHAKE256 | ~368 |
-| `computePublicKeyHash()` | `keccak256()` | SHA3-256 | ~303 |
-| コントラクト名/コメント | SHA2-128s | SHAKE-128s | 全体 |
+---
 
-#### SHAKE256実装方法
+## 変更スコープ（Day 13 拡張）- ✅ 完了
 
-**オプションA（推奨）**: Solidityプリコンパイル不在のため、Yul/アセンブリでSHA3 opcode活用
+### 🔴 最優先: SPHINCS+-SHAKE-128s移行 ✅
+
+#### SPHINCSVerifier.sol 全面改修 ✅
+
+| 変更箇所 | 現行 | 変更後 | 状態 |
+|---------|------|--------|------|
+| `_computeDigest()` | `sha256()` | SHAKE256.hash256() | ✅ |
+| `_computeFORSTreeRoot()` | `sha256()` | SHAKE256.hash256() | ✅ |
+| `_hashFORSRoots()` | `sha256()` | SHAKE256.hash256() | ✅ |
+| `_computeWOTSChain()` | `sha256()` | SHAKE256.hash256() | ✅ |
+| `_compressWOTSPublicKey()` | `sha256()` | SHAKE256.hash256() | ✅ |
+| `_climbMerkleTree()` | `sha256()` | SHAKE256.hash256() | ✅ |
+| `computePublicKeyHash()` | `keccak256()` | SHA3_256.hash() | ✅ |
+| コントラクト名/コメント | SHA2-128s | SHAKE-128s | ✅ |
+
+#### SHAKE256実装 ✅
+
+**採用オプション**: Solidity Pure Implementation
 ```solidity
-// SHA3-256 (keccak256と異なるパディング)
-function sha3_256(bytes memory data) internal pure returns (bytes32) {
-    // SHAKE256の256ビット出力として実装
-    // または外部ライブラリ使用
+// SHAKE256 (domain byte 0x1F, XOF)
+library SHAKE256 {
+    function hash256(bytes memory data) internal pure returns (bytes32);
+    function hash(bytes memory data, uint256 outputLen) internal pure returns (bytes memory);
 }
 ```
 
-**オプションB**: OpenZeppelin等の既存SHA3ライブラリ使用
-
-**オプションC**: SHAKE256をプリコンパイルとして扱い、L2/L3で対応
-
 ---
 
-### パラメータ変更なし確認
+### パラメータ変更なし確認 ✅
 
 | パラメータ | SHA2-128s | SHAKE-128s | 変更 |
 |-----------|-----------|------------|------|
@@ -70,7 +85,7 @@ function sha3_256(bytes memory data) internal pure returns (bytes32) {
 
 ---
 
-## Core Principles準拠確認
+## Core Principles準拠確認 ✅
 
 | 原則 | 確認結果 |
 |------|---------|
@@ -82,55 +97,33 @@ function sha3_256(bytes memory data) internal pure returns (bytes32) {
 
 ---
 
-## 実装順序（推奨）
+## 成果物（完了）
 
-### Step 1: SHA3/SHAKE256ライブラリ準備
-1. Solidity用SHA3-256ライブラリ調査・選定
-2. SHAKE256実装またはライブラリ導入
-3. 単体テスト作成
-
-### Step 2: SPHINCSVerifier.sol改修
-1. ハッシュ関数呼び出しを全てSHAKE256に置換
-2. `computePublicKeyHash()`をSHA3-256に変更
-3. コメント・ドキュメント更新（SHA2→SHAKE）
-
-### Step 3: テスト更新
-1. 既存テストのハッシュ期待値更新
-2. SPHINCS+-SHAKE-128s用KATベクター取得
-3. 全テスト実行・PASS確認
-
-### Step 4: Lean4形式検証
-1. SHAKE256ベースでLean4証明作成
-2. Solidity↔Lean4整合性検証
+| ファイル | 説明 | 状態 |
+|---------|------|------|
+| `contracts/src/libraries/SHAKE256.sol` | **SHA3-256/SHAKE256ライブラリ（新規）** | ✅ |
+| `contracts/src/SPHINCSVerifier.sol` | **SHAKE-128s版に改修** | ✅ |
+| `contracts/test/SHAKE256.t.sol` | **SHAKE256テスト（新規）** | ✅ |
+| `contracts/test/SPHINCSVerifierSHAKE.t.sol` | **SPHINCS+ SHAKEテスト（新規）** | ✅ |
+| `contracts/test/SPHINCSVerifier.t.sol` | **既存テスト更新** | ✅ |
+| `proofs/lean4/SPHINCS_SHAKE.lean` | **SHAKE版Lean4形式証明** | 🔄 予定 |
+| `test-vectors/PQCsignKAT_SPHINCS_SHAKE.rsp` | **SHAKE版KATベクター** | 🔄 予定 |
 
 ---
 
-## リスク評価
+## Resolution Log
 
-| リスク | 重要度 | 対策 |
-|--------|--------|------|
-| SHAKE256 Solidity実装の複雑性 | 🔴 HIGH | 既存ライブラリ調査、必要に応じYul実装 |
-| Gas cost増加の可能性 | 🟡 MEDIUM | ベンチマーク実施、最適化 |
-| KATベクター入手 | 🟢 LOW | NIST公式サイトから取得可能 |
-
----
-
-## 成果物（更新）
-
-| ファイル | 説明 |
-|---------|------|
-| `contracts/src/libraries/SHA3.sol` | **SHA3-256/SHAKE256ライブラリ（新規）** |
-| `contracts/src/SPHINCSVerifier.sol` | **SHAKE-128s版に改修** |
-| `proofs/lean4/SPHINCS_SHAKE.lean` | **SHAKE版Lean4形式証明** |
-| `test-vectors/PQCsignKAT_SPHINCS_SHAKE.rsp` | **SHAKE版KATベクター** |
+| ISSUE | 対応者 | 日時 | コミット |
+|-------|-------|------|---------|
+| ISSUE-001 | Engineer | 2025-12-25 11:41 | 310e9db |
+| ISSUE-002 | Engineer | 2025-12-25 11:40 | feb8f8c, 310e9db |
 
 ---
 
 ## 次のアクション
 
-✅ **実装に進む**: `03_impl.md`を実行
-- Step 1からSHA3/SHAKE256ライブラリ準備を開始
-- SPHINCSVerifier.sol改修を実施
+✅ **実装完了**: SHAKE移行
+🔄 **形式検証に進む**: SPHINCS+ Lean4形式証明作成
 
 ---
 
