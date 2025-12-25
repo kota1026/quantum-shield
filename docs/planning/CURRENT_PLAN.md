@@ -1,72 +1,61 @@
 # Current Plan
 
-> **Generated**: 2025-12-25 22:30 JST
-> **Phase**: 2 - Security Council + Token
-> **Day**: 1 (Phase 2 開始)
+> **Generated**: 2025-12-25 23:55 JST  
+> **Phase**: 2 - Security Council + Token  
+> **Day**: 1 (Phase 2 開始)  
+> **Week**: 1
 
 ---
 
 ## 対象チェックリスト
 
-⚠️ **Active Checklist未作成** - Phase 2 Active Checklistは2025-12-27までにCTOが作成予定
+⚠️ **Phase 2 Active Checklist未作成**
 
-暫定参照: `docs/planning/CURRENT_STATE.md` - Phase 2 初期タスクセクション
+Week 1タスク #1でActive Checklist作成予定。現在は以下を参照：
+- `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` (Phase 2.1 Foundation)
+- `docs/planning/COMPILER_WARNINGS_LOG.md`
 
 ---
 
-## 前回レビュー課題（Phase 1完了時点）
+## 前回レビュー課題（Phase 1→Phase 2移行）
 
-> Phase 1 Go/No-Go: 🟢 **GO** (2025-12-26)
-> - 全PIRレビュー: ✅ 11/11 PASS
-> - テストスイート: ✅ 423/423 PASS (100%)
-> - 総合スコア: 94.0/100
+> CURRENT_STATE.mdより取得
 
 | # | 重要度 | 課題 | 対策 |
 |---|--------|------|------|
-| - | ✅ | Phase 1全課題解決済み | - |
-
----
-
-## Phase 2 ブロッカー/懸念事項
-
-| # | 重要度 | 懸念 | 対策 |
-|---|--------|------|------|
-| 1 | 🟠 HIGH | ZK-STARK実装の複雑性 | 段階的実装計画策定（今回のスコープ） |
-| 2 | 🟡 MEDIUM | 外部監査のスケジュール | RFP準備中（CSO担当） |
-| 3 | 🟢 LOW | Compiler Warnings | Phase 2で対応予定 |
+| 1 | 🔴 HIGH | FRIVerifier.sol L191 `keccak256`使用（CP-1違反リスク） | SHA3-256への移行 |
+| 2 | 🟡 MEDIUM | 外部監査スケジュール未確定 | RFP準備開始 |
+| 3 | 🟢 LOW | Compiler Warnings未解決 | 棚卸し・対応計画策定 |
 
 ---
 
 ## 今回のスコープ
 
-### 準備項目（Phase 2立ち上げ）
+### 修正項目（レビュー課題より）
 
-- [ ] [PREP-P2-01] 現行コードベース状態確認
-  - テスト全PASS確認 (423 tests)
-  - コンパイルwarnings棚卸し
-  
-- [ ] [PREP-P2-02] ZK-STARK実装調査・計画詳細化
-  - 既存STARK PoC (`src/stark/`) 分析
-  - Gas削減目標達成のための実装戦略
-  - 依存ライブラリ選定
+- [ ] [FIX-001] **FRIVerifier.sol keccak256→SHA3-256移行** 🔴 HIGH
+  - Line 191付近: `keccak256` → `SHA3_256.hash`
+  - SHA3_256.solライブラリimport追加
+  - 関連テスト更新
 
 ### 実装項目
 
-- [ ] [IMPL-P2-01] Compiler Warnings対応
-  - 未使用変数の整理
-  - 型安全性改善
+- [ ] [IMPL-001] Phase 2 Active Checklist作成（CTO担当、期限: 2025-12-27）
+- [ ] [IMPL-002] forge build警告ログ取得・記録
+- [ ] [IMPL-003] FRIVerifier.sol SHA3-256対応コード実装
 
 ### テスト項目
 
-- [ ] [TEST-P2-01] 既存テスト全PASS確認 (423/423)
-- [ ] [TEST-P2-02] Gas消費ベースライン取得
+- [ ] [TEST-001] FRIVerifier SHA3-256移行後のテスト
+  - 既存FRIテストがPASSすることを確認
+  - Gas consumption測定
 
 ### 参照ドキュメント
 
-- Phase 1完了レポート: `docs/aegis/pir/GONOGO_PHASE1_COMPLETE.md`
-- Phase 2目標: `docs/planning/CURRENT_STATE.md` - Phase 2セクション
-- STARK PoC: `src/stark/` ディレクトリ
-- 開発計画: `docs/planning/DEVELOPMENT_PLAN_v1.0.md`
+- Sequence: `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md`
+- ZK-STARK計画: `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md`
+- 警告ログ: `docs/planning/COMPILER_WARNINGS_LOG.md`
+- 憲法: `docs/constitution/CORE_PRINCIPLES.md`
 
 ---
 
@@ -74,52 +63,44 @@
 
 | ファイル | 説明 |
 |---------|------|
-| `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` | ZK-STARK実装計画書（新規作成） |
-| `docs/planning/COMPILER_WARNINGS_LOG.md` | Warnings棚卸しログ |
-| `docs/planning/GAS_BASELINE_P2.md` | Phase 2開始時点Gasベースライン |
+| `contracts/src/FRIVerifier.sol` | SHA3-256対応版 |
+| `test/FRIVerifierSHA3Test.t.sol` | SHA3移行検証テスト（必要に応じて） |
+| `docs/planning/COMPILER_WARNINGS_LOG.md` | 更新（forge buildログ追記） |
+| `docs/planning/PHASE2_ACTIVE_CHECKLIST.md` | 新規作成（CTO） |
 
 ---
 
 ## 実行順序
 
-### Step 1: 環境確認 (15分)
+### Step 1: 準備（本ステップ）
+1. ✅ CORE_PRINCIPLES.md 読み込み
+2. ✅ CURRENT_STATE.md 読み込み
+3. ✅ ZK_STARK_IMPLEMENTATION_PLAN.md 読み込み
+4. ✅ COMPILER_WARNINGS_LOG.md 読み込み
+5. ✅ CURRENT_PLAN.md 作成（このドキュメント）
 
-```bash
-cd contracts
-forge build 2>&1 | tee build.log  # Warnings確認
-forge test --summary  # 423 tests PASS確認
-```
+### Step 2: 仕様作成（02_spec.md）
+1. FRIVerifier SHA3-256移行の技術仕様書作成
+2. 変更箇所の特定
+3. テスト計画策定
 
-### Step 2: 既存STARK PoC分析 (1時間)
+### Step 3: 実装（03_impl.md）
+1. FRIVerifier.sol修正
+   - `import {SHA3_256} from "./libraries/SHA3_256.sol";` 追加
+   - L191: `keccak256` → `SHA3_256.hash` 置換
+2. forge build実行・警告ログ取得
+3. テスト実行（423テスト ALL PASS確認）
 
-1. `src/stark/` ディレクトリ構造確認
-2. 既存STARK検証ロジック分析
-3. Phase 2での拡張ポイント特定
-
-### Step 3: ZK-STARK実装計画策定 (2時間)
-
-1. Gas削減目標（87.5%）達成のための戦略
-2. 段階的実装マイルストーン設計
-3. 依存関係・リスク分析
-4. `ZK_STARK_IMPLEMENTATION_PLAN.md` 作成
-
-### Step 4: Compiler Warnings対応 (1時間)
-
-1. Warnings一覧作成
-2. 優先度付け
-3. 修正実施（Low risk items）
-
-### Step 5: ベースライン取得 (30分)
-
-1. 主要関数のGas消費測定
-2. Phase 2目標との差分分析
-3. `GAS_BASELINE_P2.md` 作成
+### Step 4: レビュー（04_review.md）
+1. PIRコードレビュー実施
+2. CP-1準拠確認
+3. CURRENT_STATE.md更新
 
 ---
 
 ## Core Principles確認
 
-- [x] CP-1: 完全量子耐性 - 違反なし（ZK-STARKも量子耐性）
+- [x] CP-1: 完全量子耐性 - **FIX-001で対応必須**（keccak256→SHA3-256）
 - [x] CP-2: Self-Custody - 違反なし
 - [x] CP-3: Time Lock存在 - 違反なし
 - [x] CP-4: Slashing存在 - 違反なし
@@ -129,44 +110,35 @@ forge test --summary  # 423 tests PASS確認
 
 ## リスク・懸念事項
 
-| # | 懸念 | 重要度 | 対策 |
-|---|------|--------|------|
-| 1 | ZK-STARK Gas目標（87.5%削減）の実現可能性 | 🟠 HIGH | PoC分析で実現性評価 |
-| 2 | Phase 2 Active Checklist未作成 | 🟡 MEDIUM | CTO作成待ち（12/27期限） |
-| 3 | 外部ライブラリ依存性 | 🟢 LOW | 調査段階で評価 |
+| # | リスク | 影響 | 対策 |
+|---|--------|------|------|
+| 1 | SHA3-256移行によるGas増加 | MEDIUM | ベースライン比較で許容範囲か確認 |
+| 2 | FRI検証ロジックへの影響 | LOW | 既存テストで検証 |
+| 3 | Active Checklist未作成 | MEDIUM | 本プラン完了後にCTOがタスク#1実施 |
 
 ---
 
-## Phase 2 Week 1 タスク一覧（参考）
+## 承認状況
 
-| # | タスク | 担当 | 期限 | Status |
-|---|--------|------|------|--------|
-| 1 | Phase 2 Active Checklist作成 | CTO | 2025-12-27 | ⬜ |
-| 2 | ZK-STARK実装計画詳細化 | **Engineer** + Cryptographer | 2025-12-30 | 🔄 **今回対応** |
-| 3 | 外部監査RFP準備 | CSO | 2025-12-30 | ⬜ |
-| 4 | テストネット環境構築 | DevOps | 2025-12-31 | ⬜ |
-
----
-
-## 次のステップ
-
-Plan完了後、以下の順序で実行：
-
-1. **02_spec.md** → ZK-STARK仕様詳細確認
-2. **03_impl.md** → 計画書作成・初期実装
-3. **04_review.md** → CTO/Cryptographerレビュー
+| 承認者 | 項目 | 状態 |
+|--------|------|------|
+| CTO | ZK-STARK実装計画 | ⬜ Pending |
+| Cryptographer | 暗号学的正確性 | ⬜ Pending |
+| CSO | セキュリティ方針 | ⬜ Pending |
 
 ---
 
-## Phase 2 目標（Month 7-12）
+## 次のアクション
 
-| # | 項目 | 目標 | 期限 |
-|---|------|------|------|
-| 1 | ZK-STARK証明実装 | Gas 87.5%削減 | Month 9 |
-| 2 | 外部セキュリティ監査 | Critical/High 0件 | Month 10 |
-| 3 | テストネットデプロイ | Sepolia | Month 8 |
-| 4 | Security Council構築 | 5/9 Multisig | Month 11 |
-| 5 | Token設計 | veQS準備 | Month 12 |
+**Immediate (この計画完了後)**:
+1. → `02_spec.md` 実行でFRIVerifier修正仕様書作成
+2. → FRIVerifier.sol keccak256箇所の特定・修正計画
+
+**Week 1 Goals**:
+- [ ] FRIVerifier SHA3-256移行完了
+- [ ] Compiler Warnings全件ログ取得
+- [ ] Phase 2 Active Checklist作成（CTO）
+- [ ] 外部監査RFP準備開始（CSO）
 
 ---
 
