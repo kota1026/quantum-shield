@@ -1,87 +1,136 @@
 # 仕様レビュー結果
 
 ## 日時
-2025-12-25 15:30 JST
+2025-12-25 11:35 JST（第2回レビュー）
 
 ## 対象
-Day 13: SPHINCS+ Lean4形式検証 + 外部レビュー準備
+Day 13: SPHINCS+ SHAKE移行 + Lean4形式検証 + 外部レビュー準備
 
 ## ステータス
-⚠️ 指摘事項あり - **CEO判断後**に実装へ進むこと
+✅ 仕様確認完了 - **CEO判断済み** - 実装に進んでください
 
 ---
 
-## 指摘事項
+## CEO判断（2025-12-25）
 
-### [ISSUE-001] keccak256使用箇所の残存
-- **リスクレベル**: MEDIUM
-- **該当原則**: CP-1（完全量子耐性）
-- **ファイル**: `contracts/src/SPHINCSVerifier.sol` Line 303
-- **問題**: 
-  ```solidity
-  function computePublicKeyHash(bytes calldata publicKey) 
-      external 
-      pure 
-      returns (bytes32) 
-  {
-      if (publicKey.length != PUBLIC_KEY_SIZE) revert InvalidPublicKeyLength();
-      return keccak256(publicKey);  // ← CP-1違反
-  }
-  ```
-  Core Principles禁止事項: `keccak256（SHA3-256を使用すること）`
-- **対策**: `keccak256` → `sha256(abi.encodePacked(bytes1(0x07), publicKey))` または Solidity SHA3ライブラリ使用
-- [ ] 対応済み
+| 項目 | 判断 | 対応 |
+|------|------|------|
+| ISSUE-002 | **厳格解釈採用** | SPHINCS+-SHAKE-128sへ移行 |
+| ISSUE-001 | **対応する** | keccak256→SHA3-256変更 |
 
 ---
 
-### [ISSUE-002] SPHINCS+-SHA2-128s採用の整合性確認（CEO判断要）
-- **リスクレベル**: LOW（情報確認）
-- **該当原則**: CP-1（完全量子耐性）
-- **問題**: 
-  Core Principlesには「SHA-256 / SHA-2ファミリー（Grover攻撃リスク）」が禁止事項として記載。
-  現行実装`SPHINCS+-SHA2-128s`はNIST FIPS 205準拠の量子耐性アルゴリズムだが、内部的にSHA-256を使用。
-  
-  **解釈オプション**:
-  1. **許容解釈**: FIPS 205準拠SPHINCS+内部でのSHA-256使用は、アルゴリズム全体として量子耐性が保証されているため許容
-  2. **厳格解釈**: SPHINCS+-SHAKE-128s（SHA3/SHAKE256ベース）への移行が必要
+## 変更スコープ（Day 13 拡張）
 
-- **推奨**: FIPS 205準拠であり量子耐性は確保されているため、許容解釈を採用しDay 13実装を継続
+### 🔴 最優先: SPHINCS+-SHAKE-128s移行
 
-- [ ] CEO判断済み
+#### SPHINCSVerifier.sol 全面改修
+
+| 変更箇所 | 現行 | 変更後 | 行番号(目安) |
+|---------|------|--------|-------------|
+| `_computeDigest()` | `sha256()` | SHAKE256 | ~197 |
+| `_computeFORSTreeRoot()` | `sha256()` | SHAKE256 | ~242, 257, 265 |
+| `_hashFORSRoots()` | `sha256()` | SHAKE256 | ~281 |
+| `_computeWOTSChain()` | `sha256()` | SHAKE256 | ~338 |
+| `_compressWOTSPublicKey()` | `sha256()` | SHAKE256 | ~351 |
+| `_climbMerkleTree()` | `sha256()` | SHAKE256 | ~368 |
+| `computePublicKeyHash()` | `keccak256()` | SHA3-256 | ~303 |
+| コントラクト名/コメント | SHA2-128s | SHAKE-128s | 全体 |
+
+#### SHAKE256実装方法
+
+**オプションA（推奨）**: Solidityプリコンパイル不在のため、Yul/アセンブリでSHA3 opcode活用
+```solidity
+// SHA3-256 (keccak256と異なるパディング)
+function sha3_256(bytes memory data) internal pure returns (bytes32) {
+    // SHAKE256の256ビット出力として実装
+    // または外部ライブラリ使用
+}
+```
+
+**オプションB**: OpenZeppelin等の既存SHA3ライブラリ使用
+
+**オプションC**: SHAKE256をプリコンパイルとして扱い、L2/L3で対応
 
 ---
 
-## Lean4形式検証への影響
+### パラメータ変更なし確認
 
-| 影響 | 詳細 |
-|------|------|
-| ISSUE-001 | 形式検証対象外（ユーティリティ関数）→ 検証作業に影響なし |
-| ISSUE-002 | CEO判断でSHA2版継続の場合 → 現行コードで形式検証可能 |
-
-**結論**: ISSUE-001は軽微な修正で対応可能。ISSUE-002はCEO判断待ち。
+| パラメータ | SHA2-128s | SHAKE-128s | 変更 |
+|-----------|-----------|------------|------|
+| N | 16 | 16 | なし |
+| W | 16 | 16 | なし |
+| WOTS_LEN | 35 | 35 | なし |
+| FORS_TREES | 14 | 14 | なし |
+| FORS_HEIGHT | 12 | 12 | なし |
+| SUBTREE_HEIGHT | 9 | 9 | なし |
+| D | 7 | 7 | なし |
+| SIGNATURE_SIZE | 7856 | 7856 | なし |
+| PUBLIC_KEY_SIZE | 32 | 32 | なし |
 
 ---
 
-## 実装時の注意事項
+## Core Principles準拠確認
 
-1. **SPHINCS+ Lean4証明作成時**
-   - 現行Solidity実装（SHA-256ベース）と整合性を取ること
-   - FIPS 205 SPHINCS+-SHA2-128sのパラメータを使用
+| 原則 | 確認結果 |
+|------|---------|
+| CP-1: 完全量子耐性 | ✅ SHAKE256採用でSHA-256禁止を遵守 |
+| CP-2: Self-Custody | ✅ 変更なし |
+| CP-3: Time Lock存在 | ✅ 変更なし |
+| CP-4: Slashing存在 | ✅ 変更なし |
+| CP-5: 透明性 | ✅ 変更なし |
 
-2. **ISSUE-001修正時**
-   - `computePublicKeyHash`のみ修正
-   - 署名検証ロジック（sha256使用）は変更不要
+---
 
-3. **NIST KATテスト**
-   - SPHINCS+-SHA2-128s用のKATベクターを使用
+## 実装順序（推奨）
+
+### Step 1: SHA3/SHAKE256ライブラリ準備
+1. Solidity用SHA3-256ライブラリ調査・選定
+2. SHAKE256実装またはライブラリ導入
+3. 単体テスト作成
+
+### Step 2: SPHINCSVerifier.sol改修
+1. ハッシュ関数呼び出しを全てSHAKE256に置換
+2. `computePublicKeyHash()`をSHA3-256に変更
+3. コメント・ドキュメント更新（SHA2→SHAKE）
+
+### Step 3: テスト更新
+1. 既存テストのハッシュ期待値更新
+2. SPHINCS+-SHAKE-128s用KATベクター取得
+3. 全テスト実行・PASS確認
+
+### Step 4: Lean4形式検証
+1. SHAKE256ベースでLean4証明作成
+2. Solidity↔Lean4整合性検証
+
+---
+
+## リスク評価
+
+| リスク | 重要度 | 対策 |
+|--------|--------|------|
+| SHAKE256 Solidity実装の複雑性 | 🔴 HIGH | 既存ライブラリ調査、必要に応じYul実装 |
+| Gas cost増加の可能性 | 🟡 MEDIUM | ベンチマーク実施、最適化 |
+| KATベクター入手 | 🟢 LOW | NIST公式サイトから取得可能 |
+
+---
+
+## 成果物（更新）
+
+| ファイル | 説明 |
+|---------|------|
+| `contracts/src/libraries/SHA3.sol` | **SHA3-256/SHAKE256ライブラリ（新規）** |
+| `contracts/src/SPHINCSVerifier.sol` | **SHAKE-128s版に改修** |
+| `proofs/lean4/SPHINCS_SHAKE.lean` | **SHAKE版Lean4形式証明** |
+| `test-vectors/PQCsignKAT_SPHINCS_SHAKE.rsp` | **SHAKE版KATベクター** |
 
 ---
 
 ## 次のアクション
 
-1. **CEO判断待ち**: ISSUE-002について許容解釈でよいか確認
-2. **許容判断の場合**: 03_impl.mdへ進行、ISSUE-001は実装フェーズで対応
-3. **厳格判断の場合**: SPHINCS+-SHAKE-128sへの移行計画を策定
+✅ **実装に進む**: `03_impl.md`を実行
+- Step 1からSHA3/SHAKE256ライブラリ準備を開始
+- SPHINCSVerifier.sol改修を実施
 
 ---
 
