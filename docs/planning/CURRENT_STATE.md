@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-25 23:30 JST  
+> **Last Updated**: 2025-12-26 00:15 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,7 +13,7 @@
 │  Month: 7 / 24                                              │
 │  Week: 4                                                    │
 │  Next Milestone: MS-1 ZK-STARK実装                          │
-│  Status: ✅ PIR-P2-005 PASS - PIR会議待ち                   │
+│  Status: ⚠️ Slither解析完了 - HIGH課題あり                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -49,6 +49,55 @@
 ### 備考
 
 （なし）
+
+---
+
+## 🔬 Slither静的解析結果
+
+> **実行日時**: 2025-12-25 23:45 JST  
+> **総検出数**: 95件  
+> **分析対象**: 21 contracts
+
+### 🔴 HIGH (即時対応必須)
+
+| # | 種別 | 対象ファイル | 詳細 | 対策 |
+|---|------|-------------|------|------|
+| SL-001 | **Reentrancy** | L1Vault.sol | `autoResolveChallenge()` - 外部call後に状態変数更新 | CEIパターン適用 |
+| SL-002 | **Reentrancy** | L1Vault.sol | `resolveChallenge()` - insuranceFund/unlockRequests更新順序 | CEIパターン適用 |
+| SL-003 | **Reentrancy** | L1Vault.sol | `_resolveValidChallenge()` - totalLocked更新順序 | CEIパターン適用 |
+| SL-004 | **Reentrancy** | L1Vault.sol | `_resolveInvalidChallenge()` - insuranceFund/totalBurned更新 | CEIパターン適用 |
+| SL-005 | **Arbitrary Send** | QuantumShield.sol | `releaseWithProof()` - sends ETH to arbitrary user | 入力検証強化（設計意図通り） |
+
+### 🟠 MEDIUM (次回Plan対応)
+
+| # | 種別 | 対象ファイル | 詳細 | 対策 |
+|---|------|-------------|------|------|
+| SL-006 | Missing Events | L1Vault.sol | `transferOwnership()`, `updateSecurityCouncil()` | イベント追加 |
+| SL-007 | Missing Events | QuantumShield.sol | `transferOwnership()` | イベント追加 |
+| SL-008 | Missing Events | VRFConsumer.sol | `transferOwnership()` | イベント追加 |
+| SL-009 | Zero-Check | QuantumShield.sol | `setVerifier()` | require追加 |
+| SL-010 | Zero-Check | VRFConsumer.sol | constructor, `setVRFConfig()` | require追加 |
+| SL-011 | Unused Return | VRFConsumer.sol | `_selectProver()` | 戻り値処理 |
+
+### 🟡 LOW / INFO (許容可能)
+
+| 種別 | 件数 | 判定 | 理由 |
+|------|------|------|------|
+| Divide before multiply | 2 | ✅ 許容 | Keccak ρステップで意図的 |
+| Uninitialized local vars | 13 | ✅ 許容 | ゼロ初期化が正しい動作 |
+| Timestamp comparisons | 10 | ✅ 許容 | Time Lock機能に必要 |
+| Assembly usage | 14 | ✅ 許容 | 最適化のため |
+| Low level calls | 5 | ✅ 許容 | ETH送金に必要 |
+| Naming conventions | 9 | ⚠️ 軽微 | スタイルのみ |
+| Too many digits | 7 | ✅ 許容 | 暗号定数 |
+| Unused state vars | 2 | ⚠️ 軽微 | 将来使用予定 |
+| Cache array length | 6 | ⚠️ 軽微 | Gas最適化推奨 |
+| Cyclomatic complexity | 2 | ⚠️ 軽微 | リファクタ検討 |
+| Solidity version | 20 | ⚠️ 注意 | 0.8.20既知問題 |
+
+### 詳細レポート
+
+`docs/aegis/security/SLITHER_REPORT_2025-12-25.md`
 
 ---
 
@@ -114,13 +163,15 @@
 | 7 | **TEST-005 テストケース作成** | QA | 2025-12-25 | ✅ **完了** |
 | 8 | **テスト実行 36/36 PASS** | QA | 2025-12-25 | ✅ **ALL PASS** |
 | 9 | **セキュリティレビュー PIR-P2-005** | Red Team | 2025-12-25 | ✅ **PASS** |
+| 10 | **Slither静的解析実行** | Red Team | 2025-12-25 | ⚠️ **課題発見** |
 
 ### In Progress 🔄
 
 | # | タスク | 担当 | 期限 | Status |
 |---|--------|------|------|--------|
-| 1 | PIR-P2-005 PIR会議 (05_pir.md) | Team | 2025-12-26 | 🔄 READY |
-| 2 | テストネット環境構築 (INFRA-001) | DevOps | 2025-12-31 | ⬜ |
+| 1 | **Slither HIGH課題修正 (SEC-001)** | Engineer | 2025-12-27 | 🔴 **URGENT** |
+| 2 | PIR-P2-005 PIR会議 (05_pir.md) | Team | 2025-12-26 | 🔄 READY |
+| 3 | テストネット環境構築 (INFRA-001) | DevOps | 2025-12-31 | ⬜ |
 
 ---
 
@@ -184,17 +235,59 @@ TEST-005 追加テスト:
 | PIR-P2-003 | Week 2 SHA3Hasher + ProofCodec | ✅ **PASS** | 2025-12-25 |
 | PIR-P2-004 | Week 3 STARKVerifier v0.1 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
 | PIR-P2-005 | Week 4 IMPL-005 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
+| SEC-001 | Slither静的解析 | ⚠️ **CONDITIONAL** | 2025-12-25 |
 
 ---
 
 ## 🚧 ブロッカー / 懸念事項
 
-| # | 懸念 | 重要度 | 対応 |
-|---|------|--------|------|
-| 1 | ZK-STARK実装の複雑性 | HIGH | ✅ v0.2完了、段階的実装継続 |
-| 2 | 外部監査のスケジュール | MEDIUM | ✅ RFP草案作成完了 |
-| 3 | テストネット環境構築 | MEDIUM | 🔄 INFRA-001 進行予定 |
-| 4 | SHA3-256 Gas消費 | LOW | ✅ 期待通り（~1M gas/hash） |
+| # | 懸念 | 重要度 | 対応予定 |
+|---|------|--------|----------|
+| 1 | **L1Vault リエントランシー脆弱性 (SL-001〜004)** | 🔴 Critical | 次回Plan (SEC-001) |
+| 2 | **Missing Events / Zero-Check (SL-006〜011)** | 🟠 High | 次回Plan (SEC-002) |
+| 3 | ZK-STARK実装の複雑性 | HIGH | ✅ v0.2完了、段階的実装継続 |
+| 4 | 外部監査のスケジュール | MEDIUM | ✅ RFP草案作成完了 |
+| 5 | テストネット環境構築 | MEDIUM | 🔄 INFRA-001 進行予定 |
+| 6 | SHA3-256 Gas消費 | LOW | ✅ 期待通り（~1M gas/hash） |
+
+---
+
+## 🔜 次のアクション
+
+### 修正必須（Slitherレビューより）
+
+#### SEC-001: L1Vault リエントランシー修正 [🔴 Critical]
+
+**影響範囲**: L1Vault.sol 4関数
+
+| 関数 | 問題 | 修正方針 |
+|------|------|----------|
+| `autoResolveChallenge()` | 外部call後に `request.bond = 0` | 状態更新を先に実行 |
+| `resolveChallenge()` | 外部call後に `insuranceFund += request.bond` | CEIパターン適用 |
+| `_resolveValidChallenge()` | 外部call後に `totalLocked -= lockData.amount` | CEIパターン適用 |
+| `_resolveInvalidChallenge()` | 外部call後に `insuranceFund`, `totalBurned` 更新 | CEIパターン適用 |
+
+**修正パターン（Checks-Effects-Interactions）**:
+```solidity
+// ❌ 現状（脆弱）
+(success,) = challenger.call{value: amount}();
+request.bond = 0;  // 外部call後に更新 = リエントランシー可能
+
+// ✅ 修正後
+request.bond = 0;  // 先に状態更新
+(success,) = challenger.call{value: amount}();
+```
+
+#### SEC-002: Missing Events / Zero-Check [🟠 High]
+
+**影響範囲**: 
+- L1Vault.sol: `transferOwnership()`, `updateSecurityCouncil()`
+- QuantumShield.sol: `transferOwnership()`, `setVerifier()`
+- VRFConsumer.sol: `transferOwnership()`, constructor, `setVRFConfig()`
+
+**修正内容**:
+1. `OwnershipTransferred` イベント追加・発行
+2. `require(address != address(0))` ゼロアドレスチェック追加
 
 ---
 
@@ -215,7 +308,9 @@ TEST-005 追加テスト:
 | ~~IMPL-005 トレースCommitment検証~~ | ~~Week 4~~ | ✅ **COMPLETE** |
 | ~~テスト実行・36/36 PASS~~ | ~~Week 4~~ | ✅ **COMPLETE** |
 | ~~PIR-P2-005 セキュリティレビュー~~ | ~~Week 4~~ | ✅ **COMPLETE (PASS)** |
-| **PIR-P2-005 PIR会議 (05_pir.md)** | Week 4 | 🔄 **READY** |
+| ~~Slither静的解析~~ | ~~Week 4~~ | ⚠️ **CONDITIONAL** |
+| **SEC-001 リエントランシー修正** | Week 5 | 🔴 **URGENT** |
+| **SEC-002 Events/ZeroCheck修正** | Week 5 | 🟠 **PLANNED** |
 | MS-1: ZK-STARK実装 | Month 9 | ⬜ |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
@@ -228,6 +323,7 @@ TEST-005 追加テスト:
 |------|------|------|------|
 | ZK-STARK証明 | Gas 87.5%削減 | STARKVerifier v0.2 IMPL-005完了 | 🔄 |
 | 外部監査 | Critical/High 0件 | RFP作成完了 | 🔄 |
+| Slither | HIGH 0件 | 🔴 5件発見 | ❌ |
 | テストネット | 安定稼働 | - | ⬜ |
 | Security Council | 5/9構築 | - | ⬜ |
 | Token設計 | veQS完了 | - | ⬜ |
@@ -244,6 +340,7 @@ TEST-005 追加テスト:
 | PIR-011レポート | `docs/aegis/pir/PIR-011_FINAL_VERIFICATION.md` |
 | **PIR-P2-003レポート** | `docs/aegis/pir/PIR-P2-003_WEEK2_REVIEW.md` |
 | **PIR-P2-005レポート** | `docs/aegis/pir/PIR-P2-005_IMPL005_REVIEW.md` |
+| **Slitherレポート** | `docs/aegis/security/SLITHER_REPORT_2025-12-25.md` |
 | Gasベンチマーク (Phase 1) | `docs/planning/archive/GAS_BENCHMARK_2025-12-26.md` |
 | **ZK-STARK実装計画** | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
 | **Gasベースライン (Phase 2)** | `docs/planning/GAS_BASELINE_P2.md` |
@@ -256,9 +353,9 @@ TEST-005 追加テスト:
 
 **Phase 1 Foundation Bootstrap: ✅ COMPLETE 🎉**
 
-**Phase 2 Week 4: ✅ PIR-P2-005 セキュリティレビュー PASS**
+**Phase 2 Week 4: ⚠️ Slither解析完了 - HIGH課題5件発見**
 
-**Next: ⑤ PIR会議 (05_pir.md)**
+**Next: 01_plan.md → SEC-001 リエントランシー修正計画**
 
 ---
 
