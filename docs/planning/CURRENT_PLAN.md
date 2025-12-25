@@ -1,11 +1,8 @@
 # Current Plan
 
-> **Generated**: 2025-12-25 23:00 JST  
+> **Generated**: 2025-12-25 (JST)  
 > **Phase**: 2 - Security Council + Token  
-> **Month**: 7 / 24  
-> **Week**: 4 (準備)
-
----
+> **Week**: 5 (Month 7)
 
 ## 対象チェックリスト
 
@@ -13,71 +10,59 @@
 
 ---
 
-## 前回レビュー課題
+## 前回レビュー課題（Slither静的解析より）
 
-> CURRENT_STATE.mdより自動取得
+> CURRENT_STATE.md より自動取得 (2025-12-25)
 
 | # | 重要度 | 課題 | 対策 |
 |---|--------|------|------|
-| - | ✅ | 全課題解決済み | - |
-
-**注記**: PIR-P2-004 (Week 3 STARKVerifier v0.1 セキュリティレビュー) は **PASS** 済み。PIR会議実施待ち。
+| 1 | 🔴 Critical | L1Vault リエントランシー脆弱性 (SL-001〜004) | CEIパターン適用、状態更新を外部call前に移動 |
+| 2 | 🟠 High | Missing Events (SL-006〜008) | OwnershipTransferred等のイベント追加 |
+| 3 | 🟠 High | Zero-Check (SL-009〜010) | require(address != address(0)) 追加 |
+| 4 | 🟠 High | Unused Return (SL-011) | 戻り値の適切な処理 |
 
 ---
 
 ## 今回のスコープ
 
-### 優先順位
+### 修正項目（レビュー課題より）
 
-```
-1. 🟢 進行中タスクの継続（IMPL-005, INFRA-001）
-2. 🟢 Phase 2.2 準備作業
-3. 🟢 PIR-P2-004 PIR会議（05_pir.md で実行）
-```
+#### SEC-001: L1Vault リエントランシー修正 [🔴 Critical]
 
-### 実装項目
+- [ ] [FIX-001] `autoResolveChallenge()` - CEIパターン適用
+- [ ] [FIX-002] `resolveChallenge()` - CEIパターン適用
+- [ ] [FIX-003] `_resolveValidChallenge()` - CEIパターン適用
+- [ ] [FIX-004] `_resolveInvalidChallenge()` - CEIパターン適用
 
-- [ ] [IMPL-005] トレースCommitment検証 - STARKVerifier拡張
-  - 状態: 🔄 IN PROGRESS
-  - 担当: Engineer
-  - 期限: 2025-12-31
-  - 内容: `verifyTraceCommitment()` 関数実装
-  
-- [ ] [IMPL-006] STARKVerifier v0.1 → v0.2 拡張準備
-  - 状態: ⬜ NOT STARTED
-  - 担当: Engineer
-  - 内容: 制約システム統合準備
+#### SEC-002: Events/ZeroCheck修正 [🟠 High]
 
-### インフラ項目
-
-- [ ] [INFRA-001] テストネット環境構築
-  - 状態: ⬜ NOT STARTED
-  - 担当: DevOps
-  - 期限: 2025-12-31
-  - 内容: Sepolia デプロイ準備
-  - 依存: 複数RPC プロバイダ確保
+- [ ] [FIX-005] L1Vault.sol - `OwnershipTransferred`イベント追加
+- [ ] [FIX-006] L1Vault.sol - `updateSecurityCouncil`イベント追加
+- [ ] [FIX-007] QuantumShield.sol - `OwnershipTransferred`イベント追加
+- [ ] [FIX-008] QuantumShield.sol - `setVerifier`ゼロアドレスチェック追加
+- [ ] [FIX-009] VRFConsumer.sol - `OwnershipTransferred`イベント追加
+- [ ] [FIX-010] VRFConsumer.sol - constructor/setVRFConfigゼロアドレスチェック追加
+- [ ] [FIX-011] VRFConsumer.sol - `_selectProver`戻り値処理
 
 ### テスト項目
 
-- [ ] [TEST-005] トレースCommitment検証テスト
-  - 状態: ⬜ NOT STARTED
-  - 担当: QA
-  - 内容: `verifyTraceCommitment()` 単体テスト
+- [ ] [TEST-SEC-001] リエントランシー攻撃テスト（攻撃が失敗することを確認）
+- [ ] [TEST-SEC-002] 既存テスト全PASS確認（regression test）
+- [ ] [TEST-SEC-003] イベント発行テスト
+- [ ] [TEST-SEC-004] ゼロアドレスrevert確認テスト
 
-- [ ] [TEST-006] テストネットデプロイテスト
-  - 状態: ⬜ NOT STARTED
-  - 担当: QA + DevOps
-  - 内容: Sepolia デプロイスクリプト検証
+---
 
-### 参照ドキュメント
+## 参照ドキュメント
 
-| 種類 | パス |
+| 種別 | パス |
 |------|------|
 | 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
-| Sequence | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
-| ZK-STARK実装計画 | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
-| Phase 2 Checklist | `docs/planning/PHASE2_CHECKLIST.md` |
-| Gasベースライン | `docs/planning/GAS_BASELINE_P2.md` |
+| Slitherレポート | `docs/aegis/security/SLITHER_REPORT_2025-12-25.md` |
+| CURRENT_STATE | `docs/planning/CURRENT_STATE.md` |
+| L1Vault実装 | `contracts/src/L1Vault.sol` |
+| QuantumShield実装 | `contracts/src/QuantumShield.sol` |
+| VRFConsumer実装 | `contracts/src/VRFConsumer.sol` |
 
 ---
 
@@ -85,51 +70,83 @@
 
 | ファイル | 説明 |
 |---------|------|
-| `contracts/src/STARKVerifier.sol` | トレースCommitment検証追加 (v0.2) |
-| `contracts/test/STARKVerifier.t.sol` | 新規テストケース追加 |
-| `scripts/deploy/` | テストネットデプロイスクリプト |
-| `docs/planning/TESTNET_SETUP.md` | テストネット構築ドキュメント |
+| `contracts/src/L1Vault.sol` | リエントランシー修正版 |
+| `contracts/src/QuantumShield.sol` | Events/ZeroCheck追加版 |
+| `contracts/src/VRFConsumer.sol` | Events/ZeroCheck追加版 |
+| `contracts/test/security/ReentrancyTest.t.sol` | リエントランシーテスト |
+| `docs/aegis/pir/PIR-SEC-001.md` | セキュリティレビュー記録 |
 
 ---
 
 ## 実行順序
 
-### Step 1: PIR会議実行 (05_pir.md)
-1. PIR-P2-004の正式PIR会議を実施
-2. Week 3成果物の最終承認を得る
+### Phase A: SEC-001 リエントランシー修正 [🔴 Critical]
 
-### Step 2: IMPL-005 トレースCommitment検証
-1. ZK-STARK実装計画 Section 3.3 を確認
-2. `STARKVerifier.sol` に `verifyTraceCommitment()` を追加
-3. Merkle proof検証ロジック実装 (SHA3-256使用必須)
-4. 単体テスト作成・実行
+1. **現状確認**: L1Vault.sol の該当4関数を詳細分析
+2. **修正設計**: 各関数のCEIパターン適用設計
+3. **実装**:
+   - `autoResolveChallenge()` - 状態更新を先に実行
+   - `resolveChallenge()` - insuranceFund更新を先に実行
+   - `_resolveValidChallenge()` - totalLocked更新を先に実行
+   - `_resolveInvalidChallenge()` - insuranceFund/totalBurned更新を先に実行
+4. **テスト作成**: リエントランシー攻撃テスト
+5. **テスト実行**: 全テストPASS確認
 
-### Step 3: INFRA-001 テストネット準備
-1. Sepolia RPCプロバイダ選定 (Alchemy/Infura)
-2. デプロイスクリプト作成
-3. テスト用ウォレット設定
-4. 環境変数テンプレート作成
+### Phase B: SEC-002 Events/ZeroCheck修正 [🟠 High]
 
-### Step 4: 統合確認
-1. 全テスト実行 (既存 + 新規)
-2. Gasベンチマーク更新
-3. ドキュメント更新
+6. **L1Vault.sol修正**:
+   - `event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);`
+   - `event SecurityCouncilUpdated(address indexed previousCouncil, address indexed newCouncil);`
+7. **QuantumShield.sol修正**:
+   - `OwnershipTransferred`イベント追加
+   - `setVerifier`にゼロアドレスチェック追加
+8. **VRFConsumer.sol修正**:
+   - `OwnershipTransferred`イベント追加
+   - constructor/setVRFConfigにゼロアドレスチェック追加
+   - `_selectProver`戻り値処理
+9. **テスト作成**: イベント・revertテスト追加
+10. **テスト実行**: 全テストPASS確認
 
-### Step 5: レビュー準備
-1. 04_review.md 用の成果物整理
-2. CURRENT_STATE.md 更新
+### Phase C: 検証 & レビュー
+
+11. **Slither再実行**: HIGH/MEDIUM 0件確認
+12. **PIR準備**: PIR-SEC-001レビュードキュメント作成
+13. **CURRENT_STATE更新**: 完了ステータス反映
+
+---
+
+## 修正パターン（参考）
+
+### CEIパターン（Checks-Effects-Interactions）
+
+```solidity
+// ❌ 現状（脆弱）
+function autoResolveChallenge(bytes32 requestId) external {
+    // ... checks ...
+    (bool success,) = challenger.call{value: amount}("");  // Interaction
+    require(success, "Transfer failed");
+    request.bond = 0;  // Effect ← 外部call後に更新 = 脆弱性
+}
+
+// ✅ 修正後
+function autoResolveChallenge(bytes32 requestId) external {
+    // ... checks ...
+    uint256 bondAmount = request.bond;  // ローカル変数にコピー
+    request.bond = 0;  // Effect ← 先に状態更新
+    (bool success,) = challenger.call{value: bondAmount}("");  // Interaction
+    require(success, "Transfer failed");
+}
+```
 
 ---
 
 ## Core Principles確認
 
-| # | 原則 | 確認事項 | 判定 |
-|---|------|----------|------|
-| CP-1 | 完全量子耐性 | SHA3-256のみ使用、keccak256禁止 | ✅ 違反なし |
-| CP-2 | Self-Custody | ユーザー秘密鍵のサーバー保管なし | ✅ 違反なし |
-| CP-3 | Time Lock存在 | Time Lock無効化なし | ✅ 違反なし |
-| CP-4 | Slashing存在 | Slashing削除なし | ✅ 違反なし |
-| CP-5 | 透明性 | 全てオンチェーン検証可能 | ✅ 違反なし |
+- [x] CP-1: 完全量子耐性 - 違反なし（今回は暗号アルゴリズム変更なし）
+- [x] CP-2: Self-Custody - 違反なし（秘密鍵管理に影響なし）
+- [x] CP-3: Time Lock存在 - 違反なし（Time Lock機能維持）
+- [x] CP-4: Slashing存在 - 違反なし（Slashing機能維持）
+- [x] CP-5: 透明性 - 違反なし（オンチェーン検証維持、イベント追加で透明性向上）
 
 ---
 
@@ -137,33 +154,26 @@
 
 | # | リスク | 重要度 | 対策 |
 |---|--------|--------|------|
-| 1 | トレース検証の複雑性 | MEDIUM | ZK-STARK計画Section 6参照、段階的実装 |
-| 2 | Sepolia RPCの安定性 | LOW | 複数プロバイダ確保 |
-| 3 | Gas目標未達リスク | MEDIUM | ベンチマーク継続監視 |
+| 1 | CEI修正によるロジック変更 | MEDIUM | 既存テスト全PASS確認 |
+| 2 | Gas消費の微増 | LOW | ローカル変数使用で最小化 |
+| 3 | イベント追加によるGas増加 | LOW | 管理関数のみなので許容 |
 
 ---
 
-## 注意事項
+## 完了条件
 
-### keccak256 禁止確認
+| 条件 | 基準 | 必須 |
+|------|------|------|
+| SEC-001修正完了 | 4関数すべてCEI適用 | ✅ |
+| SEC-002修正完了 | Events/ZeroCheck追加 | ✅ |
+| テスト全PASS | 既存 + 新規テスト | ✅ |
+| Slither HIGH | 0件 | ✅ |
+| Slither MEDIUM | 0件 | ✅ |
+| PIR-SEC-001 | PASS判定 | ✅ |
 
-以下のコードパターンは **絶対禁止** (CP-1違反):
+---
 
-```solidity
-// ❌ PROHIBITED
-bytes32 hash = keccak256(abi.encodePacked(...));
-
-// ✅ REQUIRED
-bytes32 hash = SHA3_256.hash(abi.encodePacked(...));
-```
-
-### 次のステップ
-
-このプランに基づき、以下の順序で進行:
-
-1. **05_pir.md** - PIR-P2-004 PIR会議実行
-2. **03_impl.md** - IMPL-005 実装
-3. **04_review.md** - セキュリティレビュー
+**Ready for: 02_spec.md (Specification Review)**
 
 ---
 
