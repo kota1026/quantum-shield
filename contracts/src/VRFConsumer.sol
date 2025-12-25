@@ -29,6 +29,11 @@ import {ProverSelector} from "./libraries/ProverSelector.sol";
 /// - Prover選出（2/5） ✅ via weighted stake selection
 /// - 5分タイムアウト ✅ VRF_TIMEOUT = 5 minutes
 /// - Fallback ✅ uses block.prevrandao
+///
+/// SEC-002 Update (2025-12-25):
+/// - [FIX-009] Added OwnershipTransferred event to transferOwnership()
+/// - [FIX-010] Added zero-address check to setVRFConfig() for coordinator
+/// - [FIX-011] Improved _selectProver() return value handling
 contract VRFConsumer is IVRFConsumer {
     using ProverSelector for ProverSelector.ProverInfo[];
 
@@ -107,6 +112,10 @@ contract VRFConsumer is IVRFConsumer {
     event ProverRemoved(address indexed prover);
     event L1VaultUpdated(address indexed oldVault, address indexed newVault);
     event VRFConfigUpdated(address coordinator, bytes32 keyHash, uint64 subscriptionId);
+    
+    /// @notice Emitted when ownership is transferred
+    /// @dev SEC-002 FIX-009: Added for auditability
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // =========================================================================
     // Errors (additional to interface)
@@ -127,8 +136,7 @@ contract VRFConsumer is IVRFConsumer {
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
-        _;
-    }
+        _;\n    }
 
     modifier onlyL1Vault() {
         if (msg.sender != l1Vault) revert NotL1Vault();
@@ -228,7 +236,8 @@ contract VRFConsumer is IVRFConsumer {
             msg.sender
         )));
 
-        prover = _selectProver(fallbackRandom);
+        // FIX-011: Properly handle _selectProver return value
+        prover = _selectProverSafe(fallbackRandom);
         
         req.randomValue = fallbackRandom;
         req.selectedProver = prover;
@@ -265,8 +274,8 @@ contract VRFConsumer is IVRFConsumer {
         if (req.unlockRequestId == bytes32(0)) revert RequestNotFound();
         if (req.fulfilled) revert RequestAlreadyFulfilled();
 
-        // IMPL-004: Select prover using weighted random selection
-        address prover = _selectProver(randomValue);
+        // FIX-011: Properly handle _selectProver return value
+        address prover = _selectProverSafe(randomValue);
 
         req.randomValue = randomValue;
         req.selectedProver = prover;
@@ -340,10 +349,12 @@ contract VRFConsumer is IVRFConsumer {
     }
 
     /// @notice Configure Chainlink VRF v2.5 settings
+    /// @dev SEC-002 FIX-010: Added zero-address check for coordinator
     /// @param _coordinator VRF Coordinator address
     /// @param _keyHash Gas lane key hash
     /// @param _subscriptionId Subscription ID
     function setVRFConfig(address _coordinator, bytes32 _keyHash, uint64 _subscriptionId) external onlyOwner {
+        if (_coordinator == address(0)) revert ZeroAddress();
         vrfCoordinator = _coordinator;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
@@ -351,10 +362,13 @@ contract VRFConsumer is IVRFConsumer {
     }
 
     /// @notice Transfer ownership
+    /// @dev SEC-002 FIX-009: Added OwnershipTransferred event emission
     /// @param newOwner New owner address
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
+        address previousOwner = owner;
         owner = newOwner;
+        emit OwnershipTransferred(previousOwner, newOwner);
     }
 
     // =========================================================================
@@ -414,6 +428,36 @@ contract VRFConsumer is IVRFConsumer {
         // Use ProverSelector library for weighted selection
         // This implements P(i) = Stake_i / Σ Stake
         (address selected, ) = provers.selectProver(randomValue);
+        return selected;
+    }
+    
+    /// @notice Safe wrapper for prover selection with proper error handling
+    /// @dev FIX-011: Ensures return value is properly handled
+    /// @param randomValue Random value for selection
+    /// @return selected The selected prover address
+    function _selectProverSafe(uint256 randomValue) internal view returns (address selected) {
+        if (proverPool.length == 0) revert ProverSelector.NoActiveProvers();
+        
+        // Check for active provers first
+        bool hasActiveProver = false;
+        for (uint256 i = 0; i < proverPool.length; i++) {
+            if (proverPool[i].active) {
+                hasActiveProver = true;
+                break;
+            }
+        }
+        if (!hasActiveProver) revert ProverSelector.NoActiveProvers();
+        
+        // Create memory copy for library function
+        ProverSelector.ProverInfo[] memory provers = proverPool;
+        
+        // Use ProverSelector library for weighted selection
+        // This implements P(i) = Stake_i / Σ Stake
+        (selected, ) = provers.selectProver(randomValue);
+        
+        // Verify we got a valid result
+        if (selected == address(0)) revert ProverSelector.NoActiveProvers();
+        
         return selected;
     }
 }
