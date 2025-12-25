@@ -1,187 +1,124 @@
 # Current Plan
 
-> **Generated**: 2025-12-25 12:00 JST
+> **Generated**: 2025-12-25 13:00 JST
 > **Phase**: 1 - Foundation Bootstrap
-> **Day**: 12
-
----
+> **Day**: 13 (14日間修正計画)
 
 ## 対象チェックリスト
-
 `docs/planning/checklists/phase1_day11-14_qa.md`
 
----
+## 前回レビュー課題（該当時のみ）
 
-## 前回レビュー課題
-
-> CURRENT_STATE.md「🚧 ブロッカー / 懸念事項」より
+> CURRENT_STATE.mdより自動取得
 
 | # | 重要度 | 課題 | 対策 |
 |---|--------|------|------|
-| 1 | 🔴 High | Dilithium Lean4形式検証なし | **今回優先対応** - lake build検証 + Rust整合性確認 |
-| 2 | 🔴 High | SPHINCS+形式検証なし | Phase 2 (今回スコープ外) |
-| 3 | 🟢 Low | Compiler Warnings (未使用変数) | Phase 2 |
+| 1 | 🔴 High | SPHINCS+形式検証なし | Phase 2で対応（今回スコープ外） |
+| 2 | 🟢 Low | Compiler Warnings (未使用変数) | Phase 2で対応（今回スコープ外） |
 
-### CEO判断による優先度変更
-
-**背景**: Phase 1終了前に形式検証の基盤を確認すべきという判断。
-
-> 「一般的なプロジェクトではコアな暗号部分の検証をシステム構築前に行う。
-> Phase 1を終える前に、NTT/Montgomeryの形式検証を完了させるべき。」
-
-**アクション**: Lean4形式検証をDay 12の**最優先タスク**として追加。
-
----
+> **Note**: Day 12までの全課題は解決済み（PIR-009 PASS）
 
 ## 今回のスコープ
 
-### 🔴 形式検証タスク（最優先 - Phase 1終了条件）
+### Day 13: 外部レビュー準備
 
-```
-□ [FV-001] Lean4 lake build 実行・検証
-□ [FV-002] NTT.lean 証明完全性確認（sorryなし確認済み ✅）
-□ [FV-003] Rust実装（circuits/dilithium-stark/src/ntt.rs）との整合性確認
-□ [FV-004] 定数一致確認（Q, ZETA, ZETAS[], MONT, QINV）
-□ [FV-005] NIST KATテスト追加（dilithium-stark）
-```
+#### Red Teamレビュー項目
+- [ ] [RED-001] 攻撃ベクトル分析
+- [ ] [RED-002] DoSシナリオテスト
+- [ ] [RED-003] リエントランシー確認（Slither結果の再確認）
+- [ ] [RED-004] フロントランニング分析
+- [ ] [RED-005] オラクル操作リスク（Chainlink VRF）
 
-### 🟡 修正項目（レビュー課題より）
+#### 暗号数学レビュー項目
+- [ ] [CRYPTO-001] Dilithium実装確認（Lean4形式検証済み）
+- [ ] [CRYPTO-002] SPHINCS+実装確認
+- [ ] [CRYPTO-003] SHA3-256 NIST準拠確認
+- [ ] [CRYPTO-004] SR計算正当性
+- [ ] [CRYPTO-005] VRF品質確認
 
-```
-□ [FIX-010] 形式検証ステータスをCURRENT_STATEに反映
-□ [FIX-011] PIRレポート作成（形式検証結果）
-```
+#### 成果物作成
+- [ ] [DOC-001] セキュリティレビュー資料作成
+- [ ] [DOC-002] 攻撃ベクター分析レポート
+- [ ] [DOC-003] コード品質レポート
 
-### 🟡 実装項目
+#### Fuzzテスト（オプション）
+- [ ] [FUZZ-001] Echidna設定ファイル作成
+- [ ] [FUZZ-002] 不変条件定義
+- [ ] [FUZZ-003] 基本Fuzzシナリオ実装
 
-```
-□ [IMPL-012] KATテストハーネス作成
-□ [IMPL-013] Rust-Lean4整合性検証スクリプト
-```
-
-### 🟡 テスト項目（Fuzz - 元のDay 12スコープ）
-
-```
-□ [FUZZ-001] Echidna設定ファイル作成
-□ [FUZZ-002] 不変条件定義
-□ [FUZZ-101] Lock金額境界（MIN/MAX）
-□ [FUZZ-102] Time Lock期間操作
-□ [FUZZ-103] Slashing計算（N=1〜5）
-```
-
----
-
-## 参照ドキュメント
-
-| 種類 | パス |
-|------|------|
-| 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
-| チェックリスト | `docs/planning/checklists/phase1_day11-14_qa.md` |
-| Lean4証明 | `proofs/lean4/NTT.lean` |
-| Rust NTT | `circuits/dilithium-stark/src/ntt.rs` |
-| NIST KAT | `circuits/dilithium-stark/test-vectors/PQCsignKAT_Dilithium3.rsp` |
-
----
+### 参照ドキュメント
+- Constitution: `docs/constitution/CORE_PRINCIPLES.md`
+- Sequences: `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md`
+- PIR Routine: `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md`
+- PIR-008: `docs/aegis/pir/PIR-008.md`
+- PIR-009: `docs/aegis/pir/PIR-009_FORMAL_VERIFICATION.md`
 
 ## 成果物
 
 | ファイル | 説明 |
 |---------|------|
-| `proofs/lean4/lake-manifest.json` | Lean4ビルド成功の証跡 |
-| `docs/aegis/PIR-009_FORMAL_VERIFICATION.md` | 形式検証PIRレポート |
-| `circuits/dilithium-stark/tests/kat_test.rs` | NIST KATテスト |
-| `scripts/verify_lean_rust_consistency.sh` | 整合性検証スクリプト |
-| `test/fuzz/L1VaultFuzz.sol` | Fuzzテスト（時間があれば） |
-
----
+| `docs/aegis/pir/PIR-010_EXTERNAL_REVIEW.md` | 外部レビューレポート |
+| `docs/aegis/security/ATTACK_VECTORS.md` | 攻撃ベクター分析 |
+| `docs/aegis/security/CODE_QUALITY_REPORT.md` | コード品質レポート |
+| `test/fuzz/EchidnaConfig.yaml` | Echidna設定（オプション） |
+| `test/fuzz/L1VaultFuzz.sol` | Fuzzテスト（オプション） |
 
 ## 実行順序
 
-### Phase A: 形式検証確認（最優先）
+### Step 1: 既存セキュリティ成果物の確認
+1. Slither静的解析結果の再確認（PIR-008参照）
+2. 全371テスト結果の確認
+3. Lean4形式検証結果の確認（PIR-009参照）
 
-1. **[FV-001] Lean4 lake build**
-   ```bash
-   cd proofs/lean4
-   lake update
-   lake build
-   ```
-   - 成功: 次へ進む
-   - 失敗: Mathlib依存関係またはsorry残存を修正
+### Step 2: 攻撃ベクター分析
+1. DoS攻撃ベクターの特定
+2. フロントランニングリスクの評価
+3. オラクル操作リスクの評価（Chainlink VRF）
+4. 再入攻撃の検証（nonReentrantガード確認）
 
-2. **[FV-002] 証明完全性確認**
-   - `grep -r "sorry" proofs/lean4/` → 空であること ✅ 確認済み
-   - 全ての定理がnative_decideまたは明示的証明で完了
+### Step 3: コード品質レビュー
+1. コードカバレッジ計測
+2. 複雑度分析
+3. ベストプラクティス準拠確認
 
-3. **[FV-003/004] Rust-Lean4整合性確認**
-   | 定数 | Lean4値 | Rust値 | 一致 |
-   |------|---------|--------|------|
-   | Q | 8380417 | 8380417 | ✅ |
-   | ζ (ZETA) | 1753 | 1753 | ✅ |
-   | N | 256 | 256 | ✅ |
-   | R (MONT) | 2^32 | 4193792 mod Q | 要確認 |
+### Step 4: レポート作成
+1. `ATTACK_VECTORS.md` 作成
+2. `CODE_QUALITY_REPORT.md` 作成
+3. `PIR-010_EXTERNAL_REVIEW.md` 作成
 
-4. **[FV-005] NIST KATテスト追加**
-   - `test-vectors/PQCsignKAT_Dilithium3.rsp` を読み込むテスト作成
-   - 最低10ベクターでPASS確認
+### Step 5: Fuzzテスト準備（オプション）
+1. Echidna設定ファイル作成
+2. 不変条件の定義
+3. 基本Fuzzシナリオの実装
 
-### Phase B: PIRレポート作成
-
-5. **[FIX-010/011] PIR-009作成**
-   - 形式検証の結果をドキュメント化
-   - Go/No-Go判定の証跡として
-
-### Phase C: Fuzzテスト（時間があれば）
-
-6. **[FUZZ-001〜103]**
-   - Echidna設定
-   - 基本的なFuzzシナリオ3-5件
-
----
+### Step 6: PIRレビュー
+1. PIR-010の実施
+2. CURRENT_STATE.md更新
 
 ## Core Principles確認
 
-| # | 原則 | 本Plan | 確認 |
-|---|------|--------|------|
-| CP-1 | 完全量子耐性 | Lean4でNTT正当性を証明 | ✅ 準拠 |
-| CP-2 | Self-Custody | 影響なし | ✅ 違反なし |
-| CP-3 | Time Lock存在 | 影響なし | ✅ 違反なし |
-| CP-4 | Slashing存在 | 影響なし | ✅ 違反なし |
-| CP-5 | 透明性 | Lean4証明を公開 | ✅ 準拠 |
-
----
+- [ ] CP-1: 完全量子耐性 - 違反なし（SHA3-256, Dilithium, SPHINCS+使用）
+- [ ] CP-2: Self-Custody - 違反なし（秘密鍵はユーザー管理）
+- [ ] CP-3: Time Lock存在 - 違反なし（24h/7d Time Lock実装済み）
+- [ ] CP-4: Slashing存在 - 違反なし（60/20/20 Slashing実装済み）
+- [ ] CP-5: 透明性 - 違反なし（全てオンチェーン検証可能）
 
 ## リスク・懸念事項
 
-| # | リスク | 影響度 | 対策 |
-|---|--------|--------|------|
-| 1 | Lean4 lake build失敗 | 🔴 High | Mathlib 4.14.0固定、CI環境確認 |
-| 2 | Rust-Lean4不整合 | 🔴 High | 定数テーブル全比較 |
-| 3 | KATテスト失敗 | 🔴 High | pq-crystals参照実装と比較 |
-| 4 | Fuzz時間不足 | 🟡 Medium | Day 13に繰越可 |
+| リスク | 重要度 | 対策 |
+|--------|--------|------|
+| Fuzzテスト時間不足 | 🟡 Medium | オプションとして扱い、Day 14で継続可能 |
+| SPHINCS+形式検証未完了 | 🔴 High | Phase 2で対応（Phase 1では手動レビュー） |
+
+## 前提条件
+
+- Day 12完了済み（✅ PIR-009 PASS）
+- 全371テストPASS
+- Lean4形式検証完了
+- NIST KAT 100ベクターPASS
 
 ---
 
-## Phase 1終了条件への影響
-
-**追加条件**（今回の議論より）:
-
-| 条件 | 基準 | 現状 |
-|------|------|------|
-| Lean4 lake build | 成功 | ⬜ 未確認 |
-| sorry残存 | 0件 | ✅ 確認済み |
-| Rust整合性 | 100%一致 | ⬜ 未確認 |
-| NIST KAT | 10+ベクターPASS | ⬜ 未実装 |
-
-**これらがPASSしない限り、Phase 2への移行は不可。**
-
----
-
-## 次のステップ
-
-1. このPlanに基づき `02_spec.md` で詳細仕様を作成
-2. `03_impl.md` で実装
-3. `04_review.md` でPIRレビュー（PIR-009）
-
----
+**このプランに基づき、02_spec.md → 03_impl.md → 04_review.md を順次実行してください。**
 
 **END OF CURRENT PLAN**
