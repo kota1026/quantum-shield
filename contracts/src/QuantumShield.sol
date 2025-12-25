@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {FRIVerifier} from "./FRIVerifier.sol";
+import {SHA3_256} from "./libraries/SHA3_256.sol";
 
 /// @title QuantumShield - Native STARK Verification Bridge
 /// @notice Post-quantum secure asset bridge with on-chain STARK proof verification
@@ -33,6 +34,12 @@ import {FRIVerifier} from "./FRIVerifier.sol";
 /// SEC-002 Update (2025-12-25):
 /// - [FIX-007] Added OwnershipTransferred event to transferOwnership()
 /// - [FIX-008] Added zero-address check to setVerifier()
+///
+/// SEC-003 Update (2025-12-25):
+/// - [FIX-015] lock() - keccak256 → SHA3_256.hash() (CP-1 compliance)
+/// - [FIX-016] _verifyStarkProofInternal() - keccak256 → SHA3_256.hash() (2 places)
+/// - [FIX-017] _hashPublicInputs() - keccak256 → SHA3_256.hash()
+/// - [FIX-018] Added SHA3_256 library import
 contract QuantumShield {
     // =========================================================================
     // Events
@@ -114,9 +121,10 @@ contract QuantumShield {
 
     /// @notice Public inputs for STARK verification
     /// @dev Must match the circuit's public input layout
+    ///      SEC-003: All hashes use SHA3_256 (FIPS 202) for CP-1 compliance
     struct PublicInputs {
-        bytes32 publicKeyHash;      // Keccak256 of Dilithium public key
-        bytes32 messageHash;        // Keccak256 of signed message
+        bytes32 publicKeyHash;      // SHA3_256 hash of Dilithium public key
+        bytes32 messageHash;        // SHA3_256 hash of signed message
         bool signatureValid;        // Whether verification succeeded
         uint64 nonce;               // Replay protection nonce
         address recipient;          // ETH recipient address
@@ -186,14 +194,16 @@ contract QuantumShield {
     // =========================================================================
 
     /// @notice Lock ETH for quantum-secure bridge transfer
-    /// @param dilithiumPubKeyHash Keccak256 hash of the Dilithium public key
-    /// @return lockId Unique identifier for this lock
+    /// @param dilithiumPubKeyHash SHA3_256 hash of the Dilithium public key
+    /// @return lockId Unique identifier for this lock (computed via SHA3_256)
+    /// @dev SEC-003 FIX-015: Uses SHA3_256.hash() instead of keccak256 for CP-1 compliance
     function lock(bytes32 dilithiumPubKeyHash) external payable whenNotPaused returns (bytes32 lockId) {
         if (msg.value == 0) revert InsufficientAmount();
 
         uint256 nonce = nonceCounter++;
 
-        lockId = keccak256(abi.encodePacked(
+        // SEC-003 FIX-015: SHA3_256 replaces keccak256 for quantum resistance (CP-1)
+        lockId = SHA3_256.hash(abi.encodePacked(
             msg.sender,
             msg.value,
             dilithiumPubKeyHash,
@@ -228,6 +238,8 @@ contract QuantumShield {
     /// - FRI verification: ~2-5M gas (depends on proof size)
     /// - State updates: ~50K gas
     /// - Total: ~2-6M gas
+    ///
+    /// SEC-003: All internal hash operations use SHA3_256 for CP-1 compliance
     function releaseWithProof(
         PublicInputs calldata publicInputs,
         StarkProof calldata proof
@@ -322,6 +334,7 @@ contract QuantumShield {
 
     /// @notice Internal STARK verification - Level 1 Verifier
     /// @dev Implements Public Input verification + Commitment verification
+    ///      SEC-003 FIX-016: All hash operations use SHA3_256 for CP-1 compliance
     ///
     /// Level 1 Verification (current):
     /// - Public inputs structure validation
@@ -398,7 +411,8 @@ contract QuantumShield {
 
         // Compute the expected binding: H(traceCommitment || publicInputsHash)
         // This ensures the proof is specifically for these public inputs
-        bytes32 proofBinding = keccak256(abi.encodePacked(
+        // SEC-003 FIX-016: SHA3_256 replaces keccak256 for quantum resistance (CP-1)
+        bytes32 proofBinding = SHA3_256.hash(abi.encodePacked(
             proof.traceCommitment,
             publicInputsHash
         ));
@@ -413,7 +427,8 @@ contract QuantumShield {
             // Level 1 verification: verify binding structure exists
             // Full verification would check: queryResponse = MerkleProof(traceCommitment, position)
             // For Level 1, we verify the proofBinding connects public inputs to trace
-            bytes32 expectedBinding = keccak256(abi.encodePacked(
+            // SEC-003 FIX-016: SHA3_256 replaces keccak256 for quantum resistance (CP-1)
+            bytes32 expectedBinding = SHA3_256.hash(abi.encodePacked(
                 proofBinding,
                 proof.queryResponses[0]
             ));
@@ -583,8 +598,12 @@ contract QuantumShield {
     }
 
     /// @notice Hash public inputs for verification
+    /// @dev SEC-003 FIX-017: Uses SHA3_256.hash() instead of keccak256 for CP-1 compliance
+    /// @param pi Public inputs to hash
+    /// @return SHA3_256 hash of encoded public inputs
     function _hashPublicInputs(PublicInputs calldata pi) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(
+        // SEC-003 FIX-017: SHA3_256 replaces keccak256 for quantum resistance (CP-1)
+        return SHA3_256.hash(abi.encodePacked(
             pi.publicKeyHash,
             pi.messageHash,
             pi.signatureValid,
