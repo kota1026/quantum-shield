@@ -308,7 +308,7 @@ contract STARKVerifierTest is Test {
     /**
      * @notice Measure gas for hash operation
      */
-    function test_HashGas() public view {
+    function test_HashGas() public {
         bytes memory data = abi.encodePacked(uint256(1), uint256(2), uint256(3));
         
         uint256 gasBefore = gasleft();
@@ -325,7 +325,7 @@ contract STARKVerifierTest is Test {
     /**
      * @notice Measure gas for field multiplication
      */
-    function test_FieldMulGas() public view {
+    function test_FieldMulGas() public {
         uint256 a = 12345678901234567890;
         uint256 b = 98765432109876543210;
         
