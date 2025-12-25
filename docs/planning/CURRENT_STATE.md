@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-25 18:15 JST  
+> **Last Updated**: 2025-12-25 23:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,7 +13,7 @@
 │  Month: 7 / 24                                              │
 │  Week: 4                                                    │
 │  Next Milestone: MS-1 ZK-STARK実装                          │
-│  Status: ✅ IMPL-005 完了 - 36/36 ALL PASS                  │
+│  Status: ✅ PIR-P2-005 PASS - PIR会議待ち                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -26,62 +26,29 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | IMPL-005 トレースCommitment検証 - STARKVerifier拡張 |
-| **実装日時** | 2025-12-25 18:15 JST |
-| **ステータス** | ✅ 実装完了・テストALL PASS |
+| **対象Plan** | - |
+| **実装日時** | - |
+| **ステータス** | ⬜ 未実行 |
 
 ### 作成ファイル
 
-- `contracts/src/STARKVerifier.sol`: v0.1 → v0.2 拡張（トレースCommitment検証追加）
-- `contracts/test/STARKVerifier.t.sol`: TEST-005 テストケース追加
+（なし）
 
 ### SPEC_REVIEW対応
 
-（該当なし - SPEC_REVIEW.mdは PASS ステータス）
+（該当なし）
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +8 (Merkle検証関連) |
-| 総テスト数 (STARKVerifier.t.sol) | 36 |
-| 結果 | ✅ **ALL PASS** |
-
-### 実装内容
-
-#### IMPL-005: STARKVerifier v0.2 新機能
-
-| 関数 | 説明 |
-|------|------|
-| `verifyTraceEvaluationAtIndex()` | 単一トレース評価のMerkle証明検証 |
-| `verifyTraceEvaluationsBatch()` | 複数評価のバッチ検証 |
-| `computeTraceLeaf()` | 評価データからリーフハッシュ計算 |
-| `computeTraceRoot()` | 評価配列からMerkleルート計算 |
-| `_hashMerkleNodes()` | ドメイン分離されたSHA3-256ハッシュ |
-
-#### CP-1 コンプライアンス確認
-
-| 項目 | 状態 |
-|------|------|
-| SHA3-256使用 | ✅ 全ハッシュ操作で使用 |
-| keccak256禁止 | ✅ 未使用 |
-| ドメイン分離 | ✅ DOMAIN_MERKLE_NODE追加 |
-
-### Gasベンチマーク
-
-| 操作 | Gas消費 | 備考 |
-|------|---------|------|
-| 単一Merkle検証 (深度10) | ~10.3M gas | SHA3-256 10回 |
-| バッチ検証 (3クエリ) | ~175M gas | 期待通り |
-| SHA3-256ハッシュ | ~1M gas | FIPS 202準拠 |
+| 新規テスト数 | - |
+| 総テスト数 | - |
+| 結果 | - |
 
 ### 備考
 
-- バージョンを0.1.0から0.2.0に更新
-- DEFAULT_TRACE_DEPTH定数追加（値: 10）
-- 新エラー型追加: InvalidMerkleProofDepth, InvalidMerkleProof
-- TraceEvaluationVerifiedイベント追加
-- コミット: `61f10678bb06d9c86975ab2be37d432fa0965c1f`
+（なし）
 
 ---
 
@@ -91,7 +58,7 @@
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
 | Phase 1 | Month 1-6 | 100% | ✅ **COMPLETE** 🎉 |
-| **Phase 2** | Month 7-12 | **50%** | 🔄 **IN PROGRESS** |
+| **Phase 2** | Month 7-12 | **55%** | 🔄 **IN PROGRESS** |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
 
@@ -146,12 +113,13 @@
 | 6 | **IMPL-005 トレースCommitment検証** | Engineer | 2025-12-25 | ✅ **完了** |
 | 7 | **TEST-005 テストケース作成** | QA | 2025-12-25 | ✅ **完了** |
 | 8 | **テスト実行 36/36 PASS** | QA | 2025-12-25 | ✅ **ALL PASS** |
+| 9 | **セキュリティレビュー PIR-P2-005** | Red Team | 2025-12-25 | ✅ **PASS** |
 
 ### In Progress 🔄
 
 | # | タスク | 担当 | 期限 | Status |
 |---|--------|------|------|--------|
-| 1 | セキュリティレビュー PIR-P2-005 | Red Team | 2025-12-26 | 🔄 READY |
+| 1 | PIR-P2-005 PIR会議 (05_pir.md) | Team | 2025-12-26 | 🔄 READY |
 | 2 | テストネット環境構築 (INFRA-001) | DevOps | 2025-12-31 | ⬜ |
 
 ---
@@ -215,7 +183,7 @@ TEST-005 追加テスト:
 | PIR-P2-002 | Week 1 成果物レビュー | ✅ **PASS** | 2025-12-26 |
 | PIR-P2-003 | Week 2 SHA3Hasher + ProofCodec | ✅ **PASS** | 2025-12-25 |
 | PIR-P2-004 | Week 3 STARKVerifier v0.1 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
-| PIR-P2-005 | Week 4 IMPL-005 セキュリティレビュー | 🔄 **READY** | - |
+| PIR-P2-005 | Week 4 IMPL-005 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
 
 ---
 
@@ -246,7 +214,8 @@ TEST-005 追加テスト:
 | ~~PIR-P2-004 セキュリティレビュー~~ | ~~Week 3~~ | ✅ **COMPLETE (PASS)** |
 | ~~IMPL-005 トレースCommitment検証~~ | ~~Week 4~~ | ✅ **COMPLETE** |
 | ~~テスト実行・36/36 PASS~~ | ~~Week 4~~ | ✅ **COMPLETE** |
-| **PIR-P2-005 セキュリティレビュー** | Week 4 | 🔄 **READY** |
+| ~~PIR-P2-005 セキュリティレビュー~~ | ~~Week 4~~ | ✅ **COMPLETE (PASS)** |
+| **PIR-P2-005 PIR会議 (05_pir.md)** | Week 4 | 🔄 **READY** |
 | MS-1: ZK-STARK実装 | Month 9 | ⬜ |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
@@ -274,6 +243,7 @@ TEST-005 追加テスト:
 | **Go/No-Goレポート** | `docs/aegis/pir/GONOGO_PHASE1_COMPLETE.md` |
 | PIR-011レポート | `docs/aegis/pir/PIR-011_FINAL_VERIFICATION.md` |
 | **PIR-P2-003レポート** | `docs/aegis/pir/PIR-P2-003_WEEK2_REVIEW.md` |
+| **PIR-P2-005レポート** | `docs/aegis/pir/PIR-P2-005_IMPL005_REVIEW.md` |
 | Gasベンチマーク (Phase 1) | `docs/planning/archive/GAS_BENCHMARK_2025-12-26.md` |
 | **ZK-STARK実装計画** | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
 | **Gasベースライン (Phase 2)** | `docs/planning/GAS_BASELINE_P2.md` |
@@ -286,9 +256,9 @@ TEST-005 追加テスト:
 
 **Phase 1 Foundation Bootstrap: ✅ COMPLETE 🎉**
 
-**Phase 2 Week 4: ✅ IMPL-005 完了 - 36/36 ALL PASS**
+**Phase 2 Week 4: ✅ PIR-P2-005 セキュリティレビュー PASS**
 
-**Next: ④ セキュリティレビュー (04_review.md)**
+**Next: ⑤ PIR会議 (05_pir.md)**
 
 ---
 
