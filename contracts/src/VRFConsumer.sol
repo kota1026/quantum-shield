@@ -136,7 +136,8 @@ contract VRFConsumer is IVRFConsumer {
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
-        _;\n    }
+        _;
+    }
 
     modifier onlyL1Vault() {
         if (msg.sender != l1Vault) revert NotL1Vault();
