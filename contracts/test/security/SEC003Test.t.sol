@@ -139,7 +139,7 @@ contract SEC003Test is Test {
     }
 
     /// @notice Verify lockId is deterministic
-    function test_SEC003_02_Lock_Deterministic() public {
+    function test_SEC003_02_Lock_Deterministic() public view {
         // Create two contracts to verify same inputs produce same hash
         bytes memory data = abi.encodePacked(
             user,
@@ -315,7 +315,8 @@ contract SEC003Test is Test {
     }
 
     /// @notice Compare SHA3_256 vs keccak256 gas (informational)
-    function test_SEC003_05_Gas_SHA3vsKeccak_Comparison() public pure {
+    /// @dev Changed from pure to view because gasleft() requires view
+    function test_SEC003_05_Gas_SHA3vsKeccak_Comparison() public view {
         bytes memory data = abi.encodePacked(
             address(0xBEEF),
             uint256(1 ether),
