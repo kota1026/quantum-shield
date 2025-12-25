@@ -20,6 +20,11 @@ import {SHA3_256} from "./libraries/SHA3_256.sol";
 /// FIX-008/009 Update (2025-12-24): Signature verification now uses SHA3-256
 /// for message hash and simplified verification hash. This completes the
 /// migration from keccak256 in all security-critical paths.
+///
+/// FIX-010/011/012/013 Update (2025-12-25): Complete keccak256 elimination.
+/// All remaining keccak256 usages (dilithiumPubKeyHash, sphincsPubKeyHash,
+/// fraudProofHash, defenseProofHash) replaced with SHA3_256.hash() for
+/// complete CP-1 compliance. L1Vault.sol now has ZERO keccak256 usage.
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -293,13 +298,15 @@ contract L1Vault is ReentrancyGuard, Pausable {
     }
 
     /// @notice Lock funds with custom expiry
+    /// @dev FIX-010: dilithiumPubKeyHash now uses SHA3-256 instead of keccak256
     function lockWithExpiry(address recipient, bytes calldata dilithiumPubKey, uint256 expiry) public payable whenNotPaused nonReentrant returns (bytes32 lockId) {
         if (msg.value < MIN_LOCK_AMOUNT) revert InsufficientAmount();
         if (totalLocked + msg.value > TVL_CAP) revert TVLCapExceeded();
         if (recipient == address(0)) revert ZeroAddress();
         if (expiry <= block.timestamp) revert LockExpired();
 
-        bytes32 dilithiumPubKeyHash = keccak256(dilithiumPubKey);
+        // FIX-010: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 dilithiumPubKeyHash = SHA3_256.hash(dilithiumPubKey);
         uint256 nonce = nonceCounter++;
 
         bytes32 stateRoot = StateRootCalculator.computeSR0(
@@ -627,6 +634,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Challenge Functions
     // =========================================================================
 
+    /// @notice File a challenge against a pending unlock
+    /// @dev FIX-012: fraudProofHash now uses SHA3-256 instead of keccak256
     function challenge(bytes32 lockId, bytes calldata fraudProof) external payable whenNotPaused nonReentrant {
         UnlockRequest storage request = unlockRequests[lockId];
         if (request.lockId == bytes32(0)) revert UnlockNotFound();
@@ -641,10 +650,13 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
         uint256 defenseDeadline = block.timestamp + DEFENSE_PERIOD;
 
+        // FIX-012: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 fraudProofHash = SHA3_256.hash(fraudProof);
+
         challenges[lockId] = Challenge({
             lockId: lockId,
             challenger: msg.sender,
-            fraudProofHash: keccak256(fraudProof),
+            fraudProofHash: fraudProofHash,
             challengedAt: block.timestamp,
             status: ChallengeStatus.PENDING,
             bond: msg.value,
@@ -663,15 +675,18 @@ contract L1Vault is ReentrancyGuard, Pausable {
             }
         }
         
-        emit ChallengeFiled(lockId, msg.sender, keccak256(fraudProof), msg.value, defenseDeadline);
+        emit ChallengeFiled(lockId, msg.sender, fraudProofHash, msg.value, defenseDeadline);
     }
 
+    /// @notice Submit defense against a challenge
+    /// @dev FIX-013: defenseProofHash now uses SHA3-256 instead of keccak256
     function submitDefense(bytes32 lockId, bytes calldata defenseProof) external whenNotPaused onlyActiveProver {
         Challenge storage challengeData = challenges[lockId];
         if (challengeData.status != ChallengeStatus.PENDING) revert ChallengeAlreadyResolved();
         if (block.timestamp > challengeData.defenseDeadline) revert DefensePeriodExpired();
 
-        bytes32 defenseProofHash = keccak256(defenseProof);
+        // FIX-013: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 defenseProofHash = SHA3_256.hash(defenseProof);
         challengeData.status = ChallengeStatus.DEFENSE_SUBMITTED;
         challengeData.defenseProofHash = defenseProofHash;
         challengeData.defender = msg.sender;
@@ -804,13 +819,16 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Prover Management
     // =========================================================================
 
+    /// @notice Register a new prover
+    /// @dev FIX-011: sphincsPubKeyHash now uses SHA3-256 instead of keccak256
     function registerProver(address proverAddress, bytes calldata sphincsPublicKey) external payable onlyOwner {
         if (proverAddress == address(0)) revert ZeroAddress();
         if (provers[proverAddress].isActive) revert ProverAlreadyRegistered();
         if (msg.value < 1 ether) revert InsufficientStake();
         if (sphincsPublicKey.length != 32) revert InvalidPublicKeyLength();
 
-        bytes32 sphincsPubKeyHash = keccak256(sphincsPublicKey);
+        // FIX-011: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 sphincsPubKeyHash = SHA3_256.hash(sphincsPublicKey);
 
         provers[proverAddress] = Prover({
             proverAddress: proverAddress,
