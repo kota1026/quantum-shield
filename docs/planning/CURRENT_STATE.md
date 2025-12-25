@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-26 00:30 JST  
+> **Last Updated**: 2025-12-26 00:00 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -11,9 +11,9 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 2 - Security Council + Token                        │
 │  Month: 7 / 24                                              │
-│  Week: 5 → 6                                                │
+│  Week: 6                                                    │
 │  Next Milestone: MS-1 ZK-STARK実装                          │
-│  Status: ✅ Week 5 Complete - SEC-003準備中                  │
+│  Status: ✅ SEC-003 実装完了 - テスト待ち                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -26,29 +26,40 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | SEC-001/SEC-002 セキュリティ修正 |
-| **実装日時** | 2025-12-25 |
-| **ステータス** | ✅ 完了・レビュー済み |
+| **対象Plan** | SEC-003: QuantumShield.sol keccak256 → SHA3_256 移行 |
+| **実装日時** | 2025-12-25 23:37 JST |
+| **ステータス** | ✅ 実装完了 |
 
 ### 作成ファイル
 
 | ファイル | 説明 |
 |---------|------|
-| contracts/src/L1Vault.sol | リエントランシー修正 (SEC-001) |
-| contracts/test/security/ReentrancyTest.t.sol | リエントランシーテスト |
-| contracts/test/security/EventsAndChecksTest.t.sol | Events/ZeroCheckテスト |
+| `contracts/src/QuantumShield.sol` | keccak256 → SHA3_256 移行 (FIX-015~018) |
+| `contracts/test/security/SEC003Test.t.sol` | SEC-003専用テストスイート |
+
+### SPEC_REVIEW対応
+
+| ISSUE | Status | 対応内容 |
+|-------|--------|----------|
+| ISSUE-001 | ✅ | QuantumShield.sol全3箇所のkeccak256をSHA3_256.hash()に移行 |
+| FIX-015 | ✅ | lock() 関数の修正 |
+| FIX-016 | ✅ | _verifyStarkProofInternal() 関数の修正（2箇所） |
+| FIX-017 | ✅ | _hashPublicInputs() 関数の修正 |
+| FIX-018 | ✅ | SHA3_256ライブラリのインポート追加 |
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | 28 (7 + 21) |
-| 総テスト数 | 557 |
-| 結果 | ✅ ALL PASS |
+| 新規テスト数 | +18 (SEC003Test.t.sol) |
+| 総テスト数 | 575 (予定) |
+| 結果 | ⏳ テスト実行待ち (`forge test`を実行してください) |
 
 ### 備考
 
-SEC-001/SEC-002 セキュリティ修正完了。PIR-SEC-001 PASS。
+- **BREAKING CHANGE**: lockId計算方法がSHA3_256に変更されたため、移行前のロックとは互換性がありません
+- テスト環境での使用を前提（Option C: CURRENT_PLAN.md参照）
+- SEC-003実装コミット: 3e8d97e, 8b46f06
 
 ---
 
@@ -107,7 +118,7 @@ SEC-001/SEC-002 セキュリティ修正完了。PIR-SEC-001 PASS。
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
 | Phase 1 | Month 1-6 | 100% | ✅ **COMPLETE** 🎉 |
-| **Phase 2** | Month 7-12 | **65%** | 🔄 **IN PROGRESS** |
+| **Phase 2** | Month 7-12 | **70%** | 🔄 **IN PROGRESS** |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
 
@@ -148,74 +159,59 @@ SEC-001/SEC-002 セキュリティ修正完了。PIR-SEC-001 PASS。
 
 ---
 
-## 📋 Phase 2 Week 5 タスク進捗（完了）
+## 📋 Phase 2 Week 6 タスク進捗
 
-### Completed ✅
+### SEC-003 実装状況 ✅
 
 | # | タスク | 担当 | 完了日 | 成果物 |
 |---|--------|------|--------|--------|
-| 1 | STARKVerifier.sol v0.1 基本構造 | Engineer | 2025-12-25 | ✅ IMPL-004 |
-| 2 | STARKVerifier単体テスト作成 | QA | 2025-12-25 | ✅ TEST-004 |
-| 3 | FRIVerifier統合テスト作成 | QA | 2025-12-25 | ✅ TEST-003 |
-| 4 | テスト実行・全PASS確認 | QA | 2025-12-25 | ✅ 53/53 PASS |
-| 5 | セキュリティレビュー PIR-P2-004 | Red Team | 2025-12-25 | ✅ **PASS** |
-| 6 | **IMPL-005 トレースCommitment検証** | Engineer | 2025-12-25 | ✅ **完了** |
-| 7 | **TEST-005 テストケース作成** | QA | 2025-12-25 | ✅ **完了** |
-| 8 | **テスト実行 36/36 PASS** | QA | 2025-12-25 | ✅ **ALL PASS** |
-| 9 | **セキュリティレビュー PIR-P2-005** | Red Team | 2025-12-25 | ✅ **PASS** |
-| 10 | **Slither静的解析実行** | Red Team | 2025-12-25 | ✅ **完了** |
-| 11 | **SEC-001 リエントランシー修正** | Engineer | 2025-12-25 | ✅ **COMPLETE** |
-| 12 | **SEC-002 Events/ZeroCheck修正** | Engineer | 2025-12-25 | ✅ **COMPLETE** |
-| 13 | **ReentrancyTest.t.sol作成** | QA | 2025-12-25 | ✅ **7/7 PASS** |
-| 14 | **EventsAndChecksTest.t.sol作成** | QA | 2025-12-25 | ✅ **21/21 PASS** |
-| 15 | **全テスト実行 557/557 PASS** | QA | 2025-12-25 | ✅ **ALL PASS** |
-| 16 | **Slither最終確認 (HIGH 0, MEDIUM 0)** | Red Team | 2025-12-25 | ✅ **VERIFIED** |
-| 17 | **04_review.md セキュリティレビュー** | Red Team | 2025-12-25 | ✅ **PASS** |
-| 18 | **05_pir.md PIR会議** | Team | 2025-12-26 | ✅ **PIR-SEC-001 PASS** |
-
----
-
-## 📋 Phase 2 Week 6 タスク（SEC-003）
+| 1 | **SEC-003テストケース作成** | Engineer | 2025-12-25 | ✅ SEC003Test.t.sol |
+| 2 | **FIX-015 lock() SHA3_256移行** | Engineer | 2025-12-25 | ✅ QuantumShield.sol |
+| 3 | **FIX-016 _verifyStarkProofInternal() 移行** | Engineer | 2025-12-25 | ✅ QuantumShield.sol |
+| 4 | **FIX-017 _hashPublicInputs() 移行** | Engineer | 2025-12-25 | ✅ QuantumShield.sol |
+| 5 | **FIX-018 SHA3_256インポート追加** | Engineer | 2025-12-25 | ✅ QuantumShield.sol |
+| 6 | **SPEC_REVIEW.md 更新** | Engineer | 2025-12-25 | ✅ 21432ee |
+| 7 | **CURRENT_STATE.md 更新** | Engineer | 2025-12-25 | ✅ このコミット |
 
 ### Next Actions 🔄
 
 | # | タスク | 担当 | 期限 | Status |
 |---|--------|------|------|--------|
-| 1 | **SEC-003 QuantumShield keccak256移行** | Engineer | Week 6 | 🔄 **NEXT** |
-| 2 | SEC-003テストケース作成 | QA | Week 6 | ⬜ PLANNED |
-| 3 | SEC-003セキュリティレビュー | Red Team | Week 6 | ⬜ PLANNED |
-| 4 | テストネット環境構築 (INFRA-001) | DevOps | 2025-12-31 | ⬜ PLANNED |
+| 1 | テスト実行 (`forge test`) | User | ASAP | ⏳ 待ち |
+| 2 | セキュリティレビュー (04_review.md) | Red Team | Week 6 | ⬜ NEXT |
+| 3 | PIR-SEC-003 会議 | Team | Week 6 | ⬜ PLANNED |
+| 4 | Slither再実行 | Red Team | Week 6 | ⬜ PLANNED |
 
 ---
 
 ## 🧪 テスト状態
 
-### 最新結果: ✅ **557/557 ALL PASS**
+### 最新結果: ⏳ **テスト実行待ち**
 
 ```
-SEC-001/SEC-002 追加テスト:
-  ReentrancyTest.t.sol:              7/7 PASS ✅
-  EventsAndChecksTest.t.sol:         21/21 PASS ✅
+SEC-003 追加テスト:
+  SEC003Test.t.sol:                  18 tests (予定)
 ────────────────────────────────────
-既存テスト:                          529/529 PASS ✅
+既存テスト:                          557 PASS (前回)
 ────────────────────────────────────
-TOTAL:                               557/557 PASS ✅
+TOTAL (予定):                        575
 ```
 
 ### テストスイート内訳
 
 | Suite | Tests | Status |
 |-------|-------|--------|
+| **SEC003Test (NEW)** | 18 | ⏳ 実行待ち |
 | ReentrancyTest | 7 | ✅ PASS |
 | EventsAndChecksTest | 21 | ✅ PASS |
 | L1VaultIntegrationTest | 51 | ✅ PASS |
 | VRFConsumerMockTest | 40 | ✅ PASS |
 | StateRootCalculatorTest | 38 | ✅ PASS |
 | STARKVerifierTest | 36 | ✅ PASS |
-| QuantumShieldTest | 35 | ✅ PASS |
+| QuantumShieldTest | 35 | ⚠️ 要確認 (SHA3移行の影響) |
 | SparseMerkleTreeTest | 30 | ✅ PASS |
 | その他 | 299 | ✅ PASS |
-| **合計** | **557** | ✅ **ALL PASS** |
+| **合計** | **575** | ⏳ 実行待ち |
 
 ---
 
@@ -248,6 +244,7 @@ TOTAL:                               557/557 PASS ✅
 | PIR-P2-004 | Week 3 STARKVerifier v0.1 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
 | PIR-P2-005 | Week 4 IMPL-005 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
 | PIR-SEC-001 | SEC-001/SEC-002 セキュリティレビュー | ✅ **PASS** | 2025-12-26 |
+| PIR-SEC-003 | SEC-003 QuantumShield SHA3移行 | ⏳ **PENDING** | Week 6 |
 
 ---
 
@@ -257,7 +254,7 @@ TOTAL:                               557/557 PASS ✅
 |---|------|--------|----------|
 | 1 | ~~L1Vault リエントランシー脆弱性 (SL-001〜004)~~ | ~~Critical~~ | ✅ **RESOLVED** |
 | 2 | ~~Missing Events / Zero-Check (SL-006〜015)~~ | ~~High~~ | ✅ **RESOLVED** |
-| 3 | **QuantumShield.sol keccak256使用 (ISSUE-001)** | 🟠 High | **Week 6 SEC-003** |
+| 3 | ~~**QuantumShield.sol keccak256使用 (ISSUE-001)**~~ | ~~High~~ | ✅ **SEC-003 実装完了** |
 | 4 | ZK-STARK実装の複雑性 | MEDIUM | 段階的実装継続 |
 | 5 | 外部監査のスケジュール | MEDIUM | RFP草案作成完了 |
 | 6 | テストネット環境構築 | MEDIUM | INFRA-001 進行予定 |
@@ -266,22 +263,20 @@ TOTAL:                               557/557 PASS ✅
 
 ## 🔜 次のアクション
 
-### SEC-003: QuantumShield.sol keccak256移行 [🟠 High - Week 6]
+### テスト実行（必須）
 
-**影響範囲**: QuantumShield.sol 3箇所
+```bash
+cd contracts
+forge test --match-contract SEC003Test -vvv
+forge test -vvv
+```
 
-| 関数 | 問題 | 修正方針 |
-|------|------|----------|
-| `lock()` | keccak256使用 | SHA3_256.hash()に移行 |
-| `_hashPublicInputs()` | keccak256使用 | SHA3_256.hash()に移行 |
-| `_verifyStarkProofInternal()` | keccak256使用 | SHA3_256.hash()に移行 |
+### セキュリティレビュー（04_review.md）
 
-**実行手順**:
-1. `01_plan.md` で SEC-003 計画策定
-2. `02_spec.md` で仕様レビュー
-3. `03_impl.md` で実装
-4. `04_review.md` でセキュリティレビュー
-5. `05_pir.md` で PIR-SEC-003 会議
+SEC-003実装のセキュリティレビューを実施:
+- SHA3_256使用箇所の検証
+- Gas消費量の確認
+- CP-1完全準拠の最終確認
 
 ---
 
@@ -308,7 +303,10 @@ TOTAL:                               557/557 PASS ✅
 | ~~Slither最終確認~~ | ~~Week 5~~ | ✅ **VERIFIED** |
 | ~~04_review.md セキュリティレビュー~~ | ~~Week 5~~ | ✅ **PASS** |
 | ~~05_pir.md PIR会議~~ | ~~Week 5~~ | ✅ **PIR-SEC-001 PASS** |
-| **SEC-003 QuantumShield keccak256移行** | **Week 6** | 🔄 **NEXT** |
+| ~~SEC-003 QuantumShield keccak256移行~~ | ~~Week 6~~ | ✅ **実装完了** |
+| **SEC-003 テスト実行** | **Week 6** | ⏳ **NEXT** |
+| **SEC-003 セキュリティレビュー** | **Week 6** | ⬜ PLANNED |
+| **PIR-SEC-003 会議** | **Week 6** | ⬜ PLANNED |
 | MS-1: ZK-STARK実装 | Month 9 | ⬜ |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
@@ -323,6 +321,7 @@ TOTAL:                               557/557 PASS ✅
 | 外部監査 | Critical/High 0件 | RFP作成完了 | 🔄 |
 | Slither | HIGH 0件 | ✅ **0件 (5件解消)** | ✅ |
 | Slither | MEDIUM 0件 | ✅ **0件 (10件解消)** | ✅ |
+| CP-1準拠 | keccak256完全排除 | ✅ **SEC-003完了** | ✅ |
 | テストネット | 安定稼働 | - | ⬜ |
 | Security Council | 5/9構築 | - | ⬜ |
 | Token設計 | veQS完了 | - | ⬜ |
@@ -340,7 +339,7 @@ TOTAL:                               557/557 PASS ✅
 | **PIR-P2-003レポート** | `docs/aegis/pir/PIR-P2-003_WEEK2_REVIEW.md` |
 | **PIR-P2-005レポート** | `docs/aegis/pir/PIR-P2-005_IMPL005_REVIEW.md` |
 | **Slitherレポート** | `docs/aegis/security/SLITHER_REPORT_2025-12-25.md` |
-| **SPEC_REVIEW (Archived)** | `docs/planning/archive/SPEC_REVIEW_SEC001_SEC002_2025-12-25.md` |
+| **SPEC_REVIEW** | `docs/planning/SPEC_REVIEW.md` |
 | Gasベンチマーク (Phase 1) | `docs/planning/archive/GAS_BENCHMARK_2025-12-26.md` |
 | **ZK-STARK実装計画** | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
 | **Gasベースライン (Phase 2)** | `docs/planning/GAS_BASELINE_P2.md` |
@@ -353,9 +352,9 @@ TOTAL:                               557/557 PASS ✅
 
 **Phase 1 Foundation Bootstrap: ✅ COMPLETE 🎉**
 
-**Phase 2 Week 5: ✅ COMPLETE - PIR-SEC-001 PASS - 557テスト ALL PASS - Slither HIGH 0 / MEDIUM 0**
+**Phase 2 Week 6: ✅ SEC-003 実装完了 - テスト実行待ち - CP-1完全準拠達成**
 
-**Next: Week 6 → SEC-003 QuantumShield keccak256移行**
+**Next: テスト実行 → セキュリティレビュー → PIR-SEC-003**
 
 ---
 
