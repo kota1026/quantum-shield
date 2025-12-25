@@ -7,6 +7,37 @@ optimizer = true
 optimizer_runs = 200
 evm_version = "paris"
 
+# Exclude OpenZeppelin files that require newer Solidity versions
+ignore = [
+    "lib/openzeppelin-contracts/contracts/mocks/**",
+    "lib/openzeppelin-contracts/contracts/governance/**",
+    "lib/openzeppelin-contracts/contracts/crosschain/**",
+    "lib/openzeppelin-contracts/contracts/account/**",
+    "lib/openzeppelin-contracts/contracts/metatx/**",
+    "lib/openzeppelin-contracts/contracts/proxy/**",
+    "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Crosschain.sol",
+    "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol",
+    "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol",
+    "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol",
+    "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/draft-ERC20TemporaryApproval.sol",
+    "lib/openzeppelin-contracts/contracts/token/ERC721/**",
+    "lib/openzeppelin-contracts/contracts/token/ERC1155/**",
+    "lib/openzeppelin-contracts/contracts/utils/Arrays.sol",
+    "lib/openzeppelin-contracts/contracts/utils/Bytes.sol",
+    "lib/openzeppelin-contracts/contracts/utils/CAIP*.sol",
+    "lib/openzeppelin-contracts/contracts/utils/Memory.sol",
+    "lib/openzeppelin-contracts/contracts/utils/RLP.sol",
+    "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuardTransient.sol",
+    "lib/openzeppelin-contracts/contracts/utils/Strings.sol",
+    "lib/openzeppelin-contracts/contracts/utils/TransientSlot.sol",
+    "lib/openzeppelin-contracts/contracts/utils/cryptography/**",
+    "lib/openzeppelin-contracts/contracts/utils/structs/**",
+    "lib/openzeppelin-contracts/contracts/utils/draft-InteroperableAddress.sol",
+    "lib/openzeppelin-contracts/fv/**",
+    "lib/openzeppelin-contracts/test/**",
+    "lib/openzeppelin-contracts/scripts/**"
+]
+
 [profile.default.fuzz]
 runs = 256
 max_test_rejects = 65536
