@@ -29,6 +29,10 @@ import {FRIVerifier} from "./FRIVerifier.sol";
 /// - Full mathematical verification of STARK proof on-chain
 /// - Quantum-resistant: uses hash-based cryptography (no elliptic curves)
 /// - Higher gas cost (~2-6M gas) but fully trustless
+///
+/// SEC-002 Update (2025-12-25):
+/// - [FIX-007] Added OwnershipTransferred event to transferOwnership()
+/// - [FIX-008] Added zero-address check to setVerifier()
 contract QuantumShield {
     // =========================================================================
     // Events
@@ -57,6 +61,10 @@ contract QuantumShield {
     event VerifierUpdated(address indexed newVerifier);
     event EmergencyPaused(address indexed by);
     event EmergencyUnpaused(address indexed by);
+    
+    /// @notice Emitted when ownership is transferred
+    /// @dev SEC-002 FIX-007: Added for auditability
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // =========================================================================
     // Errors
@@ -631,7 +639,9 @@ contract QuantumShield {
     // =========================================================================
 
     /// @notice Set external verifier contract
+    /// @dev SEC-002 FIX-008: Added zero-address check
     function setVerifier(address _verifier) external onlyOwner {
+        if (_verifier == address(0)) revert ZeroAddress();
         verifier = _verifier;
         emit VerifierUpdated(_verifier);
     }
@@ -649,9 +659,12 @@ contract QuantumShield {
     }
 
     /// @notice Transfer ownership
+    /// @dev SEC-002 FIX-007: Added OwnershipTransferred event emission
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
+        address previousOwner = owner;
         owner = newOwner;
+        emit OwnershipTransferred(previousOwner, newOwner);
     }
 
     // =========================================================================
