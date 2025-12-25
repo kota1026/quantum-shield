@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-26 16:00 JST  
+> **Last Updated**: 2025-12-25 15:42 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -11,9 +11,9 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 2 - Security Council + Token                        │
 │  Month: 7 / 24                                              │
-│  Day: 1 (Phase 2 開始)                                       │
+│  Week: 2                                                    │
 │  Next Milestone: MS-1 ZK-STARK実装                          │
-│  Status: 🚀 Phase 2 Week 1 Complete + Review PASS           │
+│  Status: 🔄 SHA3Hasher + ProofCodec 実装完了                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -26,29 +26,42 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | - |
-| **実装日時** | - |
-| **ステータス** | ⬜ 未実行 |
+| **対象Plan** | CURRENT_PLAN.md - Phase 2.1 Week 2 |
+| **実装日時** | 2025-12-25 15:42 JST |
+| **ステータス** | ✅ 実装完了（テスト実行待ち） |
 
 ### 作成ファイル
 
-（なし）
+- `contracts/src/libraries/SHA3Hasher.sol`: SHA3-256ラッパーライブラリ（hash, hashPair, batchHash, hashChain）
+- `contracts/src/libraries/ProofCodec.sol`: STARK証明エンコード/デコードライブラリ
+- `contracts/test/SHA3HasherTest.t.sol`: SHA3Hasher単体テスト（TEST-001）
+- `contracts/test/ProofCodecTest.t.sol`: ProofCodec単体テスト（TEST-002）
 
 ### SPEC_REVIEW対応
 
-（該当なし）
+（該当なし - SPEC_REVIEW.md は PASS ステータス、指摘事項なし）
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | - |
-| 総テスト数 | - |
-| 結果 | - |
+| 新規テスト数 | +47 (見込み) |
+| 総テスト数 | ~480 (見込み) |
+| 結果 | ⏳ 実行待ち (`forge test` 必要) |
 
 ### 備考
 
-（なし）
+- IMPL-001: SHA3Hasher.sol - CP-1準拠（keccak256未使用、SHA3-256のみ）
+- IMPL-002: ProofCodec.sol - STARKProof構造体とエンコード/デコード機能
+- IMPL-003: NatSpecドキュメント - 両ファイルに包括的なNatSpecを追加
+
+### 次のステップ
+
+```bash
+cd contracts && forge test
+```
+
+上記コマンドでテスト実行後、結果を報告してください。
 
 ---
 
@@ -58,7 +71,7 @@
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
 | Phase 1 | Month 1-6 | 100% | ✅ **COMPLETE** 🎉 |
-| **Phase 2** | Month 7-12 | **15%** | 🔄 **IN PROGRESS** |
+| **Phase 2** | Month 7-12 | **18%** | 🔄 **IN PROGRESS** |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
 
@@ -69,7 +82,7 @@
 ### Go/No-Go判定結果: 🟢 **GO** (2025-12-26)
 
 | 項目 | 達成状況 |
-|------|---------| 
+|------|---------|
 | 14日間修正計画 | ✅ 100% COMPLETE |
 | 全PIRレビュー | ✅ 11/11 PASS |
 | テストスイート | ✅ 423/423 PASS (100%) |
@@ -99,62 +112,47 @@
 
 ---
 
-## 📋 Phase 2 Week 1 タスク完了
+## 📋 Phase 2 Week 2 タスク進捗
 
 ### Completed ✅
 
 | # | タスク | 担当 | 完了日 | 成果物 |
 |---|--------|------|--------|--------|
-| 1 | Phase 2 Active Checklist作成 | CTO | 2025-12-26 | ✅ PHASE2_CHECKLIST.md |
-| 2 | ZK-STARK実装計画詳細化 | Engineer + Cryptographer | 2025-12-25 | ✅ ZK_STARK_IMPLEMENTATION_PLAN.md |
-| 3 | 外部監査RFP準備 | CSO | 2025-12-26 | ✅ AUDIT_RFP_DRAFT.md |
-| 4 | FRIVerifier SHA3-256移行 | Engineer | 2025-12-26 | ✅ PIR-P2-001 PASS |
-| 5 | Compiler Warnings棚卸し | Engineer | 2025-12-26 | ✅ COMPILER_WARNINGS_LOG.md更新 |
-| 6 | Gasベースライン取得 | Engineer | 2025-12-25 | ✅ GAS_BASELINE_P2.md |
-| 7 | **Week 1 セキュリティレビュー** | Red Team | 2025-12-26 | ✅ **PIR-P2-002 PASS** |
+| 1 | SHA3Hasher.sol作成 | Engineer | 2025-12-25 | ✅ IMPL-001 |
+| 2 | ProofCodec.sol基本構造 | Engineer | 2025-12-25 | ✅ IMPL-002 |
+| 3 | NatSpecドキュメント追加 | Engineer | 2025-12-25 | ✅ IMPL-003 |
+| 4 | SHA3Hasher単体テスト作成 | QA | 2025-12-25 | ✅ TEST-001 |
+| 5 | ProofCodec単体テスト作成 | QA | 2025-12-25 | ✅ TEST-002 |
 
-### Next Up (Week 2)
+### In Progress 🔄
 
 | # | タスク | 担当 | 期限 | Status |
 |---|--------|------|------|--------|
-| 1 | テストネット環境構築 | DevOps | 2025-12-31 | ⬜ |
-| 2 | SHA3Hasher.sol作成 | Engineer | 2025-12-30 | ⬜ |
-| 3 | ProofCodec.sol基本構造 | Engineer | 2025-12-31 | ⬜ |
+| 1 | テスト実行・カバレッジ確認 | QA | 2025-12-25 | 🔄 `forge test` 待ち |
+
+### Next Up (Week 3)
+
+| # | タスク | 担当 | 期限 | Status |
+|---|--------|------|------|--------|
+| 1 | STARKVerifier基本構造 | Engineer | 2025-12-31 | ⬜ |
+| 2 | テストネット環境構築 | DevOps | 2025-12-31 | ⬜ |
 
 ---
 
-## 🧪 テスト状態 ✅ ALL PASS
+## 🧪 テスト状態
 
-### 結果: ✅ **433/433 PASS**
+### 前回結果: ✅ **433/433 PASS**
 
 ```
 Ran 20 test suites in 4.72s: 433 tests passed, 0 failed, 0 skipped (433 total tests)
 ```
 
-### テストスイート
+### 今回追加テスト
 
 | Suite | Tests | Status |
 |-------|-------|--------|
-| VRFConsumerMockTest | 40 | ✅ |
-| VRFTimeoutBoundaryTest | 10 | ✅ |
-| L1VaultSMTSHA3Test | 7 | ✅ |
-| VRFConsumerTest | 28 | ✅ |
-| L1VaultSignatureSHA3Test | 11 | ✅ |
-| SHA3_256GasTest | 13 | ✅ |
-| SHAKE256Test | 12 | ✅ |
-| E2EIntegrationTest | 15 | ✅ |
-| SPHINCSVerifierKATTest | 23 | ✅ |
-| L1VaultVRFIntegrationTest | 12 | ✅ |
-| QuantumShieldTest | 35 | ✅ |
-| ProverSelectorTest | 20 | ✅ |
-| SPHINCSVerifierTest | 13 | ✅ |
-| SPHINCSVerifierSHAKETest | 17 | ✅ |
-| SHA3_256Test | 24 | ✅ |
-| L1VaultEmergencyTest | 24 | ✅ |
-| SparseMerkleTreeTest | 30 | ✅ |
-| StateRootCalculatorTest | 38 | ✅ |
-| L1VaultIntegrationTest | 51 | ✅ |
-| **FRIVerifierSHA3Test** | **10** | ✅ |
+| SHA3HasherTest | ~25 | ⏳ 実行待ち |
+| ProofCodecTest | ~22 | ⏳ 実行待ち |
 
 ---
 
@@ -183,6 +181,7 @@ Ran 20 test suites in 4.72s: 433 tests passed, 0 failed, 0 skipped (433 total te
 | - | Phase 2 Day 1 - 計画策定 | ✅ | 2025-12-25 |
 | PIR-P2-001 | FRIVerifier SHA3-256移行 | ✅ **PASS** | 2025-12-26 |
 | PIR-P2-002 | Week 1 成果物レビュー | ✅ **PASS** | 2025-12-26 |
+| PIR-P2-003 | Week 2 SHA3Hasher + ProofCodec | ⏳ Pending | - |
 
 ---
 
@@ -207,7 +206,8 @@ Ran 20 test suites in 4.72s: 433 tests passed, 0 failed, 0 skipped (433 total te
 | ~~Phase 2 Active Checklist作成~~ | ~~Week 1~~ | ✅ **COMPLETE** |
 | ~~外部監査RFP草案~~ | ~~Week 1~~ | ✅ **COMPLETE** |
 | ~~Week 1 セキュリティレビュー~~ | ~~Week 1~~ | ✅ **COMPLETE (PIR-P2-002)** |
-| SHA3Hasher.sol / ProofCodec.sol | Week 2-4 | ⬜ **NEXT** |
+| **SHA3Hasher.sol / ProofCodec.sol** | **Week 2** | 🔄 **IN PROGRESS** |
+| STARKVerifier基本構造 | Week 3-4 | ⬜ |
 | MS-1: ZK-STARK実装 | Month 9 | ⬜ |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
@@ -218,7 +218,7 @@ Ran 20 test suites in 4.72s: 433 tests passed, 0 failed, 0 skipped (433 total te
 
 | 条件 | 基準 | 現状 | 判定 |
 |------|------|------|------|
-| ZK-STARK証明 | Gas 87.5%削減 | 計画策定完了 | 🔄 |
+| ZK-STARK証明 | Gas 87.5%削減 | 基盤ライブラリ実装中 | 🔄 |
 | 外部監査 | Critical/High 0件 | RFP作成完了 | 🔄 |
 | テストネット | 安定稼働 | - | ⬜ |
 | Security Council | 5/9構築 | - | ⬜ |
@@ -246,7 +246,7 @@ Ran 20 test suites in 4.72s: 433 tests passed, 0 failed, 0 skipped (433 total te
 
 **Phase 1 Foundation Bootstrap: ✅ COMPLETE 🎉**
 
-**Phase 2 Week 1: ✅ COMPLETE + REVIEW PASS**
+**Phase 2 Week 2: 🔄 IN PROGRESS - 実装完了、テスト待ち**
 
 ---
 
