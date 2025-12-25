@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-25 23:50 JST  
+> **Last Updated**: 2025-12-26 14:15 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -26,15 +26,14 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 2 Day 1 - 計画策定・ベースライン取得 |
-| **実装日時** | 2025-12-25 23:50 JST |
+| **対象Plan** | Phase 2 Day 1 - FRIVerifier SHA3-256移行 |
+| **実装日時** | 2025-12-26 14:13 JST |
 | **ステータス** | ✅ 実装完了 |
 
 ### 作成ファイル
 
-- `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md`: ZK-STARK実装計画書（Phase 2 Week 1-12ロードマップ）
-- `docs/planning/COMPILER_WARNINGS_LOG.md`: Compiler Warnings棚卸しログ
-- `docs/planning/GAS_BASELINE_P2.md`: Phase 2 Gasベースラインレポート
+- `contracts/src/FRIVerifier.sol`: SHA3-256対応版（keccak256→SHA3_256.hash/hashPair）
+- `test/FRIVerifierSHA3Test.t.sol`: SHA3-256移行検証テスト
 
 ### SPEC_REVIEW対応
 
@@ -44,15 +43,24 @@
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +0 (ドキュメント作成のみ) |
-| 総テスト数 | 423 |
-| 結果 | ✅ ALL PASS (Phase 1 Baseline維持) |
+| 新規テスト数 | +8 |
+| 総テスト数 | 431 (予定) |
+| 結果 | ⏳ テスト実行待ち |
 
 ### 備考
 
-- ⚠️ **Critical Finding**: `FRIVerifier.sol` Line 191で`keccak256`使用を発見（CP-1違反リスク）
-- Phase 2 Week 1で`SHA3-256`への移行が必要
-- Gas目標: 87.5%削減（~50-100M → <6.25M gas）
+- ✅ **FIX-001 COMPLETE**: `FRIVerifier.sol` keccak256→SHA3-256移行完了
+- verifyMerkleProof関数で3箇所のkeccak256をSHA3_256に置換
+  - Leaf hash: `SHA3_256.hash(abi.encodePacked(eval0, eval1))`
+  - Node hash (左): `SHA3_256.hashPair(current, merkleProof[i])`
+  - Node hash (右): `SHA3_256.hashPair(merkleProof[i], current)`
+
+### コミット情報
+
+| コミット | 内容 |
+|---------|------|
+| `a7da8020` | test(FRIVerifier): Add SHA3-256 migration verification tests [TEST-001] |
+| `4550b134` | fix(FRIVerifier): Replace keccak256 with SHA3-256 for CP-1 compliance [FIX-001] |
 
 ---
 
@@ -62,7 +70,7 @@
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
 | Phase 1 | Month 1-6 | 100% | ✅ **COMPLETE** 🎉 |
-| **Phase 2** | Month 7-12 | **5%** | 🔄 **IN PROGRESS** |
+| **Phase 2** | Month 7-12 | **8%** | 🔄 **IN PROGRESS** |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
 
@@ -73,7 +81,7 @@
 ### Go/No-Go判定結果: 🟢 **GO** (2025-12-26)
 
 | 項目 | 達成状況 |
-|------|---------|
+|------|---------| 
 | 14日間修正計画 | ✅ 100% COMPLETE |
 | 全PIRレビュー | ✅ 11/11 PASS |
 | テストスイート | ✅ 423/423 PASS (100%) |
@@ -113,12 +121,13 @@
 | 2 | ZK-STARK実装計画詳細化 | Engineer + Cryptographer | 2025-12-30 | ✅ **COMPLETE** |
 | 3 | 外部監査RFP準備 | CSO | 2025-12-30 | ⬜ |
 | 4 | テストネット環境構築 | DevOps | 2025-12-31 | ⬜ |
+| 5 | **FRIVerifier SHA3-256移行** | Engineer | 2025-12-26 | ✅ **COMPLETE** |
 
 ---
 
 ## 🧪 テスト状態 ✅ ALL PASS
 
-### 結果: ✅ **423/423 PASS**
+### 結果: ✅ **423/423 PASS** (+ 8 新規予定)
 
 ```
 Ran 19 test suites in 5.09s: 423 tests passed, 0 failed, 0 skipped (423 total tests)
@@ -147,6 +156,7 @@ Ran 19 test suites in 5.09s: 423 tests passed, 0 failed, 0 skipped (423 total te
 | SparseMerkleTreeTest | 30 | ✅ |
 | StateRootCalculatorTest | 38 | ✅ |
 | L1VaultIntegrationTest | 51 | ✅ |
+| **FRIVerifierSHA3Test** | **8** | ⏳ **NEW** |
 
 ---
 
@@ -172,7 +182,8 @@ Ran 19 test suites in 5.09s: 423 tests passed, 0 failed, 0 skipped (423 total te
 
 | PIR ID | 対象 | 判定 | 日付 |
 |--------|------|------|------|
-| - | (Phase 2 Day 1 - 計画策定) | ✅ | 2025-12-25 |
+| - | Phase 2 Day 1 - 計画策定 | ✅ | 2025-12-25 |
+| - | FRIVerifier SHA3-256移行 | ⏳ PENDING REVIEW | 2025-12-26 |
 
 ---
 
@@ -183,7 +194,7 @@ Ran 19 test suites in 5.09s: 423 tests passed, 0 failed, 0 skipped (423 total te
 | 1 | ZK-STARK実装の複雑性 | HIGH | ✅ 段階的実装計画策定完了 |
 | 2 | 外部監査のスケジュール | MEDIUM | RFP準備中 |
 | 3 | Compiler Warnings | LOW | ✅ 棚卸し完了、Week 1対応予定 |
-| 4 | **FRIVerifier keccak256使用** | **HIGH** | Week 1でSHA3-256移行必須 |
+| 4 | ~~FRIVerifier keccak256使用~~ | ~~HIGH~~ | ✅ **SHA3-256移行完了** |
 
 ---
 
@@ -193,7 +204,8 @@ Ran 19 test suites in 5.09s: 423 tests passed, 0 failed, 0 skipped (423 total te
 |---------------|------|--------|
 | Phase 1完了 | Day 14 | ✅ **COMPLETE** |
 | **Phase 2 開始** | Month 7 | 🟢 **STARTED** |
-| FRIVerifier SHA3移行 | Week 1 | ⬜ **NEXT** |
+| ~~FRIVerifier SHA3移行~~ | ~~Week 1~~ | ✅ **COMPLETE** |
+| セキュリティレビュー | Week 1 | ⬜ **NEXT** |
 | MS-1: ZK-STARK実装 | Month 9 | ⬜ |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
