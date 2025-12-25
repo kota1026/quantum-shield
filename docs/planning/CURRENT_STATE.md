@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-26 14:15 JST  
+> **Last Updated**: 2025-12-26 15:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -27,13 +27,14 @@
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | Phase 2 Day 1 - FRIVerifier SHA3-256移行 |
-| **実装日時** | 2025-12-26 14:13 JST |
+| **実装日時** | 2025-12-26 15:30 JST |
 | **ステータス** | ✅ 実装完了 |
 
 ### 作成ファイル
 
 - `contracts/src/FRIVerifier.sol`: SHA3-256対応版（keccak256→SHA3_256.hash/hashPair）
-- `test/FRIVerifierSHA3Test.t.sol`: SHA3-256移行検証テスト
+- `contracts/test/FRIVerifierSHA3Test.t.sol`: SHA3-256移行検証テスト（10テスト）
+- `contracts/test/QuantumShield.t.sol`: SHA3-256対応テスト修正
 
 ### SPEC_REVIEW対応
 
@@ -43,9 +44,9 @@
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +8 |
-| 総テスト数 | 431 (予定) |
-| 結果 | ⏳ テスト実行待ち |
+| 新規テスト数 | +10 |
+| 総テスト数 | 433 |
+| 結果 | ✅ **ALL PASS** |
 
 ### 備考
 
@@ -54,6 +55,7 @@
   - Leaf hash: `SHA3_256.hash(abi.encodePacked(eval0, eval1))`
   - Node hash (左): `SHA3_256.hashPair(current, merkleProof[i])`
   - Node hash (右): `SHA3_256.hashPair(merkleProof[i], current)`
+- ✅ **TEST-FIX**: `QuantumShield.t.sol` の `test_Level2_FRIMerkleVerification` もSHA3-256対応
 
 ### コミット情報
 
@@ -61,6 +63,8 @@
 |---------|------|
 | `a7da8020` | test(FRIVerifier): Add SHA3-256 migration verification tests [TEST-001] |
 | `4550b134` | fix(FRIVerifier): Replace keccak256 with SHA3-256 for CP-1 compliance [FIX-001] |
+| `5ebee19d` | docs(CURRENT_STATE): Update with FRIVerifier SHA3-256 implementation report |
+| `c01a654` | fix(test): Update QuantumShield test to use SHA3-256 for CP-1 compliance |
 
 ---
 
@@ -81,7 +85,7 @@
 ### Go/No-Go判定結果: 🟢 **GO** (2025-12-26)
 
 | 項目 | 達成状況 |
-|------|---------| 
+|------|---------|
 | 14日間修正計画 | ✅ 100% COMPLETE |
 | 全PIRレビュー | ✅ 11/11 PASS |
 | テストスイート | ✅ 423/423 PASS (100%) |
@@ -127,10 +131,10 @@
 
 ## 🧪 テスト状態 ✅ ALL PASS
 
-### 結果: ✅ **423/423 PASS** (+ 8 新規予定)
+### 結果: ✅ **433/433 PASS**
 
 ```
-Ran 19 test suites in 5.09s: 423 tests passed, 0 failed, 0 skipped (423 total tests)
+Ran 20 test suites in 4.72s: 433 tests passed, 0 failed, 0 skipped (433 total tests)
 ```
 
 ### テストスイート
@@ -156,7 +160,7 @@ Ran 19 test suites in 5.09s: 423 tests passed, 0 failed, 0 skipped (423 total te
 | SparseMerkleTreeTest | 30 | ✅ |
 | StateRootCalculatorTest | 38 | ✅ |
 | L1VaultIntegrationTest | 51 | ✅ |
-| **FRIVerifierSHA3Test** | **8** | ⏳ **NEW** |
+| **FRIVerifierSHA3Test** | **10** | ✅ **NEW** |
 
 ---
 
@@ -183,7 +187,7 @@ Ran 19 test suites in 5.09s: 423 tests passed, 0 failed, 0 skipped (423 total te
 | PIR ID | 対象 | 判定 | 日付 |
 |--------|------|------|------|
 | - | Phase 2 Day 1 - 計画策定 | ✅ | 2025-12-25 |
-| - | FRIVerifier SHA3-256移行 | ⏳ PENDING REVIEW | 2025-12-26 |
+| PIR-P2-001 | FRIVerifier SHA3-256移行 | ⏳ PENDING REVIEW | 2025-12-26 |
 
 ---
 
