@@ -2,16 +2,16 @@
 
 ## 日時
 2025-12-25 15:30 JST（初回）
-2025-12-25 19:12 JST（追加修正完了）
+2025-12-25 19:12 JST（SEC-001/002修正完了）
+2025-12-25 23:37 JST（SEC-003修正完了）
 
 ## 対象
 SEC-001: L1Vault リエントランシー修正 [Critical]
 SEC-002: Events/ZeroCheck修正 [High]
+SEC-003: QuantumShield.sol keccak256 → SHA3_256 移行 [High]
 
 ## ステータス
 ✅ **全て対応済み** - セキュリティレビューへ進むこと
-
-⚠️ **別途課題あり** - 下記ISSUE-001はスコープ外だが、将来対応必須
 
 ---
 
@@ -21,7 +21,7 @@ SEC-002: Events/ZeroCheck修正 [High]
 
 | 原則 | 判定 | 根拠 |
 |------|------|------|
-| CP-1 完全量子耐性 | ✅ | 暗号アルゴリズム変更なし |
+| CP-1 完全量子耐性 | ✅ | SEC-003で全keccak256をSHA3_256に移行完了 |
 | CP-2 Self-Custody | ✅ | 秘密鍵管理に影響なし |
 | CP-3 Time Lock存在 | ✅ | Time Lock機能維持 |
 | CP-4 Slashing存在 | ✅ | Slashing機能維持 |
@@ -69,50 +69,53 @@ SEC-002: Events/ZeroCheck修正 [High]
 - [x] VRFConsumer.sol - `_selectProver`戻り値処理
   - **対応内容**: `_selectProverSafe()`ラッパー関数追加、戻り値検証実装
   - **対応コミット**: 0a77de8, 44aeae6
-- [x] VRFConsumer.sol - コンストラクタ`l1Vault`ゼロアドレスチェック追加 **(NEW)**
+- [x] VRFConsumer.sol - コンストラクタ`l1Vault`ゼロアドレスチェック追加
   - **対応内容**: コンストラクタに`if (_l1Vault == address(0)) revert ZeroAddress();`追加
   - **対応コミット**: a23c1a2
-- [x] VRFConsumerMock.sol - コンストラクタ`l1Vault`ゼロアドレスチェック追加 **(NEW)**
+- [x] VRFConsumerMock.sol - コンストラクタ`l1Vault`ゼロアドレスチェック追加
   - **対応内容**: コンストラクタに`if (_l1Vault == address(0)) revert ZeroAddress();`追加
   - **対応コミット**: d309870
-- [x] VRFConsumerMock.sol - `OwnershipTransferred`イベント追加 **(NEW)**
+- [x] VRFConsumerMock.sol - `OwnershipTransferred`イベント追加
   - **対応内容**: transferOwnership()にイベント発火追加
   - **対応コミット**: d309870
 
 **判定**: ✅ 修正完了 - 監査可能性とセキュリティ向上
 
+#### SEC-003: QuantumShield.sol keccak256 → SHA3_256 移行 (ISSUE-001対応)
+
+- [x] [FIX-015] `lock()` 関数の keccak256 → SHA3_256.hash() 移行
+  - **対応内容**: lockId生成をSHA3_256.hash()に変更
+  - **対応コミット**: 8b46f06
+- [x] [FIX-016] `_verifyStarkProofInternal()` 関数の keccak256 → SHA3_256.hash() 移行（2箇所）
+  - **対応内容**: proofBindingおよびexpectedBinding計算をSHA3_256.hash()に変更
+  - **対応コミット**: 8b46f06
+- [x] [FIX-017] `_hashPublicInputs()` 関数の keccak256 → SHA3_256.hash() 移行
+  - **対応内容**: 公開入力のハッシュ計算をSHA3_256.hash()に変更
+  - **対応コミット**: 8b46f06
+- [x] [FIX-018] SHA3_256ライブラリのインポート追加
+  - **対応内容**: `import {SHA3_256} from "./libraries/SHA3_256.sol";`追加
+  - **対応コミット**: 8b46f06
+
+**判定**: ✅ 修正完了 - CP-1完全準拠
+
 ---
 
-## 指摘事項（スコープ外・将来対応）
+## 指摘事項
 
 ### [ISSUE-001] QuantumShield.sol - keccak256使用（CP-1違反）
 
-- **リスクレベル**: 🔴 HIGH
+- **リスクレベル**: 🔴 HIGH → ✅ RESOLVED
 - **該当原則**: CP-1 完全量子耐性
 - **問題**: `QuantumShield.sol`で禁止アルゴリズム`keccak256`が使用されている
 
 **検出箇所**:
-1. `lock()` 関数 (L186-191): `lockId`生成
-   ```solidity
-   lockId = keccak256(abi.encodePacked(
-       msg.sender, msg.value, dilithiumPubKeyHash, nonce, block.timestamp
-   ));
-   ```
+1. `lock()` 関数 (L186-191): `lockId`生成 → ✅ FIX-015
+2. `_hashPublicInputs()` 関数 (L396-404) → ✅ FIX-017
+3. `_verifyStarkProofInternal()` 関数 (L338, L356) → ✅ FIX-016
 
-2. `_hashPublicInputs()` 関数 (L396-404)
-   ```solidity
-   return keccak256(abi.encodePacked(...));
-   ```
-
-3. `_verifyStarkProofInternal()` 関数 (L338, L356)
-   ```solidity
-   bytes32 proofBinding = keccak256(abi.encodePacked(...));
-   ```
-
-- **対策**: L1Vault.solと同様に`SHA3_256.hash()`に移行
-- [ ] 対応済み（将来タスク: SEC-003として計画）
-
-**注記**: 今回のスコープ（SEC-001, SEC-002）には影響しないため、実装は進行可能。ただし、QuantumShield.solのkeccak256移行は次回Plan以降で対応必須。
+- **対策**: SHA3_256.hash()に移行
+- [x] 対応済み（SEC-003として実装完了）
+- **対応コミット**: 8b46f06
 
 ---
 
@@ -127,6 +130,7 @@ SEC-002: Events/ZeroCheck修正 [High]
 | SEC-001 FIX-002b (追加) | Engineer | 2025-12-25 19:09 | 62cd53d |
 | SEC-002 FIX-012 (追加) | Engineer | 2025-12-25 19:11 | a23c1a2 |
 | SEC-002 FIX-013~014 (追加) | Engineer | 2025-12-25 19:12 | d309870 |
+| SEC-003 FIX-015~018 | Engineer | 2025-12-25 23:37 | 3e8d97e, 8b46f06 |
 
 ---
 
@@ -165,14 +169,15 @@ SEC-002: Events/ZeroCheck修正 [High]
 ## 次のステップ
 
 1. ✅ 仕様確認完了
-2. ✅ 実装完了 - **04_review.md**（セキュリティレビュー）に進んでください
-3. 将来タスク: QuantumShield.sol keccak256移行（ISSUE-001）をCURRENT_PLANに追加
+2. ✅ SEC-001/002 実装完了
+3. ✅ SEC-003 実装完了（ISSUE-001解消）
+4. → **04_review.md**（セキュリティレビュー）に進んでください
 
 ---
 
 **Reviewed by**: Chief Cryptographer  
 **Implementation by**: Engineer  
-**Status**: ✅ IMPLEMENTATION COMPLETE
+**Status**: ✅ ALL ISSUES RESOLVED
 
 ---
 
