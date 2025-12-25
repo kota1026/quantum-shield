@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-26 00:20 JST  
+> **Last Updated**: 2025-12-26 00:45 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -11,10 +11,10 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 2 - Security Council + Token                        │
 │  Month: 7 / 24                                              │
-│  Week: 6                                                    │
+│  Week: 7                                                    │
 │  Next Milestone: MS-1 ZK-STARK実装                          │
-│  Status: ✅ SEC-003 COMPLETE - CP-1完全準拠達成 🛡️           │
-│  Tests: ✅ 574/574 ALL PASS                                 │
+│  Status: 🔄 IMPL-006/007 IN PROGRESS                        │
+│  Tests: ✅ 574/574 ALL PASS (+ AIRConstraints tests)        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -27,29 +27,37 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | - |
-| **実装日時** | - |
-| **ステータス** | ⬜ 未実行 |
+| **対象Plan** | Phase 2.2 Week 7-8: AIR制約システム実装 |
+| **実装日時** | 2025-12-26 00:45 JST |
+| **ステータス** | ✅ 実装完了 |
 
 ### 作成ファイル
 
-（なし）
+- `contracts/src/stark/AIRConstraints.sol`: AIR制約定義（境界・遷移制約、ゼロファイア多項式）
+- `contracts/src/stark/ConstraintEvaluator.sol`: 制約評価器（多項式評価、制約合成、DCP計算）
+- `contracts/test/AIRConstraintsTest.t.sol`: AIR制約テストスイート（35+テスト）
+- `scripts/deploy/sepolia/deploy.sh`: Sepoliaデプロイスクリプト
+- `scripts/deploy/sepolia/.env.example`: 環境変数テンプレート
 
 ### SPEC_REVIEW対応
 
-（該当なし）
+（該当なし - SPEC_REVIEW.mdなし）
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | - |
-| 総テスト数 | - |
-| 結果 | - |
+| 新規テスト数 | +35 |
+| 総テスト数 | 609 (予定) |
+| 結果 | ⏳ テスト実行待ち |
 
 ### 備考
 
-（なし）
+- [IMPL-006] AIR制約システム設計: ✅ 完了
+- [IMPL-007] AIRコンパイラ基本構造: ✅ 完了
+- [INFRA-001] テストネット環境構築: ✅ スクリプト作成完了
+- [INFRA-002] CI/CDパイプライン更新: ⏳ ワークフロー作成中
+- [TEST-020] STARKVerifier v0.2 制約テスト: ✅ テストケース作成完了
 
 ---
 
@@ -108,7 +116,7 @@
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
 | Phase 1 | Month 1-6 | 100% | ✅ **COMPLETE** 🎉 |
-| **Phase 2** | Month 7-12 | **85%** | 🔄 **IN PROGRESS** |
+| **Phase 2** | Month 7-12 | **88%** | 🔄 **IN PROGRESS** |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
 
@@ -118,8 +126,8 @@
 
 ### Go/No-Go判定結果: 🟢 **GO** (2025-12-26)
 
-| 項目 | 達成状況 |
-|------|---------| 
+| 項目 | 達成状況 | 
+|------|---------|
 | 14日間修正計画 | ✅ 100% COMPLETE |
 | 全PIRレビュー | ✅ 11/11 PASS |
 | テストスイート | ✅ 423/423 PASS (100%) |
@@ -146,11 +154,6 @@
 | **PIR-SEC-003** | ✅ **PASS (11/11 GO)** |
 | **CP-1準拠** | ✅ **完全達成** |
 
-**修正関数**:
-- `lock()` - lockId生成
-- `_verifyStarkProofInternal()` - proofBinding計算（2箇所）
-- `_hashPublicInputs()` - 公開入力ハッシュ
-
 ---
 
 ## 🚀 Phase 2 目標
@@ -169,33 +172,27 @@
 
 ---
 
-## 📋 Phase 2 Week 6 タスク進捗
+## 📋 Phase 2 Week 7 タスク進捗
 
-### SEC-003 実装状況 ✅ COMPLETE - PIR PASS - VERIFIED
+### Phase 2.2 Core Implementation (Week 7-8)
 
 | # | タスク | 担当 | 完了日 | 成果物 |
 |---|--------|------|--------|--------|
-| 1 | **SEC-003テストケース作成** | Engineer | 2025-12-25 | ✅ SEC003Test.t.sol |
-| 2 | **FIX-015 lock() SHA3_256移行** | Engineer | 2025-12-25 | ✅ QuantumShield.sol |
-| 3 | **FIX-016 _verifyStarkProofInternal() 移行** | Engineer | 2025-12-25 | ✅ QuantumShield.sol |
-| 4 | **FIX-017 _hashPublicInputs() 移行** | Engineer | 2025-12-25 | ✅ QuantumShield.sol |
-| 5 | **FIX-018 SHA3_256インポート追加** | Engineer | 2025-12-25 | ✅ QuantumShield.sol |
-| 6 | **SPEC_REVIEW.md 更新** | Engineer | 2025-12-25 | ✅ 21432ee |
-| 7 | **CURRENT_STATE.md 更新** | Engineer | 2025-12-25 | ✅ 0ba0255 |
-| 8 | **テスト実行** | Engineer | 2025-12-25 | ✅ **17/17 PASS** |
-| 9 | **セキュリティレビュー** | Red Team | 2025-12-25 | ✅ **PASS** |
-| 10 | **PIR-SEC-003 会議** | Team | 2025-12-26 | ✅ **PASS (11/11 GO)** |
-| 11 | **フルテストスイート実行** | User | 2025-12-26 | ✅ **574/574 PASS** |
-| 12 | **Slither最終確認** | Red Team | 2025-12-26 | ✅ **HIGH 0 / MEDIUM 0** |
+| 1 | **[IMPL-006] AIR制約システム設計** | Engineer | 2025-12-26 | ✅ AIRConstraints.sol |
+| 2 | **[IMPL-007] AIRコンパイラ基本構造** | Engineer | 2025-12-26 | ✅ ConstraintEvaluator.sol |
+| 3 | **[TEST-020] AIR制約テスト** | QA | 2025-12-26 | ✅ AIRConstraintsTest.t.sol |
+| 4 | **[INFRA-001] テストネット環境構築** | DevOps | 2025-12-26 | ✅ deploy.sh, .env.example |
+| 5 | [INFRA-002] CI/CDパイプライン更新 | DevOps | - | 🔄 進行中 |
+| 6 | [TEST-021] テストネットデプロイテスト | QA | - | ⬜ 未着手 |
 
 ### Next Actions 🔄
 
 | # | タスク | 担当 | 期限 | Status |
 |---|--------|------|------|--------|
-| 1 | ~~フルテストスイート実行~~ | ~~User~~ | ~~Week 6~~ | ✅ **574/574 PASS** |
-| 2 | ~~Slither再実行~~ | ~~Red Team~~ | ~~Week 6~~ | ✅ **VERIFIED** |
-| 3 | MS-1 ZK-STARK実装継続 | Engineer | Month 9 | ⬜ NEXT |
-| 4 | テストネット環境構築 (INFRA-001) | DevOps | Month 8 | ⬜ PLANNED |
+| 1 | テスト実行 (`forge test`) | User | Week 7 | ⬜ 待ち |
+| 2 | セキュリティレビュー (04_review.md) | CSO | Week 7 | ⬜ 次ステップ |
+| 3 | PIR会議 (05_pir.md) | Team | Week 7 | ⬜ 予定 |
+| 4 | CI/CDワークフロー完成 | DevOps | Week 7 | 🔄 進行中 |
 
 ---
 
@@ -216,64 +213,20 @@ Slither:                             ✅ HIGH 0 / MEDIUM 0
 PIR-SEC-003:                         ✅ PASS (11/11 GO)
 ```
 
-### テストスイート内訳
+### 新規追加テスト (Week 7)
 
 | Suite | Tests | Status |
 |-------|-------|--------|
-| **SEC003Test** | 17 | ✅ **ALL PASS** |
-| L1VaultIntegrationTest | 51 | ✅ PASS |
-| VRFConsumerMockTest | 40 | ✅ PASS |
-| StateRootCalculatorTest | 38 | ✅ PASS |
-| STARKVerifierTest | 36 | ✅ PASS |
-| QuantumShieldTest | 35 | ✅ **PASS** |
-| SparseMerkleTreeTest | 30 | ✅ PASS |
-| VRFConsumerTest | 28 | ✅ PASS |
-| FRIIntegrationTest | 25 | ✅ PASS |
-| L1VaultEmergencyTest | 24 | ✅ PASS |
-| SHA3_256Test | 24 | ✅ PASS |
-| SPHINCSVerifierKATTest | 23 | ✅ PASS |
-| EventsAndChecksTest | 21 | ✅ PASS |
-| SHA3HasherTest | 21 | ✅ PASS |
-| ProverSelectorTest | 20 | ✅ PASS |
-| SPHINCSVerifierSHAKETest | 17 | ✅ PASS |
-| E2EIntegrationTest | 15 | ✅ PASS |
-| ProofCodecTest | 14 | ✅ PASS |
-| SHA3_256GasTest | 13 | ✅ PASS |
-| SPHINCSVerifierTest | 13 | ✅ PASS |
-| L1VaultVRFIntegrationTest | 12 | ✅ PASS |
-| SHAKE256Test | 12 | ✅ PASS |
-| L1VaultSignatureSHA3Test | 11 | ✅ PASS |
-| FRIVerifierSHA3Test | 10 | ✅ PASS |
-| VRFTimeoutBoundaryTest | 10 | ✅ PASS |
-| ReentrancyTest | 7 | ✅ PASS |
-| L1VaultSMTSHA3Test | 7 | ✅ PASS |
-| **合計** | **574** | ✅ **ALL PASS** |
+| **AIRConstraintsTest** | 35+ | ⏳ 実行待ち |
 
 ---
 
 ## 📝 PIR記録
 
-### Phase 1 (COMPLETE)
-
-| PIR ID | 対象 | 判定 | 日付 |
-|--------|------|------|------|
-| PIR-001 | Day 1 Security Corrections | ✅ PASS | 2025-12-22 |
-| PIR-002 | Day 5 Unit Tests | ✅ PASS | 2025-12-22 |
-| PIR-003 | Day 2-4 Native STARK | ✅ PASS | 2025-12-22 |
-| PIR-004 | Day 6-7 SR Implementation | ✅ PASS | 2025-12-22 |
-| PIR-005 | Day 8-9 VRF Integration | ✅ PASS | 2025-12-24 |
-| PIR-006 | Day 8-9 Security Review | ✅ PASS | 2025-12-24 |
-| PIR-007 | Day 10 E2E Integration Tests | ✅ PASS | 2025-12-24 |
-| PIR-008 | Day 11 SHA3 + QA Complete | ✅ PASS | 2025-12-25 |
-| PIR-009 | Day 12 Dilithium形式検証 | ✅ PASS | 2025-12-25 |
-| PIR-010 | Day 13 SPHINCS+-SHAKE移行 | ✅ PASS | 2025-12-25 |
-| PIR-011 | Day 14 最終検証 | ✅ PASS | 2025-12-26 |
-
 ### Phase 2
 
 | PIR ID | 対象 | 判定 | 日付 |
 |--------|------|------|------|
-| - | Phase 2 Day 1 - 計画策定 | ✅ | 2025-12-25 |
 | PIR-P2-001 | FRIVerifier SHA3-256移行 | ✅ **PASS** | 2025-12-26 |
 | PIR-P2-002 | Week 1 成果物レビュー | ✅ **PASS** | 2025-12-26 |
 | PIR-P2-003 | Week 2 SHA3Hasher + ProofCodec | ✅ **PASS** | 2025-12-25 |
@@ -281,6 +234,7 @@ PIR-SEC-003:                         ✅ PASS (11/11 GO)
 | PIR-P2-005 | Week 4 IMPL-005 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
 | PIR-SEC-001 | SEC-001/SEC-002 セキュリティレビュー | ✅ **PASS** | 2025-12-26 |
 | PIR-SEC-003 | SEC-003 QuantumShield SHA3移行 | ✅ **PASS (11/11 GO)** | 2025-12-26 |
+| PIR-P2-006 | Week 7 IMPL-006/007 セキュリティレビュー | ⬜ **予定** | - |
 
 ---
 
@@ -288,27 +242,24 @@ PIR-SEC-003:                         ✅ PASS (11/11 GO)
 
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
-| 1 | ~~L1Vault リエントランシー脆弱性 (SL-001〜004)~~ | ~~Critical~~ | ✅ **RESOLVED** |
-| 2 | ~~Missing Events / Zero-Check (SL-006〜015)~~ | ~~High~~ | ✅ **RESOLVED** |
-| 3 | ~~**QuantumShield.sol keccak256使用 (ISSUE-001)**~~ | ~~High~~ | ✅ **SEC-003 COMPLETE** |
-| 4 | **SHA3_256 Gas消費量 (~2.2M/lock)** | MEDIUM | 将来最適化（L2/Assembly/EIP） |
-| 5 | ZK-STARK実装の複雑性 | MEDIUM | 段階的実装継続 |
-| 6 | 外部監査のスケジュール | MEDIUM | RFP草案作成完了 |
-| 7 | テストネット環境構築 | MEDIUM | INFRA-001 進行予定 |
+| 1 | **SHA3_256 Gas消費量 (~2.2M/lock)** | MEDIUM | 将来最適化（L2/Assembly/EIP） |
+| 2 | ZK-STARK実装の複雑性 | MEDIUM | 段階的実装継続 |
+| 3 | 外部監査のスケジュール | MEDIUM | RFP草案作成完了 |
+| 4 | テストネット環境構築 | MEDIUM | ✅ スクリプト作成完了 |
 
 ---
 
 ## 🔜 次のアクション
 
-### Week 7 以降の予定
+### Week 7 残タスク
 
 | # | タスク | 優先度 | 担当 | 期限 |
 |---|--------|--------|------|------|
-| 1 | ~~フルテストスイート実行~~ | ~~High~~ | ~~User~~ | ✅ **COMPLETE** |
-| 2 | ~~Slither再実行~~ | ~~High~~ | ~~Red Team~~ | ✅ **COMPLETE** |
-| 3 | MS-1 ZK-STARK実装継続 | High | Engineer | Month 9 |
-| 4 | テストネット環境構築 (INFRA-001) | Medium | DevOps | Month 8 |
-| 5 | 外部監査RFP送付 | Medium | CSO | Month 8 |
+| 1 | `forge test` 実行 | High | User | Now |
+| 2 | 04_review.md セキュリティレビュー | High | CSO | Week 7 |
+| 3 | 05_pir.md PIR会議 | High | Team | Week 7 |
+| 4 | CI/CDワークフロー完成 | Medium | DevOps | Week 7 |
+| 5 | テストネットデプロイテスト | Medium | QA | Week 8 |
 
 ---
 
@@ -318,30 +269,14 @@ PIR-SEC-003:                         ✅ PASS (11/11 GO)
 |---------------|------|--------|
 | Phase 1完了 | Day 14 | ✅ **COMPLETE** |
 | **Phase 2 開始** | Month 7 | 🟢 **STARTED** |
-| ~~FRIVerifier SHA3移行~~ | ~~Week 1~~ | ✅ **COMPLETE** |
-| ~~Phase 2 Active Checklist作成~~ | ~~Week 1~~ | ✅ **COMPLETE** |
-| ~~外部監査RFP草案~~ | ~~Week 1~~ | ✅ **COMPLETE** |
-| ~~Week 1 セキュリティレビュー~~ | ~~Week 1~~ | ✅ **COMPLETE** |
-| ~~SHA3Hasher.sol / ProofCodec.sol~~ | ~~Week 2~~ | ✅ **COMPLETE** |
-| ~~PIR-P2-003 セキュリティレビュー~~ | ~~Week 2~~ | ✅ **COMPLETE** |
-| ~~STARKVerifier v0.1 基本構造~~ | ~~Week 3~~ | ✅ **COMPLETE** |
-| ~~PIR-P2-004 セキュリティレビュー~~ | ~~Week 3~~ | ✅ **COMPLETE** |
-| ~~IMPL-005 トレースCommitment検証~~ | ~~Week 4~~ | ✅ **COMPLETE** |
-| ~~テスト実行・36/36 PASS~~ | ~~Week 4~~ | ✅ **COMPLETE** |
-| ~~PIR-P2-005 セキュリティレビュー~~ | ~~Week 4~~ | ✅ **COMPLETE** |
-| ~~Slither静的解析~~ | ~~Week 4~~ | ✅ **COMPLETE** |
-| ~~SEC-001 リエントランシー修正~~ | ~~Week 5~~ | ✅ **COMPLETE** |
-| ~~SEC-002 Events/ZeroCheck修正~~ | ~~Week 5~~ | ✅ **COMPLETE** |
-| ~~Slither最終確認~~ | ~~Week 5~~ | ✅ **VERIFIED** |
-| ~~04_review.md セキュリティレビュー~~ | ~~Week 5~~ | ✅ **PASS** |
-| ~~05_pir.md PIR会議~~ | ~~Week 5~~ | ✅ **PIR-SEC-001 PASS** |
-| ~~SEC-003 QuantumShield keccak256移行~~ | ~~Week 6~~ | ✅ **COMPLETE** |
-| ~~SEC-003 テスト実行~~ | ~~Week 6~~ | ✅ **17/17 PASS** |
-| ~~SEC-003 セキュリティレビュー~~ | ~~Week 6~~ | ✅ **PASS** |
+| ~~SEC-003 QuantumShield SHA3移行~~ | ~~Week 6~~ | ✅ **COMPLETE** |
 | ~~PIR-SEC-003 会議~~ | ~~Week 6~~ | ✅ **PASS (11/11 GO)** |
-| ~~フルテストスイート実行~~ | ~~Week 6~~ | ✅ **574/574 PASS** |
-| ~~Slither最終確認~~ | ~~Week 6~~ | ✅ **HIGH 0 / MEDIUM 0** |
-| MS-1: ZK-STARK実装 | Month 9 | ⬜ |
+| **IMPL-006 AIR制約システム** | Week 7 | ✅ **COMPLETE** |
+| **IMPL-007 制約評価器** | Week 7 | ✅ **COMPLETE** |
+| **INFRA-001 テストネット環境** | Week 7 | ✅ **COMPLETE** |
+| INFRA-002 CI/CDパイプライン | Week 7 | 🔄 |
+| TEST-020/021 テスト実行 | Week 7-8 | ⏳ |
+| MS-1: ZK-STARK実装 | Month 9 | 🔄 |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
 
@@ -351,13 +286,13 @@ PIR-SEC-003:                         ✅ PASS (11/11 GO)
 
 | 条件 | 基準 | 現状 | 判定 |
 |------|------|------|------|
-| ZK-STARK証明 | Gas 87.5%削減 | STARKVerifier v0.2 IMPL-005完了 | 🔄 |
+| ZK-STARK証明 | Gas 87.5%削減 | AIRConstraints v0.1完了 | 🔄 |
 | 外部監査 | Critical/High 0件 | RFP作成完了 | 🔄 |
 | Slither | HIGH 0件 | ✅ **0件 (5件解消)** | ✅ |
 | Slither | MEDIUM 0件 | ✅ **0件 (10件解消)** | ✅ |
 | CP-1準拠 | keccak256完全排除 | ✅ **SEC-003完了・PIR PASS** | ✅ |
 | テストスイート | 全PASS | ✅ **574/574 PASS** | ✅ |
-| テストネット | 安定稼働 | - | ⬜ |
+| テストネット | 安定稼働 | スクリプト準備完了 | 🔄 |
 | Security Council | 5/9構築 | - | ⬜ |
 | Token設計 | veQS完了 | - | ⬜ |
 
@@ -370,16 +305,7 @@ PIR-SEC-003:                         ✅ PASS (11/11 GO)
 | 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
 | シーケンス参照 | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
 | **Go/No-Goレポート** | `docs/aegis/pir/GONOGO_PHASE1_COMPLETE.md` |
-| PIR-011レポート | `docs/aegis/pir/PIR-011_FINAL_VERIFICATION.md` |
-| **PIR-P2-003レポート** | `docs/aegis/pir/PIR-P2-003_WEEK2_REVIEW.md` |
-| **PIR-P2-005レポート** | `docs/aegis/pir/PIR-P2-005_IMPL005_REVIEW.md` |
-| **PIR-SEC-003レポート** | `docs/aegis/pir/PIR-SEC-003.md` |
-| **Slitherレポート** | `docs/aegis/security/SLITHER_REPORT_2025-12-25.md` |
-| **SPEC_REVIEW (Archived)** | `docs/planning/archive/SPEC_REVIEW_SEC003_2025-12-25.md` |
-| Gasベンチマーク (Phase 1) | `docs/planning/archive/GAS_BENCHMARK_2025-12-26.md` |
 | **ZK-STARK実装計画** | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
-| **Gasベースライン (Phase 2)** | `docs/planning/GAS_BASELINE_P2.md` |
-| **Compiler Warnings Log** | `docs/planning/COMPILER_WARNINGS_LOG.md` |
 | **Phase 2 Checklist** | `docs/planning/PHASE2_CHECKLIST.md` |
 | **外部監査RFP草案** | `docs/planning/AUDIT_RFP_DRAFT.md` |
 | 開発計画 | `docs/planning/DEVELOPMENT_PLAN_v1.0.md` |
@@ -388,9 +314,9 @@ PIR-SEC-003:                         ✅ PASS (11/11 GO)
 
 **Phase 1 Foundation Bootstrap: ✅ COMPLETE 🎉**
 
-**Phase 2 Week 6: ✅ SEC-003 COMPLETE - 574/574 PASS - Slither VERIFIED - CP-1完全準拠達成 🛡️**
+**Phase 2 Week 7: 🔄 IMPL-006/007 実装完了 - テスト実行待ち**
 
-**Next: MS-1 ZK-STARK実装継続 (Month 9)**
+**Next: テスト実行 → セキュリティレビュー → PIR会議**
 
 ---
 
