@@ -382,7 +382,7 @@ contract AIRConstraintsTest is Test {
     /**
      * @notice Gas benchmark for boundary constraint verification
      */
-    function test_Gas_BoundaryConstraint() public view {
+    function test_Gas_BoundaryConstraint() public {
         uint256 gasBefore = gasleft();
         airConstraints.verifyBoundaryConstraint(testTrace[0], 1, 0);
         uint256 gasUsed = gasBefore - gasleft();
@@ -394,7 +394,7 @@ contract AIRConstraintsTest is Test {
     /**
      * @notice Gas benchmark for transition constraint evaluation
      */
-    function test_Gas_TransitionConstraint() public view {
+    function test_Gas_TransitionConstraint() public {
         uint256 gasBefore = gasleft();
         airConstraints.evaluateDoublingConstraint(testTrace[0], testTrace[1]);
         uint256 gasUsed = gasBefore - gasleft();
@@ -406,7 +406,7 @@ contract AIRConstraintsTest is Test {
     /**
      * @notice Gas benchmark for full AIR verification
      */
-    function test_Gas_FullAIRVerification() public view {
+    function test_Gas_FullAIRVerification() public {
         AIRConstraints.AIRConfig memory config = AIRConstraints.AIRConfig({
             traceLength: 8,
             numBoundaryConstraints: 2,
