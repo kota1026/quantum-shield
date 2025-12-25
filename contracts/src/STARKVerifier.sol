@@ -9,8 +9,8 @@ import {FRIVerifier} from "./FRIVerifier.sol";
 /**
  * @title STARKVerifier
  * @author Quantum Shield Team
- * @notice ZK-STARK proof verification contract v0.1
- * @dev Provides basic structure and interfaces for STARK proof verification
+ * @notice ZK-STARK proof verification contract v0.2
+ * @dev Provides trace commitment verification with Merkle proofs
  * 
  * ## Overview
  * This contract implements the on-chain verification component of the 
@@ -23,14 +23,13 @@ import {FRIVerifier} from "./FRIVerifier.sol";
  * - Goldilocks field (2^64 - 2^32 + 1) for arithmetic
  * - 128-bit security level
  * 
- * ## Version 0.1 Scope
- * - Basic structure and interfaces
- * - Commitment verification
- * - Field operations
- * - Hash integration with SHA3Hasher
+ * ## Version 0.2 Additions (IMPL-005)
+ * - Trace evaluation verification at query indices
+ * - Merkle proof verification for trace commitments
+ * - Batch verification support
  * 
  * @custom:security-contact security@quantumshield.io
- * @custom:version 0.1.0
+ * @custom:version 0.2.0
  */
 contract STARKVerifier {
     using SHA3Hasher for bytes;
@@ -58,6 +57,9 @@ contract STARKVerifier {
     /// @notice Security level in bits
     uint256 public constant SECURITY_LEVEL = 128;
 
+    /// @notice Default Merkle tree depth for trace commitments
+    uint256 public constant DEFAULT_TRACE_DEPTH = 10;
+
     // =========================================================================
     // Domain Separators (for hash uniqueness)
     // =========================================================================
@@ -65,6 +67,7 @@ contract STARKVerifier {
     bytes32 private constant DOMAIN_TRACE = bytes32("QS_STARK_TRACE_V1");
     bytes32 private constant DOMAIN_CONSTRAINT = bytes32("QS_STARK_CONSTRAINT");
     bytes32 private constant DOMAIN_FRI_LAYER = bytes32("QS_STARK_FRI_LAYER");
+    bytes32 private constant DOMAIN_MERKLE_NODE = bytes32("QS_STARK_MERKLE_V1");
 
     // =========================================================================
     // Errors
@@ -85,6 +88,12 @@ contract STARKVerifier {
     /// @notice Thrown when query count is insufficient
     error InsufficientQueries();
 
+    /// @notice Thrown when Merkle proof depth is incorrect
+    error InvalidMerkleProofDepth();
+
+    /// @notice Thrown when Merkle proof verification fails
+    error InvalidMerkleProof();
+
     // =========================================================================
     // Events
     // =========================================================================
@@ -94,6 +103,9 @@ contract STARKVerifier {
 
     /// @notice Emitted when proof verification fails
     event ProofRejected(bytes32 indexed publicInput, string reason);
+
+    /// @notice Emitted when a trace evaluation is verified
+    event TraceEvaluationVerified(uint256 indexed index, bytes32 leaf, bytes32 root);
 
     // =========================================================================
     // Version Information
@@ -105,7 +117,7 @@ contract STARKVerifier {
      * @return version Version string
      */
     function getVersion() external pure returns (string memory name, string memory version) {
-        return ("STARKVerifier", "0.1.0");
+        return ("STARKVerifier", "0.2.0");
     }
 
     /**
@@ -162,7 +174,7 @@ contract STARKVerifier {
         }
 
         // All basic checks passed
-        // Note: Full FRI verification to be implemented in v0.2
+        // Note: Full FRI verification to be implemented in v0.3
         return true;
     }
 
@@ -198,6 +210,157 @@ contract STARKVerifier {
     ) external pure returns (bool) {
         bytes32 computed = SHA3Hasher.hash(abi.encodePacked(constraintRoot));
         return computed == expectedCommitment;
+    }
+
+    // =========================================================================
+    // IMPL-005: Trace Evaluation Verification with Merkle Proofs
+    // =========================================================================
+
+    /**
+     * @notice Verify a trace evaluation at a specific index using Merkle proof
+     * @dev CP-1 COMPLIANCE: Uses SHA3-256 for all hash operations
+     * @param leaf The leaf value (hash of evaluation)
+     * @param index The position of the leaf in the tree
+     * @param siblings Array of sibling hashes (Merkle proof path)
+     * @param expectedRoot The expected Merkle root
+     * @return valid True if the proof is valid
+     */
+    function verifyTraceEvaluationAtIndex(
+        bytes32 leaf,
+        uint256 index,
+        bytes32[] memory siblings,
+        bytes32 expectedRoot
+    ) external pure returns (bool valid) {
+        // Validate proof depth (must match tree depth)
+        if (siblings.length == 0 || siblings.length > MAX_FRI_LAYERS) {
+            return false;
+        }
+
+        // Compute root from leaf and proof
+        bytes32 computedHash = leaf;
+        uint256 path = index;
+
+        for (uint256 i = 0; i < siblings.length; i++) {
+            bytes32 sibling = siblings[i];
+
+            if (path & 1 == 0) {
+                // Current node is left child
+                computedHash = _hashMerkleNodes(computedHash, sibling);
+            } else {
+                // Current node is right child
+                computedHash = _hashMerkleNodes(sibling, computedHash);
+            }
+
+            path >>= 1;
+        }
+
+        return computedHash == expectedRoot;
+    }
+
+    /**
+     * @notice Batch verify multiple trace evaluations
+     * @dev Verifies evaluations at multiple query indices against the trace commitment
+     * @param leaves Array of leaf values (hashes of evaluations)
+     * @param indices Array of leaf positions in the tree
+     * @param allSiblings 2D array of sibling hashes for each query
+     * @param expectedRoot The expected Merkle root (trace commitment)
+     * @return validCount Number of valid proofs
+     */
+    function verifyTraceEvaluationsBatch(
+        bytes32[] memory leaves,
+        uint256[] memory indices,
+        bytes32[][] memory allSiblings,
+        bytes32 expectedRoot
+    ) external pure returns (uint256 validCount) {
+        // Validate input arrays have matching lengths
+        if (leaves.length != indices.length || leaves.length != allSiblings.length) {
+            return 0;
+        }
+
+        for (uint256 i = 0; i < leaves.length; i++) {
+            bytes32[] memory siblings = allSiblings[i];
+            
+            // Skip if proof depth is invalid
+            if (siblings.length == 0 || siblings.length > MAX_FRI_LAYERS) {
+                continue;
+            }
+
+            bytes32 computedHash = leaves[i];
+            uint256 path = indices[i];
+
+            for (uint256 j = 0; j < siblings.length; j++) {
+                bytes32 sibling = siblings[j];
+
+                if (path & 1 == 0) {
+                    computedHash = _hashMerkleNodes(computedHash, sibling);
+                } else {
+                    computedHash = _hashMerkleNodes(sibling, computedHash);
+                }
+
+                path >>= 1;
+            }
+
+            if (computedHash == expectedRoot) {
+                validCount++;
+            }
+        }
+    }
+
+    /**
+     * @notice Compute a leaf hash from evaluation data
+     * @dev Domain-separated hashing for trace evaluations
+     * @param evaluation The evaluation value (field element)
+     * @param index The position in the trace
+     * @return leaf The computed leaf hash
+     */
+    function computeTraceLeaf(
+        uint256 evaluation,
+        uint256 index
+    ) external pure returns (bytes32 leaf) {
+        // Domain-separated leaf hashing using SHA3-256
+        return SHA3Hasher.hash(abi.encodePacked(
+            DOMAIN_TRACE,
+            evaluation,
+            index
+        ));
+    }
+
+    /**
+     * @notice Compute Merkle root from evaluations
+     * @dev Computes the trace commitment from a set of evaluations
+     * @param evaluations Array of evaluation values
+     * @return root The computed Merkle root
+     */
+    function computeTraceRoot(
+        uint256[] memory evaluations
+    ) external pure returns (bytes32 root) {
+        // Require power of 2 evaluations for complete binary tree
+        require(evaluations.length > 0, "Empty evaluations");
+        require(
+            (evaluations.length & (evaluations.length - 1)) == 0,
+            "Evaluation count must be power of 2"
+        );
+
+        // Build leaf layer
+        bytes32[] memory layer = new bytes32[](evaluations.length);
+        for (uint256 i = 0; i < evaluations.length; i++) {
+            layer[i] = SHA3Hasher.hash(abi.encodePacked(
+                DOMAIN_TRACE,
+                evaluations[i],
+                i
+            ));
+        }
+
+        // Build tree bottom-up
+        while (layer.length > 1) {
+            bytes32[] memory nextLayer = new bytes32[](layer.length / 2);
+            for (uint256 i = 0; i < nextLayer.length; i++) {
+                nextLayer[i] = _hashMerkleNodes(layer[2 * i], layer[2 * i + 1]);
+            }
+            layer = nextLayer;
+        }
+
+        return layer[0];
     }
 
     // =========================================================================
@@ -336,6 +499,25 @@ contract STARKVerifier {
         }
 
         return true;
+    }
+
+    /**
+     * @notice Hash two Merkle tree nodes using SHA3-256
+     * @dev Domain-separated hashing for Merkle tree construction
+     * @param left Left child hash
+     * @param right Right child hash
+     * @return Parent node hash
+     */
+    function _hashMerkleNodes(
+        bytes32 left,
+        bytes32 right
+    ) internal pure returns (bytes32) {
+        // Domain-separated hashing using SHA3Hasher
+        return SHA3Hasher.hash(abi.encodePacked(
+            DOMAIN_MERKLE_NODE,
+            left,
+            right
+        ));
     }
 
     /**
