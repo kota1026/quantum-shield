@@ -3,9 +3,11 @@ pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
 import {SPHINCSVerifier} from "../src/SPHINCSVerifier.sol";
+import {SHA3_256} from "../src/libraries/SHA3_256.sol";
 
 /// @title SPHINCSVerifier Test Suite
-/// @notice Comprehensive tests for SPHINCS+ signature verification
+/// @notice Comprehensive tests for SPHINCS+-SHAKE-128s signature verification
+/// @dev Updated for SHAKE migration (Day 13)
 contract SPHINCSVerifierTest is Test {
     SPHINCSVerifier public verifier;
 
@@ -72,12 +74,21 @@ contract SPHINCSVerifierTest is Test {
     }
 
     // =========================================================================
-    // Public Key Utility Tests
+    // Public Key Utility Tests (Updated for SHA3-256)
     // =========================================================================
 
+    /// @notice Test computePublicKeyHash uses SHA3-256 (not keccak256)
+    /// @dev Updated for SHAKE migration - CP-1 compliance
     function test_ComputePublicKeyHash() public view {
         bytes32 hash = verifier.computePublicKeyHash(TEST_PUBLIC_KEY);
-        assertEq(hash, keccak256(TEST_PUBLIC_KEY));
+        bytes32 expectedSHA3 = SHA3_256.hash(TEST_PUBLIC_KEY);
+        
+        // Must match SHA3-256 (not keccak256)
+        assertEq(hash, expectedSHA3, "computePublicKeyHash must use SHA3-256");
+        
+        // Verify it's different from keccak256
+        bytes32 keccakHash = keccak256(TEST_PUBLIC_KEY);
+        assertTrue(hash != keccakHash, "SHA3-256 should differ from keccak256");
     }
 
     function test_IsValidPublicKeyFormat() public view {
@@ -125,15 +136,17 @@ contract SPHINCSVerifierTest is Test {
     }
 
     // =========================================================================
-    // Fuzz Tests
+    // Fuzz Tests (Updated for SHA3-256)
     // =========================================================================
 
-    function testFuzz_ComputePublicKeyHash(bytes32 pk1, bytes32 pk2) public {
+    function testFuzz_ComputePublicKeyHash(bytes32 pk1) public view {
         bytes memory publicKey = abi.encodePacked(pk1);
         vm.assume(publicKey.length == 32);
         
         bytes32 hash = verifier.computePublicKeyHash(publicKey);
-        assertEq(hash, keccak256(publicKey));
+        bytes32 expected = SHA3_256.hash(publicKey);
+        
+        assertEq(hash, expected, "Fuzz: Hash must match SHA3-256");
     }
 
     // =========================================================================
