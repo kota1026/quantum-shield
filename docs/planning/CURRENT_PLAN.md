@@ -1,62 +1,72 @@
 # Current Plan
 
 > **Generated**: 2025-12-25 22:30 JST
-> **Phase**: 1 - Foundation Bootstrap
-> **Day**: 14 (14日間修正計画 最終日)
+> **Phase**: 2 - Security Council + Token
+> **Day**: 1 (Phase 2 開始)
 
 ---
 
 ## 対象チェックリスト
 
-`docs/planning/checklists/phase1_day11-14_qa.md` - Day 14セクション
+⚠️ **Active Checklist未作成** - Phase 2 Active Checklistは2025-12-27までにCTOが作成予定
+
+暫定参照: `docs/planning/CURRENT_STATE.md` - Phase 2 初期タスクセクション
 
 ---
 
-## 前回レビュー課題
+## 前回レビュー課題（Phase 1完了時点）
 
-> PIR-010 SPHINCS+-SHAKE移行 → ✅ PASS (2025-12-25)
+> Phase 1 Go/No-Go: 🟢 **GO** (2025-12-26)
+> - 全PIRレビュー: ✅ 11/11 PASS
+> - テストスイート: ✅ 423/423 PASS (100%)
+> - 総合スコア: 94.0/100
 
 | # | 重要度 | 課題 | 対策 |
 |---|--------|------|------|
-| 1 | 🔴 High | SPHINCS+形式検証未実施 | Day 14で実施 |
-| 2 | 🔴 High | SPHINCS+-SHAKE NIST KATテスト未実施 | Day 14で実施 |
-| 3 | 🟡 Medium | SHAKE256 Gas最適化ベンチマーク | ベンチマーク実施 |
+| - | ✅ | Phase 1全課題解決済み | - |
+
+---
+
+## Phase 2 ブロッカー/懸念事項
+
+| # | 重要度 | 懸念 | 対策 |
+|---|--------|------|------|
+| 1 | 🟠 HIGH | ZK-STARK実装の複雑性 | 段階的実装計画策定（今回のスコープ） |
+| 2 | 🟡 MEDIUM | 外部監査のスケジュール | RFP準備中（CSO担当） |
+| 3 | 🟢 LOW | Compiler Warnings | Phase 2で対応予定 |
 
 ---
 
 ## 今回のスコープ
 
-### 修正項目（レビュー課題より）
+### 準備項目（Phase 2立ち上げ）
 
-なし（PIR-010 PASS済み）
+- [ ] [PREP-P2-01] 現行コードベース状態確認
+  - テスト全PASS確認 (423 tests)
+  - コンパイルwarnings棚卸し
+  
+- [ ] [PREP-P2-02] ZK-STARK実装調査・計画詳細化
+  - 既存STARK PoC (`src/stark/`) 分析
+  - Gas削減目標達成のための実装戦略
+  - 依存ライブラリ選定
 
 ### 実装項目
 
-- [ ] [IMPL-014-01] SPHINCS+ Lean4形式検証 (`proofs/lean4/SPHINCS.lean`)
-  - WOTS+チェーン計算の正当性証明
-  - FORSツリールート計算の正当性証明
-  - Merkleツリー認証パス検証の正当性証明
-
-- [ ] [IMPL-014-02] NIST KATテスト追加 (`contracts/test/SPHINCSVerifierKAT.t.sol`)
-  - SPHINCS+-SHAKE-128s公式テストベクター取得
-  - 10+ベクターのPASS確認
-
-- [ ] [IMPL-014-03] Gas最適化ベンチマーク
-  - SHAKE256実装のガス消費測定
-  - SPHINCSVerifier検証のガス消費測定
+- [ ] [IMPL-P2-01] Compiler Warnings対応
+  - 未使用変数の整理
+  - 型安全性改善
 
 ### テスト項目
 
-- [ ] [TEST-014-01] Lean4形式検証 - sorry 0件確認
-- [ ] [TEST-014-02] NIST KATテスト - 10+ベクターPASS
-- [ ] [TEST-014-03] 既存テスト全PASS確認 (42/42)
+- [ ] [TEST-P2-01] 既存テスト全PASS確認 (423/423)
+- [ ] [TEST-P2-02] Gas消費ベースライン取得
 
 ### 参照ドキュメント
 
-- PIR-010: `docs/aegis/pir/PIR-010_SPHINCS_SHAKE.md`
-- PIR-009: `docs/aegis/pir/PIR-009_FORMAL_VERIFICATION.md` (Dilithium形式検証の参考)
-- SPHINCS+仕様: https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-- NIST KATベクター: NIST PQC submission files
+- Phase 1完了レポート: `docs/aegis/pir/GONOGO_PHASE1_COMPLETE.md`
+- Phase 2目標: `docs/planning/CURRENT_STATE.md` - Phase 2セクション
+- STARK PoC: `src/stark/` ディレクトリ
+- 開発計画: `docs/planning/DEVELOPMENT_PLAN_v1.0.md`
 
 ---
 
@@ -64,56 +74,52 @@
 
 | ファイル | 説明 |
 |---------|------|
-| `proofs/lean4/SPHINCS.lean` | SPHINCS+ Lean4形式検証 |
-| `contracts/test/SPHINCSVerifierKAT.t.sol` | NIST KATテスト |
-| `docs/aegis/pir/PIR-011_FINAL_VERIFICATION.md` | 最終検証レポート |
-| `docs/planning/archive/GAS_BENCHMARK_2025-12-26.md` | Gasベンチマーク結果 |
+| `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` | ZK-STARK実装計画書（新規作成） |
+| `docs/planning/COMPILER_WARNINGS_LOG.md` | Warnings棚卸しログ |
+| `docs/planning/GAS_BASELINE_P2.md` | Phase 2開始時点Gasベースライン |
 
 ---
 
 ## 実行順序
 
-### Step 1: 環境確認 (10分)
+### Step 1: 環境確認 (15分)
 
 ```bash
-cd proofs/lean4
-lake build  # Lean4環境確認
-cd ../../contracts
-forge test --match-path test/SPHINCS*.sol  # 既存テスト確認
+cd contracts
+forge build 2>&1 | tee build.log  # Warnings確認
+forge test --summary  # 423 tests PASS確認
 ```
 
-### Step 2: SPHINCS+ Lean4形式検証 (2-3時間)
+### Step 2: 既存STARK PoC分析 (1時間)
 
-1. `proofs/lean4/SPHINCS.lean` 新規作成
-2. WOTS+チェーン計算の数学的定義
-3. FORSツリールート計算の正当性定理
-4. Merkleツリー認証パス検証の正当性定理
-5. `lake build` で sorry 0件確認
+1. `src/stark/` ディレクトリ構造確認
+2. 既存STARK検証ロジック分析
+3. Phase 2での拡張ポイント特定
 
-### Step 3: NIST KATテスト実装 (1時間)
+### Step 3: ZK-STARK実装計画策定 (2時間)
 
-1. SPHINCS+-SHAKE-128s公式KATベクター取得
-2. `contracts/test/SPHINCSVerifierKAT.t.sol` 作成
-3. 10+ベクターのテスト実装
-4. `forge test --match-contract SPHINCSVerifierKAT` 実行
+1. Gas削減目標（87.5%）達成のための戦略
+2. 段階的実装マイルストーン設計
+3. 依存関係・リスク分析
+4. `ZK_STARK_IMPLEMENTATION_PLAN.md` 作成
 
-### Step 4: Gasベンチマーク (30分)
+### Step 4: Compiler Warnings対応 (1時間)
 
-1. SHAKE256ガス消費測定
-2. SPHINCSVerifier.verify()ガス消費測定
-3. 結果をドキュメント化
+1. Warnings一覧作成
+2. 優先度付け
+3. 修正実施（Low risk items）
 
-### Step 5: Go/No-Go判定準備 (30分)
+### Step 5: ベースライン取得 (30分)
 
-1. Phase 1終了条件の最終確認
-2. PIR-011レポート作成
-3. CURRENT_STATE.md更新
+1. 主要関数のGas消費測定
+2. Phase 2目標との差分分析
+3. `GAS_BASELINE_P2.md` 作成
 
 ---
 
 ## Core Principles確認
 
-- [x] CP-1: 完全量子耐性 - 違反なし (SHAKE256/SHA3-256のみ使用)
+- [x] CP-1: 完全量子耐性 - 違反なし（ZK-STARKも量子耐性）
 - [x] CP-2: Self-Custody - 違反なし
 - [x] CP-3: Time Lock存在 - 違反なし
 - [x] CP-4: Slashing存在 - 違反なし
@@ -125,25 +131,20 @@ forge test --match-path test/SPHINCS*.sol  # 既存テスト確認
 
 | # | 懸念 | 重要度 | 対策 |
 |---|------|--------|------|
-| 1 | Lean4 SPHINCS+証明の複雑性 | 🟡 Medium | Dilithium (NTT.lean) を参考に実装 |
-| 2 | NIST KATベクター取得 | 🟢 Low | 公式submission filesから取得可能 |
-| 3 | SHAKE256 Gas消費が高い可能性 | 🟡 Medium | Phase 2でprecompile検討 |
+| 1 | ZK-STARK Gas目標（87.5%削減）の実現可能性 | 🟠 HIGH | PoC分析で実現性評価 |
+| 2 | Phase 2 Active Checklist未作成 | 🟡 MEDIUM | CTO作成待ち（12/27期限） |
+| 3 | 外部ライブラリ依存性 | 🟢 LOW | 調査段階で評価 |
 
 ---
 
-## Go/No-Go判定基準
+## Phase 2 Week 1 タスク一覧（参考）
 
-Day 14完了時に以下をすべて満たすこと：
-
-| 条件 | 基準 | 現状 |
-|------|------|------|
-| Dilithium Lean4形式検証 | sorry 0件 | ✅ 確認済み |
-| **SPHINCS+ Lean4形式検証** | **sorry 0件** | 🔄 **Day 14対応** |
-| Dilithium NIST KAT | 10+ベクターPASS | ✅ 100ベクターPASS |
-| **SPHINCS+-SHAKE NIST KAT** | **10+ベクターPASS** | 🔄 **Day 14対応** |
-| SHA3/keccak256排除 | 0件 | ✅ 完了 |
-| 全テスト | 100% PASS | ✅ 42/42 PASS |
-| Slither静的解析 | PASS | ✅ 確認済み |
+| # | タスク | 担当 | 期限 | Status |
+|---|--------|------|------|--------|
+| 1 | Phase 2 Active Checklist作成 | CTO | 2025-12-27 | ⬜ |
+| 2 | ZK-STARK実装計画詳細化 | **Engineer** + Cryptographer | 2025-12-30 | 🔄 **今回対応** |
+| 3 | 外部監査RFP準備 | CSO | 2025-12-30 | ⬜ |
+| 4 | テストネット環境構築 | DevOps | 2025-12-31 | ⬜ |
 
 ---
 
@@ -151,9 +152,21 @@ Day 14完了時に以下をすべて満たすこと：
 
 Plan完了後、以下の順序で実行：
 
-1. **02_spec.md** → 仕様詳細確認（必要に応じて）
-2. **03_impl.md** → 実装実行
-3. **04_review.md** → PIR-011レビュー
+1. **02_spec.md** → ZK-STARK仕様詳細確認
+2. **03_impl.md** → 計画書作成・初期実装
+3. **04_review.md** → CTO/Cryptographerレビュー
+
+---
+
+## Phase 2 目標（Month 7-12）
+
+| # | 項目 | 目標 | 期限 |
+|---|------|------|------|
+| 1 | ZK-STARK証明実装 | Gas 87.5%削減 | Month 9 |
+| 2 | 外部セキュリティ監査 | Critical/High 0件 | Month 10 |
+| 3 | テストネットデプロイ | Sepolia | Month 8 |
+| 4 | Security Council構築 | 5/9 Multisig | Month 11 |
+| 5 | Token設計 | veQS準備 | Month 12 |
 
 ---
 
