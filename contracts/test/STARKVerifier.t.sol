@@ -8,12 +8,14 @@ import "../src/libraries/ProofCodec.sol";
 
 /**
  * @title STARKVerifierTest
- * @notice Unit tests for STARKVerifier v0.1
+ * @notice Unit tests for STARKVerifier v0.2
  * @dev Tests basic structure, interfaces, and CP-1 compliance
  * 
  * CP-1 Compliance:
  * - Verifies SHA3-256 usage (keccak256 prohibited)
  * - Confirms quantum-resistant hash operations
+ * 
+ * TEST-005: Trace Commitment verification tests added
  */
 contract STARKVerifierTest is Test {
     using SHA3Hasher for bytes;
@@ -28,6 +30,7 @@ contract STARKVerifierTest is Test {
     // Test constants
     bytes32 constant TEST_COMMITMENT = bytes32(uint256(0x1234567890abcdef));
     uint256 constant TEST_DOMAIN_SIZE = 1024;
+    uint256 constant TEST_TREE_DEPTH = 10; // For trace Merkle tree
 
     // =========================================================================
     // Setup
@@ -54,7 +57,7 @@ contract STARKVerifierTest is Test {
     function test_GetVersion() public view {
         (string memory name, string memory version) = verifier.getVersion();
         assertEq(name, "STARKVerifier", "Name should be STARKVerifier");
-        assertEq(version, "0.1.0", "Version should be 0.1.0");
+        assertEq(version, "0.2.0", "Version should be 0.2.0");
     }
 
     /**
@@ -117,11 +120,11 @@ contract STARKVerifierTest is Test {
     }
 
     // =========================================================================
-    // Commitment Verification Tests
+    // Commitment Verification Tests (Original)
     // =========================================================================
 
     /**
-     * @notice Test trace commitment verification
+     * @notice Test trace commitment verification (simple)
      */
     function test_VerifyTraceCommitment() public view {
         bytes32 traceRoot = SHA3Hasher.hash(abi.encodePacked("trace data"));
@@ -151,6 +154,154 @@ contract STARKVerifierTest is Test {
         
         bool valid = verifier.verifyConstraintCommitment(constraintRoot, expectedCommitment);
         assertTrue(valid, "Valid constraint commitment should pass");
+    }
+
+    // =========================================================================
+    // TEST-005: Trace Commitment with Merkle Proof Verification
+    // =========================================================================
+
+    /**
+     * @notice Test trace evaluation verification at a specific index with Merkle proof
+     * @dev IMPL-005: Core functionality for trace commitment verification
+     */
+    function test_VerifyTraceEvaluationAtIndex() public view {
+        // Build a simple Merkle tree for testing
+        (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree();
+        
+        // Verify the evaluation
+        bool valid = verifier.verifyTraceEvaluationAtIndex(
+            leaf,
+            index,
+            siblings,
+            root
+        );
+        assertTrue(valid, "Valid Merkle proof should pass");
+    }
+
+    /**
+     * @notice Test trace evaluation with invalid Merkle proof
+     */
+    function test_VerifyTraceEvaluationAtIndex_InvalidProof() public view {
+        (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree();
+        
+        // Corrupt one sibling
+        siblings[0] = bytes32(uint256(0xDEADBEEF));
+        
+        bool valid = verifier.verifyTraceEvaluationAtIndex(
+            leaf,
+            index,
+            siblings,
+            root
+        );
+        assertFalse(valid, "Invalid Merkle proof should fail");
+    }
+
+    /**
+     * @notice Test trace evaluation with wrong leaf value
+     */
+    function test_VerifyTraceEvaluationAtIndex_InvalidLeaf() public view {
+        (bytes32 root, , uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree();
+        
+        // Use wrong leaf
+        bytes32 wrongLeaf = SHA3Hasher.hash(abi.encodePacked("wrong evaluation"));
+        
+        bool valid = verifier.verifyTraceEvaluationAtIndex(
+            wrongLeaf,
+            index,
+            siblings,
+            root
+        );
+        assertFalse(valid, "Wrong leaf should fail verification");
+    }
+
+    /**
+     * @notice Test batch verification of trace evaluations
+     */
+    function test_VerifyTraceEvaluations_Batch() public view {
+        // Create multiple test proofs
+        uint256 numQueries = 3;
+        bytes32[] memory leaves = new bytes32[](numQueries);
+        uint256[] memory indices = new uint256[](numQueries);
+        bytes32[][] memory allSiblings = new bytes32[][](numQueries);
+        
+        // Build test data
+        for (uint256 i = 0; i < numQueries; i++) {
+            (bytes32 root, bytes32 leaf, uint256 idx, bytes32[] memory siblings) = _buildTestMerkleTreeWithIndex(i);
+            leaves[i] = leaf;
+            indices[i] = idx;
+            allSiblings[i] = siblings;
+            
+            // All should use same root for this test
+            if (i == 0) {
+                // Store root for later verification
+            }
+        }
+        
+        // Verify batch - each individual proof should be valid
+        for (uint256 i = 0; i < numQueries; i++) {
+            (bytes32 expectedRoot, , , ) = _buildTestMerkleTreeWithIndex(i);
+            bool valid = verifier.verifyTraceEvaluationAtIndex(
+                leaves[i],
+                indices[i],
+                allSiblings[i],
+                expectedRoot
+            );
+            assertTrue(valid, "Batch proof element should be valid");
+        }
+    }
+
+    /**
+     * @notice Test that insufficient queries fail verification
+     */
+    function test_VerifyTraceEvaluations_InsufficientQueries() public view {
+        // Create proof with fewer queries than minimum
+        ProofCodec.STARKProof memory proof = _createMinimalProof();
+        
+        // Ensure query count is below minimum (80)
+        assertTrue(proof.queryIndices.length < verifier.MIN_QUERIES(), "Test setup: should have fewer than MIN_QUERIES");
+        
+        // Verification should fail due to insufficient queries
+        bool valid = verifier.verifyProof(proof, bytes32(0));
+        assertFalse(valid, "Proof with insufficient queries should fail");
+    }
+
+    /**
+     * @notice Test Merkle proof depth validation
+     */
+    function test_VerifyTraceEvaluation_DepthValidation() public view {
+        (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree();
+        
+        // Create proof with wrong depth (too short)
+        bytes32[] memory shortSiblings = new bytes32[](siblings.length - 1);
+        for (uint256 i = 0; i < shortSiblings.length; i++) {
+            shortSiblings[i] = siblings[i];
+        }
+        
+        // Should fail with wrong depth - call will revert or return false
+        // depending on implementation
+        bool valid = verifier.verifyTraceEvaluationAtIndex(
+            leaf,
+            index,
+            shortSiblings,
+            root
+        );
+        assertFalse(valid, "Proof with wrong depth should fail");
+    }
+
+    /**
+     * @notice Gas benchmark for single Merkle verification
+     */
+    function test_VerifyTraceEvaluationAtIndex_Gas() public {
+        (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree();
+        
+        uint256 gasBefore = gasleft();
+        verifier.verifyTraceEvaluationAtIndex(leaf, index, siblings, root);
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        emit log_named_uint("Merkle verification gas used", gasUsed);
+        
+        // Should be reasonable for tree depth 10
+        assertTrue(gasUsed < 500_000, "Merkle verification should be gas efficient");
     }
 
     // =========================================================================
@@ -410,6 +561,35 @@ contract STARKVerifierTest is Test {
         }
     }
 
+    /**
+     * @notice Fuzz test Merkle proof verification
+     */
+    function testFuzz_MerkleVerification(uint256 leafValue, uint8 indexSeed) public view {
+        // Bound index to valid range
+        uint256 index = uint256(indexSeed) % (1 << TEST_TREE_DEPTH);
+        
+        // Build deterministic tree with fuzzed values
+        bytes32 leaf = SHA3Hasher.hash(abi.encodePacked(leafValue, index));
+        bytes32[] memory siblings = new bytes32[](TEST_TREE_DEPTH);
+        
+        // Generate siblings
+        bytes32 currentHash = leaf;
+        for (uint256 i = 0; i < TEST_TREE_DEPTH; i++) {
+            siblings[i] = SHA3Hasher.hash(abi.encodePacked("sibling", i, leafValue));
+            
+            if ((index >> i) & 1 == 0) {
+                currentHash = SHA3Hasher.hashPair(currentHash, siblings[i]);
+            } else {
+                currentHash = SHA3Hasher.hashPair(siblings[i], currentHash);
+            }
+        }
+        bytes32 root = currentHash;
+        
+        // Verify should pass with correct data
+        bool valid = verifier.verifyTraceEvaluationAtIndex(leaf, index, siblings, root);
+        assertTrue(valid, "Fuzzed valid proof should pass");
+    }
+
     // =========================================================================
     // Helper Functions
     // =========================================================================
@@ -439,5 +619,54 @@ contract STARKVerifierTest is Test {
         proof.finalPolynomial = new uint256[](2);
         proof.finalPolynomial[0] = 10;
         proof.finalPolynomial[1] = 20;
+    }
+
+    /**
+     * @notice Build a test Merkle tree and return root, leaf, index, and siblings
+     * @dev Uses TEST_TREE_DEPTH (10) for trace polynomial commitments
+     */
+    function _buildTestMerkleTree() internal pure returns (
+        bytes32 root,
+        bytes32 leaf,
+        uint256 index,
+        bytes32[] memory siblings
+    ) {
+        return _buildTestMerkleTreeWithIndex(0);
+    }
+
+    /**
+     * @notice Build a test Merkle tree with a specific leaf index
+     */
+    function _buildTestMerkleTreeWithIndex(uint256 targetIndex) internal pure returns (
+        bytes32 root,
+        bytes32 leaf,
+        uint256 index,
+        bytes32[] memory siblings
+    ) {
+        index = targetIndex % (1 << TEST_TREE_DEPTH);
+        siblings = new bytes32[](TEST_TREE_DEPTH);
+        
+        // Create leaf as hash of evaluation data
+        uint256 evaluation = 12345 + targetIndex;
+        leaf = SHA3Hasher.hash(abi.encodePacked(evaluation));
+        
+        // Build path from leaf to root
+        bytes32 currentHash = leaf;
+        
+        for (uint256 i = 0; i < TEST_TREE_DEPTH; i++) {
+            // Generate deterministic sibling
+            siblings[i] = SHA3Hasher.hash(abi.encodePacked("sibling", i, targetIndex));
+            
+            // Combine based on path bit
+            if ((index >> i) & 1 == 0) {
+                // Current is left child
+                currentHash = SHA3Hasher.hashPair(currentHash, siblings[i]);
+            } else {
+                // Current is right child
+                currentHash = SHA3Hasher.hashPair(siblings[i], currentHash);
+            }
+        }
+        
+        root = currentHash;
     }
 }
