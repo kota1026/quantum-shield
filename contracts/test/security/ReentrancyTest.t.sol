@@ -34,6 +34,9 @@ contract ReentrancyTest is Test {
         prover1 = makeAddr("prover1");
         prover2 = makeAddr("prover2");
 
+        // Fund owner for prover registration
+        vm.deal(owner, 10 ether);
+
         vm.startPrank(owner);
         vault = new L1Vault(securityCouncil, address(0));
         
@@ -130,6 +133,7 @@ contract ReentrancyTest is Test {
         // Note: submitDefense requires active prover, so we test via resolution
         
         // Make malicious defender an active prover for testing
+        vm.deal(owner, 10 ether);
         vm.startPrank(owner);
         bytes memory sphincsKey = abi.encodePacked(bytes32(uint256(999)));
         vault.registerProver{value: 1 ether}(address(maliciousDefender), sphincsKey);
