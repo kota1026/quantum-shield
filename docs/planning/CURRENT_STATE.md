@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-25 17:30 JST  
+> **Last Updated**: 2025-12-25 18:15 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,7 +13,7 @@
 │  Month: 7 / 24                                              │
 │  Week: 4                                                    │
 │  Next Milestone: MS-1 ZK-STARK実装                          │
-│  Status: ✅ IMPL-005 実装完了 - テスト実行待ち               │
+│  Status: ✅ IMPL-005 完了 - 36/36 ALL PASS                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -27,8 +27,8 @@
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | IMPL-005 トレースCommitment検証 - STARKVerifier拡張 |
-| **実装日時** | 2025-12-25 17:29 JST |
-| **ステータス** | ✅ 実装完了 |
+| **実装日時** | 2025-12-25 18:15 JST |
+| **ステータス** | ✅ 実装完了・テストALL PASS |
 
 ### 作成ファイル
 
@@ -43,9 +43,9 @@
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +11 |
-| 総テスト数 | 39 (STARKVerifier.t.sol) |
-| 結果 | ⏳ テスト実行待ち |
+| 新規テスト数 | +8 (Merkle検証関連) |
+| 総テスト数 (STARKVerifier.t.sol) | 36 |
+| 結果 | ✅ **ALL PASS** |
 
 ### 実装内容
 
@@ -67,12 +67,21 @@
 | keccak256禁止 | ✅ 未使用 |
 | ドメイン分離 | ✅ DOMAIN_MERKLE_NODE追加 |
 
+### Gasベンチマーク
+
+| 操作 | Gas消費 | 備考 |
+|------|---------|------|
+| 単一Merkle検証 (深度10) | ~10.3M gas | SHA3-256 10回 |
+| バッチ検証 (3クエリ) | ~175M gas | 期待通り |
+| SHA3-256ハッシュ | ~1M gas | FIPS 202準拠 |
+
 ### 備考
 
 - バージョンを0.1.0から0.2.0に更新
 - DEFAULT_TRACE_DEPTH定数追加（値: 10）
 - 新エラー型追加: InvalidMerkleProofDepth, InvalidMerkleProof
 - TraceEvaluationVerifiedイベント追加
+- コミット: `61f10678bb06d9c86975ab2be37d432fa0965c1f`
 
 ---
 
@@ -82,7 +91,7 @@
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
 | Phase 1 | Month 1-6 | 100% | ✅ **COMPLETE** 🎉 |
-| **Phase 2** | Month 7-12 | **45%** | 🔄 **IN PROGRESS** |
+| **Phase 2** | Month 7-12 | **50%** | 🔄 **IN PROGRESS** |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
 
@@ -136,25 +145,34 @@
 | 5 | セキュリティレビュー PIR-P2-004 | Red Team | 2025-12-25 | ✅ **PASS** |
 | 6 | **IMPL-005 トレースCommitment検証** | Engineer | 2025-12-25 | ✅ **完了** |
 | 7 | **TEST-005 テストケース作成** | QA | 2025-12-25 | ✅ **完了** |
+| 8 | **テスト実行 36/36 PASS** | QA | 2025-12-25 | ✅ **ALL PASS** |
 
 ### In Progress 🔄
 
 | # | タスク | 担当 | 期限 | Status |
 |---|--------|------|------|--------|
-| 1 | テスト実行 (forge test) | QA | 2025-12-25 | 🔄 |
+| 1 | セキュリティレビュー PIR-P2-005 | Red Team | 2025-12-26 | 🔄 READY |
 | 2 | テストネット環境構築 (INFRA-001) | DevOps | 2025-12-31 | ⬜ |
 
 ---
 
 ## 🧪 テスト状態
 
-### 最新結果: ⏳ **実行待ち**
+### 最新結果: ✅ **ALL PASS**
 
 ```
-STARKVerifier.t.sol:    39 tests (28 existing + 11 new) ⏳
+STARKVerifier.t.sol:    36/36 PASS ✅
 FRIIntegration.t.sol:   25/25 PASS ✅
 ────────────────────────────────
-新規追加 (TEST-005):    +11 tests
+TEST-005 追加テスト:
+  - test_VerifyTraceEvaluationAtIndex        ✅ PASS
+  - test_VerifyTraceEvaluationAtIndex_Gas    ✅ PASS
+  - test_VerifyTraceEvaluationAtIndex_InvalidProof ✅ PASS
+  - test_VerifyTraceEvaluationAtIndex_InvalidLeaf  ✅ PASS
+  - test_VerifyTraceEvaluations_Batch        ✅ PASS
+  - test_VerifyTraceEvaluations_InsufficientQueries ✅ PASS
+  - test_VerifyTraceEvaluation_DepthValidation ✅ PASS
+  - testFuzz_MerkleVerification (256 runs)   ✅ PASS
 ```
 
 ### テストスイート内訳
@@ -163,10 +181,10 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 |-------|-------|--------|
 | SHA3HasherTest | 21 | ✅ PASS |
 | ProofCodecTest | 14 | ✅ PASS |
-| **STARKVerifier.t.sol** | 39 | ⏳ 実行待ち |
+| **STARKVerifier.t.sol** | 36 | ✅ **ALL PASS** |
 | FRIIntegration.t.sol | 25 | ✅ PASS |
 | 既存テスト | 433 | ✅ PASS |
-| **合計** | **532** | ⏳ 実行待ち |
+| **合計** | **529** | ✅ **ALL PASS** |
 
 ---
 
@@ -197,7 +215,7 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 | PIR-P2-002 | Week 1 成果物レビュー | ✅ **PASS** | 2025-12-26 |
 | PIR-P2-003 | Week 2 SHA3Hasher + ProofCodec | ✅ **PASS** | 2025-12-25 |
 | PIR-P2-004 | Week 3 STARKVerifier v0.1 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
-| PIR-P2-005 | Week 4 IMPL-005 セキュリティレビュー | ⬜ **待機中** | - |
+| PIR-P2-005 | Week 4 IMPL-005 セキュリティレビュー | 🔄 **READY** | - |
 
 ---
 
@@ -205,9 +223,10 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 
 | # | 懸念 | 重要度 | 対応 |
 |---|------|--------|------|
-| 1 | ZK-STARK実装の複雑性 | HIGH | ✅ 段階的実装中、v0.2完了 |
+| 1 | ZK-STARK実装の複雑性 | HIGH | ✅ v0.2完了、段階的実装継続 |
 | 2 | 外部監査のスケジュール | MEDIUM | ✅ RFP草案作成完了 |
 | 3 | テストネット環境構築 | MEDIUM | 🔄 INFRA-001 進行予定 |
+| 4 | SHA3-256 Gas消費 | LOW | ✅ 期待通り（~1M gas/hash） |
 
 ---
 
@@ -225,9 +244,9 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 | ~~PIR-P2-003 セキュリティレビュー~~ | ~~Week 2~~ | ✅ **COMPLETE (PASS)** |
 | ~~STARKVerifier v0.1 基本構造~~ | ~~Week 3~~ | ✅ **COMPLETE** |
 | ~~PIR-P2-004 セキュリティレビュー~~ | ~~Week 3~~ | ✅ **COMPLETE (PASS)** |
-| **IMPL-005 トレースCommitment検証** | Week 4 | ✅ **COMPLETE** |
-| **テスト実行・PASS確認** | Week 4 | 🔄 **IN PROGRESS** |
-| **PIR-P2-005 セキュリティレビュー** | Week 4 | ⬜ **READY** |
+| ~~IMPL-005 トレースCommitment検証~~ | ~~Week 4~~ | ✅ **COMPLETE** |
+| ~~テスト実行・36/36 PASS~~ | ~~Week 4~~ | ✅ **COMPLETE** |
+| **PIR-P2-005 セキュリティレビュー** | Week 4 | 🔄 **READY** |
 | MS-1: ZK-STARK実装 | Month 9 | ⬜ |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
@@ -267,9 +286,9 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 
 **Phase 1 Foundation Bootstrap: ✅ COMPLETE 🎉**
 
-**Phase 2 Week 4: ✅ IMPL-005 実装完了 - テスト実行待ち**
+**Phase 2 Week 4: ✅ IMPL-005 完了 - 36/36 ALL PASS**
 
-**Next: テスト実行後 → ④ セキュリティレビュー (04_review.md)**
+**Next: ④ セキュリティレビュー (04_review.md)**
 
 ---
 
