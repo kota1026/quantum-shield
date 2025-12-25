@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {Test, console2} from "forge-std/Test.sol";
 import {QuantumShield} from "../src/QuantumShield.sol";
 import {FRIVerifier} from "../src/FRIVerifier.sol";
+import {SHA3_256} from "../src/libraries/SHA3_256.sol";
 
 /// @title QuantumShield Test Suite
 /// @notice Comprehensive tests for STARK verification including Level 2
@@ -179,14 +180,14 @@ contract QuantumShieldTest is Test {
 
     function test_Level2_FRIMerkleVerification() public pure {
         // Test Merkle proof verification
-        bytes32 root = keccak256(abi.encodePacked(
-            keccak256(abi.encodePacked(uint256(100), uint256(200))),
-            keccak256(abi.encodePacked(uint256(300), uint256(400)))
-        ));
+        bytes32 root = SHA3_256.hashPair(
+            SHA3_256.hash(abi.encodePacked(uint256(100), uint256(200))),
+            SHA3_256.hash(abi.encodePacked(uint256(300), uint256(400)))
+        );
 
-        bytes32 leaf = keccak256(abi.encodePacked(uint256(100), uint256(200)));
+        bytes32 leaf = SHA3_256.hash(abi.encodePacked(uint256(100), uint256(200)));
         bytes32[] memory proof = new bytes32[](1);
-        proof[0] = keccak256(abi.encodePacked(uint256(300), uint256(400)));
+        proof[0] = SHA3_256.hash(abi.encodePacked(uint256(300), uint256(400)));
 
         bool valid = FRIVerifier.verifyMerkleProof(root, 0, 100, 200, proof);
         assertTrue(valid, "Merkle proof should be valid");
