@@ -25,6 +25,13 @@ import {SHA3_256} from "./libraries/SHA3_256.sol";
 /// All remaining keccak256 usages (dilithiumPubKeyHash, sphincsPubKeyHash,
 /// fraudProofHash, defenseProofHash) replaced with SHA3_256.hash() for
 /// complete CP-1 compliance. L1Vault.sol now has ZERO keccak256 usage.
+///
+/// SEC-001 Update (2025-12-25): Applied CEI (Checks-Effects-Interactions) pattern
+/// to resolve reentrancy vulnerabilities identified by Slither analysis (SL-001 to SL-004).
+/// All state updates now occur BEFORE external calls.
+///
+/// SEC-002 Update (2025-12-25): Added OwnershipTransferred and SecurityCouncilUpdated
+/// events for improved auditability (FIX-005, FIX-006).
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -147,6 +154,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
     event ProverSlashed(address indexed prover, uint256 amount, bytes32 reason);
     event StateRootUpdated(bytes32 indexed newRoot, uint256 indexed blockNumber);
     event SPHINCSVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+    
+    /// @notice Emitted when ownership is transferred
+    /// @dev SEC-002 FIX-005: Added for auditability
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    
+    /// @notice Emitted when security council is updated
+    /// @dev SEC-002 FIX-006: Added for auditability
+    event SecurityCouncilUpdated(address indexed previousCouncil, address indexed newCouncil);
     
     /// @notice Emitted when Emergency unlock is initiated (manual or timeout)
     /// @dev Sequence #3: EVT-001
@@ -694,6 +709,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
         emit DefenseSubmitted(lockId, msg.sender, defenseProofHash);
     }
 
+    /// @notice Resolve a challenge by security council
+    /// @dev SEC-001 FIX-002: CEI pattern applied - state updates before external calls
     function resolveChallenge(bytes32 lockId, bool challengeValid) external onlySecurityCouncil nonReentrant {
         Challenge storage challengeData = challenges[lockId];
         if (challengeData.status != ChallengeStatus.PENDING && challengeData.status != ChallengeStatus.DEFENSE_SUBMITTED) {
@@ -734,7 +751,10 @@ contract L1Vault is ReentrancyGuard, Pausable {
         emit ChallengeResolved(lockId, challengeValid, slashedAmount, challengerReward, insuranceAmount, burnedAmount);
     }
 
+    /// @notice Internal function to resolve a valid challenge
+    /// @dev SEC-001 FIX-003: CEI pattern applied - ALL state updates BEFORE external calls
     function _resolveValidChallenge(bytes32 lockId, Challenge storage challengeData, Lock storage lockData, UnlockRequest storage request) internal {
+        // === EFFECTS (state updates) - FIRST ===
         challengeData.status = ChallengeStatus.RESOLVED_VALID;
         lockData.status = LockStatus.SLASHED;
 
@@ -743,19 +763,29 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
         uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
 
-        (bool success, ) = challengeData.challenger.call{value: challengeData.bond + challengerReward}("");
-        if (!success) revert TransferFailed();
+        // Cache values for external calls
+        address challenger = challengeData.challenger;
+        uint256 challengerPayout = challengeData.bond + challengerReward;
+        address sender = lockData.sender;
+        uint256 lockAmount = lockData.amount;
 
+        // Update state variables BEFORE external calls (CEI pattern)
         insuranceFund += insuranceAmount;
         totalBurned += burnedAmount;
+        totalLocked -= lockAmount;
 
-        (bool refundSuccess, ) = lockData.sender.call{value: lockData.amount}("");
+        // === INTERACTIONS (external calls) - LAST ===
+        (bool success, ) = challenger.call{value: challengerPayout}("");
+        if (!success) revert TransferFailed();
+
+        (bool refundSuccess, ) = sender.call{value: lockAmount}("");
         if (!refundSuccess) revert TransferFailed();
-
-        totalLocked -= lockData.amount;
     }
 
+    /// @notice Internal function to resolve an invalid challenge
+    /// @dev SEC-001 FIX-004: CEI pattern applied - ALL state updates BEFORE external calls
     function _resolveInvalidChallenge(bytes32 lockId, Challenge storage challengeData, Lock storage lockData) internal {
+        // === EFFECTS (state updates) - FIRST ===
         challengeData.status = ChallengeStatus.RESOLVED_INVALID;
         
         // Restore to appropriate pending state
@@ -767,18 +797,26 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
         if (challengeData.defender != address(0)) {
             uint256 defenderReward = (challengeData.bond * SLASH_CHALLENGER_PERCENT) / 100;
-            (bool defenderSuccess, ) = challengeData.defender.call{value: defenderReward}("");
-            if (!defenderSuccess) revert TransferFailed();
-            
             uint256 insuranceAmount = (challengeData.bond * SLASH_INSURANCE_PERCENT) / 100;
             uint256 burnedAmount = (challengeData.bond * SLASH_BURN_PERCENT) / 100;
+            
+            // Cache defender address for external call
+            address defender = challengeData.defender;
+            
+            // Update state BEFORE external call (CEI pattern)
             insuranceFund += insuranceAmount;
             totalBurned += burnedAmount;
+            
+            // === INTERACTIONS (external calls) - LAST ===
+            (bool defenderSuccess, ) = defender.call{value: defenderReward}("");
+            if (!defenderSuccess) revert TransferFailed();
         } else {
             insuranceFund += challengeData.bond;
         }
     }
 
+    /// @notice Auto-resolve challenge after defense period expires
+    /// @dev SEC-001 FIX-001: CEI pattern applied - ALL state updates BEFORE external calls
     function autoResolveChallenge(bytes32 lockId) external nonReentrant {
         Challenge storage challengeData = challenges[lockId];
         if (challengeData.status != ChallengeStatus.PENDING) revert ChallengeAlreadyResolved();
@@ -787,6 +825,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
         Lock storage lockData = locks[lockId];
         UnlockRequest storage request = unlockRequests[lockId];
 
+        // === EFFECTS (state updates) - FIRST ===
         challengeData.status = ChallengeStatus.RESOLVED_VALID;
         lockData.status = LockStatus.SLASHED;
 
@@ -795,11 +834,16 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
         uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
 
-        (bool success, ) = challengeData.challenger.call{value: challengeData.bond + challengerReward}("");
-        if (!success) revert TransferFailed();
+        // Cache values for external calls
+        address challenger = challengeData.challenger;
+        uint256 challengerPayout = challengeData.bond + challengerReward;
+        address sender = lockData.sender;
+        uint256 lockAmount = lockData.amount;
 
+        // Update state variables BEFORE external calls (CEI pattern)
         insuranceFund += insuranceAmount;
         totalBurned += burnedAmount;
+        totalLocked -= lockAmount;
         
         // Forfeit emergency bond if applicable
         if (request.isEmergency && request.bond > 0) {
@@ -807,10 +851,12 @@ contract L1Vault is ReentrancyGuard, Pausable {
             request.bond = 0;
         }
 
-        (bool refundSuccess, ) = lockData.sender.call{value: lockData.amount}("");
-        if (!refundSuccess) revert TransferFailed();
+        // === INTERACTIONS (external calls) - LAST ===
+        (bool success, ) = challenger.call{value: challengerPayout}("");
+        if (!success) revert TransferFailed();
 
-        totalLocked -= lockData.amount;
+        (bool refundSuccess, ) = sender.call{value: lockAmount}("");
+        if (!refundSuccess) revert TransferFailed();
 
         emit ChallengeResolved(lockId, true, slashedAmount, challengerReward, insuranceAmount, burnedAmount);
     }
@@ -975,14 +1021,22 @@ contract L1Vault is ReentrancyGuard, Pausable {
     function pause() external onlySecurityCouncil { _pause(); }
     function unpause() external onlySecurityCouncil { _unpause(); }
 
+    /// @notice Transfer ownership to a new owner
+    /// @dev SEC-002 FIX-005: Added OwnershipTransferred event emission
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
+        address previousOwner = owner;
         owner = newOwner;
+        emit OwnershipTransferred(previousOwner, newOwner);
     }
 
+    /// @notice Update the security council address
+    /// @dev SEC-002 FIX-006: Added SecurityCouncilUpdated event emission
     function updateSecurityCouncil(address newCouncil) external onlySecurityCouncil {
         if (newCouncil == address(0)) revert ZeroAddress();
+        address previousCouncil = securityCouncil;
         securityCouncil = newCouncil;
+        emit SecurityCouncilUpdated(previousCouncil, newCouncil);
     }
 
     receive() external payable {}
