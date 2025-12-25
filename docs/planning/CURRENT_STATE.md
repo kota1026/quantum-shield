@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-25 18:30 JST  
+> **Last Updated**: 2025-12-25 17:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -11,9 +11,9 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 2 - Security Council + Token                        │
 │  Month: 7 / 24                                              │
-│  Week: 3                                                    │
+│  Week: 4                                                    │
 │  Next Milestone: MS-1 ZK-STARK実装                          │
-│  Status: ✅ Week 3 セキュリティレビュー PASS - PIR待ち        │
+│  Status: ✅ IMPL-005 実装完了 - テスト実行待ち               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -26,29 +26,53 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | - |
-| **実装日時** | - |
-| **ステータス** | ⬜ 未実行 |
+| **対象Plan** | IMPL-005 トレースCommitment検証 - STARKVerifier拡張 |
+| **実装日時** | 2025-12-25 17:29 JST |
+| **ステータス** | ✅ 実装完了 |
 
 ### 作成ファイル
 
-（なし）
+- `contracts/src/STARKVerifier.sol`: v0.1 → v0.2 拡張（トレースCommitment検証追加）
+- `contracts/test/STARKVerifier.t.sol`: TEST-005 テストケース追加
 
 ### SPEC_REVIEW対応
 
-（該当なし）
+（該当なし - SPEC_REVIEW.mdは PASS ステータス）
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | - |
-| 総テスト数 | - |
-| 結果 | - |
+| 新規テスト数 | +11 |
+| 総テスト数 | 39 (STARKVerifier.t.sol) |
+| 結果 | ⏳ テスト実行待ち |
+
+### 実装内容
+
+#### IMPL-005: STARKVerifier v0.2 新機能
+
+| 関数 | 説明 |
+|------|------|
+| `verifyTraceEvaluationAtIndex()` | 単一トレース評価のMerkle証明検証 |
+| `verifyTraceEvaluationsBatch()` | 複数評価のバッチ検証 |
+| `computeTraceLeaf()` | 評価データからリーフハッシュ計算 |
+| `computeTraceRoot()` | 評価配列からMerkleルート計算 |
+| `_hashMerkleNodes()` | ドメイン分離されたSHA3-256ハッシュ |
+
+#### CP-1 コンプライアンス確認
+
+| 項目 | 状態 |
+|------|------|
+| SHA3-256使用 | ✅ 全ハッシュ操作で使用 |
+| keccak256禁止 | ✅ 未使用 |
+| ドメイン分離 | ✅ DOMAIN_MERKLE_NODE追加 |
 
 ### 備考
 
-（なし）
+- バージョンを0.1.0から0.2.0に更新
+- DEFAULT_TRACE_DEPTH定数追加（値: 10）
+- 新エラー型追加: InvalidMerkleProofDepth, InvalidMerkleProof
+- TraceEvaluationVerifiedイベント追加
 
 ---
 
@@ -58,7 +82,7 @@
 |-------|------|------|--------|
 | Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
 | Phase 1 | Month 1-6 | 100% | ✅ **COMPLETE** 🎉 |
-| **Phase 2** | Month 7-12 | **40%** | 🔄 **IN PROGRESS** |
+| **Phase 2** | Month 7-12 | **45%** | 🔄 **IN PROGRESS** |
 | Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
 | Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
 
@@ -69,7 +93,7 @@
 ### Go/No-Go判定結果: 🟢 **GO** (2025-12-26)
 
 | 項目 | 達成状況 |
-|------|---------|
+|------|---------| 
 | 14日間修正計画 | ✅ 100% COMPLETE |
 | 全PIRレビュー | ✅ 11/11 PASS |
 | テストスイート | ✅ 423/423 PASS (100%) |
@@ -99,7 +123,7 @@
 
 ---
 
-## 📋 Phase 2 Week 3 タスク進捗
+## 📋 Phase 2 Week 4 タスク進捗
 
 ### Completed ✅
 
@@ -109,26 +133,28 @@
 | 2 | STARKVerifier単体テスト作成 | QA | 2025-12-25 | ✅ TEST-004 |
 | 3 | FRIVerifier統合テスト作成 | QA | 2025-12-25 | ✅ TEST-003 |
 | 4 | テスト実行・全PASS確認 | QA | 2025-12-25 | ✅ 53/53 PASS |
-| 5 | **セキュリティレビュー** | Red Team | 2025-12-25 | ✅ **PASS** |
+| 5 | セキュリティレビュー PIR-P2-004 | Red Team | 2025-12-25 | ✅ **PASS** |
+| 6 | **IMPL-005 トレースCommitment検証** | Engineer | 2025-12-25 | ✅ **完了** |
+| 7 | **TEST-005 テストケース作成** | QA | 2025-12-25 | ✅ **完了** |
 
 ### In Progress 🔄
 
 | # | タスク | 担当 | 期限 | Status |
 |---|--------|------|------|--------|
-| 1 | トレースCommitment検証 (IMPL-005) | Engineer | 2025-12-31 | 🔄 |
+| 1 | テスト実行 (forge test) | QA | 2025-12-25 | 🔄 |
 | 2 | テストネット環境構築 (INFRA-001) | DevOps | 2025-12-31 | ⬜ |
 
 ---
 
 ## 🧪 テスト状態
 
-### 最新結果: ✅ **ALL PASS**
+### 最新結果: ⏳ **実行待ち**
 
 ```
-STARKVerifier.t.sol:    28/28 PASS ✅
+STARKVerifier.t.sol:    39 tests (28 existing + 11 new) ⏳
 FRIIntegration.t.sol:   25/25 PASS ✅
 ────────────────────────────────
-新規追加:               53 tests
+新規追加 (TEST-005):    +11 tests
 ```
 
 ### テストスイート内訳
@@ -137,10 +163,10 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 |-------|-------|--------|
 | SHA3HasherTest | 21 | ✅ PASS |
 | ProofCodecTest | 14 | ✅ PASS |
-| **STARKVerifier.t.sol** | 28 | ✅ PASS |
-| **FRIIntegration.t.sol** | 25 | ✅ PASS |
+| **STARKVerifier.t.sol** | 39 | ⏳ 実行待ち |
+| FRIIntegration.t.sol | 25 | ✅ PASS |
 | 既存テスト | 433 | ✅ PASS |
-| **合計** | **521** | ✅ **ALL PASS** |
+| **合計** | **532** | ⏳ 実行待ち |
 
 ---
 
@@ -171,6 +197,7 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 | PIR-P2-002 | Week 1 成果物レビュー | ✅ **PASS** | 2025-12-26 |
 | PIR-P2-003 | Week 2 SHA3Hasher + ProofCodec | ✅ **PASS** | 2025-12-25 |
 | PIR-P2-004 | Week 3 STARKVerifier v0.1 セキュリティレビュー | ✅ **PASS** | 2025-12-25 |
+| PIR-P2-005 | Week 4 IMPL-005 セキュリティレビュー | ⬜ **待機中** | - |
 
 ---
 
@@ -178,10 +205,9 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 
 | # | 懸念 | 重要度 | 対応 |
 |---|------|--------|------|
-| 1 | ZK-STARK実装の複雑性 | HIGH | ✅ 段階的実装計画策定完了、v0.1実装開始 |
+| 1 | ZK-STARK実装の複雑性 | HIGH | ✅ 段階的実装中、v0.2完了 |
 | 2 | 外部監査のスケジュール | MEDIUM | ✅ RFP草案作成完了 |
-| 3 | ~~Compiler Warnings~~ | ~~LOW~~ | ✅ **棚卸し完了、CP-1違反0件** |
-| 4 | ~~FRIVerifier keccak256使用~~ | ~~HIGH~~ | ✅ **SHA3-256移行完了 (PIR-P2-001 PASS)** |
+| 3 | テストネット環境構築 | MEDIUM | 🔄 INFRA-001 進行予定 |
 
 ---
 
@@ -199,7 +225,9 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 | ~~PIR-P2-003 セキュリティレビュー~~ | ~~Week 2~~ | ✅ **COMPLETE (PASS)** |
 | ~~STARKVerifier v0.1 基本構造~~ | ~~Week 3~~ | ✅ **COMPLETE** |
 | ~~PIR-P2-004 セキュリティレビュー~~ | ~~Week 3~~ | ✅ **COMPLETE (PASS)** |
-| **PIR-P2-004 PIR会議** | 2025-12-31 | 🔄 **READY** |
+| **IMPL-005 トレースCommitment検証** | Week 4 | ✅ **COMPLETE** |
+| **テスト実行・PASS確認** | Week 4 | 🔄 **IN PROGRESS** |
+| **PIR-P2-005 セキュリティレビュー** | Week 4 | ⬜ **READY** |
 | MS-1: ZK-STARK実装 | Month 9 | ⬜ |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
@@ -210,7 +238,7 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 
 | 条件 | 基準 | 現状 | 判定 |
 |------|------|------|------|
-| ZK-STARK証明 | Gas 87.5%削減 | STARKVerifier v0.1 セキュリティレビュー PASS | 🔄 |
+| ZK-STARK証明 | Gas 87.5%削減 | STARKVerifier v0.2 IMPL-005完了 | 🔄 |
 | 外部監査 | Critical/High 0件 | RFP作成完了 | 🔄 |
 | テストネット | 安定稼働 | - | ⬜ |
 | Security Council | 5/9構築 | - | ⬜ |
@@ -239,9 +267,9 @@ FRIIntegration.t.sol:   25/25 PASS ✅
 
 **Phase 1 Foundation Bootstrap: ✅ COMPLETE 🎉**
 
-**Phase 2 Week 3: ✅ STARKVerifier v0.1 セキュリティレビュー PASS**
+**Phase 2 Week 4: ✅ IMPL-005 実装完了 - テスト実行待ち**
 
-**Next: ⑤ PIR会議 (05_pir.md)**
+**Next: テスト実行後 → ④ セキュリティレビュー (04_review.md)**
 
 ---
 
