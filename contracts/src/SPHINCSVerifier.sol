@@ -1,9 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @title SPHINCSVerifier - SPHINCS+-SHA256 Signature Verifier
+import {SHAKE256} from "./libraries/SHAKE256.sol";
+import {SHA3_256} from "./libraries/SHA3_256.sol";
+
+/// @title SPHINCSVerifier - SPHINCS+-SHAKE-128s Signature Verifier
 /// @notice Phase 1 implementation of SPHINCS+ signature verification
-/// @dev Implements SPHINCS+-SHA2-128s (NIST FIPS 205) for quantum-resistant signatures
+/// @dev Implements SPHINCS+-SHAKE-128s (NIST FIPS 205) for quantum-resistant signatures
+///
+/// SHAKE Migration (Day 13 - CEO Decision):
+/// - All internal hashing: SHAKE256 (replaces SHA-256)
+/// - Public key hashing: SHA3-256 (replaces keccak256)
+/// - Core Principles CP-1 compliance: No SHA-256 or keccak256
 ///
 /// SPHINCS+ Architecture Overview:
 /// ┌─────────────────────────────────────────────────────────────────────┐
@@ -17,11 +25,12 @@ pragma solidity ^0.8.20;
 /// └─────────────────────────────────────────────────────────────────────┘
 ///
 /// Security Level: 128-bit post-quantum (NIST Level 1)
-/// Signature Size: ~7,856 bytes (SPHINCS+-SHA2-128s)
+/// Signature Size: ~7,856 bytes (SPHINCS+-SHAKE-128s)
 /// Public Key: 32 bytes
+/// Hash Function: SHAKE256 (FIPS 202)
 contract SPHINCSVerifier {
     // =========================================================================
-    // Constants - SPHINCS+-SHA2-128s Parameters (NIST FIPS 205)
+    // Constants - SPHINCS+-SHAKE-128s Parameters (NIST FIPS 205)
     // =========================================================================
 
     /// @notice Security parameter n (hash output length in bytes)
@@ -54,7 +63,7 @@ contract SPHINCSVerifier {
     /// @notice FORS tree height
     uint256 public constant FORS_HEIGHT = 12;
 
-    /// @notice Expected signature size for SPHINCS+-SHA2-128s
+    /// @notice Expected signature size for SPHINCS+-SHAKE-128s
     uint256 public constant SIGNATURE_SIZE = 7856;
 
     /// @notice Public key size
@@ -246,14 +255,15 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Compute message digest H_msg(R, PK.seed, PK.root, M)
+    /// @dev Uses SHAKE256 per FIPS 205 SPHINCS+-SHAKE-128s
     function _computeDigest(
         bytes16 R,
         bytes16 seed,
         bytes16 root,
         bytes32 message
     ) internal pure returns (bytes32) {
-        // SHA-256 based message hashing per FIPS 205
-        return sha256(abi.encodePacked(
+        // SHAKE256 based message hashing per FIPS 205 (SHAKE variant)
+        return SHAKE256.hash256(abi.encodePacked(
             bytes1(0x00),  // Domain separator for H_msg
             R,
             seed,
@@ -361,6 +371,7 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Compute FORS tree root from leaf and authentication path
+    /// @dev Uses SHAKE256 for all hashing operations
     function _computeFORSTreeRoot(
         bytes16 skValue,
         uint256 leafIndex,
@@ -368,8 +379,8 @@ contract SPHINCSVerifier {
         bytes16 seed,
         uint256 treeIndex
     ) internal pure returns (bytes32 root) {
-        // Hash private key to get leaf
-        bytes32 node = sha256(abi.encodePacked(
+        // Hash private key to get leaf using SHAKE256
+        bytes32 node = SHAKE256.hash256(abi.encodePacked(
             bytes1(0x01),  // Domain separator for F
             seed,
             uint32(treeIndex),
@@ -384,7 +395,7 @@ contract SPHINCSVerifier {
 
             if (idx & 1 == 0) {
                 // Current node is left child
-                node = sha256(abi.encodePacked(
+                node = SHAKE256.hash256(abi.encodePacked(
                     bytes1(0x02),  // Domain separator for H
                     seed,
                     uint32(treeIndex),
@@ -394,7 +405,7 @@ contract SPHINCSVerifier {
                 ));
             } else {
                 // Current node is right child
-                node = sha256(abi.encodePacked(
+                node = SHAKE256.hash256(abi.encodePacked(
                     bytes1(0x02),
                     seed,
                     uint32(treeIndex),
@@ -411,6 +422,7 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Hash all FORS roots into a single commitment
+    /// @dev Uses SHAKE256 for combining FORS roots
     function _hashFORSRoots(
         bytes32[14] memory roots,
         bytes16 seed
@@ -419,7 +431,7 @@ contract SPHINCSVerifier {
         for (uint256 i = 0; i < FORS_TREES; i++) {
             packed = abi.encodePacked(packed, roots[i]);
         }
-        return sha256(packed);
+        return SHAKE256.hash256(packed);
     }
 
     /// @notice Verify XMSS layer (WOTS+ signature + Merkle path)
@@ -454,7 +466,7 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Compute WOTS+ checksum from message
-    /// @dev For SPHINCS+-SHA2-128s: n=16, w=16, len1=32, len2=3, len=35
+    /// @dev For SPHINCS+-SHAKE-128s: n=16, w=16, len1=32, len2=3, len=35
     function _computeWOTSChecksum(bytes32 message) 
         internal 
         pure 
@@ -484,6 +496,7 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Compute WOTS+ chain value
+    /// @dev Uses SHAKE256 for chain hashing
     function _computeWOTSChain(
         bytes32 start,
         uint256 startIndex,
@@ -494,7 +507,7 @@ contract SPHINCSVerifier {
     ) internal pure returns (bytes32 result) {
         result = start;
         for (uint256 i = 0; i < steps; i++) {
-            result = sha256(abi.encodePacked(
+            result = SHAKE256.hash256(abi.encodePacked(
                 bytes1(0x04),  // Domain separator for F
                 seed,
                 uint32(layer),
@@ -506,6 +519,7 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Compress WOTS+ public key chunks into single hash
+    /// @dev Uses SHAKE256 for compression
     function _compressWOTSPublicKey(
         bytes32[35] memory chunks,
         bytes16 seed,
@@ -515,10 +529,11 @@ contract SPHINCSVerifier {
         for (uint256 i = 0; i < WOTS_LEN; i++) {
             packed = abi.encodePacked(packed, chunks[i]);
         }
-        return sha256(packed);
+        return SHAKE256.hash256(packed);
     }
 
     /// @notice Climb Merkle tree using authentication path
+    /// @dev Uses SHAKE256 for tree hashing
     function _climbMerkleTree(
         bytes32 leaf,
         bytes32[9] memory authPath,
@@ -531,7 +546,7 @@ contract SPHINCSVerifier {
         for (uint256 height = 0; height < SUBTREE_HEIGHT; height++) {
             bytes32 sibling = authPath[height];
             // This is simplified - actual implementation needs leaf index
-            root = sha256(abi.encodePacked(
+            root = SHAKE256.hash256(abi.encodePacked(
                 bytes1(0x06),
                 seed,
                 uint32(layer),
@@ -547,13 +562,14 @@ contract SPHINCSVerifier {
     // =========================================================================
 
     /// @notice Compute hash of public key for storage/comparison
+    /// @dev Uses SHA3-256 (NOT keccak256) per CP-1 compliance
     function computePublicKeyHash(bytes calldata publicKey) 
         external 
         pure 
         returns (bytes32) 
     {
         if (publicKey.length != PUBLIC_KEY_SIZE) revert InvalidPublicKeyLength();
-        return keccak256(publicKey);
+        return SHA3_256.hash(publicKey);
     }
 
     /// @notice Check if this is a valid SPHINCS+ public key format
