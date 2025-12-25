@@ -6,6 +6,7 @@ import "../src/L1Vault.sol";
 import "../src/SPHINCSVerifier.sol";
 import "../src/libraries/SparseMerkleTree.sol";
 import "../src/libraries/StateRootCalculator.sol";
+import "../src/libraries/SHA3_256.sol";
 
 /// @title L1Vault Integration Test Suite
 /// @notice End-to-end tests for L1Vault with SPHINCS+ and SMT
@@ -36,6 +37,9 @@ import "../src/libraries/StateRootCalculator.sol";
 /// Day 8 Update (2025-12-24):
 /// Fixed test_ChallengeFlow_Complete() expectation:
 /// - Emergency Unlock経由のChallenge棄却後はEMERGENCY_PENDINGに戻る
+///
+/// FIX-010/011/012/013 Update (2025-12-25):
+/// Updated all keccak256 to SHA3_256.hash() for CP-1 compliance
 contract L1VaultIntegrationTest is Test {
     L1Vault public vault;
     SPHINCSVerifier public sphincsVerifier;
@@ -141,7 +145,8 @@ contract L1VaultIntegrationTest is Test {
     function test_Lock_EmitsEvent() public {
         uint256 amount = 1 ether;
         bytes memory dilithiumPubKey = _generateDilithiumPubKey(1);
-        bytes32 dilithiumPubKeyHash = keccak256(dilithiumPubKey);
+        // FIX-010: Use SHA3_256 instead of keccak256
+        bytes32 dilithiumPubKeyHash = SHA3_256.hash(dilithiumPubKey);
         
         vm.prank(user1);
         vm.expectEmit(false, true, true, false);
@@ -158,7 +163,8 @@ contract L1VaultIntegrationTest is Test {
     function test_Lock_EmitsEvent_WithCorrectStateRoot() public {
         uint256 amount = 1 ether;
         bytes memory dilithiumPubKey = _generateDilithiumPubKey(1);
-        bytes32 dilithiumPubKeyHash = keccak256(dilithiumPubKey);
+        // FIX-010: Use SHA3_256 instead of keccak256
+        bytes32 dilithiumPubKeyHash = SHA3_256.hash(dilithiumPubKey);
         
         vm.prank(user1);
         bytes32 lockId = vault.lock{value: amount}(user2, dilithiumPubKey);
@@ -185,7 +191,8 @@ contract L1VaultIntegrationTest is Test {
     function test_Lock_EventParameters_AllVerifiable() public {
         uint256 amount = 1 ether;
         bytes memory dilithiumPubKey = _generateDilithiumPubKey(1);
-        bytes32 dilithiumPubKeyHash = keccak256(dilithiumPubKey);
+        // FIX-010: Use SHA3_256 instead of keccak256
+        bytes32 dilithiumPubKeyHash = SHA3_256.hash(dilithiumPubKey);
         
         // Record logs to verify event
         vm.recordLogs();
@@ -297,6 +304,7 @@ contract L1VaultIntegrationTest is Test {
         assertTrue(lockData.stateRoot != bytes32(0), "SR_0 should be computed");
         
         // SR_0 should match manual computation
+        // FIX-010: Use SHA3_256 instead of keccak256
         bytes32 expectedSR0 = vault.computeStateRoot(
             block.chainid,
             address(0),  // ETH
@@ -304,7 +312,7 @@ contract L1VaultIntegrationTest is Test {
             user2,
             lockData.expiry,
             lockData.nonce,
-            keccak256(dilithiumPubKey)
+            SHA3_256.hash(dilithiumPubKey)
         );
         assertEq(lockData.stateRoot, expectedSR0, "SR_0 should match manual computation");
     }
@@ -580,7 +588,8 @@ contract L1VaultIntegrationTest is Test {
         bytes32 lockId = _setupChallengeScenario();
         uint256 challengeBond = vault.calculateChallengeBond(1 ether);
         bytes memory fraudProof = abi.encodePacked("fraud_proof");
-        bytes32 fraudProofHash = keccak256(fraudProof);
+        // FIX-012: Use SHA3_256 instead of keccak256
+        bytes32 fraudProofHash = SHA3_256.hash(fraudProof);
         
         vm.prank(challenger);
         vm.expectEmit(true, true, false, true);
@@ -614,7 +623,8 @@ contract L1VaultIntegrationTest is Test {
         vault.challenge{value: challengeBond}(lockId, "fraud_proof");
         
         bytes memory defenseProof = abi.encodePacked("valid_proof");
-        bytes32 defenseProofHash = keccak256(defenseProof);
+        // FIX-013: Use SHA3_256 instead of keccak256
+        bytes32 defenseProofHash = SHA3_256.hash(defenseProof);
         
         vm.prank(prover1);
         vm.expectEmit(true, true, false, true);
