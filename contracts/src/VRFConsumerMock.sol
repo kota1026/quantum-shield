@@ -12,6 +12,10 @@ import {ProverSelector} from "./libraries/ProverSelector.sol";
 /// - VRFConsumerBaseV2Plus inheritance
 /// - Subscription-based or direct funding
 /// - Proper callback security
+///
+/// SEC-002 Update (2025-12-25):
+/// - [FIX-013] Added zero-address check to constructor for l1Vault
+/// - [FIX-014] Added OwnershipTransferred event to transferOwnership()
 contract VRFConsumerMock is IVRFConsumer {
     using ProverSelector for ProverSelector.ProverInfo[];
 
@@ -67,6 +71,10 @@ contract VRFConsumerMock is IVRFConsumer {
     event ProverAdded(address indexed prover, uint256 stake);
     event ProverRemoved(address indexed prover);
     event L1VaultUpdated(address indexed oldVault, address indexed newVault);
+    
+    /// @notice Emitted when ownership is transferred
+    /// @dev SEC-002 FIX-014: Added for auditability
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // =========================================================================
     // Errors (additional to interface)
@@ -98,7 +106,11 @@ contract VRFConsumerMock is IVRFConsumer {
     // Constructor
     // =========================================================================
 
+    /// @notice Initialize Mock VRF Consumer
+    /// @dev SEC-002 FIX-013: Added zero-address check for l1Vault
+    /// @param _l1Vault L1Vault contract address
     constructor(address _l1Vault) {
+        if (_l1Vault == address(0)) revert ZeroAddress();
         owner = msg.sender;
         l1Vault = _l1Vault;
         _requestIdCounter = 1;
@@ -278,10 +290,13 @@ contract VRFConsumerMock is IVRFConsumer {
     }
 
     /// @notice Transfer ownership
+    /// @dev SEC-002 FIX-014: Added OwnershipTransferred event emission
     /// @param newOwner New owner address
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
+        address previousOwner = owner;
         owner = newOwner;
+        emit OwnershipTransferred(previousOwner, newOwner);
     }
 
     // =========================================================================
