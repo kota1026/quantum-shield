@@ -30,6 +30,9 @@ import {SHA3_256} from "./libraries/SHA3_256.sol";
 /// to resolve reentrancy vulnerabilities identified by Slither analysis (SL-001 to SL-004).
 /// All state updates now occur BEFORE external calls.
 ///
+/// SEC-001 FIX-002b Update (2025-12-25): Fixed remaining reentrancy in resolveChallenge().
+/// Emergency bond processing now occurs BEFORE _resolveValidChallenge() external calls.
+///
 /// SEC-002 Update (2025-12-25): Added OwnershipTransferred and SecurityCouncilUpdated
 /// events for improved auditability (FIX-005, FIX-006).
 contract L1Vault is ReentrancyGuard, Pausable {
@@ -710,7 +713,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
     }
 
     /// @notice Resolve a challenge by security council
-    /// @dev SEC-001 FIX-002: CEI pattern applied - state updates before external calls
+    /// @dev SEC-001 FIX-002b: CEI pattern applied - ALL state updates BEFORE external calls
+    ///      Emergency bond processing now occurs BEFORE _resolveValidChallenge() call
     function resolveChallenge(bytes32 lockId, bool challengeValid) external onlySecurityCouncil nonReentrant {
         Challenge storage challengeData = challenges[lockId];
         if (challengeData.status != ChallengeStatus.PENDING && challengeData.status != ChallengeStatus.DEFENSE_SUBMITTED) {
@@ -726,18 +730,21 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 burnedAmount = 0;
 
         if (challengeValid) {
-            _resolveValidChallenge(lockId, challengeData, lockData, request);
             slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
             challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
             insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
             burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
             
-            // Forfeit emergency bond if challenge is valid (BOND-004)
+            // SEC-001 FIX-002b: Forfeit emergency bond BEFORE external calls (CEI pattern)
+            // This was previously done AFTER _resolveValidChallenge() which caused reentrancy risk
             if (request.isEmergency && request.bond > 0) {
                 insuranceFund += request.bond;
                 request.bond = 0;
                 emergencyUnlocks[lockId].bondAmount = 0;
             }
+            
+            // Now call the function that contains external calls
+            _resolveValidChallenge(lockId, challengeData, lockData, request);
         } else {
             _resolveInvalidChallenge(lockId, challengeData, lockData);
             if (challengeData.defender != address(0)) {
