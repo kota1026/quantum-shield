@@ -115,7 +115,7 @@
 
 4. .env.example 拡張
    - SEPOLIA_RPC_URL
-   - ETHERSCAN_API_KEY
+   - ETHERSCAN_API_KEY / ARBISCAN_API_KEY / BASESCAN_API_KEY
    - VRF_COORDINATOR (Sepolia)
    - VRF_KEY_HASH (Sepolia)
 
@@ -147,11 +147,11 @@
 
 ---
 
-## Sepoliaネットワーク情報
+## テストネット情報
 
 > 参照: NETWORK_DEPLOYMENT_GUIDE.md
 
-### Ethereum Sepolia
+### Ethereum Sepolia (優先度1)
 
 | 項目 | 値 |
 |------|-----|
@@ -163,6 +163,24 @@
 | RPC (Alchemy) | `https://eth-sepolia.g.alchemy.com/v2/<API_KEY>` |
 | Explorer | https://sepolia.etherscan.io |
 | Faucet | https://faucets.chain.link/sepolia |
+
+### Arbitrum Sepolia (優先度2)
+
+| 項目 | 値 |
+|------|-----|
+| Network Name | Arbitrum Sepolia |
+| Chain ID | `421614` |
+| RPC | `https://sepolia-rollup.arbitrum.io/rpc` |
+| Explorer | https://sepolia.arbiscan.io |
+
+### Base Sepolia (優先度3)
+
+| 項目 | 値 |
+|------|-----|
+| Network Name | Base Sepolia |
+| Chain ID | `84532` |
+| RPC | `https://sepolia.base.org` |
+| Explorer | https://sepolia.basescan.org |
 
 ### Chainlink VRF (Sepolia)
 
