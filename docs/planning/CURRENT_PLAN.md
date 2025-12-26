@@ -1,106 +1,221 @@
 # Current Plan
 
-> **Generated**: 2025-12-26 21:00 JST
-> **Phase**: 2 - Security Council + Token
-> **Month**: 8
-> **Week**: 8 (Phase 2.2 後半)
+> **Generated**: 2025-12-27 00:30 JST  
+> **Phase**: 2 - Security Council + Token  
+> **Week**: 8  
+> **Status**: 🔄 PLANNING
+
+---
 
 ## 対象チェックリスト
 
-`docs/planning/PHASE2_CHECKLIST.md` - Phase 2.2: Core Implementation (Week 7-8)
+`docs/planning/PHASE2_CHECKLIST.md` - Phase 2.2 Week 8
 
-## 前回PIR結果
+---
 
-> PIR-P2-006: ✅ **PASS (11/11 GO)**
+## 前回レビュー課題
 
-| # | 完了タスク | 成果物 | Status |
-|---|-----------|--------|--------|
-| 1 | IMPL-006 AIR制約システム設計 | AIRConstraints.sol | ✅ |
-| 2 | IMPL-007 AIRコンパイラ基本構造 | ConstraintEvaluator.sol | ✅ |
-| 3 | INFRA-001 テストネット環境構築 | deploy.sh, .env.example | ✅ |
-| 4 | TEST-020 AIR制約テスト | AIRConstraintsTest.t.sol (23/23 PASS) | ✅ |
+> CURRENT_STATE.mdより自動取得
+
+**✅ 前回PIR: PIR-P2-006 PASS (11/11 GO)** - Week 7完了
+
+| # | 重要度 | 懸念事項 | 対策 | Status |
+|---|--------|----------|------|--------|
+| 1 | 🟡 Medium | SHA3_256 Gas消費量 (~2.2M/lock) | Phase 2.3で最適化予定 | 🔄 継続監視 |
+| 2 | 🟡 Medium | ZK-STARK実装の複雑性 | 段階的実装継続 | 🔄 継続 |
+| 3 | 🟡 Medium | 外部監査のスケジュール | RFP草案作成完了 | 🔄 継続 |
+| 4 | ~~🟡 Medium~~ | ~~テストネット環境構築~~ | ~~スクリプト作成~~ | ✅ 解消 |
+
+**🔴 Critical / 🟠 High課題: なし**
+
+---
 
 ## 今回のスコープ
 
-### Week 8 目標
+### 主要目標: Week 8 インフラ完成 + Sepoliaデプロイ
 
-Week 7の成果を基に、CI/CDパイプラインを完成させ、テストネットデプロイを実施する。
+参照: `docs/planning/NETWORK_DEPLOYMENT_GUIDE.md`
 
 ### 実装項目
 
 - [ ] [INFRA-002] CI/CDパイプライン更新
-  - テストネットデプロイジョブ追加
-  - 自動Slither実行
-  - テスト自動実行
+  - GitHub Actions ワークフロー作成
+  - 自動テスト実行 (forge test)
+  - 自動デプロイ (testnet)
+  - Slither静的解析統合
+
+- [ ] [INFRA-003] Sepoliaデプロイ準備
+  - foundry.toml マルチネットワーク設定
+  - .env.example 更新 (RPC/API Keys)
+  - デプロイスクリプト拡張
+
+### テスト項目
 
 - [ ] [TEST-021] テストネットデプロイテスト
-  - Sepolia デプロイ確認
-  - 基本機能動作確認
-  - Gas消費量測定
+  - Ethereum Sepolia (Chain ID: 11155111)
+  - 契約デプロイ検証
+  - 基本機能テスト (lock/unlock フロー)
+
+- [ ] [TEST-022] マルチネットワーク互換性確認
+  - Arbitrum Sepolia (Chain ID: 421614)
+  - Base Sepolia (Chain ID: 84532)
+
+### ドキュメント項目
+
+- [ ] [DOC-001] Phase 2.3計画策定
+  - Gas最適化計画
+  - Batch verification設計
+  - Proof compression設計
 
 ### 参照ドキュメント
 
+- Network Guide: `docs/planning/NETWORK_DEPLOYMENT_GUIDE.md`
 - ZK-STARK計画: `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md`
-- Gasベースライン: `docs/planning/GAS_BASELINE_P2.md`
-- Phase 2 Checklist: `docs/planning/PHASE2_CHECKLIST.md`
+- デプロイスクリプト: `scripts/deploy.sh`
+- Gas Baseline: `docs/planning/GAS_BASELINE_P2.md`
+
+---
 
 ## 成果物
 
 | ファイル | 説明 |
 |---------|------|
-| `.github/workflows/deploy-testnet.yml` | テストネットCI/CDワークフロー |
-| `.github/workflows/security-scan.yml` | Slither自動実行ワークフロー |
-| `docs/aegis/deployment/SEPOLIA_DEPLOYMENT_LOG.md` | デプロイ記録 |
+| `.github/workflows/ci.yml` | CI/CDパイプライン設定 |
+| `.github/workflows/deploy-testnet.yml` | テストネットデプロイワークフロー |
+| `foundry.toml` | マルチネットワーク設定追加 |
+| `.env.example` | 環境変数テンプレート更新 |
+| `scripts/deploy-sepolia.sh` | Sepolia専用デプロイスクリプト |
+| `docs/planning/PHASE2_3_PLAN.md` | Phase 2.3 Gas最適化計画 |
+| `docs/aegis/pir/PIR-P2-007.md` | Week 8 PIRレポート |
+
+---
 
 ## 実行順序
 
-### Day 1-2: CI/CDパイプライン (INFRA-002)
+### Day 1: CI/CD基盤構築
 
-1. GitHub Actions ワークフロー作成
-2. テストネットデプロイジョブ追加
-3. Slither自動実行設定
-4. Secret設定（SEPOLIA_RPC_URL, DEPLOYER_PRIVATE_KEY）
+1. GitHub Actions ワークフロー作成 (ci.yml)
+   - forge test 自動実行
+   - Slither静的解析
+   - Coverage レポート
 
-### Day 3-4: テストネットデプロイテスト (TEST-021)
+2. テストネットデプロイワークフロー作成
+   - 手動トリガー対応
+   - 環境変数管理 (GitHub Secrets)
 
-1. Sepolia テストネットデプロイ
-2. Contract アドレス記録
-3. 基本機能テスト（lock/unlock）
-4. Gas消費量測定・記録
+### Day 2: Sepoliaデプロイ準備
 
-### Day 5: レビュー & PIR
+3. foundry.toml 設定更新
+   ```toml
+   [rpc_endpoints]
+   sepolia = "${SEPOLIA_RPC_URL}"
+   arbitrum_sepolia = "https://sepolia-rollup.arbitrum.io/rpc"
+   base_sepolia = "https://sepolia.base.org"
+   ```
 
-1. 04_review.md 実行（セキュリティレビュー）
-2. 05_pir.md 実行（PIR会議）
-3. CURRENT_STATE.md 更新
+4. .env.example 拡張
+   - SEPOLIA_RPC_URL
+   - ETHERSCAN_API_KEY
+   - VRF_COORDINATOR (Sepolia)
+   - VRF_KEY_HASH (Sepolia)
+
+5. デプロイスクリプト作成
+   - L1Vault.sol デプロイ
+   - 契約検証 (Etherscan)
+
+### Day 3: テストネットデプロイ実行
+
+6. Ethereum Sepolia デプロイ
+   - Faucet からテストETH取得
+   - L1Vault デプロイ
+   - 基本機能テスト
+
+7. (オプション) Arbitrum/Base Sepolia
+   - クロスチェーン互換性確認
+
+### Day 4: レビュー & ドキュメント
+
+8. Phase 2.3計画策定
+   - Gas最適化目標設定 (87.5%削減)
+   - Batch verification設計
+   - Week 9-12スケジュール
+
+9. PIR-P2-007 準備
+   - Week 8成果物まとめ
+   - セキュリティレビュー
+   - Go/No-Go判定準備
+
+---
+
+## Sepoliaネットワーク情報
+
+> 参照: NETWORK_DEPLOYMENT_GUIDE.md
+
+### Ethereum Sepolia
+
+| 項目 | 値 |
+|------|-----|
+| Network Name | Ethereum Sepolia |
+| Chain ID | `11155111` |
+| Currency | SepoliaETH |
+| Block Time | ~12秒 |
+| RPC (Public) | `https://rpc.sepolia.org` |
+| RPC (Alchemy) | `https://eth-sepolia.g.alchemy.com/v2/<API_KEY>` |
+| Explorer | https://sepolia.etherscan.io |
+| Faucet | https://faucets.chain.link/sepolia |
+
+### Chainlink VRF (Sepolia)
+
+| 項目 | 値 |
+|------|-----|
+| VRF Coordinator | `0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625` |
+| VRF Key Hash | `0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c` |
+
+---
 
 ## Core Principles確認
 
-- [x] CP-1: 完全量子耐性 - 違反なし
+- [x] CP-1: 完全量子耐性 - 違反なし (インフラ作業のため影響なし)
 - [x] CP-2: Self-Custody - 違反なし
 - [x] CP-3: Time Lock存在 - 違反なし
 - [x] CP-4: Slashing存在 - 違反なし
 - [x] CP-5: 透明性 - 違反なし
 
+---
+
 ## リスク・懸念事項
 
-| # | リスク | 影響度 | 軽減策 |
-|---|--------|--------|--------|
-| 1 | Sepolia RPCレート制限 | Low | 複数プロバイダ確保 |
-| 2 | GitHub Secrets管理 | Medium | 環境変数分離 |
-| 3 | デプロイコスト | Low | Sepoliaテストnet使用 |
-
-## 前提条件 ✅
-
-| 条件 | Status |
-|------|--------|
-| PIR-P2-006 完了 | ✅ PASS (11/11 GO) |
-| フルテストスイート | ✅ 656/656 PASS |
-| Slither静的解析 | ✅ HIGH 0 / MEDIUM 0 |
-| INFRA-001 完了 | ✅ deploy.sh作成済み |
+| # | リスク | 重要度 | 対策 |
+|---|--------|--------|------|
+| 1 | Sepolia RPC レート制限 | Low | 複数プロバイダ設定 (Alchemy/Infura) |
+| 2 | テストETH不足 | Low | 複数Faucet利用 |
+| 3 | GitHub Secrets設定ミス | Medium | ドキュメント化・レビュー必須 |
+| 4 | デプロイ時のGas見積もり | Low | ローカルシミュレーション実施 |
 
 ---
 
-**Plan Ready for Implementation**
+## 成功基準
 
-次のステップ: `01_plan.md` を実行してWeek 8計画を詳細化、または直接 `03_impl.md` で実装開始
+| 項目 | 基準 |
+|------|------|
+| CI/CD | GitHub Actions 正常動作 |
+| テスト | 656/656+ 全PASS維持 |
+| Slither | HIGH 0, MEDIUM 0 維持 |
+| Sepolia | L1Vault デプロイ成功 |
+| Phase 2.3計画 | ドキュメント作成完了 |
+| PIR-P2-007 | PASS判定 |
+
+---
+
+## 次のマイルストーン
+
+Week 8 完了後:
+- Phase 2.3: Gas最適化 (Week 9-12)
+  - Batch verification実装
+  - Proof compression
+  - 87.5% Gas削減達成
+- MS-1: ZK-STARK実装 Gate Review (Month 9)
+
+---
+
+**END OF CURRENT PLAN**
