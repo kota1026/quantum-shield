@@ -16,8 +16,24 @@ import {OptimizedField} from "../src/lib/OptimizedField.sol";
  * - batchMulMod optimization
  * - Gas benchmarks (target: 50% reduction)
  * 
- * @custom:version 0.1.0
+ * @custom:version 0.1.1
  */
+
+/// @notice Helper contract to test library reverts
+contract OptimizedFieldWrapper {
+    function modInverse(uint256 a, uint256 p) external view returns (uint256) {
+        return OptimizedField.modInverse(a, p);
+    }
+    
+    function batchMulMod(
+        uint256[] memory a,
+        uint256[] memory b,
+        uint256 m
+    ) external pure returns (uint256[] memory) {
+        return OptimizedField.batchMulMod(a, b, m);
+    }
+}
+
 contract OptimizedFieldTest is Test {
     using OptimizedField for uint256;
 
@@ -26,6 +42,15 @@ contract OptimizedFieldTest is Test {
     
     // Small prime for testing
     uint256 constant TEST_PRIME = 65537;
+    
+    // Another small prime for basic tests
+    uint256 constant SMALL_PRIME = 67;
+
+    OptimizedFieldWrapper wrapper;
+
+    function setUp() public {
+        wrapper = new OptimizedFieldWrapper();
+    }
 
     // =========================================================================
     // modExp Tests
@@ -52,8 +77,8 @@ contract OptimizedFieldTest is Test {
     function test_ModExp_LargePrime() public view {
         // Test with BN254 prime
         uint256 base = 12345;
-        uint256 exp = 100;
-        uint256 result = OptimizedField.modExp(base, exp, BN254_PRIME);
+        uint256 exponent = 100;
+        uint256 result = OptimizedField.modExp(base, exponent, BN254_PRIME);
         
         // Verify result is in valid range
         assertTrue(result < BN254_PRIME, "Result should be < prime");
@@ -80,10 +105,11 @@ contract OptimizedFieldTest is Test {
     // =========================================================================
 
     function test_ModInverse_Basic() public view {
-        // 3 * 22 = 66 ≡ 1 (mod 65)
-        uint256 inv = OptimizedField.modInverse(3, 65);
-        uint256 check = mulmod(3, inv, 65);
-        assertEq(check, 1, "3 * inv(3) should equal 1 mod 65");
+        // Use a prime modulus (67) - Fermat's Little Theorem requires prime
+        // 3 * inv(3) ≡ 1 (mod 67)
+        uint256 inv = OptimizedField.modInverse(3, SMALL_PRIME);
+        uint256 check = mulmod(3, inv, SMALL_PRIME);
+        assertEq(check, 1, "3 * inv(3) should equal 1 mod 67");
     }
 
     function test_ModInverse_Identity() public view {
@@ -108,8 +134,9 @@ contract OptimizedFieldTest is Test {
     }
 
     function test_ModInverse_Zero_Reverts() public {
+        // Use wrapper contract to properly test revert
         vm.expectRevert(OptimizedField.ZeroInverse.selector);
-        OptimizedField.modInverse(0, TEST_PRIME);
+        wrapper.modInverse(0, TEST_PRIME);
     }
 
     function test_Gas_ModInverse() public view {
@@ -125,7 +152,7 @@ contract OptimizedFieldTest is Test {
     // batchMulMod Tests
     // =========================================================================
 
-    function test_BatchMulMod_Basic() public view {
+    function test_BatchMulMod_Basic() public pure {
         uint256[] memory a = new uint256[](3);
         uint256[] memory b = new uint256[](3);
         a[0] = 2; a[1] = 3; a[2] = 4;
@@ -138,7 +165,7 @@ contract OptimizedFieldTest is Test {
         assertEq(results[2], 28, "4 * 7 mod 1000 = 28");
     }
 
-    function test_BatchMulMod_Empty() public view {
+    function test_BatchMulMod_Empty() public pure {
         uint256[] memory a = new uint256[](0);
         uint256[] memory b = new uint256[](0);
         
@@ -147,7 +174,7 @@ contract OptimizedFieldTest is Test {
         assertEq(results.length, 0, "Empty batch should return empty");
     }
 
-    function test_BatchMulMod_Single() public view {
+    function test_BatchMulMod_Single() public pure {
         uint256[] memory a = new uint256[](1);
         uint256[] memory b = new uint256[](1);
         a[0] = 123;
@@ -163,11 +190,12 @@ contract OptimizedFieldTest is Test {
         uint256[] memory a = new uint256[](3);
         uint256[] memory b = new uint256[](2);
         
+        // Use wrapper contract to properly test revert
         vm.expectRevert(OptimizedField.LengthMismatch.selector);
-        OptimizedField.batchMulMod(a, b, TEST_PRIME);
+        wrapper.batchMulMod(a, b, TEST_PRIME);
     }
 
-    function test_BatchMulMod_LargeBatch() public view {
+    function test_BatchMulMod_LargeBatch() public pure {
         uint256[] memory a = new uint256[](100);
         uint256[] memory b = new uint256[](100);
         for (uint256 i = 0; i < 100; i++) {
