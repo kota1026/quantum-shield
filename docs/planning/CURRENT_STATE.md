@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-27 21:35 JST  
+> **Last Updated**: 2025-12-27 22:05 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -11,10 +11,10 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 2 - Security Council + Token                        │
 │  Month: 7 / 24                                              │
-│  Week: 10 🔄 IN PROGRESS                                    │
-│  Next Milestone: Phase 2.3b Proof Compression / MS-1        │
-│  Status: 🔄 Week 10 IMPL-012/013/014 実装完了               │
-│  Tests: ⏳ 検証待ち (703+45 = 748 予定)                     │
+│  Week: 10 ✅ IMPL COMPLETE                                  │
+│  Next Milestone: Phase 2.3b PIR-P2-010 Security Review      │
+│  Status: ✅ Week 10 全実装完了 - 753 tests ALL PASS         │
+│  Tests: ✅ 753/753 PASS                                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -28,30 +28,33 @@
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | Week 10 Phase 2.3b Proof Compression + Field Optimization |
-| **実装日時** | 2025-12-27 21:35 JST |
-| **ステータス** | 🔄 実装完了 - テスト検証待ち |
+| **実装日時** | 2025-12-27 22:05 JST |
+| **ステータス** | ✅ 実装完了 - セキュリティレビュー待ち |
 
 ### 作成ファイル
 
 - `contracts/src/lib/OptimizedField.sol`: フィールド演算最適化ライブラリ [IMPL-014]
-  - modExp: EVM Precompile (0x05) 使用
-  - modInverse: Extended Euclidean / Fermat's Little Theorem
-  - batchMulMod: Unrolled loop (4 elements/iteration)
+  - modExp: EVM Precompile (0x05) 使用 → **787 gas** (target <2000)
+  - modInverse: Fermat's Little Theorem → **1,969 gas** (target <5000)
+  - batchMulMod: Optimized loop → **1,487 gas/10要素** (target <20000)
   - 基本演算: addMod, subMod, mulMod, div, pow
 
 - `contracts/test/ProofDecoderTest.t.sol`: ProofDecoder単体テスト [TEST-026]
-  - 18テスト追加
+  - **19テスト追加**
   - Merkle path decompression roundtrip
   - Evaluation decompression roundtrip
   - Full STARK proof decompression
-  - Gas benchmarks (target: <100k gas)
+  - Gas benchmarks達成
 
 - `contracts/test/OptimizedFieldTest.t.sol`: OptimizedField単体テスト [TEST-028]
-  - 27テスト追加
+  - **27テスト追加**
   - modExp with precompile
-  - modInverse using EEA
+  - modInverse using Fermat's Little Theorem
   - batchMulMod optimization
   - Field operation edge cases
+  - **修正**: exp → exponent (Yul builtin conflict)
+  - **修正**: テストモジュラス 65 → 67 (素数必須)
+  - **修正**: OptimizedFieldWrapper追加 (expectRevert対応)
 
 - `docs/planning/PROOF_COMPRESSION_SPEC.md`: 圧縮仕様書 [DOC-002]
   - RLE encoding for Merkle paths
@@ -67,23 +70,36 @@
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +45 (ProofDecoderTest: 18, OptimizedFieldTest: 27) |
-| 総テスト数 | 748 (予定) |
-| 結果 | ⏳ ローカルで `forge test` 実行必要 |
+| 新規テスト数 | +50 (ProofDecoderTest: 19, OptimizedFieldTest: 27, etc.) |
+| 総テスト数 | **753** |
+| 結果 | ✅ **ALL PASS** |
+
+### ガス最適化結果
+
+| 操作 | ターゲット | 実測値 | 達成率 |
+|------|-----------|--------|--------|
+| modExp | <2,000 | **787** | ✅ **161%** |
+| modInverse | <5,000 | **1,969** | ✅ **154%** |
+| batchMulMod (10要素) | <20,000 | **1,487** | ✅ **1245%** |
+
+### コミット履歴
+
+| Commit | 内容 |
+|--------|------|
+| `7b9ba6f` | fix(lib): rename exp to exponent to avoid Yul builtin conflict |
+| `b01c138` | fix(test): fix OptimizedFieldTest failures |
 
 ### 備考
 
 **OptimizedField.sol:**
-- modExp: EVM Precompile 0x05 使用で ~90% Gas削減
-- modInverse: Fermat's Little Theorem (a^(p-2) mod p) 利用
-- batchMulMod: 4要素/iteration の unrolled loop
+- modExp: EVM Precompile 0x05 使用で予想を大幅に上回るGas削減
+- modInverse: Fermat's Little Theorem (a^(p-2) mod p) 利用、**素数モジュラス必須**
+- batchMulMod: 最適化されたループ処理
 
-**ProofDecoder拡張:**
-- ProofDecoderTest.t.sol を独立ファイルとして作成
-- Gasベンチマーク: 解凍 <100,000 gas 目標
-
-**ドキュメント:**
-- PROOF_COMPRESSION_SPEC.md で圧縮フォーマット仕様を文書化
+**テスト修正:**
+- `exp` パラメータ名がYulのbuiltin `exp()` と衝突 → `exponent` にリネーム
+- modInverse テストでモジュラス65（合成数）使用 → 67（素数）に変更
+- expectRevert がライブラリ関数で動作しない → Wrapperコントラクト追加
 
 ---
 
@@ -114,7 +130,7 @@
 
 ---
 
-## 📋 Phase 2.3b Week 10 タスク進捗 🔄 IN PROGRESS
+## 📋 Phase 2.3b Week 10 タスク進捗 ✅ IMPL COMPLETE
 
 ### Phase 2.3b Proof Compression + Field Optimization (Week 10)
 
@@ -124,12 +140,12 @@
 | 2 | **[IMPL-013] ProofDecoder拡張** | Engineer | ✅ 既存 | ProofDecoder.sol v0.1 |
 | 3 | **[IMPL-014] OptimizedField.sol** | Engineer | ✅ 完了 | OptimizedField.sol |
 | 4 | **[TEST-025] ProofCompressorテスト** | QA | ✅ 既存 | 20テスト |
-| 5 | **[TEST-026] ProofDecoderテスト** | QA | ✅ 完了 | 18テスト |
+| 5 | **[TEST-026] ProofDecoderテスト** | QA | ✅ 完了 | 19テスト |
 | 6 | **[TEST-027] 圧縮率ベンチマーク** | QA | ✅ 既存 | CompressionBenchmarkTest |
 | 7 | **[TEST-028] Gas計測ベンチマーク** | QA | ✅ 完了 | 27テスト |
 | 8 | **[DOC-002] PROOF_COMPRESSION_SPEC** | Engineer | ✅ 完了 | PROOF_COMPRESSION_SPEC.md |
-| 9 | **テスト実行確認** | QA | ⏳ 待機 | `forge test` 必要 |
-| 10 | **Slither分析** | CSO | ⏳ 待機 | 確認必要 |
+| 9 | **テスト実行確認** | QA | ✅ 完了 | **753/753 PASS** |
+| 10 | **Slither分析** | CSO | ⏳ 待機 | 新規ファイル確認必要 |
 | 11 | **PIR-P2-010 準備** | Red Team | ⏳ 待機 | レビュー待ち |
 
 ---
@@ -175,28 +191,20 @@
 
 ## 🧪 テスト状態
 
-### 最新結果: ⏳ **検証待ち** (2025-12-27 21:35 JST)
+### 最新結果: ✅ **753/753 PASS** (2025-12-27 22:00 JST)
 
 ```
-予定テストスイート:
-  前回テスト数:                      703
-  新規追加:                          +45
-  ────────────────────────────────────
-  予定総テスト数:                    748
-  
-アクション必要:
-  cd ~/quantum-shield/contracts
-  forge test -vvv
+Ran 37 test suites in 16.63s (106.49s CPU time): 753 tests passed, 0 failed, 0 skipped (753 total tests)
 ```
 
-### 新規テストスイート
+### 新規テストスイート (Week 10)
 
 | Suite | Tests | Status |
 |-------|-------|--------|
-| **ProofDecoderTest** | **18** | ⏳ 新規 |
-| **OptimizedFieldTest** | **27** | ⏳ 新規 |
+| **ProofDecoderTest** | **19** | ✅ PASS |
+| **OptimizedFieldTest** | **27** | ✅ PASS |
 
-### 既存テストスイート (抜粋)
+### 主要テストスイート
 
 | Suite | Tests | Status |
 |-------|-------|--------|
@@ -208,6 +216,7 @@
 | SparseMerkleTreeTest | 30 | ✅ |
 | VRFConsumerTest | 28 | ✅ |
 | DeploymentVerificationTest | 27 | ✅ |
+| **OptimizedFieldTest** | **27** | ✅ **NEW** |
 | FRIIntegrationTest | 25 | ✅ |
 | L1VaultEmergencyTest | 24 | ✅ |
 | AIRConstraintsTest | 23 | ✅ |
@@ -216,7 +225,8 @@
 | BatchVerifierTest | 20 | ✅ |
 | ProofCompressorTest | 20 | ✅ |
 | ProverSelectorTest | 20 | ✅ |
-| その他 | 241 | ✅ |
+| **ProofDecoderTest** | **19** | ✅ **NEW** |
+| その他 | 245 | ✅ |
 
 ---
 
@@ -253,20 +263,21 @@
 | 6 | ~~CI/CDパイプライン~~ | ~~MEDIUM~~ | ✅ Week 8で完了 |
 | 7 | Etherscan検証 | 🟢 LOW | 後続タスクとして実施 |
 | 8 | ~~H-1脆弱性~~ | ~~HIGH~~ | ✅ **SEC-004で修正** |
-| 9 | Week 10テスト検証 | 🟡 MEDIUM | `forge test` 実行必要 |
+| 9 | ~~Week 10テスト検証~~ | ~~MEDIUM~~ | ✅ **753/753 PASS** |
+| 10 | PIR-P2-010セキュリティレビュー | 🟠 HIGH | 04_review.md実行必要 |
 
 ---
 
 ## 🔜 次のアクション
 
-### 即時（Week 10 完了に向けて）
+### 即時（PIR-P2-010 に向けて）
 
 | # | タスク | 優先度 | 担当 | 状態 |
 |---|--------|--------|------|------|
-| 1 | `forge test` 実行 | 🔴 Critical | Engineer | ⏳ |
-| 2 | Slither分析 | 🟠 High | CSO | ⏳ |
+| 1 | ~~`forge test` 実行~~ | ~~Critical~~ | Engineer | ✅ **完了** |
+| 2 | Slither分析 (OptimizedField.sol) | 🟠 High | CSO | ⏳ |
 | 3 | PIR-P2-010 準備 | 🟠 High | Red Team | ⏳ |
-| 4 | 04_review.md 実行 | 🟠 High | CSO | ⏳ |
+| 4 | 04_review.md 実行 | 🔴 Critical | CSO | ⏳ |
 
 ### Week 10+ → Phase 2.3b / MS-1 ZK-STARK
 
@@ -294,7 +305,8 @@
 | ~~**IMPL-010 SharedMerkle**~~ | ~~**Week 9**~~ | ✅ **COMPLETE** |
 | ~~**71% Gas削減達成**~~ | ~~**Week 9**~~ | ✅ **COMPLETE** |
 | ~~**PIR-P2-008/009**~~ | ~~**Week 9**~~ | ✅ **PASS** |
-| **IMPL-012/013/014 Proof Compression** | **Week 10** | 🔄 **IN PROGRESS** |
+| ~~**IMPL-012/013/014 Proof Compression**~~ | ~~**Week 10**~~ | ✅ **COMPLETE** |
+| **PIR-P2-010 Security Review** | **Week 10** | ⏳ **PENDING** |
 | Assembly Optimization | Week 11 | ⬜ |
 | MS-1: ZK-STARK完全実装 | Month 9 | 🔄 |
 | 外部監査完了 | Month 10 | ⬜ |
@@ -311,7 +323,7 @@
 | Slither | HIGH 0件 | ✅ **0件（誤検知除く）** | ✅ |
 | Slither | MEDIUM 0件 | ✅ **0件** | ✅ |
 | CP-1準拠 | keccak256完全排除 | ✅ **SEC-003完了** | ✅ |
-| テストスイート | 全PASS | ⏳ **748テスト検証待ち** | 🔄 |
+| テストスイート | 全PASS | ✅ **753/753 PASS** | ✅ |
 | テストネット | 安定稼働 | ✅ **Sepolia 7コントラクト** | ✅ |
 | Security Council | 5/9構築 | - | ⬜ |
 | Token設計 | veQS完了 | - | ⬜ |
@@ -343,9 +355,9 @@
 
 **Phase 2 Week 9: ✅ COMPLETE - PIR-P2-008/009 PASS (71% Gas削減) 🎉**
 
-**Phase 2 Week 10: 🔄 IN PROGRESS - IMPL-012/013/014 実装完了、テスト検証待ち**
+**Phase 2 Week 10: ✅ IMPL COMPLETE - 753/753 tests PASS, PIR-P2-010待ち**
 
-**Next: `forge test` 実行 → 04_review.md セキュリティレビュー**
+**Next: 04_review.md 実行 → PIR-P2-010 セキュリティレビュー**
 
 ---
 
