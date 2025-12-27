@@ -16,6 +16,10 @@ import {ProverSelector} from "./libraries/ProverSelector.sol";
 /// SEC-002 Update (2025-12-25):
 /// - [FIX-013] Added zero-address check to constructor for l1Vault
 /// - [FIX-014] Added OwnershipTransferred event to transferOwnership()
+///
+/// IMPL-011 Update (2025-12-27):
+/// - [FIX-LOW-1] Fixed unused-return warnings with explicit comments
+/// - [FIX-LOW-2] Cached array length in loops for gas optimization
 contract VRFConsumerMock is IVRFConsumer {
     using ProverSelector for ProverSelector.ProverInfo[];
 
@@ -236,8 +240,10 @@ contract VRFConsumerMock is IVRFConsumer {
     function addProver(address prover, uint256 stake) external onlyOwner {
         if (prover == address(0)) revert ZeroAddress();
         
+        // IMPL-011 FIX-LOW-2: Cache array length for gas optimization
+        uint256 poolLength = proverPool.length;
         // Check if prover already exists
-        for (uint256 i = 0; i < proverPool.length; i++) {
+        for (uint256 i = 0; i < poolLength; i++) {
             if (proverPool[i].prover == prover) revert ProverAlreadyExists();
         }
 
@@ -253,7 +259,9 @@ contract VRFConsumerMock is IVRFConsumer {
     /// @notice Remove a prover from the pool
     /// @param prover Prover address to remove
     function removeProver(address prover) external onlyOwner {
-        for (uint256 i = 0; i < proverPool.length; i++) {
+        // IMPL-011 FIX-LOW-2: Cache array length for gas optimization
+        uint256 poolLength = proverPool.length;
+        for (uint256 i = 0; i < poolLength; i++) {
             if (proverPool[i].prover == prover) {
                 proverPool[i].active = false;
                 emit ProverRemoved(prover);
@@ -267,7 +275,9 @@ contract VRFConsumerMock is IVRFConsumer {
     /// @param prover Prover address
     /// @param newStake New stake amount
     function updateProverStake(address prover, uint256 newStake) external onlyOwner {
-        for (uint256 i = 0; i < proverPool.length; i++) {
+        // IMPL-011 FIX-LOW-2: Cache array length for gas optimization
+        uint256 poolLength = proverPool.length;
+        for (uint256 i = 0; i < poolLength; i++) {
             if (proverPool[i].prover == prover) {
                 proverPool[i].stake = newStake;
                 return;
@@ -334,7 +344,8 @@ contract VRFConsumerMock is IVRFConsumer {
         // Create memory copy for library function
         ProverSelector.ProverInfo[] memory provers = proverPool;
         // Use `using for` syntax: provers.selectProver(randomValue)
-        (address selected, ) = provers.selectProver(randomValue);
+        // IMPL-011 FIX-LOW-1: Explicitly comment unused return value (weight)
+        (address selected, /* weight - intentionally unused */) = provers.selectProver(randomValue);
         return selected;
     }
 }
