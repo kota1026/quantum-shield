@@ -297,3 +297,178 @@ assertGt(timeElapsed, 72 hours, "Should be greater than 72h");
 - [ ] `vm.warp()` 後に関連変数を再計算しているか？
 - [ ] 複雑な時間テストを分割できないか？
 - [ ] テストが他のテストの状態に依存していないか？
+
+---
+
+## 9. ガスターゲット設定ガイドライン（Week 11 学習事項）
+
+### 9.1 Pure Solidity SHA3-256 の構造的制約
+
+⚠️ **重要**: EthereumにはSHA3-256プリコンパイルが存在しません（keccak256のみ）。
+
+| 制約 | 影響 |
+|------|------|
+| Pure Solidity SHA3-256 | **~1,000,000 gas/hash** |
+| 外部コントラクト呼び出し | **~2,600 gas オーバーヘッド** |
+| Merkle操作 | ハッシュ数 × 1M gas |
+
+**これは実装のバグではなく、構造的制約です。**
+
+### 9.2 現実的なガスターゲット設定
+
+GasRegressionTest等でターゲットを設定する際は、以下の基準を使用：
+
+#### 内部ライブラリ呼び出し（OptimizedField等）
+```solidity
+// 外部呼び出しオーバーヘッドなし
+uint256 constant MODEXP_TARGET = 2000;
+uint256 constant MODINVERSE_TARGET = 5000;
+uint256 constant BATCH_MULMOD_10_TARGET = 20000;
+```
+
+#### 外部コントラクト呼び出し
+```solidity
+// ~2,600 gas の外部呼び出しオーバーヘッドを考慮
+uint256 constant EXTERNAL_FIELD_OP_TARGET = 10000;
+uint256 constant AIR_CONSTRAINT_TARGET = 10000;
+```
+
+#### SHA3-256 操作
+```solidity
+// Pure Solidity実装 ~1M gas/hash を考慮
+uint256 constant SHA3_32_BYTES_TARGET = 1_500_000;
+uint256 constant SHA3_256_BYTES_TARGET = 3_000_000;
+uint256 constant HASH_PAIR_TARGET = 1_500_000;
+```
+
+#### Merkle操作（複数ハッシュ）
+```solidity
+// 要素数 × ハッシュコスト + オーバーヘッド
+uint256 constant TRACE_ROOT_8_TARGET = 20_000_000;
+uint256 constant TRACE_ROOT_256_TARGET = 1_000_000_000;
+```
+
+### 9.3 ストレステストのスコープ設定
+
+大規模Merkle操作はブロックガスリミット（30M gas）を超過する可能性があります。
+
+```solidity
+// ❌ BAD: 非現実的なサイズ（OOGになる）
+uint256[] memory evaluations = new uint256[](512);
+bytes32 root = verifier.computeTraceRoot(evaluations);
+
+// ✅ GOOD: 現実的なサイズ
+uint256[] memory evaluations = new uint256[](16);
+bytes32 root = verifier.computeTraceRoot(evaluations);
+```
+
+**推奨サイズ**:
+- computeTraceRoot: 最大16要素
+- verifyTraceEvaluationsBatch: 最大8要素 × 3検証
+- 32要素以上のMerkle操作は避ける
+
+### 9.4 ドメインセパレータの整合性
+
+テストでMerkleプルーフを構築する際、実装と同じドメインセパレータを使用すること：
+
+```solidity
+// 必須: 実装と同じ定数を定義
+bytes32 private constant DOMAIN_TRACE = bytes32("QS_STARK_TRACE_V1");
+bytes32 private constant DOMAIN_MERKLE_NODE = bytes32("QS_STARK_MERKLE_V1");
+
+// Leaf計算（実装の computeTraceLeaf と一致させる）
+layer[i] = SHA3Hasher.hash(abi.encodePacked(DOMAIN_TRACE, evaluations[i], i));
+
+// 内部ノード計算（実装の _hashMerkleNodes と一致させる）
+function _hashMerkleNodesTest(bytes32 left, bytes32 right) internal pure returns (bytes32) {
+    return SHA3Hasher.hash(abi.encodePacked(DOMAIN_MERKLE_NODE, left, right));
+}
+```
+
+⚠️ `verifier.hashPair()` と内部の `_hashMerkleNodes()` は異なる場合があります。必ず実装を確認してください。
+
+---
+
+## 10. ガス最適化戦略（今後の課題）
+
+### 10.1 現状の課題
+
+| 課題 | 現状 | 目標 |
+|------|------|------|
+| SHA3-256 ハッシュ | ~1M gas/hash | プリコンパイル相当（~30 gas） |
+| Merkle検証 | ~3M gas | <100K gas |
+| STARK verify() | ~300K gas（構造検証のみ） | <500K gas（完全検証） |
+
+### 10.2 短期戦略（Phase 2内）
+
+1. **BatchVerifier最適化**
+   - 共有Merkleパスの重複排除
+   - 40%ガス削減目標
+
+2. **証明圧縮**
+   - ProofCompressor/ProofDecoder の活用
+   - calldata コスト削減
+
+3. **キャッシング戦略**
+   - 頻繁に使用されるハッシュ値のキャッシュ
+   - ストレージ vs 計算のトレードオフ
+
+### 10.3 中長期戦略（Phase 3以降）
+
+| オプション | 実現可能性 | 効果 |
+|-----------|-----------|------|
+| **L2独自プリコンパイル** | ⚠️ L2依存 | SHA3を~30 gasに削減 |
+| **オフチェーン計算分離** | ✅ 高い | オンチェーン負荷を大幅削減 |
+| **ZK証明集約** | ⚠️ 複雑 | 複数証明を1つに圧縮 |
+| **EIP提案** | ❌ 非現実的 | 数年単位の時間軸 |
+
+### 10.4 ガス最適化チェックリスト
+
+新しい実装を追加する際：
+
+- [ ] 外部呼び出し vs 内部呼び出しを考慮したか？
+- [ ] SHA3操作の回数を最小化したか？
+- [ ] 大規模Merkle操作を避けたか？
+- [ ] ガステストのターゲットは現実的か？
+- [ ] ストレステストのサイズは適切か？
+
+---
+
+## 11. Week 11 テスト修正事例
+
+### 11.1 修正コミット一覧
+
+| コミット | 修正内容 |
+|---------|---------|
+| `27f0bbb` | STARKVerifier.t.sol バージョン期待値 0.2.0→1.0.0 |
+| `6c0a611` | STARKVerifierE2E Merkle検証でドメインセパレータ対応 |
+| `8b977f9` | GasRegressionTest 現実的ターゲット値に更新 |
+| `215ae10` | IntegrationStressTest 現実的スコープに削減 |
+
+### 11.2 根本原因分析
+
+| 問題 | 原因 | 解決策 |
+|------|------|--------|
+| バージョン不一致 | 実装更新後にテスト期待値を更新し忘れ | テスト期待値を実装に合わせて更新 |
+| Merkle検証失敗 | テストが`hashPair()`を使用、実装は`_hashMerkleNodes()`を使用 | ドメインセパレータを一致させる |
+| ガステスト失敗（16件） | 非現実的なターゲット設定 | 構造的制約を考慮した現実的値に更新 |
+| ストレステストOOG（4件） | 大規模Merkle操作がガスリミット超過 | テストサイズを現実的範囲に削減 |
+
+### 11.3 学んだ教訓
+
+1. **ガスターゲットは実測値に基づいて設定する**
+   - プリコンパイルの有無を確認
+   - 外部呼び出しオーバーヘッドを考慮
+
+2. **テストのMerkle計算は実装と完全一致させる**
+   - ドメインセパレータを確認
+   - ヘルパー関数を実装からコピー
+
+3. **ストレステストは現実的なスコープで**
+   - ブロックガスリミット30Mを意識
+   - 大規模操作は避けるか、OOG期待を明示
+
+4. **実装更新後は関連テストの期待値を確認**
+   - バージョン文字列
+   - 構造体フィールド
+   - エラーメッセージ
