@@ -20,7 +20,7 @@ Phase 4: 完全分散化
 【変更後】
 Phase 2: ZK-STARK L1実装 ← Week 12でクローズ ✅
 Phase 3: L3開発
-Phase 4: Token + Security Council + 監査 + ドキュメント
+Phase 4: Token + Security Council + 監査 + ドキュメント + 完全分散化
 ```
 
 ### 理由
@@ -85,7 +85,7 @@ Phase 4: Token + Security Council + 監査 + ドキュメント
   - Phase 3マイルストーン設定
 - [ ] [DOC-011] フェーズ再構成ドキュメント
   - 新フェーズ構成の正式文書化
-  - Phase 4スコープ（Token/監査/Council）の明確化
+  - Phase 4スコープ（Token/監査/Council/完全分散化）の明確化
 
 ### P2: スコープ整理（Medium）
 
@@ -96,6 +96,7 @@ Phase 4: Token + Security Council + 監査 + ドキュメント
   - Token設計（veQS）
   - Security Council（5/9 Multisig）
   - ドキュメント整備（API/アーキテクチャ）
+  - 完全分散化（ガバナンス移行）
 
 ---
 
@@ -109,6 +110,7 @@ Phase 4: Token + Security Council + 監査 + ドキュメント
 | アーキテクチャDoc | Phase 2 | Phase 4 | L3込みで作成 |
 | Security Council | Phase 2.5 | Phase 4 | Token設計と連携 |
 | Token設計 (veQS) | Phase 2.6 | Phase 4 | L3 Gas Fee設計後 |
+| 完全分散化 | Phase 4 (元) | Phase 4 | 維持 |
 
 ---
 
@@ -190,7 +192,7 @@ forge verify-contract \
 2. 新フェーズ構成
    - Phase 2: ZK-STARK L1 ✅
    - Phase 3: L3開発
-   - Phase 4: Token/監査/Council
+   - Phase 4: Token/監査/Council/完全分散化
 3. タイムライン調整
 4. リスク評価
 ```
@@ -256,11 +258,12 @@ forge verify-contract \
 │  ├── State Management                                       │
 │  └── L1↔L3 E2E on Sepolia                                   │
 │                                                             │
-│  Phase 4: プロダクト完成                                     │
+│  Phase 4: プロダクト完成 & 完全分散化                        │
 │  ├── Token設計 (veQS)                                       │
 │  ├── Security Council (5/9)                                 │
 │  ├── ドキュメント整備                                       │
-│  └── 外部監査（L1+L3）                                      │
+│  ├── 外部監査（L1+L3）                                      │
+│  └── 完全分散化（ガバナンス移行）                           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
