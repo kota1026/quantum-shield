@@ -21,10 +21,10 @@ import {SHA3_256} from "./SHA3_256.sol";
 /// │        └── ...                                                      │
 /// └─────────────────────────────────────────────────────────────────────┘
 ///
-/// IMPORTANT UPDATE (Day 2-4):
-/// - Changed from keccak256 to SHA3-256 for FIPS 202 compliance
-/// - SHA3-256 uses padding 0x06 (NIST standard)
-/// - keccak256 uses padding 0x01 (Ethereum standard)
+/// IMPORTANT UPDATE (IMPL-011):
+/// - Removed ALL keccak256 usage for CP-1 compliance
+/// - Domain separators are now pre-computed SHA3-256 constants
+/// - Removed legacy functions (hashNodesLegacy, computeLeafLegacy, etc.)
 /// - This change is required for QUANTUM_SHIELD_UNIFIED_SPEC_v2.0 compliance
 ///
 /// Features:
@@ -32,7 +32,7 @@ import {SHA3_256} from "./SHA3_256.sol";
 /// - Depth 20 (2^20 = 1,048,576 possible leaves)
 /// - Optimized proof verification
 /// - Domain separation for security
-/// - Backward compatibility mode (keccak256) for migration
+/// - NO backward compatibility mode (keccak256 removed for CP-1)
 library SparseMerkleTree {
     // =========================================================================
     // Constants
@@ -48,23 +48,32 @@ library SparseMerkleTree {
     /// @dev SHA3-256("") = 0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a
     bytes32 public constant EMPTY_LEAF_SHA3 = 0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a;
 
-    /// @notice Legacy empty leaf hash (keccak256) for backward compatibility
-    bytes32 public constant EMPTY_LEAF_LEGACY = 0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563;
+    // =========================================================================
+    // Domain Separator Constants (Pre-computed SHA3-256)
+    // =========================================================================
+    
+    /// @notice Pre-computed SHA3-256 hash of "QS_SMT_LEAF_V1"
+    /// @dev IMPL-011: Replaced keccak256 with pre-computed SHA3-256 for CP-1 compliance
+    bytes32 private constant LEAF_DOMAIN_HASH = 0x1fc57ebce31be3d5781e78f150b1303c4295b0ab57b3e349a286904a176f3a22;
+    
+    /// @notice Pre-computed SHA3-256 hash of "QS_SMT_NODE_V1"
+    /// @dev IMPL-011: Replaced keccak256 with pre-computed SHA3-256 for CP-1 compliance
+    bytes32 private constant NODE_DOMAIN_HASH = 0x2788e21c82dcd3e3f1683169f418c39da467ef396fca65015ae273ef0f04be03;
 
     // =========================================================================
     // Domain Separator Functions
     // =========================================================================
 
     /// @notice Get domain separator for leaf hashing
-    /// @return Domain separator bytes32 "QS_SMT_LEAF_V1"
+    /// @return Domain separator bytes32 (pre-computed SHA3-256 of "QS_SMT_LEAF_V1")
     function LEAF_DOMAIN() internal pure returns (bytes32) {
-        return keccak256("QS_SMT_LEAF_V1");
+        return LEAF_DOMAIN_HASH;
     }
 
     /// @notice Get domain separator for node hashing
-    /// @return Domain separator bytes32 "QS_SMT_NODE_V1"
+    /// @return Domain separator bytes32 (pre-computed SHA3-256 of "QS_SMT_NODE_V1")
     function NODE_DOMAIN() internal pure returns (bytes32) {
-        return keccak256("QS_SMT_NODE_V1");
+        return NODE_DOMAIN_HASH;
     }
 
     // =========================================================================
@@ -243,36 +252,6 @@ library SparseMerkleTree {
     }
 
     // =========================================================================
-    // Legacy Functions (keccak256) - For Migration
-    // =========================================================================
-
-    /// @notice Hash nodes using legacy keccak256 (for migration only)
-    /// @dev DEPRECATED - Use hashNodes() for new implementations
-    /// @param left Left child hash
-    /// @param right Right child hash
-    /// @return parent Parent node hash
-    function hashNodesLegacy(bytes32 left, bytes32 right) internal pure returns (bytes32 parent) {
-        parent = keccak256(abi.encodePacked(NODE_DOMAIN(), left, right));
-    }
-
-    /// @notice Compute leaf using legacy keccak256 (for migration only)
-    /// @dev DEPRECATED - Use computeLeaf() for new implementations
-    function computeLeafLegacy(
-        bytes32 lockId,
-        uint256 amount,
-        address recipient,
-        bytes32 pubKeyHash
-    ) internal pure returns (bytes32 leaf) {
-        leaf = keccak256(abi.encodePacked(
-            LEAF_DOMAIN(),
-            lockId,
-            amount,
-            recipient,
-            pubKeyHash
-        ));
-    }
-
-    // =========================================================================
     // Utility Functions
     // =========================================================================
 
@@ -283,15 +262,6 @@ library SparseMerkleTree {
         defaultHash = EMPTY_LEAF_SHA3;
         for (uint256 i = 0; i < height; i++) {
             defaultHash = hashNodes(defaultHash, defaultHash);
-        }
-    }
-
-    /// @notice Get legacy default hash (keccak256) for migration
-    /// @dev DEPRECATED - Use getDefaultHash() for new implementations
-    function getDefaultHashLegacy(uint256 height) internal pure returns (bytes32 defaultHash) {
-        defaultHash = EMPTY_LEAF_LEGACY;
-        for (uint256 i = 0; i < height; i++) {
-            defaultHash = hashNodesLegacy(defaultHash, defaultHash);
         }
     }
 
