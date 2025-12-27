@@ -122,13 +122,13 @@ contract AIRConstraints {
      * @notice Verify a single boundary constraint
      * @param actualValue The actual value at the boundary
      * @param expectedValue The expected value
-     * @param index The position index (for logging)
+     * @param index The position index (reserved for v0.2 event logging)
      * @return valid True if constraint is satisfied
      */
     function verifyBoundaryConstraint(
         uint256 actualValue,
         uint256 expectedValue,
-        uint256 index
+        uint256 /* index - reserved for v0.2 event logging */
     ) public pure returns (bool valid) {
         // Reduce values to field
         actualValue = actualValue % FIELD_MODULUS;
