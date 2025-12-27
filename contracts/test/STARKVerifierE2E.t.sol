@@ -69,7 +69,7 @@ contract STARKVerifierE2ETest is Test {
     function test_E2E_VerifyValidProof() public view {
         // Create a valid proof structure
         ProofCodec.STARKProof memory proof = _createValidProof();
-        bytes32 publicInput = keccak256("test_public_input");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test_public_input"));
 
         // Verify the proof
         bool isValid = verifier.verifyProof(proof, publicInput);
@@ -79,7 +79,7 @@ contract STARKVerifierE2ETest is Test {
     function test_E2E_RejectInvalidCommitment() public view {
         ProofCodec.STARKProof memory proof = _createValidProof();
         proof.traceCommitment = bytes32(0);
-        bytes32 publicInput = keccak256("test_public_input");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test_public_input"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Proof with zero trace commitment should fail");
@@ -88,7 +88,7 @@ contract STARKVerifierE2ETest is Test {
     function test_E2E_RejectInvalidConstraintCommitment() public view {
         ProofCodec.STARKProof memory proof = _createValidProof();
         proof.constraintCommitment = bytes32(0);
-        bytes32 publicInput = keccak256("test_public_input");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test_public_input"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Proof with zero constraint commitment should fail");
@@ -98,7 +98,7 @@ contract STARKVerifierE2ETest is Test {
         ProofCodec.STARKProof memory proof = _createValidProof();
         proof.friCommitments = new bytes32[](0);
         proof.friChallenges = new uint256[](0);
-        bytes32 publicInput = keccak256("test_public_input");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test_public_input"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Proof with empty FRI commitments should fail");
@@ -109,7 +109,7 @@ contract STARKVerifierE2ETest is Test {
         proof.queryIndices = new uint256[](10); // Less than MIN_QUERIES
         proof.merkleProofs = new bytes32[][](10);
         proof.evaluations = new uint256[][](10);
-        bytes32 publicInput = keccak256("test_public_input");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test_public_input"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Proof with insufficient queries should fail");
@@ -344,7 +344,7 @@ contract STARKVerifierE2ETest is Test {
         // Create mismatch between friCommitments and friChallenges
         proof.friChallenges = new uint256[](proof.friCommitments.length + 1);
         
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Mismatched arrays should fail");
     }
@@ -354,7 +354,7 @@ contract STARKVerifierE2ETest is Test {
         proof.friCommitments = new bytes32[](20); // More than MAX_FRI_LAYERS
         proof.friChallenges = new uint256[](20);
         
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Too many FRI layers should fail");
     }
@@ -367,7 +367,7 @@ contract STARKVerifierE2ETest is Test {
         ProofCodec.STARKProof memory proof = _createValidProof();
         proof.finalPolynomial = new uint256[](4); // Degree 3, which is valid
         
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertTrue(isValid, "Degree 3 polynomial should be valid");
     }
@@ -376,7 +376,7 @@ contract STARKVerifierE2ETest is Test {
         ProofCodec.STARKProof memory proof = _createValidProof();
         proof.finalPolynomial = new uint256[](10); // Too high degree
         
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "High degree polynomial should fail");
     }
@@ -414,18 +414,22 @@ contract STARKVerifierE2ETest is Test {
     // Helper Functions
     // =========================================================================
 
+    /**
+     * @notice Create a valid proof structure using SHA3-256 (CP-1 compliant)
+     * @dev All hash operations use SHA3Hasher.hash() instead of keccak256
+     */
     function _createValidProof() internal pure returns (ProofCodec.STARKProof memory proof) {
-        proof.traceCommitment = keccak256("trace");
-        proof.constraintCommitment = keccak256("constraint");
+        proof.traceCommitment = SHA3Hasher.hash(abi.encodePacked("trace"));
+        proof.constraintCommitment = SHA3Hasher.hash(abi.encodePacked("constraint"));
         
         proof.friCommitments = new bytes32[](4);
         for (uint256 i = 0; i < 4; i++) {
-            proof.friCommitments[i] = keccak256(abi.encodePacked("fri", i));
+            proof.friCommitments[i] = SHA3Hasher.hash(abi.encodePacked("fri", i));
         }
         
         proof.friChallenges = new uint256[](4);
         for (uint256 i = 0; i < 4; i++) {
-            proof.friChallenges[i] = uint256(keccak256(abi.encodePacked("challenge", i)));
+            proof.friChallenges[i] = uint256(SHA3Hasher.hash(abi.encodePacked("challenge", i)));
         }
         
         // Create MIN_QUERIES (80) query indices
