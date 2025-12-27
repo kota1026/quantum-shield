@@ -21,6 +21,9 @@ import {ProofCodec} from "../src/libraries/ProofCodec.sol";
  * @notice Integration stress tests for STARK verification
  * @dev TEST-031: Tests large proof batches, edge cases, and error scenarios
  *
+ * ## CP-1 Compliance
+ * All tests use SHA3-256 exclusively, no keccak256
+ *
  * ## Test Categories
  * 1. Large batch verification (100 proofs)
  * 2. Edge cases (empty proofs, invalid proofs)
@@ -73,7 +76,7 @@ contract IntegrationStressTest is Test {
 
         for (uint256 i = 0; i < 10; i++) {
             proofs[i] = _createValidProof(i);
-            publicInputs[i] = keccak256(abi.encodePacked("input", i));
+            publicInputs[i] = SHA3Hasher.hash(abi.encodePacked("input", i));
         }
 
         uint256 validCount = 0;
@@ -92,7 +95,7 @@ contract IntegrationStressTest is Test {
 
         for (uint256 i = 0; i < 50; i++) {
             proofs[i] = _createValidProof(i);
-            publicInputs[i] = keccak256(abi.encodePacked("input", i));
+            publicInputs[i] = SHA3Hasher.hash(abi.encodePacked("input", i));
         }
 
         uint256 validCount = 0;
@@ -111,7 +114,7 @@ contract IntegrationStressTest is Test {
 
         for (uint256 i = 0; i < 100; i++) {
             proofs[i] = _createValidProof(i);
-            publicInputs[i] = keccak256(abi.encodePacked("input", i));
+            publicInputs[i] = SHA3Hasher.hash(abi.encodePacked("input", i));
         }
 
         uint256 gasBefore = gasleft();
@@ -136,7 +139,7 @@ contract IntegrationStressTest is Test {
     function test_Stress_EmptyTraceCommitment() public view {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
         proof.traceCommitment = bytes32(0);
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Empty trace commitment should fail");
@@ -145,7 +148,7 @@ contract IntegrationStressTest is Test {
     function test_Stress_EmptyConstraintCommitment() public view {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
         proof.constraintCommitment = bytes32(0);
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Empty constraint commitment should fail");
@@ -155,7 +158,7 @@ contract IntegrationStressTest is Test {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
         proof.friCommitments = new bytes32[](0);
         proof.friChallenges = new uint256[](0);
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Empty FRI commitments should fail");
@@ -166,7 +169,7 @@ contract IntegrationStressTest is Test {
         proof.queryIndices = new uint256[](0);
         proof.merkleProofs = new bytes32[][](0);
         proof.evaluations = new uint256[][](0);
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Empty query indices should fail");
@@ -175,7 +178,7 @@ contract IntegrationStressTest is Test {
     function test_Stress_EmptyFinalPolynomial() public view {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
         proof.finalPolynomial = new uint256[](0);
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         // Empty final polynomial with length 0 should be valid
         // (represents constant 0 polynomial)
@@ -191,7 +194,7 @@ contract IntegrationStressTest is Test {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
         proof.friCommitments = new bytes32[](4);
         proof.friChallenges = new uint256[](5); // Mismatched length
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Mismatched FRI arrays should fail");
@@ -201,7 +204,7 @@ contract IntegrationStressTest is Test {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
         proof.queryIndices = new uint256[](80);
         proof.merkleProofs = new bytes32[][](81); // Mismatched length
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Mismatched query arrays should fail");
@@ -211,7 +214,7 @@ contract IntegrationStressTest is Test {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
         proof.friCommitments = new bytes32[](20); // More than MAX_FRI_LAYERS (16)
         proof.friChallenges = new uint256[](20);
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "Too many FRI layers should fail");
@@ -220,7 +223,7 @@ contract IntegrationStressTest is Test {
     function test_Stress_HighDegreeFinalPolynomial() public view {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
         proof.finalPolynomial = new uint256[](100); // Too high degree
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         bool isValid = verifier.verifyProof(proof, publicInput);
         assertFalse(isValid, "High degree final polynomial should fail");
@@ -285,7 +288,7 @@ contract IntegrationStressTest is Test {
 
     function test_Stress_RepeatedVerification() public view {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         // Verify same proof 100 times
         for (uint256 i = 0; i < 100; i++) {
@@ -457,7 +460,7 @@ contract IntegrationStressTest is Test {
 
         for (uint256 i = 0; i < 10; i++) {
             proofs[i] = _createValidProof(i);
-            publicInputs[i] = keccak256(abi.encodePacked("input", i));
+            publicInputs[i] = SHA3Hasher.hash(abi.encodePacked("input", i));
         }
 
         // Corrupt some proofs
@@ -480,7 +483,7 @@ contract IntegrationStressTest is Test {
 
         for (uint256 i = 0; i < 5; i++) {
             proofs[i] = _createInvalidProof();
-            publicInputs[i] = keccak256(abi.encodePacked("input", i));
+            publicInputs[i] = SHA3Hasher.hash(abi.encodePacked("input", i));
         }
 
         uint256 validCount = 0;
@@ -499,7 +502,7 @@ contract IntegrationStressTest is Test {
 
     function test_Stress_GasLimitCheck() public view {
         ProofCodec.STARKProof memory proof = _createValidProof(0);
-        bytes32 publicInput = keccak256("test");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         uint256 gasBefore = gasleft();
         verifier.verifyProof(proof, publicInput);
@@ -518,18 +521,22 @@ contract IntegrationStressTest is Test {
     // Helper Functions
     // =========================================================================
 
+    /**
+     * @notice Create a valid proof structure using SHA3-256 (CP-1 compliant)
+     * @dev All hash operations use SHA3Hasher.hash() instead of keccak256
+     */
     function _createValidProof(uint256 seed) internal pure returns (ProofCodec.STARKProof memory proof) {
-        proof.traceCommitment = keccak256(abi.encodePacked("trace", seed));
-        proof.constraintCommitment = keccak256(abi.encodePacked("constraint", seed));
+        proof.traceCommitment = SHA3Hasher.hash(abi.encodePacked("trace", seed));
+        proof.constraintCommitment = SHA3Hasher.hash(abi.encodePacked("constraint", seed));
         
         proof.friCommitments = new bytes32[](4);
         for (uint256 i = 0; i < 4; i++) {
-            proof.friCommitments[i] = keccak256(abi.encodePacked("fri", seed, i));
+            proof.friCommitments[i] = SHA3Hasher.hash(abi.encodePacked("fri", seed, i));
         }
         
         proof.friChallenges = new uint256[](4);
         for (uint256 i = 0; i < 4; i++) {
-            proof.friChallenges[i] = uint256(keccak256(abi.encodePacked("challenge", seed, i)));
+            proof.friChallenges[i] = uint256(SHA3Hasher.hash(abi.encodePacked("challenge", seed, i)));
         }
         
         proof.queryIndices = new uint256[](MIN_QUERIES);
