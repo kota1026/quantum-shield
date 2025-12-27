@@ -1,94 +1,86 @@
 # Current Plan
 
-> **Generated**: 2025-12-28 00:30 JST
+> **Generated**: 2025-12-28 22:30 JST
 > **Phase**: 2 - Security Council + Token
-> **Week**: 10 (Phase 2.3b)
-
----
+> **Week**: 11
 
 ## 対象チェックリスト
-
-`docs/planning/PHASE2_CHECKLIST.md` - Phase 2.3 Section
-
----
+`docs/planning/PHASE2_CHECKLIST.md` / `docs/planning/PHASE2_3_PLAN.md`
 
 ## 前回レビュー課題
 
-> CURRENT_STATE.mdより自動取得
+> PIR-P2-010 ✅ PASS - 課題なし
 
-| # | 重要度 | 課題 | 対策 | ステータス |
-|---|--------|------|------|-----------|
-| 1 | ~~🔴 Critical~~ | ~~H-1脆弱性~~ | SEC-004修正 | ✅ RESOLVED |
-| 2 | 🟡 Medium | ZK-STARK実装の複雑性 | 段階的実装継続 | 🔄 継続 |
-| 3 | 🟡 Medium | 外部監査スケジュール | RFP作成完了、業者選定 | 🔄 継続 |
-| 4 | 🟢 Low | Etherscan検証 | Week 10以降で実施 | ⏳ 後続 |
-
-**注**: Critical/High課題はすべて解決済み。新規実装タスクに進行可能。
-
----
-
-## Week 9 完了サマリー
-
-| 項目 | 結果 |
-|------|------|
-| BatchVerifier.sol | ✅ 実装完了 |
-| SharedMerkle.sol | ✅ 実装完了 |
-| Sepoliaデプロイ | ✅ 7コントラクト |
-| **Gas削減率** | ✅ **71%達成**（目標40%超過） |
-| PIR-P2-008 | ✅ PASS |
-| PIR-P2-009 | ✅ PASS |
-| H-1修正 | ✅ SEC-004完了 |
-| テスト | ✅ 703/703 ALL PASS |
+| # | 重要度 | 課題 | 対策 |
+|---|--------|------|------|
+| - | - | なし | - |
 
 ---
 
 ## 今回のスコープ
 
+### Week 11 概要: STARKVerifier v1.0 統合 & E2Eテスト
+
+Week 10で OptimizedField.sol が完了（Gas目標を大幅達成）したため、Week 11では以下に集中：
+
+1. **STARKVerifier v1.0 アップグレード** - 全最適化コンポーネントの統合
+2. **E2Eテスト** - 完全なSTARK証明検証フローのテスト
+3. **追加Assembly最適化** - 残存ホットスポットの最適化
+4. **Etherscan検証** - デプロイ済みコントラクトの検証
+
+---
+
 ### 実装項目
 
-- [ ] [IMPL-012] ProofCompressor.sol設計・実装
-  - Merkle Path共有（20-30%圧縮）
-  - Evaluation圧縮（10-15%圧縮）
-  - Challenge再計算（15-20%圧縮）
-  - 目標: 証明サイズ50%以上圧縮
+- [ ] [IMPL-015] STARKVerifier v1.0 統合アップグレード
+  - OptimizedField統合
+  - ProofCompressor/Decoder統合
+  - BatchVerifier連携強化
+  
+- [ ] [IMPL-016] Assembly最適化（追加）
+  - FRIVerifier評価ループ最適化
+  - AIRConstraints演算最適化
+  - SHA3Hasherバッチ最適化（可能な範囲）
 
-- [ ] [IMPL-013] ProofDecoder.sol実装
-  - 圧縮された証明の解凍
-  - 目標: 解凍Gas < 100,000
-
-- [ ] [IMPL-014] OptimizedField.sol設計
-  - modExp最適化（Precompile利用）
-  - modInverse最適化（Extended Euclidean）
-  - batchMulMod最適化
-  - 目標: フィールド演算50%削減
+- [ ] [IMPL-017] STARKVerifier.verify() 統合実装
+  - 完全なverify()関数の実装
+  - 全サブコンポーネント呼び出し統合
 
 ### テスト項目
 
-- [ ] [TEST-025] ProofCompressor単体テスト（20+ tests）
-- [ ] [TEST-026] ProofDecoder単体テスト（10+ tests）
-- [ ] [TEST-027] 圧縮率ベンチマーク
-- [ ] [TEST-028] Gas計測ベンチマーク
+- [ ] [TEST-029] E2E STARKVerifierTest
+  - 完全な証明検証フロー（20+テスト）
+  - Lock → Proof生成 → Verify → Release
+  
+- [ ] [TEST-030] Gas Regression Tests
+  - Gas目標維持の確認
+  - 統合後のオーバーヘッド計測
+  
+- [ ] [TEST-031] Integration Stress Tests
+  - 大量証明バッチ（100件）
+  - Edge cases（空証明、不正証明）
 
 ### インフラ項目
 
 - [ ] [INFRA-004] Etherscan コントラクト検証
-  - 7コントラクトの検証
+  - 7 Sepolia contracts verified
+  - ソースコード公開確認
 
 ### ドキュメント項目
 
-- [ ] [DOC-002] PROOF_COMPRESSION_SPEC.md作成
-- [ ] [DOC-003] Week 10 Progress更新
+- [ ] [DOC-003] STARKVerifier v1.0 API仕様書
+- [ ] [DOC-004] Gas Optimization Final Report
 
 ---
 
-## 参照ドキュメント
+### 参照ドキュメント
 
-| 種類 | パス |
-|------|------|
-| Phase 2.3計画 | `docs/planning/PHASE2_3_PLAN.md` |
-| ZK-STARK計画 | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
-| BatchVerifier仕様 | `docs/planning/BATCH_VERIFICATION_SPEC.md` |
-| Sepoliaデプロイ | `docs/deployments/SEPOLIA_DEPLOYMENT_2025-12-27.md` |
+| タイプ | パス |
+|--------|------|
+| 仕様 | `docs/planning/PHASE2_3_PLAN.md` |
+| Proof Compression | `docs/planning/PROOF_COMPRESSION_SPEC.md` |
+| Batch Verification | `docs/planning/BATCH_VERIFICATION_SPEC.md` |
+| Sequence | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
 | Gas Baseline | `docs/deployments/GAS_BASELINE_SEPOLIA.md` |
 
 ---
@@ -97,67 +89,88 @@
 
 | ファイル | 説明 |
 |---------|------|
-| `contracts/src/ProofCompressor.sol` | 証明圧縮ライブラリ |
-| `contracts/src/ProofDecoder.sol` | 証明解凍ライブラリ |
-| `contracts/src/OptimizedField.sol` | 最適化フィールド演算 |
-| `contracts/test/ProofCompressorTest.t.sol` | 圧縮テスト（拡張） |
-| `contracts/test/ProofDecoderTest.t.sol` | 解凍テスト |
-| `contracts/test/GasOptimizationTest.t.sol` | Gas最適化ベンチマーク |
-| `docs/planning/PROOF_COMPRESSION_SPEC.md` | 圧縮仕様書 |
+| `src/STARKVerifier.sol` | v1.0 統合アップグレード |
+| `src/lib/OptimizedFRI.sol` | FRI Assembly最適化（新規） |
+| `test/STARKVerifierE2E.t.sol` | E2Eテストスイート |
+| `test/GasRegressionTest.t.sol` | Gas回帰テスト |
+| `docs/planning/GAS_OPTIMIZATION_REPORT.md` | 最終Gasレポート |
 
 ---
 
 ## 実行順序
 
-### Day 1-2: ProofCompressor設計
+### Day 1-2: 統合設計 & 準備
 
-1. 圧縮アルゴリズム設計ドキュメント作成
-2. PROOF_COMPRESSION_SPEC.md作成
-3. ProofCompressor.sol インターフェース定義
-4. 既存ProofCompressor.solの拡張検討
+1. 現在のSTARKVerifier.solコード分析
+2. OptimizedField統合ポイント特定
+3. ProofCompressor/Decoder統合設計
+4. 統合テスト戦略策定
 
-### Day 3-4: ProofCompressor実装
+### Day 3-4: STARKVerifier v1.0 実装
 
-5. Merkle Path共有ロジック実装
-6. Evaluation圧縮ロジック実装
-7. Challenge再計算ロジック実装
-8. 圧縮率検証テスト作成
+5. OptimizedField統合実装
+6. verify()関数完全実装
+7. 内部コンポーネント連携
+8. 単体テスト作成・実行
 
-### Day 5-6: ProofDecoder + OptimizedField
+### Day 5-6: E2Eテスト & Assembly最適化
 
-9. ProofDecoder.sol実装
-10. OptimizedField.sol設計
-11. フィールド演算最適化実装
-12. 統合テスト作成
+9. E2Eテストスイート作成
+10. Lock→Verify→Releaseフロー検証
+11. FRIVerifier Assembly最適化
+12. Gas回帰テスト実行
 
-### Day 7: テスト・検証・レビュー準備
+### Day 7: 検証 & ドキュメント
 
-13. フルテストスイート実行
-14. Gas計測ベンチマーク実行
-15. Slither静的解析
-16. 04_review.md準備
-
----
-
-## 成功基準
-
-| 基準 | 目標値 | 達成条件 |
-|------|--------|----------|
-| 証明圧縮率 | ≥50% | ProofCompressor動作確認 |
-| 解凍Gas | <100,000 | ベンチマーク計測 |
-| 総Gas削減 | ≥80% | 87.5%目標に向けた進捗 |
-| 新規テスト | +40 | 全PASS |
-| Slither | HIGH 0 / MEDIUM 0 | 維持 |
+13. Etherscanコントラクト検証
+14. Gas Optimization Report作成
+15. API仕様書作成
+16. PIR-P2-011準備
 
 ---
 
 ## Core Principles確認
 
-- [x] CP-1: 完全量子耐性 - SHA3-256のみ使用、keccak256禁止維持
-- [x] CP-2: Self-Custody - ユーザー秘密鍵保管なし
-- [x] CP-3: Time Lock存在 - 無効化なし
-- [x] CP-4: Slashing存在 - 削除なし
-- [x] CP-5: 透明性 - オンチェーン検証可能維持
+- [x] CP-1: 完全量子耐性 - 違反なし（keccak256/SHA-256使用禁止維持）
+- [x] CP-2: Self-Custody - 違反なし
+- [x] CP-3: Time Lock存在 - 違反なし
+- [x] CP-4: Slashing存在 - 違反なし
+- [x] CP-5: 透明性 - 違反なし
+
+---
+
+## 成功基準
+
+### Must Have (P0)
+
+- [ ] STARKVerifier v1.0 統合完了
+- [ ] E2Eテスト 20件以上 PASS
+- [ ] Gas目標維持（87.5%削減継続）
+- [ ] 全テスト PASS（753+ tests）
+- [ ] Slither HIGH 0 / MEDIUM 0 維持
+
+### Should Have (P1)
+
+- [ ] Etherscan検証 7/7 contracts
+- [ ] 追加Assembly最適化 10%以上削減
+- [ ] 完全なAPI仕様書
+
+### Nice to Have (P2)
+
+- [ ] Proof aggregation PoC
+- [ ] L2最適化調査
+
+---
+
+## Gas目標確認
+
+| コンポーネント | Week 10達成値 | Week 11目標 |
+|--------------|---------------|-------------|
+| modExp | 787 gas ✅ | 維持 |
+| modInverse | 1,969 gas ✅ | 維持 |
+| batchMulMod | 1,487 gas/10要素 ✅ | 維持 |
+| STARK証明検証 | ~1,000,000 gas | <500,000 gas |
+| 署名検証全体 | 71%削減達成 ✅ | 87.5%目標継続 |
 
 ---
 
@@ -165,35 +178,32 @@
 
 | # | リスク | 確率 | 影響 | 対策 |
 |---|--------|------|------|------|
-| 1 | 87.5%目標未達成 | MEDIUM | HIGH | 段階的達成、L2フォールバック検討 |
-| 2 | 圧縮によるセキュリティ低下 | LOW | HIGH | Cryptographer暗号学的レビュー |
-| 3 | Assembly最適化バグ | MEDIUM | HIGH | Formal verification、慎重なテスト |
-| 4 | 統合時の互換性問題 | MEDIUM | MEDIUM | 段階的統合、既存テスト維持 |
+| 1 | 統合時のGas増加 | MEDIUM | MEDIUM | 統合前後でベンチマーク比較 |
+| 2 | E2Eテスト複雑性 | MEDIUM | LOW | 段階的テスト追加 |
+| 3 | Etherscan検証失敗 | LOW | LOW | 手動検証フォールバック |
+| 4 | Assembly最適化バグ | MEDIUM | HIGH | 詳細な単体テスト |
 
 ---
 
-## 備考
+## 依存関係
 
-### Week 9 → Week 10 移行
-
-Week 9では目標40%を大幅に超える**71% Gas削減**を達成。これにより、Week 10では当初計画よりも余裕を持ってProof Compression + Assembly Optimizationに取り組める。
-
-最終目標の87.5%削減達成には、追加で約16%の削減が必要：
-- 現在: 71%削減達成
-- 目標: 87.5%削減
-- 残り: 約16%削減（Proof Compression + Assembly Optimizationで達成見込み）
-
-### 優先順位
-
-1. **P0（必須）**: ProofCompressor.sol、テスト全PASS、Slither維持
-2. **P1（推奨）**: OptimizedField.sol、Etherscan検証
-3. **P2（任意）**: 形式検証追加
+| 依存 | 状態 | 備考 |
+|------|------|------|
+| OptimizedField.sol | ✅ 完了 | PIR-P2-010 PASS |
+| ProofCompressor.sol | ✅ 完了 | Week 10 |
+| ProofDecoder.sol | ✅ 完了 | Week 10 |
+| BatchVerifier.sol | ✅ 完了 | Week 9 |
+| Sepoliaデプロイ | ✅ 完了 | 7 contracts |
 
 ---
 
-**Plan Status**: ✅ READY FOR IMPLEMENTATION
+**Plan Created by**: Engineer  
+**Reviewed by**: CTO  
+**Date**: 2025-12-28
 
-**Next Step**: 02_spec.md で仕様レビュー → 03_impl.md で実装
+---
+
+**次のステップ**: 02_spec.md 実行 → IMPL-015 仕様レビュー
 
 ---
 
