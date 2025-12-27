@@ -38,16 +38,26 @@ import {SHA3_256} from "./SHA3_256.sol";
 /// │                                                                     │
 /// │  Hash: SHA3-256 (FIPS 202) with domain separation                  │
 /// └─────────────────────────────────────────────────────────────────────┘
+///
+/// IMPL-011 Update:
+/// - All keccak256 usage removed for CP-1 compliance
+/// - Domain separators are now pre-computed SHA3-256 constants
 library StateRootCalculator {
     // =========================================================================
-    // Domain Separators
+    // Domain Separators (Pre-computed SHA3-256)
     // =========================================================================
 
-    /// @notice Domain separator for Lock state root (SR_0)
-    bytes32 public constant DOMAIN_LOCK = keccak256("QS_LOCK_V1");
+    /// @notice Pre-computed SHA3-256 hash of "QS_LOCK_V1"
+    /// @dev IMPL-011: Replaced keccak256 with pre-computed SHA3-256 for CP-1 compliance
+    bytes32 public constant DOMAIN_LOCK = 0x2fd95bcc43ab63131f2b79f1401d6822b9b941f498ebd1d1a55ddba47a91174b;
 
-    /// @notice Domain separator for Unlock state root (SR_1)
-    bytes32 public constant DOMAIN_UNLOCK = keccak256("QS_UNLOCK_V1");
+    /// @notice Pre-computed SHA3-256 hash of "QS_UNLOCK_V1"
+    /// @dev IMPL-011: Replaced keccak256 with pre-computed SHA3-256 for CP-1 compliance
+    bytes32 public constant DOMAIN_UNLOCK = 0xcbadec29f6a8bc28bb9a5c49c5fd81eb32e34c1f3ec7031c148da58ff89acb41;
+
+    /// @notice Pre-computed SHA3-256 hash of "QS_LOCK_ID"
+    /// @dev IMPL-011: Replaced keccak256 with pre-computed SHA3-256 for CP-1 compliance
+    bytes32 private constant DOMAIN_LOCK_ID = 0x8894be0e982d7ae6c0543aa575c4e9c787261d5b1f3566ab35396a35a54c984d;
 
     // =========================================================================
     // SR_0 (Lock State Root)
@@ -86,6 +96,7 @@ library StateRootCalculator {
     }
 
     /// @notice Compute SR_0 from raw Dilithium public key
+    /// @dev IMPL-011: Changed from keccak256 to SHA3_256.hash for CP-1 compliance
     /// @param chainId Target chain ID
     /// @param asset Asset address
     /// @param amount Lock amount
@@ -103,7 +114,8 @@ library StateRootCalculator {
         uint256 nonce,
         bytes memory pkDilithiumRaw
     ) internal pure returns (bytes32 sr0) {
-        bytes32 pkDilithiumHash = keccak256(pkDilithiumRaw);
+        // IMPL-011: Use SHA3_256.hash instead of keccak256 for CP-1 compliance
+        bytes32 pkDilithiumHash = SHA3_256.hash(pkDilithiumRaw);
         return computeSR0(chainId, asset, amount, destAddr, expiry, nonce, pkDilithiumHash);
     }
 
@@ -142,7 +154,7 @@ library StateRootCalculator {
     // =========================================================================
 
     /// @notice Generate a unique lock ID from SR_0 and additional entropy
-    /// @dev lockId = SHA3-256("QS_LOCK_ID" || SR_0 || sender || timestamp)
+    /// @dev IMPL-011: Use pre-computed DOMAIN_LOCK_ID constant for CP-1 compliance
     /// @param sr0 State root
     /// @param sender Lock initiator
     /// @param timestamp Block timestamp
@@ -158,7 +170,8 @@ library StateRootCalculator {
             timestamp
         );
         
-        lockId = SHA3_256.hashWithDomain(keccak256("QS_LOCK_ID"), data);
+        // IMPL-011: Use pre-computed DOMAIN_LOCK_ID constant instead of keccak256("QS_LOCK_ID")
+        lockId = SHA3_256.hashWithDomain(DOMAIN_LOCK_ID, data);
     }
 
     // =========================================================================
@@ -224,7 +237,7 @@ library StateRootCalculator {
     /// @notice Get library version
     /// @return version Version string
     function version() internal pure returns (string memory) {
-        return "1.0.0";
+        return "1.1.0";
     }
 
     /// @notice Check if library is specification compliant
