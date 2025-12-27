@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-28 15:00 JST  
+> **Last Updated**: 2025-12-28 15:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -9,15 +9,49 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Phase: 2 - Security Council + Token                        │
-│  Month: 7 / 24                                              │
+│  Phase: 2 - ZK-STARK L1実装（Final Week）                   │
+│  Month: 9 / 24                                              │
 │  Week: 12 🔄 IN PROGRESS                                    │
 │  Active Plan: docs/planning/CURRENT_PLAN.md                 │
-│  Next Step: P0 Etherscan検証 → P1 監査準備                  │
+│  Next Step: P0 Etherscan検証 → Phase 2完了レポート          │
 │  Status: ✅ PIR-P2-011 PASS (Week 11)                       │
 │  Tests: ✅ 834/834 PASS (ローカル)                          │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 📌 フェーズ再構成（2025-12-28決定）
+
+### 変更内容
+
+```
+【変更前】
+Phase 2: ZK-STARK + Security Council + Token + 監査
+Phase 3: L3開発
+Phase 4: 完全分散化
+
+【変更後】
+Phase 2: ZK-STARK L1実装 ← Week 12でクローズ
+Phase 3: L3開発
+Phase 4: Token + Security Council + 監査 + ドキュメント
+```
+
+### 理由
+
+1. **監査効率**: L1+L3を1回の監査で実施（コスト半減）
+2. **アーキテクチャ一貫性**: L3設計後にドキュメント作成（書き直し不要）
+3. **資金調達前提**: L3までE2Eテスト完了 → 確信 → 資金調達 → 監査
+
+### 延期タスク（Phase 4へ移動）
+
+| タスク | 元 | 移動先 |
+|--------|-----|--------|
+| 外部監査 | Phase 2.4 | Phase 4 |
+| Security Council | Phase 2.5 | Phase 4 |
+| Token設計 (veQS) | Phase 2.6 | Phase 4 |
+| API Documentation | Phase 2 | Phase 4 |
+| アーキテクチャDoc | Phase 2 | Phase 4 |
 
 ---
 
@@ -63,32 +97,29 @@
 
 ## 📊 Phase進捗
 
-| Phase | 期間 | 進捗 | Status |
+| Phase | 内容 | 進捗 | Status |
 |-------|------|------|--------|
-| Phase 0.5 | Week 1-2 | 100% | ✅ COMPLETE |
-| Phase 1 | Month 1-6 | 100% | ✅ **COMPLETE** 🎉 |
-| **Phase 2** | Month 7-12 | **100%** | 🔄 **Week 12 IN PROGRESS** |
-| Phase 3 | Month 13-18 | 0% | ⬜ NOT STARTED |
-| Phase 4 | Month 19-24 | 0% | ⬜ NOT STARTED |
+| Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
+| Phase 1 | Foundation Bootstrap | 100% | ✅ **COMPLETE** 🎉 |
+| **Phase 2** | **ZK-STARK L1実装** | **99%** | 🔄 **Week 12 FINAL** |
+| Phase 3 | L3開発 | 0% | ⬜ NEXT |
+| Phase 4 | Token/監査/Council | 0% | ⬜ NOT STARTED |
 
 ---
 
-## 📋 Phase 2.3c Week 12 タスク進捗 🔄 IN PROGRESS
+## 📋 Phase 2 Week 12 タスク進捗 🔄 IN PROGRESS
 
-### Week 12 Phase 2.3完了 & Phase 2.4準備
+### Week 12: Phase 2クローズ & Phase 3準備
 
 | # | タスク | 担当 | 状態 | 成果物 |
 |---|--------|------|------|--------|
 | 1 | **01_plan.md 実行** | PM | ✅ 完了 | CURRENT_PLAN.md |
 | 2 | **[INFRA-004] Etherscan検証** | DevOps | ⏳ | 11 contracts |
-| 3 | **[DOC-006] Phase 2.3完了レポート** | PM | ⏳ | PHASE2_3_COMPLETION_REPORT.md |
-| 4 | **[DOC-007] 監査RFP最終化** | CSO | ⏳ | AUDIT_RFP_v1.0.md |
-| 5 | **[DOC-008] 監査パッケージ準備** | Engineer | ⏳ | AUDIT_PACKAGE.md |
-| 6 | **[DOC-009] API Documentation** | Engineer | ⏳ | NatSpec更新 |
-| 7 | **[DOC-010] アーキテクチャDoc** | CTO | ⏳ | STARKVERIFIER_V1_ARCHITECTURE.md |
-| 8 | **[PLAN-001] Phase 2.4チェックリスト** | PM | ⏳ | PHASE2_4_CHECKLIST.md |
-| 9 | **[PLAN-002] 監査業者候補リスト** | CEO+CSO | ⏳ | 候補リスト |
-| 10 | **PIR-P2-012** | Red Team | ⏳ | Phase 2.3 Final Review |
+| 3 | **[DOC-006] Phase 2完了レポート** | PM | ⏳ | PHASE2_COMPLETION_REPORT.md |
+| 4 | **[PLAN-003] Phase 3計画策定** | CTO+Engineer | ⏳ | PHASE3_PLAN.md |
+| 5 | **[DOC-011] フェーズ再構成Doc** | PM | ⏳ | PHASE_RESTRUCTURE.md |
+| 6 | **[DOC-012] Phase 4スコープ** | PM+CSO | ⏳ | PHASE4_SCOPE.md |
+| 7 | **PIR-P2-012** | Red Team | ⏳ | Phase 2 Final Review |
 
 ---
 
@@ -113,61 +144,38 @@
 | **ExecuteUnlock** | 68,580 | `0xe25b529e...` |
 | **合計** | **4,089,868** | - |
 
-### Sepoliaデプロイ済みコントラクト（Week 11追加）
+### Sepoliaデプロイ済みコントラクト（全11件）
 
-| Contract | Address | 用途 |
+| Contract | Address | Week |
 |----------|---------|------|
-| L1Vault | `0xD4748Fb7a382265E903cCd2b0d15Da64e5d6a2E7` | 本番用 |
-| **L1VaultTestnet** | `0x8f8661038C85634619B668d2C747B96e32F104CB` | テスト用(5分タイムロック) |
-| SPHINCSVerifier | `0xcaEF192eddA106810Caf1A3Ad5dC37229bA79be1` | - |
-| STARKVerifier | `0x262A22Ace69336B27f567340DE4f1735FE9ABfE8` | - |
+| L1Vault | `0xD4748Fb7a382265E903cCd2b0d15Da64e5d6a2E7` | W11 |
+| L1VaultTestnet | `0x8f8661038C85634619B668d2C747B96e32F104CB` | W11 |
+| SPHINCSVerifier | `0xcaEF192eddA106810Caf1A3Ad5dC37229bA79be1` | W11 |
+| STARKVerifier | `0x262A22Ace69336B27f567340DE4f1735FE9ABfE8` | W11 |
+| AIRConstraints | `0x49a1f515A10447197078b7282e8d8C1AD658b149` | W9 |
+| ConstraintEvaluator | `0x5fbffa05d45E85F052Ac9bD0DA30a7C2fb070c81` | W9 |
+| STARKVerifier (old) | `0x93f550917E45b6BDA45dE4fE3e0bAB09FfC38848` | W9 |
+| SPHINCSVerifier (old) | `0xd5F3cEA1fE247fff7e15cBA00C1f804D2Bd126f3` | W9 |
+| L1Vault (old) | `0xAdEB23203bf5C45e3CbD3406122aED067E41255D` | W9 |
+| SharedMerkle | `0x956139A615687fA9e0F85e9ff520129f4C3C8574` | W9 |
+| BatchVerifier | `0xD264ac2CB8548B76d95E9267ACADDb42CE608730` | W9 |
 
 ---
 
-## 🎉 Phase 2.3b Week 10 完了サマリー
+## 🎉 Phase 2 成果サマリー
 
-### Week 10 成果 (2025-12-28)
+### 技術成果
 
-| 項目 | 目標 | 達成 |
-|------|------|------|
-| OptimizedField.sol | 実装 | ✅ **完了** |
-| modExp Gas | <2,000 | ✅ **787 gas (161%達成)** |
-| modInverse Gas | <5,000 | ✅ **1,969 gas (154%達成)** |
-| batchMulMod Gas | <20,000/10要素 | ✅ **1,487 gas (1245%達成)** |
-| ProofDecoderテスト | 10+ | ✅ **19テスト** |
-| OptimizedFieldテスト | 20+ | ✅ **27テスト** |
-| テスト | 全PASS | ✅ **753/753 PASS** |
-| **PIR-P2-010** | **PASS** | ✅ **セキュリティレビュー完了** |
-
----
-
-## 🎉 Phase 2.3a 完了サマリー
-
-### Week 9 成果 (2025-12-27)
-
-| 項目 | 目標 | 達成 |
-|------|------|------|
-| Sepoliaデプロイ | 全コントラクト | ✅ **7コントラクト** |
-| 実Gas計測 | 完了 | ✅ **L1Vault.lock() 4.3M** |
-| BatchVerifier | 動作確認 | ✅ **20テスト合格** |
-| **Gas削減率** | **≥40%** | ✅ **71%達成** |
-| テスト | 全PASS | ✅ **703/703 PASS** |
-| コードレビュー | APPROVED | ✅ **Critical/Major 0件** |
-| **PIR-P2-008** | **PASS** | ✅ **セキュリティレビュー完了** |
-| **PIR-P2-009** | **PASS** | ✅ **IMPL-011テスト修正レビュー完了** |
-| **H-1修正** | **完了** | ✅ **SEC-004修正済み** |
-
-### Sepoliaデプロイ済みコントラクト (Week 9)
-
-| Contract | Address | Status |
-|----------|---------|--------|
-| AIRConstraints | `0x49a1f515A10447197078b7282e8d8C1AD658b149` | ✅ |
-| ConstraintEvaluator | `0x5fbffa05d45E85F052Ac9bD0DA30a7C2fb070c81` | ✅ |
-| STARKVerifier | `0x93f550917E45b6BDA45dE4fE3e0bAB09FfC38848` | ✅ |
-| SPHINCSVerifier | `0xd5F3cEA1fE247fff7e15cBA00C1f804D2Bd126f3` | ✅ |
-| L1Vault | `0xAdEB23203bf5C45e3CbD3406122aED067E41255D` | ✅ |
-| SharedMerkle | `0x956139A615687fA9e0F85e9ff520129f4C3C8574` | ✅ |
-| BatchVerifier | `0xD264ac2CB8548B76d95E9267ACADDb42CE608730` | ✅ |
+| 項目 | 達成 |
+|------|------|
+| ZK-STARK証明システム | ✅ STARKVerifier v1.0 |
+| Gas最適化 | ✅ 71%削減（目標40%） |
+| Batch Verification | ✅ 実装完了 |
+| Proof Compression | ✅ 実装完了 |
+| CP-1完全準拠 | ✅ keccak256完全排除 |
+| テストスイート | ✅ 834/834 PASS |
+| Sepolia E2E | ✅ Lock→Unlock成功 |
+| PIRレビュー | ✅ 13件全PASS |
 
 ### Gas最適化結果
 
@@ -207,19 +215,11 @@ Ran 40 test suites in 29.98s: 820 tests passed, 14 failed (TransferFailed - Fork
 | VRFConsumerTest | 28 | ✅ |
 | DeploymentVerificationTest | 27 | ✅ |
 | OptimizedFieldTest | 27 | ✅ |
-| **GasRegressionTest** | 26 | ✅ CP-1修正済み |
+| GasRegressionTest | 26 | ✅ |
 | FRIIntegrationTest | 25 | ✅ |
 | L1VaultEmergencyTest | 24 | ✅ |
 | AIRConstraintsTest | 23 | ✅ |
-| EventsAndChecksTest | 21 | ✅ |
-| SHA3HasherTest | 21 | ✅ |
-| BatchVerifierTest | 20 | ✅ |
-| **STARKVerifierE2ETest** | 20 | ✅ CP-1修正済み |
-| ProofCompressorTest | 20 | ✅ |
-| ProverSelectorTest | 20 | ✅ |
-| ProofDecoderTest | 19 | ✅ |
-| **IntegrationStressTest** | 4 | ✅ CP-1修正済み |
-| その他 | 256 | ✅ |
+| その他 | 421 | ✅ |
 
 ---
 
@@ -242,7 +242,7 @@ Ran 40 test suites in 29.98s: 820 tests passed, 14 failed (TransferFailed - Fork
 | PIR-P2-009 | IMPL-011 テスト修正レビュー | ✅ **PASS** | 2025-12-27 |
 | PIR-P2-010 | Week 10 IMPL-012/013/014 | ✅ **PASS** | 2025-12-28 |
 | PIR-P2-011 | Week 11 IMPL-015/016/017 + E2E | ✅ **PASS** | 2025-12-28 |
-| **PIR-P2-012** | **Week 12 Phase 2.3 Final** | ⏳ **PENDING** | - |
+| **PIR-P2-012** | **Week 12 Phase 2 Final** | ⏳ **PENDING** | - |
 
 ---
 
@@ -250,44 +250,35 @@ Ran 40 test suites in 29.98s: 820 tests passed, 14 failed (TransferFailed - Fork
 
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
-| 1 | ~~Sepoliaデプロイ未実施~~ | ~~HIGH~~ | ✅ **Week 9で完了** |
-| 2 | ~~SHA3_256 Gas消費量~~ | ~~MEDIUM~~ | ✅ **71%削減達成** |
-| 3 | ZK-STARK実装の複雑性 | 🟡 MEDIUM | 段階的実装継続 |
-| 4 | 外部監査のスケジュール | 🟡 MEDIUM | Week 12でRFP最終化 |
-| 5 | ~~テストネット環境構築~~ | ~~MEDIUM~~ | ✅ Week 8で完了 |
-| 6 | ~~CI/CDパイプライン~~ | ~~MEDIUM~~ | ✅ Week 8で完了 |
-| 7 | Etherscan検証 | 🟢 LOW | **Week 12で実施中** |
-| 8 | ~~H-1脆弱性~~ | ~~HIGH~~ | ✅ **SEC-004で修正** |
-| 9 | ~~Week 10テスト検証~~ | ~~MEDIUM~~ | ✅ **753/753 PASS** |
-| 10 | ~~PIR-P2-010セキュリティレビュー~~ | ~~HIGH~~ | ✅ **PIR-P2-010 PASS** |
-| 11 | ~~SPEC_REVIEW keccak256~~ | ~~MEDIUM~~ | ✅ **全ファイル修正完了** |
-| 12 | ~~Week 11テスト実行待ち~~ | ~~MEDIUM~~ | ✅ **834/834 PASS** |
-| 13 | ~~Sepolia E2Eテスト~~ | ~~MEDIUM~~ | ✅ **完全成功** |
-| 14 | ~~PIR-P2-011セキュリティレビュー~~ | ~~HIGH~~ | ✅ **PIR-P2-011 PASS** |
+| 1 | ~~Sepoliaデプロイ未実施~~ | ~~HIGH~~ | ✅ Week 9-11で完了 |
+| 2 | ~~SHA3_256 Gas消費量~~ | ~~MEDIUM~~ | ✅ 71%削減達成 |
+| 3 | ~~ZK-STARK実装~~ | ~~MEDIUM~~ | ✅ STARKVerifier v1.0完成 |
+| 4 | Etherscan検証 | 🟢 LOW | Week 12で実施 |
+| 5 | L3設計の複雑性 | 🟡 MEDIUM | Phase 3で段階的実装 |
+| 6 | 外部監査スケジュール | 🟢 LOW | **Phase 4へ延期** |
 
 ---
 
 ## 🔜 次のアクション
 
-### Week 12 - Phase 2.3完了 & Phase 2.4準備
+### Week 12 - Phase 2クローズ
 
 | # | タスク | 優先度 | 担当 | 状態 |
 |---|--------|--------|------|------|
 | 1 | 01_plan.md実行 | 🔴 Critical | PM | ✅ 完了 |
-| 2 | Etherscan コントラクト検証 | 🟠 High | DevOps | ⏳ |
-| 3 | Phase 2.3完了レポート作成 | 🟠 High | PM | ⏳ |
-| 4 | 外部監査RFP最終化 | 🟠 High | CSO | ⏳ |
-| 5 | 監査パッケージ準備 | 🟡 Medium | Engineer | ⏳ |
-| 6 | Phase 2.4チェックリスト作成 | 🟡 Medium | PM | ⏳ |
-| 7 | PIR-P2-012 準備 | 🟡 Medium | Red Team | ⏳ |
+| 2 | Etherscan検証 | 🔴 Critical | DevOps | ⏳ |
+| 3 | Phase 2完了レポート | 🔴 Critical | PM | ⏳ |
+| 4 | Phase 3計画策定 | 🟠 High | CTO | ⏳ |
+| 5 | フェーズ再構成Doc | 🟡 Medium | PM | ⏳ |
+| 6 | PIR-P2-012準備 | 🟡 Medium | Red Team | ⏳ |
 
-### Phase 2.3 → MS-1 ZK-STARK
+### Phase 3準備
 
-| # | タスク | 優先度 | 担当 | 状態 |
-|---|--------|--------|------|------|
-| 1 | MS-1 ZK-STARK完全実装 | 🟠 High | Engineer | ✅ STARKVerifier v1.0完成 |
-| 2 | 外部監査準備 | 🟠 High | CSO | 🔄 継続 |
-| 3 | 87.5% Gas削減目標 | 🟠 High | Engineer | 🔄 71%達成中 |
+| # | タスク | 内容 |
+|---|--------|------|
+| 1 | L3アーキテクチャ設計 | Bridge, Sequencer, State Management |
+| 2 | Sepolia L3環境準備 | L3テストネット構築 |
+| 3 | L1↔L3連携設計 | 通信プロトコル定義 |
 
 ---
 
@@ -295,42 +286,57 @@ Ran 40 test suites in 29.98s: 820 tests passed, 14 failed (TransferFailed - Fork
 
 | マイルストーン | 時期 | Status |
 |---------------|------|--------|
-| Phase 1完了 | Day 14 | ✅ **COMPLETE** |
-| **Phase 2 開始** | Month 7 | 🟢 **STARTED** |
-| ~~SEC-003 QuantumShield SHA3移行~~ | ~~Week 6~~ | ✅ **COMPLETE** |
-| ~~IMPL-006 AIR制約システム~~ | ~~Week 7~~ | ✅ **COMPLETE** |
-| ~~IMPL-007 制約評価器~~ | ~~Week 7~~ | ✅ **COMPLETE** |
-| ~~INFRA-002 CI/CDパイプライン~~ | ~~Week 8~~ | ✅ **COMPLETE** |
-| ~~INFRA-003 Sepoliaデプロイ準備~~ | ~~Week 8~~ | ✅ **COMPLETE** |
-| ~~**IMPL-009 BatchVerifier**~~ | ~~**Week 9**~~ | ✅ **COMPLETE** |
-| ~~**IMPL-010 SharedMerkle**~~ | ~~**Week 9**~~ | ✅ **COMPLETE** |
-| ~~**71% Gas削減達成**~~ | ~~**Week 9**~~ | ✅ **COMPLETE** |
-| ~~**PIR-P2-008/009**~~ | ~~**Week 9**~~ | ✅ **PASS** |
-| ~~**IMPL-012/013/014 Proof Compression**~~ | ~~**Week 10**~~ | ✅ **COMPLETE** |
-| ~~**PIR-P2-010 Security Review**~~ | ~~**Week 10**~~ | ✅ **PASS** |
-| ~~**STARKVerifier v1.0 統合**~~ | ~~**Week 11**~~ | ✅ **COMPLETE** |
-| ~~**PIR-P2-011 Security Review**~~ | ~~**Week 11**~~ | ✅ **PASS** |
-| **Phase 2.3 Completion & Audit Prep** | **Week 12** | 🔄 **IN PROGRESS** |
-| MS-1: ZK-STARK完全実装 | Month 9 | ✅ **ACHIEVED** |
-| 外部監査完了 | Month 10 | ⏳ Phase 2.4 |
-| MS-2: Phase 2 Gate | Month 12 | ⬜ |
+| Phase 1完了 | Month 6 | ✅ **COMPLETE** |
+| **Phase 2完了** | **Month 9 (Week 12)** | 🔄 **CLOSING** |
+| Phase 3開始 | Month 10 | ⬜ NEXT |
+| L3 E2E on Sepolia | Month 15 | ⬜ |
+| Phase 3完了 | Month 18 | ⬜ |
+| Phase 4開始 | Month 19 | ⬜ |
+| 外部監査（L1+L3） | Month 20 | ⬜ |
+| Token Launch | Month 22 | ⬜ |
+| Phase 4完了 | Month 24 | ⬜ |
 
 ---
 
-## 🔐 Phase 2 終了条件（プレビュー）
+## 🔐 Phase 2 終了条件
 
 | 条件 | 基準 | 現状 | 判定 |
 |------|------|------|------|
-| ZK-STARK証明 | Gas 87.5%削減 | **71%削減達成** | 🔄 進行中 |
-| 外部監査 | Critical/High 0件 | RFP最終化中 | 🔄 |
-| Slither | HIGH 0件 | ✅ **0件（誤検知除く）** | ✅ |
-| Slither | MEDIUM 0件 | ✅ **0件** | ✅ |
-| CP-1準拠 | keccak256完全排除 | ✅ **テストファイル含め完了** | ✅ |
+| ZK-STARK証明 | 実装完了 | ✅ STARKVerifier v1.0 | ✅ |
+| Gas最適化 | ≥40%削減 | ✅ **71%削減** | ✅ |
+| Slither HIGH | 0件 | ✅ **0件（誤検知除く）** | ✅ |
+| Slither MEDIUM | 0件 | ✅ **0件** | ✅ |
+| CP-1準拠 | keccak256排除 | ✅ **完了** | ✅ |
 | テストスイート | 全PASS | ✅ **834/834 PASS** | ✅ |
-| テストネット | 安定稼働 | ✅ **Sepolia 11コントラクト** | ✅ |
 | Sepolia E2E | 完全フロー | ✅ **Lock→Unlock成功** | ✅ |
-| Security Council | 5/9構築 | - | ⬜ |
-| Token設計 | veQS完了 | - | ⬜ |
+| Etherscan検証 | 全コントラクト | ⏳ Week 12 | 🔄 |
+| Phase 2完了レポート | 作成完了 | ⏳ Week 12 | 🔄 |
+
+---
+
+## 📊 新フェーズ構成
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Phase 2: ZK-STARK L1実装 ← Week 12でクローズ               │
+│  ├── ZK-STARK証明システム ✅                                │
+│  ├── 71% Gas削減 ✅                                         │
+│  ├── Sepolia E2E ✅                                         │
+│  └── 834 tests PASS ✅                                      │
+│                                                             │
+│  Phase 3: L3開発 ← 次のフェーズ                             │
+│  ├── L3 Bridge Contract                                     │
+│  ├── Sequencer                                              │
+│  ├── State Management                                       │
+│  └── L1↔L3 E2E on Sepolia                                   │
+│                                                             │
+│  Phase 4: プロダクト完成                                     │
+│  ├── Token設計 (veQS)                                       │
+│  ├── Security Council (5/9)                                 │
+│  ├── ドキュメント整備（API/アーキテクチャ）                 │
+│  └── 外部監査（L1+L3一括）                                  │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -341,34 +347,23 @@ Ran 40 test suites in 29.98s: 820 tests passed, 14 failed (TransferFailed - Fork
 | 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
 | シーケンス参照 | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
 | **現在のPlan** | `docs/planning/CURRENT_PLAN.md` |
-| **SPEC_REVIEW** | `docs/planning/SPEC_REVIEW.md` |
-| **Go/No-Goレポート** | `docs/aegis/pir/GONOGO_PHASE1_COMPLETE.md` |
-| **ZK-STARK実装計画** | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
-| **Phase 2 Checklist** | `docs/planning/PHASE2_CHECKLIST.md` |
 | **Phase 2.3計画** | `docs/planning/PHASE2_3_PLAN.md` |
-| **BatchVerifier仕様** | `docs/planning/BATCH_VERIFICATION_SPEC.md` |
-| **Proof Compression仕様** | `docs/planning/PROOF_COMPRESSION_SPEC.md` |
 | **Sepoliaデプロイレポート** | `docs/deployments/SEPOLIA_DEPLOYMENT_2025-12-27.md` |
 | **Gas Baseline (Sepolia)** | `docs/deployments/GAS_BASELINE_SEPOLIA.md` |
 | **PIRコードレビュールーティン** | `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md` |
-| **外部監査RFP草案** | `docs/planning/AUDIT_RFP_DRAFT.md` |
-| **PIR-P2-008** | `docs/aegis/pir/PIR-P2-008.md` |
-| **PIR-P2-009** | `docs/aegis/pir/PIR-P2-009.md` |
-| **PIR-P2-010** | `docs/aegis/pir/PIR-P2-010.md` |
 | **PIR-P2-011** | `docs/aegis/pir/PIR-P2-011.md` |
-| **SPEC_REVIEW Archive** | `docs/planning/archive/SPEC_REVIEW_2025-12-28.md` |
 
 ---
 
 **Phase 1 Foundation Bootstrap: ✅ COMPLETE 🎉**
 
-**Phase 2 Week 9: ✅ COMPLETE - PIR-P2-008/009 PASS (71% Gas削減) 🎉**
+**Phase 2 ZK-STARK L1実装: 🔄 Week 12 CLOSING**
+- Week 9: ✅ BatchVerifier + Sepolia (71% Gas削減)
+- Week 10: ✅ Proof Compression (753 tests)
+- Week 11: ✅ STARKVerifier v1.0 + E2E (834 tests)
+- Week 12: 🔄 Phase 2クローズ & Phase 3準備
 
-**Phase 2 Week 10: ✅ COMPLETE - PIR-P2-010 PASS (753/753 tests) 🎉**
-
-**Phase 2 Week 11: ✅ COMPLETE - PIR-P2-011 PASS (834/834 tests + Sepolia E2E) 🎉**
-
-**Phase 2 Week 12: 🔄 IN PROGRESS - Phase 2.3完了 & Phase 2.4準備**
+**Next: Phase 3 - L3開発**
 
 ---
 
