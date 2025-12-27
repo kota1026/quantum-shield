@@ -35,6 +35,9 @@ import {SHA3_256} from "./libraries/SHA3_256.sol";
 ///
 /// SEC-002 Update (2025-12-25): Added OwnershipTransferred and SecurityCouncilUpdated
 /// events for improved auditability (FIX-005, FIX-006).
+///
+/// INFO-001 Update (2025-12-27): Fixed unused parameter lockId in _resolveValidChallenge
+/// for cleaner static analysis. Reserved for v0.2 audit logging feature.
 contract L1Vault is ReentrancyGuard, Pausable {
     // =========================================================================
     // Constants
@@ -760,7 +763,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     /// @notice Internal function to resolve a valid challenge
     /// @dev SEC-001 FIX-003: CEI pattern applied - ALL state updates BEFORE external calls
-    function _resolveValidChallenge(bytes32 lockId, Challenge storage challengeData, Lock storage lockData, UnlockRequest storage request) internal {
+    function _resolveValidChallenge(bytes32 /* lockId - reserved for v0.2 audit logging */, Challenge storage challengeData, Lock storage lockData, UnlockRequest storage request) internal {
         // === EFFECTS (state updates) - FIRST ===
         challengeData.status = ChallengeStatus.RESOLVED_VALID;
         lockData.status = LockStatus.SLASHED;
