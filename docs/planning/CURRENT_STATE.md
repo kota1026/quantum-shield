@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-28 22:40 JST  
+> **Last Updated**: 2025-12-28 23:59 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,9 +13,9 @@
 │  Month: 7 / 24                                              │
 │  Week: 11 🔄 IN PROGRESS                                    │
 │  Active Plan: docs/planning/CURRENT_PLAN.md                 │
-│  Next Step: 04_review.md 実行（セキュリティレビュー）        │
-│  Status: ✅ 03_impl.md 完了 - STARKVerifier v1.0実装        │
-│  Tests: 🔄 確認待ち（新規テスト追加済み）                   │
+│  Next Step: forge test 実行 → 04_review.md                  │
+│  Status: ✅ 03_impl.md 完了 - SPEC_REVIEW対応済み           │
+│  Tests: 🔄 テスト実行待ち                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -28,38 +28,37 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Week 11 - STARKVerifier v1.0 統合 & E2Eテスト |
-| **実装日時** | 2025-12-28 22:40 JST |
+| **対象Plan** | Week 11 - SPEC_REVIEW対応 (CP-1 keccak256排除) |
+| **実装日時** | 2025-12-28 23:59 JST |
 | **ステータス** | ✅ 実装完了 |
 
 ### 作成ファイル
 
-- `contracts/src/STARKVerifier.sol`: v1.0アップグレード - OptimizedField統合、verifyProofFull()追加
-- `contracts/src/lib/OptimizedFRI.sol`: FRI Assembly最適化ライブラリ（新規）
-- `contracts/test/STARKVerifierE2E.t.sol`: E2Eテストスイート（20+テスト）
-- `contracts/test/GasRegressionTest.t.sol`: Gas回帰テストスイート
-- `contracts/test/IntegrationStressTest.t.sol`: 統合ストレステストスイート
+- `contracts/test/GasRegressionTest.t.sol`: keccak256→SHA3Hasher.hash()置換 (CP-1準拠)
+- `contracts/test/IntegrationStressTest.t.sol`: keccak256→SHA3Hasher.hash()置換 (CP-1準拠)
+- `contracts/test/STARKVerifierE2E.t.sol`: keccak256→SHA3Hasher.hash()置換 (CP-1準拠)
 
 ### SPEC_REVIEW対応
 
-（該当なし - SPEC_REVIEW.mdはアーカイブ済み）
+- [ISSUE-001]: ✅ 3テストファイルの全keccak256をSHA3Hasher.hash()に置換
+- [ISSUE-002]: ✅ NatSpecコメントが実装と一致するよう修正
+- SPEC_REVIEW.md 更新済み（ステータス: 全て対応済み）
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +60〜70（推定） |
+| 修正ファイル数 | 3 |
 | 総テスト数 | 810+（推定） |
 | 結果 | 🔄 forge test実行待ち |
 
 ### 備考
 
-- IMPL-015: STARKVerifier v1.0統合完了（OptimizedField, verifyProofFull）
-- IMPL-016: OptimizedFRI.sol作成完了（Assembly最適化）
-- IMPL-017: verify()統合実装完了
-- TEST-029: E2Eテスト作成完了（20+テスト）
-- TEST-030: Gas回帰テスト作成完了
-- TEST-031: 統合ストレステスト作成完了
+- FIX-001: GasRegressionTest.t.sol CP-1準拠完了 (commit: b2b09483)
+- FIX-002: IntegrationStressTest.t.sol CP-1準拠完了 (commit: fb4c641d)
+- FIX-003: STARKVerifierE2E.t.sol CP-1準拠完了 (commit: c1ece4a8)
+- 全テストファイルで`keccak256`を完全排除
+- SPEC_REVIEW.md Resolution Log更新済み
 
 ---
 
@@ -103,10 +102,10 @@
 | 5 | **[TEST-029] E2E STARKVerifierTest** | QA | ✅ 完了 | 20+テスト |
 | 6 | **[TEST-030] Gas Regression Tests** | QA | ✅ 完了 | GasRegressionTest.t.sol |
 | 7 | **[TEST-031] Integration Stress Tests** | QA | ✅ 完了 | IntegrationStressTest.t.sol |
-| 8 | **[INFRA-004] Etherscan検証** | DevOps | ⏳ | 7 contracts |
-| 9 | **[DOC-003] API仕様書** | Engineer | ⏳ | - |
-| 10 | **[DOC-004] Gas Final Report** | Engineer | ⏳ | - |
-| 11 | **PIR-P2-011** | Red Team | ⏳ **次のステップ** | - |
+| 8 | **[FIX-001/002/003] SPEC_REVIEW対応** | Engineer | ✅ 完了 | keccak256排除 |
+| 9 | **[TEST-032] forge test 実行** | QA | ⏳ **次のステップ** | - |
+| 10 | **[INFRA-004] Etherscan検証** | DevOps | ⏳ | 7 contracts |
+| 11 | **PIR-P2-011** | Red Team | ⏳ テスト後 | - |
 
 ---
 
@@ -196,9 +195,9 @@ Ran 37 test suites in 16.63s (106.49s CPU time): 753 tests passed, 0 failed, 0 s
 | ProofCompressorTest | 20 | ✅ |
 | ProverSelectorTest | 20 | ✅ |
 | ProofDecoderTest | 19 | ✅ |
-| **STARKVerifierE2ETest** | 20+ | 🔄 新規追加 |
-| **GasRegressionTest** | 20+ | 🔄 新規追加 |
-| **IntegrationStressTest** | 20+ | 🔄 新規追加 |
+| **STARKVerifierE2ETest** | 20+ | 🔄 CP-1修正済み |
+| **GasRegressionTest** | 20+ | 🔄 CP-1修正済み |
+| **IntegrationStressTest** | 20+ | 🔄 CP-1修正済み |
 | その他 | 245 | ✅ |
 
 ---
@@ -239,7 +238,8 @@ Ran 37 test suites in 16.63s (106.49s CPU time): 753 tests passed, 0 failed, 0 s
 | 8 | ~~H-1脆弱性~~ | ~~HIGH~~ | ✅ **SEC-004で修正** |
 | 9 | ~~Week 10テスト検証~~ | ~~MEDIUM~~ | ✅ **753/753 PASS** |
 | 10 | ~~PIR-P2-010セキュリティレビュー~~ | ~~HIGH~~ | ✅ **PIR-P2-010 PASS** |
-| 11 | Week 11テスト実行待ち | 🟡 MEDIUM | forge test実行必要 |
+| 11 | ~~SPEC_REVIEW keccak256~~ | ~~MEDIUM~~ | ✅ **全ファイル修正完了** |
+| 12 | Week 11テスト実行待ち | 🟡 MEDIUM | forge test実行必要 |
 
 ---
 
@@ -251,9 +251,10 @@ Ran 37 test suites in 16.63s (106.49s CPU time): 753 tests passed, 0 failed, 0 s
 |---|--------|--------|------|------|
 | 1 | ~~01_plan.md 実行~~ | ~~🔴 Critical~~ | ~~PM~~ | ✅ **完了** |
 | 2 | ~~03_impl.md 実行~~ | ~~🔴 Critical~~ | ~~Engineer~~ | ✅ **完了** |
-| 3 | **forge test 実行** | 🔴 Critical | Engineer | ⏳ **次のステップ** |
-| 4 | **04_review.md 実行** | 🔴 Critical | Red Team | ⏳ テスト後 |
-| 5 | Etherscan コントラクト検証 | 🟡 Medium | DevOps | ⏳ |
+| 3 | ~~SPEC_REVIEW対応~~ | ~~🔴 Critical~~ | ~~Engineer~~ | ✅ **完了** |
+| 4 | **forge test 実行** | 🔴 Critical | Engineer | ⏳ **次のステップ** |
+| 5 | **04_review.md 実行** | 🔴 Critical | Red Team | ⏳ テスト後 |
+| 6 | Etherscan コントラクト検証 | 🟡 Medium | DevOps | ⏳ |
 
 ### Phase 2.3 → MS-1 ZK-STARK
 
@@ -282,7 +283,7 @@ Ran 37 test suites in 16.63s (106.49s CPU time): 753 tests passed, 0 failed, 0 s
 | ~~**PIR-P2-008/009**~~ | ~~**Week 9**~~ | ✅ **PASS** |
 | ~~**IMPL-012/013/014 Proof Compression**~~ | ~~**Week 10**~~ | ✅ **COMPLETE** |
 | ~~**PIR-P2-010 Security Review**~~ | ~~**Week 10**~~ | ✅ **PASS** |
-| **STARKVerifier v1.0 統合** | **Week 11** | 🔄 **実装完了、レビュー待ち** |
+| **STARKVerifier v1.0 統合** | **Week 11** | 🔄 **SPEC_REVIEW対応完了、テスト待ち** |
 | MS-1: ZK-STARK完全実装 | Month 9 | 🔄 |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
@@ -297,7 +298,7 @@ Ran 37 test suites in 16.63s (106.49s CPU time): 753 tests passed, 0 failed, 0 s
 | 外部監査 | Critical/High 0件 | RFP作成完了 | 🔄 |
 | Slither | HIGH 0件 | ✅ **0件（誤検知除く）** | ✅ |
 | Slither | MEDIUM 0件 | ✅ **0件** | ✅ |
-| CP-1準拠 | keccak256完全排除 | ✅ **SEC-003完了** | ✅ |
+| CP-1準拠 | keccak256完全排除 | ✅ **テストファイル含め完了** | ✅ |
 | テストスイート | 全PASS | ✅ **753/753 PASS** | ✅ |
 | テストネット | 安定稼働 | ✅ **Sepolia 7コントラクト** | ✅ |
 | Security Council | 5/9構築 | - | ⬜ |
@@ -312,6 +313,7 @@ Ran 37 test suites in 16.63s (106.49s CPU time): 753 tests passed, 0 failed, 0 s
 | 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
 | シーケンス参照 | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
 | **現在のPlan** | `docs/planning/CURRENT_PLAN.md` |
+| **SPEC_REVIEW** | `docs/planning/SPEC_REVIEW.md` |
 | **Go/No-Goレポート** | `docs/aegis/pir/GONOGO_PHASE1_COMPLETE.md` |
 | **ZK-STARK実装計画** | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
 | **Phase 2 Checklist** | `docs/planning/PHASE2_CHECKLIST.md` |
@@ -334,7 +336,7 @@ Ran 37 test suites in 16.63s (106.49s CPU time): 753 tests passed, 0 failed, 0 s
 
 **Phase 2 Week 10: ✅ COMPLETE - PIR-P2-010 PASS (753/753 tests) 🎉**
 
-**Phase 2 Week 11: 🔄 IN PROGRESS - 03_impl.md完了、次: forge test → 04_review.md**
+**Phase 2 Week 11: 🔄 IN PROGRESS - SPEC_REVIEW対応完了、次: forge test → 04_review.md**
 
 ---
 
