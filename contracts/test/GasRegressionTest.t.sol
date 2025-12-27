@@ -355,24 +355,30 @@ contract GasRegressionTest is Test {
     // =========================================================================
 
     function test_GasRegression_AIRComputeTransition() public view {
-        // Create test witness
-        uint256[] memory witness = new uint256[](4);
-        witness[0] = 100; // state0
-        witness[1] = 200; // state1
-        witness[2] = 110; // nextState0
-        witness[3] = 210; // nextState1
+        // Create test witness - use evaluateDoublingConstraint
+        uint256 current = 100;
+        uint256 next = 200; // 2 * current
 
         uint256 gasBefore = gasleft();
-        airConstraints.computeTransitionConstraint(
-            witness[0],
-            witness[1],
-            witness[2],
-            witness[3]
-        );
+        airConstraints.evaluateDoublingConstraint(current, next);
         uint256 gasUsed = gasBefore - gasleft();
 
-        console.log("AIR transition constraint gas used:", gasUsed);
+        console.log("AIR doubling constraint gas used:", gasUsed);
         assertLt(gasUsed, 5000, "AIR constraint too expensive");
+    }
+
+    function test_GasRegression_AIRFibonacciConstraint() public view {
+        // Test Fibonacci constraint
+        uint256 current = 1;
+        uint256 next1 = 1;
+        uint256 next2 = 2; // current + next1
+
+        uint256 gasBefore = gasleft();
+        airConstraints.evaluateFibonacciConstraint(current, next1, next2);
+        uint256 gasUsed = gasBefore - gasleft();
+
+        console.log("AIR Fibonacci constraint gas used:", gasUsed);
+        assertLt(gasUsed, 5000, "AIR Fibonacci constraint too expensive");
     }
 
     // =========================================================================
