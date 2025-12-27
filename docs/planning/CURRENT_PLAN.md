@@ -1,8 +1,8 @@
 # Current Plan
 
-> **Generated**: 2025-12-27 19:00 JST
+> **Generated**: 2025-12-27 19:15 JST
 > **Phase**: 2 - Security Council + Token
-> **Week**: 9 (Phase 2.3 Gas Optimization 開始)
+> **Week**: 9 (Phase 2.3 開始)
 
 ---
 
@@ -10,6 +10,19 @@
 
 - `docs/planning/PHASE2_3_PLAN.md`
 - `docs/planning/PHASE2_CHECKLIST.md` (Phase 2.3セクション)
+
+---
+
+## 🚨 計画修正理由
+
+Week 8で完了したのは**デプロイ準備**（スクリプト、CI/CD設定）のみ。
+**実際のSepoliaデプロイは未実施**であり、以下の問題がある：
+
+1. Faucetからテスト用ETH未取得 → デプロイ不可
+2. 実デプロイ未実施 → 実環境でのGas計測不可
+3. ローカルfork環境のGas値は実ネットワークと異なる可能性
+
+**→ Gas最適化の前に、まずSepoliaデプロイ＆実Gas計測が必須**
 
 ---
 
@@ -21,23 +34,37 @@
 |---|--------|------|------|
 | - | ✅ | 全課題解消済み | PIR-P2-007 PASS |
 
-**備考**: Week 8は全タスク完了、PIR-P2-007 PASS判定。ブロッカーなし。
-
 ---
 
-## 🚧 継続的な懸念事項
+## 🚧 ブロッカー（今回対応必須）
 
-| # | 懸念 | 重要度 | 今回の対応 |
-|---|------|--------|------------|
-| 1 | SHA3_256 Gas消費量 (~2.2M/lock) | 🟡 MEDIUM | ← **今回の最適化対象** |
-| 2 | ZK-STARK実装の複雑性 | 🟡 MEDIUM | 段階的実装継続 |
-| 3 | 外部監査のスケジュール | 🟡 MEDIUM | RFP草案作成済み |
+| # | 課題 | 重要度 | 対応 |
+|---|------|--------|------|
+| 1 | **Sepoliaデプロイ未実施** | 🔴 Critical | Week 9 Day 1-2 で実施 |
+| 2 | **実環境Gasベースライン未取得** | 🔴 Critical | デプロイ後に計測 |
+| 3 | **Faucet ETH未取得** | 🔴 Critical | デプロイ前に取得 |
 
 ---
 
 ## 今回のスコープ
 
-### 実装項目
+### Phase 1: Sepoliaデプロイ＆検証（Day 1-2）🔴 CRITICAL
+
+- [ ] [DEPLOY-001] Sepolia Faucetからテスト用ETH取得
+- [ ] [DEPLOY-002] デプロイ用ウォレット設定（.env）
+- [ ] [DEPLOY-003] Sepolia実デプロイ実行
+- [ ] [DEPLOY-004] Etherscanでコントラクト検証
+- [ ] [DEPLOY-005] 基本機能動作確認（deposit/withdraw）
+
+### Phase 2: 実環境Gasベースライン取得（Day 3）
+
+- [ ] [GAS-001] deposit() 実Gas計測
+- [ ] [GAS-002] initiateWithdrawal() 実Gas計測
+- [ ] [GAS-003] completeWithdrawal() 実Gas計測
+- [ ] [GAS-004] SHA3-256操作の実Gas計測
+- [ ] [GAS-005] GAS_BASELINE_SEPOLIA.md 作成
+
+### Phase 3: BatchVerifier設計・実装（Day 4-7）
 
 - [ ] [IMPL-008] BatchVerifier.sol設計ドキュメント作成
 - [ ] [IMPL-009] BatchVerifier.sol v0.1 基本実装
@@ -46,11 +73,12 @@
 ### テスト項目
 
 - [ ] [TEST-023] BatchVerifierTest.t.sol 基本テスト (15+)
-- [ ] [TEST-024] Gasベンチマークテスト（バッチ10件で40%削減確認）
+- [ ] [TEST-024] Gasベンチマークテスト
 
 ### ドキュメント項目
 
 - [ ] [DOC-002] BATCH_VERIFICATION_SPEC.md 作成
+- [ ] [DOC-003] SEPOLIA_DEPLOYMENT_REPORT.md 作成
 
 ---
 
@@ -58,10 +86,12 @@
 
 | 種別 | パス |
 |------|------|
+| デプロイスクリプト | `scripts/deploy/sepolia/deploy.sh` |
+| 環境変数テンプレート | `scripts/deploy/sepolia/.env.example` |
+| Foundry設定 | `contracts/foundry.toml` |
 | Active Plan | `docs/planning/PHASE2_3_PLAN.md` |
 | Checklist | `docs/planning/PHASE2_CHECKLIST.md` |
-| Gas Baseline | `docs/planning/GAS_BASELINE_P2.md` |
-| ZK-STARK計画 | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
+| Gas Baseline (ローカル) | `docs/planning/GAS_BASELINE_P2.md` |
 | 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
 
 ---
@@ -70,43 +100,99 @@
 
 | ファイル | 説明 |
 |---------|------|
+| **Sepolia Contracts** | 実デプロイ済みコントラクト群 |
+| `docs/planning/SEPOLIA_DEPLOYMENT_REPORT.md` | デプロイレポート（アドレス一覧） |
+| `docs/planning/GAS_BASELINE_SEPOLIA.md` | 実環境Gasベースライン |
 | `contracts/src/BatchVerifier.sol` | バッチ証明検証コントラクト v0.1 |
 | `contracts/src/lib/SharedMerkle.sol` | Merkleパス共有ライブラリ |
 | `contracts/test/BatchVerifierTest.t.sol` | BatchVerifier単体テスト |
-| `contracts/test/GasOptimizationTest.t.sol` | Gasベンチマークテスト |
-| `docs/planning/BATCH_VERIFICATION_SPEC.md` | バッチ検証設計ドキュメント |
 
 ---
 
 ## 実行順序
 
-### Day 1-2: 設計フェーズ
+### Day 1: Faucet取得 & 環境準備
 
-1. 既存STARKVerifier、FRIVerifier、ProofCodecのインターフェース確認
-2. バッチ検証のアーキテクチャ設計
-3. `BATCH_VERIFICATION_SPEC.md` 作成
-4. インターフェース定義
+1. Sepolia Faucetからテスト用ETH取得
+   - Alchemy Faucet: https://sepoliafaucet.com/
+   - Infura Faucet: https://www.infura.io/faucet/sepolia
+   - 必要量: 最低 1 ETH（デプロイ + テスト用）
 
-### Day 3-4: 基本実装フェーズ
+2. デプロイ用ウォレット設定
+   ```bash
+   cp scripts/deploy/sepolia/.env.example scripts/deploy/sepolia/.env
+   # PRIVATE_KEY, SEPOLIA_RPC_URL, ETHERSCAN_API_KEY を設定
+   ```
 
-5. `BatchVerifier.sol` スケルトン作成
-6. バッチ証明データ構造実装
-7. 基本検証ロジック実装
-8. 単体テスト作成開始
+3. RPC接続確認
+   ```bash
+   cast chain-id --rpc-url $SEPOLIA_RPC_URL
+   # Expected: 11155111
+   ```
 
-### Day 5-6: Merkle共有実装フェーズ
+### Day 2: 実デプロイ & 検証
 
-9. `SharedMerkle.sol` 作成
-10. Merkleパス共有アルゴリズム実装
-11. BatchVerifierへの統合
-12. Gas削減効果測定
+4. Sepoliaデプロイ実行
+   ```bash
+   cd scripts/deploy/sepolia
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
 
-### Day 7: テスト & 検証フェーズ
+5. Etherscanでコントラクト検証
+   ```bash
+   forge verify-contract <ADDRESS> L1Vault --chain sepolia
+   ```
 
-13. `BatchVerifierTest.t.sol` 15+テスト完成
-14. `GasOptimizationTest.t.sol` ベンチマーク実装
-15. 40%削減目標の検証
-16. テストスイート全体実行（628+ tests）
+6. 基本機能動作確認
+   - deposit() テストトランザクション
+   - initiateWithdrawal() テストトランザクション
+   - イベント発行確認
+
+7. SEPOLIA_DEPLOYMENT_REPORT.md 作成
+   - デプロイ済みアドレス一覧
+   - トランザクションハッシュ
+   - 検証ステータス
+
+### Day 3: 実環境Gas計測
+
+8. 各操作の実Gasを計測
+   ```bash
+   # Etherscan または cast を使用
+   cast receipt <TX_HASH> --rpc-url $SEPOLIA_RPC_URL
+   ```
+
+9. GAS_BASELINE_SEPOLIA.md 作成
+   - 実測Gas値の記録
+   - ローカル値との比較
+   - 最適化目標の再確認
+
+### Day 4-5: BatchVerifier設計・実装
+
+10. 実Gas値に基づいてBatchVerifier設計
+11. BATCH_VERIFICATION_SPEC.md 作成
+12. BatchVerifier.sol スケルトン作成
+13. 基本検証ロジック実装
+
+### Day 6-7: Merkle共有 & テスト
+
+14. SharedMerkle.sol 作成
+15. BatchVerifierへの統合
+16. BatchVerifierTest.t.sol 作成（15+テスト）
+17. テストスイート全体実行（628+ tests）
+
+---
+
+## Sepolia Faucet情報
+
+| Faucet | URL | 制限 |
+|--------|-----|------|
+| Alchemy | https://sepoliafaucet.com/ | 0.5 ETH/day |
+| Infura | https://www.infura.io/faucet/sepolia | 0.5 ETH/day |
+| QuickNode | https://faucet.quicknode.com/ethereum/sepolia | 0.1 ETH/day |
+| Google Cloud | https://cloud.google.com/application/web3/faucet/ethereum/sepolia | 0.05 ETH/day |
+
+**推奨**: 複数のFaucetから取得して合計 1-2 ETH を確保
 
 ---
 
@@ -114,11 +200,15 @@
 
 | # | 基準 | 目標値 |
 |---|------|--------|
-| 1 | BatchVerifier.sol基本動作 | ✅ 動作確認 |
-| 2 | バッチ検証Gas削減 | ≥40%削減（10件バッチ） |
-| 3 | 新規テスト数 | ≥15テストPASS |
-| 4 | 既存テスト維持 | 628/628 ALL PASS |
-| 5 | Slither結果 | HIGH 0 / MEDIUM 0 維持 |
+| 1 | **Sepoliaデプロイ完了** | ✅ 全コントラクトデプロイ |
+| 2 | **Etherscan検証** | ✅ 全コントラクト検証済み |
+| 3 | **基本機能動作確認** | ✅ deposit/withdraw成功 |
+| 4 | **実Gas計測完了** | ✅ GAS_BASELINE_SEPOLIA.md |
+| 5 | BatchVerifier.sol基本動作 | ✅ 動作確認 |
+| 6 | バッチ検証Gas削減 | ≥40%削減（10件バッチ） |
+| 7 | 新規テスト数 | ≥15テストPASS |
+| 8 | 既存テスト維持 | 628/628 ALL PASS |
+| 9 | Slither結果 | HIGH 0 / MEDIUM 0 維持 |
 
 ---
 
@@ -136,52 +226,57 @@
 
 | リスク | 確率 | 影響 | 対策 |
 |--------|------|------|------|
-| 40%削減目標未達成 | LOW | MEDIUM | Merkle共有最適化拡張 |
-| 既存コンポーネントとの互換性問題 | LOW | HIGH | 段階的統合・単体テスト先行 |
-| Gas計測の不正確性 | LOW | LOW | 複数シナリオでベンチマーク |
+| Faucet ETH取得困難 | MEDIUM | HIGH | 複数Faucet併用 |
+| RPC レートリミット | LOW | MEDIUM | Alchemy/Infura有料プラン検討 |
+| デプロイGas不足 | LOW | HIGH | 十分なETH確保（1-2 ETH） |
+| Etherscan検証失敗 | LOW | LOW | 手動検証フォールバック |
+| 実Gasがローカルと大幅に異なる | MEDIUM | MEDIUM | 計画再調整 |
 
 ---
 
 ## 技術的注意事項
 
-### バッチ検証アプローチ
+### デプロイ順序
 
-```solidity
-// 目標: 個別検証から共有化検証へ
-// Before: N回のMerkle計算
-// After: 1回のMerkle計算 + N回の差分検証
-
-interface IBatchVerifier {
-    function verifyBatch(
-        bytes32[] calldata proofs,
-        bytes32[] calldata publicInputs
-    ) external view returns (bool);
-}
+```
+1. SHA3_256.sol (ライブラリ)
+2. SparseMerkleTree.sol (ライブラリ)
+3. ProofCodec.sol (ライブラリ)
+4. FRIVerifier.sol
+5. STARKVerifier.sol
+6. L1Vault.sol (メインコントラクト)
+7. QuantumShield.sol (メインコントラクト)
 ```
 
-### Gas最適化ターゲット
+### ネットワーク設定確認
 
-| コンポーネント | 現在（推定） | 目標 | 削減戦略 |
-|--------------|-------------|------|----------|
-| Merkle検証 (per proof) | ~50,000 | ~10,000 | パス共有 |
-| フィールド演算 (per proof) | ~100,000 | ~50,000 | SIMD-like最適化 |
-| STARK検証 (バッチ) | ~1,000,000 | ~600,000 | 40%削減 |
+```toml
+# foundry.toml
+[rpc_endpoints]
+sepolia = "${SEPOLIA_RPC_URL}"
 
----
-
-## 参考: Week 9 スケジュール（PHASE2_3_PLAN.mdより）
-
-| Day | タスク | 成果物 |
-|-----|--------|--------|
-| 1-2 | BatchVerifier設計 | BATCH_VERIFICATION_SPEC.md |
-| 3-4 | 基本実装 | BatchVerifier.sol v0.1 |
-| 5-6 | Merkle共有実装 | SharedMerkle.sol |
-| 7 | テスト作成 | test/BatchVerifierTest.t.sol |
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+```
 
 ---
 
-**Plan Created**: 2025-12-27 19:00 JST
-**Next Step**: 02_spec.md → 詳細仕様作成
+## 📅 修正後スケジュール
+
+| Day | タスク | 成果物 | 優先度 |
+|-----|--------|--------|--------|
+| 1 | Faucet取得 + 環境準備 | .env設定完了 | 🔴 Critical |
+| 2 | Sepoliaデプロイ + Etherscan検証 | SEPOLIA_DEPLOYMENT_REPORT.md | 🔴 Critical |
+| 3 | 実環境Gas計測 | GAS_BASELINE_SEPOLIA.md | 🔴 Critical |
+| 4-5 | BatchVerifier設計・実装 | BatchVerifier.sol v0.1 | 🟠 High |
+| 6-7 | Merkle共有 + テスト | SharedMerkle.sol, Tests | 🟠 High |
+
+---
+
+**Plan Created**: 2025-12-27 19:15 JST
+**Commit**: Updated with Sepolia deployment priority
+
+**Next Step**: Day 1 - Faucet取得 & 環境準備開始
 
 ---
 
