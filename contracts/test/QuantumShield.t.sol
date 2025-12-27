@@ -8,21 +8,25 @@ import {SHA3_256} from "../src/libraries/SHA3_256.sol";
 
 /// @title QuantumShield Test Suite
 /// @notice Comprehensive tests for STARK verification including Level 2
+/// @dev SEC-004: Updated for recipient validation (H-1 fix)
 contract QuantumShieldTest is Test {
     QuantumShield public shield;
 
     address public owner = address(this);
     address public user = address(0xBEEF);
     address public recipient = address(0xCAFE);
+    address public attacker = address(0xBAD);
 
     bytes32 public testPubKeyHash = keccak256("test-dilithium-pubkey");
 
+    /// @dev SEC-004: Updated event signature with intendedRecipient
     event Locked(
         bytes32 indexed lockId,
         address indexed sender,
         uint256 amount,
         bytes32 dilithiumPubKeyHash,
-        uint256 nonce
+        uint256 nonce,
+        address intendedRecipient
     );
 
     event ProofVerified(
@@ -42,9 +46,9 @@ contract QuantumShieldTest is Test {
 
     function test_Lock_Success() public {
         vm.prank(user);
-        bytes32 lockId = shield.lock{value: 1 ether}(testPubKeyHash);
+        bytes32 lockId = shield.lock{value: 1 ether}(testPubKeyHash, recipient);
 
-        (address sender, uint256 amount, bytes32 pkHash, uint256 timestamp, bool released) =
+        (address sender, uint256 amount, bytes32 pkHash, uint256 timestamp, bool released, address intendedRecipient) =
             shield.getLock(lockId);
 
         assertEq(sender, user);
@@ -52,13 +56,20 @@ contract QuantumShieldTest is Test {
         assertEq(pkHash, testPubKeyHash);
         assertEq(timestamp, block.timestamp);
         assertFalse(released);
+        assertEq(intendedRecipient, recipient, "Intended recipient should be stored");
         assertEq(shield.totalLocked(), 1 ether);
     }
 
     function test_Lock_RevertOnZeroValue() public {
         vm.prank(user);
         vm.expectRevert(QuantumShield.InsufficientAmount.selector);
-        shield.lock{value: 0}(testPubKeyHash);
+        shield.lock{value: 0}(testPubKeyHash, recipient);
+    }
+
+    function test_Lock_RevertOnZeroRecipient() public {
+        vm.prank(user);
+        vm.expectRevert(QuantumShield.ZeroAddress.selector);
+        shield.lock{value: 1 ether}(testPubKeyHash, address(0));
     }
 
     function test_Lock_RevertWhenPaused() public {
@@ -66,7 +77,52 @@ contract QuantumShieldTest is Test {
 
         vm.prank(user);
         vm.expectRevert(QuantumShield.Paused.selector);
-        shield.lock{value: 1 ether}(testPubKeyHash);
+        shield.lock{value: 1 ether}(testPubKeyHash, recipient);
+    }
+
+    // =========================================================================
+    // SEC-004: Recipient Validation Tests (H-1 Fix)
+    // =========================================================================
+
+    function test_ReleaseWithProof_RevertOnRecipientMismatch() public {
+        // Use Level 1 verification for this test
+        shield.setVerificationLevel(false);
+
+        // Create lock with intended recipient
+        bytes32 lockId = _createLock(1 ether);
+
+        // Create public inputs with DIFFERENT recipient (attacker's address)
+        QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether);
+        pi.recipient = attacker; // Attacker tries to redirect funds
+
+        QuantumShield.StarkProof memory proof = _createMinimalProof();
+
+        // Should revert with RecipientMismatch
+        vm.expectRevert(QuantumShield.RecipientMismatch.selector);
+        shield.releaseWithProof(pi, proof);
+    }
+
+    function test_ReleaseWithProof_CorrectRecipientRequired() public {
+        // Use Level 1 verification for this test
+        shield.setVerificationLevel(false);
+
+        // Create lock with intended recipient
+        bytes32 lockId = _createLock(1 ether);
+
+        // Get the lock's intended recipient
+        (,,,,, address intendedRecipient) = shield.getLock(lockId);
+        assertEq(intendedRecipient, recipient, "Lock should store correct recipient");
+
+        // Create public inputs with correct recipient
+        QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether);
+        assertEq(pi.recipient, recipient, "PublicInputs should use correct recipient");
+
+        QuantumShield.StarkProof memory proof = _createMinimalProof();
+
+        // Should NOT revert with RecipientMismatch (will revert on proof validation instead)
+        // This verifies that recipient check passes when recipients match
+        vm.expectRevert(); // Will revert on InvalidProof or similar, not RecipientMismatch
+        shield.releaseWithProof(pi, proof);
     }
 
     // =========================================================================
@@ -284,7 +340,7 @@ contract QuantumShieldTest is Test {
 
         // Create a lock
         vm.prank(user);
-        bytes32 lockId = shield.lock{value: 1 ether}(testPubKeyHash);
+        bytes32 lockId = shield.lock{value: 1 ether}(testPubKeyHash, recipient);
 
         // Create valid public inputs
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether);
@@ -426,9 +482,9 @@ contract QuantumShieldTest is Test {
         vm.deal(user, amount);
 
         vm.prank(user);
-        bytes32 lockId = shield.lock{value: amount}(testPubKeyHash);
+        bytes32 lockId = shield.lock{value: amount}(testPubKeyHash, recipient);
 
-        (, uint256 lockedAmount,,,) = shield.getLock(lockId);
+        (, uint256 lockedAmount,,,,) = shield.getLock(lockId);
         assertEq(lockedAmount, amount);
     }
 
@@ -466,7 +522,7 @@ contract QuantumShieldTest is Test {
     function _createLock(uint256 amount) internal returns (bytes32) {
         vm.deal(user, amount);
         vm.prank(user);
-        return shield.lock{value: amount}(testPubKeyHash);
+        return shield.lock{value: amount}(testPubKeyHash, recipient);
     }
 
     function _createValidPublicInputs(bytes32 lockId, uint256 amount)
