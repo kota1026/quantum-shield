@@ -10,23 +10,18 @@ import {SHA3Hasher} from "../libraries/SHA3Hasher.sol";
  * @notice Optimized Merkle tree operations with path sharing
  * @dev IMPL-010: Implements Merkle path sharing for batch verification optimization
  * 
- * ## Overview
- * This library provides optimized Merkle tree operations that can share
- * common path segments across multiple proofs, reducing gas costs when
- * verifying multiple proofs against the same root.
- * 
  * ## CP-1 Compliance (Quantum Resistance)
  * - Uses ONLY SHA3-256 (FIPS 202) for all hash operations
  * - keccak256 is PROHIBITED
  * - Domain separation for security
  * 
- * ## Gas Optimization Strategy (v0.2)
- * 1. Cache intermediate nodes during verification
- * 2. Reuse shared path segments via position-based caching
- * 3. Bottom-up computation with deduplication
+ * ## Gas Optimization Strategy (v0.2.1)
+ * - Cache intermediate nodes from VALID proofs only
+ * - Prevents cache pollution from invalid proofs
+ * - Reuse computations across valid proofs sharing ancestors
  * 
  * @custom:security-contact security@quantumshield.io
- * @custom:version 0.2.0
+ * @custom:version 0.2.1
  */
 contract SharedMerkle {
     using SHA3Hasher for bytes;
@@ -36,35 +31,18 @@ contract SharedMerkle {
     // Constants
     // =========================================================================
 
-    /// @notice Domain separator for Merkle node hashing
     bytes32 private constant DOMAIN_MERKLE_NODE = bytes32("QS_STARK_MERKLE_V1");
-
-    /// @notice Domain separator for leaf hashing
     bytes32 private constant DOMAIN_LEAF = bytes32("QS_STARK_LEAF_V1");
-
-    /// @notice Maximum supported tree depth
     uint256 public constant MAX_DEPTH = 32;
-
-    /// @notice Maximum batch size for optimization
     uint256 public constant MAX_BATCH_SIZE = 100;
 
     // =========================================================================
-    // Structs for Stack Optimization
+    // Structs
     // =========================================================================
 
-    /// @dev Internal struct to avoid stack too deep
-    struct BatchContext {
-        uint256 batchSize;
-        uint256 depth;
-        uint256 cacheCount;
-        uint256 validCount;
-    }
-
-    /// @dev Proof verification context
     struct ProofContext {
         bytes32 computedHash;
         uint256 nodeIndex;
-        bool isValid;
     }
 
     // =========================================================================
@@ -86,26 +64,14 @@ contract SharedMerkle {
     // Version Information
     // =========================================================================
 
-    /**
-     * @notice Get library version
-     */
     function getVersion() external pure returns (string memory name, string memory version) {
-        return ("SharedMerkle", "0.2.0");
+        return ("SharedMerkle", "0.2.1");
     }
 
     // =========================================================================
     // Single Proof Verification
     // =========================================================================
 
-    /**
-     * @notice Verify a single Merkle proof
-     * @dev CP-1 COMPLIANCE: Uses SHA3-256 for all hashing
-     * @param leaf The leaf value to verify
-     * @param index Position of the leaf in the tree
-     * @param siblings Array of sibling hashes (Merkle proof path)
-     * @param expectedRoot Expected Merkle root
-     * @return valid True if proof is valid
-     */
     function verifyProof(
         bytes32 leaf,
         uint256 index,
@@ -132,17 +98,12 @@ contract SharedMerkle {
     }
 
     // =========================================================================
-    // Batch Verification with Path Sharing (OPTIMIZED v0.2)
+    // Batch Verification with Path Sharing (OPTIMIZED v0.2.1)
     // =========================================================================
 
     /**
      * @notice Verify multiple proofs with path caching optimization
-     * @dev Caches intermediate nodes to avoid redundant hash computations
-     * @param leaves Array of leaf values
-     * @param indices Array of leaf positions
-     * @param allSiblings 2D array of sibling hashes
-     * @param expectedRoot Expected Merkle root
-     * @return validCount Number of valid proofs
+     * @dev Only caches results from VALID proofs to prevent cache pollution
      */
     function verifyBatchProofs(
         bytes32[] calldata leaves,
@@ -161,17 +122,20 @@ contract SharedMerkle {
             revert BatchSizeTooLarge();
         }
 
-        // Get proof depth
         uint256 depth = allSiblings[0].length;
         if (depth == 0 || depth > MAX_DEPTH) {
             return 0;
         }
 
-        // Initialize cache
+        // Cache for valid proof computations
         uint256 maxCacheSize = leaves.length * depth;
         uint256[] memory cacheKeys = new uint256[](maxCacheSize);
         bytes32[] memory cacheValues = new bytes32[](maxCacheSize);
         uint256 cacheCount = 0;
+
+        // Temporary storage for current proof's computations
+        uint256[] memory tempKeys = new uint256[](depth);
+        bytes32[] memory tempValues = new bytes32[](depth);
 
         // Process each proof
         for (uint256 p = 0; p < leaves.length; p++) {
@@ -184,17 +148,18 @@ contract SharedMerkle {
             ProofContext memory ctx;
             ctx.computedHash = leaves[p];
             ctx.nodeIndex = indices[p];
-            ctx.isValid = true;
+            uint256 tempCount = 0;
 
             // Walk up the tree
-            for (uint256 level = 0; level < depth && ctx.isValid; level++) {
+            for (uint256 level = 0; level < depth; level++) {
                 uint256 parentIndex = ctx.nodeIndex >> 1;
                 uint256 cacheKey = (level + 1) << 128 | parentIndex;
                 
-                // Check cache
+                // Check cache for valid computation
                 bytes32 cached = _lookupCache(cacheKeys, cacheValues, cacheCount, cacheKey);
                 
                 if (cached != bytes32(0)) {
+                    // Cache hit from a previously valid proof
                     ctx.computedHash = cached;
                 } else {
                     // Compute hash
@@ -204,26 +169,39 @@ contract SharedMerkle {
                         ctx.computedHash = _hashNodes(siblings[level], ctx.computedHash);
                     }
                     
-                    // Store in cache
-                    if (cacheCount < maxCacheSize) {
-                        cacheKeys[cacheCount] = cacheKey;
-                        cacheValues[cacheCount] = ctx.computedHash;
-                        cacheCount++;
-                    }
+                    // Store in temp (will commit to cache only if proof is valid)
+                    tempKeys[tempCount] = cacheKey;
+                    tempValues[tempCount] = ctx.computedHash;
+                    tempCount++;
                 }
                 
                 ctx.nodeIndex = parentIndex;
             }
 
+            // Check if proof is valid
             if (ctx.computedHash == expectedRoot) {
                 validCount++;
+                
+                // Commit temp computations to cache (only for valid proofs)
+                for (uint256 i = 0; i < tempCount && cacheCount < maxCacheSize; i++) {
+                    // Check if key already exists
+                    bool exists = false;
+                    for (uint256 j = 0; j < cacheCount; j++) {
+                        if (cacheKeys[j] == tempKeys[i]) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        cacheKeys[cacheCount] = tempKeys[i];
+                        cacheValues[cacheCount] = tempValues[i];
+                        cacheCount++;
+                    }
+                }
             }
         }
     }
 
-    /**
-     * @notice Lookup value in cache
-     */
     function _lookupCache(
         uint256[] memory keys,
         bytes32[] memory values,
@@ -242,11 +220,6 @@ contract SharedMerkle {
     // Merkle Root Computation
     // =========================================================================
 
-    /**
-     * @notice Compute Merkle root from evaluations
-     * @param evaluations Array of evaluation values (must be power of 2)
-     * @return root The computed Merkle root
-     */
     function computeRoot(uint256[] calldata evaluations) external pure returns (bytes32 root) {
         if (evaluations.length == 0) {
             revert InvalidEvaluationCount();
@@ -271,9 +244,6 @@ contract SharedMerkle {
         return layer[0];
     }
 
-    /**
-     * @notice Compute leaf hash from evaluation
-     */
     function computeLeaf(uint256 evaluation, uint256 index) external pure returns (bytes32 leaf) {
         return _hashLeaf(evaluation, index);
     }
@@ -282,16 +252,10 @@ contract SharedMerkle {
     // Hash Operations (CP-1 Compliant)
     // =========================================================================
 
-    /**
-     * @notice Hash arbitrary data using SHA3-256
-     */
     function hashData(bytes calldata data) external pure returns (bytes32) {
         return SHA3Hasher.hash(data);
     }
 
-    /**
-     * @notice Hash two values for Merkle operations
-     */
     function hashPair(bytes32 left, bytes32 right) external pure returns (bytes32) {
         return _hashNodes(left, right);
     }
