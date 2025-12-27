@@ -222,39 +222,52 @@ contract L1VaultVRFIntegrationTest is Test {
         assertFalse(isTimedOut, "Should not be timed out initially");
     }
 
-    /// @notice Test: 72h timeout detection accuracy
-    /// @dev Fixed: Use explicit absolute timestamps to avoid confusion
-    function test_INTEG004_TimeoutDetectionAccuracy() public {
-        // Use a fixed base time for clarity (1000 seconds from epoch)
+    /// @notice Test: 72h timeout detection accuracy - Part 1 (before 72h)
+    function test_INTEG004_TimeoutDetectionAccuracy_Before72h() public {
+        // Use a fixed base time
         uint256 baseTime = 1000;
         vm.warp(baseTime);
+        assertEq(block.timestamp, baseTime, "Setup: should be at baseTime");
         
-        // Verify we're at baseTime
-        assertEq(block.timestamp, baseTime, "Should be at baseTime");
-        
-        // Create lock at baseTime
+        // Create lock
         vm.prank(user);
         l1Vault.lock{value: 1 ether}(recipient, dilithiumPubKey);
         
-        // Calculate target timestamps
-        uint256 justBefore72h = baseTime + 72 hours - 1;
-        uint256 justAfter72h = baseTime + 72 hours + 1;
+        // Calculate target: just before 72h
+        uint256 target = baseTime + 72 hours - 1;
+        vm.warp(target);
         
-        // Warp to just before 72h and verify
-        vm.warp(justBefore72h);
-        assertEq(block.timestamp, justBefore72h, "Should be at justBefore72h");
+        // Verify timestamp
+        assertEq(block.timestamp, target, "Should be at target time");
         
-        uint256 timeElapsed = block.timestamp - baseTime;
-        assertEq(timeElapsed, 72 hours - 1, "Time elapsed should be 72h - 1 second");
-        assertLt(timeElapsed, 72 hours, "Time should be less than 72h");
+        // Calculate and verify elapsed time
+        uint256 elapsed = block.timestamp - baseTime;
+        assertEq(elapsed, 72 hours - 1, "Elapsed should be 72h - 1");
+        assertLt(elapsed, 72 hours, "Elapsed should be less than 72h");
+    }
+
+    /// @notice Test: 72h timeout detection accuracy - Part 2 (after 72h)
+    function test_INTEG004_TimeoutDetectionAccuracy_After72h() public {
+        // Use a fixed base time
+        uint256 baseTime = 1000;
+        vm.warp(baseTime);
+        assertEq(block.timestamp, baseTime, "Setup: should be at baseTime");
         
-        // Warp to just after 72h and verify
-        vm.warp(justAfter72h);
-        assertEq(block.timestamp, justAfter72h, "Should be at justAfter72h");
+        // Create lock
+        vm.prank(user);
+        l1Vault.lock{value: 1 ether}(recipient, dilithiumPubKey);
         
-        timeElapsed = block.timestamp - baseTime;
-        assertEq(timeElapsed, 72 hours + 1, "Time elapsed should be 72h + 1 second");
-        assertGt(timeElapsed, 72 hours, "Time should be greater than 72h");
+        // Calculate target: just after 72h
+        uint256 target = baseTime + 72 hours + 1;
+        vm.warp(target);
+        
+        // Verify timestamp
+        assertEq(block.timestamp, target, "Should be at target time");
+        
+        // Calculate and verify elapsed time
+        uint256 elapsed = block.timestamp - baseTime;
+        assertEq(elapsed, 72 hours + 1, "Elapsed should be 72h + 1");
+        assertGt(elapsed, 72 hours, "Elapsed should be greater than 72h");
     }
 
     // =========================================================================
