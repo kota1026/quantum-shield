@@ -8,7 +8,7 @@ import "../src/libraries/ProofCodec.sol";
 
 /**
  * @title STARKVerifierTest
- * @notice Unit tests for STARKVerifier v0.2
+ * @notice Unit tests for STARKVerifier v1.0
  * @dev Tests basic structure, interfaces, and CP-1 compliance
  * 
  * CP-1 Compliance:
@@ -60,7 +60,7 @@ contract STARKVerifierTest is Test {
     function test_GetVersion() public view {
         (string memory name, string memory version) = verifier.getVersion();
         assertEq(name, "STARKVerifier", "Name should be STARKVerifier");
-        assertEq(version, "0.2.0", "Version should be 0.2.0");
+        assertEq(version, "1.0.0", "Version should be 1.0.0");
     }
 
     /**
