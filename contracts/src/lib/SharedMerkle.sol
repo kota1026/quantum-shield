@@ -49,6 +49,25 @@ contract SharedMerkle {
     uint256 public constant MAX_BATCH_SIZE = 100;
 
     // =========================================================================
+    // Structs for Stack Optimization
+    // =========================================================================
+
+    /// @dev Internal struct to avoid stack too deep
+    struct BatchContext {
+        uint256 batchSize;
+        uint256 depth;
+        uint256 cacheCount;
+        uint256 validCount;
+    }
+
+    /// @dev Proof verification context
+    struct ProofContext {
+        bytes32 computedHash;
+        uint256 nodeIndex;
+        bool isValid;
+    }
+
+    // =========================================================================
     // Errors
     // =========================================================================
 
@@ -93,7 +112,6 @@ contract SharedMerkle {
         bytes32[] calldata siblings,
         bytes32 expectedRoot
     ) external pure returns (bool valid) {
-        // Validate proof depth
         if (siblings.length == 0 || siblings.length > MAX_DEPTH) {
             return false;
         }
@@ -102,16 +120,11 @@ contract SharedMerkle {
         uint256 path = index;
 
         for (uint256 i = 0; i < siblings.length; i++) {
-            bytes32 sibling = siblings[i];
-
             if (path & 1 == 0) {
-                // Current node is left child
-                computedHash = _hashNodes(computedHash, sibling);
+                computedHash = _hashNodes(computedHash, siblings[i]);
             } else {
-                // Current node is right child
-                computedHash = _hashNodes(sibling, computedHash);
+                computedHash = _hashNodes(siblings[i], computedHash);
             }
-
             path >>= 1;
         }
 
@@ -125,13 +138,6 @@ contract SharedMerkle {
     /**
      * @notice Verify multiple proofs with path caching optimization
      * @dev Caches intermediate nodes to avoid redundant hash computations
-     * 
-     * ## Optimization Strategy
-     * For proofs sharing common ancestors:
-     * - Leaf 0 and Leaf 1 share parent at level 1
-     * - That parent shares grandparent with parent of Leaf 2,3
-     * - Cache by (level, nodeIndex) to reuse computations
-     * 
      * @param leaves Array of leaf values
      * @param indices Array of leaf positions
      * @param allSiblings 2D array of sibling hashes
@@ -144,110 +150,72 @@ contract SharedMerkle {
         bytes32[][] calldata allSiblings,
         bytes32 expectedRoot
     ) external pure returns (uint256 validCount) {
-        // Validate input arrays
+        // Input validation
         if (leaves.length != indices.length || leaves.length != allSiblings.length) {
             return 0;
         }
-
         if (leaves.length == 0) {
             return 0;
         }
-
         if (leaves.length > MAX_BATCH_SIZE) {
             revert BatchSizeTooLarge();
         }
 
-        // Get proof depth (assume all proofs have same depth)
+        // Get proof depth
         uint256 depth = allSiblings[0].length;
         if (depth == 0 || depth > MAX_DEPTH) {
             return 0;
         }
 
-        // Optimized batch verification with path caching
-        return _verifyBatchWithCaching(leaves, indices, allSiblings, expectedRoot, depth);
-    }
-
-    /**
-     * @notice Internal optimized batch verification with node caching
-     * @dev Uses position-based caching to avoid redundant computations
-     */
-    function _verifyBatchWithCaching(
-        bytes32[] calldata leaves,
-        uint256[] calldata indices,
-        bytes32[][] calldata allSiblings,
-        bytes32 expectedRoot,
-        uint256 depth
-    ) internal pure returns (uint256 validCount) {
-        uint256 batchSize = leaves.length;
-        
-        // Cache structure: for each proof, store computed hashes at each level
-        // cacheKeys[proofIdx][level] = nodeIndex at that level
-        // cacheValues[proofIdx][level] = computed hash at that level
-        
-        // We'll use a simpler but still effective approach:
-        // Track which (level, nodeIndex) pairs we've computed
-        // and reuse them across proofs
-        
-        // Maximum nodes we might cache: batchSize * depth
-        uint256 maxCacheSize = batchSize * depth;
-        
-        // Cache arrays: (level << 128 | nodeIndex) -> hash
+        // Initialize cache
+        uint256 maxCacheSize = leaves.length * depth;
         uint256[] memory cacheKeys = new uint256[](maxCacheSize);
         bytes32[] memory cacheValues = new bytes32[](maxCacheSize);
         uint256 cacheCount = 0;
 
         // Process each proof
-        for (uint256 p = 0; p < batchSize; p++) {
+        for (uint256 p = 0; p < leaves.length; p++) {
             bytes32[] calldata siblings = allSiblings[p];
             
-            // Skip invalid depth proofs
             if (siblings.length != depth) {
                 continue;
             }
 
-            bytes32 computedHash = leaves[p];
-            uint256 nodeIndex = indices[p];
-            bool proofValid = true;
+            ProofContext memory ctx;
+            ctx.computedHash = leaves[p];
+            ctx.nodeIndex = indices[p];
+            ctx.isValid = true;
 
             // Walk up the tree
-            for (uint256 level = 0; level < depth && proofValid; level++) {
-                // Calculate parent node index
-                uint256 parentIndex = nodeIndex >> 1;
+            for (uint256 level = 0; level < depth && ctx.isValid; level++) {
+                uint256 parentIndex = ctx.nodeIndex >> 1;
+                uint256 cacheKey = (level + 1) << 128 | parentIndex;
                 
-                // Create cache key for this (level+1, parentIndex)
-                uint256 cacheKey = ((level + 1) << 128) | parentIndex;
+                // Check cache
+                bytes32 cached = _lookupCache(cacheKeys, cacheValues, cacheCount, cacheKey);
                 
-                // Check if we already computed this parent
-                bytes32 cachedHash = _lookupCache(cacheKeys, cacheValues, cacheCount, cacheKey);
-                
-                if (cachedHash != bytes32(0)) {
-                    // Cache hit! Use cached value
-                    computedHash = cachedHash;
-                    nodeIndex = parentIndex;
+                if (cached != bytes32(0)) {
+                    ctx.computedHash = cached;
                 } else {
-                    // Cache miss - compute the hash
-                    bytes32 sibling = siblings[level];
-                    
-                    if (nodeIndex & 1 == 0) {
-                        // Current node is left child
-                        computedHash = _hashNodes(computedHash, sibling);
+                    // Compute hash
+                    if (ctx.nodeIndex & 1 == 0) {
+                        ctx.computedHash = _hashNodes(ctx.computedHash, siblings[level]);
                     } else {
-                        // Current node is right child
-                        computedHash = _hashNodes(sibling, computedHash);
+                        ctx.computedHash = _hashNodes(siblings[level], ctx.computedHash);
                     }
                     
-                    // Store in cache (if space available)
+                    // Store in cache
                     if (cacheCount < maxCacheSize) {
                         cacheKeys[cacheCount] = cacheKey;
-                        cacheValues[cacheCount] = computedHash;
+                        cacheValues[cacheCount] = ctx.computedHash;
                         cacheCount++;
                     }
-                    
-                    nodeIndex = parentIndex;
                 }
+                
+                ctx.nodeIndex = parentIndex;
             }
 
-            if (computedHash == expectedRoot) {
+            if (ctx.computedHash == expectedRoot) {
                 validCount++;
             }
         }
@@ -255,7 +223,6 @@ contract SharedMerkle {
 
     /**
      * @notice Lookup value in cache
-     * @dev Simple linear search - for small caches this is efficient
      */
     function _lookupCache(
         uint256[] memory keys,
@@ -277,7 +244,6 @@ contract SharedMerkle {
 
     /**
      * @notice Compute Merkle root from evaluations
-     * @dev Builds complete binary tree from bottom up
      * @param evaluations Array of evaluation values (must be power of 2)
      * @return root The computed Merkle root
      */
@@ -285,19 +251,15 @@ contract SharedMerkle {
         if (evaluations.length == 0) {
             revert InvalidEvaluationCount();
         }
-        
-        // Check power of 2
         if ((evaluations.length & (evaluations.length - 1)) != 0) {
             revert InvalidEvaluationCount();
         }
 
-        // Build leaf layer
         bytes32[] memory layer = new bytes32[](evaluations.length);
         for (uint256 i = 0; i < evaluations.length; i++) {
             layer[i] = _hashLeaf(evaluations[i], i);
         }
 
-        // Build tree bottom-up
         while (layer.length > 1) {
             bytes32[] memory nextLayer = new bytes32[](layer.length / 2);
             for (uint256 i = 0; i < nextLayer.length; i++) {
@@ -311,9 +273,6 @@ contract SharedMerkle {
 
     /**
      * @notice Compute leaf hash from evaluation
-     * @param evaluation The evaluation value
-     * @param index Position in the tree
-     * @return leaf The computed leaf hash
      */
     function computeLeaf(uint256 evaluation, uint256 index) external pure returns (bytes32 leaf) {
         return _hashLeaf(evaluation, index);
@@ -325,7 +284,6 @@ contract SharedMerkle {
 
     /**
      * @notice Hash arbitrary data using SHA3-256
-     * @dev Exposed for testing CP-1 compliance
      */
     function hashData(bytes calldata data) external pure returns (bytes32) {
         return SHA3Hasher.hash(data);
@@ -342,18 +300,10 @@ contract SharedMerkle {
     // Internal Functions
     // =========================================================================
 
-    /**
-     * @notice Hash two Merkle tree nodes
-     * @dev Domain-separated for security
-     */
     function _hashNodes(bytes32 left, bytes32 right) internal pure returns (bytes32) {
         return SHA3Hasher.hash(abi.encodePacked(DOMAIN_MERKLE_NODE, left, right));
     }
 
-    /**
-     * @notice Hash evaluation to create leaf
-     * @dev Domain-separated for security
-     */
     function _hashLeaf(uint256 evaluation, uint256 index) internal pure returns (bytes32) {
         return SHA3Hasher.hash(abi.encodePacked(DOMAIN_LEAF, evaluation, index));
     }
