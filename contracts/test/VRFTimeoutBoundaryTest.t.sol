@@ -93,96 +93,103 @@ contract VRFTimeoutBoundaryTest is Test {
     }
 
     /// @notice Test: Fallback fails at various times before timeout
-    /// @dev Parameterized boundary testing
+    /// @dev Parameterized boundary testing - each iteration uses independent time
     function test_TriggerFallback_VariousTimesBeforeTimeout() public {
         uint256[5] memory secondsBeforeTimeout = [uint256(1), 10, 60, 150, 299];
         
         for (uint256 i = 0; i < secondsBeforeTimeout.length; i++) {
+            // Use independent base time for each iteration
+            uint256 baseTime = 1000 + (i * 10000);
+            vm.warp(baseTime);
+            
             bytes32 uniqueUnlockId = keccak256(abi.encodePacked("unlock-boundary-", i));
             
             vm.prank(l1Vault);
             vrfConsumer.requestProverSelection(uniqueUnlockId);
-            uint256 requestedAt = block.timestamp;
 
             // Warp to specific time before timeout
-            vm.warp(requestedAt + VRF_TIMEOUT - secondsBeforeTimeout[i]);
+            vm.warp(baseTime + VRF_TIMEOUT - secondsBeforeTimeout[i]);
 
             // Should fail
             vm.expectRevert(VRFConsumerMock.TimeoutNotReached.selector);
             vrfConsumer.triggerFallback(uniqueUnlockId);
-            
-            // Reset timestamp for next iteration
-            vm.warp(requestedAt);
         }
     }
 
     /// @notice Test: Fallback succeeds at various times after timeout (including exactly at timeout)
-    /// @dev Parameterized boundary testing
+    /// @dev Fixed: Each iteration uses independent base time to avoid timestamp conflicts
     function test_TriggerFallback_VariousTimesAtOrAfterTimeout() public {
         // Note: 0 means exactly at timeout, which should succeed
         uint256[6] memory secondsAfterTimeout = [uint256(0), 1, 10, 60, 3600, 86400];
         
         for (uint256 i = 0; i < secondsAfterTimeout.length; i++) {
+            // Use independent base time for each iteration
+            uint256 baseTime = 1000 + (i * 100000);
+            vm.warp(baseTime);
+            
             bytes32 uniqueUnlockId = keccak256(abi.encodePacked("unlock-after-", i));
             
             vm.prank(l1Vault);
             vrfConsumer.requestProverSelection(uniqueUnlockId);
-            uint256 requestedAt = block.timestamp;
 
             // Warp to specific time at or after timeout
-            vm.warp(requestedAt + VRF_TIMEOUT + secondsAfterTimeout[i]);
+            vm.warp(baseTime + VRF_TIMEOUT + secondsAfterTimeout[i]);
 
             // Should succeed
             address fallbackProver = vrfConsumer.triggerFallback(uniqueUnlockId);
             assertTrue(fallbackProver != address(0), "Fallback should select a prover");
-            
-            // Reset timestamp for next iteration
-            vm.warp(requestedAt);
         }
     }
 
     /// @notice Test: Multiple sequential requests with different timeouts
+    /// @dev Fixed: Use explicit base times instead of relative warps
     function test_TriggerFallback_MultipleRequests_DifferentTimings() public {
         bytes32 unlockId1 = keccak256("unlock-1");
         bytes32 unlockId2 = keccak256("unlock-2");
         bytes32 unlockId3 = keccak256("unlock-3");
 
-        // Create requests at different times
+        // Set explicit base time
+        uint256 baseTime = 1000;
+        vm.warp(baseTime);
+
+        // Create request1 at baseTime
         vm.prank(l1Vault);
         vrfConsumer.requestProverSelection(unlockId1);
-        uint256 request1At = block.timestamp;
+        uint256 request1Time = baseTime;
 
-        vm.warp(block.timestamp + 60); // 1 minute later
+        // Create request2 at baseTime + 60
+        vm.warp(baseTime + 60);
         vm.prank(l1Vault);
         vrfConsumer.requestProverSelection(unlockId2);
-        uint256 request2At = block.timestamp;
+        uint256 request2Time = baseTime + 60;
 
-        vm.warp(block.timestamp + 60); // Another 1 minute later
+        // Create request3 at baseTime + 120
+        vm.warp(baseTime + 120);
         vm.prank(l1Vault);
         vrfConsumer.requestProverSelection(unlockId3);
 
         // At this point:
-        // - unlockId1: requested 2 minutes ago (120s)
-        // - unlockId2: requested 1 minute ago (60s)
-        // - unlockId3: requested just now (0s)
+        // - unlockId1: requested at baseTime (1000)
+        // - unlockId2: requested at baseTime + 60 (1060)
+        // - unlockId3: requested at baseTime + 120 (1120)
 
         // Warp to exactly 5 minutes after request1 (should succeed due to >= check)
-        vm.warp(request1At + VRF_TIMEOUT);
+        vm.warp(request1Time + VRF_TIMEOUT);
 
         // Request1 should be fallback-able (exactly 5 min passed)
         address prover1Selected = vrfConsumer.triggerFallback(unlockId1);
         assertTrue(prover1Selected != address(0));
 
-        // Request2 should still fail (only 4 min passed)
+        // Request2 should still fail (only 4 min passed: 1300 - 1060 = 240s)
         vm.expectRevert(VRFConsumerMock.TimeoutNotReached.selector);
         vrfConsumer.triggerFallback(unlockId2);
 
-        // Request3 should still fail (only 3 min passed)
+        // Request3 should still fail (only 3 min passed: 1300 - 1120 = 180s)
         vm.expectRevert(VRFConsumerMock.TimeoutNotReached.selector);
         vrfConsumer.triggerFallback(unlockId3);
 
         // Warp to exactly 5 minutes after request2
-        vm.warp(request2At + VRF_TIMEOUT);
+        vm.warp(request2Time + VRF_TIMEOUT);
 
         // Now Request2 should be fallback-able
         address prover2Selected = vrfConsumer.triggerFallback(unlockId2);
