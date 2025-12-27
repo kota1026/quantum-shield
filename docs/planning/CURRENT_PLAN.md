@@ -1,27 +1,47 @@
 # Current Plan
 
-> **Generated**: 2025-12-28 15:00 JST
-> **Phase**: 2 - Security Council + Token
+> **Generated**: 2025-12-28 15:30 JST
+> **Phase**: 2 - ZK-STARK L1実装（Final）
 > **Week**: 12
-> **Focus**: Phase 2.3完了 & Phase 2.4準備
+> **Focus**: Phase 2クローズ & Phase 3準備
+
+---
+
+## 📌 重要な決定事項
+
+### フェーズ再構成
+
+```
+【変更前】
+Phase 2: ZK-STARK + Security Council + Token + 監査
+Phase 3: L3開発
+Phase 4: 完全分散化
+
+【変更後】
+Phase 2: ZK-STARK L1実装 ← Week 12でクローズ ✅
+Phase 3: L3開発
+Phase 4: Token + Security Council + 監査 + ドキュメント
+```
+
+### 理由
+
+1. **監査効率**: L1+L3を1回の監査で実施（コスト半減）
+2. **アーキテクチャ一貫性**: L3設計後にドキュメント作成（書き直し不要）
+3. **資金調達前提**: L3までE2Eテスト完了 → 確信 → 資金調達 → 監査
 
 ---
 
 ## 対象チェックリスト
 
-`docs/planning/PHASE2_CHECKLIST.md` - Phase 2.3 Week 12 (Final)
+`docs/planning/PHASE2_CHECKLIST.md` - Phase 2 Final Week
 
 ---
 
 ## 前回レビュー課題
 
-> CURRENT_STATE.mdより自動取得
-
 | # | 重要度 | 課題 | 状態 |
 |---|--------|------|------|
 | - | - | なし（PIR-P2-011 PASS） | ✅ |
-
-**注**: Week 11完了により、CriticalおよびHigh課題は全て解決済み。
 
 ---
 
@@ -40,55 +60,55 @@
 
 ## 今回のスコープ
 
-### P0: Phase 2.3完了作業（Critical）
+### P0: Phase 2クローズ作業（Critical）
 
-> **理由**: Phase 2.3のクロージング必須
+> **理由**: Phase 2の技術成果を確定させる
 
 - [ ] [INFRA-004] Etherscanコントラクト検証
   - 対象: L1Vault, SPHINCSVerifier, STARKVerifier, AIRConstraints, ConstraintEvaluator, SharedMerkle, BatchVerifier
-  - L1VaultTestnet (新規追加)
+  - L1VaultTestnet
   - 計11コントラクト
-- [ ] [DOC-006] Phase 2.3完了レポート作成
-  - 成果サマリー
+- [ ] [DOC-006] Phase 2完了レポート作成
+  - Phase 2全体の成果サマリー
   - Gas最適化結果（71%達成）
-  - 残課題と次Phaseへの引継ぎ
+  - L1技術基盤の完成状態
+  - Phase 3への引継ぎ事項
 
-### P1: 外部監査準備（High）
+### P1: Phase 3準備（High）
 
-> **理由**: Phase 2.4開始準備
+> **理由**: L3開発への移行準備
 
-- [ ] [DOC-007] 外部監査RFP最終化
-  - スコープ定義（対象コントラクト一覧）
-  - タイムライン提案
-  - 予算見積もり
-- [ ] [DOC-008] 監査パッケージ準備
-  - コードベースクリーンアップ
-  - NatSpecドキュメント最終確認
-  - 脆弱性評価マトリクス
+- [ ] [PLAN-003] Phase 3計画策定
+  - L3アーキテクチャ設計要件
+  - L1↔L3ブリッジ仕様の洗い出し
+  - Sequencer設計要件
+  - Phase 3マイルストーン設定
+- [ ] [DOC-011] フェーズ再構成ドキュメント
+  - 新フェーズ構成の正式文書化
+  - Phase 4スコープ（Token/監査/Council）の明確化
 
-### P2: ドキュメント整備（Medium）
+### P2: スコープ整理（Medium）
 
-> **理由**: 技術的負債解消と知識移転
+> **理由**: 延期タスクの明確化
 
-- [ ] [DOC-009] API Documentationアップデート
-  - 全public関数のNatSpec確認
-  - ユースケース例の追加
-- [ ] [DOC-010] アーキテクチャドキュメント更新
-  - STARKVerifier v1.0統合後の構成図
-  - コンポーネント間依存関係
+- [ ] [DOC-012] Phase 4スコープ定義
+  - 外部監査（L1+L3完成後）
+  - Token設計（veQS）
+  - Security Council（5/9 Multisig）
+  - ドキュメント整備（API/アーキテクチャ）
 
-### P3: Phase 2.4計画（Medium）
+---
 
-> **理由**: 次フェーズへのスムーズな移行
+## 延期タスク（Phase 4へ移動）
 
-- [ ] [PLAN-001] Phase 2.4チェックリスト準備
-  - 外部監査タスク一覧
-  - マイルストーン設定
-- [ ] [PLAN-002] 監査業者候補リスト作成
-  - Trail of Bits
-  - OpenZeppelin
-  - Consensys Diligence
-  - その他候補
+| タスク | 元のPhase | 移動先 | 理由 |
+|--------|-----------|--------|------|
+| 外部監査RFP最終化 | Phase 2.4 | Phase 4 | L3完成後に実施 |
+| 監査パッケージ準備 | Phase 2.4 | Phase 4 | L3完成後に実施 |
+| API Documentation | Phase 2 | Phase 4 | L3込みで作成 |
+| アーキテクチャDoc | Phase 2 | Phase 4 | L3込みで作成 |
+| Security Council | Phase 2.5 | Phase 4 | Token設計と連携 |
+| Token設計 (veQS) | Phase 2.6 | Phase 4 | L3 Gas Fee設計後 |
 
 ---
 
@@ -96,11 +116,10 @@
 
 | ファイル | 説明 |
 |---------|------|
-| `docs/planning/PHASE2_3_COMPLETION_REPORT.md` | Phase 2.3完了レポート |
-| `docs/planning/AUDIT_RFP_v1.0.md` | 外部監査RFP最終版 |
-| `docs/planning/AUDIT_PACKAGE.md` | 監査パッケージ概要 |
-| `docs/planning/PHASE2_4_CHECKLIST.md` | Phase 2.4チェックリスト |
-| `docs/architecture/STARKVERIFIER_V1_ARCHITECTURE.md` | アーキテクチャドキュメント |
+| `docs/planning/PHASE2_COMPLETION_REPORT.md` | Phase 2完了レポート |
+| `docs/planning/PHASE3_PLAN.md` | Phase 3 L3開発計画 |
+| `docs/planning/PHASE_RESTRUCTURE.md` | フェーズ再構成ドキュメント |
+| `docs/planning/PHASE4_SCOPE.md` | Phase 4スコープ定義 |
 
 ---
 
@@ -128,75 +147,60 @@ forge verify-contract \
 # - ConstraintEvaluator: 0x5fbffa05d45E85F052Ac9bD0DA30a7C2fb070c81
 # - SharedMerkle: 0x956139A615687fA9e0F85e9ff520129f4C3C8574
 # - BatchVerifier: 0xD264ac2CB8548B76d95E9267ACADDb42CE608730
-# - Week 9デプロイ分 (3 contracts)
 ```
 
-### Step 2: Phase 2.3完了レポート作成（Day 2-3）
+### Step 2: Phase 2完了レポート作成（Day 2-3）
 
 ```markdown
-# PHASE2_3_COMPLETION_REPORT.md の構成
+# PHASE2_COMPLETION_REPORT.md の構成
 1. Executive Summary
-2. 成果一覧（Week 9-12）
-3. Gas最適化結果（71%達成の詳細）
-4. テスト結果サマリー（834 tests）
-5. Sepolia E2E結果
-6. PIRレビュー履歴
-7. 残課題と推奨事項
-8. Phase 2.4への引継ぎ事項
+2. Phase 2 成果一覧
+   - Phase 2.1: 基盤構築
+   - Phase 2.2: AIR制約 + CI/CD
+   - Phase 2.3: Gas最適化 + Sepolia E2E
+3. 技術成果
+   - ZK-STARK実装完了
+   - 71% Gas削減達成
+   - 834テスト全PASS
+4. Sepoliaデプロイ済みコントラクト
+5. PIRレビュー履歴（13件PASS）
+6. Phase 3への引継ぎ事項
 ```
 
-### Step 3: 外部監査RFP最終化（Day 3-4）
+### Step 3: Phase 3計画策定（Day 3-5）
 
 ```markdown
-# AUDIT_RFP_v1.0.md の構成
-1. プロジェクト概要
-2. 監査スコープ
-   - コントラクト一覧（21 contracts）
-   - 優先度分類（Critical/High/Medium）
-3. 技術要件
-   - NIST準拠量子耐性暗号
-   - ZK-STARK証明システム
-4. タイムライン
-   - 希望開始: Month 10 (Phase 2.4)
-   - 期間: 4-6週間
-5. 成果物要件
-6. 予算範囲
-7. 選定基準
+# PHASE3_PLAN.md の構成
+1. L3アーキテクチャ概要
+2. 主要コンポーネント
+   - L3 Bridge Contract
+   - Sequencer
+   - State Management
+   - L1↔L3通信プロトコル
+3. 開発マイルストーン
+4. テスト戦略（Sepolia L3）
+5. 成功基準
 ```
 
-### Step 4: 監査パッケージ準備（Day 4-5）
-
-```bash
-# 1. コードベースクリーンアップ
-forge fmt
-
-# 2. NatSpec確認
-forge doc
-
-# 3. テストカバレッジ確認
-forge coverage --report lcov
-
-# 4. Slither最終確認
-slither . --sarif results.sarif
-```
-
-### Step 5: Phase 2.4計画策定（Day 5-6）
+### Step 4: フェーズ再構成ドキュメント（Day 5-6）
 
 ```markdown
-# PHASE2_4_CHECKLIST.md 概要
-- 監査業者選定プロセス
-- 監査キックオフ準備
-- 監査対応体制
-- 修正プロセス
-- 最終レポートレビュー
+# PHASE_RESTRUCTURE.md の構成
+1. 変更理由
+2. 新フェーズ構成
+   - Phase 2: ZK-STARK L1 ✅
+   - Phase 3: L3開発
+   - Phase 4: Token/監査/Council
+3. タイムライン調整
+4. リスク評価
 ```
 
-### Step 6: 状態更新 & PIR準備（Day 7）
+### Step 5: 状態更新 & PIR準備（Day 7）
 
 ```bash
-# 1. CURRENT_STATE.md更新
-# 2. PHASE2_CHECKLIST.md更新（Week 12 COMPLETE）
-# 3. PIR-P2-012準備（Phase 2.3 Final Review）
+# 1. CURRENT_STATE.md更新（Phase 2 COMPLETE）
+# 2. PHASE2_CHECKLIST.md更新（COMPLETE）
+# 3. PIR-P2-012準備（Phase 2 Final Review）
 ```
 
 ---
@@ -215,30 +219,13 @@ slither . --sarif results.sarif
 
 | # | リスク | 影響度 | 対策 |
 |---|--------|--------|------|
-| 1 | Etherscan検証失敗（コンパイラバージョン不一致） | 🟡 MEDIUM | foundry.toml設定確認、複数回試行 |
-| 2 | 監査業者スケジュール確保 | 🟡 MEDIUM | 複数候補に同時アプローチ |
-| 3 | 87.5% Gas目標未達（現在71%） | 🟡 MEDIUM | Phase 2.4で継続最適化、監査フィードバック反映 |
-| 4 | ドキュメント整備の時間不足 | 🟢 LOW | 優先度付けで対応、P2は次週繰越可 |
+| 1 | Etherscan検証失敗 | 🟡 MEDIUM | foundry.toml設定確認、複数回試行 |
+| 2 | L3設計の複雑性 | 🟡 MEDIUM | 段階的設計、既存L3参照 |
+| 3 | Phase再構成による混乱 | 🟢 LOW | 明確なドキュメント化 |
 
 ---
 
-## KPI確認（Phase 2.3終了時点）
-
-| KPI | 目標 | 現状 | 判定 |
-|-----|------|------|------|
-| Gas削減率 | ≥87.5% | **71%** | 🔄 継続（監査後最適化） |
-| テストスイート | 全PASS | **834/834 PASS** | ✅ |
-| Slither HIGH | 0件 | **0件（誤検知除く）** | ✅ |
-| Slither MEDIUM | 0件 | **0件** | ✅ |
-| CP-1準拠 | keccak256排除 | **完了** | ✅ |
-| Sepolia E2E | 完全フロー | **Lock→Unlock成功** | ✅ |
-| 外部監査準備 | RFP完了 | **草案完了→最終化** | 🔄 |
-
----
-
-## Phase 2.3 → Phase 2.4 移行チェック
-
-### Phase 2.3 Exit Criteria
+## Phase 2 Exit Criteria
 
 | 条件 | 状態 |
 |------|------|
@@ -249,15 +236,33 @@ slither . --sarif results.sarif
 | Sepolia E2E成功 | ✅ |
 | PIR-P2-011 PASS | ✅ |
 | Etherscan検証 | ⏳ Week 12 |
-| 監査RFP最終化 | ⏳ Week 12 |
+| Phase 2完了レポート | ⏳ Week 12 |
 
-### Phase 2.4 Entry Criteria
+---
 
-| 条件 | 状態 |
-|------|------|
-| Phase 2.3 Exit Criteria全て完了 | ⏳ |
-| 監査業者選定 | ⬜ |
-| 監査契約締結 | ⬜ |
+## 新フェーズ構成サマリー
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Phase 2: ZK-STARK L1実装 ← Week 12でクローズ               │
+│  ├── ZK-STARK証明システム ✅                                │
+│  ├── 71% Gas削減 ✅                                         │
+│  ├── Sepolia E2E ✅                                         │
+│  └── 834 tests PASS ✅                                      │
+│                                                             │
+│  Phase 3: L3開発 ← 次のフェーズ                             │
+│  ├── L3 Bridge Contract                                     │
+│  ├── Sequencer                                              │
+│  ├── State Management                                       │
+│  └── L1↔L3 E2E on Sepolia                                   │
+│                                                             │
+│  Phase 4: プロダクト完成                                     │
+│  ├── Token設計 (veQS)                                       │
+│  ├── Security Council (5/9)                                 │
+│  ├── ドキュメント整備                                       │
+│  └── 外部監査（L1+L3）                                      │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -269,8 +274,6 @@ slither . --sarif results.sarif
 | Phase 2.3計画 | `docs/planning/PHASE2_3_PLAN.md` |
 | Sepoliaデプロイレポート | `docs/deployments/SEPOLIA_DEPLOYMENT_2025-12-27.md` |
 | Gas Baseline (Sepolia) | `docs/deployments/GAS_BASELINE_SEPOLIA.md` |
-| PIRコードレビュールーティン | `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md` |
-| 外部監査RFP草案 | `docs/planning/AUDIT_RFP_DRAFT.md` |
 | PIR-P2-011 | `docs/aegis/pir/PIR-P2-011.md` |
 
 ---
@@ -279,21 +282,16 @@ slither . --sarif results.sarif
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  P0 🔴 Phase 2.3完了作業（必須）                             │
+│  P0 🔴 Phase 2クローズ（必須）                               │
 │  ├─ [INFRA-004] Etherscan検証（11 contracts）               │
-│  └─ [DOC-006] Phase 2.3完了レポート                         │
+│  └─ [DOC-006] Phase 2完了レポート                           │
 │                                                             │
-│  P1 🟠 外部監査準備（High）                                  │
-│  ├─ [DOC-007] 監査RFP最終化                                 │
-│  └─ [DOC-008] 監査パッケージ準備                            │
+│  P1 🟠 Phase 3準備（High）                                   │
+│  ├─ [PLAN-003] Phase 3計画策定（L3ロードマップ）            │
+│  └─ [DOC-011] フェーズ再構成ドキュメント                    │
 │                                                             │
-│  P2 🟡 ドキュメント整備（Medium）                            │
-│  ├─ [DOC-009] API Documentation                             │
-│  └─ [DOC-010] アーキテクチャドキュメント                    │
-│                                                             │
-│  P3 🟢 Phase 2.4計画（Medium）                               │
-│  ├─ [PLAN-001] Phase 2.4チェックリスト                      │
-│  └─ [PLAN-002] 監査業者候補リスト                           │
+│  P2 🟡 スコープ整理（Medium）                                │
+│  └─ [DOC-012] Phase 4スコープ定義                           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -304,17 +302,15 @@ slither . --sarif results.sarif
 | タスク | 担当 | 期限 |
 |--------|------|------|
 | [INFRA-004] Etherscan検証 | DevOps | Day 2 |
-| [DOC-006] Phase 2.3完了レポート | PM | Day 3 |
-| [DOC-007] 監査RFP最終化 | CSO | Day 4 |
-| [DOC-008] 監査パッケージ | Engineer | Day 5 |
-| [DOC-009] API Documentation | Engineer | Day 6 |
-| [DOC-010] アーキテクチャDoc | CTO | Day 6 |
-| [PLAN-001] Phase 2.4チェックリスト | PM | Day 6 |
-| [PLAN-002] 監査業者候補リスト | CEO + CSO | Day 7 |
+| [DOC-006] Phase 2完了レポート | PM | Day 3 |
+| [PLAN-003] Phase 3計画策定 | CTO + Engineer | Day 5 |
+| [DOC-011] フェーズ再構成Doc | PM | Day 6 |
+| [DOC-012] Phase 4スコープ | PM + CSO | Day 6 |
+| PIR-P2-012準備 | Red Team | Day 7 |
 
 ---
 
-**次のステップ**: Step 1 実行（Etherscan検証）→ 完了後 Step 2へ
+**次のステップ**: Step 1 実行（Etherscan検証）
 
 ---
 
