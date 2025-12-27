@@ -8,6 +8,7 @@ import {OptimizedField} from "../src/lib/OptimizedField.sol";
 import {ProofCompressor} from "../src/lib/ProofCompressor.sol";
 import {ProofDecoder} from "../src/lib/ProofDecoder.sol";
 import {BatchVerifier} from "../src/BatchVerifier.sol";
+import {SharedMerkle} from "../src/lib/SharedMerkle.sol";
 import {FRIVerifier} from "../src/FRIVerifier.sol";
 import {AIRConstraints} from "../src/stark/AIRConstraints.sol";
 import {ConstraintEvaluator} from "../src/stark/ConstraintEvaluator.sol";
@@ -36,6 +37,7 @@ contract IntegrationStressTest is Test {
     // =========================================================================
 
     STARKVerifier public verifier;
+    SharedMerkle public sharedMerkle;
     BatchVerifier public batchVerifier;
     AIRConstraints public airConstraints;
     ConstraintEvaluator public constraintEvaluator;
@@ -46,7 +48,8 @@ contract IntegrationStressTest is Test {
 
     function setUp() public {
         verifier = new STARKVerifier();
-        batchVerifier = new BatchVerifier();
+        sharedMerkle = new SharedMerkle();
+        batchVerifier = new BatchVerifier(address(sharedMerkle));
         airConstraints = new AIRConstraints();
         constraintEvaluator = new ConstraintEvaluator();
     }
