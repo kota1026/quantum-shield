@@ -48,6 +48,10 @@ contract STARKVerifierE2ETest is Test {
     uint256 constant TEST_BLOWUP_FACTOR = 8;
     uint256 constant MIN_QUERIES = 80;
 
+    // Domain separators - MUST match STARKVerifier.sol
+    bytes32 private constant DOMAIN_TRACE = bytes32("QS_STARK_TRACE_V1");
+    bytes32 private constant DOMAIN_MERKLE_NODE = bytes32("QS_STARK_MERKLE_V1");
+
     // Events
     event ProofVerified(bytes32 indexed publicInput, uint256 timestamp);
     event ProofRejected(bytes32 indexed publicInput, string reason);
@@ -128,7 +132,7 @@ contract STARKVerifierE2ETest is Test {
         // Create leaf at index 3
         bytes32 leaf = verifier.computeTraceLeaf(evaluations[3], 3);
 
-        // Create Merkle proof for index 3
+        // Create Merkle proof for index 3 using domain-separated hash
         bytes32[] memory siblings = _computeMerkleProof(evaluations, 3);
 
         // Verify
@@ -440,32 +444,47 @@ contract STARKVerifierE2ETest is Test {
         proof.finalPolynomial[1] = 2;
     }
 
+    /**
+     * @notice Compute Merkle proof using domain-separated hashing
+     * @dev MUST match STARKVerifier._hashMerkleNodes() exactly
+     */
     function _computeMerkleProof(
         uint256[] memory evaluations,
         uint256 index
-    ) internal view returns (bytes32[] memory siblings) {
+    ) internal pure returns (bytes32[] memory siblings) {
         uint256 depth = 3; // log2(8)
         siblings = new bytes32[](depth);
         
-        // Build leaf layer using SHA3Hasher
+        // Build leaf layer using DOMAIN_TRACE (matches computeTraceLeaf)
         bytes32[] memory layer = new bytes32[](evaluations.length);
         for (uint256 i = 0; i < evaluations.length; i++) {
-            layer[i] = verifier.computeTraceLeaf(evaluations[i], i);
+            layer[i] = SHA3Hasher.hash(abi.encodePacked(DOMAIN_TRACE, evaluations[i], i));
         }
         
-        // Compute siblings at each level
+        // Compute siblings at each level using domain-separated hash
         uint256 currentIndex = index;
         for (uint256 level = 0; level < depth; level++) {
             uint256 siblingIndex = currentIndex ^ 1;
             siblings[level] = layer[siblingIndex];
             
-            // Compute next layer
+            // Compute next layer using DOMAIN_MERKLE_NODE (matches _hashMerkleNodes)
             bytes32[] memory nextLayer = new bytes32[](layer.length / 2);
             for (uint256 i = 0; i < nextLayer.length; i++) {
-                nextLayer[i] = verifier.hashPair(layer[2 * i], layer[2 * i + 1]);
+                nextLayer[i] = _hashMerkleNodesTest(layer[2 * i], layer[2 * i + 1]);
             }
             layer = nextLayer;
             currentIndex = currentIndex / 2;
         }
+    }
+
+    /**
+     * @notice Hash two Merkle tree nodes using domain-separated SHA3-256
+     * @dev MUST match STARKVerifier._hashMerkleNodes() exactly
+     */
+    function _hashMerkleNodesTest(
+        bytes32 left,
+        bytes32 right
+    ) internal pure returns (bytes32) {
+        return SHA3Hasher.hash(abi.encodePacked(DOMAIN_MERKLE_NODE, left, right));
     }
 }
