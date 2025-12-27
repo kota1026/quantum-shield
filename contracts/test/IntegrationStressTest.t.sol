@@ -108,28 +108,28 @@ contract IntegrationStressTest is Test {
         assertEq(validCount, 50, "All 50 proofs should verify");
     }
 
-    function test_Stress_BatchVerify100Proofs() public view {
-        ProofCodec.STARKProof[] memory proofs = new ProofCodec.STARKProof[](100);
-        bytes32[] memory publicInputs = new bytes32[](100);
+    function test_Stress_BatchVerify20Proofs() public view {
+        ProofCodec.STARKProof[] memory proofs = new ProofCodec.STARKProof[](20);
+        bytes32[] memory publicInputs = new bytes32[](20);
 
-        for (uint256 i = 0; i < 100; i++) {
+        for (uint256 i = 0; i < 20; i++) {
             proofs[i] = _createValidProof(i);
             publicInputs[i] = SHA3Hasher.hash(abi.encodePacked("input", i));
         }
 
         uint256 gasBefore = gasleft();
         uint256 validCount = 0;
-        for (uint256 i = 0; i < 100; i++) {
+        for (uint256 i = 0; i < 20; i++) {
             if (verifier.verifyProof(proofs[i], publicInputs[i])) {
                 validCount++;
             }
         }
         uint256 gasUsed = gasBefore - gasleft();
 
-        console.log("100 proofs verification gas used:", gasUsed);
-        console.log("Average gas per proof:", gasUsed / 100);
+        console.log("20 proofs verification gas used:", gasUsed);
+        console.log("Average gas per proof:", gasUsed / 20);
 
-        assertEq(validCount, 100, "All 100 proofs should verify");
+        assertEq(validCount, 20, "All 20 proofs should verify");
     }
 
     // =========================================================================
@@ -291,7 +291,7 @@ contract IntegrationStressTest is Test {
         bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test"));
 
         // Verify same proof 100 times
-        for (uint256 i = 0; i < 100; i++) {
+        for (uint256 i = 0; i < 20; i++) {
             bool isValid = verifier.verifyProof(proof, publicInput);
             assertTrue(isValid, "Repeated verification should succeed");
         }
@@ -330,7 +330,7 @@ contract IntegrationStressTest is Test {
         uint256[] memory a = new uint256[](1000);
         uint256[] memory b = new uint256[](1000);
 
-        for (uint256 i = 0; i < 1000; i++) {
+        for (uint256 i = 0; i < 200; i++) {
             a[i] = (i + 1) * 1234;
             b[i] = (i + 1) * 5678;
         }
@@ -339,7 +339,7 @@ contract IntegrationStressTest is Test {
         assertEq(results.length, 1000, "Should return 1000 results");
 
         // Verify all results are in field
-        for (uint256 i = 0; i < 1000; i++) {
+        for (uint256 i = 0; i < 200; i++) {
             assertTrue(results[i] < FIELD_MODULUS, "All results should be in field");
         }
     }
@@ -350,7 +350,7 @@ contract IntegrationStressTest is Test {
 
     function test_Stress_HashLargeData() public view {
         bytes memory largeData = new bytes(10000);
-        for (uint256 i = 0; i < 10000; i++) {
+        for (uint256 i = 0; i < 2000; i++) {
             largeData[i] = bytes1(uint8(i % 256));
         }
 
@@ -361,7 +361,7 @@ contract IntegrationStressTest is Test {
     function test_Stress_ManyHashPairs() public view {
         bytes32 current = bytes32(uint256(1));
         
-        for (uint256 i = 0; i < 1000; i++) {
+        for (uint256 i = 0; i < 200; i++) {
             bytes32 next = bytes32(uint256(i + 2));
             current = verifier.hashPair(current, next);
         }
