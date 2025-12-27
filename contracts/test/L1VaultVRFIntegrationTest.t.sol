@@ -223,25 +223,37 @@ contract L1VaultVRFIntegrationTest is Test {
     }
 
     /// @notice Test: 72h timeout detection accuracy
-    /// @dev Fixed: Capture initialTime before any operations and use it consistently
+    /// @dev Fixed: Use explicit absolute timestamps to avoid confusion
     function test_INTEG004_TimeoutDetectionAccuracy() public {
-        // Capture initial time BEFORE any operations
-        uint256 initialTime = block.timestamp;
+        // Use a fixed base time for clarity (1000 seconds from epoch)
+        uint256 baseTime = 1000;
+        vm.warp(baseTime);
         
-        // Create lock and simulate unlock request
+        // Verify we're at baseTime
+        assertEq(block.timestamp, baseTime, "Should be at baseTime");
+        
+        // Create lock at baseTime
         vm.prank(user);
         l1Vault.lock{value: 1 ether}(recipient, dilithiumPubKey);
         
-        // Warp time to 72h - 1 second from initial time
-        vm.warp(initialTime + 72 hours - 1);
+        // Calculate target timestamps
+        uint256 justBefore72h = baseTime + 72 hours - 1;
+        uint256 justAfter72h = baseTime + 72 hours + 1;
         
-        // Should not trigger emergency yet (just under threshold)
-        uint256 timeElapsed = block.timestamp - initialTime;
+        // Warp to just before 72h and verify
+        vm.warp(justBefore72h);
+        assertEq(block.timestamp, justBefore72h, "Should be at justBefore72h");
+        
+        uint256 timeElapsed = block.timestamp - baseTime;
+        assertEq(timeElapsed, 72 hours - 1, "Time elapsed should be 72h - 1 second");
         assertLt(timeElapsed, 72 hours, "Time should be less than 72h");
         
-        // Warp to past 72h from initial time
-        vm.warp(initialTime + 72 hours + 1);
-        timeElapsed = block.timestamp - initialTime;
+        // Warp to just after 72h and verify
+        vm.warp(justAfter72h);
+        assertEq(block.timestamp, justAfter72h, "Should be at justAfter72h");
+        
+        timeElapsed = block.timestamp - baseTime;
+        assertEq(timeElapsed, 72 hours + 1, "Time elapsed should be 72h + 1 second");
         assertGt(timeElapsed, 72 hours, "Time should be greater than 72h");
     }
 
