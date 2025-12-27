@@ -35,13 +35,14 @@ contract BatchVerifierTest is Test {
     SharedMerkle public sharedMerkle;
 
     // Test constants
-    uint256 constant TEST_TREE_DEPTH = 10;
+    uint256 constant TEST_TREE_DEPTH = 4; // 2^4 = 16 leaves
     uint256 constant BATCH_SIZE_SMALL = 5;
     uint256 constant BATCH_SIZE_MEDIUM = 10;
-    uint256 constant BATCH_SIZE_LARGE = 20;
+    uint256 constant BATCH_SIZE_LARGE = 16; // Max for depth 4
 
     // Domain separator - MUST match SharedMerkle
     bytes32 private constant DOMAIN_MERKLE_NODE = bytes32("QS_STARK_MERKLE_V1");
+    bytes32 private constant DOMAIN_LEAF = bytes32("QS_STARK_LEAF_V1");
 
     // =========================================================================
     // Events for testing
@@ -83,18 +84,18 @@ contract BatchVerifierTest is Test {
      * @notice Test single proof verification through batch interface
      */
     function test_VerifySingleProof() public view {
-        // Build single proof
-        (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree(0);
+        // Build single proof from shared tree
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
         
         bytes32[] memory leaves = new bytes32[](1);
         uint256[] memory indices = new uint256[](1);
-        bytes32[][] memory allSiblings = new bytes32[][](1);
+        bytes32[][] memory siblings = new bytes32[][](1);
         
-        leaves[0] = leaf;
-        indices[0] = index;
-        allSiblings[0] = siblings;
+        leaves[0] = allLeaves[0];
+        indices[0] = 0;
+        siblings[0] = allSiblings[0];
         
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, root);
         assertEq(validCount, 1, "Single valid proof should pass");
     }
 
@@ -104,11 +105,20 @@ contract BatchVerifierTest is Test {
     function test_VerifyBatch_AllValid() public view {
         uint256 batchSize = BATCH_SIZE_SMALL;
         
-        // Build batch with same root (shared Merkle tree)
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(batchSize);
+        // Build batch from shared Merkle tree
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
         
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
+        bytes32[] memory leaves = new bytes32[](batchSize);
+        uint256[] memory indices = new uint256[](batchSize);
+        bytes32[][] memory siblings = new bytes32[][](batchSize);
+        
+        for (uint256 i = 0; i < batchSize; i++) {
+            leaves[i] = allLeaves[i];
+            indices[i] = i;
+            siblings[i] = allSiblings[i];
+        }
+        
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, root);
         assertEq(validCount, batchSize, "All proofs in batch should be valid");
     }
 
@@ -118,16 +128,26 @@ contract BatchVerifierTest is Test {
     function test_VerifyBatch_PartialValid() public view {
         uint256 batchSize = BATCH_SIZE_SMALL;
         
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(batchSize);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
         
-        // Corrupt half the leaves
-        for (uint256 i = 0; i < batchSize / 2; i++) {
+        bytes32[] memory leaves = new bytes32[](batchSize);
+        uint256[] memory indices = new uint256[](batchSize);
+        bytes32[][] memory siblings = new bytes32[][](batchSize);
+        
+        for (uint256 i = 0; i < batchSize; i++) {
+            leaves[i] = allLeaves[i];
+            indices[i] = i;
+            siblings[i] = allSiblings[i];
+        }
+        
+        // Corrupt first 2 leaves
+        uint256 corruptCount = 2;
+        for (uint256 i = 0; i < corruptCount; i++) {
             leaves[i] = bytes32(uint256(0xDEADBEEF));
         }
         
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
-        assertEq(validCount, batchSize - (batchSize / 2), "Only uncorrupted proofs should be valid");
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, root);
+        assertEq(validCount, batchSize - corruptCount, "Only uncorrupted proofs should be valid");
     }
 
     /**
@@ -167,11 +187,11 @@ contract BatchVerifierTest is Test {
         uint256 batchSize = BATCH_SIZE_MEDIUM;
         uint256 totalGas = 0;
         
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
+        
         for (uint256 i = 0; i < batchSize; i++) {
-            (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree(i);
-            
             uint256 gasBefore = gasleft();
-            sharedMerkle.verifyProof(leaf, index, siblings, root);
+            sharedMerkle.verifyProof(allLeaves[i], i, allSiblings[i], root);
             totalGas += gasBefore - gasleft();
         }
         
@@ -185,11 +205,20 @@ contract BatchVerifierTest is Test {
     function test_Gas_BatchVerification() public {
         uint256 batchSize = BATCH_SIZE_MEDIUM;
         
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(batchSize);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
+        
+        bytes32[] memory leaves = new bytes32[](batchSize);
+        uint256[] memory indices = new uint256[](batchSize);
+        bytes32[][] memory siblings = new bytes32[][](batchSize);
+        
+        for (uint256 i = 0; i < batchSize; i++) {
+            leaves[i] = allLeaves[i];
+            indices[i] = i;
+            siblings[i] = allSiblings[i];
+        }
         
         uint256 gasBefore = gasleft();
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, root);
         uint256 gasUsed = gasBefore - gasleft();
         
         assertEq(validCount, batchSize, "All should be valid");
@@ -205,34 +234,43 @@ contract BatchVerifierTest is Test {
     function test_Gas_ReductionTarget() public {
         uint256 batchSize = BATCH_SIZE_MEDIUM;
         
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
+        
         // Measure individual verification
         uint256 individualGas = 0;
         for (uint256 i = 0; i < batchSize; i++) {
-            (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree(i);
-            
             uint256 gasBefore = gasleft();
-            sharedMerkle.verifyProof(leaf, index, siblings, root);
+            sharedMerkle.verifyProof(allLeaves[i], i, allSiblings[i], root);
             individualGas += gasBefore - gasleft();
         }
         
+        // Prepare batch data
+        bytes32[] memory leaves = new bytes32[](batchSize);
+        uint256[] memory indices = new uint256[](batchSize);
+        bytes32[][] memory siblings = new bytes32[][](batchSize);
+        
+        for (uint256 i = 0; i < batchSize; i++) {
+            leaves[i] = allLeaves[i];
+            indices[i] = i;
+            siblings[i] = allSiblings[i];
+        }
+        
         // Measure batch verification
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(batchSize);
-        
         uint256 gasBefore = gasleft();
-        batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
+        batchVerifier.verifyBatch(leaves, indices, siblings, root);
         uint256 batchGas = gasBefore - gasleft();
-        
-        // Calculate reduction
-        uint256 reduction = ((individualGas - batchGas) * 100) / individualGas;
         
         emit log_named_uint("Individual total gas", individualGas);
         emit log_named_uint("Batch total gas", batchGas);
-        emit log_named_uint("Gas reduction %", reduction);
         
         // Note: Initial implementation may not hit 40% target
         // This test documents current performance for optimization tracking
-        emit log_string("Target: 40% reduction. Current reduction logged above.");
+        if (batchGas < individualGas) {
+            uint256 reduction = ((individualGas - batchGas) * 100) / individualGas;
+            emit log_named_uint("Gas reduction %", reduction);
+        } else {
+            emit log_string("Batch is not yet optimized - no reduction");
+        }
     }
 
     // =========================================================================
@@ -243,9 +281,9 @@ contract BatchVerifierTest is Test {
      * @notice Test SharedMerkle single proof verification
      */
     function test_SharedMerkle_SingleProof() public view {
-        (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree(0);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
         
-        bool valid = sharedMerkle.verifyProof(leaf, index, siblings, root);
+        bool valid = sharedMerkle.verifyProof(allLeaves[0], 0, allSiblings[0], root);
         assertTrue(valid, "Valid proof should pass");
     }
 
@@ -253,19 +291,14 @@ contract BatchVerifierTest is Test {
      * @notice Test SharedMerkle path caching
      */
     function test_SharedMerkle_PathCaching() public {
-        // This test verifies the path caching mechanism works
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(BATCH_SIZE_SMALL);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
         
         // First verification should cache paths
         uint256 gasBefore = gasleft();
-        for (uint256 i = 0; i < leaves.length; i++) {
-            sharedMerkle.verifyProof(leaves[i], indices[i], allSiblings[i], root);
+        for (uint256 i = 0; i < BATCH_SIZE_SMALL; i++) {
+            sharedMerkle.verifyProof(allLeaves[i], i, allSiblings[i], root);
         }
         uint256 firstPassGas = gasBefore - gasleft();
-        
-        // Clear cache if applicable and re-verify
-        // (Implementation dependent - this documents expected behavior)
         
         emit log_named_uint("First pass gas", firstPassGas);
     }
@@ -298,13 +331,22 @@ contract BatchVerifierTest is Test {
     function test_VerifyBatch_AllInvalid() public view {
         uint256 batchSize = BATCH_SIZE_SMALL;
         
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(batchSize);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
+        
+        bytes32[] memory leaves = new bytes32[](batchSize);
+        uint256[] memory indices = new uint256[](batchSize);
+        bytes32[][] memory siblings = new bytes32[][](batchSize);
+        
+        for (uint256 i = 0; i < batchSize; i++) {
+            leaves[i] = allLeaves[i];
+            indices[i] = i;
+            siblings[i] = allSiblings[i];
+        }
         
         // Use wrong root
         bytes32 wrongRoot = bytes32(uint256(0xBADBAD));
         
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, wrongRoot);
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, wrongRoot);
         assertEq(validCount, 0, "All proofs should fail with wrong root");
     }
 
@@ -312,36 +354,45 @@ contract BatchVerifierTest is Test {
      * @notice Test with invalid proof depth
      */
     function test_VerifyBatch_InvalidDepth() public view {
-        (bytes32 root, bytes32 leaf, uint256 index, bytes32[] memory siblings) = _buildTestMerkleTree(0);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
         
         // Truncate siblings (wrong depth)
-        bytes32[] memory shortSiblings = new bytes32[](siblings.length - 2);
+        bytes32[] memory shortSiblings = new bytes32[](allSiblings[0].length - 2);
         for (uint256 i = 0; i < shortSiblings.length; i++) {
-            shortSiblings[i] = siblings[i];
+            shortSiblings[i] = allSiblings[0][i];
         }
         
         bytes32[] memory leaves = new bytes32[](1);
         uint256[] memory indices = new uint256[](1);
-        bytes32[][] memory allSiblings = new bytes32[][](1);
+        bytes32[][] memory siblings = new bytes32[][](1);
         
-        leaves[0] = leaf;
-        indices[0] = index;
-        allSiblings[0] = shortSiblings;
+        leaves[0] = allLeaves[0];
+        indices[0] = 0;
+        siblings[0] = shortSiblings;
         
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, root);
         assertEq(validCount, 0, "Proof with wrong depth should fail");
     }
 
     /**
-     * @notice Test large batch size
+     * @notice Test large batch size (all leaves)
      */
     function test_VerifyBatch_LargeSize() public view {
         uint256 batchSize = BATCH_SIZE_LARGE;
         
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(batchSize);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
         
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
+        bytes32[] memory leaves = new bytes32[](batchSize);
+        uint256[] memory indices = new uint256[](batchSize);
+        bytes32[][] memory siblings = new bytes32[][](batchSize);
+        
+        for (uint256 i = 0; i < batchSize; i++) {
+            leaves[i] = allLeaves[i];
+            indices[i] = i;
+            siblings[i] = allSiblings[i];
+        }
+        
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, root);
         assertEq(validCount, batchSize, "Large batch should work correctly");
     }
 
@@ -355,10 +406,19 @@ contract BatchVerifierTest is Test {
     function testFuzz_VerifyBatch_RandomSize(uint8 sizeSeed) public view {
         uint256 batchSize = (uint256(sizeSeed) % 15) + 1; // 1-15 proofs
         
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(batchSize);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
         
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
+        bytes32[] memory leaves = new bytes32[](batchSize);
+        uint256[] memory indices = new uint256[](batchSize);
+        bytes32[][] memory siblings = new bytes32[][](batchSize);
+        
+        for (uint256 i = 0; i < batchSize; i++) {
+            leaves[i] = allLeaves[i];
+            indices[i] = i;
+            siblings[i] = allSiblings[i];
+        }
+        
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, root);
         assertEq(validCount, batchSize, "All fuzzed proofs should be valid");
     }
 
@@ -368,14 +428,23 @@ contract BatchVerifierTest is Test {
     function testFuzz_VerifyBatch_RandomCorruption(uint8 corruptIndex, bytes32 corruptValue) public view {
         uint256 batchSize = BATCH_SIZE_SMALL;
         
-        (bytes32 root, bytes32[] memory leaves, uint256[] memory indices, bytes32[][] memory allSiblings) = 
-            _buildSharedMerkleTreeBatch(batchSize);
+        (bytes32 root, bytes32[] memory allLeaves, bytes32[][] memory allSiblings) = _buildCompleteTree(16);
+        
+        bytes32[] memory leaves = new bytes32[](batchSize);
+        uint256[] memory indices = new uint256[](batchSize);
+        bytes32[][] memory siblings = new bytes32[][](batchSize);
+        
+        for (uint256 i = 0; i < batchSize; i++) {
+            leaves[i] = allLeaves[i];
+            indices[i] = i;
+            siblings[i] = allSiblings[i];
+        }
         
         // Corrupt one leaf
         uint256 idx = uint256(corruptIndex) % batchSize;
         leaves[idx] = corruptValue;
         
-        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, allSiblings, root);
+        uint256 validCount = batchVerifier.verifyBatch(leaves, indices, siblings, root);
         
         // Either the corrupted value happens to be correct (unlikely) or we have one less valid
         assertTrue(validCount <= batchSize, "Valid count should not exceed batch size");
@@ -414,71 +483,78 @@ contract BatchVerifierTest is Test {
     // =========================================================================
 
     /**
-     * @notice Build a test Merkle tree for a given index
+     * @notice Build a complete Merkle tree with proofs for all leaves
+     * @param numLeaves Number of leaves (must be power of 2)
+     * @return root The Merkle root
+     * @return leaves Array of leaf hashes
+     * @return proofs Array of Merkle proofs (siblings) for each leaf
      */
-    function _buildTestMerkleTree(uint256 targetIndex) internal pure returns (
-        bytes32 root,
-        bytes32 leaf,
-        uint256 index,
-        bytes32[] memory siblings
-    ) {
-        index = targetIndex % (1 << TEST_TREE_DEPTH);
-        siblings = new bytes32[](TEST_TREE_DEPTH);
-        
-        // Create leaf
-        uint256 evaluation = 12345 + targetIndex;
-        leaf = SHA3Hasher.hash(abi.encodePacked(evaluation));
-        
-        // Build path
-        bytes32 currentHash = leaf;
-        for (uint256 i = 0; i < TEST_TREE_DEPTH; i++) {
-            siblings[i] = SHA3Hasher.hash(abi.encodePacked("sibling", i, targetIndex));
-            
-            if ((index >> i) & 1 == 0) {
-                currentHash = _hashMerkleNodes(currentHash, siblings[i]);
-            } else {
-                currentHash = _hashMerkleNodes(siblings[i], currentHash);
-            }
-        }
-        
-        root = currentHash;
-    }
-
-    /**
-     * @notice Build a batch of proofs sharing the same Merkle tree
-     */
-    function _buildSharedMerkleTreeBatch(uint256 batchSize) internal pure returns (
+    function _buildCompleteTree(uint256 numLeaves) internal pure returns (
         bytes32 root,
         bytes32[] memory leaves,
-        uint256[] memory indices,
-        bytes32[][] memory allSiblings
+        bytes32[][] memory proofs
     ) {
-        leaves = new bytes32[](batchSize);
-        indices = new uint256[](batchSize);
-        allSiblings = new bytes32[][](batchSize);
+        require(numLeaves > 0 && (numLeaves & (numLeaves - 1)) == 0, "Must be power of 2");
         
-        // Build individual proofs and use first one's root
-        for (uint256 i = 0; i < batchSize; i++) {
-            (bytes32 r, bytes32 l, uint256 idx, bytes32[] memory sibs) = _buildTestMerkleTree(i);
-            
-            if (i == 0) {
-                root = r;
-            }
-            
-            leaves[i] = l;
-            indices[i] = idx;
-            allSiblings[i] = sibs;
+        uint256 depth = _log2(numLeaves);
+        
+        // Create leaves
+        leaves = new bytes32[](numLeaves);
+        for (uint256 i = 0; i < numLeaves; i++) {
+            leaves[i] = _hashLeaf(i * 100 + 12345, i);
         }
         
-        // Note: In a real shared tree, all proofs would share the same root
-        // For testing, we use individual trees with their own roots
-        // Real optimization comes from shared path segments
+        // Build tree layers
+        bytes32[][] memory layers = new bytes32[][](depth + 1);
+        layers[0] = leaves;
+        
+        for (uint256 d = 0; d < depth; d++) {
+            uint256 layerSize = layers[d].length / 2;
+            layers[d + 1] = new bytes32[](layerSize);
+            for (uint256 i = 0; i < layerSize; i++) {
+                layers[d + 1][i] = _hashNodes(layers[d][2 * i], layers[d][2 * i + 1]);
+            }
+        }
+        
+        root = layers[depth][0];
+        
+        // Build proofs for each leaf
+        proofs = new bytes32[][](numLeaves);
+        for (uint256 leafIdx = 0; leafIdx < numLeaves; leafIdx++) {
+            proofs[leafIdx] = new bytes32[](depth);
+            uint256 idx = leafIdx;
+            for (uint256 d = 0; d < depth; d++) {
+                // Sibling index: if idx is even, sibling is idx+1; if odd, sibling is idx-1
+                uint256 siblingIdx = (idx & 1 == 0) ? idx + 1 : idx - 1;
+                proofs[leafIdx][d] = layers[d][siblingIdx];
+                idx = idx / 2;
+            }
+        }
     }
 
     /**
      * @notice Hash two Merkle nodes with domain separation
      */
-    function _hashMerkleNodes(bytes32 left, bytes32 right) internal pure returns (bytes32) {
+    function _hashNodes(bytes32 left, bytes32 right) internal pure returns (bytes32) {
         return SHA3Hasher.hash(abi.encodePacked(DOMAIN_MERKLE_NODE, left, right));
+    }
+
+    /**
+     * @notice Hash leaf with domain separation
+     */
+    function _hashLeaf(uint256 evaluation, uint256 index) internal pure returns (bytes32) {
+        return SHA3Hasher.hash(abi.encodePacked(DOMAIN_LEAF, evaluation, index));
+    }
+
+    /**
+     * @notice Calculate log2 of a number
+     */
+    function _log2(uint256 x) internal pure returns (uint256) {
+        uint256 result = 0;
+        while (x > 1) {
+            x >>= 1;
+            result++;
+        }
+        return result;
     }
 }
