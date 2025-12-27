@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {SHA3_256} from "./libraries/SHA3_256.sol";
+// IMPL-011: Removed unused imports (SHA3_256, FRIVerifier)
 import {SHA3Hasher} from "./libraries/SHA3Hasher.sol";
 import {ProofCodec} from "./libraries/ProofCodec.sol";
-import {FRIVerifier} from "./FRIVerifier.sol";
 
 /**
  * @title STARKVerifier
@@ -135,13 +134,14 @@ contract STARKVerifier {
     /**
      * @notice Verify a STARK proof
      * @dev Main entry point for proof verification
+     *      IMPL-011: Parameter publicInput is reserved for future v0.3 implementation
      * @param proof The STARK proof to verify
-     * @param publicInput The public input (statement being proven)
+     * @param /* publicInput */ The public input (statement being proven) - reserved for v0.3
      * @return True if the proof is valid
      */
     function verifyProof(
         ProofCodec.STARKProof memory proof,
-        bytes32 publicInput
+        bytes32 /* publicInput - reserved for v0.3 */
     ) external view returns (bool) {
         // Step 1: Validate proof structure
         if (!_validateProofStructure(proof)) {
