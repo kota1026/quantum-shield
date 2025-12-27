@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-27 10:31 JST  
+> **Last Updated**: 2025-12-27 10:57 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -11,10 +11,10 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 2 - Security Council + Token                        │
 │  Month: 7 / 24                                              │
-│  Week: 8 ✅ COMPLETE                                        │
-│  Next Milestone: Phase 2.3 Gas最適化 (Week 9 開始)          │
-│  Status: ✅ Week 8 完了 - PIR-P2-007 PASS                   │
-│  Tests: ✅ 628/628 ALL PASS                                 │
+│  Week: 9 🔄 IN PROGRESS                                     │
+│  Next Milestone: Phase 2.3 Gas最適化                        │
+│  Status: 🔄 Week 9 Day 1 - BatchVerifier実装中              │
+│  Tests: 🔄 テスト実行待ち                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -27,41 +27,36 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Week 8 インフラ完成 + Sepoliaデプロイ準備 |
-| **実装日時** | 2025-12-27 02:30 JST |
-| **ステータス** | ✅ **PIR-P2-007 PASS** |
+| **対象Plan** | Phase 2.3 Gas最適化 - Week 9 BatchVerifier実装 |
+| **実装日時** | 2025-12-27 10:57 JST |
+| **ステータス** | 🔄 実装完了 - テスト実行待ち |
 
 ### 作成ファイル
 
 | ファイル | 説明 | 状態 |
 |---------|------|------|
-| `.github/workflows/ci.yml` | CI/CDパイプライン設定 | ✅ |
-| `.github/workflows/deploy-testnet.yml` | テストネットデプロイワークフロー | ✅ |
-| `contracts/foundry.toml` | マルチネットワーク設定 | ✅ |
-| `scripts/deploy/sepolia/.env.example` | 環境変数テンプレート | ✅ |
-| `scripts/deploy/sepolia/deploy.sh` | Sepoliaデプロイスクリプト | ✅ |
-| `contracts/test/DeploymentVerificationTest.t.sol` | デプロイ検証テスト | ✅ |
-| `scripts/test/test_deploy.sh` | デプロイインフラテスト | ✅ |
-| `scripts/test/test_multinetwork.sh` | マルチネットワークテスト | ✅ |
-| `scripts/test/test_cicd.sh` | CI/CDワークフロー検証 | ✅ |
-| `scripts/test/run_week8_tests.sh` | Week 8テストランナー | ✅ |
-| `docs/planning/PHASE2_3_PLAN.md` | Phase 2.3 Gas最適化計画 | ✅ |
+| `contracts/src/lib/SharedMerkle.sol` | Merkleパス共有ライブラリ | ✅ |
+| `contracts/src/BatchVerifier.sol` | バッチ証明検証コントラクト v0.1 | ✅ |
+| `contracts/test/BatchVerifierTest.t.sol` | BatchVerifier単体テスト (18 tests) | ✅ |
+| `docs/planning/BATCH_VERIFICATION_SPEC.md` | バッチ検証仕様書 | ✅ |
 
-### 修正対応（前回レビュー指摘）
+### SPEC_REVIEW対応
 
-| # | 指摘事項 | 対応内容 | コミット | 状態 |
-|---|---------|----------|----------|------|
-| 1 | deploy-testnet.yml 未作成 | 作成完了 | `6e833ab` | ✅ |
-| 2 | PHASE2_3_PLAN.md 未作成 | 作成完了 | `6e833ab` | ✅ |
-| 3 | foundry.toml rpc_endpoints未設定 | 追加完了 | `6e833ab` | ✅ |
+（該当なし - SPEC_REVIEW.mdはアーカイブ済み）
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +31 |
-| 総テスト数 | 628 |
-| 結果 | ✅ ALL PASS |
+| 新規テスト数 | +18 |
+| 総テスト数 | 646 (予定) |
+| 結果 | 🔄 テスト実行待ち |
+
+### 備考
+
+- Sepoliaデプロイ（DEPLOY-001〜005）はユーザー操作が必要なため未実施
+- BatchVerifier関連の実装を先行して完了
+- 次のステップ: `forge test` でテスト実行、結果確認後セキュリティレビュー
 
 ---
 
@@ -138,29 +133,28 @@
 
 ---
 
-## 📋 Phase 2 Week 8 タスク進捗 ✅ COMPLETE
+## 📋 Phase 2.3 Week 9 タスク進捗 🔄 IN PROGRESS
 
-### Phase 2.2 Infrastructure (Week 8)
+### Phase 2.3 Gas最適化 (Week 9)
 
-| # | タスク | 担当 | 完了日 | 成果物 |
-|---|--------|------|--------|--------|
-| 1 | **[INFRA-002] CI/CDパイプライン更新** | DevOps | 2025-12-27 | ✅ ci.yml + deploy-testnet.yml |
-| 2 | **[INFRA-003] Sepoliaデプロイ準備** | DevOps | 2025-12-27 | ✅ foundry.toml, .env.example, deploy.sh |
-| 3 | **[TEST-021] テストネットデプロイテスト** | QA | 2025-12-27 | ✅ DeploymentVerificationTest (27/27 PASS) |
-| 4 | **[TEST-022] マルチネットワーク互換性** | QA | 2025-12-27 | ✅ NetworkCompatibilityTest (4/4 PASS) |
-| 5 | **[DOC-001] Phase 2.3計画策定** | CTO | 2025-12-27 | ✅ PHASE2_3_PLAN.md |
-| 6 | **[PIR-P2-007] Week 8 レビュー** | Team | 2025-12-27 | ✅ **PASS** |
+| # | タスク | 担当 | 状態 | 成果物 |
+|---|--------|------|------|--------|
+| 1 | **[DEPLOY-001〜005] Sepoliaデプロイ** | DevOps | ⏳ ユーザー操作待ち | - |
+| 2 | **[IMPL-008] BatchVerifier設計** | Engineer | ✅ 完了 | BATCH_VERIFICATION_SPEC.md |
+| 3 | **[IMPL-009] BatchVerifier.sol実装** | Engineer | ✅ 完了 | BatchVerifier.sol |
+| 4 | **[IMPL-010] SharedMerkle.sol実装** | Engineer | ✅ 完了 | SharedMerkle.sol |
+| 5 | **[TEST-023] BatchVerifierテスト** | QA | ✅ 作成完了 | BatchVerifierTest.t.sol |
+| 6 | **[TEST-024] Gasベンチマーク** | QA | ✅ テスト内に含む | BatchVerifierTest.t.sol |
 
-### Week 8 完了サマリー
+### Week 9 進捗サマリー
 
 | 項目 | 結果 |
 |------|------|
-| テストスイート | ✅ 628/628 ALL PASS |
-| 新規テスト | +31 |
-| セキュリティ | ✅ HIGH 0 / MEDIUM 0 維持 |
-| 成果物 | ✅ **全ファイル作成完了** |
-| PIR判定 | ✅ **PIR-P2-007 PASS** |
-| 最終コミット | `6a3c4006a1983ccdc04064f9737caad4d2cc8dea` |
+| コード実装 | ✅ 3ファイル作成完了 |
+| テスト作成 | ✅ 18テスト作成完了 |
+| ドキュメント | ✅ BATCH_VERIFICATION_SPEC.md作成完了 |
+| テスト実行 | 🔄 待機中 |
+| 最新コミット | `dcf2e0cde67c621ae08deb4800e15d5624ce42c6` |
 
 ---
 
@@ -179,6 +173,12 @@ CP-1 Status:                         ✅ CP-1準拠確認済み
 Slither:                             ✅ HIGH 0 / MEDIUM 0
 Week 8 Status:                       ✅ COMPLETE - PIR-P2-007 PASS
 ```
+
+### 新規テスト（Week 9追加予定）
+
+| Suite | Tests | Status |
+|-------|-------|--------|
+| BatchVerifierTest | 18 | 🔄 実行待ち |
 
 ### テストスイート内訳 (抜粋)
 
@@ -211,7 +211,8 @@ Week 8 Status:                       ✅ COMPLETE - PIR-P2-007 PASS
 | PIR-SEC-001 | SEC-001/SEC-002 | ✅ **PASS** | 2025-12-26 |
 | PIR-SEC-003 | SEC-003 QuantumShield SHA3 | ✅ **PASS (11/11 GO)** | 2025-12-26 |
 | PIR-P2-006 | Week 7 IMPL-006/007/INFRA-001 | ✅ **PASS (11/11 GO)** | 2025-12-26 |
-| **PIR-P2-007** | **Week 8 INFRA-002/003, TEST-021/022** | ✅ **PASS** | **2025-12-27** |
+| PIR-P2-007 | Week 8 INFRA-002/003, TEST-021/022 | ✅ **PASS** | 2025-12-27 |
+| **PIR-P2-008** | **Week 9 BatchVerifier** | 🔄 **予定** | **TBD** |
 
 ---
 
@@ -219,28 +220,26 @@ Week 8 Status:                       ✅ COMPLETE - PIR-P2-007 PASS
 
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
-| 1 | **SHA3_256 Gas消費量 (~2.2M/lock)** | 🟡 MEDIUM | Phase 2.3 Gas最適化 |
-| 2 | ZK-STARK実装の複雑性 | 🟡 MEDIUM | 段階的実装継続 |
-| 3 | 外部監査のスケジュール | 🟡 MEDIUM | RFP草案作成完了 |
-| 4 | ~~テストネット環境構築~~ | ~~MEDIUM~~ | ✅ Week 8で完了 |
-| 5 | ~~CI/CDパイプライン~~ | ~~MEDIUM~~ | ✅ Week 8で完了 |
-| 6 | ~~deploy-testnet.yml 未作成~~ | ~~HIGH~~ | ✅ **解消** |
-| 7 | ~~PHASE2_3_PLAN.md 未作成~~ | ~~HIGH~~ | ✅ **解消** |
-| 8 | ~~foundry.toml rpc_endpoints未設定~~ | ~~MEDIUM~~ | ✅ **解消** |
+| 1 | **Sepoliaデプロイ未実施** | 🔴 HIGH | ユーザー操作必要（Faucet ETH取得） |
+| 2 | **SHA3_256 Gas消費量 (~2.2M/lock)** | 🟡 MEDIUM | Phase 2.3 Gas最適化 |
+| 3 | ZK-STARK実装の複雑性 | 🟡 MEDIUM | 段階的実装継続 |
+| 4 | 外部監査のスケジュール | 🟡 MEDIUM | RFP草案作成完了 |
+| 5 | ~~テストネット環境構築~~ | ~~MEDIUM~~ | ✅ Week 8で完了 |
+| 6 | ~~CI/CDパイプライン~~ | ~~MEDIUM~~ | ✅ Week 8で完了 |
 
 ---
 
 ## 🔜 次のアクション
 
-### Week 9 → Phase 2.3 Gas最適化開始
+### Week 9 → Phase 2.3 Gas最適化継続
 
-| # | タスク | 優先度 | 担当 | 期限 |
+| # | タスク | 優先度 | 担当 | 状態 |
 |---|--------|--------|------|------|
-| 1 | ~~PIR-P2-007 PASS~~ | ~~Critical~~ | ~~Team~~ | ✅ **完了** |
-| 2 | **Phase 2.3 Gas最適化開始** | 🔴 Critical | Engineer | Week 9 |
-| 3 | **BatchVerifier.sol設計** | 🔴 Critical | Engineer | Week 9 Day 1-2 |
-| 4 | **BatchVerifier.sol実装** | High | Engineer | Week 9 Day 3-4 |
-| 5 | Sepoliaテストネット実デプロイ | Medium | DevOps | Week 9 |
+| 1 | **Sepoliaデプロイ** | 🔴 Critical | DevOps | ⏳ ユーザー操作待ち |
+| 2 | ~~BatchVerifier.sol設計~~ | ~~Critical~~ | ~~Engineer~~ | ✅ **完了** |
+| 3 | ~~BatchVerifier.sol実装~~ | ~~High~~ | ~~Engineer~~ | ✅ **完了** |
+| 4 | `forge test` 実行 | 🔴 Critical | Engineer | 🔜 次のステップ |
+| 5 | セキュリティレビュー | High | CSO | ⏳ テスト完了後 |
 
 ---
 
@@ -258,11 +257,11 @@ Week 8 Status:                       ✅ COMPLETE - PIR-P2-007 PASS
 | ~~PIR-P2-006 PIR会議~~ | ~~Week 7~~ | ✅ **PASS** |
 | ~~INFRA-002 CI/CDパイプライン~~ | ~~Week 8~~ | ✅ **COMPLETE** |
 | ~~INFRA-003 Sepoliaデプロイ準備~~ | ~~Week 8~~ | ✅ **COMPLETE** |
-| ~~TEST-021 デプロイテスト~~ | ~~Week 8~~ | ✅ **COMPLETE** |
-| ~~TEST-022 マルチネットワーク~~ | ~~Week 8~~ | ✅ **COMPLETE** |
-| ~~DOC-001 Phase 2.3計画~~ | ~~Week 8~~ | ✅ **COMPLETE** |
 | ~~PIR-P2-007 PIR会議~~ | ~~Week 8~~ | ✅ **PASS** |
-| **Phase 2.3 Gas最適化** | **Week 9-12** | 🔜 **NEXT** |
+| **IMPL-009 BatchVerifier** | **Week 9** | ✅ **COMPLETE** |
+| **IMPL-010 SharedMerkle** | **Week 9** | ✅ **COMPLETE** |
+| **Phase 2.3 Gas最適化** | **Week 9-12** | 🔄 **IN PROGRESS** |
+| Sepoliaデプロイ | Week 9 | ⏳ 待機中 |
 | MS-1: ZK-STARK実装 | Month 9 | 🔄 |
 | 外部監査完了 | Month 10 | ⬜ |
 | MS-2: Phase 2 Gate | Month 12 | ⬜ |
@@ -273,7 +272,7 @@ Week 8 Status:                       ✅ COMPLETE - PIR-P2-007 PASS
 
 | 条件 | 基準 | 現状 | 判定 |
 |------|------|------|------|
-| ZK-STARK証明 | Gas 87.5%削減 | Phase 2.3計画策定完了 | 🔄 |
+| ZK-STARK証明 | Gas 87.5%削減 | BatchVerifier v0.1完了 | 🔄 |
 | 外部監査 | Critical/High 0件 | RFP作成完了 | 🔄 |
 | Slither | HIGH 0件 | ✅ **0件** | ✅ |
 | Slither | MEDIUM 0件 | ✅ **0件** | ✅ |
@@ -295,6 +294,7 @@ Week 8 Status:                       ✅ COMPLETE - PIR-P2-007 PASS
 | **ZK-STARK実装計画** | `docs/planning/ZK_STARK_IMPLEMENTATION_PLAN.md` |
 | **Phase 2 Checklist** | `docs/planning/PHASE2_CHECKLIST.md` |
 | **Phase 2.3計画** | `docs/planning/PHASE2_3_PLAN.md` |
+| **BatchVerifier仕様** | `docs/planning/BATCH_VERIFICATION_SPEC.md` |
 | **外部監査RFP草案** | `docs/planning/AUDIT_RFP_DRAFT.md` |
 | **PIR-P2-007** | `docs/aegis/pir/PIR-P2-007.md` |
 
@@ -306,7 +306,9 @@ Week 8 Status:                       ✅ COMPLETE - PIR-P2-007 PASS
 
 **Phase 2 Week 8: ✅ COMPLETE - PIR-P2-007 PASS 🎉**
 
-**Next: Phase 2.3 Gas最適化 (Week 9 開始)**
+**Phase 2 Week 9: 🔄 IN PROGRESS - BatchVerifier実装完了**
+
+**Next: テスト実行 → セキュリティレビュー**
 
 ---
 
