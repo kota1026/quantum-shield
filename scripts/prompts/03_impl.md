@@ -148,3 +148,152 @@ forge test
 ### 次のステップ
 → ④ セキュリティレビュー
 ```
+
+---
+
+## 7. テスト失敗時のトラブルシューティング
+
+テストが失敗した場合、以下の手順で問題を特定・修正してください。
+
+### Step 7.1: Git同期確認（最優先）
+
+⚠️ **ローカルで失敗する前に必ず確認**
+
+```bash
+cd ~/quantum-shield
+git fetch origin
+git pull origin dev/phase2-native-stark
+cd contracts
+forge clean
+forge test -vvv
+```
+
+**チェックポイント:**
+- `No files changed, compilation skipped` → ローカルが古い可能性あり
+- 必ず `git pull` 後に `forge clean` を実行
+
+### Step 7.2: 失敗テストの特定
+
+```bash
+# 特定のテストのみ実行（詳細トレース付き）
+forge test --match-test [テスト名] -vvvv
+
+# テストコントラクト単位で実行
+forge test --match-contract [コントラクト名] -vvv
+```
+
+### Step 7.3: Foundryタイムスタンプテストの注意点
+
+`vm.warp()` を使用するテストで頻出する問題：
+
+#### 問題1: 共有ベースタイム
+```solidity
+// ❌ BAD: ループ内で同じbaseTimeを使用
+uint256 baseTime = block.timestamp;
+for (uint256 i = 0; i < 10; i++) {
+    vm.warp(baseTime + i * 1 hours);  // baseTimeが変わらない
+}
+
+// ✅ GOOD: イテレーションごとに独立したベースタイム
+for (uint256 i = 0; i < 10; i++) {
+    uint256 iterationBase = 1000 + (i * 100000);
+    vm.warp(iterationBase + 1 hours);
+}
+```
+
+#### 問題2: 変数の再代入と再計算
+```solidity
+// ❌ BAD: warp後に変数を再計算しない
+uint256 timeElapsed = block.timestamp - startTime;
+vm.warp(block.timestamp + 72 hours);
+// timeElapsedは古い値のまま！
+
+// ✅ GOOD: warp後に明示的に再計算
+vm.warp(block.timestamp + 72 hours);
+timeElapsed = block.timestamp - startTime;  // 再計算
+```
+
+#### 問題3: 複雑なテストの分割
+```solidity
+// ❌ BAD: 1つのテストで複数の時間境界をテスト
+function test_TimeoutDetection() public {
+    // 72時間前のテスト
+    vm.warp(baseTime + 72 hours - 1);
+    // ... assertions ...
+    
+    // 72時間後のテスト（変数の状態が不明確）
+    vm.warp(baseTime + 72 hours + 1);
+    // ... assertions ...
+}
+
+// ✅ GOOD: 別々のテストに分割
+function test_TimeoutDetection_Before72h() public {
+    vm.warp(baseTime + 72 hours - 1);
+    // ... assertions ...
+}
+
+function test_TimeoutDetection_After72h() public {
+    vm.warp(baseTime + 72 hours + 1);
+    // ... assertions ...
+}
+```
+
+### Step 7.4: テスト修正のコミット規約
+
+```bash
+# テスト修正用のコミットプレフィックス
+git commit -m "fix(test): [具体的な修正内容]"
+
+# 例
+git commit -m "fix(test): use independent base times per iteration"
+git commit -m "fix(test): split TimeoutDetection into separate tests"
+git commit -m "fix(test): recalculate timeElapsed after vm.warp"
+```
+
+### Step 7.5: 修正後の検証
+
+```bash
+# 1. 全テスト実行
+forge test -vvv
+
+# 2. Slither分析
+slither . 2>&1 | head -50
+
+# 3. GitHubにプッシュ
+git push origin dev/phase2-native-stark
+```
+
+---
+
+## 8. 実装時のベストプラクティス（追加学習）
+
+### 8.1 テストコードの品質
+
+| 原則 | 説明 |
+|------|------|
+| **単一責任** | 1テスト = 1つの検証項目 |
+| **独立性** | テスト間で状態を共有しない |
+| **明示性** | マジックナンバーを避け、名前付き定数を使用 |
+| **境界テスト** | 境界条件は別テストに分離 |
+
+### 8.2 デバッグ用アサーション
+
+```solidity
+// デバッグ時に中間値を確認
+console.log("baseTime:", baseTime);
+console.log("target:", target);
+console.log("timeElapsed:", timeElapsed);
+
+// 期待値を明示的にアサート
+assertEq(timeElapsed, 72 hours + 1, "Time elapsed should be 72h + 1");
+assertGt(timeElapsed, 72 hours, "Should be greater than 72h");
+```
+
+### 8.3 テスト失敗時のチェックリスト
+
+- [ ] ローカルがGitHubと同期しているか？
+- [ ] `forge clean` を実行したか？
+- [ ] 失敗するテストを `-vvvv` で実行してトレースを確認したか？
+- [ ] `vm.warp()` 後に関連変数を再計算しているか？
+- [ ] 複雑な時間テストを分割できないか？
+- [ ] テストが他のテストの状態に依存していないか？
