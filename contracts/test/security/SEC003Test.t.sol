@@ -29,7 +29,8 @@ contract SEC003Test is Test {
         address indexed sender,
         uint256 amount,
         bytes32 dilithiumPubKeyHash,
-        uint256 nonce
+        uint256 nonce,
+        address intendedRecipient
     );
 
     function setUp() public {
@@ -47,9 +48,9 @@ contract SEC003Test is Test {
     /// @notice Verify lock() still creates locks correctly after SHA3_256 migration
     function test_SEC003_01_Lock_FunctionalityPreserved() public {
         vm.prank(user);
-        bytes32 lockId = shield.lock{value: 1 ether}(testPubKeyHash);
+        bytes32 lockId = shield.lock{value: 1 ether}(testPubKeyHash, recipient);
 
-        (address sender, uint256 amount, bytes32 pkHash, uint256 timestamp, bool released) =
+        (address sender, uint256 amount, bytes32 pkHash, uint256 timestamp, bool released, address intendedRecip) =
             shield.getLock(lockId);
 
         assertEq(sender, user, "Sender should match");
@@ -57,6 +58,7 @@ contract SEC003Test is Test {
         assertEq(pkHash, testPubKeyHash, "PubKeyHash should match");
         assertEq(timestamp, block.timestamp, "Timestamp should match");
         assertFalse(released, "Should not be released");
+        assertEq(intendedRecip, recipient, "Intended recipient should match");
         assertEq(shield.totalLocked(), 1 ether, "Total locked should be 1 ether");
     }
 
@@ -64,9 +66,9 @@ contract SEC003Test is Test {
     function test_SEC003_01_Lock_UniqueIDs() public {
         vm.startPrank(user);
         
-        bytes32 lockId1 = shield.lock{value: 1 ether}(testPubKeyHash);
-        bytes32 lockId2 = shield.lock{value: 1 ether}(testPubKeyHash);
-        bytes32 lockId3 = shield.lock{value: 2 ether}(testPubKeyHash);
+        bytes32 lockId1 = shield.lock{value: 1 ether}(testPubKeyHash, recipient);
+        bytes32 lockId2 = shield.lock{value: 1 ether}(testPubKeyHash, recipient);
+        bytes32 lockId3 = shield.lock{value: 2 ether}(testPubKeyHash, recipient);
 
         vm.stopPrank();
 
@@ -79,7 +81,7 @@ contract SEC003Test is Test {
     function test_SEC003_01_Lock_RevertOnZeroValue() public {
         vm.prank(user);
         vm.expectRevert(QuantumShield.InsufficientAmount.selector);
-        shield.lock{value: 0}(testPubKeyHash);
+        shield.lock{value: 0}(testPubKeyHash, recipient);
     }
 
     /// @notice Verify pause functionality still works
@@ -88,7 +90,7 @@ contract SEC003Test is Test {
 
         vm.prank(user);
         vm.expectRevert(QuantumShield.Paused.selector);
-        shield.lock{value: 1 ether}(testPubKeyHash);
+        shield.lock{value: 1 ether}(testPubKeyHash, recipient);
     }
 
     // =========================================================================
@@ -103,15 +105,16 @@ contract SEC003Test is Test {
         uint256 amount = 1 ether;
 
         vm.prank(user);
-        bytes32 actualLockId = shield.lock{value: amount}(testPubKeyHash);
+        bytes32 actualLockId = shield.lock{value: amount}(testPubKeyHash, recipient);
 
-        // Compute expected lockId using SHA3_256
+        // Compute expected lockId using SHA3_256 (now includes recipient)
         bytes32 expectedLockId = SHA3_256.hash(abi.encodePacked(
             user,
             amount,
             testPubKeyHash,
             nonceBefore,
-            timestamp
+            timestamp,
+            recipient
         ));
 
         assertEq(actualLockId, expectedLockId, "lockId should be computed with SHA3_256");
@@ -124,7 +127,7 @@ contract SEC003Test is Test {
         uint256 amount = 1 ether;
 
         vm.prank(user);
-        bytes32 actualLockId = shield.lock{value: amount}(testPubKeyHash);
+        bytes32 actualLockId = shield.lock{value: amount}(testPubKeyHash, recipient);
 
         // Compute what keccak256 would produce (should NOT match)
         bytes32 keccakLockId = keccak256(abi.encodePacked(
@@ -132,7 +135,8 @@ contract SEC003Test is Test {
             amount,
             testPubKeyHash,
             nonceBefore,
-            timestamp
+            timestamp,
+            recipient
         ));
 
         assertTrue(actualLockId != keccakLockId, "lockId should NOT use keccak256 (CP-1 violation)");
@@ -146,7 +150,8 @@ contract SEC003Test is Test {
             uint256(1 ether),
             testPubKeyHash,
             uint256(0),
-            block.timestamp
+            block.timestamp,
+            recipient
         );
 
         bytes32 hash1 = SHA3_256.hash(data);
@@ -165,7 +170,7 @@ contract SEC003Test is Test {
         shield.setVerificationLevel(false);
 
         vm.prank(user);
-        bytes32 lockId = shield.lock{value: 1 ether}(testPubKeyHash);
+        bytes32 lockId = shield.lock{value: 1 ether}(testPubKeyHash, recipient);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether);
         QuantumShield.StarkProof memory proof = _createMinimalProof();
@@ -200,7 +205,7 @@ contract SEC003Test is Test {
     function test_SEC003_03_LockDataIntegrity() public {
         bytes32 lockId = _createLock(2.5 ether);
 
-        (address sender, uint256 amount, bytes32 pkHash, uint256 timestamp, bool released) =
+        (address sender, uint256 amount, bytes32 pkHash, uint256 timestamp, bool released, address intendedRecip) =
             shield.getLock(lockId);
 
         assertEq(sender, user, "Sender preserved");
@@ -208,6 +213,7 @@ contract SEC003Test is Test {
         assertEq(pkHash, testPubKeyHash, "PubKeyHash preserved");
         assertGt(timestamp, 0, "Timestamp set");
         assertFalse(released, "Not released");
+        assertEq(intendedRecip, recipient, "Intended recipient preserved");
     }
 
     // =========================================================================
@@ -283,7 +289,7 @@ contract SEC003Test is Test {
         uint256 gasBefore = gasleft();
         
         vm.prank(user);
-        shield.lock{value: 1 ether}(testPubKeyHash);
+        shield.lock{value: 1 ether}(testPubKeyHash, recipient);
         
         uint256 gasUsed = gasBefore - gasleft();
         
@@ -307,7 +313,7 @@ contract SEC003Test is Test {
         
         for (uint256 i = 0; i < numLocks; i++) {
             uint256 gasBefore = gasleft();
-            shield.lock{value: 0.1 ether}(testPubKeyHash);
+            shield.lock{value: 0.1 ether}(testPubKeyHash, recipient);
             totalGas += gasBefore - gasleft();
         }
         
@@ -326,7 +332,8 @@ contract SEC003Test is Test {
             uint256(1 ether),
             bytes32(0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef),
             uint256(0),
-            uint256(1234567890)
+            uint256(1234567890),
+            address(0xCAFE)
         );
 
         // Measure keccak256
@@ -362,16 +369,16 @@ contract SEC003Test is Test {
         uint256 amount = 1 ether;
 
         vm.prank(user);
-        bytes32 lockId = shield.lock{value: amount}(testPubKeyHash);
+        bytes32 lockId = shield.lock{value: amount}(testPubKeyHash, recipient);
 
         // If the contract still used keccak256, this would be the lockId
         bytes32 keccakId = keccak256(abi.encodePacked(
-            user, amount, testPubKeyHash, nonce, timestamp
+            user, amount, testPubKeyHash, nonce, timestamp, recipient
         ));
 
         // If the contract correctly uses SHA3_256, this would be the lockId
         bytes32 sha3Id = SHA3_256.hash(abi.encodePacked(
-            user, amount, testPubKeyHash, nonce, timestamp
+            user, amount, testPubKeyHash, nonce, timestamp, recipient
         ));
 
         assertEq(lockId, sha3Id, "Contract should use SHA3_256");
@@ -385,7 +392,7 @@ contract SEC003Test is Test {
     function _createLock(uint256 amount) internal returns (bytes32) {
         vm.deal(user, amount);
         vm.prank(user);
-        return shield.lock{value: amount}(testPubKeyHash);
+        return shield.lock{value: amount}(testPubKeyHash, recipient);
     }
 
     function _createValidPublicInputs(bytes32 lockId, uint256 amount)
