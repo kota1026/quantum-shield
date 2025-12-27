@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {SHA3_256} from "../libraries/SHA3_256.sol";
 import {SHA3Hasher} from "../libraries/SHA3Hasher.sol";
 
 /**
