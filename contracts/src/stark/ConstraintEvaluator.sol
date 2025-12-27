@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import {SHA3Hasher} from "../libraries/SHA3Hasher.sol";
-import {AIRConstraints} from "./AIRConstraints.sol";
 
 /**
  * @title ConstraintEvaluator
@@ -316,13 +315,13 @@ contract ConstraintEvaluator {
      * @dev Checks that constraint evaluations are consistent with degree bound
      * @param evaluations Constraint evaluations at random points
      * @param maxDegree Maximum allowed polynomial degree
-     * @param domainSize Size of evaluation domain
+     * @param domainSize Size of evaluation domain (reserved for future use)
      * @return valid True if degree bound is satisfied
      */
     function verifyDegreeBound(
         uint256[] memory evaluations,
         uint256 maxDegree,
-        uint256 domainSize
+        uint256 /* domainSize - reserved for v0.2 degree-domain ratio checks */
     ) public pure returns (bool valid) {
         // For degree d polynomial, we need d+1 points to uniquely determine it
         // If evaluations at random points are consistent with degree maxDegree,
