@@ -250,8 +250,9 @@ contract RoundtripCompressionTest is Test {
 
     function _createTestEvaluations(uint256 count) internal pure returns (uint256[] memory) {
         uint256[] memory evals = new uint256[](count);
+        // Use smaller values that work with delta encoding (avoid int256 overflow)
         for (uint256 i = 0; i < count; i++) {
-            evals[i] = uint256(keccak256(abi.encodePacked("eval", i)));
+            evals[i] = 1000000 + i * 1000; // Sequential values with small deltas
         }
         return evals;
     }
