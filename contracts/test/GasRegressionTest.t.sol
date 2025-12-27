@@ -19,6 +19,9 @@ import {ProofCodec} from "../src/libraries/ProofCodec.sol";
  * @notice Gas regression tests for STARK verification components
  * @dev TEST-030: Ensures Gas targets are maintained after v1.0 integration
  *
+ * ## CP-1 Compliance
+ * All tests use SHA3-256 exclusively, no keccak256
+ *
  * ## Gas Targets - REALISTIC VALUES
  * 
  * ### Constraints
@@ -349,7 +352,7 @@ contract GasRegressionTest is Test {
     // TEST-030-05: Commitment Verification Gas
     // =========================================================================
 
-    function test_GasRegression_VerifyTraceCommitment() public {
+    function test_GasRegression_VerifyTraceCommitment() public view {
         bytes32 traceRoot = SHA3Hasher.hash(abi.encodePacked("trace_root"));
         bytes32 expectedCommitment = SHA3Hasher.hash(abi.encodePacked(traceRoot));
 
@@ -361,7 +364,7 @@ contract GasRegressionTest is Test {
         assertLt(gasUsed, VERIFY_COMMITMENT_TARGET, "verifyTraceCommitment exceeds target");
     }
 
-    function test_GasRegression_VerifyConstraintCommitment() public {
+    function test_GasRegression_VerifyConstraintCommitment() public view {
         bytes32 constraintRoot = SHA3Hasher.hash(abi.encodePacked("constraint_root"));
         bytes32 expectedCommitment = SHA3Hasher.hash(abi.encodePacked(constraintRoot));
 
@@ -379,7 +382,7 @@ contract GasRegressionTest is Test {
 
     function test_GasRegression_VerifyProof() public {
         ProofCodec.STARKProof memory proof = _createValidProof();
-        bytes32 publicInput = keccak256("test_public_input");
+        bytes32 publicInput = SHA3Hasher.hash(abi.encodePacked("test_public_input"));
 
         uint256 gasBefore = gasleft();
         verifier.verifyProof(proof, publicInput);
@@ -546,18 +549,22 @@ contract GasRegressionTest is Test {
         return gasBefore - gasleft();
     }
 
+    /**
+     * @notice Create a valid proof structure using SHA3-256 (CP-1 compliant)
+     * @dev All hash operations use SHA3Hasher.hash() instead of keccak256
+     */
     function _createValidProof() internal pure returns (ProofCodec.STARKProof memory proof) {
-        proof.traceCommitment = keccak256("trace");
-        proof.constraintCommitment = keccak256("constraint");
+        proof.traceCommitment = SHA3Hasher.hash(abi.encodePacked("trace"));
+        proof.constraintCommitment = SHA3Hasher.hash(abi.encodePacked("constraint"));
         
         proof.friCommitments = new bytes32[](4);
         for (uint256 i = 0; i < 4; i++) {
-            proof.friCommitments[i] = keccak256(abi.encodePacked("fri", i));
+            proof.friCommitments[i] = SHA3Hasher.hash(abi.encodePacked("fri", i));
         }
         
         proof.friChallenges = new uint256[](4);
         for (uint256 i = 0; i < 4; i++) {
-            proof.friChallenges[i] = uint256(keccak256(abi.encodePacked("challenge", i)));
+            proof.friChallenges[i] = uint256(SHA3Hasher.hash(abi.encodePacked("challenge", i)));
         }
         
         proof.queryIndices = new uint256[](80);
