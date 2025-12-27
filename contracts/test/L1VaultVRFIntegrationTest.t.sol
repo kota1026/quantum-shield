@@ -223,22 +223,25 @@ contract L1VaultVRFIntegrationTest is Test {
     }
 
     /// @notice Test: 72h timeout detection accuracy
+    /// @dev Fixed: Capture initialTime before any operations and use it consistently
     function test_INTEG004_TimeoutDetectionAccuracy() public {
+        // Capture initial time BEFORE any operations
+        uint256 initialTime = block.timestamp;
+        
         // Create lock and simulate unlock request
         vm.prank(user);
         l1Vault.lock{value: 1 ether}(recipient, dilithiumPubKey);
         
-        // Warp time to 72h - 1 second
-        uint256 startTime = block.timestamp;
-        vm.warp(startTime + 72 hours - 1);
+        // Warp time to 72h - 1 second from initial time
+        vm.warp(initialTime + 72 hours - 1);
         
         // Should not trigger emergency yet (just under threshold)
-        uint256 timeElapsed = block.timestamp - startTime;
+        uint256 timeElapsed = block.timestamp - initialTime;
         assertLt(timeElapsed, 72 hours, "Time should be less than 72h");
         
-        // Warp 2 more seconds (now past 72h)
-        vm.warp(startTime + 72 hours + 1);
-        timeElapsed = block.timestamp - startTime;
+        // Warp to past 72h from initial time
+        vm.warp(initialTime + 72 hours + 1);
+        timeElapsed = block.timestamp - initialTime;
         assertGt(timeElapsed, 72 hours, "Time should be greater than 72h");
     }
 
