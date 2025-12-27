@@ -249,7 +249,7 @@ contract STARKVerifierE2ETest is Test {
         
         // Element at index 0 should be 1
         uint256 elem0 = verifier.computeDomainElement(0, domainSize);
-        assertEq(elem0, 1, "ω^0 should be 1");
+        assertEq(elem0, 1, "omega^0 should be 1");
 
         // Elements should be in field
         uint256 elem10 = verifier.computeDomainElement(10, domainSize);
