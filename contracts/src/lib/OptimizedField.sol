@@ -57,18 +57,18 @@ library OptimizedField {
     // =========================================================================
 
     /**
-     * @notice Compute base^exp mod modulus using the EVM precompile
+     * @notice Compute base^exponent mod modulus using the EVM precompile
      * @dev Uses precompile at 0x05 for gas efficiency
      * @param base The base value
-     * @param exp The exponent
+     * @param exponent The exponent
      * @param modulus The modulus (must be > 0)
-     * @return result base^exp mod modulus
+     * @return result base^exponent mod modulus
      */
-    function modExp(uint256 base, uint256 exp, uint256 modulus) internal view returns (uint256 result) {
+    function modExp(uint256 base, uint256 exponent, uint256 modulus) internal view returns (uint256 result) {
         // Special cases
         if (modulus == 0) return 0;
         if (modulus == 1) return 0;
-        if (exp == 0) return 1;
+        if (exponent == 0) return 1;
         if (base == 0) return 0;
         
         // Use precompile for efficiency
@@ -78,7 +78,7 @@ library OptimizedField {
             uint256(32),    // Exponent length
             uint256(32),    // Modulus length
             base,
-            exp,
+            exponent,
             modulus
         );
 
@@ -100,7 +100,7 @@ library OptimizedField {
                 // This shouldn't happen on mainnet but provides safety
                 result := 1
                 let b := mod(base, modulus)
-                let e := exp
+                let e := exponent
                 
                 for {} gt(e, 0) {} {
                     if and(e, 1) {
@@ -364,12 +364,12 @@ library OptimizedField {
     /**
      * @notice Modular exponentiation (alias for modExp)
      * @param base The base
-     * @param exp The exponent
+     * @param exponent The exponent
      * @param m The modulus
-     * @return result base^exp mod m
+     * @return result base^exponent mod m
      */
-    function pow(uint256 base, uint256 exp, uint256 m) internal view returns (uint256 result) {
-        return modExp(base, exp, m);
+    function pow(uint256 base, uint256 exponent, uint256 m) internal view returns (uint256 result) {
+        return modExp(base, exponent, m);
     }
 
     // =========================================================================
@@ -385,8 +385,8 @@ library OptimizedField {
      */
     function isQuadraticResidue(uint256 a, uint256 p) internal view returns (bool isQR) {
         if (a == 0) return true;
-        uint256 exp = (p - 1) / 2;
-        uint256 result = modExp(a, exp, p);
+        uint256 exponent = (p - 1) / 2;
+        uint256 result = modExp(a, exponent, p);
         return result == 1;
     }
 
