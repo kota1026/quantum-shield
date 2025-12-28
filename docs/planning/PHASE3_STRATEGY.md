@@ -45,6 +45,56 @@
 
 ---
 
+## 🔗 L3基盤決定
+
+> **決定日**: 2025-12-28  
+> **決議記録**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+
+### 技術選定結果
+
+| 項目 | 決定 |
+|------|------|
+| L3構成 | 独自4ノードBFTチェーン |
+| 実装 | l3-aegis (Rust) |
+| 合意方式 | PBFT variant (f=1) |
+| ZK-STARK | 使用しない（将来検討） |
+| L1検証 | SPHINCS+直接検証 (~$25) |
+
+### 決定の理由
+
+1. **透明性(CP-5)**: 全操作がL3ブロックに記録される
+2. **署名否認防止**: Prover署名がL3トランザクションとして記録
+3. **量子耐性(CP-1)**: 独自構築で完全制御
+4. **既存設計との整合**: SEQUENCES v2.0と完全一致
+
+### 除外した選択肢とその理由
+
+| 選択肢 | 除外理由 |
+|--------|---------|
+| Rollup + ZK-STARK | 透明性欠如、SPHINCS+ AIR化で証明時間数分 |
+| Cosmos SDK | Go言語がl3-aegis(Rust)と不整合 |
+| Substrate | CP-1改造が複雑 |
+| SP1/Risc Zero | Sequencer構成で透明性欠如 |
+
+### 6観点評価サマリー
+
+| 観点 | 評価 |
+|------|------|
+| ①ZK必要か | 今は不要（将来検討） |
+| ②独自基盤必要か | ✅ 必要（透明性確保） |
+| ③証明時間 | ✅ 0秒（ZKなし） |
+| ④ガス代 | ~$25（SPHINCS+直接検証） |
+| ⑤開発コスト | ✅ 最小（既存設計流用） |
+| ⑥量子耐性 | ✅ 完全（二重保護） |
+
+### 次のアクション
+
+1. L3詳細仕様の策定（`docs/aegis/L3_CHAIN_SPECIFICATION.md`）
+2. l3-aegis実装の継続
+3. Phase 4でZK-STARK再検討
+
+---
+
 ## 🎯 Core Layer設計
 
 | コンポーネント | 仕様 |
@@ -108,7 +158,7 @@
 |-------|------|------|
 | **3.1** | Month 10-12 | Foundation（Core開発、Modular基盤） |
 | **3.2** | Month 13-15 | Implementation（Bridge、Sequencer、Pluggable Layer） |
-| **3.3** | Month 16-18 | Testing & Launch（監査、Testnet） |
+| **3.3** | Month 16-18 | Testing &amp; Launch（監査、Testnet） |
 
 ---
 
@@ -117,6 +167,8 @@
 | ドキュメント | パス |
 |------------|------|
 | 最終決議書 | `agents/meetings/phase3_strategy/round8_final/FINAL_RESOLUTION_v3.md` |
+| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` |
+| L3詳細仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` |
 | Round 7分析 | `agents/meetings/phase3_strategy/round7_devils_advocate/analysis.md` |
 | Round 6再審議 | `agents/meetings/phase3_strategy/round6_redeliberation/` |
 | Round 1-5 | `agents/meetings/phase3_strategy/round1_reports/` ~ `round5_resolution/` |
@@ -129,7 +181,7 @@
 
 | プロンプト | 参照目的 |
 |-----------|---------|
-| `01_plan.md` | Phase 3スコープ確認、CP準拠確認 |
+| `01_plan.md` | Phase 3スコープ確認、CP準拠確認、L3基盤確認 |
 | `02_spec.md` | アーキテクチャ仕様参照 |
 | `03_impl.md` | Modular設計準拠確認 |
 | `04_review.md` | CP保護レベル確認 |
