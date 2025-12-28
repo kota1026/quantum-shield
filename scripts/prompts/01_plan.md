@@ -10,10 +10,21 @@
 - Active Checklist（現在のチェックリストパス）
 - ブロッカー / 懸念事項
 
-## 2.5 戦略ドキュメントの確認（Phase 3以降必須）
+## 2.5 仕様書・戦略ドキュメントの確認（必須）
 
-### Phase 3の場合
-以下のドキュメントを確認し、戦略決議に準拠した計画を立てること：
+### 共通（全Phase）
+以下のドキュメントを確認し、原理原則に準拠した計画を立てること：
+
+1. **仕様書-戦略ブリッジ**
+   - `docs/planning/SPEC_STRATEGY_BRIDGE.md`
+   - ドキュメント階層、Phase-Mode対応表、Sequence-Layer対応
+
+2. **原理原則仕様（参照用）**
+   - `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` - Sequence定義
+   - `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` - 全体仕様
+
+### Phase 3の場合（追加）
+以下のドキュメントを追加確認：
 
 1. **Phase 3戦略サマリー**
    - `docs/planning/PHASE3_STRATEGY.md`
@@ -26,11 +37,17 @@
 3. **最終決議書（詳細参照時）**
    - `agents/meetings/phase3_strategy/round8_final/FINAL_RESOLUTION_v3.md`
 
-### 戦略準拠チェック
+### 仕様書準拠チェック
 計画作成時に以下を確認：
+- [ ] 実装対象のSequenceを特定したか？（SPEC_STRATEGY_BRIDGE §3参照）
+- [ ] Sequence-Layer対応を確認したか？
+- [ ] セキュリティ要件を把握したか？（SPEC_STRATEGY_BRIDGE §5参照）
+
+### 戦略準拠チェック（Phase 3以降）
 - [ ] 独自L3 (l3-aegis) 前提か？
 - [ ] Modular Architecture（Core/Governance/Token Layer）を考慮しているか？
 - [ ] 必須リスク緩和策（監査、TVL制限、Bug Bounty等）を含んでいるか？
+- [ ] モード組み合わせ制約を守っているか？（SPEC_STRATEGY_BRIDGE §2.2参照）
 
 ## 2.6 レビュー課題の確認（必須）
 
@@ -77,6 +94,20 @@ CURRENT_STATEに記載されている「Active Checklist」を読み込んでく
 ## 対象チェックリスト
 [Active Checklistのパス]
 
+## 仕様書参照（必須）
+
+> 参照: `docs/planning/SPEC_STRATEGY_BRIDGE.md`
+
+### 対象Sequence
+| Sequence | 実装Layer | 仕様書参照箇所 |
+|----------|----------|---------------|
+| #X | Core/Governance/Token | SEQUENCES §X |
+
+### セキュリティ要件
+| 要件 | 仕様書出典 | 実装方法 |
+|------|----------|---------|
+| [要件] | SEQ#X / UNIFIED §X | [方法] |
+
 ## 戦略準拠確認（Phase 3以降）
 
 > 参照: `docs/planning/PHASE3_STRATEGY.md`
@@ -84,6 +115,7 @@ CURRENT_STATEに記載されている「Active Checklist」を読み込んでく
 - [ ] L3スタック: 独自L3 (l3-aegis) 前提
 - [ ] アーキテクチャ: Modular (Core/Governance/Token Layer)
 - [ ] リスク緩和: [該当する緩和策]
+- [ ] モード制約: [許可されたモード組み合わせ]
 
 ## 前回レビュー課題（該当時のみ）
 
@@ -108,10 +140,13 @@ CURRENT_STATEに記載されている「Active Checklist」を読み込んでく
 - [ ] ...
 
 ### 参照ドキュメント
-- 戦略: `docs/planning/PHASE3_STRATEGY.md`
-- 仕様: `docs/specs/MODULAR_ARCHITECTURE.md`
-- Sequence: [参照Sequenceのパス]
-- その他: [その他参照ドキュメント]
+| 種類 | ドキュメント | 参照セクション |
+|------|------------|---------------|
+| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5 |
+| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #X |
+| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | [該当箇所] |
+| 戦略 | `docs/planning/PHASE3_STRATEGY.md` | [該当箇所] |
+| Modular仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` | [該当箇所] |
 
 ## 成果物
 | ファイル | 説明 |
