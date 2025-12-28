@@ -1,0 +1,11 @@
+[package]
+name = "aegis-prover"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aegis-core = { path = "../aegis-core" }
+aegis-crypto = { path = "../aegis-crypto" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }

@@ -1,0 +1,21 @@
+[package]
+name = "aegis-node"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aegis-core = { path = "../aegis-core" }
+aegis-consensus = { path = "../aegis-consensus" }
+aegis-crypto = { path = "../aegis-crypto" }
+aegis-smt = { path = "../aegis-smt" }
+aegis-l1-sync = { path = "../aegis-l1-sync" }
+aegis-prover = { path = "../aegis-prover" }
+aegis-api = { path = "../aegis-api" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+
+[[bin]]
+name = "aegis-node"
+path = "src/main.rs"
