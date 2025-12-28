@@ -37,6 +37,39 @@
 3. **最終決議書（詳細参照時）**
    - `agents/meetings/phase3_strategy/round8_final/FINAL_RESOLUTION_v3.md`
 
+### Phase 3の場合（L3基盤関連）
+
+以下の技術決定を確認すること：
+
+#### L3基盤技術選定（2025-12-28決議）
+
+| 項目 | 決定 |
+|------|------|
+| L3構成 | 独自4ノードBFTチェーン |
+| 実装 | l3-aegis (Rust) |
+| ZK-STARK | 使用しない（将来検討） |
+| L1検証 | SPHINCS+直接検証 |
+
+#### 参照ドキュメント
+
+- **決議記録**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+- **詳細仕様**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
+
+#### 制約事項
+
+⚠️ **以下は現時点で承認されていない**：
+- Rollup構成やSequencer導入
+- ZK-STARK導入
+- 外部フレームワーク（Cosmos, Substrate, SP1等）の採用
+
+これらを検討する場合は、エージェント会議での再決議が必要。
+
+#### 計画立案時の確認事項
+
+1. L3関連タスクは既存設計（SEQUENCES v2.0）に準拠しているか
+2. l3-aegis（独自構築）の範囲内か
+3. CP-1（量子耐性）とCP-5（透明性）を満たしているか
+
 ### 仕様書準拠チェック
 計画作成時に以下を確認：
 - [ ] 実装対象のSequenceを特定したか？（SPEC_STRATEGY_BRIDGE §3参照）
@@ -117,6 +150,15 @@ CURRENT_STATEに記載されている「Active Checklist」を読み込んでく
 - [ ] リスク緩和: [該当する緩和策]
 - [ ] モード制約: [許可されたモード組み合わせ]
 
+## L3基盤確認（Phase 3のL3関連タスク）
+
+> 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+
+- [ ] 独自4ノードBFTチェーン前提か
+- [ ] l3-aegis (Rust) の範囲内か
+- [ ] SEQUENCES v2.0に準拠しているか
+- [ ] CP-1/CP-5を満たしているか
+
 ## 前回レビュー課題（該当時のみ）
 
 > CURRENT_STATE.mdより自動取得
@@ -147,6 +189,8 @@ CURRENT_STATEに記載されている「Active Checklist」を読み込んでく
 | 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | [該当箇所] |
 | 戦略 | `docs/planning/PHASE3_STRATEGY.md` | [該当箇所] |
 | Modular仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` | [該当箇所] |
+| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
+| L3詳細仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | [該当箇所] |
 
 ## 成果物
 | ファイル | 説明 |
