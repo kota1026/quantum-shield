@@ -101,6 +101,8 @@ contract E2EIntegrationTest is Test {
         
         // Register 5 provers for 2/5 threshold
         vm.deal(owner, 10 ether);
+        vm.deal(user, 10 ether);
+        vm.deal(challenger, 10 ether);
         vault.registerProver{value: 1 ether}(prover1, SPHINCS_PUBKEY);
         vault.registerProver{value: 1 ether}(prover2, SPHINCS_PUBKEY);
         vault.registerProver{value: 1 ether}(prover3, _generatePublicKey(3));

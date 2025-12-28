@@ -1,0 +1,1053 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {Pausable} from "lib/openzeppelin-contracts/contracts/utils/Pausable.sol";
+import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
+import {StateRootCalculator} from "./libraries/StateRootCalculator.sol";
+import {SHA3_256} from "./libraries/SHA3_256.sol";
+
+/// @title L1Vault - Quantum Shield L1 Vault Contract
+/// @notice Phase 1.2 implementation with full SPHINCS+ verification integration
+/// @dev Implements lock/unlock with 24h time lock and emergency 7-day path
+///
+/// Sequence #3 Update: Full Emergency Unlock implementation with 72h timeout detection
+///
+/// FIX-001 Update (2025-12-24): SMT verification now uses SHA3-256 instead of keccak256
+/// for CP-1 compliance (complete quantum resistance). keccak256 is vulnerable to
+/// Grover's algorithm and is explicitly prohibited per CORE_PRINCIPLES.md.
+///
+/// FIX-008/009 Update (2025-12-24): Signature verification now uses SHA3-256
+/// for message hash and simplified verification hash. This completes the
+/// migration from keccak256 in all security-critical paths.
+///
+/// FIX-010/011/012/013 Update (2025-12-25): Complete keccak256 elimination.
+/// All remaining keccak256 usages (dilithiumPubKeyHash, sphincsPubKeyHash,
+/// fraudProofHash, defenseProofHash) replaced with SHA3_256.hash() for
+/// complete CP-1 compliance. L1Vault.sol now has ZERO keccak256 usage.
+///
+/// SEC-001 Update (2025-12-25): Applied CEI (Checks-Effects-Interactions) pattern
+/// to resolve reentrancy vulnerabilities identified by Slither analysis (SL-001 to SL-004).
+/// All state updates now occur BEFORE external calls.
+///
+/// SEC-001 FIX-002b Update (2025-12-25): Fixed remaining reentrancy in resolveChallenge().
+/// Emergency bond processing now occurs BEFORE _resolveValidChallenge() external calls.
+///
+/// SEC-002 Update (2025-12-25): Added OwnershipTransferred and SecurityCouncilUpdated
+/// events for improved auditability (FIX-005, FIX-006).
+///
+/// INFO-001 Update (2025-12-27): Fixed unused parameter lockId in _resolveValidChallenge
+/// for cleaner static analysis. Reserved for v0.2 audit logging feature.
+contract L1VaultTestnet is ReentrancyGuard, Pausable {
+    // =========================================================================
+    // Constants
+    // =========================================================================
+
+    uint256 public constant NORMAL_TIME_LOCK = 5 minutes;
+    uint256 public constant EMERGENCY_TIME_LOCK = 5 minutes;
+    uint256 public constant MIN_LOCK_AMOUNT = 0.01 ether;
+    uint256 public constant EMERGENCY_BOND_PERCENT = 5;
+    uint256 public constant MIN_EMERGENCY_BOND = 0.01 ether;
+    uint256 public constant REQUIRED_SIGNATURES = 2;
+    uint256 public constant TOTAL_PROVERS = 5;
+    uint256 public constant TVL_CAP = 400 ether;
+    uint256 public constant CHALLENGE_PERIOD = 12 hours;
+    uint256 public constant DEFENSE_PERIOD = 48 hours;
+    uint256 public constant MIN_CHALLENGE_BOND = 0.1 ether;
+    uint256 public constant CHALLENGE_BOND_PERCENT = 1;
+    uint256 public constant SLASH_CHALLENGER_PERCENT = 60;
+    uint256 public constant SLASH_INSURANCE_PERCENT = 20;
+    uint256 public constant SLASH_BURN_PERCENT = 20;
+    uint256 public constant DEFAULT_LOCK_EXPIRY = 24 hours;
+    
+    /// @notice Prover response timeout - triggers Emergency path
+    /// @dev Sequence #3: TRIG-001
+    uint256 public constant PROVER_TIMEOUT = 72 hours;
+
+    // =========================================================================
+    // Enums
+    // =========================================================================
+
+    enum LockStatus { ACTIVE, PENDING_UNLOCK, RELEASED, CHALLENGED, SLASHED, EMERGENCY_PENDING }
+    enum ChallengeStatus { NONE, PENDING, RESOLVED_VALID, RESOLVED_INVALID, DEFENSE_SUBMITTED }
+    
+    /// @notice Emergency unlock status tracking
+    /// @dev Sequence #3: Emergency state machine
+    enum EmergencyStatus { NONE, INITIATED, BOND_RECEIVED, MONITORING, FINALIZED }
+
+    // =========================================================================
+    // Structs
+    // =========================================================================
+
+    struct Lock {
+        address sender;
+        address recipient;
+        uint256 amount;
+        bytes32 dilithiumPubKeyHash;
+        uint256 lockedAt;
+        LockStatus status;
+        bytes32 stateRoot;
+        uint256 expiry;
+        uint256 nonce;
+    }
+
+    struct UnlockRequest {
+        bytes32 lockId;
+        address recipient;
+        uint256 amount;
+        bytes32 stateRoot;
+        bytes32 unlockStateRoot;
+        uint256 requestedAt;
+        uint256 unlockableAt;
+        bool isEmergency;
+        uint256 bond;
+        uint256 signatureCount;
+        uint256 unlockNonce;
+        /// @dev Sequence #3: Prover response tracking (TRIG-002)
+        uint256 proverRequestedAt;
+        /// @dev Sequence #3: Emergency unlock ready timestamp (TL7-004)
+        uint256 emergencyReadyAt;
+    }
+
+    struct Prover {
+        address proverAddress;
+        bytes32 sphincsPubKeyHash;
+        bytes sphincsPublicKey;
+        uint256 stakedAmount;
+        uint256 registeredAt;
+        bool isActive;
+        uint256 successfulSigns;
+        uint256 slashedCount;
+    }
+
+    struct Challenge {
+        bytes32 lockId;
+        address challenger;
+        bytes32 fraudProofHash;
+        uint256 challengedAt;
+        ChallengeStatus status;
+        uint256 bond;
+        uint256 defenseDeadline;
+        bytes32 defenseProofHash;
+        address defender;
+    }
+    
+    /// @notice Emergency unlock tracking structure
+    /// @dev Sequence #3: Complete emergency state tracking
+    struct EmergencyUnlock {
+        bytes32 lockId;
+        address initiator;
+        uint256 bondAmount;
+        uint256 initiatedAt;
+        uint256 emergencyReadyAt;
+        EmergencyStatus status;
+        bool enhancedMonitoring;
+        bool fromTimeout;
+    }
+
+    // =========================================================================
+    // Events
+    // =========================================================================
+
+    event Locked(bytes32 indexed lockId, address indexed sender, address indexed recipient, uint256 amount, bytes32 dilithiumPubKeyHash, bytes32 stateRoot);
+    event UnlockRequested(bytes32 indexed lockId, address indexed recipient, uint256 amount, uint256 unlockableAt, bool isEmergency, bytes32 unlockStateRoot);
+    event UnlockExecuted(bytes32 indexed lockId, address indexed recipient, uint256 amount);
+    event EmergencyUnlockRequested(bytes32 indexed lockId, address indexed recipient, uint256 amount, uint256 bond, uint256 unlockableAt);
+    event ChallengeFiled(bytes32 indexed lockId, address indexed challenger, bytes32 fraudProofHash, uint256 bond, uint256 defenseDeadline);
+    event DefenseSubmitted(bytes32 indexed lockId, address indexed defender, bytes32 defenseProofHash);
+    event ChallengeResolved(bytes32 indexed lockId, bool challengeValid, uint256 slashedAmount, uint256 challengerReward, uint256 insuranceAmount, uint256 burnedAmount);
+    event ProverRegistered(address indexed prover, bytes32 sphincsPubKeyHash, uint256 stake);
+    event ProverSlashed(address indexed prover, uint256 amount, bytes32 reason);
+    event StateRootUpdated(bytes32 indexed newRoot, uint256 indexed blockNumber);
+    event SPHINCSVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+    
+    /// @notice Emitted when ownership is transferred
+    /// @dev SEC-002 FIX-005: Added for auditability
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    
+    /// @notice Emitted when security council is updated
+    /// @dev SEC-002 FIX-006: Added for auditability
+    event SecurityCouncilUpdated(address indexed previousCouncil, address indexed newCouncil);
+    
+    /// @notice Emitted when Emergency unlock is initiated (manual or timeout)
+    /// @dev Sequence #3: EVT-001
+    event EmergencyUnlockInitiated(
+        bytes32 indexed lockId, 
+        address indexed initiator, 
+        bool fromTimeout,
+        uint256 timestamp
+    );
+    
+    /// @notice Emitted when Emergency bond is received
+    /// @dev Sequence #3: EVT-002
+    event EmergencyBondReceived(
+        bytes32 indexed lockId, 
+        address indexed payer, 
+        uint256 bondAmount,
+        uint256 requiredBond
+    );
+    
+    /// @notice Emitted when Emergency unlock is finalized
+    /// @dev Sequence #3: EVT-003
+    event EmergencyUnlockFinalized(
+        bytes32 indexed lockId, 
+        address indexed recipient, 
+        uint256 amount,
+        uint256 bondReturned,
+        bool wasSlashed
+    );
+    
+    /// @notice Emitted when enhanced monitoring is activated
+    /// @dev Sequence #3: MON-001
+    event EnhancedMonitoringActivated(bytes32 indexed lockId, uint256 timestamp);
+    
+    /// @notice Emitted when 72h prover timeout is detected
+    /// @dev Sequence #3: TRIG-001
+    event ProverTimeoutDetected(bytes32 indexed lockId, uint256 requestedAt, uint256 detectedAt);
+
+    // =========================================================================
+    // Errors
+    // =========================================================================
+
+    error InsufficientAmount();
+    error TVLCapExceeded();
+    error LockNotFound();
+    error LockAlreadyReleased();
+    error UnlockNotReady();
+    error UnlockAlreadyRequested();
+    error TransferFailed();
+    error NotOwner();
+    error ZeroAddress();
+    error InvalidSignatures();
+    error InsufficientSignatures();
+    error InvalidProof();
+    error ProverNotActive();
+    error ProverAlreadyRegistered();
+    error InsufficientStake();
+    error ChallengePeriodActive();
+    error ChallengeNotFound();
+    error ChallengeAlreadyResolved();
+    error NotSecurityCouncil();
+    error InvalidBond();
+    error UnlockNotFound();
+    error InvalidPublicKeyLength();
+    error VerifierNotSet();
+    error DefensePeriodNotExpired();
+    error DefensePeriodExpired();
+    error NotActiveProver();
+    error LockExpired();
+    error InvalidStateRoot();
+    /// @dev Sequence #3: Prover timeout not reached
+    error ProverTimeoutNotReached();
+    /// @dev Sequence #3: Emergency already initiated
+    error EmergencyAlreadyInitiated();
+    /// @dev Sequence #3: Not in emergency state
+    error NotInEmergencyState();
+    /// @dev Sequence #3: Emergency time lock not expired
+    error EmergencyTimeLockActive();
+
+    // =========================================================================
+    // State Variables
+    // =========================================================================
+
+    address public owner;
+    address public securityCouncil;
+    ISPHINCSVerifier public sphincsVerifier;
+    uint256 public totalLocked;
+    uint256 public nonceCounter;
+    uint256 public unlockNonceCounter;
+    bytes32 public currentStateRoot;
+    mapping(bytes32 => Lock) public locks;
+    mapping(bytes32 => UnlockRequest) public unlockRequests;
+    mapping(address => Prover) public provers;
+    address[] public activeProvers;
+    mapping(bytes32 => Challenge) public challenges;
+    uint256 public insuranceFund;
+    uint256 public totalBurned;
+    bool public useFullVerification;
+    
+    /// @notice Emergency unlock tracking per lock
+    /// @dev Sequence #3: Complete emergency state
+    mapping(bytes32 => EmergencyUnlock) public emergencyUnlocks;
+    
+    /// @notice Enhanced monitoring flag per lock
+    /// @dev Sequence #3: MON-001
+    mapping(bytes32 => bool) public enhancedMonitoring;
+
+    // =========================================================================
+    // Modifiers
+    // =========================================================================
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
+        _;
+    }
+
+    modifier onlySecurityCouncil() {
+        if (msg.sender != securityCouncil) revert NotSecurityCouncil();
+        _;
+    }
+
+    modifier onlyActiveProver() {
+        if (!provers[msg.sender].isActive) revert NotActiveProver();
+        _;
+    }
+
+    // =========================================================================
+    // Constructor
+    // =========================================================================
+
+    constructor(address _securityCouncil, address _sphincsVerifier) {
+        if (_securityCouncil == address(0)) revert ZeroAddress();
+        owner = msg.sender;
+        securityCouncil = _securityCouncil;
+        
+        if (_sphincsVerifier != address(0)) {
+            sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
+            useFullVerification = true;
+        }
+    }
+
+    // =========================================================================
+    // Lock Functions
+    // =========================================================================
+
+    /// @notice Lock funds with default expiry (delegates to lockWithExpiry)
+    /// @dev No nonReentrant here since lockWithExpiry has it
+    function lock(address recipient, bytes calldata dilithiumPubKey) external payable whenNotPaused returns (bytes32 lockId) {
+        return lockWithExpiry(recipient, dilithiumPubKey, block.timestamp + DEFAULT_LOCK_EXPIRY);
+    }
+
+    /// @notice Lock funds with custom expiry
+    /// @dev FIX-010: dilithiumPubKeyHash now uses SHA3-256 instead of keccak256
+    function lockWithExpiry(address recipient, bytes calldata dilithiumPubKey, uint256 expiry) public payable whenNotPaused nonReentrant returns (bytes32 lockId) {
+        if (msg.value < MIN_LOCK_AMOUNT) revert InsufficientAmount();
+        if (totalLocked + msg.value > TVL_CAP) revert TVLCapExceeded();
+        if (recipient == address(0)) revert ZeroAddress();
+        if (expiry <= block.timestamp) revert LockExpired();
+
+        // FIX-010: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 dilithiumPubKeyHash = SHA3_256.hash(dilithiumPubKey);
+        uint256 nonce = nonceCounter++;
+
+        bytes32 stateRoot = StateRootCalculator.computeSR0(
+            block.chainid, address(0), msg.value, recipient, expiry, nonce, dilithiumPubKeyHash
+        );
+
+        lockId = StateRootCalculator.generateLockId(stateRoot, msg.sender, block.timestamp);
+
+        locks[lockId] = Lock({
+            sender: msg.sender,
+            recipient: recipient,
+            amount: msg.value,
+            dilithiumPubKeyHash: dilithiumPubKeyHash,
+            lockedAt: block.timestamp,
+            status: LockStatus.ACTIVE,
+            stateRoot: stateRoot,
+            expiry: expiry,
+            nonce: nonce
+        });
+
+        totalLocked += msg.value;
+        emit Locked(lockId, msg.sender, recipient, msg.value, dilithiumPubKeyHash, stateRoot);
+    }
+
+    // =========================================================================
+    // Unlock Functions
+    // =========================================================================
+
+    function requestUnlock(
+        bytes32 lockId,
+        address recipient,
+        bytes32[] calldata smtProof,
+        bytes32 expectedSR1,
+        bytes[] calldata sphincsSignatures,
+        address[] calldata signingProvers
+    ) external whenNotPaused nonReentrant {
+        Lock storage lockData = locks[lockId];
+        if (lockData.sender == address(0)) revert LockNotFound();
+        if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
+        if (recipient == address(0)) revert ZeroAddress();
+
+        uint256 unlockNonce = unlockNonceCounter++;
+        bytes32 computedSR1 = StateRootCalculator.computeSR1(lockData.stateRoot, lockId, recipient, lockData.amount, unlockNonce);
+
+        if (computedSR1 != expectedSR1) revert InvalidStateRoot();
+        if (!_verifySMTProof(lockId, smtProof, expectedSR1)) revert InvalidProof();
+        if (sphincsSignatures.length < REQUIRED_SIGNATURES) revert InsufficientSignatures();
+        if (sphincsSignatures.length != signingProvers.length) revert InvalidSignatures();
+
+        uint256 validSignatures = _verifyThresholdSignatures(lockId, expectedSR1, sphincsSignatures, signingProvers);
+        if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
+
+        _createUnlockRequest(lockId, recipient, lockData.amount, lockData.stateRoot, computedSR1, false, 0, validSignatures, unlockNonce);
+        lockData.status = LockStatus.PENDING_UNLOCK;
+    }
+
+    function requestUnlockLegacy(
+        bytes32 lockId,
+        address recipient,
+        bytes32[] calldata smtProof,
+        bytes32 stateRoot,
+        bytes[] calldata sphincsSignatures,
+        address[] calldata signingProvers
+    ) external whenNotPaused nonReentrant {
+        Lock storage lockData = locks[lockId];
+        if (lockData.sender == address(0)) revert LockNotFound();
+        if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
+        if (recipient == address(0)) revert ZeroAddress();
+
+        if (!_verifySMTProof(lockId, smtProof, stateRoot)) revert InvalidProof();
+        if (sphincsSignatures.length < REQUIRED_SIGNATURES) revert InsufficientSignatures();
+        if (sphincsSignatures.length != signingProvers.length) revert InvalidSignatures();
+
+        uint256 validSignatures = _verifyThresholdSignatures(lockId, stateRoot, sphincsSignatures, signingProvers);
+        if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
+
+        uint256 unlockNonce = unlockNonceCounter++;
+        _createUnlockRequest(lockId, recipient, lockData.amount, stateRoot, bytes32(0), false, 0, validSignatures, unlockNonce);
+        lockData.status = LockStatus.PENDING_UNLOCK;
+    }
+
+    /// @notice Request emergency unlock with bond payment
+    /// @dev Sequence #3: TRIG-004 - User manual Emergency option
+    function requestEmergencyUnlock(bytes32 lockId, address recipient) external payable whenNotPaused nonReentrant {
+        Lock storage lockData = locks[lockId];
+        if (lockData.sender == address(0)) revert LockNotFound();
+        if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
+        if (recipient == address(0)) revert ZeroAddress();
+        if (msg.sender != lockData.sender) revert NotOwner();
+        
+        // Check if emergency already initiated
+        if (emergencyUnlocks[lockId].status != EmergencyStatus.NONE) revert EmergencyAlreadyInitiated();
+
+        uint256 requiredBond = _calculateEmergencyBond(lockData.amount);
+        if (msg.value < requiredBond) revert InvalidBond();
+
+        uint256 unlockNonce = unlockNonceCounter++;
+        uint256 emergencyReadyAt = block.timestamp + EMERGENCY_TIME_LOCK;
+        
+        _createUnlockRequest(lockId, recipient, lockData.amount, lockData.stateRoot, bytes32(0), true, msg.value, 0, unlockNonce);
+        
+        // Update unlock request with emergency-specific fields
+        unlockRequests[lockId].emergencyReadyAt = emergencyReadyAt;
+        
+        // Create emergency unlock tracking
+        emergencyUnlocks[lockId] = EmergencyUnlock({
+            lockId: lockId,
+            initiator: msg.sender,
+            bondAmount: msg.value,
+            initiatedAt: block.timestamp,
+            emergencyReadyAt: emergencyReadyAt,
+            status: EmergencyStatus.BOND_RECEIVED,
+            enhancedMonitoring: true,
+            fromTimeout: false
+        });
+        
+        // Activate enhanced monitoring
+        enhancedMonitoring[lockId] = true;
+        
+        lockData.status = LockStatus.EMERGENCY_PENDING;
+
+        emit EmergencyUnlockInitiated(lockId, msg.sender, false, block.timestamp);
+        emit EmergencyBondReceived(lockId, msg.sender, msg.value, requiredBond);
+        emit EnhancedMonitoringActivated(lockId, block.timestamp);
+        emit EmergencyUnlockRequested(lockId, recipient, lockData.amount, msg.value, emergencyReadyAt);
+    }
+    
+    /// @notice Check if prover timeout has occurred for a pending unlock
+    /// @dev Sequence #3: TRIG-001 - 72h timeout detection
+    /// @param lockId The lock ID to check
+    /// @return isTimedOut True if 72h has passed since prover was requested
+    /// @return proverRequestedAt When the prover was requested
+    /// @return timeRemaining Seconds remaining until timeout (0 if already timed out)
+    function checkProverTimeout(bytes32 lockId) public view returns (
+        bool isTimedOut,
+        uint256 proverRequestedAt,
+        uint256 timeRemaining
+    ) {
+        UnlockRequest storage request = unlockRequests[lockId];
+        if (request.lockId == bytes32(0)) {
+            return (false, 0, 0);
+        }
+        
+        proverRequestedAt = request.proverRequestedAt;
+        if (proverRequestedAt == 0) {
+            // Prover not yet requested, use requestedAt as fallback
+            proverRequestedAt = request.requestedAt;
+        }
+        
+        uint256 deadline = proverRequestedAt + PROVER_TIMEOUT;
+        if (block.timestamp >= deadline) {
+            isTimedOut = true;
+            timeRemaining = 0;
+        } else {
+            isTimedOut = false;
+            timeRemaining = deadline - block.timestamp;
+        }
+    }
+    
+    /// @notice Initiate emergency unlock due to 72h prover timeout
+    /// @dev Sequence #3: TRIG-003 - Emergency Path auto switch
+    /// @param lockId The lock ID to switch to emergency path
+    function initiateEmergencyFromTimeout(bytes32 lockId) external payable whenNotPaused nonReentrant {
+        Lock storage lockData = locks[lockId];
+        if (lockData.sender == address(0)) revert LockNotFound();
+        if (lockData.status != LockStatus.PENDING_UNLOCK) revert LockAlreadyReleased();
+        
+        // Check if emergency already initiated
+        if (emergencyUnlocks[lockId].status != EmergencyStatus.NONE) revert EmergencyAlreadyInitiated();
+        
+        // Verify 72h timeout has occurred
+        (bool isTimedOut, uint256 proverRequestedAt,) = checkProverTimeout(lockId);
+        if (!isTimedOut) revert ProverTimeoutNotReached();
+        
+        // Calculate and verify bond
+        uint256 requiredBond = _calculateEmergencyBond(lockData.amount);
+        if (msg.value < requiredBond) revert InvalidBond();
+        
+        uint256 emergencyReadyAt = block.timestamp + EMERGENCY_TIME_LOCK;
+        
+        // Update existing unlock request to emergency
+        UnlockRequest storage request = unlockRequests[lockId];
+        request.isEmergency = true;
+        request.bond = msg.value;
+        request.unlockableAt = emergencyReadyAt;
+        request.emergencyReadyAt = emergencyReadyAt;
+        
+        // Create emergency unlock tracking
+        emergencyUnlocks[lockId] = EmergencyUnlock({
+            lockId: lockId,
+            initiator: msg.sender,
+            bondAmount: msg.value,
+            initiatedAt: block.timestamp,
+            emergencyReadyAt: emergencyReadyAt,
+            status: EmergencyStatus.MONITORING,
+            enhancedMonitoring: true,
+            fromTimeout: true
+        });
+        
+        // Activate enhanced monitoring
+        enhancedMonitoring[lockId] = true;
+        
+        lockData.status = LockStatus.EMERGENCY_PENDING;
+        
+        emit ProverTimeoutDetected(lockId, proverRequestedAt, block.timestamp);
+        emit EmergencyUnlockInitiated(lockId, msg.sender, true, block.timestamp);
+        emit EmergencyBondReceived(lockId, msg.sender, msg.value, requiredBond);
+        emit EnhancedMonitoringActivated(lockId, block.timestamp);
+        emit EmergencyUnlockRequested(lockId, request.recipient, request.amount, msg.value, emergencyReadyAt);
+    }
+    
+    /// @notice Record prover request timestamp for timeout tracking
+    /// @dev Sequence #3: TRIG-002 - Prover response state tracking
+    function recordProverRequest(bytes32 lockId) external onlyActiveProver {
+        UnlockRequest storage request = unlockRequests[lockId];
+        if (request.lockId == bytes32(0)) revert UnlockNotFound();
+        
+        // Only record if not already set
+        if (request.proverRequestedAt == 0) {
+            request.proverRequestedAt = block.timestamp;
+        }
+    }
+
+    /// @notice Internal helper to create unlock request (reduces stack depth)
+    function _createUnlockRequest(
+        bytes32 lockId,
+        address recipient,
+        uint256 amount,
+        bytes32 sr0,
+        bytes32 sr1,
+        bool isEmergency,
+        uint256 bond,
+        uint256 sigCount,
+        uint256 unlockNonce
+    ) internal {
+        uint256 unlockableAt = block.timestamp + (isEmergency ? EMERGENCY_TIME_LOCK : NORMAL_TIME_LOCK);
+        
+        UnlockRequest storage req = unlockRequests[lockId];
+        req.lockId = lockId;
+        req.recipient = recipient;
+        req.amount = amount;
+        req.stateRoot = sr0;
+        req.unlockStateRoot = sr1;
+        req.requestedAt = block.timestamp;
+        req.unlockableAt = unlockableAt;
+        req.isEmergency = isEmergency;
+        req.bond = bond;
+        req.signatureCount = sigCount;
+        req.unlockNonce = unlockNonce;
+        req.proverRequestedAt = block.timestamp; // Initialize prover tracking
+
+        if (!isEmergency) {
+            emit UnlockRequested(lockId, recipient, amount, unlockableAt, false, sr1);
+        }
+    }
+
+    function executeUnlock(bytes32 lockId) external nonReentrant {
+        UnlockRequest storage request = unlockRequests[lockId];
+        if (request.lockId == bytes32(0)) revert UnlockNotFound();
+        if (block.timestamp < request.unlockableAt) revert UnlockNotReady();
+
+        Lock storage lockData = locks[lockId];
+        if (lockData.status == LockStatus.CHALLENGED) revert ChallengePeriodActive();
+        if (lockData.status == LockStatus.RELEASED) revert LockAlreadyReleased();
+
+        if (!request.isEmergency) {
+            Challenge storage challengeData = challenges[lockId];
+            if (challengeData.status == ChallengeStatus.PENDING) revert ChallengePeriodActive();
+        }
+
+        lockData.status = LockStatus.RELEASED;
+        totalLocked -= request.amount;
+
+        uint256 bondToReturn = request.bond;
+        bool wasSlashed = false;
+        
+        // Check if emergency was slashed
+        EmergencyUnlock storage emergencyData = emergencyUnlocks[lockId];
+        if (emergencyData.status == EmergencyStatus.MONITORING || emergencyData.status == EmergencyStatus.BOND_RECEIVED) {
+            emergencyData.status = EmergencyStatus.FINALIZED;
+            enhancedMonitoring[lockId] = false;
+        }
+
+        (bool success, ) = request.recipient.call{value: request.amount}("");
+        if (!success) revert TransferFailed();
+
+        if (bondToReturn > 0) {
+            (bool bondSuccess, ) = lockData.sender.call{value: bondToReturn}("");
+            if (!bondSuccess) revert TransferFailed();
+        }
+
+        emit UnlockExecuted(lockId, request.recipient, request.amount);
+        
+        if (request.isEmergency) {
+            emit EmergencyUnlockFinalized(lockId, request.recipient, request.amount, bondToReturn, wasSlashed);
+        }
+    }
+    
+    /// @notice Calculate emergency bond amount
+    /// @dev Sequence #3: BOND-001 - MAX(0.5 ETH, amount × 5%)
+    function _calculateEmergencyBond(uint256 amount) internal pure returns (uint256) {
+        uint256 percentBond = (amount * EMERGENCY_BOND_PERCENT) / 100;
+        return percentBond > MIN_EMERGENCY_BOND ? percentBond : MIN_EMERGENCY_BOND;
+    }
+    
+    /// @notice Get calculated emergency bond for an amount
+    /// @dev Public view for UI/testing
+    function calculateEmergencyBond(uint256 amount) external pure returns (uint256) {
+        return _calculateEmergencyBond(amount);
+    }
+    
+    /// @notice Get emergency unlock details
+    /// @dev Sequence #3: View function for emergency state
+    function getEmergencyUnlock(bytes32 lockId) external view returns (EmergencyUnlock memory) {
+        return emergencyUnlocks[lockId];
+    }
+    
+    /// @notice Check if lock is in enhanced monitoring mode
+    /// @dev Sequence #3: MON-001
+    function isEnhancedMonitoring(bytes32 lockId) external view returns (bool) {
+        return enhancedMonitoring[lockId];
+    }
+
+    // =========================================================================
+    // Challenge Functions
+    // =========================================================================
+
+    /// @notice File a challenge against a pending unlock
+    /// @dev FIX-012: fraudProofHash now uses SHA3-256 instead of keccak256
+    function challenge(bytes32 lockId, bytes calldata fraudProof) external payable whenNotPaused nonReentrant {
+        UnlockRequest storage request = unlockRequests[lockId];
+        if (request.lockId == bytes32(0)) revert UnlockNotFound();
+        if (block.timestamp > request.unlockableAt) revert UnlockNotReady();
+
+        Lock storage lockData = locks[lockId];
+        if (lockData.status != LockStatus.PENDING_UNLOCK && lockData.status != LockStatus.EMERGENCY_PENDING) revert LockAlreadyReleased();
+
+        uint256 requiredBond = (request.amount * CHALLENGE_BOND_PERCENT) / 100;
+        if (requiredBond < MIN_CHALLENGE_BOND) requiredBond = MIN_CHALLENGE_BOND;
+        if (msg.value < requiredBond) revert InvalidBond();
+
+        uint256 defenseDeadline = block.timestamp + DEFENSE_PERIOD;
+
+        // FIX-012: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 fraudProofHash = SHA3_256.hash(fraudProof);
+
+        challenges[lockId] = Challenge({
+            lockId: lockId,
+            challenger: msg.sender,
+            fraudProofHash: fraudProofHash,
+            challengedAt: block.timestamp,
+            status: ChallengeStatus.PENDING,
+            bond: msg.value,
+            defenseDeadline: defenseDeadline,
+            defenseProofHash: bytes32(0),
+            defender: address(0)
+        });
+
+        lockData.status = LockStatus.CHALLENGED;
+        
+        // Extend time lock if challenged during emergency (TL7-003)
+        if (request.isEmergency) {
+            request.unlockableAt = request.unlockableAt + EMERGENCY_TIME_LOCK;
+            if (emergencyUnlocks[lockId].emergencyReadyAt > 0) {
+                emergencyUnlocks[lockId].emergencyReadyAt = request.unlockableAt;
+            }
+        }
+        
+        emit ChallengeFiled(lockId, msg.sender, fraudProofHash, msg.value, defenseDeadline);
+    }
+
+    /// @notice Submit defense against a challenge
+    /// @dev FIX-013: defenseProofHash now uses SHA3-256 instead of keccak256
+    function submitDefense(bytes32 lockId, bytes calldata defenseProof) external whenNotPaused onlyActiveProver {
+        Challenge storage challengeData = challenges[lockId];
+        if (challengeData.status != ChallengeStatus.PENDING) revert ChallengeAlreadyResolved();
+        if (block.timestamp > challengeData.defenseDeadline) revert DefensePeriodExpired();
+
+        // FIX-013: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 defenseProofHash = SHA3_256.hash(defenseProof);
+        challengeData.status = ChallengeStatus.DEFENSE_SUBMITTED;
+        challengeData.defenseProofHash = defenseProofHash;
+        challengeData.defender = msg.sender;
+
+        emit DefenseSubmitted(lockId, msg.sender, defenseProofHash);
+    }
+
+    /// @notice Resolve a challenge by security council
+    /// @dev SEC-001 FIX-002b: CEI pattern applied - ALL state updates BEFORE external calls
+    ///      Emergency bond processing now occurs BEFORE _resolveValidChallenge() call
+    function resolveChallenge(bytes32 lockId, bool challengeValid) external onlySecurityCouncil nonReentrant {
+        Challenge storage challengeData = challenges[lockId];
+        if (challengeData.status != ChallengeStatus.PENDING && challengeData.status != ChallengeStatus.DEFENSE_SUBMITTED) {
+            revert ChallengeAlreadyResolved();
+        }
+
+        Lock storage lockData = locks[lockId];
+        UnlockRequest storage request = unlockRequests[lockId];
+
+        uint256 slashedAmount = 0;
+        uint256 challengerReward = 0;
+        uint256 insuranceAmount = 0;
+        uint256 burnedAmount = 0;
+
+        if (challengeValid) {
+            slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
+            challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
+            insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
+            burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
+            
+            // SEC-001 FIX-002b: Forfeit emergency bond BEFORE external calls (CEI pattern)
+            // This was previously done AFTER _resolveValidChallenge() which caused reentrancy risk
+            if (request.isEmergency && request.bond > 0) {
+                insuranceFund += request.bond;
+                request.bond = 0;
+                emergencyUnlocks[lockId].bondAmount = 0;
+            }
+            
+            // Now call the function that contains external calls
+            _resolveValidChallenge(lockId, challengeData, lockData, request);
+        } else {
+            _resolveInvalidChallenge(lockId, challengeData, lockData);
+            if (challengeData.defender != address(0)) {
+                insuranceAmount = (challengeData.bond * SLASH_INSURANCE_PERCENT) / 100;
+                burnedAmount = (challengeData.bond * SLASH_BURN_PERCENT) / 100;
+            } else {
+                insuranceAmount = challengeData.bond;
+            }
+        }
+
+        emit ChallengeResolved(lockId, challengeValid, slashedAmount, challengerReward, insuranceAmount, burnedAmount);
+    }
+
+    /// @notice Internal function to resolve a valid challenge
+    /// @dev SEC-001 FIX-003: CEI pattern applied - ALL state updates BEFORE external calls
+    function _resolveValidChallenge(bytes32 /* lockId - reserved for v0.2 audit logging */, Challenge storage challengeData, Lock storage lockData, UnlockRequest storage request) internal {
+        // === EFFECTS (state updates) - FIRST ===
+        challengeData.status = ChallengeStatus.RESOLVED_VALID;
+        lockData.status = LockStatus.SLASHED;
+
+        uint256 slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
+        uint256 challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
+        uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
+        uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
+
+        // Cache values for external calls
+        address challenger = challengeData.challenger;
+        uint256 challengerPayout = challengeData.bond + challengerReward;
+        address sender = lockData.sender;
+        uint256 lockAmount = lockData.amount;
+
+        // Update state variables BEFORE external calls (CEI pattern)
+        insuranceFund += insuranceAmount;
+        totalBurned += burnedAmount;
+        totalLocked -= lockAmount;
+
+        // === INTERACTIONS (external calls) - LAST ===
+        (bool success, ) = challenger.call{value: challengerPayout}("");
+        if (!success) revert TransferFailed();
+
+        (bool refundSuccess, ) = sender.call{value: lockAmount}("");
+        if (!refundSuccess) revert TransferFailed();
+    }
+
+    /// @notice Internal function to resolve an invalid challenge
+    /// @dev SEC-001 FIX-004: CEI pattern applied - ALL state updates BEFORE external calls
+    function _resolveInvalidChallenge(bytes32 lockId, Challenge storage challengeData, Lock storage lockData) internal {
+        // === EFFECTS (state updates) - FIRST ===
+        challengeData.status = ChallengeStatus.RESOLVED_INVALID;
+        
+        // Restore to appropriate pending state
+        if (emergencyUnlocks[lockId].status != EmergencyStatus.NONE) {
+            lockData.status = LockStatus.EMERGENCY_PENDING;
+        } else {
+            lockData.status = LockStatus.PENDING_UNLOCK;
+        }
+
+        if (challengeData.defender != address(0)) {
+            uint256 defenderReward = (challengeData.bond * SLASH_CHALLENGER_PERCENT) / 100;
+            uint256 insuranceAmount = (challengeData.bond * SLASH_INSURANCE_PERCENT) / 100;
+            uint256 burnedAmount = (challengeData.bond * SLASH_BURN_PERCENT) / 100;
+            
+            // Cache defender address for external call
+            address defender = challengeData.defender;
+            
+            // Update state BEFORE external call (CEI pattern)
+            insuranceFund += insuranceAmount;
+            totalBurned += burnedAmount;
+            
+            // === INTERACTIONS (external calls) - LAST ===
+            (bool defenderSuccess, ) = defender.call{value: defenderReward}("");
+            if (!defenderSuccess) revert TransferFailed();
+        } else {
+            insuranceFund += challengeData.bond;
+        }
+    }
+
+    /// @notice Auto-resolve challenge after defense period expires
+    /// @dev SEC-001 FIX-001: CEI pattern applied - ALL state updates BEFORE external calls
+    function autoResolveChallenge(bytes32 lockId) external nonReentrant {
+        Challenge storage challengeData = challenges[lockId];
+        if (challengeData.status != ChallengeStatus.PENDING) revert ChallengeAlreadyResolved();
+        if (block.timestamp <= challengeData.defenseDeadline) revert DefensePeriodNotExpired();
+
+        Lock storage lockData = locks[lockId];
+        UnlockRequest storage request = unlockRequests[lockId];
+
+        // === EFFECTS (state updates) - FIRST ===
+        challengeData.status = ChallengeStatus.RESOLVED_VALID;
+        lockData.status = LockStatus.SLASHED;
+
+        uint256 slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
+        uint256 challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
+        uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
+        uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
+
+        // Cache values for external calls
+        address challenger = challengeData.challenger;
+        uint256 challengerPayout = challengeData.bond + challengerReward;
+        address sender = lockData.sender;
+        uint256 lockAmount = lockData.amount;
+
+        // Update state variables BEFORE external calls (CEI pattern)
+        insuranceFund += insuranceAmount;
+        totalBurned += burnedAmount;
+        totalLocked -= lockAmount;
+        
+        // Forfeit emergency bond if applicable
+        if (request.isEmergency && request.bond > 0) {
+            insuranceFund += request.bond;
+            request.bond = 0;
+        }
+
+        // === INTERACTIONS (external calls) - LAST ===
+        (bool success, ) = challenger.call{value: challengerPayout}("");
+        if (!success) revert TransferFailed();
+
+        (bool refundSuccess, ) = sender.call{value: lockAmount}("");
+        if (!refundSuccess) revert TransferFailed();
+
+        emit ChallengeResolved(lockId, true, slashedAmount, challengerReward, insuranceAmount, burnedAmount);
+    }
+
+    // =========================================================================
+    // Prover Management
+    // =========================================================================
+
+    /// @notice Register a new prover
+    /// @dev FIX-011: sphincsPubKeyHash now uses SHA3-256 instead of keccak256
+    function registerProver(address proverAddress, bytes calldata sphincsPublicKey) external payable onlyOwner {
+        if (proverAddress == address(0)) revert ZeroAddress();
+        if (provers[proverAddress].isActive) revert ProverAlreadyRegistered();
+        if (msg.value < 1 ether) revert InsufficientStake();
+        if (sphincsPublicKey.length != 32) revert InvalidPublicKeyLength();
+
+        // FIX-011: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 sphincsPubKeyHash = SHA3_256.hash(sphincsPublicKey);
+
+        provers[proverAddress] = Prover({
+            proverAddress: proverAddress,
+            sphincsPubKeyHash: sphincsPubKeyHash,
+            sphincsPublicKey: sphincsPublicKey,
+            stakedAmount: msg.value,
+            registeredAt: block.timestamp,
+            isActive: true,
+            successfulSigns: 0,
+            slashedCount: 0
+        });
+
+        activeProvers.push(proverAddress);
+        emit ProverRegistered(proverAddress, sphincsPubKeyHash, msg.value);
+    }
+
+    // =========================================================================
+    // State Management
+    // =========================================================================
+
+    function updateStateRoot(bytes32 newStateRoot) external onlyOwner {
+        currentStateRoot = newStateRoot;
+        emit StateRootUpdated(newStateRoot, block.number);
+    }
+
+    function setSPHINCSVerifier(address _sphincsVerifier) external onlyOwner {
+        address oldVerifier = address(sphincsVerifier);
+        sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
+        emit SPHINCSVerifierUpdated(oldVerifier, _sphincsVerifier);
+    }
+
+    function setFullVerification(bool _enable) external onlyOwner {
+        useFullVerification = _enable;
+    }
+
+    // =========================================================================
+    // Internal Functions
+    // =========================================================================
+
+    /// @notice Verify SMT proof using SHA3-256 (FIPS 202 compliant)
+    /// @dev FIX-001: Replaced keccak256 with SHA3_256.hashPair() for CP-1 compliance
+    ///      keccak256 is vulnerable to Grover's algorithm and is explicitly prohibited
+    ///      per CORE_PRINCIPLES.md. SHA3-256 provides full quantum resistance.
+    /// @param leaf The leaf node to verify
+    /// @param proof The merkle proof siblings
+    /// @param root The expected merkle root
+    /// @return True if proof is valid, false otherwise
+    function _verifySMTProof(bytes32 leaf, bytes32[] calldata proof, bytes32 root) internal pure returns (bool) {
+        bytes32 computedRoot = leaf;
+        for (uint256 i = 0; i < proof.length; i++) {
+            if (computedRoot < proof[i]) {
+                computedRoot = SHA3_256.hashPair(computedRoot, proof[i]);
+            } else {
+                computedRoot = SHA3_256.hashPair(proof[i], computedRoot);
+            }
+        }
+        return computedRoot == root;
+    }
+
+    /// @notice Verify threshold signatures from provers
+    /// @dev FIX-008: Now uses SHA3-256 for message hash instead of keccak256
+    ///      This provides quantum resistance per CP-1 requirements.
+    /// @param lockId The lock ID being verified
+    /// @param stateRoot The state root to sign
+    /// @param signatures Array of SPHINCS+ signatures
+    /// @param signers Array of prover addresses who signed
+    /// @return validCount Number of valid signatures
+    function _verifyThresholdSignatures(bytes32 lockId, bytes32 stateRoot, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
+        // FIX-008: Use SHA3-256 instead of keccak256 for quantum resistance
+        bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
+        if (useFullVerification && address(sphincsVerifier) != address(0)) {
+            return _verifyWithSPHINCSVerifier(message, signatures, signers);
+        }
+        return _verifySimplified(message, signatures, signers);
+    }
+
+    function _verifyWithSPHINCSVerifier(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
+        for (uint256 i = 0; i < signatures.length; i++) {
+            Prover storage prover = provers[signers[i]];
+            if (!prover.isActive) continue;
+            if (prover.sphincsPublicKey.length != 32) continue;
+            if (sphincsVerifier.verify(message, signatures[i], prover.sphincsPublicKey)) validCount++;
+        }
+    }
+
+    /// @notice Simplified signature verification (for testing/non-SPHINCS mode)
+    /// @dev FIX-009: Now uses SHA3-256 for signature hash instead of keccak256
+    ///      This provides quantum resistance per CP-1 requirements.
+    /// @param message The message that was signed
+    /// @param signatures Array of signatures
+    /// @param signers Array of signer addresses
+    /// @return validCount Number of valid signatures
+    function _verifySimplified(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
+        for (uint256 i = 0; i < signatures.length; i++) {
+            Prover storage prover = provers[signers[i]];
+            if (!prover.isActive) continue;
+            // FIX-009: Use SHA3-256 instead of keccak256 for quantum resistance
+            bytes32 sigHash = SHA3_256.hash(abi.encodePacked(prover.sphincsPubKeyHash, message, signatures[i]));
+            if (sigHash != bytes32(0)) validCount++;
+        }
+    }
+
+    function _calculateSlash(uint256 numColluding, uint256 amount) internal pure returns (uint256) {
+        uint256 slashPercent = numColluding * numColluding * 10;
+        if (slashPercent > 100) slashPercent = 100;
+        return (amount * slashPercent) / 100;
+    }
+
+    // =========================================================================
+    // View Functions
+    // =========================================================================
+
+    function getLock(bytes32 lockId) external view returns (Lock memory) { return locks[lockId]; }
+    function getUnlockRequest(bytes32 lockId) external view returns (UnlockRequest memory) { return unlockRequests[lockId]; }
+    function getChallenge(bytes32 lockId) external view returns (Challenge memory) { return challenges[lockId]; }
+    function getProver(address proverAddress) external view returns (Prover memory) { return provers[proverAddress]; }
+    function getActiveProverCount() external view returns (uint256) { return activeProvers.length; }
+
+    function calculateChallengeBond(uint256 amount) external pure returns (uint256) {
+        uint256 bond = (amount * CHALLENGE_BOND_PERCENT) / 100;
+        return bond < MIN_CHALLENGE_BOND ? MIN_CHALLENGE_BOND : bond;
+    }
+
+    function isQuantumResistant() external pure returns (bool) { return true; }
+    function getSPHINCSVerifier() external view returns (address) { return address(sphincsVerifier); }
+    function isFullVerificationEnabled() external view returns (bool) { return useFullVerification && address(sphincsVerifier) != address(0); }
+
+    function getSlashingDistribution() external pure returns (uint256 challenger, uint256 insurance, uint256 burn) {
+        return (SLASH_CHALLENGER_PERCENT, SLASH_INSURANCE_PERCENT, SLASH_BURN_PERCENT);
+    }
+
+    function computeStateRoot(uint256 chainId, address asset, uint256 amount, address destAddr, uint256 expiry, uint256 nonce, bytes32 pkDilithium) external pure returns (bytes32) {
+        return StateRootCalculator.computeSR0(chainId, asset, amount, destAddr, expiry, nonce, pkDilithium);
+    }
+
+    function computeUnlockStateRoot(bytes32 sr0, bytes32 lockId, address destAddr, uint256 amount, uint256 nonce) external pure returns (bytes32) {
+        return StateRootCalculator.computeSR1(sr0, lockId, destAddr, amount, nonce);
+    }
+
+    // =========================================================================
+    // Admin Functions
+    // =========================================================================
+
+    function pause() external onlySecurityCouncil { _pause(); }
+    function unpause() external onlySecurityCouncil { _unpause(); }
+
+    /// @notice Transfer ownership to a new owner
+    /// @dev SEC-002 FIX-005: Added OwnershipTransferred event emission
+    function transferOwnership(address newOwner) external onlyOwner {
+        if (newOwner == address(0)) revert ZeroAddress();
+        address previousOwner = owner;
+        owner = newOwner;
+        emit OwnershipTransferred(previousOwner, newOwner);
+    }
+
+    /// @notice Update the security council address
+    /// @dev SEC-002 FIX-006: Added SecurityCouncilUpdated event emission
+    function updateSecurityCouncil(address newCouncil) external onlySecurityCouncil {
+        if (newCouncil == address(0)) revert ZeroAddress();
+        address previousCouncil = securityCouncil;
+        securityCouncil = newCouncil;
+        emit SecurityCouncilUpdated(previousCouncil, newCouncil);
+    }
+
+    receive() external payable {}
+}
