@@ -8,8 +8,21 @@
 `docs/planning/CURRENT_PLAN.md` を読み込み、以下を確認：
 - 成果物（レビュー対象ファイル）
 - 今回のスコープ
+- 対象Sequence
 
-## 3. 実装レポート読み込み（必須）
+## 3. 仕様書読み込み（必須）
+
+### 3.1 ブリッジドキュメント
+`docs/planning/SPEC_STRATEGY_BRIDGE.md` を読み込み、以下を確認：
+- §5 セキュリティ要件マトリクス（レビュー基準）
+- §4 CP保護トレーサビリティ（CP違反チェック）
+- §7 拡張仕様（モード依存実装の確認）
+
+### 3.2 原理原則仕様（該当Sequence）
+CURRENT_PLANの「対象Sequence」に記載されたSequenceを確認：
+- `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` のセキュリティ要件
+
+## 4. 実装レポート読み込み（必須）
 `docs/planning/CURRENT_STATE.md` の「📦 最新実装レポート」セクションを確認：
 
 1. **ステータス確認**
@@ -18,62 +31,103 @@
 
 2. **レビュー対象の把握**
    - 作成ファイル一覧
+   - 対象Sequence
+   - 仕様書要件実装（Time Lock, Slashing等）
    - SPEC_REVIEW対応内容（該当する場合）
    - テスト結果
 
-## 4. Active Checklist読み込み
+## 5. Active Checklist読み込み
 `docs/planning/CURRENT_STATE.md` から Active Checklist を特定し、
 セキュリティ関連項目（[RED-xxx], [CRYPTO-xxx]）を確認してください。
 
-## 5. SPEC_REVIEW確認（該当する場合）
+## 6. SPEC_REVIEW確認（該当する場合）
 `docs/planning/SPEC_REVIEW.md` が存在する場合：
 1. 全ての指摘事項が対応済み（チェック済み）か確認
 2. Resolution Log を確認し、対応内容が適切か検証
 3. 未対応の指摘がある場合は ❌ FAIL として実装に差し戻し
 
-## 6. モード設定
+## 7. モード設定
 現在のモード: 検証 (Auditor)
 担当エージェント: Red Team
 
-## 7. タスク
+## 8. タスク
 CURRENT_PLANの成果物に対して、以下のセキュリティレビューを実行：
 
-### 7.1 攻撃ベクトル分析
+### 8.1 攻撃ベクトル分析
 - リエントランシー攻撃
 - フロントランニング
 - オラクル操作
 - DoS攻撃
 - 整数オーバーフロー/アンダーフロー
 
-### 7.2 暗号実装確認
+### 8.2 暗号実装確認
 - NIST準拠アルゴリズムのみ使用しているか
 - 禁止アルゴリズム（keccak256, SHA-256, ECDSA）の混入がないか
 - 鍵管理が適切か
 
-### 7.3 SPEC_REVIEW対応確認（該当する場合）
+### 8.3 仕様書要件確認（SPEC_STRATEGY_BRIDGE §5）
+
+| 要件 | 出典 | 実装確認 | 結果 |
+|------|------|---------|:----:|
+| 24h Time Lock (Normal) | SEQ#2 | `NORMAL_TIMELOCK == 24 hours` | ✅/❌ |
+| 7d Time Lock (Emergency) | SEQ#3 | `EMERGENCY_TIMELOCK == 7 days` | ✅/❌ |
+| Emergency Bond計算 | SEQ#3 | `MAX(0.5 ETH, amount × 5%)` | ✅/❌ |
+| Quadratic Slashing | SEQ#4 | `N² × 10%` | ✅/❌ |
+| 72h Emergency Timeout | SEQ#3 | `EMERGENCY_TIMEOUT == 72 hours` | ✅/❌ |
+| 72h Pause上限 | SEQ#8 | `MAX_PAUSE_DURATION == 72 hours` | ✅/❌ |
+
+### 8.4 Sequence-Layer整合性確認（Phase 3以降）
+SPEC_STRATEGY_BRIDGE §3に基づき、実装が正しいLayerに配置されているか確認：
+
+| 対象Sequence | 期待Layer | 実装場所 | 結果 |
+|-------------|----------|---------|:----:|
+| #X | Core | `src/core/xxx.sol` | ✅/❌ |
+
+### 8.5 モード依存実装確認（Phase 3以降）
+SPEC_STRATEGY_BRIDGE §7の拡張仕様に準拠しているか確認：
+
+| 機能 | モード | 期待動作 | 実装 | 結果 |
+|------|-------|---------|------|:----:|
+| Emergency Pause | CENTRALIZED | Admin単独 | [実装箇所] | ✅/❌ |
+| Emergency Pause | MULTISIG | N/M承認 | [実装箇所] | ✅/❌ |
+| Emergency Pause | DECENTRALIZED | SC 5/9 | [実装箇所] | ✅/❌ |
+
+### 8.6 SPEC_REVIEW対応確認（該当する場合）
 - 各指摘事項の対応内容が適切か
 - 対策が仕様通りに実装されているか
 
-### 7.4 静的解析
+### 8.7 静的解析
 ```bash
 slither src/
 ```
 警告がないことを確認。
 
-### 7.5 結果出力
+### 8.8 結果出力
 以下のフォーマットでレポート：
 ```
 ## セキュリティレビュー結果
 
 ### レビュー対象（CURRENT_STATE.mdより）
 - 対象Plan: [対象Plan名]
+- 対象Sequence: [#X, #Y]
 - 実装日時: [日時]
 - 作成ファイル: [X件]
 
+### 仕様書要件確認（SPEC_STRATEGY_BRIDGE §5）
+| 要件 | 出典 | 実装確認 | 結果 |
+|------|------|---------|:----:|
+| 24h Time Lock | SEQ#2 | `CoreBridge.sol:L42` | ✅ |
+| ... | ... | ... | ... |
+
+### Sequence-Layer整合性（Phase 3以降）
+| Sequence | 期待Layer | 実装場所 | 結果 |
+|----------|----------|---------|:----:|
+| #X | Core | `src/core/xxx.sol` | ✅ |
+
 ### 発見事項
-| # | 重要度 | 項目 | 説明 | 対策 |
-|---|--------|------|------|------|
-| 1 | Critical/High/Medium/Low | ... | ... | ... |
+| # | 重要度 | 項目 | 仕様書出典 | 説明 | 対策 |
+|---|--------|------|-----------|------|------|
+| 1 | Critical/High/Medium/Low | ... | SEQ#X/BRIDGE §X | ... | ... |
 
 ### SPEC_REVIEW対応確認（該当する場合）
 | ISSUE | 対応内容 | 検証結果 |
@@ -89,7 +143,7 @@ slither src/
 - [ ] ❌ FAIL - 実装に差し戻し
 ```
 
-### 7.6 状態更新
+### 8.9 状態更新
 
 #### ✅ PASS の場合
 
@@ -111,6 +165,7 @@ docs/planning/archive/SPEC_REVIEW_YYYY-MM-DD.md
 - **アーカイブ日時**: YYYY-MM-DD HH:MM
 - **セキュリティレビュー結果**: ✅ PASS
 - **レビュー担当**: Red Team
+- **仕様書準拠確認**: SPEC_STRATEGY_BRIDGE §5 全項目PASS
 ```
 
 **Step 3: CURRENT_STATE.md 実装レポートをリセット**
@@ -123,7 +178,15 @@ docs/planning/archive/SPEC_REVIEW_YYYY-MM-DD.md
 | **実装日時** | - |
 | **ステータス** | ⬜ 未実行 |
 
+### 対象Sequence
+
+（なし）
+
 ### 作成ファイル
+
+（なし）
+
+### 仕様書要件実装
 
 （なし）
 
@@ -149,9 +212,9 @@ docs/planning/archive/SPEC_REVIEW_YYYY-MM-DD.md
 **Step 1: CURRENT_STATE.md の「🚧 ブロッカー / 懸念事項」に追記**
 
 ```markdown
-| # | 懸念 | 重要度 | 対応予定 |
-|---|------|--------|----------|
-| N | [レビュー発見事項の要約] | 🔴 Critical / 🟠 High / 🟡 Medium | 次回Plan |
+| # | 懸念 | 重要度 | 仕様書出典 | 対応予定 |
+|---|------|--------|-----------|----------|
+| N | [レビュー発見事項の要約] | 🔴 Critical / 🟠 High / 🟡 Medium | SEQ#X / BRIDGE §X | 次回Plan |
 ```
 
 **Step 2: PIR記録を更新**
@@ -170,6 +233,7 @@ CURRENT_STATE.md の「📝 PIR記録」セクション：
 
 1. **[発見事項タイトル]**
    - 重要度: Critical/High/Medium
+   - 仕様書出典: SEQ#X / SPEC_STRATEGY_BRIDGE §X
    - 対象ファイル: `src/xxx.sol`
    - 対策: [具体的な修正内容]
 ```
