@@ -8,11 +8,26 @@
 `docs/planning/CURRENT_PLAN.md` を読み込み、以下を確認：
 - 実装項目（[IMPL-xxx]）
 - テスト項目（[TEST-xxx]）
+- 対象Sequence
 - 成果物
 - 実行順序
 
-## 3. 参照ドキュメント読み込み
-CURRENT_PLANの「参照ドキュメント」に記載されているSequenceを読み込んでください。
+## 3. 仕様書読み込み（必須）
+
+### 3.1 ブリッジドキュメント
+`docs/planning/SPEC_STRATEGY_BRIDGE.md` を読み込み、以下を確認：
+- §3 Sequence-Layer マッピング（実装配置先の確認）
+- §5 セキュリティ要件マトリクス（実装すべき要件）
+- §7 拡張仕様（モード依存実装の参照）
+
+### 3.2 原理原則仕様（該当Sequence）
+CURRENT_PLANの「対象Sequence」に記載されたSequenceを読み込んでください：
+- `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` の該当セクション
+- データ構造、シーケンス図、ステップ詳細を確認
+
+### 3.3 Phase 3以降の追加確認
+- `docs/specs/MODULAR_ARCHITECTURE.md` - インターフェース定義
+- モード依存実装の場合、SPEC_STRATEGY_BRIDGE §7の拡張仕様に従う
 
 ## 4. 仕様レビュー確認（該当する場合）
 `docs/planning/SPEC_REVIEW.md` が存在するか確認してください。
@@ -21,6 +36,7 @@ CURRENT_PLANの「参照ドキュメント」に記載されているSequenceを
 1. 全ての指摘事項を確認
 2. 各指摘のリスクレベルと対策を把握
 3. 「実装時の注意事項」を必ず守ること
+4. 仕様書参照サマリーの要件を実装に反映
 
 ⚠️ **HIGHリスクの指摘が未対応（チェックなし）の場合は実装を開始しないこと。**
 先に対応方針を確認してください。
@@ -35,26 +51,50 @@ CURRENT_PLANの「参照ドキュメント」に記載されているSequenceを
 ## 6. タスク
 TDDアプローチで実装してください：
 
-### Step 1: テスト作成（先）
+### Step 1: 仕様書要件の実装確認
+SPEC_STRATEGY_BRIDGE §5のセキュリティ要件を確認し、実装に含めるべき定数・ロジックを特定：
+
+```solidity
+// 例: SPEC_STRATEGY_BRIDGE §5 セキュリティ要件より
+uint256 public constant NORMAL_TIMELOCK = 24 hours;      // SEQ#2
+uint256 public constant EMERGENCY_TIMELOCK = 7 days;     // SEQ#3
+uint256 public constant EMERGENCY_TIMEOUT = 72 hours;    // SEQ#3
+```
+
+### Step 2: テスト作成（先）
 CURRENT_PLANの「テスト項目」を先に作成：
 - 成果物に記載されたテストファイルを作成
 - 各[TEST-xxx]項目をテストケースとして実装
+- **仕様書要件のテストを含める**（Time Lock, Slashing等）
 - この時点ではテストはFAILでOK
 
-### Step 2: 実装
+### Step 3: 実装
 CURRENT_PLANの「実装項目」を順次実装：
 - 成果物に記載された実装ファイルを作成
 - 各[IMPL-xxx]項目を実装
-- 参照Sequenceの仕様に準拠すること
+- **参照Sequenceの仕様に準拠すること**
 - **SPEC_REVIEW.mdの指摘事項に対応すること**
+- **SPEC_STRATEGY_BRIDGE §7の拡張仕様に従うこと**（モード依存の場合）
 
-### Step 3: テスト実行
+#### Layer配置ガイドライン（Phase 3以降）
+SPEC_STRATEGY_BRIDGE §3に従い、適切なLayerに実装：
+
+| Sequence | 実装先 | ファイル例 |
+|----------|--------|-----------|
+| #1-4, #3' | Core Layer | `src/core/CoreBridge.sol` |
+| #5-6 (基本) | Core Layer | `src/core/ProverRegistry.sol` |
+| #5-6 (拡張) | Governance Layer | `src/governance/ProverGovernance.sol` |
+| #7 | Governance Layer | `src/governance/GovernanceProposal.sol` |
+| #8 (基本) | Core Layer | `src/core/EmergencyPause.sol` |
+| #8 (拡張) | Governance Layer | `src/governance/EmergencyGovernance.sol` |
+
+### Step 4: テスト実行
 ```bash
 forge test
 ```
 全テストがpassすることを確認。
 
-### Step 4: SPEC_REVIEW.md 更新（該当する場合）
+### Step 5: SPEC_REVIEW.md 更新（該当する場合）
 `docs/planning/SPEC_REVIEW.md` が存在する場合、以下を更新：
 
 1. **各指摘事項のチェックボックスを更新**
@@ -79,7 +119,7 @@ forge test
 | ISSUE-001 | Engineer | YYYY-MM-DD HH:MM | abc1234 |
 ```
 
-### Step 5: CURRENT_STATE.md 更新（必須）
+### Step 6: CURRENT_STATE.md 更新（必須）
 
 `docs/planning/CURRENT_STATE.md` の「📦 最新実装レポート」セクションを更新：
 
@@ -87,7 +127,7 @@ forge test
 ## 📦 最新実装レポート
 
 > **用途**: 03_impl.md → 04_review.md への情報引継ぎ  
-> **更新タイミング**: 03_impl.md の Step 5 完了時
+> **更新タイミング**: 03_impl.md の Step 6 完了時
 
 | 項目 | 値 |
 |------|-----|
@@ -95,10 +135,21 @@ forge test
 | **実装日時** | YYYY-MM-DD HH:MM JST |
 | **ステータス** | ✅ 実装完了 |
 
+### 対象Sequence
+| Sequence | 実装Layer | 仕様書準拠 |
+|----------|----------|:----------:|
+| #X | Core | ✅ |
+
 ### 作成ファイル
 
 - `[ファイルパス]`: [説明]
 - `[ファイルパス]`: [説明]
+
+### 仕様書要件実装
+| 要件 | 出典 | 実装箇所 |
+|------|------|---------|
+| 24h Time Lock | SEQ#2 | `CoreBridge.sol:L42` |
+| Quadratic Slashing | SEQ#4 | `CoreSlashing.sol:L78` |
 
 ### SPEC_REVIEW対応
 
@@ -122,19 +173,28 @@ forge test
 [特記事項があれば記載]
 ```
 
-### Step 6: 完了報告
+### Step 7: 完了報告
 
 以下のフォーマットでチャット上に報告：
 
 ```
 ## 実装完了報告
 
+### 対象Sequence
+| Sequence | 実装Layer | 仕様書準拠 |
+|----------|----------|:----------:|
+| #X | Core | ✅ |
+
 ### 作成ファイル
 - [ファイルパス]: [説明]
 
+### 仕様書要件実装
+| 要件 | 出典 | 実装箇所 |
+|------|------|---------|
+| [要件] | SEQ#X | `file.sol:LXX` |
+
 ### SPEC_REVIEW対応（該当する場合）
 - [ISSUE-001]: ✅ [対応内容]
-- [ISSUE-002]: ✅ [対応内容]
 - SPEC_REVIEW.md 更新済み
 
 ### テスト結果
