@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-28 17:35 JST  
+> **Last Updated**: 2025-12-28 19:35 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,8 +13,8 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Next Step: SETUP-003 Phase 2資産統合準備                   │
-│  Status: 🔄 実装中                                          │
+│  Next Step: 05_pir.md PIR審査                               │
+│  Status: ✅ レビュー完了 → PIR待ち                          │
 │  Tests: ✅ 628/628 PASS (Phase 2) + 16 new (l3-aegis)       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -97,61 +97,54 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.1 Foundation (SETUP-001, SETUP-002) |
-| **実装日時** | 2025-12-28 17:35 JST |
-| **ステータス** | ✅ 実装完了 |
+| **対象Plan** | - |
+| **実装日時** | - |
+| **ステータス** | ⬜ 未実行 |
 
 ### 対象Sequence
 
-| Sequence | 実装Layer | 仕様書準拠 |
-|----------|----------|:----------:|
-| #1-4, #3' | Core (Interface) | ✅ |
-| #5-8 | Core + Governance (Interface) | ✅ |
+（なし）
 
 ### 作成ファイル
 
-- `l3-aegis/foundry.toml`: Foundry設定（via_ir有効、Phase 2 remappings）
-- `l3-aegis/src/interfaces/IGovernanceSwitch.sol`: Governance Layer switch interface
-- `l3-aegis/src/interfaces/ITokenSwitch.sol`: Token Layer switch interface
-- `l3-aegis/src/interfaces/ICoreLayer.sol`: Core Layer interface (Sequences #1-4, #3')
-- `l3-aegis/src/interfaces/IConstitutionLock.sol`: CP-1〜5 protection interface
-- `l3-aegis/test/interfaces/IGovernanceSwitch.t.sol`: GovernanceSwitch tests
-- `l3-aegis/test/interfaces/ITokenSwitch.t.sol`: TokenSwitch tests
-- `l3-aegis/test/interfaces/ICoreLayer.t.sol`: CoreLayer tests
-- `l3-aegis/test/interfaces/IConstitutionLock.t.sol`: ConstitutionLock tests
-- `l3-aegis/README.md`: プロジェクトドキュメント
+（なし）
 
 ### 仕様書要件実装
 
-| 要件 | 出典 | 実装箇所 |
-|------|------|---------|
-| 24h Time Lock | SEQ#2 | `ICoreLayer.sol:NORMAL_TIMELOCK()` |
-| 7d Time Lock | SEQ#3 | `ICoreLayer.sol:EMERGENCY_TIMELOCK()` |
-| 72h Timeout | SEQ#3 | `ICoreLayer.sol:EMERGENCY_TIMEOUT()` |
-| Emergency Bond | SEQ#3 | `ICoreLayer.sol:calculateEmergencyBond()` |
-| CP-1〜5 Protection | CORE_PRINCIPLES | `IConstitutionLock.sol` |
-| GovernanceMode enum | MODULAR_ARCH §3.1 | `IGovernanceSwitch.sol` |
-| TokenMode enum | MODULAR_ARCH §3.2 | `ITokenSwitch.sol` |
-| Supermajority (75% veQS, 6/7 SC, 30d) | MODULAR_ARCH §4.2 | `IConstitutionLock.sol` |
+（なし）
 
 ### SPEC_REVIEW対応
 
-（該当なし - SPEC_REVIEW.mdは全項目合格で指摘なし）
+（該当なし）
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +16 |
-| 総テスト数 | 628 (Phase 2) + 16 (l3-aegis) = 644 |
-| 結果 | ⏳ PIR後に確認 |
+| 新規テスト数 | - |
+| 総テスト数 | - |
+| 結果 | - |
 
 ### 備考
 
-- TDDアプローチ採用（テスト先行作成）
-- MODULAR_ARCHITECTURE.md §3 に完全準拠
-- SPEC_STRATEGY_BRIDGE.md §5 セキュリティ要件を反映
-- Phase 2資産は remappings で参照可能に設定
+（なし）
+
+---
+
+## 📝 PIR記録
+
+### Phase 3.1 SETUP-001, SETUP-002 (2025-12-28)
+
+| PIR ID | 対象 | レビュー結果 | 日付 |
+|--------|------|-------------|------|
+| PIR-P3.1-001 | SETUP-001, SETUP-002 | ✅ PASS (04_review.md完了) | 2025-12-28 |
+
+**04_review.md レビュー結果サマリー**:
+- 仕様書要件 (SPEC_STRATEGY_BRIDGE §5): 全項目PASS
+- 暗号実装確認: 禁止アルゴリズム混入なし
+- CP保護トレーサビリティ: CP-1〜5 正しく定義
+- 静的解析 (Slither): 0件の警告
+- 判定: ✅ PASS → PIRに進んでください
 
 ---
 
@@ -231,10 +224,9 @@
 
 | # | タスク | 優先度 | 担当 | 状態 |
 |---|--------|--------|------|------|
-| 1 | SETUP-003 Phase 2資産統合準備 | 🔴 Critical | Engineer | ⬜ |
-| 2 | 04_review.md セキュリティレビュー | 🔴 Critical | Auditor | ⬜ |
-| 3 | 05_pir.md PIR審査 | 🔴 Critical | PIR Team | ⬜ |
-| 4 | エコシステム構築計画策定 | 🟠 High | CBO | ⬜ |
+| 1 | 05_pir.md PIR審査 (SETUP-001, 002) | 🔴 Critical | PIR Team | ⬜ |
+| 2 | SETUP-003 Phase 2資産統合準備 | 🔴 Critical | Engineer | ⬜ |
+| 3 | エコシステム構築計画策定 | 🟠 High | CBO | ⬜ |
 
 ---
 
@@ -304,7 +296,7 @@
 **Phase 2 ZK-STARK L1実装: ✅ COMPLETE 🎉**
 
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
-- Phase 3.1 Foundation: 🔄 ACTIVE (SETUP-001, 002 完了)
+- Phase 3.1 Foundation: 🔄 ACTIVE (SETUP-001, 002 完了、レビューPASS → PIR待ち)
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
 
