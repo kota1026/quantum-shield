@@ -1,7 +1,7 @@
 # Quantum Shield L3 - Unified Specification v2.0
 
 > **Document Version**: 2.0  
-> **Last Updated**: 2025-12-21  
+> **Last Updated**: 2025-12-28  
 > **Status**: CEO承認待ち  
 > **Rounds Completed**: 8 (42 votes)
 
@@ -22,6 +22,55 @@ Quantum Shield L3は、量子コンピュータ時代に備えた世界初のNIS
 | 3 | **Time Lock存在** | Time Lockを0にすることは不可 |
 | 4 | **Slashing存在** | Slashingメカニズムの削除は不可 |
 | 5 | **透明性** | 全てオンチェーンで検証可能 |
+
+---
+
+## L3 Infrastructure Decision (2025-12-28)
+
+> **Decision Date**: 2025-12-28  
+> **Decision Record**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+
+### Technical Selection
+
+| Item | Decision |
+|------|----------|
+| L3 Configuration | Custom 4-node BFT chain |
+| Implementation | l3-aegis (Rust) |
+| Consensus | PBFT variant (f=1) |
+| ZK-STARK | Not used (future consideration) |
+| L1 Verification | SPHINCS+ direct verification (~$25) |
+
+### Decision Rationale
+
+1. **Transparency (CP-5)**: All operations recorded on L3 blocks
+2. **Non-repudiation**: Prover signatures recorded as L3 transactions
+3. **Quantum Resistance (CP-1)**: Full control via custom implementation
+4. **Alignment**: Complete alignment with SEQUENCES v2.0 design
+
+### Excluded Alternatives
+
+| Alternative | Exclusion Reason |
+|-------------|------------------|
+| Rollup + ZK-STARK | Transparency deficit, SPHINCS+ AIR conversion takes minutes |
+| Cosmos SDK | Go language incompatible with l3-aegis (Rust) |
+| Substrate | CP-1 modification too complex |
+| SP1/Risc Zero | Sequencer architecture lacks transparency |
+
+### Evaluation Summary (6 Perspectives)
+
+| Perspective | Evaluation |
+|-------------|------------|
+| ① ZK Required? | Not now (future consideration) |
+| ② Custom Base Required? | ✅ Required (transparency) |
+| ③ Proof Time | ✅ 0 seconds (no ZK) |
+| ④ Gas Cost | ~$25 (SPHINCS+ direct verification) |
+| ⑤ Development Cost | ✅ Minimal (reuse existing design) |
+| ⑥ Quantum Resistance | ✅ Complete (dual protection) |
+
+### Related Documents
+
+- **Detailed Specification**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
+- **Integration with Sequences**: See Phase Overview below
 
 ---
 
@@ -59,6 +108,11 @@ TVL:
              ├────────$10M────────┤
                                    ├────$50M────┤
                                                  ├─────無制限──────┤
+
+L3 (l3-aegis):
+├──────開発──────┤
+                 ├────Testnet────┤
+                                  ├────Mainnet────────────────────────────┤
 ```
 
 ---
@@ -178,7 +232,7 @@ TVL:
 #### Phase 1からの変更点
 
 | 項目 | Phase 1 | Phase 2 |
-|------|---------|---------|
+|------|---------|---------
 | 紛争解決 | （なし） | + ZK Validity Proof（Challenge時） |
 | Prover Stake | ETH | $QS Token |
 
@@ -572,6 +626,7 @@ TVL:
 | 1.0 | 2025-12-21 | Initial draft (Round 1-4) |
 | 1.5 | 2025-12-21 | + Protocol v3.1, External AI critique |
 | 2.0 | 2025-12-21 | + Governance (Round 7), Integration (Round 8) |
+| 2.1 | 2025-12-28 | + L3 Infrastructure Decision section |
 
 ---
 
