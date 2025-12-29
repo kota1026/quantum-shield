@@ -25,6 +25,7 @@ async-trait = { workspace = true }
 # CLI & Configuration
 clap = { version = "4.4", features = ["derive", "env"] }
 config = "0.14"
+toml = { workspace = true }
 
 # Serialization
 serde = { workspace = true }
