@@ -14,6 +14,7 @@
 
 ### 3.1 ブリッジドキュメント
 `docs/planning/SPEC_STRATEGY_BRIDGE.md` を読み込み、以下を確認：
+- §1.5 L3基盤技術決定（2025-12-28）
 - §5 セキュリティ要件マトリクス（レビュー基準）
 - §4 CP保護トレーサビリティ（CP違反チェック）
 - §7 拡張仕様（モード依存実装の確認）
@@ -21,6 +22,13 @@
 ### 3.2 原理原則仕様（該当Sequence）
 CURRENT_PLANの「対象Sequence」に記載されたSequenceを確認：
 - `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` のセキュリティ要件
+
+### 3.3 L3関連タスクの場合（追加確認）
+
+以下のドキュメントを確認すること：
+
+- **決議記録**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+- **詳細仕様**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
 
 ## 4. 実装レポート読み込み（必須）
 `docs/planning/CURRENT_STATE.md` の「📦 最新実装レポート」セクションを確認：
@@ -33,6 +41,7 @@ CURRENT_PLANの「対象Sequence」に記載されたSequenceを確認：
    - 作成ファイル一覧
    - 対象Sequence
    - 仕様書要件実装（Time Lock, Slashing等）
+   - L3基盤確認（該当する場合）
    - SPEC_REVIEW対応内容（該当する場合）
    - テスト結果
 
@@ -92,17 +101,29 @@ SPEC_STRATEGY_BRIDGE §7の拡張仕様に準拠しているか確認：
 | Emergency Pause | MULTISIG | N/M承認 | [実装箇所] | ✅/❌ |
 | Emergency Pause | DECENTRALIZED | SC 5/9 | [実装箇所] | ✅/❌ |
 
-### 8.6 SPEC_REVIEW対応確認（該当する場合）
+### 8.6 L3基盤確認（L3関連タスクの場合）
+
+SPEC_STRATEGY_BRIDGE §1.5に基づき、L3基盤技術選定に準拠しているか確認：
+
+| 確認項目 | 期待 | 実装 | 結果 |
+|----------|------|------|:----:|
+| L3構成 | 独自4ノードBFTチェーン | [実装確認] | ✅/❌ |
+| 実装言語 | Rust (l3-aegis) | [実装確認] | ✅/❌ |
+| ZK-STARK使用 | なし（将来検討） | [実装確認] | ✅/❌ |
+| 外部フレームワーク | なし | [実装確認] | ✅/❌ |
+| SEQUENCES準拠 | v2.0準拠 | [実装確認] | ✅/❌ |
+
+### 8.7 SPEC_REVIEW対応確認（該当する場合）
 - 各指摘事項の対応内容が適切か
 - 対策が仕様通りに実装されているか
 
-### 8.7 静的解析
+### 8.8 静的解析
 ```bash
 slither src/
 ```
 警告がないことを確認。
 
-### 8.8 結果出力
+### 8.9 結果出力
 以下のフォーマットでレポート：
 ```
 ## セキュリティレビュー結果
@@ -124,6 +145,14 @@ slither src/
 |----------|----------|---------|:----:|
 | #X | Core | `src/core/xxx.sol` | ✅ |
 
+### L3基盤確認（該当する場合）
+| 確認項目 | 結果 |
+|----------|:----:|
+| 独自4ノードBFT | ✅ |
+| l3-aegis範囲内 | ✅ |
+| ZK-STARK不使用 | ✅ |
+| SEQUENCES準拠 | ✅ |
+
 ### 発見事項
 | # | 重要度 | 項目 | 仕様書出典 | 説明 | 対策 |
 |---|--------|------|-----------|------|------|
@@ -143,7 +172,7 @@ slither src/
 - [ ] ❌ FAIL - 実装に差し戻し
 ```
 
-### 8.9 状態更新
+### 8.10 状態更新
 
 #### ✅ PASS の場合
 
@@ -166,6 +195,7 @@ docs/planning/archive/SPEC_REVIEW_YYYY-MM-DD.md
 - **セキュリティレビュー結果**: ✅ PASS
 - **レビュー担当**: Red Team
 - **仕様書準拠確認**: SPEC_STRATEGY_BRIDGE §5 全項目PASS
+- **L3基盤準拠確認**: ✅（該当する場合）
 ```
 
 **Step 3: CURRENT_STATE.md 実装レポートをリセット**
@@ -189,6 +219,10 @@ docs/planning/archive/SPEC_REVIEW_YYYY-MM-DD.md
 ### 仕様書要件実装
 
 （なし）
+
+### L3基盤確認
+
+（該当なし）
 
 ### SPEC_REVIEW対応
 
