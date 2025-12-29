@@ -1,7 +1,8 @@
 # Specification-Strategy Bridge Document
 
-> **Document Version**: 1.0  
+> **Document Version**: 1.1  
 > **Created**: 2025-12-28  
+> **Updated**: 2025-12-28  
 > **Purpose**: 既存仕様書（原理原則）とPhase 3戦略決議の連動を定義
 
 ---
@@ -23,7 +24,13 @@
 │ Layer 2: 戦略決議（Phase単位で更新）                        【本書の橋渡し】  │
 │ ├── docs/planning/PHASE3_STRATEGY.md                 ← 「どう実現するか」    │
 │ ├── docs/specs/MODULAR_ARCHITECTURE.md               ← 「実装設計」          │
-│ └── docs/planning/SPEC_STRATEGY_BRIDGE.md            ← 「Layer 1-2対応」     │
+│ ├── docs/planning/SPEC_STRATEGY_BRIDGE.md            ← 「Layer 1-2対応」     │
+│ └── docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md      │
+│     ※ L3基盤技術選定決議（2025-12-28）                    ← 「L3基盤決定」    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Layer 2.5: L3詳細仕様（技術決議後）                                          │
+│ └── docs/aegis/L3_CHAIN_SPECIFICATION.md             ← 「L3チェーン仕様」    │
+│     ※ 独自4ノードBFTチェーン、l3-aegis実装仕様                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ Layer 3: 実装計画（週単位で更新）                                            │
 │ ├── docs/planning/CURRENT_STATE.md                                          │
@@ -39,7 +46,47 @@
 | 「何をすべきか」を確認 | Layer 1: SEQUENCES / UNIFIED_SPEC |
 | 「どう実装するか」を確認 | Layer 2: STRATEGY / MODULAR_ARCHITECTURE |
 | Layer 1とLayer 2の対応関係 | **本書（SPEC_STRATEGY_BRIDGE.md）** |
+| L3基盤の技術選定 | Layer 2: L3_INFRASTRUCTURE_FINAL_DECISION |
+| L3チェーンの詳細仕様 | Layer 2.5: L3_CHAIN_SPECIFICATION |
 | 今日何をするか | Layer 3: CURRENT_PLAN |
+
+---
+
+## 1.5 L3基盤技術決定（2025-12-28）
+
+### 1.5.1 決定サマリー
+
+| 項目 | 決定 |
+|------|------|
+| L3構成 | 独自4ノードBFTチェーン |
+| 実装 | l3-aegis (Rust) |
+| 合意方式 | PBFT variant (f=1) |
+| ZK-STARK | 使用しない（将来検討） |
+| L1検証 | SPHINCS+直接検証 (~$25) |
+
+### 1.5.2 仕様書との整合性
+
+この決定は以下の既存仕様との整合性を確認済み：
+
+| 仕様書 | 整合性 | 備考 |
+|--------|:------:|------|
+| SEQUENCES v2.0 | ✅ | 全Sequenceがl3-aegisで実装可能 |
+| UNIFIED_SPEC v2.0 | ✅ | Phase定義に影響なし |
+| CORE_PRINCIPLES | ✅ | CP-1/CP-5を完全満足 |
+
+### 1.5.3 除外した選択肢
+
+| 選択肢 | 除外理由 | CP影響 |
+|--------|---------|--------|
+| Rollup + ZK-STARK | 透明性欠如 | CP-5違反リスク |
+| Cosmos SDK | Go言語でl3-aegis(Rust)と不整合 | - |
+| Substrate | CP-1改造が複雑 | CP-1リスク |
+| SP1/Risc Zero | Sequencer構成で透明性欠如 | CP-5違反リスク |
+
+### 1.5.4 参照ドキュメント
+
+- **決議記録**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+- **詳細仕様**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
 
 ---
 
@@ -121,6 +168,19 @@ Challenge (#4)   → CoreSlashing.challenge()
 | #7 Governance | ❌ 無効 | ✅ veQS投票 |
 | #8 Emergency | Admin単独Pause | SC 5/9 or マルチシグ |
 
+### 3.3 L3基盤との対応
+
+2025-12-28決議により、L3基盤は独自4ノードBFTチェーン（l3-aegis）を採用。
+各SequenceはL3上で以下のように実装される：
+
+| Sequence | L3での役割 |
+|----------|-----------|
+| #1 Lock | L3トランザクションとして記録 |
+| #2 Unlock | Prover署名がL3ブロックに記録 |
+| #3 Emergency | Emergency Bond記録 |
+| #4 Challenge | 署名否認防止（L3証拠） |
+| #5-6 Prover | 登録/退出がL3状態に反映 |
+
 ---
 
 ## 4. CP保護トレーサビリティ
@@ -133,7 +193,7 @@ Challenge (#4)   → CoreSlashing.challenge()
 | CP-2 | Self-Custody | UNIFIED §Self-Custody | Core Layer ユーザー署名検証 | Core | IMMUTABLE |
 | CP-3 | Time Lock存在 | SEQ #2, #3 | Core Layer Time Lock強制 | Core | SUPERMAJORITY |
 | CP-4 | Slashing存在 | SEQ #4 | Core Layer Quadratic Slashing | Core | SUPERMAJORITY |
-| CP-5 | 透明性 | UNIFIED §透明性 | 全Layer Event発行 | All | SUPERMAJORITY |
+| CP-5 | 透明性 | UNIFIED §透明性 | 全Layer Event発行 + L3記録 | All | SUPERMAJORITY |
 
 ### 4.2 CP保護の実装ガイドライン
 
@@ -148,6 +208,15 @@ enum ProtectionLevel {
 // CP-1, CP-2 は ConstitutionLock.sol で強制
 // CP-3, CP-4, CP-5 はパラメータとして定義し、超多数決ガード付き
 ```
+
+### 4.3 L3基盤とCP保護
+
+L3基盤（独自4ノードBFTチェーン）は以下のCPを強化：
+
+| CP | L3による強化 |
+|----|-------------|
+| CP-1 | Dilithium-III + SPHINCS+の二重保護 |
+| CP-5 | 全操作がL3ブロックに記録（透明性100%） |
 
 ---
 
@@ -176,6 +245,7 @@ enum ProtectionLevel {
 - [ ] Emergency Bond計算が MAX(0.5 ETH, amount × 5%) か
 - [ ] VRF統合がChainlinkを使用しているか
 - [ ] 禁止アルゴリズム（keccak256, SHA-256, ECDSA）が混入していないか
+- [ ] L3基盤がl3-aegis（独自BFT）を使用しているか
 
 ---
 
@@ -351,6 +421,12 @@ CP-1, CP-2 → IMMUTABLE（Core Layer強制）
 CP-3〜CP-5 → SUPERMAJORITY（パラメータ+ガード）
 ```
 
+**L3基盤確認時**:
+```
+技術選定   → 本書§1.5 または L3_INFRASTRUCTURE_FINAL_DECISION
+詳細仕様   → L3_CHAIN_SPECIFICATION.md
+```
+
 ---
 
 ## 9. 変更履歴
@@ -358,6 +434,7 @@ CP-3〜CP-5 → SUPERMAJORITY（パラメータ+ガード）
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-12-28 | 初版作成 |
+| 1.1 | 2025-12-28 | L3基盤技術選定(2025-12-28決議)への参照を追加（§1.5） |
 
 ---
 
