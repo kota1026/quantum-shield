@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-30 01:35 JST  
+> **Last Updated**: 2025-12-30 01:57 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,8 +13,8 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Active Task: L3-002 Single-node dev mode実装 (IC-1)        │
-│  Status: ✅ L3-001 完了 → L3-002へ移行                      │
+│  Active Task: L3-001 PIRレビュー → L3-002へ移行予定          │
+│  Status: ✅ L3-001 実装完了（69/69 tests PASS）             │
 │  Tests: ✅ 697 PASS (628 Phase 2 + 69 l3-aegis)             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -199,7 +199,7 @@
 ### 主要コミット履歴 (L3-001)
 
 | コミット | 説明 |
-|---------|----- |
+|---------|-----|
 | `531697f` | fix(aegis-smt): fix bit position in prove() - TREE_DEPTH-1-depth |
 | `1ce13b2` | fix(aegis-smt): prefix-based subtree hash computation |
 | `60f757a` | fix(aegis-smt): recursive subtree computation |
@@ -220,11 +220,12 @@
 
 ## 📝 PIR記録
 
-### Phase 3.1 PIR-P3.1-001 (2025-12-28)
+### Phase 3.1 PIR一覧
 
 | PIR ID | 対象 | レビュー結果 | 日付 |
 |--------|------|-------------|------|
 | PIR-P3.1-001 | SETUP-001, SETUP-002 | ✅ PASS | 2025-12-28 |
+| PIR-P3.1-002 | L3-001 | ⬜ 予定 | - |
 
 **PIR-P3.1-001 詳細**:
 - 対象: l3-aegis基盤 + Modular Architectureインターフェース定義
@@ -328,7 +329,7 @@
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
 | 1 | 独自L3技術リスク | 🔴 HIGH | 緩和策実施（監査、TVL制限） |
-| 2 | L3 Rust実装の複雑性 | 🟠 MEDIUM | L3-001完了で軽減 ✅ |
+| 2 | L3 Rust実装の複雑性 | 🟢 LOW | L3-001完了で軽減 ✅ |
 | 3 | Modular設計複雑性 | 🟠 MEDIUM | 網羅的テスト |
 | 4 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
 | 5 | via_ir問題（SharedMerkle） | 🟢 LOW | L3移行後不要の可能性 |
@@ -352,7 +353,7 @@
 
 - [x] 全クレートが `cargo build` 成功
 - [x] 基本テストが `cargo test` 成功 (69/69 PASS)
-- [ ] CI/CDパイプライン動作確認（次タスク）
+- [ ] PIR-P3.1-002 レビュー完了 ← **次のステップ**
 - [x] Docker Compose設定完了
 
 ---
@@ -364,6 +365,7 @@
 | Phase 1完了 | Month 6 | ✅ **COMPLETE** |
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
 | **L3-001完了** | **Month 10** | ✅ **COMPLETE** 🎉 |
+| **L3-001 PIRレビュー** | **Month 10** | ⬜ **PIR-P3.1-002** |
 | **L3 Single-node動作** | **Month 10-11** | ⬜ **L3-002** |
 | **L3 4-node consensus動作** | **Month 11-12** | ⬜ **L3-003~006** |
 | **Phase 3.1完了** | **Month 12** | 🔄 ACTIVE |
@@ -384,7 +386,7 @@
 │  Phase 3.1 (Month 10-12): Foundation ← ACTIVE               │
 │  ├── Track A: L3 Chain (Rust) - IC-1 ⭐ 最優先              │
 │  │   ├── L3-001: プロジェクト構造設計 ← ✅ COMPLETE 🎉      │
-│  │   ├── L3-002: Single-node dev mode ← NEXT                │
+│  │   ├── L3-002: Single-node dev mode ← NEXT (PIR後)        │
 │  │   ├── L3-003: PBFT consensus                             │
 │  │   ├── L3-004: Dilithium-III署名                          │
 │  │   ├── L3-005: SHA3-256 hashing                           │
@@ -442,6 +444,7 @@
 - Phase 3.1 Foundation: 🔄 ACTIVE
   - Track A (L3 Chain - IC-1):
     - L3-001: ✅ **COMPLETE** 🎉 (69/69 tests PASS)
+    - PIR-P3.1-002: ⬜ **次のステップ**
     - L3-002~006: ⬜
   - Track B (Solidity):
     - SETUP-001: ✅ PASS (PIR-P3.1-001)
