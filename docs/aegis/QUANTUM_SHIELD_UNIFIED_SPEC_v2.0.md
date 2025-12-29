@@ -1,7 +1,7 @@
 # Quantum Shield L3 - Unified Specification v2.0
 
-> **Document Version**: 2.0  
-> **Last Updated**: 2025-12-28  
+> **Document Version**: 2.2  
+> **Last Updated**: 2025-12-29  
 > **Status**: CEO承認待ち  
 > **Rounds Completed**: 8 (42 votes)
 
@@ -22,6 +22,36 @@ Quantum Shield L3は、量子コンピュータ時代に備えた世界初のNIS
 | 3 | **Time Lock存在** | Time Lockを0にすることは不可 |
 | 4 | **Slashing存在** | Slashingメカニズムの削除は不可 |
 | 5 | **透明性** | 全てオンチェーンで検証可能 |
+
+---
+
+## Implementation Components (IC)
+
+> **Purpose**: 仕様書の要件が実装計画に漏れなく反映されることを保証するトレーサビリティ
+
+### IC一覧
+
+| IC-ID | Component | Type | Phase | Status | Spec Reference |
+|-------|-----------|------|-------|--------|----------------|
+| IC-1 | L3 Chain Infrastructure (4-node BFT) | Infrastructure | 3 | 🔴 Planning | §L3 Infrastructure, L3_CHAIN_SPECIFICATION.md |
+| IC-2 | L3 Bridge Contract | Application | 3 | 🔴 Planning | PHASE3_PLAN.md §1 |
+| IC-3 | Sequencer | Application | 3 | 🔴 Planning | PHASE3_PLAN.md §2 |
+| IC-4 | State Management (SMT) | Application | 3 | 🔴 Planning | PHASE3_PLAN.md §3 |
+| IC-5 | veQS Token | Application | 3 | 🔴 Planning | §Token Design |
+| IC-6 | Node Expansion (7-node) | Infrastructure | 3 | 🔴 Future | §Node Expansion Roadmap |
+| IC-7 | Permissionless Nodes | Infrastructure | 4 | 🔴 Future | §Node Expansion Roadmap |
+
+### Status Legend
+
+| Status | Meaning |
+|--------|---------|
+| 🔴 Planning | 計画段階（Task ID未割当） |
+| 🟡 In Progress | 実装中 |
+| 🟢 Complete | 完了 |
+| ⚪ Future | 将来Phase |
+
+> **Important**: 全ICにTask IDが割り当てられていない場合、計画漏れの可能性あり。
+> SPEC_STRATEGY_BRIDGE.md §10 でタスク割当を確認すること。
 
 ---
 
@@ -74,6 +104,65 @@ Quantum Shield L3は、量子コンピュータ時代に備えた世界初のNIS
 
 ---
 
+## Node Expansion Roadmap
+
+> **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md` §9
+> **Reference**: `docs/planning/DEVELOPMENT_STRATEGY_v2.0.md` §2-3
+
+### Phase別ノード構成
+
+| Phase | Nodes | Fault Tolerance | Quorum | Membership | IC-ID |
+|-------|-------|-----------------|--------|------------|-------|
+| 1-2 (Foundation) | 4 | f=1 | 3/4 (75%) | Static | IC-1 |
+| 3 (Security Council) | 4→7 | f=2 | 5/7 (71%) | Council Managed | IC-6 |
+| 4 (Full Decentralization) | 7+ | (n-1)/3 | 2f+1 | Stake-based Permissionless | IC-7 |
+
+### Prover構成
+
+| Phase | Provers | Approval | Stake | Membership |
+|-------|---------|----------|-------|------------|
+| 1-2 | 5 (QS 3 + Partner 2) | Contract | ETH | Permissioned |
+| 3 | Expandable | SC Approval | $QS | Council Managed |
+| 4 | Unlimited | Auto (stake-based) | $QS | Permissionless |
+
+### コードベース共通化
+
+```
+l3-aegis（共通コードベース）
+├── --nodes=4 --membership=static    → Enterprise / Phase 1-2
+├── --nodes=7 --membership=council   → Phase 3
+└── --nodes=N --membership=stake     → Phase 4 Decentralized
+```
+
+---
+
+## Business Strategy Reference
+
+> **Reference**: `docs/planning/DEVELOPMENT_STRATEGY_v2.0.md`
+
+### 2本立てターゲット戦略
+
+| Edition | Target | L3 Nodes | Prover | Key Value |
+|---------|--------|----------|--------|-----------|
+| **Enterprise** | 金融系システム会社（ブロックチェーン関係なし） | 4 (Fixed) | Permissioned | 安定性・規制対応・サポート |
+| **Decentralized** | DEX・ブリッジ等（分散型前提） | 4→7→Permissionless | Permissioned→Permissionless | 分散性・透明性・検閲耐性 |
+
+### Enterprise Edition
+
+- ターゲット: 銀行、証券、保険、決済会社等
+- 構成: 4ノードBFT固定、許可制Prover
+- 運営: QS提供 or 顧客自社運営（ライセンス）
+- 重視: 安定性、可用性、規制対応
+
+### Decentralized Edition
+
+- ターゲット: DEX、ブリッジ、カストディ、ウォレット
+- 構成: Phase別に段階的分散化
+- 運営: QS → パートナー参加 → Permissionless
+- 重視: 分散性、検閲耐性、透明性
+
+---
+
 ## Phase Overview
 
 ```
@@ -113,6 +202,11 @@ L3 (l3-aegis):
 ├──────開発──────┤
                  ├────Testnet────┤
                                   ├────Mainnet────────────────────────────┤
+
+L3 Nodes:                                            【Node Expansion】
+├───────────4ノード固定───────────────────────────┤
+                                                   ├──4→7ノード──┤
+                                                                  ├─Permissionless─┤
 ```
 
 ---
@@ -232,7 +326,7 @@ L3 (l3-aegis):
 #### Phase 1からの変更点
 
 | 項目 | Phase 1 | Phase 2 |
-|------|---------|---------
+|------|---------|---------|
 | 紛争解決 | （なし） | + ZK Validity Proof（Challenge時） |
 | Prover Stake | ETH | $QS Token |
 
@@ -496,7 +590,7 @@ L3 (l3-aegis):
 ### 管理
 
 | Phase | 管理方式 |
-|-------|---------|
+|-------|---------
 | Phase 1-2 | 財団マルチシグ（3/5） |
 | Phase 3 | Token Vote + 財団承認 |
 | Phase 4 | Token Vote のみ |
@@ -555,7 +649,7 @@ L3 (l3-aegis):
 ### 運営コスト（月次）
 
 | 項目 | Phase 1 | Phase 2 | Phase 3 | Phase 4 |
-|------|---------|---------|---------|---------|
+|------|---------|---------|---------|---------
 | Infra | $2K | $3K | $5K | $5K |
 | Dev | $20K | $40K | $50K | $50K |
 | Security | $5K | $15K | $20K | $20K |
@@ -627,6 +721,7 @@ L3 (l3-aegis):
 | 1.5 | 2025-12-21 | + Protocol v3.1, External AI critique |
 | 2.0 | 2025-12-21 | + Governance (Round 7), Integration (Round 8) |
 | 2.1 | 2025-12-28 | + L3 Infrastructure Decision section |
+| 2.2 | 2025-12-29 | + Implementation Components, Node Expansion Roadmap, Business Strategy Reference |
 
 ---
 
