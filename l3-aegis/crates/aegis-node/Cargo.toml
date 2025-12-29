@@ -1,0 +1,45 @@
+[package]
+name = "aegis-node"
+version = "0.1.0"
+edition = "2021"
+authors = ["Quantum Shield Team"]
+description = "L3 Aegis Node - Main node binary"
+license = "MIT"
+
+[[bin]]
+name = "aegis-node"
+path = "src/main.rs"
+
+[dependencies]
+# Internal crates
+aegis-types = { path = "../aegis-types" }
+aegis-crypto = { path = "../aegis-crypto" }
+aegis-consensus = { path = "../aegis-consensus" }
+aegis-network = { path = "../aegis-network" }
+aegis-storage = { path = "../aegis-storage" }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# CLI & Configuration
+clap = { version = "4.4", features = ["derive", "env"] }
+config = "0.14"
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Utilities
+chrono = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.10"
