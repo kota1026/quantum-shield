@@ -1,138 +1,177 @@
-# l3-aegis - Quantum Shield L3 Core
+# Aegis L3 Chain
 
-> **Phase**: 3 - L3 + Token + 完全分散化
-> **Version**: 0.1.0
-> **Status**: Foundation Development
+Quantum-resistant Layer 3 blockchain for Quantum Shield's cryptographic proof generation and verification.
 
 ## Overview
 
-l3-aegis is the Layer 3 implementation of Quantum Shield's quantum-resistant bridge system. It implements the Modular Architecture with pluggable Governance and Token layers.
+Aegis L3 is a purpose-built blockchain that handles computationally intensive quantum-resistant cryptographic operations, offloading them from L1 (Ethereum) to achieve gas efficiency while maintaining full CP-1 compliance.
+
+### Key Features
+
+- **CP-1 Compliant Cryptography**: SHA3-256 (FIPS 202) + Dilithium-III (FIPS 204) only
+- **PBFT Consensus**: 4-node BFT with f=1 fault tolerance
+- **Sparse Merkle Trees**: For efficient state proofs
+- **ZK-STARK Integration**: Native proof generation and verification
+- **RocksDB Storage**: High-performance key-value storage
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Pluggable Governance Layer [ON/OFF]                         │
-│ └── IGovernanceSwitch.sol                                   │
+│                     Aegis L3 Chain                           │
 ├─────────────────────────────────────────────────────────────┤
-│ Pluggable Token Layer [ON/OFF]                              │
-│ └── ITokenSwitch.sol                                        │
-├─────────────────────────────────────────────────────────────┤
-│ Core Layer [ALWAYS ON]                                      │
-│ ├── ICoreLayer.sol                                          │
-│ └── IConstitutionLock.sol (CP-1~5 Protection)               │
+│  aegis-cli       │  Command-line interface                  │
+│  aegis-node      │  Full node implementation                │
+├──────────────────┼──────────────────────────────────────────┤
+│  aegis-consensus │  PBFT consensus engine                   │
+│  aegis-network   │  P2P networking (TLS 1.3 + mTLS)        │
+│  aegis-storage   │  RocksDB-backed persistence              │
+├──────────────────┼──────────────────────────────────────────┤
+│  aegis-core      │  Block, transaction, state management    │
+│  aegis-crypto    │  SHA3-256, Dilithium-III                │
+│  aegis-smt       │  Sparse Merkle Tree implementation       │
+│  aegis-types     │  Common types and traits                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Core Principles (Immutable)
-
-| CP | Name | Protection |
-|----|------|------------|
-| CP-1 | Complete Quantum Resistance | IMMUTABLE |
-| CP-2 | Self-Custody | IMMUTABLE |
-| CP-3 | Time Lock Existence | SUPERMAJORITY |
-| CP-4 | Slashing Existence | SUPERMAJORITY |
-| CP-5 | Transparency | SUPERMAJORITY |
-
-## Project Structure
-
-```
-l3-aegis/
-├── src/
-│   ├── core/           # Core Layer (always ON)
-│   ├── governance/     # Governance Layer (pluggable)
-│   ├── token/          # Token Layer (pluggable)
-│   └── interfaces/     # All interface definitions
-├── test/
-│   ├── interfaces/     # Interface compliance tests
-│   ├── core/           # Core layer tests
-│   ├── governance/     # Governance tests
-│   └── token/          # Token tests
-├── script/             # Deployment scripts
-├── crates/             # Rust components
-└── foundry.toml
-```
-
-## Interfaces
-
-### IGovernanceSwitch
-Controls governance operation modes:
-- CENTRALIZED: Single admin control (Phase 1)
-- MULTISIG: N/M multisig approval (Phase 2)
-- DECENTRALIZED: Security Council + DAO voting (Phase 3+)
-
-### ITokenSwitch
-Controls token operation modes:
-- DISABLED: No token, ETH/USDC fees
-- BASIC: QS Token basic functionality
-- FULL: veQS + Staking + Rewards
-
-### ICoreLayer
-Implements core bridge functions (Sequences #1-4, #3'):
-- lock() - Sequence #1
-- unlock() - Sequence #2
-- emergencyUnlock() - Sequence #3
-- resync() - Sequence #3'
-
-### IConstitutionLock
-Protects Core Principles with two levels:
-- IMMUTABLE: Cannot be changed (CP-1, CP-2)
-- SUPERMAJORITY: 75% veQS + 6/7 SC + 30 days (CP-3, CP-4, CP-5)
-
-## Phase 2 Asset Integration
-
-Phase 2 assets are referenced via remappings:
-
-- `@phase2/` → `../contracts/src/`
-- STARKVerifier, SHA3Hasher, BatchVerifier from Phase 2
-
-## Development
+## Quick Start
 
 ### Prerequisites
 
-- Foundry (forge, cast, anvil)
-- Node.js 18+
-- Rust (for l3-aegis/crates)
+- Rust 1.75+
+- Docker & Docker Compose (for testnet)
+- RocksDB development libraries
 
 ### Build
 
 ```bash
 cd l3-aegis
-forge build
+cargo build --release
 ```
 
-### Test
+### Run Tests
 
 ```bash
-forge test
+cargo test
 ```
 
-### Test with Verbosity
+### Run Clippy
 
 ```bash
-forge test -vvv
+cargo clippy -- -D warnings
 ```
 
-## Security Constants
+## Docker Testnet
 
-| Parameter | Value | Source |
-|-----------|-------|--------|
-| Normal Time Lock | 24 hours | SEQ#2 |
-| Emergency Time Lock | 7 days | SEQ#3 |
-| Emergency Timeout | 72 hours | SEQ#3 |
-| Emergency Bond | MAX(0.5 ETH, 5%) | SEQ#3 |
-| Quadratic Slashing | N² × 10% | SEQ#4 |
+Deploy a 4-node BFT testnet using Docker Compose:
 
-## References
+```bash
+cd docker
 
-| Document | Path |
-|----------|------|
-| Core Principles | `docs/constitution/CORE_PRINCIPLES.md` |
-| Modular Architecture | `docs/specs/MODULAR_ARCHITECTURE.md` |
-| Phase 3 Strategy | `docs/planning/PHASE3_STRATEGY.md` |
-| Spec-Strategy Bridge | `docs/planning/SPEC_STRATEGY_BRIDGE.md` |
-| Sequence Specifications | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` |
+# Generate keys for each node (if not already generated)
+# TODO: aegis-cli keygen implementation
+
+# Build and start the testnet
+docker-compose build
+docker-compose up -d
+
+# Check node status
+docker-compose logs -f
+```
+
+### Node Ports
+
+| Node   | P2P Port | RPC Port | Metrics Port |
+|--------|----------|----------|--------------|
+| node0  | 30303    | 8545     | 9090         |
+| node1  | 30304    | 8546     | 9091         |
+| node2  | 30305    | 8547     | 9092         |
+| node3  | 30306    | 8548     | 9093         |
+
+### Network Topology
+
+```
+         ┌─────────┐
+         │  node0  │ 172.28.0.10
+         └────┬────┘
+              │
+    ┌─────────┼─────────┐
+    │         │         │
+┌───┴───┐ ┌───┴───┐ ┌───┴───┐
+│ node1 │ │ node2 │ │ node3 │
+└───────┘ └───────┘ └───────┘
+172.28.0.11  .12      .13
+```
+
+## Configuration
+
+Node configuration files are located in `docker/config/`:
+
+- `node0.toml` - Primary validator
+- `node1.toml` - Validator
+- `node2.toml` - Validator
+- `node3.toml` - Validator
+
+### Key Configuration Options
+
+```toml
+[crypto]
+hash_algorithm = "sha3-256"           # FIPS 202 compliant
+signature_algorithm = "dilithium-iii"  # FIPS 204 compliant
+
+[consensus]
+algorithm = "pbft"
+block_time_ms = 5000      # 5 second blocks
+view_timeout_ms = 10000   # 10 second view timeout
+```
+
+## CP-1 Compliance
+
+This implementation strictly adheres to Core Principle 1 (CP-1):
+
+| Requirement | Implementation |
+|-------------|----------------|
+| Hash Algorithm | SHA3-256 (FIPS 202) |
+| Signature Algorithm | Dilithium-III (FIPS 204) |
+| Prohibited | keccak256, ECDSA, RSA, SHA-256, secp256k1 |
+
+## Crate Structure
+
+| Crate | Description |
+|-------|-------------|
+| `aegis-types` | Common types: Hash, NodeId, Block, Transaction, Error |
+| `aegis-core` | State management, block builder, execution engine |
+| `aegis-crypto` | SHA3-256 hasher, Dilithium-III signatures |
+| `aegis-smt` | Sparse Merkle Tree for state proofs |
+| `aegis-network` | libp2p-based P2P with TLS 1.3 |
+| `aegis-consensus` | PBFT consensus with PrePrepare/Prepare/Commit |
+| `aegis-storage` | RocksDB backend with versioned storage |
+| `aegis-node` | Full node: consensus + network + storage |
+| `aegis-cli` | CLI: node start, keygen, status commands |
+
+## Development
+
+### Adding a New Crate
+
+1. Create crate directory in `crates/`
+2. Add to workspace members in `Cargo.toml`
+3. Implement with CP-1 compliance
+4. Add tests
+
+### CI/CD
+
+GitHub Actions workflow (`.github/workflows/l3-aegis.yml`) runs:
+- Rust build and test
+- Clippy linting
+- CP-1 compliance checks (keccak256/ECDSA detection)
+- Solidity tests (if applicable)
 
 ## License
 
-MIT
+Copyright © 2024 Project Aegis. All rights reserved.
+
+## Related Documents
+
+- [L3 Chain Specification](../docs/aegis/L3_CHAIN_SPECIFICATION.md)
+- [Core Principles](../docs/constitution/CORE_PRINCIPLES.md)
+- [Current Plan](../docs/planning/CURRENT_PLAN.md)
