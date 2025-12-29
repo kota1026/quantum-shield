@@ -15,9 +15,9 @@ use sha3::{Digest, Sha3_256};
 
 /// Dilithium-III parameter sizes (FIPS 204 Level 3)
 pub mod params {
-    /// Public key size in bytes
+    /// Public key size in bytes (Dilithium-III)
     pub const PUBLIC_KEY_SIZE: usize = 1952;
-    /// Signature size in bytes
+    /// Signature size in bytes (Dilithium-III)
     pub const SIGNATURE_SIZE: usize = 3293;
     /// Security level (NIST Level 3)
     pub const SECURITY_LEVEL: u8 = 3;
@@ -44,9 +44,9 @@ impl DilithiumVerifier {
     /// Verify a Dilithium-III signature
     ///
     /// # Arguments
-    /// * `public_key` - 1952-byte Dilithium-III public key
+    /// * `public_key` - Dilithium-III public key bytes
     /// * `message` - Message that was signed
-    /// * `signature` - 3293-byte Dilithium-III signature
+    /// * `signature` - Dilithium-III signature bytes
     ///
     /// # Returns
     /// * `Ok(true)` if signature is valid
@@ -58,19 +58,11 @@ impl DilithiumVerifier {
         message: &[u8],
         signature: &[u8],
     ) -> Result<bool> {
-        // Validate input sizes
-        if public_key.len() != params::PUBLIC_KEY_SIZE {
-            return Err(AegisError::InvalidPublicKey);
-        }
-        if signature.len() != params::SIGNATURE_SIZE {
-            return Err(AegisError::InvalidSignature);
-        }
-
-        // Parse public key
+        // Parse public key (validates size internally)
         let pk = dilithium3::PublicKey::from_bytes(public_key)
             .map_err(|_| AegisError::InvalidPublicKey)?;
 
-        // Parse signature
+        // Parse signature (validates size internally)
         let sig = dilithium3::DetachedSignature::from_bytes(signature)
             .map_err(|_| AegisError::InvalidSignature)?;
 
@@ -108,27 +100,15 @@ impl DilithiumVerifier {
 
     /// Validate public key format
     pub fn validate_public_key(public_key: &[u8]) -> Result<()> {
-        if public_key.len() != params::PUBLIC_KEY_SIZE {
-            return Err(AegisError::InvalidPublicKey);
-        }
-        
-        // Try to parse as valid Dilithium public key
         dilithium3::PublicKey::from_bytes(public_key)
             .map_err(|_| AegisError::InvalidPublicKey)?;
-        
         Ok(())
     }
 
     /// Validate signature format
     pub fn validate_signature(signature: &[u8]) -> Result<()> {
-        if signature.len() != params::SIGNATURE_SIZE {
-            return Err(AegisError::InvalidSignature);
-        }
-        
-        // Try to parse as valid Dilithium signature
         dilithium3::DetachedSignature::from_bytes(signature)
             .map_err(|_| AegisError::InvalidSignature)?;
-        
         Ok(())
     }
 }
@@ -162,7 +142,7 @@ mod tests {
             signature.as_bytes(),
         );
         
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "verify failed: {:?}", result);
         assert!(result.unwrap());
     }
 
@@ -185,7 +165,7 @@ mod tests {
             signature.as_bytes(),
         );
         
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "verify failed: {:?}", result);
         assert!(!result.unwrap());
     }
 
@@ -242,7 +222,20 @@ mod tests {
             signature.as_bytes(),
         );
         
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "verify_with_domain failed: {:?}", result);
         assert!(result.unwrap());
+    }
+
+    #[test]
+    fn test_public_key_size() {
+        let (pk, _) = dilithium3::keypair();
+        assert_eq!(pk.as_bytes().len(), params::PUBLIC_KEY_SIZE);
+    }
+
+    #[test]
+    fn test_signature_size() {
+        let (_, sk) = dilithium3::keypair();
+        let sig = detached_sign(b"test", &sk);
+        assert_eq!(sig.as_bytes().len(), params::SIGNATURE_SIZE);
     }
 }
