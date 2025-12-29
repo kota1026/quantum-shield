@@ -44,25 +44,44 @@ Phase 3.1 Foundation
 
 | # | タスク | 担当 | 状態 | PIR |
 |---|--------|------|:----:|-----|
-| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ⬜ | - |
+| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ✅ | PIR-P3.1-002 予定 |
 | L3-002 | Single-node dev mode実装 | Rust Engineer | ⬜ | - |
 | L3-003 | Basic PBFT consensus実装 | Rust Engineer | ⬜ | - |
 | L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ⬜ | - |
 | L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
 | L3-006 | 4-node local testnet構築 | DevOps | ⬜ | - |
 
-### L3-001: l3-aegis プロジェクト構造設計
+### L3-001: l3-aegis プロジェクト構造設計 ✅ 完了 (2025-12-30)
 
-- [ ] Rustプロジェクト構造設計（Cargo workspace）
-- [ ] モジュール分割設計
-  - [ ] `aegis-consensus/` - PBFT実装
-  - [ ] `aegis-crypto/` - Dilithium, SHA3-256
-  - [ ] `aegis-network/` - P2P, TLS 1.3
-  - [ ] `aegis-storage/` - RocksDB, SMT
-  - [ ] `aegis-node/` - ノードバイナリ
-  - [ ] `aegis-cli/` - CLIツール
-- [ ] 依存クレート選定
-- [ ] CI/CD設定（Rust用GitHub Actions）
+- [x] Rustプロジェクト構造設計（Cargo workspace）
+- [x] モジュール分割設計
+  - [x] `aegis-consensus/` - PBFT実装
+  - [x] `aegis-crypto/` - Dilithium, SHA3-256
+  - [x] `aegis-network/` - P2P, TLS 1.3
+  - [x] `aegis-storage/` - RocksDB, SMT
+  - [x] `aegis-node/` - ノードバイナリ
+  - [x] `aegis-cli/` - CLIツール
+  - [x] `aegis-types/` - 共通型定義
+  - [x] `aegis-core/` - 状態管理、ブロックビルダー
+  - [x] `aegis-smt/` - Sparse Merkle Tree
+- [x] 依存クレート選定
+- [x] Docker設定（Dockerfile, docker-compose.yml）
+- [x] ノード設定ファイル（node0-3.toml）
+- [x] README.md
+
+**テスト結果**: 69/69 PASS
+
+| クレート | テスト数 | 結果 |
+|---------|:--------:|:----:|
+| aegis-cli | 4 | ✅ |
+| aegis-consensus | 9 | ✅ |
+| aegis-core | 5 | ✅ |
+| aegis-crypto | 8 | ✅ |
+| aegis-network | 8 | ✅ |
+| aegis-node | 4 | ✅ |
+| aegis-smt | 6 | ✅ |
+| aegis-storage | 12 | ✅ |
+| aegis-types | 13 | ✅ |
 
 ### L3-002: Single-node dev mode実装
 
@@ -312,7 +331,7 @@ Phase 3.1では以下の緩和策を開始：
 
 | タスク | 状態 | PIR |
 |--------|:----:|-----|
-| L3-001 | ⬜ | - |
+| L3-001 | ✅ | PIR-P3.1-002 予定 |
 | L3-002 | ⬜ | - |
 | L3-003 | ⬜ | - |
 | L3-004 | ⬜ | - |
