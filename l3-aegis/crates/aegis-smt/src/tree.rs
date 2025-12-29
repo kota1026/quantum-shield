@@ -2,9 +2,6 @@
 //!
 //! Reference: L3_AEGIS_ARCHITECTURE.md Section 5.3
 //! Reference: contracts/src/libraries/SparseMerkleTree.sol
-//!
-//! NOTE: Current implementation is simplified for single-leaf operations.
-//! Multi-leaf subtree computation requires enhancement in L3-002.
 
 use aegis_core::{AegisError, Hash256, LockData, Result};
 use serde::{Deserialize, Serialize};
@@ -87,6 +84,7 @@ fn compute_leaf_hash(key: &Hash256, value: &Hash256) -> Hash256 {
 }
 
 /// Get default hash for empty subtree at given depth
+/// depth 0 = leaf level, depth TREE_DEPTH = root level
 fn default_hash(depth: usize) -> Hash256 {
     static DEFAULTS: std::sync::OnceLock<Vec<Hash256>> = std::sync::OnceLock::new();
     
@@ -108,9 +106,6 @@ fn default_hash(depth: usize) -> Hash256 {
 /// 
 /// In-memory implementation with optional persistence.
 /// Reference: L3_AEGIS_ARCHITECTURE.md Section 5.3
-///
-/// NOTE: Current implementation handles single-leaf proofs correctly.
-/// Multi-leaf subtree computation will be enhanced in L3-002.
 #[derive(Clone)]
 pub struct SparseMerkleTree {
     /// Current root hash
@@ -180,22 +175,15 @@ impl SparseMerkleTree {
 
     /// Insert key-value pair
     pub fn insert(&mut self, key: Hash256, value: Hash256) -> Result<Hash256> {
-        let leaf_hash = compute_leaf_hash(&key, &value);
         self.leaves.insert(key, value);
-        
-        // Recompute root from scratch for correctness
-        self.root = self.compute_full_root();
-        
+        self.recompute_root();
         Ok(self.root)
     }
 
     /// Remove a key
     pub fn remove(&mut self, key: &Hash256) -> Result<Hash256> {
         self.leaves.remove(key);
-        
-        // Recompute root from scratch
-        self.root = self.compute_full_root();
-        
+        self.recompute_root();
         Ok(self.root)
     }
 
@@ -206,9 +194,8 @@ impl SparseMerkleTree {
 
     /// Generate proof for key
     pub fn prove(&self, key: &Hash256) -> Result<MerkleProof> {
-        let leaf_value = self.leaves.get(key).unwrap_or(&Hash256::ZERO);
-        let leaf_hash = if self.leaves.contains_key(key) {
-            compute_leaf_hash(key, leaf_value)
+        let leaf_hash = if let Some(value) = self.leaves.get(key) {
+            compute_leaf_hash(key, value)
         } else {
             default_hash(0)
         };
@@ -216,13 +203,14 @@ impl SparseMerkleTree {
         let mut siblings = Vec::with_capacity(TREE_DEPTH);
         let mut is_left = Vec::with_capacity(TREE_DEPTH);
 
+        // For each level from leaf (depth 0) to root (depth TREE_DEPTH-1)
         for depth in 0..TREE_DEPTH {
             let bit = key.bit(depth);
-            let sibling_hash = self.get_sibling_hash(key, depth);
+            let sibling_hash = self.compute_subtree_hash(key, depth, !bit);
             
             siblings.push(sibling_hash);
-            // bit=0 means current is on left, sibling is on right -> is_left=false
-            // bit=1 means current is on right, sibling is on left -> is_left=true
+            // bit=false means we're on left, sibling is on right -> is_left=false
+            // bit=true means we're on right, sibling is on left -> is_left=true
             is_left.push(bit);
         }
 
@@ -239,110 +227,77 @@ impl SparseMerkleTree {
         proof.verify(&self.root)
     }
 
-    /// Compute full root from all leaves
-    fn compute_full_root(&self) -> Hash256 {
+    /// Recompute root from all leaves
+    fn recompute_root(&mut self) {
         if self.leaves.is_empty() {
-            return default_hash(TREE_DEPTH);
+            self.root = default_hash(TREE_DEPTH);
+            return;
         }
         
-        // Build tree bottom-up
-        // For each depth level, compute node hashes
-        let mut level: HashMap<Vec<bool>, Hash256> = HashMap::new();
-        
-        // Initialize with leaf hashes
-        for (key, value) in &self.leaves {
-            let path: Vec<bool> = (0..TREE_DEPTH).map(|d| key.bit(d)).collect();
-            let leaf_hash = compute_leaf_hash(key, value);
-            level.insert(path, leaf_hash);
-        }
-        
-        // Build up the tree
-        for depth in (0..TREE_DEPTH).rev() {
-            let mut next_level: HashMap<Vec<bool>, Hash256> = HashMap::new();
-            
-            // Group by parent path
-            let mut parents: HashMap<Vec<bool>, (Option<Hash256>, Option<Hash256>)> = HashMap::new();
-            
-            for (path, hash) in &level {
-                let parent_path: Vec<bool> = path[..depth].to_vec();
-                let is_right = path[depth];
-                
-                let entry = parents.entry(parent_path).or_insert((None, None));
-                if is_right {
-                    entry.1 = Some(*hash);
-                } else {
-                    entry.0 = Some(*hash);
+        // Compute hash for each leaf and build up
+        self.root = self.compute_subtree_hash_at_root();
+    }
+
+    /// Compute the hash of the subtree at root level
+    fn compute_subtree_hash_at_root(&self) -> Hash256 {
+        self.compute_subtree_hash_recursive(TREE_DEPTH, &[])
+    }
+
+    /// Recursively compute subtree hash
+    /// `depth` is how many levels above leaves we are (0 = at leaf level)
+    /// `path` is the path from root to current node (bits visited so far)
+    fn compute_subtree_hash_recursive(&self, levels_remaining: usize, path: &[bool]) -> Hash256 {
+        if levels_remaining == 0 {
+            // We're at leaf level - check if there's a leaf at this path
+            for (key, value) in &self.leaves {
+                let matches = path.iter().enumerate().all(|(i, &bit)| key.bit(i) == bit);
+                if matches && path.len() == TREE_DEPTH {
+                    return compute_leaf_hash(key, value);
                 }
             }
-            
-            // Compute parent hashes
-            for (parent_path, (left, right)) in parents {
-                let left_hash = left.unwrap_or_else(|| default_hash(depth));
-                let right_hash = right.unwrap_or_else(|| default_hash(depth));
-                let parent_hash = hash_nodes(&left_hash, &right_hash);
-                next_level.insert(parent_path, parent_hash);
+            // Check if any leaf matches this prefix
+            for (key, value) in &self.leaves {
+                let matches = path.iter().enumerate().all(|(i, &bit)| key.bit(i) == bit);
+                if matches {
+                    return compute_leaf_hash(key, value);
+                }
             }
-            
-            level = next_level;
+            return default_hash(0);
         }
-        
-        // Root should be the only remaining element
-        level.values().next().copied().unwrap_or_else(|| default_hash(TREE_DEPTH))
-    }
 
-    /// Get sibling hash at given depth for a key
-    fn get_sibling_hash(&self, key: &Hash256, depth: usize) -> Hash256 {
-        // Compute the sibling subtree hash
-        let sibling_bit = !key.bit(depth);
-        
-        // Find all leaves in the sibling subtree
-        let sibling_leaves: Vec<_> = self.leaves.iter()
-            .filter(|(k, _)| {
-                // Check if this leaf is in the sibling subtree
-                // Must match key for bits 0..depth, then differ at bit depth
-                let matches_prefix = (0..depth).all(|d| k.bit(d) == key.bit(d));
-                let in_sibling = k.bit(depth) == sibling_bit;
-                matches_prefix && in_sibling
-            })
-            .collect();
-        
-        if sibling_leaves.is_empty() {
-            return default_hash(depth);
-        }
-        
-        // Compute subtree hash for sibling leaves
-        self.compute_subtree_hash_multi(&sibling_leaves, depth)
-    }
+        // Check if any leaves exist in this subtree
+        let has_leaves = self.leaves.keys().any(|key| {
+            path.iter().enumerate().all(|(i, &bit)| key.bit(i) == bit)
+        });
 
-    /// Compute hash of a subtree containing multiple leaves at target depth
-    fn compute_subtree_hash_multi(&self, leaves: &[(&Hash256, &Hash256)], target_depth: usize) -> Hash256 {
-        if leaves.is_empty() {
-            return default_hash(target_depth);
+        if !has_leaves {
+            return default_hash(levels_remaining);
         }
-        
-        if target_depth == 0 {
-            // At leaf level
-            let (key, value) = leaves[0];
-            return compute_leaf_hash(key, value);
-        }
-        
-        // Split leaves into left and right subtrees
-        let (left_leaves, right_leaves): (Vec<_>, Vec<_>) = leaves.iter()
-            .partition(|(k, _)| !k.bit(target_depth - 1));
-        
-        let left_hash = if left_leaves.is_empty() {
-            default_hash(target_depth - 1)
-        } else {
-            self.compute_subtree_hash_multi(&left_leaves, target_depth - 1)
-        };
-        
-        let right_hash = if right_leaves.is_empty() {
-            default_hash(target_depth - 1)
-        } else {
-            self.compute_subtree_hash_multi(&right_leaves, target_depth - 1)
-        };
-        
+
+        // Recursively compute left and right children
+        let mut left_path = path.to_vec();
+        left_path.push(false);
+        let left_hash = self.compute_subtree_hash_recursive(levels_remaining - 1, &left_path);
+
+        let mut right_path = path.to_vec();
+        right_path.push(true);
+        let right_hash = self.compute_subtree_hash_recursive(levels_remaining - 1, &right_path);
+
         hash_nodes(&left_hash, &right_hash)
+    }
+
+    /// Compute hash of sibling subtree at given depth
+    /// `key` is the key we're proving
+    /// `depth` is the level (0 = leaf level)
+    /// `sibling_bit` is the bit value for the sibling branch
+    fn compute_subtree_hash(&self, key: &Hash256, depth: usize, sibling_bit: bool) -> Hash256 {
+        // Build the path to the sibling subtree
+        let mut path: Vec<bool> = (0..depth).map(|d| key.bit(d)).collect();
+        path.push(sibling_bit);
+        
+        // Compute hash of subtree at this path
+        let levels_remaining = TREE_DEPTH - depth - 1;
+        self.compute_subtree_hash_recursive(levels_remaining, &path)
     }
 }
 
@@ -398,8 +353,8 @@ mod tests {
         smt.insert_lock(&lock).unwrap();
         
         let proof = smt.prove(&lock.lock_id).unwrap();
-        assert!(smt.verify_proof(&proof));
-        assert_eq!(proof.compute_root(), smt.root());
+        assert!(smt.verify_proof(&proof), "Proof verification failed");
+        assert_eq!(proof.compute_root(), smt.root(), "Computed root mismatch");
     }
 
     #[test]
