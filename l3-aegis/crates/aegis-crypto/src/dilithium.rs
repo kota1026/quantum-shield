@@ -6,7 +6,7 @@
 //! Reference: UNIFIED_SPEC_v2.0.md
 //! - User署名: Dilithium-III (FIPS 204)
 //! - Public Key: 1952 bytes
-//! - Signature: 3293 bytes
+//! - Signature: 3309 bytes (pqcrypto-dilithium v0.5)
 
 use aegis_core::{AegisError, Hash256, Result};
 use pqcrypto_dilithium::dilithium3::{self, verify_detached_signature};
@@ -14,11 +14,12 @@ use pqcrypto_traits::sign::{PublicKey, DetachedSignature};
 use sha3::{Digest, Sha3_256};
 
 /// Dilithium-III parameter sizes (FIPS 204 Level 3)
+/// Note: These sizes are from pqcrypto-dilithium v0.5
 pub mod params {
     /// Public key size in bytes (Dilithium-III)
     pub const PUBLIC_KEY_SIZE: usize = 1952;
-    /// Signature size in bytes (Dilithium-III)
-    pub const SIGNATURE_SIZE: usize = 3293;
+    /// Signature size in bytes (Dilithium-III, pqcrypto v0.5)
+    pub const SIGNATURE_SIZE: usize = 3309;
     /// Security level (NIST Level 3)
     pub const SECURITY_LEVEL: u8 = 3;
 }
@@ -174,9 +175,11 @@ mod tests {
         let verifier = DilithiumVerifier::new();
         
         let invalid_pk = vec![0u8; 100];
-        let signature = vec![0u8; params::SIGNATURE_SIZE];
+        // Use a valid-sized signature to test pk validation
+        let (_, sk) = dilithium3::keypair();
+        let signature = detached_sign(b"test", &sk);
         
-        let result = verifier.verify(&invalid_pk, b"test", &signature);
+        let result = verifier.verify(&invalid_pk, b"test", signature.as_bytes());
         assert!(matches!(result, Err(AegisError::InvalidPublicKey)));
     }
 
