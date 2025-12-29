@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-30 01:57 JST  
+> **Last Updated**: 2025-12-30 02:25 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,8 +13,8 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Active Task: L3-001 PIRレビュー → L3-002へ移行予定          │
-│  Status: ✅ L3-001 実装完了（69/69 tests PASS）             │
+│  Active Task: L3-002 Single-node dev mode実装               │
+│  Status: ✅ L3-001 PIRレビュー完了 → L3-002開始             │
 │  Tests: ✅ 697 PASS (628 Phase 2 + 69 l3-aegis)             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -111,7 +111,8 @@
 |------|-----|
 | **対象Plan** | L3-001 l3-aegis プロジェクト構造設計 (IC-1) |
 | **実装日時** | 2025-12-29 ~ 2025-12-30 01:35 JST |
-| **ステータス** | ✅ 実装完了 |
+| **ステータス** | ✅ 実装完了・PIRレビュー完了 |
+| **PIR結果** | ✅ PIR-P3.1-002 PASS (2025-12-30) |
 
 ### 対象Sequence
 
@@ -225,7 +226,7 @@
 | PIR ID | 対象 | レビュー結果 | 日付 |
 |--------|------|-------------|------|
 | PIR-P3.1-001 | SETUP-001, SETUP-002 | ✅ PASS | 2025-12-28 |
-| PIR-P3.1-002 | L3-001 | ⬜ 予定 | - |
+| PIR-P3.1-002 | L3-001 l3-aegis構造設計 | ✅ PASS | 2025-12-30 |
 
 **PIR-P3.1-001 詳細**:
 - 対象: l3-aegis基盤 + Modular Architectureインターフェース定義
@@ -236,6 +237,17 @@
 - セキュリティ: ✅ Critical/Major問題なし
 - 判定: ✅ **PASS**
 
+**PIR-P3.1-002 詳細**:
+- 対象: L3-001 l3-aegis プロジェクト構造設計 (IC-1)
+- 実装コードレビュー: ✅ L3_CHAIN_SPECIFICATION準拠
+- テストコードレビュー: ✅ 69テスト全PASS
+- 11エージェントレビュー: ✅ 11/11 GO（全会一致）
+- CP-1準拠: ✅ SHA3-256/Dilithium-III、禁止アルゴリズム不使用
+- セキュリティ: ✅ Critical/Major問題なし
+- 判定基準: ✅ 14/14 クリア（基本6 + 仕様4 + L3基盤4）
+- 判定: ✅ **PASS**
+- 記録: `docs/aegis/pir/PIR-P3.1-002.md`
+
 ---
 
 ## 📊 Phase進捗
@@ -245,7 +257,7 @@
 | Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
-| **Phase 3** | **L3 + Token + 完全分散化** | **15%** | 🔄 **ACTIVE** |
+| **Phase 3** | **L3 + Token + 完全分散化** | **18%** | 🔄 **ACTIVE** |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
 ---
@@ -262,8 +274,8 @@
 
 | # | タスク | 担当 | 状態 | PIR |
 |---|--------|------|:----:|-----|
-| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ✅ | PIR-P3.1-002 予定 |
-| L3-002 | Single-node dev mode実装 | Rust Engineer | ⬜ | - |
+| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ✅ | ✅ PIR-P3.1-002 PASS |
+| L3-002 | Single-node dev mode実装 | Rust Engineer | 🔄 **ACTIVE** | - |
 | L3-003 | Basic PBFT consensus実装 | Rust Engineer | ⬜ | - |
 | L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ⬜ | - |
 | L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
@@ -278,6 +290,7 @@
 - ✅ README.md
 - ✅ cargo build 検証
 - ✅ cargo test 検証
+- ✅ PIR-P3.1-002 レビュー完了
 
 ### 🏗️ Track B: L3 Contracts (Solidity)
 
@@ -342,19 +355,29 @@
 
 | # | タスク | 優先度 | 担当 | IC-ID | 状態 |
 |---|--------|--------|------|-------|------|
-| 1 | **L3-001 PIRレビュー** (PIR-P3.1-002) | 🔴 **P0** | **QA** | **IC-1** | ⬜ |
-| 2 | L3-002 Single-node dev mode実装 | 🔴 P0 | Rust Engineer | IC-1 | ⬜ |
-| 3 | L3-003 Basic PBFT consensus実装 | 🔴 P0 | Rust Engineer | IC-1 | ⬜ |
-| 4 | l3-aegis専用CI/CDワークフロー作成 | 🟠 High | DevOps | - | ⬜ |
-| 5 | SETUP-003 Phase 2資産統合準備 | 🟠 High | Engineer | IC-2,3,4 | ⬜ |
-| 6 | エコシステム構築計画策定 | 🟠 High | CBO | - | ⬜ |
+| 1 | **L3-002 Single-node dev mode実装** | 🔴 **P0** | **Rust Engineer** | **IC-1** | 🔄 **ACTIVE** |
+| 2 | L3-003 Basic PBFT consensus実装 | 🔴 P0 | Rust Engineer | IC-1 | ⬜ |
+| 3 | l3-aegis専用CI/CDワークフロー作成 | 🟠 High | DevOps | - | ⬜ |
+| 4 | SETUP-003 Phase 2資産統合準備 | 🟠 High | Engineer | IC-2,3,4 | ⬜ |
+| 5 | エコシステム構築計画策定 | 🟠 High | CBO | - | ⬜ |
 
-### L3-001 → L3-002 移行基準 ✅ 達成
+### L3-001 → L3-002 移行基準 ✅ 全達成
 
 - [x] 全クレートが `cargo build` 成功
 - [x] 基本テストが `cargo test` 成功 (69/69 PASS)
-- [ ] PIR-P3.1-002 レビュー完了 ← **次のステップ**
+- [x] PIR-P3.1-002 レビュー完了 ✅
 - [x] Docker Compose設定完了
+
+### L3-002 実装スコープ
+
+> **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md` §7.1
+
+| 項目 | 内容 |
+|------|------|
+| 目標 | 単一ノードでのブロック生成・状態更新動作 |
+| 入力 | CLI経由でのトランザクション投入 |
+| 出力 | ブロック生成、SMT状態更新、ログ出力 |
+| テスト | ノード起動、Tx処理、ブロック生成E2E |
 
 ---
 
@@ -364,11 +387,11 @@
 |---------------|------|--------|
 | Phase 1完了 | Month 6 | ✅ **COMPLETE** |
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
-| **L3-001完了** | **Month 10** | ✅ **COMPLETE** 🎉 |
-| **L3-001 PIRレビュー** | **Month 10** | ⬜ **PIR-P3.1-002** |
-| **L3 Single-node動作** | **Month 10-11** | ⬜ **L3-002** |
-| **L3 4-node consensus動作** | **Month 11-12** | ⬜ **L3-003~006** |
-| **Phase 3.1完了** | **Month 12** | 🔄 ACTIVE |
+| L3-001完了 | Month 10 | ✅ **COMPLETE** 🎉 |
+| L3-001 PIRレビュー | Month 10 | ✅ **PIR-P3.1-002 PASS** 🎉 |
+| **L3 Single-node動作** | **Month 10-11** | 🔄 **L3-002 ACTIVE** |
+| L3 4-node consensus動作 | Month 11-12 | ⬜ L3-003~006 |
+| Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
 | Phase 4開始 | Month 19 | ⬜ |
@@ -386,7 +409,7 @@
 │  Phase 3.1 (Month 10-12): Foundation ← ACTIVE               │
 │  ├── Track A: L3 Chain (Rust) - IC-1 ⭐ 最優先              │
 │  │   ├── L3-001: プロジェクト構造設計 ← ✅ COMPLETE 🎉      │
-│  │   ├── L3-002: Single-node dev mode ← NEXT (PIR後)        │
+│  │   ├── L3-002: Single-node dev mode ← 🔄 ACTIVE           │
 │  │   ├── L3-003: PBFT consensus                             │
 │  │   ├── L3-004: Dilithium-III署名                          │
 │  │   ├── L3-005: SHA3-256 hashing                           │
@@ -433,6 +456,7 @@
 | Phase 2完了レポート | `docs/planning/PHASE2_COMPLETION_REPORT.md` |
 | Phase 2 Go/No-Go判定 | `docs/decisions/GONOGO_PHASE2_ZK_STARK_L1_2025-12-28.md` |
 | **l3-aegis README** | `l3-aegis/README.md` |
+| **PIR-P3.1-002** | `docs/aegis/pir/PIR-P3.1-002.md` |
 
 ---
 
@@ -443,9 +467,9 @@
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
 - Phase 3.1 Foundation: 🔄 ACTIVE
   - Track A (L3 Chain - IC-1):
-    - L3-001: ✅ **COMPLETE** 🎉 (69/69 tests PASS)
-    - PIR-P3.1-002: ⬜ **次のステップ**
-    - L3-002~006: ⬜
+    - L3-001: ✅ **COMPLETE** 🎉 (69/69 tests PASS, PIR-P3.1-002 PASS)
+    - L3-002: 🔄 **ACTIVE** ← 現在のタスク
+    - L3-003~006: ⬜
   - Track B (Solidity):
     - SETUP-001: ✅ PASS (PIR-P3.1-001)
     - SETUP-002: ✅ PASS (PIR-P3.1-001)
