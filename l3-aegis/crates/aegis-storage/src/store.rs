@@ -3,10 +3,10 @@
 //! CP-1 Compliance: All hash operations use SHA3-256 via aegis-types::Hash256.
 
 use std::sync::Arc;
-use rocksdb::{DB, Options, ColumnFamilyDescriptor, WriteBatch};
+use rocksdb::{DB, Options, ColumnFamilyDescriptor};
 use tracing::{info, debug, error};
 
-use aegis_types::{Hash256, Block, BlockHeader, Transaction};
+use aegis_types::{Hash256, BlockHeader, Transaction};
 use crate::error::{StorageError, StorageResult};
 use crate::config::StorageConfig;
 use crate::{cf, STORAGE_VERSION};
@@ -73,7 +73,7 @@ impl Storage {
         match self.db.get_cf(&cf, b"chain_tip")? {
             Some(bytes) => {
                 let hash = Hash256::from_bytes(&bytes)
-                    .map_err(|_| StorageError::InvalidData {
+                    .ok_or_else(|| StorageError::InvalidData {
                         msg: "Invalid chain tip hash".to_string(),
                     })?;
                 Ok(Some(hash))
@@ -144,7 +144,7 @@ impl BlockStore {
         match self.db.get_cf(&cf, &height.to_be_bytes())? {
             Some(bytes) => {
                 let hash = Hash256::from_bytes(&bytes)
-                    .map_err(|_| StorageError::InvalidData {
+                    .ok_or_else(|| StorageError::InvalidData {
                         msg: format!("Invalid hash at height {}", height),
                     })?;
                 Ok(Some(hash))
@@ -259,7 +259,7 @@ impl StateStore {
         self.db.put_cf(&cf, address, &encoded)?;
         
         debug!(
-            address = hex::encode(address),
+            address = %hex::encode(address),
             nonce = state.nonce,
             balance = state.balance,
             "Account state updated"
