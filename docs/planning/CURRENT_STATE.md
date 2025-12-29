@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-29 23:30 JST  
+> **Last Updated**: 2025-12-30 00:18 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,8 +13,8 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Next Step: L3-001 l3-aegis プロジェクト構造設計 (IC-1) ⭐  │
-│  Status: ✅ PIR-P3.1-001 PASS → L3-001開始可能              │
+│  Active Task: L3-001 l3-aegis プロジェクト構造設計 (IC-1)   │
+│  Status: 🟡 L3-001 実装中（構造完了、ビルド検証待ち）       │
 │  Tests: ✅ 644 PASS (628 Phase 2 + 16 l3-aegis)             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -109,53 +109,62 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | SETUP-001, SETUP-002 |
-| **実装日時** | 2025-12-28 |
-| **ステータス** | ✅ PIR PASS |
+| **対象Plan** | L3-001 |
+| **実装日時** | 2025-12-29 ~ 2025-12-30 |
+| **ステータス** | 🟡 構造完了、ビルド検証待ち |
 
-### 対象Sequence
+### L3-001 実装済み項目
 
-| Sequence | Layer | 状態 |
-|----------|-------|:----:|
-| #1 Lock | Core (Interface) | ✅ |
-| #2 Unlock (Normal) | Core (Interface) | ✅ |
-| #3 Unlock (Emergency) | Core (Interface) | ✅ |
-| #3' Resync | Core (Interface) | ✅ |
-| #4 Challenge + Slashing | Core (Interface) | ✅ |
+| コンポーネント | 説明 | 状態 |
+|---------------|------|:----:|
+| Cargo.toml (Workspace) | 9クレートワークスペース構成 | ✅ |
+| aegis-types | 共通型定義 (Hash, Block, Tx, Error) | ✅ |
+| aegis-core | 状態管理、ブロックビルダー | ✅ |
+| aegis-crypto | SHA3-256, Dilithium-III | ✅ |
+| aegis-smt | Sparse Merkle Tree | ✅ |
+| aegis-network | P2P (libp2p + TLS 1.3) | ✅ |
+| aegis-consensus | PBFT (PrePrepare/Prepare/Commit) | ✅ |
+| aegis-storage | RocksDB backend | ✅ |
+| aegis-node | フルノード実装 | ✅ |
+| aegis-cli | CLI (node, keygen, status) | ✅ |
+| Dockerfile | マルチステージビルド | ✅ |
+| docker-compose.yml | 4ノードBFTテストネット | ✅ |
+| node0-3.toml | ノード設定ファイル | ✅ |
+| README.md | ドキュメント | ✅ |
 
-### 作成ファイル
+### 作成ファイル (L3-001)
 
-| ファイル | 説明 |
-|---------|------|
-| `l3-aegis/src/interfaces/IConstitutionLock.sol` | CP保護インターフェース (136行) |
-| `l3-aegis/src/interfaces/ICoreLayer.sol` | Core Layerインターフェース (139行) |
-| `l3-aegis/src/interfaces/IGovernanceSwitch.sol` | Governance Switchインターフェース (97行) |
-| `l3-aegis/src/interfaces/ITokenSwitch.sol` | Token Switchインターフェース (95行) |
-| `l3-aegis/test/interfaces/*.t.sol` | インターフェーステスト (16テスト) |
+| ファイル | 説明 | コミット |
+|---------|------|---------|
+| `l3-aegis/Cargo.toml` | Workspace修正（非存在クレート削除） | 70b4182 |
+| `l3-aegis/docker/Dockerfile` | マルチステージビルド | d7f1b2a |
+| `l3-aegis/docker/docker-compose.yml` | 4ノードテストネット | b183f40 |
+| `l3-aegis/docker/config/node0.toml` | Node 0設定 | 01cd898 |
+| `l3-aegis/docker/config/node1.toml` | Node 1設定 | 9202d51 |
+| `l3-aegis/docker/config/node2.toml` | Node 2設定 | c697145 |
+| `l3-aegis/docker/config/node3.toml` | Node 3設定 | acf0bca |
+| `l3-aegis/docker/keys/.gitkeep` | キーディレクトリ | 7569890 |
+| `l3-aegis/README.md` | ドキュメント | 849437b |
 
-### 仕様書要件実装
+### 残作業 (L3-001)
 
-| 要件 | 出典 | 実装箇所 | 状態 |
-|------|------|---------|:----:|
-| 24h Time Lock | SEQ#2 | `ICoreLayer.sol:L84` | ✅ |
-| 7d Emergency Lock | SEQ#3 | `ICoreLayer.sol:L88` | ✅ |
-| 72h Timeout | SEQ#3 | `ICoreLayer.sol:L91` | ✅ |
-| Emergency Bond計算 | SEQ#3 | `ICoreLayer.sol:L126` | ✅ |
-| ProtectionLevel定義 | CP-1~5 | `IConstitutionLock.sol:L15-17` | ✅ |
+| 項目 | 状態 |
+|------|:----:|
+| `cargo build` 検証 | ⬜ |
+| `cargo test` 検証 | ⬜ |
+| `cargo clippy` 検証 | ⬜ |
+| Docker Compose テスト | ⬜ |
 
-### テスト結果
+### CP-1準拠確認
 
-| 項目 | 値 |
-|------|-----|
-| 新規テスト数 | 16 |
-| 総テスト数 | 644 (628 + 16) |
-| 結果 | ✅ ALL PASS |
-
-### 備考
-
-- 11エージェント全員承認
-- Critical/Major問題なし
-- Minor: l3-aegis専用CI/CDワークフロー（L3-001と並行で対応予定）
+| 要件 | 実装 | 状態 |
+|------|------|:----:|
+| ハッシュ | SHA3-256 (FIPS 202) | ✅ |
+| 署名 | Dilithium-III (FIPS 204) | ✅ |
+| 禁止: keccak256 | 不使用 | ✅ |
+| 禁止: ECDSA | 不使用 | ✅ |
+| 禁止: RSA | 不使用 | ✅ |
+| 禁止: secp256k1 | 不使用 | ✅ |
 
 ---
 
@@ -185,7 +194,7 @@
 | Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
-| **Phase 3** | **L3 + Token + 完全分散化** | **8%** | 🔄 **ACTIVE** |
+| **Phase 3** | **L3 + Token + 完全分散化** | **12%** | 🔄 **ACTIVE** |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
 ---
@@ -202,12 +211,20 @@
 
 | # | タスク | 担当 | 状態 | PIR |
 |---|--------|------|:----:|-----|
-| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ⬜ | - |
+| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | 🟡 | - |
 | L3-002 | Single-node dev mode実装 | Rust Engineer | ⬜ | - |
 | L3-003 | Basic PBFT consensus実装 | Rust Engineer | ⬜ | - |
 | L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ⬜ | - |
 | L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
 | L3-006 | 4-node local testnet構築 | DevOps | ⬜ | - |
+
+**L3-001 進捗詳細**:
+- ✅ Rust Cargo Workspace構造（9クレート）
+- ✅ 全クレート骨格実装
+- ✅ Docker設定（Dockerfile, docker-compose.yml）
+- ✅ ノード設定ファイル（node0-3.toml）
+- ✅ README.md
+- ⬜ cargo build/test/clippy検証
 
 ### 🏗️ Track B: L3 Contracts (Solidity)
 
@@ -272,19 +289,24 @@
 
 | # | タスク | 優先度 | 担当 | IC-ID | 状態 |
 |---|--------|--------|------|-------|------|
-| 1 | **L3-001 l3-aegis プロジェクト構造設計** | 🔴 **P0** | **Rust Engineer** | **IC-1** | ⬜ |
+| 1 | **L3-001 ビルド検証** (cargo build/test/clippy) | 🔴 **P0** | **Rust Engineer** | **IC-1** | 🟡 |
 | 2 | L3-002 Single-node dev mode実装 | 🔴 P0 | Rust Engineer | IC-1 | ⬜ |
 | 3 | L3-003 Basic PBFT consensus実装 | 🔴 P0 | Rust Engineer | IC-1 | ⬜ |
 | 4 | l3-aegis専用CI/CDワークフロー作成 | 🟠 High | DevOps | - | ⬜ |
 | 5 | SETUP-003 Phase 2資産統合準備 | 🟠 High | Engineer | IC-2,3,4 | ⬜ |
 | 6 | エコシステム構築計画策定 | 🟠 High | CBO | - | ⬜ |
 
-### L3-001 スコープ
+### L3-001 残作業
 
-- [ ] Rustプロジェクト構造設計（Cargo workspace）
-- [ ] モジュール分割設計（aegis-consensus, aegis-crypto, aegis-network, aegis-storage, aegis-node, aegis-cli）
-- [ ] 依存クレート選定
-- [ ] CI/CD設定（Rust用GitHub Actions）
+- [x] Rustプロジェクト構造設計（Cargo workspace）
+- [x] モジュール分割設計（9クレート）
+- [x] 依存クレート選定
+- [x] Docker設定
+- [x] ノード設定ファイル
+- [x] README.md
+- [ ] cargo build 検証
+- [ ] cargo test 検証
+- [ ] cargo clippy 検証
 
 ---
 
@@ -294,7 +316,8 @@
 |---------------|------|--------|
 | Phase 1完了 | Month 6 | ✅ **COMPLETE** |
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
-| **L3 Single-node動作** | **Month 10-11** | ⬜ **L3-001~002** |
+| **L3-001完了** | **Month 10** | 🟡 **IN PROGRESS** |
+| **L3 Single-node動作** | **Month 10-11** | ⬜ **L3-002** |
 | **L3 4-node consensus動作** | **Month 11-12** | ⬜ **L3-003~006** |
 | **Phase 3.1完了** | **Month 12** | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
@@ -313,7 +336,7 @@
 │                                                             │
 │  Phase 3.1 (Month 10-12): Foundation ← ACTIVE               │
 │  ├── Track A: L3 Chain (Rust) - IC-1 ⭐ 最優先              │
-│  │   ├── L3-001: プロジェクト構造設計 ← 次のタスク          │
+│  │   ├── L3-001: プロジェクト構造設計 ← 🟡 構造完了         │
 │  │   ├── L3-002: Single-node dev mode                       │
 │  │   ├── L3-003: PBFT consensus                             │
 │  │   ├── L3-004: Dilithium-III署名                          │
@@ -371,7 +394,7 @@
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
 - Phase 3.1 Foundation: 🔄 ACTIVE
   - Track A (L3 Chain - IC-1):
-    - L3-001: ⬜ 次のタスク ⭐
+    - L3-001: 🟡 構造完了、ビルド検証待ち
     - L3-002~006: ⬜
   - Track B (Solidity):
     - SETUP-001: ✅ PASS (PIR-P3.1-001)
