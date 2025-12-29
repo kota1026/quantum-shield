@@ -1,12 +1,27 @@
 # Current Plan
 
-> **Generated**: 2025-12-30 10:00 JST
+> **Generated**: 2025-12-30 02:28 JST
 > **Phase**: 3 - L3 + Token + 完全分散化
 > **Sub-Phase**: 3.1 Foundation
 
 ## 対象チェックリスト
 
 `docs/checklists/phase3.1.md`
+
+---
+
+## 🎯 現在のタスク
+
+### L3-002: Single-node dev mode実装
+
+| 項目 | 値 |
+|------|-----|
+| **タスクID** | L3-002 |
+| **タイトル** | Single-node dev mode実装 |
+| **IC-ID** | IC-1 (L3 Chain Infrastructure) |
+| **優先度** | 🔴 P0 |
+| **担当** | Rust Engineer |
+| **前提** | ✅ L3-001 COMPLETE, PIR-P3.1-002 PASS |
 
 ---
 
@@ -18,17 +33,26 @@
 
 | Sequence | 実装Layer | 仕様書参照箇所 |
 |----------|----------|---------------|
-| L3 Chain Infrastructure | l3-aegis (Rust) | L3_CHAIN_SPECIFICATION §2-6 |
+| L3 Chain Infrastructure | l3-aegis (Rust) | L3_CHAIN_SPECIFICATION §7.1 |
 
-### セキュリティ要件
+### L3-002 仕様要件
+
+> 参照: `docs/aegis/L3_CHAIN_SPECIFICATION.md` §7.1
+
+| 要件 | 内容 | 実装箇所 |
+|------|------|---------|
+| 単一ノード起動 | フラグ `--dev` で開発モード起動 | `aegis-cli/src/commands.rs` |
+| ブロック生成 | 自動ブロック生成（タイマー/Tx駆動） | `aegis-node/src/node.rs` |
+| Tx処理 | CLI経由でトランザクション投入 | `aegis-cli/src/main.rs` |
+| 状態更新 | SMTへの状態書き込み | `aegis-smt/src/tree.rs` |
+| ログ出力 | 構造化ログ（tracing） | 全クレート |
+
+### セキュリティ要件（継承）
 
 | 要件 | 仕様書出典 | 実装方法 |
-|------|----------|---------|
+|------|----------|---------| 
 | SHA3-256 ハッシュ | CP-1 / L3_CHAIN_SPEC §4.2 | `aegis-crypto/src/lib.rs` |
 | Dilithium-III 署名 | CP-1 / L3_CHAIN_SPEC §4.1 | `aegis-crypto/src/dilithium.rs` |
-| PBFT 合意 (f=1) | L3_CHAIN_SPEC §3 | `aegis-consensus/src/engine.rs` |
-| 4ノードBFT構成 | L3_CHAIN_SPEC §2.1 | `docker/docker-compose.yml` |
-| Sparse Merkle Tree | L3_CHAIN_SPEC §5.2 | `aegis-smt/src/tree.rs` |
 
 ---
 
@@ -47,7 +71,7 @@
 
 > 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
 
-- [x] 独自4ノードBFTチェーン前提か
+- [x] 独自4ノードBFTチェーン前提か（devモードは単一ノード）
 - [x] l3-aegis (Rust) の範囲内か
 - [x] ZK-STARK不使用（将来検討）
 - [x] SEQUENCES v2.0に準拠しているか
@@ -63,7 +87,7 @@
 
 | IC-ID | Component | タスク | Status |
 |-------|-----------|--------|--------|
-| IC-1 | L3 Chain Infrastructure (4-node BFT) | L3-001 | 🟡 PIR待ち |
+| IC-1 | L3 Chain Infrastructure (4-node BFT) | L3-002 | 🔄 ACTIVE |
 
 ### マスタ照合
 
@@ -77,53 +101,64 @@
 
 ---
 
-## 前回レビュー課題（該当時のみ）
+## 前回レビュー結果
 
-> CURRENT_STATE.mdより
+> PIR-P3.1-002 より
 
-| # | 重要度 | 課題 | 対策 |
-|---|--------|------|------|
-| - | - | なし（前回PIR-P3.1-001はPASS済み） | - |
+| PIR ID | 対象 | 結果 | 日付 |
+|--------|------|------|------|
+| PIR-P3.1-002 | L3-001 l3-aegis構造設計 | ✅ PASS | 2025-12-30 |
+
+### 引継ぎ事項
+
+| # | 内容 | 対応 |
+|---|------|------|
+| 1 | Warning（unused imports） | L3-002で整理 |
+| 2 | ViewChange未実装 | L3-003で対応 |
 
 ---
 
 ## 今回のスコープ
 
-### 📋 PIRレビュー項目 (PIR-P3.1-002)
+### L3-002 実装項目
 
-> **対象**: L3-001 l3-aegis プロジェクト構造設計 (IC-1)
-> **PIR Code Review Routine**: `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md` 準拠
+| # | 項目 | 説明 | 状態 |
+|---|------|------|:----:|
+| 1 | Dev mode フラグ | `--dev` フラグでシングルノード起動 | ⬜ |
+| 2 | Genesis block生成 | ハードコードされた初期状態から生成 | ⬜ |
+| 3 | Block生成ループ | タイマー駆動の自動ブロック生成 | ⬜ |
+| 4 | Tx受付 | CLI経由でのトランザクション投入 | ⬜ |
+| 5 | 状態更新 | SMTへの状態書き込み・読み出し | ⬜ |
+| 6 | ログ出力 | tracing による構造化ログ | ⬜ |
+| 7 | E2Eテスト | ノード起動→Tx投入→ブロック確認 | ⬜ |
 
-- [ ] [PIR-001] 実装コードレビュー（仕様書準拠確認）
-- [ ] [PIR-002] テストコードレビュー（69/69 PASS確認）
-- [ ] [PIR-003] 11エージェントレビュー投票
-- [ ] [PIR-004] セキュリティ確認（CP-1準拠）
-- [ ] [PIR-005] PIR判定（PASS/CONDITIONAL/FAIL）
+### 修正対象ファイル
 
-### 確認対象ファイル
+| クレート | ファイル | 変更内容 |
+|---------|---------|---------|
+| aegis-cli | `src/commands.rs` | `--dev` フラグ追加 |
+| aegis-cli | `src/main.rs` | dev mode起動ロジック |
+| aegis-node | `src/node.rs` | シングルノード動作モード |
+| aegis-node | `src/config.rs` | dev mode設定 |
+| aegis-core | `src/builder.rs` | genesis block生成 |
+| aegis-core | `src/state.rs` | 初期状態管理 |
 
-| クレート | 主要ファイル | テスト数 |
-|---------|------------|:--------:|
-| aegis-types | `lib.rs`, `error.rs`, `hash.rs`, `block.rs`, `tx.rs` | 13 |
-| aegis-crypto | `lib.rs`, `dilithium.rs` | 8 |
-| aegis-smt | `tree.rs`, `proof.rs`, `hash.rs` | 6 |
-| aegis-core | `state.rs`, `builder.rs` | 5 |
-| aegis-consensus | `engine.rs`, `message.rs`, `state.rs` | 9 |
-| aegis-network | `peer.rs`, `transport.rs`, `discovery.rs` | 8 |
-| aegis-storage | `store.rs`, `rocks.rs` | 12 |
-| aegis-node | `node.rs`, `config.rs` | 4 |
-| aegis-cli | `main.rs`, `commands.rs` | 4 |
+### 新規作成ファイル
+
+| ファイル | 説明 |
+|---------|------|
+| `aegis-node/src/dev.rs` | Dev mode専用ロジック |
+| `aegis-core/src/genesis.rs` | Genesis block定義 |
+| `l3-aegis/tests/e2e_dev_mode.rs` | E2Eテスト |
 
 ### 参照ドキュメント
 
 | 種類 | ドキュメント | 参照セクション |
 |------|------------|---------------|
+| L3チェーン仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | §7.1 Dev Mode |
 | 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §1.5, §3, §4 |
-| L3チェーン仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | §2-6 |
-| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
-| PIRルーチン | `docs/aegis/PIR_CODE_REVIEW_ROUTINE.md` | 全体 |
-| Phase 3.1チェックリスト | `docs/checklists/phase3.1.md` | Track A |
-| 実装レポート | `docs/planning/CURRENT_STATE.md` | §最新実装レポート |
+| Phase 3.1チェックリスト | `docs/checklists/phase3.1.md` | Track A L3-002 |
+| 前回PIR | `docs/aegis/pir/PIR-P3.1-002.md` | 全体 |
 
 ---
 
@@ -131,73 +166,82 @@
 
 | ファイル | 説明 | IC-ID |
 |---------|------|-------|
-| `docs/aegis/pir/PIR-P3.1-002.md` | PIRレビュー結果 | IC-1 |
+| `aegis-node/src/dev.rs` | Dev mode実装 | IC-1 |
+| `aegis-core/src/genesis.rs` | Genesis block | IC-1 |
+| `l3-aegis/tests/e2e_dev_mode.rs` | E2Eテスト | IC-1 |
+| `docs/aegis/pir/PIR-P3.1-003.md` | PIRレビュー結果 | IC-1 |
 
 ---
 
 ## 実行順序
 
-### PIRレビュー手順（04_review.md → 05_pir.md）
+### 実装手順
 
-1. **実装コードレビュー**
-   - L3_CHAIN_SPECIFICATION.md との整合性確認
-   - 仕様書要件の実装箇所マッピング確認
-   
-2. **テストコードレビュー**
-   - 69テストの妥当性確認
-   - カバレッジ確認
+1. **設計確認**
+   - L3_CHAIN_SPECIFICATION.md §7.1 再確認
+   - 既存コードとの整合性確認
 
-3. **CP-1準拠確認**
-   - SHA3-256使用（keccak256禁止）
-   - Dilithium-III署名（ECDSA禁止）
-   - SPHINCS+対応準備
+2. **Genesis block実装**
+   - `aegis-core/src/genesis.rs` 作成
+   - ハードコード初期状態定義
 
-4. **11エージェントレビュー**
-   - 各エージェントの観点からレビュー
-   - 投票集計
+3. **Dev modeフラグ追加**
+   - `aegis-cli/src/commands.rs` 修正
+   - `--dev` オプション追加
 
-5. **PIR判定**
-   - PASS: 全基準クリア → L3-002へ移行
-   - CONDITIONAL: 軽微な修正後再レビュー
-   - FAIL: 重大な問題 → 再実装
+4. **シングルノード動作実装**
+   - `aegis-node/src/dev.rs` 作成
+   - consensus不要の直接ブロック生成
+
+5. **ブロック生成ループ**
+   - タイマー駆動（例: 3秒間隔）
+   - 空ブロック許可
+
+6. **Tx処理実装**
+   - CLI → ノードへのTx送信
+   - mempool → block inclusion
+
+7. **E2Eテスト作成**
+   - ノード起動テスト
+   - Tx処理テスト
+   - 状態更新テスト
+
+8. **PIRレビュー準備**
+   - CURRENT_STATE.md 更新
+   - PIR-P3.1-003 準備
 
 ---
 
 ## Core Principles確認
 
-- [x] CP-1: 完全量子耐性 - SHA3-256, Dilithium-III使用確認
+- [x] CP-1: 完全量子耐性 - SHA3-256, Dilithium-III使用継続
 - [x] CP-2: Self-Custody - ユーザー鍵管理（L3レベルでは直接関与なし）
-- [x] CP-3: Time Lock存在 - Core Layer実装予定（L3-001スコープ外）
-- [x] CP-4: Slashing存在 - Core Layer実装予定（L3-001スコープ外）
+- [x] CP-3: Time Lock存在 - Core Layer実装予定（L3-002スコープ外）
+- [x] CP-4: Slashing存在 - Core Layer実装予定（L3-002スコープ外）
 - [x] CP-5: 透明性 - 全操作がL3ブロックに記録
 
 ---
 
-## L3-001 PIRレビュー観点
+## テスト計画
 
-### 仕様書準拠チェック
+### 新規テスト
 
-| 要件 | L3_CHAIN_SPEC | 実装 | 状態 |
-|------|--------------|------|:----:|
-| 4ノードBFT | §2.1 | docker-compose.yml | ✅ |
-| PBFT (f=1) | §3.1 | aegis-consensus | ✅ |
-| Dilithium-III | §4.1 | aegis-crypto | ✅ |
-| SHA3-256 | §4.2 | aegis-crypto | ✅ |
-| RocksDB | §5.1 | aegis-storage | ✅ |
-| SMT (256-depth) | §5.2 | aegis-smt | ✅ |
-| TLS 1.3 | §6.1 | aegis-network | ✅ |
-| libp2p | §6.2 | aegis-network | ✅ |
+| テスト | 説明 | 優先度 |
+|-------|------|--------|
+| `test_dev_mode_startup` | dev modeでの起動確認 | 🔴 P0 |
+| `test_genesis_block_creation` | genesis block生成確認 | 🔴 P0 |
+| `test_block_production_loop` | ブロック生成ループ確認 | 🔴 P0 |
+| `test_tx_submission` | Tx投入確認 | 🔴 P0 |
+| `test_state_update` | SMT状態更新確認 | 🔴 P0 |
+| `test_e2e_dev_mode` | E2E統合テスト | 🔴 P0 |
 
-### CP-1準拠チェック
+### テスト目標
 
-| 項目 | 要件 | 実装 | 確認 |
-|------|------|------|:----:|
-| ハッシュ | SHA3-256 (FIPS 202) | ✅ sha3クレート使用 | ⬜ |
-| 署名 | Dilithium-III (FIPS 204) | ✅ pqcrypto-dilithium使用 | ⬜ |
-| 禁止: keccak256 | 不使用 | ⬜ 要確認 | ⬜ |
-| 禁止: ECDSA | 不使用 | ⬜ 要確認 | ⬜ |
-| 禁止: RSA | 不使用 | ⬜ 要確認 | ⬜ |
-| 禁止: secp256k1 | 不使用 | ⬜ 要確認 | ⬜ |
+| 項目 | 目標 |
+|------|------|
+| 新規テスト数 | +10〜15 |
+| 総テスト数（l3-aegis） | 80+ |
+| Pass率 | 100% |
 
 ---
 
@@ -205,20 +249,39 @@
 
 | # | リスク | 重要度 | 対策 |
 |---|-------|--------|------|
-| 1 | SMT proof verificationのbit position計算 | 🟢 LOW | 既に修正済み（コミット531697f） |
-| 2 | Dilithium署名サイズ(3309 bytes)の互換性 | 🟢 LOW | pqcrypto v0.5準拠確認済み |
-| 3 | Warning（unused imports等） | 🟢 LOW | 非ブロッキング、後続タスクで対応可 |
+| 1 | ブロック生成タイミング設計 | 🟠 MEDIUM | 設定可能なインターバル |
+| 2 | genesis state設計 | 🟢 LOW | 最小限のハードコード |
+| 3 | consensus省略の影響 | 🟢 LOW | dev mode専用ロジック分離 |
 
 ---
 
-## 次ステップ（PIR後）
+## 完了基準
 
-PIR-P3.1-002がPASSの場合：
+### L3-002 完了条件
+
+- [ ] `--dev` フラグでシングルノード起動可能
+- [ ] Genesis blockが正常に生成される
+- [ ] ブロック生成ループが動作する
+- [ ] CLI経由でTx投入可能
+- [ ] SMT状態が正しく更新される
+- [ ] 新規テスト全てPASS
+- [ ] PIR-P3.1-003 PASS
+
+### L3-002 → L3-003 移行基準
+
+- [ ] L3-002 実装完了
+- [ ] 新規テスト全てPASS
+- [ ] PIR-P3.1-003 レビュー完了
+- [ ] dev mode動作検証完了
+
+---
+
+## 次ステップ（L3-002完了後）
 
 | # | タスク | 優先度 | IC-ID |
 |---|--------|--------|-------|
-| 1 | L3-002 Single-node dev mode実装 | 🔴 P0 | IC-1 |
-| 2 | L3-003 Basic PBFT consensus実装 | 🔴 P0 | IC-1 |
+| 1 | L3-003 Basic PBFT consensus実装 | 🔴 P0 | IC-1 |
+| 2 | L3-004 Dilithium-III consensus署名統合 | 🔴 P0 | IC-1 |
 | 3 | l3-aegis専用CI/CDワークフロー作成 | 🟠 High | - |
 
 ---
