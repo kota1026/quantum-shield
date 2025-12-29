@@ -106,6 +106,12 @@ fn default_hash(depth: usize) -> Hash256 {
 /// 
 /// In-memory implementation with optional persistence.
 /// Reference: L3_AEGIS_ARCHITECTURE.md Section 5.3
+/// 
+/// Tree structure:
+/// - Root is at depth TREE_DEPTH (256)
+/// - Leaves are at depth 0
+/// - At depth d, we split on bit (TREE_DEPTH - d) of the key
+/// - So root splits on bit 0, depth 255 splits on bit 1, ..., depth 1 splits on bit 255
 #[derive(Clone)]
 pub struct SparseMerkleTree {
     /// Current root hash
@@ -193,6 +199,11 @@ impl SparseMerkleTree {
     }
 
     /// Generate proof for key
+    /// 
+    /// The proof is built from leaf (depth 0) to root (depth TREE_DEPTH).
+    /// At each step d going from depth d to d+1:
+    /// - The parent at depth d+1 splits on bit (TREE_DEPTH - 1 - d)
+    /// - Sibling is the subtree with that bit flipped
     pub fn prove(&self, key: &Hash256) -> Result<MerkleProof> {
         let leaf_hash = if let Some(value) = self.leaves.get(key) {
             compute_leaf_hash(key, value)
@@ -205,10 +216,15 @@ impl SparseMerkleTree {
 
         // For each level from leaf (depth 0) to just below root
         for depth in 0..TREE_DEPTH {
-            let bit = key.bit(depth);
-            // Get sibling: flip the bit at this depth
+            // At depth d, parent at depth d+1 splits on bit (TREE_DEPTH - 1 - d)
+            // e.g., depth 0 -> parent splits on bit 255
+            //       depth 255 -> parent splits on bit 0
+            let bit_pos = TREE_DEPTH - 1 - depth;
+            let bit = key.bit(bit_pos);
+            
+            // Get sibling: flip the bit at this position
             let mut sibling_prefix = *key;
-            Self::flip_bit(&mut sibling_prefix, depth);
+            Self::flip_bit(&mut sibling_prefix, bit_pos);
             
             let sibling_hash = self.get_subtree_hash(&sibling_prefix, depth);
             
@@ -244,8 +260,8 @@ impl SparseMerkleTree {
     }
 
     /// Get hash of subtree rooted at the node identified by (prefix, depth)
-    /// - prefix: a key whose first `depth` bits identify the path to this node
-    /// - depth: how far from leaves (0 = at leaf level, TREE_DEPTH = root)
+    /// - prefix: a key whose first (TREE_DEPTH - depth) bits identify the path to this node
+    /// - depth: height of this subtree (0 = leaf, TREE_DEPTH = root)
     fn get_subtree_hash(&self, prefix: &Hash256, depth: usize) -> Hash256 {
         if depth == 0 {
             // Leaf level - find exact match
@@ -266,6 +282,7 @@ impl SparseMerkleTree {
             return default_hash(depth);
         }
 
+        // At this depth, we split on bit at position prefix_len
         // Get left child (bit at position prefix_len is 0)
         let mut left_prefix = *prefix;
         Self::set_bit(&mut left_prefix, prefix_len, false);
