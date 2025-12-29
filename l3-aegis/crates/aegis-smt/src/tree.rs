@@ -112,6 +112,7 @@ pub struct SparseMerkleTree {
     /// Stored leaves: key -> value
     leaves: HashMap<Hash256, Hash256>,
     /// Internal nodes cache: node_hash -> (left, right)
+    #[allow(dead_code)]
     nodes: HashMap<Hash256, (Hash256, Hash256)>,
     /// Lock data storage: lock_id -> LockData
     locks: HashMap<Hash256, LockData>,
@@ -215,7 +216,9 @@ impl SparseMerkleTree {
             let sibling_hash = self.get_subtree_hash(&sibling_key, depth);
             
             siblings.push(sibling_hash);
-            is_left.push(!bit);
+            // bit=0 means current is on left, sibling is on right -> is_left=false
+            // bit=1 means current is on right, sibling is on left -> is_left=true
+            is_left.push(bit);
         }
 
         Ok(MerkleProof {
