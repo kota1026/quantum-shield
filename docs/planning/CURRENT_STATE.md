@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-28 20:30 JST  
+> **Last Updated**: 2025-12-29 23:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,8 +13,8 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Next Step: SETUP-003 Phase 2資産統合準備                   │
-│  Status: ✅ PIR-P3.1-001 PASS → SETUP-003開始可能           │
+│  Next Step: L3-001 l3-aegis プロジェクト構造設計 (IC-1) ⭐  │
+│  Status: ✅ PIR-P3.1-001 PASS → L3-001開始可能              │
 │  Tests: ✅ 644 PASS (628 Phase 2 + 16 l3-aegis)             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -34,6 +34,18 @@
 | **L3スタック** | 独自L3 (l3-aegis) 第一選択 |
 | **アーキテクチャ** | Full Modular / Pluggable |
 | **リスク** | 認識済み・緩和策必須 |
+
+### L3基盤技術決定 (2025-12-28)
+
+> **Reference**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+
+| 項目 | 決定 |
+|------|------|
+| L3構成 | 独自4ノードBFTチェーン |
+| 実装 | l3-aegis (Rust) |
+| 合意方式 | PBFT variant (f=1) |
+| ZK-STARK | 使用しない（将来検討） |
+| L1検証 | SPHINCS+直接検証 (~$25) |
 
 ### Modular Architecture
 
@@ -143,7 +155,7 @@
 
 - 11エージェント全員承認
 - Critical/Major問題なし
-- Minor: l3-aegis専用CI/CDワークフロー（SETUP-003で対応予定）
+- Minor: l3-aegis専用CI/CDワークフロー（L3-001と並行で対応予定）
 
 ---
 
@@ -182,9 +194,24 @@
 
 > **チェックリスト**: `docs/checklists/phase3.1.md`
 > **期間**: Month 10-12
-> **目標**: l3-aegis Core開発、Modular Architecture基盤実装
+> **目標**: l3-aegis L3チェーン基盤開発 + Modular Architecture基盤実装
 
-### Week 1-2: プロジェクト構造・基盤
+### 🚀 Track A: L3 Chain Infrastructure (IC-1) ⭐ 最優先
+
+> **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
+
+| # | タスク | 担当 | 状態 | PIR |
+|---|--------|------|:----:|-----|
+| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ⬜ | - |
+| L3-002 | Single-node dev mode実装 | Rust Engineer | ⬜ | - |
+| L3-003 | Basic PBFT consensus実装 | Rust Engineer | ⬜ | - |
+| L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ⬜ | - |
+| L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
+| L3-006 | 4-node local testnet構築 | DevOps | ⬜ | - |
+
+### 🏗️ Track B: L3 Contracts (Solidity)
+
+#### Week 1-2: プロジェクト構造・基盤
 
 | # | タスク | 担当 | 状態 | PIR |
 |---|--------|------|------|-----|
@@ -192,7 +219,7 @@
 | SETUP-002 | Modular Architecture インターフェース定義 | Engineer | ✅ | PIR-P3.1-001 |
 | SETUP-003 | Phase 2資産統合準備 | Engineer | ⬜ | - |
 
-### Week 3-4: Core Layer基盤
+#### Week 3-4: Core Layer基盤
 
 | # | タスク | 担当 | 状態 |
 |---|--------|------|------|
@@ -200,7 +227,7 @@
 | CORE-002 | STARK Verifier統合 | Engineer | ⬜ |
 | CORE-003 | CP保護機構実装 | Engineer | ⬜ |
 
-### Week 5-6: Pluggable Layer基盤
+#### Week 5-6: Pluggable Layer基盤
 
 | # | タスク | 担当 | 状態 |
 |---|--------|------|------|
@@ -232,21 +259,32 @@
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
 | 1 | 独自L3技術リスク | 🔴 HIGH | 緩和策実施（監査、TVL制限） |
-| 2 | Modular設計複雑性 | 🟠 MEDIUM | 網羅的テスト |
-| 3 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
-| 4 | via_ir問題（SharedMerkle） | 🟢 LOW | L3移行後不要の可能性 |
+| 2 | **L3 Rust実装の複雑性** | 🔴 **HIGH** | **段階的実装（L3-001→L3-006）** |
+| 3 | Modular設計複雑性 | 🟠 MEDIUM | 網羅的テスト |
+| 4 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
+| 5 | via_ir問題（SharedMerkle） | 🟢 LOW | L3移行後不要の可能性 |
 
 ---
 
 ## 🔜 次のアクション
 
-### Phase 3.1 継続
+### Phase 3.1 継続（優先順位順）
 
-| # | タスク | 優先度 | 担当 | 状態 |
-|---|--------|--------|------|------|
-| 1 | SETUP-003 Phase 2資産統合準備 | 🔴 Critical | Engineer | ⬜ |
-| 2 | l3-aegis専用CI/CDワークフロー作成 | 🟠 High | DevOps | ⬜ |
-| 3 | エコシステム構築計画策定 | 🟠 High | CBO | ⬜ |
+| # | タスク | 優先度 | 担当 | IC-ID | 状態 |
+|---|--------|--------|------|-------|------|
+| 1 | **L3-001 l3-aegis プロジェクト構造設計** | 🔴 **P0** | **Rust Engineer** | **IC-1** | ⬜ |
+| 2 | L3-002 Single-node dev mode実装 | 🔴 P0 | Rust Engineer | IC-1 | ⬜ |
+| 3 | L3-003 Basic PBFT consensus実装 | 🔴 P0 | Rust Engineer | IC-1 | ⬜ |
+| 4 | l3-aegis専用CI/CDワークフロー作成 | 🟠 High | DevOps | - | ⬜ |
+| 5 | SETUP-003 Phase 2資産統合準備 | 🟠 High | Engineer | IC-2,3,4 | ⬜ |
+| 6 | エコシステム構築計画策定 | 🟠 High | CBO | - | ⬜ |
+
+### L3-001 スコープ
+
+- [ ] Rustプロジェクト構造設計（Cargo workspace）
+- [ ] モジュール分割設計（aegis-consensus, aegis-crypto, aegis-network, aegis-storage, aegis-node, aegis-cli）
+- [ ] 依存クレート選定
+- [ ] CI/CD設定（Rust用GitHub Actions）
 
 ---
 
@@ -256,6 +294,8 @@
 |---------------|------|--------|
 | Phase 1完了 | Month 6 | ✅ **COMPLETE** |
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
+| **L3 Single-node動作** | **Month 10-11** | ⬜ **L3-001~002** |
+| **L3 4-node consensus動作** | **Month 11-12** | ⬜ **L3-003~006** |
 | **Phase 3.1完了** | **Month 12** | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
@@ -272,17 +312,28 @@
 │  Phase 3: L3 + Token + 完全分散化                           │
 │                                                             │
 │  Phase 3.1 (Month 10-12): Foundation ← ACTIVE               │
-│  ├── l3-aegis Core開発 ← Week 1-2 SETUP-001,002 完了 ✅     │
-│  ├── Modular Architecture基盤 ← インターフェース定義完了    │
-│  └── Phase 2資産統合 ← SETUP-003 次のタスク                 │
+│  ├── Track A: L3 Chain (Rust) - IC-1 ⭐ 最優先              │
+│  │   ├── L3-001: プロジェクト構造設計 ← 次のタスク          │
+│  │   ├── L3-002: Single-node dev mode                       │
+│  │   ├── L3-003: PBFT consensus                             │
+│  │   ├── L3-004: Dilithium-III署名                          │
+│  │   ├── L3-005: SHA3-256 hashing                           │
+│  │   └── L3-006: 4-node testnet                             │
+│  │                                                          │
+│  └── Track B: L3 Contracts (Solidity)                       │
+│      ├── SETUP-001,002: ✅ PIR-P3.1-001 PASS                │
+│      ├── SETUP-003: Phase 2資産統合                         │
+│      ├── CORE-001~003: Core Layer実装                       │
+│      └── PLUG-001~003: Pluggable Layer実装                  │
 │                                                             │
 │  Phase 3.2 (Month 13-15): Implementation                    │
-│  ├── L3 Bridge実装                                          │
-│  ├── Sequencer実装                                          │
+│  ├── L3 Bridge実装 (IC-2)                                   │
+│  ├── Sequencer実装 (IC-3)                                   │
 │  ├── Pluggable Layer完全実装                                │
 │  └── 第1回セキュリティ監査                                  │
 │                                                             │
 │  Phase 3.3 (Month 16-18): Testing & Launch                  │
+│  ├── Node Expansion 4→7 (IC-6)                              │
 │  ├── 統合テスト（全モード）                                 │
 │  ├── 形式検証                                               │
 │  ├── 第2回セキュリティ監査                                  │
@@ -302,6 +353,8 @@
 | シーケンス参照 | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` |
 | **Phase 3戦略** | `docs/planning/PHASE3_STRATEGY.md` |
 | **Phase 3.1チェックリスト** | `docs/checklists/phase3.1.md` |
+| **L3チェーン仕様** | `docs/aegis/L3_CHAIN_SPECIFICATION.md` |
+| **L3基盤決議** | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` |
 | **Modular Architecture仕様** | `docs/specs/MODULAR_ARCHITECTURE.md` |
 | **Spec-Strategy Bridge** | `docs/planning/SPEC_STRATEGY_BRIDGE.md` |
 | **最終決議書** | `agents/meetings/phase3_strategy/round8_final/FINAL_RESOLUTION_v3.md` |
@@ -317,9 +370,13 @@
 
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
 - Phase 3.1 Foundation: 🔄 ACTIVE
-  - SETUP-001: ✅ PASS (PIR-P3.1-001)
-  - SETUP-002: ✅ PASS (PIR-P3.1-001)
-  - SETUP-003: ⬜ 次のタスク
+  - Track A (L3 Chain - IC-1):
+    - L3-001: ⬜ 次のタスク ⭐
+    - L3-002~006: ⬜
+  - Track B (Solidity):
+    - SETUP-001: ✅ PASS (PIR-P3.1-001)
+    - SETUP-002: ✅ PASS (PIR-P3.1-001)
+    - SETUP-003: ⬜
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
 
