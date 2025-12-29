@@ -45,25 +45,35 @@ impl DilithiumVerifier {
     /// Verify a Dilithium-III signature
     ///
     /// # Arguments
-    /// * `public_key` - Dilithium-III public key bytes
+    /// * `public_key` - Dilithium-III public key bytes (must be exactly 1952 bytes)
     /// * `message` - Message that was signed
-    /// * `signature` - Dilithium-III signature bytes
+    /// * `signature` - Dilithium-III signature bytes (must be exactly 3309 bytes)
     ///
     /// # Returns
     /// * `Ok(true)` if signature is valid
-    /// * `Ok(false)` if signature is invalid
-    /// * `Err` if inputs are malformed
+    /// * `Ok(false)` if signature is cryptographically invalid
+    /// * `Err(InvalidPublicKey)` if public key size is wrong
+    /// * `Err(InvalidSignature)` if signature size is wrong
     pub fn verify(
         &self,
         public_key: &[u8],
         message: &[u8],
         signature: &[u8],
     ) -> Result<bool> {
-        // Parse public key (validates size internally)
+        // Strict size validation - do not rely on library's lenient parsing
+        if public_key.len() != params::PUBLIC_KEY_SIZE {
+            return Err(AegisError::InvalidPublicKey);
+        }
+        
+        if signature.len() != params::SIGNATURE_SIZE {
+            return Err(AegisError::InvalidSignature);
+        }
+
+        // Parse public key (should not fail after size check)
         let pk = dilithium3::PublicKey::from_bytes(public_key)
             .map_err(|_| AegisError::InvalidPublicKey)?;
 
-        // Parse signature (validates size internally)
+        // Parse signature (should not fail after size check)
         let sig = dilithium3::DetachedSignature::from_bytes(signature)
             .map_err(|_| AegisError::InvalidSignature)?;
 
@@ -99,15 +109,21 @@ impl DilithiumVerifier {
         Hash256::hash(public_key)
     }
 
-    /// Validate public key format
+    /// Validate public key format (strict size check)
     pub fn validate_public_key(public_key: &[u8]) -> Result<()> {
+        if public_key.len() != params::PUBLIC_KEY_SIZE {
+            return Err(AegisError::InvalidPublicKey);
+        }
         dilithium3::PublicKey::from_bytes(public_key)
             .map_err(|_| AegisError::InvalidPublicKey)?;
         Ok(())
     }
 
-    /// Validate signature format
+    /// Validate signature format (strict size check)
     pub fn validate_signature(signature: &[u8]) -> Result<()> {
+        if signature.len() != params::SIGNATURE_SIZE {
+            return Err(AegisError::InvalidSignature);
+        }
         dilithium3::DetachedSignature::from_bytes(signature)
             .map_err(|_| AegisError::InvalidSignature)?;
         Ok(())
@@ -144,11 +160,11 @@ mod tests {
         );
         
         assert!(result.is_ok(), "verify failed: {:?}", result);
-        assert!(result.unwrap());
+        assert!(result.unwrap(), "signature should be valid");
     }
 
     #[test]
-    fn test_verify_invalid_signature() {
+    fn test_verify_invalid_signature_content() {
         let verifier = DilithiumVerifier::new();
         
         // Generate keypair
@@ -158,7 +174,7 @@ mod tests {
         let message = b"Original message";
         let signature = detached_sign(message, &sk);
         
-        // Verify with different message
+        // Verify with different message - should return Ok(false)
         let wrong_message = b"Different message";
         let result = verifier.verify(
             pk.as_bytes(),
@@ -166,16 +182,15 @@ mod tests {
             signature.as_bytes(),
         );
         
-        assert!(result.is_ok(), "verify failed: {:?}", result);
-        assert!(!result.unwrap());
+        assert!(result.is_ok(), "verify should not error on valid-sized inputs");
+        assert!(!result.unwrap(), "signature should be invalid for wrong message");
     }
 
     #[test]
     fn test_invalid_public_key_size() {
         let verifier = DilithiumVerifier::new();
         
-        let invalid_pk = vec![0u8; 100];
-        // Use a valid-sized signature to test pk validation
+        let invalid_pk = vec![0u8; 100]; // Wrong size
         let (_, sk) = dilithium3::keypair();
         let signature = detached_sign(b"test", &sk);
         
@@ -184,21 +199,18 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_signature_rejected() {
-        // Test that an invalid signature (wrong size or wrong content) 
-        // either returns Err or Ok(false)
+    fn test_invalid_signature_size() {
         let verifier = DilithiumVerifier::new();
         
         let (pk, _) = dilithium3::keypair();
-        let invalid_sig = vec![0u8; 100];
+        let invalid_sig = vec![0u8; 100]; // Wrong size - must be rejected
         
         let result = verifier.verify(pk.as_bytes(), b"test", &invalid_sig);
-        
-        // Either parsing fails (Err) or verification fails (Ok(false))
-        match result {
-            Err(_) => (), // parsing failed - ok
-            Ok(valid) => assert!(!valid, "invalid signature should not verify"),
-        }
+        assert!(
+            matches!(result, Err(AegisError::InvalidSignature)),
+            "Expected InvalidSignature error for wrong-sized signature, got {:?}",
+            result
+        );
     }
 
     #[test]
@@ -233,7 +245,7 @@ mod tests {
         );
         
         assert!(result.is_ok(), "verify_with_domain failed: {:?}", result);
-        assert!(result.unwrap());
+        assert!(result.unwrap(), "domain-separated signature should be valid");
     }
 
     #[test]
