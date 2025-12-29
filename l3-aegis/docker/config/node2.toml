@@ -1,0 +1,68 @@
+# Aegis L3 Node Configuration - Node 2
+# CP-1 Compliant: SHA3-256, Dilithium-III only
+
+[node]
+id = 2
+name = "aegis-node-2"
+role = "validator"
+data_dir = "/data"
+
+[network]
+listen_addr = "0.0.0.0:30303"
+external_addr = "172.28.0.12:30303"
+max_peers = 10
+enable_tls = true
+tls_cert_path = "/keys/node2.crt"
+tls_key_path = "/keys/node2.key"
+
+[network.bootstrap_peers]
+peer0 = "172.28.0.10:30303"
+peer1 = "172.28.0.11:30303"
+peer3 = "172.28.0.13:30303"
+
+[consensus]
+algorithm = "pbft"
+block_time_ms = 5000
+max_transactions_per_block = 1000
+view_timeout_ms = 10000
+checkpoint_interval = 100
+
+[consensus.validators]
+node0 = "172.28.0.10:30303"
+node1 = "172.28.0.11:30303"
+node2 = "172.28.0.12:30303"
+node3 = "172.28.0.13:30303"
+
+[crypto]
+hash_algorithm = "sha3-256"
+signature_algorithm = "dilithium-iii"
+key_path = "/keys/node2.dilithium.key"
+pubkey_path = "/keys/node2.dilithium.pub"
+
+[storage]
+engine = "rocksdb"
+path = "/data/db"
+cache_size_mb = 256
+max_open_files = 1000
+
+[rpc]
+enable = true
+listen_addr = "0.0.0.0:8545"
+max_connections = 100
+enable_cors = true
+cors_origins = ["*"]
+
+[rpc.methods]
+enable_eth_namespace = false
+enable_aegis_namespace = true
+enable_admin_namespace = false
+
+[metrics]
+enable = true
+listen_addr = "0.0.0.0:9090"
+namespace = "aegis"
+
+[logging]
+level = "info"
+format = "json"
+output = "stdout"
