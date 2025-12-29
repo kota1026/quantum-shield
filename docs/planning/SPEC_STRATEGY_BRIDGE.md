@@ -1,8 +1,8 @@
 # Specification-Strategy Bridge Document
 
-> **Document Version**: 1.1  
+> **Document Version**: 1.2  
 > **Created**: 2025-12-28  
-> **Updated**: 2025-12-28  
+> **Updated**: 2025-12-29  
 > **Purpose**: 既存仕様書（原理原則）とPhase 3戦略決議の連動を定義
 
 ---
@@ -20,6 +20,12 @@
 │ │   ※ 8つのSequence定義（Lock, Unlock, Challenge等）                        │
 │ └── docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md   ← 「全体像」            │
 │     ※ Phase定義、Token、ガバナンス、経済モデル                                │
+│     ※ Implementation Components (IC) 定義                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Layer 1.5: ビジネス戦略（CEO承認で更新）                                      │
+│ └── docs/planning/DEVELOPMENT_STRATEGY_v2.0.md       ← 「誰に売るか」        │
+│     ※ 2本立て戦略（Enterprise / Decentralized）                              │
+│     ※ 段階的分散化ロードマップ                                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ Layer 2: 戦略決議（Phase単位で更新）                        【本書の橋渡し】  │
 │ ├── docs/planning/PHASE3_STRATEGY.md                 ← 「どう実現するか」    │
@@ -31,10 +37,12 @@
 │ Layer 2.5: L3詳細仕様（技術決議後）                                          │
 │ └── docs/aegis/L3_CHAIN_SPECIFICATION.md             ← 「L3チェーン仕様」    │
 │     ※ 独自4ノードBFTチェーン、l3-aegis実装仕様                               │
+│     ※ 段階的拡張設計（Phase 1-4）                                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ Layer 3: 実装計画（週単位で更新）                                            │
 │ ├── docs/planning/CURRENT_STATE.md                                          │
 │ ├── docs/planning/CURRENT_PLAN.md                                           │
+│ ├── docs/planning/PHASE3_PLAN.md                     ← 「Phase 3タスク」     │
 │ └── docs/checklists/phase3.X.md                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -48,6 +56,7 @@
 | Layer 1とLayer 2の対応関係 | **本書（SPEC_STRATEGY_BRIDGE.md）** |
 | L3基盤の技術選定 | Layer 2: L3_INFRASTRUCTURE_FINAL_DECISION |
 | L3チェーンの詳細仕様 | Layer 2.5: L3_CHAIN_SPECIFICATION |
+| ビジネス戦略（2本立て） | Layer 1.5: DEVELOPMENT_STRATEGY_v2.0 |
 | 今日何をするか | Layer 3: CURRENT_PLAN |
 
 ---
@@ -360,7 +369,7 @@ function getMinimumStake() external view returns (uint256) {
 既存仕様書はPhase別に承認方式を定義。Modular Architectureでは両方に対応：
 
 | Governanceモード | 承認方式 | 仕様書対応 |
-|-----------------|---------|-----------|
+|-----------------|---------|-----------
 | CENTRALIZED | Admin単独承認 | Phase 1: 財団招待 |
 | MULTISIG | N/M承認 + 自動条件 | Phase 2: Council 3/9 + 自動 |
 | DECENTRALIZED | 自動承認（条件満たせば） | Phase 3+: 自動承認 |
@@ -429,12 +438,85 @@ CP-3〜CP-5 → SUPERMAJORITY（パラメータ+ガード）
 
 ---
 
-## 9. 変更履歴
+## 9. ビジネス戦略参照
+
+> **Reference**: `docs/planning/DEVELOPMENT_STRATEGY_v2.0.md`
+
+### 9.1 2本立てターゲット戦略
+
+| Edition | Target | L3構成 | Prover | 重視点 |
+|---------|--------|--------|--------|--------|
+| **Enterprise** | 金融系システム会社 | 4ノード固定 | 許可制 | 安定性・規制対応 |
+| **Decentralized** | DEX・ブリッジ等 | 段階的拡張 | 段階的Permissionless | 分散性・透明性 |
+
+### 9.2 段階的分散化ロードマップ
+
+> **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md` §9
+
+| Phase | L3 Nodes | Prover | メンバーシップ |
+|-------|----------|--------|---------------|
+| 1-2 | 4 (QS運営) | 5社固定 | Static |
+| 3 | 4→7 (SC承認) | SC承認制 | CouncilManaged |
+| 4 | Permissionless | Permissionless | Stake-based |
+
+### 9.3 コードベース共通化
+
+```
+l3-aegis（共通コードベース）
+├── --membership=static    → Enterprise / Phase 1-2
+├── --membership=council   → Phase 3
+└── --membership=stake     → Phase 4 Decentralized
+```
+
+---
+
+## 10. Implementation Component Traceability
+
+> **Reference**: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Implementation Components
+
+### 10.1 IC → Task マッピング
+
+| IC-ID | Component | PHASE3_PLAN Task | Status |
+|-------|-----------|------------------|--------|
+| IC-1 | L3 Chain Infrastructure (4-node BFT) | **⚠️ 欠落 → 追加必要** | 🔴 |
+| IC-2 | L3 Bridge Contract | §1 L3 Bridge Contract | 🔴 Planning |
+| IC-3 | Sequencer | §2 Sequencer Implementation | 🔴 Planning |
+| IC-4 | State Management (SMT) | §3 State Management | 🔴 Planning |
+| IC-5 | veQS Token | §4 veQS Token Design | 🔴 Planning |
+| IC-6 | Node Expansion (7-node) | **⚠️ 欠落 → Phase 3後半** | 🔴 |
+| IC-7 | Permissionless Nodes | Phase 4 scope | ⚪ Future |
+
+### 10.2 IC完全性チェック
+
+計画立案時（01_plan.md）に以下を確認：
+
+```
+[ ] 全IC-IDがPHASE3_PLANに対応タスクを持つか？
+    → IC-1, IC-6 が欠落している場合、計画漏れ
+    
+[ ] 新規タスクがIC-IDに紐付いているか？
+    → 紐付いていない場合、UNIFIED_SPECへの追加を検討
+    
+[ ] Statusが更新されているか？
+    → 実装開始時に🔴→🟡、完了時に🟢
+```
+
+### 10.3 欠落ICの対応方針
+
+| IC-ID | 対応方針 |
+|-------|---------|
+| IC-1 | PHASE3_PLAN.md に「L3 Chain Infrastructure」セクション追加 |
+| IC-6 | PHASE3_PLAN.md Phase 3後半（Month 16-18）に追加 |
+
+---
+
+## 11. 変更履歴
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-12-28 | 初版作成 |
 | 1.1 | 2025-12-28 | L3基盤技術選定(2025-12-28決議)への参照を追加（§1.5） |
+| 1.2 | 2025-12-29 | §9 ビジネス戦略参照、§10 IC Traceability追加 |
 
 ---
 
