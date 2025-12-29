@@ -1,11 +1,3 @@
-[package]
-name = "l3-aegis"
-version = "0.1.0"
-edition = "2021"
-authors = ["Quantum Shield Team"]
-description = "L3 Aegis Node - Quantum-resistant bridge layer"
-license = "MIT"
-
 [workspace]
 members = [
     # Core crates
@@ -22,6 +14,14 @@ members = [
     "crates/aegis-node",
     "crates/aegis-cli"
 ]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Quantum Shield Team"]
+description = "L3 Aegis Node - Quantum-resistant bridge layer"
+license = "MIT"
 
 [workspace.dependencies]
 # Async runtime
