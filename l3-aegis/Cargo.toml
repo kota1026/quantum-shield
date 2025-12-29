@@ -24,7 +24,9 @@ members = [
     "crates/aegis-prover",
     # API & Node
     "crates/aegis-api",
-    "crates/aegis-node"
+    "crates/aegis-node",
+    # CLI
+    "crates/aegis-cli"
 ]
 
 [workspace.dependencies]
@@ -37,6 +39,7 @@ futures = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 bincode = "1.3"
+toml = "0.8"
 
 # Cryptography (CP-1 compliant: SHA3-256, Dilithium-III)
 sha3 = "0.10"
