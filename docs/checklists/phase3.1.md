@@ -1,7 +1,7 @@
 # Phase 3.1 Checklist: Foundation
 
 > **期間**: Month 10-12
-> **目標**: l3-aegis Core開発、Modular Architecture基盤実装
+> **目標**: l3-aegis L3チェーン基盤開発 + Modular Architecture基盤実装
 > **前提**: Phase 3 Strategy承認済み (`docs/planning/PHASE3_STRATEGY.md`)
 
 ---
@@ -10,20 +10,128 @@
 
 - [x] Phase 2完了確認（628テスト全PASS）
 - [x] Phase 3戦略決議v3.0承認確認
+- [x] L3基盤技術選定決議確認（2025-12-28）
 - [ ] 開発ブランチ作成（`dev/phase3-l3-aegis`）
 
 ---
 
-## 🏗️ Week 1-2: プロジェクト構造・基盤
+## 🏗️ Phase 3.1 構造
 
-### SETUP-001: l3-aegis プロジェクト初期化 ✅ PIR-P3.1-001 PASS
+Phase 3.1は2つの並行トラックで進行：
+
+```
+Phase 3.1 Foundation
+├── Track A: L3 Chain (Rust) - IC-1 ⭐ 最優先
+│   └── l3-aegis ブロックチェーン基盤実装
+│       ├── L3-001〜L3-006: コア実装
+│       └── 目標: 4ノードローカルテストネット
+│
+└── Track B: L3 Contracts (Solidity) - IC-2,3,4
+    └── Modular Architecture + Phase 2統合
+        ├── SETUP-001〜003: 基盤セットアップ
+        ├── CORE-001〜003: Core Layer実装
+        └── PLUG-001〜003: Pluggable Layer実装
+```
+
+---
+
+## ⛓️ Track A: L3 Chain Infrastructure (IC-1) ⭐
+
+> **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
+> **Decision**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+
+### Week 1-4: L3チェーンコア実装
+
+| # | タスク | 担当 | 状態 | PIR |
+|---|--------|------|:----:|-----|
+| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ⬜ | - |
+| L3-002 | Single-node dev mode実装 | Rust Engineer | ⬜ | - |
+| L3-003 | Basic PBFT consensus実装 | Rust Engineer | ⬜ | - |
+| L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ⬜ | - |
+| L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
+| L3-006 | 4-node local testnet構築 | DevOps | ⬜ | - |
+
+### L3-001: l3-aegis プロジェクト構造設計
+
+- [ ] Rustプロジェクト構造設計（Cargo workspace）
+- [ ] モジュール分割設計
+  - [ ] `aegis-consensus/` - PBFT実装
+  - [ ] `aegis-crypto/` - Dilithium, SHA3-256
+  - [ ] `aegis-network/` - P2P, TLS 1.3
+  - [ ] `aegis-storage/` - RocksDB, SMT
+  - [ ] `aegis-node/` - ノードバイナリ
+  - [ ] `aegis-cli/` - CLIツール
+- [ ] 依存クレート選定
+- [ ] CI/CD設定（Rust用GitHub Actions）
+
+### L3-002: Single-node dev mode実装
+
+- [ ] ブロック構造定義
+- [ ] トランザクション構造定義
+- [ ] ステート管理基盤
+- [ ] RocksDB統合
+- [ ] 単一ノード起動・停止
+- [ ] 基本RPCエンドポイント
+
+### L3-003: Basic PBFT consensus実装
+
+- [ ] PBFT状態マシン実装
+- [ ] Pre-prepare / Prepare / Commit フェーズ
+- [ ] View change機構
+- [ ] f=1 (3/4 quorum) 設定
+- [ ] 5秒ブロックタイム設定
+- [ ] コンセンサステスト
+
+### L3-004: Dilithium-III consensus署名統合
+
+- [ ] Dilithium-IIIライブラリ統合（pqcrypto-dilithium）
+- [ ] ノード鍵生成
+- [ ] ブロック署名
+- [ ] 署名検証
+- [ ] CP-1準拠確認テスト
+
+### L3-005: SHA3-256 block hashing実装
+
+- [ ] SHA3-256ライブラリ統合（sha3クレート）
+- [ ] ブロックハッシュ計算
+- [ ] トランザクションハッシュ計算
+- [ ] Merkleルート計算
+- [ ] CP-1準拠確認テスト
+
+### L3-006: 4-node local testnet構築
+
+- [ ] Docker Compose設定
+- [ ] 4ノード構成（US-East, EU-West, Asia-SG, Reserve模擬）
+- [ ] P2Pネットワーク接続
+- [ ] コンセンサス動作確認
+- [ ] ブロック生成確認
+- [ ] 耐障害性テスト（1ノードダウン時）
+
+### Track A 完了基準
+
+| # | 基準 | 検証方法 |
+|---|------|---------|
+| 1 | Single-node起動・ブロック生成 | `cargo run --bin aegis-node` |
+| 2 | 4-node consensus動作 | Docker Compose + ログ確認 |
+| 3 | Dilithium-III署名検証 | 単体テスト PASS |
+| 4 | SHA3-256ハッシュ動作 | 単体テスト PASS |
+| 5 | 5秒ブロックタイム達成 | パフォーマンステスト |
+| 6 | 1ノードダウン耐性 | 障害注入テスト |
+
+---
+
+## 🏗️ Track B: L3 Contracts (Solidity)
+
+### Week 1-2: プロジェクト構造・基盤
+
+#### SETUP-001: l3-aegis Solidity プロジェクト初期化 ✅ PIR-P3.1-001 PASS
 
 - [x] `l3-aegis/` ディレクトリ構造作成
 - [x] Foundry設定（foundry.toml）
 - [x] 依存関係設定（Phase 2資産インポート）
 - [x] CI/CD設定（GitHub Actions）
 
-### SETUP-002: Modular Architecture インターフェース定義 ✅ PIR-P3.1-001 PASS
+#### SETUP-002: Modular Architecture インターフェース定義 ✅ PIR-P3.1-001 PASS
 
 - [x] `IGovernanceSwitch.sol` インターフェース作成
 - [x] `ITokenSwitch.sol` インターフェース作成
@@ -31,43 +139,39 @@
 - [x] `IConstitutionLock.sol` インターフェース作成
 - [x] インターフェーステスト作成（16テスト）
 
-### SETUP-003: Phase 2資産統合準備 ⬜ 次のタスク
+#### SETUP-003: Phase 2資産統合準備
 
 - [ ] STARKVerifier統合計画
 - [ ] SHA3Hasher統合計画
 - [ ] BatchVerifier統合計画
 - [ ] 統合テスト計画作成
 
----
+### Week 3-4: Core Layer基盤
 
-## 🔧 Week 3-4: Core Layer基盤
-
-### CORE-001: State Manager基盤
+#### CORE-001: State Manager基盤
 
 - [ ] StateManager.sol 基本構造
 - [ ] SHA3-256ステートハッシュ実装
 - [ ] Merkleルート計算（Phase 2 SHA3Hasher活用）
 - [ ] ステート管理テスト
 
-### CORE-002: STARK Verifier統合
+#### CORE-002: STARK Verifier統合
 
 - [ ] Phase 2 STARKVerifier移植
 - [ ] l3-aegis環境への適応
 - [ ] ガスベンチマーク
 - [ ] 統合テスト
 
-### CORE-003: CP保護機構実装
+#### CORE-003: CP保護機構実装
 
 - [ ] ConstitutionLock.sol 作成
 - [ ] CP-1/2 immutable実装
 - [ ] CP-3/4/5 supermajority guard実装
 - [ ] CP保護テスト
 
----
+### Week 5-6: Pluggable Layer基盤
 
-## 🔌 Week 5-6: Pluggable Layer基盤
-
-### PLUG-001: Governance Switch実装
+#### PLUG-001: Governance Switch実装
 
 - [ ] GovernanceSwitch.sol 作成
 - [ ] CENTRALIZED モード実装
@@ -75,7 +179,7 @@
 - [ ] DECENTRALIZED モードスタブ
 - [ ] モード切替テスト
 
-### PLUG-002: Token Switch実装
+#### PLUG-002: Token Switch実装
 
 - [ ] TokenSwitch.sol 作成
 - [ ] DISABLED モード実装
@@ -83,7 +187,7 @@
 - [ ] FULL モードスタブ
 - [ ] モード切替テスト
 
-### PLUG-003: Layer間インターフェース
+#### PLUG-003: Layer間インターフェース
 
 - [ ] Core ↔ Governance インターフェース
 - [ ] Core ↔ Token インターフェース
@@ -150,22 +254,27 @@
 
 | # | 基準 | 検証方法 |
 |---|------|---------|
-| 1 | Core Layer基盤動作 | 単体テストPASS |
-| 2 | Pluggable Layer切替動作 | モード切替テストPASS |
-| 3 | CP保護機構動作 | CP保護テストPASS |
-| 4 | Phase 2資産統合完了 | 統合テストPASS |
-| 5 | 全テスト100% PASS | `forge test` |
-| 6 | Slither警告なし（Critical/High） | `slither .` |
+| 1 | **L3チェーン4-node動作** | Docker Compose テスト |
+| 2 | **Dilithium-III署名動作** | Rust単体テスト PASS |
+| 3 | **SHA3-256ハッシュ動作** | Rust単体テスト PASS |
+| 4 | Core Layer基盤動作 | Solidity単体テストPASS |
+| 5 | Pluggable Layer切替動作 | モード切替テストPASS |
+| 6 | CP保護機構動作 | CP保護テストPASS |
+| 7 | Phase 2資産統合完了 | 統合テストPASS |
+| 8 | 全テスト100% PASS | `cargo test` + `forge test` |
+| 9 | Slither警告なし（Critical/High） | `slither .` |
 
 ### 成果物
 
 | # | 成果物 | パス |
 |---|-------|------|
-| 1 | l3-aegis基盤コード | `l3-aegis/src/` |
-| 2 | テストスイート | `l3-aegis/test/` |
-| 3 | Modular Architecture仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` |
-| 4 | エコシステム計画 | `docs/planning/ECOSYSTEM_PLAN.md` |
-| 5 | Phase 3.2チェックリスト | `docs/checklists/phase3.2.md` |
+| 1 | **l3-aegis Rustコードベース** | `l3-aegis/rust/` |
+| 2 | **4-node testnet構成** | `l3-aegis/docker/` |
+| 3 | l3-aegis Solidityコード | `l3-aegis/src/` |
+| 4 | テストスイート | `l3-aegis/test/` |
+| 5 | Modular Architecture仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` |
+| 6 | エコシステム計画 | `docs/planning/ECOSYSTEM_PLAN.md` |
+| 7 | Phase 3.2チェックリスト | `docs/checklists/phase3.2.md` |
 
 ---
 
@@ -174,7 +283,10 @@
 | ドキュメント | パス |
 |------------|------|
 | Phase 3戦略 | `docs/planning/PHASE3_STRATEGY.md` |
+| **L3チェーン仕様** | `docs/aegis/L3_CHAIN_SPECIFICATION.md` |
+| **L3基盤決議** | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` |
 | Core Principles | `docs/constitution/CORE_PRINCIPLES.md` |
+| PHASE3_PLAN | `docs/planning/PHASE3_PLAN.md` |
 | 最終決議書 | `agents/meetings/phase3_strategy/round8_final/FINAL_RESOLUTION_v3.md` |
 
 ---
@@ -195,6 +307,19 @@ Phase 3.1では以下の緩和策を開始：
 ---
 
 ## 📊 進捗サマリー
+
+### Track A: L3 Chain (Rust) - IC-1
+
+| タスク | 状態 | PIR |
+|--------|:----:|-----|
+| L3-001 | ⬜ | - |
+| L3-002 | ⬜ | - |
+| L3-003 | ⬜ | - |
+| L3-004 | ⬜ | - |
+| L3-005 | ⬜ | - |
+| L3-006 | ⬜ | - |
+
+### Track B: L3 Contracts (Solidity)
 
 | タスク | 状態 | PIR |
 |--------|:----:|-----|
