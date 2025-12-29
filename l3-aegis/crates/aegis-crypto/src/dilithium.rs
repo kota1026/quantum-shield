@@ -142,7 +142,7 @@ impl Default for DilithiumVerifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pqcrypto_dilithium::dilithium3::{self, sign_detached};
+    use pqcrypto_dilithium::dilithium3::{self, detached_sign};
 
     #[test]
     fn test_verify_valid_signature() {
@@ -153,7 +153,7 @@ mod tests {
         
         // Sign message
         let message = b"Test unlock request for lock_id=0x1234";
-        let signature = sign_detached(message, &sk);
+        let signature = detached_sign(message, &sk);
         
         // Verify
         let result = verifier.verify(
@@ -175,7 +175,7 @@ mod tests {
         
         // Sign message
         let message = b"Original message";
-        let signature = sign_detached(message, &sk);
+        let signature = detached_sign(message, &sk);
         
         // Verify with different message
         let wrong_message = b"Different message";
@@ -234,7 +234,7 @@ mod tests {
         full_message.extend_from_slice(&verifier.domain_separator);
         full_message.extend_from_slice(message);
         
-        let signature = sign_detached(&full_message, &sk);
+        let signature = detached_sign(&full_message, &sk);
         
         let result = verifier.verify_with_domain(
             pk.as_bytes(),
