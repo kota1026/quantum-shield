@@ -9,8 +9,8 @@
 //! - Signature: 3293 bytes
 
 use aegis_core::{AegisError, Hash256, Result};
-use pqcrypto_dilithium::dilithium3;
-use pqcrypto_traits::sign::{PublicKey, DetachedSignature, verify_detached_signature};
+use pqcrypto_dilithium::dilithium3::{self, verify_detached_signature};
+use pqcrypto_traits::sign::{PublicKey, DetachedSignature};
 use sha3::{Digest, Sha3_256};
 
 /// Dilithium-III parameter sizes (FIPS 204 Level 3)
@@ -142,8 +142,7 @@ impl Default for DilithiumVerifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pqcrypto_dilithium::dilithium3;
-    use pqcrypto_traits::sign::sign_detached;
+    use pqcrypto_dilithium::dilithium3::{self, sign_detached};
 
     #[test]
     fn test_verify_valid_signature() {
