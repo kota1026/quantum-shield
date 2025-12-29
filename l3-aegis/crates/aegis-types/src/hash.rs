@@ -49,6 +49,16 @@ impl Hash256 {
         &self.0
     }
 
+    /// Create from byte slice (must be exactly 32 bytes)
+    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        if bytes.len() != 32 {
+            return None;
+        }
+        let mut arr = [0u8; 32];
+        arr.copy_from_slice(bytes);
+        Some(Self(arr))
+    }
+
     /// Convert to hex string
     pub fn to_hex(&self) -> String {
         hex::encode(self.0)
@@ -125,5 +135,16 @@ mod tests {
         let hex = original.to_hex();
         let parsed = Hash256::from_hex(&hex).unwrap();
         assert_eq!(original, parsed);
+    }
+
+    #[test]
+    fn test_from_bytes() {
+        let bytes = [1u8; 32];
+        let hash = Hash256::from_bytes(&bytes).unwrap();
+        assert_eq!(hash.as_bytes(), &bytes);
+        
+        // Invalid length should return None
+        let short = [0u8; 16];
+        assert!(Hash256::from_bytes(&short).is_none());
     }
 }
