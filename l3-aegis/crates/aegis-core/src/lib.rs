@@ -17,3 +17,6 @@ pub mod types;
 pub use error::*;
 pub use state::{StateManager, StateError, LockState, UnlockState};
 pub use executor::{Executor, ExecutorError};
+
+// Re-export commonly used types for convenience
+pub use types::{Hash256, Address, LockData, LockStatus, NodeId, Block};
