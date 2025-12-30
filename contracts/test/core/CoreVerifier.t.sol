@@ -190,7 +190,7 @@ contract CoreVerifierTest is Test {
     // Gas Benchmark Tests (TEST-004)
     // =========================================================================
 
-    function test_verifySPHINCS_gasBenchmark() public view {
+    function test_verifySPHINCS_gasBenchmark() public {
         bytes memory sig = new bytes(EXPECTED_SIGNATURE_SIZE);
         
         uint256 gasBefore = gasleft();
@@ -208,7 +208,7 @@ contract CoreVerifierTest is Test {
         emit log_named_uint("Single SPHINCS+ verification gas", gasUsed);
     }
 
-    function test_verifyMultiSPHINCS_gasBenchmark() public view {
+    function test_verifyMultiSPHINCS_gasBenchmark() public {
         bytes[] memory sigs = new bytes[](2);
         bytes[] memory pks = new bytes[](2);
         
