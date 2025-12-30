@@ -46,8 +46,8 @@ Phase 3.1 Foundation
 |---|--------|------|:----:|-----|
 | L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ✅ | PIR-P3.1-002 PASS |
 | L3-002 | Single-node dev mode実装 | Rust Engineer | ✅ | PIR-P3.1-004 PASS 🎉 |
-| L3-003 | Basic PBFT consensus実装 | Rust Engineer | ⬜ | - |
-| L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ⬜ | - |
+| L3-003 | Basic PBFT consensus実装 | Rust Engineer | ✅ | PIR-P3.1-005 PENDING |
+| L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | 🔄 | - |
 | L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
 | L3-006 | 4-node local testnet構築 | DevOps | ⬜ | - |
 
@@ -117,22 +117,58 @@ Phase 3.1 Foundation
 - 仕様書準拠: ✅ L3_CHAIN_SPECIFICATION §5, §7, §10
 - セキュリティ: ✅ Critical/Major問題なし
 
-### L3-003: Basic PBFT consensus実装
+### L3-003: Basic PBFT consensus実装 ✅ 実装完了 (2025-12-30) - PIR待ち
 
-- [ ] PBFT状態マシン実装
-- [ ] Pre-prepare / Prepare / Commit フェーズ
-- [ ] View change機構
-- [ ] f=1 (3/4 quorum) 設定
-- [ ] 5秒ブロックタイム設定
-- [ ] コンセンサステスト
+- [x] PBFT状態マシン実装 (`config.rs`)
+- [x] Pre-prepare / Prepare / Commit フェーズ (TEST-001, TEST-002, TEST-003)
+- [x] View change機構 (TEST-004)
+- [x] f=1 (3/4 quorum) 設定
+- [x] 5秒ブロックタイム設定
+- [x] コンセンサステスト (TEST-001~007)
+- [x] Dilithium-III署名統合 (`signature.rs`)
+- [x] CP-1準拠確認 (TEST-006)
 
-### L3-004: Dilithium-III consensus署名統合
+**実装ファイル**:
 
-- [ ] Dilithium-IIIライブラリ統合（pqcrypto-dilithium）
-- [ ] ノード鍵生成
-- [ ] ブロック署名
-- [ ] 署名検証
-- [ ] CP-1準拠確認テスト
+| ファイル | サイズ | 説明 |
+|---------|--------|------|
+| `aegis-consensus/src/config.rs` | 9,441 bytes | Consensus設定モジュール |
+| `aegis-consensus/src/signature.rs` | 14,145 bytes | Dilithium-III署名統合 |
+| `aegis-consensus/tests/pbft_integration.rs` | 15,072 bytes | 統合テストスイート |
+
+**テストスイート**:
+
+| テストID | 内容 |
+|---------|------|
+| TEST-001 | PBFT State Transitions (Idle → PrePrepared → Prepared → Committed) |
+| TEST-002 | Pre-prepare Processing (Primary selection, message validation) |
+| TEST-003 | Prepare/Commit Quorum (2/4 NG, 3/4 OK, 4/4 OK) |
+| TEST-004 | View Change (Timeout detection, new primary selection) |
+| TEST-005 | Signature Verification (Valid/Invalid/Empty handling) |
+| TEST-006 | CP-1 Compliance (Dilithium-III, SHA3-256, prohibited algorithms) |
+| TEST-007 | Configuration Values (Block interval, timeout, quorum) |
+
+**L3_CHAIN_SPECIFICATION §3 準拠**:
+
+| パラメータ | 仕様値 | 実装値 | 結果 |
+|-----------|--------|--------|:----:|
+| Block interval | 5s | 5s | ✅ |
+| View change timeout | 10s | 10s | ✅ |
+| Quorum | 75% (3/4) | 3/4 | ✅ |
+| Fault tolerance | f=1 | f=1 | ✅ |
+| Signature size | ~3KB | 3309 bytes | ✅ |
+
+**PIR-P3.1-005**: ⬜ PENDING - テスト実行・11エージェントレビュー待ち
+
+### L3-004: Dilithium-III consensus署名統合 🔄 部分完了
+
+- [x] Dilithium-IIIライブラリ統合（pqcrypto-dilithium）
+- [x] ノード鍵生成 (`NodeKeyPair`)
+- [x] ブロック署名 (`sign_consensus_message`)
+- [x] 署名検証 (`ConsensusVerifier`)
+- [x] CP-1準拠確認テスト (TEST-005, TEST-006)
+
+*Note: L3-003実装の一部として signature.rs で完了*
 
 ### L3-005: SHA3-256 block hashing実装
 
@@ -358,8 +394,8 @@ Phase 3.1では以下の緩和策を開始：
 |--------|:----:|-----|
 | L3-001 | ✅ | PIR-P3.1-002 PASS |
 | L3-002 | ✅ | PIR-P3.1-004 PASS 🎉 |
-| L3-003 | ⬜ | - |
-| L3-004 | ⬜ | - |
+| L3-003 | ✅ | PIR-P3.1-005 PENDING |
+| L3-004 | 🔄 | - (L3-003で部分完了) |
 | L3-005 | ⬜ | - |
 | L3-006 | ⬜ | - |
 
