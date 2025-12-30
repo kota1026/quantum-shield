@@ -25,16 +25,19 @@ contract CoreState is ICoreState {
     /// @dev SHA3-256("") = 0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a
     bytes32 public constant override EMPTY_LEAF_HASH = 0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a;
 
-    // ============ Domain Separators ============
+    // ============ Domain Separators (SHA3-256 Pre-computed for CP-1 Compliance) ============
     
     /// @notice Domain separator for leaf hashing
-    bytes32 private constant LEAF_DOMAIN = keccak256("QS_SMT_LEAF_V1");
+    /// @dev SHA3-256("QS_SMT_LEAF_V1") - Pre-computed for CP-1 compliance (no keccak256)
+    bytes32 private constant LEAF_DOMAIN = 0x1fc57ebce31be3d5781e78f150b1303c4295b0ab57b3e349a286904a176f3a22;
     
     /// @notice Domain separator for node hashing
-    bytes32 private constant NODE_DOMAIN = keccak256("QS_SMT_NODE_V1");
+    /// @dev SHA3-256("QS_SMT_NODE_V1") - Pre-computed for CP-1 compliance (no keccak256)
+    bytes32 private constant NODE_DOMAIN = 0x2788e21c82dcd3e3f1683169f418c39da467ef396fca65015ae273ef0f04be03;
     
     /// @notice Domain separator for state root calculation
-    bytes32 private constant STATE_ROOT_DOMAIN = keccak256("QS_STATE_ROOT_V1");
+    /// @dev SHA3-256("QS_STATE_ROOT_V1") - Pre-computed for CP-1 compliance (no keccak256)
+    bytes32 private constant STATE_ROOT_DOMAIN = 0x60311680a88251ea5468ef203bddcdd726d4fa7b0e68ec9cb636dafef58d1f29;
 
     // ============ Core State Functions ============
     
