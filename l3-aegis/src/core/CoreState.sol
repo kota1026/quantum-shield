@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {ICoreState} from "../interfaces/ICoreState.sol";
-import {SHA3_256} from "../../contracts/src/libraries/SHA3_256.sol";
+import {SHA3_256} from "@phase2/libraries/SHA3_256.sol";
 
 /// @title CoreState
 /// @notice Core Layer State Management implementation
