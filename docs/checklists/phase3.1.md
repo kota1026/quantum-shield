@@ -29,7 +29,8 @@ Phase 3.1 Foundation
 └── Track B: L3 Contracts (Solidity) - IC-2,3,4
     └── Modular Architecture + Phase 2統合
         ├── SETUP-001〜003: 基盤セットアップ ✅
-        ├── CORE-001〜003: Core Layer実装 🔄
+        ├── CORE-001: ✅ COMPLETE + PIR PASS 🎉
+        ├── CORE-002〜003: Core Layer実装 🔄
         └── PLUG-001〜003: Pluggable Layer実装
 ```
 
@@ -84,7 +85,7 @@ Phase 3.1 Foundation
 
 ### Week 3-4: Core Layer基盤
 
-#### CORE-001: State Manager基盤 ✅ 完了・テスト検証済み (2025-12-30) 🎉
+#### CORE-001: State Manager基盤 ✅ PIR-P3.1-008 PASS 🎉
 
 - [x] ICoreState.sol インターフェース定義
 - [x] CoreState.sol 基本構造
@@ -94,13 +95,15 @@ Phase 3.1 Foundation
 - [x] 包括的テストスイート (CoreState.t.sol)
 - [x] ガスベンチマークテスト
 - [x] **テスト実行検証済み: 32/32 PASS** ✅
+- [x] **CP-1修正完了（keccak256排除）** ✅
+- [x] **PIR-P3.1-008 PASS** ✅ 🎉
 
 **成果物**:
 
 | ファイル | サイズ | 説明 |
 |---------|--------|------|
 | `l3-aegis/src/interfaces/ICoreState.sol` | 6,997 bytes | State管理インターフェース |
-| `l3-aegis/src/core/CoreState.sol` | 7,870 bytes | CoreState実装 |
+| `l3-aegis/src/core/CoreState.sol` | 8,301 bytes | CoreState実装（CP-1修正済み）|
 | `l3-aegis/test/CoreState.t.sol` | 12,987 bytes | 包括的テストスイート |
 
 **テスト結果 (2025-12-30 22:28 JST)**:
@@ -133,8 +136,9 @@ Phase 3.1 Foundation
 - `0a067a4` test(CORE-001): Add CoreState comprehensive tests
 - `4914b19` fix(CORE-001): Update CoreState import path
 - `a535a12` fix(l3-aegis): Fix foundry.toml for proper dependency resolution
+- `6e8b4a2` fix(CORE-001): Replace keccak256 domain separators with SHA3-256 pre-computed values
 
-#### CORE-002: STARK Verifier統合 ⬜ 次のタスク
+#### CORE-002: STARK Verifier統合 ⬜ **次のタスク**
 
 - [ ] Phase 2 STARKVerifier移植
 - [ ] l3-aegis環境への適応
@@ -305,8 +309,8 @@ Phase 3.1では以下の緩和策を開始：
 | SETUP-001 | ✅ | PIR-P3.1-001 |
 | SETUP-002 | ✅ | PIR-P3.1-001 |
 | SETUP-003 | ✅ | - |
-| **CORE-001** | ✅ | **32/32 PASS** 🎉 |
-| CORE-002 | ⬜ | 次のタスク |
+| **CORE-001** | ✅ | **PIR-P3.1-008 PASS** 🎉 |
+| CORE-002 | ⬜ | **次のタスク** |
 | CORE-003 | ⬜ | - |
 | PLUG-001 | ⬜ | - |
 | PLUG-002 | ⬜ | - |
