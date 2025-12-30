@@ -1,16 +1,19 @@
-//! Aegis Core - Core types and utilities for L3 Aegis
+//! # aegis-core
 //!
-//! This crate provides fundamental types used across all Aegis components:
-//! - Hash types (Hash256)
-//! - Address types
-//! - Lock/Unlock data structures
-//! - Transaction types
-//! - Block structures
+//! Core types and execution logic for L3 Aegis Chain.
 //!
-//! Reference: docs/design/L3_AEGIS_ARCHITECTURE.md
+//! ## CP-1 Compliance
+//!
+//! All cryptographic operations use:
+//! - SHA3-256 (FIPS 202) for hashing
+//! - Dilithium-III (FIPS 204) for user signatures
+//! - SPHINCS+-128s (FIPS 205) for prover signatures
 
-pub mod types;
 pub mod error;
+pub mod state;
+pub mod executor;
+pub mod types;
 
-pub use types::*;
 pub use error::*;
+pub use state::{StateManager, StateError, LockState, UnlockState};
+pub use executor::{Executor, ExecutorError};
