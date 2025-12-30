@@ -53,11 +53,11 @@ pub mod view_change;
 // Re-exports for convenience
 pub use config::{ConsensusConfig, ConfigError};
 pub use engine::ConsensusEngine;
-pub use message::{Block, ConsensusMessage, MessageType, Transaction};
+pub use message::{Block, ConsensusMessage, MessageType, Transaction, ViewChangeMessage};
 pub use signature::{
     ConsensusVerifier, DilithiumSignature, NodeKeyPair, SignatureError, ValidatorSignatures,
 };
-pub use state::{ConsensusState, Phase, StateError};
+pub use state::{ConsensusState, HeightState, Phase, StateError, NUM_NODES, FAULT_TOLERANCE, QUORUM_SIZE};
 pub use view_change::{ViewChangeManager, ViewChangeState};
 
 /// Consensus crate version
@@ -87,5 +87,6 @@ mod tests {
         let _config = ConsensusConfig::production(0);
         let _phase = Phase::Idle;
         let _msg_type = MessageType::PrePrepare;
+        let _height_state = HeightState::new();
     }
 }
