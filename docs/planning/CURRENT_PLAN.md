@@ -1,10 +1,26 @@
 # Current Plan
 
-> **Generated**: 2025-12-31 23:45 JST
+> **Generated**: 2025-01-01 01:00 JST
 > **Phase**: 3 - L3 + Token + 完全分散化
 > **Sub-Phase**: 3.1 Foundation
 > **担当エージェント**: PM (計画) → Engineer (実装)
 > **モード**: 計画 (Planner)
+> **修正**: 2025-01-01 02_spec.md仕様レビューによりL3決議準拠に修正
+
+---
+
+## ⚠️ 重要な修正（2025-01-01）
+
+**02_spec.md仕様レビューにより以下の重大な矛盾を発見・修正**:
+
+| 項目 | 修正前（誤り） | 修正後（L3決議準拠） |
+|------|--------------|-------------------|
+| 検証方式 | ZK-STARK証明検証 | **SPHINCS+直接検証** |
+| Phase 2資産 | STARKVerifier統合 | **STARKVerifier破棄** |
+| ガスコスト | ~300K gas | **~400K gas（SPHINCS+×2）** |
+
+> 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+> CEO承認: 2025-01-01
 
 ---
 
@@ -22,18 +38,25 @@
 
 | Sequence | 実装Layer | 仕様書参照箇所 |
 |----------|----------|---------------|
-| #1 Lock | Core | SEQUENCES §1 - Lock操作のSTARK検証 |
-| #2 Unlock (Normal) | Core | SEQUENCES §2 - Unlock時のSTARK証明検証 |
-| #4 Challenge + Slashing | Core | SEQUENCES §4 - Challenge時のSTARK証明 |
+| #1 Lock | Core | SEQUENCES §1 - Dilithium署名検証 |
+| #2 Unlock (Normal) | Core | SEQUENCES §2 - SPHINCS+ 2/5署名検証 |
+| #4 Challenge + Slashing | Core | SEQUENCES §4 - 署名検証・Slash計算 |
 
 ### セキュリティ要件
 
 | 要件 | 仕様書出典 | 実装方法 |
 |------|----------|---------|
-| STARK証明検証 (128-bit security) | CP-1, UNIFIED §暗号 | ICoreVerifier.verifyProof() |
+| SPHINCS+署名検証 (128-bit) | CP-1, FIPS 205 | ICoreVerifier.verifySPHINCS() |
 | SHA3-256ベースのハッシュ | CP-1, FIPS 202 | SHA3Hasher統合 |
-| バッチ検証最適化 | SEQ#2 | ICoreBatch.verifyBatch() |
-| FRI検証 (Low-degree testing) | STARK仕様 | FRIVerifier統合 |
+| Dilithium署名検証 | CP-1, FIPS 204 | IDilithiumVerifier（将来） |
+
+### L3決議準拠確認（2025-12-28）
+
+| 決議項目 | 内容 | 本タスクでの対応 |
+|---------|------|-----------------|
+| ZK-STARK | **使用しない** | ✅ STARKVerifier破棄 |
+| L1検証 | SPHINCS+直接検証 | ✅ ~400K gas |
+| L3構成 | 独自4ノードBFT | ✅ l3-aegis(Rust)は別管理 |
 
 ---
 
@@ -43,8 +66,9 @@
 
 - [x] L3スタック: 独自L3 (l3-aegis) 前提
 - [x] アーキテクチャ: Modular (Core/Governance/Token Layer)
-- [x] リスク緩和: 段階的統合、既存テスト再利用
+- [x] リスク緩和: 段階的統合
 - [x] モード制約: Core Layer (常時ON) - Sequence #1-4固定
+- [x] **ZK-STARK不使用（L3決議準拠）**
 
 ---
 
@@ -53,9 +77,10 @@
 > 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
 
 - [x] 独自4ノードBFTチェーン前提か - ✅ L3で重い暗号計算、L1で軽量検証
-- [x] l3-aegis (Rust) の範囲内か - ✅ SolidityコントラクトはL1/L3ブリッジ
+- [x] l3-aegis (Rust) の範囲内か - ✅ **Solidityコントラクトはcontracts/に配置**
+- [x] **ZK-STARKは使用していないか** - ✅ **使用しない（破棄）**
 - [x] SEQUENCES v2.0に準拠しているか - ✅ SEQ#1,2,4で使用
-- [x] CP-1/CP-5を満たしているか - ✅ SHA3-256, keccak256不使用
+- [x] CP-1/CP-5を満たしているか - ✅ SHA3-256, SPHINCS+, keccak256不使用
 
 ---
 
@@ -67,7 +92,7 @@
 
 | IC-ID | Component | タスク | Status |
 |-------|-----------|--------|--------|
-| IC-2 | L3 Bridge Contract | CORE-002 STARK Verifier統合 | 🟡 In Progress |
+| IC-2 | L1 Core Verifier | CORE-002 **SPHINCS+ Verifier統合** | 🟡 In Progress |
 
 ### マスタ照合
 
@@ -101,44 +126,46 @@
 
 ### タスクサマリー
 
-**CORE-002: STARK Verifier統合** (IC-2)
+**CORE-002: SPHINCS+ Verifier統合** (IC-2)
 
-Phase 2で実装されたSTARKVerifierをl3-aegis Core Layerに統合し、
-ICoreVerifierインターフェースを通じてアクセス可能にする。
+L3決議（2025-12-28）に基づき、L1でSPHINCS+署名を直接検証する
+ICoreVerifierインターフェースを実装する。
+
+**⚠️ Phase 2のSTARKVerifierは破棄する。**
 
 ### 実装項目
 
 - [ ] [IMPL-001] ICoreVerifier インターフェース定義 (IC-2)
-- [ ] [IMPL-002] CoreVerifier.sol 作成（STARKVerifierラッパー）(IC-2)
-- [ ] [IMPL-003] Phase 2 STARKVerifier importパス更新 (IC-2)
+- [ ] [IMPL-002] CoreVerifier.sol 作成（SPHINCS+検証ラッパー）(IC-2)
+- [ ] [IMPL-003] SPHINCSVerifier.sol 統合（既存crypto/から）(IC-2)
 - [ ] [IMPL-004] ICoreBatch インターフェース定義 (IC-2)
-- [ ] [IMPL-005] CoreBatch.sol 作成（BatchVerifierラッパー）(IC-2)
-- [ ] [IMPL-006] Phase 2 BatchVerifier importパス更新 (IC-2)
+- [ ] [IMPL-005] CoreBatch.sol 作成（バッチSPHINCS+検証）(IC-2)
+- [ ] [CLEANUP-001] Phase 2 STARKVerifier関連コード削除
 
 ### テスト項目
 
 - [ ] [TEST-001] ICoreVerifier インターフェーステスト
-- [ ] [TEST-002] CoreVerifier 単体テスト（既存テスト移行）
-- [ ] [TEST-003] CoreBatch 単体テスト（既存テスト移行）
-- [ ] [TEST-004] ガスベンチマークテスト（回帰防止）
+- [ ] [TEST-002] CoreVerifier 単体テスト（SPHINCS+検証）
+- [ ] [TEST-003] CoreBatch 単体テスト（バッチ検証）
+- [ ] [TEST-004] ガスベンチマークテスト（~400K gas/署名確認）
 - [ ] [TEST-005] 統合テスト（CoreState + CoreVerifier連携）
 
 ### CP-1準拠確認項目
 
-- [ ] [CP1-001] STARKVerifier内にkeccak256使用がないことを確認
-- [ ] [CP1-002] BatchVerifier内にkeccak256使用がないことを確認
-- [ ] [CP1-003] FRIVerifier内にkeccak256使用がないことを確認
+- [ ] [CP1-001] CoreVerifier内にkeccak256使用がないことを確認
+- [ ] [CP1-002] SPHINCSVerifier内にkeccak256使用がないことを確認
+- [ ] [CP1-003] SHA3Hasher使用を確認
 - [ ] [CP1-004] 全Domain SeparatorがSHA3-256事前計算値であることを確認
+- [ ] [CP1-005] **STARKVerifier関連コードが完全に削除されていることを確認**
 
 ### 参照ドキュメント
 
 | 種類 | ドキュメント | 参照セクション |
 |------|------------|---------------|
-| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5, §10 |
+| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §1.5, §3, §5 |
 | Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #1, #2, #4 |
 | 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §IC |
-| Phase 2統合計画 | `docs/planning/PHASE2_INTEGRATION_PLAN.md` | §3, §4, §7 |
-| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
+| **L3基盤決議** | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | **全体（必読）** |
 | Phase 3.1チェックリスト | `docs/checklists/phase3.1.md` | CORE-002 |
 
 ---
@@ -147,63 +174,69 @@ ICoreVerifierインターフェースを通じてアクセス可能にする。
 
 | ファイル | 説明 | IC-ID |
 |---------|------|-------|
-| `l3-aegis/src/interfaces/ICoreVerifier.sol` | STARK検証インターフェース | IC-2 |
-| `l3-aegis/src/interfaces/ICoreBatch.sol` | バッチ検証インターフェース | IC-2 |
-| `l3-aegis/src/core/CoreVerifier.sol` | STARK検証実装 | IC-2 |
-| `l3-aegis/src/core/CoreBatch.sol` | バッチ検証実装 | IC-2 |
-| `l3-aegis/test/CoreVerifier.t.sol` | CoreVerifierテスト | - |
-| `l3-aegis/test/CoreBatch.t.sol` | CoreBatchテスト | - |
-| `l3-aegis/test/CoreVerifierIntegration.t.sol` | 統合テスト | - |
+| `contracts/src/interfaces/ICoreVerifier.sol` | SPHINCS+検証インターフェース | IC-2 |
+| `contracts/src/interfaces/ICoreBatch.sol` | バッチ検証インターフェース | IC-2 |
+| `contracts/src/core/CoreVerifier.sol` | SPHINCS+検証実装 | IC-2 |
+| `contracts/src/core/CoreBatch.sol` | バッチ検証実装 | IC-2 |
+| `contracts/test/CoreVerifier.t.sol` | CoreVerifierテスト | - |
+| `contracts/test/CoreBatch.t.sol` | CoreBatchテスト | - |
+| `contracts/test/CoreVerifierIntegration.t.sol` | 統合テスト | - |
+
+**注**: SolidityコントラクトはL1用のため `contracts/` に配置。
+`l3-aegis/` はRustベースのL3チェーン実装専用。
 
 ---
 
 ## 実行順序
 
-### Phase 1: インターフェース定義（〜2h）
+### Phase 1: STARKVerifier破棄・整理（〜2h）
 
-1. `ICoreVerifier.sol` インターフェース作成
-   - `verifyProof(STARKProof, bytes32 publicInput)` 
-   - `verifyTraceEvaluationsBatch(...)`
-   - `securityLevel()` 
+1. Phase 2 STARKVerifier関連ファイルの特定
+   - `contracts/src/stark/` 配下
+   - `contracts/test/` 配下のSTARK関連テスト
+   
+2. 関連コードの削除（または `deprecated/` への移動）
+   - STARKVerifier.sol
+   - FRIVerifier.sol
+   - BatchVerifier.sol（STARK用）
+   - 関連テストファイル
 
-2. `ICoreBatch.sol` インターフェース作成
-   - `verifyBatch(...)`
-   - `verifySTARKBatch(...)`
-   - `MAX_BATCH_SIZE()`
+### Phase 2: インターフェース定義（〜2h）
 
-### Phase 2: ラッパー実装（〜4h）
+3. `ICoreVerifier.sol` インターフェース作成
+   - `verifySPHINCS(bytes sig, bytes32 msgHash, bytes pubkey)` 
+   - `verifyMultiSPHINCS(...)` (2/5検証用)
+   - `securityLevel() returns (uint256)` → 128
 
-3. `CoreVerifier.sol` 作成
-   - STARKVerifierをinternalでインポート
+4. `ICoreBatch.sol` インターフェース作成
+   - `verifyBatch(SignatureData[] sigs)`
+   - `MAX_BATCH_SIZE() returns (uint256)` → 10
+
+### Phase 3: SPHINCS+検証実装（〜4h）
+
+5. `CoreVerifier.sol` 作成
+   - 既存SPHINCSVerifier.solをinternalでインポート
    - ICoreVerifierインターフェース実装
    - CP-1準拠確認（keccak256不使用）
 
-4. `CoreBatch.sol` 作成
-   - BatchVerifierをinternalでインポート
+6. `CoreBatch.sol` 作成
+   - CoreVerifierを使用したバッチ検証
    - ICoreBatchインターフェース実装
-   - CP-1準拠確認
+   - ガス最適化
 
-### Phase 3: importパス更新（〜2h）
+### Phase 4: テスト（〜6h）
 
-5. Phase 2 STARKVerifier関連ファイルのimportパス更新
-   - `crypto/` への統一
-   - 依存関係整理
+7. CoreVerifier単体テスト
+   - SPHINCS+署名検証の正常系・異常系
+   - ガス計測（~200K gas/署名を想定）
 
-6. Phase 2 BatchVerifier関連ファイルのimportパス更新
+8. CoreBatch単体テスト
+   - バッチ検証の正常系・異常系
+   - ガス計測（バッチ効率確認）
 
-### Phase 4: テスト（〜8h）
-
-7. 既存テストの移行・修正
-   - `STARKVerifier.t.sol` → `CoreVerifier.t.sol`
-   - `BatchVerifier.t.sol` → `CoreBatch.t.sol`
-
-8. 新規統合テスト作成
-   - `CoreVerifierIntegration.t.sol`
-   - CoreState + CoreVerifier連携テスト
-
-9. ガスベンチマークテスト
-   - Phase 2ベースラインとの比較
-   - 回帰チェック
+9. 統合テスト
+   - CoreState + CoreVerifier連携
+   - Unlock Sequenceシミュレーション
 
 ### Phase 5: 検証・PIR準備（〜2h）
 
@@ -215,7 +248,7 @@ ICoreVerifierインターフェースを通じてアクセス可能にする。
 
 ## Core Principles確認
 
-- [ ] CP-1: 完全量子耐性 - ✅ SHA3-256, SPHINCS+のみ使用、keccak256/SHA-256/ECDSA不使用
+- [ ] CP-1: 完全量子耐性 - ✅ SHA3-256, SPHINCS+のみ使用、**keccak256/STARK不使用**
 - [ ] CP-2: Self-Custody - N/A（本タスクに影響なし）
 - [ ] CP-3: Time Lock存在 - N/A（本タスクに影響なし）
 - [ ] CP-4: Slashing存在 - N/A（本タスクに影響なし）
@@ -234,13 +267,15 @@ ICoreVerifierインターフェースを通じてアクセス可能にする。
 
 ## ガスターゲット
 
-> 参照: `docs/planning/PHASE2_INTEGRATION_PLAN.md` §6
+> 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
 
-| 操作 | Phase 2ベースライン | ターゲット | 備考 |
-|------|-------------------|-----------|------|
-| `verifyProof()` | ~300K gas | <400K gas | ラッパーオーバーヘッド許容 |
-| `verifyBatch(10)` | TBD | <40%削減 | バッチ効率維持 |
-| `SHA3Hasher.hash()` | ~1M gas | 維持 | L3実行前提 |
+| 操作 | L3決議ターゲット | 備考 |
+|------|-----------------|------|
+| `verifySPHINCS()` | ~200K gas | 1署名あたり |
+| `verifyMultiSPHINCS(2)` | ~400K gas | 2/5検証（SEQ#2） |
+| `SHA3Hasher.hash()` | ~1M gas | L3実行前提 |
+
+**総コスト目安**: ~$25/Unlock（L3決議通り）
 
 ---
 
@@ -248,10 +283,10 @@ ICoreVerifierインターフェースを通じてアクセス可能にする。
 
 | # | リスク | 重要度 | 対策 |
 |---|--------|:------:|------|
-| 1 | importパス変更による既存テスト破損 | 🔴 High | 段階的移行、CI検証 |
+| 1 | STARKVerifier削除による依存関係破損 | 🔴 High | grep検索で依存箇所特定、段階的削除 |
 | 2 | keccak256の残存（CP-1違反） | 🔴 Critical | grep検索、静的解析で確認 |
-| 3 | インターフェース互換性問題 | 🟠 Medium | 既存シグネチャ維持 |
-| 4 | ガス回帰 | 🟡 Low | GasRegressionTestで検出 |
+| 3 | SPHINCS+検証ガスが想定超過 | 🟠 Medium | 早期ベンチマーク、L3オフロード検討 |
+| 4 | 既存テスト破損 | 🟡 Low | CI検証で検出 |
 
 ---
 
@@ -259,18 +294,18 @@ ICoreVerifierインターフェースを通じてアクセス可能にする。
 
 | フェーズ | 工数 |
 |---------|------|
+| STARKVerifier破棄・整理 | 2h |
 | インターフェース定義 | 2h |
-| ラッパー実装 | 4h |
-| importパス更新 | 2h |
-| テスト | 8h |
+| SPHINCS+検証実装 | 4h |
+| テスト | 6h |
 | 検証・PIR準備 | 2h |
-| **合計** | **18h** |
+| **合計** | **16h** |
 
 ---
 
 ## 次のステップ
 
-1. 本計画に従い`02_spec.md`で仕様確認
+1. ~~本計画に従い`02_spec.md`で仕様確認~~ ✅ 完了（本修正）
 2. `03_impl.md`で実装実行
 3. `04_review.md`でセキュリティレビュー
 4. `05_pir.md`でPIR-P3.1-009実施
