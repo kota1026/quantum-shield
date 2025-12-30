@@ -23,6 +23,13 @@ contract CoreBatchTest is Test {
     bytes32 constant TEST_MESSAGE = keccak256("batch test message");
     bytes constant TEST_PUBLIC_KEY = hex"0102030405060708091011121314151617181920212223242526272829303132";
 
+    // Event definition for expectEmit (must match ICoreBatch.BatchVerified)
+    event BatchVerified(
+        uint256 indexed batchSize,
+        uint256 validCount,
+        uint256 totalGasUsed
+    );
+
     function setUp() public {
         sphincsVerifier = new SPHINCSVerifier();
         coreVerifier = new CoreVerifier(address(sphincsVerifier));
@@ -193,7 +200,7 @@ contract CoreBatchTest is Test {
         }
         
         vm.expectEmit(true, false, false, false);
-        emit ICoreBatch.BatchVerified(2, 0, 0);  // Any gas value
+        emit BatchVerified(2, 0, 0);  // Any gas value
         
         batchVerifier.verifyBatch(items);
     }
