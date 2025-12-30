@@ -2,6 +2,7 @@
 
 use thiserror::Error;
 use aegis_types::{Transaction, Block, BlockBody, Hash256};
+use aegis_types::transaction::{UnlockRequestTx, Address, DilithiumPublicKey};
 use crate::state::{StateManager, StateError};
 
 #[derive(Error, Debug)]
@@ -64,7 +65,6 @@ impl Executor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use aegis_types::{UnlockRequestTx, Address, DilithiumPublicKey};
 
     #[test]
     fn test_executor() {
