@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-30 15:35 JST  
+> **Last Updated**: 2025-12-30 16:00 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -15,9 +15,92 @@
 │  Active Checklist: docs/checklists/phase3.1.md              │
 │  Active Task: L3-006 4-node local testnet構築               │
 │  Status: ✅ L3-005 SHA3-256 block hashing完了               │
-│  Tests: ✅ 152/152 PASS (l3-aegis全体推定)                  │
+│  Tests: ✅ 154/154 PASS (l3-aegis全体・実測値)              │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 📦 最新実装レポート
+
+> **用途**: 03_impl.md → 04_review.md への情報引継ぎ  
+> **更新タイミング**: 03_impl.md の Step 6 完了時
+
+| 項目 | 値 |
+|------|-----|
+| **対象Plan** | L3-005 SHA3-256 Block Hashing |
+| **実装日時** | 2025-12-30 16:00 JST |
+| **ステータス** | ✅ 実装完了 |
+
+### 対象Sequence
+
+| Sequence | 実装Layer | 仕様書準拠 |
+|----------|----------|:----------:|
+| L3_CHAIN_SPECIFICATION §2.4 | aegis-types | ✅ |
+| L3_CHAIN_SPECIFICATION §5 | aegis-types | ✅ |
+| L3_CHAIN_SPECIFICATION §8 | aegis-types | ✅ |
+
+### 作成ファイル
+
+| ファイル | サイズ | 説明 |
+|---------|--------|------|
+| `l3-aegis/crates/aegis-types/src/merkle.rs` | 10,894 bytes | Binary Merkle Tree with domain separation |
+| `l3-aegis/crates/aegis-types/src/transaction.rs` | 10,761 bytes | Transaction hash() methods (modified) |
+| `l3-aegis/crates/aegis-types/src/block.rs` | 10,149 bytes | MerkleTree for tx_root (modified) |
+| `l3-aegis/crates/aegis-types/src/lib.rs` | 765 bytes | merkle module export (modified) |
+
+### 仕様書要件実装
+
+| 要件 | 出典 | 実装箇所 |
+|------|------|---------|
+| block_hash = SHA3-256(...) | L3_SPEC §2.4 | `block.rs:BlockHeader::hash()` |
+| SHA3-256 for Merkle trees | L3_SPEC §5 | `merkle.rs:MerkleTree` |
+| Domain separation | L3_SPEC §5 | `merkle.rs:DOMAIN_LEAF/NODE` |
+| Quantum resistance | L3_SPEC §8 | All use `Hash256::hash()` (SHA3-256) |
+
+### L3基盤確認
+
+| 確認項目 | 結果 |
+|----------|:----:|
+| 独自4ノードBFT | ✅ (L3-003で実装済み) |
+| l3-aegis範囲内 | ✅ |
+| ZK-STARK不使用 | ✅ |
+| SEQUENCES準拠 | ✅ |
+
+### SPEC_REVIEW対応
+
+（該当なし - SPEC_REVIEW.mdはステータス「未実行」）
+
+### テスト結果
+
+| 項目 | 値 |
+|------|-----|
+| 新規テスト数 | +31 |
+| 総テスト数 | **154** |
+| 結果 | ✅ **ALL PASS** |
+
+**テスト内訳（実測値）**:
+
+| クレート | テスト数 |
+|---------|:-------:|
+| aegis-cli | 4 |
+| aegis-consensus (unit) | 28 |
+| aegis-consensus (integration) | 30 |
+| aegis-core | 7 |
+| aegis-crypto | 8 |
+| aegis-network | 8 |
+| aegis-node | 7 |
+| aegis-smt | 6 |
+| aegis-storage | 12 |
+| **aegis-types** | **44** (13→44, +31) |
+| **合計** | **154** |
+
+### 備考
+
+- 初回GitHubプッシュ時にHTMLエンティティエンコーディングエラーが発生
+  - `&amp;` → `&`, `&lt;` → `<`, `&gt;` → `>` の置換で修正
+  - コミット: `318f3fb` "fix: Correct HTML entity encoding in aegis-types"
+- テスト実行はローカル環境で実施・検証済み
 
 ---
 
@@ -42,6 +125,7 @@ L3-005 SHA3-256ブロックハッシュ実装が完了しました。
 | `01373e21` | 2025-12-30 06:21:43 | transaction.rs - hash()メソッド追加 |
 | `7b2aeeda` | 2025-12-30 06:23:17 | block.rs - MerkleTree使用 |
 | `cd015777` | 2025-12-30 06:25:07 | lib.rs - merkle module export |
+| `318f3fb` | 2025-12-30 06:37:xx | fix: HTML entity encoding修正 |
 
 ### 実装詳細
 
@@ -51,7 +135,7 @@ L3-005 SHA3-256ブロックハッシュ実装が完了しました。
 - SHA3-256 hashing (CP-1 compliant)
 - Proof generation and verification
 - Odd number of leaves handling (duplicate last)
-- 15+ unit tests
+- 14 unit tests
 
 #### Transaction Hashing (transaction.rs)
 
@@ -61,12 +145,14 @@ L3-005 SHA3-256ブロックハッシュ実装が完了しました。
 - `ProverSignatureTx::hash()`
 - `L1SubmitTx::hash()`
 - All using SHA3-256 via serde_json serialization
+- 5 tests追加 (CP-1 compliance含む)
 
 #### Block tx_root (block.rs)
 
 - `BlockBody::compute_tx_root()` uses MerkleTree
 - `Block::finalize()` computes tx_root before signing
 - Removed TODO comment - proper Merkle tree implemented
+- 12 tests追加 (tx_root, finalize含む)
 
 ### CP-1 準拠確認
 
@@ -251,27 +337,31 @@ L3-003 Basic PBFT consensus実装のPIRレビューが完了しました。
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **152+ PASS** (L3-005含む推定)
+### l3-aegis: ✅ **154 PASS** (実測値)
 
 ```
 ╭----------------------------+--------+--------+---------╮
 | Test Suite                 | Passed | Failed | Skipped |
 +========================================================+
-| l3-aegis (Cargo)           | 152+   | 0      | 0       |
+| l3-aegis (Cargo)           | 154    | 0      | 0       |
 ╰----------------------------+--------+--------+---------╯
 ```
 
-**内訳** (L3-005完了時点推定):
-- aegis-cli: 4
-- aegis-consensus: **58** (28 unit + 30 integration)
-- aegis-core: 7
-- aegis-crypto: 8
-- aegis-network: 8
-- aegis-node: 7
-- aegis-smt: 6
-- aegis-storage: 12
-- aegis-types: **33** (既存13 + merkle15 + tx5追加) 🆕
-- **他クレート**: 9
+**内訳（実測値 2025-12-30）**:
+
+| クレート | テスト数 |
+|---------|:-------:|
+| aegis-cli | 4 |
+| aegis-consensus (unit) | 28 |
+| aegis-consensus (integration) | 30 |
+| aegis-core | 7 |
+| aegis-crypto | 8 |
+| aegis-network | 8 |
+| aegis-node | 7 |
+| aegis-smt | 6 |
+| aegis-storage | 12 |
+| **aegis-types** | **44** |
+| **合計** | **154** |
 
 ---
 
