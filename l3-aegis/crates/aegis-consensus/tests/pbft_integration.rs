@@ -11,10 +11,11 @@
 
 use aegis_consensus::{
     config::{ConsensusConfig, BLOCK_INTERVAL_SECS, QUORUM_SIZE, VIEW_CHANGE_TIMEOUT_SECS},
-    message::{Block, ConsensusMessage, MessageType, Transaction},
+    message::{Block, ConsensusMessage, MessageType},
     signature::{ConsensusVerifier, DilithiumSignature, NodeKeyPair, ValidatorSignatures},
     state::{ConsensusState, HeightState, Phase, NUM_NODES, FAULT_TOLERANCE},
     view_change::{ViewChangeManager, ViewChangeState},
+    ViewChangeMessage,
 };
 
 // =============================================================================
@@ -294,11 +295,11 @@ mod test_004_view_change {
         
         // Need 3 view change messages
         for i in 0..2 {
-            let msg = crate::aegis_consensus::message::ViewChangeMessage::new(1, 100, [0u8; 32], i);
+            let msg = ViewChangeMessage::new(1, 100, [0u8; 32], i);
             assert!(!vc_state.add_message(msg));
         }
         
-        let msg = crate::aegis_consensus::message::ViewChangeMessage::new(1, 100, [0u8; 32], 2);
+        let msg = ViewChangeMessage::new(1, 100, [0u8; 32], 2);
         assert!(vc_state.add_message(msg)); // Quorum reached
         assert!(vc_state.is_complete());
     }
