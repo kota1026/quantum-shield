@@ -1,8 +1,8 @@
 # Specification-Strategy Bridge Document
 
-> **Document Version**: 1.2  
+> **Document Version**: 1.3  
 > **Created**: 2025-12-28  
-> **Updated**: 2025-12-29  
+> **Updated**: 2025-12-30  
 > **Purpose**: 既存仕様書（原理原則）とPhase 3戦略決議の連動を定義
 
 ---
@@ -43,7 +43,10 @@
 │ ├── docs/planning/CURRENT_STATE.md                                          │
 │ ├── docs/planning/CURRENT_PLAN.md                                           │
 │ ├── docs/planning/PHASE3_PLAN.md                     ← 「Phase 3タスク」     │
-│ └── docs/checklists/phase3.X.md                                             │
+│ └── docs/checklists/phase3.X.md                      ← 「サブフェーズ」      │
+│     ├── phase3.1.md (Foundation)                                            │
+│     ├── phase3.2.md (Token + Implementation)                                │
+│     └── phase3.3.md (Node Expansion + Full Decentralization)                │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -183,7 +186,7 @@ Challenge (#4)   → CoreSlashing.challenge()
 各SequenceはL3上で以下のように実装される：
 
 | Sequence | L3での役割 |
-|----------|-----------|
+|----------|-----------
 | #1 Lock | L3トランザクションとして記録 |
 | #2 Unlock | Prover署名がL3ブロックに記録 |
 | #3 Emergency | Emergency Bond記録 |
@@ -304,7 +307,7 @@ Sequence実装時:
 Modular Architectureでは異なるガバナンスモードに対応が必要。
 
 | Governanceモード | Pause権限 | 最大期間 | 延長方法 |
-|-----------------|----------|---------|---------|
+|-----------------|----------|---------|---------
 | CENTRALIZED | Admin単独 | 72時間 | Admin判断 |
 | MULTISIG | N/M承認（例: 3/5） | 72時間 | マルチシグ再承認 |
 | DECENTRALIZED | SC 5/9 | 72時間 | Token Vote |
@@ -474,25 +477,49 @@ l3-aegis（共通コードベース）
 
 > **Reference**: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Implementation Components
 
-### 10.1 IC → Task マッピング
+### 10.1 IC → Phase/Task マッピング
 
-| IC-ID | Component | PHASE3_PLAN Task | Status |
-|-------|-----------|------------------|--------|
-| IC-1 | L3 Chain Infrastructure (4-node BFT) | **⚠️ 欠落 → 追加必要** | 🔴 |
-| IC-2 | L3 Bridge Contract | §1 L3 Bridge Contract | 🔴 Planning |
-| IC-3 | Sequencer | §2 Sequencer Implementation | 🔴 Planning |
-| IC-4 | State Management (SMT) | §3 State Management | 🔴 Planning |
-| IC-5 | veQS Token | §4 veQS Token Design | 🔴 Planning |
-| IC-6 | Node Expansion (7-node) | **⚠️ 欠落 → Phase 3後半** | 🔴 |
-| IC-7 | Permissionless Nodes | Phase 4 scope | ⚪ Future |
+| IC-ID | Component | Phase | Checklist | Task IDs | Status |
+|-------|-----------|-------|-----------|----------|--------|
+| IC-1 | L3 Chain Infrastructure (4-node BFT) | 3.1 | `phase3.1.md` | Track A (L3 Chain) | 🟢 Complete |
+| IC-2 | L3 Bridge Contract | 3.1 | `phase3.1.md` | CORE-001〜003 | 🟡 In Progress |
+| IC-3 | Sequencer | 3.2 | `phase3.2.md` | SEQ-001〜008 | 🔴 Planning |
+| IC-4 | State Management (SMT) | 3.1 | `phase3.1.md` | CORE-001 (CoreState) | 🟢 Complete |
+| IC-5 | veQS Token | 3.2 | `phase3.2.md` | TOKEN-001〜014 | 🔴 Planning |
+| IC-6 | Node Expansion (4→7) | 3.3 | `phase3.3.md` | NODE-001〜015 | 🔴 Planning |
+| IC-7 | Permissionless Nodes | 4 | (Future) | - | ⚪ Future |
 
-### 10.2 IC完全性チェック
+### 10.2 Phase 3サブフェーズ構造
+
+```
+Phase 3 (Month 10-18)
+│
+├── Phase 3.1: Foundation (Month 10-12)
+│   ├── Checklist: docs/checklists/phase3.1.md
+│   ├── IC-1: L3 Chain Infrastructure ✅
+│   ├── IC-2: L3 Bridge Contract (CORE-001〜003) 🟡
+│   └── IC-4: State Management ✅
+│
+├── Phase 3.2: Token + Implementation (Month 13-15)
+│   ├── Checklist: docs/checklists/phase3.2.md
+│   ├── IC-3: Sequencer拡張 (Multi-Sequencer)
+│   ├── IC-5: veQS Token設計・実装
+│   └── Governance Layer完全実装
+│
+└── Phase 3.3: Node Expansion + Full Decentralization (Month 16-18)
+    ├── Checklist: docs/checklists/phase3.3.md
+    ├── IC-6: Node Expansion (4→7)
+    ├── Full Decentralization (Stage 3)
+    └── Security Council Transition
+```
+
+### 10.3 IC完全性チェック
 
 計画立案時（01_plan.md）に以下を確認：
 
 ```
-[ ] 全IC-IDがPHASE3_PLANに対応タスクを持つか？
-    → IC-1, IC-6 が欠落している場合、計画漏れ
+[ ] 全IC-IDがチェックリストに対応タスクを持つか？
+    → IC-1〜IC-6 がphase3.X.mdに紐付いているか確認
     
 [ ] 新規タスクがIC-IDに紐付いているか？
     → 紐付いていない場合、UNIFIED_SPECへの追加を検討
@@ -501,22 +528,60 @@ l3-aegis（共通コードベース）
     → 実装開始時に🔴→🟡、完了時に🟢
 ```
 
-### 10.3 欠落ICの対応方針
+### 10.4 チェックリスト参照ルール
 
-| IC-ID | 対応方針 |
-|-------|---------|
-| IC-1 | PHASE3_PLAN.md に「L3 Chain Infrastructure」セクション追加 |
-| IC-6 | PHASE3_PLAN.md Phase 3後半（Month 16-18）に追加 |
+| 作業 | 参照チェックリスト |
+|------|-------------------|
+| Phase 3.1タスク実行 | `docs/checklists/phase3.1.md` |
+| Phase 3.2タスク実行 | `docs/checklists/phase3.2.md` |
+| Phase 3.3タスク実行 | `docs/checklists/phase3.3.md` |
+| IC-1, IC-2, IC-4 関連 | `phase3.1.md` |
+| IC-3, IC-5 関連 | `phase3.2.md` |
+| IC-6 関連 | `phase3.3.md` |
 
 ---
 
-## 11. 変更履歴
+## 11. Go/No-Go判定ポイント
+
+### 11.1 Phase 3サブフェーズ Go/No-Go
+
+| 判定ポイント | 時期 | 必須条件 | 記録先 |
+|-------------|------|---------|--------|
+| Phase 3.1 → 3.2 | Month 12末 | L3 Chain稼働、Core Layer完了 | `GONOGO_PHASE3.1_*.md` |
+| Phase 3.2 → 3.3 | Month 15末 | veQS Token稼働、第1回監査開始 | `GONOGO_PHASE3.2_*.md` |
+| Phase 3 → 4 | Month 18末 | 7-node稼働、Full Decentralization | `GONOGO_PHASE3_*.md` |
+
+### 11.2 各サブフェーズの主要判定基準
+
+**Phase 3.1 (Foundation)**:
+- [ ] L3 Chain 4-node稼働
+- [ ] Core Layer (CORE-001〜003) 完了
+- [ ] Pluggable Layer基盤完了
+- [ ] 全テストPASS
+
+**Phase 3.2 (Token + Implementation)**:
+- [ ] veQS Token (IC-5) デプロイ・動作
+- [ ] Multi-Sequencer (IC-3) 動作
+- [ ] Security Council 9名初期構成
+- [ ] 第1回監査開始
+
+**Phase 3.3 (Node Expansion + Decentralization)**:
+- [ ] Node Expansion 4→7 (IC-6) 完了
+- [ ] Full Decentralization (Stage 3) 達成
+- [ ] Security Council選出完了
+- [ ] 第2回監査完了
+- [ ] Bug Bounty Program稼働
+
+---
+
+## 12. 変更履歴
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-12-28 | 初版作成 |
 | 1.1 | 2025-12-28 | L3基盤技術選定(2025-12-28決議)への参照を追加（§1.5） |
 | 1.2 | 2025-12-29 | §9 ビジネス戦略参照、§10 IC Traceability追加 |
+| 1.3 | 2025-12-30 | §10 IC→Phase/Taskマッピング更新、Phase 3サブフェーズ構造追加、§11 Go/No-Go判定ポイント追加 |
 
 ---
 
