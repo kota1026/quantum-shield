@@ -19,7 +19,7 @@ pub struct ValidatorSignature {
     /// Node ID of the signer
     pub node_id: NodeId,
     /// Dilithium-III signature bytes (~3KB)
-    pub signature: Vec&lt;u8&gt;,
+    pub signature: Vec<u8>,
 }
 
 /// Block header as per L3_CHAIN_SPECIFICATION.md §2.1
@@ -40,7 +40,7 @@ pub struct BlockHeader {
     /// Proposer node ID
     pub proposer: NodeId,
     /// Validator signatures (require 3/4 for consensus)
-    pub validator_signatures: Vec&lt;ValidatorSignature&gt;,
+    pub validator_signatures: Vec<ValidatorSignature>,
 }
 
 impl BlockHeader {
@@ -74,21 +74,21 @@ impl BlockHeader {
     /// 
     /// # CP-1 Compliance
     /// Uses SHA3-256 (FIPS 202), not keccak256.
-    pub fn hash(&amp;self) -> Hash256 {
+    pub fn hash(&self) -> Hash256 {
         let mut data = Vec::new();
         data.push(self.version);
-        data.extend_from_slice(&amp;self.height.to_le_bytes());
-        data.extend_from_slice(&amp;self.timestamp.to_le_bytes());
+        data.extend_from_slice(&self.height.to_le_bytes());
+        data.extend_from_slice(&self.timestamp.to_le_bytes());
         data.extend_from_slice(self.parent_hash.as_bytes());
         data.extend_from_slice(self.state_root.as_bytes());
         data.extend_from_slice(self.tx_root.as_bytes());
         data.extend_from_slice(self.proposer.as_bytes());
-        Hash256::hash(&amp;data)
+        Hash256::hash(&data)
     }
 
     /// Check if this is a genesis block
-    pub fn is_genesis(&amp;self) -> bool {
-        self.height == 0 &amp;&amp; self.parent_hash.is_zero()
+    pub fn is_genesis(&self) -> bool {
+        self.height == 0 && self.parent_hash.is_zero()
     }
 }
 
@@ -96,7 +96,7 @@ impl BlockHeader {
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct BlockBody {
     /// Transactions in this block
-    pub transactions: Vec&lt;Transaction&gt;,
+    pub transactions: Vec<Transaction>,
 }
 
 impl BlockBody {
@@ -106,7 +106,7 @@ impl BlockBody {
     }
 
     /// Add a transaction to the block
-    pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    pub fn add_transaction(&mut self, tx: Transaction) {
         self.transactions.push(tx);
     }
 
@@ -118,13 +118,13 @@ impl BlockBody {
     /// 
     /// # CP-1 Compliance
     /// Uses SHA3-256 (FIPS 202), not keccak256.
-    pub fn compute_tx_root(&amp;self) -> Hash256 {
+    pub fn compute_tx_root(&self) -> Hash256 {
         if self.transactions.is_empty() {
             return Hash256::zero();
         }
         
         // Compute hash of each transaction
-        let tx_hashes: Vec&lt;Hash256&gt; = self.transactions
+        let tx_hashes: Vec<Hash256> = self.transactions
             .iter()
             .map(|tx| tx.hash())
             .collect();
@@ -135,12 +135,12 @@ impl BlockBody {
     }
 
     /// Get the number of transactions
-    pub fn len(&amp;self) -> usize {
+    pub fn len(&self) -> usize {
         self.transactions.len()
     }
 
     /// Check if there are no transactions
-    pub fn is_empty(&amp;self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.transactions.is_empty()
     }
 }
@@ -169,12 +169,12 @@ impl Block {
     }
 
     /// Get block hash
-    pub fn hash(&amp;self) -> Hash256 {
+    pub fn hash(&self) -> Hash256 {
         self.header.hash()
     }
 
     /// Get block height
-    pub fn height(&amp;self) -> u64 {
+    pub fn height(&self) -> u64 {
         self.header.height
     }
 
@@ -182,7 +182,7 @@ impl Block {
     /// 
     /// Should be called after all transactions are added
     /// but before signing.
-    pub fn finalize(&amp;mut self) {
+    pub fn finalize(&mut self) {
         self.header.tx_root = self.body.compute_tx_root();
     }
 }
@@ -198,8 +198,8 @@ mod tests {
 
     fn mock_transaction(id: u8) -> Transaction {
         Transaction::UnlockRequest(UnlockRequestTx {
-            unlock_id: Hash256::hash(&amp;[id]),
-            lock_id: Hash256::hash(&amp;[id, id]),
+            unlock_id: Hash256::hash(&[id]),
+            lock_id: Hash256::hash(&[id, id]),
             dest_addr: Address::new([id; 20]),
             amount: id as u128 * 1000,
             owner_pk: DilithiumPublicKey(vec![id]),
