@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-30 22:55 JST  
+> **Last Updated**: 2025-12-31 23:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,8 +13,8 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Active Task: CORE-001 State Manager基盤 ✅ COMPLETE        │
-│  Status: ✅ CORE-001 CP-1 FIX COMPLETE 🎉                   │
+│  Active Task: CORE-002 STARK Verifier統合 ⬜ NEXT           │
+│  Status: ✅ CORE-001 PIR PASS 🎉                            │
 │  Tests: ✅ 180/180 PASS (l3-aegis) + 32 PASS (CoreState)    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -30,13 +30,14 @@
 |------|-----|
 | **対象Plan** | CORE-001 State Manager基盤 (IC-4) - CP-1修正 |
 | **実装日時** | 2025-12-30 22:55 JST |
-| **ステータス** | ✅ CP-1修正完了・再レビュー準備完了 |
+| **PIR日時** | 2025-12-31 (PIR-P3.1-008) |
+| **ステータス** | ✅ **PIR PASS** - 完了 🎉 |
 
 ### 対象IC (Integration Component)
 
-| IC | 実装Layer | 仕様書準拠 |
-|----------|----------|:----------:|
-| IC-4 (State Management) | Core Layer | ✅ |
+| IC | 実装Layer | 仕様書準拠 | PIR |
+|----------|----------|:----------:|:----:|
+| IC-4 (State Management) | Core Layer | ✅ | ✅ PIR-P3.1-008 PASS |
 
 ### 作成ファイル
 
@@ -46,7 +47,7 @@
 | `l3-aegis/src/core/CoreState.sol` | 8,301 bytes | State Manager実装（SHA3-256統合）**CP-1修正済み** |
 | `l3-aegis/test/CoreState.t.sol` | 12,987 bytes | 包括的テストスイート（32テスト） |
 
-### 🔴 CP-1 修正内容 (Security Review Finding #1)
+### 🟢 CP-1 修正完了 (Security Review Finding #1対応)
 
 | 修正箇所 | 修正前 | 修正後 |
 |----------|--------|--------|
@@ -54,33 +55,18 @@
 | `NODE_DOMAIN` | `keccak256("QS_SMT_NODE_V1")` | `0x2788e21c82dcd3e3f1683169f418c39da467ef396fca65015ae273ef0f04be03` |
 | `STATE_ROOT_DOMAIN` | `keccak256("QS_STATE_ROOT_V1")` | `0x60311680a88251ea5468ef203bddcdd726d4fa7b0e68ec9cb636dafef58d1f29` |
 
-**修正理由**: CP-1ではkeccak256使用が禁止されている。コンパイル時定数であっても厳密なCP-1準拠のため、SHA3-256事前計算値に置換。
+**結論**: keccak256がDomain Separatorから完全に排除され、SHA3-256事前計算値に置換。**CP-1完全準拠**。
 
 ### 仕様書要件実装
 
-| 要件 | 出典 | 実装箇所 |
-|------|------|---------| 
-| SHA3-256 State Root計算 | CP-1, IC-4 | `CoreState.sol:calculateStateRoot()` |
-| Sparse Merkle Tree (depth=20) | IC-4 | `CoreState.sol:verifyInclusion()` |
-| Domain Separation (SHA3-256) | CP-1, Security | `CoreState.sol:L27-35` **修正済み** |
-| FIPS 202 準拠 | CP-1 | `CoreState.sol:verifySHA3Implementation()` |
-| Lock Inclusion検証 | SEQ#2 | `CoreState.sol:verifyLockInclusion()` |
-| **keccak256完全排除** | CP-1 | ✅ **修正完了** |
-
-### L3基盤確認
-
-| 確認項目 | 結果 |
-|----------|:----:|
-| Phase 2 SHA3_256統合 | ✅ |
-| @phase2/ remapping設定 | ✅ |
-| FIPS 202準拠 | ✅ |
-| **禁止アルゴリズム不使用** | ✅ **修正完了** |
-
-### SPEC_REVIEW対応
-
-| ISSUE | 対応内容 | コミット |
-|-------|----------|----------|
-| Finding #1: keccak256 in Domain Separators | SHA3-256事前計算値に置換 | `6e8b4a2` |
+| 要件 | 出典 | 実装箇所 | PIR検証 |
+|------|------|---------| :----:|
+| SHA3-256 State Root計算 | CP-1, IC-4 | `CoreState.sol:calculateStateRoot()` | ✅ |
+| Sparse Merkle Tree (depth=20) | IC-4 | `CoreState.sol:verifyInclusion()` | ✅ |
+| Domain Separation (SHA3-256) | CP-1, Security | `CoreState.sol:L27-35` **修正済み** | ✅ |
+| FIPS 202 準拠 | CP-1 | `CoreState.sol:verifySHA3Implementation()` | ✅ |
+| Lock Inclusion検証 | SEQ#2 | `CoreState.sol:verifyLockInclusion()` | ✅ |
+| **keccak256完全排除** | CP-1 | ✅ **修正完了** | ✅ |
 
 ### テスト結果
 
@@ -90,17 +76,6 @@
 | CoreStateテスト | 32/32 PASS |
 | Fuzzテスト | 3テスト × 256 runs |
 | Gas Benchmarks | 記録済み（参考値） |
-
-### Gas Benchmarks（参考値）
-
-| 操作 | Gas消費 | 備考 |
-|------|---------|------|
-| `calculateStateRoot` (10 entries) | ~4,037,288 | L3実行前提 |
-| `computeLeaf` | ~1,615,168 | L3実行前提 |
-| `hashNodes` | ~808,317 | L3実行前提 |
-| `verifyInclusion` (depth 20) | ~16,441,280 | L3実行前提 |
-
-⚠️ **注意**: Pure Solidity SHA3-256のGas消費はL1直接実行には不向き。L3アーキテクチャ（設計通り）で運用。
 
 ### コミット履歴
 
@@ -112,12 +87,24 @@
 | `4914b19` | fix(CORE-001): Update CoreState import path |
 | **`6e8b4a2`** | **fix(CORE-001): Replace keccak256 domain separators with SHA3-256 pre-computed values** |
 
-### 備考
+---
 
-- Phase 2のSHA3_256ライブラリを `@phase2/` remappingで統合
-- `foundry.toml` の `libs` に `../contracts/lib` を追加して依存解決
-- 全テストがローカル環境で検証済み（2025-12-30 22:28 JST）
-- **CP-1修正**: Domain SeparatorをSHA3-256事前計算値に置換（2025-12-30 22:55 JST）
+## 🎉 CORE-001 State Manager完了 (2025-12-31)
+
+Track B (L3 Contracts) のCORE-001が完了しました！
+
+### PIR-P3.1-008 判定結果
+
+| 項目 | 結果 |
+|------|------|
+| **判定** | ✅ **PASS** |
+| **PIR日時** | 2025-12-31 JST |
+| **議長** | CTO |
+| **11エージェント評価** | 11/11 GO（全会一致） |
+| **テスト結果** | ✅ 32/32 PASS |
+| **CP-1準拠** | ✅ SHA3-256、禁止アルゴリズム不使用 |
+| **仕様書準拠** | ✅ SEQUENCES #1, #2準拠 |
+| **Critical/High問題** | なし |
 
 ---
 
@@ -151,7 +138,7 @@ Track A の全6タスクが完了しました。
 | L3-003 | Basic PBFT consensus実装 | 2025-12-30 | ✅ PIR-P3.1-005 PASS |
 | L3-004 | Dilithium-III consensus署名統合 | 2025-12-30 | (L3-003に含む) |
 | L3-005 | SHA3-256 block hashing実装 | 2025-12-30 | ✅ PIR-P3.1-006 PASS |
-| L3-006 | 4-node local testnet構築 | 2025-12-31 | ✅ **PIR-P3.1-007 PASS** 🎉 |
+| L3-006 | 4-node local testnet構築 | 2025-12-31 | ✅ PIR-P3.1-007 PASS 🎉 |
 
 ---
 
@@ -217,6 +204,7 @@ Track A の全6タスクが完了しました。
 | PIR-P3.1-005 | L3-003 Basic PBFT consensus | ✅ **PASS** 🎉 | 2025-12-30 |
 | PIR-P3.1-006 | L3-005 SHA3-256 Block Hashing | ✅ **PASS** 🎉 | 2025-12-30 |
 | PIR-P3.1-007 | L3-006 4-node local testnet | ✅ **PASS** 🎉 | 2025-12-31 |
+| PIR-P3.1-008 | CORE-001 State Manager (CP-1 fix) | ✅ **PASS** 🎉 | 2025-12-31 |
 
 ---
 
@@ -227,7 +215,7 @@ Track A の全6タスクが完了しました。
 | Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
-| **Phase 3** | **L3 + Token + 完全分散化** | **65%** | 🔄 **ACTIVE** |
+| **Phase 3** | **L3 + Token + 完全分散化** | **70%** | 🔄 **ACTIVE** |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
 ---
@@ -249,7 +237,7 @@ Track A の全6タスクが完了しました。
 | L3-003 | Basic PBFT consensus実装 | Rust Engineer | ✅ | ✅ PIR-P3.1-005 PASS |
 | L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ✅ | (L3-003に含む) |
 | L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ✅ | ✅ PIR-P3.1-006 PASS |
-| L3-006 | 4-node local testnet構築 | DevOps | ✅ | ✅ **PIR-P3.1-007 PASS** 🎉 |
+| L3-006 | 4-node local testnet構築 | DevOps | ✅ | ✅ PIR-P3.1-007 PASS 🎉 |
 
 **Track A 完了状況: 6/6 (100%) ✅**
 
@@ -265,11 +253,11 @@ Track A の全6タスクが完了しました。
 
 #### Week 3-4: Core Layer基盤
 
-| # | タスク | IC | 担当 | 状態 |
-|---|--------|-----|------|------|
-| CORE-001 | State Manager基盤 | IC-4 | Engineer | ✅ **COMPLETE + CP-1 FIX** 🎉 |
-| CORE-002 | STARK Verifier統合 | IC-2 | Engineer | ⬜ 次のタスク |
-| CORE-003 | CP保護機構実装 | IC-3 | Engineer | ⬜ |
+| # | タスク | IC | 担当 | 状態 | PIR |
+|---|--------|-----|------|------|-----|
+| CORE-001 | State Manager基盤 | IC-4 | Engineer | ✅ **COMPLETE** 🎉 | ✅ **PIR-P3.1-008 PASS** |
+| CORE-002 | STARK Verifier統合 | IC-2 | Engineer | ⬜ **次のタスク** | - |
+| CORE-003 | CP保護機構実装 | IC-3 | Engineer | ⬜ | - |
 
 ---
 
@@ -320,21 +308,21 @@ Track A の全6タスクが完了しました。
 | 1 | ~~l3-aegisテスト未実行~~ | ~~CRITICAL~~ | ✅ **解決済み** |
 | 2 | 独自L3技術リスク | 🔴 HIGH | 緩和策実施（監査、TVL制限） |
 | 3 | ~~CORE-001 テスト未検証~~ | ~~HIGH~~ | ✅ **解決済み** 32/32 PASS |
-| 4 | Modular設計複雑性 | 🟠 MEDIUM | 網羅的テスト |
-| 5 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
+| 4 | ~~CORE-001 PIR未完了~~ | ~~HIGH~~ | ✅ **解決済み** PIR-P3.1-008 PASS |
+| 5 | Modular設計複雑性 | 🟠 MEDIUM | 網羅的テスト |
+| 6 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
 
 ---
 
 ## 🔜 次のアクション
 
-### 最優先: CORE-001 再レビュー → PIR
+### 最優先: CORE-002 STARK Verifier統合
 
 | # | タスク | IC | 優先度 | 担当 | 状態 |
 |---|--------|-----|--------|------|------|
-| 1 | **CORE-001 再セキュリティレビュー** | IC-4 | 🔴 **P0** | Red Team | ⬜ 次 |
-| 2 | CORE-001 PIR | IC-4 | 🔴 **P0** | 11 Agents | ⬜ |
-| 3 | CORE-002 STARK Verifier統合 | IC-2 | 🟠 High | Engineer | ⬜ |
-| 4 | CORE-003 CP保護機構実装 | IC-3 | 🟠 High | Engineer | ⬜ |
+| 1 | **CORE-002 STARK Verifier統合** | IC-2 | 🔴 **P0** | Engineer | ⬜ 次 |
+| 2 | CORE-003 CP保護機構実装 | IC-3 | 🟠 High | Engineer | ⬜ |
+| 3 | PLUG-001 Governance Switch実装 | IC-2 | 🟠 High | Engineer | ⬜ |
 
 ---
 
@@ -345,9 +333,9 @@ Track A の全6タスクが完了しました。
 | Phase 1完了 | Month 6 | ✅ **COMPLETE** |
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
 | Track A完了 | Month 10 | ✅ **COMPLETE** 🎉 |
-| **CORE-001 State Manager** | **Month 10** | ✅ **COMPLETE + CP-1 FIX** 🎉 |
-| CORE-001 PIR | Month 10 | ⬜ 次 |
-| CORE-002 STARK Verifier | Month 10 | ⬜ |
+| CORE-001 State Manager | Month 10 | ✅ **COMPLETE + PIR PASS** 🎉 |
+| **CORE-002 STARK Verifier** | **Month 10** | ⬜ 次のタスク |
+| CORE-003 CP保護機構 | Month 10 | ⬜ |
 | Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
@@ -368,8 +356,8 @@ Track A の全6タスクが完了しました。
 │  │                                                          │
 │  └── Track B: L3 Contracts (Solidity) ← 🔄 **ACTIVE**       │
 │      ├── SETUP-001,002,003: ✅ COMPLETE                     │
-│      ├── CORE-001: ✅ **COMPLETE + CP-1 FIX** 🎉 (IC-4)     │
-│      ├── CORE-002: ⬜ 次のタスク (IC-2)                     │
+│      ├── CORE-001: ✅ **COMPLETE + PIR PASS** 🎉 (IC-4)     │
+│      ├── CORE-002: ⬜ **次のタスク** (IC-2)                 │
 │      ├── CORE-003: ⬜ (IC-3)                                │
 │      └── PLUG-001~003: Pluggable Layer実装                  │
 │                                                             │
@@ -404,8 +392,8 @@ Track A の全6タスクが完了しました。
     - SETUP-001: ✅ PASS
     - SETUP-002: ✅ PASS
     - SETUP-003: ✅ PASS
-    - **CORE-001: ✅ COMPLETE + CP-1 FIX** 🎉 (IC-4 State Management)
-    - CORE-002: ⬜ 次のタスク (IC-2 STARK Verifier)
+    - **CORE-001: ✅ COMPLETE + PIR PASS** 🎉 (IC-4 State Management)
+    - CORE-002: ⬜ **次のタスク** (IC-2 STARK Verifier)
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
 
