@@ -44,8 +44,8 @@ Phase 3.1 Foundation
 
 | # | タスク | 担当 | 状態 | PIR |
 |---|--------|------|:----:|-----|
-| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ✅ | PIR-P3.1-002 予定 |
-| L3-002 | Single-node dev mode実装 | Rust Engineer | ⬜ | - |
+| L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ✅ | PIR-P3.1-002 PASS |
+| L3-002 | Single-node dev mode実装 | Rust Engineer | ✅ | PIR-P3.1-004 PASS 🎉 |
 | L3-003 | Basic PBFT consensus実装 | Rust Engineer | ⬜ | - |
 | L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ⬜ | - |
 | L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
@@ -83,14 +83,39 @@ Phase 3.1 Foundation
 | aegis-storage | 12 | ✅ |
 | aegis-types | 13 | ✅ |
 
-### L3-002: Single-node dev mode実装
+### L3-002: Single-node dev mode実装 ✅ 完了 (2025-12-30) 🎉
 
-- [ ] ブロック構造定義
-- [ ] トランザクション構造定義
-- [ ] ステート管理基盤
-- [ ] RocksDB統合
-- [ ] 単一ノード起動・停止
-- [ ] 基本RPCエンドポイント
+- [x] ブロック構造定義
+- [x] トランザクション構造定義（4種: UnlockRequest, VRFResult, ProverSignature, L1Submit）
+- [x] ステート管理基盤 (`aegis-core/src/state.rs`)
+- [x] State Root計算 (SHA3-256)
+- [x] Transaction Executor (`aegis-core/src/executor.rs`)
+- [x] RocksDB統合
+- [x] 単一ノード起動・停止 (`aegis-node/src/single_node.rs`)
+- [x] 基本RPCエンドポイント (`aegis-node/src/rpc.rs`)
+- [x] CLI実装 (`aegis-node/src/main.rs`)
+- [x] CP-1準拠確認 (SHA3-256, Dilithium-III, 禁止アルゴリズム不使用)
+
+**テスト結果**: 74/74 PASS
+
+| クレート | テスト数 | 結果 |
+|---------|:--------:|:----:|
+| aegis-cli | 4 | ✅ |
+| aegis-consensus | 9 | ✅ |
+| aegis-core | 7 | ✅ |
+| aegis-crypto | 8 | ✅ |
+| aegis-network | 8 | ✅ |
+| aegis-node | 7 | ✅ |
+| aegis-smt | 6 | ✅ |
+| aegis-storage | 12 | ✅ |
+| aegis-types | 13 | ✅ |
+
+**PIR-P3.1-004 詳細**:
+- 判定基準: 14/14 クリア（基本6 + 仕様4 + L3基盤4）
+- 11エージェント評価: 11/11 GO（全会一致）
+- CP-1準拠: ✅ SHA3-256/Dilithium-III、禁止アルゴリズム不使用
+- 仕様書準拠: ✅ L3_CHAIN_SPECIFICATION §5, §7, §10
+- セキュリティ: ✅ Critical/Major問題なし
 
 ### L3-003: Basic PBFT consensus実装
 
@@ -331,8 +356,8 @@ Phase 3.1では以下の緩和策を開始：
 
 | タスク | 状態 | PIR |
 |--------|:----:|-----|
-| L3-001 | ✅ | PIR-P3.1-002 予定 |
-| L3-002 | ⬜ | - |
+| L3-001 | ✅ | PIR-P3.1-002 PASS |
+| L3-002 | ✅ | PIR-P3.1-004 PASS 🎉 |
 | L3-003 | ⬜ | - |
 | L3-004 | ⬜ | - |
 | L3-005 | ⬜ | - |
