@@ -17,13 +17,17 @@ CURRENT_PLANの「対象Sequence」と「仕様書要件実装」を確認し、
 
 ### 4.1 PIR結果の取得手順
 1. CURRENT_STATE.md の「次のPIR ID」を確認
-2. `docs/aegis/meetings/PIR-XXX.md` を読み込み
+2. **必ず `docs/aegis/meetings/PIR-XXX.md`** を読み込み
+   > ⚠️ **注意**: `docs/aegis/pir/` ではありません。`meetings/` ディレクトリが正しい保存先です。
 3. 判定結果（PASS / CONDITIONAL / FAIL）を確認
 
 ### 4.2 PIR結果が見つからない場合
-> ⚠️ **警告**: PIR結果ファイルが存在しない場合、
+> ⚠️ **警告**: `docs/aegis/meetings/PIR-XXX.md` が存在しない場合、
 > 05_pir.md が正しく実行されていない可能性があります。
 > 先に PIR会議を実施してください。
+>
+> **注意**: `docs/aegis/pir/` にあるファイルは過去のレガシー形式です。
+> 最新のPIR結果は必ず `docs/aegis/meetings/` を参照してください。
 
 ## 5. タスク
 PIR会議の結果に基づき、以下を更新してください：
