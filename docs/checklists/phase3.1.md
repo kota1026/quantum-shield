@@ -11,7 +11,7 @@
 - [x] Phase 2完了確認（628テスト全PASS）
 - [x] Phase 3戦略決議v3.0承認確認
 - [x] L3基盤技術選定決議確認（2025-12-28）
-- [ ] 開発ブランチ作成（`dev/phase3-l3-aegis`）
+- [x] 開発ブランチ作成（`dev/phase2-native-stark`）
 
 ---
 
@@ -21,21 +21,21 @@ Phase 3.1は2つの並行トラックで進行：
 
 ```
 Phase 3.1 Foundation
-├── Track A: L3 Chain (Rust) - IC-1 ⭐ 最優先
+├── Track A: L3 Chain (Rust) - IC-1 ✅ COMPLETE 🎉
 │   └── l3-aegis ブロックチェーン基盤実装
-│       ├── L3-001〜L3-006: コア実装
-│       └── 目標: 4ノードローカルテストネット
+│       ├── L3-001〜L3-006: コア実装 ✅
+│       └── 目標: 4ノードローカルテストネット ✅
 │
 └── Track B: L3 Contracts (Solidity) - IC-2,3,4
     └── Modular Architecture + Phase 2統合
-        ├── SETUP-001〜003: 基盤セットアップ
-        ├── CORE-001〜003: Core Layer実装
+        ├── SETUP-001〜003: 基盤セットアップ ✅
+        ├── CORE-001〜003: Core Layer実装 🔄
         └── PLUG-001〜003: Pluggable Layer実装
 ```
 
 ---
 
-## ⛓️ Track A: L3 Chain Infrastructure (IC-1) ⭐
+## ⛓️ Track A: L3 Chain Infrastructure (IC-1) ✅ COMPLETE 🎉
 
 > **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
 > **Decision**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
@@ -46,157 +46,12 @@ Phase 3.1 Foundation
 |---|--------|------|:----:|-----|
 | L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ✅ | PIR-P3.1-002 PASS |
 | L3-002 | Single-node dev mode実装 | Rust Engineer | ✅ | PIR-P3.1-004 PASS 🎉 |
-| L3-003 | Basic PBFT consensus実装 | Rust Engineer | ✅ | PIR-P3.1-005 PENDING |
-| L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | 🔄 | - |
-| L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
-| L3-006 | 4-node local testnet構築 | DevOps | ⬜ | - |
+| L3-003 | Basic PBFT consensus実装 | Rust Engineer | ✅ | PIR-P3.1-005 PASS 🎉 |
+| L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ✅ | (L3-003に含む) |
+| L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ✅ | PIR-P3.1-006 PASS 🎉 |
+| L3-006 | 4-node local testnet構築 | DevOps | ✅ | PIR-P3.1-007 PASS 🎉 |
 
-### L3-001: l3-aegis プロジェクト構造設計 ✅ 完了 (2025-12-30)
-
-- [x] Rustプロジェクト構造設計（Cargo workspace）
-- [x] モジュール分割設計
-  - [x] `aegis-consensus/` - PBFT実装
-  - [x] `aegis-crypto/` - Dilithium, SHA3-256
-  - [x] `aegis-network/` - P2P, TLS 1.3
-  - [x] `aegis-storage/` - RocksDB, SMT
-  - [x] `aegis-node/` - ノードバイナリ
-  - [x] `aegis-cli/` - CLIツール
-  - [x] `aegis-types/` - 共通型定義
-  - [x] `aegis-core/` - 状態管理、ブロックビルダー
-  - [x] `aegis-smt/` - Sparse Merkle Tree
-- [x] 依存クレート選定
-- [x] Docker設定（Dockerfile, docker-compose.yml）
-- [x] ノード設定ファイル（node0-3.toml）
-- [x] README.md
-
-**テスト結果**: 69/69 PASS
-
-| クレート | テスト数 | 結果 |
-|---------|:--------:|:----:|
-| aegis-cli | 4 | ✅ |
-| aegis-consensus | 9 | ✅ |
-| aegis-core | 5 | ✅ |
-| aegis-crypto | 8 | ✅ |
-| aegis-network | 8 | ✅ |
-| aegis-node | 4 | ✅ |
-| aegis-smt | 6 | ✅ |
-| aegis-storage | 12 | ✅ |
-| aegis-types | 13 | ✅ |
-
-### L3-002: Single-node dev mode実装 ✅ 完了 (2025-12-30) 🎉
-
-- [x] ブロック構造定義
-- [x] トランザクション構造定義（4種: UnlockRequest, VRFResult, ProverSignature, L1Submit）
-- [x] ステート管理基盤 (`aegis-core/src/state.rs`)
-- [x] State Root計算 (SHA3-256)
-- [x] Transaction Executor (`aegis-core/src/executor.rs`)
-- [x] RocksDB統合
-- [x] 単一ノード起動・停止 (`aegis-node/src/single_node.rs`)
-- [x] 基本RPCエンドポイント (`aegis-node/src/rpc.rs`)
-- [x] CLI実装 (`aegis-node/src/main.rs`)
-- [x] CP-1準拠確認 (SHA3-256, Dilithium-III, 禁止アルゴリズム不使用)
-
-**テスト結果**: 74/74 PASS
-
-| クレート | テスト数 | 結果 |
-|---------|:--------:|:----:|
-| aegis-cli | 4 | ✅ |
-| aegis-consensus | 9 | ✅ |
-| aegis-core | 7 | ✅ |
-| aegis-crypto | 8 | ✅ |
-| aegis-network | 8 | ✅ |
-| aegis-node | 7 | ✅ |
-| aegis-smt | 6 | ✅ |
-| aegis-storage | 12 | ✅ |
-| aegis-types | 13 | ✅ |
-
-**PIR-P3.1-004 詳細**:
-- 判定基準: 14/14 クリア（基本6 + 仕様4 + L3基盤4）
-- 11エージェント評価: 11/11 GO（全会一致）
-- CP-1準拠: ✅ SHA3-256/Dilithium-III、禁止アルゴリズム不使用
-- 仕様書準拠: ✅ L3_CHAIN_SPECIFICATION §5, §7, §10
-- セキュリティ: ✅ Critical/Major問題なし
-
-### L3-003: Basic PBFT consensus実装 ✅ 実装完了 (2025-12-30) - PIR待ち
-
-- [x] PBFT状態マシン実装 (`config.rs`)
-- [x] Pre-prepare / Prepare / Commit フェーズ (TEST-001, TEST-002, TEST-003)
-- [x] View change機構 (TEST-004)
-- [x] f=1 (3/4 quorum) 設定
-- [x] 5秒ブロックタイム設定
-- [x] コンセンサステスト (TEST-001~007)
-- [x] Dilithium-III署名統合 (`signature.rs`)
-- [x] CP-1準拠確認 (TEST-006)
-
-**実装ファイル**:
-
-| ファイル | サイズ | 説明 |
-|---------|--------|------|
-| `aegis-consensus/src/config.rs` | 9,441 bytes | Consensus設定モジュール |
-| `aegis-consensus/src/signature.rs` | 14,145 bytes | Dilithium-III署名統合 |
-| `aegis-consensus/tests/pbft_integration.rs` | 15,072 bytes | 統合テストスイート |
-
-**テストスイート**:
-
-| テストID | 内容 |
-|---------|------|
-| TEST-001 | PBFT State Transitions (Idle → PrePrepared → Prepared → Committed) |
-| TEST-002 | Pre-prepare Processing (Primary selection, message validation) |
-| TEST-003 | Prepare/Commit Quorum (2/4 NG, 3/4 OK, 4/4 OK) |
-| TEST-004 | View Change (Timeout detection, new primary selection) |
-| TEST-005 | Signature Verification (Valid/Invalid/Empty handling) |
-| TEST-006 | CP-1 Compliance (Dilithium-III, SHA3-256, prohibited algorithms) |
-| TEST-007 | Configuration Values (Block interval, timeout, quorum) |
-
-**L3_CHAIN_SPECIFICATION §3 準拠**:
-
-| パラメータ | 仕様値 | 実装値 | 結果 |
-|-----------|--------|--------|:----:|
-| Block interval | 5s | 5s | ✅ |
-| View change timeout | 10s | 10s | ✅ |
-| Quorum | 75% (3/4) | 3/4 | ✅ |
-| Fault tolerance | f=1 | f=1 | ✅ |
-| Signature size | ~3KB | 3309 bytes | ✅ |
-
-**PIR-P3.1-005**: ⬜ PENDING - テスト実行・11エージェントレビュー待ち
-
-### L3-004: Dilithium-III consensus署名統合 🔄 部分完了
-
-- [x] Dilithium-IIIライブラリ統合（pqcrypto-dilithium）
-- [x] ノード鍵生成 (`NodeKeyPair`)
-- [x] ブロック署名 (`sign_consensus_message`)
-- [x] 署名検証 (`ConsensusVerifier`)
-- [x] CP-1準拠確認テスト (TEST-005, TEST-006)
-
-*Note: L3-003実装の一部として signature.rs で完了*
-
-### L3-005: SHA3-256 block hashing実装
-
-- [ ] SHA3-256ライブラリ統合（sha3クレート）
-- [ ] ブロックハッシュ計算
-- [ ] トランザクションハッシュ計算
-- [ ] Merkleルート計算
-- [ ] CP-1準拠確認テスト
-
-### L3-006: 4-node local testnet構築
-
-- [ ] Docker Compose設定
-- [ ] 4ノード構成（US-East, EU-West, Asia-SG, Reserve模擬）
-- [ ] P2Pネットワーク接続
-- [ ] コンセンサス動作確認
-- [ ] ブロック生成確認
-- [ ] 耐障害性テスト（1ノードダウン時）
-
-### Track A 完了基準
-
-| # | 基準 | 検証方法 |
-|---|------|---------|
-| 1 | Single-node起動・ブロック生成 | `cargo run --bin aegis-node` |
-| 2 | 4-node consensus動作 | Docker Compose + ログ確認 |
-| 3 | Dilithium-III署名検証 | 単体テスト PASS |
-| 4 | SHA3-256ハッシュ動作 | 単体テスト PASS |
-| 5 | 5秒ブロックタイム達成 | パフォーマンステスト |
-| 6 | 1ノードダウン耐性 | 障害注入テスト |
+**Track A 完了: 6/6 (100%) ✅**
 
 ---
 
@@ -229,7 +84,7 @@ Phase 3.1 Foundation
 
 ### Week 3-4: Core Layer基盤
 
-#### CORE-001: State Manager基盤 ✅ 完了 (2025-12-30)
+#### CORE-001: State Manager基盤 ✅ 完了・テスト検証済み (2025-12-30) 🎉
 
 - [x] ICoreState.sol インターフェース定義
 - [x] CoreState.sol 基本構造
@@ -238,6 +93,7 @@ Phase 3.1 Foundation
 - [x] Domain Separation (LEAF_DOMAIN, NODE_DOMAIN, STATE_ROOT_DOMAIN)
 - [x] 包括的テストスイート (CoreState.t.sol)
 - [x] ガスベンチマークテスト
+- [x] **テスト実行検証済み: 32/32 PASS** ✅
 
 **成果物**:
 
@@ -247,13 +103,38 @@ Phase 3.1 Foundation
 | `l3-aegis/src/core/CoreState.sol` | 7,870 bytes | CoreState実装 |
 | `l3-aegis/test/CoreState.t.sol` | 12,987 bytes | 包括的テストスイート |
 
+**テスト結果 (2025-12-30 22:28 JST)**:
+
+| カテゴリ | テスト数 | 結果 |
+|---------|:-------:|:----:|
+| Constants Tests | 4 | ✅ |
+| Hash Function Tests | 4 | ✅ |
+| State Root Tests | 4 | ✅ |
+| Leaf Computation Tests | 4 | ✅ |
+| Merkle Proof Tests | 6 | ✅ |
+| Gas Benchmark Tests | 4 | ✅ |
+| Interface Compliance | 1 | ✅ |
+| Fuzz Tests (256 runs each) | 3 | ✅ |
+| Lock Inclusion Tests | 1 | ✅ |
+| **合計** | **32** | ✅ **ALL PASS** |
+
+**Gas Benchmarks (参考値)**:
+
+| 操作 | Gas消費 | 備考 |
+|------|---------|------|
+| `calculateStateRoot` (10 entries) | ~4,037,288 | L3実行前提 |
+| `computeLeaf` | ~1,615,168 | L3実行前提 |
+| `hashNodes` | ~808,317 | L3実行前提 |
+| `verifyInclusion` (depth 20) | ~16,441,280 | L3実行前提 |
+
 **Commits**:
 - `14883a2` feat(CORE-001): Add ICoreState interface
 - `6107200` feat(CORE-001): Implement CoreState contract
 - `0a067a4` test(CORE-001): Add CoreState comprehensive tests
 - `4914b19` fix(CORE-001): Update CoreState import path
+- `a535a12` fix(l3-aegis): Fix foundry.toml for proper dependency resolution
 
-#### CORE-002: STARK Verifier統合
+#### CORE-002: STARK Verifier統合 ⬜ 次のタスク
 
 - [ ] Phase 2 STARKVerifier移植
 - [ ] l3-aegis環境への適応
@@ -350,29 +231,29 @@ Phase 3.1 Foundation
 
 ### 必須条件
 
-| # | 基準 | 検証方法 |
-|---|------|---------|
-| 1 | **L3チェーン4-node動作** | Docker Compose テスト |
-| 2 | **Dilithium-III署名動作** | Rust単体テスト PASS |
-| 3 | **SHA3-256ハッシュ動作** | Rust単体テスト PASS |
-| 4 | Core Layer基盤動作 | Solidity単体テストPASS |
-| 5 | Pluggable Layer切替動作 | モード切替テストPASS |
-| 6 | CP保護機構動作 | CP保護テストPASS |
-| 7 | Phase 2資産統合完了 | 統合テストPASS |
-| 8 | 全テスト100% PASS | `cargo test` + `forge test` |
-| 9 | Slither警告なし（Critical/High） | `slither .` |
+| # | 基準 | 検証方法 | 状態 |
+|---|------|---------|:----:|
+| 1 | **L3チェーン4-node動作** | Docker Compose テスト | ✅ |
+| 2 | **Dilithium-III署名動作** | Rust単体テスト PASS | ✅ |
+| 3 | **SHA3-256ハッシュ動作** | Rust単体テスト PASS | ✅ |
+| 4 | Core Layer基盤動作 | Solidity単体テストPASS | 🔄 |
+| 5 | Pluggable Layer切替動作 | モード切替テストPASS | ⬜ |
+| 6 | CP保護機構動作 | CP保護テストPASS | ⬜ |
+| 7 | Phase 2資産統合完了 | 統合テストPASS | 🔄 |
+| 8 | 全テスト100% PASS | `cargo test` + `forge test` | 🔄 |
+| 9 | Slither警告なし（Critical/High） | `slither .` | ⬜ |
 
 ### 成果物
 
-| # | 成果物 | パス |
-|---|-------|------|
-| 1 | **l3-aegis Rustコードベース** | `l3-aegis/rust/` |
-| 2 | **4-node testnet構成** | `l3-aegis/docker/` |
-| 3 | l3-aegis Solidityコード | `l3-aegis/src/` |
-| 4 | テストスイート | `l3-aegis/test/` |
-| 5 | Modular Architecture仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` |
-| 6 | エコシステム計画 | `docs/planning/ECOSYSTEM_PLAN.md` |
-| 7 | Phase 3.2チェックリスト | `docs/checklists/phase3.2.md` |
+| # | 成果物 | パス | 状態 |
+|---|-------|------|:----:|
+| 1 | **l3-aegis Rustコードベース** | `l3-aegis/crates/` | ✅ |
+| 2 | **4-node testnet構成** | `l3-aegis/docker/` | ✅ |
+| 3 | l3-aegis Solidityコード | `l3-aegis/src/` | 🔄 |
+| 4 | テストスイート | `l3-aegis/test/` | 🔄 |
+| 5 | Modular Architecture仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` | ⬜ |
+| 6 | エコシステム計画 | `docs/planning/ECOSYSTEM_PLAN.md` | ⬜ |
+| 7 | Phase 3.2チェックリスト | `docs/checklists/phase3.2.md` | ⬜ |
 
 ---
 
@@ -406,16 +287,16 @@ Phase 3.1では以下の緩和策を開始：
 
 ## 📊 進捗サマリー
 
-### Track A: L3 Chain (Rust) - IC-1
+### Track A: L3 Chain (Rust) - IC-1 ✅ COMPLETE 🎉
 
 | タスク | 状態 | PIR |
 |--------|:----:|-----|
 | L3-001 | ✅ | PIR-P3.1-002 PASS |
 | L3-002 | ✅ | PIR-P3.1-004 PASS 🎉 |
-| L3-003 | ✅ | PIR-P3.1-005 PENDING |
-| L3-004 | 🔄 | - (L3-003で部分完了) |
-| L3-005 | ⬜ | - |
-| L3-006 | ⬜ | - |
+| L3-003 | ✅ | PIR-P3.1-005 PASS 🎉 |
+| L3-004 | ✅ | (L3-003に含む) |
+| L3-005 | ✅ | PIR-P3.1-006 PASS 🎉 |
+| L3-006 | ✅ | PIR-P3.1-007 PASS 🎉 |
 
 ### Track B: L3 Contracts (Solidity)
 
@@ -424,8 +305,8 @@ Phase 3.1では以下の緩和策を開始：
 | SETUP-001 | ✅ | PIR-P3.1-001 |
 | SETUP-002 | ✅ | PIR-P3.1-001 |
 | SETUP-003 | ✅ | - |
-| CORE-001 | ✅ | - |
-| CORE-002 | ⬜ | - |
+| **CORE-001** | ✅ | **32/32 PASS** 🎉 |
+| CORE-002 | ⬜ | 次のタスク |
 | CORE-003 | ⬜ | - |
 | PLUG-001 | ⬜ | - |
 | PLUG-002 | ⬜ | - |
