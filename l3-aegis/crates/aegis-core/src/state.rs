@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use aegis_types::{Hash256, Address, Transaction, UnlockStatus, DilithiumPublicKey};
+use aegis_types::{Hash256, Transaction};
+use aegis_types::transaction::{Address, UnlockStatus, DilithiumPublicKey, UnlockRequestTx, VRFResultTx, ProverSignatureTx, L1SubmitTx};
 
 /// State management errors
 #[derive(Error, Debug)]
@@ -95,7 +96,7 @@ impl StateManager {
         Ok(())
     }
 
-    fn process_unlock_request(&mut self, tx: &aegis_types::UnlockRequestTx) -> StateResult<()> {
+    fn process_unlock_request(&mut self, tx: &UnlockRequestTx) -> StateResult<()> {
         if self.unlocks.contains_key(&tx.unlock_id) {
             return Err(StateError::DuplicateEntry(format!("Unlock {} exists", tx.unlock_id)));
         }
@@ -107,7 +108,7 @@ impl StateManager {
         Ok(())
     }
 
-    fn process_vrf_result(&mut self, tx: &aegis_types::VRFResultTx) -> StateResult<()> {
+    fn process_vrf_result(&mut self, tx: &VRFResultTx) -> StateResult<()> {
         let unlock = self.unlocks.get_mut(&tx.unlock_id)
             .ok_or_else(|| StateError::UnlockNotFound(tx.unlock_id.to_string()))?;
         if unlock.status != UnlockStatus::Pending {
@@ -119,7 +120,7 @@ impl StateManager {
         Ok(())
     }
 
-    fn process_prover_signature(&mut self, tx: &aegis_types::ProverSignatureTx) -> StateResult<()> {
+    fn process_prover_signature(&mut self, tx: &ProverSignatureTx) -> StateResult<()> {
         let unlock = self.unlocks.get_mut(&tx.unlock_id)
             .ok_or_else(|| StateError::UnlockNotFound(tx.unlock_id.to_string()))?;
         if unlock.status != UnlockStatus::ProversAssigned {
@@ -136,7 +137,7 @@ impl StateManager {
         Ok(())
     }
 
-    fn process_l1_submit(&mut self, tx: &aegis_types::L1SubmitTx) -> StateResult<()> {
+    fn process_l1_submit(&mut self, tx: &L1SubmitTx) -> StateResult<()> {
         let unlock = self.unlocks.get_mut(&tx.unlock_id)
             .ok_or_else(|| StateError::UnlockNotFound(tx.unlock_id.to_string()))?;
         if unlock.status != UnlockStatus::SignaturesCollected {
@@ -172,7 +173,6 @@ impl StateManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use aegis_types::UnlockRequestTx;
 
     #[test]
     fn test_state_manager() {
