@@ -32,3 +32,7 @@ thiserror = "1.0"
 
 [dev-dependencies]
 tokio-test = "0.4"
+
+[[test]]
+name = "four_node_test"
+path = "../../tests/integration/four_node_test.rs"
