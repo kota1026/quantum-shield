@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 # Internal crates
 aegis-types = { path = "../aegis-types" }
+aegis-core = { path = "../aegis-core" }
 aegis-crypto = { path = "../aegis-crypto" }
 aegis-consensus = { path = "../aegis-consensus" }
 aegis-network = { path = "../aegis-network" }
