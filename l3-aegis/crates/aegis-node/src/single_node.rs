@@ -5,7 +5,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{RwLock, mpsc};
-use tracing::{info, warn, debug, error};
+use tracing::{info, debug, error};
 use thiserror::Error;
 
 use aegis_types::{Block, BlockHeader, BlockBody, Hash256, NodeId, Transaction, PROTOCOL_VERSION};
@@ -115,7 +115,8 @@ impl SingleNode {
                         if !*running.read().await { break; }
                         let txs: Vec<_> = {
                             let mut pool = tx_pool.write().await;
-                            pool.drain(..pool.len().min(max_txs)).collect()
+                            let drain_count = pool.len().min(max_txs);
+                            pool.drain(..drain_count).collect()
                         };
                         let height = *current_height.read().await;
                         let parent_hash = Hash256::hash(&height.to_le_bytes());
@@ -182,13 +183,13 @@ impl SingleNode {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use aegis_types::{UnlockRequestTx, Address, DilithiumPublicKey};
+    use aegis_types::transaction::{UnlockRequestTx, Address, DilithiumPublicKey};
     use tempfile::tempdir;
 
     fn test_config() -> SingleNodeConfig {
         SingleNodeConfig {
             block_interval_ms: 100, max_txs_per_block: 10, memory_limit_mb: 100,
-            data_dir: tempdir().unwrap().into_path(),
+            data_dir: tempdir().unwrap().keep().unwrap(),
         }
     }
 
