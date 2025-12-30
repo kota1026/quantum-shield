@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-30 22:30 JST  
+> **Last Updated**: 2025-12-30 22:55 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -14,7 +14,7 @@
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
 │  Active Task: CORE-001 State Manager基盤 ✅ COMPLETE        │
-│  Status: ✅ CORE-001 COMPLETE (IC-4 完了) 🎉                │
+│  Status: ✅ CORE-001 CP-1 FIX COMPLETE 🎉                   │
 │  Tests: ✅ 180/180 PASS (l3-aegis) + 32 PASS (CoreState)    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -28,9 +28,9 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | CORE-001 State Manager基盤 (IC-4) |
-| **実装日時** | 2025-12-30 22:20 JST |
-| **ステータス** | ✅ 実装完了・テスト検証済み |
+| **対象Plan** | CORE-001 State Manager基盤 (IC-4) - CP-1修正 |
+| **実装日時** | 2025-12-30 22:55 JST |
+| **ステータス** | ✅ CP-1修正完了・再レビュー準備完了 |
 
 ### 対象IC (Integration Component)
 
@@ -43,8 +43,18 @@
 | ファイル | サイズ | 説明 |
 |---------|--------|------|
 | `l3-aegis/src/interfaces/ICoreState.sol` | 6,997 bytes | State Manager インターフェース定義 |
-| `l3-aegis/src/core/CoreState.sol` | 7,870 bytes | State Manager実装（SHA3-256統合） |
+| `l3-aegis/src/core/CoreState.sol` | 8,301 bytes | State Manager実装（SHA3-256統合）**CP-1修正済み** |
 | `l3-aegis/test/CoreState.t.sol` | 12,987 bytes | 包括的テストスイート（32テスト） |
+
+### 🔴 CP-1 修正内容 (Security Review Finding #1)
+
+| 修正箇所 | 修正前 | 修正後 |
+|----------|--------|--------|
+| `LEAF_DOMAIN` | `keccak256("QS_SMT_LEAF_V1")` | `0x1fc57ebce31be3d5781e78f150b1303c4295b0ab57b3e349a286904a176f3a22` |
+| `NODE_DOMAIN` | `keccak256("QS_SMT_NODE_V1")` | `0x2788e21c82dcd3e3f1683169f418c39da467ef396fca65015ae273ef0f04be03` |
+| `STATE_ROOT_DOMAIN` | `keccak256("QS_STATE_ROOT_V1")` | `0x60311680a88251ea5468ef203bddcdd726d4fa7b0e68ec9cb636dafef58d1f29` |
+
+**修正理由**: CP-1ではkeccak256使用が禁止されている。コンパイル時定数であっても厳密なCP-1準拠のため、SHA3-256事前計算値に置換。
 
 ### 仕様書要件実装
 
@@ -52,9 +62,10 @@
 |------|------|---------| 
 | SHA3-256 State Root計算 | CP-1, IC-4 | `CoreState.sol:calculateStateRoot()` |
 | Sparse Merkle Tree (depth=20) | IC-4 | `CoreState.sol:verifyInclusion()` |
-| Domain Separation | Security Best Practice | `ICoreState.sol:LEAF_DOMAIN, NODE_DOMAIN, STATE_ROOT_DOMAIN` |
+| Domain Separation (SHA3-256) | CP-1, Security | `CoreState.sol:L27-35` **修正済み** |
 | FIPS 202 準拠 | CP-1 | `CoreState.sol:verifySHA3Implementation()` |
 | Lock Inclusion検証 | SEQ#2 | `CoreState.sol:verifyLockInclusion()` |
+| **keccak256完全排除** | CP-1 | ✅ **修正完了** |
 
 ### L3基盤確認
 
@@ -63,11 +74,13 @@
 | Phase 2 SHA3_256統合 | ✅ |
 | @phase2/ remapping設定 | ✅ |
 | FIPS 202準拠 | ✅ |
-| 禁止アルゴリズム不使用 | ✅ |
+| **禁止アルゴリズム不使用** | ✅ **修正完了** |
 
 ### SPEC_REVIEW対応
 
-（該当なし - SPEC_REVIEW.md未実行状態）
+| ISSUE | 対応内容 | コミット |
+|-------|----------|----------|
+| Finding #1: keccak256 in Domain Separators | SHA3-256事前計算値に置換 | `6e8b4a2` |
 
 ### テスト結果
 
@@ -97,12 +110,14 @@
 | `6107200` | feat(CORE-001): Implement CoreState contract |
 | `0a067a4` | test(CORE-001): Add CoreState comprehensive tests |
 | `4914b19` | fix(CORE-001): Update CoreState import path |
+| **`6e8b4a2`** | **fix(CORE-001): Replace keccak256 domain separators with SHA3-256 pre-computed values** |
 
 ### 備考
 
 - Phase 2のSHA3_256ライブラリを `@phase2/` remappingで統合
 - `foundry.toml` の `libs` に `../contracts/lib` を追加して依存解決
 - 全テストがローカル環境で検証済み（2025-12-30 22:28 JST）
+- **CP-1修正**: Domain SeparatorをSHA3-256事前計算値に置換（2025-12-30 22:55 JST）
 
 ---
 
@@ -252,7 +267,7 @@ Track A の全6タスクが完了しました。
 
 | # | タスク | IC | 担当 | 状態 |
 |---|--------|-----|------|------|
-| CORE-001 | State Manager基盤 | IC-4 | Engineer | ✅ **COMPLETE** 🎉 |
+| CORE-001 | State Manager基盤 | IC-4 | Engineer | ✅ **COMPLETE + CP-1 FIX** 🎉 |
 | CORE-002 | STARK Verifier統合 | IC-2 | Engineer | ⬜ 次のタスク |
 | CORE-003 | CP保護機構実装 | IC-3 | Engineer | ⬜ |
 
@@ -312,13 +327,14 @@ Track A の全6タスクが完了しました。
 
 ## 🔜 次のアクション
 
-### 最優先: CORE-002 STARK Verifier統合
+### 最優先: CORE-001 再レビュー → PIR
 
 | # | タスク | IC | 優先度 | 担当 | 状態 |
 |---|--------|-----|--------|------|------|
-| 1 | **CORE-002 STARK Verifier統合** | IC-2 | 🔴 **P0** | Engineer | ⬜ 次のタスク |
-| 2 | CORE-003 CP保護機構実装 | IC-3 | 🟠 High | Engineer | ⬜ |
-| 3 | エコシステム構築計画策定 | - | 🟠 High | CBO | ⬜ |
+| 1 | **CORE-001 再セキュリティレビュー** | IC-4 | 🔴 **P0** | Red Team | ⬜ 次 |
+| 2 | CORE-001 PIR | IC-4 | 🔴 **P0** | 11 Agents | ⬜ |
+| 3 | CORE-002 STARK Verifier統合 | IC-2 | 🟠 High | Engineer | ⬜ |
+| 4 | CORE-003 CP保護機構実装 | IC-3 | 🟠 High | Engineer | ⬜ |
 
 ---
 
@@ -329,8 +345,9 @@ Track A の全6タスクが完了しました。
 | Phase 1完了 | Month 6 | ✅ **COMPLETE** |
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
 | Track A完了 | Month 10 | ✅ **COMPLETE** 🎉 |
-| **CORE-001 State Manager** | **Month 10** | ✅ **COMPLETE** 🎉 |
-| CORE-002 STARK Verifier | Month 10 | ⬜ 次のタスク |
+| **CORE-001 State Manager** | **Month 10** | ✅ **COMPLETE + CP-1 FIX** 🎉 |
+| CORE-001 PIR | Month 10 | ⬜ 次 |
+| CORE-002 STARK Verifier | Month 10 | ⬜ |
 | Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
@@ -351,7 +368,7 @@ Track A の全6タスクが完了しました。
 │  │                                                          │
 │  └── Track B: L3 Contracts (Solidity) ← 🔄 **ACTIVE**       │
 │      ├── SETUP-001,002,003: ✅ COMPLETE                     │
-│      ├── CORE-001: ✅ **COMPLETE** 🎉 (IC-4)                │
+│      ├── CORE-001: ✅ **COMPLETE + CP-1 FIX** 🎉 (IC-4)     │
 │      ├── CORE-002: ⬜ 次のタスク (IC-2)                     │
 │      ├── CORE-003: ⬜ (IC-3)                                │
 │      └── PLUG-001~003: Pluggable Layer実装                  │
@@ -387,7 +404,7 @@ Track A の全6タスクが完了しました。
     - SETUP-001: ✅ PASS
     - SETUP-002: ✅ PASS
     - SETUP-003: ✅ PASS
-    - **CORE-001: ✅ COMPLETE** 🎉 (IC-4 State Management)
+    - **CORE-001: ✅ COMPLETE + CP-1 FIX** 🎉 (IC-4 State Management)
     - CORE-002: ⬜ 次のタスク (IC-2 STARK Verifier)
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
