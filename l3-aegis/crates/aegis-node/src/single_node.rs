@@ -189,7 +189,7 @@ mod tests {
     fn test_config() -> SingleNodeConfig {
         SingleNodeConfig {
             block_interval_ms: 100, max_txs_per_block: 10, memory_limit_mb: 100,
-            data_dir: tempdir().unwrap().keep().unwrap(),
+            data_dir: tempdir().unwrap().into_path(),
         }
     }
 
