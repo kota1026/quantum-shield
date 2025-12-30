@@ -1,8 +1,9 @@
 # Quantum Shield - Core Principles（憲法）
 
-> **Version**: 1.0  
+> **Version**: 1.1  
 > **Status**: IMMUTABLE（ガバナンス投票によっても変更不可）  
-> **Last Updated**: 2025-12-23
+> **Last Updated**: 2025-01-01
+> **Change Log**: v1.1 - ZK-STARKを「許可アルゴリズム」に再分類（量子耐性は満たすが経済条件・UXで段階導入）
 
 ---
 
@@ -30,23 +31,37 @@
 
 ## 🔐 暗号学的要件（Cryptographic Requirements）
 
-### 必須アルゴリズム
+### 必須アルゴリズム（常時使用）
 
 | 用途 | アルゴリズム | 標準 | パラメータ |
 |------|------------|------|------------|
 | User署名 | **Dilithium-III** | FIPS 204 | Level 3 |
 | Prover署名 | **SPHINCS+-128s** | FIPS 205 | 8KB/署名 |
 | State Hash | **SHA3-256** | FIPS 202 | 256-bit |
-| ZK証明 | **ZK-STARK** | - | 128-bit security |
 
-### 禁止事項
+### 許可アルゴリズム（量子耐性、段階導入）
+
+以下のアルゴリズムはCP-1（量子耐性）を満たすが、経済条件・UXの観点から段階的に導入する。
+
+| 用途 | アルゴリズム | 量子耐性 | 導入条件 |
+|------|------------|:-------:|----------|
+| ZK証明 | **ZK-STARK** | ✅ | 証明生成時間・ガスコスト・透明性が改善した場合 |
+
+> **Note**: ZK-STARKはハッシュベースであり楕円曲線に依存しないため、量子耐性を持つ。
+> 現時点では SPHINCS+ AIR化に数分かかる問題があり、Phase 1-2では使用しない。
+> 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
+
+### 禁止アルゴリズム（量子脆弱）
 
 ❌ 以下のアルゴリズムは**絶対に使用禁止**：
-- ECDSA（量子脆弱）
-- RSA（量子脆弱）
-- SHA-256 / SHA-2ファミリー（Grover攻撃リスク）
-- keccak256（SHA3-256を使用すること）
-- secp256k1（量子脆弱）
+
+| アルゴリズム | 禁止理由 |
+|-------------|---------|
+| ECDSA | 量子脆弱（Shor攻撃） |
+| RSA | 量子脆弱（Shor攻撃） |
+| secp256k1 | 量子脆弱（楕円曲線） |
+| SHA-256 / SHA-2ファミリー | Grover攻撃リスク |
+| keccak256 | SHA3-256を使用すること |
 
 ---
 
@@ -90,7 +105,7 @@
 
 ```
 □ 実装がCP-1〜CP-5に準拠しているか？
-□ 使用するアルゴリズムがNIST準拠か？
+□ 使用するアルゴリズムが「必須」または「許可」リストに含まれるか？
 □ 禁止アルゴリズムを使用していないか？
 □ Time Lock / Slashingを無効化していないか？
 □ ユーザーの秘密鍵をサーバーに保存していないか？
@@ -104,8 +119,9 @@
 
 | ドキュメント | パス | 用途 |
 |-------------|------|------|
-| シーケンスカタログ | `docs/constitution/QUANTUM_SHIELD_SEQUENCES_v2.0_REF.md` | フロー参照 |
+| シーケンスカタログ | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | フロー参照 |
 | 統合仕様書 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | 詳細仕様 |
+| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | ZK-STARK不使用の根拠 |
 | 開発計画書 | `docs/planning/DEVELOPMENT_PLAN_v1.0.md` | スケジュール |
 
 ---
