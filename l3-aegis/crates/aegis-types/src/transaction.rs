@@ -25,30 +25,30 @@ impl Address {
     }
 
     /// Convert to hex string
-    pub fn to_hex(&amp;self) -> String {
+    pub fn to_hex(&self) -> String {
         format!("0x{}", hex::encode(self.0))
     }
 
     /// Parse from hex string
-    pub fn from_hex(s: &amp;str) -> Result&lt;Self, hex::FromHexError&gt; {
+    pub fn from_hex(s: &str) -> Result<Self, hex::FromHexError> {
         let s = s.strip_prefix("0x").unwrap_or(s);
         let bytes = hex::decode(s)?;
         if bytes.len() != 20 {
             return Err(hex::FromHexError::InvalidStringLength);
         }
         let mut arr = [0u8; 20];
-        arr.copy_from_slice(&amp;bytes);
+        arr.copy_from_slice(&bytes);
         Ok(Self(arr))
     }
 }
 
 /// Dilithium public key (for user signatures)
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct DilithiumPublicKey(pub Vec&lt;u8&gt;);
+pub struct DilithiumPublicKey(pub Vec<u8>);
 
 /// SPHINCS+ signature (for prover signatures)
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SPHINCSSignature(pub Vec&lt;u8&gt;);
+pub struct SPHINCSSignature(pub Vec<u8>);
 
 /// Unlock status
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -75,7 +75,7 @@ pub struct UnlockRequestTx {
     /// Owner's Dilithium public key
     pub owner_pk: DilithiumPublicKey,
     /// Owner's signature on the request
-    pub owner_signature: Vec&lt;u8&gt;,
+    pub owner_signature: Vec<u8>,
     /// Timestamp
     pub timestamp: u64,
 }
@@ -85,9 +85,9 @@ impl UnlockRequestTx {
     ///
     /// # CP-1 Compliance
     /// Uses SHA3-256 (FIPS 202), not keccak256.
-    pub fn hash(&amp;self) -> Hash256 {
+    pub fn hash(&self) -> Hash256 {
         let serialized = serde_json::to_vec(self).expect("Serialization should not fail");
-        Hash256::hash(&amp;serialized)
+        Hash256::hash(&serialized)
     }
 }
 
@@ -99,9 +99,9 @@ pub struct VRFResultTx {
     /// VRF output
     pub vrf_output: Hash256,
     /// VRF proof
-    pub vrf_proof: Vec&lt;u8&gt;,
+    pub vrf_proof: Vec<u8>,
     /// Selected prover IDs
-    pub selected_provers: Vec&lt;Hash256&gt;,
+    pub selected_provers: Vec<Hash256>,
     /// Node that generated the VRF
     pub generator_node: Hash256,
     /// Timestamp
@@ -113,9 +113,9 @@ impl VRFResultTx {
     ///
     /// # CP-1 Compliance
     /// Uses SHA3-256 (FIPS 202), not keccak256.
-    pub fn hash(&amp;self) -> Hash256 {
+    pub fn hash(&self) -> Hash256 {
         let serialized = serde_json::to_vec(self).expect("Serialization should not fail");
-        Hash256::hash(&amp;serialized)
+        Hash256::hash(&serialized)
     }
 }
 
@@ -137,9 +137,9 @@ impl ProverSignatureTx {
     ///
     /// # CP-1 Compliance
     /// Uses SHA3-256 (FIPS 202), not keccak256.
-    pub fn hash(&amp;self) -> Hash256 {
+    pub fn hash(&self) -> Hash256 {
         let serialized = serde_json::to_vec(self).expect("Serialization should not fail");
-        Hash256::hash(&amp;serialized)
+        Hash256::hash(&serialized)
     }
 }
 
@@ -161,9 +161,9 @@ impl L1SubmitTx {
     ///
     /// # CP-1 Compliance
     /// Uses SHA3-256 (FIPS 202), not keccak256.
-    pub fn hash(&amp;self) -> Hash256 {
+    pub fn hash(&self) -> Hash256 {
         let serialized = serde_json::to_vec(self).expect("Serialization should not fail");
-        Hash256::hash(&amp;serialized)
+        Hash256::hash(&serialized)
     }
 }
 
@@ -185,13 +185,13 @@ impl Transaction {
     ///
     /// # CP-1 Compliance
     /// Uses SHA3-256 (FIPS 202), not keccak256.
-    pub fn hash(&amp;self) -> Hash256 {
+    pub fn hash(&self) -> Hash256 {
         let serialized = serde_json::to_vec(self).expect("Transaction serialization should not fail");
-        Hash256::hash(&amp;serialized)
+        Hash256::hash(&serialized)
     }
 
     /// Get the transaction type as a string
-    pub fn tx_type(&amp;self) -> &amp;'static str {
+    pub fn tx_type(&self) -> &'static str {
         match self {
             Transaction::UnlockRequest(_) => "UnlockRequest",
             Transaction::VRFResult(_) => "VRFResult",
@@ -201,7 +201,7 @@ impl Transaction {
     }
 
     /// Get the associated unlock ID
-    pub fn unlock_id(&amp;self) -> Hash256 {
+    pub fn unlock_id(&self) -> Hash256 {
         match self {
             Transaction::UnlockRequest(tx) => tx.unlock_id,
             Transaction::VRFResult(tx) => tx.unlock_id,
@@ -211,7 +211,7 @@ impl Transaction {
     }
 
     /// Get the timestamp
-    pub fn timestamp(&amp;self) -> u64 {
+    pub fn timestamp(&self) -> u64 {
         match self {
             Transaction::UnlockRequest(tx) => tx.timestamp,
             Transaction::VRFResult(tx) => tx.timestamp,
@@ -270,7 +270,7 @@ mod tests {
     fn test_address_hex_roundtrip() {
         let addr = Address::new([1u8; 20]);
         let hex = addr.to_hex();
-        let parsed = Address::from_hex(&amp;hex).unwrap();
+        let parsed = Address::from_hex(&hex).unwrap();
         assert_eq!(addr, parsed);
     }
 
@@ -346,7 +346,7 @@ mod tests {
         ];
 
         let mut hashes = Vec::new();
-        for tx in &amp;txs {
+        for tx in &txs {
             let hash = tx.hash();
             assert!(!hash.is_zero());
             assert_eq!(hash.as_bytes().len(), 32);
