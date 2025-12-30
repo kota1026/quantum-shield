@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-30 10:30 JST  
+> **Last Updated**: 2025-12-30 12:00 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,24 +13,26 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Active Task: L3-002 Single-node dev mode実装               │
-│  Status: ✅ 実装完了 / テスト検証済み                       │
+│  Active Task: PIR-P3.1-004 発行（L3-002レビュー）           │
+│  Status: ✅ 実装完了・テスト検証済み → PIR発行待ち          │
 │  Tests: ✅ 74/74 PASS (l3-aegis)                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ✅ L3-002 テスト検証完了 (2025-12-30)
+## ✅ L3-002 実装・テスト完了 (2025-12-30)
 
-L3-002の実装コードのテストが完了しました。
+L3-002 Single-node dev mode の実装とテスト検証が完了しました。
 
 | 項目 | 結果 |
 |------|------|
+| 実装 | ✅ 完了 |
 | テスト実行 | ✅ ローカル環境で実行 |
 | 総テスト数 | 74 |
 | 結果 | ✅ **74/74 PASS** |
-| コンパイルエラー | ✅ 修正済み（インポートパス修正） |
+| コンパイルエラー | ✅ 修正済み |
+| CP-1準拠 | ✅ 確認済み |
 
 ### 修正履歴
 
@@ -42,12 +44,18 @@ L3-002の実装コードのテストが完了しました。
 | `6642ebf` | aegis-node single_node.rs borrowチェック修正 |
 | `9bcd498` | aegis-node single_node.rs tempdir修正 |
 
-### 次のアクション
+### 完了チェックリスト
 
-1. ✅ テスト実行・全PASS確認
-2. 🔄 **CURRENT_STATE.md更新** ← 現在
-3. ⬜ 新規PIR発行（PIR-P3.1-004）
-4. ⬜ セキュリティレビュー (04_review.md)
+- [x] StateManager 実装
+- [x] State Root計算 (SHA3-256)
+- [x] Transaction Executor 実装
+- [x] Single-Node Mode 実装
+- [x] JSON-RPC 2.0 API 実装
+- [x] CLI 実装
+- [x] CP-1準拠確認
+- [x] **テスト実行 (74/74 PASS)**
+- [x] **CURRENT_STATE.md更新**
+- [ ] **PIR-P3.1-004 発行** ← 現在地
 
 ---
 
@@ -141,7 +149,7 @@ L3-002の実装コードのテストが完了しました。
 |------|-----|
 | **対象Plan** | L3-002 Single-node dev mode実装 (IC-1) |
 | **実装日時** | 2025-12-30 01:35 ~ 10:30 JST |
-| **ステータス** | ✅ 実装完了 |
+| **ステータス** | ✅ 実装・テスト完了 → PIR待ち |
 
 ### 対象Sequence
 
@@ -198,10 +206,6 @@ L3-002の実装コードのテストが完了しました。
 | 禁止: RSA | 不使用 | ✅ | ✅ |
 | 禁止: secp256k1 | 不使用 | ✅ | ✅ |
 
-### SPEC_REVIEW対応
-
-（該当なし - SPEC_REVIEW.md 未実行状態）
-
 ### テスト結果
 
 | 項目 | 値 |
@@ -224,12 +228,6 @@ L3-002の実装コードのテストが完了しました。
 | aegis-storage | 12 | ✅ |
 | aegis-types | 13 | ✅ |
 
-### 備考
-
-- コンパイルエラー（インポートパス問題）を5コミットで修正
-- PIR-P3.1-003は虚偽報告のため無効化済み
-- 新規PIR（PIR-P3.1-004）を発行予定
-
 ---
 
 ## 📝 PIR記録
@@ -241,7 +239,7 @@ L3-002の実装コードのテストが完了しました。
 | PIR-P3.1-001 | SETUP-001, SETUP-002 | ✅ PASS | 2025-12-28 |
 | PIR-P3.1-002 | L3-001 l3-aegis構造設計 | ✅ PASS | 2025-12-30 |
 | PIR-P3.1-003 | L3-002 Single-node dev mode | ❌ **INVALIDATED** | 2025-12-30 |
-| PIR-P3.1-004 | L3-002 Single-node dev mode (Re-issue) | ⬜ **PENDING** | - |
+| PIR-P3.1-004 | L3-002 Single-node dev mode (Re-issue) | ⬜ **発行待ち** | - |
 
 **PIR-P3.1-001 詳細**:
 - 対象: l3-aegis基盤 + Modular Architectureインターフェース定義
@@ -272,7 +270,7 @@ L3-002の実装コードのテストが完了しました。
 **PIR-P3.1-004 予定**:
 - 対象: L3-002 Single-node dev mode (IC-1) - 再発行
 - テスト結果: ✅ 74/74 PASS（ローカル検証済み）
-- 状態: ⬜ PIRレビュー待ち
+- 状態: ⬜ **発行待ち** ← 現在地
 
 ---
 
@@ -301,22 +299,11 @@ L3-002の実装コードのテストが完了しました。
 | # | タスク | 担当 | 状態 | PIR |
 |---|--------|------|:----:|-----|
 | L3-001 | l3-aegis プロジェクト構造設計 | Rust Engineer | ✅ | ✅ PIR-P3.1-002 PASS |
-| L3-002 | Single-node dev mode実装 | Rust Engineer | ✅ 74/74 PASS | ⬜ PIR-P3.1-004 待ち |
+| L3-002 | Single-node dev mode実装 | Rust Engineer | ✅ 74/74 PASS | 🔄 PIR-P3.1-004 発行待ち |
 | L3-003 | Basic PBFT consensus実装 | Rust Engineer | ⬜ | - |
 | L3-004 | Dilithium-III consensus署名統合 | Crypto Engineer | ⬜ | - |
 | L3-005 | SHA3-256 block hashing実装 | Crypto Engineer | ⬜ | - |
 | L3-006 | 4-node local testnet構築 | DevOps | ⬜ | - |
-
-**L3-002 完了チェックリスト**:
-- [x] StateManager 実装
-- [x] State Root計算 (SHA3-256)
-- [x] Transaction Executor 実装
-- [x] Single-Node Mode 実装
-- [x] JSON-RPC 2.0 API 実装
-- [x] CLI 実装
-- [x] CP-1準拠確認
-- [x] **テスト実行 (74/74 PASS)**
-- [ ] **PIR-P3.1-004 発行・PASS**
 
 ### 🏗️ Track B: L3 Contracts (Solidity)
 
@@ -400,7 +387,7 @@ L3-002の実装コードのテストが完了しました。
 
 | # | タスク | 優先度 | 担当 | 状態 |
 |---|--------|--------|------|------|
-| 1 | **PIR-P3.1-004 発行（L3-002）** | 🔴 **P0** | Reviewer | 🔄 **NEXT** |
+| 1 | **PIR-P3.1-004 発行（L3-002）** | 🔴 **P0** | Reviewer | 🔄 **NEXT** ← 現在地 |
 | 2 | **セキュリティレビュー (04_review.md)** | 🔴 **P0** | CSO/Red Team | ⬜ |
 
 ### Phase 3.1 継続
@@ -422,7 +409,7 @@ L3-002の実装コードのテストが完了しました。
 | L3-001完了 | Month 10 | ✅ **COMPLETE** 🎉 |
 | L3-001 PIRレビュー | Month 10 | ✅ **PIR-P3.1-002 PASS** 🎉 |
 | L3-002 実装完了 | Month 10 | ✅ **74/74 PASS** 🎉 |
-| **L3-002 PIRレビュー** | **Month 10** | ⬜ **PIR-P3.1-004 待ち** ← 現在地 |
+| **L3-002 PIRレビュー** | **Month 10** | 🔄 **PIR-P3.1-004 発行待ち** ← 現在地 |
 | L3 4-node consensus動作 | Month 11-12 | ⬜ L3-003~006 |
 | Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
@@ -445,7 +432,7 @@ L3-002の実装コードのテストが完了しました。
 │  │   ├── L3-002: Single-node dev mode                       │
 │  │   │           ├── 実装: ✅ COMPLETE                      │
 │  │   │           ├── テスト: ✅ 74/74 PASS 🎉               │
-│  │   │           └── PIR: ⬜ PIR-P3.1-004 待ち ← 現在地     │
+│  │   │           └── PIR: 🔄 PIR-P3.1-004 発行待ち ← 現在地 │
 │  │   ├── L3-003: PBFT consensus                             │
 │  │   ├── L3-004: Dilithium-III署名                          │
 │  │   ├── L3-005: SHA3-256 hashing                           │
@@ -505,9 +492,9 @@ L3-002の実装コードのテストが完了しました。
 - Phase 3.1 Foundation: 🔄 ACTIVE
   - Track A (L3 Chain - IC-1):
     - L3-001: ✅ **COMPLETE** 🎉 (69/69 tests PASS, PIR-P3.1-002 PASS)
-    - L3-002: ✅ **実装完了** 🎉 (74/74 tests PASS)
+    - L3-002: ✅ **実装・テスト完了** 🎉 (74/74 tests PASS)
       - PIR-P3.1-003: ❌ INVALIDATED
-      - PIR-P3.1-004: ⬜ PENDING ← 現在地
+      - PIR-P3.1-004: 🔄 **発行待ち** ← 現在地
     - L3-003~006: ⬜
   - Track B (Solidity):
     - SETUP-001: ✅ PASS (PIR-P3.1-001)
