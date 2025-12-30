@@ -45,6 +45,9 @@ CURRENT_STATEのActive Checklistを読み込み、「PIR要件」セクション
 ## 8. タスク
 PIR会議を実施してください。
 
+> **重要**: PIR結果は必ず `docs/aegis/meetings/PIR-XXX.md` に保存してください。
+> これは 06_update.md での情報連携に必須です。
+
 ### 8.1 PIR判定基準（基本）
 | # | 項目 | 確認内容 |
 |---|------|---------|
@@ -151,4 +154,28 @@ SPEC_STRATEGY_BRIDGE §1.5 に基づく判定：
 - PASS → ⑥ 状態更新
 - CONDITIONAL → 修正後に再PIR
 - FAIL → ③ 実装に差し戻し
+```
+
+## 9. 成果物の保存（必須）
+
+PIR会議の結果を以下に保存してください。
+
+### 9.1 保存先
+```
+docs/aegis/meetings/PIR-XXX.md
+```
+※ XXX は CURRENT_STATE.md の「次のPIR ID」に従う
+
+### 9.2 保存内容
+- 上記 8.5 の判定フォーマット全体
+- 11エージェントの詳細コメント（必要に応じて）
+- テスト実行結果のログ
+
+### 9.3 確認
+保存後、以下を出力してください：
+```markdown
+## PIR結果保存完了
+- ファイル: docs/aegis/meetings/PIR-XXX.md
+- 判定: PASS / CONDITIONAL / FAIL
+- 次のステップ: 06_update.md を実行してください
 ```
