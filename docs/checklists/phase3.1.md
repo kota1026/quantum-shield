@@ -219,21 +219,39 @@ Phase 3.1 Foundation
 - [x] `IConstitutionLock.sol` インターフェース作成
 - [x] インターフェーステスト作成（16テスト）
 
-#### SETUP-003: Phase 2資産統合準備
+#### SETUP-003: Phase 2資産統合準備 ✅ 完了 (2025-12-30)
 
-- [ ] STARKVerifier統合計画
-- [ ] SHA3Hasher統合計画
-- [ ] BatchVerifier統合計画
-- [ ] 統合テスト計画作成
+- [x] `PHASE2_INTEGRATION_PLAN.md` 作成
+- [x] STARKVerifier統合計画策定
+- [x] SHA3Hasher統合計画策定
+- [x] BatchVerifier統合計画策定
+- [x] 統合テスト計画作成
 
 ### Week 3-4: Core Layer基盤
 
-#### CORE-001: State Manager基盤
+#### CORE-001: State Manager基盤 ✅ 完了 (2025-12-30)
 
-- [ ] StateManager.sol 基本構造
-- [ ] SHA3-256ステートハッシュ実装
-- [ ] Merkleルート計算（Phase 2 SHA3Hasher活用）
-- [ ] ステート管理テスト
+- [x] ICoreState.sol インターフェース定義
+- [x] CoreState.sol 基本構造
+- [x] SHA3-256ステートハッシュ実装（Phase 2 SHA3_256活用）
+- [x] Sparse Merkle Tree統合（Phase 2 SparseMerkleTree活用）
+- [x] Domain Separation (LEAF_DOMAIN, NODE_DOMAIN, STATE_ROOT_DOMAIN)
+- [x] 包括的テストスイート (CoreState.t.sol)
+- [x] ガスベンチマークテスト
+
+**成果物**:
+
+| ファイル | サイズ | 説明 |
+|---------|--------|------|
+| `l3-aegis/src/interfaces/ICoreState.sol` | 6,997 bytes | State管理インターフェース |
+| `l3-aegis/src/core/CoreState.sol` | 7,870 bytes | CoreState実装 |
+| `l3-aegis/test/CoreState.t.sol` | 12,987 bytes | 包括的テストスイート |
+
+**Commits**:
+- `14883a2` feat(CORE-001): Add ICoreState interface
+- `6107200` feat(CORE-001): Implement CoreState contract
+- `0a067a4` test(CORE-001): Add CoreState comprehensive tests
+- `4914b19` fix(CORE-001): Update CoreState import path
 
 #### CORE-002: STARK Verifier統合
 
@@ -405,8 +423,8 @@ Phase 3.1では以下の緩和策を開始：
 |--------|:----:|-----|
 | SETUP-001 | ✅ | PIR-P3.1-001 |
 | SETUP-002 | ✅ | PIR-P3.1-001 |
-| SETUP-003 | ⬜ | - |
-| CORE-001 | ⬜ | - |
+| SETUP-003 | ✅ | - |
+| CORE-001 | ✅ | - |
 | CORE-002 | ⬜ | - |
 | CORE-003 | ⬜ | - |
 | PLUG-001 | ⬜ | - |
