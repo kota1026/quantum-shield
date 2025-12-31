@@ -1,13 +1,11 @@
 # Current Plan
 
-> **Generated**: 2025-12-31 11:30 JST
+> **Generated**: 2025-12-31 15:00 JST
 > **Phase**: 3 - L3 + Token + 完全分散化
-> **Sub-Phase**: 3.1 Foundation
+> **Sub-Phase**: 3.1 Foundation - Pluggable Layer実装
 
 ## 対象チェックリスト
 `docs/checklists/phase3.1.md`
-
----
 
 ## 仕様書参照（必須）
 
@@ -16,18 +14,18 @@
 ### 対象Sequence
 | Sequence | 実装Layer | 仕様書参照箇所 |
 |----------|----------|---------------|
-| #2 | Core Layer | SEQUENCES §2 - Unlock (Normal Path) |
-| #3 | Core Layer | SEQUENCES §3 - Unlock (Emergency Path) |
+| #5 | Governance | SEQUENCES §5 - Prover Registration |
+| #6 | Governance | SEQUENCES §6 - Prover Exit |
+| #7 | Governance | SEQUENCES §7 - Governance Proposal |
+| #8 | Core + Governance | SEQUENCES §8 - Emergency Pause |
 
 ### セキュリティ要件
 | 要件 | 仕様書出典 | 実装方法 |
 |------|----------|---------|
-| SPHINCS+-128s 署名検証 | CORE_PRINCIPLES §暗号学的要件 | CoreVerifier.sol (SPHINCSVerifier統合) |
-| 2/5 Prover署名必須 | SEQ#2 Step5-7 | CoreBatch.sol (閾値検証) |
-| SHA3-256ハッシュ | CP-1 | 既存SHA3_256.sol活用 |
-| SHAKE256内部ハッシュ | FIPS 205 | 既存SHAKE256.sol活用 |
-
----
+| モード切替Time Lock | MODULAR_ARCHITECTURE §4.2 | 7日（MULTISIG→DECENTRALIZED） |
+| 降格Time Lock | MODULAR_ARCHITECTURE §4.2 | 30日 + 超多数決 |
+| Emergency Pause権限 | SPEC_STRATEGY_BRIDGE §7.1 | モード別権限分岐 |
+| Admin単独承認制限 | CORE_PRINCIPLES | CENTRALIZEDモードのみ |
 
 ## 戦略準拠確認（Phase 3）
 
@@ -35,21 +33,17 @@
 
 - [x] L3スタック: 独自L3 (l3-aegis) 前提
 - [x] アーキテクチャ: Modular (Core/Governance/Token Layer)
-- [x] リスク緩和: 網羅的テスト実施
-- [x] モード制約: Core Layer（モード不問で常時有効）
-
----
+- [x] リスク緩和: Time Lock + 超多数決要件
+- [x] モード制約: SPEC_STRATEGY_BRIDGE §2.2の許可組み合わせのみ
 
 ## L3基盤確認（Phase 3のL3関連タスク）
 
 > 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
 
-- [x] 独自4ノードBFTチェーン前提
-- [x] l3-aegis (Rust) の範囲内か → Solidity Core Layerとして整合
-- [x] SEQUENCES v2.0に準拠しているか → SEQ#2, #3準拠
-- [x] CP-1/CP-5を満たしているか → SPHINCS+/SHA3-256使用、keccak256排除
-
----
+- [x] 独自4ノードBFTチェーン前提か → Yes
+- [x] l3-aegis (Rust + Solidity) の範囲内か → Yes
+- [x] SEQUENCES v2.0に準拠しているか → Yes
+- [x] CP-1/CP-5を満たしているか → Yes
 
 ## IC完全性チェック（Phase 3必須）
 
@@ -58,7 +52,7 @@
 ### 今回スコープのIC
 | IC-ID | Component | タスク | Status |
 |-------|-----------|--------|--------|
-| IC-2 | L3 Bridge Contract | CORE-002 SPHINCS+ Verifier統合 | 🟡 In Progress |
+| IC-2 | L3 Bridge Contract (Governance部分) | PLUG-001 | 🟡 In Progress |
 
 ### マスタ照合
 - [x] 全IC-ID（IC-1〜IC-6）がPHASE3_PLANに対応セクションを持つ
@@ -68,199 +62,145 @@
 - [x] 今回スコープの全タスクにIC-IDを付与した
 - [x] IC-ID不要タスクは理由を明記した
 
----
+## 前回レビュー課題
 
-## 前回レビュー課題（該当時のみ）
-
-> CURRENT_STATE.mdより
+> CURRENT_STATE.mdより確認
 
 | # | 重要度 | 課題 | 対策 |
 |---|--------|------|------|
-| - | - | 🔴 Critical課題なし | - |
-| - | - | 🟠 High課題なし（前回解決済み） | - |
-| 1 | 🟠 MEDIUM | Modular設計複雑性 | 網羅的テスト |
+| - | - | 未解決課題なし | - |
 
----
+**Note**: CORE-001, CORE-002, CORE-003 すべてPIR PASSにより未解決課題なし。
 
 ## 今回のスコープ
 
 ### 実装項目
-- [ ] [IMPL-001] ICoreVerifier.sol インターフェース定義 (IC-2)
-- [ ] [IMPL-002] CoreVerifier.sol 作成（SPHINCS+検証ラッパー） (IC-2)
-- [ ] [IMPL-003] SPHINCSVerifier.sol 統合（既存contracts/src/から） (IC-2)
-- [ ] [IMPL-004] ICoreBatch.sol インターフェース定義 (IC-2)
-- [ ] [IMPL-005] CoreBatch.sol 作成（2/5閾値バッチSPHINCS+検証） (IC-2)
-
-### 削除項目
-- [ ] [DEL-001] Phase 2 STARKVerifier関連コードのCore Layer参照削除（既存コードは保持）
+- [x] [IMPL-001] IGovernanceSwitch.sol インターフェース定義 (IC-2) **完了済み**
+- [ ] [IMPL-002] GovernanceSwitch.sol コントラクト作成 (IC-2)
+- [ ] [IMPL-003] CENTRALIZED モード実装 (IC-2)
+- [ ] [IMPL-004] MULTISIG モード実装 (IC-2)
+- [ ] [IMPL-005] DECENTRALIZED モードスタブ (IC-2)
+- [ ] [IMPL-006] Emergency Pause統合（SEQ#8対応） (IC-2)
 
 ### テスト項目
-- [ ] [TEST-001] CoreVerifier.t.sol - 単体テスト（SPHINCS+署名検証）
-- [ ] [TEST-002] CoreBatch.t.sol - バッチ検証テスト（2/5閾値）
-- [ ] [TEST-003] ガスベンチマークテスト（目標: ~200K gas/署名）
-- [ ] [TEST-004] CoreState + CoreVerifier統合テスト
+- [ ] [TEST-001] GovernanceSwitch単体テスト
+- [ ] [TEST-002] モード切替テスト（全遷移パターン）
+- [ ] [TEST-003] 権限チェックテスト
+- [ ] [TEST-004] Time Lock検証テスト
+- [ ] [TEST-005] Emergency Pauseテスト
+- [ ] [TEST-006] Fuzzテスト（境界値）
 
 ### 参照ドキュメント
 | 種類 | ドキュメント | 参照セクション |
 |------|------------|---------------|
-| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5, §10 |
-| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #2, #3 |
-| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §IC |
-| 憲法 | `docs/constitution/CORE_PRINCIPLES.md` | §暗号学的要件 |
+| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5, §7, §10 |
+| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #5, #6, #7, #8 |
+| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §IC-2 |
+| 戦略 | `docs/planning/PHASE3_STRATEGY.md` | Modular Architecture |
+| Modular仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` | §3.1, §4 |
 | L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
-| Phase 3計画 | `docs/planning/PHASE3_PLAN.md` | §IC対応 |
-
----
+| 既存インターフェース | `l3-aegis/src/interfaces/IGovernanceSwitch.sol` | 全体 |
 
 ## 成果物
 | ファイル | 説明 | IC-ID |
 |---------|------|-------|
-| `contracts/src/interfaces/ICoreVerifier.sol` | Core Verifierインターフェース | IC-2 |
-| `contracts/src/core/CoreVerifier.sol` | SPHINCS+検証ラッパー実装 | IC-2 |
-| `contracts/src/interfaces/ICoreBatch.sol` | バッチ検証インターフェース | IC-2 |
-| `contracts/src/core/CoreBatch.sol` | 2/5閾値バッチ検証実装 | IC-2 |
-| `contracts/test/core/CoreVerifier.t.sol` | CoreVerifierテストスイート | - |
-| `contracts/test/core/CoreBatch.t.sol` | CoreBatchテストスイート | - |
+| `l3-aegis/src/governance/GovernanceSwitch.sol` | GovernanceSwitch実装 | IC-2 |
+| `l3-aegis/test/governance/GovernanceSwitch.t.sol` | 包括的テストスイート | - |
 
----
+## 実装順序
 
-## 実行順序
+### Step 1: GovernanceSwitch基本構造 (IMPL-002)
+1. `l3-aegis/src/governance/` ディレクトリ作成
+2. `GovernanceSwitch.sol` 基本スケルトン作成
+3. IGovernanceSwitchインターフェース実装宣言
+4. 状態変数定義（mode, admin, multisigConfig, scConfig）
+5. コンストラクタ（初期モード: CENTRALIZED）
 
-### Phase 1: インターフェース定義
-1. ICoreVerifier.sol作成 - 署名検証インターフェース
-2. ICoreBatch.sol作成 - バッチ検証インターフェース
+### Step 2: CENTRALIZED モード実装 (IMPL-003)
+1. `getAdmin()` 実装
+2. `canApprove()` - admin判定実装
+3. `approveAction()` - admin専用パス
+4. `setGovernanceMode()` - admin→MULTISIG遷移
 
-### Phase 2: Core実装
-3. CoreVerifier.sol作成 - 既存SPHINCSVerifier.solを活用したラッパー
-4. CoreBatch.sol作成 - 2/5閾値検証ロジック
+### Step 3: MULTISIG モード実装 (IMPL-004)
+1. MultisigConfig struct定義
+2. `getMultisigConfig()` 実装
+3. 署名管理（signers mapping, signatureCount）
+4. `canApprove()` - threshold判定追加
+5. `approveAction()` - 署名収集・閾値判定
+6. `setGovernanceMode()` - MULTISIG→DECENTRALIZED遷移（7日Time Lock）
 
-### Phase 3: テスト
-5. CoreVerifier.t.sol作成・実行
-6. CoreBatch.t.sol作成・実行
-7. ガスベンチマーク測定
-8. CoreState + CoreVerifier統合テスト
+### Step 4: DECENTRALIZED モードスタブ (IMPL-005)
+1. SecurityCouncilConfig struct定義
+2. `getSecurityCouncilConfig()` スタブ実装
+3. `canApprove()` - SC判定スタブ
+4. 降格遷移制限（30日Time Lock + 超多数決要件記載）
+5. **Note**: 完全実装はPhase 3.2のDAO統合時
 
-### Phase 4: セキュリティ確認
-9. Slither静的解析実行
-10. CP-1準拠確認（keccak256/SHA-256未使用確認）
-11. コードレビュー
+### Step 5: Emergency Pause統合 (IMPL-006)
+1. Pausable機能統合（OpenZeppelin or カスタム）
+2. `emergencyPause()` 関数追加
+3. モード別権限チェック（SPEC_STRATEGY_BRIDGE §7.1準拠）
+4. 72時間最大期間制限
 
----
+### Step 6: テスト作成 (TEST-001〜006)
+1. `GovernanceSwitch.t.sol` 作成
+2. モード取得/設定テスト
+3. 全遷移パターンテスト（9パターン）
+4. 権限違反テスト（revert確認）
+5. Time Lock検証テスト
+6. Fuzzテスト（閾値、署名数）
 
-## 既存資産活用
-
-### 統合対象の既存コントラクト
-| ファイル | 説明 | 活用方法 |
-|---------|------|---------|
-| `contracts/src/SPHINCSVerifier.sol` | SPHINCS+-SHAKE-128s検証 | CoreVerifierから呼び出し |
-| `contracts/src/libraries/SHAKE256.sol` | SHAKE256ハッシュライブラリ | 既存利用継続 |
-| `contracts/src/libraries/SHA3_256.sol` | SHA3-256ハッシュライブラリ | 公開鍵ハッシュに使用 |
-
-### SPHINCSVerifier.sol 既存機能
-| 関数 | 説明 | 利用可否 |
-|------|------|:--------:|
-| `verify(message, signature, publicKey)` | 単一署名検証 | ✅ |
-| `verifyBatch(messages, signatures, publicKeys)` | バッチ署名検証 | ✅ |
-| `verifyWithDetails(...)` | 詳細結果付き検証 | ✅ |
-| `computePublicKeyHash(publicKey)` | SHA3-256による公開鍵ハッシュ | ✅ |
-
----
-
-## 設計方針
-
-### CoreVerifier.sol
-```solidity
-// 設計概要
-contract CoreVerifier is ICoreVerifier {
-    SPHINCSVerifier public immutable sphincsVerifier;
-    
-    function verifyProverSignature(
-        bytes32 messageHash,
-        bytes calldata signature,
-        bytes calldata publicKey
-    ) external view returns (bool);
-    
-    function verifyWithProof(
-        bytes32 stateRoot,
-        bytes32 messageHash,
-        bytes calldata signature,
-        bytes calldata publicKey
-    ) external view returns (bool);
-}
-```
-
-### CoreBatch.sol
-```solidity
-// 設計概要
-contract CoreBatch is ICoreBatch {
-    uint256 public constant REQUIRED_SIGNATURES = 2;
-    uint256 public constant TOTAL_PROVERS = 5;
-    
-    function verifyThresholdSignatures(
-        bytes32 messageHash,
-        bytes[] calldata signatures,
-        bytes[] calldata publicKeys,
-        uint256 requiredThreshold
-    ) external view returns (bool valid, uint256 validCount);
-    
-    function verifyUnlockSignatures(
-        bytes32 unlockHash,
-        bytes[] calldata proverSignatures,
-        bytes[] calldata proverPublicKeys
-    ) external view returns (bool); // 2/5閾値チェック込み
-}
-```
-
----
+### Step 7: セキュリティ確認
+1. Slitherスキャン実行
+2. Critical/High/Medium 0件確認
+3. ガスベンチマーク測定
+4. PIR準備
 
 ## Core Principles確認
-- [x] CP-1: 完全量子耐性 - SPHINCS+-128s/SHAKE256/SHA3-256のみ使用
-- [x] CP-2: Self-Custody - ユーザー鍵に影響なし
-- [x] CP-3: Time Lock存在 - 対象外（Verifierは検証のみ）
-- [x] CP-4: Slashing存在 - 対象外（Verifierは検証のみ）
-- [x] CP-5: 透明性 - イベント発行で検証結果記録
-
----
+- [x] CP-1: 完全量子耐性 - 違反なし（暗号アルゴリズム不使用）
+- [x] CP-2: Self-Custody - 違反なし（ユーザー鍵管理なし）
+- [x] CP-3: Time Lock存在 - 違反なし（モード遷移にTime Lock適用）
+- [x] CP-4: Slashing存在 - 違反なし（本コンポーネント対象外）
+- [x] CP-5: 透明性 - 違反なし（全モード変更をEvent発行）
 
 ## Modular Architecture確認（Phase 3）
-- [x] Core Layer: CP保護機構含む（CORE-003で実装済み）
-- [ ] Governance Layer: 今回スコープ外
-- [ ] Token Layer: 今回スコープ外
-- [x] Layer間依存: CoreVerifier/CoreBatchはCore Layerのみ依存
+- [x] Core Layer: CP保護機構含む（ConstitutionLock実装済み）
+- [x] Governance Layer: ON/OFF切替可能（GovernanceSwitchで実現）
+- [x] Token Layer: ON/OFF切替可能（PLUG-002で実装予定）
+- [x] Layer間依存: 下位→上位依存なし（GovernanceはCoreに依存するがCoreはGovernanceに依存しない）
 
----
+## モード組み合わせ制約（SPEC_STRATEGY_BRIDGE §2.2）
 
-## ガス目標
-| 操作 | 目標Gas | 備考 |
-|------|---------|------|
-| 単一署名検証 | ~200K | L3実行前提 |
-| バッチ検証 (2署名) | ~400K | L3実行前提 |
-| 閾値確認オーバーヘッド | ~5K | 追加コスト |
-
----
+| # | Governance | Token | 許可 | 備考 |
+|---|-----------|-------|:----:|------|
+| 1 | CENTRALIZED | DISABLED | ✅ | Phase 1相当 |
+| 2 | CENTRALIZED | BASIC | ✅ | 初期トークン発行 |
+| 3 | MULTISIG | DISABLED | ✅ | 譲渡用最小構成 |
+| 4 | MULTISIG | BASIC | ✅ | Phase 2相当 |
+| 5 | DECENTRALIZED | DISABLED | ❌ | **禁止**: veQS投票不可 |
+| 6 | DECENTRALIZED | BASIC | ✅ | 分散化初期 |
+| 7 | DECENTRALIZED | FULL | ✅ | 完全分散化（推奨） |
 
 ## リスク・懸念事項
+
 | # | リスク | 重要度 | 対策 |
 |---|--------|--------|------|
-| 1 | SPHINCSVerifier.sol既存コードとの統合複雑性 | 🟡 MEDIUM | ラッパーパターンで疎結合 |
-| 2 | ガスコスト超過 | 🟡 MEDIUM | ベンチマーク早期実行 |
-| 3 | L3→L1検証時のデータサイズ (7,856 bytes/sig) | 🟡 MEDIUM | L3内で検証完結を推奨 |
+| 1 | モード切替攻撃 | 🔴 High | Time Lock + 超多数決 |
+| 2 | 権限昇格脆弱性 | 🔴 High | 厳格なアクセス制御テスト |
+| 3 | 降格悪用 | 🟠 Medium | 30日Time Lock + 75% veQS要件 |
+| 4 | DECENTRALIZEDスタブの不完全性 | 🟡 Low | Phase 3.2で完全実装予定を明記 |
 
----
+## 完了基準
 
-## 禁止事項確認
-
-### 使用禁止アルゴリズム
-- [ ] ECDSA - **使用禁止**
-- [ ] RSA - **使用禁止**
-- [ ] secp256k1 - **使用禁止**
-- [ ] SHA-256 / SHA-2ファミリー - **使用禁止**
-- [ ] keccak256 - **使用禁止**（EVM storage slot計算は例外）
-
-### 使用必須アルゴリズム
-- [x] SPHINCS+-128s (FIPS 205) - Prover署名検証
-- [x] SHA3-256 (FIPS 202) - 公開鍵ハッシュ
-- [x] SHAKE256 (FIPS 202) - 内部ハッシュ
+| # | 基準 | 検証方法 |
+|---|------|---------|
+| 1 | IGovernanceSwitch完全実装 | インターフェースコンプライアンステスト |
+| 2 | 3モード切替動作 | モード切替テストPASS |
+| 3 | Time Lock適用確認 | Time Lock検証テストPASS |
+| 4 | 全テストPASS | `forge test` |
+| 5 | Slither 0 Critical/High | `slither .` |
+| 6 | ガスベンチマーク記録 | テスト結果に含む |
 
 ---
 
