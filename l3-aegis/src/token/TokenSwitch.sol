@@ -30,6 +30,10 @@ contract TokenSwitch is ITokenSwitch {
     /// @dev Per SPEC_STRATEGY_BRIDGE §7.2
     uint256 public constant BASIC_FULL_MIN_STAKE = 500_000 * 1e18;
     
+    /// @notice Pre-computed function selector for setTokenMode(uint8)
+    /// @dev = bytes4(keccak256("setTokenMode(uint8)")) - pre-computed for CP-1 compliance
+    bytes4 private constant SELECTOR_SET_TOKEN_MODE = 0x0d175f51;
+    
     // ============ Errors ============
     
     /// @notice Thrown when time lock has not expired
@@ -334,8 +338,8 @@ contract TokenSwitch is ITokenSwitch {
         // Check governance switch authorization
         IGovernanceSwitch govSwitch = _governanceSwitch;
         if (address(govSwitch) != address(0)) {
-            // Use canApprove with a generic action selector
-            if (govSwitch.canApprove(bytes4(keccak256("setTokenMode(uint8)")), msg.sender)) {
+            // Use pre-computed selector for CP-1 compliance (no runtime keccak256)
+            if (govSwitch.canApprove(SELECTOR_SET_TOKEN_MODE, msg.sender)) {
                 return;
             }
         }
