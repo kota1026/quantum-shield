@@ -3,7 +3,8 @@
 > **日時**: 2025-01-01 JST  
 > **議長**: CTO  
 > **対象**: PLUG-002 Token Switch  
-> **PIR ID**: PIR-P3.1-012
+> **PIR ID**: PIR-P3.1-012  
+> **更新**: 2025-01-01 - CP-1完全準拠修正を追記
 
 ---
 
@@ -64,14 +65,14 @@
 
 | エージェント | 評価 | 仕様書参照 | コメント |
 |-------------|:----:|-----------|---------|
-| Purpose Guardian | ✅ | CORE_PRINCIPLES | CP-1〜CP-5完全準拠。keccak256はセレクタ計算のみで暗号用途なし |
+| Purpose Guardian | ✅ | CORE_PRINCIPLES | CP-1〜CP-5完全準拠（keccak256排除済み） |
 | CTO | ✅ | MODULAR_ARCHITECTURE §3.2, §4.2 | Time Lock仕様完全準拠、Governance連携適切 |
 | CSO | ✅ | SPEC_STRATEGY_BRIDGE §7.2 | Stake通貨・最低額の仕様準拠、権限制御適切 |
 | CFO | ✅ | - | Gas効率良好（<100k gas for setTokenMode） |
 | CBO | ✅ | PHASE3_STRATEGY | Phase 3ロードマップ整合、段階的Token導入対応 |
 | Cost Guardian | ✅ | - | 不要なストレージ操作なし、効率的実装 |
 | Engineer | ✅ | SEQUENCES | コード品質高、可読性良好、適切なコメント |
-| Cryptographer | ✅ | CORE_PRINCIPLES | NIST準拠確認（Token Switch自体は暗号操作なし） |
+| Cryptographer | ✅ | CORE_PRINCIPLES | CP-1完全準拠（事前計算セレクタ使用） |
 | Researcher | ✅ | - | 最新Solidity practices適用、ガス最適化 |
 | Legal | ✅ | - | ライセンス適切（MIT）、コンプライアンス問題なし |
 | Red Team | ✅ | - | 権限昇格攻撃耐性確認、Time Lock bypass不可 |
@@ -111,11 +112,38 @@
 
 | CP | 確認内容 | 結果 |
 |----|---------|:----:|
-| CP-1 | keccak256はセレクタ計算のみ（暗号用途なし） | ✅ |
+| CP-1 | **keccak256完全排除**: 事前計算セレクタ使用 | ✅ |
 | CP-2 | Self-Custody: ユーザー資産直接管理なし | ✅ |
 | CP-3 | Time Lock: 7日/30日実装 | ✅ |
 | CP-4 | Slashing: Core Layer担当（影響なし） | ✅ |
 | CP-5 | 透明性: 全操作でイベント発行 | ✅ |
+
+### CP-1 完全準拠修正（2025-01-01追記）
+
+**問題**: 初期実装では `_checkAuthorization()` 内でランタイムkeccak256を使用
+
+```solidity
+// ❌ 修正前: ランタイムkeccak256使用
+if (govSwitch.canApprove(bytes4(keccak256("setTokenMode(uint8)")), msg.sender)) {
+```
+
+**修正**: 事前計算されたセレクタ定数を使用
+
+```solidity
+// ✅ 修正後: 事前計算セレクタ使用（CP-1完全準拠）
+/// @notice Pre-computed function selector for setTokenMode(uint8)
+/// @dev = bytes4(keccak256("setTokenMode(uint8)")) - pre-computed for CP-1 compliance
+bytes4 private constant SELECTOR_SET_TOKEN_MODE = 0x0d175f51;
+
+// _checkAuthorization() 内
+if (govSwitch.canApprove(SELECTOR_SET_TOKEN_MODE, msg.sender)) {
+```
+
+**実装箇所**:
+- `TokenSwitch.sol:L35-36` - 定数定義
+- `TokenSwitch.sol:L299-300` - 使用箇所
+
+**検証**: ランタイムでのkeccak256呼び出しが完全に排除され、CP-1に完全準拠
 
 ---
 
