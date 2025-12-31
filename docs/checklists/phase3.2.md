@@ -1,265 +1,205 @@
-# Phase 3.2 Checklist: Token + Implementation
+# Phase 3.2 Checklist: Implementation
 
-> **期間**: Month 13-15
-> **目標**: veQS Token設計・実装 + Governance Layer完全実装 + Multi-Sequencer対応
-> **前提**: Phase 3.1 Go/No-Go判定 PASS
-
----
-
-## 📋 前提条件チェック
-
-- [ ] Phase 3.1 Go/No-Go判定 PASS確認
-- [ ] L3 Chain Infrastructure (IC-1) 動作確認
-- [ ] Core Layer基盤 (CORE-001〜003) 完了確認
-- [ ] Pluggable Layer基盤 (PLUG-001〜003) 完了確認
-- [ ] 開発ブランチ更新
+> **Version**: 1.0  
+> **Created**: 2025-01-01  
+> **Phase**: 3.2 Implementation  
+> **Duration**: Month 11-15 (10 weeks)
 
 ---
 
-## 🏗️ Phase 3.2 構造
+## Overview
 
-```
-Phase 3.2 Implementation (Month 13-15)
-├── Track A: veQS Token (IC-5)
-│   └── トークン設計・実装・テスト
-│
-├── Track B: Governance Layer完全実装
-│   └── Security Council、Token Vote、Parameter変更
-│
-├── Track C: Sequencer拡張 (IC-3)
-│   └── Multi-Sequencer対応
-│
-└── Track D: 統合テスト
-    └── Sepolia L3 E2Eテスト
-```
+| 項目 | 値 |
+|------|-----|
+| **Phase** | 3.2 Implementation |
+| **主要目標** | Sequencer (IC-3) + veQS Token (IC-5) + Governance完成 |
+| **前提条件** | Phase 3.1 GO判定完了 ✅ |
+| **成功基準** | 全タスク完了 + PIR PASS + Go/No-Go判定 GO |
 
 ---
 
-## 🪙 Track A: veQS Token (IC-5)
+## ⚠️ 重要設計変更: BTF7不要
 
-> **Reference**: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Token Design
-> **IC-ID**: IC-5
+> **CEO指示**: 2025-01-01
 
-### Week 1-2: Token設計
+- ❌ IC-6（Node Expansion 4→7）は **不要**
+- ✅ BTF4（Enterprise 4ノード固定）か Full Decentralization（Permissionless）の選択型
 
-| # | タスク | 担当 | 状態 | PIR |
-|---|--------|------|:----:|-----|
-| TOKEN-001 | veQS トークン経済設計書作成 | CFO + CBO | ⬜ | - |
-| TOKEN-002 | ロック期間・投票力計算式設計 | Engineer | ⬜ | - |
-| TOKEN-003 | トークン配分計画確定 | CFO | ⬜ | - |
-| TOKEN-004 | Vesting Schedule設計 | Engineer | ⬜ | - |
+---
 
-### Week 3-4: Token実装
+## Week 1-2: 仕様書更新 + 基盤設計
+
+### 仕様書更新（BTF7不要対応）
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|:----:|-----|
-| TOKEN-005 | IVeQS.sol インターフェース定義 | IC-5 | Engineer | ⬜ | - |
-| TOKEN-006 | VeQS.sol 基本実装 | IC-5 | Engineer | ⬜ | - |
-| TOKEN-007 | ロック機構実装 (1週間〜4年) | IC-5 | Engineer | ⬜ | - |
-| TOKEN-008 | 投票力計算実装 (残期間比例) | IC-5 | Engineer | ⬜ | - |
-| TOKEN-009 | Vesting Contract実装 | IC-5 | Engineer | ⬜ | - |
+| DOC-001 | UNIFIED_SPEC_v2.0.md IC-6削除・設計変更記載 | - | PM | ⬜ | - |
+| DOC-002 | PHASE3_PLAN.md IC-6関連セクション削除 | - | PM | ⬜ | - |
+| DOC-003 | SPEC_STRATEGY_BRIDGE.md IC Traceability更新 | - | PM | ⬜ | - |
+| DOC-004 | L3_CHAIN_SPECIFICATION.md 2本立て設計明記 | - | PM | ⬜ | - |
 
-### Week 5-6: Token統合
-
-| # | タスク | IC | 担当 | 状態 | PIR |
-|---|--------|-----|------|:----:|-----|
-| TOKEN-010 | TokenSwitch.BASIC モード実装 | IC-5 | Engineer | ⬜ | - |
-| TOKEN-011 | TokenSwitch.FULL モード実装 | IC-5 | Engineer | ⬜ | - |
-| TOKEN-012 | Staking機構実装 | IC-5 | Engineer | ⬜ | - |
-| TOKEN-013 | Fee Distribution実装 | IC-5 | Engineer | ⬜ | - |
-| TOKEN-014 | Token包括テスト | IC-5 | QA | ⬜ | - |
-
-**Token仕様 (UNIFIED_SPEC §Token Design)**:
-
-| パラメータ | 値 |
-|-----------|-----|
-| 名称 | $QS (Quantum Shield) |
-| 総供給量 | 1,000,000,000 |
-| ロック期間 | 1週間〜4年 |
-| 最大ブースト | 4倍（4年ロック時） |
-| 投票力計算 | QS量 × (残りロック期間 / 最大ロック期間) |
-
----
-
-## 🏛️ Track B: Governance Layer完全実装
-
-> **Reference**: `docs/planning/SPEC_STRATEGY_BRIDGE.md` §7
-> **Reference**: `docs/specs/MODULAR_ARCHITECTURE.md`
-
-### Week 1-2: Security Council実装
-
-| # | タスク | 担当 | 状態 | PIR |
-|---|--------|------|:----:|-----|
-| GOV-001 | ISecurityCouncil.sol インターフェース | Engineer | ⬜ | - |
-| GOV-002 | SecurityCouncil.sol 実装 (9名構成) | Engineer | ⬜ | - |
-| GOV-003 | Emergency Pause実装 (5/9承認) | Engineer | ⬜ | - |
-| GOV-004 | 緊急アップグレード実装 (7/9承認) | Engineer | ⬜ | - |
-| GOV-005 | Council任期管理実装 | Engineer | ⬜ | - |
-
-### Week 3-4: Token Vote実装
-
-| # | タスク | 担当 | 状態 | PIR |
-|---|--------|------|:----:|-----|
-| GOV-006 | IGovernance.sol インターフェース | Engineer | ⬜ | - |
-| GOV-007 | Proposal作成機構実装 | Engineer | ⬜ | - |
-| GOV-008 | 投票機構実装 (veQS weighted) | Engineer | ⬜ | - |
-| GOV-009 | Quorum検証実装 (4%/8%/15%) | Engineer | ⬜ | - |
-| GOV-010 | Time Lock実装 (7日) | Engineer | ⬜ | - |
-
-### Week 5-6: Parameter変更機構
-
-| # | タスク | 担当 | 状態 | PIR |
-|---|--------|------|:----:|-----|
-| GOV-011 | GovernanceSwitch.DECENTRALIZED 完全実装 | Engineer | ⬜ | - |
-| GOV-012 | パラメータ変更 (Token Vote) | Engineer | ⬜ | - |
-| GOV-013 | コントラクトアップグレード機構 | Engineer | ⬜ | - |
-| GOV-014 | Veto機構実装 (理念違反6/9) | Engineer | ⬜ | - |
-| GOV-015 | Governance包括テスト | QA | ⬜ | - |
-
-**Governance仕様 (UNIFIED_SPEC §Governance)**:
-
-| アクション | 必要承認 | Quorum | Time Lock |
-|-----------|---------|--------|-----------|
-| Emergency Pause | SC 5/9 | - | なし |
-| 緊急アップグレード | SC 7/9 | - | 48時間 |
-| パラメータ変更 | Token Vote | 4% | 7日 |
-| コントラクトアップグレード | Token Vote | 8% | 7日 |
-| Council変更 | Token Vote | 15% | 7日 |
-| Veto (理念違反) | SC 6/9 | - | - |
-
----
-
-## ⚙️ Track C: Sequencer拡張 (IC-3)
-
-> **Reference**: `docs/planning/PHASE3_PLAN.md` §2 Sequencer
-> **IC-ID**: IC-3
-
-### Week 3-4: Multi-Sequencer対応
+### veQS Token基盤
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|:----:|-----|
-| SEQ-001 | Sequencer Rotation設計 | IC-3 | Engineer | ⬜ | - |
-| SEQ-002 | Multi-Sequencer Registration | IC-3 | Engineer | ⬜ | - |
-| SEQ-003 | Sequencer Staking (veQS) | IC-3 | Engineer | ⬜ | - |
-| SEQ-004 | Sequencer Selection (VRF) | IC-3 | Engineer | ⬜ | - |
-| SEQ-005 | Sequencer Slashing | IC-3 | Engineer | ⬜ | - |
+| TOKEN-001 | veQS Token基本コントラクト | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-002 | Lock/Unlock機構 | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-003 | 投票力計算（残りロック期間×数量） | IC-5 | Engineer | ⬜ | ⬜ |
 
-### Week 5-6: Sequencer統合
+### Sequencer基盤
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|:----:|-----|
-| SEQ-006 | L3→L1 Batch Submission | IC-3 | Engineer | ⬜ | - |
-| SEQ-007 | Fee Collection (Sequencer) | IC-3 | Engineer | ⬜ | - |
-| SEQ-008 | Sequencer包括テスト | IC-3 | QA | ⬜ | - |
+| SEQ-001 | Sequencer基本インターフェース定義 | IC-3 | Rust Eng | ⬜ | ⬜ |
+| SEQ-002 | MempoolManager実装 | IC-3 | Rust Eng | ⬜ | ⬜ |
 
 ---
 
-## 🧪 Track D: 統合テスト
+## Week 3-4: veQS Token実装
 
-### Week 7-8: Sepolia L3 E2Eテスト
-
-| # | タスク | 担当 | 状態 | PIR |
-|---|--------|------|:----:|-----|
-| E2E-001 | Sepolia L3 デプロイ | DevOps | ⬜ | - |
-| E2E-002 | veQS Token デプロイ・検証 | Engineer | ⬜ | - |
-| E2E-003 | Governance フロー E2E | QA | ⬜ | - |
-| E2E-004 | Multi-Sequencer E2E | QA | ⬜ | - |
-| E2E-005 | Token Vote E2E | QA | ⬜ | - |
-| E2E-006 | Emergency Pause E2E | QA | ⬜ | - |
-
----
-
-## 📊 Track E: 監査準備
-
-### Week 7-8: 第1回監査準備
-
-| # | タスク | 担当 | 状態 | PIR |
-|---|--------|------|:----:|-----|
-| AUDIT-001 | 監査会社選定・契約 | Legal + CSO | ⬜ | - |
-| AUDIT-002 | 監査スコープ定義 | CSO | ⬜ | - |
-| AUDIT-003 | ドキュメント整備 | Engineer | ⬜ | - |
-| AUDIT-004 | 内部セキュリティレビュー完了 | Red Team | ⬜ | - |
+| # | タスク | IC | 担当 | 状態 | PIR |
+|---|--------|-----|------|:----:|-----|
+| TOKEN-004 | Delegation機構 | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-005 | veQSガバナンス統合 | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-006 | Staking報酬配分 | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-007 | $QS基本トークン実装 | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-008 | Token Distribution準備 | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-009 | veQS単体テスト | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-010 | veQS統合テスト | IC-5 | Engineer | ⬜ | ⬜ |
 
 ---
 
-## ✅ Phase 3.2 完了基準
+## Week 5-6: Sequencer実装
 
-### 必須条件
-
-| # | 基準 | 検証方法 | 状態 |
-|---|------|---------|:----:|
-| 1 | veQS Token デプロイ・動作 | Sepolia テスト | ⬜ |
-| 2 | ロック・投票力計算正常 | 単体テスト | ⬜ |
-| 3 | Security Council 9名稼働 | 機能テスト | ⬜ |
-| 4 | Token Vote 動作 | E2Eテスト | ⬜ |
-| 5 | Multi-Sequencer 3-5稼働 | 統合テスト | ⬜ |
-| 6 | 全テスト PASS | `forge test` | ⬜ |
-| 7 | 第1回監査開始 | 契約・キックオフ | ⬜ |
-| 8 | Slither Critical/High なし | `slither .` | ⬜ |
-
-### 成果物
-
-| # | 成果物 | パス | 状態 |
-|---|-------|------|:----:|
-| 1 | veQS Token Contract | `l3-aegis/src/token/VeQS.sol` | ⬜ |
-| 2 | Vesting Contract | `l3-aegis/src/token/Vesting.sol` | ⬜ |
-| 3 | Security Council Contract | `l3-aegis/src/governance/SecurityCouncil.sol` | ⬜ |
-| 4 | Governance Contract | `l3-aegis/src/governance/Governance.sol` | ⬜ |
-| 5 | TokenSwitch完全実装 | `l3-aegis/src/pluggable/TokenSwitch.sol` | ⬜ |
-| 6 | GovernanceSwitch完全実装 | `l3-aegis/src/pluggable/GovernanceSwitch.sol` | ⬜ |
-| 7 | 監査レポート (第1回) | `docs/audits/` | ⬜ |
-| 8 | Phase 3.3チェックリスト | `docs/checklists/phase3.3.md` | ⬜ |
+| # | タスク | IC | 担当 | 状態 | PIR |
+|---|--------|-----|------|:----:|-----|
+| SEQ-003 | BatchBuilder実装 | IC-3 | Rust Eng | ⬜ | ⬜ |
+| SEQ-004 | L1 Submitter実装 | IC-3 | Rust Eng | ⬜ | ⬜ |
+| SEQ-005 | Sequencer Rotation機構 | IC-3 | Rust Eng | ⬜ | ⬜ |
+| SEQ-006 | Sequencer Staking統合 | IC-3 | Rust Eng | ⬜ | ⬜ |
+| SEQ-007 | Multi-Sequencer対応準備 | IC-3 | Rust Eng | ⬜ | ⬜ |
+| SEQ-008 | Sequencer統合テスト | IC-3 | Rust Eng | ⬜ | ⬜ |
 
 ---
 
-## 🔗 参照ドキュメント
+## Week 7-8: Governance完成
+
+| # | タスク | IC | 担当 | 状態 | PIR |
+|---|--------|-----|------|:----:|-----|
+| GOV-001 | Governor.sol実装（Quorum 4%/8%/15%） | - | Engineer | ⬜ | ⬜ |
+| GOV-002 | Proposal作成・投票フロー | - | Engineer | ⬜ | ⬜ |
+| GOV-003 | Time Lock (7日) 実装 | - | Engineer | ⬜ | ⬜ |
+| GOV-004 | Security Council連携（6名構成） | - | Engineer | ⬜ | ⬜ |
+| GOV-005 | Emergency Pause拡張（SC 5/9対応） | - | Engineer | ⬜ | ⬜ |
+| GOV-006 | Governance統合テスト | - | Engineer | ⬜ | ⬜ |
+
+### テスト
+
+| # | タスク | IC | 担当 | 状態 | PIR |
+|---|--------|-----|------|:----:|-----|
+| TEST-001 | Sequencer単体テスト | IC-3 | QA | ⬜ | ⬜ |
+| TEST-002 | veQS Token単体テスト | IC-5 | QA | ⬜ | ⬜ |
+| TEST-003 | Governor単体テスト | - | QA | ⬜ | ⬜ |
+| TEST-004 | Sequencer + veQS統合テスト | IC-3/5 | QA | ⬜ | ⬜ |
+| TEST-005 | Full Flow E2Eテスト | - | QA | ⬜ | ⬜ |
+
+---
+
+## Week 9-10: 監査準備・Go/No-Go
+
+### 監査・セキュリティ
+
+| # | タスク | IC | 担当 | 状態 | PIR |
+|---|--------|-----|------|:----:|-----|
+| AUDIT-001 | 監査会社選定・RFP発行 | - | CSO | ⬜ | - |
+| AUDIT-002 | 監査スコープ定義 | - | CSO | ⬜ | - |
+| AUDIT-003 | Bug Bounty Program設計 | - | CSO | ⬜ | - |
+
+### Phase 3.2 Go/No-Go
+
+| # | タスク | 担当 | 状態 |
+|---|--------|------|:----:|
+| GONOGO-001 | PIR最終レビュー | CTO | ⬜ |
+| GONOGO-002 | Go/No-Go判定会議 | 11エージェント | ⬜ |
+| GONOGO-003 | 判定書作成 | PM | ⬜ |
+
+---
+
+## 進捗サマリー
+
+| カテゴリ | 完了 | 合計 | 進捗率 |
+|---------|:----:|:----:|:------:|
+| DOC | 0 | 4 | 0% |
+| TOKEN | 0 | 10 | 0% |
+| SEQ | 0 | 8 | 0% |
+| GOV | 0 | 6 | 0% |
+| TEST | 0 | 5 | 0% |
+| AUDIT | 0 | 3 | 0% |
+| GONOGO | 0 | 3 | 0% |
+| **合計** | **0** | **39** | **0%** |
+
+---
+
+## IC完全性確認
+
+| IC-ID | Component | タスク範囲 | Status |
+|-------|-----------|-----------|--------|
+| IC-1 | L3 Chain Infrastructure | - | ✅ Phase 3.1 COMPLETE |
+| IC-2 | L3 Bridge Contract | - | ✅ Phase 3.1 COMPLETE |
+| IC-3 | Sequencer | SEQ-001〜008 | 🟡 本スコープ |
+| IC-4 | State Management | - | ✅ Phase 3.1 COMPLETE |
+| IC-5 | veQS Token | TOKEN-001〜010 | 🟡 本スコープ |
+| ~~IC-6~~ | ~~Node Expansion~~ | - | ❌ **不要（CEO指示）** |
+| IC-7 | Permissionless Nodes | - | ⚪ Phase 4 |
+
+---
+
+## Core Principles チェック
+
+| CP | 原則 | Phase 3.2準拠 |
+|----|------|---------------|
+| CP-1 | 完全量子耐性 | ✅ SHA3-256, Dilithium, SPHINCS+のみ |
+| CP-2 | Self-Custody | ✅ ユーザー署名検証 |
+| CP-3 | Time Lock存在 | ✅ Normal 24h, Emergency 7d, Proposal 7d |
+| CP-4 | Slashing存在 | ✅ Quadratic N²×10% |
+| CP-5 | 透明性 | ✅ L3記録・Event発行 |
+
+---
+
+## 禁止アルゴリズムチェック
+
+実装前に以下が使用されていないことを確認：
+
+- [ ] keccak256 → SHA3-256を使用
+- [ ] SHA-256 / SHA-2 → SHA3-256を使用
+- [ ] ECDSA → Dilithium-IIIを使用
+- [ ] RSA → SPHINCS+を使用
+- [ ] secp256k1 → 使用禁止
+
+---
+
+## 成功基準
+
+| 基準 | 条件 | 状態 |
+|------|------|:----:|
+| タスク完了 | 39/39 タスク完了 | ⬜ |
+| PIR | 全PIR PASS | ⬜ |
+| テスト | 全テストPASS | ⬜ |
+| CP準拠 | CP-1〜5 全て準拠 | ⬜ |
+| Go/No-Go | GO判定（80点以上） | ⬜ |
+
+---
+
+## 参照ドキュメント
 
 | ドキュメント | パス |
-|------------|------|
-| Phase 3戦略 | `docs/planning/PHASE3_STRATEGY.md` |
+|-------------|------|
+| 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
+| 現在の計画 | `docs/planning/CURRENT_PLAN.md` |
 | Phase 3計画 | `docs/planning/PHASE3_PLAN.md` |
-| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` |
-| Modular Architecture | `docs/specs/MODULAR_ARCHITECTURE.md` |
-| UNIFIED_SPEC (Token) | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Token |
-| UNIFIED_SPEC (Governance) | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Governance |
-| Core Principles | `docs/constitution/CORE_PRINCIPLES.md` |
-
----
-
-## ⚠️ リスク緩和策の進捗 (Phase 3.2)
-
-| # | 緩和策 | Phase 3.2アクション | 状態 |
-|---|-------|-------------------|:----:|
-| 1 | 複数回監査 | **第1回監査開始** | ⬜ |
-| 2 | 段階的TVL | 実装完了 | ⬜ |
-| 3 | Bug Bounty | プログラム準備 | ⬜ |
-| 4 | 形式検証 | Core Layer検証 | ⬜ |
-| 5 | 網羅的テスト | 実装・全PASS | ⬜ |
-| 6 | エコシステム | パートナー獲得 | ⬜ |
-
----
-
-## 📊 IC完全性チェック (Phase 3.2)
-
-> 参照: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Implementation Components
-
-| IC-ID | Component | Phase 3.2 タスク | Status |
-|-------|-----------|------------------|--------|
-| IC-3 | Sequencer | SEQ-001〜008 | ⬜ Planning |
-| IC-5 | veQS Token | TOKEN-001〜014 | ⬜ Planning |
-
----
-
-## 📊 進捗サマリー
-
-| Track | 完了/総数 | 状態 |
-|-------|:--------:|:----:|
-| Track A: veQS Token (IC-5) | 0/14 | ⬜ |
-| Track B: Governance Layer | 0/15 | ⬜ |
-| Track C: Sequencer (IC-3) | 0/8 | ⬜ |
-| Track D: 統合テスト | 0/6 | ⬜ |
-| Track E: 監査準備 | 0/4 | ⬜ |
-| **総合** | **0/47** | ⬜ |
+| 仕様書ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` |
+| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` |
+| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` |
 
 ---
 
