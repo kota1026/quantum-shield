@@ -29,8 +29,9 @@ Phase 3.1 Foundation
 └── Track B: L3 Contracts (Solidity) - IC-2,3,4
     └── Modular Architecture + Phase 2統合
         ├── SETUP-001〜003: 基盤セットアップ ✅
-        ├── CORE-001: ✅ COMPLETE + PIR PASS 🎉
-        ├── CORE-002〜003: Core Layer実装 🔄
+        ├── CORE-001: ✅ COMPLETE + PIR PASS 🎉 (IC-4)
+        ├── CORE-002: ⬜ **次のタスク** (IC-2)
+        ├── CORE-003: ✅ COMPLETE + PIR PASS 🎉 (IC-3)
         └── PLUG-001〜003: Pluggable Layer実装
 ```
 
@@ -138,19 +139,45 @@ Phase 3.1 Foundation
 - `a535a12` fix(l3-aegis): Fix foundry.toml for proper dependency resolution
 - `6e8b4a2` fix(CORE-001): Replace keccak256 domain separators with SHA3-256 pre-computed values
 
-#### CORE-002: STARK Verifier統合 ⬜ **次のタスク**
+#### CORE-002: SPHINCS+ Verifier統合 ⬜ **次のタスク**
 
-- [ ] Phase 2 STARKVerifier移植
-- [ ] l3-aegis環境への適応
-- [ ] ガスベンチマーク
-- [ ] 統合テスト
+- [ ] ICoreVerifier インターフェース定義
+- [ ] CoreVerifier.sol 作成（SPHINCS+検証ラッパー）
+- [ ] SPHINCSVerifier.sol 統合（既存crypto/から）
+- [ ] ICoreBatch インターフェース定義
+- [ ] CoreBatch.sol 作成（バッチSPHINCS+検証）
+- [ ] Phase 2 STARKVerifier関連コード削除
+- [ ] ガスベンチマーク（~200K gas/署名ターゲット）
+- [ ] 統合テスト（CoreState + CoreVerifier連携）
 
-#### CORE-003: CP保護機構実装
+#### CORE-003: CP保護機構実装 ✅ PIR-P3.1-009 PASS 🎉
 
-- [ ] ConstitutionLock.sol 作成
-- [ ] CP-1/2 immutable実装
-- [ ] CP-3/4/5 supermajority guard実装
-- [ ] CP保護テスト
+- [x] IConstitutionLock.sol インターフェース定義
+- [x] ConstitutionLock.sol 作成
+- [x] CP-1/CP-2 IMMUTABLE保護実装
+- [x] CP-3/4/5 SUPERMAJORITY guard実装
+- [x] veQS 75%閾値実装
+- [x] SC 6/7閾値実装
+- [x] 30日タイムロック実装
+- [x] ConstitutionRegistry.sol（コンプライアンス追跡）
+- [x] 包括的テストスイート（40テスト）
+- [x] セキュリティレビュー対応（イベント追加、ゼロチェック追加）
+- [x] **テスト実行検証済み: 40/40 PASS** ✅
+- [x] **Slither 0 Critical/High/Medium** ✅
+- [x] **PIR-P3.1-009 PASS** ✅ 🎉
+
+**成果物**:
+
+| ファイル | 説明 |
+|---------|------|
+| `contracts/src/interfaces/IConstitutionLock.sol` | CP保護インターフェース定義 |
+| `contracts/src/core/ConstitutionLock.sol` | CP保護機構実装（IMMUTABLE/SUPERMAJORITY） |
+| `contracts/src/core/ConstitutionRegistry.sol` | コンプライアンス追跡・履歴記録 |
+| `contracts/test/core/ConstitutionLock.t.sol` | 包括的テストスイート（40テスト） |
+
+**Commits**:
+- `aabb26a` feat(core): implement CP protection mechanism (CORE-003)
+- `5128044` fix(core): address security review findings for CORE-003
 
 ### Week 5-6: Pluggable Layer基盤
 
@@ -242,10 +269,10 @@ Phase 3.1 Foundation
 | 3 | **SHA3-256ハッシュ動作** | Rust単体テスト PASS | ✅ |
 | 4 | Core Layer基盤動作 | Solidity単体テストPASS | 🔄 |
 | 5 | Pluggable Layer切替動作 | モード切替テストPASS | ⬜ |
-| 6 | CP保護機構動作 | CP保護テストPASS | ⬜ |
+| 6 | CP保護機構動作 | CP保護テストPASS | ✅ |
 | 7 | Phase 2資産統合完了 | 統合テストPASS | 🔄 |
 | 8 | 全テスト100% PASS | `cargo test` + `forge test` | 🔄 |
-| 9 | Slither警告なし（Critical/High） | `slither .` | ⬜ |
+| 9 | Slither警告なし（Critical/High） | `slither .` | ✅ |
 
 ### 成果物
 
@@ -311,7 +338,7 @@ Phase 3.1では以下の緩和策を開始：
 | SETUP-003 | ✅ | - |
 | **CORE-001** | ✅ | **PIR-P3.1-008 PASS** 🎉 |
 | CORE-002 | ⬜ | **次のタスク** |
-| CORE-003 | ⬜ | - |
+| **CORE-003** | ✅ | **PIR-P3.1-009 PASS** 🎉 |
 | PLUG-001 | ⬜ | - |
 | PLUG-002 | ⬜ | - |
 | PLUG-003 | ⬜ | - |
