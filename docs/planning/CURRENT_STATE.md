@@ -28,64 +28,75 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | CORE-001 State Manager基盤 (IC-4) - CP-1修正 |
-| **実装日時** | 2025-12-30 22:55 JST |
-| **PIR日時** | 2025-12-31 (PIR-P3.1-008) |
-| **ステータス** | ✅ **PIR PASS** - 完了 🎉 |
+| **対象Plan** | CORE-003 CP保護機構実装 (IC-3) |
+| **実装日時** | 2025-12-31 11:30 JST |
+| **ステータス** | ✅ **実装完了** - セキュリティレビュー待ち |
 
 ### 対象IC (Integration Component)
 
-| IC | 実装Layer | 仕様書準拠 | PIR |
-|----------|----------|:----------:|:----:|
-| IC-4 (State Management) | Core Layer | ✅ | ✅ PIR-P3.1-008 PASS |
+| IC | 実装Layer | 仕様書準拠 |
+|----------|----------|:----------:|
+| IC-3 (CP Protection) | Core Layer | ✅ |
 
 ### 作成ファイル
 
-| ファイル | サイズ | 説明 |
-|---------|--------|------|
-| `l3-aegis/src/interfaces/ICoreState.sol` | 6,997 bytes | State Manager インターフェース定義 |
-| `l3-aegis/src/core/CoreState.sol` | 8,301 bytes | State Manager実装（SHA3-256統合）**CP-1修正済み** |
-| `l3-aegis/test/CoreState.t.sol` | 12,987 bytes | 包括的テストスイート（32テスト） |
-
-### 🟢 CP-1 修正完了 (Security Review Finding #1対応)
-
-| 修正箇所 | 修正前 | 修正後 |
-|----------|--------|--------|
-| `LEAF_DOMAIN` | `keccak256("QS_SMT_LEAF_V1")` | `0x1fc57ebce31be3d5781e78f150b1303c4295b0ab57b3e349a286904a176f3a22` |
-| `NODE_DOMAIN` | `keccak256("QS_SMT_NODE_V1")` | `0x2788e21c82dcd3e3f1683169f418c39da467ef396fca65015ae273ef0f04be03` |
-| `STATE_ROOT_DOMAIN` | `keccak256("QS_STATE_ROOT_V1")` | `0x60311680a88251ea5468ef203bddcdd726d4fa7b0e68ec9cb636dafef58d1f29` |
-
-**結論**: keccak256がDomain Separatorから完全に排除され、SHA3-256事前計算値に置換。**CP-1完全準拠**。
+| ファイル | 説明 |
+|---------|------|
+| `contracts/src/interfaces/IConstitutionLock.sol` | CP保護インターフェース定義 |
+| `contracts/src/core/ConstitutionLock.sol` | CP保護機構実装（IMMUTABLE/SUPERMAJORITY） |
+| `contracts/src/core/ConstitutionRegistry.sol` | コンプライアンス追跡・履歴記録 |
+| `contracts/test/core/ConstitutionLock.t.sol` | 包括的テストスイート（40テスト） |
 
 ### 仕様書要件実装
 
-| 要件 | 出典 | 実装箇所 | PIR検証 |
-|------|------|---------| :----:|
-| SHA3-256 State Root計算 | CP-1, IC-4 | `CoreState.sol:calculateStateRoot()` | ✅ |
-| Sparse Merkle Tree (depth=20) | IC-4 | `CoreState.sol:verifyInclusion()` | ✅ |
-| Domain Separation (SHA3-256) | CP-1, Security | `CoreState.sol:L27-35` **修正済み** | ✅ |
-| FIPS 202 準拠 | CP-1 | `CoreState.sol:verifySHA3Implementation()` | ✅ |
-| Lock Inclusion検証 | SEQ#2 | `CoreState.sol:verifyLockInclusion()` | ✅ |
-| **keccak256完全排除** | CP-1 | ✅ **修正完了** | ✅ |
+| 要件 | 出典 | 実装箇所 |
+|------|------|----------|
+| CP-1/CP-2 IMMUTABLE保護 | CORE_PRINCIPLES.md | `ConstitutionLock.sol:L124-125` |
+| CP-3/4/5 SUPERMAJORITY保護 | CORE_PRINCIPLES.md | `ConstitutionLock.sol:L127-129` |
+| veQS 75%閾値 | §5 Security | `ConstitutionLock.sol:L42 VEQS_THRESHOLD_BPS=7500` |
+| SC 6/7閾値 | §5 Security | `ConstitutionLock.sol:L45 SC_THRESHOLD_BPS=8571` |
+| 30日タイムロック | §5 Security | `ConstitutionLock.sol:L48 TIMELOCK_SECONDS=30 days` |
+| Quadratic Slashing N²×10% | SEQ#4 | `ConstitutionRegistry.sol:L119` |
+| 禁止アルゴリズム検出 | CP-1 | `ConstitutionRegistry.sol:L67-72` |
+| タイムロック短縮防止 | CP-3 | `ConstitutionLock.sol:L381-388` |
+| CP-5透明性イベント | CP-5 | AdminChanged, VoteRecorderChanged等 |
+
+### セキュリティ修正（04_review指摘対応）
+
+| 指摘 | 対応 |
+|------|------|
+| keccak256使用（Critical） | ドキュメント追加：EVM storage slot計算は不可避、暗号用途と区別 |
+| setAdmin イベントなし | `AdminChanged` イベント追加 |
+| setVoteRecorder イベントなし | `VoteRecorderChanged` イベント追加 |
+| setVoteRecorder ゼロチェックなし | `require(_voteRecorder != address(0))` 追加 |
+| SC member変更イベントなし | `SecurityCouncilMemberAdded/Removed` イベント追加 |
+
+### Slither分析結果
+
+| 重要度 | 件数 | 状態 |
+|--------|:----:|------|
+| Critical/High | 0 | ✅ |
+| Medium | 0 | ✅ 全て解消 |
+| Low/Info | 4 | 許容（意図的設計） |
+
+### SPEC_REVIEW対応
+
+（該当なし - SPEC_REVIEW.mdなし）
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +32 |
-| CoreStateテスト | 32/32 PASS |
-| Fuzzテスト | 3テスト × 256 runs |
-| Gas Benchmarks | 記録済み（参考値） |
+| 新規テスト数 | +40 |
+| 総テスト数 | 898+ |
+| 結果 | ✅ ALL PASS |
 
 ### コミット履歴
 
 | コミット | 内容 |
 |----------|------|
-| `14883a2` | feat(CORE-001): Add ICoreState interface |
-| `6107200` | feat(CORE-001): Implement CoreState contract |
-| `0a067a4` | test(CORE-001): Add CoreState comprehensive tests |
-| `4914b19` | fix(CORE-001): Update CoreState import path |
-| **`6e8b4a2`** | **fix(CORE-001): Replace keccak256 domain separators with SHA3-256 pre-computed values** |
+| `aabb26a` | feat(core): implement CP protection mechanism (CORE-003) |
+| `5128044` | fix(core): address security review findings for CORE-003 |
 
 ---
 
