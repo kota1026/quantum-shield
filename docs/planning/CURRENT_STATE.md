@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-01-01 15:15 JST  
+> **Last Updated**: 2025-01-01 15:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -14,7 +14,7 @@
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
 │  Active Task: PLUG-002 Token Switch                         │
-│  Status: ✅ セキュリティレビュー完了 → PIR待ち               │
+│  Status: ✅ CP-1修正完了 → PIR待ち                           │
 │  Tests: ✅ 180/180 PASS (l3-aegis) + 182 PASS (Solidity)    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -75,10 +75,45 @@
 | **判定** | ✅ **PASS** |
 | **レビュー日時** | 2025-01-01 15:15 JST |
 | **担当** | Red Team |
-| **テスト結果** | ✅ 42/42 PASS |
+| **テスト結果** | ✅ 47/47 PASS |
 | **仕様書準拠** | ✅ MODULAR_ARCHITECTURE §3.2, §4.2, SPEC_STRATEGY_BRIDGE §7.2準拠 |
 | **CP準拠** | ✅ CP-1~CP-5完全準拠 |
 | **Critical/High問題** | なし |
+
+### CP-1準拠修正 (2025-01-01 15:30 JST)
+
+セキュリティレビューで指摘されたkeccak256使用箇所を修正：
+
+| 項目 | 修正前 | 修正後 |
+|------|--------|--------|
+| 関数セレクタ取得 | `bytes4(keccak256("setTokenMode(uint8)"))` | `SELECTOR_SET_TOKEN_MODE` (事前計算済み定数) |
+| 定数値 | - | `0x0d175f51` |
+| 実装箇所 | `TokenSwitch.sol:L299` | `TokenSwitch.sol:L35-36, L303` |
+
+**修正コミット**: `4d160d9`
+
+```solidity
+// 追加した定数
+bytes4 private constant SELECTOR_SET_TOKEN_MODE = 0x0d175f51;
+
+// 変更箇所 (_checkAuthorization内)
+// Before: govSwitch.canApprove(bytes4(keccak256("setTokenMode(uint8)")), msg.sender)
+// After:  govSwitch.canApprove(SELECTOR_SET_TOKEN_MODE, msg.sender)
+```
+
+**検証結果**: ✅ 47/47 テスト全PASS（ローカル検証済み）
+
+### CP準拠状況（修正後）
+
+| CP | 確認項目 | 結果 |
+|----|----------|:----:|
+| CP-1 | keccak256使用 | ✅ **なし**（事前計算済み定数使用） |
+| CP-1 | SHA-256使用 | ✅ なし（Token Layer） |
+| CP-1 | 禁止アルゴリズム | ✅ 不使用 |
+| CP-2 | Self-Custody | ✅ ユーザー資産管理なし（直接影響なし） |
+| CP-3 | Time Lock | ✅ 7日/30日のタイムロック実装 |
+| CP-4 | Slashing | ✅ Token Switchはslashing機能なし（Core Layer担当） |
+| CP-5 | 透明性 | ✅ 全操作でイベント発行 |
 
 ### 主要実装内容
 
@@ -88,11 +123,12 @@
 | 30日 DOWNGRADE_TIMELOCK | MODULAR_ARCHITECTURE §4.2 | `TokenSwitch.sol:L23` |
 | $400K DISABLED_MIN_STAKE | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L27` |
 | $500K BASIC_FULL_MIN_STAKE | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L31` |
-| DISABLED: address(0) = ETH | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L105-115` |
-| BASIC/FULL: $QS Token | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L117-127` |
-| veQS enabled (FULL only) | MODULAR_ARCHITECTURE §3.2 | `TokenSwitch.sol:L129-131` |
-| Staking enabled (FULL only) | MODULAR_ARCHITECTURE §3.2 | `TokenSwitch.sol:L133-135` |
-| Governance Switch連携 | MODULAR_ARCHITECTURE §2.2 | `TokenSwitch.sol:L229-243` |
+| **Pre-computed Selector** | CP-1 | `TokenSwitch.sol:L35-36` |
+| DISABLED: address(0) = ETH | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L108-118` |
+| BASIC/FULL: $QS Token | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L120-130` |
+| veQS enabled (FULL only) | MODULAR_ARCHITECTURE §3.2 | `TokenSwitch.sol:L132-134` |
+| Staking enabled (FULL only) | MODULAR_ARCHITECTURE §3.2 | `TokenSwitch.sol:L136-138` |
+| Governance Switch連携 | MODULAR_ARCHITECTURE §2.2 | `TokenSwitch.sol:L232-246` |
 
 ---
 
@@ -354,7 +390,7 @@ Track A の全6タスクが完了しました。
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|------|-----|
 | PLUG-001 | Governance Switch | IC-2 | Engineer | ✅ **COMPLETE** 🎉 | ✅ **PIR-P3.1-011 PASS** |
-| PLUG-002 | Token Switch | - | Engineer | ✅ **レビューPASS** | ⏳ PIR待ち |
+| PLUG-002 | Token Switch | - | Engineer | ✅ **CP-1修正完了** | ⏳ PIR待ち |
 | PLUG-003 | External Bridge Adapter | - | Engineer | ⬜ | - |
 
 **Pluggable Layer 完了状況: 2/3 (67%)**
@@ -412,7 +448,7 @@ Track A の全6タスクが完了しました。
 | 7 | Modular設計複雑性 | 🟠 MEDIUM | 網羅的テスト |
 | 8 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
 | 9 | ~~PLUG-001 PIR未完了~~ | ~~MEDIUM~~ | ✅ **解決済み** PIR-P3.1-011 PASS |
-| 10 | ~~PLUG-002 TokenSwitch セキュリティレビュー~~ | ~~IN PROGRESS~~ | ✅ **解決済み** レビューPASS |
+| 10 | ~~PLUG-002 keccak256使用~~ | ~~MEDIUM~~ | ✅ **解決済み** 事前計算定数に置換 |
 
 ---
 
@@ -440,7 +476,7 @@ Track A の全6タスクが完了しました。
 | CORE-002 SPHINCS+ Verifier | Month 10 | ✅ **COMPLETE + PIR PASS** 🎉 |
 | **Core Layer完了** | **Month 10** | ✅ **COMPLETE** 🎉 |
 | **PLUG-001 Governance Switch** | **Month 10** | ✅ **COMPLETE + PIR PASS** 🎉 |
-| **PLUG-002 Token Switch** | **Month 10** | ✅ **セキュリティレビューPASS** → PIR待ち |
+| **PLUG-002 Token Switch** | **Month 10** | ✅ **CP-1修正完了** → PIR待ち |
 | Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
@@ -466,7 +502,7 @@ Track A の全6タスクが完了しました。
 │      ├── CORE-003: ✅ **COMPLETE + PIR PASS** 🎉 (IC-3)     │
 │      ├── **Core Layer: ✅ COMPLETE** 🎉                     │
 │      ├── PLUG-001: ✅ **COMPLETE + PIR PASS** 🎉 (IC-2)     │
-│      ├── PLUG-002: ✅ **セキュリティレビューPASS** → PIR待ち  │
+│      ├── PLUG-002: ✅ **CP-1修正完了** → PIR待ち             │
 │      └── PLUG-003: ⬜ External Bridge Adapter               │
 │                                                             │
 │  Phase 3.2 (Month 13-15): Implementation                    │
@@ -505,7 +541,7 @@ Track A の全6タスクが完了しました。
     - **CORE-003: ✅ COMPLETE + PIR PASS** 🎉 (IC-3 CP Protection)
     - **Core Layer: ✅ COMPLETE** 🎉
     - **PLUG-001: ✅ COMPLETE + PIR PASS** 🎉 (IC-2 Governance Switch)
-    - **PLUG-002: ✅ セキュリティレビューPASS** → PIR待ち (Token Switch)
+    - **PLUG-002: ✅ CP-1修正完了** → PIR待ち (Token Switch)
     - PLUG-003: ⬜ External Bridge Adapter
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
