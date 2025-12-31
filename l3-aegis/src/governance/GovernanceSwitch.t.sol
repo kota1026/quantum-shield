@@ -246,25 +246,28 @@ contract GovernanceSwitchTest is Test {
     }
 
     /// @notice Test that mode transition respects time lock
-    function test_TimeLock_CannotBypassTimeLock() public {
+ function test_TimeLock_CannotBypassTimeLock() public {
         _setupAndTransitionToMultisig();
         _collectSignaturesForUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
         
-        // Try various time points before expiry
-        vm.warp(block.timestamp + 1 days);
+        // unlockTime = 1 + 7 days = 604801
+        // condition: block.timestamp <= 604801 reverts
+        
+        // Try 1 day (86401) - should fail
+        vm.warp(86401);
         vm.expectRevert(GovernanceSwitch.TimeLockNotExpired.selector);
         governanceSwitch.finalizeUpgrade();
         
-        vm.warp(block.timestamp + 5 days); // 6 days total
+        // Try 6 days (518401) - should fail
+        vm.warp(518401);
         vm.expectRevert(GovernanceSwitch.TimeLockNotExpired.selector);
         governanceSwitch.finalizeUpgrade();
         
-        // Exactly at 7 days should still fail (exclusive)
-        vm.warp(block.timestamp + 1 days - 1); // 7 days - 1 second
+        // Exactly at unlock time (604801) - should still fail (condition is <=)
+        vm.warp(604801);
         vm.expectRevert(GovernanceSwitch.TimeLockNotExpired.selector);
         governanceSwitch.finalizeUpgrade();
     }
-
     // ============ TEST-005: Emergency Pauseテスト ============
 
     /// @notice Test emergency pause in CENTRALIZED mode (admin only)
