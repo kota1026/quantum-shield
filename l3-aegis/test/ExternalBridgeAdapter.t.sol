@@ -2,12 +2,12 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ExternalBridgeAdapter} from "../bridge/ExternalBridgeAdapter.sol";
-import {IExternalBridgeAdapter} from "../interfaces/IExternalBridgeAdapter.sol";
-import {IGovernanceSwitch} from "../interfaces/IGovernanceSwitch.sol";
-import {ITokenSwitch} from "../interfaces/ITokenSwitch.sol";
-import {GovernanceSwitch} from "../governance/GovernanceSwitch.sol";
-import {TokenSwitch} from "../token/TokenSwitch.sol";
+import {ExternalBridgeAdapter} from "../src/bridge/ExternalBridgeAdapter.sol";
+import {IExternalBridgeAdapter} from "../src/interfaces/IExternalBridgeAdapter.sol";
+import {IGovernanceSwitch} from "../src/interfaces/IGovernanceSwitch.sol";
+import {ITokenSwitch} from "../src/interfaces/ITokenSwitch.sol";
+import {GovernanceSwitch} from "../src/governance/GovernanceSwitch.sol";
+import {TokenSwitch} from "../src/token/TokenSwitch.sol";
 
 /// @title ExternalBridgeAdapterTest
 /// @notice Comprehensive test suite for ExternalBridgeAdapter
