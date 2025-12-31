@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-01-01 11:30 JST  
+> **Last Updated**: 2025-12-31 12:00 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,8 +13,8 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Active Task: CORE-002 SPHINCS+ Verifier統合 🔄 実装完了    │
-│  Status: 🔄 04_review.md 待ち                               │
+│  Active Task: PLUG-001 Governance Switch実装                │
+│  Status: ⬜ 計画待ち                                        │
 │  Tests: ✅ 180/180 PASS (l3-aegis) + 105 PASS (Solidity)    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -28,47 +28,30 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | CORE-002 SPHINCS+ Verifier統合 (IC-2) |
-| **実装日時** | 2025-12-30 15:36 JST |
-| **ステータス** | 🔄 **実装完了 → 04_review.md待ち** |
+| **対象Plan** | - |
+| **実装日時** | - |
+| **ステータス** | ⬜ **待機中（次のタスク開始待ち）** |
 
-### 対象IC (Integration Component)
+> **Note**: CORE-002完了により実装レポートをリセット。次のタスク（PLUG-001）開始時に更新。
 
-| IC | 実装Layer | 仕様書準拠 |
-|----------|----------|:----------:|
-| IC-2 (L3 Bridge Contract) | Core Layer | ✅ |
+---
 
-### 作成ファイル
+## 🎉 CORE-002 SPHINCS+ Verifier統合完了 (2025-12-31)
 
-| ファイル | 説明 |
-|---------|------|
-| `contracts/src/interfaces/ICoreVerifier.sol` | Core Verifierインターフェース定義 |
-| `contracts/src/interfaces/ICoreBatch.sol` | バッチ検証インターフェース定義 |
-| `contracts/src/core/CoreVerifier.sol` | SPHINCS+検証ラッパー実装 |
-| `contracts/src/core/CoreBatch.sol` | 2/5閾値バッチ検証実装 |
-| `contracts/test/core/CoreVerifier.t.sol` | CoreVerifierテストスイート（20テスト） |
-| `contracts/test/core/CoreBatch.t.sol` | CoreBatchテストスイート（13テスト） |
+Track B (L3 Contracts) のCORE-002が完了しました！
 
-### 仕様書要件実装
+### PIR-P3.1-010 判定結果
 
-| 要件 | 出典 | 実装箇所 |
-|------|------|----------|
-| SPHINCS+-128s署名検証 | CP-1, FIPS 205 | `CoreVerifier.sol:verifySPHINCS()` |
-| 2/5 Prover署名閾値 | SEQ#2 Step5-7 | `CoreVerifier.sol:verifyTwoOfFive()` |
-| SHA3-256公開鍵ハッシュ | CP-1, FIPS 202 | `CoreVerifier.sol:computePublicKeyHash()` |
-| バッチ検証 | ガス最適化 | `CoreBatch.sol:verifyBatch()` |
-| 閾値付きバッチ検証 | SEQ#2 | `CoreBatch.sol:verifyBatchWithThreshold()` |
-| Early exit最適化 | ガス効率 | `CoreBatch.sol:L89-92` |
-
-### CP-1準拠確認
-
-| 項目 | 状態 | 備考 |
-|------|:----:|------|
-| SPHINCS+-128s使用 | ✅ | SPHINCSVerifier統合 |
-| SHA3-256使用 | ✅ | SHA3_256.sol利用 |
-| keccak256不使用 | ✅ | 暗号用途なし |
-| SHA-256不使用 | ✅ | 完全排除 |
-| ECDSA/RSA不使用 | ✅ | 完全排除 |
+| 項目 | 結果 |
+|------|------|
+| **判定** | ✅ **PASS** |
+| **PIR日時** | 2025-12-31 JST |
+| **議長** | CTO |
+| **11エージェント評価** | 11/11 GO（全会一致） |
+| **テスト結果** | ✅ 33/33 PASS |
+| **CP-1準拠** | ✅ SPHINCS+-128s, SHA3-256、禁止アルゴリズム不使用 |
+| **仕様書準拠** | ✅ SEQUENCES #1, #2, #4準拠 |
+| **Critical/High問題** | なし |
 
 ### ガスベンチマーク結果
 
@@ -77,34 +60,7 @@
 | 単一SPHINCS+検証 | ~762M gas | L3実行前提（L1では非現実的） |
 | バッチ検証 (2署名) | ~1.5B gas | L3必要性を実証 |
 
-> **重要**: SPHINCS+検証は~762M gas/署名を消費。L1直接実行は非現実的であり、L3アーキテクチャの必要性を実証。
-
-### テスト結果
-
-| 項目 | 値 |
-|------|-----|
-| 新規テスト数 | +33 |
-| CoreVerifier.t.sol | 20テスト |
-| CoreBatch.t.sol | 13テスト |
-| 結果 | ✅ ALL PASS |
-
-### コミット履歴
-
-| コミット | 内容 |
-|----------|------|
-| `ede00b40` | feat(core): add CoreBatch implementation |
-| `9216b56a` | test(core): add CoreVerifier unit tests |
-| `42e699c9` | test(core): add CoreBatch unit tests |
-| `cf09d2e7` | fix(test): remove view modifier from gas benchmark tests |
-| `ca3bbb16` | fix(test): define BatchVerified event locally for expectEmit |
-| `453db26d` | fix(test): remove unrealistic gas assertions, log benchmark results |
-| `f6477c8d` | fix(test): reduce batch size to 2 items due to L1 gas constraints |
-
-### 次のステップ
-
-1. **04_review.md実行**: Slither静的解析、CP-1準拠最終確認
-2. **05_pir.md実行**: PIR-P3.1-010会議
-3. **CURRENT_STATE.md更新**: PIR結果反映
+> **重要**: SPHINCS+検証は762M gas/署名を消費。L1直接実行は非現実的であり、L3アーキテクチャの必要性を実証。
 
 ---
 
@@ -244,7 +200,7 @@ Track A の全6タスクが完了しました。
 | PIR-P3.1-007 | L3-006 4-node local testnet | ✅ **PASS** 🎉 | 2025-12-31 |
 | PIR-P3.1-008 | CORE-001 State Manager (CP-1 fix) | ✅ **PASS** 🎉 | 2025-12-31 |
 | PIR-P3.1-009 | CORE-003 CP保護機構実装 | ✅ **PASS** 🎉 | 2025-12-31 |
-| PIR-P3.1-010 | CORE-002 SPHINCS+ Verifier統合 | ⏳ **PENDING** | - |
+| PIR-P3.1-010 | CORE-002 SPHINCS+ Verifier統合 | ✅ **PASS** 🎉 | 2025-12-31 |
 
 ---
 
@@ -255,7 +211,7 @@ Track A の全6タスクが完了しました。
 | Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
-| **Phase 3** | **L3 + Token + 完全分散化** | **80%** | 🔄 **ACTIVE** |
+| **Phase 3** | **L3 + Token + 完全分散化** | **85%** | 🔄 **ACTIVE** |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
 ---
@@ -291,13 +247,23 @@ Track A の全6タスクが完了しました。
 | SETUP-002 | Modular Architecture インターフェース定義 | Engineer | ✅ | PIR-P3.1-001 |
 | SETUP-003 | Phase 2資産統合準備 | Engineer | ✅ | - |
 
-#### Week 3-4: Core Layer基盤
+#### Week 3-4: Core Layer基盤 ✅ **完了** 🎉
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|------|-----|
 | CORE-001 | State Manager基盤 | IC-4 | Engineer | ✅ **COMPLETE** 🎉 | ✅ **PIR-P3.1-008 PASS** |
-| CORE-002 | SPHINCS+ Verifier統合 | IC-2 | Engineer | 🔄 **実装完了** | ⏳ PIR-P3.1-010 PENDING |
+| CORE-002 | SPHINCS+ Verifier統合 | IC-2 | Engineer | ✅ **COMPLETE** 🎉 | ✅ **PIR-P3.1-010 PASS** |
 | CORE-003 | CP保護機構実装 | IC-3 | Engineer | ✅ **COMPLETE** 🎉 | ✅ **PIR-P3.1-009 PASS** |
+
+**Core Layer 完了状況: 3/3 (100%) ✅**
+
+#### Week 5-6: Pluggable Layer実装 ⬜ **次フェーズ**
+
+| # | タスク | IC | 担当 | 状態 | PIR |
+|---|--------|-----|------|------|-----|
+| PLUG-001 | Governance Switch | IC-2 | Engineer | ⬜ **次** | - |
+| PLUG-002 | Token Switch | - | Engineer | ⬜ | - |
+| PLUG-003 | External Bridge Adapter | - | Engineer | ⬜ | - |
 
 ---
 
@@ -345,7 +311,7 @@ Track A の全6タスクが完了しました。
 | 3 | ~~CORE-001 テスト未検証~~ | ~~HIGH~~ | ✅ **解決済み** 32/32 PASS |
 | 4 | ~~CORE-001 PIR未完了~~ | ~~HIGH~~ | ✅ **解決済み** PIR-P3.1-008 PASS |
 | 5 | ~~CORE-003 PIR未完了~~ | ~~HIGH~~ | ✅ **解決済み** PIR-P3.1-009 PASS |
-| 6 | CORE-002 PIR未完了 | 🟠 MEDIUM | 04_review.md → 05_pir.md 実行予定 |
+| 6 | ~~CORE-002 PIR未完了~~ | ~~MEDIUM~~ | ✅ **解決済み** PIR-P3.1-010 PASS |
 | 7 | Modular設計複雑性 | 🟠 MEDIUM | 網羅的テスト |
 | 8 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
 
@@ -353,14 +319,13 @@ Track A の全6タスクが完了しました。
 
 ## 🔜 次のアクション
 
-### 最優先: CORE-002 PIRレビュー
+### 最優先: Pluggable Layer実装開始
 
 | # | タスク | IC | 優先度 | 担当 | 状態 |
 |---|--------|-----|--------|------|------|
-| 1 | **CORE-002 04_review.md実行** | IC-2 | 🔴 **P0** | Engineer | ⬜ 次 |
-| 2 | **CORE-002 05_pir.md実行** | IC-2 | 🔴 **P0** | CTO | ⬜ |
-| 3 | PLUG-001 Governance Switch実装 | IC-2 | 🟠 High | Engineer | ⬜ |
-| 4 | PLUG-002 Token Switch実装 | - | 🟠 High | Engineer | ⬜ |
+| 1 | **PLUG-001 Governance Switch実装** | IC-2 | 🔴 **P0** | Engineer | ⬜ **次** |
+| 2 | PLUG-002 Token Switch実装 | - | 🟠 High | Engineer | ⬜ |
+| 3 | PLUG-003 External Bridge Adapter | - | 🟠 High | Engineer | ⬜ |
 
 ---
 
@@ -373,7 +338,9 @@ Track A の全6タスクが完了しました。
 | Track A完了 | Month 10 | ✅ **COMPLETE** 🎉 |
 | CORE-001 State Manager | Month 10 | ✅ **COMPLETE + PIR PASS** 🎉 |
 | CORE-003 CP保護機構 | Month 10 | ✅ **COMPLETE + PIR PASS** 🎉 |
-| **CORE-002 SPHINCS+ Verifier** | **Month 10** | 🔄 **実装完了 → PIR待ち** |
+| CORE-002 SPHINCS+ Verifier | Month 10 | ✅ **COMPLETE + PIR PASS** 🎉 |
+| **Core Layer完了** | **Month 10** | ✅ **COMPLETE** 🎉 |
+| **PLUG-001 Governance Switch** | **Month 10-11** | ⬜ **次** |
 | Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
@@ -395,9 +362,9 @@ Track A の全6タスクが完了しました。
 │  └── Track B: L3 Contracts (Solidity) ← 🔄 **ACTIVE**       │
 │      ├── SETUP-001,002,003: ✅ COMPLETE                     │
 │      ├── CORE-001: ✅ **COMPLETE + PIR PASS** 🎉 (IC-4)     │
-│      ├── CORE-002: 🔄 **実装完了 → PIR待ち** (IC-2)         │
+│      ├── CORE-002: ✅ **COMPLETE + PIR PASS** 🎉 (IC-2)     │
 │      ├── CORE-003: ✅ **COMPLETE + PIR PASS** 🎉 (IC-3)     │
-│      └── PLUG-001~003: Pluggable Layer実装                  │
+│      └── PLUG-001~003: ⬜ Pluggable Layer実装 **次**        │
 │                                                             │
 │  Phase 3.2 (Month 13-15): Implementation                    │
 │  Phase 3.3 (Month 16-18): Testing & Launch                  │
@@ -431,8 +398,10 @@ Track A の全6タスクが完了しました。
     - SETUP-002: ✅ PASS
     - SETUP-003: ✅ PASS
     - **CORE-001: ✅ COMPLETE + PIR PASS** 🎉 (IC-4 State Management)
-    - **CORE-002: 🔄 実装完了 → PIR待ち** (IC-2 SPHINCS+ Verifier)
+    - **CORE-002: ✅ COMPLETE + PIR PASS** 🎉 (IC-2 SPHINCS+ Verifier)
     - **CORE-003: ✅ COMPLETE + PIR PASS** 🎉 (IC-3 CP Protection)
+    - **Core Layer: ✅ COMPLETE** 🎉
+    - PLUG-001~003: ⬜ Pluggable Layer **次**
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
 
