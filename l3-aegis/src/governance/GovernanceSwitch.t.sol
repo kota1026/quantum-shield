@@ -33,6 +33,9 @@ contract GovernanceSwitchTest is Test {
     uint256 public constant MULTISIG_TO_DECENTRALIZED_TIMELOCK = 7 days;
     uint256 public constant DOWNGRADE_TIMELOCK = 30 days;
     uint256 public constant EMERGENCY_PAUSE_MAX_DURATION = 72 hours;
+    
+    // MAX_SIGNERS constant (must match contract)
+    uint256 public constant MAX_SIGNERS = 20;
 
     function setUp() public {
         vm.prank(admin);
@@ -74,6 +77,11 @@ contract GovernanceSwitchTest is Test {
         (uint256 threshold, uint256 total) = governanceSwitch.getSecurityCouncilConfig();
         assertEq(threshold, 0, "Threshold should be 0 in CENTRALIZED mode");
         assertEq(total, 0, "Total should be 0 in CENTRALIZED mode");
+    }
+    
+    /// @notice Test MAX_SIGNERS constant is exposed
+    function test_MaxSignersConstant() public view {
+        assertEq(governanceSwitch.MAX_SIGNERS(), 20, "MAX_SIGNERS should be 20");
     }
 
     // ============ TEST-002: モード切替テスト（全遷移パターン） ============
@@ -333,9 +341,10 @@ contract GovernanceSwitchTest is Test {
     // ============ TEST-006: Fuzzテスト（境界値） ============
 
     /// @notice Fuzz test for multisig threshold configuration
+    /// @dev Bounded by MAX_SIGNERS to prevent gas limit issues
     function testFuzz_MultisigThreshold(uint256 threshold, uint256 total) public {
-        // Bound inputs to reasonable values
-        total = bound(total, 1, 100);
+        // Bound inputs to MAX_SIGNERS limit
+        total = bound(total, 1, MAX_SIGNERS);
         threshold = bound(threshold, 1, total);
         
         address[] memory signers = new address[](total);
@@ -356,8 +365,8 @@ contract GovernanceSwitchTest is Test {
 
     /// @notice Fuzz test for invalid threshold (threshold > total)
     function testFuzz_InvalidThreshold(uint256 threshold, uint256 total) public {
-        total = bound(total, 1, 50);
-        threshold = bound(threshold, total + 1, 100); // Always invalid
+        total = bound(total, 1, MAX_SIGNERS);
+        threshold = bound(threshold, total + 1, MAX_SIGNERS + 50); // Always invalid
         
         address[] memory signers = new address[](total);
         for (uint256 i = 0; i < total; i++) {
@@ -376,6 +385,76 @@ contract GovernanceSwitchTest is Test {
         vm.expectEmit(true, true, false, true);
         emit IGovernanceSwitch.ActionApproved(action, admin, data);
         governanceSwitch.approveAction(action, data);
+    }
+
+    // ============ TEST-007: MAX_SIGNERS制限テスト ============
+    
+    /// @notice Test that configuring more than MAX_SIGNERS reverts
+    function test_TooManySigners_Reverts() public {
+        uint256 tooMany = MAX_SIGNERS + 1;
+        address[] memory signers = new address[](tooMany);
+        for (uint256 i = 0; i < tooMany; i++) {
+            signers[i] = address(uint160(0x1000 + i));
+        }
+        
+        vm.prank(admin);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                GovernanceSwitch.TooManySigners.selector,
+                tooMany,
+                MAX_SIGNERS
+            )
+        );
+        governanceSwitch.configureMultisig(signers, 3);
+    }
+    
+    /// @notice Test that exactly MAX_SIGNERS is allowed
+    function test_ExactlyMaxSigners_Succeeds() public {
+        address[] memory signers = new address[](MAX_SIGNERS);
+        for (uint256 i = 0; i < MAX_SIGNERS; i++) {
+            signers[i] = address(uint160(0x1000 + i));
+        }
+        
+        vm.prank(admin);
+        governanceSwitch.configureMultisig(signers, MAX_SIGNERS / 2);
+        
+        (uint256 threshold, uint256 total) = governanceSwitch.getMultisigConfig();
+        assertEq(total, MAX_SIGNERS, "Should allow exactly MAX_SIGNERS");
+        assertEq(threshold, MAX_SIGNERS / 2, "Threshold should be set correctly");
+    }
+    
+    /// @notice Test gas consumption with MAX_SIGNERS
+    function test_Gas_MaxSigners_ResetUpgradeState() public {
+        // Setup with MAX_SIGNERS
+        address[] memory signers = new address[](MAX_SIGNERS);
+        for (uint256 i = 0; i < MAX_SIGNERS; i++) {
+            signers[i] = address(uint160(0x1000 + i));
+        }
+        
+        vm.prank(admin);
+        governanceSwitch.configureMultisig(signers, MAX_SIGNERS / 2);
+        
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
+        
+        // Collect signatures for upgrade
+        for (uint256 i = 0; i < MAX_SIGNERS / 2; i++) {
+            vm.prank(address(uint160(0x1000 + i)));
+            governanceSwitch.initiateUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
+        }
+        
+        // Warp past time lock
+        vm.warp(block.timestamp + MULTISIG_TO_DECENTRALIZED_TIMELOCK + 1);
+        
+        // Measure gas for finalizeUpgrade (includes _resetUpgradeState)
+        uint256 gasBefore = gasleft();
+        governanceSwitch.finalizeUpgrade();
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        console.log("Gas used for finalizeUpgrade with MAX_SIGNERS:", gasUsed);
+        
+        // Ensure gas is reasonable (less than 500k for 20 signers)
+        assertLt(gasUsed, 500_000, "Gas should be bounded");
     }
 
     // ============ Gas Benchmark Tests ============
