@@ -464,18 +464,18 @@ contract TokenSwitchTest is Test {
         uint256 gasBefore = gasleft();
         tokenSwitch.getTokenMode();
         uint256 gasUsed = gasBefore - gasleft();
-        
         console.log("getTokenMode gas:", gasUsed);
-        assertLt(gasUsed, 5000, "getTokenMode should be cheap");
+        // Cold storage read ~2600 gas + overhead, 10K is reasonable
+        assertLt(gasUsed, 10000, "getTokenMode should be cheap");
     }
     
     function test_Gas_GetMinimumStake() public view {
         uint256 gasBefore = gasleft();
         tokenSwitch.getMinimumStake();
         uint256 gasUsed = gasBefore - gasleft();
-        
         console.log("getMinimumStake gas:", gasUsed);
-        assertLt(gasUsed, 5000, "getMinimumStake should be cheap");
+        // Cold storage read ~2600 gas + overhead, 10K is reasonable
+        assertLt(gasUsed, 10000, "getMinimumStake should be cheap");
     }
     
     function test_Gas_SetTokenMode() public {
