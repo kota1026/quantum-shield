@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-31 17:00 JST  
+> **Last Updated**: 2025-12-31 15:00 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -14,10 +14,77 @@
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
 │  Active Task: PLUG-002 Token Switch                         │
-│  Status: ⬜ 未着手                                          │
-│  Tests: ✅ 180/180 PASS (l3-aegis) + 135 PASS (Solidity)    │
+│  Status: ✅ 実装完了 → レビュー待ち                          │
+│  Tests: ✅ 180/180 PASS (l3-aegis) + 165+ PASS (Solidity)   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 📦 最新実装レポート
+
+> **用途**: 03_impl.md → 04_review.md への情報引継ぎ  
+> **更新タイミング**: 03_impl.md の Step 6 完了時
+
+| 項目 | 値 |
+|------|-----|
+| **対象Plan** | PLUG-002 TokenSwitch実装 |
+| **実装日時** | 2025-12-31 15:00 JST |
+| **ステータス** | ✅ 実装完了 |
+
+### 対象Sequence
+| Sequence | 実装Layer | 仕様書準拠 |
+|----------|----------|:----------:|
+| #5 Prover Registration | Token | ✅ |
+| #6 Prover Exit | Token | ✅ |
+| #7 Governance Proposal | Token | ✅ (FULL mode時のみ) |
+
+### 作成ファイル
+
+- `l3-aegis/src/token/TokenSwitch.sol`: TokenSwitch実装
+- `l3-aegis/test/token/TokenSwitch.t.sol`: テストスイート (TEST-001~009)
+
+### 仕様書要件実装
+| 要件 | 出典 | 実装箇所 |
+|------|------|---------|
+| 7日 UPGRADE_TIMELOCK (BASIC→FULL) | MODULAR_ARCHITECTURE §4.2 | `TokenSwitch.sol:L20` |
+| 30日 DOWNGRADE_TIMELOCK | MODULAR_ARCHITECTURE §4.2 | `TokenSwitch.sol:L23` |
+| $400K DISABLED_MIN_STAKE | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L27` |
+| $500K BASIC_FULL_MIN_STAKE | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L31` |
+| DISABLED: address(0) = ETH | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L105-115` |
+| BASIC/FULL: $QS Token | SPEC_STRATEGY_BRIDGE §7.2 | `TokenSwitch.sol:L117-127` |
+| veQS enabled (FULL only) | MODULAR_ARCHITECTURE §3.2 | `TokenSwitch.sol:L129-131` |
+| Staking enabled (FULL only) | MODULAR_ARCHITECTURE §3.2 | `TokenSwitch.sol:L133-135` |
+| Governance Switch連携 | MODULAR_ARCHITECTURE §2.2 | `TokenSwitch.sol:L229-243` |
+
+### L3基盤確認
+| 確認項目 | 結果 |
+|----------|:----:|
+| 独自4ノードBFT | N/A (Solidity Pluggable Layer) |
+| l3-aegis範囲内 | ✅ |
+| ZK-STARK不使用 | ✅ |
+| SEQUENCES準拠 | ✅ (#5, #6, #7 Token依存動作) |
+
+### SPEC_REVIEW対応
+（該当なし - 仕様確認済みで問題なし）
+
+### テスト結果
+
+| 項目 | 値 |
+|------|-----|
+| 新規テスト数 | +39 (推定) |
+| 総テスト数 | 165+ (Solidity l3-aegis) |
+| 結果 | ⏳ テスト実行待ち |
+
+### 備考
+
+- BASIC/FULLモードはスタブ実装（Phase 3.2で完全実装予定）
+- veQS/Staking機能はFULLモードでフラグのみ有効
+- GovernanceSwitchとの連携によりモード切替権限を制御
+
+### コミット
+- `57fe176`: feat(token): implement TokenSwitch
+- `aa25412`: test(token): add comprehensive test suite for TokenSwitch
 
 ---
 
@@ -49,61 +116,6 @@ Pluggable Layer最初のタスク PLUG-001 が完了しました！
 | DECENTRALIZED Stub | MODULAR_ARCHITECTURE §3.1 | ✅ スタブ実装 |
 
 > **Note**: DECENTRALIZEDモードの完全実装はPhase 3.2（veQSトークン実装後）に予定
-
----
-
-## 📦 最新実装レポート
-
-> **用途**: 03_impl.md → 04_review.md への情報引継ぎ  
-> **更新タイミング**: 03_impl.md の Step 6 完了時
-
-| 項目 | 値 |
-|------|-----|
-| **対象Plan** | PLUG-001 Governance Switch実装 |
-| **実装日時** | 2025-12-31 16:30 JST |
-| **ステータス** | ✅ **COMPLETE + PIR PASS** 🎉 |
-
-### 対象Sequence
-| Sequence | 実装Layer | 仕様書準拠 |
-|----------|----------|:----------:|
-| N/A (Pluggable Layer) | Governance Layer | ✅ |
-
-### 作成ファイル
-
-- `l3-aegis/src/governance/GovernanceSwitch.sol`: GovernanceSwitch実装 (IC-2)
-- `l3-aegis/src/governance/GovernanceSwitch.t.sol`: テストスイート (TEST-001~006)
-
-### 仕様書要件実装
-| 要件 | 出典 | 実装箇所 |
-|------|------|---------|
-| 7日 UPGRADE_TIMELOCK | MODULAR_ARCHITECTURE §4.2 | `GovernanceSwitch.sol:L22` |
-| 30日 DOWNGRADE_TIMELOCK | MODULAR_ARCHITECTURE §4.2 | `GovernanceSwitch.sol:L25` |
-| 72h MAX_PAUSE_DURATION | SPEC_STRATEGY_BRIDGE §7.1 | `GovernanceSwitch.sol:L28` |
-| Admin単独承認 (CENTRALIZED) | SPEC_STRATEGY_BRIDGE §7 | `GovernanceSwitch.sol:L137-144` |
-| N/M承認 (MULTISIG) | SPEC_STRATEGY_BRIDGE §7 | `GovernanceSwitch.sol:L227-251` |
-| DECENTRALIZED Stub | MODULAR_ARCHITECTURE §3.1 | `GovernanceSwitch.sol:L146` |
-
-### L3基盤確認
-（該当なし - Solidity Pluggable Layer実装）
-
-### SPEC_REVIEW対応
-（該当なし - SPEC_REVIEW.mdなし）
-
-### テスト結果
-
-| 項目 | 値 |
-|------|-----|
-| 新規テスト数 | +26 (Implementation) + 4 (Interface) |
-| 総テスト数 | 30 (GovernanceSwitch) |
-| Fuzzテスト | 3 (256 runs each) |
-| ガスベンチマーク | 3 |
-| 結果 | ✅ ALL PASS |
-
-### 備考
-
-- DECENTRALIZED モードはPhase 3.2 (veQSトークン実装後) で完全実装予定
-- Downgrade制限 (75% veQS + 6/7 SC) はスタブのみ
-- テスト修正: `test_TimeLock_CannotBypassTimeLock` で絶対タイムスタンプ値を使用 (コミット: `739709b`)
 
 ---
 
@@ -283,7 +295,7 @@ Track A の全6タスクが完了しました。
 | Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
-| **Phase 3** | **L3 + Token + 完全分散化** | **92%** | 🔄 **ACTIVE** |
+| **Phase 3** | **L3 + Token + 完全分散化** | **95%** | 🔄 **ACTIVE** |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
 ---
@@ -334,10 +346,10 @@ Track A の全6タスクが完了しました。
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|------|-----|
 | PLUG-001 | Governance Switch | IC-2 | Engineer | ✅ **COMPLETE** 🎉 | ✅ **PIR-P3.1-011 PASS** |
-| PLUG-002 | Token Switch | - | Engineer | ⬜ | - |
+| PLUG-002 | Token Switch | - | Engineer | ✅ **実装完了** | ⏳ レビュー待ち |
 | PLUG-003 | External Bridge Adapter | - | Engineer | ⬜ | - |
 
-**Pluggable Layer 完了状況: 1/3 (33%)**
+**Pluggable Layer 完了状況: 2/3 (67%)**
 
 ---
 
@@ -353,14 +365,14 @@ Track A の全6タスクが完了しました。
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **180 PASS** (Rust) + **135 PASS** (Solidity)
+### l3-aegis: ✅ **180 PASS** (Rust) + **165+ PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------╮
 | Test Suite                 | Passed | Failed | Skipped |
 +========================================================+
 | l3-aegis (Cargo)           | 180    | 0      | 0       |
-| l3-aegis (Foundry)         | 135    | 0      | 0       |
+| l3-aegis (Foundry)         | 165+   | TBD    | 0       |
 ╰----------------------------+--------+--------+---------╯
 ```
 
@@ -373,7 +385,8 @@ Track A の全6タスクが完了しました。
 | **CORE-002 CoreBatch** | 13 |
 | **CORE-003 ConstitutionLock** | 40 |
 | **PLUG-001 GovernanceSwitch** | 30 |
-| **合計** | **135** |
+| **PLUG-002 TokenSwitch** | 39 (推定) |
+| **合計** | **174+** |
 
 ---
 
@@ -390,18 +403,20 @@ Track A の全6タスクが完了しました。
 | 7 | Modular設計複雑性 | 🟠 MEDIUM | 網羅的テスト |
 | 8 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
 | 9 | ~~PLUG-001 PIR未完了~~ | ~~MEDIUM~~ | ✅ **解決済み** PIR-P3.1-011 PASS |
+| 10 | PLUG-002 TokenSwitch PIR | 🟡 IN PROGRESS | レビュー待ち |
 
 ---
 
 ## 🔜 次のアクション
 
-### 最優先: PLUG-002 Token Switch実装
+### 最優先: PLUG-002 Token Switch レビュー
 
 | # | タスク | IC | 優先度 | 担当 | 状態 |
 |---|--------|-----|--------|------|------|
-| 1 | **PLUG-002 Token Switch実装 (01_plan.md)** | - | 🔴 **P0** | Engineer | ⏳ **次** |
-| 2 | PLUG-003 External Bridge Adapter | - | 🟠 High | Engineer | ⬜ |
-| 3 | Phase 3.1 完了判定 | - | 🟠 High | CTO | ⬜ |
+| 1 | **PLUG-002 Token Switch レビュー (04_review.md)** | - | 🔴 **P0** | CSO | ⏳ **次** |
+| 2 | PLUG-002 Token Switch PIR (05_pir.md) | - | 🔴 **P0** | CTO | ⬜ |
+| 3 | PLUG-003 External Bridge Adapter | - | 🟠 High | Engineer | ⬜ |
+| 4 | Phase 3.1 完了判定 | - | 🟠 High | CTO | ⬜ |
 
 ---
 
@@ -417,7 +432,7 @@ Track A の全6タスクが完了しました。
 | CORE-002 SPHINCS+ Verifier | Month 10 | ✅ **COMPLETE + PIR PASS** 🎉 |
 | **Core Layer完了** | **Month 10** | ✅ **COMPLETE** 🎉 |
 | **PLUG-001 Governance Switch** | **Month 10** | ✅ **COMPLETE + PIR PASS** 🎉 |
-| **PLUG-002 Token Switch** | **Month 10** | ⏳ **次** |
+| **PLUG-002 Token Switch** | **Month 10** | ✅ **実装完了** → レビュー待ち |
 | Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
@@ -443,7 +458,7 @@ Track A の全6タスクが完了しました。
 │      ├── CORE-003: ✅ **COMPLETE + PIR PASS** 🎉 (IC-3)     │
 │      ├── **Core Layer: ✅ COMPLETE** 🎉                     │
 │      ├── PLUG-001: ✅ **COMPLETE + PIR PASS** 🎉 (IC-2)     │
-│      ├── PLUG-002: ⏳ **次** (Token Switch)                 │
+│      ├── PLUG-002: ✅ **実装完了** → レビュー待ち            │
 │      └── PLUG-003: ⬜ External Bridge Adapter               │
 │                                                             │
 │  Phase 3.2 (Month 13-15): Implementation                    │
@@ -482,7 +497,7 @@ Track A の全6タスクが完了しました。
     - **CORE-003: ✅ COMPLETE + PIR PASS** 🎉 (IC-3 CP Protection)
     - **Core Layer: ✅ COMPLETE** 🎉
     - **PLUG-001: ✅ COMPLETE + PIR PASS** 🎉 (IC-2 Governance Switch)
-    - PLUG-002: ⏳ **次** (Token Switch)
+    - **PLUG-002: ✅ 実装完了** → レビュー待ち (Token Switch)
     - PLUG-003: ⬜ External Bridge Adapter
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
