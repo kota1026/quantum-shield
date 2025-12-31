@@ -30,6 +30,10 @@ contract ConstitutionLockTest is Test {
     event SCApprovalRecorded(uint256 indexed proposalId, address indexed member, uint256 totalApprovals);
     event ProposalExecuted(uint256 indexed proposalId, uint8 indexed cpNumber, bytes appliedData);
     event ImmutableCPViolationAttempted(uint8 indexed cpNumber, address indexed attacker);
+    event AdminChanged(address indexed previousAdmin, address indexed newAdmin);
+    event VoteRecorderChanged(address indexed previousRecorder, address indexed newRecorder);
+    event SecurityCouncilMemberAdded(address indexed member);
+    event SecurityCouncilMemberRemoved(address indexed member);
 
     function setUp() public {
         // Initialize 7 SC members
@@ -425,6 +429,80 @@ contract ConstitutionLockTest is Test {
     function test_ProposalNotFound_Reverts() public {
         vm.expectRevert(abi.encodeWithSelector(IConstitutionLock.ProposalNotFound.selector, 999));
         constitutionLock.getProposal(999);
+    }
+
+    // ============ [TEST-004] CP-5 Transparency Event Tests ============
+
+    function test_SetAdmin_EmitsEvent() public {
+        address newAdmin = address(0x3);
+        
+        vm.expectEmit(true, true, false, false);
+        emit AdminChanged(admin, newAdmin);
+        
+        vm.prank(admin);
+        constitutionLock.setAdmin(newAdmin);
+        
+        assertEq(constitutionLock.admin(), newAdmin);
+    }
+
+    function test_SetAdmin_ZeroAddress_Reverts() public {
+        vm.prank(admin);
+        vm.expectRevert("Invalid admin");
+        constitutionLock.setAdmin(address(0));
+    }
+
+    function test_SetVoteRecorder_EmitsEvent() public {
+        address newRecorder = address(0x4);
+        
+        vm.expectEmit(true, true, false, false);
+        emit VoteRecorderChanged(voteRecorder, newRecorder);
+        
+        vm.prank(admin);
+        constitutionLock.setVoteRecorder(newRecorder);
+        
+        assertEq(constitutionLock.voteRecorder(), newRecorder);
+    }
+
+    function test_SetVoteRecorder_ZeroAddress_Reverts() public {
+        vm.prank(admin);
+        vm.expectRevert("Invalid vote recorder");
+        constitutionLock.setVoteRecorder(address(0));
+    }
+
+    function test_AddSecurityCouncilMember_EmitsEvent() public {
+        address newMember = address(0x200);
+        
+        vm.expectEmit(true, false, false, false);
+        emit SecurityCouncilMemberAdded(newMember);
+        
+        vm.prank(admin);
+        constitutionLock.addSecurityCouncilMember(newMember);
+        
+        assertTrue(constitutionLock.isSecurityCouncilMember(newMember));
+        assertEq(constitutionLock.getSecurityCouncilCount(), 8);
+    }
+
+    function test_RemoveSecurityCouncilMember_EmitsEvent() public {
+        // First add a member to get to 8
+        address newMember = address(0x200);
+        vm.prank(admin);
+        constitutionLock.addSecurityCouncilMember(newMember);
+        
+        // Now remove them
+        vm.expectEmit(true, false, false, false);
+        emit SecurityCouncilMemberRemoved(newMember);
+        
+        vm.prank(admin);
+        constitutionLock.removeSecurityCouncilMember(newMember);
+        
+        assertFalse(constitutionLock.isSecurityCouncilMember(newMember));
+        assertEq(constitutionLock.getSecurityCouncilCount(), 7);
+    }
+
+    function test_RemoveSecurityCouncilMember_CannotGoBelowSeven() public {
+        vm.prank(admin);
+        vm.expectRevert("Cannot go below 7 members");
+        constitutionLock.removeSecurityCouncilMember(securityCouncil[0]);
     }
 
     // ============ Helper Functions ============
