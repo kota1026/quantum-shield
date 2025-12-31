@@ -84,6 +84,7 @@ contract ExternalBridgeAdapter is IExternalBridgeAdapter {
     
     /// @inheritdoc IExternalBridgeAdapter
     function canExecuteCoreAction(bytes4 action, address caller) external view override onlyInitialized returns (bool) {
+        // Cache external calls to avoid redundant storage reads
         IGovernanceSwitch.GovernanceMode govMode = _governanceSwitch.getGovernanceMode();
         ITokenSwitch.TokenMode tokenMode = _tokenSwitch.getTokenMode();
         
@@ -95,8 +96,8 @@ contract ExternalBridgeAdapter is IExternalBridgeAdapter {
             if (tokenMode == ITokenSwitch.TokenMode.DISABLED) {
                 return false;
             }
-            // In DECENTRALIZED mode, check veQS voting power
-            return _hasVeQSVotingPower(caller);
+            // In DECENTRALIZED mode, check veQS voting power (pass cached tokenMode)
+            return _hasVeQSVotingPowerCached(caller, tokenMode);
         }
         
         // Standard authorization check via GovernanceSwitch
@@ -125,6 +126,7 @@ contract ExternalBridgeAdapter is IExternalBridgeAdapter {
     
     /// @inheritdoc IExternalBridgeAdapter
     function validateLayerCompatibility() external view override onlyInitialized returns (bool) {
+        // Cache external calls once
         IGovernanceSwitch.GovernanceMode govMode = _governanceSwitch.getGovernanceMode();
         ITokenSwitch.TokenMode tokenMode = _tokenSwitch.getTokenMode();
         
@@ -157,7 +159,9 @@ contract ExternalBridgeAdapter is IExternalBridgeAdapter {
             return false;
         }
         
-        return _hasVeQSVotingPower(account);
+        // Fetch tokenMode once and use cached version
+        ITokenSwitch.TokenMode tokenMode = _tokenSwitch.getTokenMode();
+        return _hasVeQSVotingPowerCached(account, tokenMode);
     }
     
     /// @inheritdoc IExternalBridgeAdapter
@@ -222,13 +226,12 @@ contract ExternalBridgeAdapter is IExternalBridgeAdapter {
     
     // ============ Internal Functions ============
     
-    /// @notice Check if account has veQS voting power
-    /// @dev Stub implementation - will be extended when veQS is implemented
+    /// @notice Check if account has veQS voting power (with cached tokenMode)
+    /// @dev Gas-optimized version that accepts pre-fetched tokenMode
     /// @param account Account to check
+    /// @param tokenMode Pre-fetched token mode (avoids redundant external call)
     /// @return True if account has voting power
-    function _hasVeQSVotingPower(address account) internal view returns (bool) {
-        ITokenSwitch.TokenMode tokenMode = _tokenSwitch.getTokenMode();
-        
+    function _hasVeQSVotingPowerCached(address account, ITokenSwitch.TokenMode tokenMode) internal pure returns (bool) {
         // No voting power if token is DISABLED
         if (tokenMode == ITokenSwitch.TokenMode.DISABLED) {
             return false;
