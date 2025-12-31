@@ -1,7 +1,7 @@
 # Phase 3 Plan: L3 + Token + Full Decentralization
 
-> **Version**: 1.1  
-> **Date**: 2025-12-29  
+> **Version**: 1.2  
+> **Date**: 2025-01-01  
 > **Status**: 📋 PLANNING  
 > **Duration**: Month 10 - Month 18 (9 months)
 
@@ -21,8 +21,17 @@ Phase 3 extends Quantum Shield from L1 to a full Layer 3 solution with native to
 | 3 | L1↔L3 State Management | P0 | Month 12-14 | IC-4 |
 | 4 | veQS Token Design & Implementation | P1 | Month 13-16 | IC-5 |
 | 5 | L3 Gas Fee Integration | P1 | Month 15-16 | - |
-| 6 | **Node Expansion (4→7 nodes)** | **P1** | **Month 16-18** | **IC-6** |
+| 6 | ~~Node Expansion (4→7 nodes)~~ | ~~P1~~ | - | ❌ **不要** |
+
 | 7 | Sepolia L3 E2E Testing | P0 | Month 14-17 | - |
+
+> ⚠️ **重要設計変更（2025-01-01 CEO指示）**: IC-6（Node Expansion 4→7）は不要。代替として2本立て設計（Enterprise / Decentralized）を採用。
+>
+> **2本立て設計**:
+> | Edition | L3 Nodes | 対象市場 |
+> |---------|----------|----------|
+> | Enterprise | 4ノード固定（全Phase） | 金融系システム会社 |
+> | Decentralized | 4ノード→Permissionless（Phase 4） | DEX、ブリッジ、カストディ |
 
 > **IC Reference**: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Implementation Components
 
@@ -471,7 +480,7 @@ impl CouncilMembershipManager {
 | Document | Path | Relevance |
 |----------|------|-----------|
 | Core Principles | `docs/constitution/CORE_PRINCIPLES.md` | Immutable constraints |
-| **L3 Chain Specification** | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | **IC-1, IC-6 details** |
+| **L3 Chain Specification** | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | **IC-1 details, 2本立て設計** |
 | **L3 Infrastructure Decision** | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | **Technical decisions** |
 | **Development Strategy** | `docs/planning/DEVELOPMENT_STRATEGY_v2.0.md` | **2-track strategy** |
 | **Spec-Strategy Bridge** | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | **IC traceability** |
@@ -508,6 +517,7 @@ impl CouncilMembershipManager {
 |---------|------|---------|
 | 1.0 | 2025-12-28 | Initial draft |
 | 1.1 | 2025-12-29 | Add IC-1 (L3 Chain Infrastructure), IC-6 (Node Expansion), IC references throughout |
+| 1.2 | 2025-01-01 | ❌ IC-6不要（CEO指示）、2本立て設計（Enterprise/Decentralized）追加 |
 
 ---
 

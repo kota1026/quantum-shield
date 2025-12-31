@@ -1,7 +1,7 @@
-# L3 Aegis Chain Specification v1.1
+# L3 Aegis Chain Specification v1.2
 
-> **Document Version**: 1.1  
-> **Last Updated**: 2025-12-28  
+> **Document Version**: 1.2  
+> **Last Updated**: 2025-01-01  
 > **Status**: ✅ 全項目決定済み
 
 ---
@@ -422,17 +422,37 @@ pub struct UnlockState {
 
 ---
 
-## 9. 拡張性と段階的アプローチ
+## 9. 2本立て設計と拡張性
 
-### 9.1 Phase別構成
+> ⚠️ **重要設計変更（2025-01-01 CEO指示）**: IC-6 (Node Expansion 4→7) は不要。代替として2本立て設計を採用。
 
-| Phase | L3ノード | Prover | メンバーシップ |
-|-------|---------|--------|---------------|
-| 1-2 (Foundation) | 4ノード固定（QS運営） | 5社固定（ETHステーク） | Static |
-| 3 (Security Council) | 4→7ノード（SC承認） | $QSステーク（SC承認） | CouncilManaged |
+### 9.1 2本立て設計概要
+
+| Edition | 対象市場 | L3 Nodes | Prover | 重視点 |
+|---------|----------|----------|--------|--------|
+| **Enterprise** | 金融系システム会社 | 4ノード固定（全Phase） | 許可制 | 安定性・規制対応 |
+| **Decentralized** | DEX・ブリッジ・カストディ | 4ノード→Permissionless | 段階的分散化 | 分散性・透明性 |
+
+### 9.2 Enterprise Edition
+
+| Phase | L3 Nodes | Prover | メンバーシップ |
+|-------|----------|--------|---------------|
+| 全Phase | 4ノード固定 | 許可制（契約ベース） | Static |
+
+**特徴**:
+- 金融規制対応（知り得る運営者）
+- 4ノードで十分なBFT耐性（f=1）
+- QS提供 or 顧客自社運営（ライセンス）
+
+### 9.3 Decentralized Edition
+
+| Phase | L3 Nodes | Prover | メンバーシップ |
+|-------|----------|--------|---------------|
+| 1-2 (Foundation) | 4ノード（QS運営） | 5社固定（ETHステーク） | Static |
+| 3 (Security Council) | 4ノード（SC管理） | $QSステーク（SC承認） | CouncilManaged |
 | 4 (Full Decentralization) | Permissionless | Permissionless | Stake-based |
 
-### 9.2 L3ノード拡張設計
+### 9.4 L3ノード拡張設計
 
 ```rust
 /// メンバーシップ管理の抽象化
@@ -462,7 +482,7 @@ pub struct StakeMembershipManager {
 }
 ```
 
-### 9.3 Prover拡張設計
+### 9.5 Prover拡張設計
 
 ```rust
 /// Prover登録の抽象化
@@ -492,7 +512,7 @@ pub enum StakeCurrency {
 }
 ```
 
-### 9.4 合意閾値の設定可能化
+### 9.6 合意閾値の設定可能化
 
 ```rust
 pub struct ConsensusConfig {
@@ -513,7 +533,7 @@ impl ConsensusConfig {
 }
 ```
 
-### 9.5 BFT閾値の自動調整（Phase 4）
+### 9.7 BFT閾値の自動調整（Phase 4）
 
 | ノード数 | 障害耐性 f | 合意閾値 |
 |---------|-----------|---------|
@@ -622,6 +642,15 @@ level = "debug"
 | §9 | 拡張性 | **段階的アプローチ（Phase 1-4）** |
 | §10 | 開発環境 | **シングル/4ノードローカル対応** |
 
+### 決定済み（2025-01-01 CEO指示）
+
+| セクション | 項目 | 決定値 |
+|-----------|------|--------|
+| §9 | IC-6 (Node Expansion 4→7) | **❌ 不要** |
+| §9 | 代替設計 | **2本立て（Enterprise / Decentralized）** |
+| §9 | Enterprise L3 Nodes | **4ノード固定（全Phase）** |
+| §9 | Decentralized Phase 4 | **Permissionless** |
+
 ---
 
 ## 付録B: 決議記録への参照
@@ -634,14 +663,16 @@ level = "debug"
 
 ## 付録C: Phase別構成詳細表
 
-### L3ノード構成
+> ⚠️ **2本立て設計（CEO指示 2025-01-01）**: IC-6 (4→7) は不要。Enterprise版は全Phaseで4ノード固定。Decentralized版はPhase 4でPermissionless。
+
+### L3ノード構成（Decentralized Edition）
 
 | 項目 | Phase 1-2 | Phase 3 | Phase 4 |
 |------|-----------|---------|---------|
-| ノード数 | 4固定 | 4→7 | 動的（最小7） |
+| ノード数 | 4固定 | 4（SC管理） | 動的 |
 | 運営者 | QS | QS + 外部 | Permissionless |
 | 参加要件 | QS選定 | SC承認 | $QSステーク |
-| 合意閾値 | 3/4 | 5/7 | 2f+1 |
+| 合意閾値 | 3/4 | 3/4 | 2f+1 |
 | メンバーシップ | Static | CouncilManaged | Stake-based |
 | ノード追加 | 手動（設定変更） | SC投票 | 自動（ステーク） |
 | ノード削除 | 手動 | SC投票 | 自動（ステーク不足/Slash） |
@@ -675,6 +706,7 @@ level = "debug"
 |---------|------|---------|
 | 1.0 | 2025-12-28 | 初版作成（ドラフト） |
 | 1.1 | 2025-12-28 | 全項目決定、拡張性・開発環境セクション追加 |
+| 1.2 | 2025-01-01 | ❌ IC-6不要（CEO指示）、§9 2本立て設計（Enterprise/Decentralized）追加 |
 
 ---
 
