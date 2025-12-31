@@ -76,6 +76,28 @@ interface IConstitutionLock {
         address indexed attacker
     );
 
+    /// @notice Emitted when admin is changed (CP-5 Transparency)
+    event AdminChanged(
+        address indexed previousAdmin,
+        address indexed newAdmin
+    );
+
+    /// @notice Emitted when vote recorder is changed (CP-5 Transparency)
+    event VoteRecorderChanged(
+        address indexed previousRecorder,
+        address indexed newRecorder
+    );
+
+    /// @notice Emitted when Security Council member is added (CP-5 Transparency)
+    event SecurityCouncilMemberAdded(
+        address indexed member
+    );
+
+    /// @notice Emitted when Security Council member is removed (CP-5 Transparency)
+    event SecurityCouncilMemberRemoved(
+        address indexed member
+    );
+
     // ============ Errors ============
 
     /// @notice Thrown when attempting to modify an IMMUTABLE CP

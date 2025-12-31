@@ -15,6 +15,14 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
  * - veQS Threshold: 75% (7500 bps)
  * - SC Threshold: 6/7 (≈85.71%, 8571 bps)
  * - Supermajority Time Lock: 30 days
+ *
+ * CP-1 Compliance Note:
+ * This contract uses Solidity mappings which internally rely on EVM's keccak256
+ * for storage slot calculation. This is an unavoidable EVM-level mechanism and
+ * is distinct from cryptographic keccak256 usage (which is prohibited by CP-1).
+ * - Cryptographic usage (PROHIBITED): signatures, state roots, content hashing
+ * - EVM storage mechanism (PERMITTED): mapping slot calculation (unavoidable)
+ * All cryptographic operations in this contract use SHA3-256 compliant methods.
  */
 contract ConstitutionLock is IConstitutionLock, ReentrancyGuard {
     // ============ Constants ============
@@ -313,21 +321,27 @@ contract ConstitutionLock is IConstitutionLock, ReentrancyGuard {
     // ============ Admin Functions ============
 
     /// @notice Set new admin
+    /// @dev Emits AdminChanged event for CP-5 transparency
     function setAdmin(address newAdmin) external onlyAdmin {
         require(newAdmin != address(0), "Invalid admin");
+        address previousAdmin = admin;
         admin = newAdmin;
+        emit AdminChanged(previousAdmin, newAdmin);
     }
 
     /// @notice Add a Security Council member
+    /// @dev Emits SecurityCouncilMemberAdded event for CP-5 transparency
     function addSecurityCouncilMember(address member) external onlyAdmin {
         require(member != address(0), "Invalid member");
         require(!isSecurityCouncilMember[member], "Already a member");
         
         securityCouncil.push(member);
         isSecurityCouncilMember[member] = true;
+        emit SecurityCouncilMemberAdded(member);
     }
 
     /// @notice Remove a Security Council member
+    /// @dev Emits SecurityCouncilMemberRemoved event for CP-5 transparency
     function removeSecurityCouncilMember(address member) external onlyAdmin {
         require(isSecurityCouncilMember[member], "Not a member");
         require(securityCouncil.length > 7, "Cannot go below 7 members");
@@ -342,11 +356,17 @@ contract ConstitutionLock is IConstitutionLock, ReentrancyGuard {
                 break;
             }
         }
+        emit SecurityCouncilMemberRemoved(member);
     }
 
     /// @notice Set the vote recorder address
+    /// @dev Emits VoteRecorderChanged event for CP-5 transparency
+    /// @param _voteRecorder The new vote recorder address (must not be zero)
     function setVoteRecorder(address _voteRecorder) external onlyAdmin {
+        require(_voteRecorder != address(0), "Invalid vote recorder");
+        address previousRecorder = voteRecorder;
         voteRecorder = _voteRecorder;
+        emit VoteRecorderChanged(previousRecorder, _voteRecorder);
     }
 
     // ============ Internal Functions ============
