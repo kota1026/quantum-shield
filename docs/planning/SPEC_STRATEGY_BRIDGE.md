@@ -1,8 +1,8 @@
 # Specification-Strategy Bridge Document
 
-> **Document Version**: 1.3  
+> **Document Version**: 1.4  
 > **Created**: 2025-12-28  
-> **Updated**: 2025-12-30  
+> **Updated**: 2025-01-01  
 > **Purpose**: 既存仕様書（原理原則）とPhase 3戦略決議の連動を定義
 
 ---
@@ -459,8 +459,10 @@ CP-3〜CP-5 → SUPERMAJORITY（パラメータ+ガード）
 | Phase | L3 Nodes | Prover | メンバーシップ |
 |-------|----------|--------|---------------|
 | 1-2 | 4 (QS運営) | 5社固定 | Static |
-| 3 | 4→7 (SC承認) | SC承認制 | CouncilManaged |
+| 3 | 4 (SC管理) | SC承認制 | CouncilManaged |
 | 4 | Permissionless | Permissionless | Stake-based |
+
+> ⚠️ **2本立て設計（CEO指示 2025-01-01）**: Enterprise版は全Phaseで4ノード固定。Decentralized版のPhase 4でPermissionless。
 
 ### 9.3 コードベース共通化
 
@@ -486,7 +488,7 @@ l3-aegis（共通コードベース）
 | IC-3 | Sequencer | 3.2 | `phase3.2.md` | SEQ-001〜008 | 🔴 Planning |
 | IC-4 | State Management (SMT) | 3.1 | `phase3.1.md` | CORE-001 (CoreState) | 🟢 Complete |
 | IC-5 | veQS Token | 3.2 | `phase3.2.md` | TOKEN-001〜014 | 🔴 Planning |
-| IC-6 | Node Expansion (4→7) | 3.3 | `phase3.3.md` | NODE-001〜015 | 🔴 Planning |
+| IC-6 | ~~Node Expansion (4→7)~~ | - | - | - | ❌ **不要（CEO指示 2025-01-01）** |
 | IC-7 | Permissionless Nodes | 4 | (Future) | - | ⚪ Future |
 
 ### 10.2 Phase 3サブフェーズ構造
@@ -506,9 +508,9 @@ Phase 3 (Month 10-18)
 │   ├── IC-5: veQS Token設計・実装
 │   └── Governance Layer完全実装
 │
-└── Phase 3.3: Node Expansion + Full Decentralization (Month 16-18)
+└── Phase 3.3: Full Decentralization (Month 16-18)
     ├── Checklist: docs/checklists/phase3.3.md
-    ├── IC-6: Node Expansion (4→7)
+    ├── ❌ IC-6: ~~Node Expansion (4→7)~~ 不要（CEO指示 2025-01-01）
     ├── Full Decentralization (Stage 3)
     └── Security Council Transition
 ```
@@ -549,7 +551,7 @@ Phase 3 (Month 10-18)
 |-------------|------|---------|--------|
 | Phase 3.1 → 3.2 | Month 12末 | L3 Chain稼働、Core Layer完了 | `GONOGO_PHASE3.1_*.md` |
 | Phase 3.2 → 3.3 | Month 15末 | veQS Token稼働、第1回監査開始 | `GONOGO_PHASE3.2_*.md` |
-| Phase 3 → 4 | Month 18末 | 7-node稼働、Full Decentralization | `GONOGO_PHASE3_*.md` |
+| Phase 3 → 4 | Month 18末 | Full Decentralization達成 | `GONOGO_PHASE3_*.md` |
 
 ### 11.2 各サブフェーズの主要判定基準
 
@@ -565,8 +567,8 @@ Phase 3 (Month 10-18)
 - [ ] Security Council 9名初期構成
 - [ ] 第1回監査開始
 
-**Phase 3.3 (Node Expansion + Decentralization)**:
-- [ ] Node Expansion 4→7 (IC-6) 完了
+**Phase 3.3 (Full Decentralization)**:
+- [ ] ❌ ~~Node Expansion 4→7 (IC-6)~~ 不要（CEO指示 2025-01-01）
 - [ ] Full Decentralization (Stage 3) 達成
 - [ ] Security Council選出完了
 - [ ] 第2回監査完了
@@ -582,6 +584,7 @@ Phase 3 (Month 10-18)
 | 1.1 | 2025-12-28 | L3基盤技術選定(2025-12-28決議)への参照を追加（§1.5） |
 | 1.2 | 2025-12-29 | §9 ビジネス戦略参照、§10 IC Traceability追加 |
 | 1.3 | 2025-12-30 | §10 IC→Phase/Taskマッピング更新、Phase 3サブフェーズ構造追加、§11 Go/No-Go判定ポイント追加 |
+| 1.4 | 2025-01-01 | ❌ IC-6不要（CEO指示）、2本立て設計（Enterprise/Decentralized）反映 |
 
 ---
 
