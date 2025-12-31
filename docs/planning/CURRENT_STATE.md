@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-12-31 12:00 JST  
+> **Last Updated**: 2025-12-31 16:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,9 +13,9 @@
 │  Sub-Phase: 3.1 Foundation                                  │
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
-│  Active Task: PLUG-001 Governance Switch実装                │
-│  Status: ⬜ 計画待ち                                        │
-│  Tests: ✅ 180/180 PASS (l3-aegis) + 105 PASS (Solidity)    │
+│  Active Task: PLUG-001 Governance Switch                    │
+│  Status: ✅ 実装完了 → PIR待ち                              │
+│  Tests: ✅ 180/180 PASS (l3-aegis) + 135 PASS (Solidity)    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -28,11 +28,51 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | - |
-| **実装日時** | - |
-| **ステータス** | ⬜ **待機中（次のタスク開始待ち）** |
+| **対象Plan** | PLUG-001 Governance Switch実装 |
+| **実装日時** | 2025-12-31 16:30 JST |
+| **ステータス** | ✅ 実装完了 → PIR待ち |
 
-> **Note**: CORE-002完了により実装レポートをリセット。次のタスク（PLUG-001）開始時に更新。
+### 対象Sequence
+| Sequence | 実装Layer | 仕様書準拠 |
+|----------|----------|:----------:|
+| N/A (Pluggable Layer) | Governance Layer | ✅ |
+
+### 作成ファイル
+
+- `l3-aegis/src/governance/GovernanceSwitch.sol`: GovernanceSwitch実装 (IC-2)
+- `l3-aegis/src/governance/GovernanceSwitch.t.sol`: テストスイート (TEST-001~006)
+
+### 仕様書要件実装
+| 要件 | 出典 | 実装箇所 |
+|------|------|---------|
+| 7日 UPGRADE_TIMELOCK | MODULAR_ARCHITECTURE §4.2 | `GovernanceSwitch.sol:L22` |
+| 30日 DOWNGRADE_TIMELOCK | MODULAR_ARCHITECTURE §4.2 | `GovernanceSwitch.sol:L25` |
+| 72h MAX_PAUSE_DURATION | SPEC_STRATEGY_BRIDGE §7.1 | `GovernanceSwitch.sol:L28` |
+| Admin単独承認 (CENTRALIZED) | SPEC_STRATEGY_BRIDGE §7 | `GovernanceSwitch.sol:L137-144` |
+| N/M承認 (MULTISIG) | SPEC_STRATEGY_BRIDGE §7 | `GovernanceSwitch.sol:L227-251` |
+| DECENTRALIZED Stub | MODULAR_ARCHITECTURE §3.1 | `GovernanceSwitch.sol:L146` |
+
+### L3基盤確認
+（該当なし - Solidity Pluggable Layer実装）
+
+### SPEC_REVIEW対応
+（該当なし - SPEC_REVIEW.mdなし）
+
+### テスト結果
+
+| 項目 | 値 |
+|------|-----|
+| 新規テスト数 | +26 (Implementation) + 4 (Interface) |
+| 総テスト数 | 30 (GovernanceSwitch) |
+| Fuzzテスト | 3 (256 runs each) |
+| ガスベンチマーク | 3 |
+| 結果 | ✅ ALL PASS |
+
+### 備考
+
+- DECENTRALIZED モードはPhase 3.2 (veQSトークン実装後) で完全実装予定
+- Downgrade制限 (75% veQS + 6/7 SC) はスタブのみ
+- テスト修正: `test_TimeLock_CannotBypassTimeLock` で絶対タイムスタンプ値を使用 (コミット: `739709b`)
 
 ---
 
@@ -201,6 +241,7 @@ Track A の全6タスクが完了しました。
 | PIR-P3.1-008 | CORE-001 State Manager (CP-1 fix) | ✅ **PASS** 🎉 | 2025-12-31 |
 | PIR-P3.1-009 | CORE-003 CP保護機構実装 | ✅ **PASS** 🎉 | 2025-12-31 |
 | PIR-P3.1-010 | CORE-002 SPHINCS+ Verifier統合 | ✅ **PASS** 🎉 | 2025-12-31 |
+| PIR-P3.1-011 | PLUG-001 Governance Switch | ⏳ **PENDING** | - |
 
 ---
 
@@ -211,7 +252,7 @@ Track A の全6タスクが完了しました。
 | Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
-| **Phase 3** | **L3 + Token + 完全分散化** | **85%** | 🔄 **ACTIVE** |
+| **Phase 3** | **L3 + Token + 完全分散化** | **90%** | 🔄 **ACTIVE** |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
 ---
@@ -257,11 +298,11 @@ Track A の全6タスクが完了しました。
 
 **Core Layer 完了状況: 3/3 (100%) ✅**
 
-#### Week 5-6: Pluggable Layer実装 ⬜ **次フェーズ**
+#### Week 5-6: Pluggable Layer実装 🔄 **ACTIVE**
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|------|-----|
-| PLUG-001 | Governance Switch | IC-2 | Engineer | ⬜ **次** | - |
+| PLUG-001 | Governance Switch | IC-2 | Engineer | ✅ **実装完了** | ⏳ PIR待ち |
 | PLUG-002 | Token Switch | - | Engineer | ⬜ | - |
 | PLUG-003 | External Bridge Adapter | - | Engineer | ⬜ | - |
 
@@ -279,14 +320,14 @@ Track A の全6タスクが完了しました。
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **180 PASS** (Rust) + **105 PASS** (Solidity)
+### l3-aegis: ✅ **180 PASS** (Rust) + **135 PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------╮
 | Test Suite                 | Passed | Failed | Skipped |
 +========================================================+
 | l3-aegis (Cargo)           | 180    | 0      | 0       |
-| l3-aegis (Foundry)         | 105    | 0      | 0       |
+| l3-aegis (Foundry)         | 135    | 0      | 0       |
 ╰----------------------------+--------+--------+---------╯
 ```
 
@@ -298,7 +339,8 @@ Track A の全6タスクが完了しました。
 | **CORE-002 CoreVerifier** | 20 |
 | **CORE-002 CoreBatch** | 13 |
 | **CORE-003 ConstitutionLock** | 40 |
-| **合計** | **105** |
+| **PLUG-001 GovernanceSwitch** | 30 |
+| **合計** | **135** |
 
 ---
 
@@ -319,11 +361,11 @@ Track A の全6タスクが完了しました。
 
 ## 🔜 次のアクション
 
-### 最優先: Pluggable Layer実装開始
+### 最優先: PLUG-001 PIR → Pluggable Layer継続
 
 | # | タスク | IC | 優先度 | 担当 | 状態 |
 |---|--------|-----|--------|------|------|
-| 1 | **PLUG-001 Governance Switch実装** | IC-2 | 🔴 **P0** | Engineer | ⬜ **次** |
+| 1 | **PLUG-001 PIR (04_review.md)** | IC-2 | 🔴 **P0** | Engineer | ⏳ **次** |
 | 2 | PLUG-002 Token Switch実装 | - | 🟠 High | Engineer | ⬜ |
 | 3 | PLUG-003 External Bridge Adapter | - | 🟠 High | Engineer | ⬜ |
 
@@ -340,7 +382,7 @@ Track A の全6タスクが完了しました。
 | CORE-003 CP保護機構 | Month 10 | ✅ **COMPLETE + PIR PASS** 🎉 |
 | CORE-002 SPHINCS+ Verifier | Month 10 | ✅ **COMPLETE + PIR PASS** 🎉 |
 | **Core Layer完了** | **Month 10** | ✅ **COMPLETE** 🎉 |
-| **PLUG-001 Governance Switch** | **Month 10-11** | ⬜ **次** |
+| **PLUG-001 Governance Switch** | **Month 10** | ✅ **実装完了** → PIR待ち |
 | Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
@@ -364,7 +406,8 @@ Track A の全6タスクが完了しました。
 │      ├── CORE-001: ✅ **COMPLETE + PIR PASS** 🎉 (IC-4)     │
 │      ├── CORE-002: ✅ **COMPLETE + PIR PASS** 🎉 (IC-2)     │
 │      ├── CORE-003: ✅ **COMPLETE + PIR PASS** 🎉 (IC-3)     │
-│      └── PLUG-001~003: ⬜ Pluggable Layer実装 **次**        │
+│      ├── PLUG-001: ✅ **実装完了** → PIR待ち (IC-2)         │
+│      └── PLUG-002~003: ⬜ Pluggable Layer継続               │
 │                                                             │
 │  Phase 3.2 (Month 13-15): Implementation                    │
 │  Phase 3.3 (Month 16-18): Testing & Launch                  │
@@ -401,7 +444,8 @@ Track A の全6タスクが完了しました。
     - **CORE-002: ✅ COMPLETE + PIR PASS** 🎉 (IC-2 SPHINCS+ Verifier)
     - **CORE-003: ✅ COMPLETE + PIR PASS** 🎉 (IC-3 CP Protection)
     - **Core Layer: ✅ COMPLETE** 🎉
-    - PLUG-001~003: ⬜ Pluggable Layer **次**
+    - **PLUG-001: ✅ 実装完了** → PIR待ち (IC-2 Governance Switch)
+    - PLUG-002~003: ⬜ Pluggable Layer継続
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
 
