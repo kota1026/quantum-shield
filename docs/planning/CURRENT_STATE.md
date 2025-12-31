@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-01-01 20:00 JST  
+> **Last Updated**: 2025-12-31 16:10 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -14,8 +14,8 @@
 │  Month: 10 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.1.md              │
 │  Active Task: PLUG-003 External Bridge Adapter              │
-│  Status: ⬜ 未着手                                           │
-│  Tests: ✅ 180/180 PASS (l3-aegis) + 182 PASS (Solidity)    │
+│  Status: ✅ 実装完了・テストPASS・PIR待ち                    │
+│  Tests: ✅ 180/180 PASS (l3-aegis) + 208 PASS (Solidity)    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -28,41 +28,72 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | - |
-| **実装日時** | - |
-| **ステータス** | ⬜ 未実行 |
+| **対象Plan** | PLUG-003 External Bridge Adapter |
+| **実装日時** | 2025-12-31 16:00 JST |
+| **ステータス** | ✅ 実装完了・テストPASS |
 
 ### 対象Sequence
 
-（なし）
+| # | Sequence | Layer関連 |
+|---|----------|-----------|
+| 5 | Prover Registration | Core ↔ Token (stake) |
+| 6 | Prover Exit | Core ↔ Token (stake return) |
+| 7 | Governance Proposal | Governance ↔ Token (veQS) |
+| 8 | Emergency Pause | Core ↔ Governance (mode-dependent) |
 
 ### 作成ファイル
 
-（なし）
+| ファイル | 説明 | Commit |
+|----------|------|--------|
+| `l3-aegis/src/interfaces/IExternalBridgeAdapter.sol` | インターフェース定義 | 90c4b45 |
+| `l3-aegis/src/bridge/ExternalBridgeAdapter.sol` | 実装 | 07db3ea |
+| `l3-aegis/test/ExternalBridgeAdapter.t.sol` | テストスイート (26テスト) | 3144276 |
 
 ### 仕様書要件実装
 
-（なし）
+| 要件 | 出典 | 実装箇所 |
+|------|------|----------|
+| Layer分離（Adapter Pattern） | MODULAR_ARCHITECTURE §2.2 | ExternalBridgeAdapter全体 |
+| Mode組合せ検証 | SPEC_STRATEGY_BRIDGE §2.2 | `validateLayerCompatibility()` |
+| DECENTRALIZED+DISABLED禁止 | SPEC_STRATEGY_BRIDGE §2.2 | `validateLayerCompatibility()` |
+| Core↔Governance認可 | SPEC_STRATEGY_BRIDGE §6 | `canExecuteCoreAction()` |
+| Core↔Token依存 | SPEC_STRATEGY_BRIDGE §7.2 | `isTokenRequired()` |
+| Governance↔Token (veQS) | SPEC_STRATEGY_BRIDGE §7 | `hasVotingPower()` |
+| Stake通貨取得 | SPEC_STRATEGY_BRIDGE §7.2 | `getStakeCurrency()` |
+| 最小Stake額 | SPEC_STRATEGY_BRIDGE §7.2 | `getMinimumStake()` |
 
-### L3基盤確認
+### CP-1準拠
 
-（該当なし）
-
-### SPEC_REVIEW対応
-
-（該当なし）
+| 項目 | 状態 |
+|------|------|
+| keccak256使用 | ❌ 不使用 (CP-1準拠) |
+| 事前計算セレクタ | ✅ 0x45678901, 0x56789012, 0x67890123 |
+| 禁止アルゴリズム | ❌ ECDSA, RSA, SHA-256不使用 |
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | - |
-| 総テスト数 | - |
-| 結果 | - |
+| 新規テスト数 | 26 |
+| 総テスト数 | 208 (Solidity) |
+| 結果 | ✅ **26/26 PASS** |
+
+### テストカバレッジ詳細
+
+| テストID | 内容 | 結果 |
+|----------|------|------|
+| TEST-001 | Unit tests (initialization, mode queries) | ✅ PASS |
+| TEST-002 | Core↔Governance (CENTRALIZED/MULTISIG auth) | ✅ PASS |
+| TEST-003 | Core↔Token (isTokenRequired for #5,6,7) | ✅ PASS |
+| TEST-004 | Governance↔Token (hasVotingPower, veQS) | ✅ PASS |
+| TEST-005 | Valid mode combinations (9 patterns) | ✅ PASS |
+| TEST-006 | Prohibited: DECENTRALIZED+DISABLED | ✅ PASS |
 
 ### 備考
 
-（なし）
+- **Adapter Pattern**: Core LayerはPluggable Layerへの直接依存を避け、ExternalBridgeAdapterを介して間接参照
+- **veQS Stub**: `_hasVeQSVotingPower()`はFULLモードでtrue返却（veQSコントラクト実装後に拡張予定）
+- **Mode Validation**: 9つの有効組合せ + 1つの禁止組合せ（DECENTRALIZED+DISABLED）を検証
 
 ---
 
@@ -320,7 +351,7 @@ Track A の全6タスクが完了しました。
 | Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
-| **Phase 3** | **L3 + Token + 完全分散化** | **97%** | 🔄 **ACTIVE** |
+| **Phase 3** | **L3 + Token + 完全分散化** | **98%** | 🔄 **ACTIVE** |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
 ---
@@ -366,15 +397,15 @@ Track A の全6タスクが完了しました。
 
 **Core Layer 完了状況: 3/3 (100%) ✅**
 
-#### Week 5-6: Pluggable Layer実装 ✅ **完了** 🎉
+#### Week 5-6: Pluggable Layer実装 🔄 **進行中**
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|------|-----|
 | PLUG-001 | Governance Switch | IC-2 | Engineer | ✅ **COMPLETE** 🎉 | ✅ **PIR-P3.1-011 PASS** |
 | PLUG-002 | Token Switch | - | Engineer | ✅ **COMPLETE** 🎉 | ✅ **PIR-P3.1-012 PASS** |
-| PLUG-003 | External Bridge Adapter | - | Engineer | ⬜ | - |
+| PLUG-003 | External Bridge Adapter | IC-2 | Engineer | ✅ **実装完了・テストPASS** | ⬜ PIR待ち |
 
-**Pluggable Layer 完了状況: 2/3 (67%)**
+**Pluggable Layer 完了状況: 3/3 (100%) ✅** (PIR待ち1件)
 
 ---
 
@@ -390,14 +421,14 @@ Track A の全6タスクが完了しました。
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **180 PASS** (Rust) + **182 PASS** (Solidity)
+### l3-aegis: ✅ **180 PASS** (Rust) + **208 PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------╮
 | Test Suite                 | Passed | Failed | Skipped |
 +========================================================+
 | l3-aegis (Cargo)           | 180    | 0      | 0       |
-| l3-aegis (Foundry)         | 182    | 0      | 0       |
+| l3-aegis (Foundry)         | 208    | 0      | 0       |
 ╰----------------------------+--------+--------+---------╯
 ```
 
@@ -412,7 +443,8 @@ Track A の全6タスクが完了しました。
 | **PLUG-001 GovernanceSwitch** | 30 |
 | **PLUG-002 TokenSwitch** | 42 |
 | **PLUG-002 ITokenSwitch** | 5 |
-| **合計** | **182** |
+| **PLUG-003 ExternalBridgeAdapter** | 26 |
+| **合計** | **208** |
 
 ---
 
@@ -431,16 +463,17 @@ Track A の全6タスクが完了しました。
 | 9 | ~~PLUG-001 PIR未完了~~ | ~~MEDIUM~~ | ✅ **解決済み** PIR-P3.1-011 PASS |
 | 10 | ~~PLUG-002 keccak256使用~~ | ~~MEDIUM~~ | ✅ **解決済み** 事前計算定数に置換 |
 | 11 | ~~PLUG-002 PIR未完了~~ | ~~MEDIUM~~ | ✅ **解決済み** PIR-P3.1-012 PASS |
+| 12 | PLUG-003 PIR未完了 | 🟠 MEDIUM | 次のアクション |
 
 ---
 
 ## 🔜 次のアクション
 
-### 最優先: PLUG-003 External Bridge Adapter
+### 最優先: PLUG-003 PIR実施
 
 | # | タスク | IC | 優先度 | 担当 | 状態 |
 |---|--------|-----|--------|------|------|
-| 1 | **PLUG-003 External Bridge Adapter** | - | 🔴 **P0** | Engineer | ⬜ **次** |
+| 1 | **PLUG-003 PIR (04_review.md)** | IC-2 | 🔴 **P0** | CTO/11-Agent | ⬜ **次** |
 | 2 | Phase 3.1 完了判定 | - | 🟠 High | CTO | ⬜ |
 | 3 | Phase 3.2 計画策定 | - | 🟠 High | CTO | ⬜ |
 
@@ -459,7 +492,7 @@ Track A の全6タスクが完了しました。
 | **Core Layer完了** | **Month 10** | ✅ **COMPLETE** 🎉 |
 | **PLUG-001 Governance Switch** | **Month 10** | ✅ **COMPLETE + PIR PASS** 🎉 |
 | **PLUG-002 Token Switch** | **Month 10** | ✅ **COMPLETE + PIR PASS** 🎉 |
-| **PLUG-003 External Bridge Adapter** | **Month 10** | ⬜ **次のタスク** |
+| **PLUG-003 External Bridge Adapter** | **Month 10** | ✅ **実装完了・PIR待ち** |
 | Phase 3.1完了 | Month 12 | 🔄 ACTIVE |
 | Phase 3.2完了 | Month 15 | ⬜ |
 | Phase 3.3完了 | Month 18 | ⬜ |
@@ -486,7 +519,7 @@ Track A の全6タスクが完了しました。
 │      ├── **Core Layer: ✅ COMPLETE** 🎉                     │
 │      ├── PLUG-001: ✅ **COMPLETE + PIR PASS** 🎉 (IC-2)     │
 │      ├── PLUG-002: ✅ **COMPLETE + PIR PASS** 🎉            │
-│      └── PLUG-003: ⬜ External Bridge Adapter ← **次**      │
+│      └── PLUG-003: ✅ **実装完了** → PIR待ち                 │
 │                                                             │
 │  Phase 3.2 (Month 13-15): Implementation                    │
 │  Phase 3.3 (Month 16-18): Testing & Launch                  │
@@ -525,7 +558,7 @@ Track A の全6タスクが完了しました。
     - **Core Layer: ✅ COMPLETE** 🎉
     - **PLUG-001: ✅ COMPLETE + PIR PASS** 🎉 (IC-2 Governance Switch)
     - **PLUG-002: ✅ COMPLETE + PIR PASS** 🎉 (Token Switch)
-    - PLUG-003: ⬜ External Bridge Adapter ← **次**
+    - **PLUG-003: ✅ 実装完了・テストPASS** → PIR待ち (IC-2 External Bridge Adapter)
 - Phase 3.2 Implementation: ⬜
 - Phase 3.3 Testing & Launch: ⬜
 
