@@ -20,6 +20,10 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @notice Maximum pause duration (72 hours)
     uint256 public constant MAX_PAUSE_DURATION = 72 hours;
     
+    /// @notice Maximum number of signers (gas limit protection)
+    /// @dev Limits loop iterations in _resetUpgradeState and _resetPauseSignatures
+    uint256 public constant MAX_SIGNERS = 20;
+    
     // ============ Errors ============
     
     /// @notice Thrown when time lock has not expired
@@ -33,6 +37,9 @@ contract GovernanceSwitch is IGovernanceSwitch {
     
     /// @notice Thrown when signers array is empty
     error EmptySigners();
+    
+    /// @notice Thrown when too many signers
+    error TooManySigners(uint256 provided, uint256 max);
     
     /// @notice Thrown when duplicate signer detected
     error DuplicateSigner(address signer);
@@ -242,19 +249,22 @@ contract GovernanceSwitch is IGovernanceSwitch {
     // ============ Multisig Configuration (IMPL-004) ============
     
     /// @notice Configure multisig signers and threshold
-    /// @param signers Array of signer addresses
+    /// @param signers Array of signer addresses (max MAX_SIGNERS)
     /// @param threshold Required number of signatures
+    /// @dev Gas consumption is bounded by MAX_SIGNERS constant
     function configureMultisig(address[] calldata signers, uint256 threshold) external onlyAdmin {
         if (signers.length == 0) revert EmptySigners();
+        if (signers.length > MAX_SIGNERS) revert TooManySigners(signers.length, MAX_SIGNERS);
         if (threshold == 0 || threshold > signers.length) revert InvalidThreshold();
         
-        // Clear existing signers
-        for (uint256 i = 0; i < _multisigSigners.length; i++) {
+        // Clear existing signers (bounded by MAX_SIGNERS)
+        uint256 existingLength = _multisigSigners.length;
+        for (uint256 i = 0; i < existingLength; i++) {
             _isSigner[_multisigSigners[i]] = false;
         }
         delete _multisigSigners;
         
-        // Set new signers
+        // Set new signers (bounded by MAX_SIGNERS)
         for (uint256 i = 0; i < signers.length; i++) {
             address signer = signers[i];
             require(signer != address(0), "Invalid signer");
@@ -309,7 +319,7 @@ contract GovernanceSwitch is IGovernanceSwitch {
         // Apply upgrade
         _mode = newMode;
         
-        // Reset upgrade state
+        // Reset upgrade state (bounded by MAX_SIGNERS)
         _resetUpgradeState();
         
         emit GovernanceModeChanged(oldMode, newMode, msg.sender);
@@ -361,6 +371,7 @@ contract GovernanceSwitch is IGovernanceSwitch {
         // Check if threshold reached
         if (_pauseSignatureCount >= _multisigThreshold) {
             _activatePause();
+            // Reset pause signatures (bounded by MAX_SIGNERS)
             _resetPauseSignatures();
         }
     }
@@ -409,21 +420,26 @@ contract GovernanceSwitch is IGovernanceSwitch {
     }
     
     /// @notice Reset upgrade state
+    /// @dev Gas consumption bounded by MAX_SIGNERS (max 20 iterations)
     function _resetUpgradeState() internal {
         _pendingUpgrade = GovernanceMode.CENTRALIZED;
         _upgradeLockExpiry = 0;
         _upgradeSignatureCount = 0;
         
-        // Reset signatures
-        for (uint256 i = 0; i < _multisigSigners.length; i++) {
+        // Reset signatures (bounded loop - max MAX_SIGNERS iterations)
+        uint256 length = _multisigSigners.length;
+        for (uint256 i = 0; i < length; i++) {
             _upgradeSignatures[_multisigSigners[i]] = false;
         }
     }
     
     /// @notice Reset pause signatures
+    /// @dev Gas consumption bounded by MAX_SIGNERS (max 20 iterations)
     function _resetPauseSignatures() internal {
         _pauseSignatureCount = 0;
-        for (uint256 i = 0; i < _multisigSigners.length; i++) {
+        // Bounded loop - max MAX_SIGNERS iterations
+        uint256 length = _multisigSigners.length;
+        for (uint256 i = 0; i < length; i++) {
             _pauseSignatures[_multisigSigners[i]] = false;
         }
     }
