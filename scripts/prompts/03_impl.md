@@ -129,121 +129,6 @@ forge test
 ```
 全テストがpassすることを確認。
 
-### Step 4.1: セキュリティレビュー指摘修正（発見時）
-
-セキュリティレビュー（04_review.md）またはPIRで問題が発見された場合、以下の手順で修正：
-
-#### 4.1.1 問題の分類
-
-| 重要度 | 対応 |
-|--------|------|
-| 🔴 Critical | 即時修正必須。PIR/リリース不可 |
-| 🟠 High | 修正必須。回避策があればPIR可 |
-| 🟡 Medium | 推奨修正。理由があれば延期可 |
-| 🟢 Low | 任意修正。将来対応でも可 |
-
-#### 4.1.2 修正パターン
-
-**パターンA: ループ処理のガス制限**
-
-問題：シグナー数に比例したガス消費（DoSリスク）
-
-```solidity
-// ❌ BAD: 無制限ループ
-function _resetSignatures() internal {
-    for (uint256 i = 0; i < _signers.length; i++) {
-        _signatures[_signers[i]] = false;
-    }
-}
-
-// ✅ GOOD: 上限定数で制限
-uint256 public constant MAX_SIGNERS = 20;
-
-error TooManySigners(uint256 provided, uint256 max);
-
-function configureSigners(address[] calldata signers) external {
-    if (signers.length > MAX_SIGNERS) {
-        revert TooManySigners(signers.length, MAX_SIGNERS);
-    }
-    // ... 以降のループはMAX_SIGNERSで制限される
-}
-```
-
-**実装例（PLUG-001 GovernanceSwitch）**:
-- コミット: `1c9b533` - MAX_SIGNERS=20定数追加、TooManySignersエラー追加
-- コミット: `4c2fbb0` - テスト追加（test_TooManySigners_Reverts等）
-
-**パターンB: 算術オーバーフロー対策**
-
-```solidity
-// ❌ BAD: オーバーフローの可能性
-uint256 result = a + b;
-
-// ✅ GOOD: Solidity 0.8.x の自動チェックを活用
-// または明示的なチェック
-if (a > type(uint256).max - b) revert Overflow();
-uint256 result = a + b;
-```
-
-**パターンC: 再入攻撃対策**
-
-```solidity
-// ❌ BAD: 状態更新前の外部呼び出し
-function withdraw(uint256 amount) external {
-    payable(msg.sender).transfer(amount);  // 外部呼び出し
-    balances[msg.sender] -= amount;        // 状態更新
-}
-
-// ✅ GOOD: Checks-Effects-Interactions パターン
-function withdraw(uint256 amount) external {
-    require(balances[msg.sender] >= amount);  // Checks
-    balances[msg.sender] -= amount;           // Effects
-    payable(msg.sender).transfer(amount);     // Interactions
-}
-```
-
-#### 4.1.3 修正後のテスト追加
-
-修正には必ず対応テストを追加：
-
-```solidity
-// 境界値テスト
-function test_ExactlyMaxSigners_Succeeds() public {
-    address[] memory signers = new address[](MAX_SIGNERS);
-    // ... MAX_SIGNERSちょうどは成功
-}
-
-function test_TooManySigners_Reverts() public {
-    address[] memory signers = new address[](MAX_SIGNERS + 1);
-    vm.expectRevert(abi.encodeWithSelector(
-        TooManySigners.selector,
-        MAX_SIGNERS + 1,
-        MAX_SIGNERS
-    ));
-    // ... MAX_SIGNERS超過はrevert
-}
-
-// ガスベンチマーク
-function test_Gas_MaxSigners_Operation() public {
-    // ... MAX_SIGNERSでのガス消費測定
-    uint256 gasUsed = gasBefore - gasleft();
-    assertLt(gasUsed, 500_000, "Gas should be bounded");
-}
-```
-
-#### 4.1.4 コミット規約
-
-```bash
-# セキュリティ修正
-git commit -m "fix(security): add MAX_SIGNERS limit for gas protection"
-
-# テスト追加
-git commit -m "test(security): add MAX_SIGNERS limit tests"
-
-# ドキュメント更新
-git commit -m "docs: update CURRENT_STATE with security fix"
-```
-
 ### Step 5: SPEC_REVIEW.md 更新（該当する場合）
 `docs/planning/SPEC_REVIEW.md` が存在する場合、以下を更新：
 
@@ -462,37 +347,6 @@ function test_TimeoutDetection_After72h() public {
 }
 ```
 
-#### 問題4: 絶対タイムスタンプ vs 相対タイムスタンプ
-
-```solidity
-// ❌ BAD: 累積的な相対タイムスタンプ
-vm.warp(block.timestamp + 1 days);           // 86401
-vm.warp(block.timestamp + 5 days);           // 86401 + 518400 = 604801 (7日分！)
-vm.warp(block.timestamp + 1 days - 1);       // さらに累積
-
-// ✅ GOOD: 絶対タイムスタンプを使用
-uint256 baseTime = block.timestamp;  // 1
-
-// 1日後をテスト
-vm.warp(86401);                      // 絶対値
-vm.expectRevert();
-contract.finalizeUpgrade();
-
-// 6日後をテスト
-vm.warp(518401);                     // 絶対値
-vm.expectRevert();
-contract.finalizeUpgrade();
-
-// 7日ちょうどをテスト（unlockTime = 604801）
-vm.warp(604801);                     // 絶対値（<= なので失敗）
-vm.expectRevert();
-contract.finalizeUpgrade();
-```
-
-**実装例（PLUG-001 GovernanceSwitch）**:
-- コミット: `739709b` - test_TimeLock_CannotBypassTimeLock修正
-- 根本原因: `block.timestamp + X days` の累積により意図しない時間に
-
 ### Step 7.4: テスト修正のコミット規約
 
 ```bash
@@ -503,7 +357,6 @@ git commit -m "fix(test): [具体的な修正内容]"
 git commit -m "fix(test): use independent base times per iteration"
 git commit -m "fix(test): split TimeoutDetection into separate tests"
 git commit -m "fix(test): recalculate timeElapsed after vm.warp"
-git commit -m "fix(test): use absolute timestamps for time lock tests"
 ```
 
 ### Step 7.5: 修正後の検証
@@ -553,7 +406,6 @@ assertGt(timeElapsed, 72 hours, "Should be greater than 72h");
 - [ ] `vm.warp()` 後に関連変数を再計算しているか？
 - [ ] 複雑な時間テストを分割できないか？
 - [ ] テストが他のテストの状態に依存していないか？
-- [ ] 絶対タイムスタンプと相対タイムスタンプを混同していないか？
 
 ---
 
@@ -729,62 +581,3 @@ function _hashMerkleNodesTest(bytes32 left, bytes32 right) internal pure returns
    - バージョン文字列
    - 構造体フィールド
    - エラーメッセージ
-
----
-
-## 12. Phase 3.1 セキュリティ修正事例（2025-12-31）
-
-### 12.1 PLUG-001 GovernanceSwitch - ループ処理ガス制限
-
-**問題**:
-- `_resetUpgradeState()` と `_resetPauseSignatures()` でシグナー数に比例したガス消費
-- 無制限のシグナー数を許可するとDoS攻撃のリスク
-
-**修正**:
-
-| コミット | 内容 |
-|---------|------|
-| `1c9b533` | MAX_SIGNERS=20定数追加、TooManySignersエラー追加 |
-| `4c2fbb0` | テスト追加（境界値テスト + ガスベンチマーク） |
-
-**実装変更**:
-```solidity
-// 追加した定数
-uint256 public constant MAX_SIGNERS = 20;
-
-// 追加したエラー
-error TooManySigners(uint256 provided, uint256 max);
-
-// configureMultisig への検証追加
-function configureMultisig(address[] calldata signers, uint256 threshold) external onlyAdmin {
-    if (signers.length > MAX_SIGNERS) revert TooManySigners(signers.length, MAX_SIGNERS);
-    // ...
-}
-```
-
-**テスト追加**:
-```solidity
-function test_TooManySigners_Reverts() public {
-    address[] memory signers = new address[](MAX_SIGNERS + 1);
-    // ...
-    vm.expectRevert(abi.encodeWithSelector(
-        GovernanceSwitch.TooManySigners.selector,
-        MAX_SIGNERS + 1,
-        MAX_SIGNERS
-    ));
-    governanceSwitch.configureMultisig(signers, 3);
-}
-
-function test_ExactlyMaxSigners_Succeeds() public {
-    address[] memory signers = new address[](MAX_SIGNERS);
-    // ... MAX_SIGNERSちょうどは成功
-}
-
-function test_Gas_MaxSigners_ResetUpgradeState() public {
-    // ... 20人でのガス消費測定: 36,806 gas（制限500k未満）
-}
-```
-
-**結果**:
-- テスト: 34/34 PASS
-- MAX_SIGNERSでのfinalizeUpgrade: **36,806 gas**（制限500k以下 ✅）
