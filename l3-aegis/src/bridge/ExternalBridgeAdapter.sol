@@ -132,11 +132,9 @@ contract ExternalBridgeAdapter is IExternalBridgeAdapter {
         // Reason: veQS voting not possible without token
         if (govMode == IGovernanceSwitch.GovernanceMode.DECENTRALIZED && 
             tokenMode == ITokenSwitch.TokenMode.DISABLED) {
-            emit ModeCompatibilityChecked(govMode, tokenMode, false);
             return false;
         }
         
-        emit ModeCompatibilityChecked(govMode, tokenMode, true);
         return true;
     }
     
