@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "../interfaces/IEmergencyController.sol";
+import "../crypto/SHA3Hasher.sol";
 
 /// @title EmergencyController
 /// @notice Quantum Shield Emergency Controller - manages protocol pause and recovery
@@ -235,7 +236,8 @@ contract EmergencyController is IEmergencyController {
         bytes calldata data
     ) external override onlyGuardian whenPaused returns (bytes32 actionId) {
         _recoveryNonce++;
-        actionId = keccak256(abi.encode(recoveryType, data, _recoveryNonce, block.timestamp));
+        // CP-1 Compliant: Using SHA3-256 for recovery action ID generation
+        actionId = SHA3Hasher.hash(abi.encode(recoveryType, data, _recoveryNonce, block.timestamp));
         
         // Execute recovery based on type
         if (recoveryType == RecoveryType.ContractUpgrade) {
