@@ -2,12 +2,12 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import "../governance/Timelock.sol";
-import "../governance/SecurityCouncil.sol";
-import "../governance/EmergencyController.sol";
-import "../interfaces/ITimelock.sol";
-import "../interfaces/ISecurityCouncil.sol";
-import "../interfaces/IEmergencyController.sol";
+import "src/governance/Timelock.sol";
+import "src/governance/SecurityCouncil.sol";
+import "src/governance/EmergencyController.sol";
+import "src/interfaces/ITimelock.sol";
+import "src/interfaces/ISecurityCouncil.sol";
+import "src/interfaces/IEmergencyController.sol";
 
 /// @title GovernanceIntegrationTest
 /// @notice Integration tests for Governance Layer components
