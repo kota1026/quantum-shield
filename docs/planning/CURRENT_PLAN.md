@@ -1,14 +1,33 @@
 # Current Plan
 
-> **Generated**: 2025-01-01 (JST)  
+> **Generated**: 2026-01-01 (JST)  
 > **Phase**: 3  
-> **Sub-Phase**: 3.2 Implementation
+> **Sub-Phase**: 3.2 Implementation  
+> **Active Week**: 3-4
 
 ---
 
 ## 対象チェックリスト
 
 `docs/checklists/phase3.2.md`
+
+---
+
+## 前回の成果（Week 1-2）✅ COMPLETE
+
+| # | タスク | IC | 状態 | PIR |
+|---|--------|-----|:----:|-----|
+| DOC-001 | UNIFIED_SPEC_v2.0.md IC-6削除・設計変更記載 | - | ☑ | - |
+| DOC-002 | PHASE3_PLAN.md IC-6関連セクション削除 | - | ☑ | - |
+| DOC-003 | SPEC_STRATEGY_BRIDGE.md IC Traceability更新 | - | ☑ | - |
+| DOC-004 | L3_CHAIN_SPECIFICATION.md 2本立て設計明記 | - | ☑ | - |
+| TOKEN-001 | QSToken基本コントラクト | IC-5 | ☑ | ☑ PIR-P3.2-001 |
+| TOKEN-002 | veQS Lock/Unlock機構 | IC-5 | ☑ | ☑ PIR-P3.2-001 |
+| TOKEN-003 | 投票力計算 | IC-5 | ☑ | ☑ PIR-P3.2-001 |
+| SEQ-001 | Sequencer基本インターフェース定義 | IC-3 | ☑ | ☑ PIR-P3.2-001 |
+| SEQ-002 | MempoolManager実装 | IC-3 | ☑ | ☑ PIR-P3.2-001 |
+
+**PIR-P3.2-001: ✅ PASS** (2026-01-01)
 
 ---
 
@@ -30,8 +49,9 @@
 |------|----------|---------|
 | Prover Stake $500K (QS) | UNIFIED §Phase 2 | TokenSwitch + veQS |
 | Emergency Pause 72h上限 | SEQ#8 | GovernanceSwitch |
-| veQS Lock 1week-4years | UNIFIED §veQS | veQSToken.sol |
+| veQS Lock 1week-4years | UNIFIED §veQS | veQSToken.sol ✅ 実装済 |
 | Quorum (パラメータ) 4% | UNIFIED §投票パラメータ | Governor.sol |
+| Delegation | IC-5 | veQS.sol 🔄 **今回実装** |
 
 ---
 
@@ -57,30 +77,6 @@
 
 ---
 
-## ⚠️ 重要設計変更: BTF7不要
-
-> **CEO指示**: 2025-01-01
-
-### 変更内容
-
-- ❌ IC-6（Node Expansion 4→7）は **不要**
-- ✅ 代替設計: **BTF4（Enterprise）** か **Full Decentralization（Permissionless）** のいずれかを選択可能
-
-### 設計方針
-
-| Edition | L3 Nodes | Prover | Target |
-|---------|----------|--------|--------|
-| **Enterprise** | 4ノード固定 | 許可制 | 金融系システム会社 |
-| **Decentralized** | 4ノード→Permissionless | 段階的Permissionless | DEX・ブリッジ等 |
-
-### 影響範囲
-
-- UNIFIED_SPEC_v2.0.md §Node Expansion Roadmap の更新必要
-- PHASE3_PLAN.md の IC-6 関連セクション削除
-- SPEC_STRATEGY_BRIDGE.md §10 IC Traceability の更新
-
----
-
 ## IC完全性チェック（Phase 3.2）
 
 > 参照: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Implementation Components
@@ -89,91 +85,147 @@
 
 | IC-ID | Component | タスク | Status |
 |-------|-----------|--------|--------|
-| IC-3 | Sequencer | SEQ-001〜008 | 🟡 In Progress |
-| IC-5 | veQS Token | TOKEN-001〜014 | 🟡 In Progress |
+| IC-3 | Sequencer | SEQ-003〜008 | ⬜ Week 5-6予定 |
+| IC-5 | veQS Token | TOKEN-004〜010 | 🟡 **今回スコープ** |
 
 ### マスタ照合
 
 - [x] IC-1: L3 Chain Infrastructure → ✅ Phase 3.1 COMPLETE
 - [x] IC-2: L3 Bridge Contract → ✅ Phase 3.1 COMPLETE (Core Layer)
-- [ ] IC-3: Sequencer → Phase 3.2 **本スコープ**
+- [x] IC-3: Sequencer → 🔄 Phase 3.2 (2/8完了)
 - [x] IC-4: State Management → ✅ Phase 3.1 COMPLETE (CoreState)
-- [ ] IC-5: veQS Token → Phase 3.2 **本スコープ**
+- [ ] IC-5: veQS Token → 🔄 Phase 3.2 **今回スコープ** (3/10完了)
 - ~~IC-6: Node Expansion (7-node)~~ → **不要（CEO指示）**
 - IC-7: Permissionless Nodes → Phase 4 scope
 
-### タスク紐付け
+---
 
-- [x] 今回スコープの全タスクにIC-IDを付与した
-- [x] IC-ID不要タスクは理由を明記した
+## 今回のスコープ（Week 3-4: veQS Token実装）
+
+### 主要タスク
+
+| # | タスク | IC | 優先度 | 状態 |
+|---|--------|-----|--------|:----:|
+| TOKEN-004 | Delegation機構 | IC-5 | 🔴 **P0** | ⬜ |
+| TOKEN-005 | veQSガバナンス統合 | IC-5 | 🔴 **P0** | ⬜ |
+| TOKEN-006 | Staking報酬配分 | IC-5 | 🟠 High | ⬜ |
+| TOKEN-007 | $QS基本トークン拡張 | IC-5 | 🟠 High | ⬜ |
+| TOKEN-008 | Token Distribution準備 | IC-5 | 🟠 High | ⬜ |
+| TOKEN-009 | veQS単体テスト | IC-5 | 🟠 High | ⬜ |
+| TOKEN-010 | veQS統合テスト | IC-5 | 🟠 High | ⬜ |
+
+### 仕様書要件（Week 3-4）
+
+| 要件 | 出典 | 実装箇所 | 状態 |
+|------|------|---------|:----:|
+| Delegation | IC-5 | veQS.sol:delegate() | ⬜ |
+| Voting Weight計算 | IC-5 | veQS.sol:getVotes() | ⬜ |
+| Governor連携 | UNIFIED §Gov | Governor.sol | ⬜ |
+| 報酬分配メカニズム | IC-5 | RewardDistributor.sol | ⬜ |
+| トークン配布計画 | UNIFIED §Token | TGE設計 | ⬜ |
 
 ---
 
-## 前回レビュー課題
+## 依存関係
 
-> CURRENT_STATE.mdより
+### Week 3-4の前提条件
 
-| # | 重要度 | 課題 | 対策 |
-|---|--------|------|------|
-| - | - | **全課題解決済み** | Phase 3.1 GO判定完了 |
+| 依存 | 状態 | 備考 |
+|------|:----:|------|
+| QSToken.sol | ✅ | TOKEN-001で実装済み |
+| veQS Lock/Unlock | ✅ | TOKEN-002で実装済み |
+| 投票力計算基盤 | ✅ | TOKEN-003で実装済み |
+| ReentrancyGuard | ✅ | セキュリティ修正済み |
+
+### Week 5-6への引き継ぎ
+
+| 項目 | 必要状態 | 備考 |
+|------|---------|------|
+| Delegation機構 | ☑ 完了必須 | SEQ-006のStaking統合で使用 |
+| Governor.sol基盤 | ☑ 完了必須 | GOV-001〜006で拡張 |
 
 ---
 
-## 今回のスコープ
+## 成果物
 
-### 仕様書更新項目（BTF7不要対応）
+| ファイル | 説明 | IC-ID |
+|---------|------|-------|
+| `l3-aegis/src/token/veQS.sol` | Delegation拡張 | IC-5 |
+| `l3-aegis/src/governance/Governor.sol` | ガバナンスコントラクト | - |
+| `l3-aegis/src/token/RewardDistributor.sol` | 報酬分配 | IC-5 |
+| `l3-aegis/test/token/veQS.t.sol` | テスト拡張 | IC-5 |
+| `l3-aegis/test/governance/Governor.t.sol` | Govテスト | - |
 
-- [ ] [DOC-001] UNIFIED_SPEC_v2.0.md IC-6削除・設計変更記載
-- [ ] [DOC-002] PHASE3_PLAN.md IC-6関連セクション削除
-- [ ] [DOC-003] SPEC_STRATEGY_BRIDGE.md IC Traceability更新
-- [ ] [DOC-004] L3_CHAIN_SPECIFICATION.md 2本立て設計明記
+---
 
-### Sequencer実装項目（IC-3）
+## 実行順序（Week 3-4）
 
-- [ ] [SEQ-001] Sequencer基本インターフェース定義 (IC-3)
-- [ ] [SEQ-002] MempoolManager実装 (IC-3)
-- [ ] [SEQ-003] BatchBuilder実装 (IC-3)
-- [ ] [SEQ-004] L1 Submitter実装 (IC-3)
-- [ ] [SEQ-005] Sequencer Rotation機構 (IC-3)
-- [ ] [SEQ-006] Sequencer Staking統合 (IC-3)
-- [ ] [SEQ-007] Multi-Sequencer対応準備 (IC-3)
-- [ ] [SEQ-008] Sequencer統合テスト (IC-3)
+### Day 1-2: Delegation機構
 
-### veQS Token実装項目（IC-5）
+1. `TOKEN-004`: veQS.sol Delegation実装
+   - delegate(address delegatee)
+   - _delegate() internal
+   - checkpoints管理
 
-- [ ] [TOKEN-001] veQS Token基本コントラクト (IC-5)
-- [ ] [TOKEN-002] Lock/Unlock機構 (IC-5)
-- [ ] [TOKEN-003] 投票力計算（残りロック期間×数量） (IC-5)
-- [ ] [TOKEN-004] Delegation機構 (IC-5)
-- [ ] [TOKEN-005] veQSガバナンス統合 (IC-5)
-- [ ] [TOKEN-006] Staking報酬配分 (IC-5)
-- [ ] [TOKEN-007] $QS基本トークン実装 (IC-5)
-- [ ] [TOKEN-008] Token Distribution準備 (IC-5)
-- [ ] [TOKEN-009] veQS単体テスト (IC-5)
-- [ ] [TOKEN-010] veQS統合テスト (IC-5)
+### Day 3-4: ガバナンス統合
 
-### Governance Layer完成項目
+2. `TOKEN-005`: Governor.sol実装
+   - propose()
+   - castVote()
+   - execute()
+   - veQS連携
 
-- [ ] [GOV-001] Governor.sol実装（Quorum 4%/8%/15%）
-- [ ] [GOV-002] Proposal作成・投票フロー
-- [ ] [GOV-003] Time Lock (7日) 実装
-- [ ] [GOV-004] Security Council連携（6名構成）
-- [ ] [GOV-005] Emergency Pause拡張（SC 5/9対応）
-- [ ] [GOV-006] Governance統合テスト
+### Day 5-6: 報酬・配布
 
-### テスト項目
+3. `TOKEN-006`: RewardDistributor.sol
+   - 報酬計算ロジック
+   - クレーム機能
 
-- [ ] [TEST-001] Sequencer単体テスト
-- [ ] [TEST-002] veQS Token単体テスト
-- [ ] [TEST-003] Governor単体テスト
-- [ ] [TEST-004] Sequencer + veQS統合テスト
-- [ ] [TEST-005] Full Flow E2Eテスト（Lock→Unlock with veQS）
+4. `TOKEN-007`: QSToken拡張
+   - TGE対応
+   - Vesting準備
 
-### 監査・セキュリティ項目
+5. `TOKEN-008`: Distribution設計
+   - 配布計画ドキュメント
 
-- [ ] [AUDIT-001] 監査会社選定・RFP発行
-- [ ] [AUDIT-002] 監査スコープ定義
-- [ ] [AUDIT-003] Bug Bounty Program設計
+### Day 7-8: テスト
+
+6. `TOKEN-009`: veQS単体テスト
+   - Delegation
+   - Checkpoint
+   - 投票力
+
+7. `TOKEN-010`: 統合テスト
+   - veQS + Governor
+
+---
+
+## Core Principles確認
+
+- [x] CP-1: 完全量子耐性 - SHA3-256, Dilithium, SPHINCS+のみ使用
+- [x] CP-2: Self-Custody - ユーザー署名検証（Dilithium）
+- [x] CP-3: Time Lock存在 - Normal 24h, Emergency 7d, Proposal 7d
+- [x] CP-4: Slashing存在 - Quadratic N²×10%維持
+- [x] CP-5: 透明性 - L3記録・Event発行・ReentrancyGuard
+
+---
+
+## リスク・懸念事項
+
+| # | リスク | 重要度 | 対策 |
+|---|--------|--------|------|
+| 1 | Delegation複雑性 | 🟠 MEDIUM | OpenZeppelin参照・段階実装 |
+| 2 | Governor設計 | 🟠 MEDIUM | Compound Governor Bravo参考 |
+| 3 | 報酬計算gas | 🟡 LOW | バッチ処理設計 |
+| 4 | テスト網羅性 | 🟡 LOW | Fuzzing追加 |
+
+---
+
+## 次のPIR
+
+- **PIR ID**: PIR-P3.2-002
+- **対象**: TOKEN-004〜010
+- **予定日**: Week 3-4完了後
 
 ---
 
@@ -185,89 +237,12 @@
 | Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #5, #6, #7 |
 | 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §IC, §veQS, §Phase 2-3 |
 | L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
-| L3詳細仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | §Membership |
 | Phase 3計画 | `docs/planning/PHASE3_PLAN.md` | §2 Sequencer, §Token |
-| ビジネス戦略 | `docs/planning/DEVELOPMENT_STRATEGY_v2.0.md` | §2本立て戦略 |
+| **PIR-P3.2-001** | `docs/aegis/meetings/PIR-P3.2-001.md` | 全体 |
 
 ---
 
-## 成果物
-
-| ファイル | 説明 | IC-ID |
-|---------|------|-------|
-| `l3-aegis/aegis-sequencer/` | Sequencerモジュール | IC-3 |
-| `l3-aegis/contracts/src/token/veQSToken.sol` | veQSトークン | IC-5 |
-| `l3-aegis/contracts/src/token/QSToken.sol` | $QS基本トークン | IC-5 |
-| `l3-aegis/contracts/src/governance/Governor.sol` | ガバナンス | - |
-| `l3-aegis/contracts/test/token/*.t.sol` | Tokenテスト | IC-5 |
-| `l3-aegis/contracts/test/governance/*.t.sol` | Govテスト | - |
-| `docs/checklists/phase3.2.md` | チェックリスト | - |
-
----
-
-## 実行順序
-
-### Week 1-2: 仕様書更新 + 基盤設計
-
-- DOC-001〜004: BTF7不要設計変更をドキュメント反映
-- TOKEN-001〜003: veQS基本コントラクト
-- SEQ-001〜002: Sequencer基本インターフェース
-
-### Week 3-4: veQS Token実装
-
-- TOKEN-004〜006: Delegation・投票力・報酬
-- TOKEN-007〜008: $QS Token・Distribution
-- TOKEN-009〜010: テスト
-
-### Week 5-6: Sequencer実装
-
-- SEQ-003〜005: BatchBuilder・L1 Submitter・Rotation
-- SEQ-006〜007: Staking・Multi-Sequencer
-- SEQ-008: 統合テスト
-
-### Week 7-8: Governance完成
-
-- GOV-001〜006: Governor・Proposal・SC連携
-- TEST-003〜005: 統合テスト・E2E
-
-### Week 9-10: 監査準備・Phase 3.2 Go/No-Go
-
-- AUDIT-001〜003: 監査会社・スコープ・Bug Bounty
-- PIR会議・Go/No-Go判定
-
----
-
-## Core Principles確認
-
-- [x] CP-1: 完全量子耐性 - SHA3-256, Dilithium, SPHINCS+のみ使用
-- [x] CP-2: Self-Custody - ユーザー署名検証（Dilithium）
-- [x] CP-3: Time Lock存在 - Normal 24h, Emergency 7d, Proposal 7d
-- [x] CP-4: Slashing存在 - Quadratic N²×10%維持
-- [x] CP-5: 透明性 - L3記録・Event発行
-
----
-
-## Modular Architecture確認
-
-- [x] Core Layer: CP保護機構含む ✅ Phase 3.1完了
-- [ ] Governance Layer: ON/OFF切替可能 → Phase 3.2で完成
-- [ ] Token Layer: ON/OFF切替可能 → Phase 3.2で完成
-- [x] Layer間依存: 下位→上位依存なし ✅
-
----
-
-## リスク・懸念事項
-
-| # | リスク | 重要度 | 対策 |
-|---|--------|--------|------|
-| 1 | veQS設計複雑性 | 🟠 MEDIUM | Curve veモデル参照・段階実装 |
-| 2 | Sequencer中央集権リスク | 🟠 MEDIUM | Multi-Sequencer設計組込 |
-| 3 | 監査日程調整 | 🟠 MEDIUM | 早期RFP発行 |
-| 4 | IC-6削除による仕様書整合性 | 🟡 LOW | Week 1-2で全ドキュメント更新 |
-
----
-
-**承認**: CEO 2025-01-01
+**承認**: CEO 2026-01-01
 
 ---
 
