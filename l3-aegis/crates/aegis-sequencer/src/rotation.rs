@@ -15,10 +15,9 @@
 //! - L3_CHAIN_SPECIFICATION.md §3.4 View Change
 
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 
 use crate::error::{SequencerError, SequencerResult};
 
