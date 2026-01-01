@@ -28,6 +28,9 @@ pub mod sequencer;
 pub mod staking;
 pub mod types;
 
+#[cfg(test)]
+mod e2e_tests;
+
 // Re-exports
 pub use batch_builder::{BatchBuilder, BatchBuilderConfig};
 pub use error::{SequencerError, SequencerResult};
