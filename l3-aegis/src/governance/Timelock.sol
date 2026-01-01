@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "../interfaces/ITimelock.sol";
+import "../crypto/SHA3Hasher.sol";
 
 /// @title Timelock
 /// @notice Quantum Shield Timelock Controller - enforces delay on governance actions
@@ -291,10 +292,8 @@ contract Timelock is ITimelock {
         bytes calldata data,
         uint256 eta
     ) public pure override returns (bytes32) {
-        // Note: Using keccak256 here for EVM compatibility
-        // SHA3-256 is used for cryptographic operations per CP-1
-        // Transaction hashing is not a security-critical cryptographic operation
-        return keccak256(abi.encode(target, value, data, eta));
+        // CP-1 Compliant: Using SHA3-256 for all hashing operations
+        return SHA3Hasher.hash(abi.encode(target, value, data, eta));
     }
     
     /// @inheritdoc ITimelock
@@ -304,7 +303,8 @@ contract Timelock is ITimelock {
         bytes[] calldata datas,
         uint256 eta
     ) public pure override returns (bytes32) {
-        return keccak256(abi.encode(targets, values, datas, eta));
+        // CP-1 Compliant: Using SHA3-256 for all hashing operations
+        return SHA3Hasher.hash(abi.encode(targets, values, datas, eta));
     }
     
     /// @inheritdoc ITimelock
