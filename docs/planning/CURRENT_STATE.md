@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-01 21:55 JST  
+> **Last Updated**: 2026-01-01 22:35 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -15,7 +15,8 @@
 │  Active Checklist: docs/checklists/phase3.2.md              │
 │  Active Task: Week 5-6 Sequencer実装 (SEQ-003~008) COMPLETE │
 │  Status: ✅ SEQ-001~008 **ALL COMPLETE** → PIR待ち          │
-│  Tests: ✅ 180+55/235 PASS (Rust) + 271/271 PASS (Solidity) │
+│  Tests: ✅ 180+59/239 PASS (Rust) + 271/271 PASS (Solidity) │
+│  Warnings: ✅ 0 (aegis-sequencer clean)                     │
 │  次のPIR ID: PIR-P3.2-003                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -139,7 +140,7 @@
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | Phase 3.2 Week 5-6 Sequencer実装 (SEQ-003~SEQ-008) |
-| **実装日時** | 2026-01-01 21:55 JST |
+| **実装日時** | 2026-01-01 22:35 JST |
 | **PIR予定** | PIR-P3.2-003 |
 | **ステータス** | ✅ **COMPLETE** → PIR待ち 🎉 |
 
@@ -202,7 +203,15 @@
 | StakingManager unit tests | 8 | ✅ |
 | MultiSequencerCoordinator unit tests | 10 | ✅ |
 | E2E integration tests | 10 | ✅ |
-| **合計** | **55** | ✅ **ALL PASS** |
+| Mempool tests (既存) | 4 | ✅ |
+| **合計** | **59** | ✅ **ALL PASS** |
+
+### コンパイラ警告
+
+| 項目 | 修正前 | 修正後 |
+|------|:------:|:------:|
+| aegis-sequencer 警告数 | 8 | **0** ✅ |
+| aegis-core 警告数 | 3 | **0** ✅ |
 
 ### E2Eテストシナリオ
 
@@ -232,6 +241,19 @@
 | `b67dfeaa` | chore(sequencer): add rand dependency for MockL1Provider |
 | `a11c8e72` | test(sequencer): add E2E integration tests (SEQ-008) |
 | `f4d8e586` | feat(sequencer): add e2e_tests module to lib.rs |
+| `b3626b7` | refactor(batch_builder): remove unused imports and dead code |
+| `0cccac2` | refactor(rotation): remove unused imports |
+| `3bc1bb6` | refactor(staking): remove unused imports |
+| `2e0f763` | refactor(executor): move test-only imports into test module |
+
+### 警告クリーンアップ詳細 (2026-01-01)
+
+| ファイル | 修正内容 |
+|----------|----------|
+| `batch_builder.rs` | 未使用import (`warn`, `BatchStatus`) 削除、`#[allow(dead_code)]` 追加、未使用構造体 `BatchInProgress` 削除 |
+| `rotation.rs` | 未使用import (`Arc`, `debug`) 削除 |
+| `staking.rs` | 未使用import (`debug`, `warn`, `SequencerError`) 削除 |
+| `executor.rs` | テスト専用import をテストモジュール内に移動 |
 
 ### 既知の課題
 
@@ -397,6 +419,9 @@
 | SEQ-007 | Multi-Sequencer対応準備 | IC-3 | ✅ | ⬜ PIR-P3.2-003 |
 | SEQ-008 | Sequencer統合テスト | IC-3 | ✅ | ⬜ PIR-P3.2-003 |
 
+**コードクリーンアップ**: 
+- コンパイラ警告全削除完了 (b3626b7, 0cccac2, 3bc1bb6, 2e0f763) ✅
+
 ### Week 7-8: Governance Layer ← **NEXT**
 
 | # | タスク | IC | 状態 | PIR |
@@ -476,16 +501,16 @@
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **235 PASS** (Rust) + **271 PASS** (Solidity)
+### l3-aegis: ✅ **239 PASS** (Rust) + **271 PASS** (Solidity)
 
 ```
-╭----------------------------+--------+--------+---------╮
-| Test Suite                 | Passed | Failed | Skipped |
-+========================================================+
-| l3-aegis (Cargo) 既存      | 180    | 0      | 0       |
-| aegis-sequencer (新規)     |  55    | 0      | 0       |
-| l3-aegis (Foundry)         | 271    | 0      | 0       |
-╰----------------------------+--------+--------+---------╯
+╭----------------------------+--------+--------+---------+----------╮
+| Test Suite                 | Passed | Failed | Skipped | Warnings |
++================================================================+
+| l3-aegis (Cargo) 既存      | 180    | 0      | 0       | 0        |
+| aegis-sequencer (新規)     |  59    | 0      | 0       | 0 ✅     |
+| l3-aegis (Foundry)         | 271    | 0      | 0       | -        |
+╰----------------------------+--------+--------+---------+----------╯
 ```
 
 ---
