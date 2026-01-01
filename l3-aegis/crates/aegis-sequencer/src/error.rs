@@ -33,6 +33,10 @@ pub enum SequencerError {
     #[error("Gas limit exceeded: limit {limit}, required {required}")]
     GasLimitExceeded { limit: u64, required: u64 },
 
+    /// Gas price too high
+    #[error("Gas price too high: current {current}, max {max}")]
+    GasPriceTooHigh { current: u128, max: u128 },
+
     /// Batch construction failed
     #[error("Batch construction failed: {0}")]
     BatchError(String),
@@ -52,6 +56,26 @@ pub enum SequencerError {
     /// Network error
     #[error("Network error: {0}")]
     NetworkError(String),
+
+    /// L1 submission failed
+    #[error("L1 submission failed: {0}")]
+    L1SubmissionFailed(String),
+
+    /// Insufficient stake
+    #[error("Insufficient stake: required {required}, available {available}")]
+    InsufficientStake { required: u128, available: u128 },
+
+    /// Slashing error
+    #[error("Slashing error: {0}")]
+    SlashingError(String),
+
+    /// Consensus error
+    #[error("Consensus error: {0}")]
+    ConsensusError(String),
+
+    /// Timeout error
+    #[error("Timeout: {0}")]
+    Timeout(String),
 
     /// Internal error
     #[error("Internal error: {0}")]
