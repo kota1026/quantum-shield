@@ -18,14 +18,14 @@ use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn};
 
 use crate::error::{SequencerError, SequencerResult};
-use crate::rotation::{RotationManager, NodeInfo};
+use crate::rotation::RotationManager;
 use crate::staking::StakingManager;
-use crate::types::{Batch, BatchHash};
+use crate::types::Batch;
 
 /// Domain separator for batch proposals (CP-1 compliant)
 const DOMAIN_BATCH_PROPOSAL: &[u8] = b"QS_MULTI_SEQ_PROPOSAL_V1";
@@ -493,6 +493,23 @@ impl MultiSequencerCoordinator {
         }
     }
 
+    /// Mark a sequencer as stale (for testing health check)
+    pub async fn mark_sequencer_stale(&self, sequencer_id: [u8; 32]) {
+        let mut sequencers = self.sequencers.write().await;
+        
+        if let Some(info) = sequencers.get_mut(&sequencer_id) {
+            // Set last_seen to 100 seconds in the past
+            info.last_seen = chrono::Utc::now().timestamp() as u64 - 100;
+        }
+    }
+
+    /// Get sequencer status by ID
+    pub async fn get_sequencer_status(&self, sequencer_id: [u8; 32]) -> Option<SequencerStatus> {
+        self.sequencers.read().await
+            .get(&sequencer_id)
+            .map(|info| info.status)
+    }
+
     /// Run health check on all sequencers
     pub async fn run_health_check(&self) {
         let now = chrono::Utc::now().timestamp() as u64;
@@ -556,7 +573,7 @@ impl MultiSequencerCoordinator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::TxHash;
+    use crate::types::{TxHash, BatchHash};
 
     fn create_test_batch(number: u64, proposer: [u8; 32]) -> Batch {
         Batch {
@@ -712,13 +729,8 @@ mod tests {
         coordinator.register_local(1000).await.unwrap();
         coordinator.register_sequencer([2u8; 32], 2000).await.unwrap();
         
-        // Simulate time passing
-        {
-            let mut sequencers = coordinator.sequencers.write().await;
-            if let Some(info) = sequencers.get_mut(&[2u8; 32]) {
-                info.last_seen = chrono::Utc::now().timestamp() as u64 - 100;
-            }
-        }
+        // Mark sequencer as stale using public method
+        coordinator.mark_sequencer_stale([2u8; 32]).await;
         
         coordinator.run_health_check().await;
         
