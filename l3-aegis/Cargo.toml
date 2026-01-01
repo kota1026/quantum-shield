@@ -5,6 +5,8 @@ members = [
     "crates/aegis-core",
     "crates/aegis-crypto",
     "crates/aegis-smt",
+    # Sequencer (IC-3)
+    "crates/aegis-sequencer",
     # Network & Consensus
     "crates/aegis-network",
     "crates/aegis-consensus",
