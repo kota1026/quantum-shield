@@ -140,7 +140,7 @@ contract GovernorTest is Test {
     function test_castVote_for() public {
         uint256 proposalId = _createProposal();
         
-        // Skip to voting period
+        // Skip to voting period (7 days discussion period)
         vm.warp(block.timestamp + governor.VOTING_DELAY() + 1);
         
         assertEq(uint256(governor.state(proposalId)), uint256(IGovernor.ProposalState.Active));
@@ -416,9 +416,10 @@ contract GovernorTest is Test {
     
     function test_constants() public view {
         // Per CORE_PRINCIPLES.md CP-3: Time Lock must be 7 days
+        // Per CURRENT_PLAN.md: 議論期間7日 + 投票期間7日 + Time Lock 7日
         assertEq(governor.TIMELOCK_DELAY(), 7 days);
         assertEq(governor.VOTING_PERIOD(), 7 days);
-        assertEq(governor.VOTING_DELAY(), 1 days);
+        assertEq(governor.VOTING_DELAY(), 7 days); // Discussion period
     }
     
     // ============ Helper Functions ============
