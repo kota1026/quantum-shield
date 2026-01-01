@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-01 18:27 JST  
+> **Last Updated**: 2026-01-01 20:45 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,10 +13,10 @@
 │  Sub-Phase: 3.2 Implementation                              │
 │  Month: 11 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.2.md              │
-│  Active Task: Week 3-4 veQS Token実装 (TOKEN-004~010)       │
-│  Status: ✅ Week 3-4実装完了 + バグ修正 + CP-1修正 → PIR-P3.2-002待ち │
+│  Active Task: Week 5-6 Sequencer実装 (SEQ-003~008)          │
+│  Status: ✅ Week 3-4完了 + PIR-P3.2-002 PASS                │
 │  Tests: ✅ 180/180 PASS (Rust) + 271/271 PASS (Solidity)    │
-│  次のPIR ID: PIR-P3.2-002                                   │
+│  次のPIR ID: PIR-P3.2-003                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -66,8 +66,8 @@
 | Week | 内容 | Status |
 |:----:|------|:------:|
 | 1-2 | 仕様書更新 + veQS/Sequencer基盤 | ✅ **COMPLETE + PIR PASS** |
-| 3-4 | veQS Token実装 | ✅ **COMPLETE + BUG FIX + CP-1 FIX** → PIR待ち |
-| 5-6 | Sequencer実装 | ⬜ |
+| 3-4 | veQS Token実装 | ✅ **COMPLETE + PIR-P3.2-002 PASS** 🎉 |
+| 5-6 | Sequencer実装 | ⬜ ← **NEXT** |
 | 7-8 | Governance完成 + 統合テスト | ⬜ |
 | 9-10 | 監査準備 + Go/No-Go | ⬜ |
 
@@ -79,7 +79,7 @@
 | IC-2 | L3 Bridge Contract | ✅ Phase 3.1 COMPLETE |
 | IC-3 | Sequencer | 🟡 2/8完了 (SEQ-001~002) |
 | IC-4 | State Management | ✅ Phase 3.1 COMPLETE |
-| IC-5 | veQS Token | ✅ **10/10完了 + バグ修正 + CP-1修正完了** |
+| IC-5 | veQS Token | ✅ **10/10完了 + PIR-P3.2-002 PASS** 🎉 |
 | ~~IC-6~~ | ~~Node Expansion~~ | ❌ **不要（CEO指示）** |
 | IC-7 | Permissionless Nodes | ⚪ Phase 4 |
 
@@ -138,15 +138,18 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.2 Week 3-4 veQSバグ修正 + CP-1修正 |
+| **対象Plan** | Phase 3.2 Week 3-4 veQS Token + バグ修正 + CP-1修正 |
 | **実装日時** | 2026-01-01 18:27 JST |
-| **ステータス** | ✅ **修正完了** → PIR-P3.2-002待ち |
+| **PIR実施** | 2026-01-01 20:30 JST |
+| **ステータス** | ✅ **COMPLETE + PIR-P3.2-002 PASS** 🎉 |
 
 ### 対象Sequence
 
 | Sequence | 実装Layer | 仕様書準拠 |
 |----------|----------|:----------:|
-| TOKEN (IC-5) | Solidity | ✅ |
+| #5 Prover Registration | Token | ✅ |
+| #6 Prover Exit | Token | ✅ |
+| #7 Governance Proposal | Governance | ✅ |
 
 ### 修正内容
 
@@ -172,42 +175,6 @@
 | `l3-aegis/src/crypto/SHA3Hasher.sol` | SHA3Hasherラッパー追加 | `7d059249` |
 | `l3-aegis/src/governance/Governor.sol` | keccak256 → SHA3Hasher.hash() | `41fc7f13`, `687c68a4` |
 
-### コード変更詳細
-
-**veQS.sol (a7bffa99)**:
-```solidity
-// Before: 静的マッピング
-mapping(address => uint256) private _delegatedPower;
-
-// After: 動的リスト方式
-mapping(address => address[]) private _delegators;
-
-function _calculateDelegatedPower(address delegate) internal view returns (uint256) {
-    // 委任者リストを走査して都度計算
-}
-```
-
-**Governor.sol (687c68a4)**:
-```solidity
-// Before: CP-1違反
-import {IGovernor} from "../interfaces/IGovernor.sol";
-descriptionHash: keccak256(bytes(description))
-
-// After: CP-1準拠
-import {SHA3Hasher} from "../crypto/SHA3Hasher.sol";
-descriptionHash: SHA3Hasher.hash(bytes(description))
-```
-
-**VeQSRewardDistributor.t.sol (bd6cd48c)**:
-```solidity
-// バッファ定数追加
-uint256 public constant REWARD_BUFFER = 3;
-
-// 報酬記録とは別に十分な残高を確保
-distributor.addRewards(REWARD_AMOUNT);
-rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
-```
-
 ### 仕様書要件実装確認
 
 | 要件 | 出典 | 実装箇所 | 状態 |
@@ -223,22 +190,6 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 |---|--------|------|:----:|
 | FIX-001 | 🟢 Info | veQS totalVotingPower 50%近似 | 📋 許容（テスト対応済み） |
 | FIX-002 | ✅ Fixed | Governor.sol keccak256使用 (CP-1違反) | ✅ **修正完了** |
-
-**FIX-001 詳細**:
-- `getTotalVotingPower()` は全ロック額の50%を返す（近似値）
-- `getVotingPowerAt()` は実際の減衰パワーを返す
-- 単一ユーザーで最大2倍の報酬計算になる可能性
-- **対応**: テストではバッファmint方式で対応、本番では報酬プール設計で考慮
-
-**FIX-002 詳細**:
-- `Governor.sol:L165` で `keccak256(bytes(description))` を使用していた
-- SHA3Hasherライブラリを `l3-aegis/src/crypto/` に追加
-- `SHA3Hasher.hash(bytes(description))` に変更
-- **対応**: ✅ 修正完了、テスト全PASS
-
-### SPEC_REVIEW対応
-
-（該当なし - SPEC_REVIEW.md ステータス「未実行」）
 
 ### テスト結果
 
@@ -261,13 +212,6 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | `9d2655a8` | feat(l3-aegis): SHA3_256 cryptoライブラリ追加 |
 | `7d059249` | feat(l3-aegis): SHA3Hasher cryptoライブラリ追加 |
 | `687c68a4` | fix(Governor): ローカルcryptoライブラリパス使用 |
-
-### 備考
-
-- veQS委任機能: 正常動作確認済み
-- 報酬分配テスト: 近似許容設計で全テストPASS
-- Governor CP-1準拠: SHA3Hasher使用で修正完了
-- 次アクション: PIR-P3.2-002実行（04_review.md）
 
 ---
 
@@ -327,9 +271,9 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | PIR ID | 対象 | レビュー結果 | 日付 |
 |--------|------|-------------|------|
 | PIR-P3.2-001 | TOKEN-001~003, SEQ-001~002 | ✅ **PASS** 🎉 | 2026-01-01 |
-| PIR-P3.2-002 | TOKEN-004~010 + バグ修正 + CP-1修正 | ⬜ **PENDING** | - |
+| PIR-P3.2-002 | TOKEN-004~010 + バグ修正 + CP-1修正 | ✅ **PASS** 🎉 | 2026-01-01 |
 
-**Phase 3.2 PIR完了: 1/2 PASS**
+**Phase 3.2 PIR完了: 2/2 PASS** ✅
 
 ### Phase 3.1 PIR一覧
 
@@ -399,21 +343,32 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | SEQ-001 | Sequencer基本インターフェース定義 | IC-3 | ✅ | ✅ PIR-P3.2-001 |
 | SEQ-002 | MempoolManager実装 | IC-3 | ✅ | ✅ PIR-P3.2-001 |
 
-### Week 3-4: veQS Token実装 ✅ **COMPLETE + BUG FIX + CP-1 FIX** → PIR待ち
+### Week 3-4: veQS Token実装 ✅ **COMPLETE + PIR-P3.2-002 PASS** 🎉
 
 | # | タスク | IC | 状態 | PIR |
 |---|--------|-----|:----:|-----|
-| TOKEN-004 | Delegation機構 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
-| TOKEN-005 | veQSガバナンス統合 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
-| TOKEN-006 | Staking報酬配分 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
-| TOKEN-007 | $QS基本トークン拡張 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
-| TOKEN-008 | Token Distribution準備 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
-| TOKEN-009 | veQS単体テスト | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
-| TOKEN-010 | veQS統合テスト | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
+| TOKEN-004 | Delegation機構 | IC-5 | ✅ | ✅ PIR-P3.2-002 |
+| TOKEN-005 | veQSガバナンス統合 | IC-5 | ✅ | ✅ PIR-P3.2-002 |
+| TOKEN-006 | Staking報酬配分 | IC-5 | ✅ | ✅ PIR-P3.2-002 |
+| TOKEN-007 | $QS基本トークン拡張 | IC-5 | ✅ | ✅ PIR-P3.2-002 |
+| TOKEN-008 | Token Distribution準備 | IC-5 | ✅ | ✅ PIR-P3.2-002 |
+| TOKEN-009 | veQS単体テスト | IC-5 | ✅ | ✅ PIR-P3.2-002 |
+| TOKEN-010 | veQS統合テスト | IC-5 | ✅ | ✅ PIR-P3.2-002 |
 
 **バグ修正**: 
-- veQS委任・報酬分配テスト修正完了 (a7bffa99, bd6cd48c)
-- Governor CP-1違反修正完了 (687c68a4)
+- veQS委任・報酬分配テスト修正完了 (a7bffa99, bd6cd48c) ✅
+- Governor CP-1違反修正完了 (687c68a4) ✅
+
+### Week 5-6: Sequencer実装 ← 🔄 **NEXT**
+
+| # | タスク | IC | 状態 | PIR |
+|---|--------|-----|:----:|-----|
+| SEQ-003 | BatchBuilder実装 | IC-3 | ⬜ | ⬜ |
+| SEQ-004 | L1 Submitter実装 | IC-3 | ⬜ | ⬜ |
+| SEQ-005 | Sequencer Rotation機構 | IC-3 | ⬜ | ⬜ |
+| SEQ-006 | Sequencer Staking統合 | IC-3 | ⬜ | ⬜ |
+| SEQ-007 | Multi-Sequencer対応準備 | IC-3 | ⬜ | ⬜ |
+| SEQ-008 | Sequencer統合テスト | IC-3 | ⬜ | ⬜ |
 
 ### 進捗サマリー
 
@@ -501,11 +456,9 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
 | 1 | 独自L3技術リスク | 🔴 HIGH | 緩和策実施（監査、TVL制限） |
-| 2 | veQS設計複雑性 | 🟠 MEDIUM | Curve veモデル参照・段階実装 |
-| 3 | Sequencer中央集権リスク | 🟠 MEDIUM | Multi-Sequencer設計組込 |
-| 4 | 監査日程調整 | 🟠 MEDIUM | 早期RFP発行 |
-| 5 | IC-6削除による仕様書整合性 | 🟡 LOW | Week 1-2で全ドキュメント更新 ✅ |
-| 6 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
+| 2 | Sequencer中央集権リスク | 🟠 MEDIUM | Multi-Sequencer設計組込（Week 5-6） |
+| 3 | 監査日程調整 | 🟠 MEDIUM | 早期RFP発行 |
+| 4 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
 
 ---
 
@@ -515,17 +468,19 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | **PIR-P3.2-002実行** (04_review.md) | 🔴 **P0** | ⬜ **次** |
-| 2 | Week 5-6 Sequencer実装開始 | 🟠 High | ⬜ |
+| 1 | **Week 5-6 Sequencer実装開始** (01_plan.md) | 🔴 **P0** | ⬜ **次** |
+| 2 | SEQ-003: BatchBuilder設計・実装 | 🔴 **P0** | ⬜ |
 
 ### Week 5-6 タスク（Sequencer実装）
 
 | # | タスク | IC | 優先度 | 状態 |
 |---|--------|-----|--------|:----:|
-| 1 | SEQ-003: Batch Builder | IC-3 | 🔴 **P0** | ⬜ |
-| 2 | SEQ-004: L1 Submission | IC-3 | 🔴 **P0** | ⬜ |
-| 3 | SEQ-005: State Commitment | IC-3 | 🟠 High | ⬜ |
-| 4 | SEQ-006: Fee Collection | IC-3 | 🟠 High | ⬜ |
+| 1 | SEQ-003: BatchBuilder実装 | IC-3 | 🔴 **P0** | ⬜ |
+| 2 | SEQ-004: L1 Submitter実装 | IC-3 | 🔴 **P0** | ⬜ |
+| 3 | SEQ-005: Sequencer Rotation機構 | IC-3 | 🟠 High | ⬜ |
+| 4 | SEQ-006: Sequencer Staking統合 | IC-3 | 🟠 High | ⬜ |
+| 5 | SEQ-007: Multi-Sequencer対応準備 | IC-3 | 🟠 High | ⬜ |
+| 6 | SEQ-008: Sequencer統合テスト | IC-3 | 🟠 High | ⬜ |
 
 ---
 
@@ -556,8 +511,8 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 │  └── Track B: L3 Contracts (Solidity) ✅ **COMPLETE**       │
 │                                                             │
 │  Phase 3.2 (Month 11-15): Implementation ← 🔄 **ACTIVE**    │
-│  ├── IC-3: Sequencer (SEQ-001〜008) - 2/8完了               │
-│  ├── IC-5: veQS Token (TOKEN-001〜010) - ✅ **10/10完了**    │
+│  ├── IC-3: Sequencer (SEQ-001〜008) - 2/8完了 ← **NEXT**    │
+│  ├── IC-5: veQS Token (TOKEN-001〜010) - ✅ **10/10完了**   │
 │  ├── Governance Layer (GOV-001〜006)                        │
 │  └── Audit Prep (AUDIT-001〜003)                            │
 │                                                             │
@@ -583,6 +538,7 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | L3チェーン仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` |
 | l3-aegis README | `l3-aegis/README.md` |
 | **PIR-P3.2-001** | `docs/aegis/meetings/PIR-P3.2-001.md` |
+| **PIR-P3.2-002** | `docs/aegis/meetings/PIR-P3.2-002.md` |
 
 ---
 
@@ -593,10 +549,10 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
 - Phase 3.1 Foundation: ✅ **COMPLETE 🎉🎉🎉**
   - Go/No-Go判定: 🟢 GO (88.0/100, 11/11 全会一致)
-- Phase 3.2 Implementation: 🔄 **ACTIVE** (41% - Week 1-4完了 + バグ修正 + CP-1修正)
+- Phase 3.2 Implementation: 🔄 **ACTIVE** (46%)
   - DOC: ✅ 4/4
-  - IC-3 Sequencer: 🔄 2/8 (PIR済: SEQ-001, SEQ-002)
-  - IC-5 veQS Token: ✅ **10/10 COMPLETE + バグ修正 + CP-1修正完了** → PIR-P3.2-002待ち
+  - IC-3 Sequencer: 🔄 2/8 (PIR済: SEQ-001, SEQ-002) ← **NEXT**
+  - IC-5 veQS Token: ✅ **10/10 COMPLETE + PIR-P3.2-002 PASS** 🎉
   - Governance: ⬜ 0/6
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
 - Phase 3.3 Testing & Launch: ⬜
