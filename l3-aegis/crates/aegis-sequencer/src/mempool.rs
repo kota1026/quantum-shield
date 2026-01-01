@@ -109,10 +109,12 @@ impl MempoolManager {
             ));
         }
 
-        // Check mempool capacity
+        // Check mempool capacity - try eviction if full
         if self.is_full().await {
-            // TODO: Implement eviction of lowest priority txs
-            return Err(SequencerError::MempoolFull { max_capacity: self.max_size });
+            // Try to evict lowest priority transaction
+            if !self.try_evict_for(&tx).await {
+                return Err(SequencerError::MempoolFull { max_capacity: self.max_size });
+            }
         }
 
         let hash = tx.hash;
@@ -256,6 +258,63 @@ impl MempoolManager {
     pub async fn get_nonce(&self, sender: &[u8; 32]) -> u64 {
         let nonces = self.nonces.read().await;
         nonces.get(sender).copied().unwrap_or(0)
+    }
+
+    /// Try to evict lowest priority transaction for new tx
+    /// Returns true if eviction succeeded, false otherwise
+    async fn try_evict_for(&self, new_tx: &PendingTx) -> bool {
+        let txs = self.txs_by_hash.read().await;
+        
+        if txs.is_empty() {
+            return false;
+        }
+
+        // Find the lowest priority transaction
+        let lowest = txs.values().min_by(|a, b| {
+            // Compare priority first
+            match a.priority.cmp(&b.priority) {
+                Ordering::Equal => {}
+                ord => return ord,
+            }
+            // Then gas price
+            match a.gas_price.cmp(&b.gas_price) {
+                Ordering::Equal => {}
+                ord => return ord,
+            }
+            // Earlier timestamp = lower priority for eviction
+            b.received_at.cmp(&a.received_at)
+        });
+
+        let lowest = match lowest {
+            Some(tx) => tx.clone(),
+            None => return false,
+        };
+
+        // Check if new tx has higher priority
+        let new_is_better = match new_tx.priority.cmp(&lowest.priority) {
+            Ordering::Greater => true,
+            Ordering::Less => false,
+            Ordering::Equal => new_tx.gas_price > lowest.gas_price,
+        };
+
+        if !new_is_better {
+            return false;
+        }
+
+        // Release read lock before acquiring write lock
+        drop(txs);
+
+        // Evict the lowest priority transaction
+        let evicted_hash = lowest.hash;
+        self.remove_tx(&evicted_hash).await;
+        
+        info!(
+            "Evicted tx {} (priority={:?}, gas={}) for new tx (priority={:?}, gas={})",
+            evicted_hash, lowest.priority, lowest.gas_price,
+            new_tx.priority, new_tx.gas_price
+        );
+
+        true
     }
 
     /// Clear all transactions
@@ -412,15 +471,70 @@ mod tests {
     async fn test_mempool_full() {
         let mempool = MempoolManager::new(2, 1_000_000_000);
 
+        // Add two low-priority txs
         for i in 0..2 {
             let tx = create_test_tx([i as u8; 32], 0, 2_000_000_000);
             mempool.add_tx(tx).await.unwrap();
         }
 
+        // Same priority and gas price - should fail (no eviction possible)
         let tx = create_test_tx([99u8; 32], 0, 2_000_000_000);
         let result = mempool.add_tx(tx).await;
         
         assert!(matches!(result, Err(SequencerError::MempoolFull { .. })));
+    }
+
+    #[tokio::test]
+    async fn test_eviction_higher_gas_price() {
+        let mempool = MempoolManager::new(2, 1_000_000_000);
+
+        // Add two txs with low gas price
+        for i in 0..2 {
+            let tx = create_test_tx([i as u8; 32], 0, 2_000_000_000);
+            mempool.add_tx(tx).await.unwrap();
+        }
+
+        // Higher gas price should trigger eviction
+        let high_gas_tx = create_test_tx([99u8; 32], 0, 5_000_000_000);
+        let result = mempool.add_tx(high_gas_tx).await;
+        
+        assert!(result.is_ok());
+        assert_eq!(mempool.size().await, 2); // Still at capacity
+    }
+
+    fn create_test_tx_with_priority(sender: [u8; 32], nonce: u64, gas_price: u128, priority: TxPriority) -> PendingTx {
+        let mut tx = PendingTx {
+            hash: TxHash::from_bytes([0u8; 32]),
+            tx_type: TxType::BridgeLock,
+            sender,
+            nonce,
+            gas_price,
+            gas_limit: 21000,
+            data: vec![],
+            signature: vec![],
+            priority,
+            received_at: chrono::Utc::now().timestamp() as u64,
+        };
+        tx.hash = tx.calculate_hash();
+        tx
+    }
+
+    #[tokio::test]
+    async fn test_eviction_higher_priority() {
+        let mempool = MempoolManager::new(2, 1_000_000_000);
+
+        // Add two Low priority txs
+        for i in 0..2 {
+            let tx = create_test_tx_with_priority([i as u8; 32], 0, 2_000_000_000, TxPriority::Low);
+            mempool.add_tx(tx).await.unwrap();
+        }
+
+        // Urgent priority should trigger eviction
+        let urgent_tx = create_test_tx_with_priority([99u8; 32], 0, 2_000_000_000, TxPriority::Urgent);
+        let result = mempool.add_tx(urgent_tx).await;
+        
+        assert!(result.is_ok());
+        assert_eq!(mempool.size().await, 2);
     }
 
     #[tokio::test]

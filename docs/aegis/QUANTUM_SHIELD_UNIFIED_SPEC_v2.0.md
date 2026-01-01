@@ -1,8 +1,8 @@
 # Quantum Shield L3 - Unified Specification v2.0
 
-> **Document Version**: 2.2  
-> **Last Updated**: 2025-12-29  
-> **Status**: CEO承認待ち  
+> **Document Version**: 2.3  
+> **Last Updated**: 2025-01-01  
+> **Status**: CEO承認済み  
 > **Rounds Completed**: 8 (42 votes)
 
 ---
@@ -38,7 +38,7 @@ Quantum Shield L3は、量子コンピュータ時代に備えた世界初のNIS
 | IC-3 | Sequencer | Application | 3 | 🔴 Planning | PHASE3_PLAN.md §2 |
 | IC-4 | State Management (SMT) | Application | 3 | 🔴 Planning | PHASE3_PLAN.md §3 |
 | IC-5 | veQS Token | Application | 3 | 🔴 Planning | §Token Design |
-| IC-6 | Node Expansion (7-node) | Infrastructure | 3 | 🔴 Future | §Node Expansion Roadmap |
+| IC-6 | ~~Node Expansion (7-node)~~ | Infrastructure | 3 | ❌ **不要（CEO指示 2025-01-01）** | §Node Expansion Roadmap |
 | IC-7 | Permissionless Nodes | Infrastructure | 4 | 🔴 Future | §Node Expansion Roadmap |
 
 ### Status Legend
@@ -109,13 +109,24 @@ Quantum Shield L3は、量子コンピュータ時代に備えた世界初のNIS
 > **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md` §9
 > **Reference**: `docs/planning/DEVELOPMENT_STRATEGY_v2.0.md` §2-3
 
+> ⚠️ **重要設計変更（2025-01-01 CEO指示）**
+> - IC-6（Node Expansion 4→7）: **不要**
+> - 代替: 2本立て設計（Enterprise / Decentralized）
+
+### 2本立て設計（BTF7削除後）
+
+| Edition | Target | L3 Nodes | Prover | 重視点 |
+|---------|--------|----------|--------|--------|
+| **Enterprise** | 金融系システム会社 | 4ノード固定（全Phase） | 許可制（契約ベース） | 安定性・可用性・規制対応 |
+| **Decentralized** | DEX・ブリッジ・カストディ | 4ノード→Permissionless | 段階的にPermissionless化 | 分散性・検閲耐性・透明性 |
+
 ### Phase別ノード構成
 
-| Phase | Nodes | Fault Tolerance | Quorum | Membership | IC-ID |
-|-------|-------|-----------------|--------|------------|-------|
-| 1-2 (Foundation) | 4 | f=1 | 3/4 (75%) | Static | IC-1 |
-| 3 (Security Council) | 4→7 | f=2 | 5/7 (71%) | Council Managed | IC-6 |
-| 4 (Full Decentralization) | 7+ | (n-1)/3 | 2f+1 | Stake-based Permissionless | IC-7 |
+| Phase | Enterprise Edition | Decentralized Edition | IC-ID |
+|-------|-------------------|----------------------|-------|
+| 1-2 (Foundation) | 4ノード固定 | 4ノード（QS運営） | IC-1 |
+| 3 (Security Council) | 4ノード固定 | 4ノード（SC管理） | IC-1 |
+| 4 (Full Decentralization) | 4ノード固定 | Permissionless (Nノード) | IC-7 |
 
 ### Prover構成
 
@@ -127,11 +138,18 @@ Quantum Shield L3は、量子コンピュータ時代に備えた世界初のNIS
 
 ### コードベース共通化
 
-```
-l3-aegis（共通コードベース）
-├── --nodes=4 --membership=static    → Enterprise / Phase 1-2
-├── --nodes=7 --membership=council   → Phase 3
-└── --nodes=N --membership=stake     → Phase 4 Decentralized
+```bash
+# Enterprise Edition（全Phase）
+aegis-node --nodes=4 --membership=static
+
+# Decentralized Edition (Phase 1-2)
+aegis-node --nodes=4 --membership=static
+
+# Decentralized Edition (Phase 3)
+aegis-node --nodes=4 --membership=council
+
+# Decentralized Edition (Phase 4)
+aegis-node --nodes=N --membership=stake
 ```
 
 ---
