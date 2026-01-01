@@ -137,9 +137,9 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.2 Week 1-2 実装 |
-| **実装日時** | 2026-01-01 10:30 JST |
-| **ステータス** | ✅ **Week 1-2 実装完了** |
+| **対象Plan** | Phase 3.2 Week 1-2 実装 + セキュリティ修正 |
+| **実装日時** | 2026-01-01 12:00 JST |
+| **ステータス** | ✅ **Week 1-2 実装完了 + セキュリティ修正適用済** |
 
 ### 対象Sequence
 
@@ -152,29 +152,45 @@
 
 **Solidity (Token)**:
 - `l3-aegis/src/token/QSToken.sol`: $QS ERC-20トークン (1B cap)
-- `l3-aegis/src/token/veQS.sol`: Vote Escrow実装 (1週間〜4年ロック)
+- `l3-aegis/src/token/veQS.sol`: Vote Escrow実装 (1週間〜4年ロック) + **ReentrancyGuard追加**
 - `l3-aegis/src/interfaces/IveQS.sol`: veQSインターフェース
 - `l3-aegis/test/token/QSToken.t.sol`: QSTokenテスト (18 tests)
-- `l3-aegis/test/token/veQS.t.sol`: veQSテスト (21 tests)
+- `l3-aegis/test/token/veQS.t.sol`: veQSテスト (24 tests) + **ReentrancyGuardテスト追加**
 
 **Rust (Sequencer)**:
 - `l3-aegis/crates/aegis-sequencer/src/lib.rs`: モジュールエクスポート
 - `l3-aegis/crates/aegis-sequencer/src/error.rs`: エラー型定義
 - `l3-aegis/crates/aegis-sequencer/src/types.rs`: コア型定義
 - `l3-aegis/crates/aegis-sequencer/src/sequencer.rs`: Sequencer実装
-- `l3-aegis/crates/aegis-sequencer/src/mempool.rs`: MempoolManager実装
+- `l3-aegis/crates/aegis-sequencer/src/mempool.rs`: MempoolManager実装 + **eviction機能追加**
 
 ### 仕様書要件実装
 
 | 要件 | 出典 | 実装箇所 |
-|------|------|---------|
+|------|------|----------|
 | ERC-20 $QS Token | IC-5 | `QSToken.sol` |
 | 1B Token Cap | IC-5 | `QSToken.sol:MAX_SUPPLY` |
 | Lock Duration 1w-4y | IC-5 | `veQS.sol:MIN/MAX_LOCK_TIME` |
-| Voting Power = amount × (remaining/max) | IC-5 | `veQS.sol:getVotingPower()` |
+| Voting Power = amount × (remaining/max) | IC-5 | `veQS.sol:_calculateVotingPower()` |
 | 4x Max Boost | IC-5 | `veQS.sol:MAX_LOCK_TIME=4years` |
 | Priority Queue Mempool | IC-3 | `mempool.rs:OrderedTx` |
 | SHA3-256 Only | CP-1 | `types.rs:TxHash/BatchHash` |
+| **ReentrancyGuard (CP-5)** | Security | `veQS.sol:nonReentrant modifier` |
+| **Mempool Eviction** | SEQ要件 | `mempool.rs:try_evict_for()` |
+
+### セキュリティ修正（04_review発見事項対応）
+
+| # | 重要度 | 項目 | 対応 | 状態 |
+|---|--------|------|------|:----:|
+| 1 | 🟡 Medium | veQS external call | `nonReentrant` modifier追加 | ✅ |
+| 2 | 🟢 Low | Mempool eviction未実装 | `try_evict_for()` 実装 | ✅ |
+| 3 | 🟢 Info | Sequencer L1 submit | SEQ-004で実装予定 | 📋 |
+| 4 | 🟢 Info | veQS totalVotingPower近似値 | Phase 3.2後半で実装 | 📋 |
+
+**コミット履歴**:
+- `9574124` feat(phase3.2): TOKEN-001~003, SEQ-001~002 実装
+- `b98b749` fix(security): veQS ReentrancyGuard + Mempool eviction実装
+- `6ac2541` test: ReentrancyGuard検証テスト追加
 
 ### L3基盤確認
 
@@ -185,6 +201,7 @@
 | ZK-STARK不使用 | ✅ |
 | SEQUENCES準拠 | ✅ |
 | CP-1準拠 (SHA3-256 only) | ✅ |
+| CP-5準拠 (ReentrancyGuard) | ✅ |
 
 ### SPEC_REVIEW対応
 
@@ -194,15 +211,18 @@
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +48 (Solidity 39 + Rust 9) |
-| 総テスト数 | 436 (l3-aegis 189 + Solidity 247) |
-| 結果 | ✅ ALL PASS |
+| 新規テスト数 | +53 (Solidity 42 + Rust 11) |
+| Solidityテスト | 193/193 PASS |
+| Rustテスト (aegis-sequencer) | 11/11 PASS |
+| 結果 | ✅ **ALL PASS (強制再コンパイル検証済み)** |
 
 ### 備考
 
 - BinaryHeap順序ロジックをRustで修正（borrow checker対応）
 - Solidity test_mint_exceedsMaxSupply_reverts修正（expectRevert順序）
 - DOC-001〜004も前セッションで完了（IC-6削除、2本立て設計）
+- ReentrancyGuard: `lock()`, `increaseLockAmount()`, `withdraw()` に適用
+- Mempool eviction: 優先度/gas priceベースで低priority txを置換
 
 ---
 
