@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-01 16:45 JST  
+> **Last Updated**: 2026-01-01 16:55 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,8 +13,8 @@
 │  Sub-Phase: 3.2 Implementation                              │
 │  Month: 11 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.2.md              │
-│  Active Task: Week 3-4 veQS/Sequencer継続                   │
-│  Status: ✅ Phase 3.2 Week 1-2完了 + PIR-P3.2-001 PASS      │
+│  Active Task: Week 3-4 veQS Token実装 (TOKEN-004~010)       │
+│  Status: ✅ Week 1-2完了 + PIR-P3.2-001 PASS → Week 3-4開始 │
 │  Tests: ✅ 180/180 PASS (Rust) + 208/208 PASS (Solidity)    │
 │  次のPIR ID: PIR-P3.2-002                                   │
 └─────────────────────────────────────────────────────────────┘
@@ -47,7 +47,7 @@
 
 ---
 
-## 🔄 Phase 3.2 Implementation 開始 (2025-01-01)
+## 🔄 Phase 3.2 Implementation 進行中 (2025-01-01〜)
 
 ### スコープ
 
@@ -77,9 +77,9 @@
 |-------|-----------|------------------|
 | IC-1 | L3 Chain Infrastructure | ✅ Phase 3.1 COMPLETE |
 | IC-2 | L3 Bridge Contract | ✅ Phase 3.1 COMPLETE |
-| IC-3 | Sequencer | 🟡 **本スコープ** |
+| IC-3 | Sequencer | 🟡 2/8完了 (SEQ-001~002) |
 | IC-4 | State Management | ✅ Phase 3.1 COMPLETE |
-| IC-5 | veQS Token | 🟡 **本スコープ** |
+| IC-5 | veQS Token | 🟡 **3/10完了 → 今回スコープ** |
 | ~~IC-6~~ | ~~Node Expansion~~ | ❌ **不要（CEO指示）** |
 | IC-7 | Permissionless Nodes | ⚪ Phase 4 |
 
@@ -354,6 +354,18 @@
 | SEQ-001 | Sequencer基本インターフェース定義 | IC-3 | ✅ | ✅ PIR-P3.2-001 |
 | SEQ-002 | MempoolManager実装 | IC-3 | ✅ | ✅ PIR-P3.2-001 |
 
+### Week 3-4: veQS Token実装 ← 🔄 **ACTIVE**
+
+| # | タスク | IC | 状態 | PIR |
+|---|--------|-----|:----:|-----|
+| TOKEN-004 | Delegation機構 | IC-5 | ⬜ | ⬜ |
+| TOKEN-005 | veQSガバナンス統合 | IC-5 | ⬜ | ⬜ |
+| TOKEN-006 | Staking報酬配分 | IC-5 | ⬜ | ⬜ |
+| TOKEN-007 | $QS基本トークン拡張 | IC-5 | ⬜ | ⬜ |
+| TOKEN-008 | Token Distribution準備 | IC-5 | ⬜ | ⬜ |
+| TOKEN-009 | veQS単体テスト | IC-5 | ⬜ | ⬜ |
+| TOKEN-010 | veQS統合テスト | IC-5 | ⬜ | ⬜ |
+
 ### 進捗サマリー
 
 | カテゴリ | 完了 | 合計 | 進捗率 |
@@ -457,9 +469,10 @@
 | 1 | **TOKEN-004: Delegation機構** | IC-5 | 🔴 **P0** | ⬜ **次** |
 | 2 | TOKEN-005: Governance統合 | IC-5 | 🔴 **P0** | ⬜ |
 | 3 | TOKEN-006: Staking報酬分配 | IC-5 | 🟠 High | ⬜ |
-| 4 | SEQ-003: BatchBuilder実装 | IC-3 | 🟠 High | ⬜ |
-| 5 | SEQ-004: L1 Submitter実装 | IC-3 | 🟠 High | ⬜ |
-| 6 | SEQ-005: Sequencer Rotation | IC-3 | 🟠 High | ⬜ |
+| 4 | TOKEN-007: $QS Token拡張 | IC-5 | 🟠 High | ⬜ |
+| 5 | TOKEN-008: Distribution準備 | IC-5 | 🟠 High | ⬜ |
+| 6 | TOKEN-009: veQS単体テスト | IC-5 | 🟠 High | ⬜ |
+| 7 | TOKEN-010: veQS統合テスト | IC-5 | 🟠 High | ⬜ |
 
 ---
 
@@ -490,8 +503,8 @@
 │  └── Track B: L3 Contracts (Solidity) ✅ **COMPLETE**       │
 │                                                             │
 │  Phase 3.2 (Month 11-15): Implementation ← 🔄 **ACTIVE**    │
-│  ├── IC-3: Sequencer (SEQ-001〜008)                         │
-│  ├── IC-5: veQS Token (TOKEN-001〜010)                      │
+│  ├── IC-3: Sequencer (SEQ-001〜008) - 2/8完了               │
+│  ├── IC-5: veQS Token (TOKEN-001〜010) - 3/10完了           │
 │  ├── Governance Layer (GOV-001〜006)                        │
 │  └── Audit Prep (AUDIT-001〜003)                            │
 │                                                             │
@@ -530,7 +543,7 @@
 - Phase 3.2 Implementation: 🔄 **ACTIVE** (23% - Week 1-2完了 + PIR-P3.2-001 PASS)
   - DOC: ✅ 4/4
   - IC-3 Sequencer: 🔄 2/8 (PIR済: SEQ-001, SEQ-002)
-  - IC-5 veQS Token: 🔄 3/10 (PIR済: TOKEN-001~003)
+  - IC-5 veQS Token: 🔄 3/10 (PIR済: TOKEN-001~003) → **Week 3-4 ACTIVE**
   - Governance: ⬜ 0/6
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
 - Phase 3.3 Testing & Launch: ⬜
