@@ -109,7 +109,7 @@ contract Timelock is ITimelock {
         TransactionState state = _transactionStates[txHash];
         if (state == TransactionState.NotQueued) revert NotQueued();
         if (state == TransactionState.Executed) revert AlreadyExecuted();
-        if (state == TransactionState.Cancelled) revert TransactionCancelled();
+        if (state == TransactionState.Cancelled) revert TransactionWasCancelled();
         
         if (block.timestamp < eta) revert TimeLockNotReady();
         if (block.timestamp > eta + GRACE_PERIOD) revert TransactionExpired();
@@ -203,7 +203,7 @@ contract Timelock is ITimelock {
         TransactionState state = _transactionStates[batchHash];
         if (state == TransactionState.NotQueued) revert NotQueued();
         if (state == TransactionState.Executed) revert AlreadyExecuted();
-        if (state == TransactionState.Cancelled) revert TransactionCancelled();
+        if (state == TransactionState.Cancelled) revert TransactionWasCancelled();
         
         if (block.timestamp < eta) revert TimeLockNotReady();
         if (block.timestamp > eta + GRACE_PERIOD) revert TransactionExpired();
