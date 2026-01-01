@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "../interfaces/ISecurityCouncil.sol";
+import "../crypto/SHA3Hasher.sol";
 
 /// @title SecurityCouncil
 /// @notice Quantum Shield Security Council - 9-member multi-sig for emergency actions
@@ -98,7 +99,8 @@ contract SecurityCouncil is ISecurityCouncil {
         bytes calldata data
     ) external override onlyMember returns (bytes32 actionId) {
         _actionNonce++;
-        actionId = keccak256(abi.encode(actionType, data, _actionNonce, block.timestamp));
+        // CP-1 Compliant: Using SHA3-256 for action ID generation
+        actionId = SHA3Hasher.hash(abi.encode(actionType, data, _actionNonce, block.timestamp));
         
         uint256 expiresAt = block.timestamp + ACTION_EXPIRY;
         
