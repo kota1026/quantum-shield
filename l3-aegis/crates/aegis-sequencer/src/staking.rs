@@ -19,9 +19,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn};
+use tracing::info;
 
-use crate::error::{SequencerError, SequencerResult};
+use crate::error::SequencerResult;
 
 /// Minimum stake for Phase 1-2 (ETH)
 pub const MIN_STAKE_ETH: u128 = 400_000 * 10u128.pow(18); // $400K in ETH (assuming ETH value)
