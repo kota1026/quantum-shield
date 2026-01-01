@@ -7,6 +7,10 @@
 //! - `Sequencer`: Core sequencer trait and implementation
 //! - `MempoolManager`: Transaction pool management
 //! - `BatchBuilder`: Batch construction for L1 submission
+//! - `L1Submitter`: State root submission to L1
+//! - `RotationManager`: Round-robin sequencer rotation
+//! - `StakingManager`: veQS staking integration
+//! - `MultiSequencerCoordinator`: Multi-sequencer coordination
 //!
 //! ## Reference
 //!
@@ -14,12 +18,23 @@
 //! - PHASE3_PLAN.md IC-3
 //! - L3_CHAIN_SPECIFICATION.md §Sequencer
 
+pub mod batch_builder;
 pub mod error;
+pub mod l1_submitter;
 pub mod mempool;
+pub mod multi_sequencer;
+pub mod rotation;
 pub mod sequencer;
+pub mod staking;
 pub mod types;
 
+// Re-exports
+pub use batch_builder::{BatchBuilder, BatchBuilderConfig};
 pub use error::{SequencerError, SequencerResult};
+pub use l1_submitter::{L1Submitter, L1SubmitterConfig, L1Submission, SubmissionStatus};
 pub use mempool::MempoolManager;
+pub use multi_sequencer::{MultiSequencerCoordinator, MultiSequencerConfig, ConflictStrategy};
+pub use rotation::{RotationManager, RotationConfig, NodeInfo, ViewChangeMessage};
 pub use sequencer::{Sequencer, SequencerConfig, SequencerState};
+pub use staking::{StakingManager, StakingConfig, StakeInfo, StakeCurrency};
 pub use types::*;
