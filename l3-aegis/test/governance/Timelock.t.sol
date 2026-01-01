@@ -2,7 +2,6 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import "../mocks/MockTarget.sol";
 
 /// @title TimelockTest
 /// @notice Test suite for Timelock contract
