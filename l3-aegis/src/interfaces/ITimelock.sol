@@ -75,8 +75,8 @@ interface ITimelock {
     /// @notice Thrown when transaction has already been executed
     error AlreadyExecuted();
     
-    /// @notice Thrown when transaction was cancelled
-    error TransactionCancelled();
+    /// @notice Thrown when attempting to execute a cancelled transaction
+    error TransactionWasCancelled();
     
     /// @notice Thrown when timelock hasn't been met
     error TimeLockNotReady();
