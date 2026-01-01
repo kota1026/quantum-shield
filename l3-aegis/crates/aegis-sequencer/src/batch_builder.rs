@@ -24,11 +24,11 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 use crate::error::{SequencerError, SequencerResult};
 use crate::mempool::MempoolManager;
-use crate::types::{Batch, BatchHash, BatchStatus, PendingTx, TxHash};
+use crate::types::{Batch, BatchHash, PendingTx, TxHash};
 
 /// Domain separator for batch hashes (CP-1 compliant)
 const DOMAIN_BATCH: &[u8] = b"QS_SEQUENCER_BATCH_V1";
@@ -78,9 +78,11 @@ pub enum BuilderState {
 struct QueuedTx {
     /// Transaction
     tx: PendingTx,
-    /// Queue timestamp (for FIFO)
+    /// Queue timestamp (for FIFO) - reserved for timeout handling
+    #[allow(dead_code)]
     queued_at: Instant,
-    /// Sequence number (FIFO order)
+    /// Sequence number (FIFO order) - reserved for ordering verification
+    #[allow(dead_code)]
     sequence: u64,
 }
 
@@ -92,8 +94,6 @@ pub struct BatchBuilder {
     state: RwLock<BuilderState>,
     /// Build queue (FIFO ordered)
     queue: RwLock<VecDeque<QueuedTx>>,
-    /// Current batch being built
-    current_batch: RwLock<Option<BatchInProgress>>,
     /// Mempool reference
     mempool: Option<Arc<MempoolManager>>,
     /// Sequence counter for FIFO ordering
@@ -104,19 +104,6 @@ pub struct BatchBuilder {
     identity: [u8; 32],
 }
 
-/// Batch in progress (being built)
-#[derive(Debug, Clone)]
-struct BatchInProgress {
-    /// Batch number
-    number: u64,
-    /// Transactions collected
-    transactions: Vec<PendingTx>,
-    /// Gas used so far
-    gas_used: u64,
-    /// Start time
-    started_at: Instant,
-}
-
 impl BatchBuilder {
     /// Create new BatchBuilder
     pub fn new(config: BatchBuilderConfig, identity: [u8; 32]) -> Self {
@@ -124,7 +111,6 @@ impl BatchBuilder {
             config,
             state: RwLock::new(BuilderState::Idle),
             queue: RwLock::new(VecDeque::new()),
-            current_batch: RwLock::new(None),
             mempool: None,
             sequence_counter: RwLock::new(0),
             last_batch_time: RwLock::new(Instant::now()),
@@ -301,9 +287,6 @@ impl BatchBuilder {
     pub async fn reset(&self) {
         let mut state = self.state.write().await;
         *state = BuilderState::Idle;
-        
-        let mut current = self.current_batch.write().await;
-        *current = None;
     }
 
     /// Get pending transactions count
