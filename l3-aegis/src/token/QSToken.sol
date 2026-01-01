@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 /// @title QSToken
 /// @notice Quantum Shield native token ($QS)
-/// @dev ERC-20 compliant token with minting controls and cap
+/// @dev ERC-20 compliant token with minting controls, cap, and pause functionality
 /// @custom:security-contact security@quantumshield.io
 /// @custom:ref UNIFIED_SPEC_v2.0.md §Token Design
 contract QSToken {
@@ -39,6 +39,10 @@ contract QSToken {
     /// @notice Admin role (for minter management)
     address private _admin;
     
+    /// @notice Pause state
+    /// @dev TOKEN-007: Emergency pause functionality
+    bool private _paused;
+    
     // ============ Events ============
     
     /// @notice Emitted on token transfer
@@ -52,6 +56,14 @@ contract QSToken {
     
     /// @notice Emitted when admin is changed
     event AdminChanged(address indexed oldAdmin, address indexed newAdmin);
+    
+    /// @notice Emitted when contract is paused
+    /// @dev TOKEN-007: Pause event
+    event Paused(address indexed account);
+    
+    /// @notice Emitted when contract is unpaused
+    /// @dev TOKEN-007: Unpause event
+    event Unpaused(address indexed account);
     
     // ============ Errors ============
     
@@ -73,6 +85,14 @@ contract QSToken {
     /// @notice Caller not admin
     error NotAdmin();
     
+    /// @notice Contract is paused
+    /// @dev TOKEN-007: Pause error
+    error EnforcedPause();
+    
+    /// @notice Contract is not paused
+    /// @dev TOKEN-007: Expected pause error
+    error ExpectedPause();
+    
     // ============ Modifiers ============
     
     modifier onlyMinter() {
@@ -82,6 +102,20 @@ contract QSToken {
     
     modifier onlyAdmin() {
         if (msg.sender != _admin) revert NotAdmin();
+        _;
+    }
+    
+    /// @notice Modifier to make a function callable only when not paused
+    /// @dev TOKEN-007: whenNotPaused modifier
+    modifier whenNotPaused() {
+        if (_paused) revert EnforcedPause();
+        _;
+    }
+    
+    /// @notice Modifier to make a function callable only when paused
+    /// @dev TOKEN-007: whenPaused modifier
+    modifier whenPaused() {
+        if (!_paused) revert ExpectedPause();
         _;
     }
     
@@ -96,6 +130,7 @@ contract QSToken {
         
         _admin = admin_;
         _minter = minter_;
+        _paused = false;
     }
     
     // ============ ERC-20 Standard ============
@@ -122,7 +157,7 @@ contract QSToken {
     /// @param to Recipient address
     /// @param amount Amount to transfer
     /// @return success True if successful
-    function transfer(address to, uint256 amount) external returns (bool) {
+    function transfer(address to, uint256 amount) external whenNotPaused returns (bool) {
         _transfer(msg.sender, to, amount);
         return true;
     }
@@ -141,7 +176,7 @@ contract QSToken {
     /// @param to Destination address
     /// @param amount Amount to transfer
     /// @return success True if successful
-    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) external whenNotPaused returns (bool) {
         uint256 currentAllowance = _allowances[from][msg.sender];
         if (currentAllowance != type(uint256).max) {
             if (currentAllowance < amount) revert InsufficientAllowance();
@@ -158,7 +193,7 @@ contract QSToken {
     /// @notice Mint new tokens
     /// @param to Recipient address
     /// @param amount Amount to mint
-    function mint(address to, uint256 amount) external onlyMinter {
+    function mint(address to, uint256 amount) external onlyMinter whenNotPaused {
         if (to == address(0)) revert ZeroAddress();
         if (_totalSupply + amount > MAX_SUPPLY) revert ExceedsMaxSupply();
         
@@ -220,6 +255,28 @@ contract QSToken {
     /// @notice Get admin address
     function admin() external view returns (address) {
         return _admin;
+    }
+    
+    // ============ Pause Functions ============
+    
+    /// @notice Pause the contract
+    /// @dev TOKEN-007: Only admin can pause
+    function pause() external onlyAdmin whenNotPaused {
+        _paused = true;
+        emit Paused(msg.sender);
+    }
+    
+    /// @notice Unpause the contract
+    /// @dev TOKEN-007: Only admin can unpause
+    function unpause() external onlyAdmin whenPaused {
+        _paused = false;
+        emit Unpaused(msg.sender);
+    }
+    
+    /// @notice Check if contract is paused
+    /// @return True if paused
+    function paused() external view returns (bool) {
+        return _paused;
     }
     
     // ============ Internal Functions ============
