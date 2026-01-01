@@ -10,10 +10,10 @@ interface ISecurityCouncil {
     // ============ Events ============
     
     /// @notice Emitted when a member is added
-    event MemberAdded(address indexed member, uint256 indexed seatId);
+    event MemberAdded(uint256 indexed seatId, address indexed member);
     
     /// @notice Emitted when a member is removed
-    event MemberRemoved(address indexed member, uint256 indexed seatId);
+    event MemberRemoved(uint256 indexed seatId, address indexed member);
     
     /// @notice Emitted when a member is replaced
     event MemberReplaced(
@@ -26,41 +26,50 @@ interface ISecurityCouncil {
     event ActionProposed(
         bytes32 indexed actionId,
         ActionType actionType,
+        address indexed proposer,
         bytes data,
-        address proposer
+        uint256 expiresAt
     );
     
     /// @notice Emitted when a member signs an action
-    event ActionSigned(bytes32 indexed actionId, address indexed signer);
+    event ActionSigned(
+        bytes32 indexed actionId,
+        address indexed signer,
+        uint256 signatureCount
+    );
     
     /// @notice Emitted when an action is executed
-    event ActionExecuted(bytes32 indexed actionId, ActionType actionType);
+    event ActionExecuted(
+        bytes32 indexed actionId,
+        ActionType actionType,
+        address indexed executor
+    );
     
     /// @notice Emitted when an action is cancelled
     event ActionCancelled(bytes32 indexed actionId);
-    
-    /// @notice Emitted when a veto is cast
-    event VetoCast(uint256 indexed proposalId, bytes32 indexed actionId);
-    
-    /// @notice Emitted when threshold is updated
-    event ThresholdUpdated(ActionType actionType, uint256 newThreshold);
     
     // ============ Errors ============
     
     /// @notice Thrown when caller is not a member
     error NotMember();
     
-    /// @notice Thrown when member already exists
-    error MemberAlreadyExists();
+    /// @notice Thrown when caller is not the governor
+    error NotGovernor();
     
-    /// @notice Thrown when member doesn't exist
-    error MemberNotFound();
+    /// @notice Thrown when member address is invalid
+    error InvalidMember();
+    
+    /// @notice Thrown when member already exists
+    error DuplicateMember();
+    
+    /// @notice Thrown when seat ID is invalid
+    error InvalidSeat();
     
     /// @notice Thrown when action doesn't exist
     error ActionNotFound();
     
-    /// @notice Thrown when action already exists
-    error ActionAlreadyExists();
+    /// @notice Thrown when action is not active
+    error ActionNotActive();
     
     /// @notice Thrown when member has already signed
     error AlreadySigned();
@@ -69,25 +78,10 @@ interface ISecurityCouncil {
     error ThresholdNotMet();
     
     /// @notice Thrown when action has expired
-    error ActionExpired();
+    error ActionExpiredError();
     
-    /// @notice Thrown when action is already executed
-    error ActionAlreadyExecuted();
-    
-    /// @notice Thrown when invalid threshold is set
-    error InvalidThreshold();
-    
-    /// @notice Thrown when seat is occupied
-    error SeatOccupied();
-    
-    /// @notice Thrown when seat is empty
-    error SeatEmpty();
-    
-    /// @notice Thrown when invalid parameters are provided
-    error InvalidParameters();
-    
-    /// @notice Thrown when max members exceeded
-    error MaxMembersExceeded();
+    /// @notice Thrown when execution fails
+    error ExecutionFailed();
     
     // ============ Enums ============
     
@@ -101,7 +95,7 @@ interface ISecurityCouncil {
     
     /// @notice Action state
     enum ActionState {
-        Pending,
+        Proposed,
         Executed,
         Cancelled,
         Expired
@@ -113,25 +107,17 @@ interface ISecurityCouncil {
     struct Action {
         bytes32 id;
         ActionType actionType;
-        bytes data;
         address proposer;
-        uint256 createdAt;
+        uint256 proposedAt;
         uint256 expiresAt;
         uint256 signatureCount;
         ActionState state;
-    }
-    
-    /// @notice Member info
-    struct Member {
-        address addr;
-        uint256 seatId;
-        uint256 joinedAt;
-        bool active;
+        bytes data;
     }
     
     // ============ View Functions ============
     
-    /// @notice Maximum number of members
+    /// @notice Maximum number of members (9)
     function MAX_MEMBERS() external view returns (uint256);
     
     /// @notice Action expiration time (48 hours)
@@ -146,29 +132,26 @@ interface ISecurityCouncil {
     /// @notice Threshold for emergency upgrade (7/9)
     function UPGRADE_THRESHOLD() external view returns (uint256);
     
-    /// @notice Current member count
-    function memberCount() external view returns (uint256);
-    
     /// @notice Governor contract address
     function governor() external view returns (address);
     
     /// @notice Emergency controller address
     function emergencyController() external view returns (address);
     
+    /// @notice Current member count (always 9)
+    function memberCount() external view returns (uint256);
+    
     /// @notice Check if address is a member
     /// @param account Address to check
     function isMember(address account) external view returns (bool);
     
     /// @notice Get member by seat ID
-    /// @param seatId Seat ID
-    function getMemberBySeat(uint256 seatId) external view returns (Member memory);
+    /// @param seatId Seat ID (0-8)
+    function getMember(uint256 seatId) external view returns (address);
     
-    /// @notice Get member by address
-    /// @param account Member address
-    function getMemberByAddress(address account) external view returns (Member memory);
-    
-    /// @notice Get all members
-    function getMembers() external view returns (Member[] memory);
+    /// @notice Get seat ID for member
+    /// @param member Member address
+    function getSeatId(address member) external view returns (uint256);
     
     /// @notice Get action details
     /// @param actionId Action ID
@@ -176,30 +159,28 @@ interface ISecurityCouncil {
     
     /// @notice Check if member has signed action
     /// @param actionId Action ID
-    /// @param member Member address
-    function hasSigned(bytes32 actionId, address member) external view returns (bool);
+    /// @param signer Signer address
+    function hasSigned(bytes32 actionId, address signer) external view returns (bool);
     
-    /// @notice Get signers of an action
+    /// @notice Get signature count for action
     /// @param actionId Action ID
-    function getSigners(bytes32 actionId) external view returns (address[] memory);
+    function getSignatureCount(bytes32 actionId) external view returns (uint256);
+    
+    /// @notice Get valid signature count (only current members)
+    /// @param actionId Action ID
+    function getValidSignatureCount(bytes32 actionId) external view returns (uint256);
     
     /// @notice Get threshold for action type
     /// @param actionType Action type
-    function getThreshold(ActionType actionType) external view returns (uint256);
+    function getThreshold(ActionType actionType) external pure returns (uint256);
     
-    /// @notice Check if action can be executed
+    /// @notice Check if action is ready to execute
     /// @param actionId Action ID
-    function canExecute(bytes32 actionId) external view returns (bool);
+    function isActionReady(bytes32 actionId) external view returns (bool);
     
-    /// @notice Compute action ID
-    /// @param actionType Action type
-    /// @param data Action data
-    /// @param nonce Unique nonce
-    function computeActionId(
-        ActionType actionType,
-        bytes calldata data,
-        uint256 nonce
-    ) external pure returns (bytes32);
+    /// @notice Check if action is expired
+    /// @param actionId Action ID
+    function isActionExpired(bytes32 actionId) external view returns (bool);
     
     // ============ State-Changing Functions ============
     
@@ -219,23 +200,6 @@ interface ISecurityCouncil {
     /// @notice Execute an action (if threshold met)
     /// @param actionId Action ID to execute
     function executeAction(bytes32 actionId) external;
-    
-    /// @notice Cancel an action (proposer only)
-    /// @param actionId Action ID to cancel
-    function cancelAction(bytes32 actionId) external;
-    
-    /// @notice Veto a governance proposal
-    /// @param proposalId Proposal ID to veto
-    function veto(uint256 proposalId) external;
-    
-    /// @notice Add a member (via governance)
-    /// @param member Member address
-    /// @param seatId Seat ID (0-8)
-    function addMember(address member, uint256 seatId) external;
-    
-    /// @notice Remove a member (via governance)
-    /// @param seatId Seat ID to remove
-    function removeMember(uint256 seatId) external;
     
     /// @notice Replace a member (via governance)
     /// @param seatId Seat ID
