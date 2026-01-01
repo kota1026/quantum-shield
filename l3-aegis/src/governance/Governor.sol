@@ -13,8 +13,9 @@ import {SHA3Hasher} from "../crypto/SHA3Hasher.sol";
 contract Governor is IGovernor {
     // ============ Constants ============
     
-    /// @notice Voting delay after proposal creation (1 day)
-    uint256 public constant override VOTING_DELAY = 1 days;
+    /// @notice Discussion period after proposal creation (7 days)
+    /// @dev Per CURRENT_PLAN.md: 議論期間7日 + 投票期間7日
+    uint256 public constant override VOTING_DELAY = 7 days;
     
     /// @notice Voting period duration (7 days)
     uint256 public constant override VOTING_PERIOD = 7 days;
