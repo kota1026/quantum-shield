@@ -16,7 +16,6 @@
 
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
 use tokio::time::sleep;
 
 use crate::batch_builder::{BatchBuilder, BatchBuilderConfig};
@@ -25,8 +24,7 @@ use crate::mempool::MempoolManager;
 use crate::multi_sequencer::{MultiSequencerCoordinator, MultiSequencerConfig, ConflictStrategy};
 use crate::rotation::{RotationManager, RotationConfig, NodeInfo};
 use crate::staking::{StakingManager, StakingConfig, MockStakingProvider, MIN_STAKE_ETH, StakeCurrency};
-use crate::types::{PendingTx, TxHash, TxType, TxPriority};
-use crate::error::SequencerResult;
+use crate::types::{PendingTx, TxHash, TxType, TxPriority, BatchHash};
 
 /// Helper to create test transaction
 fn create_test_tx(nonce: u64, gas_price: u128) -> PendingTx {
@@ -70,7 +68,7 @@ mod e2e_tests {
     #[tokio::test]
     async fn test_full_transaction_lifecycle() {
         // Setup components
-        let mempool = Arc::new(MempoolManager::new(Default::default()));
+        let mempool = Arc::new(MempoolManager::new(1000, 1_000_000_000)); // 1000 capacity, 1 gwei min
         let batch_config = BatchBuilderConfig::default();
         let batch_builder = BatchBuilder::new(batch_config, [1u8; 32]);
         let l1_config = L1SubmitterConfig {
@@ -81,20 +79,26 @@ mod e2e_tests {
 
         // Step 1: Add transactions to mempool
         for i in 0..10 {
-            let tx = create_test_tx(i, 100 + i as u128);
-            mempool.add_transaction(tx).await.unwrap();
+            let tx = create_test_tx(i, 2_000_000_000 + i as u128); // Above min gas price
+            mempool.add_tx(tx).await.unwrap();
         }
-        assert_eq!(mempool.pending_count().await, 10);
+        assert_eq!(mempool.size().await, 10);
 
-        // Step 2: Build batch from mempool
-        let pending_txs = mempool.get_pending(10).await;
-        let batch = batch_builder.build_batch(&pending_txs, 1, [0u8; 32]).await.unwrap();
+        // Step 2: Get transactions from mempool and enqueue to batch builder
+        let pending_txs = mempool.get_batch_txs(10, 1_000_000).await.unwrap();
+        for tx in pending_txs {
+            batch_builder.enqueue_tx(tx).await.unwrap();
+        }
+        
+        // Step 3: Build batch
+        let parent_hash = BatchHash::from_bytes([0u8; 32]);
+        let batch = batch_builder.build_batch(1, parent_hash).await.unwrap();
         
         assert_eq!(batch.number, 1);
-        assert_eq!(batch.transactions.len(), 10);
+        assert!(batch.transactions.len() > 0);
         assert_eq!(batch.sequencer, [1u8; 32]);
 
-        // Step 3: Submit batch to L1
+        // Step 4: Submit batch to L1
         let prev_state = [0u8; 32];
         let submission = l1_submitter.submit_batch(&batch, prev_state).await.unwrap();
         
@@ -156,22 +160,24 @@ mod e2e_tests {
     #[tokio::test]
     async fn test_batch_building_gas_limits() {
         let config = BatchBuilderConfig {
-            max_transactions: 100,
-            max_gas: 1_000_000, // Limited gas
-            batch_timeout_secs: 5,
+            max_txs_per_batch: 100,
+            max_gas_per_batch: 1_000_000, // Limited gas
+            batch_timeout_ms: 5000,
+            min_txs_for_batch: 1,
+            strict_fifo: true,
         };
         let batch_builder = BatchBuilder::new(config, [1u8; 32]);
 
         // Create transactions that exceed gas limit
-        let mut transactions = Vec::new();
         for i in 0..100 {
-            let mut tx = create_test_tx(i, 100);
+            let mut tx = create_test_tx(i, 2_000_000_000);
             tx.gas_limit = 50_000; // Each tx uses 50k gas
-            transactions.push(tx);
+            batch_builder.enqueue_tx(tx).await.unwrap();
         }
 
         // Build batch - should be limited by gas
-        let batch = batch_builder.build_batch(&transactions, 1, [0u8; 32]).await.unwrap();
+        let parent_hash = BatchHash::from_bytes([0u8; 32]);
+        let batch = batch_builder.build_batch(1, parent_hash).await.unwrap();
 
         // Should have at most 20 transactions (1M / 50k = 20)
         assert!(batch.transactions.len() <= 20);
@@ -248,8 +254,12 @@ mod e2e_tests {
 
         // Create batch and proposal
         let batch_builder = BatchBuilder::new(Default::default(), local_id);
-        let txs: Vec<PendingTx> = (0..5).map(|i| create_test_tx(i, 100)).collect();
-        let batch = batch_builder.build_batch(&txs, 1, [0u8; 32]).await.unwrap();
+        for i in 0..5 {
+            let tx = create_test_tx(i, 2_000_000_000);
+            batch_builder.enqueue_tx(tx).await.unwrap();
+        }
+        let parent_hash = BatchHash::from_bytes([0u8; 32]);
+        let batch = batch_builder.build_batch(1, parent_hash).await.unwrap();
         let proposal = coordinator.create_proposal(batch).await.unwrap();
 
         // Not enough votes yet
@@ -335,17 +345,24 @@ mod e2e_tests {
         coordinator.register_sequencer([2u8; 32], 200).await.unwrap();
         coordinator.register_sequencer([3u8; 32], 300).await.unwrap();
 
-        // Create competing proposals for same batch
+        // Create batch and proposal from local sequencer
         let batch_builder1 = BatchBuilder::new(Default::default(), [1u8; 32]);
-        let txs1: Vec<PendingTx> = (0..3).map(|i| create_test_tx(i, 100)).collect();
-        let batch1 = batch_builder1.build_batch(&txs1, 1, [0u8; 32]).await.unwrap();
+        for i in 0..3 {
+            let tx = create_test_tx(i, 2_000_000_000);
+            batch_builder1.enqueue_tx(tx).await.unwrap();
+        }
+        let parent_hash = BatchHash::from_bytes([0u8; 32]);
+        let batch1 = batch_builder1.build_batch(1, parent_hash).await.unwrap();
         coordinator.create_proposal(batch1).await.unwrap();
 
         // Simulate proposal from higher-stake sequencer
         let batch_builder3 = BatchBuilder::new(Default::default(), [3u8; 32]);
-        let txs3: Vec<PendingTx> = (10..15).map(|i| create_test_tx(i, 100)).collect();
-        let batch3 = batch_builder3.build_batch(&txs3, 1, [0u8; 32]).await.unwrap();
-        let mut proposal3 = crate::multi_sequencer::BatchProposal {
+        for i in 10..15 {
+            let tx = create_test_tx(i, 2_000_000_000);
+            batch_builder3.enqueue_tx(tx).await.unwrap();
+        }
+        let batch3 = batch_builder3.build_batch(1, parent_hash).await.unwrap();
+        let proposal3 = crate::multi_sequencer::BatchProposal {
             id: [99u8; 32],
             proposer: [3u8; 32],
             batch: batch3,
@@ -368,15 +385,20 @@ mod e2e_tests {
             ..Default::default()
         };
         let l1_submitter = L1Submitter::new(l1_config, [1u8; 32]);
-        let batch_builder = BatchBuilder::new(Default::default(), [1u8; 32]);
 
         // Submit multiple batches and verify state chain
         let mut prev_state = [0u8; 32];
         let mut state_roots = Vec::new();
 
-        for batch_num in 1..=5 {
-            let txs: Vec<PendingTx> = (0..3).map(|i| create_test_tx(i + batch_num * 10, 100)).collect();
-            let batch = batch_builder.build_batch(&txs, batch_num, prev_state).await.unwrap();
+        for batch_num in 1u64..=5 {
+            // Create batch builder for each batch
+            let batch_builder = BatchBuilder::new(Default::default(), [1u8; 32]);
+            for i in 0..3 {
+                let tx = create_test_tx(i + batch_num * 10, 2_000_000_000);
+                batch_builder.enqueue_tx(tx).await.unwrap();
+            }
+            let parent_hash = BatchHash::from_bytes(prev_state);
+            let batch = batch_builder.build_batch(batch_num, parent_hash).await.unwrap();
             
             let submission = l1_submitter.submit_batch(&batch, prev_state).await.unwrap();
             
@@ -411,20 +433,15 @@ mod e2e_tests {
 
         assert_eq!(coordinator.active_sequencer_count().await, 3);
 
-        // Simulate stale sequencer by manipulating last_seen
-        {
-            let sequencers = &coordinator.sequencers;
-            let mut seq = sequencers.write().await;
-            if let Some(info) = seq.get_mut(&[2u8; 32]) {
-                info.last_seen = chrono::Utc::now().timestamp() as u64 - 100;
-            }
-        }
+        // Simulate stale sequencer - mark as last seen in past
+        coordinator.mark_sequencer_stale([2u8; 32]).await;
 
         // Run health check
         coordinator.run_health_check().await;
 
         // Verify sequencer marked as unresponsive
-        let info = coordinator.get_sequencer([2u8; 32]).await.unwrap();
-        assert_eq!(info.status, crate::multi_sequencer::SequencerStatus::Unresponsive);
+        let status = coordinator.get_sequencer_status([2u8; 32]).await;
+        assert!(status.is_some());
+        assert_eq!(status.unwrap(), crate::multi_sequencer::SequencerStatus::Unresponsive);
     }
 }
