@@ -1,10 +1,13 @@
 # Current Plan
 
-> **Generated**: 2026-01-01 21:00 JST
+> **Generated**: 2026-01-01 23:30 JST
 > **Phase**: 3.2 Implementation
-> **Sub-Phase**: Week 5-6 Sequencer実装
+> **Sub-Phase**: Week 7-8 Governance Layer完成
+
+---
 
 ## 対象チェックリスト
+
 `docs/checklists/phase3.2.md`
 
 ---
@@ -14,41 +17,46 @@
 > 参照: `docs/planning/SPEC_STRATEGY_BRIDGE.md`
 
 ### 対象Sequence
-| Sequence | 実装Layer | 仕様書参照箇所 |
-|----------|----------|---------------|
-| #1 Lock | Core | SEQUENCES §1 (Sequencerがトランザクション記録) |
-| #2 Unlock (Normal) | Core | SEQUENCES §2 (BatchBuilder, L1 Submit) |
-| #5 Prover Registration | Core + Token | SEQUENCES §5 (Sequencer Staking統合) |
+
+| Sequence | 名称 | 実装Layer | 仕様書参照箇所 |
+|----------|------|----------|---------------|
+| #7 | Governance Proposal | Governance | SEQUENCES §7 |
+| #8 | Emergency Pause & Recovery | Core + Governance | SEQUENCES §8 |
 
 ### セキュリティ要件
+
 | 要件 | 仕様書出典 | 実装方法 |
-|------|----------|---------|
-| トランザクション順序保証 | L3_CHAIN_SPEC §2 | BatchBuilder FIFO + タイムスタンプ |
-| L1提出の透明性 | CP-5 | L1SubmitTx としてL3ブロックに記録 |
-| Sequencer Rotation | L3_CHAIN_SPEC §3 | Round-robin + View Change |
-| Stake要件 | UNIFIED_SPEC §Phase 2 | Sequencer Staking統合 (IC-3) |
+|------|----------|---------| 
+| Quorum 4%/8%/15% | SEQ#7 | Governor.solでproposalType別に設定 |
+| 議論期間 7日 | SEQ#7 | Governor.sol DISCUSSION_PERIOD |
+| 投票期間 7日 | SEQ#7 | Governor.sol VOTING_PERIOD |
+| Time Lock 7日 | SEQ#7, CORE_PRINCIPLES | Timelock.sol MIN_DELAY = 7 days |
+| Emergency Pause SC 5/9 | SEQ#8 | EmergencyController.sol + Security Council |
+| 最大Pause期間 72時間 | SEQ#8 | EmergencyController.sol MAX_PAUSE_DURATION |
+| Defense Period 48時間 | SEQ#4 | 既存Challenge機構との連携 |
+| veQS投票重み | SEQ#7 | VotingWeight = veQS balance at snapshot |
 
 ---
 
-## 戦略準拠確認（Phase 3以降）
+## 戦略準拠確認（Phase 3）
 
 > 参照: `docs/planning/PHASE3_STRATEGY.md`
 
-- [x] L3スタック: 独自L3 (l3-aegis) 前提 ✅
-- [x] アーキテクチャ: Modular (Core/Governance/Token Layer) ✅
-- [x] リスク緩和: Sequencer中央集権リスク → Multi-Sequencer対応 (SEQ-007)
-- [x] モード制約: MULTISIG + BASIC/FULL 許可
+- [x] L3スタック: 独自L3 (l3-aegis) 前提
+- [x] アーキテクチャ: Modular (Core/Governance/Token Layer)
+- [x] リスク緩和: 監査準備、TVL制限、Bug Bounty設計中
+- [x] モード制約: DECENTRALIZED + FULL (veQS投票必須)
 
 ---
 
-## L3基盤確認（Phase 3のL3関連タスク）
+## L3基盤確認（Phase 3）
 
 > 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
 
-- [x] 独自4ノードBFTチェーン前提か ✅
-- [x] l3-aegis (Rust) の範囲内か ✅
-- [x] SEQUENCES v2.0に準拠しているか ✅
-- [x] CP-1/CP-5を満たしているか ✅
+- [x] 独自4ノードBFTチェーン前提
+- [x] l3-aegis (Rust) の範囲内
+- [x] SEQUENCES v2.0に準拠
+- [x] CP-1（量子耐性）とCP-5（透明性）を満たす
 
 ---
 
@@ -57,146 +65,178 @@
 > 参照: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Implementation Components
 
 ### 今回スコープのIC
+
 | IC-ID | Component | タスク | Status |
 |-------|-----------|--------|--------|
-| IC-3 | Sequencer | SEQ-003〜008 | 🟡 In Progress (2/8完了) |
+| - | Governance Layer | GOV-001〜006 | 🟡 本スコープ |
+
+> **Note**: Governance Layer自体はICとして定義されていないが、Sequence #7, #8の実装に必要なコンポーネント
 
 ### マスタ照合
-- [x] 全IC-ID（IC-1〜IC-5, IC-7）がPHASE3_PLANに対応セクションを持つ ✅
-- [x] 欠落ICなし（IC-6は不要: CEO指示 2025-01-01） ✅
+
+- [x] 全IC-ID（IC-1〜IC-5, IC-7）がPHASE3_PLANに対応セクションを持つ
+- [x] IC-6は不要（CEO指示 2025-01-01）
+- [x] 欠落ICなし
 
 ### タスク紐付け
-- [x] 今回スコープの全タスクにIC-IDを付与した ✅
-- [x] IC-ID不要タスクは理由を明記した ✅ (該当なし)
+
+- [x] Governance LayerタスクはSequence #7, #8に紐付け
+- [x] IC-ID不要理由: Governance LayerはSequence実装であり、ICは別途定義されていない
 
 ---
 
-## 前回レビュー課題（該当時のみ）
+## 前回レビュー課題
 
-> CURRENT_STATE.mdより: 🚧 ブロッカー / 懸念事項
+> CURRENT_STATE.mdより確認
 
-| # | 重要度 | 課題 | 対策 | 今回対応 |
-|---|--------|------|------|:--------:|
-| 1 | 🔴 HIGH | 独自L3技術リスク | 緩和策実施（監査、TVL制限） | ⚪ 監査準備Week 9-10 |
-| 2 | 🟠 MEDIUM | Sequencer中央集権リスク | Multi-Sequencer設計組込 | ✅ **SEQ-007で対応** |
-| 3 | 🟠 MEDIUM | 監査日程調整 | 早期RFP発行 | ⚪ Week 9-10 |
-| 4 | 🟠 MEDIUM | エコシステム構築 | CBO計画策定 | ⚪ Phase 3.3 |
+| # | 重要度 | 課題 | 対策 |
+|---|--------|------|------|
+| - | - | **Critical/Highの未解決課題なし** | - |
 
-**今回修正必須項目**: なし（前回PIR-P3.2-002でバグ修正・CP-1修正完了）
+**前回PIR結果**: 
+- PIR-P3.2-001: ✅ PASS (TOKEN-001~003, SEQ-001~002)
+- PIR-P3.2-002: ✅ PASS (TOKEN-004~010)
+- PIR-P3.2-003: ✅ PASS (SEQ-003~008)
 
 ---
 
 ## 今回のスコープ
 
 ### 実装項目
-| # | タスク | IC | 優先度 | 説明 |
-|---|--------|-----|--------|------|
-| SEQ-003 | BatchBuilder実装 | IC-3 | 🔴 P0 | トランザクションバッチ構築 |
-| SEQ-004 | L1 Submitter実装 | IC-3 | 🔴 P0 | L1へのState Root提出 |
-| SEQ-005 | Sequencer Rotation機構 | IC-3 | 🟠 P1 | ラウンドロビン + View Change対応 |
-| SEQ-006 | Sequencer Staking統合 | IC-3 | 🟠 P1 | veQS/Stake統合 |
-| SEQ-007 | Multi-Sequencer対応準備 | IC-3 | 🟠 P1 | 複数Sequencer競合設計 |
-| SEQ-008 | Sequencer統合テスト | IC-3 | 🟠 P1 | E2Eテスト |
+
+| # | タスク | 担当 | 優先度 | 説明 |
+|---|--------|------|--------|------|
+| GOV-001 | Governor.sol実装 | Engineer | 🔴 **P0** | Quorum 4%/8%/15%、veQS投票統合 |
+| GOV-002 | Proposal作成・投票フロー | Engineer | 🔴 **P0** | 議論7日+投票7日+Time Lock 7日 |
+| GOV-003 | Timelock.sol実装 | Engineer | 🟠 High | 7日Time Lock、キャンセル機能 |
+| GOV-004 | Security Council連携 | Engineer | 🟠 High | 6名構成、Veto権限 (6/9) |
+| GOV-005 | Emergency Pause拡張 | Engineer | 🟠 High | SC 5/9、最大72時間、Token Vote延長 |
+| GOV-006 | Governance統合テスト | QA | 🟠 High | E2Eテスト、シナリオテスト |
 
 ### テスト項目
-| # | タスク | 対象 |
-|---|--------|------|
-| TEST-SEQ-001 | BatchBuilder単体テスト | SEQ-003 |
-| TEST-SEQ-002 | L1Submitter単体テスト | SEQ-004 |
-| TEST-SEQ-003 | Rotation機構テスト | SEQ-005 |
-| TEST-SEQ-004 | Staking統合テスト | SEQ-006 |
-| TEST-SEQ-005 | Multi-Sequencer競合テスト | SEQ-007 |
-| TEST-SEQ-006 | Sequencer E2Eテスト | SEQ-008 |
 
-### 参照ドキュメント
+| # | テスト | 対象 | 説明 |
+|---|--------|------|------|
+| TEST-GOV-001 | Governor単体テスト | GOV-001, GOV-002 | Quorum検証、投票フロー |
+| TEST-GOV-002 | Timelock単体テスト | GOV-003 | 遅延実行、キャンセル |
+| TEST-GOV-003 | Emergency単体テスト | GOV-005 | Pause/Unpause、延長 |
+| TEST-GOV-004 | 統合テスト | 全GOV | veQS + Governor + Timelock |
+| TEST-GOV-005 | E2Eテスト | 全GOV | フル提案ライフサイクル |
+
+---
+
+## 参照ドキュメント
+
 | 種類 | ドキュメント | 参照セクション |
 |------|------------|---------------|
-| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5, §10 |
-| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #1, #2, #5 |
-| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §IC, §Phase 2 |
-| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
-| L3詳細仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | §2, §3, §9 |
-| Phase 3計画 | `docs/planning/PHASE3_PLAN.md` | §2 Sequencer |
-| 既存SEQ実装 | `l3-aegis/src/sequencer/` | SEQ-001, SEQ-002 |
+| 憲法 | `docs/constitution/CORE_PRINCIPLES.md` | 全体（Time Lock削除不可等） |
+| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5, §6, §7 |
+| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #7, #8 |
+| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §Governance |
+| 戦略 | `docs/planning/PHASE3_STRATEGY.md` | §Governance |
+| Modular仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` | §GovernanceSwitch |
+| Phase 3.2チェックリスト | `docs/checklists/phase3.2.md` | Week 7-8 |
+| 既存veQS実装 | `l3-aegis/contracts/src/token/` | veQS統合 |
 
 ---
 
 ## 成果物
-| ファイル | 説明 | IC-ID |
-|---------|------|-------|
-| `l3-aegis/src/sequencer/batch_builder.rs` | BatchBuilder実装 | IC-3 |
-| `l3-aegis/src/sequencer/l1_submitter.rs` | L1 Submitter実装 | IC-3 |
-| `l3-aegis/src/sequencer/rotation.rs` | Rotation機構 | IC-3 |
-| `l3-aegis/src/sequencer/staking.rs` | Staking統合 | IC-3 |
-| `l3-aegis/src/sequencer/multi_sequencer.rs` | Multi-Sequencer対応 | IC-3 |
-| `l3-aegis/tests/sequencer/` | Sequencerテスト群 | - |
-| `l3-aegis/src/core/mod.rs` | Core統合更新 | IC-3 |
+
+| ファイル | 説明 | Sequence |
+|---------|------|----------|
+| `l3-aegis/contracts/src/governance/Governor.sol` | メインガバナンスコントラクト | #7 |
+| `l3-aegis/contracts/src/governance/Timelock.sol` | 7日Time Lock | #7 |
+| `l3-aegis/contracts/src/governance/EmergencyController.sol` | 緊急停止コントローラー | #8 |
+| `l3-aegis/contracts/src/governance/SecurityCouncil.sol` | SC 6名マルチシグ | #7, #8 |
+| `l3-aegis/contracts/src/governance/IGovernor.sol` | インターフェース | #7 |
+| `l3-aegis/contracts/test/governance/Governor.t.sol` | Governorテスト | - |
+| `l3-aegis/contracts/test/governance/Timelock.t.sol` | Timelockテスト | - |
+| `l3-aegis/contracts/test/governance/EmergencyController.t.sol` | Emergencyテスト | - |
+| `l3-aegis/contracts/test/governance/GovernanceIntegration.t.sol` | 統合テスト | - |
 
 ---
 
 ## 実行順序
 
-### Day 1-2: BatchBuilder (SEQ-003)
-1. `batch_builder.rs` 基本構造作成
-2. FIFO キューイング実装
-3. バッチサイズ・タイムアウト設定
-4. トランザクション検証統合
-5. 単体テスト作成・実行
+### Day 1-2: Governor基盤
 
-### Day 3-4: L1 Submitter (SEQ-004)
-1. `l1_submitter.rs` 基本構造作成
-2. State Root計算統合（SMT）
-3. L1コントラクト呼び出しモック
-4. L1SubmitTx L3ブロック記録
-5. 単体テスト作成・実行
+1. **GOV-001**: Governor.sol基本構造実装
+   - IGovernor.solインターフェース定義
+   - ProposalState enum (Pending, Active, Canceled, Defeated, Succeeded, Queued, Expired, Executed)
+   - Quorum設定 (4%/8%/15% by proposalType)
+   - veQS投票力スナップショット統合
 
-### Day 5-6: Rotation機構 (SEQ-005)
-1. `rotation.rs` ラウンドロビン実装
-2. View Change連携
-3. Leader選出ロジック
-4. 単体テスト作成・実行
+2. **GOV-002**: Proposal作成・投票フロー
+   - propose() - 提案作成
+   - castVote() / castVoteWithReason() - 投票
+   - 議論期間7日 + 投票期間7日
+   - Event発行 (ProposalCreated, VoteCast, ProposalExecuted)
 
-### Day 7-8: Staking統合 (SEQ-006)
-1. `staking.rs` インターフェース定義
-2. veQS コントラクト参照
-3. Stake検証ロジック
-4. 単体テスト作成・実行
+### Day 3-4: Timelock + Security Council
 
-### Day 9-10: Multi-Sequencer + 統合テスト (SEQ-007, SEQ-008)
-1. `multi_sequencer.rs` 競合設計
-2. 複数Sequencer同時稼働準備
-3. Sequencer統合テスト実装
-4. E2Eテスト実行
-5. **PIR-P3.2-003準備**
+3. **GOV-003**: Timelock.sol実装
+   - 7日間Time Lock (MIN_DELAY = 7 days)
+   - schedule() - 実行スケジュール
+   - execute() - Time Lock後実行
+   - cancel() - キャンセル機能
+   - CP-3準拠: Time Lock 0への変更不可
+
+4. **GOV-004**: Security Council連携
+   - SecurityCouncil.sol (6名マルチシグ)
+   - Veto権限 (6/9で可決提案を拒否可能)
+   - Purpose Committee連携（理念チェック）
+
+### Day 5-6: Emergency + 統合
+
+5. **GOV-005**: Emergency Pause拡張
+   - EmergencyController.sol
+   - pause() - SC 5/9で発動
+   - 最大72時間 + Token Vote延長
+   - unpause() - 復旧
+   - Sequence #8準拠
+
+6. **GOV-006**: Governance統合テスト
+   - 全コンポーネント結合
+   - E2Eテストシナリオ
+   - ガス最適化確認
+
+### Day 7: PIR準備
+
+7. PIR-P3.2-004準備
+   - コード整理、警告削除
+   - テストカバレッジ確認
+   - ドキュメント更新
 
 ---
 
 ## Core Principles確認
-- [x] CP-1: 完全量子耐性 - SHA3-256ハッシュのみ使用、Dilithium署名 ✅
-- [x] CP-2: Self-Custody - Sequencerはユーザー秘密鍵を保持しない ✅
-- [x] CP-3: Time Lock存在 - L1で24h/7日Time Lock維持 ✅
-- [x] CP-4: Slashing存在 - L1でSlashing実行維持 ✅
-- [x] CP-5: 透明性 - 全操作がL3ブロックに記録 ✅
+
+| CP | 原則 | 準拠確認 |
+|----|------|----------|
+| CP-1 | 完全量子耐性 | ✅ SHA3-256のみ使用、keccak256禁止 |
+| CP-2 | Self-Custody | ✅ ユーザー署名でpropose/vote |
+| CP-3 | Time Lock存在 | ✅ 7日Time Lock、削除不可 |
+| CP-4 | Slashing存在 | ✅ 既存CoreSlashingと連携 |
+| CP-5 | 透明性 | ✅ 全操作Event発行、オンチェーン検証可能 |
 
 ---
 
-## Modular Architecture確認（Phase 3以降）
-- [x] Core Layer: Sequencerは Core Layer の一部として動作 ✅
-- [x] Governance Layer: Sequencer Rotation は Governance モードで条件分岐可能 ✅
-- [x] Token Layer: Sequencer Staking は Token Layer (veQS) と統合 ✅
-- [x] Layer間依存: 下位→上位依存なし（Core → Token 参照のみ） ✅
+## Modular Architecture確認（Phase 3）
 
----
+| Layer | 確認事項 | 状態 |
+|-------|----------|:----:|
+| Core Layer | CP保護機構含む、Governance OFF時も基本機能動作 | ✅ |
+| Governance Layer | ON/OFF切替可能、GovernanceSwitch統合 | ✅ |
+| Token Layer | veQS投票統合、TokenSwitch連携 | ✅ |
+| Layer間依存 | 下位→上位依存なし | ✅ |
 
-## 禁止アルゴリズムチェック
+### モード別動作確認
 
-実装前に以下が使用されていないことを確認：
-
-- [ ] keccak256 → SHA3-256を使用
-- [ ] SHA-256 / SHA-2 → SHA3-256を使用
-- [ ] ECDSA → Dilithium-IIIを使用
-- [ ] RSA → SPHINCS+を使用
-- [ ] secp256k1 → 使用禁止
+| Governanceモード | Sequence #7 | Sequence #8 |
+|-----------------|-------------|-------------|
+| CENTRALIZED | ❌ 無効 | Admin単独Pause |
+| MULTISIG | ❌ 無効 | N/M承認Pause |
+| DECENTRALIZED | ✅ veQS投票 | SC 5/9 Pause |
 
 ---
 
@@ -204,31 +244,33 @@
 
 | # | リスク | 重要度 | 対策 |
 |---|--------|--------|------|
-| 1 | BatchBuilderのスループット | 🟠 | バッチサイズ・タイムアウトのチューニング |
-| 2 | L1 Gas高騰時の提出遅延 | 🟠 | Gas価格監視 + 閾値設定 |
-| 3 | Multi-Sequencer競合 | 🟠 | Leader選出明確化、同期プロトコル |
-| 4 | Staking統合の複雑さ | 🟡 | veQSとの最小限インターフェース |
+| 1 | veQS統合複雑性 | 🟠 Medium | 既存veQS実装を活用、単体テスト強化 |
+| 2 | Time Lock回避攻撃 | 🟠 Medium | ReentrancyGuard、CP-3強制検証 |
+| 3 | SC Veto濫用 | 🟡 Low | Veto条件を理念違反のみに限定 |
 
 ---
 
 ## 成功基準
 
-| 基準 | 条件 |
-|------|------|
-| タスク完了 | SEQ-003〜008 全完了 |
-| テスト | 全テストPASS |
-| CP準拠 | CP-1〜5 全て準拠 |
-| PIR | PIR-P3.2-003 PASS |
+| 基準 | 条件 | 目標 |
+|------|------|------|
+| 実装完了 | GOV-001〜006全完了 | 6/6 |
+| テスト | 全テストPASS | 100% |
+| 警告 | コンパイラ警告0 | 0 |
+| CP準拠 | CP-1〜5全準拠 | ✅ |
+| PIR | PIR-P3.2-004 PASS | PASS |
 
 ---
 
-## 次のアクション
+## PIR準備チェックリスト
 
-1. ✅ CURRENT_PLAN.md 作成完了
-2. ⬜ **02_spec.md 実行** → 仕様レビュー
-3. ⬜ **03_impl.md 実行** → 実装開始
-4. ⬜ **04_review.md 実行** → セキュリティレビュー
-5. ⬜ **05_pir.md 実行** → PIR-P3.2-003
+- [ ] 全タスク(GOV-001〜006)完了
+- [ ] 全テストPASS
+- [ ] コンパイラ警告0
+- [ ] keccak256使用なし確認
+- [ ] SEQUENCES v2.0準拠確認
+- [ ] CURRENT_STATE.md更新
+- [ ] コードレビュー完了
 
 ---
 
