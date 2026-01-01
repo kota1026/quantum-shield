@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2025-01-01 17:30 JST  
+> **Last Updated**: 2026-01-01 10:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,9 +13,9 @@
 │  Sub-Phase: 3.2 Implementation                              │
 │  Month: 11 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.2.md              │
-│  Active Task: Week 1-2 仕様書更新 + 基盤設計                │
-│  Status: 🔄 Phase 3.2 開始                                  │
-│  Tests: ✅ 180/180 PASS (l3-aegis) + 208 PASS (Solidity)    │
+│  Active Task: Week 3-4 veQS/Sequencer継続                   │
+│  Status: ✅ Phase 3.2 Week 1-2完了                          │
+│  Tests: ✅ 189/189 PASS (l3-aegis) + 247 PASS (Solidity)    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -37,12 +37,12 @@
 | **Enterprise** | 4ノード固定 | 許可制 | 金融系システム会社 |
 | **Decentralized** | 4ノード→Permissionless | 段階的Permissionless | DEX・ブリッジ等 |
 
-### 影響範囲（Week 1-2で対応）
+### 影響範囲（Week 1-2で対応）✅ **完了**
 
-- [ ] UNIFIED_SPEC_v2.0.md §Node Expansion Roadmap の更新
-- [ ] PHASE3_PLAN.md の IC-6 関連セクション削除
-- [ ] SPEC_STRATEGY_BRIDGE.md §10 IC Traceability の更新
-- [ ] L3_CHAIN_SPECIFICATION.md 2本立て設計明記
+- [x] UNIFIED_SPEC_v2.0.md §Node Expansion Roadmap の更新
+- [x] PHASE3_PLAN.md の IC-6 関連セクション削除
+- [x] SPEC_STRATEGY_BRIDGE.md §10 IC Traceability の更新
+- [x] L3_CHAIN_SPECIFICATION.md 2本立て設計明記
 
 ---
 
@@ -64,8 +64,8 @@
 
 | Week | 内容 | Status |
 |:----:|------|:------:|
-| 1-2 | 仕様書更新 + veQS/Sequencer基盤 | 🔄 **ACTIVE** |
-| 3-4 | veQS Token実装 | ⬜ |
+| 1-2 | 仕様書更新 + veQS/Sequencer基盤 | ✅ **COMPLETE** |
+| 3-4 | veQS Token実装 | 🔄 **ACTIVE** |
 | 5-6 | Sequencer実装 | ⬜ |
 | 7-8 | Governance完成 + 統合テスト | ⬜ |
 | 9-10 | 監査準備 + Go/No-Go | ⬜ |
@@ -137,16 +137,72 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.2 計画策定 |
-| **実装日時** | 2025-01-01 17:30 JST |
-| **ステータス** | ✅ **計画承認・開始** |
+| **対象Plan** | Phase 3.2 Week 1-2 実装 |
+| **実装日時** | 2026-01-01 10:30 JST |
+| **ステータス** | ✅ **Week 1-2 実装完了** |
 
-### 成果物
+### 対象Sequence
 
-| ファイル | 説明 |
-|---------|------|
-| `docs/planning/CURRENT_PLAN.md` | Phase 3.2 Implementation計画 |
-| `docs/checklists/phase3.2.md` | Phase 3.2チェックリスト（39タスク） |
+| Sequence | 実装Layer | 仕様書準拠 |
+|----------|----------|:----------:|
+| TOKEN (IC-5) | Solidity | ✅ |
+| SEQ (IC-3) | Rust | ✅ |
+
+### 作成ファイル
+
+**Solidity (Token)**:
+- `l3-aegis/src/token/QSToken.sol`: $QS ERC-20トークン (1B cap)
+- `l3-aegis/src/token/veQS.sol`: Vote Escrow実装 (1週間〜4年ロック)
+- `l3-aegis/src/interfaces/IveQS.sol`: veQSインターフェース
+- `l3-aegis/test/token/QSToken.t.sol`: QSTokenテスト (18 tests)
+- `l3-aegis/test/token/veQS.t.sol`: veQSテスト (21 tests)
+
+**Rust (Sequencer)**:
+- `l3-aegis/crates/aegis-sequencer/src/lib.rs`: モジュールエクスポート
+- `l3-aegis/crates/aegis-sequencer/src/error.rs`: エラー型定義
+- `l3-aegis/crates/aegis-sequencer/src/types.rs`: コア型定義
+- `l3-aegis/crates/aegis-sequencer/src/sequencer.rs`: Sequencer実装
+- `l3-aegis/crates/aegis-sequencer/src/mempool.rs`: MempoolManager実装
+
+### 仕様書要件実装
+
+| 要件 | 出典 | 実装箇所 |
+|------|------|---------|
+| ERC-20 $QS Token | IC-5 | `QSToken.sol` |
+| 1B Token Cap | IC-5 | `QSToken.sol:MAX_SUPPLY` |
+| Lock Duration 1w-4y | IC-5 | `veQS.sol:MIN/MAX_LOCK_TIME` |
+| Voting Power = amount × (remaining/max) | IC-5 | `veQS.sol:getVotingPower()` |
+| 4x Max Boost | IC-5 | `veQS.sol:MAX_LOCK_TIME=4years` |
+| Priority Queue Mempool | IC-3 | `mempool.rs:OrderedTx` |
+| SHA3-256 Only | CP-1 | `types.rs:TxHash/BatchHash` |
+
+### L3基盤確認
+
+| 確認項目 | 結果 |
+|----------|:----:|
+| 独自4ノードBFT | ✅ |
+| l3-aegis範囲内 | ✅ |
+| ZK-STARK不使用 | ✅ |
+| SEQUENCES準拠 | ✅ |
+| CP-1準拠 (SHA3-256 only) | ✅ |
+
+### SPEC_REVIEW対応
+
+（該当なし - SPEC_REVIEW.mdは「未実行」ステータス）
+
+### テスト結果
+
+| 項目 | 値 |
+|------|-----|
+| 新規テスト数 | +48 (Solidity 39 + Rust 9) |
+| 総テスト数 | 436 (l3-aegis 189 + Solidity 247) |
+| 結果 | ✅ ALL PASS |
+
+### 備考
+
+- BinaryHeap順序ロジックをRustで修正（borrow checker対応）
+- Solidity test_mint_exceedsMaxSupply_reverts修正（expectRevert順序）
+- DOC-001〜004も前セッションで完了（IC-6削除、2本立て設計）
 
 ---
 
@@ -231,7 +287,7 @@
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE 🎉🎉🎉** |
-| **Phase 3.2** | **Implementation** | **0%** | 🔄 **ACTIVE** |
+| **Phase 3.2** | **Implementation** | **23%** | 🔄 **ACTIVE** |
 | Phase 3.3 | Testing & Launch | 0% | ⬜ NOT STARTED |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
@@ -243,44 +299,44 @@
 > **期間**: Month 11-15 (10 weeks)
 > **目標**: Sequencer (IC-3) + veQS Token (IC-5) + Governance完成
 
-### Week 1-2: 仕様書更新 + 基盤設計 🔄 **ACTIVE**
+### Week 1-2: 仕様書更新 + 基盤設計 ✅ **COMPLETE**
 
 #### 仕様書更新（BTF7不要対応）
 
 | # | タスク | 状態 |
 |---|--------|:----:|
-| DOC-001 | UNIFIED_SPEC_v2.0.md IC-6削除・設計変更記載 | ⬜ |
-| DOC-002 | PHASE3_PLAN.md IC-6関連セクション削除 | ⬜ |
-| DOC-003 | SPEC_STRATEGY_BRIDGE.md IC Traceability更新 | ⬜ |
-| DOC-004 | L3_CHAIN_SPECIFICATION.md 2本立て設計明記 | ⬜ |
+| DOC-001 | UNIFIED_SPEC_v2.0.md IC-6削除・設計変更記載 | ✅ |
+| DOC-002 | PHASE3_PLAN.md IC-6関連セクション削除 | ✅ |
+| DOC-003 | SPEC_STRATEGY_BRIDGE.md IC Traceability更新 | ✅ |
+| DOC-004 | L3_CHAIN_SPECIFICATION.md 2本立て設計明記 | ✅ |
 
 #### veQS Token基盤
 
 | # | タスク | IC | 状態 | PIR |
 |---|--------|-----|:----:|-----|
-| TOKEN-001 | veQS Token基本コントラクト | IC-5 | ⬜ | ⬜ |
-| TOKEN-002 | Lock/Unlock機構 | IC-5 | ⬜ | ⬜ |
-| TOKEN-003 | 投票力計算 | IC-5 | ⬜ | ⬜ |
+| TOKEN-001 | QSToken基本コントラクト | IC-5 | ✅ | ⬜ |
+| TOKEN-002 | veQS Lock/Unlock機構 | IC-5 | ✅ | ⬜ |
+| TOKEN-003 | 投票力計算 | IC-5 | ✅ | ⬜ |
 
 #### Sequencer基盤
 
 | # | タスク | IC | 状態 | PIR |
 |---|--------|-----|:----:|-----|
-| SEQ-001 | Sequencer基本インターフェース定義 | IC-3 | ⬜ | ⬜ |
-| SEQ-002 | MempoolManager実装 | IC-3 | ⬜ | ⬜ |
+| SEQ-001 | Sequencer基本インターフェース定義 | IC-3 | ✅ | ⬜ |
+| SEQ-002 | MempoolManager実装 | IC-3 | ✅ | ⬜ |
 
 ### 進捗サマリー
 
 | カテゴリ | 完了 | 合計 | 進捗率 |
 |---------|:----:|:----:|:------:|
-| DOC | 0 | 4 | 0% |
-| TOKEN | 0 | 10 | 0% |
-| SEQ | 0 | 8 | 0% |
+| DOC | 4 | 4 | 100% |
+| TOKEN | 3 | 10 | 30% |
+| SEQ | 2 | 8 | 25% |
 | GOV | 0 | 6 | 0% |
 | TEST | 0 | 5 | 0% |
 | AUDIT | 0 | 3 | 0% |
 | GONOGO | 0 | 3 | 0% |
-| **合計** | **0** | **39** | **0%** |
+| **合計** | **9** | **39** | **23%** |
 
 ---
 
@@ -365,16 +421,16 @@
 
 ## 🔜 次のアクション
 
-### Week 1-2 タスク
+### Week 3-4 タスク
 
 | # | タスク | IC | 優先度 | 状態 |
 |---|--------|-----|--------|:----:|
-| 1 | **DOC-001: UNIFIED_SPEC更新** | - | 🔴 **P0** | ⬜ **次** |
-| 2 | DOC-002: PHASE3_PLAN更新 | - | 🔴 **P0** | ⬜ |
-| 3 | DOC-003: SPEC_STRATEGY_BRIDGE更新 | - | 🔴 **P0** | ⬜ |
-| 4 | DOC-004: L3_CHAIN_SPECIFICATION更新 | - | 🔴 **P0** | ⬜ |
-| 5 | TOKEN-001: veQS基本コントラクト | IC-5 | 🟠 High | ⬜ |
-| 6 | SEQ-001: Sequencer基本インターフェース | IC-3 | 🟠 High | ⬜ |
+| 1 | **TOKEN-004: Delegation機構** | IC-5 | 🔴 **P0** | ⬜ **次** |
+| 2 | TOKEN-005: Governance統合 | IC-5 | 🔴 **P0** | ⬜ |
+| 3 | TOKEN-006: Staking報酬分配 | IC-5 | 🟠 High | ⬜ |
+| 4 | SEQ-003: BatchBuilder実装 | IC-3 | 🟠 High | ⬜ |
+| 5 | SEQ-004: L1 Submitter実装 | IC-3 | 🟠 High | ⬜ |
+| 6 | SEQ-005: Sequencer Rotation | IC-3 | 🟠 High | ⬜ |
 
 ---
 
@@ -441,9 +497,10 @@
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
 - Phase 3.1 Foundation: ✅ **COMPLETE 🎉🎉🎉**
   - Go/No-Go判定: 🟢 GO (88.0/100, 11/11 全会一致)
-- Phase 3.2 Implementation: 🔄 **ACTIVE**
-  - IC-3 Sequencer: ⬜ 0/8
-  - IC-5 veQS Token: ⬜ 0/10
+- Phase 3.2 Implementation: 🔄 **ACTIVE** (23% - Week 1-2完了)
+  - DOC: ✅ 4/4
+  - IC-3 Sequencer: 🔄 2/8
+  - IC-5 veQS Token: 🔄 3/10
   - Governance: ⬜ 0/6
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
 - Phase 3.3 Testing & Launch: ⬜

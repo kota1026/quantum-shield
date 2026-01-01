@@ -20,12 +20,21 @@ contract veQS is IveQS {
     /// @notice Precision for voting power calculations
     uint256 private constant PRECISION = 1e18;
     
+    /// @notice ReentrancyGuard: not entered state
+    uint256 private constant NOT_ENTERED = 1;
+    
+    /// @notice ReentrancyGuard: entered state
+    uint256 private constant ENTERED = 2;
+    
     // ============ Immutable ============
     
     /// @notice QS Token address
     address public immutable qsToken;
     
     // ============ Storage ============
+    
+    /// @notice Reentrancy guard status
+    uint256 private _status;
     
     /// @notice Lock positions per user
     mapping(address => LockPosition) private _locks;
@@ -42,6 +51,16 @@ contract veQS is IveQS {
     /// @notice Checkpoint for total supply tracking
     uint256 private _lastTotalSupplyUpdate;
     
+    // ============ Modifiers ============
+    
+    /// @notice Prevents reentrancy attacks (CP-5 compliance)
+    modifier nonReentrant() {
+        require(_status != ENTERED, "ReentrancyGuard: reentrant call");
+        _status = ENTERED;
+        _;
+        _status = NOT_ENTERED;
+    }
+    
     // ============ Constructor ============
     
     /// @notice Initialize veQS
@@ -50,6 +69,7 @@ contract veQS is IveQS {
         require(qsToken_ != address(0), "Invalid QS token");
         qsToken = qsToken_;
         _lastTotalSupplyUpdate = block.timestamp;
+        _status = NOT_ENTERED;
     }
     
     // ============ View Functions ============
@@ -100,7 +120,7 @@ contract veQS is IveQS {
     // ============ Lock Functions ============
     
     /// @inheritdoc IveQS
-    function lock(uint256 amount, uint256 lockDuration) external override {
+    function lock(uint256 amount, uint256 lockDuration) external override nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (lockDuration < MIN_LOCK_TIME) revert LockTimeTooShort();
         if (lockDuration > MAX_LOCK_TIME) revert LockTimeTooLong();
@@ -126,7 +146,7 @@ contract veQS is IveQS {
     }
     
     /// @inheritdoc IveQS
-    function increaseLockAmount(uint256 amount) external override {
+    function increaseLockAmount(uint256 amount) external override nonReentrant {
         if (amount == 0) revert ZeroAmount();
         
         LockPosition storage position = _locks[msg.sender];
@@ -165,7 +185,7 @@ contract veQS is IveQS {
     }
     
     /// @inheritdoc IveQS
-    function withdraw() external override {
+    function withdraw() external override nonReentrant {
         LockPosition storage position = _locks[msg.sender];
         if (position.amount == 0) revert NoLockExists();
         if (block.timestamp < position.unlockTime) revert LockNotExpired();
