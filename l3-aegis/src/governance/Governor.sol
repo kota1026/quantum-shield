@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import {IGovernor} from "../interfaces/IGovernor.sol";
 import {IveQS} from "../interfaces/IveQS.sol";
+import {SHA3Hasher} from "@phase2/libraries/SHA3Hasher.sol";
 
 /// @title Governor
 /// @notice Quantum Shield Governor with veQS voting
@@ -218,7 +219,7 @@ contract Governor is IGovernor {
             abstainVotes: 0,
             canceled: false,
             executed: false,
-            descriptionHash: keccak256(bytes(description))
+            descriptionHash: SHA3Hasher.hash(bytes(description))
         });
         
         _proposalActions[proposalId] = ProposalActions({
