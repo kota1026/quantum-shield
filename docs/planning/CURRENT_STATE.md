@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-01 18:30 JST  
+> **Last Updated**: 2026-01-01 18:27 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -14,7 +14,7 @@
 │  Month: 11 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.2.md              │
 │  Active Task: Week 3-4 veQS Token実装 (TOKEN-004~010)       │
-│  Status: ✅ Week 3-4実装完了 + バグ修正完了 → PIR-P3.2-002待ち │
+│  Status: ✅ Week 3-4実装完了 + バグ修正 + CP-1修正 → PIR-P3.2-002待ち │
 │  Tests: ✅ 180/180 PASS (Rust) + 271/271 PASS (Solidity)    │
 │  次のPIR ID: PIR-P3.2-002                                   │
 └─────────────────────────────────────────────────────────────┘
@@ -66,7 +66,7 @@
 | Week | 内容 | Status |
 |:----:|------|:------:|
 | 1-2 | 仕様書更新 + veQS/Sequencer基盤 | ✅ **COMPLETE + PIR PASS** |
-| 3-4 | veQS Token実装 | ✅ **COMPLETE + BUG FIX** → PIR待ち |
+| 3-4 | veQS Token実装 | ✅ **COMPLETE + BUG FIX + CP-1 FIX** → PIR待ち |
 | 5-6 | Sequencer実装 | ⬜ |
 | 7-8 | Governance完成 + 統合テスト | ⬜ |
 | 9-10 | 監査準備 + Go/No-Go | ⬜ |
@@ -79,7 +79,7 @@
 | IC-2 | L3 Bridge Contract | ✅ Phase 3.1 COMPLETE |
 | IC-3 | Sequencer | 🟡 2/8完了 (SEQ-001~002) |
 | IC-4 | State Management | ✅ Phase 3.1 COMPLETE |
-| IC-5 | veQS Token | ✅ **10/10完了 + バグ修正完了** |
+| IC-5 | veQS Token | ✅ **10/10完了 + バグ修正 + CP-1修正完了** |
 | ~~IC-6~~ | ~~Node Expansion~~ | ❌ **不要（CEO指示）** |
 | IC-7 | Permissionless Nodes | ⚪ Phase 4 |
 
@@ -138,9 +138,9 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.2 Week 3-4 veQSバグ修正 (FIX-001対応) |
-| **実装日時** | 2026-01-01 18:30 JST |
-| **ステータス** | ✅ **バグ修正完了** → PIR-P3.2-002待ち |
+| **対象Plan** | Phase 3.2 Week 3-4 veQSバグ修正 + CP-1修正 |
+| **実装日時** | 2026-01-01 18:27 JST |
+| **ステータス** | ✅ **修正完了** → PIR-P3.2-002待ち |
 
 ### 対象Sequence
 
@@ -150,11 +150,17 @@
 
 ### 修正内容
 
-**問題**: veQS委任・報酬分配テスト6件失敗
+**問題1**: veQS委任・報酬分配テスト6件失敗
 
 **根本原因**:
 1. `veQS.sol`: 静的な `_delegatedPower` マッピングが `withdraw()` 後も残存
 2. `VeQSRewardDistributor.t.sol`: `totalVotingPower()` の50%近似 vs `getVotingPowerAt()` の実値乖離
+
+**問題2**: Governor.sol CP-1違反
+
+**根本原因**:
+- `Governor.sol:L165` で `keccak256(bytes(description))` を使用
+- CP-1はkeccak256の使用を禁止
 
 ### 修正ファイル
 
@@ -162,6 +168,9 @@
 |----------|----------|----------|
 | `l3-aegis/src/token/veQS.sol` | 動的委任パワー計算実装 (`_delegators[]` リスト方式) | `a7bffa99` |
 | `l3-aegis/test/token/VeQSRewardDistributor.t.sol` | 直接mintバッファ方式 + 相対比較検証 | `68312de6`, `bd6cd48c` |
+| `l3-aegis/src/crypto/SHA3_256.sol` | SHA3-256ライブラリ追加 | `9d2655a8` |
+| `l3-aegis/src/crypto/SHA3Hasher.sol` | SHA3Hasherラッパー追加 | `7d059249` |
+| `l3-aegis/src/governance/Governor.sol` | keccak256 → SHA3Hasher.hash() | `41fc7f13`, `687c68a4` |
 
 ### コード変更詳細
 
@@ -176,6 +185,17 @@ mapping(address => address[]) private _delegators;
 function _calculateDelegatedPower(address delegate) internal view returns (uint256) {
     // 委任者リストを走査して都度計算
 }
+```
+
+**Governor.sol (687c68a4)**:
+```solidity
+// Before: CP-1違反
+import {IGovernor} from "../interfaces/IGovernor.sol";
+descriptionHash: keccak256(bytes(description))
+
+// After: CP-1準拠
+import {SHA3Hasher} from "../crypto/SHA3Hasher.sol";
+descriptionHash: SHA3Hasher.hash(bytes(description))
 ```
 
 **VeQSRewardDistributor.t.sol (bd6cd48c)**:
@@ -195,18 +215,26 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | 動的委任パワー | IC-5 | `veQS.sol:_calculateDelegatedPower()` | ✅ |
 | withdraw時の委任解除 | IC-5 | `veQS.sol:withdraw()` | ✅ |
 | Epoch報酬分配 | IC-5 | `VeQSRewardDistributor.sol` | ✅ |
+| **SHA3-256ハッシュ** | **CP-1** | **`Governor.sol:SHA3Hasher.hash()`** | ✅ |
 
 ### 既知の課題
 
 | # | 重要度 | 項目 | 状態 |
 |---|--------|------|:----:|
 | FIX-001 | 🟢 Info | veQS totalVotingPower 50%近似 | 📋 許容（テスト対応済み） |
+| FIX-002 | ✅ Fixed | Governor.sol keccak256使用 (CP-1違反) | ✅ **修正完了** |
 
 **FIX-001 詳細**:
 - `getTotalVotingPower()` は全ロック額の50%を返す（近似値）
 - `getVotingPowerAt()` は実際の減衰パワーを返す
 - 単一ユーザーで最大2倍の報酬計算になる可能性
 - **対応**: テストではバッファmint方式で対応、本番では報酬プール設計で考慮
+
+**FIX-002 詳細**:
+- `Governor.sol:L165` で `keccak256(bytes(description))` を使用していた
+- SHA3Hasherライブラリを `l3-aegis/src/crypto/` に追加
+- `SHA3Hasher.hash(bytes(description))` に変更
+- **対応**: ✅ 修正完了、テスト全PASS
 
 ### SPEC_REVIEW対応
 
@@ -229,11 +257,16 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | `a7bffa99` | fix(veQS): 動的委任パワー計算を実装 |
 | `68312de6` | fix(test): VeQSRewardDistributor近似値許容 (部分修正) |
 | `bd6cd48c` | fix(test): 直接mintバッファ方式 (完全修正) |
+| `41fc7f13` | fix(Governor): keccak256 → SHA3Hasher (CP-1準拠) |
+| `9d2655a8` | feat(l3-aegis): SHA3_256 cryptoライブラリ追加 |
+| `7d059249` | feat(l3-aegis): SHA3Hasher cryptoライブラリ追加 |
+| `687c68a4` | fix(Governor): ローカルcryptoライブラリパス使用 |
 
 ### 備考
 
 - veQS委任機能: 正常動作確認済み
 - 報酬分配テスト: 近似許容設計で全テストPASS
+- Governor CP-1準拠: SHA3Hasher使用で修正完了
 - 次アクション: PIR-P3.2-002実行（04_review.md）
 
 ---
@@ -294,7 +327,7 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | PIR ID | 対象 | レビュー結果 | 日付 |
 |--------|------|-------------|------|
 | PIR-P3.2-001 | TOKEN-001~003, SEQ-001~002 | ✅ **PASS** 🎉 | 2026-01-01 |
-| PIR-P3.2-002 | TOKEN-004~010 + バグ修正 | ⬜ **PENDING** | - |
+| PIR-P3.2-002 | TOKEN-004~010 + バグ修正 + CP-1修正 | ⬜ **PENDING** | - |
 
 **Phase 3.2 PIR完了: 1/2 PASS**
 
@@ -366,7 +399,7 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | SEQ-001 | Sequencer基本インターフェース定義 | IC-3 | ✅ | ✅ PIR-P3.2-001 |
 | SEQ-002 | MempoolManager実装 | IC-3 | ✅ | ✅ PIR-P3.2-001 |
 
-### Week 3-4: veQS Token実装 ✅ **COMPLETE + BUG FIX** → PIR待ち
+### Week 3-4: veQS Token実装 ✅ **COMPLETE + BUG FIX + CP-1 FIX** → PIR待ち
 
 | # | タスク | IC | 状態 | PIR |
 |---|--------|-----|:----:|-----|
@@ -378,7 +411,9 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 | TOKEN-009 | veQS単体テスト | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
 | TOKEN-010 | veQS統合テスト | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
 
-**バグ修正**: veQS委任・報酬分配テスト修正完了 (a7bffa99, bd6cd48c)
+**バグ修正**: 
+- veQS委任・報酬分配テスト修正完了 (a7bffa99, bd6cd48c)
+- Governor CP-1違反修正完了 (687c68a4)
 
 ### 進捗サマリー
 
@@ -558,10 +593,10 @@ rewardToken.mint(address(distributor), REWARD_AMOUNT * REWARD_BUFFER);
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
 - Phase 3.1 Foundation: ✅ **COMPLETE 🎉🎉🎉**
   - Go/No-Go判定: 🟢 GO (88.0/100, 11/11 全会一致)
-- Phase 3.2 Implementation: 🔄 **ACTIVE** (41% - Week 1-4完了 + バグ修正)
+- Phase 3.2 Implementation: 🔄 **ACTIVE** (41% - Week 1-4完了 + バグ修正 + CP-1修正)
   - DOC: ✅ 4/4
   - IC-3 Sequencer: 🔄 2/8 (PIR済: SEQ-001, SEQ-002)
-  - IC-5 veQS Token: ✅ **10/10 COMPLETE + バグ修正完了** → PIR-P3.2-002待ち
+  - IC-5 veQS Token: ✅ **10/10 COMPLETE + バグ修正 + CP-1修正完了** → PIR-P3.2-002待ち
   - Governance: ⬜ 0/6
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
 - Phase 3.3 Testing & Launch: ⬜
