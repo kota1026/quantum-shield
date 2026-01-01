@@ -100,8 +100,8 @@ contract GovernanceIntegrationTest is Test {
         vm.prank(governor);
         timelock.execute(target, 0, actionData, eta);
         
-        // Verify execution
-        assertEq(ITimelock.TransactionState.Executed, timelock.getTransactionState(txHash));
+        // Verify execution - cast enum to uint256 for assertEq
+        assertTrue(timelock.getTransactionState(txHash) == ITimelock.TransactionState.Executed);
         assertEq(MockTarget(target).value(), 42);
     }
     
