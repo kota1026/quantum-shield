@@ -2,13 +2,12 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import "../interfaces/IEmergencyController.sol";
 
 /// @title EmergencyControllerTest
 /// @notice Test suite for Emergency Controller contract
 /// @dev TDD approach - tests written before implementation
 /// @custom:ref CURRENT_PLAN.md GOV-005
-/// @custom:ref SEQUENCES v2.0 #8 (Emergency Pause & Recovery)
+/// @custom:ref SEQUENCES v2.0 #8 (Emergency Pause &amp; Recovery)
 contract EmergencyControllerTest is Test {
     // ============ Constants ============
     
