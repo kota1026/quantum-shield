@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-02 00:55 JST  
+> **Last Updated**: 2026-01-02 01:10 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -14,7 +14,7 @@
 │  Month: 11 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.2.md              │
 │  Active Task: Week 7-8 Governance実装 (GOV-001~006)         │
-│  Status: ✅ GOV-003~006実装完了 → テストPASS 42/42          │
+│  Status: ✅ GOV-001~006実装完了 → テストPASS 42/42 🎉       │
 │  Tests: ✅ 239/239 PASS (Rust) + 313/313 PASS (Solidity)    │
 │  Warnings: ✅ 0 (aegis-sequencer clean)                     │
 │  次のPIR ID: PIR-P3.2-004                                   │
@@ -69,7 +69,7 @@
 | 1-2 | 仕様書更新 + veQS/Sequencer基盤 | ✅ **COMPLETE + PIR PASS** |
 | 3-4 | veQS Token実装 | ✅ **COMPLETE + PIR-P3.2-002 PASS** 🎉 |
 | 5-6 | Sequencer実装 | ✅ **COMPLETE + PIR-P3.2-003 PASS** 🎉 |
-| 7-8 | Governance完成 + 統合テスト | 🔄 **ACTIVE** (GOV-003~006完了) |
+| 7-8 | Governance完成 + 統合テスト | ✅ **COMPLETE** (GOV-001~006全完了) 🎉 |
 | 9-10 | 監査準備 + Go/No-Go | ⬜ |
 
 ### IC完全性
@@ -139,15 +139,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.2 Week 7-8 Governance実装 (GOV-003~GOV-006) |
-| **実装日時** | 2026-01-02 00:55 JST |
+| **対象Plan** | Phase 3.2 Week 7-8 Governance実装 (GOV-001~GOV-006) |
+| **実装日時** | 2026-01-02 01:10 JST |
 | **PIR結果** | ⬜ **PIR-P3.2-004 待機中** |
-| **ステータス** | 🔄 **GOV-003~006実装完了、テストPASS** |
+| **ステータス** | ✅ **GOV-001~006全完了、テストPASS 42/42** 🎉 |
 
 ### 対象Component (Governance Layer)
 
 | Task ID | Component | 実装内容 | 仕様書準拠 | テスト |
 |---------|-----------|----------|:----------:|:------:|
+| GOV-001 | Governor.sol | Quorum 4%/8%/15%、veQS投票統合、ProposalCategory | ✅ | ✅ |
+| GOV-002 | Governor.sol | propose/castVote、議論7日+投票7日+Timelock 7日 | ✅ | ✅ |
 | GOV-003 | Timelock.sol | 7日MIN_DELAY (CP-3)、30日MAX_DELAY、14日GRACE_PERIOD | ✅ | ✅ |
 | GOV-004 | SecurityCouncil.sol | 9メンバー固定、5/9一時停止、6/9拒否権、7/9緊急アップグレード | ✅ | ✅ |
 | GOV-005 | EmergencyController.sol | 72時間最大一時停止、veQS投票延長、4%クォーラム | ✅ | ✅ |
@@ -157,22 +159,24 @@
 
 | ファイル | パス | コミット |
 |----------|------|----------|
+| Governor.sol | `l3-aegis/src/governance/Governor.sol` | a945240 (VOTING_DELAY 7日修正) |
 | Timelock.sol | `l3-aegis/src/governance/Timelock.sol` | ee9897c~74e6178 |
 | ITimelock.sol | `l3-aegis/src/interfaces/ITimelock.sol` | ee9897c~74e6178 |
 | SecurityCouncil.sol | `l3-aegis/src/governance/SecurityCouncil.sol` | (batch) |
 | ISecurityCouncil.sol | `l3-aegis/src/interfaces/ISecurityCouncil.sol` | (batch) |
 | EmergencyController.sol | `l3-aegis/src/governance/EmergencyController.sol` | (batch) |
 | IEmergencyController.sol | `l3-aegis/src/interfaces/IEmergencyController.sol` | (batch) |
-| Timelock.t.sol | `l3-aegis/test/governance/Timelock.t.sol` | (batch) |
-| SecurityCouncil.t.sol | `l3-aegis/test/governance/SecurityCouncil.t.sol` | (batch) |
-| EmergencyController.t.sol | `l3-aegis/test/governance/EmergencyController.t.sol` | (batch) |
+| Governor.t.sol | `l3-aegis/test/governance/Governor.t.sol` | a76c6ae (テスト修正) |
 | GovernanceIntegration.t.sol | `l3-aegis/test/governance/GovernanceIntegration.t.sol` | ad96484~74e6178 |
 
 ### 仕様書要件実装確認
 
 | 要件 | 出典 | 実装箇所 | 状態 |
 |------|------|----------|:----:|
-| 7日Timelock最小遅延 | CP-3, SEQ#7 | `Timelock.MIN_DELAY` | ✅ |
+| 議論期間7日 | SEQ#7, CURRENT_PLAN | `Governor.VOTING_DELAY = 7 days` | ✅ |
+| 投票期間7日 | SEQ#7 | `Governor.VOTING_PERIOD = 7 days` | ✅ |
+| 7日Timelock最小遅延 | CP-3, SEQ#7 | `Timelock.MIN_DELAY = 7 days` | ✅ |
+| Quorum 4%/8%/15% | SEQ#7 | `Governor.quorum()` | ✅ |
 | Security Council 9名 | SEQ#8 | `SecurityCouncil.COUNCIL_SIZE` | ✅ |
 | 5/9緊急一時停止 | SEQ#8 | `SecurityCouncil.PAUSE_THRESHOLD` | ✅ |
 | 6/9拒否権 | SEQ#8 | `SecurityCouncil.VETO_THRESHOLD` | ✅ |
@@ -195,6 +199,7 @@
 
 | テスト | 内容 | 結果 |
 |--------|------|:----:|
+| test_constants | VOTING_DELAY=7日, VOTING_PERIOD=7日, TIMELOCK_DELAY=7日 | ✅ |
 | test_sequence7_fullGovernanceProposalFlow | Sequence #7完全フロー | ✅ |
 | test_sequence8_emergencyPauseBy5of9 | 5/9一時停止 | ✅ |
 | test_cp3_timelockCannotBeBelowMinimum | CP-3不変条件 | ✅ |
@@ -206,6 +211,8 @@
 
 | コミット | 修正内容 |
 |----------|----------|
+| a945240 | Governor.sol: VOTING_DELAY 1日→7日（仕様書準拠） |
+| a76c6ae | Governor.t.sol: test_constants()を7日に更新 |
 | 8123505 | ITimelock.sol: `TransactionCancelled` error → `TransactionWasCancelled` (event名重複解消) |
 | 7ea3a3c | Timelock.sol: error名を新しい名前に更新 |
 | 74e6178 | GovernanceIntegration.t.sol: enum比較を `assertTrue()` に変更 |
@@ -215,7 +222,7 @@
 | # | 重要度 | 項目 | 状態 |
 |---|--------|------|:----:|
 | 1 | 🟡 LOW | 130テストがvm.skip(true)でスキップ | ⬜ 後で有効化 |
-| 2 | 🟡 LOW | 未使用変数警告（テストファイル内） | ⬜ 後でクリーンアップ |
+| 2 | 🟡 LOW | SHA3_256.sol警告（シフト演算） | ⬜ 許容 |
 
 ---
 
@@ -277,7 +284,7 @@
 | PIR-P3.2-001 | TOKEN-001~003, SEQ-001~002 | ✅ **PASS** 🎉 | 2026-01-01 |
 | PIR-P3.2-002 | TOKEN-004~010 + バグ修正 + CP-1修正 | ✅ **PASS** 🎉 | 2026-01-01 |
 | PIR-P3.2-003 | SEQ-003~008 Sequencer実装 | ✅ **PASS** 🎉 | 2026-01-01 |
-| PIR-P3.2-004 | GOV-003~006 Governance実装 | ⬜ **待機中** | - |
+| PIR-P3.2-004 | GOV-001~006 Governance実装 | ⬜ **待機中** | - |
 
 **Phase 3.2 PIR完了: 3/4 PASS** (1件待機中)
 
@@ -311,7 +318,7 @@
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE 🎉🎉🎉** |
-| **Phase 3.2** | **Implementation** | **67%** | 🔄 **ACTIVE** |
+| **Phase 3.2** | **Implementation** | **72%** | 🔄 **ACTIVE** |
 | Phase 3.3 | Testing & Launch | 0% | ⬜ NOT STARTED |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
@@ -379,18 +386,19 @@
 **コードクリーンアップ**: 
 - コンパイラ警告全削除完了 (b3626b7, 0cccac2, 3bc1bb6, 2e0f763) ✅
 
-### Week 7-8: Governance Layer 🔄 **ACTIVE** (4/6完了)
+### Week 7-8: Governance Layer ✅ **COMPLETE** (6/6完了) 🎉
 
 | # | タスク | IC | 状態 | PIR |
 |---|--------|-----|:----:|-----|
-| GOV-001 | Proposal System拡張 | - | ⬜ | ⬜ |
-| GOV-002 | Voting機構強化 | - | ⬜ | ⬜ |
+| GOV-001 | Proposal System拡張 | - | ✅ | ⬜ PIR-P3.2-004待ち |
+| GOV-002 | Voting機構強化 | - | ✅ | ⬜ PIR-P3.2-004待ち |
 | GOV-003 | Timelock統合 | - | ✅ | ⬜ PIR-P3.2-004待ち |
 | GOV-004 | SecurityCouncil実装 | - | ✅ | ⬜ PIR-P3.2-004待ち |
 | GOV-005 | EmergencyController実装 | - | ✅ | ⬜ PIR-P3.2-004待ち |
 | GOV-006 | Governance統合テスト | - | ✅ | ⬜ PIR-P3.2-004待ち |
 
 **実装完了 (2026-01-02)**:
+- Governor.sol VOTING_DELAY=7日修正（仕様書準拠）✅
 - Timelock.sol + ITimelock.sol (7日MIN_DELAY、CP-3準拠) ✅
 - SecurityCouncil.sol + ISecurityCouncil.sol (9メンバー、5/9/6/9/7/9閾値) ✅
 - EmergencyController.sol + IEmergencyController.sol (72時間最大一時停止) ✅
@@ -403,11 +411,11 @@
 | DOC | 4 | 4 | 100% |
 | TOKEN | 10 | 10 | 100% ✅ |
 | SEQ | 8 | 8 | 100% ✅ 🎉 |
-| GOV | 4 | 6 | 67% 🔄 |
+| GOV | 6 | 6 | 100% ✅ 🎉 |
 | TEST | 0 | 5 | 0% |
 | AUDIT | 0 | 3 | 0% |
 | GONOGO | 0 | 3 | 0% |
-| **合計** | **26** | **39** | **67%** |
+| **合計** | **28** | **39** | **72%** |
 
 ---
 
@@ -496,20 +504,17 @@
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | **GOV-001: Proposal System拡張** | 🔴 **P0** | ⬜ **次** |
-| 2 | **GOV-002: Voting機構強化** | 🔴 **P0** | ⬜ |
-| 3 | PIR-P3.2-004実施 (GOV-003~006レビュー) | 🟠 High | ⬜ |
+| 1 | **PIR-P3.2-004実施** (GOV-001~006レビュー) | 🔴 **P0** | ⬜ **次** |
+| 2 | Week 9-10 監査準備開始 | 🟠 High | ⬜ |
+| 3 | TEST-001~005 統合テスト | 🟠 High | ⬜ |
 
-### Week 7-8 残タスク（Governance実装）
+### Week 9-10 タスク（監査準備）
 
-| # | タスク | IC | 優先度 | 状態 |
-|---|--------|-----|--------|:----:|
-| 1 | GOV-001: Proposal System拡張 | - | 🔴 **P0** | ⬜ |
-| 2 | GOV-002: Voting機構強化 | - | 🔴 **P0** | ⬜ |
-| 3 | GOV-003: Timelock統合 | - | 🟠 High | ✅ |
-| 4 | GOV-004: SecurityCouncil実装 | - | 🟠 High | ✅ |
-| 5 | GOV-005: EmergencyController実装 | - | 🟠 High | ✅ |
-| 6 | GOV-006: Governance統合テスト | - | 🟠 High | ✅ |
+| # | タスク | 優先度 | 状態 |
+|---|--------|--------|:----:|
+| 1 | TEST-001~005: 統合テスト・E2E | 🟠 High | ⬜ |
+| 2 | AUDIT-001~003: 監査準備 | 🟠 High | ⬜ |
+| 3 | GONOGO-001~003: Go/No-Go判定 | 🟠 High | ⬜ |
 
 ---
 
@@ -542,7 +547,7 @@
 │  Phase 3.2 (Month 11-15): Implementation ← 🔄 **ACTIVE**    │
 │  ├── IC-3: Sequencer (SEQ-001〜008) - ✅ **8/8完了+PIR** 🎉 │
 │  ├── IC-5: veQS Token (TOKEN-001〜010) - ✅ **10/10+PIR** 🎉│
-│  ├── Governance Layer (GOV-001〜006) - 🔄 **4/6完了**       │
+│  ├── Governance Layer (GOV-001〜006) - ✅ **6/6完了** 🎉    │
 │  └── Audit Prep (AUDIT-001〜003)                            │
 │                                                             │
 │  Phase 3.3 (Month 16-18): Testing & Launch                  │
@@ -579,11 +584,11 @@
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
 - Phase 3.1 Foundation: ✅ **COMPLETE 🎉🎉🎉**
   - Go/No-Go判定: 🟢 GO (88.0/100, 11/11 全会一致)
-- Phase 3.2 Implementation: 🔄 **ACTIVE** (67%)
+- Phase 3.2 Implementation: 🔄 **ACTIVE** (72%)
   - DOC: ✅ 4/4
   - IC-3 Sequencer: ✅ **8/8 COMPLETE + PIR-P3.2-003 PASS** 🎉
   - IC-5 veQS Token: ✅ **10/10 COMPLETE + PIR-P3.2-002 PASS** 🎉
-  - Governance: 🔄 **4/6完了** (GOV-003~006実装済み、テスト42/42 PASS)
+  - Governance: ✅ **6/6 COMPLETE** (GOV-001~006全完了、テスト42/42 PASS) 🎉
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
 - Phase 3.3 Testing & Launch: ⬜
 
