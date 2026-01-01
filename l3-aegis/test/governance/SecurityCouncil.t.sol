@@ -2,7 +2,6 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import "../interfaces/ISecurityCouncil.sol";
 
 /// @title SecurityCouncilTest
 /// @notice Test suite for Security Council multi-sig contract
