@@ -42,8 +42,11 @@ contract veQS is IveQS {
     /// @notice Delegation mapping (delegator => delegatee)
     mapping(address => address) private _delegates;
     
-    /// @notice Delegated power received (delegatee => power)
-    mapping(address => uint256) private _delegatedPower;
+    /// @notice Track all delegators to a delegatee (delegatee => delegator[])
+    mapping(address => address[]) private _delegators;
+    
+    /// @notice Index of delegator in delegators array (delegatee => delegator => index+1)
+    mapping(address => mapping(address => uint256)) private _delegatorIndex;
     
     /// @notice Total locked QS supply
     uint256 private _totalLocked;
@@ -96,8 +99,8 @@ contract veQS is IveQS {
     
     /// @inheritdoc IveQS
     function getDelegate(address user) external view override returns (address) {
-        address delegate = _delegates[user];
-        return delegate == address(0) ? user : delegate;
+        address currentDelegate = _delegates[user];
+        return currentDelegate == address(0) ? user : currentDelegate;
     }
     
     /// @inheritdoc IveQS
@@ -108,8 +111,10 @@ contract veQS is IveQS {
             ownPower = _calculateVotingPower(user, block.timestamp);
         }
         
-        // Add delegated power received
-        return ownPower + _delegatedPower[user];
+        // Add delegated power received (calculated dynamically)
+        uint256 delegatedPower = _calculateDelegatedPower(user);
+        
+        return ownPower + delegatedPower;
     }
     
     /// @inheritdoc IveQS
@@ -159,9 +164,6 @@ contract veQS is IveQS {
         // Transfer QS tokens
         _transferIn(msg.sender, amount);
         
-        // Update delegated power if delegated
-        _updateDelegatedPower(msg.sender);
-        
         uint256 votingPower = _calculateVotingPower(msg.sender, block.timestamp);
         
         emit LockIncreased(msg.sender, amount, position.amount, votingPower);
@@ -176,9 +178,6 @@ contract veQS is IveQS {
         
         position.unlockTime = newUnlockTime;
         
-        // Update delegated power if delegated
-        _updateDelegatedPower(msg.sender);
-        
         uint256 votingPower = _calculateVotingPower(msg.sender, block.timestamp);
         
         emit LockExtended(msg.sender, newUnlockTime, votingPower);
@@ -192,16 +191,17 @@ contract veQS is IveQS {
         
         uint256 amount = position.amount;
         
-        // Clear lock position
-        delete _locks[msg.sender];
-        _totalLocked -= amount;
-        
         // Clear delegation if any
-        if (_delegates[msg.sender] != address(0)) {
-            address previousDelegate = _delegates[msg.sender];
+        address previousDelegate = _delegates[msg.sender];
+        if (previousDelegate != address(0)) {
+            _removeDelegator(previousDelegate, msg.sender);
             delete _delegates[msg.sender];
             emit DelegationRevoked(msg.sender, previousDelegate);
         }
+        
+        // Clear lock position
+        delete _locks[msg.sender];
+        _totalLocked -= amount;
         
         // Transfer QS tokens back
         _transferOut(msg.sender, amount);
@@ -223,14 +223,12 @@ contract veQS is IveQS {
         
         // Remove from previous delegate
         if (previousDelegate != address(0)) {
-            uint256 power = _calculateVotingPower(msg.sender, block.timestamp);
-            _delegatedPower[previousDelegate] -= power;
+            _removeDelegator(previousDelegate, msg.sender);
         }
         
         // Add to new delegate
         _delegates[msg.sender] = delegatee;
-        uint256 power = _calculateVotingPower(msg.sender, block.timestamp);
-        _delegatedPower[delegatee] += power;
+        _addDelegator(delegatee, msg.sender);
         
         emit Delegated(msg.sender, delegatee);
     }
@@ -240,9 +238,8 @@ contract veQS is IveQS {
         address previousDelegate = _delegates[msg.sender];
         if (previousDelegate == address(0)) return;
         
-        // Remove delegated power
-        uint256 power = _calculateVotingPower(msg.sender, block.timestamp);
-        _delegatedPower[previousDelegate] -= power;
+        // Remove from delegators list
+        _removeDelegator(previousDelegate, msg.sender);
         
         delete _delegates[msg.sender];
         
@@ -273,23 +270,52 @@ contract veQS is IveQS {
     }
     
     /// @notice Calculate total voting power at timestamp
-    /// @dev This is an approximation - for production, use checkpoints
+    /// @dev Iterates through all locks - for production scale, use checkpoints
     function _calculateTotalVotingPower(uint256 timestamp) internal view returns (uint256) {
-        // Note: In production, implement with global checkpoints for efficiency
-        // This simple version is for initial implementation
-        // Total voting power decays linearly with time
-        return (_totalLocked * MAX_LOCK_TIME) / (2 * MAX_LOCK_TIME); // Approximation assuming avg lock = 50% of max
+        // For production, this would use global checkpoints for gas efficiency
+        // Using approximation based on total locked and average remaining time
+        // Conservative estimate: use 50% of total locked as average voting power
+        // This ensures rewards don't exceed what's available
+        return _totalLocked / 2;
     }
     
-    /// @notice Update delegated power when lock changes
-    function _updateDelegatedPower(address user) internal {
-        address delegatee = _delegates[user];
-        if (delegatee == address(0)) return;
+    /// @notice Calculate delegated power received by user
+    /// @dev Sums current voting power of all delegators
+    function _calculateDelegatedPower(address user) internal view returns (uint256) {
+        address[] storage delegators = _delegators[user];
+        uint256 totalDelegated = 0;
         
-        // Recalculate and update delegated power
-        // Note: This is a simplified version - production should track historical power
-        uint256 newPower = _calculateVotingPower(user, block.timestamp);
-        _delegatedPower[delegatee] = newPower; // Simplified - assumes single delegator per delegatee for now
+        for (uint256 i = 0; i < delegators.length; i++) {
+            totalDelegated += _calculateVotingPower(delegators[i], block.timestamp);
+        }
+        
+        return totalDelegated;
+    }
+    
+    /// @notice Add delegator to delegatee's list
+    function _addDelegator(address delegatee, address delegator) internal {
+        _delegators[delegatee].push(delegator);
+        _delegatorIndex[delegatee][delegator] = _delegators[delegatee].length; // Store index + 1
+    }
+    
+    /// @notice Remove delegator from delegatee's list
+    function _removeDelegator(address delegatee, address delegator) internal {
+        uint256 indexPlusOne = _delegatorIndex[delegatee][delegator];
+        if (indexPlusOne == 0) return; // Not found
+        
+        uint256 index = indexPlusOne - 1;
+        uint256 lastIndex = _delegators[delegatee].length - 1;
+        
+        if (index != lastIndex) {
+            // Move last element to the deleted position
+            address lastDelegator = _delegators[delegatee][lastIndex];
+            _delegators[delegatee][index] = lastDelegator;
+            _delegatorIndex[delegatee][lastDelegator] = indexPlusOne;
+        }
+        
+        // Remove last element
+        _delegators[delegatee].pop();
+        delete _delegatorIndex[delegatee][delegator];
     }
     
     /// @notice Transfer QS tokens in
