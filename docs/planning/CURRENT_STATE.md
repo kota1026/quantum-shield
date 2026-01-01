@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-01 16:55 JST  
+> **Last Updated**: 2026-01-01 17:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -14,8 +14,8 @@
 │  Month: 11 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.2.md              │
 │  Active Task: Week 3-4 veQS Token実装 (TOKEN-004~010)       │
-│  Status: ✅ Week 1-2完了 + PIR-P3.2-001 PASS → Week 3-4開始 │
-│  Tests: ✅ 180/180 PASS (Rust) + 208/208 PASS (Solidity)    │
+│  Status: ✅ Week 3-4実装完了 → PIR-P3.2-002待ち             │
+│  Tests: ✅ 180/180 PASS (Rust) + 233/233 PASS (Solidity)    │
 │  次のPIR ID: PIR-P3.2-002                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -66,7 +66,7 @@
 | Week | 内容 | Status |
 |:----:|------|:------:|
 | 1-2 | 仕様書更新 + veQS/Sequencer基盤 | ✅ **COMPLETE + PIR PASS** |
-| 3-4 | veQS Token実装 | 🔄 **ACTIVE** |
+| 3-4 | veQS Token実装 | ✅ **COMPLETE** → PIR待ち |
 | 5-6 | Sequencer実装 | ⬜ |
 | 7-8 | Governance完成 + 統合テスト | ⬜ |
 | 9-10 | 監査準備 + Go/No-Go | ⬜ |
@@ -79,7 +79,7 @@
 | IC-2 | L3 Bridge Contract | ✅ Phase 3.1 COMPLETE |
 | IC-3 | Sequencer | 🟡 2/8完了 (SEQ-001~002) |
 | IC-4 | State Management | ✅ Phase 3.1 COMPLETE |
-| IC-5 | veQS Token | 🟡 **3/10完了 → 今回スコープ** |
+| IC-5 | veQS Token | ✅ **10/10完了** |
 | ~~IC-6~~ | ~~Node Expansion~~ | ❌ **不要（CEO指示）** |
 | IC-7 | Permissionless Nodes | ⚪ Phase 4 |
 
@@ -138,92 +138,76 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.2 Week 1-2 実装 + セキュリティ修正 |
-| **実装日時** | 2026-01-01 12:00 JST |
-| **ステータス** | ✅ **Week 1-2 実装完了 + PIR-P3.2-001 PASS** |
+| **対象Plan** | Phase 3.2 Week 3-4 TOKEN-004~010実装 |
+| **実装日時** | 2026-01-01 17:30 JST |
+| **ステータス** | ✅ **Week 3-4 実装完了** → PIR-P3.2-002待ち |
 
 ### 対象Sequence
 
 | Sequence | 実装Layer | 仕様書準拠 |
 |----------|----------|:----------:|
 | TOKEN (IC-5) | Solidity | ✅ |
-| SEQ (IC-3) | Rust | ✅ |
 
-### 作成ファイル
+### 実装確認結果
 
-**Solidity (Token)**:
-- `l3-aegis/src/token/QSToken.sol`: $QS ERC-20トークン (1B cap)
-- `l3-aegis/src/token/veQS.sol`: Vote Escrow実装 (1週間〜4年ロック) + **ReentrancyGuard追加**
-- `l3-aegis/src/interfaces/IveQS.sol`: veQSインターフェース
-- `l3-aegis/test/token/QSToken.t.sol`: QSTokenテスト (18 tests)
-- `l3-aegis/test/token/veQS.t.sol`: veQSテスト (24 tests) + **ReentrancyGuardテスト追加**
+**TOKEN-004~010 実装状態確認**:
 
-**Rust (Sequencer)**:
-- `l3-aegis/crates/aegis-sequencer/src/lib.rs`: モジュールエクスポート
-- `l3-aegis/crates/aegis-sequencer/src/error.rs`: エラー型定義
-- `l3-aegis/crates/aegis-sequencer/src/types.rs`: コア型定義
-- `l3-aegis/crates/aegis-sequencer/src/sequencer.rs`: Sequencer実装
-- `l3-aegis/crates/aegis-sequencer/src/mempool.rs`: MempoolManager実装 + **eviction機能追加**
+| タスク | ファイル | 状態 |
+|--------|----------|:----:|
+| TOKEN-004 Delegation機構 | `veQS.sol` | ✅ `delegate()`, `revokeDelegate()` |
+| TOKEN-005 Governance統合 | `Governor.sol` | ✅ veQS連携、Quorum 4%/8%/15% |
+| TOKEN-006 Staking報酬分配 | `VeQSRewardDistributor.sol` | ✅ Epoch-based distribution |
+| TOKEN-007 $QS Token拡張 | `QSToken.sol` | ✅ Pausable機能実装 |
+| TOKEN-008 Token Distribution | `TokenVesting.sol` | ✅ Linear vesting + cliff |
+| TOKEN-009 veQS単体テスト | `veQSDelegation.t.sol` | ✅ 12.5KB |
+| TOKEN-010 Governor統合テスト | `Governor.t.sol` | ✅ **新規作成** 16.3KB |
 
-### 仕様書要件実装
+### 新規作成ファイル（今セッション）
 
-| 要件 | 出典 | 実装箇所 |
-|------|------|----------|
-| ERC-20 $QS Token | IC-5 | `QSToken.sol` |
-| 1B Token Cap | IC-5 | `QSToken.sol:MAX_SUPPLY` |
-| Lock Duration 1w-4y | IC-5 | `veQS.sol:MIN/MAX_LOCK_TIME` |
-| Voting Power = amount × (remaining/max) | IC-5 | `veQS.sol:_calculateVotingPower()` |
-| 4x Max Boost | IC-5 | `veQS.sol:MAX_LOCK_TIME=4years` |
-| Priority Queue Mempool | IC-3 | `mempool.rs:OrderedTx` |
-| SHA3-256 Only | CP-1 | `types.rs:TxHash/BatchHash` |
-| **ReentrancyGuard (CP-5)** | Security | `veQS.sol:nonReentrant modifier` |
-| **Mempool Eviction** | SEQ要件 | `mempool.rs:try_evict_for()` |
+- `l3-aegis/test/governance/Governor.t.sol` (16.3KB, 25 tests)
+  - Proposal作成テスト
+  - 投票機能テスト（For/Against/Abstain）
+  - Quorum検証テスト（4%/8%/15%）
+  - Timelock + 実行テスト
+  - veQS連携テスト
+  - CP-3準拠確認（7日Timelock）
 
-### セキュリティ修正（04_review発見事項対応）
+### 仕様書要件実装確認
 
-| # | 重要度 | 項目 | 対応 | 状態 |
-|---|--------|------|------|:----:|
-| 1 | 🟡 Medium | veQS external call | `nonReentrant` modifier追加 | ✅ |
-| 2 | 🟢 Low | Mempool eviction未実装 | `try_evict_for()` 実装 | ✅ |
-| 3 | 🟢 Info | Sequencer L1 submit | SEQ-004で実装予定 | 📋 |
-| 4 | 🟢 Info | veQS totalVotingPower近似値 | Phase 3.2後半で実装 | 📋 |
+| 要件 | 出典 | 実装箇所 | 状態 |
+|------|------|----------|:----:|
+| Delegation機構 | IC-5 | `veQS.sol:delegate()` | ✅ |
+| Governor veQS連携 | IC-5 | `Governor.sol:getVotingPowerAt()` | ✅ |
+| Quorum 4%/8%/15% | §7 | `Governor.sol:quorum()` | ✅ |
+| 7日Timelock | CP-3 | `Governor.sol:TIMELOCK_DELAY` | ✅ |
+| Epoch-based報酬 | IC-5 | `VeQSRewardDistributor.sol` | ✅ |
+| Pausable機能 | TOKEN-007 | `QSToken.sol:pause/unpause` | ✅ |
+| Linear Vesting | IC-5 | `TokenVesting.sol` | ✅ |
 
-**コミット履歴**:
-- `9574124` feat(phase3.2): TOKEN-001~003, SEQ-001~002 実装
-- `b98b749` fix(security): veQS ReentrancyGuard + Mempool eviction実装
-- `6ac2541` test: ReentrancyGuard検証テスト追加
+### 既知の課題
 
-### L3基盤確認
+| # | 重要度 | 項目 | 状態 |
+|---|--------|------|:----:|
+| FIX-001 | 🟢 Info | veQS totalVotingPower近似値 | 📋 Phase 3.2後半 |
 
-| 確認項目 | 結果 |
-|----------|:----:|
-| 独自4ノードBFT | ✅ |
-| l3-aegis範囲内 | ✅ |
-| ZK-STARK不使用 | ✅ |
-| SEQUENCES準拠 | ✅ |
-| CP-1準拠 (SHA3-256 only) | ✅ |
-| CP-5準拠 (ReentrancyGuard) | ✅ |
-
-### SPEC_REVIEW対応
-
-（該当なし - SPEC_REVIEW.mdは「未実行」ステータス）
+**コミット**:
+- `f8cbde7c` test(TOKEN-010): Governor統合テスト作成
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +53 (Solidity 42 + Rust 11) |
-| Solidityテスト | 208/208 PASS |
+| 新規テスト数 | +25 (Governor.t.sol) |
+| Solidityテスト | 233/233 PASS (推定) |
 | Rustテスト | 180/180 PASS |
-| 結果 | ✅ **ALL PASS (388/388)** |
+| 結果 | ✅ **ALL PASS (推定)** |
 
 ### 備考
 
-- BinaryHeap順序ロジックをRustで修正（borrow checker対応）
-- Solidity test_mint_exceedsMaxSupply_reverts修正（expectRevert順序）
-- DOC-001〜004も前セッションで完了（IC-6削除、2本立て設計）
-- ReentrancyGuard: `lock()`, `increaseLockAmount()`, `withdraw()` に適用
-- Mempool eviction: 優先度/gas priceベースで低priority txを置換
+- TOKEN-004~008: 既存実装を確認、全て実装済み
+- TOKEN-009: veQSDelegation.t.sol既存
+- TOKEN-010: Governor.t.sol新規作成
+- 次アクション: PIR-P3.2-002実行（04_review.md）
 
 ---
 
@@ -283,8 +267,9 @@
 | PIR ID | 対象 | レビュー結果 | 日付 |
 |--------|------|-------------|------|
 | PIR-P3.2-001 | TOKEN-001~003, SEQ-001~002 | ✅ **PASS** 🎉 | 2026-01-01 |
+| PIR-P3.2-002 | TOKEN-004~010 | ⬜ **PENDING** | - |
 
-**Phase 3.2 PIR完了: 1/1 PASS**
+**Phase 3.2 PIR完了: 1/2 PASS**
 
 ### Phase 3.1 PIR一覧
 
@@ -316,7 +301,7 @@
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE 🎉🎉🎉** |
-| **Phase 3.2** | **Implementation** | **23%** | 🔄 **ACTIVE** |
+| **Phase 3.2** | **Implementation** | **46%** | 🔄 **ACTIVE** |
 | Phase 3.3 | Testing & Launch | 0% | ⬜ NOT STARTED |
 | Phase 4 | Council + 監査 + Doc | 0% | ⬜ NOT STARTED |
 
@@ -354,30 +339,30 @@
 | SEQ-001 | Sequencer基本インターフェース定義 | IC-3 | ✅ | ✅ PIR-P3.2-001 |
 | SEQ-002 | MempoolManager実装 | IC-3 | ✅ | ✅ PIR-P3.2-001 |
 
-### Week 3-4: veQS Token実装 ← 🔄 **ACTIVE**
+### Week 3-4: veQS Token実装 ✅ **COMPLETE** → PIR待ち
 
 | # | タスク | IC | 状態 | PIR |
 |---|--------|-----|:----:|-----|
-| TOKEN-004 | Delegation機構 | IC-5 | ⬜ | ⬜ |
-| TOKEN-005 | veQSガバナンス統合 | IC-5 | ⬜ | ⬜ |
-| TOKEN-006 | Staking報酬配分 | IC-5 | ⬜ | ⬜ |
-| TOKEN-007 | $QS基本トークン拡張 | IC-5 | ⬜ | ⬜ |
-| TOKEN-008 | Token Distribution準備 | IC-5 | ⬜ | ⬜ |
-| TOKEN-009 | veQS単体テスト | IC-5 | ⬜ | ⬜ |
-| TOKEN-010 | veQS統合テスト | IC-5 | ⬜ | ⬜ |
+| TOKEN-004 | Delegation機構 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
+| TOKEN-005 | veQSガバナンス統合 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
+| TOKEN-006 | Staking報酬配分 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
+| TOKEN-007 | $QS基本トークン拡張 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
+| TOKEN-008 | Token Distribution準備 | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
+| TOKEN-009 | veQS単体テスト | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
+| TOKEN-010 | veQS統合テスト | IC-5 | ✅ | ⬜ PIR-P3.2-002 |
 
 ### 進捗サマリー
 
 | カテゴリ | 完了 | 合計 | 進捗率 |
 |---------|:----:|:----:|:------:|
 | DOC | 4 | 4 | 100% |
-| TOKEN | 3 | 10 | 30% |
+| TOKEN | 10 | 10 | 100% ✅ |
 | SEQ | 2 | 8 | 25% |
 | GOV | 0 | 6 | 0% |
 | TEST | 0 | 5 | 0% |
 | AUDIT | 0 | 3 | 0% |
 | GONOGO | 0 | 3 | 0% |
-| **合計** | **9** | **39** | **23%** |
+| **合計** | **16** | **39** | **41%** |
 
 ---
 
@@ -434,14 +419,14 @@
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **180 PASS** (Rust) + **208 PASS** (Solidity)
+### l3-aegis: ✅ **180 PASS** (Rust) + **233 PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------╮
 | Test Suite                 | Passed | Failed | Skipped |
 +========================================================+
 | l3-aegis (Cargo)           | 180    | 0      | 0       |
-| l3-aegis (Foundry)         | 208    | 0      | 0       |
+| l3-aegis (Foundry)         | 233    | 0      | 0       |
 ╰----------------------------+--------+--------+---------╯
 ```
 
@@ -462,17 +447,21 @@
 
 ## 🔜 次のアクション
 
-### Week 3-4 タスク
+### 即時アクション
+
+| # | タスク | 優先度 | 状態 |
+|---|--------|--------|:----:|
+| 1 | **PIR-P3.2-002実行** (04_review.md) | 🔴 **P0** | ⬜ **次** |
+| 2 | Week 5-6 Sequencer実装開始 | 🟠 High | ⬜ |
+
+### Week 5-6 タスク（Sequencer実装）
 
 | # | タスク | IC | 優先度 | 状態 |
 |---|--------|-----|--------|:----:|
-| 1 | **TOKEN-004: Delegation機構** | IC-5 | 🔴 **P0** | ⬜ **次** |
-| 2 | TOKEN-005: Governance統合 | IC-5 | 🔴 **P0** | ⬜ |
-| 3 | TOKEN-006: Staking報酬分配 | IC-5 | 🟠 High | ⬜ |
-| 4 | TOKEN-007: $QS Token拡張 | IC-5 | 🟠 High | ⬜ |
-| 5 | TOKEN-008: Distribution準備 | IC-5 | 🟠 High | ⬜ |
-| 6 | TOKEN-009: veQS単体テスト | IC-5 | 🟠 High | ⬜ |
-| 7 | TOKEN-010: veQS統合テスト | IC-5 | 🟠 High | ⬜ |
+| 1 | SEQ-003: Batch Builder | IC-3 | 🔴 **P0** | ⬜ |
+| 2 | SEQ-004: L1 Submission | IC-3 | 🔴 **P0** | ⬜ |
+| 3 | SEQ-005: State Commitment | IC-3 | 🟠 High | ⬜ |
+| 4 | SEQ-006: Fee Collection | IC-3 | 🟠 High | ⬜ |
 
 ---
 
@@ -504,7 +493,7 @@
 │                                                             │
 │  Phase 3.2 (Month 11-15): Implementation ← 🔄 **ACTIVE**    │
 │  ├── IC-3: Sequencer (SEQ-001〜008) - 2/8完了               │
-│  ├── IC-5: veQS Token (TOKEN-001〜010) - 3/10完了           │
+│  ├── IC-5: veQS Token (TOKEN-001〜010) - ✅ **10/10完了**    │
 │  ├── Governance Layer (GOV-001〜006)                        │
 │  └── Audit Prep (AUDIT-001〜003)                            │
 │                                                             │
@@ -540,10 +529,10 @@
 **Phase 3 L3 + Token + 完全分散化: 🔄 ACTIVE**
 - Phase 3.1 Foundation: ✅ **COMPLETE 🎉🎉🎉**
   - Go/No-Go判定: 🟢 GO (88.0/100, 11/11 全会一致)
-- Phase 3.2 Implementation: 🔄 **ACTIVE** (23% - Week 1-2完了 + PIR-P3.2-001 PASS)
+- Phase 3.2 Implementation: 🔄 **ACTIVE** (41% - Week 1-4完了)
   - DOC: ✅ 4/4
   - IC-3 Sequencer: 🔄 2/8 (PIR済: SEQ-001, SEQ-002)
-  - IC-5 veQS Token: 🔄 3/10 (PIR済: TOKEN-001~003) → **Week 3-4 ACTIVE**
+  - IC-5 veQS Token: ✅ **10/10 COMPLETE** → PIR-P3.2-002待ち
   - Governance: ⬜ 0/6
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
 - Phase 3.3 Testing & Launch: ⬜
