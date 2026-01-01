@@ -29,28 +29,60 @@ interface ITimelock {
     /// @notice Emitted when a transaction is cancelled
     event TransactionCancelled(bytes32 indexed txHash);
     
+    /// @notice Emitted when a batch is scheduled
+    event BatchScheduled(
+        bytes32 indexed batchHash,
+        address[] targets,
+        uint256[] values,
+        bytes[] datas,
+        uint256 eta
+    );
+    
+    /// @notice Emitted when a batch is executed
+    event BatchExecuted(
+        bytes32 indexed batchHash,
+        address[] targets,
+        uint256[] values,
+        bytes[] datas
+    );
+    
+    /// @notice Emitted when a batch is cancelled
+    event BatchCancelled(bytes32 indexed batchHash);
+    
     /// @notice Emitted when delay is updated
     event DelayUpdated(uint256 oldDelay, uint256 newDelay);
     
-    /// @notice Emitted when admin is updated
-    event AdminUpdated(address indexed oldAdmin, address indexed newAdmin);
+    /// @notice Emitted when pending admin is set
+    event PendingAdminSet(address indexed pendingAdmin);
+    
+    /// @notice Emitted when admin is transferred
+    event AdminTransferred(address indexed oldAdmin, address indexed newAdmin);
     
     // ============ Errors ============
     
     /// @notice Thrown when caller is not authorized
     error NotAuthorized();
     
-    /// @notice Thrown when transaction doesn't exist
-    error TransactionNotFound();
+    /// @notice Thrown when address is invalid
+    error InvalidAddress();
     
-    /// @notice Thrown when transaction already exists
-    error TransactionAlreadyQueued();
+    /// @notice Thrown when transaction is not queued
+    error NotQueued();
+    
+    /// @notice Thrown when transaction is already queued
+    error AlreadyQueued();
     
     /// @notice Thrown when transaction has already been executed
-    error TransactionAlreadyExecuted();
+    error AlreadyExecuted();
+    
+    /// @notice Thrown when transaction was cancelled
+    error TransactionCancelled();
     
     /// @notice Thrown when timelock hasn't been met
-    error TimelockNotMet();
+    error TimeLockNotReady();
+    
+    /// @notice Thrown when delay not met
+    error DelayNotMet();
     
     /// @notice Thrown when transaction has expired (grace period passed)
     error TransactionExpired();
@@ -61,29 +93,33 @@ interface ITimelock {
     /// @notice Thrown when delay is above maximum
     error DelayAboveMaximum();
     
-    /// @notice Thrown when invalid parameters are provided
-    error InvalidParameters();
+    /// @notice Thrown when caller is not pending admin
+    error NotPendingAdmin();
+    
+    /// @notice Thrown when array lengths mismatch
+    error ArrayLengthMismatch();
     
     /// @notice Thrown when transaction execution fails
     error ExecutionFailed();
     
-    // ============ Structs ============
+    // ============ Enums ============
     
     /// @notice Transaction state
-    enum TxState {
+    enum TransactionState {
         NotQueued,
         Queued,
         Executed,
         Cancelled
     }
     
-    /// @notice Transaction data
-    struct Transaction {
+    // ============ Structs ============
+    
+    /// @notice Transaction detail
+    struct TransactionDetail {
         address target;
         uint256 value;
         bytes data;
         uint256 eta;
-        TxState state;
     }
     
     // ============ View Functions ============
@@ -106,9 +142,37 @@ interface ITimelock {
     /// @notice Pending admin address
     function pendingAdmin() external view returns (address);
     
+    /// @notice Get transaction hash
+    /// @param target Target address
+    /// @param value ETH value
+    /// @param data Calldata
+    /// @param eta Estimated time of execution
+    function getTransactionHash(
+        address target,
+        uint256 value,
+        bytes calldata data,
+        uint256 eta
+    ) external pure returns (bytes32);
+    
+    /// @notice Get batch hash
+    /// @param targets Target addresses
+    /// @param values ETH values
+    /// @param datas Calldatas
+    /// @param eta Estimated time of execution
+    function getBatchHash(
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata datas,
+        uint256 eta
+    ) external pure returns (bytes32);
+    
+    /// @notice Get transaction state
+    /// @param txHash Hash of the transaction
+    function getTransactionState(bytes32 txHash) external view returns (TransactionState);
+    
     /// @notice Get transaction details
     /// @param txHash Hash of the transaction
-    function getTransaction(bytes32 txHash) external view returns (Transaction memory);
+    function getTransaction(bytes32 txHash) external view returns (TransactionDetail memory);
     
     /// @notice Check if transaction is queued
     /// @param txHash Hash of the transaction
@@ -118,17 +182,9 @@ interface ITimelock {
     /// @param txHash Hash of the transaction
     function isReady(bytes32 txHash) external view returns (bool);
     
-    /// @notice Compute transaction hash
-    /// @param target Target address
-    /// @param value ETH value
-    /// @param data Calldata
-    /// @param eta Estimated time of execution
-    function computeTxHash(
-        address target,
-        uint256 value,
-        bytes calldata data,
-        uint256 eta
-    ) external pure returns (bytes32);
+    /// @notice Check if transaction is expired
+    /// @param txHash Hash of the transaction
+    function isExpired(bytes32 txHash) external view returns (bool);
     
     // ============ State-Changing Functions ============
     
@@ -136,51 +192,77 @@ interface ITimelock {
     /// @param target Target address
     /// @param value ETH value
     /// @param data Calldata
+    /// @param eta Estimated time of execution
     /// @return txHash Hash of the scheduled transaction
     function schedule(
         address target,
         uint256 value,
-        bytes calldata data
+        bytes calldata data,
+        uint256 eta
     ) external returns (bytes32 txHash);
-    
-    /// @notice Schedule a batch of transactions
-    /// @param targets Target addresses
-    /// @param values ETH values
-    /// @param datas Calldatas
-    /// @return txHashes Hashes of the scheduled transactions
-    function scheduleBatch(
-        address[] calldata targets,
-        uint256[] calldata values,
-        bytes[] calldata datas
-    ) external returns (bytes32[] memory txHashes);
     
     /// @notice Execute a scheduled transaction
     /// @param target Target address
     /// @param value ETH value
     /// @param data Calldata
     /// @param eta Estimated time of execution
+    /// @return result Return data from execution
     function execute(
         address target,
         uint256 value,
         bytes calldata data,
         uint256 eta
-    ) external payable;
+    ) external payable returns (bytes memory result);
+    
+    /// @notice Cancel a scheduled transaction
+    /// @param target Target address
+    /// @param value ETH value
+    /// @param data Calldata
+    /// @param eta Estimated time of execution
+    function cancel(
+        address target,
+        uint256 value,
+        bytes calldata data,
+        uint256 eta
+    ) external;
+    
+    /// @notice Schedule a batch of transactions
+    /// @param targets Target addresses
+    /// @param values ETH values
+    /// @param datas Calldatas
+    /// @param eta Estimated time of execution
+    /// @return batchHash Hash of the scheduled batch
+    function scheduleBatch(
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata datas,
+        uint256 eta
+    ) external returns (bytes32 batchHash);
     
     /// @notice Execute a batch of scheduled transactions
     /// @param targets Target addresses
     /// @param values ETH values
     /// @param datas Calldatas
-    /// @param etas Estimated times of execution
+    /// @param eta Estimated time of execution
+    /// @return results Return data from each execution
     function executeBatch(
         address[] calldata targets,
         uint256[] calldata values,
         bytes[] calldata datas,
-        uint256[] calldata etas
-    ) external payable;
+        uint256 eta
+    ) external payable returns (bytes[] memory results);
     
-    /// @notice Cancel a scheduled transaction
-    /// @param txHash Hash of the transaction
-    function cancel(bytes32 txHash) external;
+    /// @notice Cancel a batch of scheduled transactions
+    /// @param targets Target addresses
+    /// @param values ETH values
+    /// @param datas Calldatas
+    /// @param eta Estimated time of execution
+    function cancelBatch(
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata datas,
+        uint256 eta
+    ) external;
     
     /// @notice Update the delay
     /// @dev Must be called through timelock itself
