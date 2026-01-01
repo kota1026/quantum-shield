@@ -26,10 +26,10 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
-use tracing::{debug, error, info, warn};
+use tracing::{info, warn};
 
 use crate::error::{SequencerError, SequencerResult};
-use crate::types::{Batch, BatchHash, TxHash};
+use crate::types::Batch;
 
 /// Domain separator for state root calculation (CP-1 compliant)
 const DOMAIN_STATE_ROOT: &[u8] = b"QS_SEQUENCER_STATE_V1";
@@ -105,7 +105,7 @@ pub struct L1Submission {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct L1SubmitTx {
     /// Submission hash
-    pub hash: TxHash,
+    pub hash: crate::types::TxHash,
     /// Batch number being submitted
     pub batch_number: u64,
     /// State root being submitted
@@ -300,8 +300,8 @@ impl L1Submitter {
                 gas_price, self.config.max_gas_price_gwei
             );
             return Err(SequencerError::GasPriceTooHigh {
-                current: gas_price,
-                max: self.config.max_gas_price_gwei,
+                current: gas_price as u128,
+                max: self.config.max_gas_price_gwei as u128,
             });
         }
 
@@ -387,7 +387,7 @@ impl L1Submitter {
 
     /// Create L1SubmitTx for L3 block recording (CP-5 transparency)
     pub fn create_l1_submit_tx(&self, submission: &L1Submission) -> L1SubmitTx {
-        let hash = TxHash::hash(&submission.submission_hash);
+        let hash = crate::types::TxHash::hash(&submission.submission_hash);
         
         L1SubmitTx {
             hash,
@@ -431,7 +431,7 @@ impl L1Submitter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::BatchHash;
+    use crate::types::{TxHash, BatchHash};
 
     fn create_test_batch(number: u64) -> Batch {
         Batch {
