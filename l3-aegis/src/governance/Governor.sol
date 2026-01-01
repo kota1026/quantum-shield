@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {IGovernor} from "../interfaces/IGovernor.sol";
 import {IveQS} from "../interfaces/IveQS.sol";
-import {SHA3Hasher} from "@phase2/libraries/SHA3Hasher.sol";
+import {SHA3Hasher} from "../crypto/SHA3Hasher.sol";
 
 /// @title Governor
 /// @notice Quantum Shield Governor with veQS voting
