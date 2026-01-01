@@ -1,0 +1,39 @@
+[package]
+name = "aegis-sequencer"
+version = "0.1.0"
+edition = "2021"
+authors = ["Quantum Shield Team"]
+description = "L3 Aegis Sequencer - Transaction ordering and batching"
+license = "MIT"
+
+[dependencies]
+# Internal crates
+aegis-types = { path = "../aegis-types" }
+aegis-crypto = { path = "../aegis-crypto" }
+
+# Async
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Cryptography (CP-1: SHA3-256 only)
+sha3 = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Utilities
+chrono = { workspace = true }
+bytes = { workspace = true }
+hex = { workspace = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
