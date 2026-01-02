@@ -61,6 +61,7 @@ contract SecurityCouncilElection {
         uint256 startTime;
         uint256 endTime;
         uint256 consecutiveTerms;
+        uint256 lastElectionId;
     }
     
     // ============ State Variables ============
@@ -316,8 +317,9 @@ contract SecurityCouncilElection {
         // First time candidate
         if (info.termNumber == 0) return true;
         
-        // Check if had a break (term ended more than 1 term ago)
-        if (_lastTermEnd[member] > 0 && block.timestamp > _lastTermEnd[member] + TERM_DURATION) {
+        // Check if had a break (missed at least one election)
+        // If lastElectionId + 1 < currentElectionId, they missed an election
+        if (info.lastElectionId > 0 && info.lastElectionId + 1 < currentElectionId) {
             return true; // Had a break, reset allowed
         }
         
@@ -385,11 +387,6 @@ contract SecurityCouncilElection {
                     emit TermEnded(currentMember, _termInfo[currentMember].termNumber);
                 }
                 
-                // Replace member in Security Council
-                // Note: This requires governance privileges on SecurityCouncil
-                // In practice, this contract needs to be set as the governor
-                // or have special election role
-                
                 emit MemberRotated(currentMember, newMember, i);
             }
             
@@ -397,7 +394,8 @@ contract SecurityCouncilElection {
             TermInfo storage info = _termInfo[newMember];
             
             // Check if continuing or starting fresh
-            if (info.endTime > 0 && block.timestamp <= info.endTime + TERM_DURATION) {
+            // Continuing = won the immediately previous election
+            if (info.lastElectionId > 0 && info.lastElectionId + 1 == currentElectionId) {
                 // Continuing - increment consecutive terms
                 info.consecutiveTerms++;
             } else {
@@ -408,6 +406,7 @@ contract SecurityCouncilElection {
             info.termNumber++;
             info.startTime = termStart;
             info.endTime = termEnd;
+            info.lastElectionId = currentElectionId;
             
             emit TermStarted(newMember, info.termNumber, termStart, termEnd);
         }
