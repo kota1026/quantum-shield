@@ -63,36 +63,44 @@ contract SequencerRegistry is ISequencerRegistry, AccessControl, ReentrancyGuard
     
     /// @inheritdoc ISequencerRegistry
     function register(bytes calldata sphincsKey) external payable override nonReentrant {
+        _validateRegistration(sphincsKey);
+        _executeRegistration(sphincsKey, msg.value);
+    }
+    
+    function _validateRegistration(bytes calldata sphincsKey) internal view {
         require(!_isActive[msg.sender], "Already registered");
         require(sphincsKey.length == SPHINCS_KEY_LENGTH, "Invalid key length");
-        
-        // Check key not already used
-        bytes32 keyHash = keccak256(sphincsKey);
-        require(_keyToSequencer[keyHash] == address(0), "Key already used");
-        
-        // Forward stake to staking contract
+        require(_keyToSequencer[keccak256(sphincsKey)] == address(0), "Key already used");
         require(msg.value >= MINIMUM_STAKE, "Insufficient stake");
-        stakingContract.stake{value: msg.value}();
+    }
+    
+    function _executeRegistration(bytes calldata sphincsKey, uint256 stakeAmount) internal {
+        // Forward stake to staking contract
+        stakingContract.stake{value: stakeAmount}();
         
         // Store sequencer info
         _sequencers[msg.sender] = SequencerInfo({
             sequencerAddress: msg.sender,
             sphincsKey: sphincsKey,
-            stake: msg.value,
+            stake: stakeAmount,
             registeredAt: block.timestamp,
             isActive: true,
             totalBlocksProduced: 0
         });
         
         // Add to active list
-        _activeIndex[msg.sender] = _activeSequencerList.length;
-        _activeSequencerList.push(msg.sender);
-        _isActive[msg.sender] = true;
+        _addToActiveList(msg.sender);
         
         // Track key usage
-        _keyToSequencer[keyHash] = msg.sender;
+        _keyToSequencer[keccak256(sphincsKey)] = msg.sender;
         
-        emit SequencerRegistered(msg.sender, sphincsKey, msg.value, block.timestamp);
+        emit SequencerRegistered(msg.sender, sphincsKey, stakeAmount, block.timestamp);
+    }
+    
+    function _addToActiveList(address sequencer) internal {
+        _activeIndex[sequencer] = _activeSequencerList.length;
+        _activeSequencerList.push(sequencer);
+        _isActive[sequencer] = true;
     }
     
     /// @inheritdoc ISequencerRegistry
@@ -103,8 +111,7 @@ contract SequencerRegistry is ISequencerRegistry, AccessControl, ReentrancyGuard
         _sequencers[msg.sender].isActive = false;
         
         // Initiate unstaking (7-day unbonding)
-        uint256 stake = _sequencers[msg.sender].stake;
-        stakingContract.unstake(stake);
+        stakingContract.unstake(_sequencers[msg.sender].stake);
         
         emit SequencerDeregistered(msg.sender, block.timestamp);
     }
@@ -114,13 +121,11 @@ contract SequencerRegistry is ISequencerRegistry, AccessControl, ReentrancyGuard
         require(_isActive[msg.sender], "Not registered");
         require(newSphincsKey.length == SPHINCS_KEY_LENGTH, "Invalid key length");
         
-        // Check new key not already used
         bytes32 newKeyHash = keccak256(newSphincsKey);
         require(_keyToSequencer[newKeyHash] == address(0), "Key already used");
         
         // Remove old key mapping
-        bytes32 oldKeyHash = keccak256(_sequencers[msg.sender].sphincsKey);
-        delete _keyToSequencer[oldKeyHash];
+        delete _keyToSequencer[keccak256(_sequencers[msg.sender].sphincsKey)];
         
         // Update to new key
         _sequencers[msg.sender].sphincsKey = newSphincsKey;
