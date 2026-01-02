@@ -1,8 +1,8 @@
 # Phase 3.3 Checklist: Decentralize + Full Testing
 
-> **Version**: 1.1  
+> **Version**: 1.2  
 > **Date**: 2026-01-02  
-> **Status**: 🔄 IN PROGRESS (42%)  
+> **Status**: 🔄 IN PROGRESS (58%)  
 > **Duration**: Weeks 9-14 (6 weeks)  
 > **Prerequisites**: Phase 3.2 COMPLETE ✅
 
@@ -56,15 +56,27 @@ Track A (Decentralize) → Track B (Testing)
 - テスト: **17/17 PASS** (SecurityCouncilElection.t.sol)
 - Commits: `12ac6e3`, `9699825`
 
-### A3. Governance Layer ON/OFF ← **NEXT**
+### A3. Governance Layer ON/OFF ✅ **COMPLETE**
 
 | # | タスク | IC | 優先度 | 状態 | PIR |
 |---|--------|-----|--------|:----:|-----|
-| DECEN-009 | GovernanceSwitch production mode | - | 🔴 P0 | ⬜ | - |
-| DECEN-010 | Mode transition (TRAINING→DECENTRALIZED) | - | 🟠 High | ⬜ | - |
-| DECEN-011 | Emergency rollback mechanism | - | 🟠 High | ⬜ | - |
+| DECEN-009 | GovernanceSwitch production mode | - | 🔴 P0 | ✅ **完了** | - |
+| DECEN-010 | Mode transition (TRAINING→DECENTRALIZED) | - | 🟠 High | ✅ **完了** | - |
+| DECEN-011 | Emergency rollback mechanism | - | 🟠 High | ✅ **完了** | - |
 
-### A4. Multi-Sequencer Support
+**実装詳細 (2026-01-02)**:
+- `GovernanceSwitch.sol`: TRAINING mode + 4-mode enum + production transitions
+- `IGovernanceSwitch.sol`: 4-mode enum + rollback API
+- テスト: **64/64 PASS** (GovernanceSwitch.t.sol x2 + IGovernanceSwitch.t.sol)
+- Commits: `91d5296`, `1a9980a`, `717b39c`, `378f678`, `cb649ff`
+
+**主要機能**:
+- GovernanceMode: TRAINING(0) → CENTRALIZED(1) → MULTISIG(2) → DECENTRALIZED(3)
+- initiateTransition(): Admin用 (24h timelock)
+- initiateUpgrade(): Multisig用
+- Emergency Rollback: SC 7/9 supermajority (72h timelock)
+
+### A4. Multi-Sequencer Support ← **NEXT**
 
 | # | タスク | IC | 優先度 | 状態 | PIR |
 |---|--------|-----|--------|:----:|-----|
@@ -137,6 +149,16 @@ Track A (Decentralize) → Track B (Testing)
 
 **Total**: **17/17 PASS** ✅
 
+### TEST-GOV (Governance ON/OFF Tests)
+
+| # | タスク | 優先度 | 状態 | 結果 |
+|---|--------|--------|:----:|:----:|
+| TEST-GOV-001 | TRAINING mode tests | 🔴 P0 | ✅ 完了 | **PASS** |
+| TEST-GOV-002 | Mode transition tests | 🔴 P0 | ✅ 完了 | **PASS** |
+| TEST-GOV-003 | Emergency rollback tests | 🟠 High | ✅ 完了 | **PASS** |
+
+**Total**: **64/64 PASS** ✅
+
 ---
 
 ## Go/No-Go判定
@@ -153,10 +175,10 @@ Track A (Decentralize) → Track B (Testing)
 
 | カテゴリ | 完了 | 合計 | 進捗率 |
 |---------|:----:|:----:|:------:|
-| DECEN (Track A) | **8** | 19 | **42%** |
+| DECEN (Track A) | **11** | 19 | **58%** |
 | TEST (Track B) | 0 | 10 | 0% |
 | GONOGO | 0 | 3 | 0% |
-| **合計** | **8** | **32** | **25%** |
+| **合計** | **11** | **32** | **34%** |
 
 ### 先行テスト
 
@@ -164,6 +186,7 @@ Track A (Decentralize) → Track B (Testing)
 |---------|:----:|:----:|:----:|
 | TEST-4BFT | 12 | 12 | ✅ **PASS** |
 | TEST-SC | 17 | 17 | ✅ **PASS** |
+| TEST-GOV | 64 | 64 | ✅ **PASS** |
 
 ---
 
@@ -171,7 +194,7 @@ Track A (Decentralize) → Track B (Testing)
 
 | 基準 | 条件 | 目標 | 現状 |
 |------|------|------|------|
-| Decentralize完了 | DECEN-001~019全完了 | 100% | **42%** |
+| Decentralize完了 | DECEN-001~019全完了 | 100% | **58%** |
 | テスト完了 | TEST-001~010全PASS | 100% | 0% |
 | Slither | High/Medium Issue = 0 | ✅ | 予定 |
 | E2E | 全Sequence + Decentralize PASS | ✅ | 予定 |
@@ -184,8 +207,8 @@ Track A (Decentralize) → Track B (Testing)
 
 | PIR ID | 対象 | 予定 | 状態 |
 |--------|------|------|:----:|
-| PIR-P3.3-001 | DECEN-001~008 (4BFT + SC) | Track A Week 1終了後 | ⬜ 準備中 |
-| PIR-P3.3-002 | DECEN-009~019 (Governance + Multi-Seq + Token) | Track A Week 2終了後 | ⬜ |
+| PIR-P3.3-001 | DECEN-001~011 (4BFT + SC + Governance ON/OFF) | Track A Week 2終了後 | ⬜ 準備中 |
+| PIR-P3.3-002 | DECEN-012~019 (Multi-Seq + Token) | Track A Week 3終了後 | ⬜ |
 | PIR-P3.3-003 | TEST-001~010 + GONOGO | Track B終了後 | ⬜ |
 
 ---
