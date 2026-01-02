@@ -8,10 +8,9 @@
 //! TEST-4BFT-004: Network partition recovery verification
 
 use aegis_consensus::{
-    config::PbftConfig,
-    engine::{ConsensusEngine, ConsensusConfig, ConsensusEvent},
-    message::{Block, ConsensusMessage, Transaction, LockTx},
-    state::{ConsensusState, Phase, QUORUM_SIZE, TOTAL_NODES},
+    engine::{ConsensusConfig, ConsensusEngine, ConsensusEvent},
+    message::{ConsensusMessage, Transaction, LockTx},
+    state::{QUORUM_SIZE, NUM_NODES},
 };
 use tokio::sync::mpsc;
 
@@ -33,7 +32,7 @@ impl TestHarness {
             let (event_tx, event_rx) = mpsc::channel(100);
 
             let config = ConsensusConfig {
-                node_id: i as u32,
+                node_id: i as u8,
                 block_time_ms: 100, // Fast for testing
                 view_change_timeout: 1,
                 max_txs_per_block: 100,
@@ -73,7 +72,7 @@ async fn test_4bft_normal_consensus() {
 
     // Verify quorum requirements (3/4)
     assert_eq!(QUORUM_SIZE, 3);
-    assert_eq!(TOTAL_NODES, 4);
+    assert_eq!(NUM_NODES, 4);
 }
 
 /// Test block proposal by primary
@@ -198,8 +197,8 @@ async fn test_leader_round_robin() {
     assert_eq!(get_primary_for_view(4, 4), 0);
 }
 
-fn get_primary_for_view(view: u64, num_nodes: usize) -> u32 {
-    (view % num_nodes as u64) as u32
+fn get_primary_for_view(view: u64, num_nodes: usize) -> u8 {
+    (view % num_nodes as u64) as u8
 }
 
 /// Test leader rotation on view change
@@ -259,6 +258,6 @@ async fn test_liveness_after_recovery() {
     // All nodes should be active
     for i in 0..4 {
         let state = harness.get_engine(i).get_state().await;
-        assert_eq!(state.node_id, i as u32);
+        assert_eq!(state.node_id, i as u8);
     }
 }
