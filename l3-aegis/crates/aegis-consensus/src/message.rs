@@ -1,6 +1,7 @@
 //! Consensus Message Types
 //!
 //! Defines all message types used in the PBFT consensus protocol.
+//! Per DECEN-001~004: Includes ViewChange and NewView for leader rotation.
 
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
@@ -95,6 +96,24 @@ impl ConsensusMessage {
         Self::new(MessageType::Commit, view, height, digest, sender)
     }
 
+    /// Create a ViewChange message (DECEN-003)
+    pub fn view_change(new_view: View, height: Height, digest: Hash256, sender: NodeId) -> Self {
+        Self::new(MessageType::ViewChange, new_view, height, digest, sender)
+    }
+
+    /// Create a NewView message (DECEN-003)
+    pub fn new_view(new_view: View, sender: NodeId) -> Self {
+        Self {
+            msg_type: MessageType::NewView,
+            view: new_view,
+            height: 0,
+            digest: [0u8; 32],
+            sender,
+            signature: Vec::new(),
+            block: None,
+        }
+    }
+
     /// Compute message hash for signing
     pub fn compute_hash(&self) -> Hash256 {
         let mut hasher = Sha3_256::new();
@@ -111,6 +130,11 @@ impl ConsensusMessage {
         // TODO: Implement Ed25519 signature verification
         !self.signature.is_empty()
     }
+
+    /// Check if this is a view change related message
+    pub fn is_view_change_message(&self) -> bool {
+        matches!(self.msg_type, MessageType::ViewChange | MessageType::NewView)
+    }
 }
 
 impl MessageType {
@@ -122,6 +146,18 @@ impl MessageType {
             MessageType::Commit => 2,
             MessageType::ViewChange => 3,
             MessageType::NewView => 4,
+        }
+    }
+
+    /// Create from byte
+    pub fn from_byte(b: u8) -> Option<Self> {
+        match b {
+            0 => Some(MessageType::PrePrepare),
+            1 => Some(MessageType::Prepare),
+            2 => Some(MessageType::Commit),
+            3 => Some(MessageType::ViewChange),
+            4 => Some(MessageType::NewView),
+            _ => None,
         }
     }
 }
@@ -179,6 +215,16 @@ impl Block {
         
         hasher.finalize().into()
     }
+
+    /// Get transaction count
+    pub fn tx_count(&self) -> usize {
+        self.transactions.len()
+    }
+
+    /// Check if block is empty
+    pub fn is_empty(&self) -> bool {
+        self.transactions.is_empty()
+    }
 }
 
 /// Transaction types
@@ -213,6 +259,15 @@ impl Transaction {
             }
         }
         hasher.finalize().into()
+    }
+
+    /// Get transaction type name
+    pub fn type_name(&self) -> &'static str {
+        match self {
+            Transaction::Lock(_) => "Lock",
+            Transaction::Unlock(_) => "Unlock",
+            Transaction::StateRootUpdate(_) => "StateRootUpdate",
+        }
     }
 }
 
@@ -306,6 +361,45 @@ impl ViewChangeMessage {
     }
 }
 
+/// New view message (sent by new primary after view change)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewViewMessage {
+    /// New view number
+    pub new_view: View,
+    /// View change messages that triggered this
+    pub view_changes: Vec<ViewChangeMessage>,
+    /// Pre-prepare messages for pending blocks
+    pub pre_prepares: Vec<ConsensusMessage>,
+    /// Sender node ID (new primary)
+    pub sender: NodeId,
+    /// Signature
+    pub signature: Vec<u8>,
+}
+
+impl NewViewMessage {
+    /// Create a new NewView message
+    pub fn new(new_view: View, view_changes: Vec<ViewChangeMessage>, sender: NodeId) -> Self {
+        Self {
+            new_view,
+            view_changes,
+            pre_prepares: Vec::new(),
+            sender,
+            signature: Vec::new(),
+        }
+    }
+
+    /// Compute message hash
+    pub fn compute_hash(&self) -> Hash256 {
+        let mut hasher = Sha3_256::new();
+        hasher.update(&self.new_view.to_le_bytes());
+        hasher.update(&[self.sender]);
+        for vc in &self.view_changes {
+            hasher.update(&vc.compute_hash());
+        }
+        hasher.finalize().into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -334,5 +428,32 @@ mod tests {
         let hash = msg.compute_hash();
         
         assert_ne!(hash, [0u8; 32]);
+    }
+
+    #[test]
+    fn test_view_change_message() {
+        let msg = ConsensusMessage::view_change(5, 100, [1u8; 32], 2);
+        assert!(matches!(msg.msg_type, MessageType::ViewChange));
+        assert_eq!(msg.view, 5);
+        assert_eq!(msg.height, 100);
+        assert_eq!(msg.sender, 2);
+        assert!(msg.is_view_change_message());
+    }
+
+    #[test]
+    fn test_new_view_message() {
+        let msg = ConsensusMessage::new_view(5, 1);
+        assert!(matches!(msg.msg_type, MessageType::NewView));
+        assert_eq!(msg.view, 5);
+        assert_eq!(msg.sender, 1);
+        assert!(msg.is_view_change_message());
+    }
+
+    #[test]
+    fn test_message_type_conversion() {
+        assert_eq!(MessageType::from_byte(0), Some(MessageType::PrePrepare));
+        assert_eq!(MessageType::from_byte(3), Some(MessageType::ViewChange));
+        assert_eq!(MessageType::from_byte(4), Some(MessageType::NewView));
+        assert_eq!(MessageType::from_byte(5), None);
     }
 }
