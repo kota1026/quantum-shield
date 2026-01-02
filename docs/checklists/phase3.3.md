@@ -1,7 +1,7 @@
 # Phase 3.3 Checklist: Decentralize + Full Testing
 
-> **Version**: 1.2  
-> **Date**: 2026-01-02  
+> **Version**: 1.3  
+> **Date**: 2026-01-03  
 > **Status**: 🔄 IN PROGRESS (58%)  
 > **Duration**: Weeks 9-14 (6 weeks)  
 > **Prerequisites**: Phase 3.2 COMPLETE ✅
@@ -27,14 +27,14 @@ Track A (Decentralize) → Track B (Testing)
 
 ## Track A: Decentralize Development (Weeks 9-11)
 
-### A1. 4BFT Consensus完成 ✅ **COMPLETE**
+### A1. 4BFT Consensus完成 ✅ **COMPLETE + PIR PASS**
 
 | # | タスク | IC | 優先度 | 状態 | PIR |
-|---|--------|-----|--------|:----:|-----|
-| DECEN-001 | 4BFT consensus production readiness | IC-1 | 🔴 P0 | ✅ **完了** | - |
-| DECEN-002 | Byzantine fault tolerance検証 | IC-1 | 🔴 P0 | ✅ **完了** | - |
-| DECEN-003 | Leader election & rotation | IC-1 | 🟠 High | ✅ **完了** | - |
-| DECEN-004 | Network partition recovery | IC-1 | 🟠 High | ✅ **完了** | - |
+|---|--------|-----|--------|:----:|:----:|
+| DECEN-001 | 4BFT consensus production readiness | IC-1 | 🔴 P0 | ✅ **完了** | PIR-P3.3-001 ✅ |
+| DECEN-002 | Byzantine fault tolerance検証 | IC-1 | 🔴 P0 | ✅ **完了** | PIR-P3.3-001 ✅ |
+| DECEN-003 | Leader election & rotation | IC-1 | 🟠 High | ✅ **完了** | PIR-P3.3-001 ✅ |
+| DECEN-004 | Network partition recovery | IC-1 | 🟠 High | ✅ **完了** | PIR-P3.3-001 ✅ |
 
 **実装詳細 (2026-01-02)**:
 - `engine.rs`: ConsensusConfig, NetworkHealth, ByzantineTracker, ViewChange統合
@@ -42,27 +42,27 @@ Track A (Decentralize) → Track B (Testing)
 - テスト: **33/33 PASS** (aegis-consensus lib)
 - Commits: `10be74e`, `f928602`, `c4f7983`, `7eb83a3`
 
-### A2. Security Council (veQS選出) ✅ **COMPLETE**
+### A2. Security Council (veQS選出) ✅ **COMPLETE + PIR PASS**
 
 | # | タスク | IC | 優先度 | 状態 | PIR |
-|---|--------|-----|--------|:----:|-----|
-| DECEN-005 | SC member election via veQS | - | 🔴 P0 | ✅ **完了** | - |
-| DECEN-006 | SC threshold voting (5/9, 6/9, 7/9) | - | 🔴 P0 | ✅ 既存実装済み | - |
-| DECEN-007 | SC term limits & rotation | - | 🟠 High | ✅ **完了** | - |
-| DECEN-008 | SC emergency powers integration | - | 🟠 High | ✅ 既存実装済み | - |
+|---|--------|-----|--------|:----:|:----:|
+| DECEN-005 | SC member election via veQS | - | 🔴 P0 | ✅ **完了** | PIR-P3.3-001 ✅ |
+| DECEN-006 | SC threshold voting (5/9, 6/9, 7/9) | - | 🔴 P0 | ✅ 既存実装済み | PIR-P3.3-001 ✅ |
+| DECEN-007 | SC term limits & rotation | - | 🟠 High | ✅ **完了** | PIR-P3.3-001 ✅ |
+| DECEN-008 | SC emergency powers integration | - | 🟠 High | ✅ 既存実装済み | PIR-P3.3-001 ✅ |
 
 **実装詳細 (2026-01-02)**:
 - `SecurityCouncilElection.sol`: SC選挙メカニズム
 - テスト: **17/17 PASS** (SecurityCouncilElection.t.sol)
 - Commits: `12ac6e3`, `9699825`
 
-### A3. Governance Layer ON/OFF ✅ **COMPLETE**
+### A3. Governance Layer ON/OFF ✅ **COMPLETE + PIR PASS**
 
 | # | タスク | IC | 優先度 | 状態 | PIR |
-|---|--------|-----|--------|:----:|-----|
-| DECEN-009 | GovernanceSwitch production mode | - | 🔴 P0 | ✅ **完了** | - |
-| DECEN-010 | Mode transition (TRAINING→DECENTRALIZED) | - | 🟠 High | ✅ **完了** | - |
-| DECEN-011 | Emergency rollback mechanism | - | 🟠 High | ✅ **完了** | - |
+|---|--------|-----|--------|:----:|:----:|
+| DECEN-009 | GovernanceSwitch production mode | - | 🔴 P0 | ✅ **完了** | PIR-P3.3-001 ✅ |
+| DECEN-010 | Mode transition (TRAINING→DECENTRALIZED) | - | 🟠 High | ✅ **完了** | PIR-P3.3-001 ✅ |
+| DECEN-011 | Emergency rollback mechanism | - | 🟠 High | ✅ **完了** | PIR-P3.3-001 ✅ |
 
 **実装詳細 (2026-01-02)**:
 - `GovernanceSwitch.sol`: TRAINING mode + 4-mode enum + production transitions
@@ -125,7 +125,7 @@ Track A (Decentralize) → Track B (Testing)
 
 ---
 
-## 先行テスト作成・実行 ✅ **COMPLETE**
+## 先行テスト作成・実行 ✅ **COMPLETE + PIR PASS**
 
 ### TEST-4BFT (4BFT Consensus Tests)
 
@@ -203,13 +203,13 @@ Track A (Decentralize) → Track B (Testing)
 
 ---
 
-## PIR予定
+## PIR記録
 
-| PIR ID | 対象 | 予定 | 状態 |
+| PIR ID | 対象 | 日付 | 状態 |
 |--------|------|------|:----:|
-| PIR-P3.3-001 | DECEN-001~011 (4BFT + SC + Governance ON/OFF) | Track A Week 2終了後 | ⬜ 準備中 |
-| PIR-P3.3-002 | DECEN-012~019 (Multi-Seq + Token) | Track A Week 3終了後 | ⬜ |
-| PIR-P3.3-003 | TEST-001~010 + GONOGO | Track B終了後 | ⬜ |
+| PIR-P3.3-001 | DECEN-001~011 (4BFT + SC + Governance ON/OFF) | 2026-01-02 | ✅ **PASS** 🎉🎉🎉 |
+| PIR-P3.3-002 | DECEN-012~019 (Multi-Seq + Token) | Track A Week 3終了後 | ⬜ 予定 |
+| PIR-P3.3-003 | TEST-001~010 + GONOGO | Track B終了後 | ⬜ 予定 |
 
 ---
 
@@ -223,6 +223,7 @@ Track A (Decentralize) → Track B (Testing)
 | Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` |
 | 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` |
 | L3チェーン仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` |
+| **PIR-P3.3-001** | `docs/aegis/meetings/PIR-P3.3-001.md` |
 
 ---
 
