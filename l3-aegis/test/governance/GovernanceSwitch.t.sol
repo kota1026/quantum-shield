@@ -372,7 +372,7 @@ contract GovernanceSwitchTest is Test {
     function test_MultisigUpgradeToDecentralized() public {
         _setupMultisigMode();
         
-        // Configure Security Council
+        // Configure Security Council BEFORE upgrading to DECENTRALIZED
         vm.prank(admin);
         governanceSwitch.configureSecurityCouncil(councilMembers, 5);
         
@@ -437,19 +437,39 @@ contract GovernanceSwitchTest is Test {
     }
     
     function _setupDecentralizedMode() internal {
-        _setupMultisigMode();
+        // Step 1: Go to CENTRALIZED
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
         
-        // Configure Security Council
+        // Step 2: Configure multisig
+        vm.prank(admin);
+        governanceSwitch.configureMultisig(signers, 3);
+        
+        // Step 3: Configure Security Council BEFORE going to DECENTRALIZED
         vm.prank(admin);
         governanceSwitch.configureSecurityCouncil(councilMembers, 5);
         
-        // Upgrade to DECENTRALIZED
+        // Step 4: Go to MULTISIG
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
+        
+        // Step 5: Upgrade to DECENTRALIZED via initiateUpgrade
         for (uint i = 0; i < 3; i++) {
             vm.prank(signers[i]);
-            governanceSwitch.initiateTransition(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
+            governanceSwitch.initiateUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
         }
         
+        // Step 6: Wait for time lock
         vm.warp(block.timestamp + governanceSwitch.UPGRADE_TIMELOCK() + 1);
-        governanceSwitch.finalizeTransition();
+        
+        // Step 7: Finalize
+        governanceSwitch.finalizeUpgrade();
+        
+        // Verify we're in DECENTRALIZED mode
+        assertEq(
+            uint256(governanceSwitch.getGovernanceMode()),
+            uint256(IGovernanceSwitch.GovernanceMode.DECENTRALIZED),
+            "Should be in DECENTRALIZED mode"
+        );
     }
 }
