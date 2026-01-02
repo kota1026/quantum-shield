@@ -66,6 +66,12 @@ contract SequencerStakingTest is Test {
         assertEq(staking.getStake(sequencer1), MINIMUM_STAKE + additional);
     }
 
+    function test_Stake_ZeroAmount() public {
+        vm.prank(sequencer1);
+        vm.expectRevert("Zero stake");
+        staking.stake{value: 0}();
+    }
+
     // ============================================
     // TEST-SEQ-002.2: Unstaking Tests
     // ============================================
@@ -87,9 +93,13 @@ contract SequencerStakingTest is Test {
         vm.prank(sequencer1);
         staking.unstake(100_000 ether);
 
+        // Check withdrawable is 0 before unbonding period
+        uint256 withdrawable = staking.getWithdrawable(sequencer1);
+        assertEq(withdrawable, 0);
+
         // Try to withdraw before unbonding period
         vm.prank(sequencer1);
-        vm.expectRevert("Unbonding period not complete");
+        vm.expectRevert("Nothing to withdraw");
         staking.withdraw();
     }
 
@@ -119,6 +129,14 @@ contract SequencerStakingTest is Test {
         assertFalse(staking.isEligible(sequencer1));
     }
 
+    function test_Unstake_InsufficientStake() public {
+        _setupStake(sequencer1, MINIMUM_STAKE);
+
+        vm.prank(sequencer1);
+        vm.expectRevert("Insufficient stake");
+        staking.unstake(MINIMUM_STAKE + 1);
+    }
+
     // ============================================
     // TEST-SEQ-002.3: Delegated Staking Tests
     // ============================================
@@ -130,7 +148,7 @@ contract SequencerStakingTest is Test {
         vm.prank(delegator1);
         staking.delegateStake{value: MINIMUM_DELEGATED_STAKE}(sequencer1);
 
-        assertEq(staking.getDelegatedStake(sequencer1, delegator1), MINIMUM_DELEGATED_STAKE);
+        assertEq(staking.getDelegation(delegator1, sequencer1), MINIMUM_DELEGATED_STAKE);
     }
 
     function test_DelegatedStake_BelowMinimum() public {
@@ -148,7 +166,7 @@ contract SequencerStakingTest is Test {
         _setupDelegation(delegator1, sequencer1, MINIMUM_DELEGATED_STAKE);
         _setupDelegation(delegator2, sequencer1, MINIMUM_DELEGATED_STAKE * 2);
 
-        uint256 totalDelegated = staking.getTotalDelegatedStake(sequencer1);
+        uint256 totalDelegated = staking.getDelegatedStake(sequencer1);
         assertEq(totalDelegated, MINIMUM_DELEGATED_STAKE * 3);
     }
 
@@ -168,6 +186,42 @@ contract SequencerStakingTest is Test {
         uint256 balanceAfter = delegator1.balance;
 
         assertEq(balanceAfter - balanceBefore, MINIMUM_DELEGATED_STAKE);
+    }
+
+    function test_GetTotalStake() public {
+        _setupStake(sequencer1, MINIMUM_STAKE);
+        _setupDelegation(delegator1, sequencer1, MINIMUM_DELEGATED_STAKE);
+        _setupDelegation(delegator2, sequencer1, MINIMUM_DELEGATED_STAKE);
+
+        uint256 totalStake = staking.getTotalStake(sequencer1);
+        assertEq(totalStake, MINIMUM_STAKE + MINIMUM_DELEGATED_STAKE * 2);
+    }
+
+    function test_GetDelegators() public {
+        _setupStake(sequencer1, MINIMUM_STAKE);
+        _setupDelegation(delegator1, sequencer1, MINIMUM_DELEGATED_STAKE);
+        _setupDelegation(delegator2, sequencer1, MINIMUM_DELEGATED_STAKE);
+
+        address[] memory delegators = staking.getDelegators(sequencer1);
+        assertEq(delegators.length, 2);
+    }
+
+    // ============================================
+    // TEST-SEQ-002.4: Unbonding Entry Tests
+    // ============================================
+
+    function test_GetUnbondingEntries() public {
+        _setupStake(sequencer1, MINIMUM_STAKE + 200_000 ether);
+
+        vm.startPrank(sequencer1);
+        staking.unstake(100_000 ether);
+        staking.unstake(100_000 ether);
+        vm.stopPrank();
+
+        ISequencerStaking.UnbondingEntry[] memory entries = staking.getUnbondingEntries(sequencer1);
+        assertEq(entries.length, 2);
+        assertEq(entries[0].amount, 100_000 ether);
+        assertEq(entries[1].amount, 100_000 ether);
     }
 
     // ============================================
