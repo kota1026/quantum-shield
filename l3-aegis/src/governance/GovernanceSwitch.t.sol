@@ -24,6 +24,12 @@ contract GovernanceSwitchTest is Test {
     address public councilMember1 = address(0x21);
     address public councilMember2 = address(0x22);
     address public councilMember3 = address(0x23);
+    address public councilMember4 = address(0x24);
+    address public councilMember5 = address(0x25);
+    address public councilMember6 = address(0x26);
+    address public councilMember7 = address(0x27);
+    address public councilMember8 = address(0x28);
+    address public councilMember9 = address(0x29);
     address public unauthorized = address(0x99);
     
     // Test action selectors
@@ -37,6 +43,10 @@ contract GovernanceSwitchTest is Test {
     
     // MAX_SIGNERS constant (must match contract)
     uint256 public constant MAX_SIGNERS = 20;
+    
+    // Council constants
+    uint256 public constant COUNCIL_SIZE = 9;
+    uint256 public constant PAUSE_THRESHOLD = 5;
 
     function setUp() public {
         vm.prank(admin);
@@ -84,6 +94,11 @@ contract GovernanceSwitchTest is Test {
     /// @notice Test MAX_SIGNERS constant is exposed
     function test_MaxSignersConstant() public view {
         assertEq(governanceSwitch.MAX_SIGNERS(), 20, "MAX_SIGNERS should be 20");
+    }
+    
+    /// @notice Test PAUSE_THRESHOLD constant is exposed
+    function test_PauseThresholdConstant() public view {
+        assertEq(governanceSwitch.PAUSE_THRESHOLD(), 5, "PAUSE_THRESHOLD should be 5");
     }
 
     // ============ TEST-002: モード切替テスト（全遷移パターン） ============
@@ -404,6 +419,87 @@ contract GovernanceSwitchTest is Test {
         governanceSwitch.initiatePause();
         assertTrue(governanceSwitch.isPaused(), "Should be paused after threshold reached");
     }
+    
+    /// @notice Test emergency pause in DECENTRALIZED mode requires 5/9 SC threshold
+    /// @dev SEQ#8 compliant: Single SC member cannot pause alone
+    function test_EmergencyPause_DecentralizedMode_Requires5of9() public {
+        _setupAndTransitionToDecentralizedWithCouncil();
+        
+        // Verify we are in DECENTRALIZED mode
+        assertEq(
+            uint256(governanceSwitch.getGovernanceMode()),
+            uint256(IGovernanceSwitch.GovernanceMode.DECENTRALIZED),
+            "Should be in DECENTRALIZED mode"
+        );
+        
+        // emergencyPause() should revert in DECENTRALIZED mode
+        vm.prank(councilMember1);
+        vm.expectRevert(IGovernanceSwitch.Unauthorized.selector);
+        governanceSwitch.emergencyPause();
+        
+        // Must use initiateCouncilPause() instead
+        // Single council member cannot pause alone
+        vm.prank(councilMember1);
+        governanceSwitch.initiateCouncilPause();
+        assertFalse(governanceSwitch.isPaused(), "Should not be paused with 1 signature");
+        
+        // Check status
+        (uint256 sigs, uint256 required) = governanceSwitch.getCouncilPauseStatus();
+        assertEq(sigs, 1, "Should have 1 signature");
+        assertEq(required, 5, "Should require 5 signatures");
+        
+        // Add more signatures (2-4)
+        vm.prank(councilMember2);
+        governanceSwitch.initiateCouncilPause();
+        assertFalse(governanceSwitch.isPaused(), "Should not be paused with 2 signatures");
+        
+        vm.prank(councilMember3);
+        governanceSwitch.initiateCouncilPause();
+        assertFalse(governanceSwitch.isPaused(), "Should not be paused with 3 signatures");
+        
+        vm.prank(councilMember4);
+        governanceSwitch.initiateCouncilPause();
+        assertFalse(governanceSwitch.isPaused(), "Should not be paused with 4 signatures");
+        
+        // 5th signature reaches threshold
+        vm.prank(councilMember5);
+        governanceSwitch.initiateCouncilPause();
+        assertTrue(governanceSwitch.isPaused(), "Should be paused after 5/9 threshold reached");
+    }
+    
+    /// @notice Test that non-council members cannot initiate council pause
+    function test_CouncilPause_NonMemberReverts() public {
+        _setupAndTransitionToDecentralizedWithCouncil();
+        
+        vm.prank(unauthorized);
+        vm.expectRevert(IGovernanceSwitch.Unauthorized.selector);
+        governanceSwitch.initiateCouncilPause();
+    }
+    
+    /// @notice Test that council member cannot sign twice
+    function test_CouncilPause_CannotSignTwice() public {
+        _setupAndTransitionToDecentralizedWithCouncil();
+        
+        vm.prank(councilMember1);
+        governanceSwitch.initiateCouncilPause();
+        
+        vm.prank(councilMember1);
+        vm.expectRevert(GovernanceSwitch.AlreadySigned.selector);
+        governanceSwitch.initiateCouncilPause();
+    }
+    
+    /// @notice Test initiateCouncilPause only works in DECENTRALIZED mode
+    function test_CouncilPause_OnlyInDecentralizedMode() public {
+        _setupAndTransitionToMultisig();
+        
+        // Configure council in MULTISIG mode
+        _configureSecurityCouncil();
+        
+        // Try to use council pause in MULTISIG mode - should fail
+        vm.prank(councilMember1);
+        vm.expectRevert(IGovernanceSwitch.Unauthorized.selector);
+        governanceSwitch.initiateCouncilPause();
+    }
 
     /// @notice Test unpause functionality
     function test_Unpause() public {
@@ -621,6 +717,53 @@ contract GovernanceSwitchTest is Test {
     function _setupAndTransitionToDecentralized() internal {
         _setupAndTransitionToMultisig();
         _collectSignaturesForUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
+        vm.warp(block.timestamp + MULTISIG_TO_DECENTRALIZED_TIMELOCK + 1);
+        governanceSwitch.finalizeUpgrade();
+    }
+    
+    function _configureSecurityCouncil() internal {
+        address[] memory members = new address[](9);
+        members[0] = councilMember1;
+        members[1] = councilMember2;
+        members[2] = councilMember3;
+        members[3] = councilMember4;
+        members[4] = councilMember5;
+        members[5] = councilMember6;
+        members[6] = councilMember7;
+        members[7] = councilMember8;
+        members[8] = councilMember9;
+        
+        vm.prank(admin);
+        governanceSwitch.configureSecurityCouncil(members, 5);
+    }
+    
+    function _setupAndTransitionToDecentralizedWithCouncil() internal {
+        // First transition to CENTRALIZED
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
+        // Configure multisig
+        address[] memory signers = new address[](5);
+        signers[0] = signer1;
+        signers[1] = signer2;
+        signers[2] = signer3;
+        signers[3] = signer4;
+        signers[4] = signer5;
+        
+        vm.prank(admin);
+        governanceSwitch.configureMultisig(signers, 3);
+        
+        // Configure Security Council before transitioning
+        _configureSecurityCouncil();
+        
+        // Transition to MULTISIG
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
+        
+        // Collect signatures for upgrade to DECENTRALIZED
+        _collectSignaturesForUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
+        
+        // Warp past time lock and finalize
         vm.warp(block.timestamp + MULTISIG_TO_DECENTRALIZED_TIMELOCK + 1);
         governanceSwitch.finalizeUpgrade();
     }
