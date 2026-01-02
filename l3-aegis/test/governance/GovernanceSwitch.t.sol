@@ -370,13 +370,10 @@ contract GovernanceSwitchTest is Test {
     // ============ TEST-GOV-007: Multisig Mode Tests ============
     
     function test_MultisigUpgradeToDecentralized() public {
-        _setupMultisigMode();
+        // Setup: TRAINING -> CENTRALIZED -> configure multisig + security council -> MULTISIG
+        _setupMultisigModeWithSecurityCouncil();
         
-        // Configure Security Council BEFORE upgrading to DECENTRALIZED
-        vm.prank(admin);
-        governanceSwitch.configureSecurityCouncil(councilMembers, 5);
-        
-        // All signers initiate upgrade using initiateUpgrade (not initiateTransition)
+        // All signers initiate upgrade using initiateUpgrade
         for (uint i = 0; i < 3; i++) {
             vm.prank(signers[i]);
             governanceSwitch.initiateUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
@@ -432,6 +429,16 @@ contract GovernanceSwitchTest is Test {
         vm.startPrank(admin);
         governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
         governanceSwitch.configureMultisig(signers, 3);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
+        vm.stopPrank();
+    }
+    
+    /// @notice Setup MULTISIG mode with Security Council configured (required for upgrade to DECENTRALIZED)
+    function _setupMultisigModeWithSecurityCouncil() internal {
+        vm.startPrank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        governanceSwitch.configureMultisig(signers, 3);
+        governanceSwitch.configureSecurityCouncil(councilMembers, 5);  // BEFORE going to MULTISIG
         governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
         vm.stopPrank();
     }
