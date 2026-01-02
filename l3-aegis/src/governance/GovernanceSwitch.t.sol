@@ -489,13 +489,39 @@ contract GovernanceSwitchTest is Test {
     }
     
     /// @notice Test initiateCouncilPause only works in DECENTRALIZED mode
+    /// @dev Council is configured in CENTRALIZED mode before transitioning to MULTISIG
     function test_CouncilPause_OnlyInDecentralizedMode() public {
-        _setupAndTransitionToMultisig();
+        // Setup: CENTRALIZED -> configure multisig + council -> MULTISIG
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
         
-        // Configure council in MULTISIG mode
+        // Configure multisig
+        address[] memory signers = new address[](5);
+        signers[0] = signer1;
+        signers[1] = signer2;
+        signers[2] = signer3;
+        signers[3] = signer4;
+        signers[4] = signer5;
+        
+        vm.prank(admin);
+        governanceSwitch.configureMultisig(signers, 3);
+        
+        // Configure Security Council BEFORE going to MULTISIG (admin has authority in CENTRALIZED)
         _configureSecurityCouncil();
         
+        // Now go to MULTISIG
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
+        
+        // Verify we're in MULTISIG mode
+        assertEq(
+            uint256(governanceSwitch.getGovernanceMode()),
+            uint256(IGovernanceSwitch.GovernanceMode.MULTISIG),
+            "Should be in MULTISIG mode"
+        );
+        
         // Try to use council pause in MULTISIG mode - should fail
+        // (initiateCouncilPause only works in DECENTRALIZED mode)
         vm.prank(councilMember1);
         vm.expectRevert(IGovernanceSwitch.Unauthorized.selector);
         governanceSwitch.initiateCouncilPause();
