@@ -9,6 +9,7 @@ import {IGovernanceSwitch} from "../../src/interfaces/IGovernanceSwitch.sol";
 /// @title GovernanceSwitchTest
 /// @notice Comprehensive tests for GovernanceSwitch Pluggable Governance Layer
 /// @dev Part of PLUG-001 Governance Switch implementation
+/// @dev Updated for DECEN-009~011: TRAINING mode as initial state
 /// @custom:ref CURRENT_PLAN.md TEST-001~006
 contract GovernanceSwitchTest is Test {
     GovernanceSwitch public governanceSwitch;
@@ -44,14 +45,15 @@ contract GovernanceSwitchTest is Test {
 
     // ============ TEST-001: GovernanceSwitch単体テスト ============
 
-    /// @notice Test initial state after deployment
+    /// @notice Test initial state after deployment - now TRAINING mode
     function test_InitialState() public view {
         assertEq(
             uint256(governanceSwitch.getGovernanceMode()),
-            uint256(IGovernanceSwitch.GovernanceMode.CENTRALIZED),
-            "Initial mode should be CENTRALIZED"
+            uint256(IGovernanceSwitch.GovernanceMode.TRAINING),
+            "Initial mode should be TRAINING"
         );
         assertEq(governanceSwitch.getAdmin(), admin, "Admin should be set correctly");
+        assertTrue(governanceSwitch.isTrainingMode(), "Should be in training mode");
     }
 
     /// @notice Test getAdmin function
@@ -62,21 +64,21 @@ contract GovernanceSwitchTest is Test {
     /// @notice Test getGovernanceMode function
     function test_GetGovernanceMode() public view {
         IGovernanceSwitch.GovernanceMode mode = governanceSwitch.getGovernanceMode();
-        assertEq(uint256(mode), uint256(IGovernanceSwitch.GovernanceMode.CENTRALIZED));
+        assertEq(uint256(mode), uint256(IGovernanceSwitch.GovernanceMode.TRAINING));
     }
 
-    /// @notice Test multisig config returns zeros in CENTRALIZED mode
+    /// @notice Test multisig config returns zeros in TRAINING mode
     function test_GetMultisigConfig_CentralizedMode() public view {
         (uint256 threshold, uint256 total) = governanceSwitch.getMultisigConfig();
-        assertEq(threshold, 0, "Threshold should be 0 in CENTRALIZED mode");
-        assertEq(total, 0, "Total should be 0 in CENTRALIZED mode");
+        assertEq(threshold, 0, "Threshold should be 0 in TRAINING mode");
+        assertEq(total, 0, "Total should be 0 in TRAINING mode");
     }
 
-    /// @notice Test security council config returns zeros in CENTRALIZED mode
+    /// @notice Test security council config returns zeros in TRAINING mode
     function test_GetSecurityCouncilConfig_CentralizedMode() public view {
         (uint256 threshold, uint256 total) = governanceSwitch.getSecurityCouncilConfig();
-        assertEq(threshold, 0, "Threshold should be 0 in CENTRALIZED mode");
-        assertEq(total, 0, "Total should be 0 in CENTRALIZED mode");
+        assertEq(threshold, 0, "Threshold should be 0 in TRAINING mode");
+        assertEq(total, 0, "Total should be 0 in TRAINING mode");
     }
     
     /// @notice Test MAX_SIGNERS constant is exposed
@@ -86,8 +88,31 @@ contract GovernanceSwitchTest is Test {
 
     // ============ TEST-002: モード切替テスト（全遷移パターン） ============
 
+    /// @notice Test TRAINING -> CENTRALIZED transition
+    function test_Transition_Training_To_Centralized() public {
+        vm.prank(admin);
+        vm.expectEmit(true, true, true, true);
+        emit IGovernanceSwitch.GovernanceModeChanged(
+            IGovernanceSwitch.GovernanceMode.TRAINING,
+            IGovernanceSwitch.GovernanceMode.CENTRALIZED,
+            admin
+        );
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
+        assertEq(
+            uint256(governanceSwitch.getGovernanceMode()),
+            uint256(IGovernanceSwitch.GovernanceMode.CENTRALIZED),
+            "Mode should be CENTRALIZED"
+        );
+        assertFalse(governanceSwitch.isTrainingMode(), "Should not be in training mode");
+    }
+
     /// @notice Test CENTRALIZED -> MULTISIG transition
     function test_Transition_Centralized_To_Multisig() public {
+        // First transition to CENTRALIZED
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
         // Setup multisig signers
         address[] memory signers = new address[](5);
         signers[0] = signer1;
@@ -149,8 +174,25 @@ contract GovernanceSwitchTest is Test {
         );
     }
 
+    /// @notice Test invalid transition: TRAINING directly to DECENTRALIZED
+    function test_Transition_InvalidDirect_Training_To_Decentralized() public {
+        vm.prank(admin);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IGovernanceSwitch.InvalidModeTransition.selector,
+                IGovernanceSwitch.GovernanceMode.TRAINING,
+                IGovernanceSwitch.GovernanceMode.DECENTRALIZED
+            )
+        );
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
+    }
+
     /// @notice Test invalid transition: CENTRALIZED directly to DECENTRALIZED
     function test_Transition_InvalidDirect_Centralized_To_Decentralized() public {
+        // First go to CENTRALIZED
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
         vm.prank(admin);
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -181,11 +223,26 @@ contract GovernanceSwitchTest is Test {
     function test_Unauthorized_ModeChange_Reverts() public {
         vm.prank(unauthorized);
         vm.expectRevert(IGovernanceSwitch.Unauthorized.selector);
-        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+    }
+
+    /// @notice Test canApprove in TRAINING mode
+    function test_CanApprove_TrainingMode() public view {
+        assertTrue(
+            governanceSwitch.canApprove(ACTION_PAUSE, admin),
+            "Admin should be able to approve"
+        );
+        assertFalse(
+            governanceSwitch.canApprove(ACTION_PAUSE, unauthorized),
+            "Unauthorized should not be able to approve"
+        );
     }
 
     /// @notice Test canApprove in CENTRALIZED mode
-    function test_CanApprove_CentralizedMode() public view {
+    function test_CanApprove_CentralizedMode() public {
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
         assertTrue(
             governanceSwitch.canApprove(ACTION_PAUSE, admin),
             "Admin should be able to approve"
@@ -216,7 +273,16 @@ contract GovernanceSwitchTest is Test {
 
     /// @notice Test getApprover in different modes
     function test_GetApprover() public {
+        // TRAINING mode
+        assertEq(
+            governanceSwitch.getApprover(ACTION_PAUSE),
+            admin,
+            "Approver should be admin in TRAINING mode"
+        );
+        
         // CENTRALIZED mode
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
         assertEq(
             governanceSwitch.getApprover(ACTION_PAUSE),
             admin,
@@ -224,7 +290,7 @@ contract GovernanceSwitchTest is Test {
         );
         
         // MULTISIG mode
-        _setupAndTransitionToMultisig();
+        _configureAndTransitionToMultisig();
         address approver = governanceSwitch.getApprover(ACTION_PAUSE);
         assertEq(
             approver,
@@ -239,7 +305,7 @@ contract GovernanceSwitchTest is Test {
     function test_TimeLock_MultisigToDecentralized() public {
         _setupAndTransitionToMultisig();
         
-        // Initiate upgrade with required signatures
+        // Collect signatures for upgrade
         _collectSignaturesForUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
         
         // Check time lock is active
@@ -254,7 +320,7 @@ contract GovernanceSwitchTest is Test {
     }
 
     /// @notice Test that mode transition respects time lock
- function test_TimeLock_CannotBypassTimeLock() public {
+    function test_TimeLock_CannotBypassTimeLock() public {
         _setupAndTransitionToMultisig();
         _collectSignaturesForUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
         
@@ -276,10 +342,22 @@ contract GovernanceSwitchTest is Test {
         vm.expectRevert(GovernanceSwitch.TimeLockNotExpired.selector);
         governanceSwitch.finalizeUpgrade();
     }
+
     // ============ TEST-005: Emergency Pauseテスト ============
+
+    /// @notice Test emergency pause in TRAINING mode (admin only)
+    function test_EmergencyPause_TrainingMode() public {
+        vm.prank(admin);
+        governanceSwitch.emergencyPause();
+        
+        assertTrue(governanceSwitch.isPaused(), "Should be paused");
+    }
 
     /// @notice Test emergency pause in CENTRALIZED mode (admin only)
     function test_EmergencyPause_CentralizedMode() public {
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
         vm.prank(admin);
         governanceSwitch.emergencyPause();
         
@@ -347,10 +425,17 @@ contract GovernanceSwitchTest is Test {
         total = bound(total, 1, MAX_SIGNERS);
         threshold = bound(threshold, 1, total);
         
+        console.log("Bound result", total);
+        console.log("Bound result", threshold);
+        
         address[] memory signers = new address[](total);
         for (uint256 i = 0; i < total; i++) {
             signers[i] = address(uint160(0x1000 + i));
         }
+        
+        // First go to CENTRALIZED
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
         
         vm.prank(admin);
         governanceSwitch.configureMultisig(signers, threshold);
@@ -431,6 +516,10 @@ contract GovernanceSwitchTest is Test {
             signers[i] = address(uint160(0x1000 + i));
         }
         
+        // First go to CENTRALIZED
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
         vm.prank(admin);
         governanceSwitch.configureMultisig(signers, MAX_SIGNERS / 2);
         
@@ -474,6 +563,10 @@ contract GovernanceSwitchTest is Test {
     }
 
     function test_Gas_SetGovernanceMode() public {
+        // First go to CENTRALIZED
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
         address[] memory signers = new address[](5);
         for (uint256 i = 0; i < 5; i++) {
             signers[i] = address(uint160(0x1000 + i));
@@ -492,6 +585,25 @@ contract GovernanceSwitchTest is Test {
     // ============ Helper Functions ============
 
     function _setupAndTransitionToMultisig() internal {
+        // First transition to CENTRALIZED
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
+        address[] memory signers = new address[](5);
+        signers[0] = signer1;
+        signers[1] = signer2;
+        signers[2] = signer3;
+        signers[3] = signer4;
+        signers[4] = signer5;
+        
+        vm.prank(admin);
+        governanceSwitch.configureMultisig(signers, 3);
+        
+        vm.prank(admin);
+        governanceSwitch.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
+    }
+    
+    function _configureAndTransitionToMultisig() internal {
         address[] memory signers = new address[](5);
         signers[0] = signer1;
         signers[1] = signer2;
