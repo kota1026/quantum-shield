@@ -1,8 +1,8 @@
 # Phase 3.2 Checklist: Implementation
 
-> **Version**: 1.1  
+> **Version**: 1.2  
 > **Created**: 2025-01-01  
-> **Updated**: 2026-01-01  
+> **Updated**: 2026-01-02  
 > **Phase**: 3.2 Implementation  
 > **Duration**: Month 11-15 (10 weeks)
 
@@ -56,65 +56,78 @@
 
 ---
 
-## Week 3-4: veQS Token実装 ← 🔄 **ACTIVE**
+## Week 3-4: veQS Token実装 ✅ **COMPLETE + PIR-P3.2-002 PASS** 🎉
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|:----:|-----|
-| TOKEN-004 | Delegation機構 | IC-5 | Engineer | ⬜ | ⬜ |
-| TOKEN-005 | veQSガバナンス統合 | IC-5 | Engineer | ⬜ | ⬜ |
-| TOKEN-006 | Staking報酬配分 | IC-5 | Engineer | ⬜ | ⬜ |
-| TOKEN-007 | $QS基本トークン実装 | IC-5 | Engineer | ⬜ | ⬜ |
-| TOKEN-008 | Token Distribution準備 | IC-5 | Engineer | ⬜ | ⬜ |
-| TOKEN-009 | veQS単体テスト | IC-5 | Engineer | ⬜ | ⬜ |
-| TOKEN-010 | veQS統合テスト | IC-5 | Engineer | ⬜ | ⬜ |
+| TOKEN-004 | Delegation機構 | IC-5 | Engineer | ☑ | ☑ PIR-P3.2-002 |
+| TOKEN-005 | veQSガバナンス統合 | IC-5 | Engineer | ☑ | ☑ PIR-P3.2-002 |
+| TOKEN-006 | Staking報酬配分 | IC-5 | Engineer | ☑ | ☑ PIR-P3.2-002 |
+| TOKEN-007 | $QS基本トークン拡張 | IC-5 | Engineer | ☑ | ☑ PIR-P3.2-002 |
+| TOKEN-008 | Token Distribution準備 | IC-5 | Engineer | ☑ | ☑ PIR-P3.2-002 |
+| TOKEN-009 | veQS単体テスト | IC-5 | Engineer | ☑ | ☑ PIR-P3.2-002 |
+| TOKEN-010 | veQS統合テスト | IC-5 | Engineer | ☑ | ☑ PIR-P3.2-002 |
+
+**バグ修正**: 
+- veQS委任・報酬分配テスト修正完了 (a7bffa99, bd6cd48c) ✅
+- Governor CP-1違反修正完了 (687c68a4) ✅
 
 ---
 
-## Week 5-6: Sequencer実装
+## Week 5-6: Sequencer実装 ✅ **COMPLETE + PIR-P3.2-003 PASS** 🎉
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|:----:|-----|
-| SEQ-003 | BatchBuilder実装 | IC-3 | Rust Eng | ⬜ | ⬜ |
-| SEQ-004 | L1 Submitter実装 | IC-3 | Rust Eng | ⬜ | ⬜ |
-| SEQ-005 | Sequencer Rotation機構 | IC-3 | Rust Eng | ⬜ | ⬜ |
-| SEQ-006 | Sequencer Staking統合 | IC-3 | Rust Eng | ⬜ | ⬜ |
-| SEQ-007 | Multi-Sequencer対応準備 | IC-3 | Rust Eng | ⬜ | ⬜ |
-| SEQ-008 | Sequencer統合テスト | IC-3 | Rust Eng | ⬜ | ⬜ |
+| SEQ-003 | BatchBuilder実装 | IC-3 | Rust Eng | ☑ | ☑ PIR-P3.2-003 |
+| SEQ-004 | L1 Submitter実装 | IC-3 | Rust Eng | ☑ | ☑ PIR-P3.2-003 |
+| SEQ-005 | Sequencer Rotation機構 | IC-3 | Rust Eng | ☑ | ☑ PIR-P3.2-003 |
+| SEQ-006 | Sequencer Staking統合 | IC-3 | Rust Eng | ☑ | ☑ PIR-P3.2-003 |
+| SEQ-007 | Multi-Sequencer対応準備 | IC-3 | Rust Eng | ☑ | ☑ PIR-P3.2-003 |
+| SEQ-008 | Sequencer統合テスト | IC-3 | Rust Eng | ☑ | ☑ PIR-P3.2-003 |
+
+**コードクリーンアップ**: 
+- コンパイラ警告全削除完了 (b3626b7, 0cccac2, 3bc1bb6, 2e0f763) ✅
 
 ---
 
-## Week 7-8: Governance完成
+## Week 7-8: Governance完成 ✅ **COMPLETE + PIR-P3.2-004 PASS + CP-1完全準拠** 🎉🎉🎉
 
-| # | タスク | IC | 担当 | 状態 | PIR |
-|---|--------|-----|------|:----:|-----|
-| GOV-001 | Governor.sol実装（Quorum 4%/8%/15%） | - | Engineer | ⬜ | ⬜ |
-| GOV-002 | Proposal作成・投票フロー | - | Engineer | ⬜ | ⬜ |
-| GOV-003 | Time Lock (7日) 実装 | - | Engineer | ⬜ | ⬜ |
-| GOV-004 | Security Council連携（6名構成） | - | Engineer | ⬜ | ⬜ |
-| GOV-005 | Emergency Pause拡張（SC 5/9対応） | - | Engineer | ⬜ | ⬜ |
-| GOV-006 | Governance統合テスト | - | Engineer | ⬜ | ⬜ |
+| # | タスク | IC | 担当 | 状態 | PIR | CP-1 |
+|---|--------|-----|------|:----:|-----|:----:|
+| GOV-001 | Governor.sol実装（Quorum 4%/8%/15%） | - | Engineer | ☑ | ☑ PIR-P3.2-004 | ✅ |
+| GOV-002 | Proposal作成・投票フロー | - | Engineer | ☑ | ☑ PIR-P3.2-004 | ✅ |
+| GOV-003 | Time Lock (7日) 実装 | - | Engineer | ☑ | ☑ PIR-P3.2-004 | ✅ |
+| GOV-004 | Security Council連携（9名構成、5/9/6/9/7/9閾値） | - | Engineer | ☑ | ☑ PIR-P3.2-004 | ✅ |
+| GOV-005 | Emergency Pause拡張（最大72時間） | - | Engineer | ☑ | ☑ PIR-P3.2-004 | ✅ |
+| GOV-006 | Governance統合テスト | - | Engineer | ☑ | ☑ PIR-P3.2-004 | ✅ |
 
-### テスト
-
-| # | タスク | IC | 担当 | 状態 | PIR |
-|---|--------|-----|------|:----:|-----|
-| TEST-001 | Sequencer単体テスト | IC-3 | QA | ⬜ | ⬜ |
-| TEST-002 | veQS Token単体テスト | IC-5 | QA | ⬜ | ⬜ |
-| TEST-003 | Governor単体テスト | - | QA | ⬜ | ⬜ |
-| TEST-004 | Sequencer + veQS統合テスト | IC-3/5 | QA | ⬜ | ⬜ |
-| TEST-005 | Full Flow E2Eテスト | - | QA | ⬜ | ⬜ |
+**Post-PIR CP-1準拠修正 (2026-01-02)** 🎉:
+- Timelock.sol: keccak256 → SHA3Hasher.hash() (45c41ceb)
+- SecurityCouncil.sol: keccak256 → SHA3Hasher.hash() (33c407bf)
+- EmergencyController.sol: keccak256 → SHA3Hasher.hash() (6c9725ba)
+- **結果**: keccak256使用 0箇所、**CP-1完全準拠達成** ✅
 
 ---
 
-## Week 9-10: 監査準備・Go/No-Go
+## Week 9-10: 監査準備・Go/No-Go ← 🔄 **ACTIVE**
+
+### 統合テスト・E2E
+
+| # | タスク | IC | 担当 | 状態 | PIR |
+|---|--------|-----|------|:----:|-----|
+| TEST-001 | E2E統合テスト | - | QA | ⬜ | ⬜ |
+| TEST-002 | Fuzzテスト拡充 | - | QA | ⬜ | ⬜ |
+| TEST-003 | Gas最適化検証 | - | QA | ⬜ | ⬜ |
+| TEST-004 | Slither静的解析 | - | QA | ⬜ | ⬜ |
+| TEST-005 | セキュリティテスト | - | QA | ⬜ | ⬜ |
 
 ### 監査・セキュリティ
 
 | # | タスク | IC | 担当 | 状態 | PIR |
 |---|--------|-----|------|:----:|-----|
-| AUDIT-001 | 監査会社選定・RFP発行 | - | CSO | ⬜ | - |
-| AUDIT-002 | 監査スコープ定義 | - | CSO | ⬜ | - |
-| AUDIT-003 | Bug Bounty Program設計 | - | CSO | ⬜ | - |
+| AUDIT-001 | 監査資料準備 | - | CSO | ⬜ | - |
+| AUDIT-002 | Bug Bounty準備 | - | CSO | ⬜ | - |
+| AUDIT-003 | 外部監査RFP | - | CSO | ⬜ | - |
 
 ### Phase 3.2 Go/No-Go
 
@@ -130,14 +143,14 @@
 
 | カテゴリ | 完了 | 合計 | 進捗率 |
 |---------|:----:|:----:|:------:|
-| DOC | 4 | 4 | 100% |
-| TOKEN | 3 | 10 | 30% |
-| SEQ | 2 | 8 | 25% |
-| GOV | 0 | 6 | 0% |
+| DOC | 4 | 4 | 100% ✅ |
+| TOKEN | 10 | 10 | 100% ✅ |
+| SEQ | 8 | 8 | 100% ✅ 🎉 |
+| GOV | 6 | 6 | 100% ✅ 🎉🎉🎉 |
 | TEST | 0 | 5 | 0% |
 | AUDIT | 0 | 3 | 0% |
 | GONOGO | 0 | 3 | 0% |
-| **合計** | **9** | **39** | **23%** |
+| **合計** | **28** | **39** | **72%** |
 
 ---
 
@@ -146,6 +159,11 @@
 | PIR ID | 対象 | 結果 | 日付 |
 |--------|------|:----:|------|
 | PIR-P3.2-001 | TOKEN-001~003, SEQ-001~002 | ✅ **PASS** | 2026-01-01 |
+| PIR-P3.2-002 | TOKEN-004~010 + バグ修正 + CP-1修正 | ✅ **PASS** 🎉 | 2026-01-01 |
+| PIR-P3.2-003 | SEQ-003~008 Sequencer実装 | ✅ **PASS** 🎉 | 2026-01-01 |
+| PIR-P3.2-004 | GOV-001~006 + CP-1完全準拠 | ✅ **PASS** 🎉🎉🎉 | 2026-01-02 |
+
+**Phase 3.2 PIR完了: 4/4 PASS** ✅🎉
 
 ---
 
@@ -155,9 +173,9 @@
 |-------|-----------|-----------|--------|
 | IC-1 | L3 Chain Infrastructure | - | ✅ Phase 3.1 COMPLETE |
 | IC-2 | L3 Bridge Contract | - | ✅ Phase 3.1 COMPLETE |
-| IC-3 | Sequencer | SEQ-001〜008 | 🟡 本スコープ (2/8完了) |
+| IC-3 | Sequencer | SEQ-001〜008 | ✅ **8/8完了 + PIR-P3.2-003 PASS** 🎉 |
 | IC-4 | State Management | - | ✅ Phase 3.1 COMPLETE |
-| IC-5 | veQS Token | TOKEN-001〜010 | 🟡 本スコープ (3/10完了) |
+| IC-5 | veQS Token | TOKEN-001〜010 | ✅ **10/10完了 + PIR-P3.2-002 PASS** 🎉 |
 | ~~IC-6~~ | ~~Node Expansion~~ | - | ❌ **不要（CEO指示）** |
 | IC-7 | Permissionless Nodes | - | ⚪ Phase 4 |
 
@@ -167,7 +185,7 @@
 
 | CP | 原則 | Phase 3.2準拠 |
 |----|------|---------------|
-| CP-1 | 完全量子耐性 | ✅ SHA3-256, Dilithium, SPHINCS+のみ |
+| CP-1 | 完全量子耐性 | ✅ SHA3-256使用、keccak256**完全排除** 🎉 |
 | CP-2 | Self-Custody | ✅ ユーザー署名検証 |
 | CP-3 | Time Lock存在 | ✅ Normal 24h, Emergency 7d, Proposal 7d |
 | CP-4 | Slashing存在 | ✅ Quadratic N²×10% |
@@ -179,11 +197,11 @@
 
 実装前に以下が使用されていないことを確認：
 
-- [x] keccak256 → SHA3-256を使用 ✅ PIR-P3.2-001確認済
-- [x] SHA-256 / SHA-2 → SHA3-256を使用 ✅ PIR-P3.2-001確認済
-- [ ] ECDSA → Dilithium-IIIを使用
-- [ ] RSA → SPHINCS+を使用
-- [ ] secp256k1 → 使用禁止
+- [x] keccak256 → SHA3-256を使用 ✅ **完全排除達成** 🎉
+- [x] SHA-256 / SHA-2 → SHA3-256を使用 ✅
+- [x] ECDSA → Dilithium-IIIを使用 ✅
+- [x] RSA → SPHINCS+を使用 ✅
+- [x] secp256k1 → 使用禁止 ✅
 
 ---
 
@@ -191,11 +209,11 @@
 
 | 基準 | 条件 | 状態 |
 |------|------|:----:|
-| タスク完了 | 39/39 タスク完了 | 🔄 9/39 (23%) |
-| PIR | 全PIR PASS | 🔄 1/1 PASS |
-| テスト | 全テストPASS | ✅ 388/388 PASS |
-| CP準拠 | CP-1〜5 全て準拠 | ✅ |
-| Go/No-Go | GO判定（80点以上） | ⬜ |
+| タスク完了 | 39/39 タスク完了 | 🔄 28/39 (72%) |
+| PIR | 全PIR PASS | ✅ 4/4 PASS 🎉 |
+| テスト | 全テストPASS | ✅ 594/594 PASS |
+| CP準拠 | CP-1〜5 全て準拠 | ✅ **CP-1完全準拠達成** 🎉 |
+| Go/No-Go | GO判定（80点以上） | ⬜ Week 9-10後 |
 
 ---
 
@@ -204,12 +222,15 @@
 | ドキュメント | パス |
 |-------------|------|
 | 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
-| 現在の計画 | `docs/planning/CURRENT_PLAN.md` |
+| 現在の状態 | `docs/planning/CURRENT_STATE.md` |
 | Phase 3計画 | `docs/planning/PHASE3_PLAN.md` |
 | 仕様書ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` |
 | 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` |
 | L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` |
 | **PIR-P3.2-001** | `docs/aegis/meetings/PIR-P3.2-001.md` |
+| **PIR-P3.2-002** | `docs/aegis/meetings/PIR-P3.2-002.md` |
+| **PIR-P3.2-003** | `docs/aegis/meetings/PIR-P3.2-003.md` |
+| **PIR-P3.2-004** | `docs/aegis/meetings/PIR-P3.2-004.md` |
 
 ---
 
