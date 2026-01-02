@@ -19,7 +19,7 @@ pub type View = u64;
 pub type Hash256 = [u8; 32];
 
 /// Consensus message types
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MessageType {
     /// Pre-prepare phase (sent by primary)
     PrePrepare,
