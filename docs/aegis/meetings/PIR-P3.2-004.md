@@ -4,7 +4,8 @@
 > **議長**: Purpose Guardian  
 > **対象**: GOV-001~006 (Governor, Timelock, SecurityCouncil, EmergencyController)  
 > **コミット**: 06bca40291b39e1b66ca803e22a5061650ac8b8b  
-> **最終判定**: ✅ **PASS**
+> **最終判定**: ✅ **PASS**  
+> **Post-PIR更新**: 2026-01-02 - CP-1完全準拠達成（keccak256→SHA3Hasher.hash()修正）
 
 ---
 
@@ -55,7 +56,7 @@
 
 | CP | 原則 | 準拠 | 根拠 |
 |----|------|:----:|------|
-| CP-1 | 完全量子耐性 | ✅ | SHA3-256 for hashing、keccak256は非暗号用途のみ |
+| CP-1 | 完全量子耐性 | ✅ | SHA3Hasher.hash()使用、keccak256完全排除 |
 | CP-2 | Self-Custody | ✅ | ユーザー署名による投票 |
 | CP-3 | Time Lock存在 | ✅ | MIN_DELAY = 7 days (immutable) |
 | CP-4 | Slashing存在 | ✅ | Governance LayerはCore Slashingを変更しない |
@@ -76,14 +77,19 @@
 | SC Collusion | ✅ | 7/9 threshold for emergency upgrade |
 | Timelock Bypass | ✅ | MIN_DELAY is immutable |
 
-### keccak256使用分析
+### ~~keccak256使用分析~~ → SHA3Hasher.hash()へ修正済み ✅
 
-4箇所で使用（Timelock 2箇所, SecurityCouncil 1箇所, EmergencyController 1箇所）
+**Post-PIR修正（2026-01-02）**:
+| ファイル | 修正箇所 | コミット |
+|----------|----------|----------|
+| Timelock.sol | `getTransactionHash()`, `getBatchHash()` | 45c41ceb |
+| SecurityCouncil.sol | `proposeAction()` | 33c407bf |
+| EmergencyController.sol | `executeRecovery()` | 6c9725ba |
 
-**判定**: ACCEPTABLE
-- 用途: EVMトランザクションID生成
-- 目的: 非暗号（識別子生成）
-- CP-1違反: なし（State Hashには使用していない）
+**判定**: ✅ CP-1完全準拠
+- keccak256使用: 0箇所（完全排除）
+- SHA3Hasher.hash()使用: 全4箇所
+- 修正後テスト: 42/42 PASS
 
 ---
 
@@ -98,7 +104,7 @@
 | 📈 CBO | 事業開発 | ✅ GO | ロードマップ準拠 |
 | 💵 Cost Guardian | コスト監視 | ✅ GO | Gas最適化済み |
 | 👨‍💻 Engineer | 実装担当 | ✅ GO | 実装品質良好、仕様準拠 |
-| 🧮 Cryptographer | 暗号専門家 | ✅ GO | 暗号準拠、keccak256許容 |
+| 🧮 Cryptographer | 暗号専門家 | ✅ GO | 暗号準拠、SHA3使用 |
 | 📋 Researcher | 研究者 | ✅ GO | 学術的に健全 |
 | ⚖️ Legal | 法務担当 | ✅ GO | ライセンス/規制リスク低 |
 | 🔴 Red Team | 攻撃者視点 | ✅ GO | セキュリティレビューPASS |
@@ -117,7 +123,7 @@
 ║  投票結果: 11/11 GO（全会一致）                                ║
 ║  テスト: 42/42 PASS                                            ║
 ║  セキュリティレビュー: PASS                                    ║
-║  CP準拠: CP-1~CP-5 全準拠                                      ║
+║  CP準拠: CP-1~CP-5 全準拠（完全量子耐性）                      ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
@@ -128,16 +134,17 @@
 
 | # | 重要度 | 項目 | 対応 |
 |---|:------:|------|------|
-| 1 | 🟡 Low | keccak256 4箇所使用（非暗号用途） | コメント明記済み、許容 |
-| 2 | 🟡 Low | 130テストskipped | Week 9-10で有効化予定 |
+| 1 | ~~🟡 Low~~ | ~~keccak256 4箇所使用~~ | ✅ **修正完了** - SHA3Hasher.hash()へ移行 |
+| 2 | 🟡 Low | 130テストskipped | ⬜ Week 9-10で有効化予定 |
 
 ---
 
 ## ✅ 次のアクション
 
 1. ~~PIR-P3.2-004 完了~~ ✅
-2. CURRENT_STATE.md更新
-3. Week 9-10 監査準備開始 (TEST-001~005, AUDIT-001~003)
+2. ~~CURRENT_STATE.md更新~~ ✅
+3. ~~keccak256 → SHA3Hasher.hash() 修正~~ ✅
+4. Week 9-10 監査準備開始 (TEST-001~005, AUDIT-001~003)
 
 ---
 
