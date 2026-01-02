@@ -13,7 +13,7 @@ use tokio::sync::{mpsc, RwLock};
 use tracing::{debug, error, info, warn};
 
 use crate::message::{Block, ConsensusMessage, Hash256, MessageType, NodeId, Transaction, ViewChangeMessage};
-use crate::state::{ConsensusState, Phase, QUORUM_SIZE, NUM_NODES};
+use crate::state::{ConsensusState, Phase, NUM_NODES};
 use crate::view_change::ViewChangeManager;
 
 /// Consensus engine configuration
@@ -87,8 +87,9 @@ impl NetworkHealth {
 
     /// Update last seen for a node
     pub fn update_last_seen(&mut self, node: NodeId) {
-        if node < NUM_NODES {
-            self.last_seen[node] = Some(Instant::now());
+        let idx = node as usize;
+        if idx < NUM_NODES {
+            self.last_seen[idx] = Some(Instant::now());
         }
     }
 
@@ -100,11 +101,11 @@ impl NetworkHealth {
         for i in 0..NUM_NODES {
             if let Some(last) = self.last_seen[i] {
                 if now.duration_since(last) > timeout {
-                    self.disconnected.push(i);
+                    self.disconnected.push(i as NodeId);
                 }
             } else {
                 // Never seen, consider disconnected if we're past initial startup
-                self.disconnected.push(i);
+                self.disconnected.push(i as NodeId);
             }
         }
 
@@ -354,7 +355,7 @@ impl ConsensusEngine {
         
         // Check for Byzantine behavior
         {
-            let mut tracker = self.byzantine_tracker.write().await;
+            let tracker = self.byzantine_tracker.read().await;
             if tracker.is_byzantine(msg.sender) {
                 warn!("Ignoring message from Byzantine node {}", msg.sender);
                 return Ok(());
