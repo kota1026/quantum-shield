@@ -101,9 +101,10 @@ contract ExternalBridgeAdapterTest is Test {
     function test_getGovernanceMode() public {
         _initializeAdapter();
         
+        // Now starts in TRAINING mode
         assertEq(
             uint256(adapter.getGovernanceMode()),
-            uint256(IGovernanceSwitch.GovernanceMode.CENTRALIZED)
+            uint256(IGovernanceSwitch.GovernanceMode.TRAINING)
         );
     }
     
@@ -155,16 +156,16 @@ contract ExternalBridgeAdapterTest is Test {
     
     // ============ TEST-002: Core ↔ Governance Interconnection ============
     
-    /// @notice Test canExecuteCoreAction in CENTRALIZED mode - admin authorized
-    function test_canExecuteCoreAction_centralized_admin() public {
+    /// @notice Test canExecuteCoreAction in TRAINING mode - admin authorized
+    function test_canExecuteCoreAction_training_admin() public {
         _initializeAdapter();
         
         assertTrue(adapter.canExecuteCoreAction(SELECTOR_LOCK, admin));
         assertTrue(adapter.canExecuteCoreAction(SELECTOR_UNLOCK, admin));
     }
     
-    /// @notice Test canExecuteCoreAction in CENTRALIZED mode - non-admin not authorized
-    function test_canExecuteCoreAction_centralized_nonAdmin() public {
+    /// @notice Test canExecuteCoreAction in TRAINING mode - non-admin not authorized
+    function test_canExecuteCoreAction_training_nonAdmin() public {
         _initializeAdapter();
         
         assertFalse(adapter.canExecuteCoreAction(SELECTOR_LOCK, user1));
@@ -220,20 +221,20 @@ contract ExternalBridgeAdapterTest is Test {
     function test_governanceProposal_requires_decentralized_and_token() public {
         _initializeAdapter();
         
-        // In CENTRALIZED mode, governance proposal should not be authorized for anyone
+        // In TRAINING mode, governance proposal should not be authorized for anyone
         assertFalse(adapter.canExecuteCoreAction(SELECTOR_GOVERNANCE_PROPOSAL, admin));
     }
     
     // ============ TEST-005: All Valid Mode Combinations ============
     
-    /// @notice Test combination 1: CENTRALIZED + DISABLED (Phase 1)
-    function test_modeCombo_centralized_disabled() public {
+    /// @notice Test combination 1: TRAINING + DISABLED (Initial)
+    function test_modeCombo_training_disabled() public {
         _initializeAdapter();
         
         assertTrue(adapter.validateLayerCompatibility());
         assertEq(
             uint256(adapter.getGovernanceMode()),
-            uint256(IGovernanceSwitch.GovernanceMode.CENTRALIZED)
+            uint256(IGovernanceSwitch.GovernanceMode.TRAINING)
         );
         assertEq(
             uint256(adapter.getTokenMode()),
@@ -244,6 +245,10 @@ contract ExternalBridgeAdapterTest is Test {
     /// @notice Test combination 2: CENTRALIZED + BASIC
     function test_modeCombo_centralized_basic() public {
         _initializeAdapter();
+        
+        // First transition to CENTRALIZED
+        vm.prank(admin);
+        governance.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
         
         vm.prank(admin);
         tokenSwitch.setTokenMode(ITokenSwitch.TokenMode.BASIC);
@@ -374,6 +379,10 @@ contract ExternalBridgeAdapterTest is Test {
         vm.prank(admin);
         governance.configureMultisig(signers, 2);
         
+        // First go to CENTRALIZED, then to MULTISIG
+        vm.prank(admin);
+        governance.setGovernanceMode(IGovernanceSwitch.GovernanceMode.CENTRALIZED);
+        
         vm.prank(admin);
         governance.setGovernanceMode(IGovernanceSwitch.GovernanceMode.MULTISIG);
     }
@@ -407,9 +416,27 @@ contract MockDecentralizedGovernance is IGovernanceSwitch {
         return (5, 9); // SC 5/9
     }
     
+    function isTrainingMode() external pure override returns (bool) {
+        return false;
+    }
+    
+    function canInitiateRollback() external pure override returns (bool) {
+        return true;
+    }
+    
     function setGovernanceMode(GovernanceMode) external override {}
     
     function approveAction(bytes4, bytes calldata) external override {}
+    
+    function initiateTransition(GovernanceMode) external override {}
+    
+    function finalizeTransition() external override {}
+    
+    function initiateEmergencyRollback(string calldata) external override {}
+    
+    function approveEmergencyRollback() external override {}
+    
+    function executeEmergencyRollback() external override {}
 }
 
 /// @notice Mock TokenSwitch that returns DISABLED mode
