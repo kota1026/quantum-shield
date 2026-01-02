@@ -1,217 +1,259 @@
 # Current Plan
 
-> **Generated**: 2026-01-02 17:30 JST  
-> **Phase**: 3.2 Implementation → Go/No-Go判定  
-> **Sub-Phase**: Go/No-Go準備  
-> **Planning Agent**: PM  
-> **Mode**: 計画 (Planner)
+> **Generated**: 2026-01-02 18:00 JST
+> **Phase**: 3.3 - Decentralize + Testing
+> **Sub-Phase**: Week 9 (Track A: 4BFT + SC基盤)
+> **Planner**: PM Agent
 
 ---
 
-## 🎉 Phase 3.2 Implementation 完了 🎉
+## 対象チェックリスト
 
-Phase 3.2 Implementation (Week 1-8) が100%完了しました。
-
-| カテゴリ | 完了 | 合計 | PIR |
-|---------|:----:|:----:|:---:|
-| DOC | 4 | 4 | ✅ |
-| TOKEN | 10 | 10 | ✅ PIR-P3.2-001/002 |
-| SEQ | 8 | 8 | ✅ PIR-P3.2-003 |
-| GOV | 6 | 6 | ✅ PIR-P3.2-004 |
-| **合計** | **28** | **28** | **4/4 PASS** |
-
-**CP-1完全準拠達成**: keccak256使用 0箇所（完全排除）
+`docs/checklists/phase3.3.md`
 
 ---
 
-## ⚠️ Phase構成修正 (2026-01-02)
+## 仕様書参照（必須）
 
-Phase 3.2 Week 9-10のTEST/AUDITタスクがDecentralize実装の前にスケジュールされていた論理的問題を修正。
+> 参照: `docs/planning/SPEC_STRATEGY_BRIDGE.md`
 
-### 修正後のPhase構成
+### 対象Sequence
 
-```
-Phase 3.2 (Week 1-8): Implementation ✅ COMPLETE
-  └── TOKEN + SEQ + GOV実装完了 (28/28 tasks, 100%)
+| Sequence | 実装Layer | 仕様書参照箇所 |
+|----------|----------|---------------|
+| #5 | Core + Governance | SEQUENCES §5 Prover Registration |
+| #7 | Governance | SEQUENCES §7 Governance Proposal |
+| #8 | Core + Governance | SEQUENCES §8 Emergency Pause |
 
-Phase 3.3 (Week 9-14): Decentralize + Full Testing
-  ├── Track A: Decentralize Development (19 tasks)
-  └── Track B: E2E Testing (10 tasks)
+### セキュリティ要件
 
-Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation
-  ├── Track C: UI/UX Development (16 tasks)
-  ├── Track D: Audit & Documentation (16 tasks)
-  ├── Track E: Landing Page & Marketing (8 tasks)
-  └── Track F: Launch Preparation (6 tasks)
-```
-
----
-
-## 今回のスコープ: Phase 3.2 Go/No-Go判定
-
-### 判定前準備
-
-| # | タスク | 優先度 | 状態 |
-|---|--------|--------|:----:|
-| 1 | Phase 3.2成果物確認 | 🔴 P0 | ⬜ |
-| 2 | テスト結果サマリー作成 | 🔴 P0 | ⬜ |
-| 3 | CP準拠状態確認 | 🔴 P0 | ⬜ |
-
-### Go/No-Go判定
-
-| # | タスク | 優先度 | 説明 |
-|---|--------|--------|------|
-| GONOGO-001 | PIR最終レビュー | 🟠 High | PIR-P3.2-001~004総括 |
-| GONOGO-002 | Go/No-Go判定会議 | 🔴 **P0** | 11エージェント投票、80点以上でGO |
-| GONOGO-003 | 判定書作成 | 🟠 High | GONOGO_PHASE3.2_IMPLEMENTATION_*.md |
+| 要件 | 仕様書出典 | 実装方法 |
+|------|----------|---------|
+| 4BFT Byzantine耐性 (f=1) | L3_CHAIN_SPECIFICATION §Consensus | aegis-node PBFT実装 |
+| SC 5/9 Emergency Pause | UNIFIED_SPEC §Security Council | SecurityCouncil.sol閾値 |
+| SC 6/9 Veto権 | UNIFIED_SPEC §Security Council | Governor.sol veto機能 |
+| SC 7/9 緊急アップグレード | UNIFIED_SPEC §Security Council | Timelock緊急実行 |
+| veQS選出 | UNIFIED_SPEC §veQS | VotingEscrow.sol統合 |
 
 ---
 
-## 判定基準
+## 戦略準拠確認（Phase 3）
 
-### 基本判定基準 (Weight: 50%)
+> 参照: `docs/planning/PHASE3_STRATEGY.md`
 
-| 項目 | 条件 | 現状 |
-|------|------|:----:|
-| タスク完了率 | 100% | ✅ 28/28 |
-| PIR PASS率 | 100% | ✅ 4/4 |
-| テスト成功率 | 100% | ✅ 594/594 |
-| CP準拠 | CP-1~5全準拠 | ✅ |
-
-### IC準拠判定基準 (Weight: 30%)
-
-| IC-ID | Component | 状態 |
-|-------|-----------|:----:|
-| IC-3 | Sequencer | ✅ 8/8 + PIR PASS |
-| IC-5 | veQS Token | ✅ 10/10 + PIR PASS |
-
-### 品質判定基準 (Weight: 20%)
-
-| 項目 | 条件 | 現状 |
-|------|------|:----:|
-| Slither High/Medium | 0件 | ✅ |
-| コンパイラ警告 | 0件 | ✅ |
-| keccak256使用 | 0件 | ✅ |
+- [x] L3スタック: 独自L3 (l3-aegis) 前提
+- [x] アーキテクチャ: Modular (Core/Governance/Token Layer)
+- [x] リスク緩和: 形式検証、段階的TVL上限、複数回監査計画
+- [x] モード制約: DECENTRALIZED + FULL Token（Phase 3.3ターゲット）
 
 ---
 
-## Phase 3.2 成果物
+## L3基盤確認（Phase 3のL3関連タスク）
 
-### 実装完了コンポーネント
+> 参照: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
 
-| Component | Files | Tests | PIR |
-|-----------|-------|:-----:|:---:|
-| QSToken | QSToken.sol, IQSToken.sol | 12 | ✅ |
-| veQS | veQS.sol, IveQS.sol | 16 | ✅ |
-| VeQSRewardDistributor | VeQSRewardDistributor.sol | 8 | ✅ |
-| TokenVesting | TokenVesting.sol | 6 | ✅ |
-| Governor | Governor.sol, IGovernor.sol | 26 | ✅ |
-| Timelock | Timelock.sol, ITimelock.sol | 8 | ✅ |
-| SecurityCouncil | SecurityCouncil.sol, ISecurityCouncil.sol | 4 | ✅ |
-| EmergencyController | EmergencyController.sol, IEmergencyController.sol | 4 | ✅ |
-| aegis-sequencer | Rust crate (8 modules) | 59 | ✅ |
-
-### テスト結果
-
-| テストスイート | Passed | Failed | Skipped | Warnings |
-|---------------|:------:|:------:|:-------:|:--------:|
-| l3-aegis (Cargo) | 239 | 0 | 0 | 0 ✅ |
-| l3-aegis (Foundry) | 355 | 0 | 130 | - |
-| **合計** | **594** | **0** | **130** | **0** |
-
-### PIR記録
-
-| PIR ID | 対象 | 結果 | 日付 |
-|--------|------|:----:|------|
-| PIR-P3.2-001 | TOKEN-001~003, SEQ-001~002 | ✅ PASS | 2026-01-01 |
-| PIR-P3.2-002 | TOKEN-004~010 | ✅ PASS | 2026-01-01 |
-| PIR-P3.2-003 | SEQ-003~008 | ✅ PASS | 2026-01-01 |
-| PIR-P3.2-004 | GOV-001~006 | ✅ PASS | 2026-01-02 |
+- [x] 独自4ノードBFTチェーン前提か
+- [x] l3-aegis (Rust) の範囲内か
+- [x] SEQUENCES v2.0に準拠しているか
+- [x] CP-1/CP-5を満たしているか
 
 ---
 
-## 実行順序
+## IC完全性チェック（Phase 3必須）
 
-### Step 1: 成果物確認
+> 参照: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Implementation Components
 
-```bash
-# テスト実行確認
-cd l3-aegis
-cargo test --workspace
-forge test
+### 今回スコープのIC
 
-# CP-1準拠確認（keccak256検索）
-grep -r "keccak256" src/ --include="*.sol" | grep -v "test" | grep -v "mock"
-# 期待: 0件
-```
+| IC-ID | Component | タスク | Status |
+|-------|-----------|--------|--------|
+| IC-1 | L3 Chain Infrastructure (4-node BFT) | DECEN-001~004 | 🟡 In Progress |
+| IC-3 | Sequencer | DECEN-012~015 (次週) | 🟢 Phase 3.2完了、拡張待ち |
+| - | Security Council | DECEN-005~008 | 🟡 In Progress |
 
-### Step 2: Go/No-Go判定会議準備
+### マスタ照合
 
-1. 判定基準チェックリスト作成
-2. 11エージェント投票準備
-3. 議事録テンプレート準備
+- [x] 全IC-ID（IC-1〜IC-5, IC-7）がPHASE3_PLANに対応セクションを持つ
+- [x] 欠落ICなし（IC-6は不要：CEO指示 2025-01-01）
 
-### Step 3: Go/No-Go判定会議実施
+### タスク紐付け
 
-1. 各エージェントスコアリング
-2. 投票実施 (GO/NO-GO)
-3. 懸念事項記録
-4. 総合スコア算出
-
-### Step 4: 判定書作成
-
-`docs/decisions/GONOGO_PHASE3.2_IMPLEMENTATION_2026-01-02.md`
+- [x] 今回スコープの全タスクにIC-IDを付与した
+- [x] Security Council関連タスクはIC不要（Governance Layer機能、UNIFIED_SPEC §Security Council定義）
 
 ---
 
-## 次のPhase: Phase 3.3 Decentralize + Testing
+## 前回レビュー課題（該当時のみ）
 
-Go/No-Go判定後、Phase 3.3を開始。
+> CURRENT_STATE.mdより確認
 
-### Phase 3.3 概要
+**前回課題なし** - Phase 3.2 Go/No-Go判定: 🟢 GO (91.5/100, 全会一致)
 
-| 期間 | Week 9-14 (6 weeks) |
-|------|---------------------|
-| チェックリスト | `docs/checklists/phase3.3.md` |
-| タスク数 | 32 (19 Decentralize + 10 Testing + 3 Go/No-Go) |
-
-### Track A: Decentralize Development (19 tasks)
-
-- DECEN-001~004: 4BFT consensus完成
-- DECEN-005~008: Security Council veQS選出
-- DECEN-009~011: Governance Layer ON/OFF
-- DECEN-012~015: Multi-sequencer対応
-- DECEN-016~019: Inflation + Treasury
-
-### Track B: E2E Testing (10 tasks)
-
-- TEST-001~003: 統合テスト (E2E, Fuzz, Gas)
-- TEST-004~006: セキュリティテスト (Slither, Red Team, 4BFT audit)
-- TEST-007~010: Decentralize統合テスト
+| # | 重要度 | 課題 | 対策 |
+|---|--------|------|------|
+| - | - | なし | - |
 
 ---
 
-## Core Principles確認
+## 今回のスコープ
 
-- [x] CP-1: 完全量子耐性 - ✅ keccak256完全排除達成
-- [x] CP-2: Self-Custody - ✅ ユーザー署名検証維持
-- [x] CP-3: Time Lock存在 - ✅ 7日MIN_DELAY (Governance), 24h/7d (Bridge)
-- [x] CP-4: Slashing存在 - ✅ Quadratic N²×10%
-- [x] CP-5: 透明性 - ✅ 全操作Event発行、L3記録
+### 修正項目（レビュー課題より）
+
+なし（前回Phase 3.2は全課題解決済み）
+
+### 実装項目
+
+#### Track A Week 1: 4BFT Consensus完成 (IC-1)
+
+- [ ] [DECEN-001] 4BFT consensus production readiness (IC-1) 🔴 P0
+- [ ] [DECEN-002] Byzantine fault tolerance検証 (IC-1) 🔴 P0
+- [ ] [DECEN-003] Leader election & rotation (IC-1) 🟠 High
+- [ ] [DECEN-004] Network partition recovery (IC-1) 🟠 High
+
+#### Track A Week 1: Security Council基盤
+
+- [ ] [DECEN-005] SC member election via veQS 🔴 P0
+- [ ] [DECEN-006] SC threshold voting (5/9, 6/9, 7/9) 🔴 P0
+- [ ] [DECEN-007] SC term limits & rotation 🟠 High
+- [ ] [DECEN-008] SC emergency powers integration 🟠 High
+
+### テスト項目
+
+- [ ] [TEST-4BFT-001] 4ノードBFT合意テスト（正常系）
+- [ ] [TEST-4BFT-002] Byzantine障害シミュレーション（1ノード悪意）
+- [ ] [TEST-4BFT-003] Leader rotation検証
+- [ ] [TEST-4BFT-004] Network partition recovery検証
+- [ ] [TEST-SC-001] SC選出via veQS投票テスト
+- [ ] [TEST-SC-002] 閾値投票テスト（5/9, 6/9, 7/9）
+- [ ] [TEST-SC-003] Term limit & rotation テスト
+- [ ] [TEST-SC-004] Emergency powers統合テスト
 
 ---
 
 ## 参照ドキュメント
 
-| 種類 | ドキュメント |
-|------|------------|
-| Phase 3.2チェックリスト | `docs/checklists/phase3.2.md` |
-| Phase 3.3チェックリスト | `docs/checklists/phase3.3.md` |
-| Phase 4チェックリスト | `docs/checklists/phase4.md` |
-| PIR-P3.2-001 | `docs/aegis/meetings/PIR-P3.2-001.md` |
-| PIR-P3.2-002 | `docs/aegis/meetings/PIR-P3.2-002.md` |
-| PIR-P3.2-003 | `docs/aegis/meetings/PIR-P3.2-003.md` |
-| PIR-P3.2-004 | `docs/aegis/meetings/PIR-P3.2-004.md` |
+| 種類 | ドキュメント | 参照セクション |
+|------|------------|---------------|
+| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5, §10 |
+| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #5, #7, #8 |
+| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §IC, §Security Council |
+| 戦略 | `docs/planning/PHASE3_STRATEGY.md` | Governance設計 |
+| Modular仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` | Governance Layer |
+| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
+| L3詳細仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | §Consensus, §Node |
+| Phase 3計画 | `docs/planning/PHASE3_PLAN.md` | §IC対応 |
+| Phase 3.3チェックリスト | `docs/checklists/phase3.3.md` | Track A |
+
+---
+
+## 成果物
+
+| ファイル | 説明 | IC-ID |
+|---------|------|-------|
+| `l3-aegis/crates/aegis-consensus/src/bft.rs` | 4BFT production実装 | IC-1 |
+| `l3-aegis/crates/aegis-consensus/src/leader.rs` | Leader election & rotation | IC-1 |
+| `l3-aegis/crates/aegis-consensus/src/partition.rs` | Network partition recovery | IC-1 |
+| `l3-aegis/contracts/src/SecurityCouncilElection.sol` | SC選出via veQS | - |
+| `l3-aegis/contracts/src/SecurityCouncil.sol` | SC閾値投票拡張 | - |
+| `l3-aegis/crates/aegis-consensus/tests/bft_test.rs` | 4BFTテスト | IC-1 |
+| `l3-aegis/contracts/test/SecurityCouncilElection.t.sol` | SC選出テスト | - |
+
+---
+
+## 実行順序
+
+### Day 1-2: 4BFT Production Readiness (DECEN-001)
+
+1. 現行aegis-consensusのBFT実装レビュー
+2. Production環境向け最適化（タイムアウト調整、ログ強化）
+3. メトリクス収集機能追加
+4. Unit Test作成・実行
+
+### Day 3-4: Byzantine Fault Tolerance検証 (DECEN-002)
+
+1. Byzantine障害シナリオ定義（悪意ノード1台）
+2. 障害検出・隔離ロジック実装
+3. Byzantine耐性テスト作成・実行
+4. f=1耐性の形式検証
+
+### Day 5-6: Leader Election & Rotation (DECEN-003)
+
+1. Leader選出アルゴリズム実装（ラウンドロビン or VRF）
+2. Leader障害時のrotation実装
+3. Leader rotation テスト
+4. Liveness保証の検証
+
+### Day 7-8: Network Partition Recovery (DECEN-004)
+
+1. Partition検出メカニズム実装
+2. Recovery protocolの実装
+3. Partition recoveryテスト
+4. Safety保証の検証
+
+### Day 9-10: SC Election via veQS (DECEN-005)
+
+1. SecurityCouncilElection.sol設計・実装
+2. veQS投票統合（VotingEscrow.sol連携）
+3. 9名選出ロジック実装
+4. Election テスト
+
+### Day 11-12: SC Threshold Voting (DECEN-006)
+
+1. SecurityCouncil.sol閾値投票拡張
+2. 5/9（Pause）、6/9（Veto）、7/9（Emergency）実装
+3. 閾値投票テスト
+4. Governor.sol統合
+
+### Day 13: SC Term Limits & Rotation (DECEN-007)
+
+1. 任期制限（1年、最大3期）実装
+2. Rotation機構実装
+3. Term limit テスト
+
+### Day 14: SC Emergency Powers Integration (DECEN-008)
+
+1. EmergencyController.sol との統合
+2. Emergency pause/resume via SC
+3. 統合テスト実行
+4. PIR準備
+
+---
+
+## Core Principles確認
+
+- [x] CP-1: 完全量子耐性 - 違反なし（SHA3-256, Dilithium-III, SPHINCS+-128s継続使用）
+- [x] CP-2: Self-Custody - 違反なし（ユーザー秘密鍵は常にユーザー管理）
+- [x] CP-3: Time Lock存在 - 違反なし（Timelock 7日維持）
+- [x] CP-4: Slashing存在 - 違反なし（Quadratic Slashing継続）
+- [x] CP-5: 透明性 - 違反なし（全操作L3ブロック記録、Event発行）
+
+---
+
+## Modular Architecture確認（Phase 3）
+
+- [x] Core Layer: CP保護機構含む（4BFT consensusはCore Layer基盤）
+- [x] Governance Layer: ON/OFF切替可能（SC選出はGovernance Layer）
+- [x] Token Layer: ON/OFF切替可能（veQS統合はToken Layer）
+- [x] Layer間依存: 下位→上位依存なし（Core→Governance→Token順序維持）
+
+---
+
+## リスク・懸念事項
+
+| # | リスク | 重要度 | 対策 |
+|---|--------|--------|------|
+| 1 | 4BFT liveness vs safety トレードオフ | 🟠 Medium | 形式検証、シミュレーションテスト |
+| 2 | SC選出のveQS投票参加率 | 🟠 Medium | Delegation推奨、最低投票率設定 |
+| 3 | Leader rotation時のトランザクション遅延 | 🟡 Low | 並行処理、バッファ設計 |
+| 4 | SC 9名確保の難しさ | 🟠 Medium | 段階的構成（Phase 3初期は6名可） |
+
+---
+
+## PIR予定
+
+| PIR ID | 対象 | 予定日 |
+|--------|------|--------|
+| PIR-P3.3-001 | DECEN-001~008 (4BFT + SC基盤) | Track A Week 1終了後 |
 
 ---
 
@@ -219,10 +261,12 @@ Go/No-Go判定後、Phase 3.3を開始。
 
 | 基準 | 条件 | 目標 |
 |------|------|------|
-| Phase 3.2完了 | 28/28 タスク完了 | ✅ 達成 |
-| PIR PASS | 4/4 PASS | ✅ 達成 |
-| CP準拠 | CP-1〜5 全て準拠 | ✅ 達成 |
-| Go/No-Go | 80点以上 | ⬜ 判定待ち |
+| 4BFT完成 | DECEN-001~004全完了 | 100% |
+| SC基盤完成 | DECEN-005~008全完了 | 100% |
+| テスト | 全TEST項目PASS | 100% |
+| Slither | High/Medium = 0 | ✅ |
+| CP準拠 | CP-1~5 全て準拠 | ✅ |
+| PIR | PIR-P3.3-001 PASS | ✅ |
 
 ---
 
