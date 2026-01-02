@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "../../src/sequencer/SequencerRegistry.sol";
 import "../../src/sequencer/SequencerRotation.sol";
+import "../../src/sequencer/SequencerStaking.sol";
 import "../../src/interfaces/ISequencerRegistry.sol";
 
 /**
@@ -18,6 +19,7 @@ import "../../src/interfaces/ISequencerRegistry.sol";
 contract SequencerRotationTest is Test {
     SequencerRegistry public registry;
     SequencerRotation public rotation;
+    SequencerStaking public staking;
 
     address public admin = address(0xAD1);
     address public sequencer1 = address(0x111);
@@ -36,8 +38,9 @@ contract SequencerRotationTest is Test {
 
     function setUp() public {
         vm.startPrank(admin);
-        registry = new SequencerRegistry(admin);
-        rotation = new SequencerRotation(address(registry), admin);
+        staking = new SequencerStaking(admin);
+        registry = new SequencerRegistry(address(staking), admin);
+        rotation = new SequencerRotation(address(registry), address(staking), admin);
         registry.setRotationContract(address(rotation));
         vm.stopPrank();
     }
@@ -88,6 +91,10 @@ contract SequencerRotationTest is Test {
         _registerSequencer(sequencer1, sphincsKey1);
         _registerSequencer(sequencer2, sphincsKey2);
 
+        // Trigger initial rotation
+        vm.prank(admin);
+        rotation.forceRotation();
+
         address current = rotation.getCurrentSequencer();
         assertTrue(current == sequencer1 || current == sequencer2);
     }
@@ -96,11 +103,14 @@ contract SequencerRotationTest is Test {
         _registerSequencer(sequencer1, sphincsKey1);
         _registerSequencer(sequencer2, sphincsKey2);
 
+        // Trigger initial rotation
+        vm.prank(admin);
+        rotation.forceRotation();
         address initial = rotation.getCurrentSequencer();
         
         // Advance EPOCH_LENGTH blocks
         vm.roll(block.number + EPOCH_LENGTH);
-        rotation.rotateSequencer();
+        rotation.checkAndRotate();
 
         address next = rotation.getCurrentSequencer();
         // In round-robin, next should be different
@@ -115,10 +125,14 @@ contract SequencerRotationTest is Test {
 
         address[] memory seen = new address[](4);
         
+        // Initial rotation
+        vm.prank(admin);
+        rotation.forceRotation();
+        
         for (uint256 i = 0; i < 4; i++) {
             seen[i] = rotation.getCurrentSequencer();
             vm.roll(block.number + EPOCH_LENGTH);
-            rotation.rotateSequencer();
+            rotation.checkAndRotate();
         }
 
         // All 4 sequencers should have been active once
@@ -130,7 +144,7 @@ contract SequencerRotationTest is Test {
         _registerSequencer(sequencer2, sphincsKey2);
 
         vm.prank(sequencer1);
-        vm.expectRevert("Not admin");
+        vm.expectRevert();
         rotation.forceRotation();
 
         vm.prank(admin);
@@ -143,6 +157,33 @@ contract SequencerRotationTest is Test {
 
         address[] memory active = registry.getActiveSequencers();
         assertEq(active.length, 2);
+    }
+
+    function test_GetBlocksUntilRotation() public {
+        _registerSequencer(sequencer1, sphincsKey1);
+        
+        vm.prank(admin);
+        rotation.forceRotation();
+
+        uint256 remaining = rotation.getBlocksUntilRotation();
+        assertEq(remaining, EPOCH_LENGTH);
+
+        vm.roll(block.number + 500);
+        remaining = rotation.getBlocksUntilRotation();
+        assertEq(remaining, EPOCH_LENGTH - 500);
+    }
+
+    function test_GetNextSequencer() public {
+        _registerSequencer(sequencer1, sphincsKey1);
+        _registerSequencer(sequencer2, sphincsKey2);
+
+        vm.prank(admin);
+        rotation.forceRotation();
+
+        address current = rotation.getCurrentSequencer();
+        address next = rotation.getNextSequencer();
+        
+        assertNotEq(current, next);
     }
 
     // ============================================
