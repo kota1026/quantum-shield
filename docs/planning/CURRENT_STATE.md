@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-02 19:40 JST  
+> **Last Updated**: 2026-01-02 19:58 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -17,10 +17,10 @@
 │          ✅ CP-1完全準拠達成 (keccak256完全排除) 🎉🎉🎉     │
 │          ✅ TEST-4BFT-001~004作成・実行完了 (12/12 PASS)    │
 │          ✅ TEST-SC-001~004作成・実行完了 (17/17 PASS) 🎉   │
-│          ✅ DECEN-005, DECEN-007実装・テスト完了 🎉🎉       │
-│  Tests: ✅ 251/251 PASS (Rust) + 372/372 PASS (Solidity)    │
-│  Warnings: ✅ 0 (aegis-sequencer clean)                     │
-│  次のステップ: DECEN-001~004 (4BFT production readiness)    │
+│          ✅ DECEN-001~008実装・テスト完了 🎉🎉🎉            │
+│  Tests: ✅ 264/264 PASS (Rust) + 372/372 PASS (Solidity)    │
+│  Warnings: ✅ 1 (dead_code, non-critical)                   │
+│  次のステップ: DECEN-009~011 (Governance ON/OFF)            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -34,6 +34,8 @@
 |------|----------|--------|------|
 | **SecurityCouncilElection.sol** | `l3-aegis/src/governance/SecurityCouncilElection.sol` | `12ac6e3` | DECEN-005, DECEN-007実装 |
 | **ISecurityCouncilElection.sol** | `l3-aegis/src/interfaces/ISecurityCouncilElection.sol` | `9699825` | インターフェース |
+| **engine.rs (4BFT Production)** | `l3-aegis/crates/aegis-consensus/src/engine.rs` | `10be74e` | DECEN-001~004実装 |
+| **message.rs (ViewChange/NewView)** | `l3-aegis/crates/aegis-consensus/src/message.rs` | `10be74e` | ViewChange/NewView追加 |
 
 ### テスト作成・実行完了 (2026-01-02)
 
@@ -41,6 +43,7 @@
 |--------------|----------|:----:|:----:|
 | **TEST-4BFT-001~004** | `l3-aegis/crates/aegis-consensus/tests/bft_test.rs` | ✅ 完了 | **12/12 PASS** |
 | **TEST-SC-001~004** | `l3-aegis/test/governance/SecurityCouncilElection.t.sol` | ✅ 完了 | **17/17 PASS** 🎉 |
+| **aegis-consensus lib** | `l3-aegis/crates/aegis-consensus/src/*.rs` | ✅ 完了 | **33/33 PASS** 🎉 |
 
 #### TEST-4BFT-001~004 詳細
 
@@ -64,14 +67,28 @@
 
 | Task ID | 内容 | 優先度 | 状態 |
 |---------|------|:------:|:----:|
-| DECEN-001 | 4BFT production readiness | 🔴 P0 | ⬜ 未開始 |
-| DECEN-002 | Byzantine fault tolerance検証 | 🔴 P0 | ⬜ 未開始 |
-| DECEN-003 | Leader election & rotation | 🟠 High | ⬜ 未開始 |
-| DECEN-004 | Network partition recovery | 🟠 High | ⬜ 未開始 |
+| **DECEN-001** | **4BFT production readiness** | 🔴 P0 | ✅ **完了+テストPASS** 🎉 |
+| **DECEN-002** | **Byzantine fault tolerance検証** | 🔴 P0 | ✅ **完了+テストPASS** 🎉 |
+| **DECEN-003** | **Leader election & rotation** | 🟠 High | ✅ **完了+テストPASS** 🎉 |
+| **DECEN-004** | **Network partition recovery** | 🟠 High | ✅ **完了+テストPASS** 🎉 |
 | **DECEN-005** | **SC election via veQS** | 🔴 P0 | ✅ **完了+テストPASS** 🎉 |
 | DECEN-006 | SC threshold voting | 🔴 P0 | ✅ 既存実装済み |
 | **DECEN-007** | **SC term limits & rotation** | 🟠 High | ✅ **完了+テストPASS** 🎉 |
 | DECEN-008 | SC emergency powers integration | 🟠 High | ✅ 既存実装済み |
+| DECEN-009 | Governance Layer ON mechanism | 🟠 High | ⬜ **次** |
+| DECEN-010 | Governance Layer OFF mechanism | 🟠 High | ⬜ |
+| DECEN-011 | Emergency pause integration | 🟠 High | ⬜ |
+
+### DECEN-001~004 実装詳細 (4BFT Production Readiness)
+
+| 機能 | 実装 |
+|------|------|
+| **ConsensusConfig** | Production-ready設定（timeout, retries, block_time） |
+| **NetworkHealth** | ノード接続状態追跡、disconnection検出 |
+| **ByzantineTracker** | Double-vote検出、Byzantine node flagging |
+| **ViewChangeManager統合** | Leader election & rotation |
+| **Partition Recovery** | Network partition検出・自動回復 |
+| **ConsensusEvent拡張** | LeaderChanged, PartitionDetected, ByzantineDetected |
 
 ### DECEN-005, DECEN-007 実装詳細
 
@@ -103,9 +120,9 @@ Phase 3.2 (Week 1-8): Implementation ✅ COMPLETE + GO判定完了
 
 Phase 3.3 (Week 9-14): Decentralize + Full Testing (NEW) ← **ACTIVE**
   ├── Track A: Decentralize Development (19 tasks)
-  │   ├── 4BFT consensus完成 (DECEN-001~004) ← **次**
-  │   ├── Security Council veQS選出 (DECEN-005~008) ← ✅ **完了**
-  │   ├── Governance Layer ON/OFF (DECEN-009~011)
+  │   ├── 4BFT consensus完成 (DECEN-001~004) ← ✅ **完了** 🎉
+  │   ├── Security Council veQS選出 (DECEN-005~008) ← ✅ **完了** 🎉
+  │   ├── Governance Layer ON/OFF (DECEN-009~011) ← **次**
   │   ├── Multi-sequencer対応 (DECEN-012~015)
   │   └── Inflation + Treasury (DECEN-016~019)
   └── Track B: E2E Testing (10 tasks)
@@ -293,18 +310,21 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.3 Week 9 DECEN-005, DECEN-007 + テスト作成・実行 |
-| **実装日時** | 2026-01-02 19:40 JST |
-| **DECEN-005** | ✅ **完了+テストPASS** (SecurityCouncilElection.sol) |
-| **DECEN-007** | ✅ **完了+テストPASS** (SecurityCouncilElection.sol) |
+| **対象Plan** | Phase 3.3 Week 9 DECEN-001~008 + テスト作成・実行 |
+| **実装日時** | 2026-01-02 19:58 JST |
+| **DECEN-001~004** | ✅ **完了+テストPASS** (engine.rs, message.rs) |
+| **DECEN-005~008** | ✅ **完了+テストPASS** (SecurityCouncilElection.sol) |
 | **TEST-4BFT結果** | ✅ **12/12 PASS** (Rust) |
 | **TEST-SC結果** | ✅ **17/17 PASS** (Solidity) 🎉 |
-| **ステータス** | ✅ DECEN-005~008完了、DECEN-001~004実装へ |
+| **aegis-consensus結果** | ✅ **33/33 PASS** (Rust) 🎉 |
+| **ステータス** | ✅ DECEN-001~008完了、DECEN-009~011実装へ |
 
 ### 実装ファイル (Phase 3.3 Week 9)
 
 | ファイル | 内容 | Commit |
 |----------|------|--------|
+| `engine.rs` | 4BFT Production: Config, NetworkHealth, ByzantineTracker, ViewChange統合 | `10be74e` |
+| `message.rs` | ViewChange, NewView message types | `10be74e` |
 | `SecurityCouncilElection.sol` | SC選挙メカニズム | `12ac6e3` |
 | `ISecurityCouncilElection.sol` | インターフェース | `9699825` |
 
@@ -314,20 +334,16 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 |---------|----------|------|:-------:|:----:|
 | TEST-4BFT-001~004 | bft_test.rs | 4BFT consensus tests | 12 | ✅ **PASS** |
 | TEST-SC-001~004 | SecurityCouncilElection.t.sol | SC選出・Term・統合 | 17 | ✅ **PASS** 🎉 |
+| aegis-consensus lib | src/*.rs | Unit tests | 33 | ✅ **PASS** 🎉 |
 
-### Commits
+### Commits (DECEN-001~004)
 
 | Commit | 内容 |
 |--------|------|
-| `12ac6e3` | fix(governance): use election ID for consecutive term tracking |
-| `8b3972d` | fix(test): fix _runElectionWithWinner helper function |
-| `7ebd9da` | test(governance): fix MockVeQS and MockSecurityCouncil interfaces |
-| `be0c4d3` | test(governance): enable SecurityCouncilElection tests |
-| `d58820e` | feat(governance): implement SecurityCouncilElection for DECEN-005, DECEN-007 |
-| `9699825` | feat(interfaces): add ISecurityCouncilElection interface |
-| `7509be6` | test(consensus): add 4BFT tests (TEST-4BFT-001~004) |
-| `9f43aa4` | test(governance): add SecurityCouncilElection tests (TEST-SC-001~004) |
-| `8e2e53d` | fix(test): correct imports and types in bft_test.rs |
+| `10be74e` | fix(consensus): add PartialEq, Eq to MessageType |
+| `f928602` | fix(consensus): fix type conversion errors in engine.rs |
+| `c4f7983` | feat(consensus): add ViewChange/NewView message types |
+| `7eb83a3` | feat(consensus): DECEN-001~004 4BFT production readiness |
 
 ---
 
@@ -430,7 +446,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE + GO 🎉🎉🎉** |
 | **Phase 3.2** | **Implementation** | **100%** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3** | **Decentralize + Testing** | **21%** | 🔄 **ACTIVE** |
+| **Phase 3.3** | **Decentralize + Testing** | **42%** | 🔄 **ACTIVE** |
 | Phase 4 | UI/UX + Audit + Launch | 0% | ⬜ NOT STARTED |
 
 ---
@@ -445,9 +461,9 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 | カテゴリ | タスク数 | 完了 | 内容 |
 |---------|:-------:|:----:|------|
-| 4BFT完成 | 4 | 0 | DECEN-001~004 ← **次** |
+| 4BFT完成 | 4 | **4** | DECEN-001~004 ✅ **完了** 🎉 |
 | Security Council選出 | 4 | **4** | DECEN-005~008 ✅ **完了** 🎉 |
-| Governance ON/OFF | 3 | 0 | DECEN-009~011 |
+| Governance ON/OFF | 3 | 0 | DECEN-009~011 ← **次** |
 | Multi-sequencer | 4 | 0 | DECEN-012~015 |
 | Inflation/Treasury | 4 | 0 | DECEN-016~019 |
 
@@ -498,7 +514,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **251 PASS** (Rust) + **372 PASS** (Solidity)
+### l3-aegis: ✅ **264 PASS** (Rust) + **372 PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------+----------╮
@@ -506,7 +522,8 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 +================================================================+
 | l3-aegis (Cargo) 既存      | 180    | 0      | 0       | 0        |
 | aegis-sequencer (新規)     |  59    | 0      | 0       | 0 ✅     |
-| **bft_test (新規)**        |  12    | 0      | 0       | 1        |
+| **aegis-consensus (新規)** |  33    | 0      | 0       | 1        |
+| bft_test (新規)            |  12    | 0      | 0       | -        |
 | l3-aegis (Foundry) 既存    | 271    | 0      | 0       | -        |
 | veQS/Token (新規)          |  42    | 0      | 0       | -        |
 | Governance (新規)          |  42    | 0      | 0       | -        |
@@ -536,17 +553,17 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | 1 | ~~テスト作成 (TEST-4BFT, TEST-SC)~~ | ~~🔴 P0~~ | ✅ **完了** |
 | 2 | ~~DECEN-005, DECEN-007実装~~ | ~~🔴 P0~~ | ✅ **完了** |
 | 3 | ~~TEST-SC実行・PASS~~ | ~~🔴 P0~~ | ✅ **完了** (17/17 PASS) 🎉 |
-| 4 | **DECEN-001~004実装** | 🔴 **P0** | ⬜ **次** |
-| 5 | PIR-P3.3-001準備 | 🟠 High | ⬜ 実装完了後 |
+| 4 | ~~**DECEN-001~004実装**~~ | ~~🔴 **P0**~~ | ✅ **完了** (33/33 PASS) 🎉 |
+| 5 | **DECEN-009~011実装** | 🔴 **P0** | ⬜ **次** |
+| 6 | PIR-P3.3-001準備 | 🟠 High | ⬜ 実装完了後 |
 
-### DECEN-001~004 実装計画
+### DECEN-009~011 実装計画 (Governance ON/OFF)
 
 | Task ID | 内容 | 優先度 | 予定 |
 |---------|------|:------:|------|
-| DECEN-001 | 4BFT production readiness | 🔴 P0 | Day 1-2 |
-| DECEN-002 | Byzantine fault tolerance検証 | 🔴 P0 | Day 3-4 |
-| DECEN-003 | Leader election & rotation | 🟠 High | Day 5-6 |
-| DECEN-004 | Network partition recovery | 🟠 High | Day 7-8 |
+| DECEN-009 | Governance Layer ON mechanism | 🟠 High | Day 1-2 |
+| DECEN-010 | Governance Layer OFF mechanism | 🟠 High | Day 3-4 |
+| DECEN-011 | Emergency pause integration | 🟠 High | Day 5-6 |
 
 ---
 
@@ -558,7 +575,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
 | **Phase 3.1完了** | **Month 10** | ✅ **COMPLETE + GO 🎉🎉🎉** |
 | **Phase 3.2完了** | **Month 11** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3完了** | **Month 14** | 🔄 **ACTIVE (21%)** |
+| **Phase 3.3完了** | **Month 14** | 🔄 **ACTIVE (42%)** |
 | Phase 4完了 | Month 22 | ⬜ |
 | 外部監査 | Month 19-21 | ⬜ |
 
@@ -582,8 +599,9 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 │  Phase 3.3 (Month 12-14): Decentralize + Testing ← **ACTIVE**│
 │  ├── Track A: Decentralize Development (19 tasks)           │
 │  │   ├── Week 9: TEST-4BFT ✅ + TEST-SC ✅ 作成・実行完了   │
+│  │   ├── Week 9: DECEN-001~004 ✅ 完了 (4BFT完成) 🎉🎉     │
 │  │   ├── Week 9: DECEN-005~008 ✅ 完了 (SC選出) 🎉         │
-│  │   └── Week 10: DECEN-001~004 (4BFT完成) ← **次**        │
+│  │   └── Week 10: DECEN-009~011 (Governance ON/OFF) ← **次**│
 │  └── Track B: E2E Testing (10 tasks)                        │
 │                                                             │
 │  ⚠️ IC-6 (Node Expansion 4→7): 不要（CEO指示 2025-01-01）   │
@@ -629,11 +647,12 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
   - IC-5 veQS Token: ✅ **10/10 COMPLETE + PIR-P3.2-002 PASS** 🎉
   - Governance: ✅ **6/6 COMPLETE + PIR-P3.2-004 PASS + CP-1完全準拠** 🎉🎉🎉
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
-- Phase 3.3 Decentralize + Testing: 🔄 **ACTIVE (21%)**
+- Phase 3.3 Decentralize + Testing: 🔄 **ACTIVE (42%)**
   - TEST-4BFT-001~004: ✅ **12/12 PASS** 🎉
   - TEST-SC-001~004: ✅ **17/17 PASS** 🎉🎉
+  - DECEN-001~004: ✅ **完了** (4BFT完成) 🎉🎉
   - DECEN-005~008: ✅ **完了** (SC選出) 🎉
-  - DECEN-001~004: ⬜ **次のステップ** ← 次
+  - DECEN-009~011: ⬜ **次のステップ** ← 次
 - Phase 4 UI/UX + Audit + Launch: ⬜
 
 ---
