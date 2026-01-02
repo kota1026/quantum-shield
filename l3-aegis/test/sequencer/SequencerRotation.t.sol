@@ -56,6 +56,9 @@ contract SequencerRotationTest is Test {
 
         assertTrue(registry.isRegistered(sequencer1));
         assertEq(registry.getActiveSequencersCount(), 1);
+        
+        // Verify stake was credited to sequencer1
+        assertTrue(staking.isEligible(sequencer1));
     }
 
     function test_RegisterMultipleSequencers() public {
@@ -65,6 +68,12 @@ contract SequencerRotationTest is Test {
         _registerSequencer(sequencer4, sphincsKey4);
 
         assertEq(registry.getActiveSequencersCount(), 4);
+        
+        // Verify all are eligible
+        assertTrue(staking.isEligible(sequencer1));
+        assertTrue(staking.isEligible(sequencer2));
+        assertTrue(staking.isEligible(sequencer3));
+        assertTrue(staking.isEligible(sequencer4));
     }
 
     function test_RegisterSequencer_RevertInsufficientStake() public {
