@@ -181,6 +181,9 @@ contract SecurityCouncilElectionTest is Test {
     address[] public voters;
     address[9] public initialMembers;
     
+    // ============ State for helpers ============
+    uint256 private _electionCounter;
+    
     // ============ Setup ============
     
     function setUp() public {
@@ -369,7 +372,7 @@ contract SecurityCouncilElectionTest is Test {
     function test_SC003_02_maxThreeConsecutiveTerms() public {
         // Complete 3 terms for candidate 0
         for (uint256 term = 1; term <= 3; term++) {
-            _runElectionWithWinner(candidates[0], term);
+            _runElectionWithWinner(candidates[0]);
             
             // Verify term count
             assertEq(election.getConsecutiveTerms(candidates[0]), term);
@@ -393,20 +396,20 @@ contract SecurityCouncilElectionTest is Test {
     function test_SC003_03_termCountResetsAfterBreak() public {
         // Complete 2 terms for candidate 0
         for (uint256 term = 1; term <= 2; term++) {
-            _runElectionWithWinner(candidates[0], term);
+            _runElectionWithWinner(candidates[0]);
             vm.warp(block.timestamp + TERM_DURATION);
         }
         assertEq(election.getConsecutiveTerms(candidates[0]), 2);
         
         // Skip one term (break) - someone else wins
-        _runElectionWithWinner(candidates[1], 3);
+        _runElectionWithWinner(candidates[1]);
         vm.warp(block.timestamp + TERM_DURATION);
         
         // Skip another term to ensure break period
         vm.warp(block.timestamp + TERM_DURATION);
         
         // Can serve again - term count should reset
-        _runElectionWithWinner(candidates[0], 5);
+        _runElectionWithWinner(candidates[0]);
         assertEq(election.getConsecutiveTerms(candidates[0]), 1);
     }
     
@@ -578,20 +581,28 @@ contract SecurityCouncilElectionTest is Test {
     }
     
     /// @notice Run election with specific winner
-    function _runElectionWithWinner(address winner, uint256) internal {
+    function _runElectionWithWinner(address winner) internal {
+        _electionCounter++;
+        
         // Start election
         vm.prank(governance);
         election.startElection();
         
-        // Nominate winner and 9 other candidates
+        // Create filler candidates with unique addresses per election
+        address[] memory fillers = new address[](9);
+        for (uint256 i = 0; i < 9; i++) {
+            fillers[i] = makeAddr(string(abi.encodePacked("filler_e", vm.toString(_electionCounter), "_", vm.toString(i))));
+        }
+        
+        // Nominate winner
         veqs.setVotingPower(winner, MIN_VEQS_TO_NOMINATE);
         vm.prank(winner);
         election.nominate();
         
-        for (uint256 i = 1; i < 10; i++) {
-            address c = makeAddr(string(abi.encodePacked("filler", vm.toString(block.timestamp), vm.toString(i))));
-            veqs.setVotingPower(c, MIN_VEQS_TO_NOMINATE);
-            vm.prank(c);
+        // Nominate filler candidates
+        for (uint256 i = 0; i < 9; i++) {
+            veqs.setVotingPower(fillers[i], MIN_VEQS_TO_NOMINATE);
+            vm.prank(fillers[i]);
             election.nominate();
         }
         
@@ -603,12 +614,11 @@ contract SecurityCouncilElectionTest is Test {
         vm.prank(voters[0]);
         election.vote(winner);
         
-        // Give others minimal votes
-        for (uint256 i = 1; i < 9; i++) {
-            address c = makeAddr(string(abi.encodePacked("filler", vm.toString(block.timestamp), vm.toString(i))));
-            veqs.setEffectiveVotingPower(voters[i], MIN_VEQS_TO_VOTE);
-            vm.prank(voters[i]);
-            election.vote(c);
+        // Give fillers minimal votes (need at least 9 total candidates with votes for finalize)
+        for (uint256 i = 0; i < 8; i++) {
+            veqs.setEffectiveVotingPower(voters[i + 1], MIN_VEQS_TO_VOTE);
+            vm.prank(voters[i + 1]);
+            election.vote(fillers[i]);
         }
         
         // Finalize
