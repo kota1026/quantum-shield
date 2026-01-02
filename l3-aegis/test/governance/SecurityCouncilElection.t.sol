@@ -9,41 +9,73 @@ import "../../src/interfaces/ISecurityCouncil.sol";
 /// @title MockVeQS
 /// @notice Mock veQS for testing
 contract MockVeQS is IveQS {
-    mapping(address => uint256) public votingPower;
-    mapping(address => uint256) public effectiveVotingPower;
-    mapping(address => address) public delegates;
+    mapping(address => uint256) private _votingPower;
+    mapping(address => uint256) private _effectiveVotingPower;
+    mapping(address => address) private _delegates;
+    mapping(address => LockPosition) private _lockPositions;
     
     function setVotingPower(address user, uint256 power) external {
-        votingPower[user] = power;
-        // Default effective = own power if no delegation
-        if (effectiveVotingPower[user] == 0) {
-            effectiveVotingPower[user] = power;
+        _votingPower[user] = power;
+        if (_effectiveVotingPower[user] == 0) {
+            _effectiveVotingPower[user] = power;
         }
     }
     
     function setEffectiveVotingPower(address user, uint256 power) external {
-        effectiveVotingPower[user] = power;
+        _effectiveVotingPower[user] = power;
     }
     
-    function delegate(address delegatee) external {
-        uint256 myPower = votingPower[msg.sender];
-        effectiveVotingPower[delegatee] += myPower;
-        delegates[msg.sender] = delegatee;
-    }
-    
+    // Interface implementations
     function getVotingPower(address user) external view returns (uint256) {
-        return votingPower[user];
+        return _votingPower[user];
     }
     
     function getEffectiveVotingPower(address user) external view returns (uint256) {
-        return effectiveVotingPower[user];
+        return _effectiveVotingPower[user];
     }
     
-    // Unused interface methods
+    function getLockPosition(address user) external view returns (LockPosition memory) {
+        return _lockPositions[user];
+    }
+    
+    function getVotingPowerAt(address, uint256) external pure returns (uint256) {
+        return 0;
+    }
+    
+    function getTotalVotingPower() external pure returns (uint256) {
+        return 0;
+    }
+    
+    function getDelegate(address user) external view returns (address) {
+        address d = _delegates[user];
+        return d == address(0) ? user : d;
+    }
+    
+    function hasLock(address user) external view returns (bool) {
+        return _lockPositions[user].amount > 0;
+    }
+    
+    function qsToken() external pure returns (address) {
+        return address(0);
+    }
+    
+    function MIN_LOCK_TIME() external pure returns (uint256) {
+        return 7 days;
+    }
+    
+    function MAX_LOCK_TIME() external pure returns (uint256) {
+        return 4 * 365 days;
+    }
+    
     function lock(uint256, uint256) external pure {}
-    function unlock() external pure {}
-    function getLockInfo(address) external pure returns (uint256, uint256, uint256) {
-        return (0, 0, 0);
+    function increaseLockAmount(uint256) external pure {}
+    function extendLockTime(uint256) external pure {}
+    function withdraw() external pure {}
+    function delegate(address delegatee) external {
+        _delegates[msg.sender] = delegatee;
+    }
+    function revokeDelegate() external {
+        _delegates[msg.sender] = address(0);
     }
 }
 
@@ -51,9 +83,15 @@ contract MockVeQS is IveQS {
 /// @notice Mock Security Council for testing
 contract MockSecurityCouncil is ISecurityCouncil {
     address[9] public members;
+    mapping(address => uint256) private _seatIds;
+    mapping(address => bool) private _isMember;
     
     constructor(address[9] memory initialMembers) {
-        members = initialMembers;
+        for (uint256 i = 0; i < 9; i++) {
+            members[i] = initialMembers[i];
+            _seatIds[initialMembers[i]] = i;
+            _isMember[initialMembers[i]] = true;
+        }
     }
     
     function getMember(uint256 seatId) external view returns (address) {
@@ -61,17 +99,58 @@ contract MockSecurityCouncil is ISecurityCouncil {
     }
     
     function setMember(uint256 seatId, address member) external {
+        _isMember[members[seatId]] = false;
         members[seatId] = member;
+        _seatIds[member] = seatId;
+        _isMember[member] = true;
     }
     
-    // Unused interface methods
-    function proposeAction(bytes32, bytes calldata) external pure returns (bytes32) {
+    // Interface implementations
+    function MAX_MEMBERS() external pure returns (uint256) { return 9; }
+    function ACTION_EXPIRY() external pure returns (uint256) { return 48 hours; }
+    function PAUSE_THRESHOLD() external pure returns (uint256) { return 5; }
+    function VETO_THRESHOLD() external pure returns (uint256) { return 6; }
+    function UPGRADE_THRESHOLD() external pure returns (uint256) { return 7; }
+    function governor() external pure returns (address) { return address(0); }
+    function emergencyController() external pure returns (address) { return address(0); }
+    function memberCount() external pure returns (uint256) { return 9; }
+    
+    function isMember(address account) external view returns (bool) {
+        return _isMember[account];
+    }
+    
+    function getSeatId(address member) external view returns (uint256) {
+        return _seatIds[member];
+    }
+    
+    function getAction(bytes32) external pure returns (Action memory) {
+        return Action({
+            id: bytes32(0),
+            actionType: ActionType.EmergencyPause,
+            proposer: address(0),
+            proposedAt: 0,
+            expiresAt: 0,
+            signatureCount: 0,
+            state: ActionState.Proposed,
+            data: ""
+        });
+    }
+    
+    function hasSigned(bytes32, address) external pure returns (bool) { return false; }
+    function getSignatureCount(bytes32) external pure returns (uint256) { return 0; }
+    function getValidSignatureCount(bytes32) external pure returns (uint256) { return 0; }
+    function getThreshold(ActionType) external pure returns (uint256) { return 5; }
+    function isActionReady(bytes32) external pure returns (bool) { return false; }
+    function isActionExpired(bytes32) external pure returns (bool) { return false; }
+    
+    function proposeAction(ActionType, bytes calldata) external pure returns (bytes32) {
         return bytes32(0);
     }
     function signAction(bytes32) external pure {}
     function executeAction(bytes32) external pure {}
-    function isMember(address) external pure returns (bool) { return false; }
-    function getThreshold(bytes32) external pure returns (uint256) { return 5; }
+    function replaceMember(uint256, address) external pure {}
+    function setGovernor(address) external pure {}
+    function setEmergencyController(address) external pure {}
 }
 
 /// @title SecurityCouncilElectionTest
@@ -359,6 +438,61 @@ contract SecurityCouncilElectionTest is Test {
     }
     
     // ============================================================
+    // Additional Tests
+    // ============================================================
+    
+    /// @notice Cannot vote before voting period
+    function test_cannotVoteBeforeVotingPeriod() public {
+        // Setup election with candidates
+        _setupElectionWithCandidates();
+        
+        veqs.setEffectiveVotingPower(voters[0], 10000e18);
+        
+        // Try to vote during nomination period - should fail
+        vm.expectRevert(SecurityCouncilElection.VotingPeriodNotStarted.selector);
+        vm.prank(voters[0]);
+        election.vote(candidates[0]);
+    }
+    
+    /// @notice Cannot vote twice
+    function test_cannotVoteTwice() public {
+        _setupElectionWithCandidates();
+        
+        veqs.setEffectiveVotingPower(voters[0], 10000e18);
+        
+        vm.warp(block.timestamp + NOMINATION_PERIOD + 1);
+        
+        vm.prank(voters[0]);
+        election.vote(candidates[0]);
+        
+        // Try to vote again
+        vm.expectRevert(SecurityCouncilElection.AlreadyVoted.selector);
+        vm.prank(voters[0]);
+        election.vote(candidates[1]);
+    }
+    
+    /// @notice Cannot vote for non-nominated candidate
+    function test_cannotVoteForNonNominatedCandidate() public {
+        _setupElectionWithCandidates();
+        
+        veqs.setEffectiveVotingPower(voters[0], 10000e18);
+        
+        vm.warp(block.timestamp + NOMINATION_PERIOD + 1);
+        
+        // Try to vote for non-nominated candidate
+        vm.expectRevert(SecurityCouncilElection.InvalidCandidate.selector);
+        vm.prank(voters[0]);
+        election.vote(candidates[9]); // Not nominated
+    }
+    
+    /// @notice Only governance can start election
+    function test_onlyGovernanceCanStartElection() public {
+        vm.expectRevert(SecurityCouncilElection.NotGovernance.selector);
+        vm.prank(candidates[0]);
+        election.startElection();
+    }
+    
+    // ============================================================
     // Fuzz Tests
     // ============================================================
     
@@ -455,7 +589,7 @@ contract SecurityCouncilElectionTest is Test {
         election.nominate();
         
         for (uint256 i = 1; i < 10; i++) {
-            address c = makeAddr(string(abi.encodePacked("filler", vm.toString(i))));
+            address c = makeAddr(string(abi.encodePacked("filler", vm.toString(block.timestamp), vm.toString(i))));
             veqs.setVotingPower(c, MIN_VEQS_TO_NOMINATE);
             vm.prank(c);
             election.nominate();
@@ -471,7 +605,7 @@ contract SecurityCouncilElectionTest is Test {
         
         // Give others minimal votes
         for (uint256 i = 1; i < 9; i++) {
-            address c = makeAddr(string(abi.encodePacked("filler", vm.toString(i))));
+            address c = makeAddr(string(abi.encodePacked("filler", vm.toString(block.timestamp), vm.toString(i))));
             veqs.setEffectiveVotingPower(voters[i], MIN_VEQS_TO_VOTE);
             vm.prank(voters[i]);
             election.vote(c);
