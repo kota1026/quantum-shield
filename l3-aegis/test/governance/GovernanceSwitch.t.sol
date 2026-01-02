@@ -346,13 +346,24 @@ contract GovernanceSwitchTest is Test {
         vm.stopPrank();
     }
     
+    /// @notice Test emergency pause in DECENTRALIZED mode requires 5/9 SC threshold
+    /// @dev Updated for SEQ#8 compliant 5/9 threshold via initiateCouncilPause()
     function test_EmergencyPauseInDecentralizedMode() public {
         _setupDecentralizedMode();
         
+        // emergencyPause() should revert in DECENTRALIZED mode
         vm.prank(councilMembers[0]);
+        vm.expectRevert(IGovernanceSwitch.Unauthorized.selector);
         governanceSwitch.emergencyPause();
         
-        assertTrue(governanceSwitch.isPaused(), "Should be paused");
+        // Must use initiateCouncilPause() for 5/9 threshold
+        // Collect 5 signatures
+        for (uint i = 0; i < 5; i++) {
+            vm.prank(councilMembers[i]);
+            governanceSwitch.initiateCouncilPause();
+        }
+        
+        assertTrue(governanceSwitch.isPaused(), "Should be paused after 5/9 threshold");
     }
     
     function test_UnpauseAfterPause() public {
