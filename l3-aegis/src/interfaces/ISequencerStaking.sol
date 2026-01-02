@@ -68,6 +68,13 @@ interface ISequencerStaking {
     function stake() external payable;
     
     /**
+     * @notice Stake tokens for a specific sequencer (called by Registry)
+     * @param sequencer The sequencer address to stake for
+     * @dev Used by SequencerRegistry to stake on behalf of msg.sender
+     */
+    function stakeFor(address sequencer) external payable;
+    
+    /**
      * @notice Request unstaking of tokens
      * @param amount Amount to unstake
      * @dev Initiates 7-day unbonding period
