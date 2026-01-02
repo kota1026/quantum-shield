@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-02 19:58 JST  
+> **Last Updated**: 2026-01-02 22:45 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -18,9 +18,10 @@
 │          ✅ TEST-4BFT-001~004作成・実行完了 (12/12 PASS)    │
 │          ✅ TEST-SC-001~004作成・実行完了 (17/17 PASS) 🎉   │
 │          ✅ DECEN-001~008実装・テスト完了 🎉🎉🎉            │
-│  Tests: ✅ 264/264 PASS (Rust) + 372/372 PASS (Solidity)    │
+│          ✅ DECEN-009~011実装・テスト完了 🎉🎉🎉            │
+│  Tests: ✅ 264/264 PASS (Rust) + 464/464 PASS (Solidity)    │
 │  Warnings: ✅ 1 (dead_code, non-critical)                   │
-│  次のステップ: DECEN-009~011 (Governance ON/OFF)            │
+│  次のステップ: DECEN-012~015 (Multi-sequencer)              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -36,6 +37,8 @@
 | **ISecurityCouncilElection.sol** | `l3-aegis/src/interfaces/ISecurityCouncilElection.sol` | `9699825` | インターフェース |
 | **engine.rs (4BFT Production)** | `l3-aegis/crates/aegis-consensus/src/engine.rs` | `10be74e` | DECEN-001~004実装 |
 | **message.rs (ViewChange/NewView)** | `l3-aegis/crates/aegis-consensus/src/message.rs` | `10be74e` | ViewChange/NewView追加 |
+| **GovernanceSwitch.sol (Production)** | `l3-aegis/src/governance/GovernanceSwitch.sol` | `cb649ff` | DECEN-009~011 TRAINING mode実装 |
+| **IGovernanceSwitch.sol (Update)** | `l3-aegis/src/interfaces/IGovernanceSwitch.sol` | `cb649ff` | 4-mode enum + rollback API |
 
 ### テスト作成・実行完了 (2026-01-02)
 
@@ -44,6 +47,9 @@
 | **TEST-4BFT-001~004** | `l3-aegis/crates/aegis-consensus/tests/bft_test.rs` | ✅ 完了 | **12/12 PASS** |
 | **TEST-SC-001~004** | `l3-aegis/test/governance/SecurityCouncilElection.t.sol` | ✅ 完了 | **17/17 PASS** 🎉 |
 | **aegis-consensus lib** | `l3-aegis/crates/aegis-consensus/src/*.rs` | ✅ 完了 | **33/33 PASS** 🎉 |
+| **GovernanceSwitch Tests** | `l3-aegis/src/governance/GovernanceSwitch.t.sol` | ✅ 完了 | **34/34 PASS** 🎉 |
+| **GovernanceSwitch Tests** | `l3-aegis/test/governance/GovernanceSwitch.t.sol` | ✅ 完了 | **26/26 PASS** 🎉 |
+| **IGovernanceSwitch Tests** | `l3-aegis/test/interfaces/IGovernanceSwitch.t.sol` | ✅ 完了 | **4/4 PASS** 🎉 |
 
 #### TEST-4BFT-001~004 詳細
 
@@ -75,9 +81,35 @@
 | DECEN-006 | SC threshold voting | 🔴 P0 | ✅ 既存実装済み |
 | **DECEN-007** | **SC term limits & rotation** | 🟠 High | ✅ **完了+テストPASS** 🎉 |
 | DECEN-008 | SC emergency powers integration | 🟠 High | ✅ 既存実装済み |
-| DECEN-009 | Governance Layer ON mechanism | 🟠 High | ⬜ **次** |
-| DECEN-010 | Governance Layer OFF mechanism | 🟠 High | ⬜ |
-| DECEN-011 | Emergency pause integration | 🟠 High | ⬜ |
+| **DECEN-009** | **Governance Layer ON mechanism** | 🟠 High | ✅ **完了+テストPASS** 🎉 |
+| **DECEN-010** | **Governance Layer OFF mechanism** | 🟠 High | ✅ **完了+テストPASS** 🎉 |
+| **DECEN-011** | **Emergency pause integration** | 🟠 High | ✅ **完了+テストPASS** 🎉 |
+| DECEN-012 | Multi-sequencer rotation | 🟠 High | ⬜ **次** |
+| DECEN-013 | Sequencer stake/slash | 🟠 High | ⬜ |
+| DECEN-014 | Permissionless sequencer | 🟠 High | ⬜ |
+| DECEN-015 | Sequencer rewards | 🟠 High | ⬜ |
+
+### DECEN-009~011 実装詳細 (Governance ON/OFF + TRAINING mode)
+
+| 機能 | 実装 |
+|------|------|
+| **GovernanceMode Enum** | TRAINING(0) → CENTRALIZED(1) → MULTISIG(2) → DECENTRALIZED(3) |
+| **TRAINING Mode** | 初期状態、admin単独操作、本番前テスト用 |
+| **initiateTransition()** | Admin用 TRAINING→CENTRALIZED (24h timelock) |
+| **initiateUpgrade()** | Multisig用 MULTISIG→DECENTRALIZED |
+| **Emergency Rollback** | Security Council 7/9 supermajority (72h timelock) |
+| **isTrainingMode()** | TRAININGモード判定ヘルパー |
+| **canInitiateRollback()** | Rollback可能性判定 |
+
+### DECEN-009~011 テスト修正詳細
+
+| Commit | 修正内容 |
+|--------|---------|
+| `91d5296` | src/governance/GovernanceSwitch.t.sol - TRAINING mode tests |
+| `1a9980a` | test/interfaces/IGovernanceSwitch.t.sol - enum values |
+| `717b39c` | test/governance/GovernanceSwitch.t.sol - _setupDecentralizedMode |
+| `378f678` | initiateTransition → initiateUpgrade fix |
+| `cb649ff` | Security Council設定タイミング修正 |
 
 ### DECEN-001~004 実装詳細 (4BFT Production Readiness)
 
@@ -122,8 +154,8 @@ Phase 3.3 (Week 9-14): Decentralize + Full Testing (NEW) ← **ACTIVE**
   ├── Track A: Decentralize Development (19 tasks)
   │   ├── 4BFT consensus完成 (DECEN-001~004) ← ✅ **完了** 🎉
   │   ├── Security Council veQS選出 (DECEN-005~008) ← ✅ **完了** 🎉
-  │   ├── Governance Layer ON/OFF (DECEN-009~011) ← **次**
-  │   ├── Multi-sequencer対応 (DECEN-012~015)
+  │   ├── Governance Layer ON/OFF (DECEN-009~011) ← ✅ **完了** 🎉
+  │   ├── Multi-sequencer対応 (DECEN-012~015) ← **次**
   │   └── Inflation + Treasury (DECEN-016~019)
   └── Track B: E2E Testing (10 tasks)
       ├── 統合テスト (TEST-001~003: E2E, Fuzz, Gas)
@@ -310,14 +342,16 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.3 Week 9 DECEN-001~008 + テスト作成・実行 |
-| **実装日時** | 2026-01-02 19:58 JST |
+| **対象Plan** | Phase 3.3 Week 9 DECEN-001~011 + テスト作成・実行 |
+| **実装日時** | 2026-01-02 22:45 JST |
 | **DECEN-001~004** | ✅ **完了+テストPASS** (engine.rs, message.rs) |
 | **DECEN-005~008** | ✅ **完了+テストPASS** (SecurityCouncilElection.sol) |
+| **DECEN-009~011** | ✅ **完了+テストPASS** (GovernanceSwitch.sol) 🎉 |
 | **TEST-4BFT結果** | ✅ **12/12 PASS** (Rust) |
 | **TEST-SC結果** | ✅ **17/17 PASS** (Solidity) 🎉 |
 | **aegis-consensus結果** | ✅ **33/33 PASS** (Rust) 🎉 |
-| **ステータス** | ✅ DECEN-001~008完了、DECEN-009~011実装へ |
+| **GovernanceSwitch結果** | ✅ **64/64 PASS** (Solidity) 🎉 |
+| **ステータス** | ✅ DECEN-001~011完了、DECEN-012~015実装へ |
 
 ### 実装ファイル (Phase 3.3 Week 9)
 
@@ -327,6 +361,8 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | `message.rs` | ViewChange, NewView message types | `10be74e` |
 | `SecurityCouncilElection.sol` | SC選挙メカニズム | `12ac6e3` |
 | `ISecurityCouncilElection.sol` | インターフェース | `9699825` |
+| `GovernanceSwitch.sol` | TRAINING mode + production transitions | `cb649ff` |
+| `IGovernanceSwitch.sol` | 4-mode enum + rollback API | `cb649ff` |
 
 ### テスト作成・実行 (Phase 3.3 Week 9)
 
@@ -335,6 +371,17 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | TEST-4BFT-001~004 | bft_test.rs | 4BFT consensus tests | 12 | ✅ **PASS** |
 | TEST-SC-001~004 | SecurityCouncilElection.t.sol | SC選出・Term・統合 | 17 | ✅ **PASS** 🎉 |
 | aegis-consensus lib | src/*.rs | Unit tests | 33 | ✅ **PASS** 🎉 |
+| GovernanceSwitch | *.t.sol | TRAINING mode + transitions | 64 | ✅ **PASS** 🎉 |
+
+### Commits (DECEN-009~011)
+
+| Commit | 内容 |
+|--------|------|
+| `91d5296` | src/governance/GovernanceSwitch.t.sol - TRAINING mode tests |
+| `1a9980a` | test/interfaces/IGovernanceSwitch.t.sol - enum values |
+| `717b39c` | test/governance/GovernanceSwitch.t.sol - _setupDecentralizedMode |
+| `378f678` | initiateTransition → initiateUpgrade fix |
+| `cb649ff` | Security Council設定タイミング修正 |
 
 ### Commits (DECEN-001~004)
 
@@ -402,7 +449,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 | PIR ID | 対象 | レビュー結果 | 日付 |
 |--------|------|-------------|------|
-| PIR-P3.3-001 | DECEN-001~008 (4BFT + SC基盤) | ⬜ 予定 | Track A Week 1終了後 |
+| PIR-P3.3-001 | DECEN-001~011 (4BFT + SC + Governance ON/OFF) | ⬜ 予定 | Track A Week 2終了後 |
 
 ### Phase 3.2 PIR一覧
 
@@ -446,7 +493,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE + GO 🎉🎉🎉** |
 | **Phase 3.2** | **Implementation** | **100%** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3** | **Decentralize + Testing** | **42%** | 🔄 **ACTIVE** |
+| **Phase 3.3** | **Decentralize + Testing** | **58%** | 🔄 **ACTIVE** |
 | Phase 4 | UI/UX + Audit + Launch | 0% | ⬜ NOT STARTED |
 
 ---
@@ -463,8 +510,8 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 |---------|:-------:|:----:|------|
 | 4BFT完成 | 4 | **4** | DECEN-001~004 ✅ **完了** 🎉 |
 | Security Council選出 | 4 | **4** | DECEN-005~008 ✅ **完了** 🎉 |
-| Governance ON/OFF | 3 | 0 | DECEN-009~011 ← **次** |
-| Multi-sequencer | 4 | 0 | DECEN-012~015 |
+| Governance ON/OFF | 3 | **3** | DECEN-009~011 ✅ **完了** 🎉 |
+| Multi-sequencer | 4 | 0 | DECEN-012~015 ← **次** |
 | Inflation/Treasury | 4 | 0 | DECEN-016~019 |
 
 ### Track B: E2E Testing (10 tasks)
@@ -481,6 +528,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 |---------|:-------:|:----:|------|
 | 4BFT Tests | 4 | ✅ 4 | TEST-4BFT-001~004 (12/12 PASS) |
 | SC Tests | 4 | ✅ 4 | TEST-SC-001~004 (17/17 PASS) 🎉 |
+| Governance Tests | 3 | ✅ 3 | GovernanceSwitch (64/64 PASS) 🎉 |
 
 ---
 
@@ -514,7 +562,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **264 PASS** (Rust) + **372 PASS** (Solidity)
+### l3-aegis: ✅ **264 PASS** (Rust) + **464 PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------+----------╮
@@ -528,7 +576,10 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | veQS/Token (新規)          |  42    | 0      | 0       | -        |
 | Governance (新規)          |  42    | 0      | 0       | -        |
 | **SC Election (新規)**     |  17    | 0      | 0       | -        |
+| **GovernanceSwitch (更新)**|  64    | 0      | 130     | -        |
 ╰----------------------------+--------+--------+---------+----------╯
+
+Total Solidity: 334 passed, 0 failed, 130 skipped (464 total)
 ```
 
 ---
@@ -554,16 +605,18 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | 2 | ~~DECEN-005, DECEN-007実装~~ | ~~🔴 P0~~ | ✅ **完了** |
 | 3 | ~~TEST-SC実行・PASS~~ | ~~🔴 P0~~ | ✅ **完了** (17/17 PASS) 🎉 |
 | 4 | ~~**DECEN-001~004実装**~~ | ~~🔴 **P0**~~ | ✅ **完了** (33/33 PASS) 🎉 |
-| 5 | **DECEN-009~011実装** | 🔴 **P0** | ⬜ **次** |
-| 6 | PIR-P3.3-001準備 | 🟠 High | ⬜ 実装完了後 |
+| 5 | ~~**DECEN-009~011実装**~~ | ~~🔴 **P0**~~ | ✅ **完了** (64/64 PASS) 🎉 |
+| 6 | **DECEN-012~015実装** | 🔴 **P0** | ⬜ **次** |
+| 7 | PIR-P3.3-001準備 | 🟠 High | ⬜ 実装完了後 |
 
-### DECEN-009~011 実装計画 (Governance ON/OFF)
+### DECEN-012~015 実装計画 (Multi-sequencer)
 
 | Task ID | 内容 | 優先度 | 予定 |
 |---------|------|:------:|------|
-| DECEN-009 | Governance Layer ON mechanism | 🟠 High | Day 1-2 |
-| DECEN-010 | Governance Layer OFF mechanism | 🟠 High | Day 3-4 |
-| DECEN-011 | Emergency pause integration | 🟠 High | Day 5-6 |
+| DECEN-012 | Multi-sequencer rotation | 🟠 High | Day 1-2 |
+| DECEN-013 | Sequencer stake/slash | 🟠 High | Day 3-4 |
+| DECEN-014 | Permissionless sequencer | 🟠 High | Day 5-6 |
+| DECEN-015 | Sequencer rewards | 🟠 High | Day 7-8 |
 
 ---
 
@@ -575,7 +628,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
 | **Phase 3.1完了** | **Month 10** | ✅ **COMPLETE + GO 🎉🎉🎉** |
 | **Phase 3.2完了** | **Month 11** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3完了** | **Month 14** | 🔄 **ACTIVE (42%)** |
+| **Phase 3.3完了** | **Month 14** | 🔄 **ACTIVE (58%)** |
 | Phase 4完了 | Month 22 | ⬜ |
 | 外部監査 | Month 19-21 | ⬜ |
 
@@ -601,7 +654,8 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 │  │   ├── Week 9: TEST-4BFT ✅ + TEST-SC ✅ 作成・実行完了   │
 │  │   ├── Week 9: DECEN-001~004 ✅ 完了 (4BFT完成) 🎉🎉     │
 │  │   ├── Week 9: DECEN-005~008 ✅ 完了 (SC選出) 🎉         │
-│  │   └── Week 10: DECEN-009~011 (Governance ON/OFF) ← **次**│
+│  │   ├── Week 9: DECEN-009~011 ✅ 完了 (Governance ON/OFF) 🎉│
+│  │   └── Week 10: DECEN-012~015 (Multi-sequencer) ← **次**  │
 │  └── Track B: E2E Testing (10 tasks)                        │
 │                                                             │
 │  ⚠️ IC-6 (Node Expansion 4→7): 不要（CEO指示 2025-01-01）   │
@@ -647,12 +701,13 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
   - IC-5 veQS Token: ✅ **10/10 COMPLETE + PIR-P3.2-002 PASS** 🎉
   - Governance: ✅ **6/6 COMPLETE + PIR-P3.2-004 PASS + CP-1完全準拠** 🎉🎉🎉
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
-- Phase 3.3 Decentralize + Testing: 🔄 **ACTIVE (42%)**
+- Phase 3.3 Decentralize + Testing: 🔄 **ACTIVE (58%)**
   - TEST-4BFT-001~004: ✅ **12/12 PASS** 🎉
   - TEST-SC-001~004: ✅ **17/17 PASS** 🎉🎉
   - DECEN-001~004: ✅ **完了** (4BFT完成) 🎉🎉
   - DECEN-005~008: ✅ **完了** (SC選出) 🎉
-  - DECEN-009~011: ⬜ **次のステップ** ← 次
+  - DECEN-009~011: ✅ **完了** (Governance ON/OFF) 🎉🎉🎉
+  - DECEN-012~015: ⬜ **次のステップ** (Multi-sequencer) ← 次
 - Phase 4 UI/UX + Audit + Launch: ⬜
 
 ---
