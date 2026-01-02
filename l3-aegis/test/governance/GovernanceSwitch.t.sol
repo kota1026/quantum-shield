@@ -376,18 +376,18 @@ contract GovernanceSwitchTest is Test {
         vm.prank(admin);
         governanceSwitch.configureSecurityCouncil(councilMembers, 5);
         
-        // All signers initiate upgrade
+        // All signers initiate upgrade using initiateUpgrade (not initiateTransition)
         for (uint i = 0; i < 3; i++) {
             vm.prank(signers[i]);
-            governanceSwitch.initiateTransition(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
+            governanceSwitch.initiateUpgrade(IGovernanceSwitch.GovernanceMode.DECENTRALIZED);
         }
         
-        uint256 lockExpiry = governanceSwitch.getTransitionLockExpiry();
-        assertGt(lockExpiry, 0, "Transition should be pending");
+        // Check time lock is active
+        assertTrue(governanceSwitch.isTimeLockActive(), "Time lock should be active");
         
         // Fast forward and finalize
         vm.warp(block.timestamp + governanceSwitch.UPGRADE_TIMELOCK() + 1);
-        governanceSwitch.finalizeTransition();
+        governanceSwitch.finalizeUpgrade();
         
         assertEq(
             uint256(governanceSwitch.getGovernanceMode()),
