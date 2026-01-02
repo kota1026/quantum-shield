@@ -75,8 +75,8 @@ contract SequencerRegistry is ISequencerRegistry, AccessControl, ReentrancyGuard
     }
     
     function _executeRegistration(bytes calldata sphincsKey, uint256 stakeAmount) internal {
-        // Forward stake to staking contract
-        stakingContract.stake{value: stakeAmount}();
+        // Forward stake to staking contract - stake for the actual sequencer (msg.sender)
+        stakingContract.stakeFor{value: stakeAmount}(msg.sender);
         
         // Store sequencer info
         _sequencers[msg.sender] = SequencerInfo({
