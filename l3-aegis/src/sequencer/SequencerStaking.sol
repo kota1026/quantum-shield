@@ -75,6 +75,16 @@ contract SequencerStaking is ISequencerStaking, AccessControl, ReentrancyGuard {
     }
     
     /// @inheritdoc ISequencerStaking
+    function stakeFor(address sequencer) external payable override nonReentrant {
+        require(msg.value > 0, "Zero stake");
+        require(sequencer != address(0), "Invalid sequencer");
+        
+        _stakes[sequencer] += msg.value;
+        
+        emit Staked(sequencer, msg.value);
+    }
+    
+    /// @inheritdoc ISequencerStaking
     function unstake(uint256 amount) external override nonReentrant {
         require(amount > 0, "Zero amount");
         require(_stakes[msg.sender] >= amount, "Insufficient stake");
