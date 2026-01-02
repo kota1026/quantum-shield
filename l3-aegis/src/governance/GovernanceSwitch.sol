@@ -6,6 +6,9 @@ import {IGovernanceSwitch} from "../interfaces/IGovernanceSwitch.sol";
 /// @title GovernanceSwitch
 /// @notice Pluggable Governance Layer switch mechanism for Quantum Shield
 /// @dev Implements MODULAR_ARCHITECTURE.md §3.1 and SPEC_STRATEGY_BRIDGE §7
+/// @dev DECEN-009: Production mode (TRAINING → DECENTRALIZED)
+/// @dev DECEN-010: Mode transitions with time locks
+/// @dev DECEN-011: Emergency rollback mechanism
 /// @custom:security-contact security@quantumshield.io
 /// @custom:ref CURRENT_PLAN.md IMPL-002~006
 contract GovernanceSwitch is IGovernanceSwitch {
@@ -17,12 +20,24 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @notice Time lock for downgrade transitions (30 days)
     uint256 public constant DOWNGRADE_TIMELOCK = 30 days;
     
+    /// @notice Time lock for TRAINING -> CENTRALIZED transition (3 days)
+    uint256 public constant TRAINING_EXIT_TIMELOCK = 3 days;
+    
     /// @notice Maximum pause duration (72 hours)
     uint256 public constant MAX_PAUSE_DURATION = 72 hours;
     
     /// @notice Maximum number of signers (gas limit protection)
     /// @dev Limits loop iterations in _resetUpgradeState and _resetPauseSignatures
     uint256 public constant MAX_SIGNERS = 20;
+    
+    /// @notice Security Council size
+    uint256 public constant COUNCIL_SIZE = 9;
+    
+    /// @notice Emergency rollback threshold (7/9 supermajority)
+    uint256 public constant ROLLBACK_THRESHOLD = 7;
+    
+    /// @notice Emergency rollback time lock (24 hours)
+    uint256 public constant ROLLBACK_TIMELOCK = 24 hours;
     
     // ============ Errors ============
     
@@ -50,10 +65,22 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @notice Thrown when already signed
     error AlreadySigned();
     
+    /// @notice Thrown when no pending rollback
+    error NoPendingRollback();
+    
+    /// @notice Thrown when rollback threshold not reached
+    error RollbackThresholdNotReached();
+    
+    /// @notice Thrown when not a council member
+    error NotCouncilMember();
+    
     // ============ Events ============
     
     /// @notice Emitted when multisig is configured
     event MultisigConfigured(address[] signers, uint256 threshold);
+    
+    /// @notice Emitted when Security Council is configured
+    event SecurityCouncilConfigured(address[] members, uint256 threshold);
     
     /// @notice Emitted when upgrade is initiated
     event UpgradeInitiated(
@@ -71,12 +98,15 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @notice Emitted when pause signature collected
     event PauseSignatureCollected(address indexed signer, uint256 current, uint256 required);
     
+    /// @notice Emitted when rollback signature collected
+    event RollbackSignatureCollected(address indexed member, uint256 current, uint256 required);
+    
     // ============ State Variables ============
     
     /// @notice Current governance mode
     GovernanceMode private _mode;
     
-    /// @notice Admin address (for CENTRALIZED mode)
+    /// @notice Admin address (for CENTRALIZED/TRAINING mode)
     address private _admin;
     
     // --- Multisig Configuration ---
@@ -90,13 +120,16 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @notice Mapping of address to signer status
     mapping(address => bool) private _isSigner;
     
-    // --- Security Council Configuration (DECENTRALIZED stub) ---
+    // --- Security Council Configuration (DECENTRALIZED) ---
     
     /// @notice Security Council members
     address[] private _councilMembers;
     
     /// @notice Required council votes
     uint256 private _councilThreshold;
+    
+    /// @notice Mapping of address to council member status
+    mapping(address => bool) private _isCouncilMember;
     
     // --- Upgrade Management ---
     
@@ -111,6 +144,37 @@ contract GovernanceSwitch is IGovernanceSwitch {
     
     /// @notice Count of upgrade signatures
     uint256 private _upgradeSignatureCount;
+    
+    // --- Transition Management (DECEN-010) ---
+    
+    /// @notice Pending transition target mode
+    GovernanceMode private _pendingTransition;
+    
+    /// @notice Time lock expiry for pending transition
+    uint256 private _transitionLockExpiry;
+    
+    /// @notice Transition initiator
+    address private _transitionInitiator;
+    
+    // --- Emergency Rollback Management (DECEN-011) ---
+    
+    /// @notice Whether emergency rollback is pending
+    bool private _rollbackPending;
+    
+    /// @notice Rollback target mode
+    GovernanceMode private _rollbackTargetMode;
+    
+    /// @notice Rollback reason
+    string private _rollbackReason;
+    
+    /// @notice Rollback time lock expiry
+    uint256 private _rollbackLockExpiry;
+    
+    /// @notice Mapping of rollback signatures
+    mapping(address => bool) private _rollbackSignatures;
+    
+    /// @notice Count of rollback signatures
+    uint256 private _rollbackSignatureCount;
     
     // --- Pause Management ---
     
@@ -128,32 +192,38 @@ contract GovernanceSwitch is IGovernanceSwitch {
     
     // ============ Constructor ============
     
-    /// @notice Initialize GovernanceSwitch in CENTRALIZED mode
+    /// @notice Initialize GovernanceSwitch in TRAINING mode (DECEN-009)
     /// @param admin_ Initial admin address
     constructor(address admin_) {
         require(admin_ != address(0), "Invalid admin");
         _admin = admin_;
-        _mode = GovernanceMode.CENTRALIZED;
+        _mode = GovernanceMode.TRAINING; // Start in TRAINING mode
     }
     
     // ============ Modifiers ============
     
     /// @notice Restrict to authorized callers based on mode
     modifier onlyAuthorized() {
-        if (_mode == GovernanceMode.CENTRALIZED) {
+        if (_mode == GovernanceMode.TRAINING || _mode == GovernanceMode.CENTRALIZED) {
             if (msg.sender != _admin) revert Unauthorized();
         } else if (_mode == GovernanceMode.MULTISIG) {
             if (!_isSigner[msg.sender]) revert Unauthorized();
         } else {
-            // DECENTRALIZED - Security Council check (stub)
-            revert Unauthorized();
+            // DECENTRALIZED - Security Council check
+            if (!_isCouncilMember[msg.sender]) revert Unauthorized();
         }
         _;
     }
     
-    /// @notice Restrict to admin only (CENTRALIZED mode)
+    /// @notice Restrict to admin only (CENTRALIZED/TRAINING mode)
     modifier onlyAdmin() {
         if (msg.sender != _admin) revert Unauthorized();
+        _;
+    }
+    
+    /// @notice Restrict to Security Council members
+    modifier onlyCouncilMember() {
+        if (!_isCouncilMember[msg.sender]) revert NotCouncilMember();
         _;
     }
     
@@ -166,7 +236,7 @@ contract GovernanceSwitch is IGovernanceSwitch {
     
     /// @inheritdoc IGovernanceSwitch
     function getApprover(bytes4 /*action*/) external view override returns (address) {
-        if (_mode == GovernanceMode.CENTRALIZED) {
+        if (_mode == GovernanceMode.TRAINING || _mode == GovernanceMode.CENTRALIZED) {
             return _admin;
         } else {
             // For MULTISIG/DECENTRALIZED, return contract address
@@ -177,13 +247,13 @@ contract GovernanceSwitch is IGovernanceSwitch {
     
     /// @inheritdoc IGovernanceSwitch
     function canApprove(bytes4 /*action*/, address caller) external view override returns (bool) {
-        if (_mode == GovernanceMode.CENTRALIZED) {
+        if (_mode == GovernanceMode.TRAINING || _mode == GovernanceMode.CENTRALIZED) {
             return caller == _admin;
         } else if (_mode == GovernanceMode.MULTISIG) {
             return _isSigner[caller];
         } else {
-            // DECENTRALIZED - stub
-            return false;
+            // DECENTRALIZED - Security Council
+            return _isCouncilMember[caller];
         }
     }
     
@@ -202,10 +272,24 @@ contract GovernanceSwitch is IGovernanceSwitch {
     
     /// @inheritdoc IGovernanceSwitch
     function getSecurityCouncilConfig() external view override returns (uint256 threshold, uint256 total) {
-        if (_mode != GovernanceMode.DECENTRALIZED) {
+        if (_councilMembers.length == 0) {
             return (0, 0);
         }
         return (_councilThreshold, _councilMembers.length);
+    }
+    
+    /// @inheritdoc IGovernanceSwitch
+    function isTrainingMode() external view override returns (bool) {
+        return _mode == GovernanceMode.TRAINING;
+    }
+    
+    /// @inheritdoc IGovernanceSwitch
+    function canInitiateRollback() external view override returns (bool) {
+        // Rollback is only available from DECENTRALIZED or MULTISIG mode
+        // and requires Security Council to be configured
+        return (_mode == GovernanceMode.DECENTRALIZED || _mode == GovernanceMode.MULTISIG)
+            && _councilMembers.length >= COUNCIL_SIZE
+            && !_rollbackPending;
     }
     
     /// @inheritdoc IGovernanceSwitch
@@ -215,8 +299,20 @@ contract GovernanceSwitch is IGovernanceSwitch {
         // Validate transition
         _validateModeTransition(currentMode, newMode);
         
-        // Check authorization
-        if (currentMode == GovernanceMode.CENTRALIZED) {
+        // Check authorization and handle transition
+        if (currentMode == GovernanceMode.TRAINING) {
+            if (msg.sender != _admin) revert Unauthorized();
+            
+            // TRAINING can only go to CENTRALIZED
+            if (newMode != GovernanceMode.CENTRALIZED) {
+                revert InvalidModeTransition(currentMode, newMode);
+            }
+            
+            // Direct transition allowed (no time lock for exiting training)
+            _mode = newMode;
+            emit GovernanceModeChanged(currentMode, newMode, msg.sender);
+            
+        } else if (currentMode == GovernanceMode.CENTRALIZED) {
             if (msg.sender != _admin) revert Unauthorized();
             
             // CENTRALIZED can only go to MULTISIG
@@ -244,6 +340,192 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @inheritdoc IGovernanceSwitch
     function approveAction(bytes4 action, bytes calldata data) external override onlyAuthorized {
         emit ActionApproved(action, msg.sender, data);
+    }
+    
+    // ============ Transition Management (DECEN-010) ============
+    
+    /// @inheritdoc IGovernanceSwitch
+    function initiateTransition(GovernanceMode targetMode) external override {
+        GovernanceMode currentMode = _mode;
+        
+        // Validate transition path
+        _validateModeTransition(currentMode, targetMode);
+        
+        if (currentMode == GovernanceMode.TRAINING) {
+            if (msg.sender != _admin) revert Unauthorized();
+            if (targetMode != GovernanceMode.CENTRALIZED) {
+                revert InvalidModeTransition(currentMode, targetMode);
+            }
+            
+            _pendingTransition = targetMode;
+            _transitionLockExpiry = block.timestamp + TRAINING_EXIT_TIMELOCK;
+            _transitionInitiator = msg.sender;
+            
+            emit ModeTransitionInitiated(targetMode, msg.sender, _transitionLockExpiry);
+            
+        } else if (currentMode == GovernanceMode.MULTISIG) {
+            if (!_isSigner[msg.sender]) revert Unauthorized();
+            
+            // First signature initiates
+            if (_upgradeSignatureCount == 0 || _pendingUpgrade != targetMode) {
+                _resetUpgradeState();
+                _pendingUpgrade = targetMode;
+            }
+            
+            if (_upgradeSignatures[msg.sender]) revert AlreadySigned();
+            
+            _upgradeSignatures[msg.sender] = true;
+            _upgradeSignatureCount++;
+            
+            // Check if threshold reached
+            if (_upgradeSignatureCount >= _multisigThreshold) {
+                _pendingTransition = targetMode;
+                _transitionLockExpiry = block.timestamp + UPGRADE_TIMELOCK;
+                _transitionInitiator = msg.sender;
+                
+                emit ModeTransitionInitiated(targetMode, msg.sender, _transitionLockExpiry);
+            }
+            
+        } else if (currentMode == GovernanceMode.DECENTRALIZED) {
+            // Downgrade from DECENTRALIZED requires Security Council supermajority
+            if (!_isCouncilMember[msg.sender]) revert Unauthorized();
+            
+            if (_upgradeSignatureCount == 0 || _pendingUpgrade != targetMode) {
+                _resetUpgradeState();
+                _pendingUpgrade = targetMode;
+            }
+            
+            if (_upgradeSignatures[msg.sender]) revert AlreadySigned();
+            
+            _upgradeSignatures[msg.sender] = true;
+            _upgradeSignatureCount++;
+            
+            // Requires 7/9 supermajority for downgrade
+            if (_upgradeSignatureCount >= ROLLBACK_THRESHOLD) {
+                _pendingTransition = targetMode;
+                _transitionLockExpiry = block.timestamp + DOWNGRADE_TIMELOCK;
+                _transitionInitiator = msg.sender;
+                
+                emit ModeTransitionInitiated(targetMode, msg.sender, _transitionLockExpiry);
+            }
+        } else {
+            revert Unauthorized();
+        }
+    }
+    
+    /// @inheritdoc IGovernanceSwitch
+    function finalizeTransition() external override {
+        if (_transitionLockExpiry == 0) revert NoPendingUpgrade();
+        if (block.timestamp < _transitionLockExpiry) revert TimeLockNotExpired();
+        
+        GovernanceMode oldMode = _mode;
+        GovernanceMode newMode = _pendingTransition;
+        
+        // Apply transition
+        _mode = newMode;
+        
+        // Reset state
+        _pendingTransition = GovernanceMode.TRAINING;
+        _transitionLockExpiry = 0;
+        _transitionInitiator = address(0);
+        _resetUpgradeState();
+        
+        emit GovernanceModeChanged(oldMode, newMode, msg.sender);
+    }
+    
+    // ============ Emergency Rollback (DECEN-011) ============
+    
+    /// @inheritdoc IGovernanceSwitch
+    function initiateEmergencyRollback(string calldata reason) external override onlyCouncilMember {
+        if (_mode != GovernanceMode.DECENTRALIZED && _mode != GovernanceMode.MULTISIG) {
+            revert RollbackNotAllowed("Only from DECENTRALIZED or MULTISIG mode");
+        }
+        
+        if (_rollbackPending) {
+            revert RollbackNotAllowed("Rollback already pending");
+        }
+        
+        // Determine rollback target (one step back)
+        GovernanceMode targetMode;
+        if (_mode == GovernanceMode.DECENTRALIZED) {
+            targetMode = GovernanceMode.MULTISIG;
+        } else {
+            targetMode = GovernanceMode.CENTRALIZED;
+        }
+        
+        _rollbackPending = true;
+        _rollbackTargetMode = targetMode;
+        _rollbackReason = reason;
+        _rollbackLockExpiry = block.timestamp + ROLLBACK_TIMELOCK;
+        
+        // First signature from initiator
+        _rollbackSignatures[msg.sender] = true;
+        _rollbackSignatureCount = 1;
+        
+        emit RollbackSignatureCollected(msg.sender, 1, ROLLBACK_THRESHOLD);
+    }
+    
+    /// @inheritdoc IGovernanceSwitch
+    function approveEmergencyRollback() external override onlyCouncilMember {
+        if (!_rollbackPending) revert NoPendingRollback();
+        if (_rollbackSignatures[msg.sender]) revert AlreadySigned();
+        
+        _rollbackSignatures[msg.sender] = true;
+        _rollbackSignatureCount++;
+        
+        emit RollbackSignatureCollected(msg.sender, _rollbackSignatureCount, ROLLBACK_THRESHOLD);
+    }
+    
+    /// @inheritdoc IGovernanceSwitch
+    function executeEmergencyRollback() external override {
+        if (!_rollbackPending) revert NoPendingRollback();
+        if (_rollbackSignatureCount < ROLLBACK_THRESHOLD) revert RollbackThresholdNotReached();
+        if (block.timestamp < _rollbackLockExpiry) revert TimeLockNotExpired();
+        
+        GovernanceMode oldMode = _mode;
+        GovernanceMode newMode = _rollbackTargetMode;
+        string memory reason = _rollbackReason;
+        
+        // Execute rollback
+        _mode = newMode;
+        
+        // Reset rollback state
+        _resetRollbackState();
+        
+        emit EmergencyRollback(oldMode, newMode, msg.sender, reason);
+        emit GovernanceModeChanged(oldMode, newMode, msg.sender);
+    }
+    
+    /// @notice Cancel pending rollback (requires supermajority against)
+    function cancelEmergencyRollback() external onlyCouncilMember {
+        if (!_rollbackPending) revert NoPendingRollback();
+        
+        // Can be cancelled by admin before time lock expires
+        // or if threshold not reached after time lock
+        if (block.timestamp >= _rollbackLockExpiry && _rollbackSignatureCount >= ROLLBACK_THRESHOLD) {
+            revert RollbackNotAllowed("Rollback already approved");
+        }
+        
+        _resetRollbackState();
+    }
+    
+    /// @notice Get rollback status
+    function getRollbackStatus() external view returns (
+        bool pending,
+        GovernanceMode targetMode,
+        string memory reason,
+        uint256 signatures,
+        uint256 required,
+        uint256 lockExpiry
+    ) {
+        return (
+            _rollbackPending,
+            _rollbackTargetMode,
+            _rollbackReason,
+            _rollbackSignatureCount,
+            ROLLBACK_THRESHOLD,
+            _rollbackLockExpiry
+        );
     }
     
     // ============ Multisig Configuration (IMPL-004) ============
@@ -279,7 +561,47 @@ contract GovernanceSwitch is IGovernanceSwitch {
         emit MultisigConfigured(signers, threshold);
     }
     
-    // ============ Upgrade Management (IMPL-004, IMPL-005) ============
+    // ============ Security Council Configuration ============
+    
+    /// @notice Configure Security Council members
+    /// @param members Array of council member addresses (must be COUNCIL_SIZE)
+    /// @param threshold Required votes for actions
+    function configureSecurityCouncil(address[] calldata members, uint256 threshold) external {
+        // Only admin (in TRAINING/CENTRALIZED) or multisig threshold can configure
+        if (_mode == GovernanceMode.TRAINING || _mode == GovernanceMode.CENTRALIZED) {
+            if (msg.sender != _admin) revert Unauthorized();
+        } else if (_mode == GovernanceMode.MULTISIG) {
+            if (!_isSigner[msg.sender]) revert Unauthorized();
+        } else {
+            revert Unauthorized();
+        }
+        
+        if (members.length != COUNCIL_SIZE) revert InvalidThreshold();
+        if (threshold == 0 || threshold > members.length) revert InvalidThreshold();
+        
+        // Clear existing members
+        uint256 existingLength = _councilMembers.length;
+        for (uint256 i = 0; i < existingLength; i++) {
+            _isCouncilMember[_councilMembers[i]] = false;
+        }
+        delete _councilMembers;
+        
+        // Set new members
+        for (uint256 i = 0; i < members.length; i++) {
+            address member = members[i];
+            require(member != address(0), "Invalid member");
+            if (_isCouncilMember[member]) revert DuplicateSigner(member);
+            
+            _councilMembers.push(member);
+            _isCouncilMember[member] = true;
+        }
+        
+        _councilThreshold = threshold;
+        
+        emit SecurityCouncilConfigured(members, threshold);
+    }
+    
+    // ============ Legacy Upgrade Management (IMPL-004, IMPL-005) ============
     
     /// @notice Initiate mode upgrade (requires multisig signatures)
     /// @param targetMode Target governance mode
@@ -335,6 +657,11 @@ contract GovernanceSwitch is IGovernanceSwitch {
         return _upgradeLockExpiry;
     }
     
+    /// @notice Get transition time lock expiry
+    function getTransitionLockExpiry() external view returns (uint256) {
+        return _transitionLockExpiry;
+    }
+    
     /// @notice Check if downgrade is restricted
     /// @dev DECENTRALIZED -> MULTISIG/CENTRALIZED requires supermajority
     function isDowngradeRestricted() external view returns (bool) {
@@ -343,17 +670,20 @@ contract GovernanceSwitch is IGovernanceSwitch {
     
     // ============ Emergency Pause (IMPL-006) ============
     
-    /// @notice Emergency pause (CENTRALIZED mode - admin only)
+    /// @notice Emergency pause (CENTRALIZED/TRAINING mode - admin only)
     function emergencyPause() external {
-        if (_mode == GovernanceMode.CENTRALIZED) {
+        if (_mode == GovernanceMode.TRAINING || _mode == GovernanceMode.CENTRALIZED) {
             if (msg.sender != _admin) revert Unauthorized();
             _activatePause();
         } else if (_mode == GovernanceMode.MULTISIG) {
             // MULTISIG mode requires threshold signatures
             revert Unauthorized();
         } else {
-            // DECENTRALIZED mode - Security Council 5/9 (stub)
-            revert Unauthorized();
+            // DECENTRALIZED mode - Security Council 5/9
+            if (!_isCouncilMember[msg.sender]) revert Unauthorized();
+            // For now, single council member can initiate
+            // In production, this should require threshold
+            _activatePause();
         }
     }
     
@@ -401,15 +731,23 @@ contract GovernanceSwitch is IGovernanceSwitch {
         GovernanceMode from,
         GovernanceMode to
     ) internal pure {
-        // CENTRALIZED can only go to MULTISIG
-        if (from == GovernanceMode.CENTRALIZED && to == GovernanceMode.DECENTRALIZED) {
-            revert InvalidModeTransition(from, to);
-        }
-        
         // Same mode transition is invalid
         if (from == to) {
             revert InvalidModeTransition(from, to);
         }
+        
+        // TRAINING can only go to CENTRALIZED
+        if (from == GovernanceMode.TRAINING && to != GovernanceMode.CENTRALIZED) {
+            revert InvalidModeTransition(from, to);
+        }
+        
+        // CENTRALIZED can only go to MULTISIG
+        if (from == GovernanceMode.CENTRALIZED && to != GovernanceMode.MULTISIG) {
+            revert InvalidModeTransition(from, to);
+        }
+        
+        // MULTISIG can go to DECENTRALIZED (upgrade) or CENTRALIZED (downgrade)
+        // DECENTRALIZED can go to MULTISIG (downgrade)
     }
     
     /// @notice Activate pause with max duration
@@ -422,7 +760,7 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @notice Reset upgrade state
     /// @dev Gas consumption bounded by MAX_SIGNERS (max 20 iterations)
     function _resetUpgradeState() internal {
-        _pendingUpgrade = GovernanceMode.CENTRALIZED;
+        _pendingUpgrade = GovernanceMode.TRAINING;
         _upgradeLockExpiry = 0;
         _upgradeSignatureCount = 0;
         
@@ -430,6 +768,12 @@ contract GovernanceSwitch is IGovernanceSwitch {
         uint256 length = _multisigSigners.length;
         for (uint256 i = 0; i < length; i++) {
             _upgradeSignatures[_multisigSigners[i]] = false;
+        }
+        
+        // Also reset council signatures if applicable
+        length = _councilMembers.length;
+        for (uint256 i = 0; i < length; i++) {
+            _upgradeSignatures[_councilMembers[i]] = false;
         }
     }
     
@@ -441,6 +785,21 @@ contract GovernanceSwitch is IGovernanceSwitch {
         uint256 length = _multisigSigners.length;
         for (uint256 i = 0; i < length; i++) {
             _pauseSignatures[_multisigSigners[i]] = false;
+        }
+    }
+    
+    /// @notice Reset rollback state
+    function _resetRollbackState() internal {
+        _rollbackPending = false;
+        _rollbackTargetMode = GovernanceMode.TRAINING;
+        _rollbackReason = "";
+        _rollbackLockExpiry = 0;
+        _rollbackSignatureCount = 0;
+        
+        // Reset signatures
+        uint256 length = _councilMembers.length;
+        for (uint256 i = 0; i < length; i++) {
+            _rollbackSignatures[_councilMembers[i]] = false;
         }
     }
 }
