@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-02 17:45 JST  
+> **Last Updated**: 2026-01-02 18:25 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -10,16 +10,60 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 3 - L3 + Token + 完全分散化                         │
-│  Sub-Phase: 3.3 Decentralize + Testing ⬜ NEXT              │
+│  Sub-Phase: 3.3 Decentralize + Testing - Week 9             │
 │  Month: 12 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.3.md              │
 │  Status: ✅ Phase 3.2 Go/No-Go判定完了 (91.5/100, GO)       │
 │          ✅ CP-1完全準拠達成 (keccak256完全排除) 🎉🎉🎉     │
-│  Tests: ✅ 239/239 PASS (Rust) + 355/355 PASS (Solidity)    │
+│          ✅ TEST-4BFT-001~004作成・実行完了 (12/12 PASS)    │
+│          ✅ TEST-SC-001~004作成完了 (19 tests, skip中)      │
+│  Tests: ✅ 251/251 PASS (Rust) + 355/355 PASS (Solidity)    │
 │  Warnings: ✅ 0 (aegis-sequencer clean)                     │
-│  次のステップ: Phase 3.3開始                                 │
+│  次のステップ: DECEN-001~008実装                            │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 📋 Phase 3.3 Week 9 進捗 (ACTIVE)
+
+### テスト作成完了 (2026-01-02)
+
+| テストスイート | ファイル | 状態 | 結果 |
+|--------------|----------|:----:|:----:|
+| **TEST-4BFT-001~004** | `l3-aegis/crates/aegis-consensus/tests/bft_test.rs` | ✅ 作成・実行完了 | **12/12 PASS** |
+| **TEST-SC-001~004** | `l3-aegis/test/governance/SecurityCouncilElection.t.sol` | ✅ 作成完了 | 19 tests (skip中) |
+
+#### TEST-4BFT-001~004 詳細
+
+| Test ID | テスト内容 | 関数数 | 状態 |
+|---------|----------|:------:|:----:|
+| TEST-4BFT-001 | 4ノードBFT合意（正常系） | 3 | ✅ PASS |
+| TEST-4BFT-002 | Byzantine障害シミュレーション | 3 | ✅ PASS |
+| TEST-4BFT-003 | Leader rotation検証 | 3 | ✅ PASS |
+| TEST-4BFT-004 | Network partition recovery | 3 | ✅ PASS |
+
+#### TEST-SC-001~004 詳細
+
+| Test ID | テスト内容 | 関数数 | 状態 |
+|---------|----------|:------:|:----:|
+| TEST-SC-001 | SC選出via veQS投票 | 6 | ⏸️ skip (実装待ち) |
+| TEST-SC-002 | 閾値投票 (5/9, 6/9, 7/9) | 既存 | ⏸️ skip (実装待ち) |
+| TEST-SC-003 | Term limit & rotation | 5 | ⏸️ skip (実装待ち) |
+| TEST-SC-004 | Emergency powers統合 | 6+2 fuzz | ⏸️ skip (実装待ち) |
+
+### 実装タスク進捗
+
+| Task ID | 内容 | 優先度 | 状態 |
+|---------|------|:------:|:----:|
+| DECEN-001 | 4BFT production readiness | 🔴 P0 | ⬜ 未開始 |
+| DECEN-002 | Byzantine fault tolerance検証 | 🔴 P0 | ⬜ 未開始 |
+| DECEN-003 | Leader election & rotation | 🟠 High | ⬜ 未開始 |
+| DECEN-004 | Network partition recovery | 🟠 High | ⬜ 未開始 |
+| DECEN-005 | SC election via veQS | 🔴 P0 | ⬜ 未開始 |
+| DECEN-006 | SC threshold voting | 🔴 P0 | ⬜ 未開始 |
+| DECEN-007 | SC term limits & rotation | 🟠 High | ⬜ 未開始 |
+| DECEN-008 | SC emergency powers integration | 🟠 High | ⬜ 未開始 |
 
 ---
 
@@ -227,43 +271,26 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.2 Week 7-8 Governance実装 (GOV-001~GOV-006) |
-| **実装日時** | 2026-01-02 01:10 JST |
-| **PIR結果** | ✅ **PIR-P3.2-004 PASS** (11/11 GO, 全会一致) 🎉 |
-| **Post-PIR修正** | ✅ **CP-1完全準拠達成** (keccak256→SHA3Hasher.hash()) 🎉 |
-| **Go/No-Go判定** | ✅ **GO (91.5/100)** 🎉🎉🎉 |
-| **ステータス** | ✅ **Phase 3.2全完了、Phase 3.3開始準備完了** |
+| **対象Plan** | Phase 3.3 Week 9 テスト作成 (TEST-4BFT-001~004, TEST-SC-001~004) |
+| **実装日時** | 2026-01-02 18:25 JST |
+| **TEST-4BFT結果** | ✅ **12/12 PASS** (Rust) |
+| **TEST-SC状態** | ✅ 作成完了 (19 tests, skip中 - 実装待ち) |
+| **ステータス** | ✅ テスト作成完了、DECEN-001~008実装開始 |
 
-### 対象Component (Governance Layer)
+### テスト作成 (Phase 3.3 Week 9)
 
-| Task ID | Component | 実装内容 | 仕様書準拠 | テスト | PIR | CP-1 |
-|---------|-----------|----------|:----------:|:------:|:---:|:----:|
-| GOV-001 | Governor.sol | Quorum 4%/8%/15%、veQS投票統合、ProposalCategory | ✅ | ✅ | ✅ | ✅ |
-| GOV-002 | Governor.sol | propose/castVote、議論7日+投票7日+Timelock 7日 | ✅ | ✅ | ✅ | ✅ |
-| GOV-003 | Timelock.sol | 7日MIN_DELAY (CP-3)、30日MAX_DELAY、14日GRACE_PERIOD | ✅ | ✅ | ✅ | ✅ |
-| GOV-004 | SecurityCouncil.sol | 9メンバー固定、5/9一時停止、6/9拒否権、7/9緊急アップグレード | ✅ | ✅ | ✅ | ✅ |
-| GOV-005 | EmergencyController.sol | 72時間最大一時停止、veQS投票延長、4%クォーラム | ✅ | ✅ | ✅ | ✅ |
-| GOV-006 | GovernanceIntegration.t.sol | Sequence #7/#8シナリオ、CP-3不変条件、invariantテスト | ✅ | ✅ | ✅ | ✅ |
+| Task ID | ファイル | 内容 | テスト数 | 状態 |
+|---------|----------|------|:-------:|:----:|
+| TEST-4BFT-001~004 | bft_test.rs | 4BFT consensus tests | 12 | ✅ **PASS** |
+| TEST-SC-001~004 | SecurityCouncilElection.t.sol | SC選出・閾値・Term・統合 | 19 | ⏸️ skip |
 
-### Post-PIR CP-1準拠修正 (2026-01-02) ✅
+### Commits
 
-| ファイル | 修正箇所 | コミット |
-|----------|----------|----------|
-| Timelock.sol | `getTransactionHash()`, `getBatchHash()` | 45c41ceb |
-| SecurityCouncil.sol | `proposeAction()` | 33c407bf |
-| EmergencyController.sol | `executeRecovery()` | 6c9725ba |
-
-**結果**: keccak256使用 0箇所（完全排除）、全テスト 42/42 PASS ✅
-
-### PIR-P3.2-004 結果サマリー
-
-| 項目 | 結果 |
-|------|------|
-| **11エージェント投票** | 11/11 GO（全会一致） |
-| **セキュリティレビュー** | ✅ Red Team PASS |
-| **CP準拠** | CP-1~CP-5 全準拠（**CP-1完全量子耐性達成**） |
-| **テスト** | 42/42 PASS |
-| **記録** | [PIR-P3.2-004.md](../aegis/meetings/PIR-P3.2-004.md) |
+| Commit | 内容 |
+|--------|------|
+| `7509be6` | test(consensus): add 4BFT tests (TEST-4BFT-001~004) |
+| `9f43aa4` | test(governance): add SecurityCouncilElection tests (TEST-SC-001~004) |
+| `8e2e53d` | fix(test): correct imports and types in bft_test.rs |
 
 ---
 
@@ -318,6 +345,12 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 ## 📝 PIR記録
 
+### Phase 3.3 PIR一覧
+
+| PIR ID | 対象 | レビュー結果 | 日付 |
+|--------|------|-------------|------|
+| PIR-P3.3-001 | DECEN-001~008 (4BFT + SC基盤) | ⬜ 予定 | Track A Week 1終了後 |
+
 ### Phase 3.2 PIR一覧
 
 | PIR ID | 対象 | レビュー結果 | 日付 |
@@ -360,7 +393,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE + GO 🎉🎉🎉** |
 | **Phase 3.2** | **Implementation** | **100%** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3** | **Decentralize + Testing** | **0%** | ⬜ **ACTIVE** |
+| **Phase 3.3** | **Decentralize + Testing** | **5%** | 🔄 **ACTIVE** |
 | Phase 4 | UI/UX + Audit + Launch | 0% | ⬜ NOT STARTED |
 
 ---
@@ -373,21 +406,28 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 ### Track A: Decentralize Development (19 tasks)
 
-| カテゴリ | タスク数 | 内容 |
-|---------|:-------:|------|
-| 4BFT完成 | 4 | DECEN-001~004 |
-| Security Council選出 | 4 | DECEN-005~008 |
-| Governance ON/OFF | 3 | DECEN-009~011 |
-| Multi-sequencer | 4 | DECEN-012~015 |
-| Inflation/Treasury | 4 | DECEN-016~019 |
+| カテゴリ | タスク数 | 完了 | 内容 |
+|---------|:-------:|:----:|------|
+| 4BFT完成 | 4 | 0 | DECEN-001~004 |
+| Security Council選出 | 4 | 0 | DECEN-005~008 |
+| Governance ON/OFF | 3 | 0 | DECEN-009~011 |
+| Multi-sequencer | 4 | 0 | DECEN-012~015 |
+| Inflation/Treasury | 4 | 0 | DECEN-016~019 |
 
 ### Track B: E2E Testing (10 tasks)
 
-| カテゴリ | タスク数 | 内容 |
-|---------|:-------:|------|
-| 統合テスト | 3 | TEST-001~003 |
-| セキュリティテスト | 3 | TEST-004~006 |
-| Decentralize統合 | 4 | TEST-007~010 |
+| カテゴリ | タスク数 | 完了 | 内容 |
+|---------|:-------:|:----:|------|
+| 統合テスト | 3 | 0 | TEST-001~003 |
+| セキュリティテスト | 3 | 0 | TEST-004~006 |
+| Decentralize統合 | 4 | 0 | TEST-007~010 |
+
+### テスト先行作成 (Week 9)
+
+| カテゴリ | タスク数 | 完了 | 内容 |
+|---------|:-------:|:----:|------|
+| 4BFT Tests | 4 | ✅ 4 | TEST-4BFT-001~004 |
+| SC Tests | 4 | ✅ 4 | TEST-SC-001~004 |
 
 ---
 
@@ -421,7 +461,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **239 PASS** (Rust) + **355 PASS** (Solidity)
+### l3-aegis: ✅ **251 PASS** (Rust) + **355 PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------+----------╮
@@ -429,9 +469,10 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 +================================================================+
 | l3-aegis (Cargo) 既存      | 180    | 0      | 0       | 0        |
 | aegis-sequencer (新規)     |  59    | 0      | 0       | 0 ✅     |
+| **bft_test (新規)**        |  12    | 0      | 0       | 1        |
 | l3-aegis (Foundry) 既存    | 271    | 0      | 0       | -        |
 | veQS/Token (新規)          |  42    | 0      | 0       | -        |
-| Governance (新規)          |  42    | 0      | 130     | -        |
+| Governance (新規)          |  42    | 0      | 149     | -        |
 ╰----------------------------+--------+--------+---------+----------╯
 ```
 
@@ -454,19 +495,22 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | ~~PIR-P3.2-004実施~~ | ~~🔴 P0~~ | ✅ **PASS** |
-| 2 | ~~CP-1準拠修正~~ | ~~🔴 P0~~ | ✅ **完了** |
-| 3 | ~~Phase 3.2 Go/No-Go判定~~ | ~~🔴 P0~~ | ✅ **GO (91.5/100)** 🎉 |
-| 4 | **Phase 3.3開始** | 🔴 **P0** | ⬜ **次** |
+| 1 | ~~テスト作成 (TEST-4BFT, TEST-SC)~~ | ~~🔴 P0~~ | ✅ **完了** |
+| 2 | **DECEN-001~008実装** | 🔴 **P0** | ⬜ **進行中** |
+| 3 | PIR-P3.3-001準備 | 🟠 High | ⬜ 実装完了後 |
 
-### Phase 3.3 開始準備
+### DECEN-001~008 実装計画
 
-| # | タスク | 状態 |
-|---|--------|:----:|
-| 1 | Phase 3.3チェックリスト確認 | ⬜ |
-| 2 | Track A: Decentralize開発開始 | ⬜ |
-| 3 | Track B: E2E Testing開始 | ⬜ |
-| 4 | 外部監査会社選定 | ⬜ |
+| Task ID | 内容 | 優先度 | 予定 |
+|---------|------|:------:|------|
+| DECEN-001 | 4BFT production readiness | 🔴 P0 | Day 1-2 |
+| DECEN-002 | Byzantine fault tolerance検証 | 🔴 P0 | Day 3-4 |
+| DECEN-003 | Leader election & rotation | 🟠 High | Day 5-6 |
+| DECEN-004 | Network partition recovery | 🟠 High | Day 7-8 |
+| DECEN-005 | SC election via veQS | 🔴 P0 | Day 9-10 |
+| DECEN-006 | SC threshold voting | 🔴 P0 | Day 11-12 |
+| DECEN-007 | SC term limits & rotation | 🟠 High | Day 13 |
+| DECEN-008 | SC emergency powers integration | 🟠 High | Day 14 |
 
 ---
 
@@ -478,7 +522,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Phase 2完了 | Month 9 | ✅ **COMPLETE** 🎉 |
 | **Phase 3.1完了** | **Month 10** | ✅ **COMPLETE + GO 🎉🎉🎉** |
 | **Phase 3.2完了** | **Month 11** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3完了** | **Month 14** | ⬜ **ACTIVE** |
+| **Phase 3.3完了** | **Month 14** | 🔄 **ACTIVE** |
 | Phase 4完了 | Month 22 | ⬜ |
 | 外部監査 | Month 19-21 | ⬜ |
 
@@ -501,6 +545,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 │                                                             │
 │  Phase 3.3 (Month 12-14): Decentralize + Testing ← **ACTIVE**│
 │  ├── Track A: Decentralize Development (19 tasks)           │
+│  │   └── Week 9: TEST-4BFT ✅ + TEST-SC ✅ 作成完了         │
 │  └── Track B: E2E Testing (10 tasks)                        │
 │                                                             │
 │  ⚠️ IC-6 (Node Expansion 4→7): 不要（CEO指示 2025-01-01）   │
@@ -546,7 +591,10 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
   - IC-5 veQS Token: ✅ **10/10 COMPLETE + PIR-P3.2-002 PASS** 🎉
   - Governance: ✅ **6/6 COMPLETE + PIR-P3.2-004 PASS + CP-1完全準拠** 🎉🎉🎉
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
-- Phase 3.3 Decentralize + Testing: ⬜ **ACTIVE** ← 次
+- Phase 3.3 Decentralize + Testing: 🔄 **ACTIVE (5%)**
+  - TEST-4BFT-001~004: ✅ **12/12 PASS** 🎉
+  - TEST-SC-001~004: ✅ **作成完了** (skip中)
+  - DECEN-001~008: ⬜ **実装開始** ← 次
 - Phase 4 UI/UX + Audit + Launch: ⬜
 
 ---
