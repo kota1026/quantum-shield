@@ -1,9 +1,9 @@
 # Phase 3 Plan: L3 + Token + Full Decentralization
 
-> **Version**: 1.2  
-> **Date**: 2025-01-01  
-> **Status**: 📋 PLANNING  
-> **Duration**: Month 10 - Month 18 (9 months)
+> **Version**: 1.3  
+> **Date**: 2026-01-02  
+> **Status**: 🔄 ACTIVE  
+> **Duration**: Month 10 - Month 22 (13 months)
 
 ---
 
@@ -11,19 +11,27 @@
 
 Phase 3 extends Quantum Shield from L1 to a full Layer 3 solution with native token economics and complete decentralization. Building on the Phase 2 foundation (ZK-STARK proof system, 834 tests, 71% gas optimization), Phase 3 delivers the L3 infrastructure, veQS governance token, and transition to fully decentralized operations.
 
+### Phase 3 Sub-Phases
+
+| Sub-Phase | Duration | Status | Description |
+|-----------|----------|:------:|-------------|
+| Phase 3.1 | Month 10 | ✅ **COMPLETE** | Foundation (L3 Chain + Contracts) |
+| Phase 3.2 | Month 11 | ✅ **COMPLETE** | Implementation (TOKEN + SEQ + GOV) |
+| Phase 3.3 | Month 12-14 | ⬜ **NEXT** | Decentralize + Full Testing |
+| Phase 4 | Month 15-22 | ⬜ NOT STARTED | UI/UX + Audit + Launch |
+
 ### Phase 3 Objectives
 
-| # | Objective | Priority | Timeframe | IC-ID |
-|---|-----------|----------|-----------|-------|
-| 0 | **L3 Chain Infrastructure (4-node BFT)** | **P0** | **Month 10-12** | **IC-1** |
-| 1 | L3 Bridge Contract | P0 | Month 10-12 | IC-2 |
-| 2 | Sequencer Implementation | P0 | Month 11-13 | IC-3 |
-| 3 | L1↔L3 State Management | P0 | Month 12-14 | IC-4 |
-| 4 | veQS Token Design & Implementation | P1 | Month 13-16 | IC-5 |
-| 5 | L3 Gas Fee Integration | P1 | Month 15-16 | - |
-| 6 | ~~Node Expansion (4→7 nodes)~~ | ~~P1~~ | - | ❌ **不要** |
-
-| 7 | Sepolia L3 E2E Testing | P0 | Month 14-17 | - |
+| # | Objective | Priority | Timeframe | IC-ID | Status |
+|---|-----------|----------|-----------|-------|:------:|
+| 0 | **L3 Chain Infrastructure (4-node BFT)** | **P0** | **Month 10-12** | **IC-1** | ✅ |
+| 1 | L3 Bridge Contract | P0 | Month 10-12 | IC-2 | ✅ |
+| 2 | Sequencer Implementation | P0 | Month 11-13 | IC-3 | ✅ |
+| 3 | L1↔L3 State Management | P0 | Month 12-14 | IC-4 | ✅ |
+| 4 | veQS Token Design & Implementation | P1 | Month 11 | IC-5 | ✅ |
+| 5 | Governance Layer | P1 | Month 11 | - | ✅ |
+| 6 | ~~Node Expansion (4→7 nodes)~~ | ~~P1~~ | - | ❌ **不要** | - |
+| 7 | Decentralize + Testing | P0 | Month 12-14 | - | ⬜ |
 
 > ⚠️ **重要設計変更（2025-01-01 CEO指示）**: IC-6（Node Expansion 4→7）は不要。代替として2本立て設計（Enterprise / Decentralized）を採用。
 >
@@ -33,7 +41,53 @@ Phase 3 extends Quantum Shield from L1 to a full Layer 3 solution with native to
 > | Enterprise | 4ノード固定（全Phase） | 金融系システム会社 |
 > | Decentralized | 4ノード→Permissionless（Phase 4） | DEX、ブリッジ、カストディ |
 
-> **IC Reference**: `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` §Implementation Components
+---
+
+## ⚠️ Phase構成修正 (2026-01-02)
+
+### 修正理由
+
+Phase 3.2 Week 9-10でTEST/AUDITタスクがDecentralize実装の前にスケジュールされていた論理的問題を修正。不完全なシステムをテストできないため、依存関係を正常化。
+
+### 修正後のPhase構成
+
+```
+Phase 3.1 (Month 10): Foundation ✅ COMPLETE
+  ├── Track A: L3 Chain (Rust) - IC-1
+  └── Track B: L3 Contracts (Solidity)
+
+Phase 3.2 (Month 11): Implementation ✅ COMPLETE
+  ├── IC-3: Sequencer (8 tasks)
+  ├── IC-5: veQS Token (10 tasks)
+  └── Governance Layer (6 tasks)
+
+Phase 3.3 (Month 12-14): Decentralize + Full Testing ← NEXT
+  ├── Track A: Decentralize Development (19 tasks)
+  │   ├── 4BFT consensus完成 (DECEN-001~004)
+  │   ├── Security Council veQS選出 (DECEN-005~008)
+  │   ├── Governance Layer ON/OFF (DECEN-009~011)
+  │   ├── Multi-sequencer対応 (DECEN-012~015)
+  │   └── Inflation + Treasury (DECEN-016~019)
+  └── Track B: E2E Testing (10 tasks)
+      ├── 統合テスト (TEST-001~003)
+      ├── セキュリティテスト (TEST-004~006)
+      └── Decentralize統合テスト (TEST-007~010)
+
+Phase 4 (Month 15-22): UI/UX, Audit & Launch Preparation
+  ├── Track C: UI/UX Development (16 tasks)
+  ├── Track D: Audit & Documentation (16 tasks)
+  ├── Track E: Landing Page & Marketing (8 tasks)
+  └── Track F: Launch Preparation (6 tasks)
+```
+
+### 依存関係
+
+| 依存 | 種別 | 理由 |
+|------|------|------|
+| A→B | **REQUIRED** | 不完全なシステムをテストできない |
+| B→C | RECOMMENDED | 安定バックエンドで効率的UI開発 |
+| C→D | RECOMMENDED | 監査にはUI/UXフローも含める |
+| D→E | **REQUIRED** | 監査完了前のマーケティングは時期尚早 |
 
 ---
 
@@ -79,243 +133,147 @@ Phase 3 extends Quantum Shield from L1 to a full Layer 3 solution with native to
 
 ## Component Specifications
 
-### 0. L3 Chain Infrastructure (IC-1) ⭐ NEW
+### 0. L3 Chain Infrastructure (IC-1) ✅ COMPLETE
 
 > **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
 > **Decision**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
 
 **Purpose**: Provide the foundational 4-node BFT blockchain for L3 operations.
 
-| Feature | Description |
-|---------|-------------|
-| Consensus | PBFT variant (f=1, 3/4 quorum) |
-| Block Time | 5 seconds |
-| Nodes | 4 (US-East, EU-West, Asia-SG, Reserve) |
-| Cryptography | Dilithium-III (consensus), SHA3-256 (hashing) |
-| Storage | RocksDB |
-| P2P | Custom TCP + TLS 1.3 + mTLS |
+| Feature | Description | Status |
+|---------|-------------|:------:|
+| Consensus | PBFT variant (f=1, 3/4 quorum) | ✅ |
+| Block Time | 5 seconds | ✅ |
+| Nodes | 4 (US-East, EU-West, Asia-SG, Reserve) | ✅ |
+| Cryptography | Dilithium-III (consensus), SHA3-256 (hashing) | ✅ |
+| Storage | RocksDB | ✅ |
+| P2P | Custom TCP + TLS 1.3 + mTLS | ✅ |
 
-**Key Requirements**:
-- Must use Dilithium-III for all consensus signatures (CP-1)
-- Must use SHA3-256 for all hashing (CP-1)
-- Must record all transactions for transparency (CP-5)
-- Must support membership expansion for Phase 3-4
-
-**Implementation (l3-aegis)**:
-
-```rust
-// Core modules
-l3-aegis/
-├── aegis-consensus/     // PBFT implementation
-├── aegis-crypto/        // Dilithium, SHA3-256
-├── aegis-network/       // P2P, TLS 1.3
-├── aegis-storage/       // RocksDB, SMT
-├── aegis-node/          // Node binary
-└── aegis-cli/           // CLI tools
-```
-
-**Milestones**:
-
-| Milestone | Target | Description |
-|-----------|--------|-------------|
-| L3-INFRA-1 | Month 10 | Single-node dev mode working |
-| L3-INFRA-2 | Month 11 | 4-node local consensus |
-| L3-INFRA-3 | Month 12 | Testnet deployment (4 nodes) |
-
-### 1. L3 Bridge Contract (IC-2)
+### 1. L3 Bridge Contract (IC-2) ✅ COMPLETE
 
 **Purpose**: Facilitate secure asset bridging between L1 and L3.
 
-| Feature | Description |
-|---------|-------------|
-| Deposit | L1→L3 asset transfer with ZK-STARK proof |
-| Withdrawal | L3→L1 with proof and time lock |
-| Message Passing | Arbitrary data L1↔L3 |
-| Fraud Proof | Challenge mechanism for invalid state |
+| Feature | Description | Status |
+|---------|-------------|:------:|
+| Deposit | L1→L3 asset transfer with ZK-STARK proof | ✅ |
+| Withdrawal | L3→L1 with proof and time lock | ✅ |
+| Message Passing | Arbitrary data L1↔L3 | ✅ |
+| Fraud Proof | Challenge mechanism for invalid state | ✅ |
 
-**Key Requirements**:
-- Must integrate with existing L1Vault
-- Must use SHA3-256 for all hashing (CP-1)
-- Must maintain time lock constraints (CP-3)
-- Must support batch operations for gas efficiency
-
-**Interface Draft**:
-```solidity
-interface IL3Bridge {
-    function depositToL3(
-        uint256 amount,
-        bytes32 l3Recipient,
-        bytes calldata dilithiumSignature
-    ) external payable returns (bytes32 depositId);
-    
-    function initiateWithdrawal(
-        bytes32 depositId,
-        uint256 amount,
-        bytes calldata starkProof
-    ) external returns (bytes32 withdrawalId);
-    
-    function finalizeWithdrawal(
-        bytes32 withdrawalId
-    ) external;
-    
-    function verifyStateRoot(
-        bytes32 proposedRoot,
-        bytes calldata starkProof
-    ) external returns (bool);
-}
-```
-
-### 2. Sequencer (IC-3)
+### 2. Sequencer (IC-3) ✅ COMPLETE
 
 **Purpose**: Order and batch L3 transactions for L1 submission.
 
-| Feature | Description |
-|---------|-------------|
-| Transaction Ordering | Deterministic ordering |
-| Batch Creation | Aggregate transactions into batches |
-| State Transition | Compute state transitions |
-| Proof Generation | Generate ZK-STARK proofs |
+| Feature | Description | Status |
+|---------|-------------|:------:|
+| Transaction Ordering | Deterministic ordering | ✅ |
+| Batch Creation | Aggregate transactions into batches | ✅ |
+| State Transition | Compute state transitions | ✅ |
+| Rotation | Multi-sequencer rotation mechanism | ✅ |
 
-**Architecture**:
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Sequencer                                │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │  Mempool    │→ │  Batch      │→ │  Proof Generator    │  │
-│  │  Manager    │  │  Builder    │  │  (ZK-STARK)         │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-│         ↑                                    │               │
-│         │                                    ↓               │
-│  ┌──────┴──────┐                   ┌─────────────────────┐  │
-│  │  RPC Server │                   │  L1 Submitter       │  │
-│  └─────────────┘                   └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Key Requirements**:
-- Decentralization path from day 1 design
-- Support multiple sequencer rotation
-- Economic incentives via veQS staking
-
-### 3. State Management (IC-4)
+### 3. State Management (IC-4) ✅ COMPLETE
 
 **Purpose**: Maintain L3 state with L1 anchoring.
 
-| Component | Description |
-|-----------|-------------|
-| State Tree | Sparse Merkle Tree (SMT) |
-| State Root | SHA3-256 computed root |
-| State Diff | Delta encoding for efficiency |
-| Data Availability | Calldata or alternative DA |
+| Component | Description | Status |
+|-----------|-------------|:------:|
+| State Tree | Sparse Merkle Tree (SMT) | ✅ |
+| State Root | SHA3-256 computed root | ✅ |
+| State Diff | Delta encoding for efficiency | ✅ |
+| Data Availability | Calldata or alternative DA | ✅ |
 
-**State Transition Function**:
-```
-NewState = STF(CurrentState, Transactions)
-Proof = ZK-STARK(CurrentState, NewState, Transactions)
-```
+### 4. veQS Token (IC-5) ✅ COMPLETE
 
----
+**Purpose**: Governance and utility token for Quantum Shield.
 
-## Token Design: veQS (Vote-Escrowed Quantum Shield) (IC-5)
+| Component | Description | Status |
+|-----------|-------------|:------:|
+| QSToken | ERC-20, 1B max supply | ✅ |
+| veQS | Vote-escrowed, 1 week-4 year locks | ✅ |
+| Delegation | Vote delegation mechanism | ✅ |
+| Rewards | Epoch-based reward distribution | ✅ |
+| Vesting | Cliff + linear vesting | ✅ |
 
-### Overview
+### 5. Governance Layer ✅ COMPLETE
 
-veQS is the governance and utility token for Quantum Shield, following the vote-escrowed model for long-term alignment.
+**Purpose**: Decentralized protocol governance.
 
-### Token Economics
-
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| Max Supply | 1,000,000,000 veQS | Fixed cap |
-| Initial Distribution | TBD | Team, investors, community |
-| Vesting Schedule | 4 years | Linear unlock |
-| Lock Duration | 1 week - 4 years | Longer lock = more voting power |
-
-### Utility
-
-| Use Case | Description |
-|----------|-------------|
-| **Governance** | Protocol parameter changes |
-| **Sequencer Staking** | Become a sequencer |
-| **Fee Sharing** | Proportion of L3 fees |
-| **Security Council** | Voting for council members |
-
-### L3 Gas Fee Integration
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Gas Fee Flow                              │
-│                                                              │
-│   User → [L3 Transaction] → Sequencer                       │
-│                   │                                          │
-│                   ↓                                          │
-│   Gas Fee = Base Fee + Priority Fee                          │
-│              (in veQS or ETH)                                │
-│                   │                                          │
-│                   ↓                                          │
-│   Distribution:                                              │
-│   - 70% → Sequencer (execution)                             │
-│   - 20% → veQS Stakers (security)                           │
-│   - 10% → Treasury (development)                            │
-└─────────────────────────────────────────────────────────────┘
-```
+| Component | Description | Status |
+|-----------|-------------|:------:|
+| Governor | Proposal + Voting (4%/8%/15% quorum) | ✅ |
+| Timelock | 7-day minimum delay (CP-3) | ✅ |
+| SecurityCouncil | 9 members, 5/9/6/9/7/9 thresholds | ✅ |
+| EmergencyController | 72-hour max pause | ✅ |
 
 ---
 
-## Node Expansion: 4→7 Nodes (IC-6) ⭐ NEW
+## Phase 3.3: Decentralize + Full Testing
 
-> **Reference**: `docs/aegis/L3_CHAIN_SPECIFICATION.md` §9
-> **Reference**: `docs/planning/DEVELOPMENT_STRATEGY_v2.0.md` §3
+> **Checklist**: `docs/checklists/phase3.3.md`
+> **Duration**: Month 12-14 (6 weeks)
 
-### Purpose
+### Track A: Decentralize Development (19 tasks)
 
-Expand L3 from 4 nodes to 7 nodes for increased decentralization and fault tolerance.
+| Category | Tasks | Description |
+|----------|:-----:|-------------|
+| 4BFT完成 | 4 | DECEN-001~004: Finality確定、Block synchronization、Leader rotation |
+| SC選出 | 4 | DECEN-005~008: veQS-based voting、Nomination、Election |
+| Gov ON/OFF | 3 | DECEN-009~011: Mode transition、State migration |
+| Multi-seq | 4 | DECEN-012~015: Sequencer registration、Rotation mechanism |
+| Inflation | 4 | DECEN-016~019: Treasury、5%→1% inflation curve |
 
-### Expansion Plan
+### Track B: E2E Testing (10 tasks)
 
-| Phase | Nodes | Fault Tolerance | Quorum | Target |
-|-------|-------|-----------------|--------|--------|
-| Phase 1-2 | 4 | f=1 | 3/4 (75%) | Month 10-15 |
-| Phase 3 | 7 | f=2 | 5/7 (71%) | Month 16-18 |
+| Category | Tasks | Description |
+|----------|:-----:|-------------|
+| 統合テスト | 3 | TEST-001~003: E2E scenarios、Fuzz testing、Gas verification |
+| セキュリティ | 3 | TEST-004~006: Slither、Red Team、4BFT security audit |
+| Decen統合 | 4 | TEST-007~010: Multi-sequencer E2E、SC election E2E |
 
-### New Node Requirements
+---
 
-| Node | Region | Operator | Selection |
-|------|--------|----------|-----------|
-| Node 5 | LATAM | Partner | SC Approval |
-| Node 6 | MENA | Partner | SC Approval |
-| Node 7 | ANZ | Partner | SC Approval |
+## Phase 4: UI/UX + Audit + Launch
 
-### Technical Changes
+> **Checklist**: `docs/checklists/phase4.md`
+> **Duration**: Month 15-22 (8 weeks)
 
-```rust
-// Membership expansion
-pub struct CouncilMembershipManager {
-    nodes: Vec<NodeConfig>,
-    council: SecurityCouncil,
-    pending_additions: Vec<PendingNode>,
-}
+### Track C: UI/UX Development (16 tasks)
 
-impl CouncilMembershipManager {
-    pub fn propose_node(&mut self, node: NodeConfig) -> ProposalId;
-    pub fn approve_node(&mut self, proposal_id: ProposalId) -> Result<()>;
-    pub fn activate_node(&mut self, node_id: NodeId) -> Result<()>;
-}
-```
+| Category | Tasks | Description |
+|----------|:-----:|-------------|
+| Prover UI | 4 | Prover dashboard、Registration、Monitoring |
+| Provider UI | 4 | Provider portal、Liquidity management |
+| User UI | 4 | Bridge UI、Transaction history、Wallet integration |
+| Governance UI | 4 | Voting interface、Proposal creation |
 
-### Milestones
+### Track D: Audit & Documentation (16 tasks)
 
-| Milestone | Target | Description |
-|-----------|--------|-------------|
-| NODE-EXP-1 | Month 16 | Council membership implementation |
-| NODE-EXP-2 | Month 17 | Partner onboarding (3 nodes) |
-| NODE-EXP-3 | Month 18 | 7-node consensus live |
+| Category | Tasks | Description |
+|----------|:-----:|-------------|
+| 監査資料 | 4 | Architecture docs、Security model、Attack surface |
+| 技術文書 | 4 | API docs、SDK docs、Integration guide、Whitepaper |
+| 外部監査 | 4 | RFP、Selection、Execution、Feedback remediation |
+| Bug Bounty | 4 | Scope definition、Reward structure、Platform setup |
+
+### Track E: Landing Page & Marketing (8 tasks)
+
+| Category | Tasks | Description |
+|----------|:-----:|-------------|
+| Landing | 4 | Design、Implementation、SEO、Analytics |
+| Marketing | 4 | Content strategy、Social media、Press kit |
+
+### Track F: Launch Preparation (6 tasks)
+
+| Category | Tasks | Description |
+|----------|:-----:|-------------|
+| Deploy | 3 | Mainnet contracts、L3 nodes、Monitoring |
+| Operations | 3 | Runbook、Incident response、SLA definition |
 
 ---
 
 ## Full Decentralization Roadmap
 
-### Stage 1: Training Wheels (Month 10-14)
+### Stage 1: Training Wheels (Month 10-12) ✅ COMPLETE
 
 | Item | Status |
 |------|--------|
@@ -325,7 +283,7 @@ impl CouncilMembershipManager {
 | Emergency Actions | Team authorized |
 | **L3 Nodes** | **4 nodes (QS operated)** |
 
-### Stage 2: Limited Decentralization (Month 14-16)
+### Stage 2: Limited Decentralization (Month 12-14) ← NEXT
 
 | Item | Status |
 |------|--------|
@@ -335,7 +293,7 @@ impl CouncilMembershipManager {
 | Emergency Actions | Council + time lock |
 | **L3 Nodes** | **4 nodes (preparing expansion)** |
 
-### Stage 3: Full Decentralization (Month 16-18)
+### Stage 3: Full Decentralization (Month 15-22)
 
 | Item | Status |
 |------|--------|
@@ -349,129 +307,47 @@ impl CouncilMembershipManager {
 
 ## Development Milestones
 
-### Month 10-11: L3 Foundation
+### Month 10-11: L3 Foundation ✅ COMPLETE
 
-- [ ] **L3 Chain Infrastructure v0.1 (IC-1)**
-  - [ ] Single-node dev mode
-  - [ ] Basic PBFT implementation
-  - [ ] Dilithium consensus signatures
-- [ ] L3 Bridge Contract v0.1 (IC-2)
-- [ ] Basic Sequencer implementation (IC-3)
-- [ ] State tree structure (IC-4)
-- [ ] Internal testing framework
+- [x] **L3 Chain Infrastructure v1.0 (IC-1)**
+- [x] L3 Bridge Contract v1.0 (IC-2)
+- [x] Sequencer implementation (IC-3)
+- [x] State tree structure (IC-4)
+- [x] veQS token contract (IC-5)
+- [x] Governance Layer
 
-### Month 12-13: Core Integration
+### Month 12-14: Decentralize + Testing (Phase 3.3) ⬜ NEXT
 
-- [ ] **L3 Chain Infrastructure v1.0 (IC-1)**
-  - [ ] 4-node local consensus
-  - [ ] RocksDB storage
-  - [ ] P2P networking
-- [ ] L3 Bridge v1.0 (IC-2)
-- [ ] Sequencer batch processing (IC-3)
-- [ ] L1↔L3 message passing
-- [ ] State proof generation (IC-4)
-
-### Month 14-15: Token & Testing
-
-- [ ] veQS token contract (IC-5)
-- [ ] Staking mechanism
-- [ ] Sepolia L3 deployment
-- [ ] E2E testing framework
-
-### Month 16-17: Node Expansion & Decentralization
-
-- [ ] **Council membership implementation (IC-6)**
-- [ ] **Partner node onboarding (3 new nodes)**
+- [ ] 4BFT consensus completion
+- [ ] Security Council veQS election
+- [ ] Governance Layer ON/OFF transition
 - [ ] Multi-sequencer support
-- [ ] Governance contracts
-- [ ] Security Council transition
-- [ ] Fee distribution
+- [ ] E2E testing framework
+- [ ] Security testing
 
-### Month 18: Phase 3 Close
+### Month 15-22: UI/UX + Audit + Launch (Phase 4) ⬜
 
-- [ ] **7-node consensus live (IC-6)**
-- [ ] Full E2E on Sepolia
-- [ ] Documentation complete
-- [ ] Phase 4 handoff
-- [ ] PIR final review
+- [ ] UI/UX development
+- [ ] External security audit
+- [ ] Bug Bounty program
+- [ ] Documentation completion
+- [ ] Mainnet preparation
 
 ---
 
 ## Success Criteria
 
-| Criteria | Target | IC-ID |
-|----------|--------|-------|
-| L3 Chain Operational | 4 nodes running, <10s blocks | IC-1 |
-| L3 Bridge Functional | L1↔L3 deposit/withdraw | IC-2 |
-| Sequencer Operating | 99% uptime on testnet | IC-3 |
-| State Proofs | ZK-STARK verified on L1 | IC-4 |
-| veQS Token | Deployed and staking active | IC-5 |
-| Node Expansion | 7 nodes operational | IC-6 |
-| Test Coverage | >800 tests passing | - |
-| Sepolia L3 E2E | Complete flow success | - |
-| Decentralization | Stage 3 achieved | - |
-
----
-
-## Risk Assessment
-
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| **L3 chain complexity underestimated** | 🔴 High | 🟡 Medium | Reference L3_CHAIN_SPECIFICATION.md |
-| L3 bridge complexity underestimated | 🔴 High | 🟡 Medium | Reference existing L3 implementations |
-| Sequencer centralization | 🟡 Medium | 🟢 Low | Design decentralization from start |
-| Token regulatory issues | 🟡 Medium | 🟡 Medium | Legal consultation |
-| Gas costs on L1 | 🟡 Medium | 🟢 Low | Batch optimization (Phase 2 71%) |
-| Security vulnerabilities | 🔴 High | 🟢 Low | Continue PIR process |
-| **Node expansion delays** | 🟡 Medium | 🟡 Medium | Early partner engagement |
-
----
-
-## Resource Requirements
-
-### Development
-
-| Role | Count | Duration |
-|------|-------|----------|
-| **Rust Engineers (L3 Chain)** | **2** | **9 months** |
-| Smart Contract Engineers | 2 | 9 months |
-| Backend Engineers (Sequencer) | 2 | 6 months |
-| Security Engineers | 1 | 9 months |
-| DevOps | 1 | 6 months |
-
-### Infrastructure
-
-| Item | Purpose |
-|------|---------|
-| **L3 Testnet Nodes (4)** | **L3 chain testing** |
-| Sepolia L3 | Testing environment |
-| Sequencer Servers | 3+ for decentralization |
-| Monitoring | 24/7 uptime tracking |
-| CI/CD | GitHub Actions extension |
-
----
-
-## Integration with Phase 2
-
-### Assets Inherited
-
-| Asset | Status | Usage |
-|-------|--------|-------|
-| L1Vault | ✅ Deployed | L3 Bridge integration |
-| STARKVerifier | ✅ Deployed | L3 proof verification |
-| BatchVerifier | ✅ Deployed | Batch proof processing |
-| Test Suite | ✅ 834 tests | Extend for L3 |
-| PIR Process | ✅ 13 reviews | Continue for L3 |
-
-### Compatibility Requirements
-
-| Requirement | Description | IC-ID |
-|-------------|-------------|-------|
-| CP-1 Compliance | SHA3-256 only in L3 | IC-1 |
-| CP-2 Self-Custody | User key management | IC-2 |
-| CP-3 Time Lock | L3→L1 withdrawals | IC-2 |
-| CP-4 Slashing | Sequencer misbehavior | IC-3 |
-| CP-5 Transparency | All on-chain verifiable | IC-1 |
+| Criteria | Target | Status |
+|----------|--------|:------:|
+| L3 Chain Operational | 4 nodes running, <10s blocks | ✅ |
+| L3 Bridge Functional | L1↔L3 deposit/withdraw | ✅ |
+| Sequencer Operating | 99% uptime on testnet | ✅ |
+| veQS Token | Deployed and staking active | ✅ |
+| Governance Layer | All contracts deployed | ✅ |
+| CP-1 Compliance | keccak256 = 0 | ✅ |
+| Test Coverage | >500 tests passing | ✅ (594) |
+| Decentralization | Stage 2 achieved | ⬜ |
+| External Audit | Passed | ⬜ |
 
 ---
 
@@ -482,32 +358,10 @@ impl CouncilMembershipManager {
 | Core Principles | `docs/constitution/CORE_PRINCIPLES.md` | Immutable constraints |
 | **L3 Chain Specification** | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | **IC-1 details, 2本立て設計** |
 | **L3 Infrastructure Decision** | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | **Technical decisions** |
-| **Development Strategy** | `docs/planning/DEVELOPMENT_STRATEGY_v2.0.md` | **2-track strategy** |
+| **Phase 3.2 Checklist** | `docs/checklists/phase3.2.md` | Implementation tasks |
+| **Phase 3.3 Checklist** | `docs/checklists/phase3.3.md` | Decentralize + Testing tasks |
+| **Phase 4 Checklist** | `docs/checklists/phase4.md` | UI/UX + Audit + Launch tasks |
 | **Spec-Strategy Bridge** | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | **IC traceability** |
-| L3 Strategy (Draft) | `docs/planning/L3_STRATEGY.md` | Legacy reference |
-| Phase 2 Report | `docs/planning/PHASE2_COMPLETION_REPORT.md` | Baseline |
-| Phase Restructure | `docs/planning/PHASE_RESTRUCTURE.md` | Phase definitions |
-
----
-
-## Next Steps
-
-1. **Month 10 Kickoff**
-   - [ ] **L3 Chain Infrastructure specification review (IC-1)**
-   - [ ] L3 Bridge specification review (IC-2)
-   - [ ] Sequencer architecture design (IC-3)
-   - [ ] Team resource allocation
-
-2. **Infrastructure Setup**
-   - [ ] **L3 testnet environment (4 nodes)**
-   - [ ] Sepolia L3 environment
-   - [ ] CI/CD extension for L3
-   - [ ] Monitoring setup
-
-3. **Development Start**
-   - [ ] **l3-aegis single-node mode (IC-1)**
-   - [ ] L3 Bridge v0.1 implementation (IC-2)
-   - [ ] Unit test framework for L3
 
 ---
 
@@ -518,10 +372,11 @@ impl CouncilMembershipManager {
 | 1.0 | 2025-12-28 | Initial draft |
 | 1.1 | 2025-12-29 | Add IC-1 (L3 Chain Infrastructure), IC-6 (Node Expansion), IC references throughout |
 | 1.2 | 2025-01-01 | ❌ IC-6不要（CEO指示）、2本立て設計（Enterprise/Decentralized）追加 |
+| 1.3 | 2026-01-02 | Phase構成修正（3.3 Decentralize+Testing分離、Phase 4追加）、依存関係明記 |
 
 ---
 
-**Phase 3 Status: 📋 PLANNING - Ready for Execution**
+**Phase 3 Status: 🔄 ACTIVE - Phase 3.2 Complete, Phase 3.3 Next**
 
 ---
 
