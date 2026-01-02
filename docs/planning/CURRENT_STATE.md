@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-02 09:15 JST  
+> **Last Updated**: 2026-01-02 09:20 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -14,7 +14,8 @@
 │  Month: 11 / 24                                             │
 │  Active Checklist: docs/checklists/phase3.2.md              │
 │  Active Task: Week 9-10 監査準備 (TEST/AUDIT)               │
-│  Status: ✅ GOV-001~006 + PIR-P3.2-004 PASS 🎉🎉🎉         │
+│  Status: ✅ GOV-001~006 + PIR-P3.2-004 PASS                 │
+│          ✅ CP-1完全準拠達成 (keccak256完全排除) 🎉🎉🎉     │
 │  Tests: ✅ 239/239 PASS (Rust) + 355/355 PASS (Solidity)    │
 │  Warnings: ✅ 0 (aegis-sequencer clean)                     │
 │  次のPIR ID: PIR-P3.2-005 (Week 9-10後)                     │
@@ -142,18 +143,29 @@
 | **対象Plan** | Phase 3.2 Week 7-8 Governance実装 (GOV-001~GOV-006) |
 | **実装日時** | 2026-01-02 01:10 JST |
 | **PIR結果** | ✅ **PIR-P3.2-004 PASS** (11/11 GO, 全会一致) 🎉 |
-| **ステータス** | ✅ **GOV-001~006全完了、テストPASS 42/42、PIR PASS** 🎉🎉🎉 |
+| **Post-PIR修正** | ✅ **CP-1完全準拠達成** (keccak256→SHA3Hasher.hash()) 🎉 |
+| **ステータス** | ✅ **GOV-001~006全完了、テストPASS 42/42、CP-1完全準拠** 🎉🎉🎉 |
 
 ### 対象Component (Governance Layer)
 
-| Task ID | Component | 実装内容 | 仕様書準拠 | テスト | PIR |
-|---------|-----------|----------|:----------:|:------:|:---:|
-| GOV-001 | Governor.sol | Quorum 4%/8%/15%、veQS投票統合、ProposalCategory | ✅ | ✅ | ✅ |
-| GOV-002 | Governor.sol | propose/castVote、議論7日+投票7日+Timelock 7日 | ✅ | ✅ | ✅ |
-| GOV-003 | Timelock.sol | 7日MIN_DELAY (CP-3)、30日MAX_DELAY、14日GRACE_PERIOD | ✅ | ✅ | ✅ |
-| GOV-004 | SecurityCouncil.sol | 9メンバー固定、5/9一時停止、6/9拒否権、7/9緊急アップグレード | ✅ | ✅ | ✅ |
-| GOV-005 | EmergencyController.sol | 72時間最大一時停止、veQS投票延長、4%クォーラム | ✅ | ✅ | ✅ |
-| GOV-006 | GovernanceIntegration.t.sol | Sequence #7/#8シナリオ、CP-3不変条件、invariantテスト | ✅ | ✅ | ✅ |
+| Task ID | Component | 実装内容 | 仕様書準拠 | テスト | PIR | CP-1 |
+|---------|-----------|----------|:----------:|:------:|:---:|:----:|
+| GOV-001 | Governor.sol | Quorum 4%/8%/15%、veQS投票統合、ProposalCategory | ✅ | ✅ | ✅ | ✅ |
+| GOV-002 | Governor.sol | propose/castVote、議論7日+投票7日+Timelock 7日 | ✅ | ✅ | ✅ | ✅ |
+| GOV-003 | Timelock.sol | 7日MIN_DELAY (CP-3)、30日MAX_DELAY、14日GRACE_PERIOD | ✅ | ✅ | ✅ | ✅ |
+| GOV-004 | SecurityCouncil.sol | 9メンバー固定、5/9一時停止、6/9拒否権、7/9緊急アップグレード | ✅ | ✅ | ✅ | ✅ |
+| GOV-005 | EmergencyController.sol | 72時間最大一時停止、veQS投票延長、4%クォーラム | ✅ | ✅ | ✅ | ✅ |
+| GOV-006 | GovernanceIntegration.t.sol | Sequence #7/#8シナリオ、CP-3不変条件、invariantテスト | ✅ | ✅ | ✅ | ✅ |
+
+### Post-PIR CP-1準拠修正 (2026-01-02) ✅
+
+| ファイル | 修正箇所 | コミット |
+|----------|----------|----------|
+| Timelock.sol | `getTransactionHash()`, `getBatchHash()` | 45c41ceb |
+| SecurityCouncil.sol | `proposeAction()` | 33c407bf |
+| EmergencyController.sol | `executeRecovery()` | 6c9725ba |
+
+**結果**: keccak256使用 0箇所（完全排除）、全テスト 42/42 PASS ✅
 
 ### PIR-P3.2-004 結果サマリー
 
@@ -161,7 +173,7 @@
 |------|------|
 | **11エージェント投票** | 11/11 GO（全会一致） |
 | **セキュリティレビュー** | ✅ Red Team PASS |
-| **CP準拠** | CP-1~CP-5 全準拠 |
+| **CP準拠** | CP-1~CP-5 全準拠（**CP-1完全量子耐性達成**） |
 | **テスト** | 42/42 PASS |
 | **記録** | [PIR-P3.2-004.md](../aegis/meetings/PIR-P3.2-004.md) |
 
@@ -225,7 +237,7 @@
 | PIR-P3.2-001 | TOKEN-001~003, SEQ-001~002 | ✅ **PASS** 🎉 | 2026-01-01 |
 | PIR-P3.2-002 | TOKEN-004~010 + バグ修正 + CP-1修正 | ✅ **PASS** 🎉 | 2026-01-01 |
 | PIR-P3.2-003 | SEQ-003~008 Sequencer実装 | ✅ **PASS** 🎉 | 2026-01-01 |
-| PIR-P3.2-004 | GOV-001~006 Governance実装 | ✅ **PASS** 🎉🎉🎉 | 2026-01-02 |
+| PIR-P3.2-004 | GOV-001~006 Governance実装 + CP-1修正 | ✅ **PASS** 🎉🎉🎉 | 2026-01-02 |
 
 **Phase 3.2 PIR完了: 4/4 PASS** ✅🎉
 
@@ -327,16 +339,16 @@
 **コードクリーンアップ**: 
 - コンパイラ警告全削除完了 (b3626b7, 0cccac2, 3bc1bb6, 2e0f763) ✅
 
-### Week 7-8: Governance Layer ✅ **COMPLETE + PIR-P3.2-004 PASS** 🎉🎉🎉
+### Week 7-8: Governance Layer ✅ **COMPLETE + PIR-P3.2-004 PASS + CP-1完全準拠** 🎉🎉🎉
 
-| # | タスク | IC | 状態 | PIR |
-|---|--------|-----|:----:|-----|
-| GOV-001 | Proposal System拡張 | - | ✅ | ✅ PIR-P3.2-004 |
-| GOV-002 | Voting機構強化 | - | ✅ | ✅ PIR-P3.2-004 |
-| GOV-003 | Timelock統合 | - | ✅ | ✅ PIR-P3.2-004 |
-| GOV-004 | SecurityCouncil実装 | - | ✅ | ✅ PIR-P3.2-004 |
-| GOV-005 | EmergencyController実装 | - | ✅ | ✅ PIR-P3.2-004 |
-| GOV-006 | Governance統合テスト | - | ✅ | ✅ PIR-P3.2-004 |
+| # | タスク | IC | 状態 | PIR | CP-1 |
+|---|--------|-----|:----:|-----|:----:|
+| GOV-001 | Proposal System拡張 | - | ✅ | ✅ PIR-P3.2-004 | ✅ |
+| GOV-002 | Voting機構強化 | - | ✅ | ✅ PIR-P3.2-004 | ✅ |
+| GOV-003 | Timelock統合 | - | ✅ | ✅ PIR-P3.2-004 | ✅ |
+| GOV-004 | SecurityCouncil実装 | - | ✅ | ✅ PIR-P3.2-004 | ✅ |
+| GOV-005 | EmergencyController実装 | - | ✅ | ✅ PIR-P3.2-004 | ✅ |
+| GOV-006 | Governance統合テスト | - | ✅ | ✅ PIR-P3.2-004 | ✅ |
 
 **実装完了 (2026-01-02)**:
 - Governor.sol VOTING_DELAY=7日修正（仕様書準拠）✅
@@ -345,6 +357,12 @@
 - EmergencyController.sol + IEmergencyController.sol (72時間最大一時停止) ✅
 - 全テスト: 42/42 PASS (Governor: 26, Integration: 16) ✅
 - **PIR-P3.2-004: 11/11 GO（全会一致）** 🎉
+
+**Post-PIR CP-1準拠修正 (2026-01-02)** 🎉:
+- Timelock.sol: keccak256 → SHA3Hasher.hash() (45c41ceb)
+- SecurityCouncil.sol: keccak256 → SHA3Hasher.hash() (33c407bf)
+- EmergencyController.sol: keccak256 → SHA3Hasher.hash() (6c9725ba)
+- **結果**: keccak256使用 0箇所、**CP-1完全準拠達成** ✅
 
 ### Week 9-10: 監査準備 🔄 **ACTIVE**
 
@@ -461,9 +479,10 @@
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
 | 1 | ~~PIR-P3.2-004実施~~ | ~~🔴 P0~~ | ✅ **PASS** |
-| 2 | **Week 9-10 監査準備開始** | 🔴 **P0** | ⬜ **次** |
-| 3 | TEST-001~005 統合テスト | 🟠 High | ⬜ |
-| 4 | AUDIT-001~003 監査準備 | 🟠 High | ⬜ |
+| 2 | ~~CP-1準拠修正 (keccak256→SHA3Hasher.hash())~~ | ~~🔴 P0~~ | ✅ **完了** |
+| 3 | **Week 9-10 監査準備開始** | 🔴 **P0** | ⬜ **次** |
+| 4 | TEST-001~005 統合テスト | 🟠 High | ⬜ |
+| 5 | AUDIT-001~003 監査準備 | 🟠 High | ⬜ |
 
 ### Week 9-10 タスク（監査準備）
 
@@ -504,7 +523,7 @@
 │  Phase 3.2 (Month 11-15): Implementation ← 🔄 **ACTIVE**    │
 │  ├── IC-3: Sequencer (SEQ-001〜008) - ✅ **8/8+PIR** 🎉     │
 │  ├── IC-5: veQS Token (TOKEN-001〜010) - ✅ **10/10+PIR** 🎉│
-│  ├── Governance Layer (GOV-001〜006) - ✅ **6/6+PIR** 🎉🎉🎉│
+│  ├── Governance Layer (GOV-001〜006) - ✅ **6/6+PIR+CP-1** 🎉│
 │  └── Audit Prep (AUDIT-001〜003) - ⬜ Week 9-10 対応予定    │
 │                                                             │
 │  Phase 3.3 (Month 16-18): Testing & Launch                  │
@@ -546,7 +565,7 @@
   - DOC: ✅ 4/4
   - IC-3 Sequencer: ✅ **8/8 COMPLETE + PIR-P3.2-003 PASS** 🎉
   - IC-5 veQS Token: ✅ **10/10 COMPLETE + PIR-P3.2-002 PASS** 🎉
-  - Governance: ✅ **6/6 COMPLETE + PIR-P3.2-004 PASS** 🎉🎉🎉
+  - Governance: ✅ **6/6 COMPLETE + PIR-P3.2-004 PASS + CP-1完全準拠** 🎉🎉🎉
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
   - Audit Prep: ⬜ Week 9-10
 - Phase 3.3 Testing & Launch: ⬜
