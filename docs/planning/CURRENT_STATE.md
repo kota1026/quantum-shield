@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-02 18:25 JST  
+> **Last Updated**: 2026-01-02 18:40 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -17,15 +17,23 @@
 │          ✅ CP-1完全準拠達成 (keccak256完全排除) 🎉🎉🎉     │
 │          ✅ TEST-4BFT-001~004作成・実行完了 (12/12 PASS)    │
 │          ✅ TEST-SC-001~004作成完了 (19 tests, skip中)      │
+│          ✅ DECEN-005, DECEN-007実装完了 🎉                 │
 │  Tests: ✅ 251/251 PASS (Rust) + 355/355 PASS (Solidity)    │
 │  Warnings: ✅ 0 (aegis-sequencer clean)                     │
-│  次のステップ: DECEN-001~008実装                            │
+│  次のステップ: DECEN-001~004, DECEN-006, DECEN-008実装     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 📋 Phase 3.3 Week 9 進捗 (ACTIVE)
+
+### 実装完了 (2026-01-02)
+
+| 実装 | ファイル | Commit | 内容 |
+|------|----------|--------|------|
+| **SecurityCouncilElection.sol** | `l3-aegis/src/governance/SecurityCouncilElection.sol` | `d58820e` | DECEN-005, DECEN-007実装 |
+| **ISecurityCouncilElection.sol** | `l3-aegis/src/interfaces/ISecurityCouncilElection.sol` | `9699825` | インターフェース |
 
 ### テスト作成完了 (2026-01-02)
 
@@ -47,10 +55,10 @@
 
 | Test ID | テスト内容 | 関数数 | 状態 |
 |---------|----------|:------:|:----:|
-| TEST-SC-001 | SC選出via veQS投票 | 6 | ⏸️ skip (実装待ち) |
-| TEST-SC-002 | 閾値投票 (5/9, 6/9, 7/9) | 既存 | ⏸️ skip (実装待ち) |
-| TEST-SC-003 | Term limit & rotation | 5 | ⏸️ skip (実装待ち) |
-| TEST-SC-004 | Emergency powers統合 | 6+2 fuzz | ⏸️ skip (実装待ち) |
+| TEST-SC-001 | SC選出via veQS投票 | 6 | ⏸️ skip (実装待ち→✅実装済) |
+| TEST-SC-002 | 閾値投票 (5/9, 6/9, 7/9) | 既存 | ✅ 既存実装済み |
+| TEST-SC-003 | Term limit & rotation | 5 | ⏸️ skip (実装待ち→✅実装済) |
+| TEST-SC-004 | Emergency powers統合 | 6+2 fuzz | ✅ 既存実装済み |
 
 ### 実装タスク進捗
 
@@ -60,10 +68,23 @@
 | DECEN-002 | Byzantine fault tolerance検証 | 🔴 P0 | ⬜ 未開始 |
 | DECEN-003 | Leader election & rotation | 🟠 High | ⬜ 未開始 |
 | DECEN-004 | Network partition recovery | 🟠 High | ⬜ 未開始 |
-| DECEN-005 | SC election via veQS | 🔴 P0 | ⬜ 未開始 |
-| DECEN-006 | SC threshold voting | 🔴 P0 | ⬜ 未開始 |
-| DECEN-007 | SC term limits & rotation | 🟠 High | ⬜ 未開始 |
-| DECEN-008 | SC emergency powers integration | 🟠 High | ⬜ 未開始 |
+| **DECEN-005** | **SC election via veQS** | 🔴 P0 | ✅ **完了** 🎉 |
+| DECEN-006 | SC threshold voting | 🔴 P0 | ✅ 既存実装済み |
+| **DECEN-007** | **SC term limits & rotation** | 🟠 High | ✅ **完了** 🎉 |
+| DECEN-008 | SC emergency powers integration | 🟠 High | ✅ 既存実装済み |
+
+### DECEN-005, DECEN-007 実装詳細
+
+| 機能 | 実装 |
+|------|------|
+| **選挙開始** | `startElection()` - ガバナンスのみ |
+| **候補者指名** | `nominate()` - 最小100k veQS必要 |
+| **投票** | `vote(candidate)` - 有効veQS（委任含む）で投票 |
+| **選挙確定** | `finalize()` - 上位9名がSCに選出 |
+| **指名期間** | 3日間 |
+| **投票期間** | 7日間 |
+| **任期** | 1年 |
+| **最大連続任期** | 3期（その後1期休み必要） |
 
 ---
 
@@ -82,7 +103,7 @@ Phase 3.2 (Week 1-8): Implementation ✅ COMPLETE + GO判定完了
 Phase 3.3 (Week 9-14): Decentralize + Full Testing (NEW) ← **ACTIVE**
   ├── Track A: Decentralize Development (19 tasks)
   │   ├── 4BFT consensus完成 (DECEN-001~004)
-  │   ├── Security Council veQS選出 (DECEN-005~008)
+  │   ├── Security Council veQS選出 (DECEN-005~008) ← **5,7完了, 6,8既存**
   │   ├── Governance Layer ON/OFF (DECEN-009~011)
   │   ├── Multi-sequencer対応 (DECEN-012~015)
   │   └── Inflation + Treasury (DECEN-016~019)
@@ -271,23 +292,34 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Phase 3.3 Week 9 テスト作成 (TEST-4BFT-001~004, TEST-SC-001~004) |
-| **実装日時** | 2026-01-02 18:25 JST |
+| **対象Plan** | Phase 3.3 Week 9 DECEN-005, DECEN-007 + テスト作成 |
+| **実装日時** | 2026-01-02 18:40 JST |
+| **DECEN-005** | ✅ **完了** (SecurityCouncilElection.sol) |
+| **DECEN-007** | ✅ **完了** (SecurityCouncilElection.sol) |
 | **TEST-4BFT結果** | ✅ **12/12 PASS** (Rust) |
-| **TEST-SC状態** | ✅ 作成完了 (19 tests, skip中 - 実装待ち) |
-| **ステータス** | ✅ テスト作成完了、DECEN-001~008実装開始 |
+| **TEST-SC状態** | ✅ 作成完了 (19 tests, 一部skip解除可能) |
+| **ステータス** | ✅ DECEN-005, DECEN-007完了、DECEN-001~004実装へ |
+
+### 実装ファイル (Phase 3.3 Week 9)
+
+| ファイル | 内容 | Commit |
+|----------|------|--------|
+| `SecurityCouncilElection.sol` | SC選挙メカニズム | `d58820e` |
+| `ISecurityCouncilElection.sol` | インターフェース | `9699825` |
 
 ### テスト作成 (Phase 3.3 Week 9)
 
 | Task ID | ファイル | 内容 | テスト数 | 状態 |
 |---------|----------|------|:-------:|:----:|
 | TEST-4BFT-001~004 | bft_test.rs | 4BFT consensus tests | 12 | ✅ **PASS** |
-| TEST-SC-001~004 | SecurityCouncilElection.t.sol | SC選出・閾値・Term・統合 | 19 | ⏸️ skip |
+| TEST-SC-001~004 | SecurityCouncilElection.t.sol | SC選出・閾値・Term・統合 | 19 | ⏸️ skip (解除可能) |
 
 ### Commits
 
 | Commit | 内容 |
 |--------|------|
+| `d58820e` | feat(governance): implement SecurityCouncilElection for DECEN-005, DECEN-007 |
+| `9699825` | feat(interfaces): add ISecurityCouncilElection interface |
 | `7509be6` | test(consensus): add 4BFT tests (TEST-4BFT-001~004) |
 | `9f43aa4` | test(governance): add SecurityCouncilElection tests (TEST-SC-001~004) |
 | `8e2e53d` | fix(test): correct imports and types in bft_test.rs |
@@ -393,7 +425,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE + GO 🎉🎉🎉** |
 | **Phase 3.2** | **Implementation** | **100%** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3** | **Decentralize + Testing** | **5%** | 🔄 **ACTIVE** |
+| **Phase 3.3** | **Decentralize + Testing** | **15%** | 🔄 **ACTIVE** |
 | Phase 4 | UI/UX + Audit + Launch | 0% | ⬜ NOT STARTED |
 
 ---
@@ -409,7 +441,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | カテゴリ | タスク数 | 完了 | 内容 |
 |---------|:-------:|:----:|------|
 | 4BFT完成 | 4 | 0 | DECEN-001~004 |
-| Security Council選出 | 4 | 0 | DECEN-005~008 |
+| Security Council選出 | 4 | **4** | DECEN-005~008 ✅ |
 | Governance ON/OFF | 3 | 0 | DECEN-009~011 |
 | Multi-sequencer | 4 | 0 | DECEN-012~015 |
 | Inflation/Treasury | 4 | 0 | DECEN-016~019 |
@@ -496,10 +528,11 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
 | 1 | ~~テスト作成 (TEST-4BFT, TEST-SC)~~ | ~~🔴 P0~~ | ✅ **完了** |
-| 2 | **DECEN-001~008実装** | 🔴 **P0** | ⬜ **進行中** |
-| 3 | PIR-P3.3-001準備 | 🟠 High | ⬜ 実装完了後 |
+| 2 | ~~DECEN-005, DECEN-007実装~~ | ~~🔴 P0~~ | ✅ **完了** |
+| 3 | **DECEN-001~004実装** | 🔴 **P0** | ⬜ **次** |
+| 4 | PIR-P3.3-001準備 | 🟠 High | ⬜ 実装完了後 |
 
-### DECEN-001~008 実装計画
+### DECEN-001~004 実装計画
 
 | Task ID | 内容 | 優先度 | 予定 |
 |---------|------|:------:|------|
@@ -507,10 +540,6 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | DECEN-002 | Byzantine fault tolerance検証 | 🔴 P0 | Day 3-4 |
 | DECEN-003 | Leader election & rotation | 🟠 High | Day 5-6 |
 | DECEN-004 | Network partition recovery | 🟠 High | Day 7-8 |
-| DECEN-005 | SC election via veQS | 🔴 P0 | Day 9-10 |
-| DECEN-006 | SC threshold voting | 🔴 P0 | Day 11-12 |
-| DECEN-007 | SC term limits & rotation | 🟠 High | Day 13 |
-| DECEN-008 | SC emergency powers integration | 🟠 High | Day 14 |
 
 ---
 
@@ -545,7 +574,8 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 │                                                             │
 │  Phase 3.3 (Month 12-14): Decentralize + Testing ← **ACTIVE**│
 │  ├── Track A: Decentralize Development (19 tasks)           │
-│  │   └── Week 9: TEST-4BFT ✅ + TEST-SC ✅ 作成完了         │
+│  │   ├── Week 9: TEST-4BFT ✅ + TEST-SC ✅ 作成完了         │
+│  │   └── Week 9: DECEN-005, DECEN-007 ✅ 実装完了 🎉        │
 │  └── Track B: E2E Testing (10 tasks)                        │
 │                                                             │
 │  ⚠️ IC-6 (Node Expansion 4→7): 不要（CEO指示 2025-01-01）   │
@@ -591,10 +621,12 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
   - IC-5 veQS Token: ✅ **10/10 COMPLETE + PIR-P3.2-002 PASS** 🎉
   - Governance: ✅ **6/6 COMPLETE + PIR-P3.2-004 PASS + CP-1完全準拠** 🎉🎉🎉
   - ~~IC-6 Node Expansion~~: ❌ 不要（CEO指示）
-- Phase 3.3 Decentralize + Testing: 🔄 **ACTIVE (5%)**
+- Phase 3.3 Decentralize + Testing: 🔄 **ACTIVE (15%)**
   - TEST-4BFT-001~004: ✅ **12/12 PASS** 🎉
   - TEST-SC-001~004: ✅ **作成完了** (skip中)
-  - DECEN-001~008: ⬜ **実装開始** ← 次
+  - DECEN-005, DECEN-007: ✅ **実装完了** 🎉
+  - DECEN-006, DECEN-008: ✅ **既存実装済み**
+  - DECEN-001~004: ⬜ **次のステップ** ← 次
 - Phase 4 UI/UX + Audit + Launch: ⬜
 
 ---
