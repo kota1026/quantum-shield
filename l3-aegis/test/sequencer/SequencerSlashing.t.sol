@@ -37,11 +37,18 @@ contract SequencerSlashingTest is Test {
         staking = new SequencerStaking(admin);
         slashing = new SequencerSlashing(address(staking), insuranceFund, admin);
         staking.setSlashingContract(address(slashing));
+        
+        // Grant HEALTH_MONITOR_ROLE to admin for downtime reporting
+        bytes32 HEALTH_MONITOR_ROLE = keccak256("HEALTH_MONITOR_ROLE");
+        slashing.grantRole(HEALTH_MONITOR_ROLE, admin);
         vm.stopPrank();
 
-        // Setup sequencers with stake
+        // Setup sequencers with stake using stakeFor
         _setupStake(sequencer1, MINIMUM_STAKE);
         _setupStake(sequencer2, MINIMUM_STAKE);
+        
+        // Fund slashing contract with ETH for challenger rewards
+        vm.deal(address(slashing), 100 ether);
     }
 
     // ============================================
@@ -180,7 +187,7 @@ contract SequencerSlashingTest is Test {
     function _setupStake(address seq, uint256 amount) internal {
         vm.deal(seq, amount + 1 ether);
         vm.prank(seq);
-        staking.stake{value: amount}();
+        staking.stakeFor{value: amount}(seq);
     }
 
     function _createDoubleSignProof(address seq) internal view returns (bytes memory) {
