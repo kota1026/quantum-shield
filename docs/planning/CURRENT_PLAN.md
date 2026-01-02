@@ -1,9 +1,8 @@
 # Current Plan
 
-> **Generated**: 2026-01-02 18:00 JST
-> **Phase**: 3.3 - Decentralize + Testing
-> **Sub-Phase**: Week 9 (Track A: 4BFT + SC基盤)
-> **Planner**: PM Agent
+> **Generated**: 2026-01-03 01:00 JST
+> **Phase**: 3.3 (Decentralize + Testing)
+> **Sub-Phase**: Week 10
 
 ---
 
@@ -21,19 +20,19 @@
 
 | Sequence | 実装Layer | 仕様書参照箇所 |
 |----------|----------|---------------|
-| #5 | Core + Governance | SEQUENCES §5 Prover Registration |
-| #7 | Governance | SEQUENCES §7 Governance Proposal |
-| #8 | Core + Governance | SEQUENCES §8 Emergency Pause |
+| #2 | Core | SEQUENCES §Unlock - Sequencer役割 |
+| #5 | Core + Governance | SEQUENCES §Prover Registration - 署名期限・VRF選出 |
+| #6 | Core + Governance | SEQUENCES §Prover Exit - Unbonding |
 
 ### セキュリティ要件
 
 | 要件 | 仕様書出典 | 実装方法 |
 |------|----------|---------|
-| 4BFT Byzantine耐性 (f=1) | L3_CHAIN_SPECIFICATION §Consensus | aegis-node PBFT実装 |
-| SC 5/9 Emergency Pause | UNIFIED_SPEC §Security Council | SecurityCouncil.sol閾値 |
-| SC 6/9 Veto権 | UNIFIED_SPEC §Security Council | Governor.sol veto機能 |
-| SC 7/9 緊急アップグレード | UNIFIED_SPEC §Security Council | Timelock緊急実行 |
-| veQS選出 | UNIFIED_SPEC §veQS | VotingEscrow.sol統合 |
+| 署名期限5分 | SEQ#2 Step4 | Rotation timeout設定 |
+| VRF選出 | SEQ#2 Step2-3 | Chainlink VRF統合 |
+| Unbonding期間7日 | SEQ#6 | Sequencer退出時のlockup |
+| Slashing対象維持 | SEQ#6 | Unbonding中もslash対象 |
+| 99.5% SLA | UNIFIED §Prover仕様 | 稼働率監視・自動rotation |
 
 ---
 
@@ -43,8 +42,8 @@
 
 - [x] L3スタック: 独自L3 (l3-aegis) 前提
 - [x] アーキテクチャ: Modular (Core/Governance/Token Layer)
-- [x] リスク緩和: 形式検証、段階的TVL上限、複数回監査計画
-- [x] モード制約: DECENTRALIZED + FULL Token（Phase 3.3ターゲット）
+- [ ] リスク緩和: Multi-sequencer対応によるSPOF解消
+- [x] モード制約: CENTRALIZED→DECENTRALIZED段階的移行対応
 
 ---
 
@@ -67,82 +66,138 @@
 
 | IC-ID | Component | タスク | Status |
 |-------|-----------|--------|--------|
-| IC-1 | L3 Chain Infrastructure (4-node BFT) | DECEN-001~004 | 🟡 In Progress |
-| IC-3 | Sequencer | DECEN-012~015 (次週) | 🟢 Phase 3.2完了、拡張待ち |
-| - | Security Council | DECEN-005~008 | 🟡 In Progress |
+| IC-3 | Sequencer | DECEN-012~015 | 🟡 In Progress |
 
 ### マスタ照合
 
 - [x] 全IC-ID（IC-1〜IC-5, IC-7）がPHASE3_PLANに対応セクションを持つ
-- [x] 欠落ICなし（IC-6は不要：CEO指示 2025-01-01）
+- [x] 欠落ICなし（IC-6は不要：CEO指示）
 
 ### タスク紐付け
 
 - [x] 今回スコープの全タスクにIC-IDを付与した
-- [x] Security Council関連タスクはIC不要（Governance Layer機能、UNIFIED_SPEC §Security Council定義）
+- [x] IC-ID不要タスクは理由を明記した
 
 ---
 
 ## 前回レビュー課題（該当時のみ）
 
-> CURRENT_STATE.mdより確認
-
-**前回課題なし** - Phase 3.2 Go/No-Go判定: 🟢 GO (91.5/100, 全会一致)
+> CURRENT_STATE.mdより - 前回PIR-P3.3-001 PASS
 
 | # | 重要度 | 課題 | 対策 |
 |---|--------|------|------|
-| - | - | なし | - |
+| - | - | 前回PIR PASSにつき未解決課題なし | - |
 
 ---
 
 ## 今回のスコープ
 
-### 修正項目（レビュー課題より）
-
-なし（前回Phase 3.2は全課題解決済み）
-
 ### 実装項目
 
-#### Track A Week 1: 4BFT Consensus完成 (IC-1)
+| Task ID | 内容 | IC-ID | 優先度 |
+|---------|------|-------|--------|
+| DECEN-012 | Multi-sequencer rotation | IC-3 | 🔴 P0 |
+| DECEN-013 | Sequencer staking requirements | IC-3 | 🟠 High |
+| DECEN-014 | Sequencer slashing integration | IC-3 | 🟠 High |
+| DECEN-015 | Multi-sequencer failover | IC-3 | 🟠 High |
 
-- [ ] [DECEN-001] 4BFT consensus production readiness (IC-1) 🔴 P0
-- [ ] [DECEN-002] Byzantine fault tolerance検証 (IC-1) 🔴 P0
-- [ ] [DECEN-003] Leader election & rotation (IC-1) 🟠 High
-- [ ] [DECEN-004] Network partition recovery (IC-1) 🟠 High
+### DECEN-012: Multi-sequencer rotation
 
-#### Track A Week 1: Security Council基盤
+**目的**: 複数Sequencerによるローテーションメカニズムの実装
 
-- [ ] [DECEN-005] SC member election via veQS 🔴 P0
-- [ ] [DECEN-006] SC threshold voting (5/9, 6/9, 7/9) 🔴 P0
-- [ ] [DECEN-007] SC term limits & rotation 🟠 High
-- [ ] [DECEN-008] SC emergency powers integration 🟠 High
+**要件**:
+- Sequencer登録・退出API
+- ラウンドロビンまたはStake重み付きローテーション
+- 現在のActiveSequencer取得
+- Epoch単位でのrotation（例: 1000ブロックごと）
 
-### テスト項目
+**実装ファイル**:
+- `l3-aegis/src/sequencer/SequencerRegistry.sol` - 登録・管理
+- `l3-aegis/src/sequencer/SequencerRotation.sol` - ローテーションロジック
+- `l3-aegis/crates/aegis-sequencer/src/rotation.rs` - Rust側rotation
 
-- [ ] [TEST-4BFT-001] 4ノードBFT合意テスト（正常系）
-- [ ] [TEST-4BFT-002] Byzantine障害シミュレーション（1ノード悪意）
-- [ ] [TEST-4BFT-003] Leader rotation検証
-- [ ] [TEST-4BFT-004] Network partition recovery検証
-- [ ] [TEST-SC-001] SC選出via veQS投票テスト
-- [ ] [TEST-SC-002] 閾値投票テスト（5/9, 6/9, 7/9）
-- [ ] [TEST-SC-003] Term limit & rotation テスト
-- [ ] [TEST-SC-004] Emergency powers統合テスト
+**テスト**:
+- `l3-aegis/test/sequencer/SequencerRotation.t.sol`
+
+### DECEN-013: Sequencer staking requirements
+
+**目的**: Sequencer登録に必要なStake要件の実装
+
+**要件**:
+- 最低Stake額: $500K相当（$QS or ETH）
+- Stake増減API
+- Stake不足時の自動inactive化
+- Delegated Stake対応（$50K最低）
+
+**実装ファイル**:
+- `l3-aegis/src/sequencer/SequencerStaking.sol`
+- `l3-aegis/src/interfaces/ISequencerStaking.sol`
+
+**テスト**:
+- `l3-aegis/test/sequencer/SequencerStaking.t.sol`
+
+### DECEN-014: Sequencer slashing integration
+
+**目的**: 不正Sequencerのスラッシングメカニズム
+
+**要件**:
+- Double-signing検出・slash
+- Downtime（SLA違反）検出・slash
+- Slashing率: Quadratic N² × 10%（Proverと同等）
+- Slash報酬配分: Challenger 60%, Insurance 20%, Burn 20%
+- 既存CoreSlashing.solとの統合
+
+**実装ファイル**:
+- `l3-aegis/src/sequencer/SequencerSlashing.sol`
+- `l3-aegis/src/interfaces/ISequencerSlashing.sol`
+
+**テスト**:
+- `l3-aegis/test/sequencer/SequencerSlashing.t.sol`
+
+### DECEN-015: Multi-sequencer failover
+
+**目的**: Sequencer障害時の自動フェイルオーバー
+
+**要件**:
+- Heartbeat監視（30秒間隔）
+- 3回連続失敗で自動rotation
+- 障害Sequencerの一時停止
+- 復旧後の再登録フロー
+- 強制包含（24時間）保証
+
+**実装ファイル**:
+- `l3-aegis/crates/aegis-sequencer/src/failover.rs`
+- `l3-aegis/src/sequencer/SequencerHealth.sol`
+
+**テスト**:
+- `l3-aegis/test/sequencer/SequencerFailover.t.sol`
+- `l3-aegis/crates/aegis-sequencer/tests/failover_test.rs`
 
 ---
 
-## 参照ドキュメント
+### テスト項目
+
+| Task ID | 内容 | テスト数（予定） |
+|---------|------|-----------------|
+| TEST-SEQ-001 | Sequencer rotation E2E | 6 |
+| TEST-SEQ-002 | Staking requirements | 8 |
+| TEST-SEQ-003 | Slashing integration | 10 |
+| TEST-SEQ-004 | Failover scenarios | 8 |
+
+---
+
+### 参照ドキュメント
 
 | 種類 | ドキュメント | 参照セクション |
 |------|------------|---------------|
-| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5, §10 |
-| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #5, #7, #8 |
-| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §IC, §Security Council |
-| 戦略 | `docs/planning/PHASE3_STRATEGY.md` | Governance設計 |
-| Modular仕様 | `docs/specs/MODULAR_ARCHITECTURE.md` | Governance Layer |
+| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §3, §5, §7 |
+| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | #2, #5, #6 |
+| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | §Prover仕様, §IC |
+| 戦略 | `docs/planning/PHASE3_STRATEGY.md` | §Core Layer設計 |
 | L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
-| L3詳細仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | §Consensus, §Node |
-| Phase 3計画 | `docs/planning/PHASE3_PLAN.md` | §IC対応 |
-| Phase 3.3チェックリスト | `docs/checklists/phase3.3.md` | Track A |
+| L3詳細仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | §Sequencer |
+| Phase 3計画 | `docs/planning/PHASE3_PLAN.md` | §IC-3 |
+| Phase 3.3チェックリスト | `docs/checklists/phase3.3.md` | §A4 Multi-Sequencer |
 
 ---
 
@@ -150,91 +205,106 @@
 
 | ファイル | 説明 | IC-ID |
 |---------|------|-------|
-| `l3-aegis/crates/aegis-consensus/src/bft.rs` | 4BFT production実装 | IC-1 |
-| `l3-aegis/crates/aegis-consensus/src/leader.rs` | Leader election & rotation | IC-1 |
-| `l3-aegis/crates/aegis-consensus/src/partition.rs` | Network partition recovery | IC-1 |
-| `l3-aegis/contracts/src/SecurityCouncilElection.sol` | SC選出via veQS | - |
-| `l3-aegis/contracts/src/SecurityCouncil.sol` | SC閾値投票拡張 | - |
-| `l3-aegis/crates/aegis-consensus/tests/bft_test.rs` | 4BFTテスト | IC-1 |
-| `l3-aegis/contracts/test/SecurityCouncilElection.t.sol` | SC選出テスト | - |
+| `l3-aegis/src/sequencer/SequencerRegistry.sol` | Sequencer登録・管理 | IC-3 |
+| `l3-aegis/src/sequencer/SequencerRotation.sol` | ローテーションロジック | IC-3 |
+| `l3-aegis/src/sequencer/SequencerStaking.sol` | Stake管理 | IC-3 |
+| `l3-aegis/src/sequencer/SequencerSlashing.sol` | スラッシング | IC-3 |
+| `l3-aegis/src/sequencer/SequencerHealth.sol` | ヘルスチェック | IC-3 |
+| `l3-aegis/src/interfaces/ISequencerRegistry.sol` | インターフェース | IC-3 |
+| `l3-aegis/src/interfaces/ISequencerStaking.sol` | インターフェース | IC-3 |
+| `l3-aegis/src/interfaces/ISequencerSlashing.sol` | インターフェース | IC-3 |
+| `l3-aegis/crates/aegis-sequencer/src/rotation.rs` | Rust rotation | IC-3 |
+| `l3-aegis/crates/aegis-sequencer/src/failover.rs` | Rust failover | IC-3 |
+| `l3-aegis/test/sequencer/SequencerRotation.t.sol` | テスト | - |
+| `l3-aegis/test/sequencer/SequencerStaking.t.sol` | テスト | - |
+| `l3-aegis/test/sequencer/SequencerSlashing.t.sol` | テスト | - |
+| `l3-aegis/test/sequencer/SequencerFailover.t.sol` | テスト | - |
+| `l3-aegis/crates/aegis-sequencer/tests/failover_test.rs` | Rustテスト | - |
 
 ---
 
 ## 実行順序
 
-### Day 1-2: 4BFT Production Readiness (DECEN-001)
+### Day 1-2: DECEN-012 (Sequencer Rotation)
 
-1. 現行aegis-consensusのBFT実装レビュー
-2. Production環境向け最適化（タイムアウト調整、ログ強化）
-3. メトリクス収集機能追加
-4. Unit Test作成・実行
+1. `ISequencerRegistry.sol` インターフェース定義
+2. `SequencerRegistry.sol` 実装
+   - `register(address, bytes sphincsKey, uint256 stake)`
+   - `deregister(address)`
+   - `getActiveSequencers()` → address[]
+   - `getCurrentSequencer()` → address
+3. `SequencerRotation.sol` 実装
+   - `rotateSequencer()` - エポックベースrotation
+   - `forceRotation()` - 緊急rotation（SC権限）
+4. Rust側 `rotation.rs` 実装
+   - `RotationManager` struct
+   - `next_sequencer()` → Address
+5. テスト作成・実行
 
-### Day 3-4: Byzantine Fault Tolerance検証 (DECEN-002)
+### Day 3-4: DECEN-013 (Staking Requirements)
 
-1. Byzantine障害シナリオ定義（悪意ノード1台）
-2. 障害検出・隔離ロジック実装
-3. Byzantine耐性テスト作成・実行
-4. f=1耐性の形式検証
+1. `ISequencerStaking.sol` インターフェース定義
+2. `SequencerStaking.sol` 実装
+   - `stake(uint256 amount)` - Stake追加
+   - `unstake(uint256 amount)` - Stake引き出し（7日unbonding）
+   - `getStake(address)` → uint256
+   - `isEligible(address)` → bool
+   - `MINIMUM_STAKE` = 500_000e18 ($500K)
+   - `MINIMUM_DELEGATED_STAKE` = 50_000e18 ($50K)
+3. TokenSwitch統合（$QS or ETH選択）
+4. テスト作成・実行
 
-### Day 5-6: Leader Election & Rotation (DECEN-003)
+### Day 5-6: DECEN-014 (Slashing Integration)
 
-1. Leader選出アルゴリズム実装（ラウンドロビン or VRF）
-2. Leader障害時のrotation実装
-3. Leader rotation テスト
-4. Liveness保証の検証
+1. `ISequencerSlashing.sol` インターフェース定義
+2. `SequencerSlashing.sol` 実装
+   - `reportDoubleSign(bytes proof)` - Double-signing報告
+   - `reportDowntime(address sequencer)` - Downtime報告
+   - `calculateSlash(uint256 stake, uint256 violations)` - Quadratic計算
+   - `distributeSlash(uint256 amount)` - 配分（60/20/20）
+3. 既存 `CoreSlashing.sol` との統合
+4. テスト作成・実行
 
-### Day 7-8: Network Partition Recovery (DECEN-004)
+### Day 7-8: DECEN-015 (Failover)
 
-1. Partition検出メカニズム実装
-2. Recovery protocolの実装
-3. Partition recoveryテスト
-4. Safety保証の検証
+1. `SequencerHealth.sol` 実装
+   - `heartbeat()` - Sequencerからの生存報告
+   - `checkHealth(address)` → bool
+   - `HEARTBEAT_INTERVAL` = 30 seconds
+   - `MAX_MISSED_HEARTBEATS` = 3
+2. Rust側 `failover.rs` 実装
+   - `FailoverManager` struct
+   - `detect_failure()` → Option<Address>
+   - `trigger_failover()` → Result
+3. 強制包含保証（24時間）
+4. テスト作成・実行
 
-### Day 9-10: SC Election via veQS (DECEN-005)
+### Day 9: 統合テスト・PIR準備
 
-1. SecurityCouncilElection.sol設計・実装
-2. veQS投票統合（VotingEscrow.sol連携）
-3. 9名選出ロジック実装
-4. Election テスト
-
-### Day 11-12: SC Threshold Voting (DECEN-006)
-
-1. SecurityCouncil.sol閾値投票拡張
-2. 5/9（Pause）、6/9（Veto）、7/9（Emergency）実装
-3. 閾値投票テスト
-4. Governor.sol統合
-
-### Day 13: SC Term Limits & Rotation (DECEN-007)
-
-1. 任期制限（1年、最大3期）実装
-2. Rotation機構実装
-3. Term limit テスト
-
-### Day 14: SC Emergency Powers Integration (DECEN-008)
-
-1. EmergencyController.sol との統合
-2. Emergency pause/resume via SC
-3. 統合テスト実行
-4. PIR準備
+1. 全コントラクト統合テスト
+2. E2Eシナリオテスト
+3. Slither静的解析
+4. ドキュメント更新
+5. PIR-P3.3-002準備
 
 ---
 
 ## Core Principles確認
 
-- [x] CP-1: 完全量子耐性 - 違反なし（SHA3-256, Dilithium-III, SPHINCS+-128s継続使用）
-- [x] CP-2: Self-Custody - 違反なし（ユーザー秘密鍵は常にユーザー管理）
-- [x] CP-3: Time Lock存在 - 違反なし（Timelock 7日維持）
-- [x] CP-4: Slashing存在 - 違反なし（Quadratic Slashing継続）
-- [x] CP-5: 透明性 - 違反なし（全操作L3ブロック記録、Event発行）
+- [x] CP-1: 完全量子耐性 - 違反なし（SPHINCS+, SHA3-256使用）
+- [x] CP-2: Self-Custody - 違反なし（ユーザー鍵管理不変）
+- [x] CP-3: Time Lock存在 - 違反なし（Unbonding 7日維持）
+- [x] CP-4: Slashing存在 - 違反なし（Quadratic Slashing実装）
+- [x] CP-5: 透明性 - 違反なし（全操作オンチェーン記録）
 
 ---
 
 ## Modular Architecture確認（Phase 3）
 
-- [x] Core Layer: CP保護機構含む（4BFT consensusはCore Layer基盤）
-- [x] Governance Layer: ON/OFF切替可能（SC選出はGovernance Layer）
-- [x] Token Layer: ON/OFF切替可能（veQS統合はToken Layer）
-- [x] Layer間依存: 下位→上位依存なし（Core→Governance→Token順序維持）
+- [x] Core Layer: CP保護機構含む（Slashing, Time Lock）
+- [x] Governance Layer: ON/OFF切替可能（Sequencer承認方式切替）
+- [x] Token Layer: ON/OFF切替可能（Stake通貨切替）
+- [x] Layer間依存: 下位→上位依存なし
 
 ---
 
@@ -242,18 +312,10 @@
 
 | # | リスク | 重要度 | 対策 |
 |---|--------|--------|------|
-| 1 | 4BFT liveness vs safety トレードオフ | 🟠 Medium | 形式検証、シミュレーションテスト |
-| 2 | SC選出のveQS投票参加率 | 🟠 Medium | Delegation推奨、最低投票率設定 |
-| 3 | Leader rotation時のトランザクション遅延 | 🟡 Low | 並行処理、バッファ設計 |
-| 4 | SC 9名確保の難しさ | 🟠 Medium | 段階的構成（Phase 3初期は6名可） |
-
----
-
-## PIR予定
-
-| PIR ID | 対象 | 予定日 |
-|--------|------|--------|
-| PIR-P3.3-001 | DECEN-001~008 (4BFT + SC基盤) | Track A Week 1終了後 |
+| 1 | Multi-sequencer統合の複雑性 | 🟠 Medium | 段階的実装、各段階でテスト |
+| 2 | 既存Sequencer実装との互換性 | 🟠 Medium | インターフェース先行定義 |
+| 3 | Failover時のトランザクション損失 | 🟠 Medium | 強制包含24時間保証 |
+| 4 | Slashing攻撃ベクトル | 🟠 Medium | Challenge Bond必須化 |
 
 ---
 
@@ -261,12 +323,13 @@
 
 | 基準 | 条件 | 目標 |
 |------|------|------|
-| 4BFT完成 | DECEN-001~004全完了 | 100% |
-| SC基盤完成 | DECEN-005~008全完了 | 100% |
-| テスト | 全TEST項目PASS | 100% |
+| DECEN-012完了 | Rotation機能実装+テストPASS | ✅ |
+| DECEN-013完了 | Staking機能実装+テストPASS | ✅ |
+| DECEN-014完了 | Slashing統合+テストPASS | ✅ |
+| DECEN-015完了 | Failover実装+テストPASS | ✅ |
+| 全テスト | 32+ tests PASS | ✅ |
 | Slither | High/Medium = 0 | ✅ |
-| CP準拠 | CP-1~5 全て準拠 | ✅ |
-| PIR | PIR-P3.3-001 PASS | ✅ |
+| CP準拠 | CP-1〜5全て準拠 | ✅ |
 
 ---
 
