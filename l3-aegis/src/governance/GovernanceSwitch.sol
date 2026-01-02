@@ -36,6 +36,9 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @notice Emergency rollback threshold (7/9 supermajority)
     uint256 public constant ROLLBACK_THRESHOLD = 7;
     
+    /// @notice Emergency pause threshold for DECENTRALIZED mode (5/9)
+    uint256 public constant PAUSE_THRESHOLD = 5;
+    
     /// @notice Emergency rollback time lock (24 hours)
     uint256 public constant ROLLBACK_TIMELOCK = 24 hours;
     
@@ -97,6 +100,9 @@ contract GovernanceSwitch is IGovernanceSwitch {
     
     /// @notice Emitted when pause signature collected
     event PauseSignatureCollected(address indexed signer, uint256 current, uint256 required);
+    
+    /// @notice Emitted when council pause signature collected
+    event CouncilPauseSignatureCollected(address indexed member, uint256 current, uint256 required);
     
     /// @notice Emitted when rollback signature collected
     event RollbackSignatureCollected(address indexed member, uint256 current, uint256 required);
@@ -184,11 +190,17 @@ contract GovernanceSwitch is IGovernanceSwitch {
     /// @notice Pause expiry timestamp
     uint256 private _pauseExpiry;
     
-    /// @notice Mapping of pause signatures
+    /// @notice Mapping of pause signatures (for MULTISIG mode)
     mapping(address => bool) private _pauseSignatures;
     
     /// @notice Count of pause signatures
     uint256 private _pauseSignatureCount;
+    
+    /// @notice Mapping of council pause signatures (for DECENTRALIZED mode)
+    mapping(address => bool) private _councilPauseSignatures;
+    
+    /// @notice Count of council pause signatures
+    uint256 private _councilPauseSignatureCount;
     
     // ============ Constructor ============
     
@@ -671,19 +683,15 @@ contract GovernanceSwitch is IGovernanceSwitch {
     // ============ Emergency Pause (IMPL-006) ============
     
     /// @notice Emergency pause (CENTRALIZED/TRAINING mode - admin only)
+    /// @dev For MULTISIG/DECENTRALIZED modes, use initiatePause() or initiateCouncilPause()
     function emergencyPause() external {
         if (_mode == GovernanceMode.TRAINING || _mode == GovernanceMode.CENTRALIZED) {
             if (msg.sender != _admin) revert Unauthorized();
             _activatePause();
-        } else if (_mode == GovernanceMode.MULTISIG) {
-            // MULTISIG mode requires threshold signatures
-            revert Unauthorized();
         } else {
-            // DECENTRALIZED mode - Security Council 5/9
-            if (!_isCouncilMember[msg.sender]) revert Unauthorized();
-            // For now, single council member can initiate
-            // In production, this should require threshold
-            _activatePause();
+            // MULTISIG and DECENTRALIZED modes require threshold signatures
+            // Use initiatePause() for MULTISIG or initiateCouncilPause() for DECENTRALIZED
+            revert Unauthorized();
         }
     }
     
@@ -704,6 +712,31 @@ contract GovernanceSwitch is IGovernanceSwitch {
             // Reset pause signatures (bounded by MAX_SIGNERS)
             _resetPauseSignatures();
         }
+    }
+    
+    /// @notice Initiate pause in DECENTRALIZED mode (requires 5/9 Security Council threshold)
+    /// @dev SEQ#8 compliant: Emergency pause requires 5/9 council members
+    function initiateCouncilPause() external {
+        if (_mode != GovernanceMode.DECENTRALIZED) revert Unauthorized();
+        if (!_isCouncilMember[msg.sender]) revert Unauthorized();
+        if (_councilPauseSignatures[msg.sender]) revert AlreadySigned();
+        
+        _councilPauseSignatures[msg.sender] = true;
+        _councilPauseSignatureCount++;
+        
+        emit CouncilPauseSignatureCollected(msg.sender, _councilPauseSignatureCount, PAUSE_THRESHOLD);
+        
+        // Check if 5/9 threshold reached
+        if (_councilPauseSignatureCount >= PAUSE_THRESHOLD) {
+            _activatePause();
+            // Reset council pause signatures
+            _resetCouncilPauseSignatures();
+        }
+    }
+    
+    /// @notice Get council pause status
+    function getCouncilPauseStatus() external view returns (uint256 signatures, uint256 required) {
+        return (_councilPauseSignatureCount, PAUSE_THRESHOLD);
     }
     
     /// @notice Unpause the system
@@ -777,7 +810,7 @@ contract GovernanceSwitch is IGovernanceSwitch {
         }
     }
     
-    /// @notice Reset pause signatures
+    /// @notice Reset pause signatures (for MULTISIG mode)
     /// @dev Gas consumption bounded by MAX_SIGNERS (max 20 iterations)
     function _resetPauseSignatures() internal {
         _pauseSignatureCount = 0;
@@ -785,6 +818,17 @@ contract GovernanceSwitch is IGovernanceSwitch {
         uint256 length = _multisigSigners.length;
         for (uint256 i = 0; i < length; i++) {
             _pauseSignatures[_multisigSigners[i]] = false;
+        }
+    }
+    
+    /// @notice Reset council pause signatures (for DECENTRALIZED mode)
+    /// @dev Gas consumption bounded by COUNCIL_SIZE (9 iterations)
+    function _resetCouncilPauseSignatures() internal {
+        _councilPauseSignatureCount = 0;
+        // Bounded loop - max COUNCIL_SIZE iterations
+        uint256 length = _councilMembers.length;
+        for (uint256 i = 0; i < length; i++) {
+            _councilPauseSignatures[_councilMembers[i]] = false;
         }
     }
     
