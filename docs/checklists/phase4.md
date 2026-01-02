@@ -1,369 +1,222 @@
-# Phase 4 Checklist: UI/UX + Audit + Launch Preparation
+# Phase 4 Checklist: UI/UX, Audit & Launch Preparation
 
 > **Version**: 1.0  
-> **Created**: 2026-01-02  
+> **Date**: 2026-01-02  
 > **Status**: ⬜ NOT STARTED  
-> **Duration**: Week 13-16 (4 weeks)
+> **Duration**: Weeks 15-22 (8 weeks)  
+> **Prerequisites**: Phase 3.3 COMPLETE
 
 ---
 
 ## Overview
 
-Phase 4は完成したL3システムに対して、**ユーザーインターフェース開発**、**外部監査**、**ローンチ準備**を実施するフェーズです。
+Phase 4は4つの主要トラックで構成:
+- **Track C**: UI/UX Development
+- **Track D**: Audit & Documentation
+- **Track E**: Landing Page & Marketing
+- **Track F**: Launch Preparation
 
 ### 依存関係
 
 ```
-Phase 3.3 Decentralize + Testing (Week 9-12)
-├── [A] Decentralize Development ✅ (前提)
-└── [B] E2E Testing ✅ (前提)
-      ↓
-Phase 4 UI/UX + Audit + Launch (Week 13-16) ← 現在
-├── [C] UI/UX Development (Week 13)
-├── [D] Audit & Documentation (Week 14-15)
-└── [E] Launch Preparation (Week 16)
+Phase 3.3 (Decentralize + Testing)
+          ↓
+   Track C (UI/UX) ─────→ Track D (Audit)
+          │                    │
+          │                    ↓
+          │              Track E (Landing)
+          │                    │
+          └────────────→ Track F (Launch)
 ```
 
-**重要**: 
-- [C] UI/UXは安定したバックエンドがあって初めて効率的に開発可能
-- [D] 監査は完全なUI含むシステムを対象にすることで価値が最大化
-- [E] ローンチ準備は監査完了後でなければ意味がない
+**理由**:
+- B→C: 安定したバックエンドがあると効率的なUI開発が可能
+- C→D: 監査にはUI/UXフローも含める必要
+- D→E: 監査完了前のマーケティングは時期尚早
 
 ---
 
-## [C] UI/UX Development (Week 13)
+## Track C: UI/UX Development (Weeks 15-17)
 
-### UI-001: Prover管理ダッシュボード
+### C1. Prover Management Dashboard
 
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟠 High |
-| **依存** | Phase 3.3完了 |
-| **成果物** | Prover向け管理UI |
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| UI-001 | Prover registration interface | 🟠 High | ⬜ | - |
+| UI-002 | Prover status monitoring | 🟠 High | ⬜ | - |
+| UI-003 | Prover reward tracking | 🟠 High | ⬜ | - |
+| UI-004 | Prover staking management | 🟠 High | ⬜ | - |
 
-**機能**:
-- [ ] Prover登録/退出フロー
-- [ ] Stake状況表示
-- [ ] 報酬確認・請求
-- [ ] ステータス監視
+### C2. Service Provider Dashboard
 
-**完了条件**:
-- [ ] 全Prover操作がUIから可能
-- [ ] レスポンシブデザイン
-- [ ] ユーザビリティテスト PASS
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| UI-005 | Provider registration flow | 🟠 High | ⬜ | - |
+| UI-006 | Bridge service configuration | 🟠 High | ⬜ | - |
+| UI-007 | Analytics dashboard | 🟡 Medium | ⬜ | - |
 
----
+### C3. User Bridge UI
 
-### UI-002: サービスプロバイダーダッシュボード
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| UI-008 | L1→L3 deposit interface | 🔴 P0 | ⬜ | - |
+| UI-009 | L3→L1 withdrawal interface | 🔴 P0 | ⬜ | - |
+| UI-010 | Transaction history view | 🟠 High | ⬜ | - |
+| UI-011 | Time lock status display | 🟠 High | ⬜ | - |
 
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟠 High |
-| **依存** | Phase 3.3完了 |
-| **成果物** | サービス提供者向けUI |
+### C4. Staking & Governance UI
 
-**機能**:
-- [ ] API利用状況
-- [ ] 請求・支払い管理
-- [ ] 統合ガイド
-- [ ] サポートポータル
-
-**完了条件**:
-- [ ] 全プロバイダー操作がUIから可能
-- [ ] ドキュメント統合
-- [ ] ユーザビリティテスト PASS
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| UI-012 | veQS staking interface | 🔴 P0 | ⬜ | - |
+| UI-013 | Delegation management | 🟠 High | ⬜ | - |
+| UI-014 | Governance proposal creation | 🟠 High | ⬜ | - |
+| UI-015 | Voting interface | 🔴 P0 | ⬜ | - |
+| UI-016 | Reward claiming interface | 🟠 High | ⬜ | - |
 
 ---
 
-### UI-003: ユーザーブリッジUI
+## Track D: Audit & Documentation (Weeks 18-20)
 
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🔴 P0 |
-| **依存** | Phase 3.3完了 |
-| **成果物** | エンドユーザー向けブリッジUI |
+### D1. 監査資料準備
 
-**機能**:
-- [ ] L1→L3デポジット
-- [ ] L3→L1ウィズドロー
-- [ ] トランザクション履歴
-- [ ] ステータス追跡
-- [ ] ウォレット接続 (MetaMask, WalletConnect)
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| AUDIT-001 | コードベースクリーンアップ | 🟠 High | ⬜ | - |
+| AUDIT-002 | アーキテクチャ文書最終化 | 🔴 P0 | ⬜ | - |
+| AUDIT-003 | テスト結果取りまとめ | 🟠 High | ⬜ | - |
+| AUDIT-004 | NatSpec docstring確認・補完 | 🟠 High | ⬜ | - |
 
-**完了条件**:
-- [ ] 全ブリッジ操作がUIから可能
-- [ ] モバイル対応
-- [ ] ユーザビリティテスト PASS
+### D2. 技術ドキュメント
 
----
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| DOC-001 | API Documentation | 🔴 P0 | ⬜ | - |
+| DOC-002 | SDK Documentation | 🟠 High | ⬜ | - |
+| DOC-003 | Integration Guide | 🟠 High | ⬜ | - |
+| DOC-004 | Technical Whitepaper | 🔴 P0 | ⬜ | - |
 
-### UI-004: ステーキング/ガバナンスUI
+### D3. 外部監査
 
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🔴 P0 |
-| **依存** | Phase 3.3完了, UI-003 |
-| **成果物** | veQSステーキング・投票UI |
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| AUDIT-005 | 監査会社RFP発行 | 🔴 P0 | ⬜ | - |
+| AUDIT-006 | 監査会社選定・契約 | 🔴 P0 | ⬜ | - |
+| AUDIT-007 | 監査実施 | 🔴 P0 | ⬜ | - |
+| AUDIT-008 | 監査フィードバック対応 | 🔴 P0 | ⬜ | - |
 
-**機能**:
-- [ ] QS→veQSロック
-- [ ] ロック期間選択 (1週間〜4年)
-- [ ] 投票力表示
-- [ ] Proposal一覧・投票
-- [ ] 報酬請求
+### D4. Bug Bounty
 
-**完了条件**:
-- [ ] 全Governance操作がUIから可能
-- [ ] 投票フローがわかりやすい
-- [ ] ユーザビリティテスト PASS
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| BOUNTY-001 | Bug Bountyスコープ定義 | 🟠 High | ⬜ | - |
+| BOUNTY-002 | 報酬設計（Critical: $50K, High: $20K, Medium: $5K） | 🟠 High | ⬜ | - |
+| BOUNTY-003 | プラットフォーム選定（Immunefi/Code4rena） | 🟠 High | ⬜ | - |
+| BOUNTY-004 | Bug Bounty開始 | 🟠 High | ⬜ | - |
 
 ---
 
-## [D] Audit & Documentation (Week 14-15)
+## Track E: Landing Page & Marketing (Weeks 20-21)
 
-### AUDIT-001: 監査資料準備
+### E1. Landing Page
 
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🔴 P0 |
-| **依存** | Phase 3.3完了, [C] UI/UX完了 |
-| **成果物** | 監査用資料一式 |
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| SITE-001 | ランディングページデザイン | 🟠 High | ⬜ | - |
+| SITE-002 | ランディングページ実装 | 🟠 High | ⬜ | - |
+| SITE-003 | ドキュメントサイト構築 | 🟠 High | ⬜ | - |
+| SITE-004 | SEO最適化 | 🟡 Medium | ⬜ | - |
 
-**成果物**:
-- [ ] アーキテクチャ文書最終版
-- [ ] テスト結果取りまとめ
-- [ ] コードベースクリーンアップ
-- [ ] NatSpec docstring完備
-- [ ] コントラクト一覧と依存関係図
+### E2. Marketing Materials
 
-**完了条件**:
-- [ ] 監査会社が理解可能な品質
-- [ ] 全コントラクトにドキュメント
-
----
-
-### AUDIT-002: Bug Bounty準備
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟠 High |
-| **依存** | AUDIT-001完了 |
-| **成果物** | Bug Bountyプログラム |
-
-**設計**:
-- [ ] スコープ定義 (Core Layer, Governance, Token, UI)
-- [ ] 報酬設計:
-  - Critical: $50,000
-  - High: $20,000
-  - Medium: $5,000
-  - Low: $1,000
-- [ ] プラットフォーム選定 (Immunefi / Code4rena)
-- [ ] ルール・除外事項
-
-**完了条件**:
-- [ ] プログラム公開準備完了
-- [ ] 予算確保
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| MKT-001 | サービス紹介資料 | 🟠 High | ⬜ | - |
+| MKT-002 | 技術概要資料 | 🟠 High | ⬜ | - |
+| MKT-003 | ユースケース資料 | 🟡 Medium | ⬜ | - |
+| MKT-004 | プレスリリース準備 | 🟡 Medium | ⬜ | - |
 
 ---
 
-### AUDIT-003: 外部監査RFP・実施
+## Track F: Launch Preparation (Week 22)
 
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🔴 P0 |
-| **依存** | AUDIT-001完了 |
-| **成果物** | 外部監査レポート |
+### F1. Final Verification
 
-**監査会社候補**:
-- Trail of Bits
-- OpenZeppelin
-- Consensys Diligence
-- Spearbit
+| # | タスク | 優先度 | 状態 | PIR |
+|---|--------|--------|:----:|-----|
+| LAUNCH-001 | Mainnet deployment準備 | 🔴 P0 | ⬜ | - |
+| LAUNCH-002 | Final security check | 🔴 P0 | ⬜ | - |
+| LAUNCH-003 | Monitoring & alerting設定 | 🔴 P0 | ⬜ | - |
 
-**プロセス**:
-- [ ] RFP発行
-- [ ] 提案評価・選定
-- [ ] 監査実施 (2-4週間)
-- [ ] 指摘事項対応
-- [ ] 最終レポート取得
+### F2. Go/No-Go
 
-**完了条件**:
-- [ ] Critical/High Issue = 0 (または修正完了)
-- [ ] 監査レポート公開可能
+| # | タスク | 優先度 | 状態 |
+|---|--------|--------|:----:|
+| GONOGO-001 | PIR-P4 Final Review | 🟠 High | ⬜ |
+| GONOGO-002 | Go/No-Go判定会議（11エージェント投票） | 🔴 P0 | ⬜ |
+| GONOGO-003 | 判定書作成 | 🟠 High | ⬜ |
 
 ---
 
-### DOC-001: API/SDK ドキュメント
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟠 High |
-| **依存** | Phase 3.3完了 |
-| **成果物** | 開発者向けドキュメント |
-
-**内容**:
-- [ ] API仕様書 (OpenAPI/Swagger)
-- [ ] SDK使用ガイド
-- [ ] サンプルコード
-- [ ] エラーコード一覧
-
-**完了条件**:
-- [ ] 外部開発者が統合可能な品質
-- [ ] サンプル動作確認
-
----
-
-### DOC-002: テクニカルホワイトペーパー
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟠 High |
-| **依存** | Phase 3.3完了 |
-| **成果物** | 技術文書 |
-
-**内容**:
-- [ ] アーキテクチャ概要
-- [ ] 量子耐性設計 (CP-1)
-- [ ] セキュリティモデル
-- [ ] 経済設計 (veQS)
-- [ ] ロードマップ
-
-**完了条件**:
-- [ ] 技術者・投資家向け品質
-- [ ] レビュー完了
-
----
-
-## [E] Launch Preparation (Week 16)
-
-### LAUNCH-001: サービス紹介資料
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟠 High |
-| **依存** | AUDIT-003完了 |
-| **成果物** | マーケティング資料 |
-
-**内容**:
-- [ ] サービス概要資料
-- [ ] ユースケース説明
-- [ ] 競合比較
-- [ ] FAQ
-
-**完了条件**:
-- [ ] 営業チームが使用可能な品質
-
----
-
-### LAUNCH-002: ランディングページ
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟠 High |
-| **依存** | AUDIT-003完了, LAUNCH-001完了 |
-| **成果物** | 公開用Webサイト |
-
-**内容**:
-- [ ] サービス紹介
-- [ ] 特徴・メリット
-- [ ] ドキュメントリンク
-- [ ] お問い合わせ
-
-**完了条件**:
-- [ ] デザインレビュー完了
-- [ ] SEO最適化
-- [ ] 公開準備完了
-
----
-
-### LAUNCH-003: マーケティング準備
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟡 Medium |
-| **依存** | LAUNCH-002完了 |
-| **成果物** | マーケティング計画 |
-
-**内容**:
-- [ ] プレスリリース
-- [ ] SNS告知計画
-- [ ] コミュニティ構築計画
-- [ ] パートナーシップ計画
-
-**完了条件**:
-- [ ] ローンチ日決定
-- [ ] 全チャネル準備完了
-
----
-
-## Go/No-Go判定
-
-### GONOGO-P4-001: PIR-P4実施
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🔴 P0 |
-| **依存** | [C], [D], [E]全タスク完了 |
-
-**レビュー対象**:
-- UI-001~004
-- AUDIT-001~003
-- DOC-001~002
-- LAUNCH-001~003
-
----
-
-### GONOGO-P4-002: Go/No-Go判定会議
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🔴 P0 |
-| **依存** | GONOGO-P4-001完了 |
-
-**判定基準**:
-- 11エージェント投票
-- 85点以上でGO (ローンチ判定は厳格)
-- 監査完了 & Critical/High = 0
-- CP-1~5全準拠
-
----
-
-### GONOGO-P4-003: 判定書作成
-
-| 項目 | 詳細 |
-|------|------|
-| **優先度** | 🟠 High |
-| **依存** | GONOGO-P4-002完了 |
-| **成果物** | `docs/decisions/GONOGO_PHASE4_LAUNCH_2026-XX-XX.md` |
-
----
-
-## Progress Summary
+## 進捗サマリー
 
 | カテゴリ | 完了 | 合計 | 進捗率 |
 |---------|:----:|:----:|:------:|
-| UI | 0 | 4 | 0% |
-| AUDIT | 0 | 3 | 0% |
-| DOC | 0 | 2 | 0% |
-| LAUNCH | 0 | 3 | 0% |
+| UI (Track C) | 0 | 16 | 0% |
+| AUDIT (Track D) | 0 | 8 | 0% |
+| DOC (Track D) | 0 | 4 | 0% |
+| BOUNTY (Track D) | 0 | 4 | 0% |
+| SITE (Track E) | 0 | 4 | 0% |
+| MKT (Track E) | 0 | 4 | 0% |
+| LAUNCH (Track F) | 0 | 3 | 0% |
 | GONOGO | 0 | 3 | 0% |
-| **合計** | **0** | **15** | **0%** |
+| **合計** | **0** | **46** | **0%** |
 
 ---
 
-## CP準拠確認
+## 成功基準
 
-- [ ] CP-1: 完全量子耐性 - 維持確認
-- [ ] CP-2: Self-Custody - UIでも維持
-- [ ] CP-3: Time Lock - UIで適切に表示
-- [ ] CP-4: Slashing - UIで適切に表示
-- [ ] CP-5: 透明性 - 全操作がUI/ドキュメントで説明
+| 基準 | 条件 | 目標 |
+|------|------|------|
+| UI/UX完了 | UI-001~016全完了 | 100% |
+| 監査完了 | 外部監査PASS、Critical Issue=0 | ✅ |
+| ドキュメント | API/SDK/Whitepaper完成 | ✅ |
+| Bug Bounty | 稼働開始 | ✅ |
+| Landing Page | 公開準備完了 | ✅ |
+| Go/No-Go | 85点以上 | GO |
 
 ---
 
-## 次のステップ
+## PIR予定
 
-Phase 4 Go/No-Go判定後、メインネットローンチへ移行。
+| PIR ID | 対象 | 予定 |
+|--------|------|------|
+| PIR-P4-001 | UI-001~016 (UI/UX) | Track C終了後 |
+| PIR-P4-002 | AUDIT + DOC + BOUNTY | Track D終了後 |
+| PIR-P4-003 | LAUNCH + GONOGO | Track F終了後 |
+
+---
+
+## 監査会社候補
+
+| 会社 | 強み | 目安費用 | 期間 |
+|------|------|----------|------|
+| Trail of Bits | ZK, Cryptography | $200K+ | 4-6 weeks |
+| OpenZeppelin | Smart Contracts | $150K+ | 3-4 weeks |
+| Consensys Diligence | DeFi, Bridge | $150K+ | 3-4 weeks |
+| Spearbit | Comprehensive | $200K+ | 4-6 weeks |
+
+---
+
+## 参照ドキュメント
+
+| ドキュメント | パス |
+|-------------|------|
+| 憲法 | `docs/constitution/CORE_PRINCIPLES.md` |
+| Phase 3計画 | `docs/planning/PHASE3_PLAN.md` |
+| Phase 3.3チェックリスト | `docs/checklists/phase3.3.md` |
+| 現在の状態 | `docs/planning/CURRENT_STATE.md` |
+| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` |
 
 ---
 
