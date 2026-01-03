@@ -55,12 +55,12 @@ contract CoreLayerTest is Test {
         assertTrue(txHash != bytes32(0), "txHash should not be 0");
         assertTrue(coreLayer.isLocked(txHash), "Asset should be locked");
         
-        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
-        assertEq(tx.amount, lockAmount, "Amount should match");
-        assertEq(tx.recipient, recipientBytes, "Recipient should match");
-        assertEq(tx.token, address(0), "Token should be ETH (address 0)");
-        assertFalse(tx.executed, "Should not be executed");
-        assertEq(tx.unlockTime, 0, "Unlock time should be 0");
+        ICoreLayer.BridgeTx memory bridgeTx = coreLayer.getTransaction(txHash);
+        assertEq(bridgeTx.amount, lockAmount, "Amount should match");
+        assertEq(bridgeTx.recipient, recipientBytes, "Recipient should match");
+        assertEq(bridgeTx.token, address(0), "Token should be ETH (address 0)");
+        assertFalse(bridgeTx.executed, "Should not be executed");
+        assertEq(bridgeTx.unlockTime, 0, "Unlock time should be 0");
     }
     
     function test_Lock_ZeroAmount_Reverts() public {
@@ -112,9 +112,9 @@ contract CoreLayerTest is Test {
         vm.prank(user);
         coreLayer.unlock(txHash, proof, recipient);
         
-        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
-        assertEq(tx.unlockTime, block.timestamp + NORMAL_TIMELOCK, "Unlock time should be set");
-        assertFalse(tx.isEmergency, "Should not be emergency");
+        ICoreLayer.BridgeTx memory bridgeTx = coreLayer.getTransaction(txHash);
+        assertEq(bridgeTx.unlockTime, block.timestamp + NORMAL_TIMELOCK, "Unlock time should be set");
+        assertFalse(bridgeTx.isEmergency, "Should not be emergency");
     }
     
     function test_Unlock_NotFound_Reverts() public {
@@ -200,9 +200,9 @@ contract CoreLayerTest is Test {
         vm.prank(user);
         coreLayer.emergencyUnlock{value: bond}(txHash, recipient);
         
-        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
-        assertTrue(tx.isEmergency, "Should be emergency unlock");
-        assertEq(tx.unlockTime, block.timestamp + EMERGENCY_TIMELOCK, "Should use 7d timelock");
+        ICoreLayer.BridgeTx memory bridgeTx = coreLayer.getTransaction(txHash);
+        assertTrue(bridgeTx.isEmergency, "Should be emergency unlock");
+        assertEq(bridgeTx.unlockTime, block.timestamp + EMERGENCY_TIMELOCK, "Should use 7d timelock");
         assertEq(coreLayer.getEmergencyBond(txHash), bond, "Bond should be stored");
     }
     
@@ -267,7 +267,7 @@ contract CoreLayerTest is Test {
         );
     }
     
-    function test_CP5_TransparencyEvents() public {
+    function test_CP5_TransparencyEvents() public view {
         // Events are tested in individual test cases
         // This test verifies the CP-5 description
         assertEq(
