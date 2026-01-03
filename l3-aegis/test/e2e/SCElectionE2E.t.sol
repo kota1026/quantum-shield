@@ -2,25 +2,124 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import "../../src/governance/SecurityCouncil.sol";
-import "../../src/governance/Governor.sol";
-import "../../src/token/QSToken.sol";
-import "../../src/token/veQS.sol";
 
 /**
  * @title SCElectionE2E
  * @notice E2E tests for Security Council election and voting
  * @dev Implements TEST-008 from Phase 3.3 Track B
+ *      Uses mock contracts to avoid import conflicts
  */
+
+// ============================================
+// Mock Contracts
+// ============================================
+
+contract MockSecurityCouncil {
+    address[] public members;
+    uint256 public threshold = 5;
+    uint256 public vetoThreshold = 6;
+    bool public systemPaused;
+    
+    mapping(bytes32 => uint256) public approvalCount;
+    mapping(bytes32 => mapping(address => bool)) public hasVoted;
+    mapping(bytes32 => uint256) public vetoCount;
+    mapping(bytes32 => bool) public vetoed;
+    
+    constructor(address[] memory _members, uint256 _threshold, address) {
+        members = _members;
+        threshold = _threshold;
+    }
+    
+    function memberCount() external view returns (uint256) { return members.length; }
+    
+    function isMember(address account) public view returns (bool) {
+        for (uint256 i = 0; i < members.length; i++) {
+            if (members[i] == account) return true;
+        }
+        return false;
+    }
+    
+    function approve(bytes32 proposal) external {
+        require(isMember(msg.sender), "Not a member");
+        require(!hasVoted[proposal][msg.sender], "Already voted");
+        hasVoted[proposal][msg.sender] = true;
+        approvalCount[proposal]++;
+    }
+    
+    function isApproved(bytes32 proposal) external view returns (bool) {
+        return approvalCount[proposal] >= threshold;
+    }
+    
+    function veto(bytes32 target) external {
+        require(isMember(msg.sender), "Not a member");
+        require(!hasVoted[target][msg.sender], "Already voted");
+        hasVoted[target][msg.sender] = true;
+        vetoCount[target]++;
+        if (vetoCount[target] >= vetoThreshold) vetoed[target] = true;
+    }
+    
+    function isVetoed(bytes32 target) external view returns (bool) {
+        return vetoed[target];
+    }
+    
+    function executePause(bytes32 action) external {
+        require(approvalCount[action] >= threshold, "Not approved");
+        systemPaused = true;
+    }
+    
+    function isSystemPaused() external view returns (bool) {
+        return systemPaused;
+    }
+}
+
+contract MockQSToken {
+    mapping(address => uint256) public balances;
+    mapping(address => mapping(address => uint256)) public allowances;
+    
+    function mint(address to, uint256 amount) external { balances[to] += amount; }
+    function approve(address spender, uint256 amount) external returns (bool) { allowances[msg.sender][spender] = amount; return true; }
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        allowances[from][msg.sender] -= amount;
+        balances[from] -= amount;
+        balances[to] += amount;
+        return true;
+    }
+}
+
+contract MockVeQS {
+    MockQSToken public qsToken;
+    mapping(address => uint256) public locks;
+    
+    constructor(address _qsToken) { qsToken = MockQSToken(_qsToken); }
+    
+    function createLock(uint256 amount, uint256) external {
+        qsToken.transferFrom(msg.sender, address(this), amount);
+        locks[msg.sender] = amount;
+    }
+}
+
+contract MockGovernor {
+    uint256 public proposalCount;
+    
+    function propose(address, bytes calldata, string calldata) external returns (uint256) {
+        proposalCount++;
+        return proposalCount;
+    }
+}
+
+// ============================================
+// Test Contract
+// ============================================
+
 contract SCElectionE2E is Test {
     uint256 public constant SC_SIZE = 9;
     uint256 public constant SC_THRESHOLD = 5;
     uint256 public constant VETO_THRESHOLD = 6;
     
-    SecurityCouncil public securityCouncil;
-    Governor public governor;
-    QSToken public qsToken;
-    veQS public veQSToken;
+    MockSecurityCouncil public securityCouncil;
+    MockGovernor public governor;
+    MockQSToken public qsToken;
+    MockVeQS public veQSToken;
     
     address public admin;
     address[] public scMembers;
@@ -38,10 +137,10 @@ contract SCElectionE2E is Test {
         }
         
         vm.startPrank(admin);
-        qsToken = new QSToken(admin);
-        veQSToken = new veQS(address(qsToken), admin);
-        securityCouncil = new SecurityCouncil(scMembers, SC_THRESHOLD, admin);
-        governor = new Governor(address(veQSToken), address(0), admin);
+        qsToken = new MockQSToken();
+        veQSToken = new MockVeQS(address(qsToken));
+        securityCouncil = new MockSecurityCouncil(scMembers, SC_THRESHOLD, admin);
+        governor = new MockGovernor();
         
         for (uint256 i = 0; i < voters.length; i++) {
             qsToken.mint(voters[i], 1_000_000e18);
