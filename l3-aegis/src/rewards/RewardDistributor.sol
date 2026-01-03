@@ -57,6 +57,16 @@ contract RewardDistributor is IRewardDistributor {
     /// @notice Initial insurance share (10%)
     uint256 public constant override INSURANCE_SHARE = 1000;
     
+    // ========== Pre-computed Selectors (CP-1 Compliant) ==========
+    
+    /// @notice Pre-computed selector for isActiveProver(address)
+    /// @dev Computed offline: bytes4(keccak256("isActiveProver(address)")) = 0xec64842e
+    bytes4 private constant SELECTOR_IS_ACTIVE_PROVER = 0xec64842e;
+    
+    /// @notice Pre-computed selector for isActiveSequencer(address)
+    /// @dev Computed offline: bytes4(keccak256("isActiveSequencer(address)")) = 0x933be7a2
+    bytes4 private constant SELECTOR_IS_ACTIVE_SEQUENCER = 0x933be7a2;
+    
     // ========== Constructor ==========
     
     constructor(
@@ -241,17 +251,19 @@ contract RewardDistributor is IRewardDistributor {
     // ========== Internal Functions ==========
     
     /// @notice Check if operator is registered (prover or sequencer)
+    /// @dev Uses pre-computed selectors to avoid runtime keccak256 (CP-1 compliant)
     function _isRegisteredOperator(address operator) internal view returns (bool) {
-        // Call registry to check if active prover or sequencer
+        // Call registry to check if active prover using pre-computed selector
         (bool success1, bytes memory data1) = registry.staticcall(
-            abi.encodeWithSignature("isActiveProver(address)", operator)
+            abi.encodeWithSelector(SELECTOR_IS_ACTIVE_PROVER, operator)
         );
-        if (success1 && abi.decode(data1, (bool))) return true;
+        if (success1 && data1.length >= 32 && abi.decode(data1, (bool))) return true;
         
+        // Call registry to check if active sequencer using pre-computed selector
         (bool success2, bytes memory data2) = registry.staticcall(
-            abi.encodeWithSignature("isActiveSequencer(address)", operator)
+            abi.encodeWithSelector(SELECTOR_IS_ACTIVE_SEQUENCER, operator)
         );
-        if (success2 && abi.decode(data2, (bool))) return true;
+        if (success2 && data2.length >= 32 && abi.decode(data2, (bool))) return true;
         
         return false;
     }
