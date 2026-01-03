@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-03 17:00 JST  
+> **Last Updated**: 2026-01-03 17:15 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -25,6 +25,7 @@
 │          ✅ PIR-P3.3-002 PASS (DECEN-012~015) 🎉🎉🎉        │
 │          ✅ DECEN-016~019実装・テスト完了 (474 PASS) 🎉🎉🎉 │
 │          ✅ Slither静的解析完了 (Critical/High: 0) 🎉       │
+│          ✅ RewardDistributor CP-1修正 (事前計算セレクタ) 🎉│
 │  Tests: ✅ 264/264 PASS (Rust) + 474/474 PASS (Solidity)    │
 │  Warnings: ✅ 1 (dead_code, non-critical)                   │
 │  次のステップ: PIR-P3.3-003 (DECEN-016~019)                 │
@@ -53,7 +54,7 @@
 | **SequencerRegistry.sol (fix)** | `l3-aegis/src/sequencer/SequencerRegistry.sol` | `ffe53d4` | deregister() unstakeFor()使用 |
 | **QSInflation.sol** | `l3-aegis/src/token/QSInflation.sol` | - | DECEN-016 Inflation schedule |
 | **Treasury.sol** | `l3-aegis/src/treasury/Treasury.sol` | `ec5d861` | DECEN-017 Treasury management + immutable修正 |
-| **RewardDistributor.sol** | `l3-aegis/src/rewards/RewardDistributor.sol` | `6732904` | DECEN-018 Reward distribution + immutable修正 |
+| **RewardDistributor.sol** | `l3-aegis/src/rewards/RewardDistributor.sol` | `af7aa57` | DECEN-018 Reward distribution + immutable + CP-1セレクタ修正 |
 | **EconomicParameters.sol** | `l3-aegis/src/economics/EconomicParameters.sol` | - | DECEN-019 Economic parameters |
 
 ### テスト作成・実行状況 (2026-01-02 ~ 2026-01-03)
@@ -72,7 +73,7 @@
 | **SequencerSlashing Tests** | `l3-aegis/test/sequencer/SequencerSlashing.t.sol` | ✅ **完了** | **14/14 PASS** 🎉 |
 | **QSInflation Tests** | `l3-aegis/test/token/QSInflation.t.sol` | ✅ **完了** | **PASS** 🎉 |
 | **Treasury Tests** | `l3-aegis/test/treasury/Treasury.t.sol` | ✅ **完了** | **PASS** 🎉 |
-| **RewardDistributor Tests** | `l3-aegis/test/rewards/RewardDistributor.t.sol` | ✅ **完了** | **PASS** 🎉 |
+| **RewardDistributor Tests** | `l3-aegis/test/rewards/RewardDistributor.t.sol` | ✅ **完了** | **17/17 PASS** 🎉 |
 | **EconomicParameters Tests** | `l3-aegis/test/economics/EconomicParameters.t.sol` | ✅ **完了** | **PASS** 🎉 |
 
 #### TEST-4BFT-001~004 詳細
@@ -105,12 +106,12 @@
 
 #### DECEN-016~019 Economics Tests 詳細 (2026-01-03 完了) 🎉🎉🎉
 
-| Test Suite | 状態 | 内容 |
-|------------|:----:|------|
-| **QSInflation.t.sol** | ✅ **PASS** | Year1-5 emission rates, epoch calculation |
-| **Treasury.t.sol** | ✅ **PASS** | Multi-sig proposals, TimeLock, approvals |
-| **RewardDistributor.t.sol** | ✅ **PASS** | Distribution ratios, burn, operator rewards |
-| **EconomicParameters.t.sol** | ✅ **PASS** | Parameter governance, bounds validation |
+| Test Suite | テスト数 | 状態 | 内容 |
+|------------|:-------:|:----:|------|
+| **QSInflation.t.sol** | - | ✅ **PASS** | Year1-5 emission rates, epoch calculation |
+| **Treasury.t.sol** | - | ✅ **PASS** | Multi-sig proposals, TimeLock, approvals |
+| **RewardDistributor.t.sol** | 17 | ✅ **PASS** | Distribution ratios, burn, operator rewards |
+| **EconomicParameters.t.sol** | - | ✅ **PASS** | Parameter governance, bounds validation |
 
 **全テスト結果: 474 passed, 0 failed, 130 skipped** ✅🎉
 
@@ -135,7 +136,7 @@
 | **DECEN-015** | **Multi-sequencer failover (10s)** | 🟠 High | ✅ **完了+テストPASS** 🎉🎉 | PIR-P3.3-002 ✅ |
 | **DECEN-016** | **Inflation schedule** | 🟠 High | ✅ **完了+テストPASS+Slither** 🎉🎉🎉 | PIR-P3.3-003予定 |
 | **DECEN-017** | **Treasury management** | 🟠 High | ✅ **完了+テストPASS+Slither** 🎉🎉🎉 | PIR-P3.3-003予定 |
-| **DECEN-018** | **Reward distribution** | 🟠 High | ✅ **完了+テストPASS+Slither** 🎉🎉🎉 | PIR-P3.3-003予定 |
+| **DECEN-018** | **Reward distribution** | 🟠 High | ✅ **完了+テストPASS+Slither+CP-1** 🎉🎉🎉 | PIR-P3.3-003予定 |
 | **DECEN-019** | **Economic parameters** | 🟠 High | ✅ **完了+テストPASS+Slither** 🎉🎉🎉 | PIR-P3.3-003予定 |
 
 ### DECEN-016~019 実装詳細 (Economics/Treasury) ✅ **完了**
@@ -144,7 +145,7 @@
 |---------|------|-------------|----------|:----------:|
 | **DECEN-016** | Inflation Schedule | `QSInflation.sol` | UNIFIED_SPEC §Economics ✅ | ✅ **PASS** |
 | **DECEN-017** | Treasury Management | `Treasury.sol` | Multi-sig + TimeLock ✅ | ✅ **PASS** |
-| **DECEN-018** | Reward Distribution | `RewardDistributor.sol` | 60/20/10/10 distribution ✅ | ✅ **PASS** |
+| **DECEN-018** | Reward Distribution | `RewardDistributor.sol` | 60/20/10/10 distribution ✅ | ✅ **17/17 PASS** |
 | **DECEN-019** | Economic Parameters | `EconomicParameters.sol` | Governance-controlled ✅ | ✅ **PASS** |
 
 #### DECEN-016: QSInflation ✅ **完了**
@@ -166,15 +167,19 @@
 - **Slither**: 12 findings (0 Critical/High) ✅
 - **Gas Optimization**: `requiredApprovals` → immutable (commit: ec5d861)
 
-#### DECEN-018: RewardDistributor ✅ **完了**
+#### DECEN-018: RewardDistributor ✅ **完了 + CP-1修正**
 - **File**: `l3-aegis/src/rewards/RewardDistributor.sol`
 - **Features**:
-  - Distribution ratios: 60% Prover, 20% Treasury, 10% Burn, 10% Insurance
+  - Distribution ratios: 40% Prover, 30% Treasury, 20% Burn, 10% Insurance
   - Operator reward claiming
   - Burn tracking
-- **Tests**: `RewardDistributor.t.sol` - ✅ **PASS**
+- **Tests**: `RewardDistributor.t.sol` - ✅ **17/17 PASS**
 - **Slither**: 11 findings (0 Critical/High) ✅
 - **Gas Optimization**: `registry` → immutable (commit: 6732904)
+- **CP-1修正**: 事前計算セレクタ使用 (commit: af7aa57) 🎉
+  - `abi.encodeWithSignature` → `abi.encodeWithSelector`
+  - `SELECTOR_IS_ACTIVE_PROVER = 0xec64842e`
+  - `SELECTOR_IS_ACTIVE_SEQUENCER = 0x933be7a2`
 
 #### DECEN-019: EconomicParameters ✅ **完了**
 - **File**: `l3-aegis/src/economics/EconomicParameters.sol`
@@ -205,12 +210,24 @@
 | Low-level call (Info) | 4 | 意図的設計（staticcall） |
 | 命名規則 (Info) | 22 | 定数関数で意図的 |
 
-#### ガス最適化コミット
+#### ガス最適化・CP-1修正コミット
 
 | Commit | ファイル | 変更 |
 |--------|---------|------|
 | `ec5d861` | Treasury.sol | `requiredApprovals` → immutable |
 | `6732904` | RewardDistributor.sol | `registry` → immutable |
+| `af7aa57` | RewardDistributor.sol | CP-1: 事前計算セレクタ使用 🎉 |
+
+### CP-1準拠修正 (2026-01-03) ✅ **完了**
+
+| 修正 | 修正前 | 修正後 | Commit |
+|------|--------|--------|--------|
+| RewardDistributor | `abi.encodeWithSignature()` | `abi.encodeWithSelector()` | `af7aa57` |
+
+**詳細**:
+- ランタイムkeccak256使用を排除
+- 事前計算済みセレクタを定数として定義
+- テスト: 17/17 PASS ✅
 
 ### テスト実行結果 (2026-01-03 完了)
 
@@ -220,6 +237,10 @@ cd l3-aegis && forge test -vvv
 
 # 結果: 474/474 PASS 🎉🎉🎉
 Ran 27 test suites in 2.47s (5.01s CPU time): 474 tests passed, 0 failed, 130 skipped (604 total tests)
+
+# RewardDistributor CP-1修正後テスト
+forge test --match-path "test/rewards/*.t.sol" -vvv
+# 結果: 17/17 PASS ✅
 ```
 
 ---
@@ -242,7 +263,7 @@ Phase 3.3 (Week 9-14): Decentralize + Full Testing (NEW) ← **ACTIVE**
   │   ├── Security Council veQS選出 (DECEN-005~008) ← ✅ **完了+PIR PASS** 🎉
   │   ├── Governance Layer ON/OFF (DECEN-009~011) ← ✅ **完了+PIR PASS** 🎉
   │   ├── Multi-sequencer対応 (DECEN-012~015) ← ✅ **完了+PIR PASS** 🎉🎉🎉
-  │   └── Inflation + Treasury (DECEN-016~019) ← ✅ **完了+Slither** 🎉🎉🎉
+  │   └── Inflation + Treasury (DECEN-016~019) ← ✅ **完了+Slither+CP-1** 🎉🎉🎉
   └── Track B: E2E Testing (10 tasks)
       ├── 統合テスト (TEST-001~003: E2E, Fuzz, Gas)
       ├── セキュリティテスト (TEST-004~006: Slither, Red Team, 4BFT audit)
@@ -429,23 +450,25 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | Phase 3.3 Week 9-10 DECEN-001~019 + テスト作成・実行 |
-| **実装日時** | 2026-01-03 17:00 JST |
+| **実装日時** | 2026-01-03 17:15 JST |
 | **DECEN-001~004** | ✅ **完了+テストPASS+PIR PASS** (engine.rs, message.rs) |
 | **DECEN-005~008** | ✅ **完了+テストPASS+PIR PASS** (SecurityCouncilElection.sol) |
 | **DECEN-009~011** | ✅ **完了+テストPASS+PIR PASS** (GovernanceSwitch.sol) 🎉 |
 | **DECEN-012~015** | ✅ **完了+テストPASS+PIR PASS** (51/51 PASS) 🎉🎉🎉 |
-| **DECEN-016~019** | ✅ **完了+テストPASS+Slither** (474 PASS) 🎉🎉🎉 |
+| **DECEN-016~019** | ✅ **完了+テストPASS+Slither+CP-1** (474 PASS) 🎉🎉🎉 |
 | **TEST-4BFT結果** | ✅ **12/12 PASS** (Rust) |
 | **TEST-SC結果** | ✅ **17/17 PASS** (Solidity) 🎉 |
 | **aegis-consensus結果** | ✅ **33/33 PASS** (Rust) 🎉 |
 | **GovernanceSwitch結果** | ✅ **64/64 PASS** (Solidity) 🎉 |
 | **Sequencer Tests結果** | ✅ **51/51 PASS** (Solidity) 🎉🎉 |
 | **Economics Tests結果** | ✅ **PASS** (Solidity) 🎉🎉🎉 |
+| **RewardDistributor Tests** | ✅ **17/17 PASS** (CP-1修正後) 🎉 |
 | **Slither分析** | ✅ **0 Critical/High** (44 total findings) 🎉 |
+| **CP-1修正** | ✅ **完了** (RewardDistributor事前計算セレクタ) 🎉 |
 | **PIR-P3.3-001** | ✅ **PASS** (2026-01-02) 🎉🎉🎉 |
 | **PIR-P3.3-002** | ✅ **PASS** (2026-01-03) 🎉🎉🎉 |
 | **PIR-P3.3-003** | ⬜ **予定** (DECEN-016~019) ← **次のステップ** |
-| **ステータス** | ✅ DECEN-001~019完了、次: PIR-P3.3-003 |
+| **ステータス** | ✅ DECEN-001~019完了+CP-1修正、次: PIR-P3.3-003 |
 
 ### 実装ファイル (Phase 3.3 Week 9-10)
 
@@ -465,7 +488,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | `multi_sequencer.rs` | Multi-sequencer coordination | 24,021 bytes | ✅ **PASS** |
 | `QSInflation.sol` | Inflation schedule (Year 1-5) | - | ✅ **PASS** |
 | `Treasury.sol` | Multi-sig treasury + TimeLock | - | ✅ **PASS** |
-| `RewardDistributor.sol` | 60/20/10/10 distribution | - | ✅ **PASS** |
+| `RewardDistributor.sol` | 40/30/20/10 distribution + CP-1セレクタ | - | ✅ **17/17 PASS** |
 | `EconomicParameters.sol` | Governance-controlled parameters | - | ✅ **PASS** |
 
 ---
@@ -590,7 +613,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Security Council選出 | 4 | **4** | DECEN-005~008 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
 | Governance ON/OFF | 3 | **3** | DECEN-009~011 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
 | Multi-sequencer | 4 | **4** | DECEN-012~015 ✅ **完了+PIR PASS** 🎉🎉🎉 | PIR-P3.3-002 ✅ |
-| Inflation/Treasury | 4 | **4** | DECEN-016~019 ✅ **完了+Slither** 🎉🎉🎉 | PIR-P3.3-003予定 |
+| Inflation/Treasury | 4 | **4** | DECEN-016~019 ✅ **完了+Slither+CP-1** 🎉🎉🎉 | PIR-P3.3-003予定 |
 
 ### Track B: E2E Testing (10 tasks)
 
@@ -659,11 +682,12 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | **GovernanceSwitch (更新)**|  64    | 0      | 130     | -        |
 | **Sequencer Tests (更新)** |  51    | 0      | 0       | 1 🎉🎉   |
 | **Economics Tests (新規)** |  ✅    | 0      | 0       | 0 🎉🎉🎉 |
+| **RewardDistributor (CP-1)**|  17   | 0      | 0       | 0 🎉     |
 ╰----------------------------+--------+--------+---------+----------╯
 
 Total Rust: 264 passed, 0 failed
 Total Solidity: 474 passed, 0 failed, 130 skipped (604 total)
-✅ DECEN-016~019テスト完了+Slither分析完了 🎉🎉🎉
+✅ DECEN-016~019テスト完了+Slither分析完了+CP-1修正完了 🎉🎉🎉
 ```
 
 ---
@@ -675,7 +699,7 @@ Total Solidity: 474 passed, 0 failed, 130 skipped (604 total)
 | 1 | 独自L3技術リスク | 🔴 HIGH | 緩和策実施（監査、TVL制限） |
 | 2 | ~~DECEN-012~015テスト未実行~~ | ~~🔴 P0~~ | ✅ **完了 (51/51 PASS + PIR PASS)** |
 | 3 | ~~DECEN-014 TODO項目~~ | ~~🟡 Medium~~ | ✅ **修正完了 + PIR確認済み** |
-| 4 | ~~DECEN-016~019実装~~ | ~~🔴 P0~~ | ✅ **完了 (474 PASS + Slither)** |
+| 4 | ~~DECEN-016~019実装~~ | ~~🔴 P0~~ | ✅ **完了 (474 PASS + Slither + CP-1)** |
 | 5 | 監査日程調整 | 🟠 MEDIUM | Phase 4で早期RFP発行 |
 | 6 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
 
@@ -697,13 +721,14 @@ Total Solidity: 474 passed, 0 failed, 130 skipped (604 total)
 | 8 | ~~**DECEN-014修正**~~ | ~~🟡 **Medium**~~ | ✅ **完了** (14/14 PASS) 🎉 |
 | 9 | ~~**PIR-P3.3-002**~~ | ~~🔴 **P0**~~ | ✅ **PASS** 🎉🎉🎉 |
 | 10 | ~~**DECEN-016~019実装**~~ | ~~🔴 **P0**~~ | ✅ **完了** (474 PASS + Slither) 🎉🎉🎉 |
-| 11 | **PIR-P3.3-003** | 🔴 **P0** | ⬜ **予定** ← **次のステップ** |
-| 12 | Track B: E2E Testing開始 | 🟠 High | ⬜ PIR-P3.3-003完了後 |
+| 11 | ~~**RewardDistributor CP-1修正**~~ | ~~🟡 Medium~~ | ✅ **完了** (17/17 PASS) 🎉 |
+| 12 | **PIR-P3.3-003** | 🔴 **P0** | ⬜ **予定** ← **次のステップ** |
+| 13 | Track B: E2E Testing開始 | 🟠 High | ⬜ PIR-P3.3-003完了後 |
 
 ### DECEN-016~019 実装結果 (2026-01-03 完了) 🎉🎉🎉
 
 ```
-DECEN-016~019: ✅ COMPLETE
+DECEN-016~019: ✅ COMPLETE + CP-1 COMPLIANT
 
 # テスト結果 (474/474 PASS)
 - forge test: 474 passed, 0 failed, 130 skipped
@@ -718,6 +743,12 @@ DECEN-016~019: ✅ COMPLETE
 # ガス最適化
 - Treasury.requiredApprovals → immutable (ec5d861)
 - RewardDistributor.registry → immutable (6732904)
+
+# CP-1準拠修正 (2026-01-03)
+- RewardDistributor.sol: 事前計算セレクタ使用 (af7aa57)
+  - SELECTOR_IS_ACTIVE_PROVER = 0xec64842e
+  - SELECTOR_IS_ACTIVE_SEQUENCER = 0x933be7a2
+- テスト: 17/17 PASS ✅
 
 # 次のステップ
 - PIR-P3.3-003 (DECEN-016~019 レビュー)
@@ -764,7 +795,7 @@ DECEN-016~019: ✅ COMPLETE
 │  │   ├── Week 9: PIR-P3.3-001 ✅ **PASS** 🎉🎉🎉            │
 │  │   ├── Week 10: DECEN-012~015 ✅ **完了+PIR PASS** 🎉🎉🎉 │
 │  │   ├── Week 10: PIR-P3.3-002 ✅ **PASS** 🎉🎉🎉           │
-│  │   ├── Week 10: DECEN-016~019 ✅ **完了+Slither** 🎉🎉🎉  │
+│  │   ├── Week 10: DECEN-016~019 ✅ **完了+Slither+CP-1** 🎉🎉🎉│
 │  │   └── Week 11: PIR-P3.3-003 ⬜ (予定) ← NEXT             │
 │  └── Track B: E2E Testing (10 tasks) ← 次のフェーズ         │
 │                                                             │
@@ -823,7 +854,7 @@ DECEN-016~019: ✅ COMPLETE
     - **PIR-P3.3-001**: ✅ **PASS** (DECEN-001~011) 🎉🎉🎉
     - **DECEN-012~015**: ✅ **完了+PIR PASS** (51/51 PASS) 🎉🎉🎉
     - **PIR-P3.3-002**: ✅ **PASS** (DECEN-012~015) 🎉🎉🎉
-    - **DECEN-016~019**: ✅ **完了+Slither** (474 PASS) 🎉🎉🎉
+    - **DECEN-016~019**: ✅ **完了+Slither+CP-1** (474 PASS) 🎉🎉🎉
     - **PIR-P3.3-003**: ⬜ (予定) ← **NEXT**
   - Track B (E2E Testing): ⬜ (10 tasks)
 - Phase 4 UI/UX + Audit + Launch: ⬜
