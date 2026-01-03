@@ -131,21 +131,31 @@ contract SequencerSlashingTest is Test {
     function test_SlashDistribution() public {
         bytes memory proof = _createDoubleSignProof(sequencer1);
         
-        uint256 slashAmount = MINIMUM_STAKE * 10 / 100; // N=1
-        uint256 challengerReward = slashAmount * 60 / 100;
-        uint256 insuranceAmount = slashAmount * 20 / 100;
-        // Burn: 20% (destroyed)
+        uint256 slashAmount = MINIMUM_STAKE * 10 / 100; // N=1: 50,000 ETH
+        uint256 expectedChallengerReward = slashAmount * 60 / 100; // 30,000 ETH
+        uint256 expectedInsuranceAmount = slashAmount * 20 / 100; // 10,000 ETH
+        // Burn: 20% (10,000 ETH destroyed)
 
+        // Fund challenger with bond
+        vm.deal(challenger, CHALLENGE_BOND + 1 ether);
+        
+        // Record balances AFTER funding
         uint256 challengerBalanceBefore = challenger.balance;
         uint256 insuranceBalanceBefore = insuranceFund.balance;
 
-        vm.deal(challenger, CHALLENGE_BOND + 1 ether);
         vm.prank(challenger);
         slashing.reportDoubleSign{value: CHALLENGE_BOND}(sequencer1, proof);
 
-        // Challenger should receive reward + bond back
-        assertEq(challenger.balance - challengerBalanceBefore + CHALLENGE_BOND, challengerReward + CHALLENGE_BOND);
-        assertEq(insuranceFund.balance - insuranceBalanceBefore, insuranceAmount);
+        uint256 challengerBalanceAfter = challenger.balance;
+        uint256 insuranceBalanceAfter = insuranceFund.balance;
+
+        // Challenger receives: reward + bond back - bond sent
+        // Net gain = challengerBalanceAfter - challengerBalanceBefore + CHALLENGE_BOND (sent)
+        // = reward + bond (received back)
+        uint256 challengerNetGain = challengerBalanceAfter - (challengerBalanceBefore - CHALLENGE_BOND);
+        
+        assertEq(challengerNetGain, expectedChallengerReward + CHALLENGE_BOND, "Challenger reward incorrect");
+        assertEq(insuranceBalanceAfter - insuranceBalanceBefore, expectedInsuranceAmount, "Insurance amount incorrect");
     }
 
     // ============================================
