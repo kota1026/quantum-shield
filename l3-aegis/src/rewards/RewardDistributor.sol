@@ -16,14 +16,14 @@ contract RewardDistributor is IRewardDistributor {
     /// @notice Admin address
     address public immutable admin;
     
+    /// @notice Operator registry (immutable after deployment)
+    address public immutable registry;
+    
     /// @notice Treasury address
     address public treasury;
     
     /// @notice Insurance fund address
     address public insuranceFund;
-    
-    /// @notice Operator registry (for checking active provers/sequencers)
-    address public registry;
     
     /// @notice Distribution shares (basis points)
     DistributionShares internal _shares;
