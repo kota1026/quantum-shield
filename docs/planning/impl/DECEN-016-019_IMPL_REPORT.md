@@ -1,43 +1,82 @@
 # DECEN-016~019 Implementation Report
 
-> **Date**: 2026-01-03 13:25 JST
+> **Date**: 2026-01-03 13:38 JST
 > **Phase**: 3.3 Week 11-12
-> **Status**: 🟡 Implementation Complete, Tests Pending
+> **Status**: 🟢 Implementation + Test Alignment Complete
 
 ## Summary
 
 DECEN-016~019 (Inflation, Treasury, Rewards, Economics) implementation completed using TDD approach.
+All implementations and tests have been aligned.
 
-## Created Files
+## Alignment Fixes Applied
 
-### Interfaces (6 files)
-| File | Description | Commit |
-|------|-------------|--------|
-| `src/interfaces/IQSInflation.sol` | Inflation mechanism | 3d82d00 |
-| `src/interfaces/ITreasury.sol` | Treasury management | 1d8fa6d |
-| `src/interfaces/IRewardDistributor.sol` | Fee distribution | 3827f5f |
-| `src/interfaces/IEconomicParameters.sol` | Economic parameters | 0f67289 |
-| `src/interfaces/IERC20.sol` | Standard ERC20 | 94287cc |
-| `src/interfaces/IQSToken.sol` | QS Token + mint/burn | cf2adde |
-| `src/interfaces/IGovernanceSwitch.sol` | Updated with getCurrentMode | f3e2005 |
-| `src/interfaces/ISecurityCouncil.sol` | Updated with hasEmergencyApproval | e1c054a |
+### Treasury.sol (Commit: bd9fe06)
+- Changed from ERC20 to ETH-based treasury
+- Added signers array and requiredApprovals to constructor
+- Added getProposalState, getProposalCount, hasApproved functions
+- Added receiveFunds function
+- Fixed Proposal struct to use 'id' instead of 'proposalId'
+- Auto-approve proposer on propose()
+
+### RewardDistributor.sol (Commit: 5edd616)
+- Changed constructor to use registry instead of governanceSwitch
+- Added getUnclaimedRewards, getTreasury, getInsuranceFund functions
+- Added TokensBurned event emission
+- Fixed share constants as public override
+- Implemented _isRegisteredOperator check via registry
+
+### IEconomicParameters.sol (Commit: 57a5e0e)
+- Renamed EconomicParams to ParameterSet
+- Renamed getParameters to getAllParameters
+- Added applyVotingPowerCap and isValidStake functions
+- Added timestamp to events
+- Added InvalidAddress error
+
+### Test Files Updated
+- QSInflation.t.sol (Commit: e1ead8c) - Added vm.mockCall for token
+- Treasury.t.sol (Commit: 6f82711) - Fixed SC emergency call
+- EconomicParameters.t.sol (Commit: d2c4d4d) - Added governance auth helper
+- RewardDistributor.t.sol - No changes needed (already aligned)
+
+## File Summary
 
 ### Implementations (4 files)
-| File | Description | Commit | Size |
-|------|-------------|--------|------|
-| `src/token/QSInflation.sol` | 5%→3.75%→2.5%→1% | 39b74d0 | 6,114 |
-| `src/treasury/Treasury.sol` | Multi-sig + DAO | 98948a0 | 9,247 |
-| `src/rewards/RewardDistributor.sol` | 40/30/20/10 split | aefbb3d | 8,738 |
-| `src/economics/EconomicParameters.sol` | CP-3/4 protected | 063b808 | 7,212 |
+| File | Description | Status |
+|------|-------------|:------:|
+| `src/token/QSInflation.sol` | 5%→3.75%→2.5%→1% | ✅ |
+| `src/treasury/Treasury.sol` | Multi-sig + ETH | ✅ |
+| `src/rewards/RewardDistributor.sol` | 40/30/20/10 split | ✅ |
+| `src/economics/EconomicParameters.sol` | CP-3/4 protected | ✅ |
 
 ### Tests (4 files)
 | File | Test Count | Status |
 |------|:----------:|:------:|
-| `test/token/QSInflation.t.sol` | 15 | ⬜ Pending |
-| `test/treasury/Treasury.t.sol` | 20 | ⬜ Pending |
-| `test/rewards/RewardDistributor.t.sol` | 18 | ⬜ Pending |
-| `test/economics/EconomicParameters.t.sol` | 22 | ⬜ Pending |
+| `test/token/QSInflation.t.sol` | 15 | ✅ Aligned |
+| `test/treasury/Treasury.t.sol` | 20 | ✅ Aligned |
+| `test/rewards/RewardDistributor.t.sol` | 18 | ✅ Aligned |
+| `test/economics/EconomicParameters.t.sol` | 22 | ✅ Aligned |
 | **Total** | **75** | |
+
+## Commits (in order)
+
+```
+57a5e0e fix(interfaces): align IEconomicParameters with implementation
+e1ead8c fix(test): align QSInflation.t.sol with implementation
+6f82711 fix(test): align Treasury.t.sol with implementation
+d2c4d4d fix(test): align EconomicParameters.t.sol with implementation
+5edd616 fix(rewards): align RewardDistributor.sol with test expectations
+bd9fe06 fix(treasury): align Treasury.sol with test expectations
+907ab38 docs(impl): add DECEN-016~019 implementation report
+```
+
+## Next Steps
+
+1. **Pull latest changes**: `git pull origin dev/phase2-native-stark`
+2. **Run tests**: `cd l3-aegis && forge test -vvv`
+3. **Verify all 75 tests pass**
+4. **Conduct PIR-P3.3-003**
+5. **Update CURRENT_STATE.md**
 
 ## Specification Compliance
 
@@ -50,61 +89,3 @@ DECEN-016~019 (Inflation, Treasury, Rewards, Economics) implementation completed
 | CP-5 | Transparency | ✅ |
 | UNIFIED_SPEC | Token, Treasury, Fees | ✅ |
 | PHASE3_STRATEGY | Fee 40/30/20/10 | ✅ |
-
-## Key Parameters
-
-### DECEN-016: QSInflation
-- Year 1: 5.00%
-- Year 2: 3.75%
-- Year 3: 2.50%
-- Year 4+: 1.00%
-
-### DECEN-017: Treasury
-- MAX_SINGLE_SPEND: $100K
-- TIME_LOCK_PERIOD: 7 days
-- Minimum Balance: 12 months operating cost
-- Emergency: SC 7/9 approval
-
-### DECEN-018: RewardDistributor
-- Prover: 40%
-- Treasury: 30%
-- Burn: 20% (0xdEaD)
-- Insurance: 10%
-
-### DECEN-019: EconomicParameters
-- NORMAL_TIME_LOCK: 24h (CP-3, immutable)
-- EMERGENCY_TIME_LOCK: 7d (CP-3, immutable)
-- SLASHING_RATE_BASE: 10% (CP-4, immutable)
-- unbondingPeriod: 7d (CP-3, extension only)
-- feeRate: 5 bp (0.05%)
-- minimumFee: $10
-- minimumStake: $500K
-- votingPowerCap: 5%
-
-## Next Steps
-
-1. Run tests: `cd l3-aegis && forge test --match-path "test/**/*.t.sol"`
-2. Verify all 75 tests pass
-3. Conduct PIR-P3.3-003
-4. Update CURRENT_STATE.md
-
-## Commits
-
-```
-323d366 test(economics): add EconomicParameters tests (DECEN-019)
-0caeece test(rewards): add RewardDistributor tests (DECEN-018)
-1fcfdc1 test(treasury): add Treasury tests (DECEN-017)
-2e1591e test(token): add QSInflation tests (DECEN-016)
-063b808 feat(economics): implement EconomicParameters (DECEN-019)
-aefbb3d feat(rewards): implement RewardDistributor (DECEN-018)
-98948a0 feat(treasury): implement Treasury (DECEN-017)
-39b74d0 feat(token): implement QSInflation (DECEN-016)
-e1c054a feat(interfaces): add hasEmergencyApproval to ISecurityCouncil
-f3e2005 feat(interfaces): update IGovernanceSwitch with missing methods
-cf2adde feat(interfaces): add IQSToken interface
-94287cc feat(interfaces): add IERC20 interface
-0f67289 feat(interfaces): add IEconomicParameters interface (DECEN-019)
-3827f5f feat(interfaces): add IRewardDistributor interface (DECEN-018)
-1d8fa6d feat(interfaces): add ITreasury interface (DECEN-017)
-3d82d00 feat(interfaces): add IQSInflation interface (DECEN-016)
-```
