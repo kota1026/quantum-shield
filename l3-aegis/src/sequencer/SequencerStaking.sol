@@ -21,6 +21,7 @@ contract SequencerStaking is ISequencerStaking, AccessControl, ReentrancyGuard {
     
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant SLASHING_ROLE = keccak256("SLASHING_ROLE");
+    bytes32 public constant REGISTRY_ROLE = keccak256("REGISTRY_ROLE");
     
     uint256 public constant override MINIMUM_STAKE = 500_000 ether;
     uint256 public constant override MINIMUM_DELEGATED_STAKE = 50_000 ether;
@@ -51,6 +52,9 @@ contract SequencerStaking is ISequencerStaking, AccessControl, ReentrancyGuard {
     
     // Slashing contract
     address public slashingContract;
+    
+    // Registry contract
+    address public registryContract;
 
     // ============================================
     // Constructor
@@ -98,6 +102,27 @@ contract SequencerStaking is ISequencerStaking, AccessControl, ReentrancyGuard {
         }));
         
         emit Unstaked(msg.sender, amount, unlockTime);
+    }
+    
+    /**
+     * @notice Unstake on behalf of a sequencer (for registry deregistration)
+     * @param sequencer The sequencer address to unstake for
+     * @param amount The amount to unstake
+     * @dev Only callable by registry contract
+     */
+    function unstakeFor(address sequencer, uint256 amount) external nonReentrant onlyRole(REGISTRY_ROLE) {
+        require(amount > 0, "Zero amount");
+        require(_stakes[sequencer] >= amount, "Insufficient stake");
+        
+        _stakes[sequencer] -= amount;
+        
+        uint256 unlockTime = block.timestamp + UNBONDING_PERIOD;
+        _unbonding[sequencer].push(UnbondingEntry({
+            amount: amount,
+            unlockTime: unlockTime
+        }));
+        
+        emit Unstaked(sequencer, amount, unlockTime);
     }
     
     /// @inheritdoc ISequencerStaking
@@ -224,6 +249,17 @@ contract SequencerStaking is ISequencerStaking, AccessControl, ReentrancyGuard {
         slashingContract = _slashingContract;
         _grantRole(SLASHING_ROLE, _slashingContract);
         emit SlashingContractSet(_slashingContract);
+    }
+    
+    /**
+     * @notice Set the registry contract address
+     * @param _registryContract The address of the registry contract
+     * @dev Only callable by admin
+     */
+    function setRegistryContract(address _registryContract) external onlyRole(ADMIN_ROLE) {
+        require(_registryContract != address(0), "Invalid address");
+        registryContract = _registryContract;
+        _grantRole(REGISTRY_ROLE, _registryContract);
     }
 
     // ============================================
