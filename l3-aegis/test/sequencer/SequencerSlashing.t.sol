@@ -7,6 +7,15 @@ import "../../src/sequencer/SequencerStaking.sol";
 import "../../src/interfaces/ISequencerSlashing.sol";
 
 /**
+ * @title MockReceiver
+ * @notice A simple contract that can receive ETH
+ */
+contract MockReceiver {
+    receive() external payable {}
+    fallback() external payable {}
+}
+
+/**
  * @title SequencerSlashing Test
  * @notice TEST-SEQ-003: Sequencer slashing integration tests
  * @dev Covers DECEN-014 requirements:
@@ -19,12 +28,14 @@ import "../../src/interfaces/ISequencerSlashing.sol";
 contract SequencerSlashingTest is Test {
     SequencerSlashing public slashing;
     SequencerStaking public staking;
+    MockReceiver public challengerReceiver;
+    MockReceiver public insuranceReceiver;
 
     address public admin = address(0xAD1);
     address public sequencer1 = address(0x111);
     address public sequencer2 = address(0x222);
-    address public challenger = address(0xC4A);
-    address public insuranceFund = address(0x1F0);
+    address public challenger;
+    address public insuranceFund;
 
     uint256 public constant MINIMUM_STAKE = 500_000 ether;
     uint256 public constant CHALLENGE_BOND = 0.1 ether;
@@ -33,6 +44,12 @@ contract SequencerSlashingTest is Test {
     // N=1: 10%, N=2: 40%, N=3: 90%, N=4: 160% (capped at 100%)
 
     function setUp() public {
+        // Deploy mock receivers for challenger and insurance fund
+        challengerReceiver = new MockReceiver();
+        insuranceReceiver = new MockReceiver();
+        challenger = address(challengerReceiver);
+        insuranceFund = address(insuranceReceiver);
+        
         vm.startPrank(admin);
         staking = new SequencerStaking(admin);
         slashing = new SequencerSlashing(address(staking), insuranceFund, admin);
@@ -48,7 +65,7 @@ contract SequencerSlashingTest is Test {
         _setupStake(sequencer2, MINIMUM_STAKE);
         
         // Fund slashing contract with ETH for challenger rewards
-        vm.deal(address(slashing), 100 ether);
+        vm.deal(address(slashing), 1_000_000 ether);
     }
 
     // ============================================
@@ -126,6 +143,7 @@ contract SequencerSlashingTest is Test {
         vm.prank(challenger);
         slashing.reportDoubleSign{value: CHALLENGE_BOND}(sequencer1, proof);
 
+        // Challenger should receive reward + bond back
         assertEq(challenger.balance - challengerBalanceBefore + CHALLENGE_BOND, challengerReward + CHALLENGE_BOND);
         assertEq(insuranceFund.balance - insuranceBalanceBefore, insuranceAmount);
     }
