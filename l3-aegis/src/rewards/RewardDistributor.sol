@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 import "../interfaces/IRewardDistributor.sol";
 import "../interfaces/IERC20.sol";
-import "../interfaces/IGovernanceSwitch.sol";
 
 /// @title RewardDistributor
 /// @notice DECEN-018: Fee and inflation reward distribution
@@ -14,9 +13,6 @@ contract RewardDistributor is IRewardDistributor {
     /// @notice QS Token contract
     IERC20 public immutable token;
     
-    /// @notice GovernanceSwitch contract
-    IGovernanceSwitch public immutable governanceSwitch;
-    
     /// @notice Admin address
     address public immutable admin;
     
@@ -26,14 +22,14 @@ contract RewardDistributor is IRewardDistributor {
     /// @notice Insurance fund address
     address public insuranceFund;
     
+    /// @notice Operator registry (for checking active provers/sequencers)
+    address public registry;
+    
     /// @notice Distribution shares (basis points)
-    DistributionShares public shares;
+    DistributionShares internal _shares;
     
     /// @notice Operator rewards
     mapping(address => RewardInfo) internal _rewards;
-    
-    /// @notice Registered operators
-    mapping(address => bool) public isRegisteredOperator;
     
     /// @notice Total burned amount
     uint256 public totalBurned;
@@ -44,48 +40,48 @@ contract RewardDistributor is IRewardDistributor {
     // ========== Constants ==========
     
     /// @notice Burn address
-    address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
+    address public constant override BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     
     /// @notice Basis points denominator
     uint256 public constant BASIS_POINTS = 10000;
     
     /// @notice Initial prover share (40%)
-    uint256 public constant INITIAL_PROVER_SHARE = 4000;
+    uint256 public constant override PROVER_SHARE = 4000;
     
     /// @notice Initial treasury share (30%)
-    uint256 public constant INITIAL_TREASURY_SHARE = 3000;
+    uint256 public constant override TREASURY_SHARE = 3000;
     
     /// @notice Initial burn share (20%)
-    uint256 public constant INITIAL_BURN_SHARE = 2000;
+    uint256 public constant override BURN_SHARE = 2000;
     
     /// @notice Initial insurance share (10%)
-    uint256 public constant INITIAL_INSURANCE_SHARE = 1000;
+    uint256 public constant override INSURANCE_SHARE = 1000;
     
     // ========== Constructor ==========
     
     constructor(
         address _token,
-        address _governanceSwitch,
         address _treasury,
-        address _insuranceFund
+        address _insuranceFund,
+        address _registry
     ) {
         if (_token == address(0)) revert InvalidAddress();
-        if (_governanceSwitch == address(0)) revert InvalidAddress();
         if (_treasury == address(0)) revert InvalidAddress();
         if (_insuranceFund == address(0)) revert InvalidAddress();
+        if (_registry == address(0)) revert InvalidAddress();
         
         token = IERC20(_token);
-        governanceSwitch = IGovernanceSwitch(_governanceSwitch);
         treasury = _treasury;
         insuranceFund = _insuranceFund;
+        registry = _registry;
         admin = msg.sender;
         
         // Initialize shares
-        shares = DistributionShares({
-            proverShare: INITIAL_PROVER_SHARE,
-            treasuryShare: INITIAL_TREASURY_SHARE,
-            burnShare: INITIAL_BURN_SHARE,
-            insuranceShare: INITIAL_INSURANCE_SHARE
+        _shares = DistributionShares({
+            proverShare: PROVER_SHARE,
+            treasuryShare: TREASURY_SHARE,
+            burnShare: BURN_SHARE,
+            insuranceShare: INSURANCE_SHARE
         });
     }
     
@@ -93,82 +89,75 @@ contract RewardDistributor is IRewardDistributor {
     
     /// @inheritdoc IRewardDistributor
     function distribute(uint256 amount) external override {
-        if (amount == 0) revert InvalidAmount();
+        if (amount == 0) revert ZeroAmount();
         
         // Transfer tokens to this contract first
         bool success = token.transferFrom(msg.sender, address(this), amount);
-        if (!success) revert TransferFailed();
+        require(success, "Transfer failed");
         
         // Calculate shares
-        uint256 proverAmount = (amount * shares.proverShare) / BASIS_POINTS;
-        uint256 treasuryAmount = (amount * shares.treasuryShare) / BASIS_POINTS;
-        uint256 burnAmount = (amount * shares.burnShare) / BASIS_POINTS;
+        uint256 proverAmount = (amount * _shares.proverShare) / BASIS_POINTS;
+        uint256 treasuryAmount = (amount * _shares.treasuryShare) / BASIS_POINTS;
+        uint256 burnAmount = (amount * _shares.burnShare) / BASIS_POINTS;
         uint256 insuranceAmount = amount - proverAmount - treasuryAmount - burnAmount;
         
         // Distribute to treasury
         if (treasuryAmount > 0) {
             success = token.transfer(treasury, treasuryAmount);
-            if (!success) revert TransferFailed();
+            require(success, "Treasury transfer failed");
         }
         
         // Burn tokens
         if (burnAmount > 0) {
             success = token.transfer(BURN_ADDRESS, burnAmount);
-            if (!success) revert TransferFailed();
+            require(success, "Burn transfer failed");
             totalBurned += burnAmount;
+            emit TokensBurned(burnAmount, totalBurned);
         }
         
         // Send to insurance fund
         if (insuranceAmount > 0) {
             success = token.transfer(insuranceFund, insuranceAmount);
-            if (!success) revert TransferFailed();
+            require(success, "Insurance transfer failed");
         }
         
         // Prover rewards are kept in contract for claiming
         totalDistributed += amount;
         
-        emit RewardsDistributed(
+        emit FeesDistributed(
+            amount,
             proverAmount,
             treasuryAmount,
             burnAmount,
-            insuranceAmount,
-            block.timestamp
+            insuranceAmount
         );
     }
     
     /// @inheritdoc IRewardDistributor
     function allocateReward(address operator, uint256 amount) external override {
         if (operator == address(0)) revert InvalidAddress();
-        if (amount == 0) revert InvalidAmount();
+        if (amount == 0) revert ZeroAmount();
         if (msg.sender != admin) revert NotAuthorized();
         
-        if (!isRegisteredOperator[operator]) {
-            isRegisteredOperator[operator] = true;
-            _rewards[operator].operator = operator;
-            _rewards[operator].registeredAt = block.timestamp;
-        }
-        
         _rewards[operator].pendingRewards += amount;
-        _rewards[operator].totalEarned += amount;
-        
-        emit RewardAllocated(operator, amount, block.timestamp);
     }
     
     /// @inheritdoc IRewardDistributor
     function claimRewards() external override returns (uint256 amount) {
-        if (!isRegisteredOperator[msg.sender]) revert UnregisteredOperator(msg.sender);
+        // Check if operator is registered
+        if (!_isRegisteredOperator(msg.sender)) revert NotRegisteredOperator();
         
         amount = _rewards[msg.sender].pendingRewards;
-        if (amount == 0) revert NoRewardsToClaim();
+        if (amount == 0) revert NoRewardsAvailable();
         
         _rewards[msg.sender].pendingRewards = 0;
-        _rewards[msg.sender].claimedRewards += amount;
-        _rewards[msg.sender].lastClaimedAt = block.timestamp;
+        _rewards[msg.sender].totalClaimed += amount;
+        _rewards[msg.sender].lastClaimTime = block.timestamp;
         
         bool success = token.transfer(msg.sender, amount);
-        if (!success) revert TransferFailed();
+        require(success, "Transfer failed");
         
-        emit RewardsClaimed(msg.sender, amount, block.timestamp);
+        emit RewardsClaimed(msg.sender, amount, _rewards[msg.sender].totalClaimed);
         
         return amount;
     }
@@ -180,63 +169,53 @@ contract RewardDistributor is IRewardDistributor {
         uint256 burnShare,
         uint256 insuranceShare
     ) external override {
-        // Only governance can change shares
+        // Only admin can change shares
         if (msg.sender != admin) revert NotAuthorized();
         
         // Validate total is 100%
         if (proverShare + treasuryShare + burnShare + insuranceShare != BASIS_POINTS) {
-            revert InvalidShares(proverShare, treasuryShare, burnShare, insuranceShare);
+            revert InvalidSharesSum();
         }
         
-        DistributionShares memory old = shares;
-        
-        shares = DistributionShares({
+        _shares = DistributionShares({
             proverShare: proverShare,
             treasuryShare: treasuryShare,
             burnShare: burnShare,
             insuranceShare: insuranceShare
         });
         
-        emit SharesUpdated(
-            old.proverShare, proverShare,
-            old.treasuryShare, treasuryShare,
-            old.burnShare, burnShare,
-            old.insuranceShare, insuranceShare
-        );
+        emit SharesUpdated(proverShare, treasuryShare, burnShare, insuranceShare);
     }
     
     /// @inheritdoc IRewardDistributor
-    function setTreasury(address _treasury) external override {
+    function setTreasury(address newTreasury) external override {
         if (msg.sender != admin) revert NotAuthorized();
-        if (_treasury == address(0)) revert InvalidAddress();
-        
-        address old = treasury;
-        treasury = _treasury;
-        
-        emit TreasuryUpdated(old, _treasury);
+        if (newTreasury == address(0)) revert InvalidAddress();
+        treasury = newTreasury;
     }
     
     /// @inheritdoc IRewardDistributor
-    function setInsuranceFund(address _insuranceFund) external override {
+    function setInsuranceFund(address newInsurance) external override {
         if (msg.sender != admin) revert NotAuthorized();
-        if (_insuranceFund == address(0)) revert InvalidAddress();
-        
-        address old = insuranceFund;
-        insuranceFund = _insuranceFund;
-        
-        emit InsuranceFundUpdated(old, _insuranceFund);
+        if (newInsurance == address(0)) revert InvalidAddress();
+        insuranceFund = newInsurance;
     }
     
     // ========== View Functions ==========
     
     /// @inheritdoc IRewardDistributor
     function getShares() external view override returns (DistributionShares memory) {
-        return shares;
+        return _shares;
     }
     
     /// @inheritdoc IRewardDistributor
     function getRewardInfo(address operator) external view override returns (RewardInfo memory) {
         return _rewards[operator];
+    }
+    
+    /// @inheritdoc IRewardDistributor
+    function getUnclaimedRewards(address operator) external view override returns (uint256) {
+        return _rewards[operator].pendingRewards;
     }
     
     /// @inheritdoc IRewardDistributor
@@ -250,7 +229,30 @@ contract RewardDistributor is IRewardDistributor {
     }
     
     /// @inheritdoc IRewardDistributor
-    function getPendingRewards(address operator) external view override returns (uint256) {
-        return _rewards[operator].pendingRewards;
+    function getTreasury() external view override returns (address) {
+        return treasury;
+    }
+    
+    /// @inheritdoc IRewardDistributor
+    function getInsuranceFund() external view override returns (address) {
+        return insuranceFund;
+    }
+    
+    // ========== Internal Functions ==========
+    
+    /// @notice Check if operator is registered (prover or sequencer)
+    function _isRegisteredOperator(address operator) internal view returns (bool) {
+        // Call registry to check if active prover or sequencer
+        (bool success1, bytes memory data1) = registry.staticcall(
+            abi.encodeWithSignature("isActiveProver(address)", operator)
+        );
+        if (success1 && abi.decode(data1, (bool))) return true;
+        
+        (bool success2, bytes memory data2) = registry.staticcall(
+            abi.encodeWithSignature("isActiveSequencer(address)", operator)
+        );
+        if (success2 && abi.decode(data2, (bool))) return true;
+        
+        return false;
     }
 }
