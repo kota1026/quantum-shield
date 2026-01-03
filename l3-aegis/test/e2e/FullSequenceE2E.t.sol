@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "../../src/core/CoreState.sol";
-import "../../src/core/L1Verifier.sol";
 import "../../src/sequencer/SequencerRegistry.sol";
 import "../../src/sequencer/SequencerSlashing.sol";
 import "../../src/governance/Governor.sol";
@@ -73,7 +72,6 @@ contract FullSequenceE2E is Test {
     // ============================================
     
     CoreState public coreState;
-    L1Verifier public verifier;
     SequencerRegistry public sequencerRegistry;
     SequencerSlashing public slashing;
     Governor public governor;
@@ -132,7 +130,6 @@ contract FullSequenceE2E is Test {
         
         // Deploy core contracts
         coreState = new CoreState(admin);
-        verifier = new L1Verifier(admin);
         insuranceFund = new InsuranceFund(admin);
         
         // Deploy sequencer contracts
@@ -274,17 +271,17 @@ contract FullSequenceE2E is Test {
         assertGe(balanceAfter - balanceBefore, lockAmount, "Should receive at least locked amount");
     }
     
-    function test_SEQ3_UnlockEmergency_BondCalculation() public {
+    function test_SEQ3_UnlockEmergency_BondCalculation() public pure {
         // Test bond = MAX(0.5 ETH, 5%)
         
         // Small amount: 1 ETH -> bond = 0.5 ETH (minimum)
         uint256 smallAmount = 1 ether;
-        uint256 smallBond = _calculateEmergencyBond(smallAmount);
+        uint256 smallBond = _calculateEmergencyBondPure(smallAmount);
         assertEq(smallBond, MIN_EMERGENCY_BOND, "Small amount should use minimum bond");
         
         // Large amount: 100 ETH -> bond = 5 ETH (5%)
         uint256 largeAmount = 100 ether;
-        uint256 largeBond = _calculateEmergencyBond(largeAmount);
+        uint256 largeBond = _calculateEmergencyBondPure(largeAmount);
         assertEq(largeBond, largeAmount * EMERGENCY_BOND_PERCENT / 100, "Large amount should use 5%");
     }
     
@@ -347,7 +344,7 @@ contract FullSequenceE2E is Test {
         assertGe(address(insuranceFund).balance - insuranceBalanceBefore, insuranceAmount - 1, "Insurance should get 20%");
     }
     
-    function test_SEQ4_Challenge_CP4_SlashingExists() public {
+    function test_SEQ4_Challenge_CP4_SlashingExists() public view {
         // CP-4: Slashing mechanism must exist
         assertTrue(address(slashing) != address(0), "Slashing contract must exist");
         assertTrue(BASE_SLASH_PERCENT > 0, "Base slash percent must be > 0");
@@ -700,7 +697,7 @@ contract FullSequenceE2E is Test {
     // Helper Functions
     // ============================================
     
-    function _computeCommitment(address _user, uint256 _amount) internal pure returns (bytes32) {
+    function _computeCommitment(address _user, uint256 _amount) internal view returns (bytes32) {
         return keccak256(abi.encodePacked(_user, _amount, block.timestamp));
     }
     
@@ -728,6 +725,11 @@ contract FullSequenceE2E is Test {
     }
     
     function _calculateEmergencyBond(uint256 amount) internal pure returns (uint256) {
+        uint256 percentBond = amount * EMERGENCY_BOND_PERCENT / 100;
+        return percentBond > MIN_EMERGENCY_BOND ? percentBond : MIN_EMERGENCY_BOND;
+    }
+    
+    function _calculateEmergencyBondPure(uint256 amount) internal pure returns (uint256) {
         uint256 percentBond = amount * EMERGENCY_BOND_PERCENT / 100;
         return percentBond > MIN_EMERGENCY_BOND ? percentBond : MIN_EMERGENCY_BOND;
     }
