@@ -16,7 +16,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use tokio::sync::RwLock;
 use tracing::{info, warn, error};
 
@@ -426,8 +426,10 @@ impl FailoverManager {
     /// Clear old events (keep last N)
     pub async fn cleanup_events(&self, keep_count: usize) {
         let mut events = self.events.write().await;
-        if events.len() > keep_count {
-            events.drain(0..(events.len() - keep_count));
+        let len = events.len();
+        if len > keep_count {
+            let drain_count = len - keep_count;
+            events.drain(0..drain_count);
         }
     }
 }
