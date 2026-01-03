@@ -181,17 +181,20 @@ contract EconomicParameters is IEconomicParameters {
     
     /// @notice Check if caller has governance authority
     function _checkGovernance() internal view {
-        IGovernanceSwitch.GovernanceMode mode = governanceSwitch.getCurrentMode();
+        IGovernanceSwitch.GovernanceMode mode = governanceSwitch.getGovernanceMode();
         
-        if (mode == IGovernanceSwitch.GovernanceMode.CENTRALIZED) {
+        if (mode == IGovernanceSwitch.GovernanceMode.TRAINING || 
+            mode == IGovernanceSwitch.GovernanceMode.CENTRALIZED) {
+            // In TRAINING/CENTRALIZED mode, only admin can modify
             if (msg.sender != admin) revert NotAuthorized();
         } else if (mode == IGovernanceSwitch.GovernanceMode.MULTISIG) {
-            // Check if caller is authorized multi-sig member
-            if (!governanceSwitch.isAuthorizedSigner(msg.sender)) revert NotAuthorized();
+            // In MULTISIG mode, use canApprove to check authorization
+            bytes4 selector = bytes4(msg.data[:4]);
+            if (!governanceSwitch.canApprove(selector, msg.sender)) revert NotAuthorized();
         } else {
-            // Decentralized mode - must go through governance proposal
-            // This should be called from a governance executor contract
-            if (!governanceSwitch.isGovernanceExecutor(msg.sender)) revert NotAuthorized();
+            // DECENTRALIZED mode - use canApprove for governance checks
+            bytes4 selector = bytes4(msg.data[:4]);
+            if (!governanceSwitch.canApprove(selector, msg.sender)) revert NotAuthorized();
         }
     }
 }
