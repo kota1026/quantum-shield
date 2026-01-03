@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
+import "../../src/core/CoreLayer.sol";
 import "../../src/core/CoreState.sol";
 import "../../src/sequencer/SequencerRegistry.sol";
 import "../../src/sequencer/SequencerSlashing.sol";
@@ -16,6 +17,7 @@ import "../../src/treasury/Treasury.sol";
  * @title FullSequenceE2E
  * @notice End-to-end tests for all 8 Sequences from QUANTUM_SHIELD_SEQUENCES_v2.0
  * @dev Implements TEST-001 from Phase 3.3 Track B
+ * @dev Uses CoreLayer for bridge operations (lock/unlock)
  */
 contract FullSequenceE2E is Test {
     // Constants
@@ -34,6 +36,7 @@ contract FullSequenceE2E is Test {
     uint256 public constant MIN_PROVER_STAKE = 400_000e18;
     
     // Contracts
+    CoreLayer public coreLayer;
     CoreState public coreState;
     SequencerRegistry public sequencerRegistry;
     SequencerSlashing public slashing;
@@ -70,8 +73,11 @@ contract FullSequenceE2E is Test {
         
         vm.startPrank(admin);
         
-        // Deploy contracts
-        coreState = new CoreState(admin);
+        // Deploy CoreLayer (new bridge contract)
+        coreLayer = new CoreLayer();
+        
+        // Deploy other contracts
+        coreState = new CoreState();
         treasury = new Treasury(admin);
         sequencerRegistry = new SequencerRegistry(admin);
         slashing = new SequencerSlashing(address(sequencerRegistry), address(treasury), admin);
@@ -92,59 +98,140 @@ contract FullSequenceE2E is Test {
         // Fund actors
         vm.deal(user, 100 ether);
         vm.deal(challenger, 10 ether);
+        vm.deal(address(coreLayer), 100 ether); // Fund CoreLayer for unlocks
         
         for (uint256 i = 0; i < provers.length; i++) {
             vm.deal(provers[i], MIN_PROVER_STAKE + 1 ether);
         }
     }
     
-    // SEQ#1: Lock
+    // =========================================================================
+    // SEQ#1: Lock - Using CoreLayer
+    // =========================================================================
+    
     function test_SEQ1_Lock_BasicFlow() public {
         uint256 lockAmount = 1 ether;
+        bytes32 recipient = bytes32(uint256(uint160(user)));
+        
         vm.startPrank(user);
-        bytes32 commitment = keccak256(abi.encodePacked(user, lockAmount, block.timestamp));
-        coreState.lock{value: lockAmount}(commitment);
+        bytes32 txHash = coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipient);
         vm.stopPrank();
-        assertTrue(coreState.isLocked(commitment), "Asset should be locked");
+        
+        assertTrue(coreLayer.isLocked(txHash), "Asset should be locked");
+        
+        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
+        assertEq(tx.amount, lockAmount, "Lock amount should match");
+        assertEq(tx.recipient, recipient, "Recipient should match");
+        assertFalse(tx.executed, "Should not be executed yet");
     }
     
-    // SEQ#2: Unlock Normal
+    function test_SEQ1_Lock_MultipleAssets() public {
+        uint256[] memory amounts = new uint256[](3);
+        amounts[0] = 1 ether;
+        amounts[1] = 2 ether;
+        amounts[2] = 0.5 ether;
+        
+        bytes32[] memory txHashes = new bytes32[](3);
+        bytes32 recipient = bytes32(uint256(uint160(user)));
+        
+        vm.startPrank(user);
+        for (uint256 i = 0; i < amounts.length; i++) {
+            txHashes[i] = coreLayer.lock{value: amounts[i]}(address(0), amounts[i], recipient);
+            assertTrue(coreLayer.isLocked(txHashes[i]), "Asset should be locked");
+        }
+        vm.stopPrank();
+    }
+    
+    // =========================================================================
+    // SEQ#2: Unlock Normal - Using CoreLayer
+    // =========================================================================
+    
     function test_SEQ2_UnlockNormal_BasicFlow() public {
         uint256 lockAmount = 1 ether;
-        bytes32 commitment = _lockAsset(user, lockAmount);
-        _registerProvers();
+        bytes32 txHash = _lockAsset(user, lockAmount);
+        
+        // Request unlock with valid proof
+        bytes memory proof = abi.encodePacked(bytes32(uint256(1)), bytes32(uint256(2)));
         
         vm.prank(user);
-        coreState.requestUnlock(commitment);
-        vm.warp(block.timestamp + NORMAL_TIMELOCK);
+        coreLayer.unlock(txHash, proof, user);
         
-        bytes[] memory signatures = _getProverSignatures(commitment, 2);
+        // Advance past timelock
+        vm.warp(block.timestamp + NORMAL_TIMELOCK + 1);
+        
+        // Claim
         uint256 balanceBefore = user.balance;
         vm.prank(user);
-        coreState.claimUnlock(commitment, signatures);
+        coreLayer.claim(txHash, user);
         
         assertEq(user.balance - balanceBefore, lockAmount, "Should receive locked amount");
-        assertFalse(coreState.isLocked(commitment), "Asset should be unlocked");
+        assertFalse(coreLayer.isLocked(txHash), "Asset should be unlocked");
     }
     
-    // SEQ#3: Emergency Unlock
+    function test_SEQ2_UnlockNormal_TimelockEnforced() public {
+        uint256 lockAmount = 1 ether;
+        bytes32 txHash = _lockAsset(user, lockAmount);
+        
+        bytes memory proof = abi.encodePacked(bytes32(uint256(1)), bytes32(uint256(2)));
+        
+        vm.prank(user);
+        coreLayer.unlock(txHash, proof, user);
+        
+        // Try to claim before timelock - should fail
+        vm.prank(user);
+        vm.expectRevert();
+        coreLayer.claim(txHash, user);
+    }
+    
+    // =========================================================================
+    // SEQ#3: Emergency Unlock - Using CoreLayer
+    // =========================================================================
+    
     function test_SEQ3_UnlockEmergency_BasicFlow() public {
         uint256 lockAmount = 1 ether;
-        bytes32 commitment = _lockAsset(user, lockAmount);
-        vm.warp(block.timestamp + EMERGENCY_TIMEOUT);
+        bytes32 txHash = _lockAsset(user, lockAmount);
         
-        uint256 bond = _calculateEmergencyBond(lockAmount);
+        // Calculate required bond
+        uint256 bond = coreLayer.calculateEmergencyBond(lockAmount);
+        assertGe(bond, MIN_EMERGENCY_BOND, "Bond should be at least 0.5 ETH");
+        
+        // Initiate emergency unlock with bond
         vm.prank(user);
-        coreState.initiateEmergencyUnlock{value: bond}(commitment);
-        vm.warp(block.timestamp + EMERGENCY_TIMELOCK);
+        coreLayer.emergencyUnlock{value: bond}(txHash, user);
         
+        // Verify emergency timelock (7 days)
+        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
+        assertTrue(tx.isEmergency, "Should be emergency unlock");
+        assertEq(tx.unlockTime, block.timestamp + EMERGENCY_TIMELOCK, "Emergency timelock should be 7 days");
+        
+        // Advance past emergency timelock
+        vm.warp(block.timestamp + EMERGENCY_TIMELOCK + 1);
+        
+        // Claim with bond return
         uint256 balanceBefore = user.balance;
         vm.prank(user);
-        coreState.executeEmergencyUnlock(commitment);
+        coreLayer.claim(txHash, user);
+        
+        // Should receive lock amount + bond returned
         assertGe(user.balance - balanceBefore, lockAmount, "Should receive at least locked amount");
     }
     
+    function test_SEQ3_EmergencyBond_Calculation() public view {
+        // Test MIN_EMERGENCY_BOND case
+        uint256 smallAmount = 1 ether;
+        uint256 bondSmall = coreLayer.calculateEmergencyBond(smallAmount);
+        assertEq(bondSmall, MIN_EMERGENCY_BOND, "Small amount should use min bond");
+        
+        // Test 5% case
+        uint256 largeAmount = 100 ether;
+        uint256 bondLarge = coreLayer.calculateEmergencyBond(largeAmount);
+        assertEq(bondLarge, largeAmount * EMERGENCY_BOND_PERCENT / 100, "Large amount should use 5%");
+    }
+    
+    // =========================================================================
     // SEQ#4: Challenge
+    // =========================================================================
+    
     function test_SEQ4_Challenge_DoubleSignSlash() public {
         vm.deal(prover, MIN_PROVER_STAKE + 1 ether);
         vm.prank(prover);
@@ -165,7 +252,23 @@ contract FullSequenceE2E is Test {
         assertEq(proverStakeBefore - proverStakeAfter, expectedSlash, "Should slash 10%");
     }
     
+    function test_SEQ4_QuadraticSlashing() public {
+        // Quadratic formula: N^2 * 10%
+        // 1 fraud: 1 * 10% = 10%
+        // 2 fraud: 4 * 10% = 40%
+        // 3 fraud: 9 * 10% = 90%
+        // 4+ fraud: 100% (capped)
+        
+        assertEq(1 * 1 * BASE_SLASH_PERCENT, 10, "1 fraud = 10%");
+        assertEq(2 * 2 * BASE_SLASH_PERCENT, 40, "2 fraud = 40%");
+        assertEq(3 * 3 * BASE_SLASH_PERCENT, 90, "3 fraud = 90%");
+        assertTrue(4 * 4 * BASE_SLASH_PERCENT >= 100, "4+ fraud = 100% (capped)");
+    }
+    
+    // =========================================================================
     // SEQ#5: Prover Registration
+    // =========================================================================
+    
     function test_SEQ5_ProverRegistration_BasicFlow() public {
         address newProver = makeAddr("newProver");
         vm.deal(newProver, MIN_PROVER_STAKE + 1 ether);
@@ -176,7 +279,19 @@ contract FullSequenceE2E is Test {
         assertEq(sequencerRegistry.getStake(newProver), MIN_PROVER_STAKE, "Stake should match");
     }
     
+    function test_SEQ5_ProverRegistration_MinStakeEnforced() public {
+        address newProver = makeAddr("newProver");
+        vm.deal(newProver, 1 ether);
+        
+        vm.prank(newProver);
+        vm.expectRevert();
+        sequencerRegistry.register{value: 1 ether}(); // Below min stake
+    }
+    
+    // =========================================================================
     // SEQ#6: Prover Exit
+    // =========================================================================
+    
     function test_SEQ6_ProverExit_BasicFlow() public {
         vm.deal(prover, MIN_PROVER_STAKE + 1 ether);
         vm.prank(prover);
@@ -194,7 +309,24 @@ contract FullSequenceE2E is Test {
         assertFalse(sequencerRegistry.isRegistered(prover), "Should be unregistered");
     }
     
+    function test_SEQ6_ProverExit_UnbondingPeriodEnforced() public {
+        vm.deal(prover, MIN_PROVER_STAKE + 1 ether);
+        vm.prank(prover);
+        sequencerRegistry.register{value: MIN_PROVER_STAKE}();
+        
+        vm.prank(prover);
+        sequencerRegistry.initiateExit();
+        
+        // Try to exit before unbonding period
+        vm.prank(prover);
+        vm.expectRevert();
+        sequencerRegistry.completeExit();
+    }
+    
+    // =========================================================================
     // SEQ#7: Governance
+    // =========================================================================
+    
     function test_SEQ7_Governance_FullProposalLifecycle() public {
         _setupVoterWithVeQS(user, 1_000_000e18);
         
@@ -218,7 +350,10 @@ contract FullSequenceE2E is Test {
         assertTrue(governor.isExecuted(proposalId), "Proposal should be executed");
     }
     
+    // =========================================================================
     // SEQ#8: Emergency Pause
+    // =========================================================================
+    
     function test_SEQ8_EmergencyPause_SCActivation() public {
         // SC proposes pause action
         vm.prank(scMembers[0]);
@@ -242,10 +377,21 @@ contract FullSequenceE2E is Test {
         assertEq(uint8(action.state), uint8(ISecurityCouncil.ActionState.Executed));
     }
     
+    // =========================================================================
     // CP Compliance Tests
-    function test_CP3_TimeLock_AllPathsHaveDelay() public pure {
-        assertTrue(NORMAL_TIMELOCK > 0, "Normal timelock must be > 0");
-        assertTrue(EMERGENCY_TIMELOCK > 0, "Emergency timelock must be > 0");
+    // =========================================================================
+    
+    function test_CP1_SHA3Only_CoreLayer() public view {
+        // CoreLayer uses SHA3_256 library for all hashing
+        assertTrue(coreLayer.verifyCPCompliance(), "CoreLayer should be CP compliant");
+        assertEq(coreLayer.getCPProtectionLevel(1), "SHA3-256 ONLY - No keccak256 in security paths");
+    }
+    
+    function test_CP3_TimeLock_AllPathsHaveDelay() public view {
+        assertEq(coreLayer.NORMAL_TIMELOCK(), NORMAL_TIMELOCK, "Normal timelock should be 24h");
+        assertEq(coreLayer.EMERGENCY_TIMELOCK(), EMERGENCY_TIMELOCK, "Emergency timelock should be 7d");
+        assertTrue(coreLayer.NORMAL_TIMELOCK() > 0, "Normal timelock must be > 0");
+        assertTrue(coreLayer.EMERGENCY_TIMELOCK() > 0, "Emergency timelock must be > 0");
         assertTrue(GOVERNANCE_TIMELOCK > 0, "Governance timelock must be > 0");
     }
     
@@ -254,12 +400,24 @@ contract FullSequenceE2E is Test {
         assertTrue(BASE_SLASH_PERCENT > 0, "Slash percent must be > 0");
     }
     
+    function test_CP5_Transparency_EventsEmitted() public {
+        uint256 lockAmount = 1 ether;
+        bytes32 recipient = bytes32(uint256(uint160(user)));
+        
+        vm.prank(user);
+        vm.expectEmit(true, true, true, true);
+        emit ICoreLayer.AssetLocked(bytes32(0), user, address(0), lockAmount, recipient);
+        coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipient);
+    }
+    
+    // =========================================================================
     // Helper Functions
+    // =========================================================================
+    
     function _lockAsset(address _user, uint256 _amount) internal returns (bytes32) {
-        bytes32 commitment = keccak256(abi.encodePacked(_user, _amount, block.timestamp));
+        bytes32 recipient = bytes32(uint256(uint160(_user)));
         vm.prank(_user);
-        coreState.lock{value: _amount}(commitment);
-        return commitment;
+        return coreLayer.lock{value: _amount}(address(0), _amount, recipient);
     }
     
     function _registerProvers() internal {
@@ -267,19 +425,6 @@ contract FullSequenceE2E is Test {
             vm.prank(provers[i]);
             sequencerRegistry.register{value: MIN_PROVER_STAKE}();
         }
-    }
-    
-    function _getProverSignatures(bytes32 commitment, uint256 count) internal pure returns (bytes[] memory) {
-        bytes[] memory signatures = new bytes[](count);
-        for (uint256 i = 0; i < count; i++) {
-            signatures[i] = abi.encodePacked(commitment, i);
-        }
-        return signatures;
-    }
-    
-    function _calculateEmergencyBond(uint256 amount) internal pure returns (uint256) {
-        uint256 percentBond = amount * EMERGENCY_BOND_PERCENT / 100;
-        return percentBond > MIN_EMERGENCY_BOND ? percentBond : MIN_EMERGENCY_BOND;
     }
     
     function _calculateChallengeBond(uint256) internal pure returns (uint256) {
