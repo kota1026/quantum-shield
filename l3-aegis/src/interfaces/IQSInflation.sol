@@ -16,7 +16,7 @@ interface IQSInflation {
         uint256 endTime;
         uint256 inflationRate;    // In basis points (500 = 5%)
         uint256 mintedAmount;
-        bool completed;
+        bool isMinted;
     }
 
     // ============ Events ============
@@ -47,6 +47,7 @@ interface IQSInflation {
     error MintingNotAvailable();
     error NotAuthorized();
     error InvalidDistributor();
+    error InvalidToken();
     error TokenNotSet();
 
     // ============ View Functions ============
@@ -61,6 +62,7 @@ interface IQSInflation {
     function timeUntilNextMint() external view returns (uint256);
     function canMint() external view returns (bool available);
     function deploymentTimestamp() external view returns (uint256 timestamp);
+    function getTotalInflationMinted() external view returns (uint256);
 
     // ============ State-Changing Functions ============
 
