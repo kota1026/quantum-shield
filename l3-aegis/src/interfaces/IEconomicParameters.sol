@@ -10,7 +10,7 @@ pragma solidity ^0.8.24;
 interface IEconomicParameters {
     // ============ Structs ============
 
-    struct EconomicParams {
+    struct ParameterSet {
         uint256 feeRate;              // Basis points (5 = 0.05%)
         uint256 minimumFee;           // Minimum fee in wei ($10 equivalent)
         uint256 minimumStake;         // Minimum prover stake ($500K)
@@ -23,11 +23,11 @@ interface IEconomicParameters {
 
     // ============ Events ============
 
-    event FeeRateUpdated(uint256 oldRate, uint256 newRate, uint256 effectiveTime);
-    event MinimumFeeUpdated(uint256 oldFee, uint256 newFee);
-    event MinimumStakeUpdated(uint256 oldStake, uint256 newStake);
-    event UnbondingPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
-    event VotingPowerCapUpdated(uint256 oldCap, uint256 newCap);
+    event FeeRateUpdated(uint256 oldRate, uint256 newRate, uint256 timestamp);
+    event MinimumFeeUpdated(uint256 oldFee, uint256 newFee, uint256 timestamp);
+    event MinimumStakeUpdated(uint256 oldStake, uint256 newStake, uint256 timestamp);
+    event UnbondingPeriodUpdated(uint256 oldPeriod, uint256 newPeriod, uint256 timestamp);
+    event VotingPowerCapUpdated(uint256 oldCap, uint256 newCap, uint256 timestamp);
 
     // ============ Errors ============
 
@@ -38,6 +38,7 @@ interface IEconomicParameters {
     error NotAuthorized();
     error TimeLockRequired();
     error InvalidVotingPowerCap();
+    error InvalidAddress();
 
     // ============ CP-Protected Constants ============
 
@@ -58,9 +59,11 @@ interface IEconomicParameters {
     function minimumStake() external view returns (uint256 stake);
     function unbondingPeriod() external view returns (uint256 period);
     function votingPowerCap() external view returns (uint256 cap);
-    function getParameters() external view returns (EconomicParams memory params);
+    function getAllParameters() external view returns (ParameterSet memory params);
     function calculateFee(uint256 amount) external view returns (uint256 fee);
     function calculateSlashing(uint256 baseAmount, uint256 violationCount) external view returns (uint256 slashAmount);
+    function applyVotingPowerCap(uint256 userVotes, uint256 totalVotes) external view returns (uint256 cappedVotes);
+    function isValidStake(uint256 amount) external view returns (bool valid);
 
     // ============ Parameter Update Functions ============
 
