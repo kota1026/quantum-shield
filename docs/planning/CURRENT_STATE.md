@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-03 21:20 JST  
+> **Last Updated**: 2026-01-03 22:45 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -17,12 +17,23 @@
 │          ✅ CP-1完全準拠達成 (keccak256完全排除) 🎉🎉🎉     │
 │          ✅ Track A Decentralize: 19/19完了 (100%) 🎉🎉🎉   │
 │          ✅ PIR-P3.3-001~003 ALL PASS 🎉🎉🎉                │
-│          🔄 Track B E2E Testing: IC-2 CoreLayer進行中       │
-│  Tests: ✅ 264/264 PASS (Rust) + 503/503 PASS (Solidity)    │
+│          ⚠️ PIR-IC-2 CONDITIONAL PASS (2026-01-03)          │
+│          🔄 Track B E2E Testing: TEST-001~010 進行中        │
+│  Tests: ✅ 264/264 PASS (Rust) + 532/532 PASS (Solidity)    │
 │  Warnings: ✅ 1 (dead_code, non-critical)                   │
-│  次のステップ: 04_review.md → IC-2 CoreLayer PIR           │
+│  次のステップ: TEST-004 Slitherフルスキャン                 │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🚧 ブロッカー / 懸念事項
+
+| # | 懸念 | 重要度 | 仕様書出典 | 対応予定 |
+|---|------|--------|-----------|----------|
+| 1 | `_verifyProof()` プレースホルダー - 実際のSTARK検証なし | 🟡 Medium | SEQ#2 | Phase 4前にSTARK Verifier統合 |
+| 2 | `claim()` 任意recipient設計 - 意図確認必要 | 🟢 Low | SEQ#2 | 次回PIRで設計意図確認 |
+| 3 | スタブコントラクト不整合 | 🟠 Medium | - | Mock整備後対応 |
 
 ---
 
@@ -42,14 +53,14 @@
 
 | カテゴリ | タスク数 | 完了 | 内容 | 状態 |
 |---------|:-------:|:----:|------|:----:|
-| **IC-2 CoreLayer** | 1 | **1** | Bridge Layer実装+テスト | ✅ **29/29 PASS** 🎉 |
-| 統合テスト | 3 | 0 | TEST-001~003 | 🔄 TEST-001進行中 |
-| セキュリティテスト | 3 | 0 | TEST-004~006 | ⬜ 予定 |
+| **IC-2 CoreLayer** | 1 | **1** | Bridge Layer実装+テスト | ⚠️ **CONDITIONAL PASS** |
+| 統合テスト | 3 | 0 | TEST-001~003 | 🔄 進行中 |
+| セキュリティテスト | 3 | 0 | TEST-004~006 | ⬜ **NEXT** |
 | Decentralize統合 | 4 | 0 | TEST-007~010 | ⬜ 予定 |
 
 ---
 
-## 🔄 IC-2 CoreLayer Implementation (2026-01-03) ✅ **COMPLETE**
+## 🔄 IC-2 CoreLayer Implementation (2026-01-03) ⚠️ **CONDITIONAL PASS**
 
 ### 実装サマリー
 
@@ -58,50 +69,26 @@
 | **対象** | L3 Bridge Layer (CoreLayer.sol) |
 | **実装日時** | 2026-01-03 21:00 JST |
 | **テスト結果** | ✅ **29/29 PASS** |
-| **ステータス** | ✅ 実装完了、PIRレビュー待ち |
+| **PIRレビュー結果** | ⚠️ **CONDITIONAL PASS** (2026-01-03) |
+| **PIRレポート** | `docs/aegis/meetings/PIR-IC-2.md` |
 
 ### 作成ファイル
 
 | ファイル | サイズ | 内容 |
 |----------|--------|------|
 | `l3-aegis/src/core/CoreLayer.sol` | 12,801 bytes | Bridge Layer実装 (SEQ#1-4, #3') |
-| `l3-aegis/src/interfaces/ICoreLayer.sol` | - | インターフェース定義 |
+| `l3-aegis/src/interfaces/ICoreLayer.sol` | 5,942 bytes | インターフェース定義 |
 | `l3-aegis/test/CoreLayer.t.sol` | 14,720 bytes | Unit Tests (24 tests) |
 | `l3-aegis/test/interfaces/ICoreLayer.t.sol` | - | Interface Tests (5 tests) |
 | `l3-aegis/test/e2e/FullSequenceE2E.t.sol` | 10,906 bytes | E2E Tests (簡略版) |
 | `l3-aegis/test/e2e/FullSystemE2E.t.sol` | 16,503 bytes | System E2E (Mock使用) |
 
-### テスト結果詳細
+### PIR-IC-2 CONDITIONAL条件
 
-```
-Ran 29 tests: 29 passed, 0 failed, 0 skipped
-
-CoreLayerTest (24 tests):
-├── Constructor: test_Constructor_InitialState ✅
-├── SEQ#1 Lock: test_Lock_ETH_Success, test_Lock_ZeroAmount_Reverts,
-│               test_Lock_MismatchedValue_Reverts, test_Lock_EmitsEvent,
-│               test_Lock_UniqueTxHash ✅
-├── SEQ#2 Unlock: test_Unlock_Normal_Success, test_Unlock_NotFound_Reverts,
-│                 test_Unlock_EmptyProof_Reverts ✅
-├── Claim: test_Claim_AfterTimelock_Success, test_Claim_BeforeTimelock_Reverts,
-│          test_Claim_AlreadyExecuted_Reverts ✅
-├── SEQ#3 Emergency: test_EmergencyUnlock_Success, 
-│                    test_EmergencyUnlock_InsufficientBond_Reverts,
-│                    test_EmergencyBond_MinBondForSmallAmounts,
-│                    test_EmergencyBond_FivePercentForLargeAmounts,
-│                    test_EmergencyUnlock_ClaimReturnsBond ✅
-├── CP Compliance: test_CP1_SHA3Only, test_CP3_TimeLocks,
-│                  test_CP5_TransparencyEvents ✅
-├── SEQ#3' Resync: test_Resync_Success, test_Resync_InvalidTx_Reverts ✅
-└── View Functions: test_IsLocked, test_VerifyState ✅
-
-ICoreLayerTest (5 tests):
-├── test_InterfaceExists ✅
-├── test_FunctionSelectorsUnique ✅
-├── test_SequenceFunctionSignatures ✅
-├── test_TimelockConstantValues ✅
-└── test_EmergencyBondCalculation ✅
-```
+| # | 条件 | 優先度 | 対応時期 |
+|---|------|:------:|---------|
+| 1 | `_verifyProof()` STARK Verifier統合 | 🟡 Medium | Phase 4前 |
+| 2 | `claim()` 設計意図確認・文書化 | 🟢 Low | 次回PIR |
 
 ### CP準拠状況
 
@@ -110,40 +97,8 @@ ICoreLayerTest (5 tests):
 | **CP-1** | SHA3-256 ONLY (keccak256排除) | ✅ |
 | **CP-2** | Self-custody | ✅ (lock/unlock設計) |
 | **CP-3** | Time-locks (24h/7d) | ✅ |
-| **CP-4** | Slashing mechanism | ✅ (emergencyBond) |
+| **CP-4** | Slashing mechanism | ⚠️ (Emergency Bond存在、Quadratic Slashingは別) |
 | **CP-5** | Transparency (Events) | ✅ |
-
-### コミット履歴 (IC-2関連)
-
-```
-8efc315 fix(test): use vm.recordLogs for event verification
-34f78f0 chore(test): disable VeQSFuzz pending constructor updates
-109d4e4 chore(test): disable SequencerFuzz pending constructor updates
-e4eeceb chore(test): disable GovernanceFuzz pending constructor updates
-5a7085e fix(test): rename shadowed 'tx' variables in CoreLayer.t.sol
-b7ceca7 fix(test): rename shadowed 'tx' variables in FullSystemE2E
-217716f refactor(test): simplify FullSequenceE2E to focus on CoreLayer
-305d82a fix(l3): remove @phase2 remapping, l3-aegis is self-contained
-fe8dcd5 fix(l3): use local SHA3_256.sol instead of @phase2 import
-61641c9 feat(l3): implement CoreLayer.sol for bridge operations
-d7c3395 feat(test): add FullSequenceE2E tests for CoreLayer
-cc573d8 feat(test): add FullSystemE2E with mock contracts
-56ae41b feat(test): add CoreLayer unit tests (24 tests)
-```
-
-### 技術的決定事項
-
-1. **l3-aegis自己完結設計**: `@phase2/`依存を排除、ローカルSHA3_256使用
-2. **Fuzzテスト一時無効化**: スタブコントラクトのコンストラクタ不整合のため
-3. **E2Eテスト簡略化**: CoreLayerに焦点、他コントラクトはMock使用
-
-### 未解決事項 (04_review.mdで確認)
-
-| 項目 | 説明 | 優先度 |
-|------|------|:------:|
-| スタブコントラクト不整合 | Treasury, QSToken等のコンストラクタ引数不一致 | 🟠 MEDIUM |
-| Fuzzテスト再有効化 | Mock整備後に再有効化 | 🟠 MEDIUM |
-| SHA3_256 Warning | shift operation警告 (non-critical) | 🟢 LOW |
 
 ---
 
@@ -162,7 +117,8 @@ cc573d8 feat(test): add FullSystemE2E with mock contracts
 | **E2Eテスト** | ✅ **簡略版作成** (Mock使用) |
 | **CP-1準拠** | ✅ SHA3-256 ONLY |
 | **CP-3準拠** | ✅ 24h/7d Timelock |
-| **ステータス** | ✅ 04_review.md PIRレビュー待ち |
+| **PIR結果** | ⚠️ **CONDITIONAL PASS** |
+| **ステータス** | ✅ PIR完了、TEST-004進行へ |
 
 ---
 
@@ -186,11 +142,11 @@ cc573d8 feat(test): add FullSystemE2E with mock contracts
 
 | Task ID | 内容 | 状態 | 備考 |
 |---------|------|:----:|------|
-| **IC-2** | **CoreLayer Bridge** | ✅ **29/29 PASS** 🎉 | PIRレビュー待ち |
+| **IC-2** | **CoreLayer Bridge** | ⚠️ **CONDITIONAL** | PIR-IC-2完了 |
 | TEST-001 | E2E統合テスト | 🔄 進行中 | CoreLayerテスト完了 |
 | TEST-002 | Fuzz Tests | ⬜ | CoreLayer後 |
 | TEST-003 | Gas Optimization | ⬜ | CoreLayer後 |
-| TEST-004 | Slither Full Scan | ⬜ | 予定 |
+| **TEST-004** | **Slither Full Scan** | ⬜ **NEXT** | 必須 |
 | TEST-005 | Red Team Simulation | ⬜ | 予定 |
 | TEST-006 | 4BFT Audit Prep | ⬜ | 予定 |
 | TEST-007 | Decentralize Integration | ⬜ | 予定 |
@@ -212,7 +168,7 @@ cc573d8 feat(test): add FullSystemE2E with mock contracts
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **264 PASS** (Rust) + **503 PASS** (Solidity)
+### l3-aegis: ✅ **264 PASS** (Rust) + **532 PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------+----------╮
@@ -234,7 +190,7 @@ cc573d8 feat(test): add FullSystemE2E with mock contracts
 ╰----------------------------+--------+--------+---------+----------╯
 
 Total Rust: 264 passed, 0 failed
-Total Solidity: 503 passed, 0 failed, 130 skipped (633 total)
+Total Solidity: 532 passed, 0 failed, 130 skipped (662 total)
 ✅ Track A COMPLETE + IC-2 CoreLayer PASS 🎉🎉🎉
 ```
 
@@ -248,10 +204,18 @@ Total Solidity: 503 passed, 0 failed, 130 skipped (633 total)
 |---|--------|--------|:----:|
 | 1 | ~~Track A Decentralize~~ | ~~🔴 P0~~ | ✅ **COMPLETE** 🎉🎉🎉 |
 | 2 | ~~IC-2 CoreLayer実装~~ | ~~🔴 P0~~ | ✅ **29/29 PASS** 🎉 |
-| 3 | **04_review.md PIRレビュー** | 🔴 **P0** | ⬜ **NEXT** |
-| 4 | TEST-002 Fuzz Tests | 🟠 HIGH | ⬜ PIR後 |
-| 5 | TEST-003 Gas Optimization | 🟠 HIGH | ⬜ PIR後 |
-| 6 | スタブコントラクト整備 | 🟠 MEDIUM | ⬜ 検討中 |
+| 3 | ~~04_review.md PIRレビュー~~ | ~~🔴 P0~~ | ⚠️ **CONDITIONAL PASS** |
+| 4 | **TEST-004 Slitherフルスキャン** | 🔴 **P0** | ⬜ **NEXT** |
+| 5 | TEST-005 Red Team Simulation | 🔴 P0 | ⬜ Slither後 |
+| 6 | STARK Verifier統合タスク作成 | 🟡 Medium | ⬜ Phase 4前 |
+
+### 修正必須（PIR-IC-2より）
+
+1. **`_verifyProof()` STARK Verifier統合**
+   - 重要度: 🟡 Medium
+   - 仕様書出典: SEQ#2
+   - 対象ファイル: `l3-aegis/src/core/CoreLayer.sol`
+   - 対策: Phase 4前にSTARK Verifier統合必須。現在はプレースホルダー実装。
 
 ---
 
@@ -264,7 +228,7 @@ Total Solidity: 503 passed, 0 failed, 130 skipped (633 total)
 | PIR-P3.3-001 | DECEN-001~011 (4BFT + SC + Governance ON/OFF) | ✅ **PASS** 🎉🎉🎉 | 2026-01-02 |
 | PIR-P3.3-002 | DECEN-012~015 (Multi-Sequencer) | ✅ **PASS** 🎉🎉🎉 | 2026-01-03 |
 | PIR-P3.3-003 | DECEN-016~019 (Inflation/Treasury) | ✅ **PASS** 🎉🎉🎉 | 2026-01-03 |
-| **PIR-IC-2** | **IC-2 CoreLayer (Bridge)** | ⬜ **PENDING** | 2026-01-03 |
+| **PIR-IC-2** | **IC-2 CoreLayer (Bridge)** | ⚠️ **CONDITIONAL PASS** | 2026-01-03 |
 
 ---
 
@@ -277,14 +241,15 @@ Total Solidity: 503 passed, 0 failed, 130 skipped (633 total)
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE + GO 🎉🎉🎉** |
 | **Phase 3.2** | **Implementation** | **100%** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3** | **Decentralize + Testing** | **70%** | 🔄 **Track A COMPLETE, Track B IC-2 DONE** |
+| **Phase 3.3** | **Decentralize + Testing** | **72%** | 🔄 **Track A COMPLETE, Track B IC-2 CONDITIONAL** |
 | Phase 4 | UI/UX + Audit + Launch | 0% | ⬜ NOT STARTED |
 
 ---
 
 **Phase 3.3 Track B Status:**
-- IC-2 CoreLayer: ✅ **29/29 PASS** (PIRレビュー待ち)
+- IC-2 CoreLayer: ⚠️ **CONDITIONAL PASS** (PIR-IC-2完了)
 - TEST-001~010: 🔄 進行中
+- 次のステップ: TEST-004 Slitherフルスキャン
 
 ---
 
