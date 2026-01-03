@@ -11,6 +11,7 @@
 //! - `RotationManager`: Round-robin sequencer rotation
 //! - `StakingManager`: veQS staking integration
 //! - `MultiSequencerCoordinator`: Multi-sequencer coordination
+//! - `FailoverManager`: Sequencer failover and health monitoring
 //!
 //! ## Reference
 //!
@@ -20,6 +21,7 @@
 
 pub mod batch_builder;
 pub mod error;
+pub mod failover;
 pub mod l1_submitter;
 pub mod mempool;
 pub mod multi_sequencer;
@@ -34,6 +36,7 @@ mod e2e_tests;
 // Re-exports
 pub use batch_builder::{BatchBuilder, BatchBuilderConfig};
 pub use error::{SequencerError, SequencerResult};
+pub use failover::{FailoverManager, FailoverConfig, HealthStatus, SequencerHealth, FailoverEvent};
 pub use l1_submitter::{L1Submitter, L1SubmitterConfig, L1Submission, SubmissionStatus};
 pub use mempool::MempoolManager;
 pub use multi_sequencer::{MultiSequencerCoordinator, MultiSequencerConfig, ConflictStrategy};
