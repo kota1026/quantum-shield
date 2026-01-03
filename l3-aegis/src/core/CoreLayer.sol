@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {ICoreLayer} from "../interfaces/ICoreLayer.sol";
-import {SHA3_256} from "@phase2/libraries/SHA3_256.sol";
+import {SHA3_256} from "../crypto/SHA3_256.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
 /// @title CoreLayer
