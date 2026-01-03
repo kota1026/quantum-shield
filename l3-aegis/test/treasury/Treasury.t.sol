@@ -39,10 +39,10 @@ contract TreasuryTest is Test {
         signers[3] = multisig4;
         signers[4] = multisig5;
         
-        // Mock governance switch
+        // Mock governance switch - use getGovernanceMode instead of getCurrentMode
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encodeWithSignature("getGovernanceMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.MULTISIG)
         );
         
@@ -183,7 +183,7 @@ contract TreasuryTest is Test {
     function test_RequiredApprovals_CentralizedMode() public {
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encodeWithSignature("getGovernanceMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.CENTRALIZED)
         );
         
@@ -194,7 +194,7 @@ contract TreasuryTest is Test {
     function test_RequiredApprovals_MultisigMode() public {
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encodeWithSignature("getGovernanceMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.MULTISIG)
         );
         
@@ -205,7 +205,7 @@ contract TreasuryTest is Test {
     function test_RequiredApprovals_DecentralizedMode() public {
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encodeWithSignature("getGovernanceMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.DECENTRALIZED)
         );
         
