@@ -86,6 +86,10 @@ interface IGovernanceSwitch {
     
     /// @notice Get current governance mode
     /// @return Current GovernanceMode enum value
+    function getCurrentMode() external view returns (GovernanceMode);
+    
+    /// @notice Get current governance mode (alias for compatibility)
+    /// @return Current GovernanceMode enum value
     function getGovernanceMode() external view returns (GovernanceMode);
     
     /// @notice Get approver address for a specific action
@@ -120,6 +124,16 @@ interface IGovernanceSwitch {
     /// @notice Check if emergency rollback is available (DECEN-011)
     /// @return True if rollback can be initiated
     function canInitiateRollback() external view returns (bool);
+    
+    /// @notice Check if address is an authorized multi-sig signer
+    /// @param signer Address to check
+    /// @return True if signer is authorized
+    function isAuthorizedSigner(address signer) external view returns (bool);
+    
+    /// @notice Check if address is a governance executor
+    /// @param executor Address to check
+    /// @return True if executor is authorized
+    function isGovernanceExecutor(address executor) external view returns (bool);
     
     // ============ State-Changing Functions ============
     
