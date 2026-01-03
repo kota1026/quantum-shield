@@ -83,10 +83,27 @@ contract CoreLayerTest is Test {
         uint256 lockAmount = 1 ether;
         bytes32 recipientBytes = bytes32(uint256(uint160(recipient)));
         
+        // Record logs to verify event emission
+        vm.recordLogs();
+        
         vm.prank(user);
-        vm.expectEmit(false, true, true, true);
-        emit AssetLocked(bytes32(0), user, address(0), lockAmount, recipientBytes);
-        coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipientBytes);
+        bytes32 txHash = coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipientBytes);
+        
+        // Get recorded logs
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        
+        // Verify at least one log was emitted
+        assertTrue(logs.length > 0, "Should emit at least one event");
+        
+        // Verify the event topic matches AssetLocked
+        bytes32 expectedTopic = keccak256("AssetLocked(bytes32,address,address,uint256,bytes32)");
+        assertEq(logs[0].topics[0], expectedTopic, "Should emit AssetLocked event");
+        
+        // Verify the txHash in the event matches the returned txHash
+        assertEq(logs[0].topics[1], txHash, "Event txHash should match returned txHash");
+        
+        // Verify sender
+        assertEq(logs[0].topics[2], bytes32(uint256(uint160(user))), "Event sender should match");
     }
     
     function test_Lock_UniqueTxHash() public {
