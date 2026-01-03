@@ -42,6 +42,8 @@ contract SequencerRotationTest is Test {
         registry = new SequencerRegistry(address(staking), admin);
         rotation = new SequencerRotation(address(registry), address(staking), admin);
         registry.setRotationContract(address(rotation));
+        // Grant registry the permission to call unstakeFor
+        staking.setRegistryContract(address(registry));
         vm.stopPrank();
     }
 
@@ -90,6 +92,12 @@ contract SequencerRotationTest is Test {
         registry.deregister();
 
         assertFalse(registry.isRegistered(sequencer1));
+        
+        // Verify unbonding was initiated (stake should be 0, but unbonding entry exists)
+        assertEq(staking.getStake(sequencer1), 0);
+        ISequencerStaking.UnbondingEntry[] memory entries = staking.getUnbondingEntries(sequencer1);
+        assertEq(entries.length, 1);
+        assertEq(entries[0].amount, MIN_STAKE);
     }
 
     // ============================================
