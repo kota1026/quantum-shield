@@ -38,9 +38,32 @@ contract EconomicParametersTest is Test {
     event VotingPowerCapUpdated(uint256 oldCap, uint256 newCap, uint256 timestamp);
     
     function setUp() public {
+        // Mock governance switch to return CENTRALIZED mode (admin has control)
+        vm.mockCall(
+            mockGovernanceSwitch,
+            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encode(IGovernanceSwitch.GovernanceMode.CENTRALIZED)
+        );
+        
         vm.startPrank(admin);
         params = new EconomicParameters(mockGovernanceSwitch);
         vm.stopPrank();
+    }
+    
+    // Helper to setup governance authorization
+    function _setupGovernanceAuth() internal {
+        // In CENTRALIZED mode, admin is authorized
+        // Switch to allow governance address as well
+        vm.mockCall(
+            mockGovernanceSwitch,
+            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encode(IGovernanceSwitch.GovernanceMode.DECENTRALIZED)
+        );
+        vm.mockCall(
+            mockGovernanceSwitch,
+            abi.encodeWithSignature("isGovernanceExecutor(address)", governance),
+            abi.encode(true)
+        );
     }
     
     // ========== TEST-ECON-001: Parameter change with Token Vote ==========
@@ -64,6 +87,7 @@ contract EconomicParametersTest is Test {
     }
     
     function test_SetFeeRate_EmitsEvent() public {
+        _setupGovernanceAuth();
         vm.prank(governance);
         
         vm.expectEmit(true, true, true, true);
@@ -73,6 +97,7 @@ contract EconomicParametersTest is Test {
     }
     
     function test_SetMinimumFee_EmitsEvent() public {
+        _setupGovernanceAuth();
         uint256 newFee = 20 * 1e18;
         vm.prank(governance);
         
@@ -83,6 +108,7 @@ contract EconomicParametersTest is Test {
     }
     
     function test_SetMinimumStake_EmitsEvent() public {
+        _setupGovernanceAuth();
         uint256 newStake = 1_000_000 * 1e18;
         vm.prank(governance);
         
@@ -99,6 +125,7 @@ contract EconomicParametersTest is Test {
     }
     
     function test_SetVotingPowerCap() public {
+        _setupGovernanceAuth();
         uint256 newCap = 300; // 3%
         vm.prank(governance);
         params.setVotingPowerCap(newCap);
@@ -107,6 +134,7 @@ contract EconomicParametersTest is Test {
     }
     
     function test_VotingPowerCap_CannotExceed100Percent() public {
+        _setupGovernanceAuth();
         vm.prank(governance);
         vm.expectRevert(IEconomicParameters.InvalidVotingPowerCap.selector);
         params.setVotingPowerCap(10001); // >100%
@@ -140,6 +168,7 @@ contract EconomicParametersTest is Test {
     }
     
     function test_SetUnbondingPeriod_CanExtend() public {
+        _setupGovernanceAuth();
         uint256 newPeriod = 14 days;
         vm.prank(governance);
         params.setUnbondingPeriod(newPeriod);
@@ -148,6 +177,7 @@ contract EconomicParametersTest is Test {
     }
     
     function test_SetUnbondingPeriod_CannotReduce() public {
+        _setupGovernanceAuth();
         // First extend
         vm.prank(governance);
         params.setUnbondingPeriod(14 days);
@@ -159,6 +189,7 @@ contract EconomicParametersTest is Test {
     }
     
     function test_SetUnbondingPeriod_CannotReduceBelowInitial() public {
+        _setupGovernanceAuth();
         // Try to reduce below initial - should fail (CP-3 protection)
         vm.prank(governance);
         vm.expectRevert(IEconomicParameters.CannotReduceUnbondingPeriod.selector);
