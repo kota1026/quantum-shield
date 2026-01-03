@@ -253,17 +253,17 @@ contract FullSystemE2E is Test {
     
     function test_FullFlow_LockUnlockClaim_RealBridge() public {
         uint256 lockAmount = 1 ether;
-        bytes32 recipient = bytes32(uint256(uint160(user)));
+        bytes32 recipientBytes = bytes32(uint256(uint160(user)));
         
         // Lock using real CoreLayer
         vm.prank(user);
-        bytes32 txHash = coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipient);
+        bytes32 txHash = coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipientBytes);
         assertTrue(coreLayer.isLocked(txHash), "Asset should be locked");
         
         // Verify transaction details
-        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
-        assertEq(tx.amount, lockAmount, "Lock amount should match");
-        assertEq(tx.recipient, recipient, "Recipient should match");
+        ICoreLayer.BridgeTx memory bridgeTx = coreLayer.getTransaction(txHash);
+        assertEq(bridgeTx.amount, lockAmount, "Lock amount should match");
+        assertEq(bridgeTx.recipient, recipientBytes, "Recipient should match");
         
         // Unlock with proof
         bytes memory proof = abi.encodePacked(bytes32(uint256(1)), bytes32(uint256(2)));
@@ -283,11 +283,11 @@ contract FullSystemE2E is Test {
     
     function test_FullFlow_EmergencyUnlock_RealBridge() public {
         uint256 lockAmount = 10 ether;
-        bytes32 recipient = bytes32(uint256(uint160(user)));
+        bytes32 recipientBytes = bytes32(uint256(uint160(user)));
         
         // Lock
         vm.prank(user);
-        bytes32 txHash = coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipient);
+        bytes32 txHash = coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipientBytes);
         
         // Calculate emergency bond
         uint256 bond = coreLayer.calculateEmergencyBond(lockAmount);
@@ -298,8 +298,8 @@ contract FullSystemE2E is Test {
         coreLayer.emergencyUnlock{value: bond}(txHash, user);
         
         // Verify emergency state
-        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
-        assertTrue(tx.isEmergency, "Should be emergency unlock");
+        ICoreLayer.BridgeTx memory bridgeTx = coreLayer.getTransaction(txHash);
+        assertTrue(bridgeTx.isEmergency, "Should be emergency unlock");
         
         // Advance past emergency timelock (7 days)
         vm.warp(block.timestamp + EMERGENCY_TIMELOCK + 1);
