@@ -182,12 +182,6 @@ interface ISecurityCouncil {
     /// @param actionId Action ID
     function isActionExpired(bytes32 actionId) external view returns (bool);
     
-    /// @notice Check if emergency approval exists for an action
-    /// @param actionHash Hash of the action to check
-    /// @param requiredApprovals Number of required approvals
-    /// @return True if the action has sufficient approvals
-    function hasEmergencyApproval(bytes32 actionHash, uint256 requiredApprovals) external view returns (bool);
-    
     // ============ State-Changing Functions ============
     
     /// @notice Propose an action
