@@ -88,10 +88,6 @@ interface IGovernanceSwitch {
     /// @return Current GovernanceMode enum value
     function getGovernanceMode() external view returns (GovernanceMode);
     
-    /// @notice Get current governance mode (alias for compatibility)
-    /// @return Current GovernanceMode enum value
-    function getCurrentMode() external view returns (GovernanceMode);
-    
     /// @notice Get approver address for a specific action
     /// @param action Action selector (function signature)
     /// @return Approver address (varies by mode)
