@@ -17,11 +17,11 @@ contract Treasury is ITreasury {
     /// @notice SecurityCouncil contract
     ISecurityCouncil public immutable securityCouncil;
     
+    /// @notice Required approvals for proposals (immutable after deployment)
+    uint256 public immutable requiredApprovals;
+    
     /// @notice Multi-sig signers
     address[] public signers;
-    
-    /// @notice Required approvals for proposals
-    uint256 public requiredApprovals;
     
     /// @notice Minimum balance to maintain (12 months operating cost)
     uint256 public override minimumBalance;
