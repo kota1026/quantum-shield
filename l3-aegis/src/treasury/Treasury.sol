@@ -232,8 +232,9 @@ contract Treasury is ITreasury {
     
     /// @inheritdoc ITreasury
     function getRequiredApprovals() public view override returns (uint256) {
-        try governanceSwitch.getCurrentMode() returns (IGovernanceSwitch.GovernanceMode mode) {
-            if (mode == IGovernanceSwitch.GovernanceMode.CENTRALIZED) {
+        try governanceSwitch.getGovernanceMode() returns (IGovernanceSwitch.GovernanceMode mode) {
+            if (mode == IGovernanceSwitch.GovernanceMode.TRAINING ||
+                mode == IGovernanceSwitch.GovernanceMode.CENTRALIZED) {
                 return 1; // Admin only
             } else if (mode == IGovernanceSwitch.GovernanceMode.MULTISIG) {
                 return requiredApprovals; // N/M multi-sig
