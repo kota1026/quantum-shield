@@ -2,40 +2,19 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
+import "../../src/core/CoreLayer.sol";
 
 /**
  * @title FullSystemE2E
  * @notice Full system E2E tests (L1 + L3 + Token + Governance)
  * @dev Implements TEST-010 from Phase 3.3 Track B
- *      Uses mock contracts to avoid import conflicts
+ *      Uses mock contracts for non-bridge components
+ *      Uses real CoreLayer for bridge operations
  */
 
 // ============================================
-// Mock Contracts
+// Mock Contracts (for non-bridge components)
 // ============================================
-
-contract MockCoreState {
-    address public admin;
-    bool public paused;
-    mapping(bytes32 => bool) public lockedAssets;
-    mapping(bytes32 => uint256) public unlockRequests;
-    
-    constructor(address _admin) { admin = _admin; }
-    
-    function lock(bytes32 commitment) external payable {
-        require(!paused, "System paused");
-        lockedAssets[commitment] = true;
-    }
-    function isLocked(bytes32 commitment) external view returns (bool) { return lockedAssets[commitment]; }
-    function requestUnlock(bytes32 commitment) external { unlockRequests[commitment] = block.timestamp; }
-    function claimUnlock(bytes32 commitment, bytes[] calldata) external {
-        require(block.timestamp >= unlockRequests[commitment] + 24 hours, "Timelock");
-        lockedAssets[commitment] = false;
-        payable(msg.sender).transfer(1 ether);
-    }
-    function isPaused() external view returns (bool) { return paused; }
-    function setPaused(bool _paused) external { paused = _paused; }
-}
 
 contract MockSequencerRegistry {
     mapping(address => uint256) public stakes;
@@ -122,14 +101,14 @@ contract MockSecurityCouncil {
     uint256 public memberCount = 9;
     uint256 public threshold = 5;
     mapping(bytes32 => uint256) public approvals;
-    MockCoreState public coreState;
+    bool public systemPaused;
     
     constructor(address[] memory, uint256, address) {}
     
-    function setCoreState(address _coreState) external { coreState = MockCoreState(_coreState); }
     function approve(bytes32 hash) external { approvals[hash]++; }
-    function executePause(bytes32 hash) external { require(approvals[hash] >= threshold, "Not enough"); coreState.setPaused(true); }
-    function executeUnpause(bytes32 hash) external { require(approvals[hash] >= threshold, "Not enough"); coreState.setPaused(false); }
+    function executePause(bytes32 hash) external { require(approvals[hash] >= threshold, "Not enough"); systemPaused = true; }
+    function executeUnpause(bytes32 hash) external { require(approvals[hash] >= threshold, "Not enough"); systemPaused = false; }
+    function isPaused() external view returns (bool) { return systemPaused; }
 }
 
 contract MockQSToken {
@@ -178,9 +157,13 @@ contract MockGovernanceSwitch {
 contract FullSystemE2E is Test {
     uint256 public constant MIN_PROVER_STAKE = 400_000e18;
     uint256 public constant NORMAL_TIMELOCK = 24 hours;
+    uint256 public constant EMERGENCY_TIMELOCK = 7 days;
     uint256 public constant GOVERNANCE_TIMELOCK = 7 days;
     
-    MockCoreState public coreState;
+    // Real CoreLayer for bridge operations
+    CoreLayer public coreLayer;
+    
+    // Mock contracts for other components
     MockSequencerRegistry public seqRegistry;
     MockSlashing public seqSlashing;
     MockRotation public seqRotation;
@@ -222,31 +205,40 @@ contract FullSystemE2E is Test {
     
     function _deploySystem() internal {
         vm.startPrank(admin);
+        
+        // Deploy real CoreLayer
+        coreLayer = new CoreLayer();
+        
+        // Deploy mock contracts
         qsToken = new MockQSToken(admin);
         veQSToken = new MockVeQS(address(qsToken), admin);
         treasury = new MockTreasury(admin);
-        coreState = new MockCoreState(admin);
         seqRegistry = new MockSequencerRegistry(admin);
         seqSlashing = new MockSlashing(address(seqRegistry), address(treasury), admin);
         seqRotation = new MockRotation(address(seqRegistry), admin);
         securityCouncil = new MockSecurityCouncil(scMembers, 5, admin);
-        securityCouncil.setCoreState(address(coreState));
         governor = new MockGovernor(address(veQSToken), address(treasury), admin);
+        
         address[] memory multisigSigners = new address[](5);
         for (uint256 i = 0; i < 5; i++) multisigSigners[i] = scMembers[i];
         govSwitch = new MockGovernanceSwitch(admin, multisigSigners, address(governor), address(securityCouncil));
+        
         for (uint256 i = 0; i < voters.length; i++) qsToken.mint(voters[i], 5_000_000e18);
+        
         vm.stopPrank();
         
-        vm.deal(address(coreState), 1000 ether);
+        // Fund contracts
+        vm.deal(address(coreLayer), 1000 ether);
         vm.deal(address(seqRegistry), 10000 ether);
         
+        // Register sequencers
         for (uint256 i = 0; i < sequencers.length; i++) {
             vm.prank(sequencers[i]);
             seqRegistry.register{value: MIN_PROVER_STAKE}();
         }
         seqRotation.setSequencers(sequencers);
         
+        // Setup voters with veQS
         for (uint256 i = 0; i < voters.length; i++) {
             vm.startPrank(voters[i]);
             qsToken.approve(address(veQSToken), type(uint256).max);
@@ -255,28 +247,77 @@ contract FullSystemE2E is Test {
         }
     }
     
-    function test_FullFlow_LockUnlockClaim() public {
+    // =========================================================================
+    // CoreLayer Bridge Tests (Real Implementation)
+    // =========================================================================
+    
+    function test_FullFlow_LockUnlockClaim_RealBridge() public {
         uint256 lockAmount = 1 ether;
-        bytes32 commitment = keccak256(abi.encodePacked(user, lockAmount, block.timestamp));
+        bytes32 recipient = bytes32(uint256(uint160(user)));
         
+        // Lock using real CoreLayer
         vm.prank(user);
-        coreState.lock{value: lockAmount}(commitment);
-        assertTrue(coreState.isLocked(commitment), "Asset should be locked");
+        bytes32 txHash = coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipient);
+        assertTrue(coreLayer.isLocked(txHash), "Asset should be locked");
         
+        // Verify transaction details
+        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
+        assertEq(tx.amount, lockAmount, "Lock amount should match");
+        assertEq(tx.recipient, recipient, "Recipient should match");
+        
+        // Unlock with proof
+        bytes memory proof = abi.encodePacked(bytes32(uint256(1)), bytes32(uint256(2)));
         vm.prank(user);
-        coreState.requestUnlock(commitment);
-        vm.warp(block.timestamp + NORMAL_TIMELOCK);
+        coreLayer.unlock(txHash, proof, user);
         
-        bytes[] memory signatures = new bytes[](2);
+        // Advance past timelock
+        vm.warp(block.timestamp + NORMAL_TIMELOCK + 1);
+        
+        // Claim
         uint256 balanceBefore = user.balance;
         vm.prank(user);
-        coreState.claimUnlock(commitment, signatures);
+        coreLayer.claim(txHash, user);
         assertEq(user.balance - balanceBefore, lockAmount, "Should receive locked amount");
+        assertFalse(coreLayer.isLocked(txHash), "Asset should be unlocked");
     }
+    
+    function test_FullFlow_EmergencyUnlock_RealBridge() public {
+        uint256 lockAmount = 10 ether;
+        bytes32 recipient = bytes32(uint256(uint160(user)));
+        
+        // Lock
+        vm.prank(user);
+        bytes32 txHash = coreLayer.lock{value: lockAmount}(address(0), lockAmount, recipient);
+        
+        // Calculate emergency bond
+        uint256 bond = coreLayer.calculateEmergencyBond(lockAmount);
+        assertEq(bond, lockAmount * 5 / 100, "Large amount should use 5% bond");
+        
+        // Emergency unlock
+        vm.prank(user);
+        coreLayer.emergencyUnlock{value: bond}(txHash, user);
+        
+        // Verify emergency state
+        ICoreLayer.BridgeTx memory tx = coreLayer.getTransaction(txHash);
+        assertTrue(tx.isEmergency, "Should be emergency unlock");
+        
+        // Advance past emergency timelock (7 days)
+        vm.warp(block.timestamp + EMERGENCY_TIMELOCK + 1);
+        
+        // Claim
+        uint256 balanceBefore = user.balance;
+        vm.prank(user);
+        coreLayer.claim(txHash, user);
+        assertGe(user.balance - balanceBefore, lockAmount, "Should receive at least locked amount");
+    }
+    
+    // =========================================================================
+    // Integration Tests (Mock + Real)
+    // =========================================================================
     
     function test_FullFlow_GovernanceProposal() public {
         vm.prank(voters[0]);
-        uint256 proposalId = governor.propose(address(coreState), "", "Test");
+        uint256 proposalId = governor.propose(address(coreLayer), "", "Test");
         vm.warp(block.timestamp + 7 days);
         for (uint256 i = 0; i < 15; i++) { vm.prank(voters[i]); governor.castVote(proposalId, true); }
         vm.warp(block.timestamp + 7 days);
@@ -305,13 +346,13 @@ contract FullSystemE2E is Test {
         for (uint256 i = 0; i < 5; i++) { vm.prank(scMembers[i]); securityCouncil.approve(pauseHash); }
         vm.prank(scMembers[0]);
         securityCouncil.executePause(pauseHash);
-        assertTrue(coreState.isPaused(), "System should be paused");
+        assertTrue(securityCouncil.isPaused(), "System should be paused");
         
         bytes32 unpauseHash = keccak256("unpause");
         for (uint256 i = 0; i < 5; i++) { vm.prank(scMembers[i]); securityCouncil.approve(unpauseHash); }
         vm.prank(scMembers[0]);
         securityCouncil.executeUnpause(unpauseHash);
-        assertFalse(coreState.isPaused(), "System should be unpaused");
+        assertFalse(securityCouncil.isPaused(), "System should be unpaused");
     }
     
     function test_FullFlow_SequencerRotation() public {
@@ -326,8 +367,12 @@ contract FullSystemE2E is Test {
         assertEq(seqRotation.currentLeader(), sequencers[1], "Should rotate to next sequencer");
     }
     
+    // =========================================================================
+    // System State Verification
+    // =========================================================================
+    
     function test_SystemState_AllComponentsDeployed() public view {
-        assertTrue(address(coreState) != address(0), "CoreState deployed");
+        assertTrue(address(coreLayer) != address(0), "CoreLayer deployed");
         assertTrue(address(seqRegistry) != address(0), "SeqRegistry deployed");
         assertTrue(address(seqSlashing) != address(0), "Slashing deployed");
         assertTrue(address(seqRotation) != address(0), "Rotation deployed");
@@ -336,5 +381,11 @@ contract FullSystemE2E is Test {
         assertTrue(address(qsToken) != address(0), "QS deployed");
         assertTrue(address(veQSToken) != address(0), "veQS deployed");
         assertTrue(address(treasury) != address(0), "Treasury deployed");
+    }
+    
+    function test_CoreLayer_CPCompliance() public view {
+        assertTrue(coreLayer.verifyCPCompliance(), "CoreLayer should be CP compliant");
+        assertEq(coreLayer.NORMAL_TIMELOCK(), 24 hours, "Normal timelock should be 24h");
+        assertEq(coreLayer.EMERGENCY_TIMELOCK(), 7 days, "Emergency timelock should be 7d");
     }
 }
