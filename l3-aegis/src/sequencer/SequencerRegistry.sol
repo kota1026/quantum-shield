@@ -107,11 +107,17 @@ contract SequencerRegistry is ISequencerRegistry, AccessControl, ReentrancyGuard
     function deregister() external override nonReentrant {
         require(_isActive[msg.sender], "Not registered");
         
+        uint256 stakeAmount = _sequencers[msg.sender].stake;
+        
         _removeFromActiveList(msg.sender);
         _sequencers[msg.sender].isActive = false;
         
-        // Initiate unstaking (7-day unbonding)
-        stakingContract.unstake(_sequencers[msg.sender].stake);
+        // Initiate unstaking via unstakeFor (7-day unbonding)
+        // Using interface cast to access unstakeFor
+        (bool success, ) = address(stakingContract).call(
+            abi.encodeWithSignature("unstakeFor(address,uint256)", msg.sender, stakeAmount)
+        );
+        require(success, "Unstake failed");
         
         emit SequencerDeregistered(msg.sender, block.timestamp);
     }
