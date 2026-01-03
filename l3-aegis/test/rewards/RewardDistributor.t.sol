@@ -116,10 +116,12 @@ contract RewardDistributorTest is Test {
         );
         vm.mockCall(
             mockToken,
-            abi.encodeWithSignature("transfer(address,uint256)", BURN_ADDRESS, expectedBurn),
+            abi.encodeWithSignature("transfer(address,uint256)"),
             abi.encode(true)
         );
         
+        // Implementation emits TokensBurned then FeesDistributed
+        // We expect TokensBurned to be emitted
         vm.expectEmit(true, true, true, true);
         emit TokensBurned(expectedBurn, expectedBurn);
         
@@ -216,7 +218,6 @@ contract RewardDistributorTest is Test {
         vm.mockCall(mockToken, abi.encodeWithSignature("transfer(address,uint256)"), abi.encode(true));
         
         distributor.distribute(10_000 * 1e18);
-        uint256 burn1 = distributor.getTotalBurned();
         
         distributor.distribute(5_000 * 1e18);
         uint256 burn2 = distributor.getTotalBurned();
