@@ -36,6 +36,9 @@ contract SequencerSlashingTest is Test {
     address public sequencer2 = address(0x222);
     address public challenger;
     address public insuranceFund;
+    
+    /// @notice Dead address for burning ETH (must match contract)
+    address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
 
     uint256 public constant MINIMUM_STAKE = 500_000 ether;
     uint256 public constant CHALLENGE_BOND = 0.1 ether;
@@ -103,6 +106,27 @@ contract SequencerSlashingTest is Test {
         vm.expectRevert("Invalid proof");
         slashing.reportDoubleSign{value: CHALLENGE_BOND}(sequencer1, invalidProof);
     }
+    
+    function test_ReportDoubleSigning_WrongSequencer() public {
+        // Create proof for sequencer2 but try to slash sequencer1
+        bytes memory proof = _createDoubleSignProof(sequencer2);
+
+        vm.deal(challenger, CHALLENGE_BOND + 1 ether);
+        vm.prank(challenger);
+        vm.expectRevert("Invalid proof");
+        slashing.reportDoubleSign{value: CHALLENGE_BOND}(sequencer1, proof);
+    }
+    
+    function test_ReportDoubleSigning_SameCommitments() public {
+        // Create proof with same commitments (not a valid double-sign)
+        bytes32 commitment = keccak256("same_commitment");
+        bytes memory invalidProof = abi.encode(sequencer1, block.number, commitment, commitment);
+
+        vm.deal(challenger, CHALLENGE_BOND + 1 ether);
+        vm.prank(challenger);
+        vm.expectRevert("Invalid proof");
+        slashing.reportDoubleSign{value: CHALLENGE_BOND}(sequencer1, invalidProof);
+    }
 
     // ============================================
     // TEST-SEQ-003.2: Downtime Slash Tests
@@ -134,7 +158,7 @@ contract SequencerSlashingTest is Test {
         uint256 slashAmount = MINIMUM_STAKE * 10 / 100; // N=1: 50,000 ETH
         uint256 expectedChallengerReward = slashAmount * 60 / 100; // 30,000 ETH
         uint256 expectedInsuranceAmount = slashAmount * 20 / 100; // 10,000 ETH
-        // Burn: 20% (10,000 ETH destroyed)
+        uint256 expectedBurnAmount = slashAmount * 20 / 100; // 10,000 ETH
 
         // Fund challenger with bond
         vm.deal(challenger, CHALLENGE_BOND + 1 ether);
@@ -142,12 +166,14 @@ contract SequencerSlashingTest is Test {
         // Record balances AFTER funding
         uint256 challengerBalanceBefore = challenger.balance;
         uint256 insuranceBalanceBefore = insuranceFund.balance;
+        uint256 burnAddressBalanceBefore = BURN_ADDRESS.balance;
 
         vm.prank(challenger);
         slashing.reportDoubleSign{value: CHALLENGE_BOND}(sequencer1, proof);
 
         uint256 challengerBalanceAfter = challenger.balance;
         uint256 insuranceBalanceAfter = insuranceFund.balance;
+        uint256 burnAddressBalanceAfter = BURN_ADDRESS.balance;
 
         // Challenger receives: reward + bond back - bond sent
         // Net gain = challengerBalanceAfter - challengerBalanceBefore + CHALLENGE_BOND (sent)
@@ -156,6 +182,24 @@ contract SequencerSlashingTest is Test {
         
         assertEq(challengerNetGain, expectedChallengerReward + CHALLENGE_BOND, "Challenger reward incorrect");
         assertEq(insuranceBalanceAfter - insuranceBalanceBefore, expectedInsuranceAmount, "Insurance amount incorrect");
+        assertEq(burnAddressBalanceAfter - burnAddressBalanceBefore, expectedBurnAmount, "Burn amount incorrect");
+    }
+    
+    function test_BurnAddressReceivesETH() public {
+        bytes memory proof = _createDoubleSignProof(sequencer1);
+        
+        uint256 slashAmount = MINIMUM_STAKE * 10 / 100;
+        uint256 expectedBurnAmount = slashAmount * 20 / 100;
+        
+        uint256 burnBalanceBefore = BURN_ADDRESS.balance;
+        uint256 totalBurnedBefore = slashing.totalBurned();
+
+        vm.deal(challenger, CHALLENGE_BOND + 1 ether);
+        vm.prank(challenger);
+        slashing.reportDoubleSign{value: CHALLENGE_BOND}(sequencer1, proof);
+
+        assertEq(BURN_ADDRESS.balance - burnBalanceBefore, expectedBurnAmount, "ETH not sent to burn address");
+        assertEq(slashing.totalBurned() - totalBurnedBefore, expectedBurnAmount, "totalBurned not updated");
     }
 
     // ============================================
@@ -218,9 +262,17 @@ contract SequencerSlashingTest is Test {
         staking.stakeFor{value: amount}(seq);
     }
 
+    /**
+     * @notice Creates a valid double-sign proof for testing
+     * @dev New format: (sequencer, blockNumber, commitment1, commitment2)
+     *      commitment1 != commitment2 proves double-signing
+     */
     function _createDoubleSignProof(address seq) internal view returns (bytes memory) {
-        // Mock proof - in production would be actual signature comparison
-        return abi.encode(seq, "double_sign_proof", block.number);
+        // Create two different commitments for the same block (evidence of double-signing)
+        bytes32 commitment1 = keccak256(abi.encodePacked(seq, block.number, "commitment_A"));
+        bytes32 commitment2 = keccak256(abi.encodePacked(seq, block.number, "commitment_B"));
+        
+        return abi.encode(seq, block.number, commitment1, commitment2);
     }
 
     function _reportAndVerifySlash(address seq, uint256 violationNum, uint256 expectedPercentage) internal {
