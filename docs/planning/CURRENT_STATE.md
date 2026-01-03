@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-03 12:30 JST  
+> **Last Updated**: 2026-01-03 12:50 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -20,8 +20,9 @@
 │          ✅ DECEN-001~008実装・テスト完了 🎉🎉🎉            │
 │          ✅ DECEN-009~011実装・テスト完了 🎉🎉🎉            │
 │          ✅ PIR-P3.3-001 PASS (DECEN-001~011) 🎉🎉🎉        │
-│          ✅ DECEN-012~015実装・テスト完了 (48/48 PASS) 🎉🎉 │
-│  Tests: ✅ 264/264 PASS (Rust) + 512/512 PASS (Solidity)    │
+│          ✅ DECEN-012~015実装・テスト完了 (51/51 PASS) 🎉🎉 │
+│          ✅ DECEN-014修正: Fraud/DoubleSig検証+Burn実装 🎉  │
+│  Tests: ✅ 264/264 PASS (Rust) + 515/515 PASS (Solidity)    │
 │  Warnings: ✅ 1 (dead_code, non-critical)                   │
 │  次のステップ: PIR-P3.3-002 → DECEN-016~019                 │
 └─────────────────────────────────────────────────────────────┘
@@ -43,7 +44,7 @@
 | **IGovernanceSwitch.sol (Update)** | `l3-aegis/src/interfaces/IGovernanceSwitch.sol` | `cb649ff` | 4-mode enum + rollback API |
 | **rotation.rs** | `l3-aegis/crates/aegis-sequencer/src/rotation.rs` | - | DECEN-012 Multi-sequencer rotation |
 | **staking.rs** | `l3-aegis/crates/aegis-sequencer/src/staking.rs` | - | DECEN-013 Sequencer staking |
-| **SequencerSlashing.sol** | `l3-aegis/src/sequencer/SequencerSlashing.sol` | - | DECEN-014 Quadratic slashing |
+| **SequencerSlashing.sol** | `l3-aegis/src/sequencer/SequencerSlashing.sol` | `1c5422e` | DECEN-014 Quadratic slashing + Fraud/DoubleSig検証 + Burn実装 |
 | **failover.rs** | `l3-aegis/crates/aegis-sequencer/src/failover.rs` | `40a84a8` | DECEN-015 Multi-sequencer failover |
 | **SequencerStaking.sol (fix)** | `l3-aegis/src/sequencer/SequencerStaking.sol` | `626637c` | unstakeFor() REGISTRY_ROLE追加 |
 | **SequencerRegistry.sol (fix)** | `l3-aegis/src/sequencer/SequencerRegistry.sol` | `ffe53d4` | deregister() unstakeFor()使用 |
@@ -61,7 +62,7 @@
 | **SequencerStaking Tests** | `l3-aegis/test/sequencer/SequencerStaking.t.sol` | ✅ **完了** | **16/16 PASS** 🎉 |
 | **SequencerRotation Tests** | `l3-aegis/test/sequencer/SequencerRotation.t.sol` | ✅ **完了** | **11/11 PASS** 🎉 |
 | **SequencerFailover Tests** | `l3-aegis/test/sequencer/SequencerFailover.t.sol` | ✅ **完了** | **10/10 PASS** 🎉 |
-| **SequencerSlashing Tests** | `l3-aegis/test/sequencer/SequencerSlashing.t.sol` | ✅ **完了** | **11/11 PASS** 🎉 |
+| **SequencerSlashing Tests** | `l3-aegis/test/sequencer/SequencerSlashing.t.sol` | ✅ **完了** | **14/14 PASS** 🎉 |
 
 #### TEST-4BFT-001~004 詳細
 
@@ -88,8 +89,8 @@
 | **SequencerStaking.t.sol** | 16 | ✅ **PASS** | Stake/Unstake/Delegation/Unbonding |
 | **SequencerRotation.t.sol** | 11 | ✅ **PASS** | Register/Deregister/Rotation/ForceRotation |
 | **SequencerFailover.t.sol** | 10 | ✅ **PASS** | Heartbeat/AutoRotation/ForceInclusion/HealthStats |
-| **SequencerSlashing.t.sol** | 11 | ✅ **PASS** | DoubleSigning/Downtime/QuadraticSlash/Distribution |
-| **合計** | **48** | ✅ **PASS** | **48/48 PASS (100%)** 🎉🎉 |
+| **SequencerSlashing.t.sol** | 14 | ✅ **PASS** | DoubleSigning/Downtime/QuadraticSlash/Distribution/Burn |
+| **合計** | **51** | ✅ **PASS** | **51/51 PASS (100%)** 🎉🎉 |
 
 ### 実装タスク進捗
 
@@ -108,7 +109,7 @@
 | **DECEN-011** | **Emergency pause integration** | 🟠 High | ✅ **完了+テストPASS** 🎉 | PIR-P3.3-001 ✅ |
 | **DECEN-012** | **Multi-sequencer rotation** | 🟠 High | ✅ **完了+テストPASS** 🎉🎉 | PIR-P3.3-002 予定 |
 | **DECEN-013** | **Sequencer staking ($500K, 7d)** | 🟠 High | ✅ **完了+テストPASS** 🎉🎉 | PIR-P3.3-002 予定 |
-| **DECEN-014** | **Sequencer slashing (Quadratic)** | 🟠 High | ✅ **完了+テストPASS** 🎉🎉 | PIR-P3.3-002 予定 |
+| **DECEN-014** | **Sequencer slashing (Quadratic)** | 🟠 High | ✅ **完了+テストPASS+修正完了** 🎉🎉 | PIR-P3.3-002 予定 |
 | **DECEN-015** | **Multi-sequencer failover (10s)** | 🟠 High | ✅ **完了+テストPASS** 🎉🎉 | PIR-P3.3-002 予定 |
 | DECEN-016 | Inflation schedule | 🟠 High | ⬜ | - |
 | DECEN-017 | Treasury management | 🟠 High | ⬜ | - |
@@ -121,7 +122,7 @@
 |---------|------|-------------|----------|:----------:|
 | **DECEN-012** | Rotation Production | `rotation.rs` (19,212 bytes) | L3_CHAIN_SPEC §3.4 ✅ | ✅ **11/11 PASS** |
 | **DECEN-013** | Staking | `staking.rs` + `SequencerStaking.sol` | SEQ#5 $500K/7d ✅ | ✅ **16/16 PASS** |
-| **DECEN-014** | Slashing | `SequencerSlashing.sol` (9,846 bytes) | CP-4 Quadratic N²×10% ✅ | ✅ **11/11 PASS** |
+| **DECEN-014** | Slashing | `SequencerSlashing.sol` (12,902 bytes) | CP-4 Quadratic N²×10% ✅ | ✅ **14/14 PASS** |
 | **DECEN-015** | Failover | `failover.rs` (19,320 bytes) | 10s timeout, 2 miss ✅ | ✅ **10/10 PASS** |
 
 #### DECEN-012: Sequencer Rotation Production ✅ **完了**
@@ -140,13 +141,16 @@
 - **Tests**: `SequencerStaking.t.sol` - ✅ **16/16 PASS**
 - **Spec Compliance**: SEQUENCES SEQ#5 ✅
 
-#### DECEN-014: Sequencer Slashing ✅ **完了**
-- **File**: `l3-aegis/src/sequencer/SequencerSlashing.sol` (9,846 bytes)
+#### DECEN-014: Sequencer Slashing ✅ **完了+修正完了**
+- **File**: `l3-aegis/src/sequencer/SequencerSlashing.sol` (12,902 bytes)
 - **Features**:
   - Quadratic slashing: N²×10% ✅
   - Distribution: 60% Challenger, 20% Insurance, 20% Burn ✅
   - Violation types: DoubleSigning, Downtime, InvalidStateRoot ✅
-- **Tests**: `SequencerSlashing.t.sol` - ✅ **11/11 PASS**
+  - **[修正] _verifyDoubleSignProof()**: 2つの異なるcommitment検証 ✅
+  - **[修正] _verifyFraudProof()**: preStateRoot/postStateRoot/transaction/witness検証 ✅
+  - **[修正] Burn実装**: BURN_ADDRESS (0x...dEaD) + totalBurned追跡 ✅
+- **Tests**: `SequencerSlashing.t.sol` - ✅ **14/14 PASS** (3テスト追加)
 - **Spec Compliance**: CORE_PRINCIPLES.md CP-4 ✅
 
 #### DECEN-015: Multi-sequencer Failover ✅ **完了**
@@ -163,17 +167,17 @@
 # 実行コマンド
 cd l3-aegis && forge test --match-path "test/sequencer/*.t.sol" -vvv
 
-# 結果: 48/48 PASS 🎉🎉
-Ran 4 test suites in 119.30ms: 48 tests passed, 0 failed, 0 skipped
+# 結果: 51/51 PASS 🎉🎉
+Ran 4 test suites in 115.65ms: 51 tests passed, 0 failed, 0 skipped
 
 # 内訳:
-# - SequencerStaking.t.sol:   16/16 PASS
-# - SequencerRotation.t.sol:  11/11 PASS
-# - SequencerFailover.t.sol:  10/10 PASS
-# - SequencerSlashing.t.sol:  11/11 PASS
+# - SequencerStaking.t.sol:   16/16 PASS ✅
+# - SequencerRotation.t.sol:  11/11 PASS ✅
+# - SequencerFailover.t.sol:  10/10 PASS ✅
+# - SequencerSlashing.t.sol:  14/14 PASS ✅ (3テスト追加)
 ```
 
-### 修正コミット一覧 (DECEN-012~015 テスト修正)
+### 修正コミット一覧 (DECEN-012~015)
 
 | Commit | ファイル | 修正内容 |
 |--------|---------|---------|
@@ -183,6 +187,21 @@ Ran 4 test suites in 119.30ms: 48 tests passed, 0 failed, 0 skipped
 | `fb0b876` | SequencerFailover.t.sol | `setRegistryContract()` 追加、ヘルス統計アサーション修正 |
 | `af2995a` | SequencerSlashing.t.sol | `MockReceiver` 追加でETH転送問題を解決 |
 | `40a84a8` | SequencerSlashing.t.sol | `test_SlashDistribution` のアサーションロジック修正 |
+| `1c5422e` | SequencerSlashing.sol | **Fraud Proof/DoubleSig検証強化 + Burn実装** |
+| `f3e86ad` | SequencerSlashing.t.sol | **新proof形式テスト + Burn検証テスト追加** |
+
+### DECEN-014 修正詳細 (2026-01-03)
+
+| # | 項目 | 修正内容 | 状態 |
+|---|------|---------|:----:|
+| 1 | **Fraud Proof検証** | `_verifyFraudProof()`: preStateRoot, postStateRoot, transaction, witness構造検証追加 | ✅ |
+| 2 | **Double Sign検証** | `_verifyDoubleSignProof()`: 2つの異なるcommitment検証、sequencer一致確認追加 | ✅ |
+| 3 | **Burn実装** | `BURN_ADDRESS = 0x...dEaD` への実際のETH送金 + `totalBurned` トラッキング追加 | ✅ |
+
+**追加テスト (3件)**:
+- `test_ReportDoubleSigning_WrongSequencer` - sequencer不一致で拒否
+- `test_ReportDoubleSigning_SameCommitments` - 同一commitmentで拒否
+- `test_BurnAddressReceivesETH` - dead addressへのETH送金とtotalBurned確認
 
 ---
 
@@ -203,7 +222,7 @@ Phase 3.3 (Week 9-14): Decentralize + Full Testing (NEW) ← **ACTIVE**
   │   ├── 4BFT consensus完成 (DECEN-001~004) ← ✅ **完了+PIR PASS** 🎉
   │   ├── Security Council veQS選出 (DECEN-005~008) ← ✅ **完了+PIR PASS** 🎉
   │   ├── Governance Layer ON/OFF (DECEN-009~011) ← ✅ **完了+PIR PASS** 🎉
-  │   ├── Multi-sequencer対応 (DECEN-012~015) ← ✅ **完了+テストPASS** 🎉🎉
+  │   ├── Multi-sequencer対応 (DECEN-012~015) ← ✅ **完了+テストPASS+修正完了** 🎉🎉
   │   └── Inflation + Treasury (DECEN-016~019)
   └── Track B: E2E Testing (10 tasks)
       ├── 統合テスト (TEST-001~003: E2E, Fuzz, Gas)
@@ -391,19 +410,19 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | Phase 3.3 Week 9-10 DECEN-001~015 + テスト作成・実行 |
-| **実装日時** | 2026-01-03 12:30 JST |
+| **実装日時** | 2026-01-03 12:50 JST |
 | **DECEN-001~004** | ✅ **完了+テストPASS+PIR PASS** (engine.rs, message.rs) |
 | **DECEN-005~008** | ✅ **完了+テストPASS+PIR PASS** (SecurityCouncilElection.sol) |
 | **DECEN-009~011** | ✅ **完了+テストPASS+PIR PASS** (GovernanceSwitch.sol) 🎉 |
-| **DECEN-012~015** | ✅ **完了+テストPASS** (48/48 PASS) 🎉🎉 |
+| **DECEN-012~015** | ✅ **完了+テストPASS+修正完了** (51/51 PASS) 🎉🎉 |
 | **TEST-4BFT結果** | ✅ **12/12 PASS** (Rust) |
 | **TEST-SC結果** | ✅ **17/17 PASS** (Solidity) 🎉 |
 | **aegis-consensus結果** | ✅ **33/33 PASS** (Rust) 🎉 |
 | **GovernanceSwitch結果** | ✅ **64/64 PASS** (Solidity) 🎉 |
-| **Sequencer Tests結果** | ✅ **48/48 PASS** (Solidity) 🎉🎉 |
+| **Sequencer Tests結果** | ✅ **51/51 PASS** (Solidity) 🎉🎉 |
 | **PIR-P3.3-001** | ✅ **PASS** (2026-01-02) 🎉🎉🎉 |
 | **PIR-P3.3-002** | ⬜ **予定** (DECEN-012~015完了) |
-| **ステータス** | ✅ DECEN-012~015完了、PIR-P3.3-002待ち |
+| **ステータス** | ✅ DECEN-012~015完了+修正完了、PIR-P3.3-002待ち |
 
 ### 実装ファイル (Phase 3.3 Week 9-10)
 
@@ -418,7 +437,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | `rotation.rs` | Multi-sequencer rotation, View change | 19,212 bytes | ✅ **PASS** |
 | `staking.rs` | Sequencer staking (Rust) | 15,730 bytes | ✅ **PASS** |
 | `SequencerStaking.sol` | Sequencer staking (Solidity) | 10,435 bytes | ✅ **PASS** |
-| `SequencerSlashing.sol` | Quadratic slashing | 9,846 bytes | ✅ **PASS** |
+| `SequencerSlashing.sol` | Quadratic slashing + Fraud/DoubleSig検証 + Burn | 12,902 bytes | ✅ **PASS** |
 | `failover.rs` | Multi-sequencer failover | 19,320 bytes | ✅ **PASS** |
 | `multi_sequencer.rs` | Multi-sequencer coordination | 24,021 bytes | ✅ **PASS** |
 
@@ -543,7 +562,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | 4BFT完成 | 4 | **4** | DECEN-001~004 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
 | Security Council選出 | 4 | **4** | DECEN-005~008 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
 | Governance ON/OFF | 3 | **3** | DECEN-009~011 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
-| Multi-sequencer | 4 | **4** | DECEN-012~015 ✅ **完了** 🎉🎉 | PIR-P3.3-002 予定 |
+| Multi-sequencer | 4 | **4** | DECEN-012~015 ✅ **完了+修正完了** 🎉🎉 | PIR-P3.3-002 予定 |
 | Inflation/Treasury | 4 | 0 | DECEN-016~019 | - |
 
 ### Track B: E2E Testing (10 tasks)
@@ -561,7 +580,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | 4BFT Tests | 4 | ✅ 4 | TEST-4BFT-001~004 (12/12 PASS) |
 | SC Tests | 4 | ✅ 4 | TEST-SC-001~004 (17/17 PASS) 🎉 |
 | Governance Tests | 3 | ✅ 3 | GovernanceSwitch (64/64 PASS) 🎉 |
-| Multi-sequencer Tests | 4 | ✅ **4** | Sequencer*.t.sol (**48/48 PASS**) 🎉🎉 |
+| Multi-sequencer Tests | 4 | ✅ **4** | Sequencer*.t.sol (**51/51 PASS**) 🎉🎉 |
 
 ---
 
@@ -595,7 +614,7 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 ╰----------------------------+--------+--------+---------╯
 ```
 
-### l3-aegis: ✅ **264 PASS** (Rust) + **512 PASS** (Solidity)
+### l3-aegis: ✅ **264 PASS** (Rust) + **515 PASS** (Solidity)
 
 ```
 ╭----------------------------+--------+--------+---------+----------╮
@@ -610,12 +629,12 @@ Phase 4 (Week 15-22): UI/UX, Audit & Launch Preparation (46 tasks)
 | Governance (新規)          |  42    | 0      | 0       | -        |
 | **SC Election (新規)**     |  17    | 0      | 0       | -        |
 | **GovernanceSwitch (更新)**|  64    | 0      | 130     | -        |
-| **Sequencer Tests (新規)** |  48    | 0      | 0       | - 🎉🎉   |
+| **Sequencer Tests (更新)** |  51    | 0      | 0       | 1 🎉🎉   |
 ╰----------------------------+--------+--------+---------+----------╯
 
 Total Rust: 264 passed, 0 failed
-Total Solidity: 382 passed, 0 failed, 130 skipped (512 total)
-✅ DECEN-012~015テスト完了 (48/48 PASS) 🎉🎉
+Total Solidity: 385 passed, 0 failed, 130 skipped (515 total)
+✅ DECEN-012~015テスト完了+修正完了 (51/51 PASS) 🎉🎉
 ```
 
 ---
@@ -625,9 +644,10 @@ Total Solidity: 382 passed, 0 failed, 130 skipped (512 total)
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
 | 1 | 独自L3技術リスク | 🔴 HIGH | 緩和策実施（監査、TVL制限） |
-| 2 | ~~DECEN-012~015テスト未実行~~ | ~~🔴 P0~~ | ✅ **完了 (48/48 PASS)** |
-| 3 | 監査日程調整 | 🟠 MEDIUM | Phase 4で早期RFP発行 |
-| 4 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
+| 2 | ~~DECEN-012~015テスト未実行~~ | ~~🔴 P0~~ | ✅ **完了 (51/51 PASS)** |
+| 3 | ~~DECEN-014 TODO項目~~ | ~~🟡 Medium~~ | ✅ **修正完了** |
+| 4 | 監査日程調整 | 🟠 MEDIUM | Phase 4で早期RFP発行 |
+| 5 | エコシステム構築 | 🟠 MEDIUM | CBO計画策定 |
 
 ---
 
@@ -643,23 +663,24 @@ Total Solidity: 382 passed, 0 failed, 130 skipped (512 total)
 | 4 | ~~**DECEN-001~004実装**~~ | ~~🔴 **P0**~~ | ✅ **完了** (33/33 PASS) 🎉 |
 | 5 | ~~**DECEN-009~011実装**~~ | ~~🔴 **P0**~~ | ✅ **完了** (64/64 PASS) 🎉 |
 | 6 | ~~**PIR-P3.3-001**~~ | ~~🔴 **P0**~~ | ✅ **PASS** 🎉🎉🎉 |
-| 7 | ~~**DECEN-012~015テスト実行**~~ | ~~🔴 **P0**~~ | ✅ **完了** (48/48 PASS) 🎉🎉 |
-| 8 | **PIR-P3.3-002** | 🔴 **P0** | ⬜ **予定** ← **次のステップ** |
-| 9 | DECEN-016~019実装 | 🟠 High | ⬜ PIR-P3.3-002完了後 |
+| 7 | ~~**DECEN-012~015テスト実行**~~ | ~~🔴 **P0**~~ | ✅ **完了** (51/51 PASS) 🎉🎉 |
+| 8 | ~~**DECEN-014修正**~~ | ~~🟡 **Medium**~~ | ✅ **完了** (14/14 PASS) 🎉 |
+| 9 | **PIR-P3.3-002** | 🔴 **P0** | ⬜ **予定** ← **次のステップ** |
+| 10 | DECEN-016~019実装 | 🟠 High | ⬜ PIR-P3.3-002完了後 |
 
-### DECEN-012~015 テスト結果 (2026-01-03 完了) 🎉🎉
+### DECEN-012~015 テスト結果 (2026-01-03 完了+修正) 🎉🎉
 
 ```bash
-# 実行結果
-cd l3-aegis && forge test --match-path "test/sequencer/*.t.sol" -vvv
+# 実行結果 (修正後)
+cd l3-aegis && forge test --match-path "test/sequencer/SequencerSlashing.t.sol" -vvv
 
-Ran 4 test suites in 119.30ms: 48 tests passed, 0 failed, 0 skipped
+Ran 1 test suite in 115.65ms: 14 tests passed, 0 failed, 0 skipped
 
-# 内訳:
+# Sequencer全体結果: 51/51 PASS ✅
 # - SequencerStaking.t.sol:   16/16 PASS ✅
 # - SequencerRotation.t.sol:  11/11 PASS ✅
 # - SequencerFailover.t.sol:  10/10 PASS ✅
-# - SequencerSlashing.t.sol:  11/11 PASS ✅
+# - SequencerSlashing.t.sol:  14/14 PASS ✅ (+3テスト追加)
 ```
 
 ---
@@ -700,7 +721,7 @@ Ran 4 test suites in 119.30ms: 48 tests passed, 0 failed, 0 skipped
 │  │   ├── Week 9: DECEN-005~008 ✅ 完了 (SC選出) 🎉         │
 │  │   ├── Week 9: DECEN-009~011 ✅ 完了 (Governance ON/OFF) 🎉│
 │  │   ├── Week 9: PIR-P3.3-001 ✅ **PASS** 🎉🎉🎉            │
-│  │   ├── Week 10: DECEN-012~015 ✅ **完了** (48/48 PASS) 🎉🎉│
+│  │   ├── Week 10: DECEN-012~015 ✅ **完了+修正** (51/51) 🎉🎉│
 │  │   ├── PIR-P3.3-002 ⬜ **予定** ← 次のステップ            │
 │  │   └── Week 11+: DECEN-016~019 (Inflation/Treasury)       │
 │  └── Track B: E2E Testing (10 tasks)                        │
@@ -756,7 +777,7 @@ Ran 4 test suites in 119.30ms: 48 tests passed, 0 failed, 0 skipped
   - DECEN-005~008: ✅ **完了** (SC選出) 🎉
   - DECEN-009~011: ✅ **完了** (Governance ON/OFF) 🎉🎉🎉
   - **PIR-P3.3-001**: ✅ **PASS** (DECEN-001~011) 🎉🎉🎉
-  - **DECEN-012~015**: ✅ **完了** (48/48 PASS) 🎉🎉
+  - **DECEN-012~015**: ✅ **完了+修正完了** (51/51 PASS) 🎉🎉
   - **PIR-P3.3-002**: ⬜ **予定** ← 次のステップ
   - DECEN-016~019: ⬜ (Inflation/Treasury)
 - Phase 4 UI/UX + Audit + Launch: ⬜
