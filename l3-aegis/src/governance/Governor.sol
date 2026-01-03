@@ -196,50 +196,19 @@ contract Governor is IGovernor {
         string calldata description,
         ProposalCategory category
     ) external override returns (uint256 proposalId) {
-        if (targets.length == 0) revert InvalidParameters();
-        if (targets.length != values.length) revert InvalidParameters();
-        if (targets.length != calldatas.length) revert InvalidParameters();
+        _validateProposalParams(targets, values, calldatas);
         
         // Check proposer has enough voting power
-        uint256 proposerPower = IveQS(veQS).getEffectiveVotingPower(msg.sender);
-        if (proposerPower < PROPOSAL_THRESHOLD) revert InsufficientVotingPower();
+        if (IveQS(veQS).getEffectiveVotingPower(msg.sender) < PROPOSAL_THRESHOLD) {
+            revert InsufficientVotingPower();
+        }
         
         proposalId = ++_proposalCount;
         
-        uint256 startTime = block.timestamp + VOTING_DELAY;
-        uint256 endTime = startTime + VOTING_PERIOD;
+        _createProposal(proposalId, category, description);
+        _storeProposalActions(proposalId, targets, values, calldatas);
         
-        _proposals[proposalId] = Proposal({
-            id: proposalId,
-            proposer: msg.sender,
-            category: category,
-            startTime: startTime,
-            endTime: endTime,
-            forVotes: 0,
-            againstVotes: 0,
-            abstainVotes: 0,
-            canceled: false,
-            executed: false,
-            descriptionHash: SHA3Hasher.hash(bytes(description))
-        });
-        
-        _proposalActions[proposalId] = ProposalActions({
-            targets: targets,
-            values: values,
-            calldatas: calldatas
-        });
-        
-        emit ProposalCreated(
-            proposalId,
-            msg.sender,
-            category,
-            targets,
-            values,
-            calldatas,
-            startTime,
-            endTime,
-            description
-        );
+        _emitProposalCreated(proposalId, category, targets, values, calldatas, description);
     }
     
     /// @inheritdoc IGovernor
@@ -304,6 +273,77 @@ contract Governor is IGovernor {
     }
     
     // ============ Internal Functions ============
+    
+    /// @notice Validate proposal parameters
+    function _validateProposalParams(
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata calldatas
+    ) internal pure {
+        if (targets.length == 0) revert InvalidParameters();
+        if (targets.length != values.length) revert InvalidParameters();
+        if (targets.length != calldatas.length) revert InvalidParameters();
+    }
+    
+    /// @notice Create proposal storage
+    function _createProposal(
+        uint256 proposalId,
+        ProposalCategory category,
+        string calldata description
+    ) internal {
+        uint256 startTime = block.timestamp + VOTING_DELAY;
+        
+        _proposals[proposalId] = Proposal({
+            id: proposalId,
+            proposer: msg.sender,
+            category: category,
+            startTime: startTime,
+            endTime: startTime + VOTING_PERIOD,
+            forVotes: 0,
+            againstVotes: 0,
+            abstainVotes: 0,
+            canceled: false,
+            executed: false,
+            descriptionHash: SHA3Hasher.hash(bytes(description))
+        });
+    }
+    
+    /// @notice Store proposal actions
+    function _storeProposalActions(
+        uint256 proposalId,
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata calldatas
+    ) internal {
+        _proposalActions[proposalId] = ProposalActions({
+            targets: targets,
+            values: values,
+            calldatas: calldatas
+        });
+    }
+    
+    /// @notice Emit ProposalCreated event
+    function _emitProposalCreated(
+        uint256 proposalId,
+        ProposalCategory category,
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata calldatas,
+        string calldata description
+    ) internal {
+        Proposal storage p = _proposals[proposalId];
+        emit ProposalCreated(
+            proposalId,
+            msg.sender,
+            category,
+            targets,
+            values,
+            calldatas,
+            p.startTime,
+            p.endTime,
+            description
+        );
+    }
     
     /// @notice Internal vote casting
     function _castVote(
