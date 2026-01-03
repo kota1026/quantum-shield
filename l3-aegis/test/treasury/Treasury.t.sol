@@ -39,6 +39,13 @@ contract TreasuryTest is Test {
         signers[3] = multisig4;
         signers[4] = multisig5;
         
+        // Mock governance switch
+        vm.mockCall(
+            mockGovernanceSwitch,
+            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encode(IGovernanceSwitch.GovernanceMode.MULTISIG)
+        );
+        
         vm.startPrank(admin);
         treasury = new Treasury(mockGovernanceSwitch, mockSecurityCouncil, signers, 3);
         vm.stopPrank();
@@ -162,18 +169,12 @@ contract TreasuryTest is Test {
     }
     
     function test_EmergencyWithdraw_WithSCApproval() public {
-        // Mock SC approval (7/9)
-        vm.mockCall(
-            mockSecurityCouncil,
-            abi.encodeWithSignature("hasEmergencyApproval(bytes32)"),
-            abi.encode(true)
-        );
+        uint256 balBefore = recipient.balance;
         
         vm.prank(mockSecurityCouncil);
-        uint256 balBefore = recipient.balance;
         treasury.emergencyWithdraw(recipient, 10_000 * 1e18, "Critical emergency");
-        uint256 balAfter = recipient.balance;
         
+        uint256 balAfter = recipient.balance;
         assertEq(balAfter - balBefore, 10_000 * 1e18);
     }
     
@@ -182,7 +183,7 @@ contract TreasuryTest is Test {
     function test_RequiredApprovals_CentralizedMode() public {
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getGovernanceMode()"),
+            abi.encodeWithSignature("getCurrentMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.CENTRALIZED)
         );
         
@@ -193,7 +194,7 @@ contract TreasuryTest is Test {
     function test_RequiredApprovals_MultisigMode() public {
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getGovernanceMode()"),
+            abi.encodeWithSignature("getCurrentMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.MULTISIG)
         );
         
@@ -204,7 +205,7 @@ contract TreasuryTest is Test {
     function test_RequiredApprovals_DecentralizedMode() public {
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getGovernanceMode()"),
+            abi.encodeWithSignature("getCurrentMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.DECENTRALIZED)
         );
         
