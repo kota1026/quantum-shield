@@ -41,7 +41,7 @@ contract EconomicParametersTest is Test {
         // Mock governance switch to return CENTRALIZED mode (admin has control)
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encodeWithSignature("getGovernanceMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.CENTRALIZED)
         );
         
@@ -52,16 +52,16 @@ contract EconomicParametersTest is Test {
     
     // Helper to setup governance authorization
     function _setupGovernanceAuth() internal {
-        // In CENTRALIZED mode, admin is authorized
-        // Switch to allow governance address as well
+        // In DECENTRALIZED mode, use canApprove for authorization
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("getCurrentMode()"),
+            abi.encodeWithSignature("getGovernanceMode()"),
             abi.encode(IGovernanceSwitch.GovernanceMode.DECENTRALIZED)
         );
+        // Mock canApprove to return true for governance address
         vm.mockCall(
             mockGovernanceSwitch,
-            abi.encodeWithSignature("isGovernanceExecutor(address)", governance),
+            abi.encodeWithSelector(IGovernanceSwitch.canApprove.selector),
             abi.encode(true)
         );
     }
@@ -81,6 +81,18 @@ contract EconomicParametersTest is Test {
     }
     
     function test_SetFeeRate_RequiresGovernance() public {
+        // Mock canApprove to return false for unauthorized caller
+        vm.mockCall(
+            mockGovernanceSwitch,
+            abi.encodeWithSignature("getGovernanceMode()"),
+            abi.encode(IGovernanceSwitch.GovernanceMode.DECENTRALIZED)
+        );
+        vm.mockCall(
+            mockGovernanceSwitch,
+            abi.encodeWithSelector(IGovernanceSwitch.canApprove.selector),
+            abi.encode(false)
+        );
+        
         vm.prank(address(0x999));
         vm.expectRevert(IEconomicParameters.NotAuthorized.selector);
         params.setFeeRate(10);
