@@ -13,7 +13,7 @@
 
 use wasm_bindgen::prelude::*;
 use fips204::ml_dsa_65;
-use fips204::traits::{SerDes, Signer, Verifier};  // Required traits
+use fips204::traits::{SerDes, Signer};  // Required traits
 use sha3::{Sha3_256, Digest};
 use serde::{Serialize, Deserialize};
 
@@ -209,11 +209,8 @@ fn verify_internal(public_key_hex: &str, message_hex: &str, signature_hex: &str)
         Err(e) => return Err(format!("Invalid public key format: {:?}", e)),
     };
 
-    // Verify signature
-    match pk.try_verify(&message, &sig_array, &[]) {
-        Ok(()) => Ok(true),
-        Err(_) => Ok(false),
-    }
+    // Verify signature (returns bool directly)
+    Ok(pk.verify(&message, &sig_array, &[]))
 }
 
 /// Compute SHA3-256 hash
