@@ -18,10 +18,7 @@
     "@tanstack/react-query": "^5.17.0",
     "react-hook-form": "^7.49.0",
     "zod": "^3.22.0",
-    "@hookform/resolvers": "^3.3.0",
-    "wagmi": "^2.5.0",
-    "viem": "^2.7.0",
-    "@quantum-shield/sdk-react": "workspace:*"
+    "@hookform/resolvers": "^3.3.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
