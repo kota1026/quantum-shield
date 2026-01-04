@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-04 19:52 JST  
+> **Last Updated**: 2026-01-04 23:15 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -10,20 +10,16 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 4 - UI/UX, Audit & Launch                           │
-│  Week: 1 / 8 (Week 15-22 overall)                           │
+│  Week: 1 完了 → Week 2 準備中                                │
 │  Month: 13-14 / 24                                          │
 │  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
 │  Status: ✅ Week 1 完了! PIR-P4-001 PASS                    │
-│          ✅ Phase 3 完了 (Go/No-Go PASS)                    │
-│          ✅ CURRENT_PLAN.md 作成完了                        │
-│          ✅ Week 1: Infrastructure (INFRA-001~005) 実装済み  │
-│          ✅ Event Bridge Unit Tests 実行済み (10/10 PASS)   │
-│          ✅ セキュリティレビュー PASS (04_review.md)         │
-│          ✅ PIR-P4-001 PASS (05_pir.md)                     │
+│          ✅ 06_update.md 完了                                │
+│          ⬜ Week 2: API Layer (API-001~006) 計画待ち         │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │         + 10/10 PASS (Event Bridge Unit Tests)              │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: 06_update.md → Week 2計画開始                 │
+│  次のステップ: Week 2計画開始 (01_plan.md)                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -40,7 +36,7 @@
 
 ## 📋 Phase 4 タスク進捗
 
-### Week 1: Infrastructure (INFRA-001~005) ✅ **PIR PASSED**
+### Week 1: Infrastructure (INFRA-001~005) ✅ **COMPLETE - PIR PASSED**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
@@ -49,9 +45,8 @@
 | INFRA-003 | L3→L1 Relayer実装 | P0 | ✅ | PIR-P4-001 |
 | INFRA-004 | Multi-Relayer (2台) | P1 | ✅ | PIR-P4-001 |
 | INFRA-005 | HSM連携仕様書 | P1 | ✅ | PIR-P4-001 |
-| PROMPT-001 | プロンプトパス修正 | P0 | ⬜ | - |
 
-### Week 2: API Layer (API-001~006) ⬜ **NOT STARTED**
+### Week 2: API Layer (API-001~006) ⬜ **READY TO START**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
@@ -61,6 +56,7 @@
 | API-004 | Emergency API | P1 | ⬜ | - |
 | API-005 | WebSocket通知 | P1 | ⬜ | - |
 | API-006 | Edition切替API | P2 | ⬜ | - |
+| INFRA-006 | INCIDENT_RESPONSE_PLAN.md | P1 | ⬜ | - |
 
 ### Week 3: Client SDK (SDK-001~005) ⬜ **NOT STARTED**
 
@@ -120,7 +116,7 @@
 
 ## 📦 最新実装レポート
 
-> **ステータス**: ⬜ リセット済み（PIR-P4-001完了後）
+> **ステータス**: ⬜ 待機中（Week 2計画待ち）
 > **次の実装対象**: Week 2 - API Layer
 
 | 項目 | 値 |
@@ -167,7 +163,7 @@
 | aegis-vm | ✅ |
 | aegis-types | ✅ |
 
-### Event Bridge: ✅ **IMPLEMENTED & PIR PASSED**
+### Event Bridge: ✅ **COMPLETE - PIR PASSED**
 
 | Component | Status |
 |-----------|:------:|
@@ -203,14 +199,14 @@
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | ~~01_plan.md 実行~~ | ~~P0~~ | ✅ **DONE** |
+| 1 | ~~01_plan.md 実行 (Week 1)~~ | ~~P0~~ | ✅ **DONE** |
 | 2 | ~~CURRENT_PLAN.md 作成~~ | ~~P0~~ | ✅ **DONE** |
 | 3 | ~~03_impl.md 実行 (INFRA-001~005)~~ | ~~P0~~ | ✅ **DONE** |
 | 4 | ~~Event Bridge Unit Tests 実行~~ | ~~P0~~ | ✅ **DONE** |
 | 5 | ~~04_review.md 実行~~ | ~~P0~~ | ✅ **DONE** (PASS) |
 | 6 | ~~05_pir.md 実行 (PIR-P4-001)~~ | ~~P0~~ | ✅ **DONE** (PASS) |
-| 7 | **06_update.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
-| 8 | Week 2 計画開始 (API Layer) | P0 | ⬜ |
+| 7 | ~~06_update.md 実行~~ | ~~P0~~ | ✅ **DONE** |
+| 8 | **Week 2 計画開始 (01_plan.md)** | 🔴 **P0** | ⬜ **NEXT** |
 
 ---
 
@@ -222,7 +218,7 @@
 |--------|------|-------------|------|
 | PIR-P4-001 | Week 1 Infrastructure | ✅ PASS | 2026-01-04 |
 
-### 次のPIR ID: PIR-P4-002
+### 次のPIR ID: PIR-P4-002 (Week 2 API Layer)
 
 ---
 
@@ -235,6 +231,18 @@
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | Phase 3 | L3 + Token + 完全分散化 | 100% | ✅ COMPLETE 🎉🎉🎉 |
 | **Phase 4** | **UI/UX + Audit + Launch** | **15%** | 🚀 **IN PROGRESS** |
+
+### Phase 4 Week進捗
+
+| Week | 内容 | 状態 | PIR |
+|------|------|:----:|-----|
+| Week 1 | Infrastructure (Event Bridge) | ✅ | PIR-P4-001 |
+| Week 2 | API Layer | ⬜ | - |
+| Week 3 | Client SDK | ⬜ | - |
+| Week 4-5 | Admin Dashboard | ⬜ | - |
+| Week 5-6 | End User App | ⬜ | - |
+| Week 6-7 | E2E Tests | ⬜ | - |
+| Week 7-8 | Polish & Documentation | ⬜ | - |
 
 ---
 
