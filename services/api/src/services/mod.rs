@@ -68,6 +68,8 @@ impl AppState {
             created_at: chrono::Utc::now().timestamp() as u64,
             release_time: None,
             is_emergency: false,
+            // Store user's Dilithium public key for signature verification during unlock
+            user_public_key: req.pk_dilithium.clone(),
         };
         let key = format!("lock:{}", lock_id);
         let value = serde_json::to_string(&lock).map_err(|e| ApiError::Internal(e.to_string()))?;
