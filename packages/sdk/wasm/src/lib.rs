@@ -13,7 +13,7 @@
 
 use wasm_bindgen::prelude::*;
 use fips204::ml_dsa_65;
-use fips204::traits::{SerDes, Signer};  // Required traits
+use fips204::traits::{SerDes, Signer, Verifier};  // Required traits
 use sha3::{Sha3_256, Digest};
 use serde::{Serialize, Deserialize};
 
