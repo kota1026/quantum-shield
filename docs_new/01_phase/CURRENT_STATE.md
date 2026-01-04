@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-04 23:00 JST  
+> **Last Updated**: 2026-01-05 14:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,11 +13,11 @@
 │  Week: 2 - API Layer                                        │
 │  Month: 13-14 / 24                                          │
 │  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
-│  Status: ✅ 実装完了 - 04_review.md 実行待ち                  │
+│  Status: ⚠️ FIX実装完了 - 04_review.md 再レビュー待ち          │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │         + 42/42 PASS (API) + 26/26 PASS (Event Bridge)      │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: 04_review.md を実行                            │
+│  次のステップ: cargo test で FIX-003, FIX-004 確認後、再レビュー │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -34,6 +34,8 @@
 | 5 | ~~L1 RPC ClientがMock~~ | ~~Critical~~ | ✅ **IMPL-FIX-002 完了** |
 | 6 | ~~L1 SubmitterがMock~~ | ~~Critical~~ | ✅ **IMPL-FIX-003 完了** |
 | 7 | ~~コンパイルエラー (listener.rs, unlock.rs等)~~ | ~~High~~ | ✅ **修正完了** (771b90f) |
+| 8 | ~~Pre-FIPS Dilithium使用~~ | ~~Medium~~ | ✅ **FIX-003 完了** (5c344a2) |
+| 9 | ~~Lock API検証がTODO~~ | ~~High~~ | ✅ **FIX-004 完了** (5c344a2) |
 
 **全ブロッカー解消** ✅
 
@@ -43,51 +45,50 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Week 2 - API Layer (修正実装+コンパイルエラー修正) |
-| **実装日時** | 2026-01-04 23:00 JST |
-| **ステータス** | ✅ **実装完了** |
+| **対象Plan** | Week 2 - API Layer (FIPS 204移行 + Lock API検証本実装) |
+| **実装日時** | 2026-01-05 14:30 JST |
+| **ステータス** | ✅ **FIX実装完了** - 再レビュー待ち |
 
 ### 対象タスク
 
 | タスクID | 内容 | 状態 |
 |---------|------|:----:|
-| IMPL-FIX-001 | Dilithium署名検証本実装 | ✅ |
-| IMPL-FIX-002 | L1 RPC Client本実装 | ✅ |
-| IMPL-FIX-003 | L1 Submitter本実装 | ✅ |
-| COMPILE-FIX | コンパイルエラー修正 | ✅ |
+| FIX-003 | pqcrypto-dilithium → fips204 (NIST FIPS 204) | ✅ |
+| FIX-004 | Lock API ML-DSA-65検証本実装 | ✅ |
 
 ### 作成・修正ファイル
 
-- `services/api/src/routes/unlock.rs`: Dilithium-III署名検証（pqcrypto-dilithium）
-- `services/api/src/services/mod.rs`: Lock struct user_public_key追加
-- `services/api/src/types.rs`: Deserialize trait追加
-- `services/event-bridge/src/indexer/listener.rs`: L1 RPC Client（Alloy）+ イベント構造体修正
-- `services/event-bridge/src/relayer/multi_relayer.rs`: L1 Submitter（Alloy Wallet + sol!）
+| ファイル | 変更内容 |
+|----------|----------|
+| `services/api/Cargo.toml` | `pqcrypto-dilithium` → `fips204` |
+| `services/api/src/crypto.rs` | **新規**: 共通暗号モジュール (ML-DSA-65検証) |
+| `services/api/src/main.rs` | `crypto` モジュール追加 |
+| `services/api/src/routes/lock.rs` | ML-DSA-65検証本実装 (TODOを排除) |
+| `services/api/src/routes/unlock.rs` | FIPS 204 API移行 |
 
-### コンパイルエラー修正コミット
+### 主な変更点
+
+#### FIX-003: FIPS 204 ML-DSA-65移行
+- `pqcrypto-dilithium` (pre-FIPS) → `fips204` (NIST標準)
+- 共通暗号モジュール `crypto.rs` を新規作成
+- 全ての署名検証が NIST FIPS 204 準拠に
+
+#### FIX-004: Lock API検証本実装
+- `validate_dilithium_signature()` の TODO を排除
+- `verify_ml_dsa_65_signature()` による本実装
+- Lock/Unlock両方で同一の検証ロジックを使用
+
+### コミット
 
 | Commit | 内容 |
 |--------|------|
-| abfec46 | API: Lock struct に user_public_key 追加 |
-| f151c49 | API: ProverInfoResponse等にDeserialize追加 |
-| c4d8e63 | Event Bridge: listener.rs イベント構造体整合 |
-| 984d6a4 | Event Bridge: Alloy TransactionBuilder API修正 |
-| 715ac4c | Event Bridge: テストモジュール \n エスケープ修正 |
-| cc09d42 | API: pqcrypto from_bytes API使用 |
-| 771b90f | API: Dilithium署名サイズ 3293→3309 (pre-FIPS版) |
+| 5c344a27 | FIX-003, FIX-004 - FIPS 204 ML-DSA-65 migration + Lock API verification |
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| API Unit Tests | 16/16 PASS |
-| API Tests | 14/14 PASS |
-| API Integration | 12/12 PASS |
-| **API Total** | **42/42 PASS** ✅ |
-| Event Bridge Unit | 18/18 PASS |
-| Event Bridge Integration | 8/8 PASS |
-| **Event Bridge Total** | **26/26 PASS** ✅ |
-| **総テスト数** | **68/68 PASS** ✅ |
+| 確認待ち | `cargo test` 実行必要 |
 
 ---
 
@@ -103,7 +104,7 @@
 | INFRA-004 | Multi-Relayer (2台) | P1 | ✅ | PIR-P4-001 |
 | INFRA-005 | HSM連携仕様書 | P1 | ✅ | PIR-P4-001 |
 
-### Week 2: API Layer (API-001~006) ✅ **実装完了 - レビュー待ち**
+### Week 2: API Layer (API-001~006) ⚠️ **FIX完了 - 再レビュー待ち**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
@@ -114,9 +115,10 @@
 | API-005 | Signature Queue Service | P0 | ✅ | - |
 | API-006 | Edition切替API | P2 | ✅ | - |
 | INFRA-006 | INCIDENT_RESPONSE_PLAN.md | P1 | ✅ | - |
-| IMPL-FIX-001 | Dilithium本実装 | P0 | ✅ | - |
-| IMPL-FIX-002 | L1 RPC本実装 | P0 | ✅ | - |
-| IMPL-FIX-003 | L1 Submitter本実装 | P0 | ✅ | - |
+| FIX-001 | Redis AUTH実装 | P0 | ✅ | - |
+| FIX-002 | mTLS実装 | P0 | ✅ | - |
+| **FIX-003** | **FIPS 204移行** | **P0** | ✅ | - |
+| **FIX-004** | **Lock API検証本実装** | **P0** | ✅ | - |
 
 ### Week 3: Client SDK (SDK-001~005) ⬜ **NOT STARTED**
 
@@ -136,13 +138,9 @@
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | ~~01_plan.md 実行 (Week 2)~~ | ~~P0~~ | ✅ **DONE** |
-| 2 | ~~03_impl.md 実行 (API-001~006)~~ | ~~P0~~ | ✅ **DONE** |
-| 3 | ~~テスト実行 (cargo test)~~ | ~~P0~~ | ✅ **DONE** (68/68 PASS) |
-| 4 | ~~03_impl.md 再実行 (IMPL-FIX-001~003)~~ | ~~P0~~ | ✅ **DONE** |
-| 5 | ~~コンパイルエラー修正~~ | ~~P0~~ | ✅ **DONE** |
-| 6 | **04_review.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
-| 7 | 05_pir.md 実行 (PIR-P4-002) | P0 | ⬜ |
+| 1 | `cargo test` 実行 (FIX-003, FIX-004確認) | 🔴 **P0** | ⬜ **NEXT** |
+| 2 | 04_review.md 再実行 (セキュリティ再レビュー) | 🔴 **P0** | ⬜ |
+| 3 | 05_pir.md 実行 (PIR-P4-002) | P0 | ⬜ |
 
 ---
 
@@ -165,14 +163,14 @@
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | Phase 3 | L3 + Token + 完全分散化 | 100% | ✅ COMPLETE 🎉🎉🎉 |
-| **Phase 4** | **UI/UX + Audit + Launch** | **25%** | 🔄 **レビュー待ち** |
+| **Phase 4** | **UI/UX + Audit + Launch** | **25%** | 🔄 **再レビュー待ち** |
 
 ### Phase 4 Week進捗
 
 | Week | 内容 | 状態 | PIR |
 |------|------|:----:|-----|
 | Week 1 | Infrastructure (Event Bridge) | ✅ | PIR-P4-001 |
-| Week 2 | API Layer | 🔄 レビュー待ち | - |
+| Week 2 | API Layer | ⚠️ 再レビュー待ち | - |
 | Week 3 | Client SDK | ⬜ | - |
 | Week 4-5 | Admin Dashboard | ⬜ | - |
 | Week 5-6 | End User App | ⬜ | - |
