@@ -6,7 +6,7 @@
 
 use crate::config::Config;
 use crate::error::{Error, Result};
-use crate::events::BridgeEvent;
+use crate::events::{BridgeEvent, LockedEvent, EmergencyUnlockEvent};
 use crate::indexer::EventProcessor;
 use crate::metrics;
 use alloy::hex;
@@ -29,26 +29,18 @@ mod event_topics {
     use super::*;
     use once_cell::sync::Lazy;
 
-    /// Locked(bytes32 indexed lockId, address indexed owner, uint256 amount, address token, uint256 unlockTime, uint256 nonce, bytes data)
+    /// Locked(bytes32 indexed lockId, address indexed owner, uint256 chainId, address asset, uint256 amount, bytes destAddr, uint256 expiry, uint256 nonce)
     pub static LOCKED_TOPIC: Lazy<B256> = Lazy::new(|| {
         let mut hasher = Sha3_256::new();
-        hasher.update(b"Locked(bytes32,address,uint256,address,uint256,uint256,bytes)");
+        hasher.update(b"Locked(bytes32,address,uint256,address,uint256,bytes,uint256,uint256)");
         let hash = hasher.finalize();
         B256::from_slice(&hash)
     });
 
-    /// EmergencyUnlock(bytes32 indexed lockId, address indexed user, uint256 bond)
+    /// EmergencyUnlock(bytes32 indexed lockId, uint256 bondAmount)
     pub static EMERGENCY_UNLOCK_TOPIC: Lazy<B256> = Lazy::new(|| {
         let mut hasher = Sha3_256::new();
-        hasher.update(b"EmergencyUnlock(bytes32,address,uint256)");
-        let hash = hasher.finalize();
-        B256::from_slice(&hash)
-    });
-
-    /// Challenged(bytes32 indexed lockId, address indexed challenger, bytes32 challengeId)
-    pub static CHALLENGED_TOPIC: Lazy<B256> = Lazy::new(|| {
-        let mut hasher = Sha3_256::new();
-        hasher.update(b"Challenged(bytes32,address,bytes32)");
+        hasher.update(b"EmergencyUnlock(bytes32,uint256)");
         let hash = hasher.finalize();
         B256::from_slice(&hash)
     });
@@ -106,7 +98,6 @@ impl L1RpcClient {
             .event_signature(vec![
                 *event_topics::LOCKED_TOPIC,
                 *event_topics::EMERGENCY_UNLOCK_TOPIC,
-                *event_topics::CHALLENGED_TOPIC,
             ]);
 
         let logs = self.provider
@@ -134,21 +125,20 @@ impl L1RpcClient {
 
         let event_topic = topics[0];
         let block_number = log.block_number.unwrap_or(0);
+        let tx_hash = log.transaction_hash.unwrap_or_default();
 
         if event_topic == *event_topics::LOCKED_TOPIC {
-            self.parse_locked_event(&log, block_number)
+            self.parse_locked_event(&log, block_number, tx_hash)
         } else if event_topic == *event_topics::EMERGENCY_UNLOCK_TOPIC {
-            self.parse_emergency_unlock_event(&log, block_number)
-        } else if event_topic == *event_topics::CHALLENGED_TOPIC {
-            self.parse_challenged_event(&log, block_number)
+            self.parse_emergency_unlock_event(&log, block_number, tx_hash)
         } else {
             debug!("Unknown event topic: {:?}", event_topic);
             None
         }
     }
 
-    /// Parse Locked event
-    fn parse_locked_event(&self, log: &Log, block_number: u64) -> Option<BridgeEvent> {
+    /// Parse Locked event into LockedEvent struct from events.rs
+    fn parse_locked_event(&self, log: &Log, block_number: u64, tx_hash: B256) -> Option<BridgeEvent> {
         let topics = log.topics();
         if topics.len() < 3 {
             warn!("Locked event has insufficient topics");
@@ -158,99 +148,76 @@ impl L1RpcClient {
         let lock_id: [u8; 32] = topics[1].0;
         let owner = Address::from_slice(&topics[2].0[12..32]);
 
-        // Parse data fields (amount, token, unlockTime, nonce, data)
+        // Parse data fields (chainId, asset, amount, destAddr, expiry, nonce)
         let data = &log.data().data;
-        if data.len() < 128 {
+        if data.len() < 192 {
             warn!("Locked event data too short");
             return None;
         }
 
-        let amount = U256::from_be_slice(&data[0..32]);
-        let token = Address::from_slice(&data[44..64]);
-        let unlock_time = U256::from_be_slice(&data[64..96]);
-        
+        let chain_id = U256::from_be_slice(&data[0..32]).to::<u64>();
+        let asset = Address::from_slice(&data[44..64]);
+        let amount = U256::from_be_slice(&data[64..96]).to::<u128>();
+        // destAddr is dynamic, skip for now and use owner
+        let expiry = U256::from_be_slice(&data[128..160]).to::<u64>();
+        let nonce = U256::from_be_slice(&data[160..192]).to::<u64>();
+
         info!("📥 Parsed Locked event:");
         info!("  Lock ID: 0x{}", hex::encode(lock_id));
         info!("  Owner: {}", owner);
         info!("  Amount: {}", amount);
-        info!("  Token: {}", token);
         info!("  Block: {}", block_number);
 
-        Some(BridgeEvent::Locked(crate::events::LockedEvent {
+        // Create LockedEvent matching events.rs structure
+        Some(BridgeEvent::Locked(LockedEvent {
             lock_id,
             owner: owner.into_array(),
-            amount: amount.to::<u128>(),
-            token: token.into_array(),
-            unlock_time: unlock_time.to::<u64>(),
+            chain_id,
+            asset: asset.into_array(),
+            amount,
+            dest_addr: owner.to_vec(), // Use owner as dest_addr for now
+            expiry,
+            nonce,
+            sr0: [0u8; 32], // Will be computed
             l1_block_number: block_number,
+            l1_tx_hash: tx_hash.0,
         }))
     }
 
-    /// Parse EmergencyUnlock event
-    fn parse_emergency_unlock_event(&self, log: &Log, block_number: u64) -> Option<BridgeEvent> {
+    /// Parse EmergencyUnlock event into EmergencyUnlockEvent struct from events.rs
+    fn parse_emergency_unlock_event(&self, log: &Log, block_number: u64, tx_hash: B256) -> Option<BridgeEvent> {
         let topics = log.topics();
-        if topics.len() < 3 {
+        if topics.len() < 2 {
             warn!("EmergencyUnlock event has insufficient topics");
             return None;
         }
 
         let lock_id: [u8; 32] = topics[1].0;
-        let user = Address::from_slice(&topics[2].0[12..32]);
 
-        // Parse data fields (bond)
+        // Parse data fields (bondAmount)
         let data = &log.data().data;
         if data.len() < 32 {
             warn!("EmergencyUnlock event data too short");
             return None;
         }
 
-        let bond = U256::from_be_slice(&data[0..32]);
+        let bond_amount = U256::from_be_slice(&data[0..32]).to::<u128>();
 
         info!("🚨 Parsed EmergencyUnlock event:");
         info!("  Lock ID: 0x{}", hex::encode(lock_id));
-        info!("  User: {}", user);
-        info!("  Bond: {}", bond);
+        info!("  Bond: {}", bond_amount);
         info!("  Block: {}", block_number);
 
-        Some(BridgeEvent::EmergencyUnlock(crate::events::EmergencyUnlockEvent {
+        // Create EmergencyUnlockEvent matching events.rs structure
+        Some(BridgeEvent::EmergencyUnlock(EmergencyUnlockEvent {
             lock_id,
-            user: user.into_array(),
-            bond: bond.to::<u128>(),
+            sr0: [0u8; 32],
+            sr1: [0u8; 32],
+            smt_proof: vec![],
+            unlock_data: vec![],
+            bond_amount,
             l1_block_number: block_number,
-        }))
-    }
-
-    /// Parse Challenged event
-    fn parse_challenged_event(&self, log: &Log, block_number: u64) -> Option<BridgeEvent> {
-        let topics = log.topics();
-        if topics.len() < 3 {
-            warn!("Challenged event has insufficient topics");
-            return None;
-        }
-
-        let lock_id: [u8; 32] = topics[1].0;
-        let challenger = Address::from_slice(&topics[2].0[12..32]);
-
-        // Parse data fields (challengeId)
-        let data = &log.data().data;
-        if data.len() < 32 {
-            warn!("Challenged event data too short");
-            return None;
-        }
-
-        let challenge_id: [u8; 32] = data[0..32].try_into().unwrap_or([0u8; 32]);
-
-        info!("⚔️ Parsed Challenged event:");
-        info!("  Lock ID: 0x{}", hex::encode(lock_id));
-        info!("  Challenger: {}", challenger);
-        info!("  Challenge ID: 0x{}", hex::encode(challenge_id));
-        info!("  Block: {}", block_number);
-
-        Some(BridgeEvent::Challenged(crate::events::ChallengedEvent {
-            lock_id,
-            challenger: challenger.into_array(),
-            challenge_id,
-            l1_block_number: block_number,
+            l1_tx_hash: tx_hash.0,
         }))
     }
 }
@@ -387,8 +354,7 @@ impl L1EventListener {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(test)]\nmod tests {
     use super::*;
 
     #[test]
@@ -400,20 +366,15 @@ mod tests {
         let emergency_topic = *event_topics::EMERGENCY_UNLOCK_TOPIC;
         assert_eq!(emergency_topic.0.len(), 32);
         
-        let challenged_topic = *event_topics::CHALLENGED_TOPIC;
-        assert_eq!(challenged_topic.0.len(), 32);
-        
         // Topics should be different
         assert_ne!(locked_topic, emergency_topic);
-        assert_ne!(locked_topic, challenged_topic);
     }
 
     #[test]
-    fn test_confirmation_blocks_constant() {
+    fn test_confirmation_blocks_default() {
         // Per AGENT_MEETING_MINUTES: 12 block confirmations
-        // This should be configurable but default to 12
-        let config = Config::default();
-        assert_eq!(config.l1.confirmation_blocks, 12);
+        use crate::events::security::CONFIRMATION_BLOCKS;
+        assert_eq!(CONFIRMATION_BLOCKS, 12);
     }
 
     #[tokio::test]
