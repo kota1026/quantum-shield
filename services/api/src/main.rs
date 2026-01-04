@@ -6,6 +6,7 @@
 //! - Status API (API-004)
 //! - Prover API
 //! - Edition API (API-006)
+//! - Admin API (Week 4-5)
 //!
 //! ## CP-1 Compliance
 //! - Uses NIST FIPS 204 ML-DSA-65 for user signatures
@@ -42,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    tracing::info!("Starting Quantum Shield API Server v0.1.0");
+    tracing::info!("Starting Quantum Shield API Server v0.2.0");
     tracing::info!("CP-1: Using NIST FIPS 204 ML-DSA-65 for signatures");
 
     // Load configuration
@@ -55,7 +56,10 @@ async fn main() -> anyhow::Result<()> {
 
     // Build router
     let app = Router::new()
+        // V1 API routes (Lock/Unlock/Status/Prover/Edition)
         .nest("/v1", routes::api_routes())
+        // Admin Dashboard API routes
+        .nest("/api", routes::admin_routes())
         .layer(Extension(state))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http());
@@ -66,6 +70,7 @@ async fn main() -> anyhow::Result<()> {
         .expect("Invalid server address");
 
     tracing::info!("Listening on {}", addr);
+    tracing::info!("Admin Dashboard API available at /api/*");
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
