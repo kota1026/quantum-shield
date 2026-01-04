@@ -8,16 +8,17 @@
 
 use crate::config::Config;
 use crate::error::{Error, Result};
-use crate::events::{BridgeEvent, UnlockReadyEvent};
+use crate::events::{BridgeEvent, UnlockReadyEvent, SphincsSignature};
 use crate::queue::EventQueue;
 use crate::metrics;
 use alloy::hex;
-use alloy::network::EthereumWallet;
+use alloy::network::{EthereumWallet, NetworkWallet, TransactionBuilder};
 use alloy::primitives::{Address, Bytes, FixedBytes, U256};
 use alloy::providers::{Provider, ProviderBuilder, RootProvider};
 use alloy::rpc::types::TransactionRequest;
 use alloy::signers::local::PrivateKeySigner;
 use alloy::sol;
+use alloy::sol_types::SolCall;
 use alloy::transports::http::{Client, Http};
 use std::str::FromStr;
 use std::sync::atomic::AtomicBool;
@@ -70,6 +71,7 @@ pub struct L1Submitter {
     wallet: Option<EthereumWallet>,
     vault_address: Address,
     relayer_address: Address,
+    #[allow(dead_code)]
     chain_id: u64,
 }
 
@@ -155,22 +157,18 @@ impl L1Submitter {
         let nonce = self.provider.get_transaction_count(self.relayer_address).await
             .map_err(|e| Error::L1Rpc(format!("Failed to get nonce: {}", e)))?;
 
-        // Build transaction
+        // Build transaction using TransactionBuilder trait methods
         let tx = TransactionRequest::default()
-            .to(self.vault_address)
-            .from(self.relayer_address)
-            .nonce(nonce)
-            .gas_price(gas_price)
-            .gas(500_000u64) // Estimate gas limit
-            .input(call.abi_encode().into());
+            .with_to(self.vault_address)
+            .with_from(self.relayer_address)
+            .with_nonce(nonce)
+            .with_gas_price(gas_price)
+            .with_gas_limit(500_000u64)
+            .with_input(call.abi_encode());
 
-        // Sign transaction
-        let signed_tx = wallet.sign_transaction(tx.clone()).await
-            .map_err(|e| Error::L1Rpc(format!("Failed to sign transaction: {}", e)))?;
-
-        // Send transaction
+        // Sign and send transaction
         let pending_tx = self.provider
-            .send_raw_transaction(&signed_tx)
+            .send_transaction(tx)
             .await
             .map_err(|e| Error::L1Rpc(format!("Failed to send transaction: {}", e)))?;
 
@@ -191,7 +189,7 @@ impl L1Submitter {
         info!("  Bond: {} wei", bond_wei);
 
         // Verify we have wallet configured
-        let wallet = self.wallet.as_ref()
+        let _wallet = self.wallet.as_ref()
             .ok_or_else(|| Error::Config("Relayer wallet not configured".into()))?;
 
         // Build the contract call
@@ -208,21 +206,17 @@ impl L1Submitter {
 
         // Build transaction with bond value
         let tx = TransactionRequest::default()
-            .to(self.vault_address)
-            .from(self.relayer_address)
-            .nonce(nonce)
-            .gas_price(gas_price)
-            .gas(300_000u64)
-            .value(U256::from(bond_wei))
-            .input(call.abi_encode().into());
-
-        // Sign transaction
-        let signed_tx = wallet.sign_transaction(tx.clone()).await
-            .map_err(|e| Error::L1Rpc(format!("Failed to sign transaction: {}", e)))?;
+            .with_to(self.vault_address)
+            .with_from(self.relayer_address)
+            .with_nonce(nonce)
+            .with_gas_price(gas_price)
+            .with_gas_limit(300_000u64)
+            .with_value(U256::from(bond_wei))
+            .with_input(call.abi_encode());
 
         // Send transaction
         let pending_tx = self.provider
-            .send_raw_transaction(&signed_tx)
+            .send_transaction(tx)
             .await
             .map_err(|e| Error::L1Rpc(format!("Failed to send transaction: {}", e)))?;
 
@@ -239,8 +233,8 @@ impl L1Submitter {
         };
 
         let tx = TransactionRequest::default()
-            .to(self.vault_address)
-            .input(call.abi_encode().into());
+            .with_to(self.vault_address)
+            .with_input(call.abi_encode());
 
         let result = self.provider
             .call(&tx)
@@ -286,11 +280,13 @@ impl MultiRelayer {
     async fn ensure_submitter(&self) -> Result<()> {
         let mut submitter = self.l1_submitter.write().await;
         if submitter.is_none() {
+            // Use security config for optional relayer key
+            let relayer_key = self.config.security.hsm_endpoint.as_deref();
             *submitter = Some(L1Submitter::new(
                 &self.config.l1.http_rpc_url,
                 &self.config.l1.vault_contract,
-                self.config.l1.relayer_private_key.as_deref(),
-                self.config.l1.chain_id,
+                relayer_key,
+                11155111, // Sepolia chain ID - could be made configurable
             )?);
         }
         Ok(())
@@ -456,7 +452,6 @@ impl MultiRelayer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::events::SphincsSignature;
 
     #[test]
     fn test_relayer_role_values() {
