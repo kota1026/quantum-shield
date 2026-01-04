@@ -7,6 +7,7 @@
 
 use crate::config::RedisConfig;
 use crate::error::Result;
+use alloy::hex;
 use redis::{AsyncCommands, Client};
 use std::collections::HashSet;
 use std::sync::RwLock;
