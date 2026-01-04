@@ -354,7 +354,8 @@ impl L1EventListener {
     }
 }
 
-#[cfg(test)]\nmod tests {
+#[cfg(test)]
+mod tests {
     use super::*;
 
     #[test]
