@@ -41,11 +41,11 @@ axum = "0.7"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-# ZK Proving (Plonky3) - Phase 0.5 PoC
-p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
-p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
-p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
-p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "93d15d4" }
+# ZK Proving (Plonky3) - Updated to latest commit (2026-01-04)
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
 
 [profile.release]
 opt-level = 3
