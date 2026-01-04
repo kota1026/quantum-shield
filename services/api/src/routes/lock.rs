@@ -1,28 +1,34 @@
 //! Lock API implementation (API-002)
 //!
 //! Implements Sequence #1: Lock
-//! - Validates Dilithium signature
+//! - Validates ML-DSA-65 signature (NIST FIPS 204)
 //! - Computes SR_0 using SHA3-256 (CP-1 compliant)
 //! - Creates lock record
 //! - Notifies Event Bridge for L1→L3 sync
+//!
+//! ## CP-1 Compliance
+//! - Uses NIST FIPS 204 ML-DSA-65 for user signatures
+//! - Uses SHA3-256 for all hashing
+//! - NO keccak256, ECDSA, or pre-FIPS Dilithium
 
 use std::sync::Arc;
 
 use axum::{Extension, Json};
-use sha3::{Sha3_256, Digest};
+use sha3::{Digest, Sha3_256};
 
 use crate::{
+    crypto::verify_ml_dsa_65_signature,
     error::ApiError,
     services::AppState,
     types::{LockRequest, LockResponse, LockStatus},
 };
 
 /// POST /v1/lock
-/// 
+///
 /// Lock assets for cross-chain transfer.
-/// 
+///
 /// # Security
-/// - Validates Dilithium-III signature (CP-1)
+/// - Validates ML-DSA-65 signature (NIST FIPS 204 - CP-1)
 /// - Uses SHA3-256 for SR_0 computation (CP-1)
 /// - NO keccak256 or ECDSA
 pub async fn create_lock(
@@ -31,10 +37,14 @@ pub async fn create_lock(
 ) -> Result<Json<LockResponse>, ApiError> {
     tracing::info!("Processing lock request for chain_id: {}", req.chain_id);
 
-    // 1. Validate Dilithium signature
-    if !validate_dilithium_signature(&req) {
-        return Err(ApiError::InvalidSignature("Dilithium verification failed".into()));
+    // 1. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
+    let message = construct_lock_message(&req);
+    if !verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &req.pk_dilithium)? {
+        return Err(ApiError::InvalidSignature(
+            "ML-DSA-65 (FIPS 204) verification failed".into(),
+        ));
     }
+    tracing::info!("✓ ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
 
     // 2. Check nonce
     if state.is_nonce_used(&req.pk_dilithium, req.nonce).await? {
@@ -75,19 +85,26 @@ pub async fn create_lock(
     }))
 }
 
-/// Validate Dilithium-III signature
-/// 
-/// CP-1 Compliance: Only Dilithium-III is used for user signatures
-fn validate_dilithium_signature(req: &LockRequest) -> bool {
-    // TODO: Implement actual Dilithium-III verification
-    // For now, basic validation that signature exists
-    !req.sig_dilithium.is_empty() && !req.pk_dilithium.is_empty()
+/// Construct the message to be signed for lock requests
+///
+/// Message format:
+/// "QS_LOCK_V1" || chain_id || asset || amount || dest_addr || expiry || nonce
+fn construct_lock_message(req: &LockRequest) -> Vec<u8> {
+    let mut message = Vec::new();
+    message.extend_from_slice(b"QS_LOCK_V1");
+    message.extend_from_slice(&req.chain_id.to_be_bytes());
+    message.extend_from_slice(req.asset.as_bytes());
+    message.extend_from_slice(req.amount.as_bytes());
+    message.extend_from_slice(req.dest_addr.as_bytes());
+    message.extend_from_slice(&req.expiry.to_be_bytes());
+    message.extend_from_slice(&req.nonce.to_be_bytes());
+    message
 }
 
 /// Compute SR_0 using SHA3-256
-/// 
+///
 /// CP-1 Compliance: SHA3-256 is used instead of keccak256
-/// 
+///
 /// SR_0 = SHA3-256(
 ///   "QS_LOCK_V1" ||
 ///   chain_id ||
@@ -100,7 +117,7 @@ fn validate_dilithium_signature(req: &LockRequest) -> bool {
 /// )
 fn compute_sr0(req: &LockRequest) -> String {
     let mut hasher = Sha3_256::new();
-    
+
     hasher.update(b"QS_LOCK_V1");
     hasher.update(req.chain_id.to_be_bytes());
     hasher.update(req.asset.as_bytes());
@@ -109,7 +126,7 @@ fn compute_sr0(req: &LockRequest) -> String {
     hasher.update(req.expiry.to_be_bytes());
     hasher.update(req.nonce.to_be_bytes());
     hasher.update(req.pk_dilithium.as_bytes());
-    
+
     let result = hasher.finalize();
     format!("0x{}", hex::encode(result))
 }
@@ -136,6 +153,8 @@ fn generate_smt_proof(lock_id: &str, sr_0: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use fips204::ml_dsa_65;
+    use fips204::traits::{SerDes, Signer};
 
     #[test]
     fn test_compute_sr0_uses_sha3_256() {
@@ -151,7 +170,7 @@ mod tests {
         };
 
         let sr_0 = compute_sr0(&req);
-        
+
         // SR_0 should be a hex string starting with 0x
         assert!(sr_0.starts_with("0x"));
         // SHA3-256 produces 32 bytes = 64 hex chars + 0x prefix
@@ -167,5 +186,56 @@ mod tests {
         let lock_id_2 = generate_lock_id(sr_0, timestamp);
 
         assert_eq!(lock_id_1, lock_id_2);
+    }
+
+    #[test]
+    fn test_construct_lock_message() {
+        let req = LockRequest {
+            chain_id: 1,
+            asset: "ETH".to_string(),
+            amount: "1000".to_string(),
+            dest_addr: "0xdest".to_string(),
+            expiry: 12345,
+            nonce: 1,
+            pk_dilithium: "0xpk".to_string(),
+            sig_dilithium: "0xsig".to_string(),
+        };
+
+        let message = construct_lock_message(&req);
+
+        // Message should start with "QS_LOCK_V1"
+        assert!(message.starts_with(b"QS_LOCK_V1"));
+        // Message should be non-empty
+        assert!(!message.is_empty());
+    }
+
+    #[test]
+    fn test_ml_dsa_65_lock_signature_verification() {
+        // Generate a test keypair using FIPS 204
+        let (pk, sk) = ml_dsa_65::try_keygen().expect("Key generation failed");
+
+        // Create a lock request
+        let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+
+        let req = LockRequest {
+            chain_id: 11155111,
+            asset: "0x0000000000000000000000000000000000000000".to_string(),
+            amount: "1000000000000000000".to_string(),
+            dest_addr: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+            expiry: 1736150400,
+            nonce: 1,
+            pk_dilithium: pk_hex.clone(),
+            sig_dilithium: String::new(), // Will be set below
+        };
+
+        // Construct message and sign
+        let message = construct_lock_message(&req);
+        let signature = sk.try_sign(&message, &[]).expect("Signing failed");
+        let sig_hex = format!("0x{}", hex::encode(signature));
+
+        // Verify signature
+        let result = verify_ml_dsa_65_signature(&message, &sig_hex, &pk_hex);
+        assert!(result.is_ok());
+        assert!(result.unwrap(), "Lock signature should be valid");
     }
 }

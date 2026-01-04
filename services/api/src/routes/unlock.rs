@@ -4,47 +4,37 @@
 //! - Sequence #2: Unlock (Normal Path) - 24h time lock
 //! - Sequence #3: Unlock (Emergency Path) - 7d time lock + bond
 //!
-//! CP-1 Compliance: Uses Dilithium-III for signature verification
-//! Note: pqcrypto-dilithium uses pre-FIPS Dilithium (3309-byte signatures)
-//!       vs NIST FIPS 204 ML-DSA (3293-byte signatures)
+//! ## CP-1 Compliance
+//! - Uses NIST FIPS 204 ML-DSA-65 for user signatures
+//! - Uses SHA3-256 for all hashing
+//! - NO keccak256, ECDSA, or pre-FIPS Dilithium
 
 use std::sync::Arc;
 
 use axum::{Extension, Json};
-use pqcrypto_dilithium::dilithium3;
-use pqcrypto_traits::sign::PublicKey as PqPublicKey;
-use pqcrypto_traits::sign::DetachedSignature as PqDetachedSignature;
-use sha3::{Sha3_256, Digest};
+use sha3::{Digest, Sha3_256};
 
 use crate::{
+    crypto::verify_ml_dsa_65_signature,
     error::ApiError,
     services::AppState,
-    types::{UnlockRequest, UnlockResponse, EmergencyUnlockResponse, UnlockStatus, LockStatus},
+    types::{EmergencyUnlockResponse, LockStatus, UnlockRequest, UnlockResponse, UnlockStatus},
 };
 
 /// Time lock constants from CORE_PRINCIPLES.md
-const NORMAL_TIME_LOCK_HOURS: u64 = 24;    // SEQ#2
-const EMERGENCY_TIME_LOCK_DAYS: u64 = 7;   // SEQ#3
-
-/// Dilithium-III public key size
-/// pqcrypto-dilithium uses pre-FIPS version: 1952 bytes
-const DILITHIUM3_PUBLIC_KEY_BYTES: usize = 1952;
-
-/// Dilithium-III signature size
-/// pqcrypto-dilithium uses pre-FIPS version: 3309 bytes
-/// (NIST FIPS 204 ML-DSA-65 uses 3293 bytes)
-const DILITHIUM3_SIGNATURE_BYTES: usize = 3309;
+const NORMAL_TIME_LOCK_HOURS: u64 = 24; // SEQ#2
+const EMERGENCY_TIME_LOCK_DAYS: u64 = 7; // SEQ#3
 
 /// POST /v1/unlock
-/// 
+///
 /// Request normal unlock with 24h time lock.
 /// Requires 2/5 Prover SPHINCS+ signatures.
-/// 
+///
 /// # Security
 /// - 24h Time Lock (CP-3)
 /// - Prover 2/5 signatures required
 /// - Uses SHA3-256 for SR_1 computation (CP-1)
-/// - Uses Dilithium-III for user signature verification (CP-1)
+/// - Uses ML-DSA-65 (FIPS 204) for user signature verification (CP-1)
 pub async fn create_unlock(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<UnlockRequest>,
@@ -52,7 +42,9 @@ pub async fn create_unlock(
     tracing::info!("Processing unlock request for lock_id: {}", req.lock_id);
 
     // 1. Get lock record
-    let lock = state.get_lock(&req.lock_id).await?
+    let lock = state
+        .get_lock(&req.lock_id)
+        .await?
         .ok_or_else(|| ApiError::LockNotFound(req.lock_id.clone()))?;
 
     // 2. Validate lock status
@@ -66,12 +58,14 @@ pub async fn create_unlock(
         return Err(ApiError::TimeLockActive);
     }
 
-    // 3. Validate Dilithium-III signature (CP-1 Compliant)
+    // 3. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
     let message = construct_unlock_message(&req.lock_id, &req.dest_addr, &req.amount);
-    if !verify_dilithium3_signature(&message, &req.sig_dilithium, &lock.user_public_key)? {
-        return Err(ApiError::InvalidSignature("Dilithium-III verification failed".into()));
+    if !verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &lock.user_public_key)? {
+        return Err(ApiError::InvalidSignature(
+            "ML-DSA-65 (FIPS 204) verification failed".into(),
+        ));
     }
-    tracing::info!("✓ Dilithium-III signature verified (CP-1 compliant)");
+    tracing::info!("✓ ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
 
     // 4. Compute SR_1 using SHA3-256 (NOT keccak256)
     let sr_1 = compute_sr1(&lock.sr_0, &req);
@@ -84,10 +78,14 @@ pub async fn create_unlock(
     let release_time = now + (NORMAL_TIME_LOCK_HOURS * 3600);
 
     // 7. Request Prover signatures via Signature Queue (API-005)
-    state.request_prover_signatures(&unlock_id, &req.lock_id, &lock.sr_0, &sr_1).await?;
+    state
+        .request_prover_signatures(&unlock_id, &req.lock_id, &lock.sr_0, &sr_1)
+        .await?;
 
     // 8. Update lock status
-    state.update_lock_status(&req.lock_id, LockStatus::UnlockPending, Some(release_time)).await?;
+    state
+        .update_lock_status(&req.lock_id, LockStatus::UnlockPending, Some(release_time))
+        .await?;
 
     tracing::info!("Unlock request created: {}", unlock_id);
 
@@ -103,23 +101,28 @@ pub async fn create_unlock(
 }
 
 /// POST /v1/unlock/emergency
-/// 
+///
 /// Request emergency unlock with 7d time lock and bond.
 /// No Prover signatures required.
-/// 
+///
 /// # Security
 /// - 7d Time Lock (CP-3)
 /// - Emergency Bond: MAX(0.5 ETH, amount × 5%)
 /// - Uses SHA3-256 for SR_1 computation (CP-1)
-/// - Uses Dilithium-III for user signature verification (CP-1)
+/// - Uses ML-DSA-65 (FIPS 204) for user signature verification (CP-1)
 pub async fn create_emergency_unlock(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<UnlockRequest>,
 ) -> Result<Json<EmergencyUnlockResponse>, ApiError> {
-    tracing::info!("Processing EMERGENCY unlock request for lock_id: {}", req.lock_id);
+    tracing::info!(
+        "Processing EMERGENCY unlock request for lock_id: {}",
+        req.lock_id
+    );
 
     // 1. Get lock record
-    let lock = state.get_lock(&req.lock_id).await?
+    let lock = state
+        .get_lock(&req.lock_id)
+        .await?
         .ok_or_else(|| ApiError::LockNotFound(req.lock_id.clone()))?;
 
     // 2. Validate lock status
@@ -130,12 +133,14 @@ pub async fn create_emergency_unlock(
         return Err(ApiError::ChallengeActive);
     }
 
-    // 3. Validate Dilithium-III signature (CP-1 Compliant)
+    // 3. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
     let message = construct_unlock_message(&req.lock_id, &req.dest_addr, &req.amount);
-    if !verify_dilithium3_signature(&message, &req.sig_dilithium, &lock.user_public_key)? {
-        return Err(ApiError::InvalidSignature("Dilithium-III verification failed".into()));
+    if !verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &lock.user_public_key)? {
+        return Err(ApiError::InvalidSignature(
+            "ML-DSA-65 (FIPS 204) verification failed".into(),
+        ));
     }
-    tracing::info!("✓ Dilithium-III signature verified (CP-1 compliant)");
+    tracing::info!("✓ ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
 
     // 4. Compute SR_1 using SHA3-256 (NOT keccak256)
     let sr_1 = compute_sr1(&lock.sr_0, &req);
@@ -151,9 +156,14 @@ pub async fn create_emergency_unlock(
     let bond_required = calculate_emergency_bond(&req.amount);
 
     // 8. Update lock status
-    state.update_lock_status(&req.lock_id, LockStatus::EmergencyPending, Some(release_time)).await?;
+    state
+        .update_lock_status(&req.lock_id, LockStatus::EmergencyPending, Some(release_time))
+        .await?;
 
-    tracing::info!("Emergency unlock request created: {}, bond: {}", unlock_id, bond_required);
+    tracing::info!(
+        "Emergency unlock request created: {}, bond: {}",
+        unlock_id, bond_required
+    );
 
     Ok(Json(EmergencyUnlockResponse {
         unlock_id,
@@ -167,7 +177,7 @@ pub async fn create_emergency_unlock(
 }
 
 /// Construct the message to be signed for unlock requests
-/// 
+///
 /// Message format: "QS_UNLOCK_V1" || lock_id || dest_addr || amount
 fn construct_unlock_message(lock_id: &str, dest_addr: &str, amount: &str) -> Vec<u8> {
     let mut message = Vec::new();
@@ -178,65 +188,10 @@ fn construct_unlock_message(lock_id: &str, dest_addr: &str, amount: &str) -> Vec
     message
 }
 
-/// Verify Dilithium-III signature
-/// 
-/// CP-1 Compliance: Dilithium-III is used for user signatures
-/// Note: pqcrypto-dilithium uses pre-FIPS Dilithium (not NIST FIPS 204 ML-DSA)
-/// 
-/// # Arguments
-/// * `message` - The message that was signed
-/// * `signature_hex` - Hex-encoded Dilithium-III signature (with or without 0x prefix)
-/// * `public_key_hex` - Hex-encoded Dilithium-III public key (with or without 0x prefix)
-/// 
-/// # Returns
-/// * `Ok(true)` if signature is valid
-/// * `Ok(false)` if signature is invalid
-/// * `Err` if input format is invalid
-fn verify_dilithium3_signature(
-    message: &[u8],
-    signature_hex: &str,
-    public_key_hex: &str,
-) -> Result<bool, ApiError> {
-    // Decode hex signature (strip 0x prefix if present)
-    let sig_bytes = hex::decode(signature_hex.strip_prefix("0x").unwrap_or(signature_hex))
-        .map_err(|e| ApiError::InvalidSignature(format!("Invalid signature hex: {}", e)))?;
-    
-    // Decode hex public key (strip 0x prefix if present)
-    let pk_bytes = hex::decode(public_key_hex.strip_prefix("0x").unwrap_or(public_key_hex))
-        .map_err(|e| ApiError::InvalidSignature(format!("Invalid public key hex: {}", e)))?;
-
-    // Validate sizes
-    if sig_bytes.len() != DILITHIUM3_SIGNATURE_BYTES {
-        return Err(ApiError::InvalidSignature(format!(
-            "Invalid signature size: expected {} bytes, got {}",
-            DILITHIUM3_SIGNATURE_BYTES, sig_bytes.len()
-        )));
-    }
-    if pk_bytes.len() != DILITHIUM3_PUBLIC_KEY_BYTES {
-        return Err(ApiError::InvalidSignature(format!(
-            "Invalid public key size: expected {} bytes, got {}",
-            DILITHIUM3_PUBLIC_KEY_BYTES, pk_bytes.len()
-        )));
-    }
-
-    // Parse public key using from_bytes (pqcrypto API)
-    let public_key = dilithium3::PublicKey::from_bytes(&pk_bytes)
-        .map_err(|_| ApiError::InvalidSignature("Failed to parse Dilithium-III public key".into()))?;
-
-    // Parse signature using from_bytes (pqcrypto API)
-    let signature = dilithium3::DetachedSignature::from_bytes(&sig_bytes)
-        .map_err(|_| ApiError::InvalidSignature("Failed to parse Dilithium-III signature".into()))?;
-
-    // Verify signature
-    let result = dilithium3::verify_detached_signature(&signature, message, &public_key);
-    
-    Ok(result.is_ok())
-}
-
 /// Compute SR_1 using SHA3-256
-/// 
+///
 /// CP-1 Compliance: SHA3-256 is used instead of keccak256
-/// 
+///
 /// SR_1 = SHA3-256(
 ///   "QS_UNLOCK_V1" ||
 ///   SR_0 ||
@@ -247,14 +202,14 @@ fn verify_dilithium3_signature(
 /// )
 fn compute_sr1(sr_0: &str, req: &UnlockRequest) -> String {
     let mut hasher = Sha3_256::new();
-    
+
     hasher.update(b"QS_UNLOCK_V1");
     hasher.update(sr_0.as_bytes());
     hasher.update(req.lock_id.as_bytes());
     hasher.update(req.dest_addr.as_bytes());
     hasher.update(req.amount.as_bytes());
     hasher.update(chrono::Utc::now().timestamp().to_be_bytes());
-    
+
     let result = hasher.finalize();
     format!("0x{}", hex::encode(result))
 }
@@ -269,7 +224,7 @@ fn generate_unlock_id(lock_id: &str, sr_1: &str) -> String {
 }
 
 /// Calculate emergency bond: MAX(0.5 ETH, amount × 5%)
-/// 
+///
 /// From CORE_PRINCIPLES.md:
 /// - Emergency Bond: MAX(0.5 ETH, amount × 5%)
 fn calculate_emergency_bond(amount: &str) -> String {
@@ -278,7 +233,7 @@ fn calculate_emergency_bond(amount: &str) -> String {
 
     let amount_wei: u128 = amount.parse().unwrap_or(0);
     let percentage_bond = (amount_wei * BOND_PERCENTAGE_BPS) / 10_000;
-    
+
     let bond = std::cmp::max(MIN_BOND_WEI, percentage_bond);
     bond.to_string()
 }
@@ -286,9 +241,9 @@ fn calculate_emergency_bond(amount: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pqcrypto_dilithium::dilithium3;
-    use pqcrypto_traits::sign::PublicKey as PqPublicKey;
-    use pqcrypto_traits::sign::DetachedSignature as PqDetachedSignature;
+    use crate::crypto::{ML_DSA_65_PUBLIC_KEY_BYTES, ML_DSA_65_SIGNATURE_BYTES};
+    use fips204::ml_dsa_65;
+    use fips204::traits::{SerDes, Signer};
 
     #[test]
     fn test_time_lock_constants() {
@@ -299,96 +254,111 @@ mod tests {
     }
 
     #[test]
-    fn test_dilithium3_constants() {
-        // Verify constants match actual pqcrypto-dilithium output
-        let (pk, sk) = dilithium3::keypair();
-        let sig = dilithium3::detached_sign(b"test", &sk);
-        
-        assert_eq!(DILITHIUM3_PUBLIC_KEY_BYTES, pk.as_bytes().len(), 
-            "Public key size mismatch");
-        assert_eq!(DILITHIUM3_SIGNATURE_BYTES, sig.as_bytes().len(), 
-            "Signature size mismatch");
+    fn test_ml_dsa_65_constants() {
+        // Verify constants match actual FIPS 204 implementation
+        let (pk, sk) = ml_dsa_65::try_keygen().expect("Key generation failed");
+        let sig = sk.try_sign(b"test", &[]).expect("Signing failed");
+
+        assert_eq!(
+            ML_DSA_65_PUBLIC_KEY_BYTES,
+            pk.into_bytes().len(),
+            "Public key size mismatch"
+        );
+        assert_eq!(
+            ML_DSA_65_SIGNATURE_BYTES,
+            sig.len(),
+            "Signature size mismatch"
+        );
     }
 
     #[test]
-    fn test_dilithium3_signature_verification_success() {
+    fn test_ml_dsa_65_signature_verification_success() {
         // Generate a test keypair
-        let (pk, sk) = dilithium3::keypair();
-        
+        let (pk, sk) = ml_dsa_65::try_keygen().expect("Key generation failed");
+
         // Create a test message
         let message = b"QS_UNLOCK_V1test_lock_id0x1234567890abcdef1000000000000000000";
-        
+
         // Sign the message
-        let signature = dilithium3::detached_sign(message, &sk);
-        
+        let signature = sk.try_sign(message, &[]).expect("Signing failed");
+
         // Convert to hex strings
-        let pk_hex = format!("0x{}", hex::encode(pk.as_bytes()));
-        let sig_hex = format!("0x{}", hex::encode(signature.as_bytes()));
-        
+        let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+        let sig_hex = format!("0x{}", hex::encode(signature));
+
         // Verify
-        let result = verify_dilithium3_signature(message, &sig_hex, &pk_hex);
+        let result = verify_ml_dsa_65_signature(message, &sig_hex, &pk_hex);
         assert!(result.is_ok(), "Verification should not error: {:?}", result);
         assert!(result.unwrap(), "Signature should be valid");
     }
 
     #[test]
-    fn test_dilithium3_signature_verification_failure_wrong_message() {
+    fn test_ml_dsa_65_signature_verification_failure_wrong_message() {
         // Generate a test keypair
-        let (pk, sk) = dilithium3::keypair();
-        
+        let (pk, sk) = ml_dsa_65::try_keygen().expect("Key generation failed");
+
         // Sign one message
         let message = b"original message";
-        let signature = dilithium3::detached_sign(message, &sk);
-        
+        let signature = sk.try_sign(message, &[]).expect("Signing failed");
+
         // Convert to hex strings
-        let pk_hex = format!("0x{}", hex::encode(pk.as_bytes()));
-        let sig_hex = format!("0x{}", hex::encode(signature.as_bytes()));
-        
+        let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+        let sig_hex = format!("0x{}", hex::encode(signature));
+
         // Verify with different message should fail
         let wrong_message = b"different message";
-        let result = verify_dilithium3_signature(wrong_message, &sig_hex, &pk_hex);
+        let result = verify_ml_dsa_65_signature(wrong_message, &sig_hex, &pk_hex);
         assert!(result.is_ok(), "Verification should not error: {:?}", result);
-        assert!(!result.unwrap(), "Signature should be invalid for wrong message");
+        assert!(
+            !result.unwrap(),
+            "Signature should be invalid for wrong message"
+        );
     }
 
     #[test]
-    fn test_dilithium3_signature_verification_failure_wrong_key() {
+    fn test_ml_dsa_65_signature_verification_failure_wrong_key() {
         // Generate two test keypairs
-        let (_pk1, sk1) = dilithium3::keypair();
-        let (pk2, _sk2) = dilithium3::keypair();
-        
+        let (_pk1, sk1) = ml_dsa_65::try_keygen().expect("Key generation failed");
+        let (pk2, _sk2) = ml_dsa_65::try_keygen().expect("Key generation failed");
+
         // Sign with keypair 1
         let message = b"test message";
-        let signature = dilithium3::detached_sign(message, &sk1);
-        
+        let signature = sk1.try_sign(message, &[]).expect("Signing failed");
+
         // Convert to hex strings (using wrong public key)
-        let wrong_pk_hex = format!("0x{}", hex::encode(pk2.as_bytes()));
-        let sig_hex = format!("0x{}", hex::encode(signature.as_bytes()));
-        
+        let wrong_pk_hex = format!("0x{}", hex::encode(pk2.into_bytes()));
+        let sig_hex = format!("0x{}", hex::encode(signature));
+
         // Verify with wrong public key should fail
-        let result = verify_dilithium3_signature(message, &sig_hex, &wrong_pk_hex);
+        let result = verify_ml_dsa_65_signature(message, &sig_hex, &wrong_pk_hex);
         assert!(result.is_ok(), "Verification should not error: {:?}", result);
         assert!(!result.unwrap(), "Signature should be invalid for wrong key");
     }
 
     #[test]
-    fn test_dilithium3_signature_invalid_size() {
+    fn test_ml_dsa_65_signature_invalid_size() {
         let invalid_sig = "0x1234"; // Too short
-        let valid_pk = format!("0x{}", hex::encode(vec![0u8; DILITHIUM3_PUBLIC_KEY_BYTES]));
-        
-        let result = verify_dilithium3_signature(b"test", invalid_sig, &valid_pk);
+        let valid_pk = format!("0x{}", hex::encode(vec![0u8; ML_DSA_65_PUBLIC_KEY_BYTES]));
+
+        let result = verify_ml_dsa_65_signature(b"test", invalid_sig, &valid_pk);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Invalid signature size"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid signature size"));
     }
 
     #[test]
-    fn test_dilithium3_public_key_invalid_size() {
-        let valid_sig = format!("0x{}", hex::encode(vec![0u8; DILITHIUM3_SIGNATURE_BYTES]));
+    fn test_ml_dsa_65_public_key_invalid_size() {
+        let valid_sig = format!("0x{}", hex::encode(vec![0u8; ML_DSA_65_SIGNATURE_BYTES]));
         let invalid_pk = "0x1234"; // Too short
-        
-        let result = verify_dilithium3_signature(b"test", &valid_sig, invalid_pk);
+
+        let result = verify_ml_dsa_65_signature(b"test", &valid_sig, invalid_pk);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Invalid public key size"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid public key size"));
     }
 
     #[test]
@@ -430,7 +400,7 @@ mod tests {
         };
 
         let sr_1 = compute_sr1(sr_0, &req);
-        
+
         // SR_1 should be a hex string starting with 0x
         assert!(sr_1.starts_with("0x"));
         // SHA3-256 produces 32 bytes = 64 hex chars + 0x prefix
