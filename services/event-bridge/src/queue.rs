@@ -6,11 +6,10 @@
 //! - Primary lock for relayer coordination
 
 use crate::config::RedisConfig;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::events::BridgeEvent;
 use redis::{AsyncCommands, Client};
-use std::time::Duration;
-use tracing::{debug, info};
+use tracing::debug;
 
 /// Redis Streams based event queue
 pub struct EventQueue {
@@ -75,7 +74,7 @@ impl EventQueue {
         let mut conn = self.client.get_multiplexed_async_connection().await?;
         
         // Use XREADGROUP for consumer group semantics
-        let results: Vec<redis::Value> = redis::cmd("XREADGROUP")
+        let _results: Vec<redis::Value> = redis::cmd("XREADGROUP")
             .arg("GROUP")
             .arg(&self.config.consumer_group)
             .arg("relayer-1")
