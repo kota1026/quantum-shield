@@ -9,6 +9,10 @@ members = [
     "services/api",
     "services/sig-queue",
 ]
+# WASM packages are excluded from workspace (different target)
+exclude = [
+    "packages/sdk/wasm",
+]
 resolver = "2"
 
 [workspace.package]
