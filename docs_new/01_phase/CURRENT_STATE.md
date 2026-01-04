@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-05 22:20 JST  
+> **Last Updated**: 2026-01-05 22:40 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,11 +13,11 @@
 │  Week: 2 - API Layer                                        │
 │  Month: 13-14 / 24                                          │
 │  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
-│  Status: ❌ セキュリティレビューFAIL - 実装差し戻し            │
+│  Status: ✅ 本実装完了 - 04_review.md 再実行待ち              │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │         + 35/35 PASS (Event Bridge + API)                   │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: 03_impl.md で Mock実装を本実装に置換           │
+│  次のステップ: 04_review.md を再実行                          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -30,9 +30,11 @@
 | 1 | ~~Redis認証未実装~~ | ~~Medium~~ | ✅ **FIX-001 完了** |
 | 2 | ~~mTLS実装保留~~ | ~~Medium~~ | ✅ **FIX-002 完了** |
 | 3 | ~~Plonky3 revision不存在~~ | ~~High~~ | ✅ **修正完了** (52b9e418...) |
-| 4 | **🔴 Dilithium検証がMock** | 🔴 **Critical** | ⬜ **IMPL-FIX-001 必須** |
-| 5 | **🔴 L1 RPC ClientがMock** | 🔴 **Critical** | ⬜ **IMPL-FIX-002 必須** |
-| 6 | **🔴 L1 SubmitterがMock** | 🔴 **Critical** | ⬜ **IMPL-FIX-003 必須** |
+| 4 | ~~Dilithium検証がMock~~ | ~~Critical~~ | ✅ **IMPL-FIX-001 完了** |
+| 5 | ~~L1 RPC ClientがMock~~ | ~~Critical~~ | ✅ **IMPL-FIX-002 完了** |
+| 6 | ~~L1 SubmitterがMock~~ | ~~Critical~~ | ✅ **IMPL-FIX-003 完了** |
+
+**全ブロッカー解消** ✅
 
 ---
 
@@ -40,40 +42,47 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | Week 2 - API Layer |
-| **実装日時** | 2026-01-04 22:10 JST |
-| **ステータス** | ❌ **FAIL - 実装差し戻し** |
+| **対象Plan** | Week 2 - API Layer (修正実装) |
+| **実装日時** | 2026-01-05 22:40 JST |
+| **ステータス** | ✅ **実装完了 - 再レビュー待ち** |
 
-### セキュリティレビュー結果
-| 項目 | 結果 |
-|------|:----:|
-| 仕様書要件確認 | ✅ 10/10 PASS |
-| Phase 4統合確認 | ✅ 5/5 PASS |
-| CP-1暗号準拠 | ❌ **FAIL (Mock実装)** |
-| **判定** | ❌ **FAIL** |
+### 本実装完了タスク
 
-### FAIL理由（"Not Cheating"原則違反）
+| # | Fix ID | 内容 | 実装方法 | コミット |
+|---|--------|------|---------|----------|
+| 1 | IMPL-FIX-001 | Dilithium署名検証本実装 | `pqcrypto-dilithium` | 4d8da38 |
+| 2 | IMPL-FIX-002 | L1 RPC Client本実装 | `alloy` Provider | 5801da1 |
+| 3 | IMPL-FIX-003 | L1 Submitter本実装 | `alloy` Wallet + sol! | e6fef5e |
 
-| # | Fix ID | 問題 | 影響 |
-|---|--------|------|------|
-| 1 | IMPL-FIX-001 | Dilithium署名検証がTODO | CP-1違反 - 量子耐性未提供 |
-| 2 | IMPL-FIX-002 | L1 RPC ClientがMock | L1イベント取得不可 |
-| 3 | IMPL-FIX-003 | L1 SubmitterがMock | L1トランザクション送信不可 |
+### 実装詳細
 
----
+#### IMPL-FIX-001: Dilithium-III署名検証
+- **ファイル**: `services/api/src/routes/unlock.rs`
+- **クレート**: `pqcrypto-dilithium` v0.5
+- **機能**:
+  - NIST FIPS 204準拠のDilithium-III署名検証
+  - サイズ検証（公開鍵: 1952バイト、署名: 3293バイト）
+  - 成功/失敗/不正サイズのテストカバレッジ
 
-## 🔧 修正タスク（03_impl.md で実装）
+#### IMPL-FIX-002: L1 RPC Client
+- **ファイル**: `services/event-bridge/src/indexer/listener.rs`
+- **クレート**: `alloy` v0.8
+- **機能**:
+  - `eth_blockNumber` RPC呼び出し
+  - `eth_getLogs` によるイベント取得
+  - Locked/EmergencyUnlock/Challengedイベントパース
+  - イベントトピックのSHA3-256ハッシュ（CP-1準拠）
+  - 12ブロック確認（AGENT_MEETING準拠）
 
-| # | Fix ID | 内容 | 実装方法 | 状態 |
-|---|--------|------|---------|:----:|
-| 1 | IMPL-FIX-001 | Dilithium署名検証本実装 | `pqcrypto-dilithium` クレート | ⬜ |
-| 2 | IMPL-FIX-002 | L1 RPC Client本実装 | `alloy` クレート | ⬜ |
-| 3 | IMPL-FIX-003 | L1 Submitter本実装 | `alloy` クレート | ⬜ |
-
-### 対象ファイル
-- `services/api/src/routes/unlock.rs` → Dilithium検証
-- `services/event-bridge/src/indexer/listener.rs` → L1 RPC Client
-- `services/event-bridge/src/relayer/multi_relayer.rs` → L1 Submitter
+#### IMPL-FIX-003: L1 Submitter
+- **ファイル**: `services/event-bridge/src/relayer/multi_relayer.rs`
+- **クレート**: `alloy` v0.8
+- **機能**:
+  - `sol!`マクロによるIL1Vaultインターフェース定義
+  - `executeUnlock` トランザクション送信
+  - `executeEmergencyUnlock` ボンド付きトランザクション
+  - ウォレット署名（PrivateKeySigner）
+  - SEQ#2検証: 2/5 SPHINCS+署名必須
 
 ---
 
@@ -89,20 +98,20 @@
 | INFRA-004 | Multi-Relayer (2台) | P1 | ✅ | PIR-P4-001 |
 | INFRA-005 | HSM連携仕様書 | P1 | ✅ | PIR-P4-001 |
 
-### Week 2: API Layer (API-001~006) ❌ **FAIL - 修正中**
+### Week 2: API Layer (API-001~006) ✅ **本実装完了 - 再レビュー待ち**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
 | API-001 | OpenAPI 3.0定義 | P0 | ✅ | - |
 | API-002 | Lock API実装 | P0 | ✅ | - |
-| API-003 | Unlock API実装 | P0 | ❌ Mock | - |
+| API-003 | Unlock API実装 | P0 | ✅ | - |
 | API-004 | Status Tracker API | P0 | ✅ | - |
 | API-005 | Signature Queue Service | P0 | ✅ | - |
 | API-006 | Edition切替API | P2 | ✅ | - |
 | INFRA-006 | INCIDENT_RESPONSE_PLAN.md | P1 | ✅ | - |
-| **IMPL-FIX-001** | **Dilithium本実装** | 🔴 P0 | ⬜ | - |
-| **IMPL-FIX-002** | **L1 RPC本実装** | 🔴 P0 | ⬜ | - |
-| **IMPL-FIX-003** | **L1 Submitter本実装** | 🔴 P0 | ⬜ | - |
+| IMPL-FIX-001 | Dilithium本実装 | P0 | ✅ | - |
+| IMPL-FIX-002 | L1 RPC本実装 | P0 | ✅ | - |
+| IMPL-FIX-003 | L1 Submitter本実装 | P0 | ✅ | - |
 
 ### Week 3: Client SDK (SDK-001~005) ⬜ **NOT STARTED**
 
@@ -126,8 +135,8 @@
 | 2 | ~~03_impl.md 実行 (API-001~006)~~ | ~~P0~~ | ✅ **DONE** |
 | 3 | ~~テスト実行 (cargo test)~~ | ~~P0~~ | ✅ **DONE** (35/35 PASS) |
 | 4 | ~~04_review.md 実行~~ | ~~P0~~ | ❌ **FAIL** |
-| 5 | **03_impl.md 再実行 (IMPL-FIX-001~003)** | 🔴 **P0** | ⬜ **NEXT** |
-| 6 | 04_review.md 再実行 | P0 | ⬜ |
+| 5 | ~~03_impl.md 再実行 (IMPL-FIX-001~003)~~ | ~~P0~~ | ✅ **DONE** |
+| 6 | **04_review.md 再実行** | 🔴 **P0** | ⬜ **NEXT** |
 | 7 | 05_pir.md 実行 (PIR-P4-002) | P0 | ⬜ |
 
 ---
@@ -139,7 +148,7 @@
 | PIR ID | 対象 | レビュー結果 | 日付 |
 |--------|------|-------------|------|
 | PIR-P4-001 | Week 1 Infrastructure | ✅ PASS | 2026-01-04 |
-| PIR-P4-002 | Week 2 API Layer | ⬜ 待ち (修正後) | - |
+| PIR-P4-002 | Week 2 API Layer | ⬜ 待ち (再レビュー後) | - |
 
 ---
 
@@ -151,14 +160,14 @@
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | Phase 3 | L3 + Token + 完全分散化 | 100% | ✅ COMPLETE 🎉🎉🎉 |
-| **Phase 4** | **UI/UX + Audit + Launch** | **20%** | 🔧 **修正中** |
+| **Phase 4** | **UI/UX + Audit + Launch** | **25%** | 🔄 **再レビュー待ち** |
 
 ### Phase 4 Week進捗
 
 | Week | 内容 | 状態 | PIR |
 |------|------|:----:|-----|
 | Week 1 | Infrastructure (Event Bridge) | ✅ | PIR-P4-001 |
-| Week 2 | API Layer | ❌ 修正中 | - |
+| Week 2 | API Layer | 🔄 再レビュー待ち | - |
 | Week 3 | Client SDK | ⬜ | - |
 | Week 4-5 | Admin Dashboard | ⬜ | - |
 | Week 5-6 | End User App | ⬜ | - |
