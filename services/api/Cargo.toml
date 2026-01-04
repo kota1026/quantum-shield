@@ -25,9 +25,9 @@ lapin = "2.3"  # RabbitMQ client
 # Crypto - CP-1 Compliant (Quantum Resistant)
 sha3 = "0.10"
 hex = "0.4"
-# NIST FIPS 204 - Dilithium-III for user signatures
-pqcrypto-dilithium = "0.5"
-pqcrypto-traits = "0.3"
+# NIST FIPS 204 - ML-DSA-65 (Dilithium) for user signatures
+# Migrated from pqcrypto-dilithium (pre-FIPS) to fips204 (NIST standard)
+fips204 = { version = "0.4", features = ["ml-dsa-65", "default-rng"] }
 
 # Utilities
 tracing = "0.1"

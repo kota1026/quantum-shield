@@ -1,26 +1,32 @@
 //! Quantum Shield API Server
-//! 
+//!
 //! Week 2 Implementation: API Layer
 //! - Lock API (API-002)
 //! - Unlock API (API-003)
 //! - Status API (API-004)
 //! - Prover API
 //! - Edition API (API-006)
+//!
+//! ## CP-1 Compliance
+//! - Uses NIST FIPS 204 ML-DSA-65 for user signatures
+//! - Uses SHA3-256 for all hashing
+//! - NO keccak256, ECDSA, or pre-FIPS algorithms
 
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::{Router, Extension};
+use axum::{Extension, Router};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod config;
+pub mod crypto;
 mod error;
+mod middleware;
 mod routes;
 mod services;
 mod types;
-mod middleware;
 
 use config::Config;
 use services::AppState;
@@ -29,12 +35,15 @@ use services::AppState;
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| "quantum_shield_api=debug,tower_http=debug".into()))
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "quantum_shield_api=debug,tower_http=debug".into()),
+        )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
     tracing::info!("Starting Quantum Shield API Server v0.1.0");
+    tracing::info!("CP-1: Using NIST FIPS 204 ML-DSA-65 for signatures");
 
     // Load configuration
     let config = Config::load()?;
