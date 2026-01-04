@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-04 19:00 JST  
+> **Last Updated**: 2026-01-04 19:52 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,12 +13,13 @@
 │  Week: 1 / 8 (Week 15-22 overall)                           │
 │  Month: 13-14 / 24                                          │
 │  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
-│  Status: 🚀 Phase 4 開始                                    │
+│  Status: 🚀 Phase 4 Week 1 計画完了                         │
 │          ✅ Phase 3 完了 (Go/No-Go PASS)                    │
+│          ✅ CURRENT_PLAN.md 作成完了                        │
 │          ⬜ Week 1: Infrastructure (INFRA-001~005)          │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: 01_plan.md → CURRENT_PLAN.md 作成            │
+│  次のステップ: 02_spec.md → SPEC_REVIEW.md 作成             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -34,7 +35,7 @@
 
 ## 📋 Phase 4 タスク進捗
 
-### Week 1: Infrastructure (INFRA-001~005) ⬜ **PENDING**
+### Week 1: Infrastructure (INFRA-001~005) 🔄 **IN PROGRESS**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
@@ -43,6 +44,7 @@
 | INFRA-003 | L3→L1 Relayer実装 | P0 | ⬜ | - |
 | INFRA-004 | Multi-Relayer (2台) | P1 | ⬜ | - |
 | INFRA-005 | HSM連携仕様書 | P1 | ⬜ | - |
+| PROMPT-001 | プロンプトパス修正 | P0 | ⬜ | - |
 
 ### Week 2: API Layer (API-001~006) ⬜ **NOT STARTED**
 
@@ -189,9 +191,11 @@
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | **01_plan.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
-| 2 | CURRENT_PLAN.md 作成 | 🔴 P0 | ⬜ |
-| 3 | INFRA-001 Event Bridge設計 | 🔴 P0 | ⬜ |
+| 1 | ~~01_plan.md 実行~~ | ~~P0~~ | ✅ **DONE** |
+| 2 | ~~CURRENT_PLAN.md 作成~~ | ~~P0~~ | ✅ **DONE** |
+| 3 | **02_spec.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
+| 4 | SPEC_REVIEW.md 作成 | 🔴 P0 | ⬜ |
+| 5 | 03_impl.md 実行 (INFRA-001~005) | 🔴 P0 | ⬜ |
 
 ---
 
@@ -215,7 +219,7 @@
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | Phase 3 | L3 + Token + 完全分散化 | 100% | ✅ COMPLETE 🎉🎉🎉 |
-| **Phase 4** | **UI/UX + Audit + Launch** | **0%** | 🚀 **STARTED** |
+| **Phase 4** | **UI/UX + Audit + Launch** | **2%** | 🚀 **STARTED** |
 
 ---
 
@@ -230,6 +234,7 @@
 | Event Bridge仕様 | `docs_new/01_phase/04_phase4/EVENT_BRIDGE_SPEC.md` |
 | テスト戦略 | `docs_new/01_phase/04_phase4/TEST_STRATEGY.md` |
 | 条件付き承認事項 | `docs_new/01_phase/04_phase4/AGENT_MEETING_MINUTES_20260104.md` |
+| **現在の計画** | `docs_new/01_phase/CURRENT_PLAN.md` |
 
 ---
 
