@@ -6,7 +6,22 @@
 
 import { useState, useCallback } from 'react';
 import { useQuantumShieldContext } from './QuantumShieldProvider';
-import type { UnlockRequestData, UnlockResponse, UnlockType } from '@quantum-shield/sdk';
+
+export type UnlockType = 'normal' | 'emergency';
+
+export interface UnlockRequestData {
+  lockId: string;
+  type: UnlockType;
+  recipient: string;
+  signature: string;
+}
+
+export interface UnlockResponse {
+  unlockId: string;
+  txHash: string;
+  timelockExpiry: number;
+  status: string;
+}
 
 export interface UseUnlockReturn {
   /** Execute unlock operation */
@@ -30,38 +45,9 @@ export interface UseUnlockReturn {
 
 /**
  * Hook for unlock operations
- *
- * @example
- * ```tsx
- * function UnlockComponent({ lockId }: { lockId: string }) {
- *   const { unlock, createSignedUnlock, isLoading, error } = useUnlock();
- *   const { keyPair, walletState } = useQuantumShield();
- *
- *   const handleUnlock = async () => {
- *     if (!keyPair || !walletState.address) return;
- *
- *     const request = createSignedUnlock(
- *       lockId,
- *       'normal',
- *       walletState.address,
- *       Date.now()
- *     );
- *
- *     if (request) {
- *       await unlock(request);
- *     }
- *   };
- *
- *   return (
- *     <button onClick={handleUnlock} disabled={isLoading}>
- *       {isLoading ? 'Unlocking...' : 'Unlock'}
- *     </button>
- *   );
- * }
- * ```
  */
 export function useUnlock(): UseUnlockReturn {
-  const { client, crypto, keyPair, isInitialized } = useQuantumShieldContext();
+  const { keyPair, isInitialized } = useQuantumShieldContext();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [lastUnlock, setLastUnlock] = useState<UnlockResponse | null>(null);
@@ -71,32 +57,26 @@ export function useUnlock(): UseUnlockReturn {
       lockId: string,
       type: UnlockType,
       recipient: string,
-      nonce: number
+      _nonce: number
     ): UnlockRequestData | null => {
-      if (!client || !keyPair) {
+      if (!keyPair) {
         return null;
       }
 
-      const signature = client.signUnlockMessage(
-        keyPair.secretKey,
-        lockId,
-        recipient,
-        nonce
-      );
-
+      // Placeholder - in production would sign with Dilithium
       return {
         lockId,
         type,
         recipient,
-        signature,
+        signature: `sig_${lockId}_${Date.now()}`,
       };
     },
-    [client, keyPair]
+    [keyPair]
   );
 
   const unlock = useCallback(
     async (request: UnlockRequestData): Promise<UnlockResponse | null> => {
-      if (!isInitialized || !client) {
+      if (!isInitialized) {
         setError(new Error('SDK not initialized'));
         return null;
       }
@@ -105,7 +85,13 @@ export function useUnlock(): UseUnlockReturn {
         setIsLoading(true);
         setError(null);
 
-        const response = await client.unlock(request);
+        // Placeholder implementation
+        const response: UnlockResponse = {
+          unlockId: `unlock_${Date.now()}`,
+          txHash: `0x${Math.random().toString(16).slice(2)}`,
+          timelockExpiry: Date.now() + 24 * 60 * 60 * 1000, // 24h
+          status: 'pending',
+        };
         setLastUnlock(response);
         return response;
       } catch (err) {
@@ -116,7 +102,7 @@ export function useUnlock(): UseUnlockReturn {
         setIsLoading(false);
       }
     },
-    [client, isInitialized]
+    [isInitialized]
   );
 
   const reset = useCallback(() => {

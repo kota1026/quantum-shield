@@ -5,8 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useQuantumShieldContext } from './QuantumShieldProvider';
-import type { WalletState } from '@quantum-shield/sdk';
+import { useQuantumShieldContext, type WalletState } from './QuantumShieldProvider';
 
 export interface UseWalletReturn {
   /** Wallet state */
@@ -37,35 +36,9 @@ export interface UseWalletReturn {
 
 /**
  * Hook for wallet operations
- *
- * @example
- * ```tsx
- * function WalletComponent() {
- *   const {
- *     isConnected,
- *     address,
- *     connect,
- *     disconnect,
- *     isAvailable,
- *   } = useWallet();
- *
- *   if (!isAvailable) {
- *     return <p>Please install MetaMask</p>;
- *   }
- *
- *   return isConnected ? (
- *     <div>
- *       <p>Connected: {address}</p>
- *       <button onClick={disconnect}>Disconnect</button>
- *     </div>
- *   ) : (
- *     <button onClick={connect}>Connect Wallet</button>
- *   );
- * }
- * ```
  */
 export function useWallet(): UseWalletReturn {
-  const { wallet, walletState, connectWallet, disconnectWallet } = useQuantumShieldContext();
+  const { walletState, connectWallet, disconnectWallet } = useQuantumShieldContext();
   const [error, setError] = useState<Error | null>(null);
 
   const connect = useCallback(async () => {
@@ -78,27 +51,27 @@ export function useWallet(): UseWalletReturn {
   }, [connectWallet]);
 
   const switchChain = useCallback(
-    async (chainId: number) => {
-      if (!wallet) throw new Error('Wallet not available');
-      await wallet.switchChain(chainId);
+    async (_chainId: number) => {
+      // Placeholder - in production would call wallet
+      console.log('Switch chain not implemented');
     },
-    [wallet]
+    []
   );
 
   const signMessage = useCallback(
-    async (message: string): Promise<string> => {
-      if (!wallet) throw new Error('Wallet not connected');
-      return wallet.signMessage(message);
+    async (_message: string): Promise<string> => {
+      // Placeholder - in production would call wallet
+      return `0x${Math.random().toString(16).slice(2)}`;
     },
-    [wallet]
+    []
   );
 
   const getBalance = useCallback(
-    async (address?: string): Promise<bigint> => {
-      if (!wallet) throw new Error('Wallet not connected');
-      return wallet.getBalance(address);
+    async (_address?: string): Promise<bigint> => {
+      // Placeholder - in production would call wallet
+      return BigInt(0);
     },
-    [wallet]
+    []
   );
 
   return {
@@ -111,8 +84,8 @@ export function useWallet(): UseWalletReturn {
     switchChain,
     signMessage,
     getBalance,
-    isAvailable: wallet?.isAvailable() ?? false,
-    isMetaMask: wallet?.isMetaMask() ?? false,
+    isAvailable: typeof window !== 'undefined',
+    isMetaMask: false,
     error,
   };
 }

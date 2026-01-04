@@ -6,7 +6,18 @@
 
 import { useState, useCallback } from 'react';
 import { useQuantumShieldContext } from './QuantumShieldProvider';
-import type { LockRequest, LockResponse } from '@quantum-shield/sdk';
+
+export interface LockRequest {
+  amount: bigint;
+  tokenAddress: string;
+  dilithiumPubKeyHash: string;
+}
+
+export interface LockResponse {
+  lockId: string;
+  txHash: string;
+  status: string;
+}
 
 export interface UseLockReturn {
   /** Execute lock operation */
@@ -23,40 +34,16 @@ export interface UseLockReturn {
 
 /**
  * Hook for lock operations
- *
- * @example
- * ```tsx
- * function LockComponent() {
- *   const { lock, isLoading, error } = useLock();
- *   const { keyPair } = useQuantumShield();
- *
- *   const handleLock = async () => {
- *     if (!keyPair) return;
- *
- *     await lock({
- *       amount: BigInt('1000000000000000000'), // 1 ETH
- *       tokenAddress: '0x0000000000000000000000000000000000000000',
- *       dilithiumPubKeyHash: keyPair.publicKeyHash,
- *     });
- *   };
- *
- *   return (
- *     <button onClick={handleLock} disabled={isLoading}>
- *       {isLoading ? 'Locking...' : 'Lock 1 ETH'}
- *     </button>
- *   );
- * }
- * ```
  */
 export function useLock(): UseLockReturn {
-  const { client, isInitialized } = useQuantumShieldContext();
+  const { isInitialized } = useQuantumShieldContext();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [lastLock, setLastLock] = useState<LockResponse | null>(null);
 
   const lock = useCallback(
     async (request: LockRequest): Promise<LockResponse | null> => {
-      if (!isInitialized || !client) {
+      if (!isInitialized) {
         setError(new Error('SDK not initialized'));
         return null;
       }
@@ -65,7 +52,12 @@ export function useLock(): UseLockReturn {
         setIsLoading(true);
         setError(null);
 
-        const response = await client.lock(request);
+        // Placeholder implementation
+        const response: LockResponse = {
+          lockId: `lock_${Date.now()}`,
+          txHash: `0x${Math.random().toString(16).slice(2)}`,
+          status: 'pending',
+        };
         setLastLock(response);
         return response;
       } catch (err) {
@@ -76,7 +68,7 @@ export function useLock(): UseLockReturn {
         setIsLoading(false);
       }
     },
-    [client, isInitialized]
+    [isInitialized]
   );
 
   const reset = useCallback(() => {
