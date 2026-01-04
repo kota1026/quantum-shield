@@ -1,0 +1,50 @@
+{
+  "name": "@quantum-shield/sdk",
+  "version": "0.1.0",
+  "description": "Quantum Shield TypeScript SDK - Post-quantum secure bridge SDK",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "quantum",
+    "cryptography",
+    "dilithium",
+    "bridge",
+    "blockchain",
+    "post-quantum"
+  ],
+  "author": "Quantum Shield Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kota1026/quantum-shield"
+  },
+  "dependencies": {
+    "ethers": "^6.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0"
+  },
+  "peerDependencies": {
+    "@quantum-shield/wasm": "^0.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
