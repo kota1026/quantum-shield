@@ -8,6 +8,7 @@ mod status;
 mod prover;
 mod edition;
 mod health;
+mod admin;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -27,4 +28,27 @@ pub fn api_routes() -> Router {
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
+}
+
+/// Admin Dashboard API routes (/api/*)
+pub fn admin_routes() -> Router {
+    Router::new()
+        // Prover Management
+        .route("/provers", get(admin::list_provers))
+        .route("/provers/register", post(admin::register_prover))
+        .route("/provers/:id/approve", post(admin::approve_prover))
+        .route("/provers/:id/reject", post(admin::reject_prover))
+        .route("/provers/:id/suspend", post(admin::suspend_prover))
+        // Provider Management
+        .route("/providers", get(admin::list_providers))
+        .route("/providers/register", post(admin::register_provider))
+        // System Status
+        .route("/system/status", get(admin::get_system_status))
+        .route("/system/pause", post(admin::pause_system))
+        .route("/system/unpause", post(admin::unpause_system))
+        // Analytics
+        .route("/analytics/overview", get(admin::get_analytics_overview))
+        // Edition
+        .route("/edition/current", get(admin::get_current_edition))
+        .route("/edition/switch", post(admin::switch_edition))
 }
