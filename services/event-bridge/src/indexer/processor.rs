@@ -11,6 +11,7 @@ use crate::events::{BridgeEvent, LockedEvent};
 use crate::idempotency::IdempotencyManager;
 use crate::queue::EventQueue;
 use crate::metrics;
+use alloy::hex;
 use tracing::{debug, info, warn};
 
 /// Event Processor
@@ -54,7 +55,6 @@ impl EventProcessor {
                 self.process_emergency_unlock(emergency).await?;
             }
             BridgeEvent::UnlockReady(_unlock) => {
-                // This is L3→L1, shouldn't come through indexer
                 warn!("Received UnlockReady in indexer (should be in relayer)");
             }
             BridgeEvent::Heartbeat { .. } => {
@@ -90,11 +90,6 @@ impl EventProcessor {
         self.queue.enqueue_l3_sync(&BridgeEvent::Locked(event.clone())).await?;
         info!("  ✓ Queued for L3 sync");
         
-        // In production, would also:
-        // - Update SMT
-        // - Create Lock record
-        // - Emit L3 event
-        
         Ok(())
     }
 
@@ -102,7 +97,6 @@ impl EventProcessor {
     async fn process_emergency_unlock(&self, event: &crate::events::EmergencyUnlockEvent) -> Result<()> {
         info!("🚨 Processing Emergency Unlock: {}", hex::encode(event.lock_id));
         
-        // Queue for L3 sync
         self.queue.enqueue_l3_sync(&BridgeEvent::EmergencyUnlock(event.clone())).await?;
         info!("  ✓ Queued for L3 emergency handling");
         
