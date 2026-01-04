@@ -11,7 +11,7 @@ use std::sync::Arc;
 use axum::{Extension, Json};
 use pqcrypto_dilithium::dilithium3;
 use pqcrypto_traits::sign::PublicKey as PqPublicKey;
-use pqcrypto_traits::sign::DetachedSignature;
+use pqcrypto_traits::sign::DetachedSignature as PqDetachedSignature;
 use sha3::{Sha3_256, Digest};
 
 use crate::{
@@ -213,17 +213,13 @@ fn verify_dilithium3_signature(
         )));
     }
 
-    // Parse public key using try_from for proper error handling
-    let public_key = match <dilithium3::PublicKey as TryFrom<&[u8]>>::try_from(&pk_bytes) {
-        Ok(pk) => pk,
-        Err(_) => return Err(ApiError::InvalidSignature("Failed to parse Dilithium-III public key".into())),
-    };
+    // Parse public key using from_bytes (pqcrypto API)
+    let public_key = dilithium3::PublicKey::from_bytes(&pk_bytes)
+        .map_err(|_| ApiError::InvalidSignature("Failed to parse Dilithium-III public key".into()))?;
 
-    // Parse signature using try_from for proper error handling
-    let signature = match <dilithium3::DetachedSignature as TryFrom<&[u8]>>::try_from(&sig_bytes) {
-        Ok(sig) => sig,
-        Err(_) => return Err(ApiError::InvalidSignature("Failed to parse Dilithium-III signature".into())),
-    };
+    // Parse signature using from_bytes (pqcrypto API)
+    let signature = dilithium3::DetachedSignature::from_bytes(&sig_bytes)
+        .map_err(|_| ApiError::InvalidSignature("Failed to parse Dilithium-III signature".into()))?;
 
     // Verify signature
     let result = dilithium3::verify_detached_signature(&signature, message, &public_key);
@@ -286,7 +282,7 @@ mod tests {
     use super::*;
     use pqcrypto_dilithium::dilithium3;
     use pqcrypto_traits::sign::PublicKey as PqPublicKey;
-    use pqcrypto_traits::sign::DetachedSignature as DetachedSig;
+    use pqcrypto_traits::sign::DetachedSignature as PqDetachedSignature;
 
     #[test]
     fn test_time_lock_constants() {
