@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-03 22:45 JST  
+> **Last Updated**: 2026-01-04 19:00 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -9,19 +9,16 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Phase: 3 - L3 + Token + 完全分散化                         │
-│  Sub-Phase: 3.3 Decentralize + Testing - Week 9-14          │
-│  Month: 12 / 24                                             │
-│  Active Checklist: docs/checklists/phase3.3.md              │
-│  Status: ✅ Phase 3.2 Go/No-Go判定完了 (91.5/100, GO)       │
-│          ✅ CP-1完全準拠達成 (keccak256完全排除) 🎉🎉🎉     │
-│          ✅ Track A Decentralize: 19/19完了 (100%) 🎉🎉🎉   │
-│          ✅ PIR-P3.3-001~003 ALL PASS 🎉🎉🎉                │
-│          ⚠️ PIR-IC-2 CONDITIONAL PASS (2026-01-03)          │
-│          🔄 Track B E2E Testing: TEST-001~010 進行中        │
-│  Tests: ✅ 264/264 PASS (Rust) + 532/532 PASS (Solidity)    │
-│  Warnings: ✅ 1 (dead_code, non-critical)                   │
-│  次のステップ: TEST-004 Slitherフルスキャン                 │
+│  Phase: 4 - UI/UX, Audit & Launch                           │
+│  Week: 1 / 8 (Week 15-22 overall)                           │
+│  Month: 13-14 / 24                                          │
+│  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
+│  Status: 🚀 Phase 4 開始                                    │
+│          ✅ Phase 3 完了 (Go/No-Go PASS)                    │
+│          ⬜ Week 1: Infrastructure (INFRA-001~005)          │
+│  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
+│  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
+│  次のステップ: 01_plan.md → CURRENT_PLAN.md 作成            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -29,76 +26,88 @@
 
 ## 🚧 ブロッカー / 懸念事項
 
-| # | 懸念 | 重要度 | 仕様書出典 | 対応予定 |
-|---|------|--------|-----------|----------|
-| 1 | `_verifyProof()` プレースホルダー - 実際のSTARK検証なし | 🟡 Medium | SEQ#2 | Phase 4前にSTARK Verifier統合 |
-| 2 | `claim()` 任意recipient設計 - 意図確認必要 | 🟢 Low | SEQ#2 | 次回PIRで設計意図確認 |
-| 3 | スタブコントラクト不整合 | 🟠 Medium | - | Mock整備後対応 |
+| # | 懸念 | 重要度 | 対応予定 |
+|---|------|--------|----------|
+| - | なし（Phase 4開始時点） | - | - |
 
 ---
 
-## 📋 Phase 3.3 Week 9-14 進捗 (ACTIVE)
+## 📋 Phase 4 タスク進捗
 
-### Track A: Decentralize Development ✅ **19/19 COMPLETE (100%)** 🎉🎉🎉
+### Week 1: Infrastructure (INFRA-001~005) ⬜ **PENDING**
 
-| カテゴリ | タスク数 | 完了 | 内容 | PIR |
-|---------|:-------:|:----:|------|:----:|
-| 4BFT完成 | 4 | **4** | DECEN-001~004 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
-| Security Council選出 | 4 | **4** | DECEN-005~008 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
-| Governance ON/OFF | 3 | **3** | DECEN-009~011 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
-| Multi-sequencer | 4 | **4** | DECEN-012~015 ✅ **完了** 🎉🎉🎉 | PIR-P3.3-002 ✅ |
-| Inflation/Treasury | 4 | **4** | DECEN-016~019 ✅ **完了** 🎉🎉🎉 | PIR-P3.3-003 ✅ |
+| タスクID | 内容 | 優先度 | 状態 | PIR ID |
+|---------|------|:------:|:----:|--------|
+| INFRA-001 | Event Bridge設計 | P0 | ⬜ | - |
+| INFRA-002 | L1→L3 Indexer実装 | P0 | ⬜ | - |
+| INFRA-003 | L3→L1 Relayer実装 | P0 | ⬜ | - |
+| INFRA-004 | Multi-Relayer (2台) | P1 | ⬜ | - |
+| INFRA-005 | HSM連携仕様書 | P1 | ⬜ | - |
 
-### Track B: E2E Testing (10 tasks) 🔄 **IN PROGRESS**
+### Week 2: API Layer (API-001~006) ⬜ **NOT STARTED**
 
-| カテゴリ | タスク数 | 完了 | 内容 | 状態 |
-|---------|:-------:|:----:|------|:----:|
-| **IC-2 CoreLayer** | 1 | **1** | Bridge Layer実装+テスト | ⚠️ **CONDITIONAL PASS** |
-| 統合テスト | 3 | 0 | TEST-001~003 | 🔄 進行中 |
-| セキュリティテスト | 3 | 0 | TEST-004~006 | ⬜ **NEXT** |
-| Decentralize統合 | 4 | 0 | TEST-007~010 | ⬜ 予定 |
+| タスクID | 内容 | 優先度 | 状態 | PIR ID |
+|---------|------|:------:|:----:|--------|
+| API-001 | OpenAPI 3.0定義 | P0 | ⬜ | - |
+| API-002 | Lock/Unlock API実装 | P0 | ⬜ | - |
+| API-003 | Prover登録API | P0 | ⬜ | - |
+| API-004 | Emergency API | P1 | ⬜ | - |
+| API-005 | WebSocket通知 | P1 | ⬜ | - |
+| API-006 | Edition切替API | P2 | ⬜ | - |
 
----
+### Week 3: Client SDK (SDK-001~005) ⬜ **NOT STARTED**
 
-## 🔄 IC-2 CoreLayer Implementation (2026-01-03) ⚠️ **CONDITIONAL PASS**
+| タスクID | 内容 | 優先度 | 状態 | PIR ID |
+|---------|------|:------:|:----:|--------|
+| SDK-001 | TypeScript SDK基盤 | P0 | ⬜ | - |
+| SDK-002 | Dilithium WASM (<500ms) | P0 | ⬜ | - |
+| SDK-003 | Wallet接続 | P0 | ⬜ | - |
+| SDK-004 | React Hooks | P1 | ⬜ | - |
+| SDK-005 | SDK Documentation | P1 | ⬜ | - |
 
-### 実装サマリー
+### Week 4-5: Admin Dashboard (UI-001~006) ⬜ **NOT STARTED**
 
-| 項目 | 値 |
-|------|-----|
-| **対象** | L3 Bridge Layer (CoreLayer.sol) |
-| **実装日時** | 2026-01-03 21:00 JST |
-| **テスト結果** | ✅ **29/29 PASS** |
-| **PIRレビュー結果** | ⚠️ **CONDITIONAL PASS** (2026-01-03) |
-| **PIRレポート** | `docs/aegis/meetings/PIR-IC-2.md` |
+| タスクID | 内容 | 優先度 | 状態 | PIR ID |
+|---------|------|:------:|:----:|--------|
+| UI-001 | Admin認証 (Wallet) | P0 | ⬜ | - |
+| UI-002 | 緊急操作画面 | P0 | ⬜ | - |
+| UI-003 | Guardian管理 | P0 | ⬜ | - |
+| UI-004 | Prover管理 | P1 | ⬜ | - |
+| UI-005 | 監視ダッシュボード | P1 | ⬜ | - |
+| UI-006 | Admin Dashboard MVP | P0 | ⬜ | - |
 
-### 作成ファイル
+### Week 5-6: End User App (UI-007~012) ⬜ **NOT STARTED**
 
-| ファイル | サイズ | 内容 |
-|----------|--------|------|
-| `l3-aegis/src/core/CoreLayer.sol` | 12,801 bytes | Bridge Layer実装 (SEQ#1-4, #3') |
-| `l3-aegis/src/interfaces/ICoreLayer.sol` | 5,942 bytes | インターフェース定義 |
-| `l3-aegis/test/CoreLayer.t.sol` | 14,720 bytes | Unit Tests (24 tests) |
-| `l3-aegis/test/interfaces/ICoreLayer.t.sol` | - | Interface Tests (5 tests) |
-| `l3-aegis/test/e2e/FullSequenceE2E.t.sol` | 10,906 bytes | E2E Tests (簡略版) |
-| `l3-aegis/test/e2e/FullSystemE2E.t.sol` | 16,503 bytes | System E2E (Mock使用) |
+| タスクID | 内容 | 優先度 | 状態 | PIR ID |
+|---------|------|:------:|:----:|--------|
+| UI-007 | Wallet接続UI | P0 | ⬜ | - |
+| UI-008 | Lock操作UI | P0 | ⬜ | - |
+| UI-009 | Unlock操作UI | P0 | ⬜ | - |
+| UI-010 | 履歴表示 | P1 | ⬜ | - |
+| UI-011 | 多言語対応 | P2 | ⬜ | - |
+| UI-012 | End User App MVP | P0 | ⬜ | - |
 
-### PIR-IC-2 CONDITIONAL条件
+### Week 6-7: E2E Tests (TEST-004~009) ⬜ **NOT STARTED**
 
-| # | 条件 | 優先度 | 対応時期 |
-|---|------|:------:|---------|
-| 1 | `_verifyProof()` STARK Verifier統合 | 🟡 Medium | Phase 4前 |
-| 2 | `claim()` 設計意図確認・文書化 | 🟢 Low | 次回PIR |
+| タスクID | 内容 | 優先度 | 状態 | PIR ID |
+|---------|------|:------:|:----:|--------|
+| TEST-004 | Slitherフルスキャン | P0 | ⬜ | - |
+| TEST-005 | Lock→Unlock E2E | P0 | ⬜ | - |
+| TEST-006 | Emergency E2E | P0 | ⬜ | - |
+| TEST-007 | Prover登録E2E | P1 | ⬜ | - |
+| TEST-008 | Multi-Network E2E | P1 | ⬜ | - |
+| TEST-009 | 性能テスト | P1 | ⬜ | - |
 
-### CP準拠状況
+### Week 7-8: Polish & Documentation (UI-013~016, DOC-001~002) ⬜ **NOT STARTED**
 
-| CP | 内容 | 状態 |
-|----|------|:----:|
-| **CP-1** | SHA3-256 ONLY (keccak256排除) | ✅ |
-| **CP-2** | Self-custody | ✅ (lock/unlock設計) |
-| **CP-3** | Time-locks (24h/7d) | ✅ |
-| **CP-4** | Slashing mechanism | ⚠️ (Emergency Bond存在、Quadratic Slashingは別) |
-| **CP-5** | Transparency (Events) | ✅ |
+| タスクID | 内容 | 優先度 | 状態 | PIR ID |
+|---------|------|:------:|:----:|--------|
+| UI-013 | Prover Dashboard | P1 | ⬜ | - |
+| UI-014 | Prover登録フロー | P1 | ⬜ | - |
+| UI-015 | 報酬確認UI | P2 | ⬜ | - |
+| UI-016 | Prover Dashboard MVP | P1 | ⬜ | - |
+| DOC-001 | ユーザーガイド | P1 | ⬜ | - |
+| DOC-002 | API Documentation | P1 | ⬜ | - |
 
 ---
 
@@ -109,89 +118,67 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象** | IC-2 CoreLayer (L3 Bridge Layer) |
-| **実装日時** | 2026-01-03 21:20 JST |
-| **CoreLayer.sol** | ✅ **実装完了** (12,801 bytes) |
-| **CoreLayer.t.sol** | ✅ **24/24 PASS** 🎉 |
-| **ICoreLayer.t.sol** | ✅ **5/5 PASS** 🎉 |
-| **E2Eテスト** | ✅ **簡略版作成** (Mock使用) |
-| **CP-1準拠** | ✅ SHA3-256 ONLY |
-| **CP-3準拠** | ✅ 24h/7d Timelock |
-| **PIR結果** | ⚠️ **CONDITIONAL PASS** |
-| **ステータス** | ✅ PIR完了、TEST-004進行へ |
+| **対象Plan** | - |
+| **実装日時** | - |
+| **ステータス** | ⬜ 未実行 |
 
 ---
 
-## 📋 Phase 3.3 サマリー (ACTIVE)
+## 🌐 ネットワーク構成
 
-> **チェックリスト**: `docs/checklists/phase3.3.md`
-> **期間**: Week 9-14 (6 weeks)
-> **目標**: Decentralize完成 + Full Testing
+### L1: Ethereum Sepolia (11 contracts deployed)
 
-### Track A: Decentralize Development (19 tasks) ✅ **COMPLETE** 🎉🎉🎉
+| Contract | Address | Status |
+|----------|---------|:------:|
+| QuantumBridge | 0x... | ✅ |
+| LockManager | 0x... | ✅ |
+| UnlockManager | 0x... | ✅ |
+| EmergencyManager | 0x... | ✅ |
+| ProverRegistry | 0x... | ✅ |
+| GuardianRegistry | 0x... | ✅ |
+| STARKVerifier | 0x... | ✅ |
+| DilithiumVerifier | 0x... | ✅ |
+| SHA3Hash | 0x... | ✅ |
+| TimeLock | 0x... | ✅ |
+| SlashingManager | 0x... | ✅ |
 
-| カテゴリ | タスク数 | 完了 | 内容 | PIR |
-|---------|:-------:|:----:|------|:----:|
-| 4BFT完成 | 4 | **4** | DECEN-001~004 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
-| Security Council選出 | 4 | **4** | DECEN-005~008 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
-| Governance ON/OFF | 3 | **3** | DECEN-009~011 ✅ **完了** 🎉 | PIR-P3.3-001 ✅ |
-| Multi-sequencer | 4 | **4** | DECEN-012~015 ✅ **完了** 🎉🎉🎉 | PIR-P3.3-002 ✅ |
-| Inflation/Treasury | 4 | **4** | DECEN-016~019 ✅ **完了** 🎉🎉🎉 | PIR-P3.3-003 ✅ |
+### L3: Aegis Chain (11 crates developed)
 
-### Track B: E2E Testing (10 tasks) 🔄 **IN PROGRESS**
+| Crate | Status |
+|-------|:------:|
+| aegis-core | ✅ |
+| aegis-consensus | ✅ |
+| aegis-sequencer | ✅ |
+| aegis-crypto | ✅ |
+| aegis-bridge | ✅ |
+| aegis-state | ✅ |
+| aegis-rpc | ✅ |
+| aegis-p2p | ✅ |
+| aegis-storage | ✅ |
+| aegis-vm | ✅ |
+| aegis-types | ✅ |
 
-| Task ID | 内容 | 状態 | 備考 |
-|---------|------|:----:|------|
-| **IC-2** | **CoreLayer Bridge** | ⚠️ **CONDITIONAL** | PIR-IC-2完了 |
-| TEST-001 | E2E統合テスト | 🔄 進行中 | CoreLayerテスト完了 |
-| TEST-002 | Fuzz Tests | ⬜ | CoreLayer後 |
-| TEST-003 | Gas Optimization | ⬜ | CoreLayer後 |
-| **TEST-004** | **Slither Full Scan** | ⬜ **NEXT** | 必須 |
-| TEST-005 | Red Team Simulation | ⬜ | 予定 |
-| TEST-006 | 4BFT Audit Prep | ⬜ | 予定 |
-| TEST-007 | Decentralize Integration | ⬜ | 予定 |
-| TEST-008 | Governance E2E | ⬜ | 予定 |
-| TEST-009 | Economic Simulation | ⬜ | 予定 |
-| TEST-010 | Full System E2E | ⬜ | 予定 |
+### Event Bridge: Phase 4 Week 1で実装
+
+| Component | Status |
+|-----------|:------:|
+| L1→L3 Indexer | ⬜ INFRA-002 |
+| L3→L1 Relayer | ⬜ INFRA-003 |
+| Multi-Relayer | ⬜ INFRA-004 |
 
 ---
 
 ## 🧪 テスト状態
 
-### Phase 2: ✅ **628 PASS**
+### Phase 2-3: ✅ **892 PASS**
 
 ```
 ╭----------------------------+--------+--------+---------╮
 | Test Suite                 | Passed | Failed | Skipped |
 +========================================================+
 | Phase 2 (Foundry)          | 628    | 0      | 0       |
+| l3-aegis (Rust)            | 264    | 0      | 0       |
 ╰----------------------------+--------+--------+---------╯
-```
-
-### l3-aegis: ✅ **264 PASS** (Rust) + **532 PASS** (Solidity)
-
-```
-╭----------------------------+--------+--------+---------+----------╮
-| Test Suite                 | Passed | Failed | Skipped | Warnings |
-+================================================================+
-| l3-aegis (Cargo) 既存      | 180    | 0      | 0       | 0        |
-| aegis-sequencer (新規)     |  59    | 0      | 0       | 0 ✅     |
-| **aegis-consensus (新規)** |  33    | 0      | 0       | 1        |
-| bft_test (新規)            |  12    | 0      | 0       | -        |
-| l3-aegis (Foundry) 既存    | 271    | 0      | 0       | -        |
-| veQS/Token (新規)          |  42    | 0      | 0       | -        |
-| Governance (新規)          |  42    | 0      | 0       | -        |
-| SC Election (新規)         |  17    | 0      | 0       | -        |
-| GovernanceSwitch (更新)    |  64    | 0      | 130     | -        |
-| Sequencer Tests (更新)     |  51    | 0      | 0       | 1 🎉🎉   |
-| Economics Tests (新規)     |  ✅    | 0      | 0       | 0 🎉🎉🎉 |
-| RewardDistributor (CP-1)   |  17    | 0      | 0       | 0 🎉     |
-| **CoreLayer (IC-2) 新規**  |  29    | 0      | 0       | 0 🎉🎉   |
-╰----------------------------+--------+--------+---------+----------╯
-
-Total Rust: 264 passed, 0 failed
-Total Solidity: 532 passed, 0 failed, 130 skipped (662 total)
-✅ Track A COMPLETE + IC-2 CoreLayer PASS 🎉🎉🎉
 ```
 
 ---
@@ -202,33 +189,21 @@ Total Solidity: 532 passed, 0 failed, 130 skipped (662 total)
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | ~~Track A Decentralize~~ | ~~🔴 P0~~ | ✅ **COMPLETE** 🎉🎉🎉 |
-| 2 | ~~IC-2 CoreLayer実装~~ | ~~🔴 P0~~ | ✅ **29/29 PASS** 🎉 |
-| 3 | ~~04_review.md PIRレビュー~~ | ~~🔴 P0~~ | ⚠️ **CONDITIONAL PASS** |
-| 4 | **TEST-004 Slitherフルスキャン** | 🔴 **P0** | ⬜ **NEXT** |
-| 5 | TEST-005 Red Team Simulation | 🔴 P0 | ⬜ Slither後 |
-| 6 | STARK Verifier統合タスク作成 | 🟡 Medium | ⬜ Phase 4前 |
-
-### 修正必須（PIR-IC-2より）
-
-1. **`_verifyProof()` STARK Verifier統合**
-   - 重要度: 🟡 Medium
-   - 仕様書出典: SEQ#2
-   - 対象ファイル: `l3-aegis/src/core/CoreLayer.sol`
-   - 対策: Phase 4前にSTARK Verifier統合必須。現在はプレースホルダー実装。
+| 1 | **01_plan.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
+| 2 | CURRENT_PLAN.md 作成 | 🔴 P0 | ⬜ |
+| 3 | INFRA-001 Event Bridge設計 | 🔴 P0 | ⬜ |
 
 ---
 
 ## 📝 PIR記録
 
-### Phase 3.3 PIR一覧
+### Phase 4 PIR一覧
 
 | PIR ID | 対象 | レビュー結果 | 日付 |
 |--------|------|-------------|------|
-| PIR-P3.3-001 | DECEN-001~011 (4BFT + SC + Governance ON/OFF) | ✅ **PASS** 🎉🎉🎉 | 2026-01-02 |
-| PIR-P3.3-002 | DECEN-012~015 (Multi-Sequencer) | ✅ **PASS** 🎉🎉🎉 | 2026-01-03 |
-| PIR-P3.3-003 | DECEN-016~019 (Inflation/Treasury) | ✅ **PASS** 🎉🎉🎉 | 2026-01-03 |
-| **PIR-IC-2** | **IC-2 CoreLayer (Bridge)** | ⚠️ **CONDITIONAL PASS** | 2026-01-03 |
+| - | - | - | - |
+
+### 次のPIR ID: PIR-P4-001
 
 ---
 
@@ -239,17 +214,22 @@ Total Solidity: 532 passed, 0 failed, 130 skipped (662 total)
 | Phase 0.5 | 初期設計 | 100% | ✅ COMPLETE |
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
-| **Phase 3.1** | **Foundation** | **100%** | ✅ **COMPLETE + GO 🎉🎉🎉** |
-| **Phase 3.2** | **Implementation** | **100%** | ✅ **COMPLETE + GO 🎉** |
-| **Phase 3.3** | **Decentralize + Testing** | **72%** | 🔄 **Track A COMPLETE, Track B IC-2 CONDITIONAL** |
-| Phase 4 | UI/UX + Audit + Launch | 0% | ⬜ NOT STARTED |
+| Phase 3 | L3 + Token + 完全分散化 | 100% | ✅ COMPLETE 🎉🎉🎉 |
+| **Phase 4** | **UI/UX + Audit + Launch** | **0%** | 🚀 **STARTED** |
 
 ---
 
-**Phase 3.3 Track B Status:**
-- IC-2 CoreLayer: ⚠️ **CONDITIONAL PASS** (PIR-IC-2完了)
-- TEST-001~010: 🔄 進行中
-- 次のステップ: TEST-004 Slitherフルスキャン
+## 📑 Phase 4 参照ドキュメント
+
+| ドキュメント | パス |
+|------------|------|
+| Phase 4計画書 | `docs_new/01_phase/04_phase4/PHASE4_PLAN.md` |
+| 統合マスタープラン | `docs_new/01_phase/04_phase4/PHASE4_MASTER_INTEGRATION_PLAN.md` |
+| UI/UX要件 | `docs_new/01_phase/04_phase4/UI_UX_FUNCTIONAL_REQUIREMENTS_JP.md` |
+| 統合ブループリント | `docs_new/01_phase/04_phase4/INTEGRATED_SYSTEM_BLUEPRINT_JP.md` |
+| Event Bridge仕様 | `docs_new/01_phase/04_phase4/EVENT_BRIDGE_SPEC.md` |
+| テスト戦略 | `docs_new/01_phase/04_phase4/TEST_STRATEGY.md` |
+| 条件付き承認事項 | `docs_new/01_phase/04_phase4/AGENT_MEETING_MINUTES_20260104.md` |
 
 ---
 
