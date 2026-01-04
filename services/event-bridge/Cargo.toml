@@ -31,6 +31,9 @@ anyhow = "1.0"
 # SHA3-256 (CP-1 compliant)
 sha3 = "0.10"
 
+# Hex encoding
+hex = "0.4"
+
 # Configuration
 config = "0.14"
 
