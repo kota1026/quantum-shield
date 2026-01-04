@@ -4,7 +4,9 @@
 //! - Sequence #2: Unlock (Normal Path) - 24h time lock
 //! - Sequence #3: Unlock (Emergency Path) - 7d time lock + bond
 //!
-//! CP-1 Compliance: Uses Dilithium-III (NIST FIPS 204) for signature verification
+//! CP-1 Compliance: Uses Dilithium-III for signature verification
+//! Note: pqcrypto-dilithium uses pre-FIPS Dilithium (3309-byte signatures)
+//!       vs NIST FIPS 204 ML-DSA (3293-byte signatures)
 
 use std::sync::Arc;
 
@@ -24,10 +26,14 @@ use crate::{
 const NORMAL_TIME_LOCK_HOURS: u64 = 24;    // SEQ#2
 const EMERGENCY_TIME_LOCK_DAYS: u64 = 7;   // SEQ#3
 
-/// Dilithium-III public key size (NIST FIPS 204)
+/// Dilithium-III public key size
+/// pqcrypto-dilithium uses pre-FIPS version: 1952 bytes
 const DILITHIUM3_PUBLIC_KEY_BYTES: usize = 1952;
-/// Dilithium-III signature size (NIST FIPS 204)
-const DILITHIUM3_SIGNATURE_BYTES: usize = 3293;
+
+/// Dilithium-III signature size
+/// pqcrypto-dilithium uses pre-FIPS version: 3309 bytes
+/// (NIST FIPS 204 ML-DSA-65 uses 3293 bytes)
+const DILITHIUM3_SIGNATURE_BYTES: usize = 3309;
 
 /// POST /v1/unlock
 /// 
@@ -65,7 +71,7 @@ pub async fn create_unlock(
     if !verify_dilithium3_signature(&message, &req.sig_dilithium, &lock.user_public_key)? {
         return Err(ApiError::InvalidSignature("Dilithium-III verification failed".into()));
     }
-    tracing::info!("✓ Dilithium-III signature verified (NIST FIPS 204 compliant)");
+    tracing::info!("✓ Dilithium-III signature verified (CP-1 compliant)");
 
     // 4. Compute SR_1 using SHA3-256 (NOT keccak256)
     let sr_1 = compute_sr1(&lock.sr_0, &req);
@@ -129,7 +135,7 @@ pub async fn create_emergency_unlock(
     if !verify_dilithium3_signature(&message, &req.sig_dilithium, &lock.user_public_key)? {
         return Err(ApiError::InvalidSignature("Dilithium-III verification failed".into()));
     }
-    tracing::info!("✓ Dilithium-III signature verified (NIST FIPS 204 compliant)");
+    tracing::info!("✓ Dilithium-III signature verified (CP-1 compliant)");
 
     // 4. Compute SR_1 using SHA3-256 (NOT keccak256)
     let sr_1 = compute_sr1(&lock.sr_0, &req);
@@ -172,10 +178,10 @@ fn construct_unlock_message(lock_id: &str, dest_addr: &str, amount: &str) -> Vec
     message
 }
 
-/// Verify Dilithium-III signature (NIST FIPS 204)
+/// Verify Dilithium-III signature
 /// 
-/// CP-1 Compliance: Only Dilithium-III is used for user signatures
-/// This function performs actual cryptographic verification using pqcrypto-dilithium
+/// CP-1 Compliance: Dilithium-III is used for user signatures
+/// Note: pqcrypto-dilithium uses pre-FIPS Dilithium (not NIST FIPS 204 ML-DSA)
 /// 
 /// # Arguments
 /// * `message` - The message that was signed
@@ -294,9 +300,14 @@ mod tests {
 
     #[test]
     fn test_dilithium3_constants() {
-        // NIST FIPS 204 Dilithium-III sizes
-        assert_eq!(DILITHIUM3_PUBLIC_KEY_BYTES, 1952);
-        assert_eq!(DILITHIUM3_SIGNATURE_BYTES, 3293);
+        // Verify constants match actual pqcrypto-dilithium output
+        let (pk, sk) = dilithium3::keypair();
+        let sig = dilithium3::detached_sign(b"test", &sk);
+        
+        assert_eq!(DILITHIUM3_PUBLIC_KEY_BYTES, pk.as_bytes().len(), 
+            "Public key size mismatch");
+        assert_eq!(DILITHIUM3_SIGNATURE_BYTES, sig.as_bytes().len(), 
+            "Signature size mismatch");
     }
 
     #[test]
