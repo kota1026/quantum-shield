@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-04 21:48 JST  
+> **Last Updated**: 2026-01-04 22:15 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -17,8 +17,9 @@
 │          ✅ Phase 3 完了 (Go/No-Go PASS)                    │
 │          ✅ CURRENT_PLAN.md 作成完了                        │
 │          ✅ Week 1: Infrastructure (INFRA-001~005) 実装済み  │
+│          ✅ Event Bridge Unit Tests 実行済み (10/10 PASS)   │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
-│         + Event Bridge Unit Tests                           │
+│         + 10/10 PASS (Event Bridge Unit Tests)              │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
 │  次のステップ: 04_review.md → セキュリティレビュー           │
 └─────────────────────────────────────────────────────────────┘
@@ -36,7 +37,7 @@
 
 ## 📋 Phase 4 タスク進捗
 
-### Week 1: Infrastructure (INFRA-001~005) ✅ **IMPLEMENTED**
+### Week 1: Infrastructure (INFRA-001~005) ✅ **IMPLEMENTED & TESTED**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
@@ -123,7 +124,8 @@
 |------|-----|
 | **対象Plan** | Phase 4 Week 1 - Infrastructure |
 | **実装日時** | 2026-01-04 21:48 JST |
-| **ステータス** | ✅ 実装完了 |
+| **テスト実行日時** | 2026-01-04 22:10 JST |
+| **ステータス** | ✅ 実装完了 & テスト完了 |
 
 ### 対象タスク
 
@@ -165,9 +167,44 @@
 
 | 項目 | 値 |
 |------|-----|
-| 新規テスト数 | +10 (Event Bridge) |
+| 新規テスト数 | +10 (Event Bridge Unit Tests) |
 | 総テスト数 | 892 + 10 = 902 |
-| 結果 | ✅ Unit Tests PASS |
+| 結果 | ✅ ALL PASS |
+
+#### Event Bridge Unit Tests 詳細 (2026-01-04 22:10 JST 実行)
+
+```
+running 10 tests
+test tests::test_1000eth_emergency_bond ... ok
+test tests::test_10eth_emergency_bond ... ok
+test tests::test_challenge_bond_calculation ... ok
+test tests::test_bridge_event_types ... ok
+test tests::test_emergency_bond_calculation ... ok
+test tests::test_locked_event_sr0 ... ok
+test tests::test_quadratic_slashing ... ok
+test tests::test_security_constants ... ok
+test tests::test_sr0_deterministic ... ok
+test tests::test_unlock_ready_event ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+| テスト名 | 検証内容 | 結果 |
+|---------|---------|:----:|
+| test_security_constants | Time Lock / Timeout値の検証 | ✅ |
+| test_emergency_bond_calculation | MIN(0.5 ETH) vs 5%の計算 | ✅ |
+| test_10eth_emergency_bond | 10 ETH時のBond計算 | ✅ |
+| test_1000eth_emergency_bond | 1000 ETH時のBond計算 | ✅ |
+| test_challenge_bond_calculation | Challenge Bond計算 | ✅ |
+| test_quadratic_slashing | N² × 10% Slashing | ✅ |
+| test_locked_event_sr0 | SR0ハッシュ生成 | ✅ |
+| test_sr0_deterministic | SR0の決定性検証 | ✅ |
+| test_unlock_ready_event | UnlockReady構造検証 | ✅ |
+| test_bridge_event_types | イベントタイプルーティング | ✅ |
+
+**テスト実行環境**: Claude.ai内蔵Linuxコンテナ (Ubuntu 24, Rust 1.75.0)
+
+**注意**: 統合テスト（Redis接続、L1/L3接続）はWeek 2で実施予定
 
 ---
 
@@ -205,7 +242,7 @@
 | aegis-vm | ✅ |
 | aegis-types | ✅ |
 
-### Event Bridge: ✅ **IMPLEMENTED**
+### Event Bridge: ✅ **IMPLEMENTED & TESTED**
 
 | Component | Status |
 |-----------|:------:|
@@ -213,6 +250,7 @@
 | L3→L1 Relayer | ✅ INFRA-003 |
 | Multi-Relayer | ✅ INFRA-004 |
 | HSM Spec | ✅ INFRA-005 |
+| Unit Tests | ✅ 10/10 PASS |
 
 ---
 
@@ -241,8 +279,9 @@
 | 1 | ~~01_plan.md 実行~~ | ~~P0~~ | ✅ **DONE** |
 | 2 | ~~CURRENT_PLAN.md 作成~~ | ~~P0~~ | ✅ **DONE** |
 | 3 | ~~03_impl.md 実行 (INFRA-001~005)~~ | ~~P0~~ | ✅ **DONE** |
-| 4 | **04_review.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
-| 5 | PIR-P4-001 実施 | 🔴 P0 | ⬜ |
+| 4 | ~~Event Bridge Unit Tests 実行~~ | ~~P0~~ | ✅ **DONE** |
+| 5 | **04_review.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
+| 6 | PIR-P4-001 実施 | 🔴 P0 | ⬜ |
 
 ---
 
