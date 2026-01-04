@@ -10,13 +10,17 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     /// Configuration error
     #[error("Configuration error: {0}")]
-    Config(#[from] config::ConfigError),
+    Config(String),
 
     /// Redis error
     #[error("Redis error: {0}")]
     Redis(#[from] redis::RedisError),
 
-    /// Ethereum provider error
+    /// L1 RPC error (IMPL-FIX-002, IMPL-FIX-003)
+    #[error("L1 RPC error: {0}")]
+    L1Rpc(String),
+
+    /// Ethereum provider error (legacy)
     #[error("Ethereum provider error: {0}")]
     Provider(String),
 
@@ -77,4 +81,10 @@ pub enum Error {
     /// Internal error
     #[error("Internal error: {0}")]
     Internal(String),
+}
+
+impl From<config::ConfigError> for Error {
+    fn from(err: config::ConfigError) -> Self {
+        Error::Config(err.to_string())
+    }
 }
