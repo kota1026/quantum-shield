@@ -213,13 +213,17 @@ fn verify_dilithium3_signature(
         )));
     }
 
-    // Parse public key
-    let public_key = dilithium3::PublicKey::from_bytes(&pk_bytes)
-        .map_err(|_| ApiError::InvalidSignature("Failed to parse Dilithium-III public key".into()))?;
+    // Parse public key using try_from for proper error handling
+    let public_key = match <dilithium3::PublicKey as TryFrom<&[u8]>>::try_from(&pk_bytes) {
+        Ok(pk) => pk,
+        Err(_) => return Err(ApiError::InvalidSignature("Failed to parse Dilithium-III public key".into())),
+    };
 
-    // Parse signature
-    let signature = dilithium3::DetachedSignature::from_bytes(&sig_bytes)
-        .map_err(|_| ApiError::InvalidSignature("Failed to parse Dilithium-III signature".into()))?;
+    // Parse signature using try_from for proper error handling
+    let signature = match <dilithium3::DetachedSignature as TryFrom<&[u8]>>::try_from(&sig_bytes) {
+        Ok(sig) => sig,
+        Err(_) => return Err(ApiError::InvalidSignature("Failed to parse Dilithium-III signature".into())),
+    };
 
     // Verify signature
     let result = dilithium3::verify_detached_signature(&signature, message, &public_key);
@@ -282,7 +286,6 @@ mod tests {
     use super::*;
     use pqcrypto_dilithium::dilithium3;
     use pqcrypto_traits::sign::PublicKey as PqPublicKey;
-    use pqcrypto_traits::sign::SecretKey;
     use pqcrypto_traits::sign::DetachedSignature as DetachedSig;
 
     #[test]
@@ -317,8 +320,8 @@ mod tests {
         
         // Verify
         let result = verify_dilithium3_signature(message, &sig_hex, &pk_hex);
-        assert!(result.is_ok());
-        assert!(result.unwrap());
+        assert!(result.is_ok(), "Verification should not error: {:?}", result);
+        assert!(result.unwrap(), "Signature should be valid");
     }
 
     #[test]
@@ -337,14 +340,14 @@ mod tests {
         // Verify with different message should fail
         let wrong_message = b"different message";
         let result = verify_dilithium3_signature(wrong_message, &sig_hex, &pk_hex);
-        assert!(result.is_ok());
-        assert!(!result.unwrap()); // Should be false (invalid signature)
+        assert!(result.is_ok(), "Verification should not error: {:?}", result);
+        assert!(!result.unwrap(), "Signature should be invalid for wrong message");
     }
 
     #[test]
     fn test_dilithium3_signature_verification_failure_wrong_key() {
         // Generate two test keypairs
-        let (pk1, sk1) = dilithium3::keypair();
+        let (_pk1, sk1) = dilithium3::keypair();
         let (pk2, _sk2) = dilithium3::keypair();
         
         // Sign with keypair 1
@@ -357,8 +360,8 @@ mod tests {
         
         // Verify with wrong public key should fail
         let result = verify_dilithium3_signature(message, &sig_hex, &wrong_pk_hex);
-        assert!(result.is_ok());
-        assert!(!result.unwrap()); // Should be false (invalid signature)
+        assert!(result.is_ok(), "Verification should not error: {:?}", result);
+        assert!(!result.unwrap(), "Signature should be invalid for wrong key");
     }
 
     #[test]
