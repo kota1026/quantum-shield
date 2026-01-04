@@ -11,11 +11,11 @@ use crate::error::{Error, Result};
 use crate::events::{BridgeEvent, UnlockReadyEvent};
 use crate::queue::EventQueue;
 use crate::metrics;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
-use tokio::time::{interval, timeout};
+use tokio::time::interval;
 use tracing::{debug, error, info, warn};
 
 /// Relayer role
@@ -101,6 +101,7 @@ impl L1Submitter {
         #[cfg(not(test))]
         {
             // 本番モード: ethers/alloy統合後に置換
+            let _ = (&self.http_url, &self.relayer_key_id);
             warn!("Using mock L1 submission - integrate ethers/alloy for production");
             Ok("0xmock_tx_hash".to_string())
         }
@@ -136,6 +137,7 @@ impl L1Submitter {
 pub struct MultiRelayer {
     config: Config,
     role: Arc<RwLock<RelayerRole>>,
+    #[allow(dead_code)]
     is_healthy: Arc<AtomicBool>,
     queue: EventQueue,
     l1_submitter: L1Submitter,
@@ -150,7 +152,7 @@ impl MultiRelayer {
     pub fn new(config: &Config) -> Result<Self> {
         let l1_submitter = L1Submitter::new(
             &config.l1.http_rpc_url,
-            &config.l1.vault_address,
+            &config.l1.vault_contract,  // Fixed: vault_address -> vault_contract
             "relayer_key_1", // HSM key ID
         );
         
