@@ -9,11 +9,12 @@ use crate::error::Result;
 use crate::events::BridgeEvent;
 use crate::indexer::EventProcessor;
 use crate::metrics;
+use alloy::hex;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::interval;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 /// L1 Vault Contract Events (イベントシグネチャ)
 #[allow(dead_code)]
@@ -42,31 +43,15 @@ impl L1RpcClient {
 
     /// Get current block number via eth_blockNumber RPC
     pub async fn get_block_number(&self) -> Result<u64> {
-        // 実際のRPC呼び出し
-        // reqwest::Client::new()
-        //     .post(&self.http_url)
-        //     .json(&json!({"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}))
-        //     .send()
-        //     .await?
-        //     .json::<BlockNumberResponse>()
-        //     .await?
-        //     .result
-        //     .parse_hex()
-
         // TODO: 本番環境でethersまたはalloy crateを使用
-        // 現在はSepolia testnetの模擬値を返す
-        // テスト時には実際のRPCに接続
         
         #[cfg(test)]
         {
-            // テストモードでは固定値
             return Ok(12345678);
         }
         
         #[cfg(not(test))]
         {
-            // 本番モード: 実際のRPCに接続
-            // ethers/alloy統合後に置換
             let _ = (&self.http_url, &self.ws_url, &self.contract_address);
             warn!("Using mock block number - integrate ethers/alloy for production");
             Ok(12345678)
@@ -80,29 +65,14 @@ impl L1RpcClient {
         to_block: u64,
     ) -> Result<Vec<BridgeEvent>> {
         info!("Fetching L1 logs from block {} to {}", from_block, to_block);
-        
-        // 実際のRPC呼び出し:
-        // let filter = Filter::new()
-        //     .address(self.contract_address.parse()?)
-        //     .from_block(from_block)
-        //     .to_block(to_block)
-        //     .topic0(vec![
-        //         keccak256(event_signatures::LOCKED_EVENT),
-        //         keccak256(event_signatures::EMERGENCY_UNLOCK_EVENT),
-        //     ]);
-        // 
-        // let logs = client.get_logs(&filter).await?;
-        // logs.into_iter().map(|log| parse_log(log)).collect()
 
         #[cfg(test)]
         {
-            // テストモードでは空のベクタを返す
             return Ok(vec![]);
         }
 
         #[cfg(not(test))]
         {
-            // 本番モード: 実際のRPCに接続
             warn!("Using mock getLogs - integrate ethers/alloy for production");
             Ok(vec![])
         }
@@ -126,7 +96,7 @@ impl L1EventListener {
         let rpc_client = L1RpcClient::new(
             &config.l1.http_rpc_url,
             &config.l1.ws_rpc_url,
-            &config.l1.vault_contract,  // Fixed: vault_address -> vault_contract
+            &config.l1.vault_contract,
         );
         
         Ok(Self {
@@ -141,7 +111,6 @@ impl L1EventListener {
     pub async fn start(&self, processor: EventProcessor) -> Result<()> {
         info!("🎧 Starting event listener");
 
-        // Try WebSocket first, fall back to polling
         tokio::select! {
             result = self.listen_websocket(&processor) => {
                 match result {
@@ -161,25 +130,11 @@ impl L1EventListener {
     async fn listen_websocket(&self, _processor: &EventProcessor) -> Result<()> {
         info!("📡 Connecting to WebSocket: {}", self.config.l1.ws_rpc_url);
         
-        // WebSocket subscription:
-        // let ws = WsConnect::new(self.config.l1.ws_rpc_url.clone());
-        // let provider = ProviderBuilder::new().on_ws(ws).await?;
-        // let filter = Filter::new().address(contract_address);
-        // let sub = provider.subscribe_logs(&filter).await?;
-        // while let Some(log) = sub.next().await {
-        //     let event = parse_log(log)?;
-        //     processor.process(event).await?;
-        // }
-        
         let mut interval = interval(Duration::from_secs(1));
         
         loop {
             interval.tick().await;
-            
-            // Check for new events
             debug!("Checking for new L1 events...");
-            
-            // Update metrics
             metrics::increment_events_checked();
         }
     }
@@ -193,26 +148,21 @@ impl L1EventListener {
         loop {
             interval.tick().await;
             
-            // Get current block via RPC
             let current_block = self.rpc_client.get_block_number().await?;
             let last_processed = self.last_block.load(Ordering::SeqCst);
-            
-            // Only process confirmed blocks (12 confirmations per AGENT_MEETING)
             let safe_block = current_block.saturating_sub(self.confirmation_blocks);
             
             if safe_block > last_processed {
                 info!("📦 Processing blocks {} to {}", last_processed + 1, safe_block);
                 
-                // Fetch and process events via RPC
                 let events = self.rpc_client.get_logs(last_processed + 1, safe_block).await?;
                 
                 for event in events {
                     if let Err(e) = processor.process(event).await {
-                        error!("Failed to process event: {}", e);
+                        tracing::error!("Failed to process event: {}", e);
                     }
                 }
                 
-                // Update last processed block
                 self.last_block.store(safe_block, Ordering::SeqCst);
                 metrics::set_last_processed_block(safe_block);
             }
@@ -263,7 +213,6 @@ mod tests {
         );
         
         let logs = client.get_logs(1, 100).await.unwrap();
-        // テストモードでは空のベクタが返る
         assert!(logs.is_empty());
     }
 }
