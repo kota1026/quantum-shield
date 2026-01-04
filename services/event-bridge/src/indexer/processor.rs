@@ -7,14 +7,15 @@
 
 use crate::config::Config;
 use crate::error::{Error, Result};
-use crate::events::{BridgeEvent, LockedEvent, LockStatus};
+use crate::events::{BridgeEvent, LockedEvent};
 use crate::idempotency::IdempotencyManager;
 use crate::queue::EventQueue;
 use crate::metrics;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 /// Event Processor
 pub struct EventProcessor {
+    #[allow(dead_code)]
     config: Config,
     idempotency: IdempotencyManager,
     queue: EventQueue,
@@ -52,7 +53,7 @@ impl EventProcessor {
             BridgeEvent::EmergencyUnlock(emergency) => {
                 self.process_emergency_unlock(emergency).await?;
             }
-            BridgeEvent::UnlockReady(unlock) => {
+            BridgeEvent::UnlockReady(_unlock) => {
                 // This is L3→L1, shouldn't come through indexer
                 warn!("Received UnlockReady in indexer (should be in relayer)");
             }
