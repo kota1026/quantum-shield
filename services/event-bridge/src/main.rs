@@ -24,13 +24,17 @@ async fn main() -> Result<()> {
         event_bridge::metrics::start_metrics_server(9090).await
     });
 
+    // Clone config for each task
+    let indexer_config = config.clone();
+    let relayer_config = config;
+
     // Start indexer and relayer concurrently
     let indexer_handle = tokio::spawn(async move {
-        event_bridge::indexer::run(&config).await
+        event_bridge::indexer::run(&indexer_config).await
     });
 
     let relayer_handle = tokio::spawn(async move {
-        event_bridge::relayer::run(&config).await
+        event_bridge::relayer::run(&relayer_config).await
     });
 
     // Wait for all tasks
