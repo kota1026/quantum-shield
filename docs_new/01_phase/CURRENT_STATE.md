@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-05 14:30 JST  
+> **Last Updated**: 2026-01-05 14:45 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,11 +13,11 @@
 │  Week: 2 - API Layer                                        │
 │  Month: 13-14 / 24                                          │
 │  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
-│  Status: ⚠️ FIX実装完了 - 04_review.md 再レビュー待ち          │
+│  Status: ✅ 実装完了 - 04_review.md PASS - 05_pir.md 待ち     │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │         + 42/42 PASS (API) + 26/26 PASS (Event Bridge)      │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: cargo test で FIX-003, FIX-004 確認後、再レビュー │
+│  次のステップ: 05_pir.md 実行 → PIR-P4-002                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -46,8 +46,8 @@
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | Week 2 - API Layer (FIPS 204移行 + Lock API検証本実装) |
-| **実装日時** | 2026-01-05 14:30 JST |
-| **ステータス** | ✅ **FIX実装完了** - 再レビュー待ち |
+| **実装日時** | 2026-01-05 14:45 JST |
+| **ステータス** | ✅ 実装完了 |
 
 ### 対象タスク
 
@@ -56,39 +56,24 @@
 | FIX-003 | pqcrypto-dilithium → fips204 (NIST FIPS 204) | ✅ |
 | FIX-004 | Lock API ML-DSA-65検証本実装 | ✅ |
 
-### 作成・修正ファイル
+### 作成ファイル
 
-| ファイル | 変更内容 |
-|----------|----------|
-| `services/api/Cargo.toml` | `pqcrypto-dilithium` → `fips204` |
-| `services/api/src/crypto.rs` | **新規**: 共通暗号モジュール (ML-DSA-65検証) |
-| `services/api/src/main.rs` | `crypto` モジュール追加 |
-| `services/api/src/routes/lock.rs` | ML-DSA-65検証本実装 (TODOを排除) |
-| `services/api/src/routes/unlock.rs` | FIPS 204 API移行 |
-
-### 主な変更点
-
-#### FIX-003: FIPS 204 ML-DSA-65移行
-- `pqcrypto-dilithium` (pre-FIPS) → `fips204` (NIST標準)
-- 共通暗号モジュール `crypto.rs` を新規作成
-- 全ての署名検証が NIST FIPS 204 準拠に
-
-#### FIX-004: Lock API検証本実装
-- `validate_dilithium_signature()` の TODO を排除
-- `verify_ml_dsa_65_signature()` による本実装
-- Lock/Unlock両方で同一の検証ロジックを使用
-
-### コミット
-
-| Commit | 内容 |
-|--------|------|
-| 5c344a27 | FIX-003, FIX-004 - FIPS 204 ML-DSA-65 migration + Lock API verification |
+- `services/api/Cargo.toml`: `fips204` crate追加
+- `services/api/src/crypto.rs`: 共通FIPS 204暗号モジュール（新規）
+- `services/api/src/main.rs`: cryptoモジュール追加
+- `services/api/src/routes/lock.rs`: ML-DSA-65検証本実装
+- `services/api/src/routes/unlock.rs`: FIPS 204 API移行
 
 ### テスト結果
 
 | 項目 | 値 |
 |------|-----|
-| 確認待ち | `cargo test` 実行必要 |
+| 新規テスト数 | +0 (既存テストがFIPS 204対応に更新) |
+| Unit Tests | 16/16 PASS |
+| API Tests | 14/14 PASS |
+| Integration Tests | 12/12 PASS |
+| **総テスト数** | **42/42 PASS** ✅ |
+| 結果 | ✅ ALL PASS |
 
 ---
 
@@ -104,7 +89,7 @@
 | INFRA-004 | Multi-Relayer (2台) | P1 | ✅ | PIR-P4-001 |
 | INFRA-005 | HSM連携仕様書 | P1 | ✅ | PIR-P4-001 |
 
-### Week 2: API Layer (API-001~006) ⚠️ **FIX完了 - 再レビュー待ち**
+### Week 2: API Layer (API-001~006) ✅ **レビューPASS - PIR待ち**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
@@ -117,8 +102,8 @@
 | INFRA-006 | INCIDENT_RESPONSE_PLAN.md | P1 | ✅ | - |
 | FIX-001 | Redis AUTH実装 | P0 | ✅ | - |
 | FIX-002 | mTLS実装 | P0 | ✅ | - |
-| **FIX-003** | **FIPS 204移行** | **P0** | ✅ | - |
-| **FIX-004** | **Lock API検証本実装** | **P0** | ✅ | - |
+| FIX-003 | FIPS 204移行 | P0 | ✅ | - |
+| FIX-004 | Lock API検証本実装 | P0 | ✅ | - |
 
 ### Week 3: Client SDK (SDK-001~005) ⬜ **NOT STARTED**
 
@@ -138,9 +123,11 @@
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | `cargo test` 実行 (FIX-003, FIX-004確認) | 🔴 **P0** | ⬜ **NEXT** |
-| 2 | 04_review.md 再実行 (セキュリティ再レビュー) | 🔴 **P0** | ⬜ |
-| 3 | 05_pir.md 実行 (PIR-P4-002) | P0 | ⬜ |
+| 1 | ~~`cargo test` 実行 (FIX-003, FIX-004確認)~~ | ~~P0~~ | ✅ **DONE** |
+| 2 | ~~04_review.md 再実行 (セキュリティ再レビュー)~~ | ~~P0~~ | ✅ **PASS** |
+| 3 | **05_pir.md 実行 (PIR-P4-002)** | 🔴 **P0** | ⬜ **NEXT** |
+| 4 | 06_update.md 実行 (状態更新) | P0 | ⬜ |
+| 5 | Week 3計画開始 (Client SDK) | P1 | ⬜ |
 
 ---
 
@@ -163,14 +150,14 @@
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | Phase 3 | L3 + Token + 完全分散化 | 100% | ✅ COMPLETE 🎉🎉🎉 |
-| **Phase 4** | **UI/UX + Audit + Launch** | **25%** | 🔄 **再レビュー待ち** |
+| **Phase 4** | **UI/UX + Audit + Launch** | **25%** | 🔄 **PIR待ち** |
 
 ### Phase 4 Week進捗
 
 | Week | 内容 | 状態 | PIR |
 |------|------|:----:|-----|
 | Week 1 | Infrastructure (Event Bridge) | ✅ | PIR-P4-001 |
-| Week 2 | API Layer | ⚠️ 再レビュー待ち | - |
+| Week 2 | API Layer | ✅ レビューPASS | PIR-P4-002待ち |
 | Week 3 | Client SDK | ⬜ | - |
 | Week 4-5 | Admin Dashboard | ⬜ | - |
 | Week 5-6 | End User App | ⬜ | - |
