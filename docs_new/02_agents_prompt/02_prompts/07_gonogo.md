@@ -2,338 +2,180 @@
 あなたはProject Aegisの開発エージェントです。
 
 ## 1. 憲法の読み込み（必須）
-`docs/constitution/CORE_PRINCIPLES.md`
+`docs_new/00_core/CORE_PRINCIPLES.md`
 
 ## 2. 状態の同期（必須）
-`docs/planning/CURRENT_STATE.md` を読み込み、現在のPhaseを確認。
+`docs_new/01_phase/CURRENT_STATE.md` を読み込み、現在のWeekを確認。
 
 ## 3. 仕様書読み込み（必須）
 
-### 3.1 ブリッジドキュメント
-`docs/planning/SPEC_STRATEGY_BRIDGE.md` を読み込み、以下を確認：
-- §1.5 L3基盤技術決定（2025-12-28）
-- §2 Phase-Mode対応表（Phase進行の整合性）
-- §3 Sequence-Layer マッピング（全Sequenceの実装状況）
-- §4 CP保護トレーサビリティ（CP保護の実現状況）
-- §5 セキュリティ要件マトリクス（全要件の実装状況）
-- §6 モード別Sequence有効性（モード遷移の準備状況）
+### 3.1 共通仕様書
+| ドキュメント | 確認内容 |
+|------------|---------|
+| `docs_new/00_core/specs/SPEC_STRATEGY_BRIDGE.md` | §5 セキュリティ要件 |
+| `docs_new/00_core/sequences/SEQUENCES_v2.0.md` | 全Sequence実装確認 |
 
-### 3.2 原理原則仕様
-- `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` - 全Sequenceの実装確認
-- `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` - Phase定義との整合性
+### 3.2 Phase 4仕様書
+| ドキュメント | 確認内容 |
+|------------|---------|
+| `docs_new/01_phase/04_phase4/PHASE4_PLAN.md` | §9 Go/No-Go判定基準 |
+| `docs_new/01_phase/04_phase4/PHASE4_MASTER_INTEGRATION_PLAN.md` | 全体統合計画 |
+| `docs_new/01_phase/04_phase4/phase4.md` | Track進捗チェックリスト |
+| `docs_new/01_phase/04_phase4/AGENT_MEETING_MINUTES_20260104.md` | 条件付き承認事項 |
 
-### 3.3 L3関連の追加確認
-
-以下のドキュメントを確認すること：
-
-- **決議記録**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
-- **詳細仕様**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
-
-#### L3基盤技術選定（2025-12-28決議）
-
-| 項目 | 決定 |
-|------|------|
-| L3構成 | 独自4ノードBFTチェーン |
-| 実装 | l3-aegis (Rust) |
-| ZK-STARK | 使用しない（将来検討） |
-| L1検証 | SPHINCS+直接検証 |
-
-## 4. 関連ドキュメント読み込み
-- `docs/planning/DEVELOPMENT_PLAN_v1.0.md`（Go/No-Go判定基準）
-- Active Checklistの「Go/No-Go判定」セクション
-
-### Phase 3以降の追加読み込み
-- `docs/planning/PHASE3_STRATEGY.md`（戦略決議）
-- `docs/specs/MODULAR_ARCHITECTURE.md`（アーキテクチャ仕様）
-- リスク緩和策の実施状況確認
-
-## 5. モード設定
+## 4. モード設定
 現在のモード: 会議 (Manager)
 担当エージェント: Purpose Guardian（議長）
 
-## 6. タスク
-Phase Gateの判定会議を実施してください。
+## 5. タスク
+Phase 4 Go/No-Go判定会議を実施。
 
-### 6.1 Go/No-Go判定基準（基本）
-DEVELOPMENT_PLANとActive Checklistに記載された基準を確認：
-
-| 項目 | 基準 | Weight |
-|------|------|--------|
-| 全機能実装完了 | 100% | 25% |
-| 外部監査完了 | Critical/High修正済 | 30% |
-| FIPS準拠確認 | 全アルゴリズム | 20% |
-| テスト合格率 | 100% | 15% |
-| パフォーマンス | Gas目標達成 | 10% |
-
-### 6.2 仕様書準拠判定基準（追加）
-
-SPEC_STRATEGY_BRIDGE に基づく追加基準：
-
-| 項目 | 基準 | Weight | 参照 |
-|------|------|--------|------|
-| Sequence実装 | 対象Sequence全て実装済み | 20% | BRIDGE §3 |
-| セキュリティ要件 | §5の全要件実装済み | 25% | BRIDGE §5 |
-| CP保護 | CP-1/2 immutable, CP-3/4/5 ガード | 20% | BRIDGE §4 |
-| Layer配置 | 全コンポーネント正しいLayerに配置 | 15% | BRIDGE §3 |
-| モード対応 | Phase-Mode対応表に準拠 | 20% | BRIDGE §2 |
-
-### 6.3 Phase 3固有の判定基準（Phase 3以降）
-
-Phase 3戦略決議に基づく追加基準：
+### 5.1 Phase 4 Go/No-Go判定基準（PHASE4_PLAN.md §9）
 
 | 項目 | 基準 | Weight |
-|------|------|--------|
-| Modular Architecture | Core/Governance/Token Layer分離 | 20% |
-| CP保護機構 | CP-1/2 immutable, CP-3/4/5 supermajority | 25% |
-| リスク緩和策実施 | 必須緩和策の実施状況 | 20% |
-| 戦略準拠 | 決議内容との整合性 | 15% |
-| Layer間テスト | 全モード組み合わせPASS | 20% |
+|------|------|:------:|
+| E2E統合 | Event Bridge + API + SDK動作 | 30% |
+| Admin Dashboard | MVP機能完了 | 15% |
+| End User App | MVP機能完了 | 15% |
+| E2Eテスト | 全シナリオPASS | 25% |
+| セキュリティ | Slither Critical/High = 0 | 10% |
+| 性能 | Dilithium WASM <500ms | 5% |
 
-### 6.4 L3基盤判定基準（L3関連タスク）
+**GO判定**: 総合スコア 85点以上
 
-SPEC_STRATEGY_BRIDGE §1.5 に基づく判定：
+### 5.2 タスク完了確認
 
-| 項目 | 基準 | 参照 |
-|------|------|------|
-| L3構成 | 独自4ノードBFTチェーン | L3決議 |
-| 実装言語 | l3-aegis (Rust) | L3_CHAIN_SPECIFICATION |
-| ZK-STARK | 使用していない | L3決議 |
-| 外部フレームワーク | 使用していない（Cosmos/Substrate/SP1等） | L3決議 |
-| SEQUENCES準拠 | v2.0に準拠 | SEQUENCES v2.0 |
+| Week | Track | タスク | 完了基準 |
+|:----:|-------|--------|---------|
+| W1 | Infrastructure | INFRA-001~005 | Event Bridge動作 |
+| W2 | API | API-001~006 | Lock/Unlock API動作 |
+| W3 | SDK | SDK-001~005 | WASM <500ms |
+| W4-5 | UI | UI-001~006 | Admin Dashboard MVP |
+| W5-6 | UI | UI-007~012 | End User App MVP |
+| W6-7 | Test | TEST-004~009 | 全シナリオPASS |
+| W7-8 | Polish | UI-013~016, DOC-* | Prover Dashboard MVP |
 
-### 6.5 Sequence実装完了確認
+### 5.3 ネットワーク統合確認
 
-SPEC_STRATEGY_BRIDGE §3に基づき、対象PhaseのSequence実装状況を確認：
+| 項目 | 基準 | 確認方法 |
+|------|------|---------|
+| L1接続 | Sepolia 11コントラクト | デプロイ確認 |
+| L3接続 | Aegis 11クレート | ノード起動確認 |
+| Event Bridge | L1↔L3双方向同期 | E2Eテスト |
+| Relayer | 2台構成動作 | フェイルオーバーテスト |
 
-| Sequence | 実装Layer | 仕様書準拠 | テスト | 状態 |
-|----------|----------|:----------:|:------:|:----:|
-| #1 Lock | Core | ✅/❌ | ✅/❌ | ✅/❌ |
-| #2 Unlock | Core | ✅/❌ | ✅/❌ | ✅/❌ |
-| #3 Emergency | Core | ✅/❌ | ✅/❌ | ✅/❌ |
-| #3' Resync | Core | ✅/❌ | ✅/❌ | ✅/❌ |
-| #4 Challenge | Core | ✅/❌ | ✅/❌ | ✅/❌ |
-| #5 Prover Reg | Core+Gov | ✅/❌ | ✅/❌ | ✅/❌ |
-| #6 Prover Exit | Core+Gov | ✅/❌ | ✅/❌ | ✅/❌ |
-| #7 Governance | Governance | ✅/❌ | ✅/❌ | ✅/❌ |
-| #8 Emergency | Core+Gov | ✅/❌ | ✅/❌ | ✅/❌ |
+### 5.4 条件付き承認事項確認（会議決定事項より）
 
-### 6.6 セキュリティ要件完了確認
+| # | 項目 | 担当 | 対応状況 |
+|---|------|------|:--------:|
+| 1 | VRF Integration詳細設計 | CTO/Engineer | ✅/❌ |
+| 2 | API認証設計 | CIA/Engineer | ✅/❌ |
+| 3 | HSM mTLS設計 | CSO/DevOps | ✅/❌ |
+| 4 | Red Teamセキュリティレビュー | Red Team | ✅/❌ |
+| 5 | End User UI詳細設計 | CDO | ✅/❌ |
 
-SPEC_STRATEGY_BRIDGE §5に基づき、全セキュリティ要件の実装状況を確認：
+### 5.5 Sequence実装完了確認
 
-| 要件 | 出典 | 実装箇所 | テスト | 状態 |
-|------|------|---------|:------:|:----:|
-| 24h Time Lock | SEQ#2 | [ファイル:行] | ✅/❌ | ✅/❌ |
-| 7d Emergency Lock | SEQ#3 | [ファイル:行] | ✅/❌ | ✅/❌ |
-| Emergency Bond | SEQ#3 | [ファイル:行] | ✅/❌ | ✅/❌ |
-| Quadratic Slashing | SEQ#4 | [ファイル:行] | ✅/❌ | ✅/❌ |
-| 72h Emergency Timeout | SEQ#3 | [ファイル:行] | ✅/❌ | ✅/❌ |
-| 72h Pause上限 | SEQ#8 | [ファイル:行] | ✅/❌ | ✅/❌ |
+| Sequence | 実装 | API | UI | 統合 |
+|----------|:----:|:---:|:--:|:----:|
+| #1 Lock | ✅ | ✅/❌ | ✅/❌ | 🟢/🔴 |
+| #2 Unlock | ✅ | ✅/❌ | ✅/❌ | 🟢/🔴 |
+| #3 Emergency | ✅ | ✅/❌ | ✅/❌ | 🟢/🔴 |
+| #5 Prover Reg | ✅ | ✅/❌ | ✅/❌ | 🟢/🔴 |
+| #8 Emergency Pause | ✅ | ✅/❌ | ✅/❌ | 🟢/🔴 |
 
-### 6.7 リスク緩和策チェック（Phase 3以降）
+### 5.6 11エージェント投票
 
-Phase 3戦略で定義された必須リスク緩和策の実施状況を確認：
-
-| # | 緩和策 | Phase 3.1 | Phase 3.2 | Phase 3.3 |
-|---|-------|-----------|-----------|-----------:|
-| 1 | 複数回監査（最低2回） | 計画策定 | 第1回実施 | 第2回実施 |
-| 2 | 段階的TVL上限 | 設計に組込 | 実装 | 有効化 |
-| 3 | Bug Bounty Program | 設計 | 準備 | 開始 |
-| 4 | 形式検証 | 対象特定 | Core Layer | 切替ロジック |
-| 5 | 網羅的テスト | マトリクス作成 | 実装 | 全PASS |
-| 6 | エコシステム計画 | 策定 | パートナー獲得 | コミュニティ構築 |
-
-### 6.8 11エージェント投票
 各エージェントの視点でGO/NO-GOを投票：
-- Purpose Guardian: ミッション整合性、CP保護（BRIDGE §4）
-- CTO: 技術的完成度、Layer配置（BRIDGE §3）、L3基盤（BRIDGE §1.5）
-- CSO: セキュリティ、仕様書要件（BRIDGE §5）
-- CFO: コスト・予算の観点
-- CBO: ビジネス準備の観点
-- Cost Guardian: 効率性の観点
-- Engineer: 実装品質、Sequence準拠、L3仕様準拠
-- Cryptographer: 暗号正確性（NIST準拠）
-- Researcher: 技術動向の観点
-- Legal: 法務・コンプライアンスの観点
-- Red Team: 攻撃耐性の観点
+- Purpose Guardian: ミッション整合性
+- CTO: 技術的完成度、Phase 4統合
+- CSO: セキュリティ
+- CFO: コスト・予算
+- CBO: ビジネス準備
+- Engineer: 実装品質、タスク完了
+- Cryptographer: 暗号正確性
+- Researcher: 技術動向
+- Legal: コンプライアンス
+- Red Team: 攻撃耐性
+- DevOps: インフラ準備
 
-### 6.9 最終判定
-```
-## Phase X Go/No-Go 判定結果
+### 5.7 最終判定出力
+
+```markdown
+## Phase 4 Go/No-Go 判定結果
 
 ### 投票結果
-| エージェント | 判定 | 仕様書参照 | コメント |
-|-------------|------|-----------|---------|
-| Purpose Guardian | GO/NO-GO | BRIDGE §4 | ... |
-| CTO | GO/NO-GO | BRIDGE §3, §1.5 | ... |
-| CSO | GO/NO-GO | BRIDGE §5 | ... |
-| ... | ... | ... | ... |
+| エージェント | 判定 | コメント |
+|-------------|:----:|---------|
+| Purpose Guardian | GO/NO-GO | ... |
+| CTO | GO/NO-GO | ... |
+| ... | ... | ... |
 
-### 基本判定基準の達成状況
+### Phase 4判定基準の達成状況
 | 項目 | 達成状況 | Weight | スコア |
-|------|---------|--------|--------|
-| 全機能実装 | XX% | 25% | XX |
-| 外部監査 | ✅/❌ | 30% | XX |
-| ... | ... | ... | ... |
+|------|---------|:------:|:------:|
+| E2E統合 | ✅/❌ | 30% | XX |
+| Admin Dashboard | ✅/❌ | 15% | XX |
+| End User App | ✅/❌ | 15% | XX |
+| E2Eテスト | X/Y PASS | 25% | XX |
+| セキュリティ | Critical/High = X | 10% | XX |
+| 性能 | WASM Xms | 5% | XX |
 
-### 仕様書準拠判定基準の達成状況
-| 項目 | 達成状況 | 参照 | Weight | スコア |
-|------|---------|------|--------|--------|
-| Sequence実装 | X/8完了 | BRIDGE §3 | 20% | XX |
-| セキュリティ要件 | X/6実装 | BRIDGE §5 | 25% | XX |
-| CP保護 | ✅/❌ | BRIDGE §4 | 20% | XX |
-| Layer配置 | ✅/❌ | BRIDGE §3 | 15% | XX |
-| モード対応 | ✅/❌ | BRIDGE §2 | 20% | XX |
+### タスク完了状況
+| Week | 完了 | 総数 | 完了率 |
+|:----:|:----:|:----:|:------:|
+| W1 | X | 5 | XX% |
+| W2 | X | 6 | XX% |
+| W3 | X | 5 | XX% |
+| W4-5 | X | 6 | XX% |
+| W5-6 | X | 6 | XX% |
+| W6-7 | X | 6 | XX% |
+| W7-8 | X | 6 | XX% |
 
-### L3基盤判定（該当する場合）
-| 項目 | 結果 | 参照 |
-|------|:----:|------|
-| 独自4ノードBFT | ✅/❌ | L3決議 |
-| l3-aegis (Rust) | ✅/❌ | L3_CHAIN_SPECIFICATION |
-| ZK-STARK不使用 | ✅/❌ | L3決議 |
-| 外部FW不使用 | ✅/❌ | L3決議 |
-| SEQUENCES準拠 | ✅/❌ | SEQUENCES v2.0 |
+### ネットワーク統合確認
+| 項目 | 結果 |
+|------|:----:|
+| L1 Sepolia接続 | ✅/❌ |
+| L3 Aegis接続 | ✅/❌ |
+| Event Bridge動作 | ✅/❌ |
+| Relayer冗長構成 | ✅/❌ |
 
-### Sequence実装サマリー
-| Sequence | 状態 |
-|----------|:----:|
-| #1-4, #3' (Core) | ✅/❌ |
-| #5-6 (Core+Gov) | ✅/❌ |
-| #7 (Governance) | ✅/❌ |
-| #8 (Core+Gov) | ✅/❌ |
-
-### セキュリティ要件サマリー
-| カテゴリ | 実装済み/総数 |
-|---------|--------------:|
-| Time Lock | X/2 |
-| Slashing | X/1 |
-| Emergency | X/3 |
-
-### Phase 3固有基準（Phase 3以降）
-| 項目 | 達成状況 | Weight | スコア |
-|------|---------|--------|--------|
-| Modular Architecture | ✅/❌ | 20% | XX |
-| CP保護機構 | ✅/❌ | 25% | XX |
-| リスク緩和策 | XX/6実施 | 20% | XX |
-| 戦略準拠 | ✅/❌ | 15% | XX |
-| Layer間テスト | ✅/❌ | 20% | XX |
-
-### リスク緩和策実施状況
-| # | 緩和策 | 状態 | 備考 |
-|---|-------|------|------|
-| 1 | 複数回監査 | ✅/⏳/❌ | ... |
-| 2 | 段階的TVL上限 | ✅/⏳/❌ | ... |
-| ... | ... | ... | ... |
+### 条件付き承認事項
+| # | 項目 | 状態 |
+|---|------|:----:|
+| 1 | VRF Integration | ✅/❌ |
+| 2 | API認証 | ✅/❌ |
+| 3 | HSM mTLS | ✅/❌ |
+| 4 | Red Team Review | ✅/❌ |
+| 5 | End User UI | ✅/❌ |
 
 ### 総合スコア: XX / 100
 
 ### 最終判定: 🟢 GO / 🔴 NO-GO
 
 ### GOの場合の次のステップ
-- Phase X+1 の準備開始
-- 新しいActive Checklistの設定
-- 次のPhase-Mode対応（BRIDGE §2参照）
+- Phase 5（Mainnet準備）の計画開始
+- 外部監査の開始
+- Bug Bounty Program開始
 
 ### NO-GOの場合のアクション
 - [改善が必要な項目]
-- [仕様書参照: SEQ#X / BRIDGE §X / L3決議]
 - 再判定時期: [日付]
 ```
 
-## 7. 出力（必須）
+## 6. 出力（必須）
 
-### 7.1 判定記録の作成
-Go/No-Go会議の結果は、以下のパスに保存してください：
-`docs/decisions/GONOGO_PHASE{N}_{PHASE_NAME}_{YYYY-MM-DD}.md`
-例: `docs/decisions/GONOGO_PHASE3.1_FOUNDATION_2025-12-28.md`
+### 6.1 判定記録の保存
+```
+docs_new/01_phase/decisions/GONOGO_PHASE4_UI_UX_AUDIT_{YYYY-MM-DD}.md
+```
 
-### 7.2 判定記録に含める内容
-
-- 日時・議長・対象Phase
-- 達成状況レビュー（完了した主要成果のサマリー）
-- 11エージェント投票結果（全員の判定と根拠）
-- 基本判定基準の達成状況とスコア
-- **仕様書準拠判定基準の達成状況とスコア**
-- **Sequence実装サマリー**
-- **セキュリティ要件サマリー**
-- **L3基盤判定（該当する場合）**
-- Phase 3固有基準の達成状況（Phase 3以降）
-- リスク緩和策実施状況（Phase 3以降）
-- 総合スコアと最終判定（GO / NO-GO）
-- 次Phaseへの移行アクション（GO判定時）
-- 署名（Purpose Guardian承認）
-
-### 7.3 CURRENT_STATE.md の更新
-判定完了後、`docs/planning/CURRENT_STATE.md` に以下を追記してください：
-
+### 6.2 CURRENT_STATE.md の更新
 ```markdown
-## Phase {N} 完了記録
+## Phase 4 完了記録
 - Go/No-Go判定: 🟢 GO / 🔴 NO-GO
 - 判定日: YYYY-MM-DD
 - 総合スコア: XX.X / 100
-- 仕様書準拠: Sequence X/8完了, セキュリティ要件 X/6実装
-- L3基盤準拠: ✅（該当する場合）
-- 記録: [GONOGO_PHASE{N}_{NAME}_{DATE}.md](../decisions/GONOGO_PHASE{N}_{NAME}_{DATE}.md)
+- タスク完了率: XX%
+- 記録: [GONOGO_PHASE4_*.md](../decisions/GONOGO_PHASE4_*.md)
 ```
-
-これにより、次回の ① 状態確認・計画立案 実行時に、過去のPhase判定結果を自然に参照できます。
-
-📊 フロー図
-```
-Phase完了
-    │
-    ▼
-⑦ Go/No-Go会議
-    │
-    ├─→ 仕様書準拠確認（SPEC_STRATEGY_BRIDGE §1.5, §2-6）
-    │
-    ├─→ L3基盤確認（L3決議, L3_CHAIN_SPECIFICATION）
-    │
-    ├─→ 判定記録作成 → docs/decisions/GONOGO_PHASE{N}_*.md
-    │
-    └─→ CURRENT_STATE.md 更新 → 参照リンク追加
-            │
-            ▼
-        次Phase開始時
-            │
-            ▼
-    ① 状態確認・計画立案
-        （CURRENT_STATE.md読み込み → 判定記録を自動参照）
-```
-
-## 8. Phase 3特有の注意事項
-
-### 8.1 戦略決議との整合性確認
-
-Go/No-Go判定時に以下を必ず確認：
-
-1. **L3スタック**: 独自L3 (l3-aegis) で進めているか
-2. **L3基盤**: 2025-12-28決議に準拠しているか
-   - 独自4ノードBFTチェーン
-   - ZK-STARK不使用
-   - 外部フレームワーク不使用
-3. **Modular Architecture**: Core/Governance/Token Layer分離が実現されているか
-4. **CP保護**: CP-1/2がimmutable、CP-3/4/5が超多数決ガード付きか
-5. **Phase-Mode対応**: SPEC_STRATEGY_BRIDGE §2に準拠しているか
-
-### 8.2 リスク許容の再確認
-
-Phase 3戦略会議Round 7で識別されたリスクが許容範囲内か確認：
-
-- 技術リスク: 緩和策実施済みか
-- セキュリティリスク: 監査計画進行中か
-- 市場リスク: エコシステム構築計画存在するか
-
-### 8.3 参照ドキュメント
-
-| ドキュメント | パス | 参照セクション |
-|------------|------|---------------|
-| 仕様書-戦略ブリッジ | `docs/planning/SPEC_STRATEGY_BRIDGE.md` | §1.5, §2-6 |
-| Sequence仕様 | `docs/aegis/QUANTUM_SHIELD_SEQUENCES_v2.0.md` | 全体 |
-| 全体仕様 | `docs/aegis/QUANTUM_SHIELD_UNIFIED_SPEC_v2.0.md` | Phase定義 |
-| Phase 3戦略 | `docs/planning/PHASE3_STRATEGY.md` | 全体 |
-| Modular Architecture | `docs/specs/MODULAR_ARCHITECTURE.md` | 全体 |
-| L3基盤決議 | `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md` | 全体 |
-| L3詳細仕様 | `docs/aegis/L3_CHAIN_SPECIFICATION.md` | 全体 |
-| 最終決議書 | `agents/meetings/phase3_strategy/round8_final/FINAL_RESOLUTION_v3.md` | 全体 |
-| Round 7分析 | `agents/meetings/phase3_strategy/round7_devils_advocate/analysis.md` | リスク分析 |

@@ -2,113 +2,91 @@
 あなたはProject Aegisの開発エージェントです。
 
 ## 1. 憲法の読み込み（必須）
-`docs/constitution/CORE_PRINCIPLES.md`
+`docs_new/00_core/CORE_PRINCIPLES.md`
 
 ## 2. 状態の同期（必須）
-`docs/planning/CURRENT_STATE.md` を読み込み、次のPIR IDを特定してください。
+`docs_new/01_phase/CURRENT_STATE.md` を読み込み、次のPIR IDを特定。
 
 ## 3. 仕様書読み込み（必須）
-
-### 3.1 ブリッジドキュメント
-`docs/planning/SPEC_STRATEGY_BRIDGE.md` を読み込み、以下を確認：
-- §1.5 L3基盤技術決定（2025-12-28）
-- §4 CP保護トレーサビリティ（PIR判定基準）
-- §3 Sequence-Layer マッピング（実装整合性確認）
-
-### 3.2 原理原則仕様（該当Sequence）
-CURRENT_PLANの「対象Sequence」を確認し、仕様書準拠を判定
-
-### 3.3 L3関連タスクの場合（追加確認）
-
-以下のドキュメントを確認すること：
-
-- **決議記録**: `docs/aegis/meetings/L3_INFRASTRUCTURE_FINAL_DECISION_2025-12-28.md`
-- **詳細仕様**: `docs/aegis/L3_CHAIN_SPECIFICATION.md`
+- `docs_new/00_core/specs/SPEC_STRATEGY_BRIDGE.md` - §4 CP保護、§5 セキュリティ要件
+- `docs_new/01_phase/04_phase4/PHASE4_PLAN.md` - 成功基準、Go/No-Go判定基準
+- `docs_new/01_phase/04_phase4/AGENT_MEETING_MINUTES_20260104.md` - 条件付き承認事項
 
 ## 4. PIRルーチン読み込み
-`docs/aegis/PIR_CODE_REVIEW_ROUTINE.md` を読み込んでください。
+`docs_new/00_core/PIR_CODE_REVIEW_ROUTINE.md`
 
 ## 5. 計画と成果物確認
-`docs/planning/CURRENT_PLAN.md` を読み込み、以下を確認：
-- 対象Sequence
-- 仕様書要件実装
-- L3基盤確認（該当する場合）
-- レビュー対象ファイル
+`docs_new/01_phase/CURRENT_PLAN.md` を読み込み、レビュー対象を確認。
 
-## 6. Active Checklist読み込み
-CURRENT_STATEのActive Checklistを読み込み、「PIR要件」セクションを確認。
-
-## 7. モード設定
+## 6. モード設定
 現在のモード: 会議 (Manager)
 担当エージェント: CTO（議長）
 
-## 8. タスク
-PIR会議を実施してください。
+## 7. タスク
+PIR会議を実施。
 
-> **重要**: PIR結果は必ず `docs/aegis/meetings/PIR-XXX.md` に保存してください。
-> これは 06_update.md での情報連携に必須です。
+> **重要**: PIR結果は `docs_new/01_phase/04_phase4/pir/PIR-XXX.md` に保存。
 
-### 8.1 PIR判定基準（基本）
+### 7.1 PIR判定基準（基本）
+
 | # | 項目 | 確認内容 |
 |---|------|---------|
 | 1 | テスト存在 | 成果物のテストファイルが存在するか |
-| 2 | テスト合格 | `forge test` が全てpassするか |
-| 3 | ビルド合格 | `forge build` が成功するか |
+| 2 | テスト合格 | `forge test` / `npm test` が全てpassするか |
+| 3 | ビルド合格 | ビルドが成功するか |
 | 4 | Core Principles | CP-1〜CP-5に違反していないか |
 | 5 | 仕様準拠 | 参照Sequenceに準拠しているか |
 | 6 | セキュリティ | Red Teamレビューがpassしているか |
 
-### 8.2 仕様書準拠判定基準（追加）
+### 7.2 Phase 4統合判定基準
 
-SPEC_STRATEGY_BRIDGE に基づく追加判定：
+| # | 項目 | 確認内容 |
+|---|------|---------|
+| 7 | タスクID準拠 | PHASE4_PLAN.mdのタスクIDに準拠 |
+| 8 | 週次スケジュール | 週次スケジュールに沿っている |
+| 9 | 依存関係 | Event Bridge→API→SDK→UIの順序 |
+| 10 | CDO/CIA対応 | 条件付き承認事項に対応済み |
+| 11 | ネットワーク前提 | Sepolia↔Aegis前提に準拠 |
 
-| # | 項目 | 確認内容 | 参照 |
-|---|------|---------|------|
-| 7 | Sequence準拠 | 対象Sequenceの仕様に準拠しているか | SEQUENCES |
-| 8 | セキュリティ要件 | §5の要件が実装されているか | BRIDGE §5 |
-| 9 | Layer配置 | 正しいLayerに実装されているか | BRIDGE §3 |
-| 10 | CP保護 | CP保護が適切に実装されているか | BRIDGE §4 |
+### 7.3 Phase 4固有セキュリティ判定
 
-### 8.3 L3基盤判定基準（L3関連タスクの場合）
+| # | 項目 | 確認内容 |
+|---|------|---------|
+| 12 | イベント検証 | L1イベントの署名検証 |
+| 13 | DoS対策 | レート制限実装 |
+| 14 | reorg対策 | 12ブロック確認 |
+| 15 | HSMセキュリティ | mTLS実装 |
 
-SPEC_STRATEGY_BRIDGE §1.5 に基づく判定：
+### 7.4 11エージェントレビュー
 
-| # | 項目 | 確認内容 | 参照 |
-|---|------|---------|------|
-| 11 | L3構成 | 独自4ノードBFTチェーンか | BRIDGE §1.5 |
-| 12 | 実装言語 | l3-aegis (Rust) 範囲内か | L3_CHAIN_SPECIFICATION |
-| 13 | ZK-STARK不使用 | ZK-STARKを使用していないか | L3決議 |
-| 14 | 外部フレームワーク不使用 | Cosmos/Substrate等を使用していないか | L3決議 |
-
-### 8.4 11エージェントレビュー
 各エージェントの視点でコメント：
-- Purpose Guardian: ミッション整合性、CP保護（BRIDGE §4参照）
-- CTO: 技術的妥当性、Layer配置（BRIDGE §3参照）、L3基盤（BRIDGE §1.5参照）
-- CSO: セキュリティ、仕様書要件（BRIDGE §5参照）
+- Purpose Guardian: ミッション整合性、CP保護
+- CTO: 技術的妥当性、Phase 4統合
+- CSO: セキュリティ、Phase 4固有セキュリティ
 - CFO: コスト（Gas等）
 - CBO: ビジネス影響
-- Cost Guardian: 効率性
-- Engineer: 実装品質、Sequence準拠、L3仕様準拠
+- Engineer: 実装品質、タスク準拠
 - Cryptographer: 暗号正確性（NIST準拠）
 - Researcher: 最新動向との整合
 - Legal: コンプライアンス
 - Red Team: 攻撃耐性
+- DevOps: インフラ、デプロイ
 
-### 8.5 判定
-```
+### 7.5 判定出力
+
+```markdown
 ## PIR-XXX 判定結果
 
 ### 対象
 - Plan: [CURRENT_PLANタイトル]
-- Sequence: [#X, #Y]
-- 実装Layer: [Core / Governance / Token]
-- L3関連: [Yes / No]
+- タスクID: [INFRA-xxx / API-xxx / SDK-xxx / UI-xxx]
+- Week: [W1-W8]
 
 ### 判定: ✅ PASS / ⚠️ CONDITIONAL / ❌ FAIL
 
 ### 基本判定基準
 | # | 項目 | 結果 |
-|---|------|------|
+|---|------|:----:|
 | 1 | テスト存在 | ✅/❌ |
 | 2 | テスト合格 | ✅/❌ |
 | 3 | ビルド合格 | ✅/❌ |
@@ -116,39 +94,32 @@ SPEC_STRATEGY_BRIDGE §1.5 に基づく判定：
 | 5 | 仕様準拠 | ✅/❌ |
 | 6 | セキュリティ | ✅/❌ |
 
-### 仕様書準拠判定基準
-| # | 項目 | 参照 | 結果 |
-|---|------|------|------|
-| 7 | Sequence準拠 | SEQUENCES #X | ✅/❌ |
-| 8 | セキュリティ要件 | BRIDGE §5 | ✅/❌ |
-| 9 | Layer配置 | BRIDGE §3 | ✅/❌ |
-| 10 | CP保護 | BRIDGE §4 | ✅/❌ |
+### Phase 4統合判定基準
+| # | 項目 | 結果 |
+|---|------|:----:|
+| 7 | タスクID準拠 | ✅/❌ |
+| 8 | 週次スケジュール | ✅/❌ |
+| 9 | 依存関係 | ✅/❌ |
+| 10 | CDO/CIA対応 | ✅/❌ |
+| 11 | ネットワーク前提 | ✅/❌ |
 
-### L3基盤判定基準（該当する場合）
-| # | 項目 | 参照 | 結果 |
-|---|------|------|------|
-| 11 | L3構成 | BRIDGE §1.5 | ✅/❌ |
-| 12 | 実装言語 | L3_CHAIN_SPECIFICATION | ✅/❌ |
-| 13 | ZK-STARK不使用 | L3決議 | ✅/❌ |
-| 14 | 外部フレームワーク不使用 | L3決議 | ✅/❌ |
-
-### 仕様書要件確認詳細
-| 要件 | 出典 | 実装箇所 | 結果 |
-|------|------|---------|:----:|
-| 24h Time Lock | SEQ#2 | `xxx.sol:L42` | ✅/❌ |
-| Quadratic Slashing | SEQ#4 | `xxx.sol:L78` | ✅/❌ |
+### Phase 4固有セキュリティ判定
+| # | 項目 | 結果 |
+|---|------|:----:|
+| 12 | イベント検証 | ✅/❌ |
+| 13 | DoS対策 | ✅/❌ |
+| 14 | reorg対策 | ✅/❌ |
+| 15 | HSMセキュリティ | ✅/❌ |
 
 ### 11エージェント評価サマリー
-| エージェント | 評価 | 仕様書参照 | コメント |
-|-------------|------|-----------|---------|
-| Purpose Guardian | ✅/⚠️/❌ | BRIDGE §4 | ... |
-| CTO | ✅/⚠️/❌ | BRIDGE §3, §1.5 | ... |
-| CSO | ✅/⚠️/❌ | BRIDGE §5 | ... |
-| ... | ... | ... | ... |
+| エージェント | 評価 | コメント |
+|-------------|:----:|---------| 
+| Purpose Guardian | ✅/⚠️/❌ | ... |
+| CTO | ✅/⚠️/❌ | ... |
+| ... | ... | ... |
 
 ### CONDITIONALの場合の条件
 - [修正が必要な項目]
-- [仕様書参照: SEQ#X / BRIDGE §X / L3決議]
 
 ### 次のステップ
 - PASS → ⑥ 状態更新
@@ -156,26 +127,17 @@ SPEC_STRATEGY_BRIDGE §1.5 に基づく判定：
 - FAIL → ③ 実装に差し戻し
 ```
 
-## 9. 成果物の保存（必須）
+## 8. 成果物の保存（必須）
 
-PIR会議の結果を以下に保存してください。
-
-### 9.1 保存先
+### 保存先
 ```
-docs/aegis/meetings/PIR-XXX.md
+docs_new/01_phase/04_phase4/pir/PIR-XXX.md
 ```
-※ XXX は CURRENT_STATE.md の「次のPIR ID」に従う
 
-### 9.2 保存内容
-- 上記 8.5 の判定フォーマット全体
-- 11エージェントの詳細コメント（必要に応じて）
-- テスト実行結果のログ
-
-### 9.3 確認
-保存後、以下を出力してください：
+### 確認出力
 ```markdown
 ## PIR結果保存完了
-- ファイル: docs/aegis/meetings/PIR-XXX.md
+- ファイル: docs_new/01_phase/04_phase4/pir/PIR-XXX.md
 - 判定: PASS / CONDITIONAL / FAIL
 - 次のステップ: 06_update.md を実行してください
 ```
