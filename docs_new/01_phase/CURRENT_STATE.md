@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-04 22:10 JST  
+> **Last Updated**: 2026-01-05 22:15 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,12 +13,11 @@
 │  Week: 2 - API Layer                                        │
 │  Month: 13-14 / 24                                          │
 │  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
-│  Status: ✅ Week 2 テスト完了! レビュー待ち                     │
+│  Status: ⚠️ Week 2 セキュリティレビュー完了 (CONDITIONAL)      │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
-│         + 20/20 PASS (Event Bridge + Integration)           │
-│         + 15/15 PASS (API Tests)                            │
+│         + 35/35 PASS (Event Bridge + API)                   │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: 04_review.md 実行 (セキュリティレビュー)         │
+│  次のステップ: 05_pir.md 実行 (PIR-P4-002)                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -31,6 +30,10 @@
 | 1 | ~~Redis認証未実装~~ | ~~Medium~~ | ✅ **FIX-001 完了** |
 | 2 | ~~mTLS実装保留~~ | ~~Medium~~ | ✅ **FIX-002 完了** |
 | 3 | ~~Plonky3 revision不存在~~ | ~~High~~ | ✅ **修正完了** (52b9e418...) |
+| 4 | **Dilithium検証がMock** | 🟡 Medium | ⏳ Week 3で本実装 |
+| 5 | **L1 RPC/SubmitterがMock** | 🟡 Medium | ⏳ Week 3で本実装 |
+| 6 | **API認証未実装** | 🟢 Low | ⏳ Week 4で実装 |
+| 7 | **Rate Limiting未実装** | 🟢 Low | ⏳ Week 4で実装 |
 
 ---
 
@@ -40,7 +43,24 @@
 |------|-----|
 | **対象Plan** | Week 2 - API Layer |
 | **実装日時** | 2026-01-04 22:10 JST |
-| **ステータス** | ✅ 実装完了・テスト完了 |
+| **ステータス** | ⚠️ CONDITIONAL PASS (セキュリティレビュー完了) |
+
+### セキュリティレビュー結果
+| 項目 | 結果 |
+|------|:----:|
+| 仕様書要件確認 | ✅ 10/10 PASS |
+| Phase 4統合確認 | ✅ 5/5 PASS |
+| Phase 4固有セキュリティ | ⚠️ 4/6 PASS (Mock実装あり) |
+| CP-1暗号準拠 | ✅ 6/6 PASS |
+| **判定** | ⚠️ **CONDITIONAL** |
+
+### 条件付き承認事項（本番デプロイ前に必須）
+| # | 条件 | 担当 | 期限 |
+|---|------|------|------|
+| 1 | Dilithium署名検証の本実装 | Engineer | Week 3 |
+| 2 | L1 RPC/Submitterの本実装 | Engineer | Week 3 |
+| 3 | JWT/API Key認証の実装 | Engineer | Week 4 |
+| 4 | Rate Limitingの実装 | DevOps | Week 4 |
 
 ### 対象タスク
 | タスクID | 内容 | 状態 |
@@ -58,6 +78,7 @@
 
 ### 作成ファイル
 - `docs_new/01_phase/04_phase4/API_SPECIFICATION.md`: OpenAPI 3.0スキーマ
+- `docs_new/01_phase/04_phase4/SECURITY_REVIEW_W2.md`: セキュリティレビュー結果
 - `services/api/`: API Rustサーバー
   - `src/main.rs`: エントリポイント
   - `src/routes/lock.rs`: Lock API (API-002)
@@ -80,63 +101,24 @@
 | 項目 | 値 |
 |------|-----|
 | Event Bridge Unit Tests | 12 passed ✅ |
-| Integration Tests | 8 passed ✅ |
-| 新規テスト数 | +20 |
-| 総テスト数 | 20 (event-bridge) |
+| Event Bridge Integration Tests | 8 passed ✅ |
+| API Unit Tests | 15 passed ✅ |
+| 総テスト数 | 35 (event-bridge + api) |
 | 結果 | ✅ ALL PASS |
-
-### テスト詳細 (event-bridge)
-
-#### ユニットテスト (12件)
-| テスト | 結果 |
-|--------|:----:|
-| test_emergency_bond_calculation | ✅ |
-| test_challenge_bond_calculation | ✅ |
-| test_quadratic_slashing | ✅ |
-| test_security_constants | ✅ |
-| test_locked_event_sr0 | ✅ |
-| test_rpc_client_get_logs | ✅ |
-| test_l1_submitter_emergency_unlock | ✅ |
-| test_l1_submitter_submit_unlock | ✅ |
-| test_rpc_client_get_block_number | ✅ |
-| test_retry_success_first_attempt | ✅ |
-| test_retry_success_after_failures | ✅ |
-| test_retry_max_exceeded | ✅ |
-
-#### 統合テスト (8件)
-| テスト | 結果 |
-|--------|:----:|
-| test_bridge_event_types | ✅ |
-| test_challenge_bond_calculation | ✅ |
-| test_emergency_bond_calculation | ✅ |
-| test_quadratic_slashing | ✅ |
-| test_event_id_uniqueness | ✅ |
-| test_security_constants_match_spec | ✅ |
-| test_sr0_computation_sha3 | ✅ |
-| test_unlock_ready_event | ✅ |
 
 ### セキュリティ要件確認
 | 要件 | 出典 | 実装確認 | 結果 |
 |------|------|---------|:----:|
-| 24h Time Lock (Normal) | SEQ#2 | `events.rs:NORMAL_TIME_LOCK_HOURS=24` | ✅ |
-| 7d Time Lock (Emergency) | SEQ#3 | `events.rs:EMERGENCY_TIME_LOCK_DAYS=7` | ✅ |
-| Emergency Bond計算 | SEQ#3 | `events.rs:calculate_emergency_bond()` | ✅ |
+| 24h Time Lock (Normal) | SEQ#2 | `unlock.rs:NORMAL_TIME_LOCK_HOURS=24` | ✅ |
+| 7d Time Lock (Emergency) | SEQ#3 | `unlock.rs:EMERGENCY_TIME_LOCK_DAYS=7` | ✅ |
+| Emergency Bond計算 | SEQ#3 | `unlock.rs:calculate_emergency_bond()` | ✅ |
 | Challenge Bond計算 | SEQ#4 | `events.rs:calculate_challenge_bond()` | ✅ |
-| Quadratic Slashing | SEQ#4 | `events.rs:quadratic_slashing()` | ✅ |
+| Quadratic Slashing | SEQ#4 | `events.rs:calculate_quadratic_slashing()` | ✅ |
 | 72h Emergency Timeout | SEQ#3 | `events.rs:EMERGENCY_TIMEOUT_HOURS=72` | ✅ |
 | 72h Pause上限 | SEQ#8 | `events.rs:MAX_PAUSE_DURATION_HOURS=72` | ✅ |
-| Prover 2/5署名 | SEQ#2 | `events.rs:REQUIRED_PROVER_SIGNATURES=2` | ✅ |
+| Prover 2/5署名 | SEQ#2 | `multi_relayer.rs:signatures.len() >= 2` | ✅ |
 | 12ブロック確認 | AGENT_MEETING | `events.rs:CONFIRMATION_BLOCKS=12` | ✅ |
-| SHA3-256使用 | CP-1 | `events.rs:compute_sr0()` | ✅ |
-
-### 本日の修正履歴
-| 修正 | 内容 |
-|------|------|
-| Plonky3 revision更新 | `93d15d4` → `52b9e418813b83d51902cf163cd1d92b015512a3` |
-| hex crate問題 | `alloy::hex`を使用 |
-| vault_address統一 | `vault_contract`に統一 |
-| config move問題 | `config.clone()`でコピー |
-| 未使用インポート | 削除または`#[allow(dead_code)]` |
+| SHA3-256使用 | CP-1 | `sha3::Sha3_256` 使用 | ✅ |
 
 ---
 
@@ -152,17 +134,17 @@
 | INFRA-004 | Multi-Relayer (2台) | P1 | ✅ | PIR-P4-001 |
 | INFRA-005 | HSM連携仕様書 | P1 | ✅ | PIR-P4-001 |
 
-### Week 2: API Layer (API-001~006) ✅ **テスト完了 - レビュー待ち**
+### Week 2: API Layer (API-001~006) ⚠️ **CONDITIONAL PASS - PIR待ち**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
-| API-001 | OpenAPI 3.0定義 | P0 | ✅ | - |
-| API-002 | Lock API実装 | P0 | ✅ | - |
-| API-003 | Unlock API実装 | P0 | ✅ | - |
-| API-004 | Status Tracker API | P0 | ✅ | - |
-| API-005 | Signature Queue Service | P0 | ✅ | - |
-| API-006 | Edition切替API | P2 | ✅ | - |
-| INFRA-006 | INCIDENT_RESPONSE_PLAN.md | P1 | ✅ | - |
+| API-001 | OpenAPI 3.0定義 | P0 | ✅ | PIR-P4-002 |
+| API-002 | Lock API実装 | P0 | ✅ | PIR-P4-002 |
+| API-003 | Unlock API実装 | P0 | ✅ | PIR-P4-002 |
+| API-004 | Status Tracker API | P0 | ✅ | PIR-P4-002 |
+| API-005 | Signature Queue Service | P0 | ✅ | PIR-P4-002 |
+| API-006 | Edition切替API | P2 | ✅ | PIR-P4-002 |
+| INFRA-006 | INCIDENT_RESPONSE_PLAN.md | P1 | ✅ | PIR-P4-002 |
 
 ### Week 3: Client SDK (SDK-001~005) ⬜ **NOT STARTED**
 
@@ -195,9 +177,9 @@
 |---|--------|--------|:----:|
 | 1 | ~~01_plan.md 実行 (Week 2)~~ | ~~P0~~ | ✅ **DONE** |
 | 2 | ~~03_impl.md 実行 (API-001~006)~~ | ~~P0~~ | ✅ **DONE** |
-| 3 | ~~テスト実行 (cargo test)~~ | ~~P0~~ | ✅ **DONE** (20/20 PASS) |
-| 4 | **04_review.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
-| 5 | 05_pir.md 実行 (PIR-P4-002) | P0 | ⬜ |
+| 3 | ~~テスト実行 (cargo test)~~ | ~~P0~~ | ✅ **DONE** (35/35 PASS) |
+| 4 | ~~04_review.md 実行~~ | ~~P0~~ | ✅ **CONDITIONAL** |
+| 5 | **05_pir.md 実行 (PIR-P4-002)** | 🔴 **P0** | ⬜ **NEXT** |
 | 6 | 06_update.md 実行 | P0 | ⬜ |
 | 7 | Week 3計画開始 (Client SDK) | P0 | ⬜ |
 
@@ -213,6 +195,11 @@
 | PIR-P4-002 | Week 2 API Layer | ⬜ 待ち | - |
 
 ### 次のPIR ID: PIR-P4-002 (Week 2 API Layer)
+
+### PIR-P4-002 議題
+1. セキュリティレビュー結果確認
+2. 条件付き承認事項の追跡方法決定
+3. Week 3計画承認
 
 ---
 
@@ -231,7 +218,7 @@
 | Week | 内容 | 状態 | PIR |
 |------|------|:----:|-----|
 | Week 1 | Infrastructure (Event Bridge) | ✅ | PIR-P4-001 |
-| Week 2 | API Layer | ✅ テスト完了 | PIR-P4-002 待ち |
+| Week 2 | API Layer | ⚠️ CONDITIONAL | PIR-P4-002 待ち |
 | Week 3 | Client SDK | ⬜ | - |
 | Week 4-5 | Admin Dashboard | ⬜ | - |
 | Week 5-6 | End User App | ⬜ | - |
@@ -246,6 +233,7 @@
 |------------|------|
 | Phase 4計画書 | `docs_new/01_phase/04_phase4/PHASE4_PLAN.md` |
 | API仕様書 | `docs_new/01_phase/04_phase4/API_SPECIFICATION.md` |
+| セキュリティレビュー | `docs_new/01_phase/04_phase4/SECURITY_REVIEW_W2.md` |
 | Event Bridge仕様 | `docs_new/01_phase/04_phase4/EVENT_BRIDGE_SPEC.md` |
 | HSM連携仕様 | `docs_new/01_phase/04_phase4/HSM_INTEGRATION_SPEC.md` |
 | Incident Response Plan | `docs_new/00_core/INCIDENT_RESPONSE_PLAN.md` |
