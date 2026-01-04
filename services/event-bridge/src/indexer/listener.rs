@@ -5,8 +5,8 @@
 //! PIR-P4-001対応: Mock実装をethersクライアント実装に置換
 
 use crate::config::Config;
-use crate::error::{Error, Result};
-use crate::events::{security, BridgeEvent, LockedEvent, EmergencyUnlockEvent};
+use crate::error::Result;
+use crate::events::BridgeEvent;
 use crate::indexer::EventProcessor;
 use crate::metrics;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -16,6 +16,7 @@ use tokio::time::interval;
 use tracing::{debug, error, info, warn};
 
 /// L1 Vault Contract Events (イベントシグネチャ)
+#[allow(dead_code)]
 mod event_signatures {
     /// Locked(bytes32 indexed lockId, address indexed owner, ...)
     pub const LOCKED_EVENT: &str = "Locked(bytes32,address,uint256,address,uint256,uint256,bytes)";
@@ -66,6 +67,7 @@ impl L1RpcClient {
         {
             // 本番モード: 実際のRPCに接続
             // ethers/alloy統合後に置換
+            let _ = (&self.http_url, &self.ws_url, &self.contract_address);
             warn!("Using mock block number - integrate ethers/alloy for production");
             Ok(12345678)
         }
@@ -124,7 +126,7 @@ impl L1EventListener {
         let rpc_client = L1RpcClient::new(
             &config.l1.http_rpc_url,
             &config.l1.ws_rpc_url,
-            &config.l1.vault_address,
+            &config.l1.vault_contract,  // Fixed: vault_address -> vault_contract
         );
         
         Ok(Self {
@@ -156,7 +158,7 @@ impl L1EventListener {
     }
 
     /// Listen via WebSocket (primary method)
-    async fn listen_websocket(&self, processor: &EventProcessor) -> Result<()> {
+    async fn listen_websocket(&self, _processor: &EventProcessor) -> Result<()> {
         info!("📡 Connecting to WebSocket: {}", self.config.l1.ws_rpc_url);
         
         // WebSocket subscription:
