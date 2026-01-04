@@ -134,7 +134,7 @@ pub struct ProverRegisterResponse {
     pub stake_locked: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ProverInfoResponse {
     pub prover_id: String,
     pub operator_addr: String,
@@ -155,7 +155,7 @@ pub enum ProverStatus {
     Slashed,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SlashingEvent {
     pub timestamp: u64,
     pub amount: String,
