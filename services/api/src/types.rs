@@ -215,6 +215,9 @@ pub struct Lock {
     pub created_at: u64,
     pub release_time: Option<u64>,
     pub is_emergency: bool,
+    /// User's Dilithium-III public key (hex encoded)
+    /// Required for signature verification during unlock (CP-1)
+    pub user_public_key: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
