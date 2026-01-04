@@ -49,6 +49,7 @@ impl EventQueue {
     }
 
     /// Enqueue event for L1 relay
+    #[allow(dead_code)]
     pub async fn enqueue_l1_relay(&self, event: &BridgeEvent) -> Result<String> {
         let mut conn = self.client.get_multiplexed_async_connection().await?;
         
@@ -131,6 +132,7 @@ impl EventQueue {
     }
 
     /// Acknowledge processed event
+    #[allow(dead_code)]
     pub async fn ack(&self, stream: &str, id: &str) -> Result<()> {
         let mut conn = self.client.get_multiplexed_async_connection().await?;
         
