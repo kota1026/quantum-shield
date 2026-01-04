@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-04 22:15 JST  
+> **Last Updated**: 2026-01-04 22:45 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,15 +13,16 @@
 │  Week: 1 / 8 (Week 15-22 overall)                           │
 │  Month: 13-14 / 24                                          │
 │  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
-│  Status: 🚀 Week 1 INFRA-001~005 実装完了                    │
+│  Status: 🚀 Week 1 INFRA-001~005 実装完了 & レビュー通過     │
 │          ✅ Phase 3 完了 (Go/No-Go PASS)                    │
 │          ✅ CURRENT_PLAN.md 作成完了                        │
 │          ✅ Week 1: Infrastructure (INFRA-001~005) 実装済み  │
 │          ✅ Event Bridge Unit Tests 実行済み (10/10 PASS)   │
+│          ✅ セキュリティレビュー PASS (04_review.md)         │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │         + 10/10 PASS (Event Bridge Unit Tests)              │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: 04_review.md → セキュリティレビュー           │
+│  次のステップ: 05_pir.md → PIR-P4-001 実施                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -31,13 +32,14 @@
 
 | # | 懸念 | 重要度 | 対応予定 |
 |---|------|--------|----------|
-| - | なし | - | - |
+| 1 | Redis認証未実装 | Medium | Week 2で実装必須 |
+| 2 | mTLS実装保留 | Medium | Week 2で実装必須 |
 
 ---
 
 ## 📋 Phase 4 タスク進捗
 
-### Week 1: Infrastructure (INFRA-001~005) ✅ **IMPLEMENTED & TESTED**
+### Week 1: Infrastructure (INFRA-001~005) ✅ **REVIEW PASSED**
 
 | タスクID | 内容 | 優先度 | 状態 | PIR ID |
 |---------|------|:------:|:----:|--------|
@@ -117,94 +119,34 @@
 
 ## 📦 最新実装レポート
 
-> **用途**: 03_impl.md → 04_review.md への情報引継ぎ  
-> **更新タイミング**: 03_impl.md の Step 6 完了時
+> **ステータス**: ✅ レビュー完了（リセット待ち）
+> **レビュー結果**: PASS
 
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | Phase 4 Week 1 - Infrastructure |
 | **実装日時** | 2026-01-04 21:48 JST |
 | **テスト実行日時** | 2026-01-04 22:10 JST |
-| **ステータス** | ✅ 実装完了 & テスト完了 |
+| **レビュー完了日時** | 2026-01-04 22:45 JST |
+| **ステータス** | ✅ セキュリティレビュー PASS |
 
-### 対象タスク
+### セキュリティレビュー結果サマリー
 
-| タスクID | 内容 | 状態 |
-|---------|------|:----:|
-| INFRA-001 | Event Bridge設計 | ✅ |
-| INFRA-002 | L1→L3 Event Indexer | ✅ |
-| INFRA-003 | L3→L1 Relayer (Multi-Relayer) | ✅ |
-| INFRA-004 | Multi-Relayer統合テスト | ✅ |
-| INFRA-005 | HSM連携仕様書 | ✅ |
+| カテゴリ | 結果 |
+|---------|:----:|
+| 仕様書要件確認 (SEQUENCES.md) | ✅ 6/6 PASS |
+| Phase 4統合確認 | ✅ 5/5 PASS |
+| Phase 4固有セキュリティ | ✅ 4/5 PASS (API認証はWeek 2) |
+| 暗号実装確認 (CP-1準拠) | ✅ 全項目PASS |
+| 攻撃ベクトル分析 | ✅ 10/10 対策済み |
 
-### 作成ファイル
+### 発見事項（Week 2で対応）
 
-- `services/event-bridge/`: Event Bridge Service (Rust)
-  - `src/lib.rs`: メインライブラリ
-  - `src/events.rs`: イベント定義 + セキュリティ定数
-  - `src/indexer/`: L1→L3 Event Indexer
-  - `src/relayer/`: L3→L1 Multi-Relayer
-  - `src/queue.rs`: Redis Streams Queue
-  - `src/idempotency.rs`: 冪等性管理
-  - `src/metrics.rs`: Prometheus メトリクス
-  - `src/retry.rs`: リトライポリシー
-  - `tests/integration_test.rs`: 統合テスト
-- `docs_new/01_phase/04_phase4/HSM_INTEGRATION_SPEC.md`: HSM連携仕様
-
-### 実装されたセキュリティ要件
-
-| 要件 | 仕様出典 | 実装 |
-|------|---------|------|
-| 24h Time Lock (Normal) | SEQ#2 | `NORMAL_TIMELOCK_SECONDS = 86400` |
-| 7d Time Lock (Emergency) | SEQ#3 | `EMERGENCY_TIMELOCK_SECONDS = 604800` |
-| Emergency Bond | SEQ#3 | `MAX(0.5 ETH, amount × 5%)` |
-| 72h Emergency Timeout | SEQ#3 | `EMERGENCY_TIMEOUT_SECONDS = 259200` |
-| 72h Max Pause | SEQ#8 | `MAX_PAUSE_DURATION_SECONDS = 259200` |
-| Quadratic Slashing | SEQ#4 | `N² × 10%` |
-| 12 Block Confirmations | AGENT_MEETING | `CONFIRMATION_BLOCKS = 12` |
-
-### テスト結果
-
-| 項目 | 値 |
-|------|-----|
-| 新規テスト数 | +10 (Event Bridge Unit Tests) |
-| 総テスト数 | 892 + 10 = 902 |
-| 結果 | ✅ ALL PASS |
-
-#### Event Bridge Unit Tests 詳細 (2026-01-04 22:10 JST 実行)
-
-```
-running 10 tests
-test tests::test_1000eth_emergency_bond ... ok
-test tests::test_10eth_emergency_bond ... ok
-test tests::test_challenge_bond_calculation ... ok
-test tests::test_bridge_event_types ... ok
-test tests::test_emergency_bond_calculation ... ok
-test tests::test_locked_event_sr0 ... ok
-test tests::test_quadratic_slashing ... ok
-test tests::test_security_constants ... ok
-test tests::test_sr0_deterministic ... ok
-test tests::test_unlock_ready_event ... ok
-
-test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
-```
-
-| テスト名 | 検証内容 | 結果 |
-|---------|---------|:----:|
-| test_security_constants | Time Lock / Timeout値の検証 | ✅ |
-| test_emergency_bond_calculation | MIN(0.5 ETH) vs 5%の計算 | ✅ |
-| test_10eth_emergency_bond | 10 ETH時のBond計算 | ✅ |
-| test_1000eth_emergency_bond | 1000 ETH時のBond計算 | ✅ |
-| test_challenge_bond_calculation | Challenge Bond計算 | ✅ |
-| test_quadratic_slashing | N² × 10% Slashing | ✅ |
-| test_locked_event_sr0 | SR0ハッシュ生成 | ✅ |
-| test_sr0_deterministic | SR0の決定性検証 | ✅ |
-| test_unlock_ready_event | UnlockReady構造検証 | ✅ |
-| test_bridge_event_types | イベントタイプルーティング | ✅ |
-
-**テスト実行環境**: Claude.ai内蔵Linuxコンテナ (Ubuntu 24, Rust 1.75.0)
-
-**注意**: 統合テスト（Redis接続、L1/L3接続）はWeek 2で実施予定
+| # | 重要度 | 項目 | 対策 |
+|---|--------|------|------|
+| 1 | Medium | Redis認証未実装 | Week 2で実装必須 |
+| 2 | Medium | mTLS実装保留 | Week 2で実装必須 |
+| 3 | Low | Mock実装残存 | Week 2統合テストで置換予定 |
 
 ---
 
@@ -242,7 +184,7 @@ test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 | aegis-vm | ✅ |
 | aegis-types | ✅ |
 
-### Event Bridge: ✅ **IMPLEMENTED & TESTED**
+### Event Bridge: ✅ **IMPLEMENTED & REVIEWED**
 
 | Component | Status |
 |-----------|:------:|
@@ -251,6 +193,7 @@ test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 | Multi-Relayer | ✅ INFRA-004 |
 | HSM Spec | ✅ INFRA-005 |
 | Unit Tests | ✅ 10/10 PASS |
+| Security Review | ✅ PASS |
 
 ---
 
@@ -280,8 +223,8 @@ test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 | 2 | ~~CURRENT_PLAN.md 作成~~ | ~~P0~~ | ✅ **DONE** |
 | 3 | ~~03_impl.md 実行 (INFRA-001~005)~~ | ~~P0~~ | ✅ **DONE** |
 | 4 | ~~Event Bridge Unit Tests 実行~~ | ~~P0~~ | ✅ **DONE** |
-| 5 | **04_review.md 実行** | 🔴 **P0** | ⬜ **NEXT** |
-| 6 | PIR-P4-001 実施 | 🔴 P0 | ⬜ |
+| 5 | ~~04_review.md 実行~~ | ~~P0~~ | ✅ **DONE** (PASS) |
+| 6 | **05_pir.md 実行 (PIR-P4-001)** | 🔴 **P0** | ⬜ **NEXT** |
 
 ---
 
