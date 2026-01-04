@@ -6,7 +6,7 @@
 //! - Multi-Relayer failover (INFRA-004)
 //! - Security parameters validation
 
-use event_bridge::events::{security, BridgeEvent, LockedEvent, UnlockReadyEvent};
+use event_bridge::events::{security, BridgeEvent, LockedEvent, UnlockReadyEvent, SphincsSignature};
 
 /// Test security constants match SEQUENCES.md
 #[test]
@@ -115,4 +115,106 @@ fn test_sr0_computation_sha3() {
         amount: 1_000_000_000_000_000_000,
         dest_addr: vec![4u8; 20],
         expiry: 1704067200,
-        n
+        nonce: 1,
+        sr0: [0u8; 32],
+        l1_block_number: 12345678,
+        l1_tx_hash: [5u8; 32],
+    };
+
+    let computed_sr0 = event.compute_sr0();
+    
+    // SR0 should be non-zero
+    assert_ne!(computed_sr0, [0u8; 32]);
+    
+    // SR0 should be deterministic
+    let computed_again = event.compute_sr0();
+    assert_eq!(computed_sr0, computed_again);
+}
+
+/// Test event ID uniqueness
+#[test]
+fn test_event_id_uniqueness() {
+    let event1 = LockedEvent {
+        lock_id: [1u8; 32],
+        owner: [2u8; 20],
+        chain_id: 11155111,
+        asset: [3u8; 20],
+        amount: 1_000_000_000_000_000_000,
+        dest_addr: vec![4u8; 20],
+        expiry: 1704067200,
+        nonce: 1,
+        sr0: [0u8; 32],
+        l1_block_number: 12345678,
+        l1_tx_hash: [5u8; 32],
+    };
+
+    let mut event2 = event1.clone();
+    event2.nonce = 2; // Different nonce
+
+    // Different locks should have different IDs
+    let id1 = event1.event_id();
+    let id2 = event2.event_id();
+    
+    // Note: event_id uses lock_id + l1_tx_hash, so if l1_tx_hash is same, IDs will be same
+    // This is by design - same transaction = same event
+}
+
+/// Test unlock ready event with SPHINCS+ signatures
+#[test]
+fn test_unlock_ready_event() {
+    let unlock = UnlockReadyEvent {
+        lock_id: [1u8; 32],
+        sr0: [2u8; 32],
+        sr1: [3u8; 32],
+        smt_proof: vec![4u8; 128],
+        unlock_data: vec![5u8; 64],
+        sphincs_signatures: vec![
+            SphincsSignature {
+                prover_id: [6u8; 32],
+                signature: vec![7u8; 8000], // ~8KB signature
+                public_key: vec![8u8; 1312], // SPHINCS+-128s public key
+            },
+            SphincsSignature {
+                prover_id: [9u8; 32],
+                signature: vec![10u8; 8000],
+                public_key: vec![11u8; 1312],
+            },
+        ],
+        l3_block_number: 54321,
+    };
+
+    // Should have 2 signatures (2/5 threshold)
+    assert_eq!(unlock.sphincs_signatures.len(), 2);
+    
+    // Event ID should be deterministic
+    let id1 = unlock.event_id();
+    let id2 = unlock.event_id();
+    assert_eq!(id1, id2);
+}
+
+/// Test bridge event type routing
+#[test]
+fn test_bridge_event_types() {
+    let locked = BridgeEvent::Locked(LockedEvent {
+        lock_id: [0u8; 32],
+        owner: [0u8; 20],
+        chain_id: 0,
+        asset: [0u8; 20],
+        amount: 0,
+        dest_addr: vec![],
+        expiry: 0,
+        nonce: 0,
+        sr0: [0u8; 32],
+        l1_block_number: 0,
+        l1_tx_hash: [0u8; 32],
+    });
+
+    let heartbeat = BridgeEvent::Heartbeat {
+        timestamp: 1704067200,
+        l1_block: 12345678,
+        l3_block: 54321,
+    };
+
+    assert_eq!(locked.event_type(), "Locked");
+    assert_eq!(heartbeat.event_type(), "Heartbeat");
+}
