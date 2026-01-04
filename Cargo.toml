@@ -5,6 +5,9 @@ members = [
     "circuits/dilithium-stark",
     "circuits/plonky3-poc",
     "stark-prover",
+    "services/event-bridge",
+    "services/api",
+    "services/sig-queue",
 ]
 resolver = "2"
 
