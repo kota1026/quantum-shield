@@ -1,27 +1,20 @@
-# ⚠️ DEPRECATED - レガシーディレクトリ
+# 📂 PIRファイル移動完了
 
-> **警告**: このディレクトリは非推奨です。
+## ⚠️ このディレクトリは非推奨です
 
-## 最新のPIR結果の場所
+PIRファイルは以下の新しい場所に移動されました：
 
-**正しいパス**: `docs/aegis/meetings/PIR-XXX.md`
+- **Phase 1**: `docs/phases/phase1/pir/`
+- **Phase 2**: `docs/phases/phase2/pir/`
+- **Phase 3.1**: `docs/phases/phase3/phase3.1/pir/`
+- **Phase 3.2**: `docs/phases/phase3/phase3.2/pir/`
+- **Phase 3.3**: `docs/phases/phase3/phase3.3/pir/`
 
-## このディレクトリについて
+## 移動理由
 
-このディレクトリ (`docs/aegis/pir/`) には過去のPIRファイルが含まれていますが、
-Phase 3以降のPIR結果は `docs/aegis/meetings/` に保存されています。
-
-### 参照すべきディレクトリ
-
-| 用途 | パス |
-|------|------|
-| **最新PIR結果** | `docs/aegis/meetings/PIR-XXX.md` ✅ |
-| レガシーPIR（参照のみ） | `docs/aegis/pir/` ⚠️ |
-
-## エージェント向け注意
-
-06_update.md や 05_pir.md を実行する際は、必ず `docs/aegis/meetings/` を参照してください。
+1. フェーズベースのディレクトリ構造への統一
+2. プロジェクト管理の効率化
+3. MIGRATION_PLAN.mdに基づく再編成
 
 ---
-
-**このディレクトリは将来的に削除される可能性があります。**
+*このディレクトリ内の旧ファイルは削除されました。*
