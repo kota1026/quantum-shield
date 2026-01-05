@@ -20,26 +20,27 @@
 ## 4. タスク
 
 ### 4.1 CURRENT_STATE.md の更新
-1. 該当WeekのタスクIDステータスを ✅ に更新
+1. 該当タスクのステータスを ✅ に更新
 2. PIR IDの判定結果を更新
 3. テスト数を更新
 4. 必要に応じてActive Checklistを更新
 
-### 4.2 Phase 4タスク完了記録
+### 4.2 タスク完了記録
 
 ```markdown
-## Phase 4 タスク進捗
+## タスク進捗
 
-### Week 1: Infrastructure
-| タスクID | 内容 | 状態 | PIR ID |
-|---------|------|:----:|--------|
-| INFRA-001 | Event Bridge設計 | ✅ | PIR-XXX |
-| INFRA-002 | L1→L3 Indexer | ✅ | PIR-XXX |
+| タスク | 状態 | PIR ID |
+|-------|:----:|--------|
+| [タスク名] | ✅ | PIR-XXX |
 
-### Week 2: API Layer
-| タスクID | 内容 | 状態 | PIR ID |
-|---------|------|:----:|--------|
-| API-001 | OpenAPI定義 | ⬜ | - |
+## 戦略決定文書準拠状況
+| ドキュメント | 準拠 |
+|------------|:----:|
+| 04_SCREENS.md | ✅ |
+| 05_AUTH_SECURITY.md | ✅ |
+| 06_DATA_DESIGN.md | ✅ |
+| 07_INTEGRATION.md | ✅ |
 ```
 
 ### 4.3 Active Checklist の更新
@@ -58,15 +59,12 @@
 - Active Checklist: [変更箇所]
 - CURRENT_PLAN.md: [削除/維持]
 
-## Phase 4タスク進捗
-| タスクID | 状態 |
-|---------|:----:|
-| INFRA-001 | ✅ 完了 |
-| INFRA-002 | ✅ 完了 |
-| API-001 | ⬜ 未着手 |
+## タスク進捗
+| タスク | 状態 |
+|-------|:----:|
+| [タスク名] | ✅ 完了 |
 
 ## 次のステップ
-- 次のタスク: Week X
-- 次のタスクID: [INFRA-xxx / API-xxx / SDK-xxx / UI-xxx]
-- 次のActive Checklist: [パス]
+- 次のタスク: [タスク名]
+- 参照: `docs_new/01_phase/04_phase4/00_戦略決定文書/`
 ```
