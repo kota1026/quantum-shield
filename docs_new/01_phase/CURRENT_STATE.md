@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-06 23:30 JST  
+> **Last Updated**: 2026-01-06 23:50 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -13,10 +13,11 @@
 │  Week: UI Week 1-2 (基盤構築)                               │
 │  Month: 13-14 / 24                                          │
 │  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
-│  Status: ✅ UI Week 1-2 実装完了 → レビュー待ち              │
+│  Status: ✅ UI Week 1-2 実装・テスト完了 → レビュー待ち      │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │         + 42/42 PASS (API) + 26/26 PASS (Event Bridge)      │
 │         + 37/37 PASS (SDK TS) + 7/7 PASS (SDK React)        │
+│         + 56/56 PASS (UI Packages) ← NEW                    │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
 │  次のステップ: 04_review.md (セキュリティレビュー)           │
 └─────────────────────────────────────────────────────────────┘
@@ -45,9 +46,9 @@
 | 項目 | 値 |
 |------|-----|
 | **対象Plan** | UI Week 1-2 基盤構築 |
-| **タスクID** | UIBASE-001 ~ UIBASE-006 |
-| **実装日時** | 2026-01-06 23:30 JST |
-| **ステータス** | ✅ **実装完了** |
+| **タスクID** | UIBASE-001 ~ UIBASE-007 |
+| **実装日時** | 2026-01-06 23:50 JST |
+| **ステータス** | ✅ **実装・テスト完了** |
 
 ### 成果物一覧
 
@@ -61,6 +62,15 @@
 | UIBASE-006: API Client | ✅ | `ui/packages/api-client/` |
 | UIBASE-007: ESLint/TypeScript設定 | ✅ | `ui/tooling/` |
 | Consumer App サンプル | ✅ | `ui/apps/consumer/` |
+
+### テスト結果 ✅ 56/56 PASS
+
+| パッケージ | テスト数 | 結果 | 内容 |
+|-----------|:-------:|:----:|------|
+| `@quantum-shield/ui` | 32 | ✅ PASS | utils (17), Button (9), Badge (6) |
+| `@quantum-shield/web3` | 12 | ✅ PASS | chains (12) |
+| `@quantum-shield/api-client` | 12 | ✅ PASS | client (12) |
+| **合計** | **56** | ✅ | |
 
 ### UIコンポーネント詳細 (22種)
 
@@ -93,9 +103,9 @@ ui/
 ├── apps/
 │   └── consumer/              # ✅ Consumer App サンプル (3画面)
 ├── packages/
-│   ├── ui/                    # ✅ 共通UIコンポーネント (22種)
-│   ├── web3/                  # ✅ wagmi/SIWE認証
-│   └── api-client/            # ✅ APIクライアント
+│   ├── ui/                    # ✅ 共通UIコンポーネント (22種) + テスト (32)
+│   ├── web3/                  # ✅ wagmi/SIWE認証 + テスト (12)
+│   └── api-client/            # ✅ APIクライアント + テスト (12)
 └── tooling/
     ├── typescript-config/     # ✅ 共通TypeScript設定
     ├── eslint-config/         # ✅ 共通ESLint設定
@@ -139,15 +149,15 @@ ui/
 
 ### UI Week 1-2: 基盤構築 ✅ **COMPLETE - レビュー待ち**
 
-| タスクID | 内容 | 状態 |
-|---------|------|:----:|
-| UIBASE-001 | Turborepo Monorepo | ✅ |
-| UIBASE-002 | 共通UIコンポーネント | ✅ |
-| UIBASE-003 | Tailwind Config | ✅ |
-| UIBASE-004 | SIWE認証基盤 | ✅ |
-| UIBASE-005 | wagmi/viem設定 | ✅ |
-| UIBASE-006 | API Client | ✅ |
-| UIBASE-007 | ESLint/TypeScript設定 | ✅ |
+| タスクID | 内容 | 状態 | テスト |
+|---------|------|:----:|:------:|
+| UIBASE-001 | Turborepo Monorepo | ✅ | - |
+| UIBASE-002 | 共通UIコンポーネント | ✅ | 32 |
+| UIBASE-003 | Tailwind Config | ✅ | - |
+| UIBASE-004 | SIWE認証基盤 | ✅ | - |
+| UIBASE-005 | wagmi/viem設定 | ✅ | 12 |
+| UIBASE-006 | API Client | ✅ | 12 |
+| UIBASE-007 | ESLint/TypeScript設定 | ✅ | - |
 
 ---
 
@@ -208,14 +218,12 @@ ui/
 
 ## 📈 テスト数推移
 
-| Week | Rust | Solidity | API | Event Bridge | SDK TS | SDK React | 合計 |
-|------|:----:|:--------:|:---:|:------------:|:------:|:---------:|:----:|
-| W1 | 264 | 628 | - | 26 | - | - | 918 |
-| W2 | 264 | 628 | 42 | 26 | - | - | 960 |
-| W3 | 264 | 628 | 42 | 26 | 37 | 7 | **1004** |
-| UI W1-2 | 264 | 628 | 42 | 26 | 37 | 7 | **1004** |
-
-※ UIテストは次フェーズ（Storybook + Jest/Vitest）で追加予定
+| Week | Rust | Solidity | API | Event Bridge | SDK TS | SDK React | UI | 合計 |
+|------|:----:|:--------:|:---:|:------------:|:------:|:---------:|:--:|:----:|
+| W1 | 264 | 628 | - | 26 | - | - | - | 918 |
+| W2 | 264 | 628 | 42 | 26 | - | - | - | 960 |
+| W3 | 264 | 628 | 42 | 26 | 37 | 7 | - | 1004 |
+| UI W1-2 | 264 | 628 | 42 | 26 | 37 | 7 | 56 | **1060** |
 
 ---
 
