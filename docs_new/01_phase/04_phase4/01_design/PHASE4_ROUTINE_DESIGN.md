@@ -1,7 +1,7 @@
 # 🔄 Phase 4 Routine Design
 ## ルーティン設計とプロンプト順序
 
-> **Version**: 1.0  
+> **Version**: 1.1  
 > **Date**: 2026-01-06  
 > **Scope**: Phase 4A (Design) + Phase 4B (Implementation)
 
@@ -22,10 +22,17 @@
 │  ├─────────────────────────────────────────────────────────────────────────┤   │
 │  │                                                                          │   │
 │  │   ┌────────┐   ┌────────┐   ┌────────┐   ┌────────┐   ┌────────┐       │   │
-│  │   │08_prep │ → │09_design│ → │10_pir  │ → │ Approve│ → │ Repeat │       │   │
+│  │   │08_prep │ → │09_create│ → │10_pir  │ → │11_fix  │ → │ Repeat │       │   │
 │  │   └────────┘   └────────┘   └────────┘   └────────┘   └────────┘       │   │
+│  │                     │              │            │                        │   │
+│  │                     ↓              │            │                        │   │
+│  │                 Git Push           │            ↓                        │   │
+│  │                 (wip/)             │       Git Push                      │   │
+│  │                     │              │       (修正)                        │   │
+│  │                     ↓              ↓            │                        │   │
+│  │                MANIFEST.md → PIR参照 → 修正参照                          │   │
 │  │                                                                          │   │
-│  │   成果物: Figma + HTML Mock                                              │   │
+│  │   成果物: Figma + HTML Mock (Git管理)                                    │   │
 │  │   レビュー: CDO, Marketing, Legal, Personas                              │   │
 │  │   頻度: 週2回PIR可能                                                     │   │
 │  │                                                                          │   │
@@ -68,259 +75,183 @@ quantum-shield/
             ├── 06_update.md        # Phase 4B: 状態更新
             ├── 07_gonogo.md        # Phase 4B: Go/No-Go
             │
-            ├── 08_design_prep.md   # Phase 4A: デザイン準備 ← NEW
-            ├── 09_design_create.md # Phase 4A: デザイン作成 ← NEW
-            └── 10_design_pir.md    # Phase 4A: デザインPIR ← NEW
+            ├── 08_design_prep.md   # Phase 4A: デザイン準備
+            ├── 09_design_create.md # Phase 4A: デザイン作成 + Git Push
+            ├── 10_design_pir.md    # Phase 4A: デザインPIR（ファイルパス必須）
+            └── 11_design_fix.md    # Phase 4A: デザイン修正 ← NEW
 ```
 
 ---
 
 # Part 2: Phase 4A ルーティン
 
-## 2.1 Phase 4A フロー詳細
+## 2.1 Phase 4A フロー詳細（ファイル永続化対応版）
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                        PHASE 4A: DESIGN ROUTINE                                 │
+│                    PHASE 4A: DESIGN ROUTINE (FILE PERSISTENCE)                  │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                 │
 │  ┌─────────────────────────────────────────────────────────────────────────┐   │
 │  │ 08_design_prep.md                                                        │   │
 │  │ ─────────────────                                                        │   │
-│  │ 入力:                                                                    │   │
-│  │   • UI_PROGRESS_TRACKER.md (対象システム選定)                            │   │
-│  │   • 02_PERSONAS.md (関連ペルソナ)                                        │   │
-│  │   • 03_USER_JOURNEYS.md (ジャーニー)                                     │   │
-│  │   • UI_DESIGN_GUIDELINES.md (デザインシステム)                           │   │
-│  │                                                                          │   │
-│  │ タスク:                                                                  │   │
-│  │   1. 対象システム確認（P0から順に）                                      │   │
-│  │   2. 画面リスト抽出                                                      │   │
-│  │   3. ペルソナ×画面マッピング                                             │   │
-│  │   4. デザイン要件整理                                                    │   │
-│  │                                                                          │   │
-│  │ 出力:                                                                    │   │
-│  │   • DESIGN_BRIEF_[SYSTEM].md                                             │   │
+│  │ 出力: DESIGN_BRIEF_[SYSTEM].md                                           │   │
 │  └─────────────────────────────────────────────────────────────────────────┘   │
 │                                      ↓                                          │
 │  ┌─────────────────────────────────────────────────────────────────────────┐   │
 │  │ 09_design_create.md                                                      │   │
 │  │ ──────────────────                                                       │   │
-│  │ 入力:                                                                    │   │
-│  │   • DESIGN_BRIEF_[SYSTEM].md                                             │   │
-│  │   • UI_DESIGN_GUIDELINES.md                                              │   │
-│  │   • design-concept-5-japan-premium.html (参考)                           │   │
 │  │                                                                          │   │
-│  │ タスク:                                                                  │   │
-│  │   1. ワイヤーフレーム作成                                                │   │
-│  │   2. High-Fidelity デザイン (Figma)                                      │   │
-│  │   3. インタラクティブモック (HTML/React)                                 │   │
-│  │   4. レスポンシブ対応                                                    │   │
+│  │ ⚠️ 重要: ファイル永続化プロセス                                          │   │
+│  │                                                                          │   │
+│  │ 1. ファイル作成                                                          │   │
+│  │    └── wip/mocks/01_landing.html                                         │   │
+│  │    └── wip/mocks/02_onboarding.html                                      │   │
+│  │    └── ...                                                               │   │
+│  │                                                                          │   │
+│  │ 2. 即座にGitプッシュ（必須）                                             │   │
+│  │    └── github:create_or_update_file で各ファイルをプッシュ               │   │
+│  │                                                                          │   │
+│  │ 3. DESIGN_MANIFEST.md 作成                                               │   │
+│  │    └── 全ファイルのパスを記録                                            │   │
+│  │    └── Gitにプッシュ                                                     │   │
 │  │                                                                          │   │
 │  │ 出力:                                                                    │   │
-│  │   • Figma ファイル                                                       │   │
-│  │   • HTML/React モック                                                    │   │
+│  │   • wip/wireframes/*.md (Git)                                            │   │
+│  │   • wip/mocks/*.html (Git)                                               │   │
+│  │   • DESIGN_MANIFEST.md (Git)                                             │   │
+│  │                                                                          │   │
 │  └─────────────────────────────────────────────────────────────────────────┘   │
 │                                      ↓                                          │
 │  ┌─────────────────────────────────────────────────────────────────────────┐   │
 │  │ 10_design_pir.md                                                         │   │
 │  │ ────────────────                                                         │   │
-│  │ 入力:                                                                    │   │
-│  │   • DESIGN_REVIEW_AGENTS.md (レビューAgent定義)                          │   │
-│  │   • DESIGN_PIR_PROCESS.md (PIRプロセス)                                  │   │
-│  │   • デザインファイル                                                     │   │
 │  │                                                                          │   │
-│  │ タスク:                                                                  │   │
-│  │   1. CDO レビュー                                                        │   │
-│  │   2. Marketing レビュー                                                  │   │
-│  │   3. Legal レビュー                                                      │   │
-│  │   4. Persona レビュー（対象ペルソナ）                                    │   │
-│  │   5. フィードバック統合                                                  │   │
-│  │   6. 判定 (PASS/CONDITIONAL/FAIL)                                        │   │
+│  │ ⚠️ 重要: ファイルパス必須                                                │   │
+│  │                                                                          │   │
+│  │ 1. DESIGN_MANIFEST.md からファイル一覧を取得                             │   │
+│  │                                                                          │   │
+│  │ 2. GitHubからファイルをFetchしてレビュー                                 │   │
+│  │                                                                          │   │
+│  │ 3. 指摘は必ず「ファイル + 行番号」形式で記載                             │   │
+│  │    例:                                                                   │   │
+│  │    | # | 重要度 | ファイル | 行 | 指摘 | 修正案 |                        │   │
+│  │    | 1 | High | wip/mocks/03_dashboard.html | L142 | ... | ... |         │   │
 │  │                                                                          │   │
 │  │ 出力:                                                                    │   │
-│  │   • PIR_[SYSTEM].md                                                      │   │
-│  │   • UI_PROGRESS_TRACKER.md 更新                                          │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
-│                                                                                 │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ 判定分岐                                                                 │   │
-│  │                                                                          │   │
-│  │   ✅ PASS → UI_PROGRESS_TRACKER更新 → 次システムへ or Phase 4B開始      │   │
-│  │   ⚠️ CONDITIONAL → 軽微修正 → 自動承認                                  │   │
-│  │   ❌ FAIL → 09_design_create.md に戻る                                  │   │
+│  │   • PIR_[SYSTEM].md (ファイルパス付き指摘)                               │   │
 │  │                                                                          │   │
 │  └─────────────────────────────────────────────────────────────────────────┘   │
+│                                      ↓                                          │
+│                              ┌─────────────┐                                    │
+│                              │   判定分岐   │                                    │
+│                              └─────────────┘                                    │
+│                                     │                                           │
+│           ┌─────────────────────────┼─────────────────────────┐                 │
+│           │                         │                         │                 │
+│           ▼                         ▼                         ▼                 │
+│     ┌──────────┐           ┌──────────────┐           ┌──────────┐             │
+│     │ ✅ PASS  │           │ ⚠️ CONDITIONAL │           │ ❌ FAIL  │             │
+│     └──────────┘           └──────────────┘           └──────────┘             │
+│           │                         │                         │                 │
+│           │                         ▼                         │                 │
+│           │        ┌─────────────────────────────────┐        │                 │
+│           │        │ 11_design_fix.md                │        │                 │
+│           │        │ ─────────────────               │        │                 │
+│           │        │                                 │◄───────┘                 │
+│           │        │ 1. PIR_[SYSTEM].md から指摘取得 │                          │
+│           │        │ 2. GitHubからファイルFetch      │                          │
+│           │        │ 3. 修正実施                     │                          │
+│           │        │ 4. Gitにプッシュ                │                          │
+│           │        │ 5. MANIFEST更新                 │                          │
+│           │        │                                 │                          │
+│           │        │ 出力:                           │                          │
+│           │        │   • 修正済みファイル (Git)      │                          │
+│           │        │   • MANIFEST.md 更新 (Git)      │                          │
+│           │        └─────────────────────────────────┘                          │
+│           │                         │                                           │
+│           │                         ▼                                           │
+│           │              ┌──────────────────┐                                   │
+│           │              │ CONDITIONAL:      │                                   │
+│           │              │ → 自動承認        │                                   │
+│           │              │ FAIL:            │                                   │
+│           │              │ → 再PIR          │                                   │
+│           │              └──────────────────┘                                   │
+│           │                         │                                           │
+│           └─────────────────────────┼───────────────────────────────────────────│
+│                                     ▼                                           │
+│                         ┌─────────────────────┐                                 │
+│                         │ UI_PROGRESS_TRACKER │                                 │
+│                         │ 更新               │                                 │
+│                         └─────────────────────┘                                 │
+│                                     │                                           │
+│                                     ▼                                           │
+│                         ┌─────────────────────┐                                 │
+│                         │ 次のシステムへ      │                                 │
+│                         │ or Phase 4B開始    │                                 │
+│                         └─────────────────────┘                                 │
 │                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 2.2 Phase 4A プロンプト詳細
+## 2.2 作業ディレクトリ構造
 
-### 08_design_prep.md
-
-```markdown
-# DESIGN BOOTLOADER: 準備フェーズ
-あなたはProject Aegisのデザインエージェントです。
-
-## 1. 読み込みファイル（必須）
-
-### 1.1 進捗管理
-`docs_new/01_phase/04_phase4/01_design/UI_PROGRESS_TRACKER.md`
-
-確認事項:
-- 次に着手すべきシステム（P0優先）
-- 既に完了したシステム
-
-### 1.2 ペルソナ・ジャーニー
-| ドキュメント | 確認内容 |
-|------------|---------|
-| `02_PERSONAS.md` | 対象ペルソナの詳細 |
-| `03_USER_JOURNEYS.md` | ジャーニーステップ |
-
-### 1.3 デザインシステム
-`docs_new/01_phase/04_phase4/01_design/UI_DESIGN_GUIDELINES.md`
-
-## 2. タスク
-
-### 2.1 対象システム選定
-優先順位に従って次のシステムを選定:
-1. Consumer App (P0)
-2. Prover Portal (P0)
-3. QS Admin (P0)
-4. Token Hub (P0)
-5. Governance (P1)
-6. Explorer (P1)
-7. Enterprise Admin (P1)
-8. Observer/Challenger (P2)
-
-### 2.2 画面リスト抽出
-UI_PROGRESS_TRACKER.md から対象システムの画面を抽出
-
-### 2.3 ペルソナ×画面マッピング
-各画面に対して、どのペルソナが使用するかマッピング
-
-### 2.4 デザイン要件整理
-- カラー使用ルール
-- コンポーネント候補
-- 特別な考慮事項
-
-## 3. 出力
-
-DESIGN_BRIEF_[SYSTEM_NAME].md を作成
+```
+docs_new/01_phase/04_phase4/01_design/system_XX_[name]/
+│
+├── README.md                        # システム概要
+├── DESIGN_BRIEF_[NAME].md           # 08_design_prep 出力
+├── DESIGN_MANIFEST.md               # ★ ファイル一覧（09で作成、11で更新）
+├── PIR_[NAME].md                    # 10_design_pir 出力
+│
+└── wip/                             # ★ 作業ファイル保管場所（Git管理）
+    │
+    ├── wireframes/                  # ワイヤーフレーム
+    │   ├── 01_public_pages.md
+    │   ├── 02_onboarding.md
+    │   └── ...
+    │
+    └── mocks/                       # HTMLモック
+        ├── 01_landing.html
+        ├── 02_onboarding_connect.html
+        ├── 02_onboarding_keygen.html
+        ├── 03_dashboard.html
+        ├── 04_lock_input.html
+        ├── 04_lock_confirm.html
+        └── ...
 ```
 
-### 09_design_create.md
+## 2.3 DESIGN_MANIFEST.md テンプレート
 
 ```markdown
-# DESIGN BOOTLOADER: 作成フェーズ
-あなたはProject Aegisのデザインエージェントです。
+# Design Manifest: [System Name]
 
-## 1. 読み込みファイル（必須）
+## Overview
+- System: [Name]
+- Created: [YYYY-MM-DD]
+- Last Updated: [YYYY-MM-DD]
+- Status: 🔵 In Progress / 🟢 PIR Ready / ✅ Approved
 
-### 1.1 デザインブリーフ
-`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/DESIGN_BRIEF_[NAME].md`
+## Files
 
-### 1.2 デザインシステム
-`docs_new/01_phase/04_phase4/01_design/UI_DESIGN_GUIDELINES.md`
+### Wireframes
+| # | ファイル | パス | 説明 |
+|---|----------|------|------|
+| 1 | 01_public_pages.md | `wip/wireframes/01_public_pages.md` | LP・説明ページ |
+| 2 | 02_onboarding.md | `wip/wireframes/02_onboarding.md` | オンボーディング |
 
-### 1.3 参考デザイン
-`docs_new/01_phase/04_phase4/01_design/assets/design-concept-5-japan-premium.html`
+### Mocks
+| # | ファイル | パス | 画面 | 説明 |
+|---|----------|------|------|------|
+| 1 | 01_landing.html | `wip/mocks/01_landing.html` | Landing Page | ヒーロー・CTA |
+| 2 | 02_onboarding_connect.html | `wip/mocks/02_onboarding_connect.html` | Wallet Connect | ウォレット接続 |
+| 3 | 03_dashboard.html | `wip/mocks/03_dashboard.html` | Dashboard | メインダッシュボード |
 
-## 2. タスク
-
-### 2.1 ワイヤーフレーム
-各画面の低忠実度レイアウト:
-- 情報の優先順位
-- ナビゲーションフロー
-- エラーケース
-
-### 2.2 High-Fidelity デザイン
-UI_DESIGN_GUIDELINES.md に準拠:
-- [ ] カラーパレット準拠
-- [ ] タイポグラフィ準拠
-- [ ] スペーシングシステム適用
-- [ ] コンポーネント再利用
-- [ ] レスポンシブ (Desktop / Mobile)
-
-### 2.3 インタラクティブモック
-HTML/React で実装:
-- [ ] 日の丸アニメーション
-- [ ] ホバー/フォーカス状態
-- [ ] ローディング状態
-- [ ] エラー状態
-- [ ] モバイルレスポンシブ
-
-## 3. 出力
-
-ファイル構成:
-system_XX_[name]/
-├── wireframes/
-├── figma/
-└── mocks/
-```
-
-### 10_design_pir.md
-
-```markdown
-# DESIGN BOOTLOADER: PIRフェーズ
-あなたはProject AegisのDesign PIRファシリテーターです。
-
-## 1. 読み込みファイル（必須）
-
-### 1.1 レビューAgent定義
-`docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md`
-
-### 1.2 PIRプロセス
-`docs_new/01_phase/04_phase4/01_design/DESIGN_PIR_PROCESS.md`
-
-### 1.3 対象デザイン
-`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/`
-
-## 2. レビュー実行
-
-### 2.1 CDO レビュー（佐々木さん）
-観点:
-- ブランド一貫性（Premium Japan）
-- デザインシステム準拠
-- ビジュアル品質
-- アクセシビリティ
-
-### 2.2 Marketing レビュー（田村さん）
-観点:
-- ユーザー獲得
-- アクティベーション
-- リテンション
-- リファラル
-
-### 2.3 Legal レビュー（西村さん）
-観点:
-- 免責表示
-- 規制対応
-- 利用規約・プライバシー
-
-### 2.4 Persona レビュー
-対象システムに応じて選択:
-- 田中さん (End User)
-- 山田さん (Prover)
-- 佐藤さん (Enterprise)
-- 鈴木さん (Token Holder)
-- 渡辺さん (Delegate)
-
-## 3. 判定
-
-### 3.1 判定基準
-- ✅ PASS: Critical/High なし
-- ⚠️ CONDITIONAL: Medium以下のみ
-- ❌ FAIL: Critical/High あり
-
-## 4. 出力
-
-### 4.1 PIRレポート
-`system_XX_[name]/PIR_[NAME].md`
-
-### 4.2 進捗更新
-`UI_PROGRESS_TRACKER.md` の該当システムを更新
+## Change Log
+| Date | Version | Changes |
+|------|---------|---------|
+| YYYY-MM-DD | 1.0 | 初版作成 |
+| YYYY-MM-DD | 1.1 | PIR指摘対応（#1, #2, #3） |
 ```
 
 ---
@@ -355,17 +286,27 @@ quantum-shield/
 │   │       │   ├── UI_PROGRESS_TRACKER.md
 │   │       │   ├── DESIGN_PIR_PROCESS.md
 │   │       │   ├── DESIGN_REVIEW_AGENTS.md
-│   │       │   ├── PHASE4_ROUTINE_DESIGN.md
+│   │       │   ├── PHASE4_ROUTINE_DESIGN.md         # ← このファイル
 │   │       │   │
 │   │       │   ├── assets/
 │   │       │   │   └── design-concept-5-japan-premium.html
 │   │       │   │
 │   │       │   ├── system_01_consumer/
+│   │       │   │   ├── README.md
 │   │       │   │   ├── DESIGN_BRIEF_CONSUMER.md
-│   │       │   │   ├── wireframes/
-│   │       │   │   ├── figma/
-│   │       │   │   ├── mocks/
-│   │       │   │   └── PIR_CONSUMER.md
+│   │       │   │   ├── DESIGN_MANIFEST.md           # ★ NEW
+│   │       │   │   ├── PIR_CONSUMER.md
+│   │       │   │   │
+│   │       │   │   └── wip/                         # ★ NEW: 作業ファイル
+│   │       │   │       ├── wireframes/
+│   │       │   │       │   ├── 01_public_pages.md
+│   │       │   │       │   └── 02_onboarding.md
+│   │       │   │       │
+│   │       │   │       └── mocks/
+│   │       │   │           ├── 01_landing.html
+│   │       │   │           ├── 02_onboarding_connect.html
+│   │       │   │           ├── 03_dashboard.html
+│   │       │   │           └── ...
 │   │       │   │
 │   │       │   ├── system_02_token_hub/
 │   │       │   ├── system_03_governance/
@@ -386,27 +327,14 @@ quantum-shield/
 │           ├── 05_pir.md
 │           ├── 06_update.md
 │           ├── 07_gonogo.md
-│           ├── 08_design_prep.md      # NEW
-│           ├── 09_design_create.md    # NEW
-│           └── 10_design_pir.md       # NEW
+│           │
+│           ├── 08_design_prep.md                    # Phase 4A: 準備
+│           ├── 09_design_create.md                  # Phase 4A: 作成 + Git Push
+│           ├── 10_design_pir.md                     # Phase 4A: PIR（パス必須）
+│           └── 11_design_fix.md                     # Phase 4A: 修正 ← NEW
 │
 └── apps/
     └── ui/                                          # 実装コード（Phase 4B）
-        ├── packages/
-        │   ├── ui/                                  # 共通コンポーネント
-        │   ├── crypto/                              # Dilithium WASM
-        │   ├── web3/                                # wagmi/viem
-        │   └── config/                              # 共通設定
-        │
-        └── apps/
-            ├── consumer/                            # Consumer App
-            ├── token-hub/                           # Token Hub
-            ├── governance/                          # Governance
-            ├── prover/                              # Prover Portal
-            ├── observer/                            # Observer
-            ├── explorer/                            # Explorer
-            ├── enterprise/                          # Enterprise Admin
-            └── admin/                               # QS Admin
 ```
 
 ---
@@ -446,15 +374,20 @@ Consumer App (25画面)
 ## タスク
 `09_design_create.md` を実行して、Consumer App のデザインを作成してください。
 
+⚠️ 重要:
+1. 作成したファイルは全て `wip/mocks/` に保存
+2. 作成後、即座にGitにプッシュ
+3. 最後に DESIGN_MANIFEST.md を作成してGitにプッシュ
+
 読み込むファイル:
 1. docs_new/01_phase/04_phase4/01_design/system_01_consumer/DESIGN_BRIEF_CONSUMER.md
 2. docs_new/01_phase/04_phase4/01_design/UI_DESIGN_GUIDELINES.md
 3. docs_new/01_phase/04_phase4/01_design/assets/design-concept-5-japan-premium.html
 
-出力:
-- ワイヤーフレーム
-- Figmaデザイン
-- HTMLモック
+出力（全てGitにプッシュ）:
+- wip/wireframes/*.md
+- wip/mocks/*.html
+- DESIGN_MANIFEST.md
 ```
 
 ## 4.3 Design PIR 実行時のプロンプト
@@ -468,6 +401,11 @@ Consumer App (25画面)
 ## タスク
 `10_design_pir.md` を実行して、Design PIR を実施してください。
 
+⚠️ 重要:
+1. まず DESIGN_MANIFEST.md を読み込んでファイル一覧を取得
+2. GitHubからファイルをFetchしてレビュー
+3. 指摘は必ず「ファイルパス + 行番号」形式で記載
+
 以下のAgentになりきってレビューを実行:
 1. CDO（佐々木さん）
 2. Marketing（田村さん）
@@ -475,12 +413,34 @@ Consumer App (25画面)
 4. 田中さん（End User）
 5. 鈴木さん（Token Holder）
 
-レビュー対象:
-- docs_new/01_phase/04_phase4/01_design/system_01_consumer/mocks/
-
 出力:
-- docs_new/01_phase/04_phase4/01_design/system_01_consumer/PIR_CONSUMER.md
-- docs_new/01_phase/04_phase4/01_design/UI_PROGRESS_TRACKER.md 更新
+- PIR_CONSUMER.md（ファイルパス付き指摘を含む）
+```
+
+## 4.4 修正実行時のプロンプト
+
+```markdown
+# デザイン修正
+
+## 対象
+Consumer App - PIR指摘事項
+
+## タスク
+`11_design_fix.md` を実行して、PIR指摘事項を修正してください。
+
+⚠️ 重要:
+1. PIR_CONSUMER.md の Action Items Summary を確認
+2. 各指摘のファイルパスと行番号を参照
+3. GitHubからファイルをFetchして修正
+4. 修正後、即座にGitにプッシュ
+5. DESIGN_MANIFEST.md の Change Log を更新
+
+読み込むファイル:
+1. docs_new/01_phase/04_phase4/01_design/system_01_consumer/PIR_CONSUMER.md
+2. docs_new/01_phase/04_phase4/01_design/system_01_consumer/DESIGN_MANIFEST.md
+
+修正対象:
+- PIR_CONSUMER.md の Action Items Summary に記載されたファイル
 ```
 
 ---
@@ -499,17 +459,17 @@ Consumer App (25画面)
 │    • DESIGN_BRIEF_CONSUMER.md 作成                                              │
 │                                                                                 │
 │  Day 2-3 (Tue-Wed):                                                             │
-│    • 09_design_create.md 実行（ワイヤーフレーム）                                │
-│    • Public Pages + Onboarding (8画面)                                          │
+│    • 09_design_create.md 実行（ワイヤーフレーム + モック）                       │
+│    • 作成 → 即Git Push → MANIFEST更新                                          │
 │                                                                                 │
 │  Day 4 (Thu):                                                                   │
-│    • 09_design_create.md 続き（High-Fidelity）                                  │
-│    • Main App (13画面)                                                          │
+│    • 10_design_pir.md 実行（Design PIR #1）                                     │
+│    • PIRレポート作成（ファイルパス付き指摘）                                    │
 │                                                                                 │
 │  Day 5 (Fri):                                                                   │
-│    • 09_design_create.md 続き（モック）                                         │
-│    • Emergency + Settings (4画面)                                               │
-│    • 10_design_pir.md 実行（Design PIR #1）                                     │
+│    • 11_design_fix.md 実行（指摘対応）                                          │
+│    • 修正 → Git Push → MANIFEST更新                                            │
+│    • CONDITIONAL → 自動承認 / FAIL → 再PIR                                     │
 │                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -537,6 +497,7 @@ Phase 4B 開始: Week 10〜
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2026-01-06 | 初版作成 |
+| 1.1 | 2026-01-06 | wip/ディレクトリ、MANIFEST、11_design_fix.md 追加 |
 
 ---
 
