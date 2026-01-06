@@ -12,6 +12,21 @@ export { useQSLock } from './hooks/use-qs-lock';
 export { useQSUnlock } from './hooks/use-qs-unlock';
 export { useQSStatus } from './hooks/use-qs-status';
 
-// Contracts (legacy - prefer using contracts config)
-export { QS_VAULT_ABI, QS_VAULT_ADDRESS } from './contracts/qs-vault';
+// Contracts
+export { 
+  QS_VAULT_ABI, 
+  QS_VAULT_ADDRESS,
+  // Type definitions
+  type QSLock,
+  type QSUnlockRequest,
+  LockStatus,
+  UnlockStatus,
+  // Type guards
+  isQSLock,
+  isQSUnlockRequest,
+  // Parsers
+  parseLockData,
+  parseUnlockRequestData,
+} from './contracts/qs-vault';
+
 export { QS_STAKING_ABI, QS_STAKING_ADDRESS } from './contracts/qs-staking';
