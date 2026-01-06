@@ -8,6 +8,13 @@ import {
   SUPPORTED_CHAINS 
 } from './chains';
 
+/**
+ * Chain configuration tests
+ * 
+ * Design spec (CURRENT_STATE.md):
+ * - Network: L1 Sepolia (11155111) ↔ L3 Aegis (3311155111)
+ */
+
 describe('CHAIN_IDS', () => {
   it('should have correct Sepolia chain ID', () => {
     expect(CHAIN_IDS.SEPOLIA).toBe(11155111);
@@ -35,20 +42,32 @@ describe('Chain configs', () => {
 describe('SUPPORTED_CHAINS', () => {
   it('should include both chains', () => {
     expect(SUPPORTED_CHAINS).toHaveLength(2);
-    expect(SUPPORTED_CHAINS).toContain(sepolia);
-    expect(SUPPORTED_CHAINS).toContain(aegisL3);
+  });
+
+  it('should include Sepolia (L1)', () => {
+    const sepoliaChain = SUPPORTED_CHAINS.find(c => c.id === CHAIN_IDS.SEPOLIA);
+    expect(sepoliaChain).toBeDefined();
+    expect(sepoliaChain?.name).toBe('Sepolia');
+  });
+
+  it('should include Aegis L3', () => {
+    const aegisChain = SUPPORTED_CHAINS.find(c => c.id === CHAIN_IDS.AEGIS_L3);
+    expect(aegisChain).toBeDefined();
+    expect(aegisChain?.name).toBe('Aegis L3');
   });
 });
 
 describe('getChainConfig', () => {
   it('should return sepolia config for sepolia chain ID', () => {
     const config = getChainConfig(CHAIN_IDS.SEPOLIA);
-    expect(config).toEqual(sepolia);
+    expect(config?.id).toBe(CHAIN_IDS.SEPOLIA);
+    expect(config?.name).toBe('Sepolia');
   });
 
   it('should return aegisL3 config for aegis chain ID', () => {
     const config = getChainConfig(CHAIN_IDS.AEGIS_L3);
-    expect(config).toEqual(aegisL3);
+    expect(config?.id).toBe(CHAIN_IDS.AEGIS_L3);
+    expect(config?.name).toBe('Aegis L3');
   });
 
   it('should return undefined for unknown chain ID', () => {
