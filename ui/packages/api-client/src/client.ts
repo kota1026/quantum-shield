@@ -1,6 +1,10 @@
 export interface ApiClientConfig {
   baseUrl: string;
   getAuthToken?: () => string | null;
+  /** Rate limit: max requests per window (default: 100) */
+  rateLimit?: number;
+  /** Rate limit window in ms (default: 60000 = 1 minute) */
+  rateLimitWindow?: number;
 }
 
 export interface ApiResponse<T> {
@@ -29,13 +33,77 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Simple token bucket rate limiter
+ */
+class RateLimiter {
+  private tokens: number;
+  private lastRefill: number;
+  private readonly maxTokens: number;
+  private readonly refillRate: number; // tokens per ms
+
+  constructor(maxRequests: number, windowMs: number) {
+    this.maxTokens = maxRequests;
+    this.tokens = maxRequests;
+    this.lastRefill = Date.now();
+    this.refillRate = maxRequests / windowMs;
+  }
+
+  private refill(): void {
+    const now = Date.now();
+    const elapsed = now - this.lastRefill;
+    const tokensToAdd = elapsed * this.refillRate;
+    this.tokens = Math.min(this.maxTokens, this.tokens + tokensToAdd);
+    this.lastRefill = now;
+  }
+
+  canMakeRequest(): boolean {
+    this.refill();
+    return this.tokens >= 1;
+  }
+
+  consumeToken(): boolean {
+    this.refill();
+    if (this.tokens >= 1) {
+      this.tokens -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  getRetryAfter(): number {
+    this.refill();
+    if (this.tokens >= 1) return 0;
+    const tokensNeeded = 1 - this.tokens;
+    return Math.ceil(tokensNeeded / this.refillRate);
+  }
+}
+
 class ApiClient {
   private config: ApiClientConfig = {
     baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+    rateLimit: 100,
+    rateLimitWindow: 60000, // 1 minute
   };
+
+  private rateLimiter: RateLimiter;
+
+  constructor() {
+    this.rateLimiter = new RateLimiter(
+      this.config.rateLimit!,
+      this.config.rateLimitWindow!
+    );
+  }
 
   configure(config: Partial<ApiClientConfig>) {
     this.config = { ...this.config, ...config };
+    // Recreate rate limiter if limits changed
+    if (config.rateLimit !== undefined || config.rateLimitWindow !== undefined) {
+      this.rateLimiter = new RateLimiter(
+        this.config.rateLimit!,
+        this.config.rateLimitWindow!
+      );
+    }
   }
 
   /**
@@ -83,6 +151,20 @@ class ApiClient {
     return headers;
   }
 
+  /**
+   * Check if rate limit allows request
+   */
+  canMakeRequest(): boolean {
+    return this.rateLimiter.canMakeRequest();
+  }
+
+  /**
+   * Get time until next request is allowed (ms)
+   */
+  getRetryAfter(): number {
+    return this.rateLimiter.getRetryAfter();
+  }
+
   async request<T>(
     method: string,
     path: string,
@@ -91,6 +173,17 @@ class ApiClient {
       params?: Record<string, string | number | boolean | undefined>;
     }
   ): Promise<T> {
+    // Check rate limit
+    if (!this.rateLimiter.consumeToken()) {
+      const retryAfter = this.rateLimiter.getRetryAfter();
+      throw new ApiError(
+        'RATE_LIMIT_EXCEEDED',
+        `Rate limit exceeded. Retry after ${Math.ceil(retryAfter / 1000)} seconds.`,
+        429,
+        { retryAfterMs: retryAfter }
+      );
+    }
+
     const url = this.buildUrl(path, options?.params);
 
     const response = await fetch(url, {
