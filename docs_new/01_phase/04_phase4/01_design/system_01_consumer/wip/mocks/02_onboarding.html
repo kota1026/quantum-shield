@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Shield - 登録</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-hinomaru: #BC002D;
+            --color-hinomaru-light: #E8334D;
+            --color-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --color-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --color-gold: #C9A962;
+            --color-gold-dim: rgba(201, 169, 98, 0.12);
+            --color-success: #00C896;
+            --color-success-dim: rgba(0, 200, 150, 0.12);
+            --color-warning: #F0A030;
+            --color-warning-dim: rgba(240, 160, 48, 0.12);
+            --bg-primary: #0A0A0C;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181C;
+            --bg-card: #0E0E11;
+            --text-primary: #F8F8FA;
+            --text-secondary: #9898A0;
+            --text-tertiary: #606068;
+            --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --border-emphasis: rgba(255, 255, 255, 0.12);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+
+        .bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .bg-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--color-hinomaru-dim), transparent 60%); opacity: 0.4; }
+        .bg-noise { position: absolute; inset: 0; opacity: 0.015; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+        .onboarding-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; position: relative; z-index: 1; }
+        
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
+        .logo-symbol { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-outer { position: absolute; inset: 0; border: 1.5px solid var(--color-gold); border-radius: 50%; animation: rotate 20s linear infinite; }
+        .logo-outer::after { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: var(--color-gold); border-radius: 50%; }
+        .logo-inner { width: 18px; height: 18px; background: var(--color-hinomaru); border-radius: 50%; box-shadow: 0 0 15px var(--color-hinomaru-glow); }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { font-size: 20px; font-weight: 600; }
+
+        .step-indicator { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+        .step-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border-default); transition: all 0.3s; }
+        .step-dot.active { background: var(--color-hinomaru); box-shadow: 0 0 10px var(--color-hinomaru-glow); }
+        .step-dot.complete { background: var(--color-success); }
+        .step-line { width: 40px; height: 2px; background: var(--border-default); }
+        .step-line.complete { background: var(--color-success); }
+
+        .onboarding-card { width: 100%; max-width: 480px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .card-header { padding: 32px 32px 0; text-align: center; }
+        .card-icon { width: 72px; height: 72px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; background: var(--color-hinomaru-dim); border-radius: var(--radius-lg); font-size: 32px; }
+        .card-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+        .card-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+        .card-body { padding: 32px; }
+
+        .wallet-options { display: flex; flex-direction: column; gap: 12px; }
+        .wallet-option { display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); cursor: pointer; transition: all 0.2s; }
+        .wallet-option:hover { border-color: var(--color-hinomaru); background: var(--bg-elevated); }
+        .wallet-option.recommended { border-color: var(--color-gold); }
+        .wallet-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 24px; background: var(--bg-elevated); }
+        .wallet-info { flex: 1; }
+        .wallet-name { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+        .wallet-desc { font-size: 12px; color: var(--text-tertiary); }
+        .wallet-badge { font-size: 10px; padding: 3px 8px; background: var(--color-gold-dim); border: 1px solid var(--color-gold); color: var(--color-gold); border-radius: var(--radius-full); font-weight: 600; }
+        .wallet-arrow { color: var(--text-tertiary); font-size: 18px; }
+
+        .progress-section { text-align: center; padding: 40px 0; }
+        .progress-ring { width: 120px; height: 120px; margin: 0 auto 24px; position: relative; }
+        .progress-ring svg { transform: rotate(-90deg); }
+        .progress-ring circle { fill: none; stroke-width: 8; }
+        .progress-ring .bg { stroke: var(--border-default); }
+        .progress-ring .progress { stroke: var(--color-hinomaru); stroke-linecap: round; stroke-dasharray: 339.292; stroke-dashoffset: 339.292; transition: stroke-dashoffset 0.5s ease; }
+        .progress-ring .progress.complete { stroke: var(--color-success); }
+        .progress-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        .progress-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+        .progress-status { font-size: 18px; font-weight: 600; }
+
+        .checklist { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+        .checklist-item { display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-lg); }
+        .checklist-checkbox { width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--border-emphasis); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; margin-top: 2px; }
+        .checklist-checkbox.checked { background: var(--color-success); border-color: var(--color-success); }
+        .checklist-checkbox.checked::after { content: '✓'; color: white; font-size: 14px; font-weight: bold; }
+        .checklist-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .checklist-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+        .key-display { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 24px; }
+        .key-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; }
+        .key-value { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); word-break: break-all; line-height: 1.6; background: var(--bg-primary); padding: 12px; border-radius: var(--radius-md); }
+        .key-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .key-action-btn { flex: 1; padding: 10px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-body); }
+        .key-action-btn.copy { background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--text-secondary); }
+        .key-action-btn.copy:hover { border-color: var(--color-gold); color: var(--color-gold); }
+        .key-action-btn.download { background: var(--color-gold-dim); border: 1px solid var(--color-gold); color: var(--color-gold); }
+        .key-action-btn.download:hover { background: var(--color-gold); color: var(--bg-primary); }
+
+        .warning-box { display: flex; gap: 12px; padding: 16px; background: var(--color-warning-dim); border: 1px solid var(--color-warning); border-radius: var(--radius-lg); margin-bottom: 24px; }
+        .warning-icon { font-size: 20px; flex-shrink: 0; }
+        .warning-content { font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+        .warning-content strong { color: var(--color-warning); }
+
+        .success-box { text-align: center; padding: 32px; }
+        .success-icon { width: 80px; height: 80px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; background: var(--color-success-dim); border-radius: 50%; font-size: 40px; animation: success-pop 0.5s ease; }
+        @keyframes success-pop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .success-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+        .success-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; line-height: 1.6; }
+
+        .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--color-hinomaru), var(--color-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: var(--font-body); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--color-hinomaru-glow); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-emphasis); border-radius: var(--radius-lg); color: var(--text-primary); font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: var(--font-body); }
+        .btn-secondary:hover { background: var(--bg-elevated); border-color: var(--color-gold); }
+        .btn-group { display: flex; gap: 12px; margin-top: 16px; }
+        .btn-group .btn-secondary { flex: 1; }
+
+        .tooltip-trigger { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; background: var(--border-default); border-radius: 50%; font-size: 10px; color: var(--text-tertiary); cursor: help; margin-left: 4px; }
+
+        .onboarding-footer { padding: 24px; text-align: center; border-top: 1px solid var(--border-subtle); }
+        .footer-link { font-size: 13px; color: var(--text-tertiary); text-decoration: none; }
+        .footer-link:hover { color: var(--color-gold); }
+
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 480px) {
+            .onboarding-container { padding: 24px 16px; }
+            .card-header, .card-body { padding: 24px 20px; }
+            .step-line { width: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects">
+        <div class="bg-glow"></div>
+        <div class="bg-noise"></div>
+    </div>
+
+    <div class="onboarding-container">
+        <div class="logo">
+            <div class="logo-symbol">
+                <div class="logo-outer"></div>
+                <div class="logo-inner"></div>
+            </div>
+            <span class="logo-text">Quantum Shield</span>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step-dot active" id="dot1"></div>
+            <div class="step-line" id="line1"></div>
+            <div class="step-dot" id="dot2"></div>
+            <div class="step-line" id="line2"></div>
+            <div class="step-dot" id="dot3"></div>
+            <div class="step-line" id="line3"></div>
+            <div class="step-dot" id="dot4"></div>
+        </div>
+
+        <div class="onboarding-card">
+            <div class="step active" id="step1">
+                <div class="card-header">
+                    <div class="card-icon">👛</div>
+                    <h1 class="card-title">ウォレットを接続</h1>
+                    <p class="card-desc">お使いのウォレットを選択して、Quantum Shieldに接続してください。</p>
+                </div>
+                <div class="card-body">
+                    <div class="wallet-options">
+                        <div class="wallet-option recommended" onclick="connectWallet('metamask')">
+                            <div class="wallet-icon">🦊</div>
+                            <div class="wallet-info">
+                                <div class="wallet-name">MetaMask</div>
+                                <div class="wallet-desc">ブラウザ拡張機能</div>
+                            </div>
+                            <span class="wallet-badge">おすすめ</span>
+                            <span class="wallet-arrow">→</span>
+                        </div>
+                        <div class="wallet-option" onclick="connectWallet('walletconnect')">
+                            <div class="wallet-icon">🔗</div>
+                            <div class="wallet-info">
+                                <div class="wallet-name">WalletConnect</div>
+                                <div class="wallet-desc">モバイルウォレット対応</div>
+                            </div>
+                            <span class="wallet-arrow">→</span>
+                        </div>
+                        <div class="wallet-option" onclick="connectWallet('coinbase')">
+                            <div class="wallet-icon">💎</div>
+                            <div class="wallet-info">
+                                <div class="wallet-name">Coinbase Wallet</div>
+                                <div class="wallet-desc">Coinbase公式ウォレット</div>
+                            </div>
+                            <span class="wallet-arrow">→</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="onboarding-footer">
+                    <a href="#" class="footer-link">ウォレットを持っていない方はこちら</a>
+                </div>
+            </div>
+
+            <div class="step" id="step2">
+                <div class="card-header">
+                    <div class="card-icon">🔐</div>
+                    <h1 class="card-title">量子耐性鍵を生成中</h1>
+                    <p class="card-desc">Dilithium署名用の鍵ペアを安全に生成しています。このプロセスはあなたのデバイス内で完結します。</p>
+                </div>
+                <div class="card-body">
+                    <div class="progress-section">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <circle class="bg" cx="60" cy="60" r="54"/>
+                                <circle class="progress" cx="60" cy="60" r="54" id="progressCircle"/>
+                            </svg>
+                            <div class="progress-icon" id="progressIcon">🔑</div>
+                        </div>
+                        <p class="progress-text" id="progressText">鍵を生成中...</p>
+                        <p class="progress-status" id="progressStatus">0%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step" id="step3">
+                <div class="card-header">
+                    <div class="card-icon">💾</div>
+                    <h1 class="card-title">鍵をバックアップ</h1>
+                    <p class="card-desc">秘密鍵はあなたのデバイスにのみ保存されます。<br>必ず安全な場所にバックアップしてください。</p>
+                </div>
+                <div class="card-body">
+                    <div class="warning-box">
+                        <span class="warning-icon">⚠️</span>
+                        <div class="warning-content">
+                            <strong>重要:</strong> この秘密鍵を失うと、資産を取り戻すことができなくなります。サーバーには保存されません。
+                        </div>
+                    </div>
+
+                    <div class="key-display">
+                        <div class="key-label">Dilithium秘密鍵<span class="tooltip-trigger">?</span></div>
+                        <div class="key-value" id="secretKey">qs_sk_7f8a9b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e...</div>
+                        <div class="key-actions">
+                            <button class="key-action-btn copy" onclick="copyKey()">
+                                <span>📋</span> コピー
+                            </button>
+                            <button class="key-action-btn download" onclick="downloadKey()">
+                                <span>⬇️</span> ダウンロード
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <div class="checklist-checkbox" onclick="toggleCheck(this)" id="check1"></div>
+                            <div class="checklist-content">
+                                <h4>秘密鍵を安全な場所に保存した</h4>
+                                <p>オフラインのストレージ（USBドライブ、紙など）に保存することを推奨します。</p>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <div class="checklist-checkbox" onclick="toggleCheck(this)" id="check2"></div>
+                            <div class="checklist-content">
+                                <h4>秘密鍵を誰にも共有しない</h4>
+                                <p>Quantum Shieldのスタッフが秘密鍵を聞くことは絶対にありません。</p>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <div class="checklist-checkbox" onclick="toggleCheck(this)" id="check3"></div>
+                            <div class="checklist-content">
+                                <h4>秘密鍵を失うと資産を取り戻せないことを理解した</h4>
+                                <p>サーバーには保存されないため、復元はできません。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" id="continueBtn" disabled onclick="goToStep(4)">
+                        すべて確認して続ける
+                    </button>
+                </div>
+            </div>
+
+            <div class="step" id="step4">
+                <div class="card-body">
+                    <div class="success-box">
+                        <div class="success-icon">🎉</div>
+                        <h1 class="success-title">登録完了！</h1>
+                        <p class="success-desc">
+                            Quantum Shieldへようこそ！<br>
+                            あなたの資産は、量子コンピュータでも破れない最先端の暗号技術で保護される準備ができました。
+                        </p>
+                        <button class="btn-primary" onclick="goToDashboard()">
+                            ダッシュボードへ
+                        </button>
+                        <div class="btn-group">
+                            <button class="btn-secondary" onclick="showTutorial()">
+                                使い方を見る
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let checklistState = [false, false, false];
+
+        function updateStepIndicator(step) {
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById(`dot${i}`);
+                const line = document.getElementById(`line${i}`);
+                
+                dot.classList.remove('active', 'complete');
+                if (i < step) {
+                    dot.classList.add('complete');
+                    if (line) line.classList.add('complete');
+                } else if (i === step) {
+                    dot.classList.add('active');
+                }
+                
+                if (line && i >= step) {
+                    line.classList.remove('complete');
+                }
+            }
+        }
+
+        function goToStep(step) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+            updateStepIndicator(step);
+            
+            if (step === 2) {
+                simulateKeyGeneration();
+            }
+        }
+
+        function connectWallet(wallet) {
+            console.log(`Connecting to ${wallet}...`);
+            setTimeout(() => {
+                goToStep(2);
+            }, 500);
+        }
+
+        function simulateKeyGeneration() {
+            const circle = document.getElementById('progressCircle');
+            const text = document.getElementById('progressText');
+            const status = document.getElementById('progressStatus');
+            const icon = document.getElementById('progressIcon');
+            const circumference = 2 * Math.PI * 54;
+            let progress = 0;
+
+            const messages = [
+                'エントロピーを収集中...',
+                'Dilithium鍵ペアを生成中...',
+                '署名テストを実行中...',
+                '鍵を安全に保存中...',
+                '完了！'
+            ];
+
+            const interval = setInterval(() => {
+                progress += 2;
+                const offset = circumference - (progress / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+                status.textContent = `${progress}%`;
+
+                const messageIndex = Math.floor(progress / 25);
+                if (messageIndex < messages.length) {
+                    text.textContent = messages[messageIndex];
+                }
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    circle.classList.add('complete');
+                    icon.textContent = '✅';
+                    setTimeout(() => goToStep(3), 500);
+                }
+            }, 50);
+        }
+
+        function toggleCheck(element) {
+            element.classList.toggle('checked');
+            const index = parseInt(element.id.replace('check', '')) - 1;
+            checklistState[index] = element.classList.contains('checked');
+            
+            const allChecked = checklistState.every(v => v);
+            document.getElementById('continueBtn').disabled = !allChecked;
+        }
+
+        function copyKey() {
+            const key = document.getElementById('secretKey').textContent;
+            navigator.clipboard.writeText(key).then(() => {
+                alert('秘密鍵をコピーしました');
+            });
+        }
+
+        function downloadKey() {
+            const key = document.getElementById('secretKey').textContent;
+            const blob = new Blob([key], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'quantum-shield-secret-key.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function goToDashboard() {
+            window.location.href = '03_dashboard.html';
+        }
+
+        function showTutorial() {
+            alert('チュートリアル機能は開発中です');
+        }
+    </script>
+</body>
+</html>
