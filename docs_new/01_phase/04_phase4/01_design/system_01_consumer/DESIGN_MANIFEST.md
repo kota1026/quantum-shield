@@ -1,9 +1,9 @@
 # Consumer App Design Manifest
 ## Phase 4 UI Integration - Design Assets
 
-> **Version**: 1.1  
+> **Version**: 1.2  
 > **Date**: 2026-01-06  
-> **Status**: Phase 1 MVP Complete (85% Coverage)
+> **Status**: Phase 1 MVP Complete - PIR Fixes Applied ✅
 
 ---
 
@@ -79,10 +79,10 @@ docs_new/01_phase/04_phase4/01_design/system_01_consumer/
 
 | File | Size | Full Path |
 |------|------|----------|
-| 01_landing.html | ~28KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/01_landing.html` |
+| 01_landing.html | ~35KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/01_landing.html` |
 | 02_onboarding.html | ~25KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/02_onboarding.html` |
-| 03_dashboard.html | ~31KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/03_dashboard.html` |
-| 04_unlock.html | ~32KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/04_unlock.html` |
+| 03_dashboard.html | ~29KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/03_dashboard.html` |
+| 04_unlock.html | ~33KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/04_unlock.html` |
 
 ---
 
@@ -117,12 +117,38 @@ docs_new/01_phase/04_phase4/01_design/system_01_consumer/
 
 ---
 
+## 📋 PIR Fix Log (v1.2)
+
+### ✅ High Priority (Legal - 必須)
+| PIR# | File | 修正内容 | Commit |
+|------|------|---------|--------|
+| #1 | 01_landing.html | Hero下部にリスク注記追加（金商法対応） | 14c85a5 |
+| #2 | 01_landing.html | Cookie同意バナー実装（ePrivacy対応） | 14c85a5 |
+
+### ✅ Medium Priority (推奨)
+| PIR# | File | 修正内容 | Commit |
+|------|------|---------|--------|
+| #3 | 01_landing.html | Stats数値にカウントアップアニメーション追加 | 14c85a5 |
+| #4 | 01_landing.html | CTAセクションにリスク注記追加 | 14c85a5 |
+| #5 | 03_dashboard.html | 「Dilithium署名」→「安全にロックする」+ ツールチップ | cdb3460 |
+
+### ✅ Low Priority
+| PIR# | File | 修正内容 | Commit |
+|------|------|---------|--------|
+| #6 | 01_landing.html | Hero Subtitle line-height: 1.7→1.8 | 14c85a5 |
+| #7 | 01_landing.html | How It Works直後に二次CTA追加 | 14c85a5 |
+| #8 | 02_onboarding.html | Key Display font-size: 13px→14px | ebceae5 |
+| #9 | 04_unlock.html | 「Emergency Bond」に日本語（保証金）併記 | ca8df1f |
+
+**PIR修正完了率: 9/9 (100%)**
+
+---
+
 ## 🔜 Next Steps
 
-1. **Design PIR Review**
-   - Execute `10_design_pir.md`
-   - Cross-reference with DESIGN_BRIEF
-   - Validate against STEP_E_UI_INTEGRATION_PLAN.md
+1. **Re-PIR Review**
+   - PIR_CONSUMER.md のステータス更新
+   - CONDITIONAL → PASS 判定確認
 
 2. **Phase 2 Screens** (P2)
    - Security Explainer page
@@ -142,3 +168,4 @@ docs_new/01_phase/04_phase4/01_design/system_01_consumer/
 |---------|------|--------|---------|
 | 1.0 | 2026-01-06 | Claude | Initial manifest with Phase 1 MVP |
 | 1.1 | 2026-01-06 | Claude | Consolidated to system_01_consumer, added absolute paths |
+| 1.2 | 2026-01-06 | Claude | PIR修正完了（全9件）、Fix Log追加 |
