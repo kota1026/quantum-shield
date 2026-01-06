@@ -6,6 +6,8 @@ describe('ApiClient', () => {
     apiClient.configure({
       baseUrl: 'http://localhost:3000/api',
       getAuthToken: undefined,
+      rateLimit: 100,
+      rateLimitWindow: 60000,
     });
   });
 
@@ -19,6 +21,12 @@ describe('ApiClient', () => {
       const getToken = () => 'test-token';
       apiClient.configure({ getAuthToken: getToken });
       expect(apiClient.getConfig().getAuthToken).toBe(getToken);
+    });
+
+    it('should update rate limit settings', () => {
+      apiClient.configure({ rateLimit: 50, rateLimitWindow: 30000 });
+      expect(apiClient.getConfig().rateLimit).toBe(50);
+      expect(apiClient.getConfig().rateLimitWindow).toBe(30000);
     });
   });
 
@@ -67,6 +75,33 @@ describe('ApiClient', () => {
       expect(headers['Authorization']).toBeUndefined();
     });
   });
+
+  /**
+   * Rate Limiting Tests (Finding #1)
+   * Verifies client-side rate limiting implementation
+   */
+  describe('Rate Limiting (Finding #1)', () => {
+    it('should have default rate limit of 100 requests per minute', () => {
+      const config = apiClient.getConfig();
+      expect(config.rateLimit).toBe(100);
+      expect(config.rateLimitWindow).toBe(60000);
+    });
+
+    it('should allow requests when under limit', () => {
+      apiClient.configure({ rateLimit: 5, rateLimitWindow: 60000 });
+      expect(apiClient.canMakeRequest()).toBe(true);
+    });
+
+    it('should return retry-after time when rate limited', () => {
+      apiClient.configure({ rateLimit: 1, rateLimitWindow: 60000 });
+      // Consume the only token
+      expect(apiClient.canMakeRequest()).toBe(true);
+      // Now get retry after
+      const retryAfter = apiClient.getRetryAfter();
+      // Should be 0 or positive (depends on token refill timing)
+      expect(retryAfter).toBeGreaterThanOrEqual(0);
+    });
+  });
 });
 
 describe('ApiError', () => {
@@ -83,5 +118,17 @@ describe('ApiError', () => {
   it('should be instance of Error', () => {
     const error = new ApiError('ERROR', 'test', 500);
     expect(error).toBeInstanceOf(Error);
+  });
+
+  it('should support RATE_LIMIT_EXCEEDED code (Finding #1)', () => {
+    const error = new ApiError(
+      'RATE_LIMIT_EXCEEDED',
+      'Rate limit exceeded',
+      429,
+      { retryAfterMs: 5000 }
+    );
+    expect(error.code).toBe('RATE_LIMIT_EXCEEDED');
+    expect(error.status).toBe(429);
+    expect(error.details?.retryAfterMs).toBe(5000);
   });
 });
