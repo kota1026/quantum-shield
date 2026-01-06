@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-07 09:30 JST  
+> **Last Updated**: 2026-01-07 10:05 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -10,16 +10,16 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 4 - UI/UX, Audit & Launch                           │
-│  Week: UI Week 1-2 完了 → UI Week 3-4 計画開始               │
+│  Week: UI Week 3-4 計画完了 → 実装開始                       │
 │  Month: 13-14 / 24                                          │
-│  Active Checklist: docs_new/01_phase/04_phase4/             │
-│  Status: ✅ UI Week 1-2 PIR PASS → Week 3-4 計画開始         │
+│  Active Checklist: docs_new/01_phase/CURRENT_PLAN.md        │
+│  Status: ✅ UI Week 3-4 計画完了 → 02_spec.md または 03_impl.md │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │         + 42/42 PASS (API) + 26/26 PASS (Event Bridge)      │
 │         + 37/37 PASS (SDK TS) + 7/7 PASS (SDK React)        │
 │         + 56/56 PASS (UI Packages)                          │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: 01_plan.md (UI Week 3-4 計画)                 │
+│  次のステップ: 03_impl.md (Consumer App MVP 実装)           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -30,6 +30,7 @@
 | 日付 | 変更内容 | 理由 |
 |------|---------|------|
 | 2026-01-05 | UI統合計画策定 | PIR-P4-004途中で戦略討議、9システム253画面の包括的計画へ |
+| 2026-01-07 | UI Week 3-4 計画完了 | Consumer App MVP (25画面) の詳細計画策定 |
 
 ---
 
@@ -45,55 +46,24 @@
 
 | 項目 | 値 |
 |------|-----|
-| **対象Plan** | UI Week 1-2 基盤構築 |
-| **タスクID** | UIBASE-001 ~ UIBASE-007 |
-| **実装日時** | 2026-01-06 23:50 JST |
-| **ステータス** | ✅ **PIR PASS** |
-| **PIR ID** | PIR-P4-UIW1W2 |
+| **対象Plan** | UI Week 3-4 Consumer App MVP |
+| **タスクID** | UI-CON-001 ~ UI-CON-007, UI-TEST-001 |
+| **計画日時** | 2026-01-07 10:00 JST |
+| **ステータス** | ⬜ **計画完了 → 実装待ち** |
 
-### 成果物一覧
+### 今回のスコープ
 
-| 成果物 | 状態 | パス |
-|--------|:----:|------|
-| UIBASE-001: Turborepo Monorepo | ✅ | `ui/` |
-| UIBASE-002: UIコンポーネント (22種) | ✅ | `ui/packages/ui/` |
-| UIBASE-003: Tailwind Config | ✅ | `ui/tooling/tailwind-config/` |
-| UIBASE-004: SIWE認証基盤 | ✅ | `ui/packages/web3/src/hooks/use-siwe.ts` |
-| UIBASE-005: wagmi/viem設定 | ✅ | `ui/packages/web3/` |
-| UIBASE-006: API Client | ✅ | `ui/packages/api-client/` |
-| UIBASE-007: ESLint/TypeScript設定 | ✅ | `ui/tooling/` |
-| Consumer App サンプル | ✅ | `ui/apps/consumer/` |
-
-### テスト結果 ✅ 56/56 PASS
-
-| パッケージ | テスト数 | 結果 | 内容 |
-|-----------|:-------:|:----:|------|
-| `@quantum-shield/ui` | 32 | ✅ PASS | utils (17), Button (9), Badge (6) |
-| `@quantum-shield/web3` | 12 | ✅ PASS | chains (12) |
-| `@quantum-shield/api-client` | 12 | ✅ PASS | client (12) |
-| **合計** | **56** | ✅ | |
-
-### UIコンポーネント詳細 (22種)
-
-| カテゴリ | コンポーネント | 状態 |
-|---------|--------------|:----:|
-| **基本** | Button, Input, Label | ✅ |
-| **レイアウト** | Card, Separator | ✅ |
-| **フィードバック** | Badge, Skeleton, Spinner, Progress | ✅ |
-| **オーバーレイ** | Dialog, DropdownMenu, Tooltip, Toast | ✅ |
-| **フォーム** | Select, Tabs, Switch, Checkbox | ✅ |
-| **表示** | Avatar, Alert | ✅ |
-| **QS固有** | WalletButton, AddressDisplay, TimeLockCountdown, TransactionStatus | ✅ |
-
-### API Client エンドポイント
-
-| カテゴリ | メソッド数 | 対応API |
-|---------|:--------:|---------|
-| auth | 4 | nonce, verify, refresh, logout |
-| users | 5 | register, getMe, updateMe, getLocks, getUnlocks |
-| locks | 4 | lock, requestUnlock, requestEmergencyUnlock, getLockStatus |
-| provers | 10 | apply, getMe, signatures, rewards, stake, exit |
-| explorer | 10 | stats, locks, unlocks, provers, addresses, charts |
+| タスクID | 内容 | 画面数 | 状態 |
+|---------|------|:------:|:----:|
+| UI-CON-001 | Landing Page | 4 | ⬜ |
+| UI-CON-002 | Onboarding Flow | 4 | ⬜ |
+| UI-CON-003 | Dashboard | 1 | ⬜ |
+| UI-CON-004 | Lock Flow | 4 | ⬜ |
+| UI-CON-005 | Unlock Flow (Normal) | 7 | ⬜ |
+| UI-CON-006 | Unlock Flow (Emergency) | 1 | ⬜ |
+| UI-CON-007 | History + Settings | 3 | ⬜ |
+| UIBASE-008 | Storybookセットアップ | - | ⬜ |
+| UI-TEST-001 | E2Eテスト（Critical Path） | - | ⬜ |
 
 ---
 
@@ -102,7 +72,7 @@
 ```
 ui/
 ├── apps/
-│   └── consumer/              # ✅ Consumer App サンプル (3画面)
+│   └── consumer/              # Consumer App MVP (25画面予定)
 ├── packages/
 │   ├── ui/                    # ✅ 共通UIコンポーネント (22種) + テスト (32)
 │   ├── web3/                  # ✅ wagmi/SIWE認証 + テスト (12)
@@ -160,16 +130,17 @@ ui/
 | UIBASE-006 | API Client | ✅ | 12 |
 | UIBASE-007 | ESLint/TypeScript設定 | ✅ | - |
 
-### UI Week 3-4: Consumer App MVP ⬜ **NEXT**
+### UI Week 3-4: Consumer App MVP 🔄 **IN PROGRESS**
 
 | タスクID | 内容 | 状態 |
 |---------|------|:----:|
-| UI-CON-001 | Landing Page | ⬜ |
-| UI-CON-002 | Onboarding (Dilithium鍵生成) | ⬜ |
-| UI-CON-003 | Lock Flow | ⬜ |
-| UI-CON-004 | Dashboard | ⬜ |
-| UI-CON-005 | Unlock Flow (Normal + Emergency) | ⬜ |
-| UI-CON-006 | History | ⬜ |
+| UI-CON-001 | Landing Page (4画面) | ⬜ |
+| UI-CON-002 | Onboarding Flow (4画面) | ⬜ |
+| UI-CON-003 | Dashboard (1画面) | ⬜ |
+| UI-CON-004 | Lock Flow (4画面) | ⬜ |
+| UI-CON-005 | Unlock Flow Normal (7画面) | ⬜ |
+| UI-CON-006 | Unlock Flow Emergency (1画面) | ⬜ |
+| UI-CON-007 | History + Settings (3画面) | ⬜ |
 
 ---
 
@@ -179,9 +150,9 @@ ui/
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | **01_plan.md 実行（UI Week 3-4 計画）** | 🔴 **P0** | ⬜ **NEXT** |
-| 2 | Consumer App MVP仕様書作成 | P0 | ⬜ |
-| 3 | UI Week 3-4 実装開始 | P0 | ⬜ |
+| 1 | **03_impl.md 実行（Consumer App MVP 実装）** | 🔴 **P0** | ⬜ **NEXT** |
+| 2 | Week 3 Day 1: Landing Page + How It Works | P0 | ⬜ |
+| 3 | Week 3 Day 2: Onboarding Flow | P0 | ⬜ |
 
 ### 継続タスク
 
@@ -189,7 +160,7 @@ ui/
 |---|--------|--------|------|
 | 1 | API認証 (JWT/OAuth) | High | PIR-P4-002推奨 |
 | 2 | E2Eテスト (UI→SDK→API→L1/L3) | High | PIR-P4-UIW1W2推奨 |
-| 3 | Storybookセットアップ (UIBASE-008) | P1 | 次週実施 |
+| 3 | Storybookセットアップ (UIBASE-008) | P1 | CURRENT_PLAN |
 | 4 | httpOnly cookies本番環境導入 | High | PIR-P4-UIW1W2推奨 |
 
 ---
@@ -216,7 +187,7 @@ ui/
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | Phase 3 | L3 + Token + 完全分散化 | 100% | ✅ COMPLETE 🎉🎉🎉 |
-| **Phase 4** | **UI/UX + Audit + Launch** | **50%** | 🔄 **UI Week 1-2完了、Week 3-4計画開始** |
+| **Phase 4** | **UI/UX + Audit + Launch** | **52%** | 🔄 **UI Week 3-4 計画完了、実装開始** |
 
 ### Phase 4 進捗詳細
 
@@ -224,7 +195,7 @@ ui/
 |---------|------|:----:|
 | Backend | Infrastructure + API + SDK | ✅ 100% |
 | Frontend | 基盤構築 (UI Week 1-2) | ✅ 100% |
-| Frontend | Consumer App MVP (UI Week 3-4) | ⬜ 0% |
+| Frontend | Consumer App MVP (UI Week 3-4) | 🔄 計画完了 → 実装0% |
 | Frontend | 9システム253画面 全体 | ⬜ ~12% |
 | Audit | 外部監査 | ⬜ 未開始 |
 | Launch | 本番デプロイ | ⬜ 未開始 |
@@ -246,13 +217,13 @@ ui/
 
 | ドキュメント | パス |
 |------------|------|
-| **UI統合計画（新）** | `STEP_E_UI_INTEGRATION_PLAN.md` |
+| **現在の計画** | `docs_new/01_phase/CURRENT_PLAN.md` |
+| UI統合計画 | `STEP_E_UI_INTEGRATION_PLAN.md` |
 | 戦略決定文書 | `docs_new/01_phase/04_phase4/00_戦略決定文書/` |
 | API仕様書 | `docs_new/01_phase/04_phase4/API_SPECIFICATION.md` |
 | SDK Guide | `docs_new/01_phase/04_phase4/SDK_GUIDE.md` |
 | Event Bridge仕様 | `docs_new/01_phase/04_phase4/EVENT_BRIDGE_SPEC.md` |
 | HSM連携仕様 | `docs_new/01_phase/04_phase4/HSM_INTEGRATION_SPEC.md` |
-| 現在の計画 | `docs_new/01_phase/CURRENT_PLAN.md` |
 
 ---
 
