@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Shield - 履歴</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-hinomaru: #BC002D;
+            --color-hinomaru-light: #E8334D;
+            --color-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --color-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --color-gold: #C9A962;
+            --color-gold-dim: rgba(201, 169, 98, 0.12);
+            --color-success: #00C896;
+            --color-success-dim: rgba(0, 200, 150, 0.12);
+            --color-warning: #F0A030;
+            --color-warning-dim: rgba(240, 160, 48, 0.12);
+            --color-error: #E07040;
+            --color-error-dim: rgba(224, 112, 64, 0.12);
+            --bg-primary: #0A0A0C;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181C;
+            --bg-card: #0E0E11;
+            --text-primary: #F8F8FA;
+            --text-secondary: #9898A0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --border-emphasis: rgba(255, 255, 255, 0.12);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        .bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .bg-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--color-hinomaru-dim), transparent 60%); opacity: 0.3; }
+        .container { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 24px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 18px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .back-btn:hover { border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        .header-title { font-size: 24px; font-weight: 700; }
+        .export-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .export-btn:hover { border-color: var(--color-gold); color: var(--color-gold); }
+        
+        .filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .filter-btn { padding: 10px 20px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-full); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .filter-btn:hover { border-color: var(--border-emphasis); color: var(--text-primary); }
+        .filter-btn.active { background: var(--color-hinomaru-dim); border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); margin-bottom: 4px; }
+        .stat-value.red { color: var(--color-hinomaru-light); }
+        .stat-value.gold { color: var(--color-gold); }
+        .stat-value.green { color: var(--color-success); }
+        .stat-label { font-size: 12px; color: var(--text-tertiary); }
+        
+        .history-list { display: flex; flex-direction: column; gap: 12px; }
+        .history-item { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); cursor: pointer; transition: all 0.2s; }
+        .history-item:hover { border-color: var(--border-emphasis); transform: translateX(4px); }
+        .history-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: 20px; }
+        .history-icon.lock { background: var(--color-hinomaru-dim); color: var(--color-hinomaru-light); }
+        .history-icon.unlock { background: var(--color-gold-dim); color: var(--color-gold); }
+        .history-icon.pending { background: var(--color-warning-dim); color: var(--color-warning); }
+        .history-icon.emergency { background: var(--color-error-dim); color: var(--color-error); }
+        .history-info { flex: 1; }
+        .history-type { font-size: 16px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .history-badge { font-size: 10px; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 500; }
+        .history-badge.complete { background: var(--color-success-dim); color: var(--color-success); }
+        .history-badge.pending { background: var(--color-warning-dim); color: var(--color-warning); }
+        .history-badge.emergency { background: var(--color-error-dim); color: var(--color-error); }
+        .history-meta { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .history-amount { text-align: right; }
+        .history-value { font-size: 18px; font-weight: 700; font-family: var(--font-mono); margin-bottom: 4px; }
+        .history-tx { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .history-arrow { color: var(--text-tertiary); font-size: 18px; }
+        
+        .load-more { text-align: center; margin-top: 32px; }
+        .load-more-btn { padding: 12px 32px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .load-more-btn:hover { border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        
+        .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); padding: 8px 16px; z-index: 100; }
+        .mobile-nav-items { display: flex; justify-content: space-around; }
+        .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; color: var(--text-tertiary); font-size: 10px; cursor: pointer; background: transparent; border: none; text-decoration: none; }
+        .mobile-nav-item.active { color: var(--color-hinomaru-light); }
+        .mobile-nav-item .nav-icon { font-size: 20px; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 16px; padding-bottom: 80px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .stats-row { grid-template-columns: 1fr; }
+            .history-item { flex-wrap: wrap; }
+            .history-amount { width: 100%; text-align: left; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+            .history-arrow { display: none; }
+            .mobile-nav { display: block; }
+            .filters { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 8px; }
+            .filter-btn { white-space: nowrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects"><div class="bg-glow"></div></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <a href="03_dashboard.html" class="back-btn">←</a>
+                <h1 class="header-title">取引履歴</h1>
+            </div>
+            <button class="export-btn">📥 CSV出力</button>
+        </div>
+        
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">すべて</button>
+            <button class="filter-btn" data-filter="lock">Lock</button>
+            <button class="filter-btn" data-filter="unlock">Unlock</button>
+            <button class="filter-btn" data-filter="pending">進行中</button>
+            <button class="filter-btn" data-filter="emergency">緊急</button>
+        </div>
+        
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value red">24.85 ETH</div>
+                <div class="stat-label">総Lock額</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value gold">15</div>
+                <div class="stat-label">総取引数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">2</div>
+                <div class="stat-label">進行中</div>
+            </div>
+        </div>
+        
+        <div class="history-list">
+            <div class="history-item" data-type="lock">
+                <div class="history-icon lock">🔒</div>
+                <div class="history-info">
+                    <div class="history-type">Lock <span class="history-badge complete">完了</span></div>
+                    <div class="history-meta">2026-01-06 14:32 • Block #19,234,567</div>
+                </div>
+                <div class="history-amount">
+                    <div class="history-value">+5.00 ETH</div>
+                    <div class="history-tx">0x7a3f...9c2d</div>
+                </div>
+                <span class="history-arrow">→</span>
+            </div>
+            
+            <div class="history-item" data-type="pending">
+                <div class="history-icon pending">⏳</div>
+                <div class="history-info">
+                    <div class="history-type">通常Unlock <span class="history-badge pending">24h待機中</span></div>
+                    <div class="history-meta">2026-01-05 09:15 • 残り 23:41:02</div>
+                </div>
+                <div class="history-amount">
+                    <div class="history-value">-2.50 ETH</div>
+                    <div class="history-tx">0x8b4c...1d3e</div>
+                </div>
+                <span class="history-arrow">→</span>
+            </div>
+            
+            <div class="history-item" data-type="emergency">
+                <div class="history-icon emergency">⚡</div>
+                <div class="history-info">
+                    <div class="history-type">緊急Unlock <span class="history-badge emergency">7日待機中</span></div>
+                    <div class="history-meta">2026-01-04 18:00 • 残り 6d 14:22:18</div>
+                </div>
+                <div class="history-amount">
+                    <div class="history-value">-0.75 ETH</div>
+                    <div class="history-tx">0x9c5d...2e4f</div>
+                </div>
+                <span class="history-arrow">→</span>
+            </div>
+            
+            <div class="history-item" data-type="unlock">
+                <div class="history-icon unlock">🔓</div>
+                <div class="history-info">
+                    <div class="history-type">Unlock完了 <span class="history-badge complete">完了</span></div>
+                    <div class="history-meta">2026-01-03 18:45 • Block #19,230,123</div>
+                </div>
+                <div class="history-amount">
+                    <div class="history-value">-1.25 ETH</div>
+                    <div class="history-tx">0xa6e7...3f5g</div>
+                </div>
+                <span class="history-arrow">→</span>
+            </div>
+            
+            <div class="history-item" data-type="lock">
+                <div class="history-icon lock">🔒</div>
+                <div class="history-info">
+                    <div class="history-type">Lock <span class="history-badge complete">完了</span></div>
+                    <div class="history-meta">2026-01-01 10:00 • Block #19,225,000</div>
+                </div>
+                <div class="history-amount">
+                    <div class="history-value">+10.00 ETH</div>
+                    <div class="history-tx">0xb7f8...4g6h</div>
+                </div>
+                <span class="history-arrow">→</span>
+            </div>
+            
+            <div class="history-item" data-type="lock">
+                <div class="history-icon lock">🔒</div>
+                <div class="history-info">
+                    <div class="history-type">Lock <span class="history-badge complete">完了</span></div>
+                    <div class="history-meta">2025-12-28 14:20 • Block #19,220,456</div>
+                </div>
+                <div class="history-amount">
+                    <div class="history-value">+3.50 ETH</div>
+                    <div class="history-tx">0xc8g9...5h7i</div>
+                </div>
+                <span class="history-arrow">→</span>
+            </div>
+        </div>
+        
+        <div class="load-more">
+            <button class="load-more-btn">さらに読み込む</button>
+        </div>
+    </div>
+    
+    <nav class="mobile-nav">
+        <div class="mobile-nav-items">
+            <a href="03_dashboard.html" class="mobile-nav-item"><span class="nav-icon">🏠</span><span>ホーム</span></a>
+            <a href="03_dashboard.html#lock" class="mobile-nav-item"><span class="nav-icon">🔒</span><span>Lock</span></a>
+            <a href="04_unlock.html" class="mobile-nav-item"><span class="nav-icon">🔓</span><span>Unlock</span></a>
+            <a href="05_history.html" class="mobile-nav-item active"><span class="nav-icon">📋</span><span>履歴</span></a>
+            <a href="06_settings.html" class="mobile-nav-item"><span class="nav-icon">⚙️</span><span>設定</span></a>
+        </div>
+    </nav>
+    
+    <script>
+        // Filter functionality
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const historyItems = document.querySelectorAll('.history-item');
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.dataset.filter;
+                
+                historyItems.forEach(item => {
+                    if (filter === 'all' || item.dataset.type === filter) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Click to view details (demo)
+        historyItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const tx = item.querySelector('.history-tx').textContent;
+                alert(`取引詳細: ${tx}\n\n詳細ページは開発中です。`);
+            });
+        });
+        
+        // Export CSV (demo)
+        document.querySelector('.export-btn').addEventListener('click', () => {
+            alert('CSV出力機能は開発中です。');
+        });
+        
+        // Load more (demo)
+        document.querySelector('.load-more-btn').addEventListener('click', () => {
+            alert('追加データの読み込みは開発中です。');
+        });
+    </script>
+</body>
+</html>
