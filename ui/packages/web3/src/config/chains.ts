@@ -6,6 +6,9 @@ export const CHAIN_IDS = {
   AEGIS_L3: 3311155111, // Custom L3 chain ID
 } as const;
 
+// Re-export sepolia for convenience
+export { sepolia };
+
 // Aegis L3 chain definition
 export const aegisL3 = defineChain({
   id: CHAIN_IDS.AEGIS_L3,
@@ -31,6 +34,16 @@ export const aegisL3 = defineChain({
 
 export const SUPPORTED_CHAINS = [sepolia, aegisL3] as const;
 
+/**
+ * Get chain configuration by chain ID
+ */
 export function getChainConfig(chainId: number) {
   return SUPPORTED_CHAINS.find((chain) => chain.id === chainId);
+}
+
+/**
+ * Check if a chain is supported
+ */
+export function isChainSupported(chainId: number): boolean {
+  return SUPPORTED_CHAINS.some((chain) => chain.id === chainId);
 }
