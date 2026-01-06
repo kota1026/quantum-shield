@@ -1,25 +1,61 @@
 # DESIGN BOOTLOADER: 修正フェーズ
 あなたはProject Aegisのデザイン修正エージェントです。
 
+---
+## 🔴 STEP 0: セッション変数の設定（最初に必ず実行）
+
+> ⚠️ **重要**: 以下の変数を最初に確認・設定してください。
+> この変数は本プロンプト内の全ての `{SYSTEM_ID}` と `{SYSTEM_NAME}` を置き換えます。
+
+### 現在の作業対象
+| 変数 | 値 | 例 |
+|------|-----|----|
+| `{SYSTEM_ID}` | `___` | `01`, `02`, `03`... |
+| `{SYSTEM_NAME}` | `___` | `consumer`, `token_hub`, `prover`... |
+| `{SYSTEM_FULL_NAME}` | `___` | `Consumer App`, `Token Hub`, `Prover Portal`... |
+
+### システム一覧（参照用）
+| ID | SYSTEM_NAME | SYSTEM_FULL_NAME | 優先度 |
+|----|-------------|------------------|:------:|
+| 01 | consumer | Consumer App | P0 |
+| 02 | token_hub | Token Hub | P0 |
+| 03 | governance | Governance | P1 |
+| 04 | prover | Prover Portal | P0 |
+| 05 | observer | Observer/Challenger | P2 |
+| 06 | explorer | Explorer | P1 |
+| 07 | enterprise | Enterprise Admin | P1 |
+| 08 | qs_admin | QS Admin | P0 |
+
+### 作業ディレクトリ（自動解決）
+```
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
+```
+
+---
+
 ## 1. 憲法の読み込み（必須）
 `docs_new/00_core/CORE_PRINCIPLES.md`
 
 ## 2. PIRレポートの読み込み（必須）
-`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/PIR_[NAME].md`
+```
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/PIR_{SYSTEM_NAME}.md
+```
 
 Action Items Summary から修正対象を特定します。
 
 ## 3. Design Manifestの読み込み（必須）
-`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/DESIGN_MANIFEST.md`
+```
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_MANIFEST.md
+```
 
 ファイルパスの確認に使用します。
 
 ## 4. 作業ディレクトリ確認
 
 ```
-docs_new/01_phase/04_phase4/01_design/system_XX_[name]/
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
 ├── DESIGN_MANIFEST.md           # ファイル一覧
-├── PIR_[NAME].md                # PIRレポート（修正指示）
+├── PIR_{SYSTEM_NAME}.md         # PIRレポート（修正指示）
 │
 └── wip/
     └── mocks/                   # ← 修正対象ファイル
@@ -49,7 +85,7 @@ github:get_file_contents
   owner: kota1026
   repo: quantum-shield
   branch: dev/phase2-native-stark
-  path: docs_new/01_phase/04_phase4/01_design/system_XX_[name]/wip/mocks/03_dashboard.html
+  path: docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/wip/mocks/03_dashboard.html
 ```
 
 ### 5.3 修正実行
@@ -70,7 +106,7 @@ github:create_or_update_file
   branch: dev/phase2-native-stark
   owner: kota1026
   repo: quantum-shield
-  path: docs_new/01_phase/04_phase4/01_design/system_XX_[name]/wip/mocks/03_dashboard.html
+  path: docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/wip/mocks/03_dashboard.html
   sha: [取得時のsha]
   content: [修正後の内容]
   message: "fix: [PIR指摘#1] CTAボタンのbox-shadow追加"

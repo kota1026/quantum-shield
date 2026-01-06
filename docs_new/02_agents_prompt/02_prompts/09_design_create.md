@@ -1,11 +1,45 @@
 # DESIGN BOOTLOADER: 作成フェーズ
 あなたはProject Aegisのデザインエージェントです。
 
+---
+## 🔴 STEP 0: セッション変数の設定（最初に必ず実行）
+
+> ⚠️ **重要**: 以下の変数を最初に確認・設定してください。
+> この変数は本プロンプト内の全ての `{SYSTEM_ID}` と `{SYSTEM_NAME}` を置き換えます。
+
+### 現在の作業対象
+| 変数 | 値 | 例 |
+|------|-----|----|
+| `{SYSTEM_ID}` | `___` | `01`, `02`, `03`... |
+| `{SYSTEM_NAME}` | `___` | `consumer`, `token_hub`, `prover`... |
+| `{SYSTEM_FULL_NAME}` | `___` | `Consumer App`, `Token Hub`, `Prover Portal`... |
+
+### システム一覧（参照用）
+| ID | SYSTEM_NAME | SYSTEM_FULL_NAME | 優先度 |
+|----|-------------|------------------|:------:|
+| 01 | consumer | Consumer App | P0 |
+| 02 | token_hub | Token Hub | P0 |
+| 03 | governance | Governance | P1 |
+| 04 | prover | Prover Portal | P0 |
+| 05 | observer | Observer/Challenger | P2 |
+| 06 | explorer | Explorer | P1 |
+| 07 | enterprise | Enterprise Admin | P1 |
+| 08 | qs_admin | QS Admin | P0 |
+
+### 作業ディレクトリ（自動解決）
+```
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
+```
+
+---
+
 ## 1. 憲法の読み込み（必須）
 `docs_new/00_core/CORE_PRINCIPLES.md`
 
 ## 2. デザインブリーフの読み込み（必須）
-`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/DESIGN_BRIEF_[NAME].md`
+```
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_BRIEF_{SYSTEM_NAME}.md
+```
 
 ## 3. デザインシステムの読み込み（必須）
 `docs_new/01_phase/04_phase4/01_design/UI_DESIGN_GUIDELINES.md`
@@ -19,9 +53,9 @@
 全ての作成ファイルは以下のパスに保存：
 
 ```
-docs_new/01_phase/04_phase4/01_design/system_XX_[name]/
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
 ├── README.md                    # システム概要
-├── DESIGN_BRIEF_[NAME].md       # 08_design_prep出力
+├── DESIGN_BRIEF_{SYSTEM_NAME}.md  # 08_design_prep出力
 ├── DESIGN_MANIFEST.md           # 作成ファイル一覧（本フェーズで作成）
 │
 └── wip/                         # ★ 作業ファイル保管場所
@@ -108,13 +142,17 @@ HTML/React で実装:
 
 ### 7.2 DESIGN_MANIFEST.md の作成（必須）
 
-`system_XX_[name]/DESIGN_MANIFEST.md` を作成してGitにプッシュ：
+保存先:
+```
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_MANIFEST.md
+```
 
 ```markdown
-# Design Manifest: [System Name]
+# Design Manifest: {SYSTEM_FULL_NAME}
 
 ## Overview
-- System: [Name]
+- System: {SYSTEM_FULL_NAME}
+- System ID: {SYSTEM_ID}
 - Created: [YYYY-MM-DD]
 - Last Updated: [YYYY-MM-DD]
 - Status: 🔵 In Progress / 🟢 PIR Ready / ✅ Approved
@@ -130,7 +168,7 @@ HTML/React で実装:
 | # | ファイル | パス | 画面 | 説明 |
 |---|----------|------|------|------|
 | 1 | 01_landing.html | `wip/mocks/01_landing.html` | Landing Page | ヒーロー・CTA |
-| 2 | 02_onboarding_connect.html | `wip/mocks/02_onboarding_connect.html` | Wallet Connect | ウォレット接続 |
+| 2 | 02_onboarding.html | `wip/mocks/02_onboarding.html` | Onboarding | ウォレット接続 |
 | 3 | 03_dashboard.html | `wip/mocks/03_dashboard.html` | Dashboard | メインダッシュボード |
 
 ## Change Log
