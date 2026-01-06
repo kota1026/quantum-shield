@@ -112,8 +112,10 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .progress-step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
         .progress-step-content p { font-size: 12px; color: var(--text-tertiary); }
+        /* PIR#9: Emergency Bond に日本語（保証金）併記 */
         .bond-calculation { background: var(--color-warning-dim); border: 1px solid var(--color-warning); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 24px; }
         .bond-title { font-size: 14px; font-weight: 600; color: var(--color-warning); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .bond-title-sub { font-size: 12px; font-weight: 400; color: var(--text-secondary); }
         .bond-formula { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); }
         .bond-result { display: flex; justify-content: space-between; align-items: center; }
         .bond-label { font-size: 13px; color: var(--text-secondary); }
@@ -227,6 +229,7 @@
                             <div class="method-icon">⚡</div>
                             <div class="method-name">緊急Unlock</div>
                             <div class="method-time warning">7日間</div>
+                            <!-- PIR#9: Bond（保証金）に日本語併記 -->
                             <div class="method-desc">Bond（保証金）が必要。問題なければ返還。</div>
                         </div>
                     </div>
@@ -235,7 +238,8 @@
                         <table class="comparison-table">
                             <tr><th></th><th>通常</th><th>緊急</th></tr>
                             <tr><td>待機時間</td><td class="normal">24時間</td><td class="emergency">7日間</td></tr>
-                            <tr><td>追加費用</td><td class="normal">なし</td><td class="emergency">Bond必要</td></tr>
+                            <!-- PIR#9: Bond必要 → 保証金必要 に変更 -->
+                            <tr><td>追加費用</td><td class="normal">なし</td><td class="emergency">保証金（Bond）必要</td></tr>
                             <tr><td>用途</td><td>通常利用</td><td>秘密鍵紛失時</td></tr>
                         </table>
                     </div>
@@ -266,17 +270,21 @@
         </div>
         <div class="step" id="step3emergency">
             <div class="card">
-                <div class="card-header"><h2 class="card-title">Emergency Bond</h2></div>
+                <!-- PIR#9: Emergency Bond → Emergency Bond（緊急保証金）に変更 -->
+                <div class="card-header"><h2 class="card-title">Emergency Bond（緊急保証金）</h2></div>
                 <div class="card-body">
                     <div class="warning-box">
                         <span class="warning-icon">⚠️</span>
-                        <div class="warning-content"><strong>緊急Unlockについて：</strong>保証金（Bond）を預け入れる必要があります。7日間の待機期間中にChallengeがなければ、BondはUnlock金額と一緒に返還されます。</div>
+                        <!-- PIR#9: 保証金の説明を明確化 -->
+                        <div class="warning-content"><strong>緊急Unlockについて：</strong>保証金（Bond）を預け入れる必要があります。7日間の待機期間中にChallengeがなければ、保証金はUnlock金額と一緒に返還されます。</div>
                     </div>
                     <div class="bond-calculation">
-                        <div class="bond-title">💰 Bond計算</div>
+                        <!-- PIR#9: Bond計算タイトルに日本語併記 -->
+                        <div class="bond-title">💰 Bond計算<span class="bond-title-sub">（保証金）</span></div>
                         <div class="bond-formula">MAX(0.5 ETH, Unlock金額 × 5%)<br>= MAX(0.5 ETH, <span id="bondCalcAmount">5.00</span> × 5%)<br>= MAX(0.5 ETH, <span id="bondCalcPercent">0.25</span> ETH)</div>
                         <div class="bond-result">
-                            <span class="bond-label">必要なBond</span>
+                            <!-- PIR#9: 必要なBond → 必要な保証金（Bond）に変更 -->
+                            <span class="bond-label">必要な保証金（Bond）</span>
                             <span class="bond-value" id="bondRequired">0.50 ETH</span>
                         </div>
                     </div>
@@ -292,7 +300,8 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-primary warning" onclick="signEmergency()">Bond支払い + 緊急Unlock開始</button>
+            <!-- PIR#9: ボタンテキストにも日本語併記 -->
+            <button class="btn-primary warning" onclick="signEmergency()">保証金支払い + 緊急Unlock開始</button>
             <button class="btn-secondary" onclick="goToStep(2)">戻る</button>
         </div>
         <div class="step" id="step4">
