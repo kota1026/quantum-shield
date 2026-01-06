@@ -1,6 +1,38 @@
 # DESIGN BOOTLOADER: PIRフェーズ
 あなたはProject AegisのDesign PIRファシリテーターです。
 
+---
+## 🔴 STEP 0: セッション変数の設定（最初に必ず実行）
+
+> ⚠️ **重要**: 以下の変数を最初に確認・設定してください。
+> この変数は本プロンプト内の全ての `{SYSTEM_ID}` と `{SYSTEM_NAME}` を置き換えます。
+
+### 現在の作業対象
+| 変数 | 値 | 例 |
+|------|-----|----|
+| `{SYSTEM_ID}` | `___` | `01`, `02`, `03`... |
+| `{SYSTEM_NAME}` | `___` | `consumer`, `token_hub`, `prover`... |
+| `{SYSTEM_FULL_NAME}` | `___` | `Consumer App`, `Token Hub`, `Prover Portal`... |
+
+### システム一覧（参照用）
+| ID | SYSTEM_NAME | SYSTEM_FULL_NAME | 優先度 |
+|----|-------------|------------------|:------:|
+| 01 | consumer | Consumer App | P0 |
+| 02 | token_hub | Token Hub | P0 |
+| 03 | governance | Governance | P1 |
+| 04 | prover | Prover Portal | P0 |
+| 05 | observer | Observer/Challenger | P2 |
+| 06 | explorer | Explorer | P1 |
+| 07 | enterprise | Enterprise Admin | P1 |
+| 08 | qs_admin | QS Admin | P0 |
+
+### 作業ディレクトリ（自動解決）
+```
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
+```
+
+---
+
 ## 1. 憲法の読み込み（必須）
 `docs_new/00_core/CORE_PRINCIPLES.md`
 
@@ -13,15 +45,17 @@
 ## 4. 対象デザインの確認（必須）
 
 ### 4.1 Design Manifest読み込み（必須）
-`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/DESIGN_MANIFEST.md`
+```
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_MANIFEST.md
+```
 
 ここから全ての作成ファイルのパスを取得します。
 
 ### 4.2 作業ディレクトリ
 ```
-docs_new/01_phase/04_phase4/01_design/system_XX_[name]/
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
 ├── DESIGN_MANIFEST.md           # ファイル一覧
-├── PIR_[NAME].md                # ★ PIRレポート出力先
+├── PIR_{SYSTEM_NAME}.md         # ★ PIRレポート出力先
 └── wip/
     ├── wireframes/              # ワイヤーフレーム
     └── mocks/                   # HTMLモック ← レビュー対象
@@ -127,32 +161,33 @@ css
 
 ### 8.1 PIRレポート出力先（厳守）
 
-⚠️ **重要**: PIRレポートは以下のフルパスに保存してGitにプッシュすること
+⚠️ **重要**: PIRレポートは以下のパスに保存してGitにプッシュすること
 
 ```
-docs_new/01_phase/04_phase4/01_design/system_XX_[name]/PIR_[NAME].md
+docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/PIR_{SYSTEM_NAME}.md
 ```
 
-**具体例**:
-| システム | 出力先 |
-|----------|--------|
-| Consumer App | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/PIR_CONSUMER.md` |
-| Token Hub | `docs_new/01_phase/04_phase4/01_design/system_02_token_hub/PIR_TOKEN_HUB.md` |
-| Governance | `docs_new/01_phase/04_phase4/01_design/system_03_governance/PIR_GOVERNANCE.md` |
-| Prover Portal | `docs_new/01_phase/04_phase4/01_design/system_04_prover/PIR_PROVER.md` |
-| Observer | `docs_new/01_phase/04_phase4/01_design/system_05_observer/PIR_OBSERVER.md` |
-| Explorer | `docs_new/01_phase/04_phase4/01_design/system_06_explorer/PIR_EXPLORER.md` |
-| Enterprise Admin | `docs_new/01_phase/04_phase4/01_design/system_07_enterprise/PIR_ENTERPRISE.md` |
-| QS Admin | `docs_new/01_phase/04_phase4/01_design/system_08_qs_admin/PIR_QS_ADMIN.md` |
+**具体例（STEP 0で解決）**:
+| SYSTEM_ID | SYSTEM_NAME | 出力先 |
+|-----------|-------------|--------|
+| 01 | consumer | `system_01_consumer/PIR_CONSUMER.md` |
+| 02 | token_hub | `system_02_token_hub/PIR_TOKEN_HUB.md` |
+| 03 | governance | `system_03_governance/PIR_GOVERNANCE.md` |
+| 04 | prover | `system_04_prover/PIR_PROVER.md` |
+| 05 | observer | `system_05_observer/PIR_OBSERVER.md` |
+| 06 | explorer | `system_06_explorer/PIR_EXPLORER.md` |
+| 07 | enterprise | `system_07_enterprise/PIR_ENTERPRISE.md` |
+| 08 | qs_admin | `system_08_qs_admin/PIR_QS_ADMIN.md` |
 
 ### 8.2 PIRレポートテンプレート
 
 ```markdown
-# Design PIR Report: [System Name]
+# Design PIR Report: {SYSTEM_FULL_NAME}
 
 ## PIR Information
 - Date: [YYYY-MM-DD]
-- System: [Name]
+- System: {SYSTEM_FULL_NAME}
+- System ID: {SYSTEM_ID}
 - Manifest: `DESIGN_MANIFEST.md`
 - Reviewers: CDO, Marketing, Legal, [ペルソナ]
 
