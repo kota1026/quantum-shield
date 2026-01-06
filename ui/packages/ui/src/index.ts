@@ -1,5 +1,5 @@
 // Utilities
-export { cn } from './lib/utils';
+export { cn, formatAddress, formatAmount, formatDuration, weiToEth } from './lib/utils';
 
 // Components
 export * from './components/button';
