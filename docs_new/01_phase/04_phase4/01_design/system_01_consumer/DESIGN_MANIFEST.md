@@ -1,9 +1,9 @@
 # Consumer App Design Manifest
 ## Phase 4 UI Integration - Design Assets
 
-> **Version**: 1.2  
+> **Version**: 1.3  
 > **Date**: 2026-01-06  
-> **Status**: Phase 1 MVP Complete - PIR Fixes Applied ✅
+> **Status**: Phase 1 MVP Complete + P2 Screens Added ✅
 
 ---
 
@@ -17,44 +17,55 @@ docs_new/01_phase/04_phase4/01_design/system_01_consumer/
 ├── PIR_CONSUMER.md                 ← Design PIR Report
 └── wip/
     └── mocks/
-        ├── 01_landing.html         ← Landing Page + Features + How It Works
+        ├── 01_landing.html         ← Landing Page + Features + How It Works (リンク修正済み)
         ├── 02_onboarding.html      ← Wallet Connect + Key Gen + Backup + Ready
         ├── 03_dashboard.html       ← Dashboard + Lock Input + Lock Confirmation
-        └── 04_unlock.html          ← Unlock Select + Method + Sign + TimeLock + Complete
+        ├── 04_unlock.html          ← Unlock Select + Method + Sign + TimeLock + Complete
+        ├── 05_history.html         ← Transaction History (NEW)
+        ├── 06_settings.html        ← Settings Page (NEW)
+        ├── 07_key_management.html  ← Key Management (NEW)
+        ├── 08_faq.html             ← FAQ Page (NEW)
+        └── 09_security.html        ← Security Explainer (NEW)
 ```
 
 ---
 
 ## 📊 Screen Coverage Matrix
 
-| # | Screen | File | Line Range | Status |
-|---|--------|------|------------|:------:|
+| # | Screen | File | Status | Notes |
+|---|--------|------|:------:|-------|
 | **Public Pages** |||||
-| 1 | Landing Page | wip/mocks/01_landing.html | L1-L250 | ✅ |
-| 2 | Features | wip/mocks/01_landing.html | L251-L350 | ✅ |
-| 3 | How It Works | wip/mocks/01_landing.html | L351-L450 | ✅ |
-| 4 | Security Explainer | - | - | ⬜ P2 |
-| 5 | FAQ | - | - | ⬜ P2 |
+| 1-1 | Landing Page | 01_landing.html | ✅ | リンク修正、Cookie設定モーダル追加 |
+| 1-2 | Features | 01_landing.html | ✅ | |
+| 1-3 | How It Works | 01_landing.html | ✅ | |
+| 1-4 | Security Explainer | 09_security.html | ✅ | NEW - P2完了 |
+| 1-5 | FAQ | 08_faq.html | ✅ | NEW - P2完了 |
 | **Onboarding** |||||
-| 6 | Wallet Connect | wip/mocks/02_onboarding.html | L1-L150 | ✅ |
-| 7 | Key Generation | wip/mocks/02_onboarding.html | L151-L250 | ✅ |
-| 8 | Backup Instructions | wip/mocks/02_onboarding.html | L251-L350 | ✅ |
-| 9 | Ready | wip/mocks/02_onboarding.html | L351-L400 | ✅ |
+| 1-6 | Wallet Connect | 02_onboarding.html | ✅ | |
+| 1-7 | Key Generation | 02_onboarding.html | ✅ | |
+| 1-8 | Backup Instructions | 02_onboarding.html | ✅ | |
+| 1-9 | Ready | 02_onboarding.html | ✅ | |
 | **Main App** |||||
-| 10 | Dashboard | wip/mocks/03_dashboard.html | L1-L200 | ✅ |
-| 11 | Lock Input | wip/mocks/03_dashboard.html | L201-L300 | ✅ |
-| 12 | Lock Confirmation | wip/mocks/03_dashboard.html | L301-L400 | ✅ |
-| 13 | Lock Processing | - | - | ⬜ P2 |
-| 14 | Lock Success | - | - | ⬜ P2 |
+| 1-10 | Dashboard | 03_dashboard.html | ✅ | |
+| 1-11 | Lock Input | 03_dashboard.html | ✅ | |
+| 1-12 | Lock Confirmation | 03_dashboard.html | ✅ | |
+| 1-13 | Lock Processing | - | ⬜ | P2 |
+| 1-14 | Lock Success | - | ⬜ | P2 |
 | **Unlock Flow** |||||
-| 15 | Unlock Select | wip/mocks/04_unlock.html | L1-L150 | ✅ |
-| 16 | Unlock Method | wip/mocks/04_unlock.html | L151-L250 | ✅ |
-| 17 | Dilithium Sign | wip/mocks/04_unlock.html | L251-L350 | ✅ |
-| 18 | Emergency Bond | wip/mocks/04_unlock.html | L351-L450 | ✅ |
-| 19 | Time Lock Countdown | wip/mocks/04_unlock.html | L451-L550 | ✅ |
-| 20 | Unlock Complete | wip/mocks/04_unlock.html | L551-L600 | ✅ |
+| 1-15 | Unlock Select | 04_unlock.html | ✅ | |
+| 1-16 | Unlock Method | 04_unlock.html | ✅ | |
+| 1-17 | Dilithium Sign | 04_unlock.html | ✅ | |
+| 1-18 | Prover Waiting | - | ⬜ | P2 |
+| 1-19 | Emergency Bond | 04_unlock.html | ✅ | |
+| 1-20 | Time Lock Countdown | 04_unlock.html | ✅ | |
+| 1-21 | Unlock Complete | 04_unlock.html | ✅ | |
+| **Supporting Pages** |||||
+| 1-22 | History | 05_history.html | ✅ | NEW - P2完了 |
+| 1-23 | Emergency Complete | - | ⬜ | P2 |
+| 1-24 | Settings | 06_settings.html | ✅ | NEW - P2完了 |
+| 1-25 | Key Management | 07_key_management.html | ✅ | NEW - P2完了 |
 
-**Coverage: 12/14 screens (85%)**
+**Coverage: 17/25 screens (68%)** ⬆️ +5 screens
 
 ---
 
@@ -79,10 +90,15 @@ docs_new/01_phase/04_phase4/01_design/system_01_consumer/
 
 | File | Size | Full Path |
 |------|------|----------|
-| 01_landing.html | ~35KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/01_landing.html` |
+| 01_landing.html | ~44KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/01_landing.html` |
 | 02_onboarding.html | ~25KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/02_onboarding.html` |
 | 03_dashboard.html | ~29KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/03_dashboard.html` |
 | 04_unlock.html | ~33KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/04_unlock.html` |
+| 05_history.html | ~18KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/05_history.html` |
+| 06_settings.html | ~14KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/06_settings.html` |
+| 07_key_management.html | ~20KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/07_key_management.html` |
+| 08_faq.html | ~16KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/08_faq.html` |
+| 09_security.html | ~15KB | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/wip/mocks/09_security.html` |
 
 ---
 
@@ -108,6 +124,21 @@ docs_new/01_phase/04_phase4/01_design/system_01_consumer/
    - Desktop: Horizontal pill navigation
    - Mobile: Bottom tab bar with icons
 
+5. **Cookie Settings Modal** (NEW in v1.3)
+   - Full modal implementation
+   - Toggle switches for analytics/marketing
+   - Save/reject functionality
+
+6. **Transaction History** (NEW in v1.3)
+   - Filter by type (Lock/Unlock/Pending/Emergency)
+   - Stats summary row
+   - CSV export button
+
+7. **Key Management** (NEW in v1.3)
+   - Backup modal with step-by-step guide
+   - Secret key reveal with confirmation
+   - Copy functionality
+
 ### Accessibility Features
 
 - Focus states on all interactive elements
@@ -117,43 +148,44 @@ docs_new/01_phase/04_phase4/01_design/system_01_consumer/
 
 ---
 
-## 📋 PIR Fix Log (v1.2)
+## 📋 PIR Fix Log (v1.2 → v1.3)
 
-### ✅ High Priority (Legal - 必須)
-| PIR# | File | 修正内容 | Commit |
-|------|------|---------|--------|
-| #1 | 01_landing.html | Hero下部にリスク注記追加（金商法対応） | 14c85a5 |
-| #2 | 01_landing.html | Cookie同意バナー実装（ePrivacy対応） | 14c85a5 |
+### v1.2 PIR Fixes ✅
+| PIR# | File | 修正内容 | Status |
+|------|------|---------|:------:|
+| #1-#9 | Various | Legal/UX fixes | ✅ Complete |
 
-### ✅ Medium Priority (推奨)
-| PIR# | File | 修正内容 | Commit |
-|------|------|---------|--------|
-| #3 | 01_landing.html | Stats数値にカウントアップアニメーション追加 | 14c85a5 |
-| #4 | 01_landing.html | CTAセクションにリスク注記追加 | 14c85a5 |
-| #5 | 03_dashboard.html | 「Dilithium署名」→「安全にロックする」+ ツールチップ | cdb3460 |
+### v1.3 New Screens ✅
+| Screen | File | 内容 | Status |
+|--------|------|------|:------:|
+| History | 05_history.html | 取引履歴、フィルター、統計 | ✅ |
+| Settings | 06_settings.html | 設定画面、トグルスイッチ | ✅ |
+| Key Management | 07_key_management.html | 鍵管理、バックアップ、表示 | ✅ |
+| FAQ | 08_faq.html | FAQ、カテゴリフィルター、検索 | ✅ |
+| Security | 09_security.html | セキュリティ説明、比較表 | ✅ |
 
-### ✅ Low Priority
-| PIR# | File | 修正内容 | Commit |
-|------|------|---------|--------|
-| #6 | 01_landing.html | Hero Subtitle line-height: 1.7→1.8 | 14c85a5 |
-| #7 | 01_landing.html | How It Works直後に二次CTA追加 | 14c85a5 |
-| #8 | 02_onboarding.html | Key Display font-size: 13px→14px | ebceae5 |
-| #9 | 04_unlock.html | 「Emergency Bond」に日本語（保証金）併記 | ca8df1f |
-
-**PIR修正完了率: 9/9 (100%)**
+### v1.3 Link Fixes ✅
+| File | 修正内容 | Status |
+|------|---------|:------:|
+| 01_landing.html | Hero CTAs → 02_onboarding.html | ✅ |
+| 01_landing.html | Nav links → FAQ/Security pages | ✅ |
+| 01_landing.html | Mobile menu implementation | ✅ |
+| 01_landing.html | Cookie settings modal | ✅ |
+| 01_landing.html | Footer links → proper pages | ✅ |
 
 ---
 
 ## 🔜 Next Steps
 
-1. **Re-PIR Review**
-   - PIR_CONSUMER.md のステータス更新
-   - CONDITIONAL → PASS 判定確認
-
-2. **Phase 2 Screens** (P2)
-   - Security Explainer page
-   - FAQ page
+1. **Remaining P2 Screens**
    - Lock Processing/Success states
+   - Prover Waiting state
+   - Emergency Complete state
+
+2. **Integration Testing**
+   - Cross-page navigation verification
+   - Mobile responsiveness check
+   - Accessibility audit
 
 3. **Implementation Handoff**
    - React component extraction
@@ -169,3 +201,4 @@ docs_new/01_phase/04_phase4/01_design/system_01_consumer/
 | 1.0 | 2026-01-06 | Claude | Initial manifest with Phase 1 MVP |
 | 1.1 | 2026-01-06 | Claude | Consolidated to system_01_consumer, added absolute paths |
 | 1.2 | 2026-01-06 | Claude | PIR修正完了（全9件）、Fix Log追加 |
+| 1.3 | 2026-01-06 | Claude | P2画面5件追加（History/Settings/Key/FAQ/Security）、リンク修正 |
