@@ -10,8 +10,24 @@
 ## 3. PIRプロセスの読み込み（必須）
 `docs_new/01_phase/04_phase4/01_design/DESIGN_PIR_PROCESS.md`
 
-## 4. 対象デザインの確認
-`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/`
+## 4. 対象デザインの確認（必須）
+
+### 4.1 Design Manifest読み込み（必須）
+`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/DESIGN_MANIFEST.md`
+
+ここから全ての作成ファイルのパスを取得します。
+
+### 4.2 作業ディレクトリ
+```
+docs_new/01_phase/04_phase4/01_design/system_XX_[name]/
+├── DESIGN_MANIFEST.md           # ファイル一覧
+└── wip/
+    ├── wireframes/              # ワイヤーフレーム
+    └── mocks/                   # HTMLモック ← レビュー対象
+```
+
+### 4.3 GitHubからファイル取得
+DESIGN_MANIFEST.md に記載された各ファイルをGitHubから取得してレビュー
 
 ## 5. レビュー実行
 
@@ -51,29 +67,47 @@
 
 対象システムに応じて選択:
 
-#### 田中さん (End User) - Consumer App
-- 技術レベル: ★★☆☆☆
-- Focus: 初心者視点、モバイルUX
+| ペルソナ | 対象システム | 技術レベル | Focus |
+|----------|--------------|------------|-------|
+| 田中さん | Consumer App | ★★☆☆☆ | 初心者視点、モバイルUX |
+| 山田さん | Prover Portal | ★★★★★ | B2B運用効率、データ可視化 |
+| 佐藤さん | Enterprise Admin | ★★★★☆ | CTO視点、運用効率 |
+| 鈴木さん | Token Hub, Governance | ★★★★☆ | DeFi視点、veToken |
+| 渡辺さん | Governance | ★★★★☆ | DAO視点、提案作成 |
 
-#### 山田さん (Prover) - Prover Portal
-- 技術レベル: ★★★★★
-- Focus: B2B運用効率、データ可視化
+## 6. 指摘事項フォーマット（厳守）
 
-#### 佐藤さん (Enterprise) - Enterprise Admin
-- 技術レベル: ★★★★☆
-- Focus: CTO視点、運用効率
+### 6.1 指摘は必ずファイルパス+行番号を含める
 
-#### 鈴木さん (Token Holder) - Token Hub, Governance
-- 技術レベル: ★★★★☆
-- Focus: DeFi視点、veTokenの使いやすさ
+⚠️ **重要**: 修正フェーズでファイルを特定できるよう、必ず以下の形式で記載
 
-#### 渡辺さん (Delegate) - Governance
-- 技術レベル: ★★★★☆
-- Focus: DAO視点、提案作成フロー
+❌ **NG例**:
+```
+ボタンの色をもっと目立たせて
+```
 
-## 6. 判定
+✅ **OK例**:
+```
+**ファイル**: `wip/mocks/03_dashboard.html`
+**行**: L142-145
+**指摘**: `.btn-primary` のbox-shadowが不足、CTAが目立たない
+**修正案**: 
+css
+.btn-primary {
+  box-shadow: 0 4px 16px var(--accent-hinomaru-glow);
+}
+```
 
-### 6.1 判定基準
+### 6.2 指摘テーブルフォーマット
+
+| # | 重要度 | ファイル | 行 | 指摘 | 修正案 |
+|---|--------|----------|-----|------|--------|
+| 1 | High | `wip/mocks/03_dashboard.html` | L142-145 | CTAボタンが目立たない | box-shadow追加 |
+| 2 | Medium | `wip/mocks/01_landing.html` | L78 | ヒーローテキストのコントラスト不足 | 背景オーバーレイ追加 |
+
+## 7. 判定
+
+### 7.1 判定基準
 
 | 重要度 | 定義 | 影響 |
 |--------|------|------|
@@ -82,15 +116,17 @@
 | Medium | 改善推奨 | 修正推奨 |
 | Low | 微細な改善 | 任意 |
 
-### 6.2 判定結果
+### 7.2 判定結果
 
 - ✅ **PASS**: Critical/High なし → 承認
 - ⚠️ **CONDITIONAL**: Medium以下のみ → 修正後自動承認
-- ❌ **FAIL**: Critical/High あり → 09_design_create.md に差し戻し
+- ❌ **FAIL**: Critical/High あり → `11_design_fix.md` に進む
 
-## 7. 出力
+## 8. 出力
 
-### 7.1 PIRレポート
+### 8.1 PIRレポート
+
+`system_XX_[name]/PIR_[NAME].md` を作成してGitにプッシュ：
 
 ```markdown
 # Design PIR Report: [System Name]
@@ -98,50 +134,57 @@
 ## PIR Information
 - Date: [YYYY-MM-DD]
 - System: [Name]
+- Manifest: `DESIGN_MANIFEST.md`
 - Reviewers: CDO, Marketing, Legal, [ペルソナ]
 
 ## Review Summary
 
 ### CDO Review (佐々木さん)
-| # | 重要度 | 項目 | フィードバック |
-|---|--------|------|-------------------|
-| 1 | ... | ... | ... |
+| # | 重要度 | ファイル | 行 | 指摘 | 修正案 |
+|---|--------|----------|-----|------|--------|
+| 1 | High | `wip/mocks/03_dashboard.html` | L142 | ... | ... |
 
 ### Marketing Review (田村さん)
-| # | 重要度 | 項目 | フィードバック |
-|---|--------|------|-------------------|
-| 1 | ... | ... | ... |
+| # | 重要度 | ファイル | 行 | 指摘 | 修正案 |
+|---|--------|----------|-----|------|--------|
+| 1 | Medium | `wip/mocks/01_landing.html` | L78 | ... | ... |
 
 ### Legal Review (西村さん)
-| # | 重要度 | 項目 | フィードバック |
-|---|--------|------|-------------------|
-| 1 | ... | ... | ... |
+| # | 重要度 | ファイル | 行 | 指摘 | 修正案 |
+|---|--------|----------|-----|------|--------|
+| 1 | High | `wip/mocks/01_landing.html` | L200 | ... | ... |
 
 ### Persona Review ([ペルソナ名])
-| # | 重要度 | 項目 | フィードバック |
-|---|--------|------|-------------------|
-| 1 | ... | ... | ... |
+| # | 重要度 | ファイル | 行 | 指摘 | 修正案 |
+|---|--------|----------|-----|------|--------|
+| 1 | Low | `wip/mocks/02_onboarding.html` | L55 | ... | ... |
 
 ## Overall Judgment
 - [ ] ✅ PASS
-- [ ] ⚠️ CONDITIONAL - 修正事項: [...]
-- [ ] ❌ FAIL - 差し戻し理由: [...]
+- [ ] ⚠️ CONDITIONAL - 修正事項あり
+- [ ] ❌ FAIL - 差し戻し
 
-## Action Items
-| # | 重要度 | 項目 | 担当 | 期限 |
-|---|--------|------|------|------|
-| 1 | ... | ... | ... | ... |
+## Action Items Summary
+| # | 重要度 | ファイル | 行 | 指摘 | 修正案 | 担当 |
+|---|--------|----------|-----|------|--------|------|
+| 1 | High | `wip/mocks/03_dashboard.html` | L142 | ... | ... | Designer |
+| 2 | High | `wip/mocks/01_landing.html` | L200 | ... | ... | Designer |
+| 3 | Medium | `wip/mocks/01_landing.html` | L78 | ... | ... | Designer |
 
 ## Next Steps
-- ✅ PASS → UI_PROGRESS_TRACKER.md を更新、次のシステムへ
-- ⚠️ CONDITIONAL → 修正実施後、再PIR不要
-- ❌ FAIL → 09_design_create.md で修正、再PIR実施
+- ✅ PASS → `UI_PROGRESS_TRACKER.md` を更新、次のシステムへ
+- ⚠️ CONDITIONAL / ❌ FAIL → `11_design_fix.md` で修正実施
 ```
 
-### 7.2 保存先
-`docs_new/01_phase/04_phase4/01_design/system_XX_[name]/PIR_[NAME].md`
+### 8.2 プッシュ確認
 
-### 7.3 進捗更新
-PIR完了後、`UI_PROGRESS_TRACKER.md` を更新:
-- 該当システムのステータスを更新
-- 次回対象システムを確認
+- [ ] `PIR_[NAME].md` がGitにプッシュされている
+- [ ] Action Itemsに全ての指摘がファイルパス付きで記載されている
+
+## 9. 次のステップ
+
+| 判定 | 次のアクション |
+|------|----------------|
+| ✅ PASS | `UI_PROGRESS_TRACKER.md` 更新 → 次システムへ |
+| ⚠️ CONDITIONAL | `11_design_fix.md` で修正 |
+| ❌ FAIL | `11_design_fix.md` で修正 |
