@@ -9,6 +9,8 @@ export interface SIWESession {
   expirationTime: string;
 }
 
+export type SessionStorageType = 'localStorage' | 'sessionStorage' | 'memory';
+
 export interface UseSIWEOptions {
   /** API endpoint to fetch nonce */
   nonceEndpoint?: string;
@@ -16,6 +18,53 @@ export interface UseSIWEOptions {
   verifyEndpoint?: string;
   /** Session storage key */
   storageKey?: string;
+  /**
+   * Storage type for session
+   * - 'localStorage': Persists across tabs/windows, survives browser close (default for convenience)
+   * - 'sessionStorage': Per-tab only, cleared on tab close (more secure)
+   * - 'memory': In-memory only, cleared on page refresh (most secure)
+   * 
+   * Security note: localStorage is vulnerable to XSS. For production with high security
+   * requirements, consider using httpOnly cookies via server-side session management.
+   * 
+   * Future enhancement: Dilithium-signed SIWE when browser support is available
+   * (currently uses Ethereum ECDSA which is not quantum-resistant, but this is
+   * acceptable as SIWE is for web session auth, not asset protection).
+   */
+  storageType?: SessionStorageType;
+  /** Session duration in milliseconds (default: 7 days) */
+  sessionDuration?: number;
+}
+
+// In-memory storage for 'memory' mode
+const memoryStorage = new Map<string, string>();
+
+function getStorage(type: SessionStorageType): {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
+} {
+  switch (type) {
+    case 'sessionStorage':
+      return {
+        getItem: (key) => sessionStorage.getItem(key),
+        setItem: (key, value) => sessionStorage.setItem(key, value),
+        removeItem: (key) => sessionStorage.removeItem(key),
+      };
+    case 'memory':
+      return {
+        getItem: (key) => memoryStorage.get(key) ?? null,
+        setItem: (key, value) => memoryStorage.set(key, value),
+        removeItem: (key) => memoryStorage.delete(key),
+      };
+    case 'localStorage':
+    default:
+      return {
+        getItem: (key) => localStorage.getItem(key),
+        setItem: (key, value) => localStorage.setItem(key, value),
+        removeItem: (key) => localStorage.removeItem(key),
+      };
+  }
 }
 
 export function useSIWE(options: UseSIWEOptions = {}) {
@@ -23,7 +72,11 @@ export function useSIWE(options: UseSIWEOptions = {}) {
     nonceEndpoint = '/api/auth/siwe/nonce',
     verifyEndpoint = '/api/auth/siwe/verify',
     storageKey = 'qs_siwe_session',
+    storageType = 'localStorage',
+    sessionDuration = 7 * 24 * 60 * 60 * 1000, // 7 days
   } = options;
+
+  const storage = React.useMemo(() => getStorage(storageType), [storageType]);
 
   const { address, chainId, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -34,7 +87,7 @@ export function useSIWE(options: UseSIWEOptions = {}) {
 
   // Load session from storage on mount
   React.useEffect(() => {
-    const stored = localStorage.getItem(storageKey);
+    const stored = storage.getItem(storageKey);
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as SIWESession;
@@ -42,13 +95,13 @@ export function useSIWE(options: UseSIWEOptions = {}) {
         if (new Date(parsed.expirationTime) > new Date()) {
           setSession(parsed);
         } else {
-          localStorage.removeItem(storageKey);
+          storage.removeItem(storageKey);
         }
       } catch {
-        localStorage.removeItem(storageKey);
+        storage.removeItem(storageKey);
       }
     }
-  }, [storageKey]);
+  }, [storageKey, storage]);
 
   const signIn = React.useCallback(async () => {
     if (!address || !chainId) {
@@ -66,7 +119,13 @@ export function useSIWE(options: UseSIWEOptions = {}) {
       }
       const { nonce } = await nonceResponse.json();
 
+      const issuedAt = new Date().toISOString();
+      const expirationTime = new Date(Date.now() + sessionDuration).toISOString();
+
       // Create SIWE message
+      // Note: SIWE uses Ethereum ECDSA signature which is not quantum-resistant.
+      // This is acceptable for web session authentication as it protects UI access,
+      // not assets. Asset operations require Dilithium signatures on L1/L3.
       const message = new SiweMessage({
         domain: window.location.host,
         address,
@@ -75,13 +134,11 @@ export function useSIWE(options: UseSIWEOptions = {}) {
         version: '1',
         chainId,
         nonce,
-        issuedAt: new Date().toISOString(),
-        expirationTime: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
-        ).toISOString(),
+        issuedAt,
+        expirationTime,
       });
 
-      // Sign message
+      // Sign message with wallet (ECDSA)
       const signature = await signMessageAsync({
         message: message.prepareMessage(),
       });
@@ -103,12 +160,12 @@ export function useSIWE(options: UseSIWEOptions = {}) {
       const newSession: SIWESession = {
         address,
         chainId,
-        issuedAt: message.issuedAt!,
-        expirationTime: message.expirationTime!,
+        issuedAt,
+        expirationTime,
       };
 
       setSession(newSession);
-      localStorage.setItem(storageKey, JSON.stringify(newSession));
+      storage.setItem(storageKey, JSON.stringify(newSession));
 
       return newSession;
     } catch (err) {
@@ -118,12 +175,12 @@ export function useSIWE(options: UseSIWEOptions = {}) {
     } finally {
       setIsSigningIn(false);
     }
-  }, [address, chainId, nonceEndpoint, verifyEndpoint, signMessageAsync, storageKey]);
+  }, [address, chainId, nonceEndpoint, verifyEndpoint, signMessageAsync, storageKey, storage, sessionDuration]);
 
   const signOut = React.useCallback(() => {
     setSession(null);
-    localStorage.removeItem(storageKey);
-  }, [storageKey]);
+    storage.removeItem(storageKey);
+  }, [storageKey, storage]);
 
   // Auto sign out if wallet disconnects or changes
   React.useEffect(() => {
@@ -139,5 +196,7 @@ export function useSIWE(options: UseSIWEOptions = {}) {
     error,
     signIn,
     signOut,
+    /** Currently using ECDSA (Ethereum standard). Dilithium SIWE planned for future. */
+    signatureType: 'ECDSA' as const,
   };
 }
