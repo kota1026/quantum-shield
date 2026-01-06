@@ -1,6 +1,6 @@
 # Project Aegis - Current State（現在の状態）
 
-> **Last Updated**: 2026-01-06 23:50 JST  
+> **Last Updated**: 2026-01-07 09:30 JST  
 > **Auto-Update**: 各タスク完了時に更新必須
 
 ---
@@ -10,16 +10,16 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Phase: 4 - UI/UX, Audit & Launch                           │
-│  Week: UI Week 1-2 (基盤構築)                               │
+│  Week: UI Week 1-2 完了 → UI Week 3-4 計画開始               │
 │  Month: 13-14 / 24                                          │
-│  Active Checklist: docs_new/01_phase/04_phase4/phase4.md    │
-│  Status: ✅ UI Week 1-2 実装・テスト完了 → レビュー待ち      │
+│  Active Checklist: docs_new/01_phase/04_phase4/             │
+│  Status: ✅ UI Week 1-2 PIR PASS → Week 3-4 計画開始         │
 │  Tests: ✅ 264/264 PASS (Rust) + 628/628 PASS (Solidity)    │
 │         + 42/42 PASS (API) + 26/26 PASS (Event Bridge)      │
 │         + 37/37 PASS (SDK TS) + 7/7 PASS (SDK React)        │
-│         + 56/56 PASS (UI Packages) ← NEW                    │
+│         + 56/56 PASS (UI Packages)                          │
 │  Network: L1 Sepolia (11 contracts) ↔ L3 Aegis (11 crates)  │
-│  次のステップ: 04_review.md (セキュリティレビュー)           │
+│  次のステップ: 01_plan.md (UI Week 3-4 計画)                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -48,7 +48,8 @@
 | **対象Plan** | UI Week 1-2 基盤構築 |
 | **タスクID** | UIBASE-001 ~ UIBASE-007 |
 | **実装日時** | 2026-01-06 23:50 JST |
-| **ステータス** | ✅ **実装・テスト完了** |
+| **ステータス** | ✅ **PIR PASS** |
+| **PIR ID** | PIR-P4-UIW1W2 |
 
 ### 成果物一覧
 
@@ -114,7 +115,7 @@ ui/
 
 ---
 
-## 📋 Phase 4 タスク進捗（Backend完了分）
+## 📋 Phase 4 タスク進捗
 
 ### Week 1: Infrastructure ✅ **COMPLETE - PIR-P4-001 PASS**
 
@@ -147,7 +148,7 @@ ui/
 | SDK-004 | React Hooks | ✅ |
 | SDK-005 | SDK Documentation | ✅ |
 
-### UI Week 1-2: 基盤構築 ✅ **COMPLETE - レビュー待ち**
+### UI Week 1-2: 基盤構築 ✅ **COMPLETE - PIR-P4-UIW1W2 PASS**
 
 | タスクID | 内容 | 状態 | テスト |
 |---------|------|:----:|:------:|
@@ -159,6 +160,17 @@ ui/
 | UIBASE-006 | API Client | ✅ | 12 |
 | UIBASE-007 | ESLint/TypeScript設定 | ✅ | - |
 
+### UI Week 3-4: Consumer App MVP ⬜ **NEXT**
+
+| タスクID | 内容 | 状態 |
+|---------|------|:----:|
+| UI-CON-001 | Landing Page | ⬜ |
+| UI-CON-002 | Onboarding (Dilithium鍵生成) | ⬜ |
+| UI-CON-003 | Lock Flow | ⬜ |
+| UI-CON-004 | Dashboard | ⬜ |
+| UI-CON-005 | Unlock Flow (Normal + Emergency) | ⬜ |
+| UI-CON-006 | History | ⬜ |
+
 ---
 
 ## 🔜 次のアクション
@@ -167,17 +179,18 @@ ui/
 
 | # | タスク | 優先度 | 状態 |
 |---|--------|--------|:----:|
-| 1 | **04_review.md 実行（セキュリティレビュー）** | 🔴 **P0** | ⬜ **NEXT** |
-| 2 | PIR-P4-UIW1W2 実施 | P0 | ⬜ |
-| 3 | UI Week 3-4 計画開始 | P1 | ⬜ |
+| 1 | **01_plan.md 実行（UI Week 3-4 計画）** | 🔴 **P0** | ⬜ **NEXT** |
+| 2 | Consumer App MVP仕様書作成 | P0 | ⬜ |
+| 3 | UI Week 3-4 実装開始 | P0 | ⬜ |
 
 ### 継続タスク
 
 | # | タスク | 優先度 | 出典 |
 |---|--------|--------|------|
-| 1 | API認証 (JWT/OAuth) | Medium | PIR-P4-002推奨 |
-| 2 | E2Eテスト (SDK→API→L1/L3) | High | PIR-P4-003推奨 |
+| 1 | API認証 (JWT/OAuth) | High | PIR-P4-002推奨 |
+| 2 | E2Eテスト (UI→SDK→API→L1/L3) | High | PIR-P4-UIW1W2推奨 |
 | 3 | Storybookセットアップ (UIBASE-008) | P1 | 次週実施 |
+| 4 | httpOnly cookies本番環境導入 | High | PIR-P4-UIW1W2推奨 |
 
 ---
 
@@ -190,7 +203,8 @@ ui/
 | PIR-P4-001 | Week 1 Infrastructure | ✅ PASS | 2026-01-04 |
 | PIR-P4-002 | Week 2 API Layer | ✅ PASS | 2026-01-05 |
 | PIR-P4-003 | Week 3 Client SDK | ✅ PASS | 2026-01-05 |
-| PIR-P4-UIW1W2 | UI Week 1-2 基盤構築 | ⬜ **PENDING** | - |
+| PIR-P4-UIW1W2 | UI Week 1-2 基盤構築 | ✅ **PASS** | 2026-01-07 |
+| PIR-P4-UIW3W4 | UI Week 3-4 Consumer MVP | ⬜ **PENDING** | - |
 
 ---
 
@@ -202,7 +216,7 @@ ui/
 | Phase 1 | Foundation Bootstrap | 100% | ✅ COMPLETE |
 | Phase 2 | ZK-STARK L1実装 | 100% | ✅ COMPLETE 🎉 |
 | Phase 3 | L3 + Token + 完全分散化 | 100% | ✅ COMPLETE 🎉🎉🎉 |
-| **Phase 4** | **UI/UX + Audit + Launch** | **45%** | 🔄 **UI Week 1-2完了、レビュー待ち** |
+| **Phase 4** | **UI/UX + Audit + Launch** | **50%** | 🔄 **UI Week 1-2完了、Week 3-4計画開始** |
 
 ### Phase 4 進捗詳細
 
@@ -210,7 +224,8 @@ ui/
 |---------|------|:----:|
 | Backend | Infrastructure + API + SDK | ✅ 100% |
 | Frontend | 基盤構築 (UI Week 1-2) | ✅ 100% |
-| Frontend | 9システム253画面 | ⬜ ~10% |
+| Frontend | Consumer App MVP (UI Week 3-4) | ⬜ 0% |
+| Frontend | 9システム253画面 全体 | ⬜ ~12% |
 | Audit | 外部監査 | ⬜ 未開始 |
 | Launch | 本番デプロイ | ⬜ 未開始 |
 
