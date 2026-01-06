@@ -21,6 +21,7 @@
 ```
 docs_new/01_phase/04_phase4/01_design/system_XX_[name]/
 ├── DESIGN_MANIFEST.md           # ファイル一覧
+├── PIR_[NAME].md                # ★ PIRレポート出力先
 └── wip/
     ├── wireframes/              # ワイヤーフレーム
     └── mocks/                   # HTMLモック ← レビュー対象
@@ -122,11 +123,29 @@ css
 - ⚠️ **CONDITIONAL**: Medium以下のみ → 修正後自動承認
 - ❌ **FAIL**: Critical/High あり → `11_design_fix.md` に進む
 
-## 8. 出力
+## 8. 出力（必須）
 
-### 8.1 PIRレポート
+### 8.1 PIRレポート出力先（厳守）
 
-`system_XX_[name]/PIR_[NAME].md` を作成してGitにプッシュ：
+⚠️ **重要**: PIRレポートは以下のフルパスに保存してGitにプッシュすること
+
+```
+docs_new/01_phase/04_phase4/01_design/system_XX_[name]/PIR_[NAME].md
+```
+
+**具体例**:
+| システム | 出力先 |
+|----------|--------|
+| Consumer App | `docs_new/01_phase/04_phase4/01_design/system_01_consumer/PIR_CONSUMER.md` |
+| Token Hub | `docs_new/01_phase/04_phase4/01_design/system_02_token_hub/PIR_TOKEN_HUB.md` |
+| Governance | `docs_new/01_phase/04_phase4/01_design/system_03_governance/PIR_GOVERNANCE.md` |
+| Prover Portal | `docs_new/01_phase/04_phase4/01_design/system_04_prover/PIR_PROVER.md` |
+| Observer | `docs_new/01_phase/04_phase4/01_design/system_05_observer/PIR_OBSERVER.md` |
+| Explorer | `docs_new/01_phase/04_phase4/01_design/system_06_explorer/PIR_EXPLORER.md` |
+| Enterprise Admin | `docs_new/01_phase/04_phase4/01_design/system_07_enterprise/PIR_ENTERPRISE.md` |
+| QS Admin | `docs_new/01_phase/04_phase4/01_design/system_08_qs_admin/PIR_QS_ADMIN.md` |
+
+### 8.2 PIRレポートテンプレート
 
 ```markdown
 # Design PIR Report: [System Name]
@@ -176,9 +195,9 @@ css
 - ⚠️ CONDITIONAL / ❌ FAIL → `11_design_fix.md` で修正実施
 ```
 
-### 8.2 プッシュ確認
+### 8.3 Gitプッシュ確認
 
-- [ ] `PIR_[NAME].md` がGitにプッシュされている
+- [ ] PIRレポートが正しいパスにプッシュされている
 - [ ] Action Itemsに全ての指摘がファイルパス付きで記載されている
 
 ## 9. 次のステップ
