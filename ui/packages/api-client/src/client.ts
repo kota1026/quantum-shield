@@ -38,8 +38,40 @@ class ApiClient {
     this.config = { ...this.config, ...config };
   }
 
-  private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
+  /**
+   * Get current configuration (for testing/debugging)
+   */
+  getConfig(): ApiClientConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Build URL with query parameters
+   */
+  buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
+    let url = `${this.config.baseUrl}${path}`;
+    
+    if (params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          searchParams.append(key, String(value));
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+    
+    return url;
+  }
+
+  /**
+   * Get headers for requests
+   */
+  getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
@@ -59,21 +91,7 @@ class ApiClient {
       params?: Record<string, string | number | boolean | undefined>;
     }
   ): Promise<T> {
-    let url = `${this.config.baseUrl}${path}`;
-
-    // Add query params
-    if (options?.params) {
-      const searchParams = new URLSearchParams();
-      Object.entries(options.params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          searchParams.append(key, String(value));
-        }
-      });
-      const queryString = searchParams.toString();
-      if (queryString) {
-        url += `?${queryString}`;
-      }
-    }
+    const url = this.buildUrl(path, options?.params);
 
     const response = await fetch(url, {
       method,
