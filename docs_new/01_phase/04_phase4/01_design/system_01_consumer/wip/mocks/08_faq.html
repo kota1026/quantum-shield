@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Shield - FAQ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-hinomaru: #BC002D;
+            --color-hinomaru-light: #E8334D;
+            --color-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --color-gold: #C9A962;
+            --bg-primary: #0A0A0C;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181C;
+            --bg-card: #0E0E11;
+            --text-primary: #F8F8FA;
+            --text-secondary: #9898A0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --border-emphasis: rgba(255, 255, 255, 0.12);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        .bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .bg-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--color-hinomaru-dim), transparent 60%); opacity: 0.3; }
+        .container { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
+        .header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 18px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .back-btn:hover { border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        .header-title { font-size: 24px; font-weight: 700; }
+        .hero { text-align: center; padding: 48px 0; margin-bottom: 32px; }
+        .hero-icon { font-size: 48px; margin-bottom: 16px; }
+        .hero h1 { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+        .hero p { font-size: 16px; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
+        .search-box { position: relative; margin-bottom: 40px; }
+        .search-box input { width: 100%; padding: 16px 20px 16px 48px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-primary); font-size: 15px; outline: none; transition: all 0.2s; }
+        .search-box input:focus { border-color: var(--color-hinomaru); box-shadow: 0 0 0 3px var(--color-hinomaru-dim); }
+        .search-box input::placeholder { color: var(--text-tertiary); }
+        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text-tertiary); }
+        .category-tabs { display: flex; gap: 8px; margin-bottom: 32px; overflow-x: auto; padding-bottom: 8px; }
+        .category-tab { padding: 10px 20px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-full); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .category-tab:hover { border-color: var(--border-emphasis); color: var(--text-primary); }
+        .category-tab.active { background: var(--color-hinomaru-dim); border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        .faq-section { margin-bottom: 40px; }
+        .section-title { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--color-gold); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .section-title::before { content: ''; width: 16px; height: 1px; background: var(--color-gold); }
+        .faq-list { display: flex; flex-direction: column; gap: 12px; }
+        .faq-item { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; transition: border-color 0.2s; }
+        .faq-item:hover { border-color: var(--border-emphasis); }
+        .faq-item.open { border-color: var(--color-hinomaru); }
+        .faq-question { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; cursor: pointer; }
+        .faq-question h3 { font-size: 15px; font-weight: 600; padding-right: 16px; }
+        .faq-toggle { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border-radius: 50%; color: var(--text-secondary); font-size: 18px; transition: all 0.2s; flex-shrink: 0; }
+        .faq-item.open .faq-toggle { background: var(--color-hinomaru); color: white; transform: rotate(45deg); }
+        .faq-answer { padding: 0 24px 20px; display: none; }
+        .faq-item.open .faq-answer { display: block; }
+        .faq-answer p { font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
+        .faq-answer ul { margin: 12px 0; padding-left: 20px; }
+        .faq-answer li { font-size: 14px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 8px; }
+        .contact-card { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); padding: 32px; text-align: center; margin-top: 48px; }
+        .contact-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .contact-card p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+        .contact-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--color-hinomaru); border: none; border-radius: var(--radius-lg); color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .contact-btn:hover { background: var(--color-hinomaru-light); }
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .hero { padding: 32px 0; }
+            .hero h1 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects"><div class="bg-glow"></div></div>
+    <div class="container">
+        <div class="header">
+            <a href="01_landing.html" class="back-btn">←</a>
+            <h1 class="header-title">FAQ</h1>
+        </div>
+        <div class="hero">
+            <div class="hero-icon">❓</div>
+            <h1>よくある質問</h1>
+            <p>Quantum Shieldについてよくある質問と回答をまとめました</p>
+        </div>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="質問を検索..." id="searchInput">
+        </div>
+        <div class="category-tabs">
+            <button class="category-tab active" onclick="filterCategory('all')">すべて</button>
+            <button class="category-tab" onclick="filterCategory('basic')">基本</button>
+            <button class="category-tab" onclick="filterCategory('security')">セキュリティ</button>
+            <button class="category-tab" onclick="filterCategory('usage')">使い方</button>
+        </div>
+        <div class="faq-section" data-category="basic">
+            <div class="section-title">基本的な質問</div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>Quantum Shieldとは何ですか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Quantum Shieldは、量子コンピュータでも破れない最先端の暗号技術（Dilithium署名）で、あなたの暗号資産を長期的に保護するプラットフォームです。日本発のプロジェクトとして、セキュリティと使いやすさを両立させた設計を目指しています。</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>量子耐性とは何ですか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>量子耐性とは、将来の量子コンピュータが実用化されても破られない暗号技術のことです。現在広く使われているECDSAやRSAなどの暗号は、量子コンピュータによって破られる可能性があります。Quantum ShieldはNIST標準のDilithium署名を使用し、このリスクに対応しています。</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>利用に費用はかかりますか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>基本的な利用は無料です。ただし、以下の費用が発生します：</p>
+                        <ul>
+                            <li><strong>ガス代:</strong> Lock/Unlock時にブロックチェーンのガス代が必要です</li>
+                            <li><strong>緊急Unlock Bond:</strong> 緊急Unlock時には保証金が必要です（MAX(0.5 ETH, 金額×5%)、後で返還されます）</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="faq-section" data-category="security">
+            <div class="section-title">セキュリティ</div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>秘密鍵はどこに保存されますか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>あなたのDilithium秘密鍵は、<strong>あなたのデバイスにのみ</strong>保存されます。</p>
+                        <ul>
+                            <li>Quantum Shieldのサーバーには一切送信されません</li>
+                            <li>ブラウザのLocalStorageに暗号化して保存されます</li>
+                            <li>必ずバックアップを作成し、安全な場所に保管してください</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>Time Lockとは何ですか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Time Lockは、資産を引き出すまでの待機期間です。これにより、万が一の盗難時も、あなたが止める時間があります。</p>
+                        <ul>
+                            <li><strong>通常Unlock:</strong> 24時間の待機期間</li>
+                            <li><strong>緊急Unlock:</strong> 7日間の待機期間（Bondが必要）</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>秘密鍵を無くしたらどうなりますか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>秘密鍵を無くした場合、<strong>緊急Unlock</strong>を使用して資産を引き出すことができます。</p>
+                        <ul>
+                            <li>緊急UnlockにはBond（保証金）が必要です</li>
+                            <li>7日間の待機期間があります</li>
+                            <li>Bondは7日後に返還されます</li>
+                        </ul>
+                        <p style="margin-top: 12px;">ただし、これは最後の手段です。必ず秘密鍵のバックアップを作成してください。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="faq-section" data-category="usage">
+            <div class="section-title">使い方</div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>どのウォレットが使えますか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>現在、以下のウォレットに対応しています：</p>
+                        <ul>
+                            <li>MetaMask</li>
+                            <li>WalletConnect対応ウォレット</li>
+                            <li>Coinbase Wallet</li>
+                            <li>Rainbow</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>どのトークンをLockできますか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>現在は以下のトークンに対応しています：</p>
+                        <ul>
+                            <li>ETH（Ethereum）</li>
+                            <li>WETH</li>
+                            <li>USDC</li>
+                            <li>USDT</li>
+                        </ul>
+                        <p style="margin-top: 12px;">今後、対応トークンを拡大していく予定です。</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>Unlockにはどのくらい時間がかかりますか？</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Unlockには以下の時間がかかります：</p>
+                        <ul>
+                            <li><strong>通常Unlock:</strong> Dilithium署名 + Prover署名 + <strong>24時間</strong>の待機期間</li>
+                            <li><strong>緊急Unlock:</strong> ウォレット署名 + Bond支払い + <strong>7日間</strong>の待機期間</li>
+                        </ul>
+                        <p style="margin-top: 12px;">Time Lockはセキュリティのための重要な機能です。急ぎで資産が必要な場合は、事前にUnlockを開始しておいてください。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="contact-card">
+            <h3>お探しの答えが見つかりませんか？</h3>
+            <p>サポートチームがお手伝いします</p>
+            <a href="mailto:support@quantumshield.io" class="contact-btn">💬 お問い合わせ</a>
+        </div>
+    </div>
+    <script>
+        function toggleFaq(element) {
+            const item = element.parentElement;
+            item.classList.toggle('open');
+        }
+        function filterCategory(category) {
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(category) || (category === 'all' && tab.textContent === 'すべて')) {
+                    tab.classList.add('active');
+                }
+            });
+            document.querySelectorAll('.faq-section').forEach(section => {
+                if (category === 'all') {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = section.dataset.category === category ? 'block' : 'none';
+                }
+            });
+        }
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.faq-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
