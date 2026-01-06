@@ -2,56 +2,51 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Lock, CheckCircle2, Circle, XCircle, ExternalLink, AlertTriangle, FlaskConical } from 'lucide-react';
+import Link from 'next/link';
+import { Shield, Lock, CheckCircle, Circle, XCircle, ExternalLink, AlertTriangle, Loader2 } from 'lucide-react';
 import { useAccount } from 'wagmi';
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Progress,
-  Button,
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from '@quantum-shield/ui';
 import { useQSLock } from '@quantum-shield/web3';
+
+/**
+ * Lock Processing Page - Consumer App
+ * タスクID: UI-CON-004
+ * 
+ * Lock Flow: Input → Confirmation → Processing → Success
+ * 仕様書: 04_SCREENS.md §2.1 Consumer App
+ */
 
 type Step = 'preparing' | 'signing' | 'submitting' | 'confirming' | 'complete' | 'error';
 
 const steps: { id: Step; title: string; description: string }[] = [
   {
     id: 'preparing',
-    title: 'Preparing Transaction',
-    description: 'Generating Dilithium signature',
+    title: 'トランザクション準備',
+    description: 'Dilithium署名を生成中',
   },
   {
     id: 'signing',
-    title: 'Wallet Signature',
-    description: 'Please sign the transaction in your wallet',
+    title: 'ウォレット署名',
+    description: 'ウォレットでトランザクションを署名してください',
   },
   {
     id: 'submitting',
-    title: 'Submitting Transaction',
-    description: 'Sending transaction to L1 Sepolia',
+    title: 'トランザクション送信',
+    description: 'L1 Sepoliaに送信中',
   },
   {
     id: 'confirming',
-    title: 'Confirming',
-    description: 'Waiting for block confirmation',
+    title: '確認中',
+    description: 'ブロック確認を待機中',
   },
   {
     id: 'complete',
-    title: 'Complete',
-    description: 'Your assets are now locked',
+    title: '完了',
+    description: '資産がロックされました',
   },
 ];
 
 // Environment flags
 const IS_TESTNET_MODE = process.env.NEXT_PUBLIC_ENABLE_TESTNET_MODE === 'true';
-const USE_MOCK_SIGNATURES = !process.env.NEXT_PUBLIC_DILITHIUM_WASM_URL;
 
 export default function LockProcessingPage() {
   const router = useRouter();
@@ -77,7 +72,6 @@ export default function LockProcessingPage() {
       console.log('Lock successful:', hash);
       setCurrentStep('complete');
       setProgress(100);
-      // Redirect to success page after a short delay
       setTimeout(() => {
         router.push(`/lock/success?amount=${amount}&txHash=${hash}`);
       }, 2000);
@@ -91,41 +85,35 @@ export default function LockProcessingPage() {
 
   const executeLock = useCallback(async () => {
     if (!isConnected || !address) {
-      setErrorMessage('Wallet not connected');
+      setErrorMessage('ウォレットが接続されていません');
       setCurrentStep('error');
       return;
     }
 
     try {
-      // Step 1: Prepare (generate mock signature if not provided)
       setCurrentStep('preparing');
       setProgress(10);
 
       let pubKey = dilithiumPubKey;
       let signature = userSignature;
       
-      // Check if we need to use mock signatures
       if (!pubKey || !signature) {
         if (!IS_TESTNET_MODE) {
-          setErrorMessage('Dilithium WASM module not available. Cannot generate real quantum-resistant signatures.');
+          setErrorMessage('Dilithium WASMモジュールが利用できません');
           setCurrentStep('error');
           return;
         }
         
-        // Generate mock signatures for testnet
         setUsingMockSignatures(true);
         pubKey = generateMockDilithiumPubKey(address);
         signature = generateMockSignature(address, amount);
-        console.warn('[TESTNET] Using mock Dilithium signatures - NOT FOR PRODUCTION');
       }
       
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Step 2: Request wallet signature
       setCurrentStep('signing');
       setProgress(25);
 
-      // Step 3: Submit transaction
       await lock({
         amount,
         dilithiumPublicKey: pubKey,
@@ -142,7 +130,6 @@ export default function LockProcessingPage() {
     }
   }, [isConnected, address, amount, dilithiumPubKey, userSignature, lock]);
 
-  // Watch for transaction state changes
   useEffect(() => {
     if (isPending) {
       setCurrentStep('signing');
@@ -164,7 +151,6 @@ export default function LockProcessingPage() {
     }
   }, [isSuccess]);
 
-  // Auto-start lock process
   useEffect(() => {
     if (isConnected && currentStep === 'preparing') {
       executeLock();
@@ -179,189 +165,205 @@ export default function LockProcessingPage() {
     executeLock();
   };
 
-  const handleCancel = () => {
-    router.push('/lock');
-  };
-
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
   const etherscanUrl = process.env.NEXT_PUBLIC_ETHERSCAN_URL || 'https://sepolia.etherscan.io';
 
+  // Error State
   if (currentStep === 'error') {
     return (
-      <div className="container mx-auto max-w-lg px-4 py-8">
-        <Card>
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-              <XCircle className="h-8 w-8 text-destructive" />
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-8 text-center">
+            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <XCircle className="w-10 h-10 text-red-400" />
             </div>
-            <CardTitle>Transaction Failed</CardTitle>
-            <CardDescription>
-              Something went wrong while locking your assets
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Alert variant="destructive">
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
+            <h1 className="text-2xl font-bold mb-2">トランザクション失敗</h1>
+            <p className="text-gray-400 mb-6">
+              資産のロック中にエラーが発生しました
+            </p>
             
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button className="flex-1" onClick={handleRetry}>
-                Try Again
-              </Button>
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl mb-6 text-left">
+              <p className="text-sm text-red-400">{errorMessage}</p>
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="space-y-3">
+              <button
+                onClick={handleRetry}
+                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-xl transition-colors"
+              >
+                再試行
+              </button>
+              <Link
+                href="/lock"
+                className="w-full py-4 border border-white/20 hover:border-white/40 text-white font-semibold rounded-xl transition-colors flex items-center justify-center"
+              >
+                戻る
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
+  const amountInUsd = (parseFloat(amount) * 2500).toLocaleString('ja-JP', { maximumFractionDigits: 2 });
+
   return (
-    <div className="container mx-auto max-w-lg px-4 py-8">
-      {/* Testnet Mode Warning Banner */}
-      {IS_TESTNET_MODE && usingMockSignatures && (
-        <Alert variant="warning" className="mb-4 border-orange-500 bg-orange-50 dark:bg-orange-950">
-          <FlaskConical className="h-4 w-4" />
-          <AlertTitle className="text-orange-700 dark:text-orange-300">Testnet Mode</AlertTitle>
-          <AlertDescription className="text-orange-600 dark:text-orange-400">
-            Using mock Dilithium signatures for testing. 
-            Real quantum-resistant signatures require the Dilithium WASM module.
-            <strong className="block mt-1">Do not use this configuration in production.</strong>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <Card>
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-qs-primary-100 dark:bg-qs-primary-900">
-            {currentStep === 'complete' ? (
-              <CheckCircle2 className="h-8 w-8 text-qs-success-500" />
-            ) : (
-              <Loader2 className="h-8 w-8 animate-spin text-qs-primary-500" />
-            )}
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-lg border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-center">
+            <Link href="/" className="flex items-center space-x-2">
+              <Shield className="h-6 w-6 text-emerald-400" />
+              <span className="font-semibold">Quantum Shield</span>
+            </Link>
           </div>
-          <CardTitle>
-            {currentStep === 'complete' ? 'Lock Complete!' : 'Processing Lock'}
-          </CardTitle>
-          <CardDescription>
-            {currentStep === 'complete'
-              ? `Successfully locked ${amount} ETH`
-              : 'Please wait while we secure your assets on L1 Sepolia'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Progress Bar */}
-          <Progress value={progress} className="h-2" />
+        </div>
+      </header>
 
-          {/* Steps */}
-          <div className="space-y-4">
-            {steps.map((step, index) => {
-              const isComplete = index < currentStepIndex;
-              const isCurrent = step.id === currentStep;
-
-              return (
-                <div
-                  key={step.id}
-                  className={`flex items-start gap-3 ${
-                    isComplete || isCurrent
-                      ? 'text-foreground'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  <div className="mt-0.5">
-                    {isComplete ? (
-                      <CheckCircle2 className="h-5 w-5 text-qs-success-500" />
-                    ) : isCurrent ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-qs-primary-500" />
-                    ) : (
-                      <Circle className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">
-                      {step.title}
-                      {step.id === 'preparing' && usingMockSignatures && (
-                        <span className="ml-2 text-xs text-orange-500">(Mock)</span>
-                      )}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {step.description}
-                    </p>
-                  </div>
+      <main className="pt-24 pb-12 px-4">
+        <div className="max-w-md mx-auto">
+          {/* Testnet Warning */}
+          {IS_TESTNET_MODE && usingMockSignatures && (
+            <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl mb-6">
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="w-5 h-5 text-orange-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-orange-400 font-medium mb-1">テストネットモード</p>
+                  <p className="text-xs text-gray-400">
+                    モックのDilithium署名を使用しています。本番環境では使用しないでください。
+                  </p>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Transaction Hash */}
-          {txHash && (
-            <div className="rounded-lg border bg-muted/50 p-4">
-              <p className="mb-2 text-sm text-muted-foreground">Transaction Hash</p>
-              <a
-                href={`${etherscanUrl}/tx/${txHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-mono text-qs-primary-500 hover:underline"
-              >
-                {txHash.slice(0, 10)}...{txHash.slice(-8)}
-                <ExternalLink className="h-4 w-4" />
-              </a>
+              </div>
             </div>
           )}
 
-          {/* Amount Info */}
-          <div className="rounded-lg border bg-muted/50 p-4 text-center">
-            <p className="text-sm text-muted-foreground">Locking</p>
-            <p className="text-2xl font-bold">{amount} ETH</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              on L1 Sepolia (Chain ID: 11155111)
-            </p>
+          {/* Main Card */}
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-8">
+            {/* Status Icon */}
+            <div className="text-center mb-8">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                currentStep === 'complete' 
+                  ? 'bg-emerald-500/20' 
+                  : 'bg-emerald-500/10'
+              }`}>
+                {currentStep === 'complete' ? (
+                  <CheckCircle className="w-10 h-10 text-emerald-400" />
+                ) : (
+                  <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
+                )}
+              </div>
+              <h1 className="text-2xl font-bold mb-2">
+                {currentStep === 'complete' ? 'Lock完了！' : '処理中...'}
+              </h1>
+              <p className="text-gray-400">
+                {currentStep === 'complete'
+                  ? `${amount} ETH を正常にロックしました`
+                  : 'L1 Sepoliaで資産を保護しています'}
+              </p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-center text-sm text-gray-500 mt-2">{progress}%</p>
+            </div>
+
+            {/* Steps */}
+            <div className="space-y-4 mb-8">
+              {steps.map((step, index) => {
+                const isComplete = index < currentStepIndex;
+                const isCurrent = step.id === currentStep;
+
+                return (
+                  <div
+                    key={step.id}
+                    className={`flex items-start space-x-4 ${
+                      isComplete || isCurrent ? 'text-white' : 'text-gray-500'
+                    }`}
+                  >
+                    <div className="mt-0.5">
+                      {isComplete ? (
+                        <CheckCircle className="w-5 h-5 text-emerald-400" />
+                      ) : isCurrent ? (
+                        <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
+                      ) : (
+                        <Circle className="w-5 h-5" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {step.title}
+                        {step.id === 'preparing' && usingMockSignatures && (
+                          <span className="ml-2 text-xs text-orange-400">(Mock)</span>
+                        )}
+                      </p>
+                      <p className="text-sm text-gray-400">{step.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Transaction Hash */}
+            {txHash && (
+              <div className="p-4 bg-gray-800 rounded-xl mb-6">
+                <p className="text-sm text-gray-400 mb-2">トランザクションハッシュ</p>
+                <a
+                  href={`${etherscanUrl}/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between text-emerald-400 hover:text-emerald-300"
+                >
+                  <span className="font-mono text-sm">
+                    {txHash.slice(0, 10)}...{txHash.slice(-8)}
+                  </span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+            )}
+
+            {/* Amount Info */}
+            <div className="p-4 bg-gray-800 rounded-xl text-center">
+              <p className="text-sm text-gray-400">Lock中</p>
+              <p className="text-3xl font-bold">{amount} ETH</p>
+              <p className="text-sm text-gray-500">≈ ${amountInUsd} USD</p>
+              <p className="text-xs text-gray-500 mt-2">
+                L1 Sepolia (Chain ID: 11155111)
+              </p>
+            </div>
           </div>
 
           {/* Warning */}
-          <p className="text-center text-sm text-muted-foreground">
-            Do not close this window until the process is complete.
+          <p className="text-center text-sm text-gray-500 mt-6">
+            処理が完了するまでこのウィンドウを閉じないでください
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </main>
     </div>
   );
 }
 
-/**
- * Generate deterministic mock Dilithium public key for testing
- * Uses address as seed for reproducibility
- * 
- * ⚠️ TESTNET ONLY - Not cryptographically secure
- * Production requires actual Dilithium WASM module
- */
 function generateMockDilithiumPubKey(address: string): string {
-  // Create deterministic but fake public key based on address
   const seed = address.toLowerCase().replace('0x', '');
   const mockPubKey = Array.from({ length: 64 }, (_, i) => {
     const charCode = seed.charCodeAt(i % seed.length) || 0;
     return ((charCode + i * 17) % 256).toString(16).padStart(2, '0');
   }).join('');
-  
-  console.warn('[MOCK] Generated mock Dilithium public key:', mockPubKey.slice(0, 16) + '...');
   return mockPubKey;
 }
 
-/**
- * Generate deterministic mock signature for testing
- * 
- * ⚠️ TESTNET ONLY - Not cryptographically secure
- * Production requires actual Dilithium WASM module
- */
 function generateMockSignature(address: string, amount: string): string {
   const seed = `${address}:${amount}`.toLowerCase();
   const mockSignature = Array.from({ length: 128 }, (_, i) => {
     const charCode = seed.charCodeAt(i % seed.length) || 0;
     return ((charCode + i * 31) % 256).toString(16).padStart(2, '0');
   }).join('');
-  
-  console.warn('[MOCK] Generated mock signature for amount:', amount);
   return mockSignature;
 }
