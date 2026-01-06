@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -11,6 +11,7 @@ import {
   Wallet,
   ExternalLink,
   AlertTriangle,
+  FlaskConical,
 } from 'lucide-react';
 import { useAccount, useReadContract } from 'wagmi';
 
@@ -25,7 +26,22 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@quantum-shield/ui';
-import { useQSUnlock, QS_VAULT_ABI, QS_VAULT_ADDRESS } from '@quantum-shield/web3';
+import { 
+  useQSUnlock, 
+  QS_VAULT_ABI, 
+  QS_VAULT_ADDRESS,
+  parseLockData,
+  parseUnlockRequestData,
+  type QSLock,
+  type QSUnlockRequest,
+} from '@quantum-shield/web3';
+
+// Environment flags
+const IS_TESTNET_MODE = process.env.NEXT_PUBLIC_ENABLE_TESTNET_MODE === 'true';
+
+// In production, this would come from L3 Event Bridge API
+// TODO: Implement L3 integration in Phase 4 Week 3+
+const MOCK_PROVER_SIGNATURES = 3;
 
 export default function UnlockReadyPage() {
   const router = useRouter();
@@ -41,7 +57,7 @@ export default function UnlockReadyPage() {
   const etherscanUrl = process.env.NEXT_PUBLIC_ETHERSCAN_URL || 'https://sepolia.etherscan.io';
 
   // Read unlock request from L1 contract
-  const { data: unlockRequest, isLoading: isLoadingUnlock } = useReadContract({
+  const { data: rawUnlockRequest, isLoading: isLoadingUnlock } = useReadContract({
     address: QS_VAULT_ADDRESS,
     abi: QS_VAULT_ABI,
     functionName: 'getUnlockRequest',
@@ -49,12 +65,37 @@ export default function UnlockReadyPage() {
   });
 
   // Read lock details from L1 contract
-  const { data: lockDetails, isLoading: isLoadingLock } = useReadContract({
+  const { data: rawLockDetails, isLoading: isLoadingLock } = useReadContract({
     address: QS_VAULT_ADDRESS,
     abi: QS_VAULT_ABI,
     functionName: 'getLock',
     args: [BigInt(lockId)],
   });
+
+  // Parse contract data with type safety
+  const unlockRequest: QSUnlockRequest | null = useMemo(
+    () => parseUnlockRequestData(rawUnlockRequest),
+    [rawUnlockRequest]
+  );
+  
+  const lockDetails: QSLock | null = useMemo(
+    () => parseLockData(rawLockDetails),
+    [rawLockDetails]
+  );
+
+  // Prover signatures - in production, fetch from L3 Event Bridge
+  const proverSignatures = useMemo(() => {
+    // TODO: Replace with actual L3 API call
+    // const { data: signatures } = useL3ProverSignatures(unlockId);
+    // return signatures?.count ?? 0;
+    
+    if (IS_TESTNET_MODE) {
+      console.warn('[TESTNET] Using mock prover signature count:', MOCK_PROVER_SIGNATURES);
+      return MOCK_PROVER_SIGNATURES;
+    }
+    
+    return 0;
+  }, []);
 
   const { 
     executeUnlock, 
@@ -77,7 +118,7 @@ export default function UnlockReadyPage() {
   // Check if time lock has elapsed
   const isTimeLockComplete = (): boolean => {
     if (!unlockRequest) return false;
-    const unlockTime = Number((unlockRequest as any).unlockTime || 0);
+    const unlockTime = Number(unlockRequest.unlockTime);
     const now = Math.floor(Date.now() / 1000);
     return now >= unlockTime;
   };
@@ -113,15 +154,26 @@ export default function UnlockReadyPage() {
   }, [isSuccess, txHash, router, lockId, amount]);
 
   const isLoading = isLoadingUnlock || isLoadingLock;
-  const proverSignatures = 3; // In production, query from L3
 
   // Format timestamps
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleString();
+  const formatDate = (timestamp: bigint | number) => {
+    return new Date(Number(timestamp) * 1000).toLocaleString();
   };
 
   return (
     <div className="container mx-auto max-w-lg px-4 py-8">
+      {/* Testnet Mode Warning for Mock Prover Signatures */}
+      {IS_TESTNET_MODE && (
+        <Alert variant="warning" className="mb-4 border-orange-500 bg-orange-50 dark:bg-orange-950">
+          <FlaskConical className="h-4 w-4" />
+          <AlertTitle className="text-orange-700 dark:text-orange-300">Testnet Mode</AlertTitle>
+          <AlertDescription className="text-orange-600 dark:text-orange-400">
+            Prover signature count is mocked ({MOCK_PROVER_SIGNATURES}/3).
+            Production requires L3 Event Bridge integration.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -147,6 +199,7 @@ export default function UnlockReadyPage() {
                 </p>
                 <p className="text-sm text-qs-success-600 dark:text-qs-success-400">
                   24-hour time lock complete, {proverSignatures} prover signatures verified
+                  {IS_TESTNET_MODE && ' (mock)'}
                 </p>
               </div>
             </div>
@@ -185,19 +238,25 @@ export default function UnlockReadyPage() {
                 {lockDetails && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Originally Locked</span>
-                    <span>{formatDate(Number((lockDetails as any).lockedAt || 0))}</span>
+                    <span>{formatDate(lockDetails.lockedAt)}</span>
                   </div>
                 )}
                 {unlockRequest && (
                   <>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Unlock Requested</span>
-                      <span>{formatDate(Number((unlockRequest as any).requestedAt || 0))}</span>
+                      <span>{formatDate(unlockRequest.requestedAt)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Time Lock Completed</span>
-                      <span>{formatDate(Number((unlockRequest as any).unlockTime || 0))}</span>
+                      <span>{formatDate(unlockRequest.unlockTime)}</span>
                     </div>
+                    {unlockRequest.isEmergency && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Type</span>
+                        <span className="text-orange-500 font-medium">Emergency (7-day lock)</span>
+                      </div>
+                    )}
                   </>
                 )}
                 <div className="flex justify-between">
@@ -205,6 +264,7 @@ export default function UnlockReadyPage() {
                   <span className="flex items-center gap-1">
                     <Shield className="h-4 w-4 text-qs-success-500" />
                     {proverSignatures}/3 verified
+                    {IS_TESTNET_MODE && <span className="text-xs text-orange-500">(mock)</span>}
                   </span>
                 </div>
                 <hr className="my-2" />
