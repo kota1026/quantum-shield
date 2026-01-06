@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Shield - セキュリティ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-hinomaru: #BC002D;
+            --color-hinomaru-light: #E8334D;
+            --color-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --color-gold: #C9A962;
+            --color-gold-dim: rgba(201, 169, 98, 0.12);
+            --color-success: #00C896;
+            --color-success-dim: rgba(0, 200, 150, 0.12);
+            --bg-primary: #0A0A0C;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181C;
+            --bg-card: #0E0E11;
+            --text-primary: #F8F8FA;
+            --text-secondary: #9898A0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --border-emphasis: rgba(255, 255, 255, 0.12);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.7; }
+        .bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .bg-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--color-hinomaru-dim), transparent 60%); opacity: 0.3; }
+        .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 24px; }
+        .header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 18px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .back-btn:hover { border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        .header-title { font-size: 24px; font-weight: 700; }
+        .hero { text-align: center; padding: 64px 0; margin-bottom: 48px; position: relative; }
+        .hero-shield { width: 120px; height: 120px; margin: 0 auto 24px; position: relative; }
+        .shield-outer { position: absolute; inset: 0; border: 2px solid var(--color-gold); border-radius: 50%; animation: shield-pulse 3s ease-in-out infinite; }
+        .shield-inner { position: absolute; inset: 20px; background: radial-gradient(circle at 35% 35%, #ff3050, var(--color-hinomaru), #8a001a); border-radius: 50%; box-shadow: 0 0 40px var(--color-hinomaru-dim); }
+        .shield-lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+        @keyframes shield-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } }
+        .hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 16px; }
+        .hero h1 span { color: var(--color-hinomaru-light); }
+        .hero p { font-size: 18px; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+        .badge-row { display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+        .badge { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-full); font-size: 12px; font-weight: 500; }
+        .badge.gold { border-color: var(--color-gold); color: var(--color-gold); }
+        .badge.success { border-color: var(--color-success); color: var(--color-success); }
+        .section { margin-bottom: 64px; }
+        .section-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-gold); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .section-label::before { content: ''; width: 20px; height: 1px; background: var(--color-gold); }
+        .section-title { font-size: 28px; font-weight: 700; margin-bottom: 16px; }
+        .section-desc { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .feature-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px; transition: all 0.2s; }
+        .feature-card:hover { border-color: var(--border-emphasis); transform: translateY(-2px); }
+        .feature-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; background: var(--color-hinomaru-dim); border-radius: var(--radius-lg); font-size: 28px; margin-bottom: 20px; }
+        .feature-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .feature-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+        .timeline { position: relative; padding-left: 40px; }
+        .timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--color-hinomaru), var(--color-gold)); }
+        .timeline-item { position: relative; margin-bottom: 40px; }
+        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-dot { position: absolute; left: -33px; top: 4px; width: 12px; height: 12px; background: var(--color-hinomaru); border-radius: 50%; border: 3px solid var(--bg-primary); }
+        .timeline-item h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .timeline-item p { font-size: 14px; color: var(--text-secondary); }
+        .comparison-table { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .comparison-header { display: grid; grid-template-columns: 2fr 1fr 1fr; background: var(--bg-secondary); padding: 16px 24px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+        .comparison-row { display: grid; grid-template-columns: 2fr 1fr 1fr; padding: 16px 24px; border-bottom: 1px solid var(--border-subtle); font-size: 14px; }
+        .comparison-row:last-child { border-bottom: none; }
+        .comparison-row .label { color: var(--text-secondary); }
+        .comparison-row .check { color: var(--color-success); font-size: 18px; }
+        .comparison-row .cross { color: var(--text-tertiary); font-size: 18px; }
+        .cta-section { background: linear-gradient(135deg, var(--color-hinomaru-dim), var(--color-gold-dim)); border: 1px solid var(--border-default); border-radius: var(--radius-xl); padding: 48px; text-align: center; margin-top: 64px; }
+        .cta-section h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+        .cta-section p { font-size: 16px; color: var(--text-secondary); margin-bottom: 24px; }
+        .cta-btn { display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; background: var(--color-hinomaru); border: none; border-radius: var(--radius-lg); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .cta-btn:hover { background: var(--color-hinomaru-light); box-shadow: 0 8px 24px var(--color-hinomaru-dim); transform: translateY(-2px); }
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .hero { padding: 40px 0; }
+            .hero h1 { font-size: 28px; }
+            .section-title { font-size: 24px; }
+            .comparison-header, .comparison-row { grid-template-columns: 1.5fr 1fr 1fr; font-size: 12px; padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects"><div class="bg-glow"></div></div>
+    <div class="container">
+        <div class="header">
+            <a href="01_landing.html" class="back-btn">←</a>
+            <h1 class="header-title">セキュリティ</h1>
+        </div>
+        <div class="hero">
+            <div class="hero-shield">
+                <div class="shield-outer"></div>
+                <div class="shield-inner"></div>
+                <div class="shield-lock">🔒</div>
+            </div>
+            <h1>量子コンピュータ時代の<br><span>セキュリティ</span></h1>
+            <p>将来の量子コンピュータが実用化されても、あなたの資産を守り続ける技術を採用しています</p>
+            <div class="badge-row">
+                <span class="badge gold">🏅 NIST標準準拠</span>
+                <span class="badge success">✓ Dilithium-III</span>
+                <span class="badge">🔒 ZK-STARK証明</span>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-label">量子耐性暗号</div>
+            <h2 class="section-title">なぜ量子耐性が必要なのか</h2>
+            <p class="section-desc">現在広く使われている暗号技術（ECDSA、RSA）は、量子コンピュータによって破られる可能性があります。Quantum Shieldは、この将来のリスクに備えます。</p>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <h4>📅 2024年 - NISTが量子耐性暗号を標準化</h4>
+                    <p>米国国立標準技術研究所（NIST）が、Dilithiumを含む量子耐性暗号アルゴリズムを正式に標準化しました。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <h4>⏳ 2030年代 - 量子コンピュータの実用化予測</h4>
+                    <p>専門家は、2030年代に量子コンピュータが現在の暗号を破る能力を持つと予測しています。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <h4>⚠️ 「Harvest Now, Decrypt Later」攻撃</h4>
+                    <p>悪意のある攻撃者は、今日の暗号化データを収集し、将来の量子コンピュータで解読することを計画しています。</p>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-label">セキュリティ機能</div>
+            <h2 class="section-title">4層の保護メカニズム</h2>
+            <p class="section-desc">Quantum Shieldは、複数のセキュリティ層であなたの資産を保護します。</p>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Dilithium署名</h3>
+                    <p>NISTが標準化した量子耐性デジタル署名アルゴリズム。将来の量子コンピュータでも破れないとされています。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⏱️</div>
+                    <h3>Time Lock</h3>
+                    <p>資産の引き出しに待機期間を設けることで、万が一の盗難時もあなたが止める時間があります。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Proverネットワーク</h3>
+                    <p>複数の独立したProverがあなたの引き出しを検証。単一障害点がなく、分散型のセキュリティを実現します。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>緊急Unlock</h3>
+                    <p>秘密鍵を無くしても、ウォレット署名とBondで資産を回復できるセーフティネット。</p>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-label">比較</div>
+            <h2 class="section-title">従来のウォレットとの違い</h2>
+            <div class="comparison-table">
+                <div class="comparison-header">
+                    <span></span>
+                    <span>Quantum Shield</span>
+                    <span>従来のウォレット</span>
+                </div>
+                <div class="comparison-row">
+                    <span class="label">量子耐性暗号</span>
+                    <span class="check">✓</span>
+                    <span class="cross">✗</span>
+                </div>
+                <div class="comparison-row">
+                    <span class="label">Time Lock保護</span>
+                    <span class="check">✓</span>
+                    <span class="cross">✗</span>
+                </div>
+                <div class="comparison-row">
+                    <span class="label">秘密鍵紛失時の復旧手段</span>
+                    <span class="check">✓</span>
+                    <span class="cross">✗</span>
+                </div>
+                <div class="comparison-row">
+                    <span class="label">NIST標準準拠</span>
+                    <span class="check">✓</span>
+                    <span class="cross">✗</span>
+                </div>
+                <div class="comparison-row">
+                    <span class="label">分散型検証ネットワーク</span>
+                    <span class="check">✓</span>
+                    <span class="cross">✗</span>
+                </div>
+            </div>
+        </div>
+        <div class="cta-section">
+            <h2>今すぐ資産を保護しましょう</h2>
+            <p>量子コンピュータが実用化される前に、今から備えましょう</p>
+            <a href="02_onboarding.html" class="cta-btn">無料で始める →</a>
+        </div>
+    </div>
+</body>
+</html>
