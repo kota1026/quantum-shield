@@ -1,548 +1,114 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| Auto redirect | onComplete | 10_lock_success.html |
+-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lock Processing - Quantum Shield</title>
+    <title>Quantum Shield - 処理中</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #0a0a0c;
-            --bg-secondary: #111114;
-            --bg-elevated: #18181c;
-            --bg-card: #0e0e11;
             --accent-hinomaru: #bc002d;
             --accent-hinomaru-light: #e8334d;
             --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
             --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
             --accent-gold: #c9a962;
-            --accent-gold-dim: rgba(201, 169, 98, 0.1);
             --success: #00c896;
-            --warning: #f0a030;
-            --error: #e84057;
             --text-primary: #f8f8fa;
             --text-secondary: #9898a0;
             --text-tertiary: #606068;
             --border-subtle: rgba(255, 255, 255, 0.04);
-            --border-default: rgba(255, 255, 255, 0.08);
-            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
             --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
             --font-mono: 'DM Mono', monospace;
-            --radius-md: 10px;
             --radius-lg: 14px;
-            --radius-xl: 20px;
             --radius-full: 9999px;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: var(--font-body);
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .premium-bg {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .red-glow {
-            position: absolute;
-            top: -200px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            height: 600px;
-            background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%);
-            opacity: 0.5;
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 24px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* Processing Card */
-        .processing-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-xl);
-            padding: 48px 32px;
-            text-align: center;
-        }
-
-        /* Hinomaru Animation */
-        .hinomaru-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 40px;
-        }
-
-        .hinomaru-white {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 40% 40%, 
-                rgba(255, 255, 255, 0.15) 0%, 
-                rgba(255, 255, 255, 0.08) 50%,
-                rgba(255, 255, 255, 0.02) 100%
-            );
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .hinomaru-red {
-            position: absolute;
-            inset: 45px;
-            background: radial-gradient(circle at 35% 35%, 
-                #ff3050 0%, 
-                var(--accent-hinomaru) 50%,
-                #8a001a 100%
-            );
-            border-radius: 50%;
-            box-shadow: 0 0 60px var(--accent-hinomaru-glow);
-            animation: hinomaru-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes hinomaru-pulse {
-            0%, 100% { 
-                transform: scale(1); 
-                box-shadow: 0 0 60px var(--accent-hinomaru-glow);
-            }
-            50% { 
-                transform: scale(1.05); 
-                box-shadow: 0 0 80px var(--accent-hinomaru-glow);
-            }
-        }
-
-        /* Orbit Rings */
-        .orbit {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            border-radius: 50%;
-            border: 1px solid;
-            transform: translate(-50%, -50%);
-        }
-
-        .orbit-1 {
-            width: 140px;
-            height: 140px;
-            border-color: var(--accent-gold);
-            opacity: 0.6;
-            animation: orbit-spin 8s linear infinite;
-        }
-
-        .orbit-2 {
-            width: 180px;
-            height: 180px;
-            border-color: rgba(255, 255, 255, 0.1);
-            border-style: dashed;
-            animation: orbit-spin 12s linear infinite reverse;
-        }
-
-        @keyframes orbit-spin {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        /* Progress Ring */
-        .progress-ring {
-            position: absolute;
-            inset: -10px;
-        }
-
-        .progress-ring svg {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-
-        .progress-ring circle {
-            fill: none;
-            stroke-width: 3;
-            stroke-linecap: round;
-        }
-
-        .progress-ring .bg {
-            stroke: var(--border-default);
-        }
-
-        .progress-ring .progress {
-            stroke: url(#progressGradient);
-            stroke-dasharray: 690;
-            stroke-dashoffset: 690;
-            animation: progress-fill 3s ease-in-out infinite;
-        }
-
-        @keyframes progress-fill {
-            0% { stroke-dashoffset: 690; }
-            50% { stroke-dashoffset: 172; }
-            100% { stroke-dashoffset: 690; }
-        }
-
-        .processing-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .processing-subtitle {
-            font-size: 16px;
-            color: var(--text-secondary);
-            margin-bottom: 32px;
-        }
-
-        /* Steps */
-        .steps {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            text-align: left;
-            margin-bottom: 32px;
-        }
-
-        .step {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-subtle);
-        }
-
-        .step.active {
-            border-color: var(--accent-hinomaru);
-            background: var(--accent-hinomaru-dim);
-        }
-
-        .step.completed {
-            border-color: var(--success);
-            background: rgba(0, 200, 150, 0.1);
-        }
-
-        .step-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .step.pending .step-icon {
-            background: var(--bg-elevated);
-            color: var(--text-tertiary);
-        }
-
-        .step.active .step-icon {
-            background: var(--accent-hinomaru);
-            color: white;
-            animation: pulse 1.5s infinite;
-        }
-
-        .step.completed .step-icon {
-            background: var(--success);
-            color: white;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 var(--accent-hinomaru-glow); }
-            50% { box-shadow: 0 0 0 10px transparent; }
-        }
-
-        .step-content {
-            flex: 1;
-        }
-
-        .step-title {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .step-description {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .step.active .step-title {
-            color: var(--accent-hinomaru-light);
-        }
-
-        .step.completed .step-title {
-            color: var(--success);
-        }
-
-        .step-status {
-            font-size: 12px;
-            font-family: var(--font-mono);
-            color: var(--text-tertiary);
-        }
-
-        .step.active .step-status {
-            color: var(--accent-hinomaru-light);
-        }
-
-        .step.completed .step-status {
-            color: var(--success);
-        }
-
-        /* Transaction Info */
-        .tx-info {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            margin-bottom: 24px;
-        }
-
-        .tx-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-        }
-
-        .tx-row:not(:last-child) {
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .tx-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .tx-value {
-            font-size: 14px;
-            font-weight: 600;
-            font-family: var(--font-mono);
-        }
-
-        /* Warning */
-        .warning-box {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 16px;
-            background: rgba(240, 160, 48, 0.1);
-            border: 1px solid var(--warning);
-            border-radius: var(--radius-md);
-            text-align: left;
-        }
-
-        .warning-icon {
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .warning-text {
-            font-size: 13px;
-            color: var(--warning);
-            line-height: 1.5;
-        }
-
-        /* Back Link */
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            margin-bottom: 24px;
-            transition: color 0.2s;
-        }
-
-        .back-link:hover {
-            color: var(--text-primary);
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .container {
-                padding: 16px;
-            }
-
-            .processing-card {
-                padding: 32px 20px;
-            }
-
-            .hinomaru-container {
-                width: 160px;
-                height: 160px;
-            }
-
-            .hinomaru-red {
-                inset: 35px;
-            }
-
-            .orbit-1 {
-                width: 110px;
-                height: 110px;
-            }
-
-            .orbit-2 {
-                width: 145px;
-                height: 145px;
-            }
-
-            .processing-title {
-                font-size: 22px;
-            }
-
-            .processing-subtitle {
-                font-size: 14px;
-            }
-
-            .step {
-                padding: 12px;
-            }
-
-            .step-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .hinomaru-red,
-            .orbit,
-            .step.active .step-icon,
-            .progress-ring .progress {
-                animation: none;
-            }
-        }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .red-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-hinomaru-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; text-align: center; padding: 24px; max-width: 400px; }
+        .processing-visual { margin-bottom: 32px; position: relative; width: 160px; height: 160px; margin: 0 auto 32px; }
+        .hinomaru-core { position: absolute; inset: 30px; }
+        .hinomaru-white { position: absolute; inset: 0; background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.15), rgba(255,255,255,0.02)); border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); }
+        .hinomaru-red { position: absolute; inset: 20px; background: radial-gradient(circle at 35% 35%, #ff3050, var(--accent-hinomaru), #8a001a); border-radius: 50%; box-shadow: 0 0 40px var(--accent-hinomaru-glow); animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } }
+        .orbit { position: absolute; inset: 0; border: 2px solid transparent; border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1.5s linear infinite; }
+        .orbit-2 { inset: -10px; border-top-color: var(--accent-hinomaru); animation-duration: 2s; animation-direction: reverse; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+        .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
+        .steps { text-align: left; margin-bottom: 32px; }
+        .step { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.02); border-radius: var(--radius-lg); margin-bottom: 8px; transition: all 0.3s; }
+        .step.active { background: var(--accent-hinomaru-dim); }
+        .step.complete { background: rgba(0, 200, 150, 0.1); }
+        .step-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; }
+        .step.pending .step-icon { background: rgba(255,255,255,0.05); color: var(--text-tertiary); }
+        .step.active .step-icon { background: var(--accent-hinomaru); color: white; animation: pulse 1s ease-in-out infinite; }
+        .step.complete .step-icon { background: var(--success); color: white; }
+        .step-text { flex: 1; font-size: 14px; }
+        .step.pending .step-text { color: var(--text-tertiary); }
+        .step.active .step-text { color: var(--text-primary); font-weight: 500; }
+        .step.complete .step-text { color: var(--success); }
+        .tx-hash { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); margin-top: 16px; }
+        .tx-hash a { color: var(--accent-gold); text-decoration: none; }
+        .tx-hash a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="premium-bg">
-        <div class="red-glow"></div>
-    </div>
-
+    <div class="premium-bg"><div class="red-glow"></div></div>
     <div class="container">
-        <a href="03_dashboard.html" class="back-link">
-            ← Back to Dashboard
-        </a>
-
-        <div class="processing-card">
-            <div class="hinomaru-container">
-                <div class="progress-ring">
-                    <svg viewBox="0 0 220 220">
-                        <defs>
-                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="var(--accent-hinomaru)" />
-                                <stop offset="100%" stop-color="var(--accent-gold)" />
-                            </linearGradient>
-                        </defs>
-                        <circle class="bg" cx="110" cy="110" r="105" />
-                        <circle class="progress" cx="110" cy="110" r="105" />
-                    </svg>
-                </div>
-                <div class="orbit orbit-2"></div>
-                <div class="orbit orbit-1"></div>
+        <div class="processing-visual">
+            <div class="orbit"></div>
+            <div class="orbit orbit-2"></div>
+            <div class="hinomaru-core">
                 <div class="hinomaru-white"></div>
                 <div class="hinomaru-red"></div>
             </div>
-
-            <h1 class="processing-title">Locking Assets...</h1>
-            <p class="processing-subtitle">Please wait while your transaction is being processed</p>
-
-            <div class="steps">
-                <div class="step completed" id="step1">
-                    <div class="step-icon">✓</div>
-                    <div class="step-content">
-                        <div class="step-title">Dilithium Signature Generated</div>
-                        <div class="step-description">Quantum-resistant signature created</div>
-                    </div>
-                    <div class="step-status">Complete</div>
-                </div>
-
-                <div class="step active" id="step2">
-                    <div class="step-icon">🔄</div>
-                    <div class="step-content">
-                        <div class="step-title">Submitting to Blockchain</div>
-                        <div class="step-description">Broadcasting transaction to L1</div>
-                    </div>
-                    <div class="step-status">Processing...</div>
-                </div>
-
-                <div class="step pending" id="step3">
-                    <div class="step-icon">3</div>
-                    <div class="step-content">
-                        <div class="step-title">Confirmation</div>
-                        <div class="step-description">Waiting for block confirmation</div>
-                    </div>
-                    <div class="step-status">Pending</div>
-                </div>
+        </div>
+        <h1 class="title">Lock処理中...</h1>
+        <p class="subtitle">しばらくお待ちください。このページを閉じないでください。</p>
+        <div class="steps">
+            <div class="step complete" id="step1">
+                <div class="step-icon">✓</div>
+                <span class="step-text">Dilithium署名を生成</span>
             </div>
-
-            <div class="tx-info">
-                <div class="tx-row">
-                    <span class="tx-label">Amount</span>
-                    <span class="tx-value">5.00 ETH</span>
-                </div>
-                <div class="tx-row">
-                    <span class="tx-label">Transaction Hash</span>
-                    <span class="tx-value">0x7a3f...9c2d</span>
-                </div>
-                <div class="tx-row">
-                    <span class="tx-label">Estimated Time</span>
-                    <span class="tx-value">~30 seconds</span>
-                </div>
+            <div class="step complete" id="step2">
+                <div class="step-icon">✓</div>
+                <span class="step-text">トランザクションを作成</span>
             </div>
-
-            <div class="warning-box">
-                <span class="warning-icon">⚠️</span>
-                <span class="warning-text">
-                    Do not close this window or refresh the page. Your transaction is being processed on the blockchain.
-                </span>
+            <div class="step active" id="step3">
+                <div class="step-icon">3</div>
+                <span class="step-text">ブロックチェーンに送信中...</span>
+            </div>
+            <div class="step pending" id="step4">
+                <div class="step-icon">4</div>
+                <span class="step-text">確認を待機</span>
             </div>
         </div>
+        <div class="tx-hash" id="txHash" style="display: none;">TX: <a href="https://sepolia.etherscan.io/tx/0x..." target="_blank" id="txLink">0x7a3f...9c2d</a></div>
     </div>
-
     <script>
-        // Simulate processing steps
-        let currentStep = 2;
-        
-        function updateSteps() {
-            setTimeout(() => {
-                // Move to step 3
-                document.getElementById('step2').classList.remove('active');
-                document.getElementById('step2').classList.add('completed');
-                document.getElementById('step2').querySelector('.step-icon').textContent = '✓';
-                document.getElementById('step2').querySelector('.step-status').textContent = 'Complete';
-                
-                document.getElementById('step3').classList.remove('pending');
-                document.getElementById('step3').classList.add('active');
-                document.getElementById('step3').querySelector('.step-icon').textContent = '🔄';
-                document.getElementById('step3').querySelector('.step-status').textContent = 'Processing...';
-                
-                // Complete after delay
-                setTimeout(() => {
-                    window.location.href = '10_lock_success.html';
-                }, 3000);
-            }, 4000);
-        }
-        
-        // Start simulation
-        updateSteps();
+        setTimeout(() => {
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('step3').classList.add('complete');
+            document.getElementById('step3').querySelector('.step-icon').textContent = '✓';
+            document.getElementById('step4').classList.remove('pending');
+            document.getElementById('step4').classList.add('active');
+            document.getElementById('txHash').style.display = 'block';
+        }, 2000);
+        setTimeout(() => {
+            document.getElementById('step4').classList.remove('active');
+            document.getElementById('step4').classList.add('complete');
+            document.getElementById('step4').querySelector('.step-icon').textContent = '✓';
+        }, 4000);
+        setTimeout(() => { window.location.href = '10_lock_success.html'; }, 5000);
     </script>
 </body>
 </html>
