@@ -1,35 +1,46 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .back-btn | click | 03_dashboard.html |
+| nav Dashboard | click | 03_dashboard.html |
+| nav Lock | click | 03_dashboard.html#lock |
+| nav Unlock | click | 04_unlock.html |
+| nav History | click | 05_history.html |
+| .unlock-card | click | selectUnlock() |
+| #normalUnlockBtn | click | startNormalUnlock() |
+| #emergencyUnlockBtn | click | startEmergencyUnlock() |
+-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quantum Shield - Unlock</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-hinomaru: #BC002D;
-            --color-hinomaru-light: #E8334D;
-            --color-hinomaru-dim: rgba(188, 0, 45, 0.12);
-            --color-hinomaru-glow: rgba(188, 0, 45, 0.4);
-            --color-gold: #C9A962;
-            --color-gold-dim: rgba(201, 169, 98, 0.12);
-            --color-success: #00C896;
-            --color-success-dim: rgba(0, 200, 150, 0.12);
-            --color-warning: #F0A030;
-            --color-warning-dim: rgba(240, 160, 48, 0.12);
-            --color-error: #E07040;
-            --color-error-dim: rgba(224, 112, 64, 0.12);
-            --bg-primary: #0A0A0C;
+            --bg-primary: #0a0a0c;
             --bg-secondary: #111114;
-            --bg-elevated: #18181C;
-            --bg-card: #0E0E11;
-            --text-primary: #F8F8FA;
-            --text-secondary: #9898A0;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e84057;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
             --text-tertiary: #606068;
             --border-subtle: rgba(255, 255, 255, 0.04);
             --border-default: rgba(255, 255, 255, 0.08);
             --border-emphasis: rgba(255, 255, 255, 0.12);
-            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
             --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
             --font-mono: 'DM Mono', monospace;
             --radius-md: 10px;
@@ -37,439 +48,228 @@
             --radius-xl: 20px;
             --radius-full: 9999px;
         }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
-        .bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-        .bg-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--color-hinomaru-dim), transparent 60%); opacity: 0.4; }
-        .bg-noise { position: absolute; inset: 0; opacity: 0.015; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-        .container { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 40px 24px; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .red-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%); opacity: 0.3; }
+        .container { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px; }
         .header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 18px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-        .back-btn:hover { border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); text-decoration: none; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+        .back-btn:hover { border-color: var(--accent-hinomaru); color: var(--accent-hinomaru-light); }
         .header-title { font-size: 24px; font-weight: 700; }
-        .step-indicator { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-lg); flex-wrap: wrap; }
-        .step-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-tertiary); }
-        .step-item.active { color: var(--text-primary); }
-        .step-item.complete { color: var(--color-success); }
-        .step-num { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--border-default); font-size: 12px; font-weight: 600; }
-        .step-item.active .step-num { background: var(--color-hinomaru); color: white; }
-        .step-item.complete .step-num { background: var(--color-success); color: white; }
-        .step-arrow { color: var(--text-muted); }
-        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); margin-bottom: 24px; overflow: hidden; }
-        .card-header { padding: 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
-        .card-title { font-size: 18px; font-weight: 600; }
-        .card-body { padding: 24px; }
-        .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 4px 10px; border-radius: var(--radius-full); font-weight: 500; }
-        .badge-quantum { background: var(--color-hinomaru-dim); border: 1px solid var(--color-hinomaru); color: var(--color-hinomaru-light); }
-        .lock-list { display: flex; flex-direction: column; gap: 12px; }
-        .lock-item { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--bg-secondary); border: 2px solid var(--border-default); border-radius: var(--radius-lg); cursor: pointer; transition: all 0.2s; }
-        .lock-item:hover { border-color: var(--border-emphasis); }
-        .lock-item.selected { border-color: var(--color-hinomaru); background: var(--color-hinomaru-dim); }
-        .lock-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--color-hinomaru-dim); border-radius: var(--radius-md); font-size: 24px; }
-        .lock-info { flex: 1; }
-        .lock-amount { font-size: 20px; font-weight: 700; font-family: var(--font-mono); margin-bottom: 4px; }
-        .lock-meta { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
-        .lock-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border-emphasis); display: flex; align-items: center; justify-content: center; }
-        .lock-item.selected .lock-check { background: var(--color-hinomaru); border-color: var(--color-hinomaru); }
-        .lock-item.selected .lock-check::after { content: '✓'; color: white; font-size: 12px; }
-        .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .method-card { padding: 24px; background: var(--bg-secondary); border: 2px solid var(--border-default); border-radius: var(--radius-lg); cursor: pointer; transition: all 0.2s; text-align: center; }
+
+        .section-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-gold); margin-bottom: 16px; }
+        .section-label::before { content: ''; width: 16px; height: 1px; background: var(--accent-gold); }
+
+        .unlock-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+        .unlock-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 20px 24px; cursor: pointer; transition: all 0.2s; }
+        .unlock-card:hover { border-color: var(--border-emphasis); }
+        .unlock-card.selected { border-color: var(--accent-hinomaru); background: var(--accent-hinomaru-dim); }
+        .unlock-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .unlock-card-info { display: flex; align-items: center; gap: 12px; }
+        .unlock-card-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border-radius: var(--radius-md); font-size: 20px; }
+        .unlock-card-title { font-weight: 600; font-size: 15px; }
+        .unlock-card-date { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .unlock-card-amount { font-size: 18px; font-weight: 700; }
+        .unlock-card-status { font-size: 11px; padding: 4px 10px; border-radius: var(--radius-full); font-weight: 500; }
+        .unlock-card-status.locked { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .unlock-card-status.pending { background: var(--warning-dim); color: var(--warning); }
+        .unlock-card-radio { display: flex; align-items: center; }
+        .unlock-card-radio input { width: 20px; height: 20px; accent-color: var(--accent-hinomaru); }
+
+        .method-section { margin-top: 32px; }
+        .method-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .method-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 24px; cursor: pointer; transition: all 0.2s; }
         .method-card:hover { border-color: var(--border-emphasis); }
-        .method-card.selected { border-color: var(--color-hinomaru); }
-        .method-card.emergency.selected { border-color: var(--color-warning); }
-        .method-icon { font-size: 32px; margin-bottom: 16px; }
-        .method-name { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
-        .method-time { font-size: 24px; font-weight: 700; font-family: var(--font-mono); margin-bottom: 8px; }
-        .method-time.warning { color: var(--color-warning); }
-        .method-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
-        .comparison { margin-top: 24px; }
-        .comparison-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary); }
-        .comparison-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .comparison-table th, .comparison-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
-        .comparison-table th { color: var(--text-tertiary); font-weight: 500; }
-        .comparison-table .normal { color: var(--color-success); }
-        .comparison-table .emergency { color: var(--color-warning); }
-        .timelock-display { text-align: center; padding: 40px 0; }
-        .timelock-circle { width: 200px; height: 200px; margin: 0 auto 32px; position: relative; }
-        .timelock-circle svg { transform: rotate(-90deg); }
-        .timelock-circle circle { fill: none; stroke-width: 12; }
-        .timelock-circle .bg { stroke: var(--bg-secondary); }
-        .timelock-circle .progress { stroke: url(#gradient); stroke-linecap: round; stroke-dasharray: 565.48; transition: stroke-dashoffset 1s ease; }
-        .timelock-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .timelock-time { font-size: 36px; font-weight: 700; font-family: var(--font-mono); }
-        .timelock-label { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
-        .timelock-status { font-size: 16px; color: var(--text-secondary); margin-bottom: 16px; }
-        .timelock-amount { font-size: 24px; font-weight: 700; font-family: var(--font-mono); margin-bottom: 8px; }
-        .timelock-info { font-size: 13px; color: var(--text-tertiary); }
-        .progress-steps { display: flex; flex-direction: column; gap: 16px; margin-top: 32px; text-align: left; }
-        .progress-step { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-lg); }
-        .progress-step.complete { opacity: 0.6; }
-        .progress-step.active { border: 1px solid var(--color-hinomaru); }
-        .progress-step-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; }
-        .progress-step.complete .progress-step-icon { background: var(--color-success-dim); color: var(--color-success); }
-        .progress-step.active .progress-step-icon { background: var(--color-hinomaru-dim); color: var(--color-hinomaru-light); animation: pulse 2s infinite; }
-        .progress-step.pending .progress-step-icon { background: var(--border-default); color: var(--text-tertiary); }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .progress-step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-        .progress-step-content p { font-size: 12px; color: var(--text-tertiary); }
-        /* PIR#9: Emergency Bond に日本語（保証金）併記 */
-        .bond-calculation { background: var(--color-warning-dim); border: 1px solid var(--color-warning); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 24px; }
-        .bond-title { font-size: 14px; font-weight: 600; color: var(--color-warning); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .bond-title-sub { font-size: 12px; font-weight: 400; color: var(--text-secondary); }
-        .bond-formula { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); }
-        .bond-result { display: flex; justify-content: space-between; align-items: center; }
-        .bond-label { font-size: 13px; color: var(--text-secondary); }
-        .bond-value { font-size: 20px; font-weight: 700; font-family: var(--font-mono); color: var(--color-warning); }
-        .warning-box { display: flex; gap: 12px; padding: 16px; background: var(--color-error-dim); border: 1px solid var(--color-error); border-radius: var(--radius-lg); margin-bottom: 24px; }
-        .warning-icon { font-size: 20px; flex-shrink: 0; }
-        .warning-content { font-size: 13px; line-height: 1.6; }
-        .warning-content strong { color: var(--color-error); }
-        .success-display { text-align: center; padding: 40px 0; }
-        .success-icon { width: 80px; height: 80px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; background: var(--color-success-dim); border-radius: 50%; font-size: 40px; animation: successPop 0.5s ease; }
-        @keyframes successPop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        .success-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
-        .success-amount { font-size: 32px; font-weight: 700; font-family: var(--font-mono); margin-bottom: 16px; }
-        .success-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
-        .success-tx { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 32px; word-break: break-all; }
-        .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--color-hinomaru), var(--color-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: var(--font-body); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--color-hinomaru-glow); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-primary.warning { background: linear-gradient(135deg, var(--color-warning), #ffb050); }
-        .btn-primary.success { background: var(--color-success); }
-        .btn-secondary { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-emphasis); border-radius: var(--radius-lg); color: var(--text-primary); font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: var(--font-body); margin-top: 12px; }
-        .btn-secondary:hover { background: var(--bg-elevated); }
-        .step { display: none; }
-        .step.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 480px) {
-            .method-grid { grid-template-columns: 1fr; }
-            .timelock-circle { width: 160px; height: 160px; }
-            .timelock-time { font-size: 28px; }
-            .step-indicator { gap: 4px; }
-            .step-item span:last-child { display: none; }
+        .method-card.selected { border-color: var(--accent-hinomaru); }
+        .method-card-icon { font-size: 32px; margin-bottom: 16px; }
+        .method-card-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .method-card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+        .method-card-detail { display: flex; flex-direction: column; gap: 8px; }
+        .method-detail-row { display: flex; justify-content: space-between; font-size: 12px; }
+        .method-detail-label { color: var(--text-tertiary); }
+        .method-detail-value { font-weight: 500; }
+        .method-card.warning .method-card-icon { color: var(--warning); }
+
+        .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-hinomaru-glow); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .warning-box { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--warning-dim); border: 1px solid var(--warning); border-radius: var(--radius-lg); margin-bottom: 24px; }
+        .warning-icon { font-size: 24px; flex-shrink: 0; }
+        .warning-content h4 { font-size: 14px; font-weight: 600; color: var(--warning); margin-bottom: 4px; }
+        .warning-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+        @media (max-width: 768px) {
+            .method-cards { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="bg-effects">
-        <div class="bg-glow"></div>
-        <div class="bg-noise"></div>
-    </div>
-    <svg width="0" height="0">
-        <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#BC002D"/>
-                <stop offset="100%" stop-color="#C9A962"/>
-            </linearGradient>
-        </defs>
-    </svg>
+    <div class="premium-bg"><div class="red-glow"></div></div>
+
     <div class="container">
         <div class="header">
-            <a href="#" class="back-btn" onclick="goBack()">←</a>
+            <a href="03_dashboard.html" class="back-btn">←</a>
             <h1 class="header-title">Unlock</h1>
         </div>
-        <div class="step-indicator">
-            <div class="step-item active" id="stepInd1"><span class="step-num">1</span><span>対象選択</span></div>
-            <span class="step-arrow">→</span>
-            <div class="step-item" id="stepInd2"><span class="step-num">2</span><span>方式選択</span></div>
-            <span class="step-arrow">→</span>
-            <div class="step-item" id="stepInd3"><span class="step-num">3</span><span>署名</span></div>
-            <span class="step-arrow">→</span>
-            <div class="step-item" id="stepInd4"><span class="step-num">4</span><span>待機</span></div>
-        </div>
-        <div class="step active" id="step1">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Unlockする資産を選択</h2>
-                    <span class="badge badge-quantum">🛡️ 保護中</span>
+
+        <div class="section-label">Select Lock to Unlock</div>
+
+        <div class="unlock-cards">
+            <div class="unlock-card selected" onclick="selectUnlock(this, 0)">
+                <div class="unlock-card-header">
+                    <div class="unlock-card-info">
+                        <div class="unlock-card-icon">🔒</div>
+                        <div>
+                            <div class="unlock-card-title">Lock #1</div>
+                            <div class="unlock-card-date">2026-01-01 10:00</div>
+                        </div>
+                    </div>
+                    <div class="unlock-card-radio">
+                        <input type="radio" name="unlock" checked>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="lock-list">
-                        <div class="lock-item" onclick="selectLock(this, 0)">
-                            <div class="lock-icon">🔒</div>
-                            <div class="lock-info">
-                                <div class="lock-amount">5.00 ETH</div>
-                                <div class="lock-meta">Lock日: 2026-01-03 • ID: 0x7a3f...9c2d</div>
-                            </div>
-                            <div class="lock-check"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="unlock-card-amount">10.00 ETH</span>
+                    <span class="unlock-card-status locked">Locked</span>
+                </div>
+            </div>
+
+            <div class="unlock-card" onclick="selectUnlock(this, 1)">
+                <div class="unlock-card-header">
+                    <div class="unlock-card-info">
+                        <div class="unlock-card-icon">🔒</div>
+                        <div>
+                            <div class="unlock-card-title">Lock #2</div>
+                            <div class="unlock-card-date">2026-01-03 14:30</div>
                         </div>
-                        <div class="lock-item" onclick="selectLock(this, 1)">
-                            <div class="lock-icon">🔒</div>
-                            <div class="lock-info">
-                                <div class="lock-amount">2.50 ETH</div>
-                                <div class="lock-meta">Lock日: 2026-01-01 • ID: 0x8b4c...1d3e</div>
-                            </div>
-                            <div class="lock-check"></div>
+                    </div>
+                    <div class="unlock-card-radio">
+                        <input type="radio" name="unlock">
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="unlock-card-amount">5.00 ETH</span>
+                    <span class="unlock-card-status locked">Locked</span>
+                </div>
+            </div>
+
+            <div class="unlock-card" onclick="selectUnlock(this, 2)">
+                <div class="unlock-card-header">
+                    <div class="unlock-card-info">
+                        <div class="unlock-card-icon">⏳</div>
+                        <div>
+                            <div class="unlock-card-title">Lock #3</div>
+                            <div class="unlock-card-date">2026-01-05 09:15</div>
                         </div>
-                        <div class="lock-item" onclick="selectLock(this, 2)">
-                            <div class="lock-icon">🔒</div>
-                            <div class="lock-info">
-                                <div class="lock-amount">1.25 ETH</div>
-                                <div class="lock-meta">Lock日: 2025-12-28 • ID: 0x9c5d...2e4f</div>
-                            </div>
-                            <div class="lock-check"></div>
+                    </div>
+                    <div class="unlock-card-radio">
+                        <input type="radio" name="unlock">
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="unlock-card-amount">2.50 ETH</span>
+                    <span class="unlock-card-status pending">Unlock中 (23:41:02)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="method-section">
+            <div class="section-label">Select Unlock Method</div>
+
+            <div class="method-cards">
+                <div class="method-card selected" onclick="selectMethod(this, 'normal')">
+                    <div class="method-card-icon">🔐</div>
+                    <div class="method-card-title">通常Unlock</div>
+                    <div class="method-card-desc">Dilithium署名 + Prover署名で安全にUnlock</div>
+                    <div class="method-card-detail">
+                        <div class="method-detail-row">
+                            <span class="method-detail-label">待機時間</span>
+                            <span class="method-detail-value">24時間</span>
+                        </div>
+                        <div class="method-detail-row">
+                            <span class="method-detail-label">必要なもの</span>
+                            <span class="method-detail-value">Dilithium秘密鍵</span>
+                        </div>
+                        <div class="method-detail-row">
+                            <span class="method-detail-label">手数料</span>
+                            <span class="method-detail-value">ガス代のみ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="method-card warning" onclick="selectMethod(this, 'emergency')">
+                    <div class="method-card-icon">⚠️</div>
+                    <div class="method-card-title">緊急Unlock</div>
+                    <div class="method-card-desc">秘密鍵紛失時のセーフティネット</div>
+                    <div class="method-card-detail">
+                        <div class="method-detail-row">
+                            <span class="method-detail-label">待機時間</span>
+                            <span class="method-detail-value" style="color: var(--warning);">7日間</span>
+                        </div>
+                        <div class="method-detail-row">
+                            <span class="method-detail-label">必要なもの</span>
+                            <span class="method-detail-value">ウォレット署名</span>
+                        </div>
+                        <div class="method-detail-row">
+                            <span class="method-detail-label">Bond</span>
+                            <span class="method-detail-value" style="color: var(--warning);">MAX(0.5 ETH, 金額×5%)</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <button class="btn-primary" id="selectBtn" disabled onclick="goToStep(2)">次へ：方式を選択</button>
-        </div>
-        <div class="step" id="step2">
-            <div class="card">
-                <div class="card-header"><h2 class="card-title">Unlock方式を選択</h2></div>
-                <div class="card-body">
-                    <div class="method-grid">
-                        <div class="method-card" onclick="selectMethod('normal')">
-                            <div class="method-icon">🕐</div>
-                            <div class="method-name">通常Unlock</div>
-                            <div class="method-time">24時間</div>
-                            <div class="method-desc">標準的な方式。追加費用なし。</div>
-                        </div>
-                        <div class="method-card emergency" onclick="selectMethod('emergency')">
-                            <div class="method-icon">⚡</div>
-                            <div class="method-name">緊急Unlock</div>
-                            <div class="method-time warning">7日間</div>
-                            <!-- PIR#9: Bond（保証金）に日本語併記 -->
-                            <div class="method-desc">Bond（保証金）が必要。問題なければ返還。</div>
-                        </div>
-                    </div>
-                    <div class="comparison">
-                        <div class="comparison-title">方式の比較</div>
-                        <table class="comparison-table">
-                            <tr><th></th><th>通常</th><th>緊急</th></tr>
-                            <tr><td>待機時間</td><td class="normal">24時間</td><td class="emergency">7日間</td></tr>
-                            <!-- PIR#9: Bond必要 → 保証金必要 に変更 -->
-                            <tr><td>追加費用</td><td class="normal">なし</td><td class="emergency">保証金（Bond）必要</td></tr>
-                            <tr><td>用途</td><td>通常利用</td><td>秘密鍵紛失時</td></tr>
-                        </table>
-                    </div>
+
+            <div class="warning-box" id="emergencyWarning" style="display: none;">
+                <span class="warning-icon">⚠️</span>
+                <div class="warning-content">
+                    <h4>緊急Unlockの注意事項</h4>
+                    <p>緊急Unlockには7日間の待機期間とBond（保証金）が必要です。Bondは7日後にChallenge がなければ返還されます。</p>
                 </div>
             </div>
-            <button class="btn-primary" id="methodBtn" disabled onclick="proceedWithMethod()">次へ：署名</button>
-            <button class="btn-secondary" onclick="goToStep(1)">戻る</button>
-        </div>
-        <div class="step" id="step3normal">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Dilithium署名</h2>
-                    <span class="badge badge-quantum">🛡️ 量子耐性</span>
-                </div>
-                <div class="card-body">
-                    <div style="text-align: center; padding: 32px 0;">
-                        <div style="font-size: 48px; margin-bottom: 24px;">✍️</div>
-                        <p style="color: var(--text-secondary); margin-bottom: 24px;">Unlock要求に署名してください。<br>署名後、24時間のTime Lock期間が開始します。</p>
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: var(--radius-lg); margin-bottom: 24px;">
-                            <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px;">Unlock金額</div>
-                            <div style="font-size: 28px; font-weight: 700; font-family: var(--font-mono);" id="signAmount">5.00 ETH</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-primary" onclick="signNormal()">Dilithium署名で承認</button>
-            <button class="btn-secondary" onclick="goToStep(2)">戻る</button>
-        </div>
-        <div class="step" id="step3emergency">
-            <div class="card">
-                <!-- PIR#9: Emergency Bond → Emergency Bond（緊急保証金）に変更 -->
-                <div class="card-header"><h2 class="card-title">Emergency Bond（緊急保証金）</h2></div>
-                <div class="card-body">
-                    <div class="warning-box">
-                        <span class="warning-icon">⚠️</span>
-                        <!-- PIR#9: 保証金の説明を明確化 -->
-                        <div class="warning-content"><strong>緊急Unlockについて：</strong>保証金（Bond）を預け入れる必要があります。7日間の待機期間中にChallengeがなければ、保証金はUnlock金額と一緒に返還されます。</div>
-                    </div>
-                    <div class="bond-calculation">
-                        <!-- PIR#9: Bond計算タイトルに日本語併記 -->
-                        <div class="bond-title">💰 Bond計算<span class="bond-title-sub">（保証金）</span></div>
-                        <div class="bond-formula">MAX(0.5 ETH, Unlock金額 × 5%)<br>= MAX(0.5 ETH, <span id="bondCalcAmount">5.00</span> × 5%)<br>= MAX(0.5 ETH, <span id="bondCalcPercent">0.25</span> ETH)</div>
-                        <div class="bond-result">
-                            <!-- PIR#9: 必要なBond → 必要な保証金（Bond）に変更 -->
-                            <span class="bond-label">必要な保証金（Bond）</span>
-                            <span class="bond-value" id="bondRequired">0.50 ETH</span>
-                        </div>
-                    </div>
-                    <div style="background: var(--bg-secondary); padding: 16px; border-radius: var(--radius-lg); margin-bottom: 24px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span style="color: var(--text-secondary);">Unlock金額</span>
-                            <span style="font-family: var(--font-mono); font-weight: 600;" id="emergencyAmount">5.00 ETH</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
-                            <span style="color: var(--text-secondary);">合計必要額</span>
-                            <span style="font-family: var(--font-mono); font-weight: 700; color: var(--color-warning);" id="totalRequired">5.50 ETH</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- PIR#9: ボタンテキストにも日本語併記 -->
-            <button class="btn-primary warning" onclick="signEmergency()">保証金支払い + 緊急Unlock開始</button>
-            <button class="btn-secondary" onclick="goToStep(2)">戻る</button>
-        </div>
-        <div class="step" id="step4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="timelock-display">
-                        <div class="timelock-status" id="timelockStatus">Time Lock 進行中</div>
-                        <div class="timelock-circle">
-                            <svg width="200" height="200">
-                                <circle class="bg" cx="100" cy="100" r="90"/>
-                                <circle class="progress" cx="100" cy="100" r="90" id="timelockProgress"/>
-                            </svg>
-                            <div class="timelock-center">
-                                <div class="timelock-time" id="timelockTime">23:59:59</div>
-                                <div class="timelock-label">残り時間</div>
-                            </div>
-                        </div>
-                        <div class="timelock-amount" id="timelockAmount">5.00 ETH</div>
-                        <div class="timelock-info" id="timelockInfo">完了予定: 2026-01-07 14:32</div>
-                    </div>
-                    <div class="progress-steps">
-                        <div class="progress-step complete" id="progStep1">
-                            <div class="progress-step-icon">✓</div>
-                            <div class="progress-step-content"><h4>Unlock要求送信</h4><p>署名済み・ブロックチェーンに記録</p></div>
-                        </div>
-                        <div class="progress-step active" id="progStep2">
-                            <div class="progress-step-icon">⏳</div>
-                            <div class="progress-step-content"><h4>Time Lock待機中</h4><p id="progStep2Desc">24時間の待機期間</p></div>
-                        </div>
-                        <div class="progress-step pending" id="progStep3">
-                            <div class="progress-step-icon">→</div>
-                            <div class="progress-step-content"><h4>Unlock実行可能</h4><p>待機完了後、資産を引き出せます</p></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-primary" id="executeBtn" disabled onclick="executeUnlock()">Unlockを実行</button>
-            <button class="btn-secondary" onclick="window.location.href='03_dashboard.html'">ダッシュボードに戻る</button>
-        </div>
-        <div class="step" id="step5">
-            <div class="card">
-                <div class="card-body">
-                    <div class="success-display">
-                        <div class="success-icon">🎉</div>
-                        <h2 class="success-title">Unlock完了！</h2>
-                        <div class="success-amount" id="completeAmount">5.00 ETH</div>
-                        <p class="success-desc">資産がウォレットに返還されました。</p>
-                        <div class="success-tx">TX: 0x7a3f9c2d8b4e1f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a</div>
-                        <button class="btn-primary success" onclick="window.location.href='03_dashboard.html'">ダッシュボードへ</button>
-                    </div>
-                </div>
-            </div>
+
+            <button class="btn-primary" id="unlockBtn" onclick="startUnlock()">通常Unlockを開始</button>
         </div>
     </div>
+
     <script>
-        let currentStep = 1;
-        let selectedLockIndex = -1;
-        let selectedMethod = null;
-        const lockAmounts = [5.00, 2.50, 1.25];
+        let selectedLock = 0;
+        let selectedMethod = 'normal';
 
-        function updateStepIndicator(step) {
-            for (let i = 1; i <= 4; i++) {
-                const el = document.getElementById(`stepInd${i}`);
-                el.classList.remove('active', 'complete');
-                if (i < step) el.classList.add('complete');
-                else if (i === step) el.classList.add('active');
-            }
+        function selectUnlock(card, index) {
+            document.querySelectorAll('.unlock-card').forEach(c => {
+                c.classList.remove('selected');
+                c.querySelector('input[type="radio"]').checked = false;
+            });
+            card.classList.add('selected');
+            card.querySelector('input[type="radio"]').checked = true;
+            selectedLock = index;
         }
 
-        function goToStep(step) {
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.getElementById(`step${step}`).classList.add('active');
-            currentStep = step;
-            if (step <= 4) updateStepIndicator(step);
-        }
-
-        function goBack() {
-            if (currentStep > 1) goToStep(currentStep - 1);
-            else window.history.back();
-        }
-
-        function selectLock(el, index) {
-            document.querySelectorAll('.lock-item').forEach(i => i.classList.remove('selected'));
-            el.classList.add('selected');
-            selectedLockIndex = index;
-            document.getElementById('selectBtn').disabled = false;
-        }
-
-        function selectMethod(method) {
+        function selectMethod(card, method) {
             document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+            card.classList.add('selected');
             selectedMethod = method;
-            document.getElementById('methodBtn').disabled = false;
-        }
-
-        function proceedWithMethod() {
-            const amount = lockAmounts[selectedLockIndex];
-            if (selectedMethod === 'normal') {
-                document.getElementById('signAmount').textContent = `${amount.toFixed(2)} ETH`;
-                document.getElementById('step2').classList.remove('active');
-                document.getElementById('step3normal').classList.add('active');
+            
+            const warningBox = document.getElementById('emergencyWarning');
+            const unlockBtn = document.getElementById('unlockBtn');
+            
+            if (method === 'emergency') {
+                warningBox.style.display = 'flex';
+                unlockBtn.textContent = '緊急Unlockを開始';
             } else {
-                const bondPercent = amount * 0.05;
-                const bond = Math.max(0.5, bondPercent);
-                document.getElementById('bondCalcAmount').textContent = amount.toFixed(2);
-                document.getElementById('bondCalcPercent').textContent = bondPercent.toFixed(2);
-                document.getElementById('bondRequired').textContent = `${bond.toFixed(2)} ETH`;
-                document.getElementById('emergencyAmount').textContent = `${amount.toFixed(2)} ETH`;
-                document.getElementById('totalRequired').textContent = `${(amount + bond).toFixed(2)} ETH`;
-                document.getElementById('step2').classList.remove('active');
-                document.getElementById('step3emergency').classList.add('active');
+                warningBox.style.display = 'none';
+                unlockBtn.textContent = '通常Unlockを開始';
             }
-            updateStepIndicator(3);
         }
 
-        function signNormal() {
-            const amount = lockAmounts[selectedLockIndex];
-            document.getElementById('timelockAmount').textContent = `${amount.toFixed(2)} ETH`;
-            document.getElementById('progStep2Desc').textContent = '24時間の待機期間';
-            document.getElementById('step3normal').classList.remove('active');
-            document.getElementById('step4').classList.add('active');
-            updateStepIndicator(4);
-            startCountdown(24 * 60 * 60);
-        }
-
-        function signEmergency() {
-            const amount = lockAmounts[selectedLockIndex];
-            document.getElementById('timelockAmount').textContent = `${amount.toFixed(2)} ETH`;
-            document.getElementById('timelockStatus').textContent = 'Emergency Time Lock 進行中';
-            document.getElementById('progStep2Desc').textContent = '7日間の待機期間';
-            document.getElementById('step3emergency').classList.remove('active');
-            document.getElementById('step4').classList.add('active');
-            updateStepIndicator(4);
-            startCountdown(7 * 24 * 60 * 60);
-        }
-
-        function startCountdown(totalSeconds) {
-            const circumference = 2 * Math.PI * 90;
-            const progressEl = document.getElementById('timelockProgress');
-            const timeEl = document.getElementById('timelockTime');
-            const executeBtn = document.getElementById('executeBtn');
-            let remaining = 10;
-            const interval = setInterval(() => {
-                remaining--;
-                const hours = Math.floor(remaining / 3600);
-                const minutes = Math.floor((remaining % 3600) / 60);
-                const seconds = remaining % 60;
-                timeEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                const progress = 1 - (remaining / 10);
-                progressEl.style.strokeDashoffset = circumference * (1 - progress);
-                if (remaining <= 0) {
-                    clearInterval(interval);
-                    timeEl.textContent = '00:00:00';
-                    executeBtn.disabled = false;
-                    document.getElementById('timelockStatus').textContent = 'Unlock準備完了！';
-                    document.getElementById('progStep2').classList.remove('active');
-                    document.getElementById('progStep2').classList.add('complete');
-                    document.getElementById('progStep2').querySelector('.progress-step-icon').textContent = '✓';
-                    document.getElementById('progStep3').classList.remove('pending');
-                    document.getElementById('progStep3').classList.add('active');
-                }
-            }, 1000);
-        }
-
-        function executeUnlock() {
-            const amount = lockAmounts[selectedLockIndex];
-            document.getElementById('completeAmount').textContent = `${amount.toFixed(2)} ETH`;
-            goToStep(5);
+        function startUnlock() {
+            if (selectedMethod === 'normal') {
+                window.location.href = '11_unlock_sign.html';
+            } else {
+                window.location.href = '14_emergency_bond.html';
+            }
         }
     </script>
 </body>
