@@ -1,166 +1,313 @@
-# Design PIR Report: Consumer App
+# 🎨 Consumer App Design PIR Report
+## Phase 4A デザインレビュー結果
 
-## PIR Information
-- **Date**: 2026-01-06
-- **System**: Consumer App
-- **System ID**: 01
-- **Manifest**: `DESIGN_MANIFEST.md`
-- **Reviewers**: CDO (佐々木さん), Marketing (田村さん), Legal (西村さん), 田中さん (End User), 鈴木さん (Token Holder)
-- **Coverage**: 12/14 screens (85% MVP)
-- **Status**: ✅ PASS (Re-PIR 2026-01-06)
+> **Version**: 2.0  
+> **Date**: 2026-01-07  
+> **System**: Consumer App (system_01_consumer)  
+> **Reviewer**: Design PIR Agent (CDO/Marketing/Legal/QA Auditor/Persona)  
+> **Status**: ⚠️ CONDITIONAL PASS
 
 ---
 
-## 🎉 Re-PIR Summary
+## 📋 Review Summary
 
-**修正完了日**: 2026-01-06  
-**修正件数**: 9/9 (100%)  
-**判定**: ✅ **PASS**
-
-### 修正完了一覧
-
-| PIR# | 重要度 | ファイル | 修正内容 | Commit |
-|------|:------:|----------|---------|--------|
-| #1 | **High** | 01_landing.html | Hero下部にリスク注記追加（金商法対応） | 14c85a5 |
-| #2 | **High** | 01_landing.html | Cookie同意バナー実装（ePrivacy対応） | 14c85a5 |
-| #3 | Medium | 01_landing.html | Stats数値にカウントアップアニメーション追加 | 14c85a5 |
-| #4 | Medium | 01_landing.html | CTAセクションにリスク注記追加 | 14c85a5 |
-| #5 | Medium | 03_dashboard.html | 「Dilithium署名」→「安全にロックする」+ ツールチップ | cdb3460 |
-| #6 | Low | 01_landing.html | Hero Subtitle line-height: 1.7→1.8 | 14c85a5 |
-| #7 | Low | 01_landing.html | How It Works直後に二次CTA追加 | 14c85a5 |
-| #8 | Low | 02_onboarding.html | Key Display font-size: 12px→14px | ebceae5 |
-| #9 | Low | 04_unlock.html | 「Emergency Bond」に日本語（保証金）併記 | ca8df1f |
+| Agent | 判定 | Critical | High | Medium | Low |
+|-------|:----:|:--------:|:----:|:------:|:---:|
+| CDO（佐々木さん） | ✅ PASS | 0 | 0 | 1 | 2 |
+| Marketing（田村さん） | ✅ PASS | 0 | 0 | 2 | 1 |
+| Legal（西村さん） | ⚠️ CONDITIONAL | 0 | 2 | 1 | 0 |
+| QA Auditor（工藤さん） | ⚠️ CONDITIONAL | 0 | 1 | 2 | 0 |
+| 田中さん（End User） | ✅ PASS | 0 | 0 | 2 | 2 |
+| 鈴木さん（Token Holder） | ✅ PASS | 0 | 0 | 1 | 1 |
+| **合計** | **⚠️ CONDITIONAL** | **0** | **3** | **9** | **6** |
 
 ---
 
-## Review Summary
+## 📁 Files Reviewed
 
-### CDO Review (佐々木さん)
+| # | File | Size | Status |
+|---|------|------|:------:|
+| 1 | 01_landing.html | 30KB | ✅ |
+| 2 | 02_onboarding.html | 34KB | ✅ |
+| 3 | 03_dashboard.html | 26KB | ✅ |
+| 4 | 04_unlock.html | 15KB | ✅ |
+| 5 | 05_history.html | 17KB | ✅ |
+| 6 | 06_settings.html | 16KB | ✅ |
+| 7 | 07_key_management.html | 20KB | ✅ |
+| 8 | 08_faq.html | 8KB | ✅ |
+| 9 | 09_security.html | 9KB | ✅ |
+| 10 | 10_lock_processing.html | 7KB | ⚠️ MANIFEST未記載 |
+| 11 | 10_lock_success.html | 7KB | ⚠️ MANIFEST未記載 |
+| 12 | 11_unlock_sign.html | 7KB | ⚠️ MANIFEST未記載 |
+| 13 | 12_unlock_processing.html | 6KB | ⚠️ MANIFEST未記載 |
+| 14 | 13_unlock_success.html | 9KB | ⚠️ MANIFEST未記載 |
+| 15 | 14_emergency_bond.html | 9KB | ⚠️ MANIFEST未記載 |
+| 16 | 15_emergency_processing.html | 6KB | ⚠️ MANIFEST未記載 |
+| 17 | 16_emergency_success.html | 9KB | ⚠️ MANIFEST未記載 |
 
-> **Profile**: 48歳、元Apple Japanデザイン部長
-> **Focus**: ブランド一貫性、Premium Japan
+**発見**: 8ファイル（10-16）がDESIGN_MANIFEST.md v1.4に未記載
+
+---
+
+## 🎯 Agent Reviews
+
+### 1. CDO（佐々木さん）レビュー - ✅ PASS
 
 #### ブランド一貫性
-
 | # | 画面 | 確認項目 | 結果 | コメント |
 |---|------|---------|:----:|---------|
-| 1 | All | Hinomaru Red (#BC002D) | ✅ | 一貫して使用されている |
-| 2 | All | Premium Gold (#C9A962) | ✅ | アクセント色として適切に配置 |
-| 3 | All | Dark Background (#0A0A0C) | ✅ | Premium感のある深い黒 |
-| 4 | All | 日の丸モチーフ | ✅ | ロゴ・ビジュアルで効果的に使用 |
-| 5 | All | Made in Japan表記 | ✅ | フッター・ヘッダーに配置 |
+| 1 | 全画面 | Premium Japan準拠 | ✅ | 日の丸モチーフ、Gold アクセント統一 |
+| 2 | 全画面 | 日の丸モチーフ | ✅ | Hinomaru core animation 優雅 |
+| 3 | 全画面 | カラーパレット | ✅ | #BC002D, #C9A962, #0A0A0C 統一 |
 
 #### デザインシステム準拠
-
 | # | 画面 | 確認項目 | 結果 | コメント |
 |---|------|---------|:----:|---------|
-| 1 | All | Typography (Plus Jakarta Sans + Noto Sans JP) | ✅ | フォント読み込み確認済み |
-| 2 | All | Border Radius (var統一) | ✅ | CSS変数で一貫管理 |
-| 3 | All | Touch Target (44px min) | ✅ | ボタン・リンクは十分なサイズ |
-| 4 | All | Responsive Breakpoints | ✅ | 768px, 480px対応済み |
+| 1 | 全画面 | コンポーネント使用 | ✅ | Card, Button, Badge 統一 |
+| 2 | 全画面 | タイポグラフィ | ✅ | Plus Jakarta Sans + Noto Sans JP |
+| 3 | 全画面 | スペーシング | ✅ | CSS変数 --space-* 統一 |
 
 #### 指摘事項
+| # | 重要度 | 画面 | File:Line | 指摘 | 推奨対応 |
+|---|:------:|------|-----------|------|---------|
+| CDO-1 | Medium | 10_lock_processing.html | L45 | ローディングアニメーションが他画面と微妙に異なる | orbit animation の duration を統一（12s/20s/30s） |
+| CDO-2 | Low | 05_history.html | L72 | フィルターボタンのアクティブ状態が少し地味 | border-width: 2px に変更検討 |
+| CDO-3 | Low | 全画面 | - | エラー状態のビジュアルが未定義 | エラーモーダル/トーストのデザイン追加推奨 |
 
-| # | 重要度 | ファイル | 指摘 | 修正状況 |
-|---|:------:|----------|------|:------:|
-| 1 | Low | 01_landing.html | Hero Subtitleの行間 | ✅ Fixed |
-| 2 | Low | 03_dashboard.html | Stats Cardのhover効果 | 📋 Future |
-| 3 | Low | 02_onboarding.html | Key Display font-size | ✅ Fixed |
-
-#### 総合評価
-- [x] ✅ PASS
+**CDO総合評価**: ✅ PASS
+> 「Premium Japan のブランドが美しく表現されています。日の丸アニメーションの品質は素晴らしい。」
 
 ---
 
-### Marketing Review (田村さん)
+### 2. Marketing（田村さん）レビュー - ✅ PASS
 
-> **Profile**: 35歳、元Google Japan Growth Lead
-> **Focus**: コンバージョン最適化
+#### ユーザー獲得
+| # | 画面 | 確認項目 | 結果 | コメント |
+|---|------|---------|:----:|---------|
+| 1 | 01_landing.html | ファーストビュー | ✅ | 日の丸 + バリュープロポジション明確 |
+| 2 | 01_landing.html | バリュープロポジション | ✅ | 「量子耐性」「Self-Custody」明示 |
+| 3 | 01_landing.html | CTA視認性 | ✅ | Hinomaru Red ボタン目立つ |
+
+#### コンバージョン
+| # | 画面 | 確認項目 | 結果 | コメント |
+|---|------|---------|:----:|---------|
+| 1 | 02_onboarding.html | ステップ表示 | ✅ | 4ステップ明確 |
+| 2 | 02_onboarding.html | 摩擦軽減 | ⚠️ | 鍵バックアップのステップが複雑 |
 
 #### 指摘事項
+| # | 重要度 | 画面 | File:Line | 指摘 | 推奨対応 |
+|---|:------:|------|-----------|------|---------|
+| MKT-1 | Medium | 01_landing.html | L180 | 「Start Now」の下に「無料」を追加すると効果UP | CTAテキスト変更検討 |
+| MKT-2 | Medium | 02_onboarding.html | L280 | バックアップ完了確認が1チェックボックスのみ | 「ダウンロード完了」+「保存場所確認」の2段階に |
+| MKT-3 | Low | 03_dashboard.html | L150 | 初回ユーザー向けガイドツアーがない | ツールチップ/オーバーレイ追加推奨 |
 
-| # | 重要度 | ファイル | 指摘 | 修正状況 |
-|---|:------:|----------|------|:------:|
-| 1 | Medium | 01_landing.html | Stats数値が静的 | ✅ Fixed |
-| 2 | Low | 01_landing.html | 二次CTAの配置 | ✅ Fixed |
-| 3 | Low | 02_onboarding.html | 完了画面のアクション誘導 | 📋 Future |
-
-#### 総合評価
-- [x] ✅ PASS
+**Marketing総合評価**: ✅ PASS
+> 「CTAは目立っていて良い。オンボーディングの離脱率を下げる工夫をもう少し入れたいですね。」
 
 ---
 
-### Legal Review (西村さん)
+### 3. Legal（西村さん）レビュー - ⚠️ CONDITIONAL
 
-> **Profile**: 45歳、元金融庁
-> **Focus**: コンプライアンス
+#### 免責・リスク説明
+| # | 画面 | 確認項目 | 結果 | コメント |
+|---|------|---------|:----:|---------|
+| 1 | 01_landing.html | リスク説明 | ✅ | FAQ/Security ページで説明あり |
+| 2 | 04_unlock.html | 免責表示 | ✅ | Emergency Unlock の注意事項表示 |
+| 3 | 14_emergency_bond.html | Bond説明 | ✅ | 計算式・返還条件明示 |
+
+#### 規制対応
+| # | 画面 | 確認項目 | 結果 | コメント |
+|---|------|---------|:----:|---------|
+| 1 | 01_landing.html | 利用規約リンク | ❌ | `/terms.html` 未作成 |
+| 2 | 01_landing.html | プライバシーポリシー | ❌ | `/privacy.html` 未作成 |
+| 3 | 01_landing.html | Cookie同意 | ✅ | openCookieModal() 実装済み |
 
 #### 指摘事項
+| # | 重要度 | 画面 | File:Line | 指摘 | 法的根拠 | 推奨対応 |
+|---|:------:|------|-----------|------|---------|---------|
+| LEG-1 | **High** | 01_landing.html | L420 | 利用規約ページが存在しない | 電子消費者契約法 | `/terms.html` 作成必須 |
+| LEG-2 | **High** | 01_landing.html | L425 | プライバシーポリシーページが存在しない | 個人情報保護法 | `/privacy.html` 作成必須 |
+| LEG-3 | Medium | 02_onboarding.html | L150 | 鍵生成時に「自己責任」の明示が不足 | - | 確認チェックボックス追加 |
 
-| # | 重要度 | ファイル | 法的根拠 | 指摘 | 修正状況 |
-|---|:------:|----------|---------|------|:------:|
-| 1 | **High** | 01_landing.html | 金商法 | LPに投資リスク説明がない | ✅ Fixed |
-| 2 | **High** | All | ePrivacy | Cookie同意バナー未実装 | ✅ Fixed |
-| 3 | Medium | 01_landing.html | 金商法 | CTAセクションにリスク注記なし | ✅ Fixed |
-| 4 | Low | 02_onboarding.html | - | 完了画面に利用規約同意確認 | 📋 Future |
-
-#### 総合評価
-- [x] ✅ PASS (必須修正完了)
+**Legal総合評価**: ⚠️ CONDITIONAL
+> 「利用規約とプライバシーポリシーのページがないのは法的リスクです。リリース前に必ず作成してください。」
 
 ---
 
-### Persona Review: 田中さん（End User）
+### 4. QA Auditor（工藤さん）レビュー - ⚠️ CONDITIONAL
 
-> **技術レベル**: ★★☆☆☆
-> **主な利用デバイス**: スマートフォン
+#### デッドエンド検出
+| # | 画面 | 確認項目 | 結果 | コメント |
+|---|------|---------|:----:|---------|
+| 1 | 全画面 | href="#" 検出 | ✅ | 検出なし |
+| 2 | 全画面 | 孤島画面 | ⚠️ | 10-16番ファイルへの導線不明確 |
+| 3 | 成功画面 | 次アクション明示 | ✅ | Dashboard戻りボタンあり |
+
+#### リンク検証
+| # | From | To | Status | Notes |
+|---|------|---|:------:|-------|
+| 1 | 01_landing.html | 02_onboarding.html | ✅ | Hero CTA |
+| 2 | 02_onboarding.html | 03_dashboard.html | ✅ | Step4完了 |
+| 3 | 03_dashboard.html | 04_unlock.html | ✅ | Unlock button |
+| 4 | 03_dashboard.html | 10_lock_processing.html | ⚠️ | モーダル経由（onclick） |
+| 5 | 04_unlock.html | 11_unlock_sign.html | ⚠️ | ボタン経由（onclick） |
+| 6 | 04_unlock.html | 14_emergency_bond.html | ⚠️ | ボタン経由（onclick） |
+| 7 | 01_landing.html | /terms.html | ❌ | ファイル未存在 |
+| 8 | 01_landing.html | /privacy.html | ❌ | ファイル未存在 |
 
 #### 指摘事項
+| # | 重要度 | 画面 | File:Line | 指摘 | 推奨対応 |
+|---|:------:|------|-----------|------|---------|
+| QA-1 | **High** | DESIGN_MANIFEST.md | - | 10-16番ファイルが未記載 | MANIFESTを v1.5 に更新 |
+| QA-2 | Medium | 03_dashboard.html | L320 | Lock処理への遷移がJavaScript onclick のみ | 遷移先をコメントに明記 |
+| QA-3 | Medium | Screen Flow図 | - | 10-16番ファイルが Mermaid 図に未反映 | 図を更新 |
 
-| # | 重要度 | ファイル | 指摘 | 修正状況 |
-|---|:------:|----------|------|:------:|
-| 1 | Medium | 03_dashboard.html | 「Dilithium署名」が専門用語 | ✅ Fixed |
-| 2 | Low | 04_unlock.html | 「Emergency Bond」が分かりにくい | ✅ Fixed |
-| 3 | Low | 02_onboarding.html | 鍵生成中の励ましメッセージ | 📋 Future |
-
-#### 総合評価
-- **使いやすさ**: ⭐⭐⭐⭐⭐
-- **安心感**: ⭐⭐⭐⭐⭐
-- **ブランド印象**: ⭐⭐⭐⭐⭐
+**QA Auditor総合評価**: ⚠️ CONDITIONAL
+> 「DESIGN_MANIFESTと実ファイルの乖離を解消してください。Screen Flow図も更新が必要です。」
 
 ---
 
-### Persona Review: 鈴木さん（Token Holder）
+### 5. 田中さん（End User）レビュー - ✅ PASS
 
-> **技術レベル**: ★★★★☆
-> **主な利用デバイス**: PC
+#### ジャーニーに沿ったレビュー
+| # | ジャーニーステップ | 画面 | 評価 | コメント |
+|---|-------------------|------|:----:|---------|
+| 1 | 認知 | 01_landing.html | ✅ | 日の丸きれい、「安全」が伝わる |
+| 2 | 理解 | 08_faq.html, 09_security.html | ✅ | FAQが分かりやすい |
+| 3 | 登録 | 02_onboarding.html | ⚠️ | 「Dilithium」が分からない |
+| 4 | 初回利用 | 03_dashboard.html | ✅ | 数字が見やすい |
+| 5 | Unlock | 04_unlock.html | ⚠️ | 「24時間待つ理由」がすぐ分からない |
 
-#### 総合評価
-- **使いやすさ**: ⭐⭐⭐⭐⭐
-- **安心感**: ⭐⭐⭐⭐⭐
-- **ブランド印象**: ⭐⭐⭐⭐⭐
+#### ペルソナ視点の懸念
+| # | 重要度 | 画面 | File:Line | 懸念 | 提案 |
+|---|:------:|------|-----------|------|------|
+| USR-1 | Medium | 02_onboarding.html | L180 | 「Dilithium署名」って何？ | ツールチップ/ヘルプアイコン追加 |
+| USR-2 | Medium | 04_unlock.html | L95 | 24時間待つ理由が分からない | 「セキュリティのため」の説明追加 |
+| USR-3 | Low | 03_dashboard.html | - | スマホで金額入力しにくい | テンキー最適化検討 |
+| USR-4 | Low | 全画面 | - | 問い合わせ先が分からない | Footerにサポート連絡先追加 |
+
+**田中さん総合評価**:
+- 使いやすさ: ⭐⭐⭐⭐☆
+- 安心感: ⭐⭐⭐⭐⭐
+- ブランド印象: ⭐⭐⭐⭐⭐
+
+> 「全体的に安心感があって良いです。専門用語の説明があるともっと分かりやすいかな。」
 
 ---
 
-## Overall Judgment
+### 6. 鈴木さん（Token Holder）レビュー - ✅ PASS
 
-- [x] ✅ PASS
-- [ ] ⚠️ CONDITIONAL
-- [ ] ❌ FAIL
+#### ジャーニーに沿ったレビュー
+| # | ジャーニーステップ | 画面 | 評価 | コメント |
+|---|-------------------|------|:----:|---------|
+| 1 | ウォレット接続 | 02_onboarding.html | ✅ | MetaMask/WalletConnect対応 |
+| 2 | Lock操作 | 03_dashboard.html | ✅ | 他DeFiと似た操作感 |
+| 3 | Time Lock理解 | 04_unlock.html | ✅ | 視覚的プログレスバー良い |
+
+#### ペルソナ視点の懸念
+| # | 重要度 | 画面 | File:Line | 懸念 | 提案 |
+|---|:------:|------|-----------|------|------|
+| TKN-1 | Medium | 03_dashboard.html | - | 利回り/報酬の表示がない | Consumer Appでは不要だが将来検討 |
+| TKN-2 | Low | 全画面 | - | ライトモードがない | 将来対応で可 |
+
+**鈴木さん総合評価**:
+- 使いやすさ: ⭐⭐⭐⭐⭐
+- 安心感: ⭐⭐⭐⭐⭐
+- ブランド印象: ⭐⭐⭐⭐⭐
+
+> 「日本っぽいデザイン、海外でもウケると思う。DeFi慣れしてる人には使いやすい。」
 
 ---
 
-## Future Improvements (P2)
+## 📊 Issue Summary by Priority
 
-以下は将来の改善項目として記録：
+### High Priority (3件) - リリースブロッカー
 
-| # | ファイル | 項目 | 優先度 |
-|---|----------|------|:------:|
-| 1 | 03_dashboard.html | Stats Cardのhover効果強化 | P2 |
-| 2 | 02_onboarding.html | 完了画面のアクション誘導強化 | P2 |
-| 3 | 02_onboarding.html | 鍵生成中の励ましメッセージ | P2 |
-| 4 | 02_onboarding.html | 利用規約同意確認追加 | P2 |
-| 5 | All | ライトモード対応 | P3 |
-| 6 | 01_landing.html | 技術仕様へのリンク | P2 |
+| # | ID | Category | Issue | File | Action Required |
+|---|-----|----------|-------|------|-----------------|
+| 1 | LEG-1 | Legal | 利用規約ページ未作成 | 01_landing.html:L420 | `/terms.html` 作成 |
+| 2 | LEG-2 | Legal | プライバシーポリシー未作成 | 01_landing.html:L425 | `/privacy.html` 作成 |
+| 3 | QA-1 | Documentation | MANIFEST未更新（10-16番ファイル） | DESIGN_MANIFEST.md | v1.5更新 |
+
+### Medium Priority (9件) - リリース後対応可
+
+| # | ID | Category | Issue | File | Action |
+|---|-----|----------|-------|------|--------|
+| 1 | CDO-1 | Design | ローディングアニメーション統一 | 10_lock_processing.html:L45 | animation duration統一 |
+| 2 | MKT-1 | Marketing | CTA「無料」追加 | 01_landing.html:L180 | テキスト変更検討 |
+| 3 | MKT-2 | UX | バックアップ確認2段階化 | 02_onboarding.html:L280 | チェックボックス追加 |
+| 4 | LEG-3 | Legal | 鍵生成時自己責任明示 | 02_onboarding.html:L150 | 確認追加 |
+| 5 | QA-2 | Documentation | onclick遷移先コメント | 03_dashboard.html:L320 | コメント追加 |
+| 6 | QA-3 | Documentation | Screen Flow図更新 | DESIGN_MANIFEST.md | Mermaid更新 |
+| 7 | USR-1 | UX | Dilithium説明追加 | 02_onboarding.html:L180 | ツールチップ |
+| 8 | USR-2 | UX | 24h待機理由説明 | 04_unlock.html:L95 | 説明文追加 |
+| 9 | TKN-1 | Feature | 報酬表示（将来） | - | Token Hub連携時 |
+
+### Low Priority (6件) - Nice to Have
+
+| # | ID | Category | Issue |
+|---|-----|----------|-------|
+| 1 | CDO-2 | Design | フィルターボタンアクティブ状態強調 |
+| 2 | CDO-3 | Design | エラー状態ビジュアル追加 |
+| 3 | MKT-3 | UX | 初回ガイドツアー追加 |
+| 4 | USR-3 | Mobile | スマホ金額入力最適化 |
+| 5 | USR-4 | UX | Footerサポート連絡先 |
+| 6 | TKN-2 | Feature | ライトモード対応 |
+
+---
+
+## ✅ Compliance Check
+
+### CP（Core Principles）準拠確認
+
+| CP | 要件 | 画面 | 表示 | 結果 |
+|----|------|------|------|:----:|
+| CP-1 | 量子耐性（Dilithium-III） | 02_onboarding.html | "Dilithium署名を生成" | ✅ |
+| CP-2 | Self-Custody | 07_key_management.html | 鍵管理画面あり | ✅ |
+| CP-3 | Time Lock（24h/7d） | 04_unlock.html | "24時間待機"/"7日間待機" | ✅ |
+| CP-3 | Emergency Bond | 14_emergency_bond.html | "MAX(0.5 ETH, amount × 5%)" | ✅ |
+| CP-5 | 透明性 | 05_history.html | TX Hash表示 | ✅ |
+
+### Design System準拠確認
+
+| 項目 | 仕様 | 実装 | 結果 |
+|------|------|------|:----:|
+| Primary Color | #BC002D (Hinomaru Red) | ✅ 全画面統一 | ✅ |
+| Secondary Color | #C9A962 (Gold) | ✅ 全画面統一 | ✅ |
+| Background | #0A0A0C (Dark) | ✅ 全画面統一 | ✅ |
+| Font (Display) | Plus Jakarta Sans | ✅ | ✅ |
+| Font (Japanese) | Noto Sans JP | ✅ | ✅ |
+| Font (Mono) | DM Mono | ✅ | ✅ |
+| Touch Target | 44px minimum | ✅ | ✅ |
+| Reduced Motion | @media support | ✅ | ✅ |
+
+---
+
+## 🎯 Final Judgment
+
+### 判定: ⚠️ CONDITIONAL PASS
+
+**リリース条件**:
+1. ✅ 利用規約ページ（`/terms.html`）を作成
+2. ✅ プライバシーポリシーページ（`/privacy.html`）を作成
+3. ✅ DESIGN_MANIFEST.md を v1.5 に更新（10-16番ファイル追記）
+
+**推奨対応（リリース後可）**:
+- Medium Priority 9件を順次対応
+- Low Priority 6件は将来検討
+
+---
+
+## 📝 Next Actions
+
+| # | Action | Owner | Priority | Status |
+|---|--------|-------|:--------:|:------:|
+| 1 | `/terms.html` 作成 | Design | High | ⬜ |
+| 2 | `/privacy.html` 作成 | Design | High | ⬜ |
+| 3 | DESIGN_MANIFEST.md v1.5更新 | Design | High | ⬜ |
+| 4 | Screen Flow図更新 | Design | Medium | ⬜ |
+| 5 | Dilithiumツールチップ追加 | Design | Medium | ⬜ |
+| 6 | 24h待機理由説明追加 | Design | Medium | ⬜ |
 
 ---
 
@@ -168,5 +315,9 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0 | 2026-01-06 | 初版作成 - Design PIR実施 |
-| 1.1 | 2026-01-06 | Re-PIR - 全9件修正完了、PASS判定 |
+| 1.0 | 2026-01-06 | 初版（簡易レビュー） |
+| 2.0 | 2026-01-07 | Full Agent Review実行、全17ファイル確認 |
+
+---
+
+**END OF PIR REPORT**
