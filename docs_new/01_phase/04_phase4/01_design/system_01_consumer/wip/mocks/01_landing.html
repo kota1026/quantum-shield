@@ -1,636 +1,912 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .logo | click | 01_landing.html |
+| #nav-product | click | #product-section |
+| #nav-security | click | 09_security.html |
+| #nav-howitworks | click | #howitworks-section |
+| #nav-faq | click | 08_faq.html |
+| .cta-btn (hero) | click | 02_onboarding.html |
+| .btn-secondary (hero) | click | #howitworks-section |
+| .cta-btn (footer) | click | 02_onboarding.html |
+| footer Explorer | click | https://sepolia.etherscan.io |
+| footer ドキュメント | click | https://docs.quantumshield.io |
+| footer API | click | https://api.quantumshield.io |
+| footer ホワイトペーパー | click | /whitepaper.pdf |
+| footer ブログ | click | https://blog.quantumshield.io |
+| footer GitHub | click | https://github.com/quantumshield |
+| footer 利用規約 | click | /terms.html |
+| footer プライバシー | click | /privacy.html |
+| footer リスク開示 | click | /risk-disclosure.html |
+| Cookie バナー | click | /cookie-policy.html |
+| Cookie 同意ボタン | click | closeCookieBanner() |
+-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Shield - 量子時代の資産保護</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Quantum Shield - 量子耐性暗号で資産を守る</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-hinomaru: #BC002D;
-            --color-hinomaru-light: #E8334D;
-            --color-hinomaru-dim: rgba(188, 0, 45, 0.12);
-            --color-hinomaru-glow: rgba(188, 0, 45, 0.4);
-            --color-gold: #C9A962;
-            --color-gold-dim: rgba(201, 169, 98, 0.12);
-            --bg-primary: #0A0A0C;
+            --bg-primary: #0a0a0c;
             --bg-secondary: #111114;
-            --bg-card: #0E0E11;
-            --bg-surface: #1E1E24;
-            --text-primary: #F8F8FA;
-            --text-secondary: #9898A0;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --warning: #f0a030;
+            --error: #e84057;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
             --text-tertiary: #606068;
             --border-subtle: rgba(255, 255, 255, 0.04);
             --border-default: rgba(255, 255, 255, 0.08);
-            --border-emphasis: rgba(255, 255, 255, 0.12);
-            --color-white-dim: rgba(255, 255, 255, 0.08);
             --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
             --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
             --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
             --radius-lg: 14px;
             --radius-xl: 20px;
-            --radius-2xl: 28px;
             --radius-full: 9999px;
         }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; }
         
-        .bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-        .bg-glow-1 { position: absolute; top: -300px; left: 50%; transform: translateX(-50%); width: 1000px; height: 800px; background: radial-gradient(ellipse, var(--color-hinomaru-dim), transparent 60%); opacity: 0.5; }
-        .bg-glow-2 { position: absolute; bottom: 20%; right: -200px; width: 600px; height: 600px; background: radial-gradient(circle, var(--color-gold-dim), transparent 60%); opacity: 0.3; }
-        .bg-noise { position: absolute; inset: 0; opacity: 0.015; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-        
-        .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-        
-        .nav-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 0; background: linear-gradient(180deg, var(--bg-primary), transparent); transition: background 0.3s; }
-        .nav-header.scrolled { background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-subtle); }
-        .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-primary); }
-        .logo-symbol { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; }
-        .logo-outer { position: absolute; inset: 0; border: 1.5px solid var(--color-gold); border-radius: 50%; animation: rotate-slow 20s linear infinite; }
-        .logo-outer::after { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: var(--color-gold); border-radius: 50%; }
-        .logo-inner { width: 18px; height: 18px; background: var(--color-hinomaru); border-radius: 50%; box-shadow: 0 0 15px var(--color-hinomaru-glow); }
-        @keyframes rotate-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .logo-text { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
-        
-        .nav-links { display: flex; gap: 8px; }
-        .nav-link { padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--text-secondary); text-decoration: none; border-radius: var(--radius-full); transition: all 0.2s; }
-        .nav-link:hover { color: var(--text-primary); background: var(--color-white-dim); }
-        .nav-cta { padding: 10px 24px; background: var(--color-hinomaru); color: white; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: var(--radius-full); transition: all 0.2s; }
-        .nav-cta:hover { background: var(--color-hinomaru-light); box-shadow: 0 0 20px var(--color-hinomaru-glow); }
-        
-        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 120px 24px 80px; position: relative; }
-        .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: var(--color-gold-dim); border: 1px solid var(--color-gold); border-radius: var(--radius-full); font-size: 12px; font-weight: 600; color: var(--color-gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 32px; animation: fadeInUp 0.6s ease-out; }
-        .hero-badge::before { content: '🇯🇵'; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .hero-title { font-size: clamp(40px, 8vw, 72px); font-weight: 800; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px; animation: fadeInUp 0.6s ease-out 0.1s backwards; }
-        .hero-title .highlight { background: linear-gradient(135deg, var(--color-hinomaru-light), var(--color-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .hero-subtitle { font-size: clamp(16px, 2.5vw, 20px); color: var(--text-secondary); max-width: 600px; margin-bottom: 48px; line-height: 1.8; animation: fadeInUp 0.6s ease-out 0.2s backwards; }
-        .hero-cta-group { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; animation: fadeInUp 0.6s ease-out 0.3s backwards; }
-        .btn-hero-primary { display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; background: linear-gradient(135deg, var(--color-hinomaru), var(--color-hinomaru-light)); color: white; font-size: 16px; font-weight: 600; text-decoration: none; border-radius: var(--radius-lg); transition: all 0.3s; position: relative; overflow: hidden; }
-        .btn-hero-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
-        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--color-hinomaru-glow); }
-        .btn-hero-primary:hover::before { left: 100%; }
-        .btn-hero-secondary { display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; background: transparent; border: 1px solid var(--border-emphasis); color: var(--text-primary); font-size: 16px; font-weight: 500; text-decoration: none; border-radius: var(--radius-lg); transition: all 0.2s; }
-        .btn-hero-secondary:hover { background: var(--color-white-dim); border-color: var(--color-gold); color: var(--color-gold); }
-        
-        .hero-risk-notice { margin-top: 24px; padding: 12px 20px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); animation: fadeInUp 0.6s ease-out 0.4s backwards; }
-        .hero-risk-notice p { font-size: 11px; color: var(--text-tertiary); line-height: 1.5; }
-        .hero-risk-notice a { color: var(--color-gold); text-decoration: none; }
-        .hero-risk-notice a:hover { text-decoration: underline; }
-        
-        .hero-visual { margin-top: 80px; position: relative; animation: fadeInUp 0.8s ease-out 0.4s backwards; }
-        .hinomaru-hero { width: 280px; height: 280px; position: relative; margin: 0 auto; }
-        .hinomaru-hero-white { position: absolute; inset: 0; background: radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.02) 100%); border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.08); }
-        .hinomaru-hero-red { position: absolute; inset: 56px; background: radial-gradient(circle at 35% 35%, #ff3050 0%, var(--color-hinomaru) 50%, #8a001a 100%); border-radius: 50%; box-shadow: 0 0 80px var(--color-hinomaru-glow), 0 0 150px rgba(188, 0, 45, 0.25); animation: hero-pulse 4s ease-in-out infinite; }
-        @keyframes hero-pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 80px var(--color-hinomaru-glow), 0 0 150px rgba(188, 0, 45, 0.25); } 50% { transform: scale(1.03); box-shadow: 0 0 100px var(--color-hinomaru-glow), 0 0 180px rgba(188, 0, 45, 0.35); } }
-        .hero-orbit { position: absolute; border-radius: 50%; border: 1px solid; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .hero-orbit-1 { width: 340px; height: 340px; border-color: var(--color-gold); opacity: 0.4; animation: orbit-rotate 15s linear infinite; }
-        .hero-orbit-2 { width: 420px; height: 420px; border-color: rgba(255, 255, 255, 0.06); border-style: dashed; animation: orbit-rotate 25s linear infinite reverse; }
-        @keyframes orbit-rotate { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-        .orbit-particle { position: absolute; width: 8px; height: 8px; border-radius: 50%; top: 50%; left: 50%; }
-        .particle-gold { background: var(--color-gold); box-shadow: 0 0 15px var(--color-gold); animation: particle-orbit-1 15s linear infinite; }
-        .particle-red { background: var(--color-hinomaru); box-shadow: 0 0 15px var(--color-hinomaru-glow); animation: particle-orbit-2 20s linear infinite; }
-        @keyframes particle-orbit-1 { from { transform: rotate(0deg) translateX(170px) rotate(0deg); } to { transform: rotate(360deg) translateX(170px) rotate(-360deg); } }
-        @keyframes particle-orbit-2 { from { transform: rotate(90deg) translateX(210px) rotate(-90deg); } to { transform: rotate(450deg) translateX(210px) rotate(-450deg); } }
-        
-        .stats-section { padding: 40px 0 80px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-        .stat-item { text-align: center; padding: 32px 16px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); transition: all 0.3s; }
-        .stat-item:hover { border-color: var(--border-default); transform: translateY(-4px); }
-        .stat-number { font-size: 36px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -1px; margin-bottom: 8px; }
-        .stat-number.red { color: var(--color-hinomaru-light); }
-        .stat-number.gold { color: var(--color-gold); }
-        .stat-label { font-size: 13px; color: var(--text-secondary); }
-        
-        .features-section { padding: 100px 0; }
-        .section-header { text-align: center; margin-bottom: 64px; }
-        .section-tag { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-gold); margin-bottom: 16px; }
-        .section-tag::before, .section-tag::after { content: ''; width: 20px; height: 1px; background: var(--color-gold); }
-        .section-title { font-size: clamp(28px, 5vw, 42px); font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
-        .section-subtitle { font-size: 16px; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
-        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        .feature-card { padding: 40px 32px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); transition: all 0.3s; position: relative; overflow: hidden; }
-        .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--color-hinomaru), var(--color-gold)); opacity: 0; transition: opacity 0.3s; }
-        .feature-card:hover { border-color: var(--border-emphasis); transform: translateY(-6px); }
-        .feature-card:hover::before { opacity: 1; }
-        .feature-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; background: var(--color-hinomaru-dim); border-radius: var(--radius-lg); font-size: 24px; margin-bottom: 24px; }
-        .feature-title { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
-        .feature-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
-        
-        .how-section { padding: 100px 0; background: var(--bg-secondary); position: relative; }
-        .how-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border-default), transparent); }
-        .steps-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-top: 64px; }
-        .step-card { position: relative; padding: 32px 24px; text-align: center; }
-        .step-number { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--color-hinomaru), var(--color-hinomaru-light)); border-radius: 50%; font-size: 18px; font-weight: 700; color: white; margin: 0 auto 24px; position: relative; z-index: 1; }
-        .step-card::after { content: ''; position: absolute; top: 56px; right: -16px; width: calc(100% - 48px); height: 2px; background: linear-gradient(90deg, var(--color-hinomaru), var(--color-gold)); opacity: 0.3; }
-        .step-card:last-child::after { display: none; }
-        .step-title { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
-        .step-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
-        
-        .how-section-cta { text-align: center; margin-top: 64px; padding-top: 48px; border-top: 1px solid var(--border-subtle); }
-        .how-section-cta p { font-size: 16px; color: var(--text-secondary); margin-bottom: 24px; }
-        .btn-how-cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; background: var(--color-hinomaru-dim); border: 1px solid var(--color-hinomaru); color: var(--color-hinomaru-light); font-size: 15px; font-weight: 600; text-decoration: none; border-radius: var(--radius-lg); transition: all 0.3s; }
-        .btn-how-cta:hover { background: var(--color-hinomaru); color: white; box-shadow: 0 8px 24px var(--color-hinomaru-glow); }
-        
-        .cta-section { padding: 120px 0; text-align: center; }
-        .cta-card { max-width: 800px; margin: 0 auto; padding: 64px 48px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-2xl); position: relative; overflow: hidden; }
-        .cta-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--color-hinomaru), var(--color-gold)); }
-        .cta-title { font-size: 32px; font-weight: 700; margin-bottom: 16px; }
-        .cta-subtitle { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; }
-        .cta-button { display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: linear-gradient(135deg, var(--color-hinomaru), var(--color-hinomaru-light)); color: white; font-size: 16px; font-weight: 600; text-decoration: none; border-radius: var(--radius-lg); transition: all 0.3s; }
-        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 15px 40px var(--color-hinomaru-glow); }
-        .cta-risk-note { margin-top: 20px; font-size: 11px; color: var(--text-tertiary); }
-        
-        .footer { padding: 64px 0 32px; border-top: 1px solid var(--border-subtle); }
-        .footer-content { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
-        .footer-brand { max-width: 300px; }
-        .footer-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-        .footer-logo-symbol { width: 36px; height: 36px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .footer-logo-inner { width: 16px; height: 16px; background: var(--color-hinomaru); border-radius: 50%; }
-        .footer-logo-text { font-size: 18px; font-weight: 600; }
-        .footer-tagline { font-size: 13px; color: var(--text-tertiary); line-height: 1.6; }
-        .footer-links { display: flex; gap: 64px; }
-        .footer-col h4 { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--color-gold); margin-bottom: 20px; }
-        .footer-col ul { list-style: none; }
-        .footer-col li { margin-bottom: 12px; }
-        .footer-col a { font-size: 14px; color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
-        .footer-col a:hover { color: var(--text-primary); }
-        .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 32px; border-top: 1px solid var(--border-subtle); }
-        .footer-copyright { font-size: 13px; color: var(--text-tertiary); }
-        .footer-made-in-japan { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--color-gold); letter-spacing: 1px; }
-        .japan-flag { width: 20px; height: 20px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .japan-flag::before { content: ''; width: 10px; height: 10px; background: var(--color-hinomaru); border-radius: 50%; }
-        
-        .cookie-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: var(--bg-secondary); border-top: 1px solid var(--border-default); padding: 16px 24px; display: none; animation: slideUp 0.3s ease-out; }
-        .cookie-banner.show { display: block; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .cookie-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
-        .cookie-text { font-size: 13px; color: var(--text-secondary); flex: 1; min-width: 200px; }
-        .cookie-text a { color: var(--color-gold); text-decoration: none; }
-        .cookie-text a:hover { text-decoration: underline; }
-        .cookie-buttons { display: flex; gap: 12px; }
-        .cookie-btn { padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: var(--radius-lg); cursor: pointer; transition: all 0.2s; }
-        .cookie-btn-accept { background: var(--color-hinomaru); border: none; color: white; }
-        .cookie-btn-accept:hover { background: var(--color-hinomaru-light); }
-        .cookie-btn-settings { background: transparent; border: 1px solid var(--border-emphasis); color: var(--text-secondary); }
-        .cookie-btn-settings:hover { border-color: var(--color-gold); color: var(--color-gold); }
-        
-        /* Cookie Settings Modal */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 300; display: none; align-items: center; justify-content: center; padding: 24px; }
-        .modal-overlay.show { display: flex; }
-        .modal-content { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-xl); max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; }
-        .modal-header { padding: 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h3 { font-size: 18px; font-weight: 600; }
-        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 4px; }
-        .modal-close:hover { color: var(--text-primary); }
-        .modal-body { padding: 24px; }
-        .cookie-option { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-subtle); }
-        .cookie-option:last-child { border-bottom: none; }
-        .cookie-option-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-        .cookie-option-info p { font-size: 12px; color: var(--text-tertiary); }
-        .toggle-switch { position: relative; width: 48px; height: 26px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { position: absolute; inset: 0; background: var(--border-emphasis); border-radius: 26px; cursor: pointer; transition: 0.3s; }
-        .toggle-slider::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
-        .toggle-switch input:checked + .toggle-slider { background: var(--color-hinomaru); }
-        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(22px); }
-        .toggle-switch input:disabled + .toggle-slider { opacity: 0.5; cursor: not-allowed; }
-        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 12px; }
-        .modal-btn { padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: var(--radius-lg); cursor: pointer; }
-        .modal-btn-primary { background: var(--color-hinomaru); border: none; color: white; }
-        .modal-btn-primary:hover { background: var(--color-hinomaru-light); }
-        .modal-btn-secondary { background: transparent; border: 1px solid var(--border-emphasis); color: var(--text-secondary); }
-        .modal-btn-secondary:hover { border-color: var(--color-gold); color: var(--color-gold); }
-        
-        .mobile-menu-btn { display: none; background: none; border: none; padding: 8px; cursor: pointer; }
-        .mobile-menu-btn span { display: block; width: 24px; height: 2px; background: var(--text-primary); margin: 5px 0; transition: all 0.3s; }
-        .mobile-menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-        .mobile-menu-btn.active span:nth-child(2) { opacity: 0; }
-        .mobile-menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
-        
-        /* Mobile Menu */
-        .mobile-menu { position: fixed; top: 72px; left: 0; right: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-default); padding: 24px; display: none; z-index: 99; }
-        .mobile-menu.show { display: block; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .mobile-menu a { display: block; padding: 16px 0; font-size: 16px; color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid var(--border-subtle); }
-        .mobile-menu a:last-child { border-bottom: none; }
-        .mobile-menu a:hover { color: var(--text-primary); }
-        .mobile-menu .nav-cta { display: block; text-align: center; margin-top: 16px; padding: 14px; }
-        
-        @media (max-width: 1024px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .features-grid { grid-template-columns: repeat(2, 1fr); }
-            .steps-container { grid-template-columns: repeat(2, 1fr); }
-            .step-card::after { display: none; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
         }
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .mobile-menu-btn { display: block; }
-            .hero-title { font-size: 36px; }
-            .hero-visual { margin-top: 48px; }
-            .hinomaru-hero { width: 200px; height: 200px; }
-            .hinomaru-hero-red { inset: 40px; }
-            .hero-orbit-1 { width: 240px; height: 240px; }
-            .hero-orbit-2 { width: 300px; height: 300px; }
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
-            .stat-number { font-size: 28px; }
+
+        .premium-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .red-glow {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%);
+            opacity: 0.5;
+        }
+
+        .gold-glow {
+            position: absolute;
+            bottom: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-gold-dim), transparent 60%);
+            opacity: 0.3;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 12, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-hinomaru {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-circle-outer {
+            position: absolute;
+            inset: 0;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: logo-rotate 20s linear infinite;
+        }
+
+        .logo-circle-outer::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+        }
+
+        .logo-hinomaru-inner {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent-hinomaru-glow);
+        }
+
+        @keyframes logo-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav a:hover {
+            color: var(--text-primary);
+        }
+
+        .header-cta {
+            padding: 10px 24px;
+            background: var(--accent-hinomaru);
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .header-cta:hover {
+            background: var(--accent-hinomaru-light);
+            box-shadow: 0 4px 16px var(--accent-hinomaru-glow);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 160px 0 100px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--accent-hinomaru-dim);
+            border: 1px solid var(--accent-hinomaru);
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent-hinomaru-light);
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent-hinomaru-light), var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .cta-btn {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light));
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-hinomaru-glow);
+        }
+
+        .btn-secondary {
+            padding: 16px 32px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        /* Hinomaru Visual */
+        .hinomaru-visual {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 60px auto;
+        }
+
+        .hinomaru-white {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .hinomaru-red {
+            position: absolute;
+            inset: 75px;
+            background: radial-gradient(circle at 35% 35%, #ff3050, var(--accent-hinomaru), #8a001a);
+            border-radius: 50%;
+            box-shadow: 0 0 80px var(--accent-hinomaru-glow);
+            animation: hinomaru-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes hinomaru-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 80px var(--accent-hinomaru-glow); }
+            50% { transform: scale(1.02); box-shadow: 0 0 100px var(--accent-hinomaru-glow); }
+        }
+
+        .orbit {
+            position: absolute;
+            inset: -20px;
+            border: 1px solid var(--accent-gold);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: orbit-spin 15s linear infinite;
+        }
+
+        .orbit-2 {
+            inset: -50px;
+            border-style: dashed;
+            border-color: rgba(255,255,255,0.1);
+            animation-duration: 25s;
+            animation-direction: reverse;
+        }
+
+        @keyframes orbit-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            padding: 60px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-default);
+            transform: translateY(-4px);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-value.highlight {
+            color: var(--accent-hinomaru-light);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Features */
+        .features {
+            padding: 80px 0;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-gold);
+            margin-bottom: 16px;
+        }
+
+        .section-label::before {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--accent-gold);
+        }
+
+        .section-title {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            transition: all 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-hinomaru);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-hinomaru-dim);
+            border-radius: var(--radius-lg);
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            padding: 4px 10px;
+            background: var(--accent-gold-dim);
+            border-radius: var(--radius-full);
+            color: var(--accent-gold);
+            margin-top: 16px;
+            font-weight: 500;
+        }
+
+        /* How It Works */
+        .howitworks {
+            padding: 80px 0;
+        }
+
+        .steps {
+            display: flex;
+            gap: 24px;
+            margin-top: 60px;
+        }
+
+        .step {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            position: relative;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -16px;
+            left: 32px;
+            width: 32px;
+            height: 32px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .step-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 80px 0 40px;
+            border-top: 1px solid var(--border-subtle);
+            margin-top: 80px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand {
+            max-width: 300px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .footer-brand p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .footer-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 40px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .footer-copyright {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .footer-legal {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-legal a {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-legal a:hover {
+            color: var(--text-secondary);
+        }
+
+        /* Cookie Banner */
+        .cookie-banner {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            max-width: 500px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-xl);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .cookie-banner p {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .cookie-banner a {
+            color: var(--accent-gold);
+        }
+
+        .cookie-banner button {
+            padding: 10px 20px;
+            background: var(--accent-hinomaru);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .nav { display: none; }
+            .hero h1 { font-size: 40px; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
             .features-grid { grid-template-columns: 1fr; }
-            .steps-container { grid-template-columns: 1fr; gap: 24px; }
-            .footer-content { flex-direction: column; gap: 40px; }
-            .footer-links { flex-wrap: wrap; gap: 32px; }
-            .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
-            .cookie-content { flex-direction: column; text-align: center; }
+            .steps { flex-direction: column; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
         }
-        @media (max-width: 480px) {
-            .hero-cta-group { flex-direction: column; width: 100%; }
-            .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
-            .cta-card { padding: 40px 24px; }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 32px; }
+            .hero-buttons { flex-direction: column; }
+            .stats { grid-template-columns: 1fr; }
+            .hinomaru-visual { width: 200px; height: 200px; }
+            .hinomaru-red { inset: 50px; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 20px; text-align: center; }
         }
-        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
     </style>
 </head>
 <body>
-    <div class="bg-effects">
-        <div class="bg-glow-1"></div>
-        <div class="bg-glow-2"></div>
-        <div class="bg-noise"></div>
+    <div class="premium-bg">
+        <div class="red-glow"></div>
+        <div class="gold-glow"></div>
     </div>
 
-    <nav class="nav-header" id="navHeader">
-        <div class="nav-container">
-            <a href="#" class="logo">
-                <div class="logo-symbol">
-                    <div class="logo-outer"></div>
-                    <div class="logo-inner"></div>
+    <header class="header">
+        <div class="header-inner">
+            <a href="01_landing.html" class="logo">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
                 </div>
                 <span class="logo-text">Quantum Shield</span>
             </a>
-            <div class="nav-links">
-                <a href="#features" class="nav-link">特徴</a>
-                <a href="#how" class="nav-link">使い方</a>
-                <a href="08_faq.html" class="nav-link">FAQ</a>
-                <a href="09_security.html" class="nav-link">セキュリティ</a>
-                <a href="02_onboarding.html" class="nav-cta">アプリを開く</a>
-            </div>
-            <button class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></button>
+            <nav class="nav">
+                <a href="#product-section" id="nav-product">プロダクト</a>
+                <a href="09_security.html" id="nav-security">セキュリティ</a>
+                <a href="#howitworks-section" id="nav-howitworks">使い方</a>
+                <a href="08_faq.html" id="nav-faq">FAQ</a>
+            </nav>
+            <a href="02_onboarding.html" class="header-cta">アプリを開く</a>
         </div>
-    </nav>
-    
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="#features">特徴</a>
-        <a href="#how">使い方</a>
-        <a href="08_faq.html">FAQ</a>
-        <a href="09_security.html">セキュリティ</a>
-        <a href="02_onboarding.html" class="nav-cta">アプリを開く</a>
-    </div>
+    </header>
 
-    <section class="hero">
-        <div class="container">
-            <span class="hero-badge">Made in Japan</span>
-            <h1 class="hero-title">
-                <span>量子時代でも安全な</span><br>
-                <span class="highlight">資産保護</span>を、あなたに
-            </h1>
+    <div class="container">
+        <section class="hero">
+            <span class="hero-badge">🛡️ NIST認定 量子耐性暗号</span>
+            <h1>量子コンピュータ時代の<br><span>デジタル資産保護</span></h1>
             <p class="hero-subtitle">
-                Quantum Shieldは、量子コンピュータでも破れない最先端の暗号技術で、
-                あなたの暗号資産を長期的に守ります。自分の資産は、自分で管理。
+                Dilithium-IIIとZK-STARKを組み合わせた世界初の量子耐性暗号ブリッジ。
+                将来の脅威から、今日の資産を守ります。
             </p>
-            <div class="hero-cta-group">
-                <a href="02_onboarding.html" class="btn-hero-primary">今すぐ始める <span>→</span></a>
-                <a href="#how" class="btn-hero-secondary">仕組みを見る <span>↓</span></a>
+            <div class="hero-buttons">
+                <a href="02_onboarding.html" class="cta-btn">今すぐ始める</a>
+                <a href="#howitworks-section" class="btn-secondary">詳しく見る</a>
             </div>
-            <div class="hero-risk-notice">
-                <p>※暗号資産には価格変動リスクがあります。投資は自己責任でお願いいたします。<br>詳しくは<a href="#legal-risk-disclosure">リスク開示</a>をご確認ください。</p>
-            </div>
-            <div class="hero-visual">
-                <div class="hero-orbit hero-orbit-2"></div>
-                <div class="hero-orbit hero-orbit-1"></div>
-                <div class="hinomaru-hero">
-                    <div class="hinomaru-hero-white"></div>
-                    <div class="hinomaru-hero-red"></div>
-                </div>
-                <div class="orbit-particle particle-gold"></div>
-                <div class="orbit-particle particle-red"></div>
-            </div>
-        </div>
-    </section>
 
-    <section class="stats-section">
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number red" data-target="847" data-prefix="$" data-suffix="M+">$0M+</div>
-                    <div class="stat-label">保護されている資産</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" data-target="12500" data-suffix="+">0+</div>
-                    <div class="stat-label">アクティブユーザー</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number gold" data-target="127">0</div>
-                    <div class="stat-label">Prover（検証者）</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" data-target="0">0</div>
-                    <div class="stat-label">セキュリティインシデント</div>
-                </div>
+            <div class="hinomaru-visual">
+                <div class="orbit"></div>
+                <div class="orbit orbit-2"></div>
+                <div class="hinomaru-white"></div>
+                <div class="hinomaru-red"></div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="features-section" id="features">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-tag">なぜQuantum Shieldか</div>
-                <h2 class="section-title">量子時代に備える、3つの理由</h2>
-                <p class="section-subtitle">今の暗号は、将来の量子コンピュータで破られる可能性があります。今から備えましょう。</p>
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-value highlight">$847M+</div>
+                <div class="stat-label">保護された資産</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value">127</div>
+                <div class="stat-label">アクティブProver</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">24h</div>
+                <div class="stat-label">Time Lock期間</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">セキュリティインシデント</div>
+            </div>
+        </section>
+
+        <section class="features" id="product-section">
+            <div class="section-label">Features</div>
+            <h2 class="section-title">なぜQuantum Shieldなのか</h2>
+            
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🛡️</div>
-                    <h3 class="feature-title">量子耐性暗号</h3>
-                    <p class="feature-desc">NIST（米国標準）認定のDilithium署名を採用。将来の量子コンピュータでも破れない、最先端の暗号技術です。</p>
+                    <div class="feature-icon">🔐</div>
+                    <h3 class="feature-title">Dilithium-III暗号</h3>
+                    <p class="feature-desc">
+                        NIST認定の格子ベース電子署名。量子コンピュータでも解読が数学的に困難な次世代暗号技術。
+                    </p>
+                    <span class="feature-badge">🏛️ NIST FIPS 204</span>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔑</div>
-                    <h3 class="feature-title">完全なSelf-Custody</h3>
-                    <p class="feature-desc">あなたの秘密鍵は、あなたのデバイスにのみ保存。サーバーには一切送信しません。自分の資産は、自分で管理。</p>
-                </div>
+
                 <div class="feature-card">
                     <div class="feature-icon">⏰</div>
-                    <h3 class="feature-title">Time Lockで安心</h3>
-                    <p class="feature-desc">引き出しには24時間の待機期間。万が一の盗難時も、あなたが止める時間があります。</p>
+                    <h3 class="feature-title">Time Lock保護</h3>
+                    <p class="feature-desc">
+                        24時間のセキュリティ待機期間。不正アクセスを検知・阻止する時間的バッファを確保。
+                    </p>
+                    <span class="feature-badge">🛡️ 多層防御</span>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3 class="feature-title">ZK-STARK検証</h3>
+                    <p class="feature-desc">
+                        ゼロ知識証明による透明性と検証可能性。量子耐性を維持しながらスケーラビリティを実現。
+                    </p>
+                    <span class="feature-badge">⚡ 量子安全ZKP</span>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔑</div>
+                    <h3 class="feature-title">セルフカストディ</h3>
+                    <p class="feature-desc">
+                        あなただけが資産をコントロール。秘密鍵はローカルで生成・保管され、サーバーに送信されません。
+                    </p>
+                    <span class="feature-badge">💎 完全自己管理</span>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚠️</div>
+                    <h3 class="feature-title">緊急リカバリー</h3>
+                    <p class="feature-desc">
+                        秘密鍵を紛失しても安心。7日間の待機とBondで資産を回収できるセーフティネット。
+                    </p>
+                    <span class="feature-badge">🆘 鍵紛失対策</span>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👁️</div>
+                    <h3 class="feature-title">透明性</h3>
+                    <p class="feature-desc">
+                        全てのトランザクションはオンチェーンで検証可能。オープンソースで監査済みのスマートコントラクト。
+                    </p>
+                    <span class="feature-badge">📖 オープンソース</span>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="how-section" id="how">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-tag">使い方</div>
-                <h2 class="section-title">シンプルな4ステップ</h2>
-                <p class="section-subtitle">複雑な技術を、簡単に。誰でも使える設計です。</p>
-            </div>
-            <div class="steps-container">
-                <div class="step-card">
+        <section class="howitworks" id="howitworks-section">
+            <div class="section-label">How It Works</div>
+            <h2 class="section-title">3ステップで資産を保護</h2>
+            
+            <div class="steps">
+                <div class="step">
                     <div class="step-number">1</div>
-                    <h3 class="step-title">ウォレット接続</h3>
-                    <p class="step-desc">お使いのウォレット（MetaMaskなど）を接続します。</p>
+                    <div class="step-icon">🔑</div>
+                    <h3 class="step-title">鍵を生成</h3>
+                    <p class="step-desc">
+                        ウォレットを接続し、Dilithium鍵ペアを生成。秘密鍵はあなたのデバイスにのみ保存されます。
+                    </p>
                 </div>
-                <div class="step-card">
+
+                <div class="step">
                     <div class="step-number">2</div>
-                    <h3 class="step-title">量子耐性鍵を生成</h3>
-                    <p class="step-desc">Dilithium署名用の鍵ペアを自動生成。安全にバックアップ。</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number">3</div>
+                    <div class="step-icon">🔒</div>
                     <h3 class="step-title">資産をLock</h3>
-                    <p class="step-desc">保護したい金額を入力し、Dilithium署名でLockします。</p>
+                    <p class="step-desc">
+                        ETHやERC-20トークンを量子耐性金庫にLock。Dilithium署名なしでは引き出せません。
+                    </p>
                 </div>
-                <div class="step-card">
-                    <div class="step-number">4</div>
-                    <h3 class="step-title">いつでもUnlock</h3>
-                    <p class="step-desc">必要な時に署名してUnlock。24時間後に引き出せます。</p>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">🔓</div>
+                    <h3 class="step-title">安全にUnlock</h3>
+                    <p class="step-desc">
+                        Dilithium署名でUnlock要求。24時間のTime Lock後、資産が安全にウォレットに戻ります。
+                    </p>
                 </div>
             </div>
-            <div class="how-section-cta">
-                <p>仕組みを理解したら、実際に試してみましょう</p>
-                <a href="02_onboarding.html" class="btn-how-cta">🛡️ 無料で始める <span>→</span></a>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-card">
-                <h2 class="cta-title">量子時代に備えよう</h2>
-                <p class="cta-subtitle">今日から、あなたの暗号資産を最先端の技術で守りましょう。<br>登録は無料、3分で完了します。</p>
-                <a href="02_onboarding.html" class="cta-button"><span>🛡️</span> 無料で始める <span>→</span></a>
-                <p class="cta-risk-note">※暗号資産には価格変動リスクがあります。投資は自己責任でお願いいたします。</p>
-            </div>
-        </div>
-    </section>
+        <section style="text-align: center; padding: 80px 0;">
+            <h2 class="section-title">量子時代に備えよう</h2>
+            <p style="font-size: 18px; color: var(--text-secondary); margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                「今収集して後で解読」攻撃から資産を守る。<br>将来の脅威に、今日から対策を。
+            </p>
+            <a href="02_onboarding.html" class="cta-btn">無料で始める</a>
+        </section>
+    </div>
 
-    <footer class="footer" id="legal-risk-disclosure">
+    <footer class="footer">
         <div class="container">
-            <div class="footer-content">
+            <div class="footer-grid">
                 <div class="footer-brand">
                     <div class="footer-logo">
-                        <div class="footer-logo-symbol"><div class="footer-logo-inner"></div></div>
-                        <span class="footer-logo-text">Quantum Shield</span>
+                        <div class="logo-hinomaru">
+                            <div class="logo-circle-outer"></div>
+                            <div class="logo-hinomaru-inner"></div>
+                        </div>
+                        <span class="logo-text">Quantum Shield</span>
                     </div>
-                    <p class="footer-tagline">日本発、量子時代の資産保護プラットフォーム。最先端の暗号技術で、あなたの資産を守ります。</p>
+                    <p>量子コンピュータ時代のデジタル資産保護。NIST認定暗号技術で、あなたの資産を未来の脅威から守ります。</p>
                 </div>
-                <div class="footer-links">
-                    <div class="footer-col">
-                        <h4>プロダクト</h4>
-                        <ul><li><a href="02_onboarding.html">Consumer App</a></li><li><a href="#">Explorer</a></li><li><a href="#">ドキュメント</a></li><li><a href="#">API</a></li></ul>
+
+                <div>
+                    <div class="footer-title">プロダクト</div>
+                    <div class="footer-links">
+                        <a href="https://sepolia.etherscan.io" target="_blank">Explorer</a>
+                        <a href="https://docs.quantumshield.io" target="_blank">ドキュメント</a>
+                        <a href="https://api.quantumshield.io" target="_blank">API</a>
                     </div>
-                    <div class="footer-col">
-                        <h4>リソース</h4>
-                        <ul><li><a href="#">ホワイトペーパー</a></li><li><a href="08_faq.html">FAQ</a></li><li><a href="#">ブログ</a></li><li><a href="#">GitHub</a></li></ul>
+                </div>
+
+                <div>
+                    <div class="footer-title">リソース</div>
+                    <div class="footer-links">
+                        <a href="/whitepaper.pdf">ホワイトペーパー</a>
+                        <a href="https://blog.quantumshield.io" target="_blank">ブログ</a>
+                        <a href="https://github.com/quantumshield" target="_blank">GitHub</a>
                     </div>
-                    <div class="footer-col">
-                        <h4>法務</h4>
-                        <ul><li><a href="#">利用規約</a></li><li><a href="#">プライバシーポリシー</a></li><li><a href="#">リスク開示</a></li></ul>
+                </div>
+
+                <div>
+                    <div class="footer-title">サポート</div>
+                    <div class="footer-links">
+                        <a href="08_faq.html">FAQ</a>
+                        <a href="09_security.html">セキュリティ</a>
+                        <a href="mailto:support@quantumshield.io">お問い合わせ</a>
                     </div>
                 </div>
             </div>
+
             <div class="footer-bottom">
-                <p class="footer-copyright">© 2026 Quantum Shield. All rights reserved.</p>
-                <div class="footer-made-in-japan"><div class="japan-flag"></div> MADE IN JAPAN</div>
+                <div class="footer-copyright">
+                    © 2026 Quantum Shield. Made in Japan 🇯🇵
+                </div>
+                <div class="footer-legal">
+                    <a href="/terms.html">利用規約</a>
+                    <a href="/privacy.html">プライバシー</a>
+                    <a href="/risk-disclosure.html">リスク開示</a>
+                </div>
             </div>
         </div>
     </footer>
 
     <div class="cookie-banner" id="cookieBanner">
-        <div class="cookie-content">
-            <p class="cookie-text">
-                当サイトでは、利便性向上のためCookieを使用しています。
-                サイトを利用することで、<a href="#">Cookieポリシー</a>に同意したものとみなされます。
-            </p>
-            <div class="cookie-buttons">
-                <button class="cookie-btn cookie-btn-settings" id="cookieSettingsBtn">設定</button>
-                <button class="cookie-btn cookie-btn-accept" id="acceptCookies">同意する</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Cookie Settings Modal -->
-    <div class="modal-overlay" id="cookieModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Cookie設定</h3>
-                <button class="modal-close" id="closeModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="cookie-option">
-                    <div class="cookie-option-info">
-                        <h4>必須Cookie</h4>
-                        <p>サイトの基本機能に必要です。オフにすることはできません。</p>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" checked disabled>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="cookie-option">
-                    <div class="cookie-option-info">
-                        <h4>分析Cookie</h4>
-                        <p>サイトの利用状況を分析し、改善に役立てます。</p>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="analyticsCookie" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="cookie-option">
-                    <div class="cookie-option-info">
-                        <h4>マーケティングCookie</h4>
-                        <p>パーソナライズされた広告を表示します。</p>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="marketingCookie">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn modal-btn-secondary" id="rejectAllCookies">すべて拒否</button>
-                <button class="modal-btn modal-btn-primary" id="saveCookieSettings">設定を保存</button>
-            </div>
-        </div>
+        <p>このサイトはCookieを使用しています。<a href="/cookie-policy.html">詳細</a></p>
+        <button onclick="closeCookieBanner()">同意する</button>
     </div>
 
     <script>
-        // Navigation scroll effect
-        const navHeader = document.getElementById('navHeader');
-        window.addEventListener('scroll', () => { navHeader.classList.toggle('scrolled', window.scrollY > 50); });
-        
-        // Mobile menu toggle
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const mobileMenu = document.getElementById('mobileMenu');
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenuBtn.classList.toggle('active');
-            mobileMenu.classList.toggle('show');
-        });
-        
-        // Close mobile menu on link click
-        mobileMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenuBtn.classList.remove('active');
-                mobileMenu.classList.remove('show');
-            });
-        });
-        
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-                if (href !== '#') {
-                    e.preventDefault();
-                    const target = document.querySelector(href);
-                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
-
-        // Stats count-up animation
-        function animateCountUp() {
-            const statNumbers = document.querySelectorAll('.stat-number[data-target]');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const el = entry.target;
-                        const target = parseInt(el.dataset.target);
-                        const prefix = el.dataset.prefix || '';
-                        const suffix = el.dataset.suffix || '';
-                        const duration = 2000;
-                        const start = performance.now();
-                        
-                        function update(currentTime) {
-                            const elapsed = currentTime - start;
-                            const progress = Math.min(elapsed / duration, 1);
-                            const easeOut = 1 - Math.pow(1 - progress, 3);
-                            const current = Math.floor(target * easeOut);
-                            
-                            if (target >= 1000) {
-                                el.textContent = prefix + current.toLocaleString() + suffix;
-                            } else {
-                                el.textContent = prefix + current + suffix;
-                            }
-                            
-                            if (progress < 1) {
-                                requestAnimationFrame(update);
-                            }
-                        }
-                        
-                        requestAnimationFrame(update);
-                        observer.unobserve(el);
-                    }
-                });
-            }, { threshold: 0.5 });
-            
-            statNumbers.forEach(el => observer.observe(el));
+        function closeCookieBanner() {
+            document.getElementById('cookieBanner').style.display = 'none';
         }
-        
-        animateCountUp();
-
-        // Cookie banner
-        const cookieBanner = document.getElementById('cookieBanner');
-        const acceptCookies = document.getElementById('acceptCookies');
-        const cookieSettingsBtn = document.getElementById('cookieSettingsBtn');
-        const cookieModal = document.getElementById('cookieModal');
-        const closeModal = document.getElementById('closeModal');
-        const saveCookieSettings = document.getElementById('saveCookieSettings');
-        const rejectAllCookies = document.getElementById('rejectAllCookies');
-        
-        if (!localStorage.getItem('cookieConsent')) {
-            setTimeout(() => {
-                cookieBanner.classList.add('show');
-            }, 1500);
-        }
-        
-        acceptCookies.addEventListener('click', () => {
-            localStorage.setItem('cookieConsent', 'all');
-            cookieBanner.classList.remove('show');
-        });
-        
-        cookieSettingsBtn.addEventListener('click', () => {
-            cookieModal.classList.add('show');
-        });
-        
-        closeModal.addEventListener('click', () => {
-            cookieModal.classList.remove('show');
-        });
-        
-        cookieModal.addEventListener('click', (e) => {
-            if (e.target === cookieModal) {
-                cookieModal.classList.remove('show');
-            }
-        });
-        
-        saveCookieSettings.addEventListener('click', () => {
-            const analytics = document.getElementById('analyticsCookie').checked;
-            const marketing = document.getElementById('marketingCookie').checked;
-            localStorage.setItem('cookieConsent', JSON.stringify({ analytics, marketing }));
-            cookieModal.classList.remove('show');
-            cookieBanner.classList.remove('show');
-        });
-        
-        rejectAllCookies.addEventListener('click', () => {
-            document.getElementById('analyticsCookie').checked = false;
-            document.getElementById('marketingCookie').checked = false;
-            localStorage.setItem('cookieConsent', JSON.stringify({ analytics: false, marketing: false }));
-            cookieModal.classList.remove('show');
-            cookieBanner.classList.remove('show');
-        });
     </script>
 </body>
 </html>
