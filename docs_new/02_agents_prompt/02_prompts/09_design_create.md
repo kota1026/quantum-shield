@@ -9,7 +9,7 @@
 
 ### 現在の作業対象
 | 変数 | 値 | 例 |
-|------|-----|----|
+|------|-----|---|
 | `{SYSTEM_ID}` | `___` | `01`, `02`, `03`... |
 | `{SYSTEM_NAME}` | `___` | `consumer`, `token_hub`, `prover`... |
 | `{SYSTEM_FULL_NAME}` | `___` | `Consumer App`, `Token Hub`, `Prover Portal`... |
@@ -128,6 +128,56 @@ HTML/React で実装:
 | ダークモード対応 | ⬜ | デフォルトダーク |
 | レスポンシブ | ⬜ | 640/768/1024/1280px |
 
+### 6.5 インタラクション導通ルール（必須） 🆕
+
+> ⚠️ **重要**: 「後で繋げる」実装は禁止。全てのインタラクションは作成時点で動作すること。
+
+#### 禁止パターン ❌
+
+| パターン | 禁止理由 |
+|----------|----------|
+| `href="#"` | リンク先不明のデッドエンド |
+| `href="javascript:void(0)"` | 同上 |
+| `onClick={() => {}}` | 何も起きないボタン |
+| `onClick="TODO"` | 実装放棄の温床 |
+| `<button disabled>` (理由なし) | 機能欠落の隠蔽 |
+
+#### 必須要件 ✅
+
+| 要素 | 要件 | 例 |
+|------|------|-----|
+| `<a>` タグ | 実在する `.html` ファイルへのパス、または `#section-id` | `href="04_unlock.html"` |
+| `<button>` | 定義済みの関数呼び出し、またはフォーム送信 | `onclick="showModal('lock')"` |
+| ナビゲーション | 全項目が実在するページに紐付け | Nav → 各画面へのリンク |
+| モーダル | 開閉ロジックが実装されていること | `openModal()` / `closeModal()` |
+| フォーム | submit時の挙動が定義されていること | `onsubmit="handleSubmit()"` |
+
+#### 許容される自由度 🎨
+
+| ✅ 自由にOK | ❌ 禁止 |
+|-------------|---------|
+| アニメーション（フェード、スプリング、バウンス） | 遷移先の勝手な変更 |
+| マイクロインタラクション追加 | DESIGN_BRIEFにない画面の追加 |
+| ローディング演出の工夫 | ボタンの削除 |
+| ホバーエフェクトの創造 | 必須フローのスキップ |
+| カラーのニュアンス調整（ガイドライン内） | href="#" の使用 |
+
+#### HTMLモック冒頭コメント（推奨）
+
+各モックファイルの冒頭に以下のコメントを記載することを推奨：
+
+```html
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| #btn-unlock | click | 04_unlock.html |
+| #btn-lock | click | showModal('lock-input') |
+| .nav-dashboard | click | 03_dashboard.html |
+| .nav-history | click | 05_history.html |
+-->
+```
+
 ## 7. 出力（必須プロセス）
 
 ### 7.1 ファイル作成後、即座にGitプッシュ（必須）
@@ -171,6 +221,44 @@ docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_MA
 | 2 | 02_onboarding.html | `wip/mocks/02_onboarding.html` | Onboarding | ウォレット接続 |
 | 3 | 03_dashboard.html | `wip/mocks/03_dashboard.html` | Dashboard | メインダッシュボード |
 
+## 🔀 Screen Flow (画面遷移図) 🆕
+
+> QA Auditor が導通確認に使用します。全てのリンクがこの図と一致すること。
+
+```mermaid
+flowchart LR
+    subgraph Public
+        01[01_landing.html]
+    end
+    
+    subgraph Onboarding
+        02[02_onboarding.html]
+    end
+    
+    subgraph Main
+        03[03_dashboard.html]
+        04[04_unlock.html]
+        05[05_history.html]
+    end
+    
+    01 -->|"Start Now"| 02
+    02 -->|"Complete"| 03
+    03 -->|"Unlock"| 04
+    03 -->|"History"| 05
+    04 -->|"Complete"| 03
+```
+
+## 🔗 Link Validation Table 🆕
+
+> 全ての `<a>` と主要 `<button>` の遷移先を記録
+
+| From | Element | To | Status |
+|------|---------|-----|:------:|
+| 01_landing.html | Hero CTA | 02_onboarding.html | ✅ |
+| 01_landing.html | Nav "FAQ" | 08_faq.html | ✅ |
+| 03_dashboard.html | "Unlock" button | 04_unlock.html | ✅ |
+| 03_dashboard.html | Nav "History" | 05_history.html | ✅ |
+
 ## Change Log
 | Date | Version | Changes |
 |------|---------|---------|
@@ -189,9 +277,11 @@ docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_MA
 - [ ] 全ワイヤーフレーム
 - [ ] 全モック
 - [ ] DESIGN_MANIFEST.md
+- [ ] 🆕 Screen Flow図が記載されている
+- [ ] 🆕 Link Validation Tableが記載されている
 
 ## 8. 次のステップ
 
 完了後 → `10_design_pir.md` でDesign PIRを実施
 
-PIR担当者は `DESIGN_MANIFEST.md` を参照してファイルにアクセスします。
+PIR担当者（特にQA Auditor）は `DESIGN_MANIFEST.md` の Screen Flow と Link Validation Table を参照してファイルにアクセス・検証します。
