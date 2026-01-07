@@ -1,34 +1,45 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .back-btn | click | 06_settings.html |
+| #copyPublicKey | click | copyPublicKey() |
+| .action-item (backup) | click | openBackupModal() |
+| .action-item (export) | click | openExportModal() |
+| .action-item (regenerate) | click | openRegenerateModal() |
+| Backup Modal confirm | click | downloadBackup() |
+| Export Modal reveal | click | revealSecretKey() |
+| Regenerate Modal confirm | click | regenerateKeys() |
+-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quantum Shield - 鍵管理</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-hinomaru: #BC002D;
-            --color-hinomaru-light: #E8334D;
-            --color-hinomaru-dim: rgba(188, 0, 45, 0.12);
-            --color-hinomaru-glow: rgba(188, 0, 45, 0.4);
-            --color-gold: #C9A962;
-            --color-gold-dim: rgba(201, 169, 98, 0.12);
-            --color-success: #00C896;
-            --color-success-dim: rgba(0, 200, 150, 0.12);
-            --color-warning: #F0A030;
-            --color-warning-dim: rgba(240, 160, 48, 0.12);
-            --color-error: #E07040;
-            --color-error-dim: rgba(224, 112, 64, 0.12);
-            --bg-primary: #0A0A0C;
+            --bg-primary: #0a0a0c;
             --bg-secondary: #111114;
-            --bg-elevated: #18181C;
-            --bg-card: #0E0E11;
-            --text-primary: #F8F8FA;
-            --text-secondary: #9898A0;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e84057;
+            --error-dim: rgba(232, 64, 87, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
             --text-tertiary: #606068;
             --border-subtle: rgba(255, 255, 255, 0.04);
             --border-default: rgba(255, 255, 255, 0.08);
-            --border-emphasis: rgba(255, 255, 255, 0.12);
             --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
             --font-mono: 'DM Mono', monospace;
             --radius-md: 10px;
@@ -38,341 +49,305 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
-        .bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-        .bg-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--color-hinomaru-dim), transparent 60%); opacity: 0.3; }
-        .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 24px; }
-        
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .red-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%); opacity: 0.3; }
+        .container { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 24px; }
         .header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 18px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-        .back-btn:hover { border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); text-decoration: none; font-size: 18px; transition: all 0.2s; }
+        .back-btn:hover { border-color: var(--accent-hinomaru); color: var(--accent-hinomaru-light); }
         .header-title { font-size: 24px; font-weight: 700; }
-        
-        .warning-banner { background: var(--color-warning-dim); border: 1px solid var(--color-warning); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 32px; display: flex; gap: 12px; }
-        .warning-icon { font-size: 24px; }
-        .warning-text h4 { font-size: 14px; font-weight: 600; color: var(--color-warning); margin-bottom: 4px; }
-        .warning-text p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
-        
-        .key-info { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 24px; margin-bottom: 24px; }
-        .key-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .key-header h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .key-badge { font-size: 10px; padding: 4px 10px; background: var(--color-success-dim); color: var(--color-success); border-radius: var(--radius-full); font-weight: 600; }
-        
-        .key-detail { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-subtle); }
-        .key-detail:last-child { border-bottom: none; padding-bottom: 0; }
-        .key-label { font-size: 13px; color: var(--text-tertiary); }
-        .key-value { font-size: 14px; font-family: var(--font-mono); color: var(--text-secondary); }
-        
-        .public-key-display { margin-top: 16px; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-md); }
-        .public-key-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; }
-        .public-key-value { font-size: 12px; font-family: var(--font-mono); color: var(--text-secondary); word-break: break-all; line-height: 1.6; }
-        .copy-btn { margin-top: 12px; padding: 8px 16px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.2s; }
-        .copy-btn:hover { border-color: var(--color-gold); color: var(--color-gold); }
-        
-        .section-title { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--color-gold); margin: 32px 0 16px; display: flex; align-items: center; gap: 8px; }
-        .section-title::before { content: ''; width: 16px; height: 1px; background: var(--color-gold); }
-        
-        .action-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 16px; }
-        .action-item { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; cursor: pointer; transition: background 0.2s; }
+
+        .key-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 24px; margin-bottom: 24px; }
+        .key-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .key-card-title { font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+        .key-badge { font-size: 10px; padding: 4px 10px; background: var(--success-dim); color: var(--success); border-radius: var(--radius-full); font-weight: 600; }
+        .key-value { font-family: var(--font-mono); font-size: 13px; background: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); word-break: break-all; line-height: 1.6; margin-bottom: 12px; }
+        .key-actions { display: flex; gap: 8px; }
+        .key-action-btn { flex: 1; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .key-action-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+        .section-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-gold); margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
+        .section-label::before { content: ''; width: 16px; height: 1px; background: var(--accent-gold); }
+
+        .actions-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .action-item { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); cursor: pointer; transition: background 0.2s; }
+        .action-item:last-child { border-bottom: none; }
         .action-item:hover { background: var(--bg-elevated); }
-        .action-info { display: flex; align-items: center; gap: 16px; }
-        .action-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border-radius: var(--radius-md); font-size: 20px; }
-        .action-text h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-        .action-text p { font-size: 12px; color: var(--text-tertiary); }
-        .action-arrow { color: var(--text-tertiary); font-size: 18px; }
-        
-        .action-item.primary .action-icon { background: var(--color-hinomaru-dim); }
-        .action-item.warning .action-icon { background: var(--color-warning-dim); color: var(--color-warning); }
-        .action-item.danger .action-icon { background: var(--color-error-dim); color: var(--color-error); }
-        
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 300; display: none; align-items: center; justify-content: center; padding: 24px; }
+        .action-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border-radius: var(--radius-md); font-size: 18px; }
+        .action-icon.warning { background: var(--error-dim); }
+        .action-info { flex: 1; }
+        .action-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+        .action-info p { font-size: 12px; color: var(--text-tertiary); }
+        .action-arrow { color: var(--text-tertiary); }
+
+        .warning-box { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--warning-dim); border: 1px solid var(--warning); border-radius: var(--radius-lg); margin-bottom: 24px; }
+        .warning-icon { font-size: 20px; flex-shrink: 0; }
+        .warning-content h4 { font-size: 13px; font-weight: 600; color: var(--warning); margin-bottom: 4px; }
+        .warning-content p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: center; justify-content: center; padding: 24px; }
         .modal-overlay.show { display: flex; }
-        .modal-content { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); max-width: 480px; width: 100%; max-height: 80vh; overflow-y: auto; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); max-width: 440px; width: 100%; }
         .modal-header { padding: 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { font-size: 18px; font-weight: 600; }
-        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 4px; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; }
         .modal-body { padding: 24px; }
-        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 12px; }
-        .modal-btn { padding: 12px 24px; font-size: 14px; font-weight: 600; border-radius: var(--radius-lg); cursor: pointer; }
-        .modal-btn-primary { background: var(--color-hinomaru); border: none; color: white; }
-        .modal-btn-primary:hover { background: var(--color-hinomaru-light); }
-        .modal-btn-secondary { background: transparent; border: 1px solid var(--border-emphasis); color: var(--text-secondary); }
-        
-        .backup-steps { margin: 16px 0; }
-        .backup-step { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border-subtle); }
-        .backup-step:last-child { border-bottom: none; }
-        .step-number { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: var(--color-hinomaru-dim); border-radius: 50%; font-size: 12px; font-weight: 600; color: var(--color-hinomaru-light); flex-shrink: 0; }
-        .step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-        .step-content p { font-size: 13px; color: var(--text-tertiary); line-height: 1.5; }
-        
-        .secret-key-area { margin: 20px 0; padding: 20px; background: var(--bg-secondary); border: 1px dashed var(--border-emphasis); border-radius: var(--radius-lg); text-align: center; }
-        .secret-key-area.revealed { border-style: solid; border-color: var(--color-warning); background: var(--color-warning-dim); }
-        .reveal-btn { padding: 12px 24px; background: var(--color-hinomaru); border: none; border-radius: var(--radius-lg); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .secret-key-value { font-family: var(--font-mono); font-size: 11px; word-break: break-all; line-height: 1.8; color: var(--text-primary); text-align: left; }
-        
-        .checkbox-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; }
-        .checkbox-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--color-hinomaru); margin-top: 2px; }
-        .checkbox-item label { font-size: 13px; color: var(--text-secondary); line-height: 1.5; cursor: pointer; }
-        
-        @media (max-width: 768px) {
-            .container { padding: 16px; }
-            .key-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-        }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-subtle); display: flex; gap: 12px; }
+        .btn { flex: 1; padding: 14px; border-radius: var(--radius-lg); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; color: white; }
+        .btn-primary:hover { box-shadow: 0 4px 16px var(--accent-hinomaru-dim); }
+        .btn-secondary { background: var(--bg-secondary); border: 1px solid var(--border-default); color: var(--text-secondary); }
+        .btn-secondary:hover { border-color: var(--border-emphasis); color: var(--text-primary); }
+        .btn-danger { background: var(--error-dim); border: 1px solid var(--error); color: var(--error); }
+        .btn-danger:hover { background: var(--error); color: white; }
+
+        .secret-key-box { background: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); margin: 16px 0; }
+        .secret-key-blur { font-family: var(--font-mono); font-size: 12px; filter: blur(8px); user-select: none; word-break: break-all; line-height: 1.6; transition: filter 0.3s; }
+        .secret-key-blur.revealed { filter: blur(0); user-select: text; }
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin: 16px 0; font-size: 13px; color: var(--text-secondary); }
+        .checkbox-row input { width: 18px; height: 18px; accent-color: var(--accent-hinomaru); }
     </style>
 </head>
 <body>
-    <div class="bg-effects"><div class="bg-glow"></div></div>
-    
+    <div class="premium-bg"><div class="red-glow"></div></div>
+
     <div class="container">
         <div class="header">
             <a href="06_settings.html" class="back-btn">←</a>
             <h1 class="header-title">鍵管理</h1>
         </div>
-        
-        <div class="warning-banner">
+
+        <div class="warning-box">
             <span class="warning-icon">⚠️</span>
-            <div class="warning-text">
-                <h4>秘密鍵は安全に保管してください</h4>
-                <p>秘密鍵を失うと、資産にアクセスできなくなります。必ずバックアップを作成し、安全な場所に保管してください。</p>
+            <div class="warning-content">
+                <h4>秘密鍵は絶対に他人と共有しないでください</h4>
+                <p>秘密鍵を紛失すると資産へのアクセスができなくなります。必ずバックアップを取ってください。</p>
             </div>
         </div>
-        
-        <div class="key-info">
-            <div class="key-header">
-                <h3>🔐 Dilithium鍵ペア</h3>
-                <span class="key-badge">✓ アクティブ</span>
+
+        <div class="key-card">
+            <div class="key-card-header">
+                <span class="key-card-title">🔐 Dilithium 公開鍵</span>
+                <span class="key-badge">アクティブ</span>
             </div>
-            <div class="key-detail">
-                <span class="key-label">アルゴリズム</span>
-                <span class="key-value">Dilithium-III (NIST FIPS 204)</span>
-            </div>
-            <div class="key-detail">
-                <span class="key-label">作成日</span>
-                <span class="key-value">2026-01-01 10:00:00</span>
-            </div>
-            <div class="key-detail">
-                <span class="key-label">バックアップ状況</span>
-                <span class="key-value" style="color: var(--color-success);">\u2713 バックアップ済み</span>
-            </div>
-            
-            <div class="public-key-display">
-                <div class="public-key-label">公開鍵（Public Key）</div>
-                <div class="public-key-value" id="publicKey">0x04a7b3c8d9e2f1a0b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9...</div>
-                <button class="copy-btn" onclick="copyPublicKey()">📋 コピー</button>
+            <div class="key-value" id="publicKey">0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d1e3f5a7b9c0d2e4f6a8b0c2d4e6f8a0b...</div>
+            <div class="key-actions">
+                <button class="key-action-btn" id="copyPublicKey" onclick="copyPublicKey()">
+                    📋 コピー
+                </button>
             </div>
         </div>
-        
-        <div class="section-title">バックアップ・エクスポート</div>
-        
-        <div class="action-card">
-            <div class="action-item primary" onclick="openBackupModal()">
+
+        <div class="section-label">鍵の管理</div>
+        <div class="actions-card">
+            <div class="action-item" onclick="openBackupModal()">
+                <div class="action-icon">💾</div>
                 <div class="action-info">
-                    <div class="action-icon">📥</div>
-                    <div class="action-text">
-                        <h4>秘密鍵をバックアップ</h4>
-                        <p>暗号化されたファイルとしてダウンロード</p>
-                    </div>
+                    <h4>バックアップをダウンロード</h4>
+                    <p>暗号化されたバックアップファイル</p>
+                </div>
+                <span class="action-arrow">→</span>
+            </div>
+            <div class="action-item" onclick="openExportModal()">
+                <div class="action-icon">👁️</div>
+                <div class="action-info">
+                    <h4>秘密鍵を表示</h4>
+                    <p>秘密鍵を確認（注意が必要）</p>
+                </div>
+                <span class="action-arrow">→</span>
+            </div>
+            <div class="action-item" onclick="openRegenerateModal()">
+                <div class="action-icon warning">🔄</div>
+                <div class="action-info">
+                    <h4>鍵を再生成</h4>
+                    <p style="color: var(--error);">現在の鍵は無効になります</p>
                 </div>
                 <span class="action-arrow">→</span>
             </div>
         </div>
-        
-        <div class="action-card">
-            <div class="action-item warning" onclick="openExportModal()">
+
+        <div class="section-label">鍵の履歴</div>
+        <div class="actions-card">
+            <div class="action-item" style="cursor: default;">
+                <div class="action-icon">📅</div>
                 <div class="action-info">
-                    <div class="action-icon">🔑</div>
-                    <div class="action-text">
-                        <h4>秘密鍵を表示</h4>
-                        <p>秘密鍵を画面に表示して手動コピー</p>
-                    </div>
+                    <h4>生成日時</h4>
+                    <p>2026-01-01 10:00:00</p>
                 </div>
-                <span class="action-arrow">→</span>
             </div>
-        </div>
-        
-        <div class="section-title">鍵の再生成</div>
-        
-        <div class="action-card">
-            <div class="action-item danger" onclick="alert('鍵の再生成は開発中です。')">
+            <div class="action-item" style="cursor: default;">
+                <div class="action-icon">✅</div>
                 <div class="action-info">
-                    <div class="action-icon">🔄</div>
-                    <div class="action-text">
-                        <h4>新しい鍵ペアを生成</h4>
-                        <p>既存の鍵を無効化し、新しい鍵を作成</p>
-                    </div>
+                    <h4>最終バックアップ</h4>
+                    <p>2026-01-01 10:05:32</p>
                 </div>
-                <span class="action-arrow">→</span>
             </div>
         </div>
     </div>
-    
-    <!-- Backup Modal -->
+
     <div class="modal-overlay" id="backupModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>秘密鍵のバックアップ</h3>
-                <button class="modal-close" onclick="closeBackupModal()">&times;</button>
+                <h3>バックアップをダウンロード</h3>
+                <button class="modal-close" onclick="closeModal('backupModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
-                    秘密鍵を安全にバックアップするための手順です。
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+                    暗号化されたバックアップファイルをダウンロードします。このファイルは安全な場所に保管してください。
                 </p>
-                
-                <div class="backup-steps">
-                    <div class="backup-step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h4>パスワードを設定</h4>
-                            <p>バックアップファイルを保護するパスワードを入力してください。</p>
-                        </div>
-                    </div>
-                    <div class="backup-step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h4>ファイルをダウンロード</h4>
-                            <p>暗号化された.jsonファイルがダウンロードされます。</p>
-                        </div>
-                    </div>
-                    <div class="backup-step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h4>安全な場所に保管</h4>
-                            <p>USBドライブやハードウェアウォレットなど、オフラインの安全な場所に保管してください。</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="checkbox-item">
+                <div class="checkbox-row">
                     <input type="checkbox" id="backupConfirm">
-                    <label for="backupConfirm">バックアップファイルを安全な場所に保管することを理解しました</label>
+                    <label for="backupConfirm">安全な場所に保管することを理解しました</label>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn modal-btn-secondary" onclick="closeBackupModal()">キャンセル</button>
-                <button class="modal-btn modal-btn-primary" id="downloadBackupBtn" disabled onclick="downloadBackup()">ダウンロード</button>
+                <button class="btn btn-secondary" onclick="closeModal('backupModal')">キャンセル</button>
+                <button class="btn btn-primary" onclick="downloadBackup()">ダウンロード</button>
             </div>
         </div>
     </div>
-    
-    <!-- Export Modal -->
+
     <div class="modal-overlay" id="exportModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>秘密鍵の表示</h3>
-                <button class="modal-close" onclick="closeExportModal()">&times;</button>
+                <h3>秘密鍵を表示</h3>
+                <button class="modal-close" onclick="closeModal('exportModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="warning-banner" style="margin-bottom: 20px;">
+                <div class="warning-box" style="margin-bottom: 16px;">
                     <span class="warning-icon">⚠️</span>
-                    <div class="warning-text">
+                    <div class="warning-content">
                         <h4>注意</h4>
-                        <p>秘密鍵は絶対に他人に見せないでください。秘密鍵を知っている人は、あなたの資産を操作できます。</p>
+                        <p>秘密鍵を他人に見せないでください。スクリーンショットは撮らないでください。</p>
                     </div>
                 </div>
-                
-                <div class="secret-key-area" id="secretKeyArea">
-                    <button class="reveal-btn" id="revealBtn" onclick="revealSecretKey()">🔒 秘密鍵を表示</button>
+                <div class="secret-key-box">
+                    <div class="secret-key-blur" id="secretKeyDisplay">5f8c2a3b7d9e1f4a6c0b8d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4...</div>
                 </div>
-                
-                <div class="checkbox-item">
-                    <input type="checkbox" id="exportConfirm">
-                    <label for="exportConfirm">秘密鍵を安全に保管する責任があることを理解しました</label>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="revealConfirm" onchange="toggleRevealBtn()">
+                    <label for="revealConfirm">周囲に人がいないことを確認しました</label>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn modal-btn-secondary" onclick="closeExportModal()">閉じる</button>
+                <button class="btn btn-secondary" onclick="closeModal('exportModal')">閉じる</button>
+                <button class="btn btn-primary" id="revealBtn" onclick="revealSecretKey()" disabled>表示する</button>
             </div>
         </div>
     </div>
-    
+
+    <div class="modal-overlay" id="regenerateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>鍵を再生成</h3>
+                <button class="modal-close" onclick="closeModal('regenerateModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="warning-box" style="background: var(--error-dim); border-color: var(--error);">
+                    <span class="warning-icon">🚨</span>
+                    <div class="warning-content">
+                        <h4 style="color: var(--error);">危険な操作</h4>
+                        <p>鍵を再生成すると、現在の鍵は永久に無効になります。Lock中の資産がある場合は、先にUnlockしてください。</p>
+                    </div>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="regenerateConfirm1" onchange="toggleRegenerateBtn()">
+                    <label for="regenerateConfirm1">現在の鍵が無効になることを理解しました</label>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="regenerateConfirm2" onchange="toggleRegenerateBtn()">
+                    <label for="regenerateConfirm2">Lock中の資産がないことを確認しました</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('regenerateModal')">キャンセル</button>
+                <button class="btn btn-danger" id="regenerateBtn" onclick="regenerateKeys()" disabled>鍵を再生成</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Copy public key
         function copyPublicKey() {
-            const publicKey = document.getElementById('publicKey').textContent;
-            navigator.clipboard.writeText(publicKey).then(() => {
-                alert('公開鍵をコピーしました');
+            const key = document.getElementById('publicKey').textContent;
+            navigator.clipboard.writeText(key).then(() => {
+                const btn = document.getElementById('copyPublicKey');
+                btn.innerHTML = '✅ コピーしました';
+                setTimeout(() => { btn.innerHTML = '📋 コピー'; }, 2000);
             });
         }
-        
-        // Backup Modal
+
         function openBackupModal() {
+            document.getElementById('backupConfirm').checked = false;
             document.getElementById('backupModal').classList.add('show');
         }
-        
-        function closeBackupModal() {
-            document.getElementById('backupModal').classList.remove('show');
-            document.getElementById('backupConfirm').checked = false;
-            document.getElementById('downloadBackupBtn').disabled = true;
+
+        function openExportModal() {
+            document.getElementById('revealConfirm').checked = false;
+            document.getElementById('revealBtn').disabled = true;
+            document.getElementById('secretKeyDisplay').classList.remove('revealed');
+            document.getElementById('exportModal').classList.add('show');
         }
-        
-        document.getElementById('backupConfirm').addEventListener('change', function() {
-            document.getElementById('downloadBackupBtn').disabled = !this.checked;
-        });
-        
+
+        function openRegenerateModal() {
+            document.getElementById('regenerateConfirm1').checked = false;
+            document.getElementById('regenerateConfirm2').checked = false;
+            document.getElementById('regenerateBtn').disabled = true;
+            document.getElementById('regenerateModal').classList.add('show');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
         function downloadBackup() {
-            // Demo: Create a dummy backup file
-            const backupData = {
+            if (!document.getElementById('backupConfirm').checked) {
+                alert('チェックボックスにチェックを入れてください');
+                return;
+            }
+            const backupData = JSON.stringify({
                 version: '1.0',
                 algorithm: 'Dilithium-III',
-                created: new Date().toISOString(),
-                encrypted_private_key: 'ENCRYPTED_KEY_PLACEHOLDER',
-                public_key: '0x04a7b3c8d9e2f1a0b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9'
-            };
-            
-            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+                encrypted: true,
+                timestamp: new Date().toISOString()
+            });
+            const blob = new Blob([backupData], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'quantum-shield-backup-' + Date.now() + '.json';
+            a.download = 'quantum-shield-backup-' + new Date().toISOString().split('T')[0] + '.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
-            closeBackupModal();
-            alert('バックアップファイルをダウンロードしました\n\n安全な場所に保管してください。');
+            closeModal('backupModal');
         }
-        
-        // Export Modal
-        function openExportModal() {
-            document.getElementById('exportModal').classList.add('show');
-            // Reset state
-            document.getElementById('secretKeyArea').classList.remove('revealed');
-            document.getElementById('secretKeyArea').innerHTML = '<button class="reveal-btn" onclick="revealSecretKey()">🔒 秘密鍵を表示</button>';
-            document.getElementById('exportConfirm').checked = false;
+
+        function toggleRevealBtn() {
+            document.getElementById('revealBtn').disabled = !document.getElementById('revealConfirm').checked;
         }
-        
-        function closeExportModal() {
-            document.getElementById('exportModal').classList.remove('show');
-        }
-        
+
         function revealSecretKey() {
-            if (!document.getElementById('exportConfirm').checked) {
-                alert('先にチェックボックスにチェックを入れてください。');
-                return;
+            document.getElementById('secretKeyDisplay').classList.add('revealed');
+            document.getElementById('revealBtn').textContent = '表示中';
+            document.getElementById('revealBtn').disabled = true;
+        }
+
+        function toggleRegenerateBtn() {
+            const c1 = document.getElementById('regenerateConfirm1').checked;
+            const c2 = document.getElementById('regenerateConfirm2').checked;
+            document.getElementById('regenerateBtn').disabled = !(c1 && c2);
+        }
+
+        function regenerateKeys() {
+            if (confirm('本当に鍵を再生成しますか？この操作は取り消せません。')) {
+                closeModal('regenerateModal');
+                window.location.href = '02_onboarding.html';
             }
-            
-            const dummySecretKey = 'qs_sk_7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8';
-            
-            const area = document.getElementById('secretKeyArea');
-            area.classList.add('revealed');
-            area.innerHTML = `
-                <div class="secret-key-value">${dummySecretKey}</div>
-                <button class="copy-btn" style="margin-top: 16px;" onclick="copySecretKey('${dummySecretKey}')">📋 コピー</button>
-            `;
         }
-        
-        function copySecretKey(key) {
-            navigator.clipboard.writeText(key).then(() => {
-                alert('秘密鍵をコピーしました\n\n安全な場所に保管してください。');
-            });
-        }
-        
-        // Close modals on overlay click
+
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('show');
-                }
+                if (e.target === this) this.classList.remove('show');
             });
         });
     </script>
