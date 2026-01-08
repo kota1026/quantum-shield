@@ -14,8 +14,20 @@
 | .tx-item | click | 05_history.html |
 | .btn-outline (詳細) | click | 05_history.html |
 | mobile nav | click | 各ページへ遷移 |
-| Lock Modal submit | click | 10_lock_processing.html |
+| Lock Modal submit | click | → 10_lock_processing.html (via confirmLock()) |
 | Settings icon | click | 06_settings.html |
+
+## QA-2: JavaScript onclick 遷移先ドキュメント
+以下のJavaScript関数は画面遷移を伴います：
+- openLockModal() → モーダル表示のみ（遷移なし）
+- closeLockModal() → モーダルを閉じる（遷移なし）
+- submitLock() → openLockModal()を呼び出し（遷移なし）
+- confirmLock() → 10_lock_processing.html へ遷移
+- openWalletModal() → モーダル表示のみ（遷移なし）
+- closeWalletModal() → モーダルを閉じる（遷移なし）
+- copyAddress() → クリップボードにコピー（遷移なし）
+- disconnectWallet() → 01_landing.html へ遷移（確認ダイアログ後）
+- setAmount() → 金額入力のみ（遷移なし）
 -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -186,6 +198,7 @@
 
             <nav>
                 <a href="03_dashboard.html" class="active">Dashboard</a>
+                <!-- QA-2: onclick → openLockModal() (モーダル表示のみ) -->
                 <a onclick="openLockModal()">Lock</a>
                 <a href="04_unlock.html">Unlock</a>
                 <a href="05_history.html">History</a>
@@ -193,6 +206,7 @@
 
             <div class="header-actions">
                 <a href="06_settings.html" class="settings-btn">⚙️</a>
+                <!-- QA-2: onclick → openWalletModal() (モーダル表示のみ) -->
                 <button class="wallet-btn" onclick="openWalletModal()">
                     <span class="wallet-dot"></span>
                     0x7a3f...9c2d
@@ -201,6 +215,7 @@
         </header>
 
         <div class="stats-grid">
+            <!-- QA-2: onclick → openLockModal() (モーダル表示のみ) -->
             <div class="stat-card" onclick="openLockModal()">
                 <div class="stat-header">
                     <span class="stat-label">Total Locked</span>
@@ -253,12 +268,14 @@
                             </div>
                         </div>
                         <div class="quick-amounts">
+                            <!-- QA-2: onclick → setAmount() (金額設定のみ、遷移なし) -->
                             <button class="quick-btn" onclick="setAmount(25)">25%</button>
                             <button class="quick-btn" onclick="setAmount(50)">50%</button>
                             <button class="quick-btn" onclick="setAmount(75)">75%</button>
                             <button class="quick-btn" onclick="setAmount(100)">MAX</button>
                         </div>
                     </div>
+                    <!-- QA-2: onclick → submitLock() → openLockModal() (モーダル表示) -->
                     <button class="btn-primary" id="lockBtn" onclick="submitLock()">Lock with Dilithium Signature</button>
                 </div>
             </div>
@@ -315,6 +332,7 @@
                 <span class="icon">📊</span>
                 Dashboard
             </a>
+            <!-- QA-2: onclick → openLockModal() (モーダル表示のみ) -->
             <span class="mobile-nav-item" onclick="openLockModal()">
                 <span class="icon">🔒</span>
                 Lock
@@ -338,6 +356,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Lock確認</h3>
+                <!-- QA-2: onclick → closeLockModal() (モーダルを閉じる、遷移なし) -->
                 <button class="modal-close" onclick="closeLockModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -356,6 +375,7 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <!-- QA-2: onclick → confirmLock() → 10_lock_processing.html へ遷移 -->
                 <button class="btn-primary" onclick="confirmLock()">署名してLock</button>
             </div>
         </div>
@@ -365,6 +385,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>ウォレット</h3>
+                <!-- QA-2: onclick → closeWalletModal() (モーダルを閉じる、遷移なし) -->
                 <button class="modal-close" onclick="closeWalletModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -374,7 +395,9 @@
                     <div style="font-family: var(--font-mono); font-size: 14px; margin-top: 8px;">0x7a3f9c2d...8e1b4f6a</div>
                 </div>
                 <div style="display: flex; gap: 12px;">
+                    <!-- QA-2: onclick → copyAddress() (クリップボードにコピー、遷移なし) -->
                     <button class="btn-outline" style="flex: 1; margin-top: 0;" onclick="copyAddress()">📋 コピー</button>
+                    <!-- QA-2: onclick → disconnectWallet() → 確認後 01_landing.html へ遷移 -->
                     <button class="btn-outline" style="flex: 1; margin-top: 0; border-color: var(--error); color: var(--error);" onclick="disconnectWallet()">切断</button>
                 </div>
             </div>
@@ -384,21 +407,25 @@
     <script>
         const balance = 12.50;
 
+        // QA-2: 金額設定のみ、画面遷移なし
         function setAmount(percent) {
             const amount = (balance * percent / 100).toFixed(2);
             document.getElementById('lockAmount').value = amount;
         }
 
+        // QA-2: モーダル表示のみ、画面遷移なし
         function openLockModal() {
             const amount = document.getElementById('lockAmount').value || '0.00';
             document.getElementById('modalLockAmount').textContent = amount + ' ETH';
             document.getElementById('lockModal').classList.add('show');
         }
 
+        // QA-2: モーダルを閉じる、画面遷移なし
         function closeLockModal() {
             document.getElementById('lockModal').classList.remove('show');
         }
 
+        // QA-2: openLockModal()を呼び出し、画面遷移なし
         function submitLock() {
             const amount = document.getElementById('lockAmount').value;
             if (!amount || parseFloat(amount) <= 0) {
@@ -408,25 +435,30 @@
             openLockModal();
         }
 
+        // QA-2: ★重要★ 10_lock_processing.html へ画面遷移
         function confirmLock() {
             closeLockModal();
             window.location.href = '10_lock_processing.html';
         }
 
+        // QA-2: モーダル表示のみ、画面遷移なし
         function openWalletModal() {
             document.getElementById('walletModal').classList.add('show');
         }
 
+        // QA-2: モーダルを閉じる、画面遷移なし
         function closeWalletModal() {
             document.getElementById('walletModal').classList.remove('show');
         }
 
+        // QA-2: クリップボードにコピー、画面遷移なし
         function copyAddress() {
             navigator.clipboard.writeText('0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d').then(() => {
                 alert('アドレスをコピーしました');
             });
         }
 
+        // QA-2: ★重要★ 確認ダイアログ後、01_landing.html へ画面遷移
         function disconnectWallet() {
             if (confirm('ウォレットを切断しますか？')) {
                 window.location.href = '01_landing.html';
