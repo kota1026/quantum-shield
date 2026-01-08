@@ -3,6 +3,12 @@
 | Element | Action | Target |
 |---------|--------|--------|
 | Auto redirect | onComplete | 10_lock_success.html |
+
+## CDO-1: ローディングアニメーション統一
+処理画面の統一仕様:
+- 総処理時間: 5000ms (5秒)
+- step間隔: 均等配分
+- アニメーションCSS: 共通定義使用
 -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -28,6 +34,10 @@
             --font-mono: 'DM Mono', monospace;
             --radius-lg: 14px;
             --radius-full: 9999px;
+            /* CDO-1: アニメーション統一定義 */
+            --animation-duration-orbit: 1.5s;
+            --animation-duration-orbit-reverse: 2s;
+            --animation-duration-pulse: 2s;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
@@ -37,10 +47,10 @@
         .processing-visual { margin-bottom: 32px; position: relative; width: 160px; height: 160px; margin: 0 auto 32px; }
         .hinomaru-core { position: absolute; inset: 30px; }
         .hinomaru-white { position: absolute; inset: 0; background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.15), rgba(255,255,255,0.02)); border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); }
-        .hinomaru-red { position: absolute; inset: 20px; background: radial-gradient(circle at 35% 35%, #ff3050, var(--accent-hinomaru), #8a001a); border-radius: 50%; box-shadow: 0 0 40px var(--accent-hinomaru-glow); animation: pulse 2s ease-in-out infinite; }
+        .hinomaru-red { position: absolute; inset: 20px; background: radial-gradient(circle at 35% 35%, #ff3050, var(--accent-hinomaru), #8a001a); border-radius: 50%; box-shadow: 0 0 40px var(--accent-hinomaru-glow); animation: pulse var(--animation-duration-pulse) ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } }
-        .orbit { position: absolute; inset: 0; border: 2px solid transparent; border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1.5s linear infinite; }
-        .orbit-2 { inset: -10px; border-top-color: var(--accent-hinomaru); animation-duration: 2s; animation-direction: reverse; }
+        .orbit { position: absolute; inset: 0; border: 2px solid transparent; border-top-color: var(--accent-gold); border-radius: 50%; animation: spin var(--animation-duration-orbit) linear infinite; }
+        .orbit-2 { inset: -10px; border-top-color: var(--accent-hinomaru); animation-duration: var(--animation-duration-orbit-reverse); animation-direction: reverse; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
         .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
@@ -50,8 +60,9 @@
         .step.complete { background: rgba(0, 200, 150, 0.1); }
         .step-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; }
         .step.pending .step-icon { background: rgba(255,255,255,0.05); color: var(--text-tertiary); }
-        .step.active .step-icon { background: var(--accent-hinomaru); color: white; animation: pulse 1s ease-in-out infinite; }
+        .step.active .step-icon { background: var(--accent-hinomaru); color: white; animation: step-pulse 1s ease-in-out infinite; }
         .step.complete .step-icon { background: var(--success); color: white; }
+        @keyframes step-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         .step-text { flex: 1; font-size: 14px; }
         .step.pending .step-text { color: var(--text-tertiary); }
         .step.active .step-text { color: var(--text-primary); font-weight: 500; }
@@ -95,6 +106,13 @@
         <div class="tx-hash" id="txHash" style="display: none;">TX: <a href="https://sepolia.etherscan.io/tx/0x..." target="_blank" id="txLink">0x7a3f...9c2d</a></div>
     </div>
     <script>
+        // CDO-1: 処理画面タイミング統一
+        // 総処理時間: 5000ms
+        // step間隔: 均等配分 (1250ms each for 4 steps remaining)
+        const TOTAL_DURATION = 5000;
+        const STEP_INTERVAL = 1250;
+
+        // step3完了: 1250ms後
         setTimeout(() => {
             document.getElementById('step3').classList.remove('active');
             document.getElementById('step3').classList.add('complete');
@@ -102,13 +120,19 @@
             document.getElementById('step4').classList.remove('pending');
             document.getElementById('step4').classList.add('active');
             document.getElementById('txHash').style.display = 'block';
-        }, 2000);
+        }, STEP_INTERVAL);
+
+        // step4完了: 2500ms後 (1250ms * 2)
         setTimeout(() => {
             document.getElementById('step4').classList.remove('active');
             document.getElementById('step4').classList.add('complete');
             document.getElementById('step4').querySelector('.step-icon').textContent = '✓';
-        }, 4000);
-        setTimeout(() => { window.location.href = '10_lock_success.html'; }, 5000);
+        }, STEP_INTERVAL * 2);
+
+        // リダイレクト: 5000ms後
+        setTimeout(() => {
+            window.location.href = '10_lock_success.html';
+        }, TOTAL_DURATION);
     </script>
 </body>
 </html>
