@@ -10,6 +10,7 @@
 | .unlock-card | click | selectUnlock() |
 | #normalUnlockBtn | click | startNormalUnlock() |
 | #emergencyUnlockBtn | click | startEmergencyUnlock() |
+| .timelock-help | click | openTimelockModal() |
 -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -92,6 +93,56 @@
         .method-detail-value { font-weight: 500; }
         .method-card.warning .method-card-icon { color: var(--warning); }
 
+        /* USR-2: 24時間待機理由の説明用ツールチップ */
+        .timelock-help {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--accent-gold);
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 8px;
+        }
+        .timelock-help:hover {
+            text-decoration: underline;
+        }
+        .timelock-help-icon {
+            width: 14px;
+            height: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-gold-dim);
+            border: 1px solid var(--accent-gold);
+            border-radius: 50%;
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--accent-gold);
+        }
+
+        /* USR-2: 24時間の理由説明ボックス */
+        .timelock-reason {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            background: var(--accent-gold-dim);
+            border: 1px solid rgba(201, 169, 98, 0.3);
+            border-radius: var(--radius-md);
+            margin-top: 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .timelock-reason-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .timelock-reason strong {
+            color: var(--accent-gold);
+        }
+
         .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-hinomaru-glow); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -100,6 +151,20 @@
         .warning-icon { font-size: 24px; flex-shrink: 0; }
         .warning-content h4 { font-size: 14px; font-weight: 600; color: var(--warning); margin-bottom: 4px; }
         .warning-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* モーダル */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: center; justify-content: center; padding: 24px; }
+        .modal-overlay.show { display: flex; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); max-width: 480px; width: 100%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { padding: 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 18px; font-weight: 600; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 4px; }
+        .modal-body { padding: 24px; }
+        .modal-body p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px; }
+        .modal-body ul { margin: 16px 0; padding-left: 20px; }
+        .modal-body li { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 8px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-subtle); }
+        .modal-btn { width: 100%; padding: 12px 24px; background: var(--accent-hinomaru); border: none; border-radius: var(--radius-lg); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
 
         @media (max-width: 768px) {
             .method-cards { grid-template-columns: 1fr; }
@@ -198,6 +263,19 @@
                             <span class="method-detail-value">ガス代のみ</span>
                         </div>
                     </div>
+                    <!-- USR-2: 24時間待機理由の説明リンク -->
+                    <a class="timelock-help" onclick="openTimelockModal()">
+                        <span class="timelock-help-icon">?</span>
+                        なぜ24時間待つの？
+                    </a>
+                    <!-- USR-2: 簡易説明ボックス -->
+                    <div class="timelock-reason">
+                        <span class="timelock-reason-icon">🛡️</span>
+                        <div>
+                            <strong>Time Lockはあなたを守ります</strong><br>
+                            不正アクセスがあっても、24時間の猶予で検知・対処できます。
+                        </div>
+                    </div>
                 </div>
 
                 <div class="method-card warning" onclick="selectMethod(this, 'emergency')">
@@ -230,6 +308,39 @@
             </div>
 
             <button class="btn-primary" id="unlockBtn" onclick="startUnlock()">通常Unlockを開始</button>
+        </div>
+    </div>
+
+    <!-- USR-2: Time Lock説明モーダル -->
+    <div class="modal-overlay" id="timelockModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>なぜ24時間待つの？</h3>
+                <button class="modal-close" onclick="closeTimelockModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Time Lock</strong>は、あなたの資産を守るための重要なセキュリティ機能です。</p>
+                
+                <h4 style="margin-top: 16px; margin-bottom: 8px; font-size: 15px; color: var(--text-primary);">🛡️ Time Lockが守るもの</h4>
+                <ul>
+                    <li><strong>不正アクセスの検知</strong>: 誰かがあなたの秘密鍵を盗んでUnlockを試みても、24時間の猶予があれば気づいて対処できます</li>
+                    <li><strong>フィッシング対策</strong>: 誤って署名してしまっても、実際に資産が移動するまで24時間あります</li>
+                    <li><strong>ハッキング対策</strong>: 攻撃者は24時間以内に資産を持ち去ることができません</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px; font-size: 15px; color: var(--text-primary);">⏰ 待機中にできること</h4>
+                <ul>
+                    <li>Unlock要求の確認・監視</li>
+                    <li>不審な要求があればキャンセル</li>
+                    <li>緊急時は緊急Unlockで対応可能（7日間待機+Bond必要）</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px; font-size: 15px; color: var(--text-primary);">💡 豆知識</h4>
+                <p style="margin-bottom: 0;">「今収集して後で解読」攻撃に対抗するため、量子耐性暗号とTime Lockの組み合わせが最も効果的なセキュリティ戦略です。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeTimelockModal()">理解しました</button>
+            </div>
         </div>
     </div>
 
@@ -271,6 +382,23 @@
                 window.location.href = '14_emergency_bond.html';
             }
         }
+
+        // USR-2: Time Lock説明モーダル
+        function openTimelockModal() {
+            document.getElementById('timelockModal').classList.add('show');
+        }
+
+        function closeTimelockModal() {
+            document.getElementById('timelockModal').classList.remove('show');
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
     </script>
 </body>
 </html>
