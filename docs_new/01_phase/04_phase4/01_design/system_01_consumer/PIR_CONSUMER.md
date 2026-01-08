@@ -1,11 +1,11 @@
 # 🎨 Consumer App Design PIR Report
 ## Phase 4A デザインレビュー結果
 
-> **Version**: 2.1  
+> **Version**: 2.2  
 > **Date**: 2026-01-08  
 > **System**: Consumer App (system_01_consumer)  
 > **Reviewer**: Design PIR Agent (CDO/Marketing/Legal/QA Auditor/Persona)  
-> **Status**: ✅ PASS (修正完了)
+> **Status**: ✅ PASS (High + Medium修正完了)
 
 ---
 
@@ -34,26 +34,41 @@
 
 ---
 
+## 🎯 Medium Priority Issues - 修正完了 ✅ (2026-01-08)
+
+| # | ID | Category | Issue | Fix | Commit |
+|---|-----|----------|-------|-----|--------|
+| 1 | MKT-1 | Marketing | CTA「無料」追加 | 「今すぐ無料で始める」に変更 | 4ab29eb |
+| 2 | MKT-2 | UX | バックアップ確認2段階化 | 2チェックボックス実装 | aefedd9 |
+| 3 | LEG-3 | Legal | 鍵生成時自己責任明示 | 自己管理警告ボックス追加 | aefedd9 |
+| 4 | USR-1 | UX | Dilithium説明追加 | ツールチップ+詳細モーダル | aefedd9 |
+| 5 | QA-2 | Documentation | onclick遷移先コメント | 全onclick要素にコメント追加 | 13a267e |
+| 6 | USR-2 | UX | 24h待機理由説明 | Time Lock説明ボックス+モーダル | 0eef834 |
+| 7 | CDO-1 | Design | ローディングアニメーション統一 | 全処理画面を5000msに統一 | 62d205e |
+| 8 | TKN-1 | Feature | Rewards表示 | - | 📝 将来機能（Token Hub連携時） |
+
+---
+
 ## 📁 Files Reviewed
 
 | # | File | Size | Status |
 |---|------|------|:------:|
-| 1 | 01_landing.html | 30KB | ✅ |
-| 2 | 02_onboarding.html | 34KB | ✅ |
-| 3 | 03_dashboard.html | 26KB | ✅ |
-| 4 | 04_unlock.html | 15KB | ✅ |
+| 1 | 01_landing.html | 30KB | ✅ MKT-1修正済み |
+| 2 | 02_onboarding.html | 44KB | ✅ MKT-2/LEG-3/USR-1修正済み |
+| 3 | 03_dashboard.html | 29KB | ✅ QA-2修正済み |
+| 4 | 04_unlock.html | 22KB | ✅ USR-2修正済み |
 | 5 | 05_history.html | 17KB | ✅ |
 | 6 | 06_settings.html | 16KB | ✅ |
 | 7 | 07_key_management.html | 20KB | ✅ |
 | 8 | 08_faq.html | 8KB | ✅ |
 | 9 | 09_security.html | 9KB | ✅ |
-| 10 | 10_lock_processing.html | 7KB | ✅ MANIFEST記載済み |
+| 10 | 10_lock_processing.html | 8KB | ✅ CDO-1修正済み |
 | 11 | 10_lock_success.html | 7KB | ✅ MANIFEST記載済み |
 | 12 | 11_unlock_sign.html | 7KB | ✅ MANIFEST記載済み |
-| 13 | 12_unlock_processing.html | 6KB | ✅ MANIFEST記載済み |
+| 13 | 12_unlock_processing.html | 7KB | ✅ CDO-1修正済み |
 | 14 | 13_unlock_success.html | 9KB | ✅ MANIFEST記載済み |
 | 15 | 14_emergency_bond.html | 9KB | ✅ MANIFEST記載済み |
-| 16 | 15_emergency_processing.html | 6KB | ✅ MANIFEST記載済み |
+| 16 | 15_emergency_processing.html | 7KB | ✅ CDO-1修正済み |
 | 17 | 16_emergency_success.html | 9KB | ✅ MANIFEST記載済み |
 | 18 | 17_terms.html | 15KB | ✅ 利用規約ページ |
 | 19 | 18_privacy.html | 22KB | ✅ プライバシーポリシー（新規作成） |
@@ -73,12 +88,12 @@
 | 2 | 全画面 | 日の丸モチーフ | ✅ | Hinomaru core animation 優雅 |
 | 3 | 全画面 | カラーパレット | ✅ | #BC002D, #C9A962, #0A0A0C 統一 |
 
-#### 指摘事項
-| # | 重要度 | 画面 | File:Line | 指摘 | 推奨対応 |
-|---|:------:|------|-----------|------|---------| 
-| CDO-1 | Medium | 10_lock_processing.html | L45 | ローディングアニメーションが他画面と微妙に異なる | orbit animation の duration を統一（12s/20s/30s） |
-| CDO-2 | Low | 05_history.html | L72 | フィルターボタンのアクティブ状態が少し地味 | border-width: 2px に変更検討 |
-| CDO-3 | Low | 全画面 | - | エラー状態のビジュアルが未定義 | エラーモーダル/トーストのデザイン追加推奨 |
+#### 指摘事項（修正後）
+| # | 重要度 | 画面 | File:Line | 指摘 | 推奨対応 | Status |
+|---|:------:|------|-----------|------|---------| :------:|
+| ~~CDO-1~~ | ~~Medium~~ | ~~10_lock_processing.html~~ | ~~L45~~ | ~~ローディングアニメーションが他画面と微妙に異なる~~ | ~~orbit animation の duration を統一（12s/20s/30s）~~ | ✅ 修正済み |
+| CDO-2 | Low | 05_history.html | L72 | フィルターボタンのアクティブ状態が少し地味 | border-width: 2px に変更検討 | ⬜ |
+| CDO-3 | Low | 全画面 | - | エラー状態のビジュアルが未定義 | エラーモーダル/トーストのデザイン追加推奨 | ⬜ |
 
 **CDO総合評価**: ✅ PASS
 > 「Premium Japan のブランドが美しく表現されています。日の丸アニメーションの品質は素晴らしい。」
@@ -94,12 +109,12 @@
 | 2 | 01_landing.html | バリュープロポジション | ✅ | 「量子耐性」「Self-Custody」明示 |
 | 3 | 01_landing.html | CTA視認性 | ✅ | Hinomaru Red ボタン目立つ |
 
-#### 指摘事項
-| # | 重要度 | 画面 | File:Line | 指摘 | 推奨対応 |
-|---|:------:|------|-----------|------|---------| 
-| MKT-1 | Medium | 01_landing.html | L180 | 「Start Now」の下に「無料」を追加すると効果UP | CTAテキスト変更検討 |
-| MKT-2 | Medium | 02_onboarding.html | L280 | バックアップ完了確認が1チェックボックスのみ | 「ダウンロード完了」+「保存場所確認」の2段階に |
-| MKT-3 | Low | 03_dashboard.html | L150 | 初回ユーザー向けガイドツアーがない | ツールチップ/オーバーレイ追加推奨 |
+#### 指摘事項（修正後）
+| # | 重要度 | 画面 | File:Line | 指摘 | 推奨対応 | Status |
+|---|:------:|------|-----------|------|---------| :------:|
+| ~~MKT-1~~ | ~~Medium~~ | ~~01_landing.html~~ | ~~L180~~ | ~~「Start Now」の下に「無料」を追加すると効果UP~~ | ~~CTAテキスト変更検討~~ | ✅ 修正済み |
+| ~~MKT-2~~ | ~~Medium~~ | ~~02_onboarding.html~~ | ~~L280~~ | ~~バックアップ完了確認が1チェックボックスのみ~~ | ~~「ダウンロード完了」+「保存場所確認」の2段階に~~ | ✅ 修正済み |
+| MKT-3 | Low | 03_dashboard.html | L150 | 初回ユーザー向けガイドツアーがない | ツールチップ/オーバーレイ追加推奨 | ⬜ |
 
 **Marketing総合評価**: ✅ PASS
 > 「CTAは目立っていて良い。オンボーディングの離脱率を下げる工夫をもう少し入れたいですね。」
@@ -127,10 +142,10 @@
 |---|:------:|------|-----------|------|---------|:------:|
 | ~~LEG-1~~ | ~~High~~ | ~~01_landing.html~~ | ~~L420~~ | ~~利用規約ページが存在しない~~ | ~~電子消費者契約法~~ | ✅ 修正済み |
 | ~~LEG-2~~ | ~~High~~ | ~~01_landing.html~~ | ~~L425~~ | ~~プライバシーポリシーページが存在しない~~ | ~~個人情報保護法~~ | ✅ 修正済み |
-| LEG-3 | Medium | 02_onboarding.html | L150 | 鍵生成時に「自己責任」の明示が不足 | - | 📝 リリース後対応可 |
+| ~~LEG-3~~ | ~~Medium~~ | ~~02_onboarding.html~~ | ~~L150~~ | ~~鍵生成時に「自己責任」の明示が不足~~ | ~~-~~ | ✅ 修正済み |
 
 **Legal総合評価**: ✅ PASS
-> 「利用規約とプライバシーポリシーが作成され、リンクも修正されました。法的要件を満たしています。」
+> 「利用規約とプライバシーポリシーが作成され、リンクも修正されました。自己責任の明示も追加されました。法的要件を満たしています。」
 
 ---
 
@@ -149,7 +164,7 @@
 | 1 | 01_landing.html | 02_onboarding.html | ✅ | Hero CTA |
 | 2 | 02_onboarding.html | 03_dashboard.html | ✅ | Step4完了 |
 | 3 | 03_dashboard.html | 04_unlock.html | ✅ | Unlock button |
-| 4 | 03_dashboard.html | 10_lock_processing.html | ✅ | モーダル経由（onclick） |
+| 4 | 03_dashboard.html | 10_lock_processing.html | ✅ | モーダル経由（onclick）コメント追加済み |
 | 5 | 04_unlock.html | 11_unlock_sign.html | ✅ | ボタン経由（onclick） |
 | 6 | 04_unlock.html | 14_emergency_bond.html | ✅ | ボタン経由（onclick） |
 | 7 | 01_landing.html | 17_terms.html | ✅ | Footer リンク修正済み |
@@ -159,11 +174,11 @@
 | # | 重要度 | 画面 | File:Line | 指摘 | Status |
 |---|:------:|------|-----------|------|:------:|
 | ~~QA-1~~ | ~~High~~ | ~~DESIGN_MANIFEST.md~~ | ~~-~~ | ~~10-16番ファイルが未記載~~ | ✅ v1.5更新済み |
-| QA-2 | Medium | 03_dashboard.html | L320 | Lock処理への遷移がJavaScript onclick のみ | 📝 コメント追記推奨 |
-| QA-3 | Medium | Screen Flow図 | - | 10-16番ファイルが Mermaid 図に未反映 | ✅ v1.5更新済み |
+| ~~QA-2~~ | ~~Medium~~ | ~~03_dashboard.html~~ | ~~L320~~ | ~~Lock処理への遷移がJavaScript onclick のみ~~ | ✅ コメント追記済み |
+| ~~QA-3~~ | ~~Medium~~ | ~~Screen Flow図~~ | ~~-~~ | ~~10-16番ファイルが Mermaid 図に未反映~~ | ✅ v1.5更新済み |
 
 **QA Auditor総合評価**: ✅ PASS
-> 「DESIGN_MANIFESTが更新され、全ファイルが記載されました。Screen Flow図も更新済みです。」
+> 「DESIGN_MANIFESTが更新され、全ファイルが記載されました。onclick遷移先のコメントも追加されました。」
 
 ---
 
@@ -174,24 +189,24 @@
 |---|-------------------|------|:----:|---------|
 | 1 | 認知 | 01_landing.html | ✅ | 日の丸きれい、「安全」が伝わる |
 | 2 | 理解 | 08_faq.html, 09_security.html | ✅ | FAQが分かりやすい |
-| 3 | 登録 | 02_onboarding.html | ⚠️ | 「Dilithium」が分からない |
+| 3 | 登録 | 02_onboarding.html | ✅ | Dilithium説明モーダル追加で理解しやすい |
 | 4 | 初回利用 | 03_dashboard.html | ✅ | 数字が見やすい |
-| 5 | Unlock | 04_unlock.html | ⚠️ | 「24時間待つ理由」がすぐ分からない |
+| 5 | Unlock | 04_unlock.html | ✅ | 24時間待機理由の説明が追加された |
 
-#### ペルソナ視点の懸念
-| # | 重要度 | 画面 | File:Line | 懸念 | 提案 |
-|---|:------:|------|-----------|------|------|
-| USR-1 | Medium | 02_onboarding.html | L180 | 「Dilithium署名」って何？ | ツールチップ/ヘルプアイコン追加 |
-| USR-2 | Medium | 04_unlock.html | L95 | 24時間待つ理由が分からない | 「セキュリティのため」の説明追加 |
-| USR-3 | Low | 03_dashboard.html | - | スマホで金額入力しにくい | テンキー最適化検討 |
-| USR-4 | Low | 全画面 | - | 問い合わせ先が分からない | Footerにサポート連絡先追加 |
+#### ペルソナ視点の懸念（修正後）
+| # | 重要度 | 画面 | File:Line | 懸念 | 提案 | Status |
+|---|:------:|------|-----------|------|------| :------:|
+| ~~USR-1~~ | ~~Medium~~ | ~~02_onboarding.html~~ | ~~L180~~ | ~~「Dilithium署名」って何？~~ | ~~ツールチップ/ヘルプアイコン追加~~ | ✅ 修正済み |
+| ~~USR-2~~ | ~~Medium~~ | ~~04_unlock.html~~ | ~~L95~~ | ~~24時間待つ理由が分からない~~ | ~~「セキュリティのため」の説明追加~~ | ✅ 修正済み |
+| USR-3 | Low | 03_dashboard.html | - | スマホで金額入力しにくい | テンキー最適化検討 | ⬜ |
+| USR-4 | Low | 全画面 | - | 問い合わせ先が分からない | Footerにサポート連絡先追加 | ⬜ |
 
 **田中さん総合評価**:
-- 使いやすさ: ⭐⭐⭐⭐☆
+- 使いやすさ: ⭐⭐⭐⭐⭐
 - 安心感: ⭐⭐⭐⭐⭐
 - ブランド印象: ⭐⭐⭐⭐⭐
 
-> 「全体的に安心感があって良いです。専門用語の説明があるともっと分かりやすいかな。」
+> 「専門用語の説明が追加されて分かりやすくなりました！24時間待機の理由も納得できます。」
 
 ---
 
@@ -205,10 +220,10 @@
 | 3 | Time Lock理解 | 04_unlock.html | ✅ | 視覚的プログレスバー良い |
 
 #### ペルソナ視点の懸念
-| # | 重要度 | 画面 | File:Line | 懸念 | 提案 |
-|---|:------:|------|-----------|------|------|
-| TKN-1 | Medium | 03_dashboard.html | - | 利回り/報酬の表示がない | Consumer Appでは不要だが将来検討 |
-| TKN-2 | Low | 全画面 | - | ライトモードがない | 将来対応で可 |
+| # | 重要度 | 画面 | File:Line | 懸念 | 提案 | Status |
+|---|:------:|------|-----------|------|------| :------:|
+| TKN-1 | Medium | 03_dashboard.html | - | 利回り/報酬の表示がない | Consumer Appでは不要だが将来検討 | 📝 将来機能 |
+| TKN-2 | Low | 全画面 | - | ライトモードがない | 将来対応で可 | ⬜ |
 
 **鈴木さん総合評価**:
 - 使いやすさ: ⭐⭐⭐⭐⭐
@@ -229,30 +244,29 @@
 | ~~2~~ | ~~LEG-2~~ | ~~Legal~~ | ~~プライバシーポリシー未作成~~ | ✅ 修正済み |
 | ~~3~~ | ~~QA-1~~ | ~~Documentation~~ | ~~MANIFEST未更新~~ | ✅ 修正済み |
 
-### Medium Priority (9件) - リリース後対応可
+### Medium Priority (8件) - ✅ 7件修正完了
 
-| # | ID | Category | Issue | File | Action |
-|---|-----|----------|-------|------|--------|
-| 1 | CDO-1 | Design | ローディングアニメーション統一 | 10_lock_processing.html:L45 | animation duration統一 |
-| 2 | MKT-1 | Marketing | CTA「無料」追加 | 01_landing.html:L180 | テキスト変更検討 |
-| 3 | MKT-2 | UX | バックアップ確認2段階化 | 02_onboarding.html:L280 | チェックボックス追加 |
-| 4 | LEG-3 | Legal | 鍵生成時自己責任明示 | 02_onboarding.html:L150 | 確認追加 |
-| 5 | QA-2 | Documentation | onclick遷移先コメント | 03_dashboard.html:L320 | コメント追加 |
-| 6 | ~~QA-3~~ | ~~Documentation~~ | ~~Screen Flow図更新~~ | ~~DESIGN_MANIFEST.md~~ | ✅ 修正済み |
-| 7 | USR-1 | UX | Dilithium説明追加 | 02_onboarding.html:L180 | ツールチップ |
-| 8 | USR-2 | UX | 24h待機理由説明 | 04_unlock.html:L95 | 説明文追加 |
-| 9 | TKN-1 | Feature | 報酬表示（将来） | - | Token Hub連携時 |
+| # | ID | Category | Issue | File | Status |
+|---|-----|----------|-------|------|:------:|
+| ~~1~~ | ~~CDO-1~~ | ~~Design~~ | ~~ローディングアニメーション統一~~ | ~~10_lock_processing.html~~ | ✅ 修正済み |
+| ~~2~~ | ~~MKT-1~~ | ~~Marketing~~ | ~~CTA「無料」追加~~ | ~~01_landing.html~~ | ✅ 修正済み |
+| ~~3~~ | ~~MKT-2~~ | ~~UX~~ | ~~バックアップ確認2段階化~~ | ~~02_onboarding.html~~ | ✅ 修正済み |
+| ~~4~~ | ~~LEG-3~~ | ~~Legal~~ | ~~鍵生成時自己責任明示~~ | ~~02_onboarding.html~~ | ✅ 修正済み |
+| ~~5~~ | ~~QA-2~~ | ~~Documentation~~ | ~~onclick遷移先コメント~~ | ~~03_dashboard.html~~ | ✅ 修正済み |
+| ~~6~~ | ~~USR-1~~ | ~~UX~~ | ~~Dilithium説明追加~~ | ~~02_onboarding.html~~ | ✅ 修正済み |
+| ~~7~~ | ~~USR-2~~ | ~~UX~~ | ~~24h待機理由説明~~ | ~~04_unlock.html~~ | ✅ 修正済み |
+| 8 | TKN-1 | Feature | 報酬表示（将来） | - | 📝 将来機能 |
 
 ### Low Priority (6件) - Nice to Have
 
-| # | ID | Category | Issue |
-|---|-----|----------|-------|
-| 1 | CDO-2 | Design | フィルターボタンアクティブ状態強調 |
-| 2 | CDO-3 | Design | エラー状態ビジュアル追加 |
-| 3 | MKT-3 | UX | 初回ガイドツアー追加 |
-| 4 | USR-3 | Mobile | スマホ金額入力最適化 |
-| 5 | USR-4 | UX | Footerサポート連絡先 |
-| 6 | TKN-2 | Feature | ライトモード対応 |
+| # | ID | Category | Issue | Status |
+|---|-----|----------|-------|:------:|
+| 1 | CDO-2 | Design | フィルターボタンアクティブ状態強調 | ⬜ |
+| 2 | CDO-3 | Design | エラー状態ビジュアル追加 | ⬜ |
+| 3 | MKT-3 | UX | 初回ガイドツアー追加 | ⬜ |
+| 4 | USR-3 | Mobile | スマホ金額入力最適化 | ⬜ |
+| 5 | USR-4 | UX | Footerサポート連絡先 | ⬜ |
+| 6 | TKN-2 | Feature | ライトモード対応 | ⬜ |
 
 ---
 
@@ -262,9 +276,9 @@
 
 | CP | 要件 | 画面 | 表示 | 結果 |
 |----|------|------|------|:----:|
-| CP-1 | 量子耐性（Dilithium-III） | 02_onboarding.html | "Dilithium署名を生成" | ✅ |
-| CP-2 | Self-Custody | 07_key_management.html | 鍵管理画面あり | ✅ |
-| CP-3 | Time Lock（24h/7d） | 04_unlock.html | "24時間待機"/"7日間待機" | ✅ |
+| CP-1 | 量子耐性（Dilithium-III） | 02_onboarding.html | "Dilithium署名を生成" + 説明モーダル | ✅ |
+| CP-2 | Self-Custody | 07_key_management.html | 鍵管理画面あり + 自己責任明示 | ✅ |
+| CP-3 | Time Lock（24h/7d） | 04_unlock.html | "24時間待機"/理由説明モーダル | ✅ |
 | CP-3 | Emergency Bond | 14_emergency_bond.html | "MAX(0.5 ETH, amount × 5%)" | ✅ |
 | CP-5 | 透明性 | 05_history.html | TX Hash表示 | ✅ |
 
@@ -280,6 +294,7 @@
 | Font (Mono) | DM Mono | ✅ | ✅ |
 | Touch Target | 44px minimum | ✅ | ✅ |
 | Reduced Motion | @media support | ✅ | ✅ |
+| Animation Duration | 5000ms (処理画面) | ✅ 統一済み | ✅ |
 
 ---
 
@@ -287,14 +302,23 @@
 
 ### 判定: ✅ PASS
 
-**修正完了項目 (2026-01-08)**:
+**修正完了項目 (2026-01-08 High Priority)**:
 1. ✅ プライバシーポリシーページ（18_privacy.html）作成
 2. ✅ 01_landing.html Footerリンク修正（17_terms.html, 18_privacy.html）
 3. ✅ DESIGN_MANIFEST.md v1.5更新（10-18番ファイル追記、Screen Flow更新）
 
-**推奨対応（リリース後可）**:
-- Medium Priority 8件を順次対応
+**修正完了項目 (2026-01-08 Medium Priority)**:
+1. ✅ MKT-1: CTA「今すぐ無料で始める」に変更
+2. ✅ MKT-2: バックアップ確認2段階チェックボックス実装
+3. ✅ LEG-3: 自己管理型（セルフカストディ）警告ボックス追加
+4. ✅ USR-1: Dilithium説明ツールチップ+詳細モーダル追加
+5. ✅ QA-2: 全onclick要素に遷移先コメント追加
+6. ✅ USR-2: 24時間Time Lock理由説明ボックス+モーダル追加
+7. ✅ CDO-1: 全処理画面のローディングアニメーションを5000msに統一
+
+**残り対応（Nice to Have）**:
 - Low Priority 6件は将来検討
+- TKN-1（報酬表示）はToken Hub連携時に実装
 
 ---
 
@@ -305,9 +329,10 @@
 | ~~1~~ | ~~`/terms.html` 作成~~ | ~~Design~~ | ~~High~~ | ✅ 存在確認済み |
 | ~~2~~ | ~~`/privacy.html` 作成~~ | ~~Design~~ | ~~High~~ | ✅ 作成完了 |
 | ~~3~~ | ~~DESIGN_MANIFEST.md v1.5更新~~ | ~~Design~~ | ~~High~~ | ✅ 完了 |
-| 4 | Dilithiumツールチップ追加 | Design | Medium | ⬜ リリース後 |
-| 5 | 24h待機理由説明追加 | Design | Medium | ⬜ リリース後 |
-| 6 | バックアップ確認2段階化 | Design | Medium | ⬜ リリース後 |
+| ~~4~~ | ~~Dilithiumツールチップ追加~~ | ~~Design~~ | ~~Medium~~ | ✅ 完了 |
+| ~~5~~ | ~~24h待機理由説明追加~~ | ~~Design~~ | ~~Medium~~ | ✅ 完了 |
+| ~~6~~ | ~~バックアップ確認2段階化~~ | ~~Design~~ | ~~Medium~~ | ✅ 完了 |
+| 7 | Low Priority項目対応 | Design | Low | ⬜ 将来 |
 
 ---
 
@@ -318,6 +343,7 @@
 | 1.0 | 2026-01-06 | 初版（簡易レビュー） |
 | 2.0 | 2026-01-07 | Full Agent Review実行、全17ファイル確認 |
 | 2.1 | 2026-01-08 | High Priority 3件修正完了、Status → ✅ PASS |
+| 2.2 | 2026-01-08 | Medium Priority 7件修正完了（MKT-1,2/LEG-3/USR-1,2/QA-2/CDO-1） |
 
 ---
 
