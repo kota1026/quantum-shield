@@ -3,6 +3,12 @@
 | Element | Action | Target |
 |---------|--------|--------|
 | Auto redirect | onComplete | 13_unlock_success.html |
+
+## CDO-1: ローディングアニメーション統一
+処理画面の統一仕様:
+- 総処理時間: 5000ms (5秒)
+- step間隔: 均等配分
+- アニメーションCSS: 共通定義使用
 -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -12,7 +18,23 @@
     <title>Quantum Shield - Unlock処理中</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-primary: #0a0a0c; --accent-hinomaru: #bc002d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-gold: #c9a962; --success: #00c896; --warning: #f0a030; --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --radius-lg: 14px; }
+        :root {
+            --bg-primary: #0a0a0c;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --warning: #f0a030;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --radius-lg: 14px;
+            /* CDO-1: アニメーション統一定義 */
+            --animation-duration-orbit: 1.5s;
+            --animation-duration-orbit-reverse: 2s;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
@@ -21,14 +43,14 @@
         .processing-visual { margin-bottom: 32px; position: relative; width: 160px; height: 160px; margin: 0 auto 32px; }
         .unlock-icon { position: absolute; inset: 30px; display: flex; align-items: center; justify-content: center; font-size: 48px; animation: unlock-bounce 1s ease-in-out infinite; }
         @keyframes unlock-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .orbit { position: absolute; inset: 0; border: 2px solid transparent; border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1.5s linear infinite; }
-        .orbit-2 { inset: -10px; border-top-color: var(--accent-hinomaru); animation-duration: 2s; animation-direction: reverse; }
+        .orbit { position: absolute; inset: 0; border: 2px solid transparent; border-top-color: var(--accent-gold); border-radius: 50%; animation: spin var(--animation-duration-orbit) linear infinite; }
+        .orbit-2 { inset: -10px; border-top-color: var(--accent-hinomaru); animation-duration: var(--animation-duration-orbit-reverse); animation-direction: reverse; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
         .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
         .steps { text-align: left; margin-bottom: 32px; }
         .step { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.02); border-radius: var(--radius-lg); margin-bottom: 8px; transition: all 0.3s; }
-        .step.active { background: rgba(201, 169, 98, 0.1); }
+        .step.active { background: var(--accent-gold-dim); }
         .step.complete { background: rgba(0, 200, 150, 0.1); }
         .step-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; }
         .step.pending .step-icon { background: rgba(255,255,255,0.05); color: var(--text-tertiary); }
@@ -63,19 +85,32 @@
         <div class="timelock-info"><p>Unlock要求が承認されると、<strong>24時間のTime Lock</strong>が開始されます。</p></div>
     </div>
     <script>
+        // CDO-1: 処理画面タイミング統一
+        // 総処理時間: 5000ms
+        // step間隔: 均等配分 (1250ms each for 4 steps remaining)
+        const TOTAL_DURATION = 5000;
+        const STEP_INTERVAL = 1250;
+
+        // step3完了: 1250ms後
         setTimeout(() => {
             document.getElementById('step3').classList.remove('active');
             document.getElementById('step3').classList.add('complete');
             document.getElementById('step3').querySelector('.step-icon').textContent = '✓';
             document.getElementById('step4').classList.remove('pending');
             document.getElementById('step4').classList.add('active');
-        }, 2000);
+        }, STEP_INTERVAL);
+
+        // step4完了: 2500ms後 (1250ms * 2)
         setTimeout(() => {
             document.getElementById('step4').classList.remove('active');
             document.getElementById('step4').classList.add('complete');
             document.getElementById('step4').querySelector('.step-icon').textContent = '✓';
-        }, 3500);
-        setTimeout(() => { window.location.href = '13_unlock_success.html'; }, 4500);
+        }, STEP_INTERVAL * 2);
+
+        // リダイレクト: 5000ms後
+        setTimeout(() => {
+            window.location.href = '13_unlock_success.html';
+        }, TOTAL_DURATION);
     </script>
 </body>
 </html>
