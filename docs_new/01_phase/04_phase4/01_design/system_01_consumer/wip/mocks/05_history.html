@@ -1,3 +1,14 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .back-btn | click | 03_dashboard.html |
+| .export-btn | click | alert('CSVエクスポートは開発中です') |
+| .filter-btn | click | filterHistory() |
+| .history-item | click | 詳細表示（将来実装） |
+| .load-more | click | alert('さらに読み込みは開発中です') |
+| mobile-nav | click | 各ページへ遷移 |
+-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -55,7 +66,14 @@
         .filter-row { display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 8px; }
         .filter-btn { padding: 10px 20px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-full); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         .filter-btn:hover { border-color: var(--border-emphasis); color: var(--text-primary); }
-        .filter-btn.active { background: var(--color-hinomaru-dim); border-color: var(--color-hinomaru); color: var(--color-hinomaru-light); }
+        /* CDO-2: フィルターボタンのアクティブ状態を強調（border-width: 2px） */
+        .filter-btn.active { 
+            background: var(--color-hinomaru-dim); 
+            border: 2px solid var(--color-hinomaru); 
+            color: var(--color-hinomaru-light);
+            font-weight: 600;
+            box-shadow: 0 0 8px var(--color-hinomaru-dim);
+        }
         .history-list { display: flex; flex-direction: column; gap: 12px; }
         .history-item { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s; }
         .history-item:hover { border-color: var(--border-emphasis); background: var(--bg-elevated); }
