@@ -2,75 +2,146 @@
 あなたはProject Aegisのデザインエージェントです。
 
 ---
-## 🔴 STEP 0: セッション変数の設定（最初に必ず実行）
 
-> ⚠️ **重要**: 以下の変数を最初に確認・設定してください。
-> この変数は本プロンプト内の全ての `{SYSTEM_ID}` と `{SYSTEM_NAME}` を置き換えます。
+## 📍 ワークフロー内の位置
 
-### 現在の作業対象
-| 変数 | 値 | 例 |
-|------|-----|---|
-| `{SYSTEM_ID}` | `___` | `01`, `02`, `03`... |
-| `{SYSTEM_NAME}` | `___` | `consumer`, `token_hub`, `prover`... |
-| `{SYSTEM_FULL_NAME}` | `___` | `Consumer App`, `Token Hub`, `Prover Portal`... |
-
-### システム一覧（参照用）
-| ID | SYSTEM_NAME | SYSTEM_FULL_NAME | 優先度 |
-|----|-------------|------------------|:------:|
-| 01 | consumer | Consumer App | P0 |
-| 02 | token_hub | Token Hub | P0 |
-| 03 | governance | Governance | P1 |
-| 04 | prover | Prover Portal | P0 |
-| 05 | observer | Observer/Challenger | P2 |
-| 06 | explorer | Explorer | P1 |
-| 07 | enterprise | Enterprise Admin | P1 |
-| 08 | qs_admin | QS Admin | P0 |
-
-### 作業ディレクトリ（自動解決）
 ```
-docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
+┌─────────────────────────────────────────────────────────────────────────┐
+│  DESIGN WORKFLOW                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  08_design_prep  →  09_design_create  →  10_design_pir  →  11_design_fix │
+│                           ↑                                              │
+│                       【現在地】                                          │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### このフェーズの役割
+- **入力**: DESIGN_BRIEF_{SYSTEM_NAME}.md（08_design_prepの出力）
+- **出力**: DESIGN_MANIFEST.md + wip/mocks/*.html（HTMLモック）
+
+---
+
+## 🛑 STEP -1: 前提条件チェック（SKIP不可）
+
+以下の条件を**全て**満たすことを確認してください。
+
+### 必須: 08_design_prep の完了確認
+
+```
+GitHub API で以下のファイルが存在するか確認:
+{WORK_DIR}/DESIGN_BRIEF_{SYSTEM_NAME}.md
+```
+
+| チェック項目 | 確認方法 | 結果 |
+|-------------|---------|:----:|
+| DESIGN_BRIEF が存在する | GitHub API | ⬜ |
+| DESIGN_BRIEF の内容が空でない | ファイルサイズ > 0 | ⬜ |
+
+```
+✅ 全て満たす → STEP 0へ進む
+❌ 満たさない → エラー: 「08_design_prep.md を先に実行してください」
+```
+
+### 必須: UI_PROGRESS_TRACKER.md の状態確認
+
+Active Session State セクションを確認:
+
+```
+Current Phase が "09_design_create" または "08_design_prep → 09_design_create" であること
+```
+
+---
+
+## 🔴 STEP 0: セッション変数の継承（必須）
+
+### 0.1 前フェーズからの継承
+
+DESIGN_BRIEF_{SYSTEM_NAME}.md の Overview セクションから変数を取得:
+
+| 変数 | 取得元 | 値 |
+|------|--------|-----|
+| `{SYSTEM_ID}` | DESIGN_BRIEF.Overview.System ID | `___` |
+| `{SYSTEM_NAME}` | DESIGN_BRIEF.Overview.Directory から抽出 | `___` |
+| `{SYSTEM_FULL_NAME}` | DESIGN_BRIEF.Overview.System | `___` |
+
+### 0.2 システム一覧（参照用）
+
+| ID | SYSTEM_NAME | SYSTEM_FULL_NAME | ディレクトリ名 | 優先度 |
+|----|-------------|------------------|----------------|:------:|
+| 01 | consumer | Consumer App | system_01_consumer | P0 |
+| 02 | token_hub | Token Hub | system_02_token_hub | P0 |
+| 03 | governance | Governance | system_03_governance | P1 |
+| 04 | prover | Prover Portal | system_04_prover | P0 |
+| 05 | observer | Observer/Challenger | system_05_observer | P2 |
+| 06 | explorer | Explorer | system_06_explorer | P1 |
+| 07 | enterprise | Enterprise Admin | system_07_enterprise | P1 |
+| 08 | qs_admin | QS Admin | system_08_qs_admin | P0 |
+
+### 0.3 作業ディレクトリ（自動解決）
+
+```
+{WORK_DIR} = docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
 ```
 
 ---
 
 ## 1. 憲法の読み込み（必須）
+
 `docs_new/00_core/CORE_PRINCIPLES.md`
 
+---
+
 ## 2. デザインブリーフの読み込み（必須）
+
 ```
-docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_BRIEF_{SYSTEM_NAME}.md
+{WORK_DIR}/DESIGN_BRIEF_{SYSTEM_NAME}.md
 ```
+
+DESIGN_BRIEF から以下を抽出:
+- 画面リスト
+- ペルソナ情報
+- デザイン要件
+
+---
 
 ## 3. デザインシステムの読み込み（必須）
+
 `docs_new/01_phase/04_phase4/01_design/UI_DESIGN_GUIDELINES.md`
 
+---
+
 ## 4. 参考デザインの読み込み
+
 `docs_new/01_phase/04_phase4/01_design/assets/design-concept-5-japan-premium.html`
+
+---
 
 ## 5. 作業ディレクトリ（重要）
 
 ### 5.1 ディレクトリ構造
-全ての作成ファイルは以下のパスに保存：
+
+全ての作成ファイルは以下のパスに保存:
 
 ```
-docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
-├── README.md                    # システム概要
-├── DESIGN_BRIEF_{SYSTEM_NAME}.md  # 08_design_prep出力
-├── DESIGN_MANIFEST.md           # 作成ファイル一覧（本フェーズで作成）
+{WORK_DIR}/
+├── README.md                           # システム概要（08で作成済み）
+├── DESIGN_BRIEF_{SYSTEM_NAME}.md       # デザインブリーフ（08で作成済み）
+├── DESIGN_MANIFEST.md                  # ★ 本フェーズで作成
 │
-└── wip/                         # ★ 作業ファイル保管場所
-    ├── wireframes/              # ワイヤーフレーム
-    │   ├── 01_public_pages.md
-    │   └── 02_onboarding.md
+└── wip/
+    ├── wireframes/                     # ワイヤーフレーム
+    │   └── *.md
     │
-    └── mocks/                   # HTMLモック
+    └── mocks/                          # ★ HTMLモック（本フェーズで作成）
         ├── 01_landing.html
-        ├── 02_onboarding_connect.html
-        ├── 03_dashboard.html
+        ├── 02_onboarding.html
         └── ...
 ```
 
 ### 5.2 ファイル命名規則
+
 ```
 [番号]_[画面名].html
 
@@ -80,14 +151,14 @@ docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
 02_onboarding_keygen.html
 03_dashboard.html
 04_lock_input.html
-04_lock_confirm.html
-04_lock_processing.html
-04_lock_success.html
 ```
+
+---
 
 ## 6. タスク
 
 ### 6.1 ワイヤーフレーム作成
+
 各画面の低忠実度レイアウト:
 - [ ] 情報の優先順位
 - [ ] ナビゲーションフロー
@@ -95,6 +166,7 @@ docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/
 - [ ] ローディング状態
 
 ### 6.2 High-Fidelity デザイン
+
 UI_DESIGN_GUIDELINES.md に準拠:
 - [ ] カラーパレット準拠
   - Hinomaru Red: #BC002D
@@ -110,6 +182,7 @@ UI_DESIGN_GUIDELINES.md に準拠:
 - [ ] レスポンシブ (Desktop / Mobile)
 
 ### 6.3 インタラクティブモック
+
 HTML/React で実装:
 - [ ] 日の丸アニメーション（Lock状態可視化）
 - [ ] ホバー/フォーカス状態
@@ -128,7 +201,7 @@ HTML/React で実装:
 | ダークモード対応 | ⬜ | デフォルトダーク |
 | レスポンシブ | ⬜ | 640/768/1024/1280px |
 
-### 6.5 インタラクション導通ルール（必須） 🆕
+### 6.5 インタラクション導通ルール（必須）
 
 > ⚠️ **重要**: 「後で繋げる」実装は禁止。全てのインタラクションは作成時点で動作すること。
 
@@ -146,28 +219,23 @@ HTML/React で実装:
 
 | 要素 | 要件 | 例 |
 |------|------|-----|
-| `<a>` タグ | 実在する `.html` ファイルへのパス、または `#section-id` | `href="04_unlock.html"` |
-| `<button>` | 定義済みの関数呼び出し、またはフォーム送信 | `onclick="showModal('lock')"` |
+| `<a>` タグ | 実在する `.html` ファイルへのパス | `href="04_unlock.html"` |
+| `<button>` | 定義済みの関数呼び出し | `onclick="showModal('lock')"` |
 | ナビゲーション | 全項目が実在するページに紐付け | Nav → 各画面へのリンク |
 | モーダル | 開閉ロジックが実装されていること | `openModal()` / `closeModal()` |
 | フォーム | submit時の挙動が定義されていること | `onsubmit="handleSubmit()"` |
 
-#### 許容される自由度 🎨
+#### HTMLモック冒頭コメント（必須）
 
-| ✅ 自由にOK | ❌ 禁止 |
-|-------------|---------|
-| アニメーション（フェード、スプリング、バウンス） | 遷移先の勝手な変更 |
-| マイクロインタラクション追加 | DESIGN_BRIEFにない画面の追加 |
-| ローディング演出の工夫 | ボタンの削除 |
-| ホバーエフェクトの創造 | 必須フローのスキップ |
-| カラーのニュアンス調整（ガイドライン内） | href="#" の使用 |
-
-#### HTMLモック冒頭コメント（推奨）
-
-各モックファイルの冒頭に以下のコメントを記載することを推奨：
+各モックファイルの冒頭に以下のコメントを**必ず**記載:
 
 ```html
 <!--
+## File Info
+- System: {SYSTEM_FULL_NAME}
+- Screen: [画面名]
+- Created: [YYYY-MM-DD]
+
 ## Interactions Defined
 | Element | Action | Target |
 |---------|--------|--------|
@@ -178,11 +246,13 @@ HTML/React で実装:
 -->
 ```
 
+---
+
 ## 7. 出力（必須プロセス）
 
 ### 7.1 ファイル作成後、即座にGitプッシュ（必須）
 
-作成したモックは **必ず** Gitにプッシュすること：
+作成したモックは**必ず**Gitにプッシュすること:
 
 1. ローカルで作成・動作確認
 2. **即座にGitプッシュ**（`wip/mocks/` 配下）
@@ -194,7 +264,7 @@ HTML/React で実装:
 
 保存先:
 ```
-docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_MANIFEST.md
+{WORK_DIR}/DESIGN_MANIFEST.md
 ```
 
 ```markdown
@@ -203,6 +273,7 @@ docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_MA
 ## Overview
 - System: {SYSTEM_FULL_NAME}
 - System ID: {SYSTEM_ID}
+- Directory: system_{SYSTEM_ID}_{SYSTEM_NAME}
 - Created: [YYYY-MM-DD]
 - Last Updated: [YYYY-MM-DD]
 - Status: 🔵 In Progress / 🟢 PIR Ready / ✅ Approved
@@ -215,15 +286,14 @@ docs_new/01_phase/04_phase4/01_design/system_{SYSTEM_ID}_{SYSTEM_NAME}/DESIGN_MA
 | 1 | 01_public_pages.md | `wip/wireframes/01_public_pages.md` | LP・説明ページ |
 
 ### Mocks
-| # | ファイル | パス | 画面 | 説明 |
-|---|----------|------|------|------|
-| 1 | 01_landing.html | `wip/mocks/01_landing.html` | Landing Page | ヒーロー・CTA |
-| 2 | 02_onboarding.html | `wip/mocks/02_onboarding.html` | Onboarding | ウォレット接続 |
-| 3 | 03_dashboard.html | `wip/mocks/03_dashboard.html` | Dashboard | メインダッシュボード |
+| # | ファイル | パス | 画面 | サイズ |
+|---|----------|------|------|:------:|
+| 1 | 01_landing.html | `wip/mocks/01_landing.html` | Landing Page | XXkb |
+| 2 | 02_onboarding.html | `wip/mocks/02_onboarding.html` | Onboarding | XXkb |
 
-## 🔀 Screen Flow (画面遷移図) 🆕
+## 🔀 Screen Flow (画面遷移図)
 
-> QA Auditor が導通確認に使用します。全てのリンクがこの図と一致すること。
+> 10_design_pir.md の QA Auditor が導通確認に使用。全てのリンクがこの図と一致すること。
 
 ```mermaid
 flowchart LR
@@ -238,26 +308,21 @@ flowchart LR
     subgraph Main
         03[03_dashboard.html]
         04[04_unlock.html]
-        05[05_history.html]
     end
     
     01 -->|"Start Now"| 02
     02 -->|"Complete"| 03
     03 -->|"Unlock"| 04
-    03 -->|"History"| 05
-    04 -->|"Complete"| 03
 ```
 
-## 🔗 Link Validation Table 🆕
+## 🔗 Link Validation Table
 
 > 全ての `<a>` と主要 `<button>` の遷移先を記録
 
 | From | Element | To | Status |
 |------|---------|-----|:------:|
 | 01_landing.html | Hero CTA | 02_onboarding.html | ✅ |
-| 01_landing.html | Nav "FAQ" | 08_faq.html | ✅ |
 | 03_dashboard.html | "Unlock" button | 04_unlock.html | ✅ |
-| 03_dashboard.html | Nav "History" | 05_history.html | ✅ |
 
 ## Change Log
 | Date | Version | Changes |
@@ -267,21 +332,65 @@ flowchart LR
 
 ### 7.3 プッシュ順序
 
-1. `wip/wireframes/` 配下のファイル
+1. `wip/wireframes/` 配下のファイル（存在する場合）
 2. `wip/mocks/` 配下のファイル
 3. `DESIGN_MANIFEST.md`
 
-### 7.4 完了確認
+### 7.4 完了確認チェックリスト
 
-以下が全てGitにプッシュされていることを確認：
-- [ ] 全ワイヤーフレーム
-- [ ] 全モック
-- [ ] DESIGN_MANIFEST.md
-- [ ] 🆕 Screen Flow図が記載されている
-- [ ] 🆕 Link Validation Tableが記載されている
+- [ ] 全ワイヤーフレームがGitにプッシュ済み
+- [ ] 全モックがGitにプッシュ済み
+- [ ] DESIGN_MANIFEST.md がGitにプッシュ済み
+- [ ] Screen Flow図が記載されている
+- [ ] Link Validation Tableが記載されている
+- [ ] 各モックに冒頭コメントが含まれている
 
-## 8. 次のステップ
+---
+
+## 8. 状態更新（必須）
+
+### 8.1 UI_PROGRESS_TRACKER.md の更新
+
+```markdown
+## Active Session State
+
+| 項目 | 値 |
+|------|-----|
+| Current System | `{SYSTEM_ID}_{SYSTEM_NAME}` |
+| Current Phase | `09_design_create` → `10_design_pir` |
+| DESIGN_BRIEF | ✅ Created |
+| DESIGN_MANIFEST | ✅ Created |
+| Mocks Pushed | ✅ [N] files |
+| PIR Report | ⬜ Not Yet |
+
+### Last Completed Action
+- Date: [YYYY-MM-DD]
+- Action: 09_design_create completed
+- Output: DESIGN_MANIFEST.md + [N] mock files
+- Next: 10_design_pir.md
+```
+
+---
+
+## 9. 次のステップ
 
 完了後 → `10_design_pir.md` でDesign PIRを実施
 
-PIR担当者（特にQA Auditor）は `DESIGN_MANIFEST.md` の Screen Flow と Link Validation Table を参照してファイルにアクセス・検証します。
+PIR担当者（特にQA Auditor）は `DESIGN_MANIFEST.md` の:
+- Screen Flow図
+- Link Validation Table
+
+を参照してファイルにアクセス・検証します。
+
+---
+
+## トラブルシューティング
+
+### Q: DESIGN_BRIEFが見つからない
+A: 08_design_prep.md を先に実行してください。
+
+### Q: どの画面から作成すべきかわからない
+A: DESIGN_BRIEF の画面リストを優先度順に確認。通常はLP→Onboarding→Dashboard の順。
+
+### Q: モックのサイズが大きすぎる
+A: CSSはインライン化。画像は外部URLまたはbase64（小さい場合）。
