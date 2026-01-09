@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delegates - Token Hub | Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --accent-gold-glow: rgba(201, 169, 98, 0.3);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, var(--accent-gold-dim), transparent 60%); opacity: 0.4; }
+        .noise { position: absolute; inset: 0; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+        .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: var(--space-xl); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-2xl); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); text-decoration: none; color: inherit; }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+
+        .nav { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: var(--space-sm) var(--space-lg); font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-full); transition: all 0.2s; text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+
+        .wallet-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-lg); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .page-header { margin-bottom: var(--space-xl); }
+        .page-title { font-size: 32px; font-weight: 700; margin-bottom: var(--space-sm); display: flex; align-items: center; gap: var(--space-md); }
+        .page-subtitle { color: var(--text-secondary); font-size: 16px; }
+
+        .my-delegation { background: linear-gradient(135deg, var(--bg-secondary), var(--accent-gold-dim)); border: 1px solid var(--accent-gold); border-radius: var(--radius-xl); padding: var(--space-lg); margin-bottom: var(--space-xl); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-md); }
+        .my-delegation-info h3 { font-size: 16px; font-weight: 600; margin-bottom: var(--space-xs); }
+        .my-delegation-info p { font-size: 14px; color: var(--text-secondary); }
+        .my-delegation-value { text-align: right; }
+        .my-delegation-value .value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); color: var(--accent-gold); }
+        .my-delegation-value .label { font-size: 12px; color: var(--text-tertiary); }
+
+        .controls { display: flex; gap: var(--space-md); margin-bottom: var(--space-xl); flex-wrap: wrap; }
+        .search-box { flex: 1; min-width: 250px; display: flex; align-items: center; gap: var(--space-sm); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-sm) var(--space-md); }
+        .search-box:focus-within { border-color: var(--accent-gold); }
+        .search-box input { flex: 1; background: transparent; border: none; font-size: 14px; color: var(--text-primary); outline: none; }
+        .search-box input::placeholder { color: var(--text-muted); }
+        .filter-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-secondary); font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .filter-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .filter-btn.active { background: var(--accent-gold-dim); border-color: var(--accent-gold); color: var(--accent-gold); }
+
+        .stats-bar { display: flex; gap: var(--space-md); margin-bottom: var(--space-xl); flex-wrap: wrap; }
+        .stat-pill { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-full); font-size: 13px; }
+        .stat-pill-label { color: var(--text-tertiary); }
+        .stat-pill-value { font-family: var(--font-mono); font-weight: 500; color: var(--accent-gold); }
+
+        .delegate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--space-md); }
+
+        .delegate-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-lg); transition: all 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+        .delegate-card:hover { border-color: var(--accent-gold); transform: translateY(-2px); }
+
+        .delegate-header { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); }
+        .delegate-rank { width: 32px; height: 32px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--text-tertiary); }
+        .delegate-rank.top { background: var(--accent-gold); color: var(--bg-primary); }
+        .delegate-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-hinomaru)); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: white; }
+        .delegate-info { flex: 1; }
+        .delegate-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+        .delegate-handle { font-size: 13px; color: var(--text-tertiary); }
+
+        .delegate-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin-bottom: var(--space-lg); padding: var(--space-md) 0; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+        .delegate-stat { text-align: center; }
+        .delegate-stat-value { font-family: var(--font-mono); font-size: 16px; font-weight: 600; color: var(--accent-gold); }
+        .delegate-stat-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+        .delegate-votes { margin-bottom: var(--space-md); }
+        .delegate-votes-title { font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-sm); }
+        .delegate-vote { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) 0; font-size: 13px; }
+        .vote-status { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .vote-status.for { background: var(--success-dim); color: var(--success); }
+        .vote-status.against { background: rgba(224, 112, 64, 0.12); color: #e07040; }
+        .vote-title { flex: 1; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .delegate-btn { width: 100%; padding: var(--space-sm) var(--space-md); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-md); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; text-align: center; transition: all 0.2s; }
+        .delegate-card:hover .delegate-btn { background: var(--accent-hinomaru); color: white; }
+
+        .participation-badge { display: inline-flex; padding: 2px 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: 500; }
+        .participation-badge.high { background: var(--success-dim); color: var(--success); }
+        .participation-badge.medium { background: var(--accent-gold-dim); color: var(--accent-gold); }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: var(--space-md); }
+            .nav { order: 3; }
+            .delegate-grid { grid-template-columns: 1fr; }
+            .my-delegation { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="gold-glow"></div>
+        <div class="noise"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <a href="01_dashboard.html" class="logo">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-main">Quantum Shield</div>
+                    <div class="logo-sub">Token Hub</div>
+                </div>
+            </a>
+
+            <nav class="nav">
+                <a href="01_dashboard.html" class="nav-item">Dashboard</a>
+                <a href="02_lock_form.html" class="nav-item">Lock</a>
+                <a href="03_delegate_list.html" class="nav-item active">Delegate</a>
+                <a href="04_rewards_dashboard.html" class="nav-item">Rewards</a>
+            </nav>
+
+            <button class="wallet-btn">
+                <span class="wallet-dot"></span>
+                0x7a3f...9c2d
+            </button>
+        </header>
+
+        <div class="page-header">
+            <h1 class="page-title"><span>👥</span> Delegates</h1>
+            <p class="page-subtitle">信頼できるDelegateにveQSを委任して報酬を獲得</p>
+        </div>
+
+        <div class="my-delegation">
+            <div class="my-delegation-info">
+                <h3>💼 My Available veQS</h3>
+                <p>委任可能なveQS残高</p>
+            </div>
+            <div class="my-delegation-value">
+                <div class="value">6,225 veQS</div>
+                <div class="label">Available to delegate</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" placeholder="Search delegates by name or address...">
+            </div>
+            <button class="filter-btn active">📊 Top Voting Power</button>
+            <button class="filter-btn">⭐ Participation</button>
+            <button class="filter-btn">🆕 Recently Active</button>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-pill">
+                <span class="stat-pill-label">Total Delegates:</span>
+                <span class="stat-pill-value">142</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-pill-label">Total Delegated:</span>
+                <span class="stat-pill-value">4.2M veQS</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-pill-label">Avg Participation:</span>
+                <span class="stat-pill-value">87%</span>
+            </div>
+        </div>
+
+        <div class="delegate-grid">
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-rank top">1</div>
+                    <div class="delegate-avatar">W</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">渡辺 Delegate</div>
+                        <div class="delegate-handle">@watanabe_dao</div>
+                    </div>
+                    <span class="participation-badge high">98%</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat"><div class="delegate-stat-value">285K</div><div class="delegate-stat-label">veQS</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">342</div><div class="delegate-stat-label">Delegators</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">98%</div><div class="delegate-stat-label">Participation</div></div>
+                </div>
+                <div class="delegate-votes">
+                    <div class="delegate-votes-title">Recent Votes</div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-15: Fee Parameter Update</span></div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-14: New Prover Requirements</span></div>
+                </div>
+                <div class="delegate-btn">Delegate</div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-rank top">2</div>
+                    <div class="delegate-avatar">S</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">佐藤 Crypto</div>
+                        <div class="delegate-handle">@sato_crypto</div>
+                    </div>
+                    <span class="participation-badge high">95%</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat"><div class="delegate-stat-value">198K</div><div class="delegate-stat-label">veQS</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">256</div><div class="delegate-stat-label">Delegators</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">95%</div><div class="delegate-stat-label">Participation</div></div>
+                </div>
+                <div class="delegate-votes">
+                    <div class="delegate-votes-title">Recent Votes</div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-15: Fee Parameter Update</span></div>
+                    <div class="delegate-vote"><span class="vote-status against">✗</span><span class="vote-title">QIP-13: Treasury Allocation</span></div>
+                </div>
+                <div class="delegate-btn">Delegate</div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-rank top">3</div>
+                    <div class="delegate-avatar">T</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">田中 DeFi</div>
+                        <div class="delegate-handle">@tanaka_defi</div>
+                    </div>
+                    <span class="participation-badge medium">88%</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat"><div class="delegate-stat-value">156K</div><div class="delegate-stat-label">veQS</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">189</div><div class="delegate-stat-label">Delegators</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">88%</div><div class="delegate-stat-label">Participation</div></div>
+                </div>
+                <div class="delegate-votes">
+                    <div class="delegate-votes-title">Recent Votes</div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-15: Fee Parameter Update</span></div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-14: New Prover Requirements</span></div>
+                </div>
+                <div class="delegate-btn">Delegate</div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-rank">4</div>
+                    <div class="delegate-avatar">K</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">Koto Research</div>
+                        <div class="delegate-handle">@koto_research</div>
+                    </div>
+                    <span class="participation-badge high">100%</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat"><div class="delegate-stat-value">124K</div><div class="delegate-stat-label">veQS</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">145</div><div class="delegate-stat-label">Delegators</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">100%</div><div class="delegate-stat-label">Participation</div></div>
+                </div>
+                <div class="delegate-votes">
+                    <div class="delegate-votes-title">Recent Votes</div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-15: Fee Parameter Update</span></div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-14: New Prover Requirements</span></div>
+                </div>
+                <div class="delegate-btn">Delegate</div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-rank">5</div>
+                    <div class="delegate-avatar">M</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">Matsumoto DAO</div>
+                        <div class="delegate-handle">@matsumoto_dao</div>
+                    </div>
+                    <span class="participation-badge medium">82%</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat"><div class="delegate-stat-value">98K</div><div class="delegate-stat-label">veQS</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">112</div><div class="delegate-stat-label">Delegators</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">82%</div><div class="delegate-stat-label">Participation</div></div>
+                </div>
+                <div class="delegate-votes">
+                    <div class="delegate-votes-title">Recent Votes</div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-15: Fee Parameter Update</span></div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-13: Treasury Allocation</span></div>
+                </div>
+                <div class="delegate-btn">Delegate</div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-rank">6</div>
+                    <div class="delegate-avatar">Y</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">Yamamoto Node</div>
+                        <div class="delegate-handle">@yamamoto_node</div>
+                    </div>
+                    <span class="participation-badge medium">85%</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat"><div class="delegate-stat-value">87K</div><div class="delegate-stat-label">veQS</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">98</div><div class="delegate-stat-label">Delegators</div></div>
+                    <div class="delegate-stat"><div class="delegate-stat-value">85%</div><div class="delegate-stat-label">Participation</div></div>
+                </div>
+                <div class="delegate-votes">
+                    <div class="delegate-votes-title">Recent Votes</div>
+                    <div class="delegate-vote"><span class="vote-status for">✓</span><span class="vote-title">QIP-15: Fee Parameter Update</span></div>
+                    <div class="delegate-vote"><span class="vote-status against">✗</span><span class="vote-title">QIP-14: New Prover Requirements</span></div>
+                </div>
+                <div class="delegate-btn">Delegate</div>
+            </a>
+        </div>
+    </div>
+
+    <!--
+    ## Interactions Defined
+    | Element | Action | Target |
+    |---------|--------|--------|
+    | Logo | click | 01_dashboard.html |
+    | Nav - Dashboard | click | 01_dashboard.html |
+    | Nav - Lock | click | 02_lock_form.html |
+    | Nav - Delegate | click | 03_delegate_list.html |
+    | Nav - Rewards | click | 04_rewards_dashboard.html |
+    | Delegate card | click | 03_delegate_detail.html |
+    -->
+</body>
+</html>
