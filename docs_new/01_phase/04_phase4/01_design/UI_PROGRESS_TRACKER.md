@@ -55,15 +55,15 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  全体進捗: 56 / 176 画面 (32%) - PIR PASS分                     │
-│  ████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 32%                  │
+│  全体進捗: 72 / 176 画面 (41%) - PIR PASS分                     │
+│  ████████████████░░░░░░░░░░░░░░░░░░░░░░░░ 41%                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Phase 4A (Design):    56 / 176 完了                           │
+│  Phase 4A (Design):    72 / 176 完了                           │
 │  Phase 4B (Implement): 0 / 176 完了                            │
 │                                                                 │
 │  Design PASS: Consumer App (28) + Token Hub (18)               │
-│             + Observer/Challenger (10) = 56 screens             │
+│             + Governance (16) + Observer (10) = 72 screens     │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -74,13 +74,13 @@
 |:-:|--------|-----------|:-------:|:-----:|:-----:|:---:|:------:|
 | 1 | Consumer App | system_01_consumer | 28 | ✅ | 18/18 | ✅ PASS | 🟢 Design PIR PASS |
 | 2 | Token Hub | system_02_token_hub | 18 | ✅ | 10/10 | ✅ PASS | 🟢 Design PIR PASS |
-| 3 | Governance | system_03_governance | 16 | ⬜ | 0/16 | - | 🔴 Not Started |
+| 3 | Governance | system_03_governance | 16 | ✅ | 6/6 | ✅ PASS | 🟢 Design PIR PASS |
 | 4 | Prover Portal | system_04_prover | 28 | ⬜ | 0/28 | - | 🔴 Not Started |
 | 5 | Observer/Challenger | system_05_observer | 10 | ✅ | 7/7 | ✅ PASS | 🟢 Design PIR PASS |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **3** | **35** | **3** | |
+| | **Total** | | **179** | **4** | **41** | **4** | |
 
 ### ステータス凡例
 
@@ -110,7 +110,7 @@
 
 | Order | System | Directory | Reason | Status |
 |:-----:|--------|-----------|--------|:------:|
-| 5 | Governance | system_03_governance | Decentralized Edition | 🔴 |
+| 5 | Governance | system_03_governance | Decentralized Edition | 🟢 Design PIR PASS |
 | 6 | Explorer | system_06_explorer | 透明性、公開情報 | 🔴 |
 | 7 | Enterprise Admin | system_07_enterprise | Enterprise Edition | 🔴 |
 
@@ -369,6 +369,18 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 04_claim_rewards.html | 13KB | Claim Rewards |
 | **Total** | **~179KB** | **18 screens** |
 
+## Governance (System 03) - 6 files
+
+| File | Size | Screens Covered |
+|------|:----:|-----------------|
+| 01_dashboard.html | 33KB | Governance Dashboard |
+| 02_proposals_list.html | 31KB | Proposal List |
+| 02_proposal_detail.html | 28KB | Proposal Detail + Vote |
+| 03_create_proposal.html | 23KB | Create Proposal |
+| 04_my_activity.html | 20KB | My Activity |
+| 05_council.html | 23KB | Council Overview |
+| **Total** | **~158KB** | **16 screens** |
+
 ## Observer/Challenger (System 05) - 7 files
 
 | File | Size | Screens Covered |
@@ -429,6 +441,8 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Observer/Challenger | Design | DESIGN_BRIEF作成完了、08_design_prep完了 |
 | 2026-01-10 | Observer/Challenger | Design | 09_design_create完了、7ファイル/10画面のモック作成、DESIGN_MANIFEST作成 |
 | 2026-01-10 | Observer/Challenger | PIR | **PIR PASS (v1.0)** - Critical/High指摘なし、デザイン完了 |
+| 2026-01-10 | Governance | Merge | ブランチ統合 - system_03_governance追加 (6ファイル/16画面) |
+| 2026-01-10 | Governance | PIR | **PIR PASS (v1.0)** - 別ブランチからマージ |
 
 ---
 
