@@ -101,6 +101,16 @@
         }
         .form-input:focus { outline: none; border-color: var(--accent-hinomaru); box-shadow: 0 0 0 3px var(--accent-hinomaru-dim); }
         .form-input::placeholder { color: var(--text-muted); }
+        /* Error States */
+        .form-input.error { border-color: #e07040; box-shadow: 0 0 0 3px rgba(224, 112, 64, 0.12); }
+        .form-group.has-error .form-input { border-color: #e07040; }
+        .form-error {
+            display: flex; align-items: center; gap: 6px;
+            color: #e07040; font-size: 12px; margin-top: 6px;
+        }
+        .form-error::before { content: '⚠'; font-size: 14px; }
+        .form-success { display: flex; align-items: center; gap: 6px; color: var(--success); font-size: 12px; margin-top: 6px; }
+        .form-success::before { content: '✓'; font-size: 14px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239898a0'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
         .form-checkbox { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }

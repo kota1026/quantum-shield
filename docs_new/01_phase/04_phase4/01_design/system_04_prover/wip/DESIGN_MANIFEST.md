@@ -194,6 +194,17 @@ LEGEND:
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2024-03-20 | Initial creation - All 11 HTML mocks complete |
+| 1.1 | 2026-01-10 | PIR指摘対応 - 5件修正完了 |
+
+### v1.1 PIR Fix Details
+
+| # | Severity | File | Fix Applied |
+|:-:|:--------:|------|-------------|
+| 1 | Medium | All files | フッターに利用規約・プライバシーポリシーリンク追加 |
+| 2 | Low | 02_requirements.html | Market Comparison セクション追加（競合比較表） |
+| 3 | Medium | 07_queue.html | Empty State UI追加（キュー空時表示） |
+| 4 | Low | 03_application.html | Form Error CSS追加（.form-error, .form-input.error） |
+| 5 | Low | 05_activation.html | Loading UI追加（spinner, progress bar） |
 
 ---
 

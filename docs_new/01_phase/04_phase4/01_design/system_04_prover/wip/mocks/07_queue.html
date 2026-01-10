@@ -413,9 +413,16 @@
                 <button class="filter-btn">Urgent (4)</button>
             </div>
 
+            <!-- Empty State (shown when queue is empty) -->
+            <div class="queue-empty-state" id="queue-empty" style="display: none; text-align: center; padding: 80px 40px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl);">
+                <div style="font-size: 64px; margin-bottom: 24px; opacity: 0.5;">📭</div>
+                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 12px;">No Pending Requests</h3>
+                <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 24px;">There are currently no signature requests in the queue. New requests will appear here automatically.</p>
+                <button class="btn btn-outline" onclick="location.reload()">↻ Refresh Queue</button>
+            </div>
+
             <!-- Queue Table -->
-            <div class="queue-card">
-                <table class="queue-table">
+            <div class="queue-card" id="queue-table">
                     <thead>
                         <tr>
                             <th>Request ID</th>
