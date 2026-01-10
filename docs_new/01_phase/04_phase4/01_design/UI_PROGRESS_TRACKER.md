@@ -1,8 +1,8 @@
 # 📊 UI Progress Tracker
 ## Phase 4 UI 176画面 進捗管理
 
-> **Version**: 1.4  
-> **Date**: 2026-01-09  
+> **Version**: 1.5  
+> **Date**: 2026-01-10  
 > **Design System**: Premium Japan v1.0
 
 ---
@@ -14,24 +14,23 @@
 
 | 項目 | 値 |
 |------|-----|
-| Current System | `01_consumer` |
-| Current Phase | ✅ Completed |
+| Current System | `02_token_hub` |
+| Current Phase | `10_design_pir` |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ✅ Created (v1.5) |
-| Mocks Pushed | ✅ 18 files |
-| PIR Report | ✅ Created |
-| PIR Judgment | ✅ PASS |
-| Fix Status | N/A (PASS判定のため不要) |
+| DESIGN_MANIFEST | ✅ Created (v1.1) |
+| Mocks Pushed | ✅ 9 files |
+| PIR Report | ⬜ Pending |
+| PIR Judgment | ⬜ Pending |
+| Fix Status | N/A |
 
 ### Last Completed Action
-- **Date**: 2026-01-08
-- **Action**: Consumer App Design v1.5 完了（Legal Pages追加）
-- **Output**: PIR_CONSUMER.md, 18 HTML mocks
-- **Next**: 次システム（Token Hub または Prover Portal）
+- **Date**: 2026-01-10
+- **Action**: Token Hub モック9ファイル wip/mocks/へ移行完了
+- **Output**: DESIGN_MANIFEST.md (v1.1), 9 HTML mocks
+- **Next**: 10_design_pir.md でPIRレビュー実行
 
-### Next System to Start
-優先度順に次のシステム:
-1. **Token Hub (P0)** - DESIGN_BRIEF作成済み、モック作成待ち
+### Next Actions
+1. **Token Hub PIR** - 10_design_pir.md 実行
 2. **Prover Portal (P0)** - 収益の要
 3. **QS Admin (P0)** - 運用必須
 
@@ -43,11 +42,11 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  全体進捗: 28 / 176 画面 (16%)                                  │
-│  ██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 16%                  │
+│  全体進捗: 46 / 176 画面 (26%)                                  │
+│  ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 26%                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Phase 4A (Design):    28 / 176 完了                           │
+│  Phase 4A (Design):    46 / 176 完了                           │
 │  Phase 4B (Implement): 0 / 176 完了                            │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -58,21 +57,21 @@
 | # | System | Directory | Screens | Brief | Mocks | PIR | Status |
 |:-:|--------|-----------|:-------:|:-----:|:-----:|:---:|:------:|
 | 1 | Consumer App | system_01_consumer | 28 | ✅ | 18/18 | ✅ PASS | 🟢 Design PIR PASS |
-| 2 | Token Hub | system_02_token_hub | 18 | ✅ | 0/18 | - | 🟡 Brief Ready |
+| 2 | Token Hub | system_02_token_hub | 18 | ✅ | 9/9 | ⬜ | 🟡 Mocks Ready |
 | 3 | Governance | system_03_governance | 16 | ⬜ | 0/16 | - | 🔴 Not Started |
 | 4 | Prover Portal | system_04_prover | 28 | ⬜ | 0/28 | - | 🔴 Not Started |
 | 5 | Observer/Challenger | system_05_observer | 10 | ⬜ | 0/10 | - | 🔴 Not Started |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **2** | **18** | **1** | |
+| | **Total** | | **179** | **2** | **27** | **1** | |
 
 ### ステータス凡例
 
 | Status | 意味 |
 |:------:|------|
 | 🔴 | Not Started - 未着手 |
-| 🟡 | In Progress - 進行中（Brief Ready含む） |
+| 🟡 | In Progress - 進行中（Brief Ready/Mocks Ready含む） |
 | 🟢 | Design PIR PASS - デザイン完了 |
 | 🔵 | Implementing - 実装中 |
 | ✅ | Complete - 全完了 |
@@ -87,7 +86,7 @@
 | Order | System | Directory | Reason | Status |
 |:-----:|--------|-----------|--------|:------:|
 | 1 | Consumer App | system_01_consumer | コアユーザー体験、MVP必須 | 🟢 Design PIR PASS |
-| 2 | Token Hub | system_02_token_hub | Decentralized Edition 必須 | 🟡 Brief Ready |
+| 2 | Token Hub | system_02_token_hub | Decentralized Edition 必須 | 🟡 Mocks Ready |
 | 3 | Prover Portal | system_04_prover | 収益の要、ローンチ必須 | 🔴 |
 | 4 | QS Admin | system_08_qs_admin | 運用必須、既存コード拡張 | 🔴 |
 
@@ -211,55 +210,58 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 
 # System 2: Token Hub (18 screens) 🟡
 
-## Status: Brief Ready - Awaiting Mock Creation
+## Status: Mocks Ready - Awaiting PIR
 
 - **Directory**: `system_02_token_hub/`
 - **DESIGN_BRIEF**: ✅ Created (2026-01-08)
-- **Mock完了**: 0/18 画面
-- **次ステップ**: 09_design_create.md でモック作成
+- **DESIGN_MANIFEST**: ✅ Created v1.1 (2026-01-10)
+- **Mock完了**: 9/9 ファイル (100%)
+- **画面カバー**: 18画面
+- **ファイル**: `system_02_token_hub/wip/mocks/`
+- **次ステップ**: 10_design_pir.md でPIRレビュー
 
 ## 2.1 Dashboard (1)
 
-| # | Screen | Brief | Mock | Impl | Notes |
-|:-:|--------|:-----:|:----:|:----:|-------|
-| 2-1 | Token Dashboard | ✅ | ⬜ | ⬜ | QS/veQS残高、投票力 |
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 2-1 | Token Dashboard | ✅ | ⬜ | ⬜ | 01_dashboard.html |
 
 ## 2.2 veQS Lock (4)
 
-| # | Screen | Brief | Mock | Impl | Notes |
-|:-:|--------|:-----:|:----:|:----:|-------|
-| 2-2 | Lock Form | ✅ | ⬜ | ⬜ | |
-| 2-3 | Lock Preview | ✅ | ⬜ | ⬜ | 投票力計算 |
-| 2-4 | Lock Confirm | ✅ | ⬜ | ⬜ | |
-| 2-5 | Lock Success | ✅ | ⬜ | ⬜ | |
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 2-2 | Lock Form | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
+| 2-3 | Lock Preview | ✅ | ⬜ | ⬜ | 02_lock_preview.html |
+| 2-4 | Lock Confirm | ✅ | ⬜ | ⬜ | 02_lock_confirm.html |
+| 2-5 | Lock Success | ✅ | ⬜ | ⬜ | 02_lock_success.html |
 
 ## 2.3 veQS Manage (4)
 
-| # | Screen | Brief | Mock | Impl | Notes |
-|:-:|--------|:-----:|:----:|:----:|-------|
-| 2-6 | Extend Lock | ✅ | ⬜ | ⬜ | |
-| 2-7 | Early Unlock | ✅ | ⬜ | ⬜ | ペナルティ計算 |
-| 2-8 | Normal Unlock | ✅ | ⬜ | ⬜ | |
-| 2-9 | Unlock Success | ✅ | ⬜ | ⬜ | |
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 2-6 | Extend Lock | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
+| 2-7 | Early Unlock | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
+| 2-8 | Normal Unlock | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
+| 2-9 | Unlock Success | ✅ | ⬜ | ⬜ | 02_lock_success.html流用 |
 
 ## 2.4 Delegation (5)
 
-| # | Screen | Brief | Mock | Impl | Notes |
-|:-:|--------|:-----:|:----:|:----:|-------|
-| 2-10 | Delegate List | ✅ | ⬜ | ⬜ | |
-| 2-11 | Delegate Detail | ✅ | ⬜ | ⬜ | |
-| 2-12 | Delegate Form | ✅ | ⬜ | ⬜ | |
-| 2-13 | My Delegations | ✅ | ⬜ | ⬜ | |
-| 2-14 | Undelegate | ✅ | ⬜ | ⬜ | |
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 2-10 | Delegate List | ✅ | ⬜ | ⬜ | 03_delegate_list.html |
+| 2-11 | Delegate Detail | ✅ | ⬜ | ⬜ | 03_delegate_detail.html |
+| 2-12 | Delegate Form | ✅ | ⬜ | ⬜ | 03_delegate_form.html |
+| 2-13 | My Delegations | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
+| 2-14 | Undelegate | ✅ | ⬜ | ⬜ | 03_delegate_form.html流用 |
 
 ## 2.5 Rewards (4)
 
-| # | Screen | Brief | Mock | Impl | Notes |
-|:-:|--------|:-----:|:----:|:----:|-------|
-| 2-15 | Rewards Dashboard | ✅ | ⬜ | ⬜ | |
-| 2-16 | Claim Rewards | ✅ | ⬜ | ⬜ | |
-| 2-17 | Rewards History | ✅ | ⬜ | ⬜ | |
-| 2-18 | Become Delegate | ✅ | ⬜ | ⬜ | 任意登録 |
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 2-15 | Rewards Dashboard | ✅ | ⬜ | ⬜ | 04_rewards_dashboard.html |
+| 2-16 | Claim Rewards | ✅ | ⬜ | ⬜ | 04_claim_rewards.html |
+| 2-17 | Rewards History | ✅ | ⬜ | ⬜ | 04_rewards_dashboard.html内 |
+| 2-18 | Become Delegate | ✅ | ⬜ | ⬜ | 03_delegate_form.html流用 |
 
 ---
 
@@ -295,6 +297,21 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 17_terms.html | 15KB | Terms of Service |
 | 18_privacy.html | 22KB | Privacy Policy |
 | **Total** | **~307KB** | **28 screens** |
+
+## Token Hub (System 02) - 9 files
+
+| File | Size | Screens Covered |
+|------|:----:|-----------------| 
+| 01_dashboard.html | 25KB | Dashboard, Lock Form, veQS Manage, My Delegations |
+| 02_lock_preview.html | 17KB | Lock Preview (投票力計算) |
+| 02_lock_confirm.html | 13KB | Lock Confirm |
+| 02_lock_success.html | 12KB | Lock Success, Unlock Success |
+| 03_delegate_list.html | 24KB | Delegate List |
+| 03_delegate_detail.html | 18KB | Delegate Detail |
+| 03_delegate_form.html | 12KB | Delegate Form, Undelegate, Become Delegate |
+| 04_rewards_dashboard.html | 19KB | Rewards Dashboard, Rewards History |
+| 04_claim_rewards.html | 13KB | Claim Rewards |
+| **Total** | **~153KB** | **18 screens** |
 
 ---
 
@@ -334,6 +351,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-08 | Token Hub | Design | DESIGN_BRIEF作成完了 |
 | 2026-01-09 | - | - | Active Session State更新、ディレクトリ命名規則追加 |
 | 2026-01-09 | - | - | 実態との整合性修正（v1.4） |
+| 2026-01-10 | Token Hub | Design | 9ファイル wip/mocks/へ移行完了、MANIFEST v1.1 |
 
 ---
 
