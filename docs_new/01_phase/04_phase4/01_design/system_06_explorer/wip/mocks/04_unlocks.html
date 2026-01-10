@@ -1,0 +1,334 @@
+<!--
+## File Info
+- System: Explorer
+- Screen: Unlock List, Unlock Detail
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-overview | click | 01_overview.html |
+| .nav-locks | click | 03_locks.html |
+| .nav-unlocks | click | 04_unlocks.html |
+| .nav-challenges | click | 05_challenges.html |
+| .nav-provers | click | 07_provers.html |
+| .nav-analytics | click | 08_analytics.html |
+| .unlock-row | click | showUnlockDetail() |
+| .close-detail | click | closeUnlockDetail() |
+| .lock-link | click | 03_locks.html#detail |
+| .prover-link | click | 07_provers.html#detail |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlocks - Explorer - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --pending: #8080a0; --pending-dim: rgba(128, 128, 160, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-display); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+        a { color: inherit; text-decoration: none; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .red-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 24px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; margin-bottom: 32px; }
+        .logo { display: flex; align-items: center; gap: 16px; }
+        .logo-hinomaru { width: 44px; height: 44px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 20px; height: 20px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px rgba(188, 0, 45, 0.4); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 18px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+        .nav { display: flex; gap: 4px; background: var(--bg-secondary); padding: 4px; border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: 8px 20px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-full); transition: all 0.2s; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+        .page-title { font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        .page-title::before { content: ''; width: 4px; height: 28px; background: var(--accent-hinomaru); border-radius: 2px; }
+        .page-stats { display: flex; gap: 24px; }
+        .page-stat { text-align: right; }
+        .page-stat-value { font-size: 20px; font-weight: 600; color: var(--accent-gold); }
+        .page-stat-label { font-size: 12px; color: var(--text-secondary); }
+        .filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .filter-select { padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-primary); font-size: 14px; cursor: pointer; }
+        .filter-select:focus { outline: none; border-color: var(--accent-hinomaru); }
+        .table-container { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; padding: 14px 16px; font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle); }
+        .data-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--border-subtle); }
+        .data-table tbody tr { cursor: pointer; transition: background 0.2s; }
+        .data-table tbody tr:hover { background: var(--bg-elevated); }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500; border-radius: var(--radius-full); }
+        .badge-pending { background: var(--pending-dim); color: var(--pending); }
+        .badge-complete { background: var(--success-dim); color: var(--success); }
+        .badge-challenged { background: var(--warning-dim); color: var(--warning); }
+        .mono { font-family: var(--font-mono); font-size: 13px; }
+        .truncate { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; }
+        .type-normal { color: var(--text-secondary); }
+        .type-emergency { color: var(--warning); }
+        .pagination { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--border-subtle); }
+        .pagination-info { font-size: 14px; color: var(--text-secondary); }
+        .pagination-btns { display: flex; gap: 8px; }
+        .pagination-btn { padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 14px; cursor: pointer; }
+        .pagination-btn:hover:not(:disabled) { color: var(--text-primary); }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination-btn.active { background: var(--accent-hinomaru-dim); border-color: var(--accent-hinomaru); color: var(--accent-hinomaru-light); }
+        .detail-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; }
+        .detail-overlay.active { display: block; }
+        .detail-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 100%; background: var(--bg-primary); border-left: 1px solid var(--border-subtle); z-index: 101; transform: translateX(100%); transition: transform 0.3s ease; overflow-y: auto; }
+        .detail-panel.active { transform: translateX(0); }
+        .detail-header { display: flex; justify-content: space-between; align-items: center; padding: 24px; border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; background: var(--bg-primary); z-index: 1; }
+        .detail-title { font-size: 18px; font-weight: 600; }
+        .close-detail { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-secondary); cursor: pointer; }
+        .close-detail:hover { color: var(--text-primary); }
+        .detail-content { padding: 24px; }
+        .detail-section { margin-bottom: 24px; }
+        .detail-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-gold); margin-bottom: 12px; }
+        .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-subtle); }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--text-secondary); font-size: 14px; }
+        .detail-value { font-size: 14px; text-align: right; max-width: 60%; word-break: break-all; }
+        .detail-value a { color: var(--accent-gold); }
+        .detail-value a:hover { text-decoration: underline; }
+        .timelock-bar { margin: 16px 0; }
+        .timelock-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .timelock-progress { height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
+        .timelock-fill { height: 100%; background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold)); border-radius: 4px; transition: width 0.3s; }
+        .prover-list { display: flex; flex-direction: column; gap: 8px; }
+        .prover-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); }
+        .prover-name { font-size: 13px; }
+        .prover-status { font-size: 12px; }
+        .prover-status.signed { color: var(--success); }
+        .prover-status.pending { color: var(--pending); }
+        @media (max-width: 768px) {
+            .header { flex-wrap: wrap; gap: 16px; }
+            .nav { order: 2; width: 100%; overflow-x: auto; }
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .detail-panel { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="red-glow"></div></div>
+    <div class="container">
+        <header class="header">
+            <a href="01_overview.html" class="logo">
+                <div class="logo-hinomaru"><div class="logo-circle-outer"></div><div class="logo-hinomaru-inner"></div></div>
+                <div class="logo-text"><span class="logo-main">Quantum Shield</span><span class="logo-sub">Explorer</span></div>
+            </a>
+            <nav class="nav">
+                <a href="01_overview.html" class="nav-item">Overview</a>
+                <a href="03_locks.html" class="nav-item">Locks</a>
+                <a href="04_unlocks.html" class="nav-item active">Unlocks</a>
+                <a href="05_challenges.html" class="nav-item">Challenges</a>
+                <a href="07_provers.html" class="nav-item">Provers</a>
+                <a href="08_analytics.html" class="nav-item">Analytics</a>
+            </nav>
+        </header>
+
+        <div class="page-header">
+            <h1 class="page-title">All Unlocks</h1>
+            <div class="page-stats">
+                <div class="page-stat"><div class="page-stat-value">127</div><div class="page-stat-label">Pending</div></div>
+                <div class="page-stat"><div class="page-stat-value">8,234</div><div class="page-stat-label">Completed</div></div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <select class="filter-select">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="complete">Complete</option>
+                <option value="challenged">Challenged</option>
+            </select>
+            <select class="filter-select">
+                <option value="all">All Types</option>
+                <option value="normal">Normal</option>
+                <option value="emergency">Emergency</option>
+            </select>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Unlock ID</th>
+                        <th>Lock ID</th>
+                        <th>Type</th>
+                        <th>Time Lock</th>
+                        <th>Prover Sigs</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="unlock-row" onclick="showUnlockDetail('8921')">
+                        <td><span class="mono truncate">0x2e7f...d934</span></td>
+                        <td><span class="mono truncate">0x7a3f...e821</span></td>
+                        <td><span class="type-normal">Normal</span></td>
+                        <td>23h 14m left</td>
+                        <td>3/5</td>
+                        <td><span class="badge badge-pending">Pending</span></td>
+                    </tr>
+                    <tr class="unlock-row" onclick="showUnlockDetail('8920')">
+                        <td><span class="mono truncate">0x5c9a...e127</span></td>
+                        <td><span class="mono truncate">0x4d8e...a923</span></td>
+                        <td><span class="type-emergency">Emergency</span></td>
+                        <td>6d 18h left</td>
+                        <td>5/5</td>
+                        <td><span class="badge badge-pending">Pending</span></td>
+                    </tr>
+                    <tr class="unlock-row" onclick="showUnlockDetail('8919')">
+                        <td><span class="mono truncate">0x3b1d...f842</span></td>
+                        <td><span class="mono truncate">0x1f6a...c734</span></td>
+                        <td><span class="type-normal">Normal</span></td>
+                        <td>-</td>
+                        <td>5/5</td>
+                        <td><span class="badge badge-complete">Complete</span></td>
+                    </tr>
+                    <tr class="unlock-row" onclick="showUnlockDetail('8918')">
+                        <td><span class="mono truncate">0x7d4e...a563</span></td>
+                        <td><span class="mono truncate">0x8c3d...b156</span></td>
+                        <td><span class="type-normal">Normal</span></td>
+                        <td>Defense: 47h</td>
+                        <td>4/5</td>
+                        <td><span class="badge badge-challenged">Challenged</span></td>
+                    </tr>
+                    <tr class="unlock-row" onclick="showUnlockDetail('8917')">
+                        <td><span class="mono truncate">0x9f2c...b718</span></td>
+                        <td><span class="mono truncate">0x2e7f...d934</span></td>
+                        <td><span class="type-normal">Normal</span></td>
+                        <td>-</td>
+                        <td>5/5</td>
+                        <td><span class="badge badge-complete">Complete</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="pagination">
+                <div class="pagination-info">Showing 1-5 of 8,361 unlocks</div>
+                <div class="pagination-btns">
+                    <button class="pagination-btn" disabled>Previous</button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-overlay" onclick="closeUnlockDetail()"></div>
+    <div class="detail-panel" id="detail-panel">
+        <div class="detail-header">
+            <h2 class="detail-title">Unlock Details</h2>
+            <button class="close-detail" onclick="closeUnlockDetail()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="detail-content">
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <span class="badge badge-pending">Pending</span>
+                <span class="badge" style="background: var(--bg-secondary); color: var(--text-secondary);">Normal</span>
+            </div>
+
+            <div class="timelock-bar">
+                <div class="timelock-header">
+                    <span style="color: var(--text-secondary);">Time Lock Progress</span>
+                    <span style="color: var(--accent-gold);">23h 14m remaining</span>
+                </div>
+                <div class="timelock-progress">
+                    <div class="timelock-fill" style="width: 3%;"></div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-section-title">Unlock Information</div>
+                <div class="detail-row">
+                    <span class="detail-label">Unlock ID</span>
+                    <span class="detail-value mono">0x2e7f8d...d934a127</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Lock ID</span>
+                    <span class="detail-value mono"><a href="03_locks.html#lock-24891" class="lock-link">0x7a3f...e821</a></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Request Time</span>
+                    <span class="detail-value">2026-01-10 14:46:22 UTC</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time Lock End</span>
+                    <span class="detail-value">2026-01-11 14:46:22 UTC</span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-section-title">Dilithium Signature</div>
+                <div class="detail-row">
+                    <span class="detail-label">Signature Hash</span>
+                    <span class="detail-value mono" style="font-size: 11px;">dil3_sig_0x8f2a...verified</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Verified</span>
+                    <span class="detail-value" style="color: var(--success);">Yes</span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="detail-section-title">Prover Signatures (3/5)</div>
+                <div class="prover-list">
+                    <div class="prover-item">
+                        <a href="07_provers.html#prover-1" class="prover-name prover-link" style="color: var(--accent-gold);">Prover Alpha</a>
+                        <span class="prover-status signed">Signed</span>
+                    </div>
+                    <div class="prover-item">
+                        <a href="07_provers.html#prover-2" class="prover-name prover-link" style="color: var(--accent-gold);">Prover Beta</a>
+                        <span class="prover-status signed">Signed</span>
+                    </div>
+                    <div class="prover-item">
+                        <a href="07_provers.html#prover-3" class="prover-name prover-link" style="color: var(--accent-gold);">Prover Gamma</a>
+                        <span class="prover-status signed">Signed</span>
+                    </div>
+                    <div class="prover-item">
+                        <span class="prover-name">Prover Delta</span>
+                        <span class="prover-status pending">Pending</span>
+                    </div>
+                    <div class="prover-item">
+                        <span class="prover-name">Prover Epsilon</span>
+                        <span class="prover-status pending">Pending</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showUnlockDetail(id) {
+            document.querySelector('.detail-overlay').classList.add('active');
+            document.getElementById('detail-panel').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeUnlockDetail() {
+            document.querySelector('.detail-overlay').classList.remove('active');
+            document.getElementById('detail-panel').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeUnlockDetail(); });
+    </script>
+</body>
+</html>

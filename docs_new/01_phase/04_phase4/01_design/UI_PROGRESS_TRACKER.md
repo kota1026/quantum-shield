@@ -15,21 +15,21 @@
 | 項目 | 値 |
 |------|-----|
 | Current System | `06_explorer` |
-| Current Phase | `08_design_prep` → `09_design_create` |
+| Current Phase | `09_design_create` → `10_design_pir` |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ⬜ Not Yet |
-| Mocks Pushed | ⬜ 0 files |
+| DESIGN_MANIFEST | ✅ Created |
+| Mocks Pushed | ✅ 8 files |
 | PIR Report | ⬜ Not Yet |
 | PIR Judgment | - |
 | Fix Status | - |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: 08_design_prep completed for Explorer
+- **Action**: 09_design_create completed for Explorer
 - **Output**:
-  - `DESIGN_BRIEF_explorer.md` (Created)
-  - `wip/wireframes/`, `wip/mocks/` directories created
-- **Next**: 09_design_create.md でモック作成
+  - `DESIGN_MANIFEST.md` (Created)
+  - 8 HTML mocks (14 screens) in `wip/mocks/`
+- **Next**: 10_design_pir.md でPIRレビュー
 
 ### Previous System (Observer/Challenger) - COMPLETE ✅
 
@@ -37,7 +37,7 @@
 - 7ファイル / 10画面 完了
 
 ### Next Actions
-1. **Explorer (P1)** - 現在進行中、09_design_createへ
+1. **Explorer (P1)** - PIRレビュー待ち
 2. **Enterprise Admin (P1)** - Enterprise Edition
 3. **QS Admin (P0)** - 運用必須
 
@@ -71,7 +71,7 @@
 | 3 | Governance | system_03_governance | 16 | ✅ | 6/6 | ✅ PASS | 🟢 Design PIR PASS |
 | 4 | Prover Portal | system_04_prover | 28 | ✅ | 11/11 | ✅ PASS | 🟢 Design PIR PASS |
 | 5 | Observer/Challenger | system_05_observer | 10 | ✅ | 7/7 | ✅ PASS | 🟢 Design PIR PASS |
-| 6 | Explorer | system_06_explorer | 14 | ✅ | 0/14 | - | 🟡 Brief Ready |
+| 6 | Explorer | system_06_explorer | 14 | ✅ | 8/8 | - | 🟡 Mocks Ready |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
 | | **Total** | | **179** | **5** | **52** | **5** | |
@@ -105,7 +105,7 @@
 | Order | System | Directory | Reason | Status |
 |:-----:|--------|-----------|--------|:------:|
 | 5 | Governance | system_03_governance | Decentralized Edition | 🟢 Design PIR PASS |
-| 6 | Explorer | system_06_explorer | 透明性、公開情報 | 🟡 Brief Ready |
+| 6 | Explorer | system_06_explorer | 透明性、公開情報 | 🟡 Mocks Ready |
 | 7 | Enterprise Admin | system_07_enterprise | Enterprise Edition | 🔴 |
 
 ## P2: Nice to Have
@@ -457,6 +457,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Prover Portal | Merge | ブランチ統合 - system_04_prover追加 (11ファイル/28画面) |
 | 2026-01-10 | Prover Portal | PIR | **PIR PASS (v1.0)** - 別ブランチからマージ |
 | 2026-01-10 | Explorer | Design | 08_design_prep完了、DESIGN_BRIEF_explorer.md作成 |
+| 2026-01-10 | Explorer | Design | 09_design_create完了、8ファイル/14画面のモック作成、DESIGN_MANIFEST作成 |
 
 ---
 
