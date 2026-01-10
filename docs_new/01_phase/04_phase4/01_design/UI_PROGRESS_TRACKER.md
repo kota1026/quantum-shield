@@ -14,25 +14,24 @@
 
 | 項目 | 値 |
 |------|-----|
-| Current System | `02_token_hub` → **COMPLETE** |
-| Current Phase | `10_design_pir` → **Re-PIR PASS** |
+| Current System | `05_observer` |
+| Current Phase | `08_design_prep` → `09_design_create` |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ✅ v1.2 |
-| Mocks Pushed | ✅ 10 files |
-| PIR Report | ✅ v2.0 PASS |
-| PIR Judgment | ✅ **PASS** |
-| Fix Status | ✅ All issues resolved |
+| DESIGN_MANIFEST | ⬜ Not Yet |
+| Mocks Pushed | ⬜ 0 files |
+| PIR Report | ⬜ Not Yet |
+| PIR Judgment | ⬜ - |
+| Fix Status | ⬜ - |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: 10_design_pir.md (Re-PIR) - **PASS判定**
-- **Output**: 
-  - `PIR_TOKEN_HUB.md` - v2.0 PASS
-  - All Critical/High/Medium issues verified as resolved
-- **Commits**:
-  - `b9d3e0e` docs(token_hub): PIR v2.0 - PASS 判定
+- **Action**: 08_design_prep completed for Observer/Challenger
+- **Output**:
+  - `DESIGN_BRIEF_observer.md`
+  - wip/wireframes/ & wip/mocks/ directories created
+- **Next**: 09_design_create.md
 
-### PIR v2.0 Summary
+### Previous System (Token Hub) - COMPLETE
 
 | # | 重要度 | 問題 | 状態 |
 |---|:------:|------|:----:|
@@ -44,9 +43,9 @@
 | 6 | Medium | DESIGN_MANIFEST更新 | ✅ 修正済 |
 
 ### Next Actions
-1. **Prover Portal (P0)** - 収益の要、次の優先システム
-2. **QS Admin (P0)** - 運用必須
-3. **Governance (P1)** - Decentralized Edition
+1. **Observer/Challenger (P2)** - 現在進行中、09_design_createへ
+2. **Prover Portal (P0)** - 収益の要
+3. **QS Admin (P0)** - 運用必須
 
 ---
 
@@ -76,11 +75,11 @@
 | 2 | Token Hub | system_02_token_hub | 18 | ✅ | 10/10 | ✅ PASS | 🟢 Design PIR PASS |
 | 3 | Governance | system_03_governance | 16 | ⬜ | 0/16 | - | 🔴 Not Started |
 | 4 | Prover Portal | system_04_prover | 28 | ⬜ | 0/28 | - | 🔴 Not Started |
-| 5 | Observer/Challenger | system_05_observer | 10 | ⬜ | 0/10 | - | 🔴 Not Started |
+| 5 | Observer/Challenger | system_05_observer | 10 | ✅ | 0/10 | - | 🟡 Brief Ready |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **2** | **28** | **2** | |
+| | **Total** | | **179** | **3** | **28** | **2** | |
 
 ### ステータス凡例
 
@@ -118,7 +117,7 @@
 
 | Order | System | Directory | Reason | Status |
 |:-----:|--------|-----------|--------|:------:|
-| 8 | Observer/Challenger | system_05_observer | Permissionless 参加 | 🔴 |
+| 8 | Observer/Challenger | system_05_observer | Permissionless 参加 | 🟡 Brief Ready |
 
 ---
 
@@ -374,6 +373,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Token Hub | PIR | PIR FAIL (v1.0) - 6件の指摘事項 |
 | 2026-01-10 | Token Hub | Fix | 11_design_fix完了 - Critical/High全件修正済 |
 | 2026-01-10 | Token Hub | PIR | **PIR PASS (v2.0)** - Re-PIR承認 |
+| 2026-01-10 | Observer/Challenger | Design | DESIGN_BRIEF作成完了、08_design_prep完了 |
 
 ---
 
