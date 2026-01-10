@@ -9,7 +9,7 @@
 | Directory | system_06_explorer |
 | Created | 2026-01-10 |
 | Last Updated | 2026-01-10 |
-| Status | 🟢 PIR Ready |
+| Status | 🟢 PIR PASS |
 | Total Screens | 14 |
 | Total Files | 8 |
 
@@ -238,6 +238,7 @@ flowchart TB
 | Date | Version | Changes |
 |------|---------|---------|
 | 2026-01-10 | 1.0 | 初版作成 - 8ファイル/14画面 |
+| 2026-01-10 | 1.1 | PIR PASS - Low指摘1件（実装時対応） |
 
 ---
 
