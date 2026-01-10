@@ -22,9 +22,12 @@
             --success-dim: rgba(0, 200, 150, 0.12);
             --warning: #f0a030;
             --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e84057;
+            --error-dim: rgba(232, 64, 87, 0.12);
             --text-primary: #f8f8fa;
             --text-secondary: #9898a0;
             --text-tertiary: #606068;
+            --text-muted: #404048;
             --border-subtle: rgba(255, 255, 255, 0.04);
             --border-default: rgba(255, 255, 255, 0.08);
             --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
@@ -47,7 +50,7 @@
         .gold-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-gold-dim), transparent 60%); opacity: 0.4; }
         .noise { position: absolute; inset: 0; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
-        .container { position: relative; z-index: 1; max-width: 550px; margin: 0 auto; padding: var(--space-xl); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        .container { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: var(--space-xl); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
 
         .steps { display: flex; justify-content: center; align-items: center; gap: var(--space-md); margin-bottom: var(--space-2xl); }
         .step { display: flex; align-items: center; gap: var(--space-sm); }
@@ -69,16 +72,24 @@
         .confirm-icon { width: 100px; height: 100px; margin: 0 auto var(--space-lg); background: linear-gradient(135deg, var(--accent-gold-dim), var(--accent-gold-glow)); border: 2px solid var(--accent-gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; animation: icon-pulse 2s ease-in-out infinite; }
         @keyframes icon-pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px var(--accent-gold-glow); } 50% { transform: scale(1.05); box-shadow: 0 0 40px var(--accent-gold-glow); } }
 
-        .summary-box { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-xl); }
+        .summary-box { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
         .summary-row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; }
         .summary-row:not(:last-child) { border-bottom: 1px solid var(--border-subtle); }
         .summary-label { color: var(--text-tertiary); font-size: 14px; }
         .summary-value { font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
         .summary-value.gold { color: var(--accent-gold); }
 
-        .warning-box { background: var(--warning-dim); border: 1px solid var(--warning); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-xl); display: flex; gap: var(--space-sm); }
-        .warning-icon { font-size: 16px; }
+        .warning-box { background: var(--warning-dim); border: 1px solid var(--warning); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-md); display: flex; gap: var(--space-sm); }
+        .warning-icon { font-size: 16px; flex-shrink: 0; }
         .warning-text { font-size: 13px; color: var(--warning); line-height: 1.5; }
+
+        .penalty-box { background: var(--error-dim); border: 1px solid var(--error); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-xl); }
+        .penalty-header { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+        .penalty-icon { font-size: 16px; }
+        .penalty-title { font-size: 14px; font-weight: 600; color: var(--error); }
+        .penalty-content { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .penalty-highlight { color: var(--error); font-weight: 600; font-family: var(--font-mono); }
+        .penalty-note { margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid rgba(232, 64, 87, 0.2); font-size: 12px; color: var(--text-tertiary); }
 
         .checkbox-group { margin-bottom: var(--space-xl); }
         .checkbox-item { display: flex; align-items: flex-start; gap: var(--space-md); padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: var(--space-sm); cursor: pointer; transition: background 0.2s; }
@@ -88,6 +99,7 @@
         .checkbox-item input:checked + .checkbox-box { background: var(--accent-gold); border-color: var(--accent-gold); }
         .checkbox-item input:checked + .checkbox-box::after { content: '✓'; color: var(--bg-primary); font-size: 14px; font-weight: 600; }
         .checkbox-text { font-size: 14px; color: var(--text-secondary); }
+        .checkbox-text strong { color: var(--error); }
 
         .btn-group { display: flex; gap: var(--space-md); }
         .btn-primary { flex: 1; padding: 16px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; }
@@ -97,6 +109,13 @@
         .btn-secondary:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
 
         .gas-info { text-align: center; margin-top: var(--space-md); font-size: 12px; color: var(--text-tertiary); }
+
+        /* Footer */
+        .footer { margin-top: var(--space-2xl); padding-top: var(--space-lg); border-top: 1px solid var(--border-subtle); text-align: center; }
+        .footer-links { display: flex; justify-content: center; gap: var(--space-lg); margin-bottom: var(--space-md); }
+        .footer-links a { font-size: 12px; color: var(--text-tertiary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--accent-gold); }
+        .footer-disclaimer { font-size: 10px; color: var(--text-muted); max-width: 500px; margin: 0 auto; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -158,6 +177,25 @@
                     </div>
                 </div>
 
+                <!-- Early Unlock Penalty Explanation (Legal Requirement) -->
+                <div class="penalty-box">
+                    <div class="penalty-header">
+                        <span class="penalty-icon">⛔</span>
+                        <span class="penalty-title">早期解除ペナルティについて</span>
+                    </div>
+                    <div class="penalty-content">
+                        早期解除（Emergency Unlock）を行う場合、以下のペナルティが適用されます：
+                        <ul style="margin: 8px 0 0 16px;">
+                            <li>ペナルティ率: <span class="penalty-highlight">残存期間に応じて最大50%</span></li>
+                            <li>計算式: <span class="penalty-highlight">penalty = locked_amount × (remaining_days / original_lock_days) × 50%</span></li>
+                            <li>例: 2年ロックで1年残りの場合 → <span class="penalty-highlight">約25%のペナルティ</span></li>
+                        </ul>
+                        <div class="penalty-note">
+                            ※ ペナルティ額はプロトコルのTreasuryに送られ、veQSホルダーへの報酬原資となります。
+                        </div>
+                    </div>
+                </div>
+
                 <div class="checkbox-group">
                     <label class="checkbox-item">
                         <input type="checkbox" onchange="checkAll()">
@@ -168,6 +206,11 @@
                         <input type="checkbox" onchange="checkAll()">
                         <span class="checkbox-box"></span>
                         <span class="checkbox-text">veQSは時間経過とともに減衰することを理解しています</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" onchange="checkAll()">
+                        <span class="checkbox-box"></span>
+                        <span class="checkbox-text"><strong>早期解除時に最大50%のペナルティが発生する</strong>ことを理解しています</span>
                     </label>
                     <label class="checkbox-item">
                         <input type="checkbox" onchange="checkAll()">
@@ -184,6 +227,17 @@
                 <div class="gas-info">Estimated Gas: ~0.002 ETH</div>
             </div>
         </div>
+
+        <!-- Footer with Legal Links -->
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="../../../system_01_consumer/wip/mocks/17_terms.html">Terms of Service</a>
+                <a href="../../../system_01_consumer/wip/mocks/18_privacy.html">Privacy Policy</a>
+            </div>
+            <div class="footer-disclaimer">
+                ⚠️ This is not investment advice. Locking QS tokens involves risk. Please understand all terms before proceeding.
+            </div>
+        </footer>
     </div>
 
     <script>
@@ -208,6 +262,8 @@
     | Cancel | click | 02_lock_preview.html |
     | Checkbox items | click | JavaScript checkAll() |
     | Lock button | click | 02_lock_success.html (when enabled) |
+    | Terms of Service | click | 17_terms.html |
+    | Privacy Policy | click | 18_privacy.html |
     -->
 </body>
 </html>
