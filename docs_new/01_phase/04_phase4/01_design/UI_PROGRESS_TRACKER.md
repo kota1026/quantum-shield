@@ -15,21 +15,21 @@
 | 項目 | 値 |
 |------|-----|
 | Current System | `05_observer` |
-| Current Phase | `08_design_prep` → `09_design_create` |
+| Current Phase | `09_design_create` → `10_design_pir` |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ⬜ Not Yet |
-| Mocks Pushed | ⬜ 0 files |
+| DESIGN_MANIFEST | ✅ Created |
+| Mocks Pushed | ✅ 7 files |
 | PIR Report | ⬜ Not Yet |
 | PIR Judgment | ⬜ - |
 | Fix Status | ⬜ - |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: 08_design_prep completed for Observer/Challenger
+- **Action**: 09_design_create completed for Observer/Challenger
 - **Output**:
-  - `DESIGN_BRIEF_observer.md`
-  - wip/wireframes/ & wip/mocks/ directories created
-- **Next**: 09_design_create.md
+  - `DESIGN_MANIFEST.md`
+  - 7 HTML mock files (10 screens covered)
+- **Next**: 10_design_pir.md
 
 ### Previous System (Token Hub) - COMPLETE
 
@@ -55,7 +55,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  全体進捗: 46 / 176 画面 (26%)                                  │
+│  全体進捗: 46 / 176 画面 (26%) - PIR PASS分                     │
 │  ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 26%                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
@@ -63,6 +63,7 @@
 │  Phase 4B (Implement): 0 / 176 完了                            │
 │                                                                 │
 │  Design PASS: Consumer App (28) + Token Hub (18) = 46 screens  │
+│  Mocks Ready: Observer/Challenger (10) = PIR待ち               │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -75,11 +76,11 @@
 | 2 | Token Hub | system_02_token_hub | 18 | ✅ | 10/10 | ✅ PASS | 🟢 Design PIR PASS |
 | 3 | Governance | system_03_governance | 16 | ⬜ | 0/16 | - | 🔴 Not Started |
 | 4 | Prover Portal | system_04_prover | 28 | ⬜ | 0/28 | - | 🔴 Not Started |
-| 5 | Observer/Challenger | system_05_observer | 10 | ✅ | 0/10 | - | 🟡 Brief Ready |
+| 5 | Observer/Challenger | system_05_observer | 10 | ✅ | 7/10 | - | 🟡 Mocks Ready |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **3** | **28** | **2** | |
+| | **Total** | | **179** | **3** | **35** | **2** | |
 
 ### ステータス凡例
 
@@ -117,7 +118,7 @@
 
 | Order | System | Directory | Reason | Status |
 |:-----:|--------|-----------|--------|:------:|
-| 8 | Observer/Challenger | system_05_observer | Permissionless 参加 | 🟡 Brief Ready |
+| 8 | Observer/Challenger | system_05_observer | Permissionless 参加 | 🟡 Mocks Ready |
 
 ---
 
@@ -280,6 +281,45 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 
 ---
 
+# System 5: Observer/Challenger (10 screens) 🟡
+
+## Status: Mocks Ready - PIR待ち
+
+- **Directory**: `system_05_observer/`
+- **DESIGN_BRIEF**: ✅ Created (2026-01-10)
+- **DESIGN_MANIFEST**: ✅ Created (2026-01-10)
+- **Mock完了**: 7/7 ファイル (100%)
+- **画面カバー**: 10画面
+- **PIR判定**: ⬜ Not Yet
+- **ファイル**: `system_05_observer/wip/mocks/`
+
+## 5.1 Monitor Pages (4)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 5-1 | Monitor Overview | ✅ | ⬜ | ⬜ | 01_dashboard.html |
+| 5-2 | Pending Unlocks | ✅ | ⬜ | ⬜ | 01_pending.html |
+| 5-3 | Suspicious Transactions | ✅ | ⬜ | ⬜ | 01_suspicious.html |
+| 5-4 | Monitor History | ✅ | ⬜ | ⬜ | 01_history.html |
+
+## 5.2 Challenge Flow (5)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 5-5 | Challenge Form | ✅ | ⬜ | ⬜ | 02_challenge_form.html |
+| 5-6 | Challenge Confirm | ✅ | ⬜ | ⬜ | 02_challenge_form.html内モーダル |
+| 5-7 | Challenge Submitted | ✅ | ⬜ | ⬜ | 02_challenge_progress.html |
+| 5-8 | Challenge Progress | ✅ | ⬜ | ⬜ | 02_challenge_progress.html |
+| 5-9 | Challenge Result | ✅ | ⬜ | ⬜ | 02_challenge_progress.html |
+
+## 5.3 Earnings (1)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 5-10 | Earnings & Claim | ✅ | ⬜ | ⬜ | 03_earnings.html |
+
+---
+
 # System 3-8: (詳細は省略)
 
 > Systems 3-8の詳細は変更なし。必要に応じて展開。
@@ -329,6 +369,19 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 04_claim_rewards.html | 13KB | Claim Rewards |
 | **Total** | **~179KB** | **18 screens** |
 
+## Observer/Challenger (System 05) - 7 files
+
+| File | Size | Screens Covered |
+|------|:----:|-----------------|
+| 01_dashboard.html | 30KB | Monitor Overview |
+| 01_pending.html | 22KB | Pending Unlocks |
+| 01_suspicious.html | 18KB | Suspicious Transactions |
+| 01_history.html | 16KB | Monitor History |
+| 02_challenge_form.html | 18KB | Challenge Form + Confirm (Modal) |
+| 02_challenge_progress.html | 20KB | Challenge Submitted + Progress + Result |
+| 03_earnings.html | 23KB | Earnings & Claim |
+| **Total** | **~147KB** | **10 screens** |
+
 ---
 
 # Design Workflow Reference
@@ -374,6 +427,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Token Hub | Fix | 11_design_fix完了 - Critical/High全件修正済 |
 | 2026-01-10 | Token Hub | PIR | **PIR PASS (v2.0)** - Re-PIR承認 |
 | 2026-01-10 | Observer/Challenger | Design | DESIGN_BRIEF作成完了、08_design_prep完了 |
+| 2026-01-10 | Observer/Challenger | Design | 09_design_create完了、7ファイル/10画面のモック作成、DESIGN_MANIFEST作成 |
 
 ---
 
