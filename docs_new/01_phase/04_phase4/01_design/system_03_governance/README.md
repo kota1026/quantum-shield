@@ -19,7 +19,7 @@ Decentralized Edition向け（Enterpriseはオプション）。
 | DESIGN_BRIEF | ✅ Created |
 | DESIGN_MANIFEST | ✅ Created |
 | Mocks | ✅ 6/6 files (16 screens) |
-| PIR | ⬜ Not Yet |
+| PIR | ⚠️ CONDITIONAL (v1.0) |
 
 ---
 

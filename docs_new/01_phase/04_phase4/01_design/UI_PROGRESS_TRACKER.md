@@ -15,17 +15,17 @@
 | 項目 | 値 |
 |------|-----|
 | Current System | `03_governance` |
-| Current Phase | `09_design_create` → `10_design_pir` |
+| Current Phase | `10_design_pir` → `11_design_fix` (optional) |
 | DESIGN_BRIEF | ✅ Created |
 | DESIGN_MANIFEST | ✅ Created |
-| Mocks Pushed | ✅ 6 files |
-| PIR Report | ⬜ Not Yet |
+| Mocks Pushed | ✅ 6 files (16 screens) |
+| PIR Report | ⚠️ CONDITIONAL (v1.0) |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: 09_design_create completed
-- **Output**: DESIGN_MANIFEST.md + 6 mock files
-- **Next**: 10_design_pir.md
+- **Action**: 10_design_pir completed
+- **Output**: PIR_GOVERNANCE.md - CONDITIONAL (Medium 7件)
+- **Next**: 11_design_fix.md (optional) または 次のシステムへ
 
 ### Previous System Summary (Token Hub)
 
@@ -69,7 +69,7 @@
 |:-:|--------|-----------|:-------:|:-----:|:-----:|:---:|:------:|
 | 1 | Consumer App | system_01_consumer | 28 | ✅ | 18/18 | ✅ PASS | 🟢 Design PIR PASS |
 | 2 | Token Hub | system_02_token_hub | 18 | ✅ | 10/10 | ✅ PASS | 🟢 Design PIR PASS |
-| 3 | Governance | system_03_governance | 16 | ✅ | 6/16 | - | 🟡 PIR Ready |
+| 3 | Governance | system_03_governance | 16 | ✅ | 6/6 | ⚠️ COND | 🟡 PIR CONDITIONAL |
 | 4 | Prover Portal | system_04_prover | 28 | ⬜ | 0/28 | - | 🔴 Not Started |
 | 5 | Observer/Challenger | system_05_observer | 10 | ⬜ | 0/10 | - | 🔴 Not Started |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
@@ -371,6 +371,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Token Hub | PIR | **PIR PASS (v2.0)** - Re-PIR承認 |
 | 2026-01-10 | Governance | Design | DESIGN_BRIEF作成、08_design_prep完了 |
 | 2026-01-10 | Governance | Design | 6モック作成、MANIFEST作成、09_design_create完了 |
+| 2026-01-10 | Governance | PIR | **PIR CONDITIONAL (v1.0)** - Medium 7件 (href="#") |
 
 ---
 
