@@ -115,6 +115,15 @@
         .veqs-value { font-size: 36px; font-weight: 700; font-family: var(--font-mono); color: var(--accent-gold); }
         .veqs-subvalue { font-size: 14px; color: var(--text-secondary); margin-top: var(--space-xs); }
 
+        /* veQS Formula Tooltip */
+        .veqs-formula-help { display: inline-flex; align-items: center; gap: var(--space-xs); cursor: help; position: relative; }
+        .veqs-formula-help .help-icon { width: 16px; height: 16px; background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; color: var(--accent-gold); }
+        .veqs-formula-help .tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-md); min-width: 280px; opacity: 0; visibility: hidden; transition: all 0.2s; z-index: 100; }
+        .veqs-formula-help:hover .tooltip { opacity: 1; visibility: visible; }
+        .tooltip-title { font-size: 12px; font-weight: 600; color: var(--accent-gold); margin-bottom: var(--space-sm); }
+        .tooltip-formula { font-family: var(--font-mono); font-size: 14px; color: var(--text-primary); background: var(--bg-primary); padding: var(--space-sm); border-radius: var(--radius-sm); margin-bottom: var(--space-sm); }
+        .tooltip-example { font-size: 11px; color: var(--text-tertiary); line-height: 1.6; }
+
         /* Lock Info */
         .lock-info { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
         .lock-item { background: var(--bg-secondary); border-radius: var(--radius-md); padding: var(--space-md); }
@@ -160,6 +169,15 @@
         .progress-bar { height: 6px; background: var(--bg-primary); border-radius: var(--radius-full); overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold)); border-radius: var(--radius-full); }
 
+        /* Footer */
+        .footer { margin-top: var(--space-3xl); padding: var(--space-xl) 0; border-top: 1px solid var(--border-subtle); }
+        .footer-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-md); }
+        .footer-links { display: flex; gap: var(--space-lg); }
+        .footer-links a { font-size: 13px; color: var(--text-tertiary); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--accent-gold); }
+        .footer-disclaimer { font-size: 11px; color: var(--text-muted); max-width: 600px; line-height: 1.6; }
+        .footer-copyright { font-size: 11px; color: var(--text-muted); }
+
         @media (max-width: 1200px) {
             .main-grid { grid-template-columns: 1fr; }
         }
@@ -167,6 +185,7 @@
             .stats-bar { grid-template-columns: repeat(2, 1fr); }
             .header { flex-direction: column; gap: var(--space-md); }
             .nav { order: 3; }
+            .footer-content { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
@@ -218,7 +237,19 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <span class="stat-label">veQS Balance</span>
+                    <span class="stat-label veqs-formula-help">
+                        veQS Balance
+                        <span class="help-icon">?</span>
+                        <div class="tooltip">
+                            <div class="tooltip-title">veQS 計算式</div>
+                            <div class="tooltip-formula">veQS = QS × (lock_period / 4 years)</div>
+                            <div class="tooltip-example">
+                                例: 8,500 QS を 3年間ロック<br>
+                                → 8,500 × (3/4) = 6,375 veQS<br>
+                                ※ veQSは時間経過とともに線形に減衰します
+                            </div>
+                        </div>
+                    </span>
                 </div>
                 <div class="stat-value gold">6,225<span class="stat-unit">veQS</span></div>
             </div>
@@ -388,6 +419,24 @@
                 </div>
             </div>
         </div>
+
+        <!-- Footer with Legal Links and Disclaimer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="../../../system_01_consumer/wip/mocks/17_terms.html">Terms of Service</a>
+                    <a href="../../../system_01_consumer/wip/mocks/18_privacy.html">Privacy Policy</a>
+                    <a href="https://docs.quantumshield.io" target="_blank">Documentation</a>
+                    <a href="https://github.com/kota1026/quantum-shield" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-disclaimer">
+                    ⚠️ This is not investment advice. Token Hub is a governance tool and does not constitute financial services. Locking QS tokens involves risk including loss of liquidity. Please do your own research before participating.
+                </div>
+                <div class="footer-copyright">
+                    © 2026 Quantum Shield Foundation. All rights reserved.
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!--
@@ -405,6 +454,9 @@
     | Claim Rewards | click | 04_rewards_dashboard.html |
     | Delegation items | click | 03_delegate_detail.html |
     | Claim link | click | 04_rewards_dashboard.html |
+    | Terms of Service | click | 17_terms.html |
+    | Privacy Policy | click | 18_privacy.html |
+    | veQS help icon | hover | Show formula tooltip |
     -->
 </body>
 </html>
