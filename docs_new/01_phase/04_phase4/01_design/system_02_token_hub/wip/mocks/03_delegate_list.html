@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delegates - Token Hub | Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --accent-gold-glow: rgba(201, 169, 98, 0.3);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, var(--accent-gold-dim), transparent 60%); opacity: 0.5; }
+        .noise { position: absolute; inset: 0; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+        .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: var(--space-xl); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-2xl); flex-wrap: wrap; gap: var(--space-md); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); text-decoration: none; color: inherit; }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+
+        .nav { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: var(--space-sm) var(--space-lg); font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: var(--radius-full); transition: all 0.2s; text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+
+        .wallet-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-lg); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl); flex-wrap: wrap; gap: var(--space-md); }
+        .page-title { font-size: 32px; font-weight: 700; display: flex; align-items: center; gap: var(--space-md); }
+        .page-subtitle { color: var(--text-secondary); font-size: 16px; margin-top: var(--space-sm); }
+
+        .my-delegation-box { background: linear-gradient(135deg, var(--bg-secondary), var(--accent-gold-dim)); border: 1px solid var(--accent-gold); border-radius: var(--radius-lg); padding: var(--space-lg); display: flex; align-items: center; gap: var(--space-lg); }
+        .my-delegation-label { font-size: 14px; color: var(--text-secondary); }
+        .my-delegation-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); color: var(--accent-gold); }
+        .my-delegation-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+        .filters { display: flex; gap: var(--space-md); margin-bottom: var(--space-xl); flex-wrap: wrap; }
+        .search-box { flex: 1; min-width: 250px; position: relative; }
+        .search-box input { width: 100%; padding: var(--space-md) var(--space-lg); padding-left: 44px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-primary); font-size: 14px; }
+        .search-box input::placeholder { color: var(--text-tertiary); }
+        .search-box input:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon { position: absolute; left: var(--space-md); top: 50%; transform: translateY(-50%); color: var(--text-tertiary); }
+
+        .filter-btn { padding: var(--space-md) var(--space-lg); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-secondary); font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .filter-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .filter-btn.active { border-color: var(--accent-gold); color: var(--accent-gold); background: var(--accent-gold-dim); }
+
+        .delegates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--space-lg); }
+
+        .delegate-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-lg); transition: all 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+        .delegate-card:hover { border-color: var(--accent-gold); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+        .delegate-header { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md); }
+        .delegate-avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-hinomaru)); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; color: white; }
+        .delegate-info { flex: 1; }
+        .delegate-name { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
+        .delegate-address { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .delegate-rank { background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; }
+
+        .delegate-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin-bottom: var(--space-md); }
+        .delegate-stat { text-align: center; }
+        .delegate-stat-value { font-size: 16px; font-weight: 600; font-family: var(--font-mono); color: var(--accent-gold); }
+        .delegate-stat-label { font-size: 10px; color: var(--text-tertiary); margin-top: 2px; }
+
+        .delegate-tags { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-md); }
+        .delegate-tag { padding: 4px 10px; background: var(--bg-secondary); border-radius: var(--radius-full); font-size: 11px; color: var(--text-secondary); }
+
+        .delegate-bio { font-size: 13px; color: var(--text-secondary); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .delegate-footer { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--border-subtle); }
+        .delegate-participation { font-size: 12px; color: var(--text-tertiary); }
+        .delegate-action { font-size: 13px; color: var(--accent-gold); font-weight: 500; }
+
+        @media (max-width: 768px) {
+            .delegates-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="gold-glow"></div>
+        <div class="noise"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <a href="01_dashboard.html" class="logo">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-main">Quantum Shield</div>
+                    <div class="logo-sub">Token Hub</div>
+                </div>
+            </a>
+
+            <nav class="nav">
+                <a href="01_dashboard.html" class="nav-item">Dashboard</a>
+                <a href="02_lock_form.html" class="nav-item">Lock</a>
+                <a href="03_delegate_list.html" class="nav-item active">Delegate</a>
+                <a href="04_rewards_dashboard.html" class="nav-item">Rewards</a>
+            </nav>
+
+            <button class="wallet-btn">
+                <span class="wallet-dot"></span>
+                0x7a3f...9c2d
+            </button>
+        </header>
+
+        <div class="page-header">
+            <div>
+                <h1 class="page-title"><span>👥</span> Delegates</h1>
+                <p class="page-subtitle">信頼できるDelegateにveQSを委任して投票力を活用</p>
+            </div>
+            <div class="my-delegation-box">
+                <div>
+                    <div class="my-delegation-label">My Delegated veQS</div>
+                    <div class="my-delegation-value">6,225</div>
+                    <div class="my-delegation-sub">to 3 delegates</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Search delegates by name or address...">
+            </div>
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Top 10</button>
+            <button class="filter-btn">Most Active</button>
+            <button class="filter-btn">Security Council</button>
+        </div>
+
+        <div class="delegates-grid">
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-avatar">W</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">渡辺 Delegate</div>
+                        <div class="delegate-address">0x1a2b...3c4d</div>
+                    </div>
+                    <span class="delegate-rank">#1</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">285K</div>
+                        <div class="delegate-stat-label">veQS</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">1,247</div>
+                        <div class="delegate-stat-label">Delegators</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">98%</div>
+                        <div class="delegate-stat-label">Participation</div>
+                    </div>
+                </div>
+                <div class="delegate-tags">
+                    <span class="delegate-tag">🛡️ Security Council</span>
+                    <span class="delegate-tag">DeFi Expert</span>
+                    <span class="delegate-tag">Long-term Holder</span>
+                </div>
+                <p class="delegate-bio">Quantum Shield初期からの支持者。セキュリティとプロトコルの長期的な発展を重視。投票は常にコミュニティの利益を優先します。</p>
+                <div class="delegate-footer">
+                    <span class="delegate-participation">Last vote: 2 days ago</span>
+                    <span class="delegate-action">View Profile →</span>
+                </div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-avatar">S</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">佐藤 Crypto</div>
+                        <div class="delegate-address">0x5e6f...7g8h</div>
+                    </div>
+                    <span class="delegate-rank">#2</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">198K</div>
+                        <div class="delegate-stat-label">veQS</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">892</div>
+                        <div class="delegate-stat-label">Delegators</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">95%</div>
+                        <div class="delegate-stat-label">Participation</div>
+                    </div>
+                </div>
+                <div class="delegate-tags">
+                    <span class="delegate-tag">Research</span>
+                    <span class="delegate-tag">Governance</span>
+                </div>
+                <p class="delegate-bio">ブロックチェーン研究者。プロトコルの技術的な改善提案に注力。透明性のある意思決定を支持。</p>
+                <div class="delegate-footer">
+                    <span class="delegate-participation">Last vote: 5 days ago</span>
+                    <span class="delegate-action">View Profile →</span>
+                </div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-avatar">T</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">田中 DeFi</div>
+                        <div class="delegate-address">0x9i0j...1k2l</div>
+                    </div>
+                    <span class="delegate-rank">#3</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">156K</div>
+                        <div class="delegate-stat-label">veQS</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">634</div>
+                        <div class="delegate-stat-label">Delegators</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">92%</div>
+                        <div class="delegate-stat-label">Participation</div>
+                    </div>
+                </div>
+                <div class="delegate-tags">
+                    <span class="delegate-tag">DeFi</span>
+                    <span class="delegate-tag">Yield Strategy</span>
+                </div>
+                <p class="delegate-bio">DeFiプロトコルのエキスパート。収益最適化とリスク管理のバランスを重視した提案を支持します。</p>
+                <div class="delegate-footer">
+                    <span class="delegate-participation">Last vote: 1 week ago</span>
+                    <span class="delegate-action">View Profile →</span>
+                </div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-avatar">Y</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">山本 Node</div>
+                        <div class="delegate-address">0x3m4n...5o6p</div>
+                    </div>
+                    <span class="delegate-rank">#4</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">124K</div>
+                        <div class="delegate-stat-label">veQS</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">412</div>
+                        <div class="delegate-stat-label">Delegators</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">89%</div>
+                        <div class="delegate-stat-label">Participation</div>
+                    </div>
+                </div>
+                <div class="delegate-tags">
+                    <span class="delegate-tag">Infrastructure</span>
+                    <span class="delegate-tag">Prover</span>
+                </div>
+                <p class="delegate-bio">インフラ運用者としてプロトコルの安定性を最優先。ノード運用の経験を活かした技術的な視点で投票。</p>
+                <div class="delegate-footer">
+                    <span class="delegate-participation">Last vote: 3 days ago</span>
+                    <span class="delegate-action">View Profile →</span>
+                </div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-avatar">K</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">鈴木 Quantum</div>
+                        <div class="delegate-address">0x7q8r...9s0t</div>
+                    </div>
+                    <span class="delegate-rank">#5</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">98K</div>
+                        <div class="delegate-stat-label">veQS</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">287</div>
+                        <div class="delegate-stat-label">Delegators</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">100%</div>
+                        <div class="delegate-stat-label">Participation</div>
+                    </div>
+                </div>
+                <div class="delegate-tags">
+                    <span class="delegate-tag">🛡️ Purpose Committee</span>
+                    <span class="delegate-tag">Cryptography</span>
+                </div>
+                <p class="delegate-bio">暗号学研究者。量子耐性の技術的正確性を確保するための投票を行います。CP原則の厳格な遵守を支持。</p>
+                <div class="delegate-footer">
+                    <span class="delegate-participation">Last vote: 1 day ago</span>
+                    <span class="delegate-action">View Profile →</span>
+                </div>
+            </a>
+
+            <a href="03_delegate_detail.html" class="delegate-card">
+                <div class="delegate-header">
+                    <div class="delegate-avatar">M</div>
+                    <div class="delegate-info">
+                        <div class="delegate-name">松本 DAO</div>
+                        <div class="delegate-address">0x1u2v...3w4x</div>
+                    </div>
+                    <span class="delegate-rank">#6</span>
+                </div>
+                <div class="delegate-stats">
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">76K</div>
+                        <div class="delegate-stat-label">veQS</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">198</div>
+                        <div class="delegate-stat-label">Delegators</div>
+                    </div>
+                    <div class="delegate-stat">
+                        <div class="delegate-stat-value">94%</div>
+                        <div class="delegate-stat-label">Participation</div>
+                    </div>
+                </div>
+                <div class="delegate-tags">
+                    <span class="delegate-tag">DAO Governance</span>
+                    <span class="delegate-tag">Community</span>
+                </div>
+                <p class="delegate-bio">コミュニティビルダー。DAOガバナンスの経験を活かし、包括的で公平な意思決定プロセスを推進。</p>
+                <div class="delegate-footer">
+                    <span class="delegate-participation">Last vote: 4 days ago</span>
+                    <span class="delegate-action">View Profile →</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
