@@ -14,37 +14,31 @@
 
 | 項目 | 値 |
 |------|-----|
-| Current System | `05_observer` |
-| Current Phase | `10_design_pir` → COMPLETE |
+| Current System | `06_explorer` |
+| Current Phase | `08_design_prep` → `09_design_create` |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ✅ Created |
-| Mocks Pushed | ✅ 7 files |
-| PIR Report | ✅ Created (v1.0) |
-| PIR Judgment | ✅ PASS |
-| Fix Status | N/A (No fixes needed) |
+| DESIGN_MANIFEST | ⬜ Not Yet |
+| Mocks Pushed | ⬜ 0 files |
+| PIR Report | ⬜ Not Yet |
+| PIR Judgment | - |
+| Fix Status | - |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: 10_design_pir PASS for Observer/Challenger
+- **Action**: 08_design_prep completed for Explorer
 - **Output**:
-  - `PIR_observer.md` (v1.0 - PASS)
-  - No Critical/High issues found
-- **Next**: Next system (Prover Portal or Governance)
+  - `DESIGN_BRIEF_explorer.md` (Created)
+  - `wip/wireframes/`, `wip/mocks/` directories created
+- **Next**: 09_design_create.md でモック作成
 
-### Previous System (Token Hub) - COMPLETE
+### Previous System (Observer/Challenger) - COMPLETE ✅
 
-| # | 重要度 | 問題 | 状態 |
-|---|:------:|------|:----:|
-| 1 | Critical | 02_lock_form.html存在しない | ✅ 解決済 |
-| 2 | High | 利用規約リンクなし | ✅ 修正済 |
-| 3 | High | 早期解除ペナルティ説明不足 | ✅ 修正済 |
-| 4 | Medium | 免責表示なし | ✅ 修正済 |
-| 5 | Medium | veQS計算式説明なし | ✅ 修正済 |
-| 6 | Medium | DESIGN_MANIFEST更新 | ✅ 修正済 |
+- PIR PASS (v1.0) - 2026-01-10
+- 7ファイル / 10画面 完了
 
 ### Next Actions
-1. **Observer/Challenger (P2)** - 現在進行中、09_design_createへ
-2. **Prover Portal (P0)** - 収益の要
+1. **Explorer (P1)** - 現在進行中、09_design_createへ
+2. **Enterprise Admin (P1)** - Enterprise Edition
 3. **QS Admin (P0)** - 運用必須
 
 ---
@@ -77,7 +71,7 @@
 | 3 | Governance | system_03_governance | 16 | ✅ | 6/6 | ✅ PASS | 🟢 Design PIR PASS |
 | 4 | Prover Portal | system_04_prover | 28 | ✅ | 11/11 | ✅ PASS | 🟢 Design PIR PASS |
 | 5 | Observer/Challenger | system_05_observer | 10 | ✅ | 7/7 | ✅ PASS | 🟢 Design PIR PASS |
-| 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
+| 6 | Explorer | system_06_explorer | 14 | ✅ | 0/14 | - | 🟡 Brief Ready |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
 | | **Total** | | **179** | **5** | **52** | **5** | |
@@ -111,7 +105,7 @@
 | Order | System | Directory | Reason | Status |
 |:-----:|--------|-----------|--------|:------:|
 | 5 | Governance | system_03_governance | Decentralized Edition | 🟢 Design PIR PASS |
-| 6 | Explorer | system_06_explorer | 透明性、公開情報 | 🔴 |
+| 6 | Explorer | system_06_explorer | 透明性、公開情報 | 🟡 Brief Ready |
 | 7 | Enterprise Admin | system_07_enterprise | Enterprise Edition | 🔴 |
 
 ## P2: Nice to Have
@@ -462,6 +456,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Governance | PIR | **PIR PASS (v1.0)** - 別ブランチからマージ |
 | 2026-01-10 | Prover Portal | Merge | ブランチ統合 - system_04_prover追加 (11ファイル/28画面) |
 | 2026-01-10 | Prover Portal | PIR | **PIR PASS (v1.0)** - 別ブランチからマージ |
+| 2026-01-10 | Explorer | Design | 08_design_prep完了、DESIGN_BRIEF_explorer.md作成 |
 
 ---
 
