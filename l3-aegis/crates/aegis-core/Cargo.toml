@@ -1,0 +1,15 @@
+[package]
+name = "aegis-core"
+version = "0.1.0"
+edition = "2021"
+description = "Core types and utilities for L3 Aegis"
+
+[dependencies]
+aegis-types = { path = "../aegis-types" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha3 = { workspace = true }
+hex = { workspace = true }
+bytes = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }

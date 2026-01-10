@@ -1,0 +1,180 @@
+# Trust Levels Configuration
+# エージェントアクションの自動化レベル定義
+#
+# Level 1: 完全自動（Kota確認不要）
+# Level 2: 通知のみ（実行後報告）
+# Level 3: 承認必須（実行前確認）
+# Level 4: 禁止（絶対に自動実行しない）
+
+version: "1.0"
+updated: "2024-12-20"
+
+levels:
+  level_1_automatic:
+    description: "完全自動 - Kota確認不要"
+    actions:
+      - test_execution        # テスト実行
+      - lint_fix              # Lintエラー修正
+      - doc_update            # ドキュメント更新
+      - dependency_update_minor  # マイナーバージョン更新
+      - backup_create         # バックアップ作成
+      - log_cleanup           # ログクリーンアップ
+      - cache_clear           # キャッシュクリア
+      - format_code           # コードフォーマット
+
+  level_2_notify:
+    description: "通知のみ - 実行後報告"
+    actions:
+      - security_scan         # セキュリティスキャン
+      - performance_benchmark # パフォーマンスベンチマーク
+      - dependency_audit      # 依存関係監査
+      - coverage_report       # カバレッジレポート
+      - vulnerability_check   # 脆弱性チェック
+      - gas_estimation        # ガス見積もり
+      - code_quality_report   # コード品質レポート
+
+  level_3_approval:
+    description: "承認必須 - 実行前確認"
+    actions:
+      - merge_to_main         # mainブランチへのマージ
+      - deploy_testnet        # テストネットデプロイ
+      - strategy_change       # 戦略変更の提案
+      - dependency_update_major  # メジャーバージョン更新
+      - architecture_change   # アーキテクチャ変更
+      - api_key_rotation      # APIキーローテーション
+      - budget_over_100       # $100以上のコスト発生
+      - external_integration  # 外部サービス連携
+      - pr_create             # PR作成
+      - issue_close           # Issue クローズ
+
+  level_4_prohibited:
+    description: "禁止 - 絶対に自動実行しない"
+    actions:
+      - deploy_mainnet        # メインネットデプロイ
+      - private_key_access    # 秘密鍵の操作
+      - purpose_md_change     # PURPOSE.mdの変更
+      - api_key_update        # 外部APIキーの更新
+      - delete_repository     # リポジトリ削除
+      - force_push_main       # mainへの強制プッシュ
+      - wallet_transaction    # ウォレットトランザクション
+      - contract_upgrade      # コントラクトアップグレード
+
+# エージェント別のデフォルト権限
+agent_permissions:
+  purpose_guardian:
+    default_level: 3
+    allowed_actions:
+      - test_execution
+      - doc_update
+      - code_quality_report
+    prohibited_actions:
+      - purpose_md_change
+      - strategy_change
+
+  cto:
+    default_level: 2
+    allowed_actions:
+      - test_execution
+      - performance_benchmark
+      - architecture_change
+      - pr_create
+    requires_approval:
+      - merge_to_main
+      - deploy_testnet
+
+  cso:
+    default_level: 2
+    allowed_actions:
+      - security_scan
+      - vulnerability_check
+      - dependency_audit
+    requires_approval:
+      - api_key_rotation
+
+  cfo:
+    default_level: 3
+    allowed_actions:
+      - gas_estimation
+      - coverage_report
+    requires_approval:
+      - budget_over_100
+
+  cbo:
+    default_level: 3
+    allowed_actions:
+      - doc_update
+    requires_approval:
+      - external_integration
+
+  engineer:
+    default_level: 1
+    allowed_actions:
+      - test_execution
+      - lint_fix
+      - format_code
+      - pr_create
+    requires_approval:
+      - merge_to_main
+
+  crypto_auditor:
+    default_level: 2
+    allowed_actions:
+      - test_execution
+      - security_scan
+      - vulnerability_check
+    critical: true  # FAILで全体FAIL
+
+  red_team:
+    default_level: 2
+    allowed_actions:
+      - security_scan
+      - vulnerability_check
+    critical: true  # FAILで全体FAIL
+
+  researcher:
+    default_level: 1
+    allowed_actions:
+      - doc_update
+      - code_quality_report
+
+  devops:
+    default_level: 2
+    allowed_actions:
+      - backup_create
+      - log_cleanup
+      - cache_clear
+    requires_approval:
+      - deploy_testnet
+
+  legal:
+    default_level: 3
+    allowed_actions:
+      - doc_update
+    requires_approval:
+      - external_integration
+
+# 承認キーワード
+approval:
+  approve_keywords:
+    - "承認"
+    - "OK"
+    - "進めて"
+    - "approve"
+    - "go"
+    - "続行"
+    - "やって"
+    - "実行"
+  
+  reject_keywords:
+    - "拒否"
+    - "止めて"
+    - "reject"
+    - "stop"
+    - "待って"
+    - "却下"
+    - "ダメ"
+    - "やめて"
+
+  timeout_hours: 24
+  auto_reject_on_timeout: false
+  reminder_hours: [4, 12, 20]

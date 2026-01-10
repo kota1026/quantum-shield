@@ -1,0 +1,31 @@
+# Quantum Shield API - Default Configuration
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+redis:
+  url: "redis://localhost:6379"
+  # password: null  # Set via QS__REDIS__PASSWORD env var
+
+rabbitmq:
+  url: "amqp://localhost:5672"
+  queue_name: "sig_queue"
+
+jwt:
+  secret: "development-secret-change-in-production"
+  expiry_hours: 24
+
+security:
+  # SEQ#2: Normal Time Lock
+  normal_time_lock_hours: 24
+  # SEQ#3: Emergency Time Lock
+  emergency_time_lock_days: 7
+  # SEQ#3: Emergency Timeout (triggers emergency path)
+  emergency_timeout_hours: 72
+  # SEQ#8: Maximum Pause Duration
+  max_pause_duration_hours: 72
+  # Emergency Bond minimum (0.5 ETH in wei)
+  min_emergency_bond_wei: "500000000000000000"
+  # Emergency Bond percentage (500 = 5%)
+  emergency_bond_bps: 500
