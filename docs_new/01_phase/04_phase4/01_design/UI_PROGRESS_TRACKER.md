@@ -14,18 +14,19 @@
 
 | 項目 | 値 |
 |------|-----|
-| Current System | `03_governance` |
-| Current Phase | `10_design_pir` → `11_design_fix` (optional) |
+| Current System | `03_governance` ✅ **完了** |
+| Current Phase | `11_design_fix` → 次システムへ |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ✅ Created |
-| Mocks Pushed | ✅ 6 files (16 screens) |
-| PIR Report | ⚠️ CONDITIONAL (v1.0) |
+| DESIGN_MANIFEST | ✅ Updated (v1.1) |
+| Mocks Pushed | ✅ 6 files (16 screens) - 修正済 |
+| PIR Report | ✅ PASS (v2.0) |
+| Fix Status | ✅ All 7 items fixed |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: 10_design_pir completed
-- **Output**: PIR_GOVERNANCE.md - CONDITIONAL (Medium 7件)
-- **Next**: 11_design_fix.md (optional) または 次のシステムへ
+- **Action**: 11_design_fix completed
+- **Fixed Items**: Medium 7件（フッター外部リンク）
+- **Next**: 次システム（Prover Portal）→ 08_design_prep.md
 
 ### Previous System Summary (Token Hub)
 
@@ -51,14 +52,15 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  全体進捗: 46 / 176 画面 (26%)                                  │
-│  ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 26%                  │
+│  全体進捗: 62 / 176 画面 (35%)                                  │
+│  ██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░ 35%                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Phase 4A (Design):    46 / 176 完了                           │
+│  Phase 4A (Design):    62 / 176 完了                           │
 │  Phase 4B (Implement): 0 / 176 完了                            │
 │                                                                 │
-│  Design PASS: Consumer App (28) + Token Hub (18) = 46 screens  │
+│  Design PASS: Consumer (28) + Token Hub (18) + Governance (16) │
+│               = 62 screens                                      │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -69,13 +71,13 @@
 |:-:|--------|-----------|:-------:|:-----:|:-----:|:---:|:------:|
 | 1 | Consumer App | system_01_consumer | 28 | ✅ | 18/18 | ✅ PASS | 🟢 Design PIR PASS |
 | 2 | Token Hub | system_02_token_hub | 18 | ✅ | 10/10 | ✅ PASS | 🟢 Design PIR PASS |
-| 3 | Governance | system_03_governance | 16 | ✅ | 6/6 | ⚠️ COND | 🟡 PIR CONDITIONAL |
+| 3 | Governance | system_03_governance | 16 | ✅ | 6/6 | ✅ PASS | 🟢 Design PIR PASS |
 | 4 | Prover Portal | system_04_prover | 28 | ⬜ | 0/28 | - | 🔴 Not Started |
 | 5 | Observer/Challenger | system_05_observer | 10 | ⬜ | 0/10 | - | 🔴 Not Started |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **2** | **28** | **2** | |
+| | **Total** | | **179** | **3** | **34** | **3** | |
 
 ### ステータス凡例
 
@@ -372,6 +374,8 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Governance | Design | DESIGN_BRIEF作成、08_design_prep完了 |
 | 2026-01-10 | Governance | Design | 6モック作成、MANIFEST作成、09_design_create完了 |
 | 2026-01-10 | Governance | PIR | **PIR CONDITIONAL (v1.0)** - Medium 7件 (href="#") |
+| 2026-01-10 | Governance | Fix | 11_design_fix完了 - Medium 7件修正済 |
+| 2026-01-10 | Governance | PIR | **PIR PASS (v2.0)** - 全指摘修正完了 |
 
 ---
 

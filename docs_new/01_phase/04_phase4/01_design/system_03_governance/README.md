@@ -1,6 +1,6 @@
 # System 03: Governance - Design Folder
 
-> **Status**: In Progress
+> **Status**: ✅ Design PIR PASS
 > **Priority**: P1
 > **Screens**: 16
 > **Target Users**: Token Holder (鈴木さん), Delegate (渡辺さん), Proposer (高橋さん)
@@ -17,9 +17,9 @@ Decentralized Edition向け（Enterpriseはオプション）。
 | Milestone | Status |
 |-----------|:------:|
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ✅ Created |
-| Mocks | ✅ 6/6 files (16 screens) |
-| PIR | ⚠️ CONDITIONAL (v1.0) |
+| DESIGN_MANIFEST | ✅ Updated (v1.1) |
+| Mocks | ✅ 6/6 files (16 screens) - 修正済 |
+| PIR | ✅ PASS (v2.0) |
 
 ---
 
