@@ -17,8 +17,8 @@ Decentralized Edition向け（Enterpriseはオプション）。
 | Milestone | Status |
 |-----------|:------:|
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ⬜ Not Yet |
-| Mocks | ⬜ 0/16 |
+| DESIGN_MANIFEST | ✅ Created |
+| Mocks | ✅ 6/6 files (16 screens) |
 | PIR | ⬜ Not Yet |
 
 ---
@@ -29,10 +29,16 @@ Decentralized Edition向け（Enterpriseはオプション）。
 system_03_governance/
 ├── README.md                    # このファイル
 ├── DESIGN_BRIEF_governance.md   # ✅ デザインブリーフ
-├── DESIGN_MANIFEST.md           # ⬜ (09_design_create後)
+├── DESIGN_MANIFEST.md           # ✅ マニフェスト
 └── wip/
     ├── wireframes/              # ワイヤーフレーム用
-    └── mocks/                   # HTMLモック用
+    └── mocks/                   # ✅ 6 HTMLモックファイル
+        ├── 01_dashboard.html
+        ├── 02_proposals_list.html
+        ├── 02_proposal_detail.html
+        ├── 03_create_proposal.html
+        ├── 04_my_activity.html
+        └── 05_council.html
 ```
 
 ---
