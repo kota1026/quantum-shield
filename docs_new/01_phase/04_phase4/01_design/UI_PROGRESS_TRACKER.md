@@ -1,7 +1,7 @@
 # 📊 UI Progress Tracker
 ## Phase 4 UI 176画面 進捗管理
 
-> **Version**: 1.5  
+> **Version**: 1.6  
 > **Date**: 2026-01-10  
 > **Design System**: Premium Japan v1.0
 
@@ -15,23 +15,40 @@
 | 項目 | 値 |
 |------|-----|
 | Current System | `02_token_hub` |
-| Current Phase | `10_design_pir` |
+| Current Phase | `11_design_fix` → **Complete** |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ✅ Created (v1.1) |
-| Mocks Pushed | ✅ 9 files |
-| PIR Report | ⬜ Pending |
-| PIR Judgment | ⬜ Pending |
-| Fix Status | N/A |
+| DESIGN_MANIFEST | ✅ Updated (v1.2) |
+| Mocks Pushed | ✅ 10 files (+ 02_lock_form.html) |
+| PIR Report | ✅ Created (v1.0 FAIL) |
+| PIR Judgment | ❌ FAIL → ⚠️ Fixed |
+| Fix Status | ✅ All Critical/High items fixed |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: Token Hub モック9ファイル wip/mocks/へ移行完了
-- **Output**: DESIGN_MANIFEST.md (v1.1), 9 HTML mocks
-- **Next**: 10_design_pir.md でPIRレビュー実行
+- **Action**: 11_design_fix completed - PIR指摘対応完了
+- **Output**: 
+  - `01_dashboard.html` - フッター追加、veQS計算式ツールチップ追加
+  - `02_lock_confirm.html` - 早期解除ペナルティ説明追加
+  - `DESIGN_MANIFEST.md` - v1.2更新（02_lock_form追加、PIR Fix Status追加）
+- **Commits**:
+  - `39a07f2` fix(token_hub): [PIR指摘#2,#4,#5] フッター追加、veQS計算式ツールチップ追加
+  - `ba13d2b` fix(token_hub): [PIR指摘#3] 早期解除ペナルティ説明追加、チェックボックス追加
+  - `6e684db` fix(token_hub): [PIR指摘#6] DESIGN_MANIFEST更新
+
+### PIR Fix Summary
+
+| # | 重要度 | 問題 | 状態 |
+|---|:------:|------|:----:|
+| 1 | Critical | 02_lock_form.html存在しない | ✅ 解決済（すでに存在） |
+| 2 | High | 利用規約リンクなし | ✅ 修正済 |
+| 3 | High | 早期解除ペナルティ説明不足 | ✅ 修正済 |
+| 4 | Medium | 免責表示なし | ✅ 修正済 |
+| 5 | Medium | veQS計算式説明なし | ✅ 修正済 |
+| 6 | Medium | DESIGN_MANIFEST更新 | ✅ 修正済 |
 
 ### Next Actions
-1. **Token Hub PIR** - 10_design_pir.md 実行
-2. **Prover Portal (P0)** - 収益の要
+1. **Token Hub Re-PIR** - 10_design_pir.md 再実行で PASS 確認
+2. **Prover Portal (P0)** - 収益の要、次の優先システム
 3. **QS Admin (P0)** - 運用必須
 
 ---
@@ -57,21 +74,21 @@
 | # | System | Directory | Screens | Brief | Mocks | PIR | Status |
 |:-:|--------|-----------|:-------:|:-----:|:-----:|:---:|:------:|
 | 1 | Consumer App | system_01_consumer | 28 | ✅ | 18/18 | ✅ PASS | 🟢 Design PIR PASS |
-| 2 | Token Hub | system_02_token_hub | 18 | ✅ | 9/9 | ⬜ | 🟡 Mocks Ready |
+| 2 | Token Hub | system_02_token_hub | 18 | ✅ | 10/10 | 🔄 Fix完 | 🟡 Re-PIR待ち |
 | 3 | Governance | system_03_governance | 16 | ⬜ | 0/16 | - | 🔴 Not Started |
 | 4 | Prover Portal | system_04_prover | 28 | ⬜ | 0/28 | - | 🔴 Not Started |
 | 5 | Observer/Challenger | system_05_observer | 10 | ⬜ | 0/10 | - | 🔴 Not Started |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **2** | **27** | **1** | |
+| | **Total** | | **179** | **2** | **28** | **1** | |
 
 ### ステータス凡例
 
 | Status | 意味 |
 |:------:|------|
 | 🔴 | Not Started - 未着手 |
-| 🟡 | In Progress - 進行中（Brief Ready/Mocks Ready含む） |
+| 🟡 | In Progress - 進行中（Brief Ready/Mocks Ready/Fix完了含む） |
 | 🟢 | Design PIR PASS - デザイン完了 |
 | 🔵 | Implementing - 実装中 |
 | ✅ | Complete - 全完了 |
@@ -86,7 +103,7 @@
 | Order | System | Directory | Reason | Status |
 |:-----:|--------|-----------|--------|:------:|
 | 1 | Consumer App | system_01_consumer | コアユーザー体験、MVP必須 | 🟢 Design PIR PASS |
-| 2 | Token Hub | system_02_token_hub | Decentralized Edition 必須 | 🟡 Mocks Ready |
+| 2 | Token Hub | system_02_token_hub | Decentralized Edition 必須 | 🟡 Re-PIR待ち |
 | 3 | Prover Portal | system_04_prover | 収益の要、ローンチ必須 | 🔴 |
 | 4 | QS Admin | system_08_qs_admin | 運用必須、既存コード拡張 | 🔴 |
 
@@ -210,58 +227,59 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 
 # System 2: Token Hub (18 screens) 🟡
 
-## Status: Mocks Ready - Awaiting PIR
+## Status: PIR Fix Complete - Re-PIR待ち
 
 - **Directory**: `system_02_token_hub/`
 - **DESIGN_BRIEF**: ✅ Created (2026-01-08)
-- **DESIGN_MANIFEST**: ✅ Created v1.1 (2026-01-10)
-- **Mock完了**: 9/9 ファイル (100%)
+- **DESIGN_MANIFEST**: ✅ v1.2 (2026-01-10)
+- **Mock完了**: 10/10 ファイル (100%)
 - **画面カバー**: 18画面
+- **PIR判定**: ❌ FAIL (v1.0) → ⚠️ Fixed
 - **ファイル**: `system_02_token_hub/wip/mocks/`
-- **次ステップ**: 10_design_pir.md でPIRレビュー
+- **次ステップ**: 10_design_pir.md で再PIRレビュー
 
 ## 2.1 Dashboard (1)
 
 | # | Screen | Mock | PIR | Impl | Notes |
 |:-:|--------|:----:|:---:|:----:|-------|
-| 2-1 | Token Dashboard | ✅ | ⬜ | ⬜ | 01_dashboard.html |
+| 2-1 | Token Dashboard | ✅ | 🔄 | ⬜ | 01_dashboard.html (Footer/Tooltip追加済) |
 
 ## 2.2 veQS Lock (4)
 
 | # | Screen | Mock | PIR | Impl | Notes |
 |:-:|--------|:----:|:---:|:----:|-------|
-| 2-2 | Lock Form | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
-| 2-3 | Lock Preview | ✅ | ⬜ | ⬜ | 02_lock_preview.html |
-| 2-4 | Lock Confirm | ✅ | ⬜ | ⬜ | 02_lock_confirm.html |
-| 2-5 | Lock Success | ✅ | ⬜ | ⬜ | 02_lock_success.html |
+| 2-2 | Lock Form | ✅ | 🔄 | ⬜ | 02_lock_form.html (存在確認済) |
+| 2-3 | Lock Preview | ✅ | 🔄 | ⬜ | 02_lock_preview.html |
+| 2-4 | Lock Confirm | ✅ | 🔄 | ⬜ | 02_lock_confirm.html (Penalty説明追加済) |
+| 2-5 | Lock Success | ✅ | 🔄 | ⬜ | 02_lock_success.html |
 
 ## 2.3 veQS Manage (4)
 
 | # | Screen | Mock | PIR | Impl | Notes |
 |:-:|--------|:----:|:---:|:----:|-------|
-| 2-6 | Extend Lock | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
-| 2-7 | Early Unlock | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
-| 2-8 | Normal Unlock | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
-| 2-9 | Unlock Success | ✅ | ⬜ | ⬜ | 02_lock_success.html流用 |
+| 2-6 | Extend Lock | ✅ | 🔄 | ⬜ | 01_dashboard.html内 |
+| 2-7 | Early Unlock | ✅ | 🔄 | ⬜ | 01_dashboard.html内 |
+| 2-8 | Normal Unlock | ✅ | 🔄 | ⬜ | 01_dashboard.html内 |
+| 2-9 | Unlock Success | ✅ | 🔄 | ⬜ | 02_lock_success.html流用 |
 
 ## 2.4 Delegation (5)
 
 | # | Screen | Mock | PIR | Impl | Notes |
 |:-:|--------|:----:|:---:|:----:|-------|
-| 2-10 | Delegate List | ✅ | ⬜ | ⬜ | 03_delegate_list.html |
-| 2-11 | Delegate Detail | ✅ | ⬜ | ⬜ | 03_delegate_detail.html |
-| 2-12 | Delegate Form | ✅ | ⬜ | ⬜ | 03_delegate_form.html |
-| 2-13 | My Delegations | ✅ | ⬜ | ⬜ | 01_dashboard.html内 |
-| 2-14 | Undelegate | ✅ | ⬜ | ⬜ | 03_delegate_form.html流用 |
+| 2-10 | Delegate List | ✅ | 🔄 | ⬜ | 03_delegate_list.html |
+| 2-11 | Delegate Detail | ✅ | 🔄 | ⬜ | 03_delegate_detail.html |
+| 2-12 | Delegate Form | ✅ | 🔄 | ⬜ | 03_delegate_form.html |
+| 2-13 | My Delegations | ✅ | 🔄 | ⬜ | 01_dashboard.html内 |
+| 2-14 | Undelegate | ✅ | 🔄 | ⬜ | 03_delegate_form.html流用 |
 
 ## 2.5 Rewards (4)
 
 | # | Screen | Mock | PIR | Impl | Notes |
 |:-:|--------|:----:|:---:|:----:|-------|
-| 2-15 | Rewards Dashboard | ✅ | ⬜ | ⬜ | 04_rewards_dashboard.html |
-| 2-16 | Claim Rewards | ✅ | ⬜ | ⬜ | 04_claim_rewards.html |
-| 2-17 | Rewards History | ✅ | ⬜ | ⬜ | 04_rewards_dashboard.html内 |
-| 2-18 | Become Delegate | ✅ | ⬜ | ⬜ | 03_delegate_form.html流用 |
+| 2-15 | Rewards Dashboard | ✅ | 🔄 | ⬜ | 04_rewards_dashboard.html |
+| 2-16 | Claim Rewards | ✅ | 🔄 | ⬜ | 04_claim_rewards.html |
+| 2-17 | Rewards History | ✅ | 🔄 | ⬜ | 04_rewards_dashboard.html内 |
+| 2-18 | Become Delegate | ✅ | 🔄 | ⬜ | 03_delegate_form.html流用 |
 
 ---
 
@@ -298,20 +316,21 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 18_privacy.html | 22KB | Privacy Policy |
 | **Total** | **~307KB** | **28 screens** |
 
-## Token Hub (System 02) - 9 files
+## Token Hub (System 02) - 10 files
 
 | File | Size | Screens Covered |
 |------|:----:|-----------------| 
-| 01_dashboard.html | 25KB | Dashboard, Lock Form, veQS Manage, My Delegations |
+| 01_dashboard.html | 29KB | Dashboard, Lock Form, veQS Manage, My Delegations |
+| 02_lock_form.html | 18KB | Lock入力画面（金額・期間選択）**NEW** |
 | 02_lock_preview.html | 17KB | Lock Preview (投票力計算) |
-| 02_lock_confirm.html | 13KB | Lock Confirm |
+| 02_lock_confirm.html | 17KB | Lock Confirm (Penalty説明追加済) |
 | 02_lock_success.html | 12KB | Lock Success, Unlock Success |
 | 03_delegate_list.html | 24KB | Delegate List |
 | 03_delegate_detail.html | 18KB | Delegate Detail |
 | 03_delegate_form.html | 12KB | Delegate Form, Undelegate, Become Delegate |
 | 04_rewards_dashboard.html | 19KB | Rewards Dashboard, Rewards History |
 | 04_claim_rewards.html | 13KB | Claim Rewards |
-| **Total** | **~153KB** | **18 screens** |
+| **Total** | **~179KB** | **18 screens** |
 
 ---
 
@@ -327,6 +346,8 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 10_design_pir.md     → PIR_{SYSTEM_NAME}.md を出力
         ↓
 11_design_fix.md     → 修正済みモック + 更新されたMANIFEST を出力（FAIL時のみ）
+        ↓
+10_design_pir.md     → 再PIR（11_design_fix後は再実行）
 ```
 
 ## 各フェーズの入出力
@@ -352,6 +373,8 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-09 | - | - | Active Session State更新、ディレクトリ命名規則追加 |
 | 2026-01-09 | - | - | 実態との整合性修正（v1.4） |
 | 2026-01-10 | Token Hub | Design | 9ファイル wip/mocks/へ移行完了、MANIFEST v1.1 |
+| 2026-01-10 | Token Hub | PIR | PIR FAIL (v1.0) - 6件の指摘事項 |
+| 2026-01-10 | Token Hub | Fix | 11_design_fix完了 - Critical/High全件修正済 |
 
 ---
 
