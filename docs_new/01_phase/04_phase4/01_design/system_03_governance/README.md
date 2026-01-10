@@ -1,9 +1,9 @@
-# 📁 System 03: Governance - Design Folder
+# System 03: Governance - Design Folder
 
-> **Status**: 🔴 Not Started  
-> **Priority**: P1  
-> **Screens**: 16  
-> **Target Users**: Token Holder (鈴木さん), Delegate (渡辺さん)
+> **Status**: In Progress
+> **Priority**: P1
+> **Screens**: 16
+> **Target Users**: Token Holder (鈴木さん), Delegate (渡辺さん), Proposer (高橋さん)
 
 ---
 
@@ -12,7 +12,32 @@
 Governanceは提案・投票・Council管理を提供します。
 Decentralized Edition向け（Enterpriseはオプション）。
 
-### 画面構成
+### Progress
+
+| Milestone | Status |
+|-----------|:------:|
+| DESIGN_BRIEF | ✅ Created |
+| DESIGN_MANIFEST | ⬜ Not Yet |
+| Mocks | ⬜ 0/16 |
+| PIR | ⬜ Not Yet |
+
+---
+
+## Directory Structure
+
+```
+system_03_governance/
+├── README.md                    # このファイル
+├── DESIGN_BRIEF_governance.md   # ✅ デザインブリーフ
+├── DESIGN_MANIFEST.md           # ⬜ (09_design_create後)
+└── wip/
+    ├── wireframes/              # ワイヤーフレーム用
+    └── mocks/                   # HTMLモック用
+```
+
+---
+
+## Screen Overview (16 screens)
 
 | Category | Screens | Count |
 |----------|---------|:-----:|
@@ -21,6 +46,15 @@ Decentralized Edition向け（Enterpriseはオプション）。
 | Create Proposal | Step 1-3, Submit | 4 |
 | My Activity | Votes, Proposals, Received | 3 |
 | Council | Dashboard, Emergency, Veto | 3 |
+
+---
+
+## Key Features
+
+- **投票インターフェース**: For/Against/Abstainの3択投票
+- **提案作成フロー**: 3ステップのガイド付き提案作成
+- **Delegate管理**: 委任受領状況の可視化
+- **Council Veto**: Security/Purpose Councilの監視機能
 
 ---
 
@@ -35,4 +69,12 @@ Decentralized Edition向け（Enterpriseはオプション）。
 
 ---
 
-**Last Updated**: 2026-01-06
+## Related Documents
+
+- [DESIGN_BRIEF_governance.md](./DESIGN_BRIEF_governance.md) - デザインブリーフ
+- [UI_DESIGN_GUIDELINES.md](../UI_DESIGN_GUIDELINES.md) - デザインシステム
+- [UI_PROGRESS_TRACKER.md](../UI_PROGRESS_TRACKER.md) - 進捗管理
+
+---
+
+**Last Updated**: 2026-01-10
