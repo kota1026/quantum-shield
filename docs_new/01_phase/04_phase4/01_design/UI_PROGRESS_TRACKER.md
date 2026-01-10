@@ -15,21 +15,22 @@
 | 項目 | 値 |
 |------|-----|
 | Current System | `06_explorer` |
-| Current Phase | `09_design_create` → `10_design_pir` |
+| Current Phase | `10_design_pir` → ✅ COMPLETE |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ✅ Created |
+| DESIGN_MANIFEST | ✅ v1.1 |
 | Mocks Pushed | ✅ 8 files |
-| PIR Report | ⬜ Not Yet |
-| PIR Judgment | - |
-| Fix Status | - |
+| PIR Report | ✅ Created |
+| PIR Judgment | ✅ PASS |
+| Fix Status | N/A (PASS判定) |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: 09_design_create completed for Explorer
+- **Action**: 10_design_pir completed for Explorer - **PIR PASS**
 - **Output**:
-  - `DESIGN_MANIFEST.md` (Created)
-  - 8 HTML mocks (14 screens) in `wip/mocks/`
-- **Next**: 10_design_pir.md でPIRレビュー
+  - `PIR_EXPLORER.md` (Created)
+  - DESIGN_MANIFEST.md v1.1 (Updated)
+- **Low指摘**: 1件（L2 TX Hash `href="#"` → 実装時対応）
+- **Next**: Enterprise Admin または QS Admin の 08_design_prep.md へ
 
 ### Previous System (Observer/Challenger) - COMPLETE ✅
 
@@ -37,9 +38,9 @@
 - 7ファイル / 10画面 完了
 
 ### Next Actions
-1. **Explorer (P1)** - PIRレビュー待ち
-2. **Enterprise Admin (P1)** - Enterprise Edition
-3. **QS Admin (P0)** - 運用必須
+1. ~~**Explorer (P1)** - PIRレビュー待ち~~ ✅ PIR PASS
+2. **Enterprise Admin (P1)** - Enterprise Edition → 08_design_prep.md
+3. **QS Admin (P0)** - 運用必須 → 08_design_prep.md
 
 ---
 
@@ -49,15 +50,16 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  全体進捗: 100 / 176 画面 (57%) - PIR PASS分                    │
-│  ██████████████████████░░░░░░░░░░░░░░░░░░ 57%                  │
+│  全体進捗: 114 / 176 画面 (65%) - PIR PASS分                    │
+│  █████████████████████████░░░░░░░░░░░░░░░ 65%                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Phase 4A (Design):    100 / 176 完了                          │
+│  Phase 4A (Design):    114 / 176 完了                          │
 │  Phase 4B (Implement): 0 / 176 完了                            │
 │                                                                 │
 │  Design PASS: Consumer (28) + Token Hub (18) + Governance (16) │
-│             + Prover (28) + Observer (10) = 100 screens        │
+│             + Prover (28) + Observer (10) + Explorer (14)      │
+│             = 114 screens                                       │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -71,10 +73,10 @@
 | 3 | Governance | system_03_governance | 16 | ✅ | 6/6 | ✅ PASS | 🟢 Design PIR PASS |
 | 4 | Prover Portal | system_04_prover | 28 | ✅ | 11/11 | ✅ PASS | 🟢 Design PIR PASS |
 | 5 | Observer/Challenger | system_05_observer | 10 | ✅ | 7/7 | ✅ PASS | 🟢 Design PIR PASS |
-| 6 | Explorer | system_06_explorer | 14 | ✅ | 8/8 | - | 🟡 Mocks Ready |
+| 6 | Explorer | system_06_explorer | 14 | ✅ | 8/8 | ✅ PASS | 🟢 Design PIR PASS |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **5** | **52** | **5** | |
+| | **Total** | | **179** | **6** | **60** | **6** | |
 
 ### ステータス凡例
 
@@ -105,7 +107,7 @@
 | Order | System | Directory | Reason | Status |
 |:-----:|--------|-----------|--------|:------:|
 | 5 | Governance | system_03_governance | Decentralized Edition | 🟢 Design PIR PASS |
-| 6 | Explorer | system_06_explorer | 透明性、公開情報 | 🟡 Mocks Ready |
+| 6 | Explorer | system_06_explorer | 透明性、公開情報 | 🟢 Design PIR PASS |
 | 7 | Enterprise Admin | system_07_enterprise | Enterprise Edition | 🔴 |
 
 ## P2: Nice to Have
@@ -458,6 +460,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Prover Portal | PIR | **PIR PASS (v1.0)** - 別ブランチからマージ |
 | 2026-01-10 | Explorer | Design | 08_design_prep完了、DESIGN_BRIEF_explorer.md作成 |
 | 2026-01-10 | Explorer | Design | 09_design_create完了、8ファイル/14画面のモック作成、DESIGN_MANIFEST作成 |
+| 2026-01-10 | Explorer | PIR | **PIR PASS (v1.0)** - Low指摘1件（実装時対応）、デザイン完了 |
 
 ---
 
