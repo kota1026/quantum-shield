@@ -1,7 +1,7 @@
 # 📊 UI Progress Tracker
 ## Phase 4 UI 176画面 進捗管理
 
-> **Version**: 1.8
+> **Version**: 1.9
 > **Date**: 2026-01-10
 > **Design System**: Premium Japan v1.0
 
@@ -15,17 +15,17 @@
 | 項目 | 値 |
 |------|-----|
 | Current System | `04_prover` |
-| Current Phase | `08_design_prep` → `09_design_create` |
+| Current Phase | `09_design_create` → `10_design_pir` |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ⬜ Not Yet |
-| Mocks Pushed | ⬜ 0 files |
+| DESIGN_MANIFEST | ✅ Created (v1.0) |
+| Mocks Pushed | ✅ 11 files |
 | PIR Report | ⬜ Not Yet |
 
 ### Last Completed Action
 - **Date**: 2026-01-10
-- **Action**: 08_design_prep completed for Prover Portal
-- **Output**: DESIGN_BRIEF_prover.md
-- **Next**: 09_design_create.md
+- **Action**: 09_design_create completed for Prover Portal
+- **Output**: DESIGN_MANIFEST.md + 11 HTML mocks (28 screens)
+- **Next**: 10_design_pir.md
 
 ### Session Variables
 
@@ -37,7 +37,7 @@
 | `{WORK_DIR}` | `docs_new/01_phase/04_phase4/01_design/system_04_prover/` |
 
 ### Next Actions
-1. **09_design_create.md** - Operations Dashboard, Signature Queue からモック作成開始
+1. **10_design_pir.md** - Prover Portal PIR実行
 2. **QS Admin (P0)** - 運用必須
 3. **Governance (P1)** - Decentralized Edition
 
@@ -49,14 +49,15 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  全体進捗: 46 / 176 画面 (26%)                                  │
-│  ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 26%                  │
+│  全体進捗: 74 / 176 画面 (42%)                                  │
+│  █████████████████░░░░░░░░░░░░░░░░░░░░░░ 42%                   │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Phase 4A (Design):    46 / 176 完了                           │
+│  Phase 4A (Design):    74 / 176 完了                           │
 │  Phase 4B (Implement): 0 / 176 完了                            │
 │                                                                 │
-│  Design PASS: Consumer App (28) + Token Hub (18) = 46 screens  │
+│  Design PASS: Consumer (28) + Token Hub (18) = 46 screens      │
+│  Mocks Ready: Prover Portal (28) = 28 screens (PIR待ち)        │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -68,12 +69,12 @@
 | 1 | Consumer App | system_01_consumer | 28 | ✅ | 18/18 | ✅ PASS | 🟢 Design PIR PASS |
 | 2 | Token Hub | system_02_token_hub | 18 | ✅ | 10/10 | ✅ PASS | 🟢 Design PIR PASS |
 | 3 | Governance | system_03_governance | 16 | ⬜ | 0/16 | - | 🔴 Not Started |
-| 4 | Prover Portal | system_04_prover | 28 | ✅ | 0/28 | - | 🟡 Brief Ready |
+| 4 | Prover Portal | system_04_prover | 28 | ✅ | 11/11 | ⬜ | 🟡 Mocks Ready |
 | 5 | Observer/Challenger | system_05_observer | 10 | ⬜ | 0/10 | - | 🔴 Not Started |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
 | 7 | Enterprise Admin | system_07_enterprise | 25 | ⬜ | 0/25 | - | 🔴 Not Started |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **2** | **28** | **2** | |
+| | **Total** | | **179** | **3** | **39** | **2** | |
 
 ### ステータス凡例
 
@@ -96,7 +97,7 @@
 |:-----:|--------|-----------|--------|:------:|
 | 1 | Consumer App | system_01_consumer | コアユーザー体験、MVP必須 | 🟢 Design PIR PASS |
 | 2 | Token Hub | system_02_token_hub | Decentralized Edition 必須 | 🟢 Design PIR PASS |
-| 3 | Prover Portal | system_04_prover | 収益の要、ローンチ必須 | 🟡 Brief Ready |
+| 3 | Prover Portal | system_04_prover | 収益の要、ローンチ必須 | 🟡 Mocks Ready |
 | 4 | QS Admin | system_08_qs_admin | 運用必須、既存コード拡張 | 🔴 |
 
 ## P1: Important（重要）
@@ -274,9 +275,81 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 
 ---
 
-# System 3-8: (詳細は省略)
+# System 4: Prover Portal (28 screens) 🟡
 
-> Systems 3-8の詳細は変更なし。必要に応じて展開。
+## Status: Mocks Ready (PIR待ち)
+
+- **Directory**: `system_04_prover/`
+- **DESIGN_BRIEF**: ✅ Created (2026-01-10)
+- **DESIGN_MANIFEST**: ✅ v1.0 (2026-01-10)
+- **Mock完了**: 11/11 ファイル (100%)
+- **画面カバー**: 28画面
+- **PIR判定**: ⬜ 未実施
+- **ファイル**: `system_04_prover/wip/mocks/`
+
+## 4.1 Public Pages (5)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 4-1 | Prover LP | ✅ | ⬜ | ⬜ | 01_landing.html |
+| 4-2 | Requirements | ✅ | ⬜ | ⬜ | 02_requirements.html |
+| 4-3 | Economics | ✅ | ⬜ | ⬜ | 02_requirements.html内 |
+| 4-4 | ROI Calculator | ✅ | ⬜ | ⬜ | 02_requirements.html内 |
+| 4-5 | Risk Simulator | ✅ | ⬜ | ⬜ | 02_requirements.html内 |
+
+## 4.2 Registration (7)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 4-6 | Application Step 1 | ✅ | ⬜ | ⬜ | 03_application.html |
+| 4-7 | Application Step 2 | ✅ | ⬜ | ⬜ | 03_application.html |
+| 4-8 | Application Step 3 | ✅ | ⬜ | ⬜ | 03_application.html |
+| 4-9 | Application Step 4 | ✅ | ⬜ | ⬜ | 03_application.html |
+| 4-10 | Application Submitted | ✅ | ⬜ | ⬜ | 03_application.html |
+| 4-11 | Status Check | ✅ | ⬜ | ⬜ | 04_status.html |
+| 4-12 | Reviewer Questions | ✅ | ⬜ | ⬜ | 04_status.html |
+
+## 4.3 Activation (4)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 4-13 | Approval Notice | ✅ | ⬜ | ⬜ | 05_activation.html |
+| 4-14 | Stake Deposit | ✅ | ⬜ | ⬜ | 05_activation.html |
+| 4-15 | Key Setup | ✅ | ⬜ | ⬜ | 05_activation.html |
+| 4-16 | Activation Complete | ✅ | ⬜ | ⬜ | 05_activation.html |
+
+## 4.4 Operations (7)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 4-17 | Operations Dashboard | ✅ | ⬜ | ⬜ | 06_dashboard.html |
+| 4-18 | Signature Queue | ✅ | ⬜ | ⬜ | 07_queue.html |
+| 4-19 | Request Detail | ✅ | ⬜ | ⬜ | 07_queue.html内 |
+| 4-20 | Performance Metrics | ✅ | ⬜ | ⬜ | 08_metrics.html |
+| 4-21 | Rewards Dashboard | ✅ | ⬜ | ⬜ | 08_metrics.html |
+| 4-22 | Alerts | ✅ | ⬜ | ⬜ | 09_alerts.html |
+| 4-23 | Stake Management | ✅ | ⬜ | ⬜ | 09_alerts.html |
+
+## 4.5 Challenge (3)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 4-24 | Challenge Notification | ✅ | ⬜ | ⬜ | 10_challenge.html |
+| 4-25 | Defense Submission | ✅ | ⬜ | ⬜ | 10_challenge.html |
+| 4-26 | Challenge Result | ✅ | ⬜ | ⬜ | 10_challenge.html |
+
+## 4.6 Exit (2)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 4-27 | Exit Request | ✅ | ⬜ | ⬜ | 11_exit.html |
+| 4-28 | Exit Complete | ✅ | ⬜ | ⬜ | 11_exit.html |
+
+---
+
+# System 3, 5-8: (詳細は省略)
+
+> Systems 3, 5-8の詳細は変更なし。必要に応じて展開。
 
 ---
 
@@ -310,7 +383,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 ## Token Hub (System 02) - 10 files
 
 | File | Size | Screens Covered |
-|------|:----:|-----------------| 
+|------|:----:|-----------------|
 | 01_dashboard.html | 29KB | Dashboard, Lock Form, veQS Manage, My Delegations |
 | 02_lock_form.html | 18KB | Lock入力画面（金額・期間選択） |
 | 02_lock_preview.html | 17KB | Lock Preview (投票力計算) |
@@ -322,6 +395,23 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 04_rewards_dashboard.html | 19KB | Rewards Dashboard, Rewards History |
 | 04_claim_rewards.html | 13KB | Claim Rewards |
 | **Total** | **~179KB** | **18 screens** |
+
+## Prover Portal (System 04) - 11 files
+
+| File | Size | Screens Covered |
+|------|:----:|-----------------|
+| 01_landing.html | 25KB | Prover LP |
+| 02_requirements.html | 35KB | Requirements, Economics, ROI Calculator, Risk Simulator |
+| 03_application.html | 40KB | Application Step 1-4, Submitted |
+| 04_status.html | 20KB | Status Check, Reviewer Questions |
+| 05_activation.html | 30KB | Approval, Stake Deposit, Key Setup, Complete |
+| 06_dashboard.html | 35KB | Operations Dashboard |
+| 07_queue.html | 30KB | Signature Queue, Request Detail |
+| 08_metrics.html | 35KB | Performance Metrics, Rewards Dashboard |
+| 09_alerts.html | 35KB | Alerts, Stake Management |
+| 10_challenge.html | 35KB | Challenge Notification, Defense, Result |
+| 11_exit.html | 30KB | Exit Request, Exit Complete |
+| **Total** | **~350KB** | **28 screens** |
 
 ---
 
@@ -368,6 +458,7 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Token Hub | Fix | 11_design_fix完了 - Critical/High全件修正済 |
 | 2026-01-10 | Token Hub | PIR | **PIR PASS (v2.0)** - Re-PIR承認 |
 | 2026-01-10 | Prover Portal | Design | 08_design_prep完了、DESIGN_BRIEF_prover.md作成 |
+| 2026-01-10 | Prover Portal | Design | 09_design_create完了、11ファイル・28画面モック作成 |
 
 ---
 
