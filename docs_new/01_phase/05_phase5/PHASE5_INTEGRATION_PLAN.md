@@ -1,23 +1,25 @@
 # Phase 5: バックエンド統合計画書
 
-> **Version**: 1.0
+> **Version**: 2.0
 > **Date**: 2026-01-11
-> **Status**: Draft
+> **Status**: Draft (Updated with Backend Deep Analysis)
 > **Author**: Claude (Integration Analysis)
 
 ---
 
 ## 1. Executive Summary
 
-### 1.1 現状
+### 1.1 現状（詳細分析後 - 修正版）
 
-| カテゴリ | 完了 | 未完了 | 完了率 |
-|---------|:----:|:-----:|:------:|
-| **UIモック** | 107画面 | 0 | 100% |
-| **API実装** | 10 EP | 82 EP | 11% |
-| **L1コントラクト** | 6 | 2 | 75% |
-| **L3 Aegis** | コア完了 | Edition/Node管理 | 80% |
-| **Event Bridge** | 基本完了 | UI通知層 | 90% |
+| カテゴリ | 完了 | 未完了 | 完了率 | 備考 |
+|---------|:----:|:-----:|:------:|------|
+| **UIモック** | 107画面 | 0 | 100% | ✅ |
+| **API実装** | 10 EP | 82 EP | 11% | |
+| **L1コントラクト** | 6 | 2 | 75% | |
+| **L3 Aegis** | コア | 本番モード | **70%** | ⚠️ 下方修正 |
+| **Event Bridge** | Polling | WebSocket/MQ | **30%** | 🔴 下方修正 |
+| **STARK Prover** | Contract | 証明生成 | **20%** | 🔴 新規発見 |
+| **React SDK** | Types | 実装 | **5%** | 🔴 新規発見 |
 
 ### 1.2 Phase 5 目標
 
@@ -86,38 +88,217 @@
 
 ---
 
+## 2.5 🔴 新規発見: バックエンド実装の重大ギャップ
+
+### 2.5.1 STARK Prover（証明生成エンジン）- 🔴 CRITICAL
+
+**発見**: STARK証明生成が**プレースホルダー実装**のまま
+
+| コンポーネント | ファイル | 状態 | 問題 |
+|--------------|----------|:----:|------|
+| **Trace Matrix生成** | `circuits/dilithium-stark/src/witness.rs:55-87` | ❌ STUB | `build_trace_matrix()` returns `Vec::new()` |
+| **FRI Proof生成** | `stark-prover/src/main.rs:481-491` | ❌ STUB | ダミーデータを返す |
+| **Query Response** | `stark-prover/src/main.rs:493-499` | ❌ STUB | 空のベクターを返す |
+| **Matrix A展開** | `verification.rs:210-218` | ❌ STUB | ゼロを返す（ρシードからの展開なし） |
+| **NTT Trace** | `witness.rs:52` | ❌ STUB | `ntt_traces: Vec::new()` |
+
+**影響**:
+- L1コントラクト（STARKVerifier.sol, FRIVerifier.sol）は**完成済み**
+- しかし**実際のSTARK証明は生成できない**
+- 現在はダミー証明でテストしている状態
+
+**工数追加**: **+15日**（Plonky3ベースの実装）
+
+---
+
+### 2.5.2 Dilithium FIPS 204 不整合 - 🔴 HIGH
+
+**発見**: API層とL3層で異なるDilithiumライブラリを使用
+
+| コンポーネント | ライブラリ | 標準 | 状態 |
+|--------------|-----------|------|:----:|
+| **API (services/api)** | `fips204` v0.4 | FIPS 204 ML-DSA-65 | ✅ 正しい |
+| **WASM SDK** | `fips204` v0.4 | FIPS 204 ML-DSA-65 | ✅ 正しい |
+| **L3-Aegis Consensus** | `pqcrypto-dilithium` v0.5 | Pre-FIPS Dilithium | ⚠️ 非準拠 |
+| **L3-Aegis Crypto** | `pqcrypto-dilithium` v0.5 | Pre-FIPS Dilithium | ⚠️ 非準拠 |
+
+**リスク**:
+- 署名サイズは同一（1952B pk, 3309B sig）だが内部アルゴリズムに差異あり
+- CP-1（Complete Quantum Resistance）準拠の観点で問題
+- 将来的な相互運用性リスク
+
+**工数追加**: **+3日**（L3-Aegisのfips204移行）
+
+---
+
+### 2.5.3 React SDK - 🔴 CRITICAL（全てモック）
+
+**発見**: React Hooksが**全てプレースホルダー**で、実際のWASMモジュールを呼び出していない
+
+| Hook | ファイル | 問題 |
+|------|----------|------|
+| `useDilithium()` | `packages/sdk/react/src/useDilithium.ts` | `sign()` returns `sig_${message.slice(0,8)}_${Date.now()}` |
+| `useDilithium()` | 同上 | `verify()` always returns `{ valid: true }` |
+| `useWallet()` | `packages/sdk/react/src/useWallet.ts` | `signMessage()` returns random hex |
+| `useLock()` | `packages/sdk/react/src/useLock.ts` | Returns mock response with random txHash |
+| `useUnlock()` | `packages/sdk/react/src/useUnlock.ts` | `createSignedUnlock()` returns mock sig |
+
+**根本原因**:
+```typescript
+// QuantumShieldProvider.tsx, line 115-117
+setClient({ config });
+setCrypto({});  // ← 空オブジェクト！WASMモジュール未初期化
+setWallet({});
+```
+
+**影響**:
+- UIモックは動作するが**実際の暗号処理は行われない**
+- API呼び出しはモック署名を送信 → **サーバー側で検証失敗**
+
+**工数追加**: **+5日**（WASM統合 + Hook実装）
+
+---
+
+### 2.5.4 L3 Aegis Production Mode - 🔴 HIGH
+
+**発見**: 本番モードが**STUB状態**
+
+| コンポーネント | ファイル | 状態 | TODOの内容 |
+|--------------|----------|:----:|-----------|
+| **Node Wiring** | `aegis-node/src/node.rs:51` | ❌ TODO | "Add actual components" |
+| **Component Init** | `aegis-node/src/node.rs:71` | ❌ TODO | "Initialize components" |
+| **Production Logic** | `aegis-node/src/node.rs:140` | ❌ TODO | "Implement actual production logic" |
+| **Graceful Shutdown** | `aegis-node/src/node.rs:162` | ❌ TODO | "Graceful shutdown" |
+| **Network TLS** | `aegis-network/src/transport.rs:37` | ❌ TODO | "Implement TLS 1.3 with mTLS" |
+| **L1 State Root** | `aegis-sequencer/src/sequencer.rs:255` | ❌ TODO | "Calculate state_root from state" |
+| **Batch Signatures** | `aegis-sequencer/src/sequencer.rs:258` | ❌ TODO | "Sign with Dilithium" |
+| **L1 Submission** | `aegis-sequencer/src/sequencer.rs:281` | ❌ TODO | "Submit to L1" |
+
+**現状動作するもの**:
+- ✅ Single-node dev mode (`--dev --single`)
+- ✅ Consensus engine (4BFT PBFT)
+- ✅ Mempool, BatchBuilder
+
+**動作しないもの**:
+- ❌ 4ノードネットワーク（TLS未実装）
+- ❌ 実L1へのState Root提出
+- ❌ RPC endpoints（スケルトンのみ）
+
+**工数追加**: **+10日**
+
+---
+
+### 2.5.5 Event Bridge - 🔴 HIGH
+
+**発見**: メッセージングインフラが**大部分STUB**
+
+| コンポーネント | ファイル | 状態 | 問題 |
+|--------------|----------|:----:|------|
+| **WebSocket** | `event-bridge/src/indexer/listener.rs` | ❌ 未実装 | "WebSocket can be added later"コメントのみ |
+| **RabbitMQ publish** | `event-bridge/src/rabbitmq_client.rs:21-24` | ❌ STUB | 何もせず即return |
+| **Redis EXISTS** | `event-bridge/src/redis_client.rs` | ❌ TODO | "Implement EXISTS" |
+| **Redis GET** | 同上 | ❌ TODO | "Implement GET" |
+| **Redis SET** | 同上 | ❌ TODO | "Implement SET" |
+| **Event Dequeue** | `event-bridge/src/queue.rs:93` | ❌ STUB | Returns empty vec |
+| **L3 Event Listener** | - | ❌ 未実装 | L3からのイベント取得なし |
+
+**影響**:
+- L1→L3 Polling（5秒間隔）のみ動作
+- リアルタイム通知なし
+- L3→L1 Relayerはイベントを受け取れない
+
+**工数追加**: **+8日**
+
+---
+
+### 2.5.6 SPHINCS+検証 - 🟠 MEDIUM
+
+**発見**: Prover登録時のSPHINCS+検証が**スタブ**
+
+```rust
+// services/api/src/routes/prover.rs:88-91
+fn validate_sphincs_pubkey(pubkey: &str) -> bool {
+    pubkey.starts_with("0x") && pubkey.len() > 2  // ← これだけ！
+}
+```
+
+**影響**:
+- Prover登録は受け付けるが**公開鍵の検証をしていない**
+- HSM attestation検証も未実装
+
+**工数追加**: **+2日**
+
+---
+
+### 2.5.7 工数修正サマリ
+
+| ギャップ | 追加工数 | 優先度 |
+|---------|:-------:|:------:|
+| STARK Prover実装 | +15日 | 🔴 P0 |
+| L3 Dilithium FIPS 204移行 | +3日 | 🔴 P0 |
+| React SDK WASM統合 | +5日 | 🔴 P0 |
+| L3 Production Mode | +10日 | 🔴 P0 |
+| Event Bridge完成 | +8日 | 🟠 P1 |
+| SPHINCS+検証 | +2日 | 🟠 P1 |
+| **合計追加** | **+43日** | |
+
+**修正後総工数**: 59日 → **102日**
+
+---
+
 ## 3. Phase 5 実装計画
 
-### 3.1 全体スケジュール
+### 3.1 全体スケジュール（修正版 - 102日）
 
 ```
-Phase 5.1: 基盤整備 (Week 1-2)
+Phase 5.0: 🔴 ブロッカー解消 (Week 1-4) ★新規追加★
+├── STARK Prover実証明生成実装 (15日)
+│   ├── Trace Matrix生成
+│   ├── FRI Proof生成
+│   └── Query Response実装
+├── React SDK WASM統合 (5日)
+│   ├── WASMモジュール初期化
+│   └── 全Hook実装
+├── L3 Dilithium FIPS 204移行 (3日)
+│   ├── aegis-crypto移行
+│   └── aegis-consensus移行
+└── L3 Production Mode完成 (10日)
+    ├── Node wiring
+    ├── TLS 1.3 mTLS
+    └── L1 State Root提出
+
+Phase 5.1: 基盤整備 (Week 5-6)
 ├── EditionConfig.sol 実装
 ├── ProverRegistry.sol 実装
 ├── 認証基盤 (SIWE→JWT)
 └── API Client 認証統合
 
-Phase 5.2: コアAPI実装 (Week 3-4)
+Phase 5.2: コアAPI実装 (Week 7-8)
 ├── Consumer App API (6 EP)
 ├── Token Hub API (9 EP)
 ├── Prover Portal API (9 EP)
 └── WebSocket/SSE基盤
 
-Phase 5.3: 管理系API実装 (Week 5-6)
+Phase 5.3: 管理系API実装 (Week 9-10)
 ├── QS Admin API (11 EP)
 ├── Enterprise Admin API (19 EP)
 ├── Enterprise申込フロー
 └── 4BFT契約者管理
 
-Phase 5.4: 補完機能実装 (Week 7-8)
+Phase 5.4: 補完機能実装 (Week 11-12)
 ├── Governance API (8 EP)
 ├── Observer API (8 EP)
 ├── Explorer API (12 EP)
+├── Event Bridge完成 (8日)
+│   ├── WebSocket実装
+│   ├── RabbitMQ統合
+│   └── Redis実装
+├── SPHINCS+検証実装 (2日)
 └── i18n対応
 
-Phase 5.5: 統合・テスト (Week 9-10)
+Phase 5.5: 統合・テスト (Week 13-14)
 ├── UI ↔ API 統合
-├── E2Eテスト
+├── E2Eテスト（実STARK証明）
 ├── Edition切替テスト
 └── 本番デプロイ準備
 ```
@@ -327,28 +508,43 @@ GET  /v1/auth/me        // 現在のユーザー情報
 
 ---
 
-## 5. 工数見積もり
+## 5. 工数見積もり（修正版）
 
 ### 5.1 総工数
 
-| フェーズ | 内容 | 工数 |
-|---------|------|:----:|
-| Phase 5.1 | 基盤整備 | **10日** |
-| Phase 5.2 | コアAPI | **12日** |
-| Phase 5.3 | 管理系API | **15日** |
-| Phase 5.4 | 補完機能 | **12日** |
-| Phase 5.5 | 統合・テスト | **10日** |
-| **合計** | | **59日** |
+| フェーズ | 内容 | 工数 | 備考 |
+|---------|------|:----:|------|
+| **Phase 5.0** | 🔴 ブロッカー解消 | **33日** | ★新規追加★ |
+| Phase 5.1 | 基盤整備 | **10日** | |
+| Phase 5.2 | コアAPI | **12日** | |
+| Phase 5.3 | 管理系API | **15日** | |
+| Phase 5.4 | 補完機能 | **22日** | +10日（Event Bridge, SPHINCS+） |
+| Phase 5.5 | 統合・テスト | **10日** | |
+| **合計** | | **102日** | 旧:59日 → 新:102日 (+73%) |
 
-### 5.2 カテゴリ別工数
+### 5.2 Phase 5.0 詳細工数
 
-| カテゴリ | 工数 |
-|---------|:----:|
-| Contract実装 | 7日 |
-| API実装 (82 EP) | 35日 |
-| L3 Aegis拡張 | 5日 |
-| UI統合 | 7日 |
-| i18n対応 | 5日 |
+| タスク | 工数 | 優先度 | 理由 |
+|--------|:----:|:------:|------|
+| STARK Prover実装 | 15日 | 🔴 P0 | 証明生成なしでは本番稼働不可 |
+| L3 Production Mode | 10日 | 🔴 P0 | 4ノードネットワーク必須 |
+| React SDK WASM統合 | 5日 | 🔴 P0 | UIが実際の暗号処理を呼べない |
+| L3 Dilithium FIPS移行 | 3日 | 🔴 P0 | CP-1準拠必須 |
+
+### 5.3 カテゴリ別工数（修正版）
+
+| カテゴリ | 旧工数 | 新工数 | 差分 |
+|---------|:-----:|:-----:|:----:|
+| Contract実装 | 7日 | 7日 | - |
+| API実装 (82 EP) | 35日 | 35日 | - |
+| L3 Aegis拡張 | 5日 | **18日** | +13日 |
+| STARK Prover | 0日 | **15日** | +15日 |
+| Event Bridge | 0日 | **8日** | +8日 |
+| React SDK | 0日 | **5日** | +5日 |
+| UI統合 | 7日 | 7日 | - |
+| i18n対応 | 5日 | 5日 | - |
+| SPHINCS+検証 | 0日 | **2日** | +2日 |
+| **合計** | **59日** | **102日** | **+43日** |
 
 ---
 
@@ -391,25 +587,45 @@ GET  /v1/auth/me        // 現在のユーザー情報
 
 ---
 
-## 8. 次のアクション
+## 8. 次のアクション（修正版 - ブロッカー優先）
 
-### 8.1 即時 (今週)
+### 8.0 🔴 最優先: Phase 5.0 ブロッカー解消（Week 1-4）
 
-1. **EditionConfig.sol 設計レビュー** - EDITION_SWITCH_SPEC.md との最終確認
-2. **ProverRegistry.sol 設計レビュー** - 承認フロー詳細化
-3. **認証基盤実装** - SIWE → JWT
+| # | タスク | 担当 | 工数 | 依存 |
+|---|--------|------|:----:|------|
+| **1** | **STARK Trace Matrix実装** | Backend | 5日 | なし |
+| **2** | **STARK FRI Proof実装** | Backend | 5日 | #1 |
+| **3** | **STARK Query Response実装** | Backend | 5日 | #2 |
+| **4** | **React WASM初期化** | Frontend | 2日 | なし |
+| **5** | **React Hooks実装** | Frontend | 3日 | #4 |
+| **6** | **L3 fips204移行** | Backend | 3日 | なし |
+| **7** | **L3 Node Wiring** | Backend | 4日 | #6 |
+| **8** | **L3 TLS 1.3 mTLS** | Backend | 3日 | #7 |
+| **9** | **L3 L1 State Root提出** | Backend | 3日 | #8 |
 
-### 8.2 短期 (来週)
+**並列実行可能**:
+- #1-3 (STARK) と #4-5 (React) と #6-9 (L3) は並列可能
+- 3チーム並列で約2週間に短縮可能
 
-4. **Contract実装開始** - EditionConfig.sol
-5. **Consumer App API実装** - Dashboard, History
-6. **Token Hub API実装** - Lock, Delegate
+### 8.1 Phase 5.1 準備（Week 5-6）
 
-### 8.3 中期 (3-4週)
+10. **EditionConfig.sol 設計レビュー** - EDITION_SWITCH_SPEC.md との最終確認
+11. **ProverRegistry.sol 設計レビュー** - 承認フロー詳細化
+12. **認証基盤実装** - SIWE → JWT
 
-7. **Enterprise申込フロー** - モック + API + 統合
-8. **Governance API実装**
-9. **i18n基盤導入**
+### 8.2 短期（Week 7-8）
+
+13. **Contract実装開始** - EditionConfig.sol
+14. **Consumer App API実装** - Dashboard, History
+15. **Token Hub API実装** - Lock, Delegate
+
+### 8.3 中期（Week 9-12）
+
+16. **Enterprise申込フロー** - モック + API + 統合
+17. **Governance API実装**
+18. **Event Bridge完成** - WebSocket, RabbitMQ, Redis
+19. **SPHINCS+検証実装**
+20. **i18n基盤導入**
 
 ---
 
@@ -605,4 +821,115 @@ POST /v1/admin/enterprise/accounts
 
 ---
 
-**Document End**
+## Appendix C: バックエンドギャップ詳細ファイルリスト
+
+### C.1 STARK Prover（要実装）
+
+```
+circuits/dilithium-stark/src/
+├── witness.rs:55-87        # build_trace_matrix() → Vec::new() ❌
+├── witness.rs:52           # ntt_traces: Vec::new() ❌
+├── verification.rs:210-218 # expand_matrix_a_placeholder() → zeros ❌
+└── constraints.rs:75-100+  # Constraint definitions incomplete ❌
+
+stark-prover/src/
+├── main.rs:481-491         # FRI proof generation → dummy ❌
+└── main.rs:493-499         # Query responses → empty vec ❌
+
+contracts/src/              # ✅ 検証側は完成
+├── STARKVerifier.sol       # ✅ 660 lines, complete
+└── FRIVerifier.sol         # ✅ 150+ lines, complete
+```
+
+### C.2 L3 Aegis（要完成）
+
+```
+l3-aegis/crates/aegis-node/src/
+├── node.rs:51              # TODO: Add actual components ❌
+├── node.rs:71              # TODO: Initialize components ❌
+├── node.rs:140             # TODO: Implement production logic ❌
+└── node.rs:162             # TODO: Graceful shutdown ❌
+
+l3-aegis/crates/aegis-network/src/
+└── transport.rs:37         # TODO: TLS 1.3 mTLS ❌
+
+l3-aegis/crates/aegis-sequencer/src/
+├── sequencer.rs:255        # TODO: Calculate state_root ❌
+├── sequencer.rs:258        # TODO: Sign with Dilithium ❌
+└── sequencer.rs:281        # TODO: Submit to L1 ❌
+
+l3-aegis/crates/aegis-crypto/
+└── Cargo.toml              # pqcrypto-dilithium → fips204 移行必要 ⚠️
+
+l3-aegis/crates/aegis-consensus/
+└── Cargo.toml              # pqcrypto-dilithium → fips204 移行必要 ⚠️
+```
+
+### C.3 React SDK（要実装）
+
+```
+packages/sdk/react/src/
+├── useDilithium.ts:56      # sign() returns mock ❌
+├── useDilithium.ts:64      # verify() always true ❌
+├── useWallet.ts:62-65      # signMessage() returns random ❌
+├── useLock.ts:58           # lock() returns mock response ❌
+├── useUnlock.ts:71         # createSignedUnlock() returns mock ❌
+└── QuantumShieldProvider.tsx:115-117  # WASM未初期化 ❌
+
+packages/sdk/wasm/src/
+└── lib.rs                  # ✅ WASM module is complete (fips204)
+
+packages/sdk/typescript/src/
+├── crypto.ts               # ✅ DilithiumCrypto class complete
+└── client.ts               # ✅ QuantumShieldClient complete
+```
+
+### C.4 Event Bridge（要実装）
+
+```
+services/event-bridge/src/
+├── indexer/listener.rs     # WebSocket未実装（polling only） ❌
+├── rabbitmq_client.rs:21-24 # publish() is stub ❌
+├── redis_client.rs         # EXISTS, GET, SET all TODOs ❌
+├── queue.rs:93             # dequeue_l1_relay() → empty vec ❌
+└── [L3 listener]           # 完全に未実装 ❌
+```
+
+### C.5 API SPHINCS+検証（要実装）
+
+```
+services/api/src/routes/
+└── prover.rs:88-91         # validate_sphincs_pubkey() → prefix check only ❌
+```
+
+---
+
+## Appendix D: 完了基準チェックリスト（修正版）
+
+### D.1 Phase 5.0 完了基準
+
+- [ ] STARK Prover: 実証明生成テスト通過
+- [ ] STARK Prover: L1 STARKVerifier.solで検証成功
+- [ ] React SDK: WASM初期化完了
+- [ ] React SDK: useDilithium() 実署名生成確認
+- [ ] React SDK: API呼び出しで署名検証成功
+- [ ] L3 Aegis: fips204ライブラリ移行完了
+- [ ] L3 Aegis: 4ノードネットワーク起動成功
+- [ ] L3 Aegis: TLS 1.3 mTLS接続確認
+- [ ] L3 Aegis: L1 State Root提出成功
+
+### D.2 Phase 5 全体完了基準
+
+- [ ] 全8システム107画面が実APIと接続
+- [ ] 92 APIエンドポイント実装完了
+- [ ] EditionConfig.sol, ProverRegistry.sol デプロイ
+- [ ] Event Bridge: WebSocket通知動作
+- [ ] Event Bridge: RabbitMQ/Redis統合完了
+- [ ] SPHINCS+: 実検証ロジック実装
+- [ ] E2Eテスト全PASS（実STARK証明使用）
+- [ ] i18n (日本語/英語) 対応完了
+- [ ] Enterprise申込フロー実装
+
+---
+
+**Document End** (Version 2.0)
