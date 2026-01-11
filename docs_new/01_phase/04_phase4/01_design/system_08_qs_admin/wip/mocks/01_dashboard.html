@@ -1,0 +1,958 @@
+<!--
+## File Info
+- System: QS Admin
+- Screen: Overview Dashboard
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-dashboard | click | 01_dashboard.html |
+| .nav-emergency | click | 02_emergency.html |
+| .nav-onboarding | click | 03_onboarding.html |
+| .nav-prover | click | 04_prover.html |
+| .nav-tx-monitor | click | 05_tx_monitor.html |
+| .nav-nodes | click | 06_nodes.html |
+| .nav-staff | click | 07_staff.html |
+| .nav-reports | click | 08_reports.html |
+| .nav-audit | click | 09_audit.html |
+| .nav-parameters | click | 10_parameters.html |
+| .nav-enterprise | click | 11_enterprise.html |
+| .nav-community | click | 12_community.html |
+| #btn-emergency-pause | click | 02_emergency.html |
+| .alert-item | click | showAlertDetail() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QS Admin - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040;
+            --error-dim: rgba(224, 112, 64, 0.12);
+            --info: #4a90d9;
+            --info-dim: rgba(74, 144, 217, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-hinomaru);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--accent-gold);
+            letter-spacing: 1px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-tertiary);
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--accent-hinomaru-dim);
+            color: var(--accent-hinomaru-light);
+        }
+
+        .nav-item.emergency {
+            background: var(--accent-hinomaru);
+            color: white;
+            margin-top: 8px;
+        }
+
+        .nav-item.emergency:hover {
+            background: var(--accent-hinomaru-light);
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .nav-badge.alert {
+            background: var(--error-dim);
+            color: var(--error);
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-gold-dim);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--accent-gold);
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .permission-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--success-dim);
+            color: var(--success);
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 24px 32px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--success);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .btn-emergency {
+            padding: 12px 24px;
+            background: var(--accent-hinomaru);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-emergency:hover {
+            background: var(--accent-hinomaru-light);
+            box-shadow: 0 4px 16px var(--accent-hinomaru-glow);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold));
+        }
+
+        .stat-card.healthy::before { background: var(--success); }
+        .stat-card.warning::before { background: var(--warning); }
+        .stat-card.critical::before { background: var(--error); }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .stat-value.healthy { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+
+        .stat-change {
+            font-size: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.up { color: var(--success); }
+        .stat-change.down { color: var(--error); }
+
+        /* Main Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .card-badge.success {
+            background: var(--success-dim);
+            color: var(--success);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* System Status */
+        .system-status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .system-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .system-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .system-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.healthy { background: var(--success); }
+        .status-dot.warning { background: var(--warning); }
+        .status-dot.error { background: var(--error); }
+
+        .system-metrics {
+            display: flex;
+            gap: 16px;
+        }
+
+        .metric {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .metric-value {
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+        }
+
+        /* Alerts */
+        .alerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .alert-item:hover {
+            background: var(--bg-elevated);
+        }
+
+        .alert-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .alert-icon.critical {
+            background: var(--error-dim);
+            color: var(--error);
+        }
+
+        .alert-icon.warning {
+            background: var(--warning-dim);
+            color: var(--warning);
+        }
+
+        .alert-icon.info {
+            background: var(--info-dim);
+            color: var(--info);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+        }
+
+        .alert-severity {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .alert-severity.critical {
+            background: var(--error-dim);
+            color: var(--error);
+        }
+
+        .alert-severity.warning {
+            background: var(--warning-dim);
+            color: var(--warning);
+        }
+
+        /* Activity Feed */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .activity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .activity-dot.lock { background: var(--accent-hinomaru); }
+        .activity-dot.unlock { background: var(--accent-gold); }
+        .activity-dot.prover { background: var(--info); }
+        .activity-dot.system { background: var(--success); }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .quick-action {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .quick-action:hover {
+            border-color: var(--accent-hinomaru);
+            background: var(--bg-elevated);
+        }
+
+        .quick-action-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .quick-action-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">QS</div>
+                <div>
+                    <div class="logo-text">QS Admin</div>
+                    <div class="logo-sub">Internal Dashboard</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Overview</div>
+                <a href="01_dashboard.html" class="nav-item active nav-dashboard">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="02_emergency.html" class="nav-item emergency nav-emergency" id="btn-emergency-pause">
+                    <span class="nav-icon">🚨</span>
+                    Emergency Pause
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">Operations</div>
+                <a href="04_prover.html" class="nav-item nav-prover">
+                    <span class="nav-icon">🔐</span>
+                    Prover Management
+                    <span class="nav-badge alert">3</span>
+                </a>
+                <a href="05_tx_monitor.html" class="nav-item nav-tx-monitor">
+                    <span class="nav-icon">📡</span>
+                    TX Monitor
+                </a>
+                <a href="06_nodes.html" class="nav-item nav-nodes">
+                    <span class="nav-icon">🖥️</span>
+                    L3 Nodes
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">Management</div>
+                <a href="10_parameters.html" class="nav-item nav-parameters">
+                    <span class="nav-icon">⚙️</span>
+                    Parameters
+                </a>
+                <a href="11_enterprise.html" class="nav-item nav-enterprise">
+                    <span class="nav-icon">🏢</span>
+                    Enterprise
+                </a>
+                <a href="12_community.html" class="nav-item nav-community">
+                    <span class="nav-icon">👥</span>
+                    Community
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">System</div>
+                <a href="07_staff.html" class="nav-item nav-staff">
+                    <span class="nav-icon">👤</span>
+                    Staff
+                </a>
+                <a href="08_reports.html" class="nav-item nav-reports">
+                    <span class="nav-icon">📈</span>
+                    Reports
+                </a>
+                <a href="09_audit.html" class="nav-item nav-audit">
+                    <span class="nav-icon">📋</span>
+                    Audit Log
+                </a>
+                <a href="03_onboarding.html" class="nav-item nav-onboarding">
+                    <span class="nav-icon">🎓</span>
+                    Onboarding
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">松</div>
+                <div>
+                    <div class="user-name">松本さん</div>
+                    <div class="user-role">Senior Engineer</div>
+                    <span class="permission-badge">Super Admin</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Quantum Shield システム監視</p>
+            </div>
+            <div class="header-actions">
+                <div class="live-indicator">
+                    <span class="live-dot"></span>
+                    Live Updates
+                </div>
+                <a href="02_emergency.html" class="btn-emergency">
+                    <span>🚨</span>
+                    Emergency Pause
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card healthy">
+                <div class="stat-label">Total Value Locked</div>
+                <div class="stat-value">$847.2M</div>
+                <div class="stat-change up">↑ 12.4% (24h)</div>
+            </div>
+            <div class="stat-card healthy">
+                <div class="stat-label">Active Provers</div>
+                <div class="stat-value healthy">127/127</div>
+                <div class="stat-change up">100% Healthy</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-label">Pending Unlocks</div>
+                <div class="stat-value warning">23</div>
+                <div class="stat-change">3 require attention</div>
+            </div>
+            <div class="stat-card healthy">
+                <div class="stat-label">Active Alerts</div>
+                <div class="stat-value">5</div>
+                <div class="stat-change">2 high priority</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="dashboard-grid">
+            <div>
+                <!-- System Status -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">System Status</h2>
+                        <span class="card-badge success">All Systems Operational</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="system-status-grid">
+                            <div class="system-item">
+                                <div class="system-header">
+                                    <span class="system-name">L3 Aegis Network</span>
+                                    <span class="status-dot healthy"></span>
+                                </div>
+                                <div class="system-metrics">
+                                    <span class="metric">Block: <span class="metric-value">1,234,567</span></span>
+                                    <span class="metric">TPS: <span class="metric-value">245</span></span>
+                                </div>
+                            </div>
+                            <div class="system-item">
+                                <div class="system-header">
+                                    <span class="system-name">Prover Network</span>
+                                    <span class="status-dot healthy"></span>
+                                </div>
+                                <div class="system-metrics">
+                                    <span class="metric">Online: <span class="metric-value">127</span></span>
+                                    <span class="metric">Queue: <span class="metric-value">12</span></span>
+                                </div>
+                            </div>
+                            <div class="system-item">
+                                <div class="system-header">
+                                    <span class="system-name">L1 Vault</span>
+                                    <span class="status-dot healthy"></span>
+                                </div>
+                                <div class="system-metrics">
+                                    <span class="metric">Sync: <span class="metric-value">100%</span></span>
+                                    <span class="metric">Gas: <span class="metric-value">45 gwei</span></span>
+                                </div>
+                            </div>
+                            <div class="system-item">
+                                <div class="system-header">
+                                    <span class="system-name">Observer Network</span>
+                                    <span class="status-dot healthy"></span>
+                                </div>
+                                <div class="system-metrics">
+                                    <span class="metric">Active: <span class="metric-value">89</span></span>
+                                    <span class="metric">Challenges: <span class="metric-value">0</span></span>
+                                </div>
+                            </div>
+                            <div class="system-item">
+                                <div class="system-header">
+                                    <span class="system-name">API Gateway</span>
+                                    <span class="status-dot healthy"></span>
+                                </div>
+                                <div class="system-metrics">
+                                    <span class="metric">Latency: <span class="metric-value">45ms</span></span>
+                                    <span class="metric">RPS: <span class="metric-value">1.2k</span></span>
+                                </div>
+                            </div>
+                            <div class="system-item">
+                                <div class="system-header">
+                                    <span class="system-name">Security Monitors</span>
+                                    <span class="status-dot healthy"></span>
+                                </div>
+                                <div class="system-metrics">
+                                    <span class="metric">Scans: <span class="metric-value">OK</span></span>
+                                    <span class="metric">Threats: <span class="metric-value">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Recent Activity</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <span class="activity-dot lock"></span>
+                                <div class="activity-content">
+                                    <div class="activity-text">Lock: 15.5 ETH from 0x7a3f...9c2d</div>
+                                    <div class="activity-time">2 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <span class="activity-dot prover"></span>
+                                <div class="activity-content">
+                                    <div class="activity-text">Prover #42 signed Unlock request</div>
+                                    <div class="activity-time">5 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <span class="activity-dot unlock"></span>
+                                <div class="activity-content">
+                                    <div class="activity-text">Unlock completed: 8.2 ETH to 0x3b1c...f8a7</div>
+                                    <div class="activity-time">12 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <span class="activity-dot system"></span>
+                                <div class="activity-content">
+                                    <div class="activity-text">New Prover application submitted</div>
+                                    <div class="activity-time">24 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <span class="activity-dot lock"></span>
+                                <div class="activity-content">
+                                    <div class="activity-text">Lock: 42.0 ETH from 0x9d2e...1f4b</div>
+                                    <div class="activity-time">35 minutes ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <!-- Alerts -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Active Alerts</h2>
+                        <span class="nav-badge alert">5</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="alerts-list">
+                            <div class="alert-item" onclick="showAlertDetail()">
+                                <div class="alert-icon warning">⚠️</div>
+                                <div class="alert-content">
+                                    <div class="alert-title">Prover #78 SLA Warning</div>
+                                    <div class="alert-time">10 min ago</div>
+                                </div>
+                                <span class="alert-severity warning">High</span>
+                            </div>
+                            <div class="alert-item" onclick="showAlertDetail()">
+                                <div class="alert-icon warning">⚠️</div>
+                                <div class="alert-content">
+                                    <div class="alert-title">Large Unlock Request: 500 ETH</div>
+                                    <div class="alert-time">25 min ago</div>
+                                </div>
+                                <span class="alert-severity warning">High</span>
+                            </div>
+                            <div class="alert-item" onclick="showAlertDetail()">
+                                <div class="alert-icon info">ℹ️</div>
+                                <div class="alert-content">
+                                    <div class="alert-title">New Prover Application</div>
+                                    <div class="alert-time">1 hour ago</div>
+                                </div>
+                            </div>
+                            <div class="alert-item" onclick="showAlertDetail()">
+                                <div class="alert-icon info">ℹ️</div>
+                                <div class="alert-content">
+                                    <div class="alert-title">Gas price spike on L1</div>
+                                    <div class="alert-time">2 hours ago</div>
+                                </div>
+                            </div>
+                            <div class="alert-item" onclick="showAlertDetail()">
+                                <div class="alert-icon info">ℹ️</div>
+                                <div class="alert-content">
+                                    <div class="alert-title">Scheduled maintenance reminder</div>
+                                    <div class="alert-time">3 hours ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Quick Actions</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-actions">
+                            <a href="04_prover.html" class="quick-action">
+                                <div class="quick-action-icon">🔐</div>
+                                <div class="quick-action-label">Review Provers</div>
+                            </a>
+                            <a href="05_tx_monitor.html" class="quick-action">
+                                <div class="quick-action-icon">📡</div>
+                                <div class="quick-action-label">TX Monitor</div>
+                            </a>
+                            <a href="08_reports.html" class="quick-action">
+                                <div class="quick-action-icon">📊</div>
+                                <div class="quick-action-label">Daily Report</div>
+                            </a>
+                            <a href="09_audit.html" class="quick-action">
+                                <div class="quick-action-icon">📋</div>
+                                <div class="quick-action-label">Audit Log</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showAlertDetail() {
+            alert('Alert detail modal would open here');
+        }
+    </script>
+</body>
+</html>
