@@ -9,6 +9,7 @@ mod prover;
 mod edition;
 mod health;
 mod admin;
+mod challenge;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -28,6 +29,11 @@ pub fn api_routes() -> Router {
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
+        // Challenge API (SEQUENCES §4)
+        .route("/challenge", post(challenge::submit_challenge))
+        .route("/challenge/:lock_id", get(challenge::get_challenge))
+        .route("/challenge/:lock_id/defense", post(challenge::submit_defense))
+        .route("/challenge/:lock_id/auto-resolve", post(challenge::auto_resolve))
 }
 
 /// Admin Dashboard API routes (/api/*)
