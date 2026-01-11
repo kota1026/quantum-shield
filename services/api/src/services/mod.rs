@@ -10,8 +10,9 @@ use crate::{
     config::Config,
     error::ApiError,
     types::{
-        Lock, LockRequest, LockStatus, Edition, 
+        Lock, LockRequest, LockStatus, Edition,
         ProverRegisterRequest, ProverInfoResponse, ProverStatus,
+        ChallengeInfo, ChallengeStatus,
     },
 };
 
@@ -149,5 +150,104 @@ impl AppState {
         self.redis.set(&format!("edition:switch:{}", switch_id), &data.to_string(), 86400 * 14).await.map_err(|e| ApiError::Internal(e.to_string()))?;
         self.redis.set("edition:switch_pending", "1", 86400 * 14).await.map_err(|e| ApiError::Internal(e.to_string()))?;
         self.redis.set("edition:next_switch_time", &effective_time.to_string(), 86400 * 14).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    // ========================================================================
+    // Challenge Methods (SEQUENCES §4)
+    // ========================================================================
+
+    /// Store a new challenge
+    pub async fn store_challenge(
+        &self,
+        challenge_id: &str,
+        lock_id: &str,
+        challenger: &str,
+        fraud_proof_hash: &str,
+        bond: &str,
+        defense_deadline: u64,
+    ) -> Result<(), ApiError> {
+        let challenge = ChallengeInfo {
+            challenge_id: challenge_id.to_string(),
+            lock_id: lock_id.to_string(),
+            challenger: challenger.to_string(),
+            fraud_proof_hash: fraud_proof_hash.to_string(),
+            bond: bond.to_string(),
+            challenged_at: chrono::Utc::now().timestamp() as u64,
+            defense_deadline,
+            status: ChallengeStatus::Pending,
+            defender: None,
+            defense_proof_hash: None,
+        };
+        let key = format!("challenge:{}", challenge_id);
+        let lock_key = format!("challenge:lock:{}", lock_id);
+        let value = serde_json::to_string(&challenge).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&key, &value, 86400 * 30).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&lock_key, challenge_id, 86400 * 30).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Get challenge by lock_id
+    pub async fn get_challenge_by_lock_id(&self, lock_id: &str) -> Result<Option<ChallengeInfo>, ApiError> {
+        let lock_key = format!("challenge:lock:{}", lock_id);
+        let challenge_id = match self.redis.get(&lock_key).await {
+            Ok(Some(id)) => id,
+            Ok(None) => return Ok(None),
+            Err(e) => return Err(ApiError::Internal(e.to_string())),
+        };
+        let key = format!("challenge:{}", challenge_id);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Submit defense for a challenge
+    pub async fn submit_defense(
+        &self,
+        challenge_id: &str,
+        defender: &str,
+        defense_proof_hash: &str,
+    ) -> Result<(), ApiError> {
+        let key = format!("challenge:{}", challenge_id);
+        let value = self.redis.get(&key).await.map_err(|e| ApiError::Internal(e.to_string()))?
+            .ok_or_else(|| ApiError::ChallengeNotFound(challenge_id.to_string()))?;
+        let mut challenge: ChallengeInfo = serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?;
+        challenge.status = ChallengeStatus::DefenseSubmitted;
+        challenge.defender = Some(defender.to_string());
+        challenge.defense_proof_hash = Some(defense_proof_hash.to_string());
+        let new_value = serde_json::to_string(&challenge).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&key, &new_value, 86400 * 30).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Resolve a challenge (after deadline or arbitration)
+    pub async fn resolve_challenge(
+        &self,
+        challenge_id: &str,
+        challenge_valid: bool,
+        slash_amount: &str,
+        challenger_reward: &str,
+        insurance_amount: &str,
+        burn_amount: &str,
+    ) -> Result<(), ApiError> {
+        let key = format!("challenge:{}", challenge_id);
+        let value = self.redis.get(&key).await.map_err(|e| ApiError::Internal(e.to_string()))?
+            .ok_or_else(|| ApiError::ChallengeNotFound(challenge_id.to_string()))?;
+        let mut challenge: ChallengeInfo = serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?;
+        challenge.status = if challenge_valid { ChallengeStatus::ResolvedValid } else { ChallengeStatus::ResolvedInvalid };
+        let new_value = serde_json::to_string(&challenge).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&key, &new_value, 86400 * 30).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Log the resolution for audit trail
+        let resolution = serde_json::json!({
+            "challenge_id": challenge_id,
+            "challenge_valid": challenge_valid,
+            "slash_amount": slash_amount,
+            "challenger_reward": challenger_reward,
+            "insurance_amount": insurance_amount,
+            "burn_amount": burn_amount,
+            "resolved_at": chrono::Utc::now().timestamp(),
+        });
+        let resolution_key = format!("challenge:resolution:{}", challenge_id);
+        self.redis.set(&resolution_key, &resolution.to_string(), 86400 * 365).await.map_err(|e| ApiError::Internal(e.to_string()))
     }
 }

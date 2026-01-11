@@ -56,6 +56,8 @@ export interface QuantumShieldContextValue {
   isLoading: boolean;
   /** Initialization error */
   error: Error | null;
+  /** API URL */
+  apiUrl: string;
   /** Connect wallet */
   connectWallet: () => Promise<void>;
   /** Disconnect wallet */
@@ -167,6 +169,7 @@ export function QuantumShieldProvider({
     isInitialized,
     isLoading,
     error,
+    apiUrl: config.apiUrl,
     connectWallet,
     disconnectWallet,
     generateKeyPair: generateKeyPairFn,

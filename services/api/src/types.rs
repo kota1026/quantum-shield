@@ -238,3 +238,95 @@ pub struct SphincsSignature {
     pub signature: Vec<u8>,
     pub timestamp: u64,
 }
+
+// ============================================================================
+// Challenge Types (SEQUENCES §4)
+// ============================================================================
+
+/// Challenge request for filing a challenge against pending unlock
+#[derive(Debug, Deserialize)]
+pub struct ChallengeRequest {
+    pub lock_id: String,
+    pub challenger: String,
+    pub fraud_proof: String,
+    pub bond: String,
+}
+
+/// Challenge response after successful submission
+#[derive(Debug, Serialize)]
+pub struct ChallengeResponse {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub fraud_proof_hash: String,
+    pub bond: String,
+    pub defense_deadline: u64,
+    pub status: ChallengeStatus,
+}
+
+/// Defense request from Prover
+#[derive(Debug, Deserialize)]
+pub struct DefenseRequest {
+    pub prover_id: String,
+    pub defense_proof: String,
+}
+
+/// Defense response after successful submission
+#[derive(Debug, Serialize)]
+pub struct DefenseResponse {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub defender: String,
+    pub defense_proof_hash: String,
+    pub status: ChallengeStatus,
+}
+
+/// Challenge status enum
+/// Maps to L1Vault.sol ChallengeStatus
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ChallengeStatus {
+    None,
+    Pending,
+    DefenseSubmitted,
+    ResolvedValid,
+    ResolvedInvalid,
+}
+
+/// Full challenge information
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ChallengeInfo {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub challenger: String,
+    pub fraud_proof_hash: String,
+    pub bond: String,
+    pub challenged_at: u64,
+    pub defense_deadline: u64,
+    pub status: ChallengeStatus,
+    pub defender: Option<String>,
+    pub defense_proof_hash: Option<String>,
+}
+
+/// Auto-resolve response
+#[derive(Debug, Serialize)]
+pub struct AutoResolveResponse {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub challenge_valid: bool,
+    pub slash_amount: String,
+    pub challenger_reward: String,
+    pub insurance_amount: String,
+    pub burn_amount: String,
+    pub status: ChallengeStatus,
+}
+
+/// Prover info for internal use
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Prover {
+    pub prover_id: String,
+    pub operator_addr: String,
+    pub sphincs_pubkey: String,
+    pub stake_amount: String,
+    pub status: ProverStatus,
+    pub is_active: bool,
+}

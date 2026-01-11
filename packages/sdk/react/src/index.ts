@@ -18,3 +18,5 @@ export { useWallet } from './useWallet';
 export type { UseWalletReturn } from './useWallet';
 export { useTimeLock } from './useTimeLock';
 export type { UseTimeLockReturn } from './useTimeLock';
+export { useChallenge, ChallengeStatus } from './useChallenge';
+export type { UseChallengeReturn, ChallengeInfo, ChallengeRequest, ChallengeResponse, DefenseRequest, DefenseResponse, AutoResolveResponse, DefenseTimeRemaining } from './useChallenge';
