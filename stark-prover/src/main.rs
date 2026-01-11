@@ -34,6 +34,17 @@ use axum::{
 use dilithium_stark::{
     witness::generate_full_trace,
     DilithiumStarkProof, FriProof, ProofMetadata, PublicInputs, QueryResponse, Witness,
+    // Winterfell STARK prover
+    stark::{
+        DilithiumNttProver, DilithiumNttPublicInputs, DilithiumNttAir,
+        build_ntt_trace, generate_test_coefficients,
+    },
+};
+use winterfell::{
+    Prover,
+    math::FieldElement,
+    verify as winterfell_verify_fn,
+    Proof,
 };
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
@@ -200,6 +211,45 @@ struct ErrorResponse {
 }
 
 // =============================================================================
+// Winterfell STARK Types
+// =============================================================================
+
+/// Request for Winterfell proof generation
+#[derive(Debug, Deserialize)]
+struct WinterfellProveRequest {
+    /// Input polynomial coefficients (hex encoded array)
+    coefficients: Vec<String>,
+    /// Number of trace rows (must be power of 2, min 64)
+    trace_rows: Option<usize>,
+}
+
+/// Response for Winterfell proof generation
+#[derive(Debug, Serialize)]
+struct WinterfellProofResponse {
+    /// Generated STARK proof (hex encoded)
+    proof: String,
+    /// Proof size in bytes
+    proof_size: usize,
+    /// Public inputs for verification
+    public_inputs: WinterfellPublicInputsResponse,
+    /// Proof generation time in milliseconds
+    generation_time_ms: u64,
+    /// Security level in bits
+    security_bits: u32,
+}
+
+/// Winterfell public inputs response
+#[derive(Debug, Serialize)]
+struct WinterfellPublicInputsResponse {
+    ntt_input_a: String,
+    ntt_input_b: String,
+    final_w1: String,
+    final_fma_result: String,
+    z_init: String,
+    z_final: String,
+}
+
+// =============================================================================
 // Handlers
 // =============================================================================
 
@@ -208,6 +258,7 @@ async fn health() -> impl IntoResponse {
         "status": "healthy",
         "prover": "dilithium-stark",
         "version": env!("CARGO_PKG_VERSION"),
+        "winterfell": "enabled",
     }))
 }
 
@@ -499,6 +550,198 @@ fn generate_query_responses(
 }
 
 // =============================================================================
+// Winterfell STARK Proof Generation
+// =============================================================================
+
+/// Generate STARK proof using Winterfell prover
+async fn winterfell_prove(
+    Json(req): Json<WinterfellProveRequest>,
+) -> Result<Json<WinterfellProofResponse>, (StatusCode, Json<ErrorResponse>)> {
+    use winterfell::math::fields::f128::BaseElement;
+    use winterfell::crypto::{hashers::Blake3_256, DefaultRandomCoin, MerkleTree};
+
+    let start = Instant::now();
+    info!("Starting Winterfell STARK proof generation");
+
+    // Parse coefficients or use test data
+    let coeffs: Vec<u64> = if req.coefficients.is_empty() {
+        // Generate test coefficients if none provided
+        let num_coeffs = req.trace_rows.unwrap_or(64) * 2;
+        generate_test_coefficients(num_coeffs)
+    } else {
+        // Parse hex-encoded coefficients
+        req.coefficients
+            .iter()
+            .filter_map(|s| u64::from_str_radix(s.trim_start_matches("0x"), 16).ok())
+            .collect()
+    };
+
+    if coeffs.is_empty() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "Invalid coefficients".to_string(),
+                details: Some("Provide valid hex-encoded coefficients or empty array for test".to_string()),
+            }),
+        ));
+    }
+
+    // Determine trace size (power of 2, minimum 64)
+    let trace_rows = req.trace_rows.unwrap_or(64);
+    let trace_rows = trace_rows.next_power_of_two().max(64);
+
+    info!("Building execution trace with {} rows", trace_rows);
+
+    // Build execution trace
+    let trace = build_ntt_trace(trace_rows, &coeffs);
+
+    // Create prover with default options (~128-bit security)
+    let prover = DilithiumNttProver::with_default_options();
+
+    // Extract public inputs
+    let pub_inputs = prover.get_pub_inputs(&trace);
+
+    info!("Generating STARK proof...");
+
+    // Generate proof
+    let proof = match prover.prove(trace) {
+        Ok(p) => p,
+        Err(e) => {
+            error!("Proof generation failed: {:?}", e);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "Proof generation failed".to_string(),
+                    details: Some(format!("{:?}", e)),
+                }),
+            ));
+        }
+    };
+
+    let generation_time_ms = start.elapsed().as_millis() as u64;
+
+    // Serialize proof
+    let proof_bytes = proof.to_bytes();
+    let proof_size = proof_bytes.len();
+
+    info!(
+        "Proof generated successfully: {} bytes in {}ms",
+        proof_size, generation_time_ms
+    );
+
+    // Convert public inputs to response format
+    let pub_inputs_response = WinterfellPublicInputsResponse {
+        ntt_input_a: format!("{:?}", pub_inputs.ntt_input_a),
+        ntt_input_b: format!("{:?}", pub_inputs.ntt_input_b),
+        final_w1: format!("{:?}", pub_inputs.final_w1),
+        final_fma_result: format!("{:?}", pub_inputs.final_fma_result),
+        z_init: format!("{:?}", pub_inputs.z_init),
+        z_final: format!("{:?}", pub_inputs.z_final),
+    };
+
+    Ok(Json(WinterfellProofResponse {
+        proof: hex::encode(&proof_bytes),
+        proof_size,
+        public_inputs: pub_inputs_response,
+        generation_time_ms,
+        security_bits: 128, // Default security level
+    }))
+}
+
+/// Verify a Winterfell STARK proof
+#[derive(Debug, Deserialize)]
+struct WinterfellVerifyRequest {
+    /// Hex-encoded proof bytes
+    proof: String,
+    /// Public inputs (must match proof)
+    ntt_input_a: u64,
+    ntt_input_b: u64,
+    final_w1: u64,
+    final_fma_result: u64,
+}
+
+async fn winterfell_verify(
+    Json(req): Json<WinterfellVerifyRequest>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<ErrorResponse>)> {
+    use winterfell::math::fields::f128::BaseElement;
+    use winterfell::crypto::{hashers::Blake3_256, DefaultRandomCoin, MerkleTree};
+    use winterfell::AcceptableOptions;
+
+    info!("Verifying Winterfell STARK proof");
+
+    // Decode proof bytes
+    let proof_bytes = match hex::decode(&req.proof) {
+        Ok(b) => b,
+        Err(e) => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                Json(ErrorResponse {
+                    error: "Invalid proof encoding".to_string(),
+                    details: Some(format!("{}", e)),
+                }),
+            ));
+        }
+    };
+
+    // Deserialize proof
+    let proof: Proof = match Proof::from_bytes(&proof_bytes) {
+        Ok(p) => p,
+        Err(e) => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                Json(ErrorResponse {
+                    error: "Invalid proof format".to_string(),
+                    details: Some(format!("{:?}", e)),
+                }),
+            ));
+        }
+    };
+
+    // Construct public inputs
+    let pub_inputs = DilithiumNttPublicInputs {
+        t_coeff_0: BaseElement::from(req.ntt_input_a),
+        ntt_input_a: BaseElement::from(req.ntt_input_a),
+        ntt_input_b: BaseElement::from(req.ntt_input_b),
+        challenge_hash: BaseElement::ZERO,
+        final_w1: BaseElement::from(req.final_w1),
+        expected_challenge: BaseElement::ZERO,
+        final_fma_result: BaseElement::from(req.final_fma_result),
+        max_norm_coeff: BaseElement::ZERO,
+        z_init: BaseElement::ONE,
+        z_final: BaseElement::ONE,
+    };
+
+    // Get prover options for verification
+    let prover = DilithiumNttProver::with_default_options();
+    let acceptable_options = AcceptableOptions::OptionSet(vec![prover.options().clone()]);
+
+    // Verify proof
+    let result = winterfell_verify_fn::<
+        DilithiumNttAir,
+        Blake3_256<BaseElement>,
+        DefaultRandomCoin<Blake3_256<BaseElement>>,
+        MerkleTree<Blake3_256<BaseElement>>,
+    >(proof, pub_inputs, &acceptable_options);
+
+    match result {
+        Ok(_) => {
+            info!("Proof verification successful");
+            Ok(Json(serde_json::json!({
+                "valid": true,
+                "message": "Proof verified successfully"
+            })))
+        }
+        Err(e) => {
+            warn!("Proof verification failed: {:?}", e);
+            Ok(Json(serde_json::json!({
+                "valid": false,
+                "message": format!("Verification failed: {:?}", e)
+            })))
+        }
+    }
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -528,6 +771,9 @@ async fn main() {
         .route("/prove", post(prove))
         .route("/status/:job_id", get(get_status))
         .route("/proof/:job_id", get(get_proof))
+        // Winterfell STARK endpoints
+        .route("/winterfell/prove", post(winterfell_prove))
+        .route("/winterfell/verify", post(winterfell_verify))
         .layer(cors)
         .with_state(state);
 
