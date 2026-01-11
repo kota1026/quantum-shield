@@ -13,7 +13,11 @@ export type { UseLockReturn } from './useLock';
 export { useUnlock } from './useUnlock';
 export type { UseUnlockReturn } from './useUnlock';
 export { useDilithium } from './useDilithium';
-export type { UseDilithiumReturn } from './useDilithium';
+export type { UseDilithiumReturn, VerificationResult, AlgorithmInfo } from './useDilithium';
+
+// WASM utilities
+export { loadWasm, isWasmLoaded, stringToHex, hexToString } from './wasm';
+export type { WasmKeyPairResult, WasmVerifyResult, WasmAlgorithmInfo } from './wasm';
 export { useWallet } from './useWallet';
 export type { UseWalletReturn } from './useWallet';
 export { useTimeLock } from './useTimeLock';
