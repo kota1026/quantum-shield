@@ -1,8 +1,8 @@
 # 📊 UI Progress Tracker
 ## Phase 4 UI 176画面 進捗管理
 
-> **Version**: 1.7  
-> **Date**: 2026-01-10  
+> **Version**: 1.8
+> **Date**: 2026-01-11
 > **Design System**: Premium Japan v1.0
 
 ---
@@ -15,24 +15,24 @@
 | 項目 | 値 |
 |------|-----|
 | Current System | `07_enterprise` |
-| Current Phase | `08_design_prep` → `09_design_create` |
+| Current Phase | `09_design_create` → `10_design_pir` |
 | DESIGN_BRIEF | ✅ Created |
-| DESIGN_MANIFEST | ⬜ Not Yet |
-| Mocks Pushed | ⬜ 0 files |
+| DESIGN_MANIFEST | ✅ Created |
+| Mocks Pushed | ✅ 26 files (25 HTML + 1 MANIFEST) |
 | PIR Report | ⬜ Not Yet |
 
 ### Last Completed Action
-- **Date**: 2026-01-10
-- **Action**: 08_design_prep completed
-- **Output**: DESIGN_BRIEF_enterprise.md
-- **Next**: 09_design_create.md
+- **Date**: 2026-01-11
+- **Action**: 09_design_create completed
+- **Output**: 25 HTML mocks + DESIGN_MANIFEST.md
+- **Next**: 10_design_pir.md
 
 ### Previous System (Token Hub) - COMPLETE
 - **PIR Judgment**: ✅ **PASS** (v2.0)
 - **All issues resolved**: 6/6 fixed
 
 ### Next Actions
-1. **Enterprise Admin (P1)** - 09_design_create.md でモック作成
+1. **Enterprise Admin (P1)** - 10_design_pir.md でPIRレビュー
 2. **Prover Portal (P0)** - 収益の要
 3. **QS Admin (P0)** - 運用必須
 
@@ -44,14 +44,15 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  全体進捗: 46 / 176 画面 (26%)                                  │
-│  ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 26%                  │
+│  全体進捗: 71 / 176 画面 (40%)                                  │
+│  ████████████████░░░░░░░░░░░░░░░░░░░░░░░░ 40%                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Phase 4A (Design):    46 / 176 完了                           │
+│  Phase 4A (Design):    71 / 176 完了                           │
 │  Phase 4B (Implement): 0 / 176 完了                            │
 │                                                                 │
-│  Design PASS: Consumer App (28) + Token Hub (18) = 46 screens  │
+│  Design PASS: Consumer (28) + Token Hub (18) = 46 screens      │
+│  Mocks Ready: Enterprise Admin (25) = 25 screens (PIR待ち)     │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -66,9 +67,9 @@
 | 4 | Prover Portal | system_04_prover | 28 | ⬜ | 0/28 | - | 🔴 Not Started |
 | 5 | Observer/Challenger | system_05_observer | 10 | ⬜ | 0/10 | - | 🔴 Not Started |
 | 6 | Explorer | system_06_explorer | 14 | ⬜ | 0/14 | - | 🔴 Not Started |
-| 7 | Enterprise Admin | system_07_enterprise | 25 | ✅ | 0/25 | - | 🟡 Brief Ready |
+| 7 | Enterprise Admin | system_07_enterprise | 25 | ✅ | 25/25 | ⬜ | 🟡 Mocks Ready |
 | 8 | QS Admin | system_08_qs_admin | 40 | ⬜ | 0/40 | - | 🔴 Not Started |
-| | **Total** | | **179** | **2** | **28** | **2** | |
+| | **Total** | | **179** | **3** | **53** | **2** | |
 
 ### ステータス凡例
 
@@ -100,7 +101,7 @@
 |:-----:|--------|-----------|--------|:------:|
 | 5 | Governance | system_03_governance | Decentralized Edition | 🔴 |
 | 6 | Explorer | system_06_explorer | 透明性、公開情報 | 🔴 |
-| 7 | Enterprise Admin | system_07_enterprise | Enterprise Edition | 🔴 |
+| 7 | Enterprise Admin | system_07_enterprise | Enterprise Edition | 🟡 Mocks Ready |
 
 ## P2: Nice to Have
 
@@ -363,6 +364,109 @@ system_01_consumer_app/   ❌ 間違い（DEPRECATED - 削除予定）
 | 2026-01-10 | Token Hub | Fix | 11_design_fix完了 - Critical/High全件修正済 |
 | 2026-01-10 | Token Hub | PIR | **PIR PASS (v2.0)** - Re-PIR承認 |
 | 2026-01-10 | Enterprise Admin | Design | DESIGN_BRIEF_enterprise.md 作成完了 |
+| 2026-01-11 | Enterprise Admin | Design | 25画面 HTML Mocks + DESIGN_MANIFEST.md 作成完了 |
+
+---
+
+# System 7: Enterprise Admin (25 screens) 🟡
+
+## Status: Mocks Ready (PIR待ち)
+
+- **Directory**: `system_07_enterprise/`
+- **DESIGN_BRIEF**: ✅ Created (2026-01-10)
+- **DESIGN_MANIFEST**: ✅ v1.0 (2026-01-11)
+- **Mock完了**: 25/25 ファイル (100%)
+- **画面カバー**: 25画面
+- **PIR判定**: ⬜ Not Yet
+- **ファイル**: `system_07_enterprise/wip/mocks/`
+
+## 7.1 Dashboard (4)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 7-1 | Overview Dashboard | ✅ | ⬜ | ⬜ | 01_overview_dashboard.html |
+| 7-2 | TVL Dashboard | ✅ | ⬜ | ⬜ | 02_tvl_dashboard.html |
+| 7-3 | Volume Dashboard | ✅ | ⬜ | ⬜ | 03_volume_dashboard.html |
+| 7-4 | Status Dashboard | ✅ | ⬜ | ⬜ | 04_status_dashboard.html |
+
+## 7.2 Transactions (4)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 7-5 | Transaction List | ✅ | ⬜ | ⬜ | 05_transaction_list.html |
+| 7-6 | Transaction Detail | ✅ | ⬜ | ⬜ | 06_transaction_detail.html |
+| 7-7 | Transaction Export | ✅ | ⬜ | ⬜ | 07_transaction_export.html |
+| 7-8 | Transaction Analytics | ✅ | ⬜ | ⬜ | 08_transaction_analytics.html |
+
+## 7.3 Users (5)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 7-9 | User List | ✅ | ⬜ | ⬜ | 09_user_list.html |
+| 7-10 | User Detail | ✅ | ⬜ | ⬜ | 10_user_detail.html |
+| 7-11 | User Create | ✅ | ⬜ | ⬜ | 11_user_create.html |
+| 7-12 | Role Management | ✅ | ⬜ | ⬜ | 12_role_management.html |
+| 7-13 | Invite User | ✅ | ⬜ | ⬜ | 13_invite_user.html |
+
+## 7.4 API (4)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 7-14 | API Keys | ✅ | ⬜ | ⬜ | 14_api_keys.html |
+| 7-15 | Create API Key | ✅ | ⬜ | ⬜ | 15_create_api_key.html |
+| 7-16 | API Usage | ✅ | ⬜ | ⬜ | 16_api_usage.html |
+| 7-17 | Webhooks | ✅ | ⬜ | ⬜ | 17_webhooks.html |
+
+## 7.5 Settings (4)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 7-18 | Organization Settings | ✅ | ⬜ | ⬜ | 18_org_settings.html |
+| 7-19 | Security Settings | ✅ | ⬜ | ⬜ | 19_security_settings.html |
+| 7-20 | Notification Settings | ✅ | ⬜ | ⬜ | 20_notification_settings.html |
+| 7-21 | Limit Settings | ✅ | ⬜ | ⬜ | 21_limit_settings.html |
+
+## 7.6 Reports & Audit (4)
+
+| # | Screen | Mock | PIR | Impl | Notes |
+|:-:|--------|:----:|:---:|:----:|-------|
+| 7-22 | Monthly Report | ✅ | ⬜ | ⬜ | 22_monthly_report.html |
+| 7-23 | Compliance Report | ✅ | ⬜ | ⬜ | 23_compliance_report.html |
+| 7-24 | Audit Log | ✅ | ⬜ | ⬜ | 24_audit_log.html |
+| 7-25 | Support Portal | ✅ | ⬜ | ⬜ | 25_support_portal.html |
+
+---
+
+## Enterprise Admin (System 07) - 25 files
+
+| File | Size | Screen |
+|------|:----:|--------|
+| 01_overview_dashboard.html | 34KB | Overview Dashboard |
+| 02_tvl_dashboard.html | 11KB | TVL Dashboard |
+| 03_volume_dashboard.html | 6KB | Volume Dashboard |
+| 04_status_dashboard.html | 7KB | Status Dashboard |
+| 05_transaction_list.html | 29KB | Transaction List |
+| 06_transaction_detail.html | 20KB | Transaction Detail |
+| 07_transaction_export.html | 5KB | Transaction Export |
+| 08_transaction_analytics.html | 8KB | Transaction Analytics |
+| 09_user_list.html | 21KB | User List |
+| 10_user_detail.html | 13KB | User Detail |
+| 11_user_create.html | 6KB | User Create |
+| 12_role_management.html | 8KB | Role Management |
+| 13_invite_user.html | 7KB | Invite User |
+| 14_api_keys.html | 20KB | API Keys |
+| 15_create_api_key.html | 7KB | Create API Key |
+| 16_api_usage.html | 9KB | API Usage |
+| 17_webhooks.html | 9KB | Webhooks |
+| 18_org_settings.html | 15KB | Organization Settings |
+| 19_security_settings.html | 20KB | Security Settings |
+| 20_notification_settings.html | 8KB | Notification Settings |
+| 21_limit_settings.html | 11KB | Limit Settings |
+| 22_monthly_report.html | 10KB | Monthly Report |
+| 23_compliance_report.html | 11KB | Compliance Report |
+| 24_audit_log.html | 20KB | Audit Log |
+| 25_support_portal.html | 12KB | Support Portal |
+| **Total** | **~327KB** | **25 screens** |
 
 ---
 
