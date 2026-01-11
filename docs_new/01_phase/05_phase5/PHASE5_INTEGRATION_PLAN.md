@@ -1,8 +1,8 @@
 # Phase 5: バックエンド統合計画書
 
-> **Version**: 2.0
+> **Version**: 2.1
 > **Date**: 2026-01-11
-> **Status**: Draft (Updated with Backend Deep Analysis)
+> **Status**: Draft (Archive Migration Update - FRI/Plonky2完動コード発見)
 > **Author**: Claude (Integration Analysis)
 
 ---
@@ -90,24 +90,46 @@
 
 ## 2.5 🔴 新規発見: バックエンド実装の重大ギャップ
 
-### 2.5.1 STARK Prover（証明生成エンジン）- 🔴 CRITICAL
+### 2.5.1 STARK Prover（証明生成エンジン）- 🟠 MIGRATION NEEDED
 
-**発見**: STARK証明生成が**プレースホルダー実装**のまま
+**発見**: 現行コードはプレースホルダーだが、**`_archive/`に完動実装あり**
 
-| コンポーネント | ファイル | 状態 | 問題 |
+#### 現行コード（スタブ）
+| コンポーネント | ファイル | 状態 |
+|--------------|----------|:----:|
+| Trace Matrix生成 | `circuits/dilithium-stark/src/witness.rs` | ❌ STUB |
+| FRI Proof生成 | `stark-prover/src/main.rs` | ❌ STUB |
+
+#### Archive実装（✅ 完動）
+| フレームワーク | ファイル | 状態 | 内容 |
 |--------------|----------|:----:|------|
-| **Trace Matrix生成** | `circuits/dilithium-stark/src/witness.rs:55-87` | ❌ STUB | `build_trace_matrix()` returns `Vec::new()` |
-| **FRI Proof生成** | `stark-prover/src/main.rs:481-491` | ❌ STUB | ダミーデータを返す |
-| **Query Response** | `stark-prover/src/main.rs:493-499` | ❌ STUB | 空のベクターを返す |
-| **Matrix A展開** | `verification.rs:210-218` | ❌ STUB | ゼロを返す（ρシードからの展開なし） |
-| **NTT Trace** | `witness.rs:52` | ❌ STUB | `ntt_traces: Vec::new()` |
+| **Winterfell** | `_archive/v1-stark-native/prover.rs` | ✅ 完動 | DilithiumNttProver (32 queries, 8x blowup, FRI folding 8) |
+| **Winterfell** | `_archive/v1-stark-native/kyber/prover.rs` | ✅ 完動 | Kyber STARK Prover |
+| **Winterfell** | `_archive/v1-stark-native/sphincs/prover.rs` | ✅ 完動 | SPHINCS+ STARK Prover |
+| **Plonky2** | `_archive/v1-stark-native/plonky2-bench/src/main.rs` | ✅ 完動 | NTT Prover + Bridge Aggregation |
+| **SP1** | `_archive/v1-stark-native/sp1-bench/` | ✅ 完動 | SP1 zkVM統合 |
 
-**影響**:
-- L1コントラクト（STARKVerifier.sol, FRIVerifier.sol）は**完成済み**
-- しかし**実際のSTARK証明は生成できない**
-- 現在はダミー証明でテストしている状態
+**Winterfell実装詳細**:
+```rust
+// _archive/v1-stark-native/prover.rs
+ProofOptions::new(
+    32,   // Number of queries (~128-bit security)
+    8,    // Blowup factor (LDE)
+    0,    // Grinding factor
+    FieldExtension::None,
+    8,    // FRI folding factor
+    31,   // FRI max remainder degree
+)
+```
 
-**工数追加**: **+15日**（Plonky3ベースの実装）
+**Plonky2実装詳細**:
+- GoldilocksField + PoseidonGoldilocksConfig
+- 40+ prove()呼び出し実績
+- Quantum-resistant configuration対応
+
+**必要な作業**: Archive実装 → 現行stark-prover への**移行統合**
+
+**工数修正**: ~~+15日~~ → **+5日**（新規実装ではなく移行）
 
 ---
 
@@ -230,32 +252,37 @@ fn validate_sphincs_pubkey(pubkey: &str) -> bool {
 
 ---
 
-### 2.5.7 工数修正サマリ
+### 2.5.7 工数修正サマリ（再修正）
 
-| ギャップ | 追加工数 | 優先度 |
-|---------|:-------:|:------:|
-| STARK Prover実装 | +15日 | 🔴 P0 |
-| L3 Dilithium FIPS 204移行 | +3日 | 🔴 P0 |
-| React SDK WASM統合 | +5日 | 🔴 P0 |
-| L3 Production Mode | +10日 | 🔴 P0 |
-| Event Bridge完成 | +8日 | 🟠 P1 |
-| SPHINCS+検証 | +2日 | 🟠 P1 |
-| **合計追加** | **+43日** | |
+| ギャップ | 当初追加 | 再修正 | 優先度 | 理由 |
+|---------|:-------:|:------:|:------:|------|
+| STARK Prover | ~~+15日~~ | **+5日** | 🟠 P0 | Archive移行のみ |
+| L3 Dilithium FIPS 204移行 | +3日 | +3日 | 🔴 P0 | |
+| React SDK WASM統合 | +5日 | +5日 | 🔴 P0 | |
+| L3 Production Mode | +10日 | +10日 | 🔴 P0 | |
+| Event Bridge完成 | +8日 | +8日 | 🟠 P1 | |
+| SPHINCS+検証 | +2日 | +2日 | 🟠 P1 | |
+| **合計追加** | ~~+43日~~ | **+33日** | | -10日削減 |
 
-**修正後総工数**: 59日 → **102日**
+**修正後総工数**: 59日 → **92日**（当初102日から10日削減）
+
+**Phase完了実績（参考）**:
+- Phase 1: 423/423 tests PASS - Dilithium/SPHINCS+ 正式検証完了
+- Phase 2: 834/834 tests PASS - STARKVerifier v1.0、71%ガス削減
+- Phase 3.1: 388/388 tests PASS - L3 Aegis 4-node BFT完成
 
 ---
 
 ## 3. Phase 5 実装計画
 
-### 3.1 全体スケジュール（修正版 - 102日）
+### 3.1 全体スケジュール（再修正版 - 92日）
 
 ```
-Phase 5.0: 🔴 ブロッカー解消 (Week 1-4) ★新規追加★
-├── STARK Prover実証明生成実装 (15日)
-│   ├── Trace Matrix生成
-│   ├── FRI Proof生成
-│   └── Query Response実装
+Phase 5.0: 🟠 ブロッカー解消 (Week 1-3) ★Archive移行で短縮★
+├── STARK Prover移行統合 (5日) ← Archive完動コードから移行
+│   ├── Winterfell prover統合
+│   ├── stark-proverサービス接続
+│   └── L1 STARKVerifier連携テスト
 ├── React SDK WASM統合 (5日)
 │   ├── WASMモジュール初期化
 │   └── 全Hook実装
@@ -508,43 +535,43 @@ GET  /v1/auth/me        // 現在のユーザー情報
 
 ---
 
-## 5. 工数見積もり（修正版）
+## 5. 工数見積もり（再修正版）
 
 ### 5.1 総工数
 
 | フェーズ | 内容 | 工数 | 備考 |
 |---------|------|:----:|------|
-| **Phase 5.0** | 🔴 ブロッカー解消 | **33日** | ★新規追加★ |
+| **Phase 5.0** | 🟠 ブロッカー解消 | **23日** | Archive移行で短縮 |
 | Phase 5.1 | 基盤整備 | **10日** | |
 | Phase 5.2 | コアAPI | **12日** | |
 | Phase 5.3 | 管理系API | **15日** | |
-| Phase 5.4 | 補完機能 | **22日** | +10日（Event Bridge, SPHINCS+） |
+| Phase 5.4 | 補完機能 | **22日** | Event Bridge, SPHINCS+ |
 | Phase 5.5 | 統合・テスト | **10日** | |
-| **合計** | | **102日** | 旧:59日 → 新:102日 (+73%) |
+| **合計** | | **92日** | 旧:59日 → 新:92日 (+56%) |
 
 ### 5.2 Phase 5.0 詳細工数
 
-| タスク | 工数 | 優先度 | 理由 |
-|--------|:----:|:------:|------|
-| STARK Prover実装 | 15日 | 🔴 P0 | 証明生成なしでは本番稼働不可 |
-| L3 Production Mode | 10日 | 🔴 P0 | 4ノードネットワーク必須 |
-| React SDK WASM統合 | 5日 | 🔴 P0 | UIが実際の暗号処理を呼べない |
-| L3 Dilithium FIPS移行 | 3日 | 🔴 P0 | CP-1準拠必須 |
+| タスク | 当初 | 再修正 | 優先度 | 理由 |
+|--------|:----:|:------:|:------:|------|
+| STARK Prover移行 | ~~15日~~ | **5日** | 🟠 P0 | Archive完動コード移行 |
+| L3 Production Mode | 10日 | 10日 | 🔴 P0 | 4ノードネットワーク必須 |
+| React SDK WASM統合 | 5日 | 5日 | 🔴 P0 | UIが実際の暗号処理を呼べない |
+| L3 Dilithium FIPS移行 | 3日 | 3日 | 🔴 P0 | CP-1準拠必須 |
 
-### 5.3 カテゴリ別工数（修正版）
+### 5.3 カテゴリ別工数（再修正版）
 
 | カテゴリ | 旧工数 | 新工数 | 差分 |
 |---------|:-----:|:-----:|:----:|
 | Contract実装 | 7日 | 7日 | - |
 | API実装 (82 EP) | 35日 | 35日 | - |
 | L3 Aegis拡張 | 5日 | **18日** | +13日 |
-| STARK Prover | 0日 | **15日** | +15日 |
+| STARK Prover | 0日 | **5日** | +5日 (移行のみ) |
 | Event Bridge | 0日 | **8日** | +8日 |
 | React SDK | 0日 | **5日** | +5日 |
 | UI統合 | 7日 | 7日 | - |
 | i18n対応 | 5日 | 5日 | - |
 | SPHINCS+検証 | 0日 | **2日** | +2日 |
-| **合計** | **59日** | **102日** | **+43日** |
+| **合計** | **59日** | **92日** | **+33日** |
 
 ---
 
@@ -589,23 +616,27 @@ GET  /v1/auth/me        // 現在のユーザー情報
 
 ## 8. 次のアクション（修正版 - ブロッカー優先）
 
-### 8.0 🔴 最優先: Phase 5.0 ブロッカー解消（Week 1-4）
+### 8.0 🟠 最優先: Phase 5.0 ブロッカー解消（Week 1-3）
 
-| # | タスク | 担当 | 工数 | 依存 |
-|---|--------|------|:----:|------|
-| **1** | **STARK Trace Matrix実装** | Backend | 5日 | なし |
-| **2** | **STARK FRI Proof実装** | Backend | 5日 | #1 |
-| **3** | **STARK Query Response実装** | Backend | 5日 | #2 |
-| **4** | **React WASM初期化** | Frontend | 2日 | なし |
-| **5** | **React Hooks実装** | Frontend | 3日 | #4 |
-| **6** | **L3 fips204移行** | Backend | 3日 | なし |
-| **7** | **L3 Node Wiring** | Backend | 4日 | #6 |
-| **8** | **L3 TLS 1.3 mTLS** | Backend | 3日 | #7 |
-| **9** | **L3 L1 State Root提出** | Backend | 3日 | #8 |
+| # | タスク | 担当 | 工数 | 依存 | ソース |
+|---|--------|------|:----:|------|--------|
+| **1** | **STARK Prover移行** | Backend | 3日 | なし | `_archive/v1-stark-native/prover.rs` |
+| **2** | **stark-proverサービス統合** | Backend | 2日 | #1 | Winterfell→HTTP API |
+| **3** | **React WASM初期化** | Frontend | 2日 | なし | `packages/sdk/wasm/` |
+| **4** | **React Hooks実装** | Frontend | 3日 | #3 | 既存TypeScript SDK参照 |
+| **5** | **L3 fips204移行** | Backend | 3日 | なし | fips204 crateへ |
+| **6** | **L3 Node Wiring** | Backend | 4日 | #5 | |
+| **7** | **L3 TLS 1.3 mTLS** | Backend | 3日 | #6 | |
+| **8** | **L3 L1 State Root提出** | Backend | 3日 | #7 | |
+
+**Archive移行ポイント**:
+- `_archive/v1-stark-native/prover.rs` → Winterfell完動Prover
+- `_archive/v1-stark-native/air.rs` → 1,027行のAIR constraints
+- `_archive/v1-stark-native/trace.rs` → 1,559行のTrace生成
 
 **並列実行可能**:
-- #1-3 (STARK) と #4-5 (React) と #6-9 (L3) は並列可能
-- 3チーム並列で約2週間に短縮可能
+- #1-2 (STARK移行) と #3-4 (React) と #5-8 (L3) は並列可能
+- 3チーム並列で約**10日**に短縮可能
 
 ### 8.1 Phase 5.1 準備（Week 5-6）
 
@@ -823,22 +854,36 @@ POST /v1/admin/enterprise/accounts
 
 ## Appendix C: バックエンドギャップ詳細ファイルリスト
 
-### C.1 STARK Prover（要実装）
+### C.1 STARK Prover（移行統合）
 
+**現行コード（スタブ）**:
 ```
 circuits/dilithium-stark/src/
 ├── witness.rs:55-87        # build_trace_matrix() → Vec::new() ❌
-├── witness.rs:52           # ntt_traces: Vec::new() ❌
-├── verification.rs:210-218 # expand_matrix_a_placeholder() → zeros ❌
-└── constraints.rs:75-100+  # Constraint definitions incomplete ❌
+└── constraints.rs          # Incomplete ❌
 
 stark-prover/src/
-├── main.rs:481-491         # FRI proof generation → dummy ❌
-└── main.rs:493-499         # Query responses → empty vec ❌
+└── main.rs:481-499         # FRI/Query → dummy ❌
+```
 
-contracts/src/              # ✅ 検証側は完成
+**Archive完動コード（移行元）** ✅:
+```
+_archive/v1-stark-native/
+├── prover.rs      (242 lines)  # ✅ DilithiumNttProver - Winterfell完動
+├── air.rs         (1,027 lines) # ✅ AIR constraints完全実装
+├── trace.rs       (1,559 lines) # ✅ Trace生成完全実装
+├── formal_verification.rs (3,424 lines) # ✅ 形式検証
+├── kyber/prover.rs             # ✅ Kyber STARK Prover
+├── sphincs/prover.rs           # ✅ SPHINCS+ STARK Prover
+└── plonky2-bench/src/main.rs   # ✅ Plonky2 NTT Prover (40+ prove()呼出)
+```
+
+**L1検証側（完成済み）**:
+```
+contracts/src/
 ├── STARKVerifier.sol       # ✅ 660 lines, complete
-└── FRIVerifier.sol         # ✅ 150+ lines, complete
+├── FRIVerifier.sol         # ✅ 342 lines, complete
+└── BatchVerifier.sol       # ✅ 281 lines, 71% gas reduction
 ```
 
 ### C.2 L3 Aegis（要完成）
@@ -932,4 +977,4 @@ services/api/src/routes/
 
 ---
 
-**Document End** (Version 2.0)
+**Document End** (Version 2.1 - Archive Migration Update)
