@@ -1,0 +1,191 @@
+<!--
+## File Info
+- System: QS Admin
+- Screen: Community Management
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-community | click | 12_community.html |
+| .announcement-card | click | showAnnouncementDetail() |
+| #btn-new-announcement | click | showNewAnnouncementModal() |
+| .faq-item | click | showFaqDetail() |
+| .tab-item | click | switchTab() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QS Admin - Community</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-card: #0e0e11; --bg-elevated: #18181c; --accent-hinomaru: #bc002d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-light: #e8334d; --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12); --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12); --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12); --info: #4a90d9; --info-dim: rgba(74, 144, 217, 0.12); --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08); --font-body: 'Plus Jakarta Sans', sans-serif; --font-mono: 'DM Mono', monospace; --sidebar-width: 260px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; }
+        .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); position: fixed; height: 100vh; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-subtle); }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 40px; height: 40px; background: var(--accent-hinomaru); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-text { font-size: 16px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .sidebar-nav { padding: 16px 12px; }
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-tertiary); padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .nav-item.emergency { background: var(--accent-hinomaru); color: white; margin-top: 8px; }
+        .nav-icon { width: 20px; text-align: center; }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 24px 32px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 28px; font-weight: 700; }
+        .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+        .btn-primary { padding: 12px 24px; background: var(--accent-hinomaru); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-primary:hover { background: var(--accent-hinomaru-light); }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-mini { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
+        .stat-mini-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; }
+        .stat-mini-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); }
+        .stat-mini-value.success { color: var(--success); }
+        .tabs { display: flex; gap: 4px; background: var(--bg-secondary); padding: 4px; border-radius: 10px; margin-bottom: 24px; width: fit-content; }
+        .tab-item { padding: 10px 20px; border-radius: 8px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+        .tab-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 16px; font-weight: 600; }
+        .card-body { padding: 20px; }
+        .announcement-card { background: var(--bg-secondary); border-radius: 10px; padding: 20px; margin-bottom: 16px; cursor: pointer; transition: all 0.2s; }
+        .announcement-card:last-child { margin-bottom: 0; }
+        .announcement-card:hover { background: var(--bg-elevated); }
+        .announcement-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .announcement-title { font-size: 16px; font-weight: 600; }
+        .announcement-type { font-size: 10px; padding: 3px 8px; border-radius: 4px; }
+        .announcement-type.important { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .announcement-type.update { background: var(--info-dim); color: var(--info); }
+        .announcement-type.event { background: var(--accent-gold-dim); color: var(--accent-gold); }
+        .announcement-excerpt { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; }
+        .announcement-meta { display: flex; gap: 16px; font-size: 12px; color: var(--text-tertiary); }
+        .faq-item { padding: 16px; border-bottom: 1px solid var(--border-subtle); cursor: pointer; transition: all 0.2s; }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-item:hover { background: var(--bg-secondary); }
+        .faq-question { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .faq-views { font-size: 12px; color: var(--text-tertiary); }
+        .quick-links { list-style: none; }
+        .quick-links li { padding: 12px 0; border-bottom: 1px solid var(--border-subtle); }
+        .quick-links li:last-child { border-bottom: none; }
+        .quick-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .quick-links a:hover { color: var(--accent-gold); }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo"><div class="logo-icon">QS</div><div><div class="logo-text">QS Admin</div><div class="logo-sub">Internal Dashboard</div></div></div></div>
+        <nav class="sidebar-nav">
+            <div class="nav-section"><div class="nav-section-label">Overview</div><a href="01_dashboard.html" class="nav-item"><span class="nav-icon">📊</span>Dashboard</a><a href="02_emergency.html" class="nav-item emergency"><span class="nav-icon">🚨</span>Emergency</a></div>
+            <div class="nav-section"><div class="nav-section-label">Business</div><a href="11_enterprise.html" class="nav-item"><span class="nav-icon">🏢</span>Enterprise</a><a href="12_community.html" class="nav-item active"><span class="nav-icon">👥</span>Community</a></div>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="page-header">
+            <div><h1 class="page-title">Community Management</h1><p class="page-subtitle">アナウンスメント・FAQ・コミュニティ管理</p></div>
+            <button class="btn-primary" id="btn-new-announcement" onclick="showNewAnnouncementModal()">+ New Announcement</button>
+        </div>
+        <div class="stats-row">
+            <div class="stat-mini"><div class="stat-mini-label">Total Users</div><div class="stat-mini-value">12,847</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Active This Week</div><div class="stat-mini-value success">3,421</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Support Tickets</div><div class="stat-mini-value">23</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Avg Response Time</div><div class="stat-mini-value success">2.4h</div></div>
+        </div>
+        <div class="tabs">
+            <div class="tab-item active">Announcements</div>
+            <div class="tab-item">FAQ</div>
+            <div class="tab-item">Support Tickets</div>
+            <div class="tab-item">Analytics</div>
+        </div>
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Recent Announcements</h2></div>
+                <div class="card-body">
+                    <div class="announcement-card" onclick="showAnnouncementDetail()">
+                        <div class="announcement-header">
+                            <div class="announcement-title">Quantum Shield v2.0 リリースのお知らせ</div>
+                            <span class="announcement-type important">Important</span>
+                        </div>
+                        <div class="announcement-excerpt">NIST認定Dilithiumアルゴリズム対応の新バージョンをリリースしました。既存ユーザーは自動的にアップグレードされます...</div>
+                        <div class="announcement-meta">
+                            <span>📅 2026-01-10</span>
+                            <span>👁️ 8,234 views</span>
+                            <span>💬 156 comments</span>
+                        </div>
+                    </div>
+                    <div class="announcement-card" onclick="showAnnouncementDetail()">
+                        <div class="announcement-header">
+                            <div class="announcement-title">メンテナンス完了のお知らせ</div>
+                            <span class="announcement-type update">Update</span>
+                        </div>
+                        <div class="announcement-excerpt">1月8日のメンテナンスは予定通り完了しました。L3ノードのパフォーマンスが20%向上しています...</div>
+                        <div class="announcement-meta">
+                            <span>📅 2026-01-08</span>
+                            <span>👁️ 4,521 views</span>
+                            <span>💬 42 comments</span>
+                        </div>
+                    </div>
+                    <div class="announcement-card" onclick="showAnnouncementDetail()">
+                        <div class="announcement-header">
+                            <div class="announcement-title">Community AMA - Q1 2026</div>
+                            <span class="announcement-type event">Event</span>
+                        </div>
+                        <div class="announcement-excerpt">1月15日 19:00 JSTよりコミュニティAMAを開催します。CEOとCTOが直接質問にお答えします...</div>
+                        <div class="announcement-meta">
+                            <span>📅 2026-01-05</span>
+                            <span>👁️ 2,156 views</span>
+                            <span>💬 89 comments</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header"><h2 class="card-title">Top FAQs</h2></div>
+                    <div class="faq-item" onclick="showFaqDetail()">
+                        <div class="faq-question">早期解除ペナルティとは？</div>
+                        <div class="faq-views">12,450 views</div>
+                    </div>
+                    <div class="faq-item" onclick="showFaqDetail()">
+                        <div class="faq-question">量子耐性とは何ですか？</div>
+                        <div class="faq-views">9,823 views</div>
+                    </div>
+                    <div class="faq-item" onclick="showFaqDetail()">
+                        <div class="faq-question">ロック期間の変更は可能？</div>
+                        <div class="faq-views">7,234 views</div>
+                    </div>
+                    <div class="faq-item" onclick="showFaqDetail()">
+                        <div class="faq-question">Proverの役割について</div>
+                        <div class="faq-views">5,678 views</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Quick Links</h2></div>
+                    <div class="card-body">
+                        <ul class="quick-links">
+                            <li><a href="01_dashboard.html">Discord Server <span>→</span></a></li>
+                            <li><a href="01_dashboard.html">Twitter/X <span>→</span></a></li>
+                            <li><a href="01_dashboard.html">Documentation <span>→</span></a></li>
+                            <li><a href="01_dashboard.html">Status Page <span>→</span></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        function showAnnouncementDetail() { alert('Announcement editor would open here'); }
+        function showNewAnnouncementModal() { alert('New announcement modal would open here'); }
+        function showFaqDetail() { alert('FAQ editor would open here'); }
+        function switchTab() { alert('Tab would switch to show different content'); }
+    </script>
+</body>
+</html>
