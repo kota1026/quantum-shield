@@ -1,8 +1,8 @@
 # Phase 5: バックエンド統合計画書
 
-> **Version**: 2.1
+> **Version**: 2.2
 > **Date**: 2026-01-11
-> **Status**: Draft (Archive Migration Update - FRI/Plonky2完動コード発見)
+> **Status**: Draft (Spec Alignment Check - 仕様書整合性確認完了)
 > **Author**: Claude (Integration Analysis)
 
 ---
@@ -252,17 +252,23 @@ fn validate_sphincs_pubkey(pubkey: &str) -> bool {
 
 ---
 
-### 2.5.7 工数修正サマリ（再修正）
+### 2.5.7 工数修正サマリ（再々修正 - 仕様書整合性込み）
 
-| ギャップ | 当初追加 | 再修正 | 優先度 | 理由 |
-|---------|:-------:|:------:|:------:|------|
-| STARK Prover | ~~+15日~~ | **+5日** | 🟠 P0 | Archive移行のみ |
-| L3 Dilithium FIPS 204移行 | +3日 | +3日 | 🔴 P0 | |
-| React SDK WASM統合 | +5日 | +5日 | 🔴 P0 | |
-| L3 Production Mode | +10日 | +10日 | 🔴 P0 | |
-| Event Bridge完成 | +8日 | +8日 | 🟠 P1 | |
-| SPHINCS+検証 | +2日 | +2日 | 🟠 P1 | |
-| **合計追加** | ~~+43日~~ | **+33日** | | -10日削減 |
+| ギャップ | 当初追加 | v2.1修正 | v2.2修正 | 優先度 |
+|---------|:-------:|:------:|:------:|:------:|
+| STARK Prover | +15日 | **+5日** | +5日 | 🟠 P0 |
+| L3 Dilithium FIPS移行 | +3日 | +3日 | +3日 | 🔴 P0 |
+| React SDK WASM統合 | +5日 | +5日 | +5日 | 🔴 P0 |
+| L3 Production Mode | +10日 | +10日 | +10日 | 🔴 P0 |
+| Event Bridge完成 | +8日 | +8日 | +8日 | 🟠 P1 |
+| SPHINCS+検証 | +2日 | +2日 | +2日 | 🟠 P1 |
+| **Chainlink VRF** | - | - | **+3日** | 🔴 P0 |
+| **Challenge + Slashing** | - | - | **+5日** | 🔴 P0 |
+| **監視ボット** | - | - | **+3日** | 🟠 P1 |
+| **Resync/Exit/Pause** | - | - | **+6日** | 🟠 P1 |
+| **Security Council** | - | - | **+3日** | 🟠 P1 |
+| **Insurance/Treasury** | - | - | **+3日** | 🟠 P1 |
+| **合計追加** | +43日 | +33日 | **+56日** | |
 
 **修正後総工数**: 59日 → **92日**（当初102日から10日削減）
 
@@ -273,28 +279,102 @@ fn validate_sphincs_pubkey(pubkey: &str) -> bool {
 
 ---
 
+## 2.6 🔴 仕様書整合性チェック（新規発見）
+
+> **参照仕様書**:
+> - `SEQUENCES.md` - 8シーケンス定義
+> - `UNIFIED_SPEC.md` - 統合仕様 v2.3
+> - `CORE_PRINCIPLES.md` - 不変原則（憲法）
+
+### 2.6.1 シーケンス実装ギャップ
+
+| Sequence | 仕様書定義 | 現状実装 | API | 優先度 |
+|----------|-----------|:-------:|:---:|:------:|
+| #1 Lock | SR_0計算、SMT追加、Dilithium検証 | ✅ 実装済 | ✅ | - |
+| #2 Unlock (Normal) | **VRF + 2/5 SPHINCS+ + 24h Lock** | ⚠️ 部分 | ⚠️ | 🔴 P0 |
+| #3 Unlock (Emergency) | 72h timeout, 7日Lock, Bond | ✅ 実装済 | ✅ | - |
+| #3' Resync | L1-L3同期復旧 | ❌ 未実装 | ❌ | 🟠 P1 |
+| **#4 Challenge + Slashing** | Quadratic Slash, 48h Defense | ❌ **未実装** | ❌ | 🔴 **P0** |
+| #5 Prover Registration | HSM attestation, 2-of-3 multisig | ⚠️ スタブ | ⚠️ | 🔴 P0 |
+| #6 Prover Exit | 7日Unbonding | ❌ 未実装 | ❌ | 🟠 P1 |
+| #7 Governance Proposal | veQS投票、Purpose Committee | ❌ 未実装 | ❌ | 🟠 P1 |
+| #8 Emergency Pause | 5/9 Council、72h最大 | ❌ 未実装 | ❌ | 🟠 P1 |
+
+### 2.6.2 仕様書で必須だが計画から漏れている機能
+
+| 機能 | 仕様書参照 | 現状 | 影響 |
+|------|-----------|:----:|------|
+| **Chainlink VRF** | SEQUENCES #2 | ❌ 未実装 | Prover選出不可 |
+| **2/5 SPHINCS+署名** | SEQUENCES #2 | ⚠️ 検証のみ | 署名収集フロー未実装 |
+| **SMT (Sparse Merkle Tree)** | SEQUENCES #1,#2 | ❌ 未確認 | State証明生成不可 |
+| **監視ボット** | SEQUENCES #2,#4 | ❌ 未実装 | 24h監視不可 |
+| **Challenge Bond** | CORE_PRINCIPLES | ❌ 未実装 | Challenge機能なし |
+| **Insurance Fund** | UNIFIED_SPEC | ❌ 未実装 | 手数料分配不可 |
+| **Treasury** | UNIFIED_SPEC | ❌ 未実装 | 手数料管理不可 |
+
+### 2.6.3 ガバナンス機能ギャップ
+
+| 機能 | 仕様書参照 | 現状 | Phase |
+|------|-----------|:----:|:-----:|
+| **Security Council** | UNIFIED_SPEC §Security Council | ❌ 未実装 | Phase 2+ |
+| **Purpose Committee** | UNIFIED_SPEC §Purpose Committee | ❌ 未実装 | Phase 3+ |
+| **veQS Token** | UNIFIED_SPEC §Token仕様 | ❌ 未実装 | Phase 3+ |
+| **Emergency Pause 5/9** | SEQUENCES #8 | ❌ 未実装 | Phase 2+ |
+| **Veto 6/9** | UNIFIED_SPEC | ❌ 未実装 | Phase 3+ |
+
+### 2.6.4 2本立て設計（Enterprise/Decentralized）ギャップ
+
+| 機能 | 仕様書参照 | 現状 |
+|------|-----------|:----:|
+| **Edition切替コントラクト** | UNIFIED_SPEC §Node Expansion | ❌ EditionConfig.sol未実装 |
+| **Enterprise申込ページ** | UNIFIED_SPEC §Business Strategy | ❌ モックなし |
+| **ライセンス管理** | UNIFIED_SPEC §Enterprise Edition | ❌ 未設計 |
+| **SLA設定** | UNIFIED_SPEC §Enterprise Edition | ❌ 未設計 |
+
+### 2.6.5 Core Principles (CP) 準拠チェック
+
+| CP | 原則 | 現状 | 問題点 |
+|----|------|:----:|--------|
+| CP-1 | 完全量子耐性 | ⚠️ | L3-Aegisがpre-FIPS Dilithium使用 |
+| CP-2 | Self-Custody | ✅ | 秘密鍵はクライアント側 |
+| CP-3 | Time Lock存在 | ✅ | 24h/7d実装済 |
+| CP-4 | Slashing存在 | ❌ | **Slashing未実装** |
+| CP-5 | 透明性 | ✅ | L3オンチェーン |
+
+**🔴 CP-4違反**: Slashingメカニズムが未実装。Core Principlesに反する。
+
+### 2.6.6 仕様書整合性による追加工数
+
+| ギャップ | 追加工数 | 優先度 |
+|---------|:-------:|:------:|
+| Chainlink VRF統合 | +3日 | 🔴 P0 |
+| Challenge + Slashing実装 | +5日 | 🔴 P0 |
+| 監視ボット実装 | +3日 | 🟠 P1 |
+| Resync実装 | +2日 | 🟠 P1 |
+| Prover Exit実装 | +2日 | 🟠 P1 |
+| Emergency Pause実装 | +2日 | 🟠 P1 |
+| Security Council統合 | +3日 | 🟠 P1 |
+| Insurance/Treasury | +3日 | 🟠 P1 |
+| **合計追加** | **+23日** | |
+
+**再々修正後総工数**: 92日 → **115日**
+
+---
+
 ## 3. Phase 5 実装計画
 
-### 3.1 全体スケジュール（再修正版 - 92日）
+### 3.1 全体スケジュール（v2.2 - 115日）
 
 ```
-Phase 5.0: 🟠 ブロッカー解消 (Week 1-3) ★Archive移行で短縮★
-├── STARK Prover移行統合 (5日) ← Archive完動コードから移行
-│   ├── Winterfell prover統合
-│   ├── stark-proverサービス接続
-│   └── L1 STARKVerifier連携テスト
+Phase 5.0: 🟠 ブロッカー解消 (Week 1-4) ★仕様書整合性追加★
+├── STARK Prover移行統合 (5日) ← Archive完動コード移行
 ├── React SDK WASM統合 (5日)
-│   ├── WASMモジュール初期化
-│   └── 全Hook実装
 ├── L3 Dilithium FIPS 204移行 (3日)
-│   ├── aegis-crypto移行
-│   └── aegis-consensus移行
-└── L3 Production Mode完成 (10日)
-    ├── Node wiring
-    ├── TLS 1.3 mTLS
-    └── L1 State Root提出
+├── L3 Production Mode完成 (10日)
+├── Chainlink VRF統合 (3日) ★仕様書必須★
+└── Challenge + Slashing実装 (5日) ★CP-4必須★
 
-Phase 5.1: 基盤整備 (Week 5-6)
+Phase 5.1: 基盤整備 (Week 5-7)
 ├── EditionConfig.sol 実装
 ├── ProverRegistry.sol 実装
 ├── 認証基盤 (SIWE→JWT)
@@ -535,19 +615,19 @@ GET  /v1/auth/me        // 現在のユーザー情報
 
 ---
 
-## 5. 工数見積もり（再修正版）
+## 5. 工数見積もり（v2.2 - 仕様書整合性込み）
 
 ### 5.1 総工数
 
 | フェーズ | 内容 | 工数 | 備考 |
 |---------|------|:----:|------|
-| **Phase 5.0** | 🟠 ブロッカー解消 | **23日** | Archive移行で短縮 |
+| **Phase 5.0** | 🟠 ブロッカー解消 | **31日** | +8日（VRF, Slashing） |
 | Phase 5.1 | 基盤整備 | **10日** | |
 | Phase 5.2 | コアAPI | **12日** | |
 | Phase 5.3 | 管理系API | **15日** | |
-| Phase 5.4 | 補完機能 | **22日** | Event Bridge, SPHINCS+ |
-| Phase 5.5 | 統合・テスト | **10日** | |
-| **合計** | | **92日** | 旧:59日 → 新:92日 (+56%) |
+| Phase 5.4 | 補完機能 | **32日** | +10日（監視ボット等） |
+| Phase 5.5 | 統合・テスト | **15日** | +5日（仕様適合テスト） |
+| **合計** | | **115日** | 旧:59日 → 新:115日 (+95%) |
 
 ### 5.2 Phase 5.0 詳細工数
 
@@ -977,4 +1057,44 @@ services/api/src/routes/
 
 ---
 
-**Document End** (Version 2.1 - Archive Migration Update)
+**Document End** (Version 2.2 - Spec Alignment Check)
+
+---
+
+## Appendix E: 仕様書トレーサビリティ
+
+### E.1 SEQUENCES.md との対応
+
+| Sequence | 仕様書ステップ数 | 実装状況 | 対応API |
+|----------|:---------------:|:--------:|---------|
+| #1 Lock | 5 | ✅ | POST /v1/lock |
+| #2 Unlock (Normal) | 12 | ⚠️ | POST /v1/unlock (VRF/2-of-5未対応) |
+| #3 Unlock (Emergency) | 8 | ✅ | POST /v1/unlock/emergency |
+| #3' Resync | 4 | ❌ | 未定義 |
+| #4 Challenge | 6 | ❌ | 未定義 |
+| #5 Prover Registration | 6 | ⚠️ | POST /v1/prover/register (HSM検証スタブ) |
+| #6 Prover Exit | 5 | ❌ | 未定義 |
+| #7 Governance | 8 | ❌ | 未定義 |
+| #8 Emergency Pause | 5 | ❌ | 未定義 |
+
+### E.2 CORE_PRINCIPLES.md との対応
+
+| CP | 原則 | 実装確認項目 | 状況 |
+|----|------|-------------|:----:|
+| CP-1 | 完全量子耐性 | Dilithium-III (FIPS 204), SPHINCS+-128s, SHA3-256 | ⚠️ L3 pre-FIPS |
+| CP-2 | Self-Custody | 秘密鍵はクライアントのみ | ✅ |
+| CP-3 | Time Lock存在 | 24h/7d実装確認 | ✅ |
+| CP-4 | Slashing存在 | Quadratic Slashing実装確認 | ❌ 未実装 |
+| CP-5 | 透明性 | L3オンチェーン記録 | ✅ |
+
+### E.3 UNIFIED_SPEC.md との対応
+
+| 仕様項目 | Phase | 実装状況 |
+|---------|:-----:|:--------:|
+| L3 4-node BFT | 1-4 | ✅ aegis-consensus |
+| VRF Prover選出 | 1-4 | ❌ 未実装 |
+| 2/5 SPHINCS+ | 1-4 | ⚠️ 検証のみ |
+| Security Council 5/9 | 2+ | ❌ 未実装 |
+| veQS Token | 3+ | ❌ 未実装 |
+| Permissionless Nodes | 4 | ❌ 将来Phase |
+| Enterprise/Decentralized切替 | 全 | ❌ EditionConfig未実装 |
