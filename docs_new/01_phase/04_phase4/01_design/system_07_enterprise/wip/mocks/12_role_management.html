@@ -1,0 +1,93 @@
+<!--
+## File Info
+- System: Enterprise Admin
+- Screen: Role Management (7-12)
+- Created: 2026-01-11
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-users | click | 09_user_list.html |
+| .role-card | click | editRole() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role Management - Enterprise Admin - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg-primary:#0a0a0c;--bg-secondary:#111114;--bg-card:#0e0e11;--bg-sidebar:#0c0c0f;--accent-hinomaru:#bc002d;--accent-hinomaru-dim:rgba(188,0,45,0.12);--accent-gold:#c9a962;--accent-gold-dim:rgba(201,169,98,0.1);--success:#00c896;--text-primary:#f8f8fa;--text-secondary:#9898a0;--text-tertiary:#606068;--border-subtle:rgba(255,255,255,0.04);--border-default:rgba(255,255,255,0.08);--font-body:'Plus Jakarta Sans',sans-serif;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);min-height:100vh;display:flex}a{color:inherit;text-decoration:none}
+        .sidebar{width:260px;background:var(--bg-sidebar);border-right:1px solid var(--border-subtle);position:fixed;top:0;left:0;bottom:0;padding:var(--space-lg)}
+        .logo{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-xl)}.logo-icon{width:40px;height:40px;background:var(--accent-hinomaru);border-radius:50%}.logo-text{font-size:16px;font-weight:600}
+        .nav-item{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm) var(--space-md);border-radius:var(--radius-md);font-size:14px;color:var(--text-secondary);margin-bottom:4px}.nav-item:hover{background:rgba(255,255,255,0.04)}.nav-item.active{background:var(--accent-hinomaru-dim);color:#e8334d}
+        .main-content{flex:1;margin-left:260px}.top-bar{padding:var(--space-md) var(--space-xl);background:var(--bg-secondary);border-bottom:1px solid var(--border-subtle)}.page-title{font-size:20px;font-weight:600}
+        .page-content{padding:var(--space-xl)}
+        .roles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg)}
+        .role-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);padding:var(--space-lg);cursor:pointer;transition:border-color 0.2s}.role-card:hover{border-color:var(--accent-hinomaru)}
+        .role-header{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-lg)}
+        .role-icon{width:48px;height:48px;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:24px}
+        .role-icon.admin{background:var(--accent-hinomaru-dim)}.role-icon.member{background:var(--accent-gold-dim)}.role-icon.viewer{background:rgba(0,200,150,0.12)}
+        .role-name{font-size:18px;font-weight:600}.role-count{font-size:13px;color:var(--text-tertiary)}
+        .role-desc{font-size:13px;color:var(--text-secondary);margin-bottom:var(--space-lg);line-height:1.5}
+        .permissions-label{font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:var(--space-sm)}
+        .permission-item{display:flex;align-items:center;gap:var(--space-sm);font-size:13px;color:var(--text-secondary);margin-bottom:var(--space-sm)}.permission-check{color:var(--success)}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><div class="logo-icon"></div><div class="logo-text">Quantum Shield</div></div>
+        <a href="01_overview_dashboard.html" class="nav-item">📊 Overview</a>
+        <a href="05_transaction_list.html" class="nav-item">📋 Transactions</a>
+        <a href="09_user_list.html" class="nav-item active nav-users">👥 Users</a>
+        <a href="18_org_settings.html" class="nav-item">⚙️ Settings</a>
+    </aside>
+    <main class="main-content">
+        <header class="top-bar"><h1 class="page-title">Role Management</h1></header>
+        <div class="page-content">
+            <div class="roles-grid">
+                <div class="role-card">
+                    <div class="role-header">
+                        <div class="role-icon admin">👑</div>
+                        <div><div class="role-name">Admin</div><div class="role-count">3 users</div></div>
+                    </div>
+                    <div class="role-desc">Full access to all features including user management, settings, and billing.</div>
+                    <div class="permissions-label">Permissions</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>Manage users & roles</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>Create & manage API keys</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>Execute transactions</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>View analytics</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>Modify settings</div>
+                </div>
+                <div class="role-card">
+                    <div class="role-header">
+                        <div class="role-icon member">⚡</div>
+                        <div><div class="role-name">Member</div><div class="role-count">8 users</div></div>
+                    </div>
+                    <div class="role-desc">Can perform transactions and view analytics. Cannot manage users or settings.</div>
+                    <div class="permissions-label">Permissions</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>Execute transactions</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>View analytics</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>View own API keys</div>
+                    <div class="permission-item" style="color:var(--text-tertiary)">✗ Manage users</div>
+                    <div class="permission-item" style="color:var(--text-tertiary)">✗ Modify settings</div>
+                </div>
+                <div class="role-card">
+                    <div class="role-header">
+                        <div class="role-icon viewer">👁</div>
+                        <div><div class="role-name">Viewer</div><div class="role-count">4 users</div></div>
+                    </div>
+                    <div class="role-desc">Read-only access. Can view transactions and analytics but cannot make changes.</div>
+                    <div class="permissions-label">Permissions</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>View transactions</div>
+                    <div class="permission-item"><span class="permission-check">✓</span>View analytics</div>
+                    <div class="permission-item" style="color:var(--text-tertiary)">✗ Execute transactions</div>
+                    <div class="permission-item" style="color:var(--text-tertiary)">✗ Manage users</div>
+                    <div class="permission-item" style="color:var(--text-tertiary)">✗ Modify settings</div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
