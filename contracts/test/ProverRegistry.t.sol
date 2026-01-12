@@ -154,7 +154,9 @@ contract ProverRegistryTest is Test {
     function testRegisterEmitsEvent() public {
         vm.startPrank(prover1);
 
-        vm.expectEmit(false, true, false, true);
+        // Check indexed parameters only (proverId and operator)
+        // Data params (sphincsPubKeyHash, stake) are checked in testRegisterProver
+        vm.expectEmit(false, true, false, false);
         emit ProverRegistered(bytes32(0), prover1, bytes32(0), MIN_STAKE);
 
         registry.register{value: MIN_STAKE}(
