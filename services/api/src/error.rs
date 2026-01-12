@@ -56,6 +56,7 @@ pub enum ApiError {
     ServiceUnavailable,
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Challenge errors (SEQUENCES §4)
     #[error("Invalid challenge target: {0}")]
     InvalidChallengeTarget(String),
@@ -94,6 +95,16 @@ pub enum ApiError {
     #[error("Nonce already used")]
     NonceAlreadyUsed,
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+    #[error("Invalid request: {0}")]
+    InvalidRequest(String),
+
+    #[error("Lock not found")]
+    VeqsLockNotFound,
+
+    #[error("Lock already exists")]
+    VeqsLockAlreadyExists,
+>>>>>>> origin/claude/implement-task-p5-021-RdbJS
 }
 
 #[derive(Serialize)]
@@ -121,6 +132,7 @@ impl ApiError {
             ApiError::Internal(_) => 5001,
             ApiError::ServiceUnavailable => 5002,
 <<<<<<< HEAD
+<<<<<<< HEAD
             // Challenge errors (4xxx)
             ApiError::InvalidChallengeTarget(_) => 4001,
             ApiError::InsufficientBond(_) => 4002,
@@ -137,6 +149,11 @@ impl ApiError {
             ApiError::InvalidRefreshToken => 4005,
             ApiError::NonceAlreadyUsed => 4006,
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+            ApiError::InvalidRequest(_) => 1009,
+            ApiError::VeqsLockNotFound => 4001,
+            ApiError::VeqsLockAlreadyExists => 4002,
+>>>>>>> origin/claude/implement-task-p5-021-RdbJS
         }
     }
 
@@ -158,6 +175,7 @@ impl ApiError {
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
 <<<<<<< HEAD
+<<<<<<< HEAD
             // Challenge errors
             ApiError::InvalidChallengeTarget(_) => StatusCode::BAD_REQUEST,
             ApiError::InsufficientBond(_) => StatusCode::BAD_REQUEST,
@@ -174,6 +192,11 @@ impl ApiError {
             ApiError::InvalidRefreshToken => StatusCode::UNAUTHORIZED,
             ApiError::NonceAlreadyUsed => StatusCode::CONFLICT,
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+            ApiError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+            ApiError::VeqsLockNotFound => StatusCode::NOT_FOUND,
+            ApiError::VeqsLockAlreadyExists => StatusCode::CONFLICT,
+>>>>>>> origin/claude/implement-task-p5-021-RdbJS
         }
     }
 }
