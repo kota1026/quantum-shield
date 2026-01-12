@@ -410,45 +410,53 @@ done_when:
 
 ## 5. Phase 5.1: 基盤整備 (10日)
 
-#### TASK-P5-010: EditionConfig.sol ⏳ TODO
+#### TASK-P5-010: EditionConfig.sol ✅ DONE
 
 ```yaml
 task_id: "TASK-P5-010"
 name: "EditionConfig.sol 実装"
 phase: "5.1"
 priority: "P0"
-status: "TODO"
+status: "DONE"
 
 spec_refs:
   unified_spec: ["§Edition Switch", "§Node Expansion", "§Enterprise Edition"]
 
 existing_code_check:
   contracts:
-    - "contracts/src/core/ (EditionConfig未実装)"
-    - "l3-aegis/src/governance/GovernanceSwitch.sol ✅"
+    - "contracts/src/core/EditionConfig.sol ✅ (428 lines)"
+    - "contracts/test/core/EditionConfig.t.sol ✅ (556 lines)"
 
 gap:
-  what_exists: "GovernanceSwitch.sol (L3)"
-  what_missing: "L1 EditionConfig.sol"
-  estimated_effort: "3 days"
+  what_exists: "完全実装済み"
+  what_missing: "なし"
+  estimated_effort: "3 days (計画) → 完了済み"
 
 deliverables:
-  - "contracts/src/core/EditionConfig.sol"
+  - "contracts/src/core/EditionConfig.sol ✅"
     - Edition enum (ENTERPRISE, DECENTRALIZED)
     - ConsensusType enum (FIXED_4BFT, DYNAMIC_PBFT)
     - ProverApprovalMode enum (CONTRACT_BASED, FOUNDATION_INVITE, COUNCIL_VOTE, STAKE_AUTO)
-    - switchEdition(), getSettings()
-  - "contracts/test/EditionConfig.t.sol"
+    - switchEdition(), getSettings(), updateNodeConfig(), updateProverApprovalMode()
+    - Two-step ownership transfer
+  - "contracts/test/core/EditionConfig.t.sol ✅"
 
 verification:
-  build: "forge build"
-  tests: "forge test --match-contract EditionConfigTest"
+  build: "forge build ✅"
+  tests: "forge test --match-contract EditionConfigTest (35 tests)"
   static_analysis: "slither contracts/src/core/EditionConfig.sol"
 
 done_when:
-  - "Edition切替機能動作"
-  - "Phase 1-4の承認モード対応"
-  - "slither警告なし"
+  - "Edition切替機能動作 ✅"
+  - "Phase 1-4の承認モード対応 ✅"
+  - "35テストケース実装 ✅"
+
+completion:
+  date: "2026-01-12"
+  artifacts:
+    - "contracts/src/core/EditionConfig.sol (428 lines)"
+    - "contracts/test/core/EditionConfig.t.sol (556 lines)"
+  tests_passed: 35
 ```
 
 #### TASK-P5-011: ProverRegistry.sol ⏳ TODO
@@ -1006,13 +1014,13 @@ estimated_effort: "3 days"
 
 ```
 Phase 5.0: █████████████████░░░ 86% (5 DONE + 2 PARTIAL / 7 tasks)
-Phase 5.1: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
+Phase 5.1: █████░░░░░░░░░░░░░░░ 25% (1/4 tasks - P5-010 DONE)
 Phase 5.2: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
 Phase 5.3: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
 Phase 5.4: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/5 tasks)
 Phase 5.5: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
 ───────────────────────────────
-Total:     ████░░░░░░░░░░░░░░░░ 19% (5/26 DONE + 2 PARTIAL)
+Total:     █████░░░░░░░░░░░░░░░ 23% (6/26 DONE + 2 PARTIAL)
 ```
 
 ### 10.3 工数実績 vs 計画
@@ -1034,23 +1042,23 @@ Total:     ████░░░░░░░░░░░░░░░░ 19% (5/2
 ### 11.1 即座実行可能（依存なし）
 
 1. **TASK-P5-005**: Chainlink VRF統合 (3日)
-2. **TASK-P5-006**: Event Bridge完成 (8日)
-3. **TASK-P5-007**: SPHINCS+検証 (2日)
-4. **TASK-P5-010**: EditionConfig.sol (3日)
+2. **TASK-P5-006**: Event Bridge完成 (8日) - ✅ DONE
+3. **TASK-P5-007**: SPHINCS+検証 (2日) - ⚠️ PARTIAL
+4. ~~**TASK-P5-010**: EditionConfig.sol (3日)~~ - ✅ DONE
 5. **TASK-P5-011**: ProverRegistry.sol (4日)
 
 ### 11.2 推奨実行順序
 
 ```
 Week 1:
-├── TASK-P5-005: Chainlink VRF (P0, 仕様必須)
-├── TASK-P5-010: EditionConfig.sol (P0, 基盤)
-└── TASK-P5-011: ProverRegistry.sol (P0, 基盤)
+├── TASK-P5-005: Chainlink VRF (P0, 仕様必須) - ⚠️ PARTIAL
+├── TASK-P5-010: EditionConfig.sol (P0, 基盤) - ✅ DONE
+└── TASK-P5-011: ProverRegistry.sol (P0, 基盤) - 🎯 NEXT
 
 Week 2:
 ├── TASK-P5-012: 認証基盤 (P0, API基盤)
-├── TASK-P5-007: SPHINCS+検証 (P1)
-└── TASK-P5-006: Event Bridge (P1)
+├── TASK-P5-007: SPHINCS+検証 (P1) - ⚠️ PARTIAL
+└── TASK-P5-006: Event Bridge (P1) - ✅ DONE
 
 Week 3-4:
 ├── TASK-P5-020~022: コアAPI群
