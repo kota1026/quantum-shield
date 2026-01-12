@@ -992,69 +992,97 @@ estimated_effort: "3 days"
 
 | Task ID | 名前 | 状態 | 完了日 | 備考 |
 |---------|-----|:----:|-------|------|
-| TASK-P5-001 | Challenge API + SDK | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
-| TASK-P5-002 | STARK Prover移行 | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
-| TASK-P5-003 | React SDK WASM | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
-| TASK-P5-004 | L3 Production Mode | ✅ DONE | 2026-01-12 | L3設定CP-1準拠修正済 |
-| TASK-P5-005 | Chainlink VRF | ⚠️ PARTIAL | 2026-01-12 | シミュレーション実装、本番連携未実装 |
+| TASK-P5-001 | Challenge API + SDK | ✅ DONE | 2026-01-11 | マージ済み |
+| TASK-P5-002 | STARK Prover移行 | ✅ DONE | 2026-01-11 | マージ済み |
+| TASK-P5-003 | React SDK WASM | ✅ DONE | 2026-01-11 | マージ済み |
+| TASK-P5-004 | L3 Production Mode | ✅ DONE | 2026-01-12 | マージ済み |
+| TASK-P5-005 | Chainlink VRF v2.5 | ✅ DONE | 2026-01-12 | PR#33マージ済み |
 | TASK-P5-006 | Event Bridge | ✅ DONE | 2026-01-12 | WebSocket/RabbitMQ統合完了 |
-| TASK-P5-007 | SPHINCS+検証 | ⚠️ PARTIAL | 2026-01-12 | フォーマット検証のみ、署名検証未実装 |
+| TASK-P5-007 | SPHINCS+署名検証 | ✅ DONE | 2026-01-12 | PR#33マージ済み |
 
-> **Note**: TASK-P5-005, P5-007 は「開発フェーズ」として受け入れ。本番統合は Phase 5.1 以降で別タスク定義。
+### 10.2 Phase 5.1 進捗（2026-01-12時点）
 
-### 10.2 全体進捗
+| Task ID | 名前 | 状態 | 完了日 | 備考 |
+|---------|-----|:----:|-------|------|
+| TASK-P5-010 | EditionConfig.sol | ✅ DONE | 2026-01-12 | マージ済み |
+| TASK-P5-011 | ProverRegistry.sol | ✅ DONE | 2026-01-12 | マージ済み |
+| TASK-P5-012 | SIWE→JWT認証 | ✅ DONE | 2026-01-12 | マージ済み |
+| TASK-P5-013 | SDK API client認証 | ✅ DONE | 2026-01-12 | マージ済み |
+
+### 10.3 Phase 5.2 進捗（2026-01-12時点）
+
+| Task ID | 名前 | 状態 | 完了日 | 備考 |
+|---------|-----|:----:|-------|------|
+| TASK-P5-020 | Consumer App API (6 EP) | ✅ DONE | 2026-01-12 | マージ済み |
+| TASK-P5-021 | Token Hub API (9 EP) | ✅ DONE | 2026-01-12 | マージ済み |
+| TASK-P5-022 | Prover Portal API (9 EP) | ✅ DONE | 2026-01-12 | マージ済み |
+| TASK-P5-023 | Governance API (8 EP) | ✅ DONE | 2026-01-12 | マージ済み |
+
+### 10.4 全体進捗
 
 ```
-Phase 5.0: █████████████████░░░ 86% (5 DONE + 2 PARTIAL / 7 tasks)
-Phase 5.1: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
-Phase 5.2: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
-Phase 5.3: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
-Phase 5.4: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/5 tasks)
-Phase 5.5: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
+Phase 5.0: ████████████████████ 100% (7/7 tasks)
+Phase 5.1: ████████████████████ 100% (4/4 tasks)
+Phase 5.2: ████████████████████ 100% (4/4 tasks)
+Phase 5.3: ░░░░░░░░░░░░░░░░░░░░ 0%   (0/4 tasks)
+Phase 5.4: ███░░░░░░░░░░░░░░░░░ 17%  (1/6 tasks) - P5-025 DESIGN_BRIEF完了
+Phase 5.5: ░░░░░░░░░░░░░░░░░░░░ 0%   (0/4 tasks)
 ───────────────────────────────
-Total:     ████░░░░░░░░░░░░░░░░ 19% (5/26 DONE + 2 PARTIAL)
+Total:     ████████████░░░░░░░░ 55%  (16/29 tasks DONE)
 ```
 
-### 10.3 工数実績 vs 計画
+### 10.5 工数実績 vs 計画
 
-| Phase | 計画 | 実績 | 差分 |
-|-------|:----:|:----:|:----:|
-| 5.0 | 31日 | ~5日 (4タスク完了) | -26日 ✅ 効率的 |
-| 5.1 | 10日 | - | - |
-| 5.2 | 12日 | - | - |
-| 5.3 | 15日 | - | - |
-| 5.4 | 32日 | - | - |
-| 5.5 | 15日 | - | - |
-| **合計** | **115日** | - | - |
+| Phase | 計画 | 状態 | 備考 |
+|-------|:----:|:----:|:-----|
+| 5.0 | 31日 | ✅ 完了 | 効率的に完了 |
+| 5.1 | 10日 | ✅ 完了 | 4タスク完了 |
+| 5.2 | 12日 | ✅ 完了 | 4タスク完了 |
+| 5.3 | 15日 | ⏳ 未着手 | 次の優先 |
+| 5.4 | 32日 | ⏳ 部分 | 1/6完了 |
+| 5.5 | 15日 | ⏳ 未着手 | - |
+| **合計** | **115日** | **55%** | 16/29タスク |
 
 ---
 
 ## 11. 次のアクション
 
-### 11.1 即座実行可能（依存なし）
+### 11.1 即座実行可能タスク
 
-1. **TASK-P5-005**: Chainlink VRF統合 (3日)
-2. **TASK-P5-006**: Event Bridge完成 (8日)
-3. **TASK-P5-007**: SPHINCS+検証 (2日)
-4. **TASK-P5-010**: EditionConfig.sol (3日)
-5. **TASK-P5-011**: ProverRegistry.sol (4日)
+> Phase 5.0-5.2 完了！以下は次の優先タスクです。
+
+#### Phase 5.3 管理系API（推奨）
+
+| Task ID | 内容 | 工数 | 状態 |
+|---------|------|:----:|:----:|
+| **TASK-P5-015** | QS Admin API (11 EP) | 5日 | ⏳ |
+| **TASK-P5-016** | Enterprise Admin API (19 EP) | 7日 | ⏳ |
+| **TASK-P5-017** | Enterprise申込フロー | 3日 | ⏳ |
+| **TASK-P5-018** | 4BFT契約者管理 | - | ⏳ |
+
+#### Phase 5.4 補完機能
+
+| Task ID | 内容 | 工数 | 状態 |
+|---------|------|:----:|:----:|
+| **TASK-P5-019** | Observer API (8 EP) | 4日 | ⏳ |
+| **TASK-P5-024** | Explorer API (12 EP) | 5日 | ⏳ |
+| **TASK-P5-026** | i18n対応 | 5日 | ⏳ |
+| **TASK-P5-027** | 監視ボット | 3日 | ⏳ |
 
 ### 11.2 推奨実行順序
 
 ```
-Week 1:
-├── TASK-P5-005: Chainlink VRF (P0, 仕様必須)
-├── TASK-P5-010: EditionConfig.sol (P0, 基盤)
-└── TASK-P5-011: ProverRegistry.sol (P0, 基盤)
+次のセッション:
+├── TASK-P5-015: QS Admin API (11 EP) - 推奨
+└── または TASK-P5-019: Observer API (8 EP)
 
-Week 2:
-├── TASK-P5-012: 認証基盤 (P0, API基盤)
-├── TASK-P5-007: SPHINCS+検証 (P1)
-└── TASK-P5-006: Event Bridge (P1)
+その後:
+├── TASK-P5-016: Enterprise Admin API (19 EP)
+├── TASK-P5-024: Explorer API (12 EP)
+└── 残りPhase 5.4タスク
 
-Week 3-4:
-├── TASK-P5-020~022: コアAPI群
-└── 以降Phase 5.3-5.5
+最終:
+└── Phase 5.5: 統合・テスト (P5-033〜036)
 ```
 
 ---
