@@ -2,6 +2,8 @@
 //!
 //! Implements:
 //! - Sequence #2: Unlock (Normal Path) - 24h time lock
+//!   - §2.3: VRF Prover Selection (Chainlink VRF v2.5)
+//!   - §2.4: VRF Result Processing (2/5 weighted selection)
 //! - Sequence #3: Unlock (Emergency Path) - 7d time lock + bond
 //!
 //! ## CP-1 Compliance
@@ -10,6 +12,7 @@
 //! - NO keccak256, ECDSA, or pre-FIPS Dilithium
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::{Extension, Json};
 use sha3::{Digest, Sha3_256};
@@ -18,7 +21,7 @@ use crate::{
     crypto::verify_ml_dsa_65_signature,
     error::ApiError,
     services::AppState,
-    types::{EmergencyUnlockResponse, LockStatus, UnlockRequest, UnlockResponse, UnlockStatus},
+    types::{EmergencyUnlockResponse, LockStatus, UnlockRequest, UnlockResponse, UnlockStatus, VRFStatus},
 };
 
 /// Time lock constants from CORE_PRINCIPLES.md
@@ -32,9 +35,15 @@ const EMERGENCY_TIME_LOCK_DAYS: u64 = 7; // SEQ#3
 ///
 /// # Security
 /// - 24h Time Lock (CP-3)
-/// - Prover 2/5 signatures required
+/// - Prover 2/5 signatures required via VRF selection (SEQUENCES §2.3-§2.4)
 /// - Uses SHA3-256 for SR_1 computation (CP-1)
 /// - Uses ML-DSA-65 (FIPS 204) for user signature verification (CP-1)
+///
+/// # VRF Integration (SEQUENCES §2.3-§2.4)
+/// 1. Request VRF prover selection from VRFConsumer contract
+/// 2. Wait for VRF fulfillment (max 5 minutes)
+/// 3. If timeout, trigger fallback using block.prevrandao
+/// 4. Request signatures only from selected provers
 pub async fn create_unlock(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<UnlockRequest>,
@@ -77,17 +86,59 @@ pub async fn create_unlock(
     let now = chrono::Utc::now().timestamp() as u64;
     let release_time = now + (NORMAL_TIME_LOCK_HOURS * 3600);
 
-    // 7. Request Prover signatures via Signature Queue (API-005)
+    // 7. VRF Prover Selection (SEQUENCES §2.3-§2.4)
+    //    Request VRF from Chainlink, wait for result, or fallback
+    tracing::info!("Initiating VRF prover selection for unlock: {}", unlock_id);
+
+    // 7.1 Request VRF prover selection
+    let vrf_request_id = state.vrf
+        .request_prover_selection(&unlock_id)
+        .await
+        .map_err(|e| ApiError::Internal(format!("VRF request failed: {}", e)))?;
+
+    // 7.2 Create and store VRF request record
+    let vrf_request = state.vrf.create_vrf_request(&vrf_request_id, &unlock_id, &req.lock_id);
+    state.store_vrf_request(&vrf_request).await?;
+
+    tracing::info!("VRF request created: {} for unlock: {}", vrf_request_id, unlock_id);
+
+    // 7.3 Wait for VRF selection (max 5 min timeout with fallback)
+    let vrf_timeout = state.vrf.get_timeout();
+    let (selected_prover, _random_value, vrf_status) = state.vrf
+        .wait_for_selection(&unlock_id, now, vrf_timeout)
+        .await
+        .map_err(|e| ApiError::Internal(format!("VRF selection failed: {}", e)))?;
+
+    // 7.4 Update VRF status in Redis
+    state.update_vrf_status(
+        &vrf_request_id,
+        vrf_status,
+        Some(&selected_prover),
+        None, // random_value stored in contract
+    ).await?;
+
+    tracing::info!(
+        "VRF selection complete: prover={}, status={:?}",
+        selected_prover, vrf_status
+    );
+
+    // 8. Request Prover signatures from SELECTED prover only (SEQUENCES §2.4)
     state
-        .request_prover_signatures(&unlock_id, &req.lock_id, &lock.sr_0, &sr_1)
+        .request_selected_prover_signatures(
+            &unlock_id,
+            &req.lock_id,
+            &lock.sr_0,
+            &sr_1,
+            &selected_prover,
+        )
         .await?;
 
-    // 8. Update lock status
+    // 9. Update lock status
     state
         .update_lock_status(&req.lock_id, LockStatus::UnlockPending, Some(release_time))
         .await?;
 
-    tracing::info!("Unlock request created: {}", unlock_id);
+    tracing::info!("Unlock request created: {} with VRF prover: {}", unlock_id, selected_prover);
 
     Ok(Json(UnlockResponse {
         unlock_id,
@@ -97,6 +148,9 @@ pub async fn create_unlock(
         prover_signatures_required: 2,
         prover_signatures_collected: 0,
         status: UnlockStatus::PendingSignatures,
+        vrf_request_id: Some(vrf_request_id),
+        selected_provers: vec![selected_prover],
+        vrf_status,
     }))
 }
 

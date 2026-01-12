@@ -3,6 +3,7 @@
 mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
+mod vrf_service;
 
 use anyhow::Result;
 
@@ -13,12 +14,14 @@ use crate::{
         Lock, LockRequest, LockStatus, Edition,
         ProverRegisterRequest, ProverInfoResponse, ProverStatus,
         ChallengeInfo, ChallengeStatus,
+        VRFRequest, VRFStatus,
     },
 };
 
 pub use redis_client::RedisClient;
 pub use rabbitmq_client::RabbitMQClient;
 pub use hsm_client::HsmClient;
+pub use vrf_service::{VRFService, VRFError};
 
 /// Application state shared across handlers
 pub struct AppState {
@@ -26,6 +29,8 @@ pub struct AppState {
     pub redis: RedisClient,
     pub rabbitmq: RabbitMQClient,
     pub hsm: HsmClient,
+    /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
+    pub vrf: VRFService,
 }
 
 /// Edition state tracking
@@ -41,7 +46,8 @@ impl AppState {
         let redis = RedisClient::new(&config.redis).await?;
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm })
+        let vrf = VRFService::new(&config.vrf).await?;
+        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf })
     }
 
     pub async fn is_nonce_used(&self, pk: &str, nonce: u64) -> Result<bool, ApiError> {
@@ -249,5 +255,81 @@ impl AppState {
         });
         let resolution_key = format!("challenge:resolution:{}", challenge_id);
         self.redis.set(&resolution_key, &resolution.to_string(), 86400 * 365).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    // ========================================================================
+    // VRF Methods (SEQUENCES §2.3-§2.4)
+    // ========================================================================
+
+    /// Store VRF request in Redis
+    pub async fn store_vrf_request(&self, request: &VRFRequest) -> Result<(), ApiError> {
+        let key = format!("vrf:{}", request.vrf_request_id);
+        let unlock_key = format!("vrf:unlock:{}", request.unlock_request_id);
+        let value = serde_json::to_string(request).map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Store VRF request
+        self.redis.set(&key, &value, 86400).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Map unlock_request_id -> vrf_request_id
+        self.redis.set(&unlock_key, &request.vrf_request_id, 86400).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Get VRF request by unlock request ID
+    pub async fn get_vrf_request_by_unlock(&self, unlock_request_id: &str) -> Result<Option<VRFRequest>, ApiError> {
+        let unlock_key = format!("vrf:unlock:{}", unlock_request_id);
+        let vrf_request_id = match self.redis.get(&unlock_key).await {
+            Ok(Some(id)) => id,
+            Ok(None) => return Ok(None),
+            Err(e) => return Err(ApiError::Internal(e.to_string())),
+        };
+
+        let key = format!("vrf:{}", vrf_request_id);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Update VRF request status
+    pub async fn update_vrf_status(
+        &self,
+        vrf_request_id: &str,
+        status: VRFStatus,
+        selected_prover: Option<&str>,
+        random_value: Option<&str>,
+    ) -> Result<(), ApiError> {
+        let key = format!("vrf:{}", vrf_request_id);
+        let value = self.redis.get(&key).await.map_err(|e| ApiError::Internal(e.to_string()))?
+            .ok_or_else(|| ApiError::Internal(format!("VRF request not found: {}", vrf_request_id)))?;
+
+        let mut request: VRFRequest = serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?;
+        request.status = status;
+        request.selected_prover = selected_prover.map(|s| s.to_string());
+        request.random_value = random_value.map(|s| s.to_string());
+
+        let new_value = serde_json::to_string(&request).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&key, &new_value, 86400).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Request prover signatures for selected provers only
+    /// SEQUENCES §2.4: Only selected provers sign
+    pub async fn request_selected_prover_signatures(
+        &self,
+        unlock_id: &str,
+        lock_id: &str,
+        sr_0: &str,
+        sr_1: &str,
+        selected_prover: &str,
+    ) -> Result<(), ApiError> {
+        let msg = serde_json::json!({
+            "type": "SIG_REQ_SELECTED",
+            "unlock_id": unlock_id,
+            "lock_id": lock_id,
+            "sr_0": sr_0,
+            "sr_1": sr_1,
+            "selected_prover": selected_prover,
+        });
+        self.rabbitmq.publish("sig_queue", &msg.to_string()).await.map_err(|e| ApiError::Internal(e.to_string()))
     }
 }
