@@ -369,4 +369,68 @@ TASK-P5-004 L3 Production Mode: **COMPLETE**
 
 ---
 
+## 2026-01-12 (TASK-P5-007)
+
+### Event: TASK_START
+- **Task**: TASK-P5-007 SPHINCS+ Public Key Validation Enhancement
+- **Time**: 2026-01-12
+- **Prompt Used**: 21_impl_verify_loop.md
+
+### Event: IMPLEMENTATION
+- **Files Created**:
+  - `services/api/src/services/sphincs_service.rs` (SphincsService, 280+ lines)
+- **Files Modified**:
+  - `services/api/src/services/mod.rs` (SphincsService export追加)
+  - `services/api/src/routes/prover.rs` (SphincsService統合、古い検証関数削除)
+
+### Event: FEATURES_IMPLEMENTED
+- **SphincsService**:
+  - SPHINCS+-128s public key validation (32 bytes)
+  - SPHINCS+ signature format validation (7856 bytes)
+  - HSM attestation validation with public key binding
+  - SHA3-256 based public key hashing
+  - Comprehensive error types (SphincsError)
+- **Prover Registration Enhanced**:
+  - Size validation: 32 bytes = 64 hex chars
+  - Hex encoding validation
+  - HSM attestation format: `HSM:<attestation_id>:<hex_signature>:<pubkey_prefix>`
+- **CP-1 Compliance**:
+  - Post-quantum secure SPHINCS+-128s
+  - All hashing uses SHA3-256
+
+### Event: VERIFICATION_LOOP
+- **Loop**: 1
+- **Results**:
+  | Check | Status |
+  |-------|:------:|
+  | cargo build | ✅ (warnings) |
+  | cargo test (unit) | ✅ 52 passed |
+  | cargo test (api) | ✅ 14 passed |
+  | cargo test (integration) | ✅ 12 passed |
+- **Total Tests**: 78 passed
+- **New Tests Added**:
+  - `test_sphincs_constants`
+  - `test_validate_public_key_valid`
+  - `test_validate_public_key_no_prefix`
+  - `test_validate_public_key_wrong_size`
+  - `test_validate_public_key_invalid_hex`
+  - `test_validate_hsm_attestation_valid`
+  - `test_validate_hsm_attestation_empty`
+  - `test_validate_hsm_attestation_invalid_format`
+  - `test_validate_signature_format_valid`
+  - `test_validate_signature_format_wrong_size`
+  - `test_verify_signature`
+  - `test_parse_public_key`
+  - `test_compute_pubkey_hash`
+
+### Event: TASK_COMPLETE
+- **Task**: TASK-P5-007
+- **Status**: DONE
+- **Artifacts**:
+  - `sphincs_service.rs`: SPHINCS+-128s validation service
+  - `prover.rs`: Enhanced with SphincsService integration
+  - 13 SPHINCS+ unit tests
+
+---
+
 **END OF EVENT LOG**
