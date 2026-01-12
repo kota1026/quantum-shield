@@ -1,19 +1,17 @@
 //! Services module
+//!
+//! This module provides the core services for the Quantum Shield API:
+//! - RedisClient: State storage and caching
+//! - RabbitMQClient: Message queue for async processing
+//! - HsmClient: Hardware Security Module integration
+//! - VRFService: Chainlink VRF integration (SEQUENCES §2.3-§2.4)
+//! - SphincsService: SPHINCS+-128s signature validation (CP-1)
 
 mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
-<<<<<<< HEAD
-<<<<<<< HEAD
 mod vrf_service;
 mod sphincs_service;
-=======
-pub mod auth_service;
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-mod vrf_service;
-mod sphincs_service;
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
 use anyhow::Result;
 
@@ -23,42 +21,29 @@ use crate::{
     types::{
         Lock, LockRequest, LockStatus, Edition,
         ProverRegisterRequest, ProverInfoResponse, ProverStatus,
-<<<<<<< HEAD
-<<<<<<< HEAD
-        ChallengeInfo, ChallengeStatus,
-        VRFRequest, VRFStatus,
-=======
-        LockPosition, HistoricalLock, DelegateInfo, MyDelegation,
-        TokenHubRewardsResponse, RewardHistory,
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
         ChallengeInfo, ChallengeStatus,
         VRFRequest, VRFStatus,
         // Prover Portal types (TASK-P5-022)
         ProverDashboard, SigningQueueItem, SigningQueueResponse, QueueItemStatus,
         ProverSignRequest, ProverSignResponse, ProverMetrics,
-        ProverAlert, ProverAlertsResponse, AlertType, AlertSeverity,
+        ProverAlert, ProverAlertsResponse,
         ProverChallengeItem, ProverChallengesResponse,
         ProverChallengeResponseRequest, ProverChallengeResponseResult,
         ProverExitRequest, ProverExitResponse,
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
+        // Governance types (TASK-P5-023)
+        GovernanceDashboardResponse, GovernanceProposal, ProposalStatus,
+        GovernanceProposalsResponse, CreateProposalRequest, CreateProposalResponse,
+        VoteRequest, VoteResponse, VoteInfo,
+        GovernanceActivityItem, GovernanceActivityResponse,
+        CouncilMember, GovernanceCouncilResponse,
     },
 };
 
 pub use redis_client::RedisClient;
 pub use rabbitmq_client::RabbitMQClient;
 pub use hsm_client::HsmClient;
-<<<<<<< HEAD
-<<<<<<< HEAD
 pub use vrf_service::{VRFService, VRFError};
 pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
-=======
-pub use auth_service::AuthService;
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-pub use vrf_service::{VRFService, VRFError};
-pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
 /// Application state shared across handlers
 pub struct AppState {
@@ -66,18 +51,8 @@ pub struct AppState {
     pub redis: RedisClient,
     pub rabbitmq: RabbitMQClient,
     pub hsm: HsmClient,
-<<<<<<< HEAD
-<<<<<<< HEAD
     /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
     pub vrf: VRFService,
-=======
-    /// Authentication service for SIWE/JWT (TASK-P5-012)
-    pub auth_service: AuthService,
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-    /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
-    pub vrf: VRFService,
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 }
 
 /// Edition state tracking
@@ -93,18 +68,8 @@ impl AppState {
         let redis = RedisClient::new(&config.redis).await?;
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
-<<<<<<< HEAD
-<<<<<<< HEAD
         let vrf = VRFService::new(&config.vrf).await?;
         Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf })
-=======
-        let auth_service = AuthService::new(config.jwt.clone());
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, auth_service })
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-        let vrf = VRFService::new(&config.vrf).await?;
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf })
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     }
 
     pub async fn is_nonce_used(&self, pk: &str, nonce: u64) -> Result<bool, ApiError> {
@@ -216,11 +181,6 @@ impl AppState {
     }
 
     // ========================================================================
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     // Challenge Methods (SEQUENCES §4)
     // ========================================================================
 
@@ -262,49 +222,6 @@ impl AppState {
             Err(e) => return Err(ApiError::Internal(e.to_string())),
         };
         let key = format!("challenge:{}", challenge_id);
-<<<<<<< HEAD
-=======
-    // User API methods (TASK-P5-020)
-    // ========================================================================
-
-    /// Get all locks for a specific user
-    pub async fn get_user_locks(&self, user_address: &str) -> Result<Vec<Lock>, ApiError> {
-        // Get all lock keys for this user
-        let pattern = format!("lock:*");
-        let keys = self.redis.scan(&pattern).await.map_err(|e| ApiError::Internal(e.to_string()))?;
-
-        let mut user_locks = Vec::new();
-        for key in keys {
-            if let Ok(Some(value)) = self.redis.get(&key).await {
-                if let Ok(lock) = serde_json::from_str::<Lock>(&value) {
-                    // Filter by owner address
-                    if lock.owner == user_address || lock.user_public_key == user_address {
-                        user_locks.push(lock);
-                    }
-                }
-            }
-        }
-
-        // Sort by created_at descending
-        user_locks.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-
-        Ok(user_locks)
-    }
-
-    /// Get user settings
-    pub async fn get_user_settings(&self, user_address: &str) -> Result<Option<crate::types::UserSettingsResponse>, ApiError> {
-        let key = format!("user:settings:{}", user_address);
->>>>>>> origin/claude/implement-task-p5-020-vNCen
-=======
-    // Token Hub (veQS) Methods
-    // ========================================================================
-
-    /// Get user's veQS lock position
-    pub async fn get_veqs_lock(&self, address: &str) -> Result<Option<LockPosition>, ApiError> {
-        let key = format!("veqs:lock:{}", address);
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
             Ok(None) => Ok(None),
@@ -312,11 +229,6 @@ impl AppState {
         }
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     /// Submit defense for a challenge
     pub async fn submit_defense(
         &self,
@@ -396,103 +308,11 @@ impl AppState {
         let key = format!("vrf:{}", vrf_request_id);
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
-<<<<<<< HEAD
-=======
-    /// Store user settings
-    pub async fn store_user_settings(&self, user_address: &str, settings: &crate::types::UserSettingsResponse) -> Result<(), ApiError> {
-        let key = format!("user:settings:{}", user_address);
-        let value = serde_json::to_string(settings).map_err(|e| ApiError::Internal(e.to_string()))?;
-        self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))
-    }
-
-    /// Get user's registered Dilithium public key
-    pub async fn get_user_dilithium_key(&self, user_address: &str) -> Result<Option<(String, u64)>, ApiError> {
-        let key = format!("user:dilithium:{}", user_address);
-        match self.redis.get(&key).await {
-            Ok(Some(value)) => {
-                // Format: "public_key:timestamp"
-                let parts: Vec<&str> = value.splitn(2, ':').collect();
-                if parts.len() == 2 {
-                    let pk = parts[0].to_string();
-                    let timestamp = parts[1].parse::<u64>().unwrap_or(0);
-                    Ok(Some((pk, timestamp)))
-                } else {
-                    Ok(Some((value, 0)))
-                }
-            }
->>>>>>> origin/claude/implement-task-p5-020-vNCen
             Ok(None) => Ok(None),
-=======
-    /// Store user's veQS lock position
-    pub async fn store_veqs_lock(&self, address: &str, lock: &LockPosition) -> Result<(), ApiError> {
-        let key = format!("veqs:lock:{}", address);
-        let value = serde_json::to_string(lock).map_err(|e| ApiError::Internal(e.to_string()))?;
-        self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))
-    }
-
-    /// Get user's veQS lock history
-    pub async fn get_veqs_lock_history(&self, address: &str) -> Result<Vec<HistoricalLock>, ApiError> {
-        let key = format!("veqs:history:{}", address);
-        match self.redis.get(&key).await {
-            Ok(Some(value)) => Ok(serde_json::from_str(&value).unwrap_or_default()),
-            Ok(None) => Ok(vec![]),
-=======
-            Ok(None) => Ok(None),
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
             Err(e) => Err(ApiError::Internal(e.to_string())),
         }
     }
 
-<<<<<<< HEAD
-    /// Get user's QS token balance (mock - would call L1 contract)
-    pub async fn get_qs_balance(&self, address: &str) -> Result<String, ApiError> {
-        // In production: Call QS token contract balanceOf(address)
-        let key = format!("qs:balance:{}", address);
-        match self.redis.get(&key).await {
-            Ok(Some(value)) => Ok(value),
-            Ok(None) => Ok("12450".to_string()), // Default mock balance
-            Err(e) => Err(ApiError::Internal(e.to_string())),
-        }
-    }
-
-    /// Get user's veQS balance (calculated from lock position)
-    pub async fn get_veqs_balance(&self, address: &str) -> Result<u128, ApiError> {
-        if let Some(lock) = self.get_veqs_lock(address).await? {
-            lock.veqs_value.parse().map_err(|_| ApiError::Internal("Invalid veQS value".to_string()))
-        } else {
-            Ok(0)
-        }
-    }
-
-    /// Get user's voting power percentage
-    pub async fn get_voting_power_percent(&self, address: &str) -> Result<f64, ApiError> {
-        let user_veqs = self.get_veqs_balance(address).await?;
-        if user_veqs == 0 {
-            return Ok(0.0);
-        }
-        // Mock total supply - in production: Call veQS.getTotalVotingPower()
-        let total_veqs: u128 = 5_000_000;
-        Ok((user_veqs as f64 / total_veqs as f64) * 100.0)
-    }
-
-    /// Get user's delegations count
-    pub async fn get_delegations_count(&self, address: &str) -> Result<u32, ApiError> {
-        let key = format!("veqs:delegations:{}", address);
-        match self.redis.get(&key).await {
-            Ok(Some(value)) => {
-                let delegations: Vec<MyDelegation> = serde_json::from_str(&value).unwrap_or_default();
-                Ok(delegations.len() as u32)
-            }
-            Ok(None) => Ok(0),
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-            Err(e) => Err(ApiError::Internal(e.to_string())),
-        }
-    }
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     /// Update VRF request status
     pub async fn update_vrf_status(
         &self,
@@ -533,124 +353,6 @@ impl AppState {
             "selected_prover": selected_prover,
         });
         self.rabbitmq.publish("sig_queue", &msg.to_string()).await.map_err(|e| ApiError::Internal(e.to_string()))
-<<<<<<< HEAD
-=======
-    /// Store user's Dilithium public key
-    pub async fn store_user_dilithium_key(&self, user_address: &str, public_key: &str) -> Result<(), ApiError> {
-        let key = format!("user:dilithium:{}", user_address);
-        let timestamp = chrono::Utc::now().timestamp() as u64;
-        let value = format!("{}:{}", public_key, timestamp);
-        self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))
->>>>>>> origin/claude/implement-task-p5-020-vNCen
-=======
-    /// Get user's pending rewards
-    pub async fn get_pending_rewards(&self, address: &str) -> Result<String, ApiError> {
-        let key = format!("veqs:rewards:pending:{}", address);
-        match self.redis.get(&key).await {
-            Ok(Some(value)) => Ok(value),
-            Ok(None) => Ok("847".to_string()), // Mock pending rewards
-            Err(e) => Err(ApiError::Internal(e.to_string())),
-        }
-    }
-
-    /// Get available delegates
-    pub async fn get_delegates(&self, page: u32, limit: u32, sort_by: Option<String>) -> Result<Vec<DelegateInfo>, ApiError> {
-        // In production: Query from indexed data or contract
-        // Return mock delegates for now
-        Ok(vec![
-            DelegateInfo {
-                address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-                name: Some("渡辺 Delegate".to_string()),
-                total_veqs: "285000".to_string(),
-                delegators_count: 45,
-                participation_rate: 98.5,
-                recent_votes: 12,
-            },
-            DelegateInfo {
-                address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-                name: Some("佐藤 Crypto".to_string()),
-                total_veqs: "198000".to_string(),
-                delegators_count: 32,
-                participation_rate: 95.0,
-                recent_votes: 11,
-            },
-            DelegateInfo {
-                address: "0x7890abcdef1234567890abcdef1234567890abcd".to_string(),
-                name: Some("田中 DeFi".to_string()),
-                total_veqs: "156000".to_string(),
-                delegators_count: 28,
-                participation_rate: 92.3,
-                recent_votes: 10,
-            },
-        ])
-    }
-
-    /// Get total delegates count
-    pub async fn get_delegates_count(&self) -> Result<u32, ApiError> {
-        // In production: Query actual count
-        Ok(3)
-    }
-
-    /// Get user's delegations
-    pub async fn get_user_delegations(&self, address: &str) -> Result<Vec<MyDelegation>, ApiError> {
-        let key = format!("veqs:delegations:{}", address);
-        match self.redis.get(&key).await {
-            Ok(Some(value)) => Ok(serde_json::from_str(&value).unwrap_or_default()),
-            Ok(None) => {
-                // Return mock delegations
-                Ok(vec![
-                    MyDelegation {
-                        delegatee: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-                        delegatee_name: Some("渡辺 Delegate".to_string()),
-                        veqs_amount: "3000".to_string(),
-                        percent_of_total: 48.0,
-                        delegated_at: 1704067200,
-                    },
-                    MyDelegation {
-                        delegatee: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-                        delegatee_name: Some("佐藤 Crypto".to_string()),
-                        veqs_amount: "2000".to_string(),
-                        percent_of_total: 32.0,
-                        delegated_at: 1704153600,
-                    },
-                ])
-            }
-            Err(e) => Err(ApiError::Internal(e.to_string())),
-        }
-    }
-
-    /// Get user's rewards information
-    pub async fn get_veqs_rewards(&self, address: &str) -> Result<TokenHubRewardsResponse, ApiError> {
-        // In production: Query from rewards contract
-        Ok(TokenHubRewardsResponse {
-            claimable: "847".to_string(),
-            claimable_usd: "4235".to_string(),
-            total_claimed: "2500".to_string(),
-            current_epoch: 15,
-            epoch_progress: 0.65,
-            estimated_epoch_rewards: "120".to_string(),
-            apy: 12.5,
-            history: vec![
-                RewardHistory {
-                    epoch: 14,
-                    amount: "110".to_string(),
-                    claimed_at: Some(1704067200),
-                },
-                RewardHistory {
-                    epoch: 13,
-                    amount: "105".to_string(),
-                    claimed_at: Some(1703462400),
-                },
-                RewardHistory {
-                    epoch: 12,
-                    amount: "98".to_string(),
-                    claimed_at: Some(1702857600),
-                },
-            ],
-        })
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-    }
-=======
     }
 
     // ========================================================================
@@ -1060,6 +762,240 @@ impl AppState {
         }
         Ok(())
     }
+
+    // ========================================================================
+    // Governance Methods (TASK-P5-023)
+    // ========================================================================
+
+    /// Get governance dashboard
+    pub async fn get_governance_dashboard(&self, user_address: Option<&str>) -> Result<GovernanceDashboardResponse, ApiError> {
+        // Get treasury balance (mock)
+        let treasury_balance = "1000000000000000000000".to_string(); // 1000 ETH
+
+        // Get total voting power (mock)
+        let total_voting_power = "5000000".to_string(); // 5M veQS
+
+        // Count proposals by status
+        let proposals_key = "governance:proposals";
+        let proposals: Vec<GovernanceProposal> = match self.redis.get(proposals_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        let active_proposals = proposals.iter().filter(|p| p.status == ProposalStatus::Active).count() as u32;
+        let passed_proposals = proposals.iter().filter(|p| p.status == ProposalStatus::Passed).count() as u32;
+        let total_proposals = proposals.len() as u32;
+
+        // Get user's veQS balance if authenticated
+        let (user_veqs_balance, user_voting_power_percent) = if let Some(addr) = user_address {
+            let key = format!("veqs:balance:{}", addr);
+            match self.redis.get(&key).await {
+                Ok(Some(v)) => {
+                    let balance: u64 = v.parse().unwrap_or(0);
+                    let total: u64 = 5_000_000;
+                    let percent = (balance as f64 / total as f64) * 100.0;
+                    (Some(v), Some(percent))
+                }
+                _ => (None, None),
+            }
+        } else {
+            (None, None)
+        };
+
+        Ok(GovernanceDashboardResponse {
+            treasury_balance,
+            total_voting_power,
+            active_proposals,
+            passed_proposals,
+            total_proposals,
+            user_veqs_balance,
+            user_voting_power_percent,
+        })
+    }
+
+    /// List proposals
+    pub async fn list_proposals(&self, status_filter: Option<ProposalStatus>) -> Result<GovernanceProposalsResponse, ApiError> {
+        let proposals_key = "governance:proposals";
+        let mut proposals: Vec<GovernanceProposal> = match self.redis.get(proposals_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        // Filter by status if provided
+        if let Some(status) = status_filter {
+            proposals.retain(|p| p.status == status);
+        }
+
+        // Sort by created_at descending
+        proposals.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+
+        let total = proposals.len();
+
+        Ok(GovernanceProposalsResponse { proposals, total })
+    }
+
+    /// Get single proposal
+    pub async fn get_proposal(&self, proposal_id: &str) -> Result<Option<GovernanceProposal>, ApiError> {
+        let proposals_key = "governance:proposals";
+        let proposals: Vec<GovernanceProposal> = match self.redis.get(proposals_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        Ok(proposals.into_iter().find(|p| p.id == proposal_id))
+    }
+
+    /// Create proposal
+    pub async fn create_proposal(&self, proposer: &str, req: &CreateProposalRequest) -> Result<CreateProposalResponse, ApiError> {
+        let now = chrono::Utc::now().timestamp() as u64;
+        let proposal_id = format!("QIP-{}", now % 10000);
+        let voting_period = 7 * 24 * 3600; // 7 days
+
+        let proposal = GovernanceProposal {
+            id: proposal_id.clone(),
+            title: req.title.clone(),
+            description: req.description.clone(),
+            proposer: proposer.to_string(),
+            status: ProposalStatus::Active,
+            votes_for: "0".to_string(),
+            votes_against: "0".to_string(),
+            start_time: now,
+            end_time: now + voting_period,
+            quorum: "100000".to_string(), // 100k veQS required
+            created_at: now,
+        };
+
+        // Store proposal
+        let proposals_key = "governance:proposals";
+        let mut proposals: Vec<GovernanceProposal> = match self.redis.get(proposals_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+        proposals.push(proposal.clone());
+
+        let value = serde_json::to_string(&proposals).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(proposals_key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        Ok(CreateProposalResponse {
+            proposal_id,
+            status: ProposalStatus::Active,
+            start_time: now,
+            end_time: now + voting_period,
+        })
+    }
+
+    /// Submit vote
+    pub async fn submit_vote(&self, voter: &str, req: &VoteRequest) -> Result<VoteResponse, ApiError> {
+        // Get voter's veQS balance
+        let balance_key = format!("veqs:balance:{}", voter);
+        let voting_power: String = match self.redis.get(&balance_key).await {
+            Ok(Some(v)) => v,
+            _ => "0".to_string(),
+        };
+
+        // Store vote
+        let vote_info = VoteInfo {
+            voter: voter.to_string(),
+            proposal_id: req.proposal_id.clone(),
+            vote: req.vote,
+            voting_power: voting_power.clone(),
+            timestamp: chrono::Utc::now().timestamp() as u64,
+        };
+
+        let vote_key = format!("governance:vote:{}:{}", req.proposal_id, voter);
+        let vote_value = serde_json::to_string(&vote_info).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&vote_key, &vote_value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Update proposal vote counts
+        let proposals_key = "governance:proposals";
+        let mut proposals: Vec<GovernanceProposal> = match self.redis.get(proposals_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        if let Some(proposal) = proposals.iter_mut().find(|p| p.id == req.proposal_id) {
+            let power: u128 = voting_power.parse().unwrap_or(0);
+            if req.vote {
+                let current: u128 = proposal.votes_for.parse().unwrap_or(0);
+                proposal.votes_for = (current + power).to_string();
+            } else {
+                let current: u128 = proposal.votes_against.parse().unwrap_or(0);
+                proposal.votes_against = (current + power).to_string();
+            }
+
+            let value = serde_json::to_string(&proposals).map_err(|e| ApiError::Internal(e.to_string()))?;
+            self.redis.set(proposals_key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+        }
+
+        Ok(VoteResponse {
+            proposal_id: req.proposal_id.clone(),
+            vote: req.vote,
+            voting_power,
+            success: true,
+        })
+    }
+
+    /// Get vote
+    pub async fn get_vote(&self, proposal_id: &str, voter: &str) -> Result<Option<VoteInfo>, ApiError> {
+        let vote_key = format!("governance:vote:{}:{}", proposal_id, voter);
+        match self.redis.get(&vote_key).await {
+            Ok(Some(v)) => Ok(Some(serde_json::from_str(&v).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get activity
+    pub async fn get_governance_activity(&self) -> Result<GovernanceActivityResponse, ApiError> {
+        // Return mock activity
+        let activities = vec![
+            GovernanceActivityItem {
+                activity_type: "proposal_created".to_string(),
+                description: "New proposal: QIP-001 Fee Adjustment".to_string(),
+                timestamp: chrono::Utc::now().timestamp() as u64 - 3600,
+                related_id: Some("QIP-001".to_string()),
+            },
+            GovernanceActivityItem {
+                activity_type: "vote_cast".to_string(),
+                description: "Vote cast on QIP-001".to_string(),
+                timestamp: chrono::Utc::now().timestamp() as u64 - 1800,
+                related_id: Some("QIP-001".to_string()),
+            },
+        ];
+
+        Ok(GovernanceActivityResponse {
+            activities: activities.clone(),
+            total: activities.len(),
+        })
+    }
+
+    /// Get council
+    pub async fn get_council(&self) -> Result<GovernanceCouncilResponse, ApiError> {
+        // Return mock council
+        let members = vec![
+            CouncilMember {
+                address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+                name: Some("Council Member 1".to_string()),
+                veqs_balance: "500000".to_string(),
+                voting_power_percent: 10.0,
+                proposals_created: 5,
+                votes_cast: 25,
+            },
+            CouncilMember {
+                address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
+                name: Some("Council Member 2".to_string()),
+                veqs_balance: "400000".to_string(),
+                voting_power_percent: 8.0,
+                proposals_created: 3,
+                votes_cast: 20,
+            },
+        ];
+
+        Ok(GovernanceCouncilResponse {
+            members: members.clone(),
+            total_members: members.len(),
+        })
+    }
 }
 
 /// Helper: SHA3-256 hash for proof hashing
@@ -1068,5 +1004,4 @@ fn sha3_hash(data: &str) -> String {
     let mut hasher = Sha3_256::new();
     hasher.update(data.as_bytes());
     format!("0x{}", hex::encode(hasher.finalize()))
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 }

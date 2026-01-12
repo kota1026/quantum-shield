@@ -48,6 +48,9 @@ jsonwebtoken = "9"
 rustls = "0.22"
 tokio-rustls = "0.25"
 
+# Ethereum interaction (VRF Contract integration - TASK-P5-005)
+ethers = { version = "2", features = ["abigen"] }
+
 [dev-dependencies]
 axum-test = "14"
 mockall = "0.12"
