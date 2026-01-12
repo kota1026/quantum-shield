@@ -9,6 +9,7 @@ mod prover;
 mod edition;
 mod health;
 mod admin;
+mod token_hub;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -28,6 +29,16 @@ pub fn api_routes() -> Router {
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
+        // Token Hub API (TASK-P5-021) - 9 endpoints
+        .route("/token-hub/dashboard", get(token_hub::get_dashboard))
+        .route("/token-hub/lock", post(token_hub::create_lock))
+        .route("/token-hub/locks", get(token_hub::get_locks))
+        .route("/token-hub/extend", post(token_hub::extend_lock))
+        .route("/token-hub/delegates", get(token_hub::get_delegates))
+        .route("/token-hub/delegate", post(token_hub::delegate_power))
+        .route("/token-hub/rewards", get(token_hub::get_rewards))
+        .route("/token-hub/claim", post(token_hub::claim_rewards))
+        .route("/token-hub/delegations/my", get(token_hub::get_my_delegations))
 }
 
 /// Admin Dashboard API routes (/api/*)
