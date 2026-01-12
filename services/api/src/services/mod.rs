@@ -3,17 +3,9 @@
 mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
-<<<<<<< HEAD
-<<<<<<< HEAD
 mod vrf_service;
 mod sphincs_service;
-=======
 pub mod auth_service;
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-mod vrf_service;
-mod sphincs_service;
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
 use anyhow::Result;
 
@@ -23,17 +15,10 @@ use crate::{
     types::{
         Lock, LockRequest, LockStatus, Edition,
         ProverRegisterRequest, ProverInfoResponse, ProverStatus,
-<<<<<<< HEAD
-<<<<<<< HEAD
         ChallengeInfo, ChallengeStatus,
         VRFRequest, VRFStatus,
-=======
         LockPosition, HistoricalLock, DelegateInfo, MyDelegation,
         TokenHubRewardsResponse, RewardHistory,
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
-        ChallengeInfo, ChallengeStatus,
-        VRFRequest, VRFStatus,
         // Prover Portal types (TASK-P5-022)
         ProverDashboard, SigningQueueItem, SigningQueueResponse, QueueItemStatus,
         ProverSignRequest, ProverSignResponse, ProverMetrics,
@@ -41,24 +26,15 @@ use crate::{
         ProverChallengeItem, ProverChallengesResponse,
         ProverChallengeResponseRequest, ProverChallengeResponseResult,
         ProverExitRequest, ProverExitResponse,
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     },
 };
 
 pub use redis_client::RedisClient;
 pub use rabbitmq_client::RabbitMQClient;
 pub use hsm_client::HsmClient;
-<<<<<<< HEAD
-<<<<<<< HEAD
 pub use vrf_service::{VRFService, VRFError};
 pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
-=======
 pub use auth_service::AuthService;
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-pub use vrf_service::{VRFService, VRFError};
-pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
 /// Application state shared across handlers
 pub struct AppState {
@@ -66,18 +42,10 @@ pub struct AppState {
     pub redis: RedisClient,
     pub rabbitmq: RabbitMQClient,
     pub hsm: HsmClient,
-<<<<<<< HEAD
-<<<<<<< HEAD
     /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
     pub vrf: VRFService,
-=======
     /// Authentication service for SIWE/JWT (TASK-P5-012)
     pub auth_service: AuthService,
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-    /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
-    pub vrf: VRFService,
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 }
 
 /// Edition state tracking
@@ -93,18 +61,9 @@ impl AppState {
         let redis = RedisClient::new(&config.redis).await?;
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
-<<<<<<< HEAD
-<<<<<<< HEAD
         let vrf = VRFService::new(&config.vrf).await?;
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf })
-=======
         let auth_service = AuthService::new(config.jwt.clone());
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, auth_service })
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-        let vrf = VRFService::new(&config.vrf).await?;
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf })
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
+        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf, auth_service })
     }
 
     pub async fn is_nonce_used(&self, pk: &str, nonce: u64) -> Result<bool, ApiError> {
@@ -216,11 +175,6 @@ impl AppState {
     }
 
     // ========================================================================
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     // Challenge Methods (SEQUENCES §4)
     // ========================================================================
 
@@ -262,8 +216,13 @@ impl AppState {
             Err(e) => return Err(ApiError::Internal(e.to_string())),
         };
         let key = format!("challenge:{}", challenge_id);
-<<<<<<< HEAD
-=======
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
     // User API methods (TASK-P5-020)
     // ========================================================================
 
@@ -294,17 +253,6 @@ impl AppState {
     /// Get user settings
     pub async fn get_user_settings(&self, user_address: &str) -> Result<Option<crate::types::UserSettingsResponse>, ApiError> {
         let key = format!("user:settings:{}", user_address);
->>>>>>> origin/claude/implement-task-p5-020-vNCen
-=======
-    // Token Hub (veQS) Methods
-    // ========================================================================
-
-    /// Get user's veQS lock position
-    pub async fn get_veqs_lock(&self, address: &str) -> Result<Option<LockPosition>, ApiError> {
-        let key = format!("veqs:lock:{}", address);
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
             Ok(None) => Ok(None),
@@ -312,11 +260,19 @@ impl AppState {
         }
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
+    // Token Hub (veQS) Methods
+    // ========================================================================
+
+    /// Get user's veQS lock position
+    pub async fn get_veqs_lock(&self, address: &str) -> Result<Option<LockPosition>, ApiError> {
+        let key = format!("veqs:lock:{}", address);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
     /// Submit defense for a challenge
     pub async fn submit_defense(
         &self,
@@ -396,8 +352,11 @@ impl AppState {
         let key = format!("vrf:{}", vrf_request_id);
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
-<<<<<<< HEAD
-=======
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
     /// Store user settings
     pub async fn store_user_settings(&self, user_address: &str, settings: &crate::types::UserSettingsResponse) -> Result<(), ApiError> {
         let key = format!("user:settings:{}", user_address);
@@ -420,9 +379,11 @@ impl AppState {
                     Ok(Some((value, 0)))
                 }
             }
->>>>>>> origin/claude/implement-task-p5-020-vNCen
             Ok(None) => Ok(None),
-=======
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
     /// Store user's veQS lock position
     pub async fn store_veqs_lock(&self, address: &str, lock: &LockPosition) -> Result<(), ApiError> {
         let key = format!("veqs:lock:{}", address);
@@ -436,14 +397,10 @@ impl AppState {
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(serde_json::from_str(&value).unwrap_or_default()),
             Ok(None) => Ok(vec![]),
-=======
-            Ok(None) => Ok(None),
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
             Err(e) => Err(ApiError::Internal(e.to_string())),
         }
     }
 
-<<<<<<< HEAD
     /// Get user's QS token balance (mock - would call L1 contract)
     pub async fn get_qs_balance(&self, address: &str) -> Result<String, ApiError> {
         // In production: Call QS token contract balanceOf(address)
@@ -484,15 +441,10 @@ impl AppState {
                 Ok(delegations.len() as u32)
             }
             Ok(None) => Ok(0),
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
             Err(e) => Err(ApiError::Internal(e.to_string())),
         }
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     /// Update VRF request status
     pub async fn update_vrf_status(
         &self,
@@ -533,16 +485,16 @@ impl AppState {
             "selected_prover": selected_prover,
         });
         self.rabbitmq.publish("sig_queue", &msg.to_string()).await.map_err(|e| ApiError::Internal(e.to_string()))
-<<<<<<< HEAD
-=======
+    }
+
     /// Store user's Dilithium public key
     pub async fn store_user_dilithium_key(&self, user_address: &str, public_key: &str) -> Result<(), ApiError> {
         let key = format!("user:dilithium:{}", user_address);
         let timestamp = chrono::Utc::now().timestamp() as u64;
         let value = format!("{}:{}", public_key, timestamp);
         self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))
->>>>>>> origin/claude/implement-task-p5-020-vNCen
-=======
+    }
+
     /// Get user's pending rewards
     pub async fn get_pending_rewards(&self, address: &str) -> Result<String, ApiError> {
         let key = format!("veqs:rewards:pending:{}", address);
@@ -648,9 +600,6 @@ impl AppState {
                 },
             ],
         })
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-    }
-=======
     }
 
     // ========================================================================
@@ -1068,5 +1017,4 @@ fn sha3_hash(data: &str) -> String {
     let mut hasher = Sha3_256::new();
     hasher.update(data.as_bytes());
     format!("0x{}", hex::encode(hasher.finalize()))
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 }

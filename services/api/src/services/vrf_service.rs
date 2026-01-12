@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 //! VRF Service for Chainlink VRF Integration
 //!
 //! Implements SEQUENCES §2.3-§2.4:
@@ -52,49 +51,21 @@ pub enum VRFError {
 /// 4. triggerFallback() - Use prevrandao after 5 min timeout
 pub struct VRFService {
     /// VRF configuration
-=======
-//! VRF Service for Chainlink VRF integration
-//!
-//! Implements SEQUENCES §2.3-§2.4: VRF Prover Selection
-
-use std::time::Duration;
-use thiserror::Error;
-use crate::config::VRFConfig;
-
-#[derive(Debug, Error)]
-pub enum VRFError {
-    #[error("VRF request failed: {0}")]
-    RequestFailed(String),
-    #[error("VRF timeout")]
-    Timeout,
-    #[error("No provers available")]
-    NoProversAvailable,
-}
-
-/// VRF Service for Prover selection
-pub struct VRFService {
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     config: VRFConfig,
 }
 
 impl VRFService {
-<<<<<<< HEAD
     /// Create new VRF service
-    pub async fn new(config: &VRFConfig) -> Result<Self> {
+    pub async fn new(config: &VRFConfig) -> anyhow::Result<Self> {
         tracing::info!(
             "Initializing VRF Service with contract: {}",
             config.contract_address
         );
-
-=======
-    pub async fn new(config: &VRFConfig) -> anyhow::Result<Self> {
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
         Ok(Self {
             config: config.clone(),
         })
     }
 
-<<<<<<< HEAD
     /// Request VRF prover selection
     ///
     /// SEQUENCES §2.3: VRF seed取得
@@ -318,7 +289,8 @@ impl VRFService {
             selected_prover: None,
             status: VRFStatus::Pending,
         }
-=======
+    }
+
     /// Request VRF for prover selection
     /// SEQUENCES §2.3
     pub async fn request_prover_selection(&self, _unlock_id: &str) -> Result<String, VRFError> {
@@ -386,7 +358,6 @@ impl VRFService {
         }
 
         vec![provers[idx1].clone(), provers[idx2].clone()]
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     }
 }
 
@@ -394,7 +365,6 @@ impl VRFService {
 mod tests {
     use super::*;
 
-<<<<<<< HEAD
     #[tokio::test]
     async fn test_vrf_service_creation() {
         let config = VRFConfig::default();
@@ -475,7 +445,8 @@ mod tests {
 
         let prover = result.unwrap();
         assert!(prover.starts_with("0x"));
-=======
+    }
+
     #[test]
     fn test_select_provers() {
         let config = VRFConfig {
@@ -505,6 +476,5 @@ mod tests {
         let s1 = service.select_provers("same_seed", &provers);
         let s2 = service.select_provers("same_seed", &provers);
         assert_eq!(s1, s2);
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     }
 }

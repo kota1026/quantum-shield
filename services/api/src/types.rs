@@ -246,12 +246,6 @@ pub struct SphincsSignature {
 }
 
 // ============================================================================
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 // Challenge Types (SEQUENCES §4)
 // ============================================================================
 
@@ -398,8 +392,8 @@ pub struct VRFStatusResponse {
     pub selected_prover: Option<String>,
     pub time_remaining: Option<u64>,
     pub is_timed_out: bool,
-<<<<<<< HEAD
-=======
+}
+
 // Authentication Types (TASK-P5-012: SIWE→JWT)
 // ============================================================================
 
@@ -491,8 +485,8 @@ pub struct SiweMessage {
     pub issued_at: String,
     /// ISO 8601 expiration time (optional)
     pub expiration_time: Option<String>,
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
+}
+
 // User Types (Consumer App API - TASK-P5-020)
 // ============================================================================
 
@@ -627,19 +621,18 @@ pub struct UserTransactionDetailResponse {
     /// Time lock remaining in seconds (negative if expired)
     pub time_lock_remaining: Option<i64>,
     /// Challenge info (if challenged)
-    pub challenge_info: Option<ChallengeInfo>,
+    pub challenge_info: Option<ChallengeInfoBrief>,
     /// Transaction timeline
     pub timeline: Vec<TimelineEvent>,
 }
 
-/// Challenge information
+/// Brief challenge information for transaction detail
 #[derive(Debug, Serialize)]
-pub struct ChallengeInfo {
+pub struct ChallengeInfoBrief {
     /// Challenger address
     pub challenger: String,
     /// Challenge bond amount
     pub bond: String,
-=======
 }
 
 // ============================================================================
@@ -849,12 +842,18 @@ pub struct ProverChallengeItem {
     pub lock_id: String,
     /// Challenger address
     pub challenger: String,
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     /// Challenge timestamp
     pub challenged_at: u64,
     /// Defense deadline
     pub defense_deadline: u64,
-<<<<<<< HEAD
+    /// Time remaining for defense (seconds)
+    pub time_remaining: i64,
+    /// Challenge status
+    pub status: ChallengeStatus,
+    /// Potential slash amount
+    pub potential_slash: String,
+    /// Whether defense was submitted
+    pub defense_submitted: bool,
 }
 
 /// Timeline event for transaction history
@@ -950,8 +949,8 @@ pub struct TransactionsQueryParams {
     pub page: Option<u32>,
     /// Items per page (max 100)
     pub per_page: Option<u32>,
->>>>>>> origin/claude/implement-task-p5-020-vNCen
-=======
+}
+
 // Token Hub Types (veQS / Delegation / Rewards)
 // ============================================================================
 
@@ -1179,17 +1178,6 @@ pub struct TokenHubClaimResponse {
     pub amount_claimed: String,
     /// Epochs claimed
     pub epochs_claimed: Vec<u64>,
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-}
-=======
-    /// Time remaining for defense (seconds)
-    pub time_remaining: i64,
-    /// Challenge status
-    pub status: ChallengeStatus,
-    /// Potential slash amount
-    pub potential_slash: String,
-    /// Whether defense was submitted
-    pub defense_submitted: bool,
 }
 
 /// Challenges list response
@@ -1248,4 +1236,3 @@ pub struct ProverExitResponse {
     /// Pending rewards to be returned
     pub pending_rewards: String,
 }
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
