@@ -11,6 +11,7 @@ mod edition;
 mod health;
 mod admin;
 <<<<<<< HEAD
+<<<<<<< HEAD
 mod challenge;
 =======
 mod auth;
@@ -18,6 +19,9 @@ mod auth;
 use crate::middleware::jwt_auth;
 use crate::services::AppState;
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+mod user;
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -37,6 +41,7 @@ pub fn api_routes() -> Router {
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
+<<<<<<< HEAD
         // Challenge API (SEQUENCES §4)
         .route("/challenge", post(challenge::submit_challenge))
         .route("/challenge/:lock_id", get(challenge::get_challenge))
@@ -60,6 +65,15 @@ pub fn auth_routes(state: Arc<AppState>) -> Router {
                 .layer(middleware::from_fn_with_state(state.clone(), jwt_auth)),
         )
         .with_state(state)
+=======
+        // Consumer App API (TASK-P5-020)
+        .route("/user/dashboard", get(user::get_dashboard))
+        .route("/user/transactions", get(user::get_transactions))
+        .route("/user/transactions/:id", get(user::get_transaction_detail))
+        .route("/user/settings", get(user::get_settings))
+        .route("/user/settings", post(user::update_settings))
+        .route("/user/keys", get(user::get_keys))
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 }
 
 /// Admin Dashboard API routes (/api/*)

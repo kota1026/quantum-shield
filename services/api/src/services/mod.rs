@@ -179,6 +179,7 @@ impl AppState {
     }
 
     // ========================================================================
+<<<<<<< HEAD
     // Challenge Methods (SEQUENCES §4)
     // ========================================================================
 
@@ -220,6 +221,38 @@ impl AppState {
             Err(e) => return Err(ApiError::Internal(e.to_string())),
         };
         let key = format!("challenge:{}", challenge_id);
+=======
+    // User API methods (TASK-P5-020)
+    // ========================================================================
+
+    /// Get all locks for a specific user
+    pub async fn get_user_locks(&self, user_address: &str) -> Result<Vec<Lock>, ApiError> {
+        // Get all lock keys for this user
+        let pattern = format!("lock:*");
+        let keys = self.redis.scan(&pattern).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        let mut user_locks = Vec::new();
+        for key in keys {
+            if let Ok(Some(value)) = self.redis.get(&key).await {
+                if let Ok(lock) = serde_json::from_str::<Lock>(&value) {
+                    // Filter by owner address
+                    if lock.owner == user_address || lock.user_public_key == user_address {
+                        user_locks.push(lock);
+                    }
+                }
+            }
+        }
+
+        // Sort by created_at descending
+        user_locks.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+
+        Ok(user_locks)
+    }
+
+    /// Get user settings
+    pub async fn get_user_settings(&self, user_address: &str) -> Result<Option<crate::types::UserSettingsResponse>, ApiError> {
+        let key = format!("user:settings:{}", user_address);
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
             Ok(None) => Ok(None),
@@ -227,6 +260,7 @@ impl AppState {
         }
     }
 
+<<<<<<< HEAD
     /// Submit defense for a challenge
     pub async fn submit_defense(
         &self,
@@ -306,11 +340,36 @@ impl AppState {
         let key = format!("vrf:{}", vrf_request_id);
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+=======
+    /// Store user settings
+    pub async fn store_user_settings(&self, user_address: &str, settings: &crate::types::UserSettingsResponse) -> Result<(), ApiError> {
+        let key = format!("user:settings:{}", user_address);
+        let value = serde_json::to_string(settings).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Get user's registered Dilithium public key
+    pub async fn get_user_dilithium_key(&self, user_address: &str) -> Result<Option<(String, u64)>, ApiError> {
+        let key = format!("user:dilithium:{}", user_address);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => {
+                // Format: "public_key:timestamp"
+                let parts: Vec<&str> = value.splitn(2, ':').collect();
+                if parts.len() == 2 {
+                    let pk = parts[0].to_string();
+                    let timestamp = parts[1].parse::<u64>().unwrap_or(0);
+                    Ok(Some((pk, timestamp)))
+                } else {
+                    Ok(Some((value, 0)))
+                }
+            }
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
             Ok(None) => Ok(None),
             Err(e) => Err(ApiError::Internal(e.to_string())),
         }
     }
 
+<<<<<<< HEAD
     /// Update VRF request status
     pub async fn update_vrf_status(
         &self,
@@ -351,5 +410,13 @@ impl AppState {
             "selected_prover": selected_prover,
         });
         self.rabbitmq.publish("sig_queue", &msg.to_string()).await.map_err(|e| ApiError::Internal(e.to_string()))
+=======
+    /// Store user's Dilithium public key
+    pub async fn store_user_dilithium_key(&self, user_address: &str, public_key: &str) -> Result<(), ApiError> {
+        let key = format!("user:dilithium:{}", user_address);
+        let timestamp = chrono::Utc::now().timestamp() as u64;
+        let value = format!("{}:{}", public_key, timestamp);
+        self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
     }
 }
