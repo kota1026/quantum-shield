@@ -3,8 +3,12 @@
 mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
+<<<<<<< HEAD
 mod vrf_service;
 mod sphincs_service;
+=======
+pub mod auth_service;
+>>>>>>> origin/claude/implement-task-p5-012-CoGF1
 
 use anyhow::Result;
 
@@ -22,8 +26,12 @@ use crate::{
 pub use redis_client::RedisClient;
 pub use rabbitmq_client::RabbitMQClient;
 pub use hsm_client::HsmClient;
+<<<<<<< HEAD
 pub use vrf_service::{VRFService, VRFError};
 pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
+=======
+pub use auth_service::AuthService;
+>>>>>>> origin/claude/implement-task-p5-012-CoGF1
 
 /// Application state shared across handlers
 pub struct AppState {
@@ -31,8 +39,13 @@ pub struct AppState {
     pub redis: RedisClient,
     pub rabbitmq: RabbitMQClient,
     pub hsm: HsmClient,
+<<<<<<< HEAD
     /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
     pub vrf: VRFService,
+=======
+    /// Authentication service for SIWE/JWT (TASK-P5-012)
+    pub auth_service: AuthService,
+>>>>>>> origin/claude/implement-task-p5-012-CoGF1
 }
 
 /// Edition state tracking
@@ -48,8 +61,13 @@ impl AppState {
         let redis = RedisClient::new(&config.redis).await?;
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
+<<<<<<< HEAD
         let vrf = VRFService::new(&config.vrf).await?;
         Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf })
+=======
+        let auth_service = AuthService::new(config.jwt.clone());
+        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, auth_service })
+>>>>>>> origin/claude/implement-task-p5-012-CoGF1
     }
 
     pub async fn is_nonce_used(&self, pk: &str, nonce: u64) -> Result<bool, ApiError> {
