@@ -246,6 +246,7 @@ pub struct SphincsSignature {
 }
 
 // ============================================================================
+<<<<<<< HEAD
 // Challenge Types (SEQUENCES §4)
 // ============================================================================
 
@@ -392,4 +393,97 @@ pub struct VRFStatusResponse {
     pub selected_prover: Option<String>,
     pub time_remaining: Option<u64>,
     pub is_timed_out: bool,
+=======
+// Authentication Types (TASK-P5-012: SIWE→JWT)
+// ============================================================================
+
+/// SIWE (Sign-In with Ethereum/Quantum-safe) request
+/// Uses Dilithium-III signature for CP-1 compliance
+#[derive(Debug, Deserialize)]
+pub struct SiweRequest {
+    /// The SIWE message to sign (EIP-4361 format)
+    pub message: String,
+    /// Dilithium-III signature of the message (hex encoded)
+    pub signature: String,
+    /// User's Dilithium-III public key (hex encoded)
+    pub public_key: String,
+}
+
+/// SIWE authentication response with JWT tokens
+#[derive(Debug, Serialize)]
+pub struct SiweResponse {
+    /// JWT access token
+    pub access_token: String,
+    /// JWT refresh token
+    pub refresh_token: String,
+    /// Access token expiry (Unix timestamp)
+    pub expires_at: u64,
+    /// Authenticated wallet address
+    pub address: String,
+}
+
+/// Token refresh request
+#[derive(Debug, Deserialize)]
+pub struct RefreshTokenRequest {
+    /// The refresh token to use
+    pub refresh_token: String,
+}
+
+/// Token refresh response
+#[derive(Debug, Serialize)]
+pub struct RefreshTokenResponse {
+    /// New JWT access token
+    pub access_token: String,
+    /// Access token expiry (Unix timestamp)
+    pub expires_at: u64,
+}
+
+/// Current user information
+#[derive(Debug, Serialize)]
+pub struct UserInfoResponse {
+    /// Wallet address (derived from Dilithium public key)
+    pub address: String,
+    /// Dilithium public key hash (SHA3-256)
+    pub public_key_hash: String,
+    /// Token issued at (Unix timestamp)
+    pub issued_at: u64,
+    /// Token expires at (Unix timestamp)
+    pub expires_at: u64,
+}
+
+/// JWT claims structure
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JwtClaims {
+    /// Subject (wallet address)
+    pub sub: String,
+    /// Public key hash (SHA3-256 of Dilithium public key)
+    pub pkh: String,
+    /// Issued at (Unix timestamp)
+    pub iat: u64,
+    /// Expires at (Unix timestamp)
+    pub exp: u64,
+    /// Token type: "access" or "refresh"
+    pub typ: String,
+}
+
+/// Parsed SIWE message fields
+#[derive(Debug, Clone)]
+pub struct SiweMessage {
+    /// Domain that requested the sign-in
+    pub domain: String,
+    /// Wallet address
+    pub address: String,
+    /// Human-readable statement
+    pub statement: Option<String>,
+    /// URI of the requesting resource
+    pub uri: String,
+    /// EIP-155 chain ID
+    pub chain_id: u64,
+    /// Nonce for replay protection
+    pub nonce: String,
+    /// ISO 8601 issued at timestamp
+    pub issued_at: String,
+    /// ISO 8601 expiration time (optional)
+    pub expiration_time: Option<String>,
+>>>>>>> origin/claude/implement-task-p5-012-CoGF1
 }

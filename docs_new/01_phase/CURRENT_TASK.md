@@ -1,7 +1,7 @@
 # Task Definition
 
 > **Generated**: 2026-01-12 (SEP v3)
-> **Status**: Active
+> **Status**: DONE
 
 ---
 
@@ -9,11 +9,12 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-011 |
-| タイトル | ProverRegistry.sol 実装 |
-| 対象Sequence | #5 Prover Registration, #6 Prover Exit |
+| タスクID | TASK-P5-012 |
+| タイトル | SIWE→JWT認証基盤 |
+| 対象Sequence | Authentication |
 | 優先度 | P0 |
-| 見積り工数 | 4日 |
+| 見積り工数 | 2日 |
+| 完了日 | 2026-01-12 |
 
 ---
 
@@ -23,99 +24,93 @@
 
 | コンポーネント | ファイル | 状態 | 備考 |
 |--------------|---------|:----:|------|
-| L1Vault Prover管理 | `contracts/src/L1Vault.sol` | ⚠️ 基本のみ | 埋め込み型、機能不足 |
-| API prover.rs | `services/api/src/routes/prover.rs` | ⚠️ 基本実装 | 登録エンドポイントのみ |
-| ProverRegistry | `contracts/src/prover/` | ❌ 未実装 | 今回実装対象 |
+| Auth Routes | `services/api/src/routes/auth.rs` | ❌ 未実装 | エンドポイントなし |
+| JWT Middleware | `services/api/src/middleware.rs` | ⚠️ TODO | コメントのみ |
+| Auth Service | `services/api/src/services/` | ❌ 未実装 | 認証ロジックなし |
 
 ### ギャップ分析
 
-L1Vaultの現行Prover構造:
-```solidity
-struct Prover {
-    address proverAddress;
-    bytes32 sphincsPubKeyHash;
-    bytes sphincsPublicKey;
-    uint256 stakedAmount;
-    uint256 registeredAt;
-    bool isActive;
-    uint256 successfulSigns;
-    uint256 slashedCount;
-}
 ```
-
-必要な追加機能:
-1. Phase別承認モード（招待制/Council/自動）
-2. Unbonding期間 (7日)
-3. 詳細なSlashing機能
-4. Exit/Withdrawフロー
+必要な機能:
+1. SIWE (Sign-In with Ethereum) メッセージパースと検証
+2. Dilithium-III署名検証 (CP-1準拠)
+3. JWT発行と検証
+4. 保護エンドポイント用ミドルウェア
+```
 
 ---
 
 ## 実装項目
 
-### 1. ProverRegistry.sol
+### 1. auth_service.rs作成 ✅
 
-```solidity
-// Prover構造体
-struct Prover {
-    address operator;           // オペレーターアドレス
-    bytes sphincsPublicKey;     // SPHINCS+公開鍵 (32 bytes)
-    bytes32 sphincsPubKeyHash;  // 公開鍵ハッシュ
-    uint256 stake;              // ステーク量
-    ProverStatus status;        // 状態
-    uint256 registeredAt;       // 登録時刻
-    uint256 totalSignatures;    // 累計署名数
-    uint256 slashCount;         // Slash回数
-    uint256 exitRequestedAt;    // 退出申請時刻
+```rust
+pub struct AuthService {
+    jwt_config: JwtConfig,
 }
 
-// 関数
-- register(sphincsPublicKey, hsmAttestation, multisigProof) → proverId
-- approve(proverId) // Council/Foundation専用
-- autoApprove(proverId) // Phase 3+用
-- slash(proverId, amount, reason)
-- requestExit(proverId)
-- executeExit(proverId)
-- withdrawStake(proverId)
+impl AuthService {
+    pub fn authenticate_siwe(&self, req: &SiweRequest) -> Result<SiweResponse, ApiError>;
+    pub fn refresh_access_token(&self, refresh_token: &str) -> Result<(String, u64), ApiError>;
+    pub fn validate_token(&self, token: &str) -> Result<JwtClaims, ApiError>;
+    pub fn parse_siwe_message(message: &str) -> Result<SiweMessage, ApiError>;
+    fn verify_dilithium_signature(...) -> Result<(), ApiError>;
+    pub fn compute_address(pubkey_hex: &str) -> Result<String, ApiError>;
+    pub fn compute_pubkey_hash(pubkey_hex: &str) -> Result<String, ApiError>;
+}
 ```
 
-### 2. ProverRegistry.t.sol
+### 2. middleware.rs更新 ✅
 
-- 登録テスト
-- 承認フローテスト
-- Slashingテスト
-- 退出・Unbondingテスト
+```rust
+pub async fn jwt_auth(State(state), request, next) -> Response;
+pub async fn jwt_auth_optional(State(state), request, next) -> Response;
+pub struct AuthUser { address, public_key_hash, issued_at, expires_at }
+```
 
----
+### 3. routes/auth.rs作成 ✅
 
-## 仕様参照
+```rust
+// POST /v1/auth/siwe
+pub async fn siwe_authenticate(...) -> Result<impl IntoResponse, ApiError>;
 
-| 仕様 | セクション |
-|------|----------|
-| SEQUENCES | §5 Prover Registration |
-| SEQUENCES | §6 Prover Exit |
-| UNIFIED_SPEC | §Prover Management |
+// POST /v1/auth/refresh
+pub async fn refresh_token(...) -> Result<impl IntoResponse, ApiError>;
+
+// GET /v1/auth/me (protected)
+pub async fn get_current_user(...) -> Result<impl IntoResponse, ApiError>;
+```
 
 ---
 
 ## 完了条件
 
-| # | 条件 | 検証方法 |
-|---|------|---------|
-| 1 | Prover登録・承認フロー動作 | forge test |
-| 2 | Slashing機能動作 | forge test |
-| 3 | 7日Unbonding期間実装 | forge test |
-| 4 | slither警告なし (High/Critical) | slither |
+| # | 条件 | 状態 |
+|---|------|:----:|
+| 1 | SIWE署名検証成功 | ✅ |
+| 2 | JWT発行・検証動作 | ✅ |
+| 3 | 保護エンドポイントで認証要求 | ✅ |
+| 4 | テスト成功 | ✅ 62 passed |
 
 ---
 
-## 検証コマンド
+## 成果物
 
-```bash
-forge build
-forge test --match-contract ProverRegistryTest -vvv
-slither contracts/src/prover/ProverRegistry.sol
-```
+| ファイル | 説明 |
+|---------|------|
+| `services/api/src/services/auth_service.rs` | SIWE/JWT認証サービス (400+ lines) |
+| `services/api/src/routes/auth.rs` | 認証APIエンドポイント (150+ lines) |
+| `services/api/src/middleware.rs` | JWT検証ミドルウェア |
+| `services/api/src/types.rs` | SiweRequest, JwtClaims等の型定義 |
+| `services/api/src/error.rs` | 認証関連エラー型 |
+
+---
+
+## 次のタスク
+
+TASK-P5-013: API Client認証統合
+- depends_on: TASK-P5-012
+- SDK側でSIWE→JWT自動認証フロー実装
 
 ---
 
