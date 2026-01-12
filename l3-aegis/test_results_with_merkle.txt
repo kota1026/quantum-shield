@@ -1,0 +1,1756 @@
+   Compiling aegis-types v0.1.0 (/Users/kotakato/quantum-shield/l3-aegis/crates/aegis-types)
+error: expected `,`, or `}`, found `&`
+  --> crates/aegis-types/src/block.rs:22:23
+   |
+18 | pub struct ValidatorSignature {
+   |            ------------------ while parsing this struct
+...
+22 |     pub signature: Vec&lt;u8&gt;,
+   |                       ^
+
+error: expected `,`, or `}`, found `&`
+  --> crates/aegis-types/src/block.rs:43:34
+   |
+27 | pub struct BlockHeader {
+   |            ----------- while parsing this struct
+...
+43 |     pub validator_signatures: Vec&lt;ValidatorSignature&gt;,
+   |                                  ^
+
+error: expected one of `:`, `@`, or `|`, found `;`
+  --> crates/aegis-types/src/block.rs:77:21
+   |
+77 |     pub fn hash(&amp;self) -> Hash256 {
+   |                     ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `!`, `)`, `,`, `.`, `::`, `?`, `{`, or an operator, found `;`
+  --> crates/aegis-types/src/block.rs:80:36
+   |
+80 |         data.extend_from_slice(&amp;self.height.to_le_bytes());
+   |                                    ^
+   |                                    |
+   |                                    expected one of 8 possible tokens
+   |                                    help: missing `,`
+
+error: expected one of `!`, `)`, `,`, `.`, `::`, `?`, `{`, or an operator, found `;`
+  --> crates/aegis-types/src/block.rs:81:36
+   |
+81 |         data.extend_from_slice(&amp;self.timestamp.to_le_bytes());
+   |                                    ^
+   |                                    |
+   |                                    expected one of 8 possible tokens
+   |                                    help: missing `,`
+
+error: expected one of `!`, `)`, `,`, `.`, `::`, `?`, `{`, or an operator, found `;`
+  --> crates/aegis-types/src/block.rs:86:27
+   |
+86 |         Hash256::hash(&amp;data)
+   |                           ^
+   |                           |
+   |                           expected one of 8 possible tokens
+   |                           help: missing `,`
+
+error: expected one of `:`, `@`, or `|`, found `;`
+  --> crates/aegis-types/src/block.rs:90:27
+   |
+90 |     pub fn is_genesis(&amp;self) -> bool {
+   |                           ^ expected one of `:`, `@`, or `|`
+
+error: expected `,`, or `}`, found `&`
+  --> crates/aegis-types/src/block.rs:99:26
+   |
+97 | pub struct BlockBody {
+   |            --------- while parsing this struct
+98 |     /// Transactions in this block
+99 |     pub transactions: Vec&lt;Transaction&gt;,
+   |                          ^
+
+error: expected one of `:`, `@`, or `|`, found `;`
+   --> crates/aegis-types/src/block.rs:109:32
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |                                ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `:`, `@`, or `|`, found `;`
+   --> crates/aegis-types/src/block.rs:121:32
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |                                ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `!`, `(`, `+`, `::`, `;`, `<`, or `=`, found `&`
+   --> crates/aegis-types/src/block.rs:127:27
+    |
+127 |         let tx_hashes: Vec&lt;Hash256&gt; = self.transactions
+    |                      -    ^ expected one of 7 possible tokens
+    |                      |
+    |                      while parsing the type for `tx_hashes`
+
+error: expected one of `:`, `@`, or `|`, found `;`
+   --> crates/aegis-types/src/block.rs:138:20
+    |
+138 |     pub fn len(&amp;self) -> usize {
+    |                    ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `:`, `@`, or `|`, found `;`
+   --> crates/aegis-types/src/block.rs:143:25
+    |
+143 |     pub fn is_empty(&amp;self) -> bool {
+    |                         ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `:`, `@`, or `|`, found `;`
+   --> crates/aegis-types/src/block.rs:172:21
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |                     ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `:`, `@`, or `|`, found `;`
+   --> crates/aegis-types/src/block.rs:177:23
+    |
+177 |     pub fn height(&amp;self) -> u64 {
+    |                       ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `:`, `@`, or `|`, found `;`
+   --> crates/aegis-types/src/block.rs:185:25
+    |
+185 |     pub fn finalize(&amp;mut self) {
+    |                         ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `!`, `)`, `,`, `.`, `::`, `?`, `{`, or an operator, found `;`
+   --> crates/aegis-types/src/block.rs:201:42
+    |
+201 |             unlock_id: Hash256::hash(&amp;[id]),
+    |                                          ^
+    |                                          |
+    |                                          expected one of 8 possible tokens
+    |                                          help: missing `,`
+
+error: expected one of `!`, `)`, `,`, `.`, `::`, `?`, `{`, or an operator, found `;`
+   --> crates/aegis-types/src/block.rs:202:40
+    |
+202 |             lock_id: Hash256::hash(&amp;[id, id]),
+    |                                        ^
+    |                                        |
+    |                                        expected one of 8 possible tokens
+    |                                        help: missing `,`
+
+error: expected one of `:`, `@`, or `|`, found `;`
+  --> crates/aegis-types/src/transaction.rs:28:23
+   |
+28 |     pub fn to_hex(&amp;self) -> String {
+   |                       ^ expected one of `:`, `@`, or `|`
+
+error: expected one of `:`, `@`, or `|`, found `)`
+  --> crates/aegis-types/src/transaction.rs:33:32
+   |
+33 |     pub fn from_hex(s: &amp;str) -> Result&lt;Self, hex::FromHexError&gt; {
+   |                                ^ expected one of `:`, `@`, or `|`
+   |
+help: if this is a parameter name, give it a type
+   |
+33 |     pub fn from_hex(s: &amp;str: TypeName) -> Result&lt;Self, hex::FromHexError&gt; {
+   |                                ++++++++++
+help: if this is a type, explicitly ignore the parameter name
+   |
+33 |     pub fn from_hex(s: &amp;_: str) -> Result&lt;Self, hex::FromHexError&gt; {
+   |                             ++
+
+error: expected one of `!`, `(`, `)`, `,`, `::`, or `<`, found `;`
+  --> crates/aegis-types/src/transaction.rs:33:28
+   |
+33 |     pub fn from_hex(s: &amp;str) -> Result&lt;Self, hex::FromHexError&gt; {
+   |                            ^
+   |                            |
+   |                            expected one of `!`, `(`, `)`, `,`, `::`, or `<`
+   |                            help: missing `,`
+
+error: expected one of `!`, `(`, `+`, `::`, `<`, `where`, or `{`, found `&`
+  --> crates/aegis-types/src/transaction.rs:33:43
+   |
+16 | impl Address {
+   |              - while parsing this item list starting here
+...
+33 |     pub fn from_hex(s: &amp;str) -> Result&lt;Self, hex::FromHexError&gt; {
+   |                                           ^ expected one of 7 possible tokens
+...
+43 | }
+   | - the item list ends here
+
+error: expected one of `!`, `(`, `)`, `+`, `,`, `::`, or `<`, found `&`
+  --> crates/aegis-types/src/transaction.rs:47:38
+   |
+47 | pub struct DilithiumPublicKey(pub Vec&lt;u8&gt;);
+   |                                      ^
+   |                                      |
+   |                                      expected one of 7 possible tokens
+   |                                      help: missing `,`
+
+error: expected one of `!`, `(`, `)`, `,`, `::`, or `<`, found `;`
+  --> crates/aegis-types/src/transaction.rs:47:41
+   |
+47 | pub struct DilithiumPublicKey(pub Vec&lt;u8&gt;);
+   |                                         ^
+   |                                         |
+   |                                         expected one of `!`, `(`, `)`, `,`, `::`, or `<`
+   |                                         help: missing `,`
+
+error: expected one of `!`, `(`, `)`, `+`, `,`, `::`, or `<`, found `&`
+  --> crates/aegis-types/src/transaction.rs:47:44
+   |
+47 | pub struct DilithiumPublicKey(pub Vec&lt;u8&gt;);
+   |                                            ^
+   |                                            |
+   |                                            expected one of 7 possible tokens
+   |                                            help: missing `,`
+
+error: expected one of `!`, `(`, `)`, `,`, `::`, or `<`, found `;`
+  --> crates/aegis-types/src/transaction.rs:47:47
+   |
+47 | pub struct DilithiumPublicKey(pub Vec&lt;u8&gt;);
+   |                                               ^ expected one of `!`, `(`, `)`, `,`, `::`, or `<`
+
+error: expected item, found `[`
+  --> crates/aegis-types/src/merkle.rs:18:25
+   |
+18 | const DOMAIN_LEAF: &amp;[u8] = b"AEGIS_MERKLE_LEAF_V1";
+   |                         ^ expected item
+   |
+   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+
+error: expected `,`
+  --> crates/aegis-types/src/block.rs:22:23
+   |
+22 |     pub signature: Vec&lt;u8&gt;,
+   |                       ^
+
+error: expected `,`
+  --> crates/aegis-types/src/block.rs:43:34
+   |
+43 |     pub validator_signatures: Vec&lt;ValidatorSignature&gt;,
+   |                                  ^
+
+error: expected `,`
+  --> crates/aegis-types/src/block.rs:99:26
+   |
+99 |     pub transactions: Vec&lt;Transaction&gt;,
+   |                          ^
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:79:19
+   |
+77 |     pub fn hash(&amp;self) -> Hash256 {
+   |            ---- this function doesn't have a `self` parameter
+78 |         let mut data = Vec::new();
+79 |         data.push(self.version);
+   |                   ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+77 |     pub fn hash(&&self, amp;self) -> Hash256 {
+   |                  ++++++
+
+error[E0425]: cannot find value `amp` in this scope
+  --> crates/aegis-types/src/block.rs:80:33
+   |
+80 |         data.extend_from_slice(&amp;self.height.to_le_bytes());
+   |                                 ^^^ not found in this scope
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:80:37
+   |
+77 |     pub fn hash(&amp;self) -> Hash256 {
+   |            ---- this function doesn't have a `self` parameter
+...
+80 |         data.extend_from_slice(&amp;self.height.to_le_bytes());
+   |                                     ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+77 |     pub fn hash(&&self, amp;self) -> Hash256 {
+   |                  ++++++
+
+error[E0425]: cannot find value `amp` in this scope
+  --> crates/aegis-types/src/block.rs:81:33
+   |
+81 |         data.extend_from_slice(&amp;self.timestamp.to_le_bytes());
+   |                                 ^^^ not found in this scope
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:81:37
+   |
+77 |     pub fn hash(&amp;self) -> Hash256 {
+   |            ---- this function doesn't have a `self` parameter
+...
+81 |         data.extend_from_slice(&amp;self.timestamp.to_le_bytes());
+   |                                     ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+77 |     pub fn hash(&&self, amp;self) -> Hash256 {
+   |                  ++++++
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:82:32
+   |
+77 |     pub fn hash(&amp;self) -> Hash256 {
+   |            ---- this function doesn't have a `self` parameter
+...
+82 |         data.extend_from_slice(self.parent_hash.as_bytes());
+   |                                ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+77 |     pub fn hash(&&self, amp;self) -> Hash256 {
+   |                  ++++++
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:83:32
+   |
+77 |     pub fn hash(&amp;self) -> Hash256 {
+   |            ---- this function doesn't have a `self` parameter
+...
+83 |         data.extend_from_slice(self.state_root.as_bytes());
+   |                                ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+77 |     pub fn hash(&&self, amp;self) -> Hash256 {
+   |                  ++++++
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:84:32
+   |
+77 |     pub fn hash(&amp;self) -> Hash256 {
+   |            ---- this function doesn't have a `self` parameter
+...
+84 |         data.extend_from_slice(self.tx_root.as_bytes());
+   |                                ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+77 |     pub fn hash(&&self, amp;self) -> Hash256 {
+   |                  ++++++
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:85:32
+   |
+77 |     pub fn hash(&amp;self) -> Hash256 {
+   |            ---- this function doesn't have a `self` parameter
+...
+85 |         data.extend_from_slice(self.proposer.as_bytes());
+   |                                ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+77 |     pub fn hash(&&self, amp;self) -> Hash256 {
+   |                  ++++++
+
+error[E0425]: cannot find value `amp` in this scope
+  --> crates/aegis-types/src/block.rs:86:24
+   |
+86 |         Hash256::hash(&amp;data)
+   |                        ^^^ not found in this scope
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:91:9
+   |
+90 |     pub fn is_genesis(&amp;self) -> bool {
+   |            ---------- this function doesn't have a `self` parameter
+91 |         self.height == 0 &amp;&amp; self.parent_hash.is_zero()
+   |         ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+90 |     pub fn is_genesis(&&self, amp;self) -> bool {
+   |                        ++++++
+
+error[E0425]: cannot find value `amp` in this scope
+  --> crates/aegis-types/src/block.rs:91:27
+   |
+91 |         self.height == 0 &amp;&amp; self.parent_hash.is_zero()
+   |                           ^^^ not found in this scope
+
+error[E0425]: cannot find value `amp` in this scope
+  --> crates/aegis-types/src/block.rs:91:32
+   |
+91 |         self.height == 0 &amp;&amp; self.parent_hash.is_zero()
+   |                                ^^^ not found in this scope
+
+error[E0424]: expected value, found module `self`
+  --> crates/aegis-types/src/block.rs:91:37
+   |
+90 |     pub fn is_genesis(&amp;self) -> bool {
+   |            ---------- this function doesn't have a `self` parameter
+91 |         self.height == 0 &amp;&amp; self.parent_hash.is_zero()
+   |                                     ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+   |
+help: add a `self` receiver parameter to make the associated `fn` a method
+   |
+90 |     pub fn is_genesis(&&self, amp;self) -> bool {
+   |                        ++++++
+
+error[E0424]: expected value, found module `self`
+   --> crates/aegis-types/src/block.rs:110:9
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |            --------------- this function doesn't have a `self` parameter
+110 |         self.transactions.push(tx);
+    |         ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+    |
+help: add a `self` receiver parameter to make the associated `fn` a method
+    |
+109 |     pub fn add_transaction(&&self, amp;mut self, tx: Transaction) {
+    |                             ++++++
+
+error[E0424]: expected value, found module `self`
+   --> crates/aegis-types/src/block.rs:122:12
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |            --------------- this function doesn't have a `self` parameter
+122 |         if self.transactions.is_empty() {
+    |            ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+    |
+help: add a `self` receiver parameter to make the associated `fn` a method
+    |
+121 |     pub fn compute_tx_root(&&self, amp;self) -> Hash256 {
+    |                             ++++++
+
+error[E0424]: expected value, found module `self`
+   --> crates/aegis-types/src/block.rs:139:9
+    |
+138 |     pub fn len(&amp;self) -> usize {
+    |            --- this function doesn't have a `self` parameter
+139 |         self.transactions.len()
+    |         ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+    |
+help: add a `self` receiver parameter to make the associated `fn` a method
+    |
+138 |     pub fn len(&&self, amp;self) -> usize {
+    |                 ++++++
+
+error[E0424]: expected value, found module `self`
+   --> crates/aegis-types/src/block.rs:144:9
+    |
+143 |     pub fn is_empty(&amp;self) -> bool {
+    |            -------- this function doesn't have a `self` parameter
+144 |         self.transactions.is_empty()
+    |         ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+    |
+help: add a `self` receiver parameter to make the associated `fn` a method
+    |
+143 |     pub fn is_empty(&&self, amp;self) -> bool {
+    |                      ++++++
+
+error[E0424]: expected value, found module `self`
+   --> crates/aegis-types/src/block.rs:173:9
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |            ---- this function doesn't have a `self` parameter
+173 |         self.header.hash()
+    |         ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+    |
+help: add a `self` receiver parameter to make the associated `fn` a method
+    |
+172 |     pub fn hash(&&self, amp;self) -> Hash256 {
+    |                  ++++++
+
+error[E0424]: expected value, found module `self`
+   --> crates/aegis-types/src/block.rs:178:9
+    |
+177 |     pub fn height(&amp;self) -> u64 {
+    |            ------ this function doesn't have a `self` parameter
+178 |         self.header.height
+    |         ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+    |
+help: add a `self` receiver parameter to make the associated `fn` a method
+    |
+177 |     pub fn height(&&self, amp;self) -> u64 {
+    |                    ++++++
+
+error[E0424]: expected value, found module `self`
+   --> crates/aegis-types/src/block.rs:186:9
+    |
+185 |     pub fn finalize(&amp;mut self) {
+    |            -------- this function doesn't have a `self` parameter
+186 |         self.header.tx_root = self.body.compute_tx_root();
+    |         ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+    |
+help: add a `self` receiver parameter to make the associated `fn` a method
+    |
+185 |     pub fn finalize(&&self, amp;mut self) {
+    |                      ++++++
+
+error[E0424]: expected value, found module `self`
+   --> crates/aegis-types/src/block.rs:186:31
+    |
+185 |     pub fn finalize(&amp;mut self) {
+    |            -------- this function doesn't have a `self` parameter
+186 |         self.header.tx_root = self.body.compute_tx_root();
+    |                               ^^^^ `self` value is a keyword only available in methods with a `self` parameter
+    |
+help: add a `self` receiver parameter to make the associated `fn` a method
+    |
+185 |     pub fn finalize(&&self, amp;mut self) {
+    |                      ++++++
+
+error[E0425]: cannot find value `amp` in this scope
+   --> crates/aegis-types/src/block.rs:201:39
+    |
+201 |             unlock_id: Hash256::hash(&amp;[id]),
+    |                                       ^^^ not found in this scope
+
+error[E0425]: cannot find value `amp` in this scope
+   --> crates/aegis-types/src/block.rs:202:37
+    |
+202 |             lock_id: Hash256::hash(&amp;[id, id]),
+    |                                     ^^^ not found in this scope
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+  --> crates/aegis-types/src/block.rs:86:9
+   |
+86 |         Hash256::hash(&amp;data)
+   |         ^^^^^^^^^^^^^      ---- unexpected argument #2
+   |
+note: associated function defined here
+  --> crates/aegis-types/src/hash.rs:38:12
+   |
+38 |     pub fn hash(data: &[u8]) -> Self {
+   |            ^^^^
+help: remove the extra argument
+   |
+86 -         Hash256::hash(&amp;data)
+86 +         Hash256::hash(&amp)
+   |
+
+error[E0277]: the trait bound `BlockHeader: serde::Serialize` is not satisfied
+    --> crates/aegis-types/src/block.rs:149:24
+     |
+ 149 | #[derive(Clone, Debug, Serialize, Deserialize)]
+     |                        ^^^^^^^^^ unsatisfied trait bound
+ 150 | pub struct Block {
+ 151 |     /// Block header
+     |     ---------------- required by a bound introduced by this call
+     |
+help: the trait `Serialize` is not implemented for `BlockHeader`
+    --> crates/aegis-types/src/block.rs:27:1
+     |
+  27 | pub struct BlockHeader {
+     | ^^^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Serialize)]` to your `BlockHeader` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Serialize`:
+               &'a T
+               &'a mut T
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+               (T0, T1, T2, T3, T4)
+             and 139 others
+note: required by a bound in `hash::_::_serde::ser::SerializeStruct::serialize_field`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/ser/mod.rs:1917:21
+     |
+1915 |     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
+     |        --------------- required by a bound in this associated function
+1916 |     where
+1917 |         T: ?Sized + Serialize;
+     |                     ^^^^^^^^^ required by this bound in `SerializeStruct::serialize_field`
+     = note: this error originates in the derive macro `Serialize` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `BlockBody: serde::Serialize` is not satisfied
+    --> crates/aegis-types/src/block.rs:149:24
+     |
+ 149 | #[derive(Clone, Debug, Serialize, Deserialize)]
+     |                        ^^^^^^^^^ unsatisfied trait bound
+...
+ 153 |     /// Block body
+     |     -------------- required by a bound introduced by this call
+     |
+help: the trait `Serialize` is not implemented for `BlockBody`
+    --> crates/aegis-types/src/block.rs:97:1
+     |
+  97 | pub struct BlockBody {
+     | ^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Serialize)]` to your `BlockBody` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Serialize`:
+               &'a T
+               &'a mut T
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+               (T0, T1, T2, T3, T4)
+             and 139 others
+note: required by a bound in `hash::_::_serde::ser::SerializeStruct::serialize_field`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/ser/mod.rs:1917:21
+     |
+1915 |     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
+     |        --------------- required by a bound in this associated function
+1916 |     where
+1917 |         T: ?Sized + Serialize;
+     |                     ^^^^^^^^^ required by this bound in `SerializeStruct::serialize_field`
+     = note: this error originates in the derive macro `Serialize` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `BlockHeader: serde::Deserialize<'de>` is not satisfied
+    --> crates/aegis-types/src/block.rs:152:17
+     |
+ 152 |     pub header: BlockHeader,
+     |                 ^^^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `Deserialize<'_>` is not implemented for `BlockHeader`
+    --> crates/aegis-types/src/block.rs:27:1
+     |
+  27 | pub struct BlockHeader {
+     | ^^^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `BlockHeader` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Deserialize<'de>`:
+               &'a Path
+               &'a [u8]
+               &'a str
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+             and 154 others
+note: required by a bound in `next_element`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/de/mod.rs:1771:12
+     |
+1769 |     fn next_element<T>(&mut self) -> Result<Option<T>, Self::Error>
+     |        ------------ required by a bound in this associated function
+1770 |     where
+1771 |         T: Deserialize<'de>,
+     |            ^^^^^^^^^^^^^^^^ required by this bound in `SeqAccess::next_element`
+
+error[E0277]: the trait bound `BlockBody: serde::Deserialize<'de>` is not satisfied
+    --> crates/aegis-types/src/block.rs:154:15
+     |
+ 154 |     pub body: BlockBody,
+     |               ^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `Deserialize<'_>` is not implemented for `BlockBody`
+    --> crates/aegis-types/src/block.rs:97:1
+     |
+  97 | pub struct BlockBody {
+     | ^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `BlockBody` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Deserialize<'de>`:
+               &'a Path
+               &'a [u8]
+               &'a str
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+             and 154 others
+note: required by a bound in `next_element`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/de/mod.rs:1771:12
+     |
+1769 |     fn next_element<T>(&mut self) -> Result<Option<T>, Self::Error>
+     |        ------------ required by a bound in this associated function
+1770 |     where
+1771 |         T: Deserialize<'de>,
+     |            ^^^^^^^^^^^^^^^^ required by this bound in `SeqAccess::next_element`
+
+error[E0277]: the trait bound `BlockHeader: serde::Deserialize<'de>` is not satisfied
+    --> crates/aegis-types/src/block.rs:152:17
+     |
+ 152 |     pub header: BlockHeader,
+     |                 ^^^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `Deserialize<'_>` is not implemented for `BlockHeader`
+    --> crates/aegis-types/src/block.rs:27:1
+     |
+  27 | pub struct BlockHeader {
+     | ^^^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `BlockHeader` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Deserialize<'de>`:
+               &'a Path
+               &'a [u8]
+               &'a str
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+             and 154 others
+note: required by a bound in `next_value`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/de/mod.rs:1916:12
+     |
+1914 |     fn next_value<V>(&mut self) -> Result<V, Self::Error>
+     |        ---------- required by a bound in this associated function
+1915 |     where
+1916 |         V: Deserialize<'de>,
+     |            ^^^^^^^^^^^^^^^^ required by this bound in `MapAccess::next_value`
+
+error[E0277]: the trait bound `BlockBody: serde::Deserialize<'de>` is not satisfied
+    --> crates/aegis-types/src/block.rs:154:15
+     |
+ 154 |     pub body: BlockBody,
+     |               ^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `Deserialize<'_>` is not implemented for `BlockBody`
+    --> crates/aegis-types/src/block.rs:97:1
+     |
+  97 | pub struct BlockBody {
+     | ^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `BlockBody` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Deserialize<'de>`:
+               &'a Path
+               &'a [u8]
+               &'a str
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+             and 154 others
+note: required by a bound in `next_value`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/de/mod.rs:1916:12
+     |
+1914 |     fn next_value<V>(&mut self) -> Result<V, Self::Error>
+     |        ---------- required by a bound in this associated function
+1915 |     where
+1916 |         V: Deserialize<'de>,
+     |            ^^^^^^^^^^^^^^^^ required by this bound in `MapAccess::next_value`
+
+error[E0277]: the trait bound `BlockHeader: serde::Deserialize<'de>` is not satisfied
+   --> crates/aegis-types/src/block.rs:149:35
+    |
+149 | #[derive(Clone, Debug, Serialize, Deserialize)]
+    |                                   ^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Deserialize<'_>` is not implemented for `BlockHeader`
+   --> crates/aegis-types/src/block.rs:27:1
+    |
+ 27 | pub struct BlockHeader {
+    | ^^^^^^^^^^^^^^^^^^^^^^
+    = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `BlockHeader` type
+    = note: for types from other crates check whether the crate offers a `serde` feature flag
+    = help: the following other types implement trait `Deserialize<'de>`:
+              &'a Path
+              &'a [u8]
+              &'a str
+              ()
+              (T,)
+              (T0, T1)
+              (T0, T1, T2)
+              (T0, T1, T2, T3)
+            and 154 others
+note: required by a bound in `hash::_::_serde::__private228::de::missing_field`
+   --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:26:8
+    |
+ 24 | pub fn missing_field<'de, V, E>(field: &'static str) -> Result<V, E>
+    |        ------------- required by a bound in this function
+ 25 | where
+ 26 |     V: Deserialize<'de>,
+    |        ^^^^^^^^^^^^^^^^ required by this bound in `missing_field`
+    = note: this error originates in the derive macro `Deserialize` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `block::BlockBody: serde::Serialize` is not satisfied
+    --> crates/aegis-types/src/block.rs:149:24
+     |
+ 149 | #[derive(Clone, Debug, Serialize, Deserialize)]
+     |                        ^^^^^^^^^ unsatisfied trait bound
+...
+ 153 |     /// Block body
+     |     -------------- required by a bound introduced by this call
+     |
+help: the trait `Serialize` is not implemented for `block::BlockBody`
+    --> crates/aegis-types/src/block.rs:97:1
+     |
+  97 | pub struct BlockBody {
+     | ^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Serialize)]` to your `block::BlockBody` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Serialize`:
+               &'a T
+               &'a mut T
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+               (T0, T1, T2, T3, T4)
+             and 139 others
+note: required by a bound in `hash::_::_serde::ser::SerializeStruct::serialize_field`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/ser/mod.rs:1917:21
+     |
+1915 |     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
+     |        --------------- required by a bound in this associated function
+1916 |     where
+1917 |         T: ?Sized + Serialize;
+     |                     ^^^^^^^^^ required by this bound in `SerializeStruct::serialize_field`
+     = note: this error originates in the derive macro `Serialize` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `BlockBody: serde::Deserialize<'de>` is not satisfied
+   --> crates/aegis-types/src/block.rs:149:35
+    |
+149 | #[derive(Clone, Debug, Serialize, Deserialize)]
+    |                                   ^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Deserialize<'_>` is not implemented for `BlockBody`
+   --> crates/aegis-types/src/block.rs:97:1
+    |
+ 97 | pub struct BlockBody {
+    | ^^^^^^^^^^^^^^^^^^^^
+    = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `BlockBody` type
+    = note: for types from other crates check whether the crate offers a `serde` feature flag
+    = help: the following other types implement trait `Deserialize<'de>`:
+              &'a Path
+              &'a [u8]
+              &'a str
+              ()
+              (T,)
+              (T0, T1)
+              (T0, T1, T2)
+              (T0, T1, T2, T3)
+            and 154 others
+note: required by a bound in `hash::_::_serde::__private228::de::missing_field`
+   --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:26:8
+    |
+ 24 | pub fn missing_field<'de, V, E>(field: &'static str) -> Result<V, E>
+    |        ------------- required by a bound in this function
+ 25 | where
+ 26 |     V: Deserialize<'de>,
+    |        ^^^^^^^^^^^^^^^^ required by this bound in `missing_field`
+    = note: this error originates in the derive macro `Deserialize` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `block::BlockBody: serde::Deserialize<'de>` is not satisfied
+    --> crates/aegis-types/src/block.rs:154:15
+     |
+ 154 |     pub body: BlockBody,
+     |               ^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `Deserialize<'_>` is not implemented for `block::BlockBody`
+    --> crates/aegis-types/src/block.rs:97:1
+     |
+  97 | pub struct BlockBody {
+     | ^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `block::BlockBody` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Deserialize<'de>`:
+               &'a Path
+               &'a [u8]
+               &'a str
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+             and 154 others
+note: required by a bound in `next_element`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/de/mod.rs:1771:12
+     |
+1769 |     fn next_element<T>(&mut self) -> Result<Option<T>, Self::Error>
+     |        ------------ required by a bound in this associated function
+1770 |     where
+1771 |         T: Deserialize<'de>,
+     |            ^^^^^^^^^^^^^^^^ required by this bound in `SeqAccess::next_element`
+
+error[E0277]: the trait bound `block::BlockBody: serde::Deserialize<'de>` is not satisfied
+    --> crates/aegis-types/src/block.rs:154:15
+     |
+ 154 |     pub body: BlockBody,
+     |               ^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `Deserialize<'_>` is not implemented for `block::BlockBody`
+    --> crates/aegis-types/src/block.rs:97:1
+     |
+  97 | pub struct BlockBody {
+     | ^^^^^^^^^^^^^^^^^^^^
+     = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `block::BlockBody` type
+     = note: for types from other crates check whether the crate offers a `serde` feature flag
+     = help: the following other types implement trait `Deserialize<'de>`:
+               &'a Path
+               &'a [u8]
+               &'a str
+               ()
+               (T,)
+               (T0, T1)
+               (T0, T1, T2)
+               (T0, T1, T2, T3)
+             and 154 others
+note: required by a bound in `next_value`
+    --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/de/mod.rs:1916:12
+     |
+1914 |     fn next_value<V>(&mut self) -> Result<V, Self::Error>
+     |        ---------- required by a bound in this associated function
+1915 |     where
+1916 |         V: Deserialize<'de>,
+     |            ^^^^^^^^^^^^^^^^ required by this bound in `MapAccess::next_value`
+
+error[E0277]: the trait bound `block::BlockBody: serde::Deserialize<'de>` is not satisfied
+   --> crates/aegis-types/src/block.rs:149:35
+    |
+149 | #[derive(Clone, Debug, Serialize, Deserialize)]
+    |                                   ^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Deserialize<'_>` is not implemented for `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:97:1
+    |
+ 97 | pub struct BlockBody {
+    | ^^^^^^^^^^^^^^^^^^^^
+    = note: for local types consider adding `#[derive(serde::Deserialize)]` to your `block::BlockBody` type
+    = note: for types from other crates check whether the crate offers a `serde` feature flag
+    = help: the following other types implement trait `Deserialize<'de>`:
+              &'a Path
+              &'a [u8]
+              &'a str
+              ()
+              (T,)
+              (T0, T1)
+              (T0, T1, T2)
+              (T0, T1, T2, T3)
+            and 154 others
+note: required by a bound in `hash::_::_serde::__private228::de::missing_field`
+   --> /Users/kotakato/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:26:8
+    |
+ 24 | pub fn missing_field<'de, V, E>(field: &'static str) -> Result<V, E>
+    |        ------------- required by a bound in this function
+ 25 | where
+ 26 |     V: Deserialize<'de>,
+    |        ^^^^^^^^^^^^^^^^ required by this bound in `missing_field`
+    = note: this error originates in the derive macro `Deserialize` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> crates/aegis-types/src/block.rs:201:24
+    |
+201 |             unlock_id: Hash256::hash(&amp;[id]),
+    |                        ^^^^^^^^^^^^^      ---- unexpected argument #2 of type `[u8; 1]`
+    |
+note: associated function defined here
+   --> crates/aegis-types/src/hash.rs:38:12
+    |
+ 38 |     pub fn hash(data: &[u8]) -> Self {
+    |            ^^^^
+help: remove the extra argument
+    |
+201 -             unlock_id: Hash256::hash(&amp;[id]),
+201 +             unlock_id: Hash256::hash(&amp),
+    |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> crates/aegis-types/src/block.rs:202:22
+    |
+202 |             lock_id: Hash256::hash(&amp;[id, id]),
+    |                      ^^^^^^^^^^^^^      -------- unexpected argument #2 of type `[u8; 2]`
+    |
+note: associated function defined here
+   --> crates/aegis-types/src/hash.rs:38:12
+    |
+ 38 |     pub fn hash(data: &[u8]) -> Self {
+    |            ^^^^
+help: remove the extra argument
+    |
+202 -             lock_id: Hash256::hash(&amp;[id, id]),
+202 +             lock_id: Hash256::hash(&amp),
+    |
+
+Some errors have detailed explanations: E0061, E0277, E0424, E0425.
+For more information about an error, try `rustc --explain E0061`.
+error: could not compile `aegis-types` (lib) due to 61 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0599]: no method named `is_genesis` found for struct `BlockHeader` in the current scope
+   --> crates/aegis-types/src/block.rs:216:30
+    |
+ 27 | pub struct BlockHeader {
+    | ---------------------- method `is_genesis` not found for this struct
+...
+216 |         assert!(block.header.is_genesis());
+    |                 -------------^^^^^^^^^^--
+    |                 |            |
+    |                 |            this is an associated function, not a method
+    |                 help: use associated function syntax instead: `BlockHeader::is_genesis()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `BlockHeader`
+   --> crates/aegis-types/src/block.rs:90:5
+    |
+ 90 |     pub fn is_genesis(&amp;self) -> bool {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `height` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:217:26
+    |
+150 | pub struct Block {
+    | ---------------- method `height` not found for this struct
+...
+217 |         assert_eq!(block.height(), 0);
+    |                    ------^^^^^^--
+    |                    |     |
+    |                    |     this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::Block::height()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:177:5
+    |
+177 |     pub fn height(&amp;self) -> u64 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `hash` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:226:27
+    |
+150 | pub struct Block {
+    | ---------------- method `hash` not found for this struct
+...
+226 |         let hash1 = block.hash();
+    |                     ------^^^^--
+    |                     |     |
+    |                     |     this is an associated function, not a method
+    |                     help: use associated function syntax instead: `block::Block::hash()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:172:5
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `hash`, perhaps you need to implement it:
+            candidate #1: `Hash`
+
+error[E0599]: no method named `hash` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:227:27
+    |
+150 | pub struct Block {
+    | ---------------- method `hash` not found for this struct
+...
+227 |         let hash2 = block.hash();
+    |                     ------^^^^--
+    |                     |     |
+    |                     |     this is an associated function, not a method
+    |                     help: use associated function syntax instead: `block::Block::hash()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:172:5
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `hash`, perhaps you need to implement it:
+            candidate #1: `Hash`
+
+error[E0599]: no method named `hash` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:238:27
+    |
+150 | pub struct Block {
+    | ---------------- method `hash` not found for this struct
+...
+238 |         assert_ne!(block1.hash(), block2.hash());
+    |                    -------^^^^--
+    |                    |      |
+    |                    |      this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::Block::hash()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:172:5
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `hash`, perhaps you need to implement it:
+            candidate #1: `Hash`
+
+error[E0599]: no method named `hash` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:238:42
+    |
+150 | pub struct Block {
+    | ---------------- method `hash` not found for this struct
+...
+238 |         assert_ne!(block1.hash(), block2.hash());
+    |                                   -------^^^^--
+    |                                   |      |
+    |                                   |      this is an associated function, not a method
+    |                                   help: use associated function syntax instead: `block::Block::hash()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:172:5
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `hash`, perhaps you need to implement it:
+            candidate #1: `Hash`
+
+error[E0599]: no method named `compute_tx_root` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:244:22
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `compute_tx_root` not found for this struct
+...
+244 |         assert!(body.compute_tx_root().is_zero());
+    |                 -----^^^^^^^^^^^^^^^--
+    |                 |    |
+    |                 |    this is an associated function, not a method
+    |                 help: use associated function syntax instead: `block::BlockBody::compute_tx_root()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:121:5
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:251:14
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+251 |         body.add_transaction(tx);
+    |         -----^^^^^^^^^^^^^^^----
+    |         |    |
+    |         |    this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(tx)`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `compute_tx_root` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:253:25
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `compute_tx_root` not found for this struct
+...
+253 |         let root = body.compute_tx_root();
+    |                    -----^^^^^^^^^^^^^^^--
+    |                    |    |
+    |                    |    this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::BlockBody::compute_tx_root()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:121:5
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `compute_tx_root` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:257:26
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `compute_tx_root` not found for this struct
+...
+257 |         let root2 = body.compute_tx_root();
+    |                     -----^^^^^^^^^^^^^^^--
+    |                     |    |
+    |                     |    this is an associated function, not a method
+    |                     help: use associated function syntax instead: `block::BlockBody::compute_tx_root()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:121:5
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:264:14
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+264 |         body.add_transaction(mock_transaction(1));
+    |         -----^^^^^^^^^^^^^^^---------------------
+    |         |    |
+    |         |    this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(1))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:265:14
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+265 |         body.add_transaction(mock_transaction(2));
+    |         -----^^^^^^^^^^^^^^^---------------------
+    |         |    |
+    |         |    this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(2))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:266:14
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+266 |         body.add_transaction(mock_transaction(3));
+    |         -----^^^^^^^^^^^^^^^---------------------
+    |         |    |
+    |         |    this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(3))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `compute_tx_root` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:268:25
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `compute_tx_root` not found for this struct
+...
+268 |         let root = body.compute_tx_root();
+    |                    -----^^^^^^^^^^^^^^^--
+    |                    |    |
+    |                    |    this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::BlockBody::compute_tx_root()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:121:5
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `compute_tx_root` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:272:26
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `compute_tx_root` not found for this struct
+...
+272 |         let root2 = body.compute_tx_root();
+    |                     -----^^^^^^^^^^^^^^^--
+    |                     |    |
+    |                     |    this is an associated function, not a method
+    |                     help: use associated function syntax instead: `block::BlockBody::compute_tx_root()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:121:5
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:279:15
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+279 |         body1.add_transaction(mock_transaction(1));
+    |         ------^^^^^^^^^^^^^^^---------------------
+    |         |     |
+    |         |     this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(1))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:280:15
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+280 |         body1.add_transaction(mock_transaction(2));
+    |         ------^^^^^^^^^^^^^^^---------------------
+    |         |     |
+    |         |     this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(2))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:283:15
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+283 |         body2.add_transaction(mock_transaction(2));
+    |         ------^^^^^^^^^^^^^^^---------------------
+    |         |     |
+    |         |     this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(2))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:284:15
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+284 |         body2.add_transaction(mock_transaction(1));
+    |         ------^^^^^^^^^^^^^^^---------------------
+    |         |     |
+    |         |     this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(1))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `compute_tx_root` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:287:26
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `compute_tx_root` not found for this struct
+...
+287 |         assert_ne!(body1.compute_tx_root(), body2.compute_tx_root());
+    |                    ------^^^^^^^^^^^^^^^--
+    |                    |     |
+    |                    |     this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::BlockBody::compute_tx_root()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:121:5
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `compute_tx_root` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:287:51
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `compute_tx_root` not found for this struct
+...
+287 |         assert_ne!(body1.compute_tx_root(), body2.compute_tx_root());
+    |                                             ------^^^^^^^^^^^^^^^--
+    |                                             |     |
+    |                                             |     this is an associated function, not a method
+    |                                             help: use associated function syntax instead: `block::BlockBody::compute_tx_root()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:121:5
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:295:20
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+295 |         block.body.add_transaction(mock_transaction(1));
+    |         -----------^^^^^^^^^^^^^^^---------------------
+    |         |          |
+    |         |          this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(1))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:296:20
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+296 |         block.body.add_transaction(mock_transaction(2));
+    |         -----------^^^^^^^^^^^^^^^---------------------
+    |         |          |
+    |         |          this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(2))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `finalize` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:302:15
+    |
+150 | pub struct Block {
+    | ---------------- method `finalize` not found for this struct
+...
+302 |         block.finalize();
+    |         ------^^^^^^^^--
+    |         |     |
+    |         |     this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::Block::finalize()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:185:5
+    |
+185 |     pub fn finalize(&amp;mut self) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `finalize`, perhaps you need to implement one of them:
+            candidate #1: `Digest`
+            candidate #2: `DynDigest`
+
+error[E0599]: no method named `compute_tx_root` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:305:53
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `compute_tx_root` not found for this struct
+...
+305 |         assert_eq!(block.header.tx_root, block.body.compute_tx_root());
+    |                                          -----------^^^^^^^^^^^^^^^--
+    |                                          |          |
+    |                                          |          this is an associated function, not a method
+    |                                          help: use associated function syntax instead: `block::BlockBody::compute_tx_root()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:121:5
+    |
+121 |     pub fn compute_tx_root(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:314:21
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+314 |         block1.body.add_transaction(mock_transaction(1));
+    |         ------------^^^^^^^^^^^^^^^---------------------
+    |         |           |
+    |         |           this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(1))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `finalize` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:315:16
+    |
+150 | pub struct Block {
+    | ---------------- method `finalize` not found for this struct
+...
+315 |         block1.finalize();
+    |         -------^^^^^^^^--
+    |         |      |
+    |         |      this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::Block::finalize()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:185:5
+    |
+185 |     pub fn finalize(&amp;mut self) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `finalize`, perhaps you need to implement one of them:
+            candidate #1: `Digest`
+            candidate #2: `DynDigest`
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:317:21
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+317 |         block2.body.add_transaction(mock_transaction(2));
+    |         ------------^^^^^^^^^^^^^^^---------------------
+    |         |           |
+    |         |           this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(2))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `finalize` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:318:16
+    |
+150 | pub struct Block {
+    | ---------------- method `finalize` not found for this struct
+...
+318 |         block2.finalize();
+    |         -------^^^^^^^^--
+    |         |      |
+    |         |      this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::Block::finalize()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:185:5
+    |
+185 |     pub fn finalize(&amp;mut self) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `finalize`, perhaps you need to implement one of them:
+            candidate #1: `Digest`
+            candidate #2: `DynDigest`
+
+error[E0599]: no method named `hash` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:321:27
+    |
+150 | pub struct Block {
+    | ---------------- method `hash` not found for this struct
+...
+321 |         assert_ne!(block1.hash(), block2.hash());
+    |                    -------^^^^--
+    |                    |      |
+    |                    |      this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::Block::hash()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:172:5
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `hash`, perhaps you need to implement it:
+            candidate #1: `Hash`
+
+error[E0599]: no method named `hash` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:321:42
+    |
+150 | pub struct Block {
+    | ---------------- method `hash` not found for this struct
+...
+321 |         assert_ne!(block1.hash(), block2.hash());
+    |                                   -------^^^^--
+    |                                   |      |
+    |                                   |      this is an associated function, not a method
+    |                                   help: use associated function syntax instead: `block::Block::hash()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:172:5
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `hash`, perhaps you need to implement it:
+            candidate #1: `Hash`
+
+error[E0599]: no method named `hash` found for struct `block::Block` in the current scope
+   --> crates/aegis-types/src/block.rs:329:26
+    |
+150 | pub struct Block {
+    | ---------------- method `hash` not found for this struct
+...
+329 |         let hash = block.hash();
+    |                    ------^^^^--
+    |                    |     |
+    |                    |     this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::Block::hash()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::Block`
+   --> crates/aegis-types/src/block.rs:172:5
+    |
+172 |     pub fn hash(&amp;self) -> Hash256 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `hash`, perhaps you need to implement it:
+            candidate #1: `Hash`
+
+error[E0599]: no method named `len` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:337:25
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `len` not found for this struct
+...
+337 |         assert_eq!(body.len(), 0);
+    |                    -----^^^--
+    |                    |    |
+    |                    |    this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::BlockBody::len()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:138:5
+    |
+138 |     pub fn len(&amp;self) -> usize {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `len`, perhaps you need to implement one of them:
+            candidate #1: `ExactSizeIterator`
+            candidate #2: `Len`
+
+error[E0599]: no method named `is_empty` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:338:22
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `is_empty` not found for this struct
+...
+338 |         assert!(body.is_empty());
+    |                 -----^^^^^^^^--
+    |                 |    |
+    |                 |    this is an associated function, not a method
+    |                 help: use associated function syntax instead: `block::BlockBody::is_empty()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:143:5
+    |
+143 |     pub fn is_empty(&amp;self) -> bool {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `is_empty`, perhaps you need to implement one of them:
+            candidate #1: `ExactSizeIterator`
+            candidate #2: `RangeBounds`
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:340:14
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+340 |         body.add_transaction(mock_transaction(1));
+    |         -----^^^^^^^^^^^^^^^---------------------
+    |         |    |
+    |         |    this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(1))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `len` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:341:25
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `len` not found for this struct
+...
+341 |         assert_eq!(body.len(), 1);
+    |                    -----^^^--
+    |                    |    |
+    |                    |    this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::BlockBody::len()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:138:5
+    |
+138 |     pub fn len(&amp;self) -> usize {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `len`, perhaps you need to implement one of them:
+            candidate #1: `ExactSizeIterator`
+            candidate #2: `Len`
+
+error[E0599]: no method named `is_empty` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:342:23
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `is_empty` not found for this struct
+...
+342 |         assert!(!body.is_empty());
+    |                  -----^^^^^^^^--
+    |                  |    |
+    |                  |    this is an associated function, not a method
+    |                  help: use associated function syntax instead: `block::BlockBody::is_empty()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:143:5
+    |
+143 |     pub fn is_empty(&amp;self) -> bool {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `is_empty`, perhaps you need to implement one of them:
+            candidate #1: `ExactSizeIterator`
+            candidate #2: `RangeBounds`
+
+error[E0599]: no method named `add_transaction` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:344:14
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `add_transaction` not found for this struct
+...
+344 |         body.add_transaction(mock_transaction(2));
+    |         -----^^^^^^^^^^^^^^^---------------------
+    |         |    |
+    |         |    this is an associated function, not a method
+    |         help: use associated function syntax instead: `block::BlockBody::add_transaction(mock_transaction(2))`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:109:5
+    |
+109 |     pub fn add_transaction(&amp;mut self, tx: Transaction) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `len` found for struct `block::BlockBody` in the current scope
+   --> crates/aegis-types/src/block.rs:345:25
+    |
+ 97 | pub struct BlockBody {
+    | -------------------- method `len` not found for this struct
+...
+345 |         assert_eq!(body.len(), 2);
+    |                    -----^^^--
+    |                    |    |
+    |                    |    this is an associated function, not a method
+    |                    help: use associated function syntax instead: `block::BlockBody::len()`
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in an impl for the type `block::BlockBody`
+   --> crates/aegis-types/src/block.rs:138:5
+    |
+138 |     pub fn len(&amp;self) -> usize {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `len`, perhaps you need to implement one of them:
+            candidate #1: `ExactSizeIterator`
+            candidate #2: `Len`
+
+Some errors have detailed explanations: E0061, E0277, E0424, E0425, E0599.
+error: could not compile `aegis-types` (lib test) due to 104 previous errors

@@ -1,0 +1,25 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.24"
+optimizer = true
+optimizer_runs = 200
+via_ir = false
+evm_version = "cancun"
+
+# Remappings - l3-aegis is self-contained
+remappings = [
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+    "forge-std/=lib/forge-std/src/"
+]
+
+[fuzz]
+runs = 256
+max_test_rejects = 65536
+
+[invariant]
+runs = 256
+depth = 15
+
+fs_permissions = [{ access = "read-write", path = "./" }]
