@@ -10,8 +10,10 @@ use crate::{
     config::Config,
     error::ApiError,
     types::{
-        Lock, LockRequest, LockStatus, Edition, 
+        Lock, LockRequest, LockStatus, Edition,
         ProverRegisterRequest, ProverInfoResponse, ProverStatus,
+        LockPosition, HistoricalLock, DelegateInfo, MyDelegation,
+        TokenHubRewardsResponse, RewardHistory,
     },
 };
 
@@ -149,5 +151,187 @@ impl AppState {
         self.redis.set(&format!("edition:switch:{}", switch_id), &data.to_string(), 86400 * 14).await.map_err(|e| ApiError::Internal(e.to_string()))?;
         self.redis.set("edition:switch_pending", "1", 86400 * 14).await.map_err(|e| ApiError::Internal(e.to_string()))?;
         self.redis.set("edition:next_switch_time", &effective_time.to_string(), 86400 * 14).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    // ========================================================================
+    // Token Hub (veQS) Methods
+    // ========================================================================
+
+    /// Get user's veQS lock position
+    pub async fn get_veqs_lock(&self, address: &str) -> Result<Option<LockPosition>, ApiError> {
+        let key = format!("veqs:lock:{}", address);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Store user's veQS lock position
+    pub async fn store_veqs_lock(&self, address: &str, lock: &LockPosition) -> Result<(), ApiError> {
+        let key = format!("veqs:lock:{}", address);
+        let value = serde_json::to_string(lock).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Get user's veQS lock history
+    pub async fn get_veqs_lock_history(&self, address: &str) -> Result<Vec<HistoricalLock>, ApiError> {
+        let key = format!("veqs:history:{}", address);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(serde_json::from_str(&value).unwrap_or_default()),
+            Ok(None) => Ok(vec![]),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get user's QS token balance (mock - would call L1 contract)
+    pub async fn get_qs_balance(&self, address: &str) -> Result<String, ApiError> {
+        // In production: Call QS token contract balanceOf(address)
+        let key = format!("qs:balance:{}", address);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(value),
+            Ok(None) => Ok("12450".to_string()), // Default mock balance
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get user's veQS balance (calculated from lock position)
+    pub async fn get_veqs_balance(&self, address: &str) -> Result<u128, ApiError> {
+        if let Some(lock) = self.get_veqs_lock(address).await? {
+            lock.veqs_value.parse().map_err(|_| ApiError::Internal("Invalid veQS value".to_string()))
+        } else {
+            Ok(0)
+        }
+    }
+
+    /// Get user's voting power percentage
+    pub async fn get_voting_power_percent(&self, address: &str) -> Result<f64, ApiError> {
+        let user_veqs = self.get_veqs_balance(address).await?;
+        if user_veqs == 0 {
+            return Ok(0.0);
+        }
+        // Mock total supply - in production: Call veQS.getTotalVotingPower()
+        let total_veqs: u128 = 5_000_000;
+        Ok((user_veqs as f64 / total_veqs as f64) * 100.0)
+    }
+
+    /// Get user's delegations count
+    pub async fn get_delegations_count(&self, address: &str) -> Result<u32, ApiError> {
+        let key = format!("veqs:delegations:{}", address);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => {
+                let delegations: Vec<MyDelegation> = serde_json::from_str(&value).unwrap_or_default();
+                Ok(delegations.len() as u32)
+            }
+            Ok(None) => Ok(0),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get user's pending rewards
+    pub async fn get_pending_rewards(&self, address: &str) -> Result<String, ApiError> {
+        let key = format!("veqs:rewards:pending:{}", address);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(value),
+            Ok(None) => Ok("847".to_string()), // Mock pending rewards
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get available delegates
+    pub async fn get_delegates(&self, page: u32, limit: u32, sort_by: Option<String>) -> Result<Vec<DelegateInfo>, ApiError> {
+        // In production: Query from indexed data or contract
+        // Return mock delegates for now
+        Ok(vec![
+            DelegateInfo {
+                address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+                name: Some("渡辺 Delegate".to_string()),
+                total_veqs: "285000".to_string(),
+                delegators_count: 45,
+                participation_rate: 98.5,
+                recent_votes: 12,
+            },
+            DelegateInfo {
+                address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
+                name: Some("佐藤 Crypto".to_string()),
+                total_veqs: "198000".to_string(),
+                delegators_count: 32,
+                participation_rate: 95.0,
+                recent_votes: 11,
+            },
+            DelegateInfo {
+                address: "0x7890abcdef1234567890abcdef1234567890abcd".to_string(),
+                name: Some("田中 DeFi".to_string()),
+                total_veqs: "156000".to_string(),
+                delegators_count: 28,
+                participation_rate: 92.3,
+                recent_votes: 10,
+            },
+        ])
+    }
+
+    /// Get total delegates count
+    pub async fn get_delegates_count(&self) -> Result<u32, ApiError> {
+        // In production: Query actual count
+        Ok(3)
+    }
+
+    /// Get user's delegations
+    pub async fn get_user_delegations(&self, address: &str) -> Result<Vec<MyDelegation>, ApiError> {
+        let key = format!("veqs:delegations:{}", address);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(serde_json::from_str(&value).unwrap_or_default()),
+            Ok(None) => {
+                // Return mock delegations
+                Ok(vec![
+                    MyDelegation {
+                        delegatee: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+                        delegatee_name: Some("渡辺 Delegate".to_string()),
+                        veqs_amount: "3000".to_string(),
+                        percent_of_total: 48.0,
+                        delegated_at: 1704067200,
+                    },
+                    MyDelegation {
+                        delegatee: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
+                        delegatee_name: Some("佐藤 Crypto".to_string()),
+                        veqs_amount: "2000".to_string(),
+                        percent_of_total: 32.0,
+                        delegated_at: 1704153600,
+                    },
+                ])
+            }
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get user's rewards information
+    pub async fn get_veqs_rewards(&self, address: &str) -> Result<TokenHubRewardsResponse, ApiError> {
+        // In production: Query from rewards contract
+        Ok(TokenHubRewardsResponse {
+            claimable: "847".to_string(),
+            claimable_usd: "4235".to_string(),
+            total_claimed: "2500".to_string(),
+            current_epoch: 15,
+            epoch_progress: 0.65,
+            estimated_epoch_rewards: "120".to_string(),
+            apy: 12.5,
+            history: vec![
+                RewardHistory {
+                    epoch: 14,
+                    amount: "110".to_string(),
+                    claimed_at: Some(1704067200),
+                },
+                RewardHistory {
+                    epoch: 13,
+                    amount: "105".to_string(),
+                    claimed_at: Some(1703462400),
+                },
+                RewardHistory {
+                    epoch: 12,
+                    amount: "98".to_string(),
+                    claimed_at: Some(1702857600),
+                },
+            ],
+        })
     }
 }
