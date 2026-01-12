@@ -1,20 +1,14 @@
 //! Prover Portal API implementation
 //!
-<<<<<<< HEAD
-//! Implements Sequence #5: Prover Registration
-=======
 //! Implements:
 //! - Sequence #5: Prover Registration
 //! - Sequence #6: Prover Exit
 //! - TASK-P5-022: Prover Portal API (9 endpoints)
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 //!
 //! ## CP-1 Compliance
 //! - Uses SPHINCS+-128s for Prover signatures (post-quantum secure)
 //! - Uses SHA3-256 for all hashing
 //! - Validates SPHINCS+ public key format and size
-<<<<<<< HEAD
-=======
 //!
 //! ## Endpoints
 //! - GET /v1/prover/dashboard - Prover dashboard
@@ -26,7 +20,6 @@
 //! - GET /v1/prover/challenges - Challenges against prover
 //! - POST /v1/prover/challenge-response - Submit defense
 //! - POST /v1/prover/exit - Initiate exit
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
 use std::sync::Arc;
 
@@ -36,9 +29,6 @@ use sha3::{Sha3_256, Digest};
 use crate::{
     error::ApiError,
     services::{AppState, SphincsService, SPHINCS_PUBLIC_KEY_BYTES},
-<<<<<<< HEAD
-    types::{ProverRegisterRequest, ProverRegisterResponse, ProverInfoResponse, ProverStatus},
-=======
     types::{
         ProverRegisterRequest, ProverRegisterResponse, ProverInfoResponse, ProverStatus,
         // Prover Portal types (TASK-P5-022)
@@ -48,7 +38,6 @@ use crate::{
         ProverChallengeResponseRequest, ProverChallengeResponseResult,
         ProverExitRequest, ProverExitResponse,
     },
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 };
 
 /// POST /v1/prover/register
@@ -106,7 +95,7 @@ pub async fn register_prover(
 }
 
 /// GET /v1/prover/{prover_id}
-/// 
+///
 /// Get Prover information and status.
 pub async fn get_prover_info(
     Extension(state): Extension<Arc<AppState>>,
