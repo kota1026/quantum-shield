@@ -55,6 +55,7 @@ pub enum ApiError {
     #[error("Service unavailable")]
     ServiceUnavailable,
 
+<<<<<<< HEAD
     // Challenge errors (SEQUENCES §4)
     #[error("Invalid challenge target: {0}")]
     InvalidChallengeTarget(String),
@@ -73,6 +74,26 @@ pub enum ApiError {
 
     #[error("Defense deadline not passed")]
     DefenseDeadlineNotPassed,
+=======
+    // Authentication errors (TASK-P5-012)
+    #[error("Invalid SIWE message: {0}")]
+    InvalidSiweMessage(String),
+
+    #[error("SIWE message expired")]
+    SiweMessageExpired,
+
+    #[error("Invalid JWT token: {0}")]
+    InvalidToken(String),
+
+    #[error("Token expired")]
+    TokenExpired,
+
+    #[error("Invalid refresh token")]
+    InvalidRefreshToken,
+
+    #[error("Nonce already used")]
+    NonceAlreadyUsed,
+>>>>>>> origin/claude/implement-task-p5-012-CoGF1
 }
 
 #[derive(Serialize)]
@@ -99,6 +120,7 @@ impl ApiError {
             ApiError::InsufficientSignatures => 3002,
             ApiError::Internal(_) => 5001,
             ApiError::ServiceUnavailable => 5002,
+<<<<<<< HEAD
             // Challenge errors (4xxx)
             ApiError::InvalidChallengeTarget(_) => 4001,
             ApiError::InsufficientBond(_) => 4002,
@@ -106,6 +128,15 @@ impl ApiError {
             ApiError::ChallengeAlreadyResolved => 4004,
             ApiError::DefenseDeadlineExpired => 4005,
             ApiError::DefenseDeadlineNotPassed => 4006,
+=======
+            // Authentication error codes (4xxx)
+            ApiError::InvalidSiweMessage(_) => 4001,
+            ApiError::SiweMessageExpired => 4002,
+            ApiError::InvalidToken(_) => 4003,
+            ApiError::TokenExpired => 4004,
+            ApiError::InvalidRefreshToken => 4005,
+            ApiError::NonceAlreadyUsed => 4006,
+>>>>>>> origin/claude/implement-task-p5-012-CoGF1
         }
     }
 
@@ -126,6 +157,7 @@ impl ApiError {
             ApiError::InsufficientSignatures => StatusCode::BAD_REQUEST,
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
+<<<<<<< HEAD
             // Challenge errors
             ApiError::InvalidChallengeTarget(_) => StatusCode::BAD_REQUEST,
             ApiError::InsufficientBond(_) => StatusCode::BAD_REQUEST,
@@ -133,6 +165,15 @@ impl ApiError {
             ApiError::ChallengeAlreadyResolved => StatusCode::CONFLICT,
             ApiError::DefenseDeadlineExpired => StatusCode::GONE,
             ApiError::DefenseDeadlineNotPassed => StatusCode::PRECONDITION_FAILED,
+=======
+            // Authentication error status codes
+            ApiError::InvalidSiweMessage(_) => StatusCode::BAD_REQUEST,
+            ApiError::SiweMessageExpired => StatusCode::BAD_REQUEST,
+            ApiError::InvalidToken(_) => StatusCode::UNAUTHORIZED,
+            ApiError::TokenExpired => StatusCode::UNAUTHORIZED,
+            ApiError::InvalidRefreshToken => StatusCode::UNAUTHORIZED,
+            ApiError::NonceAlreadyUsed => StatusCode::CONFLICT,
+>>>>>>> origin/claude/implement-task-p5-012-CoGF1
         }
     }
 }
