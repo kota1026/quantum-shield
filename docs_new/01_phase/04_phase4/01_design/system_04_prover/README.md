@@ -1,9 +1,10 @@
 # 📁 System 04: Prover Portal - Design Folder
 
-> **Status**: 🔴 Not Started  
-> **Priority**: P0  
-> **Screens**: 28  
+> **Status**: 🟡 Brief Ready
+> **Priority**: P0
+> **Screens**: 28
 > **Target Users**: Prover (山田さん)
+> **Current Phase**: 08_design_prep COMPLETE
 
 ---
 
@@ -43,4 +44,10 @@ B2B向けの専門的なUIが求められます。
 
 ---
 
-**Last Updated**: 2026-01-06
+**Last Updated**: 2026-01-12
+
+## Next Steps
+
+1. → `09_design_create.md` でモック作成
+2. DESIGN_MANIFEST.md 出力
+3. `10_design_pir.md` でPIRレビュー
