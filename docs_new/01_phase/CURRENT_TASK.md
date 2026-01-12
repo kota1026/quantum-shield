@@ -1,7 +1,7 @@
 # Task Definition
 
 > **Generated**: 2026-01-12 (SEP v3)
-> **Status**: DONE
+> **Status**: Active
 
 ---
 
@@ -9,114 +9,113 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-010 |
-| タイトル | EditionConfig.sol 実装 |
-| Phase | 5.1 |
+| タスクID | TASK-P5-011 |
+| タイトル | ProverRegistry.sol 実装 |
+| 対象Sequence | #5 Prover Registration, #6 Prover Exit |
 | 優先度 | P0 |
-| 見積り工数 | 3日 |
+| 見積り工数 | 4日 |
 
 ---
 
 ## 背景
 
-### 仕様参照
-
-- EDITION_SWITCH_SPEC.md §3, §8
-- 26_phase5_planner.md TASK-P5-010
-
 ### 現状分析
 
 | コンポーネント | ファイル | 状態 | 備考 |
 |--------------|---------|:----:|------|
-| L3 GovernanceSwitch | `l3-aegis/src/governance/GovernanceSwitch.sol` | ✅ 完成 | ガバナンスモード管理 |
-| L1 EditionConfig | `contracts/src/core/EditionConfig.sol` | ⚠️ 未実装 | エディション管理（新規） |
+| L1Vault Prover管理 | `contracts/src/L1Vault.sol` | ⚠️ 基本のみ | 埋め込み型、機能不足 |
+| API prover.rs | `services/api/src/routes/prover.rs` | ⚠️ 基本実装 | 登録エンドポイントのみ |
+| ProverRegistry | `contracts/src/prover/` | ❌ 未実装 | 今回実装対象 |
 
 ### ギャップ分析
 
+L1Vaultの現行Prover構造:
+```solidity
+struct Prover {
+    address proverAddress;
+    bytes32 sphincsPubKeyHash;
+    bytes sphincsPublicKey;
+    uint256 stakedAmount;
+    uint256 registeredAt;
+    bool isActive;
+    uint256 successfulSigns;
+    uint256 slashedCount;
+}
 ```
-既存: GovernanceSwitch.sol (L3)
-  - GovernanceMode enum (TRAINING, CENTRALIZED, MULTISIG, DECENTRALIZED)
-  - ガバナンスモード遷移管理
 
-不足: EditionConfig.sol (L1)
-  - Edition enum (ENTERPRISE, DECENTRALIZED)
-  - ConsensusType enum (FIXED_4BFT, DYNAMIC_PBFT)
-  - ProverApprovalMode enum (CONTRACT_BASED, FOUNDATION_INVITE, COUNCIL_VOTE, STAKE_AUTO)
-  - NodeConfig struct
-  - Settings struct
-  - switchEdition(), getSettings() など
-```
+必要な追加機能:
+1. Phase別承認モード（招待制/Council/自動）
+2. Unbonding期間 (7日)
+3. 詳細なSlashing機能
+4. Exit/Withdrawフロー
 
 ---
 
 ## 実装項目
 
-### 1. EditionConfig.sol
+### 1. ProverRegistry.sol
 
 ```solidity
-contract EditionConfig {
-    enum Edition { ENTERPRISE, DECENTRALIZED }
-    enum ConsensusType { FIXED_4BFT, DYNAMIC_PBFT }
-    enum ProverApprovalMode { CONTRACT_BASED, FOUNDATION_INVITE, COUNCIL_VOTE, STAKE_AUTO }
-
-    struct NodeConfig {
-        uint8 minNodes;
-        uint8 maxNodes;
-        bool dynamicMembership;
-        ConsensusType consensus;
-    }
-
-    struct Settings {
-        Edition edition;
-        NodeConfig nodeConfig;
-        ProverApprovalMode proverApprovalMode;
-        bool governanceEnabled;
-    }
-
-    function switchEdition(Edition newEdition) external;
-    function updateNodeConfig(NodeConfig calldata newConfig) external;
-    function updateProverApprovalMode(ProverApprovalMode newMode) external;
-    function getSettings() external view returns (Settings memory);
-    // ... その他view関数
+// Prover構造体
+struct Prover {
+    address operator;           // オペレーターアドレス
+    bytes sphincsPublicKey;     // SPHINCS+公開鍵 (32 bytes)
+    bytes32 sphincsPubKeyHash;  // 公開鍵ハッシュ
+    uint256 stake;              // ステーク量
+    ProverStatus status;        // 状態
+    uint256 registeredAt;       // 登録時刻
+    uint256 totalSignatures;    // 累計署名数
+    uint256 slashCount;         // Slash回数
+    uint256 exitRequestedAt;    // 退出申請時刻
 }
+
+// 関数
+- register(sphincsPublicKey, hsmAttestation, multisigProof) → proverId
+- approve(proverId) // Council/Foundation専用
+- autoApprove(proverId) // Phase 3+用
+- slash(proverId, amount, reason)
+- requestExit(proverId)
+- executeExit(proverId)
+- withdrawStake(proverId)
 ```
 
-### 2. EditionConfig.t.sol テスト
+### 2. ProverRegistry.t.sol
 
-- Constructor tests (Enterprise, Decentralized)
-- Owner management tests
-- Edition switch tests
-- Node configuration tests
-- Prover approval mode tests
-- Integration tests (Phase transition simulation)
+- 登録テスト
+- 承認フローテスト
+- Slashingテスト
+- 退出・Unbondingテスト
+
+---
+
+## 仕様参照
+
+| 仕様 | セクション |
+|------|----------|
+| SEQUENCES | §5 Prover Registration |
+| SEQUENCES | §6 Prover Exit |
+| UNIFIED_SPEC | §Prover Management |
 
 ---
 
 ## 完了条件
 
-| # | 条件 | 状態 |
-|---|------|:----:|
-| 1 | Edition切替機能動作 | ✅ |
-| 2 | Phase 1-4の承認モード対応 | ✅ |
-| 3 | Enterprise制約の強制 | ✅ |
-| 4 | テスト作成 | ✅ |
+| # | 条件 | 検証方法 |
+|---|------|---------|
+| 1 | Prover登録・承認フロー動作 | forge test |
+| 2 | Slashing機能動作 | forge test |
+| 3 | 7日Unbonding期間実装 | forge test |
+| 4 | slither警告なし (High/Critical) | slither |
 
 ---
 
-## 成果物
+## 検証コマンド
 
-| ファイル | 行数 | 説明 |
-|----------|:----:|------|
-| `contracts/src/core/EditionConfig.sol` | ~350 | エディション設定管理コントラクト |
-| `contracts/test/core/EditionConfig.t.sol` | ~450 | 包括的テストスイート |
-
----
-
-## 次のステップ
-
-- ローカル環境で `forge build` 実行
-- ローカル環境で `forge test --match-contract EditionConfigTest` 実行
-- slither静的解析（推奨）
+```bash
+forge build
+forge test --match-contract ProverRegistryTest -vvv
+slither contracts/src/prover/ProverRegistry.sol
+```
 
 ---
 
