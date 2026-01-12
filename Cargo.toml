@@ -51,6 +51,9 @@ p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d519
 p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
 p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
 
+# ZK Proving (Winterfell) - STARK prover
+winterfell = "0.10"
+
 [profile.release]
 opt-level = 3
 lto = "fat"

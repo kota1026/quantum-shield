@@ -1,17 +1,23 @@
 /**
  * Quantum Shield React Context Provider
  *
+ * Provides WASM-backed Dilithium cryptography for React applications.
+ *
  * @module QuantumShieldProvider
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { loadWasm, isWasmLoaded, keygen as wasmKeygen } from './wasm';
+import type { WasmKeyPairResult } from './wasm';
 
-// Types inlined to avoid external dependency during tests
+// Types
 export interface QuantumShieldConfig {
   apiUrl: string;
   network: string;
   timeout?: number;
   headers?: Record<string, string>;
+  /** URL to WASM module (optional) */
+  wasmUrl?: string;
 }
 
 export interface WalletState {
@@ -52,10 +58,14 @@ export interface QuantumShieldContextValue {
   keyPair: DilithiumKeyPair | null;
   /** Whether SDK is initialized */
   isInitialized: boolean;
+  /** Whether WASM is loaded */
+  isWasmReady: boolean;
   /** Whether SDK is loading */
   isLoading: boolean;
   /** Initialization error */
   error: Error | null;
+  /** API URL */
+  apiUrl: string;
   /** Connect wallet */
   connectWallet: () => Promise<void>;
   /** Disconnect wallet */
@@ -84,6 +94,8 @@ export interface QuantumShieldProviderProps {
 
 /**
  * Quantum Shield Provider Component
+ *
+ * Initializes WASM module and provides Dilithium cryptography context.
  */
 export function QuantumShieldProvider({
   config,
@@ -96,6 +108,7 @@ export function QuantumShieldProvider({
   const [walletState, setWalletState] = useState<WalletState>(defaultWalletState);
   const [keyPair, setKeyPairState] = useState<DilithiumKeyPair | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isWasmReady, setIsWasmReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -110,8 +123,17 @@ export function QuantumShieldProvider({
         setIsLoading(true);
         setError(null);
 
-        // In production, this would initialize the actual SDK
-        // For now, we'll set up mock objects
+        // Load and initialize WASM module
+        try {
+          await loadWasm(config.wasmUrl);
+          setIsWasmReady(true);
+        } catch (wasmError) {
+          // WASM loading failed - continue with mock mode
+          console.warn('WASM loading failed, running in mock mode:', wasmError);
+          setIsWasmReady(false);
+        }
+
+        // Initialize SDK components
         setClient({ config });
         setCrypto({});
         setWallet({});
@@ -142,7 +164,24 @@ export function QuantumShieldProvider({
   }, []);
 
   const generateKeyPairFn = useCallback((): DilithiumKeyPair | null => {
-    // Placeholder - in production would call WASM
+    // Try WASM implementation first
+    if (isWasmLoaded()) {
+      try {
+        const result: WasmKeyPairResult = wasmKeygen();
+        const kp: DilithiumKeyPair = {
+          publicKey: result.public_key,
+          secretKey: result.secret_key,
+          publicKeyHash: result.public_key_hash,
+        };
+        setKeyPairState(kp);
+        return kp;
+      } catch (err) {
+        console.error('WASM keygen failed:', err);
+      }
+    }
+
+    // Fallback to mock for testing
+    console.warn('Using mock key pair (WASM not available)');
     const mockKeyPair: DilithiumKeyPair = {
       publicKey: 'a'.repeat(3904),
       secretKey: 'b'.repeat(8064),
@@ -165,8 +204,10 @@ export function QuantumShieldProvider({
     walletState,
     keyPair,
     isInitialized,
+    isWasmReady,
     isLoading,
     error,
+    apiUrl: config.apiUrl,
     connectWallet,
     disconnectWallet,
     generateKeyPair: generateKeyPairFn,

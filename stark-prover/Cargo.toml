@@ -12,7 +12,10 @@ path = "src/main.rs"
 
 [dependencies]
 # Circuit
-dilithium-stark = { path = "../circuits/dilithium-stark" }
+dilithium-stark = { path = "../circuits/dilithium-stark", default-features = false }
+
+# STARK proving
+winterfell = { workspace = true }
 
 # Client types
 quantum-shield-client = { path = "../client" }

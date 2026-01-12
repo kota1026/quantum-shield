@@ -49,6 +49,9 @@ pub mod constraints;
 pub mod kat;
 pub mod ffi;
 
+// STARK proving system (Winterfell)
+pub mod stark;
+
 use sha3::{Digest, Keccak256};
 use serde::{Deserialize, Serialize};
 
