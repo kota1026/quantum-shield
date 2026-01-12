@@ -55,11 +55,6 @@ pub enum ApiError {
     #[error("Service unavailable")]
     ServiceUnavailable,
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     // Challenge errors (SEQUENCES §4)
     #[error("Invalid challenge target: {0}")]
     InvalidChallengeTarget(String),
@@ -78,8 +73,7 @@ pub enum ApiError {
 
     #[error("Defense deadline not passed")]
     DefenseDeadlineNotPassed,
-<<<<<<< HEAD
-=======
+
     // Authentication errors (TASK-P5-012)
     #[error("Invalid SIWE message: {0}")]
     InvalidSiweMessage(String),
@@ -98,8 +92,8 @@ pub enum ApiError {
 
     #[error("Nonce already used")]
     NonceAlreadyUsed,
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
+
+    // Token Hub errors (TASK-P5-021)
     #[error("Invalid request: {0}")]
     InvalidRequest(String),
 
@@ -108,8 +102,6 @@ pub enum ApiError {
 
     #[error("Lock already exists")]
     VeqsLockAlreadyExists,
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
 
     // Prover Portal errors (TASK-P5-022)
     #[error("Not found: {0}")]
@@ -117,7 +109,6 @@ pub enum ApiError {
 
     #[error("Forbidden: {0}")]
     Forbidden(String),
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 }
 
 #[derive(Serialize)]
@@ -137,18 +128,12 @@ impl ApiError {
             ApiError::Unauthorized => 1006,
             ApiError::ProverNotFound(_) => 1007,
             ApiError::EditionSwitchPending => 1008,
+            ApiError::InvalidRequest(_) => 1009,
             ApiError::TimeLockActive => 2001,
             ApiError::ChallengeActive => 2002,
             ApiError::AlreadyReleased => 2003,
             ApiError::ProverTimeout => 3001,
             ApiError::InsufficientSignatures => 3002,
-            ApiError::Internal(_) => 5001,
-            ApiError::ServiceUnavailable => 5002,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
             // Challenge errors (4xxx)
             ApiError::InvalidChallengeTarget(_) => 4001,
             ApiError::InsufficientBond(_) => 4002,
@@ -156,26 +141,22 @@ impl ApiError {
             ApiError::ChallengeAlreadyResolved => 4004,
             ApiError::DefenseDeadlineExpired => 4005,
             ApiError::DefenseDeadlineNotPassed => 4006,
-<<<<<<< HEAD
-=======
-            // Authentication error codes (4xxx)
-            ApiError::InvalidSiweMessage(_) => 4001,
-            ApiError::SiweMessageExpired => 4002,
-            ApiError::InvalidToken(_) => 4003,
-            ApiError::TokenExpired => 4004,
-            ApiError::InvalidRefreshToken => 4005,
-            ApiError::NonceAlreadyUsed => 4006,
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-            ApiError::InvalidRequest(_) => 1009,
-            ApiError::VeqsLockNotFound => 4001,
-            ApiError::VeqsLockAlreadyExists => 4002,
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
+            // Token Hub errors (4xxx range continued)
+            ApiError::VeqsLockNotFound => 4010,
+            ApiError::VeqsLockAlreadyExists => 4011,
+            // Authentication error codes (41xx)
+            ApiError::InvalidSiweMessage(_) => 4101,
+            ApiError::SiweMessageExpired => 4102,
+            ApiError::InvalidToken(_) => 4103,
+            ApiError::TokenExpired => 4104,
+            ApiError::InvalidRefreshToken => 4105,
+            ApiError::NonceAlreadyUsed => 4106,
+            // Internal errors (5xxx)
+            ApiError::Internal(_) => 5001,
+            ApiError::ServiceUnavailable => 5002,
             // Prover Portal errors (6xxx)
             ApiError::NotFound(_) => 6001,
             ApiError::Forbidden(_) => 6002,
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
         }
     }
 
@@ -189,18 +170,12 @@ impl ApiError {
             ApiError::Unauthorized => StatusCode::UNAUTHORIZED,
             ApiError::ProverNotFound(_) => StatusCode::NOT_FOUND,
             ApiError::EditionSwitchPending => StatusCode::CONFLICT,
+            ApiError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
             ApiError::TimeLockActive => StatusCode::CONFLICT,
             ApiError::ChallengeActive => StatusCode::CONFLICT,
             ApiError::AlreadyReleased => StatusCode::CONFLICT,
             ApiError::ProverTimeout => StatusCode::GATEWAY_TIMEOUT,
             ApiError::InsufficientSignatures => StatusCode::BAD_REQUEST,
-            ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            ApiError::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
             // Challenge errors
             ApiError::InvalidChallengeTarget(_) => StatusCode::BAD_REQUEST,
             ApiError::InsufficientBond(_) => StatusCode::BAD_REQUEST,
@@ -208,8 +183,9 @@ impl ApiError {
             ApiError::ChallengeAlreadyResolved => StatusCode::CONFLICT,
             ApiError::DefenseDeadlineExpired => StatusCode::GONE,
             ApiError::DefenseDeadlineNotPassed => StatusCode::PRECONDITION_FAILED,
-<<<<<<< HEAD
-=======
+            // Token Hub errors
+            ApiError::VeqsLockNotFound => StatusCode::NOT_FOUND,
+            ApiError::VeqsLockAlreadyExists => StatusCode::CONFLICT,
             // Authentication error status codes
             ApiError::InvalidSiweMessage(_) => StatusCode::BAD_REQUEST,
             ApiError::SiweMessageExpired => StatusCode::BAD_REQUEST,
@@ -217,17 +193,12 @@ impl ApiError {
             ApiError::TokenExpired => StatusCode::UNAUTHORIZED,
             ApiError::InvalidRefreshToken => StatusCode::UNAUTHORIZED,
             ApiError::NonceAlreadyUsed => StatusCode::CONFLICT,
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
-            ApiError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
-            ApiError::VeqsLockNotFound => StatusCode::NOT_FOUND,
-            ApiError::VeqsLockAlreadyExists => StatusCode::CONFLICT,
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
+            // Internal errors
+            ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
             // Prover Portal errors
             ApiError::NotFound(_) => StatusCode::NOT_FOUND,
             ApiError::Forbidden(_) => StatusCode::FORBIDDEN,
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
         }
     }
 }
