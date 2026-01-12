@@ -9,6 +9,7 @@ mod prover;
 mod edition;
 mod health;
 mod admin;
+mod user;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -28,6 +29,13 @@ pub fn api_routes() -> Router {
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
+        // Consumer App API (TASK-P5-020)
+        .route("/user/dashboard", get(user::get_dashboard))
+        .route("/user/transactions", get(user::get_transactions))
+        .route("/user/transactions/:id", get(user::get_transaction_detail))
+        .route("/user/settings", get(user::get_settings))
+        .route("/user/settings", post(user::update_settings))
+        .route("/user/keys", get(user::get_keys))
 }
 
 /// Admin Dashboard API routes (/api/*)
