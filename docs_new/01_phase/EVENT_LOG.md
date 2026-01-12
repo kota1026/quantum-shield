@@ -425,11 +425,78 @@ TASK-P5-004 L3 Production Mode: **COMPLETE**
 
 ### Event: TASK_COMPLETE
 - **Task**: TASK-P5-007
-- **Status**: DONE
+- **Status**: PARTIAL (format validation only, signature verification TODO)
 - **Artifacts**:
   - `sphincs_service.rs`: SPHINCS+-128s validation service
   - `prover.rs`: Enhanced with SphincsService integration
   - 13 SPHINCS+ unit tests
+
+---
+
+## 2026-01-12 (Session: Verification Pipeline Remediation)
+
+### Event: SESSION_PROTOCOL_AUDIT
+- **Issue**: TASK-P5-001〜007 で 21_impl_verify_loop.md の手順が不完全に実行された
+- **Missing Steps**:
+  - ❌ CORE_PRINCIPLES.md 明示的読み込み未実施
+  - ❌ slither/clippy 静的解析未実施
+  - ⚠️ L3 node設定に CP-1 準拠設定が不足
+  - ⚠️ TASK-P5-005, P5-007 はシミュレーション/スタブ実装のみ
+
+### Event: VERIFICATION_PIPELINE_EXECUTION
+- **Prompt**: SESSION_PROTOCOL.md + 21_impl_verify_loop.md に準拠
+- **Steps Executed**:
+  1. ✅ CORE_PRINCIPLES.md 読み込み
+  2. ✅ cargo build (API, event-bridge, l3-aegis)
+  3. ✅ cargo test (API: 78 passed, event-bridge: 33 passed)
+  4. ❌ cargo test (l3-aegis): 7 failed / 19 passed → 要修正
+
+### Event: L3_CONFIG_CP1_FIX
+- **Problem**: L3 node 設定ファイルに CP-1 準拠設定が不足
+- **Root Cause**: 設定ファイルに [crypto], [node] セクション、enable_tls 等が欠如
+- **Files Modified**:
+  - `l3-aegis/docker/config/node0.toml`
+  - `l3-aegis/docker/config/node1.toml`
+  - `l3-aegis/docker/config/node2.toml`
+  - `l3-aegis/docker/config/node3.toml`
+- **Changes**:
+  - Added `[node]` section with `id`, `local_address`
+  - Added `[crypto]` section with `hash_algorithm = "sha3-256"`, `signature_algorithm = "dilithium-iii"`
+  - Added `enable_tls = true` in `[p2p]`
+  - Added `[[p2p.peer]]` entries for bootstrap peers
+  - Added `[[consensus.validator]]` entries for all 4 validators
+
+### Event: VERIFICATION_LOOP_RETRY
+- **Loop**: 2 (after L3 config fix)
+- **Result**: ✅ ALL PASS
+- **Tests**:
+  | Component | Status | Count |
+  |-----------|:------:|------:|
+  | API | ✅ | 78 passed |
+  | event-bridge | ✅ | 33 passed |
+  | l3-aegis (four_node_test) | ✅ | 26 passed |
+- **Static Analysis**:
+  - slither: ❌ Not installed (environment constraint)
+  - forge: ❌ Not installed (environment constraint)
+  - clippy: ⚠️ Warnings only (non-critical)
+
+### Event: STATUS_CORRECTION
+- **26_phase5_planner.md Updated**:
+  - TASK-P5-004: L3 Production Mode → ✅ DONE (CP-1 config fix applied)
+  - TASK-P5-005: Chainlink VRF → ⚠️ PARTIAL (simulation only)
+  - TASK-P5-006: Event Bridge → ✅ DONE
+  - TASK-P5-007: SPHINCS+ → ⚠️ PARTIAL (format validation only)
+
+### Event: LESSONS_LEARNED
+- **Issue**: 検証パイプライン不遵守によりテスト失敗が見逃された
+- **Root Cause**:
+  1. CORE_PRINCIPLES.md を「既知」として読み込みスキップ
+  2. テスト結果を詳細確認せず「PASS」と判断
+  3. 静的解析ツールを「不要」として省略
+- **Prevention**:
+  1. SESSION_PROTOCOL.md の Step 3 を必ず実行
+  2. 検証ループの結果は詳細に確認
+  3. 環境制約はログに記録
 
 ---
 
