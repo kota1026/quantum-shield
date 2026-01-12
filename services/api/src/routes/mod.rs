@@ -9,6 +9,7 @@ mod prover;
 mod edition;
 mod health;
 mod admin;
+mod governance;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -28,6 +29,15 @@ pub fn api_routes() -> Router {
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
+        // Governance API (TASK-P5-023)
+        .route("/governance/dashboard", get(governance::get_dashboard))
+        .route("/governance/proposals", get(governance::list_proposals))
+        .route("/governance/proposals/:id", get(governance::get_proposal))
+        .route("/governance/proposals", post(governance::create_proposal))
+        .route("/governance/vote", post(governance::submit_vote))
+        .route("/governance/votes/:id", get(governance::get_vote))
+        .route("/governance/activity", get(governance::get_activity))
+        .route("/governance/council", get(governance::get_council))
 }
 
 /// Admin Dashboard API routes (/api/*)
