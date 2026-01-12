@@ -102,7 +102,8 @@ export class WalletConnector {
   private setupEventListeners(): void {
     if (!this.ethereum) return;
 
-    this.ethereum.on('accountsChanged', (accounts: string[]) => {
+    this.ethereum.on('accountsChanged', (...args: unknown[]) => {
+      const accounts = args[0] as string[];
       if (accounts.length === 0) {
         this.disconnect();
       } else {
@@ -111,7 +112,8 @@ export class WalletConnector {
       }
     });
 
-    this.ethereum.on('chainChanged', (chainIdHex: string) => {
+    this.ethereum.on('chainChanged', (...args: unknown[]) => {
+      const chainIdHex = args[0] as string;
       const chainId = parseInt(chainIdHex, 16);
       this.state.chainId = chainId;
       this.emit({ type: 'chainChanged', chainId });
