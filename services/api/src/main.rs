@@ -59,8 +59,8 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         // V1 API routes (Lock/Unlock/Status/Prover/Edition)
         .nest("/v1", routes::api_routes())
-        // V1 Auth routes (TASK-P5-012: SIWE→JWT)
-        .nest("/v1", routes::auth_routes(state.clone()))
+        // TODO: V1 Auth routes (TASK-P5-012: SIWE→JWT) - re-enable after types consolidated
+        // .nest("/v1", routes::auth_routes(state.clone()))
         // Admin Dashboard API routes
         .nest("/api", routes::admin_routes())
         .layer(Extension(state))

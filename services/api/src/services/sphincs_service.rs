@@ -1,6 +1,7 @@
 //! SPHINCS+ Service for Public Key and Signature Verification
 //!
 //! Implements CP-1 compliant SPHINCS+-128s verification for Prover registration.
+//! Uses NIST FIPS 205 SLH-DSA-SHAKE-128s (SPHINCS+) for post-quantum signatures.
 //!
 //! SPHINCS+-128s Parameters (NIST Level 1):
 //! - Public Key Size: 32 bytes
@@ -10,7 +11,12 @@
 //! References:
 //! - SEQUENCES §5: Prover Registration
 //! - CORE_PRINCIPLES CP-1: 完全量子耐性
+//! - NIST FIPS 205: Stateless Hash-Based Digital Signature Standard
+//!
+//! TASK-P5-007: SPHINCS+ Verification Implementation
 
+use fips205::slh_dsa_shake_128s;
+use fips205::traits::{SerDes, Verifier};
 use sha3::{Digest, Sha3_256};
 
 /// SPHINCS+-128s public key size in bytes
@@ -153,10 +159,10 @@ impl SphincsService {
         Ok(true)
     }
 
-    /// Verify SPHINCS+-128s signature
+    /// Verify SPHINCS+-128s signature using NIST FIPS 205
     ///
-    /// Note: This is a placeholder for actual SPHINCS+ verification.
-    /// In production, this would use a SPHINCS+ library like pqcrypto-sphincsplus.
+    /// Implements actual SPHINCS+ signature verification using the fips205 crate.
+    /// This provides post-quantum secure signature verification for Prover operations.
     ///
     /// # Arguments
     /// * `message` - Message bytes that were signed
@@ -166,26 +172,73 @@ impl SphincsService {
     /// # Returns
     /// * `Ok(true)` if signature is valid
     /// * `Err(SphincsError)` if invalid
+    ///
+    /// # CP-1 Compliance
+    /// - Uses NIST FIPS 205 SLH-DSA-SHAKE-128s
+    /// - Post-quantum secure (128-bit security level)
     pub fn verify_signature(
         message: &[u8],
         signature: &str,
         pubkey: &str,
     ) -> Result<bool, SphincsError> {
-        // Validate formats
+        // Validate formats first
         Self::validate_public_key(pubkey)?;
         Self::validate_signature_format(signature)?;
 
-        // TODO: Implement actual SPHINCS+ verification using pqcrypto-sphincsplus
-        // For now, we just validate the format
-        //
-        // In production:
-        // let pk = pqcrypto_sphincsplus::sphincsshake128ssimple::PublicKey::from_bytes(&pk_bytes)?;
-        // let sig = pqcrypto_sphincsplus::sphincsshake128ssimple::DetachedSignature::from_bytes(&sig_bytes)?;
-        // pqcrypto_sphincsplus::sphincsshake128ssimple::verify_detached_signature(&sig, message, &pk)?;
+        // Parse public key bytes
+        let pk_bytes = Self::parse_public_key(pubkey)?;
 
-        // For development: validate format only
-        tracing::debug!("SPHINCS+ signature format validated (actual verification pending)");
+        // Parse signature bytes
+        let sig_hex = &signature[2..]; // Remove "0x" prefix
+        let sig_vec = hex::decode(sig_hex)
+            .map_err(|e| SphincsError::InvalidHex(e.to_string()))?;
 
+        // Convert signature to fixed-size array
+        let sig_bytes: [u8; SPHINCS_SIGNATURE_BYTES] = sig_vec
+            .try_into()
+            .map_err(|_| SphincsError::InvalidSignatureSize {
+                expected: SPHINCS_SIGNATURE_BYTES,
+                actual: 0, // Size already validated above
+            })?;
+
+        // Deserialize public key using FIPS 205
+        let pk = slh_dsa_shake_128s::PublicKey::try_from_bytes(&pk_bytes)
+            .map_err(|_| SphincsError::InvalidPublicKeyFormat(
+                "Failed to deserialize SPHINCS+ public key".to_string()
+            ))?;
+
+        // Verify signature using FIPS 205 SLH-DSA-SHAKE-128s
+        // Empty context for standard verification (no domain separation needed)
+        let is_valid = pk.verify(message, &sig_bytes, &[]);
+
+        if is_valid {
+            tracing::info!("✓ SPHINCS+ signature verification PASSED (FIPS 205)");
+            Ok(true)
+        } else {
+            tracing::warn!("✗ SPHINCS+ signature verification FAILED");
+            Err(SphincsError::VerificationFailed)
+        }
+    }
+
+    /// Verify SPHINCS+-128s signature (format validation only, for development)
+    ///
+    /// This function validates the format without actual cryptographic verification.
+    /// Use `verify_signature` for production cryptographic verification.
+    ///
+    /// # Arguments
+    /// * `signature` - Hex-encoded signature with "0x" prefix
+    /// * `pubkey` - Hex-encoded public key with "0x" prefix
+    ///
+    /// # Returns
+    /// * `Ok(true)` if format is valid
+    /// * `Err(SphincsError)` if invalid format
+    pub fn verify_signature_format_only(
+        signature: &str,
+        pubkey: &str,
+    ) -> Result<bool, SphincsError> {
+        Self::validate_public_key(pubkey)?;
+        Self::validate_signature_format(signature)?;
+        tracing::debug!("SPHINCS+ signature format validated (format-only mode)");
         Ok(true)
     }
 
@@ -255,15 +308,32 @@ impl SphincsService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use fips205::slh_dsa_shake_128s;
+    use fips205::traits::{SerDes, Signer};
 
-    fn valid_pubkey() -> String {
-        // 32 bytes = 64 hex chars
+    fn valid_format_pubkey() -> String {
+        // 32 bytes = 64 hex chars (valid format but not cryptographically valid)
         format!("0x{}", "a".repeat(64))
     }
 
-    fn valid_signature() -> String {
-        // 7856 bytes = 15712 hex chars
+    fn valid_format_signature() -> String {
+        // 7856 bytes = 15712 hex chars (valid format but not cryptographically valid)
         format!("0x{}", "b".repeat(15712))
+    }
+
+    /// Generate a real SPHINCS+ key pair and signature for testing
+    fn generate_real_keypair_and_signature(message: &[u8]) -> (String, String) {
+        // Generate key pair
+        let (pk, sk) = slh_dsa_shake_128s::try_keygen().expect("Key generation failed");
+
+        // Sign message with empty context and non-hedged mode
+        let sig = sk.try_sign(message, &[], false).expect("Signing failed");
+
+        // Convert to hex strings
+        let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+        let sig_hex = format!("0x{}", hex::encode(sig));
+
+        (pk_hex, sig_hex)
     }
 
     #[test]
@@ -274,7 +344,7 @@ mod tests {
 
     #[test]
     fn test_validate_public_key_valid() {
-        let pubkey = valid_pubkey();
+        let pubkey = valid_format_pubkey();
         let result = SphincsService::validate_public_key(&pubkey);
         assert!(result.is_ok());
         assert!(result.unwrap());
@@ -318,7 +388,7 @@ mod tests {
 
     #[test]
     fn test_parse_public_key() {
-        let pubkey = valid_pubkey();
+        let pubkey = valid_format_pubkey();
         let result = SphincsService::parse_public_key(&pubkey);
         assert!(result.is_ok());
         let bytes = result.unwrap();
@@ -327,7 +397,7 @@ mod tests {
 
     #[test]
     fn test_validate_signature_format_valid() {
-        let sig = valid_signature();
+        let sig = valid_format_signature();
         let result = SphincsService::validate_signature_format(&sig);
         assert!(result.is_ok());
     }
@@ -344,24 +414,62 @@ mod tests {
     }
 
     #[test]
-    fn test_verify_signature() {
-        let message = b"test message";
-        let sig = valid_signature();
-        let pubkey = valid_pubkey();
+    fn test_verify_signature_format_only() {
+        // Test format-only validation (doesn't require real keys)
+        let sig = valid_format_signature();
+        let pubkey = valid_format_pubkey();
 
-        let result = SphincsService::verify_signature(message, &sig, &pubkey);
+        let result = SphincsService::verify_signature_format_only(&sig, &pubkey);
         assert!(result.is_ok());
     }
 
     #[test]
+    fn test_verify_signature_real_keypair() {
+        // Test actual SPHINCS+ verification with real key pair
+        let message = b"test message for SPHINCS+ verification";
+        let (pubkey, sig) = generate_real_keypair_and_signature(message);
+
+        let result = SphincsService::verify_signature(message, &sig, &pubkey);
+        assert!(result.is_ok(), "Signature verification should pass with valid keypair");
+        assert!(result.unwrap());
+    }
+
+    #[test]
+    fn test_verify_signature_wrong_message() {
+        // Test that verification fails with wrong message
+        let message = b"original message";
+        let (pubkey, sig) = generate_real_keypair_and_signature(message);
+
+        let wrong_message = b"different message";
+        let result = SphincsService::verify_signature(wrong_message, &sig, &pubkey);
+        assert!(result.is_err(), "Signature verification should fail with wrong message");
+        match result {
+            Err(SphincsError::VerificationFailed) => {}
+            _ => panic!("Expected VerificationFailed error"),
+        }
+    }
+
+    #[test]
+    fn test_verify_signature_invalid_pubkey_rejects() {
+        // Test that invalid (fake) public key is rejected
+        let message = b"test message";
+        let sig = valid_format_signature();
+        let pubkey = valid_format_pubkey(); // Fake public key
+
+        // This should fail because the public key is not a valid SPHINCS+ key
+        let result = SphincsService::verify_signature(message, &sig, &pubkey);
+        assert!(result.is_err(), "Should reject invalid public key");
+    }
+
+    #[test]
     fn test_validate_hsm_attestation_empty() {
-        let result = SphincsService::validate_hsm_attestation("", &valid_pubkey());
+        let result = SphincsService::validate_hsm_attestation("", &valid_format_pubkey());
         assert!(result.is_err());
     }
 
     #[test]
     fn test_validate_hsm_attestation_invalid_format() {
-        let result = SphincsService::validate_hsm_attestation("invalid", &valid_pubkey());
+        let result = SphincsService::validate_hsm_attestation("invalid", &valid_format_pubkey());
         assert!(result.is_err());
     }
 
@@ -369,7 +477,7 @@ mod tests {
     fn test_validate_hsm_attestation_valid() {
         let result = SphincsService::validate_hsm_attestation(
             "HSM_ATT_abc123",
-            &valid_pubkey(),
+            &valid_format_pubkey(),
         );
         assert!(result.is_ok());
     }
