@@ -212,7 +212,7 @@ Loop 5超: ユーザーに相談
 
 ### 例1: 新タスク開始
 ```
-TASK-P5-005を開始してください。
+TASK-P5-001を開始してください。
 SESSION_PROTOCOL.mdに従って、Promptを使用して進めてください。
 ```
 
@@ -224,7 +224,7 @@ SESSION_PROTOCOL.mdのStep 1から確認してください。
 
 ### 例3: 特定Promptの使用指定
 ```
-TASK-P5-005を21_impl_verify_loop.mdに従って実装してください。
+TASK-P5-001を21_impl_verify_loop.mdに従って実装してください。
 ```
 
 ---
