@@ -217,7 +217,49 @@ echo "=== LOOP 1 COMPLETE ===" >> EVENT_LOG.md
 
 ---
 
-## 8. 次のプロンプト
+## 8. タスク完了時の進捗更新（必須）
+
+> **⚠️ 重要**: 検証ループ成功後、以下のファイルを**必ず**更新すること。
+> これを怠ると次セッションで完了タスクが未完了として認識される。
+
+### 8.1 更新対象ファイル
+
+| ファイル | 更新内容 |
+|---------|---------|
+| `CURRENT_TASK.md` | ステータス→完了、完了条件→全✅、次タスク候補 |
+| `26_phase5_planner.md` §10 | タスク状態→DONE、完了日、進捗バー |
+| `TASK_P5_FULL_LIST.md` | [ ] → [x]、進捗サマリ数値 |
+| `EVENT_LOG.md` | TASK_COMPLETEイベント記録 |
+
+### 8.2 更新手順
+
+```bash
+# 1. CURRENT_TASK.md 更新
+# - Status: Active → Awaiting Next Task
+# - 完了条件: ⏳ → ✅
+# - 完了日: YYYY-MM-DD
+# - 次タスク候補をリスト
+
+# 2. 26_phase5_planner.md §10 更新
+# - 該当タスク: ⏳ TODO → ✅ DONE
+# - 完了日追加
+# - 進捗バー更新（例: 55% → 58%）
+
+# 3. TASK_P5_FULL_LIST.md 更新
+# - 該当タスク: [ ] → [x]
+# - 進捗サマリの完了数を更新
+
+# 4. コミット
+git add docs_new/01_phase/CURRENT_TASK.md \
+        docs_new/02_agents_prompt/02_prompts/26_phase5_planner.md \
+        docs_new/01_phase/05_phase5/TASK_P5_FULL_LIST.md \
+        docs_new/01_phase/EVENT_LOG.md
+git commit -m "docs: update progress files for TASK-P5-XXX completion"
+```
+
+---
+
+## 9. 次のプロンプト
 
 検証ループ完了後：
 - 成功 → `22_three_agent.md` へ（3エージェント協調レビュー）
