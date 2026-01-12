@@ -9,10 +9,10 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-023 |
-| タイトル | Governance API (8 EP) |
+| タスクID | TASK-P5-019 |
+| タイトル | Observer API (8 EP) |
 | 完了日 | 2026-01-12 |
-| コミット | afb3764 |
+| コミット | (pending) |
 
 ### 完了条件（全て達成）
 
@@ -20,8 +20,8 @@
 |---|------|:----:|
 | 1 | 8エンドポイント全て実装 | ✅ |
 | 2 | cargo build成功 | ✅ |
-| 3 | cargo test成功 (51 tests) | ✅ |
-| 4 | UIモックとの整合性確認 | ✅ |
+| 3 | cargo test成功 (97 tests) | ✅ |
+| 4 | CP-1/CP-4準拠 (SHA3-256, Quadratic Slashing) | ✅ |
 
 ---
 
@@ -57,10 +57,11 @@
 | TASK-P5-022 | Prover Portal API (9 EP) | ✅ | 2026-01-12 |
 | TASK-P5-023 | Governance API (8 EP) | ✅ | 2026-01-12 |
 
-### Phase 5.4 補完機能（部分完了）
+### Phase 5.4 補完機能（33%完了）
 
 | Task ID | 内容 | 状態 | 完了日 |
 |---------|------|:----:|-------|
+| TASK-P5-019 | Observer API (8 EP) | ✅ | 2026-01-12 |
 | TASK-P5-025 | Prover Portal DESIGN_BRIEF | ✅ | 2026-01-12 |
 
 ---
@@ -78,7 +79,6 @@
 
 | Task ID | 内容 | 工数 | 備考 |
 |---------|------|:----:|------|
-| TASK-P5-019 | Observer API (8 EP) | 4日 | Phase 5.4 |
 | TASK-P5-024 | Explorer API (12 EP) | 5日 | Phase 5.4 |
 | TASK-P5-017 | Enterprise申込フロー | 3日 | P5-016依存 |
 
@@ -90,7 +90,7 @@
 ✅ Phase 5.0-5.2: 完了済み
 ✅ Phase 5.1 基盤: 100%完了
 ⏳ Phase 5.3 管理系API: 未着手 ← 次の推奨
-⏳ Phase 5.4 補完機能: 17%完了
+⏳ Phase 5.4 補完機能: 33%完了
 ⏳ Phase 5.5 統合・テスト: 未着手
 ```
 
