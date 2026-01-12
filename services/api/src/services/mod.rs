@@ -3,6 +3,7 @@
 mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
+pub mod auth_service;
 
 use anyhow::Result;
 
@@ -10,7 +11,7 @@ use crate::{
     config::Config,
     error::ApiError,
     types::{
-        Lock, LockRequest, LockStatus, Edition, 
+        Lock, LockRequest, LockStatus, Edition,
         ProverRegisterRequest, ProverInfoResponse, ProverStatus,
     },
 };
@@ -18,6 +19,7 @@ use crate::{
 pub use redis_client::RedisClient;
 pub use rabbitmq_client::RabbitMQClient;
 pub use hsm_client::HsmClient;
+pub use auth_service::AuthService;
 
 /// Application state shared across handlers
 pub struct AppState {
@@ -25,6 +27,8 @@ pub struct AppState {
     pub redis: RedisClient,
     pub rabbitmq: RabbitMQClient,
     pub hsm: HsmClient,
+    /// Authentication service for SIWE/JWT (TASK-P5-012)
+    pub auth_service: AuthService,
 }
 
 /// Edition state tracking
@@ -40,7 +44,8 @@ impl AppState {
         let redis = RedisClient::new(&config.redis).await?;
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm })
+        let auth_service = AuthService::new(config.jwt.clone());
+        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, auth_service })
     }
 
     pub async fn is_nonce_used(&self, pk: &str, nonce: u64) -> Result<bool, ApiError> {
