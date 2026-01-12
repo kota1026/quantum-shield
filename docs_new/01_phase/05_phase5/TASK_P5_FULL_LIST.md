@@ -133,7 +133,7 @@ GET  /v1/enterprise/audit-log
 |---------|------|:--------:|------|---------|:----:|
 | TASK-P5-025 | Prover Portal DESIGN_BRIEF | - | - | - | [x] |
 | **TASK-P5-019** | Observer API | 8 EP | P5-012 | B.2 | [ ] |
-| **TASK-P5-024** | Explorer API | 12 EP | - | B.2 | [ ] |
+| **TASK-P5-024** | Explorer API | 12 EP | - | B.2 | [x] |
 | **TASK-P5-026** | i18n対応 | 5日 | - | §3.5 | [ ] |
 | **TASK-P5-027** | 監視ボット実装 | 3日 | P5-014 | §2.6.2 | [ ] |
 | **TASK-P5-028** | Security Council統合 | 3日 | P5-023 | §2.6.3 | [ ] |

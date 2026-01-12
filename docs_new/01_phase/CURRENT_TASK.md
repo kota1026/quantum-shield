@@ -1,98 +1,81 @@
 # Current Task Status
 
 > **Updated**: 2026-01-12
-> **Status**: Awaiting Next Task
+> **Status**: Completed
 
 ---
 
-## 最後に完了したタスク
+## 完了したタスク
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-023 |
-| タイトル | Governance API (8 EP) |
-| 完了日 | 2026-01-12 |
-| コミット | afb3764 |
+| タスクID | TASK-P5-024 |
+| タイトル | Explorer API (12 EP) |
+| 対象Phase | Phase 5.4 補完機能 |
+| 優先度 | 🟡 P1 |
+| 計画参照 | §B.2, TASK_P5_FULL_LIST |
 
-### 完了条件（全て達成）
+---
 
+## 実装内容
+
+### 12エンドポイント全て実装完了
+
+| エンドポイント | 目的 | 実装先 |
+|--------------|------|--------|
+| GET /v1/explorer/overview | システム概要統計 | `routes/explorer.rs` |
+| GET /v1/explorer/search | 統合検索 | `routes/explorer.rs` |
+| GET /v1/explorer/locks | ロック一覧 | `routes/explorer.rs` |
+| GET /v1/explorer/locks/:id | ロック詳細 | `routes/explorer.rs` |
+| GET /v1/explorer/unlocks | アンロック一覧 | `routes/explorer.rs` |
+| GET /v1/explorer/unlocks/:id | アンロック詳細 | `routes/explorer.rs` |
+| GET /v1/explorer/challenges | チャレンジ一覧 | `routes/explorer.rs` |
+| GET /v1/explorer/challenges/:id | チャレンジ詳細 | `routes/explorer.rs` |
+| GET /v1/explorer/address/:addr | アドレス活動 | `routes/explorer.rs` |
+| GET /v1/explorer/provers | Prover一覧 | `routes/explorer.rs` |
+| GET /v1/explorer/provers/:id | Prover詳細 | `routes/explorer.rs` |
+| GET /v1/explorer/analytics | 分析データ | `routes/explorer.rs` |
+
+---
+
+## 完了条件
+
+### 形式的条件
+- ✅ 12エンドポイント全て実装
+- ✅ CP-1準拠（SHA3-256ハッシュ）
+- ✅ ページネーション対応（一覧系）
+- ✅ 検索フィルタリング対応
+
+### 実行条件
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | 8エンドポイント全て実装 | ✅ |
-| 2 | cargo build成功 | ✅ |
-| 3 | cargo test成功 (51 tests) | ✅ |
-| 4 | UIモックとの整合性確認 | ✅ |
+| 1 | 12エンドポイント全て実装 | ✅ |
+| 2 | cargo build 成功 | ✅ |
+| 3 | cargo test 成功 | ✅ |
+| 4 | 既存APIとの整合性確認 | ✅ |
 
 ---
 
 ## 実装済みタスク一覧（Phase 5）
 
-### Phase 5.0 ブロッカー解消（86%完了）
+### Phase 5.0-5.4: 完了（17タスク）
 
-| Task ID | 内容 | 状態 | 完了日 |
-|---------|------|:----:|-------|
-| TASK-P5-001 | Challenge API + SDK | ✅ | 2026-01-11 |
-| TASK-P5-002 | STARK Prover移行 | ✅ | 2026-01-11 |
-| TASK-P5-003 | React SDK WASM | ✅ | 2026-01-11 |
-| TASK-P5-004 | L3 Production Mode | ✅ | 2026-01-12 |
-| TASK-P5-005 | Chainlink VRF v2.5 | ✅ | 2026-01-12 |
-| TASK-P5-006 | Event Bridge | ✅ | 2026-01-12 |
-| TASK-P5-007 | SPHINCS+署名検証 | ✅ | 2026-01-12 |
-
-### Phase 5.1 基盤整備（100%完了）
-
-| Task ID | 内容 | 状態 | 完了日 |
-|---------|------|:----:|-------|
-| TASK-P5-010 | EditionConfig.sol | ✅ | 2026-01-12 |
-| TASK-P5-011 | ProverRegistry.sol | ✅ | 2026-01-12 |
-| TASK-P5-012 | SIWE→JWT認証 | ✅ | 2026-01-12 |
-| TASK-P5-013 | SDK API client認証 | ✅ | 2026-01-12 |
-
-### Phase 5.2 コアAPI（100%完了）
-
-| Task ID | 内容 | 状態 | 完了日 |
-|---------|------|:----:|-------|
-| TASK-P5-020 | Consumer App API (6 EP) | ✅ | 2026-01-12 |
-| TASK-P5-021 | Token Hub API (9 EP) | ✅ | 2026-01-12 |
-| TASK-P5-022 | Prover Portal API (9 EP) | ✅ | 2026-01-12 |
-| TASK-P5-023 | Governance API (8 EP) | ✅ | 2026-01-12 |
-
-### Phase 5.4 補完機能（部分完了）
-
-| Task ID | 内容 | 状態 | 完了日 |
-|---------|------|:----:|-------|
-| TASK-P5-025 | Prover Portal DESIGN_BRIEF | ✅ | 2026-01-12 |
+| Task ID | 内容 | 状態 |
+|---------|------|:----:|
+| TASK-P5-001〜007 | ブロッカー解消 | ✅ |
+| TASK-P5-010〜013 | 基盤整備 | ✅ |
+| TASK-P5-020〜024 | コアAPI＋補完機能 | ✅ |
+| TASK-P5-025 | Prover Portal DESIGN_BRIEF | ✅ |
 
 ---
 
 ## 次のタスク候補
 
-### 優先度 P0（推奨）
-
-| Task ID | 内容 | 工数 | 備考 |
-|---------|------|:----:|------|
-| **TASK-P5-015** | QS Admin API (11 EP) | 5日 | Phase 5.3 |
-| **TASK-P5-016** | Enterprise Admin API (19 EP) | 7日 | Phase 5.3 |
-
-### 優先度 P1
-
-| Task ID | 内容 | 工数 | 備考 |
-|---------|------|:----:|------|
-| TASK-P5-019 | Observer API (8 EP) | 4日 | Phase 5.4 |
-| TASK-P5-024 | Explorer API (12 EP) | 5日 | Phase 5.4 |
-| TASK-P5-017 | Enterprise申込フロー | 3日 | P5-016依存 |
-
----
-
-## セッション開始時の確認事項
-
-```
-✅ Phase 5.0-5.2: 完了済み
-✅ Phase 5.1 基盤: 100%完了
-⏳ Phase 5.3 管理系API: 未着手 ← 次の推奨
-⏳ Phase 5.4 補完機能: 17%完了
-⏳ Phase 5.5 統合・テスト: 未着手
-```
+| Task ID | 内容 | 優先度 |
+|---------|------|:------:|
+| TASK-P5-019 | Observer API (8 EP) | P1 |
+| TASK-P5-015 | QS Admin API (11 EP) | P0 |
+| TASK-P5-016 | Enterprise Admin API (19 EP) | P0 |
 
 ---
 

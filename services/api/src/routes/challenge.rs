@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 //! Challenge API implementation
 //!
 //! Implements Sequence #4: Challenge + Slashing
@@ -28,27 +27,20 @@ use axum::{
     extract::Path,
     Extension, Json,
 };
-=======
-//! Challenge API implementation (SEQUENCES §4)
-//!
-//! Implements Challenge + Slashing flow for fraud prevention.
-
-use std::sync::Arc;
-
-use axum::{Extension, Json, extract::Path};
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 use sha3::{Digest, Sha3_256};
 
 use crate::{
     error::ApiError,
     services::AppState,
     types::{
-<<<<<<< HEAD
         ChallengeRequest, ChallengeResponse, ChallengeStatus,
         DefenseRequest, DefenseResponse,
-        ChallengeInfo, AutoResolveResponse,
+        ChallengeInfo, AutoResolveResponse, LockStatus,
     },
 };
+
+/// Defense deadline: 48 hours after challenge
+const DEFENSE_DEADLINE_HOURS: u64 = 48;
 
 /// POST /v1/challenge
 ///
@@ -60,30 +52,18 @@ use crate::{
 /// - Defense period: 48 hours (SEQUENCES §4.4)
 ///
 /// # SEQUENCES §4.2-4.4
-=======
-        ChallengeRequest, ChallengeResponse, ChallengeStatus, ChallengeInfo,
-        DefenseRequest, DefenseResponse, AutoResolveResponse, LockStatus,
-    },
-};
-
-/// Defense deadline: 48 hours after challenge
-const DEFENSE_DEADLINE_HOURS: u64 = 48;
-
-/// POST /v1/challenge
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 pub async fn submit_challenge(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<ChallengeRequest>,
 ) -> Result<Json<ChallengeResponse>, ApiError> {
     tracing::info!("Processing challenge for lock_id: {}", req.lock_id);
 
-<<<<<<< HEAD
     // 1. Validate lock exists and is in pending unlock state
     let lock = state.get_lock(&req.lock_id).await?
         .ok_or_else(|| ApiError::LockNotFound(req.lock_id.clone()))?;
 
-    if lock.status != crate::types::LockStatus::UnlockPending
-        && lock.status != crate::types::LockStatus::EmergencyPending {
+    if lock.status != LockStatus::UnlockPending
+        && lock.status != LockStatus::EmergencyPending {
         return Err(ApiError::InvalidChallengeTarget(
             "Lock must be in pending unlock state".into()
         ));
@@ -105,7 +85,7 @@ pub async fn submit_challenge(
 
     // 4. Create challenge record
     let challenge_id = generate_challenge_id(&req.lock_id, &fraud_proof_hash);
-    let defense_deadline = chrono::Utc::now().timestamp() as u64 + 48 * 3600; // 48 hours
+    let defense_deadline = chrono::Utc::now().timestamp() as u64 + (DEFENSE_DEADLINE_HOURS * 3600);
 
     state.store_challenge(
         &challenge_id,
@@ -117,48 +97,12 @@ pub async fn submit_challenge(
     ).await?;
 
     // 5. Update lock status to CHALLENGED
-    state.update_lock_status(&req.lock_id, crate::types::LockStatus::Challenged, None).await?;
+    state.update_lock_status(&req.lock_id, LockStatus::Challenged, None).await?;
 
     tracing::info!(
         "Challenge submitted: {} for lock: {}, defense deadline: {}",
         challenge_id, req.lock_id, defense_deadline
     );
-=======
-    let lock = state.get_lock(&req.lock_id).await?
-        .ok_or_else(|| ApiError::LockNotFound(req.lock_id.clone()))?;
-
-    if lock.status != LockStatus::UnlockPending {
-        return Err(ApiError::InvalidChallengeTarget(
-            format!("Lock status is {:?}, expected UnlockPending", lock.status)
-        ));
-    }
-
-    let lock_amount: u128 = lock.amount.parse().unwrap_or(0);
-    let min_bond = lock_amount / 1000;
-    let provided_bond: u128 = req.bond.parse().unwrap_or(0);
-    if provided_bond < min_bond {
-        return Err(ApiError::InsufficientBond(
-            format!("Minimum bond: {}, provided: {}", min_bond, provided_bond)
-        ));
-    }
-
-    let mut hasher = Sha3_256::new();
-    hasher.update(b"CHALLENGE_V1");
-    hasher.update(req.lock_id.as_bytes());
-    hasher.update(req.challenger.as_bytes());
-    hasher.update(&chrono::Utc::now().timestamp().to_be_bytes());
-    let challenge_id = format!("0x{}", hex::encode(hasher.finalize()));
-
-    let mut proof_hasher = Sha3_256::new();
-    proof_hasher.update(req.fraud_proof.as_bytes());
-    let fraud_proof_hash = format!("0x{}", hex::encode(proof_hasher.finalize()));
-
-    let now = chrono::Utc::now().timestamp() as u64;
-    let defense_deadline = now + (DEFENSE_DEADLINE_HOURS * 3600);
-
-    state.store_challenge(&challenge_id, &req.lock_id, &req.challenger, &fraud_proof_hash, &req.bond, defense_deadline).await?;
-    state.update_lock_status(&req.lock_id, LockStatus::Challenged, None).await?;
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
     Ok(Json(ChallengeResponse {
         challenge_id,
@@ -170,7 +114,19 @@ pub async fn submit_challenge(
     }))
 }
 
-<<<<<<< HEAD
+/// GET /v1/challenge/:lock_id
+///
+/// Get challenge information for a lock.
+pub async fn get_challenge(
+    Extension(state): Extension<Arc<AppState>>,
+    Path(lock_id): Path<String>,
+) -> Result<Json<ChallengeInfo>, ApiError> {
+    let challenge = state.get_challenge_by_lock_id(&lock_id).await?
+        .ok_or(ApiError::ChallengeNotFound(lock_id))?;
+
+    Ok(Json(challenge))
+}
+
 /// POST /v1/challenge/:lock_id/defense
 ///
 /// Submit defense against a challenge (Prover only).
@@ -180,25 +136,11 @@ pub async fn submit_challenge(
 /// - Uses SHA3-256 for defense proof hash (CP-1)
 ///
 /// # SEQUENCES §4.5
-=======
-/// GET /v1/challenge/:lock_id
-pub async fn get_challenge(
-    Extension(state): Extension<Arc<AppState>>,
-    Path(lock_id): Path<String>,
-) -> Result<Json<ChallengeInfo>, ApiError> {
-    let challenge = state.get_challenge_by_lock_id(&lock_id).await?
-        .ok_or_else(|| ApiError::ChallengeNotFound(lock_id))?;
-    Ok(Json(challenge))
-}
-
-/// POST /v1/challenge/:lock_id/defense
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 pub async fn submit_defense(
     Extension(state): Extension<Arc<AppState>>,
     Path(lock_id): Path<String>,
     Json(req): Json<DefenseRequest>,
 ) -> Result<Json<DefenseResponse>, ApiError> {
-<<<<<<< HEAD
     tracing::info!("Processing defense for lock_id: {}", lock_id);
 
     // 1. Verify Prover is authenticated and active
@@ -219,16 +161,10 @@ pub async fn submit_defense(
     }
 
     // 4. Verify defense deadline not passed
-=======
-    let challenge = state.get_challenge_by_lock_id(&lock_id).await?
-        .ok_or_else(|| ApiError::ChallengeNotFound(lock_id.clone()))?;
-
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     let now = chrono::Utc::now().timestamp() as u64;
     if now > challenge.defense_deadline {
         return Err(ApiError::DefenseDeadlineExpired);
     }
-<<<<<<< HEAD
 
     // 5. Compute defense proof hash using SHA3-256 (CP-1 compliant)
     let defense_proof_hash = compute_sha3_hash(&req.defense_proof);
@@ -244,17 +180,6 @@ pub async fn submit_defense(
         "Defense submitted for challenge: {} by prover: {}",
         challenge.challenge_id, req.prover_id
     );
-=======
-    if challenge.status != ChallengeStatus::Pending {
-        return Err(ApiError::ChallengeAlreadyResolved);
-    }
-
-    let mut proof_hasher = Sha3_256::new();
-    proof_hasher.update(req.defense_proof.as_bytes());
-    let defense_proof_hash = format!("0x{}", hex::encode(proof_hasher.finalize()));
-
-    state.submit_defense(&challenge.challenge_id, &req.prover_id, &defense_proof_hash).await?;
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
     Ok(Json(DefenseResponse {
         challenge_id: challenge.challenge_id,
@@ -265,20 +190,6 @@ pub async fn submit_defense(
     }))
 }
 
-<<<<<<< HEAD
-/// GET /v1/challenge/:lock_id
-///
-/// Get challenge information for a lock.
-pub async fn get_challenge(
-    Extension(state): Extension<Arc<AppState>>,
-    Path(lock_id): Path<String>,
-) -> Result<Json<ChallengeInfo>, ApiError> {
-    let challenge = state.get_challenge_by_lock_id(&lock_id).await?
-        .ok_or(ApiError::ChallengeNotFound(lock_id))?;
-
-    Ok(Json(challenge))
-}
-
 /// POST /v1/challenge/:lock_id/auto-resolve
 ///
 /// Auto-resolve challenge after defense deadline.
@@ -286,95 +197,77 @@ pub async fn get_challenge(
 /// # SEQUENCES §4.6
 /// Anyone can call this after the defense deadline has passed.
 /// If no defense was submitted, challenger wins.
-=======
-/// POST /v1/challenge/:lock_id/auto-resolve
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 pub async fn auto_resolve(
     Extension(state): Extension<Arc<AppState>>,
     Path(lock_id): Path<String>,
 ) -> Result<Json<AutoResolveResponse>, ApiError> {
-<<<<<<< HEAD
     tracing::info!("Processing auto-resolve for lock_id: {}", lock_id);
 
     // 1. Get challenge
     let challenge = state.get_challenge_by_lock_id(&lock_id).await?
         .ok_or(ApiError::ChallengeNotFound(lock_id.clone()))?;
 
-    // 2. Verify challenge is still pending
-    if challenge.status != ChallengeStatus::Pending {
+    // 2. Verify challenge is still pending or defense submitted
+    if matches!(challenge.status, ChallengeStatus::ResolvedValid | ChallengeStatus::ResolvedInvalid) {
         return Err(ApiError::ChallengeAlreadyResolved);
     }
 
     // 3. Verify defense deadline has passed
-=======
-    let challenge = state.get_challenge_by_lock_id(&lock_id).await?
-        .ok_or_else(|| ApiError::ChallengeNotFound(lock_id.clone()))?;
-
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     let now = chrono::Utc::now().timestamp() as u64;
     if now <= challenge.defense_deadline {
         return Err(ApiError::DefenseDeadlineNotPassed);
     }
-<<<<<<< HEAD
 
-    // 4. No defense submitted → Challenger wins
-    // Calculate quadratic slashing: N² × 10%
+    // 4. Determine outcome
+    let challenge_valid = challenge.defense_proof_hash.is_none();
+
+    // 5. Calculate slashing/distribution amounts
     let lock = state.get_lock(&lock_id).await?
         .ok_or_else(|| ApiError::LockNotFound(lock_id.clone()))?;
 
-    let signature_count = 1u64; // Placeholder - get from unlock request
-    let slash_amount = calculate_quadratic_slash(signature_count, &lock.amount);
-    let challenger_reward = calculate_distribution(&slash_amount, 60);
-    let insurance_amount = calculate_distribution(&slash_amount, 20);
-    let burn_amount = calculate_distribution(&slash_amount, 20);
+    let (slash_amount, challenger_reward, insurance_amount, burn_amount) = if challenge_valid {
+        // No defense submitted → Challenger wins
+        // Calculate quadratic slashing: N² × 10%
+        let signature_count = 1u64; // Placeholder - get from unlock request
+        let slash = calculate_quadratic_slash(signature_count, &lock.amount);
+        let challenger = calculate_distribution(&slash, 60);
+        let insurance = calculate_distribution(&slash, 20);
+        let burn = calculate_distribution(&slash, 20);
+        (slash, challenger, insurance, burn)
+    } else {
+        // Defense submitted → Challenge invalid, challenger loses bond
+        let bond = parse_amount(&challenge.bond);
+        ("0".to_string(), "0".to_string(), bond.to_string(), "0".to_string())
+    };
 
-    // 5. Update challenge status
+    // 6. Update challenge status
     state.resolve_challenge(
         &challenge.challenge_id,
-        true, // Challenge valid
+        challenge_valid,
         &slash_amount,
         &challenger_reward,
         &insurance_amount,
         &burn_amount,
     ).await?;
 
-    // 6. Update lock status to SLASHED
-    state.update_lock_status(&lock_id, crate::types::LockStatus::Slashed, None).await?;
-
-    tracing::info!(
-        "Challenge auto-resolved (valid): {} - slashed: {}, challenger reward: {}",
-        challenge.challenge_id, slash_amount, challenger_reward
-    );
-=======
-    if matches!(challenge.status, ChallengeStatus::ResolvedValid | ChallengeStatus::ResolvedInvalid) {
-        return Err(ApiError::ChallengeAlreadyResolved);
-    }
-
-    let challenge_valid = challenge.defense_proof_hash.is_none();
-    let bond: u128 = challenge.bond.parse().unwrap_or(0);
-    let (slash_amount, challenger_reward, insurance_amount, burn_amount) = if challenge_valid {
-        let slash = bond * 10;
-        (slash, bond + (slash / 2), slash * 3 / 10, slash * 2 / 10)
-    } else {
-        (0u128, 0u128, bond, 0u128)
-    };
-
-    state.resolve_challenge(&challenge.challenge_id, challenge_valid, &slash_amount.to_string(), &challenger_reward.to_string(), &insurance_amount.to_string(), &burn_amount.to_string()).await?;
-
+    // 7. Update lock status
     let new_status = if challenge_valid { LockStatus::Slashed } else { LockStatus::UnlockPending };
     state.update_lock_status(&lock_id, new_status, None).await?;
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
+
+    tracing::info!(
+        "Challenge auto-resolved (valid={}): {} - slashed: {}, challenger reward: {}",
+        challenge_valid, challenge.challenge_id, slash_amount, challenger_reward
+    );
 
     Ok(Json(AutoResolveResponse {
         challenge_id: challenge.challenge_id,
         lock_id,
-<<<<<<< HEAD
-        challenge_valid: true,
+        challenge_valid,
         slash_amount,
         challenger_reward,
         insurance_amount,
         burn_amount,
-        status: ChallengeStatus::ResolvedValid,
+        status: if challenge_valid { ChallengeStatus::ResolvedValid } else { ChallengeStatus::ResolvedInvalid },
     }))
 }
 
@@ -496,13 +389,3 @@ mod tests {
         assert_eq!(hash.len(), 66); // 0x + 64 hex chars
     }
 }
-=======
-        challenge_valid,
-        slash_amount: slash_amount.to_string(),
-        challenger_reward: challenger_reward.to_string(),
-        insurance_amount: insurance_amount.to_string(),
-        burn_amount: burn_amount.to_string(),
-        status: if challenge_valid { ChallengeStatus::ResolvedValid } else { ChallengeStatus::ResolvedInvalid },
-    }))
-}
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
