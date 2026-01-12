@@ -54,6 +54,25 @@ pub enum ApiError {
 
     #[error("Service unavailable")]
     ServiceUnavailable,
+
+    // Authentication errors (TASK-P5-012)
+    #[error("Invalid SIWE message: {0}")]
+    InvalidSiweMessage(String),
+
+    #[error("SIWE message expired")]
+    SiweMessageExpired,
+
+    #[error("Invalid JWT token: {0}")]
+    InvalidToken(String),
+
+    #[error("Token expired")]
+    TokenExpired,
+
+    #[error("Invalid refresh token")]
+    InvalidRefreshToken,
+
+    #[error("Nonce already used")]
+    NonceAlreadyUsed,
 }
 
 #[derive(Serialize)]
@@ -80,6 +99,13 @@ impl ApiError {
             ApiError::InsufficientSignatures => 3002,
             ApiError::Internal(_) => 5001,
             ApiError::ServiceUnavailable => 5002,
+            // Authentication error codes (4xxx)
+            ApiError::InvalidSiweMessage(_) => 4001,
+            ApiError::SiweMessageExpired => 4002,
+            ApiError::InvalidToken(_) => 4003,
+            ApiError::TokenExpired => 4004,
+            ApiError::InvalidRefreshToken => 4005,
+            ApiError::NonceAlreadyUsed => 4006,
         }
     }
 
@@ -100,6 +126,13 @@ impl ApiError {
             ApiError::InsufficientSignatures => StatusCode::BAD_REQUEST,
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
+            // Authentication error status codes
+            ApiError::InvalidSiweMessage(_) => StatusCode::BAD_REQUEST,
+            ApiError::SiweMessageExpired => StatusCode::BAD_REQUEST,
+            ApiError::InvalidToken(_) => StatusCode::UNAUTHORIZED,
+            ApiError::TokenExpired => StatusCode::UNAUTHORIZED,
+            ApiError::InvalidRefreshToken => StatusCode::UNAUTHORIZED,
+            ApiError::NonceAlreadyUsed => StatusCode::CONFLICT,
         }
     }
 }
