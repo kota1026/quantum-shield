@@ -996,30 +996,30 @@ estimated_effort: "3 days"
 | TASK-P5-002 | STARK Prover移行 | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
 | TASK-P5-003 | React SDK WASM | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
 | TASK-P5-004 | L3 Production Mode | ✅ DONE | 2026-01-12 | L3設定CP-1準拠修正済 |
-| TASK-P5-005 | Chainlink VRF | ⚠️ PARTIAL | 2026-01-12 | シミュレーション実装、本番連携未実装 |
+| TASK-P5-005 | Chainlink VRF | ✅ DONE | 2026-01-12 | PR#33マージ完了 (v2.5本番連携) |
 | TASK-P5-006 | Event Bridge | ✅ DONE | 2026-01-12 | WebSocket/RabbitMQ統合完了 |
-| TASK-P5-007 | SPHINCS+検証 | ⚠️ PARTIAL | 2026-01-12 | フォーマット検証のみ、署名検証未実装 |
+| TASK-P5-007 | SPHINCS+検証 | ✅ DONE | 2026-01-12 | PR#33マージ完了 (署名検証実装) |
 
-> **Note**: TASK-P5-005, P5-007 は「開発フェーズ」として受け入れ。本番統合は Phase 5.1 以降で別タスク定義。
+> **Note**: Phase 5.0 全タスク完了。PR#33でP5-005/P5-007のマージ完了確認済み (2026-01-12)。
 
 ### 10.2 全体進捗
 
 ```
-Phase 5.0: █████████████████░░░ 86% (5 DONE + 2 PARTIAL / 7 tasks)
+Phase 5.0: ████████████████████ 100% (7 DONE / 7 tasks) ✅
 Phase 5.1: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
 Phase 5.2: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
 Phase 5.3: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
 Phase 5.4: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/5 tasks)
 Phase 5.5: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
 ───────────────────────────────
-Total:     ████░░░░░░░░░░░░░░░░ 19% (5/26 DONE + 2 PARTIAL)
+Total:     █████░░░░░░░░░░░░░░░ 27% (7/26 DONE)
 ```
 
 ### 10.3 工数実績 vs 計画
 
 | Phase | 計画 | 実績 | 差分 |
 |-------|:----:|:----:|:----:|
-| 5.0 | 31日 | ~5日 (4タスク完了) | -26日 ✅ 効率的 |
+| 5.0 | 31日 | ~7日 (7タスク完了) | -24日 ✅ 効率的 |
 | 5.1 | 10日 | - | - |
 | 5.2 | 12日 | - | - |
 | 5.3 | 15日 | - | - |
@@ -1033,28 +1033,32 @@ Total:     ████░░░░░░░░░░░░░░░░ 19% (5/2
 
 ### 11.1 即座実行可能（依存なし）
 
-1. **TASK-P5-005**: Chainlink VRF統合 (3日)
-2. **TASK-P5-006**: Event Bridge完成 (8日)
-3. **TASK-P5-007**: SPHINCS+検証 (2日)
-4. **TASK-P5-010**: EditionConfig.sol (3日)
-5. **TASK-P5-011**: ProverRegistry.sol (4日)
+> **Note**: Phase 5.0 完了 (2026-01-12)。以下は Phase 5.1 以降のタスク。
+
+1. **TASK-P5-010**: EditionConfig.sol (3日)
+2. **TASK-P5-011**: ProverRegistry.sol (4日)
+3. **TASK-P5-012**: 認証基盤 SIWE→JWT (2日)
+4. **TASK-P5-020**: Consumer App API (3日)
+5. **TASK-P5-021**: Token Hub API (5日)
 
 ### 11.2 推奨実行順序
 
 ```
-Week 1:
-├── TASK-P5-005: Chainlink VRF (P0, 仕様必須)
+✅ Phase 5.0 完了 (2026-01-12)
+├── TASK-P5-001~004: STARK + WASM統合 ✅
+├── TASK-P5-005: Chainlink VRF v2.5 ✅
+├── TASK-P5-006: Event Bridge ✅
+└── TASK-P5-007: SPHINCS+署名検証 ✅
+
+次のステップ (Phase 5.1):
 ├── TASK-P5-010: EditionConfig.sol (P0, 基盤)
-└── TASK-P5-011: ProverRegistry.sol (P0, 基盤)
+├── TASK-P5-011: ProverRegistry.sol (P0, 基盤)
+└── TASK-P5-012: 認証基盤 (P0, API基盤)
 
-Week 2:
-├── TASK-P5-012: 認証基盤 (P0, API基盤)
-├── TASK-P5-007: SPHINCS+検証 (P1)
-└── TASK-P5-006: Event Bridge (P1)
-
-Week 3-4:
+その後 (Phase 5.2-5.5):
 ├── TASK-P5-020~022: コアAPI群
-└── 以降Phase 5.3-5.5
+├── TASK-P5-030~032: 管理系API
+└── TASK-P5-050~053: 統合テスト
 ```
 
 ---
