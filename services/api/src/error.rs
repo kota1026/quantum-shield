@@ -54,6 +54,15 @@ pub enum ApiError {
 
     #[error("Service unavailable")]
     ServiceUnavailable,
+
+    #[error("Invalid request: {0}")]
+    InvalidRequest(String),
+
+    #[error("Lock not found")]
+    VeqsLockNotFound,
+
+    #[error("Lock already exists")]
+    VeqsLockAlreadyExists,
 }
 
 #[derive(Serialize)]
@@ -80,6 +89,9 @@ impl ApiError {
             ApiError::InsufficientSignatures => 3002,
             ApiError::Internal(_) => 5001,
             ApiError::ServiceUnavailable => 5002,
+            ApiError::InvalidRequest(_) => 1009,
+            ApiError::VeqsLockNotFound => 4001,
+            ApiError::VeqsLockAlreadyExists => 4002,
         }
     }
 
@@ -100,6 +112,9 @@ impl ApiError {
             ApiError::InsufficientSignatures => StatusCode::BAD_REQUEST,
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
+            ApiError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+            ApiError::VeqsLockNotFound => StatusCode::NOT_FOUND,
+            ApiError::VeqsLockAlreadyExists => StatusCode::CONFLICT,
         }
     }
 }

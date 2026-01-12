@@ -238,3 +238,233 @@ pub struct SphincsSignature {
     pub signature: Vec<u8>,
     pub timestamp: u64,
 }
+
+// ============================================================================
+// Token Hub Types (veQS / Delegation / Rewards)
+// ============================================================================
+
+/// Dashboard response for Token Hub
+#[derive(Debug, Serialize)]
+pub struct TokenHubDashboardResponse {
+    /// User's wallet address
+    pub address: String,
+    /// Available QS balance (not locked)
+    pub qs_balance: String,
+    /// Total locked QS amount
+    pub locked_qs: String,
+    /// Current veQS balance (decays over time)
+    pub veqs_balance: String,
+    /// Voting power percentage (0.0 - 100.0)
+    pub voting_power_percent: f64,
+    /// Active lock position (if any)
+    pub lock_position: Option<LockPosition>,
+    /// Delegations made by user
+    pub delegations_count: u32,
+    /// Pending rewards
+    pub pending_rewards: String,
+}
+
+/// Lock position in veQS
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LockPosition {
+    /// Locked QS amount
+    pub amount: String,
+    /// Lock start timestamp
+    pub start_time: u64,
+    /// Lock end timestamp (unlock time)
+    pub unlock_time: u64,
+    /// Initial lock duration in seconds
+    pub lock_duration: u64,
+    /// Current veQS value
+    pub veqs_value: String,
+    /// Multiplier (remaining_time / max_lock_time)
+    pub multiplier: f64,
+    /// Time remaining in human readable format
+    pub time_remaining: String,
+}
+
+/// Request to create a new QS lock
+#[derive(Debug, Deserialize)]
+pub struct TokenHubLockRequest {
+    /// Amount of QS to lock
+    pub amount: String,
+    /// Lock duration in seconds (min: 1 week, max: 4 years)
+    pub lock_duration: u64,
+}
+
+/// Response after creating a lock
+#[derive(Debug, Serialize)]
+pub struct TokenHubLockResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash (if submitted to L1)
+    pub tx_hash: Option<String>,
+    /// Created lock position
+    pub lock_position: LockPosition,
+    /// Estimated gas cost
+    pub estimated_gas: String,
+}
+
+/// Request to extend an existing lock
+#[derive(Debug, Deserialize)]
+pub struct TokenHubExtendRequest {
+    /// New unlock timestamp (must be > current unlock_time)
+    pub new_unlock_time: u64,
+}
+
+/// Response after extending a lock
+#[derive(Debug, Serialize)]
+pub struct TokenHubExtendResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash
+    pub tx_hash: Option<String>,
+    /// Updated lock position
+    pub lock_position: LockPosition,
+}
+
+/// List of user's lock positions
+#[derive(Debug, Serialize)]
+pub struct TokenHubLocksResponse {
+    /// Active lock position (only one allowed per user in veQS)
+    pub active_lock: Option<LockPosition>,
+    /// Historical locks (withdrawn)
+    pub history: Vec<HistoricalLock>,
+}
+
+/// Historical lock record
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoricalLock {
+    /// Locked amount
+    pub amount: String,
+    /// Lock start timestamp
+    pub start_time: u64,
+    /// Unlock timestamp
+    pub unlock_time: u64,
+    /// Withdrawn timestamp
+    pub withdrawn_at: u64,
+}
+
+/// Delegate information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegateInfo {
+    /// Delegate address
+    pub address: String,
+    /// Delegate name (ENS or custom)
+    pub name: Option<String>,
+    /// Total veQS delegated to this delegate
+    pub total_veqs: String,
+    /// Number of delegators
+    pub delegators_count: u32,
+    /// Voting participation rate (%)
+    pub participation_rate: f64,
+    /// Recent proposals voted
+    pub recent_votes: u32,
+}
+
+/// List of available delegates
+#[derive(Debug, Serialize)]
+pub struct TokenHubDelegatesResponse {
+    /// List of delegates
+    pub delegates: Vec<DelegateInfo>,
+    /// Total number of delegates
+    pub total: u32,
+}
+
+/// Request to delegate voting power
+#[derive(Debug, Deserialize)]
+pub struct TokenHubDelegateRequest {
+    /// Address to delegate to
+    pub delegatee: String,
+}
+
+/// Response after delegating
+#[derive(Debug, Serialize)]
+pub struct TokenHubDelegateResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash
+    pub tx_hash: Option<String>,
+    /// New delegatee address
+    pub delegatee: String,
+    /// Amount of veQS delegated
+    pub veqs_delegated: String,
+}
+
+/// User's delegation info
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MyDelegation {
+    /// Delegatee address
+    pub delegatee: String,
+    /// Delegatee name
+    pub delegatee_name: Option<String>,
+    /// Amount of veQS delegated
+    pub veqs_amount: String,
+    /// Percentage of total veQS delegated to this address
+    pub percent_of_total: f64,
+    /// Delegation timestamp
+    pub delegated_at: u64,
+}
+
+/// List of user's delegations
+#[derive(Debug, Serialize)]
+pub struct TokenHubMyDelegationsResponse {
+    /// User's delegations
+    pub delegations: Vec<MyDelegation>,
+    /// Total veQS delegated
+    pub total_delegated: String,
+    /// Self-retained veQS (not delegated)
+    pub self_retained: String,
+}
+
+/// Rewards information
+#[derive(Debug, Serialize)]
+pub struct TokenHubRewardsResponse {
+    /// Claimable rewards amount
+    pub claimable: String,
+    /// Claimable in USD (estimated)
+    pub claimable_usd: String,
+    /// Total claimed historically
+    pub total_claimed: String,
+    /// Current epoch number
+    pub current_epoch: u64,
+    /// Epoch progress (0.0 - 1.0)
+    pub epoch_progress: f64,
+    /// Estimated rewards for current epoch
+    pub estimated_epoch_rewards: String,
+    /// APY (Annual Percentage Yield)
+    pub apy: f64,
+    /// Reward history
+    pub history: Vec<RewardHistory>,
+}
+
+/// Historical reward record
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RewardHistory {
+    /// Epoch number
+    pub epoch: u64,
+    /// Reward amount
+    pub amount: String,
+    /// Claimed timestamp (None if unclaimed)
+    pub claimed_at: Option<u64>,
+}
+
+/// Request to claim rewards
+#[derive(Debug, Deserialize)]
+pub struct TokenHubClaimRequest {
+    /// Optional: specific epochs to claim (None = claim all)
+    pub epochs: Option<Vec<u64>>,
+}
+
+/// Response after claiming rewards
+#[derive(Debug, Serialize)]
+pub struct TokenHubClaimResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash
+    pub tx_hash: Option<String>,
+    /// Amount claimed
+    pub amount_claimed: String,
+    /// Epochs claimed
+    pub epochs_claimed: Vec<u64>,
+}
