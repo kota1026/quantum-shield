@@ -47,6 +47,12 @@ pub struct UnlockResponse {
     pub prover_signatures_required: u32,
     pub prover_signatures_collected: u32,
     pub status: UnlockStatus,
+    /// VRF request ID for prover selection (SEQUENCES §2.3)
+    pub vrf_request_id: Option<String>,
+    /// Selected provers via VRF (SEQUENCES §2.4)
+    pub selected_provers: Vec<String>,
+    /// VRF status for tracking
+    pub vrf_status: VRFStatus,
 }
 
 #[derive(Debug, Serialize)]
@@ -329,4 +335,61 @@ pub struct Prover {
     pub stake_amount: String,
     pub status: ProverStatus,
     pub is_active: bool,
+}
+
+// ============================================================================
+// VRF Types (SEQUENCES §2.3-§2.4)
+// ============================================================================
+
+/// VRF Status for prover selection tracking
+/// Implements SEQUENCES §2.3-§2.4 workflow
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum VRFStatus {
+    /// VRF not yet requested
+    NotStarted,
+    /// VRF request sent, awaiting Chainlink response
+    Pending,
+    /// VRF fulfilled, prover selected
+    Fulfilled,
+    /// VRF timed out (5 min), fallback used
+    FallbackUsed,
+    /// VRF request failed
+    Failed,
+}
+
+impl Default for VRFStatus {
+    fn default() -> Self {
+        Self::NotStarted
+    }
+}
+
+/// VRF request information stored in Redis
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VRFRequest {
+    /// Unique identifier for the VRF request
+    pub vrf_request_id: String,
+    /// Associated unlock request ID
+    pub unlock_request_id: String,
+    /// Lock ID being unlocked
+    pub lock_id: String,
+    /// Timestamp when VRF was requested
+    pub requested_at: u64,
+    /// Random value from VRF (set when fulfilled)
+    pub random_value: Option<String>,
+    /// Selected prover address (set when fulfilled)
+    pub selected_prover: Option<String>,
+    /// Current status
+    pub status: VRFStatus,
+}
+
+/// VRF status response for API
+#[derive(Debug, Serialize)]
+pub struct VRFStatusResponse {
+    pub vrf_request_id: String,
+    pub unlock_request_id: String,
+    pub status: VRFStatus,
+    pub selected_prover: Option<String>,
+    pub time_remaining: Option<u64>,
+    pub is_timed_out: bool,
 }

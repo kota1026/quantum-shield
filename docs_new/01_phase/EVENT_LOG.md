@@ -268,4 +268,52 @@ TASK-P5-004 L3 Production Mode: **COMPLETE**
 
 ---
 
+## 2026-01-12 (TASK-P5-005)
+
+### Event: TASK_START
+- **Task**: TASK-P5-005 Chainlink VRF Prover選出統合
+- **Time**: 2026-01-12
+- **Prompt Used**: 21_impl_verify_loop.md
+
+### Event: IMPLEMENTATION
+- **Files Created**:
+  - `services/api/src/services/vrf_service.rs` (VRFService, 300+ lines)
+- **Files Modified**:
+  - `services/api/src/config.rs` (VRFConfig追加)
+  - `services/api/src/types.rs` (VRFStatus, VRFRequest型追加)
+  - `services/api/src/services/mod.rs` (VRFService統合, VRFメソッド追加)
+  - `services/api/src/routes/unlock.rs` (VRF Prover選出統合)
+
+### Event: VRF_INTEGRATION
+- **Spec Compliance**:
+  - SEQUENCES §2.3: VRF Prover Selection ✅
+  - SEQUENCES §2.4: VRF Result Processing ✅
+- **Features Implemented**:
+  - `requestProverSelection()` API呼び出し
+  - `wait_for_selection()` with 5分 timeout
+  - `trigger_fallback()` using prevrandao
+  - `request_selected_prover_signatures()` 選出Proverのみ
+
+### Event: VERIFICATION_LOOP
+- **Loop**: 1
+- **Results**:
+  | Check | Status |
+  |-------|:------:|
+  | cargo build | ✅ (warnings) |
+  | cargo test (unit) | ✅ 39 passed |
+  | cargo test (api) | ✅ 14 passed |
+  | cargo test (integration) | ✅ 12 passed |
+  | cargo test (vrf) | ✅ 7 passed |
+- **Total Tests**: 72 passed
+
+### Event: TASK_COMPLETE
+- **Task**: TASK-P5-005
+- **Status**: DONE
+- **Artifacts**:
+  - `vrf_service.rs`: VRFService with timeout/fallback
+  - `unlock.rs`: VRF統合済み
+  - 7 VRF unit tests
+
+---
+
 **END OF EVENT LOG**
