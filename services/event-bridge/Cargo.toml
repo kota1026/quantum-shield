@@ -43,6 +43,13 @@ prometheus = "0.13"
 # Time
 chrono = { version = "0.4", features = ["serde"] }
 
+# WebSocket
+tokio-tungstenite = "0.21"
+futures-util = "0.3"
+
+# RabbitMQ
+lapin = "2.3"
+
 # Lazy static initialization
 once_cell = "1.19"
 
