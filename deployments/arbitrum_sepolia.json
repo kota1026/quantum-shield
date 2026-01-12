@@ -1,0 +1,8 @@
+{
+  "network": "arbitrum_sepolia",
+  "chainId": 421614,
+  "verifier": "0x30E36CaEC94202a77722B22FbFA662753CB087bd",
+  "bridge": "0xBBe0A46c41d86103d93aC6635E2c38630Aa7eF57",
+  "deployer": "0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3",
+  "timestamp": "1765981116"
+}

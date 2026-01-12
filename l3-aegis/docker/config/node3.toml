@@ -1,0 +1,32 @@
+# Aegis L3 Node Configuration - Node 3
+# CP-1 Compliant: SHA3-256, Dilithium-III only
+
+node_id = "aegis-node-3"
+data_dir = "/data"
+dev_mode = false
+
+[rpc]
+enabled = true
+host = "0.0.0.0"
+port = 8545
+max_connections = 100
+
+[p2p]
+listen_addr = "0.0.0.0"
+port = 30303
+static_peers = [
+    "172.28.0.10:30303",
+    "172.28.0.11:30303",
+    "172.28.0.12:30303"
+]
+max_peers = 10
+
+[consensus]
+block_time_secs = 5
+view_change_timeout_secs = 10
+validator_key_path = "/keys/dilithium.key"
+
+[storage]
+db_path = "db"
+compression = true
+cache_size_mb = 256

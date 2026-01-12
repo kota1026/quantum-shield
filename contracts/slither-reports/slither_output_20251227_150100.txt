@@ -1,0 +1,47 @@
+'forge clean' running (wd: /Users/kotakato/quantum-shield/contracts)
+'forge config --json' running
+Warning: Found unknown `ignore` config for profile `default` defined in foundry.toml.
+'forge build --build-info --skip ./test/** ./script/** --force' running (wd: /Users/kotakato/quantum-shield/contracts)
+
+QuantumShield.releaseWithProof(QuantumShield.PublicInputs,QuantumShield.StarkProof) (src/QuantumShield.sol#243-291) sends eth to arbitrary user
+	Dangerous calls:
+	- (success,None) = publicInputs.recipient.call{value: lockData.amount}() (src/QuantumShield.sol#287)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#functions-that-send-ether-to-arbitrary-destinations
+
+SHA3_256.keccakF(uint64[25]) (src/libraries/SHA3_256.sol#190-284) performs a multiplication on the result of a division:
+	- y = i / 5 (src/libraries/SHA3_256.sol#257)
+	- newY = (2 * x + 3 * y) % 5 (src/libraries/SHA3_256.sol#259)
+SHAKE256.keccakF(uint64[25]) (src/libraries/SHAKE256.sol#146-240) performs a multiplication on the result of a division:
+	- y = i / 5 (src/libraries/SHAKE256.sol#213)
+	- newY = (2 * x + 3 * y) % 5 (src/libraries/SHAKE256.sol#215)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#divide-before-multiply
+
+SPHINCSVerifier._verifyFORS(bytes32,bytes,bytes16).roots (src/SPHINCSVerifier.sol#286) is a local variable never initialized
+QuantumShield._parseFRIProof(bytes).commitment (src/QuantumShield.sol#542) is a local variable never initialized
+SPHINCSVerifier._verifyHypertree(bytes32,bytes,bytes16).authPath (src/SPHINCSVerifier.sol#336) is a local variable never initialized
+QuantumShield._verifyStarkProofInternal(QuantumShield.PublicInputs,QuantumShield.StarkProof).layerCommitment (src/QuantumShield.sol#449) is a local variable never initialized
+SPHINCSVerifier._verifyHypertree(bytes32,bytes,bytes16).wotsChains (src/SPHINCSVerifier.sol#329) is a local variable never initialized
+SHAKE256.keccakF(uint64[25]).b (src/libraries/SHAKE256.sol#210) is a local variable never initialized
+QuantumShield._parseFRIProof(bytes).result (src/QuantumShield.sol#510) is a local variable never initialized
+SPHINCSVerifier._verifyXMSSLayer(bytes32,bytes32[35],bytes32[9],bytes16,uint256).publicKeyChunks (src/SPHINCSVerifier.sol#449) is a local variable never initialized
+SHA3_256.keccakF(uint64[25]).b (src/libraries/SHA3_256.sol#254) is a local variable never initialized
+SHA3_256.hash(bytes).state (src/libraries/SHA3_256.sol#112) is a local variable never initialized
+SPHINCSVerifier._verifyFORS(bytes32,bytes,bytes16).authPath (src/SPHINCSVerifier.sol#295) is a local variable never initialized
+SHAKE256.hash(bytes,uint256).state (src/libraries/SHAKE256.sol#52) is a local variable never initialized
+QuantumShield._parseFRIProof(bytes).challenge (src/QuantumShield.sol#552) is a local variable never initialized
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-local-variables
+
+VRFConsumer._selectProver(uint256) (src/VRFConsumer.sol#426-436) ignores return value by (selected,None) = provers.selectProver(randomValue) (src/VRFConsumer.sol#434)
+VRFConsumer._selectProverSafe(uint256) (src/VRFConsumer.sol#442-466) ignores return value by (selected,None) = provers.selectProver(randomValue) (src/VRFConsumer.sol#460)
+VRFConsumerMock._selectProver(uint256) (src/VRFConsumerMock.sol#331-339) ignores return value by (selected,None) = provers.selectProver(randomValue) (src/VRFConsumerMock.sol#337)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unused-return
+
+Loop condition i < proverPool.length (src/VRFConsumer.sol#447) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < proverPool.length (src/VRFConsumerMock.sol#240) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < proverPool.length (src/VRFConsumerMock.sol#256) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < proverPool.length (src/VRFConsumerMock.sol#270) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < proverPool.length (src/VRFConsumer.sol#303) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < proverPool.length (src/VRFConsumer.sol#319) should use cached array length instead of referencing `length` member of the storage array.
+ Loop condition i < proverPool.length (src/VRFConsumer.sol#333) should use cached array length instead of referencing `length` member of the storage array.
+ Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#cache-array-length
+. analyzed (25 contracts with 63 detectors), 26 result(s) found

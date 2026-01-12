@@ -1,0 +1,429 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .logo | click | 01_landing.html |
+| Nav links | click | respective pages |
+| Back to Home | click | 01_landing.html |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利用規約 - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --warning: #f0a030;
+            --error: #e84057;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.8;
+        }
+
+        .premium-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .red-glow {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%);
+            opacity: 0.5;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 12, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-hinomaru {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-circle-outer {
+            position: absolute;
+            inset: 0;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: logo-rotate 20s linear infinite;
+        }
+
+        .logo-circle-outer::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+        }
+
+        .logo-hinomaru-inner {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent-hinomaru-glow);
+        }
+
+        @keyframes logo-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* Content */
+        .content {
+            padding: 120px 0 80px;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .last-updated {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 48px;
+        }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--accent-gold);
+        }
+
+        .section p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .section ul {
+            margin-left: 24px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .section li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background: var(--accent-hinomaru-dim);
+            border: 1px solid var(--accent-hinomaru);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin: 24px 0;
+        }
+
+        .highlight-box h4 {
+            color: var(--accent-hinomaru-light);
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .highlight-box p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-copyright {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        @media (max-width: 600px) {
+            .page-title { font-size: 28px; }
+            .section-title { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="red-glow"></div>
+    </div>
+
+    <header class="header">
+        <div class="header-inner">
+            <a href="01_landing.html" class="logo">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
+                </div>
+                <span class="logo-text">Quantum Shield</span>
+            </a>
+            <a href="01_landing.html" class="back-link">
+                ← ホームに戻る
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="content">
+            <h1 class="page-title">利用規約</h1>
+            <p class="last-updated">最終更新日: 2026年1月8日</p>
+
+            <section class="section">
+                <h2 class="section-title">1. はじめに</h2>
+                <p>
+                    本利用規約（以下「本規約」）は、Quantum Shield（以下「当サービス」）の利用条件を定めるものです。
+                    当サービスを利用される場合、本規約に同意したものとみなされます。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">2. サービスの概要</h2>
+                <p>
+                    当サービスは、量子耐性暗号技術（Dilithium-III、SPHINCS+）を活用したデジタル資産保護ソリューションです。
+                    ユーザーは自己の責任において、暗号資産のLock（預入）およびUnlock（引出）を行うことができます。
+                </p>
+                <div class="highlight-box">
+                    <h4>⚠️ 重要な注意事項</h4>
+                    <p>
+                        当サービスは自己管理型（セルフカストディ）のソリューションです。
+                        秘密鍵の管理はユーザー自身の責任となり、紛失した場合は資産へのアクセスが制限される可能性があります。
+                    </p>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">3. ユーザーの責任</h2>
+                <p>ユーザーは以下の責任を負うものとします：</p>
+                <ul>
+                    <li>Dilithium秘密鍵の安全な保管と管理</li>
+                    <li>接続するウォレットのセキュリティ確保</li>
+                    <li>正確な取引情報の入力</li>
+                    <li>適用される法令の遵守</li>
+                    <li>第三者への秘密鍵の非開示</li>
+                </ul>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">4. サービスの利用制限</h2>
+                <p>以下の行為は禁止されています：</p>
+                <ul>
+                    <li>違法な資金の取り扱い（マネーロンダリング等）</li>
+                    <li>制裁対象国・地域からの利用</li>
+                    <li>サービスへの不正アクセスまたは攻撃</li>
+                    <li>虚偽の情報提供</li>
+                    <li>他のユーザーの権利侵害</li>
+                </ul>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">5. Time Lock とEmergency Unlock</h2>
+                <p>
+                    当サービスでは、セキュリティ強化のため以下の仕組みを採用しています：
+                </p>
+                <ul>
+                    <li><strong>通常Unlock：</strong>24時間のTime Lock期間が適用されます</li>
+                    <li><strong>緊急Unlock：</strong>7日間のTime Lock期間と、保証金（Bond）の預入が必要です</li>
+                    <li><strong>Bond計算式：</strong>MAX(0.5 ETH, Unlock金額 × 5%)</li>
+                </ul>
+                <p>
+                    Bondは、不正なUnlock要求がなければ返還されます。
+                    不正が検出された場合、Bondはスラッシング（没収）される可能性があります。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">6. 免責事項</h2>
+                <p>当サービスは以下について責任を負いません：</p>
+                <ul>
+                    <li>ユーザーの秘密鍵の紛失・漏洩による損害</li>
+                    <li>ブロックチェーンネットワークの障害による遅延・損失</li>
+                    <li>暗号資産の価格変動による損失</li>
+                    <li>スマートコントラクトの脆弱性による損害（監査済みではあるものの）</li>
+                    <li>第三者によるハッキング・フィッシング攻撃</li>
+                    <li>法令・規制の変更による影響</li>
+                </ul>
+                <div class="highlight-box">
+                    <h4>🔴 投資リスクに関する警告</h4>
+                    <p>
+                        暗号資産には価格変動リスクがあります。投資判断は自己責任で行ってください。
+                        当サービスは投資助言を提供するものではありません。
+                    </p>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">7. サービスの変更・終了</h2>
+                <p>
+                    当社は、事前の通知により、サービスの内容を変更、または終了することがあります。
+                    重大な変更の場合は、30日前までに通知いたします。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">8. 知的財産権</h2>
+                <p>
+                    当サービスのロゴ、デザイン、ソフトウェア等の知的財産権は、当社または正当な権利者に帰属します。
+                    ただし、スマートコントラクトのソースコードはオープンソースライセンス（MIT）で公開されています。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">9. 準拠法・管轄</h2>
+                <p>
+                    本規約は日本法に準拠し、当サービスに関する紛争は東京地方裁判所を第一審の専属的合意管轄裁判所とします。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">10. お問い合わせ</h2>
+                <p>
+                    本規約に関するお問い合わせは、以下までご連絡ください：
+                </p>
+                <p>
+                    <strong>Email:</strong> legal@quantumshield.io<br>
+                    <strong>住所:</strong> 東京都渋谷区（詳細は別途）
+                </p>
+            </section>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="01_landing.html">ホーム</a>
+                <a href="17_terms.html">利用規約</a>
+                <a href="18_privacy.html">プライバシー</a>
+                <a href="08_faq.html">FAQ</a>
+            </div>
+            <div class="footer-copyright">
+                © 2026 Quantum Shield. Made in Japan 🇯🇵
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

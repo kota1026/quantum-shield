@@ -1,0 +1,32 @@
+[package]
+name = "aegis-keygen"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Dilithium-III key generation tool for L3-Aegis validators"
+license.workspace = true
+
+[[bin]]
+name = "aegis-keygen"
+path = "src/main.rs"
+
+[dependencies]
+# CP-1 compliant cryptography
+pqcrypto-dilithium = { workspace = true }
+pqcrypto-traits = { workspace = true }
+sha3 = { workspace = true }
+rand = { workspace = true }
+
+# CLI
+clap = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+hex = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.9"
