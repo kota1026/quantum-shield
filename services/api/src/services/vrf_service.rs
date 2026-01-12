@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 //! VRF Service for Chainlink VRF Integration
 //!
 //! Implements SEQUENCES §2.3-§2.4:
@@ -14,12 +13,13 @@ use std::time::Duration;
 
 use anyhow::Result;
 use sha3::{Digest, Sha3_256};
+use thiserror::Error;
 
 use crate::config::VRFConfig;
 use crate::types::{VRFRequest, VRFStatus};
 
 /// VRF Service Error types
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub enum VRFError {
     #[error("VRF request not found: {0}")]
     RequestNotFound(String),
@@ -32,6 +32,12 @@ pub enum VRFError {
 
     #[error("No active provers available")]
     NoActiveProvers,
+
+    #[error("No provers available")]
+    NoProversAvailable,
+
+    #[error("VRF request failed: {0}")]
+    RequestFailed(String),
 
     #[error("Contract call failed: {0}")]
     ContractError(String),
@@ -52,33 +58,10 @@ pub enum VRFError {
 /// 4. triggerFallback() - Use prevrandao after 5 min timeout
 pub struct VRFService {
     /// VRF configuration
-=======
-//! VRF Service for Chainlink VRF integration
-//!
-//! Implements SEQUENCES §2.3-§2.4: VRF Prover Selection
-
-use std::time::Duration;
-use thiserror::Error;
-use crate::config::VRFConfig;
-
-#[derive(Debug, Error)]
-pub enum VRFError {
-    #[error("VRF request failed: {0}")]
-    RequestFailed(String),
-    #[error("VRF timeout")]
-    Timeout,
-    #[error("No provers available")]
-    NoProversAvailable,
-}
-
-/// VRF Service for Prover selection
-pub struct VRFService {
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     config: VRFConfig,
 }
 
 impl VRFService {
-<<<<<<< HEAD
     /// Create new VRF service
     pub async fn new(config: &VRFConfig) -> Result<Self> {
         tracing::info!(
@@ -86,15 +69,11 @@ impl VRFService {
             config.contract_address
         );
 
-=======
-    pub async fn new(config: &VRFConfig) -> anyhow::Result<Self> {
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
         Ok(Self {
             config: config.clone(),
         })
     }
 
-<<<<<<< HEAD
     /// Request VRF prover selection
     ///
     /// SEQUENCES §2.3: VRF seed取得
@@ -235,7 +214,7 @@ impl VRFService {
     ///
     /// Implements polling loop with timeout
     ///
-    /// Returns (prover_address, random_value) or triggers fallback
+    /// Returns (prover_address, random_value, status) or triggers fallback
     pub async fn wait_for_selection(
         &self,
         unlock_request_id: &str,
@@ -277,6 +256,18 @@ impl VRFService {
         }
     }
 
+    /// Simple wait for VRF selection - returns just the prover
+    /// SEQUENCES §2.4
+    pub async fn wait_for_selection_simple(&self, vrf_request_id: &str, timeout: Duration) -> Result<String, VRFError> {
+        tracing::info!("Waiting for VRF selection: {} (timeout: {:?})", vrf_request_id, timeout);
+
+        // In production, this would poll for Chainlink VRF callback
+        // For now, simulate selection
+        tokio::time::sleep(Duration::from_millis(100)).await;
+
+        Ok("prover_0x1234".to_string())
+    }
+
     /// Generate VRF request ID from unlock request ID
     fn generate_vrf_request_id(&self, unlock_request_id: &str) -> String {
         let mut hasher = Sha3_256::new();
@@ -302,6 +293,11 @@ impl VRFService {
         Duration::from_secs(self.config.timeout_seconds)
     }
 
+    /// Get timeout duration from config (alias)
+    pub fn timeout_duration(&self) -> Duration {
+        Duration::from_secs(self.config.timeout_seconds)
+    }
+
     /// Create a new VRFRequest record
     pub fn create_vrf_request(
         &self,
@@ -318,41 +314,6 @@ impl VRFService {
             selected_prover: None,
             status: VRFStatus::Pending,
         }
-=======
-    /// Request VRF for prover selection
-    /// SEQUENCES §2.3
-    pub async fn request_prover_selection(&self, _unlock_id: &str) -> Result<String, VRFError> {
-        use sha3::{Digest, Sha3_256};
-        let mut hasher = Sha3_256::new();
-        hasher.update(b"VRF_REQUEST_");
-        hasher.update(&chrono::Utc::now().timestamp_nanos_opt().unwrap_or(0).to_be_bytes());
-        let vrf_request_id = format!("vrf_{}", hex::encode(&hasher.finalize()[..16]));
-        tracing::info!("VRF request created: {}", vrf_request_id);
-        Ok(vrf_request_id)
-    }
-
-    /// Wait for VRF selection result
-    /// SEQUENCES §2.4
-    pub async fn wait_for_selection(&self, vrf_request_id: &str, timeout: Duration) -> Result<String, VRFError> {
-        tracing::info!("Waiting for VRF selection: {} (timeout: {:?})", vrf_request_id, timeout);
-        
-        // In production, this would poll for Chainlink VRF callback
-        // For now, simulate selection
-        tokio::time::sleep(Duration::from_millis(100)).await;
-        
-        Ok("prover_0x1234".to_string())
-    }
-
-    /// Trigger fallback using prevrandao
-    /// Used when VRF times out (5 min)
-    pub async fn trigger_fallback(&self, _unlock_id: &str) -> Result<String, VRFError> {
-        tracing::warn!("VRF timeout, using prevrandao fallback");
-        Ok("prover_fallback_0x5678".to_string())
-    }
-
-    /// Get timeout duration from config
-    pub fn timeout_duration(&self) -> Duration {
-        Duration::from_secs(self.config.timeout_seconds)
     }
 
     /// Get list of available provers
@@ -373,7 +334,6 @@ impl VRFService {
             return vec![];
         }
 
-        use sha3::{Digest, Sha3_256};
         let mut hasher = Sha3_256::new();
         hasher.update(random_value.as_bytes());
         let hash = hasher.finalize();
@@ -386,7 +346,6 @@ impl VRFService {
         }
 
         vec![provers[idx1].clone(), provers[idx2].clone()]
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     }
 }
 
@@ -394,7 +353,6 @@ impl VRFService {
 mod tests {
     use super::*;
 
-<<<<<<< HEAD
     #[tokio::test]
     async fn test_vrf_service_creation() {
         let config = VRFConfig::default();
@@ -475,7 +433,8 @@ mod tests {
 
         let prover = result.unwrap();
         assert!(prover.starts_with("0x"));
-=======
+    }
+
     #[test]
     fn test_select_provers() {
         let config = VRFConfig {
@@ -485,12 +444,12 @@ mod tests {
             polling_interval_seconds: 5,
         };
         let service = VRFService { config };
-        
+
         let provers = vec![
             "p1".to_string(), "p2".to_string(), "p3".to_string(),
             "p4".to_string(), "p5".to_string(),
         ];
-        
+
         let selected = service.select_provers("random123", &provers);
         assert_eq!(selected.len(), 2);
         assert_ne!(selected[0], selected[1]);
@@ -500,11 +459,10 @@ mod tests {
     fn test_select_provers_deterministic() {
         let config = VRFConfig::default();
         let service = VRFService { config };
-        
+
         let provers = vec!["a".to_string(), "b".to_string(), "c".to_string()];
         let s1 = service.select_provers("same_seed", &provers);
         let s2 = service.select_provers("same_seed", &provers);
         assert_eq!(s1, s2);
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     }
 }
