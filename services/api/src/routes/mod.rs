@@ -12,6 +12,7 @@ mod health;
 mod admin;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 mod challenge;
 =======
 mod auth;
@@ -22,6 +23,9 @@ use crate::services::AppState;
 =======
 mod user;
 >>>>>>> origin/claude/implement-task-p5-020-vNCen
+=======
+mod token_hub;
+>>>>>>> origin/claude/implement-task-p5-021-RdbJS
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -41,6 +45,7 @@ pub fn api_routes() -> Router {
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
+<<<<<<< HEAD
 <<<<<<< HEAD
         // Challenge API (SEQUENCES §4)
         .route("/challenge", post(challenge::submit_challenge))
@@ -74,6 +79,18 @@ pub fn auth_routes(state: Arc<AppState>) -> Router {
         .route("/user/settings", post(user::update_settings))
         .route("/user/keys", get(user::get_keys))
 >>>>>>> origin/claude/implement-task-p5-020-vNCen
+=======
+        // Token Hub API (TASK-P5-021) - 9 endpoints
+        .route("/token-hub/dashboard", get(token_hub::get_dashboard))
+        .route("/token-hub/lock", post(token_hub::create_lock))
+        .route("/token-hub/locks", get(token_hub::get_locks))
+        .route("/token-hub/extend", post(token_hub::extend_lock))
+        .route("/token-hub/delegates", get(token_hub::get_delegates))
+        .route("/token-hub/delegate", post(token_hub::delegate_power))
+        .route("/token-hub/rewards", get(token_hub::get_rewards))
+        .route("/token-hub/claim", post(token_hub::claim_rewards))
+        .route("/token-hub/delegations/my", get(token_hub::get_my_delegations))
+>>>>>>> origin/claude/implement-task-p5-021-RdbJS
 }
 
 /// Admin Dashboard API routes (/api/*)
