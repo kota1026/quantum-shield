@@ -433,102 +433,79 @@ TASK-P5-004 L3 Production Mode: **COMPLETE**
 
 ---
 
-## 2026-01-12 (TASK-P5-021)
+## 2026-01-12 (TASK-P5-022)
 
 ### Event: TASK_START
-- **Task**: TASK-P5-021 Token Hub API (9 EP)
+- **Task**: TASK-P5-022 Prover Portal API (9 EP)
 - **Time**: 2026-01-12
 - **Prompt Used**: 21_impl_verify_loop.md
-- **Spec Refs**: UNIFIED_SPEC §veQS Token, §Delegation
+- **Spec Refs**: SEQUENCES §5, §6
 
 ### Event: IMPLEMENTATION
 - **Files Created**:
-  - `services/api/src/routes/token_hub.rs` (450+ lines)
+  - `services/api/src/routes/challenge.rs` (Challenge API endpoints)
+  - `services/api/src/services/vrf_service.rs` (VRF Service)
 - **Files Modified**:
-  - `services/api/src/routes/mod.rs` (token_hub module追加、9ルート追加)
-  - `services/api/src/types.rs` (Token Hub types追加: 15+ new types)
-  - `services/api/src/error.rs` (InvalidRequest, VeqsLockNotFound, VeqsLockAlreadyExists追加)
-  - `services/api/src/services/mod.rs` (veQS関連メソッド12個追加)
-
-### Event: API_ENDPOINTS_IMPLEMENTED
-- **9 Endpoints**:
-  | # | Method | Path | Description |
-  |---|--------|------|-------------|
-  | 1 | GET | /v1/token-hub/dashboard | User dashboard with balances and voting power |
-  | 2 | POST | /v1/token-hub/lock | Lock QS tokens for veQS |
-  | 3 | GET | /v1/token-hub/locks | Get user's lock positions |
-  | 4 | POST | /v1/token-hub/extend | Extend lock duration |
-  | 5 | GET | /v1/token-hub/delegates | List available delegates |
-  | 6 | POST | /v1/token-hub/delegate | Delegate voting power |
-  | 7 | GET | /v1/token-hub/rewards | Get rewards information |
-  | 8 | POST | /v1/token-hub/claim | Claim rewards |
-  | 9 | GET | /v1/token-hub/delegations/my | Get user's delegations |
+  - `services/api/src/types.rs` - Added 15+ Prover Portal types:
+    - ProverDashboard, SigningQueueItem, SigningQueueResponse
+    - QueueItemStatus, ProverSignRequest, ProverSignResponse
+    - ProverMetrics, ProverAlert, ProverAlertsResponse
+    - AlertType, AlertSeverity, ProverChallengeItem
+    - ProverChallengesResponse, ProverChallengeResponseRequest
+    - ProverChallengeResponseResult, ProverExitRequest, ProverExitResponse
+  - `services/api/src/services/mod.rs` - Added 15+ AppState methods:
+    - get_prover_dashboard(), get_signing_queue(), get_queue_item()
+    - store_queue_item(), submit_prover_signature(), get_prover_metrics()
+    - get_prover_alerts(), store_prover_alert(), get_prover_challenges()
+    - store_prover_challenge(), submit_prover_challenge_response()
+    - initiate_prover_exit(), update_prover_status()
+  - `services/api/src/routes/prover.rs` - Added 9 new endpoints:
+    - GET /v1/prover/:id/dashboard
+    - GET /v1/prover/:id/queue
+    - GET /v1/prover/:id/queue/:queue_id
+    - POST /v1/prover/:id/sign
+    - GET /v1/prover/:id/metrics
+    - GET /v1/prover/:id/alerts
+    - GET /v1/prover/:id/challenges
+    - POST /v1/prover/:id/challenge-response
+    - POST /v1/prover/:id/exit
+  - `services/api/src/routes/mod.rs` - Registered new routes
+  - `services/api/src/routes/unlock.rs` - Added VRF fields to response
+  - `services/api/src/error.rs` - Added NotFound, Forbidden errors
 
 ### Event: FEATURES_IMPLEMENTED
-- **veQS Lock System**:
-  - MIN_LOCK_TIME: 1 week (604,800 seconds)
-  - MAX_LOCK_TIME: 4 years (126,144,000 seconds)
-  - veQS = QS × (lock_duration / MAX_LOCK_TIME)
-  - Time remaining formatting (Y/M/D)
-- **Delegation System**:
-  - Get available delegates with participation stats
-  - Delegate voting power to other addresses
-  - Track user's delegations
-- **Rewards System**:
-  - Claimable rewards tracking
-  - Epoch progress
-  - APY calculation
-  - Reward history
-- **veQS.sol Integration Ready**:
-  - Types match IveQS.sol interface
-  - LockPosition, HistoricalLock structures
-
-### Event: TYPES_ADDED
-- **Request Types**:
-  - TokenHubLockRequest
-  - TokenHubExtendRequest
-  - TokenHubDelegateRequest
-  - TokenHubClaimRequest
-- **Response Types**:
-  - TokenHubDashboardResponse
-  - TokenHubLockResponse
-  - TokenHubLocksResponse
-  - TokenHubExtendResponse
-  - TokenHubDelegatesResponse
-  - TokenHubDelegateResponse
-  - TokenHubRewardsResponse
-  - TokenHubClaimResponse
-  - TokenHubMyDelegationsResponse
-- **Data Types**:
-  - LockPosition
-  - HistoricalLock
-  - DelegateInfo
-  - MyDelegation
-  - RewardHistory
+- **Dashboard**: Prover status, stake, signatures, queue size, challenges
+- **Signing Queue**: Pending unlock requests with deadline tracking
+- **Signature Submission**: SPHINCS+-128s validation, HSM attestation
+- **Metrics**: 24h/7d/all-time stats, ranking, rewards
+- **Alerts**: Challenge, deadline, slashing, HSM notifications
+- **Challenge Management**: View challenges, submit defense
+- **Exit Flow**: 7-day unbonding per SEQUENCES §6
 
 ### Event: VERIFICATION_LOOP
 - **Loop**: 1
 - **Results**:
   | Check | Status |
   |-------|:------:|
-  | cargo build | ✅ (warnings) |
-  | cargo test (unit) | ✅ 28 passed |
+  | cargo build | ✅ (warnings only) |
+  | cargo test (unit) | ✅ 43 passed |
   | cargo test (api) | ✅ 14 passed |
   | cargo test (integration) | ✅ 12 passed |
-- **Total Tests**: 54 passed
-- **New Tests Added**:
-  - `test_format_duration`
-  - `test_veqs_calculation`
-  - `test_lock_duration_validation`
+- **Total Tests**: 69 passed
 
 ### Event: TASK_COMPLETE
-- **Task**: TASK-P5-021
+- **Task**: TASK-P5-022
 - **Status**: DONE
+- **Date**: 2026-01-12
 - **Artifacts**:
-  - `token_hub.rs`: Token Hub API with 9 endpoints
-  - `types.rs`: 15+ Token Hub types
-  - `services/mod.rs`: 12 veQS service methods
-  - 3 Token Hub unit tests
+  - `types.rs`: 15+ new Prover Portal types
+  - `services/mod.rs`: 15+ new AppState methods
+  - `prover.rs`: 9 Prover Portal API endpoints
+  - `challenge.rs`: Challenge API (submit, get, defense, auto-resolve)
+  - `vrf_service.rs`: VRF prover selection service
+- **Spec Compliance**:
+  - SEQUENCES §5: Prover Registration ✅
+  - SEQUENCES §6: Prover Exit (7-day unbonding) ✅
 
 ---
 

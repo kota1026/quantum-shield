@@ -4,11 +4,16 @@ mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
 <<<<<<< HEAD
+<<<<<<< HEAD
 mod vrf_service;
 mod sphincs_service;
 =======
 pub mod auth_service;
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+mod vrf_service;
+mod sphincs_service;
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
 use anyhow::Result;
 
@@ -19,12 +24,24 @@ use crate::{
         Lock, LockRequest, LockStatus, Edition,
         ProverRegisterRequest, ProverInfoResponse, ProverStatus,
 <<<<<<< HEAD
+<<<<<<< HEAD
         ChallengeInfo, ChallengeStatus,
         VRFRequest, VRFStatus,
 =======
         LockPosition, HistoricalLock, DelegateInfo, MyDelegation,
         TokenHubRewardsResponse, RewardHistory,
 >>>>>>> origin/claude/implement-task-p5-021-RdbJS
+=======
+        ChallengeInfo, ChallengeStatus,
+        VRFRequest, VRFStatus,
+        // Prover Portal types (TASK-P5-022)
+        ProverDashboard, SigningQueueItem, SigningQueueResponse, QueueItemStatus,
+        ProverSignRequest, ProverSignResponse, ProverMetrics,
+        ProverAlert, ProverAlertsResponse, AlertType, AlertSeverity,
+        ProverChallengeItem, ProverChallengesResponse,
+        ProverChallengeResponseRequest, ProverChallengeResponseResult,
+        ProverExitRequest, ProverExitResponse,
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
     },
 };
 
@@ -32,11 +49,16 @@ pub use redis_client::RedisClient;
 pub use rabbitmq_client::RabbitMQClient;
 pub use hsm_client::HsmClient;
 <<<<<<< HEAD
+<<<<<<< HEAD
 pub use vrf_service::{VRFService, VRFError};
 pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
 =======
 pub use auth_service::AuthService;
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+pub use vrf_service::{VRFService, VRFError};
+pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
 
 /// Application state shared across handlers
 pub struct AppState {
@@ -45,12 +67,17 @@ pub struct AppState {
     pub rabbitmq: RabbitMQClient,
     pub hsm: HsmClient,
 <<<<<<< HEAD
+<<<<<<< HEAD
     /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
     pub vrf: VRFService,
 =======
     /// Authentication service for SIWE/JWT (TASK-P5-012)
     pub auth_service: AuthService,
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+    /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
+    pub vrf: VRFService,
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
 }
 
 /// Edition state tracking
@@ -67,12 +94,17 @@ impl AppState {
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
 <<<<<<< HEAD
+<<<<<<< HEAD
         let vrf = VRFService::new(&config.vrf).await?;
         Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf })
 =======
         let auth_service = AuthService::new(config.jwt.clone());
         Ok(Self { config: config.clone(), redis, rabbitmq, hsm, auth_service })
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+        let vrf = VRFService::new(&config.vrf).await?;
+        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf })
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
     }
 
     pub async fn is_nonce_used(&self, pk: &str, nonce: u64) -> Result<bool, ApiError> {
@@ -186,6 +218,9 @@ impl AppState {
     // ========================================================================
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
     // Challenge Methods (SEQUENCES §4)
     // ========================================================================
 
@@ -227,6 +262,7 @@ impl AppState {
             Err(e) => return Err(ApiError::Internal(e.to_string())),
         };
         let key = format!("challenge:{}", challenge_id);
+<<<<<<< HEAD
 =======
     // User API methods (TASK-P5-020)
     // ========================================================================
@@ -267,6 +303,8 @@ impl AppState {
     pub async fn get_veqs_lock(&self, address: &str) -> Result<Option<LockPosition>, ApiError> {
         let key = format!("veqs:lock:{}", address);
 >>>>>>> origin/claude/implement-task-p5-021-RdbJS
+=======
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
             Ok(None) => Ok(None),
@@ -276,6 +314,9 @@ impl AppState {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
     /// Submit defense for a challenge
     pub async fn submit_defense(
         &self,
@@ -355,6 +396,7 @@ impl AppState {
         let key = format!("vrf:{}", vrf_request_id);
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+<<<<<<< HEAD
 =======
     /// Store user settings
     pub async fn store_user_settings(&self, user_address: &str, settings: &crate::types::UserSettingsResponse) -> Result<(), ApiError> {
@@ -394,10 +436,14 @@ impl AppState {
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(serde_json::from_str(&value).unwrap_or_default()),
             Ok(None) => Ok(vec![]),
+=======
+            Ok(None) => Ok(None),
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
             Err(e) => Err(ApiError::Internal(e.to_string())),
         }
     }
 
+<<<<<<< HEAD
     /// Get user's QS token balance (mock - would call L1 contract)
     pub async fn get_qs_balance(&self, address: &str) -> Result<String, ApiError> {
         // In production: Call QS token contract balanceOf(address)
@@ -445,6 +491,8 @@ impl AppState {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
     /// Update VRF request status
     pub async fn update_vrf_status(
         &self,
@@ -485,6 +533,7 @@ impl AppState {
             "selected_prover": selected_prover,
         });
         self.rabbitmq.publish("sig_queue", &msg.to_string()).await.map_err(|e| ApiError::Internal(e.to_string()))
+<<<<<<< HEAD
 =======
     /// Store user's Dilithium public key
     pub async fn store_user_dilithium_key(&self, user_address: &str, public_key: &str) -> Result<(), ApiError> {
@@ -601,4 +650,423 @@ impl AppState {
         })
 >>>>>>> origin/claude/implement-task-p5-021-RdbJS
     }
+=======
+    }
+
+    // ========================================================================
+    // Prover Portal Methods (TASK-P5-022)
+    // SEQUENCES §5: Prover Registration, §6: Prover Exit
+    // ========================================================================
+
+    /// Get prover dashboard data
+    /// GET /v1/prover/dashboard
+    pub async fn get_prover_dashboard(&self, prover_id: &str) -> Result<ProverDashboard, ApiError> {
+        let prover = self.get_prover(prover_id).await?
+            .ok_or_else(|| ApiError::ProverNotFound(prover_id.to_string()))?;
+
+        // Get queue size
+        let queue_key = format!("prover:queue:{}", prover_id);
+        let queue_items: Vec<SigningQueueItem> = match self.redis.get(&queue_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+        let queue_size = queue_items.iter().filter(|i| i.status == QueueItemStatus::Pending).count() as u64;
+
+        // Get metrics
+        let metrics_key = format!("prover:metrics:{}", prover_id);
+        let (signatures_24h, pending_rewards, total_earnings, uptime_percentage) = match self.redis.get(&metrics_key).await {
+            Ok(Some(v)) => {
+                let m: serde_json::Value = serde_json::from_str(&v).unwrap_or_default();
+                (
+                    m.get("signatures_24h").and_then(|v| v.as_u64()).unwrap_or(0),
+                    m.get("pending_rewards").and_then(|v| v.as_str()).unwrap_or("0").to_string(),
+                    m.get("total_earnings").and_then(|v| v.as_str()).unwrap_or("0").to_string(),
+                    m.get("uptime_percentage").and_then(|v| v.as_f64()).unwrap_or(99.9),
+                )
+            }
+            _ => (0, "0".to_string(), "0".to_string(), 99.9),
+        };
+
+        // Get active challenges count
+        let challenges_key = format!("prover:challenges:{}", prover_id);
+        let active_challenges: u64 = match self.redis.get(&challenges_key).await {
+            Ok(Some(v)) => {
+                let challenges: Vec<ChallengeInfo> = serde_json::from_str(&v).unwrap_or_default();
+                challenges.iter().filter(|c| c.status == ChallengeStatus::Pending).count() as u64
+            }
+            _ => 0,
+        };
+
+        let slash_count = prover.slashing_history.len() as u32;
+        let last_activity = chrono::Utc::now().timestamp() as u64;
+
+        Ok(ProverDashboard {
+            prover_id: prover.prover_id,
+            status: prover.status,
+            stake_amount: prover.stake_amount,
+            total_signatures: prover.total_signatures,
+            signatures_24h,
+            pending_rewards,
+            total_earnings,
+            queue_size,
+            active_challenges,
+            slash_count,
+            uptime_percentage,
+            last_activity,
+        })
+    }
+
+    /// Get signing queue for a prover
+    /// GET /v1/prover/queue
+    pub async fn get_signing_queue(&self, prover_id: &str) -> Result<SigningQueueResponse, ApiError> {
+        let queue_key = format!("prover:queue:{}", prover_id);
+        let items: Vec<SigningQueueItem> = match self.redis.get(&queue_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        let pending_count = items.iter().filter(|i| i.status == QueueItemStatus::Pending).count();
+        let total = items.len();
+
+        Ok(SigningQueueResponse {
+            items,
+            total,
+            pending_count,
+        })
+    }
+
+    /// Get single queue item
+    /// GET /v1/prover/queue/:id
+    pub async fn get_queue_item(&self, prover_id: &str, queue_id: &str) -> Result<Option<SigningQueueItem>, ApiError> {
+        let queue = self.get_signing_queue(prover_id).await?;
+        Ok(queue.items.into_iter().find(|i| i.queue_id == queue_id))
+    }
+
+    /// Store a queue item for prover
+    pub async fn store_queue_item(&self, prover_id: &str, item: &SigningQueueItem) -> Result<(), ApiError> {
+        let queue_key = format!("prover:queue:{}", prover_id);
+        let mut items: Vec<SigningQueueItem> = match self.redis.get(&queue_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        // Update or add item
+        if let Some(pos) = items.iter().position(|i| i.queue_id == item.queue_id) {
+            items[pos] = item.clone();
+        } else {
+            items.push(item.clone());
+        }
+
+        let value = serde_json::to_string(&items).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&queue_key, &value, 86400 * 7).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Submit prover signature
+    /// POST /v1/prover/sign
+    pub async fn submit_prover_signature(
+        &self,
+        prover_id: &str,
+        req: &ProverSignRequest,
+    ) -> Result<ProverSignResponse, ApiError> {
+        // Get queue item
+        let mut item = self.get_queue_item(prover_id, &req.queue_id).await?
+            .ok_or_else(|| ApiError::NotFound(format!("Queue item not found: {}", req.queue_id)))?;
+
+        // Validate signature format (SPHINCS+-128s: 7856 bytes)
+        SphincsService::validate_signature_format(&req.sphincs_signature)
+            .map_err(|e| ApiError::InvalidSignature(format!("Invalid SPHINCS+ signature: {}", e)))?;
+
+        // Update queue item status
+        item.status = QueueItemStatus::Signed;
+        self.store_queue_item(prover_id, &item).await?;
+
+        // Store signature
+        let sig_key = format!("sig:{}:{}", item.unlock_id, prover_id);
+        let sig_data = serde_json::json!({
+            "prover_id": prover_id,
+            "signature": req.sphincs_signature,
+            "timestamp": chrono::Utc::now().timestamp(),
+        });
+        self.redis.set(&sig_key, &sig_data.to_string(), 86400 * 30).await
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Update prover stats
+        if let Some(mut prover) = self.get_prover(prover_id).await? {
+            prover.total_signatures += 1;
+            let prover_key = format!("prover:{}", prover_id);
+            let value = serde_json::to_string(&prover).map_err(|e| ApiError::Internal(e.to_string()))?;
+            self.redis.set(&prover_key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+        }
+
+        // Calculate reward (0.01% of amount)
+        let reward = "10000000000000000".to_string(); // 0.01 ETH default
+
+        Ok(ProverSignResponse {
+            queue_id: req.queue_id.clone(),
+            unlock_id: item.unlock_id,
+            signature_accepted: true,
+            total_signatures: 1,
+            required_signatures: 2, // 2/5 Prover requirement
+            reward_earned: reward,
+        })
+    }
+
+    /// Get prover metrics
+    /// GET /v1/prover/metrics
+    pub async fn get_prover_metrics(&self, prover_id: &str) -> Result<ProverMetrics, ApiError> {
+        let prover = self.get_prover(prover_id).await?
+            .ok_or_else(|| ApiError::ProverNotFound(prover_id.to_string()))?;
+
+        let metrics_key = format!("prover:metrics:{}", prover_id);
+        let metrics: serde_json::Value = match self.redis.get(&metrics_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => serde_json::json!({}),
+        };
+
+        // Get total provers count for ranking
+        let total_provers = 10u32; // TODO: implement actual count
+        let rank = 1u32; // TODO: implement actual ranking
+
+        Ok(ProverMetrics {
+            total_signatures: prover.total_signatures,
+            signatures_24h: metrics.get("signatures_24h").and_then(|v| v.as_u64()).unwrap_or(0),
+            signatures_7d: metrics.get("signatures_7d").and_then(|v| v.as_u64()).unwrap_or(0),
+            avg_response_time_ms: metrics.get("avg_response_time_ms").and_then(|v| v.as_u64()).unwrap_or(500),
+            success_rate: metrics.get("success_rate").and_then(|v| v.as_f64()).unwrap_or(99.5),
+            uptime_percentage: metrics.get("uptime_percentage").and_then(|v| v.as_f64()).unwrap_or(99.9),
+            total_rewards: metrics.get("total_rewards").and_then(|v| v.as_str()).unwrap_or("0").to_string(),
+            rewards_30d: metrics.get("rewards_30d").and_then(|v| v.as_str()).unwrap_or("0").to_string(),
+            slash_count: prover.slashing_history.len() as u32,
+            total_slashed: prover.slashing_history.iter()
+                .map(|e| e.amount.parse::<u128>().unwrap_or(0))
+                .sum::<u128>()
+                .to_string(),
+            rank,
+            total_provers,
+        })
+    }
+
+    /// Get prover alerts
+    /// GET /v1/prover/alerts
+    pub async fn get_prover_alerts(&self, prover_id: &str) -> Result<ProverAlertsResponse, ApiError> {
+        let alerts_key = format!("prover:alerts:{}", prover_id);
+        let alerts: Vec<ProverAlert> = match self.redis.get(&alerts_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        let unacknowledged_count = alerts.iter().filter(|a| !a.acknowledged).count();
+        let total = alerts.len();
+
+        Ok(ProverAlertsResponse {
+            alerts,
+            total,
+            unacknowledged_count,
+        })
+    }
+
+    /// Store a prover alert
+    pub async fn store_prover_alert(&self, prover_id: &str, alert: &ProverAlert) -> Result<(), ApiError> {
+        let alerts_key = format!("prover:alerts:{}", prover_id);
+        let mut alerts: Vec<ProverAlert> = match self.redis.get(&alerts_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        alerts.push(alert.clone());
+
+        // Keep only last 100 alerts
+        let len = alerts.len();
+        if len > 100 {
+            alerts = alerts.into_iter().skip(len - 100).collect();
+        }
+
+        let value = serde_json::to_string(&alerts).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&alerts_key, &value, 86400 * 30).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Get challenges for a prover
+    /// GET /v1/prover/challenges
+    pub async fn get_prover_challenges(&self, prover_id: &str) -> Result<ProverChallengesResponse, ApiError> {
+        let challenges_key = format!("prover:challenges:{}", prover_id);
+        let challenge_infos: Vec<ChallengeInfo> = match self.redis.get(&challenges_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        let now = chrono::Utc::now().timestamp() as u64;
+        let challenges: Vec<ProverChallengeItem> = challenge_infos.iter().map(|c| {
+            let time_remaining = if c.defense_deadline > now {
+                (c.defense_deadline - now) as i64
+            } else {
+                0
+            };
+
+            ProverChallengeItem {
+                challenge_id: c.challenge_id.clone(),
+                lock_id: c.lock_id.clone(),
+                challenger: c.challenger.clone(),
+                challenged_at: c.challenged_at,
+                defense_deadline: c.defense_deadline,
+                time_remaining,
+                status: c.status,
+                potential_slash: c.bond.clone(), // Simplified: use bond as potential slash
+                defense_submitted: c.defense_proof_hash.is_some(),
+            }
+        }).collect();
+
+        let pending_count = challenges.iter().filter(|c| c.status == ChallengeStatus::Pending).count();
+        let total = challenges.len();
+
+        Ok(ProverChallengesResponse {
+            challenges,
+            total,
+            pending_count,
+        })
+    }
+
+    /// Store challenge for prover tracking
+    pub async fn store_prover_challenge(&self, prover_id: &str, challenge: &ChallengeInfo) -> Result<(), ApiError> {
+        let challenges_key = format!("prover:challenges:{}", prover_id);
+        let mut challenges: Vec<ChallengeInfo> = match self.redis.get(&challenges_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).unwrap_or_default(),
+            _ => vec![],
+        };
+
+        // Update or add challenge
+        if let Some(pos) = challenges.iter().position(|c| c.challenge_id == challenge.challenge_id) {
+            challenges[pos] = challenge.clone();
+        } else {
+            challenges.push(challenge.clone());
+        }
+
+        let value = serde_json::to_string(&challenges).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&challenges_key, &value, 86400 * 30).await.map_err(|e| ApiError::Internal(e.to_string()))
+    }
+
+    /// Submit challenge response (defense)
+    /// POST /v1/prover/challenge-response
+    pub async fn submit_prover_challenge_response(
+        &self,
+        prover_id: &str,
+        req: &ProverChallengeResponseRequest,
+    ) -> Result<ProverChallengeResponseResult, ApiError> {
+        // Get challenge
+        let challenge_key = format!("challenge:{}", req.challenge_id);
+        let challenge_value = self.redis.get(&challenge_key).await
+            .map_err(|e| ApiError::Internal(e.to_string()))?
+            .ok_or_else(|| ApiError::ChallengeNotFound(req.challenge_id.clone()))?;
+
+        let mut challenge: ChallengeInfo = serde_json::from_str(&challenge_value)
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Check deadline
+        let now = chrono::Utc::now().timestamp() as u64;
+        if now > challenge.defense_deadline {
+            return Err(ApiError::Forbidden("Defense deadline has passed".into()));
+        }
+
+        // Update challenge with defense
+        challenge.status = ChallengeStatus::DefenseSubmitted;
+        challenge.defender = Some(prover_id.to_string());
+        challenge.defense_proof_hash = Some(sha3_hash(&req.defense_proof));
+
+        let new_value = serde_json::to_string(&challenge).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&challenge_key, &new_value, 86400 * 30).await
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Update prover's challenge tracking
+        self.store_prover_challenge(prover_id, &challenge).await?;
+
+        Ok(ProverChallengeResponseResult {
+            challenge_id: req.challenge_id.clone(),
+            status: ChallengeStatus::DefenseSubmitted,
+            defense_accepted: true,
+            message: "Defense submitted successfully. Awaiting arbitration.".to_string(),
+        })
+    }
+
+    /// Initiate prover exit
+    /// POST /v1/prover/exit
+    /// SEQUENCES §6: 7-day unbonding period
+    pub async fn initiate_prover_exit(
+        &self,
+        prover_id: &str,
+        _req: &ProverExitRequest,
+    ) -> Result<ProverExitResponse, ApiError> {
+        let mut prover = self.get_prover(prover_id).await?
+            .ok_or_else(|| ApiError::ProverNotFound(prover_id.to_string()))?;
+
+        // Check if prover can exit (not already exiting, no pending challenges)
+        if prover.status == ProverStatus::Exiting || prover.status == ProverStatus::Exited {
+            return Err(ApiError::Forbidden("Prover is already exiting or has exited".into()));
+        }
+
+        // Check for pending challenges
+        let challenges = self.get_prover_challenges(prover_id).await?;
+        if challenges.pending_count > 0 {
+            return Err(ApiError::Forbidden("Cannot exit with pending challenges".into()));
+        }
+
+        // Update prover status to Exiting
+        prover.status = ProverStatus::Exiting;
+        let prover_key = format!("prover:{}", prover_id);
+        let value = serde_json::to_string(&prover).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&prover_key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Calculate unbonding period (7 days per SEQUENCES §6)
+        let now = chrono::Utc::now().timestamp() as u64;
+        let unbonding_days = 7u32;
+        let unbonding_end = now + (unbonding_days as u64 * 24 * 60 * 60);
+
+        // Store exit info
+        let exit_key = format!("prover:exit:{}", prover_id);
+        let exit_data = serde_json::json!({
+            "initiated_at": now,
+            "unbonding_end": unbonding_end,
+            "stake_amount": prover.stake_amount,
+        });
+        self.redis.set(&exit_key, &exit_data.to_string(), 86400 * 14).await
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Get pending rewards
+        let metrics_key = format!("prover:metrics:{}", prover_id);
+        let pending_rewards: String = match self.redis.get(&metrics_key).await {
+            Ok(Some(v)) => {
+                let m: serde_json::Value = serde_json::from_str(&v).unwrap_or_default();
+                m.get("pending_rewards").and_then(|v| v.as_str()).unwrap_or("0").to_string()
+            }
+            _ => "0".to_string(),
+        };
+
+        Ok(ProverExitResponse {
+            prover_id: prover_id.to_string(),
+            status: ProverStatus::Exiting,
+            exit_initiated_at: now,
+            unbonding_end,
+            unbonding_days,
+            stake_to_return: prover.stake_amount,
+            pending_rewards,
+        })
+    }
+
+    /// Update prover status
+    pub async fn update_prover_status(&self, prover_id: &str, status: ProverStatus) -> Result<(), ApiError> {
+        if let Some(mut prover) = self.get_prover(prover_id).await? {
+            prover.status = status;
+            let prover_key = format!("prover:{}", prover_id);
+            let value = serde_json::to_string(&prover).map_err(|e| ApiError::Internal(e.to_string()))?;
+            self.redis.set(&prover_key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+        }
+        Ok(())
+    }
+}
+
+/// Helper: SHA3-256 hash for proof hashing
+fn sha3_hash(data: &str) -> String {
+    use sha3::{Sha3_256, Digest};
+    let mut hasher = Sha3_256::new();
+    hasher.update(data.as_bytes());
+    format!("0x{}", hex::encode(hasher.finalize()))
+>>>>>>> origin/claude/implement-task-p5-022-MKhkM
 }
