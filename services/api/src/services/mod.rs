@@ -4,6 +4,7 @@ mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
 mod vrf_service;
+mod sphincs_service;
 
 use anyhow::Result;
 
@@ -22,6 +23,7 @@ pub use redis_client::RedisClient;
 pub use rabbitmq_client::RabbitMQClient;
 pub use hsm_client::HsmClient;
 pub use vrf_service::{VRFService, VRFError};
+pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
 
 /// Application state shared across handlers
 pub struct AppState {

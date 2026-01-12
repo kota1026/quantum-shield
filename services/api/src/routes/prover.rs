@@ -1,6 +1,11 @@
 //! Prover API implementation
 //!
 //! Implements Sequence #5: Prover Registration
+//!
+//! ## CP-1 Compliance
+//! - Uses SPHINCS+-128s for Prover signatures (post-quantum secure)
+//! - Uses SHA3-256 for all hashing
+//! - Validates SPHINCS+ public key format and size
 
 use std::sync::Arc;
 
@@ -9,46 +14,56 @@ use sha3::{Sha3_256, Digest};
 
 use crate::{
     error::ApiError,
-    services::AppState,
+    services::{AppState, SphincsService, SPHINCS_PUBLIC_KEY_BYTES},
     types::{ProverRegisterRequest, ProverRegisterResponse, ProverInfoResponse, ProverStatus},
 };
 
 /// POST /v1/prover/register
-/// 
+///
 /// Register as a new Prover.
-/// 
+///
 /// Requirements:
 /// - Minimum stake: $400K (Phase 1) / $500K (Phase 2+)
 /// - HSM attestation required
 /// - 2-of-3 multisig proof required
+/// - Valid SPHINCS+-128s public key (32 bytes)
+///
+/// ## CP-1 Compliance
+/// - SPHINCS+-128s public key validation (post-quantum secure)
+/// - HSM attestation verification
 pub async fn register_prover(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<ProverRegisterRequest>,
 ) -> Result<Json<ProverRegisterResponse>, ApiError> {
     tracing::info!("Processing prover registration for: {}", req.operator_addr);
 
-    // 1. Validate HSM attestation
-    if !validate_hsm_attestation(&req.hsm_attestation) {
-        return Err(ApiError::InvalidSignature("Invalid HSM attestation".into()));
-    }
+    // 1. Validate SPHINCS+-128s public key format and size (CP-1)
+    SphincsService::validate_public_key(&req.sphincs_pubkey)
+        .map_err(|e| ApiError::InvalidSignature(format!("SPHINCS+ public key validation failed: {}", e)))?;
+    tracing::info!("✓ SPHINCS+-128s public key validated ({} bytes)", SPHINCS_PUBLIC_KEY_BYTES);
 
-    // 2. Validate multisig proof
+    // 2. Validate HSM attestation with public key binding
+    SphincsService::validate_hsm_attestation(&req.hsm_attestation, &req.sphincs_pubkey)
+        .map_err(|e| ApiError::InvalidSignature(format!("HSM attestation validation failed: {}", e)))?;
+    tracing::info!("✓ HSM attestation validated");
+
+    // 3. Validate multisig proof
     if !validate_multisig_proof(&req.multisig_proof) {
         return Err(ApiError::InvalidSignature("Invalid multisig proof".into()));
     }
+    tracing::info!("✓ Multisig proof validated");
 
-    // 3. Validate SPHINCS+ public key
-    if !validate_sphincs_pubkey(&req.sphincs_pubkey) {
-        return Err(ApiError::InvalidSignature("Invalid SPHINCS+ public key".into()));
-    }
-
-    // 4. Generate prover_id
+    // 4. Generate prover_id using SHA3-256 (CP-1 compliant)
     let prover_id = generate_prover_id(&req.operator_addr, &req.sphincs_pubkey);
 
     // 5. Store prover record
     state.store_prover(&prover_id, &req).await?;
 
-    tracing::info!("Prover registration submitted: {}", prover_id);
+    tracing::info!(
+        "Prover registration submitted: {} (operator: {})",
+        prover_id,
+        req.operator_addr
+    );
 
     Ok(Json(ProverRegisterResponse {
         prover_id,
@@ -72,22 +87,10 @@ pub async fn get_prover_info(
     Ok(Json(prover))
 }
 
-/// Validate HSM attestation
-fn validate_hsm_attestation(attestation: &str) -> bool {
-    // TODO: Implement actual HSM attestation verification
-    !attestation.is_empty()
-}
-
 /// Validate 2-of-3 multisig proof
 fn validate_multisig_proof(proof: &str) -> bool {
     // TODO: Implement actual multisig proof verification
     !proof.is_empty()
-}
-
-/// Validate SPHINCS+ public key format
-fn validate_sphincs_pubkey(pubkey: &str) -> bool {
-    // SPHINCS+-128s public key should be valid hex
-    pubkey.starts_with("0x") && pubkey.len() > 2
 }
 
 /// Generate prover_id from operator address and SPHINCS+ public key
