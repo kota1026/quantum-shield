@@ -1,7 +1,6 @@
 //! API routes module
 
-use axum::{middleware, Router, routing::{get, post}};
-use std::sync::Arc;
+use axum::{Router, routing::{get, post}};
 
 mod lock;
 mod unlock;
@@ -10,30 +9,12 @@ mod prover;
 mod edition;
 mod health;
 mod admin;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-mod challenge;
-=======
 mod auth;
-
-use crate::middleware::jwt_auth;
-use crate::services::AppState;
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
 mod user;
->>>>>>> origin/claude/implement-task-p5-020-vNCen
-=======
 mod token_hub;
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
 mod challenge;
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
-=======
 mod governance;
->>>>>>> origin/claude/implement-task-p5-023-CwfT3
+mod observer;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -63,37 +44,11 @@ pub fn api_routes() -> Router {
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
         // Challenge API (SEQUENCES §4)
         .route("/challenge", post(challenge::submit_challenge))
         .route("/challenge/:lock_id", get(challenge::get_challenge))
         .route("/challenge/:lock_id/defense", post(challenge::submit_defense))
         .route("/challenge/:lock_id/auto-resolve", post(challenge::auto_resolve))
-<<<<<<< HEAD
-}
-
-/// Authentication routes (TASK-P5-012: SIWE→JWT)
-/// POST /v1/auth/siwe - SIWE authentication (public)
-/// POST /v1/auth/refresh - Refresh access token (public)
-/// GET /v1/auth/me - Get current user (protected)
-pub fn auth_routes(state: Arc<AppState>) -> Router {
-    Router::new()
-        // Public endpoints (no auth required)
-        .route("/auth/siwe", post(auth::siwe_authenticate))
-        .route("/auth/refresh", post(auth::refresh_token))
-        // Protected endpoint (requires JWT)
-        .route(
-            "/auth/me",
-            get(auth::get_current_user)
-                .layer(middleware::from_fn_with_state(state.clone(), jwt_auth)),
-        )
-        .with_state(state)
-=======
         // Consumer App API (TASK-P5-020)
         .route("/user/dashboard", get(user::get_dashboard))
         .route("/user/transactions", get(user::get_transactions))
@@ -101,8 +56,6 @@ pub fn auth_routes(state: Arc<AppState>) -> Router {
         .route("/user/settings", get(user::get_settings))
         .route("/user/settings", post(user::update_settings))
         .route("/user/keys", get(user::get_keys))
->>>>>>> origin/claude/implement-task-p5-020-vNCen
-=======
         // Token Hub API (TASK-P5-021) - 9 endpoints
         .route("/token-hub/dashboard", get(token_hub::get_dashboard))
         .route("/token-hub/lock", post(token_hub::create_lock))
@@ -113,10 +66,6 @@ pub fn auth_routes(state: Arc<AppState>) -> Router {
         .route("/token-hub/rewards", get(token_hub::get_rewards))
         .route("/token-hub/claim", post(token_hub::claim_rewards))
         .route("/token-hub/delegations/my", get(token_hub::get_my_delegations))
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
-=======
         // Governance API (TASK-P5-023)
         .route("/governance/dashboard", get(governance::get_dashboard))
         .route("/governance/proposals", get(governance::list_proposals))
@@ -126,7 +75,23 @@ pub fn auth_routes(state: Arc<AppState>) -> Router {
         .route("/governance/votes/:id", get(governance::get_vote))
         .route("/governance/activity", get(governance::get_activity))
         .route("/governance/council", get(governance::get_council))
->>>>>>> origin/claude/implement-task-p5-023-CwfT3
+        // Observer API (TASK-P5-019) - 8 endpoints
+        .route("/observer/dashboard", get(observer::get_dashboard))
+        .route("/observer/pending-unlocks", get(observer::get_pending_unlocks))
+        .route("/observer/suspicious-txs", get(observer::get_suspicious_txs))
+        .route("/observer/history", get(observer::get_history))
+        .route("/observer/challenge", post(observer::submit_challenge))
+        .route("/observer/challenge/:id", get(observer::get_challenge))
+        .route("/observer/earnings", get(observer::get_earnings))
+        .route("/observer/claim-earnings", post(observer::claim_earnings))
+}
+
+/// Auth API routes (/v1/auth/*)
+pub fn auth_routes(_state: std::sync::Arc<crate::services::AppState>) -> Router {
+    Router::new()
+        .route("/auth/siwe", post(auth::siwe_authenticate))
+        .route("/auth/refresh", post(auth::refresh_token))
+        .route("/auth/me", get(auth::get_current_user))
 }
 
 /// Admin Dashboard API routes (/api/*)
