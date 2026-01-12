@@ -247,6 +247,7 @@ pub struct SphincsSignature {
 
 // ============================================================================
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Challenge Types (SEQUENCES §4)
 // ============================================================================
 
@@ -486,4 +487,251 @@ pub struct SiweMessage {
     /// ISO 8601 expiration time (optional)
     pub expiration_time: Option<String>,
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+// User Types (Consumer App API - TASK-P5-020)
+// ============================================================================
+
+/// User dashboard response containing aggregated user data
+#[derive(Debug, Serialize)]
+pub struct UserDashboardResponse {
+    /// User's wallet address
+    pub address: String,
+    /// Total value locked in ETH (as string for precision)
+    pub total_locked: String,
+    /// Total value locked in USD
+    pub total_locked_usd: String,
+    /// Number of active locks
+    pub active_locks: u32,
+    /// Number of pending unlocks
+    pub pending_unlocks: u32,
+    /// User's quantum keys status
+    pub quantum_keys: UserQuantumKeysStatus,
+    /// Recent activity summary
+    pub recent_activity: Vec<ActivitySummary>,
+}
+
+/// Quantum keys status for user
+#[derive(Debug, Serialize)]
+pub struct UserQuantumKeysStatus {
+    /// Whether Dilithium key is registered
+    pub dilithium_registered: bool,
+    /// Dilithium key fingerprint (SHA3-256 hash of public key)
+    pub dilithium_fingerprint: Option<String>,
+    /// Key registration timestamp
+    pub registered_at: Option<u64>,
+}
+
+/// Activity summary item
+#[derive(Debug, Serialize)]
+pub struct ActivitySummary {
+    /// Activity type
+    pub activity_type: ActivityType,
+    /// Related lock/unlock ID
+    pub reference_id: String,
+    /// Amount involved
+    pub amount: String,
+    /// Asset type
+    pub asset: String,
+    /// Timestamp
+    pub timestamp: u64,
+}
+
+/// Type of user activity
+#[derive(Debug, Serialize, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum ActivityType {
+    Lock,
+    Unlock,
+    EmergencyUnlock,
+    Challenge,
+    Claim,
+}
+
+/// User transactions list response
+#[derive(Debug, Serialize)]
+pub struct UserTransactionsResponse {
+    /// List of transactions
+    pub transactions: Vec<UserTransaction>,
+    /// Total number of transactions
+    pub total: u64,
+    /// Current page
+    pub page: u32,
+    /// Items per page
+    pub per_page: u32,
+}
+
+/// User transaction record
+#[derive(Debug, Serialize, Clone)]
+pub struct UserTransaction {
+    /// Transaction ID (lock_id or unlock_id)
+    pub id: String,
+    /// Transaction type
+    pub tx_type: TransactionType,
+    /// Asset type
+    pub asset: String,
+    /// Amount
+    pub amount: String,
+    /// Status
+    pub status: TransactionStatus,
+    /// Chain ID
+    pub chain_id: u64,
+    /// Created timestamp
+    pub created_at: u64,
+    /// Updated timestamp
+    pub updated_at: Option<u64>,
+    /// Release time (for unlocks)
+    pub release_time: Option<u64>,
+    /// L1 transaction hash (if confirmed on-chain)
+    pub l1_tx_hash: Option<String>,
+}
+
+/// Transaction type
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TransactionType {
+    Lock,
+    NormalUnlock,
+    EmergencyUnlock,
+}
+
+/// Transaction status for display
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TransactionStatus {
+    Pending,
+    Confirmed,
+    Processing,
+    Completed,
+    Failed,
+    Challenged,
+}
+
+/// Single transaction detail response
+#[derive(Debug, Serialize)]
+pub struct UserTransactionDetailResponse {
+    /// Basic transaction info
+    pub transaction: UserTransaction,
+    /// State root SR_0
+    pub sr_0: String,
+    /// State root SR_1 (for unlocks)
+    pub sr_1: Option<String>,
+    /// Prover signatures count
+    pub prover_signatures: u32,
+    /// Required prover signatures
+    pub required_signatures: u32,
+    /// Time lock remaining in seconds (negative if expired)
+    pub time_lock_remaining: Option<i64>,
+    /// Challenge info (if challenged)
+    pub challenge_info: Option<ChallengeInfo>,
+    /// Transaction timeline
+    pub timeline: Vec<TimelineEvent>,
+}
+
+/// Challenge information
+#[derive(Debug, Serialize)]
+pub struct ChallengeInfo {
+    /// Challenger address
+    pub challenger: String,
+    /// Challenge bond amount
+    pub bond: String,
+    /// Challenge timestamp
+    pub challenged_at: u64,
+    /// Defense deadline
+    pub defense_deadline: u64,
+}
+
+/// Timeline event for transaction history
+#[derive(Debug, Serialize)]
+pub struct TimelineEvent {
+    /// Event type
+    pub event: String,
+    /// Event timestamp
+    pub timestamp: u64,
+    /// Event description
+    pub description: String,
+}
+
+/// User settings response
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserSettingsResponse {
+    /// User's wallet address
+    pub address: String,
+    /// Notification preferences
+    pub notifications: NotificationSettings,
+    /// Default time lock preference (hours)
+    pub default_time_lock_hours: u32,
+    /// Preferred language
+    pub language: String,
+    /// Two-factor authentication enabled
+    pub two_factor_enabled: bool,
+}
+
+/// Notification settings
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NotificationSettings {
+    /// Email notifications enabled
+    pub email_enabled: bool,
+    /// Email address (if enabled)
+    pub email: Option<String>,
+    /// Notify on lock confirmation
+    pub on_lock_confirmed: bool,
+    /// Notify on unlock ready
+    pub on_unlock_ready: bool,
+    /// Notify on challenge
+    pub on_challenge: bool,
+}
+
+/// User settings update request
+#[derive(Debug, Deserialize)]
+pub struct UserSettingsUpdateRequest {
+    /// Notification preferences update
+    pub notifications: Option<NotificationSettings>,
+    /// Default time lock preference update
+    pub default_time_lock_hours: Option<u32>,
+    /// Language preference update
+    pub language: Option<String>,
+}
+
+/// User keys response
+#[derive(Debug, Serialize)]
+pub struct UserKeysResponse {
+    /// User's wallet address
+    pub address: String,
+    /// Dilithium-III public key (hex encoded)
+    pub dilithium_public_key: Option<String>,
+    /// Key fingerprint (SHA3-256 of public key)
+    pub dilithium_fingerprint: Option<String>,
+    /// Key registration timestamp
+    pub registered_at: Option<u64>,
+    /// Algorithm info
+    pub algorithm: KeyAlgorithmInfo,
+}
+
+/// Key algorithm information
+#[derive(Debug, Serialize)]
+pub struct KeyAlgorithmInfo {
+    /// Algorithm name
+    pub name: String,
+    /// Standard reference
+    pub standard: String,
+    /// Security level
+    pub security_level: String,
+    /// Public key size in bytes
+    pub public_key_size: u32,
+    /// Signature size in bytes
+    pub signature_size: u32,
+}
+
+/// Query parameters for transactions list
+#[derive(Debug, Deserialize)]
+pub struct TransactionsQueryParams {
+    /// Filter by transaction type
+    pub tx_type: Option<TransactionType>,
+    /// Filter by status
+    pub status: Option<TransactionStatus>,
+    /// Page number (1-indexed)
+    pub page: Option<u32>,
+    /// Items per page (max 100)
+    pub per_page: Option<u32>,
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 }

@@ -655,10 +655,14 @@ dependencies = [
  "serde_json",
  "tokio",
 <<<<<<< HEAD
+<<<<<<< HEAD
  "tokio-tungstenite 0.24.0",
 =======
  "tokio-tungstenite",
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+ "tokio-tungstenite",
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
  "tracing",
  "ws_stream_wasm",
 ]
@@ -960,6 +964,7 @@ checksum = "7d902e3d592a523def97af8f317b08ce16b7ab854c1985a0c671e6f15cebc236"
 
 [[package]]
 <<<<<<< HEAD
+<<<<<<< HEAD
 name = "arrayref"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -968,6 +973,8 @@ checksum = "76a2e8124351fda1ef8aaaa3bbd7ebbcb486bbcd4225aca0aa0d84bb2db8fecb"
 [[package]]
 =======
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1392,6 +1399,7 @@ dependencies = [
  "wyz",
 ]
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 [[package]]
 name = "blake3"
@@ -1408,6 +1416,8 @@ dependencies = [
 ]
 =======
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 
 [[package]]
 name = "block-buffer"
@@ -1717,6 +1727,7 @@ dependencies = [
 
 [[package]]
 <<<<<<< HEAD
+<<<<<<< HEAD
 name = "constant_time_eq"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1725,6 +1736,8 @@ checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
 [[package]]
 =======
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 name = "convert_case"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2202,12 +2215,16 @@ dependencies = [
  "chrono",
  "config",
 <<<<<<< HEAD
+<<<<<<< HEAD
  "futures-util",
  "hex",
  "lapin",
 =======
  "hex",
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+ "hex",
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
  "mockall",
  "once_cell",
  "prometheus",
@@ -2219,9 +2236,12 @@ dependencies = [
  "tokio",
  "tokio-test",
 <<<<<<< HEAD
+<<<<<<< HEAD
  "tokio-tungstenite 0.21.0",
 =======
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
  "tracing",
  "tracing-subscriber",
 ]
@@ -5412,6 +5432,78 @@ dependencies = [
 ]
 
 [[package]]
+name = "static_assertions"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "strength_reduce"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe895eb47f22e2ddd4dabc02bce419d2e643c8e3b585c78158b349195bc24d82"
+
+[[package]]
+name = "strum"
+version = "0.26.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
+dependencies = [
+ "strum_macros 0.26.4",
+]
+
+[[package]]
+name = "strum"
+version = "0.27.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
+dependencies = [
+ "strum_macros 0.27.2",
+]
+
+[[package]]
+name = "strum_macros"
+version = "0.26.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "strum_macros"
+version = "0.27.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7695ce3845ea4b33927c055a39dc438a45b059f7c1b3d91d38d10355fb8cbca7"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "subtle"
+version = "2.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
+
+[[package]]
+name = "syn"
+version = "1.0.109"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.111"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5705,6 +5797,7 @@ dependencies = [
 [[package]]
 name = "tokio-tungstenite"
 <<<<<<< HEAD
+<<<<<<< HEAD
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c83b561d025642014097b66e6c1bb422783339e0909e4429cde4749d1990bc38"
@@ -5719,6 +5812,8 @@ dependencies = [
 name = "tokio-tungstenite"
 =======
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edc5f74e248dc973e0dbb7b74c7e0d6fcc301c694ff50049504004ef4d0cdcd9"
@@ -5730,10 +5825,14 @@ dependencies = [
  "tokio",
  "tokio-rustls 0.26.4",
 <<<<<<< HEAD
+<<<<<<< HEAD
  "tungstenite 0.24.0",
 =======
  "tungstenite",
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+ "tungstenite",
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
  "webpki-roots 0.26.11",
 ]
 
@@ -5981,6 +6080,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 [[package]]
 name = "tungstenite"
 <<<<<<< HEAD
+<<<<<<< HEAD
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ef1a641ea34f399a848dea702823bbecfb4c486f911735368f1f137cb8257e1"
@@ -6002,6 +6102,8 @@ dependencies = [
 name = "tungstenite"
 =======
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18e5b8366ee7a95b16d32197d0b2604b43a0be89dc5fac9f8e96ccafbaedda8a"
@@ -6612,6 +6714,7 @@ dependencies = [
 
 [[package]]
 <<<<<<< HEAD
+<<<<<<< HEAD
 name = "winter-air"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6714,6 +6817,8 @@ dependencies = [
 [[package]]
 =======
 >>>>>>> origin/claude/implement-task-p5-012-CoGF1
+=======
+>>>>>>> origin/claude/implement-task-p5-020-vNCen
 name = "wit-bindgen"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
