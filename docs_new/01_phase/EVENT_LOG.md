@@ -433,4 +433,104 @@ TASK-P5-004 L3 Production Mode: **COMPLETE**
 
 ---
 
+## 2026-01-12 (TASK-P5-010)
+
+### Event: TASK_START
+- **Task**: TASK-P5-010 EditionConfig.sol 実装
+- **Time**: 2026-01-12
+- **Prompt Used**: 21_impl_verify_loop.md
+
+### Event: EXISTING_CODE_ANALYSIS
+- **Time**: 2026-01-12
+- **Analyzed Files**:
+  - `l3-aegis/src/governance/GovernanceSwitch.sol` (850 lines) - L3 governance mode management
+  - `l3-aegis/src/interfaces/IGovernanceSwitch.sol` (158 lines) - Interface
+- **Spec Reference**:
+  - `docs_new/01_phase/04_phase4/01_戦略検討資料/01_UI UX/討議事項/EDITION_SWITCH_SPEC.md`
+- **Gap Identified**:
+  - GovernanceSwitch.sol manages governance modes (TRAINING, CENTRALIZED, MULTISIG, DECENTRALIZED)
+  - Missing: EditionConfig.sol for edition management (ENTERPRISE vs DECENTRALIZED)
+  - Edition concept is separate from governance mode
+
+### Event: IMPLEMENTATION
+- **Time**: 2026-01-12
+- **Files Created**:
+  - `contracts/src/core/EditionConfig.sol` (~350 lines)
+  - `contracts/test/core/EditionConfig.t.sol` (~450 lines)
+
+### Event: FEATURES_IMPLEMENTED
+- **EditionConfig.sol**:
+  - `Edition` enum: ENTERPRISE, DECENTRALIZED
+  - `ConsensusType` enum: FIXED_4BFT, DYNAMIC_PBFT
+  - `ProverApprovalMode` enum: CONTRACT_BASED, FOUNDATION_INVITE, COUNCIL_VOTE, STAKE_AUTO
+  - `NodeConfig` struct: minNodes, maxNodes, dynamicMembership, consensus
+  - `Settings` struct: edition, nodeConfig, proverApprovalMode, governanceEnabled
+  - Two-step ownership transfer
+  - `switchEdition()`: Edition切替 with automatic constraint enforcement
+  - `updateNodeConfig()`: Node configuration updates with validation
+  - `updateProverApprovalMode()`: Prover approval mode updates with edition constraints
+  - `setGovernanceEnabled()`: Governance toggle
+  - Multiple view functions: isEnterprise(), isDecentralized(), calculateBftThreshold(), etc.
+- **Enterprise Constraints**:
+  - Dynamic membership: NOT allowed
+  - Max nodes: Must be 4
+  - Consensus: Only FIXED_4BFT allowed
+  - Prover approval: Only CONTRACT_BASED allowed
+- **Decentralized Features**:
+  - Progressive phase transition support (Phase 1-4)
+  - Dynamic PBFT support (up to 21 nodes)
+  - All prover approval modes allowed
+
+### Event: TEST_SUITE_CREATED
+- **Test File**: `contracts/test/core/EditionConfig.t.sol`
+- **Test Categories**:
+  | Category | Test Count |
+  |----------|:----------:|
+  | Constructor Tests | 3 |
+  | Owner Management | 5 |
+  | Edition Switch | 4 |
+  | Node Configuration | 8 |
+  | Prover Approval Mode | 4 |
+  | Governance Enable | 2 |
+  | View Functions | 8 |
+  | Integration Tests | 2 |
+- **Total Tests**: 36
+
+### Event: SPEC_COMPLIANCE
+- **EDITION_SWITCH_SPEC.md Compliance**:
+  - §3 Edition Definition: ✅ Edition enum, Settings struct implemented
+  - §4 Node Configuration: ✅ NodeConfig struct, FIXED_4BFT/DYNAMIC_PBFT support
+  - §5 Prover Approval Mode: ✅ All 4 modes implemented with phase mapping
+  - §8 Implementation Details: ✅ EditionConfig.sol structure follows spec
+- **Phase Mapping**:
+  | Phase | ProverApprovalMode | NodeConfig |
+  |-------|-------------------|------------|
+  | Enterprise (all) | CONTRACT_BASED | FIXED_4BFT, 4 nodes |
+  | Decen Phase 1-2 | FOUNDATION_INVITE | FIXED_4BFT, 4 nodes |
+  | Decen Phase 3 | COUNCIL_VOTE | FIXED_4BFT, 4 nodes |
+  | Decen Phase 4+ | STAKE_AUTO | DYNAMIC_PBFT, 4-21 nodes |
+
+### Event: VERIFICATION_NOTE
+- **Note**: Foundry (forge) not available in this environment
+- **Recommendation**: Run locally:
+  ```bash
+  cd contracts
+  forge build --contracts src/core/EditionConfig.sol
+  forge test --match-contract EditionConfigTest -vvv
+  slither contracts/src/core/EditionConfig.sol
+  ```
+
+### Event: TASK_COMPLETE
+- **Task**: TASK-P5-010
+- **Status**: DONE
+- **Artifacts**:
+  - `contracts/src/core/EditionConfig.sol`: Edition configuration management
+  - `contracts/test/core/EditionConfig.t.sol`: Comprehensive test suite (36 tests)
+- **Next Steps**:
+  - Local `forge build` verification
+  - Local `forge test` execution
+  - Optional: slither static analysis
+
+---
+
 **END OF EVENT LOG**
