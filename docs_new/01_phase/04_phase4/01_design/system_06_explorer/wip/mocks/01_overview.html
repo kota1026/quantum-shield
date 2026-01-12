@@ -1,0 +1,694 @@
+<!--
+## File Info
+- System: Explorer
+- Screen: Overview Dashboard, Recent Locks, Recent Unlocks
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-overview | click | 01_overview.html |
+| .nav-locks | click | 03_locks.html |
+| .nav-unlocks | click | 04_unlocks.html |
+| .nav-challenges | click | 05_challenges.html |
+| .nav-provers | click | 07_provers.html |
+| .nav-analytics | click | 08_analytics.html |
+| #search-input | submit | 02_search.html |
+| .lock-row | click | 03_locks.html#detail |
+| .unlock-row | click | 04_unlocks.html#detail |
+| .view-all-locks | click | 03_locks.html |
+| .view-all-unlocks | click | 04_unlocks.html |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorer - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040;
+            --pending: #8080a0;
+            --pending-dim: rgba(128, 128, 160, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-display);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        a { color: inherit; text-decoration: none; }
+        .premium-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .red-glow {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%);
+            opacity: 0.5;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 32px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .logo-hinomaru {
+            width: 44px;
+            height: 44px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-circle-outer {
+            position: absolute;
+            inset: 0;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: logo-rotate 25s linear infinite;
+        }
+        .logo-circle-outer::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+        }
+        .logo-hinomaru-inner {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--accent-hinomaru-glow);
+        }
+        @keyframes logo-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-main {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+        .logo-sub {
+            font-size: 10px;
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        /* Navigation */
+        .nav {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border-subtle);
+        }
+        .nav-item {
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: var(--radius-full);
+            transition: all 0.2s;
+        }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        /* Search Bar */
+        .search-container {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 24px;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-full);
+            padding: 8px 16px;
+            gap: 12px;
+        }
+        .search-bar:focus-within {
+            border-color: var(--accent-hinomaru);
+            box-shadow: 0 0 0 3px var(--accent-hinomaru-dim);
+        }
+        .search-icon {
+            color: var(--text-tertiary);
+        }
+        .search-input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        .search-input::placeholder {
+            color: var(--text-tertiary);
+        }
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold));
+            opacity: 0.6;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .stat-value.gold { color: var(--accent-gold); }
+        .stat-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--error); }
+        /* Section */
+        .section {
+            margin-bottom: 32px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 18px;
+            background: var(--accent-hinomaru);
+            border-radius: 2px;
+        }
+        .view-all {
+            font-size: 13px;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .view-all:hover { opacity: 0.8; }
+        /* Table */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .data-table td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .data-table tbody tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .data-table tbody tr:hover {
+            background: var(--bg-elevated);
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: var(--radius-full);
+        }
+        .badge-active {
+            background: var(--accent-gold-dim);
+            color: var(--accent-gold);
+        }
+        .badge-pending {
+            background: var(--pending-dim);
+            color: var(--pending);
+        }
+        .badge-complete {
+            background: var(--success-dim);
+            color: var(--success);
+        }
+        .badge-challenged {
+            background: var(--warning-dim);
+            color: var(--warning);
+        }
+        /* Mono Text */
+        .mono {
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+        .truncate {
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* Amount */
+        .amount {
+            font-weight: 600;
+        }
+        .amount-unit {
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-left: 4px;
+        }
+        /* Time */
+        .time-ago {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        .tab {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab:hover { color: var(--text-primary); }
+        .tab.active {
+            background: var(--accent-hinomaru-dim);
+            border-color: var(--accent-hinomaru);
+            color: var(--accent-hinomaru-light);
+        }
+        /* Live Indicator */
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--success);
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        /* Two Column Layout */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .two-column { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .header { flex-wrap: wrap; gap: 16px; }
+            .search-container { order: 3; max-width: 100%; margin: 16px 0 0 0; width: 100%; }
+            .nav { overflow-x: auto; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="red-glow"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-main">Quantum Shield</span>
+                    <span class="logo-sub">Explorer</span>
+                </div>
+            </div>
+
+            <div class="search-container">
+                <form class="search-bar" action="02_search.html" method="get">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="search-input" name="q" class="search-input" placeholder="Search by Address, TX Hash, or Lock ID...">
+                </form>
+            </div>
+
+            <nav class="nav">
+                <a href="01_overview.html" class="nav-item active nav-overview">Overview</a>
+                <a href="03_locks.html" class="nav-item nav-locks">Locks</a>
+                <a href="04_unlocks.html" class="nav-item nav-unlocks">Unlocks</a>
+                <a href="05_challenges.html" class="nav-item nav-challenges">Challenges</a>
+                <a href="07_provers.html" class="nav-item nav-provers">Provers</a>
+                <a href="08_analytics.html" class="nav-item nav-analytics">Analytics</a>
+            </nav>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Value Locked</div>
+                <div class="stat-value gold">$847.2M</div>
+                <div class="stat-change positive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m18 15-6-6-6 6"/>
+                    </svg>
+                    +12.4% (7d)
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Locks</div>
+                <div class="stat-value">24,891</div>
+                <div class="stat-change positive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m18 15-6-6-6 6"/>
+                    </svg>
+                    +342 (24h)
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Unlocks</div>
+                <div class="stat-value">127</div>
+                <div class="stat-change">
+                    <span style="color: var(--text-secondary);">12 in Time Lock</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Provers</div>
+                <div class="stat-value">8</div>
+                <div class="stat-change positive">
+                    <span style="color: var(--success);">100% Uptime</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two Column Layout: Recent Locks & Unlocks -->
+        <div class="two-column">
+            <!-- Recent Locks -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Locks</h2>
+                    <a href="03_locks.html" class="view-all view-all-locks">
+                        View All
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m9 18 6-6-6-6"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Lock ID</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="lock-row" onclick="location.href='03_locks.html#lock-24891'">
+                                <td><span class="mono truncate">0x7a3f...e821</span></td>
+                                <td><span class="amount">125.5<span class="amount-unit">ETH</span></span></td>
+                                <td><span class="badge badge-active">Active</span></td>
+                                <td><span class="time-ago">2 min ago</span></td>
+                            </tr>
+                            <tr class="lock-row" onclick="location.href='03_locks.html#lock-24890'">
+                                <td><span class="mono truncate">0x9b2c...f412</span></td>
+                                <td><span class="amount">50.0<span class="amount-unit">ETH</span></span></td>
+                                <td><span class="badge badge-active">Active</span></td>
+                                <td><span class="time-ago">8 min ago</span></td>
+                            </tr>
+                            <tr class="lock-row" onclick="location.href='03_locks.html#lock-24889'">
+                                <td><span class="mono truncate">0x4d8e...a923</span></td>
+                                <td><span class="amount">200.0<span class="amount-unit">ETH</span></span></td>
+                                <td><span class="badge badge-pending">Unlocking</span></td>
+                                <td><span class="time-ago">15 min ago</span></td>
+                            </tr>
+                            <tr class="lock-row" onclick="location.href='03_locks.html#lock-24888'">
+                                <td><span class="mono truncate">0x1f6a...c734</span></td>
+                                <td><span class="amount">75.25<span class="amount-unit">ETH</span></span></td>
+                                <td><span class="badge badge-active">Active</span></td>
+                                <td><span class="time-ago">23 min ago</span></td>
+                            </tr>
+                            <tr class="lock-row" onclick="location.href='03_locks.html#lock-24887'">
+                                <td><span class="mono truncate">0x8c3d...b156</span></td>
+                                <td><span class="amount">320.0<span class="amount-unit">ETH</span></span></td>
+                                <td><span class="badge badge-complete">Unlocked</span></td>
+                                <td><span class="time-ago">31 min ago</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Unlocks -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Unlocks</h2>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div class="live-indicator">
+                            <div class="live-dot"></div>
+                            Live
+                        </div>
+                        <a href="04_unlocks.html" class="view-all view-all-unlocks">
+                            View All
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Unlock ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Time Lock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="unlock-row" onclick="location.href='04_unlocks.html#unlock-8921'">
+                                <td><span class="mono truncate">0x2e7f...d934</span></td>
+                                <td><span style="color: var(--text-secondary);">Normal</span></td>
+                                <td><span class="badge badge-pending">Pending</span></td>
+                                <td><span class="time-ago">23h 14m left</span></td>
+                            </tr>
+                            <tr class="unlock-row" onclick="location.href='04_unlocks.html#unlock-8920'">
+                                <td><span class="mono truncate">0x5c9a...e127</span></td>
+                                <td><span style="color: var(--warning);">Emergency</span></td>
+                                <td><span class="badge badge-pending">Pending</span></td>
+                                <td><span class="time-ago">6d 18h left</span></td>
+                            </tr>
+                            <tr class="unlock-row" onclick="location.href='04_unlocks.html#unlock-8919'">
+                                <td><span class="mono truncate">0x3b1d...f842</span></td>
+                                <td><span style="color: var(--text-secondary);">Normal</span></td>
+                                <td><span class="badge badge-complete">Complete</span></td>
+                                <td><span class="time-ago">Executed</span></td>
+                            </tr>
+                            <tr class="unlock-row" onclick="location.href='04_unlocks.html#unlock-8918'">
+                                <td><span class="mono truncate">0x7d4e...a563</span></td>
+                                <td><span style="color: var(--text-secondary);">Normal</span></td>
+                                <td><span class="badge badge-challenged">Challenged</span></td>
+                                <td><span class="time-ago">Defense: 47h</span></td>
+                            </tr>
+                            <tr class="unlock-row" onclick="location.href='04_unlocks.html#unlock-8917'">
+                                <td><span class="mono truncate">0x9f2c...b718</span></td>
+                                <td><span style="color: var(--text-secondary);">Normal</span></td>
+                                <td><span class="badge badge-complete">Complete</span></td>
+                                <td><span class="time-ago">Executed</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Challenges -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Active Challenges</h2>
+                <a href="05_challenges.html" class="view-all">
+                    View All
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Challenge ID</th>
+                            <th>Target Unlock</th>
+                            <th>Challenger</th>
+                            <th>Bond</th>
+                            <th>Defense Deadline</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr onclick="location.href='05_challenges.html#challenge-142'" style="cursor: pointer;">
+                            <td><span class="mono truncate">0xa4f2...c891</span></td>
+                            <td><a href="04_unlocks.html#unlock-8918" class="mono truncate" style="color: var(--accent-gold);">0x7d4e...a563</a></td>
+                            <td><a href="06_address.html" class="mono truncate" style="color: var(--text-primary);">0x8b3c...d412</a></td>
+                            <td><span class="amount">0.15<span class="amount-unit">ETH</span></span></td>
+                            <td><span class="time-ago" style="color: var(--warning);">47h 23m left</span></td>
+                            <td><span class="badge badge-challenged">Open</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="text-align: center; color: var(--text-tertiary); padding: 16px; font-size: 13px;">
+                1 active challenge out of 142 total
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Search form submission
+        document.querySelector('.search-bar').addEventListener('submit', function(e) {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

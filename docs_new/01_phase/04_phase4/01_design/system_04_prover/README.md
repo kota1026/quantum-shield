@@ -1,9 +1,14 @@
 # 📁 System 04: Prover Portal - Design Folder
 
-> **Status**: 🔴 Not Started  
-> **Priority**: P0  
-> **Screens**: 28  
+<<<<<<< HEAD
+> **Status**: 🟡 In Progress (Brief Ready)
+=======
+> **Status**: 🟡 Brief Ready
+>>>>>>> origin/claude/implement-task-p5-025-vAWqS
+> **Priority**: P0
+> **Screens**: 28
 > **Target Users**: Prover (山田さん)
+> **Current Phase**: 08_design_prep COMPLETE
 
 ---
 
@@ -19,9 +24,20 @@ B2B向けの専門的なUIが求められます。
 | Public | LP, Requirements, Economics, Calculator, Simulator | 5 |
 | Registration | Application 4steps, Submitted, Status, Questions | 7 |
 | Activation | Approval, Stake, Key Setup, Complete | 4 |
-| Operations | Dashboard, Queue, Detail, Metrics, Rewards, Stake, Alerts | 10 |
+| Operations | Dashboard, Queue, Detail, Metrics, Rewards, Stake, Alerts | 7 |
 | Challenge | Notification, Defense, Result | 3 |
-| Exit | Request, Pending, Unbonding, Returned | 4 |
+| Exit | Request, Complete | 2 |
+| **Total** | | **28** |
+
+---
+
+## Design Documents
+
+| Document | Status | Updated |
+|----------|:------:|---------|
+| DESIGN_BRIEF_prover.md | ✅ Created | 2026-01-10 |
+| DESIGN_MANIFEST.md | ⬜ Not Yet | - |
+| PIR_prover.md | ⬜ Not Yet | - |
 
 ---
 
@@ -31,6 +47,21 @@ B2B向けの専門的なUIが求められます。
 - **効率性**: 大量の署名リクエスト処理
 - **リアルタイム**: パフォーマンスメトリクス
 - **アラート**: 即時通知システム
+- **PC最適化**: 95%がPC利用
+
+---
+
+## Directory Structure
+
+```
+system_04_prover/
+├── README.md                   # 本ファイル
+├── DESIGN_BRIEF_prover.md      # ✅ デザインブリーフ
+├── DESIGN_MANIFEST.md          # ⬜ 作成予定
+└── wip/
+    ├── wireframes/             # ワイヤーフレーム用
+    └── mocks/                  # HTMLモック用
+```
 
 ---
 
@@ -43,4 +74,21 @@ B2B向けの専門的なUIが求められます。
 
 ---
 
-**Last Updated**: 2026-01-06
+<<<<<<< HEAD
+## Next Steps
+
+1. → `09_design_create.md` でモック作成
+2. Operations Dashboard から着手
+
+---
+
+**Last Updated**: 2026-01-10
+=======
+**Last Updated**: 2026-01-12
+
+## Next Steps
+
+1. → `09_design_create.md` でモック作成
+2. DESIGN_MANIFEST.md 出力
+3. `10_design_pir.md` でPIRレビュー
+>>>>>>> origin/claude/implement-task-p5-025-vAWqS

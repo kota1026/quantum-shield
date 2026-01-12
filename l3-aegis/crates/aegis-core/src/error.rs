@@ -32,6 +32,9 @@ pub enum AegisError {
     #[error("Prover error: {0}")]
     ProverError(String),
 
+    #[error("Crypto error: {0}")]
+    CryptoError(String),
+
     #[error("L1 sync error: {0}")]
     L1SyncError(String),
 

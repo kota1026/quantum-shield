@@ -18,8 +18,10 @@ tracing = { workspace = true }
 bytes = { workspace = true }
 
 # TLS support
-rustls = "0.23"
-tokio-rustls = "0.26"
+rustls = { workspace = true }
+tokio-rustls = { workspace = true }
+rustls-pemfile = { workspace = true }
+webpki-roots = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

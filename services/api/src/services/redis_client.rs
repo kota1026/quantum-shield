@@ -35,4 +35,11 @@ impl RedisClient {
         // TODO: Implement actual Redis SET with TTL
         Ok(())
     }
+
+    /// Scan for keys matching a pattern (TASK-P5-020)
+    pub async fn scan(&self, _pattern: &str) -> Result<Vec<String>> {
+        // TODO: Implement actual Redis SCAN with pattern matching
+        // Returns keys matching the pattern
+        Ok(Vec::new())
+    }
 }

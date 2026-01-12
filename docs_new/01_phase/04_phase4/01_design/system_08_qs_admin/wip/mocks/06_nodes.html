@@ -1,0 +1,141 @@
+<!--
+## File Info
+- System: QS Admin
+- Screen: L3 Node Management
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-nodes | click | 06_nodes.html |
+| .node-row | click | showNodeDetail() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QS Admin - L3 Nodes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-card: #0e0e11; --accent-hinomaru: #bc002d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-light: #e8334d; --accent-gold: #c9a962; --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12); --warning: #f0a030; --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --border-subtle: rgba(255, 255, 255, 0.04); --font-body: 'Plus Jakarta Sans', sans-serif; --font-mono: 'DM Mono', monospace; --sidebar-width: 260px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; }
+        .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); position: fixed; height: 100vh; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-subtle); }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 40px; height: 40px; background: var(--accent-hinomaru); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-text { font-size: 16px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .sidebar-nav { padding: 16px 12px; }
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-tertiary); padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .nav-item.emergency { background: var(--accent-hinomaru); color: white; margin-top: 8px; }
+        .nav-icon { width: 20px; text-align: center; }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 24px 32px; }
+        .page-header { margin-bottom: 24px; }
+        .page-title { font-size: 28px; font-weight: 700; }
+        .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-mini { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
+        .stat-mini-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; }
+        .stat-mini-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); }
+        .stat-mini-value.success { color: var(--success); }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 16px; font-weight: 600; }
+        .nodes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 20px; }
+        .node-card { background: var(--bg-secondary); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; }
+        .node-card:hover { background: rgba(255,255,255,0.04); }
+        .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .node-name { font-weight: 600; }
+        .node-status { width: 10px; height: 10px; border-radius: 50%; }
+        .node-status.healthy { background: var(--success); }
+        .node-status.warning { background: var(--warning); }
+        .node-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .node-metric { font-size: 12px; color: var(--text-tertiary); }
+        .node-metric-value { font-family: var(--font-mono); color: var(--text-primary); font-weight: 500; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo"><div class="logo-icon">QS</div><div><div class="logo-text">QS Admin</div><div class="logo-sub">Internal Dashboard</div></div></div></div>
+        <nav class="sidebar-nav">
+            <div class="nav-section"><div class="nav-section-label">Overview</div><a href="01_dashboard.html" class="nav-item"><span class="nav-icon">📊</span>Dashboard</a><a href="02_emergency.html" class="nav-item emergency"><span class="nav-icon">🚨</span>Emergency</a></div>
+            <div class="nav-section"><div class="nav-section-label">Operations</div><a href="04_prover.html" class="nav-item"><span class="nav-icon">🔐</span>Prover</a><a href="05_tx_monitor.html" class="nav-item"><span class="nav-icon">📡</span>TX Monitor</a><a href="06_nodes.html" class="nav-item active"><span class="nav-icon">🖥️</span>L3 Nodes</a></div>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="page-header"><h1 class="page-title">L3 Node Management</h1><p class="page-subtitle">Aegis L3 ネットワークノード管理</p></div>
+        <div class="stats-row">
+            <div class="stat-mini"><div class="stat-mini-label">Total Nodes</div><div class="stat-mini-value">12</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Healthy</div><div class="stat-mini-value success">12</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Current Block</div><div class="stat-mini-value">1,234,567</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Avg TPS</div><div class="stat-mini-value">245</div></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2 class="card-title">Active Nodes</h2></div>
+            <div class="nodes-grid">
+                <div class="node-card node-row" onclick="showNodeDetail()">
+                    <div class="node-header"><span class="node-name">Node-01 (Primary)</span><span class="node-status healthy"></span></div>
+                    <div class="node-metrics">
+                        <div class="node-metric">Block: <span class="node-metric-value">1,234,567</span></div>
+                        <div class="node-metric">Peers: <span class="node-metric-value">11</span></div>
+                        <div class="node-metric">CPU: <span class="node-metric-value">45%</span></div>
+                        <div class="node-metric">Memory: <span class="node-metric-value">62%</span></div>
+                    </div>
+                </div>
+                <div class="node-card node-row" onclick="showNodeDetail()">
+                    <div class="node-header"><span class="node-name">Node-02</span><span class="node-status healthy"></span></div>
+                    <div class="node-metrics">
+                        <div class="node-metric">Block: <span class="node-metric-value">1,234,567</span></div>
+                        <div class="node-metric">Peers: <span class="node-metric-value">11</span></div>
+                        <div class="node-metric">CPU: <span class="node-metric-value">38%</span></div>
+                        <div class="node-metric">Memory: <span class="node-metric-value">58%</span></div>
+                    </div>
+                </div>
+                <div class="node-card node-row" onclick="showNodeDetail()">
+                    <div class="node-header"><span class="node-name">Node-03</span><span class="node-status healthy"></span></div>
+                    <div class="node-metrics">
+                        <div class="node-metric">Block: <span class="node-metric-value">1,234,567</span></div>
+                        <div class="node-metric">Peers: <span class="node-metric-value">11</span></div>
+                        <div class="node-metric">CPU: <span class="node-metric-value">42%</span></div>
+                        <div class="node-metric">Memory: <span class="node-metric-value">55%</span></div>
+                    </div>
+                </div>
+                <div class="node-card node-row" onclick="showNodeDetail()">
+                    <div class="node-header"><span class="node-name">Node-04 (Tokyo)</span><span class="node-status healthy"></span></div>
+                    <div class="node-metrics">
+                        <div class="node-metric">Block: <span class="node-metric-value">1,234,567</span></div>
+                        <div class="node-metric">Peers: <span class="node-metric-value">11</span></div>
+                        <div class="node-metric">CPU: <span class="node-metric-value">35%</span></div>
+                        <div class="node-metric">Memory: <span class="node-metric-value">51%</span></div>
+                    </div>
+                </div>
+                <div class="node-card node-row" onclick="showNodeDetail()">
+                    <div class="node-header"><span class="node-name">Node-05 (Singapore)</span><span class="node-status healthy"></span></div>
+                    <div class="node-metrics">
+                        <div class="node-metric">Block: <span class="node-metric-value">1,234,567</span></div>
+                        <div class="node-metric">Peers: <span class="node-metric-value">11</span></div>
+                        <div class="node-metric">CPU: <span class="node-metric-value">40%</span></div>
+                        <div class="node-metric">Memory: <span class="node-metric-value">60%</span></div>
+                    </div>
+                </div>
+                <div class="node-card node-row" onclick="showNodeDetail()">
+                    <div class="node-header"><span class="node-name">Node-06 (London)</span><span class="node-status healthy"></span></div>
+                    <div class="node-metrics">
+                        <div class="node-metric">Block: <span class="node-metric-value">1,234,567</span></div>
+                        <div class="node-metric">Peers: <span class="node-metric-value">11</span></div>
+                        <div class="node-metric">CPU: <span class="node-metric-value">37%</span></div>
+                        <div class="node-metric">Memory: <span class="node-metric-value">54%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>function showNodeDetail() { alert('Node detail modal would open here'); }</script>
+</body>
+</html>
