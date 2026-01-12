@@ -18,3 +18,5 @@ export { useWallet } from './useWallet';
 export type { UseWalletReturn } from './useWallet';
 export { useTimeLock } from './useTimeLock';
 export type { UseTimeLockReturn } from './useTimeLock';
+export { useAuth } from './useAuth';
+export type { UseAuthReturn, UseAuthConfig, SIWEMessage, AuthState } from './useAuth';
