@@ -1,184 +1,102 @@
-# CURRENT_TASK.md - 現在のタスク定義
+# Task Definition
 
-> **Created**: 2026-01-12
-> **Completed**: 2026-01-12
-> **Status**: DONE
-> **Task ID**: TASK-P5-013
+> **Generated**: 2026-01-12 (SEP v3)
+> **Status**: Active
 
 ---
 
-## 1. タスク定義
+## 基本情報
 
-```yaml
-task_id: "TASK-P5-013"
-name: "API Client認証統合"
-phase: "5.1"
-priority: "P1"
-status: "IN_PROGRESS"
-depends_on: ["TASK-P5-012"]
+| 項目 | 値 |
+|------|-----|
+| タスクID | TASK-P5-023 |
+| タイトル | Governance API (8 EP) |
+| 対象Sequence | §7 Governance Proposal |
+| 優先度 | P1 |
+| 見積り工数 | 4日 |
 
-spec_refs:
-  unified_spec: ["§SDK Authentication"]
+---
 
-existing_code_check:
-  sdk:
-    - "packages/sdk/typescript/src/client.ts (QuantumShieldClient存在)"
-    - "packages/sdk/react/src/QuantumShieldProvider.tsx (Provider存在)"
+## 背景
 
-gap:
-  what_exists: "Client構造あり、WASM/Dilithium統合済み"
-  what_missing: "SIWE→JWT自動認証フロー"
-  estimated_effort: "1 day"
+### 現状分析
 
-deliverables:
-  - "packages/sdk/typescript/src/auth.ts"
-  - "packages/sdk/react/src/useAuth.ts"
+| コンポーネント | ファイル | 状態 | 備考 |
+|--------------|---------|:----:|------|
+| UI Mocks | system_03_governance/ | ✅ PIR PASS | 6ファイル/16画面完了 |
+| DESIGN_MANIFEST | DESIGN_MANIFEST.md | ✅ 完成 | v1.1 |
+| API Routes | services/api/src/routes/ | ⚠️ 未実装 | governance.rs未作成 |
+
+### ギャップ分析
+
+```
+現在: UI モック完成（PIR PASS）
+不足: バックエンドAPI未実装
+必要: 8エンドポイントの実装
 ```
 
 ---
 
-## 2. 成果物詳細
+## 仕様参照
 
-### 2.1 packages/sdk/typescript/src/auth.ts
+- SEQUENCES §7 Governance Proposal
+- UNIFIED_SPEC §Governance, §veQS Voting
+- DESIGN_MANIFEST: system_03_governance/DESIGN_MANIFEST.md
 
-**目的**: SIWE (Sign-In with Ethereum) + JWT認証クライアント
+---
 
-**機能**:
-- `AuthClient` クラス
-  - SIWE メッセージ生成
-  - SIWE 署名送信 → JWT取得
-  - JWT トークン管理（保存・更新・削除）
-  - 自動リフレッシュ機能
-  - 認証状態管理
+## 実装項目
 
-**インターフェース**:
-```typescript
-interface AuthState {
-  isAuthenticated: boolean;
-  accessToken: string | null;
-  refreshToken: string | null;
-  expiresAt: number | null;
-  address: string | null;
-}
+### 1. governance.rs作成
 
-interface SIWEMessage {
-  domain: string;
-  address: string;
-  statement: string;
-  uri: string;
-  version: string;
-  chainId: number;
-  nonce: string;
-  issuedAt: string;
-  expirationTime?: string;
-}
-
-class AuthClient {
-  constructor(config: AuthClientConfig);
-
-  // SIWE認証フロー
-  createSIWEMessage(address: string, chainId: number): Promise<SIWEMessage>;
-  authenticate(signature: string, message: SIWEMessage): Promise<AuthState>;
-
-  // トークン管理
-  getAccessToken(): string | null;
-  refreshTokens(): Promise<AuthState>;
-  logout(): void;
-
-  // 状態
-  getAuthState(): AuthState;
-  isAuthenticated(): boolean;
-}
+```rust
+// 8 Endpoints:
+// GET  /v1/governance/dashboard     - Dashboard overview
+// GET  /v1/governance/proposals     - List proposals
+// GET  /v1/governance/proposals/:id - Proposal detail
+// POST /v1/governance/proposals     - Create proposal
+// POST /v1/governance/vote          - Submit vote
+// GET  /v1/governance/votes/:id     - Vote details
+// GET  /v1/governance/activity      - User activity
+// GET  /v1/governance/council       - Council info
 ```
 
-### 2.2 packages/sdk/react/src/useAuth.ts
+### 2. types.rs更新
 
-**目的**: React Hook for 認証機能
+- GovernanceTypes追加
+- ProposalStatus, VoteType enumsを追加
 
-**機能**:
-- 認証状態のReactive管理
-- ウォレット接続後の自動SIWE認証
-- トークン自動リフレッシュ
-- ローカルストレージ永続化
+### 3. routes/mod.rs更新
 
-**インターフェース**:
-```typescript
-interface UseAuthReturn {
-  // 状態
-  isAuthenticated: boolean;
-  isAuthenticating: boolean;
-  authError: Error | null;
-  address: string | null;
-
-  // アクション
-  signIn: () => Promise<void>;
-  signOut: () => void;
-  refreshAuth: () => Promise<void>;
-
-  // トークン
-  accessToken: string | null;
-  expiresAt: number | null;
-}
-```
+- governance moduleの追加
+- api_routes()にgovernanceルートを追加
 
 ---
 
-## 3. 完了条件
+## 完了条件
 
-### 3.1 形式的検証
-- [x] TypeScriptコンパイルエラーなし
-- [x] ESLint警告なし
-- [x] 型定義が完全
-
-### 3.2 実行検証
-- [x] npm run build 成功
-- [x] npm test 成功
-- [x] 既存テスト破壊なし
-
-### 3.3 機能検証
-- [x] SIWE メッセージ生成機能
-- [x] JWT トークン管理（取得・保存・更新・削除）
-- [x] 認証状態管理
-- [x] React Hook 動作
+| # | 条件 |
+|---|------|
+| 1 | 8エンドポイント全て実装 |
+| 2 | cargo build成功 |
+| 3 | cargo test成功 |
+| 4 | UIモックとの整合性確認 |
 
 ---
 
-## 6. 完了記録
+## トレーサビリティマトリクス
 
-```yaml
-completion:
-  date: "2026-01-12"
-  verification_loops: 3
-  artifacts:
-    - "packages/sdk/typescript/src/auth.ts"
-    - "packages/sdk/react/src/useAuth.ts"
-  tests_passed: 44
-  build_output:
-    typescript_sdk: "28.06 KB ESM + 23.84 KB DTS"
-    react_sdk: "18.95 KB ESM + 9.95 KB DTS"
-```
+| Screen (UI Mock) | API Endpoint | Status |
+|------------------|--------------|:------:|
+| 01_dashboard.html | GET /v1/governance/dashboard | ⏳ |
+| 02_proposals_list.html | GET /v1/governance/proposals | ⏳ |
+| 02_proposal_detail.html | GET /v1/governance/proposals/:id | ⏳ |
+| 02_proposal_detail.html | POST /v1/governance/vote | ⏳ |
+| 03_create_proposal.html | POST /v1/governance/proposals | ⏳ |
+| 04_my_activity.html | GET /v1/governance/activity | ⏳ |
+| 05_council.html | GET /v1/governance/council | ⏳ |
+| Vote History | GET /v1/governance/votes/:id | ⏳ |
 
 ---
 
-## 4. トレーサビリティ
-
-| 要件 | 仕様参照 | 実装ファイル | テスト |
-|------|---------|-------------|-------|
-| SIWE認証 | §SDK Authentication | auth.ts | - |
-| JWT管理 | §SDK Authentication | auth.ts | - |
-| React統合 | §SDK Authentication | useAuth.ts | - |
-
----
-
-## 5. 検証ループ設定
-
-- **最大ループ回数**: 5
-- **検証コマンド**:
-  - `cd packages/sdk/typescript && npm run build`
-  - `cd packages/sdk/react && npm run build`
-  - `cd packages/sdk/typescript && npm test`
-  - `cd packages/sdk/react && npm test`
-
----
-
-**WHY**: SDK経由でのシームレスな認証体験を提供し、Consumer App、Token Hub、Prover Portal等のフロントエンドからAPIを安全に利用可能にする。
+**END OF TASK DEFINITION**
