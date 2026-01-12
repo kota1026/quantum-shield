@@ -25,8 +25,8 @@ use crate::{
     error::ApiError,
     services::AppState,
     types::{
-        ActivitySummary, ActivityType, ChallengeInfo, KeyAlgorithmInfo, LockStatus,
-        NotificationSettings, TimelineEvent, TransactionStatus, TransactionType,
+        ActivitySummary, ActivityType, KeyAlgorithmInfo, LockStatus,
+        NotificationSettings, TimelineEvent, TransactionChallengeInfo, TransactionStatus, TransactionType,
         TransactionsQueryParams, UserDashboardResponse, UserKeysResponse,
         UserQuantumKeysStatus, UserSettingsResponse, UserSettingsUpdateRequest,
         UserTransaction, UserTransactionDetailResponse, UserTransactionsResponse,
@@ -269,12 +269,21 @@ pub async fn get_transaction_detail(
 
     // Get challenge info if challenged
     let challenge_info = if matches!(lock.status, LockStatus::Challenged) {
-        Some(ChallengeInfo {
-            challenger: "0x...".to_string(), // TODO: Store challenger address
-            bond: "100000000000000000".to_string(), // 0.1 ETH placeholder
-            challenged_at: chrono::Utc::now().timestamp() as u64,
-            defense_deadline: chrono::Utc::now().timestamp() as u64 + 172800, // +48h
-        })
+        // Try to get actual challenge info from state
+        match state.get_challenge_by_lock_id(&lock.lock_id).await? {
+            Some(info) => Some(TransactionChallengeInfo {
+                challenger: info.challenger,
+                bond: info.bond,
+                challenged_at: info.challenged_at,
+                defense_deadline: info.defense_deadline,
+            }),
+            None => Some(TransactionChallengeInfo {
+                challenger: "0x0000000000000000000000000000000000000000".to_string(),
+                bond: "100000000000000000".to_string(), // 0.1 ETH placeholder
+                challenged_at: chrono::Utc::now().timestamp() as u64,
+                defense_deadline: chrono::Utc::now().timestamp() as u64 + 172800, // +48h
+            }),
+        }
     } else {
         None
     };
@@ -388,8 +397,10 @@ pub async fn get_keys(
     let key_info = state.get_user_dilithium_key(&user_address).await?;
 
     let (dilithium_public_key, dilithium_fingerprint, registered_at) = match key_info {
-        Some((pk, registered)) => {
+        Some(pk) => {
             let fingerprint = compute_key_fingerprint(&pk);
+            // Use current timestamp as placeholder for registration date
+            let registered = chrono::Utc::now().timestamp() as u64;
             (Some(pk), Some(fingerprint), Some(registered))
         }
         None => (None, None, None),
@@ -435,8 +446,9 @@ async fn get_user_quantum_keys_status(
     let key_info = state.get_user_dilithium_key(user_address).await?;
 
     match key_info {
-        Some((pk, registered_at)) => {
+        Some(pk) => {
             let fingerprint = compute_key_fingerprint(&pk);
+            let registered_at = chrono::Utc::now().timestamp() as u64;
             Ok(UserQuantumKeysStatus {
                 dilithium_registered: true,
                 dilithium_fingerprint: Some(fingerprint),

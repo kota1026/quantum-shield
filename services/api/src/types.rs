@@ -246,12 +246,6 @@ pub struct SphincsSignature {
 }
 
 // ============================================================================
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
 // Challenge Types (SEQUENCES §4)
 // ============================================================================
 
@@ -304,7 +298,7 @@ pub enum ChallengeStatus {
     ResolvedInvalid,
 }
 
-/// Full challenge information
+/// Full challenge information (basic)
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChallengeInfo {
     pub challenge_id: String,
@@ -317,6 +311,28 @@ pub struct ChallengeInfo {
     pub status: ChallengeStatus,
     pub defender: Option<String>,
     pub defense_proof_hash: Option<String>,
+}
+
+/// Extended challenge information for Observer API
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ExtendedChallengeInfo {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub challenger: String,
+    pub fraud_proof_hash: String,
+    pub bond: String,
+    pub submitted_at: u64,
+    pub defense_deadline: u64,
+    pub defense_submitted: bool,
+    pub defense_timestamp: Option<u64>,
+    pub defender: Option<String>,
+    pub defense_proof_hash: Option<String>,
+    pub resolved: bool,
+    pub resolved_at: Option<u64>,
+    pub challenger_won: bool,
+    pub slashed_amount: Option<String>,
+    pub reward_amount: Option<String>,
+    pub resolution_tx_hash: Option<String>,
 }
 
 /// Auto-resolve response
@@ -398,8 +414,9 @@ pub struct VRFStatusResponse {
     pub selected_prover: Option<String>,
     pub time_remaining: Option<u64>,
     pub is_timed_out: bool,
-<<<<<<< HEAD
-=======
+}
+
+// ============================================================================
 // Authentication Types (TASK-P5-012: SIWE→JWT)
 // ============================================================================
 
@@ -491,8 +508,9 @@ pub struct SiweMessage {
     pub issued_at: String,
     /// ISO 8601 expiration time (optional)
     pub expiration_time: Option<String>,
->>>>>>> origin/claude/implement-task-p5-012-CoGF1
-=======
+}
+
+// ============================================================================
 // User Types (Consumer App API - TASK-P5-020)
 // ============================================================================
 
@@ -627,19 +645,362 @@ pub struct UserTransactionDetailResponse {
     /// Time lock remaining in seconds (negative if expired)
     pub time_lock_remaining: Option<i64>,
     /// Challenge info (if challenged)
-    pub challenge_info: Option<ChallengeInfo>,
+    pub challenge_info: Option<TransactionChallengeInfo>,
     /// Transaction timeline
     pub timeline: Vec<TimelineEvent>,
 }
 
-/// Challenge information
+/// Challenge information for transaction detail
 #[derive(Debug, Serialize)]
-pub struct ChallengeInfo {
+pub struct TransactionChallengeInfo {
     /// Challenger address
     pub challenger: String,
     /// Challenge bond amount
     pub bond: String,
-=======
+    /// Challenge timestamp
+    pub challenged_at: u64,
+    /// Defense deadline
+    pub defense_deadline: u64,
+}
+
+/// Timeline event for transaction history
+#[derive(Debug, Serialize)]
+pub struct TimelineEvent {
+    /// Event type
+    pub event: String,
+    /// Event timestamp
+    pub timestamp: u64,
+    /// Event description
+    pub description: String,
+}
+
+/// User settings response
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserSettingsResponse {
+    /// User's wallet address
+    pub address: String,
+    /// Notification preferences
+    pub notifications: NotificationSettings,
+    /// Default time lock preference (hours)
+    pub default_time_lock_hours: u32,
+    /// Preferred language
+    pub language: String,
+    /// Two-factor authentication enabled
+    pub two_factor_enabled: bool,
+}
+
+/// Notification settings
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NotificationSettings {
+    /// Email notifications enabled
+    pub email_enabled: bool,
+    /// Email address (if enabled)
+    pub email: Option<String>,
+    /// Notify on lock confirmation
+    pub on_lock_confirmed: bool,
+    /// Notify on unlock ready
+    pub on_unlock_ready: bool,
+    /// Notify on challenge
+    pub on_challenge: bool,
+}
+
+/// User settings update request
+#[derive(Debug, Deserialize)]
+pub struct UserSettingsUpdateRequest {
+    /// Notification preferences update
+    pub notifications: Option<NotificationSettings>,
+    /// Default time lock preference update
+    pub default_time_lock_hours: Option<u32>,
+    /// Language preference update
+    pub language: Option<String>,
+}
+
+/// User keys response
+#[derive(Debug, Serialize)]
+pub struct UserKeysResponse {
+    /// User's wallet address
+    pub address: String,
+    /// Dilithium-III public key (hex encoded)
+    pub dilithium_public_key: Option<String>,
+    /// Key fingerprint (SHA3-256 of public key)
+    pub dilithium_fingerprint: Option<String>,
+    /// Key registration timestamp
+    pub registered_at: Option<u64>,
+    /// Algorithm info
+    pub algorithm: KeyAlgorithmInfo,
+}
+
+/// Key algorithm information
+#[derive(Debug, Serialize)]
+pub struct KeyAlgorithmInfo {
+    /// Algorithm name
+    pub name: String,
+    /// Standard reference
+    pub standard: String,
+    /// Security level
+    pub security_level: String,
+    /// Public key size in bytes
+    pub public_key_size: u32,
+    /// Signature size in bytes
+    pub signature_size: u32,
+}
+
+/// Query parameters for transactions list
+#[derive(Debug, Deserialize)]
+pub struct TransactionsQueryParams {
+    /// Filter by transaction type
+    pub tx_type: Option<TransactionType>,
+    /// Filter by status
+    pub status: Option<TransactionStatus>,
+    /// Page number (1-indexed)
+    pub page: Option<u32>,
+    /// Items per page (max 100)
+    pub per_page: Option<u32>,
+}
+
+// ============================================================================
+// Token Hub Types (veQS / Delegation / Rewards - TASK-P5-021)
+// ============================================================================
+
+/// Dashboard response for Token Hub
+#[derive(Debug, Serialize)]
+pub struct TokenHubDashboardResponse {
+    /// User's wallet address
+    pub address: String,
+    /// Available QS balance (not locked)
+    pub qs_balance: String,
+    /// Total locked QS amount
+    pub locked_qs: String,
+    /// Current veQS balance (decays over time)
+    pub veqs_balance: String,
+    /// Voting power percentage (0.0 - 100.0)
+    pub voting_power_percent: f64,
+    /// Active lock position (if any)
+    pub lock_position: Option<LockPosition>,
+    /// Delegations made by user
+    pub delegations_count: u32,
+    /// Pending rewards
+    pub pending_rewards: String,
+}
+
+/// Lock position in veQS
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LockPosition {
+    /// Locked QS amount
+    pub amount: String,
+    /// Lock start timestamp
+    pub start_time: u64,
+    /// Lock end timestamp (unlock time)
+    pub unlock_time: u64,
+    /// Initial lock duration in seconds
+    pub lock_duration: u64,
+    /// Current veQS value
+    pub veqs_value: String,
+    /// Multiplier (remaining_time / max_lock_time)
+    pub multiplier: f64,
+    /// Time remaining in human readable format
+    pub time_remaining: String,
+}
+
+/// Request to create a new QS lock
+#[derive(Debug, Deserialize)]
+pub struct TokenHubLockRequest {
+    /// Amount of QS to lock
+    pub amount: String,
+    /// Lock duration in seconds (min: 1 week, max: 4 years)
+    pub lock_duration: u64,
+}
+
+/// Response after creating a lock
+#[derive(Debug, Serialize)]
+pub struct TokenHubLockResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash (if submitted to L1)
+    pub tx_hash: Option<String>,
+    /// Created lock position
+    pub lock_position: LockPosition,
+    /// Estimated gas cost
+    pub estimated_gas: String,
+}
+
+/// Request to extend an existing lock
+#[derive(Debug, Deserialize)]
+pub struct TokenHubExtendRequest {
+    /// New unlock timestamp (must be > current unlock_time)
+    pub new_unlock_time: u64,
+}
+
+/// Response after extending a lock
+#[derive(Debug, Serialize)]
+pub struct TokenHubExtendResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash
+    pub tx_hash: Option<String>,
+    /// Updated lock position
+    pub lock_position: LockPosition,
+}
+
+/// List of user's lock positions
+#[derive(Debug, Serialize)]
+pub struct TokenHubLocksResponse {
+    /// Active lock position (only one allowed per user in veQS)
+    pub active_lock: Option<LockPosition>,
+    /// Historical locks (withdrawn)
+    pub history: Vec<HistoricalLock>,
+}
+
+/// Historical lock record
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoricalLock {
+    /// Locked amount
+    pub amount: String,
+    /// Lock start timestamp
+    pub start_time: u64,
+    /// Unlock timestamp
+    pub unlock_time: u64,
+    /// Withdrawn timestamp
+    pub withdrawn_at: u64,
+}
+
+/// Delegate information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegateInfo {
+    /// Delegate address
+    pub address: String,
+    /// Delegate name (ENS or custom)
+    pub name: Option<String>,
+    /// Total veQS delegated to this delegate
+    pub total_veqs: String,
+    /// Number of delegators
+    pub delegators_count: u32,
+    /// Voting participation rate (%)
+    pub participation_rate: f64,
+    /// Recent proposals voted
+    pub recent_votes: u32,
+}
+
+/// List of available delegates
+#[derive(Debug, Serialize)]
+pub struct TokenHubDelegatesResponse {
+    /// List of delegates
+    pub delegates: Vec<DelegateInfo>,
+    /// Total number of delegates
+    pub total: u32,
+}
+
+/// Request to delegate voting power
+#[derive(Debug, Deserialize)]
+pub struct TokenHubDelegateRequest {
+    /// Address to delegate to
+    pub delegatee: String,
+}
+
+/// Response after delegating
+#[derive(Debug, Serialize)]
+pub struct TokenHubDelegateResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash
+    pub tx_hash: Option<String>,
+    /// New delegatee address
+    pub delegatee: String,
+    /// Amount of veQS delegated
+    pub veqs_delegated: String,
+}
+
+/// User's delegation info
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MyDelegation {
+    /// Delegatee address
+    pub delegatee: String,
+    /// Delegatee name
+    pub delegatee_name: Option<String>,
+    /// Amount of veQS delegated
+    pub veqs_amount: String,
+    /// Percentage of total veQS delegated to this address
+    pub percent_of_total: f64,
+    /// Delegation timestamp
+    pub delegated_at: u64,
+}
+
+/// List of user's delegations
+#[derive(Debug, Serialize)]
+pub struct TokenHubMyDelegationsResponse {
+    /// User's delegations
+    pub delegations: Vec<MyDelegation>,
+    /// Total veQS delegated
+    pub total_delegated: String,
+    /// Self-retained veQS (not delegated)
+    pub self_retained: String,
+}
+
+/// Rewards information
+#[derive(Debug, Serialize)]
+pub struct TokenHubRewardsResponse {
+    /// Claimable rewards amount
+    pub claimable: String,
+    /// Claimable in USD (estimated)
+    pub claimable_usd: String,
+    /// Total claimed historically
+    pub total_claimed: String,
+    /// Current epoch number
+    pub current_epoch: u64,
+    /// Epoch progress (0.0 - 1.0)
+    pub epoch_progress: f64,
+    /// Estimated rewards for current epoch
+    pub estimated_epoch_rewards: String,
+    /// APY (Annual Percentage Yield)
+    pub apy: f64,
+    /// Reward history
+    pub history: Vec<RewardHistory>,
+}
+
+/// Historical reward record
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RewardHistory {
+    /// Epoch number
+    pub epoch: u64,
+    /// Reward amount
+    pub amount: String,
+    /// Claimed timestamp (None if unclaimed)
+    pub claimed_at: Option<u64>,
+}
+
+/// Rewards info for token hub
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RewardsInfo {
+    /// Pending rewards
+    pub pending: String,
+    /// Claimable rewards
+    pub claimable: String,
+    /// Last claim timestamp
+    pub last_claim: Option<u64>,
+    /// Next epoch timestamp
+    pub next_epoch: u64,
+    /// APR percentage
+    pub apr: f64,
+}
+
+/// Request to claim rewards
+#[derive(Debug, Deserialize)]
+pub struct TokenHubClaimRequest {
+    /// Optional: specific epochs to claim (None = claim all)
+    pub epochs: Option<Vec<u64>>,
+}
+
+/// Response after claiming rewards
+#[derive(Debug, Serialize)]
+pub struct TokenHubClaimResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash
+    pub tx_hash: Option<String>,
+    /// Amount claimed
+    pub amount_claimed: String,
+    /// Epochs claimed
+    pub epochs_claimed: Vec<u64>,
 }
 
 // ============================================================================
@@ -849,339 +1210,10 @@ pub struct ProverChallengeItem {
     pub lock_id: String,
     /// Challenger address
     pub challenger: String,
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
     /// Challenge timestamp
     pub challenged_at: u64,
     /// Defense deadline
     pub defense_deadline: u64,
-<<<<<<< HEAD
-}
-
-/// Timeline event for transaction history
-#[derive(Debug, Serialize)]
-pub struct TimelineEvent {
-    /// Event type
-    pub event: String,
-    /// Event timestamp
-    pub timestamp: u64,
-    /// Event description
-    pub description: String,
-}
-
-/// User settings response
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct UserSettingsResponse {
-    /// User's wallet address
-    pub address: String,
-    /// Notification preferences
-    pub notifications: NotificationSettings,
-    /// Default time lock preference (hours)
-    pub default_time_lock_hours: u32,
-    /// Preferred language
-    pub language: String,
-    /// Two-factor authentication enabled
-    pub two_factor_enabled: bool,
-}
-
-/// Notification settings
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct NotificationSettings {
-    /// Email notifications enabled
-    pub email_enabled: bool,
-    /// Email address (if enabled)
-    pub email: Option<String>,
-    /// Notify on lock confirmation
-    pub on_lock_confirmed: bool,
-    /// Notify on unlock ready
-    pub on_unlock_ready: bool,
-    /// Notify on challenge
-    pub on_challenge: bool,
-}
-
-/// User settings update request
-#[derive(Debug, Deserialize)]
-pub struct UserSettingsUpdateRequest {
-    /// Notification preferences update
-    pub notifications: Option<NotificationSettings>,
-    /// Default time lock preference update
-    pub default_time_lock_hours: Option<u32>,
-    /// Language preference update
-    pub language: Option<String>,
-}
-
-/// User keys response
-#[derive(Debug, Serialize)]
-pub struct UserKeysResponse {
-    /// User's wallet address
-    pub address: String,
-    /// Dilithium-III public key (hex encoded)
-    pub dilithium_public_key: Option<String>,
-    /// Key fingerprint (SHA3-256 of public key)
-    pub dilithium_fingerprint: Option<String>,
-    /// Key registration timestamp
-    pub registered_at: Option<u64>,
-    /// Algorithm info
-    pub algorithm: KeyAlgorithmInfo,
-}
-
-/// Key algorithm information
-#[derive(Debug, Serialize)]
-pub struct KeyAlgorithmInfo {
-    /// Algorithm name
-    pub name: String,
-    /// Standard reference
-    pub standard: String,
-    /// Security level
-    pub security_level: String,
-    /// Public key size in bytes
-    pub public_key_size: u32,
-    /// Signature size in bytes
-    pub signature_size: u32,
-}
-
-/// Query parameters for transactions list
-#[derive(Debug, Deserialize)]
-pub struct TransactionsQueryParams {
-    /// Filter by transaction type
-    pub tx_type: Option<TransactionType>,
-    /// Filter by status
-    pub status: Option<TransactionStatus>,
-    /// Page number (1-indexed)
-    pub page: Option<u32>,
-    /// Items per page (max 100)
-    pub per_page: Option<u32>,
->>>>>>> origin/claude/implement-task-p5-020-vNCen
-=======
-// Token Hub Types (veQS / Delegation / Rewards)
-// ============================================================================
-
-/// Dashboard response for Token Hub
-#[derive(Debug, Serialize)]
-pub struct TokenHubDashboardResponse {
-    /// User's wallet address
-    pub address: String,
-    /// Available QS balance (not locked)
-    pub qs_balance: String,
-    /// Total locked QS amount
-    pub locked_qs: String,
-    /// Current veQS balance (decays over time)
-    pub veqs_balance: String,
-    /// Voting power percentage (0.0 - 100.0)
-    pub voting_power_percent: f64,
-    /// Active lock position (if any)
-    pub lock_position: Option<LockPosition>,
-    /// Delegations made by user
-    pub delegations_count: u32,
-    /// Pending rewards
-    pub pending_rewards: String,
-}
-
-/// Lock position in veQS
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LockPosition {
-    /// Locked QS amount
-    pub amount: String,
-    /// Lock start timestamp
-    pub start_time: u64,
-    /// Lock end timestamp (unlock time)
-    pub unlock_time: u64,
-    /// Initial lock duration in seconds
-    pub lock_duration: u64,
-    /// Current veQS value
-    pub veqs_value: String,
-    /// Multiplier (remaining_time / max_lock_time)
-    pub multiplier: f64,
-    /// Time remaining in human readable format
-    pub time_remaining: String,
-}
-
-/// Request to create a new QS lock
-#[derive(Debug, Deserialize)]
-pub struct TokenHubLockRequest {
-    /// Amount of QS to lock
-    pub amount: String,
-    /// Lock duration in seconds (min: 1 week, max: 4 years)
-    pub lock_duration: u64,
-}
-
-/// Response after creating a lock
-#[derive(Debug, Serialize)]
-pub struct TokenHubLockResponse {
-    /// Success status
-    pub success: bool,
-    /// Transaction hash (if submitted to L1)
-    pub tx_hash: Option<String>,
-    /// Created lock position
-    pub lock_position: LockPosition,
-    /// Estimated gas cost
-    pub estimated_gas: String,
-}
-
-/// Request to extend an existing lock
-#[derive(Debug, Deserialize)]
-pub struct TokenHubExtendRequest {
-    /// New unlock timestamp (must be > current unlock_time)
-    pub new_unlock_time: u64,
-}
-
-/// Response after extending a lock
-#[derive(Debug, Serialize)]
-pub struct TokenHubExtendResponse {
-    /// Success status
-    pub success: bool,
-    /// Transaction hash
-    pub tx_hash: Option<String>,
-    /// Updated lock position
-    pub lock_position: LockPosition,
-}
-
-/// List of user's lock positions
-#[derive(Debug, Serialize)]
-pub struct TokenHubLocksResponse {
-    /// Active lock position (only one allowed per user in veQS)
-    pub active_lock: Option<LockPosition>,
-    /// Historical locks (withdrawn)
-    pub history: Vec<HistoricalLock>,
-}
-
-/// Historical lock record
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoricalLock {
-    /// Locked amount
-    pub amount: String,
-    /// Lock start timestamp
-    pub start_time: u64,
-    /// Unlock timestamp
-    pub unlock_time: u64,
-    /// Withdrawn timestamp
-    pub withdrawn_at: u64,
-}
-
-/// Delegate information
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DelegateInfo {
-    /// Delegate address
-    pub address: String,
-    /// Delegate name (ENS or custom)
-    pub name: Option<String>,
-    /// Total veQS delegated to this delegate
-    pub total_veqs: String,
-    /// Number of delegators
-    pub delegators_count: u32,
-    /// Voting participation rate (%)
-    pub participation_rate: f64,
-    /// Recent proposals voted
-    pub recent_votes: u32,
-}
-
-/// List of available delegates
-#[derive(Debug, Serialize)]
-pub struct TokenHubDelegatesResponse {
-    /// List of delegates
-    pub delegates: Vec<DelegateInfo>,
-    /// Total number of delegates
-    pub total: u32,
-}
-
-/// Request to delegate voting power
-#[derive(Debug, Deserialize)]
-pub struct TokenHubDelegateRequest {
-    /// Address to delegate to
-    pub delegatee: String,
-}
-
-/// Response after delegating
-#[derive(Debug, Serialize)]
-pub struct TokenHubDelegateResponse {
-    /// Success status
-    pub success: bool,
-    /// Transaction hash
-    pub tx_hash: Option<String>,
-    /// New delegatee address
-    pub delegatee: String,
-    /// Amount of veQS delegated
-    pub veqs_delegated: String,
-}
-
-/// User's delegation info
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MyDelegation {
-    /// Delegatee address
-    pub delegatee: String,
-    /// Delegatee name
-    pub delegatee_name: Option<String>,
-    /// Amount of veQS delegated
-    pub veqs_amount: String,
-    /// Percentage of total veQS delegated to this address
-    pub percent_of_total: f64,
-    /// Delegation timestamp
-    pub delegated_at: u64,
-}
-
-/// List of user's delegations
-#[derive(Debug, Serialize)]
-pub struct TokenHubMyDelegationsResponse {
-    /// User's delegations
-    pub delegations: Vec<MyDelegation>,
-    /// Total veQS delegated
-    pub total_delegated: String,
-    /// Self-retained veQS (not delegated)
-    pub self_retained: String,
-}
-
-/// Rewards information
-#[derive(Debug, Serialize)]
-pub struct TokenHubRewardsResponse {
-    /// Claimable rewards amount
-    pub claimable: String,
-    /// Claimable in USD (estimated)
-    pub claimable_usd: String,
-    /// Total claimed historically
-    pub total_claimed: String,
-    /// Current epoch number
-    pub current_epoch: u64,
-    /// Epoch progress (0.0 - 1.0)
-    pub epoch_progress: f64,
-    /// Estimated rewards for current epoch
-    pub estimated_epoch_rewards: String,
-    /// APY (Annual Percentage Yield)
-    pub apy: f64,
-    /// Reward history
-    pub history: Vec<RewardHistory>,
-}
-
-/// Historical reward record
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RewardHistory {
-    /// Epoch number
-    pub epoch: u64,
-    /// Reward amount
-    pub amount: String,
-    /// Claimed timestamp (None if unclaimed)
-    pub claimed_at: Option<u64>,
-}
-
-/// Request to claim rewards
-#[derive(Debug, Deserialize)]
-pub struct TokenHubClaimRequest {
-    /// Optional: specific epochs to claim (None = claim all)
-    pub epochs: Option<Vec<u64>>,
-}
-
-/// Response after claiming rewards
-#[derive(Debug, Serialize)]
-pub struct TokenHubClaimResponse {
-    /// Success status
-    pub success: bool,
-    /// Transaction hash
-    pub tx_hash: Option<String>,
-    /// Amount claimed
-    pub amount_claimed: String,
-    /// Epochs claimed
-    pub epochs_claimed: Vec<u64>,
->>>>>>> origin/claude/implement-task-p5-021-RdbJS
-}
-=======
     /// Time remaining for defense (seconds)
     pub time_remaining: i64,
     /// Challenge status
@@ -1248,4 +1280,3 @@ pub struct ProverExitResponse {
     /// Pending rewards to be returned
     pub pending_rewards: String,
 }
->>>>>>> origin/claude/implement-task-p5-022-MKhkM
