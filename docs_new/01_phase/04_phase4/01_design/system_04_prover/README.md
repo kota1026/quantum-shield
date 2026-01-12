@@ -1,9 +1,14 @@
 # 📁 System 04: Prover Portal - Design Folder
 
+<<<<<<< HEAD
 > **Status**: 🟡 In Progress (Brief Ready)
+=======
+> **Status**: 🟡 Brief Ready
+>>>>>>> origin/claude/implement-task-p5-025-vAWqS
 > **Priority**: P0
 > **Screens**: 28
 > **Target Users**: Prover (山田さん)
+> **Current Phase**: 08_design_prep COMPLETE
 
 ---
 
@@ -69,6 +74,7 @@ system_04_prover/
 
 ---
 
+<<<<<<< HEAD
 ## Next Steps
 
 1. → `09_design_create.md` でモック作成
@@ -77,3 +83,12 @@ system_04_prover/
 ---
 
 **Last Updated**: 2026-01-10
+=======
+**Last Updated**: 2026-01-12
+
+## Next Steps
+
+1. → `09_design_create.md` でモック作成
+2. DESIGN_MANIFEST.md 出力
+3. `10_design_pir.md` でPIRレビュー
+>>>>>>> origin/claude/implement-task-p5-025-vAWqS
