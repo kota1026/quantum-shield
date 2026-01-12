@@ -8,4 +8,4 @@
 
 pub mod dilithium;
 
-pub use dilithium::DilithiumVerifier;
+pub use dilithium::{DilithiumKeyPair, DilithiumVerifier, params};

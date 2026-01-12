@@ -23,10 +23,8 @@ bincode.workspace = true
 # Logging
 tracing.workspace = true
 
-# Field arithmetic (for NTT)
-# TODO: Switch to Plonky3 field when circuit is implemented
-# p3-field = { workspace = true }
-# p3-air = { workspace = true }
+# STARK proving (Winterfell)
+winterfell = { workspace = true }
 
 [features]
 default = ["pq_crystals_ffi"]

@@ -7,6 +7,7 @@
 //! - Prover API
 //! - Edition API (API-006)
 //! - Admin API (Week 4-5)
+//! - Auth API (TASK-P5-012: SIWE→JWT)
 //!
 //! ## CP-1 Compliance
 //! - Uses NIST FIPS 204 ML-DSA-65 for user signatures
@@ -58,6 +59,8 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         // V1 API routes (Lock/Unlock/Status/Prover/Edition)
         .nest("/v1", routes::api_routes())
+        // V1 Auth routes (TASK-P5-012: SIWE→JWT)
+        .nest("/v1", routes::auth_routes(state.clone()))
         // Admin Dashboard API routes
         .nest("/api", routes::admin_routes())
         .layer(Extension(state))
@@ -70,6 +73,7 @@ async fn main() -> anyhow::Result<()> {
         .expect("Invalid server address");
 
     tracing::info!("Listening on {}", addr);
+    tracing::info!("Auth API available at /v1/auth/*");
     tracing::info!("Admin Dashboard API available at /api/*");
 
     let listener = tokio::net::TcpListener::bind(addr).await?;

@@ -36,6 +36,8 @@ impl TestHarness {
                 block_time_ms: 100, // Fast for testing
                 view_change_timeout: 1,
                 max_txs_per_block: 100,
+                network_timeout_ms: 100, // Fast for testing
+                max_retries: 3,
             };
 
             let engine = ConsensusEngine::new(config, msg_tx, event_tx);

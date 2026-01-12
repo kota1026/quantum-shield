@@ -10,6 +10,30 @@ pub struct Config {
     pub rabbitmq: RabbitMQConfig,
     pub jwt: JwtConfig,
     pub security: SecurityConfig,
+    pub vrf: VRFConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct VRFConfig {
+    /// VRFConsumer contract address
+    pub contract_address: String,
+    /// Ethereum RPC URL
+    pub rpc_url: String,
+    /// VRF timeout in seconds (default: 300 = 5 minutes)
+    pub timeout_seconds: u64,
+    /// Polling interval in seconds for VRF status check
+    pub polling_interval_seconds: u64,
+}
+
+impl Default for VRFConfig {
+    fn default() -> Self {
+        Self {
+            contract_address: "0x0000000000000000000000000000000000000000".to_string(),
+            rpc_url: "http://localhost:8545".to_string(),
+            timeout_seconds: 300,  // 5 minutes per SEQUENCES §2.3
+            polling_interval_seconds: 5,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -99,6 +123,7 @@ impl Default for Config {
                 expiry_hours: 24,
             },
             security: SecurityConfig::default(),
+            vrf: VRFConfig::default(),
         }
     }
 }

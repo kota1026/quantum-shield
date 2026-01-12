@@ -9,7 +9,7 @@ pub mod config;
 pub mod message;
 
 pub use peer::{Peer, PeerManager};
-pub use transport::Transport;
+pub use transport::{Transport, TlsConfig, Connection, ConnectionReader, ConnectionWriter};
 pub use config::NetworkConfig;
 pub use message::NetworkMessage;
 

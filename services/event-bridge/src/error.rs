@@ -81,6 +81,20 @@ pub enum Error {
     /// Internal error
     #[error("Internal error: {0}")]
     Internal(String),
+
+    /// Queue (RabbitMQ) error
+    #[error("Queue error: {0}")]
+    Queue(String),
+
+    /// WebSocket error
+    #[error("WebSocket error: {0}")]
+    WebSocket(String),
+}
+
+impl From<tokio_tungstenite::tungstenite::Error> for Error {
+    fn from(err: tokio_tungstenite::tungstenite::Error) -> Self {
+        Error::WebSocket(err.to_string())
+    }
 }
 
 impl From<config::ConfigError> for Error {

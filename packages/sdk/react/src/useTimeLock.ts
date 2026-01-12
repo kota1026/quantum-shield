@@ -69,14 +69,14 @@ export function useTimeLock(lockId: string, autoRefresh: number = 0): UseTimeLoc
       };
       setLock(mockLock);
 
-      const totalSeconds = 86400; // 24 hours placeholder
+      const totalSeconds: number = 86400; // 24 hours placeholder
       setTimeRemaining({
         totalSeconds,
         days: Math.floor(totalSeconds / 86400),
         hours: Math.floor((totalSeconds % 86400) / 3600),
         minutes: Math.floor((totalSeconds % 3600) / 60),
         seconds: totalSeconds % 60,
-        expired: totalSeconds === 0,
+        expired: totalSeconds <= 0,
       });
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch lock status'));
