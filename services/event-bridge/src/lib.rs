@@ -13,6 +13,10 @@
 //! - SHA3-256 for all hashing (no keccak256)
 //! - Dilithium-III for user signatures
 //! - SPHINCS+-128s for prover signatures
+//!
+//! ## Real-time Notifications (TASK-P5-006)
+//! - WebSocket server for client notifications
+//! - RabbitMQ for service-to-service communication
 
 pub mod config;
 pub mod error;
@@ -23,6 +27,12 @@ pub mod queue;
 pub mod idempotency;
 pub mod metrics;
 pub mod retry;
+pub mod websocket;
+pub mod rabbitmq;
+pub mod notification;
 
 pub use config::Config;
 pub use error::{Error, Result};
+pub use websocket::WebSocketServer;
+pub use rabbitmq::{RabbitMQClient, RabbitMQConfig};
+pub use notification::{NotificationService, NotificationConfig};

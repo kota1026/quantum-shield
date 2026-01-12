@@ -316,4 +316,57 @@ TASK-P5-004 L3 Production Mode: **COMPLETE**
 
 ---
 
+## 2026-01-12 (TASK-P5-006)
+
+### Event: TASK_START
+- **Task**: TASK-P5-006 Event Bridge WebSocket/MQ統合
+- **Time**: 2026-01-12
+- **Prompt Used**: 21_impl_verify_loop.md
+
+### Event: IMPLEMENTATION
+- **Files Created**:
+  - `services/event-bridge/src/websocket.rs` (WebSocketServer, 200+ lines)
+  - `services/event-bridge/src/rabbitmq.rs` (RabbitMQClient, 180+ lines)
+  - `services/event-bridge/src/notification.rs` (NotificationService, 150+ lines)
+- **Files Modified**:
+  - `services/event-bridge/Cargo.toml` (tokio-tungstenite, lapin依存追加)
+  - `services/event-bridge/src/lib.rs` (モジュールエクスポート追加)
+  - `services/event-bridge/src/error.rs` (Queue, WebSocket error追加)
+
+### Event: FEATURES_IMPLEMENTED
+- **WebSocket Server**:
+  - 接続管理 (ClientInfo tracking)
+  - イベントbroadcast (broadcast channel)
+  - Ping/Pong heartbeat
+  - Welcome message送信
+- **RabbitMQ Client**:
+  - 自動再接続
+  - Queue宣言
+  - Event publish (JSON)
+  - Graceful close
+- **NotificationService**:
+  - WebSocket + RabbitMQ統合
+  - 有効/無効切替可能
+  - 複数チャネル通知
+
+### Event: VERIFICATION_LOOP
+- **Loop**: 1
+- **Results**:
+  | Check | Status |
+  |-------|:------:|
+  | cargo build | ✅ (warnings) |
+  | cargo test (unit) | ✅ 25 passed |
+  | cargo test (integration) | ✅ 8 passed |
+- **Total Tests**: 33 passed
+
+### Event: TASK_COMPLETE
+- **Task**: TASK-P5-006
+- **Status**: DONE
+- **Artifacts**:
+  - `websocket.rs`: WebSocket broadcast server
+  - `rabbitmq.rs`: RabbitMQ publish client
+  - `notification.rs`: Unified notification service
+
+---
+
 **END OF EVENT LOG**
