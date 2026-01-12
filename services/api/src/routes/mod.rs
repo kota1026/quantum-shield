@@ -9,6 +9,7 @@ mod prover;
 mod edition;
 mod health;
 mod admin;
+mod challenge;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -22,12 +23,27 @@ pub fn api_routes() -> Router {
         // Status API (API-004)
         .route("/status/:lock_id", get(status::get_lock_status))
         .route("/status/pending", get(status::get_pending_unlocks))
-        // Prover API
+        // Prover API (basic)
         .route("/prover/register", post(prover::register_prover))
         .route("/prover/:prover_id", get(prover::get_prover_info))
+        // Prover Portal API (TASK-P5-022)
+        .route("/prover/:prover_id/dashboard", get(prover::get_prover_dashboard))
+        .route("/prover/:prover_id/queue", get(prover::get_signing_queue))
+        .route("/prover/:prover_id/queue/:queue_id", get(prover::get_queue_item))
+        .route("/prover/:prover_id/sign", post(prover::submit_signature))
+        .route("/prover/:prover_id/metrics", get(prover::get_prover_metrics))
+        .route("/prover/:prover_id/alerts", get(prover::get_prover_alerts))
+        .route("/prover/:prover_id/challenges", get(prover::get_prover_challenges))
+        .route("/prover/:prover_id/challenge-response", post(prover::submit_challenge_response))
+        .route("/prover/:prover_id/exit", post(prover::initiate_prover_exit))
         // Edition API (API-006)
         .route("/edition", get(edition::get_edition))
         .route("/edition/switch", post(edition::switch_edition))
+        // Challenge API (SEQUENCES §4)
+        .route("/challenge", post(challenge::submit_challenge))
+        .route("/challenge/:lock_id", get(challenge::get_challenge))
+        .route("/challenge/:lock_id/defense", post(challenge::submit_defense))
+        .route("/challenge/:lock_id/auto-resolve", post(challenge::auto_resolve))
 }
 
 /// Admin Dashboard API routes (/api/*)

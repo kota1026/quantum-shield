@@ -54,6 +54,32 @@ pub enum ApiError {
 
     #[error("Service unavailable")]
     ServiceUnavailable,
+
+    // Challenge errors (SEQUENCES §4)
+    #[error("Invalid challenge target: {0}")]
+    InvalidChallengeTarget(String),
+
+    #[error("Insufficient bond: {0}")]
+    InsufficientBond(String),
+
+    #[error("Challenge not found: {0}")]
+    ChallengeNotFound(String),
+
+    #[error("Challenge already resolved")]
+    ChallengeAlreadyResolved,
+
+    #[error("Defense deadline expired")]
+    DefenseDeadlineExpired,
+
+    #[error("Defense deadline not passed")]
+    DefenseDeadlineNotPassed,
+
+    // Prover Portal errors (TASK-P5-022)
+    #[error("Not found: {0}")]
+    NotFound(String),
+
+    #[error("Forbidden: {0}")]
+    Forbidden(String),
 }
 
 #[derive(Serialize)]
@@ -80,6 +106,16 @@ impl ApiError {
             ApiError::InsufficientSignatures => 3002,
             ApiError::Internal(_) => 5001,
             ApiError::ServiceUnavailable => 5002,
+            // Challenge errors (4xxx)
+            ApiError::InvalidChallengeTarget(_) => 4001,
+            ApiError::InsufficientBond(_) => 4002,
+            ApiError::ChallengeNotFound(_) => 4003,
+            ApiError::ChallengeAlreadyResolved => 4004,
+            ApiError::DefenseDeadlineExpired => 4005,
+            ApiError::DefenseDeadlineNotPassed => 4006,
+            // Prover Portal errors (6xxx)
+            ApiError::NotFound(_) => 6001,
+            ApiError::Forbidden(_) => 6002,
         }
     }
 
@@ -100,6 +136,16 @@ impl ApiError {
             ApiError::InsufficientSignatures => StatusCode::BAD_REQUEST,
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
+            // Challenge errors
+            ApiError::InvalidChallengeTarget(_) => StatusCode::BAD_REQUEST,
+            ApiError::InsufficientBond(_) => StatusCode::BAD_REQUEST,
+            ApiError::ChallengeNotFound(_) => StatusCode::NOT_FOUND,
+            ApiError::ChallengeAlreadyResolved => StatusCode::CONFLICT,
+            ApiError::DefenseDeadlineExpired => StatusCode::GONE,
+            ApiError::DefenseDeadlineNotPassed => StatusCode::PRECONDITION_FAILED,
+            // Prover Portal errors
+            ApiError::NotFound(_) => StatusCode::NOT_FOUND,
+            ApiError::Forbidden(_) => StatusCode::FORBIDDEN,
         }
     }
 }

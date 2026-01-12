@@ -97,6 +97,10 @@ pub async fn create_unlock(
         prover_signatures_required: 2,
         prover_signatures_collected: 0,
         status: UnlockStatus::PendingSignatures,
+        // VRF fields (SEQUENCES §2.3-§2.4) - set after VRF completes
+        vrf_request_id: None,
+        selected_provers: vec![],
+        vrf_status: crate::types::VRFStatus::NotStarted,
     }))
 }
 
