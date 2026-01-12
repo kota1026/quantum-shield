@@ -990,27 +990,29 @@ estimated_effort: "3 days"
 
 ### 10.1 Phase 5.0 進捗（2026-01-12時点）
 
-| Task ID | 名前 | 状態 | 完了日 |
-|---------|-----|:----:|-------|
-| TASK-P5-001 | Challenge API + SDK | ✅ DONE | 2026-01-11 |
-| TASK-P5-002 | STARK Prover移行 | ✅ DONE | 2026-01-11 |
-| TASK-P5-003 | React SDK WASM | ✅ DONE | 2026-01-11 |
-| TASK-P5-004 | L3 Production Mode | ✅ DONE | 2026-01-11 |
-| TASK-P5-005 | Chainlink VRF | ⏳ TODO | - |
-| TASK-P5-006 | Event Bridge | ⏳ TODO | - |
-| TASK-P5-007 | SPHINCS+検証 | ⏳ TODO | - |
+| Task ID | 名前 | 状態 | 完了日 | 備考 |
+|---------|-----|:----:|-------|------|
+| TASK-P5-001 | Challenge API + SDK | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
+| TASK-P5-002 | STARK Prover移行 | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
+| TASK-P5-003 | React SDK WASM | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
+| TASK-P5-004 | L3 Production Mode | ✅ DONE | 2026-01-12 | L3設定CP-1準拠修正済 |
+| TASK-P5-005 | Chainlink VRF | ⚠️ PARTIAL | 2026-01-12 | シミュレーション実装、本番連携未実装 |
+| TASK-P5-006 | Event Bridge | ✅ DONE | 2026-01-12 | WebSocket/RabbitMQ統合完了 |
+| TASK-P5-007 | SPHINCS+検証 | ⚠️ PARTIAL | 2026-01-12 | フォーマット検証のみ、署名検証未実装 |
+
+> **Note**: TASK-P5-005, P5-007 は「開発フェーズ」として受け入れ。本番統合は Phase 5.1 以降で別タスク定義。
 
 ### 10.2 全体進捗
 
 ```
-Phase 5.0: ████████████░░░░░░░░ 57% (4/7 tasks)
+Phase 5.0: █████████████████░░░ 86% (5 DONE + 2 PARTIAL / 7 tasks)
 Phase 5.1: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
 Phase 5.2: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
 Phase 5.3: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
 Phase 5.4: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/5 tasks)
 Phase 5.5: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
 ───────────────────────────────
-Total:     ███░░░░░░░░░░░░░░░░░ 15% (4/26 tasks)
+Total:     ████░░░░░░░░░░░░░░░░ 19% (5/26 DONE + 2 PARTIAL)
 ```
 
 ### 10.3 工数実績 vs 計画
