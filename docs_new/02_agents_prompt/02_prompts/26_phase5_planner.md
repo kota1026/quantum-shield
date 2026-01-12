@@ -106,102 +106,70 @@ completion:
 
 ---
 
-## 4. Phase 5.0: ブロッカー解消（✅ 80%完了）
+## 4. Phase 5.0: ブロッカー解消（71%完了）
+
+> **注意**: タスク番号はTASK_P5_FULL_LIST.mdと統一
 
 ### 4.1 完了タスク
 
-#### TASK-P5-001: Challenge API + SDK ✅ DONE
+#### TASK-P5-001: STARK Prover Archive移行 ✅ DONE
 
 ```yaml
 task_id: "TASK-P5-001"
-name: "Challenge API + SDK 統合"
+name: "STARK Prover Archive移行"
 phase: "5.0"
 priority: "P0"
 status: "DONE"
 
 spec_refs:
-  sequences: ["§4 Challenge + Slashing"]
-  core_principles: ["CP-4"]
-  unified_spec: ["§Quadratic Slashing"]
-
-existing_code_check:
-  contracts:
-    - "contracts/src/L1Vault.sol:challenge() ✅"
-    - "contracts/src/L1Vault.sol:slash() ✅"
-  api:
-    - "services/api/src/routes/ (challenge未実装)"
-  sdk:
-    - "packages/sdk/react/src/ (useChallenge未実装)"
-
-gap:
-  what_exists: "L1Vault.sol に完全なChallenge/Slash実装"
-  what_missing: "API層、SDK層"
-  estimated_effort: "2 days"
-
-deliverables:
-  - "services/api/src/routes/challenge.rs (376 lines)"
-  - "packages/sdk/react/src/useChallenge.ts (549 lines)"
-
-completion:
-  date: "2026-01-11"
-  commit: "32b998d8"
-  artifacts:
-    - "services/api/src/routes/challenge.rs"
-    - "packages/sdk/react/src/useChallenge.ts"
-  tests_passed: 58
-```
-
-#### TASK-P5-002: STARK Prover移行 ✅ DONE
-
-```yaml
-task_id: "TASK-P5-002"
-name: "STARK Prover Archive移行統合"
-phase: "5.0"
-priority: "P0"
-status: "DONE"
-
-spec_refs:
-  sequences: []
-  core_principles: []
-  unified_spec: ["§STARK Verification"]
+  unified_spec: ["§STARK Verification", "§2.5.1"]
 
 existing_code_check:
   contracts:
     - "contracts/src/STARKVerifier.sol (660 lines) ✅"
     - "contracts/src/FRIVerifier.sol (342 lines) ✅"
-  api:
-    - "stark-prover/src/main.rs:481-499 (STUB)"
   archive:
     - "_archive/v1-stark-native/prover.rs (242 lines) ✅ Winterfell"
-    - "_archive/v1-stark-native/air.rs (1,027 lines) ✅"
-    - "_archive/v1-stark-native/trace.rs (1,559 lines) ✅"
-
-gap:
-  what_exists: "L1検証器完成、Archive完動Prover"
-  what_missing: "現行stark-proverサービスがSTUB"
-  estimated_effort: "5 days (移行のみ)"
 
 deliverables:
   - "circuits/dilithium-stark/src/stark/constants.rs"
-  - "circuits/dilithium-stark/src/stark/air.rs (25 constraints)"
+  - "circuits/dilithium-stark/src/stark/air.rs"
   - "circuits/dilithium-stark/src/stark/trace.rs"
   - "circuits/dilithium-stark/src/stark/prover.rs"
-  - "stark-prover/src/main.rs (/winterfell/prove, /winterfell/verify)"
 
 completion:
   date: "2026-01-11"
   commit: "93952edb"
-  artifacts:
-    - "circuits/dilithium-stark/src/stark/*"
-    - "stark-prover/src/main.rs"
-  tests_passed: 19
 ```
 
-#### TASK-P5-003: React SDK WASM統合 ✅ DONE
+#### TASK-P5-002: stark-prover HTTPサービス化 ✅ DONE
+
+```yaml
+task_id: "TASK-P5-002"
+name: "stark-prover HTTPサービス化"
+phase: "5.0"
+priority: "P0"
+status: "DONE"
+depends_on: ["TASK-P5-001"]
+
+deliverables:
+  - "stark-prover/src/main.rs (801 lines)"
+    - "POST /prove"
+    - "POST /winterfell/prove"
+    - "POST /winterfell/verify"
+    - "GET /status/:job_id"
+    - "GET /proof/:job_id"
+
+completion:
+  date: "2026-01-11"
+  commit: "93952edb"
+```
+
+#### TASK-P5-003: React WASM初期化実装 ✅ DONE
 
 ```yaml
 task_id: "TASK-P5-003"
-name: "React SDK WASM初期化とHook実装"
+name: "React WASM初期化実装"
 phase: "5.0"
 priority: "P0"
 status: "DONE"
@@ -209,79 +177,121 @@ status: "DONE"
 spec_refs:
   core_principles: ["CP-1", "CP-2"]
 
-existing_code_check:
-  sdk:
-    - "packages/sdk/wasm/src/lib.rs ✅ 完成 (fips204)"
-    - "packages/sdk/typescript/src/crypto.ts ✅ 完成"
-    - "packages/sdk/react/src/QuantumShieldProvider.tsx (WASM未初期化)"
-    - "packages/sdk/react/src/useDilithium.ts (モック)"
-
-gap:
-  what_exists: "WASM module完成、TypeScript wrapper完成"
-  what_missing: "React Provider内でのWASM初期化"
-  estimated_effort: "5 days"
-
 deliverables:
-  - "packages/sdk/react/src/wasm.ts"
-  - "packages/sdk/react/src/QuantumShieldProvider.tsx (WASM init)"
-  - "packages/sdk/react/src/useDilithium.ts (実装)"
+  - "packages/sdk/react/src/wasm.ts (206 lines)"
+    - loadWasm(), initializeWasm(), getWasm()
+    - keygen(), sign(), verify(), sha3_256()
 
 completion:
   date: "2026-01-11"
   commit: "f034edec"
-  artifacts:
-    - "packages/sdk/react/src/wasm.ts"
-    - "packages/sdk/react/src/QuantumShieldProvider.tsx"
-    - "packages/sdk/react/src/useDilithium.ts"
-  wasm_size: "123 KB"
-  bundle_size: "24.31 KB ESM"
 ```
 
-#### TASK-P5-004: L3 Production Mode ✅ DONE
+#### TASK-P5-004: React Hooks実Crypto実装 ✅ DONE
 
 ```yaml
 task_id: "TASK-P5-004"
-name: "L3 Aegis Production Mode完成"
+name: "React Hooks実Crypto実装"
+phase: "5.0"
+priority: "P0"
+status: "DONE"
+depends_on: ["TASK-P5-003"]
+
+deliverables:
+  - "packages/sdk/react/src/useDilithium.ts (182 lines)"
+    - ML-DSA-65 署名/検証
+    - モックフォールバック付き
+
+completion:
+  date: "2026-01-11"
+  commit: "f034edec"
+```
+
+#### TASK-P5-008: L3 fips204クレート移行 ✅ DONE
+
+```yaml
+task_id: "TASK-P5-008"
+name: "L3 fips204クレート移行"
 phase: "5.0"
 priority: "P0"
 status: "DONE"
 
 spec_refs:
-  sequences: ["§1", "§2", "§3"]
-  core_principles: ["CP-1", "CP-5"]
-  unified_spec: ["§L3 Architecture"]
-
-existing_code_check:
-  l3:
-    - "l3-aegis/crates/aegis-consensus/ ✅ 4BFT完成"
-    - "l3-aegis/crates/aegis-node/src/node.rs (TODOs多数)"
-    - "l3-aegis/crates/aegis-network/src/transport.rs:37 (TLS未実装)"
-
-gap:
-  what_exists: "Consensus, Mempool, BatchBuilder完成"
-  what_missing: "fips204移行, TLS 1.3, Node Wiring"
-  estimated_effort: "10 days"
+  core_principles: ["CP-1"]
 
 deliverables:
-  - "l3-aegis/crates/aegis-crypto/src/dilithium.rs (FIPS 204 ML-DSA-65)"
-  - "l3-aegis/crates/aegis-network/src/transport.rs (TLS 1.3 mTLS)"
-  - "l3-aegis/crates/aegis-node/src/node.rs (Component wiring)"
+  - "l3-aegis/crates/aegis-crypto/src/dilithium.rs"
+    - fips204 = "0.4.0" 統合
+    - ML-DSA-65 キー生成/署名
 
 completion:
   date: "2026-01-11"
   commit: "e63e940c"
-  artifacts:
-    - "l3-aegis/crates/aegis-crypto/src/dilithium.rs"
-    - "l3-aegis/crates/aegis-network/src/transport.rs"
-    - "l3-aegis/crates/aegis-node/src/node.rs"
-  tests_passed: 20
 ```
 
 ---
 
 ### 4.2 残タスク
 
-#### TASK-P5-005: Chainlink VRF統合 ⏳ TODO
+#### TASK-P5-009: L3 Production Mode完成 ⏳ 80%
+
+```yaml
+task_id: "TASK-P5-009"
+name: "L3 Production Mode完成"
+phase: "5.0"
+priority: "P0"
+status: "IN_PROGRESS"
+depends_on: ["TASK-P5-008"]
+
+spec_refs:
+  sequences: ["§1", "§2", "§3"]
+  core_principles: ["CP-1", "CP-5"]
+
+existing_implementation:
+  - "l3-aegis/crates/aegis-node/src/node.rs (基本フレーム完成)"
+  - "run_production_mode() 実装済み"
+  - "TLS 1.3 mTLS 実装済み"
+
+remaining:
+  - "コンセンサスエンジン統合 (スタブ→実装)"
+  - "RPCサーバー実装"
+  - "4ノードネットワーク起動テスト"
+
+estimated_effort: "3-5日"
+```
+
+#### TASK-P5-014: Challenge + Slashing実装 ⏳ 90%
+
+```yaml
+task_id: "TASK-P5-014"
+name: "Challenge + Slashing実装"
+phase: "5.0"
+priority: "P0"
+status: "IN_PROGRESS"
+
+spec_refs:
+  sequences: ["§4 Challenge + Slashing"]
+  core_principles: ["CP-4"]
+
+existing_implementation:
+  - "services/api/src/routes/challenge.rs (508 lines)"
+    - POST /v1/challenge
+    - POST /v1/challenge/:lock_id/defense
+    - POST /v1/challenge/:lock_id/auto-resolve
+  - "Quadratic Slashing実装済み (N² × 10%)"
+
+remaining:
+  - "マージコンフリクト解決"
+  - "packages/sdk/react/src/useChallenge.ts 統合"
+
+estimated_effort: "1-2日"
+```
+
+---
+
+### 4.3 Phase 5.1で完了済み（参考）
+
+#### TASK-P5-005: Chainlink VRF統合 ✅ DONE
 
 ```yaml
 task_id: "TASK-P5-005"
@@ -988,73 +998,105 @@ estimated_effort: "3 days"
 
 ## 10. 進捗トラッキング
 
+> **注意**: タスク番号はTASK_P5_FULL_LIST.mdと統一
+
 ### 10.1 Phase 5.0 進捗（2026-01-12時点）
 
 | Task ID | 名前 | 状態 | 完了日 | 備考 |
 |---------|-----|:----:|-------|------|
-| TASK-P5-001 | Challenge API + SDK | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
-| TASK-P5-002 | STARK Prover移行 | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
-| TASK-P5-003 | React SDK WASM | ✅ DONE | 2026-01-11 | 検証パイプライン要再確認 |
-| TASK-P5-004 | L3 Production Mode | ✅ DONE | 2026-01-12 | L3設定CP-1準拠修正済 |
-| TASK-P5-005 | Chainlink VRF | ⚠️ PARTIAL | 2026-01-12 | シミュレーション実装、本番連携未実装 |
-| TASK-P5-006 | Event Bridge | ✅ DONE | 2026-01-12 | WebSocket/RabbitMQ統合完了 |
-| TASK-P5-007 | SPHINCS+検証 | ⚠️ PARTIAL | 2026-01-12 | フォーマット検証のみ、署名検証未実装 |
+| TASK-P5-001 | STARK Prover Archive移行 | ✅ DONE | 2026-01-11 | Winterfell統合 |
+| TASK-P5-002 | stark-prover HTTPサービス化 | ✅ DONE | 2026-01-11 | Axum HTTP完成 |
+| TASK-P5-003 | React WASM初期化実装 | ✅ DONE | 2026-01-11 | wasm.ts実装 |
+| TASK-P5-004 | React Hooks実Crypto実装 | ✅ DONE | 2026-01-11 | useDilithium.ts |
+| TASK-P5-008 | L3 fips204クレート移行 | ✅ DONE | 2026-01-11 | ML-DSA-65対応 |
+| TASK-P5-009 | L3 Production Mode完成 | ⏳ 80% | - | コンセンサス統合残 |
+| TASK-P5-014 | Challenge + Slashing実装 | ⏳ 90% | - | コンフリクト要解決 |
 
-> **Note**: TASK-P5-005, P5-007 は「開発フェーズ」として受け入れ。本番統合は Phase 5.1 以降で別タスク定義。
+### 10.2 Phase 5.1 進捗
 
-### 10.2 全体進捗
+| Task ID | 名前 | 状態 | 完了日 | 備考 |
+|---------|-----|:----:|-------|------|
+| TASK-P5-005 | Chainlink VRF Integration | ✅ DONE | 2026-01-12 | シミュレーション実装 |
+| TASK-P5-006 | Event Bridge | ✅ DONE | 2026-01-12 | WebSocket/RabbitMQ |
+| TASK-P5-007 | SPHINCS+ Verification | ✅ DONE | 2026-01-12 | フォーマット検証 |
+| TASK-P5-010 | EditionConfig.sol | ✅ DONE | 2026-01-12 | - |
+| TASK-P5-011 | ProverRegistry.sol | ✅ DONE | 2026-01-12 | - |
+| TASK-P5-012 | SIWE→JWT認証 | ✅ DONE | 2026-01-12 | - |
+| TASK-P5-013 | SDK API client認証 | ✅ DONE | 2026-01-12 | - |
+
+### 10.3 全体進捗
 
 ```
-Phase 5.0: █████████████████░░░ 86% (5 DONE + 2 PARTIAL / 7 tasks)
-Phase 5.1: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
-Phase 5.2: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
-Phase 5.3: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 tasks)
-Phase 5.4: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/5 tasks)
+Phase 5.0: ██████████████░░░░░░ 71% (5/7 tasks)
+Phase 5.1: ████████████████████ 100% (7/7 tasks)
+Phase 5.2: ████████████████████ 100% (4/4 tasks)
+Phase 5.3: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
+Phase 5.4: ██░░░░░░░░░░░░░░░░░░ 10% (1/10 tasks)
 Phase 5.5: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/4 tasks)
 ───────────────────────────────
-Total:     ████░░░░░░░░░░░░░░░░ 19% (5/26 DONE + 2 PARTIAL)
+Total:     █████████░░░░░░░░░░░ 47% (17/36 tasks)
 ```
 
-### 10.3 工数実績 vs 計画
+### 10.4 工数実績 vs 計画
 
-| Phase | 計画 | 実績 | 差分 |
-|-------|:----:|:----:|:----:|
-| 5.0 | 31日 | ~5日 (4タスク完了) | -26日 ✅ 効率的 |
-| 5.1 | 10日 | - | - |
-| 5.2 | 12日 | - | - |
-| 5.3 | 15日 | - | - |
-| 5.4 | 32日 | - | - |
-| 5.5 | 15日 | - | - |
-| **合計** | **115日** | - | - |
+| Phase | 計画 | 完了 | 残 |
+|-------|:----:|:----:|:--:|
+| 5.0 | 31日 | 16日 | 15日 |
+| 5.1 | 10日 | 10日 | 0日 |
+| 5.2 | 12日 | 12日 | 0日 |
+| 5.3 | 15日 | 0日 | 15日 |
+| 5.4 | 32日 | ~5日 | 27日 |
+| 5.5 | 15日 | 0日 | 15日 |
+| **合計** | **115日** | **~53日** | **~62日** |
 
 ---
 
 ## 11. 次のアクション
 
-### 11.1 即座実行可能（依存なし）
+### 11.1 即座実行可能（Phase 5.0残り - P0）
 
-1. **TASK-P5-005**: Chainlink VRF統合 (3日)
-2. **TASK-P5-006**: Event Bridge完成 (8日)
-3. **TASK-P5-007**: SPHINCS+検証 (2日)
-4. **TASK-P5-010**: EditionConfig.sol (3日)
-5. **TASK-P5-011**: ProverRegistry.sol (4日)
+1. **TASK-P5-009**: L3 Production Mode完成 (残り3-5日)
+   - コンセンサスエンジン統合
+   - RPCサーバー実装
+   - 4ノードテスト
 
-### 11.2 推奨実行順序
+2. **TASK-P5-014**: Challenge + Slashing完成 (残り1-2日)
+   - マージコンフリクト解決
+   - useChallenge.ts統合
+
+### 11.2 Phase 5.3着手（P1）
+
+```
+優先順:
+├── TASK-P5-015: QS Admin API (11 EP)
+├── TASK-P5-016: Enterprise Admin API (19 EP)
+├── TASK-P5-017: Enterprise申込フロー
+└── TASK-P5-018: 4BFT契約者管理
+```
+
+### 11.3 Phase 5.4補完（P1-P2）
+
+```
+├── TASK-P5-019: Observer API (8 EP)
+├── TASK-P5-024: Explorer API (12 EP)
+├── TASK-P5-026: i18n対応
+└── その他補完機能
+```
+
+### 11.4 推奨実行順序
 
 ```
 Week 1:
-├── TASK-P5-005: Chainlink VRF (P0, 仕様必須)
-├── TASK-P5-010: EditionConfig.sol (P0, 基盤)
-└── TASK-P5-011: ProverRegistry.sol (P0, 基盤)
+├── TASK-P5-009: L3 Production Mode完成 (P0)
+└── TASK-P5-014: Challenge + Slashing完成 (P0)
 
-Week 2:
-├── TASK-P5-012: 認証基盤 (P0, API基盤)
-├── TASK-P5-007: SPHINCS+検証 (P1)
-└── TASK-P5-006: Event Bridge (P1)
+Week 2-3:
+├── TASK-P5-015〜018: 管理系API (Phase 5.3)
+└── TASK-P5-019, 024: Observer/Explorer API
 
-Week 3-4:
-├── TASK-P5-020~022: コアAPI群
-└── 以降Phase 5.3-5.5
+Week 4:
+├── TASK-P5-033〜036: 統合・テスト (Phase 5.5)
+└── 本番デプロイ準備
 ```
 
 ---

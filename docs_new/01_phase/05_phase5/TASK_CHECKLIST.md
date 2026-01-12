@@ -47,15 +47,16 @@
 
 ### 2.1 Phase 5.0 項目
 
-| 計画項目 | Task ID | 状態 |
-|---------|---------|:----:|
-| STARK Prover移行統合 | TASK-P5-001, 002 | ✅ |
-| React SDK WASM統合 | TASK-P5-003, 004 | ✅ |
-| L3 Dilithium FIPS移行 | TASK-P5-008 | ✅ |
-| L3 Production Mode完成 | TASK-P5-009 | ✅ |
-| Challenge + Slashing | TASK-P5-014 | ✅ |
+| 計画項目 | Task ID | 紐づけ | 実装状態 |
+|---------|---------|:------:|:--------:|
+| STARK Prover移行統合 | TASK-P5-001, 002 | ✅ | ✅ 完了 |
+| React SDK WASM統合 | TASK-P5-003, 004 | ✅ | ✅ 完了 |
+| L3 Dilithium FIPS移行 | TASK-P5-008 | ✅ | ✅ 完了 |
+| L3 Production Mode完成 | TASK-P5-009 | ✅ | ⚠️ 80% |
+| Challenge + Slashing | TASK-P5-014 | ✅ | ⚠️ 90% |
 
 **カバー率**: 7/7 (100%) ✅
+**実装進捗**: 5/7 完了 (71%)
 
 ### 2.2 優先度分布
 
