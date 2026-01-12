@@ -1,8 +1,53 @@
 # Session Protocol - 開発セッション開始プロトコル
 
-> **Version**: 1.0
+> **Version**: 2.0
 > **Date**: 2026-01-12
 > **Purpose**: 各開発セッションで一貫したPromptシステム使用を保証する
+> **Update**: タスク管理フロー改善（計画66%漏れ問題対策）
+
+---
+
+## 0. 計画→タスク変換（新規計画時のみ）
+
+> **重要**: 新しいPhaseや計画書が作成された場合、必ずこのセクションを実行
+
+### Step 0.1: タスク抽出
+
+```
+□ 27_task_extraction.md を読む
+□ 計画書の全セクションを走査
+□ Phase X.0（ブロッカー）を最優先で抽出
+□ Appendix の全リストを確認
+```
+
+### Step 0.2: 整合性検証
+
+```
+□ 計画工数 ≈ タスク工数（±10%）確認
+□ 計画API EP = タスクAPI EP 確認
+□ ブロッカー100%カバー確認
+□ タスク番号に欠番がないか確認
+```
+
+### Step 0.3: タスクリスト確定
+
+```
+□ TASK_P{N}_FULL_LIST.md を作成
+□ 全タスクに計画参照(§番号)を付与
+□ 依存関係を定義
+□ 完了条件を追加
+```
+
+### ⚠️ 検証失敗時
+
+```
+整合性チェックがFAILの場合:
+1. 抽出漏れを特定
+2. 計画書を再読
+3. 漏れタスクを追加
+4. 再検証
+→ PASSするまで繰り返す
+```
 
 ---
 
@@ -87,6 +132,7 @@
 | 24 | `24_sandbox_execute.md` | サンドボックス実行 | Contract時 |
 | 25 | `25_event_log.md` | イベントログ | タスク完了時 |
 | 26 | `26_phase5_planner.md` | Phase 5計画 | タスク選択時 |
+| **27** | `27_task_extraction.md` | **計画→タスク抽出** | **新Phase開始時（必須）** |
 
 ---
 
@@ -195,6 +241,7 @@ docs_new/02_agents_prompt/02_prompts/23_multi_candidate.md
 docs_new/02_agents_prompt/02_prompts/24_sandbox_execute.md
 docs_new/02_agents_prompt/02_prompts/25_event_log.md
 docs_new/02_agents_prompt/02_prompts/26_phase5_planner.md
+docs_new/02_agents_prompt/02_prompts/27_task_extraction.md  # 計画→タスク抽出
 ```
 
 ---
