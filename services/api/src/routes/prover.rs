@@ -1,6 +1,11 @@
 //! Prover API implementation
 //!
 //! Implements Sequence #5: Prover Registration
+//!
+//! ## SPHINCS+ Public Key Validation (CP-1 Compliant)
+//!
+//! This module validates SPHINCS+-SHAKE-128s public keys per NIST FIPS 205.
+//! Invalid public keys are rejected at registration time.
 
 use std::sync::Arc;
 
@@ -10,6 +15,11 @@ use sha3::{Sha3_256, Digest};
 use crate::{
     error::ApiError,
     services::AppState,
+    services::sphincs_service::{
+        validate_sphincs_public_key,
+        validate_hsm_attestation,
+        validate_multisig_proof,
+    },
     types::{ProverRegisterRequest, ProverRegisterResponse, ProverInfoResponse, ProverStatus},
 };
 
@@ -29,17 +39,27 @@ pub async fn register_prover(
 
     // 1. Validate HSM attestation
     if !validate_hsm_attestation(&req.hsm_attestation) {
+        tracing::warn!("HSM attestation validation failed for: {}", req.operator_addr);
         return Err(ApiError::InvalidSignature("Invalid HSM attestation".into()));
     }
 
     // 2. Validate multisig proof
     if !validate_multisig_proof(&req.multisig_proof) {
+        tracing::warn!("Multisig proof validation failed for: {}", req.operator_addr);
         return Err(ApiError::InvalidSignature("Invalid multisig proof".into()));
     }
 
-    // 3. Validate SPHINCS+ public key
-    if !validate_sphincs_pubkey(&req.sphincs_pubkey) {
-        return Err(ApiError::InvalidSignature("Invalid SPHINCS+ public key".into()));
+    // 3. Validate SPHINCS+ public key (NIST FIPS 205 compliant)
+    let sphincs_validation = validate_sphincs_public_key(&req.sphincs_pubkey)?;
+    if !sphincs_validation.valid {
+        let error_msg = sphincs_validation.error_reason.unwrap_or_else(|| "Invalid SPHINCS+ public key".into());
+        tracing::warn!("SPHINCS+ public key validation failed for {}: {}", req.operator_addr, error_msg);
+        return Err(ApiError::InvalidSignature(error_msg));
+    }
+
+    // Log the public key hash for traceability
+    if let Some(ref pk_hash) = sphincs_validation.public_key_hash {
+        tracing::info!("SPHINCS+ public key validated, hash: {}", pk_hash);
     }
 
     // 4. Generate prover_id
@@ -70,24 +90,6 @@ pub async fn get_prover_info(
         .ok_or_else(|| ApiError::ProverNotFound(prover_id.clone()))?;
 
     Ok(Json(prover))
-}
-
-/// Validate HSM attestation
-fn validate_hsm_attestation(attestation: &str) -> bool {
-    // TODO: Implement actual HSM attestation verification
-    !attestation.is_empty()
-}
-
-/// Validate 2-of-3 multisig proof
-fn validate_multisig_proof(proof: &str) -> bool {
-    // TODO: Implement actual multisig proof verification
-    !proof.is_empty()
-}
-
-/// Validate SPHINCS+ public key format
-fn validate_sphincs_pubkey(pubkey: &str) -> bool {
-    // SPHINCS+-128s public key should be valid hex
-    pubkey.starts_with("0x") && pubkey.len() > 2
 }
 
 /// Generate prover_id from operator address and SPHINCS+ public key

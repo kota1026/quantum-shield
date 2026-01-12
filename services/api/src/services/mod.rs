@@ -3,6 +3,7 @@
 mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
+pub mod sphincs_service;
 
 use anyhow::Result;
 
