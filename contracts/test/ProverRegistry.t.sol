@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../src/prover/ProverRegistry.sol";
+import {SHA3_256} from "../src/libraries/SHA3_256.sol";
 
 /// @title ProverRegistryTest - Comprehensive tests for ProverRegistry
 /// @notice Tests SEQUENCES §5 (Prover Registration) and §6 (Prover Exit)
@@ -154,10 +155,13 @@ contract ProverRegistryTest is Test {
     function testRegisterEmitsEvent() public {
         vm.startPrank(prover1);
 
-        // Check indexed parameters only (proverId and operator)
-        // Data params (sphincsPubKeyHash, stake) are checked in testRegisterProver
-        vm.expectEmit(false, true, false, false);
-        emit ProverRegistered(bytes32(0), prover1, bytes32(0), MIN_STAKE);
+        // Pre-compute expected sphincsPubKeyHash using same SHA3-256 as contract
+        bytes32 expectedPubKeyHash = SHA3_256.hash(validPubKey);
+
+        // Check operator (indexed) and data params (sphincsPubKeyHash, stake)
+        // proverId is not checked since it depends on msg.sender + pubKeyHash
+        vm.expectEmit(false, true, false, true);
+        emit ProverRegistered(bytes32(0), prover1, expectedPubKeyHash, MIN_STAKE);
 
         registry.register{value: MIN_STAKE}(
             validPubKey,
