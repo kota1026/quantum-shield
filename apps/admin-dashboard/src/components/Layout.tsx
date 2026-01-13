@@ -1,18 +1,21 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: '📊' },
-  { name: 'Provers', href: '/provers', icon: '🔐' },
-  { name: 'Providers', href: '/providers', icon: '🏛️' },
-  { name: 'Analytics', href: '/analytics', icon: '📈' },
-  { name: 'Emergency', href: '/emergency', icon: '🚨' },
-  { name: 'Edition', href: '/edition', icon: '⚙️' },
-];
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function Layout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const navigation = [
+    { name: t('nav.dashboard'), href: '/', icon: '📊' },
+    { name: t('nav.provers'), href: '/provers', icon: '🔐' },
+    { name: t('nav.providers'), href: '/providers', icon: '🏛️' },
+    { name: t('nav.analytics'), href: '/analytics', icon: '📈' },
+    { name: t('nav.emergency'), href: '/emergency', icon: '🚨' },
+    { name: t('nav.edition'), href: '/edition', icon: '⚙️' },
+  ];
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -20,7 +23,7 @@ export function Layout() {
       <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gray-900 text-white transition-all duration-300`}>
         <div className="flex h-16 items-center justify-between px-4">
           <h1 className={`font-bold text-xl ${!sidebarOpen && 'hidden'}`}>
-            🔒 Quantum Shield
+            🔒 {t('layout.title')}
           </h1>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -31,14 +34,14 @@ export function Layout() {
         </div>
         <nav className="mt-6">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href || 
+            const isActive = location.pathname === item.href ||
               (item.href !== '/' && location.pathname.startsWith(item.href));
             return (
               <Link
-                key={item.name}
+                key={item.href}
                 to={item.href}
-                className={`flex items-center px-4 py-3 ${isActive 
-                  ? 'bg-qs-primary text-white' 
+                className={`flex items-center px-4 py-3 ${isActive
+                  ? 'bg-qs-primary text-white'
                   : 'text-gray-300 hover:bg-gray-800'}`}
               >
                 <span className="text-xl">{item.icon}</span>
@@ -47,14 +50,14 @@ export function Layout() {
             );
           })}
         </nav>
-        
+
         {/* System Status Indicator */}
         <div className="absolute bottom-4 left-4 right-4">
           <div className={`${sidebarOpen ? 'px-4 py-3' : 'px-2 py-2'} bg-green-900 rounded-lg`}>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
               {sidebarOpen && (
-                <span className="ml-2 text-sm text-green-200">System Active</span>
+                <span className="ml-2 text-sm text-green-200">{t('layout.systemActive')}</span>
               )}
             </div>
           </div>
@@ -67,11 +70,12 @@ export function Layout() {
         <header className="bg-white shadow h-16 flex items-center px-6">
           <div className="flex-1">
             <h2 className="text-xl font-semibold text-gray-800">
-              Admin Dashboard
+              {t('layout.adminDashboard')}
             </h2>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">Network: Sepolia ↔ Aegis</span>
+            <LanguageSwitcher />
+            <span className="text-sm text-gray-600">{t('layout.networkStatus')}</span>
             <div className="w-8 h-8 bg-qs-primary rounded-full flex items-center justify-center text-white">
               A
             </div>
