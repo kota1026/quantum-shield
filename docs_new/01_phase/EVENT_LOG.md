@@ -1,7 +1,67 @@
 # Event Log - Phase 5
 
 > **Session Start**: 2026-01-13
-> **Task**: TASK-P5-034 E2Eテスト（実STARK証明）
+> **Task**: TASK-P5-035 Edition切替テスト
+
+---
+
+## 2026-01-13 (Session - TASK-P5-035)
+
+### Event: SESSION_START
+- **Time**: Session initiated
+- **Phase**: 5.5 統合・テスト
+- **Task**: TASK-P5-035
+
+### Event: TASK_ANALYSIS
+- **Finding**: EditionConfig.sol already implemented (TASK-P5-010)
+- **Scope**: E2E tests for Edition switching and approval mode transitions
+- **Reference**: EDITION_SWITCH_SPEC.md §3, §8, D.2
+
+---
+
+## Implementation Log (TASK-P5-035)
+
+### Event: E2E_TESTS_CREATED
+- **Time**: 2026-01-13
+- **Files Created**:
+  - `contracts/test/core/EditionSwitchE2E.t.sol` - Edition Switch E2E Tests (812 lines, 22+ tests)
+
+### Test Coverage
+
+| Section | Category | Tests |
+|---------|----------|:-----:|
+| 1 | Enterprise → Decentralized Full Cycle | 2 |
+| 2 | Decentralized → Enterprise Full Cycle | 2 |
+| 3 | Approval Mode 4-Stage Transition | 4 |
+| 4 | Phase Transition Integration (1-4) | 2 |
+| 5 | Edge Cases and Boundary | 5 |
+| 6 | Complex Scenarios | 3 |
+| 7 | Gas Optimization | 3 |
+| 8 | State Consistency | 1 |
+| **Total** | | **22+** |
+
+### Test Scenarios Covered
+
+| Scenario | Description |
+|----------|-------------|
+| E2E_EnterpriseToDecentralizedFullCycle | Full transition with settings reset verification |
+| E2E_DecentralizedToEnterpriseFullCycle | Full transition with Enterprise constraints |
+| E2E_ApprovalMode_FullPhaseProgression | FOUNDATION_INVITE → COUNCIL_VOTE → STAKE_AUTO |
+| E2E_ApprovalMode_AllFourModes | All 4 modes settable in Decentralized |
+| E2E_ApprovalMode_EnterpriseRestriction | Enterprise limited to CONTRACT_BASED |
+| E2E_PhaseTransition_FullCycle | Phase 1-4 complete transition |
+| E2E_PhaseTransition_NodeExpansion | 7 → 13 → 21 node expansion |
+| E2E_Complex_MultipleEditionSwitches | Multiple back-and-forth switches |
+| E2E_Complex_OwnershipTransferDuringManagement | Ownership transfer scenario |
+| E2E_Gas_* | Gas consumption validation tests |
+
+### Event: TASK_COMPLETE
+- **Time**: 2026-01-13
+- **Task**: TASK-P5-035
+- **Status**: COMPLETE
+- **Tests Created**: 22+ E2E tests (812 lines)
+- **Artifacts**:
+  - `contracts/test/core/EditionSwitchE2E.t.sol`
 
 ---
 
