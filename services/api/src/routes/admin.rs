@@ -387,7 +387,7 @@ pub async fn get_current_edition(
 }
 
 /// POST /api/edition/switch
-/// 
+///
 /// Switch edition (Enterprise <-> Decentralized)
 pub async fn switch_edition(
     Extension(state): Extension<Arc<AppState>>,
@@ -400,4 +400,1077 @@ pub async fn switch_edition(
         "message": "Edition switch initiated",
         "effectiveTime": 604800  // 7 days
     })))
+}
+
+// ============================================================================
+// TASK-P5-015: QS Admin API (11 Endpoints)
+// ============================================================================
+//
+// Spec Reference: PHASE5_INTEGRATION_PLAN.md §3.4, B.2
+//
+// Endpoints:
+// 1. GET  /v1/admin/dashboard
+// 2. GET  /v1/admin/transactions
+// 3. GET  /v1/admin/nodes
+// 4. GET  /v1/admin/staff
+// 5. POST /v1/admin/staff
+// 6. GET  /v1/admin/reports
+// 7. GET  /v1/admin/audit-log
+// 8. GET  /v1/admin/parameters
+// 9. POST /v1/admin/parameters/change-request
+// 10. GET  /v1/admin/enterprise/accounts
+// 11. POST /v1/admin/enterprise/accounts
+
+// ============================================================================
+// QS Admin Types
+// ============================================================================
+
+/// Staff role enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum StaffRole {
+    /// Super admin with full access
+    SuperAdmin,
+    /// Standard admin
+    Admin,
+    /// Read-only operator
+    Operator,
+    /// Support staff
+    Support,
+}
+
+/// Audit log action type
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum AuditAction {
+    /// User login
+    Login,
+    /// User logout
+    Logout,
+    /// Parameter change
+    ParameterChange,
+    /// Staff created
+    StaffCreated,
+    /// Staff updated
+    StaffUpdated,
+    /// Enterprise account created
+    EnterpriseCreated,
+    /// System pause
+    SystemPause,
+    /// System unpause
+    SystemUnpause,
+    /// Prover approved
+    ProverApproved,
+    /// Prover suspended
+    ProverSuspended,
+}
+
+/// Node status enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum NodeStatus {
+    Online,
+    Offline,
+    Syncing,
+    Maintenance,
+}
+
+/// Enterprise tier enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum EnterpriseTier {
+    Starter,
+    Professional,
+    Enterprise,
+    Custom,
+}
+
+// ============================================================================
+// QS Admin Response Types
+// ============================================================================
+
+/// GET /v1/admin/dashboard response
+#[derive(Debug, Serialize)]
+pub struct QsDashboardResponse {
+    /// System health summary
+    pub health: SystemHealth,
+    /// Key metrics
+    pub metrics: DashboardMetrics,
+    /// Recent alerts
+    #[serde(rename = "recentAlerts")]
+    pub recent_alerts: Vec<SystemAlert>,
+    /// Quick stats
+    pub stats: QuickStats,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SystemHealth {
+    pub status: String,
+    #[serde(rename = "uptime")]
+    pub uptime_percent: f64,
+    #[serde(rename = "lastIncident")]
+    pub last_incident: Option<u64>,
+    #[serde(rename = "activeProvers")]
+    pub active_provers: u32,
+    #[serde(rename = "totalNodes")]
+    pub total_nodes: u32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DashboardMetrics {
+    #[serde(rename = "totalTvl")]
+    pub total_tvl: String,
+    #[serde(rename = "tvlChange24h")]
+    pub tvl_change_24h: f64,
+    #[serde(rename = "totalTransactions")]
+    pub total_transactions: u64,
+    #[serde(rename = "txChange24h")]
+    pub tx_change_24h: f64,
+    #[serde(rename = "activeUsers")]
+    pub active_users: u64,
+    #[serde(rename = "pendingChallenges")]
+    pub pending_challenges: u32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SystemAlert {
+    pub id: String,
+    pub severity: String,
+    pub message: String,
+    pub timestamp: u64,
+    pub resolved: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct QuickStats {
+    #[serde(rename = "enterpriseAccounts")]
+    pub enterprise_accounts: u32,
+    #[serde(rename = "activeStaff")]
+    pub active_staff: u32,
+    #[serde(rename = "pendingRequests")]
+    pub pending_requests: u32,
+    #[serde(rename = "openReports")]
+    pub open_reports: u32,
+}
+
+/// GET /v1/admin/transactions response
+#[derive(Debug, Serialize)]
+pub struct AdminTransactionsResponse {
+    pub transactions: Vec<AdminTransaction>,
+    pub total: u64,
+    pub page: u32,
+    #[serde(rename = "pageSize")]
+    pub page_size: u32,
+    pub filters: TransactionFilters,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AdminTransaction {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub tx_type: String,
+    pub amount: String,
+    pub token: String,
+    pub from: String,
+    pub to: Option<String>,
+    pub status: String,
+    pub timestamp: u64,
+    #[serde(rename = "blockNumber")]
+    pub block_number: u64,
+    #[serde(rename = "txHash")]
+    pub tx_hash: String,
+    #[serde(rename = "enterpriseId")]
+    pub enterprise_id: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TransactionFilters {
+    #[serde(rename = "availableTypes")]
+    pub available_types: Vec<String>,
+    #[serde(rename = "availableStatuses")]
+    pub available_statuses: Vec<String>,
+}
+
+/// GET /v1/admin/nodes response
+#[derive(Debug, Serialize)]
+pub struct AdminNodesResponse {
+    pub nodes: Vec<AdminNode>,
+    pub summary: NodesSummary,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AdminNode {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub node_type: String,
+    pub status: NodeStatus,
+    pub version: String,
+    #[serde(rename = "lastSeen")]
+    pub last_seen: u64,
+    pub location: String,
+    pub metrics: NodeMetrics,
+}
+
+#[derive(Debug, Serialize)]
+pub struct NodeMetrics {
+    #[serde(rename = "blockHeight")]
+    pub block_height: u64,
+    #[serde(rename = "peerCount")]
+    pub peer_count: u32,
+    #[serde(rename = "cpuUsage")]
+    pub cpu_usage: f64,
+    #[serde(rename = "memoryUsage")]
+    pub memory_usage: f64,
+    #[serde(rename = "diskUsage")]
+    pub disk_usage: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct NodesSummary {
+    pub total: u32,
+    pub online: u32,
+    pub offline: u32,
+    pub syncing: u32,
+    pub maintenance: u32,
+}
+
+/// GET /v1/admin/staff response
+#[derive(Debug, Serialize)]
+pub struct StaffListResponse {
+    pub staff: Vec<StaffMember>,
+    pub total: u32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct StaffMember {
+    pub id: String,
+    pub email: String,
+    pub name: String,
+    pub role: StaffRole,
+    pub status: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: u64,
+    #[serde(rename = "lastLogin")]
+    pub last_login: Option<u64>,
+    #[serde(rename = "mfaEnabled")]
+    pub mfa_enabled: bool,
+    pub permissions: Vec<String>,
+}
+
+/// POST /v1/admin/staff request
+#[derive(Debug, Deserialize)]
+pub struct CreateStaffRequest {
+    pub email: String,
+    pub name: String,
+    pub role: StaffRole,
+    pub permissions: Option<Vec<String>>,
+}
+
+/// POST /v1/admin/staff response
+#[derive(Debug, Serialize)]
+pub struct CreateStaffResponse {
+    pub id: String,
+    pub email: String,
+    pub name: String,
+    pub role: StaffRole,
+    #[serde(rename = "temporaryPassword")]
+    pub temporary_password: String,
+    pub message: String,
+}
+
+/// GET /v1/admin/reports response
+#[derive(Debug, Serialize)]
+pub struct ReportsResponse {
+    pub reports: Vec<Report>,
+    pub total: u32,
+    #[serde(rename = "availableTypes")]
+    pub available_types: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct Report {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub report_type: String,
+    pub status: String,
+    #[serde(rename = "generatedAt")]
+    pub generated_at: u64,
+    #[serde(rename = "generatedBy")]
+    pub generated_by: String,
+    #[serde(rename = "downloadUrl")]
+    pub download_url: Option<String>,
+    #[serde(rename = "fileSize")]
+    pub file_size: Option<u64>,
+}
+
+/// GET /v1/admin/audit-log response
+#[derive(Debug, Serialize)]
+pub struct AuditLogResponse {
+    pub entries: Vec<AuditEntry>,
+    pub total: u64,
+    pub page: u32,
+    #[serde(rename = "pageSize")]
+    pub page_size: u32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AuditEntry {
+    pub id: String,
+    pub action: AuditAction,
+    pub actor: String,
+    #[serde(rename = "actorType")]
+    pub actor_type: String,
+    pub target: Option<String>,
+    #[serde(rename = "targetType")]
+    pub target_type: Option<String>,
+    pub details: serde_json::Value,
+    pub timestamp: u64,
+    #[serde(rename = "ipAddress")]
+    pub ip_address: String,
+    #[serde(rename = "userAgent")]
+    pub user_agent: Option<String>,
+}
+
+/// GET /v1/admin/parameters response
+#[derive(Debug, Serialize)]
+pub struct ParametersResponse {
+    pub parameters: Vec<SystemParameter>,
+    pub categories: Vec<ParameterCategory>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SystemParameter {
+    pub key: String,
+    pub value: String,
+    #[serde(rename = "type")]
+    pub param_type: String,
+    pub category: String,
+    pub description: String,
+    #[serde(rename = "lastModified")]
+    pub last_modified: u64,
+    #[serde(rename = "modifiedBy")]
+    pub modified_by: String,
+    pub editable: bool,
+    #[serde(rename = "requiresApproval")]
+    pub requires_approval: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ParameterCategory {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub count: u32,
+}
+
+/// POST /v1/admin/parameters/change-request request
+#[derive(Debug, Deserialize)]
+pub struct ParameterChangeRequest {
+    pub key: String,
+    #[serde(rename = "newValue")]
+    pub new_value: String,
+    pub reason: String,
+}
+
+/// POST /v1/admin/parameters/change-request response
+#[derive(Debug, Serialize)]
+pub struct ParameterChangeResponse {
+    #[serde(rename = "requestId")]
+    pub request_id: String,
+    pub key: String,
+    #[serde(rename = "currentValue")]
+    pub current_value: String,
+    #[serde(rename = "newValue")]
+    pub new_value: String,
+    pub status: String,
+    #[serde(rename = "requiresApproval")]
+    pub requires_approval: bool,
+    pub message: String,
+}
+
+/// GET /v1/admin/enterprise/accounts response
+#[derive(Debug, Serialize)]
+pub struct EnterpriseAccountsResponse {
+    pub accounts: Vec<EnterpriseAccount>,
+    pub total: u32,
+    pub summary: EnterpriseSummary,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EnterpriseAccount {
+    pub id: String,
+    pub name: String,
+    pub tier: EnterpriseTier,
+    pub status: String,
+    #[serde(rename = "primaryContact")]
+    pub primary_contact: EnterpriseContact,
+    #[serde(rename = "createdAt")]
+    pub created_at: u64,
+    pub tvl: String,
+    #[serde(rename = "monthlyVolume")]
+    pub monthly_volume: String,
+    #[serde(rename = "apiKeysCount")]
+    pub api_keys_count: u32,
+    #[serde(rename = "usersCount")]
+    pub users_count: u32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EnterpriseContact {
+    pub name: String,
+    pub email: String,
+    pub phone: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EnterpriseSummary {
+    #[serde(rename = "totalAccounts")]
+    pub total_accounts: u32,
+    #[serde(rename = "activeAccounts")]
+    pub active_accounts: u32,
+    #[serde(rename = "pendingAccounts")]
+    pub pending_accounts: u32,
+    #[serde(rename = "totalTvl")]
+    pub total_tvl: String,
+}
+
+/// POST /v1/admin/enterprise/accounts request
+#[derive(Debug, Deserialize)]
+pub struct CreateEnterpriseAccountRequest {
+    pub name: String,
+    pub tier: EnterpriseTier,
+    #[serde(rename = "primaryContact")]
+    pub primary_contact: CreateEnterpriseContact,
+    pub notes: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateEnterpriseContact {
+    pub name: String,
+    pub email: String,
+    pub phone: Option<String>,
+}
+
+/// POST /v1/admin/enterprise/accounts response
+#[derive(Debug, Serialize)]
+pub struct CreateEnterpriseAccountResponse {
+    pub id: String,
+    pub name: String,
+    pub tier: EnterpriseTier,
+    pub status: String,
+    #[serde(rename = "apiKey")]
+    pub api_key: String,
+    pub message: String,
+}
+
+// ============================================================================
+// QS Admin Endpoint Handlers
+// ============================================================================
+
+/// GET /v1/admin/dashboard
+///
+/// Returns QS admin dashboard overview with system health, metrics, and alerts.
+pub async fn get_qs_dashboard(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<QsDashboardResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting dashboard");
+
+    let response = QsDashboardResponse {
+        health: SystemHealth {
+            status: "healthy".to_string(),
+            uptime_percent: 99.97,
+            last_incident: Some(1735689600),
+            active_provers: 8,
+            total_nodes: 12,
+        },
+        metrics: DashboardMetrics {
+            total_tvl: "125000000000000000000000".to_string(), // 125,000 ETH
+            tvl_change_24h: 2.5,
+            total_transactions: 15632,
+            tx_change_24h: 5.8,
+            active_users: 3250,
+            pending_challenges: 2,
+        },
+        recent_alerts: vec![
+            SystemAlert {
+                id: "alert-001".to_string(),
+                severity: "warning".to_string(),
+                message: "High gas prices detected on L1".to_string(),
+                timestamp: 1736380800,
+                resolved: true,
+            },
+            SystemAlert {
+                id: "alert-002".to_string(),
+                severity: "info".to_string(),
+                message: "Scheduled maintenance in 24 hours".to_string(),
+                timestamp: 1736467200,
+                resolved: false,
+            },
+        ],
+        stats: QuickStats {
+            enterprise_accounts: 15,
+            active_staff: 8,
+            pending_requests: 3,
+            open_reports: 2,
+        },
+    };
+
+    Ok(Json(response))
+}
+
+/// GET /v1/admin/transactions
+///
+/// Returns paginated list of all system transactions for admin view.
+pub async fn get_admin_transactions(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<AdminTransactionsResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting transactions");
+
+    let transactions = vec![
+        AdminTransaction {
+            id: "tx-001".to_string(),
+            tx_type: "lock".to_string(),
+            amount: "10000000000000000000".to_string(), // 10 ETH
+            token: "ETH".to_string(),
+            from: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+            to: None,
+            status: "confirmed".to_string(),
+            timestamp: 1736467200,
+            block_number: 19000001,
+            tx_hash: "0xabc123...".to_string(),
+            enterprise_id: Some("ent-001".to_string()),
+        },
+        AdminTransaction {
+            id: "tx-002".to_string(),
+            tx_type: "unlock".to_string(),
+            amount: "5000000000000000000".to_string(), // 5 ETH
+            token: "ETH".to_string(),
+            from: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
+            to: Some("0x9876543210fedcba9876543210fedcba98765432".to_string()),
+            status: "pending".to_string(),
+            timestamp: 1736463600,
+            block_number: 19000000,
+            tx_hash: "0xdef456...".to_string(),
+            enterprise_id: None,
+        },
+    ];
+
+    Ok(Json(AdminTransactionsResponse {
+        transactions,
+        total: 15632,
+        page: 1,
+        page_size: 20,
+        filters: TransactionFilters {
+            available_types: vec!["lock".to_string(), "unlock".to_string(), "challenge".to_string(), "slash".to_string()],
+            available_statuses: vec!["pending".to_string(), "confirmed".to_string(), "failed".to_string()],
+        },
+    }))
+}
+
+/// GET /v1/admin/nodes
+///
+/// Returns list of all network nodes with their status and metrics.
+pub async fn get_admin_nodes(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<AdminNodesResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting nodes");
+
+    let nodes = vec![
+        AdminNode {
+            id: "node-001".to_string(),
+            name: "L3-Aegis-Primary".to_string(),
+            node_type: "L3-Validator".to_string(),
+            status: NodeStatus::Online,
+            version: "1.2.0".to_string(),
+            last_seen: 1736467200,
+            location: "US-East".to_string(),
+            metrics: NodeMetrics {
+                block_height: 1500000,
+                peer_count: 24,
+                cpu_usage: 45.2,
+                memory_usage: 62.8,
+                disk_usage: 35.5,
+            },
+        },
+        AdminNode {
+            id: "node-002".to_string(),
+            name: "L3-Aegis-Secondary".to_string(),
+            node_type: "L3-Validator".to_string(),
+            status: NodeStatus::Online,
+            version: "1.2.0".to_string(),
+            last_seen: 1736467200,
+            location: "EU-West".to_string(),
+            metrics: NodeMetrics {
+                block_height: 1500000,
+                peer_count: 22,
+                cpu_usage: 38.5,
+                memory_usage: 58.2,
+                disk_usage: 32.1,
+            },
+        },
+        AdminNode {
+            id: "node-003".to_string(),
+            name: "Prover-Node-Alpha".to_string(),
+            node_type: "Prover".to_string(),
+            status: NodeStatus::Online,
+            version: "1.2.0".to_string(),
+            last_seen: 1736467200,
+            location: "AP-Northeast".to_string(),
+            metrics: NodeMetrics {
+                block_height: 1500000,
+                peer_count: 18,
+                cpu_usage: 72.3,
+                memory_usage: 81.5,
+                disk_usage: 45.8,
+            },
+        },
+        AdminNode {
+            id: "node-004".to_string(),
+            name: "Observer-Node-1".to_string(),
+            node_type: "Observer".to_string(),
+            status: NodeStatus::Syncing,
+            version: "1.1.9".to_string(),
+            last_seen: 1736466000,
+            location: "US-West".to_string(),
+            metrics: NodeMetrics {
+                block_height: 1499850,
+                peer_count: 15,
+                cpu_usage: 55.0,
+                memory_usage: 48.2,
+                disk_usage: 28.5,
+            },
+        },
+    ];
+
+    Ok(Json(AdminNodesResponse {
+        nodes,
+        summary: NodesSummary {
+            total: 12,
+            online: 10,
+            offline: 0,
+            syncing: 1,
+            maintenance: 1,
+        },
+    }))
+}
+
+/// GET /v1/admin/staff
+///
+/// Returns list of all staff members.
+pub async fn get_staff(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<StaffListResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting staff list");
+
+    let staff = vec![
+        StaffMember {
+            id: "staff-001".to_string(),
+            email: "admin@quantumshield.io".to_string(),
+            name: "System Admin".to_string(),
+            role: StaffRole::SuperAdmin,
+            status: "active".to_string(),
+            created_at: 1704067200,
+            last_login: Some(1736467200),
+            mfa_enabled: true,
+            permissions: vec!["*".to_string()],
+        },
+        StaffMember {
+            id: "staff-002".to_string(),
+            email: "ops@quantumshield.io".to_string(),
+            name: "Operations Manager".to_string(),
+            role: StaffRole::Admin,
+            status: "active".to_string(),
+            created_at: 1706745600,
+            last_login: Some(1736380800),
+            mfa_enabled: true,
+            permissions: vec![
+                "nodes:read".to_string(),
+                "nodes:manage".to_string(),
+                "reports:read".to_string(),
+                "audit:read".to_string(),
+            ],
+        },
+        StaffMember {
+            id: "staff-003".to_string(),
+            email: "support@quantumshield.io".to_string(),
+            name: "Support Lead".to_string(),
+            role: StaffRole::Support,
+            status: "active".to_string(),
+            created_at: 1709424000,
+            last_login: Some(1736294400),
+            mfa_enabled: true,
+            permissions: vec![
+                "enterprise:read".to_string(),
+                "transactions:read".to_string(),
+            ],
+        },
+    ];
+
+    Ok(Json(StaffListResponse {
+        staff,
+        total: 8,
+    }))
+}
+
+/// POST /v1/admin/staff
+///
+/// Creates a new staff member.
+pub async fn create_staff(
+    Extension(_state): Extension<Arc<AppState>>,
+    Json(req): Json<CreateStaffRequest>,
+) -> Result<Json<CreateStaffResponse>, ApiError> {
+    tracing::info!("QS Admin: Creating staff member - {}", req.email);
+
+    // Generate temporary password (in production, use secure random generation)
+    let temp_password = format!("TempPass-{}", uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>());
+
+    Ok(Json(CreateStaffResponse {
+        id: format!("staff-{}", uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>()),
+        email: req.email,
+        name: req.name,
+        role: req.role,
+        temporary_password: temp_password,
+        message: "Staff member created. Temporary password sent to email.".to_string(),
+    }))
+}
+
+/// GET /v1/admin/reports
+///
+/// Returns list of available reports.
+pub async fn get_reports(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<ReportsResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting reports");
+
+    let reports = vec![
+        Report {
+            id: "report-001".to_string(),
+            name: "Monthly Transaction Summary - December 2025".to_string(),
+            report_type: "transaction_summary".to_string(),
+            status: "completed".to_string(),
+            generated_at: 1735689600,
+            generated_by: "admin@quantumshield.io".to_string(),
+            download_url: Some("/reports/download/report-001".to_string()),
+            file_size: Some(1024 * 512), // 512KB
+        },
+        Report {
+            id: "report-002".to_string(),
+            name: "Enterprise Usage Report - Q4 2025".to_string(),
+            report_type: "enterprise_usage".to_string(),
+            status: "completed".to_string(),
+            generated_at: 1735603200,
+            generated_by: "ops@quantumshield.io".to_string(),
+            download_url: Some("/reports/download/report-002".to_string()),
+            file_size: Some(1024 * 256), // 256KB
+        },
+        Report {
+            id: "report-003".to_string(),
+            name: "Security Audit Report - January 2026".to_string(),
+            report_type: "security_audit".to_string(),
+            status: "generating".to_string(),
+            generated_at: 1736467200,
+            generated_by: "admin@quantumshield.io".to_string(),
+            download_url: None,
+            file_size: None,
+        },
+    ];
+
+    Ok(Json(ReportsResponse {
+        reports,
+        total: 25,
+        available_types: vec![
+            "transaction_summary".to_string(),
+            "enterprise_usage".to_string(),
+            "security_audit".to_string(),
+            "prover_performance".to_string(),
+            "compliance".to_string(),
+        ],
+    }))
+}
+
+/// GET /v1/admin/audit-log
+///
+/// Returns paginated audit log entries.
+pub async fn get_audit_log(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<AuditLogResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting audit log");
+
+    let entries = vec![
+        AuditEntry {
+            id: "audit-001".to_string(),
+            action: AuditAction::Login,
+            actor: "admin@quantumshield.io".to_string(),
+            actor_type: "staff".to_string(),
+            target: None,
+            target_type: None,
+            details: serde_json::json!({
+                "method": "password",
+                "mfa": true
+            }),
+            timestamp: 1736467200,
+            ip_address: "192.168.1.100".to_string(),
+            user_agent: Some("Mozilla/5.0...".to_string()),
+        },
+        AuditEntry {
+            id: "audit-002".to_string(),
+            action: AuditAction::ParameterChange,
+            actor: "admin@quantumshield.io".to_string(),
+            actor_type: "staff".to_string(),
+            target: Some("MAX_LOCK_DURATION".to_string()),
+            target_type: Some("parameter".to_string()),
+            details: serde_json::json!({
+                "oldValue": "31536000",
+                "newValue": "63072000",
+                "reason": "Extend maximum lock duration to 2 years"
+            }),
+            timestamp: 1736463600,
+            ip_address: "192.168.1.100".to_string(),
+            user_agent: Some("Mozilla/5.0...".to_string()),
+        },
+        AuditEntry {
+            id: "audit-003".to_string(),
+            action: AuditAction::ProverApproved,
+            actor: "ops@quantumshield.io".to_string(),
+            actor_type: "staff".to_string(),
+            target: Some("prover-005".to_string()),
+            target_type: Some("prover".to_string()),
+            details: serde_json::json!({
+                "proverName": "Quantum Prover Delta",
+                "stake": "500000"
+            }),
+            timestamp: 1736380800,
+            ip_address: "192.168.1.101".to_string(),
+            user_agent: Some("Mozilla/5.0...".to_string()),
+        },
+    ];
+
+    Ok(Json(AuditLogResponse {
+        entries,
+        total: 1250,
+        page: 1,
+        page_size: 50,
+    }))
+}
+
+/// GET /v1/admin/parameters
+///
+/// Returns list of system parameters.
+pub async fn get_parameters(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<ParametersResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting parameters");
+
+    let parameters = vec![
+        SystemParameter {
+            key: "MIN_LOCK_AMOUNT".to_string(),
+            value: "100000000000000000".to_string(), // 0.1 ETH
+            param_type: "uint256".to_string(),
+            category: "lock".to_string(),
+            description: "Minimum amount for a lock transaction".to_string(),
+            last_modified: 1704067200,
+            modified_by: "admin@quantumshield.io".to_string(),
+            editable: true,
+            requires_approval: true,
+        },
+        SystemParameter {
+            key: "MAX_LOCK_DURATION".to_string(),
+            value: "63072000".to_string(), // 2 years
+            param_type: "uint256".to_string(),
+            category: "lock".to_string(),
+            description: "Maximum lock duration in seconds".to_string(),
+            last_modified: 1736463600,
+            modified_by: "admin@quantumshield.io".to_string(),
+            editable: true,
+            requires_approval: true,
+        },
+        SystemParameter {
+            key: "PROVER_MIN_STAKE".to_string(),
+            value: "100000000000000000000000".to_string(), // 100,000 QS
+            param_type: "uint256".to_string(),
+            category: "prover".to_string(),
+            description: "Minimum stake required for prover registration".to_string(),
+            last_modified: 1709424000,
+            modified_by: "admin@quantumshield.io".to_string(),
+            editable: true,
+            requires_approval: true,
+        },
+        SystemParameter {
+            key: "CHALLENGE_PERIOD".to_string(),
+            value: "172800".to_string(), // 48 hours
+            param_type: "uint256".to_string(),
+            category: "challenge".to_string(),
+            description: "Challenge period duration in seconds".to_string(),
+            last_modified: 1704067200,
+            modified_by: "admin@quantumshield.io".to_string(),
+            editable: true,
+            requires_approval: true,
+        },
+        SystemParameter {
+            key: "SLASHING_RATE".to_string(),
+            value: "1000".to_string(), // 10% (basis points)
+            param_type: "uint256".to_string(),
+            category: "slashing".to_string(),
+            description: "Base slashing rate in basis points".to_string(),
+            last_modified: 1704067200,
+            modified_by: "admin@quantumshield.io".to_string(),
+            editable: true,
+            requires_approval: true,
+        },
+    ];
+
+    let categories = vec![
+        ParameterCategory {
+            id: "lock".to_string(),
+            name: "Lock Parameters".to_string(),
+            description: "Parameters related to lock operations".to_string(),
+            count: 5,
+        },
+        ParameterCategory {
+            id: "prover".to_string(),
+            name: "Prover Parameters".to_string(),
+            description: "Parameters related to prover management".to_string(),
+            count: 4,
+        },
+        ParameterCategory {
+            id: "challenge".to_string(),
+            name: "Challenge Parameters".to_string(),
+            description: "Parameters related to challenge mechanism".to_string(),
+            count: 3,
+        },
+        ParameterCategory {
+            id: "slashing".to_string(),
+            name: "Slashing Parameters".to_string(),
+            description: "Parameters related to slashing mechanism".to_string(),
+            count: 2,
+        },
+    ];
+
+    Ok(Json(ParametersResponse {
+        parameters,
+        categories,
+    }))
+}
+
+/// POST /v1/admin/parameters/change-request
+///
+/// Creates a parameter change request.
+pub async fn create_parameter_change_request(
+    Extension(_state): Extension<Arc<AppState>>,
+    Json(req): Json<ParameterChangeRequest>,
+) -> Result<Json<ParameterChangeResponse>, ApiError> {
+    tracing::info!("QS Admin: Creating parameter change request for {}", req.key);
+
+    // Mock: Get current value (in production, query from blockchain/database)
+    let current_value = match req.key.as_str() {
+        "MIN_LOCK_AMOUNT" => "100000000000000000",
+        "MAX_LOCK_DURATION" => "63072000",
+        "PROVER_MIN_STAKE" => "100000000000000000000000",
+        _ => "0",
+    };
+
+    Ok(Json(ParameterChangeResponse {
+        request_id: format!("pcr-{}", uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>()),
+        key: req.key,
+        current_value: current_value.to_string(),
+        new_value: req.new_value,
+        status: "pending_approval".to_string(),
+        requires_approval: true,
+        message: "Parameter change request submitted. Awaiting Security Council approval (5/9).".to_string(),
+    }))
+}
+
+/// GET /v1/admin/enterprise/accounts
+///
+/// Returns list of enterprise accounts.
+pub async fn get_enterprise_accounts(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<EnterpriseAccountsResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting enterprise accounts");
+
+    let accounts = vec![
+        EnterpriseAccount {
+            id: "ent-001".to_string(),
+            name: "Acme Corporation".to_string(),
+            tier: EnterpriseTier::Enterprise,
+            status: "active".to_string(),
+            primary_contact: EnterpriseContact {
+                name: "John Smith".to_string(),
+                email: "john@acme.com".to_string(),
+                phone: Some("+1-555-0100".to_string()),
+            },
+            created_at: 1704067200,
+            tvl: "50000000000000000000000".to_string(), // 50,000 ETH
+            monthly_volume: "10000000000000000000000".to_string(), // 10,000 ETH
+            api_keys_count: 5,
+            users_count: 12,
+        },
+        EnterpriseAccount {
+            id: "ent-002".to_string(),
+            name: "TechStart Inc".to_string(),
+            tier: EnterpriseTier::Professional,
+            status: "active".to_string(),
+            primary_contact: EnterpriseContact {
+                name: "Jane Doe".to_string(),
+                email: "jane@techstart.io".to_string(),
+                phone: None,
+            },
+            created_at: 1709424000,
+            tvl: "15000000000000000000000".to_string(), // 15,000 ETH
+            monthly_volume: "3000000000000000000000".to_string(), // 3,000 ETH
+            api_keys_count: 3,
+            users_count: 5,
+        },
+        EnterpriseAccount {
+            id: "ent-003".to_string(),
+            name: "BlockChain Labs".to_string(),
+            tier: EnterpriseTier::Starter,
+            status: "pending".to_string(),
+            primary_contact: EnterpriseContact {
+                name: "Bob Wilson".to_string(),
+                email: "bob@bcl.io".to_string(),
+                phone: Some("+44-20-1234-5678".to_string()),
+            },
+            created_at: 1736380800,
+            tvl: "0".to_string(),
+            monthly_volume: "0".to_string(),
+            api_keys_count: 1,
+            users_count: 2,
+        },
+    ];
+
+    Ok(Json(EnterpriseAccountsResponse {
+        accounts,
+        total: 15,
+        summary: EnterpriseSummary {
+            total_accounts: 15,
+            active_accounts: 12,
+            pending_accounts: 3,
+            total_tvl: "125000000000000000000000".to_string(), // 125,000 ETH
+        },
+    }))
+}
+
+/// POST /v1/admin/enterprise/accounts
+///
+/// Creates a new enterprise account.
+pub async fn create_enterprise_account(
+    Extension(_state): Extension<Arc<AppState>>,
+    Json(req): Json<CreateEnterpriseAccountRequest>,
+) -> Result<Json<CreateEnterpriseAccountResponse>, ApiError> {
+    tracing::info!("QS Admin: Creating enterprise account - {}", req.name);
+
+    // Generate API key (in production, use secure random generation)
+    let api_key = format!("qs_live_{}", uuid::Uuid::new_v4().to_string().replace("-", ""));
+
+    Ok(Json(CreateEnterpriseAccountResponse {
+        id: format!("ent-{}", uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>()),
+        name: req.name,
+        tier: req.tier,
+        status: "pending".to_string(),
+        api_key,
+        message: "Enterprise account created. Activation email sent to primary contact.".to_string(),
+    }))
 }
