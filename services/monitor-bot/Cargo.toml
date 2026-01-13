@@ -1,0 +1,53 @@
+[package]
+name = "monitor-bot"
+version = "0.1.0"
+edition = "2021"
+authors = ["Quantum Shield Team"]
+description = "24h Monitoring Bot for Quantum Shield - Fraud Detection & Alert System"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# HTTP client for API calls
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Ethereum interaction
+ethers = { version = "2", features = ["abigen", "ws"] }
+
+# Database & Cache
+redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }
+
+# Message Queue
+lapin = "2.3"
+
+# Crypto - CP-1 Compliant
+sha3 = "0.10"
+hex = "0.4"
+
+# Utilities
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1"
+thiserror = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Config
+config = "0.14"
+dotenvy = "0.15"
+
+# Async channel
+async-channel = "2.1"
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockall = "0.12"
+
+[[bin]]
+name = "monitor-bot"
+path = "src/main.rs"

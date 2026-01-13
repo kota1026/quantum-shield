@@ -8,6 +8,7 @@ members = [
     "services/event-bridge",
     "services/api",
     "services/sig-queue",
+    "services/monitor-bot",
 ]
 # WASM packages are excluded from workspace (different target)
 exclude = [
