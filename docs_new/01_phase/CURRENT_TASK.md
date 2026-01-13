@@ -1,33 +1,91 @@
 # Current Task Status
 
 > **Updated**: 2026-01-12
-> **Status**: Awaiting Next Task
+> **Status**: ✅ Complete
 
 ---
 
-## 最後に完了したタスク
+## 現在のタスク
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-019 |
-| タイトル | Observer API (8 EP) |
-| 完了日 | 2026-01-12 |
-| コミット | 3d67767 |
+| タスクID | TASK-P5-029 |
+| タイトル | Insurance/Treasury API実装 |
+| Phase | 5.4 補完機能 |
+| 優先度 | P1 |
+| 見積り工数 | 3日 |
+| 計画参照 | §2.6.2 |
 
-### 完了条件（全て達成）
+### トレーサビリティ
+
+| 仕様項目 | 仕様書参照 | 実装先 |
+|----------|----------|--------|
+| Treasury管理 | UNIFIED_SPEC §Treasury | `services/api/src/routes/treasury.rs` |
+| Insurance Fund | UNIFIED_SPEC §Phase 1-4 手数料配分 | `services/api/src/routes/insurance.rs` |
+| 手数料配分 | UNIFIED_SPEC §手数料配分 | `services/api/src/routes/fees.rs` |
+
+### 既存実装（L3コントラクト）
+
+| コントラクト | ファイル | 状態 |
+|------------|----------|:----:|
+| Treasury.sol | `l3-aegis/src/treasury/Treasury.sol` | ✅ 完成 |
+| InsuranceFund.sol | `l3-aegis/src/treasury/InsuranceFund.sol` | ✅ 完成 |
+| ITreasury.sol | `l3-aegis/src/interfaces/ITreasury.sol` | ✅ 完成 |
+
+### 実装するAPI (12 EP)
+
+#### Treasury API (6 EP)
+```
+GET  /v1/treasury/dashboard           - 概要・残高・統計
+GET  /v1/treasury/proposals           - 提案一覧
+GET  /v1/treasury/proposals/:id       - 提案詳細
+POST /v1/treasury/proposals           - 新規提案
+POST /v1/treasury/proposals/:id/approve - 提案承認
+POST /v1/treasury/proposals/:id/execute - 提案実行
+```
+
+#### Insurance Fund API (4 EP)
+```
+GET  /v1/insurance/dashboard          - 概要・残高・統計
+GET  /v1/insurance/claims             - クレーム履歴
+POST /v1/insurance/claims             - クレーム申請
+GET  /v1/insurance/transactions       - 取引履歴
+```
+
+#### Fee Distribution API (2 EP)
+```
+GET  /v1/fees/distribution            - 現在の配分設定
+GET  /v1/fees/stats                   - 手数料統計
+```
+
+### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | 8エンドポイント全て実装 | ✅ |
-| 2 | cargo build成功 | ✅ |
-| 3 | cargo test成功 (97 tests) | ✅ |
-| 4 | CP-1/CP-4準拠 (SHA3-256, Quadratic Slashing) | ✅ |
+| 1 | Treasury API 6 EP実装 | ✅ |
+| 2 | Insurance Fund API 4 EP実装 | ✅ |
+| 3 | Fee Distribution API 2 EP実装 | ✅ |
+| 4 | cargo build成功 | ✅ |
+| 5 | cargo test成功 | ✅ |
+| 6 | L3コントラクトとの整合性確認 | ✅ |
+
+### WHY
+
+#### 問題
+- L3にTreasury/InsuranceFundコントラクトは完成しているが、API層が未実装
+- フロントエンドからTreasury管理・手数料配分機能にアクセス不可
+
+#### 決定根拠
+- UNIFIED_SPEC §Treasury: マルチシグ管理、提案/承認フロー
+- UNIFIED_SPEC §手数料配分:
+  - Phase 1: Prover 50%, Treasury 40%, Insurance 10%
+  - Phase 2+: Prover 40%, Treasury 30%, Burn 20%, Insurance 10%
 
 ---
 
 ## 実装済みタスク一覧（Phase 5）
 
-### Phase 5.0 ブロッカー解消（86%完了）
+### Phase 5.0 ブロッカー解消（100%完了）
 
 | Task ID | 内容 | 状態 | 完了日 |
 |---------|------|:----:|-------|
@@ -57,42 +115,18 @@
 | TASK-P5-022 | Prover Portal API (9 EP) | ✅ | 2026-01-12 |
 | TASK-P5-023 | Governance API (8 EP) | ✅ | 2026-01-12 |
 
-### Phase 5.4 補完機能（33%完了）
+### Phase 5.4 補完機能（部分完了）
 
 | Task ID | 内容 | 状態 | 完了日 |
 |---------|------|:----:|-------|
-| TASK-P5-019 | Observer API (8 EP) | ✅ | 2026-01-12 |
 | TASK-P5-025 | Prover Portal DESIGN_BRIEF | ✅ | 2026-01-12 |
+| **TASK-P5-029** | **Insurance/Treasury API (12 EP)** | **✅ Complete** | 2026-01-12 |
 
 ---
 
-## 次のタスク候補
+## 次のステップ
 
-### 優先度 P0（推奨）
-
-| Task ID | 内容 | 工数 | 備考 |
-|---------|------|:----:|------|
-| **TASK-P5-015** | QS Admin API (11 EP) | 5日 | Phase 5.3 |
-| **TASK-P5-016** | Enterprise Admin API (19 EP) | 7日 | Phase 5.3 |
-
-### 優先度 P1
-
-| Task ID | 内容 | 工数 | 備考 |
-|---------|------|:----:|------|
-| TASK-P5-024 | Explorer API (12 EP) | 5日 | Phase 5.4 |
-| TASK-P5-017 | Enterprise申込フロー | 3日 | P5-016依存 |
-
----
-
-## セッション開始時の確認事項
-
-```
-✅ Phase 5.0-5.2: 完了済み
-✅ Phase 5.1 基盤: 100%完了
-⏳ Phase 5.3 管理系API: 未着手 ← 次の推奨
-⏳ Phase 5.4 補完機能: 33%完了
-⏳ Phase 5.5 統合・テスト: 未着手
-```
+→ Phase 5.3 管理系API または Phase 5.4 残りの補完機能を実装
 
 ---
 
