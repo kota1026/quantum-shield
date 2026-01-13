@@ -42,4 +42,10 @@ impl RedisClient {
         // Returns keys matching the pattern
         Ok(Vec::new())
     }
+
+    /// Delete a key (TASK-P5-031)
+    pub async fn del(&self, _key: &str) -> Result<()> {
+        // TODO: Implement actual Redis DEL
+        Ok(())
+    }
 }
