@@ -1,7 +1,90 @@
 # Event Log - Phase 5
 
 > **Session Start**: 2026-01-13
-> **Task**: TASK-P5-028 Security Council統合
+> **Task**: TASK-P5-030 Resync実装
+
+---
+
+## 2026-01-13 (Session - TASK-P5-030)
+
+### Event: SESSION_START
+- **Time**: Session initiated
+- **Phase**: 5.4 補完機能
+- **Task**: TASK-P5-030
+
+### Event: TASK_ANALYSIS
+- **Finding**: Resync API implementation needed for L1-L3 synchronization recovery
+- **Scope**: New resync.rs module with 3 API endpoints
+- **Reference**: §2.6.1, SEQUENCES §3' Resync
+
+---
+
+## Implementation Log
+
+### Event: RESYNC_API_IMPLEMENTED
+- **Time**: 2026-01-13
+- **Files Created**:
+  - `services/api/src/routes/resync.rs` - Resync API (3 endpoints)
+- **Files Modified**:
+  - `services/api/src/routes/mod.rs` - Added resync module and routes
+  - `services/api/Cargo.toml` - Added uuid std feature
+
+### Resync API Endpoints (3 EP)
+
+```
+POST /v1/resync              - Manual resync request (lock_id, l1_tx_hash)
+GET  /v1/resync/:lock_id     - Get resync status for a lock
+GET  /v1/resync/pending      - List all pending (unsynced) locks
+```
+
+### Resync Types Implemented
+
+| Type | Description |
+|------|-------------|
+| ResyncStatus | Synced, PendingSync, Syncing, Failed, NotFound |
+| ResyncSource | AutoPoll, Manual |
+| SyncedLockInfo | Lock data after successful sync |
+| L1TransactionInfo | L1 transaction verification data |
+| L3StateInfo | L3 SMT state information |
+| ResyncHistoryEntry | Audit trail of sync attempts |
+
+### Event: VERIFICATION_LOOP_1
+- **Result**: PASS
+- **Build**: `cargo build -p quantum-shield-api` - SUCCESS
+- **Tests**: 131 tests passed
+  - Unit tests: 97 passed
+  - API tests: 14 passed
+  - Integration tests: 12 passed
+  - Resync module tests: 6 passed
+  - Council module tests: 2 passed
+
+### Event: TASK_COMPLETE
+- **Time**: 2026-01-13
+- **Task**: TASK-P5-030
+- **Status**: COMPLETE
+- **Tests**: 131 passed
+
+---
+
+## Summary
+
+TASK-P5-030 Resync実装: **COMPLETE**
+
+| Item | Status |
+|------|--------|
+| POST /v1/resync API | ✅ |
+| GET /v1/resync/:lock_id API | ✅ |
+| GET /v1/resync/pending API | ✅ |
+| Build Check | ✅ |
+| Tests | ✅ 131 passed |
+
+---
+
+## Previous Sessions
+
+### TASK-P5-028 Security Council統合 - 2026-01-13
+- **Status**: COMPLETE
+- **Tests**: 123 passed
 
 ---
 
