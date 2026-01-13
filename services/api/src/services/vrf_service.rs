@@ -13,13 +13,12 @@ use std::time::Duration;
 
 use anyhow::Result;
 use sha3::{Digest, Sha3_256};
-use thiserror::Error;
 
 use crate::config::VRFConfig;
 use crate::types::{VRFRequest, VRFStatus};
 
 /// VRF Service Error types
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum VRFError {
     #[error("VRF request not found: {0}")]
     RequestNotFound(String),
@@ -32,12 +31,6 @@ pub enum VRFError {
 
     #[error("No active provers available")]
     NoActiveProvers,
-
-    #[error("No provers available")]
-    NoProversAvailable,
-
-    #[error("VRF request failed: {0}")]
-    RequestFailed(String),
 
     #[error("Contract call failed: {0}")]
     ContractError(String),
@@ -93,14 +86,6 @@ impl VRFService {
 
         // In production, this would call:
         // VRFConsumer.requestProverSelection(bytes32(unlock_request_id))
-        //
-        // For now, we simulate the request and return the ID
-        // The actual contract call would be:
-        //
-        // let contract = VRFConsumer::new(self.config.contract_address, provider);
-        // let tx = contract.request_prover_selection(unlock_request_id_bytes).send().await?;
-        // let receipt = tx.await?;
-        // let vrf_request_id = extract_request_id_from_receipt(receipt);
 
         tracing::info!(
             "VRF request created: {} for unlock: {}",
@@ -115,10 +100,6 @@ impl VRFService {
     ///
     /// SEQUENCES §2.4: VRF result available check
     pub async fn is_prover_selected(&self, unlock_request_id: &str) -> Result<bool, VRFError> {
-        // In production, this would call:
-        // VRFConsumer.isProverSelected(bytes32(unlock_request_id))
-        //
-        // For development, we simulate based on stored state
         tracing::debug!(
             "Checking VRF selection status for unlock: {}",
             unlock_request_id
@@ -142,11 +123,6 @@ impl VRFService {
             unlock_request_id
         );
 
-        // In production, this would call:
-        // (address prover, uint256 randomValue) = VRFConsumer.getSelectedProver(bytes32(unlock_request_id))
-        //
-        // For development, return simulated values
-
         // Check if VRF is fulfilled first
         if !self.is_prover_selected(unlock_request_id).await? {
             return Err(VRFError::RequestNotFound(unlock_request_id.to_string()));
@@ -166,7 +142,7 @@ impl VRFService {
     /// Returns (is_timed_out, time_remaining_seconds)
     pub async fn check_timeout(
         &self,
-        unlock_request_id: &str,
+        _unlock_request_id: &str,
         requested_at: u64,
     ) -> Result<(bool, u64), VRFError> {
         let now = chrono::Utc::now().timestamp() as u64;
@@ -193,11 +169,6 @@ impl VRFService {
             unlock_request_id
         );
 
-        // In production, this would call:
-        // address prover = VRFConsumer.triggerFallback(bytes32(unlock_request_id))
-        //
-        // For development, simulate fallback selection
-
         // Simulated fallback prover selection
         let fallback_prover = "0x0000000000000000000000000000000000000002".to_string();
 
@@ -218,7 +189,7 @@ impl VRFService {
     pub async fn wait_for_selection(
         &self,
         unlock_request_id: &str,
-        requested_at: u64,
+        _requested_at: u64,
         timeout: Duration,
     ) -> Result<(String, String, VRFStatus), VRFError> {
         let start = std::time::Instant::now();
@@ -256,18 +227,6 @@ impl VRFService {
         }
     }
 
-    /// Simple wait for VRF selection - returns just the prover
-    /// SEQUENCES §2.4
-    pub async fn wait_for_selection_simple(&self, vrf_request_id: &str, timeout: Duration) -> Result<String, VRFError> {
-        tracing::info!("Waiting for VRF selection: {} (timeout: {:?})", vrf_request_id, timeout);
-
-        // In production, this would poll for Chainlink VRF callback
-        // For now, simulate selection
-        tokio::time::sleep(Duration::from_millis(100)).await;
-
-        Ok("prover_0x1234".to_string())
-    }
-
     /// Generate VRF request ID from unlock request ID
     fn generate_vrf_request_id(&self, unlock_request_id: &str) -> String {
         let mut hasher = Sha3_256::new();
@@ -293,11 +252,6 @@ impl VRFService {
         Duration::from_secs(self.config.timeout_seconds)
     }
 
-    /// Get timeout duration from config (alias)
-    pub fn timeout_duration(&self) -> Duration {
-        Duration::from_secs(self.config.timeout_seconds)
-    }
-
     /// Create a new VRFRequest record
     pub fn create_vrf_request(
         &self,
@@ -316,19 +270,7 @@ impl VRFService {
         }
     }
 
-    /// Get list of available provers
-    pub async fn get_available_provers(&self) -> Result<Vec<String>, VRFError> {
-        Ok(vec![
-            "prover_0x1111".to_string(),
-            "prover_0x2222".to_string(),
-            "prover_0x3333".to_string(),
-            "prover_0x4444".to_string(),
-            "prover_0x5555".to_string(),
-        ])
-    }
-
-    /// Select provers using VRF random value
-    /// Selects 2 of 5 provers
+    /// Select provers using VRF random value (2 of 5)
     pub fn select_provers(&self, random_value: &str, provers: &[String]) -> Vec<String> {
         if provers.is_empty() {
             return vec![];
@@ -437,12 +379,7 @@ mod tests {
 
     #[test]
     fn test_select_provers() {
-        let config = VRFConfig {
-            contract_address: "0x0".to_string(),
-            rpc_url: "http://localhost:8545".to_string(),
-            timeout_seconds: 300,
-            polling_interval_seconds: 5,
-        };
+        let config = VRFConfig::default();
         let service = VRFService { config };
 
         let provers = vec![

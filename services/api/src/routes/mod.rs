@@ -15,6 +15,7 @@ mod token_hub;
 mod challenge;
 mod governance;
 mod enterprise;
+mod observer;
 
 use std::sync::Arc;
 use axum::middleware;
@@ -80,6 +81,7 @@ pub fn api_routes() -> Router {
         .route("/governance/votes/:id", get(governance::get_vote))
         .route("/governance/activity", get(governance::get_activity))
         .route("/governance/council", get(governance::get_council))
+<<<<<<< HEAD
         // Enterprise Admin API (TASK-P5-016) - 19 endpoints
         // Dashboard (3 EP)
         .route("/enterprise/dashboard/overview", get(enterprise::get_dashboard_overview))
@@ -106,6 +108,15 @@ pub fn api_routes() -> Router {
         // Reports & Audit (2 EP)
         .route("/enterprise/reports", get(enterprise::get_reports))
         .route("/enterprise/audit-log", get(enterprise::get_audit_log))
+        // Observer API (TASK-P5-019) - 8 endpoints
+        .route("/observer/dashboard", get(observer::get_dashboard))
+        .route("/observer/pending-unlocks", get(observer::get_pending_unlocks))
+        .route("/observer/suspicious-txs", get(observer::get_suspicious_txs))
+        .route("/observer/history", get(observer::get_history))
+        .route("/observer/challenge", post(observer::submit_challenge))
+        .route("/observer/challenge/:id", get(observer::get_challenge))
+        .route("/observer/earnings", get(observer::get_earnings))
+        .route("/observer/claim-earnings", post(observer::claim_earnings))
 }
 
 /// Authentication routes (TASK-P5-012: SIWE→JWT)
