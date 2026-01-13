@@ -9,65 +9,60 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-024 |
-| タイトル | Explorer API実装 |
+| タスクID | TASK-P5-026 |
+| タイトル | i18n対応 (ja/en) |
 | Phase | 5.4 補完機能 |
-| 優先度 | P1 |
+| 優先度 | P2 |
 | 実績工数 | 0.5日 |
-| 計画参照 | Appendix B.2 |
+| 計画参照 | 26_phase5_planner.md §8 TASK-P5-045 |
 
 ### トレーサビリティ
 
 | 仕様項目 | 仕様書参照 | 実装先 |
 |----------|----------|--------|
-| Explorer API | TASK_P5_FULL_LIST.md §Phase 5.4 | `services/api/src/routes/explorer.rs` |
-| Public Overview | Appendix B.2 | GET /v1/explorer/overview |
-| Search | Appendix B.2 | GET /v1/explorer/search |
-| Locks Browse | Appendix B.2 | GET /v1/explorer/locks, locks/:id |
-| Unlocks Browse | Appendix B.2 | GET /v1/explorer/unlocks, unlocks/:id |
-| Challenges Browse | Appendix B.2 | GET /v1/explorer/challenges, challenges/:id |
-| Address Lookup | Appendix B.2 | GET /v1/explorer/address/:addr |
-| Provers List | Appendix B.2 | GET /v1/explorer/provers, provers/:id |
-| Analytics | Appendix B.2 | GET /v1/explorer/analytics |
+| i18nライブラリ導入 | 26_phase5_planner §8 | `apps/admin-dashboard/package.json` |
+| 翻訳ファイル作成 | 26_phase5_planner §8 | `apps/admin-dashboard/src/i18n/locales/` |
+| 言語値外部化 | 26_phase5_planner §8 | `apps/admin-dashboard/src/components/`, `pages/` |
+| 言語切替UI | 26_phase5_planner §8 | `apps/admin-dashboard/src/components/LanguageSwitcher.tsx` |
 
-### 実装したAPI (12 EP)
+### 成果物
 
-#### Explorer API
-```
-GET  /v1/explorer/overview        - ネットワーク概要
-GET  /v1/explorer/search          - 統合検索
-GET  /v1/explorer/locks           - Lock一覧
-GET  /v1/explorer/locks/:id       - Lock詳細
-GET  /v1/explorer/unlocks         - Unlock一覧
-GET  /v1/explorer/unlocks/:id     - Unlock詳細
-GET  /v1/explorer/challenges      - Challenge一覧
-GET  /v1/explorer/challenges/:id  - Challenge詳細
-GET  /v1/explorer/address/:addr   - アドレス情報
-GET  /v1/explorer/provers         - Prover一覧
-GET  /v1/explorer/provers/:id     - Prover詳細
-GET  /v1/explorer/analytics       - 分析データ
-```
+| # | 成果物 | 説明 |
+|---|--------|------|
+| 1 | i18n設定ファイル | `apps/admin-dashboard/src/i18n/index.ts` |
+| 2 | 翻訳ファイル (en) | `apps/admin-dashboard/src/i18n/locales/en.json` (~200 keys) |
+| 3 | 翻訳ファイル (ja) | `apps/admin-dashboard/src/i18n/locales/ja.json` (~200 keys) |
+| 4 | 言語切替コンポーネント | `apps/admin-dashboard/src/components/LanguageSwitcher.tsx` |
+| 5 | コンポーネント更新 | Layout, Dashboard, ProverList, EmergencyPause, AnalyticsDashboard |
 
 ### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | Explorer API 12 EP追加 | ✅ |
-| 2 | cargo build成功 | ✅ |
-| 3 | cargo test成功 (107件) | ✅ |
-| 4 | mod.rsにルート追加 | ✅ |
-| 5 | 型定義完了 | ✅ |
+| 1 | i18nライブラリ (react-i18next) 導入 | ✅ |
+| 2 | 翻訳ファイル作成 (en.json, ja.json) | ✅ |
+| 3 | 主要コンポーネントの言語値外部化 | ✅ |
+| 4 | 言語切替UI実装 | ✅ |
+| 5 | vite build成功 | ✅ |
+| 6 | vitest run成功 (49 passed) | ✅ |
 
-### 実装内容
+### 実装詳細
 
-#### 追加した型
-- `SearchType` - 検索タイプ (Lock, Unlock, Address, Prover, Challenge, All)
-- `ExplorerLockStatus` - Lock状態 (Active, UnlockPending, EmergencyPending, Challenged, Unlocked, Slashed)
-- `ExplorerChallengeStatus` - Challenge状態 (Pending, UnderReview, Succeeded, Failed, Expired)
-- `ExplorerProverStatus` - Prover状態 (Active, Pending, Suspended, Exiting, Exited)
-- `NetworkStats` - ネットワーク統計
-- `VolumeAnalytics`, `LockAnalytics`, `ProverAnalytics`, `ChallengeAnalytics`, `FeeAnalytics` - 分析データ
-- その他多数の詳細レスポンス型
+#### インストールしたパッケージ
+- `i18next` - Core i18n framework
+- `react-i18next` - React integration
+- `i18next-browser-languagedetector` - Auto language detection
+
+#### 翻訳カテゴリ
+- `common`: 共通UI文字列 (loading, error, buttons)
+- `nav`: ナビゲーション項目
+- `layout`: レイアウト関連
+- `dashboard`: ダッシュボード
+- `provers`: プローバー管理
+- `analytics`: 分析
+- `emergency`: 緊急管理
+- `edition`: エディション設定
+- `language`: 言語選択
 
 ---
 
@@ -75,7 +70,6 @@ GET  /v1/explorer/analytics       - 分析データ
 
 - TASK-P5-015: QS Admin API (11 EP)
 - TASK-P5-016: Enterprise Admin API (19 EP)
-- TASK-P5-026: i18n対応
 - TASK-P5-027: 監視ボット実装
 
 ---
