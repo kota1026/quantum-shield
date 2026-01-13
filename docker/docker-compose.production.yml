@@ -1,0 +1,410 @@
+# =============================================================================
+# Quantum Shield - Production Docker Compose
+# =============================================================================
+# Complete production stack including:
+# - API Service (Rust)
+# - Event Bridge (Rust)
+# - Monitor Bot (Rust)
+# - STARK Prover (Rust)
+# - PostgreSQL Database
+# - Redis Cache
+# - RabbitMQ Message Queue
+# - Prometheus Metrics
+# - Grafana Dashboards
+#
+# CP-1 Compliant: All services use quantum-resistant cryptography
+# =============================================================================
+
+version: "3.9"
+
+services:
+  # ===========================================================================
+  # Core Services
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # API Service - Main REST API
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: ../services/api
+      dockerfile: Dockerfile
+    container_name: qs-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      - L1_RPC_URL=${L1_RPC_URL}
+      - L3_RPC_URL=http://aegis-node-0:8545
+      - JWT_SECRET=${JWT_SECRET}
+      - STARK_PROVER_URL=http://stark-prover:3000
+      - EVENT_BRIDGE_URL=http://event-bridge:8081
+      - CHAINLINK_VRF_COORDINATOR=${CHAINLINK_VRF_COORDINATOR}
+      - CHAINLINK_VRF_KEY_HASH=${CHAINLINK_VRF_KEY_HASH}
+      - EDITION_CONFIG_ADDRESS=${EDITION_CONFIG_ADDRESS}
+      - PROVER_REGISTRY_ADDRESS=${PROVER_REGISTRY_ADDRESS}
+      - L1_VAULT_ADDRESS=${L1_VAULT_ADDRESS}
+      - METRICS_ENABLED=true
+    volumes:
+      - api-logs:/var/log/qs-api
+    networks:
+      - qs-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ---------------------------------------------------------------------------
+  # Event Bridge - L1/L3 Event Synchronization
+  # ---------------------------------------------------------------------------
+  event-bridge:
+    build:
+      context: ../services/event-bridge
+      dockerfile: Dockerfile
+    container_name: qs-event-bridge
+    restart: unless-stopped
+    ports:
+      - "${EVENT_BRIDGE_PORT:-8081}:8081"
+      - "${WEBSOCKET_PORT:-8082}:8082"
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      - L1_RPC_URL=${L1_RPC_URL}
+      - L1_WS_URL=${L1_WS_URL}
+      - L3_RPC_URL=http://aegis-node-0:8545
+      - L1_VAULT_ADDRESS=${L1_VAULT_ADDRESS}
+      - POLLING_INTERVAL_MS=${POLLING_INTERVAL_MS:-5000}
+      - METRICS_ENABLED=true
+    volumes:
+      - event-bridge-logs:/var/log/qs-event-bridge
+    networks:
+      - qs-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ---------------------------------------------------------------------------
+  # Monitor Bot - 24h Unlock Monitoring
+  # ---------------------------------------------------------------------------
+  monitor-bot:
+    build:
+      context: ../services/monitor-bot
+      dockerfile: Dockerfile
+    container_name: qs-monitor-bot
+    restart: unless-stopped
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+      - L1_RPC_URL=${L1_RPC_URL}
+      - L1_VAULT_ADDRESS=${L1_VAULT_ADDRESS}
+      - ALERT_WEBHOOK_URL=${ALERT_WEBHOOK_URL:-}
+      - MONITORING_INTERVAL_MS=${MONITORING_INTERVAL_MS:-60000}
+      - METRICS_ENABLED=true
+    volumes:
+      - monitor-bot-logs:/var/log/qs-monitor-bot
+    networks:
+      - qs-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # ---------------------------------------------------------------------------
+  # STARK Prover - Zero-Knowledge Proof Generation
+  # ---------------------------------------------------------------------------
+  stark-prover:
+    build:
+      context: ../stark-prover
+      dockerfile: Dockerfile
+    container_name: qs-stark-prover
+    restart: unless-stopped
+    ports:
+      - "${STARK_PROVER_PORT:-3000}:3000"
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - PROVER_THREADS=${PROVER_THREADS:-4}
+      - METRICS_ENABLED=true
+    volumes:
+      - stark-prover-cache:/var/cache/stark-prover
+      - stark-prover-logs:/var/log/qs-stark-prover
+    networks:
+      - qs-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+
+  # ===========================================================================
+  # Infrastructure Services
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: qs-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts/postgres:/docker-entrypoint-initdb.d:ro
+    networks:
+      - qs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ---------------------------------------------------------------------------
+  # Redis Cache
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: qs-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - qs-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ---------------------------------------------------------------------------
+  # RabbitMQ Message Queue
+  # ---------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: qs-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=/
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - qs-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ===========================================================================
+  # Monitoring Services
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # Prometheus - Metrics Collection
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.49.0
+    container_name: qs-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - qs-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ---------------------------------------------------------------------------
+  # Grafana - Dashboards & Visualization
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.3.0
+    container_name: qs-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    networks:
+      - qs-network
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ---------------------------------------------------------------------------
+  # Alertmanager - Alert Routing (Optional)
+  # ---------------------------------------------------------------------------
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: qs-alertmanager
+    restart: unless-stopped
+    ports:
+      - "${ALERTMANAGER_PORT:-9093}:9093"
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    networks:
+      - qs-network
+    profiles:
+      - alerting
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  qs-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  # Core service data
+  api-logs:
+  event-bridge-logs:
+  monitor-bot-logs:
+  stark-prover-cache:
+  stark-prover-logs:
+
+  # Infrastructure data
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+
+  # Monitoring data
+  prometheus-data:
+  grafana-data:
+  alertmanager-data:

@@ -1,0 +1,147 @@
+# =============================================================================
+# Alertmanager Configuration
+# =============================================================================
+# Alert routing and notification configuration.
+#
+# Notification Channels:
+# - Slack/Discord for warnings
+# - PagerDuty for critical alerts
+# - Email for all alerts
+# =============================================================================
+
+global:
+  resolve_timeout: 5m
+
+  # Slack configuration
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+  # SMTP configuration for email alerts
+  smtp_smarthost: '${SMTP_HOST}:${SMTP_PORT}'
+  smtp_from: '${SMTP_FROM}'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+
+# =============================================================================
+# Route Configuration
+# =============================================================================
+route:
+  # Default receiver
+  receiver: 'default-receiver'
+
+  # Group alerts by service
+  group_by: ['alertname', 'service', 'severity']
+
+  # Wait before sending first notification
+  group_wait: 30s
+
+  # Wait before sending updated notification
+  group_interval: 5m
+
+  # Resend notification interval
+  repeat_interval: 4h
+
+  # Child routes
+  routes:
+    # Critical alerts -> PagerDuty + Slack
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: true
+
+    # Warning alerts -> Slack only
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 1m
+      repeat_interval: 4h
+
+    # Info alerts -> Dashboard only (no notification)
+    - match:
+        severity: info
+      receiver: 'null-receiver'
+
+# =============================================================================
+# Inhibition Rules
+# =============================================================================
+inhibit_rules:
+  # If service is down, suppress all other alerts for that service
+  - source_match:
+      alertname: 'APIServiceDown'
+    target_match_re:
+      alertname: 'High.*'
+    equal: ['service']
+
+  - source_match:
+      alertname: 'PostgreSQLDown'
+    target_match_re:
+      alertname: '.*'
+    target_match:
+      service: 'postgresql'
+    equal: ['service']
+
+# =============================================================================
+# Receivers
+# =============================================================================
+receivers:
+  # Default receiver (email)
+  - name: 'default-receiver'
+    email_configs:
+      - to: '${ALERT_EMAIL}'
+        send_resolved: true
+        headers:
+          Subject: '[Quantum Shield] {{ .GroupLabels.alertname }}'
+
+  # Critical alerts (PagerDuty + Slack)
+  - name: 'critical-alerts'
+    slack_configs:
+      - channel: '#quantum-shield-alerts'
+        send_resolved: true
+        title: '{{ if eq .Status "firing" }}:fire:{{ else }}:white_check_mark:{{ end }} {{ .GroupLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          *Service:* {{ .Labels.service }}
+          {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+        actions:
+          - type: button
+            text: 'Runbook'
+            url: '{{ (index .Alerts 0).Annotations.runbook_url }}'
+          - type: button
+            text: 'Dashboard'
+            url: 'http://localhost:3001/d/quantum-shield-overview'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        send_resolved: true
+        description: '{{ .GroupLabels.alertname }}'
+        severity: critical
+        details:
+          summary: '{{ (index .Alerts 0).Annotations.summary }}'
+          description: '{{ (index .Alerts 0).Annotations.description }}'
+          service: '{{ .GroupLabels.service }}'
+
+  # Warning alerts (Slack only)
+  - name: 'warning-alerts'
+    slack_configs:
+      - channel: '#quantum-shield-alerts'
+        send_resolved: true
+        title: '{{ if eq .Status "firing" }}:warning:{{ else }}:white_check_mark:{{ end }} {{ .GroupLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          {{ end }}
+
+  # Null receiver (suppress notifications)
+  - name: 'null-receiver'
+
+# =============================================================================
+# Templates (Optional)
+# =============================================================================
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
