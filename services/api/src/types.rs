@@ -1280,3 +1280,59 @@ pub struct ProverExitResponse {
     /// Pending rewards to be returned
     pub pending_rewards: String,
 }
+
+/// Prover exit status response
+/// GET /v1/prover/:prover_id/exit-status
+/// SEQUENCES §6: Prover Exit - Status tracking during unbonding
+#[derive(Debug, Serialize)]
+pub struct ProverExitStatusResponse {
+    pub prover_id: String,
+    pub status: ProverStatus,
+    /// Exit initiated timestamp (None if not exiting)
+    pub exit_initiated_at: Option<u64>,
+    /// Unbonding period end timestamp (None if not exiting)
+    pub unbonding_end: Option<u64>,
+    /// Time remaining in unbonding (seconds, negative if complete)
+    pub unbonding_remaining: Option<i64>,
+    /// Whether unbonding is complete and withdrawal is allowed
+    pub can_withdraw: bool,
+    /// Stake to be returned after unbonding
+    pub stake_to_return: String,
+    /// Pending rewards to be returned
+    pub pending_rewards: String,
+    /// Whether there are pending challenges (blocks withdrawal)
+    pub has_pending_challenges: bool,
+    /// Number of pending challenges
+    pub pending_challenge_count: u32,
+}
+
+/// Prover withdraw stake request
+/// POST /v1/prover/:prover_id/withdraw
+/// SEQUENCES §6: Step 4-5 - Stake withdrawal after unbonding
+#[derive(Debug, Deserialize)]
+pub struct ProverWithdrawRequest {
+    /// Destination address for stake return
+    pub destination_address: String,
+    /// Confirmation signature
+    pub confirmation_signature: String,
+}
+
+/// Prover withdraw stake response
+#[derive(Debug, Serialize)]
+pub struct ProverWithdrawResponse {
+    pub prover_id: String,
+    /// Final status after withdrawal
+    pub status: ProverStatus,
+    /// Amount of stake returned
+    pub stake_returned: String,
+    /// Amount of rewards returned
+    pub rewards_returned: String,
+    /// Total amount returned
+    pub total_returned: String,
+    /// Destination address
+    pub destination_address: String,
+    /// L1 transaction hash (if submitted)
+    pub l1_tx_hash: Option<String>,
+    /// Withdrawal timestamp
+    pub withdrawn_at: u64,
+}
