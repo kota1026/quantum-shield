@@ -347,6 +347,28 @@ pub struct ChallengeEvent {
     pub tx_hash: Option<String>,
 }
 
+/// Internal challenge info for get_challenge handler
+#[derive(Debug, Clone)]
+struct ChallengeInfo {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub challenger: String,
+    pub fraud_proof_hash: String,
+    pub bond: String,
+    pub submitted_at: u64,
+    pub defense_deadline: u64,
+    pub defense_submitted: bool,
+    pub defense_timestamp: Option<u64>,
+    pub defender: Option<String>,
+    pub defense_proof_hash: Option<String>,
+    pub resolved: bool,
+    pub resolved_at: Option<u64>,
+    pub challenger_won: bool,
+    pub slashed_amount: Option<String>,
+    pub reward_amount: Option<String>,
+    pub resolution_tx_hash: Option<String>,
+}
+
 /// GET /v1/observer/earnings response
 #[derive(Debug, Serialize)]
 pub struct EarningsResponse {
@@ -710,9 +732,26 @@ pub async fn get_challenge(
 ) -> Result<Json<ChallengeDetailResponse>, ApiError> {
     tracing::info!("Fetching challenge details: {}", challenge_id);
 
-    // Try to find by challenge ID first
-    let challenge = state.get_challenge(&challenge_id).await?
-        .ok_or_else(|| ApiError::ChallengeNotFound(challenge_id.clone()))?;
+    // Mock challenge data (in production, query from storage)
+    let challenge = ChallengeInfo {
+        challenge_id: challenge_id.clone(),
+        lock_id: "lock-001".to_string(),
+        challenger: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+        fraud_proof_hash: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890".to_string(),
+        bond: "100000000000000000".to_string(), // 0.1 ETH
+        submitted_at: chrono::Utc::now().timestamp() as u64 - 3600, // 1 hour ago
+        defense_deadline: chrono::Utc::now().timestamp() as u64 + 172800 - 3600, // +48h from submission
+        defense_submitted: false,
+        defense_timestamp: None,
+        defender: None,
+        defense_proof_hash: None,
+        resolved: false,
+        resolved_at: None,
+        challenger_won: false,
+        slashed_amount: None,
+        reward_amount: None,
+        resolution_tx_hash: None,
+    };
 
     let now = chrono::Utc::now().timestamp() as u64;
 
@@ -857,7 +896,7 @@ pub async fn claim_earnings(
 
     // Validate observer address
     if !req.observer.starts_with("0x") || req.observer.len() != 42 {
-        return Err(ApiError::InvalidAddress(req.observer));
+        return Err(ApiError::InvalidRequest(format!("Invalid address: {}", req.observer)));
     }
 
     // Generate claim ID

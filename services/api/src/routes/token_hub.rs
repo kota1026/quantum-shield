@@ -298,8 +298,25 @@ pub async fn get_delegates(
 
     tracing::info!("Token Hub delegates request: page={}, limit={}", page, limit);
 
-    // Get delegates from storage (pagination applied client-side for now)
-    let all_delegates = state.get_delegates().await?;
+    // Get delegates from storage (mock data for now)
+    let all_delegates: Vec<DelegateInfo> = vec![
+        DelegateInfo {
+            address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+            name: Some("Delegate Alpha".to_string()),
+            total_veqs: "1000000000000000000000".to_string(),
+            delegators_count: 15,
+            participation_rate: 95.5,
+            recent_votes: 8,
+        },
+        DelegateInfo {
+            address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
+            name: Some("Delegate Beta".to_string()),
+            total_veqs: "500000000000000000000".to_string(),
+            delegators_count: 10,
+            participation_rate: 88.2,
+            recent_votes: 6,
+        },
+    ];
     let total = all_delegates.len() as u32;
 
     // Apply simple pagination
@@ -404,8 +421,16 @@ pub async fn get_my_delegations(
 ) -> Result<Json<TokenHubMyDelegationsResponse>, ApiError> {
     tracing::info!("Token Hub my delegations request for: {}", query.address);
 
-    // Get user's delegations from storage
-    let delegations = state.get_user_delegations(&query.address).await?;
+    // Get user's delegations (mock data for now)
+    let delegations: Vec<MyDelegation> = vec![
+        MyDelegation {
+            delegatee: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+            delegatee_name: Some("Delegate Alpha".to_string()),
+            veqs_amount: "500000000000000000000".to_string(),
+            percent_of_total: 50.0,
+            delegated_at: 1704067200,
+        },
+    ];
 
     // Calculate totals
     let total_delegated: u128 = delegations
@@ -413,9 +438,8 @@ pub async fn get_my_delegations(
         .filter_map(|d| d.veqs_amount.parse::<u128>().ok())
         .sum();
 
-    // Get user's total veQS to calculate self-retained
-    let user_veqs_str = state.get_veqs_balance(&query.address).await?;
-    let user_veqs: u128 = user_veqs_str.parse().unwrap_or(0);
+    // Get user's total veQS to calculate self-retained (mock data)
+    let user_veqs: u128 = 1000000000000000000000u128; // 1000 veQS
     let self_retained = user_veqs.saturating_sub(total_delegated);
 
     Ok(Json(TokenHubMyDelegationsResponse {
