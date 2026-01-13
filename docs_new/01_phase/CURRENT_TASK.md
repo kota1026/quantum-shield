@@ -9,66 +9,74 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-018 |
-| タイトル | 4BFT契約者管理API実装 |
-| Phase | 5.3 管理系API |
+| タスクID | TASK-P5-024 |
+| タイトル | Explorer API実装 |
+| Phase | 5.4 補完機能 |
 | 優先度 | P1 |
 | 実績工数 | 0.5日 |
-| 計画参照 | §3.4, EDITION_SWITCH_SPEC |
+| 計画参照 | Appendix B.2 |
 
 ### トレーサビリティ
 
 | 仕様項目 | 仕様書参照 | 実装先 |
 |----------|----------|--------|
-| Enterprise契約者管理 | PHASE5_INTEGRATION_PLAN §3.4 | `services/api/src/routes/admin.rs` |
-| 4BFT固定ノード設計 | EDITION_SWITCH_SPEC §3.3 | `services/api/src/routes/admin.rs` |
-| CONTRACT_BASED承認 | EDITION_SWITCH_SPEC §5.2 | `services/api/src/routes/admin.rs` |
+| Explorer API | TASK_P5_FULL_LIST.md §Phase 5.4 | `services/api/src/routes/explorer.rs` |
+| Public Overview | Appendix B.2 | GET /v1/explorer/overview |
+| Search | Appendix B.2 | GET /v1/explorer/search |
+| Locks Browse | Appendix B.2 | GET /v1/explorer/locks, locks/:id |
+| Unlocks Browse | Appendix B.2 | GET /v1/explorer/unlocks, unlocks/:id |
+| Challenges Browse | Appendix B.2 | GET /v1/explorer/challenges, challenges/:id |
+| Address Lookup | Appendix B.2 | GET /v1/explorer/address/:addr |
+| Provers List | Appendix B.2 | GET /v1/explorer/provers, provers/:id |
+| Analytics | Appendix B.2 | GET /v1/explorer/analytics |
 
-### 実装したAPI (4 EP追加、合計6 EP)
+### 実装したAPI (12 EP)
 
-#### 4BFT契約者管理API（QS Admin側）
+#### Explorer API
 ```
-GET  /v1/admin/enterprise/accounts         - Enterprise企業一覧 (既存)
-GET  /v1/admin/enterprise/accounts/:id     - 企業詳細 (NEW)
-POST /v1/admin/enterprise/accounts         - 企業登録 (既存)
-PUT  /v1/admin/enterprise/accounts/:id     - 企業更新 (NEW)
-GET  /v1/admin/enterprise/contracts        - 契約一覧 (NEW)
-POST /v1/admin/enterprise/contracts        - 契約作成 (NEW)
+GET  /v1/explorer/overview        - ネットワーク概要
+GET  /v1/explorer/search          - 統合検索
+GET  /v1/explorer/locks           - Lock一覧
+GET  /v1/explorer/locks/:id       - Lock詳細
+GET  /v1/explorer/unlocks         - Unlock一覧
+GET  /v1/explorer/unlocks/:id     - Unlock詳細
+GET  /v1/explorer/challenges      - Challenge一覧
+GET  /v1/explorer/challenges/:id  - Challenge詳細
+GET  /v1/explorer/address/:addr   - アドレス情報
+GET  /v1/explorer/provers         - Prover一覧
+GET  /v1/explorer/provers/:id     - Prover詳細
+GET  /v1/explorer/analytics       - 分析データ
 ```
 
 ### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | 4BFT契約者管理API 4 EP追加 | ✅ |
+| 1 | Explorer API 12 EP追加 | ✅ |
 | 2 | cargo build成功 | ✅ |
-| 3 | cargo test成功 (102件) | ✅ |
-| 4 | Admin認証統合 | ✅ |
-| 5 | Enterprise契約モデル定義 | ✅ |
+| 3 | cargo test成功 (107件) | ✅ |
+| 4 | mod.rsにルート追加 | ✅ |
+| 5 | 型定義完了 | ✅ |
 
 ### 実装内容
 
 #### 追加した型
-- `ContractStatus` - 契約ステータス (Draft, PendingReview, Active, Suspended, Terminated, Expired)
-- `ContractType` - 契約種別 (Standard, CustomSla, Trial, Partner)
-- `Enterprise4BftConfig` - 4BFTノード設定
-- `NodeLocation` - ノード地理的分散
-- `SlaTerms` - SLA条件
-- `EnterpriseAccountDetailResponse` - 企業詳細レスポンス
-- `EnterpriseContract` - 契約詳細
-- `CreateEnterpriseContractRequest/Response` - 契約作成リクエスト/レスポンス
-
-#### Enterprise Edition (4BFT) 特性の実装
-- 固定4ノードBFT（全Phase共通）
-- CONTRACT_BASED Prover承認
-- ガバナンス: CENTRALIZED/MULTISIGまで
-- SLAベースのサービス
+- `SearchType` - 検索タイプ (Lock, Unlock, Address, Prover, Challenge, All)
+- `ExplorerLockStatus` - Lock状態 (Active, UnlockPending, EmergencyPending, Challenged, Unlocked, Slashed)
+- `ExplorerChallengeStatus` - Challenge状態 (Pending, UnderReview, Succeeded, Failed, Expired)
+- `ExplorerProverStatus` - Prover状態 (Active, Pending, Suspended, Exiting, Exited)
+- `NetworkStats` - ネットワーク統計
+- `VolumeAnalytics`, `LockAnalytics`, `ProverAnalytics`, `ChallengeAnalytics`, `FeeAnalytics` - 分析データ
+- その他多数の詳細レスポンス型
 
 ---
 
-## 次のタスク
+## 次のタスク候補
 
-→ 次のセッションで新しいタスクを開始
+- TASK-P5-015: QS Admin API (11 EP)
+- TASK-P5-016: Enterprise Admin API (19 EP)
+- TASK-P5-026: i18n対応
+- TASK-P5-027: 監視ボット実装
 
 ---
 
