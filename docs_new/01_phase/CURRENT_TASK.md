@@ -9,91 +9,93 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-017 |
-| タイトル | Enterprise申込フロー |
-| Phase | 5.3 管理系API |
+| タスクID | TASK-P5-027 |
+| タイトル | 監視ボット実装 |
+| Phase | 5.4 補完機能 |
 | 優先度 | P1 |
 | 実績工数 | 0.5日 |
-| 計画参照 | 26_phase5_planner.md §7 TASK-P5-032 |
+| 計画参照 | 26_phase5_planner.md §8 TASK-P5-046 |
 
 ### トレーサビリティ
 
 | 仕様項目 | 仕様書参照 | 実装先 |
 |----------|----------|--------|
-| Enterprise申込API | UNIFIED_SPEC §Enterprise Onboarding | `services/api/src/routes/enterprise.rs` |
-| 申込状況確認API | UNIFIED_SPEC §Enterprise Onboarding | `services/api/src/routes/enterprise.rs` |
-| 契約署名API | UNIFIED_SPEC §Enterprise Onboarding | `services/api/src/routes/enterprise.rs` |
-| オンボーディングAPI | UNIFIED_SPEC §Enterprise Onboarding | `services/api/src/routes/enterprise.rs` |
+| 24h Unlock監視 | SEQUENCES §2.5 | `services/monitor-bot/src/monitors/unlock.rs` |
+| 不正検知 | SEQUENCES §4.1 | `services/monitor-bot/src/detectors/fraud.rs` |
+| アラート送信 | UNIFIED_SPEC §Monitoring | `services/monitor-bot/src/alerts/mod.rs` |
+| リスク分析 | SEQUENCES §4.3 | `services/monitor-bot/src/analysis/risk.rs` |
 
 ### 成果物
 
 | # | 成果物 | 説明 |
 |---|--------|------|
-| 1 | POST /v1/enterprise/apply | Enterprise申込API |
-| 2 | GET /v1/enterprise/application/:id | 申込状況取得API |
-| 3 | POST /v1/enterprise/contract/sign | 契約署名API |
-| 4 | GET /v1/enterprise/onboarding | オンボーディングステータスAPI |
+| 1 | services/monitor-bot/Cargo.toml | Monitor Bot パッケージ定義 |
+| 2 | services/monitor-bot/src/main.rs | メインエントリポイント |
+| 3 | services/monitor-bot/src/types.rs | 共通型定義 |
+| 4 | services/monitor-bot/src/config/mod.rs | 設定管理 |
+| 5 | services/monitor-bot/src/monitors/unlock.rs | 24h Unlock監視 |
+| 6 | services/monitor-bot/src/detectors/fraud.rs | 不正検知エンジン |
+| 7 | services/monitor-bot/src/alerts/mod.rs | アラート送信（Discord/Slack/Webhook） |
+| 8 | services/monitor-bot/src/analysis/risk.rs | リスク分析・スコアリング |
 
 ### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | POST /v1/enterprise/apply 実装 | ✅ |
-| 2 | GET /v1/enterprise/application/:id 実装 | ✅ |
-| 3 | POST /v1/enterprise/contract/sign 実装 | ✅ |
-| 4 | GET /v1/enterprise/onboarding 実装 | ✅ |
+| 1 | Monitor Bot サービス作成 | ✅ |
+| 2 | 24h Unlock監視機能実装 | ✅ |
+| 3 | 不正検知アラート機能実装 | ✅ |
+| 4 | リスク分析モジュール実装 | ✅ |
 | 5 | cargo build 成功 | ✅ |
-| 6 | cargo test 成功 (114 passed) | ✅ |
+| 6 | cargo test 成功 (32 passed) | ✅ |
 
 ### 実装詳細
 
-#### 追加した型
+#### 追加したモジュール
 
-- `ApplicationStatus` - 申込ステータス (Pending, UnderReview, InfoRequested, Approved, ContractSigned, Active, Rejected, Cancelled)
-- `OnboardingStepStatus` - オンボーディングステップステータス (Pending, InProgress, Completed, Skipped)
-- `EnterpriseApplicationRequest/Response` - 申込リクエスト/レスポンス
-- `ApplicationDetailResponse` - 申込詳細レスポンス
-- `ContractSignRequest/Response` - 契約署名リクエスト/レスポンス
-- `OnboardingStatusResponse` - オンボーディングステータスレスポンス
-- その他サポート型 (CompanyInfo, ContactInfo, ApplicationDetails, OnboardingStep, etc.)
+1. **monitors/unlock.rs** - Unlock監視
+   - `UnlockMonitor` struct
+   - `fetch_pending_unlocks()` - API からpending unlocks取得
+   - `fetch_imminent_unlocks()` - < 1時間の緊急unlocks
+   - `fetch_high_value_unlocks()` - 高額unlocks
+   - `calculate_stats()` - 統計計算
 
-#### 追加したエンドポイント (4 EP)
+2. **detectors/fraud.rs** - 不正検知
+   - `FraudDetector` struct
+   - `analyze()` - 基本分析
+   - `deep_analyze()` - 詳細分析
+   - blocklist チェック
 
-1. **POST /v1/enterprise/apply** - Enterprise申込を送信
-   - バリデーション: Terms of Service と Privacy Policy への同意必須
-   - レスポンス: applicationId, status, 推定レビュー日数
+3. **alerts/mod.rs** - アラートシステム
+   - Discord webhook 統合
+   - Slack webhook 統合
+   - Custom webhook サポート
+   - Cooldown管理
 
-2. **GET /v1/enterprise/application/:id** - 申込詳細を取得
-   - 会社情報、連絡先情報、申込詳細
-   - タイムライン、ドキュメント、レビューノート
+4. **analysis/risk.rs** - リスク分析
+   - `RiskAnalyzer` struct
+   - `calculate_score()` - スコア計算
+   - 重み付きファクター分析
+   - 閾値ベースの分類
 
-3. **POST /v1/enterprise/contract/sign** - 契約に署名
-   - バリデーション: 契約同意必須、ウォレットアドレス形式
-   - レスポンス: contractId, organizationId, 次のステップ
+#### テスト追加 (32 tests)
 
-4. **GET /v1/enterprise/onboarding** - オンボーディング状況を取得
-   - 進捗率、現在のステップ
-   - 各ステップの詳細 (サブタスク含む)
-   - サポート連絡先、クイックアクション
-
-#### テスト追加 (8 tests)
-
-- `test_application_status_serialization`
-- `test_onboarding_step_status_serialization`
-- `test_application_request_deserialization`
-- `test_contract_sign_request_deserialization`
-- `test_application_response_serialization`
-- `test_onboarding_step_structure`
-- `test_company_info_serialization`
+- types::tests - 6 tests
+- config::tests - 4 tests
+- monitors::unlock::tests - 4 tests
+- detectors::fraud::tests - 6 tests
+- analysis::risk::tests - 8 tests
+- alerts::tests - 3 tests
+- main tests - 1 test
 
 ---
 
 ## 次のタスク候補
 
-- TASK-P5-015: QS Admin API (11 EP) ✅ DONE
-- TASK-P5-016: Enterprise Admin API (19 EP) ✅ DONE
-- TASK-P5-018: 4BFT契約者管理
-- TASK-P5-027: 監視ボット実装
+- TASK-P5-028: Security Council統合
+- TASK-P5-030: Resync実装
+- TASK-P5-031: Prover Exit実装
+- TASK-P5-032: Emergency Pause実装
 
 ---
 
