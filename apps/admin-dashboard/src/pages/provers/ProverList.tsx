@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 
 type Prover = {
@@ -15,13 +16,14 @@ type Prover = {
 };
 
 export function ProverList() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<'all' | 'active' | 'pending' | 'suspended'>('all');
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['provers'],
     queryFn: () => api.get<{ provers: Prover[] }>('/provers'),
-    refetchInterval: 30000, // Real-time monitoring: refresh every 30s
+    refetchInterval: 30000,
   });
 
   const approveMutation = useMutation({
@@ -50,7 +52,7 @@ export function ProverList() {
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">Failed to load provers. Please try again.</p>
+        <p className="text-red-800">{t('provers.loadError')}</p>
       </div>
     );
   }
@@ -64,15 +66,22 @@ export function ProverList() {
     suspended: data?.provers?.filter(p => p.status === 'suspended').length || 0,
   };
 
+  const filterLabels = {
+    all: t('provers.filter.all'),
+    active: t('provers.filter.active'),
+    pending: t('provers.filter.pending'),
+    suspended: t('provers.filter.suspended'),
+  };
+
   return (
     <div data-testid="prover-list">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Prover Management</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('provers.title')}</h1>
         <Link
           to="/provers/register"
           className="px-4 py-2 bg-qs-primary text-white rounded-lg hover:bg-qs-primary/90 transition-colors"
         >
-          + Register New Prover
+          {t('provers.registerNew')}
         </Link>
       </div>
 
@@ -89,7 +98,7 @@ export function ProverList() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)} ({statusCounts[f]})
+            {filterLabels[f]} ({statusCounts[f]})
           </button>
         ))}
       </div>
@@ -99,10 +108,9 @@ export function ProverList() {
         <div className="flex items-start">
           <span className="text-red-500 mr-2">⚠️</span>
           <div>
-            <p className="font-semibold text-red-800">Quadratic Slashing Active (N² × 10%)</p>
+            <p className="font-semibold text-red-800">{t('provers.slashingWarning.title')}</p>
             <p className="text-red-700 text-sm mt-1">
-              Correlated failures result in exponentially higher penalties. 
-              1 Prover = 10%, 2 Provers = 40%, 3 Provers = 90%
+              {t('provers.slashingWarning.description')}
             </p>
           </div>
         </div>
@@ -114,25 +122,25 @@ export function ProverList() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Prover
+                {t('provers.table.prover')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
+                {t('provers.table.status')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-testid="col-hsm">
-                HSM
+                {t('provers.table.hsm')}
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Stake
+                {t('provers.table.stake')}
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" data-testid="col-success-rate">
-                Success Rate
+                {t('provers.table.successRate')}
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" data-testid="col-response-time">
-                Response Time
+                {t('provers.table.responseTime')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
+                {t('provers.table.actions')}
               </th>
             </tr>
           </thead>
@@ -140,7 +148,7 @@ export function ProverList() {
             {provers.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                  No provers found
+                  {t('provers.noProvers')}
                 </td>
               </tr>
             ) : (
@@ -148,7 +156,7 @@ export function ProverList() {
                 <tr key={prover.id} data-testid={`prover-row-${prover.id}`} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div>
-                      <Link 
+                      <Link
                         to={`/provers/${prover.id}`}
                         className="font-medium text-gray-900 hover:text-qs-primary"
                       >
@@ -183,7 +191,7 @@ export function ProverList() {
                       <span className={`w-2 h-2 rounded-full mr-2 ${
                         prover.hsmConnected ? 'bg-green-500' : 'bg-red-500'
                       }`}></span>
-                      {prover.hsmConnected ? 'Connected' : 'Disconnected'}
+                      {prover.hsmConnected ? t('common.connected') : t('common.disconnected')}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right font-medium">
@@ -208,14 +216,14 @@ export function ProverList() {
                             data-testid={`approve-${prover.id}`}
                             className="text-green-600 hover:text-green-800 font-medium text-sm"
                           >
-                            Approve
+                            {t('common.approve')}
                           </button>
                           <button
                             onClick={() => rejectMutation.mutate(prover.id)}
                             data-testid={`reject-${prover.id}`}
                             className="text-red-600 hover:text-red-800 font-medium text-sm"
                           >
-                            Reject
+                            {t('common.reject')}
                           </button>
                         </>
                       )}
@@ -225,14 +233,14 @@ export function ProverList() {
                           data-testid={`suspend-${prover.id}`}
                           className="text-orange-600 hover:text-orange-800 font-medium text-sm"
                         >
-                          Suspend
+                          {t('common.suspend')}
                         </button>
                       )}
                       <Link
                         to={`/provers/${prover.id}`}
                         className="text-qs-primary hover:text-qs-primary/80 font-medium text-sm"
                       >
-                        Details
+                        {t('common.details')}
                       </Link>
                     </div>
                   </td>
@@ -245,8 +253,8 @@ export function ProverList() {
 
       {/* Legend */}
       <div className="mt-4 text-sm text-gray-500">
-        <p>🟢 Success Rate ≥99% | 🟡 95-99% | 🔴 &lt;95%</p>
-        <p>🟢 Response ≤200ms | 🟡 200-500ms | 🔴 &gt;500ms</p>
+        <p>🟢 {t('provers.legend.successRate')}</p>
+        <p>🟢 {t('provers.legend.responseTime')}</p>
       </div>
     </div>
   );
