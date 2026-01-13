@@ -58,7 +58,16 @@ pub struct RabbitMQConfig {
 pub struct JwtConfig {
     pub secret: String,
     pub expiry_hours: u64,
+    /// Access token expiry in seconds (default: 3600 = 1 hour)
+    #[serde(default = "default_access_token_expiry")]
+    pub access_token_expiry: u64,
+    /// Refresh token expiry in seconds (default: 604800 = 7 days)
+    #[serde(default = "default_refresh_token_expiry")]
+    pub refresh_token_expiry: u64,
 }
+
+fn default_access_token_expiry() -> u64 { 3600 }
+fn default_refresh_token_expiry() -> u64 { 604800 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SecurityConfig {
@@ -121,6 +130,8 @@ impl Default for Config {
             jwt: JwtConfig {
                 secret: "development-secret-change-in-production".to_string(),
                 expiry_hours: 24,
+                access_token_expiry: 3600,      // 1 hour
+                refresh_token_expiry: 604800,   // 7 days
             },
             security: SecurityConfig::default(),
             vrf: VRFConfig::default(),
