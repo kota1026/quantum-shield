@@ -9,67 +9,90 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-026 |
-| タイトル | i18n対応 (ja/en) |
-| Phase | 5.4 補完機能 |
-| 優先度 | P2 |
+| タスクID | TASK-P5-017 |
+| タイトル | Enterprise申込フロー |
+| Phase | 5.3 管理系API |
+| 優先度 | P1 |
 | 実績工数 | 0.5日 |
-| 計画参照 | 26_phase5_planner.md §8 TASK-P5-045 |
+| 計画参照 | 26_phase5_planner.md §7 TASK-P5-032 |
 
 ### トレーサビリティ
 
 | 仕様項目 | 仕様書参照 | 実装先 |
 |----------|----------|--------|
-| i18nライブラリ導入 | 26_phase5_planner §8 | `apps/admin-dashboard/package.json` |
-| 翻訳ファイル作成 | 26_phase5_planner §8 | `apps/admin-dashboard/src/i18n/locales/` |
-| 言語値外部化 | 26_phase5_planner §8 | `apps/admin-dashboard/src/components/`, `pages/` |
-| 言語切替UI | 26_phase5_planner §8 | `apps/admin-dashboard/src/components/LanguageSwitcher.tsx` |
+| Enterprise申込API | UNIFIED_SPEC §Enterprise Onboarding | `services/api/src/routes/enterprise.rs` |
+| 申込状況確認API | UNIFIED_SPEC §Enterprise Onboarding | `services/api/src/routes/enterprise.rs` |
+| 契約署名API | UNIFIED_SPEC §Enterprise Onboarding | `services/api/src/routes/enterprise.rs` |
+| オンボーディングAPI | UNIFIED_SPEC §Enterprise Onboarding | `services/api/src/routes/enterprise.rs` |
 
 ### 成果物
 
 | # | 成果物 | 説明 |
 |---|--------|------|
-| 1 | i18n設定ファイル | `apps/admin-dashboard/src/i18n/index.ts` |
-| 2 | 翻訳ファイル (en) | `apps/admin-dashboard/src/i18n/locales/en.json` (~200 keys) |
-| 3 | 翻訳ファイル (ja) | `apps/admin-dashboard/src/i18n/locales/ja.json` (~200 keys) |
-| 4 | 言語切替コンポーネント | `apps/admin-dashboard/src/components/LanguageSwitcher.tsx` |
-| 5 | コンポーネント更新 | Layout, Dashboard, ProverList, EmergencyPause, AnalyticsDashboard |
+| 1 | POST /v1/enterprise/apply | Enterprise申込API |
+| 2 | GET /v1/enterprise/application/:id | 申込状況取得API |
+| 3 | POST /v1/enterprise/contract/sign | 契約署名API |
+| 4 | GET /v1/enterprise/onboarding | オンボーディングステータスAPI |
 
 ### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | i18nライブラリ (react-i18next) 導入 | ✅ |
-| 2 | 翻訳ファイル作成 (en.json, ja.json) | ✅ |
-| 3 | 主要コンポーネントの言語値外部化 | ✅ |
-| 4 | 言語切替UI実装 | ✅ |
-| 5 | vite build成功 | ✅ |
-| 6 | vitest run成功 (49 passed) | ✅ |
+| 1 | POST /v1/enterprise/apply 実装 | ✅ |
+| 2 | GET /v1/enterprise/application/:id 実装 | ✅ |
+| 3 | POST /v1/enterprise/contract/sign 実装 | ✅ |
+| 4 | GET /v1/enterprise/onboarding 実装 | ✅ |
+| 5 | cargo build 成功 | ✅ |
+| 6 | cargo test 成功 (114 passed) | ✅ |
 
 ### 実装詳細
 
-#### インストールしたパッケージ
-- `i18next` - Core i18n framework
-- `react-i18next` - React integration
-- `i18next-browser-languagedetector` - Auto language detection
+#### 追加した型
 
-#### 翻訳カテゴリ
-- `common`: 共通UI文字列 (loading, error, buttons)
-- `nav`: ナビゲーション項目
-- `layout`: レイアウト関連
-- `dashboard`: ダッシュボード
-- `provers`: プローバー管理
-- `analytics`: 分析
-- `emergency`: 緊急管理
-- `edition`: エディション設定
-- `language`: 言語選択
+- `ApplicationStatus` - 申込ステータス (Pending, UnderReview, InfoRequested, Approved, ContractSigned, Active, Rejected, Cancelled)
+- `OnboardingStepStatus` - オンボーディングステップステータス (Pending, InProgress, Completed, Skipped)
+- `EnterpriseApplicationRequest/Response` - 申込リクエスト/レスポンス
+- `ApplicationDetailResponse` - 申込詳細レスポンス
+- `ContractSignRequest/Response` - 契約署名リクエスト/レスポンス
+- `OnboardingStatusResponse` - オンボーディングステータスレスポンス
+- その他サポート型 (CompanyInfo, ContactInfo, ApplicationDetails, OnboardingStep, etc.)
+
+#### 追加したエンドポイント (4 EP)
+
+1. **POST /v1/enterprise/apply** - Enterprise申込を送信
+   - バリデーション: Terms of Service と Privacy Policy への同意必須
+   - レスポンス: applicationId, status, 推定レビュー日数
+
+2. **GET /v1/enterprise/application/:id** - 申込詳細を取得
+   - 会社情報、連絡先情報、申込詳細
+   - タイムライン、ドキュメント、レビューノート
+
+3. **POST /v1/enterprise/contract/sign** - 契約に署名
+   - バリデーション: 契約同意必須、ウォレットアドレス形式
+   - レスポンス: contractId, organizationId, 次のステップ
+
+4. **GET /v1/enterprise/onboarding** - オンボーディング状況を取得
+   - 進捗率、現在のステップ
+   - 各ステップの詳細 (サブタスク含む)
+   - サポート連絡先、クイックアクション
+
+#### テスト追加 (8 tests)
+
+- `test_application_status_serialization`
+- `test_onboarding_step_status_serialization`
+- `test_application_request_deserialization`
+- `test_contract_sign_request_deserialization`
+- `test_application_response_serialization`
+- `test_onboarding_step_structure`
+- `test_company_info_serialization`
 
 ---
 
 ## 次のタスク候補
 
-- TASK-P5-015: QS Admin API (11 EP)
-- TASK-P5-016: Enterprise Admin API (19 EP)
+- TASK-P5-015: QS Admin API (11 EP) ✅ DONE
+- TASK-P5-016: Enterprise Admin API (19 EP) ✅ DONE
+- TASK-P5-018: 4BFT契約者管理
 - TASK-P5-027: 監視ボット実装
 
 ---
