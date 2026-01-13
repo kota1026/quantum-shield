@@ -817,7 +817,7 @@ pub struct EnterpriseAccount {
     pub users_count: u32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct EnterpriseContact {
     pub name: String,
     pub email: String,
@@ -1472,5 +1472,828 @@ pub async fn create_enterprise_account(
         status: "pending".to_string(),
         api_key,
         message: "Enterprise account created. Activation email sent to primary contact.".to_string(),
+    }))
+}
+
+// ============================================================================
+// TASK-P5-018: 4BFT Contract Management API (4 Endpoints)
+// ============================================================================
+//
+// Spec Reference: PHASE5_INTEGRATION_PLAN.md §3.4, EDITION_SWITCH_SPEC.md
+//
+// Enterprise Edition (4BFT) features:
+// - Fixed 4-node BFT consensus (all phases)
+// - CONTRACT_BASED Prover approval mode
+// - Governance: CENTRALIZED/MULTISIG only
+// - SLA-based service with dedicated support
+//
+// Additional Endpoints:
+// 1. GET  /v1/admin/enterprise/accounts/:id - Enterprise account detail
+// 2. PUT  /v1/admin/enterprise/accounts/:id - Update enterprise account
+// 3. GET  /v1/admin/enterprise/contracts    - List enterprise contracts
+// 4. POST /v1/admin/enterprise/contracts    - Create enterprise contract
+
+// ============================================================================
+// 4BFT Contract Management Types
+// ============================================================================
+
+/// Contract status enum for 4BFT Enterprise
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ContractStatus {
+    /// Contract drafted, awaiting signatures
+    Draft,
+    /// Pending legal review
+    PendingReview,
+    /// Contract active
+    Active,
+    /// Contract suspended
+    Suspended,
+    /// Contract terminated
+    Terminated,
+    /// Contract expired
+    Expired,
+}
+
+/// Contract type enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ContractType {
+    /// Standard enterprise contract
+    Standard,
+    /// Custom enterprise contract with SLA
+    CustomSla,
+    /// Proof of concept / trial
+    Trial,
+    /// Partner / strategic alliance
+    Partner,
+}
+
+/// 4BFT node configuration for enterprise
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Enterprise4BftConfig {
+    /// Node count (always 4 for 4BFT)
+    pub node_count: u8,
+    /// Consensus type (FIXED_4BFT)
+    pub consensus_type: String,
+    /// Whether dynamic membership is enabled (always false for Enterprise)
+    pub dynamic_membership: bool,
+    /// Geographic distribution of nodes
+    pub node_distribution: Vec<NodeLocation>,
+    /// Backup node configuration
+    pub backup_nodes: u8,
+}
+
+/// Node location for geographic distribution
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NodeLocation {
+    pub region: String,
+    pub availability_zone: String,
+    pub is_primary: bool,
+}
+
+/// SLA terms for enterprise contract
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SlaTerms {
+    /// Uptime guarantee percentage (e.g., 99.9)
+    pub uptime_guarantee: f64,
+    /// Maximum response time in milliseconds
+    pub max_response_time_ms: u64,
+    /// Support tier (24x7, business hours, etc.)
+    pub support_tier: String,
+    /// Incident response time in minutes
+    pub incident_response_minutes: u32,
+    /// Data retention period in days
+    pub data_retention_days: u32,
+    /// Penalty terms for SLA breach
+    pub penalty_terms: Option<String>,
+}
+
+/// Enterprise account detail response
+#[derive(Debug, Serialize)]
+pub struct EnterpriseAccountDetailResponse {
+    /// Account details
+    pub account: EnterpriseAccountDetail,
+    /// 4BFT configuration
+    pub bft_config: Enterprise4BftConfig,
+    /// Active contracts
+    pub contracts: Vec<EnterpriseContractSummary>,
+    /// Usage statistics
+    pub usage_stats: EnterpriseUsageStats,
+    /// Prover assignments
+    pub assigned_provers: Vec<AssignedProver>,
+}
+
+/// Detailed enterprise account info
+#[derive(Debug, Serialize, Clone)]
+pub struct EnterpriseAccountDetail {
+    pub id: String,
+    pub name: String,
+    pub tier: EnterpriseTier,
+    pub status: String,
+    #[serde(rename = "primaryContact")]
+    pub primary_contact: EnterpriseContact,
+    #[serde(rename = "secondaryContacts")]
+    pub secondary_contacts: Vec<EnterpriseContact>,
+    #[serde(rename = "billingContact")]
+    pub billing_contact: Option<EnterpriseContact>,
+    #[serde(rename = "technicalContact")]
+    pub technical_contact: Option<EnterpriseContact>,
+    #[serde(rename = "createdAt")]
+    pub created_at: u64,
+    #[serde(rename = "activatedAt")]
+    pub activated_at: Option<u64>,
+    pub tvl: String,
+    #[serde(rename = "monthlyVolume")]
+    pub monthly_volume: String,
+    #[serde(rename = "apiKeysCount")]
+    pub api_keys_count: u32,
+    #[serde(rename = "usersCount")]
+    pub users_count: u32,
+    /// Legal entity information
+    #[serde(rename = "legalEntity")]
+    pub legal_entity: LegalEntityInfo,
+    /// Notes / comments
+    pub notes: Option<String>,
+}
+
+/// Legal entity information
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LegalEntityInfo {
+    /// Registered company name
+    #[serde(rename = "companyName")]
+    pub company_name: String,
+    /// Registration number
+    #[serde(rename = "registrationNumber")]
+    pub registration_number: Option<String>,
+    /// Jurisdiction
+    pub jurisdiction: String,
+    /// Address
+    pub address: String,
+    /// Tax ID
+    #[serde(rename = "taxId")]
+    pub tax_id: Option<String>,
+}
+
+/// Contract summary for account detail
+#[derive(Debug, Serialize, Clone)]
+pub struct EnterpriseContractSummary {
+    pub id: String,
+    #[serde(rename = "contractType")]
+    pub contract_type: ContractType,
+    pub status: ContractStatus,
+    #[serde(rename = "startDate")]
+    pub start_date: u64,
+    #[serde(rename = "endDate")]
+    pub end_date: Option<u64>,
+    #[serde(rename = "monthlyFee")]
+    pub monthly_fee: String,
+}
+
+/// Enterprise usage statistics
+#[derive(Debug, Serialize)]
+pub struct EnterpriseUsageStats {
+    /// Total transactions this month
+    #[serde(rename = "transactionsThisMonth")]
+    pub transactions_this_month: u64,
+    /// Total volume this month (ETH)
+    #[serde(rename = "volumeThisMonth")]
+    pub volume_this_month: String,
+    /// API calls this month
+    #[serde(rename = "apiCallsThisMonth")]
+    pub api_calls_this_month: u64,
+    /// Average response time (ms)
+    #[serde(rename = "avgResponseTime")]
+    pub avg_response_time: u64,
+    /// Current uptime percentage
+    #[serde(rename = "uptimePercentage")]
+    pub uptime_percentage: f64,
+    /// Number of incidents this month
+    #[serde(rename = "incidentsThisMonth")]
+    pub incidents_this_month: u32,
+}
+
+/// Assigned prover info
+#[derive(Debug, Serialize, Clone)]
+pub struct AssignedProver {
+    #[serde(rename = "proverId")]
+    pub prover_id: String,
+    pub name: String,
+    pub status: String,
+    #[serde(rename = "assignedAt")]
+    pub assigned_at: u64,
+    #[serde(rename = "signaturesProvided")]
+    pub signatures_provided: u64,
+}
+
+/// Update enterprise account request
+#[derive(Debug, Deserialize)]
+pub struct UpdateEnterpriseAccountRequest {
+    pub name: Option<String>,
+    pub tier: Option<EnterpriseTier>,
+    pub status: Option<String>,
+    #[serde(rename = "primaryContact")]
+    pub primary_contact: Option<CreateEnterpriseContact>,
+    #[serde(rename = "secondaryContacts")]
+    pub secondary_contacts: Option<Vec<CreateEnterpriseContact>>,
+    #[serde(rename = "billingContact")]
+    pub billing_contact: Option<CreateEnterpriseContact>,
+    #[serde(rename = "technicalContact")]
+    pub technical_contact: Option<CreateEnterpriseContact>,
+    #[serde(rename = "legalEntity")]
+    pub legal_entity: Option<LegalEntityInfo>,
+    pub notes: Option<String>,
+}
+
+/// Update enterprise account response
+#[derive(Debug, Serialize)]
+pub struct UpdateEnterpriseAccountResponse {
+    pub id: String,
+    pub name: String,
+    pub tier: EnterpriseTier,
+    pub status: String,
+    pub updated: bool,
+    #[serde(rename = "updatedAt")]
+    pub updated_at: u64,
+    pub message: String,
+}
+
+/// Enterprise contracts list response
+#[derive(Debug, Serialize)]
+pub struct EnterpriseContractsResponse {
+    pub contracts: Vec<EnterpriseContract>,
+    pub total: u32,
+    pub summary: ContractsSummary,
+}
+
+/// Full enterprise contract details
+#[derive(Debug, Serialize, Clone)]
+pub struct EnterpriseContract {
+    pub id: String,
+    /// Associated enterprise account ID
+    #[serde(rename = "enterpriseId")]
+    pub enterprise_id: String,
+    /// Enterprise account name
+    #[serde(rename = "enterpriseName")]
+    pub enterprise_name: String,
+    #[serde(rename = "contractType")]
+    pub contract_type: ContractType,
+    pub status: ContractStatus,
+    /// Contract number for legal reference
+    #[serde(rename = "contractNumber")]
+    pub contract_number: String,
+    /// Contract start date
+    #[serde(rename = "startDate")]
+    pub start_date: u64,
+    /// Contract end date (None for indefinite)
+    #[serde(rename = "endDate")]
+    pub end_date: Option<u64>,
+    /// Auto-renewal enabled
+    #[serde(rename = "autoRenewal")]
+    pub auto_renewal: bool,
+    /// Monthly fee in USD
+    #[serde(rename = "monthlyFee")]
+    pub monthly_fee: String,
+    /// Annual fee in USD (if applicable)
+    #[serde(rename = "annualFee")]
+    pub annual_fee: Option<String>,
+    /// 4BFT configuration for this contract
+    #[serde(rename = "bftConfig")]
+    pub bft_config: Enterprise4BftConfig,
+    /// SLA terms
+    #[serde(rename = "slaTerms")]
+    pub sla_terms: SlaTerms,
+    /// Contract document hash (SHA3-256)
+    #[serde(rename = "documentHash")]
+    pub document_hash: String,
+    /// Signatures
+    pub signatures: Vec<ContractSignature>,
+    /// Created timestamp
+    #[serde(rename = "createdAt")]
+    pub created_at: u64,
+    /// Last updated timestamp
+    #[serde(rename = "updatedAt")]
+    pub updated_at: u64,
+    /// Created by (admin email)
+    #[serde(rename = "createdBy")]
+    pub created_by: String,
+}
+
+/// Contract signature
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ContractSignature {
+    /// Signer role (enterprise_admin, qs_admin, legal)
+    pub role: String,
+    /// Signer name
+    #[serde(rename = "signerName")]
+    pub signer_name: String,
+    /// Signer email
+    #[serde(rename = "signerEmail")]
+    pub signer_email: String,
+    /// Signature hash
+    #[serde(rename = "signatureHash")]
+    pub signature_hash: Option<String>,
+    /// Signed timestamp
+    #[serde(rename = "signedAt")]
+    pub signed_at: Option<u64>,
+}
+
+/// Contracts summary statistics
+#[derive(Debug, Serialize)]
+pub struct ContractsSummary {
+    #[serde(rename = "totalContracts")]
+    pub total_contracts: u32,
+    #[serde(rename = "activeContracts")]
+    pub active_contracts: u32,
+    #[serde(rename = "pendingContracts")]
+    pub pending_contracts: u32,
+    #[serde(rename = "expiringThisMonth")]
+    pub expiring_this_month: u32,
+    #[serde(rename = "totalMonthlyRevenue")]
+    pub total_monthly_revenue: String,
+}
+
+/// Create enterprise contract request
+#[derive(Debug, Deserialize)]
+pub struct CreateEnterpriseContractRequest {
+    /// Associated enterprise account ID
+    #[serde(rename = "enterpriseId")]
+    pub enterprise_id: String,
+    #[serde(rename = "contractType")]
+    pub contract_type: ContractType,
+    /// Contract start date (Unix timestamp)
+    #[serde(rename = "startDate")]
+    pub start_date: u64,
+    /// Contract duration in months (None for indefinite)
+    #[serde(rename = "durationMonths")]
+    pub duration_months: Option<u32>,
+    /// Auto-renewal enabled
+    #[serde(rename = "autoRenewal")]
+    pub auto_renewal: bool,
+    /// Monthly fee in USD
+    #[serde(rename = "monthlyFee")]
+    pub monthly_fee: String,
+    /// SLA terms
+    #[serde(rename = "slaTerms")]
+    pub sla_terms: SlaTerms,
+    /// 4BFT node distribution preferences
+    #[serde(rename = "nodeDistribution")]
+    pub node_distribution: Option<Vec<NodeLocation>>,
+    /// Required signers
+    pub signers: Vec<ContractSignerRequest>,
+}
+
+/// Contract signer request
+#[derive(Debug, Deserialize)]
+pub struct ContractSignerRequest {
+    pub role: String,
+    #[serde(rename = "signerName")]
+    pub signer_name: String,
+    #[serde(rename = "signerEmail")]
+    pub signer_email: String,
+}
+
+/// Create enterprise contract response
+#[derive(Debug, Serialize)]
+pub struct CreateEnterpriseContractResponse {
+    pub id: String,
+    #[serde(rename = "contractNumber")]
+    pub contract_number: String,
+    #[serde(rename = "enterpriseId")]
+    pub enterprise_id: String,
+    pub status: ContractStatus,
+    #[serde(rename = "documentHash")]
+    pub document_hash: String,
+    #[serde(rename = "signingUrl")]
+    pub signing_url: String,
+    pub message: String,
+}
+
+// ============================================================================
+// 4BFT Contract Management Endpoint Handlers
+// ============================================================================
+
+/// GET /v1/admin/enterprise/accounts/:id
+///
+/// Returns detailed information about a specific enterprise account,
+/// including 4BFT configuration, contracts, and usage statistics.
+pub async fn get_enterprise_account_detail(
+    Extension(_state): Extension<Arc<AppState>>,
+    Path(account_id): Path<String>,
+) -> Result<Json<EnterpriseAccountDetailResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting enterprise account detail - {}", account_id);
+
+    // Mock response (in production, fetch from database)
+    let response = EnterpriseAccountDetailResponse {
+        account: EnterpriseAccountDetail {
+            id: account_id.clone(),
+            name: "Acme Corporation".to_string(),
+            tier: EnterpriseTier::Enterprise,
+            status: "active".to_string(),
+            primary_contact: EnterpriseContact {
+                name: "John Smith".to_string(),
+                email: "john@acme.com".to_string(),
+                phone: Some("+1-555-0100".to_string()),
+            },
+            secondary_contacts: vec![
+                EnterpriseContact {
+                    name: "Jane Doe".to_string(),
+                    email: "jane@acme.com".to_string(),
+                    phone: None,
+                },
+            ],
+            billing_contact: Some(EnterpriseContact {
+                name: "Finance Team".to_string(),
+                email: "finance@acme.com".to_string(),
+                phone: Some("+1-555-0101".to_string()),
+            }),
+            technical_contact: Some(EnterpriseContact {
+                name: "Tech Lead".to_string(),
+                email: "tech@acme.com".to_string(),
+                phone: None,
+            }),
+            created_at: 1704067200,
+            activated_at: Some(1704153600),
+            tvl: "50000000000000000000000".to_string(), // 50,000 ETH
+            monthly_volume: "10000000000000000000000".to_string(), // 10,000 ETH
+            api_keys_count: 5,
+            users_count: 12,
+            legal_entity: LegalEntityInfo {
+                company_name: "Acme Corporation Inc.".to_string(),
+                registration_number: Some("DE-12345678".to_string()),
+                jurisdiction: "Delaware, USA".to_string(),
+                address: "123 Main St, Wilmington, DE 19801, USA".to_string(),
+                tax_id: Some("12-3456789".to_string()),
+            },
+            notes: Some("Premium customer, priority support".to_string()),
+        },
+        bft_config: Enterprise4BftConfig {
+            node_count: 4,
+            consensus_type: "FIXED_4BFT".to_string(),
+            dynamic_membership: false,
+            node_distribution: vec![
+                NodeLocation {
+                    region: "US-East".to_string(),
+                    availability_zone: "us-east-1a".to_string(),
+                    is_primary: true,
+                },
+                NodeLocation {
+                    region: "US-West".to_string(),
+                    availability_zone: "us-west-2a".to_string(),
+                    is_primary: false,
+                },
+                NodeLocation {
+                    region: "EU-West".to_string(),
+                    availability_zone: "eu-west-1a".to_string(),
+                    is_primary: false,
+                },
+                NodeLocation {
+                    region: "AP-Northeast".to_string(),
+                    availability_zone: "ap-northeast-1a".to_string(),
+                    is_primary: false,
+                },
+            ],
+            backup_nodes: 2,
+        },
+        contracts: vec![
+            EnterpriseContractSummary {
+                id: "contract-001".to_string(),
+                contract_type: ContractType::CustomSla,
+                status: ContractStatus::Active,
+                start_date: 1704067200,
+                end_date: Some(1735689600),
+                monthly_fee: "25000".to_string(),
+            },
+        ],
+        usage_stats: EnterpriseUsageStats {
+            transactions_this_month: 1250,
+            volume_this_month: "8500000000000000000000".to_string(), // 8,500 ETH
+            api_calls_this_month: 125000,
+            avg_response_time: 145,
+            uptime_percentage: 99.98,
+            incidents_this_month: 0,
+        },
+        assigned_provers: vec![
+            AssignedProver {
+                prover_id: "prover-001".to_string(),
+                name: "Quantum Prover Alpha".to_string(),
+                status: "active".to_string(),
+                assigned_at: 1704153600,
+                signatures_provided: 3250,
+            },
+            AssignedProver {
+                prover_id: "prover-002".to_string(),
+                name: "Quantum Prover Beta".to_string(),
+                status: "active".to_string(),
+                assigned_at: 1704153600,
+                signatures_provided: 3180,
+            },
+        ],
+    };
+
+    Ok(Json(response))
+}
+
+/// PUT /v1/admin/enterprise/accounts/:id
+///
+/// Updates an enterprise account's information.
+pub async fn update_enterprise_account(
+    Extension(_state): Extension<Arc<AppState>>,
+    Path(account_id): Path<String>,
+    Json(req): Json<UpdateEnterpriseAccountRequest>,
+) -> Result<Json<UpdateEnterpriseAccountResponse>, ApiError> {
+    tracing::info!("QS Admin: Updating enterprise account - {}", account_id);
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    Ok(Json(UpdateEnterpriseAccountResponse {
+        id: account_id,
+        name: req.name.unwrap_or_else(|| "Acme Corporation".to_string()),
+        tier: req.tier.unwrap_or(EnterpriseTier::Enterprise),
+        status: req.status.unwrap_or_else(|| "active".to_string()),
+        updated: true,
+        updated_at: now,
+        message: "Enterprise account updated successfully.".to_string(),
+    }))
+}
+
+/// GET /v1/admin/enterprise/contracts
+///
+/// Returns list of all enterprise contracts across all accounts.
+pub async fn get_enterprise_contracts(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<EnterpriseContractsResponse>, ApiError> {
+    tracing::debug!("QS Admin: Getting enterprise contracts");
+
+    let contracts = vec![
+        EnterpriseContract {
+            id: "contract-001".to_string(),
+            enterprise_id: "ent-001".to_string(),
+            enterprise_name: "Acme Corporation".to_string(),
+            contract_type: ContractType::CustomSla,
+            status: ContractStatus::Active,
+            contract_number: "QS-ENT-2025-001".to_string(),
+            start_date: 1704067200,
+            end_date: Some(1735689600),
+            auto_renewal: true,
+            monthly_fee: "25000".to_string(),
+            annual_fee: Some("270000".to_string()), // 10% discount
+            bft_config: Enterprise4BftConfig {
+                node_count: 4,
+                consensus_type: "FIXED_4BFT".to_string(),
+                dynamic_membership: false,
+                node_distribution: vec![
+                    NodeLocation {
+                        region: "US-East".to_string(),
+                        availability_zone: "us-east-1a".to_string(),
+                        is_primary: true,
+                    },
+                    NodeLocation {
+                        region: "EU-West".to_string(),
+                        availability_zone: "eu-west-1a".to_string(),
+                        is_primary: false,
+                    },
+                    NodeLocation {
+                        region: "AP-Northeast".to_string(),
+                        availability_zone: "ap-northeast-1a".to_string(),
+                        is_primary: false,
+                    },
+                    NodeLocation {
+                        region: "US-West".to_string(),
+                        availability_zone: "us-west-2a".to_string(),
+                        is_primary: false,
+                    },
+                ],
+                backup_nodes: 2,
+            },
+            sla_terms: SlaTerms {
+                uptime_guarantee: 99.9,
+                max_response_time_ms: 500,
+                support_tier: "24x7 Premium".to_string(),
+                incident_response_minutes: 15,
+                data_retention_days: 365,
+                penalty_terms: Some("10% monthly fee credit per 0.1% under SLA".to_string()),
+            },
+            document_hash: "0x8a7b5c3d2e1f0987654321abcdef0123456789abcdef0123456789abcdef01".to_string(),
+            signatures: vec![
+                ContractSignature {
+                    role: "enterprise_admin".to_string(),
+                    signer_name: "John Smith".to_string(),
+                    signer_email: "john@acme.com".to_string(),
+                    signature_hash: Some("0xabc123...".to_string()),
+                    signed_at: Some(1704067200),
+                },
+                ContractSignature {
+                    role: "qs_admin".to_string(),
+                    signer_name: "QS Legal".to_string(),
+                    signer_email: "legal@quantumshield.io".to_string(),
+                    signature_hash: Some("0xdef456...".to_string()),
+                    signed_at: Some(1704070800),
+                },
+            ],
+            created_at: 1704060000,
+            updated_at: 1704070800,
+            created_by: "admin@quantumshield.io".to_string(),
+        },
+        EnterpriseContract {
+            id: "contract-002".to_string(),
+            enterprise_id: "ent-002".to_string(),
+            enterprise_name: "TechStart Inc".to_string(),
+            contract_type: ContractType::Standard,
+            status: ContractStatus::Active,
+            contract_number: "QS-ENT-2025-002".to_string(),
+            start_date: 1709424000,
+            end_date: Some(1740960000),
+            auto_renewal: false,
+            monthly_fee: "10000".to_string(),
+            annual_fee: None,
+            bft_config: Enterprise4BftConfig {
+                node_count: 4,
+                consensus_type: "FIXED_4BFT".to_string(),
+                dynamic_membership: false,
+                node_distribution: vec![
+                    NodeLocation {
+                        region: "US-East".to_string(),
+                        availability_zone: "us-east-1a".to_string(),
+                        is_primary: true,
+                    },
+                    NodeLocation {
+                        region: "US-West".to_string(),
+                        availability_zone: "us-west-2a".to_string(),
+                        is_primary: false,
+                    },
+                    NodeLocation {
+                        region: "EU-West".to_string(),
+                        availability_zone: "eu-west-1a".to_string(),
+                        is_primary: false,
+                    },
+                    NodeLocation {
+                        region: "EU-Central".to_string(),
+                        availability_zone: "eu-central-1a".to_string(),
+                        is_primary: false,
+                    },
+                ],
+                backup_nodes: 1,
+            },
+            sla_terms: SlaTerms {
+                uptime_guarantee: 99.5,
+                max_response_time_ms: 1000,
+                support_tier: "Business Hours".to_string(),
+                incident_response_minutes: 60,
+                data_retention_days: 90,
+                penalty_terms: None,
+            },
+            document_hash: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".to_string(),
+            signatures: vec![
+                ContractSignature {
+                    role: "enterprise_admin".to_string(),
+                    signer_name: "Jane Doe".to_string(),
+                    signer_email: "jane@techstart.io".to_string(),
+                    signature_hash: Some("0x789abc...".to_string()),
+                    signed_at: Some(1709424000),
+                },
+                ContractSignature {
+                    role: "qs_admin".to_string(),
+                    signer_name: "QS Legal".to_string(),
+                    signer_email: "legal@quantumshield.io".to_string(),
+                    signature_hash: Some("0xdef012...".to_string()),
+                    signed_at: Some(1709427600),
+                },
+            ],
+            created_at: 1709420400,
+            updated_at: 1709427600,
+            created_by: "ops@quantumshield.io".to_string(),
+        },
+        EnterpriseContract {
+            id: "contract-003".to_string(),
+            enterprise_id: "ent-003".to_string(),
+            enterprise_name: "BlockChain Labs".to_string(),
+            contract_type: ContractType::Trial,
+            status: ContractStatus::PendingReview,
+            contract_number: "QS-ENT-2026-001".to_string(),
+            start_date: 1736380800,
+            end_date: Some(1738972800), // 30-day trial
+            auto_renewal: false,
+            monthly_fee: "0".to_string(), // Trial period free
+            annual_fee: None,
+            bft_config: Enterprise4BftConfig {
+                node_count: 4,
+                consensus_type: "FIXED_4BFT".to_string(),
+                dynamic_membership: false,
+                node_distribution: vec![
+                    NodeLocation {
+                        region: "EU-West".to_string(),
+                        availability_zone: "eu-west-1a".to_string(),
+                        is_primary: true,
+                    },
+                    NodeLocation {
+                        region: "EU-Central".to_string(),
+                        availability_zone: "eu-central-1a".to_string(),
+                        is_primary: false,
+                    },
+                    NodeLocation {
+                        region: "EU-North".to_string(),
+                        availability_zone: "eu-north-1a".to_string(),
+                        is_primary: false,
+                    },
+                    NodeLocation {
+                        region: "EU-South".to_string(),
+                        availability_zone: "eu-south-1a".to_string(),
+                        is_primary: false,
+                    },
+                ],
+                backup_nodes: 0,
+            },
+            sla_terms: SlaTerms {
+                uptime_guarantee: 99.0,
+                max_response_time_ms: 2000,
+                support_tier: "Email Only".to_string(),
+                incident_response_minutes: 240,
+                data_retention_days: 30,
+                penalty_terms: None,
+            },
+            document_hash: "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321".to_string(),
+            signatures: vec![
+                ContractSignature {
+                    role: "enterprise_admin".to_string(),
+                    signer_name: "Bob Wilson".to_string(),
+                    signer_email: "bob@bcl.io".to_string(),
+                    signature_hash: None,
+                    signed_at: None,
+                },
+                ContractSignature {
+                    role: "qs_admin".to_string(),
+                    signer_name: "QS Legal".to_string(),
+                    signer_email: "legal@quantumshield.io".to_string(),
+                    signature_hash: None,
+                    signed_at: None,
+                },
+            ],
+            created_at: 1736377200,
+            updated_at: 1736377200,
+            created_by: "admin@quantumshield.io".to_string(),
+        },
+    ];
+
+    Ok(Json(EnterpriseContractsResponse {
+        contracts,
+        total: 15,
+        summary: ContractsSummary {
+            total_contracts: 15,
+            active_contracts: 12,
+            pending_contracts: 2,
+            expiring_this_month: 1,
+            total_monthly_revenue: "185000".to_string(),
+        },
+    }))
+}
+
+/// POST /v1/admin/enterprise/contracts
+///
+/// Creates a new enterprise contract for an existing account.
+/// This initiates the contract signing workflow.
+pub async fn create_enterprise_contract(
+    Extension(_state): Extension<Arc<AppState>>,
+    Json(req): Json<CreateEnterpriseContractRequest>,
+) -> Result<Json<CreateEnterpriseContractResponse>, ApiError> {
+    tracing::info!("QS Admin: Creating enterprise contract for account - {}", req.enterprise_id);
+
+    // Generate contract number (in production, use sequential numbering)
+    let contract_number = format!(
+        "QS-ENT-{}-{}",
+        chrono::Utc::now().format("%Y"),
+        uuid::Uuid::new_v4().to_string().chars().take(6).collect::<String>().to_uppercase()
+    );
+
+    // Generate contract ID
+    let contract_id = format!(
+        "contract-{}",
+        uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>()
+    );
+
+    // Generate document hash (in production, hash actual contract document)
+    let document_hash = format!(
+        "0x{}",
+        uuid::Uuid::new_v4().to_string().replace("-", "") + &uuid::Uuid::new_v4().to_string().replace("-", "")
+    );
+
+    // Generate signing URL
+    let signing_url = format!(
+        "https://contracts.quantumshield.io/sign/{}/{}",
+        contract_id,
+        uuid::Uuid::new_v4().to_string().chars().take(12).collect::<String>()
+    );
+
+    Ok(Json(CreateEnterpriseContractResponse {
+        id: contract_id,
+        contract_number,
+        enterprise_id: req.enterprise_id,
+        status: ContractStatus::Draft,
+        document_hash,
+        signing_url,
+        message: "Contract created. Signing requests sent to all parties.".to_string(),
     }))
 }

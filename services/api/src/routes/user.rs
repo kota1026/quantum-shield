@@ -27,7 +27,7 @@ use crate::{
     types::{
         ActivitySummary, ActivityType, KeyAlgorithmInfo, LockStatus,
         NotificationSettings, TimelineEvent, TransactionStatus, TransactionType,
-        TransactionsQueryParams, UserChallengeInfo, UserDashboardResponse, UserKeysResponse,
+        TransactionsQueryParams, TransactionChallengeInfo, UserDashboardResponse, UserKeysResponse,
         UserQuantumKeysStatus, UserSettingsResponse, UserSettingsUpdateRequest,
         UserTransaction, UserTransactionDetailResponse, UserTransactionsResponse,
     },
@@ -269,7 +269,7 @@ pub async fn get_transaction_detail(
 
     // Get challenge info if challenged
     let challenge_info = if matches!(lock.status, LockStatus::Challenged) {
-        Some(UserChallengeInfo {
+        Some(TransactionChallengeInfo {
             challenger: "0x...".to_string(), // TODO: Store challenger address
             bond: "100000000000000000".to_string(), // 0.1 ETH placeholder
             challenged_at: chrono::Utc::now().timestamp() as u64,
