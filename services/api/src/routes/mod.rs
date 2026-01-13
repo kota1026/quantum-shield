@@ -13,7 +13,7 @@ mod auth;
 mod user;
 mod token_hub;
 mod challenge;
-mod governance;
+pub mod governance;
 mod enterprise;
 mod observer;
 mod treasury;
@@ -172,9 +172,14 @@ pub fn admin_routes() -> Router {
         // Parameters
         .route("/admin/parameters", get(admin::get_parameters))
         .route("/admin/parameters/change-request", post(admin::create_parameter_change_request))
-        // Enterprise Accounts
+        // Enterprise Accounts (TASK-P5-015 + TASK-P5-018)
         .route("/admin/enterprise/accounts", get(admin::get_enterprise_accounts))
         .route("/admin/enterprise/accounts", post(admin::create_enterprise_account))
+        // TASK-P5-018: 4BFT Contract Management (4 EP)
+        .route("/admin/enterprise/accounts/:id", get(admin::get_enterprise_account_detail))
+        .route("/admin/enterprise/accounts/:id", axum::routing::put(admin::update_enterprise_account))
+        .route("/admin/enterprise/contracts", get(admin::get_enterprise_contracts))
+        .route("/admin/enterprise/contracts", post(admin::create_enterprise_contract))
         // === Existing Admin Endpoints ===
         // Prover Management
         .route("/provers", get(admin::list_provers))
