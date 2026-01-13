@@ -9,8 +9,16 @@ mod prover;
 mod edition;
 mod health;
 mod admin;
+mod auth;
+mod user;
+mod token_hub;
 mod challenge;
 mod governance;
+
+use std::sync::Arc;
+use axum::middleware;
+use crate::middleware::jwt_auth;
+use crate::services::AppState;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -45,6 +53,23 @@ pub fn api_routes() -> Router {
         .route("/challenge/:lock_id", get(challenge::get_challenge))
         .route("/challenge/:lock_id/defense", post(challenge::submit_defense))
         .route("/challenge/:lock_id/auto-resolve", post(challenge::auto_resolve))
+        // Consumer App API (TASK-P5-020)
+        .route("/user/dashboard", get(user::get_dashboard))
+        .route("/user/transactions", get(user::get_transactions))
+        .route("/user/transactions/:id", get(user::get_transaction_detail))
+        .route("/user/settings", get(user::get_settings))
+        .route("/user/settings", post(user::update_settings))
+        .route("/user/keys", get(user::get_keys))
+        // Token Hub API (TASK-P5-021) - 9 endpoints
+        .route("/token-hub/dashboard", get(token_hub::get_dashboard))
+        .route("/token-hub/lock", post(token_hub::create_lock))
+        .route("/token-hub/locks", get(token_hub::get_locks))
+        .route("/token-hub/extend", post(token_hub::extend_lock))
+        .route("/token-hub/delegates", get(token_hub::get_delegates))
+        .route("/token-hub/delegate", post(token_hub::delegate_power))
+        .route("/token-hub/rewards", get(token_hub::get_rewards))
+        .route("/token-hub/claim", post(token_hub::claim_rewards))
+        .route("/token-hub/delegations/my", get(token_hub::get_my_delegations))
         // Governance API (TASK-P5-023)
         .route("/governance/dashboard", get(governance::get_dashboard))
         .route("/governance/proposals", get(governance::list_proposals))
@@ -56,9 +81,46 @@ pub fn api_routes() -> Router {
         .route("/governance/council", get(governance::get_council))
 }
 
+/// Authentication routes (TASK-P5-012: SIWE→JWT)
+/// POST /v1/auth/siwe - SIWE authentication (public)
+/// POST /v1/auth/refresh - Refresh access token (public)
+/// GET /v1/auth/me - Get current user (protected)
+pub fn auth_routes(state: Arc<AppState>) -> Router {
+    Router::new()
+        // Public endpoints (no auth required)
+        .route("/auth/siwe", post(auth::siwe_authenticate))
+        .route("/auth/refresh", post(auth::refresh_token))
+        // Protected endpoint (requires JWT)
+        .route(
+            "/auth/me",
+            get(auth::get_current_user)
+                .layer(middleware::from_fn_with_state(state.clone(), jwt_auth)),
+        )
+        .with_state(state)
+}
+
 /// Admin Dashboard API routes (/api/*)
+/// Existing prover/provider management + TASK-P5-015 QS Admin API (11 EP)
 pub fn admin_routes() -> Router {
     Router::new()
+        // === TASK-P5-015: QS Admin API (11 EP) ===
+        // Dashboard & Overview
+        .route("/admin/dashboard", get(admin::get_qs_dashboard))
+        .route("/admin/transactions", get(admin::get_admin_transactions))
+        .route("/admin/nodes", get(admin::get_admin_nodes))
+        // Staff Management
+        .route("/admin/staff", get(admin::get_staff))
+        .route("/admin/staff", post(admin::create_staff))
+        // Reports & Audit
+        .route("/admin/reports", get(admin::get_reports))
+        .route("/admin/audit-log", get(admin::get_audit_log))
+        // Parameters
+        .route("/admin/parameters", get(admin::get_parameters))
+        .route("/admin/parameters/change-request", post(admin::create_parameter_change_request))
+        // Enterprise Accounts
+        .route("/admin/enterprise/accounts", get(admin::get_enterprise_accounts))
+        .route("/admin/enterprise/accounts", post(admin::create_enterprise_account))
+        // === Existing Admin Endpoints ===
         // Prover Management
         .route("/provers", get(admin::list_provers))
         .route("/provers/register", post(admin::register_prover))

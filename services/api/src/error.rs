@@ -141,16 +141,16 @@ impl ApiError {
             ApiError::ChallengeAlreadyResolved => 4004,
             ApiError::DefenseDeadlineExpired => 4005,
             ApiError::DefenseDeadlineNotPassed => 4006,
-            // veQS errors (4xxx - different category)
-            ApiError::VeqsLockNotFound => 4101,
-            ApiError::VeqsLockAlreadyExists => 4102,
-            // Authentication error codes (4xxx)
-            ApiError::InvalidSiweMessage(_) => 4201,
-            ApiError::SiweMessageExpired => 4202,
-            ApiError::InvalidToken(_) => 4203,
-            ApiError::TokenExpired => 4204,
-            ApiError::InvalidRefreshToken => 4205,
-            ApiError::NonceAlreadyUsed => 4206,
+            // Authentication error codes (41xx)
+            ApiError::InvalidSiweMessage(_) => 4101,
+            ApiError::SiweMessageExpired => 4102,
+            ApiError::InvalidToken(_) => 4103,
+            ApiError::TokenExpired => 4104,
+            ApiError::InvalidRefreshToken => 4105,
+            ApiError::NonceAlreadyUsed => 4106,
+            // Token Hub errors (42xx)
+            ApiError::VeqsLockNotFound => 4201,
+            ApiError::VeqsLockAlreadyExists => 4202,
             // Internal errors (5xxx)
             ApiError::Internal(_) => 5001,
             ApiError::ServiceUnavailable => 5002,
@@ -183,9 +183,6 @@ impl ApiError {
             ApiError::ChallengeAlreadyResolved => StatusCode::CONFLICT,
             ApiError::DefenseDeadlineExpired => StatusCode::GONE,
             ApiError::DefenseDeadlineNotPassed => StatusCode::PRECONDITION_FAILED,
-            // veQS errors
-            ApiError::VeqsLockNotFound => StatusCode::NOT_FOUND,
-            ApiError::VeqsLockAlreadyExists => StatusCode::CONFLICT,
             // Authentication error status codes
             ApiError::InvalidSiweMessage(_) => StatusCode::BAD_REQUEST,
             ApiError::SiweMessageExpired => StatusCode::BAD_REQUEST,
@@ -193,6 +190,9 @@ impl ApiError {
             ApiError::TokenExpired => StatusCode::UNAUTHORIZED,
             ApiError::InvalidRefreshToken => StatusCode::UNAUTHORIZED,
             ApiError::NonceAlreadyUsed => StatusCode::CONFLICT,
+            // Token Hub errors
+            ApiError::VeqsLockNotFound => StatusCode::NOT_FOUND,
+            ApiError::VeqsLockAlreadyExists => StatusCode::CONFLICT,
             // Internal errors
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
