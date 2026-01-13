@@ -25,9 +25,9 @@ use crate::{
     error::ApiError,
     services::AppState,
     types::{
-        ActivitySummary, ActivityType, UserChallengeInfo, KeyAlgorithmInfo, LockStatus,
+        ActivitySummary, ActivityType, KeyAlgorithmInfo, LockStatus,
         NotificationSettings, TimelineEvent, TransactionStatus, TransactionType,
-        TransactionsQueryParams, UserDashboardResponse, UserKeysResponse,
+        TransactionsQueryParams, UserChallengeInfo, UserDashboardResponse, UserKeysResponse,
         UserQuantumKeysStatus, UserSettingsResponse, UserSettingsUpdateRequest,
         UserTransaction, UserTransactionDetailResponse, UserTransactionsResponse,
     },

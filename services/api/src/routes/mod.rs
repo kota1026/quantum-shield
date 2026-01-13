@@ -14,6 +14,7 @@ mod user;
 mod token_hub;
 mod challenge;
 mod governance;
+mod enterprise;
 
 use std::sync::Arc;
 use axum::middleware;
@@ -79,6 +80,32 @@ pub fn api_routes() -> Router {
         .route("/governance/votes/:id", get(governance::get_vote))
         .route("/governance/activity", get(governance::get_activity))
         .route("/governance/council", get(governance::get_council))
+        // Enterprise Admin API (TASK-P5-016) - 19 endpoints
+        // Dashboard (3 EP)
+        .route("/enterprise/dashboard/overview", get(enterprise::get_dashboard_overview))
+        .route("/enterprise/dashboard/tvl", get(enterprise::get_dashboard_tvl))
+        .route("/enterprise/dashboard/volume", get(enterprise::get_dashboard_volume))
+        // Transactions (3 EP)
+        .route("/enterprise/transactions", get(enterprise::get_transactions))
+        .route("/enterprise/transactions/:id", get(enterprise::get_transaction_detail))
+        .route("/enterprise/transactions/export", post(enterprise::export_transactions))
+        // Users (5 EP)
+        .route("/enterprise/users", get(enterprise::get_users))
+        .route("/enterprise/users/:id", get(enterprise::get_user_detail))
+        .route("/enterprise/users", post(enterprise::create_user))
+        .route("/enterprise/users/invite", post(enterprise::invite_user))
+        .route("/enterprise/users/:id/role", post(enterprise::update_user_role))
+        // API Keys (3 EP)
+        .route("/enterprise/api-keys", get(enterprise::get_api_keys))
+        .route("/enterprise/api-keys", post(enterprise::create_api_key))
+        .route("/enterprise/api-keys/:id/usage", get(enterprise::get_api_key_usage))
+        // Settings (3 EP)
+        .route("/enterprise/settings", get(enterprise::get_settings))
+        .route("/enterprise/settings", post(enterprise::update_settings))
+        .route("/enterprise/security-settings", get(enterprise::get_security_settings))
+        // Reports & Audit (2 EP)
+        .route("/enterprise/reports", get(enterprise::get_reports))
+        .route("/enterprise/audit-log", get(enterprise::get_audit_log))
 }
 
 /// Authentication routes (TASK-P5-012: SIWE→JWT)
