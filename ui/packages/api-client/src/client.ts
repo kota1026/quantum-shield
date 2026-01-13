@@ -1,3 +1,6 @@
+// Declare process for environments where @types/node is not available
+declare const process: { env?: Record<string, string | undefined> } | undefined;
+
 export interface ApiClientConfig {
   baseUrl: string;
   getAuthToken?: () => string | null;
@@ -79,9 +82,22 @@ class RateLimiter {
   }
 }
 
+// Safely access environment variable (works in both browser and Node.js)
+const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined' && (window as unknown as { __ENV__?: { API_URL?: string } }).__ENV__?.API_URL) {
+    return (window as unknown as { __ENV__: { API_URL: string } }).__ENV__.API_URL;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof process !== 'undefined' && (process as any).env?.NEXT_PUBLIC_API_URL) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (process as any).env.NEXT_PUBLIC_API_URL;
+  }
+  return 'http://localhost:3000/api';
+};
+
 class ApiClient {
   private config: ApiClientConfig = {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+    baseUrl: getApiBaseUrl(),
     rateLimit: 100,
     rateLimitWindow: 60000, // 1 minute
   };
