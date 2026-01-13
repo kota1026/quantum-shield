@@ -34,6 +34,8 @@ use crate::{
         ProverChallengeItem, ProverChallengesResponse,
         ProverChallengeResponseRequest, ProverChallengeResponseResult,
         ProverExitRequest, ProverExitResponse,
+        // Prover Exit types (TASK-P5-031 - SEQUENCES §6)
+        ProverExitStatusResponse, ProverWithdrawRequest, ProverWithdrawResponse,
     },
     // Note: Governance types are in routes::governance and handlers there implement logic directly
 };
@@ -1007,6 +1009,169 @@ impl AppState {
             unbonding_days,
             stake_to_return: prover.stake_amount,
             pending_rewards,
+        })
+    }
+
+    /// Get prover exit status
+    /// GET /v1/prover/:prover_id/exit-status
+    /// SEQUENCES §6: Prover Exit - Status tracking during unbonding
+    pub async fn get_prover_exit_status(
+        &self,
+        prover_id: &str,
+    ) -> Result<ProverExitStatusResponse, ApiError> {
+        let prover = self.get_prover(prover_id).await?
+            .ok_or_else(|| ApiError::ProverNotFound(prover_id.to_string()))?;
+
+        // Get exit info
+        let exit_key = format!("prover:exit:{}", prover_id);
+        let exit_data: Option<serde_json::Value> = match self.redis.get(&exit_key).await {
+            Ok(Some(v)) => serde_json::from_str(&v).ok(),
+            _ => None,
+        };
+
+        let now = chrono::Utc::now().timestamp() as u64;
+
+        // Extract exit data if exists
+        let (exit_initiated_at, unbonding_end) = match &exit_data {
+            Some(data) => (
+                data.get("initiated_at").and_then(|v| v.as_u64()),
+                data.get("unbonding_end").and_then(|v| v.as_u64()),
+            ),
+            None => (None, None),
+        };
+
+        // Calculate unbonding remaining time
+        let unbonding_remaining = unbonding_end.map(|end| {
+            if now >= end {
+                0i64
+            } else {
+                (end - now) as i64
+            }
+        });
+
+        // Check for pending challenges (blocks withdrawal even after unbonding)
+        let challenges = self.get_prover_challenges(prover_id).await?;
+        let has_pending_challenges = challenges.pending_count > 0;
+        let pending_challenge_count = challenges.pending_count as u32;
+
+        // Determine if withdrawal is allowed
+        // Can withdraw when: Exiting status + unbonding complete + no pending challenges
+        let can_withdraw = prover.status == ProverStatus::Exiting
+            && unbonding_remaining.map_or(false, |r| r <= 0)
+            && !has_pending_challenges;
+
+        // Get pending rewards
+        let metrics_key = format!("prover:metrics:{}", prover_id);
+        let pending_rewards: String = match self.redis.get(&metrics_key).await {
+            Ok(Some(v)) => {
+                let m: serde_json::Value = serde_json::from_str(&v).unwrap_or_default();
+                m.get("pending_rewards").and_then(|v| v.as_str()).unwrap_or("0").to_string()
+            }
+            _ => "0".to_string(),
+        };
+
+        Ok(ProverExitStatusResponse {
+            prover_id: prover_id.to_string(),
+            status: prover.status,
+            exit_initiated_at,
+            unbonding_end,
+            unbonding_remaining,
+            can_withdraw,
+            stake_to_return: prover.stake_amount,
+            pending_rewards,
+            has_pending_challenges,
+            pending_challenge_count,
+        })
+    }
+
+    /// Withdraw prover stake after unbonding
+    /// POST /v1/prover/:prover_id/withdraw
+    /// SEQUENCES §6: Prover Exit - Step 4-5 (Stake withdrawal)
+    pub async fn withdraw_prover_stake(
+        &self,
+        prover_id: &str,
+        req: &ProverWithdrawRequest,
+    ) -> Result<ProverWithdrawResponse, ApiError> {
+        // Get exit status to verify eligibility
+        let exit_status = self.get_prover_exit_status(prover_id).await?;
+
+        // Verify withdrawal is allowed
+        if !exit_status.can_withdraw {
+            if exit_status.status != ProverStatus::Exiting {
+                return Err(ApiError::Forbidden("Prover has not initiated exit".into()));
+            }
+            if exit_status.unbonding_remaining.map_or(true, |r| r > 0) {
+                let remaining_days = exit_status.unbonding_remaining.unwrap_or(0) / 86400;
+                return Err(ApiError::Forbidden(format!(
+                    "Unbonding period not complete. {} days remaining.",
+                    remaining_days
+                )));
+            }
+            if exit_status.has_pending_challenges {
+                return Err(ApiError::Forbidden(format!(
+                    "Cannot withdraw with {} pending challenges. Resolve challenges first.",
+                    exit_status.pending_challenge_count
+                )));
+            }
+        }
+
+        // Validate destination address format
+        if !req.destination_address.starts_with("0x") || req.destination_address.len() != 42 {
+            return Err(ApiError::InvalidRequest("Invalid destination address format".into()));
+        }
+
+        // Calculate total to return
+        let stake: u128 = exit_status.stake_to_return.parse().unwrap_or(0);
+        let rewards: u128 = exit_status.pending_rewards.parse().unwrap_or(0);
+        let total = stake + rewards;
+
+        // Update prover status to Exited
+        self.update_prover_status(prover_id, ProverStatus::Exited).await?;
+
+        // Clear exit data
+        let exit_key = format!("prover:exit:{}", prover_id);
+        self.redis.del(&exit_key).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Record withdrawal
+        let now = chrono::Utc::now().timestamp() as u64;
+        let withdrawal_key = format!("prover:withdrawal:{}", prover_id);
+        let withdrawal_data = serde_json::json!({
+            "prover_id": prover_id,
+            "destination_address": req.destination_address,
+            "stake_returned": exit_status.stake_to_return,
+            "rewards_returned": exit_status.pending_rewards,
+            "total_returned": total.to_string(),
+            "withdrawn_at": now,
+        });
+        self.redis.set(&withdrawal_key, &withdrawal_data.to_string(), 86400 * 365).await
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Notify L1 for actual fund transfer (in production)
+        let msg = serde_json::json!({
+            "type": "PROVER_WITHDRAW",
+            "prover_id": prover_id,
+            "destination_address": req.destination_address,
+            "amount": total.to_string(),
+        });
+        self.rabbitmq.publish("l1_relay", &msg.to_string()).await
+            .map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        tracing::info!(
+            "Prover stake withdrawn: prover_id={}, destination={}, total={}",
+            prover_id,
+            req.destination_address,
+            total
+        );
+
+        Ok(ProverWithdrawResponse {
+            prover_id: prover_id.to_string(),
+            status: ProverStatus::Exited,
+            stake_returned: exit_status.stake_to_return,
+            rewards_returned: exit_status.pending_rewards,
+            total_returned: total.to_string(),
+            destination_address: req.destination_address.clone(),
+            l1_tx_hash: None, // Would be set after L1 confirmation
+            withdrawn_at: now,
         })
     }
 
