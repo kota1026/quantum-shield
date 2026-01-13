@@ -4,13 +4,14 @@
 //! - Sequence #5: Prover Registration
 //! - Sequence #6: Prover Exit
 //! - TASK-P5-022: Prover Portal API (9 endpoints)
+//! - TASK-P5-031: Prover Exit API (3 endpoints)
 //!
 //! ## CP-1 Compliance
 //! - Uses SPHINCS+-128s for Prover signatures (post-quantum secure)
 //! - Uses SHA3-256 for all hashing
 //! - Validates SPHINCS+ public key format and size
 //!
-//! ## Endpoints
+//! ## Endpoints (TASK-P5-022)
 //! - GET /v1/prover/dashboard - Prover dashboard
 //! - GET /v1/prover/queue - Signing queue
 //! - GET /v1/prover/queue/:id - Queue item details
@@ -19,7 +20,11 @@
 //! - GET /v1/prover/alerts - Prover alerts
 //! - GET /v1/prover/challenges - Challenges against prover
 //! - POST /v1/prover/challenge-response - Submit defense
-//! - POST /v1/prover/exit - Initiate exit
+//!
+//! ## Endpoints (TASK-P5-031 - SEQUENCES §6: Prover Exit)
+//! - POST /v1/prover/exit - Initiate exit (7-day unbonding)
+//! - GET /v1/prover/exit-status - Check exit/unbonding status
+//! - POST /v1/prover/withdraw - Withdraw stake after unbonding
 
 use std::sync::Arc;
 
@@ -37,6 +42,8 @@ use crate::{
         ProverAlertsResponse, ProverChallengesResponse,
         ProverChallengeResponseRequest, ProverChallengeResponseResult,
         ProverExitRequest, ProverExitResponse,
+        // Prover Exit types (TASK-P5-031 - SEQUENCES §6)
+        ProverExitStatusResponse, ProverWithdrawRequest, ProverWithdrawResponse,
     },
 };
 
@@ -418,6 +425,72 @@ pub async fn initiate_prover_exit(
         response.prover_id,
         response.unbonding_end,
         response.stake_to_return
+    );
+
+    Ok(Json(response))
+}
+
+/// GET /v1/prover/:prover_id/exit-status
+///
+/// Get the current exit status for a prover.
+///
+/// SEQUENCES §6: Prover Exit - Status tracking
+/// - Returns unbonding period status and remaining time
+/// - Indicates whether withdrawal is allowed
+/// - Shows pending challenges that may block withdrawal
+///
+/// Used by provers to track their exit progress during unbonding.
+pub async fn get_prover_exit_status(
+    Extension(state): Extension<Arc<AppState>>,
+    Path(prover_id): Path<String>,
+) -> Result<Json<ProverExitStatusResponse>, ApiError> {
+    tracing::info!("Getting exit status for prover: {}", prover_id);
+
+    let response = state.get_prover_exit_status(&prover_id).await?;
+
+    tracing::debug!(
+        "Exit status retrieved: prover_id={}, status={:?}, can_withdraw={}",
+        response.prover_id,
+        response.status,
+        response.can_withdraw
+    );
+
+    Ok(Json(response))
+}
+
+/// POST /v1/prover/:prover_id/withdraw
+///
+/// Withdraw stake after unbonding period completion.
+///
+/// SEQUENCES §6: Prover Exit - Step 4-5
+/// - Verifies unbonding period is complete
+/// - Verifies no pending challenges (slash could still apply)
+/// - Returns stake + pending rewards to destination address
+/// - Status changes to Exited
+///
+/// Requirements:
+/// - Prover must be in Exiting status
+/// - Unbonding period must be complete (7 days)
+/// - No pending challenges
+/// - Valid confirmation signature
+pub async fn withdraw_stake(
+    Extension(state): Extension<Arc<AppState>>,
+    Path(prover_id): Path<String>,
+    Json(req): Json<ProverWithdrawRequest>,
+) -> Result<Json<ProverWithdrawResponse>, ApiError> {
+    tracing::info!(
+        "Processing stake withdrawal for prover: {} to {}",
+        prover_id,
+        req.destination_address
+    );
+
+    let response = state.withdraw_prover_stake(&prover_id, &req).await?;
+
+    tracing::info!(
+        "Stake withdrawn: prover_id={}, total_returned={}, destination={}",
+        response.prover_id,
+        response.total_returned,
+        response.destination_address
     );
 
     Ok(Json(response))
