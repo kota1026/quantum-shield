@@ -298,9 +298,13 @@ pub async fn get_delegates(
 
     tracing::info!("Token Hub delegates request: page={}, limit={}", page, limit);
 
-    // Get delegates from storage
-    let delegates = state.get_delegates(page, limit, query.sort_by).await?;
-    let total = state.get_delegates_count().await?;
+    // Get delegates from storage (pagination applied client-side for now)
+    let all_delegates = state.get_delegates().await?;
+    let total = all_delegates.len() as u32;
+
+    // Apply simple pagination
+    let start = ((page - 1) * limit) as usize;
+    let delegates: Vec<_> = all_delegates.into_iter().skip(start).take(limit as usize).collect();
 
     Ok(Json(TokenHubDelegatesResponse { delegates, total }))
 }
@@ -410,7 +414,8 @@ pub async fn get_my_delegations(
         .sum();
 
     // Get user's total veQS to calculate self-retained
-    let user_veqs = state.get_veqs_balance(&query.address).await?;
+    let user_veqs_str = state.get_veqs_balance(&query.address).await?;
+    let user_veqs: u128 = user_veqs_str.parse().unwrap_or(0);
     let self_retained = user_veqs.saturating_sub(total_delegated);
 
     Ok(Json(TokenHubMyDelegationsResponse {

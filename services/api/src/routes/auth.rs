@@ -6,7 +6,7 @@
 //! - GET /v1/auth/me - Get current authenticated user info
 
 use axum::{
-    extract::{Extension, State},
+    extract::Extension,
     http::StatusCode,
     response::IntoResponse,
     Json,
@@ -45,7 +45,7 @@ use crate::{
 /// }
 /// ```
 pub async fn siwe_authenticate(
-    State(state): State<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<SiweRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     tracing::info!("SIWE authentication request received");
@@ -92,7 +92,7 @@ pub async fn siwe_authenticate(
 /// }
 /// ```
 pub async fn refresh_token(
-    State(state): State<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<RefreshTokenRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     tracing::debug!("Token refresh request received");

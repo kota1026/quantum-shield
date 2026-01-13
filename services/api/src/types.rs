@@ -298,7 +298,7 @@ pub enum ChallengeStatus {
     ResolvedInvalid,
 }
 
-/// Full challenge information
+/// Full challenge information (basic)
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChallengeInfo {
     pub challenge_id: String,
@@ -311,6 +311,28 @@ pub struct ChallengeInfo {
     pub status: ChallengeStatus,
     pub defender: Option<String>,
     pub defense_proof_hash: Option<String>,
+}
+
+/// Extended challenge information for Observer API
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ExtendedChallengeInfo {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub challenger: String,
+    pub fraud_proof_hash: String,
+    pub bond: String,
+    pub submitted_at: u64,
+    pub defense_deadline: u64,
+    pub defense_submitted: bool,
+    pub defense_timestamp: Option<u64>,
+    pub defender: Option<String>,
+    pub defense_proof_hash: Option<String>,
+    pub resolved: bool,
+    pub resolved_at: Option<u64>,
+    pub challenger_won: bool,
+    pub slashed_amount: Option<String>,
+    pub reward_amount: Option<String>,
+    pub resolution_tx_hash: Option<String>,
 }
 
 /// Auto-resolve response
@@ -623,14 +645,14 @@ pub struct UserTransactionDetailResponse {
     /// Time lock remaining in seconds (negative if expired)
     pub time_lock_remaining: Option<i64>,
     /// Challenge info (if challenged)
-    pub challenge_info: Option<UserChallengeInfo>,
+    pub challenge_info: Option<TransactionChallengeInfo>,
     /// Transaction timeline
     pub timeline: Vec<TimelineEvent>,
 }
 
-/// Challenge information for user display
+/// Challenge information for transaction detail
 #[derive(Debug, Serialize)]
-pub struct UserChallengeInfo {
+pub struct TransactionChallengeInfo {
     /// Challenger address
     pub challenger: String,
     /// Challenge bond amount
@@ -737,7 +759,7 @@ pub struct TransactionsQueryParams {
 }
 
 // ============================================================================
-// Token Hub Types (veQS / Delegation / Rewards)
+// Token Hub Types (veQS / Delegation / Rewards - TASK-P5-021)
 // ============================================================================
 
 /// Dashboard response for Token Hub
@@ -944,6 +966,21 @@ pub struct RewardHistory {
     pub amount: String,
     /// Claimed timestamp (None if unclaimed)
     pub claimed_at: Option<u64>,
+}
+
+/// Rewards info for token hub
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RewardsInfo {
+    /// Pending rewards
+    pub pending: String,
+    /// Claimable rewards
+    pub claimable: String,
+    /// Last claim timestamp
+    pub last_claim: Option<u64>,
+    /// Next epoch timestamp
+    pub next_epoch: u64,
+    /// APR percentage
+    pub apr: f64,
 }
 
 /// Request to claim rewards
@@ -1242,84 +1279,4 @@ pub struct ProverExitResponse {
     pub stake_to_return: String,
     /// Pending rewards to be returned
     pub pending_rewards: String,
-}
-
-// ============================================================================
-// Governance Types
-// ============================================================================
-
-/// Governance proposal
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Proposal {
-    /// Proposal ID
-    pub proposal_id: String,
-    /// Proposal title
-    pub title: String,
-    /// Proposal description
-    pub description: String,
-    /// Proposer address
-    pub proposer: String,
-    /// Proposal status
-    pub status: ProposalStatus,
-    /// Voting start timestamp
-    pub voting_start: u64,
-    /// Voting end timestamp
-    pub voting_end: u64,
-    /// Votes for
-    pub votes_for: String,
-    /// Votes against
-    pub votes_against: String,
-    /// Votes abstain
-    pub votes_abstain: String,
-    /// Quorum required
-    pub quorum: String,
-    /// Whether quorum is reached
-    pub quorum_reached: bool,
-}
-
-/// Proposal status
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum ProposalStatus {
-    Pending,
-    Active,
-    Defeated,
-    Succeeded,
-    Queued,
-    Executed,
-    Canceled,
-    Expired,
-}
-
-/// Vote request
-#[derive(Debug, Deserialize)]
-pub struct VoteRequest {
-    /// Proposal ID
-    pub proposal_id: String,
-    /// Vote type
-    pub vote: VoteType,
-    /// Optional reason
-    pub reason: Option<String>,
-}
-
-/// Vote type
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum VoteType {
-    For,
-    Against,
-    Abstain,
-}
-
-/// Vote response
-#[derive(Debug, Serialize)]
-pub struct VoteResponse {
-    /// Success status
-    pub success: bool,
-    /// Transaction hash
-    pub tx_hash: Option<String>,
-    /// Vote recorded
-    pub vote: VoteType,
-    /// Voting power used
-    pub voting_power: String,
 }
