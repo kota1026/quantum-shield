@@ -1,98 +1,108 @@
 # Event Log - Phase 5
 
 > **Session Start**: 2026-01-13
-> **Task**: TASK-P5-024 Explorer API (12 EP)
+> **Task**: TASK-P5-026 i18n対応 (ja/en)
 
 ---
 
-## 2026-01-13 (Session - TASK-P5-024)
+## 2026-01-13 (Session - TASK-P5-026)
 
 ### Event: SESSION_START
 - **Time**: Session initiated
 - **Phase**: 5.4 補完機能
-- **Task**: TASK-P5-024
+- **Task**: TASK-P5-026
 
 ### Event: TASK_ANALYSIS
-- **Finding**: Explorer API needed for public network visibility
-- **Scope**: Network overview, search, locks/unlocks/challenges browsing, prover info, analytics
-- **Reference**: TASK_P5_FULL_LIST.md §Phase 5.4, Appendix B.2
+- **Finding**: Admin Dashboard requires internationalization for Japanese users
+- **Scope**: react-i18next setup, translation files, component updates, language switcher
+- **Reference**: 26_phase5_planner.md §8 TASK-P5-045
 
 ---
 
 ## Implementation Log
 
-### Event: EXPLORER_API_IMPLEMENTED
+### Event: I18N_SETUP_IMPLEMENTED
 - **Time**: 2026-01-13
 - **Files Created**:
-  - `services/api/src/routes/explorer.rs` - 12 EP with comprehensive types (~1500 lines)
+  - `apps/admin-dashboard/src/i18n/index.ts` - i18n configuration
+  - `apps/admin-dashboard/src/i18n/locales/en.json` - English translations (~200 keys)
+  - `apps/admin-dashboard/src/i18n/locales/ja.json` - Japanese translations (~200 keys)
+  - `apps/admin-dashboard/src/components/LanguageSwitcher.tsx` - Language toggle component
 - **Files Modified**:
-  - `services/api/src/routes/mod.rs` - Added explorer module and 12 routes
+  - `apps/admin-dashboard/src/main.tsx` - Added i18n import
+  - `apps/admin-dashboard/src/components/Layout.tsx` - i18n for navigation
+  - `apps/admin-dashboard/src/pages/Dashboard.tsx` - i18n for dashboard
+  - `apps/admin-dashboard/src/pages/provers/ProverList.tsx` - i18n for prover list
+  - `apps/admin-dashboard/src/pages/emergency/EmergencyPause.tsx` - i18n for emergency page
+  - `apps/admin-dashboard/src/pages/analytics/AnalyticsDashboard.tsx` - i18n for analytics
 
-### Endpoints Implemented (12 EP):
-1. `GET /v1/explorer/overview` - Network overview with TVL, stats, top provers, health
-2. `GET /v1/explorer/search` - Unified search for locks, unlocks, addresses, provers
-3. `GET /v1/explorer/locks` - Paginated lock list
-4. `GET /v1/explorer/locks/:id` - Lock detail with timeline, prover info
-5. `GET /v1/explorer/unlocks` - Paginated unlock list
-6. `GET /v1/explorer/unlocks/:id` - Unlock detail with timeline
-7. `GET /v1/explorer/challenges` - Paginated challenge list
-8. `GET /v1/explorer/challenges/:id` - Challenge detail with defense/resolution info
-9. `GET /v1/explorer/address/:addr` - Address info with lock/unlock/challenge stats
-10. `GET /v1/explorer/provers` - Paginated prover list
-11. `GET /v1/explorer/provers/:id` - Prover detail with performance, financial, hardware info
-12. `GET /v1/explorer/analytics` - Network analytics with time series data
+### I18n Features Implemented:
+1. **react-i18next Integration**
+   - Installed: `i18next`, `react-i18next`, `i18next-browser-languagedetector`
+   - Auto language detection from browser/localStorage
+   - Fallback to English
 
-### Types Implemented:
-- `SearchType` enum (Lock, Unlock, Address, Prover, Challenge, All)
-- `ExplorerLockStatus` enum (Active, UnlockPending, EmergencyPending, Challenged, Unlocked, Slashed)
-- `ExplorerChallengeStatus` enum (Pending, UnderReview, Succeeded, Failed, Expired)
-- `ExplorerProverStatus` enum (Active, Pending, Suspended, Exiting, Exited)
-- `NetworkStats`, `RecentActivitySummary`, `TopProverItem`, `NetworkHealth`
-- `LockListItem`, `LockDetailResponse`, `LockProverInfo`, `LockEvent`
-- `UnlockListItem`, `UnlockDetailResponse`, `UnlockEvent`
-- `ChallengeListItem`, `ChallengeDetailResponse`, `ChallengeDefenseInfo`, `ChallengeResolutionInfo`
-- `AddressInfoResponse`, `AddressLockStats`, `AddressUnlockStats`, `AddressChallengeStats`
-- `ProverListItem`, `ProverDetailResponse`, `ProverPerformanceStats`, `ProverFinancialStats`
-- `AnalyticsResponse`, `VolumeAnalytics`, `LockAnalytics`, `ProverAnalytics`, `ChallengeAnalytics`, `FeeAnalytics`
-- `TimeSeriesDataPoint` for 30-day analytics
+2. **Translation Files (en.json, ja.json)**
+   - Common: loading, error, retry, cancel, confirm, etc.
+   - Navigation: dashboard, provers, providers, analytics, emergency, edition
+   - Layout: title, admin dashboard, network status, system active
+   - Dashboard: TVL, locks, unlocks, provers, security parameters
+   - Provers: management, filters, slashing warning, table headers
+   - Emergency: pause status, affected operations, actions
+   - Analytics: periods, stats, prover performance
+
+3. **Language Switcher Component**
+   - EN/JA toggle buttons in header
+   - Persists selection to localStorage
+   - Responsive indicator for current language
 
 ### Event: VERIFICATION_LOOP_1
 - **Result**: PASS
-- **Build**: `cargo build` ✅
-- **Tests**: 107 tests passed ✅
-  - Unit tests: 81 passed (including 5 new explorer tests)
-  - API tests: 14 passed
-  - Integration tests: 12 passed
-- **Warnings**: 99 (pre-existing, non-critical)
+- **Build**: `vite build` ✅
+- **Tests**: 49 tests passed ✅
+  - BridgeConfiguration: 5 passed
+  - AnalyticsDashboard: 5 passed
+  - ProverRewards: 4 passed
+  - ProviderRegistration: 5 passed
+  - ProverStaking: 6 passed
+  - EditionSwitch: 5 passed
+  - ProverRegistration: 6 passed
+  - EmergencyPause: 6 passed
+  - ProverStatus: 7 passed
 
 ### Event: TASK_COMPLETE
 - **Time**: 2026-01-13
-- **Task**: TASK-P5-024
+- **Task**: TASK-P5-026
 - **Status**: COMPLETE
-- **Tests**: 107 passed
+- **Tests**: 49 passed
 
 ---
 
 ## Summary
 
-TASK-P5-024 Explorer API (12 EP): **COMPLETE**
+TASK-P5-026 i18n対応 (ja/en): **COMPLETE**
 
 | Item | Status |
 |------|--------|
-| Explorer Overview API | ✅ |
-| Explorer Search API | ✅ |
-| Locks List/Detail API | ✅ |
-| Unlocks List/Detail API | ✅ |
-| Challenges List/Detail API | ✅ |
-| Address Info API | ✅ |
-| Provers List/Detail API | ✅ |
-| Analytics API | ✅ |
+| react-i18next Setup | ✅ |
+| English Translation | ✅ |
+| Japanese Translation | ✅ |
+| Language Switcher UI | ✅ |
+| Layout i18n | ✅ |
+| Dashboard i18n | ✅ |
+| ProverList i18n | ✅ |
+| EmergencyPause i18n | ✅ |
+| Analytics i18n | ✅ |
 | Build Check | ✅ |
-| Tests | ✅ 107 passed |
+| Tests | ✅ 49 passed |
 
 ---
 
 ## Previous Sessions
+
+### TASK-P5-024 Explorer API (12 EP) - 2026-01-13
+- **Status**: COMPLETE
+- **Tests**: 107 passed
 
 ### TASK-P5-018 4BFT契約者管理API (4 EP) - 2026-01-13
 - **Status**: COMPLETE
