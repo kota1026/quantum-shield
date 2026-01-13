@@ -1,174 +1,104 @@
 # Event Log - Phase 5
 
 > **Session Start**: 2026-01-13
-> **Task**: TASK-P5-030 Resync実装
+> **Task**: TASK-P5-032 Emergency Pause実装
 
 ---
 
-## 2026-01-13 (Session - TASK-P5-030)
+## 2026-01-13 (Session - TASK-P5-032)
 
 ### Event: SESSION_START
 - **Time**: Session initiated
 - **Phase**: 5.4 補完機能
-- **Task**: TASK-P5-030
+- **Task**: TASK-P5-032
 
 ### Event: TASK_ANALYSIS
-- **Finding**: Resync API implementation needed for L1-L3 synchronization recovery
-- **Scope**: New resync.rs module with 3 API endpoints
-- **Reference**: §2.6.1, SEQUENCES §3' Resync
+- **Finding**: Emergency Pause API implementation needed for protocol emergency operations
+- **Scope**: New emergency.rs module with 4 API endpoints
+- **Reference**: §2.6.1, SEQUENCES §8 Emergency Pause & Recovery
 
 ---
 
 ## Implementation Log
 
-### Event: RESYNC_API_IMPLEMENTED
+### Event: EMERGENCY_API_IMPLEMENTED
 - **Time**: 2026-01-13
 - **Files Created**:
-  - `services/api/src/routes/resync.rs` - Resync API (3 endpoints)
+  - `services/api/src/routes/emergency.rs` - Emergency Pause API (4 endpoints)
 - **Files Modified**:
-  - `services/api/src/routes/mod.rs` - Added resync module and routes
-  - `services/api/Cargo.toml` - Added uuid std feature
+  - `services/api/src/routes/mod.rs` - Added emergency module and routes
 
-### Resync API Endpoints (3 EP)
+### Emergency Pause API Endpoints (4 EP)
 
 ```
-POST /v1/resync              - Manual resync request (lock_id, l1_tx_hash)
-GET  /v1/resync/:lock_id     - Get resync status for a lock
-GET  /v1/resync/pending      - List all pending (unsynced) locks
+POST /v1/emergency/pause    - Execute emergency pause (5/9 signatures required)
+GET  /v1/emergency/status   - Get detailed pause status
+POST /v1/emergency/unpause  - Unpause protocol (5/9 signatures required)
+POST /v1/emergency/extend   - Request pause extension (Token Vote)
 ```
 
-### Resync Types Implemented
+### Emergency Types Implemented
 
 | Type | Description |
 |------|-------------|
-| ResyncStatus | Synced, PendingSync, Syncing, Failed, NotFound |
-| ResyncSource | AutoPoll, Manual |
-| SyncedLockInfo | Lock data after successful sync |
-| L1TransactionInfo | L1 transaction verification data |
-| L3StateInfo | L3 SMT state information |
-| ResyncHistoryEntry | Audit trail of sync attempts |
+| PauseState | Active, Paused, ExtensionPending |
+| PauseScope | Full, LocksOnly, UnlocksOnly |
+| ExtensionStatus | None, VotePending, Approved, Rejected |
+| AffectedOperations | Operations affected during pause per SEQUENCES §8 |
+
+### Constants (per SEQUENCES §8)
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| MAX_PAUSE_DURATION | 72 hours | Maximum initial pause duration |
+| MAX_EXTENSION_DURATION | 7 days | Maximum extension duration |
+| PAUSE_THRESHOLD | 5/9 | Security Council signatures required |
 
 ### Event: VERIFICATION_LOOP_1
 - **Result**: PASS
 - **Build**: `cargo build -p quantum-shield-api` - SUCCESS
-- **Tests**: 131 tests passed
-  - Unit tests: 97 passed
+- **Tests**: 141 tests passed
+  - Unit tests: 115 passed
   - API tests: 14 passed
   - Integration tests: 12 passed
-  - Resync module tests: 6 passed
-  - Council module tests: 2 passed
+  - Emergency module tests: 10 passed
 
 ### Event: TASK_COMPLETE
 - **Time**: 2026-01-13
-- **Task**: TASK-P5-030
+- **Task**: TASK-P5-032
 - **Status**: COMPLETE
-- **Tests**: 131 passed
+- **Tests**: 141 passed
 
 ---
 
 ## Summary
 
-TASK-P5-030 Resync実装: **COMPLETE**
+TASK-P5-032 Emergency Pause実装: **COMPLETE**
 
 | Item | Status |
 |------|--------|
-| POST /v1/resync API | ✅ |
-| GET /v1/resync/:lock_id API | ✅ |
-| GET /v1/resync/pending API | ✅ |
+| POST /v1/emergency/pause API | ✅ |
+| GET /v1/emergency/status API | ✅ |
+| POST /v1/emergency/unpause API | ✅ |
+| POST /v1/emergency/extend API | ✅ |
 | Build Check | ✅ |
-| Tests | ✅ 131 passed |
+| Tests | ✅ 141 passed |
 
 ---
 
 ## Previous Sessions
+
+### TASK-P5-031 Prover Exit実装 - 2026-01-13
+- **Status**: COMPLETE
+- **Tests**: 131 passed
+
+### TASK-P5-030 Resync実装 - 2026-01-13
+- **Status**: COMPLETE
+- **Tests**: 131 passed
 
 ### TASK-P5-028 Security Council統合 - 2026-01-13
 - **Status**: COMPLETE
 - **Tests**: 123 passed
-
----
-
-## 2026-01-13 (Session - TASK-P5-028)
-
-### Event: SESSION_START
-- **Time**: Session initiated
-- **Phase**: 5.4 補完機能
-- **Task**: TASK-P5-028
-
-### Event: TASK_ANALYSIS
-- **Finding**: Security Council API integration needed
-- **Scope**: New council.rs module with 8 API endpoints
-- **Reference**: §2.6.3, SEQUENCES §8, UNIFIED_SPEC §Security Council
-
----
-
-## Implementation Log
-
-### Event: COUNCIL_API_IMPLEMENTED
-- **Time**: 2026-01-13
-- **Files Created**:
-  - `services/api/src/routes/council.rs` - Security Council API (8 endpoints)
-- **Files Modified**:
-  - `services/api/src/routes/mod.rs` - Added council module and routes
-
-### Security Council API Endpoints (8 EP)
-
-```
-GET  /v1/council/members           - List 9 council members
-GET  /v1/council/thresholds        - Get threshold requirements
-GET  /v1/council/actions           - List proposed/executed actions
-GET  /v1/council/actions/:id       - Get action details with signers
-POST /v1/council/actions           - Propose new action
-POST /v1/council/actions/:id/sign  - Sign an action
-POST /v1/council/actions/:id/execute - Execute action
-GET  /v1/council/emergency-status  - Get emergency pause status
-```
-
-### Action Types Supported
-
-| Type | Threshold | Contract Function |
-|------|:---------:|-------------------|
-| EmergencyPause | 5/9 | Pause protocol (max 72h) |
-| Veto | 6/9 | Veto governance proposal |
-| EmergencyUpgrade | 7/9 | Emergency contract upgrade |
-| MemberChange | 6/9 | Replace council member |
-
-### Event: VERIFICATION_LOOP_1
-- **Result**: PASS
-- **Build**: `cargo build -p quantum-shield-api` - SUCCESS
-- **Tests**: 123 tests passed
-  - Unit tests: 97 passed
-  - API tests: 14 passed
-  - Integration tests: 12 passed
-  - Council module tests: 8 passed
-
-### Event: TASK_COMPLETE
-- **Time**: 2026-01-13
-- **Task**: TASK-P5-028
-- **Status**: COMPLETE
-- **Tests**: 123 passed
-
----
-
-## Summary
-
-TASK-P5-028 Security Council統合: **COMPLETE**
-
-| Item | Status |
-|------|--------|
-| Council Members API | ✅ |
-| Thresholds API | ✅ |
-| Actions List/Detail API | ✅ |
-| Propose Action API | ✅ |
-| Sign Action API | ✅ |
-| Execute Action API | ✅ |
-| Emergency Status API | ✅ |
-| Build Check | ✅ |
-| Tests | ✅ 123 passed |
-
----
-
-## Previous Sessions
 
 ### TASK-P5-027 監視ボット実装 - 2026-01-13
 - **Status**: COMPLETE
