@@ -110,6 +110,11 @@ pub fn api_routes() -> Router {
         // Reports & Audit (2 EP)
         .route("/enterprise/reports", get(enterprise::get_reports))
         .route("/enterprise/audit-log", get(enterprise::get_audit_log))
+        // Enterprise Application Flow (TASK-P5-017) - 4 endpoints
+        .route("/enterprise/apply", post(enterprise::submit_application))
+        .route("/enterprise/application/:id", get(enterprise::get_application_status))
+        .route("/enterprise/contract/sign", post(enterprise::sign_contract))
+        .route("/enterprise/onboarding", get(enterprise::get_onboarding_status))
         // Observer API (TASK-P5-019) - 8 endpoints
         .route("/observer/dashboard", get(observer::get_dashboard))
         .route("/observer/pending-unlocks", get(observer::get_pending_unlocks))

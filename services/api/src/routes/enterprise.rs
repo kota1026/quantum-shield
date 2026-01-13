@@ -1,6 +1,7 @@
 //! Enterprise Admin API implementation
 //!
 //! TASK-P5-016: Enterprise Admin API (19 EP)
+//! TASK-P5-017: Enterprise Application Flow API (4 EP)
 //!
 //! Provides endpoints for:
 //! - Dashboard overview, TVL, and volume metrics
@@ -9,9 +10,11 @@
 //! - API key management
 //! - Settings and security configuration
 //! - Reports and audit logs
+//! - Enterprise application flow (apply, status, contract, onboarding)
 //!
 //! Spec References:
 //! - UNIFIED_SPEC §Enterprise Edition, §Enterprise Admin
+//! - PHASE5_INTEGRATION_PLAN §3.4 Enterprise申込フロー
 //! - UIモック: system_07_enterprise/wip/mocks/ (25画面)
 
 use std::sync::Arc;
@@ -1493,6 +1496,594 @@ pub async fn get_audit_log(
 }
 
 // ============================================================================
+// Application Flow Types (TASK-P5-017 - 4 EP)
+// ============================================================================
+
+/// Application status enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ApplicationStatus {
+    /// Initial submission
+    Pending,
+    /// Under review by QS team
+    Reviewing,
+    /// Additional info requested
+    InfoRequested,
+    /// Application approved
+    Approved,
+    /// Application rejected
+    Rejected,
+    /// Contract signed
+    ContractSigned,
+    /// Onboarding in progress
+    Onboarding,
+    /// Fully onboarded and active
+    Active,
+}
+
+/// Plan type enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum PlanType {
+    /// Standard Enterprise plan
+    Enterprise,
+    /// Premium Enterprise plan with additional features
+    Premium,
+}
+
+/// Industry type enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum IndustryType {
+    Banking,
+    Securities,
+    Insurance,
+    Payment,
+    AssetManagement,
+    Custody,
+    Exchange,
+    Other,
+}
+
+/// Onboarding step status
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum StepStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Skipped,
+}
+
+/// POST /v1/enterprise/apply request
+#[derive(Debug, Deserialize)]
+pub struct ApplyRequest {
+    /// Company name
+    #[serde(rename = "companyName")]
+    pub company_name: String,
+    /// Company registration number
+    #[serde(rename = "registrationNumber")]
+    pub registration_number: Option<String>,
+    /// Industry type
+    pub industry: IndustryType,
+    /// Country/Region
+    pub country: String,
+    /// Requested plan
+    pub plan: PlanType,
+    /// Primary contact name
+    #[serde(rename = "contactName")]
+    pub contact_name: String,
+    /// Primary contact email
+    #[serde(rename = "contactEmail")]
+    pub contact_email: String,
+    /// Primary contact phone
+    #[serde(rename = "contactPhone")]
+    pub contact_phone: Option<String>,
+    /// Expected monthly TVL (USD)
+    #[serde(rename = "expectedTvl")]
+    pub expected_tvl: String,
+    /// Expected monthly transaction volume (USD)
+    #[serde(rename = "expectedVolume")]
+    pub expected_volume: String,
+    /// Technical requirements/notes
+    #[serde(rename = "technicalRequirements")]
+    pub technical_requirements: Option<String>,
+    /// Use case description
+    #[serde(rename = "useCase")]
+    pub use_case: String,
+    /// Agreed to terms of service
+    #[serde(rename = "agreedToTerms")]
+    pub agreed_to_terms: bool,
+}
+
+/// POST /v1/enterprise/apply response
+#[derive(Debug, Serialize)]
+pub struct ApplyResponse {
+    /// Application ID
+    #[serde(rename = "applicationId")]
+    pub application_id: String,
+    /// Application status
+    pub status: ApplicationStatus,
+    /// Estimated review time (days)
+    #[serde(rename = "estimatedReviewDays")]
+    pub estimated_review_days: u32,
+    /// Confirmation message
+    pub message: String,
+    /// Created timestamp
+    #[serde(rename = "createdAt")]
+    pub created_at: u64,
+    /// Next steps
+    #[serde(rename = "nextSteps")]
+    pub next_steps: Vec<String>,
+}
+
+/// GET /v1/enterprise/application/:id response
+#[derive(Debug, Serialize)]
+pub struct ApplicationStatusResponse {
+    /// Application ID
+    #[serde(rename = "applicationId")]
+    pub application_id: String,
+    /// Company name
+    #[serde(rename = "companyName")]
+    pub company_name: String,
+    /// Current status
+    pub status: ApplicationStatus,
+    /// Plan type
+    pub plan: PlanType,
+    /// Submitted timestamp
+    #[serde(rename = "submittedAt")]
+    pub submitted_at: u64,
+    /// Last updated timestamp
+    #[serde(rename = "updatedAt")]
+    pub updated_at: u64,
+    /// Reviewer notes (if any)
+    #[serde(rename = "reviewerNotes")]
+    pub reviewer_notes: Option<String>,
+    /// Rejection reason (if rejected)
+    #[serde(rename = "rejectionReason")]
+    pub rejection_reason: Option<String>,
+    /// Timeline of status changes
+    pub timeline: Vec<ApplicationTimelineEvent>,
+    /// Next steps based on current status
+    #[serde(rename = "nextSteps")]
+    pub next_steps: Vec<String>,
+    /// Assigned reviewer (if any)
+    #[serde(rename = "assignedReviewer")]
+    pub assigned_reviewer: Option<String>,
+}
+
+/// Application timeline event
+#[derive(Debug, Serialize)]
+pub struct ApplicationTimelineEvent {
+    /// Event type
+    pub event: String,
+    /// Timestamp
+    pub timestamp: u64,
+    /// Actor (who performed the action)
+    pub actor: Option<String>,
+    /// Additional details
+    pub details: Option<String>,
+}
+
+/// POST /v1/enterprise/contract/sign request
+#[derive(Debug, Deserialize)]
+pub struct SignContractRequest {
+    /// Application ID
+    #[serde(rename = "applicationId")]
+    pub application_id: String,
+    /// Signer name
+    #[serde(rename = "signerName")]
+    pub signer_name: String,
+    /// Signer title/position
+    #[serde(rename = "signerTitle")]
+    pub signer_title: String,
+    /// Signer email
+    #[serde(rename = "signerEmail")]
+    pub signer_email: String,
+    /// Digital signature (base64 encoded)
+    pub signature: String,
+    /// Agreed to SLA terms
+    #[serde(rename = "agreedToSla")]
+    pub agreed_to_sla: bool,
+    /// Initial configuration preferences
+    #[serde(rename = "initialConfig")]
+    pub initial_config: Option<InitialConfigRequest>,
+}
+
+/// Initial configuration preferences
+#[derive(Debug, Deserialize)]
+pub struct InitialConfigRequest {
+    /// Preferred timezone
+    pub timezone: Option<String>,
+    /// Preferred currency for reports
+    pub currency: Option<String>,
+    /// Notification preferences
+    #[serde(rename = "notificationEmail")]
+    pub notification_email: Option<String>,
+    /// Webhook URL for events
+    #[serde(rename = "webhookUrl")]
+    pub webhook_url: Option<String>,
+}
+
+/// POST /v1/enterprise/contract/sign response
+#[derive(Debug, Serialize)]
+pub struct SignContractResponse {
+    /// Application ID
+    #[serde(rename = "applicationId")]
+    pub application_id: String,
+    /// Contract ID
+    #[serde(rename = "contractId")]
+    pub contract_id: String,
+    /// New status
+    pub status: ApplicationStatus,
+    /// Contract signed timestamp
+    #[serde(rename = "signedAt")]
+    pub signed_at: u64,
+    /// Contract document URL
+    #[serde(rename = "contractUrl")]
+    pub contract_url: String,
+    /// Onboarding start URL
+    #[serde(rename = "onboardingUrl")]
+    pub onboarding_url: String,
+    /// Organization ID (created after signing)
+    #[serde(rename = "organizationId")]
+    pub organization_id: String,
+    /// Next steps
+    #[serde(rename = "nextSteps")]
+    pub next_steps: Vec<String>,
+}
+
+/// GET /v1/enterprise/onboarding response
+#[derive(Debug, Serialize)]
+pub struct OnboardingStatusResponse {
+    /// Organization ID
+    #[serde(rename = "organizationId")]
+    pub organization_id: String,
+    /// Organization name
+    #[serde(rename = "organizationName")]
+    pub organization_name: String,
+    /// Overall progress (0-100)
+    pub progress: u32,
+    /// Current phase
+    #[serde(rename = "currentPhase")]
+    pub current_phase: String,
+    /// Onboarding steps
+    pub steps: Vec<OnboardingStep>,
+    /// Started timestamp
+    #[serde(rename = "startedAt")]
+    pub started_at: u64,
+    /// Estimated completion timestamp
+    #[serde(rename = "estimatedCompletionAt")]
+    pub estimated_completion_at: Option<u64>,
+    /// Assigned onboarding manager
+    #[serde(rename = "onboardingManager")]
+    pub onboarding_manager: Option<OnboardingManager>,
+    /// Resources and documentation
+    pub resources: Vec<OnboardingResource>,
+}
+
+/// Onboarding step
+#[derive(Debug, Serialize)]
+pub struct OnboardingStep {
+    /// Step ID
+    pub id: String,
+    /// Step name
+    pub name: String,
+    /// Step description
+    pub description: String,
+    /// Step status
+    pub status: StepStatus,
+    /// Required or optional
+    pub required: bool,
+    /// Estimated duration (minutes)
+    #[serde(rename = "estimatedMinutes")]
+    pub estimated_minutes: u32,
+    /// Completed timestamp (if completed)
+    #[serde(rename = "completedAt")]
+    pub completed_at: Option<u64>,
+    /// Action URL (if action required)
+    #[serde(rename = "actionUrl")]
+    pub action_url: Option<String>,
+}
+
+/// Onboarding manager info
+#[derive(Debug, Serialize)]
+pub struct OnboardingManager {
+    pub name: String,
+    pub email: String,
+    #[serde(rename = "calendarUrl")]
+    pub calendar_url: Option<String>,
+}
+
+/// Onboarding resource
+#[derive(Debug, Serialize)]
+pub struct OnboardingResource {
+    /// Resource title
+    pub title: String,
+    /// Resource type (doc, video, guide)
+    #[serde(rename = "type")]
+    pub resource_type: String,
+    /// Resource URL
+    pub url: String,
+}
+
+// ============================================================================
+// Application Flow Endpoints (TASK-P5-017 - 4 EP)
+// ============================================================================
+
+/// POST /v1/enterprise/apply
+///
+/// Submit a new enterprise application
+///
+/// Spec: PHASE5_INTEGRATION_PLAN §3.4
+pub async fn submit_application(
+    Extension(_state): Extension<Arc<AppState>>,
+    Json(req): Json<ApplyRequest>,
+) -> Result<Json<ApplyResponse>, ApiError> {
+    tracing::info!(
+        "Enterprise: New application from {} ({})",
+        req.company_name,
+        req.contact_email
+    );
+
+    // Validate required fields
+    if !req.agreed_to_terms {
+        return Err(ApiError::InvalidRequest("Must agree to terms of service".to_string()));
+    }
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    let application_id = format!("app-{}", uuid_simple());
+
+    Ok(Json(ApplyResponse {
+        application_id,
+        status: ApplicationStatus::Pending,
+        estimated_review_days: 3,
+        message: "Your application has been submitted successfully. Our team will review it within 3 business days.".to_string(),
+        created_at: now,
+        next_steps: vec![
+            "Check your email for confirmation".to_string(),
+            "Our team will review your application".to_string(),
+            "You will receive an update within 3 business days".to_string(),
+            "If approved, you will receive contract documents".to_string(),
+        ],
+    }))
+}
+
+/// GET /v1/enterprise/application/:id
+///
+/// Get application status and details
+///
+/// Spec: PHASE5_INTEGRATION_PLAN §3.4
+pub async fn get_application_status(
+    Extension(_state): Extension<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> Result<Json<ApplicationStatusResponse>, ApiError> {
+    tracing::debug!("Enterprise: Getting application status for {}", id);
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    // Mock response - in production, fetch from database
+    Ok(Json(ApplicationStatusResponse {
+        application_id: id.clone(),
+        company_name: "Acme Financial Services".to_string(),
+        status: ApplicationStatus::Approved,
+        plan: PlanType::Enterprise,
+        submitted_at: now - 259200, // 3 days ago
+        updated_at: now - 86400,    // 1 day ago
+        reviewer_notes: Some("Application meets all requirements. Approved for Enterprise plan.".to_string()),
+        rejection_reason: None,
+        timeline: vec![
+            ApplicationTimelineEvent {
+                event: "Application submitted".to_string(),
+                timestamp: now - 259200,
+                actor: None,
+                details: Some("Initial submission received".to_string()),
+            },
+            ApplicationTimelineEvent {
+                event: "Review started".to_string(),
+                timestamp: now - 172800,
+                actor: Some("QS Review Team".to_string()),
+                details: None,
+            },
+            ApplicationTimelineEvent {
+                event: "Application approved".to_string(),
+                timestamp: now - 86400,
+                actor: Some("QS Review Team".to_string()),
+                details: Some("All requirements verified".to_string()),
+            },
+        ],
+        next_steps: vec![
+            "Review and sign the contract".to_string(),
+            "Complete the onboarding process".to_string(),
+            "Set up your first API keys".to_string(),
+        ],
+        assigned_reviewer: Some("QS Enterprise Team".to_string()),
+    }))
+}
+
+/// POST /v1/enterprise/contract/sign
+///
+/// Sign the enterprise contract
+///
+/// Spec: PHASE5_INTEGRATION_PLAN §3.4
+pub async fn sign_contract(
+    Extension(_state): Extension<Arc<AppState>>,
+    Json(req): Json<SignContractRequest>,
+) -> Result<Json<SignContractResponse>, ApiError> {
+    tracing::info!(
+        "Enterprise: Contract signing for application {} by {}",
+        req.application_id,
+        req.signer_email
+    );
+
+    // Validate required fields
+    if !req.agreed_to_sla {
+        return Err(ApiError::InvalidRequest("Must agree to SLA terms".to_string()));
+    }
+
+    if req.signature.is_empty() {
+        return Err(ApiError::InvalidRequest("Signature is required".to_string()));
+    }
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    let contract_id = format!("contract-{}", uuid_simple());
+    let organization_id = format!("org-{}", uuid_simple());
+
+    Ok(Json(SignContractResponse {
+        application_id: req.application_id,
+        contract_id: contract_id.clone(),
+        status: ApplicationStatus::ContractSigned,
+        signed_at: now,
+        contract_url: format!("https://contracts.quantumshield.io/{}.pdf", contract_id),
+        onboarding_url: format!("https://app.quantumshield.io/onboarding/{}", organization_id),
+        organization_id,
+        next_steps: vec![
+            "Access your organization dashboard".to_string(),
+            "Complete the onboarding checklist".to_string(),
+            "Set up your admin users".to_string(),
+            "Configure API keys and integrations".to_string(),
+            "Schedule a kickoff call with your onboarding manager".to_string(),
+        ],
+    }))
+}
+
+/// GET /v1/enterprise/onboarding
+///
+/// Get onboarding status and progress
+///
+/// Spec: PHASE5_INTEGRATION_PLAN §3.4
+pub async fn get_onboarding_status(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<OnboardingStatusResponse>, ApiError> {
+    tracing::debug!("Enterprise: Getting onboarding status");
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    // Mock response - in production, fetch from database based on authenticated user
+    Ok(Json(OnboardingStatusResponse {
+        organization_id: "org-001".to_string(),
+        organization_name: "Acme Financial Services".to_string(),
+        progress: 40,
+        current_phase: "Technical Setup".to_string(),
+        steps: vec![
+            OnboardingStep {
+                id: "step-1".to_string(),
+                name: "Contract Review".to_string(),
+                description: "Review and sign the enterprise contract".to_string(),
+                status: StepStatus::Completed,
+                required: true,
+                estimated_minutes: 30,
+                completed_at: Some(now - 172800),
+                action_url: None,
+            },
+            OnboardingStep {
+                id: "step-2".to_string(),
+                name: "Admin Setup".to_string(),
+                description: "Create admin users and set up permissions".to_string(),
+                status: StepStatus::Completed,
+                required: true,
+                estimated_minutes: 15,
+                completed_at: Some(now - 86400),
+                action_url: None,
+            },
+            OnboardingStep {
+                id: "step-3".to_string(),
+                name: "API Key Configuration".to_string(),
+                description: "Generate and configure API keys for integration".to_string(),
+                status: StepStatus::InProgress,
+                required: true,
+                estimated_minutes: 20,
+                completed_at: None,
+                action_url: Some("https://app.quantumshield.io/settings/api-keys".to_string()),
+            },
+            OnboardingStep {
+                id: "step-4".to_string(),
+                name: "Webhook Setup".to_string(),
+                description: "Configure webhooks for real-time notifications".to_string(),
+                status: StepStatus::Pending,
+                required: false,
+                estimated_minutes: 15,
+                completed_at: None,
+                action_url: Some("https://app.quantumshield.io/settings/webhooks".to_string()),
+            },
+            OnboardingStep {
+                id: "step-5".to_string(),
+                name: "Test Transaction".to_string(),
+                description: "Perform a test lock/unlock transaction".to_string(),
+                status: StepStatus::Pending,
+                required: true,
+                estimated_minutes: 30,
+                completed_at: None,
+                action_url: Some("https://app.quantumshield.io/test".to_string()),
+            },
+            OnboardingStep {
+                id: "step-6".to_string(),
+                name: "Security Audit".to_string(),
+                description: "Complete security checklist and enable 2FA".to_string(),
+                status: StepStatus::Pending,
+                required: true,
+                estimated_minutes: 20,
+                completed_at: None,
+                action_url: Some("https://app.quantumshield.io/security".to_string()),
+            },
+            OnboardingStep {
+                id: "step-7".to_string(),
+                name: "Go Live Checklist".to_string(),
+                description: "Final review before production deployment".to_string(),
+                status: StepStatus::Pending,
+                required: true,
+                estimated_minutes: 45,
+                completed_at: None,
+                action_url: Some("https://app.quantumshield.io/go-live".to_string()),
+            },
+        ],
+        started_at: now - 259200,
+        estimated_completion_at: Some(now + 604800), // 7 days from now
+        onboarding_manager: Some(OnboardingManager {
+            name: "Sarah Chen".to_string(),
+            email: "sarah.chen@quantumshield.io".to_string(),
+            calendar_url: Some("https://calendly.com/qs-onboarding/sarah".to_string()),
+        }),
+        resources: vec![
+            OnboardingResource {
+                title: "Getting Started Guide".to_string(),
+                resource_type: "doc".to_string(),
+                url: "https://docs.quantumshield.io/enterprise/getting-started".to_string(),
+            },
+            OnboardingResource {
+                title: "API Integration Tutorial".to_string(),
+                resource_type: "video".to_string(),
+                url: "https://docs.quantumshield.io/tutorials/api-integration".to_string(),
+            },
+            OnboardingResource {
+                title: "Security Best Practices".to_string(),
+                resource_type: "guide".to_string(),
+                url: "https://docs.quantumshield.io/enterprise/security".to_string(),
+            },
+            OnboardingResource {
+                title: "4BFT Node Architecture".to_string(),
+                resource_type: "doc".to_string(),
+                url: "https://docs.quantumshield.io/enterprise/4bft-architecture".to_string(),
+            },
+        ],
+    }))
+}
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
 
@@ -1554,5 +2145,97 @@ mod tests {
         let json = serde_json::to_string(&pagination).unwrap();
         assert!(json.contains("\"page\":1"));
         assert!(json.contains("\"totalItems\":100"));
+    }
+
+    // TASK-P5-017: Application Flow Tests
+
+    #[test]
+    fn test_application_status_serialization() {
+        let status = ApplicationStatus::Pending;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"pending\"");
+
+        let status = ApplicationStatus::ContractSigned;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"contract_signed\"");
+    }
+
+    #[test]
+    fn test_plan_type_serialization() {
+        let plan = PlanType::Enterprise;
+        let json = serde_json::to_string(&plan).unwrap();
+        assert_eq!(json, "\"enterprise\"");
+
+        let plan = PlanType::Premium;
+        let json = serde_json::to_string(&plan).unwrap();
+        assert_eq!(json, "\"premium\"");
+    }
+
+    #[test]
+    fn test_industry_type_serialization() {
+        let industry = IndustryType::Banking;
+        let json = serde_json::to_string(&industry).unwrap();
+        assert_eq!(json, "\"banking\"");
+
+        let industry = IndustryType::AssetManagement;
+        let json = serde_json::to_string(&industry).unwrap();
+        assert_eq!(json, "\"asset_management\"");
+    }
+
+    #[test]
+    fn test_step_status_serialization() {
+        let status = StepStatus::InProgress;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"in_progress\"");
+
+        let status = StepStatus::Completed;
+        let json = serde_json::to_string(&status).unwrap();
+        assert_eq!(json, "\"completed\"");
+    }
+
+    #[test]
+    fn test_apply_response_structure() {
+        let response = ApplyResponse {
+            application_id: "app-001".to_string(),
+            status: ApplicationStatus::Pending,
+            estimated_review_days: 3,
+            message: "Success".to_string(),
+            created_at: 1736668800,
+            next_steps: vec!["Step 1".to_string()],
+        };
+        let json = serde_json::to_string(&response).unwrap();
+        assert!(json.contains("\"applicationId\":\"app-001\""));
+        assert!(json.contains("\"status\":\"pending\""));
+        assert!(json.contains("\"estimatedReviewDays\":3"));
+    }
+
+    #[test]
+    fn test_onboarding_step_structure() {
+        let step = OnboardingStep {
+            id: "step-1".to_string(),
+            name: "Test Step".to_string(),
+            description: "Test description".to_string(),
+            status: StepStatus::Completed,
+            required: true,
+            estimated_minutes: 30,
+            completed_at: Some(1736668800),
+            action_url: None,
+        };
+        let json = serde_json::to_string(&step).unwrap();
+        assert!(json.contains("\"estimatedMinutes\":30"));
+        assert!(json.contains("\"completedAt\":1736668800"));
+    }
+
+    #[test]
+    fn test_application_timeline_event_structure() {
+        let event = ApplicationTimelineEvent {
+            event: "Application submitted".to_string(),
+            timestamp: 1736668800,
+            actor: Some("User".to_string()),
+            details: Some("Details".to_string()),
+        };
+        let json = serde_json::to_string(&event).unwrap();
+        assert!(json.contains("\"event\":\"Application submitted\""));
+        assert!(json.contains("\"timestamp\":1736668800"));
     }
 }

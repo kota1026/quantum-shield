@@ -22,7 +22,7 @@ use crate::{
     types::{
         Lock, LockRequest, LockStatus, Edition,
         ProverRegisterRequest, ProverInfoResponse, ProverStatus,
-        ChallengeInfo, ChallengeStatus,
+        ChallengeInfo, ChallengeStatus, ExtendedChallengeInfo,
         VRFRequest, VRFStatus,
         // Token Hub types (TASK-P5-021)
         LockPosition, HistoricalLock, DelegateInfo, MyDelegation,
@@ -233,6 +233,45 @@ impl AppState {
         match self.redis.get(&key).await {
             Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
             Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get challenge by challenge_id (TASK-P5-019)
+    pub async fn get_challenge(&self, challenge_id: &str) -> Result<Option<ExtendedChallengeInfo>, ApiError> {
+        let key = format!("challenge:extended:{}", challenge_id);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => {
+                // Fallback: try basic challenge info and convert
+                let basic_key = format!("challenge:{}", challenge_id);
+                match self.redis.get(&basic_key).await {
+                    Ok(Some(v)) => {
+                        let basic: ChallengeInfo = serde_json::from_str(&v).map_err(|e| ApiError::Internal(e.to_string()))?;
+                        Ok(Some(ExtendedChallengeInfo {
+                            challenge_id: basic.challenge_id,
+                            lock_id: basic.lock_id,
+                            challenger: basic.challenger,
+                            fraud_proof_hash: basic.fraud_proof_hash,
+                            bond: basic.bond,
+                            submitted_at: basic.challenged_at,
+                            defense_deadline: basic.defense_deadline,
+                            defense_submitted: basic.status == ChallengeStatus::DefenseSubmitted,
+                            defense_timestamp: None,
+                            defender: basic.defender,
+                            defense_proof_hash: basic.defense_proof_hash,
+                            resolved: basic.status == ChallengeStatus::ResolvedValid || basic.status == ChallengeStatus::ResolvedInvalid,
+                            resolved_at: None,
+                            challenger_won: basic.status == ChallengeStatus::ResolvedValid,
+                            slashed_amount: None,
+                            reward_amount: None,
+                            resolution_tx_hash: None,
+                        }))
+                    }
+                    Ok(None) => Ok(None),
+                    Err(e) => Err(ApiError::Internal(e.to_string())),
+                }
+            }
             Err(e) => Err(ApiError::Internal(e.to_string())),
         }
     }
@@ -1256,7 +1295,8 @@ impl AppState {
 
         Ok(GovernanceCouncilResponse {
             members: members.clone(),
-            total_members: members.len(),
+            total_members: members.len() as u32,
+            total_voting_power: "5000000".to_string(), // 5M veQS total
         })
     }
 }
