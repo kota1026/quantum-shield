@@ -8,18 +8,18 @@
 //!
 //! ## CP-4 Compliance
 //! - Slashing mechanism exists and cannot be removed
-//! - Quadratic slashing: N² × 10%
+//! - Quadratic slashing: N^2 x 10%
 //! - Distribution: 60% Challenger, 20% Insurance, 20% Burn
 //!
-//! ## SEQUENCES §4 Reference
-//! - §4.1: Monitor bot detects anomaly
-//! - §4.2: Challenger submits challenge with bond
-//! - §4.3: Bond = MAX(0.1 ETH, amount × 1%)
-//! - §4.4: Defense period = 48 hours
-//! - §4.5: Prover submits defense
-//! - §4.6: Auto-resolve after deadline
-//! - §4.7: Quadratic slashing if valid
-//! - §4.8: Distribution to challenger/insurance/burn
+//! ## SEQUENCES #4 Reference
+//! - #4.1: Monitor bot detects anomaly
+//! - #4.2: Challenger submits challenge with bond
+//! - #4.3: Bond = MAX(0.1 ETH, amount x 1%)
+//! - #4.4: Defense period = 48 hours
+//! - #4.5: Prover submits defense
+//! - #4.6: Auto-resolve after deadline
+//! - #4.7: Quadratic slashing if valid
+//! - #4.8: Distribution to challenger/insurance/burn
 
 use std::sync::Arc;
 
@@ -33,9 +33,9 @@ use crate::{
     error::ApiError,
     services::AppState,
     types::{
-        ChallengeRequest, ChallengeResponse, ChallengeStatus,
-        DefenseRequest, DefenseResponse,
-        ChallengeInfo, AutoResolveResponse, LockStatus,
+        ChallengeRequest, ChallengeResponse, ChallengeStatus, ChallengeInfo,
+        DefenseRequest, DefenseResponse, AutoResolveResponse, LockStatus,
+        ProverStatus,
     },
 };
 
@@ -48,10 +48,10 @@ const DEFENSE_DEADLINE_HOURS: u64 = 48;
 ///
 /// # Security
 /// - Uses SHA3-256 for fraud proof hash (CP-1)
-/// - Bond required: MAX(0.1 ETH, amount × 1%) (SEQUENCES §4.3)
-/// - Defense period: 48 hours (SEQUENCES §4.4)
+/// - Bond required: MAX(0.1 ETH, amount x 1%) (SEQUENCES #4.3)
+/// - Defense period: 48 hours (SEQUENCES #4.4)
 ///
-/// # SEQUENCES §4.2-4.4
+/// # SEQUENCES #4.2-4.4
 pub async fn submit_challenge(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<ChallengeRequest>,
@@ -65,11 +65,11 @@ pub async fn submit_challenge(
     if lock.status != LockStatus::UnlockPending
         && lock.status != LockStatus::EmergencyPending {
         return Err(ApiError::InvalidChallengeTarget(
-            "Lock must be in pending unlock state".into()
+            format!("Lock status is {:?}, expected UnlockPending or EmergencyPending", lock.status)
         ));
     }
 
-    // 2. Calculate required bond: MAX(0.1 ETH, amount × 1%)
+    // 2. Calculate required bond: MAX(0.1 ETH, amount x 1%)
     let min_bond = "100000000000000000".to_string(); // 0.1 ETH in wei
     let percent_bond = calculate_percent_bond(&lock.amount, 1);
     let required_bond = max_bond(&min_bond, &percent_bond);
@@ -85,7 +85,8 @@ pub async fn submit_challenge(
 
     // 4. Create challenge record
     let challenge_id = generate_challenge_id(&req.lock_id, &fraud_proof_hash);
-    let defense_deadline = chrono::Utc::now().timestamp() as u64 + DEFENSE_DEADLINE_HOURS * 3600;
+    let now = chrono::Utc::now().timestamp() as u64;
+    let defense_deadline = now + (DEFENSE_DEADLINE_HOURS * 3600);
 
     state.store_challenge(
         &challenge_id,
@@ -135,7 +136,7 @@ pub async fn get_challenge(
 /// - Requires active Prover authentication
 /// - Uses SHA3-256 for defense proof hash (CP-1)
 ///
-/// # SEQUENCES §4.5
+/// # SEQUENCES #4.5
 pub async fn submit_defense(
     Extension(state): Extension<Arc<AppState>>,
     Path(lock_id): Path<String>,
@@ -147,13 +148,13 @@ pub async fn submit_defense(
     let prover = state.get_prover(&req.prover_id).await?
         .ok_or(ApiError::ProverNotFound(req.prover_id.clone()))?;
 
-    if prover.status != crate::types::ProverStatus::Active {
+    if prover.status != ProverStatus::Active {
         return Err(ApiError::Unauthorized);
     }
 
     // 2. Get challenge
     let challenge = state.get_challenge_by_lock_id(&lock_id).await?
-        .ok_or(ApiError::ChallengeNotFound(lock_id.clone()))?;
+        .ok_or_else(|| ApiError::ChallengeNotFound(lock_id.clone()))?;
 
     // 3. Verify challenge is still pending
     if challenge.status != ChallengeStatus::Pending {
@@ -194,7 +195,7 @@ pub async fn submit_defense(
 ///
 /// Auto-resolve challenge after defense deadline.
 ///
-/// # SEQUENCES §4.6
+/// # SEQUENCES #4.6
 /// Anyone can call this after the defense deadline has passed.
 /// If no defense was submitted, challenger wins.
 pub async fn auto_resolve(
@@ -205,41 +206,43 @@ pub async fn auto_resolve(
 
     // 1. Get challenge
     let challenge = state.get_challenge_by_lock_id(&lock_id).await?
-        .ok_or(ApiError::ChallengeNotFound(lock_id.clone()))?;
+        .ok_or_else(|| ApiError::ChallengeNotFound(lock_id.clone()))?;
 
-    // 2. Verify challenge is still pending or defense submitted
-    if matches!(challenge.status, ChallengeStatus::ResolvedValid | ChallengeStatus::ResolvedInvalid) {
-        return Err(ApiError::ChallengeAlreadyResolved);
-    }
-
-    // 3. Verify defense deadline has passed
+    // 2. Verify defense deadline has passed
     let now = chrono::Utc::now().timestamp() as u64;
     if now <= challenge.defense_deadline {
         return Err(ApiError::DefenseDeadlineNotPassed);
     }
 
-    // 4. Determine challenge validity
-    // No defense submitted → Challenger wins
+    // 3. Check if already resolved
+    if matches!(challenge.status, ChallengeStatus::ResolvedValid | ChallengeStatus::ResolvedInvalid) {
+        return Err(ApiError::ChallengeAlreadyResolved);
+    }
+
+    // 4. Determine if challenge is valid (no defense submitted = challenger wins)
     let challenge_valid = challenge.defense_proof_hash.is_none();
 
-    let lock = state.get_lock(&lock_id).await?
-        .ok_or_else(|| ApiError::LockNotFound(lock_id.clone()))?;
+    // 5. Calculate slashing amounts
+    let (slash_amount, challenger_reward, insurance_amount, burn_amount) = if challenge_valid {
+        // No defense submitted -> Challenger wins
+        // Calculate quadratic slashing: N^2 x 10%
+        let lock = state.get_lock(&lock_id).await?
+            .ok_or_else(|| ApiError::LockNotFound(lock_id.clone()))?;
 
-    let (slash_amount, challenger_reward, insurance_amount, burn_amount, new_status) = if challenge_valid {
-        // Calculate quadratic slashing: N² × 10%
         let signature_count = 1u64; // Placeholder - get from unlock request
         let slash = calculate_quadratic_slash(signature_count, &lock.amount);
-        let c_reward = calculate_distribution(&slash, 60);
-        let ins_amt = calculate_distribution(&slash, 20);
-        let burn_amt = calculate_distribution(&slash, 20);
-        (slash, c_reward, ins_amt, burn_amt, LockStatus::Slashed)
+        let challenger = calculate_distribution(&slash, 60);
+        let insurance = calculate_distribution(&slash, 20);
+        let burn = calculate_distribution(&slash, 20);
+        (slash, challenger, insurance, burn)
     } else {
-        // Defense submitted - challenger loses bond
+        // Defense was submitted -> Challenger loses bond
         let bond: u128 = challenge.bond.parse().unwrap_or(0);
-        ("0".to_string(), "0".to_string(), bond.to_string(), "0".to_string(), LockStatus::UnlockPending)
+        // Challenger loses bond, it goes to insurance
+        ("0".to_string(), "0".to_string(), bond.to_string(), "0".to_string())
     };
 
-    // 5. Update challenge status
+    // 6. Update challenge status
     state.resolve_challenge(
         &challenge.challenge_id,
         challenge_valid,
@@ -249,12 +252,13 @@ pub async fn auto_resolve(
         &burn_amount,
     ).await?;
 
-    // 6. Update lock status
+    // 7. Update lock status
+    let new_status = if challenge_valid { LockStatus::Slashed } else { LockStatus::UnlockPending };
     state.update_lock_status(&lock_id, new_status, None).await?;
 
     tracing::info!(
-        "Challenge auto-resolved (valid={}): {} - slashed: {}, challenger reward: {}",
-        challenge_valid, challenge.challenge_id, slash_amount, challenger_reward
+        "Challenge auto-resolved: {} - valid: {}, slashed: {}, challenger reward: {}",
+        challenge.challenge_id, challenge_valid, slash_amount, challenger_reward
     );
 
     Ok(Json(AutoResolveResponse {
@@ -291,7 +295,7 @@ fn generate_challenge_id(lock_id: &str, fraud_proof_hash: &str) -> String {
     format!("0x{}", hex::encode(&result[..16]))
 }
 
-/// Calculate percent bond (amount × percent / 100)
+/// Calculate percent bond (amount x percent / 100)
 fn calculate_percent_bond(amount: &str, percent: u64) -> String {
     let amount_val = parse_amount(amount);
     let bond = amount_val * percent as u128 / 100;
@@ -310,11 +314,11 @@ fn parse_amount(amount: &str) -> u128 {
     amount.parse().unwrap_or(0)
 }
 
-/// Calculate quadratic slash: N² × 10% of amount
-/// SEQUENCES §4.7
+/// Calculate quadratic slash: N^2 x 10% of amount
+/// SEQUENCES #4.7
 fn calculate_quadratic_slash(n: u64, amount: &str) -> String {
     let amount_val = parse_amount(amount);
-    let mut slash_percent = (n as u128) * (n as u128) * 10; // N² × 10%
+    let mut slash_percent = (n as u128) * (n as u128) * 10; // N^2 x 10%
     if slash_percent > 100 {
         slash_percent = 100; // Cap at 100%
     }
@@ -335,7 +339,7 @@ mod tests {
 
     #[test]
     fn test_quadratic_slash_1_prover() {
-        // 1² × 10% = 10%
+        // 1^2 x 10% = 10%
         let amount = "1000000000000000000"; // 1 ETH
         let slash = calculate_quadratic_slash(1, amount);
         assert_eq!(slash, "100000000000000000"); // 0.1 ETH
@@ -343,7 +347,7 @@ mod tests {
 
     #[test]
     fn test_quadratic_slash_2_provers() {
-        // 2² × 10% = 40%
+        // 2^2 x 10% = 40%
         let amount = "1000000000000000000"; // 1 ETH
         let slash = calculate_quadratic_slash(2, amount);
         assert_eq!(slash, "400000000000000000"); // 0.4 ETH
@@ -351,7 +355,7 @@ mod tests {
 
     #[test]
     fn test_quadratic_slash_3_provers() {
-        // 3² × 10% = 90%
+        // 3^2 x 10% = 90%
         let amount = "1000000000000000000"; // 1 ETH
         let slash = calculate_quadratic_slash(3, amount);
         assert_eq!(slash, "900000000000000000"); // 0.9 ETH
@@ -359,7 +363,7 @@ mod tests {
 
     #[test]
     fn test_quadratic_slash_4_provers_capped() {
-        // 4² × 10% = 160% → capped at 100%
+        // 4^2 x 10% = 160% -> capped at 100%
         let amount = "1000000000000000000"; // 1 ETH
         let slash = calculate_quadratic_slash(4, amount);
         assert_eq!(slash, "1000000000000000000"); // 1 ETH (capped)

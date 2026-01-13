@@ -9,8 +9,21 @@ mod prover;
 mod edition;
 mod health;
 mod admin;
+mod auth;
+mod user;
+mod token_hub;
 mod challenge;
 mod governance;
+mod enterprise;
+mod observer;
+mod treasury;
+mod insurance;
+mod fees;
+
+use std::sync::Arc;
+use axum::middleware;
+use crate::middleware::jwt_auth;
+use crate::services::AppState;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -45,6 +58,23 @@ pub fn api_routes() -> Router {
         .route("/challenge/:lock_id", get(challenge::get_challenge))
         .route("/challenge/:lock_id/defense", post(challenge::submit_defense))
         .route("/challenge/:lock_id/auto-resolve", post(challenge::auto_resolve))
+        // Consumer App API (TASK-P5-020)
+        .route("/user/dashboard", get(user::get_dashboard))
+        .route("/user/transactions", get(user::get_transactions))
+        .route("/user/transactions/:id", get(user::get_transaction_detail))
+        .route("/user/settings", get(user::get_settings))
+        .route("/user/settings", post(user::update_settings))
+        .route("/user/keys", get(user::get_keys))
+        // Token Hub API (TASK-P5-021) - 9 endpoints
+        .route("/token-hub/dashboard", get(token_hub::get_dashboard))
+        .route("/token-hub/lock", post(token_hub::create_lock))
+        .route("/token-hub/locks", get(token_hub::get_locks))
+        .route("/token-hub/extend", post(token_hub::extend_lock))
+        .route("/token-hub/delegates", get(token_hub::get_delegates))
+        .route("/token-hub/delegate", post(token_hub::delegate_power))
+        .route("/token-hub/rewards", get(token_hub::get_rewards))
+        .route("/token-hub/claim", post(token_hub::claim_rewards))
+        .route("/token-hub/delegations/my", get(token_hub::get_my_delegations))
         // Governance API (TASK-P5-023)
         .route("/governance/dashboard", get(governance::get_dashboard))
         .route("/governance/proposals", get(governance::list_proposals))
@@ -54,11 +84,98 @@ pub fn api_routes() -> Router {
         .route("/governance/votes/:id", get(governance::get_vote))
         .route("/governance/activity", get(governance::get_activity))
         .route("/governance/council", get(governance::get_council))
+        // Enterprise Admin API (TASK-P5-016) - 19 endpoints
+        // Dashboard (3 EP)
+        .route("/enterprise/dashboard/overview", get(enterprise::get_dashboard_overview))
+        .route("/enterprise/dashboard/tvl", get(enterprise::get_dashboard_tvl))
+        .route("/enterprise/dashboard/volume", get(enterprise::get_dashboard_volume))
+        // Transactions (3 EP)
+        .route("/enterprise/transactions", get(enterprise::get_transactions))
+        .route("/enterprise/transactions/:id", get(enterprise::get_transaction_detail))
+        .route("/enterprise/transactions/export", post(enterprise::export_transactions))
+        // Users (5 EP)
+        .route("/enterprise/users", get(enterprise::get_users))
+        .route("/enterprise/users/:id", get(enterprise::get_user_detail))
+        .route("/enterprise/users", post(enterprise::create_user))
+        .route("/enterprise/users/invite", post(enterprise::invite_user))
+        .route("/enterprise/users/:id/role", post(enterprise::update_user_role))
+        // API Keys (3 EP)
+        .route("/enterprise/api-keys", get(enterprise::get_api_keys))
+        .route("/enterprise/api-keys", post(enterprise::create_api_key))
+        .route("/enterprise/api-keys/:id/usage", get(enterprise::get_api_key_usage))
+        // Settings (3 EP)
+        .route("/enterprise/settings", get(enterprise::get_settings))
+        .route("/enterprise/settings", post(enterprise::update_settings))
+        .route("/enterprise/security-settings", get(enterprise::get_security_settings))
+        // Reports & Audit (2 EP)
+        .route("/enterprise/reports", get(enterprise::get_reports))
+        .route("/enterprise/audit-log", get(enterprise::get_audit_log))
+        // Observer API (TASK-P5-019) - 8 endpoints
+        .route("/observer/dashboard", get(observer::get_dashboard))
+        .route("/observer/pending-unlocks", get(observer::get_pending_unlocks))
+        .route("/observer/suspicious-txs", get(observer::get_suspicious_txs))
+        .route("/observer/history", get(observer::get_history))
+        .route("/observer/challenge", post(observer::submit_challenge))
+        .route("/observer/challenge/:id", get(observer::get_challenge))
+        .route("/observer/earnings", get(observer::get_earnings))
+        .route("/observer/claim-earnings", post(observer::claim_earnings))
+        // Treasury API (TASK-P5-029) - 6 endpoints
+        .route("/treasury/dashboard", get(treasury::get_dashboard))
+        .route("/treasury/proposals", get(treasury::list_proposals))
+        .route("/treasury/proposals/:id", get(treasury::get_proposal))
+        .route("/treasury/proposals", post(treasury::create_proposal))
+        .route("/treasury/proposals/:id/approve", post(treasury::approve_proposal))
+        .route("/treasury/proposals/:id/execute", post(treasury::execute_proposal))
+        // Insurance Fund API (TASK-P5-029) - 4 endpoints
+        .route("/insurance/dashboard", get(insurance::get_dashboard))
+        .route("/insurance/claims", get(insurance::list_claims))
+        .route("/insurance/claims", post(insurance::submit_claim))
+        .route("/insurance/transactions", get(insurance::list_transactions))
+        // Fee Distribution API (TASK-P5-029) - 2 endpoints
+        .route("/fees/distribution", get(fees::get_distribution))
+        .route("/fees/stats", get(fees::get_stats))
+}
+
+/// Authentication routes (TASK-P5-012: SIWE→JWT)
+/// POST /v1/auth/siwe - SIWE authentication (public)
+/// POST /v1/auth/refresh - Refresh access token (public)
+/// GET /v1/auth/me - Get current user (protected)
+pub fn auth_routes(state: Arc<AppState>) -> Router {
+    Router::new()
+        // Public endpoints (no auth required)
+        .route("/auth/siwe", post(auth::siwe_authenticate))
+        .route("/auth/refresh", post(auth::refresh_token))
+        // Protected endpoint (requires JWT)
+        .route(
+            "/auth/me",
+            get(auth::get_current_user)
+                .layer(middleware::from_fn_with_state(state.clone(), jwt_auth)),
+        )
+        .with_state(state)
 }
 
 /// Admin Dashboard API routes (/api/*)
+/// Existing prover/provider management + TASK-P5-015 QS Admin API (11 EP)
 pub fn admin_routes() -> Router {
     Router::new()
+        // === TASK-P5-015: QS Admin API (11 EP) ===
+        // Dashboard & Overview
+        .route("/admin/dashboard", get(admin::get_qs_dashboard))
+        .route("/admin/transactions", get(admin::get_admin_transactions))
+        .route("/admin/nodes", get(admin::get_admin_nodes))
+        // Staff Management
+        .route("/admin/staff", get(admin::get_staff))
+        .route("/admin/staff", post(admin::create_staff))
+        // Reports & Audit
+        .route("/admin/reports", get(admin::get_reports))
+        .route("/admin/audit-log", get(admin::get_audit_log))
+        // Parameters
+        .route("/admin/parameters", get(admin::get_parameters))
+        .route("/admin/parameters/change-request", post(admin::create_parameter_change_request))
+        // Enterprise Accounts
+        .route("/admin/enterprise/accounts", get(admin::get_enterprise_accounts))
+        .route("/admin/enterprise/accounts", post(admin::create_enterprise_account))
+        // === Existing Admin Endpoints ===
         // Prover Management
         .route("/provers", get(admin::list_provers))
         .route("/provers/register", post(admin::register_prover))
