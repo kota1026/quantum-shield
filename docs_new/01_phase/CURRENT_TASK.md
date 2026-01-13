@@ -9,60 +9,67 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-035 |
-| タイトル | Edition切替テスト |
+| タスクID | TASK-P5-036 |
+| タイトル | 本番デプロイ準備 |
 | Phase | 5.5 統合・テスト |
-| 優先度 | P1 |
-| 見積工数 | 3日 |
-| 依存 | P5-010 (EditionConfig.sol - 完了済み) |
-| 計画参照 | D.2 |
+| 優先度 | P0 |
+| 見積工数 | 2日 |
+| 依存 | P5-033〜035 (完了済み) |
+| 計画参照 | §3.1, D.2 |
 | **Status** | **COMPLETE** ✅ |
 
 ### トレーサビリティ
 
 | 仕様項目 | 仕様書参照 | 実装先 |
 |----------|----------|--------|
-| Edition切替テスト | EDITION_SWITCH_SPEC.md §3, §8 | `contracts/test/core/EditionSwitchE2E.t.sol` |
-| 承認モード切替テスト | §3.2, Phase遷移 | 同上 |
-| Enterprise制約テスト | §3.1 Enterprise固定 | 同上 |
-| Decentralized遷移テスト | Phase 1-4 | 同上 |
+| Docker構成 | PHASE5_INTEGRATION_PLAN §3.1 | `docker/docker-compose.production.yml` |
+| 環境変数管理 | §3.1 Security | `docker/.env.production.example` |
+| デプロイスクリプト | §3.1 | `scripts/deploy/production/` |
+| 監視設定 | D.2 監視要件 | `docker/monitoring/` |
 
 ### 成果物
 
 | # | 成果物 | 説明 | 状態 |
 |---|--------|------|:----:|
-| 1 | contracts/test/core/EditionSwitchE2E.t.sol | Edition切替E2Eテスト (812行/30+テスト) | ✅ |
-| 2 | フルサイクルEdition切替テスト | Enterprise ↔ Decentralized | ✅ |
-| 3 | 承認モード4段階遷移テスト | CONTRACT→INVITE→COUNCIL→STAKE | ✅ |
-| 4 | Phase遷移統合テスト | Phase 1-2-3-4の完全遷移 | ✅ |
-| 5 | エッジケース・境界テスト | 不正遷移、制約違反 | ✅ |
-| 6 | ガス最適化テスト | Gas consumption validation | ✅ |
-| 7 | 状態整合性テスト | State consistency checks | ✅ |
+| 1 | docker/docker-compose.production.yml | 本番用統合Docker構成 (10サービス) | ✅ |
+| 2 | docker/.env.production.example | 本番環境変数テンプレート (50+変数) | ✅ |
+| 3 | scripts/deploy/production/deploy.sh | 本番デプロイスクリプト (up/down/health/backup等) | ✅ |
+| 4 | scripts/deploy/production/health-check.sh | 包括的ヘルスチェックスクリプト | ✅ |
+| 5 | docker/monitoring/prometheus.yml | Prometheus設定 (10ジョブ) | ✅ |
+| 6 | docker/monitoring/alert-rules.yml | アラートルール (25+ルール) | ✅ |
+| 7 | docker/monitoring/alertmanager.yml | Alertmanager設定 | ✅ |
+| 8 | docker/monitoring/grafana/ | Grafanaダッシュボード・プロビジョニング | ✅ |
+| 9 | services/api/Dockerfile | API Service Dockerfile | ✅ |
+| 10 | services/event-bridge/Dockerfile | Event Bridge Dockerfile | ✅ |
+| 11 | services/monitor-bot/Dockerfile | Monitor Bot Dockerfile | ✅ |
+| 12 | stark-prover/Dockerfile | STARK Prover Dockerfile | ✅ |
+| 13 | docker/README.md | デプロイメントドキュメント | ✅ |
 
 ### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | Enterprise → Decentralized切替E2Eテスト作成 | ✅ |
-| 2 | Decentralized → Enterprise切替E2Eテスト作成 | ✅ |
-| 3 | 4つの承認モード遷移テスト作成 | ✅ |
-| 4 | Phase 1-4完全遷移シナリオテスト作成 | ✅ |
-| 5 | Enterprise制約違反テスト作成 | ✅ |
-| 6 | エッジケース・境界テスト作成 | ✅ |
+| 1 | 全サービス統合Docker Compose作成 | ✅ |
+| 2 | 環境変数・シークレット管理テンプレート作成 | ✅ |
+| 3 | 本番デプロイスクリプト作成 | ✅ |
+| 4 | 監視・ロギング設定 (Prometheus/Grafana) | ✅ |
+| 5 | ヘルスチェック・ロールバック手順作成 | ✅ |
+| 6 | 各サービスDockerfile作成 | ✅ |
 
-### E2Eテストサマリー
+### Docker Compose サービス一覧
 
-| Section | Test Category | Tests |
-|---------|---------------|:-----:|
-| 1 | Enterprise → Decentralized Full Cycle | 2 |
-| 2 | Decentralized → Enterprise Full Cycle | 2 |
-| 3 | Approval Mode 4-Stage Transition | 4 |
-| 4 | Phase Transition Integration (1-4) | 2 |
-| 5 | Edge Cases and Boundary | 5 |
-| 6 | Complex Scenarios | 3 |
-| 7 | Gas Optimization | 3 |
-| 8 | State Consistency | 1 |
-| **Total** | | **22+** |
+| サービス | 説明 | ポート |
+|----------|------|--------|
+| api | REST API | 8080 |
+| event-bridge | L1/L3イベント同期 | 8081, 8082 (WS) |
+| monitor-bot | 24h監視 | 9100 (metrics) |
+| stark-prover | STARK証明生成 | 3000 |
+| postgres | データベース | 5432 |
+| redis | キャッシュ | 6379 |
+| rabbitmq | メッセージキュー | 5672, 15672 |
+| prometheus | メトリクス収集 | 9090 |
+| grafana | ダッシュボード | 3001 |
+| alertmanager | アラート管理 | 9093 |
 
 ---
 
@@ -71,12 +78,23 @@
 - **TASK-P5-033**: UI ↔ API統合 ✅ 完了
 - **TASK-P5-034**: E2Eテスト（実STARK証明）✅ 完了
 - **TASK-P5-035**: Edition切替テスト ✅ 完了
+- **TASK-P5-036**: 本番デプロイ準備 ✅ 完了
 
 ---
 
-## 次のタスク候補
+## Phase 5 完了
 
-- **TASK-P5-036**: 本番デプロイ準備 (2日) - Phase 5最終タスク
+**Phase 5 全タスク完了！**
+
+| Phase | タスク | 状態 |
+|-------|:------:|:----:|
+| 5.0 ブロッカー | 7/7 | ✅ 100% |
+| 5.1 基盤整備 | 7/7 | ✅ 100% |
+| 5.2 コアAPI | 4/4 | ✅ 100% |
+| 5.3 管理系API | 4/4 | ✅ 100% |
+| 5.4 補完機能 | 10/10 | ✅ 100% |
+| 5.5 統合・テスト | 4/4 | ✅ 100% |
+| **合計** | **36/36** | **✅ 100%** |
 
 ---
 
