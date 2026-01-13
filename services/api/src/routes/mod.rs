@@ -20,6 +20,7 @@ mod treasury;
 mod insurance;
 mod fees;
 mod explorer;
+pub mod council;
 
 use std::sync::Arc;
 use axum::middleware;
@@ -85,6 +86,15 @@ pub fn api_routes() -> Router {
         .route("/governance/votes/:id", get(governance::get_vote))
         .route("/governance/activity", get(governance::get_activity))
         .route("/governance/council", get(governance::get_council))
+        // Security Council API (TASK-P5-028) - 7 endpoints
+        .route("/council/members", get(council::get_members))
+        .route("/council/thresholds", get(council::get_thresholds))
+        .route("/council/actions", get(council::list_actions))
+        .route("/council/actions/:id", get(council::get_action))
+        .route("/council/actions", post(council::propose_action))
+        .route("/council/actions/:id/sign", post(council::sign_action))
+        .route("/council/actions/:id/execute", post(council::execute_action))
+        .route("/council/emergency-status", get(council::get_emergency_status))
         // Enterprise Admin API (TASK-P5-016) - 19 endpoints
         // Dashboard (3 EP)
         .route("/enterprise/dashboard/overview", get(enterprise::get_dashboard_overview))

@@ -1,106 +1,95 @@
 # Event Log - Phase 5
 
 > **Session Start**: 2026-01-13
-> **Task**: TASK-P5-027 監視ボット実装
+> **Task**: TASK-P5-028 Security Council統合
 
 ---
 
-## 2026-01-13 (Session - TASK-P5-027)
+## 2026-01-13 (Session - TASK-P5-028)
 
 ### Event: SESSION_START
 - **Time**: Session initiated
 - **Phase**: 5.4 補完機能
-- **Task**: TASK-P5-027
+- **Task**: TASK-P5-028
 
 ### Event: TASK_ANALYSIS
-- **Finding**: Monitor Bot service needed for 24h unlock surveillance and fraud detection
-- **Scope**: New service with monitors, detectors, alerts, and risk analysis modules
-- **Reference**: 26_phase5_planner.md §8 TASK-P5-046
+- **Finding**: Security Council API integration needed
+- **Scope**: New council.rs module with 8 API endpoints
+- **Reference**: §2.6.3, SEQUENCES §8, UNIFIED_SPEC §Security Council
 
 ---
 
 ## Implementation Log
 
-### Event: MONITOR_BOT_IMPLEMENTED
+### Event: COUNCIL_API_IMPLEMENTED
 - **Time**: 2026-01-13
 - **Files Created**:
-  - `services/monitor-bot/Cargo.toml` - Package definition
-  - `services/monitor-bot/src/main.rs` - Main entry point with MonitorBot struct
-  - `services/monitor-bot/src/types.rs` - Common types (PendingUnlock, RiskScore, etc.)
-  - `services/monitor-bot/src/config/mod.rs` - Configuration management
-  - `services/monitor-bot/src/monitors/mod.rs` - Monitor module exports
-  - `services/monitor-bot/src/monitors/unlock.rs` - 24h Unlock monitoring
-  - `services/monitor-bot/src/detectors/mod.rs` - Detector module exports
-  - `services/monitor-bot/src/detectors/fraud.rs` - Fraud detection engine
-  - `services/monitor-bot/src/alerts/mod.rs` - Alert system (Discord/Slack/Webhook)
-  - `services/monitor-bot/src/analysis/mod.rs` - Analysis module exports
-  - `services/monitor-bot/src/analysis/risk.rs` - Risk scoring and analysis
+  - `services/api/src/routes/council.rs` - Security Council API (8 endpoints)
 - **Files Modified**:
-  - `Cargo.toml` - Added monitor-bot to workspace members
+  - `services/api/src/routes/mod.rs` - Added council module and routes
 
-### Monitor Bot Features Implemented:
-1. **24h Unlock Monitoring**
-   - Fetch pending unlocks from API
-   - Track imminent unlocks (< 1 hour)
-   - Monitor high-value unlocks (> 10 ETH)
-   - Emergency unlock detection
+### Security Council API Endpoints (8 EP)
 
-2. **Fraud Detection Engine**
-   - Pattern analysis for suspicious behavior
-   - Blocklist checking
-   - Risk factor identification
-   - Deep analysis with timing patterns
+```
+GET  /v1/council/members           - List 9 council members
+GET  /v1/council/thresholds        - Get threshold requirements
+GET  /v1/council/actions           - List proposed/executed actions
+GET  /v1/council/actions/:id       - Get action details with signers
+POST /v1/council/actions           - Propose new action
+POST /v1/council/actions/:id/sign  - Sign an action
+POST /v1/council/actions/:id/execute - Execute action
+GET  /v1/council/emergency-status  - Get emergency pause status
+```
 
-3. **Alert System**
-   - Discord webhook integration
-   - Slack webhook integration
-   - Custom webhook support
-   - Cooldown management to prevent spam
+### Action Types Supported
 
-4. **Risk Analysis**
-   - Weighted risk score calculation
-   - Suspicion level classification (Low/Medium/High/Critical)
-   - Threshold-based alerting
-   - Score aggregation
+| Type | Threshold | Contract Function |
+|------|:---------:|-------------------|
+| EmergencyPause | 5/9 | Pause protocol (max 72h) |
+| Veto | 6/9 | Veto governance proposal |
+| EmergencyUpgrade | 7/9 | Emergency contract upgrade |
+| MemberChange | 6/9 | Replace council member |
 
 ### Event: VERIFICATION_LOOP_1
 - **Result**: PASS
-- **Build**: `cargo build -p monitor-bot` - SUCCESS
-- **Tests**: 32 tests passed
-  - types::tests - 6 passed
-  - config::tests - 4 passed
-  - monitors::unlock::tests - 4 passed
-  - detectors::fraud::tests - 6 passed
-  - analysis::risk::tests - 8 passed
-  - alerts::tests - 3 passed
-  - main tests - 1 passed
+- **Build**: `cargo build -p quantum-shield-api` - SUCCESS
+- **Tests**: 123 tests passed
+  - Unit tests: 97 passed
+  - API tests: 14 passed
+  - Integration tests: 12 passed
+  - Council module tests: 8 passed
 
 ### Event: TASK_COMPLETE
 - **Time**: 2026-01-13
-- **Task**: TASK-P5-027
+- **Task**: TASK-P5-028
 - **Status**: COMPLETE
-- **Tests**: 32 passed
+- **Tests**: 123 passed
 
 ---
 
 ## Summary
 
-TASK-P5-027 監視ボット実装: **COMPLETE**
+TASK-P5-028 Security Council統合: **COMPLETE**
 
 | Item | Status |
 |------|--------|
-| Monitor Bot Service Created | ✅ |
-| 24h Unlock Monitoring | ✅ |
-| Fraud Detection Engine | ✅ |
-| Alert System (Discord/Slack/Webhook) | ✅ |
-| Risk Analysis Module | ✅ |
-| Configuration Management | ✅ |
+| Council Members API | ✅ |
+| Thresholds API | ✅ |
+| Actions List/Detail API | ✅ |
+| Propose Action API | ✅ |
+| Sign Action API | ✅ |
+| Execute Action API | ✅ |
+| Emergency Status API | ✅ |
 | Build Check | ✅ |
-| Tests | ✅ 32 passed |
+| Tests | ✅ 123 passed |
 
 ---
 
 ## Previous Sessions
+
+### TASK-P5-027 監視ボット実装 - 2026-01-13
+- **Status**: COMPLETE
+- **Tests**: 32 passed
 
 ### TASK-P5-026 i18n対応 (ja/en) - 2026-01-13
 - **Status**: COMPLETE

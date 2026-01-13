@@ -9,90 +9,84 @@
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-027 |
-| タイトル | 監視ボット実装 |
+| タスクID | TASK-P5-028 |
+| タイトル | Security Council統合 |
 | Phase | 5.4 補完機能 |
 | 優先度 | P1 |
 | 実績工数 | 0.5日 |
-| 計画参照 | 26_phase5_planner.md §8 TASK-P5-046 |
+| 計画参照 | §2.6.3 |
 
 ### トレーサビリティ
 
 | 仕様項目 | 仕様書参照 | 実装先 |
 |----------|----------|--------|
-| 24h Unlock監視 | SEQUENCES §2.5 | `services/monitor-bot/src/monitors/unlock.rs` |
-| 不正検知 | SEQUENCES §4.1 | `services/monitor-bot/src/detectors/fraud.rs` |
-| アラート送信 | UNIFIED_SPEC §Monitoring | `services/monitor-bot/src/alerts/mod.rs` |
-| リスク分析 | SEQUENCES §4.3 | `services/monitor-bot/src/analysis/risk.rs` |
+| Security Council Members | ISecurityCouncil.sol | `services/api/src/routes/council.rs` |
+| Action Management | SecurityCouncil.sol | `services/api/src/routes/council.rs` |
+| Emergency Pause (5/9) | SEQUENCES §8 | `services/api/src/routes/council.rs` |
+| Veto (6/9) | UNIFIED_SPEC §Security Council | `services/api/src/routes/council.rs` |
+| Emergency Upgrade (7/9) | UNIFIED_SPEC §Security Council | `services/api/src/routes/council.rs` |
 
 ### 成果物
 
 | # | 成果物 | 説明 |
 |---|--------|------|
-| 1 | services/monitor-bot/Cargo.toml | Monitor Bot パッケージ定義 |
-| 2 | services/monitor-bot/src/main.rs | メインエントリポイント |
-| 3 | services/monitor-bot/src/types.rs | 共通型定義 |
-| 4 | services/monitor-bot/src/config/mod.rs | 設定管理 |
-| 5 | services/monitor-bot/src/monitors/unlock.rs | 24h Unlock監視 |
-| 6 | services/monitor-bot/src/detectors/fraud.rs | 不正検知エンジン |
-| 7 | services/monitor-bot/src/alerts/mod.rs | アラート送信（Discord/Slack/Webhook） |
-| 8 | services/monitor-bot/src/analysis/risk.rs | リスク分析・スコアリング |
+| 1 | services/api/src/routes/council.rs | Security Council API (8 EP) |
+| 2 | services/api/src/routes/mod.rs | Routes registration |
 
 ### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | Monitor Bot サービス作成 | ✅ |
-| 2 | 24h Unlock監視機能実装 | ✅ |
-| 3 | 不正検知アラート機能実装 | ✅ |
-| 4 | リスク分析モジュール実装 | ✅ |
-| 5 | cargo build 成功 | ✅ |
-| 6 | cargo test 成功 (32 passed) | ✅ |
+| 1 | Council members list API | ✅ |
+| 2 | Council thresholds API | ✅ |
+| 3 | Actions list/detail API | ✅ |
+| 4 | Propose action API | ✅ |
+| 5 | Sign action API | ✅ |
+| 6 | Execute action API | ✅ |
+| 7 | Emergency status API | ✅ |
+| 8 | cargo build 成功 | ✅ |
+| 9 | cargo test 成功 (123 passed) | ✅ |
 
 ### 実装詳細
 
-#### 追加したモジュール
+#### 追加したエンドポイント (8 EP)
 
-1. **monitors/unlock.rs** - Unlock監視
-   - `UnlockMonitor` struct
-   - `fetch_pending_unlocks()` - API からpending unlocks取得
-   - `fetch_imminent_unlocks()` - < 1時間の緊急unlocks
-   - `fetch_high_value_unlocks()` - 高額unlocks
-   - `calculate_stats()` - 統計計算
+```
+GET  /v1/council/members           - Council members listing
+GET  /v1/council/thresholds        - Threshold requirements (5/9, 6/9, 7/9)
+GET  /v1/council/actions           - Actions list (proposed/executed)
+GET  /v1/council/actions/:id       - Action details with signers
+POST /v1/council/actions           - Propose new action
+POST /v1/council/actions/:id/sign  - Sign an action
+POST /v1/council/actions/:id/execute - Execute action (if threshold met)
+GET  /v1/council/emergency-status  - Emergency pause status
+```
 
-2. **detectors/fraud.rs** - 不正検知
-   - `FraudDetector` struct
-   - `analyze()` - 基本分析
-   - `deep_analyze()` - 詳細分析
-   - blocklist チェック
+#### Action Types
 
-3. **alerts/mod.rs** - アラートシステム
-   - Discord webhook 統合
-   - Slack webhook 統合
-   - Custom webhook サポート
-   - Cooldown管理
+| Type | Threshold | Description |
+|------|:---------:|-------------|
+| EmergencyPause | 5/9 | Protocol pause (max 72h) |
+| Veto | 6/9 | Veto governance proposal |
+| EmergencyUpgrade | 7/9 | Emergency contract upgrade |
+| MemberChange | 6/9 | Replace council member |
 
-4. **analysis/risk.rs** - リスク分析
-   - `RiskAnalyzer` struct
-   - `calculate_score()` - スコア計算
-   - 重み付きファクター分析
-   - 閾値ベースの分類
+#### テスト追加 (8 tests)
 
-#### テスト追加 (32 tests)
-
-- types::tests - 6 tests
-- config::tests - 4 tests
-- monitors::unlock::tests - 4 tests
-- detectors::fraud::tests - 6 tests
-- analysis::risk::tests - 8 tests
-- alerts::tests - 3 tests
-- main tests - 1 test
+- test_action_type_serialization
+- test_action_state_serialization
+- test_threshold_values
+- test_propose_action_data_deserialization
+- test_veto_action_data_deserialization
+- test_member_change_data_deserialization
+- test_council_members_response
+- test_emergency_status_response
+- test_action_data_serialization
 
 ---
 
 ## 次のタスク候補
 
-- TASK-P5-028: Security Council統合
 - TASK-P5-030: Resync実装
 - TASK-P5-031: Prover Exit実装
 - TASK-P5-032: Emergency Pause実装
