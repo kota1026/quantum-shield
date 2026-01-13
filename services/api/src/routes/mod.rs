@@ -22,6 +22,7 @@ mod fees;
 mod explorer;
 pub mod council;
 mod resync;
+mod emergency;
 
 use std::sync::Arc;
 use axum::middleware;
@@ -171,6 +172,11 @@ pub fn api_routes() -> Router {
         .route("/resync", post(resync::create_resync))
         .route("/resync/pending", get(resync::get_pending_resyncs))
         .route("/resync/:lock_id", get(resync::get_resync_status))
+        // Emergency Pause API (TASK-P5-032) - 4 endpoints (Sequence #8)
+        .route("/emergency/pause", post(emergency::execute_pause))
+        .route("/emergency/status", get(emergency::get_status))
+        .route("/emergency/unpause", post(emergency::execute_unpause))
+        .route("/emergency/extend", post(emergency::request_extension))
 }
 
 /// Authentication routes (TASK-P5-012: SIWE→JWT)
