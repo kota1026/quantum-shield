@@ -11,6 +11,9 @@ mod health;
 mod admin;
 mod challenge;
 mod governance;
+mod treasury;
+mod insurance;
+mod fees;
 
 pub fn api_routes() -> Router {
     Router::new()
@@ -54,6 +57,21 @@ pub fn api_routes() -> Router {
         .route("/governance/votes/:id", get(governance::get_vote))
         .route("/governance/activity", get(governance::get_activity))
         .route("/governance/council", get(governance::get_council))
+        // Treasury API (TASK-P5-029)
+        .route("/treasury/dashboard", get(treasury::get_dashboard))
+        .route("/treasury/proposals", get(treasury::list_proposals))
+        .route("/treasury/proposals/:id", get(treasury::get_proposal))
+        .route("/treasury/proposals", post(treasury::create_proposal))
+        .route("/treasury/proposals/:id/approve", post(treasury::approve_proposal))
+        .route("/treasury/proposals/:id/execute", post(treasury::execute_proposal))
+        // Insurance Fund API (TASK-P5-029)
+        .route("/insurance/dashboard", get(insurance::get_dashboard))
+        .route("/insurance/claims", get(insurance::list_claims))
+        .route("/insurance/claims", post(insurance::submit_claim))
+        .route("/insurance/transactions", get(insurance::list_transactions))
+        // Fee Distribution API (TASK-P5-029)
+        .route("/fees/distribution", get(fees::get_distribution))
+        .route("/fees/stats", get(fees::get_stats))
 }
 
 /// Admin Dashboard API routes (/api/*)
