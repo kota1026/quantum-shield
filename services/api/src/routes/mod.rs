@@ -16,6 +16,9 @@ mod challenge;
 mod governance;
 mod enterprise;
 mod observer;
+mod treasury;
+mod insurance;
+mod fees;
 
 use std::sync::Arc;
 use axum::middleware;
@@ -81,7 +84,6 @@ pub fn api_routes() -> Router {
         .route("/governance/votes/:id", get(governance::get_vote))
         .route("/governance/activity", get(governance::get_activity))
         .route("/governance/council", get(governance::get_council))
-<<<<<<< HEAD
         // Enterprise Admin API (TASK-P5-016) - 19 endpoints
         // Dashboard (3 EP)
         .route("/enterprise/dashboard/overview", get(enterprise::get_dashboard_overview))
@@ -117,6 +119,21 @@ pub fn api_routes() -> Router {
         .route("/observer/challenge/:id", get(observer::get_challenge))
         .route("/observer/earnings", get(observer::get_earnings))
         .route("/observer/claim-earnings", post(observer::claim_earnings))
+        // Treasury API (TASK-P5-029) - 6 endpoints
+        .route("/treasury/dashboard", get(treasury::get_dashboard))
+        .route("/treasury/proposals", get(treasury::list_proposals))
+        .route("/treasury/proposals/:id", get(treasury::get_proposal))
+        .route("/treasury/proposals", post(treasury::create_proposal))
+        .route("/treasury/proposals/:id/approve", post(treasury::approve_proposal))
+        .route("/treasury/proposals/:id/execute", post(treasury::execute_proposal))
+        // Insurance Fund API (TASK-P5-029) - 4 endpoints
+        .route("/insurance/dashboard", get(insurance::get_dashboard))
+        .route("/insurance/claims", get(insurance::list_claims))
+        .route("/insurance/claims", post(insurance::submit_claim))
+        .route("/insurance/transactions", get(insurance::list_transactions))
+        // Fee Distribution API (TASK-P5-029) - 2 endpoints
+        .route("/fees/distribution", get(fees::get_distribution))
+        .route("/fees/stats", get(fees::get_stats))
 }
 
 /// Authentication routes (TASK-P5-012: SIWE→JWT)
