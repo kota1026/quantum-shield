@@ -1,132 +1,74 @@
 # Current Task Status
 
-> **Updated**: 2026-01-12
-> **Status**: ✅ Complete
+> **Updated**: 2026-01-13
+> **Status**: Completed
 
 ---
 
-## 現在のタスク
+## 完了したタスク
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-029 |
-| タイトル | Insurance/Treasury API実装 |
-| Phase | 5.4 補完機能 |
+| タスクID | TASK-P5-018 |
+| タイトル | 4BFT契約者管理API実装 |
+| Phase | 5.3 管理系API |
 | 優先度 | P1 |
-| 見積り工数 | 3日 |
-| 計画参照 | §2.6.2 |
+| 実績工数 | 0.5日 |
+| 計画参照 | §3.4, EDITION_SWITCH_SPEC |
 
 ### トレーサビリティ
 
 | 仕様項目 | 仕様書参照 | 実装先 |
 |----------|----------|--------|
-| Treasury管理 | UNIFIED_SPEC §Treasury | `services/api/src/routes/treasury.rs` |
-| Insurance Fund | UNIFIED_SPEC §Phase 1-4 手数料配分 | `services/api/src/routes/insurance.rs` |
-| 手数料配分 | UNIFIED_SPEC §手数料配分 | `services/api/src/routes/fees.rs` |
+| Enterprise契約者管理 | PHASE5_INTEGRATION_PLAN §3.4 | `services/api/src/routes/admin.rs` |
+| 4BFT固定ノード設計 | EDITION_SWITCH_SPEC §3.3 | `services/api/src/routes/admin.rs` |
+| CONTRACT_BASED承認 | EDITION_SWITCH_SPEC §5.2 | `services/api/src/routes/admin.rs` |
 
-### 既存実装（L3コントラクト）
+### 実装したAPI (4 EP追加、合計6 EP)
 
-| コントラクト | ファイル | 状態 |
-|------------|----------|:----:|
-| Treasury.sol | `l3-aegis/src/treasury/Treasury.sol` | ✅ 完成 |
-| InsuranceFund.sol | `l3-aegis/src/treasury/InsuranceFund.sol` | ✅ 完成 |
-| ITreasury.sol | `l3-aegis/src/interfaces/ITreasury.sol` | ✅ 完成 |
-
-### 実装するAPI (12 EP)
-
-#### Treasury API (6 EP)
+#### 4BFT契約者管理API（QS Admin側）
 ```
-GET  /v1/treasury/dashboard           - 概要・残高・統計
-GET  /v1/treasury/proposals           - 提案一覧
-GET  /v1/treasury/proposals/:id       - 提案詳細
-POST /v1/treasury/proposals           - 新規提案
-POST /v1/treasury/proposals/:id/approve - 提案承認
-POST /v1/treasury/proposals/:id/execute - 提案実行
-```
-
-#### Insurance Fund API (4 EP)
-```
-GET  /v1/insurance/dashboard          - 概要・残高・統計
-GET  /v1/insurance/claims             - クレーム履歴
-POST /v1/insurance/claims             - クレーム申請
-GET  /v1/insurance/transactions       - 取引履歴
-```
-
-#### Fee Distribution API (2 EP)
-```
-GET  /v1/fees/distribution            - 現在の配分設定
-GET  /v1/fees/stats                   - 手数料統計
+GET  /v1/admin/enterprise/accounts         - Enterprise企業一覧 (既存)
+GET  /v1/admin/enterprise/accounts/:id     - 企業詳細 (NEW)
+POST /v1/admin/enterprise/accounts         - 企業登録 (既存)
+PUT  /v1/admin/enterprise/accounts/:id     - 企業更新 (NEW)
+GET  /v1/admin/enterprise/contracts        - 契約一覧 (NEW)
+POST /v1/admin/enterprise/contracts        - 契約作成 (NEW)
 ```
 
 ### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | Treasury API 6 EP実装 | ✅ |
-| 2 | Insurance Fund API 4 EP実装 | ✅ |
-| 3 | Fee Distribution API 2 EP実装 | ✅ |
-| 4 | cargo build成功 | ✅ |
-| 5 | cargo test成功 | ✅ |
-| 6 | L3コントラクトとの整合性確認 | ✅ |
+| 1 | 4BFT契約者管理API 4 EP追加 | ✅ |
+| 2 | cargo build成功 | ✅ |
+| 3 | cargo test成功 (102件) | ✅ |
+| 4 | Admin認証統合 | ✅ |
+| 5 | Enterprise契約モデル定義 | ✅ |
 
-### WHY
+### 実装内容
 
-#### 問題
-- L3にTreasury/InsuranceFundコントラクトは完成しているが、API層が未実装
-- フロントエンドからTreasury管理・手数料配分機能にアクセス不可
+#### 追加した型
+- `ContractStatus` - 契約ステータス (Draft, PendingReview, Active, Suspended, Terminated, Expired)
+- `ContractType` - 契約種別 (Standard, CustomSla, Trial, Partner)
+- `Enterprise4BftConfig` - 4BFTノード設定
+- `NodeLocation` - ノード地理的分散
+- `SlaTerms` - SLA条件
+- `EnterpriseAccountDetailResponse` - 企業詳細レスポンス
+- `EnterpriseContract` - 契約詳細
+- `CreateEnterpriseContractRequest/Response` - 契約作成リクエスト/レスポンス
 
-#### 決定根拠
-- UNIFIED_SPEC §Treasury: マルチシグ管理、提案/承認フロー
-- UNIFIED_SPEC §手数料配分:
-  - Phase 1: Prover 50%, Treasury 40%, Insurance 10%
-  - Phase 2+: Prover 40%, Treasury 30%, Burn 20%, Insurance 10%
-
----
-
-## 実装済みタスク一覧（Phase 5）
-
-### Phase 5.0 ブロッカー解消（100%完了）
-
-| Task ID | 内容 | 状態 | 完了日 |
-|---------|------|:----:|-------|
-| TASK-P5-001 | Challenge API + SDK | ✅ | 2026-01-11 |
-| TASK-P5-002 | STARK Prover移行 | ✅ | 2026-01-11 |
-| TASK-P5-003 | React SDK WASM | ✅ | 2026-01-11 |
-| TASK-P5-004 | L3 Production Mode | ✅ | 2026-01-12 |
-| TASK-P5-005 | Chainlink VRF v2.5 | ✅ | 2026-01-12 |
-| TASK-P5-006 | Event Bridge | ✅ | 2026-01-12 |
-| TASK-P5-007 | SPHINCS+署名検証 | ✅ | 2026-01-12 |
-
-### Phase 5.1 基盤整備（100%完了）
-
-| Task ID | 内容 | 状態 | 完了日 |
-|---------|------|:----:|-------|
-| TASK-P5-010 | EditionConfig.sol | ✅ | 2026-01-12 |
-| TASK-P5-011 | ProverRegistry.sol | ✅ | 2026-01-12 |
-| TASK-P5-012 | SIWE→JWT認証 | ✅ | 2026-01-12 |
-| TASK-P5-013 | SDK API client認証 | ✅ | 2026-01-12 |
-
-### Phase 5.2 コアAPI（100%完了）
-
-| Task ID | 内容 | 状態 | 完了日 |
-|---------|------|:----:|-------|
-| TASK-P5-020 | Consumer App API (6 EP) | ✅ | 2026-01-12 |
-| TASK-P5-021 | Token Hub API (9 EP) | ✅ | 2026-01-12 |
-| TASK-P5-022 | Prover Portal API (9 EP) | ✅ | 2026-01-12 |
-| TASK-P5-023 | Governance API (8 EP) | ✅ | 2026-01-12 |
-
-### Phase 5.4 補完機能（部分完了）
-
-| Task ID | 内容 | 状態 | 完了日 |
-|---------|------|:----:|-------|
-| TASK-P5-025 | Prover Portal DESIGN_BRIEF | ✅ | 2026-01-12 |
-| **TASK-P5-029** | **Insurance/Treasury API (12 EP)** | **✅ Complete** | 2026-01-12 |
+#### Enterprise Edition (4BFT) 特性の実装
+- 固定4ノードBFT（全Phase共通）
+- CONTRACT_BASED Prover承認
+- ガバナンス: CENTRALIZED/MULTISIGまで
+- SLAベースのサービス
 
 ---
 
-## 次のステップ
+## 次のタスク
 
-→ Phase 5.3 管理系API または Phase 5.4 残りの補完機能を実装
+→ 次のセッションで新しいタスクを開始
 
 ---
 
