@@ -109,6 +109,10 @@ pub enum ApiError {
 
     #[error("Forbidden: {0}")]
     Forbidden(String),
+
+    // Observer errors (TASK-P5-019)
+    #[error("Invalid address: {0}")]
+    InvalidAddress(String),
 }
 
 #[derive(Serialize)]
@@ -157,6 +161,8 @@ impl ApiError {
             // Prover Portal errors (6xxx)
             ApiError::NotFound(_) => 6001,
             ApiError::Forbidden(_) => 6002,
+            // Observer errors (7xxx)
+            ApiError::InvalidAddress(_) => 7001,
         }
     }
 
@@ -199,6 +205,8 @@ impl ApiError {
             // Prover Portal errors
             ApiError::NotFound(_) => StatusCode::NOT_FOUND,
             ApiError::Forbidden(_) => StatusCode::FORBIDDEN,
+            // Observer errors
+            ApiError::InvalidAddress(_) => StatusCode::BAD_REQUEST,
         }
     }
 }

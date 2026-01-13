@@ -663,6 +663,9 @@ pub struct TransactionChallengeInfo {
     pub defense_deadline: u64,
 }
 
+/// Alias for user-facing challenge info (same as TransactionChallengeInfo)
+pub type UserChallengeInfo = TransactionChallengeInfo;
+
 /// Timeline event for transaction history
 #[derive(Debug, Serialize)]
 pub struct TimelineEvent {
@@ -1279,4 +1282,133 @@ pub struct ProverExitResponse {
     pub stake_to_return: String,
     /// Pending rewards to be returned
     pub pending_rewards: String,
+}
+
+// ============================================================================
+// Governance Types (TASK-P5-023) - Service Layer Types
+// ============================================================================
+
+/// Proposal status enum for service layer
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ProposalStatus {
+    Active,
+    Passed,
+    Defeated,
+    Pending,
+    Executed,
+    Cancelled,
+    Vetoed,
+}
+
+/// Governance dashboard response for service layer
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GovernanceDashboardResponse {
+    pub treasury_balance: String,
+    pub total_voting_power: String,
+    pub active_proposals: u32,
+    pub passed_proposals: u32,
+    pub total_proposals: u32,
+    pub user_veqs_balance: Option<String>,
+    pub user_voting_power_percent: Option<f64>,
+}
+
+/// Governance proposal for service layer
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GovernanceProposal {
+    pub id: String,
+    pub title: String,
+    pub description: String,
+    pub proposer: String,
+    pub status: ProposalStatus,
+    pub votes_for: String,
+    pub votes_against: String,
+    pub start_time: u64,
+    pub end_time: u64,
+    pub quorum: String,
+    pub created_at: u64,
+}
+
+/// Governance proposals response for service layer
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GovernanceProposalsResponse {
+    pub proposals: Vec<GovernanceProposal>,
+    pub total: usize,
+}
+
+/// Create proposal request for service layer
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateProposalRequest {
+    pub title: String,
+    pub description: String,
+}
+
+/// Create proposal response for service layer
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateProposalResponse {
+    pub proposal_id: String,
+    pub status: ProposalStatus,
+    pub start_time: u64,
+    pub end_time: u64,
+}
+
+/// Vote request for service layer
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VoteRequest {
+    pub proposal_id: String,
+    pub vote: bool,
+}
+
+/// Vote response for service layer
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VoteResponse {
+    pub proposal_id: String,
+    pub vote: bool,
+    pub voting_power: String,
+    pub success: bool,
+}
+
+/// Vote info for service layer
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VoteInfo {
+    pub voter: String,
+    pub proposal_id: String,
+    pub vote: bool,
+    pub voting_power: String,
+    pub timestamp: u64,
+}
+
+/// Governance activity item
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GovernanceActivityItem {
+    pub activity_type: String,
+    pub description: String,
+    pub timestamp: u64,
+    pub related_id: Option<String>,
+}
+
+/// Governance activity response
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GovernanceActivityResponse {
+    pub activities: Vec<GovernanceActivityItem>,
+    pub total: usize,
+}
+
+/// Council member
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CouncilMember {
+    pub address: String,
+    pub name: Option<String>,
+    pub veqs_balance: String,
+    pub voting_power_percent: f64,
+    pub proposals_created: u32,
+    pub votes_cast: u32,
+}
+
+/// Governance council response
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GovernanceCouncilResponse {
+    pub members: Vec<CouncilMember>,
+    pub total_members: u32,
+    pub total_voting_power: String,
 }

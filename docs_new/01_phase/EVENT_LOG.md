@@ -1,7 +1,53 @@
 # Event Log - Phase 5
 
-> **Session Start**: 2026-01-12
-> **Task**: TASK-P5-019 Observer API (8 EP)
+> **Session Start**: 2026-01-13
+> **Task**: TASK-P5-017 Enterprise Application Flow API (4 EP)
+
+---
+
+## 2026-01-13 (Session - TASK-P5-017)
+
+### Event: SESSION_START
+- **Time**: Session initiated
+- **Phase**: 5.3
+- **Task**: TASK-P5-017
+
+### Event: TASK_ANALYSIS
+- **Finding**: Enterprise申込フローAPI (4 EP) needed for Enterprise customer onboarding
+- **Scope**: Application submission, status tracking, contract signing, onboarding
+- **Dependency**: P5-016 (Enterprise Admin API) ✅ Completed
+
+### Event: IMPLEMENTATION_COMPLETED
+- **Time**: 2026-01-13
+- **Files Modified**:
+  - `services/api/src/routes/enterprise.rs` - Added 4 application flow endpoints + types
+  - `services/api/src/routes/mod.rs` - Added 4 new routes
+
+### Endpoints Implemented (4 EP):
+1. `POST /v1/enterprise/apply` - Submit enterprise application
+2. `GET /v1/enterprise/application/:id` - Get application status
+3. `POST /v1/enterprise/contract/sign` - Sign enterprise contract
+4. `GET /v1/enterprise/onboarding` - Get onboarding progress
+
+### Event: BUILD_VERIFICATION
+- **cargo build**: ✅ Success
+- **cargo test**: ✅ 109 tests passed
+
+### Event: EXISTING_CODE_FIXES
+- Fixed `ApiError::InvalidAddress` missing variant
+- Fixed `get_challenge` method missing in AppState
+- Fixed `GovernanceCouncilResponse` missing field
+- Fixed `ChallengeStatus` enum variant names
+- Added `UserChallengeInfo` type alias
+- Added Governance types to types.rs
+
+---
+
+## Previous Sessions
+
+---
+
+## 2026-01-12 (Session - TASK-P5-019)
 
 ---
 
