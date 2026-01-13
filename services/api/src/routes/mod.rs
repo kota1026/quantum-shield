@@ -21,6 +21,7 @@ mod insurance;
 mod fees;
 mod explorer;
 pub mod council;
+mod resync;
 
 use std::sync::Arc;
 use axum::middleware;
@@ -163,6 +164,10 @@ pub fn api_routes() -> Router {
         .route("/explorer/provers", get(explorer::get_provers))
         .route("/explorer/provers/:id", get(explorer::get_prover_detail))
         .route("/explorer/analytics", get(explorer::get_analytics))
+        // Resync API (TASK-P5-030) - 3 endpoints (Sequence #3')
+        .route("/resync", post(resync::create_resync))
+        .route("/resync/pending", get(resync::get_pending_resyncs))
+        .route("/resync/:lock_id", get(resync::get_resync_status))
 }
 
 /// Authentication routes (TASK-P5-012: SIWE→JWT)

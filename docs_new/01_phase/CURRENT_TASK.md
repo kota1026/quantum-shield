@@ -5,91 +5,75 @@
 
 ---
 
-## 完了したタスク
+## 完了タスク
 
 | 項目 | 値 |
 |------|-----|
-| タスクID | TASK-P5-028 |
-| タイトル | Security Council統合 |
+| タスクID | TASK-P5-030 |
+| タイトル | Resync実装 |
 | Phase | 5.4 補完機能 |
 | 優先度 | P1 |
-| 実績工数 | 0.5日 |
-| 計画参照 | §2.6.3 |
+| 見積工数 | 2日 |
+| 計画参照 | §2.6.1, SEQUENCES §3' |
+| **Status** | **✅ COMPLETE** |
 
 ### トレーサビリティ
 
 | 仕様項目 | 仕様書参照 | 実装先 |
 |----------|----------|--------|
-| Security Council Members | ISecurityCouncil.sol | `services/api/src/routes/council.rs` |
-| Action Management | SecurityCouncil.sol | `services/api/src/routes/council.rs` |
-| Emergency Pause (5/9) | SEQUENCES §8 | `services/api/src/routes/council.rs` |
-| Veto (6/9) | UNIFIED_SPEC §Security Council | `services/api/src/routes/council.rs` |
-| Emergency Upgrade (7/9) | UNIFIED_SPEC §Security Council | `services/api/src/routes/council.rs` |
+| L1-L3 Resync (自動) | SEQUENCES §3' | `services/api/src/routes/resync.rs` |
+| L1-L3 Resync (手動) | SEQUENCES §3' | `services/api/src/routes/resync.rs` |
 
 ### 成果物
 
 | # | 成果物 | 説明 |
 |---|--------|------|
-| 1 | services/api/src/routes/council.rs | Security Council API (8 EP) |
+| 1 | services/api/src/routes/resync.rs | Resync API (3 EP) |
 | 2 | services/api/src/routes/mod.rs | Routes registration |
 
 ### 完了条件
 
 | # | 条件 | 状態 |
 |---|------|:----:|
-| 1 | Council members list API | ✅ |
-| 2 | Council thresholds API | ✅ |
-| 3 | Actions list/detail API | ✅ |
-| 4 | Propose action API | ✅ |
-| 5 | Sign action API | ✅ |
-| 6 | Execute action API | ✅ |
-| 7 | Emergency status API | ✅ |
-| 8 | cargo build 成功 | ✅ |
-| 9 | cargo test 成功 (123 passed) | ✅ |
+| 1 | POST /v1/resync API | ✅ |
+| 2 | GET /v1/resync/:lock_id API | ✅ |
+| 3 | GET /v1/resync/pending API | ✅ |
+| 4 | cargo build 成功 | ✅ |
+| 5 | cargo test 成功 | ✅ (131 tests) |
 
 ### 実装詳細
 
-#### 追加したエンドポイント (8 EP)
+#### Resync API エンドポイント (3 EP)
 
 ```
-GET  /v1/council/members           - Council members listing
-GET  /v1/council/thresholds        - Threshold requirements (5/9, 6/9, 7/9)
-GET  /v1/council/actions           - Actions list (proposed/executed)
-GET  /v1/council/actions/:id       - Action details with signers
-POST /v1/council/actions           - Propose new action
-POST /v1/council/actions/:id/sign  - Sign an action
-POST /v1/council/actions/:id/execute - Execute action (if threshold met)
-GET  /v1/council/emergency-status  - Emergency pause status
+POST /v1/resync              - 手動Resync Request (lock_id, l1_tx_hash)
+GET  /v1/resync/:lock_id     - Resync状態確認
+GET  /v1/resync/pending      - 未同期Lock一覧
 ```
 
-#### Action Types
+#### Sequence #3' Resync 仕様
 
-| Type | Threshold | Description |
-|------|:---------:|-------------|
-| EmergencyPause | 5/9 | Protocol pause (max 72h) |
-| Veto | 6/9 | Veto governance proposal |
-| EmergencyUpgrade | 7/9 | Emergency contract upgrade |
-| MemberChange | 6/9 | Replace council member |
+**目的**: L3-L1間の同期失敗時の復旧
 
-#### テスト追加 (8 tests)
+**トリガー**: Lock後のL1→L3通知失敗
 
-- test_action_type_serialization
-- test_action_state_serialization
-- test_threshold_values
-- test_propose_action_data_deserialization
-- test_veto_action_data_deserialization
-- test_member_change_data_deserialization
-- test_council_members_response
-- test_emergency_status_response
-- test_action_data_serialization
+**方式**:
+1. 自動復旧 (A): L3が定期的にL1 Event Pollを実行 (1分ごと)
+2. 手動復旧 (M): ユーザーがResync Requestを送信
+
+**手動復旧フロー**:
+1. M1: User → L3: Resync Request {lock_id, l1_tx_hash}
+2. M2: L3 → L1: Tx検証
+3. M3: L1 → L3: Lock Data {confirmed, SR_0, ...}
+4. M4: L3 → User: Resync完了 {lock_id, status=synced}
 
 ---
 
 ## 次のタスク候補
 
-- TASK-P5-030: Resync実装
-- TASK-P5-031: Prover Exit実装
-- TASK-P5-032: Emergency Pause実装
+- **TASK-P5-031**: Prover Exit実装 (2日)
+- **TASK-P5-032**: Emergency Pause実装 (2日)
+- TASK-P5-033: UI ↔ API統合
 
 ---
 
