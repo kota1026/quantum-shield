@@ -23,6 +23,7 @@
   "devDependencies": {
     "@quantum-shield/eslint-config": "workspace:*",
     "@quantum-shield/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "react": "^18.2.0",
     "typescript": "^5.3.0"
