@@ -19,6 +19,7 @@ mod observer;
 mod treasury;
 mod insurance;
 mod fees;
+mod explorer;
 
 use std::sync::Arc;
 use axum::middleware;
@@ -134,6 +135,19 @@ pub fn api_routes() -> Router {
         // Fee Distribution API (TASK-P5-029) - 2 endpoints
         .route("/fees/distribution", get(fees::get_distribution))
         .route("/fees/stats", get(fees::get_stats))
+        // Explorer API (TASK-P5-024) - 12 endpoints
+        .route("/explorer/overview", get(explorer::get_overview))
+        .route("/explorer/search", get(explorer::search))
+        .route("/explorer/locks", get(explorer::get_locks))
+        .route("/explorer/locks/:id", get(explorer::get_lock_detail))
+        .route("/explorer/unlocks", get(explorer::get_unlocks))
+        .route("/explorer/unlocks/:id", get(explorer::get_unlock_detail))
+        .route("/explorer/challenges", get(explorer::get_challenges))
+        .route("/explorer/challenges/:id", get(explorer::get_challenge_detail))
+        .route("/explorer/address/:addr", get(explorer::get_address_info))
+        .route("/explorer/provers", get(explorer::get_provers))
+        .route("/explorer/provers/:id", get(explorer::get_prover_detail))
+        .route("/explorer/analytics", get(explorer::get_analytics))
 }
 
 /// Authentication routes (TASK-P5-012: SIWE→JWT)
