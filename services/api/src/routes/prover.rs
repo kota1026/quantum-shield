@@ -95,7 +95,7 @@ pub async fn register_prover(
 }
 
 /// GET /v1/prover/{prover_id}
-/// 
+///
 /// Get Prover information and status.
 pub async fn get_prover_info(
     Extension(state): Extension<Arc<AppState>>,

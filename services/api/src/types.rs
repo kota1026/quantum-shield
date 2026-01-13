@@ -628,7 +628,7 @@ pub struct UserTransactionDetailResponse {
     pub timeline: Vec<TimelineEvent>,
 }
 
-/// Challenge information for user transaction detail
+/// Challenge information for user display
 #[derive(Debug, Serialize)]
 pub struct UserChallengeInfo {
     /// Challenger address
@@ -737,7 +737,7 @@ pub struct TransactionsQueryParams {
 }
 
 // ============================================================================
-// Token Hub Types (veQS / Delegation / Rewards - TASK-P5-021)
+// Token Hub Types (veQS / Delegation / Rewards)
 // ============================================================================
 
 /// Dashboard response for Token Hub
@@ -1242,4 +1242,84 @@ pub struct ProverExitResponse {
     pub stake_to_return: String,
     /// Pending rewards to be returned
     pub pending_rewards: String,
+}
+
+// ============================================================================
+// Governance Types
+// ============================================================================
+
+/// Governance proposal
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Proposal {
+    /// Proposal ID
+    pub proposal_id: String,
+    /// Proposal title
+    pub title: String,
+    /// Proposal description
+    pub description: String,
+    /// Proposer address
+    pub proposer: String,
+    /// Proposal status
+    pub status: ProposalStatus,
+    /// Voting start timestamp
+    pub voting_start: u64,
+    /// Voting end timestamp
+    pub voting_end: u64,
+    /// Votes for
+    pub votes_for: String,
+    /// Votes against
+    pub votes_against: String,
+    /// Votes abstain
+    pub votes_abstain: String,
+    /// Quorum required
+    pub quorum: String,
+    /// Whether quorum is reached
+    pub quorum_reached: bool,
+}
+
+/// Proposal status
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ProposalStatus {
+    Pending,
+    Active,
+    Defeated,
+    Succeeded,
+    Queued,
+    Executed,
+    Canceled,
+    Expired,
+}
+
+/// Vote request
+#[derive(Debug, Deserialize)]
+pub struct VoteRequest {
+    /// Proposal ID
+    pub proposal_id: String,
+    /// Vote type
+    pub vote: VoteType,
+    /// Optional reason
+    pub reason: Option<String>,
+}
+
+/// Vote type
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum VoteType {
+    For,
+    Against,
+    Abstain,
+}
+
+/// Vote response
+#[derive(Debug, Serialize)]
+pub struct VoteResponse {
+    /// Success status
+    pub success: bool,
+    /// Transaction hash
+    pub tx_hash: Option<String>,
+    /// Vote recorded
+    pub vote: VoteType,
+    /// Voting power used
+    pub voting_power: String,
 }
