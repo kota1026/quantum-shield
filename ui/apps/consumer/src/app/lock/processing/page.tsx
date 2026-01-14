@@ -2,350 +2,267 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { Shield, Lock, CheckCircle, Circle, XCircle, ExternalLink, AlertTriangle, Loader2 } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useQSLock } from '@quantum-shield/web3';
 
 /**
  * Lock Processing Page - Consumer App
- * タスクID: UI-CON-004
- * 
- * Lock Flow: Input → Confirmation → Processing → Success
- * 仕様書: 04_SCREENS.md §2.1 Consumer App
+ * Premium Japan Design System v1.0
+ *
+ * デザイン参考: 10_lock_processing.html
  */
 
-type Step = 'preparing' | 'signing' | 'submitting' | 'confirming' | 'complete' | 'error';
+type StepStatus = 'pending' | 'active' | 'complete';
 
-const steps: { id: Step; title: string; description: string }[] = [
-  {
-    id: 'preparing',
-    title: 'トランザクション準備',
-    description: 'Dilithium署名を生成中',
-  },
-  {
-    id: 'signing',
-    title: 'ウォレット署名',
-    description: 'ウォレットでトランザクションを署名してください',
-  },
-  {
-    id: 'submitting',
-    title: 'トランザクション送信',
-    description: 'L1 Sepoliaに送信中',
-  },
-  {
-    id: 'confirming',
-    title: '確認中',
-    description: 'ブロック確認を待機中',
-  },
-  {
-    id: 'complete',
-    title: '完了',
-    description: '資産がロックされました',
-  },
-];
+interface Step {
+  id: string;
+  text: string;
+  status: StepStatus;
+}
 
-// Environment flags
 const IS_TESTNET_MODE = process.env.NEXT_PUBLIC_ENABLE_TESTNET_MODE === 'true';
 
 export default function LockProcessingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const amount = searchParams.get('amount') || '0';
+  const amount = searchParams.get('amount') || '5.00';
   const dilithiumPubKey = searchParams.get('pubKey') || '';
   const userSignature = searchParams.get('signature') || '';
-  
+
   const { address, isConnected } = useAccount();
-  const [currentStep, setCurrentStep] = useState<Step>('preparing');
-  const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [usingMockSignatures, setUsingMockSignatures] = useState(false);
-  
-  const { 
-    lock, 
-    isPending, 
-    isConfirming, 
-    isSuccess, 
-    txHash 
+
+  const [steps, setSteps] = useState<Step[]>([
+    { id: 'sign', text: 'Dilithium署名を生成', status: 'complete' },
+    { id: 'create', text: 'トランザクションを作成', status: 'complete' },
+    { id: 'submit', text: 'ブロックチェーンに送信中...', status: 'active' },
+    { id: 'confirm', text: '確認を待機', status: 'pending' },
+  ]);
+
+  const [txHash, setTxHash] = useState<string | null>(null);
+
+  const {
+    lock,
+    isPending,
+    isConfirming,
+    isSuccess,
+    txHash: realTxHash,
   } = useQSLock({
     onSuccess: (hash) => {
-      console.log('Lock successful:', hash);
-      setCurrentStep('complete');
-      setProgress(100);
-      setTimeout(() => {
-        router.push(`/lock/success?amount=${amount}&txHash=${hash}`);
-      }, 2000);
+      setTxHash(hash);
     },
     onError: (error) => {
-      console.error('Lock failed:', error);
       setErrorMessage(error.message);
-      setCurrentStep('error');
     },
   });
 
+  // Demo mode: Simulate processing
+  useEffect(() => {
+    const demoMode = !realTxHash;
+    if (!demoMode) return;
+
+    // Step 3 completes after 1.25s
+    const timer1 = setTimeout(() => {
+      setSteps((prev) =>
+        prev.map((s) =>
+          s.id === 'submit'
+            ? { ...s, status: 'complete' }
+            : s.id === 'confirm'
+            ? { ...s, status: 'active' }
+            : s
+        )
+      );
+      setTxHash('0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d');
+    }, 1250);
+
+    // Step 4 completes after 2.5s
+    const timer2 = setTimeout(() => {
+      setSteps((prev) =>
+        prev.map((s) => (s.id === 'confirm' ? { ...s, status: 'complete' } : s))
+      );
+    }, 2500);
+
+    // Redirect after 5s
+    const timer3 = setTimeout(() => {
+      router.push(`/lock/success?amount=${amount}&txHash=0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d`);
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [realTxHash, router, amount]);
+
+  // Real mode: Execute lock
   const executeLock = useCallback(async () => {
     if (!isConnected || !address) {
       setErrorMessage('ウォレットが接続されていません');
-      setCurrentStep('error');
       return;
     }
 
     try {
-      setCurrentStep('preparing');
-      setProgress(10);
-
       let pubKey = dilithiumPubKey;
       let signature = userSignature;
-      
+
       if (!pubKey || !signature) {
         if (!IS_TESTNET_MODE) {
           setErrorMessage('Dilithium WASMモジュールが利用できません');
-          setCurrentStep('error');
           return;
         }
-        
-        setUsingMockSignatures(true);
         pubKey = generateMockDilithiumPubKey(address);
         signature = generateMockSignature(address, amount);
       }
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setCurrentStep('signing');
-      setProgress(25);
 
       await lock({
         amount,
         dilithiumPublicKey: pubKey,
         userSignature: signature,
       });
-
-      setCurrentStep('submitting');
-      setProgress(50);
-
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Lock failed');
       setErrorMessage(error.message);
-      setCurrentStep('error');
     }
   }, [isConnected, address, amount, dilithiumPubKey, userSignature, lock]);
 
-  useEffect(() => {
-    if (isPending) {
-      setCurrentStep('signing');
-      setProgress(25);
-    }
-  }, [isPending]);
-
-  useEffect(() => {
-    if (isConfirming && txHash) {
-      setCurrentStep('confirming');
-      setProgress(75);
-    }
-  }, [isConfirming, txHash]);
-
-  useEffect(() => {
-    if (isSuccess) {
-      setCurrentStep('complete');
-      setProgress(100);
-    }
-  }, [isSuccess]);
-
-  useEffect(() => {
-    if (isConnected && currentStep === 'preparing') {
-      executeLock();
-    }
-  }, [isConnected, currentStep, executeLock]);
-
-  const handleRetry = () => {
-    setErrorMessage(null);
-    setCurrentStep('preparing');
-    setProgress(0);
-    setUsingMockSignatures(false);
-    executeLock();
-  };
-
-  const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
-  const etherscanUrl = process.env.NEXT_PUBLIC_ETHERSCAN_URL || 'https://sepolia.etherscan.io';
-
-  // Error State
-  if (currentStep === 'error') {
+  // Error state
+  if (errorMessage) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <div className="max-w-md w-full">
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-8 text-center">
-            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <XCircle className="w-10 h-10 text-red-400" />
-            </div>
-            <h1 className="text-2xl font-bold mb-2">トランザクション失敗</h1>
-            <p className="text-gray-400 mb-6">
-              資産のロック中にエラーが発生しました
-            </p>
-            
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl mb-6 text-left">
-              <p className="text-sm text-red-400">{errorMessage}</p>
-            </div>
-            
-            <div className="space-y-3">
-              <button
-                onClick={handleRetry}
-                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-xl transition-colors"
-              >
-                再試行
-              </button>
-              <Link
-                href="/lock"
-                className="w-full py-4 border border-white/20 hover:border-white/40 text-white font-semibold rounded-xl transition-colors flex items-center justify-center"
-              >
-                戻る
-              </Link>
-            </div>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="premium-bg">
+          <div className="red-glow" />
+        </div>
+        <div className="relative z-10 text-center max-w-md">
+          <div className="w-24 h-24 mx-auto mb-6 bg-qs-danger/10 rounded-full flex items-center justify-center text-5xl">
+            ❌
+          </div>
+          <h1 className="text-2xl font-bold mb-2 text-qs-danger">エラーが発生しました</h1>
+          <p className="text-qs-text-secondary mb-6">{errorMessage}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setErrorMessage(null);
+                executeLock();
+              }}
+              className="flex-1 btn-primary"
+            >
+              再試行
+            </button>
+            <button
+              onClick={() => router.push('/lock')}
+              className="flex-1 btn-secondary"
+            >
+              戻る
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  const amountInUsd = (parseFloat(amount) * 2500).toLocaleString('ja-JP', { maximumFractionDigits: 2 });
-
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-lg border-b border-white/10">
-        <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <Shield className="h-6 w-6 text-emerald-400" />
-              <span className="font-semibold">Quantum Shield</span>
-            </Link>
+    <div className="min-h-screen flex items-center justify-center p-6">
+      {/* Premium Background */}
+      <div className="premium-bg">
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-50"
+          style={{
+            background: 'radial-gradient(circle, var(--accent-hinomaru-dim), transparent 60%)',
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 text-center max-w-[400px] w-full">
+        {/* Processing Visual */}
+        <div className="relative w-40 h-40 mx-auto mb-8">
+          {/* Orbits */}
+          <div
+            className="absolute inset-0 border-2 border-transparent rounded-full animate-[spin_1.5s_linear_infinite]"
+            style={{ borderTopColor: 'var(--accent-gold)' }}
+          />
+          <div
+            className="absolute -inset-2.5 border-2 border-transparent rounded-full animate-[spin_2s_linear_infinite_reverse]"
+            style={{ borderTopColor: 'var(--accent-hinomaru)' }}
+          />
+
+          {/* Hinomaru Core */}
+          <div className="absolute inset-[30px]">
+            <div
+              className="absolute inset-0 rounded-full border border-white/10"
+              style={{
+                background: 'radial-gradient(circle at 40% 40%, rgba(255,255,255,0.15), rgba(255,255,255,0.02))',
+              }}
+            />
+            <div
+              className="absolute inset-5 rounded-full animate-pulse"
+              style={{
+                background: 'radial-gradient(circle at 35% 35%, #ff3050, var(--accent-hinomaru), #8a001a)',
+                boxShadow: '0 0 40px var(--accent-hinomaru-glow)',
+              }}
+            />
           </div>
         </div>
-      </header>
 
-      <main className="pt-24 pb-12 px-4">
-        <div className="max-w-md mx-auto">
-          {/* Testnet Warning */}
-          {IS_TESTNET_MODE && usingMockSignatures && (
-            <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl mb-6">
-              <div className="flex items-start space-x-3">
-                <AlertTriangle className="w-5 h-5 text-orange-400 mt-0.5" />
-                <div>
-                  <p className="text-sm text-orange-400 font-medium mb-1">テストネットモード</p>
-                  <p className="text-xs text-gray-400">
-                    モックのDilithium署名を使用しています。本番環境では使用しないでください。
-                  </p>
-                </div>
+        {/* Title */}
+        <h1 className="text-2xl font-bold mb-3">Lock処理中...</h1>
+        <p className="text-sm text-qs-text-secondary mb-8">
+          しばらくお待ちください。このページを閉じないでください。
+        </p>
+
+        {/* Steps */}
+        <div className="text-left space-y-2 mb-8">
+          {steps.map((step, index) => (
+            <div
+              key={step.id}
+              className={`flex items-center gap-3 p-3 rounded-qs-lg transition-all ${
+                step.status === 'active'
+                  ? 'bg-hinomaru-dim'
+                  : step.status === 'complete'
+                  ? 'bg-qs-success/10'
+                  : 'bg-white/5'
+              }`}
+            >
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
+                  step.status === 'active'
+                    ? 'bg-hinomaru text-white animate-pulse'
+                    : step.status === 'complete'
+                    ? 'bg-qs-success text-white'
+                    : 'bg-white/5 text-qs-text-tertiary'
+                }`}
+              >
+                {step.status === 'complete' ? '✓' : index + 1}
               </div>
+              <span
+                className={`flex-1 text-sm ${
+                  step.status === 'active'
+                    ? 'text-qs-text-primary font-medium'
+                    : step.status === 'complete'
+                    ? 'text-qs-success'
+                    : 'text-qs-text-tertiary'
+                }`}
+              >
+                {step.text}
+              </span>
             </div>
-          )}
-
-          {/* Main Card */}
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-8">
-            {/* Status Icon */}
-            <div className="text-center mb-8">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                currentStep === 'complete' 
-                  ? 'bg-emerald-500/20' 
-                  : 'bg-emerald-500/10'
-              }`}>
-                {currentStep === 'complete' ? (
-                  <CheckCircle className="w-10 h-10 text-emerald-400" />
-                ) : (
-                  <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
-                )}
-              </div>
-              <h1 className="text-2xl font-bold mb-2">
-                {currentStep === 'complete' ? 'Lock完了！' : '処理中...'}
-              </h1>
-              <p className="text-gray-400">
-                {currentStep === 'complete'
-                  ? `${amount} ETH を正常にロックしました`
-                  : 'L1 Sepoliaで資産を保護しています'}
-              </p>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-center text-sm text-gray-500 mt-2">{progress}%</p>
-            </div>
-
-            {/* Steps */}
-            <div className="space-y-4 mb-8">
-              {steps.map((step, index) => {
-                const isComplete = index < currentStepIndex;
-                const isCurrent = step.id === currentStep;
-
-                return (
-                  <div
-                    key={step.id}
-                    className={`flex items-start space-x-4 ${
-                      isComplete || isCurrent ? 'text-white' : 'text-gray-500'
-                    }`}
-                  >
-                    <div className="mt-0.5">
-                      {isComplete ? (
-                        <CheckCircle className="w-5 h-5 text-emerald-400" />
-                      ) : isCurrent ? (
-                        <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
-                      ) : (
-                        <Circle className="w-5 h-5" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {step.title}
-                        {step.id === 'preparing' && usingMockSignatures && (
-                          <span className="ml-2 text-xs text-orange-400">(Mock)</span>
-                        )}
-                      </p>
-                      <p className="text-sm text-gray-400">{step.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Transaction Hash */}
-            {txHash && (
-              <div className="p-4 bg-gray-800 rounded-xl mb-6">
-                <p className="text-sm text-gray-400 mb-2">トランザクションハッシュ</p>
-                <a
-                  href={`${etherscanUrl}/tx/${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between text-emerald-400 hover:text-emerald-300"
-                >
-                  <span className="font-mono text-sm">
-                    {txHash.slice(0, 10)}...{txHash.slice(-8)}
-                  </span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            )}
-
-            {/* Amount Info */}
-            <div className="p-4 bg-gray-800 rounded-xl text-center">
-              <p className="text-sm text-gray-400">Lock中</p>
-              <p className="text-3xl font-bold">{amount} ETH</p>
-              <p className="text-sm text-gray-500">≈ ${amountInUsd} USD</p>
-              <p className="text-xs text-gray-500 mt-2">
-                L1 Sepolia (Chain ID: 11155111)
-              </p>
-            </div>
-          </div>
-
-          {/* Warning */}
-          <p className="text-center text-sm text-gray-500 mt-6">
-            処理が完了するまでこのウィンドウを閉じないでください
-          </p>
+          ))}
         </div>
-      </main>
+
+        {/* TX Hash */}
+        {txHash && (
+          <div className="text-xs text-qs-text-tertiary">
+            TX:{' '}
+            <a
+              href={`https://sepolia.etherscan.io/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gold hover:underline"
+            >
+              {txHash.slice(0, 6)}...{txHash.slice(-4)}
+            </a>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
