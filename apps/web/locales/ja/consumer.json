@@ -1,5 +1,6 @@
 {
-  "common": {
+  "consumer": {
+    "common": {
     "header": {
       "dashboard": "ダッシュボード",
       "lock": "ロック",
@@ -657,5 +658,226 @@
       "github": "スマートコントラクト（GitHub）",
       "audits": "監査レポート"
     }
+  },
+  "emergencyBond": {
+    "meta": {
+      "title": "緊急Unlock - Bond | Quantum Shield",
+      "description": "緊急Unlockに必要なBond（保証金）の確認"
+    },
+    "header": {
+      "title": "緊急Unlock",
+      "back": "戻る"
+    },
+    "warning": {
+      "title": "緊急Unlockには7日間の待機期間",
+      "message": "とBond（保証金）が必要です。通常Unlockが可能な場合はそちらを推奨します。"
+    },
+    "bondCard": {
+      "title": "Bond（保証金）について",
+      "unlockAmount": "Unlock金額",
+      "waitTime": "待機時間",
+      "waitDays": "{days}日間",
+      "formula": "Bond = MAX(0.5 ETH, 金額 × 5%)",
+      "requiredBond": "必要なBond",
+      "info1": "Bondは7日間の待機期間後、Challengeがなければ<strong>全額返還</strong>されます",
+      "info2": "不正なUnlockの場合、BondはChallengerに没収されます",
+      "info3": "緊急Unlockは秘密鍵紛失時のセーフティネットです"
+    },
+    "confirm": {
+      "label": "上記の内容を理解し、Bond {amount} {symbol}を支払うことに同意します"
+    },
+    "buttons": {
+      "cancel": "キャンセル",
+      "submit": "緊急Unlockを開始",
+      "submitting": "処理中..."
+    }
+  },
+  "emergencyProcessing": {
+    "meta": {
+      "title": "緊急Unlock処理中 | Quantum Shield",
+      "description": "緊急Unlockトランザクションを処理中"
+    },
+    "header": {
+      "title": "処理中"
+    },
+    "status": {
+      "submitting": "トランザクション送信中",
+      "confirming": "ブロックチェーン確認中",
+      "processing": "処理中..."
+    },
+    "message": {
+      "wait": "この処理には数分かかる場合があります",
+      "doNotClose": "ブラウザを閉じないでください"
+    },
+    "steps": {
+      "verify": "ウォレット署名を検証",
+      "sendBond": "Bond (0.50 ETH) を送金中...",
+      "register": "緊急Unlock要求を登録",
+      "startTimeLock": "7日間Time Lock開始"
+    }
+  },
+  "emergencySuccess": {
+    "meta": {
+      "title": "緊急Unlock開始完了 | Quantum Shield",
+      "description": "緊急Unlockが正常に開始されました"
+    },
+    "header": {
+      "title": "完了"
+    },
+    "success": {
+      "title": "緊急Unlockを開始しました",
+      "subtitle": "7日間の待機期間後、資産がウォレットに転送されます"
+    },
+    "timelock": {
+      "title": "緊急Time Lock残り時間",
+      "label": "Challenge期間終了まで"
+    },
+    "details": {
+      "amount": "Unlock金額",
+      "bond": "Bond（保証金）",
+      "bondRefund": "返還予定",
+      "waitPeriod": "待機期間",
+      "estimatedCompletion": "Unlock可能日時",
+      "txHash": "TX Hash"
+    },
+    "info": {
+      "message": "7日間のChallenge期間中に問題がなければ、Bondは自動的に返還されます。Unlock可能になったらダッシュボードから実行できます。"
+    },
+    "buttons": {
+      "viewHistory": "履歴を確認",
+      "backToDashboard": "ダッシュボードに戻る"
+    }
+  },
+  "terms": {
+    "meta": {
+      "title": "利用規約 | Quantum Shield",
+      "description": "Quantum Shield サービス利用規約"
+    },
+    "header": {
+      "title": "利用規約",
+      "back": "戻る"
+    },
+    "lastUpdated": "最終更新日: {date}",
+    "sections": {
+      "acceptance": {
+        "title": "第1条 規約の承諾",
+        "content": "本利用規約（以下「本規約」）は、Quantum Shield（以下「本サービス」）の利用条件を定めるものです。本サービスを利用することにより、ユーザーは本規約に同意したものとみなされます。"
+      },
+      "service": {
+        "title": "第2条 サービス内容",
+        "content": "本サービスは、量子耐性暗号技術を用いたデジタル資産保護サービスを提供します。ユーザーは自己の責任において本サービスを利用するものとします。"
+      },
+      "eligibility": {
+        "title": "第3条 利用資格",
+        "content": "本サービスは、18歳以上の方、または法人のみが利用できます。一部の国・地域からのアクセスは制限される場合があります。"
+      },
+      "risks": {
+        "title": "第4条 リスク",
+        "content": "暗号資産の価格は変動し、元本を失う可能性があります。本サービスは投資助言を提供するものではありません。ユーザーは自己の判断と責任において利用してください。"
+      },
+      "keys": {
+        "title": "第5条 秘密鍵の管理",
+        "content": "ユーザーは自身のDilithium秘密鍵を安全に管理する責任を負います。秘密鍵の紛失または漏洩により生じた損害について、当社は責任を負いません。"
+      },
+      "prohibited": {
+        "title": "第6条 禁止事項",
+        "content": "不正アクセス、マネーロンダリング、テロ資金供与、その他違法行為に本サービスを使用することを禁止します。"
+      },
+      "disclaimer": {
+        "title": "第7条 免責事項",
+        "content": "本サービスは「現状有姿」で提供され、明示・黙示を問わず、いかなる保証も行いません。スマートコントラクトの脆弱性、ネットワーク障害、その他の技術的問題により生じた損害について、当社は責任を負いません。"
+      },
+      "changes": {
+        "title": "第8条 規約の変更",
+        "content": "当社は、必要に応じて本規約を変更することがあります。重要な変更がある場合は、サービス上で通知します。"
+      },
+      "governing": {
+        "title": "第9条 準拠法・管轄",
+        "content": "本規約は日本法に準拠し、東京地方裁判所を第一審の専属的合意管轄裁判所とします。"
+      }
+    },
+    "contact": {
+      "title": "お問い合わせ",
+      "content": "本規約に関するお問い合わせは、support@quantumshield.io までご連絡ください。"
+    },
+    "footer": {
+      "home": "ホーム",
+      "terms": "利用規約",
+      "privacy": "プライバシー",
+      "faq": "FAQ",
+      "copyright": "© 2026 Quantum Shield. Made in Japan"
+    }
+  },
+  "privacy": {
+    "meta": {
+      "title": "プライバシーポリシー | Quantum Shield",
+      "description": "Quantum Shield プライバシーポリシー"
+    },
+    "header": {
+      "title": "プライバシーポリシー",
+      "back": "戻る"
+    },
+    "lastUpdated": "最終更新日: {date}",
+    "sections": {
+      "intro": {
+        "title": "はじめに",
+        "content": "Quantum Shield（以下「当社」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めています。本ポリシーは、当社が収集、使用、保護する情報について説明します。"
+      },
+      "collection": {
+        "title": "収集する情報",
+        "content": "当社は以下の情報を収集することがあります：",
+        "items": {
+          "wallet": "ウォレットアドレス（公開情報）",
+          "transaction": "トランザクション履歴（ブロックチェーン上の公開情報）",
+          "usage": "サービス利用状況（匿名化されたアナリティクス）",
+          "device": "デバイス情報（ブラウザタイプ、OS等）"
+        }
+      },
+      "notCollected": {
+        "title": "収集しない情報",
+        "content": "当社は以下の情報を収集・保存しません：",
+        "items": {
+          "keys": "秘密鍵（Dilithium秘密鍵を含む）",
+          "personal": "氏名、住所、電話番号等の個人識別情報",
+          "seed": "シードフレーズ、パスワード"
+        }
+      },
+      "usage": {
+        "title": "情報の利用目的",
+        "content": "収集した情報は、サービスの提供・改善、セキュリティの向上、ユーザーサポートの目的にのみ使用します。"
+      },
+      "sharing": {
+        "title": "情報の共有",
+        "content": "当社は、法令に基づく場合を除き、ユーザーの情報を第三者と共有することはありません。ブロックチェーン上のトランザクションは公開情報であることをご了承ください。"
+      },
+      "cookies": {
+        "title": "Cookie",
+        "content": "当社はサービスの機能向上のためにCookieを使用します。ユーザーはブラウザの設定でCookieを無効にできますが、一部の機能が制限される場合があります。"
+      },
+      "security": {
+        "title": "セキュリティ",
+        "content": "当社は、業界標準のセキュリティ対策を実施し、ユーザー情報の保護に努めています。ただし、インターネット上の完全なセキュリティを保証することはできません。"
+      },
+      "rights": {
+        "title": "ユーザーの権利",
+        "content": "ユーザーは、自己の情報へのアクセス、訂正、削除を要求する権利を有します。お問い合わせはsupport@quantumshield.ioまでご連絡ください。"
+      },
+      "changes": {
+        "title": "ポリシーの変更",
+        "content": "当社は、必要に応じて本ポリシーを変更することがあります。重要な変更がある場合は、サービス上で通知します。"
+      }
+    },
+    "contact": {
+      "title": "お問い合わせ",
+      "content": "プライバシーに関するお問い合わせは、privacy@quantumshield.io までご連絡ください。"
+    },
+    "footer": {
+      "home": "ホーム",
+      "terms": "利用規約",
+      "privacy": "プライバシー",
+      "faq": "FAQ",
+      "copyright": "© 2026 Quantum Shield. Made in Japan"
+    }
+  }
   }
 }
