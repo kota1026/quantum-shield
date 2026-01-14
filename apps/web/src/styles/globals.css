@@ -1,0 +1,290 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Quantum Shield - Premium Japan Design System
+ * Global CSS Variables and Base Styles
+ */
+
+@layer base {
+  :root {
+    /* Premium Japan Color Palette */
+    --color-hinomaru: #BC002D;
+    --color-hinomaru-dark: #990025;
+    --color-hinomaru-light: #FF3358;
+
+    --color-gold: #C9A962;
+    --color-gold-dark: #A8894E;
+    --color-gold-light: #E7C77F;
+
+    /* Background */
+    --color-bg-primary: #0A0A0C;
+    --color-bg-secondary: #121214;
+    --color-bg-tertiary: #1A1A1D;
+    --color-bg-elevated: #222226;
+
+    /* Surface */
+    --color-surface: #1A1A1D;
+    --color-surface-secondary: #222226;
+    --color-surface-tertiary: #2A2A2E;
+
+    /* Text */
+    --color-text-primary: #FAFAFA;
+    --color-text-secondary: #A1A1AA;
+    --color-text-tertiary: #71717A;
+    --color-text-muted: #52525B;
+
+    /* Border */
+    --color-border: #2A2A2E;
+    --color-border-secondary: #3A3A3E;
+
+    /* Semantic */
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+    --color-info: #3B82F6;
+
+    /* Status (Quantum Shield specific) */
+    --color-status-locked: #C9A962;
+    --color-status-unlocking: #F59E0B;
+    --color-status-unlocked: #10B981;
+    --color-status-challenged: #EF4444;
+    --color-status-emergency: #BC002D;
+
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+
+    /* Border Radius */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 0.875rem;
+    --radius-xl: 1.25rem;
+    --radius-full: 9999px;
+
+    /* Shadow */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --shadow-hinomaru: 0 4px 24px rgba(188, 0, 45, 0.15);
+    --shadow-gold: 0 4px 24px rgba(201, 169, 98, 0.15);
+
+    /* Typography */
+    --font-sans: 'Noto Sans JP', 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* Transition */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms ease;
+  }
+
+  /* Light theme overrides */
+  [data-theme='light'] {
+    --color-bg-primary: #FAFAFA;
+    --color-bg-secondary: #F4F4F5;
+    --color-bg-tertiary: #E4E4E7;
+    --color-bg-elevated: #FFFFFF;
+
+    --color-surface: #FFFFFF;
+    --color-surface-secondary: #F4F4F5;
+    --color-surface-tertiary: #E4E4E7;
+
+    --color-text-primary: #0A0A0C;
+    --color-text-secondary: #52525B;
+    --color-text-tertiary: #71717A;
+    --color-text-muted: #A1A1AA;
+
+    --color-border: #E4E4E7;
+    --color-border-secondary: #D4D4D8;
+  }
+
+  /* Base HTML styles */
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100vh;
+    line-height: 1.75;
+    letter-spacing: 0.025em;
+  }
+
+  /* Focus visible styles for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--color-hinomaru);
+    outline-offset: 2px;
+  }
+
+  /* Selection highlight */
+  ::selection {
+    background-color: rgba(188, 0, 45, 0.3);
+    color: var(--color-text-primary);
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-secondary);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-secondary);
+    border-radius: var(--radius-full);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+  }
+}
+
+@layer components {
+  /* Primary Button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center;
+    @apply px-6 py-3 rounded-qs;
+    @apply bg-gradient-hinomaru text-white font-medium;
+    @apply transition-all duration-250;
+    @apply hover:shadow-qs-hover hover:scale-[1.02];
+    @apply active:scale-[0.98];
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+    @apply focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center;
+    @apply px-6 py-3 rounded-qs;
+    @apply border border-gold text-gold bg-transparent;
+    @apply transition-all duration-250;
+    @apply hover:bg-gold/10 hover:shadow-qs-gold;
+    @apply active:scale-[0.98];
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Card */
+  .card {
+    @apply bg-surface rounded-qs-lg border border-border;
+    @apply p-6;
+    @apply transition-all duration-250;
+  }
+
+  .card-interactive {
+    @apply card;
+    @apply hover:border-hinomaru/30 hover:shadow-qs;
+    @apply cursor-pointer;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full px-4 py-3 rounded-qs;
+    @apply bg-surface-secondary border border-border;
+    @apply text-foreground placeholder:text-foreground-muted;
+    @apply transition-all duration-250;
+    @apply focus:border-hinomaru focus:ring-1 focus:ring-hinomaru;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full;
+    @apply text-xs font-medium;
+  }
+
+  .badge-hinomaru {
+    @apply badge bg-hinomaru/20 text-hinomaru;
+  }
+
+  .badge-gold {
+    @apply badge bg-gold/20 text-gold;
+  }
+
+  .badge-success {
+    @apply badge bg-success/20 text-success;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning/20 text-warning;
+  }
+
+  .badge-danger {
+    @apply badge bg-danger/20 text-danger;
+  }
+
+  /* Status indicator */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-dot-active {
+    @apply status-dot bg-gold animate-pulse;
+  }
+
+  .status-dot-success {
+    @apply status-dot bg-success;
+  }
+
+  .status-dot-warning {
+    @apply status-dot bg-warning animate-pulse;
+  }
+
+  .status-dot-danger {
+    @apply status-dot bg-danger animate-pulse;
+  }
+
+  /* Hinomaru decoration */
+  .hinomaru-glow {
+    @apply relative;
+  }
+
+  .hinomaru-glow::before {
+    content: '';
+    @apply absolute inset-0 -z-10;
+    @apply bg-gradient-radial-hinomaru;
+    @apply opacity-50;
+  }
+}
+
+@layer utilities {
+  /* Text gradient */
+  .text-gradient-hinomaru {
+    @apply bg-gradient-hinomaru bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-gold bg-clip-text text-transparent;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --color-border: #FAFAFA;
+      --color-text-secondary: #FAFAFA;
+    }
+  }
+}
