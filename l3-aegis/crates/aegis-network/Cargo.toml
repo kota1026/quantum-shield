@@ -1,0 +1,27 @@
+[package]
+name = "aegis-network"
+version = "0.1.0"
+edition = "2021"
+authors = ["Quantum Shield Team"]
+description = "P2P networking for L3 Aegis"
+license = "MIT"
+
+[dependencies]
+aegis-types = { path = "../aegis-types" }
+aegis-crypto = { path = "../aegis-crypto" }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+bytes = { workspace = true }
+
+# TLS support
+rustls = { workspace = true }
+tokio-rustls = { workspace = true }
+rustls-pemfile = { workspace = true }
+webpki-roots = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

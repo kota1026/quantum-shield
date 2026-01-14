@@ -1,31 +1,26 @@
-//! Shared Types for SP1-Plonky2 Recursive Proof System
+//! Shared Types for Quantum-Resistant STARK Proof System
 //!
 //! This crate defines the data structures exchanged between:
-//! - Plonky2 prover (generates bridge aggregation proofs)
-//! - SP1 verifier (verifies Plonky2 proof commitments)
-//! - Final Groth16 proof (L1-ready)
+//! - STARK prover (generates bridge aggregation proofs)
+//! - On-chain STARK verifier (verifies proofs via FRI)
 //!
 //! Architecture:
 //! ```text
 //! ┌─────────────────────────────────────────────────────────────────────┐
-//! │                    Two-Stage Proof Pipeline                          │
+//! │                    Quantum-Resistant Proof Pipeline                  │
 //! ├─────────────────────────────────────────────────────────────────────┤
 //! │                                                                      │
-//! │  Stage 1: Plonky2 (Fast Aggregation)                                │
+//! │  Stage 1: STARK Aggregation (Fast, Quantum-Resistant)               │
 //! │  ┌─────────────────────────────────────────────────────────────┐   │
-//! │  │  8 Bridge Transfers → Plonky2 STARK → ~90KB proof (~4ms)    │   │
+//! │  │  8 Bridge Transfers → STARK proof → ~90KB proof             │   │
 //! │  │  Output: BridgeProofCommitment (public inputs + hash)        │   │
+//! │  │  Quantum-safe: Hash-based, no elliptic curves                │   │
 //! │  └─────────────────────────────────────────────────────────────┘   │
 //! │                              │                                       │
 //! │                              ▼                                       │
-//! │  Stage 2: SP1 (Commitment Verification + Groth16 Wrapping)          │
-//! │  ┌─────────────────────────────────────────────────────────────┐   │
-//! │  │  Verify Plonky2 commitment + Dilithium signatures            │   │
-//! │  │  SP1 STARK → Groth16 (~260 bytes) for L1                     │   │
-//! │  └─────────────────────────────────────────────────────────────┘   │
-//! │                              │                                       │
-//! │                              ▼                                       │
-//! │  L1 Contract: Verify Groth16 proof (~200K gas)                      │
+//! │  L1 Contract: Verify STARK proof via native FRI (~2-6M gas)         │
+//! │  - Level 1: Structure + binding verification                         │
+//! │  - Level 2: Full FRI low-degree test (128-bit security)             │
 //! │                                                                      │
 //! └─────────────────────────────────────────────────────────────────────┘
 //! ```
@@ -183,12 +178,12 @@ impl Default for DilithiumVerificationData {
 }
 
 // ============================================================================
-// SP1 Output (becomes Groth16 public inputs)
+// STARK Output (public inputs for on-chain verification)
 // ============================================================================
 
-/// Output from SP1 nested verification
+/// Output from STARK nested verification
 ///
-/// This becomes the public inputs to the final Groth16 proof
+/// This becomes the public inputs for on-chain STARK verification
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NestedVerificationOutput {
     /// Whether all verifications passed
@@ -250,25 +245,25 @@ fn hash_array(acc: u64, arr: &[u64]) -> u64 {
 // Performance Constants
 // ============================================================================
 
-/// Expected Plonky2 proof size for 8 transfers (~90KB)
-pub const PLONKY2_PROOF_SIZE_8_TRANSFERS: usize = 92_232;
+/// Expected STARK proof size for 8 transfers (~90KB)
+pub const STARK_PROOF_SIZE_8_TRANSFERS: usize = 92_232;
 
-/// Expected Compressed SP1 proof size (~1.25MB)
-pub const SP1_COMPRESSED_PROOF_SIZE: usize = 1_310_000;
+/// Expected compressed STARK proof size (~50KB)
+pub const STARK_COMPRESSED_PROOF_SIZE: usize = 50_000;
 
-/// Expected Groth16 proof size (~260 bytes)
-pub const GROTH16_PROOF_SIZE: usize = 260;
+/// L1 gas cost for STARK verification Level 1 (~500K gas)
+pub const STARK_LEVEL1_VERIFICATION_GAS: u64 = 500_000;
 
-/// L1 gas cost for Groth16 verification (~200K gas)
-pub const GROTH16_VERIFICATION_GAS: u64 = 200_000;
+/// L1 gas cost for STARK verification Level 2 (~2-6M gas)
+pub const STARK_LEVEL2_VERIFICATION_GAS: u64 = 4_000_000;
 
 /// L1 gas cost for calldata (proof + public inputs)
-/// ~260 bytes proof + ~256 bytes public inputs = ~516 bytes
-/// At 16 gas/byte = ~8,256 gas
-pub const GROTH16_CALLDATA_GAS: u64 = 8_300;
+/// ~50KB proof + ~256 bytes public inputs
+/// At 16 gas/byte = ~800K gas
+pub const STARK_CALLDATA_GAS: u64 = 800_000;
 
-/// Total estimated L1 gas for Groth16 verification
-pub const TOTAL_L1_GAS_ESTIMATE: u64 = GROTH16_VERIFICATION_GAS + GROTH16_CALLDATA_GAS;
+/// Total estimated L1 gas for STARK verification (Level 2)
+pub const TOTAL_L1_GAS_ESTIMATE: u64 = STARK_LEVEL2_VERIFICATION_GAS + STARK_CALLDATA_GAS;
 
 // ============================================================================
 // Tests
