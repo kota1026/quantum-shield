@@ -471,5 +471,132 @@
       "details": "詳細",
       "accept": "同意する"
     }
+  },
+  "keyManagement": {
+    "meta": {
+      "title": "鍵管理 | Quantum Shield",
+      "description": "Dilithium鍵のバックアップ・エクスポート・再生成"
+    },
+    "header": {
+      "title": "鍵管理",
+      "back": "設定に戻る"
+    },
+    "warning": {
+      "title": "秘密鍵は絶対に他人と共有しないでください",
+      "description": "秘密鍵を紛失すると資産へのアクセスができなくなります。必ずバックアップを取ってください。"
+    },
+    "publicKey": {
+      "label": "Dilithium 公開鍵",
+      "badge": "アクティブ",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "ariaLabel": "Dilithium公開鍵",
+      "copyAriaLabel": "公開鍵をクリップボードにコピー",
+      "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です。あなたの資産を将来の脅威から守ります。",
+      "tooltipAriaLabel": "Dilithiumについて詳しく"
+    },
+    "sections": {
+      "management": "鍵の管理",
+      "history": "鍵の履歴"
+    },
+    "actions": {
+      "backup": {
+        "title": "バックアップをダウンロード",
+        "description": "暗号化されたバックアップファイル",
+        "ariaLabel": "暗号化されたバックアップをダウンロード"
+      },
+      "export": {
+        "title": "秘密鍵を表示",
+        "description": "秘密鍵を確認（注意が必要）",
+        "ariaLabel": "秘密鍵を表示する"
+      },
+      "regenerate": {
+        "title": "鍵を再生成",
+        "description": "現在の鍵は無効になります",
+        "ariaLabel": "鍵を再生成する（危険な操作）"
+      }
+    },
+    "history": {
+      "created": {
+        "title": "生成日時"
+      },
+      "lastBackup": {
+        "title": "最終バックアップ"
+      }
+    },
+    "backupModal": {
+      "title": "バックアップをダウンロード",
+      "description": "暗号化されたバックアップファイルをダウンロードします。このファイルは安全な場所に保管してください。",
+      "confirmLabel": "安全な場所に保管することを理解しました",
+      "cancel": "キャンセル",
+      "download": "ダウンロード",
+      "close": "閉じる"
+    },
+    "exportModal": {
+      "title": "秘密鍵を表示",
+      "warning": {
+        "title": "注意",
+        "description": "秘密鍵を他人に見せないでください。スクリーンショットは撮らないでください。"
+      },
+      "confirmLabel": "周囲に人がいないことを確認しました",
+      "close": "閉じる",
+      "reveal": "表示する",
+      "revealed": "表示中",
+      "secretKeyRevealed": "秘密鍵（表示中）",
+      "secretKeyHidden": "秘密鍵（非表示）"
+    },
+    "regenerateModal": {
+      "title": "鍵を再生成",
+      "warning": {
+        "title": "危険な操作",
+        "description": "鍵を再生成すると、現在の鍵は永久に無効になります。Lock中の資産がある場合は、先にUnlockしてください。"
+      },
+      "confirm1": "現在の鍵が無効になることを理解しました",
+      "confirm2": "Lock中の資産がないことを確認しました",
+      "cancel": "キャンセル",
+      "regenerate": "鍵を再生成",
+      "close": "閉じる"
+    }
+  },
+  "faq": {
+    "meta": {
+      "title": "よくある質問 | Quantum Shield",
+      "description": "Quantum Shieldに関するよくある質問と回答"
+    },
+    "header": {
+      "title": "よくある質問",
+      "back": "設定に戻る"
+    },
+    "sections": {
+      "basics": "基本",
+      "lockUnlock": "Lock / Unlock",
+      "security": "セキュリティ"
+    },
+    "questions": {
+      "whatIsQs": {
+        "question": "Quantum Shieldとは何ですか？",
+        "answer": "Quantum Shieldは、量子コンピュータからデジタル資産を守るための次世代セキュリティプラットフォームです。NIST認定のDilithium-III暗号アルゴリズムを使用し、将来の量子攻撃に対しても資産を安全に保護します。"
+      },
+      "whyQuantum": {
+        "question": "なぜ量子耐性が重要なのですか？",
+        "answer": "現在の暗号通貨で使用されているECDSAは、十分な性能を持つ量子コンピュータによって破られる可能性があります。「今収集して後で解読」攻撃から資産を守るために、今から量子耐性暗号を使用することが重要です。"
+      },
+      "whatIsLock": {
+        "question": "Lockとは何ですか？",
+        "answer": "Lockは、あなたの資産をQuantum Shieldの量子耐性金庫に預ける操作です。Lockされた資産はDilithium署名なしでは引き出せません。"
+      },
+      "why24h": {
+        "question": "Unlockにはなぜ24時間かかるのですか？",
+        "answer": "24時間のTime Lockは、不正なUnlock要求を検出・阻止するためのセキュリティ機能です。この期間中に問題があれば、Challengeによって不正なUnlockを防ぐことができます。"
+      },
+      "whatIsEmergency": {
+        "question": "緊急Unlockとは何ですか？",
+        "answer": "緊急Unlockは、Dilithium秘密鍵を紛失した場合のセーフティネットです。7日間の待機期間とBond（保証金）が必要ですが、ウォレット署名のみで資産を回収できます。"
+      },
+      "lostKey": {
+        "question": "秘密鍵を紛失した場合はどうすればいいですか？",
+        "answer": "緊急Unlock機能を使用してください。Bond（保証金）を支払い、7日間の待機後に資産を回収できます。Bondは正当なUnlockであれば返還されます。"
+      }
+    }
   }
 }
