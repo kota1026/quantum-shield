@@ -471,5 +471,191 @@
       "details": "Details",
       "accept": "Accept"
     }
+  },
+  "keyManagement": {
+    "meta": {
+      "title": "Key Management | Quantum Shield",
+      "description": "Backup, export, and regenerate Dilithium keys"
+    },
+    "header": {
+      "title": "Key Management",
+      "back": "Back to Settings"
+    },
+    "warning": {
+      "title": "Never share your secret key with anyone",
+      "description": "If you lose your secret key, you will lose access to your assets. Always keep a backup."
+    },
+    "publicKey": {
+      "label": "Dilithium Public Key",
+      "badge": "Active",
+      "copy": "Copy",
+      "copied": "Copied",
+      "ariaLabel": "Dilithium public key",
+      "copyAriaLabel": "Copy public key to clipboard",
+      "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers. It protects your assets from future threats.",
+      "tooltipAriaLabel": "Learn more about Dilithium"
+    },
+    "sections": {
+      "management": "Key Management",
+      "history": "Key History"
+    },
+    "actions": {
+      "backup": {
+        "title": "Download Backup",
+        "description": "Encrypted backup file",
+        "ariaLabel": "Download encrypted backup"
+      },
+      "export": {
+        "title": "Show Secret Key",
+        "description": "View secret key (use caution)",
+        "ariaLabel": "Show secret key"
+      },
+      "regenerate": {
+        "title": "Regenerate Keys",
+        "description": "Current key will be invalidated",
+        "ariaLabel": "Regenerate keys (dangerous operation)"
+      }
+    },
+    "history": {
+      "created": {
+        "title": "Created"
+      },
+      "lastBackup": {
+        "title": "Last Backup"
+      }
+    },
+    "backupModal": {
+      "title": "Download Backup",
+      "description": "Download an encrypted backup file. Store this file in a safe location.",
+      "confirmLabel": "I understand this file must be stored safely",
+      "cancel": "Cancel",
+      "download": "Download",
+      "close": "Close"
+    },
+    "exportModal": {
+      "title": "Show Secret Key",
+      "warning": {
+        "title": "Warning",
+        "description": "Do not show your secret key to others. Do not take screenshots."
+      },
+      "confirmLabel": "I confirm no one is around me",
+      "close": "Close",
+      "reveal": "Reveal",
+      "revealed": "Revealed",
+      "secretKeyRevealed": "Secret key (revealed)",
+      "secretKeyHidden": "Secret key (hidden)"
+    },
+    "regenerateModal": {
+      "title": "Regenerate Keys",
+      "warning": {
+        "title": "Dangerous Operation",
+        "description": "Regenerating keys will permanently invalidate your current key. If you have locked assets, unlock them first."
+      },
+      "confirm1": "I understand my current key will be invalidated",
+      "confirm2": "I confirm I have no locked assets",
+      "cancel": "Cancel",
+      "regenerate": "Regenerate Keys",
+      "close": "Close"
+    }
+  },
+  "faq": {
+    "meta": {
+      "title": "FAQ | Quantum Shield",
+      "description": "Frequently asked questions about Quantum Shield"
+    },
+    "header": {
+      "title": "FAQ",
+      "back": "Back to Settings"
+    },
+    "sections": {
+      "basics": "Basics",
+      "lockUnlock": "Lock / Unlock",
+      "security": "Security"
+    },
+    "questions": {
+      "whatIsQs": {
+        "question": "What is Quantum Shield?",
+        "answer": "Quantum Shield is a next-generation security platform that protects your digital assets from quantum computers. Using the NIST-certified Dilithium-III cryptographic algorithm, it securely protects your assets against future quantum attacks."
+      },
+      "whyQuantum": {
+        "question": "Why is quantum resistance important?",
+        "answer": "The ECDSA currently used in cryptocurrencies could be broken by a sufficiently powerful quantum computer. Using quantum-resistant cryptography now is essential to protect your assets from 'harvest now, decrypt later' attacks."
+      },
+      "whatIsLock": {
+        "question": "What is Lock?",
+        "answer": "Lock is the operation of depositing your assets into Quantum Shield's quantum-resistant vault. Locked assets cannot be withdrawn without a Dilithium signature."
+      },
+      "why24h": {
+        "question": "Why does Unlock take 24 hours?",
+        "answer": "The 24-hour Time Lock is a security feature to detect and prevent unauthorized unlock requests. If there's an issue during this period, a Challenge can prevent the unauthorized unlock."
+      },
+      "whatIsEmergency": {
+        "question": "What is Emergency Unlock?",
+        "answer": "Emergency Unlock is a safety net for when you lose your Dilithium private key. It requires a 7-day waiting period and a Bond (collateral), but allows you to recover your assets with only a wallet signature."
+      },
+      "lostKey": {
+        "question": "What should I do if I lose my secret key?",
+        "answer": "Use the Emergency Unlock feature. Pay a Bond (collateral) and after a 7-day waiting period, you can recover your assets. The Bond is returned if the unlock is legitimate."
+      }
+    }
+  },
+  "security": {
+    "meta": {
+      "title": "Security | Quantum Shield",
+      "description": "About Quantum Shield security technology"
+    },
+    "header": {
+      "title": "Security",
+      "back": "Back to Settings"
+    },
+    "hero": {
+      "title": "Quantum-Resistant Cryptography",
+      "subtitle": "Protecting assets from future quantum computer attacks"
+    },
+    "sections": {
+      "algorithms": "Algorithms Used",
+      "features": "Security Features",
+      "links": "More Information"
+    },
+    "algorithms": {
+      "dilithium": {
+        "title": "Dilithium-III",
+        "description": "NIST-certified lattice-based digital signature algorithm. Used for user asset lock/unlock. Mathematically difficult to break even with quantum computers.",
+        "badge": "NIST FIPS 204"
+      },
+      "sphincs": {
+        "title": "SPHINCS+",
+        "description": "Hash-based digital signatures. Used for Prover (approver) signatures. Enables multi-layer defense with different mathematical foundations.",
+        "badge": "NIST FIPS 205"
+      },
+      "zkstark": {
+        "title": "ZK-STARK",
+        "description": "Zero-knowledge proof technology. Enables third-party verification of transaction validity. Achieves scalability while maintaining quantum resistance.",
+        "badge": "Quantum-Safe ZKP"
+      }
+    },
+    "features": {
+      "timelock": {
+        "name": "24h Time Lock",
+        "type": "Normal Unlock Wait"
+      },
+      "emergency": {
+        "name": "7d Emergency",
+        "type": "Emergency Unlock Wait"
+      },
+      "multisig": {
+        "name": "Multi-Sig",
+        "type": "User + Prover Signature"
+      },
+      "challenge": {
+        "name": "Challenge",
+        "type": "Fraud Detection System"
+      }
+    },
+    "links": {
+      "whitepaper": "Security Whitepaper",
+      "github": "Smart Contracts (GitHub)",
+      "audits": "Audit Reports"
+    }
   }
 }
