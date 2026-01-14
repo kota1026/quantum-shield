@@ -16,7 +16,7 @@ fuzz = { runs = 256 }
 verbosity = 2
 
 # Gas reporting
-gas_reports = ["OptimisticQuantumBridge"]
+gas_reports = ["QuantumShield"]
 
 # Remappings
 remappings = [
@@ -29,6 +29,18 @@ fs_permissions = [{ access = "read-write", path = "./" }]
 [profile.ci]
 fuzz = { runs = 10000 }
 verbosity = 3
+
+# Invariant testing configuration
+# Target: 1,000,000+ calls (runs × depth = total calls)
+[invariant]
+runs = 1024           # Number of invariant test runs
+depth = 1000          # Calls per run (1024 × 1000 = 1,024,000 calls)
+fail_on_revert = false
+call_override = false
+
+[profile.stress]
+fuzz = { runs = 100000 }
+invariant = { runs = 2048, depth = 1000 }  # 2,048,000 calls
 
 [fmt]
 line_length = 100
