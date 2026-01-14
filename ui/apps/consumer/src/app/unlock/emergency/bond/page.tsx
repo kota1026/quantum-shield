@@ -3,43 +3,26 @@
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import {
-  AlertTriangle,
-  Shield,
-  ArrowLeft,
-  Loader2,
-  Calculator,
-  Clock,
-  Info,
-} from 'lucide-react';
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from '@quantum-shield/ui';
+/**
+ * Emergency Unlock Bond Page - Consumer App
+ * Premium Japan Design System v1.0
+ *
+ * デザイン参考: 14_emergency_bond.html
+ */
 
 // SEQ#3: Emergency Bond = MAX(0.5 ETH, amount × 5%)
 const MIN_BOND = 0.5;
 const BOND_PERCENTAGE = 0.05;
 
-// SEQ#3: Emergency Time Lock = 7 days
-const EMERGENCY_TIMELOCK_DAYS = 7;
-
 export default function EmergencyBondPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const lockId = searchParams.get('lockId') || '1';
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const lockAmount = parseFloat(searchParams.get('amount') || '10.00');
 
-  // Mock lock data - in production, fetch from API
-  const lockAmount = 1.5; // ETH
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   // Calculate bond per SEQ#3: MAX(0.5 ETH, amount × 5%)
   const calculatedBond = useMemo(() => {
@@ -48,141 +31,141 @@ export default function EmergencyBondPage() {
   }, [lockAmount]);
 
   const handleSubmit = async () => {
+    if (!isConfirmed) return;
     setIsSubmitting(true);
-    // TODO: Replace with actual contract call
-    // 1. Deposit bond to contract
-    // 2. Initiate emergency unlock
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    router.push(`/unlock/countdown?lockId=${lockId}&emergency=true`);
+    // Demo: Simulate processing
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    router.push(`/unlock/emergency/processing?lockId=${lockId}&amount=${lockAmount}&bond=${calculatedBond}`);
   };
 
   return (
-    <div className="container mx-auto max-w-lg px-4 py-8">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-qs-warning-100 dark:bg-qs-warning-900">
-              <AlertTriangle className="h-7 w-7 text-qs-warning-500" />
-            </div>
-            <div>
-              <CardTitle>Emergency Unlock Bond</CardTitle>
-              <CardDescription>
-                Deposit required for emergency unlock (SEQ#3)
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Warning Alert */}
-          <Alert variant="warning">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Important Notice</AlertTitle>
-            <AlertDescription>
-              Emergency unlock bypasses normal signature verification and requires
-              a bond deposit. The bond is returned after successful unlock if no
-              valid challenge is raised.
-            </AlertDescription>
-          </Alert>
+    <div className="min-h-screen">
+      {/* Premium Background with Warning Glow */}
+      <div className="premium-bg">
+        <div
+          className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] opacity-50"
+          style={{
+            background: 'radial-gradient(ellipse, rgba(240, 160, 48, 0.12), transparent 60%)',
+          }}
+        />
+      </div>
 
-          {/* Bond Calculation */}
-          <div className="rounded-lg border p-4">
-            <div className="mb-4 flex items-center gap-2">
-              <Calculator className="h-5 w-5 text-qs-secondary-500" />
-              <h3 className="font-medium">Bond Calculation</h3>
-            </div>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Lock Amount</span>
-                <span className="font-semibold">{lockAmount} ETH</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">5% of Lock Amount</span>
-                <span>{(lockAmount * BOND_PERCENTAGE).toFixed(4)} ETH</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Minimum Bond</span>
-                <span>{MIN_BOND} ETH</span>
-              </div>
-              <hr />
-              <div className="flex justify-between">
-                <span className="font-medium">Required Bond</span>
-                <span className="font-bold text-qs-warning-600 dark:text-qs-warning-400">
-                  {calculatedBond.toFixed(4)} ETH
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Formula: MAX(0.5 ETH, amount × 5%)
-              </p>
-            </div>
-          </div>
+      <div className="relative z-10 max-w-[500px] mx-auto p-6">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link
+            href={`/unlock?lockId=${lockId}`}
+            className="w-10 h-10 flex items-center justify-center bg-qs-bg-secondary border border-qs-border-default rounded-qs-md text-qs-text-secondary hover:border-qs-warning hover:text-qs-warning transition-colors"
+          >
+            ←
+          </Link>
+          <h1 className="text-xl font-bold">緊急Unlock</h1>
+        </div>
 
-          {/* Time Lock Info */}
-          <div className="rounded-lg border p-4">
-            <div className="mb-4 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-qs-warning-500" />
-              <h3 className="font-medium">Extended Time Lock</h3>
+        {/* Warning Banner */}
+        <div
+          className="flex items-center gap-3 p-4 rounded-qs-lg mb-6"
+          style={{
+            background: 'rgba(232, 64, 87, 0.12)',
+            border: '1px solid var(--error)',
+          }}
+        >
+          <span className="text-2xl">⚠️</span>
+          <span className="text-sm text-qs-text-secondary">
+            <strong className="text-qs-danger">緊急Unlockには7日間の待機期間</strong>
+            とBond（保証金）が必要です。通常Unlockが可能な場合はそちらを推奨します。
+          </span>
+        </div>
+
+        {/* Bond Card */}
+        <div className="qs-card p-6 mb-6">
+          <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <span>⚡</span>
+            <span className="text-qs-warning">Bond（保証金）</span>について
+          </h3>
+
+          {/* Summary Section */}
+          <div className="bg-qs-bg-secondary rounded-qs-lg p-4 mb-5">
+            <div className="flex justify-between py-2.5 border-b border-qs-border-subtle">
+              <span className="text-[13px] text-qs-text-tertiary">Unlock金額</span>
+              <span className="text-xl font-semibold text-qs-warning">{lockAmount.toFixed(2)} ETH</span>
             </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Normal Time Lock</span>
-                <span>24 hours</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Emergency Time Lock</span>
-                <span className="font-bold text-qs-warning-600 dark:text-qs-warning-400">
-                  {EMERGENCY_TIMELOCK_DAYS} days
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                The extended time lock allows Observers to detect and Challenge
-                potentially fraudulent emergency unlocks.
-              </p>
+            <div className="flex justify-between py-2.5">
+              <span className="text-[13px] text-qs-text-tertiary">待機時間</span>
+              <span className="text-sm font-medium">7日間</span>
             </div>
           </div>
 
-          {/* Bond Return Policy */}
-          <div className="rounded-lg bg-muted/50 p-4">
-            <div className="flex gap-3">
-              <Info className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-              <div className="space-y-2 text-sm">
-                <p className="font-medium">Bond Return Policy</p>
-                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  <li>Bond is returned after {EMERGENCY_TIMELOCK_DAYS}-day waiting period</li>
-                  <li>If a valid Challenge is raised, bond may be slashed</li>
-                  <li>Challenger receives a portion of slashed bond as reward</li>
-                </ul>
-              </div>
+          {/* Bond Calculation */}
+          <div
+            className="p-4 rounded-qs-lg mb-5"
+            style={{
+              background: 'rgba(240, 160, 48, 0.12)',
+              border: '1px solid var(--warning)',
+            }}
+          >
+            <div className="font-mono text-[13px] text-qs-text-secondary mb-2">
+              Bond = MAX(0.5 ETH, 金額 × 5%)
+            </div>
+            <div className="font-mono text-[13px] text-qs-text-secondary mb-2">
+              = MAX(0.5 ETH, {lockAmount.toFixed(2)} × 5%) = MAX(0.5, {(lockAmount * BOND_PERCENTAGE).toFixed(2)})
+            </div>
+            <div className="flex justify-between items-center mt-3">
+              <span className="text-sm font-medium">必要なBond</span>
+              <span className="text-2xl font-bold text-qs-warning">{calculatedBond.toFixed(2)} ETH</span>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" asChild>
-              <Link href={`/unlock/method?lockId=${lockId}`}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Link>
-            </Button>
-            <Button
-              className="flex-1 bg-qs-warning-500 hover:bg-qs-warning-600"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Depositing...
-                </>
-              ) : (
-                <>
-                  <Shield className="mr-2 h-4 w-4" />
-                  Deposit {calculatedBond.toFixed(4)} ETH
-                </>
-              )}
-            </Button>
+          {/* Info List */}
+          <div className="space-y-2 mb-5">
+            <div className="flex items-start gap-2.5 py-2 text-[13px] text-qs-text-secondary">
+              <span className="text-qs-warning">✓</span>
+              <span>
+                Bondは7日間の待機期間後、Challengeがなければ<strong>全額返還</strong>されます
+              </span>
+            </div>
+            <div className="flex items-start gap-2.5 py-2 text-[13px] text-qs-text-secondary">
+              <span className="text-qs-warning">✓</span>
+              <span>不正なUnlockの場合、BondはChallengerに没収されます</span>
+            </div>
+            <div className="flex items-start gap-2.5 py-2 text-[13px] text-qs-text-secondary">
+              <span className="text-qs-warning">✓</span>
+              <span>緊急Unlockは秘密鍵紛失時のセーフティネットです</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Checkbox Row */}
+        <div className="flex items-center gap-3 p-4 bg-qs-bg-secondary rounded-qs-lg mb-6">
+          <input
+            type="checkbox"
+            id="confirmCheckbox"
+            checked={isConfirmed}
+            onChange={(e) => setIsConfirmed(e.target.checked)}
+            className="w-5 h-5 accent-qs-warning cursor-pointer"
+          />
+          <label htmlFor="confirmCheckbox" className="text-sm text-qs-text-secondary cursor-pointer">
+            上記の内容を理解し、Bond {calculatedBond.toFixed(2)} ETHを支払うことに同意します
+          </label>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <Link
+            href={`/unlock?lockId=${lockId}`}
+            className="flex-1 py-4 bg-qs-bg-secondary border border-qs-border-default rounded-qs-lg text-qs-text-secondary font-semibold text-[15px] text-center hover:border-qs-border-default hover:text-qs-text-primary transition-colors"
+          >
+            キャンセル
+          </Link>
+          <button
+            onClick={handleSubmit}
+            disabled={!isConfirmed || isSubmitting}
+            className="flex-1 py-4 bg-qs-warning rounded-qs-lg text-qs-bg-primary font-semibold text-[15px] transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5"
+          >
+            {isSubmitting ? '処理中...' : '緊急Unlockを開始'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
