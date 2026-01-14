@@ -199,6 +199,56 @@
       "understood": "I understand"
     }
   },
+  "history": {
+    "meta": {
+      "title": "Transaction History | Quantum Shield",
+      "description": "View and export your transaction history"
+    },
+    "header": {
+      "title": "Transaction History",
+      "back": "Back",
+      "export": "Export CSV",
+      "exportNotAvailable": "CSV export is coming soon"
+    },
+    "stats": {
+      "totalLocked": "Total Locked",
+      "totalTransactions": "Total Transactions",
+      "inProgress": "In Progress"
+    },
+    "filter": {
+      "all": "All",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "pending": "Pending",
+      "emergency": "Emergency"
+    },
+    "types": {
+      "lock": "Lock",
+      "normalUnlock": "Normal Unlock",
+      "emergencyUnlock": "Emergency Unlock",
+      "unlockComplete": "Unlock Complete"
+    },
+    "status": {
+      "complete": "Complete",
+      "pending24h": "24h Pending",
+      "pending7d": "7 Days Pending"
+    },
+    "item": {
+      "date": "Date",
+      "blockConfirmed": "Confirmed",
+      "blockConfirmedTooltip": "Transaction confirmed {count} times on the blockchain",
+      "remaining": "{time} remaining",
+      "bond": "Bond: {amount}",
+      "txHashLabel": "Transaction ID",
+      "txHashTooltip": "A unique identifier for this transaction on the blockchain"
+    },
+    "emptyState": {
+      "title": "No transaction history",
+      "description": "Your first Lock will appear here"
+    },
+    "loadMore": "Load More",
+    "loadMoreNotAvailable": "Load more is coming soon"
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography",

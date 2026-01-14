@@ -199,6 +199,56 @@
       "understood": "理解しました"
     }
   },
+  "history": {
+    "meta": {
+      "title": "取引履歴 | Quantum Shield",
+      "description": "取引履歴の確認とエクスポート"
+    },
+    "header": {
+      "title": "取引履歴",
+      "back": "戻る",
+      "export": "CSVエクスポート",
+      "exportNotAvailable": "CSVエクスポートは開発中です"
+    },
+    "stats": {
+      "totalLocked": "総 Lock量",
+      "totalTransactions": "総取引数",
+      "inProgress": "進行中"
+    },
+    "filter": {
+      "all": "すべて",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "pending": "進行中",
+      "emergency": "緊急"
+    },
+    "types": {
+      "lock": "Lock",
+      "normalUnlock": "Normal Unlock",
+      "emergencyUnlock": "Emergency Unlock",
+      "unlockComplete": "Unlock Complete"
+    },
+    "status": {
+      "complete": "完了",
+      "pending24h": "24h待機中",
+      "pending7d": "7日待機中"
+    },
+    "item": {
+      "date": "日時",
+      "blockConfirmed": "取引確定",
+      "blockConfirmedTooltip": "ブロックチェーン上で{count}回確認され、取引が確定しました",
+      "remaining": "残り {time}",
+      "bond": "Bond: {amount}",
+      "txHashLabel": "取引ID",
+      "txHashTooltip": "ブロックチェーン上で取引を識別する固有のIDです"
+    },
+    "emptyState": {
+      "title": "取引履歴がありません",
+      "description": "最初のLockを実行すると、ここに履歴が表示されます"
+    },
+    "loadMore": "さらに読み込む",
+    "loadMoreNotAvailable": "さらに読み込みは開発中です"
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - 量子耐性暗号で資産を守る",
