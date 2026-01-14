@@ -715,6 +715,7 @@
         "emergency": "緊急Unlock"
       },
       "waitTime": "待機時間",
+      "waitTimeValue": "24時間",
       "gasFee": "ガス代（概算）"
     },
     "visualLabel": "署名用鍵アイコン",

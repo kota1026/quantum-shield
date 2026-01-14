@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils';
 // Demo data
 const DEMO_UNLOCK_AMOUNT = '10.00 ETH';
 const DEMO_UNLOCK_TYPE = 'normal';
-const DEMO_WAIT_TIME = '24時間';
 const DEMO_GAS_FEE = '~0.003 ETH';
 
 export function UnlockSign() {
@@ -112,7 +111,7 @@ export function UnlockSign() {
                 {t('summary.waitTime')}
               </span>
               <span className="text-sm font-medium text-foreground">
-                {DEMO_WAIT_TIME}
+                {t('summary.waitTimeValue')}
               </span>
             </div>
             <div className="flex justify-between items-center py-2">

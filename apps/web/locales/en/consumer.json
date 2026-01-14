@@ -715,6 +715,7 @@
         "emergency": "Emergency Unlock"
       },
       "waitTime": "Wait Time",
+      "waitTimeValue": "24 hours",
       "gasFee": "Gas Fee (est.)"
     },
     "visualLabel": "Signature key icon",
