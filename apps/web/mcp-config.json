@@ -101,6 +101,15 @@
       "model": "claude-sonnet-4-20250514",
       "servers": ["filesystem"],
       "description": "Persona-based design review"
+    },
+    "orchestrator": {
+      "name": "Phase 6 Team Lead Agent",
+      "prompt_file": "../../docs_new/02_agents_prompt/02_prompts/38_orchestrator.md",
+      "model": "claude-opus-4-5-20251101",
+      "servers": ["filesystem", "git"],
+      "description": "Orchestrates all agents, spawns parallel tasks, tracks progress",
+      "triggers": ["Phase 6.*開始", "Phase 6.*start"],
+      "spawns": ["ui_agent", "api_agent", "test_agent", "i18n_agent", "a11y_agent", "review_agent"]
     }
   }
 }
