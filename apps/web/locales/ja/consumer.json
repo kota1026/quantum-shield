@@ -57,9 +57,10 @@
         "75": "75%",
         "max": "最大"
       },
-      "lockButton": "Dilithium署名でロック",
-      "lockButtonAriaLabel": "Dilithium署名で資産をロックする",
-      "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です"
+      "lockButton": "安全にロックする",
+      "lockButtonAriaLabel": "量子耐性署名で資産をロックする",
+      "dilithiumTooltip": "Dilithiumは、将来の量子コンピュータでも破れない最新の電子署名技術です。米国政府機関（NIST）が認定した安全な方式を採用しています。",
+      "dilithiumLearnMore": "Dilithiumとは？"
     },
     "activity": {
       "title": "最近のアクティビティ",
@@ -78,10 +79,10 @@
     },
     "lockModal": {
       "title": "ロック確認",
-      "description": "以下の内容でロックを実行します。Dilithium署名が必要です。",
+      "description": "以下の内容で資産をロックします。量子耐性技術で安全に保護されます。",
       "amount": "ロック金額",
       "gasFee": "ガス代（概算）",
-      "confirm": "署名してロック",
+      "confirm": "ロックを実行",
       "cancel": "キャンセル"
     },
     "walletModal": {
