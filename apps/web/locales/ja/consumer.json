@@ -133,6 +133,72 @@
       "copySuccess": "コピーしました"
     }
   },
+  "unlock": {
+    "meta": {
+      "title": "アンロック | Quantum Shield",
+      "description": "ロックされた資産を安全にアンロック"
+    },
+    "header": {
+      "title": "アンロック",
+      "back": "戻る"
+    },
+    "selectLock": {
+      "label": "アンロックするロックを選択",
+      "lockTitle": "ロック #{number}",
+      "status": {
+        "locked": "ロック中",
+        "pending": "アンロック中"
+      },
+      "emptyState": "アンロック可能なロックがありません"
+    },
+    "selectMethod": {
+      "label": "アンロック方法を選択",
+      "normal": {
+        "title": "通常アンロック",
+        "description": "Dilithium署名 + Prover署名で安全にアンロック",
+        "waitTime": "待機時間",
+        "waitTimeValue": "24時間",
+        "required": "必要なもの",
+        "requiredValue": "Dilithium秘密鍵",
+        "fee": "手数料",
+        "feeValue": "ガス代のみ"
+      },
+      "emergency": {
+        "title": "緊急アンロック",
+        "description": "秘密鍵紛失時のセーフティネット",
+        "waitTime": "待機時間",
+        "waitTimeValue": "7日間",
+        "required": "必要なもの",
+        "requiredValue": "ウォレット署名",
+        "bond": "Bond（保証金）",
+        "bondValue": "MAX(0.5 ETH, 金額×5%)"
+      },
+      "warningTitle": "緊急アンロックの注意事項",
+      "warningMessage": "緊急アンロックには7日間の待機期間とBond（保証金）が必要です。Bondは7日後にChallengeがなければ返還されます。"
+    },
+    "button": {
+      "normalUnlock": "通常アンロックを開始",
+      "emergencyUnlock": "緊急アンロックを開始"
+    },
+    "timeLock": {
+      "helpLink": "なぜ24時間待つの？",
+      "shortExplanation": "Time Lockはあなたを守ります",
+      "shortExplanationDetail": "不正アクセスがあっても、24時間の猶予で検知・対処できます。",
+      "modalTitle": "なぜ24時間待つの？",
+      "modalIntro": "Time Lockは、あなたの資産を守るための重要なセキュリティ機能です。",
+      "protectionTitle": "Time Lockが守るもの",
+      "protection1": "不正アクセスの検知: 誰かがあなたの秘密鍵を盗んでアンロックを試みても、24時間の猶予があれば気づいて対処できます",
+      "protection2": "フィッシング対策: 誤って署名してしまっても、実際に資産が移動するまで24時間あります",
+      "protection3": "ハッキング対策: 攻撃者は24時間以内に資産を持ち去ることができません",
+      "waitingTitle": "待機中にできること",
+      "waiting1": "アンロック要求の確認・監視",
+      "waiting2": "不審な要求があればキャンセル",
+      "waiting3": "緊急時は緊急アンロックで対応可能（7日間待機+Bond必要）",
+      "tipsTitle": "豆知識",
+      "tipsContent": "「今収集して後で解読」攻撃に対抗するため、量子耐性暗号とTime Lockの組み合わせが最も効果的なセキュリティ戦略です。",
+      "understood": "理解しました"
+    }
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - 量子耐性暗号で資産を守る",
