@@ -8,3 +8,15 @@ node_modules/
 dist/
 **/dist/
 *.tsbuildinfo
+
+# Next.js
+.next/
+**/.next/
+next-env.d.ts
+**/next-env.d.ts
+
+# Playwright
+playwright-report/
+**/playwright-report/
+test-results/
+**/test-results/

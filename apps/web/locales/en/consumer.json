@@ -1,5 +1,6 @@
 {
-  "common": {
+  "consumer": {
+    "common": {
     "header": {
       "dashboard": "Dashboard",
       "lock": "Lock",
@@ -657,5 +658,226 @@
       "github": "Smart Contracts (GitHub)",
       "audits": "Audit Reports"
     }
+  },
+  "emergencyBond": {
+    "meta": {
+      "title": "Emergency Unlock - Bond | Quantum Shield",
+      "description": "Confirm the Bond required for Emergency Unlock"
+    },
+    "header": {
+      "title": "Emergency Unlock",
+      "back": "Back"
+    },
+    "warning": {
+      "title": "Emergency Unlock requires a 7-day waiting period",
+      "message": "and a Bond (collateral). If Normal Unlock is available, we recommend using that instead."
+    },
+    "bondCard": {
+      "title": "About Bond (Collateral)",
+      "unlockAmount": "Unlock Amount",
+      "waitTime": "Wait Time",
+      "waitDays": "{days} days",
+      "formula": "Bond = MAX(0.5 ETH, amount × 5%)",
+      "requiredBond": "Required Bond",
+      "info1": "Bond is <strong>fully refunded</strong> after the 7-day waiting period if there is no Challenge",
+      "info2": "In case of fraudulent Unlock, Bond is forfeited to the Challenger",
+      "info3": "Emergency Unlock is a safety net for lost private keys"
+    },
+    "confirm": {
+      "label": "I understand the above and agree to pay Bond {amount} {symbol}"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "submit": "Start Emergency Unlock",
+      "submitting": "Processing..."
+    }
+  },
+  "emergencyProcessing": {
+    "meta": {
+      "title": "Processing Emergency Unlock | Quantum Shield",
+      "description": "Processing Emergency Unlock transaction"
+    },
+    "header": {
+      "title": "Processing"
+    },
+    "status": {
+      "submitting": "Submitting transaction",
+      "confirming": "Confirming on blockchain",
+      "processing": "Processing..."
+    },
+    "message": {
+      "wait": "This process may take a few minutes",
+      "doNotClose": "Please do not close the browser"
+    },
+    "steps": {
+      "verify": "Verifying wallet signature",
+      "sendBond": "Sending Bond (0.50 ETH)...",
+      "register": "Registering Emergency Unlock request",
+      "startTimeLock": "Starting 7-day Time Lock"
+    }
+  },
+  "emergencySuccess": {
+    "meta": {
+      "title": "Emergency Unlock Started | Quantum Shield",
+      "description": "Emergency Unlock has been successfully started"
+    },
+    "header": {
+      "title": "Complete"
+    },
+    "success": {
+      "title": "Emergency Unlock Started",
+      "subtitle": "After the 7-day waiting period, assets will be transferred to your wallet"
+    },
+    "timelock": {
+      "title": "Emergency Time Lock Remaining",
+      "label": "Until Challenge Period Ends"
+    },
+    "details": {
+      "amount": "Unlock Amount",
+      "bond": "Bond (Deposited)",
+      "bondRefund": "Refundable",
+      "waitPeriod": "Wait Period",
+      "estimatedCompletion": "Unlock Available",
+      "txHash": "TX Hash"
+    },
+    "info": {
+      "message": "If there are no issues during the 7-day Challenge period, your Bond will be automatically refunded. You can complete the unlock from the dashboard when available."
+    },
+    "buttons": {
+      "viewHistory": "View History",
+      "backToDashboard": "Back to Dashboard"
+    }
+  },
+  "terms": {
+    "meta": {
+      "title": "Terms of Service | Quantum Shield",
+      "description": "Quantum Shield Terms of Service"
+    },
+    "header": {
+      "title": "Terms of Service",
+      "back": "Back"
+    },
+    "lastUpdated": "Last updated: {date}",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "content": "These Terms of Service (\"Terms\") govern your use of Quantum Shield (\"Service\"). By using the Service, you agree to be bound by these Terms."
+      },
+      "service": {
+        "title": "2. Service Description",
+        "content": "The Service provides digital asset protection using quantum-resistant cryptography. You use the Service at your own risk and responsibility."
+      },
+      "eligibility": {
+        "title": "3. Eligibility",
+        "content": "The Service is available only to individuals 18 years or older, or legal entities. Access from certain countries or regions may be restricted."
+      },
+      "risks": {
+        "title": "4. Risks",
+        "content": "Cryptocurrency prices are volatile and you may lose your principal. The Service does not provide investment advice. You are responsible for your own decisions."
+      },
+      "keys": {
+        "title": "5. Private Key Management",
+        "content": "You are responsible for securely managing your Dilithium private key. We are not liable for any losses resulting from lost or compromised private keys."
+      },
+      "prohibited": {
+        "title": "6. Prohibited Activities",
+        "content": "Using the Service for unauthorized access, money laundering, terrorist financing, or any other illegal activities is prohibited."
+      },
+      "disclaimer": {
+        "title": "7. Disclaimer",
+        "content": "The Service is provided \"as is\" without any warranties, express or implied. We are not liable for any damages resulting from smart contract vulnerabilities, network failures, or other technical issues."
+      },
+      "changes": {
+        "title": "8. Changes to Terms",
+        "content": "We may modify these Terms as necessary. Significant changes will be notified through the Service."
+      },
+      "governing": {
+        "title": "9. Governing Law",
+        "content": "These Terms are governed by the laws of Japan. The Tokyo District Court shall have exclusive jurisdiction."
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "content": "For inquiries regarding these Terms, please contact support@quantumshield.io"
+    },
+    "footer": {
+      "home": "Home",
+      "terms": "Terms of Service",
+      "privacy": "Privacy",
+      "faq": "FAQ",
+      "copyright": "© 2026 Quantum Shield. Made in Japan"
+    }
+  },
+  "privacy": {
+    "meta": {
+      "title": "Privacy Policy | Quantum Shield",
+      "description": "Quantum Shield Privacy Policy"
+    },
+    "header": {
+      "title": "Privacy Policy",
+      "back": "Back"
+    },
+    "lastUpdated": "Last updated: {date}",
+    "sections": {
+      "intro": {
+        "title": "Introduction",
+        "content": "Quantum Shield (\"we\") respects your privacy and is committed to protecting your personal information. This policy explains the information we collect, use, and protect."
+      },
+      "collection": {
+        "title": "Information We Collect",
+        "content": "We may collect the following information:",
+        "items": {
+          "wallet": "Wallet address (public information)",
+          "transaction": "Transaction history (public blockchain information)",
+          "usage": "Service usage (anonymized analytics)",
+          "device": "Device information (browser type, OS, etc.)"
+        }
+      },
+      "notCollected": {
+        "title": "Information We Don't Collect",
+        "content": "We do not collect or store:",
+        "items": {
+          "keys": "Private keys (including Dilithium private keys)",
+          "personal": "Personal identifying information (name, address, phone number, etc.)",
+          "seed": "Seed phrases, passwords"
+        }
+      },
+      "usage": {
+        "title": "Use of Information",
+        "content": "Collected information is used only for providing and improving the Service, enhancing security, and user support."
+      },
+      "sharing": {
+        "title": "Information Sharing",
+        "content": "We do not share your information with third parties except as required by law. Please note that blockchain transactions are public information."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "content": "We use cookies to improve Service functionality. You can disable cookies in your browser settings, but some features may be limited."
+      },
+      "security": {
+        "title": "Security",
+        "content": "We implement industry-standard security measures to protect user information. However, we cannot guarantee complete security on the internet."
+      },
+      "rights": {
+        "title": "Your Rights",
+        "content": "You have the right to access, correct, and delete your information. Please contact support@quantumshield.io for requests."
+      },
+      "changes": {
+        "title": "Policy Changes",
+        "content": "We may modify this policy as necessary. Significant changes will be notified through the Service."
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "content": "For privacy inquiries, please contact privacy@quantumshield.io"
+    },
+    "footer": {
+      "home": "Home",
+      "terms": "Terms of Service",
+      "privacy": "Privacy",
+      "faq": "FAQ",
+      "copyright": "© 2026 Quantum Shield. Made in Japan"
+    }
+  }
   }
 }
