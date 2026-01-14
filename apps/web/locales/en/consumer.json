@@ -249,6 +249,95 @@
     "loadMore": "Load More",
     "loadMoreNotAvailable": "Load more is coming soon"
   },
+  "settings": {
+    "meta": {
+      "title": "Settings | Quantum Shield",
+      "description": "Account, notifications, security and display settings"
+    },
+    "header": {
+      "title": "Settings",
+      "back": "Back"
+    },
+    "sections": {
+      "account": "Account",
+      "notifications": "Notifications",
+      "display": "Display",
+      "security": "Security",
+      "support": "Support",
+      "dangerZone": "Danger Zone"
+    },
+    "account": {
+      "keyManagement": {
+        "title": "Key Management",
+        "description": "Backup and export Dilithium keys"
+      },
+      "connectedWallet": {
+        "title": "Connected Wallet",
+        "description": "Manage or disconnect wallet"
+      }
+    },
+    "notifications": {
+      "push": {
+        "title": "Push Notifications",
+        "description": "Notify on Unlock completion, etc."
+      },
+      "email": {
+        "title": "Email Notifications",
+        "description": "Email alerts for important activity"
+      }
+    },
+    "display": {
+      "darkMode": {
+        "title": "Dark Mode",
+        "description": "Adjust screen brightness"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Change display language",
+        "japanese": "Japanese",
+        "english": "English"
+      },
+      "currency": {
+        "title": "Currency Display",
+        "description": "Fiat currency display unit"
+      }
+    },
+    "security": {
+      "autoLock": {
+        "title": "Auto Lock",
+        "description": "Auto-lock after inactivity",
+        "minutes": "{count} min"
+      },
+      "biometric": {
+        "title": "Biometric Auth",
+        "description": "Authenticate with Face ID / Touch ID"
+      }
+    },
+    "support": {
+      "faq": {
+        "title": "FAQ",
+        "description": "Frequently asked questions & help"
+      },
+      "contact": {
+        "title": "Contact Us",
+        "description": "Reach out to support team"
+      },
+      "legal": {
+        "title": "Terms & Privacy",
+        "description": "Review legal documents"
+      }
+    },
+    "danger": {
+      "disconnectWallet": {
+        "title": "Disconnect Wallet",
+        "description": "Disconnect and log out"
+      }
+    },
+    "version": {
+      "label": "Quantum Shield",
+      "version": "Version {version} (Build {build})"
+    }
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography",
