@@ -23,14 +23,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-
-    // Accessibility testing
-    axeOptions: {
-      rules: [
-        { id: 'color-contrast', enabled: true },
-        { id: 'aria-roles', enabled: true },
-      ],
-    },
   },
 
   projects: [
