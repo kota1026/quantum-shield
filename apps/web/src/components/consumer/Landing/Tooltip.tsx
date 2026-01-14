@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useId } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +21,7 @@ export function Tooltip({
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tooltipId = useId();
 
   const showTooltip = () => {
     if (timeoutRef.current) {
@@ -49,6 +50,7 @@ export function Tooltip({
       onMouseLeave={hideTooltip}
       onFocus={showTooltip}
       onBlur={hideTooltip}
+      aria-describedby={tooltipId}
     >
       {children}
       {showHelpIcon && (
@@ -58,7 +60,9 @@ export function Tooltip({
         />
       )}
       <span
+        id={tooltipId}
         role="tooltip"
+        aria-hidden={!isVisible}
         className={cn(
           'absolute z-50 px-3 py-2 text-sm text-foreground-secondary bg-surface-tertiary border border-border rounded-qs max-w-xs transition-all duration-150',
           positionClasses[position],
