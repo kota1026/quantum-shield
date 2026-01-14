@@ -12,6 +12,7 @@ Phase 6 Consumer App 開始
 Phase 6 Token Hub 開始
 Phase 6 Prover Portal 開始
 Phase 6 Week {N} 開始
+Phase 6 進捗確認        ← 進捗状況を表示
 ```
 
 ---
@@ -28,7 +29,8 @@ READ PARALLEL:
 ├── docs_new/02_agents_prompt/02_prompts/30_ui_impl.md
 ├── docs_new/02_agents_prompt/02_prompts/31_design_pir.md
 ├── docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md
-└── docs_new/01_phase/06_phase6/PHASE6_PLANNING_PROPOSAL.md
+├── docs_new/01_phase/06_phase6/PHASE6_PLANNING_PROPOSAL.md
+└── docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md  ← 進捗管理ファイル
 ```
 
 ### 0.2 対象システムのモック一覧取得
@@ -118,8 +120,10 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 │  └─────────────────────────────────────────────────────────────┘   │
 │                              ↓                                      │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ STEP 6: 完了報告                                             │   │
-│  │ Output: 画面完了レポート（下記テンプレート使用）            │   │
+│  │ STEP 6: 完了報告 + 進捗更新                                  │   │
+│  │ Action: 画面完了レポート出力                                │   │
+│  │ Action: PHASE6_PROGRESS.md の該当行を更新                   │   │
+│  │ Gate:   進捗ファイル更新完了                                │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
@@ -246,9 +250,35 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 
 ---
 
-## PHASE 5: 完了報告テンプレート
+## PHASE 5: 完了報告 + 進捗更新
 
-各画面完了時に**必ず以下の形式で報告**：
+各画面完了時に**必ず以下の形式で報告**し、**進捗ファイルを更新**する：
+
+### 5.1 進捗ファイル更新（必須）
+
+画面完了後、`docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` を更新：
+
+```markdown
+## 更新手順
+
+1. 該当システムのテーブルで該当画面の行を見つける
+2. 各ステップの状態を更新:
+   - ⬜ → ✅ (完了)
+   - ⬜ → ❌ (失敗・要修正)
+3. Status列を "Done" に変更
+4. Progress行の分数を更新 (例: 0/19 → 1/19)
+5. Change Logに更新を追記
+
+## 更新例
+
+更新前:
+| 01 | landing | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+
+更新後:
+| 01 | landing | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
+```
+
+### 5.2 完了報告テンプレート
 
 ```markdown
 ## 画面完了レポート: {screen_name}
@@ -314,6 +344,11 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 <rule id="CR-6" level="MUST">
   WCAG 2.1 AA準拠。aria-*, role, tabIndex設定。
 </rule>
+
+<rule id="CR-7" level="ABSOLUTE">
+  画面完了時は必ずPHASE6_PROGRESS.mdを更新。
+  進捗ファイル未更新のまま次の画面に進むことは禁止。
+</rule>
 ```
 
 ---
@@ -341,6 +376,36 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 
 ---
 
+## 進捗確認コマンド（Phase 6 進捗確認）
+
+「Phase 6 進捗確認」を受けたら以下を実行：
+
+1. `docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` を読み込み
+2. Overview Dashboardセクションを表示
+3. 各システムの進捗サマリーを計算して報告
+
+```markdown
+## Phase 6 進捗レポート
+
+### Overview
+| WS | Category | Complete | Total | Progress |
+|:--:|----------|:--------:|:-----:|:--------:|
+| 1 | UI/UX | {n} | 144 | {%} |
+| 2 | Backend | {n} | 30 | {%} |
+| 3 | Docs | {n} | 24 | {%} |
+| 4 | QA | {n} | 20 | {%} |
+| **Total** | | **{n}** | **218** | **{%}** |
+
+### By System
+| System | Screens | Done | Progress |
+|--------|:-------:|:----:|:--------:|
+| Consumer App | 19 | {n} | {%} |
+| Token Hub | 10 | {n} | {%} |
+| ... | ... | ... | ... |
+```
+
+---
+
 ## ファイル参照一覧
 
 | 用途 | パス |
@@ -354,5 +419,6 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 | E2Eテスト | `docs_new/02_agents_prompt/02_prompts/37_e2e_test.md` |
 | ペルソナ定義 | `docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md` |
 | 計画書 | `docs_new/01_phase/06_phase6/PHASE6_PLANNING_PROPOSAL.md` |
+| 進捗管理 | `docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` |
 | リサーチ | `docs_new/01_phase/06_phase6/AI_AGENTIC_UIUX_RESEARCH.md` |
 | 実装計画 | `docs_new/01_phase/06_phase6/AI_AGENTIC_IMPLEMENTATION_PLAN.md` |
