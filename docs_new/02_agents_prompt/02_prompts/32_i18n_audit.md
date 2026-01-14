@@ -1,46 +1,62 @@
 # 32_i18n_audit.md - Internationalization Audit Prompt
+
 ## Phase 6: 国際化（i18n）完全性監査
 
-> **Version**: 1.0
-> **Date**: 2026-01-13
+> **Version**: 1.1
+> **Date**: 2026-01-14
 > **Purpose**: 日英切替の完全性保証
+> **Structure**: Anthropic Claude 4.x XML Best Practices準拠
 
 ---
 
 ## 1. Overview
 
-このプロンプトは、UIコンポーネントおよびページにおける国際化対応の完全性を監査します。
+<purpose>
+UIコンポーネントおよびページにおける国際化対応の完全性を監査する。
+日英切替漏れを検出し、100%カバレッジを保証する。
+</purpose>
 
-> ⚠️ **重要**: 日英切替漏れは**絶対禁止**です。このプロンプトは全UI実装後に必ず実行してください。
-
----
-
-## 2. 入力要件
-
-```yaml
-input:
-  required:
-    - target_path: "監査対象ディレクトリ（例: apps/web/src）"
-    - locale_files:
-      - ja: "翻訳ファイル（日本語）"
-      - en: "翻訳ファイル（英語）"
-
-  optional:
-    - ignore_patterns: "除外パターン（例: *.test.tsx）"
-```
+<critical_warning level="ABSOLUTE">
+日英切替漏れは**絶対禁止**です。
+このプロンプトは全UI実装後に必ず実行してください。
+</critical_warning>
 
 ---
 
-## 3. 監査チェックリスト
+## 2. Required Context
 
-### 3.1 コード監査
+<required_context>
+  <ui_components priority="MUST_READ">
+    <path>apps/web/src/**/*.tsx</path>
+    <purpose>監査対象UIコード</purpose>
+  </required_context>
+  <locale_files priority="MUST_READ">
+    <path>apps/web/locales/ja/*.json</path>
+    <path>apps/web/locales/en/*.json</path>
+    <purpose>翻訳ファイル</purpose>
+  </locale_files>
+</required_context>
 
-```markdown
-## Phase 1: ハードコード文字列検出
+<input_requirements>
+  <required>
+    <param name="target_path">監査対象ディレクトリ（例: apps/web/src）</param>
+    <param name="locale_files_ja">翻訳ファイル（日本語）</param>
+    <param name="locale_files_en">翻訳ファイル（英語）</param>
+  </required>
+  <optional>
+    <param name="ignore_patterns">除外パターン（例: *.test.tsx）</param>
+  </optional>
+</input_requirements>
 
-### 検索パターン
-以下のパターンでハードコード文字列を検出：
+---
 
+## 3. Audit Checklist
+
+### 3.1 Phase 1: Hardcoded String Detection
+
+<checklist category="hardcoded_detection">
+
+```bash
 # JSX内の日本語テキスト
 grep -r "[ぁ-んァ-ン一-龯]" --include="*.tsx" --include="*.jsx"
 
@@ -52,17 +68,22 @@ grep -r "placeholder=\"[^{]" --include="*.tsx"
 
 # aria-label（直接記述）
 grep -r "aria-label=\"[^{]" --include="*.tsx"
+```
 
-### チェック結果
+<result_template>
 | # | ファイル | 行 | 問題 | 修正方法 |
 |---|----------|-----|------|---------|
 | 1 | | | | t('key') に置換 |
-```
+</result_template>
 
-### 3.2 翻訳キー完全性
+</checklist>
+
+### 3.2 Phase 2: Translation Key Completeness
+
+<checklist category="translation_keys">
 
 ```markdown
-## Phase 2: 翻訳キー監査
+## 翻訳キー監査
 
 ### 日本語翻訳ファイル確認
 - ファイル: locales/ja/*.json
@@ -86,121 +107,142 @@ grep -r "aria-label=\"[^{]" --include="*.tsx"
 | 階層3レベル以内 | ✅/❌ | |
 ```
 
-### 3.3 動的コンテンツ
+</checklist>
 
-```markdown
-## Phase 3: 動的コンテンツ監査
+### 3.3 Phase 3: Dynamic Content
 
-### 数値フォーマット
+<checklist category="dynamic_content">
+
+<format_check type="numbers">
 | 項目 | 日本語 | 英語 | 確認 |
 |------|--------|------|:----:|
-| 金額 | ¥1,234 | $1,234 | ✅/❌ |
-| 大きな数値 | 1,234,567 | 1,234,567 | ✅/❌ |
-| 小数点 | 0.123 | 0.123 | ✅/❌ |
-| パーセント | 12.3% | 12.3% | ✅/❌ |
+| 金額 | ¥1,234 | $1,234 | ⬜ |
+| 大きな数値 | 1,234,567 | 1,234,567 | ⬜ |
+| 小数点 | 0.123 | 0.123 | ⬜ |
+| パーセント | 12.3% | 12.3% | ⬜ |
+</format_check>
 
-### 日付フォーマット
+<format_check type="dates">
 | 項目 | 日本語 | 英語 | 確認 |
 |------|--------|------|:----:|
-| 日付（短） | 2026/01/13 | Jan 13, 2026 | ✅/❌ |
-| 日付（長） | 2026年1月13日 | January 13, 2026 | ✅/❌ |
-| 時間 | 14:30 | 2:30 PM | ✅/❌ |
-| 相対時間 | 3時間前 | 3 hours ago | ✅/❌ |
+| 日付（短） | 2026/01/14 | Jan 14, 2026 | ⬜ |
+| 日付（長） | 2026年1月14日 | January 14, 2026 | ⬜ |
+| 時間 | 14:30 | 2:30 PM | ⬜ |
+| 相対時間 | 3時間前 | 3 hours ago | ⬜ |
+</format_check>
 
-### 複数形
+<format_check type="plurals">
 | キー | 日本語（単数/複数同じ） | 英語（単数/複数） | 確認 |
 |------|----------------------|------------------|:----:|
-| transaction | 1 トランザクション | 1 transaction / 2 transactions | ✅/❌ |
-| day | 1 日 | 1 day / 2 days | ✅/❌ |
-```
+| transaction | 1 トランザクション | 1 transaction / 2 transactions | ⬜ |
+| day | 1 日 | 1 day / 2 days | ⬜ |
+</format_check>
 
-### 3.4 UI要素
+</checklist>
 
-```markdown
-## Phase 4: UI要素監査
+### 3.4 Phase 4: UI Elements
 
-### ボタン・リンク
+<checklist category="ui_elements">
+
+<element_check type="buttons">
 | 画面 | 要素 | 日本語 | 英語 | 確認 |
 |------|------|--------|------|:----:|
-| | | | | ✅/❌ |
+| | | | | ⬜ |
+</element_check>
 
-### エラーメッセージ
+<element_check type="errors">
 | コード | 日本語 | 英語 | 確認 |
 |--------|--------|------|:----:|
-| ERR_001 | | | ✅/❌ |
+| ERR_001 | | | ⬜ |
+</element_check>
 
-### ツールチップ・ヘルプテキスト
+<element_check type="tooltips">
 | 画面 | 要素 | 日本語 | 英語 | 確認 |
 |------|------|--------|------|:----:|
-| | | | | ✅/❌ |
+| | | | | ⬜ |
+</element_check>
 
-### フォームラベル
+<element_check type="form_labels">
 | 画面 | フィールド | 日本語 | 英語 | 確認 |
 |------|----------|--------|------|:----:|
-| | | | | ✅/❌ |
+| | | | | ⬜ |
+</element_check>
 
-### バリデーションメッセージ
+<element_check type="validation">
 | ルール | 日本語 | 英語 | 確認 |
 |--------|--------|------|:----:|
-| required | 必須項目です | This field is required | ✅/❌ |
-| email | 有効なメールアドレスを入力してください | Please enter a valid email | ✅/❌ |
-```
+| required | 必須項目です | This field is required | ⬜ |
+| email | 有効なメールアドレスを入力してください | Please enter a valid email | ⬜ |
+</element_check>
+
+</checklist>
 
 ---
 
-## 4. 言語切替動作確認
+## 4. Language Switch Testing
 
-### 4.1 テストシナリオ
+### 4.1 Test Scenarios
 
-```markdown
-## 言語切替テスト
+<test_scenarios>
 
-### シナリオ1: 初回アクセス
-- [ ] ブラウザ言語が日本語の場合、日本語で表示
-- [ ] ブラウザ言語が英語の場合、英語で表示
-- [ ] その他の言語の場合、英語（フォールバック）で表示
+<scenario id="initial_access">
+  <name>初回アクセス</name>
+  <checks>
+    <check>ブラウザ言語が日本語の場合、日本語で表示</check>
+    <check>ブラウザ言語が英語の場合、英語で表示</check>
+    <check>その他の言語の場合、英語（フォールバック）で表示</check>
+  </checks>
+</scenario>
 
-### シナリオ2: 手動切替
-- [ ] ヘッダーの言語切替ボタンが動作
-- [ ] 切替後、全テキストが即座に更新
-- [ ] ページリロード後も選択言語が維持
-- [ ] URLに言語パラメータが反映（/ja, /en）
+<scenario id="manual_switch">
+  <name>手動切替</name>
+  <checks>
+    <check>ヘッダーの言語切替ボタンが動作</check>
+    <check>切替後、全テキストが即座に更新</check>
+    <check>ページリロード後も選択言語が維持</check>
+    <check>URLに言語パラメータが反映（/ja, /en）</check>
+  </checks>
+</scenario>
 
-### シナリオ3: 特殊ケース
-- [ ] エラーページが正しい言語で表示
-- [ ] 404ページが正しい言語で表示
-- [ ] ローディング中のテキストが正しい言語
-- [ ] トースト通知が正しい言語
+<scenario id="special_cases">
+  <name>特殊ケース</name>
+  <checks>
+    <check>エラーページが正しい言語で表示</check>
+    <check>404ページが正しい言語で表示</check>
+    <check>ローディング中のテキストが正しい言語</check>
+    <check>トースト通知が正しい言語</check>
+  </checks>
+</scenario>
 
-### シナリオ4: 動的コンテンツ
-- [ ] APIから取得したデータの表示
-- [ ] 日付・時間の表示形式が言語に対応
-- [ ] 金額表示が言語に対応（カンマ、小数点）
-```
+<scenario id="dynamic_content">
+  <name>動的コンテンツ</name>
+  <checks>
+    <check>APIから取得したデータの表示</check>
+    <check>日付・時間の表示形式が言語に対応</check>
+    <check>金額表示が言語に対応（カンマ、小数点）</check>
+  </checks>
+</scenario>
 
-### 4.2 画面別テスト
+</test_scenarios>
 
-```markdown
-## 画面別言語切替テスト
+### 4.2 Screen-by-Screen Testing
 
+<screen_test_matrix>
 | # | 画面 | 日本語表示 | 英語表示 | 切替動作 | 備考 |
 |---|------|:--------:|:-------:|:-------:|------|
-| 1 | Landing | ✅/❌ | ✅/❌ | ✅/❌ | |
-| 2 | Dashboard | ✅/❌ | ✅/❌ | ✅/❌ | |
-| 3 | Lock | ✅/❌ | ✅/❌ | ✅/❌ | |
-| 4 | Unlock | ✅/❌ | ✅/❌ | ✅/❌ | |
-| ... | | | | | |
-```
+| 1 | Landing | ⬜ | ⬜ | ⬜ | |
+| 2 | Dashboard | ⬜ | ⬜ | ⬜ | |
+| 3 | Lock | ⬜ | ⬜ | ⬜ | |
+| 4 | Unlock | ⬜ | ⬜ | ⬜ | |
+</screen_test_matrix>
 
 ---
 
-## 5. 専門用語の翻訳ガイドライン
+## 5. Terminology Guidelines
 
-### 5.1 固有名詞（翻訳しない）
+### 5.1 Terms NOT to Translate
 
-```markdown
-## 翻訳しない用語
-
+<untranslated_terms>
 | 用語 | 理由 |
 |------|------|
 | Quantum Shield | プロダクト名 |
@@ -211,13 +253,11 @@ grep -r "aria-label=\"[^{]" --include="*.tsx"
 | Time Lock | プロトコル用語 |
 | Slashing | プロトコル用語 |
 | L3 Aegis | システム名 |
-```
+</untranslated_terms>
 
-### 5.2 翻訳する用語
+### 5.2 Translation Dictionary
 
-```markdown
-## 翻訳対照表
-
+<translation_dictionary>
 | 英語 | 日本語 | コンテキスト |
 |------|--------|-------------|
 | Lock | ロック | アクション名 |
@@ -230,27 +270,24 @@ grep -r "aria-label=\"[^{]" --include="*.tsx"
 | Pending | 処理中 | ステータス |
 | Complete | 完了 | ステータス |
 | Error | エラー | ステータス |
-```
+</translation_dictionary>
 
-### 5.3 説明付き用語
+### 5.3 Terms Requiring Explanation
 
-```markdown
-## 説明が必要な用語
-
+<terms_with_explanation>
 | 用語 | 日本語説明 | 英語説明 |
 |------|-----------|---------|
 | Dilithium | NIST承認の量子耐性電子署名アルゴリズム | NIST-approved quantum-resistant digital signature algorithm |
 | Time Lock | セキュリティのための待機期間 | Waiting period for security |
 | Slashing | 不正行為に対するペナルティ | Penalty for malicious behavior |
 | Emergency Unlock | Prover応答がない場合の緊急引き出し | Emergency withdrawal when Provers are unresponsive |
-```
+</terms_with_explanation>
 
 ---
 
-## 6. 監査レポート出力
+## 6. Audit Report Output
 
-### 6.1 レポートテンプレート
-
+<report_template>
 ```markdown
 # i18n 監査レポート
 
@@ -290,12 +327,13 @@ grep -r "aria-label=\"[^{]" --include="*.tsx"
 2. [ ] Warning問題の修正（推奨）
 3. [ ] 再監査
 ```
+</report_template>
 
 ---
 
-## 7. 自動化スクリプト
+## 7. Automation Scripts
 
-### 7.1 検出スクリプト
+### 7.1 Detection Script
 
 ```bash
 #!/bin/bash
@@ -319,12 +357,11 @@ comm -3 \
 
 # 3. 未使用翻訳キー
 echo "## Checking unused translation keys..."
-# (実装は使用するi18nライブラリに依存)
 
 echo "=== Audit Complete ==="
 ```
 
-### 7.2 CI/CD統合
+### 7.2 CI/CD Integration
 
 ```yaml
 # .github/workflows/i18n-audit.yml
@@ -353,73 +390,58 @@ jobs:
 
       - name: Check translation key coverage
         run: |
-          # 翻訳キーカバレッジチェック
           npm run i18n:check
 ```
 
 ---
 
-## 8. チェックリスト
+## 8. Common Issues and Solutions
 
-### 8.1 実装時チェックリスト
+<common_issues>
 
-```markdown
-## 実装者向けチェックリスト
+<issue id="conditional_text">
+  <name>条件分岐内のテキスト</name>
+  <bad_example>{status === 'pending' ? '処理中' : '完了'}</bad_example>
+  <good_example>{t(`status.${status}`)}</good_example>
+</issue>
 
-### コンポーネント作成時
-- [ ] 全テキストは `t('key')` 経由
-- [ ] プレースホルダーは `t('key')` 経由
-- [ ] aria-label は `t('key')` 経由
-- [ ] エラーメッセージは `t('key')` 経由
+<issue id="string_concatenation">
+  <name>文字列結合</name>
+  <bad_example>`残り ${days} 日`</bad_example>
+  <good_example>t('timelock.remaining', { days })</good_example>
+</issue>
 
-### 翻訳ファイル更新時
-- [ ] 日本語と英語の両方にキーを追加
-- [ ] キー命名規則に準拠
-- [ ] 不要なキーは削除
-```
+<issue id="array_text">
+  <name>配列内のテキスト</name>
+  <bad_example>const items = ['ダッシュボード', '設定', '履歴']</bad_example>
+  <good_example>const items = [t('nav.dashboard'), t('nav.settings'), t('nav.history')]</good_example>
+</issue>
 
-### 8.2 レビュー時チェックリスト
-
-```markdown
-## レビュアー向けチェックリスト
-
-### PRレビュー時
-- [ ] 新規テキストに翻訳キーを使用
-- [ ] 翻訳ファイルに両言語でキー追加
-- [ ] 動的コンテンツのフォーマット確認
-- [ ] 言語切替動作の確認（スクリーンショット添付）
-```
+</common_issues>
 
 ---
 
-## 9. よくある問題と解決策
+## 9. Implementation Checklist
 
-### 9.1 問題パターン
+<checklist category="implementation">
+  <item>全テキストは `t('key')` 経由</item>
+  <item>プレースホルダーは `t('key')` 経由</item>
+  <item>aria-label は `t('key')` 経由</item>
+  <item>エラーメッセージは `t('key')` 経由</item>
+</checklist>
 
-```markdown
-## よくある問題
+<checklist category="translation_update">
+  <item>日本語と英語の両方にキーを追加</item>
+  <item>キー命名規則に準拠</item>
+  <item>不要なキーは削除</item>
+</checklist>
 
-### 問題1: 条件分岐内のテキスト
-❌ 悪い例:
-{status === 'pending' ? '処理中' : '完了'}
-
-✅ 良い例:
-{t(`status.${status}`)}
-
-### 問題2: 文字列結合
-❌ 悪い例:
-`残り ${days} 日`
-
-✅ 良い例:
-t('timelock.remaining', { days })
-
-### 問題3: 配列内のテキスト
-❌ 悪い例:
-const items = ['ダッシュボード', '設定', '履歴']
-
-✅ 良い例:
-const items = [t('nav.dashboard'), t('nav.settings'), t('nav.history')]
-```
+<checklist category="review">
+  <item>新規テキストに翻訳キーを使用</item>
+  <item>翻訳ファイルに両言語でキー追加</item>
+  <item>動的コンテンツのフォーマット確認</item>
+  <item>言語切替動作の確認（スクリーンショット添付）</item>
+</checklist>
 
 ---
 
