@@ -1,40 +1,68 @@
 # 31_design_pir.md - Design PIR Prompt
+
 ## Phase 6: デザインPIR（ペルソナレビュー）
 
-> **Version**: 1.0
-> **Date**: 2026-01-13
+> **Version**: 1.1
+> **Date**: 2026-01-14
 > **Purpose**: UIデザインのペルソナベースレビュー
+> **Structure**: Anthropic Claude 4.x XML Best Practices準拠
 
 ---
 
 ## 1. Overview
 
-このプロンプトは、Phase 4で作成されたデザインモックまたは実装されたUIに対して、
-8名のレビューAgent（3専門家 + 5ペルソナ）によるレビューを実行します。
+<purpose>
+Phase 4で作成されたデザインモックまたは実装されたUIに対して、
+8名のレビューAgent（3専門家 + 5ペルソナ）によるレビューを実行する。
+</purpose>
+
+<review_agents>
+  <experts>
+    <agent id="CDO" name="佐々木">Chief Design Officer</agent>
+    <agent id="Marketing" name="田村">Marketing Director</agent>
+    <agent id="Legal" name="西村">Legal Counsel</agent>
+  </experts>
+  <personas>
+    <persona id="tanaka" name="田中" role="End User" tech_level="2" />
+    <persona id="yamada" name="山田" role="Prover" tech_level="5" />
+    <persona id="sato" name="佐藤" role="Service Provider" tech_level="4" />
+    <persona id="suzuki" name="鈴木" role="Token Holder" tech_level="4" />
+    <persona id="watanabe" name="渡辺" role="Delegate" tech_level="4" />
+  </personas>
+</review_agents>
 
 ---
 
-## 2. 入力要件
+## 2. Required Context
 
-```yaml
-input:
-  required:
-    - target_system: "Consumer App | Token Hub | Governance | Prover Portal | Observer | Explorer | Enterprise Admin | QS Admin"
-    - screens: "レビュー対象画面リスト"
-    - mock_path: "モックファイルのパス"
+<required_context>
+  <design_guidelines priority="MUST_READ">
+    <path>docs_new/01_phase/04_phase4/01_design/UI_DESIGN_GUIDELINES.md</path>
+    <purpose>Premium Japanデザインシステム</purpose>
+  </design_guidelines>
+  <review_agents priority="MUST_READ">
+    <path>docs_new/02_agents_prompt/DESIGN_REVIEW_AGENTS.md</path>
+    <purpose>レビュアー詳細定義</purpose>
+  </review_agents>
+  <design_concept priority="SHOULD_READ">
+    <path>docs_new/01_phase/04_phase4/01_design/design-concept-5-japan-premium.html</path>
+    <purpose>デザインコンセプトリファレンス</purpose>
+  </design_concept>
+</required_context>
 
-  references:
-    - UI_DESIGN_GUIDELINES.md
-    - DESIGN_REVIEW_AGENTS.md
-    - design-concept-5-japan-premium.html
-```
+<input_requirements>
+  <required>
+    <param name="target_system">Consumer App | Token Hub | Governance | Prover Portal | Observer | Explorer | Enterprise Admin | QS Admin</param>
+    <param name="screens">レビュー対象画面リスト</param>
+    <param name="mock_path">モックファイルのパス</param>
+  </required>
+</input_requirements>
 
 ---
 
-## 3. レビュー担当マトリックス
+## 3. Review Assignment Matrix
 
-```
-システムごとに適切なレビュアーを選出：
+<review_matrix>
 
 | System          | CDO | Marketing | Legal | 田中 | 山田 | 佐藤 | 鈴木 | 渡辺 |
 |-----------------|:---:|:---------:|:-----:|:----:|:----:|:----:|:----:|:----:|
@@ -46,24 +74,26 @@ input:
 | Explorer        | ✅  | ✅        | -     | ✅   | -    | -    | -    | ✅   |
 | Enterprise Admin| ✅  | ✅        | ✅    | -    | -    | ✅   | -    | -    |
 | QS Admin        | ✅  | -         | ✅    | -    | -    | -    | -    | -    |
-```
+
+</review_matrix>
 
 ---
 
-## 4. レビュー実行手順
+## 4. Review Execution Steps
 
-### Step 1: 準備（5分）
+### 4.1 Step 1: Preparation (5min)
 
-```markdown
-1. レビュー対象画面を確認
-2. 対象システムに応じたレビュアーを選出
-3. 参照ドキュメントを読み込み
-```
+<checklist category="preparation">
+  <item>レビュー対象画面を確認</item>
+  <item>対象システムに応じたレビュアーを選出</item>
+  <item>参照ドキュメントを読み込み</item>
+</checklist>
 
-### Step 2: 専門家レビュー（30分）
+### 4.2 Step 2: Expert Review (30min)
 
-#### CDO（佐々木さん）としてレビュー
+#### CDO Review Template
 
+<review_template agent="CDO">
 ```markdown
 ## CDO レビュー: [System Name]
 
@@ -88,9 +118,11 @@ input:
 
 ### 総合評価: ✅ PASS / ⚠️ CONDITIONAL / ❌ FAIL
 ```
+</review_template>
 
-#### Marketing（田村さん）としてレビュー
+#### Marketing Review Template
 
+<review_template agent="Marketing">
 ```markdown
 ## Marketing レビュー: [System Name]
 
@@ -110,9 +142,11 @@ input:
 
 ### 総合評価: ✅ PASS / ⚠️ CONDITIONAL / ❌ FAIL
 ```
+</review_template>
 
-#### Legal（西村さん）としてレビュー
+#### Legal Review Template
 
+<review_template agent="Legal">
 ```markdown
 ## Legal レビュー: [System Name]
 
@@ -132,13 +166,11 @@ input:
 
 ### 総合評価: ✅ PASS / ⚠️ CONDITIONAL / ❌ FAIL
 ```
+</review_template>
 
-### Step 3: ペルソナレビュー（30分）
+### 4.3 Step 3: Persona Review (30min)
 
-対象システムに応じて該当するペルソナでレビュー。
-
-#### ペルソナレビューテンプレート
-
+<persona_review_template>
 ```markdown
 ## ペルソナレビュー: [ペルソナ名]
 
@@ -169,93 +201,104 @@ input:
 ### コメント
 「このサービス、[使いたい / 不安がある / ...]」
 ```
+</persona_review_template>
 
 ---
 
-## 5. ペルソナ詳細
+## 5. Persona Details
+
+<personas>
 
 ### 5.1 田中さん（End User / 32歳）
 
-```
-技術レベル: ★★☆☆☆
-キャラクター:
-• 暗号資産投資家だが技術には詳しくない
-• スマホメインで通勤中にチェック
-• 「安全かどうか」が最大の関心事
-• 専門用語は苦手
-
-発言例:
-• 「Dilithiumって何？説明ほしい」
-• 「このボタン、スマホだと押しにくそう」
-• 「24時間待つの？なんで？」
-```
+<persona id="tanaka">
+  <tech_level>★★☆☆☆</tech_level>
+  <character>
+    <trait>暗号資産投資家だが技術には詳しくない</trait>
+    <trait>スマホメインで通勤中にチェック</trait>
+    <trait>「安全かどうか」が最大の関心事</trait>
+    <trait>専門用語は苦手</trait>
+  </character>
+  <quotes>
+    <quote>「Dilithiumって何？説明ほしい」</quote>
+    <quote>「このボタン、スマホだと押しにくそう」</quote>
+    <quote>「24時間待つの？なんで？」</quote>
+  </quotes>
+</persona>
 
 ### 5.2 山田さん（Prover / 45歳）
 
-```
-技術レベル: ★★★★★
-キャラクター:
-• インフラ企業CEO、取締役会への説明責任
-• 数字とデータを重視
-• PDF出力で報告書を作成したい
-
-発言例:
-• 「このデータ、PDFで出力できる？」
-• 「Slashingリスクの計算式、もっと詳しく見たい」
-• 「取締役会でこの画面見せたい」
-```
+<persona id="yamada">
+  <tech_level>★★★★★</tech_level>
+  <character>
+    <trait>インフラ企業CEO、取締役会への説明責任</trait>
+    <trait>数字とデータを重視</trait>
+    <trait>PDF出力で報告書を作成したい</trait>
+  </character>
+  <quotes>
+    <quote>「このデータ、PDFで出力できる？」</quote>
+    <quote>「Slashingリスクの計算式、もっと詳しく見たい」</quote>
+    <quote>「取締役会でこの画面見せたい」</quote>
+  </quotes>
+</persona>
 
 ### 5.3 佐藤さん（Service Provider / 38歳）
 
-```
-技術レベル: ★★★★☆
-キャラクター:
-• 取引所CTO、毎日長時間ダッシュボードを見る
-• API統合の経験豊富
-• 規制当局への報告義務がある
-
-発言例:
-• 「赤い色が多いと目が疲れるかも」
-• 「API使用量のグラフ、もっと詳細に見たい」
-• 「監査証跡、フィルタリングできる？」
-```
+<persona id="sato">
+  <tech_level>★★★★☆</tech_level>
+  <character>
+    <trait>取引所CTO、毎日長時間ダッシュボードを見る</trait>
+    <trait>API統合の経験豊富</trait>
+    <trait>規制当局への報告義務がある</trait>
+  </character>
+  <quotes>
+    <quote>「赤い色が多いと目が疲れるかも」</quote>
+    <quote>「API使用量のグラフ、もっと詳細に見たい」</quote>
+    <quote>「監査証跡、フィルタリングできる？」</quote>
+  </quotes>
+</persona>
 
 ### 5.4 鈴木さん（Token Holder / 28歳）
 
-```
-技術レベル: ★★★★☆
-キャラクター:
-• DeFiユーザー、複数DAOに参加
-• veTokenエコノミクスに詳しい
-• 他のDeFiプロトコルと比較する
-
-発言例:
-• 「Curveみたいな減衰曲線グラフがほしい」
-• 「委任先の投票履歴、見れる？」
-• 「ダークモードしかないの？ライトモードも欲しい」
-```
+<persona id="suzuki">
+  <tech_level>★★★★☆</tech_level>
+  <character>
+    <trait>DeFiユーザー、複数DAOに参加</trait>
+    <trait>veTokenエコノミクスに詳しい</trait>
+    <trait>他のDeFiプロトコルと比較する</trait>
+  </character>
+  <quotes>
+    <quote>「Curveみたいな減衰曲線グラフがほしい」</quote>
+    <quote>「委任先の投票履歴、見れる？」</quote>
+    <quote>「ダークモードしかないの？ライトモードも欲しい」</quote>
+  </quotes>
+</persona>
 
 ### 5.5 渡辺さん（Delegate / 42歳）
 
-```
-技術レベル: ★★★★☆
-キャラクター:
-• 複数DAOでDelegate活動
-• Twitter/Xでインフルエンサー
-• SNS共有を頻繁に行う
+<persona id="watanabe">
+  <tech_level>★★★★☆</tech_level>
+  <character>
+    <trait>複数DAOでDelegate活動</trait>
+    <trait>Twitter/Xでインフルエンサー</trait>
+    <trait>SNS共有を頻繁に行う</trait>
+  </character>
+  <quotes>
+    <quote>「このOGP画像、Twitterで映える？」</quote>
+    <quote>「投票結果のサマリー、そのままツイートしたい」</quote>
+    <quote>「委任してくれた人の一覧、もっと見やすく」</quote>
+  </quotes>
+</persona>
 
-発言例:
-• 「このOGP画像、Twitterで映える？」
-• 「投票結果のサマリー、そのままツイートしたい」
-• 「委任してくれた人の一覧、もっと見やすく」
-```
+</personas>
 
 ---
 
-## 6. 統合判定
+## 6. Integration Report
 
-### Step 4: フィードバック集約（10分）
+### Step 4: Feedback Aggregation (10min)
 
+<report_template>
 ```markdown
 ## Design PIR 統合レポート
 
@@ -297,33 +340,42 @@ input:
 2. [ ] P2指摘対応
 3. [ ] 再レビュー（FAILの場合のみ）
 ```
+</report_template>
 
 ---
 
-## 7. 重要な注意事項
+## 7. Critical Rules
 
-### 7.1 絶対禁止事項
+<rules>
+  <rule id="R-1" level="ABSOLUTE">
+    <name>日英切替漏れ禁止</name>
+    <desc>全テキストは翻訳キー経由であること</desc>
+  </rule>
+  <rule id="R-2" level="ABSOLUTE">
+    <name>ハードコード文字列禁止</name>
+    <desc>日本語/英語の直接記述禁止</desc>
+  </rule>
+  <rule id="R-3" level="ABSOLUTE">
+    <name>エラー色に赤使用禁止</name>
+    <desc>Hinomaru Redはブランドカラー、エラーはオレンジレッド使用</desc>
+  </rule>
+</rules>
 
-1. **日英切替漏れ**: 全テキストは翻訳キー経由であること
-2. **ハードコード文字列**: 日本語/英語の直接記述禁止
-3. **エラー色に赤使用**: Hinomaru Redはブランドカラー、エラーはオレンジレッド使用
-
-### 7.2 必須確認事項
-
-1. **Premium Japan準拠**: 日の丸モチーフ、赤×白×ゴールド
-2. **コントラスト比**: WCAG 2.1 AA以上（4.5:1）
-3. **レスポンシブ**: モバイル・タブレット・デスクトップ対応
+<mandatory_checks>
+  <check id="M-1">Premium Japan準拠: 日の丸モチーフ、赤×白×ゴールド</check>
+  <check id="M-2">コントラスト比: WCAG 2.1 AA以上（4.5:1）</check>
+  <check id="M-3">レスポンシブ: モバイル・タブレット・デスクトップ対応</check>
+</mandatory_checks>
 
 ---
 
-## 8. 出力
+## 8. Output
 
-```yaml
-output:
-  - PIR_REPORT_[system_name]_YYYYMMDD.md
-  - 指摘一覧（JIRA/GitHub Issue形式）
-  - 修正タスクリスト
-```
+<output_spec>
+  <file>PIR_REPORT_[system_name]_YYYYMMDD.md</file>
+  <file>指摘一覧（JIRA/GitHub Issue形式）</file>
+  <file>修正タスクリスト</file>
+</output_spec>
 
 ---
 
