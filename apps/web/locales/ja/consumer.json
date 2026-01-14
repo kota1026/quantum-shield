@@ -1,5 +1,6 @@
 {
-  "common": {
+  "consumer": {
+    "common": {
     "header": {
       "dashboard": "ダッシュボード",
       "lock": "ロック",
@@ -877,5 +878,6 @@
       "faq": "FAQ",
       "copyright": "© 2026 Quantum Shield. Made in Japan"
     }
+  }
   }
 }
