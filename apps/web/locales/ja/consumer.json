@@ -657,5 +657,122 @@
       "github": "スマートコントラクト（GitHub）",
       "audits": "監査レポート"
     }
+  },
+  "lockProcessing": {
+    "meta": {
+      "title": "Lock処理中 | Quantum Shield",
+      "description": "Lock処理を実行しています"
+    },
+    "title": "Lock処理中...",
+    "subtitle": "しばらくお待ちください。このページを閉じないでください。",
+    "visualLabel": "処理中アニメーション",
+    "stepsLabel": "処理ステップ",
+    "steps": {
+      "sign": "Dilithium署名を生成",
+      "create": "トランザクションを作成",
+      "send": "ブロックチェーンに送信中...",
+      "confirm": "確認を待機"
+    }
+  },
+  "lockSuccess": {
+    "meta": {
+      "title": "Lock完了 | Quantum Shield",
+      "description": "資産のLockが正常に完了しました"
+    },
+    "title": "Lock完了！",
+    "subtitle": "資産は量子耐性暗号で安全に保護されています",
+    "successIconLabel": "成功アイコン",
+    "result": {
+      "amount": "Lock金額",
+      "status": "ステータス",
+      "date": "日時",
+      "txHash": "TX Hash",
+      "gasFee": "ガス代"
+    },
+    "info": "Unlockには24時間のTime Lock（通常）または7日間（緊急）が必要です。",
+    "buttons": {
+      "dashboard": "ダッシュボードへ",
+      "history": "履歴を見る"
+    }
+  },
+  "unlockSign": {
+    "meta": {
+      "title": "Dilithium署名 | Quantum Shield",
+      "description": "Unlock要求を承認するためにDilithium署名を行います"
+    },
+    "header": {
+      "title": "Dilithium署名",
+      "back": "戻る"
+    },
+    "title": "署名が必要です",
+    "subtitle": "Unlock要求を承認するためにDilithium署名を行います",
+    "summary": {
+      "ariaLabel": "Unlock概要",
+      "amount": "Unlock金額",
+      "type": "Unlockタイプ",
+      "types": {
+        "normal": "通常Unlock",
+        "emergency": "緊急Unlock"
+      },
+      "waitTime": "待機時間",
+      "gasFee": "ガス代（概算）"
+    },
+    "visualLabel": "署名用鍵アイコン",
+    "info": {
+      "highlight": "Dilithium-III署名",
+      "text": "を使用してUnlock要求を承認します。この署名は量子コンピュータに対しても安全です。"
+    },
+    "buttons": {
+      "cancel": "キャンセル",
+      "sign": "署名してUnlock",
+      "signing": "署名中..."
+    }
+  },
+  "unlockProcessing": {
+    "meta": {
+      "title": "Unlock処理中 | Quantum Shield",
+      "description": "Unlock処理を実行しています"
+    },
+    "title": "Unlock処理中...",
+    "subtitle": "Prover署名を待っています",
+    "visualLabel": "処理中アニメーション",
+    "stepsLabel": "処理ステップ",
+    "steps": {
+      "verify": "Dilithium署名を検証",
+      "send": "Unlock要求を送信",
+      "prover": "Prover署名を待機中...",
+      "timelock": "Time Lock開始"
+    },
+    "info": {
+      "text1": "Unlock要求が承認されると、",
+      "highlight": "24時間のTime Lock",
+      "text2": "が開始されます。"
+    }
+  },
+  "unlockSuccess": {
+    "meta": {
+      "title": "Time Lock開始 | Quantum Shield",
+      "description": "Unlock要求が承認され、Time Lockが開始されました"
+    },
+    "title": "Time Lock開始！",
+    "subtitle": "24時間後にUnlockを実行できます",
+    "successIconLabel": "タイムロックアイコン",
+    "timelockCard": {
+      "ariaLabel": "残り時間カウントダウン",
+      "title": "Time Lock残り時間",
+      "label": "Unlock実行可能まで"
+    },
+    "result": {
+      "amount": "Unlock金額",
+      "status": "ステータス",
+      "statusValue": "Time Lock中",
+      "unlockDate": "Unlock可能日時",
+      "txHash": "TX Hash"
+    },
+    "info": "Time Lock終了後、ダッシュボードからUnlockを完了できます。通知をONにすると、Unlock可能になった時にお知らせします。",
+    "buttons": {
+      "dashboard": "ダッシュボードへ",
+      "history": "履歴を見る"
+    }
   }
 }

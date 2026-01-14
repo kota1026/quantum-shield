@@ -657,5 +657,122 @@
       "github": "Smart Contracts (GitHub)",
       "audits": "Audit Reports"
     }
+  },
+  "lockProcessing": {
+    "meta": {
+      "title": "Lock Processing | Quantum Shield",
+      "description": "Executing lock transaction"
+    },
+    "title": "Processing Lock...",
+    "subtitle": "Please wait. Do not close this page.",
+    "visualLabel": "Processing animation",
+    "stepsLabel": "Processing steps",
+    "steps": {
+      "sign": "Generating Dilithium signature",
+      "create": "Creating transaction",
+      "send": "Sending to blockchain...",
+      "confirm": "Waiting for confirmation"
+    }
+  },
+  "lockSuccess": {
+    "meta": {
+      "title": "Lock Complete | Quantum Shield",
+      "description": "Your assets have been successfully locked"
+    },
+    "title": "Lock Complete!",
+    "subtitle": "Your assets are now protected with quantum-resistant cryptography",
+    "successIconLabel": "Success icon",
+    "result": {
+      "amount": "Lock Amount",
+      "status": "Status",
+      "date": "Date",
+      "txHash": "TX Hash",
+      "gasFee": "Gas Fee"
+    },
+    "info": "Unlock requires a 24-hour Time Lock (normal) or 7 days (emergency).",
+    "buttons": {
+      "dashboard": "Go to Dashboard",
+      "history": "View History"
+    }
+  },
+  "unlockSign": {
+    "meta": {
+      "title": "Dilithium Signature | Quantum Shield",
+      "description": "Sign with Dilithium to approve unlock request"
+    },
+    "header": {
+      "title": "Dilithium Signature",
+      "back": "Back"
+    },
+    "title": "Signature Required",
+    "subtitle": "Sign with Dilithium to approve your unlock request",
+    "summary": {
+      "ariaLabel": "Unlock summary",
+      "amount": "Unlock Amount",
+      "type": "Unlock Type",
+      "types": {
+        "normal": "Normal Unlock",
+        "emergency": "Emergency Unlock"
+      },
+      "waitTime": "Wait Time",
+      "gasFee": "Gas Fee (est.)"
+    },
+    "visualLabel": "Signature key icon",
+    "info": {
+      "highlight": "Dilithium-III signature",
+      "text": " is used to approve unlock requests. This signature is secure against quantum computers."
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "sign": "Sign and Unlock",
+      "signing": "Signing..."
+    }
+  },
+  "unlockProcessing": {
+    "meta": {
+      "title": "Unlock Processing | Quantum Shield",
+      "description": "Executing unlock transaction"
+    },
+    "title": "Processing Unlock...",
+    "subtitle": "Waiting for Prover signature",
+    "visualLabel": "Processing animation",
+    "stepsLabel": "Processing steps",
+    "steps": {
+      "verify": "Verifying Dilithium signature",
+      "send": "Sending unlock request",
+      "prover": "Waiting for Prover signature...",
+      "timelock": "Starting Time Lock"
+    },
+    "info": {
+      "text1": "Once the unlock request is approved, a ",
+      "highlight": "24-hour Time Lock",
+      "text2": " will begin."
+    }
+  },
+  "unlockSuccess": {
+    "meta": {
+      "title": "Time Lock Started | Quantum Shield",
+      "description": "Unlock request approved, Time Lock has started"
+    },
+    "title": "Time Lock Started!",
+    "subtitle": "You can complete the unlock after 24 hours",
+    "successIconLabel": "Time lock icon",
+    "timelockCard": {
+      "ariaLabel": "Countdown timer",
+      "title": "Time Lock Remaining",
+      "label": "Until unlock available"
+    },
+    "result": {
+      "amount": "Unlock Amount",
+      "status": "Status",
+      "statusValue": "Time Lock",
+      "unlockDate": "Unlock Available",
+      "txHash": "TX Hash"
+    },
+    "info": "After the Time Lock ends, you can complete the unlock from your dashboard. Turn on notifications to be alerted when unlock becomes available.",
+    "buttons": {
+      "dashboard": "Go to Dashboard",
+      "history": "View History"
+    }
   }
 }

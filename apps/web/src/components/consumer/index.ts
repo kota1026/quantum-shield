@@ -9,3 +9,8 @@ export { Unlock } from './Unlock';
 export { KeyManagement } from './KeyManagement';
 export { FAQ } from './FAQ';
 export { Security } from './Security';
+export { LockProcessing } from './LockProcessing';
+export { LockSuccess } from './LockSuccess';
+export { UnlockSign } from './UnlockSign';
+export { UnlockProcessing } from './UnlockProcessing';
+export { UnlockSuccess } from './UnlockSuccess';
