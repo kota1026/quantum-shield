@@ -8,3 +8,4 @@ export { Settings } from './Settings';
 export { Unlock } from './Unlock';
 export { KeyManagement } from './KeyManagement';
 export { FAQ } from './FAQ';
+export { Security } from './Security';
