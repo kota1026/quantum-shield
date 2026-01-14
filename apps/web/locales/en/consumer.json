@@ -1,4 +1,138 @@
 {
+  "common": {
+    "header": {
+      "dashboard": "Dashboard",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "history": "History"
+    },
+    "wallet": {
+      "connected": "Connected",
+      "copy": "Copy",
+      "disconnect": "Disconnect",
+      "copySuccess": "Address copied"
+    },
+    "mobileNav": {
+      "dashboard": "Dashboard",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "history": "History",
+      "settings": "Settings"
+    }
+  },
+  "dashboard": {
+    "meta": {
+      "title": "Dashboard | Quantum Shield",
+      "description": "Manage and monitor your quantum-resistant assets"
+    },
+    "stats": {
+      "ariaLabel": "Asset Statistics",
+      "totalLocked": {
+        "label": "Total Locked",
+        "tooltip": "Total amount of currently locked assets"
+      },
+      "available": {
+        "label": "Available",
+        "tooltip": "Balance available for locking"
+      },
+      "pendingUnlock": {
+        "label": "Pending Unlock",
+        "tooltip": "Number of unlocks in 24h waiting period"
+      },
+      "transactions": {
+        "label": "Transactions",
+        "tooltip": "Total transaction count"
+      }
+    },
+    "lockCard": {
+      "title": "Lock Assets",
+      "badge": "Quantum Protected",
+      "badgeTooltip": "Quantum-resistant cryptography protects your assets from future quantum computer attacks",
+      "inputLabel": "Amount to Lock",
+      "inputPlaceholder": "0.00",
+      "quickAmounts": {
+        "25": "25%",
+        "50": "50%",
+        "75": "75%",
+        "max": "MAX"
+      },
+      "lockButton": "Lock with Dilithium Signature",
+      "lockButtonAriaLabel": "Lock assets with Dilithium signature",
+      "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "viewAll": "View all history",
+      "types": {
+        "lock": "Lock",
+        "unlock": "Unlock Complete",
+        "unlocking": "Unlocking"
+      },
+      "status": {
+        "complete": "Complete",
+        "pending": "24h Lock",
+        "pendingTooltip": "For security, there's a 24-hour waiting period after unlock request. This helps detect fraud"
+      },
+      "emptyState": "No transaction history"
+    },
+    "lockModal": {
+      "title": "Confirm Lock",
+      "description": "You are about to lock the following amount. Dilithium signature required.",
+      "amount": "Lock Amount",
+      "gasFee": "Gas Fee (est.)",
+      "confirm": "Sign and Lock",
+      "cancel": "Cancel"
+    },
+    "walletModal": {
+      "title": "Wallet",
+      "connectedLabel": "Connected Wallet"
+    },
+    "errorModal": {
+      "title": "Error",
+      "defaultTitle": "Transaction Failed",
+      "defaultMessage": "An error occurred while processing the transaction. Please check your network connection and try again.",
+      "errorCode": "Error Code",
+      "close": "Close",
+      "retry": "Retry"
+    },
+    "guide": {
+      "welcome": {
+        "title": "Welcome!",
+        "text": "Welcome to Quantum Shield. Let us show you around with a quick guide."
+      },
+      "stats": {
+        "title": "Total Locked",
+        "text": "This shows your total locked assets. Click to navigate to the Lock screen."
+      },
+      "lockCard": {
+        "title": "Lock Assets",
+        "text": "Lock your ETH with quantum-resistant protection. Enter an amount and click the Lock button."
+      },
+      "input": {
+        "title": "Amount Input",
+        "text": "Enter the amount to lock. Use quick buttons to easily select a percentage of your balance."
+      },
+      "activity": {
+        "title": "Transaction History",
+        "text": "View your recent transactions here. Check the History page for more details."
+      },
+      "skip": "Skip",
+      "next": "Next",
+      "finish": "Finish",
+      "progress": "{current} / {total}",
+      "completed": "Guide Complete",
+      "completedMessage": "You can restart the guide anytime from Settings"
+    },
+    "validation": {
+      "amountRequired": "Please enter an amount to lock",
+      "amountInvalid": "Please enter a valid amount",
+      "insufficientBalance": "Insufficient balance"
+    },
+    "toast": {
+      "lockSuccess": "Lock completed successfully",
+      "copySuccess": "Copied"
+    }
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography",

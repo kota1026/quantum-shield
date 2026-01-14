@@ -1,4 +1,138 @@
 {
+  "common": {
+    "header": {
+      "dashboard": "ダッシュボード",
+      "lock": "ロック",
+      "unlock": "アンロック",
+      "history": "履歴"
+    },
+    "wallet": {
+      "connected": "接続中",
+      "copy": "コピー",
+      "disconnect": "切断",
+      "copySuccess": "アドレスをコピーしました"
+    },
+    "mobileNav": {
+      "dashboard": "ダッシュボード",
+      "lock": "ロック",
+      "unlock": "アンロック",
+      "history": "履歴",
+      "settings": "設定"
+    }
+  },
+  "dashboard": {
+    "meta": {
+      "title": "ダッシュボード | Quantum Shield",
+      "description": "あなたの量子耐性資産を管理・監視"
+    },
+    "stats": {
+      "ariaLabel": "資産統計",
+      "totalLocked": {
+        "label": "ロック中",
+        "tooltip": "現在ロックされている資産の合計額"
+      },
+      "available": {
+        "label": "利用可能",
+        "tooltip": "ロック可能な残高"
+      },
+      "pendingUnlock": {
+        "label": "アンロック待ち",
+        "tooltip": "24時間待機中のアンロック件数"
+      },
+      "transactions": {
+        "label": "取引数",
+        "tooltip": "累計取引数"
+      }
+    },
+    "lockCard": {
+      "title": "資産をロック",
+      "badge": "量子耐性保護",
+      "badgeTooltip": "量子耐性暗号とは、将来の量子コンピュータからも資産を守れる次世代の暗号技術です",
+      "inputLabel": "ロック金額",
+      "inputPlaceholder": "0.00",
+      "quickAmounts": {
+        "25": "25%",
+        "50": "50%",
+        "75": "75%",
+        "max": "最大"
+      },
+      "lockButton": "Dilithium署名でロック",
+      "lockButtonAriaLabel": "Dilithium署名で資産をロックする",
+      "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です"
+    },
+    "activity": {
+      "title": "最近のアクティビティ",
+      "viewAll": "すべての履歴を見る",
+      "types": {
+        "lock": "ロック",
+        "unlock": "アンロック完了",
+        "unlocking": "アンロック中"
+      },
+      "status": {
+        "complete": "完了",
+        "pending": "24h待機",
+        "pendingTooltip": "セキュリティのため、アンロック後24時間の待機期間があります。この間に不正を検知できます"
+      },
+      "emptyState": "取引履歴がありません"
+    },
+    "lockModal": {
+      "title": "ロック確認",
+      "description": "以下の内容でロックを実行します。Dilithium署名が必要です。",
+      "amount": "ロック金額",
+      "gasFee": "ガス代（概算）",
+      "confirm": "署名してロック",
+      "cancel": "キャンセル"
+    },
+    "walletModal": {
+      "title": "ウォレット",
+      "connectedLabel": "接続中のウォレット"
+    },
+    "errorModal": {
+      "title": "エラー",
+      "defaultTitle": "トランザクション失敗",
+      "defaultMessage": "トランザクションの処理中にエラーが発生しました。ネットワーク状況を確認して再度お試しください。",
+      "errorCode": "エラーコード",
+      "close": "閉じる",
+      "retry": "再試行"
+    },
+    "guide": {
+      "welcome": {
+        "title": "ようこそ！",
+        "text": "Quantum Shieldへようこそ。簡単なガイドで使い方をご紹介します。"
+      },
+      "stats": {
+        "title": "総ロック量",
+        "text": "ここに現在ロック中の総資産額が表示されます。クリックするとロック画面に移動します。"
+      },
+      "lockCard": {
+        "title": "資産をロック",
+        "text": "ETHをロックして量子耐性で保護できます。金額を入力してロックボタンを押してください。"
+      },
+      "input": {
+        "title": "金額入力",
+        "text": "ロック金額を入力します。クイックボタンで残高の割合を簡単に選択できます。"
+      },
+      "activity": {
+        "title": "取引履歴",
+        "text": "最近の取引履歴を確認できます。詳細は履歴ページで確認してください。"
+      },
+      "skip": "スキップ",
+      "next": "次へ",
+      "finish": "完了",
+      "progress": "{current} / {total}",
+      "completed": "ガイド完了",
+      "completedMessage": "いつでも設定からガイドを再表示できます"
+    },
+    "validation": {
+      "amountRequired": "ロック金額を入力してください",
+      "amountInvalid": "正しい金額を入力してください",
+      "insufficientBalance": "残高が不足しています"
+    },
+    "toast": {
+      "lockSuccess": "ロックが完了しました",
+      "copySuccess": "コピーしました"
+    }
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - 量子耐性暗号で資産を守る",
