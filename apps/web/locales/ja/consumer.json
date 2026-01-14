@@ -249,6 +249,95 @@
     "loadMore": "さらに読み込む",
     "loadMoreNotAvailable": "さらに読み込みは開発中です"
   },
+  "settings": {
+    "meta": {
+      "title": "設定 | Quantum Shield",
+      "description": "アカウント、通知、セキュリティなどの設定"
+    },
+    "header": {
+      "title": "設定",
+      "back": "戻る"
+    },
+    "sections": {
+      "account": "アカウント",
+      "notifications": "通知",
+      "display": "表示",
+      "security": "セキュリティ",
+      "support": "サポート",
+      "dangerZone": "危険な操作"
+    },
+    "account": {
+      "keyManagement": {
+        "title": "鍵管理",
+        "description": "Dilithium鍵のバックアップ・エクスポート"
+      },
+      "connectedWallet": {
+        "title": "接続中のウォレット",
+        "description": "ウォレットの管理・切断"
+      }
+    },
+    "notifications": {
+      "push": {
+        "title": "プッシュ通知",
+        "description": "Unlock完了時などに通知"
+      },
+      "email": {
+        "title": "メール通知",
+        "description": "重要なアクティビティをメールで通知"
+      }
+    },
+    "display": {
+      "darkMode": {
+        "title": "ダークモード",
+        "description": "画面の明るさを調整"
+      },
+      "language": {
+        "title": "言語",
+        "description": "表示言語を変更",
+        "japanese": "日本語",
+        "english": "English"
+      },
+      "currency": {
+        "title": "通貨表示",
+        "description": "法定通貨の表示単位"
+      }
+    },
+    "security": {
+      "autoLock": {
+        "title": "自動ロック",
+        "description": "一定時間後に自動でロック",
+        "minutes": "{count}分"
+      },
+      "biometric": {
+        "title": "生体認証",
+        "description": "Face ID / Touch IDで認証"
+      }
+    },
+    "support": {
+      "faq": {
+        "title": "よくある質問",
+        "description": "FAQ・ヘルプセンター"
+      },
+      "contact": {
+        "title": "お問い合わせ",
+        "description": "サポートチームに連絡"
+      },
+      "legal": {
+        "title": "利用規約・プライバシー",
+        "description": "法的文書を確認"
+      }
+    },
+    "danger": {
+      "disconnectWallet": {
+        "title": "ウォレットを切断",
+        "description": "接続を解除してログアウト"
+      }
+    },
+    "version": {
+      "label": "Quantum Shield",
+      "version": "Version {version} (Build {build})"
+    }
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - 量子耐性暗号で資産を守る",
