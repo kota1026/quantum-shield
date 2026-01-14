@@ -1,4 +1,343 @@
 {
+  "common": {
+    "header": {
+      "dashboard": "Dashboard",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "history": "History"
+    },
+    "wallet": {
+      "connected": "Connected",
+      "copy": "Copy",
+      "disconnect": "Disconnect",
+      "copySuccess": "Address copied"
+    },
+    "mobileNav": {
+      "dashboard": "Dashboard",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "history": "History",
+      "settings": "Settings"
+    }
+  },
+  "dashboard": {
+    "meta": {
+      "title": "Dashboard | Quantum Shield",
+      "description": "Manage and monitor your quantum-resistant assets"
+    },
+    "stats": {
+      "ariaLabel": "Asset Statistics",
+      "totalLocked": {
+        "label": "Total Locked",
+        "tooltip": "Total amount of currently locked assets"
+      },
+      "available": {
+        "label": "Available",
+        "tooltip": "Balance available for locking"
+      },
+      "pendingUnlock": {
+        "label": "Pending Unlock",
+        "tooltip": "Number of unlocks in 24h waiting period"
+      },
+      "transactions": {
+        "label": "Transactions",
+        "tooltip": "Total transaction count"
+      }
+    },
+    "lockCard": {
+      "title": "Lock Assets",
+      "badge": "Quantum Protected",
+      "badgeTooltip": "Quantum-resistant cryptography protects your assets from future quantum computer attacks",
+      "inputLabel": "Amount to Lock",
+      "inputPlaceholder": "0.00",
+      "quickAmounts": {
+        "25": "25%",
+        "50": "50%",
+        "75": "75%",
+        "max": "MAX"
+      },
+      "lockButton": "Lock with Dilithium Signature",
+      "lockButtonAriaLabel": "Lock assets with Dilithium signature",
+      "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "viewAll": "View all history",
+      "types": {
+        "lock": "Lock",
+        "unlock": "Unlock Complete",
+        "unlocking": "Unlocking"
+      },
+      "status": {
+        "complete": "Complete",
+        "pending": "24h Lock",
+        "pendingTooltip": "For security, there's a 24-hour waiting period after unlock request. This helps detect fraud"
+      },
+      "emptyState": "No transaction history"
+    },
+    "lockModal": {
+      "title": "Confirm Lock",
+      "description": "You are about to lock the following amount. Dilithium signature required.",
+      "amount": "Lock Amount",
+      "gasFee": "Gas Fee (est.)",
+      "confirm": "Sign and Lock",
+      "cancel": "Cancel"
+    },
+    "walletModal": {
+      "title": "Wallet",
+      "connectedLabel": "Connected Wallet"
+    },
+    "errorModal": {
+      "title": "Error",
+      "defaultTitle": "Transaction Failed",
+      "defaultMessage": "An error occurred while processing the transaction. Please check your network connection and try again.",
+      "errorCode": "Error Code",
+      "close": "Close",
+      "retry": "Retry"
+    },
+    "guide": {
+      "welcome": {
+        "title": "Welcome!",
+        "text": "Welcome to Quantum Shield. Let us show you around with a quick guide."
+      },
+      "stats": {
+        "title": "Total Locked",
+        "text": "This shows your total locked assets. Click to navigate to the Lock screen."
+      },
+      "lockCard": {
+        "title": "Lock Assets",
+        "text": "Lock your ETH with quantum-resistant protection. Enter an amount and click the Lock button."
+      },
+      "input": {
+        "title": "Amount Input",
+        "text": "Enter the amount to lock. Use quick buttons to easily select a percentage of your balance."
+      },
+      "activity": {
+        "title": "Transaction History",
+        "text": "View your recent transactions here. Check the History page for more details."
+      },
+      "skip": "Skip",
+      "next": "Next",
+      "finish": "Finish",
+      "progress": "{current} / {total}",
+      "completed": "Guide Complete",
+      "completedMessage": "You can restart the guide anytime from Settings"
+    },
+    "validation": {
+      "amountRequired": "Please enter an amount to lock",
+      "amountInvalid": "Please enter a valid amount",
+      "insufficientBalance": "Insufficient balance"
+    },
+    "toast": {
+      "lockSuccess": "Lock completed successfully",
+      "copySuccess": "Copied"
+    }
+  },
+  "unlock": {
+    "meta": {
+      "title": "Unlock | Quantum Shield",
+      "description": "Safely unlock your locked assets"
+    },
+    "header": {
+      "title": "Unlock",
+      "back": "Back"
+    },
+    "selectLock": {
+      "label": "Select Lock to Unlock",
+      "lockTitle": "Lock #{number}",
+      "status": {
+        "locked": "Locked",
+        "pending": "Unlocking"
+      },
+      "emptyState": "No locks available to unlock"
+    },
+    "selectMethod": {
+      "label": "Select Unlock Method",
+      "normal": {
+        "title": "Normal Unlock",
+        "description": "Safely unlock with Dilithium + Prover signature",
+        "waitTime": "Wait Time",
+        "waitTimeValue": "24 hours",
+        "required": "Required",
+        "requiredValue": "Dilithium Private Key",
+        "fee": "Fee",
+        "feeValue": "Gas only"
+      },
+      "emergency": {
+        "title": "Emergency Unlock",
+        "description": "Safety net for lost private keys",
+        "waitTime": "Wait Time",
+        "waitTimeValue": "7 days",
+        "required": "Required",
+        "requiredValue": "Wallet Signature",
+        "bond": "Bond",
+        "bondValue": "MAX(0.5 ETH, amount×5%)"
+      },
+      "warningTitle": "Emergency Unlock Warning",
+      "warningMessage": "Emergency unlock requires a 7-day waiting period and Bond (collateral). Bond is returned after 7 days if no challenge is made."
+    },
+    "button": {
+      "normalUnlock": "Start Normal Unlock",
+      "emergencyUnlock": "Start Emergency Unlock"
+    },
+    "timeLock": {
+      "helpLink": "Why wait 24 hours?",
+      "shortExplanation": "Time Lock protects you",
+      "shortExplanationDetail": "Even if there's unauthorized access, 24 hours gives you time to detect and respond.",
+      "modalTitle": "Why wait 24 hours?",
+      "modalIntro": "Time Lock is a critical security feature that protects your assets.",
+      "protectionTitle": "What Time Lock protects against",
+      "protection1": "Unauthorized access detection: Even if someone steals your private key and tries to unlock, 24 hours gives you time to notice and respond",
+      "protection2": "Phishing protection: Even if you accidentally sign something, you have 24 hours before assets actually move",
+      "protection3": "Hacking protection: Attackers cannot withdraw assets within 24 hours",
+      "waitingTitle": "What you can do during the wait",
+      "waiting1": "Monitor and verify unlock requests",
+      "waiting2": "Cancel suspicious requests",
+      "waiting3": "Use Emergency Unlock if needed (7-day wait + Bond required)",
+      "tipsTitle": "Did you know?",
+      "tipsContent": "The combination of quantum-resistant cryptography and Time Lock is the most effective security strategy against 'harvest now, decrypt later' attacks.",
+      "understood": "I understand"
+    }
+  },
+  "history": {
+    "meta": {
+      "title": "Transaction History | Quantum Shield",
+      "description": "View and export your transaction history"
+    },
+    "header": {
+      "title": "Transaction History",
+      "back": "Back",
+      "export": "Export CSV",
+      "exportNotAvailable": "CSV export is coming soon"
+    },
+    "stats": {
+      "totalLocked": "Total Locked",
+      "totalTransactions": "Total Transactions",
+      "inProgress": "In Progress"
+    },
+    "filter": {
+      "all": "All",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "pending": "Pending",
+      "emergency": "Emergency"
+    },
+    "types": {
+      "lock": "Lock",
+      "normalUnlock": "Normal Unlock",
+      "emergencyUnlock": "Emergency Unlock",
+      "unlockComplete": "Unlock Complete"
+    },
+    "status": {
+      "complete": "Complete",
+      "pending24h": "24h Pending",
+      "pending7d": "7 Days Pending"
+    },
+    "item": {
+      "date": "Date",
+      "blockConfirmed": "Confirmed",
+      "blockConfirmedTooltip": "Transaction confirmed {count} times on the blockchain",
+      "remaining": "{time} remaining",
+      "bond": "Bond: {amount}",
+      "txHashLabel": "Transaction ID",
+      "txHashTooltip": "A unique identifier for this transaction on the blockchain"
+    },
+    "emptyState": {
+      "title": "No transaction history",
+      "description": "Your first Lock will appear here"
+    },
+    "loadMore": "Load More",
+    "loadMoreNotAvailable": "Load more is coming soon"
+  },
+  "settings": {
+    "meta": {
+      "title": "Settings | Quantum Shield",
+      "description": "Account, notifications, security and display settings"
+    },
+    "header": {
+      "title": "Settings",
+      "back": "Back"
+    },
+    "sections": {
+      "account": "Account",
+      "notifications": "Notifications",
+      "display": "Display",
+      "security": "Security",
+      "support": "Support",
+      "dangerZone": "Danger Zone"
+    },
+    "account": {
+      "keyManagement": {
+        "title": "Key Management",
+        "description": "Backup and export Dilithium keys"
+      },
+      "connectedWallet": {
+        "title": "Connected Wallet",
+        "description": "Manage or disconnect wallet"
+      }
+    },
+    "notifications": {
+      "push": {
+        "title": "Push Notifications",
+        "description": "Notify on Unlock completion, etc."
+      },
+      "email": {
+        "title": "Email Notifications",
+        "description": "Email alerts for important activity"
+      }
+    },
+    "display": {
+      "darkMode": {
+        "title": "Dark Mode",
+        "description": "Adjust screen brightness"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Change display language",
+        "japanese": "Japanese",
+        "english": "English"
+      },
+      "currency": {
+        "title": "Currency Display",
+        "description": "Fiat currency display unit"
+      }
+    },
+    "security": {
+      "autoLock": {
+        "title": "Auto Lock",
+        "description": "Auto-lock after inactivity",
+        "minutes": "{count} min"
+      },
+      "biometric": {
+        "title": "Biometric Auth",
+        "description": "Authenticate with Face ID / Touch ID"
+      }
+    },
+    "support": {
+      "faq": {
+        "title": "FAQ",
+        "description": "Frequently asked questions & help"
+      },
+      "contact": {
+        "title": "Contact Us",
+        "description": "Reach out to support team"
+      },
+      "legal": {
+        "title": "Terms & Privacy",
+        "description": "Review legal documents"
+      }
+    },
+    "danger": {
+      "disconnectWallet": {
+        "title": "Disconnect Wallet",
+        "description": "Disconnect and log out"
+      }
+    },
+    "version": {
+      "label": "Quantum Shield",
+      "version": "Version {version} (Build {build})"
+    }
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography",
