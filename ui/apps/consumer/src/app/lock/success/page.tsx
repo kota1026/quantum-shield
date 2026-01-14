@@ -1,8 +1,8 @@
 'use client';
 
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 /**
  * Lock Success Page - Consumer App
@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
  * デザイン参考: 10_lock_success.html
  */
 
-export default function LockSuccessPage() {
+function LockSuccessContent() {
   const searchParams = useSearchParams();
   const amount = searchParams.get('amount') || '5.00';
   const txHash = searchParams.get('txHash') || '0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d';
@@ -80,7 +80,7 @@ export default function LockSuccessPage() {
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl font-bold mb-2 text-qs-success">Lock完了！</h1>
+        <h1 className="text-3xl font-bold mb-2 text-qs-success">Lock完了!</h1>
         <p className="text-[15px] text-qs-text-secondary mb-8">
           資産は量子耐性暗号で安全に保護されています
         </p>
@@ -144,5 +144,27 @@ export default function LockSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="premium-bg">
+        <div className="red-glow" />
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="w-12 h-12 border-2 border-qs-success border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-qs-text-secondary">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function LockSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <LockSuccessContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 /**
@@ -21,7 +21,7 @@ interface Step {
 const TOTAL_DURATION = 5000;
 const STEP_INTERVAL = 1000;
 
-export default function EmergencyProcessingPage() {
+function EmergencyProcessingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const lockId = searchParams.get('lockId') || '1';
@@ -169,5 +169,27 @@ export default function EmergencyProcessingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="premium-bg">
+        <div className="red-glow" />
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="w-12 h-12 border-2 border-qs-warning border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-qs-text-secondary">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function EmergencyProcessingPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <EmergencyProcessingContent />
+    </Suspense>
   );
 }

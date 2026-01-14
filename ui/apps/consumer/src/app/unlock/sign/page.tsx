@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -11,7 +11,7 @@ import Link from 'next/link';
  * デザイン参考: 11_unlock_sign.html
  */
 
-export default function UnlockSignPage() {
+function UnlockSignContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const lockId = searchParams.get('lockId') || '1';
@@ -126,5 +126,27 @@ export default function UnlockSignPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="premium-bg">
+        <div className="red-glow" />
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="w-12 h-12 border-2 border-hinomaru border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-qs-text-secondary">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function UnlockSignPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <UnlockSignContent />
+    </Suspense>
   );
 }

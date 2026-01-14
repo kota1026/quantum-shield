@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Shield, Lock, ArrowLeft, CheckCircle, Clock, Users, Fuel } from 'lucide-react';
@@ -7,12 +8,12 @@ import { Shield, Lock, ArrowLeft, CheckCircle, Clock, Users, Fuel } from 'lucide
 /**
  * Lock Confirmation Page - Consumer App
  * タスクID: UI-CON-004
- * 
+ *
  * Lock Flow: Input → Confirmation → Processing → Success
  * 仕様書: 04_SCREENS.md §2.1 Consumer App
  */
 
-export default function LockConfirmPage() {
+function LockConfirmContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const amount = searchParams.get('amount') || '0';
@@ -65,7 +66,7 @@ export default function LockConfirmPage() {
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-4">
               保護内容
             </h2>
-            
+
             <div className="space-y-4">
               <div className="flex items-start space-x-4">
                 <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -110,7 +111,7 @@ export default function LockConfirmPage() {
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-4">
               取引詳細
             </h2>
-            
+
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-400">Lock金額</span>
@@ -145,7 +146,7 @@ export default function LockConfirmPage() {
               <Lock className="w-5 h-5" />
               <span>署名してLock</span>
             </button>
-            
+
             <Link
               href="/lock"
               className="w-full py-4 border border-white/20 hover:border-white/40 text-white font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2"
@@ -164,5 +165,24 @@ export default function LockConfirmPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-400">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function LockConfirmPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <LockConfirmContent />
+    </Suspense>
   );
 }

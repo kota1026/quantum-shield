@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -11,7 +11,7 @@ import Link from 'next/link';
  * デザイン参考: 13_unlock_success.html
  */
 
-export default function UnlockSuccessPage() {
+function UnlockSuccessContent() {
   const searchParams = useSearchParams();
   const amount = searchParams.get('amount') || '10.00';
   const txHash = searchParams.get('txHash') || '0x8b4g1d3e9f2c5a7b0d6e8f1a3c5d7e9f';
@@ -88,7 +88,7 @@ export default function UnlockSuccessPage() {
         </div>
 
         {/* Title */}
-        <h1 className="text-[28px] font-bold mb-2 text-gold">Time Lock開始！</h1>
+        <h1 className="text-[28px] font-bold mb-2 text-gold">Time Lock開始!</h1>
         <p className="text-[15px] text-qs-text-secondary mb-8">24時間後にUnlockを実行できます</p>
 
         {/* Time Lock Card */}
@@ -173,5 +173,27 @@ export default function UnlockSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="premium-bg">
+        <div className="red-glow" />
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="w-12 h-12 border-2 border-hinomaru border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-qs-text-secondary">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function UnlockSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <UnlockSuccessContent />
+    </Suspense>
   );
 }

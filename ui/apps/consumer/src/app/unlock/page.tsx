@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
@@ -29,7 +29,7 @@ const mockLocks: LockItem[] = [
   { id: '3', amount: '2.50', lockedAt: '2026-01-05 09:15', status: 'unlocking', unlockTimeRemaining: '23:41:02' },
 ];
 
-export default function UnlockPage() {
+function UnlockPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedLockId = searchParams.get('lockId');
@@ -39,16 +39,18 @@ export default function UnlockPage() {
   const [selectedMethod, setSelectedMethod] = useState<UnlockMethod>('normal');
   const [showTimelockModal, setShowTimelockModal] = useState(false);
 
+  const selectedLock = mockLocks.find(l => l.id === selectedLockId);
+
   const handleStartUnlock = () => {
-    if (!selectedLockId) return;
+    if (!selectedLockId || !selectedLock) return;
     if (selectedMethod === 'normal') {
-      router.push(`/unlock/sign?lockId=${selectedLockId}`);
+      router.push(`/unlock/sign?lockId=${selectedLockId}&amount=${selectedLock.amount}`);
     } else {
-      router.push(`/unlock/emergency/bond?lockId=${selectedLockId}`);
+      router.push(`/unlock/emergency/bond?lockId=${selectedLockId}&amount=${selectedLock.amount}`);
     }
   };
 
-  // Not connected state
+  // 未接続状態
   if (!isConnected) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -316,5 +318,27 @@ export default function UnlockPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="premium-bg">
+        <div className="red-glow" />
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="w-12 h-12 border-2 border-hinomaru border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-qs-text-secondary">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function UnlockPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <UnlockPageContent />
+    </Suspense>
   );
 }

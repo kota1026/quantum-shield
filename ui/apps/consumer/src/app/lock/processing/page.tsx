@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useQSLock } from '@quantum-shield/web3';
@@ -22,7 +22,7 @@ interface Step {
 
 const IS_TESTNET_MODE = process.env.NEXT_PUBLIC_ENABLE_TESTNET_MODE === 'true';
 
-export default function LockProcessingPage() {
+function LockProcessingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const amount = searchParams.get('amount') || '5.00';
@@ -283,4 +283,26 @@ function generateMockSignature(address: string, amount: string): string {
     return ((charCode + i * 31) % 256).toString(16).padStart(2, '0');
   }).join('');
   return mockSignature;
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="premium-bg">
+        <div className="red-glow" />
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="w-12 h-12 border-2 border-hinomaru border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-qs-text-secondary">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function LockProcessingPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <LockProcessingContent />
+    </Suspense>
+  );
 }

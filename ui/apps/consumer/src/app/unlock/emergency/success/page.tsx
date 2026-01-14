@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -11,7 +11,7 @@ import Link from 'next/link';
  * デザイン参考: 16_emergency_success.html
  */
 
-export default function EmergencySuccessPage() {
+function EmergencySuccessContent() {
   const searchParams = useSearchParams();
   const amount = searchParams.get('amount') || '10.00';
   const bond = searchParams.get('bond') || '0.50';
@@ -176,5 +176,27 @@ export default function EmergencySuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="premium-bg">
+        <div className="red-glow" />
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="w-12 h-12 border-2 border-qs-warning border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-qs-text-secondary">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function EmergencySuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <EmergencySuccessContent />
+    </Suspense>
   );
 }

@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAccount } from 'wagmi';
-import { useQSUnlock } from '@quantum-shield/web3';
 
 /**
  * Unlock Processing Page - Consumer App
@@ -23,31 +21,11 @@ interface Step {
 const TOTAL_DURATION = 5000;
 const STEP_INTERVAL = 1250;
 
-export default function UnlockProcessingPage() {
+function UnlockProcessingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const lockId = searchParams.get('lockId') || '1';
   const amount = searchParams.get('amount') || '10.00';
-  const dilithiumSignature = searchParams.get('signature') || '';
-
-  const { address, isConnected } = useAccount();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [realTxHash, setRealTxHash] = useState<string | null>(null);
-
-  const {
-    requestUnlock,
-    isPending,
-    isConfirming,
-    isSuccess,
-    txHash,
-  } = useQSUnlock({
-    onSuccess: (hash) => {
-      setRealTxHash(hash);
-    },
-    onError: (error) => {
-      setErrorMessage(error.message);
-    },
-  });
 
   const [steps, setSteps] = useState<Step[]>([
     { id: 'verify', text: 'Dilithium署名を検証', status: 'complete' },
@@ -56,26 +34,8 @@ export default function UnlockProcessingPage() {
     { id: 'timelock', text: 'Time Lock開始', status: 'pending' },
   ]);
 
-  // Execute real unlock if signature is provided
-  const executeUnlock = useCallback(async () => {
-    if (!isConnected || !address || !dilithiumSignature) return;
-
-    try {
-      await requestUnlock({
-        lockId,
-        amount,
-        dilithiumSignature,
-      });
-    } catch (err) {
-      // Error handled by onError callback
-    }
-  }, [isConnected, address, lockId, amount, dilithiumSignature, requestUnlock]);
-
-  // Demo mode: Simulate processing when no real txHash
+  // Demo mode: Simulate processing
   useEffect(() => {
-    const demoMode = !realTxHash;
-    if (!demoMode) return;
-
     // Step 3 (prover) completes after STEP_INTERVAL
     const timer1 = setTimeout(() => {
       setSteps((prev) =>
@@ -106,42 +66,7 @@ export default function UnlockProcessingPage() {
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
-  }, [realTxHash, router, lockId, amount]);
-
-  // Error state
-  if (errorMessage) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="premium-bg">
-          <div className="red-glow" />
-        </div>
-        <div className="relative z-10 text-center max-w-md">
-          <div className="w-24 h-24 mx-auto mb-6 bg-qs-danger/10 rounded-full flex items-center justify-center text-5xl">
-            ❌
-          </div>
-          <h1 className="text-2xl font-bold mb-2 text-qs-danger">エラーが発生しました</h1>
-          <p className="text-qs-text-secondary mb-6">{errorMessage}</p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                setErrorMessage(null);
-                executeUnlock();
-              }}
-              className="flex-1 btn-primary"
-            >
-              再試行
-            </button>
-            <button
-              onClick={() => router.push('/unlock')}
-              className="flex-1 btn-secondary"
-            >
-              戻る
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  }, [router, lockId, amount]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
@@ -244,5 +169,27 @@ export default function UnlockProcessingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="premium-bg">
+        <div className="red-glow" />
+      </div>
+      <div className="relative z-10 text-center">
+        <div className="w-12 h-12 border-2 border-hinomaru border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-qs-text-secondary">読み込み中...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function UnlockProcessingPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <UnlockProcessingContent />
+    </Suspense>
   );
 }
