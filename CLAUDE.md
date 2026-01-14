@@ -496,3 +496,43 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 | 進捗管理 | `docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` |
 | リサーチ | `docs_new/01_phase/06_phase6/AI_AGENTIC_UIUX_RESEARCH.md` |
 | 実装計画 | `docs_new/01_phase/06_phase6/AI_AGENTIC_IMPLEMENTATION_PLAN.md` |
+
+---
+
+## セッション終了時の手順
+
+画面実装が完了したら、または作業を中断する場合、**必ず以下を実行**：
+
+### 1. コミット＆プッシュ
+
+```bash
+git add -A
+git commit -m "feat: {作業内容の要約}"
+git push -u origin {current-branch}
+```
+
+### 2. PR作成案内
+
+以下のメッセージをユーザーに表示：
+
+```
+## 作業完了
+
+### PR作成
+https://github.com/kota1026/quantum-shield/compare/main...{branch-name}
+
+### Codespaces確認手順
+1. Codespaces を開く
+2. ターミナルで実行:
+   git pull origin main
+   cd apps/web && pnpm install && pnpm dev
+3. ポート3000を公開してブラウザで確認:
+   https://{codespace}-3000.app.github.dev/ja/consumer/landing
+
+### 次回の再開
+新しいチャットで: /phase6-start consumer
+```
+
+### 3. 進捗更新
+
+`PHASE6_PROGRESS.md` を更新済みか確認。未更新なら更新する。
