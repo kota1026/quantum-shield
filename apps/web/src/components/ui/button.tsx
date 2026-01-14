@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
@@ -26,6 +27,9 @@ const buttonVariants = cva(
         // Danger - Red for destructive actions
         danger:
           'bg-danger text-white hover:bg-danger/90 focus-visible:ring-danger',
+        // Warning - Orange/amber for emergency actions
+        warning:
+          'bg-warning text-background hover:bg-warning/90 hover:shadow-lg hover:shadow-warning/20 focus-visible:ring-warning',
         // Success - Green for positive actions
         success:
           'bg-success text-white hover:bg-success/90 focus-visible:ring-success',
@@ -55,6 +59,7 @@ export interface ButtonProps
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  asChild?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -69,10 +74,25 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       rightIcon,
       children,
       disabled,
+      asChild = false,
       ...props
     },
     ref
   ) => {
+    // When asChild is true, only pass the child element directly to Slot
+    // Slot expects a single React element child
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, fullWidth, className }))}
+          ref={ref as React.Ref<HTMLElement>}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+
     return (
       <button
         className={cn(buttonVariants({ variant, size, fullWidth, className }))}
