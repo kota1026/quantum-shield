@@ -598,5 +598,64 @@
         "answer": "緊急Unlock機能を使用してください。Bond（保証金）を支払い、7日間の待機後に資産を回収できます。Bondは正当なUnlockであれば返還されます。"
       }
     }
+  },
+  "security": {
+    "meta": {
+      "title": "セキュリティ | Quantum Shield",
+      "description": "Quantum Shieldのセキュリティ技術について"
+    },
+    "header": {
+      "title": "セキュリティ",
+      "back": "設定に戻る"
+    },
+    "hero": {
+      "title": "量子耐性暗号",
+      "subtitle": "将来の量子コンピュータ攻撃から資産を保護"
+    },
+    "sections": {
+      "algorithms": "使用アルゴリズム",
+      "features": "セキュリティ機能",
+      "links": "詳細情報"
+    },
+    "algorithms": {
+      "dilithium": {
+        "title": "Dilithium-III",
+        "description": "NIST認定の格子ベース電子署名アルゴリズム。ユーザーの資産ロック・アンロックに使用。量子コンピュータでも破ることが数学的に困難。",
+        "badge": "NIST FIPS 204"
+      },
+      "sphincs": {
+        "title": "SPHINCS+",
+        "description": "ハッシュベースの電子署名。Prover（承認者）の署名に使用。異なる数学的基盤により、多層防御を実現。",
+        "badge": "NIST FIPS 205"
+      },
+      "zkstark": {
+        "title": "ZK-STARK",
+        "description": "ゼロ知識証明技術。トランザクションの正当性を第三者が検証可能。量子耐性を維持しながらスケーラビリティを実現。",
+        "badge": "量子安全ZKP"
+      }
+    },
+    "features": {
+      "timelock": {
+        "name": "24h Time Lock",
+        "type": "通常Unlock待機"
+      },
+      "emergency": {
+        "name": "7d Emergency",
+        "type": "緊急Unlock待機"
+      },
+      "multisig": {
+        "name": "Multi-Sig",
+        "type": "User + Prover署名"
+      },
+      "challenge": {
+        "name": "Challenge",
+        "type": "不正検出システム"
+      }
+    },
+    "links": {
+      "whitepaper": "セキュリティホワイトペーパー",
+      "github": "スマートコントラクト（GitHub）",
+      "audits": "監査レポート"
+    }
   }
 }
