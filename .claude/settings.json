@@ -1,0 +1,51 @@
+{
+  "$schema": "https://claude.ai/schema/settings.json",
+  "project": {
+    "name": "quantum-shield",
+    "phase": "6",
+    "description": "Quantum Shield - AI Agentic Service Release Preparation"
+  },
+  "hooks": {
+    "user-prompt-submit": {
+      "phase6-orchestrator": {
+        "trigger": "Phase 6.*開始",
+        "action": "load-prompt",
+        "prompt_file": "docs_new/02_agents_prompt/02_prompts/38_orchestrator.md",
+        "description": "Auto-load Phase 6 orchestrator when trigger phrase is detected"
+      }
+    }
+  },
+  "agents": {
+    "config_file": "apps/web/mcp-config.json",
+    "default_model": "claude-sonnet-4-20250514",
+    "orchestrator": "claude-opus-4-5-20251101"
+  },
+  "phase6": {
+    "systems": {
+      "01": {"name": "Consumer App", "screens": 19},
+      "02": {"name": "Token Hub", "screens": 10},
+      "03": {"name": "Governance", "screens": 6},
+      "04": {"name": "Prover Portal", "screens": 11},
+      "05": {"name": "Observer", "screens": 7},
+      "06": {"name": "Explorer", "screens": 8},
+      "07": {"name": "Enterprise Admin", "screens": 25},
+      "08": {"name": "QS Admin", "screens": 12}
+    },
+    "prompts": {
+      "ui": "30_ui_impl.md",
+      "pir": "31_design_pir.md",
+      "i18n": "32_i18n_audit.md",
+      "a11y": "33_a11y_check.md",
+      "api": "34_api_impl.md",
+      "db": "35_db_design.md",
+      "doc": "36_doc_write.md",
+      "e2e": "37_e2e_test.md",
+      "orchestrator": "38_orchestrator.md"
+    },
+    "rules": {
+      "no_mock_data": true,
+      "i18n_required": true,
+      "wcag_aa": true
+    }
+  }
+}
