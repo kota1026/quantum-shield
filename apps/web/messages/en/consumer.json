@@ -1,0 +1,137 @@
+{
+  "metadata": {
+    "title": "Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography",
+    "description": "The world's first quantum-resistant cryptographic bridge combining Dilithium-III and ZK-STARK. Protect your assets from future threats, today."
+  },
+  "header": {
+    "product": "Product",
+    "security": "Security",
+    "howItWorks": "How It Works",
+    "faq": "FAQ",
+    "openApp": "Open App",
+    "ariaLabel": "Main navigation"
+  },
+  "hero": {
+    "badge": "NIST Certified Quantum-Resistant Cryptography",
+    "title": "Digital Asset Protection for the",
+    "titleHighlight": "Quantum Computing Era",
+    "subtitle": "The world's first quantum-resistant cryptographic bridge combining Dilithium-III and ZK-STARK. Protect your assets from future threats, today.",
+    "ctaPrimary": "Get Started for Free",
+    "ctaSecondary": "Learn More",
+    "ariaLabel": "Hero section"
+  },
+  "stats": {
+    "ariaLabel": "Key statistics",
+    "protectedAssets": {
+      "value": "$847M+",
+      "label": "Protected Assets"
+    },
+    "activeProvers": {
+      "value": "127",
+      "label": "Active Provers"
+    },
+    "timeLock": {
+      "value": "24h",
+      "label": "Time Lock Period"
+    },
+    "incidents": {
+      "value": "0",
+      "label": "Security Incidents"
+    }
+  },
+  "features": {
+    "sectionLabel": "Features",
+    "title": "Why Quantum Shield?",
+    "ariaLabel": "Features section",
+    "dilithium": {
+      "title": "Dilithium-III Cryptography",
+      "description": "Government-approved 'next-generation key'. Current passwords may be broken by future quantum computers, but this technology keeps you safe.",
+      "badge": "NIST FIPS 204",
+      "tooltip": "Dilithium is a new cryptographic technology that even quantum computers cannot crack. The US government officially certified it in 2024 as the standard to use. Protected by advanced mathematics, your assets remain secure for the future."
+    },
+    "timeLock": {
+      "title": "Time Lock Protection",
+      "description": "24-hour waiting period for withdrawals gives you time to respond if unauthorized access occurs.",
+      "badge": "Multi-Layer Defense",
+      "tooltip": "Why wait 24 hours? Even if someone gains unauthorized access to your account, they cannot immediately steal your assets. During the 24 hours, you can notice and cancel, preventing 'too late by the time you notice' scenarios."
+    },
+    "zkStark": {
+      "title": "ZK-STARK Verification",
+      "description": "Prove authenticity without revealing secrets. Maintain privacy while allowing anyone to verify transaction correctness.",
+      "badge": "Quantum-Safe ZKP",
+      "tooltip": "ZK-STARK is an almost magical technology that 'proves while keeping secrets'. For example, you can prove you know the correct password without showing it. It's also safe against quantum computers."
+    },
+    "selfCustody": {
+      "title": "Self-Custody",
+      "description": "You alone control your assets. Private keys are generated and stored locally, never sent to servers.",
+      "badge": "Full Self-Control"
+    },
+    "emergency": {
+      "title": "Emergency Recovery",
+      "description": "Peace of mind even if you lose your private key. A safety net that allows asset recovery with a 7-day waiting period and bond.",
+      "badge": "Key Loss Protection"
+    },
+    "transparency": {
+      "title": "Transparency",
+      "description": "All transactions are verifiable on-chain. Open source and audited smart contracts.",
+      "badge": "Open Source"
+    }
+  },
+  "howItWorks": {
+    "sectionLabel": "How It Works",
+    "title": "Protect Your Assets in 3 Steps",
+    "ariaLabel": "How it works section",
+    "step1": {
+      "title": "Generate Keys",
+      "description": "Connect your wallet and generate a Dilithium key pair. Your private key is stored only on your device."
+    },
+    "step2": {
+      "title": "Lock Assets",
+      "description": "Lock ETH or ERC-20 tokens in the quantum-resistant vault. They cannot be withdrawn without a Dilithium signature."
+    },
+    "step3": {
+      "title": "Unlock Safely",
+      "description": "Request unlock with your Dilithium signature. After a 24-hour Time Lock, assets safely return to your wallet."
+    }
+  },
+  "cta": {
+    "title": "Prepare for the Quantum Era",
+    "description": "Protect your assets from \"harvest now, decrypt later\" attacks. Start preparing for future threats today.",
+    "button": "Get Started Free",
+    "ariaLabel": "Call to action section"
+  },
+  "footer": {
+    "brand": {
+      "description": "Digital asset protection for the quantum computing era. Safeguarding your assets from future threats with NIST-certified cryptography."
+    },
+    "product": {
+      "title": "Product",
+      "explorer": "Explorer",
+      "documentation": "Documentation",
+      "api": "API"
+    },
+    "resources": {
+      "title": "Resources",
+      "whitepaper": "Whitepaper",
+      "blog": "Blog",
+      "github": "GitHub"
+    },
+    "support": {
+      "title": "Support",
+      "faq": "FAQ",
+      "security": "Security",
+      "contact": "Contact"
+    },
+    "copyright": "© 2026 Quantum Shield. Made in Japan",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "riskDisclosure": "Risk Disclosure",
+    "ariaLabel": "Footer navigation"
+  },
+  "cookie": {
+    "message": "This site uses cookies.",
+    "learnMore": "Learn more",
+    "accept": "Accept",
+    "ariaLabel": "Cookie consent banner"
+  }
+}
