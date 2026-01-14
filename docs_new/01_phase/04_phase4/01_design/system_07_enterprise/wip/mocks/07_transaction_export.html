@@ -1,0 +1,83 @@
+<!--
+## File Info
+- System: Enterprise Admin
+- Screen: Transaction Export (7-7)
+- Created: 2026-01-11
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| #btn-export | click | downloadExport() |
+| #btn-back | click | 05_transaction_list.html |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Transactions - Enterprise Admin - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg-primary:#0a0a0c;--bg-secondary:#111114;--bg-card:#0e0e11;--bg-sidebar:#0c0c0f;--accent-hinomaru:#bc002d;--accent-hinomaru-dim:rgba(188,0,45,0.12);--accent-gold:#c9a962;--text-primary:#f8f8fa;--text-secondary:#9898a0;--text-tertiary:#606068;--border-subtle:rgba(255,255,255,0.04);--border-default:rgba(255,255,255,0.08);--font-body:'Plus Jakarta Sans',sans-serif;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);min-height:100vh;display:flex}a{color:inherit;text-decoration:none}
+        .sidebar{width:260px;background:var(--bg-sidebar);border-right:1px solid var(--border-subtle);position:fixed;top:0;left:0;bottom:0;padding:var(--space-lg)}
+        .logo{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-xl)}.logo-icon{width:40px;height:40px;background:var(--accent-hinomaru);border-radius:50%}.logo-text{font-size:16px;font-weight:600}
+        .nav-item{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm) var(--space-md);border-radius:var(--radius-md);font-size:14px;color:var(--text-secondary);margin-bottom:4px}.nav-item:hover{background:rgba(255,255,255,0.04)}.nav-item.active{background:var(--accent-hinomaru-dim);color:#e8334d}
+        .main-content{flex:1;margin-left:260px}.top-bar{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-xl);background:var(--bg-secondary);border-bottom:1px solid var(--border-subtle)}
+        .back-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);border-radius:var(--radius-md);cursor:pointer;color:var(--text-secondary)}
+        .page-title{font-size:20px;font-weight:600}
+        .page-content{padding:var(--space-xl);max-width:600px}
+        .card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);margin-bottom:var(--space-lg)}.card-header{padding:var(--space-lg);border-bottom:1px solid var(--border-subtle)}.card-title{font-size:16px;font-weight:600}.card-body{padding:var(--space-lg)}
+        .form-group{margin-bottom:var(--space-lg)}.form-label{display:block;font-size:13px;font-weight:500;margin-bottom:var(--space-sm)}
+        .form-input,.form-select{width:100%;padding:var(--space-md);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-primary);font-size:14px}
+        .radio-group{display:flex;flex-direction:column;gap:var(--space-sm)}.radio-item{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer}.radio-item:hover{border-color:var(--accent-hinomaru)}.radio-item input{accent-color:var(--accent-hinomaru)}
+        .btn{display:inline-flex;align-items:center;gap:var(--space-sm);padding:var(--space-md) var(--space-lg);border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;border:none}.btn-primary{background:var(--accent-hinomaru);color:white;width:100%}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><div class="logo-icon"></div><div class="logo-text">Quantum Shield</div></div>
+        <a href="01_overview_dashboard.html" class="nav-item">📊 Overview</a>
+        <a href="05_transaction_list.html" class="nav-item active">📋 Transactions</a>
+        <a href="09_user_list.html" class="nav-item">👥 Users</a>
+        <a href="18_org_settings.html" class="nav-item">⚙️ Settings</a>
+    </aside>
+    <main class="main-content">
+        <header class="top-bar">
+            <a href="05_transaction_list.html" class="back-btn" id="btn-back">←</a>
+            <h1 class="page-title">Export Transactions</h1>
+        </header>
+        <div class="page-content">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Export Settings</h2></div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Date Range</label>
+                        <div style="display:flex;gap:var(--space-md)">
+                            <input type="date" class="form-input" value="2026-01-01">
+                            <input type="date" class="form-input" value="2026-01-11">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Transaction Type</label>
+                        <select class="form-select">
+                            <option>All Types</option>
+                            <option>Lock</option>
+                            <option>Unlock</option>
+                            <option>Emergency</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Format</label>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="format" checked><span>CSV</span></label>
+                            <label class="radio-item"><input type="radio" name="format"><span>PDF</span></label>
+                            <label class="radio-item"><input type="radio" name="format"><span>JSON</span></label>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="btn-export" onclick="alert('Export started...')">📥 Export Transactions</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

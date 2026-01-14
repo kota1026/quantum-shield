@@ -1,0 +1,171 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "retry": "再試行",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "details": "詳細",
+    "approve": "承認",
+    "reject": "拒否",
+    "suspend": "停止",
+    "export": "エクスポート",
+    "exportCsv": "CSVエクスポート",
+    "noData": "データが見つかりません",
+    "connected": "接続済み",
+    "disconnected": "切断",
+    "stopped": "停止中",
+    "continues": "継続"
+  },
+  "nav": {
+    "dashboard": "ダッシュボード",
+    "provers": "プローバー",
+    "providers": "プロバイダー",
+    "analytics": "分析",
+    "emergency": "緊急",
+    "edition": "エディション"
+  },
+  "layout": {
+    "title": "Quantum Shield",
+    "adminDashboard": "管理ダッシュボード",
+    "networkStatus": "ネットワーク: Sepolia ↔ Aegis",
+    "systemActive": "システム稼働中"
+  },
+  "dashboard": {
+    "title": "システム概要",
+    "loadingDashboard": "ダッシュボードを読み込み中...",
+    "tvl": "総ロック量",
+    "totalLocks": "総ロック数",
+    "totalUnlocks": "総アンロック数",
+    "activeProvers": "アクティブプローバー",
+    "l3NodeStatus": "L3 Aegis ノードステータス",
+    "securityParams": "セキュリティパラメータ (CP準拠)",
+    "normalTimeLock": "通常タイムロック (SEQ#2)",
+    "emergencyTimeLock": "緊急タイムロック (SEQ#3)",
+    "quadraticSlashing": "二次スラッシング (SEQ#4)",
+    "pauseDuration": "一時停止期間 (SEQ#8)",
+    "recentAlerts": "最近のアラート",
+    "hours24": "24時間",
+    "days7": "7日間",
+    "hours72Max": "最大72時間",
+    "slashingFormula": "N² × 10%"
+  },
+  "provers": {
+    "title": "プローバー管理",
+    "registerNew": "+ 新規プローバー登録",
+    "filter": {
+      "all": "すべて",
+      "active": "アクティブ",
+      "pending": "保留中",
+      "suspended": "停止中"
+    },
+    "slashingWarning": {
+      "title": "二次スラッシング有効 (N² × 10%)",
+      "description": "相関障害は指数関数的に高いペナルティをもたらします。1プローバー = 10%、2プローバー = 40%、3プローバー = 90%"
+    },
+    "table": {
+      "prover": "プローバー",
+      "status": "ステータス",
+      "hsm": "HSM",
+      "stake": "ステーク",
+      "successRate": "成功率",
+      "responseTime": "応答時間",
+      "actions": "操作"
+    },
+    "noProvers": "プローバーが見つかりません",
+    "loadError": "プローバーの読み込みに失敗しました。再試行してください。",
+    "legend": {
+      "successRate": "成功率 ≥99% | 95-99% | <95%",
+      "responseTime": "応答 ≤200ms | 200-500ms | >500ms"
+    },
+    "registration": {
+      "title": "新規プローバー登録",
+      "operatorAddress": "オペレーターアドレス",
+      "name": "プローバー名",
+      "stakeAmount": "ステーク金額 (USD)",
+      "sphincsPublicKey": "SPHINCS+ 公開鍵",
+      "hsmAttestation": "HSM証明",
+      "legalAgreement": "プローバー利用規約に同意します",
+      "submit": "プローバー登録",
+      "validation": {
+        "invalidAddress": "無効なEthereumアドレス",
+        "nameTooShort": "名前は3文字以上必要です",
+        "minStake": "最低ステーク額は$400,000です",
+        "mustAcceptTerms": "利用規約に同意する必要があります"
+      }
+    }
+  },
+  "analytics": {
+    "title": "分析ダッシュボード",
+    "loadingAnalytics": "分析を読み込み中...",
+    "period": {
+      "24h": "24時間",
+      "7d": "7日",
+      "30d": "30日"
+    },
+    "tvl": "総ロック量",
+    "tvlChart": "[TVLチャート プレースホルダ]",
+    "lockStats": "ロック統計",
+    "unlockStats": "アンロック統計",
+    "totalLocks": "総ロック数",
+    "totalUnlocks": "総アンロック数",
+    "proverPerformance": "プローバーパフォーマンス",
+    "proverId": "プローバーID",
+    "successRate": "成功率",
+    "avgResponse": "平均応答"
+  },
+  "emergency": {
+    "title": "緊急管理",
+    "systemPaused": "システム一時停止中",
+    "systemActive": "システム稼働中",
+    "pausedDescription": "新規ロックとアンロックは無効です",
+    "activeDescription": "すべての操作は正常に機能しています",
+    "maxPauseDuration": {
+      "title": "最大一時停止期間 (SEQ#8)",
+      "description": "緊急一時停止は<strong>72時間</strong>に制限されています。延長にはトークン投票の承認が必要です。"
+    },
+    "securityCouncil": {
+      "title": "セキュリティカウンシル承認 (5/9)",
+      "description": "緊急一時停止には9人中5人のセキュリティカウンシルメンバーの署名が必要です。"
+    },
+    "affectedOps": {
+      "title": "一時停止中の影響を受ける操作",
+      "newLock": "新規ロック",
+      "newUnlock": "新規アンロック",
+      "inProgressUnlock": "進行中のアンロック",
+      "claim": "クレーム",
+      "challenge": "チャレンジ",
+      "proverExit": "プローバー退出"
+    },
+    "actions": {
+      "title": "緊急操作",
+      "initiatePause": "緊急一時停止を開始",
+      "confirmPause": "一時停止を確認",
+      "resume": "操作を再開",
+      "confirmMessage": "本当によろしいですか？新規ロックとアンロックが無効になります。"
+    }
+  },
+  "edition": {
+    "title": "エディション設定",
+    "current": "現在のエディション",
+    "enterprise": "エンタープライズ",
+    "decentralized": "分散型",
+    "switchEdition": "エディション切替",
+    "consensusType": "コンセンサスタイプ",
+    "fixed4bft": "固定4BFT",
+    "dynamicPbft": "動的PBFT",
+    "proverApproval": "プローバー承認モード",
+    "contractBased": "コントラクトベース",
+    "foundationInvite": "財団招待",
+    "councilVote": "評議会投票",
+    "stakeAuto": "ステーク自動"
+  },
+  "language": {
+    "select": "言語",
+    "en": "英語",
+    "ja": "日本語"
+  }
+}

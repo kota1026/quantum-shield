@@ -1,0 +1,862 @@
+<!--
+## File Info
+- System: QS Admin
+- Screen: Staff Onboarding (Welcome, QS Overview, Core Principles)
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| #btn-start | click | showStep(1) |
+| #btn-next | click | nextStep() |
+| #btn-prev | click | prevStep() |
+| #btn-complete | click | completeOnboarding() |
+| .step-indicator | click | goToStep() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QS Admin - Staff Onboarding</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .onboarding-container {
+            width: 100%;
+            max-width: 900px;
+            padding: 32px;
+        }
+
+        /* Progress Steps */
+        .progress-bar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 48px;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .step-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .step-indicator.active .step-dot {
+            background: var(--accent-hinomaru);
+            border-color: var(--accent-hinomaru);
+            color: white;
+        }
+
+        .step-indicator.completed .step-dot {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .step-line {
+            width: 60px;
+            height: 2px;
+            background: var(--border-default);
+        }
+
+        .step-indicator.completed + .step-indicator .step-line,
+        .step-indicator.active + .step-indicator .step-line {
+            background: var(--accent-hinomaru);
+        }
+
+        .step-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            position: absolute;
+            bottom: -20px;
+            white-space: nowrap;
+        }
+
+        /* Content Card */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 32px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .content-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: var(--accent-hinomaru-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+        }
+
+        .content-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .content-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .content-body {
+            padding: 32px;
+        }
+
+        /* Step Content */
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        /* Welcome Step */
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-text {
+            font-size: 18px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .welcome-name {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: var(--accent-gold-dim);
+            border: 1px solid var(--accent-gold);
+            border-radius: 20px;
+            color: var(--accent-gold);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Overview Grid */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .overview-item {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .overview-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .overview-icon.consumer { background: var(--accent-hinomaru-dim); }
+        .overview-icon.prover { background: rgba(74, 144, 217, 0.12); }
+        .overview-icon.governance { background: var(--accent-gold-dim); }
+        .overview-icon.admin { background: var(--success-dim); }
+
+        .overview-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .overview-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Core Principles */
+        .principles-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .principle-item {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-hinomaru);
+        }
+
+        .principle-number {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-hinomaru);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .principle-content { flex: 1; }
+
+        .principle-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .principle-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .principle-tag {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            background: var(--accent-hinomaru-dim);
+            color: var(--accent-hinomaru-light);
+            border-radius: 4px;
+            margin-top: 8px;
+            font-family: var(--font-mono);
+        }
+
+        /* Emergency Procedures */
+        .procedure-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .procedure-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .procedure-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .procedure-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--bg-primary);
+        }
+
+        .procedure-line {
+            width: 2px;
+            height: 40px;
+            background: var(--border-default);
+        }
+
+        .procedure-card {
+            flex: 1;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .procedure-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .procedure-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Quiz Section */
+        .quiz-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .quiz-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quiz-question {
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .quiz-option.selected {
+            border-color: var(--accent-hinomaru);
+            background: var(--accent-hinomaru-dim);
+        }
+
+        .quiz-radio {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-default);
+            border-radius: 50%;
+        }
+
+        .quiz-option.selected .quiz-radio {
+            border-color: var(--accent-hinomaru);
+            background: var(--accent-hinomaru);
+        }
+
+        /* Footer */
+        .content-footer {
+            padding: 24px 32px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-hinomaru);
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background: var(--accent-hinomaru);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hinomaru-light);
+            box-shadow: 0 4px 16px var(--accent-hinomaru-glow);
+        }
+
+        .btn-success {
+            background: var(--success);
+            border: none;
+            color: white;
+        }
+
+        /* Completion */
+        .completion-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .completion-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--success-dim);
+            border: 3px solid var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin: 0 auto 24px;
+        }
+
+        .completion-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .completion-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .permission-info {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            display: inline-block;
+        }
+
+        .permission-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+
+        .permission-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <!-- Progress -->
+        <div class="progress-bar">
+            <div class="step-indicator active" onclick="goToStep(0)">
+                <div class="step-dot">1</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-indicator" onclick="goToStep(1)">
+                <div class="step-dot">2</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-indicator" onclick="goToStep(2)">
+                <div class="step-dot">3</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-indicator" onclick="goToStep(3)">
+                <div class="step-dot">4</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-indicator" onclick="goToStep(4)">
+                <div class="step-dot">5</div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <!-- Step 0: Welcome -->
+            <div class="step-content active" id="step-0">
+                <div class="content-header">
+                    <div class="content-icon">👋</div>
+                    <h1 class="content-title">Welcome to QS Admin</h1>
+                    <p class="content-subtitle">Quantum Shield 管理システムへようこそ</p>
+                </div>
+                <div class="content-body">
+                    <div class="welcome-message">
+                        <p class="welcome-text">
+                            こんにちは、<span class="welcome-name">加藤さん</span>！<br><br>
+                            Quantum Shield チームへの参加を歓迎します。<br>
+                            このオンボーディングでは、QSの全体像と<br>
+                            Core Principles（5原則）について学びます。
+                        </p>
+                        <div class="role-badge">Viewer → Operator への権限昇格準備</div>
+                    </div>
+                </div>
+                <div class="content-footer">
+                    <div></div>
+                    <button class="btn btn-primary" id="btn-start" onclick="nextStep()">Start Onboarding →</button>
+                </div>
+            </div>
+
+            <!-- Step 1: QS Overview -->
+            <div class="step-content" id="step-1">
+                <div class="content-header">
+                    <div class="content-icon">🛡️</div>
+                    <h1 class="content-title">Quantum Shield Overview</h1>
+                    <p class="content-subtitle">量子耐性を持つ資産保護プロトコル</p>
+                </div>
+                <div class="content-body">
+                    <div class="overview-grid">
+                        <div class="overview-item">
+                            <div class="overview-icon consumer">👤</div>
+                            <div class="overview-title">Consumer App</div>
+                            <div class="overview-desc">エンドユーザーが資産をLock/Unlockするアプリ。Dilithium署名で量子耐性を実現。</div>
+                        </div>
+                        <div class="overview-item">
+                            <div class="overview-icon prover">🔐</div>
+                            <div class="overview-title">Prover Network</div>
+                            <div class="overview-desc">SPHINCS+署名でUnlockを承認する分散ネットワーク。127ノードが稼働中。</div>
+                        </div>
+                        <div class="overview-item">
+                            <div class="overview-icon governance">🗳️</div>
+                            <div class="overview-title">Governance</div>
+                            <div class="overview-desc">veQSホルダーによる分散型意思決定。パラメータ変更は投票で決定。</div>
+                        </div>
+                        <div class="overview-item">
+                            <div class="overview-icon admin">⚙️</div>
+                            <div class="overview-title">QS Admin</div>
+                            <div class="overview-desc">あなたが使用する管理システム。監視・運用・緊急対応を担当。</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-footer">
+                    <button class="btn btn-secondary" id="btn-prev" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Next: Core Principles →</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Core Principles -->
+            <div class="step-content" id="step-2">
+                <div class="content-header">
+                    <div class="content-icon">📜</div>
+                    <h1 class="content-title">Core Principles</h1>
+                    <p class="content-subtitle">5つの不変原則（変更不可）</p>
+                </div>
+                <div class="content-body">
+                    <div class="principles-list">
+                        <div class="principle-item">
+                            <div class="principle-number">1</div>
+                            <div class="principle-content">
+                                <div class="principle-title">完全量子耐性 (Quantum Resistance)</div>
+                                <div class="principle-desc">NIST準拠の量子耐性アルゴリズムのみ使用。ECDSA, SHA-256は使用禁止。</div>
+                                <span class="principle-tag">CP-1</span>
+                            </div>
+                        </div>
+                        <div class="principle-item">
+                            <div class="principle-number">2</div>
+                            <div class="principle-content">
+                                <div class="principle-title">Self-Custody</div>
+                                <div class="principle-desc">ユーザーが自身の秘密鍵を管理。サーバーに秘密鍵を保存することは禁止。</div>
+                                <span class="principle-tag">CP-2</span>
+                            </div>
+                        </div>
+                        <div class="principle-item">
+                            <div class="principle-number">3</div>
+                            <div class="principle-content">
+                                <div class="principle-title">Time Lock存在</div>
+                                <div class="principle-desc">Time Lockを0にすることは不可。通常24時間、緊急7日間のロック期間。</div>
+                                <span class="principle-tag">CP-3</span>
+                            </div>
+                        </div>
+                        <div class="principle-item">
+                            <div class="principle-number">4</div>
+                            <div class="principle-content">
+                                <div class="principle-title">Slashing存在</div>
+                                <div class="principle-desc">Slashingメカニズムの削除は不可。不正行為への抑止力として機能。</div>
+                                <span class="principle-tag">CP-4</span>
+                            </div>
+                        </div>
+                        <div class="principle-item">
+                            <div class="principle-number">5</div>
+                            <div class="principle-content">
+                                <div class="principle-title">透明性 (Transparency)</div>
+                                <div class="principle-desc">全てオンチェーンで検証可能。オフチェーン秘密計算は禁止。</div>
+                                <span class="principle-tag">CP-5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-footer">
+                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Next: Emergency Procedures →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Emergency Procedures -->
+            <div class="step-content" id="step-3">
+                <div class="content-header">
+                    <div class="content-icon">🚨</div>
+                    <h1 class="content-title">Emergency Procedures</h1>
+                    <p class="content-subtitle">緊急時の対応手順</p>
+                </div>
+                <div class="content-body">
+                    <div class="procedure-flow">
+                        <div class="procedure-step">
+                            <div class="procedure-connector">
+                                <div class="procedure-dot">1</div>
+                                <div class="procedure-line"></div>
+                            </div>
+                            <div class="procedure-card">
+                                <div class="procedure-title">異常を検知したら</div>
+                                <div class="procedure-desc">まず上長（松本さん）に報告。自己判断でPauseしない。</div>
+                            </div>
+                        </div>
+                        <div class="procedure-step">
+                            <div class="procedure-connector">
+                                <div class="procedure-dot">2</div>
+                                <div class="procedure-line"></div>
+                            </div>
+                            <div class="procedure-card">
+                                <div class="procedure-title">状況を記録</div>
+                                <div class="procedure-desc">スクリーンショット、ログ、時刻を記録。Slackの#incidentチャンネルに投稿。</div>
+                            </div>
+                        </div>
+                        <div class="procedure-step">
+                            <div class="procedure-connector">
+                                <div class="procedure-dot">3</div>
+                                <div class="procedure-line"></div>
+                            </div>
+                            <div class="procedure-card">
+                                <div class="procedure-title">Pause判断（Admin以上）</div>
+                                <div class="procedure-desc">Admin権限保持者がPause必要性を判断。Super Admin 2名以上で実行。</div>
+                            </div>
+                        </div>
+                        <div class="procedure-step">
+                            <div class="procedure-connector">
+                                <div class="procedure-dot">4</div>
+                                <div class="procedure-line"></div>
+                            </div>
+                            <div class="procedure-card">
+                                <div class="procedure-title">復旧作業</div>
+                                <div class="procedure-desc">原因特定 → 修正 → テスト → Security Council承認 → Resume</div>
+                            </div>
+                        </div>
+                        <div class="procedure-step">
+                            <div class="procedure-connector">
+                                <div class="procedure-dot">5</div>
+                            </div>
+                            <div class="procedure-card">
+                                <div class="procedure-title">ポストモーテム</div>
+                                <div class="procedure-desc">インシデントレポートを作成し、コミュニティに公開。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-footer">
+                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Next: Confirmation Quiz →</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Quiz & Completion -->
+            <div class="step-content" id="step-4">
+                <div class="content-header">
+                    <div class="content-icon">✅</div>
+                    <h1 class="content-title">Confirmation Quiz</h1>
+                    <p class="content-subtitle">理解度を確認しましょう</p>
+                </div>
+                <div class="content-body">
+                    <div class="quiz-section">
+                        <div class="quiz-title">📝 Question 1</div>
+                        <div class="quiz-question">CP-1「完全量子耐性」で禁止されているアルゴリズムはどれですか？</div>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="selectOption(this)">
+                                <div class="quiz-radio"></div>
+                                <span>Dilithium-III</span>
+                            </div>
+                            <div class="quiz-option" onclick="selectOption(this)">
+                                <div class="quiz-radio"></div>
+                                <span>SPHINCS+-128s</span>
+                            </div>
+                            <div class="quiz-option correct" onclick="selectOption(this)">
+                                <div class="quiz-radio"></div>
+                                <span>ECDSA（正解）</span>
+                            </div>
+                            <div class="quiz-option" onclick="selectOption(this)">
+                                <div class="quiz-radio"></div>
+                                <span>SHA3-256</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quiz-section">
+                        <div class="quiz-title">📝 Question 2</div>
+                        <div class="quiz-question">通常UnlockのTime Lock期間は？</div>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="selectOption(this)">
+                                <div class="quiz-radio"></div>
+                                <span>12時間</span>
+                            </div>
+                            <div class="quiz-option correct" onclick="selectOption(this)">
+                                <div class="quiz-radio"></div>
+                                <span>24時間（正解）</span>
+                            </div>
+                            <div class="quiz-option" onclick="selectOption(this)">
+                                <div class="quiz-radio"></div>
+                                <span>48時間</span>
+                            </div>
+                            <div class="quiz-option" onclick="selectOption(this)">
+                                <div class="quiz-radio"></div>
+                                <span>7日間</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-footer">
+                    <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-success" id="btn-complete" onclick="completeOnboarding()">Complete Onboarding ✓</button>
+                </div>
+            </div>
+
+            <!-- Completion -->
+            <div class="step-content" id="step-complete">
+                <div class="content-body">
+                    <div class="completion-section">
+                        <div class="completion-icon">🎉</div>
+                        <h2 class="completion-title">Onboarding Complete!</h2>
+                        <p class="completion-text">
+                            おめでとうございます！オンボーディングが完了しました。<br>
+                            これであなたはOperator権限を取得しました。
+                        </p>
+                        <div class="permission-info">
+                            <div class="permission-label">New Permission Level</div>
+                            <div class="permission-value">Operator</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-footer">
+                    <div></div>
+                    <a href="01_dashboard.html" class="btn btn-primary">Go to Dashboard →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 5;
+
+        function updateProgress() {
+            const indicators = document.querySelectorAll('.step-indicator');
+            indicators.forEach((ind, index) => {
+                ind.classList.remove('active', 'completed');
+                if (index < currentStep) {
+                    ind.classList.add('completed');
+                } else if (index === currentStep) {
+                    ind.classList.add('active');
+                }
+            });
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-' + step).classList.add('active');
+            currentStep = step;
+            updateProgress();
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps - 1) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function goToStep(step) {
+            if (step <= currentStep) {
+                showStep(step);
+            }
+        }
+
+        function selectOption(element) {
+            const parent = element.parentElement;
+            parent.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function completeOnboarding() {
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-complete').classList.add('active');
+            document.querySelectorAll('.step-indicator').forEach(ind => ind.classList.add('completed'));
+        }
+    </script>
+</body>
+</html>

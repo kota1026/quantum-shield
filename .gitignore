@@ -1,3 +1,9 @@
 /target
 **/target
 .DS_Store
+proofs/lean4/.lake/
+.env
+node_modules/
+**/node_modules/
+dist/
+**/dist/

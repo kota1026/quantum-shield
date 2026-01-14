@@ -1,0 +1,579 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .logo | click | 01_landing.html |
+| Nav links | click | respective pages |
+| Back to Home | click | 01_landing.html |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プライバシーポリシー - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --warning: #f0a030;
+            --error: #e84057;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.8;
+        }
+
+        .premium-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .red-glow {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%);
+            opacity: 0.5;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 12, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-hinomaru {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-circle-outer {
+            position: absolute;
+            inset: 0;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: logo-rotate 20s linear infinite;
+        }
+
+        .logo-circle-outer::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+        }
+
+        .logo-hinomaru-inner {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent-hinomaru-glow);
+        }
+
+        @keyframes logo-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* Content */
+        .content {
+            padding: 120px 0 80px;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .last-updated {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 48px;
+        }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--accent-gold);
+        }
+
+        .section p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .section ul {
+            margin-left: 24px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .section li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background: var(--accent-hinomaru-dim);
+            border: 1px solid var(--accent-hinomaru);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin: 24px 0;
+        }
+
+        .highlight-box h4 {
+            color: var(--accent-hinomaru-light);
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .highlight-box p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .info-box {
+            background: var(--accent-gold-dim);
+            border: 1px solid var(--accent-gold);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin: 24px 0;
+        }
+
+        .info-box h4 {
+            color: var(--accent-gold);
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .info-box p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .data-table th {
+            color: var(--text-primary);
+            font-weight: 600;
+            background: var(--bg-secondary);
+        }
+
+        .data-table td {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-copyright {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        @media (max-width: 600px) {
+            .page-title { font-size: 28px; }
+            .section-title { font-size: 18px; }
+            .data-table { font-size: 13px; }
+            .data-table th,
+            .data-table td { padding: 8px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="red-glow"></div>
+    </div>
+
+    <header class="header">
+        <div class="header-inner">
+            <a href="01_landing.html" class="logo">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
+                </div>
+                <span class="logo-text">Quantum Shield</span>
+            </a>
+            <a href="01_landing.html" class="back-link">
+                ← ホームに戻る
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="content">
+            <h1 class="page-title">プライバシーポリシー</h1>
+            <p class="last-updated">最終更新日: 2026年1月8日</p>
+
+            <section class="section">
+                <h2 class="section-title">1. はじめに</h2>
+                <p>
+                    Quantum Shield（以下「当サービス」）は、ユーザーのプライバシーを尊重し、
+                    個人情報の保護に努めています。本プライバシーポリシーでは、当サービスが
+                    どのような情報を収集し、どのように利用・保護するかを説明します。
+                </p>
+                <div class="info-box">
+                    <h4>🔐 セルフカストディの原則</h4>
+                    <p>
+                        当サービスは自己管理型（セルフカストディ）です。
+                        秘密鍵はユーザーのデバイスにのみ保存され、当社のサーバーには送信されません。
+                    </p>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">2. 収集する情報</h2>
+                <p>当サービスは以下の情報を収集する場合があります：</p>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>情報の種類</th>
+                            <th>収集方法</th>
+                            <th>目的</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ウォレットアドレス</td>
+                            <td>ウォレット接続時</td>
+                            <td>サービス提供、取引処理</td>
+                        </tr>
+                        <tr>
+                            <td>Dilithium公開鍵</td>
+                            <td>鍵生成時</td>
+                            <td>署名検証、本人確認</td>
+                        </tr>
+                        <tr>
+                            <td>取引履歴</td>
+                            <td>ブロックチェーン上</td>
+                            <td>取引の透明性確保</td>
+                        </tr>
+                        <tr>
+                            <td>IPアドレス</td>
+                            <td>サービスアクセス時</td>
+                            <td>セキュリティ、不正防止</td>
+                        </tr>
+                        <tr>
+                            <td>ブラウザ情報</td>
+                            <td>自動収集</td>
+                            <td>サービス改善、互換性確保</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="highlight-box">
+                    <h4>⚠️ 収集しない情報</h4>
+                    <p>
+                        <strong>秘密鍵、シードフレーズ、パスワード</strong>は一切収集・保存しません。
+                        これらの情報はユーザーのデバイスにのみ存在し、当社はアクセスできません。
+                    </p>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">3. 情報の利用目的</h2>
+                <p>収集した情報は以下の目的で利用します：</p>
+                <ul>
+                    <li><strong>サービス提供：</strong>Lock/Unlock機能の実行、取引処理</li>
+                    <li><strong>セキュリティ：</strong>不正アクセスの検知・防止</li>
+                    <li><strong>サービス改善：</strong>ユーザー体験の向上、バグ修正</li>
+                    <li><strong>コンプライアンス：</strong>法令遵守、当局からの要請への対応</li>
+                    <li><strong>カスタマーサポート：</strong>お問い合わせへの対応</li>
+                </ul>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">4. 情報の共有</h2>
+                <p>当サービスは、以下の場合を除き、ユーザーの個人情報を第三者と共有しません：</p>
+                <ul>
+                    <li><strong>法的要請：</strong>法執行機関、裁判所からの正式な要請</li>
+                    <li><strong>サービスプロバイダー：</strong>インフラ提供者（適切な契約下）</li>
+                    <li><strong>同意がある場合：</strong>ユーザーの明示的な同意</li>
+                    <li><strong>企業再編：</strong>合併、買収時（適切な保護措置付き）</li>
+                </ul>
+                <p>
+                    <strong>注意：</strong>ブロックチェーン上の取引データ（ウォレットアドレス、取引金額等）は
+                    公開情報であり、当社の管理下にはありません。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">5. Cookie と トラッキング</h2>
+                <p>当サービスでは以下の目的でCookieを使用しています：</p>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>種類</th>
+                            <th>目的</th>
+                            <th>オプトアウト</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>必須Cookie</td>
+                            <td>サービス動作に必要</td>
+                            <td>不可</td>
+                        </tr>
+                        <tr>
+                            <td>分析Cookie</td>
+                            <td>利用状況の分析</td>
+                            <td>可能</td>
+                        </tr>
+                        <tr>
+                            <td>設定Cookie</td>
+                            <td>ユーザー設定の保存</td>
+                            <td>可能</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>
+                    Cookie設定は、サイト訪問時のバナーまたは設定画面から変更できます。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">6. データの保護</h2>
+                <p>当サービスは以下のセキュリティ対策を実施しています：</p>
+                <ul>
+                    <li><strong>暗号化：</strong>通信はTLS 1.3で暗号化</li>
+                    <li><strong>アクセス制御：</strong>社内アクセス権限の厳格な管理</li>
+                    <li><strong>監視：</strong>24時間365日のセキュリティ監視</li>
+                    <li><strong>監査：</strong>定期的な第三者セキュリティ監査</li>
+                    <li><strong>インシデント対応：</strong>セキュリティ事故発生時の迅速な対応体制</li>
+                </ul>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">7. データの保存期間</h2>
+                <p>収集したデータは以下の期間保存されます：</p>
+                <ul>
+                    <li><strong>アカウント情報：</strong>アカウント有効期間中 + 退会後3年間</li>
+                    <li><strong>取引ログ：</strong>法令で定められた期間（最長7年）</li>
+                    <li><strong>アクセスログ：</strong>90日間</li>
+                    <li><strong>サポート履歴：</strong>解決後2年間</li>
+                </ul>
+                <p>
+                    <strong>注意：</strong>ブロックチェーン上のデータは永続的に記録され、
+                    当社による削除は技術的に不可能です。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">8. ユーザーの権利</h2>
+                <p>ユーザーは以下の権利を有します：</p>
+                <ul>
+                    <li><strong>アクセス権：</strong>保有する個人情報の開示請求</li>
+                    <li><strong>訂正権：</strong>不正確な情報の訂正請求</li>
+                    <li><strong>削除権：</strong>個人情報の削除請求（法的義務がある場合を除く）</li>
+                    <li><strong>処理制限権：</strong>特定の処理に対する制限請求</li>
+                    <li><strong>データポータビリティ：</strong>データの機械可読形式での提供</li>
+                    <li><strong>異議申立権：</strong>処理に対する異議申立</li>
+                </ul>
+                <p>
+                    権利行使のご請求は、下記連絡先までお問い合わせください。
+                    本人確認のため、追加情報をお願いする場合があります。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">9. 国際データ転送</h2>
+                <p>
+                    当サービスはグローバルに運営されており、データが日本国外のサーバーで
+                    処理される場合があります。その場合、適切な保護措置（標準契約条項等）を
+                    講じた上で転送を行います。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">10. 子どものプライバシー</h2>
+                <p>
+                    当サービスは18歳未満の方を対象としていません。
+                    18歳未満の方の個人情報を意図的に収集することはありません。
+                    万が一、18歳未満の方の情報を収集していることが判明した場合は、
+                    速やかに削除いたします。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">11. ポリシーの変更</h2>
+                <p>
+                    本プライバシーポリシーは、法令の変更やサービスの改善に伴い
+                    変更される場合があります。重要な変更がある場合は、
+                    サービス上での通知またはメールでお知らせします。
+                </p>
+                <p>
+                    変更後もサービスを利用される場合、
+                    変更後のポリシーに同意したものとみなされます。
+                </p>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">12. お問い合わせ</h2>
+                <p>
+                    プライバシーに関するお問い合わせ、権利行使のご請求は以下までご連絡ください：
+                </p>
+                <p>
+                    <strong>データ保護責任者（DPO）:</strong><br>
+                    Email: privacy@quantumshield.io<br>
+                    住所: 東京都渋谷区（詳細は別途）
+                </p>
+                <p>
+                    <strong>監督機関への苦情：</strong><br>
+                    個人情報保護委員会: https://www.ppc.go.jp/
+                </p>
+            </section>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="01_landing.html">ホーム</a>
+                <a href="17_terms.html">利用規約</a>
+                <a href="18_privacy.html">プライバシー</a>
+                <a href="08_faq.html">FAQ</a>
+            </div>
+            <div class="footer-copyright">
+                © 2026 Quantum Shield. Made in Japan 🇯🇵
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

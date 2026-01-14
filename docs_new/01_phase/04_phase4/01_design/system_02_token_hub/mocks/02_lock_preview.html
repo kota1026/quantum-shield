@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lock Preview - Token Hub | Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --accent-gold-glow: rgba(201, 169, 98, 0.3);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, var(--accent-gold-dim), transparent 60%); opacity: 0.5; }
+        .noise { position: absolute; inset: 0; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+        .container { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: var(--space-xl); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-2xl); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); text-decoration: none; color: inherit; }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+
+        .back-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-full); color: var(--text-secondary); font-size: 14px; text-decoration: none; transition: all 0.2s; }
+        .back-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+        .steps { display: flex; justify-content: center; align-items: center; gap: var(--space-md); margin-bottom: var(--space-2xl); }
+        .step { display: flex; align-items: center; gap: var(--space-sm); }
+        .step-number { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: var(--bg-secondary); border: 1px solid var(--border-default); color: var(--text-tertiary); }
+        .step.completed .step-number { background: var(--success); border-color: var(--success); color: white; }
+        .step.active .step-number { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--bg-primary); }
+        .step-label { font-size: 14px; color: var(--text-tertiary); }
+        .step.active .step-label { color: var(--text-primary); }
+        .step.completed .step-label { color: var(--success); }
+        .step-connector { width: 40px; height: 2px; background: var(--border-default); }
+        .step-connector.completed { background: var(--success); }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .card-header { padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 20px; font-weight: 600; }
+        .edit-btn { font-size: 13px; color: var(--accent-gold); text-decoration: none; }
+        .edit-btn:hover { text-decoration: underline; }
+        .card-body { padding: var(--space-xl); }
+
+        .decay-chart-container { margin-bottom: var(--space-xl); }
+        .decay-chart { height: 150px; }
+        .decay-svg { width: 100%; height: 100%; }
+        .decay-area { fill: url(#previewDecayGradient); }
+        .decay-line { stroke: var(--accent-gold); stroke-width: 2; fill: none; }
+        .decay-dot { fill: var(--accent-gold); }
+        .chart-label { fill: var(--text-tertiary); font-size: 10px; font-family: var(--font-mono); }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .summary-item { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); text-align: center; }
+        .summary-item.highlight { background: linear-gradient(135deg, var(--bg-secondary), var(--accent-gold-dim)); border: 1px solid var(--accent-gold); }
+        .summary-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); margin-bottom: var(--space-sm); }
+        .summary-item.highlight .summary-value { color: var(--accent-gold); }
+        .summary-label { font-size: 12px; color: var(--text-tertiary); }
+
+        .details-table { background: var(--bg-secondary); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: var(--space-xl); }
+        .details-row { display: flex; justify-content: space-between; padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--border-subtle); }
+        .details-row:last-child { border-bottom: none; }
+        .details-label { color: var(--text-tertiary); font-size: 14px; }
+        .details-value { font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
+
+        .timeline { margin-bottom: var(--space-xl); }
+        .timeline-title { font-size: 14px; font-weight: 600; margin-bottom: var(--space-md); }
+        .timeline-items { display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .timeline-items::before { content: ''; position: absolute; top: 12px; left: 30px; right: 30px; height: 2px; background: linear-gradient(90deg, var(--accent-gold), var(--text-muted)); }
+        .timeline-item { text-align: center; position: relative; z-index: 1; }
+        .timeline-dot { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-gold); margin: 0 auto var(--space-sm); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--bg-primary); }
+        .timeline-dot.future { background: var(--bg-secondary); border: 2px solid var(--text-muted); color: var(--text-muted); }
+        .timeline-date { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .timeline-label { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+        .btn-group { display: flex; gap: var(--space-md); }
+        .btn-primary { flex: 1; padding: 16px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-hinomaru-glow); }
+        .btn-secondary { flex: 1; padding: 16px; background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-secondary); font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; }
+        .btn-secondary:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+        @media (max-width: 768px) {
+            .summary-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="gold-glow"></div>
+        <div class="noise"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <a href="01_dashboard.html" class="logo">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-main">Quantum Shield</div>
+                    <div class="logo-sub">Token Hub</div>
+                </div>
+            </a>
+            <a href="02_lock_form.html" class="back-btn">← Back to Edit</a>
+        </header>
+
+        <div class="steps">
+            <div class="step completed">
+                <span class="step-number">✓</span>
+                <span class="step-label">Input</span>
+            </div>
+            <span class="step-connector completed"></span>
+            <div class="step active">
+                <span class="step-number">2</span>
+                <span class="step-label">Preview</span>
+            </div>
+            <span class="step-connector"></span>
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-label">Confirm</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">🔍 Lock Preview</h1>
+                <a href="02_lock_form.html" class="edit-btn">Edit Amount →</a>
+            </div>
+            <div class="card-body">
+                <div class="decay-chart-container">
+                    <div class="decay-chart">
+                        <svg class="decay-svg" viewBox="0 0 600 130">
+                            <defs>
+                                <linearGradient id="previewDecayGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #c9a962; stop-opacity: 0.3" />
+                                    <stop offset="100%" style="stop-color: #c9a962; stop-opacity: 0" />
+                                </linearGradient>
+                            </defs>
+                            <line x1="50" y1="20" x2="550" y2="20" stroke="rgba(255,255,255,0.04)" />
+                            <line x1="50" y1="50" x2="550" y2="50" stroke="rgba(255,255,255,0.04)" />
+                            <line x1="50" y1="80" x2="550" y2="80" stroke="rgba(255,255,255,0.04)" />
+                            <line x1="50" y1="110" x2="550" y2="110" stroke="rgba(255,255,255,0.04)" />
+                            <text x="45" y="25" class="chart-label" text-anchor="end">2,500</text>
+                            <text x="45" y="55" class="chart-label" text-anchor="end">1,875</text>
+                            <text x="45" y="85" class="chart-label" text-anchor="end">1,250</text>
+                            <text x="45" y="115" class="chart-label" text-anchor="end">0</text>
+                            <path class="decay-area" d="M 60,20 L 185,35 L 310,55 L 435,80 L 540,110 L 540,110 L 60,110 Z" />
+                            <path class="decay-line" d="M 60,20 L 185,35 L 310,55 L 435,80 L 540,110" />
+                            <circle class="decay-dot" cx="60" cy="20" r="5" />
+                            <circle class="decay-dot" cx="185" cy="35" r="3" />
+                            <circle class="decay-dot" cx="310" cy="55" r="3" />
+                            <circle class="decay-dot" cx="435" cy="80" r="3" />
+                            <circle class="decay-dot" cx="540" cy="110" r="3" />
+                            <text x="60" y="125" class="chart-label" text-anchor="middle">Now</text>
+                            <text x="185" y="125" class="chart-label" text-anchor="middle">6M</text>
+                            <text x="310" y="125" class="chart-label" text-anchor="middle">1Y</text>
+                            <text x="435" y="125" class="chart-label" text-anchor="middle">18M</text>
+                            <text x="540" y="125" class="chart-label" text-anchor="middle">2Y</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value">5,000</div>
+                        <div class="summary-label">QS to Lock</div>
+                    </div>
+                    <div class="summary-item highlight">
+                        <div class="summary-value">2,500</div>
+                        <div class="summary-label">veQS Received</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">2 Years</div>
+                        <div class="summary-label">Lock Period</div>
+                    </div>
+                </div>
+
+                <div class="details-table">
+                    <div class="details-row">
+                        <span class="details-label">Lock Multiplier</span>
+                        <span class="details-value">50% (2Y / 4Y max)</span>
+                    </div>
+                    <div class="details-row">
+                        <span class="details-label">Initial Voting Power</span>
+                        <span class="details-value">0.05%</span>
+                    </div>
+                    <div class="details-row">
+                        <span class="details-label">Unlock Date</span>
+                        <span class="details-value">2028-01-08</span>
+                    </div>
+                    <div class="details-row">
+                        <span class="details-label">Estimated Gas</span>
+                        <span class="details-value">~0.002 ETH</span>
+                    </div>
+                </div>
+
+                <div class="timeline">
+                    <div class="timeline-title">📅 Timeline</div>
+                    <div class="timeline-items">
+                        <div class="timeline-item">
+                            <div class="timeline-dot">🔒</div>
+                            <div class="timeline-date">2026-01-08</div>
+                            <div class="timeline-label">Lock Start</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot future">📉</div>
+                            <div class="timeline-date">2027-01-08</div>
+                            <div class="timeline-label">1Y (1,250 veQS)</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot future">🔓</div>
+                            <div class="timeline-date">2028-01-08</div>
+                            <div class="timeline-label">Unlock</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <a href="02_lock_form.html" class="btn-secondary">Back</a>
+                    <a href="02_lock_confirm.html" class="btn-primary">Confirm Lock</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--
+    ## Interactions Defined
+    | Element | Action | Target |
+    |---------|--------|--------|
+    | Logo | click | 01_dashboard.html |
+    | Back to Edit | click | 02_lock_form.html |
+    | Edit Amount | click | 02_lock_form.html |
+    | Back | click | 02_lock_form.html |
+    | Confirm Lock | click | 02_lock_confirm.html |
+    -->
+</body>
+</html>

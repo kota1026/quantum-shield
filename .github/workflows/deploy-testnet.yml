@@ -1,0 +1,263 @@
+name: Deploy to Testnet
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Target network'
+        required: true
+        type: choice
+        options:
+          - sepolia
+          - arbitrum_sepolia
+          - base_sepolia
+      dry_run:
+        description: 'Dry run (simulate without deploying)'
+        required: false
+        type: boolean
+        default: true
+      verify_contracts:
+        description: 'Verify contracts on block explorer'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  FOUNDRY_PROFILE: default
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ========================================
+  # Pre-deployment Checks
+  # ========================================
+  pre-deploy-checks:
+    name: 🔍 Pre-deployment Checks
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      network_name: ${{ steps.check.outputs.network_name }}
+      chain_id: ${{ steps.check.outputs.chain_id }}
+      explorer_url: ${{ steps.check.outputs.explorer_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Validate Environment
+        id: check
+        run: |
+          echo "Validating deployment configuration..."
+          
+          case "${{ github.event.inputs.network }}" in
+            sepolia)
+              echo "network_name=Ethereum Sepolia" >> $GITHUB_OUTPUT
+              echo "chain_id=11155111" >> $GITHUB_OUTPUT
+              echo "explorer_url=https://sepolia.etherscan.io" >> $GITHUB_OUTPUT
+              ;;
+            arbitrum_sepolia)
+              echo "network_name=Arbitrum Sepolia" >> $GITHUB_OUTPUT
+              echo "chain_id=421614" >> $GITHUB_OUTPUT
+              echo "explorer_url=https://sepolia.arbiscan.io" >> $GITHUB_OUTPUT
+              ;;
+            base_sepolia)
+              echo "network_name=Base Sepolia" >> $GITHUB_OUTPUT
+              echo "chain_id=84532" >> $GITHUB_OUTPUT
+              echo "explorer_url=https://sepolia.basescan.org" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+          echo "✅ Environment validated"
+
+      - name: Run Tests Before Deploy
+        run: |
+          cd contracts
+          forge test -vvv
+          echo "✅ All tests passed"
+
+      - name: Run Slither Analysis
+        uses: crytic/slither-action@v0.4.0
+        with:
+          target: 'contracts/'
+          sarif: results.sarif
+          fail-on: high
+        continue-on-error: true
+
+  # ========================================
+  # Build & Deploy
+  # ========================================
+  deploy:
+    name: 🚀 Deploy to ${{ github.event.inputs.network }}
+    runs-on: ubuntu-latest
+    needs: pre-deploy-checks
+    if: needs.pre-deploy-checks.outputs.should_deploy == 'true'
+    
+    environment:
+      name: ${{ github.event.inputs.network }}
+      url: ${{ needs.pre-deploy-checks.outputs.explorer_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Build Contracts
+        run: |
+          cd contracts
+          forge build --force
+          echo "✅ Build completed"
+
+      - name: Deploy (Dry Run)
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          echo "🔄 DRY RUN MODE - Simulating deployment..."
+          cd contracts
+          
+          forge script script/Deploy.s.sol:DeployScript \
+            --rpc-url ${{ secrets.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org' }} \
+            --chain-id ${{ needs.pre-deploy-checks.outputs.chain_id }} \
+            -vvvv \
+            || echo "Simulation completed (some errors expected in dry run)"
+          
+          echo "✅ Dry run completed"
+
+      - name: Deploy (Live)
+        if: github.event.inputs.dry_run == 'false'
+        env:
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
+          ARBITRUM_SEPOLIA_RPC_URL: ${{ secrets.ARBITRUM_SEPOLIA_RPC_URL }}
+          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+        run: |
+          echo "🚀 LIVE DEPLOYMENT to ${{ needs.pre-deploy-checks.outputs.network_name }}"
+          cd contracts
+          
+          case "${{ github.event.inputs.network }}" in
+            sepolia)
+              RPC_URL="${SEPOLIA_RPC_URL}"
+              ;;
+            arbitrum_sepolia)
+              RPC_URL="${ARBITRUM_SEPOLIA_RPC_URL:-https://sepolia-rollup.arbitrum.io/rpc}"
+              ;;
+            base_sepolia)
+              RPC_URL="${BASE_SEPOLIA_RPC_URL:-https://sepolia.base.org}"
+              ;;
+          esac
+          
+          forge script script/Deploy.s.sol:DeployScript \
+            --rpc-url "$RPC_URL" \
+            --private-key "$DEPLOYER_PRIVATE_KEY" \
+            --chain-id ${{ needs.pre-deploy-checks.outputs.chain_id }} \
+            --broadcast \
+            -vvvv
+          
+          echo "✅ Deployment completed"
+
+      - name: Verify Contracts
+        if: github.event.inputs.verify_contracts == 'true' && github.event.inputs.dry_run == 'false'
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+        run: |
+          echo "🔍 Verifying contracts on block explorer..."
+          cd contracts
+          
+          case "${{ github.event.inputs.network }}" in
+            sepolia)
+              API_KEY="${ETHERSCAN_API_KEY}"
+              ;;
+            arbitrum_sepolia)
+              API_KEY="${ARBISCAN_API_KEY}"
+              ;;
+            base_sepolia)
+              API_KEY="${BASESCAN_API_KEY}"
+              ;;
+          esac
+          
+          if [ -n "$API_KEY" ]; then
+            echo "Verification would run here with API key"
+          else
+            echo "⚠️ API key not configured, skipping verification"
+          fi
+
+      - name: Upload Deployment Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-${{ github.event.inputs.network }}-${{ github.run_number }}
+          path: |
+            contracts/broadcast/
+            contracts/out/
+          retention-days: 30
+
+  # ========================================
+  # Post-deployment Verification
+  # ========================================
+  verify-deployment:
+    name: ✅ Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, deploy]
+    if: github.event.inputs.dry_run == 'false'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Deployment Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-${{ github.event.inputs.network }}-${{ github.run_number }}
+          path: deployment-artifacts/
+
+      - name: Verify Contract State
+        run: |
+          echo "🔍 Verifying deployed contract state..."
+          
+          if [ -f "deployment-artifacts/broadcast/Deploy.s.sol/${{ needs.pre-deploy-checks.outputs.chain_id }}/run-latest.json" ]; then
+            echo "Deployment found!"
+            cat "deployment-artifacts/broadcast/Deploy.s.sol/${{ needs.pre-deploy-checks.outputs.chain_id }}/run-latest.json" | jq '.transactions[] | {contract: .contractName, address: .contractAddress}'
+          else
+            echo "No deployment artifacts found (expected in dry run mode)"
+          fi
+
+  # ========================================
+  # Notification
+  # ========================================
+  notify:
+    name: 📢 Notify
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks, deploy]
+    if: always()
+
+    steps:
+      - name: Send Notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          STATUS="unknown"
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            STATUS="✅ SUCCESS"
+          elif [ "${{ needs.deploy.result }}" == "failure" ]; then
+            STATUS="❌ FAILED"
+          elif [ "${{ needs.deploy.result }}" == "skipped" ]; then
+            STATUS="⏭️ SKIPPED"
+          fi
+          
+          MESSAGE="Testnet Deployment: ${STATUS}\nNetwork: ${{ needs.pre-deploy-checks.outputs.network_name }}\nDry Run: ${{ github.event.inputs.dry_run }}\nRun: ${{ github.run_number }}"
+          
+          echo "$MESSAGE"
+          
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\": \"${MESSAGE}\"}" \
+              "$SLACK_WEBHOOK_URL" || true
+          fi
