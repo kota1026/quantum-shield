@@ -1,4 +1,149 @@
 {
+  "onboarding": {
+    "meta": {
+      "title": "はじめる - Quantum Shield",
+      "description": "Quantum Shieldのセットアップを始めましょう"
+    },
+    "header": {
+      "title": "はじめる",
+      "backAriaLabel": "ランディングページに戻る"
+    },
+    "progress": {
+      "ariaLabel": "オンボーディングの進捗"
+    },
+    "step1": {
+      "indicator": "STEP 1 / 4",
+      "title": "ウォレットを接続",
+      "description": "お使いのウォレットを接続してください。MetaMaskなど、EVM互換のウォレットに対応しています。",
+      "wallets": {
+        "metamask": {
+          "name": "MetaMask",
+          "description": "ブラウザ拡張機能"
+        },
+        "walletconnect": {
+          "name": "WalletConnect",
+          "description": "QRコードでスキャン"
+        },
+        "coinbase": {
+          "name": "Coinbase Wallet",
+          "description": "モバイル・ブラウザ"
+        }
+      },
+      "helpLink": "ウォレットを持っていない方はこちら"
+    },
+    "step2": {
+      "indicator": "STEP 2 / 4",
+      "title": "Dilithium鍵を生成",
+      "description": "量子耐性のDilithium鍵ペアを生成します。この鍵はあなたのデバイスにのみ保存され、サーバーには送信されません。",
+      "dilithiumTooltip": "Dilithiumは、NIST（米国標準技術研究所）が2024年に正式採用した量子耐性電子署名アルゴリズムです。量子コンピュータでも解読が困難な格子ベースの暗号技術を使用しています。",
+      "selfCustodyNotice": {
+        "title": "あなただけが鍵を持ちます",
+        "description": "生成された秘密鍵は、あなたのデバイスにのみ保存されます。Quantum Shieldのサーバーには送信されないため、あなた以外は誰もアクセスできません。必ずバックアップを取り、安全に保管してください。"
+      },
+      "keyGeneration": {
+        "idle": "ボタンをクリックして生成を開始",
+        "generating": "Dilithium-III鍵ペアを生成中...",
+        "complete": "鍵ペアの生成が完了しました！"
+      },
+      "dilithiumHelpLink": "Dilithium暗号について詳しく知る",
+      "generateButton": "Dilithium鍵を生成",
+      "generatingButton": "生成中..."
+    },
+    "step3": {
+      "indicator": "STEP 3 / 4",
+      "title": "鍵をバックアップ",
+      "description": "秘密鍵を安全な場所にバックアップしてください。",
+      "warning": {
+        "title": "重要: 秘密鍵を安全に保管してください",
+        "description": "秘密鍵を失うと、資産へのアクセスが困難になります。必ずバックアップを作成してください。"
+      },
+      "backupOption": {
+        "name": "暗号化ファイルでダウンロード",
+        "description": "パスワードで保護されたJSONファイル",
+        "downloadedDescription": "ファイルがダウンロードされました",
+        "recommended": "推奨",
+        "completed": "完了"
+      },
+      "checklist": {
+        "downloaded": "バックアップファイルをダウンロードしました",
+        "saved": "ファイルを安全な場所（USBメモリ、外付けHDD、紙に印刷してオフライン保管など）に保存しました。クラウド保存は避け、紛失すると資産へアクセスできなくなることを理解しています。"
+      },
+      "continueButton": "次へ進む"
+    },
+    "step4": {
+      "indicator": "STEP 4 / 4",
+      "title": "準備完了！",
+      "description": "Quantum Shieldの設定が完了しました。これで量子耐性の保護を使用できます。",
+      "features": {
+        "keysGenerated": "Dilithium鍵ペアを生成しました",
+        "backupComplete": "秘密鍵をバックアップしました",
+        "protectionActive": "量子耐性保護が有効です"
+      },
+      "ctaButton": "ダッシュボードへ",
+      "tutorialLink": "使い方チュートリアルを見る"
+    },
+    "modals": {
+      "walletHelp": {
+        "title": "ウォレットの取得方法",
+        "intro": "暗号資産ウォレットを持っていない場合は、以下の手順で取得できます。",
+        "metamaskTitle": "MetaMaskの場合:",
+        "metamaskSteps": {
+          "step1": "metamask.io にアクセス",
+          "step2": "「Download」をクリックしてブラウザ拡張機能をインストール",
+          "step3": "画面の指示に従ってウォレットを作成",
+          "step4": "シードフレーズを安全に保管"
+        },
+        "warningTitle": "注意事項:",
+        "warnings": {
+          "warning1": "シードフレーズは絶対に他人に教えないでください",
+          "warning2": "オフラインの安全な場所に保管してください",
+          "warning3": "公式サイト以外からダウンロードしないでください"
+        },
+        "closeButton": "閉じる"
+      },
+      "dilithium": {
+        "title": "Dilithium暗号とは？",
+        "intro": "Dilithium（ダイリチウム）は、量子コンピュータに対して安全な電子署名アルゴリズムです。",
+        "whyTitle": "なぜ必要？",
+        "whyReasons": {
+          "reason1": "現在の暗号（ECDSA等）は将来の量子コンピュータで解読される可能性があります",
+          "reason2": "「今収集して後で解読」攻撃から資産を守るために、今から対策が必要です"
+        },
+        "featuresTitle": "Dilithiumの特徴:",
+        "features": {
+          "nist": "NIST認定: 2024年にFIPS 204として正式標準化",
+          "lattice": "格子ベース暗号: 量子コンピュータでも解読が数学的に困難",
+          "fast": "高速: 署名・検証が効率的",
+          "level": "Dilithium-III: Quantum Shieldで使用するセキュリティレベル"
+        },
+        "securityTitle": "安全性:",
+        "securityDescription": "Dilithium-IIIは、NIST Security Level 3を満たし、128ビット以上の古典的セキュリティと量子セキュリティを提供します。",
+        "closeButton": "閉じる"
+      },
+      "tutorial": {
+        "title": "使い方チュートリアル",
+        "intro": "Quantum Shieldの基本的な使い方を説明します。",
+        "lockTitle": "1. 資産をLockする",
+        "lockSteps": {
+          "step1": "ダッシュボードで「Lock」をクリック",
+          "step2": "保護したい金額を入力",
+          "step3": "Dilithium署名で確認"
+        },
+        "unlockTitle": "2. 資産をUnlockする",
+        "unlockSteps": {
+          "normal": "通常Unlock: Dilithium署名 + 24時間待機",
+          "emergency": "緊急Unlock: ウォレット署名 + Bond + 7日間待機"
+        },
+        "securityTitle": "3. セキュリティのポイント",
+        "securityTips": {
+          "tip1": "秘密鍵は必ずバックアップしてください",
+          "tip2": "Time Lockがあなたの資産を守ります",
+          "tip3": "不審なアクティビティはすぐに確認してください"
+        },
+        "closeButton": "閉じる"
+      }
+    }
+  },
   "landing": {
     "meta": {
       "title": "Quantum Shield - 量子耐性暗号で資産を守る",
