@@ -8,3 +8,9 @@ node_modules/
 dist/
 **/dist/
 *.tsbuildinfo
+
+# Next.js build artifacts
+.next/
+**/.next/
+next-env.d.ts
+**/next-env.d.ts
