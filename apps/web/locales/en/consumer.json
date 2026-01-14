@@ -598,5 +598,64 @@
         "answer": "Use the Emergency Unlock feature. Pay a Bond (collateral) and after a 7-day waiting period, you can recover your assets. The Bond is returned if the unlock is legitimate."
       }
     }
+  },
+  "security": {
+    "meta": {
+      "title": "Security | Quantum Shield",
+      "description": "About Quantum Shield security technology"
+    },
+    "header": {
+      "title": "Security",
+      "back": "Back to Settings"
+    },
+    "hero": {
+      "title": "Quantum-Resistant Cryptography",
+      "subtitle": "Protecting assets from future quantum computer attacks"
+    },
+    "sections": {
+      "algorithms": "Algorithms Used",
+      "features": "Security Features",
+      "links": "More Information"
+    },
+    "algorithms": {
+      "dilithium": {
+        "title": "Dilithium-III",
+        "description": "NIST-certified lattice-based digital signature algorithm. Used for user asset lock/unlock. Mathematically difficult to break even with quantum computers.",
+        "badge": "NIST FIPS 204"
+      },
+      "sphincs": {
+        "title": "SPHINCS+",
+        "description": "Hash-based digital signatures. Used for Prover (approver) signatures. Enables multi-layer defense with different mathematical foundations.",
+        "badge": "NIST FIPS 205"
+      },
+      "zkstark": {
+        "title": "ZK-STARK",
+        "description": "Zero-knowledge proof technology. Enables third-party verification of transaction validity. Achieves scalability while maintaining quantum resistance.",
+        "badge": "Quantum-Safe ZKP"
+      }
+    },
+    "features": {
+      "timelock": {
+        "name": "24h Time Lock",
+        "type": "Normal Unlock Wait"
+      },
+      "emergency": {
+        "name": "7d Emergency",
+        "type": "Emergency Unlock Wait"
+      },
+      "multisig": {
+        "name": "Multi-Sig",
+        "type": "User + Prover Signature"
+      },
+      "challenge": {
+        "name": "Challenge",
+        "type": "Fraud Detection System"
+      }
+    },
+    "links": {
+      "whitepaper": "Security Whitepaper",
+      "github": "Smart Contracts (GitHub)",
+      "audits": "Audit Reports"
+    }
   }
 }
