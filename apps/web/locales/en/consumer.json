@@ -161,6 +161,7 @@
         "waitTimeValue": "24 hours",
         "required": "Required",
         "requiredValue": "Dilithium Private Key",
+        "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers. It's the key that protects your locked assets.",
         "fee": "Fee",
         "feeValue": "Gas only"
       },
@@ -172,7 +173,8 @@
         "required": "Required",
         "requiredValue": "Wallet Signature",
         "bond": "Bond",
-        "bondValue": "MAX(0.5 ETH, amount×5%)"
+        "bondValue": "MAX(0.5 ETH, amount×5%)",
+        "bondTooltip": "Bond (collateral) is deposited during emergency unlock. If no fraud is detected after the 7-day challenge period, it will be fully refunded."
       },
       "warningTitle": "Emergency Unlock Warning",
       "warningMessage": "Emergency unlock requires a 7-day waiting period and Bond (collateral). Bond is returned after 7 days if no challenge is made."

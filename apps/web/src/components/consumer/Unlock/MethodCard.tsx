@@ -1,8 +1,59 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Lock, AlertTriangle, HelpCircle, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+interface InlineTooltipProps {
+  content: string;
+  children: React.ReactNode;
+}
+
+function InlineTooltip({ content, children }: InlineTooltipProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showTooltip = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setIsVisible(true);
+  };
+
+  const hideTooltip = () => {
+    timeoutRef.current = setTimeout(() => setIsVisible(false), 150);
+  };
+
+  return (
+    <span
+      className="relative inline-flex items-center gap-1 cursor-help"
+      onMouseEnter={showTooltip}
+      onMouseLeave={hideTooltip}
+      onFocus={showTooltip}
+      onBlur={hideTooltip}
+    >
+      {children}
+      <HelpCircle className="w-3 h-3 text-foreground-tertiary" aria-hidden="true" />
+      {isVisible && (
+        <span
+          role="tooltip"
+          className={cn(
+            'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
+            'px-3 py-2 max-w-xs',
+            'text-xs text-foreground bg-surface-secondary',
+            'border border-border rounded-qs shadow-lg',
+            'whitespace-normal text-center'
+          )}
+        >
+          {content}
+          <span
+            className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-border"
+            aria-hidden="true"
+          />
+        </span>
+      )}
+    </span>
+  );
+}
 
 type MethodType = 'normal' | 'emergency';
 
@@ -23,11 +74,11 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
     ? [
         { label: t('emergency.waitTime'), value: t('emergency.waitTimeValue'), warning: true },
         { label: t('emergency.required'), value: t('emergency.requiredValue') },
-        { label: t('emergency.bond'), value: t('emergency.bondValue'), warning: true },
+        { label: t('emergency.bond'), value: t('emergency.bondValue'), warning: true, tooltip: t('emergency.bondTooltip') },
       ]
     : [
         { label: t('normal.waitTime'), value: t('normal.waitTimeValue') },
-        { label: t('normal.required'), value: t('normal.requiredValue') },
+        { label: t('normal.required'), value: t('normal.requiredValue'), tooltip: t('normal.dilithiumTooltip') },
         { label: t('normal.fee'), value: t('normal.feeValue') },
       ];
 
@@ -76,14 +127,27 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
         {details.map((detail, index) => (
           <div key={index} className="flex justify-between text-xs">
             <span className="text-foreground-tertiary">{detail.label}</span>
-            <span
-              className={cn(
-                'font-medium',
-                detail.warning ? 'text-warning' : 'text-foreground'
-              )}
-            >
-              {detail.value}
-            </span>
+            {detail.tooltip ? (
+              <InlineTooltip content={detail.tooltip}>
+                <span
+                  className={cn(
+                    'font-medium',
+                    detail.warning ? 'text-warning' : 'text-foreground'
+                  )}
+                >
+                  {detail.value}
+                </span>
+              </InlineTooltip>
+            ) : (
+              <span
+                className={cn(
+                  'font-medium',
+                  detail.warning ? 'text-warning' : 'text-foreground'
+                )}
+              >
+                {detail.value}
+              </span>
+            )}
           </div>
         ))}
       </div>
