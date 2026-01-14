@@ -42,19 +42,32 @@ redis-cli -h localhost ping > /dev/null 2>&1 && echo "  ✓ Redis" || echo "  �
 curl -s http://localhost:15672 > /dev/null 2>&1 && echo "  ✓ RabbitMQ" || echo "  ○ RabbitMQ (starting...)"
 
 # ---------------------------------------------------------------------------
-# Start Frontend Services
+# Install Dependencies (if needed)
 # ---------------------------------------------------------------------------
 echo ""
-echo "[2/3] Starting frontend services..."
+echo "[2/3] Checking dependencies..."
+
+# Install apps/web dependencies if missing
+if [ -d "apps/web" ] && [ ! -d "apps/web/node_modules" ]; then
+    echo "  Installing apps/web dependencies..."
+    cd /workspace/apps/web
+    pnpm install
+    cd /workspace
+fi
+
+# ---------------------------------------------------------------------------
+# Start Frontend Services (apps/web only - the correct implementation)
+# ---------------------------------------------------------------------------
+echo ""
+echo "[3/3] Starting frontend services..."
 
 # Create logs directory
 mkdir -p /workspace/.devcontainer/logs
 
-# Kill any existing processes on ports 3000 and 3001
+# Kill any existing processes on port 3000
 fuser -k 3000/tcp 2>/dev/null || true
-fuser -k 3001/tcp 2>/dev/null || true
 
-# Start apps/web (Next.js main)
+# Start apps/web (Next.js main - with i18n and shadcn/ui)
 if [ -d "apps/web" ]; then
     echo "  Starting apps/web on port 3000..."
     cd /workspace/apps/web
@@ -63,39 +76,42 @@ if [ -d "apps/web" ]; then
     cd /workspace
 fi
 
-# Start ui/apps/consumer
+# Note: ui/apps/consumer is DEPRECATED - do not start
 if [ -d "ui/apps/consumer" ]; then
-    echo "  Starting consumer app on port 3001..."
-    cd /workspace/ui/apps/consumer
-    nohup pnpm dev --port 3001 > /workspace/.devcontainer/logs/consumer.log 2>&1 &
-    echo "  ✓ consumer app started (PID: $!)"
-    cd /workspace
+    echo ""
+    echo "  ⚠ Note: ui/apps/consumer is DEPRECATED"
+    echo "    Use apps/web instead (with proper i18n support)"
 fi
 
 # Wait for servers to start
 echo ""
-echo "  Waiting for servers to start..."
+echo "  Waiting for server to start..."
 sleep 8
 
 # ---------------------------------------------------------------------------
 # Display Access Information
 # ---------------------------------------------------------------------------
 echo ""
-echo "[3/3] Services ready!"
-echo ""
 echo "=============================================="
 echo " Access URLs (in Codespaces)"
 echo "=============================================="
 echo ""
-echo "  Frontend (Next.js):     Port 3000 → Click 'Open in Browser'"
-echo "  Consumer App:           Port 3001 → Click 'Open in Browser'"
+echo "  Main App:               Port 3000 → Click 'Open in Browser'"
+echo ""
+echo "  Consumer Pages:"
+echo "    /ja/consumer/dashboard    - Dashboard"
+echo "    /ja/consumer/lock         - Lock Assets"
+echo "    /ja/consumer/unlock       - Unlock Assets"
+echo "    /ja/consumer/history      - Transaction History"
+echo "    /ja/consumer/key-management - Key Management"
+echo "    /ja/consumer/settings     - Settings"
+echo ""
 echo "  RabbitMQ Management:    Port 15672 (quantum/quantum_dev)"
 echo ""
 echo "=============================================="
 echo ""
 echo "Commands:"
-echo "  View web logs:      tail -f .devcontainer/logs/web.log"
-echo "  View consumer logs: tail -f .devcontainer/logs/consumer.log"
-echo "  Stop all:           pkill -f 'pnpm dev'"
-echo "  Restart:            bash .devcontainer/start-services.sh"
+echo "  View logs:    tail -f .devcontainer/logs/web.log"
+echo "  Stop:         pkill -f 'pnpm dev'"
+echo "  Restart:      bash .devcontainer/start-services.sh"
 echo ""
