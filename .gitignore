@@ -7,3 +7,15 @@ node_modules/
 **/node_modules/
 dist/
 **/dist/
+
+# Next.js
+.next/
+**/.next/
+next-env.d.ts
+**/next-env.d.ts
+out/
+**/out/
+
+# Build
+*.tsbuildinfo
+**/*.tsbuildinfo
