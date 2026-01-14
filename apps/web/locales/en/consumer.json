@@ -878,6 +878,147 @@
       "faq": "FAQ",
       "copyright": "© 2026 Quantum Shield. Made in Japan"
     }
+  },
+  "onboarding": {
+    "meta": {
+      "title": "Get Started | Quantum Shield",
+      "description": "Start your Quantum Shield setup"
+    },
+    "header": {
+      "title": "Get Started",
+      "back": "Back"
+    },
+    "progress": {
+      "step": "STEP {current} / {total}"
+    },
+    "step1": {
+      "title": "Connect Wallet",
+      "description": "Connect your wallet. We support EVM-compatible wallets like MetaMask.",
+      "wallets": {
+        "metamask": {
+          "name": "MetaMask",
+          "description": "Browser extension"
+        },
+        "walletconnect": {
+          "name": "WalletConnect",
+          "description": "Scan QR code"
+        },
+        "coinbase": {
+          "name": "Coinbase Wallet",
+          "description": "Mobile & Browser"
+        }
+      },
+      "helpLink": "Don't have a wallet?"
+    },
+    "step2": {
+      "title": "Generate Dilithium Keys",
+      "description": "Generate quantum-resistant Dilithium key pair. Your keys are stored only on your device and never sent to servers.",
+      "dilithiumTooltip": "Dilithium is a quantum-resistant digital signature algorithm officially adopted by NIST in 2024. It uses lattice-based cryptography that is difficult to break even with quantum computers.",
+      "selfCustody": {
+        "title": "Self-Custody",
+        "description": "You are responsible for managing your private keys. Quantum Shield does not keep a copy of your private keys. Any loss or leak of keys is your responsibility."
+      },
+      "status": {
+        "ready": "Click button to start generation",
+        "generating": "Generating Dilithium-III key pair...",
+        "complete": "Key pair generated successfully!"
+      },
+      "learnMore": "Learn more about Dilithium cryptography",
+      "generateButton": "Generate Dilithium Keys",
+      "generatingButton": "Generating..."
+    },
+    "step3": {
+      "title": "Backup Your Keys",
+      "description": "Backup your private key to a safe location.",
+      "warning": {
+        "title": "Important: Keep your private key safe",
+        "description": "If you lose your private key, access to your assets becomes difficult. Make sure to create a backup."
+      },
+      "backup": {
+        "title": "Download Encrypted File",
+        "description": "Password-protected JSON file",
+        "recommended": "Recommended",
+        "downloaded": "✓ Done",
+        "downloadedDesc": "File has been downloaded"
+      },
+      "checkboxes": {
+        "downloaded": "I have downloaded the backup file",
+        "saved": "I have saved the file to a safe location (USB drive, offline storage, etc.). I understand that losing it will make asset access difficult."
+      },
+      "continueButton": "Continue"
+    },
+    "step4": {
+      "title": "All Set!",
+      "description": "Quantum Shield setup is complete. You can now use quantum-resistant protection.",
+      "features": {
+        "keysGenerated": "Dilithium key pair generated",
+        "backupComplete": "Private key backed up",
+        "protectionActive": "Quantum protection active"
+      },
+      "dashboardButton": "Go to Dashboard",
+      "tutorialLink": "View tutorial"
+    },
+    "modals": {
+      "walletHelp": {
+        "title": "How to Get a Wallet",
+        "intro": "If you don't have a cryptocurrency wallet, follow these steps.",
+        "metamaskTitle": "For MetaMask:",
+        "metamaskSteps": {
+          "step1": "Visit metamask.io",
+          "step2": "Click \"Download\" to install the browser extension",
+          "step3": "Follow the instructions to create a wallet",
+          "step4": "Safely store your seed phrase"
+        },
+        "warningTitle": "Important:",
+        "warnings": {
+          "warning1": "Never share your seed phrase with anyone",
+          "warning2": "Store it in a safe offline location",
+          "warning3": "Only download from official sources"
+        },
+        "close": "Close"
+      },
+      "dilithium": {
+        "title": "What is Dilithium?",
+        "intro": "Dilithium is a digital signature algorithm that is secure against quantum computers.",
+        "whyTitle": "Why is it needed?",
+        "why": {
+          "reason1": "Current cryptography (like ECDSA) may be broken by future quantum computers",
+          "reason2": "Protection from \"harvest now, decrypt later\" attacks requires action today"
+        },
+        "featuresTitle": "Dilithium Features:",
+        "features": {
+          "nist": "NIST Certified: Officially standardized as FIPS 204 in 2024",
+          "lattice": "Lattice-based cryptography: Mathematically difficult to break even with quantum computers",
+          "fast": "Fast: Efficient signature and verification",
+          "level": "Dilithium-III: Security level used by Quantum Shield"
+        },
+        "securityTitle": "Security:",
+        "securityDesc": "Dilithium-III meets NIST Security Level 3, providing 128+ bits of classical and quantum security.",
+        "close": "Close"
+      },
+      "tutorial": {
+        "title": "Tutorial",
+        "intro": "Learn the basics of using Quantum Shield.",
+        "lockTitle": "1. Lock Your Assets",
+        "lockSteps": {
+          "step1": "Click \"Lock\" on the dashboard",
+          "step2": "Enter the amount to protect",
+          "step3": "Confirm with Dilithium signature"
+        },
+        "unlockTitle": "2. Unlock Your Assets",
+        "unlockSteps": {
+          "step1": "Normal Unlock: Dilithium signature + 24h wait",
+          "step2": "Emergency Unlock: Wallet signature + Bond + 7 day wait"
+        },
+        "securityTitle": "3. Security Tips",
+        "securitySteps": {
+          "step1": "Always backup your private key",
+          "step2": "Time Lock protects your assets",
+          "step3": "Check suspicious activity immediately"
+        },
+        "close": "Close"
+      }
+    }
   }
   }
 }

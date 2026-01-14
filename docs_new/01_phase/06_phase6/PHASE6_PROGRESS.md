@@ -11,12 +11,12 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [█░░░░░░░░░░░░░░░░░░░]   1/144 (1%)             │
+│  WS-1 UI/UX:      [█░░░░░░░░░░░░░░░░░░░]   2/144 (1%)             │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [█░░░░░░░░░░░░░░░░░░░]   1/218 (0.5%)           │
+│  TOTAL:           [█░░░░░░░░░░░░░░░░░░░]   2/218 (1%)             │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
 │  Week 2-3 P1 Systems: 🔄 In Progress                               │
@@ -33,7 +33,7 @@
 | # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
 |---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
 | 01 | landing | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 02 | onboarding | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 02 | onboarding | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 03 | dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 04 | unlock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 05 | lock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
@@ -52,7 +52,7 @@
 | 18 | cookie | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 19 | wallet_connect | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 1/19 (5%)
+**Progress**: 2/19 (11%)
 
 ---
 
@@ -375,6 +375,7 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-14 | Consumer App: onboarding page complete (UI/A11y/E2E/Persona/PIR) |
 | 2026-01-14 | Consumer App: landing page complete (UI/A11y/E2E/Persona/PIR) |
 | 2026-01-14 | Initial progress tracker created |
 

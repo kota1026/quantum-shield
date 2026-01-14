@@ -878,6 +878,147 @@
       "faq": "FAQ",
       "copyright": "© 2026 Quantum Shield. Made in Japan"
     }
+  },
+  "onboarding": {
+    "meta": {
+      "title": "はじめる | Quantum Shield",
+      "description": "Quantum Shieldのセットアップを開始"
+    },
+    "header": {
+      "title": "はじめる",
+      "back": "戻る"
+    },
+    "progress": {
+      "step": "STEP {current} / {total}"
+    },
+    "step1": {
+      "title": "ウォレットを接続",
+      "description": "お使いのウォレットを接続してください。MetaMaskなど、EVM互換のウォレットに対応しています。",
+      "wallets": {
+        "metamask": {
+          "name": "MetaMask",
+          "description": "ブラウザ拡張機能"
+        },
+        "walletconnect": {
+          "name": "WalletConnect",
+          "description": "QRコードでスキャン"
+        },
+        "coinbase": {
+          "name": "Coinbase Wallet",
+          "description": "モバイル・ブラウザ"
+        }
+      },
+      "helpLink": "ウォレットを持っていない方はこちら"
+    },
+    "step2": {
+      "title": "Dilithium鍵を生成",
+      "description": "量子耐性のDilithium鍵ペアを生成します。この鍵はあなたのデバイスにのみ保存され、サーバーには送信されません。",
+      "dilithiumTooltip": "Dilithiumは、NIST（米国標準技術研究所）が2024年に正式採用した量子耐性電子署名アルゴリズムです。量子コンピュータでも解読が困難な格子ベースの暗号技術を使用しています。",
+      "selfCustody": {
+        "title": "自己管理型（セルフカストディ）",
+        "description": "生成された秘密鍵はお客様ご自身で管理していただきます。Quantum Shieldは秘密鍵のコピーを保持しません。鍵の紛失・漏洩による損害についてはお客様の自己責任となります。"
+      },
+      "status": {
+        "ready": "ボタンをクリックして生成を開始",
+        "generating": "Dilithium-III鍵ペアを生成中...",
+        "complete": "鍵ペアの生成が完了しました！"
+      },
+      "learnMore": "Dilithium暗号について詳しく知る",
+      "generateButton": "Dilithium鍵を生成",
+      "generatingButton": "生成中..."
+    },
+    "step3": {
+      "title": "鍵をバックアップ",
+      "description": "秘密鍵を安全な場所にバックアップしてください。",
+      "warning": {
+        "title": "重要: 秘密鍵を安全に保管してください",
+        "description": "秘密鍵を失うと、資産へのアクセスが困難になります。必ずバックアップを作成してください。"
+      },
+      "backup": {
+        "title": "暗号化ファイルでダウンロード",
+        "description": "パスワードで保護されたJSONファイル",
+        "recommended": "推奨",
+        "downloaded": "✓ 完了",
+        "downloadedDesc": "ファイルがダウンロードされました"
+      },
+      "checkboxes": {
+        "downloaded": "バックアップファイルをダウンロードしました",
+        "saved": "ファイルを安全な場所（USBメモリ、オフラインストレージなど）に保存しました。紛失した場合、資産へのアクセスが困難になることを理解しています。"
+      },
+      "continueButton": "次へ進む"
+    },
+    "step4": {
+      "title": "準備完了！",
+      "description": "Quantum Shieldの設定が完了しました。これで量子耐性の保護を使用できます。",
+      "features": {
+        "keysGenerated": "Dilithium鍵ペアを生成しました",
+        "backupComplete": "秘密鍵をバックアップしました",
+        "protectionActive": "量子耐性保護が有効です"
+      },
+      "dashboardButton": "ダッシュボードへ",
+      "tutorialLink": "使い方チュートリアルを見る"
+    },
+    "modals": {
+      "walletHelp": {
+        "title": "ウォレットの取得方法",
+        "intro": "暗号資産ウォレットを持っていない場合は、以下の手順で取得できます。",
+        "metamaskTitle": "MetaMaskの場合:",
+        "metamaskSteps": {
+          "step1": "metamask.io にアクセス",
+          "step2": "「Download」をクリックしてブラウザ拡張機能をインストール",
+          "step3": "画面の指示に従ってウォレットを作成",
+          "step4": "シードフレーズを安全に保管"
+        },
+        "warningTitle": "注意事項:",
+        "warnings": {
+          "warning1": "シードフレーズは絶対に他人に教えないでください",
+          "warning2": "オフラインの安全な場所に保管してください",
+          "warning3": "公式サイト以外からダウンロードしないでください"
+        },
+        "close": "閉じる"
+      },
+      "dilithium": {
+        "title": "Dilithium暗号とは？",
+        "intro": "Dilithium（ダイリチウム）は、量子コンピュータに対して安全な電子署名アルゴリズムです。",
+        "whyTitle": "なぜ必要？",
+        "why": {
+          "reason1": "現在の暗号（ECDSA等）は将来の量子コンピュータで解読される可能性があります",
+          "reason2": "「今収集して後で解読」攻撃から資産を守るために、今から対策が必要です"
+        },
+        "featuresTitle": "Dilithiumの特徴:",
+        "features": {
+          "nist": "NIST認定: 2024年にFIPS 204として正式標準化",
+          "lattice": "格子ベース暗号: 量子コンピュータでも解読が数学的に困難",
+          "fast": "高速: 署名・検証が効率的",
+          "level": "Dilithium-III: Quantum Shieldで使用するセキュリティレベル"
+        },
+        "securityTitle": "安全性:",
+        "securityDesc": "Dilithium-IIIは、NIST Security Level 3を満たし、128ビット以上の古典的セキュリティと量子セキュリティを提供します。",
+        "close": "閉じる"
+      },
+      "tutorial": {
+        "title": "使い方チュートリアル",
+        "intro": "Quantum Shieldの基本的な使い方を説明します。",
+        "lockTitle": "1. 資産をLockする",
+        "lockSteps": {
+          "step1": "ダッシュボードで「Lock」をクリック",
+          "step2": "保護したい金額を入力",
+          "step3": "Dilithium署名で確認"
+        },
+        "unlockTitle": "2. 資産をUnlockする",
+        "unlockSteps": {
+          "step1": "通常Unlock: Dilithium署名 + 24時間待機",
+          "step2": "緊急Unlock: ウォレット署名 + Bond + 7日間待機"
+        },
+        "securityTitle": "3. セキュリティのポイント",
+        "securitySteps": {
+          "step1": "秘密鍵は必ずバックアップしてください",
+          "step2": "Time Lockがあなたの資産を守ります",
+          "step3": "不審なアクティビティはすぐに確認してください"
+        },
+        "close": "閉じる"
+      }
+    }
   }
   }
 }
