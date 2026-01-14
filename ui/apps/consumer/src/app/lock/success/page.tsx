@@ -67,20 +67,6 @@ export default function LockSuccessPage() {
         ))}
       </div>
 
-      {/* Confetti Animation Styles */}
-      <style jsx>{`
-        @keyframes confetti-fall {
-          0% {
-            transform: translateY(-100px) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(100vh) rotate(720deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
-
       <div className="relative z-10 text-center max-w-[440px] w-full">
         {/* Success Icon */}
         <div
@@ -92,20 +78,6 @@ export default function LockSuccessPage() {
         >
           ✓
         </div>
-
-        <style jsx>{`
-          @keyframes pop {
-            0% {
-              transform: scale(0);
-            }
-            50% {
-              transform: scale(1.2);
-            }
-            100% {
-              transform: scale(1);
-            }
-          }
-        `}</style>
 
         {/* Title */}
         <h1 className="text-3xl font-bold mb-2 text-qs-success">Lock完了！</h1>
