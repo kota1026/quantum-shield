@@ -24,34 +24,75 @@ Phase 6 進捗確認        ← 進捗状況を表示
 以下のファイルを**並列で読み込み**、内容を理解してから作業開始：
 
 ```
-READ PARALLEL:
+READ PARALLEL（プロンプト）:
 ├── docs_new/02_agents_prompt/02_prompts/38_orchestrator.md
 ├── docs_new/02_agents_prompt/02_prompts/30_ui_impl.md
 ├── docs_new/02_agents_prompt/02_prompts/31_design_pir.md
 ├── docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md
 ├── docs_new/01_phase/06_phase6/PHASE6_PLANNING_PROPOSAL.md
 └── docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md  ← 進捗管理ファイル
+
+READ PARALLEL（デザインシステム）:
+├── docs_new/01_phase/04_phase4/01_design/assets/design-concept-5-japan-premium.html  ← 必須！
+├── apps/web/tailwind.config.ts
+└── apps/web/src/styles/globals.css
 ```
 
-### 0.2 対象システムのモック一覧取得
+### 0.2 インフラ検証（実装開始前に必ず確認）
+
+以下のファイルが存在することを確認。無ければ作成：
+
+```bash
+# 必須ファイルの存在確認
+ls apps/web/postcss.config.js      # ⚠️ 無いとTailwind動作しない
+ls apps/web/tailwind.config.ts     # カスタムカラー定義
+ls apps/web/src/styles/globals.css # CSS Variables定義
+```
+
+**postcss.config.js が無い場合は以下を作成：**
+```javascript
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+```
+
+### 0.3 対象システムのモック一覧取得
 
 ```bash
 ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 ```
 
-| System | ID | Path |
-|--------|:--:|------|
-| Consumer App | 01 | `system_01_consumer/wip/mocks/` |
-| Token Hub | 02 | `system_02_token_hub/wip/mocks/` |
-| Prover Portal | 04 | `system_04_prover_portal/wip/mocks/` |
+| System | ID | Path | 画面数 |
+|--------|:--:|------|:------:|
+| Consumer App | 01 | `system_01_consumer/wip/mocks/` | 19 |
+| Token Hub | 02 | `system_02_token_hub/wip/mocks/` | 10 |
+| Governance | 03 | `system_03_governance/wip/mocks/` | 6 |
+| Prover Portal | 04 | `system_04_prover_portal/wip/mocks/` | 11 |
+| Observer | 05 | `system_05_observer/wip/mocks/` | 7 |
+| Explorer | 06 | `system_06_explorer/wip/mocks/` | 8 |
+| Enterprise Admin | 07 | `system_07_enterprise/wip/mocks/` | 25 |
+| QS Admin | 08 | `system_08_qs_admin/wip/mocks/` | 12 |
 
-### 0.3 初期化完了報告
+### 0.4 初期化完了報告
 
 ```markdown
 ## Phase 6 初期化完了
 
-- 読み込んだプロンプト: [リスト]
-- 対象システム: {system_name}
+### 読み込んだファイル
+- プロンプト: 38, 30, 31 + DESIGN_REVIEW_AGENTS + PHASE6_PLANNING
+- デザイン: design-concept-5-japan-premium.html ✅
+- 設定: tailwind.config.ts, globals.css ✅
+
+### インフラ検証
+- postcss.config.js: ✅ 存在 / ❌ 作成済み
+- tailwind.config.ts: ✅ 存在
+- globals.css: ✅ 存在
+
+### 対象システム
+- システム: {system_name}
 - 検出した画面数: {count}
 - 開始画面: {first_screen}
 ```
@@ -320,6 +361,11 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 ## Critical Rules（絶対遵守）
 
 ```xml
+<rule id="CR-0" level="ABSOLUTE">
+  PHASE 0 初期化は必須。design-concept-5-japan-premium.html を読まずに実装開始禁止。
+  postcss.config.js の存在確認も必須。
+</rule>
+
 <rule id="CR-1" level="ABSOLUTE">
   APIモックデータの返却は禁止。
   データベースがない場合は、まず報告してから対応方法を検討する。
@@ -348,6 +394,18 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 <rule id="CR-7" level="ABSOLUTE">
   画面完了時は必ずPHASE6_PROGRESS.mdを更新。
   進捗ファイル未更新のまま次の画面に進むことは禁止。
+</rule>
+
+<rule id="CR-8" level="ABSOLUTE">
+  ページは必ず [locale] ルート配下に配置。
+  ✅ apps/web/src/app/[locale]/consumer/dashboard/page.tsx
+  ❌ apps/web/src/app/consumer/dashboard/page.tsx
+</rule>
+
+<rule id="CR-9" level="ABSOLUTE">
+  Tailwindカスタムクラスは tailwind.config.ts で定義済みのもののみ使用。
+  存在しないクラス（border-border, duration-250等）は使用禁止。
+  globals.css のCSS Variables を直接参照する場合は Tailwind変換表を確認。
 </rule>
 ```
 
@@ -408,6 +466,17 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 
 ## ファイル参照一覧
 
+### デザインシステム（PHASE 0 必須読み込み）
+
+| 用途 | パス | 重要度 |
+|------|------|:------:|
+| **デザインコンセプト** | `docs_new/01_phase/04_phase4/01_design/assets/design-concept-5-japan-premium.html` | ⚠️ 必須 |
+| Tailwind設定 | `apps/web/tailwind.config.ts` | ⚠️ 必須 |
+| CSS Variables | `apps/web/src/styles/globals.css` | ⚠️ 必須 |
+| PostCSS設定 | `apps/web/postcss.config.js` | ⚠️ 必須 |
+
+### プロンプト
+
 | 用途 | パス |
 |------|------|
 | Orchestrator | `docs_new/02_agents_prompt/02_prompts/38_orchestrator.md` |
@@ -417,6 +486,11 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 | A11yチェック | `docs_new/02_agents_prompt/02_prompts/33_a11y_check.md` |
 | API実装 | `docs_new/02_agents_prompt/02_prompts/34_api_impl.md` |
 | E2Eテスト | `docs_new/02_agents_prompt/02_prompts/37_e2e_test.md` |
+
+### 計画・仕様書
+
+| 用途 | パス |
+|------|------|
 | ペルソナ定義 | `docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md` |
 | 計画書 | `docs_new/01_phase/06_phase6/PHASE6_PLANNING_PROPOSAL.md` |
 | 進捗管理 | `docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` |
