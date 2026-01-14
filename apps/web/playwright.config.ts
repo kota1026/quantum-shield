@@ -23,14 +23,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-
-    // Accessibility testing
-    axeOptions: {
-      rules: [
-        { id: 'color-contrast', enabled: true },
-        { id: 'aria-roles', enabled: true },
-      ],
-    },
   },
 
   projects: [
@@ -66,12 +58,14 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  webServer: process.env.NO_SERVER
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120000,
+      },
 
   // Global timeout
   timeout: 30000,
