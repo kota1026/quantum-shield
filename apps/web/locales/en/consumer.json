@@ -751,6 +751,70 @@
         "backToDashboard": "Back to Dashboard"
       }
     },
+    "lock": {
+      "meta": {
+        "title": "Lock | Quantum Shield",
+        "description": "Securely lock your ETH with quantum-resistant cryptography"
+      },
+      "header": {
+        "title": "Lock Assets",
+        "back": "Back",
+        "backAriaLabel": "Back to dashboard"
+      },
+      "hero": {
+        "badge": "Quantum Protected",
+        "badgeTooltip": "Quantum-resistant cryptography protects your assets from future quantum computer attacks",
+        "title": "Protect Your Assets from Future Threats",
+        "subtitle": "Prepare for the quantum era by locking your ETH with Dilithium cryptography today"
+      },
+      "card": {
+        "title": "Lock Amount",
+        "inputLabel": "Enter amount to lock",
+        "inputPlaceholder": "0.00",
+        "availableBalance": "Available Balance",
+        "quickAmounts": {
+          "25": "25%",
+          "50": "50%",
+          "75": "75%",
+          "max": "MAX"
+        },
+        "lockButton": "Lock with Dilithium Signature",
+        "lockButtonAriaLabel": "Lock assets with Dilithium signature"
+      },
+      "info": {
+        "title": "About Locking",
+        "items": {
+          "quantum": {
+            "title": "Quantum Protection",
+            "description": "Assets protected with NIST-certified Dilithium cryptography"
+          },
+          "unlock": {
+            "title": "Unlock Anytime",
+            "description": "Withdraw your assets after a 24-hour waiting period"
+          },
+          "fee": {
+            "title": "Fees",
+            "description": "Gas fees only (~$7 equivalent)"
+          }
+        }
+      },
+      "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers",
+      "modal": {
+        "title": "Confirm Lock",
+        "description": "You are about to lock the following amount. Dilithium signature required.",
+        "amount": "Lock Amount",
+        "gasFee": "Gas Fee (est.)",
+        "note": "* Unlocking requires a 24-hour waiting period",
+        "confirm": "Sign and Lock",
+        "cancel": "Cancel"
+      },
+      "validation": {
+        "amountRequired": "Please enter an amount to lock",
+        "amountInvalid": "Please enter a valid amount",
+        "insufficientBalance": "Insufficient balance",
+        "minimumAmount": "Minimum lock amount is 0.01 ETH"
+      }
+    },
     "lockProcessing": {
       "title": "Processing Lock...",
       "subtitle": "Please wait. Do not close this page.",
