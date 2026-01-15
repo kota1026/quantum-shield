@@ -161,6 +161,7 @@
           "waitTimeValue": "24時間",
           "required": "必要なもの",
           "requiredValue": "Dilithium秘密鍵",
+          "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です",
           "fee": "手数料",
           "feeValue": "ガス代のみ"
         },
@@ -172,7 +173,8 @@
           "required": "必要なもの",
           "requiredValue": "ウォレット署名",
           "bond": "Bond（保証金）",
-          "bondValue": "MAX(0.5 ETH, 金額×5%)"
+          "bondValue": "MAX(0.5 ETH, 金額×5%)",
+          "bondTooltip": "Bondは保証金です。7日間の待機期間後にChallengeがなければ全額返還されます"
         },
         "warningTitle": "緊急アンロックの注意事項",
         "warningMessage": "緊急アンロックには7日間の待機期間とBond（保証金）が必要です。Bondは7日後にChallengeがなければ返還されます。"
