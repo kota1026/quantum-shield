@@ -359,6 +359,83 @@
 
 ---
 
+## User Check (UAT)
+
+ユーザー確認用のチェックリスト。各画面の動作確認後に更新。
+
+### Consumer App
+
+| # | Screen | UI Check | 機能動作 | 説明わかりやすさ | Notes |
+|---|--------|:--------:|:--------:|:----------------:|-------|
+| 01 | landing | ⬜ | ⬜ | ⬜ | Cookie詳細モーダル未実装 |
+| 02 | onboarding | ⬜ | ⬜ | ⬜ | |
+| 03 | dashboard | ⬜ | ⬜ | ⬜ | モックデータ使用中 |
+| 04 | unlock | ⬜ | ⬜ | ⬜ | 24h説明改善済み |
+| 05 | lock | ⬜ | ⬜ | ⬜ | ETHのみ対応 |
+| 06 | history | ⬜ | ⬜ | ⬜ | さらに読み込み/CSV未実装 |
+| 07 | settings | ⬜ | ⬜ | ⬜ | 各設定項目WS-2で実装 |
+| 08 | faq | ⬜ | ⬜ | ⬜ | 説明改善済み |
+
+---
+
+## Critical Rules Reference
+
+### CR-10: Wallet Provider Timing
+```
+ウォレット接続Provider（WagmiProvider, RainbowKitProvider）はWS-1で設定済み。
+実際のトランザクション署名・ブロックチェーン連携はWS-2で実装。
+
+WS-1: UI/UXフェーズ
+- ウォレット接続UI
+- Mock APIでの動作確認
+- 状態表示のモック
+
+WS-2: Backend統合フェーズ
+- 実際のトランザクション署名
+- コントラクト連携
+- リアルタイムデータ取得
+```
+
+---
+
+## WS-2 Backend Integration Tasks
+
+WS-2で対応する機能一覧（現在はモック/未実装）:
+
+### 高優先度
+| # | 機能 | 現状 | WS-2対応内容 |
+|---|------|------|-------------|
+| 1 | ダッシュボード数値 | モックデータ | コントラクトから残高取得 |
+| 2 | Lock機能 | UIのみ | トランザクション署名・送信 |
+| 3 | Unlock機能 | UIのみ | トランザクション署名・送信 |
+| 4 | 取引履歴 | モックデータ | イベントログから取得 |
+
+### 中優先度
+| # | 機能 | 現状 | WS-2対応内容 |
+|---|------|------|-------------|
+| 5 | さらに読み込む | 未実装 | ページネーションAPI |
+| 6 | CSVエクスポート | 未実装 | サーバーサイド生成 |
+| 7 | 複数トークン対応 | ETHのみ | ERC-20対応 |
+
+### 設定画面関連
+| # | 機能 | 現状 | WS-2対応内容 |
+|---|------|------|-------------|
+| 8 | ダークモード | トグルのみ | テーマ永続化 |
+| 9 | 言語切替 | トグルのみ | locale切替+永続化 |
+| 10 | 通貨表示 | トグルのみ | 価格APIと連携 |
+| 11 | 自動ロック | 未実装 | セッションタイムアウト |
+| 12 | 生体認証 | トグルのみ | WebAuthn API |
+| 13 | プッシュ通知 | トグルのみ | Web Push API |
+| 14 | メール通知 | トグルのみ | メール送信サービス |
+
+### その他
+| # | 機能 | 現状 | WS-2対応内容 |
+|---|------|------|-------------|
+| 15 | お問い合わせ | UI未実装 | サポートチケットシステム/Discord連携 |
+| 16 | Cookie詳細 | 未実装 | Cookie管理モーダル |
+
+---
+
 ## Update Instructions
 
 When completing a task, update this file:
@@ -375,6 +452,10 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-15 | Added User Check (UAT) section, CR-10 explanation, WS-2 task list |
+| 2026-01-15 | Fixed 404 errors: unlock/processing, unlock/success pages created |
+| 2026-01-15 | Improved 24h Time Lock explanations in unlock page |
+| 2026-01-15 | Enhanced FAQ explanations (Quantum Shield, Lock, Emergency Unlock, Prover) |
 | 2026-01-15 | Consumer App: Bulk update - 14 screens with UI/A11y/E2E complete |
 | 2026-01-15 | Added CR-10 rule for wallet provider timing in CLAUDE.md |
 | 2026-01-15 | Fixed landing.meta i18n error, added lock/processing pages |
