@@ -526,14 +526,15 @@ git commit -m "feat: {作業内容の要約}"
 git push -u origin {current-branch}
 ```
 
-### 2. PR作成案内
+### 2. PR作成案内（ベースブランチ: main）
 
+作業完了後、**必ず main ブランチに対して PR を作成**する。
 以下のメッセージをユーザーに表示：
 
 ```
 ## 作業完了
 
-### PR作成
+### PR作成（→ main）
 https://github.com/kota1026/quantum-shield/compare/main...{branch-name}
 
 ### Codespaces確認手順
