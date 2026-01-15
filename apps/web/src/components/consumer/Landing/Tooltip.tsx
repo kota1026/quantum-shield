@@ -36,13 +36,6 @@ export function Tooltip({
     }, 100);
   };
 
-  const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
-  };
-
   return (
     <span
       className={cn('relative inline-flex items-center gap-1', className)}
@@ -63,9 +56,15 @@ export function Tooltip({
         id={tooltipId}
         role="tooltip"
         aria-hidden={!isVisible}
+        style={{
+          maxWidth: 'min(280px, calc(100vw - 2rem))',
+        }}
         className={cn(
-          'absolute z-50 px-3 py-2 text-sm text-foreground-secondary bg-surface-tertiary border border-border rounded-qs max-w-xs transition-all duration-150',
-          positionClasses[position],
+          'absolute z-50 px-3 py-2 text-sm text-foreground-secondary bg-surface-tertiary border border-border rounded-qs transition-all duration-150 whitespace-normal break-words',
+          position === 'top' && 'bottom-full mb-2 left-1/2 -translate-x-1/2',
+          position === 'bottom' && 'top-full mt-2 left-1/2 -translate-x-1/2',
+          position === 'left' && 'right-full mr-2 top-1/2 -translate-y-1/2',
+          position === 'right' && 'left-full ml-2 top-1/2 -translate-y-1/2',
           isVisible
             ? 'opacity-100 visible'
             : 'opacity-0 invisible pointer-events-none'

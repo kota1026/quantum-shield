@@ -750,6 +750,28 @@
         "backToDashboard": "ダッシュボードに戻る"
       }
     },
+    "lockProcessing": {
+      "title": "Lock処理中...",
+      "subtitle": "しばらくお待ちください。このページを閉じないでください。",
+      "steps": {
+        "sign": "Dilithium署名を生成",
+        "createTx": "トランザクションを作成",
+        "broadcast": "ブロックチェーンに送信中...",
+        "confirm": "確認を待機"
+      }
+    },
+    "lockSuccess": {
+      "title": "ロック完了",
+      "subtitle": "資産が量子耐性保護でロックされました",
+      "details": {
+        "amount": "ロック金額",
+        "txHash": "TX Hash"
+      },
+      "buttons": {
+        "viewHistory": "履歴を確認",
+        "backToDashboard": "ダッシュボードに戻る"
+      }
+    },
     "terms": {
       "meta": {
         "title": "利用規約 | Quantum Shield",
