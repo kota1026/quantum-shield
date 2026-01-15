@@ -152,6 +152,10 @@ const config: Config = {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
         'shimmer': 'shimmer 2s linear infinite',
+        'orbit-gold': 'orbit-gold 12s linear infinite',
+        'orbit-red': 'orbit-red 18s linear infinite',
+        'orbit-white': 'orbit-white 24s linear infinite',
+        'hinomaru-pulse': 'hinomaru-pulse 4s ease-in-out infinite',
       },
       keyframes: {
         glow: {
@@ -161,6 +165,28 @@ const config: Config = {
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
+        },
+        'orbit-gold': {
+          from: { transform: 'translate(-50%, -50%) rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg)' },
+          to: { transform: 'translate(-50%, -50%) rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg)' },
+        },
+        'orbit-red': {
+          from: { transform: 'translate(-50%, -50%) rotate(120deg) translateX(var(--orbit-radius)) rotate(-120deg)' },
+          to: { transform: 'translate(-50%, -50%) rotate(480deg) translateX(var(--orbit-radius)) rotate(-480deg)' },
+        },
+        'orbit-white': {
+          from: { transform: 'translate(-50%, -50%) rotate(240deg) translateX(var(--orbit-radius)) rotate(-240deg)' },
+          to: { transform: 'translate(-50%, -50%) rotate(600deg) translateX(var(--orbit-radius)) rotate(-600deg)' },
+        },
+        'hinomaru-pulse': {
+          '0%, 100%': {
+            transform: 'scale(1)',
+            boxShadow: '0 0 60px rgba(188, 0, 45, 0.4), 0 0 100px rgba(188, 0, 45, 0.2)',
+          },
+          '50%': {
+            transform: 'scale(1.03)',
+            boxShadow: '0 0 80px rgba(188, 0, 45, 0.4), 0 0 120px rgba(188, 0, 45, 0.3)',
+          },
         },
       },
       spacing: {
