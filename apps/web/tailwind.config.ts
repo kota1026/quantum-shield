@@ -41,38 +41,39 @@ const config: Config = {
           800: '#664926',
           900: '#452912',
         },
-        // Background colors
+        // Background colors (matching mock design)
         background: {
           DEFAULT: '#0A0A0C',
-          secondary: '#121214',
-          tertiary: '#1A1A1D',
-          elevated: '#222226',
+          secondary: '#111114',
+          tertiary: '#18181C',
+          elevated: '#1E1E22',
+          card: '#0E0E11',
         },
         // Surface colors
         surface: {
-          DEFAULT: '#1A1A1D',
-          secondary: '#222226',
+          DEFAULT: '#18181C',
+          secondary: '#1E1E22',
           tertiary: '#2A2A2E',
         },
-        // Text colors
+        // Text colors (matching mock design)
         foreground: {
-          DEFAULT: '#FAFAFA',
-          secondary: '#A1A1AA',
-          tertiary: '#71717A',
+          DEFAULT: '#F8F8FA',
+          secondary: '#9898A0',
+          tertiary: '#606068',
           muted: '#52525B',
         },
-        // Semantic colors
+        // Semantic colors (matching mock design)
         success: {
-          DEFAULT: '#10B981',
-          foreground: '#FAFAFA',
+          DEFAULT: '#00C896',
+          foreground: '#F8F8FA',
         },
         warning: {
-          DEFAULT: '#F59E0B',
+          DEFAULT: '#F0A030',
           foreground: '#0A0A0C',
         },
         danger: {
-          DEFAULT: '#EF4444',
-          foreground: '#FAFAFA',
+          DEFAULT: '#E84057',
+          foreground: '#F8F8FA',
         },
         info: {
           DEFAULT: '#3B82F6',
@@ -81,23 +82,22 @@ const config: Config = {
         // Status colors (specific to Quantum Shield)
         status: {
           locked: '#C9A962',      // Gold - active lock
-          unlocking: '#F59E0B',  // Warning - in progress
-          unlocked: '#10B981',   // Success - complete
-          challenged: '#EF4444', // Danger - under challenge
+          unlocking: '#F0A030',  // Warning - in progress (matching mock)
+          unlocked: '#00C896',   // Success - complete (matching mock)
+          challenged: '#E84057', // Danger - under challenge (matching mock)
           emergency: '#BC002D',  // Hinomaru - emergency
         },
       },
       fontFamily: {
         sans: [
+          'Plus Jakarta Sans',
           'Noto Sans JP',
-          'Inter',
           'system-ui',
           '-apple-system',
           'sans-serif',
         ],
         mono: [
-          'JetBrains Mono',
-          'Fira Code',
+          'DM Mono',
           'monospace',
         ],
       },
