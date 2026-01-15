@@ -936,120 +936,120 @@
     },
     "howItWorksPage": {
       "meta": {
-        "title": "How It Works"
+        "title": "Why Quantum Shield"
       },
       "header": {
-        "title": "How Quantum Shield Works",
-        "subtitle": "Detailed explanation of system architecture and security flows",
+        "title": "Why Quantum Shield",
+        "subtitle": "Protecting your assets today from tomorrow's threats",
         "backAriaLabel": "Back to Consumer App"
       },
       "intro": {
-        "description": "Quantum Shield uses quantum-resistant cryptography to protect your assets with multiple layers of security. L3 Aegis (custom 4-node BFT), 5 Provers, and L1 Vault work together to secure your funds."
+        "description": "Have you heard about the \"quantum computing threat\"? Your crypto assets that seem safe today could be decrypted by future quantum computers. Quantum Shield protects your assets now from threats that are yet to come."
       },
       "architecture": {
-        "title": "System Architecture",
-        "diagramLabel": "Data Flow"
+        "title": "Who Protects Your Assets",
+        "diagramLabel": "Protection Flow"
       },
       "actors": {
         "user": {
-          "name": "User (You)",
-          "role": "Asset Owner",
-          "description": "Sign Lock/Unlock operations with your Dilithium key. Your private key is stored only on your device."
+          "name": "You",
+          "role": "The Only Owner",
+          "description": "You control your assets with your unique Dilithium key. No one—not even us—can touch your funds."
         },
         "l3": {
-          "name": "L3 Aegis",
-          "role": "Off-chain Consensus Layer",
-          "description": "4-node BFT consensus verifies Dilithium signatures and calculates State Root (SR)."
+          "name": "Verification Network",
+          "role": "Confirms Your Actions",
+          "description": "Multiple nodes verify your signature is genuine, preventing impersonation and fraud."
         },
         "prover": {
-          "name": "Prover (Approver)",
-          "role": "Multi-sig Signer",
-          "description": "2 of 5 Provers sign with SPHINCS+. Randomly selected via VRF, with stake slashing for fraud."
+          "name": "Independent Approvers",
+          "role": "Third-Party Double-Check",
+          "description": "2 of 5 independent companies are randomly selected to approve your action. One bad actor can't do anything."
         },
         "vault": {
-          "name": "L1 Vault",
-          "role": "Asset Custodian",
-          "description": "Smart contract on Ethereum L1. Verifies SPHINCS+ signatures and SMT proofs to secure assets."
+          "name": "Smart Contract",
+          "role": "Code-Protected Vault",
+          "description": "A transparent program on Ethereum manages your assets. It follows the rules exactly, without human intervention."
         }
       },
       "lockFlow": {
-        "title": "Lock (Asset Protection) Flow",
+        "title": "Why \"Lock\" Your Assets",
         "step1": {
-          "title": "Approve with Dilithium Signature",
-          "description": "Sign the asset and amount to lock with your Dilithium key. This signature is verified by L3 Aegis."
+          "title": "Protect Against Future Threats",
+          "description": "Your current wallet is convenient but vulnerable to quantum computers. Locking moves your assets to a quantum-resistant vault."
         },
         "step2": {
-          "title": "L3 Consensus Formation",
-          "description": "4-node BFT verifies Dilithium signature and calculates State Root (SR_0). Lock info is added to SMT."
+          "title": "No One Can Touch It",
+          "description": "Without your signature, your assets don't move. Even if an exchange gets hacked, your funds are safe."
         },
         "step3": {
-          "title": "Deposit to L1 Vault",
-          "description": "Transfer ETH/ERC-20 tokens to L1 Vault. SR_0 is recorded and assets are protected."
+          "title": "Hold Long-Term with Peace of Mind",
+          "description": "Guard against 'Harvest Now, Decrypt Later' attacks—where hackers steal encrypted data today to crack it later. Be safe for decades."
         },
         "note": {
-          "title": "Note:",
-          "description": "Prover signatures are not required for Lock. Only L3 consensus is needed, with ~$7 gas cost."
+          "title": "Simple & Low Cost:",
+          "description": "Locking costs only ~$7 in gas. No complicated steps required."
         }
       },
       "unlockFlow": {
-        "title": "Unlock (Normal Path) Flow",
+        "title": "Why \"Wait 24 Hours\"",
         "step1": {
-          "title": "Request Unlock with Dilithium Signature",
-          "description": "Sign the lock_id and destination address with your Dilithium key."
+          "title": "Time That Protects You",
+          "description": "If someone steals your key and tries to unlock, you have 24 hours to notice and take action."
         },
         "step2": {
-          "title": "L3 Verification + Prover Selection",
-          "description": "L3 verifies Dilithium signature and selects 2 of 5 Provers randomly via Chainlink VRF."
+          "title": "Multiple Eyes Watching",
+          "description": "Independent approvers verify that the action is really coming from you."
         },
         "step3": {
-          "title": "Prover 2/5 SPHINCS+ Signature",
-          "description": "2 selected Provers generate SPHINCS+ signatures in their HSMs. Each signature is ~8KB."
+          "title": "Fraud Gets Blocked",
+          "description": "During the 24 hours, monitoring systems constantly check. Suspicious activity is automatically blocked."
         },
         "step4": {
-          "title": "L1 Vault Verification + 24h Time Lock",
-          "description": "L1 Vault verifies SPHINCS+ signatures and SMT proof. 24-hour Time Lock starts after verification."
+          "title": "After Safety Is Confirmed",
+          "description": "Once all checks pass, the 24-hour cooling-off period begins."
         },
         "step5": {
-          "title": "Claim (Receive Assets)",
-          "description": "After 24 hours, execute Claim to withdraw assets to your wallet."
+          "title": "Get Your Assets Anytime",
+          "description": "After 24 hours, withdraw to your wallet whenever you want."
         },
         "note": {
-          "title": "Why 24h Time Lock:",
-          "description": "Provides time for monitoring bots to detect and Challenge any fraudulent activity."
+          "title": "Why 24 Hours?",
+          "description": "This waiting period is your safety buffer. It gives you time to notice unauthorized access and respond."
         }
       },
       "emergencyPath": {
-        "title": "Emergency Path (Emergency Unlock)",
-        "description": "If Provers don't respond for 72+ hours, Emergency Unlock becomes available. Deposit a bond and recover assets after 7 days.",
-        "trigger": "Triggered by Prover non-response",
+        "title": "Lost Your Key? You're Still Safe",
+        "description": "Even if you lose your Dilithium key, your assets aren't lost. With identity verification through a waiting period and collateral, you can recover everything. A safety net other self-custody solutions don't offer.",
+        "trigger": "Available whenever you need it",
         "days": " days",
-        "waitTime": "Wait period (7x normal)",
-        "bond": "Emergency Bond (5% of assets or 0.5 ETH)"
+        "waitTime": "Identity verification period",
+        "bond": "Temporary collateral (fully refunded)"
       },
       "security": {
-        "title": "Security Features",
+        "title": "Why It's Secure",
         "multiProver": {
-          "title": "Multi-Prover (2/5 Signature)",
-          "description": "2 of 5 Provers randomly selected via VRF. Eliminates single points of failure and minimizes collusion risk."
+          "title": "No Single Point of Failure",
+          "description": "2 randomly selected companies from 5 independent firms must approve. Collusion and single-point failures are eliminated."
         },
         "timeLock": {
-          "title": "Time Lock (24h/7 days)",
-          "description": "24-hour wait for Unlock, 7 days for Emergency. Provides time for fraud detection and response."
+          "title": "Time Is Your Shield",
+          "description": "24-hour wait (7 days for emergency) gives you time to detect fraud and respond."
         },
         "challenge": {
-          "title": "Challenge + Slashing",
-          "description": "Monitoring bots can Challenge fraud. Fraudulent Provers lose up to 100% of their stake."
+          "title": "Fraud Is Always Punished",
+          "description": "Any approver who commits fraud loses their entire stake. There's no incentive to cheat."
         },
         "cryptography": {
-          "title": "Quantum-Resistant Cryptography",
-          "description": "Combination of Dilithium (FIPS 204) and SPHINCS+ (FIPS 205). SHA3-256 hashing ensures quantum resistance."
+          "title": "Government-Certified Cryptography",
+          "description": "Uses quantum-resistant cryptography officially adopted by NIST in 2024. State-of-the-art security."
         }
       },
       "cta": {
-        "title": "Protect Your Assets with Quantum Resistance",
-        "description": "Get started in 3 simple steps.",
-        "startButton": "Get Started",
-        "securityButton": "Security Details"
+        "title": "Prepare Today for Tomorrow's Threats",
+        "description": "Protect your assets before quantum computing threats become reality.",
+        "startButton": "Start for Free",
+        "securityButton": "View Technical Details"
       }
     },
     "onboarding": {
