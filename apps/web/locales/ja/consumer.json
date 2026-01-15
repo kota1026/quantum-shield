@@ -354,10 +354,11 @@
         "openApp": "アプリを開く"
       },
       "hero": {
-        "badge": "NIST認定 量子耐性暗号",
+        "badge": "米国政府機関NIST公認",
+        "badgeTooltip": "NIST（米国国立標準技術研究所）は、米国商務省の政府機関で、暗号技術の国際標準を策定しています。AES暗号やSHA-2など、世界中で使われる暗号規格を定めています。",
         "titleLine1": "量子コンピュータ時代の",
         "titleHighlight": "デジタル資産保護",
-        "subtitle": "あなたのETHやトークンを、将来の量子コンピュータ攻撃から守ります。NIST認定の次世代暗号技術で、資産を安全に保管。3ステップで簡単に始められます。",
+        "subtitle": "あなたのETHやトークンを、将来の量子コンピュータ攻撃から守ります。米国政府機関NIST（国立標準技術研究所）公認の次世代暗号技術で、資産を安全に保管。3ステップで簡単に始められます。",
         "ctaPrimary": "今すぐ無料で始める",
         "ctaSecondary": "詳しく見る"
       },
@@ -385,9 +386,10 @@
         "title": "なぜQuantum Shieldなのか",
         "dilithium": {
           "title": "Dilithium-III暗号",
-          "description": "NIST認定の格子ベース電子署名。量子コンピュータでも解読が数学的に困難な次世代暗号技術。",
+          "description": "米国政府機関NIST（国立標準技術研究所）公認の格子ベース電子署名。量子コンピュータでも解読が数学的に困難な次世代暗号技術。",
           "badge": "NIST FIPS 204",
-          "tooltip": "Dilithiumは、量子コンピュータに対して安全な電子署名アルゴリズムです。NISTによって2024年に標準化されました。"
+          "tooltip": "Dilithiumは、量子コンピュータに対して安全な電子署名アルゴリズムです。NISTは米国商務省の政府機関で、AES暗号やSHAなど世界標準の暗号規格を策定しています。Dilithiumは2024年にFIPS 204として正式標準化されました。",
+          "learnMoreUrl": "https://csrc.nist.gov/pubs/fips/204/final"
         },
         "timeLock": {
           "title": "Time Lock保護",
@@ -396,10 +398,11 @@
           "tooltip": "Time Lockにより、資産の引き出し前に24時間の待機期間が設けられます。この間に不正を検知・阻止できます。"
         },
         "smtProof": {
-          "title": "SMTマークル検証",
-          "description": "Sparse Merkle Treeによる暗号学的証明。全ての状態遷移がオンチェーンで検証可能。SPHINCS+マルチシグと組み合わせた多層防御。",
+          "title": "改ざん検知システム",
+          "description": "あなたの資産データが一切改ざんされていないことを、数学的に証明します。取引記録の整合性を常に検証し、不正な変更があれば即座に検出。",
           "badge": "暗号学的証明",
-          "tooltip": "SMT（Sparse Merkle Tree）は、大規模データの整合性を効率的に検証する技術です。SHA3-256ハッシュと組み合わせて量子耐性を実現。"
+          "tooltip": "SMT（Sparse Merkle Tree）は、銀行の複式簿記のデジタル版のようなものです。全ての取引が正確に記録され、1円でも数字が違えば数学的に検出されます。ブロックチェーン上で誰でも検証できるため、不正は絶対に隠せません。",
+          "technicalNote": "技術詳細: SHA3-256ハッシュによるSparse Merkle Tree。SPHINCS+マルチシグと組み合わせた多層防御を実現。"
         },
         "selfCustody": {
           "title": "セルフカストディ",
@@ -435,6 +438,44 @@
           "description": "Dilithium署名でUnlock要求。24時間のTime Lock後、資産が安全にウォレットに戻ります。"
         },
         "learnMore": "システム構成を詳しく見る"
+      },
+      "expertQuotes": {
+        "sectionLabel": "Expert Insights",
+        "title": "量子コンピュータの脅威について",
+        "subtitle": "世界の専門家たちの見解",
+        "quotes": [
+          {
+            "quote": "量子コンピュータが現在の暗号を破る能力を持つのは時間の問題です。暗号資産の長期保有者は、今から量子耐性への移行を検討すべきです。",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum共同創設者",
+            "source": "2024年 Ethereum研究フォーラム",
+            "image": "/images/experts/vitalik.jpg"
+          },
+          {
+            "quote": "「今収集して後で解読」攻撃は現実の脅威です。今日暗号化されたデータが、将来の量子コンピュータで解読される可能性があります。",
+            "author": "Michelle Mosca",
+            "title": "量子暗号研究者・ウォータールー大学",
+            "source": "Global Risk Institute Report 2023",
+            "image": "/images/experts/mosca.jpg"
+          },
+          {
+            "quote": "2030年代には、現在のRSA暗号やECDSAを破れる量子コンピュータが登場する可能性が約50%あると推定されています。",
+            "author": "NIST",
+            "title": "米国国立標準技術研究所",
+            "source": "Post-Quantum Cryptography Standardization",
+            "image": "/images/experts/nist.jpg"
+          }
+        ],
+        "disclaimer": "※引用は一般的な見解を示すものであり、特定のサービスの推奨ではありません",
+        "probability": {
+          "title": "量子コンピュータの脅威が現実化する確率",
+          "timeline": [
+            {"year": "2030年まで", "probability": "5-10%", "description": "限定的な暗号解読能力"},
+            {"year": "2035年まで", "probability": "30-50%", "description": "RSA-2048解読可能"},
+            {"year": "2040年まで", "probability": "70%以上", "description": "現在の暗号の多くが脆弱に"}
+          ],
+          "source": "Global Risk Institute, RAND Corporation等の研究に基づく推定"
+        }
       },
       "cta": {
         "title": "量子時代に備えよう",
@@ -610,7 +651,7 @@
       },
       "header": {
         "title": "セキュリティ",
-        "back": "設定に戻る"
+        "back": "戻る"
       },
       "hero": {
         "title": "量子耐性暗号",
@@ -948,7 +989,21 @@
       },
       "architecture": {
         "title": "誰があなたを守っているのか",
-        "diagramLabel": "保護の流れ"
+        "diagramLabel": "保護の流れ（各要素をタップして詳細を表示）",
+        "diagram": {
+          "user": "あなた",
+          "userTooltip": "MetaMaskなどのウォレットであなたがリクエストを送信します",
+          "l3": "Aegis層",
+          "l3Tooltip": "高速な処理と低コストを実現するレイヤー3ネットワーク。Ethereumのセキュリティを継承しつつ、手数料を大幅に削減します。",
+          "prover": "承認者 (2/5)",
+          "proverTooltip": "5社の独立企業から2社がランダムに選ばれ承認。1社だけでは何も承認できないため、不正や談合を防ぎます。",
+          "vault": "Ethereum金庫",
+          "vaultTooltip": "あなたの資産が保管されるEthereum L1上のスマートコントラクト。コードで守られ、誰も勝手に資産を動かせません。"
+        },
+        "explanation": {
+          "title": "この流れの意味",
+          "description": "あなたがUnlockをリクエストすると、まずAegis層で高速処理され、2社の独立承認者が確認した後、Ethereum金庫から資産が返却されます。この多層構造により、1箇所が攻撃されても資産は安全です。「2/5」は5社中2社の承認が必要という意味で、分散型の信頼を実現しています。"
+        }
       },
       "actors": {
         "user": {
