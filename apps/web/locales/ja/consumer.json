@@ -936,120 +936,120 @@
     },
     "howItWorksPage": {
       "meta": {
-        "title": "仕組みを知る"
+        "title": "なぜQuantum Shieldなのか"
       },
       "header": {
-        "title": "Quantum Shieldの仕組み",
-        "subtitle": "システム構成とセキュリティフローを詳しく解説",
+        "title": "なぜQuantum Shieldなのか",
+        "subtitle": "あなたの資産を守る理由と仕組み",
         "backAriaLabel": "Consumer Appに戻る"
       },
       "intro": {
-        "description": "Quantum Shieldは、量子コンピュータに対して安全な暗号技術を使用し、あなたの資産を多層的に保護します。L3 Aegis（独自4ノードBFT）、5社のProver、そしてL1 Vaultが連携して動作します。"
+        "description": "「量子コンピュータの脅威」という言葉を聞いたことはありますか？今は安全に見える暗号資産も、将来の量子コンピュータによって解読されるリスクがあります。Quantum Shieldは、そんな「いつか来る脅威」から今日あなたの資産を守ります。"
       },
       "architecture": {
-        "title": "システム構成",
-        "diagramLabel": "データフロー"
+        "title": "誰があなたを守っているのか",
+        "diagramLabel": "保護の流れ"
       },
       "actors": {
         "user": {
-          "name": "User（あなた）",
-          "role": "資産所有者",
-          "description": "Dilithium鍵で資産のLock/Unlockを署名します。秘密鍵はあなたのデバイスにのみ保存されます。"
+          "name": "あなた自身",
+          "role": "資産の唯一の所有者",
+          "description": "あなただけが持つDilithium鍵で資産を管理。私たちを含め、誰もあなたの資産に触れることはできません。"
         },
         "l3": {
-          "name": "L3 Aegis",
-          "role": "オフチェーン合意レイヤー",
-          "description": "4ノードのBFT合意により、Dilithium署名を検証し、State Root（SR）を計算します。"
+          "name": "検証ネットワーク",
+          "role": "あなたの操作を確認",
+          "description": "あなたの署名が本物かを複数のノードが確認。なりすましや不正を防ぎます。"
         },
         "prover": {
-          "name": "Prover（承認者）",
-          "role": "マルチシグ署名者",
-          "description": "5社のProverのうち2社がSPHINCS+で署名。VRFでランダムに選出され、不正時はStakeがSlashされます。"
+          "name": "独立した承認者たち",
+          "role": "第三者による二重チェック",
+          "description": "5社の独立企業から2社がランダムに選ばれ、あなたの操作を承認。1社の不正や障害では何も起きません。"
         },
         "vault": {
-          "name": "L1 Vault",
-          "role": "資産保管庫",
-          "description": "Ethereum L1上のスマートコントラクト。SPHINCS+署名とSMT証明を検証し、資産を安全に管理します。"
+          "name": "スマートコントラクト",
+          "role": "コードで守られた金庫",
+          "description": "Ethereum上の透明なプログラムがあなたの資産を管理。人間の介入なしに、ルール通りに動作します。"
         }
       },
       "lockFlow": {
-        "title": "Lock（資産保護）フロー",
+        "title": "なぜ「Lock」するのか",
         "step1": {
-          "title": "Dilithium署名で承認",
-          "description": "Lock対象の資産・金額をDilithium鍵で署名します。この署名はL3 Aegisで検証されます。"
+          "title": "将来の脅威から今すぐ守る",
+          "description": "今のウォレットは便利ですが、量子コンピュータに対して脆弱です。Lockすることで、量子耐性のある金庫に資産を移します。"
         },
         "step2": {
-          "title": "L3で合意形成",
-          "description": "4ノードBFTがDilithium署名を検証し、State Root（SR_0）を計算。SMTにLock情報を追加します。"
+          "title": "誰にも触れさせない",
+          "description": "あなたの署名なしには、資産は一切動きません。ハッカーが取引所を攻撃しても、あなたの資産は無事です。"
         },
         "step3": {
-          "title": "L1 Vaultにデポジット",
-          "description": "ETH/ERC-20トークンをL1 VaultにTransfer。SR_0が記録され、資産が保護されます。"
+          "title": "長期保有を安心して",
+          "description": "「Harvest Now, Decrypt Later（今暗号化データを盗み、将来解読する）」攻撃から資産を守ります。10年後も安心。"
         },
         "note": {
-          "title": "ポイント：",
-          "description": "Lock時点ではProver署名は不要です。L3の合意のみで完了し、ガス代は約$7です。"
+          "title": "簡単＆低コスト：",
+          "description": "Lockは約$7のガス代で完了。複雑な手順は不要です。"
         }
       },
       "unlockFlow": {
-        "title": "Unlock（通常パス）フロー",
+        "title": "なぜ「24時間待つ」のか",
         "step1": {
-          "title": "Dilithium署名でUnlock要求",
-          "description": "Unlock対象のlock_idと引き出し先アドレスをDilithium鍵で署名します。"
+          "title": "あなたを守る時間",
+          "description": "万が一、誰かがあなたの鍵を盗んでUnlockを試みても、24時間あれば気づいて対処できます。"
         },
         "step2": {
-          "title": "L3で検証 + Prover選出",
-          "description": "L3がDilithium署名を検証し、Chainlink VRFで5社から2社のProverをランダムに選出します。"
+          "title": "複数の目で確認",
+          "description": "独立した承認者たちが、あなたの操作が本当にあなた自身によるものかを確認します。"
         },
         "step3": {
-          "title": "Prover 2/5 SPHINCS+署名",
-          "description": "選出された2社のProverがHSM内でSPHINCS+署名を生成。それぞれ約8KBの署名です。"
+          "title": "不正は阻止される",
+          "description": "24時間の間、監視システムが常にチェック。怪しい動きがあれば自動的にブロックされます。"
         },
         "step4": {
-          "title": "L1 Vaultで検証 + 24h Time Lock",
-          "description": "L1 VaultがSPHINCS+署名とSMT証明を検証。検証成功後、24時間のTime Lockが開始されます。"
+          "title": "安全が確認されてから",
+          "description": "すべてのチェックをパスした後、24時間のクーリングオフ期間が始まります。"
         },
         "step5": {
-          "title": "Claim（資産受け取り）",
-          "description": "24時間経過後、Claimを実行して資産をウォレットに引き出します。"
+          "title": "いつでも資産を受け取れる",
+          "description": "24時間後、いつでも好きなときにあなたのウォレットに資産を戻せます。"
         },
         "note": {
-          "title": "24h Time Lockの理由：",
-          "description": "万が一の不正を監視ボットが検知し、Challengeで阻止するための時間的バッファです。"
+          "title": "なぜ24時間？",
+          "description": "この待機時間は「あなたを守る時間」です。不正アクセスに気づく余裕と、対処する時間を確保します。"
         }
       },
       "emergencyPath": {
-        "title": "緊急パス（Emergency Unlock）",
-        "description": "Proverが72時間以上応答しない場合、Emergency Unlockが可能になります。Bondを預け入れ、7日間の待機後に資産を回収できます。",
-        "trigger": "Prover無応答でトリガー",
+        "title": "鍵をなくしても大丈夫",
+        "description": "Dilithium鍵をなくしても、資産は失われません。本人確認のための待機期間と担保金で、資産を取り戻せます。他のセルフカストディにはない、安心のセーフティネットです。",
+        "trigger": "緊急時にいつでも利用可能",
         "days": "日間",
-        "waitTime": "待機期間（通常の7倍）",
-        "bond": "Emergency Bond（資産の5%または0.5ETH）"
+        "waitTime": "本人確認のための待機期間",
+        "bond": "一時的な担保金（後で全額返金）"
       },
       "security": {
-        "title": "セキュリティ機能",
+        "title": "なぜ安全なのか",
         "multiProver": {
-          "title": "マルチProver（2/5署名）",
-          "description": "5社のProverから2社をVRFでランダム選出。単一障害点を排除し、共謀リスクを最小化します。"
+          "title": "1社に依存しない",
+          "description": "5社の独立企業のうち、ランダムに選ばれた2社が承認。談合や単一障害点のリスクを排除しています。"
         },
         "timeLock": {
-          "title": "Time Lock（24h/7日）",
-          "description": "Unlock時に24時間、Emergency時に7日間の待機。不正検知と対応のための時間を確保します。"
+          "title": "時間があなたを守る",
+          "description": "24時間（緊急時は7日間）の待機期間。この間に不正を検知し、あなたが気づいて対処する時間があります。"
         },
         "challenge": {
-          "title": "Challenge + Slashing",
-          "description": "監視ボットが不正を検知するとChallengeを発動。不正Proverは最大100%のStakeをSlashされます。"
+          "title": "不正は必ず罰せられる",
+          "description": "不正な操作を行った承認者は、全財産を没収されます。不正を行うインセンティブがありません。"
         },
         "cryptography": {
-          "title": "量子耐性暗号",
-          "description": "Dilithium（FIPS 204）とSPHINCS+（FIPS 205）の組み合わせ。SHA3-256ハッシュで量子耐性を確保。"
+          "title": "政府公認の最新暗号",
+          "description": "米国標準技術研究所（NIST）が2024年に正式採用した量子耐性暗号を使用。最先端のセキュリティです。"
         }
       },
       "cta": {
-        "title": "量子耐性で資産を守る",
-        "description": "3ステップで簡単に始められます。",
-        "startButton": "今すぐ始める",
-        "securityButton": "セキュリティ詳細"
+        "title": "今日から、未来の脅威に備える",
+        "description": "量子コンピュータの脅威が現実になる前に、あなたの資産を守りましょう。",
+        "startButton": "無料で始める",
+        "securityButton": "技術詳細を見る"
       }
     },
     "onboarding": {
