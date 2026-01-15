@@ -104,7 +104,7 @@ export function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6" role="main">
         {/* Header */}
         <AppHeader
           walletAddress={WALLET_ADDRESS}
@@ -158,7 +158,7 @@ export function Dashboard() {
           {/* Recent Activity */}
           <RecentActivity transactions={DEMO_TRANSACTIONS} />
         </div>
-      </div>
+      </main>
 
       {/* Mobile Navigation */}
       <MobileNav onLockClick={openLockModal} />
