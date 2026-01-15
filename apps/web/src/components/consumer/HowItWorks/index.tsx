@@ -215,25 +215,40 @@ export function HowItWorks() {
                 {t('architecture.diagramLabel')}
               </div>
               <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-                <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-border">
-                  <Wallet className="w-4 h-4 text-hinomaru" />
-                  <span className="text-sm font-medium">User</span>
-                </div>
+                <Tooltip content={t('architecture.diagram.userTooltip')}>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-border cursor-help">
+                    <Wallet className="w-4 h-4 text-hinomaru" />
+                    <span className="text-sm font-medium">{t('architecture.diagram.user')}</span>
+                  </div>
+                </Tooltip>
                 <ArrowRight className="w-4 h-4 text-foreground-tertiary rotate-90 md:rotate-0" />
-                <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-gold/30">
-                  <Server className="w-4 h-4 text-gold" />
-                  <span className="text-sm font-medium">L3 Aegis</span>
-                </div>
+                <Tooltip content={t('architecture.diagram.l3Tooltip')}>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-gold/30 cursor-help">
+                    <Server className="w-4 h-4 text-gold" />
+                    <span className="text-sm font-medium">{t('architecture.diagram.l3')}</span>
+                  </div>
+                </Tooltip>
                 <ArrowRight className="w-4 h-4 text-foreground-tertiary rotate-90 md:rotate-0" />
-                <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-success/30">
-                  <FileCheck className="w-4 h-4 text-success" />
-                  <span className="text-sm font-medium">Prover (2/5)</span>
-                </div>
+                <Tooltip content={t('architecture.diagram.proverTooltip')}>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-success/30 cursor-help">
+                    <FileCheck className="w-4 h-4 text-success" />
+                    <span className="text-sm font-medium">{t('architecture.diagram.prover')}</span>
+                  </div>
+                </Tooltip>
                 <ArrowRight className="w-4 h-4 text-foreground-tertiary rotate-90 md:rotate-0" />
-                <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-hinomaru/30">
-                  <Shield className="w-4 h-4 text-hinomaru" />
-                  <span className="text-sm font-medium">L1 Vault</span>
-                </div>
+                <Tooltip content={t('architecture.diagram.vaultTooltip')}>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-hinomaru/30 cursor-help">
+                    <Shield className="w-4 h-4 text-hinomaru" />
+                    <span className="text-sm font-medium">{t('architecture.diagram.vault')}</span>
+                  </div>
+                </Tooltip>
+              </div>
+              {/* Detailed Explanation */}
+              <div className="mt-6 p-4 bg-surface rounded-qs border border-border">
+                <h4 className="text-sm font-semibold mb-2">{t('architecture.explanation.title')}</h4>
+                <p className="text-xs text-foreground-secondary leading-relaxed">
+                  {t('architecture.explanation.description')}
+                </p>
               </div>
             </div>
           </section>

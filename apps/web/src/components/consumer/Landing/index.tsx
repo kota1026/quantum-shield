@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Eye,
   X,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -115,10 +116,12 @@ export function Landing() {
         {/* Hero Section */}
         <section className="pt-40 pb-24 text-center">
           <div className="container mx-auto px-6">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-hinomaru/10 border border-hinomaru rounded-full text-sm font-medium text-hinomaru-400 mb-6">
-              <Shield className="w-4 h-4" aria-hidden="true" />
-              {t('hero.badge')}
-            </span>
+            <Tooltip content={t('hero.badgeTooltip')} showHelpIcon>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-hinomaru/10 border border-hinomaru rounded-full text-sm font-medium text-hinomaru-400 mb-6 cursor-help">
+                <Shield className="w-4 h-4" aria-hidden="true" />
+                {t('hero.badge')}
+              </span>
+            </Tooltip>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
               {t('hero.titleLine1')}
@@ -197,6 +200,8 @@ export function Landing() {
                 description={t('features.dilithium.description')}
                 badge={t('features.dilithium.badge')}
                 tooltip={t('features.dilithium.tooltip')}
+                learnMoreUrl="https://csrc.nist.gov/pubs/fips/204/final"
+                learnMoreLabel="NIST公式"
               />
               <FeatureCard
                 icon={<Clock />}
@@ -276,6 +281,77 @@ export function Landing() {
                 <span aria-hidden="true">→</span>
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Expert Quotes Section */}
+        <section id="expert-quotes" className="py-20 bg-surface-secondary/30">
+          <div className="container mx-auto px-6">
+            <div className="flex items-center gap-3 text-xs font-semibold tracking-widest uppercase text-gold mb-4">
+              <span className="w-6 h-px bg-gold" aria-hidden="true" />
+              {t('expertQuotes.sectionLabel')}
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {t('expertQuotes.title')}
+            </h2>
+            <p className="text-foreground-secondary mb-12">
+              {t('expertQuotes.subtitle')}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <ExpertQuoteCard
+                quote={t('expertQuotes.quotes.0.quote')}
+                author={t('expertQuotes.quotes.0.author')}
+                title={t('expertQuotes.quotes.0.title')}
+                source={t('expertQuotes.quotes.0.source')}
+              />
+              <ExpertQuoteCard
+                quote={t('expertQuotes.quotes.1.quote')}
+                author={t('expertQuotes.quotes.1.author')}
+                title={t('expertQuotes.quotes.1.title')}
+                source={t('expertQuotes.quotes.1.source')}
+              />
+              <ExpertQuoteCard
+                quote={t('expertQuotes.quotes.2.quote')}
+                author={t('expertQuotes.quotes.2.author')}
+                title={t('expertQuotes.quotes.2.title')}
+                source={t('expertQuotes.quotes.2.source')}
+              />
+            </div>
+
+            {/* Probability Timeline */}
+            <div className="card bg-surface">
+              <h3 className="text-lg font-semibold mb-4">
+                {t('expertQuotes.probability.title')}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ProbabilityCard
+                  year={t('expertQuotes.probability.timeline.0.year')}
+                  probability={t('expertQuotes.probability.timeline.0.probability')}
+                  description={t('expertQuotes.probability.timeline.0.description')}
+                  variant="low"
+                />
+                <ProbabilityCard
+                  year={t('expertQuotes.probability.timeline.1.year')}
+                  probability={t('expertQuotes.probability.timeline.1.probability')}
+                  description={t('expertQuotes.probability.timeline.1.description')}
+                  variant="medium"
+                />
+                <ProbabilityCard
+                  year={t('expertQuotes.probability.timeline.2.year')}
+                  probability={t('expertQuotes.probability.timeline.2.probability')}
+                  description={t('expertQuotes.probability.timeline.2.description')}
+                  variant="high"
+                />
+              </div>
+              <p className="text-xs text-foreground-tertiary mt-4">
+                {t('expertQuotes.probability.source')}
+              </p>
+            </div>
+
+            <p className="text-xs text-foreground-tertiary text-center mt-6">
+              {t('expertQuotes.disclaimer')}
+            </p>
           </div>
         </section>
 
@@ -523,6 +599,8 @@ interface FeatureCardProps {
   description: string;
   badge: string;
   tooltip?: string;
+  learnMoreUrl?: string;
+  learnMoreLabel?: string;
 }
 
 function FeatureCard({
@@ -531,6 +609,8 @@ function FeatureCard({
   description,
   badge,
   tooltip,
+  learnMoreUrl,
+  learnMoreLabel = '詳細を見る',
 }: FeatureCardProps) {
   return (
     <article className="card hover:border-hinomaru/30 hover:-translate-y-1 transition-all duration-300 group">
@@ -554,9 +634,23 @@ function FeatureCard({
       <p className="text-sm text-foreground-secondary leading-relaxed mb-4">
         {description}
       </p>
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 bg-gold/10 text-gold rounded-full">
-        {badge}
-      </span>
+      <div className="flex items-center justify-between">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 bg-gold/10 text-gold rounded-full">
+          {badge}
+        </span>
+        {learnMoreUrl && (
+          <a
+            href={learnMoreUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-foreground-tertiary hover:text-gold transition-colors flex items-center gap-1"
+            aria-label={`${title}について詳しく見る（外部リンク）`}
+          >
+            {learnMoreLabel}
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
+      </div>
     </article>
   );
 }
@@ -569,25 +663,114 @@ interface StepCardProps {
 }
 
 function StepCard({ number, icon, title, description }: StepCardProps) {
+  const stepColors = {
+    1: { bg: 'from-hinomaru/20 to-hinomaru/5', border: 'border-hinomaru/30', glow: 'shadow-[0_0_30px_rgba(188,0,45,0.2)]' },
+    2: { bg: 'from-gold/20 to-gold/5', border: 'border-gold/30', glow: 'shadow-[0_0_30px_rgba(201,169,98,0.2)]' },
+    3: { bg: 'from-success/20 to-success/5', border: 'border-success/30', glow: 'shadow-[0_0_30px_rgba(0,200,150,0.2)]' },
+  };
+  const colors = stepColors[number as keyof typeof stepColors] || stepColors[1];
+
   return (
-    <article className="card relative pt-8" aria-labelledby={`step-${number}-title`}>
+    <article
+      className={cn(
+        'relative pt-12 pb-6 px-6 rounded-qs-xl border',
+        'bg-gradient-to-br',
+        colors.bg,
+        colors.border,
+        colors.glow,
+        'transition-all duration-300 hover:scale-[1.02]'
+      )}
+      aria-labelledby={`step-${number}-title`}
+    >
+      {/* Step number badge */}
       <div
-        className="absolute -top-4 left-8 w-8 h-8 bg-hinomaru rounded-full flex items-center justify-center text-sm font-bold text-white"
+        className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold text-white bg-gradient-hinomaru shadow-glow-hinomaru"
         aria-hidden="true"
       >
         {number}
       </div>
-      <div className="text-foreground-secondary mb-4" aria-hidden="true">
-        {icon}
+
+      {/* Icon container */}
+      <div className="flex justify-center mb-4">
+        <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center border border-border">
+          <div className="text-gold" aria-hidden="true">
+            {icon}
+          </div>
+        </div>
       </div>
-      <h3 id={`step-${number}-title`} className="text-lg font-semibold mb-2">
+
+      <h3 id={`step-${number}-title`} className="text-lg font-semibold mb-2 text-center">
         <span className="sr-only">Step {number}: </span>
         {title}
       </h3>
-      <p className="text-sm text-foreground-secondary leading-relaxed">
+      <p className="text-sm text-foreground-secondary leading-relaxed text-center">
         {description}
       </p>
+
+      {/* Decorative dots */}
+      {number < 3 && (
+        <div className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10" aria-hidden="true">
+          <div className="flex gap-1">
+            <span className="w-2 h-2 rounded-full bg-gold/50" />
+            <span className="w-2 h-2 rounded-full bg-gold/30" />
+            <span className="w-2 h-2 rounded-full bg-gold/10" />
+          </div>
+        </div>
+      )}
     </article>
+  );
+}
+
+interface ExpertQuoteCardProps {
+  quote: string;
+  author: string;
+  title: string;
+  source: string;
+}
+
+function ExpertQuoteCard({ quote, author, title, source }: ExpertQuoteCardProps) {
+  return (
+    <article className="card hover:border-gold/30 transition-all duration-300">
+      <blockquote className="text-sm text-foreground-secondary leading-relaxed mb-4 italic">
+        "{quote}"
+      </blockquote>
+      <div className="border-t border-border pt-4">
+        <div className="font-semibold text-foreground">{author}</div>
+        <div className="text-xs text-foreground-tertiary">{title}</div>
+        <div className="text-xs text-gold mt-1">{source}</div>
+      </div>
+    </article>
+  );
+}
+
+interface ProbabilityCardProps {
+  year: string;
+  probability: string;
+  description: string;
+  variant: 'low' | 'medium' | 'high';
+}
+
+function ProbabilityCard({ year, probability, description, variant }: ProbabilityCardProps) {
+  const variantStyles = {
+    low: 'border-success/30 bg-success/5',
+    medium: 'border-warning/30 bg-warning/5',
+    high: 'border-hinomaru/30 bg-hinomaru/5',
+  };
+
+  const probabilityStyles = {
+    low: 'text-success',
+    medium: 'text-warning',
+    high: 'text-hinomaru-400',
+  };
+
+  return (
+    <div className={cn('p-4 rounded-qs-lg border', variantStyles[variant])}>
+      <div className="text-sm font-medium text-foreground mb-1">{year}</div>
+      <div className={cn('text-2xl font-bold mb-1', probabilityStyles[variant])}>
+        {probability}
+      </div>
+      <div className="text-xs text-foreground-secondary">{description}</div>
+    </div>
   );
 }
 
