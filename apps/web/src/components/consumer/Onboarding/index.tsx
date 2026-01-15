@@ -14,6 +14,8 @@ import {
   BookOpen,
   X,
 } from 'lucide-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '../Landing/Tooltip';
@@ -32,6 +34,10 @@ export function Onboarding() {
   const [checkSaved, setCheckSaved] = useState(false);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
+  // RainbowKit wallet connection
+  const { openConnectModal } = useConnectModal();
+  const { isConnected } = useAccount();
+
   const mainRef = useRef<HTMLElement>(null);
 
   // Progress to next step
@@ -39,12 +45,19 @@ export function Onboarding() {
     setCurrentStep(step);
   }, []);
 
-  // Handle wallet selection
-  const handleWalletSelect = useCallback(() => {
-    setTimeout(() => {
+  // Watch for wallet connection and proceed to step 2
+  useEffect(() => {
+    if (isConnected && currentStep === 1) {
       goToStep(2);
-    }, 500);
-  }, [goToStep]);
+    }
+  }, [isConnected, currentStep, goToStep]);
+
+  // Handle wallet selection - open RainbowKit modal
+  const handleWalletSelect = useCallback(() => {
+    if (openConnectModal) {
+      openConnectModal();
+    }
+  }, [openConnectModal]);
 
   // Handle key generation
   const handleGenerateKeys = useCallback(() => {
