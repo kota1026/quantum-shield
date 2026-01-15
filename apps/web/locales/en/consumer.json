@@ -750,6 +750,28 @@
         "backToDashboard": "Back to Dashboard"
       }
     },
+    "lockProcessing": {
+      "title": "Processing Lock...",
+      "subtitle": "Please wait. Do not close this page.",
+      "steps": {
+        "sign": "Generate Dilithium signature",
+        "createTx": "Create transaction",
+        "broadcast": "Broadcasting to blockchain...",
+        "confirm": "Waiting for confirmation"
+      }
+    },
+    "lockSuccess": {
+      "title": "Lock Complete",
+      "subtitle": "Your assets are now protected with quantum-resistant security",
+      "details": {
+        "amount": "Locked Amount",
+        "txHash": "TX Hash"
+      },
+      "buttons": {
+        "viewHistory": "View History",
+        "backToDashboard": "Back to Dashboard"
+      }
+    },
     "terms": {
       "meta": {
         "title": "Terms of Service | Quantum Shield",
