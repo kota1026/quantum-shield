@@ -344,7 +344,7 @@
     "landing": {
       "meta": {
         "title": "Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography",
-        "description": "The world's first quantum-resistant cryptographic bridge combining Dilithium-III and ZK-STARKs. Protect your assets today from tomorrow's threats."
+        "description": "The world's first quantum-resistant cryptographic bridge combining Dilithium-III and SPHINCS+. Protect your assets today from tomorrow's threats."
       },
       "header": {
         "product": "Product",
@@ -395,11 +395,11 @@
           "badge": "Multi-layer Defense",
           "tooltip": "Time Lock provides a 24-hour waiting period before asset withdrawal. This allows time to detect and prevent fraud."
         },
-        "zkStark": {
-          "title": "ZK-STARK Verification",
-          "description": "Transparency and verifiability through zero-knowledge proofs. Achieves scalability while maintaining quantum resistance.",
-          "badge": "Quantum-Safe ZKP",
-          "tooltip": "ZK-STARKs allow proving validity without revealing information. They are also resistant to quantum computers."
+        "smtProof": {
+          "title": "SMT Merkle Verification",
+          "description": "Cryptographic proofs via Sparse Merkle Trees. All state transitions are verifiable on-chain, combined with SPHINCS+ multi-sig for layered defense.",
+          "badge": "Cryptographic Proof",
+          "tooltip": "SMT (Sparse Merkle Tree) efficiently verifies large-scale data integrity. Combined with SHA3-256 hashing to achieve quantum resistance."
         },
         "selfCustody": {
           "title": "Self-Custody",
@@ -433,7 +433,8 @@
         "step3": {
           "title": "Unlock Safely",
           "description": "Request unlock with Dilithium signature. After 24-hour Time Lock, assets safely return to your wallet."
-        }
+        },
+        "learnMore": "View detailed system architecture"
       },
       "cta": {
         "title": "Prepare for the Quantum Era",
@@ -631,10 +632,10 @@
           "description": "Hash-based digital signatures. Used for Prover (approver) signatures. Enables multi-layer defense with different mathematical foundations.",
           "badge": "NIST FIPS 205"
         },
-        "zkstark": {
-          "title": "ZK-STARK",
-          "description": "Zero-knowledge proof technology. Enables third-party verification of transaction validity. Achieves scalability while maintaining quantum resistance.",
-          "badge": "Quantum-Safe ZKP"
+        "smtProof": {
+          "title": "SMT Merkle Proof",
+          "description": "Cryptographic proofs via Sparse Merkle Trees. State transitions (SR_0→SR_1) are calculated with SHA3-256 hashing, all verifiable on-chain.",
+          "badge": "SHA3-256"
         }
       },
       "features": {
@@ -972,8 +973,15 @@
       "description": "Generate quantum-resistant Dilithium key pairs. These keys are stored only on your device and never sent to servers.",
       "dilithiumTooltip": "Dilithium is a quantum-resistant digital signature algorithm officially adopted by NIST in 2024. It uses lattice-based cryptography that is difficult to break even with quantum computers.",
       "selfCustodyNotice": {
-        "title": "Only You Hold the Keys",
-        "description": "Your private keys are stored only on your device. They are never sent to Quantum Shield servers, so no one else can access them. Be sure to create a backup and store it safely."
+        "title": "Your Keys, Your Control",
+        "description": "Private keys are stored only on your device.",
+        "whyTitle": "Why not send to servers?",
+        "whyPoints": [
+          "Complete protection from server attacks and data breaches",
+          "Even Quantum Shield operators cannot access your assets",
+          "True self-custody for complete ownership"
+        ],
+        "warning": "Lost keys cannot be recovered. Always save your backup."
       },
       "keyGeneration": {
         "idle": "Click the button to start generation",
@@ -1076,6 +1084,124 @@
           "tip3": "Check suspicious activity immediately"
         },
         "closeButton": "Close"
+      }
+    },
+    "howItWorksPage": {
+      "meta": {
+        "title": "How It Works"
+      },
+      "header": {
+        "title": "How Quantum Shield Works",
+        "subtitle": "Detailed explanation of system architecture and security flows",
+        "backAriaLabel": "Back to Consumer App"
+      },
+      "intro": {
+        "description": "Quantum Shield uses quantum-resistant cryptography to protect your assets with multiple layers of security. L3 Aegis (custom 4-node BFT), 5 Provers, and L1 Vault work together to secure your funds."
+      },
+      "architecture": {
+        "title": "System Architecture",
+        "diagramLabel": "Data Flow"
+      },
+      "actors": {
+        "user": {
+          "name": "User (You)",
+          "role": "Asset Owner",
+          "description": "Sign Lock/Unlock operations with your Dilithium key. Your private key is stored only on your device."
+        },
+        "l3": {
+          "name": "L3 Aegis",
+          "role": "Off-chain Consensus Layer",
+          "description": "4-node BFT consensus verifies Dilithium signatures and calculates State Root (SR)."
+        },
+        "prover": {
+          "name": "Prover (Approver)",
+          "role": "Multi-sig Signer",
+          "description": "2 of 5 Provers sign with SPHINCS+. Randomly selected via VRF, with stake slashing for fraud."
+        },
+        "vault": {
+          "name": "L1 Vault",
+          "role": "Asset Custodian",
+          "description": "Smart contract on Ethereum L1. Verifies SPHINCS+ signatures and SMT proofs to secure assets."
+        }
+      },
+      "lockFlow": {
+        "title": "Lock (Asset Protection) Flow",
+        "step1": {
+          "title": "Approve with Dilithium Signature",
+          "description": "Sign the asset and amount to lock with your Dilithium key. This signature is verified by L3 Aegis."
+        },
+        "step2": {
+          "title": "L3 Consensus Formation",
+          "description": "4-node BFT verifies Dilithium signature and calculates State Root (SR_0). Lock info is added to SMT."
+        },
+        "step3": {
+          "title": "Deposit to L1 Vault",
+          "description": "Transfer ETH/ERC-20 tokens to L1 Vault. SR_0 is recorded and assets are protected."
+        },
+        "note": {
+          "title": "Note:",
+          "description": "Prover signatures are not required for Lock. Only L3 consensus is needed, with ~$7 gas cost."
+        }
+      },
+      "unlockFlow": {
+        "title": "Unlock (Normal Path) Flow",
+        "step1": {
+          "title": "Request Unlock with Dilithium Signature",
+          "description": "Sign the lock_id and destination address with your Dilithium key."
+        },
+        "step2": {
+          "title": "L3 Verification + Prover Selection",
+          "description": "L3 verifies Dilithium signature and selects 2 of 5 Provers randomly via Chainlink VRF."
+        },
+        "step3": {
+          "title": "Prover 2/5 SPHINCS+ Signature",
+          "description": "2 selected Provers generate SPHINCS+ signatures in their HSMs. Each signature is ~8KB."
+        },
+        "step4": {
+          "title": "L1 Vault Verification + 24h Time Lock",
+          "description": "L1 Vault verifies SPHINCS+ signatures and SMT proof. 24-hour Time Lock starts after verification."
+        },
+        "step5": {
+          "title": "Claim (Receive Assets)",
+          "description": "After 24 hours, execute Claim to withdraw assets to your wallet."
+        },
+        "note": {
+          "title": "Why 24h Time Lock:",
+          "description": "Provides time for monitoring bots to detect and Challenge any fraudulent activity."
+        }
+      },
+      "emergencyPath": {
+        "title": "Emergency Path (Emergency Unlock)",
+        "description": "If Provers don't respond for 72+ hours, Emergency Unlock becomes available. Deposit a bond and recover assets after 7 days.",
+        "trigger": "Triggered by Prover non-response",
+        "days": " days",
+        "waitTime": "Wait period (7x normal)",
+        "bond": "Emergency Bond (5% of assets or 0.5 ETH)"
+      },
+      "security": {
+        "title": "Security Features",
+        "multiProver": {
+          "title": "Multi-Prover (2/5 Signature)",
+          "description": "2 of 5 Provers randomly selected via VRF. Eliminates single points of failure and minimizes collusion risk."
+        },
+        "timeLock": {
+          "title": "Time Lock (24h/7 days)",
+          "description": "24-hour wait for Unlock, 7 days for Emergency. Provides time for fraud detection and response."
+        },
+        "challenge": {
+          "title": "Challenge + Slashing",
+          "description": "Monitoring bots can Challenge fraud. Fraudulent Provers lose up to 100% of their stake."
+        },
+        "cryptography": {
+          "title": "Quantum-Resistant Cryptography",
+          "description": "Combination of Dilithium (FIPS 204) and SPHINCS+ (FIPS 205). SHA3-256 hashing ensures quantum resistance."
+        }
+      },
+      "cta": {
+        "title": "Protect Your Assets with Quantum Resistance",
+        "description": "Get started in 3 simple steps.",
+        "startButton": "Get Started",
+        "securityButton": "Security Details"
       }
     }
   }

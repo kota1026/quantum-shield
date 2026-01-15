@@ -382,12 +382,25 @@ function Step2KeyGeneration({
       </p>
 
       {/* Self-Custody Notice */}
-      <div className="flex items-start gap-3 p-4 bg-hinomaru/10 border border-hinomaru/30 rounded-qs-lg mb-6">
-        <Key className="w-5 h-5 text-hinomaru-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-        <div className="text-xs text-foreground-secondary leading-relaxed">
-          <strong className="text-hinomaru-400">{t('step2.selfCustodyNotice.title')}</strong>
-          <br />
+      <div className="p-4 bg-hinomaru/10 border border-hinomaru/30 rounded-qs-lg mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Key className="w-5 h-5 text-hinomaru-400 flex-shrink-0" aria-hidden="true" />
+          <strong className="text-sm text-hinomaru-400">{t('step2.selfCustodyNotice.title')}</strong>
+        </div>
+        <p className="text-xs text-foreground-secondary mb-3">
           {t('step2.selfCustodyNotice.description')}
+        </p>
+        <div className="text-xs text-foreground-secondary mb-2">
+          <strong className="text-foreground">{t('step2.selfCustodyNotice.whyTitle')}</strong>
+        </div>
+        <ul className="text-xs text-foreground-secondary space-y-1 mb-3 pl-4">
+          {(t.raw('step2.selfCustodyNotice.whyPoints') as string[]).map((point, index) => (
+            <li key={index} className="list-disc">{point}</li>
+          ))}
+        </ul>
+        <div className="flex items-start gap-2 p-2 bg-warning/10 rounded-qs">
+          <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <span className="text-xs text-warning">{t('step2.selfCustodyNotice.warning')}</span>
         </div>
       </div>
 
