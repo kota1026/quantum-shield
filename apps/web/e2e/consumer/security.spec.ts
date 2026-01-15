@@ -38,10 +38,10 @@ test.describe('Security Page', () => {
       await expect(page.getByText('NIST FIPS 205')).toBeVisible();
     });
 
-    test('should display ZK-STARK card', async ({ page }) => {
-      await expect(page.getByText('ZK-STARK')).toBeVisible();
-      await expect(page.getByText(/ゼロ知識証明技術/)).toBeVisible();
-      await expect(page.getByText('量子安全ZKP')).toBeVisible();
+    test('should display SMT Merkle Proof card', async ({ page }) => {
+      await expect(page.getByText('SMT Merkle Proof')).toBeVisible();
+      await expect(page.getByText(/Sparse Merkle Tree/)).toBeVisible();
+      await expect(page.getByText('SHA3-256')).toBeVisible();
     });
   });
 
@@ -154,7 +154,7 @@ test.describe('Security Page (English)', () => {
   test('should display algorithms in English', async ({ page }) => {
     await expect(page.getByText('Dilithium-III')).toBeVisible();
     await expect(page.getByText('SPHINCS+')).toBeVisible();
-    await expect(page.getByText('ZK-STARK')).toBeVisible();
+    await expect(page.getByText('SMT Merkle Proof')).toBeVisible();
   });
 
   test('should display features in English', async ({ page }) => {

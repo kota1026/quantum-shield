@@ -18,15 +18,16 @@
     --color-gold-dark: #A8894E;
     --color-gold-light: #E7C77F;
 
-    /* Background */
+    /* Background (matching design-concept-5-japan-premium.html) */
     --color-bg-primary: #0A0A0C;
-    --color-bg-secondary: #121214;
-    --color-bg-tertiary: #1A1A1D;
-    --color-bg-elevated: #222226;
+    --color-bg-secondary: #111114;
+    --color-bg-tertiary: #18181C;
+    --color-bg-elevated: #18181C;
+    --color-bg-card: #0E0E11;
 
-    /* Surface */
-    --color-surface: #1A1A1D;
-    --color-surface-secondary: #222226;
+    /* Surface (matching design-concept-5-japan-premium.html) */
+    --color-surface: #18181C;
+    --color-surface-secondary: #1E1E22;
     --color-surface-tertiary: #2A2A2E;
 
     /* Text */
