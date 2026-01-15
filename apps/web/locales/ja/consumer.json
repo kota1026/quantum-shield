@@ -1,0 +1,125 @@
+{
+  "landing": {
+    "meta": {
+      "title": "Quantum Shield - 量子耐性暗号で資産を守る",
+      "description": "Dilithium-IIIとZK-STARKを組み合わせた世界初の量子耐性暗号ブリッジ。将来の脅威から、今日の資産を守ります。"
+    },
+    "header": {
+      "logoAriaLabel": "Quantum Shield ホームページへ",
+      "navAriaLabel": "メインナビゲーション",
+      "cta": "アプリを開く",
+      "openMenu": "メニューを開く",
+      "closeMenu": "メニューを閉じる"
+    },
+    "nav": {
+      "product": "プロダクト",
+      "security": "セキュリティ",
+      "howitworks": "使い方",
+      "faq": "FAQ"
+    },
+    "hero": {
+      "badge": "NIST認定 量子耐性暗号",
+      "titleLine1": "量子コンピュータ時代の",
+      "titleLine2": "デジタル資産保護",
+      "subtitle": "Dilithium-IIIとZK-STARKを組み合わせた世界初の量子耐性暗号ブリッジ。将来の脅威から、今日の資産を守ります。",
+      "cta": "今すぐ無料で始める",
+      "secondary": "詳しく見る"
+    },
+    "stats": {
+      "ariaLabel": "プロトコル統計",
+      "tvl": {
+        "value": "$847M+",
+        "label": "保護された資産"
+      },
+      "provers": {
+        "value": "127",
+        "label": "アクティブProver"
+      },
+      "timelock": {
+        "value": "24h",
+        "label": "Time Lock期間"
+      },
+      "incidents": {
+        "value": "0",
+        "label": "セキュリティインシデント"
+      }
+    },
+    "features": {
+      "title": "なぜQuantum Shieldなのか",
+      "dilithium": {
+        "title": "Dilithium-III暗号",
+        "description": "NIST認定の格子ベース電子署名。量子コンピュータでも解読が数学的に困難な次世代暗号技術。",
+        "badge": "NIST FIPS 204"
+      },
+      "timelock": {
+        "title": "Time Lock保護",
+        "description": "24時間のセキュリティ待機期間。不正アクセスを検知・阻止する時間的バッファを確保。",
+        "badge": "多層防御"
+      },
+      "zkstark": {
+        "title": "ZK-STARK検証",
+        "description": "ゼロ知識証明による透明性と検証可能性。量子耐性を維持しながらスケーラビリティを実現。",
+        "badge": "量子安全ZKP"
+      },
+      "selfcustody": {
+        "title": "セルフカストディ",
+        "description": "あなただけが資産をコントロール。秘密鍵はローカルで生成・保管され、サーバーに送信されません。",
+        "badge": "完全自己管理"
+      },
+      "emergency": {
+        "title": "緊急リカバリー",
+        "description": "秘密鍵を紛失しても安心。7日間の待機とBondで資産を回収できるセーフティネット。",
+        "badge": "鍵紛失対策"
+      },
+      "transparency": {
+        "title": "透明性",
+        "description": "全てのトランザクションはオンチェーンで検証可能。オープンソースで監査済みのスマートコントラクト。",
+        "badge": "オープンソース"
+      }
+    },
+    "howitworks": {
+      "title": "3ステップで資産を保護",
+      "step1": {
+        "title": "鍵を生成",
+        "description": "ウォレットを接続し、Dilithium鍵ペアを生成。秘密鍵はあなたのデバイスにのみ保存されます。"
+      },
+      "step2": {
+        "title": "資産をLock",
+        "description": "ETHやERC-20トークンを量子耐性金庫にLock。Dilithium署名なしでは引き出せません。"
+      },
+      "step3": {
+        "title": "安全にUnlock",
+        "description": "Dilithium署名でUnlock要求。24時間のTime Lock後、資産が安全にウォレットに戻ります。"
+      }
+    },
+    "cta": {
+      "title": "量子時代に備えよう",
+      "description": "「今収集して後で解読」攻撃から資産を守る。将来の脅威に、今日から対策を。",
+      "button": "無料で始める"
+    },
+    "footer": {
+      "description": "量子コンピュータ時代のデジタル資産保護。NIST認定暗号技術で、あなたの資産を未来の脅威から守ります。",
+      "product": {
+        "title": "プロダクト",
+        "docs": "ドキュメント"
+      },
+      "resources": {
+        "title": "リソース",
+        "whitepaper": "ホワイトペーパー",
+        "blog": "ブログ"
+      },
+      "support": {
+        "title": "サポート",
+        "security": "セキュリティ",
+        "contact": "お問い合わせ"
+      },
+      "copyright": "© 2026 Quantum Shield. Made in Japan",
+      "legal": {
+        "ariaLabel": "法的情報",
+        "terms": "利用規約",
+        "privacy": "プライバシー",
+        "risk": "リスク開示"
+      }
+    }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "landing": {
+    "meta": {
+      "title": "Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography",
+      "description": "The world's first quantum-resistant crypto bridge combining Dilithium-III and ZK-STARK. Protect today's assets from tomorrow's threats."
+    },
+    "header": {
+      "logoAriaLabel": "Go to Quantum Shield homepage",
+      "navAriaLabel": "Main navigation",
+      "cta": "Open App",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu"
+    },
+    "nav": {
+      "product": "Product",
+      "security": "Security",
+      "howitworks": "How It Works",
+      "faq": "FAQ"
+    },
+    "hero": {
+      "badge": "NIST Certified Quantum-Resistant Cryptography",
+      "titleLine1": "Digital Asset Protection for the",
+      "titleLine2": "Quantum Computing Era",
+      "subtitle": "The world's first quantum-resistant crypto bridge combining Dilithium-III and ZK-STARK. Protect today's assets from tomorrow's threats.",
+      "cta": "Get Started Free",
+      "secondary": "Learn More"
+    },
+    "stats": {
+      "ariaLabel": "Protocol Statistics",
+      "tvl": {
+        "value": "$847M+",
+        "label": "Protected Assets"
+      },
+      "provers": {
+        "value": "127",
+        "label": "Active Provers"
+      },
+      "timelock": {
+        "value": "24h",
+        "label": "Time Lock Period"
+      },
+      "incidents": {
+        "value": "0",
+        "label": "Security Incidents"
+      }
+    },
+    "features": {
+      "title": "Why Quantum Shield",
+      "dilithium": {
+        "title": "Dilithium-III Cryptography",
+        "description": "NIST-certified lattice-based digital signatures. Next-generation cryptography that's mathematically resistant to quantum computers.",
+        "badge": "NIST FIPS 204"
+      },
+      "timelock": {
+        "title": "Time Lock Protection",
+        "description": "24-hour security waiting period. A time buffer to detect and prevent unauthorized access.",
+        "badge": "Multi-Layer Defense"
+      },
+      "zkstark": {
+        "title": "ZK-STARK Verification",
+        "description": "Transparency and verifiability through zero-knowledge proofs. Achieves scalability while maintaining quantum resistance.",
+        "badge": "Quantum-Safe ZKP"
+      },
+      "selfcustody": {
+        "title": "Self-Custody",
+        "description": "Only you control your assets. Private keys are generated and stored locally, never sent to servers.",
+        "badge": "Full Self-Management"
+      },
+      "emergency": {
+        "title": "Emergency Recovery",
+        "description": "Peace of mind even if you lose your private key. A safety net to recover assets with a 7-day waiting period and bond.",
+        "badge": "Key Loss Protection"
+      },
+      "transparency": {
+        "title": "Transparency",
+        "description": "All transactions are verifiable on-chain. Open-source and audited smart contracts.",
+        "badge": "Open Source"
+      }
+    },
+    "howitworks": {
+      "title": "Protect Your Assets in 3 Steps",
+      "step1": {
+        "title": "Generate Keys",
+        "description": "Connect your wallet and generate a Dilithium key pair. Private keys are stored only on your device."
+      },
+      "step2": {
+        "title": "Lock Assets",
+        "description": "Lock ETH or ERC-20 tokens in the quantum-resistant vault. Cannot be withdrawn without a Dilithium signature."
+      },
+      "step3": {
+        "title": "Safely Unlock",
+        "description": "Request unlock with Dilithium signature. After 24-hour Time Lock, assets safely return to your wallet."
+      }
+    },
+    "cta": {
+      "title": "Prepare for the Quantum Era",
+      "description": "Protect your assets from \"harvest now, decrypt later\" attacks. Start protecting against future threats today.",
+      "button": "Get Started Free"
+    },
+    "footer": {
+      "description": "Digital asset protection for the quantum computing era. Protecting your assets from future threats with NIST-certified cryptography.",
+      "product": {
+        "title": "Product",
+        "docs": "Documentation"
+      },
+      "resources": {
+        "title": "Resources",
+        "whitepaper": "Whitepaper",
+        "blog": "Blog"
+      },
+      "support": {
+        "title": "Support",
+        "security": "Security",
+        "contact": "Contact Us"
+      },
+      "copyright": "© 2026 Quantum Shield. Made in Japan",
+      "legal": {
+        "ariaLabel": "Legal information",
+        "terms": "Terms of Service",
+        "privacy": "Privacy",
+        "risk": "Risk Disclosure"
+      }
+    }
+  }
+}
