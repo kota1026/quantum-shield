@@ -943,106 +943,159 @@
         "subtitle": "Protecting your assets today from tomorrow's threats",
         "backAriaLabel": "Back to Consumer App"
       },
-      "intro": {
-        "description": "Have you heard about the \"quantum computing threat\"? Your crypto assets that seem safe today could be decrypted by future quantum computers. Quantum Shield protects your assets now from threats that are yet to come."
+      "whyQS": {
+        "sectionLabel": "Why Quantum Shield",
+        "title": "Why Quantum Shield Now?",
+        "description": "The quantum computing threat is not a matter of 'someday' but 'now.' Protect your assets from 'Harvest Now, Decrypt Later' attacks where today's data could be decrypted in the future.",
+        "points": [
+          {
+            "title": "Quantum-Resistant Cryptography",
+            "description": "Using NIST-approved Dilithium cryptography. Mathematically difficult to break even with future quantum computers."
+          },
+          {
+            "title": "Time Is Your Shield",
+            "description": "24-hour Time Lock feature. Even if unauthorized access occurs, you have time to notice and respond."
+          },
+          {
+            "title": "Lost Keys? No Problem",
+            "description": "Industry-first emergency recovery feature. Recover your assets with a 7-day wait and collateral even if you lose your keys."
+          }
+        ]
       },
-      "architecture": {
-        "title": "Who Protects Your Assets",
-        "diagramLabel": "Protection Flow"
-      },
-      "actors": {
-        "user": {
-          "name": "You",
-          "role": "The Only Owner",
-          "description": "You control your assets with your unique Dilithium key. No one—not even us—can touch your funds."
+      "processes": {
+        "lock": {
+          "title": "Lock Process",
+          "subtitle": "How to deposit assets into the quantum-resistant vault",
+          "steps": [
+            {
+              "label": "Connect Wallet",
+              "description": "Prepare ETH transfer from MetaMask or similar"
+            },
+            {
+              "label": "Dilithium Signature",
+              "description": "Verify identity with quantum-resistant signature"
+            },
+            {
+              "label": "Verification Network",
+              "description": "Multiple nodes verify signature validity"
+            },
+            {
+              "label": "Store in Vault",
+              "description": "Securely stored in Ethereum smart contract"
+            }
+          ],
+          "actors": [
+            {
+              "name": "You",
+              "role": "Asset Owner",
+              "description": "Only you hold the Dilithium private key. No one can move your assets without your consent."
+            },
+            {
+              "name": "Smart Contract",
+              "role": "Code-Protected Vault",
+              "description": "Transparent program on Ethereum manages assets. Operates by rules without human intervention."
+            }
+          ],
+          "benefits": [
+            "Protection from quantum computer attacks",
+            "Defense against 'harvest now, decrypt later' attacks",
+            "Long-term security for holding assets"
+          ],
+          "note": {
+            "title": "Simple & Low Cost:",
+            "description": "Locking costs only ~$7 in gas. No complicated steps required."
+          }
         },
-        "l3": {
-          "name": "Verification Network",
-          "role": "Confirms Your Actions",
-          "description": "Multiple nodes verify your signature is genuine, preventing impersonation and fraud."
+        "unlock": {
+          "title": "Unlock Process",
+          "subtitle": "How to safely withdraw assets (24-hour wait)",
+          "steps": [
+            {
+              "label": "Unlock Request",
+              "description": "Start unlock with Dilithium signature"
+            },
+            {
+              "label": "Prover Verification",
+              "description": "2 of 5 companies randomly verify signature validity"
+            },
+            {
+              "label": "24-Hour Wait",
+              "description": "Security cooling-off period"
+            },
+            {
+              "label": "Receive Assets",
+              "description": "Transfer to wallet anytime after wait completes"
+            }
+          ],
+          "actors": [
+            {
+              "name": "You",
+              "role": "Unlock Requester",
+              "description": "Sign with Dilithium private key to initiate unlock."
+            },
+            {
+              "name": "Independent Provers",
+              "role": "Third-Party Check",
+              "description": "2 of 5 independent companies randomly selected to approve. Prevents collusion."
+            },
+            {
+              "name": "Time Lock",
+              "role": "Security Wait",
+              "description": "24-hour period allows detection and response to fraud."
+            }
+          ],
+          "benefits": [
+            "Time buffer to detect unauthorized access",
+            "Double-check by multiple independent provers",
+            "Protection from phishing attacks"
+          ],
+          "note": {
+            "title": "Why 24 Hours?",
+            "description": "This waiting period protects you. It gives time to notice and respond to any unauthorized access."
+          }
         },
-        "prover": {
-          "name": "Independent Approvers",
-          "role": "Third-Party Double-Check",
-          "description": "2 of 5 independent companies are randomly selected to approve your action. One bad actor can't do anything."
-        },
-        "vault": {
-          "name": "Smart Contract",
-          "role": "Code-Protected Vault",
-          "description": "A transparent program on Ethereum manages your assets. It follows the rules exactly, without human intervention."
-        }
-      },
-      "lockFlow": {
-        "title": "Why \"Lock\" Your Assets",
-        "step1": {
-          "title": "Protect Against Future Threats",
-          "description": "Your current wallet is convenient but vulnerable to quantum computers. Locking moves your assets to a quantum-resistant vault."
-        },
-        "step2": {
-          "title": "No One Can Touch It",
-          "description": "Without your signature, your assets don't move. Even if an exchange gets hacked, your funds are safe."
-        },
-        "step3": {
-          "title": "Hold Long-Term with Peace of Mind",
-          "description": "Guard against 'Harvest Now, Decrypt Later' attacks—where hackers steal encrypted data today to crack it later. Be safe for decades."
-        },
-        "note": {
-          "title": "Simple & Low Cost:",
-          "description": "Locking costs only ~$7 in gas. No complicated steps required."
-        }
-      },
-      "unlockFlow": {
-        "title": "Why \"Wait 24 Hours\"",
-        "step1": {
-          "title": "Time That Protects You",
-          "description": "If someone steals your key and tries to unlock, you have 24 hours to notice and take action."
-        },
-        "step2": {
-          "title": "Multiple Eyes Watching",
-          "description": "Independent approvers verify that the action is really coming from you."
-        },
-        "step3": {
-          "title": "Fraud Gets Blocked",
-          "description": "During the 24 hours, monitoring systems constantly check. Suspicious activity is automatically blocked."
-        },
-        "step4": {
-          "title": "After Safety Is Confirmed",
-          "description": "Once all checks pass, the 24-hour cooling-off period begins."
-        },
-        "step5": {
-          "title": "Get Your Assets Anytime",
-          "description": "After 24 hours, withdraw to your wallet whenever you want."
-        },
-        "note": {
-          "title": "Why 24 Hours?",
-          "description": "This waiting period is your safety buffer. It gives you time to notice unauthorized access and respond."
-        }
-      },
-      "emergencyPath": {
-        "title": "Lost Your Key? You're Still Safe",
-        "description": "Even if you lose your Dilithium key, your assets aren't lost. With identity verification through a waiting period and collateral, you can recover everything. A safety net other self-custody solutions don't offer.",
-        "trigger": "Available whenever you need it",
-        "days": " days",
-        "waitTime": "Identity verification period",
-        "bond": "Temporary collateral (fully refunded)"
-      },
-      "security": {
-        "title": "Why It's Secure",
-        "multiProver": {
-          "title": "No Single Point of Failure",
-          "description": "2 randomly selected companies from 5 independent firms must approve. Collusion and single-point failures are eliminated."
-        },
-        "timeLock": {
-          "title": "Time Is Your Shield",
-          "description": "24-hour wait (7 days for emergency) gives you time to detect fraud and respond."
-        },
-        "challenge": {
-          "title": "Fraud Is Always Punished",
-          "description": "Any approver who commits fraud loses their entire stake. There's no incentive to cheat."
-        },
-        "cryptography": {
-          "title": "Government-Certified Cryptography",
-          "description": "Uses quantum-resistant cryptography officially adopted by NIST in 2024. State-of-the-art security."
+        "emergency": {
+          "title": "Emergency Unlock Process",
+          "subtitle": "Safety net when you lose your private key",
+          "steps": [
+            {
+              "label": "Emergency Request",
+              "description": "Start emergency unlock with wallet signature"
+            },
+            {
+              "label": "Bond Deposit",
+              "description": "Deposit collateral (5%) for identity verification"
+            },
+            {
+              "label": "7-Day Wait",
+              "description": "Extended wait as challenge period"
+            },
+            {
+              "label": "Assets + Bond Return",
+              "description": "If no issues, assets and bond are returned"
+            }
+          ],
+          "actors": [
+            {
+              "name": "You",
+              "role": "Emergency Requester",
+              "description": "Even without Dilithium key, recover assets with wallet signature and bond."
+            },
+            {
+              "name": "Challenge Period",
+              "role": "Fraud Prevention System",
+              "description": "If fraud is detected during 7-day wait, bond is forfeited."
+            }
+          ],
+          "benefits": [
+            "Recover assets even if private key is lost",
+            "Safety net not found in other self-custody solutions",
+            "Bond fully returned for legitimate requests"
+          ],
+          "note": {
+            "title": "Why 7 Days & Bond?",
+            "description": "The longer wait period and collateral deter fraudulent emergency unlocks. Legitimate requests face no issues."
+          }
         }
       },
       "cta": {

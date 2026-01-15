@@ -1,131 +1,304 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
   Lock,
   Unlock,
   Shield,
+  AlertTriangle,
+  Play,
+  Pause,
+  ChevronRight,
   Users,
   Clock,
-  AlertTriangle,
   CheckCircle2,
-  ArrowRight,
-  Layers,
-  Server,
   Wallet,
+  Server,
   FileCheck,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Tooltip } from '../Landing/Tooltip';
 
-interface Actor {
-  id: string;
-  icon: React.ReactNode;
-  name: string;
-  description: string;
-  role: string;
+// Animated Flow Diagram Component
+function AnimatedFlowDiagram({
+  steps,
+  activeStep,
+  variant,
+}: {
+  steps: { label: string; icon: React.ReactNode; description: string }[];
+  activeStep: number;
+  variant: 'lock' | 'unlock' | 'emergency';
+}) {
+  const variantColors = {
+    lock: { bg: 'bg-gold/10', border: 'border-gold/30', text: 'text-gold', glow: 'shadow-glow-gold' },
+    unlock: { bg: 'bg-success/10', border: 'border-success/30', text: 'text-success', glow: 'shadow-[0_0_20px_rgba(0,200,150,0.4)]' },
+    emergency: { bg: 'bg-warning/10', border: 'border-warning/30', text: 'text-warning', glow: 'shadow-[0_0_20px_rgba(240,160,48,0.4)]' },
+  };
+
+  const colors = variantColors[variant];
+
+  return (
+    <div className="relative py-8">
+      {/* Connection line */}
+      <div className="absolute top-1/2 left-0 right-0 h-1 bg-border -translate-y-1/2 hidden md:block" />
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+        {steps.map((step, index) => (
+          <div key={index} className="relative">
+            {/* Step card */}
+            <div
+              className={cn(
+                'relative z-10 p-6 rounded-qs-xl border transition-all duration-500',
+                index <= activeStep
+                  ? `${colors.bg} ${colors.border} ${colors.glow}`
+                  : 'bg-surface border-border opacity-50'
+              )}
+            >
+              <div
+                className={cn(
+                  'w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto transition-all duration-500',
+                  index <= activeStep ? `${colors.bg} ${colors.text}` : 'bg-surface-secondary text-foreground-tertiary'
+                )}
+              >
+                {step.icon}
+              </div>
+              <h4 className={cn(
+                'text-sm font-semibold text-center mb-2 transition-colors',
+                index <= activeStep ? 'text-foreground' : 'text-foreground-tertiary'
+              )}>
+                {step.label}
+              </h4>
+              <p className="text-xs text-foreground-secondary text-center leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+
+            {/* Arrow for desktop */}
+            {index < steps.length - 1 && (
+              <div className="hidden md:block absolute top-1/2 -right-3 -translate-y-1/2 z-20">
+                <ChevronRight
+                  className={cn(
+                    'w-6 h-6 transition-colors duration-500',
+                    index < activeStep ? colors.text : 'text-foreground-tertiary'
+                  )}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-interface FlowStep {
-  step: number;
+// Process Section Component
+function ProcessSection({
+  id,
+  title,
+  subtitle,
+  icon,
+  variant,
+  steps,
+  actors,
+  benefits,
+  note,
+}: {
+  id: string;
   title: string;
-  description: string;
-  actor: string;
-  duration?: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  variant: 'lock' | 'unlock' | 'emergency';
+  steps: { label: string; icon: React.ReactNode; description: string }[];
+  actors: { name: string; role: string; description: string }[];
+  benefits: string[];
+  note?: { title: string; description: string };
+}) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeStep, setActiveStep] = useState(-1);
+
+  const variantStyles = {
+    lock: { headerBg: 'bg-gold/5', headerBorder: 'border-gold/20', iconColor: 'text-gold' },
+    unlock: { headerBg: 'bg-success/5', headerBorder: 'border-success/20', iconColor: 'text-success' },
+    emergency: { headerBg: 'bg-warning/5', headerBorder: 'border-warning/20', iconColor: 'text-warning' },
+  };
+
+  const styles = variantStyles[variant];
+
+  const playAnimation = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+      return;
+    }
+
+    setIsPlaying(true);
+    setActiveStep(-1);
+
+    steps.forEach((_, index) => {
+      setTimeout(() => {
+        setActiveStep(index);
+        if (index === steps.length - 1) {
+          setTimeout(() => setIsPlaying(false), 1500);
+        }
+      }, (index + 1) * 1200);
+    });
+  };
+
+  return (
+    <section id={id} className="mb-16 scroll-mt-24" aria-labelledby={`${id}-title`}>
+      {/* Section Header */}
+      <div className={cn('rounded-qs-xl border p-6 mb-6', styles.headerBg, styles.headerBorder)}>
+        <div className="flex items-start gap-4">
+          <div className={cn('w-12 h-12 rounded-full flex items-center justify-center', styles.headerBg, styles.iconColor)}>
+            {icon}
+          </div>
+          <div className="flex-1">
+            <h2 id={`${id}-title`} className="text-xl font-bold mb-2">{title}</h2>
+            <p className="text-foreground-secondary">{subtitle}</p>
+          </div>
+          <button
+            onClick={playAnimation}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-full border transition-all',
+              isPlaying
+                ? 'bg-surface border-border text-foreground'
+                : 'bg-gold/10 border-gold/30 text-gold hover:bg-gold/20'
+            )}
+            aria-label={isPlaying ? 'アニメーションを停止' : 'プロセスを再生'}
+          >
+            {isPlaying ? (
+              <>
+                <Pause className="w-4 h-4" />
+                <span className="text-sm font-medium">停止</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4" />
+                <span className="text-sm font-medium">再生</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Animated Flow */}
+      <AnimatedFlowDiagram steps={steps} activeStep={activeStep} variant={variant} />
+
+      {/* Actors & Benefits Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        {/* Actors */}
+        <div className="card">
+          <h3 className="text-sm font-semibold text-gold uppercase tracking-wider mb-4">
+            登場人物
+          </h3>
+          <div className="space-y-4">
+            {actors.map((actor, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-surface-secondary flex items-center justify-center text-foreground-secondary">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-medium text-sm">{actor.name}</div>
+                  <div className="text-xs text-gold">{actor.role}</div>
+                  <div className="text-xs text-foreground-secondary mt-1">{actor.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Benefits */}
+        <div className="card">
+          <h3 className="text-sm font-semibold text-gold uppercase tracking-wider mb-4">
+            解決する課題
+          </h3>
+          <ul className="space-y-3">
+            {benefits.map((benefit, index) => (
+              <li key={index} className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-foreground-secondary">{benefit}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Note */}
+      {note && (
+        <div className={cn('mt-6 p-4 rounded-qs-lg border', styles.headerBg, styles.headerBorder)}>
+          <p className="text-sm text-foreground-secondary">
+            <strong className={styles.iconColor}>{note.title}</strong>{' '}
+            {note.description}
+          </p>
+        </div>
+      )}
+    </section>
+  );
 }
 
 export function HowItWorks() {
   const t = useTranslations('consumer.howItWorksPage');
   const mainRef = useRef<HTMLElement>(null);
 
-  const actors: Actor[] = [
-    {
-      id: 'user',
-      icon: <Wallet className="w-6 h-6" />,
-      name: t('actors.user.name'),
-      description: t('actors.user.description'),
-      role: t('actors.user.role'),
-    },
-    {
-      id: 'l3',
-      icon: <Server className="w-6 h-6" />,
-      name: t('actors.l3.name'),
-      description: t('actors.l3.description'),
-      role: t('actors.l3.role'),
-    },
-    {
-      id: 'prover',
-      icon: <FileCheck className="w-6 h-6" />,
-      name: t('actors.prover.name'),
-      description: t('actors.prover.description'),
-      role: t('actors.prover.role'),
-    },
-    {
-      id: 'vault',
-      icon: <Shield className="w-6 h-6" />,
-      name: t('actors.vault.name'),
-      description: t('actors.vault.description'),
-      role: t('actors.vault.role'),
-    },
+  // Lock process steps
+  const lockSteps = [
+    { label: t('processes.lock.steps.0.label'), icon: <Wallet className="w-6 h-6" />, description: t('processes.lock.steps.0.description') },
+    { label: t('processes.lock.steps.1.label'), icon: <Lock className="w-6 h-6" />, description: t('processes.lock.steps.1.description') },
+    { label: t('processes.lock.steps.2.label'), icon: <Server className="w-6 h-6" />, description: t('processes.lock.steps.2.description') },
+    { label: t('processes.lock.steps.3.label'), icon: <Shield className="w-6 h-6" />, description: t('processes.lock.steps.3.description') },
   ];
 
-  const lockSteps: FlowStep[] = [
-    {
-      step: 1,
-      title: t('lockFlow.step1.title'),
-      description: t('lockFlow.step1.description'),
-      actor: 'user',
-    },
-    {
-      step: 2,
-      title: t('lockFlow.step2.title'),
-      description: t('lockFlow.step2.description'),
-      actor: 'l3',
-    },
-    {
-      step: 3,
-      title: t('lockFlow.step3.title'),
-      description: t('lockFlow.step3.description'),
-      actor: 'vault',
-    },
+  const lockActors = [
+    { name: t('processes.lock.actors.0.name'), role: t('processes.lock.actors.0.role'), description: t('processes.lock.actors.0.description') },
+    { name: t('processes.lock.actors.1.name'), role: t('processes.lock.actors.1.role'), description: t('processes.lock.actors.1.description') },
   ];
 
-  const unlockSteps: FlowStep[] = [
-    {
-      step: 1,
-      title: t('unlockFlow.step1.title'),
-      description: t('unlockFlow.step1.description'),
-      actor: 'user',
-    },
-    {
-      step: 2,
-      title: t('unlockFlow.step2.title'),
-      description: t('unlockFlow.step2.description'),
-      actor: 'l3',
-    },
-    {
-      step: 3,
-      title: t('unlockFlow.step3.title'),
-      description: t('unlockFlow.step3.description'),
-      actor: 'prover',
-    },
-    {
-      step: 4,
-      title: t('unlockFlow.step4.title'),
-      description: t('unlockFlow.step4.description'),
-      actor: 'vault',
-      duration: '24h',
-    },
-    {
-      step: 5,
-      title: t('unlockFlow.step5.title'),
-      description: t('unlockFlow.step5.description'),
-      actor: 'user',
-    },
+  const lockBenefits = [
+    t('processes.lock.benefits.0'),
+    t('processes.lock.benefits.1'),
+    t('processes.lock.benefits.2'),
+  ];
+
+  // Unlock process steps
+  const unlockSteps = [
+    { label: t('processes.unlock.steps.0.label'), icon: <Unlock className="w-6 h-6" />, description: t('processes.unlock.steps.0.description') },
+    { label: t('processes.unlock.steps.1.label'), icon: <FileCheck className="w-6 h-6" />, description: t('processes.unlock.steps.1.description') },
+    { label: t('processes.unlock.steps.2.label'), icon: <Clock className="w-6 h-6" />, description: t('processes.unlock.steps.2.description') },
+    { label: t('processes.unlock.steps.3.label'), icon: <Wallet className="w-6 h-6" />, description: t('processes.unlock.steps.3.description') },
+  ];
+
+  const unlockActors = [
+    { name: t('processes.unlock.actors.0.name'), role: t('processes.unlock.actors.0.role'), description: t('processes.unlock.actors.0.description') },
+    { name: t('processes.unlock.actors.1.name'), role: t('processes.unlock.actors.1.role'), description: t('processes.unlock.actors.1.description') },
+    { name: t('processes.unlock.actors.2.name'), role: t('processes.unlock.actors.2.role'), description: t('processes.unlock.actors.2.description') },
+  ];
+
+  const unlockBenefits = [
+    t('processes.unlock.benefits.0'),
+    t('processes.unlock.benefits.1'),
+    t('processes.unlock.benefits.2'),
+  ];
+
+  // Emergency unlock process steps
+  const emergencySteps = [
+    { label: t('processes.emergency.steps.0.label'), icon: <AlertTriangle className="w-6 h-6" />, description: t('processes.emergency.steps.0.description') },
+    { label: t('processes.emergency.steps.1.label'), icon: <Shield className="w-6 h-6" />, description: t('processes.emergency.steps.1.description') },
+    { label: t('processes.emergency.steps.2.label'), icon: <Clock className="w-6 h-6" />, description: t('processes.emergency.steps.2.description') },
+    { label: t('processes.emergency.steps.3.label'), icon: <Wallet className="w-6 h-6" />, description: t('processes.emergency.steps.3.description') },
+  ];
+
+  const emergencyActors = [
+    { name: t('processes.emergency.actors.0.name'), role: t('processes.emergency.actors.0.role'), description: t('processes.emergency.actors.0.description') },
+    { name: t('processes.emergency.actors.1.name'), role: t('processes.emergency.actors.1.role'), description: t('processes.emergency.actors.1.description') },
+  ];
+
+  const emergencyBenefits = [
+    t('processes.emergency.benefits.0'),
+    t('processes.emergency.benefits.1'),
+    t('processes.emergency.benefits.2'),
   ];
 
   return (
@@ -143,9 +316,10 @@ export function HowItWorks() {
         Skip to main content
       </a>
 
-      {/* Background */}
+      {/* Premium Background */}
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
         <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial-hinomaru opacity-30" />
+        <div className="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(201,169,98,0.1),transparent_60%)] opacity-30" />
       </div>
 
       {/* Main Content */}
@@ -157,12 +331,12 @@ export function HowItWorks() {
         role="main"
         aria-label={t('meta.title')}
       >
-        <div className="container mx-auto max-w-4xl px-6 py-8">
+        <div className="container mx-auto max-w-5xl px-6 py-8">
           {/* Header */}
           <header className="flex items-center gap-4 mb-8">
             <Link
               href="/consumer"
-              className="w-10 h-10 flex items-center justify-center bg-surface border border-border rounded-qs hover:border-hinomaru hover:text-hinomaru-400 transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-background"
+              className="w-10 h-10 flex items-center justify-center bg-surface border border-border rounded-qs hover:border-gold hover:text-gold transition-colors focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-background"
               aria-label={t('header.backAriaLabel')}
             >
               <ArrowLeft className="w-5 h-5" aria-hidden="true" />
@@ -173,212 +347,92 @@ export function HowItWorks() {
             </div>
           </header>
 
-          {/* Introduction */}
-          <section className="mb-12">
-            <div className="card">
-              <p className="text-foreground-secondary leading-relaxed">
-                {t('intro.description')}
-              </p>
+          {/* Why Quantum Shield Section */}
+          <section id="why-qs" className="mb-16 scroll-mt-24" aria-labelledby="why-qs-title">
+            <div className="flex items-center gap-3 text-xs font-semibold tracking-widest uppercase text-gold mb-4">
+              <span className="w-6 h-px bg-gold" aria-hidden="true" />
+              {t('whyQS.sectionLabel')}
             </div>
-          </section>
-
-          {/* System Architecture */}
-          <section className="mb-12" aria-labelledby="architecture-title">
-            <h2 id="architecture-title" className="text-xl font-bold mb-6 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-gold" aria-hidden="true" />
-              {t('architecture.title')}
+            <h2 id="why-qs-title" className="text-3xl font-bold mb-6">
+              {t('whyQS.title')}
             </h2>
+            <p className="text-foreground-secondary text-lg mb-8 max-w-3xl">
+              {t('whyQS.description')}
+            </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {actors.map((actor) => (
-                <div
-                  key={actor.id}
-                  className="card hover:border-gold/30 transition-colors"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 flex items-center justify-center bg-gold/10 rounded-qs text-gold">
-                      {actor.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-1">{actor.name}</h3>
-                      <p className="text-xs text-gold mb-2">{actor.role}</p>
-                      <p className="text-sm text-foreground-secondary">{actor.description}</p>
-                    </div>
-                  </div>
+            {/* Key Points Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="card hover:border-gold/30 transition-all group">
+                <div className="w-12 h-12 rounded-full bg-hinomaru/10 flex items-center justify-center mb-4 text-hinomaru group-hover:bg-hinomaru/20 transition-colors">
+                  <Shield className="w-6 h-6" />
                 </div>
-              ))}
-            </div>
-
-            {/* Architecture Diagram */}
-            <div className="mt-6 card bg-surface-secondary">
-              <div className="text-center text-sm text-foreground-tertiary mb-4">
-                {t('architecture.diagramLabel')}
+                <h3 className="font-semibold mb-2">{t('whyQS.points.0.title')}</h3>
+                <p className="text-sm text-foreground-secondary">{t('whyQS.points.0.description')}</p>
               </div>
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-                <Tooltip content={t('architecture.diagram.userTooltip')}>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-border cursor-help">
-                    <Wallet className="w-4 h-4 text-hinomaru" />
-                    <span className="text-sm font-medium">{t('architecture.diagram.user')}</span>
-                  </div>
-                </Tooltip>
-                <ArrowRight className="w-4 h-4 text-foreground-tertiary rotate-90 md:rotate-0" />
-                <Tooltip content={t('architecture.diagram.l3Tooltip')}>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-gold/30 cursor-help">
-                    <Server className="w-4 h-4 text-gold" />
-                    <span className="text-sm font-medium">{t('architecture.diagram.l3')}</span>
-                  </div>
-                </Tooltip>
-                <ArrowRight className="w-4 h-4 text-foreground-tertiary rotate-90 md:rotate-0" />
-                <Tooltip content={t('architecture.diagram.proverTooltip')}>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-success/30 cursor-help">
-                    <FileCheck className="w-4 h-4 text-success" />
-                    <span className="text-sm font-medium">{t('architecture.diagram.prover')}</span>
-                  </div>
-                </Tooltip>
-                <ArrowRight className="w-4 h-4 text-foreground-tertiary rotate-90 md:rotate-0" />
-                <Tooltip content={t('architecture.diagram.vaultTooltip')}>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-qs border border-hinomaru/30 cursor-help">
-                    <Shield className="w-4 h-4 text-hinomaru" />
-                    <span className="text-sm font-medium">{t('architecture.diagram.vault')}</span>
-                  </div>
-                </Tooltip>
+              <div className="card hover:border-gold/30 transition-all group">
+                <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-4 text-gold group-hover:bg-gold/20 transition-colors">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <h3 className="font-semibold mb-2">{t('whyQS.points.1.title')}</h3>
+                <p className="text-sm text-foreground-secondary">{t('whyQS.points.1.description')}</p>
               </div>
-              {/* Detailed Explanation */}
-              <div className="mt-6 p-4 bg-surface rounded-qs border border-border">
-                <h4 className="text-sm font-semibold mb-2">{t('architecture.explanation.title')}</h4>
-                <p className="text-xs text-foreground-secondary leading-relaxed">
-                  {t('architecture.explanation.description')}
-                </p>
+              <div className="card hover:border-gold/30 transition-all group">
+                <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-4 text-success group-hover:bg-success/20 transition-colors">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <h3 className="font-semibold mb-2">{t('whyQS.points.2.title')}</h3>
+                <p className="text-sm text-foreground-secondary">{t('whyQS.points.2.description')}</p>
               </div>
             </div>
           </section>
 
-          {/* Lock Flow */}
-          <section className="mb-12" aria-labelledby="lock-flow-title">
-            <h2 id="lock-flow-title" className="text-xl font-bold mb-6 flex items-center gap-2">
-              <Lock className="w-5 h-5 text-gold" aria-hidden="true" />
-              {t('lockFlow.title')}
-            </h2>
+          {/* Lock Process */}
+          <ProcessSection
+            id="lock-process"
+            title={t('processes.lock.title')}
+            subtitle={t('processes.lock.subtitle')}
+            icon={<Lock className="w-6 h-6" />}
+            variant="lock"
+            steps={lockSteps}
+            actors={lockActors}
+            benefits={lockBenefits}
+            note={{
+              title: t('processes.lock.note.title'),
+              description: t('processes.lock.note.description'),
+            }}
+          />
 
-            <div className="space-y-4">
-              {lockSteps.map((step, index) => (
-                <FlowStepCard
-                  key={step.step}
-                  step={step}
-                  isLast={index === lockSteps.length - 1}
-                />
-              ))}
-            </div>
+          {/* Unlock Process */}
+          <ProcessSection
+            id="unlock-process"
+            title={t('processes.unlock.title')}
+            subtitle={t('processes.unlock.subtitle')}
+            icon={<Unlock className="w-6 h-6" />}
+            variant="unlock"
+            steps={unlockSteps}
+            actors={unlockActors}
+            benefits={unlockBenefits}
+            note={{
+              title: t('processes.unlock.note.title'),
+              description: t('processes.unlock.note.description'),
+            }}
+          />
 
-            <div className="mt-4 p-4 bg-gold/5 border border-gold/20 rounded-qs-lg">
-              <p className="text-sm text-foreground-secondary">
-                <strong className="text-gold">{t('lockFlow.note.title')}</strong>{' '}
-                {t('lockFlow.note.description')}
-              </p>
-            </div>
-          </section>
-
-          {/* Unlock Flow (Normal Path) */}
-          <section className="mb-12" aria-labelledby="unlock-flow-title">
-            <h2 id="unlock-flow-title" className="text-xl font-bold mb-6 flex items-center gap-2">
-              <Unlock className="w-5 h-5 text-success" aria-hidden="true" />
-              {t('unlockFlow.title')}
-            </h2>
-
-            <div className="space-y-4">
-              {unlockSteps.map((step, index) => (
-                <FlowStepCard
-                  key={step.step}
-                  step={step}
-                  isLast={index === unlockSteps.length - 1}
-                />
-              ))}
-            </div>
-
-            <div className="mt-4 p-4 bg-success/5 border border-success/20 rounded-qs-lg">
-              <p className="text-sm text-foreground-secondary">
-                <strong className="text-success">{t('unlockFlow.note.title')}</strong>{' '}
-                {t('unlockFlow.note.description')}
-              </p>
-            </div>
-          </section>
-
-          {/* Emergency Path */}
-          <section className="mb-12" aria-labelledby="emergency-title">
-            <h2 id="emergency-title" className="text-xl font-bold mb-6 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-warning" aria-hidden="true" />
-              {t('emergencyPath.title')}
-            </h2>
-
-            <div className="card border-warning/20">
-              <p className="text-foreground-secondary mb-4">{t('emergencyPath.description')}</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div className="p-4 bg-surface-secondary rounded-qs">
-                  <div className="text-2xl font-bold text-warning mb-1">72h</div>
-                  <div className="text-xs text-foreground-tertiary">{t('emergencyPath.trigger')}</div>
-                </div>
-                <div className="p-4 bg-surface-secondary rounded-qs">
-                  <div className="text-2xl font-bold text-warning mb-1">7{t('emergencyPath.days')}</div>
-                  <div className="text-xs text-foreground-tertiary">{t('emergencyPath.waitTime')}</div>
-                </div>
-                <div className="p-4 bg-surface-secondary rounded-qs">
-                  <div className="text-2xl font-bold text-warning mb-1">5%</div>
-                  <div className="text-xs text-foreground-tertiary">{t('emergencyPath.bond')}</div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Security Features */}
-          <section className="mb-12" aria-labelledby="security-title">
-            <h2 id="security-title" className="text-xl font-bold mb-6 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-hinomaru" aria-hidden="true" />
-              {t('security.title')}
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="card">
-                <div className="flex items-center gap-3 mb-3">
-                  <Users className="w-5 h-5 text-gold" />
-                  <h3 className="font-semibold">{t('security.multiProver.title')}</h3>
-                </div>
-                <p className="text-sm text-foreground-secondary">
-                  {t('security.multiProver.description')}
-                </p>
-              </div>
-
-              <div className="card">
-                <div className="flex items-center gap-3 mb-3">
-                  <Clock className="w-5 h-5 text-gold" />
-                  <h3 className="font-semibold">{t('security.timeLock.title')}</h3>
-                </div>
-                <p className="text-sm text-foreground-secondary">
-                  {t('security.timeLock.description')}
-                </p>
-              </div>
-
-              <div className="card">
-                <div className="flex items-center gap-3 mb-3">
-                  <AlertTriangle className="w-5 h-5 text-gold" />
-                  <h3 className="font-semibold">{t('security.challenge.title')}</h3>
-                </div>
-                <p className="text-sm text-foreground-secondary">
-                  {t('security.challenge.description')}
-                </p>
-              </div>
-
-              <div className="card">
-                <div className="flex items-center gap-3 mb-3">
-                  <CheckCircle2 className="w-5 h-5 text-gold" />
-                  <h3 className="font-semibold">{t('security.cryptography.title')}</h3>
-                </div>
-                <p className="text-sm text-foreground-secondary">
-                  {t('security.cryptography.description')}
-                </p>
-              </div>
-            </div>
-          </section>
+          {/* Emergency Unlock Process */}
+          <ProcessSection
+            id="emergency-process"
+            title={t('processes.emergency.title')}
+            subtitle={t('processes.emergency.subtitle')}
+            icon={<AlertTriangle className="w-6 h-6" />}
+            variant="emergency"
+            steps={emergencySteps}
+            actors={emergencyActors}
+            benefits={emergencyBenefits}
+            note={{
+              title: t('processes.emergency.note.title'),
+              description: t('processes.emergency.note.description'),
+            }}
+          />
 
           {/* CTA */}
           <section className="mb-8">
@@ -403,41 +457,6 @@ export function HowItWorks() {
           </section>
         </div>
       </main>
-    </div>
-  );
-}
-
-function FlowStepCard({ step, isLast }: { step: FlowStep; isLast: boolean }) {
-  const actorColors: Record<string, string> = {
-    user: 'text-hinomaru border-hinomaru/30',
-    l3: 'text-gold border-gold/30',
-    prover: 'text-success border-success/30',
-    vault: 'text-hinomaru border-hinomaru/30',
-  };
-
-  return (
-    <div className="relative">
-      <div className={cn('card', actorColors[step.actor])}>
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gold/10 rounded-full text-gold font-bold text-sm">
-            {step.step}
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold">{step.title}</h3>
-              {step.duration && (
-                <span className="px-2 py-0.5 text-xs bg-warning/10 text-warning rounded-full">
-                  {step.duration}
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-foreground-secondary">{step.description}</p>
-          </div>
-        </div>
-      </div>
-      {!isLast && (
-        <div className="absolute left-[30px] top-full w-0.5 h-4 bg-border" aria-hidden="true" />
-      )}
     </div>
   );
 }

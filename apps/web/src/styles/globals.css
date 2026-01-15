@@ -122,13 +122,13 @@
 
   /* Focus visible styles for accessibility */
   :focus-visible {
-    outline: 2px solid var(--color-hinomaru);
+    outline: 2px solid var(--color-gold);
     outline-offset: 2px;
   }
 
   /* Selection highlight */
   ::selection {
-    background-color: rgba(188, 0, 45, 0.3);
+    background-color: rgba(201, 169, 98, 0.3);
     color: var(--color-text-primary);
   }
 
@@ -162,7 +162,7 @@
     @apply hover:shadow-qs-hover hover:scale-[1.02];
     @apply active:scale-[0.98];
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
-    @apply focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
   /* Secondary Button */
@@ -186,8 +186,34 @@
 
   .card-interactive {
     @apply card;
-    @apply hover:border-hinomaru/30 hover:shadow-qs;
+    @apply hover:border-gold/30 hover:shadow-qs-gold;
     @apply cursor-pointer;
+  }
+
+  /* Selection state with gradient top border - matches design sheet */
+  .card-selectable {
+    @apply card relative overflow-hidden;
+    @apply cursor-pointer transition-all duration-300;
+  }
+
+  .card-selectable::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1;
+    background: linear-gradient(90deg, #BC002D 0%, #C9A962 100%);
+    @apply opacity-0 transition-opacity duration-300;
+  }
+
+  .card-selectable:hover::before,
+  .card-selectable:focus-within::before,
+  .card-selectable[data-selected="true"]::before {
+    @apply opacity-100;
+  }
+
+  .card-selectable:hover,
+  .card-selectable:focus-within,
+  .card-selectable[data-selected="true"] {
+    @apply border-gold/40;
+    box-shadow: 0 0 20px rgba(201, 169, 98, 0.15);
   }
 
   /* Input */
@@ -196,7 +222,7 @@
     @apply bg-surface-secondary border border-border;
     @apply text-foreground placeholder:text-foreground-muted;
     @apply transition-all duration-250;
-    @apply focus:border-hinomaru focus:ring-1 focus:ring-hinomaru;
+    @apply focus:border-gold focus:ring-1 focus:ring-gold;
     @apply disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
