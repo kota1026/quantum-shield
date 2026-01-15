@@ -21,7 +21,7 @@ import { HinomaryVisual } from './HinomaryVisual';
 import { Tooltip } from './Tooltip';
 
 export function Landing() {
-  const t = useTranslations('landing');
+  const t = useTranslations('consumer.landing');
   const [cookieBannerVisible, setCookieBannerVisible] = useState(true);
   const mainRef = useRef<HTMLElement>(null);
 
