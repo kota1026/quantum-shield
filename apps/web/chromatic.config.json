@@ -1,0 +1,13 @@
+{
+  "$schema": "https://www.chromatic.com/config-file.schema.json",
+  "projectId": "quantum-shield-phase6",
+  "buildScriptName": "build-storybook",
+  "storybookBuildDir": "storybook-static",
+  "onlyChanged": true,
+  "externals": ["public/**"],
+  "skip": "dependabot/**",
+  "autoAcceptChanges": "main",
+  "exitZeroOnChanges": true,
+  "exitOnceUploaded": false,
+  "zip": true
+}

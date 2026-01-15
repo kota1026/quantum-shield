@@ -1,0 +1,79 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| #viewDashboard | click | 03_dashboard.html |
+| #viewHistory | click | 05_history.html |
+| .tx-link | click | https://sepolia.etherscan.io/tx/... (external) |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Shield - Lock完了</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-card: #0e0e11; --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.1); --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12); --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08); --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace; --radius-lg: 14px; --radius-xl: 20px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .success-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, var(--success-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; text-align: center; padding: 24px; max-width: 440px; width: 100%; }
+        .success-icon { width: 100px; height: 100px; margin: 0 auto 24px; background: var(--success-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; animation: pop 0.5s ease-out; }
+        @keyframes pop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .title { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--success); }
+        .subtitle { font-size: 15px; color: var(--text-secondary); margin-bottom: 32px; }
+        .result-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 24px; margin-bottom: 24px; text-align: left; }
+        .result-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-subtle); }
+        .result-row:last-child { border-bottom: none; }
+        .result-label { font-size: 13px; color: var(--text-tertiary); }
+        .result-value { font-size: 14px; font-weight: 500; }
+        .result-value.highlight { color: var(--accent-hinomaru-light); font-size: 18px; }
+        .result-value a { color: var(--accent-gold); text-decoration: none; font-family: var(--font-mono); font-size: 12px; }
+        .info-box { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); border-radius: var(--radius-lg); margin-bottom: 24px; text-align: left; }
+        .info-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+        .buttons { display: flex; gap: 12px; }
+        .btn { flex: 1; padding: 16px; border-radius: var(--radius-lg); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; display: block; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; color: white; }
+        .btn-primary:hover { box-shadow: 0 8px 24px var(--accent-hinomaru-dim); transform: translateY(-2px); }
+        .btn-secondary { background: var(--bg-secondary); border: 1px solid var(--border-default); color: var(--text-secondary); }
+        .confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        .confetti-piece { position: absolute; width: 10px; height: 10px; opacity: 0; animation: confetti-fall 3s ease-out forwards; }
+        @keyframes confetti-fall { 0% { transform: translateY(-100px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="success-glow"></div></div>
+    <div class="confetti" id="confetti"></div>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1 class="title">Lock完了！</h1>
+        <p class="subtitle">資産は量子耐性暗号で安全に保護されています</p>
+        <div class="result-card">
+            <div class="result-row"><span class="result-label">Lock金額</span><span class="result-value highlight">5.00 ETH</span></div>
+            <div class="result-row"><span class="result-label">ステータス</span><span class="result-value" style="color: var(--success);">🔒 Locked</span></div>
+            <div class="result-row"><span class="result-label">日時</span><span class="result-value">2026-01-07 12:34:56</span></div>
+            <div class="result-row"><span class="result-label">TX Hash</span><span class="result-value"><a href="https://sepolia.etherscan.io/tx/0x7a3f9c2d" target="_blank">0x7a3f...8a0b ↗</a></span></div>
+            <div class="result-row"><span class="result-label">ガス代</span><span class="result-value">0.0025 ETH</span></div>
+        </div>
+        <div class="info-box"><span>💡</span><span class="info-text">Unlockには24時間のTime Lock（通常）または7日間（緊急）が必要です。</span></div>
+        <div class="buttons">
+            <a href="03_dashboard.html" class="btn btn-primary" id="viewDashboard">ダッシュボードへ</a>
+            <a href="05_history.html" class="btn btn-secondary" id="viewHistory">履歴を見る</a>
+        </div>
+    </div>
+    <script>
+        const confettiContainer = document.getElementById('confetti');
+        const colors = ['#bc002d', '#c9a962', '#00c896', '#ffffff', '#e8334d'];
+        for (let i = 0; i < 50; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDelay = Math.random() * 2 + 's';
+            confettiContainer.appendChild(piece);
+        }
+    </script>
+</body>
+</html>
