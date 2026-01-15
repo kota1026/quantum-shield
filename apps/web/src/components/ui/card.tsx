@@ -13,7 +13,9 @@ const cardVariants = cva(
         default: 'border-border',
         // Interactive card with hover effect
         interactive:
-          'border-border cursor-pointer hover:border-hinomaru/30 hover:shadow-qs',
+          'border-border cursor-pointer hover:border-gold/30 hover:shadow-qs-gold',
+        // Selectable card with gradient top border on hover/focus/selected
+        selectable: 'card-selectable',
         // Accent card with hinomaru glow
         accent:
           'border-hinomaru/30 bg-gradient-to-br from-surface to-hinomaru/5 shadow-qs',

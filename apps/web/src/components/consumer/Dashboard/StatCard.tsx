@@ -13,6 +13,7 @@ interface StatCardProps {
     variant: 'success' | 'warning' | 'default';
   };
   highlight?: boolean;
+  selected?: boolean;
   onClick?: () => void;
   ariaLabel?: string;
   className?: string;
@@ -24,6 +25,7 @@ export function StatCard({
   unit,
   badge,
   highlight = false,
+  selected = false,
   onClick,
   ariaLabel,
   className,
@@ -36,12 +38,10 @@ export function StatCard({
 
   return (
     <Card
-      variant={onClick ? 'interactive' : 'default'}
+      variant={onClick ? 'selectable' : 'default'}
       padding="md"
-      className={cn(
-        'cursor-pointer',
-        className
-      )}
+      className={cn(className)}
+      data-selected={selected}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
