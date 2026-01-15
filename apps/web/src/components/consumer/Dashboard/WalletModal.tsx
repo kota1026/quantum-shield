@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { X, Copy, LogOut, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,46 @@ export function WalletModal({
 }: WalletModalProps) {
   const t = useTranslations('consumer.dashboard.walletModal');
   const tWallet = useTranslations('consumer.common.wallet');
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<Element | null>(null);
+
+  // Handle Escape key
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
+  // Focus trap and keyboard handling
+  useEffect(() => {
+    if (isOpen) {
+      // Store current active element
+      previousActiveElement.current = document.activeElement;
+
+      // Add escape key listener
+      document.addEventListener('keydown', handleKeyDown);
+
+      // Focus first focusable element in modal
+      const focusableElements = modalRef.current?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements && focusableElements.length > 0) {
+        (focusableElements[0] as HTMLElement).focus();
+      }
+
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = '';
+        // Restore focus
+        if (previousActiveElement.current instanceof HTMLElement) {
+          previousActiveElement.current.focus();
+        }
+      };
+    }
+  }, [isOpen, handleKeyDown]);
 
   if (!isOpen) return null;
 
@@ -45,6 +86,7 @@ export function WalletModal({
       }}
     >
       <div
+        ref={modalRef}
         className={cn(
           'w-full max-w-md',
           'bg-surface border border-border rounded-qs-xl',
