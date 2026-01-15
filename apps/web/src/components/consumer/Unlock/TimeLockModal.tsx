@@ -106,14 +106,29 @@ export function TimeLockModal({ isOpen, onClose }: TimeLockModalProps) {
           </div>
 
           {/* Tips Section */}
-          <div className="p-4 bg-surface-secondary rounded-qs border border-border">
-            <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+          <div className="p-4 bg-surface-secondary rounded-qs border border-border space-y-4">
+            <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Lightbulb className="w-4 h-4 text-gold" />
               {t('tipsTitle')}
             </h4>
-            <p className="text-sm text-foreground-secondary leading-relaxed">
-              {t('tipsContent')}
-            </p>
+
+            <div>
+              <h5 className="text-sm font-medium text-foreground mb-1">
+                {t('tipsContent1Title')}
+              </h5>
+              <p className="text-sm text-foreground-secondary leading-relaxed">
+                {t('tipsContent1')}
+              </p>
+            </div>
+
+            <div>
+              <h5 className="text-sm font-medium text-foreground mb-1">
+                {t('tipsContent2Title')}
+              </h5>
+              <p className="text-sm text-foreground-secondary leading-relaxed">
+                {t('tipsContent2')}
+              </p>
+            </div>
           </div>
         </div>
 

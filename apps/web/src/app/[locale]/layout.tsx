@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales, type Locale } from '@/i18n/config';
+import { Web3Provider } from '@/components/providers';
 import '@/styles/globals.css';
 
 interface LocaleLayoutProps {
@@ -14,7 +15,7 @@ export async function generateMetadata({
   params,
 }: LocaleLayoutProps): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'landing.meta' });
+  const t = await getTranslations({ locale, namespace: 'consumer.landing.meta' });
 
   return {
     title: {
@@ -88,13 +89,15 @@ export default async function LocaleLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <Web3Provider>
+            {children}
+          </Web3Provider>
         </NextIntlClientProvider>
       </body>
     </html>
