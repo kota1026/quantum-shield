@@ -91,7 +91,7 @@ export function Security() {
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
-            href="/consumer/settings"
+            href="/consumer"
             className={cn(
               'w-10 h-10 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
