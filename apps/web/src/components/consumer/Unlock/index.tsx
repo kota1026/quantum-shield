@@ -49,11 +49,13 @@ export function Unlock() {
 
   const handleStartUnlock = useCallback(() => {
     if (selectedMethod === 'normal') {
-      router.push('/consumer/unlock/sign');
+      // Normal unlock: navigate to processing page with lock ID
+      router.push(`/consumer/unlock/processing?lockId=${selectedLockId}`);
     } else {
-      router.push('/consumer/unlock/emergency');
+      // Emergency unlock: navigate to bond confirmation page with lock ID
+      router.push(`/consumer/emergency-bond?lockId=${selectedLockId}`);
     }
-  }, [selectedMethod, router]);
+  }, [selectedMethod, selectedLockId, router]);
 
   return (
     <div className="min-h-screen bg-background pb-8">

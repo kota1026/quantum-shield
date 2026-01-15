@@ -772,6 +772,36 @@
         "backToDashboard": "ダッシュボードに戻る"
       }
     },
+    "unlockProcessing": {
+      "title": "アンロック処理中...",
+      "subtitle": "しばらくお待ちください。このページを閉じないでください。",
+      "steps": {
+        "sign": "Dilithium署名を生成",
+        "verify": "Prover署名を検証",
+        "broadcast": "ブロックチェーンに送信中...",
+        "confirm": "確認を待機"
+      }
+    },
+    "unlockSuccess": {
+      "title": "アンロック開始完了",
+      "subtitle": "24時間のTime Lock後、資産がウォレットに転送されます",
+      "timelock": {
+        "title": "Time Lock残り時間",
+        "label": "アンロック可能まで"
+      },
+      "details": {
+        "amount": "アンロック金額",
+        "estimatedCompletion": "アンロック可能日時",
+        "txHash": "TX Hash"
+      },
+      "info": {
+        "message": "24時間のセキュリティ待機期間中に問題がなければ、資産は自動的にウォレットに転送されます。ダッシュボードから進捗を確認できます。"
+      },
+      "buttons": {
+        "viewHistory": "履歴を確認",
+        "backToDashboard": "ダッシュボードに戻る"
+      }
+    },
     "terms": {
       "meta": {
         "title": "利用規約 | Quantum Shield",
