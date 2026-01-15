@@ -58,32 +58,34 @@ export function UnlockProcessing() {
   }, [router]);
 
   const stepLabels = [
-    t('steps.sign'),
     t('steps.verify'),
+    t('steps.createTx'),
     t('steps.broadcast'),
-    t('steps.confirm'),
+    t('steps.startTimeLock'),
   ];
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-gold/15 to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-hinomaru/15 to-transparent" />
       </div>
 
       <div className="relative z-10 text-center px-6 max-w-md w-full">
         <div className="relative w-40 h-40 mx-auto mb-8">
-          <div className="absolute inset-0 border-2 border-transparent border-t-hinomaru rounded-full animate-spin" style={{ animationDuration: '1.5s' }} />
-          <div className="absolute -inset-2.5 border-2 border-transparent border-t-gold rounded-full animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
+          <div className="absolute inset-0 border-2 border-transparent border-t-gold rounded-full animate-spin" style={{ animationDuration: '1.5s' }} />
+          <div className="absolute -inset-2.5 border-2 border-transparent border-t-hinomaru rounded-full animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
           <div className="absolute inset-[30px]">
             <div className="absolute inset-0 bg-gradient-radial from-white/15 to-white/2 rounded-full border border-white/10" />
-            <div className="absolute inset-5 bg-gradient-to-br from-gold-400 via-gold to-gold-700 rounded-full shadow-[0_0_40px_rgba(201,169,98,0.4)] animate-pulse flex items-center justify-center" style={{ animationDuration: '2s' }}>
-              <Unlock className="w-10 h-10 text-background" />
+            <div className="absolute inset-5 bg-gradient-to-br from-[#ff3050] via-hinomaru to-[#8a001a] rounded-full shadow-[0_0_40px_rgba(188,0,45,0.4)] animate-pulse" style={{ animationDuration: '2s' }}>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Unlock className="w-8 h-8 text-white" />
+              </div>
             </div>
           </div>
         </div>
 
         <h1 className="text-2xl font-bold mb-3">{t('title')}</h1>
-        <p className="text-sm text-foreground-secondary mb-8">{t('subtitle')}</p>
+        <p className="text-sm text-muted-foreground mb-8">{t('subtitle')}</p>
 
         <div className="text-left space-y-2 mb-8">
           {steps.map((step, index) => (
@@ -92,15 +94,15 @@ export function UnlockProcessing() {
               className={cn(
                 'flex items-center gap-3 p-3 rounded-qs transition-all',
                 step.status === 'pending' && 'bg-white/2',
-                step.status === 'active' && 'bg-gold/10',
+                step.status === 'active' && 'bg-hinomaru/10',
                 step.status === 'complete' && 'bg-success/10'
               )}
             >
               <div
                 className={cn(
                   'w-7 h-7 flex items-center justify-center rounded-full text-sm',
-                  step.status === 'pending' && 'bg-white/5 text-foreground-tertiary',
-                  step.status === 'active' && 'bg-gold text-background animate-pulse',
+                  step.status === 'pending' && 'bg-white/5 text-muted-foreground',
+                  step.status === 'active' && 'bg-hinomaru text-white animate-pulse',
                   step.status === 'complete' && 'bg-success text-white'
                 )}
               >
@@ -109,7 +111,7 @@ export function UnlockProcessing() {
               <span
                 className={cn(
                   'flex-1 text-sm',
-                  step.status === 'pending' && 'text-foreground-tertiary',
+                  step.status === 'pending' && 'text-muted-foreground',
                   step.status === 'active' && 'text-foreground font-medium',
                   step.status === 'complete' && 'text-success'
                 )}
@@ -121,7 +123,7 @@ export function UnlockProcessing() {
         </div>
 
         {showTxHash && (
-          <p className="text-xs text-foreground-secondary font-mono">
+          <p className="text-xs text-muted-foreground font-mono">
             TX: <a href="https://sepolia.etherscan.io/tx/0x8b4e...1d3f" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">0x8b4e...1d3f</a>
           </p>
         )}
