@@ -19,9 +19,9 @@ const sizeMap = {
     orbit1: 'w-28 h-28',
     orbit2: 'w-36 h-36',
     orbit3: 'w-44 h-44',
-    dotOrbit1: '56px',   // orbit1 radius / 2
-    dotOrbit2: '72px',   // orbit2 radius / 2
-    dotOrbit3: '88px',   // orbit3 radius / 2
+    dotOrbit1: '56px',
+    dotOrbit2: '72px',
+    dotOrbit3: '88px',
   },
   md: {
     container: 'h-72',
@@ -29,7 +29,7 @@ const sizeMap = {
     inner: 'inset-[28px]',
     orbit1: 'w-44 h-44',
     orbit2: 'w-56 h-56',
-    orbit3: 'w-68 h-68',
+    orbit3: 'w-[272px] h-[272px]',
     dotOrbit1: '88px',
     dotOrbit2: '112px',
     dotOrbit3: '136px',
@@ -38,8 +38,8 @@ const sizeMap = {
     container: 'h-80',
     core: 'w-40 h-40',
     inner: 'inset-[35px]',
-    orbit1: 'w-56 h-56',
-    orbit2: 'w-72 h-72',
+    orbit1: 'w-[220px] h-[220px]',
+    orbit2: 'w-[280px] h-[280px]',
     orbit3: 'w-[340px] h-[340px]',
     dotOrbit1: '110px',
     dotOrbit2: '140px',
@@ -63,90 +63,71 @@ export function HinomaryVisual({ size = 'md', className }: HinomaryVisualProps) 
       <div
         className={cn(
           'absolute rounded-full border border-hinomaru/15',
-          'animate-[spin_30s_linear_infinite]',
           sizes.orbit3
         )}
         style={{
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)'
+          animation: 'orbit-spin 30s linear infinite',
         }}
       />
 
       {/* Orbit 2 (middle) - dashed white, 20s reverse spin */}
       <div
         className={cn(
-          'absolute rounded-full border border-dashed border-white/8',
-          'animate-[spin_20s_linear_infinite_reverse]',
+          'absolute rounded-full border border-dashed border-white/[0.08]',
           sizes.orbit2
         )}
         style={{
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)'
+          animation: 'orbit-spin 20s linear infinite reverse',
         }}
       />
 
       {/* Orbit 1 (inner) - gold, 12s spin */}
       <div
         className={cn(
-          'absolute rounded-full border border-gold opacity-40',
-          'animate-[spin_12s_linear_infinite]',
+          'absolute rounded-full border border-gold/40',
           sizes.orbit1
         )}
         style={{
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)'
+          animation: 'orbit-spin 12s linear infinite',
         }}
       />
 
       {/* Orbital dots - each on independent orbit animation */}
       {/* Gold dot - orbit at radius dotOrbit1, 12s */}
       <div
-        className="absolute w-2 h-2 rounded-full bg-gold shadow-[0_0_12px_var(--tw-shadow-color)] shadow-gold animate-[orbit-gold_12s_linear_infinite]"
+        className="absolute w-2 h-2 rounded-full bg-gold"
         style={{
-          top: '50%',
-          left: '50%',
+          boxShadow: '0 0 12px #C9A962',
+          animation: 'orbit-gold 12s linear infinite',
           '--orbit-radius': sizes.dotOrbit1,
         } as React.CSSProperties}
       />
 
       {/* Red dot - orbit at radius dotOrbit2, 18s, starts at 120deg */}
       <div
-        className="absolute w-2 h-2 rounded-full bg-hinomaru shadow-[0_0_12px_rgba(188,0,45,0.4)] animate-[orbit-red_18s_linear_infinite]"
+        className="absolute w-2 h-2 rounded-full bg-hinomaru"
         style={{
-          top: '50%',
-          left: '50%',
+          boxShadow: '0 0 12px rgba(188, 0, 45, 0.4)',
+          animation: 'orbit-red 18s linear infinite',
           '--orbit-radius': sizes.dotOrbit2,
         } as React.CSSProperties}
       />
 
       {/* White dot - orbit at radius dotOrbit3, 24s, starts at 240deg */}
       <div
-        className="absolute w-2 h-2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] animate-[orbit-white_24s_linear_infinite]"
+        className="absolute w-2 h-2 rounded-full bg-white"
         style={{
-          top: '50%',
-          left: '50%',
+          boxShadow: '0 0 10px rgba(255, 255, 255, 0.5)',
+          animation: 'orbit-white 24s linear infinite',
           '--orbit-radius': sizes.dotOrbit3,
         } as React.CSSProperties}
       />
 
       {/* Hinomaru core */}
-      <div
-        className={cn('absolute', sizes.core)}
-        style={{
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)'
-        }}
-      >
+      <div className={cn('absolute', sizes.core)}>
         {/* White outer ring (白地) */}
         <div
-          className={cn(
-            'absolute inset-0',
-            'rounded-full border border-white/10'
-          )}
+          className="absolute inset-0 rounded-full border border-white/10"
           style={{
             background: 'radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.02) 100%)'
           }}
@@ -155,16 +136,49 @@ export function HinomaryVisual({ size = 'md', className }: HinomaryVisualProps) 
         <div
           className={cn(
             'absolute rounded-full',
-            'shadow-glow-hinomaru',
-            'animate-[hinomaru-pulse_4s_ease-in-out_infinite]',
             sizes.inner
           )}
           style={{
             background: 'radial-gradient(circle at 35% 35%, #ff3050 0%, #BC002D 50%, #8a001a 100%)',
-            boxShadow: '0 0 60px rgba(188, 0, 45, 0.4), 0 0 100px rgba(188, 0, 45, 0.2)'
+            boxShadow: '0 0 60px rgba(188, 0, 45, 0.4), 0 0 100px rgba(188, 0, 45, 0.2)',
+            animation: 'hinomaru-pulse 4s ease-in-out infinite',
           }}
         />
       </div>
+
+      {/* Scoped CSS for animations */}
+      <style jsx>{`
+        @keyframes orbit-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes orbit-gold {
+          from { transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg); }
+          to { transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg); }
+        }
+
+        @keyframes orbit-red {
+          from { transform: rotate(120deg) translateX(var(--orbit-radius)) rotate(-120deg); }
+          to { transform: rotate(480deg) translateX(var(--orbit-radius)) rotate(-480deg); }
+        }
+
+        @keyframes orbit-white {
+          from { transform: rotate(240deg) translateX(var(--orbit-radius)) rotate(-240deg); }
+          to { transform: rotate(600deg) translateX(var(--orbit-radius)) rotate(-600deg); }
+        }
+
+        @keyframes hinomaru-pulse {
+          0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 60px rgba(188, 0, 45, 0.4), 0 0 100px rgba(188, 0, 45, 0.2);
+          }
+          50% {
+            transform: scale(1.03);
+            box-shadow: 0 0 80px rgba(188, 0, 45, 0.4), 0 0 120px rgba(188, 0, 45, 0.3);
+          }
+        }
+      `}</style>
     </div>
   );
 }
