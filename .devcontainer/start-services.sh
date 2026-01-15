@@ -13,89 +13,105 @@ if [ -f ".env.local" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Check Infrastructure Services
+# Start Infrastructure Services (Auto-start if not running)
 # ---------------------------------------------------------------------------
 echo ""
-echo "[1/3] Checking infrastructure services..."
+echo "[1/3] Starting infrastructure services..."
 
-# Check PostgreSQL
-if pg_isready -h localhost -p 5432 -U quantum > /dev/null 2>&1; then
-    echo "  ✓ PostgreSQL is running"
-else
-    echo "  ✗ PostgreSQL is not running"
-    echo "    Run: docker compose -f docker/docker-compose.dev.yml up -d postgres"
+# Check if docker compose file exists
+if [ -f "docker/docker-compose.dev.yml" ]; then
+    echo "  Starting PostgreSQL, Redis, RabbitMQ..."
+    docker compose -f docker/docker-compose.dev.yml up -d postgres redis rabbitmq 2>/dev/null || {
+        echo "  ⚠ Docker Compose failed. Trying alternative..."
+        docker-compose -f docker/docker-compose.dev.yml up -d postgres redis rabbitmq 2>/dev/null || {
+            echo "  ✗ Could not start infrastructure services"
+            echo "    Please run manually: docker compose -f docker/docker-compose.dev.yml up -d"
+        }
+    }
+
+    # Wait for services to be ready
+    echo "  Waiting for services to be ready..."
+    sleep 5
 fi
 
-# Check Redis
-if redis-cli -h localhost ping > /dev/null 2>&1; then
-    echo "  ✓ Redis is running"
-else
-    echo "  ✗ Redis is not running"
-    echo "    Run: docker compose -f docker/docker-compose.dev.yml up -d redis"
-fi
-
-# Check RabbitMQ
-if curl -s http://localhost:15672 > /dev/null 2>&1; then
-    echo "  ✓ RabbitMQ is running"
-else
-    echo "  ✗ RabbitMQ is not running"
-    echo "    Run: docker compose -f docker/docker-compose.dev.yml up -d rabbitmq"
-fi
+# Verify services
+echo ""
+echo "  Service Status:"
+pg_isready -h localhost -p 5432 -U quantum > /dev/null 2>&1 && echo "  ✓ PostgreSQL" || echo "  ✗ PostgreSQL"
+redis-cli -h localhost ping > /dev/null 2>&1 && echo "  ✓ Redis" || echo "  ✗ Redis"
+curl -s http://localhost:15672 > /dev/null 2>&1 && echo "  ✓ RabbitMQ" || echo "  ○ RabbitMQ (starting...)"
 
 # ---------------------------------------------------------------------------
-# Start Frontend Services
+# Install Dependencies (if needed)
 # ---------------------------------------------------------------------------
 echo ""
-echo "[2/3] Starting frontend services..."
+echo "[2/3] Checking dependencies..."
 
-# Create a tmux session for services
-if command -v tmux &> /dev/null; then
-    # Kill existing session if exists
-    tmux kill-session -t qs-dev 2>/dev/null || true
+# Install apps/web dependencies if missing
+if [ -d "apps/web" ] && [ ! -d "apps/web/node_modules" ]; then
+    echo "  Installing apps/web dependencies..."
+    cd /workspace/apps/web
+    pnpm install
+    cd /workspace
+fi
 
-    # Create new session
-    tmux new-session -d -s qs-dev -n main
+# ---------------------------------------------------------------------------
+# Start Frontend Services (apps/web only - the correct implementation)
+# ---------------------------------------------------------------------------
+echo ""
+echo "[3/3] Starting frontend services..."
 
-    # Start Next.js (apps/web)
-    if [ -d "apps/web" ]; then
-        tmux send-keys -t qs-dev:main "cd /workspace/apps/web && pnpm dev" Enter
-        echo "  ✓ Started apps/web (Next.js) on port 3000"
-    fi
+# Create logs directory
+mkdir -p /workspace/.devcontainer/logs
 
-    # Create new window for consumer app
-    if [ -d "ui/apps/consumer" ]; then
-        tmux new-window -t qs-dev -n consumer
-        tmux send-keys -t qs-dev:consumer "cd /workspace/ui/apps/consumer && pnpm dev --port 3001" Enter
-        echo "  ✓ Started ui/apps/consumer on port 3001"
-    fi
+# Kill any existing processes on port 3000
+fuser -k 3000/tcp 2>/dev/null || true
 
+# Start apps/web (Next.js main - with i18n and shadcn/ui)
+if [ -d "apps/web" ]; then
+    echo "  Starting apps/web on port 3000..."
+    cd /workspace/apps/web
+    nohup pnpm dev > /workspace/.devcontainer/logs/web.log 2>&1 &
+    echo "  ✓ apps/web started (PID: $!)"
+    cd /workspace
+fi
+
+# Note: ui/apps/consumer is DEPRECATED - do not start
+if [ -d "ui/apps/consumer" ]; then
     echo ""
-    echo "  Tip: Use 'tmux attach -t qs-dev' to see logs"
-else
-    echo "  Starting in foreground mode (tmux not available)..."
-    echo "  Run manually:"
-    echo "    cd apps/web && pnpm dev"
-    echo "    cd ui/apps/consumer && pnpm dev --port 3001"
+    echo "  ⚠ Note: ui/apps/consumer is DEPRECATED"
+    echo "    Use apps/web instead (with proper i18n support)"
 fi
+
+# Wait for servers to start
+echo ""
+echo "  Waiting for server to start..."
+sleep 8
 
 # ---------------------------------------------------------------------------
 # Display Access Information
 # ---------------------------------------------------------------------------
 echo ""
-echo "[3/3] Services started!"
-echo ""
 echo "=============================================="
 echo " Access URLs (in Codespaces)"
 echo "=============================================="
 echo ""
-echo "  Frontend (Next.js):     Port 3000 → Click 'Open in Browser'"
-echo "  Consumer App:           Port 3001 → Click 'Open in Browser'"
+echo "  Main App:               Port 3000 → Click 'Open in Browser'"
+echo ""
+echo "  Consumer Pages:"
+echo "    /ja/consumer/dashboard    - Dashboard"
+echo "    /ja/consumer/lock         - Lock Assets"
+echo "    /ja/consumer/unlock       - Unlock Assets"
+echo "    /ja/consumer/history      - Transaction History"
+echo "    /ja/consumer/key-management - Key Management"
+echo "    /ja/consumer/settings     - Settings"
+echo ""
 echo "  RabbitMQ Management:    Port 15672 (quantum/quantum_dev)"
 echo ""
 echo "=============================================="
 echo ""
 echo "Commands:"
-echo "  View logs:        tmux attach -t qs-dev"
-echo "  Stop services:    tmux kill-session -t qs-dev"
-echo "  Restart:          bash .devcontainer/start-services.sh"
+echo "  View logs:    tail -f .devcontainer/logs/web.log"
+echo "  Stop:         pkill -f 'pnpm dev'"
+echo "  Restart:      bash .devcontainer/start-services.sh"
 echo ""

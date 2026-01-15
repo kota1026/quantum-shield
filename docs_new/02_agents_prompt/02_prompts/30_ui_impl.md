@@ -1,9 +1,9 @@
 # 30_ui_impl.md - UI Implementation Prompt
 ## Phase 6: モックからReactコンポーネントへの実装
 
-> **Version**: 1.0
-> **Date**: 2026-01-13
-> **Purpose**: Phase 4 HTMLモック → React/Next.js実装
+> **Version**: 2.0
+> **Date**: 2026-01-14
+> **Purpose**: Phase 4 HTMLモック → React/Next.js/Tailwind実装
 > **Structure**: Anthropic Claude 4.x XML Best Practices準拠
 
 ---
@@ -11,7 +11,7 @@
 ## 1. Overview
 
 <purpose>
-Phase 4で作成されたHTMLモックを、本番品質のReact/Next.jsコンポーネントに変換する。
+Phase 4で作成されたHTMLモックを、本番品質のReact/Next.js/Tailwindコンポーネントに変換する。
 デザインシステム準拠、i18n対応、アクセシビリティ対応を含む。
 </purpose>
 
@@ -42,8 +42,13 @@ Phase 4 (Design)              Phase 6 (Implementation)
 
   <design_sheet priority="MUST_READ">
     <path>docs_new/01_phase/04_phase4/01_design/assets/design-concept-5-japan-premium.html</path>
-    <purpose>デザインコンセプト参照</purpose>
+    <purpose>デザインコンセプト参照（CSS Variables → Tailwind変換表を使用）</purpose>
   </design_sheet>
+
+  <tailwind_config priority="MUST_READ">
+    <path>apps/web/tailwind.config.ts</path>
+    <purpose>Tailwind設定（カスタムカラー・スペーシング定義）</purpose>
+  </tailwind_config>
 
   <personas priority="SHOULD_READ">
     <path>docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md</path>
@@ -58,7 +63,58 @@ Phase 4 (Design)              Phase 6 (Implementation)
 
 ---
 
-## 3. Session Variables
+## 3. CSS Variables → Tailwind 変換表
+
+デザインシート(`design-concept-5-japan-premium.html`)のCSS VariablesをTailwindクラスに変換する際は以下を参照：
+
+### 3.1 背景色
+
+| CSS Variable | Tailwind Class |
+|--------------|----------------|
+| `--bg-primary: #0a0a0c` | `bg-background` |
+| `--bg-secondary: #111114` | `bg-background-secondary` |
+| `--bg-elevated: #18181c` | `bg-background-tertiary` |
+| `--bg-card: #0e0e11` | `bg-surface` |
+
+### 3.2 アクセントカラー
+
+| CSS Variable | Tailwind Class |
+|--------------|----------------|
+| `--accent-hinomaru: #bc002d` | `bg-hinomaru`, `text-hinomaru`, `border-hinomaru` |
+| `--accent-hinomaru-light: #e8334d` | `bg-hinomaru-400` |
+| `--accent-gold: #c9a962` | `bg-gold`, `text-gold`, `border-gold` |
+
+### 3.3 テキスト
+
+| CSS Variable | Tailwind Class |
+|--------------|----------------|
+| `--text-primary: #f8f8fa` | `text-foreground` |
+| `--text-secondary: #9898a0` | `text-foreground-secondary` |
+| `--text-tertiary: #606068` | `text-foreground-tertiary` |
+
+### 3.4 ボーダー・角丸
+
+| CSS Variable | Tailwind Class |
+|--------------|----------------|
+| `--border-default` | `border-surface-tertiary` |
+| `--radius-sm: 6px` | `rounded-md` |
+| `--radius-md: 10px` | `rounded-lg` |
+| `--radius-lg: 14px` | `rounded-xl` |
+| `--radius-xl: 20px` | `rounded-2xl` |
+
+### 3.5 スペーシング
+
+| CSS Variable | Tailwind Class |
+|--------------|----------------|
+| `--space-xs: 4px` | `p-1`, `m-1`, `gap-1` |
+| `--space-sm: 8px` | `p-2`, `m-2`, `gap-2` |
+| `--space-md: 16px` | `p-4`, `m-4`, `gap-4` |
+| `--space-lg: 24px` | `p-6`, `m-6`, `gap-6` |
+| `--space-xl: 32px` | `p-8`, `m-8`, `gap-8` |
+
+---
+
+## 4. Session Variables
 
 <session_variables>
   <variable name="SYSTEM_ID" example="01" />
@@ -82,17 +138,17 @@ Phase 4 (Design)              Phase 6 (Implementation)
 
 ---
 
-## 4. Implementation Process
+## 5. Implementation Process
 
 ### STEP 1: モック分析
 
 <thinking_guidance>
 モック分析時に以下を確認:
 1. HTML構造とコンポーネント境界
-2. CSS Variables（デザインシステム準拠確認）
+2. CSS Variables → Tailwindクラス変換（上記変換表使用）
 3. インタラクション定義（コメント内）
 4. 日本語テキスト（i18nキー化対象）
-5. 画像・アイコン（Lucide Icons使用）
+5. アイコン（Lucide Icons使用）
 </thinking_guidance>
 
 ```markdown
@@ -118,11 +174,12 @@ Phase 4 (Design)              Phase 6 (Implementation)
 | 1 | ダッシュボード | `{system}.dashboard.title` |
 | 2 | ロックする | `{system}.dashboard.lockButton` |
 
-### インタラクション
-| # | 要素 | アクション | 遷移先 |
-|---|------|----------|--------|
-| 1 | #lockBtn | click | openLockModal() |
-| 2 | .tx-item | click | /history |
+### Tailwindクラス変換メモ
+| モックのCSS | 変換後Tailwindクラス |
+|------------|---------------------|
+| `background: var(--bg-card)` | `bg-surface` |
+| `color: var(--accent-hinomaru)` | `text-hinomaru` |
+| `border-radius: var(--radius-lg)` | `rounded-xl` |
 ```
 
 ### STEP 2: コンポーネント設計
@@ -131,26 +188,22 @@ Phase 4 (Design)              Phase 6 (Implementation)
 ```
 apps/web/src/
 ├── components/
-│   ├── common/              # 共通コンポーネント
-│   │   ├── Button/
-│   │   ├── Card/
-│   │   ├── Input/
+│   ├── ui/                     # shadcn/ui共通コンポーネント
+│   │   ├── button.tsx
+│   │   ├── card.tsx
 │   │   └── ...
 │   │
-│   └── {system}/            # システム固有
-│       ├── {Component}/
-│       │   ├── index.tsx
-│       │   ├── {Component}.stories.tsx
-│       │   └── {Component}.test.tsx
-│       └── ...
+│   └── {system}/               # システム固有
+│       ├── {Component}.tsx
+│       └── {Component}.stories.tsx
 │
 ├── app/
-│   └── [locale]/
+│   └── [locale]/               # ← i18nルート（必須）
 │       └── {system}/
 │           └── {page}/
 │               └── page.tsx
 │
-└── locales/
+└── locales/                    # ← srcの外（apps/web/locales/）
     ├── ja/
     │   └── {system}.json
     └── en/
@@ -158,14 +211,19 @@ apps/web/src/
 ```
 </component_structure>
 
+**重要**: パスは必ず `[locale]` を含む。
+- ✅ `apps/web/src/app/[locale]/consumer/dashboard/page.tsx`
+- ❌ `apps/web/src/app/consumer/dashboard/page.tsx`
+
 ### STEP 3: コンポーネント実装
 
 <implementation_rules>
   <rule id="R1" priority="CRITICAL">
     全テキストはi18nキー経由。ハードコード禁止。
+    使用: useTranslations('namespace') または getTranslations()
   </rule>
   <rule id="R2" priority="CRITICAL">
-    CSS VariablesはUI_DESIGN_GUIDELINES.md準拠。
+    Tailwindクラスを直接使用。CSS Modulesは使わない。
   </rule>
   <rule id="R3" priority="HIGH">
     アクセシビリティ: aria-*, role, tabIndex設定。
@@ -178,88 +236,128 @@ apps/web/src/
   </rule>
 </implementation_rules>
 
-#### 実装テンプレート
+#### 実装テンプレート（Server Component）
 
 ```tsx
-// apps/web/src/components/{system}/{Component}/index.tsx
+// apps/web/src/app/[locale]/{system}/{screen}/page.tsx
+
+import { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { {Component} } from '@/components/{system}/{Component}';
+
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: '{system}.{screen}.meta' });
+
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
+
+export default async function {Screen}Page({ params }: PageProps) {
+  return <{Component} />;
+}
+```
+
+#### 実装テンプレート（Client Component）
+
+```tsx
+// apps/web/src/components/{system}/{Component}.tsx
 
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { FC } from 'react';
-import { LucideIcon } from 'lucide-react';
-import styles from './{Component}.module.css';
+import { Lock, Unlock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface {Component}Props {
   // Props定義
 }
 
-export const {Component}: FC<{Component}Props> = ({ ...props }) => {
+export function {Component}({ ...props }: {Component}Props) {
   const t = useTranslations('{system}.{component}');
 
   return (
-    <div
-      className={styles.container}
-      role="region"
+    <main
+      className="min-h-screen bg-background p-6"
+      role="main"
       aria-label={t('ariaLabel')}
     >
-      <h1 className={styles.title}>{t('title')}</h1>
-      {/* 実装 */}
-    </div>
+      <h1 className="text-3xl font-bold text-foreground mb-6">
+        {t('title')}
+      </h1>
+
+      <Card className="bg-surface border-surface-tertiary">
+        <CardHeader>
+          <CardTitle className="text-foreground">{t('cardTitle')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* 実装 */}
+        </CardContent>
+      </Card>
+
+      <div className="flex gap-4 mt-6">
+        <Button
+          className="bg-hinomaru hover:bg-hinomaru-600 text-white"
+          aria-label={t('lockButton.ariaLabel')}
+        >
+          <Lock className="mr-2 h-4 w-4" />
+          {t('lockButton.text')}
+        </Button>
+      </div>
+    </main>
   );
-};
-
-export default {Component};
-```
-
-```css
-/* apps/web/src/components/{system}/{Component}/{Component}.module.css */
-
-.container {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-}
-
-.title {
-  font-size: var(--text-h1);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-}
-
-/* レスポンシブ */
-@media (max-width: 768px) {
-  .container {
-    padding: var(--space-4);
-  }
 }
 ```
 
 ### STEP 4: i18n対応
 
-<i18n_structure>
+翻訳ファイルの配置: `apps/web/locales/{locale}/{system}.json`
+
 ```json
-// locales/ja/{system}.json
+// apps/web/locales/ja/consumer.json
 {
-  "{component}": {
+  "dashboard": {
+    "meta": {
+      "title": "ダッシュボード | Quantum Shield",
+      "description": "あなたの資産を量子耐性で保護"
+    },
     "title": "ダッシュボード",
     "ariaLabel": "メインダッシュボード",
-    "lockButton": "ロックする",
-    "unlockButton": "アンロックする",
+    "cardTitle": "資産概要",
+    "lockButton": {
+      "text": "ロックする",
+      "ariaLabel": "新しい資産をロックする"
+    },
     "stats": {
       "totalLocked": "ロック中",
       "available": "利用可能"
     }
   }
 }
+```
 
-// locales/en/{system}.json
+```json
+// apps/web/locales/en/consumer.json
 {
-  "{component}": {
+  "dashboard": {
+    "meta": {
+      "title": "Dashboard | Quantum Shield",
+      "description": "Protect your assets with quantum resistance"
+    },
     "title": "Dashboard",
     "ariaLabel": "Main Dashboard",
-    "lockButton": "Lock",
-    "unlockButton": "Unlock",
+    "cardTitle": "Asset Overview",
+    "lockButton": {
+      "text": "Lock",
+      "ariaLabel": "Lock new assets"
+    },
     "stats": {
       "totalLocked": "Total Locked",
       "available": "Available"
@@ -267,15 +365,14 @@ export default {Component};
   }
 }
 ```
-</i18n_structure>
 
 ### STEP 5: Storybook作成
 
 ```tsx
-// apps/web/src/components/{system}/{Component}/{Component}.stories.tsx
+// apps/web/src/components/{system}/{Component}.stories.tsx
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { {Component} } from './index';
+import { {Component} } from './{Component}';
 
 const meta: Meta<typeof {Component}> = {
   title: '{System}/{Component}',
@@ -290,20 +387,12 @@ export default meta;
 type Story = StoryObj<typeof {Component}>;
 
 export const Default: Story = {
-  args: {
-    // デフォルトProps
-  },
+  args: {},
 };
 
 export const Loading: Story = {
   args: {
     isLoading: true,
-  },
-};
-
-export const Error: Story = {
-  args: {
-    error: 'エラーメッセージ',
   },
 };
 
@@ -314,67 +403,23 @@ export const Mobile: Story = {
 };
 ```
 
-### STEP 6: テスト作成
-
-```tsx
-// apps/web/src/components/{system}/{Component}/{Component}.test.tsx
-
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { {Component} } from './index';
-
-// Mock next-intl
-jest.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
-}));
-
-describe('{Component}', () => {
-  it('renders correctly', () => {
-    render(<{Component} />);
-    expect(screen.getByRole('region')).toBeInTheDocument();
-  });
-
-  it('displays translated title', () => {
-    render(<{Component} />);
-    expect(screen.getByText('title')).toBeInTheDocument();
-  });
-
-  it('handles user interaction', async () => {
-    const user = userEvent.setup();
-    const onAction = jest.fn();
-
-    render(<{Component} onAction={onAction} />);
-
-    await user.click(screen.getByRole('button'));
-    expect(onAction).toHaveBeenCalled();
-  });
-
-  it('is accessible', () => {
-    render(<{Component} />);
-    expect(screen.getByRole('region')).toHaveAttribute('aria-label');
-  });
-});
-```
-
 ---
 
-## 5. Quality Checklist
+## 6. Quality Checklist
 
-### 5.1 実装チェックリスト
+### 6.1 実装チェックリスト
 
 <checklist>
-  <category name="Design System">
-    <item>CSS Variables がUI_DESIGN_GUIDELINES.md準拠</item>
-    <item>Premium Japan カラーパレット使用</item>
-    <item>フォント: Plus Jakarta Sans, Noto Sans JP</item>
-    <item>スペーシング: 4px基準</item>
-    <item>Border Radius: 設計書準拠</item>
+  <category name="Tailwind">
+    <item>デザインシートのCSS Variables → Tailwindクラス変換完了</item>
+    <item>カスタムカラー（hinomaru, gold等）はtailwind.config.ts定義を使用</item>
+    <item>レスポンシブクラス（sm:, md:, lg:）適用</item>
   </category>
 
   <category name="i18n">
     <item>全テキストがt()経由</item>
-    <item>日本語翻訳ファイル作成</item>
-    <item>英語翻訳ファイル作成</item>
+    <item>日本語翻訳ファイル作成（apps/web/locales/ja/）</item>
+    <item>英語翻訳ファイル作成（apps/web/locales/en/）</item>
     <item>日付・数値フォーマット対応</item>
   </category>
 
@@ -386,49 +431,39 @@ describe('{Component}', () => {
     <item>focus-visible対応</item>
   </category>
 
-  <category name="Responsive">
-    <item>モバイル対応（< 768px）</item>
-    <item>タブレット対応（768px - 1024px）</item>
-    <item>デスクトップ対応（> 1024px）</item>
-  </category>
-
-  <category name="Testing">
-    <item>ユニットテスト作成</item>
-    <item>Storybookストーリー作成</item>
-    <item>全バリアント網羅</item>
+  <category name="Path">
+    <item>ページは [locale] ルート内に配置</item>
+    <item>翻訳ファイルは apps/web/locales/ に配置</item>
+    <item>コンポーネントは src/components/{system}/ に配置</item>
   </category>
 </checklist>
 
-### 5.2 ペルソナ確認
-
-<persona_check system="consumer">
-  <persona name="田中さん" tech_level="2">
-    <check>専門用語にツールチップがある</check>
-    <check>ボタンが大きくタップしやすい</check>
-    <check>エラーメッセージがわかりやすい</check>
-  </persona>
-</persona_check>
-
 ---
 
-## 6. Output
+## 7. Output
 
-### 6.1 成果物
+### 7.1 成果物
 
 ```
-apps/web/src/
-├── components/{system}/{Component}/
-│   ├── index.tsx              # メインコンポーネント
-│   ├── {Component}.module.css # スタイル
-│   ├── {Component}.stories.tsx # Storybook
-│   └── {Component}.test.tsx   # テスト
+apps/web/
+├── src/
+│   ├── app/
+│   │   └── [locale]/
+│   │       └── {system}/
+│   │           └── {screen}/
+│   │               └── page.tsx      # ページコンポーネント
+│   │
+│   └── components/
+│       └── {system}/
+│           ├── {Component}.tsx       # UIコンポーネント
+│           └── {Component}.stories.tsx # Storybook
 │
 └── locales/
-    ├── ja/{system}.json       # 日本語翻訳
-    └── en/{system}.json       # 英語翻訳
+    ├── ja/{system}.json              # 日本語翻訳
+    └── en/{system}.json              # 英語翻訳
 ```
 
-### 6.2 実装レポート
+### 7.2 実装レポート
 
 ```markdown
 ## UI Implementation Report
@@ -439,22 +474,17 @@ apps/web/src/
 - Component: {COMPONENT_NAME}
 
 ### 成果物
-| ファイル | ステータス |
-|---------|:--------:|
-| index.tsx | ✅ |
-| {Component}.module.css | ✅ |
-| {Component}.stories.tsx | ✅ |
-| {Component}.test.tsx | ✅ |
-| ja/{system}.json | ✅ |
-| en/{system}.json | ✅ |
+| ファイル | パス | ステータス |
+|---------|------|:--------:|
+| Page | apps/web/src/app/[locale]/{system}/{screen}/page.tsx | ✅ |
+| Component | apps/web/src/components/{system}/{Component}.tsx | ✅ |
+| Story | apps/web/src/components/{system}/{Component}.stories.tsx | ✅ |
+| i18n (ja) | apps/web/locales/ja/{system}.json | ✅ |
+| i18n (en) | apps/web/locales/en/{system}.json | ✅ |
 
 ### i18nキー数
 - 日本語: [N]キー
 - 英語: [N]キー
-
-### テストカバレッジ
-- Statements: [X]%
-- Branches: [X]%
 
 ### 次のステップ
 → 31_design_pir.md でペルソナレビュー
@@ -462,9 +492,9 @@ apps/web/src/
 
 ---
 
-## 7. Next Steps
+## 8. Next Steps
 
-### 7.1 レビューフロー
+### 8.1 レビューフロー
 
 ```
 30_ui_impl.md (実装)
@@ -476,7 +506,7 @@ apps/web/src/
 [FAIL] → 修正後再レビュー
 ```
 
-### 7.2 API連携
+### 8.2 API連携
 
 UI実装完了後、`34_api_impl.md` でAPI連携を実装:
 
@@ -484,121 +514,16 @@ UI実装完了後、`34_api_impl.md` でAPI連携を実装:
 // API連携追加例
 import { useLockMutation } from '@/hooks/useLock';
 
-export const Dashboard = () => {
-  const { mutate: lock, isLoading } = useLockMutation();
+export function Dashboard() {
+  const { mutate: lock, isPending } = useLockMutation();
 
   const handleLock = () => {
     lock({ amount, duration });
   };
 
   // ...
-};
-```
-
----
-
-## 8. Examples
-
-### 8.1 Consumer Dashboard 実装例
-
-<example system="consumer" screen="dashboard">
-
-**入力モック**: `system_01_consumer/wip/mocks/03_dashboard.html`
-
-**出力コンポーネント**:
-
-```tsx
-// apps/web/src/components/consumer/Dashboard/index.tsx
-
-'use client';
-
-import { useTranslations } from 'next-intl';
-import { Lock, Unlock, Clock, Shield } from 'lucide-react';
-import { StatCard } from '@/components/common/StatCard';
-import { TransactionList } from './TransactionList';
-import styles from './Dashboard.module.css';
-
-export const Dashboard = () => {
-  const t = useTranslations('consumer.dashboard');
-
-  return (
-    <main className={styles.container} role="main">
-      <header className={styles.header}>
-        <h1 className={styles.title}>{t('title')}</h1>
-        <p className={styles.subtitle}>{t('subtitle')}</p>
-      </header>
-
-      <section
-        className={styles.stats}
-        aria-label={t('stats.ariaLabel')}
-      >
-        <StatCard
-          icon={<Lock />}
-          label={t('stats.totalLocked')}
-          value="1,234.56 ETH"
-          trend="+12.5%"
-        />
-        <StatCard
-          icon={<Shield />}
-          label={t('stats.quantumProtected')}
-          value="100%"
-          variant="success"
-        />
-        <StatCard
-          icon={<Clock />}
-          label={t('stats.avgLockTime')}
-          value="45 days"
-        />
-      </section>
-
-      <section className={styles.actions}>
-        <button
-          className={styles.primaryButton}
-          aria-label={t('lockButton.ariaLabel')}
-        >
-          <Lock size={20} />
-          {t('lockButton.text')}
-        </button>
-        <button
-          className={styles.secondaryButton}
-          aria-label={t('unlockButton.ariaLabel')}
-        >
-          <Unlock size={20} />
-          {t('unlockButton.text')}
-        </button>
-      </section>
-
-      <TransactionList />
-    </main>
-  );
-};
-```
-
-```json
-// locales/ja/consumer.json
-{
-  "dashboard": {
-    "title": "ダッシュボード",
-    "subtitle": "あなたの資産を量子耐性で保護",
-    "stats": {
-      "ariaLabel": "資産統計",
-      "totalLocked": "ロック中",
-      "quantumProtected": "量子耐性保護",
-      "avgLockTime": "平均ロック期間"
-    },
-    "lockButton": {
-      "text": "ロックする",
-      "ariaLabel": "新しい資産をロックする"
-    },
-    "unlockButton": {
-      "text": "アンロックする",
-      "ariaLabel": "ロック中の資産をアンロックする"
-    }
-  }
 }
 ```
-
-</example>
 
 ---
 
@@ -607,14 +532,14 @@ export const Dashboard = () => {
 ### Q: モックにないインタラクションはどうする？
 A: `SEQUENCES.md` を参照して仕様に基づき実装。不明な場合は `02_spec.md` で仕様確認。
 
-### Q: デザインシステムにないコンポーネントは？
-A: 共通コンポーネントとして新規作成。`UI_DESIGN_GUIDELINES.md` のルールに従う。
+### Q: Tailwindにないカスタムカラーは？
+A: `tailwind.config.ts` に追加定義してから使用。
 
 ### Q: APIがまだない場合は？
 A: UIのみ先行実装。API連携は `34_api_impl.md` で後から追加。ただしモックデータ返却は禁止。
 
-### Q: テストが失敗する場合は？
-A: `24_sandbox_execute.md` でサンドボックス実行してデバッグ。
+### Q: 翻訳キーが見つからないエラー？
+A: 翻訳ファイル（`apps/web/locales/{locale}/{system}.json`）に該当キーを追加。
 
 ---
 
