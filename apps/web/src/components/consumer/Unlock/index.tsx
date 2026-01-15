@@ -49,10 +49,10 @@ export function Unlock() {
 
   const handleStartUnlock = useCallback(() => {
     if (selectedMethod === 'normal') {
-      // Normal unlock: navigate to processing page with lock ID
+      // Pass selected lock ID as query parameter
       router.push(`/consumer/unlock/processing?lockId=${selectedLockId}`);
     } else {
-      // Emergency unlock: navigate to bond confirmation page with lock ID
+      // Emergency unlock goes to bond confirmation page
       router.push(`/consumer/emergency-bond?lockId=${selectedLockId}`);
     }
   }, [selectedMethod, selectedLockId, router]);
