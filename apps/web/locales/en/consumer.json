@@ -188,17 +188,20 @@
         "shortExplanation": "Time Lock protects you",
         "shortExplanationDetail": "Even if there's unauthorized access, 24 hours gives you time to detect and respond.",
         "modalTitle": "Why wait 24 hours?",
-        "modalIntro": "Time Lock is a critical security feature that protects your assets.",
+        "modalIntro": "Time Lock is a critical security feature that protects your assets. This 24-hour 'thinking time' allows you to detect and respond to unauthorized access.",
         "protectionTitle": "What Time Lock protects against",
         "protection1": "Unauthorized access detection: Even if someone steals your private key and tries to unlock, 24 hours gives you time to notice and respond",
         "protection2": "Phishing protection: Even if you accidentally sign something, you have 24 hours before assets actually move",
         "protection3": "Hacking protection: Attackers cannot withdraw assets within 24 hours",
         "waitingTitle": "What you can do during the wait",
         "waiting1": "Monitor and verify unlock requests",
-        "waiting2": "Cancel suspicious requests",
+        "waiting2": "Challenge to cancel suspicious requests",
         "waiting3": "Use Emergency Unlock if needed (7-day wait + Bond required)",
-        "tipsTitle": "Did you know?",
-        "tipsContent": "The combination of quantum-resistant cryptography and Time Lock is the most effective security strategy against 'harvest now, decrypt later' attacks.",
+        "tipsTitle": "Good to know",
+        "tipsContent1Title": "What is 'Harvest Now, Decrypt Later'?",
+        "tipsContent1": "This attack involves collecting encrypted data now and decrypting it with future quantum computers. Current ECDSA signatures may be breakable by quantum computers in 10-15 years. This means today's transaction data could become a future threat.",
+        "tipsContent2Title": "Why Quantum-Resistant Crypto + Time Lock?",
+        "tipsContent2": "Quantum-resistant cryptography (Dilithium) has mathematical foundations that cannot be broken by future quantum computers. Combined with 24-hour Time Lock, even if keys are leaked, you have time to detect and respond. This dual defense protects your assets now and in the future.",
         "understood": "I understand"
       }
     },
@@ -578,27 +581,35 @@
       "questions": {
         "whatIsQs": {
           "question": "What is Quantum Shield?",
-          "answer": "Quantum Shield is a next-generation security platform that protects your digital assets from quantum computers. Using the NIST-certified Dilithium-III cryptographic algorithm, it securely protects your assets against future quantum attacks."
+          "answer": "Quantum Shield is a 'vault' that cannot be opened even by quantum computers. When you put your crypto assets (like ETH) in this vault, no one can take them out without a special key (Dilithium key). This key is designed to be unbreakable by future quantum computers. Plus, the vault guardians (Provers) are forced to be honest through penalty mechanisms."
         },
         "whyQuantum": {
           "question": "Why is quantum resistance important?",
-          "answer": "The ECDSA currently used in cryptocurrencies could be broken by a sufficiently powerful quantum computer. Using quantum-resistant cryptography now is essential to protect your assets from 'harvest now, decrypt later' attacks."
+          "answer": "Current crypto signatures (ECDSA) could be broken by quantum computers in 10-15 years. The problem is 'harvest now, decrypt later' attacks—malicious actors collect encrypted data now and decrypt it all at once with future quantum computers. Your transaction data could be targeted. Using quantum-resistant cryptography now prevents future data leakage risks."
         },
         "whatIsLock": {
           "question": "What is Lock?",
-          "answer": "Lock is the operation of depositing your assets into Quantum Shield's quantum-resistant vault. Locked assets cannot be withdrawn without a Dilithium signature."
+          "answer": "Lock means putting your assets into a 'vault' that quantum computers cannot open. This vault can only be opened with your personal Dilithium key. Without your key, no one (not even Quantum Shield operators) can move your assets. This is the essence of self-custody."
         },
         "why24h": {
           "question": "Why does Unlock take 24 hours?",
-          "answer": "The 24-hour Time Lock is a security feature to detect and prevent unauthorized unlock requests. If there's an issue during this period, a Challenge can prevent the unauthorized unlock."
+          "answer": "The 24-hour Time Lock is 'thinking time.' Even if someone steals your key and tries to unlock, 24 hours gives you time to notice and respond. You can issue a Challenge during this period to stop fraudulent unlocks. Assets not moving instantly actually increases security."
         },
         "whatIsEmergency": {
           "question": "What is Emergency Unlock?",
-          "answer": "Emergency Unlock is a safety net for when you lose your Dilithium private key. It requires a 7-day waiting period and a Bond (collateral), but allows you to recover your assets with only a wallet signature."
+          "answer": "A safety net when you lose your Dilithium private key. Deposit a Bond (collateral) and wait 7 days, then you can recover assets with just a wallet signature. The Bond is fully refunded after 7 days for legitimate unlocks. For fraudulent attempts, the Bond is confiscated and paid to the Challenger. This eliminates incentives for fraud."
         },
         "lostKey": {
           "question": "What should I do if I lose my secret key?",
-          "answer": "Use the Emergency Unlock feature. Pay a Bond (collateral) and after a 7-day waiting period, you can recover your assets. The Bond is returned if the unlock is legitimate."
+          "answer": "Use Emergency Unlock. Pay a Bond (MAX(0.5 ETH, amount×5%)) and wait 7 days to recover assets. The 7 days is a 'challenge period' where anyone can raise a 'this is fraud' Challenge. If no issues, Bond is fully refunded. If fraudulent, it's confiscated."
+        },
+        "whatIsProver": {
+          "question": "What is a Prover?",
+          "answer": "A Prover is a 'vault guardian.' When you request an unlock, the Prover generates a ZK-STARK proof to mathematically verify the request is legitimate. Multiple Provers exist and are randomly selected via VRF (Verifiable Random Function), making it difficult for any specific Prover to commit fraud. Provers who commit fraud have their stake (collateral) confiscated."
+        },
+        "howItWorks": {
+          "question": "How does it work technically?",
+          "answer": "①User signs unlock request with Dilithium → ②VRF randomly selects Prover → ③Prover generates ZK-STARK proof → ④Prover signs with SPHINCS+ → ⑤24h Time Lock → ⑥L3 verification, SMT proof recorded on L1 → ⑦Assets return to wallet. This multi-layer structure has no single attack point and is resistant to future quantum computers."
         }
       }
     },
@@ -766,6 +777,37 @@
       "details": {
         "amount": "Locked Amount",
         "txHash": "TX Hash"
+      },
+      "buttons": {
+        "viewHistory": "View History",
+        "backToDashboard": "Back to Dashboard"
+      }
+    },
+    "unlockProcessing": {
+      "title": "Processing Unlock...",
+      "subtitle": "Please wait. Do not close this page.",
+      "steps": {
+        "verify": "Verify Dilithium signature",
+        "createTx": "Create unlock request",
+        "broadcast": "Broadcasting to blockchain...",
+        "startTimeLock": "Start 24h Time Lock"
+      }
+    },
+    "unlockSuccess": {
+      "title": "Unlock Request Complete",
+      "subtitle": "After the 24-hour waiting period, assets will be transferred to your wallet",
+      "timeLock": {
+        "title": "Time Lock Remaining",
+        "description": "Security waiting period",
+        "remaining": "Time remaining"
+      },
+      "details": {
+        "amount": "Unlock Amount",
+        "estimatedCompletion": "Unlock Available",
+        "txHash": "TX Hash"
+      },
+      "info": {
+        "message": "During the 24-hour waiting period, fraudulent unlocks can be detected and stopped via Challenge. If no issues, you can receive your assets from the dashboard after the waiting period ends."
       },
       "buttons": {
         "viewHistory": "View History",
