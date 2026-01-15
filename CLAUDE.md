@@ -394,6 +394,21 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 <rule id="CR-7" level="ABSOLUTE">
   画面完了時は必ずPHASE6_PROGRESS.mdを更新。
   進捗ファイル未更新のまま次の画面に進むことは禁止。
+
+  更新必須項目:
+  1. 該当画面のステータスを ⬜ → ✅ に変更
+  2. Status列を "Done" に変更
+  3. Progress行の分数を更新 (例: 1/19 → 2/19)
+  4. Overview Dashboardのプログレスバーを更新
+  5. Change Logに更新日時と内容を追記
+
+  コミット時に進捗更新も含めること。
+</rule>
+
+<rule id="CR-10" level="MUST">
+  ウォレット接続Provider（WagmiProvider, RainbowKitProvider）はWS-1で設定。
+  実際のトランザクション署名・ブロックチェーン連携はWS-2で実装。
+  Mock APIを使用してUI動作確認を優先する。
 </rule>
 
 <rule id="CR-8" level="ABSOLUTE">
