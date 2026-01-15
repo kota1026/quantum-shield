@@ -344,7 +344,7 @@
     "landing": {
       "meta": {
         "title": "Quantum Shield - 量子耐性暗号で資産を守る",
-        "description": "Dilithium-IIIとZK-STARKを組み合わせた世界初の量子耐性暗号ブリッジ。将来の脅威から、今日の資産を守ります。"
+        "description": "Dilithium-IIIとSPHINCS+を組み合わせた世界初の量子耐性暗号ブリッジ。将来の脅威から、今日の資産を守ります。"
       },
       "header": {
         "product": "プロダクト",
@@ -395,11 +395,11 @@
           "badge": "多層防御",
           "tooltip": "Time Lockにより、資産の引き出し前に24時間の待機期間が設けられます。この間に不正を検知・阻止できます。"
         },
-        "zkStark": {
-          "title": "ZK-STARK検証",
-          "description": "ゼロ知識証明による透明性と検証可能性。量子耐性を維持しながらスケーラビリティを実現。",
-          "badge": "量子安全ZKP",
-          "tooltip": "ZK-STARKは、情報を公開せずに正当性を証明できる技術です。量子コンピュータにも耐性があります。"
+        "smtProof": {
+          "title": "SMTマークル検証",
+          "description": "Sparse Merkle Treeによる暗号学的証明。全ての状態遷移がオンチェーンで検証可能。SPHINCS+マルチシグと組み合わせた多層防御。",
+          "badge": "暗号学的証明",
+          "tooltip": "SMT（Sparse Merkle Tree）は、大規模データの整合性を効率的に検証する技術です。SHA3-256ハッシュと組み合わせて量子耐性を実現。"
         },
         "selfCustody": {
           "title": "セルフカストディ",
@@ -433,7 +433,8 @@
         "step3": {
           "title": "安全にUnlock",
           "description": "Dilithium署名でUnlock要求。24時間のTime Lock後、資産が安全にウォレットに戻ります。"
-        }
+        },
+        "learnMore": "システム構成を詳しく見る"
       },
       "cta": {
         "title": "量子時代に備えよう",
@@ -631,10 +632,10 @@
           "description": "ハッシュベースの電子署名。Prover（承認者）の署名に使用。異なる数学的基盤により、多層防御を実現。",
           "badge": "NIST FIPS 205"
         },
-        "zkstark": {
-          "title": "ZK-STARK",
-          "description": "ゼロ知識証明技術。トランザクションの正当性を第三者が検証可能。量子耐性を維持しながらスケーラビリティを実現。",
-          "badge": "量子安全ZKP"
+        "smtProof": {
+          "title": "SMT Merkle Proof",
+          "description": "Sparse Merkle Treeによる暗号学的証明。SHA3-256ハッシュで状態遷移（SR_0→SR_1）を計算し、全てオンチェーンで検証可能。",
+          "badge": "SHA3-256"
         }
       },
       "features": {
@@ -972,8 +973,15 @@
       "description": "量子耐性のDilithium鍵ペアを生成します。この鍵はあなたのデバイスにのみ保存され、サーバーには送信されません。",
       "dilithiumTooltip": "Dilithiumは、NIST（米国標準技術研究所）が2024年に正式採用した量子耐性電子署名アルゴリズムです。量子コンピュータでも解読が困難な格子ベースの暗号技術を使用しています。",
       "selfCustodyNotice": {
-        "title": "あなただけが鍵を持ちます",
-        "description": "生成された秘密鍵は、あなたのデバイスにのみ保存されます。Quantum Shieldのサーバーには送信されないため、あなた以外は誰もアクセスできません。必ずバックアップを取り、安全に保管してください。"
+        "title": "あなただけの鍵です",
+        "description": "秘密鍵はあなたのデバイス内だけに保存されます。",
+        "whyTitle": "なぜサーバーに送らないのか？",
+        "whyPoints": [
+          "サーバー攻撃やデータ漏洩から完全に保護するため",
+          "Quantum Shield運営でも、あなたの資産に触れられない設計",
+          "真のセルフカストディ（自己管理）を実現"
+        ],
+        "warning": "鍵をなくすと復元できません。必ずバックアップを保存してください。"
       },
       "keyGeneration": {
         "idle": "ボタンをクリックして生成を開始",
@@ -1076,6 +1084,124 @@
           "tip3": "不審なアクティビティはすぐに確認してください"
         },
         "closeButton": "閉じる"
+      }
+    },
+    "howItWorksPage": {
+      "meta": {
+        "title": "仕組みを知る"
+      },
+      "header": {
+        "title": "Quantum Shieldの仕組み",
+        "subtitle": "システム構成とセキュリティフローを詳しく解説",
+        "backAriaLabel": "Consumer Appに戻る"
+      },
+      "intro": {
+        "description": "Quantum Shieldは、量子コンピュータに対して安全な暗号技術を使用し、あなたの資産を多層的に保護します。L3 Aegis（独自4ノードBFT）、5社のProver、そしてL1 Vaultが連携して動作します。"
+      },
+      "architecture": {
+        "title": "システム構成",
+        "diagramLabel": "データフロー"
+      },
+      "actors": {
+        "user": {
+          "name": "User（あなた）",
+          "role": "資産所有者",
+          "description": "Dilithium鍵で資産のLock/Unlockを署名します。秘密鍵はあなたのデバイスにのみ保存されます。"
+        },
+        "l3": {
+          "name": "L3 Aegis",
+          "role": "オフチェーン合意レイヤー",
+          "description": "4ノードのBFT合意により、Dilithium署名を検証し、State Root（SR）を計算します。"
+        },
+        "prover": {
+          "name": "Prover（承認者）",
+          "role": "マルチシグ署名者",
+          "description": "5社のProverのうち2社がSPHINCS+で署名。VRFでランダムに選出され、不正時はStakeがSlashされます。"
+        },
+        "vault": {
+          "name": "L1 Vault",
+          "role": "資産保管庫",
+          "description": "Ethereum L1上のスマートコントラクト。SPHINCS+署名とSMT証明を検証し、資産を安全に管理します。"
+        }
+      },
+      "lockFlow": {
+        "title": "Lock（資産保護）フロー",
+        "step1": {
+          "title": "Dilithium署名で承認",
+          "description": "Lock対象の資産・金額をDilithium鍵で署名します。この署名はL3 Aegisで検証されます。"
+        },
+        "step2": {
+          "title": "L3で合意形成",
+          "description": "4ノードBFTがDilithium署名を検証し、State Root（SR_0）を計算。SMTにLock情報を追加します。"
+        },
+        "step3": {
+          "title": "L1 Vaultにデポジット",
+          "description": "ETH/ERC-20トークンをL1 VaultにTransfer。SR_0が記録され、資産が保護されます。"
+        },
+        "note": {
+          "title": "ポイント：",
+          "description": "Lock時点ではProver署名は不要です。L3の合意のみで完了し、ガス代は約$7です。"
+        }
+      },
+      "unlockFlow": {
+        "title": "Unlock（通常パス）フロー",
+        "step1": {
+          "title": "Dilithium署名でUnlock要求",
+          "description": "Unlock対象のlock_idと引き出し先アドレスをDilithium鍵で署名します。"
+        },
+        "step2": {
+          "title": "L3で検証 + Prover選出",
+          "description": "L3がDilithium署名を検証し、Chainlink VRFで5社から2社のProverをランダムに選出します。"
+        },
+        "step3": {
+          "title": "Prover 2/5 SPHINCS+署名",
+          "description": "選出された2社のProverがHSM内でSPHINCS+署名を生成。それぞれ約8KBの署名です。"
+        },
+        "step4": {
+          "title": "L1 Vaultで検証 + 24h Time Lock",
+          "description": "L1 VaultがSPHINCS+署名とSMT証明を検証。検証成功後、24時間のTime Lockが開始されます。"
+        },
+        "step5": {
+          "title": "Claim（資産受け取り）",
+          "description": "24時間経過後、Claimを実行して資産をウォレットに引き出します。"
+        },
+        "note": {
+          "title": "24h Time Lockの理由：",
+          "description": "万が一の不正を監視ボットが検知し、Challengeで阻止するための時間的バッファです。"
+        }
+      },
+      "emergencyPath": {
+        "title": "緊急パス（Emergency Unlock）",
+        "description": "Proverが72時間以上応答しない場合、Emergency Unlockが可能になります。Bondを預け入れ、7日間の待機後に資産を回収できます。",
+        "trigger": "Prover無応答でトリガー",
+        "days": "日間",
+        "waitTime": "待機期間（通常の7倍）",
+        "bond": "Emergency Bond（資産の5%または0.5ETH）"
+      },
+      "security": {
+        "title": "セキュリティ機能",
+        "multiProver": {
+          "title": "マルチProver（2/5署名）",
+          "description": "5社のProverから2社をVRFでランダム選出。単一障害点を排除し、共謀リスクを最小化します。"
+        },
+        "timeLock": {
+          "title": "Time Lock（24h/7日）",
+          "description": "Unlock時に24時間、Emergency時に7日間の待機。不正検知と対応のための時間を確保します。"
+        },
+        "challenge": {
+          "title": "Challenge + Slashing",
+          "description": "監視ボットが不正を検知するとChallengeを発動。不正Proverは最大100%のStakeをSlashされます。"
+        },
+        "cryptography": {
+          "title": "量子耐性暗号",
+          "description": "Dilithium（FIPS 204）とSPHINCS+（FIPS 205）の組み合わせ。SHA3-256ハッシュで量子耐性を確保。"
+        }
+      },
+      "cta": {
+        "title": "量子耐性で資産を守る",
+        "description": "3ステップで簡単に始められます。",
+        "startButton": "今すぐ始める",
+        "securityButton": "セキュリティ詳細"
       }
     }
   }

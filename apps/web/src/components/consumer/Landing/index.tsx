@@ -8,7 +8,7 @@ import {
   Unlock,
   Shield,
   Clock,
-  Search,
+  GitBranch,
   Key,
   AlertTriangle,
   Eye,
@@ -206,11 +206,11 @@ export function Landing() {
                 tooltip={t('features.timeLock.tooltip')}
               />
               <FeatureCard
-                icon={<Search />}
-                title={t('features.zkStark.title')}
-                description={t('features.zkStark.description')}
-                badge={t('features.zkStark.badge')}
-                tooltip={t('features.zkStark.tooltip')}
+                icon={<GitBranch />}
+                title={t('features.smtProof.title')}
+                description={t('features.smtProof.description')}
+                badge={t('features.smtProof.badge')}
+                tooltip={t('features.smtProof.tooltip')}
               />
               <FeatureCard
                 icon={<Key />}
@@ -266,6 +266,15 @@ export function Landing() {
                 title={t('howItWorks.step3.title')}
                 description={t('howItWorks.step3.description')}
               />
+            </div>
+            <div className="mt-8 text-center">
+              <Link
+                href="/consumer/how-it-works"
+                className="inline-flex items-center gap-2 text-gold hover:underline text-sm"
+              >
+                {t('howItWorks.learnMore')}
+                <span aria-hidden="true">→</span>
+              </Link>
             </div>
           </div>
         </section>
