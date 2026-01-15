@@ -1179,7 +1179,7 @@
         },
         "checklist": {
           "downloaded": "I have downloaded the backup file",
-          "saved": "I have saved the file to a secure location (USB drive, external HDD, printed on paper for offline storage). I avoid cloud storage and understand that losing this file may make my assets inaccessible."
+          "saved": "I have saved the file securely (USB drive, external HDD, or printed). I understand cloud storage should be avoided and losing this file may make my assets inaccessible."
         },
         "continueButton": "Continue"
       },
