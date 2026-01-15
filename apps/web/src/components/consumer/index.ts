@@ -10,3 +10,7 @@ export { KeyManagement } from './KeyManagement';
 export { FAQ } from './FAQ';
 export { Security } from './Security';
 export { Onboarding } from './Onboarding';
+export { LockProcessing } from './LockProcessing';
+export { LockSuccess } from './LockSuccess';
+export { UnlockProcessing } from './UnlockProcessing';
+export { UnlockSuccess } from './UnlockSuccess';

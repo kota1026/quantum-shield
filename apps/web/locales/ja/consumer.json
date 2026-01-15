@@ -188,17 +188,20 @@
         "shortExplanation": "Time Lockはあなたを守ります",
         "shortExplanationDetail": "不正アクセスがあっても、24時間の猶予で検知・対処できます。",
         "modalTitle": "なぜ24時間待つの？",
-        "modalIntro": "Time Lockは、あなたの資産を守るための重要なセキュリティ機能です。",
+        "modalIntro": "Time Lockは、あなたの資産を守るための重要なセキュリティ機能です。24時間の「考える時間」があることで、不正なアクセスに気づいて対処できます。",
         "protectionTitle": "Time Lockが守るもの",
         "protection1": "不正アクセスの検知: 誰かがあなたの秘密鍵を盗んでアンロックを試みても、24時間の猶予があれば気づいて対処できます",
         "protection2": "フィッシング対策: 誤って署名してしまっても、実際に資産が移動するまで24時間あります",
         "protection3": "ハッキング対策: 攻撃者は24時間以内に資産を持ち去ることができません",
         "waitingTitle": "待機中にできること",
         "waiting1": "アンロック要求の確認・監視",
-        "waiting2": "不審な要求があればキャンセル",
+        "waiting2": "不審な要求があればChallengeでキャンセル",
         "waiting3": "緊急時は緊急アンロックで対応可能（7日間待機+Bond必要）",
-        "tipsTitle": "豆知識",
-        "tipsContent": "「今収集して後で解読」攻撃に対抗するため、量子耐性暗号とTime Lockの組み合わせが最も効果的なセキュリティ戦略です。",
+        "tipsTitle": "知っておきたいこと",
+        "tipsContent1Title": "「今収集して後で解読」攻撃とは？",
+        "tipsContent1": "現在の暗号化データを保存しておき、将来の量子コンピュータで解読する攻撃手法です。現在のECDSA署名は10〜15年後には量子コンピュータで破られる可能性があると言われています。つまり、今日の取引データが将来の脅威になりうるのです。",
+        "tipsContent2Title": "なぜ量子耐性暗号 + Time Lockが効果的？",
+        "tipsContent2": "量子耐性暗号（Dilithium）は将来の量子コンピュータでも破れない数学的基盤を持ちます。これに24時間のTime Lockを組み合わせることで、万が一の鍵漏洩時にも検知・対処する時間を確保。二重の防御で、現在から将来にわたって資産を守ります。",
         "understood": "理解しました"
       }
     },
@@ -578,27 +581,35 @@
       "questions": {
         "whatIsQs": {
           "question": "Quantum Shieldとは何ですか？",
-          "answer": "Quantum Shieldは、量子コンピュータからデジタル資産を守るための次世代セキュリティプラットフォームです。NIST認定のDilithium-III暗号アルゴリズムを使用し、将来の量子攻撃に対しても資産を安全に保護します。"
+          "answer": "Quantum Shieldは、量子コンピュータでも開けられない「金庫」です。あなたの暗号資産（ETHなど）をこの金庫に入れると、特別な鍵（Dilithium鍵）がないと誰も取り出せません。この鍵は、将来の量子コンピュータでも解読できないよう設計されています。また、金庫の番人（Prover）が不正をしないよう、ペナルティの仕組みで強制しています。"
         },
         "whyQuantum": {
           "question": "なぜ量子耐性が重要なのですか？",
-          "answer": "現在の暗号通貨で使用されているECDSAは、十分な性能を持つ量子コンピュータによって破られる可能性があります。「今収集して後で解読」攻撃から資産を守るために、今から量子耐性暗号を使用することが重要です。"
+          "answer": "現在の暗号資産の署名（ECDSA）は、10〜15年後の量子コンピュータで破られる可能性があります。問題は「今収集して後で解読」攻撃。悪意ある人が今のうちに暗号化されたデータを集めておき、将来の量子コンピュータで一気に解読するのです。あなたの取引データも対象になりえます。今から量子耐性暗号を使えば、将来のデータ流出リスクを防げます。"
         },
         "whatIsLock": {
           "question": "Lockとは何ですか？",
-          "answer": "Lockは、あなたの資産をQuantum Shieldの量子耐性金庫に預ける操作です。Lockされた資産はDilithium署名なしでは引き出せません。"
+          "answer": "Lockとは、あなたの資産を量子コンピュータでも開けられない「金庫」に入れることです。この金庫は、あなた専用のDilithium鍵がないと開けられません。あなたの鍵を持っていない限り、誰も（Quantum Shield運営者でさえ）資産を動かせません。これがセルフカストディ（自己管理）の本質です。"
         },
         "why24h": {
           "question": "Unlockにはなぜ24時間かかるのですか？",
-          "answer": "24時間のTime Lockは、不正なUnlock要求を検出・阻止するためのセキュリティ機能です。この期間中に問題があれば、Challengeによって不正なUnlockを防ぐことができます。"
+          "answer": "24時間のTime Lockは「考える時間」です。もし誰かがあなたの鍵を盗んでUnlockを試みても、24時間あれば気づいて対処できます。この間にChallengeを行えば、不正なUnlockを阻止できます。即座に資産が動かないことが、むしろセキュリティを高めているのです。"
         },
         "whatIsEmergency": {
           "question": "緊急Unlockとは何ですか？",
-          "answer": "緊急Unlockは、Dilithium秘密鍵を紛失した場合のセーフティネットです。7日間の待機期間とBond（保証金）が必要ですが、ウォレット署名のみで資産を回収できます。"
+          "answer": "Dilithium秘密鍵を紛失した場合のセーフティネットです。Bond（保証金）を預けて7日間待てば、ウォレット署名だけで資産を回収できます。Bondは正当なUnlockであれば7日後に全額返還されます。もし不正なUnlockを試みた場合、Bondは没収されChallengerに支払われます。これにより、不正の動機を排除しています。"
         },
         "lostKey": {
           "question": "秘密鍵を紛失した場合はどうすればいいですか？",
-          "answer": "緊急Unlock機能を使用してください。Bond（保証金）を支払い、7日間の待機後に資産を回収できます。Bondは正当なUnlockであれば返還されます。"
+          "answer": "緊急Unlock機能を使用してください。Bond（保証金：MAX(0.5 ETH, 金額×5%)）を支払い、7日間の待機後に資産を回収できます。7日間は「異議申立期間」で、誰かが「これは不正だ」とChallengeできます。問題なければBondは全額返還。不正なら没収されます。"
+        },
+        "whatIsProver": {
+          "question": "Proverとは何ですか？",
+          "answer": "Proverは「金庫の番人」です。あなたがUnlockを要求すると、ProverがZK-STARK証明を生成して、その要求が正当であることを数学的に検証します。Proverは複数存在し、VRF（検証可能なランダム関数）でランダムに選ばれるため、特定のProverが不正を働くことは困難です。不正を働いたProverはステーク（担保）を没収されます。"
+        },
+        "howItWorks": {
+          "question": "技術的にはどう動いているのですか？",
+          "answer": "①ユーザーがDilithium署名でUnlock要求 → ②VRFでProverがランダム選出 → ③ProverがZK-STARK証明を生成 → ④SPHINCS+でProverが署名 → ⑤24時間Time Lock → ⑥L3で検証、L1にSMT証明を記録 → ⑦資産がウォレットに戻る。この多層構造により、単一の攻撃点がなく、将来の量子コンピュータにも耐性があります。"
         }
       }
     },
@@ -744,6 +755,59 @@
       },
       "info": {
         "message": "7日間のChallenge期間中に問題がなければ、Bondは自動的に返還されます。Unlock可能になったらダッシュボードから実行できます。"
+      },
+      "buttons": {
+        "viewHistory": "履歴を確認",
+        "backToDashboard": "ダッシュボードに戻る"
+      }
+    },
+    "lockProcessing": {
+      "title": "Lock処理中...",
+      "subtitle": "しばらくお待ちください。このページを閉じないでください。",
+      "steps": {
+        "sign": "Dilithium署名を生成",
+        "createTx": "トランザクションを作成",
+        "broadcast": "ブロックチェーンに送信中...",
+        "confirm": "確認を待機"
+      }
+    },
+    "lockSuccess": {
+      "title": "ロック完了",
+      "subtitle": "資産が量子耐性保護でロックされました",
+      "details": {
+        "amount": "ロック金額",
+        "txHash": "TX Hash"
+      },
+      "buttons": {
+        "viewHistory": "履歴を確認",
+        "backToDashboard": "ダッシュボードに戻る"
+      }
+    },
+    "unlockProcessing": {
+      "title": "Unlock処理中...",
+      "subtitle": "しばらくお待ちください。このページを閉じないでください。",
+      "steps": {
+        "verify": "Dilithium署名を検証",
+        "createTx": "Unlock要求を作成",
+        "broadcast": "ブロックチェーンに送信中...",
+        "startTimeLock": "24時間Time Lock開始"
+      }
+    },
+    "unlockSuccess": {
+      "title": "Unlock要求完了",
+      "subtitle": "24時間の待機期間後、資産がウォレットに転送されます",
+      "timeLock": {
+        "title": "Time Lock残り時間",
+        "description": "セキュリティ待機期間",
+        "remaining": "残り時間"
+      },
+      "details": {
+        "amount": "Unlock金額",
+        "estimatedCompletion": "Unlock可能日時",
+        "txHash": "TX Hash"
+      },
+      "info": {
+        "message": "24時間の待機期間中、不正なUnlockを検出した場合はChallengeで阻止できます。問題がなければ、待機終了後にダッシュボードから資産を受け取れます。"
       },
       "buttons": {
         "viewHistory": "履歴を確認",
