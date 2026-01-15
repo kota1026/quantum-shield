@@ -43,25 +43,30 @@ export function HinomaryVisual({ size = 'md', className }: HinomaryVisualProps) 
       )}
       aria-hidden="true"
     >
-      {/* Outer dashed orbit */}
+      {/* Outer dashed orbit - increased visibility */}
       <div
         className={cn(
           'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-          'rounded-full border border-dashed border-white/10',
+          'rounded-full border-2 border-dashed border-white/20',
           'animate-[spin_20s_linear_infinite_reverse]',
           sizes.orbit2
         )}
       />
 
-      {/* Inner gold orbit */}
+      {/* Inner gold orbit with orbital dot */}
       <div
         className={cn(
           'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-          'rounded-full border border-gold/40',
+          'rounded-full border-2 border-gold/60',
           'animate-[spin_12s_linear_infinite]',
           sizes.orbit1
         )}
-      />
+      >
+        {/* Orbital dot */}
+        <div
+          className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-gold shadow-glow-gold"
+        />
+      </div>
 
       {/* Hinomaru core */}
       <div className={cn('relative', sizes.core)}>

@@ -7,17 +7,23 @@ export function HinomaryVisual() {
       role="img"
       aria-label="Quantum Shield Visual - Hinomaru with orbiting rings"
     >
-      {/* Outer dashed orbit */}
+      {/* Outer dashed orbit - increased visibility */}
       <div
-        className="absolute -inset-[50px] border border-dashed border-white/10 rounded-full animate-[spin_25s_linear_infinite_reverse]"
+        className="absolute -inset-[50px] border-2 border-dashed border-white/20 rounded-full animate-[spin_25s_linear_infinite_reverse]"
         aria-hidden="true"
       />
 
-      {/* Inner gold orbit */}
+      {/* Inner gold orbit with orbital dot */}
       <div
-        className="absolute -inset-[20px] border border-gold/30 rounded-full animate-[spin_15s_linear_infinite]"
+        className="absolute -inset-[20px] border-2 border-gold/60 rounded-full animate-[spin_15s_linear_infinite]"
         aria-hidden="true"
-      />
+      >
+        {/* Orbital dot */}
+        <div
+          className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gold shadow-glow-gold"
+          aria-hidden="true"
+        />
+      </div>
 
       {/* White circle background */}
       <div

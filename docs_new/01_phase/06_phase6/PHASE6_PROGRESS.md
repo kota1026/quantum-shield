@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-14
+> **Last Updated**: 2026-01-15
 > **Total Tasks**: 218
 
 ---
@@ -11,12 +11,12 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [█░░░░░░░░░░░░░░░░░░░]   1/144 (1%)             │
+│  WS-1 UI/UX:      [████░░░░░░░░░░░░░░░░]   14/144 (10%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [█░░░░░░░░░░░░░░░░░░░]   1/218 (0.5%)           │
+│  TOTAL:           [█░░░░░░░░░░░░░░░░░░░]   14/218 (6%)            │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
 │  Week 2-3 P1 Systems: 🔄 In Progress                               │
@@ -33,26 +33,26 @@
 | # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
 |---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
 | 01 | landing | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 02 | onboarding | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 03 | dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 04 | unlock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 05 | lock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 06 | history | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 02 | onboarding | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 03 | dashboard | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 04 | unlock | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 05 | lock | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | In Progress |
+| 06 | history | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
 | 07 | history_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 08 | emergency | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 08 | emergency | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
 | 09 | emergency_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 10 | unlock_complete | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 11 | settings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 11 | settings | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
 | 12 | notifications | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 13 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 14 | faq | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 14 | faq | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
 | 15 | contact | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 16 | terms | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 17 | privacy | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 16 | terms | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 17 | privacy | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
 | 18 | cookie | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 19 | wallet_connect | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 1/19 (5%)
+**Progress**: 14/19 (74%) - UI/A11y/E2E, Persona Test/PIR pending
 
 ---
 
@@ -375,6 +375,9 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-15 | Consumer App: Bulk update - 14 screens with UI/A11y/E2E complete |
+| 2026-01-15 | Added CR-10 rule for wallet provider timing in CLAUDE.md |
+| 2026-01-15 | Fixed landing.meta i18n error, added lock/processing pages |
 | 2026-01-14 | Consumer App landing page complete (UI, A11y, E2E, Persona Test, PIR) |
 | 2026-01-14 | Initial progress tracker created |
 
