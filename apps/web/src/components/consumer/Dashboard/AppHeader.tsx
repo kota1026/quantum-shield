@@ -48,7 +48,7 @@ export function AppHeader({
 
       {/* Desktop Navigation */}
       <nav
-        className="hidden md:flex gap-1 bg-surface rounded-full p-1 border border-border"
+        className="hidden md:flex gap-1 bg-surface rounded-qs-xl p-1 border border-border"
         role="navigation"
         aria-label="Main navigation"
       >
@@ -58,7 +58,7 @@ export function AppHeader({
               key={item.key}
               onClick={item.onClick}
               className={cn(
-                'px-5 py-2 text-sm rounded-full transition-all',
+                'px-5 py-2 text-sm rounded-qs-lg transition-all relative overflow-hidden',
                 'text-foreground-secondary hover:text-foreground hover:bg-surface-secondary'
               )}
             >
@@ -69,13 +69,20 @@ export function AppHeader({
               key={item.key}
               href={item.href}
               className={cn(
-                'px-5 py-2 text-sm rounded-full transition-all',
+                'px-5 py-2 text-sm rounded-qs-lg transition-all relative overflow-hidden',
                 isActive(item.href)
-                  ? 'bg-surface-secondary text-foreground'
-                  : 'text-foreground-secondary hover:text-foreground hover:bg-surface-secondary'
+                  ? 'bg-surface-secondary text-foreground border border-gold/30'
+                  : 'text-foreground-secondary hover:text-foreground hover:bg-surface-secondary border border-transparent'
               )}
               aria-current={isActive(item.href) ? 'page' : undefined}
             >
+              {/* Gradient top accent for active tab */}
+              {isActive(item.href) && (
+                <span
+                  className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-hinomaru to-gold"
+                  aria-hidden="true"
+                />
+              )}
               {t(item.key)}
             </Link>
           )

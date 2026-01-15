@@ -242,40 +242,56 @@ export function Landing() {
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-20">
-          <div className="container mx-auto px-6">
+        <section id="how-it-works" className="py-20 relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-[radial-gradient(circle,rgba(201,169,98,0.08),transparent_60%)] -translate-y-1/2" />
+            <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-[radial-gradient(circle,rgba(188,0,45,0.08),transparent_60%)] -translate-y-1/2" />
+          </div>
+
+          <div className="container mx-auto px-6 relative z-10">
             <div className="flex items-center gap-3 text-xs font-semibold tracking-widest uppercase text-gold mb-4">
               <span className="w-6 h-px bg-gold" aria-hidden="true" />
               {t('howItWorks.sectionLabel')}
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
               {t('howItWorks.title')}
             </h2>
+            <p className="text-foreground-secondary max-w-2xl mb-16">
+              Quantum Shieldは複雑な技術をシンプルに。3つのステップであなたの資産を量子コンピュータの脅威から保護します。
+            </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StepCard
-                number={1}
-                icon={<Key className="w-10 h-10" />}
-                title={t('howItWorks.step1.title')}
-                description={t('howItWorks.step1.description')}
-              />
-              <StepCard
-                number={2}
-                icon={<Lock className="w-10 h-10" />}
-                title={t('howItWorks.step2.title')}
-                description={t('howItWorks.step2.description')}
-              />
-              <StepCard
-                number={3}
-                icon={<Unlock className="w-10 h-10" />}
-                title={t('howItWorks.step3.title')}
-                description={t('howItWorks.step3.description')}
-              />
+            {/* Steps with connecting line */}
+            <div className="relative">
+              {/* Connecting line - desktop only */}
+              <div className="hidden md:block absolute top-24 left-[16.67%] right-[16.67%] h-0.5 bg-gradient-to-r from-hinomaru via-gold to-success opacity-30" aria-hidden="true" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
+                <StepCard
+                  number={1}
+                  icon={<Key className="w-10 h-10" />}
+                  title={t('howItWorks.step1.title')}
+                  description={t('howItWorks.step1.description')}
+                />
+                <StepCard
+                  number={2}
+                  icon={<Lock className="w-10 h-10" />}
+                  title={t('howItWorks.step2.title')}
+                  description={t('howItWorks.step2.description')}
+                />
+                <StepCard
+                  number={3}
+                  icon={<Unlock className="w-10 h-10" />}
+                  title={t('howItWorks.step3.title')}
+                  description={t('howItWorks.step3.description')}
+                />
+              </div>
             </div>
-            <div className="mt-8 text-center">
+
+            <div className="mt-12 text-center">
               <Link
                 href="/consumer/how-it-works"
-                className="inline-flex items-center gap-2 text-gold hover:underline text-sm"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gold/10 border border-gold/30 rounded-full text-gold hover:bg-gold/20 transition-all text-sm font-medium"
               >
                 {t('howItWorks.learnMore')}
                 <span aria-hidden="true">→</span>
@@ -304,18 +320,21 @@ export function Landing() {
                 author={t('expertQuotes.quotes.0.author')}
                 title={t('expertQuotes.quotes.0.title')}
                 source={t('expertQuotes.quotes.0.source')}
+                sourceUrl="https://ethereum-magicians.org/t/eip-7212-precompile-for-secp256r1-curve-support/14789"
               />
               <ExpertQuoteCard
                 quote={t('expertQuotes.quotes.1.quote')}
                 author={t('expertQuotes.quotes.1.author')}
                 title={t('expertQuotes.quotes.1.title')}
                 source={t('expertQuotes.quotes.1.source')}
+                sourceUrl="https://globalriskinstitute.org/publication/2023-quantum-threat-timeline-report/"
               />
               <ExpertQuoteCard
                 quote={t('expertQuotes.quotes.2.quote')}
                 author={t('expertQuotes.quotes.2.author')}
                 title={t('expertQuotes.quotes.2.title')}
                 source={t('expertQuotes.quotes.2.source')}
+                sourceUrl="https://csrc.nist.gov/projects/post-quantum-cryptography"
               />
             </div>
 
@@ -579,7 +598,7 @@ interface StatCardProps {
 
 function StatCard({ value, label, highlight }: StatCardProps) {
   return (
-    <div className="card text-center hover:border-hinomaru/30 hover:-translate-y-1 transition-all duration-300">
+    <div className="card text-center hover:border-gold/30 hover:-translate-y-1 transition-all duration-300">
       <div
         className={cn(
           'text-3xl md:text-4xl font-bold mb-2',
@@ -613,9 +632,9 @@ function FeatureCard({
   learnMoreLabel = '詳細を見る',
 }: FeatureCardProps) {
   return (
-    <article className="card hover:border-hinomaru/30 hover:-translate-y-1 transition-all duration-300 group">
+    <article className="card hover:border-gold/30 hover:-translate-y-1 transition-all duration-300 group">
       <div
-        className="w-14 h-14 flex items-center justify-center bg-hinomaru/10 rounded-qs-lg mb-5 text-hinomaru-400 group-hover:bg-hinomaru/20 transition-colors"
+        className="w-14 h-14 flex items-center justify-center bg-gold/10 rounded-qs-lg mb-5 text-gold group-hover:bg-gold/20 transition-colors"
         aria-hidden="true"
       >
         {icon}
@@ -664,42 +683,74 @@ interface StepCardProps {
 
 function StepCard({ number, icon, title, description }: StepCardProps) {
   const stepColors = {
-    1: { bg: 'from-hinomaru/20 to-hinomaru/5', border: 'border-hinomaru/30', glow: 'shadow-[0_0_30px_rgba(188,0,45,0.2)]' },
-    2: { bg: 'from-gold/20 to-gold/5', border: 'border-gold/30', glow: 'shadow-[0_0_30px_rgba(201,169,98,0.2)]' },
-    3: { bg: 'from-success/20 to-success/5', border: 'border-success/30', glow: 'shadow-[0_0_30px_rgba(0,200,150,0.2)]' },
+    1: {
+      bg: 'from-hinomaru/10 to-transparent',
+      border: 'border-hinomaru/20 hover:border-hinomaru/40',
+      glow: 'hover:shadow-[0_0_40px_rgba(188,0,45,0.15)]',
+      numberBg: 'bg-hinomaru',
+      iconColor: 'text-hinomaru',
+    },
+    2: {
+      bg: 'from-gold/10 to-transparent',
+      border: 'border-gold/20 hover:border-gold/40',
+      glow: 'hover:shadow-[0_0_40px_rgba(201,169,98,0.15)]',
+      numberBg: 'bg-gold',
+      iconColor: 'text-gold',
+    },
+    3: {
+      bg: 'from-success/10 to-transparent',
+      border: 'border-success/20 hover:border-success/40',
+      glow: 'hover:shadow-[0_0_40px_rgba(0,200,150,0.15)]',
+      numberBg: 'bg-success',
+      iconColor: 'text-success',
+    },
   };
   const colors = stepColors[number as keyof typeof stepColors] || stepColors[1];
 
   return (
     <article
       className={cn(
-        'relative pt-12 pb-6 px-6 rounded-qs-xl border',
-        'bg-gradient-to-br',
+        'group relative pt-14 pb-8 px-6 rounded-qs-xl border bg-surface',
+        'bg-gradient-to-b',
         colors.bg,
         colors.border,
         colors.glow,
-        'transition-all duration-300 hover:scale-[1.02]'
+        'transition-all duration-500 hover:-translate-y-2'
       )}
       aria-labelledby={`step-${number}-title`}
     >
       {/* Step number badge */}
       <div
-        className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold text-white bg-gradient-hinomaru shadow-glow-hinomaru"
+        className={cn(
+          'absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white transition-transform duration-500 group-hover:scale-110',
+          colors.numberBg
+        )}
         aria-hidden="true"
       >
         {number}
       </div>
 
-      {/* Icon container */}
-      <div className="flex justify-center mb-4">
-        <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center border border-border">
-          <div className="text-gold" aria-hidden="true">
-            {icon}
+      {/* Icon container with animated ring */}
+      <div className="flex justify-center mb-6">
+        <div className="relative">
+          <div className={cn(
+            'w-20 h-20 rounded-full bg-surface-secondary flex items-center justify-center border border-border transition-all duration-500',
+            'group-hover:border-transparent'
+          )}>
+            <div className={cn('transition-colors duration-500', colors.iconColor)} aria-hidden="true">
+              {icon}
+            </div>
           </div>
+          {/* Animated ring on hover */}
+          <div className={cn(
+            'absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500',
+            'border-2',
+            colors.border.replace('hover:', '')
+          )} />
         </div>
       </div>
 
-      <h3 id={`step-${number}-title`} className="text-lg font-semibold mb-2 text-center">
+      <h3 id={`step-${number}-title`} className="text-lg font-semibold mb-3 text-center">
         <span className="sr-only">Step {number}: </span>
         {title}
       </h3>
@@ -726,9 +777,10 @@ interface ExpertQuoteCardProps {
   author: string;
   title: string;
   source: string;
+  sourceUrl?: string;
 }
 
-function ExpertQuoteCard({ quote, author, title, source }: ExpertQuoteCardProps) {
+function ExpertQuoteCard({ quote, author, title, source, sourceUrl }: ExpertQuoteCardProps) {
   return (
     <article className="card hover:border-gold/30 transition-all duration-300">
       <blockquote className="text-sm text-foreground-secondary leading-relaxed mb-4 italic">
@@ -737,7 +789,19 @@ function ExpertQuoteCard({ quote, author, title, source }: ExpertQuoteCardProps)
       <div className="border-t border-border pt-4">
         <div className="font-semibold text-foreground">{author}</div>
         <div className="text-xs text-foreground-tertiary">{title}</div>
-        <div className="text-xs text-gold mt-1">{source}</div>
+        {sourceUrl ? (
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gold mt-1 inline-flex items-center gap-1 hover:underline"
+          >
+            {source}
+            <ExternalLink className="w-3 h-3" aria-hidden="true" />
+          </a>
+        ) : (
+          <div className="text-xs text-gold mt-1">{source}</div>
+        )}
       </div>
     </article>
   );
