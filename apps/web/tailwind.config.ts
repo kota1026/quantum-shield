@@ -41,15 +41,15 @@ const config: Config = {
           800: '#664926',
           900: '#452912',
         },
-        // Background colors (matching mock design)
+        // Background colors (matching design-concept-5-japan-premium.html)
         background: {
           DEFAULT: '#0A0A0C',
           secondary: '#111114',
           tertiary: '#18181C',
-          elevated: '#1E1E22',
+          elevated: '#18181C',
           card: '#0E0E11',
         },
-        // Surface colors
+        // Surface colors (matching design-concept-5-japan-premium.html)
         surface: {
           DEFAULT: '#18181C',
           secondary: '#1E1E22',
