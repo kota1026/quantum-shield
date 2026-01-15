@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-15
+> **Last Updated**: 2026-01-15 (unlock Persona Test/PIR)
 > **Total Tasks**: 218
 
 ---
@@ -11,12 +11,12 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [████░░░░░░░░░░░░░░░░]   16/144 (11%)           │
+│  WS-1 UI/UX:      [█████░░░░░░░░░░░░░░░]   22/144 (15%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [█░░░░░░░░░░░░░░░░░░░]   16/218 (7%)            │
+│  TOTAL:           [██░░░░░░░░░░░░░░░░░░]   22/218 (10%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
 │  Week 2-3 P1 Systems: 🔄 In Progress                               │
@@ -35,24 +35,24 @@
 | 01 | landing | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 02 | onboarding | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 03 | dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 04 | unlock | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 04 | unlock | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 05 | lock | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | In Progress |
-| 06 | history | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 06 | history | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 07 | history_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 08 | emergency | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 08 | emergency | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 09 | emergency_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 10 | unlock_complete | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 11 | settings | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 11 | settings | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 12 | notifications | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 13 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 14 | faq | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 14 | faq | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 15 | contact | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 16 | terms | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
-| 17 | privacy | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 16 | terms | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
+| 17 | privacy | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 18 | cookie | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 19 | wallet_connect | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 16/19 (84%) - 3 screens Done (incl. Persona Test/PIR), 11 screens In Progress
+**Progress**: 24/19 (126%) - 10 screens Done (incl. Persona Test/PIR), 4 screens In Progress, 5 Pending
 
 ---
 
@@ -375,6 +375,10 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-15 | Consumer App: settings, faq, terms, privacy - Persona Test/PIR complete (PASS) |
+| 2026-01-15 | Consumer App: emergency - Persona Test/PIR complete (PASS) |
+| 2026-01-15 | Consumer App: history - Persona Test/PIR complete (PASS) |
+| 2026-01-15 | Consumer App: unlock - Persona Test/PIR complete (PASS) |
 | 2026-01-15 | Consumer App: onboarding, dashboard - Persona Test/PIR complete |
 | 2026-01-15 | Consumer App: Bulk update - 14 screens with UI/A11y/E2E complete |
 | 2026-01-15 | Added CR-10 rule for wallet provider timing in CLAUDE.md |
