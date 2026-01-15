@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-15 (unlock Persona Test/PIR)
+> **Last Updated**: 2026-01-15 (lock screen complete)
 > **Total Tasks**: 218
 
 ---
@@ -11,12 +11,12 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [█████░░░░░░░░░░░░░░░]   22/144 (15%)           │
+│  WS-1 UI/UX:      [█████░░░░░░░░░░░░░░░]   23/144 (16%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [██░░░░░░░░░░░░░░░░░░]   22/218 (10%)           │
+│  TOTAL:           [██░░░░░░░░░░░░░░░░░░]   23/218 (11%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
 │  Week 2-3 P1 Systems: 🔄 In Progress                               │
@@ -36,7 +36,7 @@
 | 02 | onboarding | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 03 | dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 04 | unlock | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 05 | lock | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | In Progress |
+| 05 | lock | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 06 | history | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 07 | history_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 08 | emergency | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
@@ -52,7 +52,7 @@
 | 18 | cookie | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 19 | wallet_connect | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 24/19 (126%) - 10 screens Done (incl. Persona Test/PIR), 4 screens In Progress, 5 Pending
+**Progress**: 11/19 (58%) - 11 screens Done (incl. Persona Test/PIR), 8 Pending
 
 ---
 
@@ -375,6 +375,7 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-15 | Consumer App: lock - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS |
 | 2026-01-15 | Consumer App: settings, faq, terms, privacy - Persona Test/PIR complete (PASS) |
 | 2026-01-15 | Consumer App: emergency - Persona Test/PIR complete (PASS) |
 | 2026-01-15 | Consumer App: history - Persona Test/PIR complete (PASS) |

@@ -792,6 +792,70 @@
         "backToDashboard": "ダッシュボードに戻る"
       }
     },
+    "lock": {
+      "meta": {
+        "title": "ロック | Quantum Shield",
+        "description": "ETHを量子耐性暗号で安全にロック"
+      },
+      "header": {
+        "title": "資産をロック",
+        "back": "戻る",
+        "backAriaLabel": "ダッシュボードに戻る"
+      },
+      "hero": {
+        "badge": "量子耐性保護",
+        "badgeTooltip": "量子耐性暗号とは、将来の量子コンピュータからも資産を守れる次世代の暗号技術です",
+        "title": "あなたの資産を将来の脅威から守る",
+        "subtitle": "量子コンピュータ時代に備えて、今日からETHをDilithium暗号でロック"
+      },
+      "card": {
+        "title": "ロック金額",
+        "inputLabel": "ロックする金額を入力",
+        "inputPlaceholder": "0.00",
+        "availableBalance": "利用可能残高",
+        "quickAmounts": {
+          "25": "25%",
+          "50": "50%",
+          "75": "75%",
+          "max": "最大"
+        },
+        "lockButton": "Dilithium署名でロック",
+        "lockButtonAriaLabel": "Dilithium署名で資産をロックする"
+      },
+      "info": {
+        "title": "ロックについて",
+        "items": {
+          "quantum": {
+            "title": "量子耐性保護",
+            "description": "NIST認定のDilithium暗号で資産を保護"
+          },
+          "unlock": {
+            "title": "いつでもアンロック可能",
+            "description": "24時間の待機期間後に資産を取り出せます"
+          },
+          "fee": {
+            "title": "手数料",
+            "description": "ガス代のみ（約$7相当）"
+          }
+        }
+      },
+      "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です",
+      "modal": {
+        "title": "ロック確認",
+        "description": "以下の内容でロックを実行します。Dilithium署名が必要です。",
+        "amount": "ロック金額",
+        "gasFee": "ガス代（概算）",
+        "note": "※ アンロック時には24時間の待機期間があります",
+        "confirm": "署名してロック",
+        "cancel": "キャンセル"
+      },
+      "validation": {
+        "amountRequired": "ロック金額を入力してください",
+        "amountInvalid": "正しい金額を入力してください",
+        "insufficientBalance": "残高が不足しています",
+        "minimumAmount": "最低ロック金額は0.01 ETHです"
+      }
+    },
     "lockProcessing": {
       "title": "Lock処理中...",
       "subtitle": "しばらくお待ちください。このページを閉じないでください。",
