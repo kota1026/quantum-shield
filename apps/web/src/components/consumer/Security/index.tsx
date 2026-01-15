@@ -48,12 +48,12 @@ export function Security() {
       badgeIcon: '🏛️',
     },
     {
-      id: 'zkstark',
-      icon: '🔍',
-      title: t('algorithms.zkstark.title'),
-      description: t('algorithms.zkstark.description'),
-      badge: t('algorithms.zkstark.badge'),
-      badgeIcon: '⚡',
+      id: 'smtProof',
+      icon: '🌳',
+      title: t('algorithms.smtProof.title'),
+      description: t('algorithms.smtProof.description'),
+      badge: t('algorithms.smtProof.badge'),
+      badgeIcon: '#️⃣',
     },
   ];
 

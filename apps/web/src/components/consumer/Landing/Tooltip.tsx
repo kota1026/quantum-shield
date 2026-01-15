@@ -57,10 +57,11 @@ export function Tooltip({
         role="tooltip"
         aria-hidden={!isVisible}
         style={{
-          maxWidth: 'min(280px, calc(100vw - 2rem))',
+          maxWidth: 'min(400px, calc(100vw - 2rem))',
+          width: 'max-content',
         }}
         className={cn(
-          'absolute z-50 px-3 py-2 text-sm text-foreground-secondary bg-surface-tertiary border border-border rounded-qs transition-all duration-150 whitespace-normal break-words',
+          'absolute z-50 px-4 py-2.5 text-sm leading-relaxed text-foreground bg-surface-tertiary border border-border rounded-qs shadow-lg transition-all duration-150 whitespace-normal text-left',
           position === 'top' && 'bottom-full mb-2 left-1/2 -translate-x-1/2',
           position === 'bottom' && 'top-full mt-2 left-1/2 -translate-x-1/2',
           position === 'left' && 'right-full mr-2 top-1/2 -translate-y-1/2',

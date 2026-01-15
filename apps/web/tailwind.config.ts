@@ -41,15 +41,15 @@ const config: Config = {
           800: '#664926',
           900: '#452912',
         },
-        // Background colors (matching mock design)
+        // Background colors (matching design-concept-5-japan-premium.html)
         background: {
           DEFAULT: '#0A0A0C',
           secondary: '#111114',
           tertiary: '#18181C',
-          elevated: '#1E1E22',
+          elevated: '#18181C',
           card: '#0E0E11',
         },
-        // Surface colors
+        // Surface colors (matching design-concept-5-japan-premium.html)
         surface: {
           DEFAULT: '#18181C',
           secondary: '#1E1E22',
@@ -87,6 +87,23 @@ const config: Config = {
           challenged: '#E84057', // Danger - under challenge (matching mock)
           emergency: '#BC002D',  // Hinomaru - emergency
         },
+        // Border colors
+        border: {
+          DEFAULT: '#2A2A2E',
+          secondary: '#3A3A40',
+        },
+        // Muted colors (for compatibility)
+        muted: {
+          DEFAULT: '#18181C',
+          foreground: '#9898A0',
+        },
+        // Card colors
+        card: {
+          DEFAULT: '#0E0E11',
+          foreground: '#F8F8FA',
+        },
+        // Elevated background
+        elevated: '#1E1E22',
       },
       fontFamily: {
         sans: [
@@ -150,6 +167,9 @@ const config: Config = {
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
+      },
+      transitionDuration: {
+        '250': '250ms',
       },
     },
   },

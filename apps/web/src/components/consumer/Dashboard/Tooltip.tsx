@@ -45,11 +45,12 @@ export function Tooltip({ content, children, className }: TooltipProps) {
           role="tooltip"
           className={cn(
             'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
-            'px-3 py-2 max-w-xs',
-            'text-xs text-foreground bg-surface-secondary',
+            'px-4 py-2.5 w-max',
+            'text-sm leading-relaxed text-foreground bg-surface-secondary',
             'border border-border rounded-qs shadow-lg',
-            'whitespace-normal text-center'
+            'whitespace-normal text-left'
           )}
+          style={{ maxWidth: 'min(400px, calc(100vw - 2rem))' }}
         >
           {content}
           {/* Arrow */}
