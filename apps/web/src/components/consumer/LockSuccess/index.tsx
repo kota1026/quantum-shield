@@ -50,7 +50,7 @@ export function LockSuccess() {
           <Button asChild variant="outline" className="w-full">
             <Link href="/consumer/history">{t('buttons.viewHistory')}</Link>
           </Button>
-          <Button asChild variant="default" className="w-full">
+          <Button asChild variant="primary" className="w-full">
             <Link href="/consumer/dashboard">{t('buttons.backToDashboard')}</Link>
           </Button>
         </div>

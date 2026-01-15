@@ -1093,11 +1093,11 @@
           "title": "Your Keys, Your Control",
           "description": "Private keys are stored only on your device.",
           "whyTitle": "Why not send to servers?",
-          "whyPoints": [
-            "Complete protection from server attacks and data breaches",
-            "Even Quantum Shield operators cannot access your assets",
-            "True self-custody for complete ownership"
-          ],
+          "whyPoints": {
+            "point1": "Complete protection from server attacks and data breaches",
+            "point2": "Even Quantum Shield operators cannot access your assets",
+            "point3": "True self-custody for complete ownership"
+          },
           "warning": "Lost keys cannot be recovered. Always save your backup."
         },
         "keyGeneration": {

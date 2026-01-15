@@ -394,9 +394,9 @@ function Step2KeyGeneration({
           <strong className="text-foreground">{t('step2.selfCustodyNotice.whyTitle')}</strong>
         </div>
         <ul className="text-xs text-foreground-secondary space-y-1 mb-3 pl-4">
-          {(t.raw('step2.selfCustodyNotice.whyPoints') as string[]).map((point, index) => (
-            <li key={index} className="list-disc">{point}</li>
-          ))}
+          <li className="list-disc">{t('step2.selfCustodyNotice.whyPoints.point1')}</li>
+          <li className="list-disc">{t('step2.selfCustodyNotice.whyPoints.point2')}</li>
+          <li className="list-disc">{t('step2.selfCustodyNotice.whyPoints.point3')}</li>
         </ul>
         <div className="flex items-start gap-2 p-2 bg-warning/10 rounded-qs">
           <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" aria-hidden="true" />

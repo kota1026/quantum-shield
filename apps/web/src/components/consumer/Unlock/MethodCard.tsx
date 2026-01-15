@@ -58,6 +58,13 @@ function InlineTooltip({ content, children }: InlineTooltipProps) {
 
 type MethodType = 'normal' | 'emergency';
 
+interface DetailItem {
+  label: string;
+  value: string;
+  warning?: boolean;
+  tooltip?: string;
+}
+
 interface MethodCardProps {
   type: MethodType;
   selected: boolean;
@@ -71,7 +78,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
 
   const isEmergency = type === 'emergency';
 
-  const details = isEmergency
+  const details: DetailItem[] = isEmergency
     ? [
         { label: t('emergency.waitTime'), value: t('emergency.waitTimeValue'), warning: true },
         { label: t('emergency.required'), value: t('emergency.requiredValue') },
