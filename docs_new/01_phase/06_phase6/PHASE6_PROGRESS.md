@@ -11,12 +11,12 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [████░░░░░░░░░░░░░░░░]   14/144 (10%)           │
+│  WS-1 UI/UX:      [████░░░░░░░░░░░░░░░░]   16/144 (11%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [█░░░░░░░░░░░░░░░░░░░]   14/218 (6%)            │
+│  TOTAL:           [█░░░░░░░░░░░░░░░░░░░]   16/218 (7%)            │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
 │  Week 2-3 P1 Systems: 🔄 In Progress                               │
@@ -33,8 +33,8 @@
 | # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
 |---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
 | 01 | landing | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 02 | onboarding | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
-| 03 | dashboard | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
+| 02 | onboarding | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
+| 03 | dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 04 | unlock | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
 | 05 | lock | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | In Progress |
 | 06 | history | ✅ | ✅ | ✅ | ⬜ | ⬜ | In Progress |
@@ -52,7 +52,7 @@
 | 18 | cookie | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 19 | wallet_connect | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 14/19 (74%) - UI/A11y/E2E, Persona Test/PIR pending
+**Progress**: 16/19 (84%) - 3 screens Done (incl. Persona Test/PIR), 11 screens In Progress
 
 ---
 
@@ -375,6 +375,7 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-15 | Consumer App: onboarding, dashboard - Persona Test/PIR complete |
 | 2026-01-15 | Consumer App: Bulk update - 14 screens with UI/A11y/E2E complete |
 | 2026-01-15 | Added CR-10 rule for wallet provider timing in CLAUDE.md |
 | 2026-01-15 | Fixed landing.meta i18n error, added lock/processing pages |
