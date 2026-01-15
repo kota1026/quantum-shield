@@ -24,7 +24,7 @@ type OnboardingStep = 1 | 2 | 3 | 4;
 type ModalType = 'walletHelp' | 'dilithium' | 'tutorial' | null;
 
 export function Onboarding() {
-  const t = useTranslations('onboarding');
+  const t = useTranslations('consumer.onboarding');
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -258,7 +258,7 @@ export function Onboarding() {
 
 // Step 1: Wallet Connection
 interface Step1Props {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onWalletSelect: () => void;
   onHelpClick: () => void;
 }
@@ -343,7 +343,7 @@ function WalletOption({ icon, name, description, onClick }: WalletOptionProps) {
 
 // Step 2: Key Generation
 interface Step2Props {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   isGenerating: boolean;
   generationProgress: number;
   generationComplete: boolean;
@@ -462,7 +462,7 @@ function Step2KeyGeneration({
 
 // Step 3: Backup
 interface Step3Props {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   backupDownloaded: boolean;
   checkDownloaded: boolean;
   checkSaved: boolean;
@@ -623,7 +623,7 @@ function CheckboxItem({ id, checked, onChange, label }: CheckboxItemProps) {
 
 // Step 4: Ready
 interface Step4Props {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onTutorialClick: () => void;
 }
 
@@ -759,7 +759,7 @@ function WalletHelpModalContent({
   t,
   onClose,
 }: {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onClose: () => void;
 }) {
   return (
@@ -811,7 +811,7 @@ function DilithiumModalContent({
   t,
   onClose,
 }: {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onClose: () => void;
 }) {
   return (
@@ -860,7 +860,7 @@ function TutorialModalContent({
   t,
   onClose,
 }: {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onClose: () => void;
 }) {
   return (

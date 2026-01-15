@@ -289,3 +289,45 @@
     }
   }
 }
+
+/**
+ * Hinomaru Visual Animations
+ * Matching design-concept-5-japan-premium.html
+ */
+@keyframes orbit-gold {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
+  }
+}
+
+@keyframes orbit-red {
+  from {
+    transform: translate(-50%, -50%) rotate(120deg) translateX(var(--orbit-radius)) rotate(-120deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(480deg) translateX(var(--orbit-radius)) rotate(-480deg);
+  }
+}
+
+@keyframes orbit-white {
+  from {
+    transform: translate(-50%, -50%) rotate(240deg) translateX(var(--orbit-radius)) rotate(-240deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(600deg) translateX(var(--orbit-radius)) rotate(-600deg);
+  }
+}
+
+@keyframes hinomaru-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 60px rgba(188, 0, 45, 0.4), 0 0 100px rgba(188, 0, 45, 0.2);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 80px rgba(188, 0, 45, 0.4), 0 0 120px rgba(188, 0, 45, 0.3);
+  }
+}
