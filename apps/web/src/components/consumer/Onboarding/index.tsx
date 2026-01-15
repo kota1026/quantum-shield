@@ -72,7 +72,7 @@ export function Onboarding() {
           setGenerationComplete(true);
           setTimeout(() => {
             goToStep(3);
-          }, 1000);
+          }, 1500);
           return 100;
         }
         return next;
