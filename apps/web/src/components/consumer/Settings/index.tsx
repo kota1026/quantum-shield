@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, Link } from '@/i18n/navigation';
 import {
   ArrowLeft,
   Key,
@@ -58,38 +57,8 @@ export function Settings() {
   const handleLanguage = useCallback(() => {
     // Toggle between Japanese and English
     const newLocale = locale === 'ja' ? 'en' : 'ja';
-
-    // Use actual browser URL path for accurate locale detection
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : pathname;
-
-    // Handle locale switching with 'as-needed' prefix mode
-    // Default locale (ja) doesn't have prefix in URL, other locales do
-    let newPath: string;
-
-    // Check if URL has /en/ prefix (non-default locale)
-    if (currentPath.startsWith('/en/')) {
-      if (newLocale === 'ja') {
-        // Switching to Japanese (default): remove /en prefix
-        newPath = currentPath.replace('/en', '');
-      } else {
-        // Switching to another non-default locale (future-proof)
-        newPath = currentPath.replace('/en/', `/${newLocale}/`);
-      }
-    } else if (currentPath === '/en') {
-      // Root path with locale
-      newPath = newLocale === 'ja' ? '/' : `/${newLocale}`;
-    } else {
-      // No locale prefix in URL (Japanese/default)
-      if (newLocale === 'ja') {
-        // Already on Japanese
-        newPath = currentPath;
-      } else {
-        // Switching from Japanese to English: add prefix
-        newPath = `/${newLocale}${currentPath}`;
-      }
-    }
-
-    router.push(newPath);
+    // Use next-intl's router to switch locale while staying on the same page
+    router.replace(pathname, { locale: newLocale });
   }, [locale, pathname, router]);
 
   const handleCurrency = useCallback(() => {
