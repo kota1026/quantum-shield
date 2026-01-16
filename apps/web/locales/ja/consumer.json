@@ -1510,6 +1510,89 @@
         "description": "初めての方はチュートリアルを確認してください",
         "button": "チュートリアルを見る"
       }
+    },
+    "contact": {
+      "meta": {
+        "title": "お問い合わせ | Quantum Shield",
+        "description": "Quantum Shieldサポートチームへのお問い合わせ"
+      },
+      "header": {
+        "title": "お問い合わせ",
+        "back": "戻る"
+      },
+      "intro": {
+        "title": "サポートチームにご連絡ください",
+        "description": "ご質問やお困りのことがありましたら、以下のフォームからお問い合わせください。通常1〜2営業日以内にご返信いたします。"
+      },
+      "form": {
+        "category": {
+          "label": "カテゴリ",
+          "placeholder": "選択してください",
+          "options": {
+            "general": "一般的な質問",
+            "technical": "技術的な問題",
+            "account": "アカウント関連",
+            "security": "セキュリティ",
+            "feedback": "フィードバック・要望",
+            "other": "その他"
+          }
+        },
+        "email": {
+          "label": "メールアドレス",
+          "placeholder": "your@email.com",
+          "description": "返信先のメールアドレス"
+        },
+        "subject": {
+          "label": "件名",
+          "placeholder": "お問い合わせの件名"
+        },
+        "message": {
+          "label": "内容",
+          "placeholder": "お問い合わせの内容を詳しくご記入ください..."
+        },
+        "walletAddress": {
+          "label": "ウォレットアドレス（任意）",
+          "placeholder": "0x...",
+          "description": "問題の調査に役立つ場合があります"
+        },
+        "submit": "送信する",
+        "submitting": "送信中..."
+      },
+      "validation": {
+        "categoryRequired": "カテゴリを選択してください",
+        "emailRequired": "メールアドレスを入力してください",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "subjectRequired": "件名を入力してください",
+        "messageRequired": "内容を入力してください",
+        "messageTooShort": "内容は10文字以上で入力してください"
+      },
+      "success": {
+        "title": "お問い合わせを受け付けました",
+        "message": "ご連絡いただきありがとうございます。1〜2営業日以内にご返信いたします。",
+        "ticketId": "お問い合わせ番号",
+        "backToHelp": "ヘルプに戻る",
+        "backToDashboard": "ダッシュボードに戻る"
+      },
+      "otherWays": {
+        "title": "その他のお問い合わせ方法",
+        "email": {
+          "title": "メール",
+          "value": "support@quantumshield.io"
+        },
+        "discord": {
+          "title": "Discord",
+          "value": "コミュニティに参加"
+        },
+        "twitter": {
+          "title": "Twitter / X",
+          "value": "@QuantumShield"
+        }
+      },
+      "faq": {
+        "title": "よくある質問",
+        "description": "お問い合わせの前に、FAQもご確認ください",
+        "link": "FAQを見る"
+      }
     }
   }
 }
