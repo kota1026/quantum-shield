@@ -123,7 +123,7 @@ export function Dashboard() {
             unit="ETH"
             badge={{ text: '+12.4%', variant: 'success' }}
             highlight
-            onClick={openLockModal}
+            onClick={() => router.push('/consumer/history')}
             ariaLabel={`${t('stats.totalLocked.label')}: ${DEMO_STATS.totalLocked} ETH. ${t('stats.totalLocked.tooltip')}`}
           />
           <StatCard

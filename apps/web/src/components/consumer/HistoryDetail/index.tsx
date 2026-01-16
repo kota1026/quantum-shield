@@ -279,7 +279,7 @@ export function HistoryDetail({ transaction }: HistoryDetailProps) {
                 </Tooltip>
                 <Tooltip content={t('details.viewOnExplorer')}>
                   <a
-                    href={`https://etherscan.io/tx/${transaction.txHash}`}
+                    href={`https://sepolia.etherscan.io/tx/${transaction.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-1 text-foreground-tertiary hover:text-foreground transition-colors"
