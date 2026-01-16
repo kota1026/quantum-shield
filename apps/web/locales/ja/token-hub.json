@@ -9,6 +9,61 @@
         "navLabel": "Token Hub ナビゲーション",
         "walletConnected": "{address} に接続中",
         "connectWallet": "ウォレット接続"
+      },
+      "footer": {
+        "navLabel": "フッターナビゲーション",
+        "terms": "利用規約",
+        "privacy": "プライバシーポリシー",
+        "security": "セキュリティ",
+        "disclaimer": "本サービスは投資助言ではありません。暗号資産への投資にはリスクが伴います。ご自身の責任において投資判断を行ってください。"
+      }
+    },
+    "lock": {
+      "meta": {
+        "title": "QSをロック | Token Hub | Quantum Shield",
+        "description": "QSトークンをロックしてveQSを獲得し、ガバナンスに参加"
+      },
+      "title": "QSをロックしてveQSを獲得",
+      "steps": {
+        "ariaLabel": "ロックプロセスのステップ",
+        "step1": "入力",
+        "step2": "プレビュー",
+        "step3": "確認"
+      },
+      "amount": {
+        "label": "ロック数量",
+        "tooltip": "QSトークンをロックしてveQS投票権を獲得します",
+        "helpAriaLabel": "ロック数量についてのヘルプ",
+        "balance": "残高",
+        "maxAriaLabel": "最大数量を入力",
+        "quickAmountsAriaLabel": "クイック数量選択"
+      },
+      "duration": {
+        "label": "ロック期間",
+        "tooltip": "長期ロック = より多くのveQS。最大4年で1:1の比率になります。",
+        "helpAriaLabel": "ロック期間についてのヘルプ",
+        "ariaLabel": "ロック期間を選択",
+        "options": {
+          "6": "6ヶ月",
+          "12": "1年",
+          "24": "2年",
+          "48": "4年"
+        }
+      },
+      "preview": {
+        "label": "獲得予定",
+        "formulaLabel": "veQS計算式",
+        "formulaAriaLabel": "veQS計算式を表示",
+        "formulaTitle": "veQS計算式",
+        "formulaDescription": "veQSは時間経過で線形に減少し、ロック終了時に0になります。投票力はveQS残高に比例します。",
+        "years": "年"
+      },
+      "previewButton": {
+        "text": "プレビュー",
+        "ariaLabel": "ロック内容をプレビュー"
+      },
+      "warning": {
+        "lockPeriod": "ロック期間中はトークンを引き出すことができません。ロック期間が終了するまでお待ちいただく必要があります。"
       }
     },
     "dashboard": {
