@@ -4,6 +4,7 @@ export { HinomaryVisual } from './Landing/HinomaryVisual';
 export { Tooltip } from './Landing/Tooltip';
 export { Dashboard } from './Dashboard';
 export { History } from './History';
+export { HistoryDetail } from './HistoryDetail';
 export { Settings } from './Settings';
 export { Unlock } from './Unlock';
 export { KeyManagement } from './KeyManagement';

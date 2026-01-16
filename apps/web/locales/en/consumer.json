@@ -252,6 +252,53 @@
       "loadMore": "Load More",
       "loadMoreNotAvailable": "Load more is coming soon"
     },
+    "historyDetail": {
+      "meta": {
+        "title": "Transaction Details | Quantum Shield",
+        "description": "View detailed transaction information"
+      },
+      "header": {
+        "title": "Transaction Details",
+        "back": "Back to History"
+      },
+      "summary": {
+        "ariaLabel": "Transaction Summary"
+      },
+      "details": {
+        "title": "Transaction Information",
+        "txHash": "Transaction ID",
+        "copyTooltip": "Copy to clipboard",
+        "copied": "Copied!",
+        "copyAriaLabel": "Copy transaction ID",
+        "viewOnExplorer": "View on Etherscan",
+        "viewOnExplorerAriaLabel": "View transaction on Etherscan",
+        "date": "Date",
+        "amount": "Amount",
+        "confirmations": "Confirmations",
+        "confirmationsTooltip": "Number of times this transaction has been confirmed on the blockchain. More confirmations mean higher security.",
+        "blocks": "blocks",
+        "bond": "Bond",
+        "bondTooltip": "Security deposit required for emergency unlock. Returned after the 7-day challenge period.",
+        "remaining": "Time Remaining"
+      },
+      "timeline": {
+        "title": "Progress",
+        "ariaLabel": "Transaction progress timeline",
+        "initiated": "Transaction Initiated",
+        "confirmed": "Transaction Confirmed",
+        "signed": "Signature Complete",
+        "waiting24h": "24-Hour Waiting Period",
+        "challengePeriod": "Challenge Period (7 Days)",
+        "bondDeposited": "Bond Deposited",
+        "released": "Assets Released",
+        "completed": "Completed",
+        "remaining": "Remaining"
+      },
+      "actions": {
+        "backToHistory": "Back to History",
+        "viewUnlockStatus": "View Unlock Status"
+      }
+    },
     "settings": {
       "meta": {
         "title": "Settings | Quantum Shield",
