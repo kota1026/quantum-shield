@@ -29,8 +29,8 @@
       "stats": {
         "ariaLabel": "資産統計",
         "totalLocked": {
-          "label": "ロック中",
-          "tooltip": "現在ロックされている資産の合計額"
+          "label": "量子耐性暗号鍵で保管中",
+          "tooltip": "現在量子耐性暗号で保護されている資産の合計額"
         },
         "available": {
           "label": "利用可能",
@@ -59,7 +59,7 @@
         },
         "lockButton": "Dilithium署名でロック",
         "lockButtonAriaLabel": "Dilithium署名で資産をロックする",
-        "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です"
+        "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です。NIST（米国国立標準技術研究所）は、AES暗号やSHA-2など世界標準の暗号規格を策定する米国商務省の政府機関です"
       },
       "activity": {
         "title": "最近のアクティビティ",
@@ -161,7 +161,7 @@
           "waitTimeValue": "24時間",
           "required": "必要なもの",
           "requiredValue": "Dilithium秘密鍵",
-          "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です",
+          "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です。NIST（米国国立標準技術研究所）は、AES暗号やSHA-2など世界標準の暗号規格を策定する米国商務省の政府機関です",
           "fee": "手数料",
           "feeValue": "ガス代のみ"
         },
@@ -886,7 +886,7 @@
           }
         }
       },
-      "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です",
+      "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です。NIST（米国国立標準技術研究所）は、AES暗号やSHA-2など世界標準の暗号規格を策定する米国商務省の政府機関です",
       "modal": {
         "title": "ロック確認",
         "description": "以下の内容でロックを実行します。Dilithium署名が必要です。",

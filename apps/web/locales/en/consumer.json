@@ -29,8 +29,8 @@
       "stats": {
         "ariaLabel": "Asset Statistics",
         "totalLocked": {
-          "label": "Total Locked",
-          "tooltip": "Total amount of currently locked assets"
+          "label": "Protected with Quantum Keys",
+          "tooltip": "Total amount protected with quantum-resistant cryptography"
         },
         "available": {
           "label": "Available",
@@ -59,7 +59,7 @@
         },
         "lockButton": "Lock with Dilithium Signature",
         "lockButtonAriaLabel": "Lock assets with Dilithium signature",
-        "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers"
+        "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers. NIST (National Institute of Standards and Technology) is a US government agency that establishes global cryptography standards like AES and SHA-2"
       },
       "activity": {
         "title": "Recent Activity",
@@ -845,7 +845,7 @@
           }
         }
       },
-      "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers",
+      "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers. NIST (National Institute of Standards and Technology) is a US government agency that establishes global cryptography standards like AES and SHA-2",
       "modal": {
         "title": "Confirm Lock",
         "description": "You are about to lock the following amount. Dilithium signature required.",

@@ -16,8 +16,8 @@ export function FAQItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
   return (
     <div
       className={cn(
-        'bg-card border border-border-subtle rounded-qs-lg overflow-hidden',
-        'transition-all'
+        'bg-card border border-border-subtle rounded-qs-lg',
+        'transition-all hover-gradient-border'
       )}
     >
       <button
