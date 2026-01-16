@@ -7,7 +7,8 @@
         "delegate": "Delegate",
         "rewards": "Rewards",
         "navLabel": "Token Hub navigation",
-        "walletConnected": "Connected to {address}"
+        "walletConnected": "Connected to {address}",
+        "connectWallet": "Connect Wallet"
       }
     },
     "dashboard": {
