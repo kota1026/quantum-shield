@@ -127,29 +127,33 @@ export function Dashboard() {
             label={t('stats.totalLocked.label')}
             value={DEMO_STATS.totalLocked.toFixed(2)}
             unit="ETH"
+            tooltip={t('stats.totalLocked.tooltip')}
             badge={{ text: '+12.4%', variant: 'success' }}
             highlight
             onClick={() => router.push('/consumer/history')}
-            ariaLabel={`${t('stats.totalLocked.label')}: ${DEMO_STATS.totalLocked} ETH. ${t('stats.totalLocked.tooltip')}`}
+            ariaLabel={`${t('stats.totalLocked.label')}: ${DEMO_STATS.totalLocked} ETH`}
           />
           <StatCard
             label={t('stats.available.label')}
             value={DEMO_STATS.available.toFixed(2)}
             unit="ETH"
+            tooltip={t('stats.available.tooltip')}
             onClick={() => router.push('/consumer/unlock')}
-            ariaLabel={`${t('stats.available.label')}: ${DEMO_STATS.available} ETH. ${t('stats.available.tooltip')}`}
+            ariaLabel={`${t('stats.available.label')}: ${DEMO_STATS.available} ETH`}
           />
           <StatCard
             label={t('stats.pendingUnlock.label')}
             value={DEMO_STATS.pendingUnlock}
+            tooltip={t('stats.pendingUnlock.tooltip')}
             onClick={() => router.push('/consumer/unlock')}
-            ariaLabel={`${t('stats.pendingUnlock.label')}: ${DEMO_STATS.pendingUnlock}. ${t('stats.pendingUnlock.tooltip')}`}
+            ariaLabel={`${t('stats.pendingUnlock.label')}: ${DEMO_STATS.pendingUnlock}`}
           />
           <StatCard
             label={t('stats.transactions.label')}
             value={DEMO_STATS.transactions}
+            tooltip={t('stats.transactions.tooltip')}
             onClick={() => router.push('/consumer/history')}
-            ariaLabel={`${t('stats.transactions.label')}: ${DEMO_STATS.transactions}. ${t('stats.transactions.tooltip')}`}
+            ariaLabel={`${t('stats.transactions.label')}: ${DEMO_STATS.transactions}`}
           />
         </section>
 

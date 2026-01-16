@@ -3,11 +3,14 @@
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { HelpCircle } from 'lucide-react';
+import { Tooltip } from './Tooltip';
 
 interface StatCardProps {
   label: string;
   value: string | number;
   unit?: string;
+  tooltip?: string;
   badge?: {
     text: string;
     variant: 'success' | 'warning' | 'default';
@@ -23,6 +26,7 @@ export function StatCard({
   label,
   value,
   unit,
+  tooltip,
   badge,
   highlight = false,
   selected = false,
@@ -54,7 +58,19 @@ export function StatCard({
       }}
     >
       <div className="flex justify-between items-center mb-2">
-        <span className="text-xs text-foreground-tertiary">{label}</span>
+        <span className="text-xs text-foreground-tertiary flex items-center gap-1">
+          {label}
+          {tooltip && (
+            <Tooltip content={tooltip}>
+              <span
+                className="cursor-help inline-flex"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-foreground-tertiary hover:text-foreground-secondary transition-colors" />
+              </span>
+            </Tooltip>
+          )}
+        </span>
         {badge && (
           <Badge variant={badgeVariantMap[badge.variant]} size="sm">
             {badge.text}
