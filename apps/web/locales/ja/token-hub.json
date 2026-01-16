@@ -673,6 +673,75 @@
         "description": "エポックは報酬計算の期間単位です。通常1週間ごとに区切られ、各エポック終了時に報酬が確定・配布されます。",
         "ariaLabel": "エポックについて詳しく見る"
       }
+    },
+    "rewardsHistory": {
+      "meta": {
+        "title": "報酬履歴 | Token Hub | Quantum Shield",
+        "description": "過去の報酬履歴を確認・分析"
+      },
+      "breadcrumb": {
+        "ariaLabel": "パンくずリストナビゲーション",
+        "rewards": "報酬",
+        "current": "履歴"
+      },
+      "title": "報酬履歴",
+      "subtitle": "過去の報酬履歴を確認・分析",
+      "export": {
+        "button": "エクスポート",
+        "ariaLabel": "報酬履歴をCSVでエクスポート"
+      },
+      "stats": {
+        "ariaLabel": "報酬統計サマリー",
+        "totalClaimed": "請求済み合計",
+        "pending": "未請求",
+        "avgPerWeek": "週平均",
+        "highest": "最高週",
+        "lowest": "最低週",
+        "totalEpochs": "参加エポック数"
+      },
+      "chart": {
+        "title": "報酬推移",
+        "ariaLabel": "報酬推移チャート",
+        "chartTitle": "期間別報酬履歴",
+        "timeViewAriaLabel": "期間表示切替",
+        "views": {
+          "weekly": "週次",
+          "monthly": "月次"
+        }
+      },
+      "list": {
+        "title": "報酬明細",
+        "ariaLabel": "報酬履歴リスト",
+        "filterAriaLabel": "報酬種別フィルター",
+        "filters": {
+          "all": "すべて",
+          "holding": "保有報酬",
+          "voting": "投票報酬",
+          "delegation": "委任報酬"
+        },
+        "filterDescriptions": {
+          "all": "すべての報酬を表示",
+          "holding": "veQSを保有しているだけでもらえる基本報酬",
+          "voting": "ガバナンス提案に投票するともらえるボーナス",
+          "delegation": "他の人に投票を委任するともらえるボーナス"
+        },
+        "type": {
+          "weeklyReward": "週次報酬請求"
+        },
+        "epoch": "エポック #{number}",
+        "breakdown": {
+          "holding": "保有",
+          "voting": "投票",
+          "delegation": "委任"
+        },
+        "empty": "該当する報酬履歴がありません"
+      },
+      "pagination": {
+        "page": "{current} / {total} ページ",
+        "previous": "前のページ",
+        "next": "次のページ"
+      },
+      "backToRewards": "報酬ページに戻る"
     }
   }
 }
