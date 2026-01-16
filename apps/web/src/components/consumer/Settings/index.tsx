@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   ArrowLeft,
   Key,
@@ -34,12 +34,16 @@ const BUILD = '2026.01.06';
 export function Settings() {
   const t = useTranslations('consumer.settings');
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = useLocale();
 
   // Toggle states
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [biometricAuth, setBiometricAuth] = useState(true);
+  const [currency, setCurrency] = useState('JPY (¥)');
+  const [autoLockMinutes, setAutoLockMinutes] = useState(5);
 
   // Navigation handlers
   const handleKeyManagement = useCallback(() => {
@@ -52,28 +56,36 @@ export function Settings() {
   }, []);
 
   const handleLanguage = useCallback(() => {
-    // Future: Open language selector
-    console.log('Language clicked');
-  }, []);
+    // Toggle between Japanese and English
+    const newLocale = locale === 'ja' ? 'en' : 'ja';
+    // Replace the locale in the pathname
+    const newPath = pathname.replace(`/${locale}`, `/${newLocale}`);
+    router.push(newPath);
+  }, [locale, pathname, router]);
 
   const handleCurrency = useCallback(() => {
-    // Future: Open currency selector
-    console.log('Currency clicked');
-  }, []);
+    // Simple currency toggle for demo
+    const currencies = ['JPY (¥)', 'USD ($)', 'EUR (€)'];
+    const currentIndex = currencies.indexOf(currency);
+    const nextIndex = (currentIndex + 1) % currencies.length;
+    setCurrency(currencies[nextIndex]);
+  }, [currency]);
 
   const handleAutoLock = useCallback(() => {
-    // Future: Open auto-lock selector
-    console.log('Auto lock clicked');
-  }, []);
+    // Simple auto-lock toggle for demo
+    const options = [5, 10, 15, 30];
+    const currentIndex = options.indexOf(autoLockMinutes);
+    const nextIndex = (currentIndex + 1) % options.length;
+    setAutoLockMinutes(options[nextIndex]);
+  }, [autoLockMinutes]);
 
   const handleFAQ = useCallback(() => {
     router.push('/consumer/faq');
   }, [router]);
 
   const handleContact = useCallback(() => {
-    // Future: Open contact form or email
-    console.log('Contact clicked');
-  }, []);
+    router.push('/consumer/contact');
+  }, [router]);
 
   const handleLegal = useCallback(() => {
     router.push('/consumer/terms');
@@ -183,7 +195,7 @@ export function Settings() {
             description={t('display.language.description')}
             action={{
               type: 'value',
-              value: t('display.language.japanese'),
+              value: locale === 'ja' ? t('display.language.japanese') : t('display.language.english'),
               onClick: handleLanguage,
             }}
           />
@@ -193,7 +205,7 @@ export function Settings() {
             description={t('display.currency.description')}
             action={{
               type: 'value',
-              value: DEMO_CURRENCY,
+              value: currency,
               onClick: handleCurrency,
             }}
           />
@@ -207,7 +219,7 @@ export function Settings() {
             description={t('security.autoLock.description')}
             action={{
               type: 'value',
-              value: t('security.autoLock.minutes', { count: DEMO_AUTO_LOCK_MINUTES }),
+              value: t('security.autoLock.minutes', { count: autoLockMinutes }),
               onClick: handleAutoLock,
             }}
           />
