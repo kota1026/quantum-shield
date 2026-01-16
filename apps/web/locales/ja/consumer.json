@@ -1687,6 +1687,88 @@
         "cookie": "Cookie",
         "copyright": "© 2026 Quantum Shield. Made in Japan"
       }
+    },
+    "walletConnect": {
+      "meta": {
+        "title": "ウォレット接続 | Quantum Shield",
+        "description": "ウォレットを接続してQuantum Shieldを始めましょう"
+      },
+      "header": {
+        "title": "ウォレット接続",
+        "back": "戻る"
+      },
+      "intro": {
+        "title": "ウォレットを接続",
+        "description": "お使いのウォレットを接続して、Quantum Shieldの量子耐性保護を始めましょう。"
+      },
+      "wallets": {
+        "title": "ウォレットを選択",
+        "metamask": {
+          "name": "MetaMask",
+          "description": "ブラウザ拡張機能で接続",
+          "popular": "人気"
+        },
+        "walletconnect": {
+          "name": "WalletConnect",
+          "description": "QRコードでモバイルウォレットに接続"
+        },
+        "coinbase": {
+          "name": "Coinbase Wallet",
+          "description": "Coinbaseアプリで接続"
+        },
+        "injected": {
+          "name": "その他のウォレット",
+          "description": "ブラウザで検出されたウォレット"
+        }
+      },
+      "connecting": {
+        "title": "接続中...",
+        "description": "ウォレットで接続を承認してください",
+        "waiting": "ウォレットからの承認を待っています",
+        "cancel": "キャンセル"
+      },
+      "connected": {
+        "title": "接続完了",
+        "description": "ウォレットが正常に接続されました",
+        "address": "接続アドレス",
+        "continue": "ダッシュボードへ",
+        "startOnboarding": "セットアップを開始"
+      },
+      "error": {
+        "title": "接続エラー",
+        "description": "ウォレットの接続中にエラーが発生しました",
+        "userRejected": "接続がキャンセルされました",
+        "notInstalled": "ウォレットがインストールされていません",
+        "retry": "再試行",
+        "installMetamask": "MetaMaskをインストール"
+      },
+      "help": {
+        "title": "ウォレットとは？",
+        "description": "暗号資産ウォレットは、あなたのデジタル資産を管理するためのツールです。",
+        "link": "ウォレットの取得方法",
+        "security": {
+          "title": "セキュリティのヒント",
+          "tips": {
+            "seed": "シードフレーズを他人に教えないでください",
+            "official": "公式サイトからのみダウンロード",
+            "verify": "接続先URLを必ず確認"
+          }
+        }
+      },
+      "features": {
+        "selfCustody": {
+          "title": "セルフカストディ",
+          "description": "あなただけが資産をコントロール"
+        },
+        "secure": {
+          "title": "安全な接続",
+          "description": "秘密鍵は送信されません"
+        },
+        "quantum": {
+          "title": "量子耐性",
+          "description": "接続後、Dilithium鍵を生成"
+        }
+      }
     }
   }
 }
