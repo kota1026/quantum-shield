@@ -1,0 +1,88 @@
+{
+  "token-hub": {
+    "common": {
+      "header": {
+        "dashboard": "Dashboard",
+        "lock": "Lock",
+        "delegate": "Delegate",
+        "rewards": "Rewards",
+        "navLabel": "Token Hub navigation",
+        "walletConnected": "Connected to {address}"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Token Hub Dashboard | Quantum Shield",
+        "description": "Lock QS tokens to earn veQS and participate in governance"
+      },
+      "stats": {
+        "ariaLabel": "Token statistics",
+        "qsBalance": {
+          "label": "QS Balance"
+        },
+        "lockedQS": {
+          "label": "Locked QS"
+        },
+        "veQSBalance": {
+          "label": "veQS Balance"
+        },
+        "votingPower": {
+          "label": "Voting Power"
+        }
+      },
+      "chart": {
+        "title": "Voting Power Decay",
+        "subtitle": "veQS decay projection",
+        "ariaLabel": "Chart showing veQS decay over time"
+      },
+      "veqsBox": {
+        "currentVeQS": "Current veQS",
+        "lockEnds": "Lock ends",
+        "remaining": "2Y 3M remaining"
+      },
+      "veqsTooltip": {
+        "title": "veQS Formula",
+        "formula": "veQS = QS × (lock_period / 4 years)",
+        "example": "Example: Lock 8,500 QS for 3 years\n→ 8,500 × (3/4) = 6,375 veQS\n※ veQS decays linearly over time",
+        "ariaLabel": "Tooltip explaining veQS calculation"
+      },
+      "lockInfo": {
+        "lockedAmount": "Locked Amount",
+        "lockDuration": "Lock Duration",
+        "timeRemaining": "Time Remaining",
+        "multiplier": "Multiplier"
+      },
+      "actions": {
+        "lockMore": "Lock More QS",
+        "extendLock": "Extend Lock",
+        "delegatePower": "Delegate Power",
+        "claimRewards": "Claim Rewards"
+      },
+      "votingPowerTooltip": {
+        "title": "What is Voting Power?",
+        "description": "Voting Power represents how much influence your vote has in Quantum Shield's governance (decision-making on operational policies). The more veQS you have, the higher your voting power.",
+        "ariaLabel": "Tooltip explaining voting power"
+      },
+      "delegations": {
+        "title": "My Delegations",
+        "ariaLabel": "List of delegates you have delegated to",
+        "totalPower": "total"
+      },
+      "rewards": {
+        "title": "Rewards",
+        "claimable": "Claimable",
+        "claimButton": "Claim",
+        "epochProgress": "Epoch Progress"
+      },
+      "footer": {
+        "navLabel": "Footer navigation",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "docs": "Documentation",
+        "github": "GitHub",
+        "disclaimer": "This is not investment advice. Token Hub is a governance tool and does not constitute financial services. Locking QS tokens involves risk including loss of liquidity. Please do your own research before participating.",
+        "copyright": "© 2026 Quantum Shield Foundation. All rights reserved."
+      }
+    }
+  }
+}
