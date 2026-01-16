@@ -59,30 +59,33 @@ export function Settings() {
     // Toggle between Japanese and English
     const newLocale = locale === 'ja' ? 'en' : 'ja';
 
+    // Use actual browser URL path for accurate locale detection
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : pathname;
+
     // Handle locale switching with 'as-needed' prefix mode
-    // Default locale (ja) doesn't have prefix, other locales do
+    // Default locale (ja) doesn't have prefix in URL, other locales do
     let newPath: string;
 
-    if (pathname.startsWith(`/${locale}/`)) {
-      // Current path has locale prefix (e.g., /en/consumer/settings)
+    // Check if URL has /en/ prefix (non-default locale)
+    if (currentPath.startsWith('/en/')) {
       if (newLocale === 'ja') {
-        // Switching to Japanese (default): remove locale prefix
-        newPath = pathname.replace(`/${locale}`, '');
+        // Switching to Japanese (default): remove /en prefix
+        newPath = currentPath.replace('/en', '');
       } else {
-        // Switching to another non-default locale
-        newPath = pathname.replace(`/${locale}/`, `/${newLocale}/`);
+        // Switching to another non-default locale (future-proof)
+        newPath = currentPath.replace('/en/', `/${newLocale}/`);
       }
-    } else if (pathname === `/${locale}`) {
-      // Root path with locale (e.g., /en)
+    } else if (currentPath === '/en') {
+      // Root path with locale
       newPath = newLocale === 'ja' ? '/' : `/${newLocale}`;
     } else {
-      // Current path has no locale prefix (default locale, e.g., /consumer/settings)
+      // No locale prefix in URL (Japanese/default)
       if (newLocale === 'ja') {
-        // Staying on Japanese: no change needed
-        newPath = pathname;
+        // Already on Japanese
+        newPath = currentPath;
       } else {
-        // Switching from Japanese to another locale: add prefix
-        newPath = `/${newLocale}${pathname}`;
+        // Switching from Japanese to English: add prefix
+        newPath = `/${newLocale}${currentPath}`;
       }
     }
 
