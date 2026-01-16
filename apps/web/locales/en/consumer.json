@@ -1646,6 +1646,88 @@
         "cookie": "Cookies",
         "copyright": "© 2026 Quantum Shield. Made in Japan"
       }
+    },
+    "walletConnect": {
+      "meta": {
+        "title": "Connect Wallet | Quantum Shield",
+        "description": "Connect your wallet to start using Quantum Shield"
+      },
+      "header": {
+        "title": "Connect Wallet",
+        "back": "Back"
+      },
+      "intro": {
+        "title": "Connect Your Wallet",
+        "description": "Connect your wallet to start using Quantum Shield's quantum-resistant protection."
+      },
+      "wallets": {
+        "title": "Select a Wallet",
+        "metamask": {
+          "name": "MetaMask",
+          "description": "Connect with browser extension",
+          "popular": "Popular"
+        },
+        "walletconnect": {
+          "name": "WalletConnect",
+          "description": "Connect mobile wallet via QR code"
+        },
+        "coinbase": {
+          "name": "Coinbase Wallet",
+          "description": "Connect with Coinbase app"
+        },
+        "injected": {
+          "name": "Other Wallets",
+          "description": "Detected browser wallets"
+        }
+      },
+      "connecting": {
+        "title": "Connecting...",
+        "description": "Please approve the connection in your wallet",
+        "waiting": "Waiting for wallet approval",
+        "cancel": "Cancel"
+      },
+      "connected": {
+        "title": "Connected",
+        "description": "Your wallet has been successfully connected",
+        "address": "Connected Address",
+        "continue": "Go to Dashboard",
+        "startOnboarding": "Start Setup"
+      },
+      "error": {
+        "title": "Connection Error",
+        "description": "An error occurred while connecting your wallet",
+        "userRejected": "Connection was cancelled",
+        "notInstalled": "Wallet is not installed",
+        "retry": "Try Again",
+        "installMetamask": "Install MetaMask"
+      },
+      "help": {
+        "title": "What is a Wallet?",
+        "description": "A crypto wallet is a tool for managing your digital assets.",
+        "link": "How to get a wallet",
+        "security": {
+          "title": "Security Tips",
+          "tips": {
+            "seed": "Never share your seed phrase with anyone",
+            "official": "Only download from official sources",
+            "verify": "Always verify the connection URL"
+          }
+        }
+      },
+      "features": {
+        "selfCustody": {
+          "title": "Self-Custody",
+          "description": "You alone control your assets"
+        },
+        "secure": {
+          "title": "Secure Connection",
+          "description": "Your private keys are never sent"
+        },
+        "quantum": {
+          "title": "Quantum-Resistant",
+          "description": "Generate Dilithium keys after connecting"
+        }
+      }
     }
   }
 }
