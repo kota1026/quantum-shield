@@ -1,6 +1,6 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-16 (Token Hub started - 1/10 screens)
-> **Total Tasks**: 218
+> **Last Updated**: 2026-01-16 (Token Hub - 5/13 screens)
+> **Total Tasks**: 222 (added 4 new Token Hub screens)
 
 ---
 
@@ -11,22 +11,22 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   32/144 (22%)           │
+│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   36/148 (24%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [███░░░░░░░░░░░░░░░░░]   32/218 (15%)           │
+│  TOTAL:           [███░░░░░░░░░░░░░░░░░]   36/222 (16%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
-│  Week 2-3 P1 Systems: 🔄 In Progress (Token Hub started)           │
+│  Week 2-3 P1 Systems: 🔄 In Progress (Token Hub 5/13)              │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## WS-1: UI/UX Implementation (8 Systems / 98 Screens)
+## WS-1: UI/UX Implementation (8 Systems / 102 Screens)
 
 ### System 01: Consumer App (19 screens)
 
@@ -56,22 +56,25 @@
 
 ---
 
-### System 02: Token Hub (10 screens)
+### System 02: Token Hub (13 screens)
 
-| # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
-|---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
-| 01 | dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 02 | qs_lock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 03 | veqs_dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 04 | delegate | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 05 | delegate_list | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 06 | rewards | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 07 | rewards_history | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 08 | unlock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 09 | settings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 10 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| # | Screen | UI | A11y | E2E | Persona Test | PIR | Status | Notes |
+|---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|-------|
+| 01 | dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | Done | |
+| 02 | qs_lock | ✅ | ✅ | ✅ | ✅ | ✅ | Done | |
+| 03 | onboarding | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Tokenomics explanation |
+| 04 | faq | ✅ | ✅ | ✅ | ✅ | ✅ | Done | veQS/Lock FAQ |
+| 05 | get_qs | ✅ | ✅ | ✅ | ✅ | ✅ | Done | How to acquire QS (DEX, rewards, airdrop) |
+| 06 | delegate | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 07 | delegate_list | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 08 | rewards | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 09 | rewards_history | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 10 | unlock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 11 | settings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 12 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 13 | consumer_link | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | NEW: Consumer App ↔ Token Hub navigation |
 
-**Progress**: 1/10 (10%)
+**Progress**: 5/13 (38%)
 
 ---
 
@@ -375,6 +378,11 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-16 | Token Hub: get_qs - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (4 acquisition methods, DEX guides) |
+| 2026-01-16 | Token Hub: faq - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (5 categories, 19 Q&As) |
+| 2026-01-16 | Token Hub: onboarding - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (added breadcrumb navigation) |
+| 2026-01-16 | Token Hub: Added 4 new screens based on user feedback (onboarding, faq, get_qs, consumer_link) - Total now 13 screens |
+| 2026-01-16 | Token Hub: qs_lock - Complete (UI, A11y, E2E, Persona Test, PIR) - CONDITIONAL (added lock period warning) |
 | 2026-01-16 | Token Hub: dashboard - Complete (UI, A11y, E2E, Persona Test, PIR) - CONDITIONAL (added tooltips) |
 | 2026-01-16 | **🎉 Consumer App: ALL 19 SCREENS COMPLETE!** |
 | 2026-01-16 | Consumer App: wallet_connect - Complete (New screen: UI, A11y, E2E, Persona Test, PIR) - PASS |
