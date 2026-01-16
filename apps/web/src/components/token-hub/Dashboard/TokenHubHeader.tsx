@@ -2,16 +2,18 @@
 
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
+import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
 
-interface TokenHubHeaderProps {
-  walletAddress: string;
-  onWalletClick: () => void;
-}
-
-export function TokenHubHeader({ walletAddress, onWalletClick }: TokenHubHeaderProps) {
+export function TokenHubHeader() {
   const t = useTranslations('token-hub.common.header');
   const pathname = usePathname();
+
+  // RainbowKit wallet connection
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
+  const { address, isConnected } = useAccount();
 
   const navItems = [
     { key: 'dashboard', path: '/token-hub/dashboard' },
@@ -20,7 +22,15 @@ export function TokenHubHeader({ walletAddress, onWalletClick }: TokenHubHeaderP
     { key: 'rewards', path: '/token-hub/rewards' },
   ];
 
-  const shortAddress = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+  const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
+
+  const handleWalletClick = () => {
+    if (isConnected && openAccountModal) {
+      openAccountModal();
+    } else if (openConnectModal) {
+      openConnectModal();
+    }
+  };
 
   return (
     <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-12">
@@ -78,19 +88,27 @@ export function TokenHubHeader({ walletAddress, onWalletClick }: TokenHubHeaderP
 
       {/* Wallet Button */}
       <button
-        onClick={onWalletClick}
+        onClick={handleWalletClick}
         className={cn(
           'flex items-center gap-2 px-6 py-2',
-          'bg-hinomaru/10 border border-hinomaru rounded-full',
-          'text-hinomaru-400 text-sm font-medium',
-          'hover:bg-hinomaru hover:text-white transition-colors',
-          'focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          'order-2 md:order-3'
+          'border rounded-full',
+          'text-sm font-medium',
+          'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'order-2 md:order-3 transition-colors',
+          isConnected
+            ? 'bg-hinomaru/10 border-hinomaru text-hinomaru-400 hover:bg-hinomaru hover:text-white focus-visible:ring-hinomaru'
+            : 'bg-gold/10 border-gold text-gold hover:bg-gold hover:text-background focus-visible:ring-gold'
         )}
-        aria-label={t('walletConnected', { address: shortAddress })}
+        aria-label={isConnected ? t('walletConnected', { address: shortAddress }) : t('connectWallet')}
       >
-        <span className="w-2 h-2 bg-success rounded-full" aria-hidden="true" />
-        {shortAddress}
+        {isConnected ? (
+          <>
+            <span className="w-2 h-2 bg-success rounded-full" aria-hidden="true" />
+            {shortAddress}
+          </>
+        ) : (
+          t('connectWallet')
+        )}
       </button>
     </header>
   );

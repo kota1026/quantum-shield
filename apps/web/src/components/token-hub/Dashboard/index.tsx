@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import {
@@ -66,12 +66,9 @@ const DEMO_REWARDS = {
   epochProgress: 65,
 };
 
-const WALLET_ADDRESS = '0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d';
-
 export function TokenHubDashboard() {
   const t = useTranslations('token-hub.dashboard');
   const router = useRouter();
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
   const handleNavigate = useCallback((path: string) => {
     router.push(path);
@@ -97,10 +94,7 @@ export function TokenHubDashboard() {
       {/* Main Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6" role="main">
         {/* Header */}
-        <TokenHubHeader
-          walletAddress={WALLET_ADDRESS}
-          onWalletClick={() => setIsWalletModalOpen(true)}
-        />
+        <TokenHubHeader />
 
         {/* Stats Grid */}
         <section
