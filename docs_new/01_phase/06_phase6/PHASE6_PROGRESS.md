@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-16 (history_detail complete)
+> **Last Updated**: 2026-01-16 (unlock_complete, emergency_detail, history_detail complete)
 > **Total Tasks**: 218
 
 ---
@@ -11,12 +11,12 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [█████░░░░░░░░░░░░░░░]   24/144 (17%)           │
+│  WS-1 UI/UX:      [█████░░░░░░░░░░░░░░░]   26/144 (18%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [██░░░░░░░░░░░░░░░░░░]   24/218 (11%)           │
+│  TOTAL:           [██░░░░░░░░░░░░░░░░░░]   26/218 (12%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
 │  Week 2-3 P1 Systems: 🔄 In Progress                               │
@@ -40,8 +40,8 @@
 | 06 | history | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 07 | history_detail | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 08 | emergency | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 09 | emergency_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 10 | unlock_complete | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 09 | emergency_detail | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
+| 10 | unlock_complete | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 11 | settings | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 12 | notifications | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 13 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
@@ -52,7 +52,7 @@
 | 18 | cookie | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 19 | wallet_connect | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 12/19 (63%) - 12 screens Done (incl. Persona Test/PIR), 7 Pending
+**Progress**: 14/19 (74%) - 14 screens Done (incl. Persona Test/PIR), 5 Pending
 
 ---
 
@@ -375,6 +375,8 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-16 | Consumer App: unlock_complete - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS |
+| 2026-01-16 | Consumer App: emergency_detail - Complete (Integrated with history_detail) |
 | 2026-01-16 | Consumer App: history_detail - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS |
 | 2026-01-15 | Consumer App: lock - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS |
 | 2026-01-15 | Consumer App: settings, faq, terms, privacy - Persona Test/PIR complete (PASS) |
