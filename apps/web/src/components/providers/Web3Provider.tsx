@@ -21,7 +21,18 @@ const quantumShieldTheme = darkTheme({
 });
 
 export function Web3Provider({ children }: Web3ProviderProps) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Reduce retry attempts for failed queries (prevents error spam in dev)
+        retry: 1,
+        // Don't refetch on window focus in development
+        refetchOnWindowFocus: false,
+        // Longer stale time for mock data
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      },
+    },
+  }));
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
