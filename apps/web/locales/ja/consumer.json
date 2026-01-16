@@ -1408,6 +1408,49 @@
           "closeButton": "閉じる"
         }
       }
+    },
+    "notifications": {
+      "meta": {
+        "title": "通知 | Quantum Shield",
+        "description": "通知履歴と設定"
+      },
+      "header": {
+        "title": "通知",
+        "back": "戻る",
+        "markAllRead": "すべて既読にする"
+      },
+      "tabs": {
+        "all": "すべて",
+        "unread": "未読"
+      },
+      "types": {
+        "lockComplete": "Lock完了",
+        "unlockStarted": "Unlock開始",
+        "unlockComplete": "Unlock完了",
+        "emergencyStarted": "緊急Unlock開始",
+        "emergencyComplete": "緊急Unlock完了",
+        "securityAlert": "セキュリティアラート",
+        "systemUpdate": "システム更新"
+      },
+      "item": {
+        "unread": "未読",
+        "markRead": "既読にする"
+      },
+      "emptyState": {
+        "title": "通知はありません",
+        "description": "ロックやアンロックを行うと、ここに通知が表示されます"
+      },
+      "settings": {
+        "title": "通知設定",
+        "push": {
+          "title": "プッシュ通知",
+          "description": "重要なアクティビティをリアルタイムで通知"
+        },
+        "email": {
+          "title": "メール通知",
+          "description": "1日1回のダイジェストメール"
+        }
+      }
     }
   }
 }
