@@ -38,7 +38,7 @@ export function StatCard({
 
   return (
     <Card
-      variant={onClick ? 'selectable' : 'default'}
+      variant={onClick ? 'hoverGradient' : 'default'}
       padding="md"
       className={cn(className)}
       data-selected={selected}

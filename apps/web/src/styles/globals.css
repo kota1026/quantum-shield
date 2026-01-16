@@ -216,6 +216,30 @@
     box-shadow: 0 0 20px rgba(201, 169, 98, 0.15);
   }
 
+  /* Hover gradient border effect - レッドからゴールドへのグラデーション */
+  .hover-gradient-border {
+    @apply relative overflow-hidden;
+  }
+
+  .hover-gradient-border::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-[3px];
+    background: linear-gradient(90deg, #BC002D 0%, #C9A962 100%);
+    @apply opacity-0 transition-opacity duration-300;
+  }
+
+  .hover-gradient-border:hover::before,
+  .hover-gradient-border:focus-within::before,
+  .hover-gradient-border[data-selected="true"]::before {
+    @apply opacity-100;
+  }
+
+  .hover-gradient-border:hover,
+  .hover-gradient-border:focus-within {
+    @apply border-gold/40;
+    box-shadow: 0 0 20px rgba(201, 169, 98, 0.15);
+  }
+
   /* Input */
   .input {
     @apply w-full px-4 py-3 rounded-qs;
