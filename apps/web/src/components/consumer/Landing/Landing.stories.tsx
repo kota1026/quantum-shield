@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { NextIntlClientProvider } from 'next-intl';
+import type { AbstractIntlMessages } from 'next-intl';
 import { Landing } from './index';
 import jaMessages from '../../../../locales/ja/consumer.json';
 import enMessages from '../../../../locales/en/consumer.json';
@@ -17,7 +18,7 @@ const meta: Meta<typeof Landing> = {
   decorators: [
     (Story, context) => {
       const locale = context.globals.locale || 'ja';
-      const messages = locale === 'ja' ? jaMessages : enMessages;
+      const messages = (locale === 'ja' ? jaMessages : enMessages) as unknown as AbstractIntlMessages;
       return (
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Story />
@@ -50,7 +51,7 @@ export const English: Story = {
   },
   decorators: [
     (Story) => (
-      <NextIntlClientProvider locale="en" messages={enMessages}>
+      <NextIntlClientProvider locale="en" messages={enMessages as unknown as AbstractIntlMessages}>
         <Story />
       </NextIntlClientProvider>
     ),

@@ -82,7 +82,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
                 <span
                   className={cn(
                     'font-medium inline-flex items-center gap-1 cursor-help',
-                    detail.warning ? 'text-warning' : 'text-foreground'
+                    'warning' in detail && detail.warning ? 'text-warning' : 'text-foreground'
                   )}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -94,7 +94,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
               <span
                 className={cn(
                   'font-medium',
-                  detail.warning ? 'text-warning' : 'text-foreground'
+                  'warning' in detail && detail.warning ? 'text-warning' : 'text-foreground'
                 )}
               >
                 {detail.value}
