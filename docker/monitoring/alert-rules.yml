@@ -1,0 +1,275 @@
+# =============================================================================
+# Quantum Shield - Prometheus Alert Rules
+# =============================================================================
+# Alert definitions for monitoring Quantum Shield infrastructure.
+#
+# Severity Levels:
+# - critical: Immediate action required (PagerDuty/On-call)
+# - warning: Action required soon (Slack/Email)
+# - info: Informational (Dashboard only)
+# =============================================================================
+
+groups:
+  # ===========================================================================
+  # Service Health Alerts
+  # ===========================================================================
+  - name: service_health
+    interval: 30s
+    rules:
+      # API Service Down
+      - alert: APIServiceDown
+        expr: up{job="quantum-shield-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "API Service is down"
+          description: "The Quantum Shield API service has been unreachable for more than 1 minute."
+          runbook_url: "https://docs.quantumshield.io/runbooks/api-down"
+
+      # Event Bridge Down
+      - alert: EventBridgeDown
+        expr: up{job="event-bridge"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: event-bridge
+        annotations:
+          summary: "Event Bridge is down"
+          description: "The Event Bridge service has been unreachable for more than 1 minute."
+
+      # STARK Prover Down
+      - alert: STARKProverDown
+        expr: up{job="stark-prover"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: stark-prover
+        annotations:
+          summary: "STARK Prover is down"
+          description: "The STARK Prover service has been unreachable for more than 2 minutes."
+
+      # Monitor Bot Down
+      - alert: MonitorBotDown
+        expr: up{job="monitor-bot"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: monitor-bot
+        annotations:
+          summary: "Monitor Bot is down"
+          description: "The Monitor Bot service has been unreachable for more than 5 minutes."
+
+  # ===========================================================================
+  # L3 Aegis Node Alerts
+  # ===========================================================================
+  - name: aegis_nodes
+    interval: 30s
+    rules:
+      # Node Down
+      - alert: AegisNodeDown
+        expr: up{job="aegis-nodes"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: aegis
+        annotations:
+          summary: "Aegis Node {{ $labels.node_id }} is down"
+          description: "L3 Aegis node {{ $labels.node_id }} has been unreachable for more than 1 minute."
+
+      # Consensus Failure
+      - alert: AegisConsensusFailing
+        expr: aegis_consensus_rounds_failed_total > 10
+        for: 5m
+        labels:
+          severity: critical
+          service: aegis
+        annotations:
+          summary: "Aegis consensus is failing"
+          description: "L3 Aegis has experienced {{ $value }} consensus failures in the last 5 minutes."
+
+      # Block Production Stalled
+      - alert: AegisBlockProductionStalled
+        expr: increase(aegis_blocks_produced_total[5m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: aegis
+        annotations:
+          summary: "Block production has stalled"
+          description: "No new blocks have been produced in the last 5 minutes."
+
+  # ===========================================================================
+  # Infrastructure Alerts
+  # ===========================================================================
+  - name: infrastructure
+    interval: 30s
+    rules:
+      # PostgreSQL Down
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database has been unreachable for more than 1 minute."
+
+      # Redis Down
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache has been unreachable for more than 1 minute."
+
+      # RabbitMQ Down
+      - alert: RabbitMQDown
+        expr: rabbitmq_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: rabbitmq
+        annotations:
+          summary: "RabbitMQ is down"
+          description: "RabbitMQ message queue has been unreachable for more than 1 minute."
+
+      # RabbitMQ Queue Backup
+      - alert: RabbitMQQueueBacklog
+        expr: rabbitmq_queue_messages > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: rabbitmq
+        annotations:
+          summary: "RabbitMQ queue has backlog"
+          description: "RabbitMQ queue {{ $labels.queue }} has {{ $value }} messages waiting."
+
+  # ===========================================================================
+  # Performance Alerts
+  # ===========================================================================
+  - name: performance
+    interval: 30s
+    rules:
+      # High API Latency
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="quantum-shield-api"}[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile API response time is {{ $value | printf \"%.2f\" }}s (threshold: 500ms)."
+
+      # High Error Rate
+      - alert: HighAPIErrorRate
+        expr: rate(http_requests_total{job="quantum-shield-api",status=~"5.."}[5m]) / rate(http_requests_total{job="quantum-shield-api"}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High API error rate"
+          description: "API error rate is {{ $value | printf \"%.2f\" }}% (threshold: 1%)."
+
+      # STARK Proof Generation Slow
+      - alert: SlowSTARKProofGeneration
+        expr: histogram_quantile(0.95, rate(stark_proof_generation_seconds_bucket[10m])) > 60
+        for: 10m
+        labels:
+          severity: warning
+          service: stark-prover
+        annotations:
+          summary: "STARK proof generation is slow"
+          description: "95th percentile proof generation time is {{ $value | printf \"%.0f\" }}s (threshold: 60s)."
+
+  # ===========================================================================
+  # Business Logic Alerts
+  # ===========================================================================
+  - name: business_logic
+    interval: 60s
+    rules:
+      # Unlock Processing Delayed
+      - alert: UnlockProcessingDelayed
+        expr: qs_pending_unlocks_count > 100
+        for: 30m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Many pending unlocks"
+          description: "There are {{ $value }} unlocks waiting to be processed."
+
+      # Challenge Window Expiring
+      - alert: ChallengeWindowExpiring
+        expr: qs_challenges_expiring_soon > 0
+        for: 1h
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Challenges expiring soon"
+          description: "{{ $value }} challenges are expiring within the next hour."
+
+      # Low Prover Availability
+      - alert: LowProverAvailability
+        expr: qs_active_provers < 3
+        for: 10m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Low prover availability"
+          description: "Only {{ $value }} provers are currently active (minimum: 3)."
+
+  # ===========================================================================
+  # Resource Alerts
+  # ===========================================================================
+  - name: resources
+    interval: 30s
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | printf \"%.1f\" }}% (threshold: 80%)."
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | printf \"%.1f\" }}% (threshold: 85%)."
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space is running low"
+          description: "Available disk space is {{ $value | printf \"%.1f\" }}% (threshold: 15%)."
+
+      # Container Restart
+      - alert: ContainerRestarting
+        expr: increase(container_restart_count[1h]) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} is restarting frequently"
+          description: "Container has restarted {{ $value }} times in the last hour."

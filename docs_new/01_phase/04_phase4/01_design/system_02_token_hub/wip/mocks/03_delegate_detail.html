@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delegate Detail - Token Hub | Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --accent-gold-glow: rgba(201, 169, 98, 0.3);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, var(--accent-gold-dim), transparent 60%); opacity: 0.5; }
+        .noise { position: absolute; inset: 0; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+        .container { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: var(--space-xl); }
+
+        .back-link { display: inline-flex; align-items: center; gap: var(--space-sm); color: var(--text-secondary); text-decoration: none; font-size: 14px; margin-bottom: var(--space-xl); transition: color 0.2s; }
+        .back-link:hover { color: var(--accent-gold); }
+
+        .profile-header { display: flex; gap: var(--space-xl); margin-bottom: var(--space-xl); flex-wrap: wrap; }
+        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-hinomaru)); display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 600; color: white; flex-shrink: 0; }
+        .profile-info { flex: 1; min-width: 250px; }
+        .profile-rank { display: inline-block; background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; margin-bottom: var(--space-sm); }
+        .profile-name { font-size: 32px; font-weight: 700; margin-bottom: var(--space-xs); }
+        .profile-address { font-size: 14px; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-md); }
+        .profile-tags { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-md); }
+        .profile-tag { padding: 6px 12px; background: var(--bg-secondary); border-radius: var(--radius-full); font-size: 12px; color: var(--text-secondary); }
+        .profile-bio { font-size: 15px; color: var(--text-secondary); line-height: 1.7; }
+
+        .profile-actions { display: flex; flex-direction: column; gap: var(--space-md); min-width: 200px; }
+        .btn-primary { padding: var(--space-md) var(--space-xl); background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-hinomaru-glow); }
+        .btn-secondary { padding: var(--space-md) var(--space-xl); background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-secondary); font-size: 14px; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; }
+        .btn-secondary:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-lg); text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 700; font-family: var(--font-mono); color: var(--accent-gold); margin-bottom: var(--space-xs); }
+        .stat-label { font-size: 12px; color: var(--text-tertiary); }
+
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-xl); }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; margin-bottom: var(--space-xl); }
+        .card-header { padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: var(--space-sm); }
+        .card-body { padding: var(--space-xl); }
+
+        .vote-item { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: 1px solid var(--border-subtle); }
+        .vote-item:last-child { border-bottom: none; }
+        .vote-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .vote-icon.for { background: var(--success-dim); color: var(--success); }
+        .vote-icon.against { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .vote-icon.abstain { background: var(--bg-secondary); color: var(--text-tertiary); }
+        .vote-info { flex: 1; }
+        .vote-title { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+        .vote-date { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .vote-result { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: var(--radius-full); }
+        .vote-result.passed { background: var(--success-dim); color: var(--success); }
+        .vote-result.failed { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .vote-result.active { background: var(--accent-gold-dim); color: var(--accent-gold); }
+
+        .delegation-form { margin-top: var(--space-lg); }
+        .input-group { margin-bottom: var(--space-md); }
+        .input-label { font-size: 12px; color: var(--text-secondary); margin-bottom: var(--space-sm); display: block; }
+        .input-wrapper { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-md); }
+        .input-wrapper input { flex: 1; background: transparent; border: none; font-size: 24px; font-weight: 600; color: var(--text-primary); outline: none; font-family: var(--font-mono); }
+        .input-wrapper input::placeholder { color: var(--text-muted); }
+        .input-unit { font-size: 14px; color: var(--text-secondary); }
+        .input-max { font-size: 12px; color: var(--accent-gold); cursor: pointer; margin-left: var(--space-sm); }
+        .input-info { font-size: 12px; color: var(--text-tertiary); margin-top: var(--space-sm); }
+
+        .quick-amounts { display: flex; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+        .quick-btn { flex: 1; padding: var(--space-sm); background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .quick-btn:hover { background: var(--bg-elevated); border-color: var(--border-default); color: var(--text-primary); }
+
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .profile-header { flex-direction: column; align-items: center; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="gold-glow"></div>
+        <div class="noise"></div>
+    </div>
+
+    <div class="container">
+        <a href="03_delegate_list.html" class="back-link">← Back to Delegates</a>
+
+        <div class="profile-header">
+            <div class="profile-avatar">W</div>
+            <div class="profile-info">
+                <span class="profile-rank">#1 Delegate</span>
+                <h1 class="profile-name">渡辺 Delegate</h1>
+                <div class="profile-address">0x1a2b3c4d5e6f7890abcdef1234567890abcdef12</div>
+                <div class="profile-tags">
+                    <span class="profile-tag">🛡️ Security Council</span>
+                    <span class="profile-tag">DeFi Expert</span>
+                    <span class="profile-tag">Long-term Holder</span>
+                </div>
+                <p class="profile-bio">Quantum Shield初期からの支持者。セキュリティとプロトコルの長期的な発展を重視。投票は常にコミュニティの利益を優先します。10年以上のブロックチェーン業界経験を持ち、複数のDeFiプロトコルのセキュリティ監査にも参加。</p>
+            </div>
+            <div class="profile-actions">
+                <a href="03_delegate_form.html" class="btn-primary">Delegate to 渡辺</a>
+                <button class="btn-secondary">View on Explorer</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">285K</div>
+                <div class="stat-label">Total veQS Delegated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1,247</div>
+                <div class="stat-label">Delegators</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">98%</div>
+                <div class="stat-label">Voting Participation</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">42</div>
+                <div class="stat-label">Proposals Voted</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span>🗳️</span> Voting History</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="vote-item">
+                            <div class="vote-icon for">✓</div>
+                            <div class="vote-info">
+                                <div class="vote-title">QIP-23: Increase Prover Stake Requirement</div>
+                                <div class="vote-date">2026-01-03</div>
+                            </div>
+                            <span class="vote-result active">Active</span>
+                        </div>
+                        <div class="vote-item">
+                            <div class="vote-icon for">✓</div>
+                            <div class="vote-info">
+                                <div class="vote-title">QIP-22: Treasury Allocation for Security Audits</div>
+                                <div class="vote-date">2025-12-28</div>
+                            </div>
+                            <span class="vote-result passed">Passed</span>
+                        </div>
+                        <div class="vote-item">
+                            <div class="vote-icon against">✗</div>
+                            <div class="vote-info">
+                                <div class="vote-title">QIP-21: Reduce Time Lock Duration</div>
+                                <div class="vote-date">2025-12-20</div>
+                            </div>
+                            <span class="vote-result failed">Failed</span>
+                        </div>
+                        <div class="vote-item">
+                            <div class="vote-icon for">✓</div>
+                            <div class="vote-info">
+                                <div class="vote-title">QIP-20: L3 Node Expansion Plan</div>
+                                <div class="vote-date">2025-12-15</div>
+                            </div>
+                            <span class="vote-result passed">Passed</span>
+                        </div>
+                        <div class="vote-item">
+                            <div class="vote-icon abstain">−</div>
+                            <div class="vote-info">
+                                <div class="vote-title">QIP-19: Marketing Budget Increase</div>
+                                <div class="vote-date">2025-12-10</div>
+                            </div>
+                            <span class="vote-result passed">Passed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span>🤝</span> Delegate veQS</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="delegation-form">
+                            <div class="input-group">
+                                <label class="input-label">Amount to Delegate</label>
+                                <div class="input-wrapper">
+                                    <input type="text" placeholder="0" value="3,000">
+                                    <span class="input-unit">veQS</span>
+                                    <span class="input-max">MAX</span>
+                                </div>
+                                <div class="input-info">Available: 6,225 veQS</div>
+                            </div>
+
+                            <div class="quick-amounts">
+                                <button class="quick-btn">25%</button>
+                                <button class="quick-btn">50%</button>
+                                <button class="quick-btn">75%</button>
+                                <button class="quick-btn">100%</button>
+                            </div>
+
+                            <a href="03_delegate_form.html" class="btn-primary" style="display: block; width: 100%;">Delegate 3,000 veQS</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span>📊</span> Voting Pattern</h2>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-md);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--success);">38</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary);">For</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--accent-hinomaru-light);">3</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary);">Against</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--text-tertiary);">1</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary);">Abstain</div>
+                            </div>
+                        </div>
+                        <div style="height: 8px; background: var(--bg-secondary); border-radius: var(--radius-full); overflow: hidden; display: flex;">
+                            <div style="width: 90%; background: var(--success);"></div>
+                            <div style="width: 7%; background: var(--accent-hinomaru);"></div>
+                            <div style="width: 3%; background: var(--text-tertiary);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

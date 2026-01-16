@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パフォーマンス & 報酬 - Quantum Shield Prover Portal</title>
+    <style>
+        :root {
+            --hinomaru-red: #BC002D;
+            --gold: #C9A962;
+            --gold-light: #D4B87A;
+            --dark-bg: #0A0A0C;
+            --dark-surface: #12121A;
+            --dark-border: #2A2A3C;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A0B0;
+            --success: #00C853;
+            --warning: #FFB300;
+            --danger: #FF5252;
+            --info: #2196F3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .app-layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--dark-surface);
+            border-right: 1px solid var(--dark-border);
+            min-height: 100vh;
+            padding: 1.5rem;
+            position: fixed;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--hinomaru-red), #8B0020);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-text {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo-text span {
+            color: var(--gold);
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s;
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--hinomaru-red), #8B0020);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .period-select {
+            padding: 0.75rem 1rem;
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+
+        .btn-export {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            color: var(--gold);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-export:hover {
+            background: var(--gold);
+            color: var(--dark-bg);
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--dark-surface);
+            padding: 0.5rem;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--hinomaru-red);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.gold { background: rgba(201, 169, 98, 0.2); }
+        .stat-icon.success { background: rgba(0, 200, 83, 0.2); }
+        .stat-icon.info { background: rgba(33, 150, 243, 0.2); }
+        .stat-icon.red { background: rgba(188, 0, 45, 0.2); }
+
+        .stat-change {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .stat-change.up {
+            background: rgba(0, 200, 83, 0.2);
+            color: var(--success);
+        }
+
+        .stat-change.down {
+            background: rgba(255, 82, 82, 0.2);
+            color: var(--danger);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value.gold { color: var(--gold); }
+        .stat-value.success { color: var(--success); }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header h3 {
+            font-size: 1.125rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.gold { background: var(--gold); }
+        .legend-dot.red { background: var(--hinomaru-red); }
+        .legend-dot.success { background: var(--success); }
+
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(180deg, rgba(201, 169, 98, 0.1) 0%, transparent 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        /* Fake chart bars */
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+            height: 250px;
+            padding: 0 2rem;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(180deg, var(--gold), var(--hinomaru-red));
+            border-radius: 4px 4px 0 0;
+            transition: height 0.3s;
+        }
+
+        /* Grid Layout */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .data-table th {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Rewards Section */
+        .rewards-summary {
+            background: linear-gradient(135deg, rgba(201, 169, 98, 0.2), rgba(201, 169, 98, 0.05));
+            border: 1px solid var(--gold);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .rewards-total {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .rewards-label {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .rewards-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--hinomaru-red), #8B0020);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Rewards Breakdown */
+        .rewards-breakdown {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .breakdown-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .breakdown-value {
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        /* Performance Metrics Details */
+        .metric-card {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: var(--dark-bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .progress-fill.success { background: var(--success); }
+        .progress-fill.warning { background: var(--warning); }
+        .progress-fill.gold { background: var(--gold); }
+
+        /* Footer */
+        .footer {
+            border-top: 1px solid var(--dark-border);
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="01_landing.html" class="sidebar-logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2"/>
+                        <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2"/>
+                        <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div class="logo-text">Quantum<span>Shield</span></div>
+            </a>
+
+            <nav class="nav-section">
+                <div class="nav-section-title">Operations</div>
+                <a href="06_dashboard.html" class="nav-item">📊 ダッシュボード</a>
+                <a href="07_queue.html" class="nav-item">📝 署名キュー</a>
+                <a href="08_metrics.html" class="nav-item active">📈 メトリクス</a>
+                <a href="09_alerts.html" class="nav-item">🔔 アラート</a>
+            </nav>
+
+            <nav class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <a href="10_challenge.html" class="nav-item">⚔️ チャレンジ</a>
+                <a href="11_exit.html" class="nav-item">🚪 Exit申請</a>
+            </nav>
+
+            <nav class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="#" class="nav-item">⚙️ 設定</a>
+                <a href="01_landing.html" class="nav-item">🚪 ログアウト</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>📈 パフォーマンス & 報酬</h1>
+                <div class="header-actions">
+                    <select class="period-select">
+                        <option>過去7日間</option>
+                        <option>過去30日間</option>
+                        <option selected>過去90日間</option>
+                        <option>今年</option>
+                    </select>
+                    <button class="btn-export">
+                        <span>⬇️</span>
+                        <span>CSV出力</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showTab('metrics')">📊 パフォーマンス</button>
+                <button class="tab-btn" onclick="showTab('rewards')">💰 報酬</button>
+            </div>
+
+            <!-- Metrics Tab -->
+            <div class="tab-content active" id="metricsTab">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon gold">⚡</div>
+                            <span class="stat-change up">+2.3%</span>
+                        </div>
+                        <div class="stat-value">99.97%</div>
+                        <div class="stat-label">アップタイム</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon success">✓</div>
+                            <span class="stat-change up">+5.2%</span>
+                        </div>
+                        <div class="stat-value success">12,847</div>
+                        <div class="stat-label">署名完了数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon info">⏱️</div>
+                            <span class="stat-change down">-15ms</span>
+                        </div>
+                        <div class="stat-value">124ms</div>
+                        <div class="stat-label">平均レイテンシ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon red">❌</div>
+                        </div>
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">違反/Slashing</div>
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>署名処理パフォーマンス</h3>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot gold"></div>
+                                <span>署名数</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot success"></div>
+                                <span>成功率</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-bars">
+                        <div class="chart-bar" style="height: 60%;"></div>
+                        <div class="chart-bar" style="height: 75%;"></div>
+                        <div class="chart-bar" style="height: 45%;"></div>
+                        <div class="chart-bar" style="height: 90%;"></div>
+                        <div class="chart-bar" style="height: 85%;"></div>
+                        <div class="chart-bar" style="height: 70%;"></div>
+                        <div class="chart-bar" style="height: 95%;"></div>
+                        <div class="chart-bar" style="height: 80%;"></div>
+                        <div class="chart-bar" style="height: 65%;"></div>
+                        <div class="chart-bar" style="height: 100%;"></div>
+                        <div class="chart-bar" style="height: 88%;"></div>
+                        <div class="chart-bar" style="height: 92%;"></div>
+                    </div>
+                </div>
+
+                <!-- Detailed Metrics -->
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 1rem;">署名処理履歴</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>日付</th>
+                                    <th>署名数</th>
+                                    <th>成功率</th>
+                                    <th>平均時間</th>
+                                    <th>報酬</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2024/03/20</td>
+                                    <td>487</td>
+                                    <td><span style="color: var(--success);">100%</span></td>
+                                    <td>118ms</td>
+                                    <td style="color: var(--gold);">$2,435</td>
+                                </tr>
+                                <tr>
+                                    <td>2024/03/19</td>
+                                    <td>523</td>
+                                    <td><span style="color: var(--success);">100%</span></td>
+                                    <td>125ms</td>
+                                    <td style="color: var(--gold);">$2,615</td>
+                                </tr>
+                                <tr>
+                                    <td>2024/03/18</td>
+                                    <td>412</td>
+                                    <td><span style="color: var(--success);">99.8%</span></td>
+                                    <td>132ms</td>
+                                    <td style="color: var(--gold);">$2,060</td>
+                                </tr>
+                                <tr>
+                                    <td>2024/03/17</td>
+                                    <td>389</td>
+                                    <td><span style="color: var(--success);">100%</span></td>
+                                    <td>121ms</td>
+                                    <td style="color: var(--gold);">$1,945</td>
+                                </tr>
+                                <tr>
+                                    <td>2024/03/16</td>
+                                    <td>445</td>
+                                    <td><span style="color: var(--success);">100%</span></td>
+                                    <td>128ms</td>
+                                    <td style="color: var(--gold);">$2,225</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="metric-card">
+                        <h3 style="margin-bottom: 1rem;">詳細メトリクス</h3>
+                        <div class="metric-row">
+                            <span>SPHINCS+ 署名</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill success" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <span>検証成功率</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill success" style="width: 99.9%;"></div>
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <span>SLA準拠</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill gold" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <span>可用性</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill success" style="width: 99.97%;"></div>
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <span>レスポンス時間</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill gold" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rewards Tab -->
+            <div class="tab-content" id="rewardsTab">
+                <!-- Rewards Summary -->
+                <div class="rewards-summary">
+                    <div class="rewards-total">$47,520.00</div>
+                    <div class="rewards-label">累計報酬（過去90日間）</div>
+                    <div class="rewards-actions">
+                        <button class="btn-primary">報酬を引き出す</button>
+                        <button class="btn-secondary">再投資する</button>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <!-- Rewards Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>報酬推移</h3>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <div class="legend-dot gold"></div>
+                                    <span>日次報酬</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-bars">
+                            <div class="chart-bar" style="height: 55%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 70%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 48%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 82%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 75%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 65%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 90%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 78%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 60%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 95%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 85%; background: var(--gold);"></div>
+                            <div class="chart-bar" style="height: 88%; background: var(--gold);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Rewards Breakdown -->
+                    <div class="rewards-breakdown">
+                        <h3 style="margin-bottom: 1rem;">報酬内訳</h3>
+                        <div class="breakdown-item">
+                            <div class="breakdown-label">
+                                <div class="breakdown-icon" style="background: rgba(0, 200, 83, 0.2);">✍️</div>
+                                <div>
+                                    <div>署名報酬</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">12,847件 × $3.50</div>
+                                </div>
+                            </div>
+                            <div class="breakdown-value">$44,964.50</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-label">
+                                <div class="breakdown-icon" style="background: rgba(201, 169, 98, 0.2);">⭐</div>
+                                <div>
+                                    <div>パフォーマンスボーナス</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">SLA 100%達成</div>
+                                </div>
+                            </div>
+                            <div class="breakdown-value">$2,248.50</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-label">
+                                <div class="breakdown-icon" style="background: rgba(33, 150, 243, 0.2);">🏆</div>
+                                <div>
+                                    <div>早期採用者ボーナス</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Phase 1参加者</div>
+                                </div>
+                            </div>
+                            <div class="breakdown-value">$307.00</div>
+                        </div>
+                        <div class="breakdown-item" style="background: var(--dark-bg); padding: 1rem; border-radius: 8px;">
+                            <div class="breakdown-label">
+                                <strong>合計</strong>
+                            </div>
+                            <div class="breakdown-value" style="font-size: 1.25rem;">$47,520.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payout History -->
+                <div class="chart-container" style="margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">引き出し履歴</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>日付</th>
+                                <th>種類</th>
+                                <th>金額</th>
+                                <th>送金先</th>
+                                <th>ステータス</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2024/03/01</td>
+                                <td>報酬引き出し</td>
+                                <td style="color: var(--gold);">$15,240.00</td>
+                                <td style="font-family: monospace; font-size: 0.75rem;">0x742d...8bD34</td>
+                                <td><span style="color: var(--success);">● 完了</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024/02/01</td>
+                                <td>報酬引き出し</td>
+                                <td style="color: var(--gold);">$14,890.00</td>
+                                <td style="font-family: monospace; font-size: 0.75rem;">0x742d...8bD34</td>
+                                <td><span style="color: var(--success);">● 完了</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024/01/01</td>
+                                <td>報酬引き出し</td>
+                                <td style="color: var(--gold);">$13,560.00</td>
+                                <td style="font-family: monospace; font-size: 0.75rem;">0x742d...8bD34</td>
+                                <td><span style="color: var(--success);">● 完了</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Quantum Shield. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tab + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "timestamp": "2025-12-27T04:32:41Z",
+  "contracts": {
+    "AIRConstraints": "",
+    "ConstraintEvaluator": ""
+  },
+  "deployer": "0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3"
+}

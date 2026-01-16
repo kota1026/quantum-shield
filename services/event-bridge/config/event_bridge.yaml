@@ -1,0 +1,38 @@
+# Event Bridge Configuration
+# Phase 4 Week 1 - INFRA-001~004
+
+l1:
+  # Sepolia WebSocket RPC
+  ws_rpc_url: "wss://sepolia.infura.io/ws/v3/${INFURA_KEY}"
+  # Sepolia HTTP RPC (fallback)
+  http_rpc_url: "https://sepolia.infura.io/v3/${INFURA_KEY}"
+  # L1Vault contract address (from Phase 2-3 deployment)
+  vault_contract: "0x..."
+  # Block confirmations for reorg protection (SEQUENCES.md requirement)
+  confirmation_blocks: 12
+
+l3:
+  # Aegis Chain RPC
+  rpc_url: "http://localhost:8545"
+  # L3 State contract
+  state_contract: "0x..."
+
+redis:
+  url: "redis://localhost:6379"
+  l1_events_stream: "stream:l1_events"
+  l3_events_stream: "stream:l3_events"
+  consumer_group: "event_bridge"
+
+retry:
+  max_attempts: 10
+  initial_delay_ms: 1000
+  max_delay_ms: 300000  # 5 minutes
+  backoff_multiplier: 2.0
+
+security:
+  # Rate limit for DoS protection
+  rate_limit_per_second: 100
+  # mTLS for HSM communication (AGENT_MEETING requirement)
+  mtls_enabled: true
+  # HSM endpoint
+  hsm_endpoint: "https://hsm.quantum-shield.io:8443"

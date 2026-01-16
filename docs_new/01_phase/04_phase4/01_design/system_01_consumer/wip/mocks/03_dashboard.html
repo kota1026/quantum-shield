@@ -1,0 +1,682 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .logo | click | 03_dashboard.html |
+| nav Dashboard | click | 03_dashboard.html |
+| nav Lock | click | openLockModal() |
+| nav Unlock | click | 04_unlock.html |
+| nav History | click | 05_history.html |
+| .wallet-btn | click | openWalletModal() |
+| .stat-card (Lock) | click | openLockModal() |
+| .stat-card (Unlock) | click | 04_unlock.html |
+| #lockBtn | click | openLockModal() |
+| .tx-item | click | 05_history.html |
+| .btn-outline (詳細) | click | 05_history.html |
+| mobile nav | click | 各ページへ遷移 |
+| Lock Modal submit | click | → 10_lock_processing.html (via confirmLock()) |
+| Settings icon | click | 06_settings.html |
+| MKT-3: ガイドツアー | click | nextGuideStep() / skipGuide() |
+| CDO-3: エラーモーダル | click | closeErrorModal() / retryAction() |
+
+## QA-2: JavaScript onclick 遷移先ドキュメント
+以下のJavaScript関数は画面遷移を伴います：
+- openLockModal() → モーダル表示のみ（遷移なし）
+- closeLockModal() → モーダルを閉じる（遷移なし）
+- submitLock() → openLockModal()を呼び出し（遷移なし）
+- confirmLock() → 10_lock_processing.html へ遷移
+- openWalletModal() → モーダル表示のみ（遷移なし）
+- closeWalletModal() → モーダルを閉じる（遷移なし）
+- copyAddress() → クリップボードにコピー（遷移なし）
+- disconnectWallet() → 01_landing.html へ遷移（確認ダイアログ後）
+- setAmount() → 金額入力のみ（遷移なし）
+- nextGuideStep() → ガイドツアー進行（遷移なし）
+- skipGuide() → ガイドツアー終了（遷移なし）
+- showError() → エラーモーダル表示（遷移なし）
+- closeErrorModal() → エラーモーダルを閉じる（遷移なし）
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Shield - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e84057;
+            --error-dim: rgba(232, 64, 87, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --border-emphasis: rgba(255, 255, 255, 0.12);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        /* TKN-2: ライトモード対応（prefers-color-scheme） */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #f5f5f7;
+                --bg-secondary: #ffffff;
+                --bg-elevated: #fafafa;
+                --bg-card: #ffffff;
+                --text-primary: #1a1a1c;
+                --text-secondary: #606068;
+                --text-tertiary: #9898a0;
+                --border-subtle: rgba(0, 0, 0, 0.04);
+                --border-default: rgba(0, 0, 0, 0.08);
+                --border-emphasis: rgba(0, 0, 0, 0.12);
+                --accent-hinomaru-dim: rgba(188, 0, 45, 0.08);
+                --accent-gold-dim: rgba(201, 169, 98, 0.08);
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 80px; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .red-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%); opacity: 0.3; }
+        .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-primary); }
+        .logo-icon { width: 40px; height: 40px; position: relative; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-hinomaru { position: absolute; inset: 8px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 15px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { font-size: 20px; font-weight: 700; }
+
+        nav { display: flex; gap: 4px; background: var(--bg-secondary); padding: 4px; border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        nav a { padding: 8px 20px; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-radius: var(--radius-full); transition: all 0.2s; cursor: pointer; }
+        nav a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+        nav a.active { background: var(--bg-elevated); color: var(--text-primary); }
+
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .settings-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); text-decoration: none; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+        .settings-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .wallet-btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .wallet-btn:hover { background: var(--accent-hinomaru); color: white; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; transition: all 0.2s; cursor: pointer; position: relative; }
+        .stat-card:hover { border-color: var(--border-emphasis); transform: translateY(-2px); }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .stat-label { font-size: 12px; color: var(--text-tertiary); }
+        .stat-badge { font-size: 10px; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 600; }
+        .stat-badge.up { background: var(--success-dim); color: var(--success); }
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-value.highlight { color: var(--accent-hinomaru-light); }
+        .stat-unit { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-left: 4px; }
+
+        .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; position: relative; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 18px; font-weight: 600; }
+        .card-body { padding: 24px; }
+
+        .lock-visual { height: 200px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .hinomaru-core { width: 120px; height: 120px; position: relative; }
+        .hinomaru-white { position: absolute; inset: 0; background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.15), rgba(255,255,255,0.02)); border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); }
+        .hinomaru-red { position: absolute; inset: 25px; background: radial-gradient(circle at 35% 35%, #ff3050, var(--accent-hinomaru), #8a001a); border-radius: 50%; box-shadow: 0 0 40px var(--accent-hinomaru-glow); animation: hinomaru-pulse 4s ease-in-out infinite; }
+        @keyframes hinomaru-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+        .orbit { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid; }
+        .orbit-1 { width: 150px; height: 150px; border-color: var(--accent-gold); opacity: 0.4; animation: orbit-spin 12s linear infinite; }
+        .orbit-2 { width: 180px; height: 180px; border-color: rgba(255,255,255,0.08); border-style: dashed; animation: orbit-spin 20s linear infinite reverse; }
+        @keyframes orbit-spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        .badge-quantum { display: flex; align-items: center; gap: 6px; font-size: 11px; padding: 4px 12px; background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-weight: 500; }
+
+        .input-section { margin-top: 20px; }
+        .input-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+        .input-wrapper { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: 12px 16px; transition: all 0.2s; }
+        .input-wrapper:focus-within { border-color: var(--accent-hinomaru); box-shadow: 0 0 0 3px var(--accent-hinomaru-dim); }
+        /* USR-3: スマホ金額入力最適化 - inputmode="decimal" 対応 */
+        .input-wrapper input { 
+            flex: 1; 
+            background: transparent; 
+            border: none; 
+            font-size: 24px; 
+            font-weight: 600; 
+            color: var(--text-primary); 
+            outline: none; 
+            font-family: var(--font-body);
+            /* USR-3: テンキー表示用 */
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+        .input-wrapper input::placeholder { color: var(--text-tertiary); }
+        .token-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg-elevated); border-radius: var(--radius-md); cursor: pointer; }
+        .token-icon { width: 24px; height: 24px; background: linear-gradient(135deg, #627eea, #3c3c3d); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; }
+        .token-name { font-weight: 600; font-size: 14px; }
+
+        .quick-amounts { display: flex; gap: 8px; margin-top: 12px; }
+        .quick-btn { flex: 1; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .quick-btn:hover { background: var(--bg-elevated); border-color: var(--border-default); color: var(--text-primary); }
+
+        .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 24px; transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-hinomaru-glow); }
+
+        .tx-list { display: flex; flex-direction: column; gap: 8px; }
+        .tx-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); cursor: pointer; transition: background 0.2s; text-decoration: none; color: var(--text-primary); }
+        .tx-item:hover { background: var(--bg-elevated); }
+        .tx-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .tx-icon.lock { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .tx-icon.unlock { background: var(--accent-gold-dim); color: var(--accent-gold); }
+        .tx-icon.pending { background: var(--warning-dim); color: var(--warning); }
+        .tx-info { flex: 1; }
+        .tx-type { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+        .tx-time { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .tx-amount { text-align: right; }
+        .tx-value { font-weight: 600; font-size: 13px; }
+        .tx-status { font-size: 10px; padding: 2px 8px; border-radius: var(--radius-full); margin-top: 4px; display: inline-block; font-weight: 500; }
+        .tx-status.complete { background: var(--success-dim); color: var(--success); }
+        .tx-status.pending { background: var(--warning-dim); color: var(--warning); }
+
+        .btn-outline { display: block; width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 16px; transition: all 0.2s; text-decoration: none; text-align: center; }
+        .btn-outline:hover { border-color: var(--accent-hinomaru); color: var(--accent-hinomaru-light); }
+
+        .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); padding: 8px 16px 24px; z-index: 100; }
+        .mobile-nav-inner { display: flex; justify-content: space-around; }
+        .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; color: var(--text-tertiary); text-decoration: none; font-size: 10px; border-radius: var(--radius-md); transition: all 0.2s; cursor: pointer; }
+        .mobile-nav-item:hover, .mobile-nav-item.active { color: var(--accent-hinomaru-light); }
+        .mobile-nav-item .icon { font-size: 20px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: center; justify-content: center; padding: 24px; }
+        .modal-overlay.show { display: flex; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); max-width: 480px; width: 100%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { padding: 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 18px; font-weight: 600; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 4px; }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-subtle); }
+
+        /* MKT-3: 初回ガイドツアー */
+        .guide-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 400; display: none; }
+        .guide-overlay.show { display: block; }
+        .guide-highlight { position: absolute; z-index: 401; box-shadow: 0 0 0 4px var(--accent-gold), 0 0 0 9999px rgba(0,0,0,0.7); border-radius: var(--radius-lg); pointer-events: none; transition: all 0.3s ease; }
+        .guide-tooltip { position: absolute; z-index: 402; background: var(--bg-card); border: 2px solid var(--accent-gold); border-radius: var(--radius-lg); padding: 20px; max-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .guide-tooltip-arrow { position: absolute; width: 12px; height: 12px; background: var(--bg-card); border: 2px solid var(--accent-gold); border-right: none; border-bottom: none; transform: rotate(45deg); }
+        .guide-tooltip-arrow.top { bottom: -7px; left: 24px; transform: rotate(-135deg); }
+        .guide-tooltip-arrow.bottom { top: -7px; left: 24px; transform: rotate(45deg); }
+        .guide-tooltip h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--accent-gold); }
+        .guide-tooltip p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+        .guide-actions { display: flex; gap: 8px; justify-content: space-between; align-items: center; }
+        .guide-skip { background: none; border: none; color: var(--text-tertiary); font-size: 13px; cursor: pointer; }
+        .guide-skip:hover { color: var(--text-secondary); }
+        .guide-next { padding: 10px 20px; background: var(--accent-gold); border: none; border-radius: var(--radius-md); color: var(--bg-primary); font-size: 13px; font-weight: 600; cursor: pointer; }
+        .guide-progress { font-size: 12px; color: var(--text-tertiary); }
+
+        /* CDO-3: エラー状態ビジュアル */
+        .error-modal .modal-content { border-color: var(--error); }
+        .error-icon { font-size: 48px; text-align: center; margin-bottom: 16px; }
+        .error-title { font-size: 18px; font-weight: 600; color: var(--error); text-align: center; margin-bottom: 8px; }
+        .error-message { font-size: 14px; color: var(--text-secondary); text-align: center; line-height: 1.6; margin-bottom: 20px; }
+        .error-code { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); background: var(--bg-secondary); padding: 8px 12px; border-radius: var(--radius-md); text-align: center; margin-bottom: 20px; }
+        .error-actions { display: flex; gap: 12px; }
+        .error-actions .btn-primary { margin-top: 0; flex: 1; }
+        .error-actions .btn-outline { margin-top: 0; flex: 1; }
+
+        /* CDO-3: トースト通知 */
+        .toast-container { position: fixed; top: 24px; right: 24px; z-index: 500; display: flex; flex-direction: column; gap: 12px; }
+        .toast { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,0.3); animation: toast-in 0.3s ease; min-width: 300px; }
+        @keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--error); }
+        .toast.warning { border-color: var(--warning); }
+        .toast-icon { font-size: 20px; }
+        .toast-content { flex: 1; }
+        .toast-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+        .toast-message { font-size: 12px; color: var(--text-secondary); }
+        .toast-close { background: none; border: none; color: var(--text-tertiary); font-size: 18px; cursor: pointer; padding: 4px; }
+
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            header nav { display: none; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .mobile-nav { display: block; }
+            body { padding-bottom: 100px; }
+            .guide-tooltip { max-width: 280px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="red-glow"></div></div>
+
+    <!-- CDO-3: トースト通知コンテナ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="container">
+        <header>
+            <a href="03_dashboard.html" class="logo">
+                <div class="logo-icon">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru"></div>
+                </div>
+                <span class="logo-text">Quantum Shield</span>
+            </a>
+
+            <nav>
+                <a href="03_dashboard.html" class="active">Dashboard</a>
+                <a onclick="openLockModal()">Lock</a>
+                <a href="04_unlock.html">Unlock</a>
+                <a href="05_history.html">History</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="06_settings.html" class="settings-btn">⚙️</a>
+                <button class="wallet-btn" onclick="openWalletModal()">
+                    <span class="wallet-dot"></span>
+                    0x7a3f...9c2d
+                </button>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card" id="statLock" onclick="openLockModal()">
+                <div class="stat-header">
+                    <span class="stat-label">Total Locked</span>
+                    <span class="stat-badge up">+12.4%</span>
+                </div>
+                <div class="stat-value highlight">24.85<span class="stat-unit">ETH</span></div>
+            </div>
+            <div class="stat-card" onclick="location.href='04_unlock.html'">
+                <div class="stat-header">
+                    <span class="stat-label">Available</span>
+                </div>
+                <div class="stat-value">12.50<span class="stat-unit">ETH</span></div>
+            </div>
+            <div class="stat-card" onclick="location.href='04_unlock.html'">
+                <div class="stat-header">
+                    <span class="stat-label">Pending Unlock</span>
+                </div>
+                <div class="stat-value">2</div>
+            </div>
+            <div class="stat-card" onclick="location.href='05_history.html'">
+                <div class="stat-header">
+                    <span class="stat-label">Transactions</span>
+                </div>
+                <div class="stat-value">47</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="card" id="lockCard">
+                <div class="card-header">
+                    <h2 class="card-title">Lock Assets</h2>
+                    <span class="badge-quantum">🔒 Quantum Protected</span>
+                </div>
+                <div class="card-body">
+                    <div class="lock-visual">
+                        <div class="orbit orbit-2"></div>
+                        <div class="orbit orbit-1"></div>
+                        <div class="hinomaru-core">
+                            <div class="hinomaru-white"></div>
+                            <div class="hinomaru-red"></div>
+                        </div>
+                    </div>
+                    <div class="input-section" id="inputSection">
+                        <div class="input-label">Amount to Lock</div>
+                        <div class="input-wrapper">
+                            <!-- USR-3: inputmode="decimal" でスマホテンキー最適化 -->
+                            <input type="text" id="lockAmount" placeholder="0.00" inputmode="decimal" pattern="[0-9]*\.?[0-9]*">
+                            <div class="token-badge">
+                                <div class="token-icon">Ξ</div>
+                                <span class="token-name">ETH</span>
+                            </div>
+                        </div>
+                        <div class="quick-amounts">
+                            <button class="quick-btn" onclick="setAmount(25)">25%</button>
+                            <button class="quick-btn" onclick="setAmount(50)">50%</button>
+                            <button class="quick-btn" onclick="setAmount(75)">75%</button>
+                            <button class="quick-btn" onclick="setAmount(100)">MAX</button>
+                        </div>
+                    </div>
+                    <button class="btn-primary" id="lockBtn" onclick="submitLock()">Lock with Dilithium Signature</button>
+                </div>
+            </div>
+
+            <div class="card" id="activityCard">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Activity</h2>
+                </div>
+                <div class="card-body">
+                    <div class="tx-list">
+                        <a href="05_history.html" class="tx-item">
+                            <div class="tx-icon lock">🔒</div>
+                            <div class="tx-info">
+                                <div class="tx-type">Lock</div>
+                                <div class="tx-time">2026-01-06 14:32</div>
+                            </div>
+                            <div class="tx-amount">
+                                <div class="tx-value">5.00 ETH</div>
+                                <div class="tx-status complete">Complete</div>
+                            </div>
+                        </a>
+                        <a href="05_history.html" class="tx-item">
+                            <div class="tx-icon pending">⏳</div>
+                            <div class="tx-info">
+                                <div class="tx-type">Normal Unlock</div>
+                                <div class="tx-time">2026-01-05 09:15</div>
+                            </div>
+                            <div class="tx-amount">
+                                <div class="tx-value">2.50 ETH</div>
+                                <div class="tx-status pending">24h Lock</div>
+                            </div>
+                        </a>
+                        <a href="05_history.html" class="tx-item">
+                            <div class="tx-icon unlock">🔓</div>
+                            <div class="tx-info">
+                                <div class="tx-type">Unlock Complete</div>
+                                <div class="tx-time">2026-01-03 18:45</div>
+                            </div>
+                            <div class="tx-amount">
+                                <div class="tx-value">1.25 ETH</div>
+                                <div class="tx-status complete">Complete</div>
+                            </div>
+                        </a>
+                    </div>
+                    <a href="05_history.html" class="btn-outline">すべての履歴を見る →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-nav">
+        <div class="mobile-nav-inner">
+            <a href="03_dashboard.html" class="mobile-nav-item active">
+                <span class="icon">📊</span>
+                Dashboard
+            </a>
+            <span class="mobile-nav-item" onclick="openLockModal()">
+                <span class="icon">🔒</span>
+                Lock
+            </span>
+            <a href="04_unlock.html" class="mobile-nav-item">
+                <span class="icon">🔓</span>
+                Unlock
+            </a>
+            <a href="05_history.html" class="mobile-nav-item">
+                <span class="icon">📜</span>
+                History
+            </a>
+            <a href="06_settings.html" class="mobile-nav-item">
+                <span class="icon">⚙️</span>
+                Settings
+            </a>
+        </div>
+    </div>
+
+    <!-- Lock確認モーダル -->
+    <div class="modal-overlay" id="lockModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Lock確認</h3>
+                <button class="modal-close" onclick="closeLockModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+                    以下の内容でLockを実行します。Dilithium署名が必要です。
+                </p>
+                <div style="background: var(--bg-secondary); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: var(--text-secondary); font-size: 13px;">Lock金額</span>
+                        <span style="font-weight: 600;" id="modalLockAmount">0.00 ETH</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-size: 13px;">ガス代（概算）</span>
+                        <span style="font-weight: 600;">~0.005 ETH</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="confirmLock()">署名してLock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ウォレットモーダル -->
+    <div class="modal-overlay" id="walletModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>ウォレット</h3>
+                <button class="modal-close" onclick="closeWalletModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🦊</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">接続中のウォレット</div>
+                    <div style="font-family: var(--font-mono); font-size: 14px; margin-top: 8px;">0x7a3f9c2d...8e1b4f6a</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn-outline" style="flex: 1; margin-top: 0;" onclick="copyAddress()">📋 コピー</button>
+                    <button class="btn-outline" style="flex: 1; margin-top: 0; border-color: var(--error); color: var(--error);" onclick="disconnectWallet()">切断</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CDO-3: エラーモーダル -->
+    <div class="modal-overlay error-modal" id="errorModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>エラー</h3>
+                <button class="modal-close" onclick="closeErrorModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="error-icon">❌</div>
+                <div class="error-title" id="errorTitle">トランザクション失敗</div>
+                <div class="error-message" id="errorMessage">トランザクションの処理中にエラーが発生しました。ネットワーク状況を確認して再度お試しください。</div>
+                <div class="error-code" id="errorCode">Error Code: TX_FAILED_001</div>
+                <div class="error-actions">
+                    <button class="btn-outline" onclick="closeErrorModal()">閉じる</button>
+                    <button class="btn-primary" onclick="retryAction()">再試行</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MKT-3: 初回ガイドツアー -->
+    <div class="guide-overlay" id="guideOverlay">
+        <div class="guide-highlight" id="guideHighlight"></div>
+        <div class="guide-tooltip" id="guideTooltip">
+            <div class="guide-tooltip-arrow top" id="guideArrow"></div>
+            <h4 id="guideTitle">ようこそ！</h4>
+            <p id="guideText">Quantum Shieldへようこそ。簡単なガイドで使い方をご紹介します。</p>
+            <div class="guide-actions">
+                <button class="guide-skip" onclick="skipGuide()">スキップ</button>
+                <span class="guide-progress" id="guideProgress">1 / 4</span>
+                <button class="guide-next" onclick="nextGuideStep()">次へ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const balance = 12.50;
+
+        function setAmount(percent) {
+            const amount = (balance * percent / 100).toFixed(2);
+            document.getElementById('lockAmount').value = amount;
+        }
+
+        function openLockModal() {
+            const amount = document.getElementById('lockAmount').value || '0.00';
+            document.getElementById('modalLockAmount').textContent = amount + ' ETH';
+            document.getElementById('lockModal').classList.add('show');
+        }
+
+        function closeLockModal() {
+            document.getElementById('lockModal').classList.remove('show');
+        }
+
+        function submitLock() {
+            const amount = document.getElementById('lockAmount').value;
+            if (!amount || parseFloat(amount) <= 0) {
+                showError('入力エラー', 'Lock金額を入力してください', 'INPUT_REQUIRED');
+                return;
+            }
+            openLockModal();
+        }
+
+        function confirmLock() {
+            closeLockModal();
+            window.location.href = '10_lock_processing.html';
+        }
+
+        function openWalletModal() {
+            document.getElementById('walletModal').classList.add('show');
+        }
+
+        function closeWalletModal() {
+            document.getElementById('walletModal').classList.remove('show');
+        }
+
+        function copyAddress() {
+            navigator.clipboard.writeText('0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d').then(() => {
+                showToast('success', 'コピー完了', 'アドレスをクリップボードにコピーしました');
+            });
+        }
+
+        function disconnectWallet() {
+            if (confirm('ウォレットを切断しますか？')) {
+                window.location.href = '01_landing.html';
+            }
+        }
+
+        // CDO-3: エラーモーダル
+        function showError(title, message, code) {
+            document.getElementById('errorTitle').textContent = title;
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorCode').textContent = 'Error Code: ' + code;
+            document.getElementById('errorModal').classList.add('show');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.remove('show');
+        }
+
+        function retryAction() {
+            closeErrorModal();
+            // 再試行ロジック
+        }
+
+        // CDO-3: トースト通知
+        function showToast(type, title, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            const icons = { success: '✅', error: '❌', warning: '⚠️' };
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type] || '📢'}</span>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // MKT-3: ガイドツアー
+        const guideSteps = [
+            { target: 'statLock', title: '総ロック量', text: 'ここに現在ロック中の総資産額が表示されます。クリックするとLock画面に移動します。', position: 'bottom' },
+            { target: 'lockCard', title: '資産をLock', text: 'ETHをLockして量子耐性で保護できます。金額を入力してLockボタンを押してください。', position: 'top' },
+            { target: 'inputSection', title: '金額入力', text: 'Lock金額を入力します。クイックボタンで残高の割合を簡単に選択できます。', position: 'top' },
+            { target: 'activityCard', title: '取引履歴', text: '最近の取引履歴を確認できます。詳細は履歴ページで確認してください。', position: 'top' }
+        ];
+        let currentStep = 0;
+
+        function showGuide() {
+            // 初回訪問チェック（デモでは常に表示）
+            if (localStorage.getItem('guideCompleted')) return;
+            document.getElementById('guideOverlay').classList.add('show');
+            updateGuideStep();
+        }
+
+        function updateGuideStep() {
+            const step = guideSteps[currentStep];
+            const target = document.getElementById(step.target);
+            const rect = target.getBoundingClientRect();
+            const highlight = document.getElementById('guideHighlight');
+            const tooltip = document.getElementById('guideTooltip');
+            const arrow = document.getElementById('guideArrow');
+
+            // ハイライト位置
+            highlight.style.top = (rect.top + window.scrollY - 8) + 'px';
+            highlight.style.left = (rect.left - 8) + 'px';
+            highlight.style.width = (rect.width + 16) + 'px';
+            highlight.style.height = (rect.height + 16) + 'px';
+
+            // ツールチップ位置
+            if (step.position === 'bottom') {
+                tooltip.style.top = (rect.bottom + window.scrollY + 20) + 'px';
+                arrow.className = 'guide-tooltip-arrow bottom';
+            } else {
+                tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 20) + 'px';
+                arrow.className = 'guide-tooltip-arrow top';
+            }
+            tooltip.style.left = Math.max(16, rect.left) + 'px';
+
+            // コンテンツ更新
+            document.getElementById('guideTitle').textContent = step.title;
+            document.getElementById('guideText').textContent = step.text;
+            document.getElementById('guideProgress').textContent = (currentStep + 1) + ' / ' + guideSteps.length;
+
+            // ボタンテキスト
+            document.querySelector('.guide-next').textContent = currentStep === guideSteps.length - 1 ? '完了' : '次へ';
+        }
+
+        function nextGuideStep() {
+            if (currentStep < guideSteps.length - 1) {
+                currentStep++;
+                updateGuideStep();
+            } else {
+                skipGuide();
+            }
+        }
+
+        function skipGuide() {
+            document.getElementById('guideOverlay').classList.remove('show');
+            localStorage.setItem('guideCompleted', 'true');
+            showToast('success', 'ガイド完了', 'いつでも設定からガイドを再表示できます');
+        }
+
+        // モーダル外クリックで閉じる
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+
+        // 初回訪問時にガイドを表示
+        window.addEventListener('load', () => {
+            setTimeout(showGuide, 500);
+        });
+    </script>
+</body>
+</html>
