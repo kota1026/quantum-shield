@@ -15,8 +15,15 @@ export default getRequestConfig(async ({ requestLocale }) => {
     notFound();
   }
 
+  // Load all translation namespaces
+  const consumer = (await import(`../../locales/${locale}/consumer.json`)).default;
+  const tokenHub = (await import(`../../locales/${locale}/token-hub.json`)).default;
+
   return {
     locale,
-    messages: (await import(`../../locales/${locale}/consumer.json`)).default,
+    messages: {
+      ...consumer,
+      ...tokenHub,
+    },
   };
 });

@@ -121,13 +121,13 @@ export function HistoryDetail({ transaction }: HistoryDetailProps) {
         {
           id: 'waiting',
           label: t('timeline.waiting24h'),
-          timestamp: transaction.remainingTime ? `${t('timeline.remaining')}: ${transaction.remainingTime}` : undefined,
+          timestamp: transaction.remainingTime ? `${t('timeline.remaining')}: ${transaction.remainingTime}` : '',
           completed: transaction.status === 'complete',
         },
         {
           id: 'released',
           label: t('timeline.released'),
-          timestamp: undefined,
+          timestamp: '',
           completed: transaction.status === 'complete',
         }
       );
@@ -136,19 +136,19 @@ export function HistoryDetail({ transaction }: HistoryDetailProps) {
         {
           id: 'bondDeposited',
           label: t('timeline.bondDeposited'),
-          timestamp: transaction.bondAmount ? `Bond: ${transaction.bondAmount}` : undefined,
+          timestamp: transaction.bondAmount ? `Bond: ${transaction.bondAmount}` : '',
           completed: true,
         },
         {
           id: 'challengePeriod',
           label: t('timeline.challengePeriod'),
-          timestamp: transaction.remainingTime ? `${t('timeline.remaining')}: ${transaction.remainingTime}` : undefined,
+          timestamp: transaction.remainingTime ? `${t('timeline.remaining')}: ${transaction.remainingTime}` : '',
           completed: transaction.status === 'complete',
         },
         {
           id: 'released',
           label: t('timeline.released'),
-          timestamp: undefined,
+          timestamp: '',
           completed: transaction.status === 'complete',
         }
       );

@@ -1,0 +1,88 @@
+{
+  "token-hub": {
+    "common": {
+      "header": {
+        "dashboard": "ダッシュボード",
+        "lock": "ロック",
+        "delegate": "委任",
+        "rewards": "報酬",
+        "navLabel": "Token Hub ナビゲーション",
+        "walletConnected": "{address} に接続中"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Token Hub ダッシュボード | Quantum Shield",
+        "description": "QSトークンをロックしてveQSを獲得し、ガバナンスに参加"
+      },
+      "stats": {
+        "ariaLabel": "トークン統計",
+        "qsBalance": {
+          "label": "QS残高"
+        },
+        "lockedQS": {
+          "label": "ロック中のQS"
+        },
+        "veQSBalance": {
+          "label": "veQS残高"
+        },
+        "votingPower": {
+          "label": "投票力"
+        }
+      },
+      "chart": {
+        "title": "投票力の減衰",
+        "subtitle": "veQS減衰予測",
+        "ariaLabel": "veQSの時間経過による減衰を示すチャート"
+      },
+      "veqsBox": {
+        "currentVeQS": "現在のveQS",
+        "lockEnds": "ロック終了",
+        "remaining": "残り2年3ヶ月"
+      },
+      "veqsTooltip": {
+        "title": "veQS 計算式",
+        "formula": "veQS = QS × (lock_period / 4 years)",
+        "example": "例: 8,500 QS を 3年間ロック\n→ 8,500 × (3/4) = 6,375 veQS\n※ veQSは時間経過とともに線形に減衰します",
+        "ariaLabel": "veQSの計算方法を説明するツールチップ"
+      },
+      "lockInfo": {
+        "lockedAmount": "ロック数量",
+        "lockDuration": "ロック期間",
+        "timeRemaining": "残り時間",
+        "multiplier": "倍率"
+      },
+      "actions": {
+        "lockMore": "QSをロック",
+        "extendLock": "ロック延長",
+        "delegatePower": "委任する",
+        "claimRewards": "報酬を受取"
+      },
+      "votingPowerTooltip": {
+        "title": "投票力とは？",
+        "description": "投票力は、Quantum Shieldのガバナンス（運営方針の決定）において、あなたの投票がどれだけ影響力を持つかを示す割合です。veQSが多いほど投票力が高くなります。",
+        "ariaLabel": "投票力の説明を表示するツールチップ"
+      },
+      "delegations": {
+        "title": "委任先一覧",
+        "ariaLabel": "あなたが委任しているデリゲート一覧",
+        "totalPower": "合計"
+      },
+      "rewards": {
+        "title": "報酬",
+        "claimable": "受取可能",
+        "claimButton": "受け取る",
+        "epochProgress": "エポック進行状況"
+      },
+      "footer": {
+        "navLabel": "フッターナビゲーション",
+        "terms": "利用規約",
+        "privacy": "プライバシーポリシー",
+        "docs": "ドキュメント",
+        "github": "GitHub",
+        "disclaimer": "これは投資アドバイスではありません。Token Hubはガバナンスツールであり、金融サービスを構成するものではありません。QSトークンのロックには流動性の喪失を含むリスクが伴います。参加前にご自身で調査を行ってください。",
+        "copyright": "© 2026 Quantum Shield Foundation. All rights reserved."
+      }
+    }
+  }
+}

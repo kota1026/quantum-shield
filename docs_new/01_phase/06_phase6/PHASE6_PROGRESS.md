@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-16 (Consumer App COMPLETE - 19/19 screens)
+> **Last Updated**: 2026-01-16 (Token Hub started - 1/10 screens)
 > **Total Tasks**: 218
 
 ---
@@ -11,15 +11,15 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   31/144 (22%)           │
+│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   32/144 (22%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [██░░░░░░░░░░░░░░░░░░]   31/218 (14%)           │
+│  TOTAL:           [███░░░░░░░░░░░░░░░░░]   32/218 (15%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
-│  Week 2-3 P1 Systems: 🔄 In Progress                               │
+│  Week 2-3 P1 Systems: 🔄 In Progress (Token Hub started)           │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -60,7 +60,7 @@
 
 | # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
 |---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
-| 01 | landing | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 01 | dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 02 | qs_lock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 03 | veqs_dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 04 | delegate | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
@@ -71,7 +71,7 @@
 | 09 | settings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 10 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 0/10 (0%)
+**Progress**: 1/10 (10%)
 
 ---
 
@@ -375,6 +375,7 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-16 | Token Hub: dashboard - Complete (UI, A11y, E2E, Persona Test, PIR) - CONDITIONAL (added tooltips) |
 | 2026-01-16 | **🎉 Consumer App: ALL 19 SCREENS COMPLETE!** |
 | 2026-01-16 | Consumer App: wallet_connect - Complete (New screen: UI, A11y, E2E, Persona Test, PIR) - PASS |
 | 2026-01-16 | Consumer App: cookie - Complete (New screen: UI, A11y, E2E, Persona Test, PIR) - PASS |
