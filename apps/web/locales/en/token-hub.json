@@ -1,5 +1,283 @@
 {
   "token-hub": {
+    "onboarding": {
+      "meta": {
+        "title": "Learn About Tokenomics | Token Hub | Quantum Shield",
+        "description": "Understand QS tokens, veQS voting escrow, and how to participate in governance"
+      },
+      "breadcrumb": {
+        "ariaLabel": "Breadcrumb navigation",
+        "dashboard": "Dashboard",
+        "current": "Tokenomics"
+      },
+      "hero": {
+        "badge": "Tokenomics Guide",
+        "title": "Understanding QS Tokenomics",
+        "description": "Learn how QS tokens power the Quantum Shield ecosystem through voting escrow and decentralized governance."
+      },
+      "qs": {
+        "title": "What is QS Token?",
+        "description": "QS is the native utility token of Quantum Shield protocol. It enables governance participation, staking rewards, and access to premium features.",
+        "totalSupply": "Total Supply",
+        "network": "Network",
+        "type": "Token Type"
+      },
+      "veqs": {
+        "title": "What is veQS?",
+        "description": "veQS (voting escrow QS) is a non-transferable token representing your governance power. The longer you lock QS, the more veQS you receive.",
+        "formulaTitle": "veQS Formula",
+        "formulaDescription": "Your veQS amount is calculated based on how long you lock your QS tokens. Maximum lock period is 4 years for 1:1 ratio.",
+        "examplesAriaLabel": "Lock period examples showing veQS calculation",
+        "lockPeriod": "Lock Period",
+        "multiplier": "Multiplier",
+        "result": "Result (10,000 QS)",
+        "months": " months",
+        "years": " years",
+        "tableNote": "Examples based on locking 10,000 QS tokens"
+      },
+      "timeline": {
+        "title": "How It Works",
+        "ariaLabel": "Steps to participate in Token Hub",
+        "acquire": {
+          "title": "Acquire QS",
+          "description": "Get QS tokens from DEX or rewards"
+        },
+        "lock": {
+          "title": "Lock QS",
+          "description": "Lock for 6 months to 4 years"
+        },
+        "vote": {
+          "title": "Vote",
+          "description": "Participate in governance"
+        },
+        "earn": {
+          "title": "Earn Rewards",
+          "description": "Receive protocol fees"
+        }
+      },
+      "benefits": {
+        "title": "Benefits of Locking",
+        "governance": {
+          "title": "Governance Rights",
+          "description": "Vote on protocol proposals, fee distribution, and strategic decisions"
+        },
+        "rewards": {
+          "title": "Protocol Rewards",
+          "description": "Earn a share of protocol fees proportional to your veQS balance"
+        },
+        "boost": {
+          "title": "Boosted Yields",
+          "description": "Get up to 2.5x boost on liquidity mining and staking rewards"
+        },
+        "security": {
+          "title": "Network Security",
+          "description": "Help secure the network by aligning incentives long-term"
+        }
+      },
+      "decay": {
+        "title": "Understanding veQS Decay",
+        "description": "Your veQS balance decreases linearly over time until it reaches zero at the end of your lock period. This incentivizes long-term commitment.",
+        "start": "Lock Start",
+        "end": "Lock End",
+        "visualAriaLabel": "Visualization of veQS decay from full to zero",
+        "note": "You can extend your lock at any time to restore full veQS balance"
+      },
+      "cta": {
+        "title": "Ready to Start?",
+        "description": "Lock your QS tokens to receive veQS and start participating in Quantum Shield governance.",
+        "lockButton": "Lock QS Now",
+        "getQSButton": "Get QS Tokens"
+      },
+      "faqPreview": {
+        "text": "Have questions about tokenomics or locking?",
+        "link": "View Frequently Asked Questions"
+      }
+    },
+    "faq": {
+      "meta": {
+        "title": "FAQ | Token Hub | Quantum Shield",
+        "description": "Frequently asked questions about QS tokens, veQS, locking, and governance"
+      },
+      "breadcrumb": {
+        "ariaLabel": "Breadcrumb navigation",
+        "dashboard": "Dashboard",
+        "current": "FAQ"
+      },
+      "badge": "Help Center",
+      "title": "Frequently Asked Questions",
+      "description": "Find answers to common questions about Token Hub, veQS, and governance",
+      "categories": {
+        "ariaLabel": "FAQ categories",
+        "general": "General",
+        "locking": "Locking",
+        "veqs": "veQS",
+        "governance": "Governance",
+        "rewards": "Rewards"
+      },
+      "items": {
+        "general": {
+          "what_is_token_hub": {
+            "question": "What is Token Hub?",
+            "answer": "Token Hub is the governance and staking platform for Quantum Shield protocol. It allows you to lock QS tokens to receive veQS (voting escrow QS), participate in governance voting, and earn protocol rewards."
+          },
+          "who_can_participate": {
+            "question": "Who can participate in Token Hub?",
+            "answer": "Anyone who holds QS tokens can participate. You need a compatible Web3 wallet (like MetaMask, WalletConnect) and QS tokens to get started."
+          },
+          "is_it_safe": {
+            "question": "Is it safe to lock my tokens?",
+            "answer": "The smart contracts have been audited by leading security firms. However, as with any DeFi protocol, there are inherent risks. Locked tokens cannot be withdrawn until the lock period ends. Please do your own research before participating."
+          }
+        },
+        "locking": {
+          "how_to_lock": {
+            "question": "How do I lock my QS tokens?",
+            "answer": "Go to the Lock page, enter the amount of QS you want to lock, select your lock duration (6 months to 4 years), review the preview, and confirm the transaction in your wallet."
+          },
+          "minimum_amount": {
+            "question": "Is there a minimum lock amount?",
+            "answer": "There is no minimum amount for locking QS tokens. However, gas fees may make very small amounts economically impractical."
+          },
+          "can_unlock_early": {
+            "question": "Can I unlock my tokens early?",
+            "answer": "No, locked tokens cannot be withdrawn before the lock period ends. This is by design to ensure long-term commitment and stability in governance. Please carefully consider your lock duration before confirming."
+          },
+          "extend_lock": {
+            "question": "Can I extend my lock period?",
+            "answer": "Yes, you can extend your lock at any time. Extending your lock will recalculate your veQS balance based on the new lock duration, restoring your voting power."
+          }
+        },
+        "veqs": {
+          "what_is_veqs": {
+            "question": "What is veQS?",
+            "answer": "veQS (voting escrow QS) is a non-transferable token that represents your governance power and reward share. It is calculated based on how much QS you lock and for how long."
+          },
+          "how_calculated": {
+            "question": "How is veQS calculated?",
+            "answer": "veQS = QS × (lock_period / 4 years). For example, locking 10,000 QS for 2 years gives you 5,000 veQS. Locking for the maximum 4 years gives you a 1:1 ratio."
+          },
+          "why_decay": {
+            "question": "Why does veQS decay over time?",
+            "answer": "veQS decays linearly until it reaches zero at the end of your lock period. This incentivizes long-term commitment and allows governance power to naturally shift to active, committed participants."
+          },
+          "non_transferable": {
+            "question": "Can I transfer my veQS to another wallet?",
+            "answer": "No, veQS is non-transferable and bound to your wallet address. This prevents vote buying and ensures governance power remains with genuine long-term stakeholders."
+          }
+        },
+        "governance": {
+          "what_is_governance": {
+            "question": "What is governance voting?",
+            "answer": "Governance voting allows veQS holders to vote on protocol proposals, including fee adjustments, parameter changes, treasury allocations, and strategic decisions."
+          },
+          "how_to_vote": {
+            "question": "How do I vote on proposals?",
+            "answer": "Connect your wallet to the Governance portal, browse active proposals, review the details, and cast your vote. Your voting power is proportional to your veQS balance at the time of voting."
+          },
+          "proposal_types": {
+            "question": "What types of proposals can be voted on?",
+            "answer": "Proposals can include protocol parameter changes, fee distribution adjustments, treasury fund allocations, strategic partnerships, and protocol upgrades. Anyone with sufficient veQS can submit proposals."
+          },
+          "voting_power": {
+            "question": "How is my voting power determined?",
+            "answer": "Your voting power is directly proportional to your veQS balance. More veQS means more influence in governance decisions. You can also delegate your voting power to trusted delegates."
+          }
+        },
+        "rewards": {
+          "how_rewards_work": {
+            "question": "How do rewards work?",
+            "answer": "Protocol fees are distributed to veQS holders proportionally to their veQS balance. The more veQS you hold, the larger your share of protocol rewards."
+          },
+          "when_distributed": {
+            "question": "When are rewards distributed?",
+            "answer": "Rewards are distributed at the end of each epoch (typically weekly). You can claim accumulated rewards from the Rewards page at any time."
+          },
+          "claim_process": {
+            "question": "How do I claim my rewards?",
+            "answer": "Go to the Rewards page, view your claimable balance, and click the Claim button. Confirm the transaction in your wallet to receive your rewards."
+          },
+          "reward_boost": {
+            "question": "What is reward boost?",
+            "answer": "veQS holders can receive up to 2.5x boost on liquidity mining and other protocol rewards. The boost amount depends on your veQS balance relative to your staking position."
+          }
+        }
+      },
+      "notice": {
+        "title": "Important Notice",
+        "description": "This FAQ is for informational purposes only and does not constitute financial advice. Please do your own research and understand the risks before participating."
+      },
+      "quickLinks": {
+        "onboarding": "Learn Tokenomics",
+        "onboardingDesc": "Understand veQS basics",
+        "lock": "Lock QS",
+        "lockDesc": "Start earning veQS",
+        "getQS": "Get QS Tokens",
+        "getQSDesc": "Acquire QS tokens"
+      }
+    },
+    "getQS": {
+      "meta": {
+        "title": "Get QS Tokens | Token Hub | Quantum Shield",
+        "description": "Learn how to acquire QS tokens through DEX, rewards, airdrops, and staking"
+      },
+      "breadcrumb": {
+        "ariaLabel": "Breadcrumb navigation",
+        "dashboard": "Dashboard",
+        "current": "Get QS"
+      },
+      "badge": "Acquire Tokens",
+      "title": "How to Get QS Tokens",
+      "description": "Explore different ways to acquire QS tokens and start participating in Token Hub governance.",
+      "recommended": "Recommended",
+      "methods": {
+        "dex": {
+          "title": "Buy on DEX",
+          "description": "Purchase QS tokens on decentralized exchanges using ETH or stablecoins. The most direct way to acquire QS.",
+          "tags": "Instant, No KYC, Market price"
+        },
+        "rewards": {
+          "title": "Earn Protocol Rewards",
+          "description": "Earn QS tokens by participating in governance, providing liquidity, or staking. Rewards are distributed weekly.",
+          "tags": "Free, Requires participation, Ongoing"
+        },
+        "airdrop": {
+          "title": "Airdrops",
+          "description": "Early adopters and active community members may receive QS airdrops. Check announcements for eligibility criteria.",
+          "tags": "Free, Limited, Check eligibility"
+        },
+        "staking": {
+          "title": "Staking Rewards",
+          "description": "Stake supported assets to earn QS rewards. Higher APY for longer commitment periods.",
+          "tags": "Passive income, Variable APY"
+        }
+      },
+      "dex": {
+        "title": "Buy on Decentralized Exchanges",
+        "subtitle": "Recommended exchanges where QS is listed",
+        "howToBuy": {
+          "title": "How to Buy QS",
+          "step1": "Connect your wallet to the DEX (MetaMask, WalletConnect, etc.)",
+          "step2": "Select ETH or USDC as the input token",
+          "step3": "Enter QS as the output token or paste the contract address",
+          "step4": "Review the transaction and confirm in your wallet"
+        }
+      },
+      "contract": {
+        "title": "Official Token Contract",
+        "subtitle": "Always verify you are using the correct contract address",
+        "network": "Network",
+        "warning": {
+          "title": "Important",
+          "description": "Only use the official contract address. Verify on Etherscan before making any transactions. Never trust links from unofficial sources."
+        }
+      },
+      "cta": {
+        "title": "Ready to Lock Your QS?",
+        "description": "Once you have QS tokens, lock them to receive veQS and start earning rewards.",
+        "lockButton": "Lock QS Now",
+        "learnButton": "Learn More About veQS"
+      }
+    },
     "common": {
       "header": {
         "dashboard": "Dashboard",
