@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { AppHeader } from './AppHeader';
@@ -82,9 +82,15 @@ export function Dashboard() {
     }
   }, [router]);
 
-  const openLockModal = useCallback(() => {
-    setLockAmount(0);
-    setIsLockModalOpen(true);
+  // ロックボタンクリック時に金額入力欄にスクロール＆フォーカス
+  const scrollToLockInput = useCallback(() => {
+    const lockAmountInput = document.getElementById('lockAmount');
+    if (lockAmountInput) {
+      lockAmountInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        lockAmountInput.focus();
+      }, 500);
+    }
   }, []);
 
   return (
@@ -109,7 +115,7 @@ export function Dashboard() {
         <AppHeader
           walletAddress={WALLET_ADDRESS}
           onWalletClick={() => setIsWalletModalOpen(true)}
-          onLockClick={openLockModal}
+          onLockClick={scrollToLockInput}
         />
 
         {/* Stats Grid */}
@@ -161,7 +167,7 @@ export function Dashboard() {
       </main>
 
       {/* Mobile Navigation */}
-      <MobileNav onLockClick={openLockModal} />
+      <MobileNav onLockClick={scrollToLockInput} />
 
       {/* Modals */}
       <LockModal
