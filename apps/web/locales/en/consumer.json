@@ -1410,6 +1410,65 @@
           "description": "Daily digest email"
         }
       }
+    },
+    "help": {
+      "meta": {
+        "title": "Help | Quantum Shield",
+        "description": "Quantum Shield help and support"
+      },
+      "header": {
+        "title": "Help",
+        "back": "Back"
+      },
+      "search": {
+        "placeholder": "Search for help...",
+        "ariaLabel": "Search help"
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "items": {
+          "gettingStarted": {
+            "title": "Getting Started",
+            "description": "Learn the basics of Quantum Shield"
+          },
+          "lockUnlock": {
+            "title": "Lock / Unlock",
+            "description": "How to lock and unlock assets"
+          },
+          "security": {
+            "title": "Security",
+            "description": "About quantum-resistant cryptography"
+          },
+          "troubleshooting": {
+            "title": "Troubleshooting",
+            "description": "Common issues and solutions"
+          }
+        }
+      },
+      "resources": {
+        "title": "Resources",
+        "faq": {
+          "title": "FAQ",
+          "description": "Frequently asked questions"
+        },
+        "contact": {
+          "title": "Contact Us",
+          "description": "Reach out to support"
+        },
+        "docs": {
+          "title": "Documentation",
+          "description": "Detailed guides and API"
+        },
+        "status": {
+          "title": "System Status",
+          "description": "Service uptime status"
+        }
+      },
+      "tutorial": {
+        "title": "Tutorial",
+        "description": "New to Quantum Shield? Check out our tutorial",
+        "button": "View Tutorial"
+      }
     }
   }
 }
