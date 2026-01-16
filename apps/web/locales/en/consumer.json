@@ -239,7 +239,7 @@
       "item": {
         "date": "Date",
         "blockConfirmed": "Confirmed",
-        "blockConfirmedTooltip": "Transaction confirmed {count} times on the blockchain",
+        "blockConfirmedTooltip": "This transaction has been confirmed by {count} blocks. 6+ blocks is considered secure.",
         "remaining": "{time} remaining",
         "bond": "Bond: {amount}",
         "txHashLabel": "Transaction ID",
