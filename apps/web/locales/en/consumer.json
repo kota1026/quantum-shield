@@ -1367,6 +1367,49 @@
           "closeButton": "Close"
         }
       }
+    },
+    "notifications": {
+      "meta": {
+        "title": "Notifications | Quantum Shield",
+        "description": "Notification history and settings"
+      },
+      "header": {
+        "title": "Notifications",
+        "back": "Back",
+        "markAllRead": "Mark all as read"
+      },
+      "tabs": {
+        "all": "All",
+        "unread": "Unread"
+      },
+      "types": {
+        "lockComplete": "Lock Complete",
+        "unlockStarted": "Unlock Started",
+        "unlockComplete": "Unlock Complete",
+        "emergencyStarted": "Emergency Unlock Started",
+        "emergencyComplete": "Emergency Unlock Complete",
+        "securityAlert": "Security Alert",
+        "systemUpdate": "System Update"
+      },
+      "item": {
+        "unread": "Unread",
+        "markRead": "Mark as read"
+      },
+      "emptyState": {
+        "title": "No notifications",
+        "description": "Notifications will appear here when you lock or unlock assets"
+      },
+      "settings": {
+        "title": "Notification Settings",
+        "push": {
+          "title": "Push Notifications",
+          "description": "Get real-time alerts for important activities"
+        },
+        "email": {
+          "title": "Email Notifications",
+          "description": "Daily digest email"
+        }
+      }
     }
   }
 }
