@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, FileText, History as HistoryIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -86,6 +87,7 @@ const FILTER_TO_TYPES: Record<FilterType, TransactionType[] | null> = {
 
 export function History() {
   const t = useTranslations('consumer.history');
+  const router = useRouter();
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
@@ -104,9 +106,8 @@ export function History() {
   }, [t]);
 
   const handleTransactionClick = useCallback((tx: HistoryTransaction) => {
-    // Future: navigate to transaction detail
-    console.log('Transaction clicked:', tx.id);
-  }, []);
+    router.push(`/consumer/history/${tx.id}`);
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-background pb-8">
