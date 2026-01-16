@@ -97,7 +97,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
       }}
       className={cn(
         'p-6 rounded-qs-xl border cursor-pointer transition-all',
-        'bg-surface hover:border-border-secondary',
+        'bg-surface hover-gradient-border',
         selected ? 'border-hinomaru' : 'border-border'
       )}
     >
