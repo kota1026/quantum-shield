@@ -1,0 +1,11 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "verifier": "0xF0f990c2b2F5aA803485289E7140E45b7831a844",
+  "bridge": "0x32aec14Aa82b7f8a5d85df04c16418a957E958b6",
+  "vkHash": "0x59eeb7122d50be8536a5c331806319b907b32475f3965a6af300a18bd082bbf1",
+  "deployer": "0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3",
+  "timestamp": "1765980792",
+  "verifierType": "groth16",
+  "isQuantumResistant": false
+}

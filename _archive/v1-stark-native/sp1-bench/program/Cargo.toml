@@ -1,0 +1,17 @@
+[package]
+name = "dilithium-sp1-program"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sp1-zkvm = "5.2"
+
+# Serialization for input/output data
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+
+# Lightweight Plonky2 verifier (no_std compatible)
+plonky2-verifier-core = { path = "../../plonky2-verifier-core", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = true

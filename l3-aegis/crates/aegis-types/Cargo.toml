@@ -1,0 +1,18 @@
+[package]
+name = "aegis-types"
+version = "0.1.0"
+edition = "2021"
+authors = ["Quantum Shield Team"]
+description = "Shared types for L3 Aegis"
+license = "MIT"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha3 = { workspace = true }
+hex = { workspace = true }
+bytes = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]

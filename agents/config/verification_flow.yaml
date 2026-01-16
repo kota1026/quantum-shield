@@ -1,0 +1,288 @@
+# Agent Verification Workflow Configuration
+# テスト実行後の自動エージェント検証フロー
+
+version: "1.0"
+updated: "2024-12-20"
+
+# 検証フロー設定
+verification:
+  # 自動進行の条件
+  auto_proceed_on:
+    - PASS
+    - PARTIAL  # 警告のみなら自動進行
+  
+  # 承認が必要な条件
+  require_approval_on:
+    - FAIL
+    - CRITICAL_WARNING
+  
+  # 結果のステータス定義
+  statuses:
+    PASS: "全てのチェックが成功"
+    PARTIAL: "警告あり、クリティカルなし"
+    FAIL: "1つ以上のクリティカルチェックが失敗"
+    CRITICAL_WARNING: "セキュリティ関連の警告"
+
+# 通知設定
+notification:
+  enabled: true
+  channels:
+    primary: "slack"
+    fallback: "github_issue"
+  
+  slack:
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channel: "#quantum-shield-alerts"
+    mention_on_fail: "@kota"
+  
+  # 通知トリガー
+  triggers:
+    on_fail: true
+    on_partial: true
+    on_pass: false  # 成功時は通知しない（静かな成功）
+    on_critical_warning: true
+  
+  # 承認待ち機能
+  approval:
+    enabled: true
+    timeout_hours: 24
+    auto_reject_on_timeout: false
+    reminder_intervals_hours: [4, 12, 20]
+    
+    # 承認メッセージテンプレート
+    message_template: |
+      🛡️ *Quantum Shield - 承認待ち*
+      
+      *ステータス*: {{ status }}
+      *エージェント*: {{ agent_name }}
+      *詳細*: {{ details }}
+      
+      *アクション候補*:
+      {{ action_options }}
+      
+      承認: 「OK」「承認」「進めて」
+      拒否: 「ダメ」「止めて」「待って」
+
+# エージェント定義
+agents:
+  # クリティカルエージェント（FAILで全体FAIL）
+  critical:
+    - name: "Purpose Guardian"
+      id: "purpose_guardian"
+      description: "理念の番人 - プロジェクトの核心的価値を守る"
+      checks:
+        - id: "no_ignored_tests"
+          name: "無視されたテストがない"
+          command: "grep -r '@ignore' --include='*.rs' || true"
+          fail_pattern: "@ignore"
+          severity: "high"
+        
+        - id: "no_failed_tests"
+          name: "失敗したテストがない"
+          command: "cargo test 2>&1"
+          fail_pattern: "FAILED"
+          severity: "critical"
+        
+        - id: "no_sorry_in_lean"
+          name: "Lean4に未完了証明がない"
+          command: "grep -r 'sorry' proofs/lean4/*.lean || true"
+          fail_pattern: "sorry"
+          severity: "critical"
+        
+        - id: "purpose_md_unchanged"
+          name: "PURPOSE.mdが変更されていない"
+          command: "git diff HEAD~1 -- docs/PURPOSE.md || true"
+          fail_pattern: "^[-+]"
+          severity: "critical"
+      
+      on_fail: "HALT_ALL"
+    
+    - name: "Crypto Auditor"
+      id: "crypto_auditor"
+      description: "暗号監査 - NIST準拠とセキュリティを検証"
+      checks:
+        - id: "nist_kat_pass"
+          name: "NIST KATテスト 100/100"
+          command: "cd circuits/dilithium-stark && cargo test test_nist_kat_ffi -- --nocapture 2>&1"
+          pass_pattern: "Signatures verified: 100"
+          severity: "critical"
+        
+        - id: "ffi_verification"
+          name: "FFI検証"
+          command: "cd circuits/dilithium-stark && cargo test ffi -- --nocapture 2>&1"
+          fail_pattern: "FAILED"
+          severity: "high"
+        
+        - id: "no_unsafe_crypto"
+          name: "危険な暗号パターンがない"
+          command: "grep -rn 'unsafe' circuits/ --include='*.rs' || true"
+          warn_pattern: "unsafe"
+          severity: "medium"
+      
+      on_fail: "HALT_ALL"
+    
+    - name: "Red Team"
+      id: "red_team"
+      description: "攻撃シミュレーション - セキュリティ脆弱性を発見"
+      checks:
+        - id: "no_vulnerabilities"
+          name: "既知の脆弱性がない"
+          command: "cargo audit 2>&1 || true"
+          fail_pattern: "Vulnerability"
+          severity: "critical"
+        
+        - id: "invalid_input_rejection"
+          name: "不正入力を拒否"
+          command: "cd circuits/dilithium-stark && cargo test negative -- --nocapture 2>&1"
+          fail_pattern: "FAILED"
+          severity: "high"
+        
+        - id: "slither_check"
+          name: "Solidityセキュリティチェック"
+          command: "cd contracts && slither . 2>&1 || true"
+          warn_pattern: "High:"
+          severity: "high"
+      
+      on_fail: "HALT_ALL"
+
+  # アドバイザリーエージェント（FAILでもPARTIAL扱い）
+  advisory:
+    - name: "Engineer"
+      id: "engineer"
+      description: "実装担当 - コード品質を管理"
+      checks:
+        - id: "no_warnings"
+          name: "コンパイラ警告がない"
+          command: "cargo build 2>&1"
+          warn_pattern: "warning:"
+          severity: "low"
+        
+        - id: "clippy_clean"
+          name: "Clippyチェック"
+          command: "cargo clippy 2>&1 || true"
+          warn_pattern: "warning:"
+          severity: "low"
+        
+        - id: "format_check"
+          name: "コードフォーマット"
+          command: "cargo fmt --check 2>&1 || true"
+          warn_pattern: "Diff"
+          severity: "low"
+      
+      on_fail: "CONTINUE_WITH_WARNING"
+    
+    - name: "CFO"
+      id: "cfo"
+      description: "財務担当 - コストとリソースを管理"
+      checks:
+        - id: "execution_time"
+          name: "実行時間が妥当"
+          command: "echo 'Manual check required'"
+          severity: "medium"
+        
+        - id: "gas_costs"
+          name: "ガスコストが許容範囲"
+          command: "cd contracts && forge test --gas-report 2>&1 || true"
+          severity: "medium"
+      
+      on_fail: "CONTINUE_WITH_WARNING"
+    
+    - name: "CTO"
+      id: "cto"
+      description: "技術責任者 - アーキテクチャと技術戦略"
+      checks:
+        - id: "architecture_review"
+          name: "アーキテクチャ整合性"
+          command: "echo 'Manual review required'"
+          severity: "medium"
+        
+        - id: "tech_debt"
+          name: "技術的負債チェック"
+          command: "grep -rn 'TODO\\|FIXME\\|HACK' --include='*.rs' --include='*.sol' || true"
+          warn_pattern: "TODO|FIXME|HACK"
+          severity: "low"
+      
+      on_fail: "CONTINUE_WITH_WARNING"
+    
+    - name: "CSO"
+      id: "cso"
+      description: "セキュリティ責任者 - 全体的なセキュリティ戦略"
+      checks:
+        - id: "secrets_check"
+          name: "シークレット漏洩チェック"
+          command: "git diff --cached --name-only | xargs -I {} grep -l 'api_key\\|secret\\|password' {} 2>/dev/null || true"
+          fail_pattern: "api_key|secret|password"
+          severity: "critical"
+        
+        - id: "dependency_audit"
+          name: "依存関係監査"
+          command: "cargo audit 2>&1 || true"
+          warn_pattern: "warning:"
+          severity: "medium"
+      
+      on_fail: "CONTINUE_WITH_WARNING"
+    
+    - name: "Researcher"
+      id: "researcher"
+      description: "研究担当 - 最新技術の調査と提案"
+      checks:
+        - id: "doc_coverage"
+          name: "ドキュメントカバレッジ"
+          command: "find . -name '*.rs' -exec grep -L '//!' {} \\; 2>/dev/null | head -10 || true"
+          severity: "low"
+      
+      on_fail: "CONTINUE_WITH_WARNING"
+    
+    - name: "DevOps"
+      id: "devops"
+      description: "インフラ担当 - CI/CDとデプロイメント"
+      checks:
+        - id: "ci_status"
+          name: "CI/CDステータス"
+          command: "echo 'Check GitHub Actions status'"
+          severity: "medium"
+        
+        - id: "docker_build"
+          name: "Dockerビルド"
+          command: "docker build -t quantum-shield-test . 2>&1 || true"
+          fail_pattern: "error"
+          severity: "medium"
+      
+      on_fail: "CONTINUE_WITH_WARNING"
+
+# 検証実行順序
+execution_order:
+  - phase: "pre_check"
+    agents: ["purpose_guardian"]
+    parallel: false
+  
+  - phase: "security"
+    agents: ["crypto_auditor", "red_team", "cso"]
+    parallel: true
+  
+  - phase: "quality"
+    agents: ["engineer", "cto"]
+    parallel: true
+  
+  - phase: "business"
+    agents: ["cfo", "researcher", "devops"]
+    parallel: true
+
+# レポート設定
+reporting:
+  format: "markdown"
+  output_path: "agents/logs/"
+  include_timestamps: true
+  include_command_output: true
+  max_output_lines: 100
+  
+  # Gist同期設定
+  gist_sync:
+    enabled: true
+    gist_id: "${AGENT_LOG_GIST_ID}"
+    update_interval_minutes: 5
+  
+  # GitHub Issue作成
+  create_issue_on_fail: true
+  issue_labels: ["agent-report", "automated"]
+  issue_assignees: ["kota1026"]
