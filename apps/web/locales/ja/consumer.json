@@ -1593,6 +1593,100 @@
         "description": "お問い合わせの前に、FAQもご確認ください",
         "link": "FAQを見る"
       }
+    },
+    "cookie": {
+      "meta": {
+        "title": "Cookieポリシー | Quantum Shield",
+        "description": "Quantum Shield Cookieポリシー"
+      },
+      "header": {
+        "title": "Cookieポリシー",
+        "back": "戻る"
+      },
+      "lastUpdated": "最終更新日: {date}",
+      "sections": {
+        "intro": {
+          "title": "Cookieについて",
+          "content": "Quantum Shield（以下「当社」）は、ユーザー体験の向上とサービスの改善のためにCookieを使用しています。本ポリシーでは、当社が使用するCookieの種類と目的について説明します。"
+        },
+        "whatAreCookies": {
+          "title": "Cookieとは",
+          "content": "Cookieとは、ウェブサイトがユーザーのブラウザに保存する小さなテキストファイルです。これにより、ウェブサイトはユーザーの設定や行動を記憶し、より良いサービスを提供することができます。"
+        },
+        "essential": {
+          "title": "必須Cookie",
+          "content": "ウェブサイトの基本機能に必要なCookieです。これらがないとサービスが正常に動作しません。",
+          "items": {
+            "session": "セッション管理: ログイン状態の維持",
+            "security": "セキュリティ: CSRF対策トークン",
+            "preferences": "設定: 言語・テーマ設定"
+          }
+        },
+        "analytics": {
+          "title": "分析Cookie",
+          "content": "サービスの利用状況を匿名で分析し、改善に役立てるためのCookieです。",
+          "items": {
+            "pageViews": "ページビュー数の計測",
+            "userJourney": "ユーザー行動の分析",
+            "performance": "パフォーマンス測定"
+          }
+        },
+        "functional": {
+          "title": "機能Cookie",
+          "content": "ユーザー体験を向上させるための追加機能を提供するCookieです。",
+          "items": {
+            "walletConnection": "ウォレット接続状態の記憶",
+            "recentActivity": "最近のアクティビティ表示",
+            "notifications": "通知設定"
+          }
+        },
+        "thirdParty": {
+          "title": "サードパーティCookie",
+          "content": "当社は以下のサードパーティサービスを利用しています。各サービスのプライバシーポリシーをご確認ください。",
+          "services": {
+            "analytics": "Google Analytics: 利用状況分析",
+            "error": "Sentry: エラー追跡",
+            "cdn": "Cloudflare: コンテンツ配信"
+          }
+        },
+        "manage": {
+          "title": "Cookieの管理",
+          "content": "ブラウザの設定からCookieを管理・削除することができます。ただし、一部のCookieを無効にすると、サービスの機能が制限される場合があります。"
+        },
+        "changes": {
+          "title": "ポリシーの変更",
+          "content": "当社は、必要に応じて本ポリシーを変更することがあります。重要な変更がある場合は、サービス上で通知します。"
+        }
+      },
+      "consent": {
+        "title": "Cookie設定",
+        "description": "どのCookieを許可するか選択できます",
+        "essential": {
+          "title": "必須Cookie",
+          "description": "サービスの基本機能に必要（無効化不可）"
+        },
+        "analytics": {
+          "title": "分析Cookie",
+          "description": "サービス改善のための利用状況分析"
+        },
+        "functional": {
+          "title": "機能Cookie",
+          "description": "追加機能とユーザー体験の向上"
+        },
+        "saveSettings": "設定を保存",
+        "acceptAll": "すべて許可"
+      },
+      "contact": {
+        "title": "お問い合わせ",
+        "content": "Cookieに関するお問い合わせは、privacy@quantumshield.io までご連絡ください。"
+      },
+      "footer": {
+        "home": "ホーム",
+        "terms": "利用規約",
+        "privacy": "プライバシー",
+        "cookie": "Cookie",
+        "copyright": "© 2026 Quantum Shield. Made in Japan"
+      }
     }
   }
 }
