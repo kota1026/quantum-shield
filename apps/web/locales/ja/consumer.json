@@ -252,6 +252,53 @@
       "loadMore": "さらに読み込む",
       "loadMoreNotAvailable": "さらに読み込みは開発中です"
     },
+    "historyDetail": {
+      "meta": {
+        "title": "取引詳細 | Quantum Shield",
+        "description": "取引の詳細情報を確認"
+      },
+      "header": {
+        "title": "取引詳細",
+        "back": "履歴に戻る"
+      },
+      "summary": {
+        "ariaLabel": "取引概要"
+      },
+      "details": {
+        "title": "取引情報",
+        "txHash": "取引ID",
+        "copyTooltip": "クリップボードにコピー",
+        "copied": "コピーしました",
+        "copyAriaLabel": "取引IDをコピー",
+        "viewOnExplorer": "Etherscanで確認",
+        "viewOnExplorerAriaLabel": "Etherscanで取引を確認",
+        "date": "日時",
+        "amount": "金額",
+        "confirmations": "確認数",
+        "confirmationsTooltip": "ブロックチェーン上でこの取引が確認された回数。多いほど安全です。",
+        "blocks": "ブロック",
+        "bond": "Bond（保証金）",
+        "bondTooltip": "緊急Unlockに必要な保証金。7日間のChallenge期間後に返還されます。",
+        "remaining": "残り時間"
+      },
+      "timeline": {
+        "title": "進捗状況",
+        "ariaLabel": "取引の進捗タイムライン",
+        "initiated": "取引開始",
+        "confirmed": "取引確認完了",
+        "signed": "署名完了",
+        "waiting24h": "24時間待機中",
+        "challengePeriod": "Challenge期間（7日間）",
+        "bondDeposited": "Bond預け入れ完了",
+        "released": "資産解放完了",
+        "completed": "完了",
+        "remaining": "残り"
+      },
+      "actions": {
+        "backToHistory": "履歴に戻る",
+        "viewUnlockStatus": "Unlock状況を確認"
+      }
+    },
     "settings": {
       "meta": {
         "title": "設定 | Quantum Shield",
