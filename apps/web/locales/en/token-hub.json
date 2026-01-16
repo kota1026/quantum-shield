@@ -802,6 +802,228 @@
         "lockMore": "Lock More",
         "viewDashboard": "View Dashboard"
       }
+    },
+    "settings": {
+      "meta": {
+        "title": "Settings | Token Hub | Quantum Shield",
+        "description": "Manage Token Hub notifications, display, and reward settings"
+      },
+      "header": {
+        "title": "Settings",
+        "back": "Back to Dashboard"
+      },
+      "sections": {
+        "account": "Account",
+        "notifications": "Notifications",
+        "rewards": "Rewards Settings",
+        "display": "Display",
+        "support": "Support",
+        "dangerZone": "Danger Zone"
+      },
+      "account": {
+        "connectedWallet": {
+          "title": "Connected Wallet",
+          "description": "Wallet address holding your veQS"
+        },
+        "lockPositions": {
+          "title": "Lock Positions",
+          "description": "View and manage your QS lock positions"
+        },
+        "delegations": {
+          "title": "Manage Delegations",
+          "description": "View and modify your voting power delegations"
+        }
+      },
+      "notifications": {
+        "push": {
+          "title": "Push Notifications",
+          "description": "Receive notifications about governance proposals and rewards"
+        },
+        "email": {
+          "title": "Email Notifications",
+          "description": "Receive important updates via email"
+        },
+        "voteReminders": {
+          "title": "Vote Reminders",
+          "description": "Get reminded to vote on active proposals"
+        }
+      },
+      "rewards": {
+        "autoCompound": {
+          "title": "Auto-Compound Rewards",
+          "description": "Automatically add earned rewards to your lock"
+        }
+      },
+      "display": {
+        "darkMode": {
+          "title": "Dark Mode",
+          "description": "Use a dark theme that's easier on the eyes"
+        },
+        "language": {
+          "title": "Language",
+          "description": "Select the app display language",
+          "japanese": "日本語",
+          "english": "English"
+        },
+        "currency": {
+          "title": "Display Currency",
+          "description": "Currency used to display values"
+        }
+      },
+      "support": {
+        "faq": {
+          "title": "FAQ",
+          "description": "Get help with using Token Hub"
+        },
+        "contact": {
+          "title": "Contact Us",
+          "description": "Reach out to our support team"
+        },
+        "legal": {
+          "title": "Legal Information",
+          "description": "Terms of service and privacy policy"
+        }
+      },
+      "danger": {
+        "disconnectWallet": {
+          "title": "Disconnect Wallet",
+          "description": "Disconnect your wallet from Token Hub"
+        }
+      },
+      "version": {
+        "label": "Token Hub Version",
+        "version": "v{version} (Build {build})"
+      }
+    },
+    "help": {
+      "meta": {
+        "title": "Help | Token Hub | Quantum Shield",
+        "description": "Learn how to use Token Hub and find answers to common questions"
+      },
+      "header": {
+        "title": "Help",
+        "back": "Back to Settings"
+      },
+      "search": {
+        "placeholder": "Search questions...",
+        "ariaLabel": "Search help topics"
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "items": {
+          "tokenomics": {
+            "title": "Learn Tokenomics",
+            "description": "Understand QS and veQS basics"
+          },
+          "locking": {
+            "title": "Lock QS",
+            "description": "How to lock and earn veQS"
+          },
+          "governance": {
+            "title": "Governance",
+            "description": "Voting and delegation explained"
+          },
+          "rewards": {
+            "title": "View Rewards",
+            "description": "How rewards are calculated"
+          }
+        }
+      },
+      "resources": {
+        "title": "Resources",
+        "faq": {
+          "title": "FAQ",
+          "description": "Common questions"
+        },
+        "getQS": {
+          "title": "Get QS",
+          "description": "Acquire tokens"
+        },
+        "docs": {
+          "title": "Documentation",
+          "description": "Technical docs"
+        },
+        "status": {
+          "title": "System Status",
+          "description": "Check uptime"
+        }
+      },
+      "tutorial": {
+        "title": "New to Token Hub?",
+        "description": "Learn the basics of veQS and governance participation step by step.",
+        "button": "Start Tutorial"
+      },
+      "consumerApp": {
+        "title": "Looking for Consumer App?",
+        "description": "Lock and unlock assets in the Consumer App.",
+        "button": "Go to Consumer App"
+      }
+    },
+    "consumerLink": {
+      "meta": {
+        "title": "App Integration | Token Hub | Quantum Shield",
+        "description": "Understand the differences between Consumer App and Token Hub"
+      },
+      "header": {
+        "title": "App Integration",
+        "subtitle": "Consumer App vs Token Hub",
+        "back": "Back to Dashboard"
+      },
+      "consumerApp": {
+        "title": "Consumer App",
+        "subtitle": "Asset Protection",
+        "description": "Securely protect your crypto assets like ETH with quantum-resistant technology. Lock, unlock, and emergency unlock operations are performed here.",
+        "featuresLabel": "Consumer App features list",
+        "features": {
+          "lock": {
+            "title": "Lock Assets",
+            "description": "Quantum-resistant protection"
+          },
+          "unlock": {
+            "title": "Unlock",
+            "description": "Withdraw after 24-hour wait"
+          },
+          "emergency": {
+            "title": "Emergency Unlock",
+            "description": "Instant withdrawal with bond"
+          },
+          "history": {
+            "title": "Transaction History",
+            "description": "View past operations"
+          }
+        },
+        "button": "Open Consumer App"
+      },
+      "tokenHub": {
+        "title": "Token Hub",
+        "subtitle": "Governance App",
+        "currentBadge": "Current App",
+        "description": "Lock QS tokens to earn veQS and participate in Quantum Shield governance. Voting, delegation, and reward claims are performed here.",
+        "featuresLabel": "Token Hub features list",
+        "features": {
+          "veqs": {
+            "title": "Earn veQS",
+            "description": "Lock QS to get voting power"
+          },
+          "governance": {
+            "title": "Governance Voting",
+            "description": "Participate in protocol decisions"
+          },
+          "delegate": {
+            "title": "Delegate Voting",
+            "description": "Entrust votes to trusted delegates"
+          },
+          "rewards": {
+            "title": "Claim Rewards",
+            "description": "Receive protocol revenue share"
+          }
+        },
+        "button": "Token Hub Dashboard"
+      },
+      "connection": {
+        "title": "The Two Apps Work Together",
+        "description": "You can use some assets locked in Consumer App to purchase and lock QS in Token Hub. By mastering both apps, you can achieve both asset protection and governance participation."
+      }
     }
   }
 }
