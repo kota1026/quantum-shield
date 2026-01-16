@@ -742,6 +742,67 @@
         "next": "次のページ"
       },
       "backToRewards": "報酬ページに戻る"
+    },
+    "unlock": {
+      "meta": {
+        "title": "ロック解除 | Token Hub | Quantum Shield",
+        "description": "ロック期間が終了したQSトークンを引き出す"
+      },
+      "title": "ロック解除",
+      "subtitle": "ロック期間が終了したQSトークンを引き出せます",
+      "ariaLabel": "QSトークンのロック解除ページ",
+      "stats": {
+        "ariaLabel": "ロック統計",
+        "totalLocked": "総ロック量",
+        "currentVeQS": "現在のveQS",
+        "veqsTooltip": "veQS（投票エスクローQS）はあなたの投票権を表します。ロック期間終了に近づくほど減少します。",
+        "positions": "ポジション数",
+        "unlockable": "解除可能"
+      },
+      "notice": {
+        "noEarlyUnlock": "ロック期間中はトークンを引き出すことができません。ロック終了日まで待つ必要があります。これはガバナンスの長期的な安定性を確保するための仕様です。",
+        "faqLink": "詳しくはFAQをご覧ください"
+      },
+      "positions": {
+        "title": "ロックポジション",
+        "listAriaLabel": "ロックポジション一覧",
+        "status": {
+          "locked": "ロック中",
+          "unlockable": "解除可能"
+        },
+        "veqs": "現在のveQS",
+        "lockDate": "ロック日",
+        "unlockDate": "解除可能日",
+        "remaining": "残り時間",
+        "ready": "準備完了",
+        "days": "日",
+        "hours": "時間",
+        "withdraw": "引き出す",
+        "withdrawing": "処理中...",
+        "withdrawAriaLabel": "{amount} QSを引き出す",
+        "lockedButton": "ロック中",
+        "lockedAriaLabel": "まだロック期間中です",
+        "progress": "進行状況",
+        "progressAriaLabel": "ロック期間の進行状況"
+      },
+      "tooltip": {
+        "ariaLabel": "ロック解除について詳しく見る",
+        "label": "ロック解除について",
+        "title": "ロック解除の仕組み",
+        "description": "QSトークンは、選択したロック期間が終了するまで引き出すことができません。ロック期間終了後、この画面から引き出しが可能になります。",
+        "note": "早期解除はできません。ロック期間を慎重に選択してください。ロックを延長することはいつでも可能です。"
+      },
+      "empty": {
+        "title": "ロックポジションがありません",
+        "description": "まだQSをロックしていません。ロックしてveQSを獲得し、ガバナンスに参加しましょう。",
+        "lockButton": "QSをロックする"
+      },
+      "cta": {
+        "title": "もっとロックしますか？",
+        "description": "追加のQSをロックしてveQS残高を増やし、投票力と報酬を高めましょう。",
+        "lockMore": "追加でロック",
+        "viewDashboard": "ダッシュボードを見る"
+      }
     }
   }
 }

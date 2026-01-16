@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-16 (Token Hub - 9/13 screens)
+> **Last Updated**: 2026-01-16 (Token Hub - 10/13 screens)
 > **Total Tasks**: 222 (added 4 new Token Hub screens)
 
 ---
@@ -11,15 +11,15 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   40/148 (27%)           │
+│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   41/148 (28%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [███░░░░░░░░░░░░░░░░░]   40/222 (18%)           │
+│  TOTAL:           [███░░░░░░░░░░░░░░░░░]   41/222 (18%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
-│  Week 2-3 P1 Systems: 🔄 In Progress (Token Hub 9/13)              │
+│  Week 2-3 P1 Systems: 🔄 In Progress (Token Hub 10/13)             │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -69,12 +69,12 @@
 | 07 | delegate_list | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Total stats bar, tooltips |
 | 08 | rewards | ✅ | ✅ | ✅ | ✅ | ✅ | Done | APY/Epoch tooltips added |
 | 09 | rewards_history | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Filter tooltips, pagination, chart views |
-| 10 | unlock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 10 | unlock | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Lock positions, veQS tooltip, progress bars |
 | 11 | settings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
 | 12 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
 | 13 | consumer_link | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | NEW: Consumer App ↔ Token Hub navigation |
 
-**Progress**: 9/13 (69%)
+**Progress**: 10/13 (77%)
 
 ---
 
@@ -378,6 +378,7 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-16 | Token Hub: unlock - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (lock positions list, veQS tooltip for beginners, progress bars) |
 | 2026-01-16 | Token Hub: rewards_history - Complete (UI, A11y, E2E, Persona Test, PIR) - CONDITIONAL (added filter tooltips) |
 | 2026-01-16 | Token Hub: rewards - Complete (UI, A11y, E2E, Persona Test, PIR) - CONDITIONAL (added APY/Epoch tooltips for beginner users) |
 | 2026-01-16 | Token Hub: delegate_list - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (total stats bar, tooltips, search, filters) |

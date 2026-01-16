@@ -741,6 +741,67 @@
         "next": "Next page"
       },
       "backToRewards": "Back to Rewards"
+    },
+    "unlock": {
+      "meta": {
+        "title": "Unlock | Token Hub | Quantum Shield",
+        "description": "Withdraw QS tokens after the lock period ends"
+      },
+      "title": "Unlock QS",
+      "subtitle": "Withdraw your QS tokens when the lock period ends",
+      "ariaLabel": "QS token unlock page",
+      "stats": {
+        "ariaLabel": "Lock statistics",
+        "totalLocked": "Total Locked",
+        "currentVeQS": "Current veQS",
+        "veqsTooltip": "veQS (voting escrow QS) represents your voting power. It decreases as you approach the end of the lock period.",
+        "positions": "Positions",
+        "unlockable": "Unlockable"
+      },
+      "notice": {
+        "noEarlyUnlock": "Tokens cannot be withdrawn during the lock period. You must wait until the unlock date. This is by design to ensure long-term governance stability.",
+        "faqLink": "Learn more in FAQ"
+      },
+      "positions": {
+        "title": "Lock Positions",
+        "listAriaLabel": "Lock positions list",
+        "status": {
+          "locked": "Locked",
+          "unlockable": "Unlockable"
+        },
+        "veqs": "Current veQS",
+        "lockDate": "Lock Date",
+        "unlockDate": "Unlock Date",
+        "remaining": "Remaining",
+        "ready": "Ready",
+        "days": "d",
+        "hours": "h",
+        "withdraw": "Withdraw",
+        "withdrawing": "Processing...",
+        "withdrawAriaLabel": "Withdraw {amount} QS",
+        "lockedButton": "Locked",
+        "lockedAriaLabel": "Still in lock period",
+        "progress": "Progress",
+        "progressAriaLabel": "Lock period progress"
+      },
+      "tooltip": {
+        "ariaLabel": "Learn more about unlocking",
+        "label": "About Unlocking",
+        "title": "How Unlocking Works",
+        "description": "QS tokens cannot be withdrawn until your selected lock period ends. After the lock period ends, you can withdraw your tokens from this page.",
+        "note": "Early unlock is not possible. Choose your lock period carefully. You can always extend your lock."
+      },
+      "empty": {
+        "title": "No Lock Positions",
+        "description": "You haven't locked any QS yet. Lock your QS to earn veQS and participate in governance.",
+        "lockButton": "Lock QS"
+      },
+      "cta": {
+        "title": "Want to Lock More?",
+        "description": "Lock additional QS to increase your veQS balance and boost your voting power and rewards.",
+        "lockMore": "Lock More",
+        "viewDashboard": "View Dashboard"
+      }
     }
   }
 }
