@@ -672,6 +672,75 @@
         "description": "An epoch is a time period used for reward calculation. Typically one week long, rewards are calculated and distributed at the end of each epoch.",
         "ariaLabel": "Learn more about epochs"
       }
+    },
+    "rewardsHistory": {
+      "meta": {
+        "title": "Rewards History | Token Hub | Quantum Shield",
+        "description": "View and analyze your past rewards history"
+      },
+      "breadcrumb": {
+        "ariaLabel": "Breadcrumb navigation",
+        "rewards": "Rewards",
+        "current": "History"
+      },
+      "title": "Rewards History",
+      "subtitle": "View and analyze your past rewards history",
+      "export": {
+        "button": "Export",
+        "ariaLabel": "Export rewards history as CSV"
+      },
+      "stats": {
+        "ariaLabel": "Rewards statistics summary",
+        "totalClaimed": "Total Claimed",
+        "pending": "Pending",
+        "avgPerWeek": "Weekly Average",
+        "highest": "Highest Week",
+        "lowest": "Lowest Week",
+        "totalEpochs": "Epochs Participated"
+      },
+      "chart": {
+        "title": "Rewards Trend",
+        "ariaLabel": "Rewards trend chart",
+        "chartTitle": "Rewards History by Period",
+        "timeViewAriaLabel": "Time view toggle",
+        "views": {
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
+      "list": {
+        "title": "Reward Details",
+        "ariaLabel": "Rewards history list",
+        "filterAriaLabel": "Reward type filter",
+        "filters": {
+          "all": "All",
+          "holding": "Holding",
+          "voting": "Voting",
+          "delegation": "Delegation"
+        },
+        "filterDescriptions": {
+          "all": "Show all rewards",
+          "holding": "Base rewards for holding veQS tokens",
+          "voting": "Bonus for participating in governance votes",
+          "delegation": "Bonus for delegating your votes to others"
+        },
+        "type": {
+          "weeklyReward": "Weekly Reward Claimed"
+        },
+        "epoch": "Epoch #{number}",
+        "breakdown": {
+          "holding": "Holding",
+          "voting": "Voting",
+          "delegation": "Delegation"
+        },
+        "empty": "No rewards found for the selected filter"
+      },
+      "pagination": {
+        "page": "Page {current} of {total}",
+        "previous": "Previous page",
+        "next": "Next page"
+      },
+      "backToRewards": "Back to Rewards"
     }
   }
 }
