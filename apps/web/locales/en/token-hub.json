@@ -435,6 +435,101 @@
         "copyright": "© 2026 Quantum Shield Foundation. All rights reserved."
       }
     },
+    "delegateList": {
+      "meta": {
+        "title": "Delegate List | Token Hub | Quantum Shield",
+        "description": "Delegate your veQS to trusted delegates and leverage voting power"
+      },
+      "title": "Delegate List",
+      "subtitle": "Delegate your veQS to trusted delegates and leverage voting power",
+      "myDelegation": {
+        "label": "My Delegated veQS",
+        "ariaLabel": "Your delegation status",
+        "delegateCount": "to {count} delegates"
+      },
+      "totalStats": {
+        "ariaLabel": "Overall delegate statistics",
+        "totalVeQS": "Total veQS",
+        "totalDelegators": "Total Delegators",
+        "avgParticipation": "Avg Participation"
+      },
+      "search": {
+        "placeholder": "Search by name or address...",
+        "ariaLabel": "Search delegates"
+      },
+      "filters": {
+        "ariaLabel": "Delegate filters",
+        "all": "All",
+        "top10": "Top 10",
+        "mostActive": "Most Active",
+        "securityCouncil": "Security Council"
+      },
+      "results": {
+        "count": "{count} delegates found"
+      },
+      "list": {
+        "ariaLabel": "Delegate list"
+      },
+      "delegates": {
+        "watanabe": "Watanabe Delegate",
+        "watanabeBio": "Early supporter of Quantum Shield. Prioritizes security and long-term protocol development. Votes always favor community interests.",
+        "sato": "Sato Crypto",
+        "satoBio": "Blockchain researcher. Focuses on technical improvement proposals for the protocol. Supports transparent decision-making.",
+        "tanaka": "Tanaka DeFi",
+        "tanakaBio": "DeFi protocol expert. Supports proposals that balance yield optimization with risk management.",
+        "yamamoto": "Yamamoto Node",
+        "yamamotoBio": "Infrastructure operator prioritizing protocol stability. Votes from a technical perspective based on node operation experience.",
+        "suzuki": "Suzuki Quantum",
+        "suzukiBio": "Cryptography researcher. Votes to ensure technical accuracy of quantum resistance. Supports strict adherence to CP principles.",
+        "matsumoto": "Matsumoto DAO",
+        "matsumotoBio": "Community builder. Leverages DAO governance experience to promote inclusive and fair decision-making processes."
+      },
+      "stats": {
+        "rank": "Rank",
+        "delegators": "Delegators",
+        "participation": "Participation",
+        "lastVote": "Last vote: {days} days ago"
+      },
+      "tags": {
+        "securityCouncil": "Security Council",
+        "purposeCommittee": "Purpose Committee",
+        "defiExpert": "DeFi Expert",
+        "defi": "DeFi",
+        "longTermHolder": "Long-term Holder",
+        "research": "Research",
+        "governance": "Governance",
+        "yieldStrategy": "Yield Strategy",
+        "infrastructure": "Infrastructure",
+        "prover": "Prover",
+        "cryptography": "Cryptography",
+        "daoGovernance": "DAO Governance",
+        "community": "Community"
+      },
+      "actions": {
+        "viewProfile": "View Profile"
+      },
+      "tooltip": {
+        "ariaLabel": "Learn more about delegation",
+        "title": "What is Delegation?",
+        "description": "Delegation means entrusting your veQS voting rights to someone you trust. Your tokens (QS) don't move when you delegate - only your voting rights are exercised on your behalf.",
+        "note": "You can revoke delegation at any time. Your tokens will never decrease."
+      },
+      "participationTooltip": {
+        "ariaLabel": "Learn more about voting participation",
+        "description": "Voting participation shows how actively this delegate has voted on past proposals. Higher rates mean they're more likely to vote consistently on your behalf."
+      },
+      "empty": {
+        "title": "No delegates found",
+        "description": "Try adjusting your search or clearing filters"
+      },
+      "footer": {
+        "navLabel": "Footer navigation",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "docs": "Documentation",
+        "disclaimer": "This is not investment advice. Delegation transfers voting rights, not tokens. Review delegate voting history and choose carefully."
+      }
+    },
     "delegate": {
       "meta": {
         "title": "Delegates | Token Hub | Quantum Shield",

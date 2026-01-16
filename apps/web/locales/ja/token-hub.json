@@ -436,6 +436,101 @@
         "copyright": "© 2026 Quantum Shield Foundation. All rights reserved."
       }
     },
+    "delegateList": {
+      "meta": {
+        "title": "デリゲート一覧 | Token Hub | Quantum Shield",
+        "description": "信頼できるデリゲートにveQSを委任して投票力を活用"
+      },
+      "title": "デリゲート一覧",
+      "subtitle": "信頼できるデリゲートにveQSを委任して投票力を活用",
+      "myDelegation": {
+        "label": "委任済みveQS",
+        "ariaLabel": "あなたの委任状況",
+        "delegateCount": "{count}名のデリゲートに委任中"
+      },
+      "totalStats": {
+        "ariaLabel": "デリゲート全体の統計",
+        "totalVeQS": "総veQS",
+        "totalDelegators": "総委任者数",
+        "avgParticipation": "平均投票率"
+      },
+      "search": {
+        "placeholder": "名前またはアドレスで検索...",
+        "ariaLabel": "デリゲートを検索"
+      },
+      "filters": {
+        "ariaLabel": "デリゲートフィルター",
+        "all": "すべて",
+        "top10": "トップ10",
+        "mostActive": "最も活発",
+        "securityCouncil": "セキュリティ委員会"
+      },
+      "results": {
+        "count": "{count}件のデリゲートが見つかりました"
+      },
+      "list": {
+        "ariaLabel": "デリゲート一覧"
+      },
+      "delegates": {
+        "watanabe": "渡辺 デリゲート",
+        "watanabeBio": "Quantum Shield初期からの支持者。セキュリティとプロトコルの長期的な発展を重視。投票は常にコミュニティの利益を優先します。",
+        "sato": "佐藤 クリプト",
+        "satoBio": "ブロックチェーン研究者。プロトコルの技術的な改善提案に注力。透明性のある意思決定を支持。",
+        "tanaka": "田中 DeFi",
+        "tanakaBio": "DeFiプロトコルのエキスパート。収益最適化とリスク管理のバランスを重視した提案を支持します。",
+        "yamamoto": "山本 ノード",
+        "yamamotoBio": "インフラ運用者としてプロトコルの安定性を最優先。ノード運用の経験を活かした技術的な視点で投票。",
+        "suzuki": "鈴木 クォンタム",
+        "suzukiBio": "暗号学研究者。量子耐性の技術的正確性を確保するための投票を行います。CP原則の厳格な遵守を支持。",
+        "matsumoto": "松本 DAO",
+        "matsumotoBio": "コミュニティビルダー。DAOガバナンスの経験を活かし、包括的で公平な意思決定プロセスを推進。"
+      },
+      "stats": {
+        "rank": "ランク",
+        "delegators": "委任者",
+        "participation": "投票参加率",
+        "lastVote": "{days}日前に投票"
+      },
+      "tags": {
+        "securityCouncil": "セキュリティ委員会",
+        "purposeCommittee": "目的委員会",
+        "defiExpert": "DeFiエキスパート",
+        "defi": "DeFi",
+        "longTermHolder": "長期保有者",
+        "research": "リサーチ",
+        "governance": "ガバナンス",
+        "yieldStrategy": "収益戦略",
+        "infrastructure": "インフラ",
+        "prover": "Prover",
+        "cryptography": "暗号学",
+        "daoGovernance": "DAOガバナンス",
+        "community": "コミュニティ"
+      },
+      "actions": {
+        "viewProfile": "プロフィールを見る"
+      },
+      "tooltip": {
+        "ariaLabel": "委任について詳しく見る",
+        "title": "委任（デリゲート）とは？",
+        "description": "委任とは、あなたのveQS投票権を信頼できる人に預けることです。委任しても、あなたのトークン（QS）は移動しません。投票の権利だけを代理で行使してもらえます。",
+        "note": "委任はいつでも解除できます。トークンが減ることはありません。"
+      },
+      "participationTooltip": {
+        "ariaLabel": "投票参加率について詳しく見る",
+        "description": "投票参加率は、このデリゲートが過去の提案にどれだけ積極的に投票したかを示します。高いほど、あなたの代わりにしっかり投票してくれる可能性が高いです。"
+      },
+      "empty": {
+        "title": "デリゲートが見つかりません",
+        "description": "検索条件を変更するか、フィルターをクリアしてください"
+      },
+      "footer": {
+        "navLabel": "フッターナビゲーション",
+        "terms": "利用規約",
+        "privacy": "プライバシーポリシー",
+        "docs": "ドキュメント",
+        "disclaimer": "これは投資アドバイスではありません。委任は投票権の移転を意味しますが、トークン自体は移動しません。デリゲートの投票履歴を確認し、慎重に選択してください。"
+      }
+    },
     "delegate": {
       "meta": {
         "title": "デリゲート | Token Hub | Quantum Shield",
