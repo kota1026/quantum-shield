@@ -408,6 +408,23 @@
         "claimButton": "Claim",
         "epochProgress": "Epoch Progress"
       },
+      "gettingStarted": {
+        "ariaLabel": "Getting Started",
+        "title": "Getting Started",
+        "viewAll": "View all",
+        "onboarding": {
+          "title": "Learn How It Works",
+          "description": "Why lock QS? Learn how to protect your assets while earning rewards"
+        },
+        "getQS": {
+          "title": "Get QS Tokens",
+          "description": "Find out how to acquire QS tokens to participate in Token Hub"
+        },
+        "faq": {
+          "title": "FAQ",
+          "description": "Common questions answered - 'Can I unlock early?' and more"
+        }
+      },
       "footer": {
         "navLabel": "Footer navigation",
         "terms": "Terms of Service",
