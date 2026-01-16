@@ -1451,6 +1451,65 @@
           "description": "1日1回のダイジェストメール"
         }
       }
+    },
+    "help": {
+      "meta": {
+        "title": "ヘルプ | Quantum Shield",
+        "description": "Quantum Shieldのヘルプとサポート"
+      },
+      "header": {
+        "title": "ヘルプ",
+        "back": "戻る"
+      },
+      "search": {
+        "placeholder": "お困りのことを検索...",
+        "ariaLabel": "ヘルプを検索"
+      },
+      "quickLinks": {
+        "title": "クイックリンク",
+        "items": {
+          "gettingStarted": {
+            "title": "はじめに",
+            "description": "Quantum Shieldの基本的な使い方"
+          },
+          "lockUnlock": {
+            "title": "Lock / Unlock",
+            "description": "資産のロック・アンロック方法"
+          },
+          "security": {
+            "title": "セキュリティ",
+            "description": "量子耐性暗号について"
+          },
+          "troubleshooting": {
+            "title": "トラブルシューティング",
+            "description": "よくある問題と解決方法"
+          }
+        }
+      },
+      "resources": {
+        "title": "リソース",
+        "faq": {
+          "title": "よくある質問",
+          "description": "FAQ一覧を確認"
+        },
+        "contact": {
+          "title": "お問い合わせ",
+          "description": "サポートチームに連絡"
+        },
+        "docs": {
+          "title": "ドキュメント",
+          "description": "詳細なガイドとAPI"
+        },
+        "status": {
+          "title": "システムステータス",
+          "description": "サービス稼働状況"
+        }
+      },
+      "tutorial": {
+        "title": "チュートリアル",
+        "description": "初めての方はチュートリアルを確認してください",
+        "button": "チュートリアルを見る"
+      }
     }
   }
 }

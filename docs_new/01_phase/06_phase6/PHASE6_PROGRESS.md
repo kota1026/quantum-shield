@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-16 (notifications, unlock_complete complete)
+> **Last Updated**: 2026-01-16 (help complete)
 > **Total Tasks**: 218
 
 ---
@@ -11,12 +11,12 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   27/144 (19%)           │
+│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   28/144 (19%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [██░░░░░░░░░░░░░░░░░░]   27/218 (12%)           │
+│  TOTAL:           [██░░░░░░░░░░░░░░░░░░]   28/218 (13%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
 │  Week 2-3 P1 Systems: 🔄 In Progress                               │
@@ -44,7 +44,7 @@
 | 10 | unlock_complete | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 11 | settings | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 12 | notifications | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 13 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 13 | help | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 14 | faq | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
 | 15 | contact | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 16 | terms | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
@@ -52,7 +52,7 @@
 | 18 | cookie | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 19 | wallet_connect | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 15/19 (79%) - 15 screens Done (incl. Persona Test/PIR), 4 Pending
+**Progress**: 16/19 (84%) - 16 screens Done (incl. Persona Test/PIR), 3 Pending
 
 ---
 
@@ -375,6 +375,7 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-16 | Consumer App: help - Complete (New screen: UI, A11y, E2E, Persona Test, PIR) - PASS |
 | 2026-01-16 | Consumer App: notifications - Complete (New screen: UI, A11y, E2E, Persona Test, PIR) - PASS |
 | 2026-01-16 | Consumer App: unlock_complete - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS |
 | 2026-01-16 | Consumer App: emergency_detail - Complete (Integrated with history_detail) |
