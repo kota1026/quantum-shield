@@ -610,6 +610,69 @@
         "docs": "ドキュメント",
         "disclaimer": "これは投資アドバイスではありません。委任は投票権の移転を意味しますが、トークン自体は移動しません。デリゲートの投票履歴を確認し、慎重に選択してください。"
       }
+    },
+    "rewards": {
+      "meta": {
+        "title": "報酬 | Token Hub | Quantum Shield",
+        "description": "veQSホルダーとしての報酬を確認・請求"
+      },
+      "title": "報酬",
+      "subtitle": "veQSホルダーとしての報酬を確認・請求",
+      "claim": {
+        "label": "請求可能な報酬",
+        "usdValue": "≈ ${amount} USD",
+        "button": "報酬を請求",
+        "buttonAriaLabel": "{amount} QSを請求"
+      },
+      "stats": {
+        "ariaLabel": "報酬統計",
+        "totalEarned": {
+          "label": "累計獲得（全期間）"
+        },
+        "weeklyAverage": {
+          "label": "週平均"
+        },
+        "currentApy": {
+          "label": "現在のAPY"
+        },
+        "nextReward": {
+          "label": "次回報酬"
+        }
+      },
+      "history": {
+        "title": "報酬履歴",
+        "viewAll": "すべて見る",
+        "chartAriaLabel": "週ごとの報酬を示すバーチャート",
+        "chartTitle": "週ごとの報酬履歴",
+        "week": "週",
+        "listAriaLabel": "報酬履歴リスト",
+        "type": {
+          "weeklyReward": "週次報酬請求"
+        }
+      },
+      "breakdown": {
+        "title": "報酬内訳",
+        "ariaLabel": "報酬の内訳リスト",
+        "veqsHolding": "veQS保有報酬",
+        "votingParticipation": "投票参加ボーナス",
+        "delegationBonus": "委任ボーナス"
+      },
+      "epoch": {
+        "title": "現在のエポック",
+        "number": "エポック #{number}",
+        "remaining": "残り {time}",
+        "progressAriaLabel": "エポック進行状況: {progress}%"
+      },
+      "apyTooltip": {
+        "title": "APY（年利）とは？",
+        "description": "APY（Annual Percentage Yield）は、1年間で得られる報酬の割合を示します。例えば12.5%の場合、10,000 QSをロックすると1年間で約1,250 QSの報酬が期待できます。",
+        "ariaLabel": "APYについて詳しく見る"
+      },
+      "epochTooltip": {
+        "title": "エポックとは？",
+        "description": "エポックは報酬計算の期間単位です。通常1週間ごとに区切られ、各エポック終了時に報酬が確定・配布されます。",
+        "ariaLabel": "エポックについて詳しく見る"
+      }
     }
   }
 }
