@@ -1,0 +1,1321 @@
+<!--
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .back-btn | click | 01_landing.html |
+| .wallet-option | click | selectWallet() → Step 2 |
+| #walletHelpLink | click | openWalletHelpModal() |
+| .generate-btn | click | generateKeys() → Step 3 |
+| .backup-checkbox | change | toggleBackupBtn() |
+| .backup-btn | click | downloadBackup() |
+| .continue-btn | click | continueToReady() → Step 4 |
+| .cta-btn (Step 4) | click | 03_dashboard.html |
+| Tutorial button | click | openTutorialModal() |
+| Modal close | click | closeModal() |
+| .tooltip-trigger | hover | show tooltip |
+| .dilithium-help | click | openDilithiumModal() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Shield - はじめる</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e84057;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --border-emphasis: rgba(255, 255, 255, 0.12);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .premium-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .red-glow {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%);
+            opacity: 0.5;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            border-color: var(--accent-hinomaru);
+            color: var(--accent-hinomaru-light);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .progress {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 40px;
+        }
+
+        .progress-step {
+            flex: 1;
+            height: 4px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-step.active,
+        .progress-step.completed {
+            background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold));
+        }
+
+        .onboarding-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-indicator {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-gold);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .step-description {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .wallet-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .wallet-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wallet-option:hover {
+            border-color: var(--accent-hinomaru);
+            background: var(--accent-hinomaru-dim);
+        }
+
+        .wallet-option.selected {
+            border-color: var(--accent-hinomaru);
+            background: var(--accent-hinomaru-dim);
+        }
+
+        .wallet-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-md);
+            font-size: 24px;
+        }
+
+        .wallet-info {
+            flex: 1;
+        }
+
+        .wallet-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .wallet-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .wallet-arrow {
+            color: var(--text-tertiary);
+            font-size: 18px;
+        }
+
+        .help-link {
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .help-link a {
+            font-size: 14px;
+            color: var(--accent-gold);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .help-link a:hover {
+            text-decoration: underline;
+        }
+
+        .key-generation {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .key-visual {
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 32px;
+            position: relative;
+        }
+
+        .key-circle {
+            position: absolute;
+            inset: 0;
+            border: 2px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: rotate 8s linear infinite;
+        }
+
+        .key-circle::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .key-icon {
+            position: absolute;
+            inset: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            background: var(--accent-hinomaru-dim);
+            border-radius: 50%;
+        }
+
+        .key-status {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .key-progress {
+            width: 200px;
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-full);
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .key-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold));
+            border-radius: var(--radius-full);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light));
+            border: none;
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 24px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-hinomaru-glow);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .backup-section {
+            text-align: left;
+        }
+
+        .warning-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background: var(--warning-dim);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+        }
+
+        .warning-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .warning-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--warning);
+            margin-bottom: 4px;
+        }
+
+        .warning-content p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .backup-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .backup-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .backup-option:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .backup-option.recommended {
+            border-color: var(--accent-gold);
+        }
+
+        .backup-option.downloaded {
+            border-color: var(--success);
+            background: var(--success-dim);
+        }
+
+        .backup-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-gold-dim);
+            border-radius: var(--radius-md);
+            font-size: 24px;
+        }
+
+        .backup-option.downloaded .backup-icon {
+            background: var(--success-dim);
+        }
+
+        .backup-info {
+            flex: 1;
+        }
+
+        .backup-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recommended-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+            border-radius: var(--radius-full);
+            font-weight: 600;
+        }
+
+        .downloaded-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            background: var(--success);
+            color: var(--bg-primary);
+            border-radius: var(--radius-full);
+            font-weight: 600;
+        }
+
+        .backup-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* MKT-2: バックアップ確認2段階化 */
+        .backup-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-default);
+            transition: all 0.2s;
+        }
+
+        .checkbox-wrapper.checked {
+            border-color: var(--success);
+            background: var(--success-dim);
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            accent-color: var(--accent-hinomaru);
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper.checked label {
+            color: var(--text-primary);
+        }
+
+        .backup-btn,
+        .continue-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light));
+            border: none;
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .backup-btn:hover,
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-hinomaru-glow);
+        }
+
+        .backup-btn:disabled,
+        .continue-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .ready-section {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--success-dim);
+            border: 2px solid var(--success);
+            border-radius: 50%;
+            font-size: 56px;
+            animation: success-pop 0.5s ease-out;
+        }
+
+        @keyframes success-pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .ready-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .ready-description {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .ready-features {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+
+        .ready-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+
+        .ready-feature-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--success-dim);
+            border-radius: 50%;
+            font-size: 16px;
+            color: var(--success);
+        }
+
+        .ready-feature span {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .cta-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light));
+            border: none;
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-hinomaru-glow);
+        }
+
+        .tutorial-link {
+            display: block;
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--accent-gold);
+            cursor: pointer;
+        }
+
+        .tutorial-link:hover {
+            text-decoration: underline;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-xl);
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-body p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .modal-body ul {
+            margin: 16px 0;
+            padding-left: 20px;
+        }
+
+        .modal-body li {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 8px;
+        }
+
+        .modal-body a {
+            color: var(--accent-gold);
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: var(--accent-hinomaru);
+            border: none;
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        /* USR-1: Dilithiumツールチップ */
+        .tooltip-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tooltip-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-gold-dim);
+            border: 1px solid var(--accent-gold);
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent-gold);
+            cursor: help;
+            transition: all 0.2s;
+        }
+
+        .tooltip-trigger:hover {
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+
+        .tooltip-content {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            width: 280px;
+            padding: 12px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 100;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+
+        .tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--bg-elevated);
+        }
+
+        .tooltip-wrapper:hover .tooltip-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
+        .dilithium-help-link {
+            font-size: 12px;
+            color: var(--accent-gold);
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .dilithium-help-link:hover {
+            text-decoration: underline;
+        }
+
+        /* LEG-3: 自己責任明示ボックス */
+        .self-custody-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--accent-hinomaru-dim);
+            border: 1px solid rgba(188, 0, 45, 0.3);
+            border-radius: var(--radius-lg);
+            margin-bottom: 16px;
+        }
+
+        .self-custody-notice .notice-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .self-custody-notice .notice-content {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .self-custody-notice .notice-content strong {
+            color: var(--accent-hinomaru-light);
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+
+            .step-title {
+                font-size: 20px;
+            }
+
+            .tooltip-content {
+                width: 240px;
+                left: 0;
+                transform: translateX(0) translateY(-8px);
+            }
+
+            .tooltip-wrapper:hover .tooltip-content {
+                transform: translateX(0) translateY(-4px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="red-glow"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <a href="01_landing.html" class="back-btn">←</a>
+            <h1 class="header-title">はじめる</h1>
+        </div>
+
+        <div class="progress">
+            <div class="progress-step" id="progress-1"></div>
+            <div class="progress-step" id="progress-2"></div>
+            <div class="progress-step" id="progress-3"></div>
+            <div class="progress-step" id="progress-4"></div>
+        </div>
+
+        <div class="onboarding-card">
+            <div class="step-content active" id="step-1">
+                <div class="step-indicator">STEP 1 / 4</div>
+                <h2 class="step-title">ウォレットを接続</h2>
+                <p class="step-description">
+                    お使いのウォレットを接続してください。MetaMaskなど、EVM互換のウォレットに対応しています。
+                </p>
+
+                <div class="wallet-options">
+                    <div class="wallet-option" onclick="selectWallet('metamask')">
+                        <div class="wallet-icon">🦊</div>
+                        <div class="wallet-info">
+                            <div class="wallet-name">MetaMask</div>
+                            <div class="wallet-desc">ブラウザ拡張機能</div>
+                        </div>
+                        <span class="wallet-arrow">→</span>
+                    </div>
+
+                    <div class="wallet-option" onclick="selectWallet('walletconnect')">
+                        <div class="wallet-icon">🔗</div>
+                        <div class="wallet-info">
+                            <div class="wallet-name">WalletConnect</div>
+                            <div class="wallet-desc">QRコードでスキャン</div>
+                        </div>
+                        <span class="wallet-arrow">→</span>
+                    </div>
+
+                    <div class="wallet-option" onclick="selectWallet('coinbase')">
+                        <div class="wallet-icon">💠</div>
+                        <div class="wallet-info">
+                            <div class="wallet-name">Coinbase Wallet</div>
+                            <div class="wallet-desc">モバイル・ブラウザ</div>
+                        </div>
+                        <span class="wallet-arrow">→</span>
+                    </div>
+                </div>
+
+                <div class="help-link">
+                    <a id="walletHelpLink" onclick="openWalletHelpModal()">ウォレットを持っていない方はこちら</a>
+                </div>
+            </div>
+
+            <div class="step-content" id="step-2">
+                <div class="step-indicator">STEP 2 / 4</div>
+                <!-- USR-1: Dilithium説明のツールチップ追加 -->
+                <h2 class="step-title">
+                    <span class="tooltip-wrapper">
+                        Dilithium鍵
+                        <span class="tooltip-trigger">?</span>
+                        <span class="tooltip-content">
+                            <strong>Dilithium</strong>は、NIST（米国標準技術研究所）が2024年に正式採用した量子耐性電子署名アルゴリズムです。量子コンピュータでも解読が困難な格子ベースの暗号技術を使用しています。
+                        </span>
+                    </span>
+                    を生成
+                </h2>
+                <p class="step-description">
+                    量子耐性のDilithium鍵ペアを生成します。この鍵はあなたのデバイスにのみ保存され、サーバーには送信されません。
+                </p>
+
+                <!-- LEG-3: 自己責任明示ボックス -->
+                <div class="self-custody-notice">
+                    <span class="notice-icon">🔑</span>
+                    <div class="notice-content">
+                        <strong>自己管理型（セルフカストディ）</strong><br>
+                        生成された秘密鍵はお客様ご自身で管理していただきます。Quantum Shieldは秘密鍵のコピーを保持しません。鍵の紛失・漏洩による損害についてはお客様の自己責任となります。
+                    </div>
+                </div>
+
+                <div class="key-generation">
+                    <div class="key-visual">
+                        <div class="key-circle"></div>
+                        <div class="key-icon">🔐</div>
+                    </div>
+                    <div class="key-status" id="keyStatus">ボタンをクリックして生成を開始</div>
+                    <div class="key-progress">
+                        <div class="key-progress-bar" id="keyProgressBar"></div>
+                    </div>
+                </div>
+
+                <a class="dilithium-help-link" onclick="openDilithiumModal()">
+                    📖 Dilithium暗号について詳しく知る
+                </a>
+
+                <button class="generate-btn" id="generateBtn" onclick="generateKeys()">
+                    Dilithium鍵を生成
+                </button>
+            </div>
+
+            <div class="step-content" id="step-3">
+                <div class="step-indicator">STEP 3 / 4</div>
+                <h2 class="step-title">鍵をバックアップ</h2>
+                <p class="step-description">
+                    秘密鍵を安全な場所にバックアップしてください。
+                </p>
+
+                <div class="backup-section">
+                    <div class="warning-box">
+                        <span class="warning-icon">⚠️</span>
+                        <div class="warning-content">
+                            <h4>重要: 秘密鍵を安全に保管してください</h4>
+                            <p>秘密鍵を失うと、資産へのアクセスが困難になります。必ずバックアップを作成してください。</p>
+                        </div>
+                    </div>
+
+                    <div class="backup-options">
+                        <div class="backup-option recommended" id="backupOption" onclick="downloadBackup()">
+                            <div class="backup-icon">📥</div>
+                            <div class="backup-info">
+                                <div class="backup-name">
+                                    暗号化ファイルでダウンロード
+                                    <span class="recommended-badge" id="downloadBadge">推奨</span>
+                                </div>
+                                <div class="backup-desc" id="backupDesc">パスワードで保護されたJSONファイル</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MKT-2: バックアップ確認2段階化 -->
+                    <div class="backup-checklist">
+                        <div class="checkbox-wrapper" id="checkWrapper1">
+                            <input type="checkbox" id="backupDownloaded" class="backup-checkbox" onchange="toggleCheckbox(1)">
+                            <label for="backupDownloaded">
+                                バックアップファイルをダウンロードしました
+                            </label>
+                        </div>
+                        <div class="checkbox-wrapper" id="checkWrapper2">
+                            <input type="checkbox" id="backupSaved" class="backup-checkbox" onchange="toggleCheckbox(2)">
+                            <label for="backupSaved">
+                                ファイルを安全な場所（USBメモリ、オフラインストレージなど）に保存しました。紛失した場合、資産へのアクセスが困難になることを理解しています。
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="continue-btn" id="continueBtn" disabled onclick="continueToReady()">
+                        次へ進む
+                    </button>
+                </div>
+            </div>
+
+            <div class="step-content" id="step-4">
+                <div class="step-indicator">STEP 4 / 4</div>
+                <div class="ready-section">
+                    <div class="success-icon">✓</div>
+                    <h2 class="ready-title">準備完了！</h2>
+                    <p class="ready-description">
+                        Quantum Shieldの設定が完了しました。<br>
+                        これで量子耐性の保護を使用できます。
+                    </p>
+
+                    <div class="ready-features">
+                        <div class="ready-feature">
+                            <div class="ready-feature-icon">✓</div>
+                            <span>Dilithium鍵ペアを生成しました</span>
+                        </div>
+                        <div class="ready-feature">
+                            <div class="ready-feature-icon">✓</div>
+                            <span>秘密鍵をバックアップしました</span>
+                        </div>
+                        <div class="ready-feature">
+                            <div class="ready-feature-icon">✓</div>
+                            <span>量子耐性保護が有効です</span>
+                        </div>
+                    </div>
+
+                    <a href="03_dashboard.html" class="cta-btn">
+                        ダッシュボードへ →
+                    </a>
+
+                    <span class="tutorial-link" onclick="openTutorialModal()">
+                        使い方チュートリアルを見る
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="walletHelpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>ウォレットの取得方法</h3>
+                <button class="modal-close" onclick="closeModal('walletHelpModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>暗号資産ウォレットを持っていない場合は、以下の手順で取得できます。</p>
+                
+                <h4 style="margin-top: 16px; margin-bottom: 8px;">MetaMaskの場合:</h4>
+                <ul>
+                    <li><a href="https://metamask.io" target="_blank" rel="noopener">metamask.io</a> にアクセス</li>
+                    <li>「Download」をクリックしてブラウザ拡張機能をインストール</li>
+                    <li>画面の指示に従ってウォレットを作成</li>
+                    <li>シードフレーズを安全に保管</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px;">注意事項:</h4>
+                <ul>
+                    <li>シードフレーズは絶対に他人に教えないでください</li>
+                    <li>オフラインの安全な場所に保管してください</li>
+                    <li>公式サイト以外からダウンロードしないでください</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeModal('walletHelpModal')">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- USR-1: Dilithium説明モーダル -->
+    <div class="modal-overlay" id="dilithiumModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Dilithium暗号とは？</h3>
+                <button class="modal-close" onclick="closeModal('dilithiumModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Dilithium</strong>（ダイリチウム）は、量子コンピュータに対して安全な電子署名アルゴリズムです。</p>
+                
+                <h4 style="margin-top: 16px; margin-bottom: 8px;">なぜ必要？</h4>
+                <ul>
+                    <li>現在の暗号（ECDSA等）は将来の量子コンピュータで解読される可能性があります</li>
+                    <li>「今収集して後で解読」攻撃から資産を守るために、今から対策が必要です</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px;">Dilithiumの特徴:</h4>
+                <ul>
+                    <li>🏛️ <strong>NIST認定</strong>: 2024年にFIPS 204として正式標準化</li>
+                    <li>🔐 <strong>格子ベース暗号</strong>: 量子コンピュータでも解読が数学的に困難</li>
+                    <li>⚡ <strong>高速</strong>: 署名・検証が効率的</li>
+                    <li>📦 <strong>Dilithium-III</strong>: Quantum Shieldで使用するセキュリティレベル</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px;">安全性:</h4>
+                <p>Dilithium-IIIは、NIST Security Level 3を満たし、128ビット以上の古典的セキュリティと量子セキュリティを提供します。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeModal('dilithiumModal')">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="tutorialModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>使い方チュートリアル</h3>
+                <button class="modal-close" onclick="closeModal('tutorialModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Quantum Shieldの基本的な使い方を説明します。</p>
+                
+                <h4 style="margin-top: 16px; margin-bottom: 8px;">1. 資産をLockする</h4>
+                <ul>
+                    <li>ダッシュボードで「Lock」をクリック</li>
+                    <li>保護したい金額を入力</li>
+                    <li>Dilithium署名で確認</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px;">2. 資産をUnlockする</h4>
+                <ul>
+                    <li>通常Unlock: Dilithium署名 + 24時間待機</li>
+                    <li>緊急Unlock: ウォレット署名 + Bond + 7日間待機</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px;">3. セキュリティのポイント</h4>
+                <ul>
+                    <li>秘密鍵は必ずバックアップしてください</li>
+                    <li>Time Lockがあなたの資産を守ります</li>
+                    <li>不審なアクティビティはすぐに確認してください</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeModal('tutorialModal')">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let backupDownloaded = false;
+
+        function updateProgress() {
+            for (let i = 1; i <= 4; i++) {
+                const progressEl = document.getElementById('progress-' + i);
+                if (i < currentStep) {
+                    progressEl.classList.add('completed');
+                    progressEl.classList.remove('active');
+                } else if (i === currentStep) {
+                    progressEl.classList.add('active');
+                    progressEl.classList.remove('completed');
+                } else {
+                    progressEl.classList.remove('active', 'completed');
+                }
+            }
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById('step-' + step).classList.add('active');
+            currentStep = step;
+            updateProgress();
+        }
+
+        function selectWallet(wallet) {
+            document.querySelectorAll('.wallet-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            setTimeout(() => {
+                showStep(2);
+            }, 500);
+        }
+
+        function generateKeys() {
+            const btn = document.getElementById('generateBtn');
+            const status = document.getElementById('keyStatus');
+            const progressBar = document.getElementById('keyProgressBar');
+            
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            status.textContent = 'Dilithium-III鍵ペアを生成中...';
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    status.textContent = '鍵ペアの生成が完了しました！';
+                    status.style.color = 'var(--success)';
+                    
+                    setTimeout(() => {
+                        showStep(3);
+                    }, 1000);
+                }
+                progressBar.style.width = progress + '%';
+            }, 200);
+        }
+
+        function downloadBackup() {
+            const backupData = {
+                version: '1.0',
+                algorithm: 'Dilithium-III',
+                created: new Date().toISOString(),
+                encrypted_private_key: 'ENCRYPTED_KEY_PLACEHOLDER_' + Date.now(),
+                public_key: '0x04a7b3c8d9e2f1a0b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9...'
+            };
+            
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'quantum-shield-backup-' + Date.now() + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            backupDownloaded = true;
+
+            // MKT-2: ダウンロード完了を視覚的に表示
+            const backupOption = document.getElementById('backupOption');
+            const downloadBadge = document.getElementById('downloadBadge');
+            const backupDesc = document.getElementById('backupDesc');
+            
+            backupOption.classList.remove('recommended');
+            backupOption.classList.add('downloaded');
+            downloadBadge.textContent = '✓ 完了';
+            downloadBadge.classList.remove('recommended-badge');
+            downloadBadge.classList.add('downloaded-badge');
+            backupDesc.textContent = 'ファイルがダウンロードされました';
+
+            // 最初のチェックボックスを自動チェック
+            document.getElementById('backupDownloaded').checked = true;
+            toggleCheckbox(1);
+        }
+
+        // MKT-2: 2段階チェックボックス処理
+        function toggleCheckbox(num) {
+            const checkbox1 = document.getElementById('backupDownloaded');
+            const checkbox2 = document.getElementById('backupSaved');
+            const wrapper1 = document.getElementById('checkWrapper1');
+            const wrapper2 = document.getElementById('checkWrapper2');
+            const btn = document.getElementById('continueBtn');
+
+            if (checkbox1.checked) {
+                wrapper1.classList.add('checked');
+            } else {
+                wrapper1.classList.remove('checked');
+            }
+
+            if (checkbox2.checked) {
+                wrapper2.classList.add('checked');
+            } else {
+                wrapper2.classList.remove('checked');
+            }
+
+            // 両方チェックされた場合のみボタンを有効化
+            btn.disabled = !(checkbox1.checked && checkbox2.checked);
+        }
+
+        function continueToReady() {
+            showStep(4);
+        }
+
+        function openWalletHelpModal() {
+            document.getElementById('walletHelpModal').classList.add('show');
+        }
+
+        function openDilithiumModal() {
+            document.getElementById('dilithiumModal').classList.add('show');
+        }
+
+        function openTutorialModal() {
+            document.getElementById('tutorialModal').classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+
+        updateProgress();
+    </script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply to Become a Prover - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!--
+    ## File Info
+    - System: Prover Portal
+    - Screen: Application Step 1-4 (4-6 to 4-9), Submitted (4-10)
+    - Created: 2026-01-10
+
+    ## Interactions Defined
+    | Element | Action | Target |
+    |---------|--------|--------|
+    | #btn-next | click | nextStep() |
+    | #btn-prev | click | prevStep() |
+    | #btn-submit | click | showSubmitted() |
+    | .nav-landing | click | 01_landing.html |
+    | #btn-check-status | click | 04_status.html |
+    -->
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896;
+            --warning: #f0a030;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        a { color: inherit; text-decoration: none; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 32px; }
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-hinomaru { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: rotate 25s linear infinite; }
+        @keyframes rotate { to { transform: rotate(360deg); } }
+        .logo-hinomaru-inner { width: 20px; height: 20px; background: var(--accent-hinomaru); border-radius: 50%; }
+        .logo-text .logo-main { font-size: 16px; font-weight: 600; }
+        .logo-text .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .back-link { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 14px; }
+        .back-link:hover { color: var(--text-primary); }
+        /* Progress */
+        .progress-section { padding: 40px 0 20px; }
+        .progress-steps { display: flex; justify-content: space-between; position: relative; }
+        .progress-steps::before {
+            content: ''; position: absolute; top: 20px; left: 0; right: 0; height: 2px;
+            background: var(--border-default);
+        }
+        .step {
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
+            position: relative; z-index: 1;
+        }
+        .step-circle {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--bg-secondary); border: 2px solid var(--border-default);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 600; transition: all 0.3s;
+        }
+        .step.active .step-circle { background: var(--accent-hinomaru); border-color: var(--accent-hinomaru); color: white; }
+        .step.completed .step-circle { background: var(--success); border-color: var(--success); color: white; }
+        .step-label { font-size: 12px; color: var(--text-tertiary); text-align: center; }
+        .step.active .step-label { color: var(--text-primary); font-weight: 500; }
+        /* Form */
+        .form-section { padding: 40px 0; }
+        .form-card {
+            background: var(--bg-card); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl); padding: 40px; margin-bottom: 24px;
+        }
+        .form-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .form-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
+        .form-group { margin-bottom: 24px; }
+        .form-label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-label .required { color: var(--accent-hinomaru); }
+        .form-input {
+            width: 100%; padding: 14px 18px;
+            background: var(--bg-secondary); border: 1px solid var(--border-default);
+            border-radius: var(--radius-md); color: var(--text-primary);
+            font-size: 15px; font-family: var(--font-body);
+        }
+        .form-input:focus { outline: none; border-color: var(--accent-hinomaru); box-shadow: 0 0 0 3px var(--accent-hinomaru-dim); }
+        .form-input::placeholder { color: var(--text-muted); }
+        /* Error States */
+        .form-input.error { border-color: #e07040; box-shadow: 0 0 0 3px rgba(224, 112, 64, 0.12); }
+        .form-group.has-error .form-input { border-color: #e07040; }
+        .form-error {
+            display: flex; align-items: center; gap: 6px;
+            color: #e07040; font-size: 12px; margin-top: 6px;
+        }
+        .form-error::before { content: '⚠'; font-size: 14px; }
+        .form-success { display: flex; align-items: center; gap: 6px; color: var(--success); font-size: 12px; margin-top: 6px; }
+        .form-success::before { content: '✓'; font-size: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239898a0'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+        .form-checkbox { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+        .form-checkbox input[type="checkbox"] {
+            width: 20px; height: 20px; border-radius: 4px;
+            background: var(--bg-secondary); border: 1px solid var(--border-default);
+            accent-color: var(--accent-hinomaru);
+        }
+        .form-checkbox-label { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+        .form-checkbox-label a { color: var(--accent-gold); text-decoration: underline; }
+        /* Buttons */
+        .form-actions { display: flex; justify-content: space-between; gap: 16px; margin-top: 32px; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 28px; border-radius: var(--radius-md);
+            font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); color: white; }
+        .btn-primary:hover { box-shadow: 0 4px 16px var(--accent-hinomaru-glow); }
+        .btn-outline { background: transparent; border: 1px solid var(--border-default); color: var(--text-secondary); }
+        .btn-outline:hover { border-color: var(--text-primary); color: var(--text-primary); }
+        /* Step Content */
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        /* Checklist */
+        .checklist { margin: 24px 0; }
+        .checklist-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px; background: var(--bg-secondary);
+            border-radius: var(--radius-md); margin-bottom: 12px;
+        }
+        .checklist-icon { font-size: 20px; }
+        .checklist-icon.pending { color: var(--text-tertiary); }
+        .checklist-icon.verified { color: var(--success); }
+        .checklist-text { flex: 1; }
+        .checklist-title { font-weight: 600; margin-bottom: 2px; }
+        .checklist-desc { font-size: 13px; color: var(--text-secondary); }
+        /* Summary */
+        .summary-section { margin: 24px 0; }
+        .summary-item {
+            display: flex; justify-content: space-between; padding: 12px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .summary-label { color: var(--text-secondary); }
+        .summary-value { font-weight: 600; }
+        /* Submitted State */
+        .submitted-state {
+            text-align: center; padding: 60px 40px;
+            display: none;
+        }
+        .submitted-state.active { display: block; }
+        .submitted-icon { font-size: 64px; margin-bottom: 24px; }
+        .submitted-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+        .submitted-desc { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; }
+        .submitted-id {
+            display: inline-block; padding: 12px 24px;
+            background: var(--bg-secondary); border-radius: var(--radius-md);
+            font-family: var(--font-mono); font-size: 18px; margin-bottom: 32px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="01_landing.html" class="logo nav-landing">
+            <div class="logo-hinomaru">
+                <div class="logo-circle-outer"></div>
+                <div class="logo-hinomaru-inner"></div>
+            </div>
+            <div class="logo-text">
+                <div class="logo-main">Quantum Shield</div>
+                <div class="logo-sub">Prover Portal</div>
+            </div>
+        </a>
+        <a href="01_landing.html" class="back-link">← Back to Overview</a>
+    </header>
+
+    <div class="container">
+        <!-- Progress Steps -->
+        <div class="progress-section">
+            <div class="progress-steps">
+                <div class="step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Basic Info</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Technical</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Legal & KYB</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Review</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="form-section">
+            <!-- Step 1: Basic Info -->
+            <div class="step-content active" data-step="1">
+                <div class="form-card">
+                    <h2 class="form-title">Basic Information</h2>
+                    <p class="form-desc">Tell us about your organization</p>
+
+                    <div class="form-group">
+                        <label class="form-label">Organization Name <span class="required">*</span></label>
+                        <input type="text" class="form-input" placeholder="Enter your organization name">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Country <span class="required">*</span></label>
+                            <select class="form-input form-select">
+                                <option>Select country</option>
+                                <option>Japan</option>
+                                <option>United States</option>
+                                <option>Singapore</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Website</label>
+                            <input type="url" class="form-input" placeholder="https://example.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Email <span class="required">*</span></label>
+                        <input type="email" class="form-input" placeholder="contact@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Validator Experience</label>
+                        <select class="form-input form-select">
+                            <option>Select experience level</option>
+                            <option>No experience</option>
+                            <option>1-2 years</option>
+                            <option>3-5 years</option>
+                            <option>5+ years</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <div></div>
+                    <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Technical -->
+            <div class="step-content" data-step="2">
+                <div class="form-card">
+                    <h2 class="form-title">Technical Requirements</h2>
+                    <p class="form-desc">Confirm your technical capabilities</p>
+
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <span class="checklist-icon pending">☐</span>
+                            <div class="checklist-text">
+                                <div class="checklist-title">FIPS 140-2 Level 3+ HSM</div>
+                                <div class="checklist-desc">Hardware Security Module for SPHINCS+ key storage</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <span class="checklist-icon pending">☐</span>
+                            <div class="checklist-text">
+                                <div class="checklist-title">99.9% Uptime Capability</div>
+                                <div class="checklist-desc">24/7 monitoring and redundant infrastructure</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <span class="checklist-icon pending">☐</span>
+                            <div class="checklist-text">
+                                <div class="checklist-title">30s Response Time</div>
+                                <div class="checklist-desc">Ability to process signature requests within 30 seconds</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <span class="checklist-icon pending">☐</span>
+                            <div class="checklist-text">
+                                <div class="checklist-title">2-of-3+ Multisig</div>
+                                <div class="checklist-desc">Multi-signature operational security</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">HSM Provider</label>
+                        <select class="form-input form-select">
+                            <option>Select HSM provider</option>
+                            <option>Thales Luna</option>
+                            <option>AWS CloudHSM</option>
+                            <option>Azure Dedicated HSM</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Infrastructure Location</label>
+                        <input type="text" class="form-input" placeholder="e.g., AWS Tokyo, GCP Singapore">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-outline" id="btn-prev" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Legal & KYB -->
+            <div class="step-content" data-step="3">
+                <div class="form-card">
+                    <h2 class="form-title">Legal & KYB</h2>
+                    <p class="form-desc">Business verification and legal agreements</p>
+
+                    <div class="form-group">
+                        <label class="form-label">Business Registration Number <span class="required">*</span></label>
+                        <input type="text" class="form-input" placeholder="Enter registration number">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Upload Business Registration Document</label>
+                        <input type="file" class="form-input" style="padding: 12px;">
+                    </div>
+
+                    <div style="margin-top: 32px;">
+                        <div class="form-checkbox">
+                            <input type="checkbox" id="agree-terms">
+                            <label class="form-checkbox-label" for="agree-terms">
+                                I have read and agree to the <a href="#">Prover Terms of Service</a> and understand the slashing risks involved.
+                            </label>
+                        </div>
+                        <div class="form-checkbox">
+                            <input type="checkbox" id="agree-kyb">
+                            <label class="form-checkbox-label" for="agree-kyb">
+                                I consent to KYB (Know Your Business) verification and agree to provide additional documentation if requested.
+                            </label>
+                        </div>
+                        <div class="form-checkbox">
+                            <input type="checkbox" id="agree-stake">
+                            <label class="form-checkbox-label" for="agree-stake">
+                                I understand that a minimum stake of $400,000 equivalent in ETH is required, and this stake is subject to <a href="02_requirements.html#risk">Quadratic Slashing</a>.
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-outline" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Review -->
+            <div class="step-content" data-step="4">
+                <div class="form-card">
+                    <h2 class="form-title">Review Application</h2>
+                    <p class="form-desc">Please review your information before submitting</p>
+
+                    <div class="summary-section">
+                        <div class="summary-item">
+                            <span class="summary-label">Organization</span>
+                            <span class="summary-value">Example Corp</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Country</span>
+                            <span class="summary-value">Japan</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Contact Email</span>
+                            <span class="summary-value">contact@example.com</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">HSM Provider</span>
+                            <span class="summary-value">AWS CloudHSM</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Infrastructure</span>
+                            <span class="summary-value">AWS Tokyo</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Stake Commitment</span>
+                            <span class="summary-value" style="color: var(--accent-gold);">$400,000+</span>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-md); padding: 16px; margin-top: 24px;">
+                        <strong style="color: var(--accent-hinomaru-light);">Important:</strong>
+                        <span style="color: var(--text-secondary);"> After submission, your application will be reviewed by our team. This process typically takes 3-5 business days.</span>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-outline" onclick="prevStep()">← Back</button>
+                    <button class="btn btn-primary" id="btn-submit" onclick="showSubmitted()">Submit Application</button>
+                </div>
+            </div>
+
+            <!-- Submitted State -->
+            <div class="submitted-state" id="submitted-state">
+                <div class="form-card">
+                    <div class="submitted-icon">✅</div>
+                    <h2 class="submitted-title">Application Submitted!</h2>
+                    <p class="submitted-desc">
+                        Thank you for applying to become a Quantum Shield Prover.<br>
+                        Our team will review your application within 3-5 business days.
+                    </p>
+                    <div class="submitted-id">Application ID: #PRV-2026-0147</div>
+                    <div>
+                        <a href="04_status.html" class="btn btn-primary" id="btn-check-status">Check Application Status</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function updateSteps() {
+            document.querySelectorAll('.step').forEach((step, i) => {
+                step.classList.remove('active', 'completed');
+                if (i + 1 < currentStep) step.classList.add('completed');
+                if (i + 1 === currentStep) step.classList.add('active');
+            });
+            document.querySelectorAll('.step-content').forEach((content, i) => {
+                content.classList.remove('active');
+                if (i + 1 === currentStep) content.classList.add('active');
+            });
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateSteps();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateSteps();
+            }
+        }
+
+        function showSubmitted() {
+            document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('submitted-state').classList.add('active');
+            document.querySelectorAll('.step').forEach(s => s.classList.add('completed'));
+        }
+    </script>
+</body>
+</html>
