@@ -34,7 +34,7 @@
         },
         "available": {
           "label": "Available",
-          "tooltip": "Balance available for locking"
+          "tooltip": "Your unlocked ETH balance in the connected wallet. You can lock this amount for quantum-resistant protection."
         },
         "pendingUnlock": {
           "label": "Pending Unlock",

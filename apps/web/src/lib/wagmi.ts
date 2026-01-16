@@ -17,15 +17,27 @@ export const config = getDefaultConfig({
   ],
   transports: {
     [mainnet.id]: fallback([
-      http(MAINNET_RPC),
+      http(MAINNET_RPC, {
+        batch: true,
+        retryCount: 2,
+        retryDelay: 1000,
+      }),
       http(), // fallback to default
     ]),
     [sepolia.id]: fallback([
-      http(SEPOLIA_RPC),
+      http(SEPOLIA_RPC, {
+        batch: true,
+        retryCount: 2,
+        retryDelay: 1000,
+      }),
       http(), // fallback to default
     ]),
   },
   ssr: true,
+  // Disable automatic reconnection to prevent connection errors in dev environments
+  ...(process.env.NODE_ENV !== 'production' && {
+    syncConnectedChain: false,
+  }),
 });
 
 // Export chains for use in components

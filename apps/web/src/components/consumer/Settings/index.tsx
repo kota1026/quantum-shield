@@ -58,8 +58,34 @@ export function Settings() {
   const handleLanguage = useCallback(() => {
     // Toggle between Japanese and English
     const newLocale = locale === 'ja' ? 'en' : 'ja';
-    // Replace the locale in the pathname
-    const newPath = pathname.replace(`/${locale}`, `/${newLocale}`);
+
+    // Handle locale switching with 'as-needed' prefix mode
+    // Default locale (ja) doesn't have prefix, other locales do
+    let newPath: string;
+
+    if (pathname.startsWith(`/${locale}/`)) {
+      // Current path has locale prefix (e.g., /en/consumer/settings)
+      if (newLocale === 'ja') {
+        // Switching to Japanese (default): remove locale prefix
+        newPath = pathname.replace(`/${locale}`, '');
+      } else {
+        // Switching to another non-default locale
+        newPath = pathname.replace(`/${locale}/`, `/${newLocale}/`);
+      }
+    } else if (pathname === `/${locale}`) {
+      // Root path with locale (e.g., /en)
+      newPath = newLocale === 'ja' ? '/' : `/${newLocale}`;
+    } else {
+      // Current path has no locale prefix (default locale, e.g., /consumer/settings)
+      if (newLocale === 'ja') {
+        // Staying on Japanese: no change needed
+        newPath = pathname;
+      } else {
+        // Switching from Japanese to another locale: add prefix
+        newPath = `/${newLocale}${pathname}`;
+      }
+    }
+
     router.push(newPath);
   }, [locale, pathname, router]);
 
