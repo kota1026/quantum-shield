@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-16 (Token Hub - 5/13 screens)
+> **Last Updated**: 2026-01-16 (Token Hub - 6/13 screens)
 > **Total Tasks**: 222 (added 4 new Token Hub screens)
 
 ---
@@ -11,15 +11,15 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   36/148 (24%)           │
+│  WS-1 UI/UX:      [██████░░░░░░░░░░░░░░]   37/148 (25%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [███░░░░░░░░░░░░░░░░░]   36/222 (16%)           │
+│  TOTAL:           [███░░░░░░░░░░░░░░░░░]   37/222 (17%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
-│  Week 2-3 P1 Systems: 🔄 In Progress (Token Hub 5/13)              │
+│  Week 2-3 P1 Systems: 🔄 In Progress (Token Hub 6/13)              │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -65,7 +65,7 @@
 | 03 | onboarding | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Tokenomics explanation |
 | 04 | faq | ✅ | ✅ | ✅ | ✅ | ✅ | Done | veQS/Lock FAQ |
 | 05 | get_qs | ✅ | ✅ | ✅ | ✅ | ✅ | Done | How to acquire QS (DEX, rewards, airdrop) |
-| 06 | delegate | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
+| 06 | delegate | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Delegate list with tooltips |
 | 07 | delegate_list | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
 | 08 | rewards | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
 | 09 | rewards_history | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
@@ -74,7 +74,7 @@
 | 12 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | |
 | 13 | consumer_link | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending | NEW: Consumer App ↔ Token Hub navigation |
 
-**Progress**: 5/13 (38%)
+**Progress**: 6/13 (46%)
 
 ---
 
@@ -378,6 +378,7 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
+| 2026-01-16 | Token Hub: delegate - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (delegate list, search, filters, tooltips) |
 | 2026-01-16 | Token Hub: get_qs - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (4 acquisition methods, DEX guides) |
 | 2026-01-16 | Token Hub: faq - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (5 categories, 19 Q&As) |
 | 2026-01-16 | Token Hub: onboarding - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (added breadcrumb navigation) |
