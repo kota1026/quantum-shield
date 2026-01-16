@@ -1552,6 +1552,100 @@
         "description": "Before contacting us, check our FAQ",
         "link": "View FAQ"
       }
+    },
+    "cookie": {
+      "meta": {
+        "title": "Cookie Policy | Quantum Shield",
+        "description": "Quantum Shield Cookie Policy"
+      },
+      "header": {
+        "title": "Cookie Policy",
+        "back": "Back"
+      },
+      "lastUpdated": "Last Updated: {date}",
+      "sections": {
+        "intro": {
+          "title": "About Cookies",
+          "content": "Quantum Shield (\"we\") uses cookies to improve user experience and enhance our services. This policy explains the types and purposes of cookies we use."
+        },
+        "whatAreCookies": {
+          "title": "What Are Cookies",
+          "content": "Cookies are small text files that websites store in your browser. They allow websites to remember your preferences and behavior, enabling better service delivery."
+        },
+        "essential": {
+          "title": "Essential Cookies",
+          "content": "These cookies are necessary for the basic functionality of the website. The service cannot work properly without them.",
+          "items": {
+            "session": "Session management: Maintaining login state",
+            "security": "Security: CSRF protection tokens",
+            "preferences": "Settings: Language and theme preferences"
+          }
+        },
+        "analytics": {
+          "title": "Analytics Cookies",
+          "content": "These cookies anonymously analyze service usage to help us improve.",
+          "items": {
+            "pageViews": "Page view tracking",
+            "userJourney": "User behavior analysis",
+            "performance": "Performance measurement"
+          }
+        },
+        "functional": {
+          "title": "Functional Cookies",
+          "content": "These cookies provide additional features to enhance user experience.",
+          "items": {
+            "walletConnection": "Remembering wallet connection state",
+            "recentActivity": "Displaying recent activity",
+            "notifications": "Notification settings"
+          }
+        },
+        "thirdParty": {
+          "title": "Third-Party Cookies",
+          "content": "We use the following third-party services. Please refer to their respective privacy policies.",
+          "services": {
+            "analytics": "Google Analytics: Usage analysis",
+            "error": "Sentry: Error tracking",
+            "cdn": "Cloudflare: Content delivery"
+          }
+        },
+        "manage": {
+          "title": "Managing Cookies",
+          "content": "You can manage and delete cookies through your browser settings. However, disabling certain cookies may limit some service features."
+        },
+        "changes": {
+          "title": "Policy Changes",
+          "content": "We may update this policy as necessary. Significant changes will be notified on the service."
+        }
+      },
+      "consent": {
+        "title": "Cookie Settings",
+        "description": "Choose which cookies to allow",
+        "essential": {
+          "title": "Essential Cookies",
+          "description": "Required for basic functionality (cannot be disabled)"
+        },
+        "analytics": {
+          "title": "Analytics Cookies",
+          "description": "Usage analysis for service improvement"
+        },
+        "functional": {
+          "title": "Functional Cookies",
+          "description": "Additional features and enhanced experience"
+        },
+        "saveSettings": "Save Settings",
+        "acceptAll": "Accept All"
+      },
+      "contact": {
+        "title": "Contact",
+        "content": "For questions about cookies, please contact privacy@quantumshield.io."
+      },
+      "footer": {
+        "home": "Home",
+        "terms": "Terms",
+        "privacy": "Privacy",
+        "cookie": "Cookies",
+        "copyright": "© 2026 Quantum Shield. Made in Japan"
+      }
     }
   }
 }
