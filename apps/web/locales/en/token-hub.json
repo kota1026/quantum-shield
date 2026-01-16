@@ -609,6 +609,69 @@
         "docs": "Documentation",
         "disclaimer": "This is not investment advice. Delegation transfers voting rights, not tokens. Review delegate voting history and choose carefully."
       }
+    },
+    "rewards": {
+      "meta": {
+        "title": "Rewards | Token Hub | Quantum Shield",
+        "description": "View and claim your rewards as a veQS holder"
+      },
+      "title": "Rewards",
+      "subtitle": "View and claim your rewards as a veQS holder",
+      "claim": {
+        "label": "Claimable Rewards",
+        "usdValue": "≈ ${amount} USD",
+        "button": "Claim Rewards",
+        "buttonAriaLabel": "Claim {amount} QS"
+      },
+      "stats": {
+        "ariaLabel": "Rewards statistics",
+        "totalEarned": {
+          "label": "Total Earned (All Time)"
+        },
+        "weeklyAverage": {
+          "label": "Weekly Average"
+        },
+        "currentApy": {
+          "label": "Current APY"
+        },
+        "nextReward": {
+          "label": "Next Reward"
+        }
+      },
+      "history": {
+        "title": "Rewards History",
+        "viewAll": "View All",
+        "chartAriaLabel": "Bar chart showing weekly rewards",
+        "chartTitle": "Weekly Rewards History",
+        "week": "Week",
+        "listAriaLabel": "Rewards history list",
+        "type": {
+          "weeklyReward": "Weekly Reward Claimed"
+        }
+      },
+      "breakdown": {
+        "title": "Reward Breakdown",
+        "ariaLabel": "Reward breakdown list",
+        "veqsHolding": "veQS Holding Rewards",
+        "votingParticipation": "Voting Participation",
+        "delegationBonus": "Delegation Bonus"
+      },
+      "epoch": {
+        "title": "Current Epoch",
+        "number": "Epoch #{number}",
+        "remaining": "{time} remaining",
+        "progressAriaLabel": "Epoch progress: {progress}%"
+      },
+      "apyTooltip": {
+        "title": "What is APY?",
+        "description": "APY (Annual Percentage Yield) shows the expected annual return on your locked tokens. For example, 12.5% APY means locking 10,000 QS could earn about 1,250 QS in rewards per year.",
+        "ariaLabel": "Learn more about APY"
+      },
+      "epochTooltip": {
+        "title": "What is an Epoch?",
+        "description": "An epoch is a time period used for reward calculation. Typically one week long, rewards are calculated and distributed at the end of each epoch.",
+        "ariaLabel": "Learn more about epochs"
+      }
     }
   }
 }
