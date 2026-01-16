@@ -239,7 +239,7 @@
       "item": {
         "date": "日時",
         "blockConfirmed": "取引確定",
-        "blockConfirmedTooltip": "ブロックチェーン上で{count}回確認され、取引が確定しました",
+        "blockConfirmedTooltip": "この取引は{count}個のブロックで承認済みです。6ブロック以上で安全とされています。",
         "remaining": "残り {time}",
         "bond": "Bond: {amount}",
         "txHashLabel": "取引ID",
