@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -8,19 +9,23 @@ interface TooltipProps {
   content: string;
   children?: React.ReactNode;
   className?: string;
-  position?: 'top' | 'bottom' | 'auto';
 }
 
-type HorizontalPosition = 'left' | 'center' | 'right';
-type VerticalPosition = 'top' | 'bottom';
-
-export function Tooltip({ content, children, className, position = 'auto' }: TooltipProps) {
+export function Tooltip({ content, children, className }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [horizontalPos, setHorizontalPos] = useState<HorizontalPosition>('center');
-  const [verticalPos, setVerticalPos] = useState<VerticalPosition>('top');
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [placement, setPlacement] = useState<'top' | 'bottom'>('top');
+  const [alignment, setAlignment] = useState<'left' | 'center' | 'right'>('center');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
-  const tooltipRef = useRef<HTMLSpanElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const calculatePosition = useCallback(() => {
     if (!triggerRef.current) return;
@@ -28,39 +33,47 @@ export function Tooltip({ content, children, className, position = 'auto' }: Too
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const tooltipWidth = 340; // max-width of tooltip
-    const margin = 16; // minimum margin from edge
+    const tooltipWidth = 320;
+    const tooltipHeight = 80;
+    const margin = 12;
+    const arrowHeight = 8;
 
-    // Calculate horizontal position
-    const triggerCenterX = triggerRect.left + triggerRect.width / 2;
-    const spaceOnLeft = triggerCenterX;
-    const spaceOnRight = viewportWidth - triggerCenterX;
-
-    if (spaceOnLeft < tooltipWidth / 2 + margin) {
-      // Not enough space on the left, align to left
-      setHorizontalPos('left');
-    } else if (spaceOnRight < tooltipWidth / 2 + margin) {
-      // Not enough space on the right, align to right
-      setHorizontalPos('right');
-    } else {
-      // Enough space, center it
-      setHorizontalPos('center');
-    }
+    // Determine vertical placement
+    const spaceAbove = triggerRect.top;
+    const spaceBelow = viewportHeight - triggerRect.bottom;
+    const newPlacement = spaceAbove > tooltipHeight + margin ? 'top' : 'bottom';
+    setPlacement(newPlacement);
 
     // Calculate vertical position
-    if (position === 'auto') {
-      const spaceAbove = triggerRect.top;
-      const tooltipHeight = 80; // approximate height
-
-      if (spaceAbove < tooltipHeight + margin) {
-        setVerticalPos('bottom');
-      } else {
-        setVerticalPos('top');
-      }
+    let top: number;
+    if (newPlacement === 'top') {
+      top = triggerRect.top - tooltipHeight - arrowHeight;
     } else {
-      setVerticalPos(position === 'bottom' ? 'bottom' : 'top');
+      top = triggerRect.bottom + arrowHeight;
     }
-  }, [position]);
+
+    // Determine horizontal alignment and position
+    const triggerCenterX = triggerRect.left + triggerRect.width / 2;
+    let left: number;
+    let newAlignment: 'left' | 'center' | 'right';
+
+    if (triggerCenterX < tooltipWidth / 2 + margin) {
+      // Near left edge - align left
+      left = margin;
+      newAlignment = 'left';
+    } else if (triggerCenterX > viewportWidth - tooltipWidth / 2 - margin) {
+      // Near right edge - align right
+      left = viewportWidth - tooltipWidth - margin;
+      newAlignment = 'right';
+    } else {
+      // Center
+      left = triggerCenterX - tooltipWidth / 2;
+      newAlignment = 'center';
+    }
+
+    setAlignment(newAlignment);
+    setPosition({ top: Math.max(margin, top), left: Math.max(margin, left) });
+  }, []);
 
   const showTooltip = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -69,65 +82,48 @@ export function Tooltip({ content, children, className, position = 'auto' }: Too
   }, [calculatePosition]);
 
   const hideTooltip = useCallback(() => {
-    timeoutRef.current = setTimeout(() => setIsVisible(false), 150);
+    timeoutRef.current = setTimeout(() => setIsVisible(false), 100);
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
-  // Recalculate position when tooltip becomes visible
-  useEffect(() => {
-    if (isVisible) {
-      calculatePosition();
-    }
-  }, [isVisible, calculatePosition]);
-
-  const getTooltipPositionClasses = () => {
-    const classes: string[] = ['absolute z-50'];
-
-    // Vertical positioning
-    if (verticalPos === 'top') {
-      classes.push('bottom-full mb-2');
-    } else {
-      classes.push('top-full mt-2');
-    }
-
-    // Horizontal positioning
-    if (horizontalPos === 'left') {
-      classes.push('left-0');
-    } else if (horizontalPos === 'right') {
-      classes.push('right-0');
-    } else {
-      classes.push('left-1/2 -translate-x-1/2');
-    }
-
-    return classes.join(' ');
+  // Calculate arrow position relative to trigger
+  const getArrowStyle = () => {
+    if (!triggerRef.current) return {};
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const arrowLeft = triggerRect.left + triggerRect.width / 2 - position.left - 6;
+    return { left: `${Math.max(12, Math.min(arrowLeft, 320 - 24))}px` };
   };
 
-  const getArrowPositionClasses = () => {
-    const classes: string[] = ['absolute border-4 border-transparent'];
-
-    // Vertical positioning (arrow points opposite to tooltip position)
-    if (verticalPos === 'top') {
-      classes.push('top-full -mt-px border-t-border');
-    } else {
-      classes.push('bottom-full -mb-px border-b-border');
-    }
-
-    // Horizontal positioning
-    if (horizontalPos === 'left') {
-      classes.push('left-4');
-    } else if (horizontalPos === 'right') {
-      classes.push('right-4');
-    } else {
-      classes.push('left-1/2 -translate-x-1/2');
-    }
-
-    return classes.join(' ');
-  };
+  const tooltipContent = isVisible && mounted && (
+    <div
+      role="tooltip"
+      className={cn(
+        'fixed z-[9999] px-4 py-2.5',
+        'text-sm leading-relaxed text-foreground bg-surface-secondary',
+        'border border-border rounded-qs shadow-xl',
+        'whitespace-normal text-left',
+        'pointer-events-none'
+      )}
+      style={{
+        top: position.top,
+        left: position.left,
+        width: 'max-content',
+        maxWidth: '320px',
+      }}
+    >
+      {content}
+      {/* Arrow */}
+      <span
+        className={cn(
+          'absolute border-[6px] border-transparent',
+          placement === 'top'
+            ? 'top-full -mt-px border-t-surface-secondary'
+            : 'bottom-full -mb-px border-b-surface-secondary'
+        )}
+        style={getArrowStyle()}
+        aria-hidden="true"
+      />
+    </div>
+  );
 
   return (
     <span
@@ -147,27 +143,7 @@ export function Tooltip({ content, children, className, position = 'auto' }: Too
           <HelpCircle className="w-4 h-4" />
         </button>
       )}
-      {isVisible && (
-        <span
-          ref={tooltipRef}
-          role="tooltip"
-          className={cn(
-            getTooltipPositionClasses(),
-            'px-4 py-2.5',
-            'text-sm leading-relaxed text-foreground bg-surface-secondary',
-            'border border-border rounded-qs shadow-lg',
-            'whitespace-normal text-left'
-          )}
-          style={{ width: 'max-content', maxWidth: 'min(340px, calc(100vw - 2rem))' }}
-        >
-          {content}
-          {/* Arrow */}
-          <span
-            className={getArrowPositionClasses()}
-            aria-hidden="true"
-          />
-        </span>
-      )}
+      {mounted && typeof document !== 'undefined' && createPortal(tooltipContent, document.body)}
     </span>
   );
 }
