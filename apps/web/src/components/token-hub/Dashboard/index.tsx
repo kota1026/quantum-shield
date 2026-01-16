@@ -11,7 +11,10 @@ import {
   ChevronRight,
   TrendingUp,
   HelpCircle,
-  BarChart3
+  BarChart3,
+  BookOpen,
+  ShoppingCart,
+  MessageCircleQuestion,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -187,6 +190,87 @@ export function TokenHubDashboard() {
               <span className="text-sm font-medium text-foreground-secondary ml-1">%</span>
             </div>
           </Card>
+        </section>
+
+        {/* Getting Started Section - For new users */}
+        <section className="mb-8" aria-label={t('gettingStarted.ariaLabel')}>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-gold" aria-hidden="true" />
+              {t('gettingStarted.title')}
+            </h2>
+            <Link
+              href="/token-hub/faq"
+              className="text-sm text-foreground-tertiary hover:text-gold transition-colors flex items-center gap-1"
+            >
+              {t('gettingStarted.viewAll')}
+              <ChevronRight className="w-4 h-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Learn Tokenomics */}
+            <Link
+              href="/token-hub/onboarding"
+              className={cn(
+                'group flex items-start gap-4 p-4 bg-background-secondary border border-border rounded-xl',
+                'hover:border-gold hover:bg-gold/5 transition-all duration-200',
+                'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              )}
+            >
+              <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gold/20 transition-colors">
+                <BookOpen className="w-5 h-5 text-gold" aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium mb-1">{t('gettingStarted.onboarding.title')}</div>
+                <p className="text-sm text-foreground-tertiary line-clamp-2">
+                  {t('gettingStarted.onboarding.description')}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-foreground-tertiary group-hover:text-gold transition-colors flex-shrink-0 mt-2" aria-hidden="true" />
+            </Link>
+
+            {/* Get QS Tokens */}
+            <Link
+              href="/token-hub/get-qs"
+              className={cn(
+                'group flex items-start gap-4 p-4 bg-background-secondary border border-border rounded-xl',
+                'hover:border-gold hover:bg-gold/5 transition-all duration-200',
+                'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              )}
+            >
+              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0 group-hover:bg-success/20 transition-colors">
+                <ShoppingCart className="w-5 h-5 text-success" aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium mb-1">{t('gettingStarted.getQS.title')}</div>
+                <p className="text-sm text-foreground-tertiary line-clamp-2">
+                  {t('gettingStarted.getQS.description')}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-foreground-tertiary group-hover:text-gold transition-colors flex-shrink-0 mt-2" aria-hidden="true" />
+            </Link>
+
+            {/* FAQ */}
+            <Link
+              href="/token-hub/faq"
+              className={cn(
+                'group flex items-start gap-4 p-4 bg-background-secondary border border-border rounded-xl',
+                'hover:border-gold hover:bg-gold/5 transition-all duration-200',
+                'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              )}
+            >
+              <div className="w-10 h-10 rounded-lg bg-hinomaru/10 flex items-center justify-center flex-shrink-0 group-hover:bg-hinomaru/20 transition-colors">
+                <MessageCircleQuestion className="w-5 h-5 text-hinomaru" aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium mb-1">{t('gettingStarted.faq.title')}</div>
+                <p className="text-sm text-foreground-tertiary line-clamp-2">
+                  {t('gettingStarted.faq.description')}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-foreground-tertiary group-hover:text-gold transition-colors flex-shrink-0 mt-2" aria-hidden="true" />
+            </Link>
+          </div>
         </section>
 
         {/* Main Grid */}
