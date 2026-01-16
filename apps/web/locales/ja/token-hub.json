@@ -11,22 +11,23 @@
         "current": "トークノミクス"
       },
       "hero": {
-        "badge": "トークノミクスガイド",
-        "title": "QSトークノミクスを理解する",
-        "description": "QSトークンが投票エスクローと分散型ガバナンスを通じてQuantum Shieldエコシステムをどのように支えているかを学びます。"
+        "badge": "はじめてのToken Hub",
+        "title": "なぜQSをロックするの？",
+        "description": "ロックすることで、あなたはQuantum Shieldの運営に参加でき、報酬も受け取れます。長期保有を決めた方への特典です。"
       },
       "qs": {
-        "title": "QSトークンとは？",
-        "description": "QSはQuantum Shieldプロトコルのネイティブユーティリティトークンです。ガバナンス参加、ステーキング報酬、プレミアム機能へのアクセスを可能にします。",
-        "totalSupply": "総供給量",
-        "network": "ネットワーク",
-        "type": "トークン種別"
+        "title": "QSトークンって何？",
+        "description": "QSはQuantum Shieldの「会員証」のようなものです。持っているだけでも価値がありますが、ロックするとさらに特典が得られます。",
+        "totalSupply": "総発行枚数",
+        "network": "使用ネットワーク",
+        "type": "トークン規格",
+        "whyTooltip": "Ethereumの標準規格で、多くのウォレットやサービスで利用できます"
       },
       "veqs": {
-        "title": "veQSとは？",
-        "description": "veQS（投票エスクローQS）は、あなたのガバナンス権限を表す譲渡不可能なトークンです。QSをより長くロックするほど、より多くのveQSを獲得できます。",
-        "formulaTitle": "veQS計算式",
-        "formulaDescription": "veQSの量は、QSトークンをロックする期間に基づいて計算されます。最大ロック期間は4年で1:1の比率になります。",
+        "title": "veQSって何？なぜ必要？",
+        "description": "veQSは「ロックした証」です。長く預けるほど多くもらえて、投票権と報酬の配分が増えます。短期売買目的の人と、本気で参加したい人を区別するための仕組みです。",
+        "formulaTitle": "計算式を見る",
+        "formulaDescription": "ロック期間が長いほど、もらえるveQSが増えます。4年ロックで最大（1:1）になります。",
         "examplesAriaLabel": "veQS計算を示すロック期間の例",
         "lockPeriod": "ロック期間",
         "multiplier": "倍率",
@@ -36,60 +37,60 @@
         "tableNote": "10,000 QSトークンをロックした場合の例"
       },
       "timeline": {
-        "title": "仕組み",
+        "title": "参加の流れ",
         "ariaLabel": "Token Hubに参加するためのステップ",
         "acquire": {
-          "title": "QSを入手",
-          "description": "DEXまたは報酬からQSを獲得"
+          "title": "QSを手に入れる",
+          "description": "取引所で購入や報酬で獲得"
         },
         "lock": {
-          "title": "QSをロック",
-          "description": "6ヶ月〜4年間ロック"
+          "title": "ロックする",
+          "description": "6ヶ月〜4年の期間を選択"
         },
         "vote": {
-          "title": "投票",
-          "description": "ガバナンスに参加"
+          "title": "運営に参加",
+          "description": "手数料配分などに投票"
         },
         "earn": {
-          "title": "報酬を獲得",
-          "description": "プロトコル手数料を受取"
+          "title": "報酬を受取",
+          "description": "毎週の報酬が自動で貯まる"
         }
       },
       "benefits": {
-        "title": "ロックのメリット",
+        "title": "ロックするとどうなる？",
         "governance": {
-          "title": "ガバナンス権",
-          "description": "プロトコル提案、手数料分配、戦略的決定への投票権"
+          "title": "運営に声が届く",
+          "description": "「手数料を下げてほしい」「新機能がほしい」など、あなたの意見を投票で反映できます"
         },
         "rewards": {
-          "title": "プロトコル報酬",
-          "description": "veQS残高に比例したプロトコル手数料の分配"
+          "title": "報酬がもらえる",
+          "description": "Quantum Shieldが得た手数料の一部が、veQS保有者に分配されます"
         },
         "boost": {
-          "title": "報酬ブースト",
-          "description": "流動性マイニングとステーキング報酬で最大2.5倍のブースト"
+          "title": "他の報酬もアップ",
+          "description": "流動性提供などの報酬が最大2.5倍に。長期参加者への優遇です"
         },
         "security": {
-          "title": "ネットワークセキュリティ",
-          "description": "長期的なインセンティブ整合によりネットワークの安全性に貢献"
+          "title": "みんなで守る",
+          "description": "長期保有者が増えると、短期的な価格操作が難しくなり、安定性が高まります"
         }
       },
       "decay": {
-        "title": "veQSの減衰について",
-        "description": "veQS残高はロック期間の終了時にゼロになるまで線形に減少します。これにより長期的なコミットメントが促進されます。",
+        "title": "veQSは時間で減る？",
+        "description": "はい、ロック終了に近づくほど減っていきます。これは「長く約束した人ほど発言権が大きい」という公平性のためです。",
         "start": "ロック開始",
         "end": "ロック終了",
         "visualAriaLabel": "veQSがフルからゼロに減衰する様子の可視化",
         "note": "いつでもロックを延長してveQS残高を回復できます"
       },
       "cta": {
-        "title": "始める準備はできましたか？",
-        "description": "QSトークンをロックしてveQSを獲得し、Quantum Shieldガバナンスへの参加を始めましょう。",
-        "lockButton": "今すぐQSをロック",
-        "getQSButton": "QSトークンを入手"
+        "title": "さあ、始めましょう",
+        "description": "まずはQSを入手して、ロックしてみましょう。少額からでも大丈夫です。",
+        "lockButton": "QSをロックする",
+        "getQSButton": "QSを入手する方法"
       },
       "faqPreview": {
-        "text": "トークノミクスやロックについて質問がありますか？",
+        "text": "まだ不安がありますか？",
         "link": "よくある質問を見る"
       }
     },
@@ -407,6 +408,23 @@
         "claimable": "受取可能",
         "claimButton": "受け取る",
         "epochProgress": "エポック進行状況"
+      },
+      "gettingStarted": {
+        "ariaLabel": "はじめての方へ",
+        "title": "はじめての方へ",
+        "viewAll": "すべて見る",
+        "onboarding": {
+          "title": "仕組みを理解する",
+          "description": "なぜQSをロックするの？あなたの資産を守りながら報酬を得る方法を学びましょう"
+        },
+        "getQS": {
+          "title": "QSを手に入れる",
+          "description": "Token Hubに参加するためのQSトークン入手方法をご案内します"
+        },
+        "faq": {
+          "title": "よくある質問",
+          "description": "「ロックしたら戻せない？」など、みんなが気になる疑問にお答えします"
+        }
       },
       "footer": {
         "navLabel": "フッターナビゲーション",
