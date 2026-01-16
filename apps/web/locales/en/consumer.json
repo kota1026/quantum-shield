@@ -1469,6 +1469,89 @@
         "description": "New to Quantum Shield? Check out our tutorial",
         "button": "View Tutorial"
       }
+    },
+    "contact": {
+      "meta": {
+        "title": "Contact Us | Quantum Shield",
+        "description": "Contact Quantum Shield support team"
+      },
+      "header": {
+        "title": "Contact Us",
+        "back": "Back"
+      },
+      "intro": {
+        "title": "Get in touch with our support team",
+        "description": "If you have any questions or concerns, please fill out the form below. We typically respond within 1-2 business days."
+      },
+      "form": {
+        "category": {
+          "label": "Category",
+          "placeholder": "Select a category",
+          "options": {
+            "general": "General Question",
+            "technical": "Technical Issue",
+            "account": "Account Related",
+            "security": "Security",
+            "feedback": "Feedback & Suggestions",
+            "other": "Other"
+          }
+        },
+        "email": {
+          "label": "Email Address",
+          "placeholder": "your@email.com",
+          "description": "We'll reply to this email"
+        },
+        "subject": {
+          "label": "Subject",
+          "placeholder": "Brief summary of your inquiry"
+        },
+        "message": {
+          "label": "Message",
+          "placeholder": "Please describe your inquiry in detail..."
+        },
+        "walletAddress": {
+          "label": "Wallet Address (Optional)",
+          "placeholder": "0x...",
+          "description": "May help us investigate the issue"
+        },
+        "submit": "Submit",
+        "submitting": "Submitting..."
+      },
+      "validation": {
+        "categoryRequired": "Please select a category",
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Please enter a valid email address",
+        "subjectRequired": "Subject is required",
+        "messageRequired": "Message is required",
+        "messageTooShort": "Message must be at least 10 characters"
+      },
+      "success": {
+        "title": "Your inquiry has been submitted",
+        "message": "Thank you for contacting us. We will respond within 1-2 business days.",
+        "ticketId": "Ticket ID",
+        "backToHelp": "Back to Help",
+        "backToDashboard": "Back to Dashboard"
+      },
+      "otherWays": {
+        "title": "Other Ways to Contact Us",
+        "email": {
+          "title": "Email",
+          "value": "support@quantumshield.io"
+        },
+        "discord": {
+          "title": "Discord",
+          "value": "Join our community"
+        },
+        "twitter": {
+          "title": "Twitter / X",
+          "value": "@QuantumShield"
+        }
+      },
+      "faq": {
+        "title": "Frequently Asked Questions",
+        "description": "Before contacting us, check our FAQ",
+        "link": "View FAQ"
+      }
     }
   }
 }
