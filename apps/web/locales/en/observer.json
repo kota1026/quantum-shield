@@ -1,0 +1,378 @@
+{
+  "observer": {
+    "common": {
+      "header": {
+        "dashboard": "Dashboard",
+        "pending": "Pending",
+        "suspicious": "Suspicious",
+        "history": "History",
+        "earnings": "Earnings"
+      },
+      "portalName": "Observer Portal"
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Observer Dashboard | Quantum Shield",
+        "description": "Observer Dashboard - Monitor unlocks and detect fraud"
+      },
+      "pageTitle": "Observer Dashboard",
+      "monitoringBadge": "Monitoring Active",
+      "monitoringBadgeAriaLabel": "Monitoring status: Active",
+      "stats": {
+        "pendingUnlocks": {
+          "label": "Pending Unlocks",
+          "tooltip": "Number of unlock requests in 24-hour or 7-day waiting period",
+          "change": "+{count} in last hour"
+        },
+        "suspicious": {
+          "label": "Suspicious Detected",
+          "tooltip": "Transactions flagged by AI as potentially fraudulent. Review and consider challenging",
+          "badge": "Requires attention"
+        },
+        "activeChallenges": {
+          "label": "Active Challenges",
+          "tooltip": "A Challenge is a mechanism to dispute fraudulent transactions. Successful challenges earn rewards"
+        },
+        "totalEarnings": {
+          "label": "Total Earnings",
+          "tooltip": "Total rewards earned from successful challenges and monitoring activities",
+          "change": "+{amount} this week"
+        }
+      },
+      "pendingUnlocks": {
+        "title": "Pending Unlocks",
+        "live": "Live",
+        "viewAll": "View All",
+        "table": {
+          "address": "Address",
+          "amount": "Amount",
+          "type": "Type",
+          "timeRemaining": "Time Remaining",
+          "status": "Status"
+        },
+        "types": {
+          "normal": "Normal",
+          "emergency": "Emergency"
+        },
+        "statuses": {
+          "pending": "Pending",
+          "monitoring": "Monitoring"
+        }
+      },
+      "suspicious": {
+        "title": "Suspicious Transactions",
+        "viewAll": "View All",
+        "highRisk": "High Risk Detected",
+        "mediumRisk": "Medium Risk",
+        "score": "Score",
+        "firstTimeEmergency": "First-time emergency unlock with large amount",
+        "unusualPattern": "Unusual unlock pattern detected",
+        "challengeButton": "Challenge This Transaction"
+      },
+      "pending": {
+        "meta": {
+          "title": "Pending Unlocks | Observer | Quantum Shield",
+          "description": "Monitor pending unlock requests"
+        },
+        "pageTitle": "Pending Unlocks",
+        "liveMonitoring": "Live Monitoring",
+        "filters": {
+          "unlockType": {
+            "label": "Unlock Type",
+            "all": "All Types",
+            "normal": "Normal",
+            "emergency": "Emergency"
+          },
+          "minAmount": {
+            "label": "Min Amount",
+            "placeholder": "0.00 ETH"
+          },
+          "maxAmount": {
+            "label": "Max Amount",
+            "placeholder": "∞ ETH"
+          },
+          "riskScore": {
+            "label": "Risk Score",
+            "all": "All Scores",
+            "high": "High (70+)",
+            "medium": "Medium (40-69)",
+            "low": "Low (0-39)"
+          },
+          "sortBy": {
+            "label": "Sort By",
+            "timeAsc": "Time Remaining ↑",
+            "amountDesc": "Amount ↓",
+            "riskDesc": "Risk Score ↓"
+          }
+        },
+        "table": {
+          "userAddress": "User Address",
+          "amount": "Amount",
+          "type": "Type",
+          "timeRemaining": "Time Remaining",
+          "risk": "Risk",
+          "status": "Status",
+          "action": "Action"
+        },
+        "statuses": {
+          "monitoring": "Monitoring",
+          "pending": "Pending",
+          "review": "Review",
+          "lowRisk": "Low Risk"
+        },
+        "actions": {
+          "challenge": "Challenge",
+          "monitor": "Monitor"
+        },
+        "detail": {
+          "fullAddress": "Full Address",
+          "startedAt": "Started At",
+          "bondPaid": "Bond Paid",
+          "txHash": "TX Hash",
+          "accountAge": "Account Age",
+          "previousUnlocks": "Previous Unlocks",
+          "previousUnlocksValue": "{count} (all successful)",
+          "riskFactors": "Risk Factors",
+          "riskFactorFirstTime": "First-time emergency unlock",
+          "riskFactorLargeAmount": "Large amount (top 5% of unlocks)",
+          "riskFactorNewAccount": "Account age: {days} days",
+          "challengeButton": "Challenge This Transaction",
+          "viewOnExplorer": "View on Explorer",
+          "copyTxHash": "Copy TX Hash",
+          "copySuccess": "Copied"
+        },
+        "pagination": {
+          "showing": "Showing {start}-{end} of {total} pending unlocks",
+          "prev": "← Prev",
+          "next": "Next →"
+        }
+      },
+      "suspiciousPage": {
+        "meta": {
+          "title": "Suspicious Transactions | Observer | Quantum Shield",
+          "description": "Monitor suspicious transaction alerts"
+        },
+        "pageTitle": "Suspicious Transactions",
+        "alertCount": "{count} Alerts Requiring Attention",
+        "riskLevels": {
+          "high": "High Risk Detected",
+          "medium": "Medium Risk"
+        },
+        "detectedAgo": "Detected {time} ago",
+        "txSummary": {
+          "address": "Address",
+          "amount": "Amount",
+          "unlockType": "Unlock Type",
+          "timeRemaining": "Time Remaining"
+        },
+        "riskFactors": {
+          "title": "Risk Factors Identified",
+          "firstTimeEmergency": "First-time emergency unlock from this address",
+          "largeAmount": "Amount is in top 5% of all unlock requests",
+          "newAccount": "Account created only {days} days ago",
+          "unusualTiming": "Unusual timing pattern ({time} local time)",
+          "unusualPattern": "Unusual unlock pattern - {count} unlocks in 24 hours",
+          "exceedsAverage": "Total unlocked amount exceeds historical average by {percent}%",
+          "flaggedAssociation": "Address previously associated with flagged account"
+        },
+        "actions": {
+          "challenge": "Challenge This Transaction",
+          "viewDetails": "View Full Details",
+          "dismiss": "Dismiss",
+          "monitorClosely": "Monitor Closely"
+        }
+      },
+      "history": {
+        "meta": {
+          "title": "Challenge History | Observer | Quantum Shield",
+          "description": "View past challenge results and earnings"
+        },
+        "pageTitle": "Challenge History",
+        "stats": {
+          "totalChallenges": "Total Challenges",
+          "successful": "Successful",
+          "failed": "Failed",
+          "totalEarnings": "Total Earnings"
+        },
+        "filters": {
+          "result": {
+            "all": "All Results",
+            "successful": "Successful",
+            "failed": "Failed"
+          },
+          "period": {
+            "last30": "Last 30 Days",
+            "last7": "Last 7 Days",
+            "last90": "Last 90 Days",
+            "allTime": "All Time"
+          },
+          "exportCsv": "Export CSV"
+        },
+        "table": {
+          "challengeId": "Challenge ID",
+          "targetAddress": "Target Address",
+          "amount": "Amount",
+          "date": "Date",
+          "result": "Result",
+          "rewardPenalty": "Reward/Penalty",
+          "action": "Action"
+        },
+        "results": {
+          "inProgress": "In Progress",
+          "won": "✓ Won",
+          "lost": "✗ Lost"
+        },
+        "actions": {
+          "view": "View"
+        },
+        "pagination": {
+          "showing": "Showing {start}-{end} of {total} challenges",
+          "prev": "← Prev",
+          "next": "Next →"
+        }
+      },
+      "claimableEarnings": {
+        "title": "Claimable Earnings",
+        "available": "Available to Claim",
+        "claimButton": "Claim Rewards"
+      },
+      "challengeStats": {
+        "title": "Your Challenge Stats",
+        "successful": "Successful",
+        "failed": "Failed",
+        "successRate": "Success Rate"
+      },
+      "activeChallenges": {
+        "title": "Active Challenges",
+        "defensePeriod": "Defense Period Active",
+        "awaitingJudgment": "Awaiting Judgment",
+        "vs": "vs"
+      },
+      "observerStake": {
+        "title": "Your Observer Stake",
+        "activeSince": "Active Since",
+        "statusActive": "Active"
+      },
+      "challenge": {
+        "meta": {
+          "title": "Submit Challenge | Observer | Quantum Shield",
+          "description": "Submit a challenge against a suspicious transaction"
+        },
+        "pageTitle": "Submit Challenge",
+        "backToSuspicious": "← Back",
+        "targetTransaction": {
+          "title": "Target Transaction",
+          "targetAddress": "Target Address",
+          "amount": "Amount",
+          "unlockType": "Unlock Type",
+          "timeRemaining": "Time Remaining",
+          "txHash": "TX Hash",
+          "riskScore": "Risk Score",
+          "emergency": "Emergency Unlock"
+        },
+        "evidence": {
+          "title": "Evidence & Reason",
+          "selectFactors": "Select Applicable Risk Factors",
+          "firstTimeEmergency": "First-time emergency unlock from this address",
+          "largeAmount": "Amount is in top 5% of all unlock requests",
+          "newAccount": "Account created less than 30 days ago",
+          "suspicious": "Address associated with known suspicious activity",
+          "additionalEvidence": "Additional Evidence",
+          "additionalPlaceholder": "Provide any additional evidence or context for your challenge...",
+          "evidenceHint": "Include transaction hashes, on-chain evidence, or other relevant information",
+          "supportingLinks": "Supporting Links (Optional)",
+          "addLink": "+ Add Link"
+        },
+        "bond": {
+          "title": "Challenge Bond",
+          "requiredAmount": "Required Bond Amount",
+          "calculation": "Bond = MAX(0.1 ETH, Unlock Amount × 1%)",
+          "warningLose": "⚠️ If your challenge is unsuccessful, this bond will be forfeited",
+          "warningWin": "✓ If successful, bond is returned + you receive a portion of the Prover's stake"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "submit": "Submit Challenge ({amount})"
+        },
+        "confirm": {
+          "title": "Confirm Challenge Submission",
+          "target": "Target",
+          "unlockAmount": "Unlock Amount",
+          "bondRequired": "Bond Required",
+          "defensePeriod": "Defense Period",
+          "warning": "⚠️ Warning: If your challenge fails, you will lose your {amount} bond. Only submit challenges with strong evidence.",
+          "acknowledgement": "I understand that my bond may be forfeited if this challenge is unsuccessful. I have provided accurate evidence and believe this transaction is fraudulent.",
+          "cancelButton": "Cancel",
+          "confirmButton": "Confirm & Submit"
+        }
+      },
+      "challengeProgress": {
+        "meta": {
+          "title": "Challenge Progress | Observer | Quantum Shield",
+          "description": "Track challenge status"
+        },
+        "pageTitle": "Challenge #{id}",
+        "backToHistory": "← Back to History",
+        "status": {
+          "defensePeriod": "Defense Period Active",
+          "awaitingJudgment": "Awaiting Judgment",
+          "resolved": "Resolved"
+        },
+        "timeline": {
+          "title": "Timeline",
+          "submitted": "Challenge Submitted",
+          "defenseStart": "Defense Period Started",
+          "defenseEnd": "Defense Period Ends",
+          "judgment": "Judgment",
+          "resolution": "Resolution"
+        },
+        "details": {
+          "title": "Challenge Details",
+          "yourBond": "Your Bond",
+          "targetAmount": "Target Amount",
+          "timeRemaining": "Time Remaining",
+          "proverDefense": "Prover Defense",
+          "none": "None"
+        },
+        "yourEvidence": "Your Evidence"
+      },
+      "earnings": {
+        "meta": {
+          "title": "Earnings | Observer | Quantum Shield",
+          "description": "Challenge rewards and claims"
+        },
+        "pageTitle": "Earnings Management",
+        "summary": {
+          "totalEarnings": "Total Earnings",
+          "claimable": "Claimable",
+          "pending": "Pending",
+          "claimed": "Claimed"
+        },
+        "claim": {
+          "title": "Claimable Rewards",
+          "available": "Available",
+          "claimButton": "Claim Rewards",
+          "claimAll": "Claim All"
+        },
+        "history": {
+          "title": "Rewards History",
+          "challengeId": "Challenge ID",
+          "amount": "Amount",
+          "type": "Type",
+          "date": "Date",
+          "status": "Status"
+        },
+        "types": {
+          "challengeWin": "Challenge Win",
+          "monitoringReward": "Monitoring Reward",
+          "bonusReward": "Bonus Reward"
+        },
+        "statuses": {
+          "claimable": "Claimable",
+          "claimed": "Claimed",
+          "pending": "Pending"
+        }
+      }
+    }
+  }
+}
