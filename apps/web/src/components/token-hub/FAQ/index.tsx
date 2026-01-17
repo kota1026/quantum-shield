@@ -138,7 +138,7 @@ export function TokenHubFAQ() {
           <ol className="flex items-center gap-2 text-sm">
             <li>
               <Link
-                href="/token-hub"
+                href="/token-hub/dashboard"
                 className="text-foreground-tertiary hover:text-gold transition-colors"
               >
                 {t('breadcrumb.dashboard')}

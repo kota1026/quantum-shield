@@ -337,7 +337,8 @@
         "navLabel": "Token Hub ナビゲーション",
         "walletConnected": "{address} に接続中",
         "connectWallet": "ウォレット接続",
-        "consumerApp": "Consumer App"
+        "consumerApp": "Consumer App",
+        "settings": "設定"
       },
       "footer": {
         "navLabel": "フッターナビゲーション",
@@ -1041,6 +1042,15 @@
         "delegating": "処理中...",
         "notice": "委任はいつでも解除できます。トークンは移動しません。"
       },
+      "success": {
+        "title": "委任完了！",
+        "description": "veQSの委任が正常に完了しました",
+        "delegatedTo": "委任先",
+        "amount": "委任量",
+        "txHash": "トランザクション",
+        "done": "デリゲート一覧に戻る",
+        "dashboardLink": "ダッシュボードに戻る"
+      },
       "profile": {
         "watanabeStatement": "Quantum Shieldの長期的な発展と安全性を最優先に考えています。短期的な利益よりもプロトコルの持続可能性を重視し、セキュリティに関する提案には特に慎重に検討します。",
         "satoStatement": "技術的な観点からプロトコルの改善を推進します。透明性のある意思決定と、エビデンスに基づいた提案を支持します。",
@@ -1078,7 +1088,20 @@
       },
       "actions": {
         "back": "戻る",
-        "confirm": "ロックを確定"
+        "confirm": "ロックを確定",
+        "processing": "処理中..."
+      },
+      "success": {
+        "title": "ロック完了！",
+        "description": "QSトークンが正常にロックされ、veQSを獲得しました",
+        "txHash": "トランザクション",
+        "done": "ダッシュボードに戻る",
+        "delegateLink": "veQSを委任してガバナンスに参加する →",
+        "whatsNext": {
+          "title": "次にできること",
+          "vote": "ガバナンス投票に参加する",
+          "rewards": "報酬を確認する"
+        }
       }
     },
     "rewardsClaim": {
