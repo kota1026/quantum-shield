@@ -29,7 +29,7 @@
           },
           "governance": {
             "title": "Token Hub",
-            "description": "QSをロックしてveQSを獲得。ガバナンス投票と報酬で、プロジェクト運営に参加"
+            "description": "QSを量子耐性ロックしてveQSを獲得。ガバナンス投票と報酬で、プロジェクト運営に参加"
           }
         },
         "whyQuantum": {
@@ -351,9 +351,10 @@
     "lock": {
       "meta": {
         "title": "QSをロック | Token Hub | Quantum Shield",
-        "description": "QSトークンをロックしてveQSを獲得し、ガバナンスに参加"
+        "description": "QSトークンを量子耐性技術でロックしてveQSを獲得し、ガバナンスに参加"
       },
-      "title": "QSをロックしてveQSを獲得",
+      "title": "QSを量子耐性ロックしてveQSを獲得",
+      "quantumBadge": "量子耐性で保護",
       "steps": {
         "ariaLabel": "ロックプロセスのステップ",
         "step1": "入力",
@@ -362,7 +363,7 @@
       },
       "amount": {
         "label": "ロック数量",
-        "tooltip": "QSトークンをロックしてveQS投票権を獲得します",
+        "tooltip": "QSトークンを量子耐性技術（Dilithium署名）でロックしてveQS投票権を獲得します。将来の量子コンピュータからも保護されます。",
         "helpAriaLabel": "ロック数量についてのヘルプ",
         "balance": "残高",
         "maxAriaLabel": "最大数量を入力",
@@ -490,10 +491,11 @@
     "delegateList": {
       "meta": {
         "title": "デリゲート一覧 | Token Hub | Quantum Shield",
-        "description": "信頼できるデリゲートにveQSを委任して投票力を活用"
+        "description": "信頼できるデリゲートにveQSを量子耐性署名で安全に委任"
       },
       "title": "デリゲート一覧",
       "subtitle": "信頼できるデリゲートにveQSを委任して投票力を活用",
+      "quantumBadge": "量子耐性で委任を保護",
       "myDelegation": {
         "label": "委任済みveQS",
         "ariaLabel": "あなたの委任状況",
@@ -564,7 +566,8 @@
         "ariaLabel": "委任について詳しく見る",
         "title": "委任（デリゲート）とは？",
         "description": "委任とは、あなたのveQS投票権を信頼できる人に預けることです。委任しても、あなたのトークン（QS）は移動しません。投票の権利だけを代理で行使してもらえます。",
-        "note": "委任はいつでも解除できます。トークンが減ることはありません。"
+        "note": "委任はいつでも解除できます。トークンが減ることはありません。",
+        "quantumNote": "委任操作は量子耐性署名（Dilithium）で保護されており、将来の量子コンピュータからも安全です。"
       },
       "participationTooltip": {
         "ariaLabel": "投票参加率について詳しく見る",
@@ -644,7 +647,8 @@
         "ariaLabel": "委任について詳しく見る",
         "title": "委任（デリゲート）とは？",
         "description": "委任とは、あなたのveQS投票権を信頼できる人に預けることです。委任しても、あなたのトークン（QS）は移動しません。投票の権利だけを代理で行使してもらえます。",
-        "note": "委任はいつでも解除できます。トークンが減ることはありません。"
+        "note": "委任はいつでも解除できます。トークンが減ることはありません。",
+        "quantumNote": "委任操作は量子耐性署名（Dilithium）で保護されており、将来の量子コンピュータからも安全です。"
       },
       "participationTooltip": {
         "ariaLabel": "投票参加率について詳しく見る",
