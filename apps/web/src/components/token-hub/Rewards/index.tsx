@@ -147,7 +147,7 @@ export function TokenHubRewards() {
           </div>
 
           <Button
-            variant="gold"
+            variant="secondary"
             size="lg"
             onClick={() => handleNavigate('/token-hub/rewards/claim')}
             className="relative z-10 px-8 py-4 text-lg font-bold"
