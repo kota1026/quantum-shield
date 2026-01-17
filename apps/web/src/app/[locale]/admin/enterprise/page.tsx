@@ -3,11 +3,12 @@ import { getTranslations } from 'next-intl/server';
 import { AdminEnterprise } from '@/components/admin/AdminEnterprise';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 
-export async function generateMetadata({
-  params: { locale },
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'admin.enterprise.meta' });
 
   return {
