@@ -35,6 +35,9 @@ const buttonVariants = cva(
           'bg-success text-white hover:bg-success/90 focus-visible:ring-success',
         // Link - Text only
         link: 'text-hinomaru underline-offset-4 hover:underline focus-visible:ring-hinomaru',
+        // Gold - Gold solid background
+        gold:
+          'bg-gold text-background hover:bg-gold/90 hover:shadow-qs-gold focus-visible:ring-gold',
       },
       size: {
         sm: 'h-9 px-3 text-xs',
