@@ -1,0 +1,490 @@
+{
+  "common": {
+    "header": {
+      "dashboard": "Dashboard",
+      "proposals": "Proposals",
+      "create": "Create",
+      "myActivity": "My Activity"
+    },
+    "wallet": {
+      "connected": "Connected",
+      "disconnect": "Disconnect"
+    }
+  },
+  "landing": {
+    "meta": {
+      "title": "Governance | Quantum Shield",
+      "description": "Participate in voting to shape the future of Quantum Shield"
+    },
+    "pageTitle": "Governance Dashboard",
+    "pageSubtitle": "Participate in voting to shape the future of Quantum Shield",
+    "ariaLabel": "Governance Dashboard",
+    "stats": {
+      "ariaLabel": "Governance Statistics",
+      "activeProposals": {
+        "label": "Active Proposals",
+        "badge": "Live"
+      },
+      "votingPower": {
+        "label": "Your Voting Power",
+        "badge": "Votes",
+        "unit": "veQS",
+        "tooltip": "veQS is a unit of voting power. You can earn it by locking QS tokens, and the longer the lock period, the more voting power you get"
+      },
+      "participationRate": {
+        "label": "Participation Rate",
+        "unit": "%"
+      },
+      "totalProposals": {
+        "label": "Total Proposals (All Time)"
+      }
+    },
+    "votingPower": {
+      "title": "My Voting Power",
+      "viewDetails": "View Details",
+      "totalLabel": "Total Voting Power",
+      "howCalculated": "How is this calculated?",
+      "howCalculatedTooltip": "veQS = QS × (remaining_days / 730). The longer the lock period, the more voting power you get",
+      "unit": "veQS",
+      "breakdown": {
+        "myVeqs": "My veQS",
+        "delegatedToMe": "Delegated to Me",
+        "iDelegated": "I Delegated"
+      },
+      "delegation": {
+        "delegators": "Delegators",
+        "delegatorsUnit": "addresses",
+        "lockExpiry": "Lock Expiry"
+      },
+      "buttons": {
+        "voteNow": "Vote Now",
+        "createProposal": "Create Proposal"
+      }
+    },
+    "activeProposals": {
+      "title": "Active Proposals",
+      "viewAll": "View All",
+      "timeLeft": "left",
+      "proposedBy": "By",
+      "type": "Type",
+      "typeTooltip": {
+        "parameter": "Changes to protocol settings (fee rates, bond amounts, etc.)",
+        "upgrade": "Smart contract upgrades",
+        "council": "Changes to Security Council or Committee members"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending Execution"
+      },
+      "forVote": "For"
+    },
+    "quorum": {
+      "title": "Quorum Requirements",
+      "currentTotal": "Current Total veQS",
+      "types": {
+        "parameter": "Parameter",
+        "upgrade": "Upgrade",
+        "council": "Council"
+      }
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "votedFor": "You voted <strong>For</strong> on",
+      "votedAgainst": "You voted <strong>Against</strong> on",
+      "receivedDelegation": "Received delegation from",
+      "proposalPassed": "passed with {percent}% approval",
+      "timeAgo": {
+        "hoursAgo": "{count} hours ago",
+        "daysAgo": "{count} days ago"
+      }
+    },
+    "councilStatus": {
+      "title": "Council Status",
+      "securityCouncil": "Security Council",
+      "purposeCommittee": "Purpose Committee",
+      "active": "Active",
+      "viewCouncil": "View Council"
+    },
+    "proposals": {
+    "meta": {
+      "title": "Proposals | Quantum Shield Governance",
+      "description": "View all Quantum Shield governance proposals and participate in voting"
+    },
+    "pageTitle": "Proposals",
+    "ariaLabel": "Proposals list page",
+    "createProposal": "Create Proposal",
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "passed": "Passed",
+      "defeated": "Defeated",
+      "vetoed": "Vetoed"
+    },
+    "search": {
+      "placeholder": "Search proposals...",
+      "ariaLabel": "Search proposals"
+    },
+    "proposalCard": {
+      "ariaLabel": "Proposal {id}: {title}",
+      "proposer": "Proposer",
+      "created": "Created",
+      "executed": "Executed",
+      "ended": "Ended",
+      "comments": "comments",
+      "timeLeft": "left",
+      "timeLock": "Time Lock"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending Execution",
+      "passed": "Passed",
+      "executed": "Executed",
+      "defeated": "Defeated",
+      "vetoed": "Vetoed"
+    },
+    "types": {
+      "parameter": "Parameter",
+      "upgrade": "Upgrade",
+      "council": "Council"
+    },
+    "vote": {
+      "for": "For",
+      "against": "Against",
+      "quorum": "Quorum",
+      "quorumReached": "Reached",
+      "quorumTooltip": "Quorum is the minimum voting participation required for a proposal to be valid. Without reaching quorum, proposals cannot pass regardless of vote outcome."
+    },
+    "yourVote": {
+      "votedFor": "You voted For",
+      "votedAgainst": "You voted Against",
+      "notVoted": "Not voted yet"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {number}"
+    },
+    "emptyState": {
+      "title": "No proposals",
+      "description": "There are no proposals in this category"
+    }
+  },
+  "footer": {
+      "governanceForum": "Governance Forum",
+      "documentation": "Documentation",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "disclaimer": "Governance participation is voluntary. Voting does not constitute financial advice. All proposals are subject to Time Lock (7 days) and Council veto rights.",
+      "copyright": "© 2026 Quantum Shield. Made in Japan."
+    }
+  },
+  "proposalDetail": {
+    "meta": {
+      "title": "{id}: {title} | Quantum Shield Governance",
+      "description": "View proposal details and participate in voting"
+    },
+    "ariaLabel": "Proposal detail page",
+    "breadcrumb": {
+      "proposals": "Proposals"
+    },
+    "header": {
+      "proposer": "Proposer",
+      "created": "Created",
+      "comments": "comments"
+    },
+    "countdown": {
+      "label": "Voting ends in",
+      "days": "d",
+      "hours": "h",
+      "minutes": "m",
+      "seconds": "s"
+    },
+    "content": {
+      "title": "Proposal Details",
+      "summary": "Summary",
+      "motivation": "Motivation",
+      "specification": "Specification",
+      "securityConsiderations": "Security Considerations"
+    },
+    "timeline": {
+      "title": "Timeline",
+      "proposalCreated": "Proposal Created",
+      "votingPeriod": "Voting Period",
+      "votingEnds": "Ends",
+      "timeLock": "Time Lock (7 days)",
+      "timeLockNote": "If passed",
+      "timeLockTooltip": "Time Lock is a waiting period between proposal approval and execution. During this time, the Security Council can veto the proposal if issues are discovered. This is an important safety mechanism to protect the protocol.",
+      "execution": "Execution",
+      "executionNote": "After Time Lock"
+    },
+    "vote": {
+      "title": "Cast Your Vote",
+      "for": "For",
+      "against": "Against",
+      "abstain": "Abstain",
+      "yourPower": "Your Voting Power",
+      "quorum": "Quorum",
+      "quorumRequired": "required",
+      "quorumReached": "reached",
+      "quorumTooltip": "Quorum is the minimum voting participation required for a proposal to be valid."
+    },
+    "voteModal": {
+      "title": "Confirm Your Vote",
+      "confirmText": "You are voting {vote} on {id}",
+      "votingPower": "Voting Power",
+      "submit": "Sign & Submit Vote",
+      "cancel": "Cancel"
+    },
+    "voteSuccess": {
+      "title": "Vote Submitted!",
+      "subtitle": "Your vote has been recorded on-chain",
+      "proposal": "Proposal",
+      "yourVote": "Your Vote",
+      "votingPower": "Voting Power",
+      "txHash": "Tx Hash",
+      "backToProposals": "Back to Proposals"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending Execution",
+      "passed": "Passed",
+      "executed": "Executed",
+      "defeated": "Defeated",
+      "vetoed": "Vetoed"
+    },
+    "types": {
+      "parameter": "Parameter Change",
+      "upgrade": "Upgrade",
+      "council": "Council Change"
+    }
+  },
+  "createProposal": {
+    "meta": {
+      "title": "Create Proposal | Quantum Shield Governance",
+      "description": "Create a new governance proposal and submit it for community voting"
+    },
+    "ariaLabel": "Create proposal page",
+    "pageTitle": "Create Proposal",
+    "pageSubtitle": "Submit a new governance proposal for community voting",
+    "stepper": {
+      "type": "Type",
+      "details": "Details",
+      "preview": "Preview"
+    },
+    "step1": {
+      "title": "Select Proposal Type",
+      "types": {
+        "parameter": {
+          "name": "Parameter Change",
+          "description": "Modify protocol parameters like bond amounts, fees, or time periods",
+          "quorum": "Quorum: 4%"
+        },
+        "upgrade": {
+          "name": "Contract Upgrade",
+          "description": "Upgrade smart contracts or add new protocol functionality",
+          "quorum": "Quorum: 8%"
+        },
+        "council": {
+          "name": "Council Change",
+          "description": "Add or remove Security Council or Purpose Committee members",
+          "quorum": "Quorum: 15%"
+        }
+      },
+      "requirement": {
+        "title": "Proposal Requirement",
+        "description": "You need at least {minVeqs} veQS to create a proposal.",
+        "yourBalance": "Your balance",
+        "sufficient": "Requirement met",
+        "insufficient": "Insufficient veQS"
+      },
+      "cancel": "Cancel",
+      "next": "Next: Add Details"
+    },
+    "step2": {
+      "title": "Proposal Details",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter a clear, descriptive title",
+      "summaryLabel": "Description",
+      "summaryPlaceholder": "Describe your proposal in detail.\n- Motivation\n- Specification\n- Security considerations",
+      "summaryHint": "Markdown formatting is supported",
+      "forumLinkLabel": "Forum Discussion Link (Optional)",
+      "forumLinkPlaceholder": "https://forum.quantumshield.io/t/...",
+      "forumLinkHint": "Link to prior discussion on the governance forum",
+      "back": "Back",
+      "next": "Next: Preview"
+    },
+    "step3": {
+      "title": "Review & Submit",
+      "summary": {
+        "proposalType": "Proposal Type",
+        "requiredQuorum": "Required Quorum",
+        "votingPeriod": "Voting Period",
+        "votingPeriodValue": "7 days",
+        "timeLock": "Time Lock",
+        "timeLockValue": "7 days after passing"
+      },
+      "previewTitle": "Title",
+      "previewDescription": "Description",
+      "warning": {
+        "title": "Important Notice",
+        "text": "Once submitted, this proposal cannot be edited or cancelled. The proposal will be subject to community voting for 7 days, followed by a 7-day Time Lock if passed. Security Council and Purpose Committee may exercise veto rights per CP-3."
+      },
+      "back": "Back",
+      "submit": "Sign & Submit Proposal"
+    },
+    "success": {
+      "title": "Proposal Created!",
+      "subtitle": "Your proposal is now open for voting",
+      "proposalId": "Proposal ID",
+      "viewProposal": "View Proposal",
+      "backToProposals": "Back to Proposals"
+    }
+  },
+  "council": {
+    "meta": {
+      "title": "Council | Quantum Shield Governance",
+      "description": "View Security Council and Purpose Committee oversight"
+    },
+    "ariaLabel": "Council page",
+    "pageTitle": "Council",
+    "pageSubtitle": "Security Council and Purpose Committee oversight",
+    "infoBox": {
+      "title": "Council Veto Rights (CP-3)",
+      "text": "The Security Council can veto proposals that pose security risks. The Purpose Committee can veto proposals that violate Core Principles (CP-1 to CP-5). All veto actions require public disclosure of reasoning for transparency (CP-5)."
+    },
+    "securityCouncil": {
+      "title": "Security Council",
+      "status": "{active}/{total} Active",
+      "description": "Responsible for protocol security. Can execute emergency pause and veto security-related proposals. Requires 4/7 multisig for actions.",
+      "multisigTooltip": "Multisig (multiple signatures) means actions can only be executed with approval from multiple members. 4/7 means 4 out of 7 members must sign off.",
+      "roles": {
+        "lead": "Lead",
+        "member": "Member",
+        "chair": "Chair"
+      }
+    },
+    "purposeCommittee": {
+      "title": "Purpose Committee",
+      "status": "{active}/{total} Active",
+      "description": "Guardians of Core Principles (CP-1 to CP-5). Can veto proposals that violate the protocol's fundamental values and mission."
+    },
+    "memberCard": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "tabs": {
+      "status": "System Status",
+      "vetoHistory": "Veto History"
+    },
+    "systemStatus": {
+      "title": "Emergency System Status",
+      "allOperational": "All Systems Operational",
+      "lastCheck": "Last status check: {time}",
+      "systems": {
+        "lockContract": "Lock Contract",
+        "starkVerifier": "STARK Verifier",
+        "governance": "Governance"
+      },
+      "statusActive": "Active",
+      "statusPaused": "Paused"
+    },
+    "vetoHistory": {
+      "title": "Veto History",
+      "total": "{count} total",
+      "noHistory": "No veto history",
+      "columns": {
+        "proposalId": "Proposal ID",
+        "title": "Title",
+        "vetoedBy": "Vetoed By",
+        "reason": "Reason",
+        "date": "Date"
+      },
+      "vetoDetail": {
+        "title": "Veto Details: {id}",
+        "vetoedBy": "Vetoed By",
+        "approvalCount": "{count} approval",
+        "reason": "Reason (Required by CP-5)",
+        "onchainRef": "On-chain Reference"
+      },
+      "violations": {
+        "cp1": "Violates CP-1",
+        "cp2": "Violates CP-2",
+        "cp3": "Violates CP-3",
+        "cp4": "Violates CP-4",
+        "cp5": "Violates CP-5"
+      }
+    },
+    "footer": {
+      "disclaimer": "Council actions are recorded on-chain and publicly verifiable per CP-5 (Transparency)."
+    }
+  },
+  "myActivity": {
+    "meta": {
+      "title": "My Activity | Quantum Shield Governance",
+      "description": "View your voting history, proposals, and delegations"
+    },
+    "ariaLabel": "My Activity page",
+    "pageTitle": "My Activity",
+    "stats": {
+      "totalVotes": "Total Votes Cast",
+      "participationRate": "Participation Rate",
+      "proposalsCreated": "Proposals Created",
+      "delegationsReceived": "Delegations Received"
+    },
+    "tabs": {
+      "votes": "My Votes",
+      "proposals": "My Proposals",
+      "delegations": "Delegations"
+    },
+    "votesTab": {
+      "title": "Vote History",
+      "columns": {
+        "proposalId": "Proposal ID",
+        "title": "Title",
+        "vote": "Vote",
+        "powerUsed": "Power Used",
+        "date": "Date"
+      },
+      "voteBadge": {
+        "for": "For",
+        "against": "Against",
+        "abstain": "Abstain"
+      },
+      "emptyState": {
+        "title": "No voting history",
+        "description": "You haven't voted yet. Participate in voting on active proposals."
+      }
+    },
+    "proposalsTab": {
+      "title": "My Proposals",
+      "columns": {
+        "proposalId": "Proposal ID",
+        "title": "Title",
+        "status": "Status",
+        "date": "Created"
+      },
+      "status": {
+        "passed": "Passed",
+        "defeated": "Defeated",
+        "active": "Active",
+        "pending": "Pending"
+      },
+      "emptyState": {
+        "title": "No proposals created",
+        "description": "You haven't created any proposals yet. Create a new proposal to participate in governance."
+      }
+    },
+    "delegationsTab": {
+      "title": "Delegations Received",
+      "delegatedSince": "Delegated since",
+      "delegatedPower": "Delegated Power",
+      "emptyState": {
+        "title": "No delegations",
+        "description": "You haven't received any delegations yet."
+      }
+    },
+    "footer": {
+      "disclaimer": "Your governance activity is recorded on-chain and publicly verifiable."
+    }
+  }
+}
