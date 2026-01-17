@@ -803,6 +803,228 @@
         "lockMore": "追加でロック",
         "viewDashboard": "ダッシュボードを見る"
       }
+    },
+    "settings": {
+      "meta": {
+        "title": "設定 | Token Hub | Quantum Shield",
+        "description": "Token Hubの通知、表示、報酬設定を管理"
+      },
+      "header": {
+        "title": "設定",
+        "back": "ダッシュボードに戻る"
+      },
+      "sections": {
+        "account": "アカウント",
+        "notifications": "通知",
+        "rewards": "報酬設定",
+        "display": "表示",
+        "support": "サポート",
+        "dangerZone": "危険な操作"
+      },
+      "account": {
+        "connectedWallet": {
+          "title": "接続中のウォレット",
+          "description": "veQSを保有するウォレットアドレス"
+        },
+        "lockPositions": {
+          "title": "ロックポジション",
+          "description": "QSのロック状況を確認・管理"
+        },
+        "delegations": {
+          "title": "委任の管理",
+          "description": "投票権の委任先を確認・変更"
+        }
+      },
+      "notifications": {
+        "push": {
+          "title": "プッシュ通知",
+          "description": "ガバナンス提案や報酬に関する通知を受け取る"
+        },
+        "email": {
+          "title": "メール通知",
+          "description": "重要なアップデートをメールで受け取る"
+        },
+        "voteReminders": {
+          "title": "投票リマインダー",
+          "description": "アクティブな提案への投票を忘れないように通知"
+        }
+      },
+      "rewards": {
+        "autoCompound": {
+          "title": "報酬の自動複利",
+          "description": "獲得した報酬を自動的にロックに追加"
+        }
+      },
+      "display": {
+        "darkMode": {
+          "title": "ダークモード",
+          "description": "目に優しいダークテーマを使用"
+        },
+        "language": {
+          "title": "言語",
+          "description": "アプリの表示言語を選択",
+          "japanese": "日本語",
+          "english": "English"
+        },
+        "currency": {
+          "title": "表示通貨",
+          "description": "価値の表示に使用する通貨"
+        }
+      },
+      "support": {
+        "faq": {
+          "title": "よくある質問",
+          "description": "Token Hubの使い方について"
+        },
+        "contact": {
+          "title": "お問い合わせ",
+          "description": "サポートチームに連絡"
+        },
+        "legal": {
+          "title": "法的情報",
+          "description": "利用規約とプライバシーポリシー"
+        }
+      },
+      "danger": {
+        "disconnectWallet": {
+          "title": "ウォレットを切断",
+          "description": "Token Hubからウォレットを切断します"
+        }
+      },
+      "version": {
+        "label": "Token Hub バージョン",
+        "version": "v{version} (Build {build})"
+      }
+    },
+    "help": {
+      "meta": {
+        "title": "ヘルプ | Token Hub | Quantum Shield",
+        "description": "Token Hubの使い方やよくある質問を確認"
+      },
+      "header": {
+        "title": "ヘルプ",
+        "back": "設定に戻る"
+      },
+      "search": {
+        "placeholder": "質問を検索...",
+        "ariaLabel": "ヘルプトピックを検索"
+      },
+      "quickLinks": {
+        "title": "クイックリンク",
+        "items": {
+          "tokenomics": {
+            "title": "トークノミクスを学ぶ",
+            "description": "QSとveQSの基本を理解する"
+          },
+          "locking": {
+            "title": "QSをロックする",
+            "description": "ロックしてveQSを獲得する方法"
+          },
+          "governance": {
+            "title": "ガバナンス参加",
+            "description": "投票と委任の仕組み"
+          },
+          "rewards": {
+            "title": "報酬を確認",
+            "description": "報酬の計算と請求方法"
+          }
+        }
+      },
+      "resources": {
+        "title": "リソース",
+        "faq": {
+          "title": "FAQ",
+          "description": "よくある質問"
+        },
+        "getQS": {
+          "title": "QSを入手",
+          "description": "トークン取得方法"
+        },
+        "docs": {
+          "title": "ドキュメント",
+          "description": "詳細な技術資料"
+        },
+        "status": {
+          "title": "システム状態",
+          "description": "稼働状況を確認"
+        }
+      },
+      "tutorial": {
+        "title": "はじめてのToken Hub",
+        "description": "veQSの仕組みからガバナンス参加まで、ステップバイステップで解説します。",
+        "button": "チュートリアルを見る"
+      },
+      "consumerApp": {
+        "title": "Consumer Appを探していますか？",
+        "description": "資産のロック・アンロックはConsumer Appで行えます。",
+        "button": "Consumer Appへ"
+      }
+    },
+    "consumerLink": {
+      "meta": {
+        "title": "アプリ連携 | Token Hub | Quantum Shield",
+        "description": "Consumer AppとToken Hubの違いと使い分けを理解する"
+      },
+      "header": {
+        "title": "アプリ連携",
+        "subtitle": "Consumer AppとToken Hubの使い分け",
+        "back": "ダッシュボードに戻る"
+      },
+      "consumerApp": {
+        "title": "Consumer App",
+        "subtitle": "資産保護アプリ",
+        "description": "ETHなどの暗号資産を量子耐性技術で安全に保護します。ロック・アンロック・緊急アンロックの操作はこちらで行います。",
+        "featuresLabel": "Consumer Appの機能一覧",
+        "features": {
+          "lock": {
+            "title": "資産をロック",
+            "description": "量子耐性で保護"
+          },
+          "unlock": {
+            "title": "アンロック",
+            "description": "24時間待機後に引き出し"
+          },
+          "emergency": {
+            "title": "緊急アンロック",
+            "description": "ボンド支払いで即時引き出し"
+          },
+          "history": {
+            "title": "取引履歴",
+            "description": "過去の操作を確認"
+          }
+        },
+        "button": "Consumer Appを開く"
+      },
+      "tokenHub": {
+        "title": "Token Hub",
+        "subtitle": "ガバナンスアプリ",
+        "currentBadge": "現在のアプリ",
+        "description": "QSトークンをロックしてveQSを獲得し、Quantum Shieldの運営に参加できます。投票、委任、報酬の請求はこちらで行います。",
+        "featuresLabel": "Token Hubの機能一覧",
+        "features": {
+          "veqs": {
+            "title": "veQSを獲得",
+            "description": "QSをロックして投票権を取得"
+          },
+          "governance": {
+            "title": "ガバナンス投票",
+            "description": "プロトコルの方針決定に参加"
+          },
+          "delegate": {
+            "title": "投票権の委任",
+            "description": "信頼できる人に投票を委ねる"
+          },
+          "rewards": {
+            "title": "報酬を請求",
+            "description": "プロトコル収益の分配を受け取る"
+          }
+        },
+        "button": "Token Hubダッシュボード"
+      },
+      "connection": {
+        "title": "2つのアプリは連携しています",
+        "description": "Consumer Appでロックした資産の一部を使って、Token HubでQSを購入・ロックできます。両方を使いこなすことで、資産保護とガバナンス参加の両方が実現できます。"
+      }
     }
   }
 }
