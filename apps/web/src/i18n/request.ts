@@ -28,14 +28,16 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     messages: {
-      consumer,
-      'token-hub': tokenHub,
-      governance,
-      prover,
-      observer,
-      explorer,
-      enterprise,
-      admin,
+      // Files with namespace key at top level - spread them
+      ...consumer,      // { "consumer": { ... } }
+      ...tokenHub,      // { "token-hub": { ... } }
+      ...prover,        // { "prover": { ... } }
+      ...observer,      // { "observer": { ... } }
+      ...admin,         // { "admin": { ... } }
+      // Files without namespace key - wrap them
+      governance,       // { "common": ..., "landing": ... }
+      explorer,         // { "common": ... }
+      enterprise,       // { "sidebar": ... }
     },
   };
 });
