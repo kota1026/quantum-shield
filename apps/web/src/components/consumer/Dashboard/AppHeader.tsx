@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Settings } from 'lucide-react';
+import { Settings, Coins } from 'lucide-react';
 import { HinomaryLogo } from '../Landing/HinomaryLogo';
 import { cn } from '@/lib/utils';
 import { formatAddress } from '@/lib/utils';
@@ -91,6 +91,21 @@ export function AppHeader({
 
       {/* Header Actions */}
       <div className="flex gap-3 items-center">
+        {/* Token Hub Button */}
+        <Link
+          href="/token-hub/dashboard"
+          className={cn(
+            'hidden sm:flex items-center gap-2 px-4 py-2',
+            'bg-gold/10 border border-gold/50 rounded-full',
+            'text-gold text-sm font-medium',
+            'hover:bg-gold hover:text-background transition-all'
+          )}
+          aria-label={t('tokenHub')}
+        >
+          <Coins className="w-4 h-4" aria-hidden="true" />
+          {t('tokenHub')}
+        </Link>
+
         {/* Settings Button */}
         <Link
           href="/consumer/settings"
