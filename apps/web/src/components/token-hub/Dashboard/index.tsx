@@ -111,8 +111,8 @@ export function TokenHubDashboard() {
             className="group"
             role="button"
             tabIndex={0}
-            onClick={() => handleNavigate('/token-hub/lock')}
-            onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/token-hub/lock')}
+            onClick={() => handleNavigate('/token-hub/get-qs')}
+            onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/token-hub/get-qs')}
             aria-label={`${t('stats.qsBalance.label')}: ${DEMO_STATS.qsBalance.toLocaleString()} QS`}
           >
             <div className="flex justify-between items-center mb-2">
@@ -133,8 +133,8 @@ export function TokenHubDashboard() {
             className="group"
             role="button"
             tabIndex={0}
-            onClick={() => handleNavigate('/token-hub/lock')}
-            onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/token-hub/lock')}
+            onClick={() => handleNavigate('/token-hub/unlock')}
+            onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/token-hub/unlock')}
             aria-label={`${t('stats.lockedQS.label')}: ${DEMO_STATS.lockedQS.toLocaleString()} QS`}
           >
             <div className="flex justify-between items-center mb-2">
