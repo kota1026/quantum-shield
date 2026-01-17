@@ -86,7 +86,7 @@ export function RewardsClaim() {
               </div>
 
               <Button
-                variant="gold"
+                variant="secondary"
                 size="lg"
                 onClick={handleDone}
                 className="w-full"
@@ -186,7 +186,7 @@ export function RewardsClaim() {
 
             {/* Claim Button */}
             <Button
-              variant="gold"
+              variant="secondary"
               size="lg"
               onClick={handleClaim}
               disabled={isClaiming}
