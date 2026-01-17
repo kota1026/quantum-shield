@@ -1,0 +1,148 @@
+'use client';
+
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
+import { EnterpriseTopBar } from '../Dashboard/EnterpriseTopBar';
+import { TransactionFilters, TransactionType, TransactionStatus } from './TransactionFilters';
+import { TransactionTable, Transaction } from './TransactionTable';
+import { Pagination } from './Pagination';
+import { Button } from '@/components/ui/button';
+import { BarChart3, Download } from 'lucide-react';
+import Link from 'next/link';
+
+// Demo data - In production, this would come from API
+const DEMO_TRANSACTIONS: Transaction[] = [
+  { id: '1', txHash: '0x7a3f...9c2d', type: 'lock', amount: '5.00 ETH', fromAddress: '0x1234...5678', status: 'complete', timestamp: '2026-01-11 14:32' },
+  { id: '2', txHash: '0x3b2e...1f4a', type: 'unlock', amount: '2.50 ETH', fromAddress: '0x9abc...def0', status: 'pending', statusLabel: '24h Lock', timestamp: '2026-01-11 14:17' },
+  { id: '3', txHash: '0x9d1c...8e5b', type: 'lock', amount: '10.00 ETH', fromAddress: '0x5678...9012', status: 'complete', timestamp: '2026-01-11 14:00' },
+  { id: '4', txHash: '0x5e7d...2a9f', type: 'emergency', amount: '1.25 ETH', fromAddress: '0x3456...7890', status: 'pending', statusLabel: '7d Lock', timestamp: '2026-01-11 13:32' },
+  { id: '5', txHash: '0x2f4a...6c3e', type: 'lock', amount: '15.00 ETH', fromAddress: '0x7890...1234', status: 'complete', timestamp: '2026-01-11 12:45' },
+  { id: '6', txHash: '0x8c3d...4b2a', type: 'unlock', amount: '3.75 ETH', fromAddress: '0xabcd...ef01', status: 'complete', timestamp: '2026-01-11 11:20' },
+  { id: '7', txHash: '0x1a5b...7d8e', type: 'lock', amount: '8.50 ETH', fromAddress: '0x2345...6789', status: 'complete', timestamp: '2026-01-11 10:15' },
+  { id: '8', txHash: '0x6e9f...3c1d', type: 'lock', amount: '20.00 ETH', fromAddress: '0x8901...2345', status: 'complete', timestamp: '2026-01-11 09:00' },
+];
+
+const TOTAL_TRANSACTIONS = 12847;
+const PAGE_SIZE = 20;
+
+export function TransactionList() {
+  const t = useTranslations('enterprise.transactions');
+
+  // Filter states
+  const [typeFilter, setTypeFilter] = useState<TransactionType>('all');
+  const [statusFilter, setStatusFilter] = useState<TransactionStatus>('all');
+  const [dateFrom, setDateFrom] = useState('2026-01-01');
+  const [dateTo, setDateTo] = useState('2026-01-11');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Table states
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(DEMO_TRANSACTIONS.map((tx) => tx.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
+
+  const handleApplyFilters = () => {
+    // In production, this would trigger an API call with filters
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(TOTAL_TRANSACTIONS / PAGE_SIZE);
+  const pageStart = (currentPage - 1) * PAGE_SIZE + 1;
+  const pageEnd = Math.min(currentPage * PAGE_SIZE, TOTAL_TRANSACTIONS);
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <EnterpriseSidebar />
+
+      {/* Main Content */}
+      <div className="flex-1 ml-[260px]">
+        {/* Top Bar */}
+        <header
+          className="flex items-center justify-between px-8 py-4 bg-background-secondary border-b border-white/5 sticky top-0 z-40"
+          role="banner"
+        >
+          <h1 className="text-xl font-semibold text-foreground">{t('pageTitle')}</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" asChild>
+              <Link href="/enterprise/transactions/analytics">
+                <BarChart3 className="w-4 h-4 mr-2" aria-hidden="true" />
+                {t('analytics')}
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/enterprise/transactions/export">
+                <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+                {t('export')}
+              </Link>
+            </Button>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="p-8" role="main" aria-label={t('ariaLabel')}>
+          {/* Filters */}
+          <TransactionFilters
+            type={typeFilter}
+            status={statusFilter}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            searchQuery={searchQuery}
+            onTypeChange={setTypeFilter}
+            onStatusChange={setStatusFilter}
+            onDateFromChange={setDateFrom}
+            onDateToChange={setDateTo}
+            onSearchChange={setSearchQuery}
+            onApplyFilters={handleApplyFilters}
+          />
+
+          {/* Transaction Table */}
+          <div className="bg-background-secondary border border-white/5 rounded-xl overflow-hidden">
+            <TransactionTable
+              transactions={DEMO_TRANSACTIONS}
+              selectedIds={selectedIds}
+              onSelectAll={handleSelectAll}
+              onSelectOne={handleSelectOne}
+              total={TOTAL_TRANSACTIONS}
+              pageStart={pageStart}
+              pageEnd={pageEnd}
+            />
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              total={TOTAL_TRANSACTIONS}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default TransactionList;
+
+// Re-export components
+export { TransactionFilters } from './TransactionFilters';
+export { TransactionTable } from './TransactionTable';
+export { Pagination } from './Pagination';
+export type { TransactionType, TransactionStatus } from './TransactionFilters';
+export type { Transaction, TxType, TxStatus } from './TransactionTable';

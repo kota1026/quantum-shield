@@ -1,0 +1,1419 @@
+{
+  "sidebar": {
+    "ariaLabel": "エンタープライズ管理ナビゲーション",
+    "sections": {
+      "dashboard": "ダッシュボード",
+      "transactions": "トランザクション",
+      "management": "管理",
+      "reports": "レポート",
+      "system": "システム"
+    },
+    "nav": {
+      "overview": "概要",
+      "tvl": "TVL",
+      "volume": "ボリューム",
+      "status": "システム状態",
+      "allTransactions": "全トランザクション",
+      "users": "ユーザー",
+      "apiKeys": "APIキー",
+      "reports": "レポート",
+      "auditLog": "監査ログ",
+      "settings": "設定",
+      "support": "サポート"
+    }
+  },
+  "topBar": {
+    "searchPlaceholder": "トランザクション、ユーザーを検索...",
+    "searchAriaLabel": "検索",
+    "notificationsAriaLabel": "通知を表示",
+    "newNotifications": "新しい通知があります",
+    "userMenuAriaLabel": "ユーザーメニューを開く"
+  },
+  "dashboard": {
+    "meta": {
+      "title": "概要ダッシュボード | Enterprise Admin - Quantum Shield",
+      "description": "Quantum Shield エンタープライズ管理ダッシュボード。TVL、取引量、トランザクション状況を一目で確認できます。"
+    },
+    "pageTitle": "概要ダッシュボード",
+    "ariaLabel": "エンタープライズ概要ダッシュボード",
+    "demoUser": {
+      "name": "佐藤",
+      "initial": "佐"
+    },
+    "stats": {
+      "ariaLabel": "主要統計情報",
+      "tvl": {
+        "label": "Total Value Locked",
+        "tooltip": "ロック中の総資産額。組織内の全ユーザーがQuantum Shieldに預け入れた資産の合計です。"
+      },
+      "volume": {
+        "label": "月間ボリューム",
+        "tooltip": "今月のロック・アンロック取引の合計金額です。前月比で増減を表示しています。"
+      },
+      "transactions": {
+        "label": "総トランザクション数",
+        "tooltip": "組織で実行されたすべてのロック・アンロックトランザクションの累計数です。"
+      },
+      "activeUsers": {
+        "label": "アクティブユーザー",
+        "tooltip": "過去30日間に1回以上トランザクションを実行したユーザー数です。"
+      }
+    },
+    "recentTransactions": {
+      "title": "最近のトランザクション",
+      "export": "エクスポート",
+      "viewAll": "すべて表示",
+      "columns": {
+        "txHash": "TX ハッシュ",
+        "type": "種別",
+        "amount": "金額",
+        "status": "ステータス",
+        "time": "時間"
+      },
+      "types": {
+        "lock": "ロック",
+        "unlock": "アンロック",
+        "emergency": "緊急"
+      },
+      "statuses": {
+        "complete": "完了",
+        "pending": "処理中",
+        "failed": "失敗"
+      }
+    },
+    "recentActivity": {
+      "title": "最近のアクティビティ",
+      "ariaLabel": "最近のアクティビティ一覧"
+    },
+    "systemStatus": {
+      "title": "システムステータス",
+      "ariaLabel": "システムステータス一覧",
+      "statuses": {
+        "online": "稼働中",
+        "warning": "警告",
+        "offline": "停止"
+      }
+    }
+  },
+  "tvl": {
+    "meta": {
+      "title": "TVLダッシュボード | Enterprise Admin - Quantum Shield",
+      "description": "Total Value Locked (TVL) の詳細分析。時系列推移、資産内訳、マーケットシェアを確認できます。"
+    },
+    "pageTitle": "TVLダッシュボード",
+    "ariaLabel": "TVL分析ダッシュボード",
+    "timeFilter": {
+      "ariaLabel": "期間を選択",
+      "periods": {
+        "24h": "24時間",
+        "7d": "7日",
+        "30d": "30日",
+        "90d": "90日",
+        "1y": "1年"
+      }
+    },
+    "stats": {
+      "ariaLabel": "TVL統計情報",
+      "totalTVL": {
+        "label": "Total Value Locked",
+        "tooltip": "Quantum Shield全体でロックされている総資産額です。"
+      },
+      "yourTVL": {
+        "label": "組織のTVL",
+        "tooltip": "あなたの組織がロックしている資産の合計額です。"
+      },
+      "marketShare": {
+        "label": "マーケットシェア",
+        "tooltip": "全体TVLに対するあなたの組織の割合です。"
+      },
+      "depositors": {
+        "label": "預入者数",
+        "tooltip": "資産をロックしているユニークユーザー数です。"
+      }
+    },
+    "chart": {
+      "title": "TVL推移",
+      "ariaLabel": "選択期間のTVL推移グラフ"
+    },
+    "assetBreakdown": {
+      "title": "資産内訳",
+      "ariaLabel": "ロック資産の内訳一覧",
+      "percentOfTotal": "全体の{percent}%"
+    }
+  },
+  "volume": {
+    "meta": {
+      "title": "ボリュームダッシュボード | Enterprise Admin - Quantum Shield",
+      "description": "取引ボリュームの詳細分析。取引量の推移、トークン別内訳、トランザクション指標を確認できます。"
+    },
+    "pageTitle": "ボリュームダッシュボード",
+    "ariaLabel": "ボリューム分析ダッシュボード",
+    "stats": {
+      "ariaLabel": "ボリューム統計情報",
+      "volume24h": {
+        "label": "24時間ボリューム",
+        "tooltip": "過去24時間の取引総額です。"
+      },
+      "volume7d": {
+        "label": "7日間ボリューム",
+        "tooltip": "過去7日間の取引総額です。"
+      },
+      "volume30d": {
+        "label": "30日間ボリューム",
+        "tooltip": "過去30日間の取引総額です。"
+      },
+      "transactions": {
+        "label": "トランザクション数",
+        "tooltip": "ロック・アンロックトランザクションの総数です。"
+      }
+    },
+    "chart": {
+      "title": "ボリューム推移",
+      "ariaLabel": "選択期間のボリューム推移グラフ"
+    },
+    "tokenBreakdown": {
+      "title": "トークン別ボリューム",
+      "ariaLabel": "トークン別取引ボリューム内訳",
+      "percentOfTotal": "全体の{percent}%",
+      "volumeShare": "ボリュームシェア: {percent}%"
+    }
+  },
+  "status": {
+    "meta": {
+      "title": "システムステータス | Enterprise Admin - Quantum Shield",
+      "description": "リアルタイムのシステム状態監視。コアサービス、外部接続、パフォーマンス指標を確認できます。"
+    },
+    "pageTitle": "システムステータス",
+    "ariaLabel": "システムステータスダッシュボード",
+    "overallStatus": {
+      "operational": "全システム稼働中",
+      "warning": "パフォーマンス低下中",
+      "offline": "システム停止中"
+    },
+    "coreServices": {
+      "title": "コアサービス",
+      "items": {
+        "1": { "name": "APIゲートウェイ", "value": "稼働中" },
+        "2": { "name": "スマートコントラクト", "value": "稼働中" },
+        "3": { "name": "データベース", "value": "稼働中" },
+        "4": { "name": "キャッシュレイヤー", "value": "稼働中" }
+      }
+    },
+    "externalConnections": {
+      "title": "外部接続",
+      "items": {
+        "1": { "name": "Ethereum メインネット", "value": "接続中" },
+        "2": { "name": "Prover ネットワーク", "value": "127ノード" },
+        "3": { "name": "Webhook", "value": "稼働率99.9%" },
+        "4": { "name": "価格オラクル", "value": "2秒前に更新" }
+      }
+    },
+    "performance": {
+      "title": "パフォーマンス",
+      "items": {
+        "1": { "name": "APIレイテンシ", "value": "平均45ms" },
+        "2": { "name": "TX確認時間", "value": "平均12秒" },
+        "3": { "name": "エラー率", "value": "0.01%" },
+        "4": { "name": "稼働率(30日)", "value": "99.99%" }
+      }
+    },
+    "incidents": {
+      "title": "最近のインシデント",
+      "noIncidents": "過去30日間にインシデントはありません"
+    }
+  },
+  "transactions": {
+    "meta": {
+      "title": "トランザクション一覧 | Enterprise Admin - Quantum Shield",
+      "description": "組織のすべてのロック、アンロック、緊急トランザクションを表示・管理します。"
+    },
+    "pageTitle": "トランザクション一覧",
+    "ariaLabel": "トランザクション一覧ダッシュボード",
+    "analytics": "分析",
+    "export": "エクスポート",
+    "filters": {
+      "ariaLabel": "トランザクションフィルター",
+      "type": {
+        "label": "種別",
+        "all": "すべて",
+        "lock": "ロック",
+        "unlock": "アンロック",
+        "emergency": "緊急"
+      },
+      "status": {
+        "label": "ステータス",
+        "all": "すべて",
+        "complete": "完了",
+        "pending": "処理中",
+        "failed": "失敗"
+      },
+      "date": {
+        "label": "期間",
+        "from": "開始日",
+        "to": "〜",
+        "toDate": "終了日"
+      },
+      "search": {
+        "placeholder": "TXハッシュ、アドレスで検索...",
+        "ariaLabel": "トランザクション検索"
+      },
+      "apply": "フィルター適用"
+    },
+    "table": {
+      "title": "トランザクション",
+      "ariaLabel": "トランザクションテーブル",
+      "showing": "{total}件中 {start}-{end}件を表示",
+      "selectAll": "すべてのトランザクションを選択",
+      "selectRow": "トランザクション {hash} を選択",
+      "columns": {
+        "txHash": "TXハッシュ",
+        "type": "種別",
+        "amount": "金額",
+        "from": "送信元",
+        "status": "ステータス",
+        "time": "時間",
+        "actions": "操作"
+      },
+      "types": {
+        "lock": "ロック",
+        "unlock": "アンロック",
+        "emergency": "緊急"
+      },
+      "statuses": {
+        "complete": "完了",
+        "pending": "処理中",
+        "failed": "失敗"
+      },
+      "view": "詳細"
+    },
+    "pagination": {
+      "ariaLabel": "トランザクションページネーション",
+      "showing": "{total}件中 {start}-{end}件を表示",
+      "previous": "前へ",
+      "next": "次へ",
+      "page": "{page}ページ"
+    }
+  },
+  "transactionDetail": {
+    "meta": {
+      "title": "トランザクション詳細 | Enterprise Admin - Quantum Shield",
+      "description": "量子署名検証とProver証明を含む詳細なトランザクション情報を確認できます。"
+    },
+    "pageTitle": "トランザクション詳細",
+    "ariaLabel": "トランザクション詳細ページ",
+    "backToList": "一覧に戻る",
+    "exportPdf": "PDF出力",
+    "info": {
+      "title": "トランザクション情報",
+      "txHash": "TXハッシュ",
+      "type": "種別",
+      "types": {
+        "lock": "ロック",
+        "unlock": "アンロック",
+        "emergency": "緊急"
+      },
+      "amount": "金額",
+      "usdValue": "USD換算",
+      "fromAddress": "送信元アドレス",
+      "contractAddress": "コントラクトアドレス",
+      "blockNumber": "ブロック番号",
+      "gasUsed": "使用Gas",
+      "gasPrice": "Gasプライス",
+      "transactionFee": "トランザクション手数料",
+      "statuses": {
+        "complete": "完了",
+        "pending": "処理中",
+        "failed": "失敗"
+      },
+      "quantumProtected": "量子耐性保護",
+      "signedWith": "{algorithm}で署名済み"
+    },
+    "timeline": {
+      "title": "タイムライン",
+      "ariaLabel": "トランザクションタイムライン",
+      "events": {
+        "submitted": "トランザクション送信",
+        "quantumVerified": "量子署名検証完了",
+        "proverAttestation": "Prover証明",
+        "blockConfirmation": "ブロック確認",
+        "complete": "トランザクション完了"
+      }
+    },
+    "prover": {
+      "title": "Prover証明",
+      "proverId": "Prover ID",
+      "attestationHash": "証明ハッシュ",
+      "stakeAmount": "ステーク額",
+      "verificationTime": "検証時間"
+    },
+    "audit": {
+      "title": "監査証跡",
+      "organization": "組織",
+      "apiKey": "APIキー",
+      "ipAddress": "IPアドレス",
+      "userAgent": "ユーザーエージェント"
+    }
+  },
+  "users": {
+    "meta": {
+      "title": "ユーザー管理 | Enterprise Admin - Quantum Shield",
+      "description": "組織のユーザーを管理します。ロール、権限、2FA設定を確認・編集できます。"
+    },
+    "pageTitle": "ユーザー管理",
+    "ariaLabel": "ユーザー管理ダッシュボード",
+    "manageRoles": "ロール管理",
+    "invite": "招待",
+    "addUser": "ユーザー追加",
+    "stats": {
+      "ariaLabel": "ユーザー統計",
+      "totalUsers": {
+        "label": "総ユーザー数",
+        "tooltip": "組織に登録されているすべてのユーザー数です。"
+      },
+      "admins": {
+        "label": "管理者",
+        "tooltip": "Admin権限を持つユーザー数です。"
+      },
+      "members": {
+        "label": "メンバー",
+        "tooltip": "Member権限を持つユーザー数です。"
+      },
+      "pendingInvites": {
+        "label": "招待待ち",
+        "tooltip": "招待を送信済みで、まだ承諾されていないユーザー数です。"
+      }
+    },
+    "table": {
+      "title": "チームメンバー",
+      "ariaLabel": "ユーザーテーブル",
+      "searchPlaceholder": "ユーザーを検索...",
+      "searchAriaLabel": "ユーザー検索",
+      "columns": {
+        "user": "ユーザー",
+        "role": "ロール",
+        "status": "ステータス",
+        "twoFa": "2FA",
+        "lastActive": "最終アクティブ",
+        "actions": "操作"
+      },
+      "roles": {
+        "admin": "Admin",
+        "member": "Member",
+        "viewer": "Viewer"
+      },
+      "statuses": {
+        "active": "アクティブ",
+        "invited": "招待中"
+      },
+      "twoFa": {
+        "enabled": "有効",
+        "disabled": "無効"
+      },
+      "lastActive": {
+        "minAgo": "{min}分前",
+        "hourAgo": "{hour}時間前",
+        "yesterday": "昨日",
+        "pending": "保留中"
+      },
+      "edit": "編集",
+      "resend": "再送信"
+    },
+    "pagination": {
+      "ariaLabel": "ユーザーページネーション",
+      "showing": "{total}件中 {start}-{end}件を表示",
+      "previous": "前へ",
+      "next": "次へ",
+      "page": "{page}ページ"
+    }
+  },
+  "userDetail": {
+    "meta": {
+      "title": "ユーザー詳細 | Enterprise Admin - Quantum Shield",
+      "description": "ユーザーのプロファイル、ロール、アクティビティを確認・編集できます。"
+    },
+    "pageTitle": "ユーザー詳細",
+    "ariaLabel": "ユーザー詳細ページ",
+    "backToList": "ユーザー一覧に戻る",
+    "deactivate": "ユーザーを無効化",
+    "saveChanges": "変更を保存",
+    "header": {
+      "ariaLabel": "ユーザー情報ヘッダー"
+    },
+    "profile": {
+      "title": "プロフィール設定",
+      "name": "名前",
+      "email": "メールアドレス",
+      "role": "ロール",
+      "roles": {
+        "admin": "Admin",
+        "member": "Member",
+        "viewer": "Viewer"
+      }
+    },
+    "activity": {
+      "title": "最近のアクティビティ",
+      "ariaLabel": "ユーザーアクティビティ一覧",
+      "events": {
+        "login": "ログイン",
+        "createApiKey": "APIキーを作成",
+        "inviteUser": "ユーザーを招待",
+        "updateSettings": "設定を更新"
+      },
+      "time": {
+        "minAgo": "{min}分前",
+        "hourAgo": "{hour}時間前",
+        "yesterday": "昨日"
+      }
+    },
+    "status": {
+      "active": "アクティブ",
+      "inactive": "無効"
+    }
+  },
+  "apiKeys": {
+    "meta": {
+      "title": "APIキー | Enterprise Admin - Quantum Shield",
+      "description": "APIキーの作成、管理、ローテーションを行います。"
+    },
+    "pageTitle": "APIキー",
+    "ariaLabel": "APIキー管理ダッシュボード",
+    "usage": "使用状況",
+    "webhooks": "Webhooks",
+    "createKey": "APIキーを作成",
+    "stats": {
+      "ariaLabel": "APIキー統計",
+      "totalKeys": {
+        "label": "総APIキー数",
+        "tooltip": "作成されたAPIキーの総数です。"
+      },
+      "activeKeys": {
+        "label": "アクティブキー",
+        "tooltip": "現在有効なAPIキーの数です。"
+      },
+      "apiCallsToday": {
+        "label": "本日のAPI呼び出し",
+        "tooltip": "今日のAPI呼び出し総数です。"
+      },
+      "rateLimit": {
+        "label": "レート制限",
+        "tooltip": "1分あたりの最大API呼び出し数です。"
+      }
+    },
+    "alert": {
+      "expiringTitle": "APIキーの有効期限が近づいています",
+      "expiringDesc": "{keyName}の有効期限があと{days}日です。キーをローテーションしてください。",
+      "rotateKey": "キーをローテーション"
+    },
+    "list": {
+      "title": "APIキー",
+      "ariaLabel": "APIキー一覧"
+    },
+    "key": {
+      "environment": {
+        "production": "PRODUCTION",
+        "test": "TEST"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "無効"
+      },
+      "actions": {
+        "rotate": "ローテーション",
+        "revoke": "無効化",
+        "delete": "削除",
+        "copy": "コピー"
+      },
+      "meta": {
+        "created": "作成日",
+        "expires": "有効期限",
+        "revoked": "無効化日",
+        "callsToday": "本日の呼び出し",
+        "createdBy": "作成者"
+      }
+    }
+  },
+  "apiKeyCreate": {
+    "meta": {
+      "title": "APIキー作成 | Enterprise Admin - Quantum Shield",
+      "description": "新しいAPIキーを作成し、権限を設定します。"
+    },
+    "pageTitle": "APIキー作成",
+    "ariaLabel": "APIキー作成フォーム",
+    "backToList": "APIキー一覧に戻る",
+    "card": {
+      "title": "キー設定"
+    },
+    "form": {
+      "name": {
+        "label": "キー名",
+        "placeholder": "Production API Key",
+        "hint": "このキーを識別するための名前を入力してください"
+      },
+      "environment": {
+        "label": "環境",
+        "production": "本番環境",
+        "productionDesc": "本番環境でのAPI呼び出しに使用",
+        "test": "テスト環境",
+        "testDesc": "開発・テスト用のAPI呼び出しに使用"
+      },
+      "expiration": {
+        "label": "有効期限",
+        "never": "無期限",
+        "days30": "30日",
+        "days90": "90日",
+        "year1": "1年"
+      },
+      "permissions": {
+        "label": "権限",
+        "read": {
+          "name": "Read",
+          "description": "トランザクションと分析データの閲覧"
+        },
+        "write": {
+          "name": "Write",
+          "description": "ロック/アンロック操作の実行"
+        },
+        "admin": {
+          "name": "Admin",
+          "description": "ユーザーと設定の管理"
+        }
+      }
+    },
+    "warning": {
+      "message": "APIキーは作成後に一度だけ表示されます。安全な場所に保管してください。"
+    },
+    "submit": "APIキーを作成",
+    "success": {
+      "title": "APIキーが作成されました",
+      "message": "以下のキーをコピーして安全な場所に保管してください。このキーは二度と表示されません。",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "done": "完了"
+    }
+  },
+  "webhooks": {
+    "meta": {
+      "title": "Webhooks | Enterprise Admin - Quantum Shield",
+      "description": "Webhookエンドポイントの設定と管理を行います。"
+    },
+    "pageTitle": "Webhooks",
+    "ariaLabel": "Webhook管理ダッシュボード",
+    "addWebhook": "Webhookを追加",
+    "list": {
+      "ariaLabel": "Webhook一覧"
+    },
+    "webhook": {
+      "status": {
+        "active": "アクティブ",
+        "inactive": "無効"
+      },
+      "meta": {
+        "lastDelivery": "最終配信",
+        "successRate": "成功率",
+        "totalDeliveries": "総配信数"
+      },
+      "time": {
+        "minutesAgo": "{count}分前",
+        "hoursAgo": "{count}時間前",
+        "daysAgo": "{count}日前"
+      }
+    },
+    "events": {
+      "label": "イベント",
+      "transaction": {
+        "created": "トランザクション作成",
+        "completed": "トランザクション完了",
+        "failed": "トランザクション失敗"
+      },
+      "alert": {
+        "security": "セキュリティアラート",
+        "limit": "制限アラート"
+      }
+    },
+    "empty": {
+      "title": "Webhookがありません",
+      "description": "Webhookを追加して、イベント通知を受け取りましょう。"
+    }
+  },
+  "webhookCreate": {
+    "meta": {
+      "title": "Webhook作成 | Enterprise Admin - Quantum Shield",
+      "description": "新しいWebhookエンドポイントを作成します。"
+    },
+    "pageTitle": "Webhook作成",
+    "ariaLabel": "Webhook作成フォーム",
+    "backToList": "Webhook一覧に戻る",
+    "card": {
+      "title": "Webhook設定"
+    },
+    "form": {
+      "name": {
+        "label": "Webhook名",
+        "placeholder": "Production Events",
+        "hint": "このWebhookを識別するための名前を入力してください"
+      },
+      "url": {
+        "label": "エンドポイントURL",
+        "placeholder": "https://api.example.com/webhooks",
+        "hint": "イベント通知を送信するURLを入力してください"
+      },
+      "events": {
+        "label": "イベント",
+        "hint": "通知を受け取るイベントを選択してください",
+        "transaction": {
+          "created": "トランザクション作成",
+          "completed": "トランザクション完了",
+          "failed": "トランザクション失敗"
+        },
+        "alert": {
+          "security": "セキュリティアラート",
+          "limit": "制限アラート"
+        }
+      },
+      "secret": {
+        "label": "シークレットキー",
+        "hint": "Webhookの署名検証に使用されます。自動生成されます。"
+      }
+    },
+    "submit": "Webhookを作成",
+    "success": {
+      "title": "Webhookが作成されました",
+      "message": "以下のシークレットキーをコピーして安全な場所に保管してください。",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "done": "完了"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "設定 | Enterprise Admin - Quantum Shield",
+      "description": "組織の設定を管理します。"
+    },
+    "pageTitle": "設定",
+    "ariaLabel": "設定ダッシュボード",
+    "save": "変更を保存",
+    "tabs": {
+      "organization": "組織",
+      "security": "セキュリティ",
+      "notifications": "通知",
+      "limits": "制限"
+    },
+    "organization": {
+      "title": "組織プロファイル",
+      "name": {
+        "label": "組織名"
+      },
+      "orgId": {
+        "label": "組織ID",
+        "hint": "組織IDは変更できません。"
+      },
+      "website": {
+        "label": "ウェブサイト"
+      },
+      "logo": {
+        "label": "ロゴ",
+        "upload": "ロゴをアップロード",
+        "hint": "PNG または JPG、最大2MB"
+      }
+    },
+    "billing": {
+      "title": "請求先情報",
+      "contactName": {
+        "label": "担当者名"
+      },
+      "email": {
+        "label": "メールアドレス"
+      },
+      "phone": {
+        "label": "電話番号"
+      }
+    },
+    "contract": {
+      "title": "契約情報",
+      "plan": "プラン",
+      "contractStart": "契約開始日",
+      "contractEnd": "契約終了日",
+      "accountManager": "アカウントマネージャー"
+    }
+  },
+  "reports": {
+    "meta": {
+      "title": "月次レポート | Enterprise Admin - Quantum Shield",
+      "description": "月次のトランザクションレポートと分析を確認できます。"
+    },
+    "pageTitle": "月次レポート",
+    "ariaLabel": "月次レポートダッシュボード",
+    "complianceReport": "コンプライアンスレポート",
+    "downloadPdf": "PDFをダウンロード",
+    "period": {
+      "label": "レポート期間",
+      "months": {
+        "december": "2025年12月",
+        "november": "2025年11月",
+        "october": "2025年10月"
+      }
+    },
+    "stats": {
+      "ariaLabel": "月次統計",
+      "totalTransactions": {
+        "label": "総トランザクション数",
+        "change": "前月比 +{percent}%"
+      },
+      "totalVolume": {
+        "label": "総ボリューム",
+        "change": "前月比 +{percent}%"
+      },
+      "avgTvl": {
+        "label": "平均TVL",
+        "change": "前月比 +{percent}%"
+      },
+      "activeUsers": {
+        "label": "アクティブユーザー",
+        "change": "前月比 +{count}人"
+      }
+    },
+    "transactionSummary": {
+      "title": "トランザクションサマリー",
+      "columns": {
+        "type": "種類",
+        "count": "件数",
+        "volume": "ボリューム",
+        "avgSize": "平均サイズ",
+        "percentage": "割合"
+      },
+      "types": {
+        "lock": "ロック",
+        "normalUnlock": "通常アンロック",
+        "emergencyUnlock": "緊急アンロック"
+      }
+    },
+    "volumeTrend": {
+      "title": "日次ボリューム推移",
+      "placeholder": "[日次ボリュームチャート - 2025年12月]"
+    },
+    "topUsers": {
+      "title": "ボリューム上位ユーザー",
+      "columns": {
+        "rank": "#",
+        "address": "アドレス",
+        "transactions": "トランザクション数",
+        "volume": "ボリューム"
+      }
+    }
+  },
+  "auditLog": {
+    "meta": {
+      "title": "監査ログ | Enterprise Admin - Quantum Shield",
+      "description": "組織のすべての操作履歴を確認できます。"
+    },
+    "pageTitle": "監査ログ",
+    "ariaLabel": "監査ログダッシュボード",
+    "exportCsv": "CSVエクスポート",
+    "filters": {
+      "ariaLabel": "監査ログフィルター",
+      "category": {
+        "label": "カテゴリ",
+        "all": "すべてのカテゴリ",
+        "auth": "認証",
+        "transactions": "トランザクション",
+        "users": "ユーザー",
+        "api": "API",
+        "settings": "設定",
+        "security": "セキュリティ"
+      },
+      "user": {
+        "label": "ユーザー",
+        "all": "すべてのユーザー"
+      },
+      "date": {
+        "label": "期間",
+        "from": "開始日",
+        "to": "〜"
+      },
+      "search": {
+        "placeholder": "アクションを検索...",
+        "ariaLabel": "アクション検索"
+      },
+      "apply": "適用"
+    },
+    "list": {
+      "title": "アクティビティログ",
+      "ariaLabel": "監査ログ一覧",
+      "period": "過去30日",
+      "events": "件のイベント"
+    },
+    "event": {
+      "actions": {
+        "login": "がログインしました",
+        "lockTx": "がロックトランザクションを実行",
+        "unlockTx": "がアンロックトランザクションを実行",
+        "inviteUser": "がユーザーを招待",
+        "createApiKey": "がAPIキーを作成",
+        "updateSettings": "が設定を更新",
+        "blockedLogin": "が不審なログインをブロック",
+        "enabled2fa": "が2FAを有効化"
+      },
+      "details": {
+        "browser": "ブラウザ",
+        "os": "OS",
+        "txHash": "TX",
+        "amount": "金額",
+        "apiKey": "APIキー",
+        "email": "メール",
+        "role": "ロール",
+        "environment": "環境",
+        "changed": "変更内容",
+        "reason": "理由",
+        "method": "方法"
+      }
+    },
+    "pagination": {
+      "ariaLabel": "監査ログページネーション",
+      "showing": "{total}件中 {start}-{end}件を表示",
+      "previous": "前へ",
+      "next": "次へ",
+      "page": "{page}ページ"
+    }
+  },
+  "support": {
+    "meta": {
+      "title": "サポートポータル | Enterprise Admin - Quantum Shield",
+      "description": "エンタープライズサポートポータル。ドキュメント、FAQ、連絡先情報を確認できます。"
+    },
+    "pageTitle": "サポートポータル",
+    "ariaLabel": "サポートポータルダッシュボード",
+    "newTicket": "サポートチケットを作成",
+    "hero": {
+      "title": "エンタープライズサポート",
+      "description": "エンタープライズ顧客向けの優先サポートと保証された応答時間。",
+      "stats": {
+        "uptime": {
+          "value": "99.9%",
+          "label": "稼働率SLA"
+        },
+        "response": {
+          "value": "<2時間",
+          "label": "応答時間"
+        },
+        "availability": {
+          "value": "24/7",
+          "label": "対応可能"
+        }
+      }
+    },
+    "documentation": {
+      "title": "ドキュメント",
+      "items": {
+        "api": {
+          "title": "APIリファレンス",
+          "description": "サンプル付きの完全なAPIドキュメント"
+        },
+        "integration": {
+          "title": "インテグレーションガイド",
+          "description": "ステップバイステップの統合手順"
+        },
+        "security": {
+          "title": "セキュリティホワイトペーパー",
+          "description": "量子耐性暗号の詳細"
+        },
+        "compliance": {
+          "title": "コンプライアンスドキュメント",
+          "description": "規制コンプライアンス資料"
+        }
+      }
+    },
+    "faq": {
+      "title": "よくある質問",
+      "items": {
+        "apiKey": {
+          "question": "APIキーをローテーションする方法は？",
+          "answer": "APIキーセクションに移動し、ローテーションしたいキーの「ローテーション」をクリックします。新しいキーが生成され、古いキーは24時間有効なままです。"
+        },
+        "emergency": {
+          "question": "緊急アンロック時に何が起こりますか？",
+          "answer": "緊急アンロックは通常の24時間タイムロックをバイパスしますが、7日間の待機期間が必要で、5%のペナルティ手数料が発生します。"
+        },
+        "ipAllowlist": {
+          "question": "IPアドレスを許可リストに追加する方法は？",
+          "answer": "設定 > セキュリティに移動し、IP許可リストを有効にしてIPアドレスを追加します。変更は即時に反映されます。"
+        }
+      }
+    },
+    "contact": {
+      "title": "サポートに連絡",
+      "email": {
+        "label": "メール",
+        "value": "enterprise@quantumshield.io"
+      },
+      "phone": {
+        "label": "電話",
+        "value": "+81-3-1234-5678"
+      },
+      "slack": {
+        "label": "Slack",
+        "value": "#acme-qs-support"
+      }
+    },
+    "sla": {
+      "title": "あなたのSLA",
+      "badge": "エンタープライズプラン有効",
+      "responseTime": "応答時間",
+      "uptimeSla": "稼働率SLA",
+      "dedicatedCsm": "専任CSM",
+      "contractExpires": "契約期限"
+    }
+  },
+  "help": {
+    "meta": {
+      "title": "ヘルプ | Enterprise Admin - Quantum Shield",
+      "description": "Quantum Shield Enterprise管理のヘルプセンター。"
+    },
+    "pageTitle": "ヘルプセンター",
+    "ariaLabel": "ヘルプセンターダッシュボード",
+    "search": {
+      "placeholder": "ヘルプトピックを検索...",
+      "ariaLabel": "ヘルプ検索"
+    },
+    "gettingStarted": {
+      "title": "はじめに",
+      "items": {
+        "setup": {
+          "title": "セットアップガイド",
+          "description": "組織の初期設定とユーザー招待"
+        },
+        "apiKeys": {
+          "title": "APIキー管理",
+          "description": "APIキーの作成と権限設定"
+        },
+        "integration": {
+          "title": "インテグレーション",
+          "description": "システムとの連携方法"
+        },
+        "security": {
+          "title": "セキュリティ設定",
+          "description": "2FA、IP制限の設定"
+        }
+      }
+    },
+    "topics": {
+      "title": "人気のトピック",
+      "items": {
+        "transactions": {
+          "title": "トランザクション管理",
+          "description": "ロック・アンロックの監視と分析"
+        },
+        "users": {
+          "title": "ユーザー管理",
+          "description": "チームメンバーの追加と権限設定"
+        },
+        "webhooks": {
+          "title": "Webhook設定",
+          "description": "イベント通知の設定"
+        },
+        "reports": {
+          "title": "レポート作成",
+          "description": "月次レポートとコンプライアンス"
+        }
+      }
+    },
+    "resources": {
+      "title": "リソース",
+      "items": {
+        "docs": {
+          "title": "APIドキュメント",
+          "description": "完全なAPIリファレンス"
+        },
+        "support": {
+          "title": "サポート",
+          "description": "優先サポートに連絡"
+        },
+        "changelog": {
+          "title": "更新履歴",
+          "description": "最新の機能とアップデート"
+        },
+        "status": {
+          "title": "システム状態",
+          "description": "サービスの稼働状況"
+        }
+      }
+    },
+    "contact": {
+      "title": "お困りですか？",
+      "description": "エンタープライズサポートチームがお手伝いします。24時間以内に回答いたします。",
+      "button": "サポートに連絡"
+    }
+  },
+  "terms": {
+    "meta": {
+      "title": "エンタープライズ利用規約 | Enterprise Admin - Quantum Shield",
+      "description": "Quantum Shield エンタープライズサービスの利用規約"
+    },
+    "pageTitle": "エンタープライズ利用規約",
+    "ariaLabel": "エンタープライズ利用規約",
+    "lastUpdated": "最終更新日: {date}",
+    "sections": {
+      "acceptance": {
+        "title": "1. 規約の承諾",
+        "content": "本エンタープライズ利用規約（以下「本規約」）は、Quantum Shield株式会社（以下「当社」）が提供するQuantum Shield Enterpriseサービス（以下「本サービス」）の利用条件を定めるものです。お客様が本サービスを利用することにより、本規約に同意したものとみなされます。"
+      },
+      "service": {
+        "title": "2. サービスの内容",
+        "content": "本サービスは、量子耐性暗号を用いた資産保護ソリューションを組織向けに提供するものです。API経由でのアクセス、管理ダッシュボード、レポート機能、優先サポートなど、エンタープライズ向け機能が含まれます。"
+      },
+      "sla": {
+        "title": "3. サービスレベル合意（SLA）",
+        "content": "当社は、本サービスの稼働率99.9%を目標とします。計画メンテナンスを除く予期しないダウンタイムについては、別途定めるSLA契約に基づき対応いたします。"
+      },
+      "security": {
+        "title": "4. セキュリティ責任",
+        "content": "お客様は、APIキーの適切な管理、アクセス権限の設定、2要素認証の有効化など、アカウントセキュリティに対する責任を負います。当社は、プラットフォーム側のセキュリティ対策を講じます。"
+      },
+      "data": {
+        "title": "5. データの取り扱い",
+        "content": "お客様のトランザクションデータ、設定情報、監査ログは、適切なセキュリティ対策のもとで保管されます。データの保管期間および削除については、別途定めるデータ保持ポリシーに従います。"
+      },
+      "liability": {
+        "title": "6. 責任の制限",
+        "content": "当社の責任は、契約上の義務に限定されます。ブロックチェーンネットワークの障害、市場変動による損失、お客様の過失による損害については、当社は責任を負いません。"
+      },
+      "termination": {
+        "title": "7. 契約の終了",
+        "content": "いずれの当事者も、書面による通知をもって本契約を終了することができます。契約終了後も、未払い料金の支払い義務および秘密保持義務は存続します。"
+      },
+      "changes": {
+        "title": "8. 規約の変更",
+        "content": "当社は、30日前の通知をもって本規約を変更することができます。重要な変更については、登録メールアドレスに通知いたします。"
+      },
+      "governing": {
+        "title": "9. 準拠法および管轄",
+        "content": "本規約は日本法に準拠し、東京地方裁判所を第一審の専属的合意管轄裁判所とします。"
+      }
+    },
+    "contactInfo": {
+      "title": "お問い合わせ",
+      "content": "本規約に関するご質問は、enterprise@quantumshield.io までお問い合わせください。"
+    }
+  },
+  "privacy": {
+    "meta": {
+      "title": "プライバシーポリシー | Enterprise Admin - Quantum Shield",
+      "description": "Quantum Shield エンタープライズのプライバシーポリシー"
+    },
+    "pageTitle": "プライバシーポリシー",
+    "ariaLabel": "プライバシーポリシー",
+    "lastUpdated": "最終更新日: {date}",
+    "sections": {
+      "introduction": {
+        "title": "1. はじめに",
+        "content": "Quantum Shield株式会社（以下「当社」）は、お客様のプライバシーを尊重し、個人情報の保護に努めています。本プライバシーポリシーは、エンタープライズサービスにおける個人情報の取り扱いについて説明します。"
+      },
+      "collection": {
+        "title": "2. 収集する情報",
+        "content": "当社は、サービス提供に必要な以下の情報を収集します：組織情報（名称、住所、連絡先）、ユーザー情報（氏名、メールアドレス、役職）、トランザクションデータ、アクセスログ、APIの使用履歴。"
+      },
+      "usage": {
+        "title": "3. 情報の利用目的",
+        "content": "収集した情報は、サービスの提供・改善、セキュリティの維持、カスタマーサポート、法的義務の履行、契約履行のために利用されます。"
+      },
+      "sharing": {
+        "title": "4. 情報の共有",
+        "content": "当社は、お客様の同意なく第三者に個人情報を販売または賃貸することはありません。法的要請、サービス提供に必要な場合（クラウドプロバイダー等）に限り、適切な保護措置のもとで共有することがあります。"
+      },
+      "security": {
+        "title": "5. セキュリティ対策",
+        "content": "当社は、暗号化、アクセス制御、監査ログ、定期的なセキュリティ評価など、業界標準のセキュリティ対策を実施しています。量子耐性暗号技術により、将来の脅威からもお客様のデータを保護します。"
+      },
+      "retention": {
+        "title": "6. データ保持期間",
+        "content": "個人情報は、サービス提供に必要な期間、または法的に必要な期間保持されます。契約終了後、合理的な期間内にデータは削除または匿名化されます。"
+      },
+      "rights": {
+        "title": "7. お客様の権利",
+        "content": "お客様は、ご自身の個人情報へのアクセス、訂正、削除、利用制限、データポータビリティを請求する権利を有します。これらの請求は、enterprise@quantumshield.io までご連絡ください。"
+      },
+      "cookies": {
+        "title": "8. クッキーとトラッキング",
+        "content": "当社は、サービス改善のためにクッキーを使用します。必須クッキー、分析クッキー、機能クッキーがあり、ブラウザ設定で管理できます。"
+      },
+      "changes": {
+        "title": "9. ポリシーの変更",
+        "content": "本ポリシーは随時更新されることがあります。重要な変更については、登録メールアドレスに通知いたします。"
+      }
+    },
+    "contactInfo": {
+      "title": "お問い合わせ",
+      "content": "プライバシーに関するご質問は、privacy@quantumshield.io または enterprise@quantumshield.io までお問い合わせください。"
+    }
+  },
+  "slaPage": {
+    "meta": {
+      "title": "サービスレベル契約（SLA） | Enterprise Admin - Quantum Shield",
+      "description": "Quantum Shield エンタープライズのSLA詳細"
+    },
+    "pageTitle": "サービスレベル契約（SLA）",
+    "ariaLabel": "SLA詳細ページ",
+    "lastUpdated": "最終更新日: {date}",
+    "overview": {
+      "title": "SLA概要",
+      "description": "Quantum Shield Enterpriseは、お客様のビジネスに必要な高可用性と信頼性を提供します。"
+    },
+    "metrics": {
+      "title": "サービス指標",
+      "uptime": {
+        "label": "稼働率保証",
+        "value": "99.9%",
+        "description": "月間稼働率目標"
+      },
+      "response": {
+        "label": "応答時間",
+        "value": "<2時間",
+        "description": "重大インシデント対応"
+      },
+      "resolution": {
+        "label": "解決時間",
+        "value": "<24時間",
+        "description": "重大インシデント解決目標"
+      }
+    },
+    "sections": {
+      "availability": {
+        "title": "1. サービス可用性",
+        "content": "当社は、月間99.9%以上のサービス稼働率を目標とします。計画されたメンテナンス時間は稼働率計算から除外されます。メンテナンスは事前に通知され、通常は営業時間外に実施されます。"
+      },
+      "support": {
+        "title": "2. サポート対応時間",
+        "content": "エンタープライズプランでは、24時間365日のサポートを提供します。重大インシデント（サービス停止）の場合、2時間以内に初期対応を行います。通常の問い合わせは、営業日1日以内に回答いたします。"
+      },
+      "credits": {
+        "title": "3. サービスクレジット",
+        "content": "月間稼働率が99.9%を下回った場合、以下のサービスクレジットを提供します：99.0-99.9%で月額料金の10%、95.0-99.0%で25%、95.0%未満で50%のクレジット。"
+      },
+      "exclusions": {
+        "title": "4. 除外事項",
+        "content": "以下の事項はSLA対象外となります：計画メンテナンス、お客様の設定ミスに起因する障害、外部要因（インターネット障害、ブロックチェーンネットワーク障害等）、不可抗力。"
+      },
+      "reporting": {
+        "title": "5. インシデント報告",
+        "content": "サービス障害を発見した場合は、速やかにサポートチームにご報告ください。インシデント報告後、当社は状況を調査し、影響範囲と復旧見込みをお知らせします。"
+      },
+      "monitoring": {
+        "title": "6. 監視と通知",
+        "content": "当社は、24時間体制でサービスを監視しています。障害発生時は、ステータスページで状況を公開し、影響を受けるお客様に通知します。"
+      }
+    },
+    "contactInfo": {
+      "title": "お問い合わせ",
+      "content": "SLAに関するご質問は、enterprise@quantumshield.io までお問い合わせください。"
+    }
+  },
+  "reportDetail": {
+    "meta": {
+      "title": "コンプライアンスレポート | Enterprise Admin - Quantum Shield",
+      "description": "コンプライアンスレポートの詳細を確認できます。"
+    },
+    "pageTitle": "コンプライアンスレポート",
+    "ariaLabel": "コンプライアンスレポート詳細",
+    "backToList": "レポート一覧に戻る",
+    "downloadPdf": "PDFをダウンロード",
+    "reportMeta": {
+      "period": "レポート期間",
+      "generated": "生成日",
+      "reportId": "レポートID"
+    },
+    "score": {
+      "label": "コンプライアンススコア",
+      "excellent": "優秀",
+      "good": "良好",
+      "needsAttention": "要注意"
+    },
+    "securityControls": {
+      "title": "セキュリティコントロール",
+      "passed": "{passed}/{total} 合格",
+      "items": {
+        "twoFa": {
+          "name": "二要素認証",
+          "description": "全管理者ユーザーで2FAが有効"
+        },
+        "ipAllowlist": {
+          "name": "IP許可リスト",
+          "description": "APIアクセスにIP制限を設定済み"
+        },
+        "sessionManagement": {
+          "name": "セッション管理",
+          "description": "30分間の非アクティブ後に自動ログアウト"
+        },
+        "auditLogging": {
+          "name": "監査ログ",
+          "description": "完全な監査証跡で全アクションを記録"
+        }
+      }
+    },
+    "operationalCompliance": {
+      "title": "運用コンプライアンス",
+      "passed": "{passed}/{total} 合格",
+      "items": {
+        "transactionMonitoring": {
+          "name": "トランザクション監視",
+          "description": "全トランザクションのリアルタイム監視"
+        },
+        "dataEncryption": {
+          "name": "データ暗号化",
+          "description": "保存時・転送時の全データを暗号化"
+        },
+        "backupVerification": {
+          "name": "バックアップ検証",
+          "description": "月次バックアップテストが未完了"
+        },
+        "incidentResponse": {
+          "name": "インシデント対応計画",
+          "description": "文書化されテスト済みの対応手順"
+        }
+      }
+    },
+    "scheduleNow": "今すぐスケジュール →"
+  },
+  "billing": {
+    "meta": {
+      "title": "請求管理 | Enterprise Admin - Quantum Shield",
+      "description": "請求情報と支払い履歴を管理します。"
+    },
+    "pageTitle": "請求管理",
+    "ariaLabel": "請求管理ダッシュボード",
+    "viewInvoices": "請求書を見る",
+    "currentPlan": {
+      "title": "現在のプラン",
+      "enterprise": "Enterprise",
+      "monthlyFee": "月額料金",
+      "nextBilling": "次回請求日",
+      "paymentMethod": "支払い方法",
+      "cardEnding": "カード末尾 {last4}"
+    },
+    "usage": {
+      "title": "今月の使用量",
+      "apiCalls": {
+        "label": "API呼び出し",
+        "used": "{used} / {limit}"
+      },
+      "transactions": {
+        "label": "トランザクション",
+        "used": "{used} / {limit}"
+      },
+      "storage": {
+        "label": "ストレージ",
+        "used": "{used} / {limit}"
+      }
+    },
+    "recentCharges": {
+      "title": "最近の請求",
+      "columns": {
+        "date": "日付",
+        "description": "説明",
+        "amount": "金額",
+        "status": "ステータス"
+      },
+      "statuses": {
+        "paid": "支払い済み",
+        "pending": "保留中"
+      }
+    },
+    "updatePayment": "支払い方法を更新",
+    "downloadReceipt": "領収書をダウンロード"
+  },
+  "invoices": {
+    "meta": {
+      "title": "請求書一覧 | Enterprise Admin - Quantum Shield",
+      "description": "過去の請求書を確認・ダウンロードできます。"
+    },
+    "pageTitle": "請求書一覧",
+    "ariaLabel": "請求書一覧ダッシュボード",
+    "backToBilling": "請求管理に戻る",
+    "downloadAll": "すべてダウンロード",
+    "table": {
+      "columns": {
+        "invoiceId": "請求書ID",
+        "period": "期間",
+        "amount": "金額",
+        "status": "ステータス",
+        "actions": "操作"
+      },
+      "statuses": {
+        "paid": "支払い済み",
+        "pending": "保留中",
+        "overdue": "期限超過"
+      },
+      "download": "ダウンロード",
+      "view": "詳細"
+    },
+    "empty": {
+      "title": "請求書がありません",
+      "description": "請求書が発行されるとここに表示されます。"
+    }
+  },
+  "team": {
+    "meta": {
+      "title": "チーム管理 | Enterprise Admin - Quantum Shield",
+      "description": "チームメンバーとロールを管理します。"
+    },
+    "pageTitle": "チーム管理",
+    "ariaLabel": "チーム管理ダッシュボード",
+    "inviteUsers": "ユーザーを招待",
+    "roles": {
+      "admin": {
+        "name": "Admin",
+        "icon": "👑",
+        "count": "{count}ユーザー",
+        "description": "ユーザー管理、設定、請求を含むすべての機能へのフルアクセス権限。"
+      },
+      "member": {
+        "name": "Member",
+        "icon": "⚡",
+        "count": "{count}ユーザー",
+        "description": "トランザクションの実行とアナリティクスの閲覧が可能。ユーザーや設定の管理は不可。"
+      },
+      "viewer": {
+        "name": "Viewer",
+        "icon": "👁",
+        "count": "{count}ユーザー",
+        "description": "読み取り専用アクセス。トランザクションとアナリティクスの閲覧のみ可能。"
+      }
+    },
+    "permissions": {
+      "label": "権限",
+      "manageUsers": "ユーザーとロールの管理",
+      "createApiKeys": "APIキーの作成・管理",
+      "executeTransactions": "トランザクションの実行",
+      "viewAnalytics": "アナリティクスの閲覧",
+      "modifySettings": "設定の変更",
+      "viewApiKeys": "自分のAPIキーの閲覧",
+      "viewTransactions": "トランザクションの閲覧"
+    }
+  },
+  "teamInvite": {
+    "meta": {
+      "title": "ユーザー招待 | Enterprise Admin - Quantum Shield",
+      "description": "チームに新しいユーザーを招待します。"
+    },
+    "pageTitle": "ユーザー招待",
+    "ariaLabel": "ユーザー招待フォーム",
+    "backToUsers": "ユーザー一覧に戻る",
+    "form": {
+      "title": "招待を送信",
+      "emailLabel": "メールアドレス",
+      "emailPlaceholder": "user@company.com",
+      "addEmail": "+ メールを追加",
+      "roleLabel": "デフォルトロール",
+      "roleOptions": {
+        "member": "Member",
+        "admin": "Admin",
+        "viewer": "Viewer"
+      },
+      "submit": "招待を送信"
+    },
+    "pending": {
+      "title": "保留中の招待",
+      "sentAgo": "{time}前に送信",
+      "resend": "再送信",
+      "cancel": "キャンセル"
+    }
+  }
+}
