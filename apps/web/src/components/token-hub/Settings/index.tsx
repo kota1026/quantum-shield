@@ -74,14 +74,12 @@ export function TokenHubSettings() {
   }, [router]);
 
   const handleContact = useCallback(() => {
-    // Open contact or support page
-    router.push('/token-hub/faq');
+    router.push('/consumer/contact');
   }, [router]);
 
   const handleLegal = useCallback(() => {
-    // Navigate to terms page
-    window.open('/terms', '_blank');
-  }, []);
+    router.push('/consumer/terms');
+  }, [router]);
 
   const handleDisconnectWallet = useCallback(() => {
     // Future: Confirm and disconnect wallet
