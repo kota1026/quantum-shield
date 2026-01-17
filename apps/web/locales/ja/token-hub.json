@@ -287,7 +287,8 @@
         "rewards": "報酬",
         "navLabel": "Token Hub ナビゲーション",
         "walletConnected": "{address} に接続中",
-        "connectWallet": "ウォレット接続"
+        "connectWallet": "ウォレット接続",
+        "consumerApp": "Consumer App"
       },
       "footer": {
         "navLabel": "フッターナビゲーション",
@@ -958,6 +959,103 @@
         "title": "Consumer Appを探していますか？",
         "description": "資産のロック・アンロックはConsumer Appで行えます。",
         "button": "Consumer Appへ"
+      }
+    },
+    "delegateProfile": {
+      "meta": {
+        "title": "デリゲートプロフィール | Token Hub | Quantum Shield",
+        "description": "デリゲートの詳細情報と投票履歴を確認"
+      },
+      "back": "デリゲート一覧に戻る",
+      "stats": {
+        "veqs": "保有veQS",
+        "delegators": "委任者数",
+        "participation": "投票参加率"
+      },
+      "bio": {
+        "title": "プロフィール"
+      },
+      "statement": {
+        "title": "投票方針"
+      },
+      "votes": {
+        "title": "最近の投票",
+        "yes": "賛成",
+        "no": "反対",
+        "abstain": "棄権"
+      },
+      "delegateForm": {
+        "title": "このデリゲートに委任",
+        "amount": "委任するveQS",
+        "available": "委任可能",
+        "submit": "委任する",
+        "delegating": "処理中...",
+        "notice": "委任はいつでも解除できます。トークンは移動しません。"
+      },
+      "profile": {
+        "watanabeStatement": "Quantum Shieldの長期的な発展と安全性を最優先に考えています。短期的な利益よりもプロトコルの持続可能性を重視し、セキュリティに関する提案には特に慎重に検討します。",
+        "satoStatement": "技術的な観点からプロトコルの改善を推進します。透明性のある意思決定と、エビデンスに基づいた提案を支持します。",
+        "tanakaStatement": "DeFiエコシステムにおける収益最適化とリスク管理のバランスを重視します。ユーザーの利益を守りながら、プロトコルの成長を支援します。",
+        "yamamotoStatement": "インフラの安定性と信頼性を最優先に考えています。ノード運用の経験を活かし、技術的な視点から投票します。",
+        "suzukiStatement": "量子耐性技術の正確な実装を確保するため、暗号学的な観点から提案を評価します。CP原則の厳格な遵守を支持します。",
+        "matsumotoStatement": "コミュニティ全体の利益を代表し、包括的で公平な意思決定プロセスを推進します。新しい参加者の声にも耳を傾けます。"
+      }
+    },
+    "lockPreview": {
+      "meta": {
+        "title": "ロック確認 | Token Hub | Quantum Shield",
+        "description": "QSトークンのロック内容を確認"
+      },
+      "title": "ロック内容の確認",
+      "steps": {
+        "ariaLabel": "ロックプロセスのステップ",
+        "step1": "入力",
+        "step2": "プレビュー",
+        "step3": "確認"
+      },
+      "summary": {
+        "title": "ロックサマリー",
+        "lockAmount": "ロック数量",
+        "lockDuration": "ロック期間",
+        "veqsReceive": "獲得veQS"
+      },
+      "details": {
+        "unlockDate": "ロック解除日",
+        "multiplier": "倍率"
+      },
+      "warning": {
+        "title": "ご注意ください",
+        "description": "ロック期間中はトークンを引き出すことができません。この操作は取り消すことができません。"
+      },
+      "actions": {
+        "back": "戻る",
+        "confirm": "ロックを確定"
+      }
+    },
+    "rewardsClaim": {
+      "meta": {
+        "title": "報酬を請求 | Token Hub | Quantum Shield",
+        "description": "蓄積した報酬を請求してウォレットに受け取る"
+      },
+      "title": "報酬の請求",
+      "back": "報酬ページに戻る",
+      "claimable": {
+        "label": "請求可能な報酬",
+        "usdValue": "≈ ${amount} USD"
+      },
+      "breakdown": {
+        "title": "報酬内訳",
+        "veqsHolding": "veQS保有報酬",
+        "votingParticipation": "投票参加ボーナス",
+        "delegationBonus": "委任ボーナス"
+      },
+      "claimButton": "報酬を請求する",
+      "claiming": "処理中...",
+      "notice": "報酬請求にはガス代がかかります。トランザクションを確認してください。",
+      "success": {
+        "title": "請求完了！",
+        "description": "報酬がウォレットに送金されました",
+        "done": "完了"
       }
     },
     "consumerLink": {

@@ -286,7 +286,8 @@
         "rewards": "Rewards",
         "navLabel": "Token Hub navigation",
         "walletConnected": "Connected to {address}",
-        "connectWallet": "Connect Wallet"
+        "connectWallet": "Connect Wallet",
+        "consumerApp": "Consumer App"
       },
       "footer": {
         "navLabel": "Footer navigation",
@@ -957,6 +958,103 @@
         "title": "Looking for Consumer App?",
         "description": "Lock and unlock assets in the Consumer App.",
         "button": "Go to Consumer App"
+      }
+    },
+    "delegateProfile": {
+      "meta": {
+        "title": "Delegate Profile | Token Hub | Quantum Shield",
+        "description": "View delegate details and voting history"
+      },
+      "back": "Back to Delegates",
+      "stats": {
+        "veqs": "Total veQS",
+        "delegators": "Delegators",
+        "participation": "Participation"
+      },
+      "bio": {
+        "title": "About"
+      },
+      "statement": {
+        "title": "Voting Philosophy"
+      },
+      "votes": {
+        "title": "Recent Votes",
+        "yes": "Yes",
+        "no": "No",
+        "abstain": "Abstain"
+      },
+      "delegateForm": {
+        "title": "Delegate to this delegate",
+        "amount": "veQS to delegate",
+        "available": "Available",
+        "submit": "Delegate",
+        "delegating": "Processing...",
+        "notice": "You can revoke delegation anytime. Your tokens will not move."
+      },
+      "profile": {
+        "watanabeStatement": "I prioritize the long-term development and security of Quantum Shield. I value protocol sustainability over short-term gains and carefully consider security-related proposals.",
+        "satoStatement": "I promote protocol improvements from a technical perspective. I support transparent decision-making and evidence-based proposals.",
+        "tanakaStatement": "I focus on balancing yield optimization and risk management in the DeFi ecosystem. I support protocol growth while protecting user interests.",
+        "yamamotoStatement": "I prioritize infrastructure stability and reliability. I vote from a technical perspective based on my node operation experience.",
+        "suzukiStatement": "I evaluate proposals from a cryptographic perspective to ensure accurate implementation of quantum-resistant technology. I support strict adherence to CP principles.",
+        "matsumotoStatement": "I represent the interests of the entire community and promote inclusive and fair decision-making processes. I also listen to the voices of new participants."
+      }
+    },
+    "lockPreview": {
+      "meta": {
+        "title": "Lock Preview | Token Hub | Quantum Shield",
+        "description": "Review your QS token lock details"
+      },
+      "title": "Review Lock Details",
+      "steps": {
+        "ariaLabel": "Lock process steps",
+        "step1": "Input",
+        "step2": "Preview",
+        "step3": "Confirm"
+      },
+      "summary": {
+        "title": "Lock Summary",
+        "lockAmount": "Lock Amount",
+        "lockDuration": "Lock Duration",
+        "veqsReceive": "veQS to Receive"
+      },
+      "details": {
+        "unlockDate": "Unlock Date",
+        "multiplier": "Multiplier"
+      },
+      "warning": {
+        "title": "Please Note",
+        "description": "Tokens cannot be withdrawn during the lock period. This action cannot be undone."
+      },
+      "actions": {
+        "back": "Back",
+        "confirm": "Confirm Lock"
+      }
+    },
+    "rewardsClaim": {
+      "meta": {
+        "title": "Claim Rewards | Token Hub | Quantum Shield",
+        "description": "Claim your accumulated rewards to your wallet"
+      },
+      "title": "Claim Rewards",
+      "back": "Back to Rewards",
+      "claimable": {
+        "label": "Claimable Rewards",
+        "usdValue": "≈ ${amount} USD"
+      },
+      "breakdown": {
+        "title": "Reward Breakdown",
+        "veqsHolding": "veQS Holding Rewards",
+        "votingParticipation": "Voting Participation",
+        "delegationBonus": "Delegation Bonus"
+      },
+      "claimButton": "Claim Rewards",
+      "claiming": "Processing...",
+      "notice": "Claiming rewards requires gas fees. Please confirm the transaction.",
+      "success": {
+        "title": "Claim Successful!",
+        "description": "Rewards have been sent to your wallet",
+        "done": "Done"
       }
     },
     "consumerLink": {
