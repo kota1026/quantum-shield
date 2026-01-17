@@ -1,0 +1,558 @@
+{
+  "common": {
+    "header": {
+      "overview": "概要",
+      "locks": "Lock",
+      "unlocks": "Unlock",
+      "challenges": "Challenge",
+      "provers": "Prover",
+      "analytics": "分析"
+    },
+    "search": {
+      "placeholder": "アドレス、TX Hash、Lock IDで検索...",
+      "ariaLabel": "検索"
+    },
+    "viewAll": "すべて見る",
+    "live": "ライブ",
+    "time": {
+      "minutesAgo": "{minutes}分前",
+      "hoursAgo": "{hours}時間前",
+      "daysAgo": "{days}日前",
+      "hoursLeft": "残り{hours}時間{minutes}分",
+      "daysLeft": "残り{days}日{hours}時間"
+    },
+    "status": {
+      "active": "アクティブ",
+      "pending": "保留中",
+      "unlocking": "Unlock中",
+      "complete": "完了",
+      "challenged": "Challenge中",
+      "executed": "実行済み",
+      "open": "オープン"
+    },
+    "unlockType": {
+      "normal": "通常",
+      "emergency": "緊急"
+    }
+  },
+  "search": {
+    "meta": {
+      "title": "検索結果 | Explorer | Quantum Shield",
+      "description": "Quantum Shield Explorerで検索結果を表示"
+    },
+    "resultsFor": "「{query}」の検索結果",
+    "foundResults": "{count}件の結果",
+    "noResults": {
+      "title": "結果が見つかりません",
+      "description": "検索条件に一致する結果がありませんでした。別のキーワードで検索してください。"
+    },
+    "filters": {
+      "all": "すべて",
+      "locks": "Lock",
+      "unlocks": "Unlock",
+      "addresses": "アドレス",
+      "challenges": "Challenge"
+    },
+    "resultTypes": {
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "address": "アドレス",
+      "challenge": "Challenge"
+    },
+    "resultFields": {
+      "amount": "金額",
+      "owner": "オーナー",
+      "lockedAt": "Lock日時",
+      "unlockedAt": "Unlock日時",
+      "l2Tx": "L2 TX",
+      "type": "種類",
+      "lockId": "Lock ID",
+      "timeLock": "Time Lock",
+      "proverSigs": "Prover署名",
+      "totalLocked": "総ロック額",
+      "activeLocks": "アクティブLock数",
+      "totalTransactions": "総トランザクション数",
+      "firstSeen": "初回確認日"
+    },
+    "searchButton": "検索"
+  },
+  "overview": {
+    "meta": {
+      "title": "Explorer | Quantum Shield",
+      "description": "Quantum Shieldプロトコルの統計、Lock、Unlock、Challengeを確認"
+    },
+    "stats": {
+      "ariaLabel": "プロトコル統計",
+      "tvl": {
+        "label": "総ロック量 (TVL)",
+        "tooltip": "TVL（Total Value Locked）= 現在Quantum Shieldにロックされている資産の合計額です",
+        "change": "{change}% (7日)"
+      },
+      "totalLocks": {
+        "label": "総Lock数",
+        "change": "+{count} (24時間)"
+      },
+      "pendingUnlocks": {
+        "label": "保留中のUnlock",
+        "detail": "{count}件がTime Lock中"
+      },
+      "activeProvers": {
+        "label": "アクティブProver",
+        "tooltip": "Prover = アンロック要求を検証する独立した承認者です。5社から2社がランダムに選ばれ承認します",
+        "uptime": "稼働率{uptime}%"
+      }
+    },
+    "recentLocks": {
+      "title": "最近のLock",
+      "ariaLabel": "最近のLock一覧",
+      "table": {
+        "lockId": "Lock ID",
+        "amount": "金額",
+        "status": "ステータス",
+        "time": "時間"
+      },
+      "emptyState": "Lockがありません"
+    },
+    "recentUnlocks": {
+      "title": "最近のUnlock",
+      "ariaLabel": "最近のUnlock一覧",
+      "table": {
+        "unlockId": "Unlock ID",
+        "type": "種類",
+        "status": "ステータス",
+        "timeLock": "Time Lock"
+      },
+      "emptyState": "Unlockがありません"
+    },
+    "activeChallenges": {
+      "title": "アクティブなChallenge",
+      "titleTooltip": "Challenge = 不正なアンロック要求を検知して異議を申し立てる仕組みです",
+      "ariaLabel": "アクティブなChallenge一覧",
+      "table": {
+        "challengeId": "Challenge ID",
+        "targetUnlock": "対象Unlock",
+        "challenger": "Challenger",
+        "bond": "Bond",
+        "defenseDeadline": "防御期限",
+        "status": "ステータス"
+      },
+      "emptyState": "アクティブなChallengeはありません",
+      "summary": "全{total}件中{active}件がアクティブ"
+    }
+  },
+  "locks": {
+    "meta": {
+      "title": "Lock一覧 | Explorer | Quantum Shield",
+      "description": "Quantum Shieldでロックされたすべての資産を確認"
+    },
+    "pageTitle": "全Lock",
+    "stats": {
+      "totalLocks": "総Lock数",
+      "totalValue": "総ロック額"
+    },
+    "filters": {
+      "status": {
+        "all": "すべてのステータス",
+        "active": "アクティブ",
+        "unlocking": "Unlock中",
+        "unlocked": "Unlock済み"
+      },
+      "sort": {
+        "newest": "新しい順",
+        "oldest": "古い順",
+        "amountHigh": "金額の高い順",
+        "amountLow": "金額の低い順"
+      },
+      "searchPlaceholder": "Lock IDまたはアドレスで絞り込み..."
+    },
+    "table": {
+      "ariaLabel": "Lock一覧テーブル",
+      "lockId": "Lock ID",
+      "owner": "オーナー",
+      "amount": "金額",
+      "lockTime": "Lock日時",
+      "status": "ステータス",
+      "l2Tx": "L2 TX"
+    },
+    "pagination": {
+      "showing": "{start}-{end}件 / 全{total}件",
+      "previous": "前へ",
+      "next": "次へ"
+    },
+    "detail": {
+      "title": "Lock詳細",
+      "sections": {
+        "lockInfo": "Lock情報",
+        "owner": "オーナー",
+        "transactions": "トランザクション"
+      },
+      "fields": {
+        "lockId": "Lock ID",
+        "amount": "金額",
+        "lockTime": "Lock日時",
+        "blockNumber": "ブロック番号",
+        "blockNumberTooltip": "ブロック番号 = このLockが記録されたEthereumブロックの番号です",
+        "address": "アドレス",
+        "dilithiumKey": "Dilithium鍵",
+        "dilithiumKeyTooltip": "Dilithium鍵 = 量子コンピュータに対しても安全な次世代の暗号鍵です。この鍵でLockの所有権を証明します",
+        "l2TxHash": "L2 TX Hash",
+        "l2TxHashTooltip": "L2 TX = Layer2（高速・低コストな処理層）で記録されたトランザクションです"
+      },
+      "actions": {
+        "viewUnlock": "Unlockを見る",
+        "copyLockId": "Lock IDをコピー"
+      },
+      "close": "閉じる"
+    },
+    "emptyState": {
+      "title": "Lockがありません",
+      "description": "現在表示できるLockがありません"
+    }
+  },
+  "lockDetail": {
+    "meta": {
+      "title": "Lock詳細 | Explorer | Quantum Shield",
+      "description": "Quantum ShieldのLock詳細情報"
+    },
+    "breadcrumb": {
+      "locks": "Lock一覧",
+      "detail": "詳細"
+    },
+    "notFound": {
+      "title": "Lockが見つかりません",
+      "description": "指定されたLock IDは存在しないか、削除された可能性があります。",
+      "backToLocks": "Lock一覧に戻る"
+    },
+    "sections": {
+      "overview": "概要",
+      "lockInfo": "Lock情報",
+      "owner": "オーナー情報",
+      "transactions": "トランザクション",
+      "timeline": "タイムライン"
+    },
+    "fields": {
+      "lockId": "Lock ID",
+      "amount": "金額",
+      "status": "ステータス",
+      "lockTime": "Lock日時",
+      "blockNumber": "ブロック番号",
+      "blockNumberTooltip": "ブロック番号 = このLockが記録されたEthereumブロックの番号です",
+      "ownerAddress": "オーナーアドレス",
+      "dilithiumKey": "Dilithium鍵",
+      "dilithiumKeyTooltip": "Dilithium鍵 = 量子コンピュータに対しても安全な次世代の暗号鍵です",
+      "l2TxHash": "L2 TX Hash",
+      "l2TxHashTooltip": "L2 TX = Layer2で記録されたトランザクションです",
+      "l1TxHash": "L1 TX Hash",
+      "l1TxHashTooltip": "L1 TX = Ethereum Mainnetで記録されたトランザクションです"
+    },
+    "timeline": {
+      "locked": "ロック完了",
+      "unlockRequested": "Unlock要求",
+      "timeLockStart": "Time Lock開始",
+      "proverApproval": "Prover承認",
+      "unlocked": "Unlock完了"
+    },
+    "actions": {
+      "copyLockId": "Lock IDをコピー",
+      "viewOnL2": "L2で確認",
+      "viewUnlock": "関連Unlockを見る",
+      "viewOwner": "オーナーを見る"
+    },
+    "copied": "コピーしました"
+  },
+  "unlockDetail": {
+    "meta": {
+      "title": "Unlock詳細 | Explorer | Quantum Shield",
+      "description": "Quantum ShieldのUnlock詳細情報"
+    },
+    "breadcrumb": {
+      "unlocks": "Unlock一覧",
+      "detail": "詳細"
+    },
+    "notFound": {
+      "title": "Unlockが見つかりません",
+      "description": "指定されたUnlock IDは存在しないか、削除された可能性があります。",
+      "backToUnlocks": "Unlock一覧に戻る"
+    },
+    "sections": {
+      "overview": "概要",
+      "unlockInfo": "Unlock情報",
+      "dilithiumSig": "Dilithium署名",
+      "proverSigs": "Prover署名",
+      "timeline": "タイムライン",
+      "challenge": "Challenge情報"
+    },
+    "fields": {
+      "unlockId": "Unlock ID",
+      "lockId": "Lock ID",
+      "type": "タイプ",
+      "typeTooltip": "タイプ = 通常のアンロック（24時間待機）か緊急アンロック（7日間待機・全Prover承認必要）かを示します",
+      "status": "ステータス",
+      "amount": "金額",
+      "requestTime": "要求日時",
+      "timeLockEnd": "Time Lock終了",
+      "timeLockEndTooltip": "Time Lock終了 = この時刻を過ぎると資産の引き出しが可能になります",
+      "signatureHash": "署名ハッシュ",
+      "signatureHashTooltip": "署名ハッシュ = Dilithium鍵で生成された量子耐性署名のハッシュ値です",
+      "verified": "検証済み",
+      "l2TxHash": "L2 TX Hash",
+      "l2TxHashTooltip": "L2 TX = Layer2で記録されたトランザクションです",
+      "challengeId": "Challenge ID",
+      "challenger": "Challenger",
+      "bond": "Bond",
+      "defenseDeadline": "防御期限"
+    },
+    "timeline": {
+      "requested": "Unlock要求",
+      "timeLockStart": "Time Lock開始",
+      "proverApproval": "Prover承認",
+      "timeLockEnd": "Time Lock終了",
+      "executed": "Unlock実行",
+      "challenged": "Challenge発生"
+    },
+    "proverStatus": {
+      "signed": "署名済み",
+      "pending": "保留中"
+    },
+    "timeLockProgress": "Time Lock進捗",
+    "actions": {
+      "copyUnlockId": "Unlock IDをコピー",
+      "viewLock": "関連Lockを見る",
+      "viewOnL2": "L2で確認",
+      "viewChallenge": "Challengeを見る"
+    },
+    "copied": "コピーしました"
+  },
+  "unlocks": {
+    "meta": {
+      "title": "Unlock一覧 | Explorer | Quantum Shield",
+      "description": "Quantum Shieldのすべてのアンロック要求を確認"
+    },
+    "pageTitle": "全Unlock",
+    "stats": {
+      "pending": "保留中",
+      "completed": "完了"
+    },
+    "filters": {
+      "status": {
+        "all": "すべてのステータス",
+        "pending": "保留中",
+        "complete": "完了",
+        "challenged": "Challenge中"
+      },
+      "type": {
+        "all": "すべてのタイプ",
+        "normal": "通常",
+        "emergency": "緊急"
+      }
+    },
+    "table": {
+      "ariaLabel": "Unlock一覧テーブル",
+      "unlockId": "Unlock ID",
+      "lockId": "Lock ID",
+      "type": "タイプ",
+      "timeLock": "Time Lock",
+      "proverSigs": "Prover署名",
+      "proverSigsTooltip": "Prover署名 = 5人の独立した承認者のうち、何人がこのUnlockを承認済みか（例: 3/5 = 5人中3人が署名済み）",
+      "status": "ステータス"
+    },
+    "timeLock": {
+      "remaining": "残り",
+      "defense": "防御期限",
+      "completed": "-"
+    },
+    "pagination": {
+      "showing": "{start}-{end}件 / 全{total}件",
+      "previous": "前へ",
+      "next": "次へ"
+    },
+    "detail": {
+      "title": "Unlock詳細",
+      "sections": {
+        "unlockInfo": "Unlock情報",
+        "dilithiumSig": "Dilithium署名",
+        "proverSigs": "Prover署名"
+      },
+      "fields": {
+        "unlockId": "Unlock ID",
+        "lockId": "Lock ID",
+        "requestTime": "要求日時",
+        "timeLockEnd": "Time Lock終了",
+        "signatureHash": "署名ハッシュ",
+        "verified": "検証済み"
+      },
+      "timeLockProgress": "Time Lock進捗",
+      "proverStatus": {
+        "signed": "署名済み",
+        "pending": "保留中"
+      },
+      "close": "閉じる"
+    },
+    "emptyState": {
+      "title": "Unlockがありません",
+      "description": "現在表示できるUnlockがありません"
+    }
+  },
+  "analytics": {
+    "meta": {
+      "title": "分析 | Explorer | Quantum Shield",
+      "description": "Quantum Shieldプロトコルの分析データを確認"
+    },
+    "pageTitle": "プロトコル分析",
+    "timeRange": {
+      "label": "期間",
+      "7d": "7日",
+      "30d": "30日",
+      "90d": "90日",
+      "1y": "1年",
+      "all": "全期間"
+    },
+    "sections": {
+      "tvl": "TVL推移",
+      "tvlTooltip": "TVL = Total Value Locked（総ロック額）の推移グラフです",
+      "volume": "取引量",
+      "volumeTooltip": "Lock/Unlockの1日あたりの取引量です",
+      "locks": "Lock統計",
+      "unlocks": "Unlock統計",
+      "provers": "Prover稼働状況",
+      "challenges": "Challenge統計"
+    },
+    "charts": {
+      "tvl": {
+        "title": "TVL推移",
+        "yAxis": "TVL (ETH)",
+        "current": "現在のTVL",
+        "change": "変化率"
+      },
+      "volume": {
+        "title": "日次取引量",
+        "locks": "Lock",
+        "unlocks": "Unlock",
+        "yAxis": "件数"
+      },
+      "locksByStatus": {
+        "title": "Lockステータス別",
+        "active": "アクティブ",
+        "unlocking": "Unlock中",
+        "unlocked": "Unlock済み"
+      },
+      "unlocksByType": {
+        "title": "Unlockタイプ別",
+        "normal": "通常",
+        "emergency": "緊急"
+      },
+      "proverUptime": {
+        "title": "Prover稼働率",
+        "uptime": "稼働率",
+        "target": "目標: 99.5%以上",
+        "avgResponseTime": "平均応答時間",
+        "avgResponseTimeTooltip": "署名要求に対する平均応答時間です"
+      },
+      "challengeRate": {
+        "title": "Challenge発生率",
+        "rate": "発生率",
+        "rateTooltip": "全Unlock要求に対するChallengeの割合です",
+        "resolved": "解決済み",
+        "pending": "係争中"
+      }
+    },
+    "stats": {
+      "totalLocks": "累計Lock数",
+      "totalUnlocks": "累計Unlock数",
+      "avgLockAmount": "平均Lock金額",
+      "avgLockDuration": "平均Lock期間",
+      "avgLockDurationTooltip": "LockからUnlock完了までの平均期間です",
+      "successRate": "成功率",
+      "successRateTooltip": "Challenge無しで完了したUnlockの割合です"
+    },
+    "export": {
+      "button": "データをエクスポート",
+      "csv": "CSV形式",
+      "json": "JSON形式"
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "Explorerについて | Quantum Shield",
+      "description": "Quantum Shield Explorerの概要と使い方"
+    },
+    "pageTitle": "Quantum Shield Explorerについて",
+    "hero": {
+      "title": "プロトコルの透明性を実現",
+      "subtitle": "Quantum Shield Explorerは、すべてのLock、Unlock、Challengeをリアルタイムで追跡できる透明性の高いダッシュボードです。"
+    },
+    "sections": {
+      "whatIs": {
+        "title": "Quantum Shield Explorerとは",
+        "description": "Quantum Shield Explorerは、Quantum Shieldプロトコルのすべての活動を可視化するツールです。資産のロック状況、アンロック要求、Challengeの状態をリアルタイムで確認できます。"
+      },
+      "features": {
+        "title": "主な機能",
+        "items": {
+          "realtime": {
+            "title": "リアルタイム追跡",
+            "description": "Lock/Unlockトランザクションをリアルタイムで監視"
+          },
+          "search": {
+            "title": "高度な検索",
+            "description": "アドレス、TX Hash、Lock IDで素早く検索"
+          },
+          "analytics": {
+            "title": "分析ダッシュボード",
+            "description": "TVL推移、取引量、Prover稼働状況を可視化"
+          },
+          "transparency": {
+            "title": "完全な透明性",
+            "description": "すべてのトランザクションとChallengeを公開"
+          }
+        }
+      },
+      "howItWorks": {
+        "title": "仕組み",
+        "steps": {
+          "lock": {
+            "title": "1. Lock",
+            "description": "ユーザーがETHをQuantum Shieldにロック"
+          },
+          "unlock": {
+            "title": "2. Unlock要求",
+            "description": "Dilithium署名でアンロックを要求",
+            "tooltip": "Dilithium署名 = 量子コンピュータでも解読できない次世代の電子署名技術です"
+          },
+          "prover": {
+            "title": "3. Prover検証",
+            "description": "5社のProverのうち2社がランダムに選出され署名",
+            "tooltip": "Prover = アンロック要求を検証する独立した承認者です。不正を防ぐため複数社が確認します"
+          },
+          "timelock": {
+            "title": "4. Time Lock",
+            "description": "24時間（通常）または7日間（緊急）の待機期間"
+          },
+          "complete": {
+            "title": "5. 完了",
+            "description": "待機期間終了後、資産が引き出し可能に"
+          }
+        }
+      },
+      "resources": {
+        "title": "リソース",
+        "docs": {
+          "title": "ドキュメント",
+          "description": "技術仕様と詳細なガイド"
+        },
+        "github": {
+          "title": "GitHub",
+          "description": "オープンソースコード"
+        },
+        "discord": {
+          "title": "Discord",
+          "description": "コミュニティに参加"
+        }
+      }
+    },
+    "cta": {
+      "explore": "Explorerを開始",
+      "learnMore": "詳細を見る"
+    }
+  }
+}

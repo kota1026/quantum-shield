@@ -1,6 +1,6 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-17 (Observer System - 7/7 screens complete)
-> **Total Tasks**: 222
+> **Last Updated**: 2026-01-17 (Explorer - 8/8 screens COMPLETE 🎉)
+> **Total Tasks**: 222 (added 4 new Token Hub screens)
 
 ---
 
@@ -11,15 +11,15 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [██████████░░░░░░░░░░]   51/148 (34%)           │
+│  WS-1 UI/UX:      [███████░░░░░░░░░░░░░]   52/148 (35%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [████░░░░░░░░░░░░░░░░]   51/222 (23%)           │
+│  TOTAL:           [█████░░░░░░░░░░░░░░░]   52/222 (23%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
-│  Week 2-3 P1 Systems: 🔄 In Progress (Token Hub ✅, Observer ✅)   │
+│  Week 2-3 P1 Systems: 🔄 In Progress (Explorer 8/8 ✅)             │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -117,32 +117,32 @@
 
 | # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
 |---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
-| 01 | dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 02 | pending | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 03 | suspicious | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 04 | challenge | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 05 | earnings | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 06 | history | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
-| 07 | challenge_progress | ✅ | ✅ | ✅ | ✅ | ✅ | Done |
+| 01 | landing | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 02 | monitor | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 03 | monitor_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 04 | challenge | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 05 | earnings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 06 | settings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 07 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 7/7 (100%) - **ALL 7 screens COMPLETE!** 🎉
+**Progress**: 0/7 (0%)
 
 ---
 
 ### System 06: Explorer (8 screens)
 
-| # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
-|---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
-| 01 | landing | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 02 | search | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 03 | locks | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 04 | lock_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 05 | unlocks | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 06 | unlock_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 07 | analytics | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 08 | about | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| # | Screen | UI | A11y | E2E | Persona Test | PIR | Status | Notes |
+|---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|-------|
+| 01 | overview | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Stats, recent locks/unlocks, challenges |
+| 02 | search | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Filter tabs, result cards |
+| 03 | locks | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Filter, search, detail panel, tooltips |
+| 04 | lock_detail | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Full page detail, timeline, tooltips |
+| 05 | unlocks | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Filter, detail panel, time lock progress, prover sigs tooltip |
+| 06 | unlock_detail | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Full page detail, timeline, prover list, challenge info |
+| 07 | analytics | ✅ | ✅ | ✅ | ✅ | ✅ | Done | TVL/volume charts, lock/unlock distribution, prover stats |
+| 08 | about | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Hero, features, how it works, resources, tooltips |
 
-**Progress**: 0/8 (0%)
+**Progress**: 8/8 (100%) - **ALL 8 screens COMPLETE!** 🎉
 
 ---
 
@@ -378,10 +378,12 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
-| 2026-01-17 | Observer: history - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (stats, filters, export) |
-| 2026-01-17 | Observer: suspicious - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (alert cards, risk factors, dismiss) |
-| 2026-01-17 | Observer: pending - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (filters, expandable rows, pagination) |
-| 2026-01-17 | Observer: dashboard - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (stats with tooltips, pending unlocks table, suspicious alerts) |
+| 2026-01-17 | **🎉 Explorer: ALL 8 SCREENS COMPLETE!** |
+| 2026-01-17 | Explorer: about - Complete (UI, A11y, E2E, Persona Test, PIR) - CONDITIONAL (added Dilithium/Prover tooltips) |
+| 2026-01-17 | Explorer: analytics - Complete (UI, A11y, E2E, Persona Test, PIR) - CONDITIONAL (added prover uptime target) |
+| 2026-01-17 | Explorer: unlock_detail - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (full page detail, timeline, prover list, challenge info) |
+| 2026-01-17 | Explorer: search - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (filter tabs, result cards) |
+| 2026-01-17 | Explorer: overview - Complete (UI, A11y, E2E, Persona Test, PIR) - CONDITIONAL (added TVL/Prover/Challenge tooltips) |
 | 2026-01-16 | **🎉 Token Hub: ALL 13 SCREENS COMPLETE!** |
 | 2026-01-16 | Token Hub: consumer_link - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (app comparison, feature lists, navigation) |
 | 2026-01-16 | Token Hub: help - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (quick links, resources, Consumer App link) |
