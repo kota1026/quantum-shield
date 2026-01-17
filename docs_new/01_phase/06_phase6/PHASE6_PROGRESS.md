@@ -1,5 +1,5 @@
 # Phase 6 Progress Tracker
-> **Last Updated**: 2026-01-17 (Enterprise Admin - 25/25 screens COMPLETE!)
+> **Last Updated**: 2026-01-17 (QS Admin - ALL 12 SCREENS COMPLETE!)
 > **Total Tasks**: 222 (added 4 new Token Hub screens)
 
 ---
@@ -11,15 +11,15 @@
 │  PHASE 6 PROGRESS OVERVIEW                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  WS-1 UI/UX:      [█████████░░░░░░░░░░░]   69/148 (47%)           │
+│  WS-1 UI/UX:      [████████░░░░░░░░░░░░]   56/148 (38%)           │
 │  WS-2 Backend:    [░░░░░░░░░░░░░░░░░░░░]   0/30  (0%)             │
 │  WS-3 Docs:       [░░░░░░░░░░░░░░░░░░░░]   0/24  (0%)             │
 │  WS-4 QA:         [░░░░░░░░░░░░░░░░░░░░]   0/20  (0%)             │
 │  ────────────────────────────────────────────────────────────────   │
-│  TOTAL:           [██████░░░░░░░░░░░░░░]   69/222 (31%)           │
+│  TOTAL:           [█████░░░░░░░░░░░░░░░]   56/222 (25%)           │
 │                                                                     │
 │  Week 1 Foundation: ✅ Complete                                     │
-│  Week 2-3 P1 Systems: ✅ Enterprise 25/25 COMPLETE!                │
+│  Week 2-3 P1 Systems: ✅ QS Admin COMPLETE (12/12)                 │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -148,56 +148,56 @@
 
 ### System 07: Enterprise Admin (25 screens)
 
-| # | Screen | UI | A11y | E2E | Persona Test | PIR | Status | Notes |
-|---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|-------|
-| 01 | landing | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Overview Dashboard with stats, transactions, activity |
-| 02 | tvl | ✅ | ✅ | ✅ | ✅ | ✅ | Done | TVL Dashboard with time filter, chart, asset breakdown |
-| 03 | volume | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Volume Dashboard with time filter, chart, token breakdown |
-| 04 | status | ✅ | ✅ | ✅ | ✅ | ✅ | Done | System status with core services, connections, performance |
-| 05 | transactions | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Transaction list with filters, table, pagination |
-| 06 | transaction_detail | ✅ | ✅ | ✅ | ✅ | ✅ | Done | TX info, timeline, prover, audit trail |
-| 07 | users | ✅ | ✅ | ✅ | ✅ | ✅ | Done | User management with stats, table, search |
-| 08 | user_detail | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Profile settings, activity log |
-| 09 | api_keys | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Stats, expiry alert, key list with actions |
-| 10 | api_key_create | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Form with permissions, success state |
-| 11 | webhooks | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Webhook list with status, events, meta |
-| 12 | webhook_create | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Form with events, success state |
-| 13 | reports | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Monthly stats, tables, charts |
-| 14 | report_detail | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Compliance score, security & ops checklists |
-| 15 | billing | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Current plan, usage meters, recent charges |
-| 16 | invoices | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Invoice list with download/view actions |
-| 17 | settings | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Org profile, billing, contract info |
-| 18 | team | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Role cards (Admin/Member/Viewer), permissions |
-| 19 | team_invite | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Email inputs, role select, pending invites |
-| 20 | audit_log | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Filters, event list, pagination |
-| 21 | support | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Hero, docs, FAQ, contact, SLA info |
-| 22 | help | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Search, getting started, topics, resources, contact CTA |
-| 23 | terms | ✅ | ✅ | ✅ | ✅ | ✅ | Done | 9 sections legal document |
-| 24 | privacy | ✅ | ✅ | ✅ | ✅ | ✅ | Done | 9 sections privacy policy |
-| 25 | sla | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Metrics cards, 6 sections SLA |
+| # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
+|---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
+| 01 | landing | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 02 | registration | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 03 | onboarding | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 04 | dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 05 | transactions | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 06 | transaction_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 07 | users | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 08 | user_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 09 | api_keys | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 10 | api_key_create | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 11 | webhooks | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 12 | webhook_create | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 13 | reports | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 14 | report_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 15 | billing | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 16 | invoices | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 17 | settings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 18 | team | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 19 | team_invite | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 20 | audit_log | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 21 | support | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 22 | help | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 23 | terms | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 24 | privacy | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 25 | sla | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 
-**Progress**: 25/25 (100%) - **ALL 25 screens COMPLETE!** 🎉
+**Progress**: 0/25 (0%)
 
 ---
 
 ### System 08: QS Admin (12 screens)
 
-| # | Screen | UI | A11y | E2E | Persona Test | PIR | Status |
-|---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|
-| 01 | login | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 02 | dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 03 | systems | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 04 | system_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 05 | provers | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 06 | prover_detail | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 07 | observers | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 08 | enterprises | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 09 | parameters | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 10 | audit_log | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 11 | alerts | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 12 | settings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| # | Screen | UI | A11y | E2E | Persona Test | PIR | Status | Notes |
+|---|--------|:--:|:----:|:---:|:------------:|:---:|:------:|-------|
+| 01 | dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Stats, system status, alerts, quick actions |
+| 02 | emergency | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Pause control, checklist, recovery procedures, history |
+| 03 | onboarding | ✅ | ✅ | ✅ | ✅ | ✅ | Done | 5-step wizard, quiz, completion |
+| 04 | prover | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Tabs, stats, prover table, SLA bars |
+| 05 | tx_monitor | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Live updates, tabs, stats, TX table, filtering |
+| 06 | nodes | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Stats, node grid, metrics, keyboard nav |
+| 07 | staff | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Staff table, permission badges, add button |
+| 08 | reports | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Report cards, summary metrics, export |
+| 09 | audit | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Tabs, log table, type badges, filtering |
+| 10 | parameters | ✅ | ✅ | ✅ | ✅ | ✅ | Done | 4 categories, Locked/Adjustable badges, governance info |
+| 11 | enterprise | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Stats, Tier badges, TVL, renewal warnings |
+| 12 | community | ✅ | ✅ | ✅ | ✅ | ✅ | Done | Announcements, FAQs, Quick Links, 2-col layout |
 
-**Progress**: 0/12 (0%)
+**Progress**: 12/12 (100%) - **ALL 12 screens COMPLETE!** 🎉
 
 ---
 
@@ -378,27 +378,19 @@ When completing a task, update this file:
 
 | Date | Update |
 |------|--------|
-| 2026-01-17 | **🎉 Enterprise Admin: ALL 25 SCREENS COMPLETE!** |
-| 2026-01-17 | Enterprise Admin: team_invite - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Email inputs, role select, pending invites) |
-| 2026-01-17 | Enterprise Admin: team - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Role cards Admin/Member/Viewer, permissions display) |
-| 2026-01-17 | Enterprise Admin: invoices - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Invoice list with download/view actions) |
-| 2026-01-17 | Enterprise Admin: billing - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Current plan, usage meters, recent charges) |
-| 2026-01-17 | Enterprise Admin: report_detail - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Compliance score, security & ops checklists) |
-| 2026-01-17 | Enterprise Admin: settings - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Org profile, billing, contract info, tabs) |
-| 2026-01-17 | Enterprise Admin: webhook_create - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Form with events, success state) |
-| 2026-01-17 | Enterprise Admin: reports - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Monthly stats, transaction summary, volume trend, top users) |
-| 2026-01-17 | Enterprise Admin: webhooks - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Webhook list with status, events, meta) |
-| 2026-01-17 | Enterprise Admin: api_key_create - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Form with permissions, success state) |
-| 2026-01-17 | Enterprise Admin: audit_log - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Filters, event list with categories, pagination) |
-| 2026-01-17 | Enterprise Admin: api_keys - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Stats, expiry alert, key list with actions) |
-| 2026-01-17 | Enterprise Admin: user_detail - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Profile settings, activity log) |
-| 2026-01-17 | Enterprise Admin: users - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (User management with stats, table, search, pagination) |
-| 2026-01-17 | Enterprise Admin: transaction_detail - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (TX info, timeline, prover attestation, audit trail) |
-| 2026-01-17 | Enterprise Admin: transactions - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Transaction list with filters, table, pagination) |
-| 2026-01-17 | Enterprise Admin: status - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (System status with core services, connections, performance) |
-| 2026-01-17 | Enterprise Admin: volume - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Volume Dashboard with time filter, chart, token breakdown) |
-| 2026-01-17 | Enterprise Admin: tvl - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (TVL Dashboard with time filter, chart, asset breakdown) |
-| 2026-01-17 | Enterprise Admin: landing - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (Overview Dashboard with stats, transactions, activity, system status) |
+| 2026-01-17 | **🎉 QS Admin: ALL 12 SCREENS COMPLETE!** |
+| 2026-01-17 | QS Admin: community - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (announcements, FAQs, Quick Links, 2-col layout) |
+| 2026-01-17 | QS Admin: enterprise - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (stats, Tier badges, TVL, renewal warnings) |
+| 2026-01-17 | QS Admin: parameters - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (4 categories, Locked/Adjustable badges, governance info) |
+| 2026-01-17 | QS Admin: audit - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (tabs, log table, type badges, filtering) |
+| 2026-01-17 | QS Admin: reports - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (report cards, summary metrics, export) |
+| 2026-01-17 | QS Admin: staff - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (staff table, permission badges, add button) |
+| 2026-01-17 | QS Admin: nodes - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (stats, node grid, metrics, global distribution) |
+| 2026-01-17 | QS Admin: tx_monitor - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (live updates, tabs, stats, TX table, filtering) |
+| 2026-01-17 | QS Admin: prover - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (tabs, stats, prover table, SLA bars) |
+| 2026-01-17 | QS Admin: onboarding - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (5-step wizard, quiz, completion screen) |
+| 2026-01-17 | QS Admin: emergency - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (pause control, checklist, recovery procedures, history) |
+| 2026-01-17 | QS Admin: dashboard - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (stats, system status, alerts, quick actions) |
 | 2026-01-16 | **🎉 Token Hub: ALL 13 SCREENS COMPLETE!** |
 | 2026-01-16 | Token Hub: consumer_link - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (app comparison, feature lists, navigation) |
 | 2026-01-16 | Token Hub: help - Complete (UI, A11y, E2E, Persona Test, PIR) - PASS (quick links, resources, Consumer App link) |
