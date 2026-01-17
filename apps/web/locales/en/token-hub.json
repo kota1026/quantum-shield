@@ -29,7 +29,7 @@
           },
           "governance": {
             "title": "Token Hub",
-            "description": "Lock QS to earn veQS. Participate in governance voting and earn rewards"
+            "description": "Lock QS with quantum-resistant protection to earn veQS. Participate in governance voting and earn rewards"
           }
         },
         "whyQuantum": {
@@ -350,9 +350,10 @@
     "lock": {
       "meta": {
         "title": "Lock QS | Token Hub | Quantum Shield",
-        "description": "Lock QS tokens to earn veQS and participate in governance"
+        "description": "Lock QS tokens with quantum-resistant technology to earn veQS and participate in governance"
       },
-      "title": "Lock QS for veQS",
+      "title": "Quantum-Secure Lock QS for veQS",
+      "quantumBadge": "Quantum-Resistant Protection",
       "steps": {
         "ariaLabel": "Lock process steps",
         "step1": "Input",
@@ -361,7 +362,7 @@
       },
       "amount": {
         "label": "Lock Amount",
-        "tooltip": "Lock your QS tokens to receive veQS voting power",
+        "tooltip": "Lock your QS tokens with quantum-resistant technology (Dilithium signatures) to receive veQS voting power. Protected against future quantum computer attacks.",
         "helpAriaLabel": "Help about lock amount",
         "balance": "Balance",
         "maxAriaLabel": "Enter maximum amount",
@@ -489,10 +490,11 @@
     "delegateList": {
       "meta": {
         "title": "Delegate List | Token Hub | Quantum Shield",
-        "description": "Delegate your veQS to trusted delegates and leverage voting power"
+        "description": "Securely delegate your veQS with quantum-resistant signatures to trusted delegates"
       },
       "title": "Delegate List",
       "subtitle": "Delegate your veQS to trusted delegates and leverage voting power",
+      "quantumBadge": "Quantum-Protected Delegation",
       "myDelegation": {
         "label": "My Delegated veQS",
         "ariaLabel": "Your delegation status",
@@ -563,7 +565,8 @@
         "ariaLabel": "Learn more about delegation",
         "title": "What is Delegation?",
         "description": "Delegation means entrusting your veQS voting rights to someone you trust. Your tokens (QS) don't move when you delegate - only your voting rights are exercised on your behalf.",
-        "note": "You can revoke delegation at any time. Your tokens will never decrease."
+        "note": "You can revoke delegation at any time. Your tokens will never decrease.",
+        "quantumNote": "Delegation operations are protected with quantum-resistant signatures (Dilithium), ensuring security against future quantum computer attacks."
       },
       "participationTooltip": {
         "ariaLabel": "Learn more about voting participation",
@@ -643,7 +646,8 @@
         "ariaLabel": "Learn more about delegation",
         "title": "What is Delegation?",
         "description": "Delegation means entrusting your veQS voting rights to someone you trust. Your tokens (QS) don't move when you delegate - only your voting rights are exercised on your behalf.",
-        "note": "You can revoke delegation at any time. Your tokens will never decrease."
+        "note": "You can revoke delegation at any time. Your tokens will never decrease.",
+        "quantumNote": "Delegation operations are protected with quantum-resistant signatures (Dilithium), ensuring security against future quantum computer attacks."
       },
       "participationTooltip": {
         "ariaLabel": "Learn more about voting participation",
