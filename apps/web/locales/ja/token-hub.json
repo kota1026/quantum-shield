@@ -15,6 +15,55 @@
         "title": "なぜQSをロックするの？",
         "description": "ロックすることで、あなたはQuantum Shieldの運営に参加でき、報酬も受け取れます。長期保有を決めた方への特典です。"
       },
+      "overview": {
+        "title": "Quantum Shieldとは？",
+        "description": "Quantum Shieldは、量子コンピュータの時代に備えた次世代の資産保護プラットフォームです。あなたの暗号資産を、将来の脅威からも守ります。",
+        "pillars": {
+          "protection": {
+            "title": "量子耐性技術",
+            "description": "将来の量子コンピュータでも解読できない最新の暗号技術で、あなたの資産を保護します"
+          },
+          "wallet": {
+            "title": "Consumer App",
+            "description": "ETHなどの資産をロック・アンロックする資産保護アプリ。シンプルで使いやすいUI"
+          },
+          "governance": {
+            "title": "Token Hub",
+            "description": "QSをロックしてveQSを獲得。ガバナンス投票と報酬で、プロジェクト運営に参加"
+          }
+        },
+        "whyQuantum": {
+          "title": "なぜ量子耐性が必要？",
+          "description": "現在の暗号技術（ECDSA）は、将来の量子コンピュータで突破される可能性があります。Quantum Shieldは、米国NISTが認定した最新の耐量子暗号アルゴリズムを採用し、「今のうちに対策」を可能にします。",
+          "tags": {
+            "dilithium": "Dilithium署名",
+            "stark": "STARKプルーフ",
+            "futureProof": "将来も安心"
+          }
+        }
+      },
+      "governance": {
+        "title": "ガバナンスで何を決めるの？",
+        "description": "veQS保有者は、Quantum Shieldの重要な意思決定に参加できます。委任することで、信頼できる代表者に投票を任せることも可能です。",
+        "topics": {
+          "fees": {
+            "title": "手数料の調整",
+            "description": "ロック・アンロック手数料の設定や変更"
+          },
+          "upgrades": {
+            "title": "プロトコル改善",
+            "description": "新機能の追加やセキュリティ強化"
+          },
+          "treasury": {
+            "title": "財務の使い道",
+            "description": "開発資金やマーケティング予算の配分"
+          },
+          "parameters": {
+            "title": "システム設定",
+            "description": "報酬配分率や緊急アンロック条件など"
+          }
+        }
+      },
       "qs": {
         "title": "QSトークンって何？",
         "description": "QSはQuantum Shieldの「会員証」のようなものです。持っているだけでも価値がありますが、ロックするとさらに特典が得られます。",

@@ -15,6 +15,9 @@ import {
   Shield,
   Zap,
   Users,
+  Atom,
+  Wallet,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
@@ -107,6 +110,111 @@ export function TokenHubOnboarding() {
             {t('hero.description')}
           </p>
         </section>
+
+        {/* What is Quantum Shield - Overview */}
+        <Card padding="lg" className="mb-8 border-2 border-hinomaru/30">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-hinomaru/10 flex items-center justify-center flex-shrink-0">
+              <Atom className="w-6 h-6 text-hinomaru" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold mb-2">{t('overview.title')}</h2>
+              <p className="text-foreground-secondary">{t('overview.description')}</p>
+            </div>
+          </div>
+
+          {/* Three Pillars */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="bg-background-secondary rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-hinomaru/10 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-hinomaru" aria-hidden="true" />
+                </div>
+                <h3 className="font-semibold">{t('overview.pillars.protection.title')}</h3>
+              </div>
+              <p className="text-sm text-foreground-secondary">
+                {t('overview.pillars.protection.description')}
+              </p>
+            </div>
+
+            <div className="bg-background-secondary rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
+                  <Wallet className="w-5 h-5 text-gold" aria-hidden="true" />
+                </div>
+                <h3 className="font-semibold">{t('overview.pillars.wallet.title')}</h3>
+              </div>
+              <p className="text-sm text-foreground-secondary">
+                {t('overview.pillars.wallet.description')}
+              </p>
+            </div>
+
+            <div className="bg-background-secondary rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                  <Vote className="w-5 h-5 text-success" aria-hidden="true" />
+                </div>
+                <h3 className="font-semibold">{t('overview.pillars.governance.title')}</h3>
+              </div>
+              <p className="text-sm text-foreground-secondary">
+                {t('overview.pillars.governance.description')}
+              </p>
+            </div>
+          </div>
+
+          {/* Why Quantum Resistance */}
+          <div className="bg-gradient-to-br from-hinomaru/5 to-gold/5 border border-hinomaru/20 rounded-xl p-6">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Atom className="w-5 h-5 text-hinomaru" aria-hidden="true" />
+              {t('overview.whyQuantum.title')}
+            </h3>
+            <p className="text-sm text-foreground-secondary mb-4">
+              {t('overview.whyQuantum.description')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-3 py-1 bg-hinomaru/10 text-hinomaru text-xs font-medium rounded-full">
+                {t('overview.whyQuantum.tags.dilithium')}
+              </span>
+              <span className="px-3 py-1 bg-gold/10 text-gold text-xs font-medium rounded-full">
+                {t('overview.whyQuantum.tags.stark')}
+              </span>
+              <span className="px-3 py-1 bg-success/10 text-success text-xs font-medium rounded-full">
+                {t('overview.whyQuantum.tags.futureProof')}
+              </span>
+            </div>
+          </div>
+        </Card>
+
+        {/* What does governance decide */}
+        <Card padding="lg" className="mb-8">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center flex-shrink-0">
+              <FileText className="w-6 h-6 text-success" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold mb-2">{t('governance.title')}</h2>
+              <p className="text-foreground-secondary">{t('governance.description')}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-background-secondary rounded-lg p-4">
+              <h3 className="font-medium mb-2">{t('governance.topics.fees.title')}</h3>
+              <p className="text-sm text-foreground-tertiary">{t('governance.topics.fees.description')}</p>
+            </div>
+            <div className="bg-background-secondary rounded-lg p-4">
+              <h3 className="font-medium mb-2">{t('governance.topics.upgrades.title')}</h3>
+              <p className="text-sm text-foreground-tertiary">{t('governance.topics.upgrades.description')}</p>
+            </div>
+            <div className="bg-background-secondary rounded-lg p-4">
+              <h3 className="font-medium mb-2">{t('governance.topics.treasury.title')}</h3>
+              <p className="text-sm text-foreground-tertiary">{t('governance.topics.treasury.description')}</p>
+            </div>
+            <div className="bg-background-secondary rounded-lg p-4">
+              <h3 className="font-medium mb-2">{t('governance.topics.parameters.title')}</h3>
+              <p className="text-sm text-foreground-tertiary">{t('governance.topics.parameters.description')}</p>
+            </div>
+          </div>
+        </Card>
 
         {/* What is QS Token */}
         <Card padding="lg" className="mb-8">

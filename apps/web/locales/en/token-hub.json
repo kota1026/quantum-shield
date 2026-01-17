@@ -15,6 +15,55 @@
         "title": "Understanding QS Tokenomics",
         "description": "Learn how QS tokens power the Quantum Shield ecosystem through voting escrow and decentralized governance."
       },
+      "overview": {
+        "title": "What is Quantum Shield?",
+        "description": "Quantum Shield is a next-generation asset protection platform built for the quantum computing era. We protect your crypto assets from future threats.",
+        "pillars": {
+          "protection": {
+            "title": "Quantum Resistance",
+            "description": "Protects your assets with cutting-edge cryptography that even future quantum computers cannot break"
+          },
+          "wallet": {
+            "title": "Consumer App",
+            "description": "Asset protection app for locking and unlocking ETH and other assets. Simple and easy-to-use UI"
+          },
+          "governance": {
+            "title": "Token Hub",
+            "description": "Lock QS to earn veQS. Participate in governance voting and earn rewards"
+          }
+        },
+        "whyQuantum": {
+          "title": "Why Quantum Resistance?",
+          "description": "Current cryptography (ECDSA) could be broken by future quantum computers. Quantum Shield adopts the latest post-quantum cryptographic algorithms certified by NIST, enabling you to \"prepare today\" for tomorrow's threats.",
+          "tags": {
+            "dilithium": "Dilithium Signatures",
+            "stark": "STARK Proofs",
+            "futureProof": "Future-Proof"
+          }
+        }
+      },
+      "governance": {
+        "title": "What Does Governance Decide?",
+        "description": "veQS holders can participate in important decisions for Quantum Shield. You can also delegate your voting power to trusted representatives.",
+        "topics": {
+          "fees": {
+            "title": "Fee Adjustments",
+            "description": "Setting and modifying lock/unlock fees"
+          },
+          "upgrades": {
+            "title": "Protocol Upgrades",
+            "description": "Adding new features and security enhancements"
+          },
+          "treasury": {
+            "title": "Treasury Allocation",
+            "description": "Distribution of development and marketing budgets"
+          },
+          "parameters": {
+            "title": "System Parameters",
+            "description": "Reward distribution rates, emergency unlock conditions, etc."
+          }
+        }
+      },
       "qs": {
         "title": "What is QS Token?",
         "description": "QS is the native utility token of Quantum Shield protocol. It enables governance participation, staking rewards, and access to premium features.",
