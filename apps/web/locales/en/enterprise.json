@@ -1,0 +1,1419 @@
+{
+  "sidebar": {
+    "ariaLabel": "Enterprise admin navigation",
+    "sections": {
+      "dashboard": "Dashboard",
+      "transactions": "Transactions",
+      "management": "Management",
+      "reports": "Reports",
+      "system": "System"
+    },
+    "nav": {
+      "overview": "Overview",
+      "tvl": "TVL",
+      "volume": "Volume",
+      "status": "System Status",
+      "allTransactions": "All Transactions",
+      "users": "Users",
+      "apiKeys": "API Keys",
+      "reports": "Reports",
+      "auditLog": "Audit Log",
+      "settings": "Settings",
+      "support": "Support"
+    }
+  },
+  "topBar": {
+    "searchPlaceholder": "Search transactions, users...",
+    "searchAriaLabel": "Search",
+    "notificationsAriaLabel": "View notifications",
+    "newNotifications": "You have new notifications",
+    "userMenuAriaLabel": "Open user menu"
+  },
+  "dashboard": {
+    "meta": {
+      "title": "Overview Dashboard | Enterprise Admin - Quantum Shield",
+      "description": "Quantum Shield Enterprise admin dashboard. View TVL, volume, and transaction status at a glance."
+    },
+    "pageTitle": "Overview Dashboard",
+    "ariaLabel": "Enterprise overview dashboard",
+    "demoUser": {
+      "name": "Sato",
+      "initial": "S"
+    },
+    "stats": {
+      "ariaLabel": "Key statistics",
+      "tvl": {
+        "label": "Total Value Locked",
+        "tooltip": "Total assets locked. The sum of all assets deposited into Quantum Shield by users in your organization."
+      },
+      "volume": {
+        "label": "Monthly Volume",
+        "tooltip": "Total amount of lock and unlock transactions this month. Shows increase or decrease compared to last month."
+      },
+      "transactions": {
+        "label": "Total Transactions",
+        "tooltip": "Cumulative count of all lock and unlock transactions executed by your organization."
+      },
+      "activeUsers": {
+        "label": "Active Users",
+        "tooltip": "Number of users who have executed at least one transaction in the past 30 days."
+      }
+    },
+    "recentTransactions": {
+      "title": "Recent Transactions",
+      "export": "Export",
+      "viewAll": "View All",
+      "columns": {
+        "txHash": "TX Hash",
+        "type": "Type",
+        "amount": "Amount",
+        "status": "Status",
+        "time": "Time"
+      },
+      "types": {
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "emergency": "Emergency"
+      },
+      "statuses": {
+        "complete": "Complete",
+        "pending": "Pending",
+        "failed": "Failed"
+      }
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "ariaLabel": "Recent activity list"
+    },
+    "systemStatus": {
+      "title": "System Status",
+      "ariaLabel": "System status list",
+      "statuses": {
+        "online": "Operational",
+        "warning": "Warning",
+        "offline": "Offline"
+      }
+    }
+  },
+  "tvl": {
+    "meta": {
+      "title": "TVL Dashboard | Enterprise Admin - Quantum Shield",
+      "description": "Total Value Locked (TVL) detailed analysis. View time series trends, asset breakdown, and market share."
+    },
+    "pageTitle": "TVL Dashboard",
+    "ariaLabel": "TVL analytics dashboard",
+    "timeFilter": {
+      "ariaLabel": "Select time period",
+      "periods": {
+        "24h": "24H",
+        "7d": "7D",
+        "30d": "30D",
+        "90d": "90D",
+        "1y": "1Y"
+      }
+    },
+    "stats": {
+      "ariaLabel": "TVL statistics",
+      "totalTVL": {
+        "label": "Total Value Locked",
+        "tooltip": "Total assets locked across all of Quantum Shield."
+      },
+      "yourTVL": {
+        "label": "Your TVL",
+        "tooltip": "Total assets locked by your organization."
+      },
+      "marketShare": {
+        "label": "Market Share",
+        "tooltip": "Your organization's share of the total TVL."
+      },
+      "depositors": {
+        "label": "Unique Depositors",
+        "tooltip": "Number of unique users who have locked assets."
+      }
+    },
+    "chart": {
+      "title": "TVL Over Time",
+      "ariaLabel": "TVL trend chart for selected period"
+    },
+    "assetBreakdown": {
+      "title": "Asset Breakdown",
+      "ariaLabel": "Breakdown of locked assets",
+      "percentOfTotal": "{percent}% of total"
+    }
+  },
+  "volume": {
+    "meta": {
+      "title": "Volume Dashboard | Enterprise Admin - Quantum Shield",
+      "description": "Transaction volume analytics. View trading volume trends, token breakdown, and transaction metrics."
+    },
+    "pageTitle": "Volume Dashboard",
+    "ariaLabel": "Volume analytics dashboard",
+    "stats": {
+      "ariaLabel": "Volume statistics",
+      "volume24h": {
+        "label": "24H Volume",
+        "tooltip": "Total transaction volume in the past 24 hours."
+      },
+      "volume7d": {
+        "label": "7D Volume",
+        "tooltip": "Total transaction volume in the past 7 days."
+      },
+      "volume30d": {
+        "label": "30D Volume",
+        "tooltip": "Total transaction volume in the past 30 days."
+      },
+      "transactions": {
+        "label": "Transactions",
+        "tooltip": "Total number of lock and unlock transactions."
+      }
+    },
+    "chart": {
+      "title": "Volume Over Time",
+      "ariaLabel": "Volume trend chart for selected period"
+    },
+    "tokenBreakdown": {
+      "title": "Volume by Token",
+      "ariaLabel": "Transaction volume breakdown by token",
+      "percentOfTotal": "{percent}% of total",
+      "volumeShare": "Volume share: {percent}%"
+    }
+  },
+  "status": {
+    "meta": {
+      "title": "System Status | Enterprise Admin - Quantum Shield",
+      "description": "Real-time system status monitoring. View core services, external connections, and performance metrics."
+    },
+    "pageTitle": "System Status",
+    "ariaLabel": "System status dashboard",
+    "overallStatus": {
+      "operational": "All Systems Operational",
+      "warning": "Degraded Performance",
+      "offline": "System Outage"
+    },
+    "coreServices": {
+      "title": "Core Services",
+      "items": {
+        "1": { "name": "API Gateway", "value": "Operational" },
+        "2": { "name": "Smart Contract", "value": "Operational" },
+        "3": { "name": "Database", "value": "Operational" },
+        "4": { "name": "Cache Layer", "value": "Operational" }
+      }
+    },
+    "externalConnections": {
+      "title": "External Connections",
+      "items": {
+        "1": { "name": "Ethereum Mainnet", "value": "Connected" },
+        "2": { "name": "Prover Network", "value": "127 nodes" },
+        "3": { "name": "Webhooks", "value": "99.9% uptime" },
+        "4": { "name": "Price Oracle", "value": "Updated 2s ago" }
+      }
+    },
+    "performance": {
+      "title": "Performance",
+      "items": {
+        "1": { "name": "API Latency", "value": "45ms avg" },
+        "2": { "name": "TX Confirmation", "value": "12s avg" },
+        "3": { "name": "Error Rate", "value": "0.01%" },
+        "4": { "name": "Uptime (30d)", "value": "99.99%" }
+      }
+    },
+    "incidents": {
+      "title": "Recent Incidents",
+      "noIncidents": "No incidents in the last 30 days"
+    }
+  },
+  "transactions": {
+    "meta": {
+      "title": "Transaction List | Enterprise Admin - Quantum Shield",
+      "description": "View and manage all lock, unlock, and emergency transactions for your organization."
+    },
+    "pageTitle": "Transaction List",
+    "ariaLabel": "Transaction list dashboard",
+    "analytics": "Analytics",
+    "export": "Export",
+    "filters": {
+      "ariaLabel": "Transaction filters",
+      "type": {
+        "label": "Type",
+        "all": "All Types",
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "emergency": "Emergency"
+      },
+      "status": {
+        "label": "Status",
+        "all": "All Status",
+        "complete": "Complete",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
+      "date": {
+        "label": "Date",
+        "from": "From date",
+        "to": "to",
+        "toDate": "To date"
+      },
+      "search": {
+        "placeholder": "Search TX hash, address...",
+        "ariaLabel": "Search transactions"
+      },
+      "apply": "Apply Filters"
+    },
+    "table": {
+      "title": "Transactions",
+      "ariaLabel": "Transactions table",
+      "showing": "Showing {start}-{end} of {total} transactions",
+      "selectAll": "Select all transactions",
+      "selectRow": "Select transaction {hash}",
+      "columns": {
+        "txHash": "TX Hash",
+        "type": "Type",
+        "amount": "Amount",
+        "from": "From",
+        "status": "Status",
+        "time": "Time",
+        "actions": "Actions"
+      },
+      "types": {
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "emergency": "Emergency"
+      },
+      "statuses": {
+        "complete": "Complete",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
+      "view": "View"
+    },
+    "pagination": {
+      "ariaLabel": "Transaction pagination",
+      "showing": "Showing {start}-{end} of {total} transactions",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page}"
+    }
+  },
+  "transactionDetail": {
+    "meta": {
+      "title": "Transaction Detail | Enterprise Admin - Quantum Shield",
+      "description": "View detailed transaction information including quantum signature verification and prover attestation."
+    },
+    "pageTitle": "Transaction Detail",
+    "ariaLabel": "Transaction detail page",
+    "backToList": "Back to transaction list",
+    "exportPdf": "Export PDF",
+    "info": {
+      "title": "Transaction Information",
+      "txHash": "TX Hash",
+      "type": "Type",
+      "types": {
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "emergency": "Emergency"
+      },
+      "amount": "Amount",
+      "usdValue": "USD Value",
+      "fromAddress": "From Address",
+      "contractAddress": "Contract Address",
+      "blockNumber": "Block Number",
+      "gasUsed": "Gas Used",
+      "gasPrice": "Gas Price",
+      "transactionFee": "Transaction Fee",
+      "statuses": {
+        "complete": "Complete",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
+      "quantumProtected": "Quantum Protected",
+      "signedWith": "Signed with {algorithm}"
+    },
+    "timeline": {
+      "title": "Timeline",
+      "ariaLabel": "Transaction timeline",
+      "events": {
+        "submitted": "Transaction Submitted",
+        "quantumVerified": "Quantum Signature Verified",
+        "proverAttestation": "Prover Attestation",
+        "blockConfirmation": "Block Confirmation",
+        "complete": "Transaction Complete"
+      }
+    },
+    "prover": {
+      "title": "Prover Attestation",
+      "proverId": "Prover ID",
+      "attestationHash": "Attestation Hash",
+      "stakeAmount": "Stake Amount",
+      "verificationTime": "Verification Time"
+    },
+    "audit": {
+      "title": "Audit Trail",
+      "organization": "Organization",
+      "apiKey": "API Key",
+      "ipAddress": "IP Address",
+      "userAgent": "User Agent"
+    }
+  },
+  "users": {
+    "meta": {
+      "title": "User Management | Enterprise Admin - Quantum Shield",
+      "description": "Manage your organization's users. View and edit roles, permissions, and 2FA settings."
+    },
+    "pageTitle": "User Management",
+    "ariaLabel": "User management dashboard",
+    "manageRoles": "Manage Roles",
+    "invite": "Invite",
+    "addUser": "Add User",
+    "stats": {
+      "ariaLabel": "User statistics",
+      "totalUsers": {
+        "label": "Total Users",
+        "tooltip": "Total number of users registered in your organization."
+      },
+      "admins": {
+        "label": "Admins",
+        "tooltip": "Number of users with Admin privileges."
+      },
+      "members": {
+        "label": "Members",
+        "tooltip": "Number of users with Member privileges."
+      },
+      "pendingInvites": {
+        "label": "Pending Invites",
+        "tooltip": "Number of invitations sent but not yet accepted."
+      }
+    },
+    "table": {
+      "title": "Team Members",
+      "ariaLabel": "Users table",
+      "searchPlaceholder": "Search users...",
+      "searchAriaLabel": "Search users",
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "twoFa": "2FA",
+        "lastActive": "Last Active",
+        "actions": "Actions"
+      },
+      "roles": {
+        "admin": "Admin",
+        "member": "Member",
+        "viewer": "Viewer"
+      },
+      "statuses": {
+        "active": "Active",
+        "invited": "Invited"
+      },
+      "twoFa": {
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "lastActive": {
+        "minAgo": "{min} min ago",
+        "hourAgo": "{hour} hr ago",
+        "yesterday": "Yesterday",
+        "pending": "Pending"
+      },
+      "edit": "Edit",
+      "resend": "Resend"
+    },
+    "pagination": {
+      "ariaLabel": "User pagination",
+      "showing": "Showing {start}-{end} of {total} users",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page}"
+    }
+  },
+  "userDetail": {
+    "meta": {
+      "title": "User Detail | Enterprise Admin - Quantum Shield",
+      "description": "View and edit user profile, role, and activity."
+    },
+    "pageTitle": "User Detail",
+    "ariaLabel": "User detail page",
+    "backToList": "Back to user list",
+    "deactivate": "Deactivate User",
+    "saveChanges": "Save Changes",
+    "header": {
+      "ariaLabel": "User information header"
+    },
+    "profile": {
+      "title": "Profile Settings",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "roles": {
+        "admin": "Admin",
+        "member": "Member",
+        "viewer": "Viewer"
+      }
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "ariaLabel": "User activity list",
+      "events": {
+        "login": "Logged in",
+        "createApiKey": "Created API key",
+        "inviteUser": "Invited user",
+        "updateSettings": "Updated settings"
+      },
+      "time": {
+        "minAgo": "{min} min ago",
+        "hourAgo": "{hour} hr ago",
+        "yesterday": "Yesterday"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "apiKeys": {
+    "meta": {
+      "title": "API Keys | Enterprise Admin - Quantum Shield",
+      "description": "Create, manage, and rotate API keys."
+    },
+    "pageTitle": "API Keys",
+    "ariaLabel": "API keys management dashboard",
+    "usage": "Usage",
+    "webhooks": "Webhooks",
+    "createKey": "Create API Key",
+    "stats": {
+      "ariaLabel": "API key statistics",
+      "totalKeys": {
+        "label": "Total API Keys",
+        "tooltip": "Total number of API keys created."
+      },
+      "activeKeys": {
+        "label": "Active Keys",
+        "tooltip": "Number of currently active API keys."
+      },
+      "apiCallsToday": {
+        "label": "API Calls (Today)",
+        "tooltip": "Total API calls made today."
+      },
+      "rateLimit": {
+        "label": "Rate Limit",
+        "tooltip": "Maximum API calls per minute."
+      }
+    },
+    "alert": {
+      "expiringTitle": "API Key Expiring Soon",
+      "expiringDesc": "{keyName} expires in {days} days. Please rotate your key.",
+      "rotateKey": "Rotate Key"
+    },
+    "list": {
+      "title": "API Keys",
+      "ariaLabel": "API keys list"
+    },
+    "key": {
+      "environment": {
+        "production": "PRODUCTION",
+        "test": "TEST"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "rotate": "Rotate",
+        "revoke": "Revoke",
+        "delete": "Delete",
+        "copy": "Copy"
+      },
+      "meta": {
+        "created": "Created",
+        "expires": "Expires",
+        "revoked": "Revoked",
+        "callsToday": "calls today",
+        "createdBy": "Created by"
+      }
+    }
+  },
+  "apiKeyCreate": {
+    "meta": {
+      "title": "Create API Key | Enterprise Admin - Quantum Shield",
+      "description": "Create a new API key and configure permissions."
+    },
+    "pageTitle": "Create API Key",
+    "ariaLabel": "Create API key form",
+    "backToList": "Back to API Keys",
+    "card": {
+      "title": "Key Configuration"
+    },
+    "form": {
+      "name": {
+        "label": "Key Name",
+        "placeholder": "Production API Key",
+        "hint": "A descriptive name to identify this key"
+      },
+      "environment": {
+        "label": "Environment",
+        "production": "Production",
+        "productionDesc": "For live API calls in production",
+        "test": "Test",
+        "testDesc": "For development and testing purposes"
+      },
+      "expiration": {
+        "label": "Expiration",
+        "never": "Never expires",
+        "days30": "30 days",
+        "days90": "90 days",
+        "year1": "1 year"
+      },
+      "permissions": {
+        "label": "Permissions",
+        "read": {
+          "name": "Read",
+          "description": "View transactions and analytics"
+        },
+        "write": {
+          "name": "Write",
+          "description": "Execute lock/unlock operations"
+        },
+        "admin": {
+          "name": "Admin",
+          "description": "Manage users and settings"
+        }
+      }
+    },
+    "warning": {
+      "message": "The API key will only be shown once after creation. Store it securely."
+    },
+    "submit": "Create API Key",
+    "success": {
+      "title": "API Key Created",
+      "message": "Copy this key and store it securely. It will not be shown again.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "done": "Done"
+    }
+  },
+  "webhooks": {
+    "meta": {
+      "title": "Webhooks | Enterprise Admin - Quantum Shield",
+      "description": "Configure and manage webhook endpoints."
+    },
+    "pageTitle": "Webhooks",
+    "ariaLabel": "Webhook management dashboard",
+    "addWebhook": "Add Webhook",
+    "list": {
+      "ariaLabel": "Webhook list"
+    },
+    "webhook": {
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "meta": {
+        "lastDelivery": "Last delivery",
+        "successRate": "Success rate",
+        "totalDeliveries": "Total deliveries"
+      },
+      "time": {
+        "minutesAgo": "{count} minutes ago",
+        "hoursAgo": "{count} hours ago",
+        "daysAgo": "{count} days ago"
+      }
+    },
+    "events": {
+      "label": "Events",
+      "transaction": {
+        "created": "Transaction created",
+        "completed": "Transaction completed",
+        "failed": "Transaction failed"
+      },
+      "alert": {
+        "security": "Security alert",
+        "limit": "Limit alert"
+      }
+    },
+    "empty": {
+      "title": "No webhooks",
+      "description": "Add a webhook to receive event notifications."
+    }
+  },
+  "webhookCreate": {
+    "meta": {
+      "title": "Create Webhook | Enterprise Admin - Quantum Shield",
+      "description": "Create a new webhook endpoint."
+    },
+    "pageTitle": "Create Webhook",
+    "ariaLabel": "Create webhook form",
+    "backToList": "Back to Webhooks",
+    "card": {
+      "title": "Webhook Configuration"
+    },
+    "form": {
+      "name": {
+        "label": "Webhook Name",
+        "placeholder": "Production Events",
+        "hint": "A descriptive name to identify this webhook"
+      },
+      "url": {
+        "label": "Endpoint URL",
+        "placeholder": "https://api.example.com/webhooks",
+        "hint": "The URL where event notifications will be sent"
+      },
+      "events": {
+        "label": "Events",
+        "hint": "Select the events you want to receive notifications for",
+        "transaction": {
+          "created": "Transaction created",
+          "completed": "Transaction completed",
+          "failed": "Transaction failed"
+        },
+        "alert": {
+          "security": "Security alert",
+          "limit": "Limit alert"
+        }
+      },
+      "secret": {
+        "label": "Secret Key",
+        "hint": "Used for webhook signature verification. Auto-generated."
+      }
+    },
+    "submit": "Create Webhook",
+    "success": {
+      "title": "Webhook Created",
+      "message": "Copy this secret key and store it securely.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "done": "Done"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "Settings | Enterprise Admin - Quantum Shield",
+      "description": "Manage organization settings."
+    },
+    "pageTitle": "Settings",
+    "ariaLabel": "Settings dashboard",
+    "save": "Save Changes",
+    "tabs": {
+      "organization": "Organization",
+      "security": "Security",
+      "notifications": "Notifications",
+      "limits": "Limits"
+    },
+    "organization": {
+      "title": "Organization Profile",
+      "name": {
+        "label": "Organization Name"
+      },
+      "orgId": {
+        "label": "Organization ID",
+        "hint": "Organization ID cannot be changed."
+      },
+      "website": {
+        "label": "Website"
+      },
+      "logo": {
+        "label": "Logo",
+        "upload": "Upload Logo",
+        "hint": "PNG or JPG, max 2MB"
+      }
+    },
+    "billing": {
+      "title": "Billing Contact",
+      "contactName": {
+        "label": "Contact Name"
+      },
+      "email": {
+        "label": "Email"
+      },
+      "phone": {
+        "label": "Phone"
+      }
+    },
+    "contract": {
+      "title": "Contract Information",
+      "plan": "Plan",
+      "contractStart": "Contract Start",
+      "contractEnd": "Contract End",
+      "accountManager": "Account Manager"
+    }
+  },
+  "reports": {
+    "meta": {
+      "title": "Monthly Report | Enterprise Admin - Quantum Shield",
+      "description": "View monthly transaction reports and analytics."
+    },
+    "pageTitle": "Monthly Report",
+    "ariaLabel": "Monthly report dashboard",
+    "complianceReport": "Compliance Report",
+    "downloadPdf": "Download PDF",
+    "period": {
+      "label": "Report Period",
+      "months": {
+        "december": "December 2025",
+        "november": "November 2025",
+        "october": "October 2025"
+      }
+    },
+    "stats": {
+      "ariaLabel": "Monthly statistics",
+      "totalTransactions": {
+        "label": "Total Transactions",
+        "change": "+{percent}% vs last month"
+      },
+      "totalVolume": {
+        "label": "Total Volume",
+        "change": "+{percent}% vs last month"
+      },
+      "avgTvl": {
+        "label": "Avg TVL",
+        "change": "+{percent}% vs last month"
+      },
+      "activeUsers": {
+        "label": "Active Users",
+        "change": "+{count} vs last month"
+      }
+    },
+    "transactionSummary": {
+      "title": "Transaction Summary",
+      "columns": {
+        "type": "Type",
+        "count": "Count",
+        "volume": "Volume",
+        "avgSize": "Avg Size",
+        "percentage": "% of Total"
+      },
+      "types": {
+        "lock": "Lock",
+        "normalUnlock": "Normal Unlock",
+        "emergencyUnlock": "Emergency Unlock"
+      }
+    },
+    "volumeTrend": {
+      "title": "Daily Volume Trend",
+      "placeholder": "[Daily Volume Chart - December 2025]"
+    },
+    "topUsers": {
+      "title": "Top Users by Volume",
+      "columns": {
+        "rank": "#",
+        "address": "Address",
+        "transactions": "Transactions",
+        "volume": "Volume"
+      }
+    }
+  },
+  "auditLog": {
+    "meta": {
+      "title": "Audit Log | Enterprise Admin - Quantum Shield",
+      "description": "View all activity history for your organization."
+    },
+    "pageTitle": "Audit Log",
+    "ariaLabel": "Audit log dashboard",
+    "exportCsv": "Export CSV",
+    "filters": {
+      "ariaLabel": "Audit log filters",
+      "category": {
+        "label": "Category",
+        "all": "All Categories",
+        "auth": "Authentication",
+        "transactions": "Transactions",
+        "users": "Users",
+        "api": "API",
+        "settings": "Settings",
+        "security": "Security"
+      },
+      "user": {
+        "label": "User",
+        "all": "All Users"
+      },
+      "date": {
+        "label": "Date",
+        "from": "From",
+        "to": "to"
+      },
+      "search": {
+        "placeholder": "Search actions...",
+        "ariaLabel": "Search actions"
+      },
+      "apply": "Apply"
+    },
+    "list": {
+      "title": "Activity Log",
+      "ariaLabel": "Audit log list",
+      "period": "Last 30 days",
+      "events": "events"
+    },
+    "event": {
+      "actions": {
+        "login": "logged in",
+        "lockTx": "executed lock transaction",
+        "unlockTx": "executed unlock transaction",
+        "inviteUser": "invited new user",
+        "createApiKey": "created API key",
+        "updateSettings": "updated settings",
+        "blockedLogin": "blocked suspicious login attempt",
+        "enabled2fa": "enabled 2FA"
+      },
+      "details": {
+        "browser": "Browser",
+        "os": "OS",
+        "txHash": "TX",
+        "amount": "Amount",
+        "apiKey": "API Key",
+        "email": "Email",
+        "role": "Role",
+        "environment": "Environment",
+        "changed": "Changed",
+        "reason": "Reason",
+        "method": "Method"
+      }
+    },
+    "pagination": {
+      "ariaLabel": "Audit log pagination",
+      "showing": "Showing {start}-{end} of {total} events",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page}"
+    }
+  },
+  "support": {
+    "meta": {
+      "title": "Support Portal | Enterprise Admin - Quantum Shield",
+      "description": "Enterprise support portal. Access documentation, FAQ, and contact information."
+    },
+    "pageTitle": "Support Portal",
+    "ariaLabel": "Support portal dashboard",
+    "newTicket": "New Support Ticket",
+    "hero": {
+      "title": "Enterprise Support",
+      "description": "Priority support with guaranteed response times for Enterprise customers.",
+      "stats": {
+        "uptime": {
+          "value": "99.9%",
+          "label": "Uptime SLA"
+        },
+        "response": {
+          "value": "<2hr",
+          "label": "Response Time"
+        },
+        "availability": {
+          "value": "24/7",
+          "label": "Availability"
+        }
+      }
+    },
+    "documentation": {
+      "title": "Documentation",
+      "items": {
+        "api": {
+          "title": "API Reference",
+          "description": "Complete API documentation with examples"
+        },
+        "integration": {
+          "title": "Integration Guide",
+          "description": "Step-by-step integration instructions"
+        },
+        "security": {
+          "title": "Security Whitepaper",
+          "description": "Quantum-resistant cryptography details"
+        },
+        "compliance": {
+          "title": "Compliance Documentation",
+          "description": "Regulatory compliance materials"
+        }
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": {
+        "apiKey": {
+          "question": "How do I rotate my API keys?",
+          "answer": "Navigate to API Keys section, click \"Rotate\" on the key you want to rotate. A new key will be generated and the old one will remain active for 24 hours."
+        },
+        "emergency": {
+          "question": "What happens during an emergency unlock?",
+          "answer": "Emergency unlocks bypass the normal 24-hour timelock but require a 7-day waiting period and incur a 5% penalty fee."
+        },
+        "ipAllowlist": {
+          "question": "How do I add IP addresses to the allowlist?",
+          "answer": "Go to Settings > Security, enable IP Allowlist, and add your IP addresses. Changes take effect immediately."
+        }
+      }
+    },
+    "contact": {
+      "title": "Contact Support",
+      "email": {
+        "label": "Email",
+        "value": "enterprise@quantumshield.io"
+      },
+      "phone": {
+        "label": "Phone",
+        "value": "+81-3-1234-5678"
+      },
+      "slack": {
+        "label": "Slack",
+        "value": "#acme-qs-support"
+      }
+    },
+    "sla": {
+      "title": "Your SLA",
+      "badge": "Enterprise Plan Active",
+      "responseTime": "Response Time",
+      "uptimeSla": "Uptime SLA",
+      "dedicatedCsm": "Dedicated CSM",
+      "contractExpires": "Contract Expires"
+    }
+  },
+  "help": {
+    "meta": {
+      "title": "Help | Enterprise Admin - Quantum Shield",
+      "description": "Quantum Shield Enterprise admin help center."
+    },
+    "pageTitle": "Help Center",
+    "ariaLabel": "Help center dashboard",
+    "search": {
+      "placeholder": "Search help topics...",
+      "ariaLabel": "Search help"
+    },
+    "gettingStarted": {
+      "title": "Getting Started",
+      "items": {
+        "setup": {
+          "title": "Setup Guide",
+          "description": "Initial organization setup and user invitations"
+        },
+        "apiKeys": {
+          "title": "API Key Management",
+          "description": "Creating and configuring API keys"
+        },
+        "integration": {
+          "title": "Integration",
+          "description": "How to integrate with your systems"
+        },
+        "security": {
+          "title": "Security Settings",
+          "description": "Configuring 2FA and IP restrictions"
+        }
+      }
+    },
+    "topics": {
+      "title": "Popular Topics",
+      "items": {
+        "transactions": {
+          "title": "Transaction Management",
+          "description": "Monitoring and analyzing locks/unlocks"
+        },
+        "users": {
+          "title": "User Management",
+          "description": "Adding team members and setting permissions"
+        },
+        "webhooks": {
+          "title": "Webhook Configuration",
+          "description": "Setting up event notifications"
+        },
+        "reports": {
+          "title": "Report Generation",
+          "description": "Monthly reports and compliance"
+        }
+      }
+    },
+    "resources": {
+      "title": "Resources",
+      "items": {
+        "docs": {
+          "title": "API Documentation",
+          "description": "Complete API reference"
+        },
+        "support": {
+          "title": "Support",
+          "description": "Contact priority support"
+        },
+        "changelog": {
+          "title": "Changelog",
+          "description": "Latest features and updates"
+        },
+        "status": {
+          "title": "System Status",
+          "description": "Service availability"
+        }
+      }
+    },
+    "contact": {
+      "title": "Need Help?",
+      "description": "Our Enterprise support team is here to help. We respond within 24 hours.",
+      "button": "Contact Support"
+    }
+  },
+  "terms": {
+    "meta": {
+      "title": "Enterprise Terms of Service | Enterprise Admin - Quantum Shield",
+      "description": "Terms of service for Quantum Shield Enterprise"
+    },
+    "pageTitle": "Enterprise Terms of Service",
+    "ariaLabel": "Enterprise Terms of Service",
+    "lastUpdated": "Last updated: {date}",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "content": "These Enterprise Terms of Service (\"Terms\") govern your use of Quantum Shield Enterprise services (\"Service\") provided by Quantum Shield Inc. By using the Service, you agree to be bound by these Terms."
+      },
+      "service": {
+        "title": "2. Service Description",
+        "content": "The Service provides enterprise-grade asset protection solutions using quantum-resistant cryptography. This includes API access, management dashboard, reporting features, and priority support."
+      },
+      "sla": {
+        "title": "3. Service Level Agreement (SLA)",
+        "content": "We target 99.9% uptime for the Service. Unexpected downtime, excluding scheduled maintenance, will be addressed according to your SLA contract."
+      },
+      "security": {
+        "title": "4. Security Responsibilities",
+        "content": "You are responsible for proper management of API keys, access permissions, and enabling two-factor authentication. We are responsible for platform-level security measures."
+      },
+      "data": {
+        "title": "5. Data Handling",
+        "content": "Your transaction data, configuration, and audit logs are stored with appropriate security measures. Data retention and deletion follows our data retention policy."
+      },
+      "liability": {
+        "title": "6. Limitation of Liability",
+        "content": "Our liability is limited to contractual obligations. We are not liable for blockchain network failures, market fluctuations, or damages caused by your negligence."
+      },
+      "termination": {
+        "title": "7. Termination",
+        "content": "Either party may terminate this agreement with written notice. Payment obligations and confidentiality obligations survive termination."
+      },
+      "changes": {
+        "title": "8. Changes to Terms",
+        "content": "We may modify these Terms with 30 days notice. Significant changes will be communicated to your registered email address."
+      },
+      "governing": {
+        "title": "9. Governing Law",
+        "content": "These Terms are governed by the laws of Japan. The Tokyo District Court has exclusive jurisdiction for any disputes."
+      }
+    },
+    "contactInfo": {
+      "title": "Contact",
+      "content": "For questions about these Terms, please contact enterprise@quantumshield.io."
+    }
+  },
+  "privacy": {
+    "meta": {
+      "title": "Privacy Policy | Enterprise Admin - Quantum Shield",
+      "description": "Privacy policy for Quantum Shield Enterprise"
+    },
+    "pageTitle": "Privacy Policy",
+    "ariaLabel": "Privacy Policy",
+    "lastUpdated": "Last updated: {date}",
+    "sections": {
+      "introduction": {
+        "title": "1. Introduction",
+        "content": "Quantum Shield Inc. respects your privacy and is committed to protecting personal information. This Privacy Policy explains how we handle personal data in our Enterprise services."
+      },
+      "collection": {
+        "title": "2. Information We Collect",
+        "content": "We collect the following information necessary for service provision: organization information (name, address, contacts), user information (name, email, role), transaction data, access logs, and API usage history."
+      },
+      "usage": {
+        "title": "3. How We Use Information",
+        "content": "Collected information is used for service provision and improvement, security maintenance, customer support, legal compliance, and contract fulfillment."
+      },
+      "sharing": {
+        "title": "4. Information Sharing",
+        "content": "We do not sell or rent personal information to third parties without your consent. We may share information when legally required or necessary for service provision (e.g., cloud providers) with appropriate safeguards."
+      },
+      "security": {
+        "title": "5. Security Measures",
+        "content": "We implement industry-standard security measures including encryption, access controls, audit logging, and regular security assessments. Our quantum-resistant cryptography protects your data against future threats."
+      },
+      "retention": {
+        "title": "6. Data Retention",
+        "content": "Personal information is retained for as long as necessary for service provision or as legally required. After contract termination, data is deleted or anonymized within a reasonable period."
+      },
+      "rights": {
+        "title": "7. Your Rights",
+        "content": "You have the right to access, correct, delete, restrict processing, and request portability of your personal data. To exercise these rights, contact enterprise@quantumshield.io."
+      },
+      "cookies": {
+        "title": "8. Cookies and Tracking",
+        "content": "We use cookies to improve our services. These include essential cookies, analytics cookies, and functional cookies. You can manage these through your browser settings."
+      },
+      "changes": {
+        "title": "9. Policy Changes",
+        "content": "This policy may be updated from time to time. Significant changes will be communicated to your registered email address."
+      }
+    },
+    "contactInfo": {
+      "title": "Contact",
+      "content": "For privacy-related questions, please contact privacy@quantumshield.io or enterprise@quantumshield.io."
+    }
+  },
+  "slaPage": {
+    "meta": {
+      "title": "Service Level Agreement (SLA) | Enterprise Admin - Quantum Shield",
+      "description": "Quantum Shield Enterprise SLA details"
+    },
+    "pageTitle": "Service Level Agreement (SLA)",
+    "ariaLabel": "SLA details page",
+    "lastUpdated": "Last updated: {date}",
+    "overview": {
+      "title": "SLA Overview",
+      "description": "Quantum Shield Enterprise provides the high availability and reliability your business requires."
+    },
+    "metrics": {
+      "title": "Service Metrics",
+      "uptime": {
+        "label": "Uptime Guarantee",
+        "value": "99.9%",
+        "description": "Monthly uptime target"
+      },
+      "response": {
+        "label": "Response Time",
+        "value": "<2 hours",
+        "description": "Critical incident response"
+      },
+      "resolution": {
+        "label": "Resolution Time",
+        "value": "<24 hours",
+        "description": "Critical incident resolution target"
+      }
+    },
+    "sections": {
+      "availability": {
+        "title": "1. Service Availability",
+        "content": "We target 99.9% or higher monthly service uptime. Scheduled maintenance time is excluded from uptime calculations. Maintenance is announced in advance and typically performed outside business hours."
+      },
+      "support": {
+        "title": "2. Support Response Times",
+        "content": "Enterprise plans include 24/7 support. Critical incidents (service outages) receive initial response within 2 hours. Standard inquiries are answered within 1 business day."
+      },
+      "credits": {
+        "title": "3. Service Credits",
+        "content": "If monthly uptime falls below 99.9%, service credits are provided: 10% of monthly fee for 99.0-99.9%, 25% for 95.0-99.0%, and 50% for below 95.0%."
+      },
+      "exclusions": {
+        "title": "4. Exclusions",
+        "content": "The following are excluded from SLA coverage: scheduled maintenance, failures caused by customer misconfiguration, external factors (internet outages, blockchain network failures), and force majeure events."
+      },
+      "reporting": {
+        "title": "5. Incident Reporting",
+        "content": "Please report service issues to our support team promptly. After receiving an incident report, we investigate and provide updates on scope and estimated recovery time."
+      },
+      "monitoring": {
+        "title": "6. Monitoring and Notifications",
+        "content": "We monitor services 24/7. During outages, status updates are posted on our status page and affected customers are notified."
+      }
+    },
+    "contactInfo": {
+      "title": "Contact",
+      "content": "For SLA-related questions, please contact enterprise@quantumshield.io."
+    }
+  },
+  "reportDetail": {
+    "meta": {
+      "title": "Compliance Report | Enterprise Admin - Quantum Shield",
+      "description": "View compliance report details."
+    },
+    "pageTitle": "Compliance Report",
+    "ariaLabel": "Compliance report detail",
+    "backToList": "Back to reports",
+    "downloadPdf": "Download PDF",
+    "reportMeta": {
+      "period": "Report Period",
+      "generated": "Generated",
+      "reportId": "Report ID"
+    },
+    "score": {
+      "label": "Compliance Score",
+      "excellent": "Excellent",
+      "good": "Good",
+      "needsAttention": "Needs Attention"
+    },
+    "securityControls": {
+      "title": "Security Controls",
+      "passed": "{passed}/{total} Passed",
+      "items": {
+        "twoFa": {
+          "name": "Two-Factor Authentication",
+          "description": "All admin users have 2FA enabled"
+        },
+        "ipAllowlist": {
+          "name": "IP Allowlist",
+          "description": "IP restrictions configured for API access"
+        },
+        "sessionManagement": {
+          "name": "Session Management",
+          "description": "Auto-logout after 30 minutes of inactivity"
+        },
+        "auditLogging": {
+          "name": "Audit Logging",
+          "description": "All actions are logged with full audit trail"
+        }
+      }
+    },
+    "operationalCompliance": {
+      "title": "Operational Compliance",
+      "passed": "{passed}/{total} Passed",
+      "items": {
+        "transactionMonitoring": {
+          "name": "Transaction Monitoring",
+          "description": "Real-time monitoring of all transactions"
+        },
+        "dataEncryption": {
+          "name": "Data Encryption",
+          "description": "All data encrypted at rest and in transit"
+        },
+        "backupVerification": {
+          "name": "Backup Verification",
+          "description": "Monthly backup test not completed"
+        },
+        "incidentResponse": {
+          "name": "Incident Response Plan",
+          "description": "Documented and tested incident response procedures"
+        }
+      }
+    },
+    "scheduleNow": "Schedule Now →"
+  },
+  "billing": {
+    "meta": {
+      "title": "Billing | Enterprise Admin - Quantum Shield",
+      "description": "Manage billing information and payment history."
+    },
+    "pageTitle": "Billing",
+    "ariaLabel": "Billing management dashboard",
+    "viewInvoices": "View Invoices",
+    "currentPlan": {
+      "title": "Current Plan",
+      "enterprise": "Enterprise",
+      "monthlyFee": "Monthly Fee",
+      "nextBilling": "Next Billing",
+      "paymentMethod": "Payment Method",
+      "cardEnding": "Card ending in {last4}"
+    },
+    "usage": {
+      "title": "This Month's Usage",
+      "apiCalls": {
+        "label": "API Calls",
+        "used": "{used} / {limit}"
+      },
+      "transactions": {
+        "label": "Transactions",
+        "used": "{used} / {limit}"
+      },
+      "storage": {
+        "label": "Storage",
+        "used": "{used} / {limit}"
+      }
+    },
+    "recentCharges": {
+      "title": "Recent Charges",
+      "columns": {
+        "date": "Date",
+        "description": "Description",
+        "amount": "Amount",
+        "status": "Status"
+      },
+      "statuses": {
+        "paid": "Paid",
+        "pending": "Pending"
+      }
+    },
+    "updatePayment": "Update Payment Method",
+    "downloadReceipt": "Download Receipt"
+  },
+  "invoices": {
+    "meta": {
+      "title": "Invoices | Enterprise Admin - Quantum Shield",
+      "description": "View and download past invoices."
+    },
+    "pageTitle": "Invoices",
+    "ariaLabel": "Invoices list dashboard",
+    "backToBilling": "Back to Billing",
+    "downloadAll": "Download All",
+    "table": {
+      "columns": {
+        "invoiceId": "Invoice ID",
+        "period": "Period",
+        "amount": "Amount",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "statuses": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "overdue": "Overdue"
+      },
+      "download": "Download",
+      "view": "View"
+    },
+    "empty": {
+      "title": "No invoices",
+      "description": "Invoices will appear here once generated."
+    }
+  },
+  "team": {
+    "meta": {
+      "title": "Team Management | Enterprise Admin - Quantum Shield",
+      "description": "Manage team members and roles."
+    },
+    "pageTitle": "Team Management",
+    "ariaLabel": "Team management dashboard",
+    "inviteUsers": "Invite Users",
+    "roles": {
+      "admin": {
+        "name": "Admin",
+        "icon": "👑",
+        "count": "{count} users",
+        "description": "Full access to all features including user management, settings, and billing."
+      },
+      "member": {
+        "name": "Member",
+        "icon": "⚡",
+        "count": "{count} users",
+        "description": "Can perform transactions and view analytics. Cannot manage users or settings."
+      },
+      "viewer": {
+        "name": "Viewer",
+        "icon": "👁",
+        "count": "{count} users",
+        "description": "Read-only access. Can view transactions and analytics but cannot make changes."
+      }
+    },
+    "permissions": {
+      "label": "Permissions",
+      "manageUsers": "Manage users & roles",
+      "createApiKeys": "Create & manage API keys",
+      "executeTransactions": "Execute transactions",
+      "viewAnalytics": "View analytics",
+      "modifySettings": "Modify settings",
+      "viewApiKeys": "View own API keys",
+      "viewTransactions": "View transactions"
+    }
+  },
+  "teamInvite": {
+    "meta": {
+      "title": "Invite Users | Enterprise Admin - Quantum Shield",
+      "description": "Invite new users to the team."
+    },
+    "pageTitle": "Invite Users",
+    "ariaLabel": "User invitation form",
+    "backToUsers": "Back to Users",
+    "form": {
+      "title": "Send Invitations",
+      "emailLabel": "Email Addresses",
+      "emailPlaceholder": "user@company.com",
+      "addEmail": "+ Add another email",
+      "roleLabel": "Default Role",
+      "roleOptions": {
+        "member": "Member",
+        "admin": "Admin",
+        "viewer": "Viewer"
+      },
+      "submit": "Send Invitations"
+    },
+    "pending": {
+      "title": "Pending Invitations",
+      "sentAgo": "Sent {time} ago",
+      "resend": "Resend",
+      "cancel": "Cancel"
+    }
+  }
+}
