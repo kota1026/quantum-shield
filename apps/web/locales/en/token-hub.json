@@ -1194,6 +1194,148 @@
         "title": "The Two Apps Work Together",
         "description": "You can use some assets locked in Consumer App to purchase and lock QS in Token Hub. By mastering both apps, you can achieve both asset protection and governance participation."
       }
+    },
+    "contact": {
+      "meta": {
+        "title": "Contact Us | Token Hub | Quantum Shield",
+        "description": "Contact us with questions or requests about Token Hub"
+      },
+      "header": {
+        "title": "Contact Us",
+        "back": "Back to Settings"
+      },
+      "intro": {
+        "title": "Let us know your questions",
+        "description": "Please use this form for inquiries about Token Hub. We typically respond within 2-3 business days."
+      },
+      "faq": {
+        "title": "Check our FAQ first",
+        "description": "Your question might already be answered in our FAQ section.",
+        "link": "View FAQ"
+      },
+      "form": {
+        "category": {
+          "label": "Category",
+          "placeholder": "Select inquiry type",
+          "options": {
+            "governance": "Governance & Voting",
+            "staking": "Staking & Locking",
+            "rewards": "Rewards & Claims",
+            "technical": "Technical Issues",
+            "feedback": "Feedback & Suggestions",
+            "other": "Other"
+          }
+        },
+        "email": {
+          "label": "Email Address",
+          "placeholder": "your@email.com",
+          "description": "Enter your email address for our reply"
+        },
+        "subject": {
+          "label": "Subject",
+          "placeholder": "Subject of your inquiry"
+        },
+        "message": {
+          "label": "Message",
+          "placeholder": "Please describe your inquiry in detail..."
+        },
+        "walletAddress": {
+          "label": "Wallet Address (optional)",
+          "placeholder": "0x...",
+          "description": "Enter if your inquiry is related to your account"
+        },
+        "submit": "Submit",
+        "submitting": "Submitting..."
+      },
+      "validation": {
+        "categoryRequired": "Please select a category",
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Please enter a valid email address",
+        "subjectRequired": "Subject is required",
+        "messageRequired": "Message is required",
+        "messageTooShort": "Message must be at least 10 characters"
+      },
+      "success": {
+        "title": "Inquiry Submitted",
+        "message": "Thank you for contacting us. We'll respond within 2-3 business days.",
+        "ticketId": "Ticket ID",
+        "backToFAQ": "Back to FAQ",
+        "backToDashboard": "Back to Dashboard"
+      },
+      "otherWays": {
+        "title": "Other Ways to Contact",
+        "email": {
+          "title": "Email Us",
+          "value": "support@quantumshield.io"
+        },
+        "discord": {
+          "title": "Discord Community",
+          "value": "Get real-time support"
+        }
+      }
+    },
+    "terms": {
+      "meta": {
+        "title": "Terms of Service | Token Hub | Quantum Shield",
+        "description": "Review the Token Hub Terms of Service"
+      },
+      "header": {
+        "title": "Token Hub Terms of Service",
+        "back": "Back to Settings"
+      },
+      "lastUpdated": "Last updated: {date}",
+      "sections": {
+        "acceptance": {
+          "title": "1. Acceptance of Terms",
+          "content": "By using Token Hub, you agree to these Terms of Service. If you do not agree to these terms, you may not use Token Hub."
+        },
+        "service": {
+          "title": "2. Service Description",
+          "content": "Token Hub is a platform for staking Quantum Shield protocol governance tokens (QS), delegating voting power, and claiming rewards."
+        },
+        "eligibility": {
+          "title": "3. Eligibility",
+          "content": "To use Token Hub, you must be at least 18 years old and reside in a jurisdiction where digital asset transactions are legally permitted."
+        },
+        "governance": {
+          "title": "4. Governance Participation",
+          "content": "veQS holders can participate in governance voting. Votes are irreversible and directly affect protocol operations. If you delegate your voting power, you agree to abide by your delegate's decisions."
+        },
+        "staking": {
+          "title": "5. Staking and Locking",
+          "content": "Once QS tokens are locked, they cannot be withdrawn during the selected lock period. Longer lock periods grant more veQS, but your tokens remain locked during this time."
+        },
+        "risks": {
+          "title": "6. Risk Acknowledgment",
+          "content": "Investing in digital assets involves risks including price volatility, smart contract bugs, and regulatory risks. You are responsible for your own investment decisions."
+        },
+        "prohibited": {
+          "title": "7. Prohibited Activities",
+          "content": "Money laundering, fraud, market manipulation, and other illegal activities are prohibited. We may restrict service access if violations are detected."
+        },
+        "disclaimer": {
+          "title": "8. Disclaimer",
+          "content": "Token Hub is provided as-is. We are not liable for service interruptions, data loss, or asset loss."
+        },
+        "changes": {
+          "title": "9. Changes to Terms",
+          "content": "These terms may be changed without prior notice. Significant changes will be announced within the service."
+        },
+        "governing": {
+          "title": "10. Governing Law",
+          "content": "These terms are governed by Japanese law, with the Tokyo District Court having exclusive jurisdiction for any disputes."
+        }
+      },
+      "contact": {
+        "title": "Contact Us",
+        "content": "For questions about these terms, please contact support@quantumshield.io."
+      },
+      "footer": {
+        "home": "Dashboard",
+        "terms": "Terms of Service",
+        "faq": "FAQ",
+        "copyright": "© 2026 Quantum Shield. All rights reserved."
+      }
     }
   }
 }

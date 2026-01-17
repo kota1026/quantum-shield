@@ -1195,6 +1195,148 @@
         "title": "2つのアプリは連携しています",
         "description": "Consumer Appでロックした資産の一部を使って、Token HubでQSを購入・ロックできます。両方を使いこなすことで、資産保護とガバナンス参加の両方が実現できます。"
       }
+    },
+    "contact": {
+      "meta": {
+        "title": "お問い合わせ | Token Hub | Quantum Shield",
+        "description": "Token Hubに関するご質問・ご要望はこちらからお問い合わせください"
+      },
+      "header": {
+        "title": "お問い合わせ",
+        "back": "設定に戻る"
+      },
+      "intro": {
+        "title": "ご質問・ご要望をお聞かせください",
+        "description": "Token Hubに関するお問い合わせはこちらのフォームからお送りください。通常2-3営業日以内にご返信いたします。"
+      },
+      "faq": {
+        "title": "FAQをご確認ください",
+        "description": "お問い合わせの前に、よくある質問で解決できるかもしれません。",
+        "link": "FAQを見る"
+      },
+      "form": {
+        "category": {
+          "label": "カテゴリ",
+          "placeholder": "お問い合わせ内容を選択",
+          "options": {
+            "governance": "ガバナンス・投票",
+            "staking": "ステーキング・ロック",
+            "rewards": "報酬・請求",
+            "technical": "技術的な問題",
+            "feedback": "フィードバック・提案",
+            "other": "その他"
+          }
+        },
+        "email": {
+          "label": "メールアドレス",
+          "placeholder": "your@email.com",
+          "description": "返信先のメールアドレスを入力してください"
+        },
+        "subject": {
+          "label": "件名",
+          "placeholder": "お問い合わせの件名"
+        },
+        "message": {
+          "label": "メッセージ",
+          "placeholder": "お問い合わせ内容を詳しくご記入ください..."
+        },
+        "walletAddress": {
+          "label": "ウォレットアドレス（任意）",
+          "placeholder": "0x...",
+          "description": "アカウントに関するお問い合わせの場合はご入力ください"
+        },
+        "submit": "送信する",
+        "submitting": "送信中..."
+      },
+      "validation": {
+        "categoryRequired": "カテゴリを選択してください",
+        "emailRequired": "メールアドレスを入力してください",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "subjectRequired": "件名を入力してください",
+        "messageRequired": "メッセージを入力してください",
+        "messageTooShort": "メッセージは10文字以上で入力してください"
+      },
+      "success": {
+        "title": "お問い合わせを受け付けました",
+        "message": "ご連絡ありがとうございます。2-3営業日以内にご返信いたします。",
+        "ticketId": "チケット番号",
+        "backToFAQ": "FAQに戻る",
+        "backToDashboard": "ダッシュボードに戻る"
+      },
+      "otherWays": {
+        "title": "その他のお問い合わせ方法",
+        "email": {
+          "title": "メールで問い合わせ",
+          "value": "support@quantumshield.io"
+        },
+        "discord": {
+          "title": "Discordコミュニティ",
+          "value": "リアルタイムでサポートを受ける"
+        }
+      }
+    },
+    "terms": {
+      "meta": {
+        "title": "利用規約 | Token Hub | Quantum Shield",
+        "description": "Token Hubの利用規約をご確認ください"
+      },
+      "header": {
+        "title": "Token Hub 利用規約",
+        "back": "設定に戻る"
+      },
+      "lastUpdated": "最終更新日: {date}",
+      "sections": {
+        "acceptance": {
+          "title": "1. 規約への同意",
+          "content": "Token Hubを利用することにより、本利用規約に同意したものとみなされます。本規約に同意されない場合は、Token Hubをご利用いただけません。"
+        },
+        "service": {
+          "title": "2. サービスの説明",
+          "content": "Token Hubは、Quantum Shieldプロトコルのガバナンストークン（QS）のステーキング、投票権の委任、報酬の請求を行うためのプラットフォームです。"
+        },
+        "eligibility": {
+          "title": "3. 利用資格",
+          "content": "Token Hubを利用するには、18歳以上であり、お住まいの地域でデジタル資産の取引が法的に認められている必要があります。"
+        },
+        "governance": {
+          "title": "4. ガバナンス参加",
+          "content": "veQS保有者はガバナンス投票に参加できます。投票は取り消し不可であり、投票結果はプロトコルの運営に直接影響します。投票権を委任した場合、委任先の判断に従うことになります。"
+        },
+        "staking": {
+          "title": "5. ステーキングとロック",
+          "content": "QSトークンをロックすると、選択した期間中は引き出すことができません。ロック期間が長いほど多くのveQSを獲得できますが、その間トークンは拘束されます。"
+        },
+        "risks": {
+          "title": "6. リスクの認識",
+          "content": "デジタル資産への投資には、価格変動リスク、スマートコントラクトのバグリスク、規制リスクなどが伴います。投資判断は自己責任で行ってください。"
+        },
+        "prohibited": {
+          "title": "7. 禁止行為",
+          "content": "マネーロンダリング、詐欺、市場操作、その他違法行為への関与は禁止されています。違反が発覚した場合、サービスへのアクセスを制限する場合があります。"
+        },
+        "disclaimer": {
+          "title": "8. 免責事項",
+          "content": "Token Hubは現状有姿で提供されます。当社は、サービスの中断、データの損失、資産の損失について責任を負いません。"
+        },
+        "changes": {
+          "title": "9. 規約の変更",
+          "content": "本規約は予告なく変更される場合があります。重要な変更がある場合は、サービス内で通知いたします。"
+        },
+        "governing": {
+          "title": "10. 準拠法",
+          "content": "本規約は日本法に準拠し、東京地方裁判所を第一審の専属的合意管轄裁判所とします。"
+        }
+      },
+      "contact": {
+        "title": "お問い合わせ",
+        "content": "本規約に関するご質問は、support@quantumshield.io までご連絡ください。"
+      },
+      "footer": {
+        "home": "ダッシュボード",
+        "terms": "利用規約",
+        "faq": "FAQ",
+        "copyright": "© 2026 Quantum Shield. All rights reserved."
+      }
     }
   }
 }
