@@ -6,7 +6,7 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
-import { Shield } from 'lucide-react';
+import { Shield, Settings } from 'lucide-react';
 
 function WalletButton() {
   const t = useTranslations('token-hub.common.header');
@@ -157,6 +157,21 @@ export function TokenHubHeader() {
         >
           <Shield className="w-4 h-4" aria-hidden="true" />
           <span className="hidden sm:inline">{t('consumerApp')}</span>
+        </Link>
+
+        {/* Settings Button */}
+        <Link
+          href="/token-hub/settings"
+          className={cn(
+            'w-10 h-10 flex items-center justify-center',
+            'border border-border rounded-full',
+            'text-foreground-secondary hover:border-gold hover:text-gold',
+            'transition-colors',
+            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+          )}
+          aria-label={t('settings')}
+        >
+          <Settings className="w-5 h-5" aria-hidden="true" />
         </Link>
 
         {/* Wallet Button */}
