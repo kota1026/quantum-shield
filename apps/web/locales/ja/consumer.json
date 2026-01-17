@@ -5,7 +5,8 @@
         "dashboard": "ダッシュボード",
         "lock": "ロック",
         "unlock": "アンロック",
-        "history": "履歴"
+        "history": "履歴",
+        "tokenHub": "Token Hub"
       },
       "wallet": {
         "connected": "接続中",

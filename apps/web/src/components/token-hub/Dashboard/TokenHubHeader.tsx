@@ -6,6 +6,7 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
+import { Shield } from 'lucide-react';
 
 function WalletButton() {
   const t = useTranslations('token-hub.common.header');
@@ -140,8 +141,27 @@ export function TokenHubHeader() {
         })}
       </nav>
 
-      {/* Wallet Button - only render with wagmi hooks after mounting */}
-      {mounted ? <WalletButton /> : <WalletButtonPlaceholder />}
+      {/* Right side actions */}
+      <div className="flex items-center gap-3 order-2 md:order-3">
+        {/* Consumer App Link */}
+        <Link
+          href="/consumer/dashboard"
+          className={cn(
+            'flex items-center gap-2 px-4 py-2',
+            'border border-border rounded-full',
+            'text-sm font-medium text-foreground-secondary',
+            'hover:border-gold hover:text-gold transition-colors',
+            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+          )}
+          aria-label={t('consumerApp')}
+        >
+          <Shield className="w-4 h-4" aria-hidden="true" />
+          <span className="hidden sm:inline">{t('consumerApp')}</span>
+        </Link>
+
+        {/* Wallet Button */}
+        {mounted ? <WalletButton /> : <WalletButtonPlaceholder />}
+      </div>
     </header>
   );
 }
