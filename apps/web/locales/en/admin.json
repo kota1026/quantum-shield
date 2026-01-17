@@ -1,0 +1,835 @@
+{
+  "admin": {
+    "emergency": {
+      "meta": {
+        "title": "Emergency Operations | QS Admin",
+        "description": "System emergency stop and recovery management"
+      },
+      "title": "Emergency Operations",
+      "subtitle": "System Emergency Stop & Recovery Management",
+      "ariaLabel": "Emergency operations page",
+      "status": {
+        "operational": "System Operational",
+        "paused": "System Paused"
+      },
+      "pauseControl": {
+        "title": "Emergency Pause",
+        "systemPause": "System Pause",
+        "description": "Immediately stop all Lock/Unlock operations",
+        "executeButton": "Execute Emergency Pause",
+        "warning": {
+          "title": "Important Notice",
+          "text1": "Pause is valid for a maximum of 72 hours.",
+          "text2": "Always consult with Security Council members before execution.",
+          "text3": "All operations are recorded in the audit log."
+        }
+      },
+      "checklist": {
+        "title": "Pre-Pause Checklist",
+        "items": {
+          "severity": "Confirmed the severity of the incident",
+          "council": "Contacted Security Council members",
+          "impact": "Understood the impact scope (TVL, user count)",
+          "notification": "Community notification is ready",
+          "recovery": "Have an outline of the recovery plan"
+        }
+      },
+      "recovery": {
+        "title": "Recovery Procedures",
+        "steps": {
+          "step1": {
+            "title": "Identify Root Cause",
+            "description": "Investigate and document the cause of the incident"
+          },
+          "step2": {
+            "title": "Implement Fix",
+            "description": "Apply necessary patches or configuration changes"
+          },
+          "step3": {
+            "title": "Verify in Test Environment",
+            "description": "Confirm the fix works correctly"
+          },
+          "step4": {
+            "title": "Security Council Approval",
+            "description": "Obtain approval for recovery (multi-sig)"
+          },
+          "step5": {
+            "title": "System Resume",
+            "description": "Release pause and continue monitoring"
+          },
+          "step6": {
+            "title": "Create Post-Mortem",
+            "description": "Publish incident report"
+          }
+        }
+      },
+      "history": {
+        "title": "Pause History",
+        "resumed": "System Resumed",
+        "paused": "Emergency Pause",
+        "maintenance": "Scheduled Maintenance",
+        "duration": "Duration"
+      },
+      "modal": {
+        "title": "Confirm Emergency Pause",
+        "subtitle": "This operation will stop all systems",
+        "warning": "All Lock/Unlock operations will be stopped. This operation will be recorded in the audit log and Security Council will be notified.",
+        "confirmLabel": "Type \"PAUSE\" to confirm:",
+        "placeholder": "PAUSE",
+        "cancelButton": "Cancel",
+        "confirmButton": "Execute Pause",
+        "inputError": "Please type \"PAUSE\" to confirm"
+      }
+    },
+    "common": {
+      "sidebar": {
+        "logo": "QS Admin",
+        "tagline": "Internal Dashboard",
+        "sections": {
+          "overview": "Overview",
+          "operations": "Operations",
+          "management": "Management",
+          "system": "System"
+        },
+        "nav": {
+          "dashboard": "Dashboard",
+          "emergencyPause": "Emergency Pause",
+          "proverManagement": "Prover Management",
+          "txMonitor": "TX Monitor",
+          "l3Nodes": "L3 Nodes",
+          "parameters": "Parameters",
+          "enterprise": "Enterprise",
+          "community": "Community",
+          "staff": "Staff",
+          "reports": "Reports",
+          "auditLog": "Audit Log",
+          "onboarding": "Onboarding"
+        },
+        "user": {
+          "role": "Senior Engineer",
+          "permissionBadge": "Super Admin"
+        }
+      }
+    },
+    "txMonitor": {
+      "meta": {
+        "title": "TX Monitor | QS Admin",
+        "description": "Lock/Unlock/Challenge transaction monitoring"
+      },
+      "title": "Transaction Monitor",
+      "subtitle": "Lock/Unlock/Challenge Transaction Monitoring",
+      "ariaLabel": "Transaction monitor page",
+      "liveIndicator": "Live Updates",
+      "tabs": {
+        "all": "All Transactions",
+        "locks": "Locks",
+        "unlocks": "Unlocks",
+        "challenges": "Challenges",
+        "anomalies": "Anomalies"
+      },
+      "stats": {
+        "totalTxs": {
+          "label": "Total TXs (24h)"
+        },
+        "locks": {
+          "label": "Locks"
+        },
+        "unlocks": {
+          "label": "Unlocks"
+        },
+        "emergency": {
+          "label": "Emergency"
+        },
+        "challenges": {
+          "label": "Challenges"
+        }
+      },
+      "table": {
+        "title": "Recent Transactions",
+        "columns": {
+          "txHash": "TX Hash",
+          "type": "Type",
+          "from": "From",
+          "amount": "Amount",
+          "status": "Status",
+          "time": "Time"
+        },
+        "empty": "No transactions found"
+      },
+      "txType": {
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "emergency": "Emergency"
+      },
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "timelock": "Timelock"
+      },
+      "time": {
+        "minAgo": "{count} min ago",
+        "hourAgo": "{count} hour ago",
+        "hoursAgo": "{count} hours ago",
+        "justNow": "Just now"
+      }
+    },
+    "nodes": {
+      "meta": {
+        "title": "L3 Nodes | QS Admin",
+        "description": "Aegis L3 network node management"
+      },
+      "title": "L3 Node Management",
+      "subtitle": "Aegis L3 Network Node Management",
+      "ariaLabel": "L3 node management page",
+      "stats": {
+        "totalNodes": {
+          "label": "Total Nodes"
+        },
+        "healthy": {
+          "label": "Healthy"
+        },
+        "currentBlock": {
+          "label": "Current Block"
+        },
+        "avgTps": {
+          "label": "Avg TPS"
+        }
+      },
+      "card": {
+        "title": "Active Nodes"
+      },
+      "node": {
+        "primary": "Primary",
+        "metrics": {
+          "block": "Block",
+          "peers": "Peers",
+          "cpu": "CPU",
+          "memory": "Memory"
+        }
+      },
+      "status": {
+        "healthy": "Healthy",
+        "warning": "Warning",
+        "offline": "Offline"
+      }
+    },
+    "staff": {
+      "meta": {
+        "title": "Staff Management | QS Admin",
+        "description": "Staff permissions and access management"
+      },
+      "title": "Staff Management",
+      "subtitle": "Staff Permissions & Access Management",
+      "ariaLabel": "Staff management page",
+      "addButton": "Add Staff",
+      "card": {
+        "title": "Staff List"
+      },
+      "table": {
+        "columns": {
+          "name": "Name",
+          "role": "Role",
+          "permission": "Permission",
+          "status": "Status",
+          "lastActive": "Last Active"
+        },
+        "empty": "No staff found"
+      },
+      "permission": {
+        "superAdmin": "Super Admin",
+        "admin": "Admin",
+        "operator": "Operator",
+        "viewer": "Viewer"
+      },
+      "status": {
+        "active": "Active",
+        "onboarding": "Onboarding",
+        "inactive": "Inactive"
+      },
+      "time": {
+        "now": "Now",
+        "minAgo": "{count} min ago",
+        "hourAgo": "{count} hour ago",
+        "today": "Today"
+      }
+    },
+    "reports": {
+      "meta": {
+        "title": "Reports | QS Admin",
+        "description": "System reports and analytics"
+      },
+      "title": "Reports",
+      "subtitle": "System Reports & Analytics",
+      "ariaLabel": "Reports page",
+      "exportButton": "Export All",
+      "types": {
+        "daily": {
+          "title": "Daily Report",
+          "description": "Past 24 hours transactions, TVL, Prover performance"
+        },
+        "weekly": {
+          "title": "Weekly Report",
+          "description": "Weekly summary, trend analysis, anomaly detection"
+        },
+        "monthly": {
+          "title": "Monthly Report",
+          "description": "Monthly review, growth metrics, security audit"
+        },
+        "revenue": {
+          "title": "Revenue Report",
+          "description": "Fee revenue, Enterprise contracts, cost analysis"
+        }
+      },
+      "lastGenerated": "Last generated",
+      "summary": {
+        "title": "Today's Summary",
+        "totalTx": "Total Transactions",
+        "tvlChange": "TVL Change",
+        "avgSla": "Avg Prover SLA",
+        "incidents": "Security Incidents"
+      }
+    },
+    "audit": {
+      "meta": {
+        "title": "Audit Log | QS Admin",
+        "description": "All operation logs and security event audit"
+      },
+      "title": "Audit Log",
+      "subtitle": "All Operation Logs & Security Event Audit",
+      "ariaLabel": "Audit log page",
+      "tabs": {
+        "all": "All Logs",
+        "user": "User Activity",
+        "security": "Security Events",
+        "system": "System Events"
+      },
+      "card": {
+        "title": "Recent Logs"
+      },
+      "table": {
+        "columns": {
+          "time": "Time",
+          "type": "Type",
+          "user": "User",
+          "action": "Action",
+          "details": "Details"
+        },
+        "empty": "No logs found"
+      },
+      "logType": {
+        "user": "User",
+        "prover": "Prover",
+        "security": "Security",
+        "system": "System"
+      }
+    },
+    "parameters": {
+      "meta": {
+        "title": "Protocol Parameters | QS Admin",
+        "description": "Protocol parameter management and change requests"
+      },
+      "title": "Protocol Parameters",
+      "subtitle": "Protocol Parameter Management & Change Requests",
+      "ariaLabel": "Protocol parameters page",
+      "requestChangeButton": "Request Change",
+      "infoBanner": "Parameter changes require governance approval. Lock parameters (CP-1~5) cannot be changed.",
+      "historyLink": "History →",
+      "categories": {
+        "timeLock": {
+          "title": "Time Lock Parameters"
+        },
+        "prover": {
+          "title": "Prover Parameters"
+        },
+        "fee": {
+          "title": "Fee Parameters"
+        },
+        "security": {
+          "title": "Security Parameters"
+        }
+      },
+      "params": {
+        "minLockPeriod": {
+          "name": "Minimum Lock Period",
+          "description": "CP-3: Minimum lock period (immutable)"
+        },
+        "maxLockPeriod": {
+          "name": "Maximum Lock Period",
+          "description": "Maximum lock period"
+        },
+        "earlyUnlockPenalty": {
+          "name": "Early Unlock Penalty",
+          "description": "CP-4: Early unlock penalty rate"
+        },
+        "minStake": {
+          "name": "Minimum Stake",
+          "description": "Prover minimum stake amount"
+        },
+        "slaTarget": {
+          "name": "SLA Target",
+          "description": "Service level target"
+        },
+        "slashingRate": {
+          "name": "Slashing Rate",
+          "description": "CP-4: Penalty for malicious Provers"
+        },
+        "lockFee": {
+          "name": "Lock Fee",
+          "description": "Fee for locking"
+        },
+        "unlockFee": {
+          "name": "Unlock Fee",
+          "description": "Fee for unlocking"
+        },
+        "enterpriseDiscount": {
+          "name": "Enterprise Discount",
+          "description": "Enterprise fee discount rate"
+        },
+        "challengePeriod": {
+          "name": "Challenge Period",
+          "description": "Challenge waiting period"
+        },
+        "multiSigThreshold": {
+          "name": "Multi-sig Threshold",
+          "description": "Required signatures for emergency operations"
+        },
+        "quantumAlgorithm": {
+          "name": "Quantum Algorithm",
+          "description": "CP-1: Quantum-resistant algorithm"
+        }
+      },
+      "units": {
+        "days": "days",
+        "daysYears": "days ({years} years)",
+        "ofLocked": "of locked amount",
+        "usdc": "USDC",
+        "uptime": "uptime",
+        "ofStake": "of stake",
+        "ofAmount": "of amount",
+        "discount": "discount",
+        "hours": "hours",
+        "signers": "signers",
+        "nistApproved": "NIST approved"
+      },
+      "badge": {
+        "locked": "Locked",
+        "adjustable": "Adjustable"
+      }
+    },
+    "enterprise": {
+      "meta": {
+        "title": "Enterprise Accounts | QS Admin",
+        "description": "Enterprise contracts and large customer management"
+      },
+      "title": "Enterprise Accounts",
+      "subtitle": "Enterprise Contracts & Large Customer Management",
+      "ariaLabel": "Enterprise accounts page",
+      "addButton": "Add Enterprise",
+      "stats": {
+        "totalEnterprises": {
+          "label": "Total Enterprises"
+        },
+        "enterpriseTvl": {
+          "label": "Enterprise TVL"
+        },
+        "activeContracts": {
+          "label": "Active Contracts"
+        },
+        "monthlyRevenue": {
+          "label": "Monthly Revenue"
+        }
+      },
+      "tabs": {
+        "all": "All Enterprises",
+        "platinum": "Platinum",
+        "gold": "Gold",
+        "pending": "Pending"
+      },
+      "card": {
+        "title": "Enterprise List"
+      },
+      "table": {
+        "columns": {
+          "company": "Company",
+          "tier": "Tier",
+          "tvl": "TVL",
+          "status": "Status",
+          "contractRenewal": "Contract Renewal"
+        },
+        "empty": "No enterprises found"
+      },
+      "tier": {
+        "platinum": "Platinum",
+        "gold": "Gold",
+        "silver": "Silver"
+      },
+      "status": {
+        "active": "Active",
+        "renewalPending": "Renewal Pending",
+        "inactive": "Inactive"
+      },
+      "companyType": {
+        "financialInstitution": "Financial Institution",
+        "cryptoExchange": "Crypto Exchange",
+        "investmentBank": "Investment Bank"
+      }
+    },
+    "community": {
+      "meta": {
+        "title": "Community Management | QS Admin",
+        "description": "Announcements, FAQ, and community management"
+      },
+      "title": "Community Management",
+      "subtitle": "Announcements, FAQ & Community Management",
+      "ariaLabel": "Community management page",
+      "newAnnouncementButton": "New Announcement",
+      "stats": {
+        "totalUsers": {
+          "label": "Total Users"
+        },
+        "activeThisWeek": {
+          "label": "Active This Week"
+        },
+        "supportTickets": {
+          "label": "Support Tickets"
+        },
+        "avgResponseTime": {
+          "label": "Avg Response Time"
+        }
+      },
+      "tabs": {
+        "announcements": "Announcements",
+        "faq": "FAQ",
+        "supportTickets": "Support Tickets",
+        "analytics": "Analytics"
+      },
+      "announcements": {
+        "title": "Recent Announcements",
+        "type": {
+          "important": "Important",
+          "update": "Update",
+          "event": "Event"
+        },
+        "meta": {
+          "views": "views",
+          "comments": "comments"
+        }
+      },
+      "faq": {
+        "title": "Top FAQs",
+        "views": "views"
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "discord": "Discord Server",
+        "twitter": "Twitter/X",
+        "documentation": "Documentation",
+        "statusPage": "Status Page"
+      }
+    },
+    "prover": {
+      "meta": {
+        "title": "Prover Management | QS Admin",
+        "description": "Prover network monitoring and management"
+      },
+      "title": "Prover Management",
+      "subtitle": "Prover Network Monitoring & Management",
+      "ariaLabel": "Prover management page",
+      "tabs": {
+        "all": "All Provers",
+        "queue": "Signing Queue",
+        "applications": "Applications",
+        "performance": "Performance"
+      },
+      "stats": {
+        "activeProvers": {
+          "label": "Active Provers",
+          "healthy": "Healthy"
+        },
+        "totalStake": {
+          "label": "Total Stake"
+        },
+        "avgSla": {
+          "label": "Avg SLA"
+        },
+        "pendingQueue": {
+          "label": "Pending Queue"
+        }
+      },
+      "table": {
+        "title": "Prover List",
+        "columns": {
+          "proverId": "Prover ID",
+          "operator": "Operator",
+          "status": "Status",
+          "stake": "Stake",
+          "sla": "SLA",
+          "signatures": "Signatures (24h)",
+          "lastActive": "Last Active"
+        },
+        "empty": "No provers found"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "slaWarning": "SLA Warning",
+        "suspended": "Suspended"
+      },
+      "time": {
+        "minAgo": "{count} min ago",
+        "hourAgo": "{count} hours ago",
+        "justNow": "Just now"
+      },
+      "applications": {
+        "title": "Pending Applications",
+        "approve": "Approve",
+        "reject": "Reject",
+        "reviewButton": "Review"
+      }
+    },
+    "onboarding": {
+      "meta": {
+        "title": "Staff Onboarding | QS Admin",
+        "description": "Staff onboarding training"
+      },
+      "ariaLabel": "Staff onboarding page",
+      "progress": {
+        "step": "Step {current} / {total}",
+        "stepLabel": "Step {number}"
+      },
+      "steps": {
+        "welcome": "Welcome",
+        "overview": "Overview",
+        "principles": "Principles",
+        "emergency": "Emergency",
+        "quiz": "Quiz"
+      },
+      "welcome": {
+        "title": "Welcome to QS Admin",
+        "subtitle": "Welcome to the Quantum Shield management system",
+        "greeting": "Hello, {name}!",
+        "message": "Welcome to the Quantum Shield team. This onboarding will teach you about the QS ecosystem and the Core Principles (5 rules).",
+        "roleBadge": "{from} → {to} permission upgrade preparation",
+        "startButton": "Start Onboarding"
+      },
+      "overview": {
+        "title": "Quantum Shield Overview",
+        "subtitle": "Quantum-resistant asset protection protocol",
+        "systems": {
+          "consumer": {
+            "title": "Consumer App",
+            "description": "App for end users to Lock/Unlock assets. Achieves quantum resistance with Dilithium signatures."
+          },
+          "prover": {
+            "title": "Prover Network",
+            "description": "Distributed network that approves Unlocks with SPHINCS+ signatures. 127 nodes active."
+          },
+          "governance": {
+            "title": "Governance",
+            "description": "Decentralized decision-making by veQS holders. Parameter changes decided by voting."
+          },
+          "admin": {
+            "title": "QS Admin",
+            "description": "The management system you use. Handles monitoring, operations, and emergency response."
+          }
+        }
+      },
+      "principles": {
+        "title": "Core Principles",
+        "subtitle": "5 immutable rules (cannot be changed)",
+        "items": {
+          "cp1": {
+            "title": "Full Quantum Resistance",
+            "description": "Only NIST-compliant quantum-resistant algorithms. ECDSA, SHA-256 prohibited.",
+            "tag": "CP-1"
+          },
+          "cp2": {
+            "title": "Self-Custody",
+            "description": "Users manage their own private keys. Storing private keys on servers is prohibited.",
+            "tag": "CP-2"
+          },
+          "cp3": {
+            "title": "Time Lock Requirement",
+            "description": "Time Lock cannot be set to 0. Normal 24 hours, emergency 7 days lock period.",
+            "tag": "CP-3"
+          },
+          "cp4": {
+            "title": "Slashing Requirement",
+            "description": "Slashing mechanism cannot be removed. Functions as a deterrent against misconduct.",
+            "tag": "CP-4"
+          },
+          "cp5": {
+            "title": "Transparency",
+            "description": "Everything verifiable on-chain. Off-chain secret computation is prohibited.",
+            "tag": "CP-5"
+          }
+        }
+      },
+      "emergency": {
+        "title": "Emergency Procedures",
+        "subtitle": "Emergency response procedures",
+        "steps": {
+          "step1": {
+            "title": "When you detect an anomaly",
+            "description": "Report to your supervisor (Matsumoto-san) first. Do not Pause on your own judgment."
+          },
+          "step2": {
+            "title": "Record the situation",
+            "description": "Record screenshots, logs, and timestamps. Post to Slack #incident channel."
+          },
+          "step3": {
+            "title": "Pause decision (Admin or above)",
+            "description": "Admin permission holder judges if Pause is necessary. Execute with 2+ Super Admins."
+          },
+          "step4": {
+            "title": "Recovery work",
+            "description": "Identify cause → Fix → Test → Security Council approval → Resume"
+          },
+          "step5": {
+            "title": "Post-mortem",
+            "description": "Create incident report and publish to community."
+          }
+        }
+      },
+      "quiz": {
+        "title": "Confirmation Quiz",
+        "subtitle": "Let's confirm your understanding",
+        "question1": {
+          "title": "Question 1",
+          "question": "Which algorithm is prohibited under CP-1 \"Full Quantum Resistance\"?",
+          "options": {
+            "a": "Dilithium-III",
+            "b": "SPHINCS+-128s",
+            "c": "ECDSA",
+            "d": "SHA3-256"
+          },
+          "correct": "c"
+        },
+        "question2": {
+          "title": "Question 2",
+          "question": "What is the Time Lock period for normal Unlock?",
+          "options": {
+            "a": "12 hours",
+            "b": "24 hours",
+            "c": "48 hours",
+            "d": "7 days"
+          },
+          "correct": "b"
+        },
+        "completeButton": "Complete Onboarding",
+        "incorrectWarning": "Please select the correct answer"
+      },
+      "completion": {
+        "title": "Onboarding Complete!",
+        "message": "Congratulations! You have completed onboarding. You have now obtained Operator permission.",
+        "permissionLabel": "New Permission Level",
+        "permissionValue": "Operator",
+        "dashboardButton": "Go to Dashboard"
+      },
+      "navigation": {
+        "back": "Back",
+        "next": "Next"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Dashboard | QS Admin",
+        "description": "Quantum Shield System Monitoring"
+      },
+      "title": "Dashboard",
+      "subtitle": "Quantum Shield System Monitoring",
+      "ariaLabel": "QS Admin Dashboard",
+      "liveIndicator": "Live Updates",
+      "emergencyButton": "Emergency Pause",
+      "stats": {
+        "tvl": {
+          "label": "Total Value Locked",
+          "change": "(24h)"
+        },
+        "provers": {
+          "label": "Active Provers",
+          "healthy": "Healthy"
+        },
+        "pendingUnlocks": {
+          "label": "Pending Unlocks",
+          "attention": "require attention"
+        },
+        "alerts": {
+          "label": "Active Alerts",
+          "highPriority": "high priority"
+        }
+      },
+      "systemStatus": {
+        "title": "System Status",
+        "allOperational": "All Systems Operational",
+        "systems": {
+          "l3Network": {
+            "name": "L3 Aegis Network",
+            "block": "Block",
+            "tps": "TPS"
+          },
+          "proverNetwork": {
+            "name": "Prover Network",
+            "online": "Online",
+            "queue": "Queue"
+          },
+          "l1Vault": {
+            "name": "L1 Vault",
+            "sync": "Sync",
+            "gas": "Gas"
+          },
+          "observerNetwork": {
+            "name": "Observer Network",
+            "active": "Active",
+            "challenges": "Challenges"
+          },
+          "apiGateway": {
+            "name": "API Gateway",
+            "latency": "Latency",
+            "rps": "RPS"
+          },
+          "securityMonitors": {
+            "name": "Security Monitors",
+            "scans": "Scans",
+            "threats": "Threats"
+          }
+        }
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "types": {
+          "lock": "Lock",
+          "unlock": "Unlock completed",
+          "proverSigned": "Prover signed Unlock request",
+          "proverApplication": "New Prover application submitted"
+        },
+        "timeAgo": {
+          "minutes": "min ago",
+          "hours": "hours ago"
+        }
+      },
+      "alerts": {
+        "title": "Active Alerts",
+        "severity": {
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "items": {
+          "proverSlaWarning": "Prover SLA Warning",
+          "largeUnlockRequest": "Large Unlock Request",
+          "newProverApplication": "New Prover Application",
+          "gasPriceSpike": "Gas price spike on L1",
+          "scheduledMaintenance": "Scheduled maintenance reminder"
+        }
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "reviewProvers": "Review Provers",
+        "txMonitor": "TX Monitor",
+        "dailyReport": "Daily Report",
+        "auditLog": "Audit Log"
+      }
+    }
+  }
+}
