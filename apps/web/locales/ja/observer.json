@@ -1,0 +1,378 @@
+{
+  "observer": {
+    "common": {
+      "header": {
+        "dashboard": "ダッシュボード",
+        "pending": "待機中",
+        "suspicious": "疑わしい取引",
+        "history": "履歴",
+        "earnings": "報酬"
+      },
+      "portalName": "Observer Portal"
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Observer ダッシュボード | Quantum Shield",
+        "description": "Observer ダッシュボード - アンロック監視と不正検知"
+      },
+      "pageTitle": "Observer Dashboard",
+      "monitoringBadge": "監視中",
+      "monitoringBadgeAriaLabel": "監視ステータス: アクティブ",
+      "stats": {
+        "pendingUnlocks": {
+          "label": "待機中のアンロック",
+          "tooltip": "24時間または7日間の待機期間中のアンロック要求数",
+          "change": "直近1時間で+{count}件"
+        },
+        "suspicious": {
+          "label": "疑わしい取引",
+          "tooltip": "AIが不正の可能性を検知した取引。確認してChallengeを検討してください",
+          "badge": "要確認"
+        },
+        "activeChallenges": {
+          "label": "進行中のChallenge",
+          "tooltip": "Challengeとは不正な取引を申し立てる仕組みです。成功すると報酬を獲得できます"
+        },
+        "totalEarnings": {
+          "label": "累計報酬",
+          "tooltip": "Challengeの成功や監視活動で獲得した報酬の合計",
+          "change": "今週+{amount}"
+        }
+      },
+      "pendingUnlocks": {
+        "title": "待機中のアンロック",
+        "live": "ライブ",
+        "viewAll": "すべて見る",
+        "table": {
+          "address": "アドレス",
+          "amount": "金額",
+          "type": "種別",
+          "timeRemaining": "残り時間",
+          "status": "ステータス"
+        },
+        "types": {
+          "normal": "通常",
+          "emergency": "緊急"
+        },
+        "statuses": {
+          "pending": "待機中",
+          "monitoring": "監視中"
+        }
+      },
+      "suspicious": {
+        "title": "疑わしい取引",
+        "viewAll": "すべて見る",
+        "highRisk": "高リスク検出",
+        "mediumRisk": "中リスク",
+        "score": "スコア",
+        "firstTimeEmergency": "初回の緊急アンロック（高額）",
+        "unusualPattern": "異常なパターンを検出",
+        "challengeButton": "この取引にChallenge"
+      },
+      "pending": {
+        "meta": {
+          "title": "待機中のアンロック | Observer | Quantum Shield",
+          "description": "監視対象の待機中アンロック一覧"
+        },
+        "pageTitle": "待機中のアンロック",
+        "liveMonitoring": "ライブ監視",
+        "filters": {
+          "unlockType": {
+            "label": "種別",
+            "all": "すべての種別",
+            "normal": "通常",
+            "emergency": "緊急"
+          },
+          "minAmount": {
+            "label": "最小金額",
+            "placeholder": "0.00 ETH"
+          },
+          "maxAmount": {
+            "label": "最大金額",
+            "placeholder": "∞ ETH"
+          },
+          "riskScore": {
+            "label": "リスクスコア",
+            "all": "すべてのスコア",
+            "high": "高 (70+)",
+            "medium": "中 (40-69)",
+            "low": "低 (0-39)"
+          },
+          "sortBy": {
+            "label": "並び替え",
+            "timeAsc": "残り時間 ↑",
+            "amountDesc": "金額 ↓",
+            "riskDesc": "リスクスコア ↓"
+          }
+        },
+        "table": {
+          "userAddress": "ユーザーアドレス",
+          "amount": "金額",
+          "type": "種別",
+          "timeRemaining": "残り時間",
+          "risk": "リスク",
+          "status": "ステータス",
+          "action": "アクション"
+        },
+        "statuses": {
+          "monitoring": "監視中",
+          "pending": "待機中",
+          "review": "要確認",
+          "lowRisk": "低リスク"
+        },
+        "actions": {
+          "challenge": "Challenge",
+          "monitor": "監視"
+        },
+        "detail": {
+          "fullAddress": "完全なアドレス",
+          "startedAt": "開始日時",
+          "bondPaid": "支払い済みBond",
+          "txHash": "TX Hash",
+          "accountAge": "アカウント経過日数",
+          "previousUnlocks": "過去のアンロック",
+          "previousUnlocksValue": "{count}回（すべて成功）",
+          "riskFactors": "リスク要因",
+          "riskFactorFirstTime": "初回の緊急アンロック",
+          "riskFactorLargeAmount": "高額取引（上位5%）",
+          "riskFactorNewAccount": "アカウント経過日数: {days}日",
+          "challengeButton": "この取引にChallenge",
+          "viewOnExplorer": "Explorerで確認",
+          "copyTxHash": "TX Hashをコピー",
+          "copySuccess": "コピーしました"
+        },
+        "pagination": {
+          "showing": "{start}〜{end}件 / {total}件の待機中アンロック",
+          "prev": "← 前へ",
+          "next": "次へ →"
+        }
+      },
+      "suspiciousPage": {
+        "meta": {
+          "title": "疑わしい取引 | Observer | Quantum Shield",
+          "description": "監視対象の疑わしい取引一覧"
+        },
+        "pageTitle": "疑わしい取引",
+        "alertCount": "{count}件のアラートが要確認",
+        "riskLevels": {
+          "high": "高リスク検出",
+          "medium": "中リスク"
+        },
+        "detectedAgo": "{time}前に検出",
+        "txSummary": {
+          "address": "アドレス",
+          "amount": "金額",
+          "unlockType": "種別",
+          "timeRemaining": "残り時間"
+        },
+        "riskFactors": {
+          "title": "検出されたリスク要因",
+          "firstTimeEmergency": "このアドレスからの初回緊急アンロック",
+          "largeAmount": "全アンロック要求の上位5%に該当する金額",
+          "newAccount": "アカウント作成からわずか{days}日",
+          "unusualTiming": "異常なタイミングパターン（現地時間{time}）",
+          "unusualPattern": "異常なアンロックパターン - 24時間で{count}回のアンロック",
+          "exceedsAverage": "合計アンロック金額が過去平均の{percent}%を超過",
+          "flaggedAssociation": "フラグ付きアカウントとの関連あり"
+        },
+        "actions": {
+          "challenge": "この取引にChallenge",
+          "viewDetails": "詳細を見る",
+          "dismiss": "却下",
+          "monitorClosely": "注視する"
+        }
+      },
+      "history": {
+        "meta": {
+          "title": "Challenge履歴 | Observer | Quantum Shield",
+          "description": "過去のChallenge結果と報酬履歴"
+        },
+        "pageTitle": "Challenge履歴",
+        "stats": {
+          "totalChallenges": "総Challenge数",
+          "successful": "成功",
+          "failed": "失敗",
+          "totalEarnings": "累計報酬"
+        },
+        "filters": {
+          "result": {
+            "all": "すべての結果",
+            "successful": "成功",
+            "failed": "失敗"
+          },
+          "period": {
+            "last30": "直近30日",
+            "last7": "直近7日",
+            "last90": "直近90日",
+            "allTime": "全期間"
+          },
+          "exportCsv": "CSVエクスポート"
+        },
+        "table": {
+          "challengeId": "Challenge ID",
+          "targetAddress": "対象アドレス",
+          "amount": "金額",
+          "date": "日付",
+          "result": "結果",
+          "rewardPenalty": "報酬/ペナルティ",
+          "action": "アクション"
+        },
+        "results": {
+          "inProgress": "進行中",
+          "won": "✓ 勝利",
+          "lost": "✗ 敗北"
+        },
+        "actions": {
+          "view": "詳細"
+        },
+        "pagination": {
+          "showing": "{start}〜{end}件 / {total}件のChallenge",
+          "prev": "← 前へ",
+          "next": "次へ →"
+        }
+      },
+      "challenge": {
+        "meta": {
+          "title": "Challenge提出 | Observer | Quantum Shield",
+          "description": "不正な取引にChallengeを提出"
+        },
+        "pageTitle": "Challenge提出",
+        "backToSuspicious": "← 戻る",
+        "targetTransaction": {
+          "title": "対象取引",
+          "targetAddress": "対象アドレス",
+          "amount": "金額",
+          "unlockType": "種別",
+          "timeRemaining": "残り時間",
+          "txHash": "TX Hash",
+          "riskScore": "リスクスコア",
+          "emergency": "緊急アンロック"
+        },
+        "evidence": {
+          "title": "証拠と理由",
+          "selectFactors": "該当するリスク要因を選択",
+          "firstTimeEmergency": "このアドレスからの初回緊急アンロック",
+          "largeAmount": "全アンロック要求の上位5%に該当",
+          "newAccount": "アカウント作成から30日未満",
+          "suspicious": "既知の疑わしい活動に関連するアドレス",
+          "additionalEvidence": "追加の証拠",
+          "additionalPlaceholder": "Challengeに関する追加の証拠やコンテキストを入力...",
+          "evidenceHint": "トランザクションハッシュ、オンチェーン証拠、その他関連情報を含めてください",
+          "supportingLinks": "関連リンク（任意）",
+          "addLink": "+ リンクを追加"
+        },
+        "bond": {
+          "title": "Challenge Bond",
+          "requiredAmount": "必要なBond金額",
+          "calculation": "Bond = MAX(0.1 ETH, アンロック金額 × 1%)",
+          "warningLose": "⚠️ Challengeが失敗した場合、このBondは没収されます",
+          "warningWin": "✓ 成功した場合、Bondは返却され、さらにProverのステークの一部を受け取ります"
+        },
+        "actions": {
+          "cancel": "キャンセル",
+          "submit": "Challenge提出 ({amount})"
+        },
+        "confirm": {
+          "title": "Challenge提出の確認",
+          "target": "対象",
+          "unlockAmount": "アンロック金額",
+          "bondRequired": "必要Bond",
+          "defensePeriod": "防御期間",
+          "warning": "⚠️ 警告: Challengeが失敗した場合、{amount}のBondは没収されます。確かな証拠がある場合のみ提出してください。",
+          "acknowledgement": "Bondが没収される可能性があることを理解しています。正確な証拠を提供しており、この取引が不正であると確信しています。",
+          "cancelButton": "キャンセル",
+          "confirmButton": "確認して提出"
+        }
+      },
+      "challengeProgress": {
+        "meta": {
+          "title": "Challenge進捗 | Observer | Quantum Shield",
+          "description": "Challenge状況の確認"
+        },
+        "pageTitle": "Challenge #{id}",
+        "backToHistory": "← 履歴に戻る",
+        "status": {
+          "defensePeriod": "防御期間中",
+          "awaitingJudgment": "判定待ち",
+          "resolved": "解決済み"
+        },
+        "timeline": {
+          "title": "タイムライン",
+          "submitted": "Challenge提出",
+          "defenseStart": "防御期間開始",
+          "defenseEnd": "防御期間終了",
+          "judgment": "判定",
+          "resolution": "解決"
+        },
+        "details": {
+          "title": "Challenge詳細",
+          "yourBond": "あなたのBond",
+          "targetAmount": "対象金額",
+          "timeRemaining": "残り時間",
+          "proverDefense": "Prover防御",
+          "none": "なし"
+        },
+        "yourEvidence": "あなたの証拠"
+      },
+      "earnings": {
+        "meta": {
+          "title": "報酬 | Observer | Quantum Shield",
+          "description": "Challenge報酬と請求"
+        },
+        "pageTitle": "報酬管理",
+        "summary": {
+          "totalEarnings": "累計報酬",
+          "claimable": "請求可能",
+          "pending": "未確定",
+          "claimed": "請求済み"
+        },
+        "claim": {
+          "title": "請求可能な報酬",
+          "available": "請求可能",
+          "claimButton": "報酬を請求",
+          "claimAll": "すべて請求"
+        },
+        "history": {
+          "title": "報酬履歴",
+          "challengeId": "Challenge ID",
+          "amount": "金額",
+          "type": "種別",
+          "date": "日付",
+          "status": "ステータス"
+        },
+        "types": {
+          "challengeWin": "Challenge勝利",
+          "monitoringReward": "監視報酬",
+          "bonusReward": "ボーナス報酬"
+        },
+        "statuses": {
+          "claimable": "請求可能",
+          "claimed": "請求済み",
+          "pending": "未確定"
+        }
+      },
+      "claimableEarnings": {
+        "title": "請求可能な報酬",
+        "available": "請求可能",
+        "claimButton": "報酬を請求"
+      },
+      "challengeStats": {
+        "title": "あなたのChallenge統計",
+        "successful": "成功",
+        "failed": "失敗",
+        "successRate": "成功率"
+      },
+      "activeChallenges": {
+        "title": "進行中のChallenge",
+        "defensePeriod": "防御期間中",
+        "awaitingJudgment": "判定待ち",
+        "vs": "vs"
+      },
+      "observerStake": {
+        "title": "あなたのObserverステーク",
+        "activeSince": "アクティブ開始日",
+        "statusActive": "アクティブ"
+      }
+    }
+  }
+}
