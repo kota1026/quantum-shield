@@ -1,0 +1,122 @@
+{
+  "governance": {
+    "common": {
+      "header": {
+        "dashboard": "ダッシュボード",
+        "proposals": "提案一覧",
+        "create": "提案作成",
+        "activity": "活動履歴"
+      },
+      "wallet": {
+        "connected": "接続中",
+        "disconnect": "切断"
+      },
+      "navigation": {
+        "backToHome": "ホームに戻る"
+      }
+    },
+    "landing": {
+      "meta": {
+        "title": "Governance | Quantum Shield",
+        "description": "Quantum Shieldの将来を決める投票に参加しましょう"
+      },
+      "pageTitle": "Governance Dashboard",
+      "pageSubtitle": "Quantum Shieldの将来を決める投票に参加しましょう",
+      "ariaLabel": "Governanceダッシュボード",
+      "stats": {
+        "ariaLabel": "Governance統計",
+        "activeProposals": {
+          "label": "アクティブな提案",
+          "badge": "Live"
+        },
+        "yourVotingPower": {
+          "label": "あなたの投票力",
+          "badge": "Votes"
+        },
+        "participationRate": {
+          "label": "参加率"
+        },
+        "totalProposals": {
+          "label": "総提案数（累計）"
+        }
+      },
+      "votingPower": {
+        "title": "My Voting Power",
+        "viewDetails": "詳細を見る",
+        "totalLabel": "総投票力",
+        "howCalculated": "計算方法は？",
+        "howCalculatedTooltip": "veQS = QS x (残り日数 / 730)\n投票力は、ロックしたQS量と残りロック期間に基づいて計算されます。ロック期間が長いほど投票力が大きくなります。",
+        "unit": "veQS",
+        "breakdown": {
+          "myVeqs": "自分のveQS",
+          "delegatedToMe": "委任された投票力",
+          "iDelegated": "委任した投票力"
+        },
+        "delegation": {
+          "delegators": "委任者数",
+          "delegatorsUnit": "アドレス",
+          "lockExpiry": "ロック終了日"
+        }
+      },
+      "actions": {
+        "voteNow": "投票する",
+        "createProposal": "提案を作成",
+        "viewCouncil": "カウンシルを見る"
+      },
+      "proposals": {
+        "title": "アクティブな提案",
+        "viewAll": "すべて見る",
+        "status": {
+          "active": "投票中",
+          "pending": "実行待ち",
+          "passed": "可決",
+          "rejected": "否決"
+        },
+        "timeLeft": "残り",
+        "by": "提案者",
+        "type": "種類",
+        "types": {
+          "parameter": "パラメータ",
+          "upgrade": "アップグレード",
+          "council": "カウンシル"
+        },
+        "forLabel": "賛成",
+        "againstLabel": "反対"
+      },
+      "quorum": {
+        "title": "定足数要件",
+        "currentTotalVeqs": "現在の総veQS",
+        "types": {
+          "parameter": "パラメータ",
+          "upgrade": "アップグレード",
+          "council": "カウンシル"
+        }
+      },
+      "activity": {
+        "title": "最近のアクティビティ",
+        "votedFor": "{proposal}に賛成票を投じました",
+        "votedAgainst": "{proposal}に反対票を投じました",
+        "receivedDelegation": "{address}から委任を受けました",
+        "proposalPassed": "{proposal}が{percent}%の賛成で可決されました",
+        "timeAgo": {
+          "hours": "{n}時間前",
+          "days": "{n}日前"
+        }
+      },
+      "council": {
+        "title": "カウンシルステータス",
+        "securityCouncil": "セキュリティカウンシル",
+        "purposeCommittee": "パーパス委員会",
+        "activeStatus": "アクティブ"
+      }
+    },
+    "footer": {
+      "forum": "Governance Forum",
+      "documentation": "ドキュメント",
+      "terms": "利用規約",
+      "privacy": "プライバシーポリシー",
+      "disclaimer": "ガバナンスへの参加は任意です。投票は財務アドバイスではありません。すべての提案はタイムロック（7日間）とカウンシルの拒否権の対象となります。",
+      "copyright": "2026 Quantum Shield. Made in Japan."
+    }
+  }
+}

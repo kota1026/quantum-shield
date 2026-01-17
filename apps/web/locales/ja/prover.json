@@ -1,0 +1,174 @@
+{
+  "prover": {
+    "common": {
+      "header": {
+        "overview": "概要",
+        "requirements": "要件",
+        "economics": "経済性",
+        "apply": "申請",
+        "login": "ログイン",
+        "applyNow": "今すぐ申請"
+      },
+      "footer": {
+        "tagline": "Quantum Shield",
+        "madeIn": "Made in Japan",
+        "terms": "利用規約",
+        "privacy": "プライバシーポリシー",
+        "cookie": "クッキーポリシー"
+      },
+      "portalName": "Prover Portal"
+    },
+    "landing": {
+      "meta": {
+        "title": "Prover になる | Quantum Shield",
+        "description": "量子耐性バリデーターネットワークに参加し、未来を守りながら報酬を獲得しましょう"
+      },
+      "hero": {
+        "badge": "量子耐性インフラ",
+        "title": "Prover になり",
+        "titleHighlight": "未来を守りながら報酬を獲得",
+        "description": "量子耐性バリデーターネットワークに参加しましょう。SPHINCS+ 署名でクロスチェーン資産を保護しながら、競争力のある報酬を獲得できます。",
+        "applyButton": "Prover に申請する",
+        "requirementsButton": "要件を確認"
+      },
+      "stats": {
+        "ariaLabel": "ネットワーク統計",
+        "activeProvers": {
+          "label": "アクティブ Prover",
+          "tooltip": "現在ネットワークでアクティブに活動している Prover の数"
+        },
+        "totalStaked": {
+          "label": "総ステーク額",
+          "tooltip": "すべての Prover によってステークされた資産の合計"
+        },
+        "annualRoi": {
+          "label": "年間 ROI（予測）",
+          "tooltip": "予測される年間投資収益率"
+        },
+        "networkUptime": {
+          "label": "ネットワーク稼働率",
+          "tooltip": "ネットワーク全体の稼働率"
+        }
+      },
+      "requirements": {
+        "sectionLabel": "要件",
+        "sectionTitle": "必要なもの",
+        "sectionDesc": "Quantum Shield Prover になるための技術要件",
+        "viewAllButton": "すべての要件を見る",
+        "stake": {
+          "icon": "stake",
+          "title": "ステーク要件",
+          "value": "$400,000",
+          "description": "ETH 換算での最小ステーク額。ネットワークセキュリティのための担保です。"
+        },
+        "hsm": {
+          "icon": "hsm",
+          "title": "HSM 要件",
+          "value": "FIPS 140-2 L3+",
+          "description": "SPHINCS+ 鍵保管用のハードウェアセキュリティモジュール。"
+        },
+        "sla": {
+          "icon": "sla",
+          "title": "SLA 要件",
+          "value": "99.9% / 30秒",
+          "description": "稼働率と最大応答時間の要件。"
+        }
+      },
+      "calculator": {
+        "sectionLabel": "経済性",
+        "sectionTitle": "ROI シミュレーター",
+        "sectionDesc": "Prover としての潜在的な収益を試算",
+        "stakeAmount": "ステーク額（ETH）",
+        "monthlyVolume": "月間予想取引量（ETH）",
+        "expectedUptime": "予想稼働率（%）",
+        "calculateButton": "ROI を計算",
+        "result": {
+          "title": "年間予想収益",
+          "signatureFees": "署名手数料",
+          "performanceBonus": "パフォーマンスボーナス",
+          "roiOnStake": "ステークに対する ROI"
+        }
+      },
+      "slashing": {
+        "title": "二次関数的スラッシングリスク",
+        "description": "複数の Prover が同じ違反を犯した場合、スラッシングペナルティは二次関数的に増加します。このメカニズムは共謀を強く抑止します。",
+        "table": {
+          "violatingProvers": "違反 Prover 数",
+          "slashingRate": "スラッシング率",
+          "lossOnStake": "$400K ステークでの損失"
+        },
+        "rows": {
+          "one": "1 Prover",
+          "two": "2 Prover",
+          "three": "3 Prover",
+          "fourPlus": "4+ Prover"
+        }
+      },
+      "cta": {
+        "title": "ネットワークに参加する準備はできましたか？",
+        "description": "今日から申請を開始しましょう。審査プロセスは通常3〜5営業日かかります。",
+        "button": "申請を開始"
+      }
+    },
+    "requirements": {
+      "meta": {
+        "title": "Prover 要件 | Quantum Shield",
+        "description": "Quantum Shield Prover になるための技術要件と経済要件"
+      }
+    },
+    "application": {
+      "meta": {
+        "title": "Prover 申請 | Quantum Shield",
+        "description": "Quantum Shield Prover ネットワークへの参加を申請"
+      }
+    },
+    "status": {
+      "meta": {
+        "title": "申請状況 | Quantum Shield",
+        "description": "Prover 申請の進捗状況を確認"
+      }
+    },
+    "activation": {
+      "meta": {
+        "title": "アクティベーション | Quantum Shield",
+        "description": "Prover ノードのアクティベーション"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Prover ダッシュボード | Quantum Shield",
+        "description": "Prover の運用状況とパフォーマンスを監視"
+      }
+    },
+    "queue": {
+      "meta": {
+        "title": "署名キュー | Quantum Shield",
+        "description": "署名待ちのトランザクションを確認"
+      }
+    },
+    "metrics": {
+      "meta": {
+        "title": "パフォーマンス指標 | Quantum Shield",
+        "description": "Prover のパフォーマンス指標を確認"
+      }
+    },
+    "alerts": {
+      "meta": {
+        "title": "アラート | Quantum Shield",
+        "description": "システムアラートと通知"
+      }
+    },
+    "challenge": {
+      "meta": {
+        "title": "チャレンジ | Quantum Shield",
+        "description": "Observer からのチャレンジを確認・対応"
+      }
+    },
+    "exit": {
+      "meta": {
+        "title": "Prover 退出 | Quantum Shield",
+        "description": "Prover ネットワークからの退出手続き"
+      }
+    }
+  }
+}

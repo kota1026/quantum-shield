@@ -1,0 +1,122 @@
+{
+  "governance": {
+    "common": {
+      "header": {
+        "dashboard": "Dashboard",
+        "proposals": "Proposals",
+        "create": "Create",
+        "activity": "My Activity"
+      },
+      "wallet": {
+        "connected": "Connected",
+        "disconnect": "Disconnect"
+      },
+      "navigation": {
+        "backToHome": "Back to Home"
+      }
+    },
+    "landing": {
+      "meta": {
+        "title": "Governance | Quantum Shield",
+        "description": "Participate in voting to shape the future of Quantum Shield"
+      },
+      "pageTitle": "Governance Dashboard",
+      "pageSubtitle": "Participate in voting to shape the future of Quantum Shield",
+      "ariaLabel": "Governance Dashboard",
+      "stats": {
+        "ariaLabel": "Governance Statistics",
+        "activeProposals": {
+          "label": "Active Proposals",
+          "badge": "Live"
+        },
+        "yourVotingPower": {
+          "label": "Your Voting Power",
+          "badge": "Votes"
+        },
+        "participationRate": {
+          "label": "Participation Rate"
+        },
+        "totalProposals": {
+          "label": "Total Proposals (All Time)"
+        }
+      },
+      "votingPower": {
+        "title": "My Voting Power",
+        "viewDetails": "View Details",
+        "totalLabel": "Total Voting Power",
+        "howCalculated": "How is this calculated?",
+        "howCalculatedTooltip": "veQS = QS x (remaining_days / 730)\nVoting power is calculated based on your locked QS amount and remaining lock period. Longer lock periods result in greater voting power.",
+        "unit": "veQS",
+        "breakdown": {
+          "myVeqs": "My veQS",
+          "delegatedToMe": "Delegated to Me",
+          "iDelegated": "I Delegated"
+        },
+        "delegation": {
+          "delegators": "Delegators",
+          "delegatorsUnit": "addresses",
+          "lockExpiry": "Lock Expiry"
+        }
+      },
+      "actions": {
+        "voteNow": "Vote Now",
+        "createProposal": "Create Proposal",
+        "viewCouncil": "View Council"
+      },
+      "proposals": {
+        "title": "Active Proposals",
+        "viewAll": "View All",
+        "status": {
+          "active": "Active",
+          "pending": "Pending Execution",
+          "passed": "Passed",
+          "rejected": "Rejected"
+        },
+        "timeLeft": "left",
+        "by": "By",
+        "type": "Type",
+        "types": {
+          "parameter": "Parameter",
+          "upgrade": "Upgrade",
+          "council": "Council"
+        },
+        "forLabel": "For",
+        "againstLabel": "Against"
+      },
+      "quorum": {
+        "title": "Quorum Requirements",
+        "currentTotalVeqs": "Current Total veQS",
+        "types": {
+          "parameter": "Parameter",
+          "upgrade": "Upgrade",
+          "council": "Council"
+        }
+      },
+      "activity": {
+        "title": "Recent Activity",
+        "votedFor": "You voted For on {proposal}",
+        "votedAgainst": "You voted Against on {proposal}",
+        "receivedDelegation": "Received delegation from {address}",
+        "proposalPassed": "{proposal} passed with {percent}% approval",
+        "timeAgo": {
+          "hours": "{n} hours ago",
+          "days": "{n} days ago"
+        }
+      },
+      "council": {
+        "title": "Council Status",
+        "securityCouncil": "Security Council",
+        "purposeCommittee": "Purpose Committee",
+        "activeStatus": "Active"
+      }
+    },
+    "footer": {
+      "forum": "Governance Forum",
+      "documentation": "Documentation",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "disclaimer": "Governance participation is voluntary. Voting does not constitute financial advice. All proposals are subject to Time Lock (7 days) and Council veto rights.",
+      "copyright": "2026 Quantum Shield. Made in Japan."
+    }
+  }
+}

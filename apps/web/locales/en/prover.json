@@ -1,0 +1,175 @@
+{
+  "prover": {
+    "common": {
+      "header": {
+        "overview": "Overview",
+        "requirements": "Requirements",
+        "economics": "Economics",
+        "apply": "Apply",
+        "login": "Login",
+        "applyNow": "Apply Now"
+      },
+      "footer": {
+        "tagline": "Quantum Shield",
+        "madeIn": "Made in Japan",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "cookie": "Cookie Policy"
+      },
+      "portalName": "Prover Portal"
+    },
+    "landing": {
+      "meta": {
+        "title": "Become a Prover | Quantum Shield",
+        "description": "Join the quantum-resistant validator network and earn rewards while securing the future"
+      },
+      "hero": {
+        "badge": "Quantum-Resistant Infrastructure",
+        "title": "Become a",
+        "titleHighlight": "Prover",
+        "subtitle": "Earn While Securing the Future",
+        "description": "Join the quantum-resistant validator network. Earn competitive rewards while helping secure cross-chain assets with SPHINCS+ signatures.",
+        "applyButton": "Apply to Become a Prover",
+        "requirementsButton": "View Requirements"
+      },
+      "stats": {
+        "ariaLabel": "Network Statistics",
+        "activeProvers": {
+          "label": "Active Provers",
+          "tooltip": "Number of Provers currently active in the network"
+        },
+        "totalStaked": {
+          "label": "Total Staked",
+          "tooltip": "Total assets staked by all Provers"
+        },
+        "annualRoi": {
+          "label": "Est. Annual ROI",
+          "tooltip": "Estimated annual return on investment"
+        },
+        "networkUptime": {
+          "label": "Network Uptime",
+          "tooltip": "Overall network uptime percentage"
+        }
+      },
+      "requirements": {
+        "sectionLabel": "Requirements",
+        "sectionTitle": "What You Need",
+        "sectionDesc": "Technical requirements for becoming a Quantum Shield Prover",
+        "viewAllButton": "View All Requirements",
+        "stake": {
+          "icon": "stake",
+          "title": "Stake Requirement",
+          "value": "$400,000",
+          "description": "Minimum stake in ETH equivalent. Collateral for network security."
+        },
+        "hsm": {
+          "icon": "hsm",
+          "title": "HSM Requirement",
+          "value": "FIPS 140-2 L3+",
+          "description": "Hardware Security Module for SPHINCS+ key storage."
+        },
+        "sla": {
+          "icon": "sla",
+          "title": "SLA Requirement",
+          "value": "99.9% / 30s",
+          "description": "Uptime and maximum response time requirements."
+        }
+      },
+      "calculator": {
+        "sectionLabel": "Economics",
+        "sectionTitle": "ROI Calculator",
+        "sectionDesc": "Estimate your potential earnings as a Prover",
+        "stakeAmount": "Stake Amount (ETH)",
+        "monthlyVolume": "Expected Monthly Volume (ETH)",
+        "expectedUptime": "Expected Uptime (%)",
+        "calculateButton": "Calculate ROI",
+        "result": {
+          "title": "Estimated Annual Earnings",
+          "signatureFees": "Signature Fees",
+          "performanceBonus": "Performance Bonus",
+          "roiOnStake": "ROI on Stake"
+        }
+      },
+      "slashing": {
+        "title": "Quadratic Slashing Risk",
+        "description": "Slashing penalties increase quadratically if multiple Provers commit the same violation. This mechanism strongly discourages collusion.",
+        "table": {
+          "violatingProvers": "Violating Provers",
+          "slashingRate": "Slashing Rate",
+          "lossOnStake": "Loss on $400K Stake"
+        },
+        "rows": {
+          "one": "1 Prover",
+          "two": "2 Provers",
+          "three": "3 Provers",
+          "fourPlus": "4+ Provers"
+        }
+      },
+      "cta": {
+        "title": "Ready to Join the Network?",
+        "description": "Start your application today. The review process typically takes 3-5 business days.",
+        "button": "Start Application"
+      }
+    },
+    "requirements": {
+      "meta": {
+        "title": "Prover Requirements | Quantum Shield",
+        "description": "Technical and economic requirements to become a Quantum Shield Prover"
+      }
+    },
+    "application": {
+      "meta": {
+        "title": "Prover Application | Quantum Shield",
+        "description": "Apply to join the Quantum Shield Prover network"
+      }
+    },
+    "status": {
+      "meta": {
+        "title": "Application Status | Quantum Shield",
+        "description": "Check your Prover application progress"
+      }
+    },
+    "activation": {
+      "meta": {
+        "title": "Activation | Quantum Shield",
+        "description": "Activate your Prover node"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Prover Dashboard | Quantum Shield",
+        "description": "Monitor your Prover operations and performance"
+      }
+    },
+    "queue": {
+      "meta": {
+        "title": "Signature Queue | Quantum Shield",
+        "description": "View transactions awaiting signature"
+      }
+    },
+    "metrics": {
+      "meta": {
+        "title": "Performance Metrics | Quantum Shield",
+        "description": "View your Prover performance metrics"
+      }
+    },
+    "alerts": {
+      "meta": {
+        "title": "Alerts | Quantum Shield",
+        "description": "System alerts and notifications"
+      }
+    },
+    "challenge": {
+      "meta": {
+        "title": "Challenges | Quantum Shield",
+        "description": "View and respond to Observer challenges"
+      }
+    },
+    "exit": {
+      "meta": {
+        "title": "Prover Exit | Quantum Shield",
+        "description": "Exit procedure from the Prover network"
+      }
+    }
+  }
+}
