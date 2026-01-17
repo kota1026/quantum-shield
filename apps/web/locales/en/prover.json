@@ -1,0 +1,741 @@
+{
+  "prover": {
+    "common": {
+      "header": {
+        "overview": "Overview",
+        "requirements": "Requirements",
+        "economics": "Economics",
+        "apply": "Apply"
+      },
+      "login": "Login",
+      "applyNow": "Apply Now"
+    },
+    "landing": {
+      "meta": {
+        "title": "Become a Prover | Quantum Shield",
+        "description": "Join the quantum-resistant validator network and earn while securing the future"
+      },
+      "hero": {
+        "badge": "Quantum-Resistant Infrastructure",
+        "title": "Become a Prover",
+        "titleHighlight": "Earn While Securing the Future",
+        "description": "Join the quantum-resistant validator network. Earn competitive rewards while helping secure cross-chain assets with SPHINCS+ signatures.",
+        "applyButton": "Apply to Become a Prover",
+        "requirementsButton": "View Requirements"
+      },
+      "stats": {
+        "activeProvers": {
+          "value": "127",
+          "label": "Active Provers"
+        },
+        "totalStaked": {
+          "value": "$50.8M",
+          "label": "Total Staked"
+        },
+        "annualRoi": {
+          "value": "18.5%",
+          "label": "Est. Annual ROI"
+        },
+        "uptime": {
+          "value": "99.97%",
+          "label": "Network Uptime"
+        }
+      },
+      "requirements": {
+        "sectionLabel": "Requirements",
+        "title": "What You Need",
+        "description": "Technical requirements for becoming a Quantum Shield Prover",
+        "stake": {
+          "title": "Stake Requirement",
+          "value": "$400,000",
+          "description": "Minimum stake in ETH equivalent. Collateral for network security."
+        },
+        "hsm": {
+          "title": "HSM Requirement",
+          "value": "FIPS 140-2 L3+",
+          "description": "Hardware Security Module for SPHINCS+ key storage."
+        },
+        "sla": {
+          "title": "SLA Requirement",
+          "value": "99.9% / 30s",
+          "description": "Uptime and maximum response time requirements."
+        },
+        "viewAll": "View All Requirements"
+      },
+      "calculator": {
+        "sectionLabel": "Economics",
+        "title": "ROI Calculator",
+        "description": "Estimate your potential earnings as a Prover",
+        "stakeAmount": {
+          "label": "Stake Amount (ETH)",
+          "placeholder": "150"
+        },
+        "monthlyVolume": {
+          "label": "Expected Monthly Volume (ETH)",
+          "placeholder": "50000"
+        },
+        "uptime": {
+          "label": "Expected Uptime (%)",
+          "placeholder": "99.9"
+        },
+        "calculateButton": "Calculate ROI",
+        "realTimeHint": "Results update in real-time as you type",
+        "result": {
+          "title": "Estimated Annual Earnings",
+          "signatureFees": "Signature Fees",
+          "performanceBonus": "Performance Bonus",
+          "roiOnStake": "ROI on Stake"
+        }
+      },
+      "slashing": {
+        "title": "Quadratic Slashing Risk",
+        "description": "Slashing penalties increase quadratically if multiple Provers commit the same violation. This mechanism strongly discourages collusion.",
+        "violators": "Violating Provers",
+        "rate": "Slashing Rate",
+        "lossOn400k": "Loss on $400K Stake"
+      },
+      "cta": {
+        "title": "Ready to Join the Network?",
+        "description": "Start your application today. The review process typically takes 3-5 business days.",
+        "button": "Start Application"
+      },
+      "footer": {
+        "tagline": "Quantum Shield",
+        "madeIn": "Made in Japan",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "cookie": "Cookie Policy"
+      }
+    },
+    "application": {
+      "meta": {
+        "title": "Prover Application | Quantum Shield",
+        "description": "Apply to become a Quantum Shield Prover"
+      },
+      "backToOverview": "Back to Overview",
+      "steps": {
+        "basicInfo": "Basic Info",
+        "technical": "Technical",
+        "legal": "Legal & KYB",
+        "review": "Review"
+      },
+      "continue": "Continue",
+      "back": "Back",
+      "submit": "Submit Application",
+      "step1": {
+        "title": "Basic Information",
+        "description": "Tell us about your organization"
+      },
+      "step2": {
+        "title": "Technical Requirements",
+        "description": "Confirm your technical capabilities",
+        "validationMessage": "Please confirm all technical requirements before proceeding.",
+        "requirements": {
+          "hsm": {
+            "title": "FIPS 140-2 Level 3+ HSM",
+            "description": "Hardware Security Module for SPHINCS+ key storage"
+          },
+          "uptime": {
+            "title": "99.9% Uptime Capability",
+            "description": "24/7 monitoring and redundant infrastructure"
+          },
+          "responseTime": {
+            "title": "30s Response Time",
+            "description": "Ability to process signature requests within 30 seconds"
+          },
+          "multisig": {
+            "title": "2-of-3+ Multisig",
+            "description": "Multi-signature operational security"
+          }
+        }
+      },
+      "step3": {
+        "title": "Legal & KYB",
+        "description": "Business verification and legal agreements",
+        "validationMessage": "Please complete the business registration number and agree to all terms before proceeding."
+      },
+      "step4": {
+        "title": "Review Application",
+        "description": "Please review your information before submitting"
+      },
+      "form": {
+        "organizationName": "Organization Name",
+        "organizationNamePlaceholder": "Enter your organization name",
+        "country": "Country",
+        "selectCountry": "Select country",
+        "countries": {
+          "japan": "Japan",
+          "usa": "United States",
+          "singapore": "Singapore",
+          "switzerland": "Switzerland",
+          "other": "Other"
+        },
+        "website": "Website",
+        "contactEmail": "Contact Email",
+        "validatorExperience": "Validator Experience",
+        "selectExperience": "Select experience level",
+        "experience": {
+          "none": "No experience",
+          "years1to2": "1-2 years",
+          "years3to5": "3-5 years",
+          "years5plus": "5+ years"
+        },
+        "hsmProvider": "HSM Provider",
+        "selectHsm": "Select HSM provider",
+        "other": "Other",
+        "infrastructureLocation": "Infrastructure Location",
+        "infrastructurePlaceholder": "e.g., AWS Tokyo, GCP Singapore",
+        "businessRegistrationNumber": "Business Registration Number",
+        "registrationNumberPlaceholder": "Enter registration number",
+        "uploadDocument": "Upload Business Registration Document",
+        "chooseFile": "Choose file",
+        "fileFormats": "PDF, JPG, PNG supported",
+        "agreeTerms": "I have read and agree to the Prover Terms of Service and understand the slashing risks involved.",
+        "proverTerms": "Prover Terms of Service",
+        "agreeKyb": "I consent to KYB (Know Your Business) verification and agree to provide additional documentation if requested.",
+        "agreeStake": "I understand that a minimum stake of $400,000 equivalent in ETH is required, and this stake is subject to",
+        "quadraticSlashing": "Quadratic Slashing"
+      },
+      "review": {
+        "organization": "Organization",
+        "country": "Country",
+        "contactEmail": "Contact Email",
+        "hsmProvider": "HSM Provider",
+        "infrastructure": "Infrastructure",
+        "stakeCommitment": "Stake Commitment",
+        "important": "Important",
+        "reviewNote": "After submission, your application will be reviewed by our team. This process typically takes 3-5 business days."
+      },
+      "submitted": {
+        "title": "Application Submitted!",
+        "description": "Thank you for applying to become a Quantum Shield Prover. Our team will review your application within 3-5 business days.",
+        "applicationId": "Application ID",
+        "checkStatus": "Check Application Status",
+        "backToHome": "Back to Home"
+      }
+    },
+    "status": {
+      "meta": {
+        "title": "Application Status | Quantum Shield",
+        "description": "Check the status of your Prover application"
+      },
+      "title": "Application Status",
+      "subtitle": "Enter your Application ID to check the current status",
+      "searchTitle": "Search Application",
+      "form": {
+        "applicationId": "Application ID",
+        "applicationIdPlaceholder": "e.g., PRV-2026-001234",
+        "email": "Registered Email Address",
+        "emailPlaceholder": "e.g., admin@example.com",
+        "checkButton": "Check Status"
+      },
+      "result": {
+        "underReview": "Under Review",
+        "reviewingDocuments": "Document review in progress (3-5 business days)",
+        "approved": "Approved",
+        "pending": "Pending"
+      },
+      "timeline": {
+        "title": "Review Progress",
+        "steps": {
+          "applicationReceived": "Application Received",
+          "documentReview": "Document Review Complete",
+          "technicalReview": "Technical Review In Progress",
+          "finalApproval": "Final Approval"
+        },
+        "descriptions": {
+          "documentsConfirmed": "All required documents have been confirmed",
+          "reviewingInfrastructure": "Reviewing infrastructure configuration and operational readiness"
+        }
+      },
+      "details": {
+        "applicationId": "Application ID",
+        "applicationDate": "Application Date",
+        "organization": "Organization",
+        "reviewer": "Assigned Reviewer"
+      },
+      "questions": {
+        "title": "Questions from Review Team",
+        "needsAnswer": "Needs Answer",
+        "answered": "Answered",
+        "answerPlaceholder": "Enter your response...",
+        "answerLabel": "Your response",
+        "submitAnswer": "Submit Answer",
+        "yourAnswer": "Your Answer",
+        "items": {
+          "infrastructureRedundancy": {
+            "title": "Infrastructure Redundancy Configuration",
+            "content": "Please explain the failover continuity for signature processing in your server configuration described in the application. Specifically, please provide the acceptable latency values for SPHINCS+ signature generation and the switchover time in case of failure."
+          },
+          "securityAudit": {
+            "title": "Security Audit Report",
+            "content": "Please submit your latest security audit report.",
+            "answer": "We have attached the third-party audit report conducted in February 2026. (audit_report_2026_02.pdf)"
+          }
+        }
+      },
+      "backToSearch": "Back to Search",
+      "help": {
+        "title": "Need Help?",
+        "description": "If you have any questions about the review status, please contact us",
+        "email": "Email",
+        "phone": "Phone (Weekdays 9:00-18:00)"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Operations Dashboard | Quantum Shield",
+        "description": "Prover operations dashboard for monitoring signatures and performance"
+      },
+      "title": "Operations Dashboard",
+      "nav": {
+        "operations": "Operations",
+        "dashboard": "Dashboard",
+        "queue": "Signature Queue",
+        "metrics": "Metrics",
+        "rewards": "Rewards",
+        "management": "Management",
+        "alerts": "Alerts",
+        "stake": "Stake",
+        "challenges": "Challenges",
+        "account": "Account",
+        "exit": "Exit"
+      },
+      "alert": {
+        "slaWarning": "SLA Warning: Response Time Approaching Threshold",
+        "responseTime": "Average response time: {current}s (threshold: {threshold}s)",
+        "viewAlerts": "View Alerts"
+      },
+      "actions": {
+        "viewMetrics": "View Metrics",
+        "processQueue": "Process Queue"
+      },
+      "stats": {
+        "pendingSignatures": "Pending Signatures",
+        "urgent": "{count} urgent (< 5min)",
+        "todaysProcessed": "Today's Processed",
+        "avgPerDay": "Avg: {avg}/day",
+        "responseTime": "Response Time",
+        "slaMax": "SLA: {max}s max",
+        "uptime": "Uptime (30d)",
+        "slaMin": "SLA: {min}%"
+      },
+      "queue": {
+        "title": "Signature Queue",
+        "unlockRequest": "Unlock Request",
+        "emergencyUnlock": "Emergency Unlock"
+      },
+      "performance": {
+        "title": "Performance Overview",
+        "responseTime": "Response Time (Avg)",
+        "successRate": "Success Rate (24h)",
+        "uptime": "Uptime (30 days)",
+        "hsmHealth": "HSM Health"
+      },
+      "rewards": {
+        "title": "Rewards",
+        "claimable": "Claimable",
+        "pending": "Pending",
+        "thisMonth": "This Month",
+        "allTime": "All Time",
+        "claimAmount": "Claim {amount} ETH"
+      },
+      "stake": {
+        "title": "Your Stake",
+        "noRisk": "No Slashing Risk • {challenges} Active Challenges"
+      },
+      "summary": {
+        "title": "Today's Summary",
+        "signatures": "Signatures",
+        "volume": "Volume",
+        "feesEarned": "Fees Earned",
+        "rank": "Rank"
+      },
+      "viewAll": "View All",
+      "details": "Details",
+      "claim": "Claim"
+    },
+    "queue": {
+      "title": "Signature Queue",
+      "refresh": "Refresh",
+      "signAll": "Sign All ({count})",
+      "filterLabel": "Request filter",
+      "tableLabel": "Signature requests list",
+      "stats": {
+        "pending": "Pending",
+        "urgent": "Urgent (<5min)",
+        "avgWait": "Avg Wait",
+        "todayProcessed": "Today Processed"
+      },
+      "filter": {
+        "all": "All",
+        "normal": "Normal",
+        "emergency": "Emergency",
+        "urgent": "Urgent"
+      },
+      "table": {
+        "requestId": "Request ID",
+        "type": "Type",
+        "userAddress": "User Address",
+        "amount": "Amount",
+        "waitTime": "Wait Time",
+        "action": "Action"
+      },
+      "type": {
+        "unlock": "Unlock",
+        "emergency": "Emergency",
+        "normalUnlock": "Normal Unlock"
+      },
+      "sign": "Sign",
+      "signRequest": "Sign request {id}",
+      "signWithSphincx": "Sign with SPHINCS+",
+      "empty": {
+        "title": "No Pending Requests",
+        "description": "There are currently no signature requests in the queue. New requests will appear here automatically.",
+        "refresh": "Refresh Queue"
+      },
+      "detail": {
+        "title": "Request Detail #{id}",
+        "type": "Type",
+        "amount": "Amount",
+        "userAddress": "User Address",
+        "waitTime": "Wait Time",
+        "sourceChain": "Source Chain",
+        "destChain": "Destination",
+        "dilithiumSig": "Dilithium Signature (User)"
+      },
+      "modal": {
+        "close": "Close",
+        "cancel": "Cancel"
+      },
+      "confirm": {
+        "title": "Confirm SPHINCS+ Signature",
+        "description": "You are about to sign this request with your SPHINCS+ key. This action cannot be undone.",
+        "request": "Request",
+        "submit": "Confirm Signature"
+      },
+      "batch": {
+        "title": "Confirm Batch Signature",
+        "description": "You are about to sign {count} requests with your SPHINCS+ key.",
+        "summary": "Summary",
+        "requests": "requests",
+        "confirm": "Confirm Batch Signature"
+      }
+    },
+    "metrics": {
+      "title": "Performance & Rewards",
+      "periodSelect": "Select period",
+      "export": "Export CSV",
+      "tabs": "Metrics tabs",
+      "period": {
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days",
+        "year": "This year"
+      },
+      "tab": {
+        "performance": "Performance",
+        "rewards": "Rewards"
+      },
+      "stats": {
+        "uptime": "Uptime",
+        "signaturesCompleted": "Signatures Completed",
+        "avgLatency": "Average Latency",
+        "violations": "Violations/Slashing"
+      },
+      "chart": {
+        "performance": "Signature Processing Performance",
+        "signatureCount": "Signature Count",
+        "successRate": "Success Rate"
+      },
+      "history": {
+        "title": "Signature Processing History",
+        "date": "Date",
+        "count": "Count",
+        "successRate": "Success Rate",
+        "avgTime": "Avg Time",
+        "reward": "Reward"
+      },
+      "detail": {
+        "title": "Detailed Metrics",
+        "sphincsSignature": "SPHINCS+ Signature",
+        "verificationRate": "Verification Rate",
+        "slaCompliance": "SLA Compliance",
+        "availability": "Availability",
+        "responseTime": "Response Time"
+      },
+      "rewards": {
+        "totalLabel": "Total Rewards (Last {days} days)",
+        "withdraw": "Withdraw Rewards",
+        "reinvest": "Reinvest",
+        "chartTitle": "Rewards Trend",
+        "dailyRewards": "Daily Rewards",
+        "breakdownTitle": "Rewards Breakdown",
+        "signatureRewards": "Signature Rewards",
+        "performanceBonus": "Performance Bonus",
+        "earlyAdopterBonus": "Early Adopter Bonus",
+        "total": "Total"
+      },
+      "payout": {
+        "title": "Withdrawal History",
+        "date": "Date",
+        "type": "Type",
+        "amount": "Amount",
+        "destination": "Destination",
+        "status": "Status",
+        "withdrawal": "Reward Withdrawal",
+        "completed": "Completed"
+      }
+    },
+    "alerts": {
+      "title": "Alerts & Stake Management",
+      "tabs": "Alerts and stake management tabs",
+      "tab": {
+        "alerts": "Alerts",
+        "stake": "Stake Management"
+      },
+      "filterLabel": "Alert filter",
+      "listLabel": "Alert list",
+      "filter": {
+        "all": "All",
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info"
+      },
+      "severity": {
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info"
+      },
+      "status": {
+        "resolved": "Resolved"
+      },
+      "requestId": "Request ID",
+      "server": "Server",
+      "resolved": "Resolved",
+      "remainingTime": "Remaining time",
+      "seconds": "s",
+      "cpuUsage": "Current CPU usage",
+      "viewDetails": "View Details",
+      "items": {
+        "signatureTimeout": {
+          "title": "Signature Timeout Warning",
+          "description": "Signature request processing is taking longer than usual. Risk of SLA violation.",
+          "action": "Handle Now"
+        },
+        "systemResource": {
+          "title": "System Resource Warning",
+          "description": "CPU usage exceeds 80%. May affect signature processing performance.",
+          "action": "Check Resources"
+        },
+        "maintenanceComplete": {
+          "title": "Scheduled Maintenance Complete",
+          "description": "Scheduled system maintenance has completed successfully. All services are operational."
+        }
+      },
+      "stake": {
+        "currentStake": "Current Stake",
+        "meetsMinimum": "Meets minimum requirement",
+        "unlockDate": "Unlock Date",
+        "daysRemaining": "{days} days remaining",
+        "totalRewards": "Total Rewards",
+        "annualRate": "~{rate}% annual rate",
+        "totalSlashing": "Total Slashing",
+        "noViolations": "No violations"
+      },
+      "risk": {
+        "title": "Risk Meter",
+        "level": "Risk level",
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk",
+        "violations30d": "Violations (30 days)",
+        "count": " count",
+        "slaRate": "SLA Achievement Rate",
+        "potentialSlashing": "Potential Slashing"
+      },
+      "slashing": {
+        "title": "Quadratic Slashing Mechanism",
+        "description": "Penalties increase exponentially as violations accumulate. It is crucial to avoid multiple violations.",
+        "formula": "Slashing = N² × 10%",
+        "formulaDesc": "N = Number of violations in past 90 days",
+        "tableLabel": "Slashing rate table",
+        "violations": "Violations (N)",
+        "rate": "Slashing Rate",
+        "loss400k": "Loss on $400K Stake",
+        "times": " time(s)",
+        "fourPlus": "4+ times",
+        "fullConfiscation": "Full confiscation + disqualification"
+      },
+      "actions": {
+        "title": "Stake Operations",
+        "addStake": {
+          "title": "Add Stake",
+          "description": "Deposit additional collateral to increase risk tolerance",
+          "button": "Add Stake"
+        },
+        "withdrawRewards": {
+          "title": "Withdraw Rewards",
+          "description": "Withdraw earned rewards (stake maintained)",
+          "button": "Withdraw"
+        },
+        "exit": {
+          "title": "Exit Request",
+          "description": "Terminate Prover and release stake",
+          "button": "Go to Exit Request"
+        }
+      }
+    },
+    "challenge": {
+      "title": "Challenge Response",
+      "tabs": "Challenge tabs",
+      "tab": {
+        "notification": "Notification",
+        "defense": "Submit Defense",
+        "result": "Result"
+      },
+      "notification": {
+        "title": "Challenge Notification",
+        "deadline": "Defense Deadline",
+        "applicant": "Applicant",
+        "date": "Date",
+        "violationType": "Violation Type",
+        "potentialSlashing": "Potential Slashing",
+        "accusationContent": "Accusation Content",
+        "accusationText": "Invalid signature detected for request {requestId}. The following error occurred during signature verification:",
+        "signatureLength": "Signature Length: expected {expected} bytes, actual {actual} bytes",
+        "errorCode": "Verification Result",
+        "verificationNodes": "Verified by {count}/{count} Watcher nodes with same error.",
+        "attachedEvidence": "Attached Evidence",
+        "download": "Download",
+        "submitDefense": "Submit Defense",
+        "viewGuidelines": "View Guidelines"
+      },
+      "violation": {
+        "invalidSignature": "Invalid Signature",
+        "timeout": "Timeout",
+        "doubleSigning": "Double Signing"
+      },
+      "defense": {
+        "title": "Submit Defense Statement",
+        "contentLabel": "Defense Content",
+        "placeholder": "Provide a detailed defense against the challenge. Include technical explanations, situation descriptions, and evidence for your rebuttal.",
+        "evidenceLabel": "Upload Evidence",
+        "uploadInstruction": "Drag and drop files or click to upload",
+        "fileFormats": "PDF, JSON, TXT, PNG, JPG (max 10MB)",
+        "removeFile": "Remove {name}",
+        "warning": "Once submitted, defense cannot be modified. Please review carefully before submitting.",
+        "submit": "Submit Defense",
+        "saveDraft": "Save Draft"
+      },
+      "result": {
+        "dismissed": "Challenge Dismissed",
+        "dismissedDescription": "Your defense was accepted and the challenge has been dismissed. No slashing will occur.",
+        "challengeId": "Challenge ID",
+        "verdict": "Verdict",
+        "verdictWon": "Dismissed (Won)",
+        "slashing": "Slashing",
+        "backToDashboard": "Back to Dashboard"
+      },
+      "history": {
+        "title": "Challenge History",
+        "challengeId": "Challenge ID",
+        "date": "Date",
+        "violationType": "Violation Type",
+        "result": "Result",
+        "slashing": "Slashing"
+      },
+      "status": {
+        "pending": "Under Review",
+        "won": "Dismissed",
+        "lost": "Upheld"
+      }
+    },
+    "exit": {
+      "title": "Prover Exit Request",
+      "description": "End your activity as a Prover and withdraw your stake",
+      "tabs": "Exit tabs",
+      "tab": {
+        "request": "Request",
+        "complete": "Complete"
+      },
+      "warning": {
+        "title": "Pre-Exit Checklist",
+        "lockPeriod": "Lock Period",
+        "lockPeriodDesc": "Stake is locked for minimum 180 days. Early exit incurs a penalty.",
+        "pendingRequests": "Pending Requests",
+        "pendingRequestsDesc": "Signature requests in queue must be completed after exit request.",
+        "unresolvedChallenges": "Unresolved Challenges",
+        "unresolvedChallengesDesc": "Exit request is not allowed if there are ongoing challenges.",
+        "rewards": "Rewards",
+        "rewardsDesc": "Unclaimed rewards will be automatically transferred upon exit."
+      },
+      "summary": {
+        "title": "Exit Overview",
+        "currentStake": "Current Stake",
+        "unclaimedRewards": "Unclaimed Rewards",
+        "autoTransfer": "Auto-transferred on exit",
+        "unlockDate": "Unlock Date",
+        "daysRemaining": "{days} days remaining"
+      },
+      "timeline": {
+        "title": "Exit Processing Timeline",
+        "today": "Today",
+        "within24h": "~24 hours",
+        "days7": "7 days",
+        "steps": {
+          "exitRequest": "Exit Request",
+          "queueComplete": "Queue Complete",
+          "coolingPeriod": "Cooling Period",
+          "stakeReturn": "Stake Return"
+        }
+      },
+      "penalty": {
+        "title": "Early Exit Penalty",
+        "description": "Early exit within lock period (180 days) incurs an early release penalty.",
+        "rate": "Penalty Rate"
+      },
+      "form": {
+        "title": "Exit Request Form",
+        "reasonLabel": "Exit Reason (Optional)",
+        "selectReason": "-- Select reason --",
+        "reasons": {
+          "business": "Business Policy Change",
+          "resource": "Resource Constraints",
+          "market": "Market Conditions",
+          "personal": "Personal Reasons",
+          "other": "Other"
+        },
+        "commentLabel": "Comment (Optional)",
+        "commentPlaceholder": "Please share your reason for exit or any feedback...",
+        "returnAddressLabel": "Stake Return Address",
+        "verified": "Verified",
+        "confirm": {
+          "penalty": "I understand that early exit penalty (${amount}) will be applied.",
+          "activityEnd": "I understand that after exit request, no new signature requests will be accepted and my Prover activity will end.",
+          "coolingPeriod": "I understand that stake will be returned after the cooling period (7 days)."
+        },
+        "submitButton": "Submit Exit Request",
+        "cancelButton": "Cancel"
+      },
+      "complete": {
+        "title": "Exit Complete",
+        "description": "Your activity as a Prover has officially ended. Thank you for your participation.",
+        "proverId": "Prover ID",
+        "activityPeriod": "Activity Period",
+        "days": "{count} days",
+        "status": "Status",
+        "statusComplete": "Exit Complete",
+        "stakeReturned": "Stake Returned",
+        "totalRewards": "Total Rewards",
+        "signaturesProcessed": "Signatures Processed",
+        "count": " count",
+        "backToHome": "Back to Home"
+      },
+      "thankYou": {
+        "title": "Thank you for using Quantum Shield",
+        "description": "If you wish to rejoin in the future, you are welcome to apply anytime."
+      }
+    }
+  }
+}
