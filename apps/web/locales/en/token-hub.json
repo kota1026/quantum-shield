@@ -336,7 +336,8 @@
         "navLabel": "Token Hub navigation",
         "walletConnected": "Connected to {address}",
         "connectWallet": "Connect Wallet",
-        "consumerApp": "Consumer App"
+        "consumerApp": "Consumer App",
+        "settings": "Settings"
       },
       "footer": {
         "navLabel": "Footer navigation",
@@ -1040,6 +1041,15 @@
         "delegating": "Processing...",
         "notice": "You can revoke delegation anytime. Your tokens will not move."
       },
+      "success": {
+        "title": "Delegation Complete!",
+        "description": "Your veQS has been successfully delegated",
+        "delegatedTo": "Delegated to",
+        "amount": "Amount",
+        "txHash": "Transaction",
+        "done": "Back to Delegates",
+        "dashboardLink": "Back to Dashboard"
+      },
       "profile": {
         "watanabeStatement": "I prioritize the long-term development and security of Quantum Shield. I value protocol sustainability over short-term gains and carefully consider security-related proposals.",
         "satoStatement": "I promote protocol improvements from a technical perspective. I support transparent decision-making and evidence-based proposals.",
@@ -1077,7 +1087,20 @@
       },
       "actions": {
         "back": "Back",
-        "confirm": "Confirm Lock"
+        "confirm": "Confirm Lock",
+        "processing": "Processing..."
+      },
+      "success": {
+        "title": "Lock Complete!",
+        "description": "Your QS tokens have been locked and you've earned veQS",
+        "txHash": "Transaction",
+        "done": "Back to Dashboard",
+        "delegateLink": "Delegate veQS to participate in governance →",
+        "whatsNext": {
+          "title": "What's Next",
+          "vote": "Participate in governance voting",
+          "rewards": "Check your rewards"
+        }
       }
     },
     "rewardsClaim": {
