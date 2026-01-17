@@ -18,12 +18,24 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // Load all translation namespaces
   const consumer = (await import(`../../locales/${locale}/consumer.json`)).default;
   const tokenHub = (await import(`../../locales/${locale}/token-hub.json`)).default;
+  const governance = (await import(`../../locales/${locale}/governance.json`)).default;
+  const prover = (await import(`../../locales/${locale}/prover.json`)).default;
+  const observer = (await import(`../../locales/${locale}/observer.json`)).default;
+  const explorer = (await import(`../../locales/${locale}/explorer.json`)).default;
+  const enterprise = (await import(`../../locales/${locale}/enterprise.json`)).default;
+  const admin = (await import(`../../locales/${locale}/admin.json`)).default;
 
   return {
     locale,
     messages: {
-      ...consumer,
-      ...tokenHub,
+      consumer,
+      'token-hub': tokenHub,
+      governance,
+      prover,
+      observer,
+      explorer,
+      enterprise,
+      admin,
     },
   };
 });
