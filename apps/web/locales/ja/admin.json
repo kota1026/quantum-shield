@@ -1,0 +1,835 @@
+{
+  "admin": {
+    "emergency": {
+      "meta": {
+        "title": "Emergency Operations | QS Admin",
+        "description": "システム緊急停止・復旧管理"
+      },
+      "title": "Emergency Operations",
+      "subtitle": "システム緊急停止・復旧管理",
+      "ariaLabel": "緊急操作ページ",
+      "status": {
+        "operational": "System Operational",
+        "paused": "System Paused"
+      },
+      "pauseControl": {
+        "title": "Emergency Pause",
+        "systemPause": "System Pause",
+        "description": "全てのLock/Unlock操作を即座に停止します",
+        "executeButton": "Execute Emergency Pause",
+        "warning": {
+          "title": "重要な注意事項",
+          "text1": "Pauseは最大72時間有効です。",
+          "text2": "実行前に必ずSecurity Councilメンバーと協議してください。",
+          "text3": "全ての操作は監査ログに記録されます。"
+        }
+      },
+      "checklist": {
+        "title": "Pre-Pause Checklist",
+        "items": {
+          "severity": "インシデントの深刻度を確認した",
+          "council": "Security Councilメンバーに連絡した",
+          "impact": "影響範囲を把握した（TVL、ユーザー数）",
+          "notification": "コミュニティ通知の準備ができている",
+          "recovery": "復旧計画の概要がある"
+        }
+      },
+      "recovery": {
+        "title": "Recovery Procedures",
+        "steps": {
+          "step1": {
+            "title": "根本原因の特定",
+            "description": "インシデントの原因を調査し、文書化する"
+          },
+          "step2": {
+            "title": "修正の実装",
+            "description": "必要なパッチまたは設定変更を適用"
+          },
+          "step3": {
+            "title": "テスト環境での検証",
+            "description": "修正が正しく機能することを確認"
+          },
+          "step4": {
+            "title": "Security Council承認",
+            "description": "復旧の承認を得る（マルチシグ）"
+          },
+          "step5": {
+            "title": "System Resume",
+            "description": "Pauseを解除し、監視を継続"
+          },
+          "step6": {
+            "title": "ポストモーテム作成",
+            "description": "インシデントレポートを公開"
+          }
+        }
+      },
+      "history": {
+        "title": "Pause History",
+        "resumed": "System Resumed",
+        "paused": "Emergency Pause",
+        "maintenance": "Scheduled Maintenance",
+        "duration": "Duration"
+      },
+      "modal": {
+        "title": "Confirm Emergency Pause",
+        "subtitle": "この操作は全システムを停止します",
+        "warning": "全てのLock/Unlock操作が停止されます。この操作は監査ログに記録され、Security Councilに通知されます。",
+        "confirmLabel": "確認のため「PAUSE」と入力してください:",
+        "placeholder": "PAUSE",
+        "cancelButton": "Cancel",
+        "confirmButton": "Execute Pause",
+        "inputError": "「PAUSE」と入力してください"
+      }
+    },
+    "common": {
+      "sidebar": {
+        "logo": "QS Admin",
+        "tagline": "Internal Dashboard",
+        "sections": {
+          "overview": "概要",
+          "operations": "運用",
+          "management": "管理",
+          "system": "システム"
+        },
+        "nav": {
+          "dashboard": "Dashboard",
+          "emergencyPause": "Emergency Pause",
+          "proverManagement": "Prover管理",
+          "txMonitor": "TX Monitor",
+          "l3Nodes": "L3 Nodes",
+          "parameters": "パラメータ",
+          "enterprise": "エンタープライズ",
+          "community": "コミュニティ",
+          "staff": "スタッフ",
+          "reports": "レポート",
+          "auditLog": "監査ログ",
+          "onboarding": "オンボーディング"
+        },
+        "user": {
+          "role": "Senior Engineer",
+          "permissionBadge": "Super Admin"
+        }
+      }
+    },
+    "txMonitor": {
+      "meta": {
+        "title": "TX Monitor | QS Admin",
+        "description": "Lock/Unlock/Challenge トランザクション監視"
+      },
+      "title": "Transaction Monitor",
+      "subtitle": "Lock/Unlock/Challenge トランザクション監視",
+      "ariaLabel": "トランザクション監視ページ",
+      "liveIndicator": "Live Updates",
+      "tabs": {
+        "all": "All Transactions",
+        "locks": "Locks",
+        "unlocks": "Unlocks",
+        "challenges": "Challenges",
+        "anomalies": "Anomalies"
+      },
+      "stats": {
+        "totalTxs": {
+          "label": "Total TXs (24h)"
+        },
+        "locks": {
+          "label": "Locks"
+        },
+        "unlocks": {
+          "label": "Unlocks"
+        },
+        "emergency": {
+          "label": "Emergency"
+        },
+        "challenges": {
+          "label": "Challenges"
+        }
+      },
+      "table": {
+        "title": "Recent Transactions",
+        "columns": {
+          "txHash": "TX Hash",
+          "type": "Type",
+          "from": "From",
+          "amount": "Amount",
+          "status": "Status",
+          "time": "Time"
+        },
+        "empty": "No transactions found"
+      },
+      "txType": {
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "emergency": "Emergency"
+      },
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "timelock": "Timelock"
+      },
+      "time": {
+        "minAgo": "{count}分前",
+        "hourAgo": "{count}時間前",
+        "hoursAgo": "{count}時間前",
+        "justNow": "たった今"
+      }
+    },
+    "nodes": {
+      "meta": {
+        "title": "L3 Nodes | QS Admin",
+        "description": "Aegis L3 ネットワークノード管理"
+      },
+      "title": "L3 Node Management",
+      "subtitle": "Aegis L3 ネットワークノード管理",
+      "ariaLabel": "L3ノード管理ページ",
+      "stats": {
+        "totalNodes": {
+          "label": "Total Nodes"
+        },
+        "healthy": {
+          "label": "Healthy"
+        },
+        "currentBlock": {
+          "label": "Current Block"
+        },
+        "avgTps": {
+          "label": "Avg TPS"
+        }
+      },
+      "card": {
+        "title": "Active Nodes"
+      },
+      "node": {
+        "primary": "Primary",
+        "metrics": {
+          "block": "Block",
+          "peers": "Peers",
+          "cpu": "CPU",
+          "memory": "Memory"
+        }
+      },
+      "status": {
+        "healthy": "Healthy",
+        "warning": "Warning",
+        "offline": "Offline"
+      }
+    },
+    "staff": {
+      "meta": {
+        "title": "Staff Management | QS Admin",
+        "description": "スタッフ権限・アクセス管理"
+      },
+      "title": "Staff Management",
+      "subtitle": "スタッフ権限・アクセス管理",
+      "ariaLabel": "スタッフ管理ページ",
+      "addButton": "Add Staff",
+      "card": {
+        "title": "Staff List"
+      },
+      "table": {
+        "columns": {
+          "name": "Name",
+          "role": "Role",
+          "permission": "Permission",
+          "status": "Status",
+          "lastActive": "Last Active"
+        },
+        "empty": "No staff found"
+      },
+      "permission": {
+        "superAdmin": "Super Admin",
+        "admin": "Admin",
+        "operator": "Operator",
+        "viewer": "Viewer"
+      },
+      "status": {
+        "active": "Active",
+        "onboarding": "Onboarding",
+        "inactive": "Inactive"
+      },
+      "time": {
+        "now": "Now",
+        "minAgo": "{count}分前",
+        "hourAgo": "{count}時間前",
+        "today": "Today"
+      }
+    },
+    "reports": {
+      "meta": {
+        "title": "Reports | QS Admin",
+        "description": "システムレポート・分析"
+      },
+      "title": "Reports",
+      "subtitle": "システムレポート・分析",
+      "ariaLabel": "レポートページ",
+      "exportButton": "Export All",
+      "types": {
+        "daily": {
+          "title": "Daily Report",
+          "description": "過去24時間のトランザクション、TVL、Proverパフォーマンス"
+        },
+        "weekly": {
+          "title": "Weekly Report",
+          "description": "週次サマリー、トレンド分析、異常検知"
+        },
+        "monthly": {
+          "title": "Monthly Report",
+          "description": "月次レビュー、成長指標、セキュリティ監査"
+        },
+        "revenue": {
+          "title": "Revenue Report",
+          "description": "手数料収入、Enterprise契約、コスト分析"
+        }
+      },
+      "lastGenerated": "Last generated",
+      "summary": {
+        "title": "Today's Summary",
+        "totalTx": "Total Transactions",
+        "tvlChange": "TVL Change",
+        "avgSla": "Avg Prover SLA",
+        "incidents": "Security Incidents"
+      }
+    },
+    "audit": {
+      "meta": {
+        "title": "Audit Log | QS Admin",
+        "description": "全操作ログ・セキュリティイベント監査"
+      },
+      "title": "Audit Log",
+      "subtitle": "全操作ログ・セキュリティイベント監査",
+      "ariaLabel": "監査ログページ",
+      "tabs": {
+        "all": "All Logs",
+        "user": "User Activity",
+        "security": "Security Events",
+        "system": "System Events"
+      },
+      "card": {
+        "title": "Recent Logs"
+      },
+      "table": {
+        "columns": {
+          "time": "Time",
+          "type": "Type",
+          "user": "User",
+          "action": "Action",
+          "details": "Details"
+        },
+        "empty": "No logs found"
+      },
+      "logType": {
+        "user": "User",
+        "prover": "Prover",
+        "security": "Security",
+        "system": "System"
+      }
+    },
+    "parameters": {
+      "meta": {
+        "title": "Protocol Parameters | QS Admin",
+        "description": "プロトコルパラメータ管理・変更リクエスト"
+      },
+      "title": "Protocol Parameters",
+      "subtitle": "プロトコルパラメータ管理・変更リクエスト",
+      "ariaLabel": "プロトコルパラメータページ",
+      "requestChangeButton": "Request Change",
+      "infoBanner": "パラメータ変更はガバナンス承認が必要です。Lockパラメータ（CP-1〜5）は変更不可です。",
+      "historyLink": "History →",
+      "categories": {
+        "timeLock": {
+          "title": "Time Lock Parameters"
+        },
+        "prover": {
+          "title": "Prover Parameters"
+        },
+        "fee": {
+          "title": "Fee Parameters"
+        },
+        "security": {
+          "title": "Security Parameters"
+        }
+      },
+      "params": {
+        "minLockPeriod": {
+          "name": "Minimum Lock Period",
+          "description": "CP-3: 最低ロック期間（不変）"
+        },
+        "maxLockPeriod": {
+          "name": "Maximum Lock Period",
+          "description": "最大ロック期間"
+        },
+        "earlyUnlockPenalty": {
+          "name": "Early Unlock Penalty",
+          "description": "CP-4: 早期解除ペナルティ率"
+        },
+        "minStake": {
+          "name": "Minimum Stake",
+          "description": "Prover最低ステーク額"
+        },
+        "slaTarget": {
+          "name": "SLA Target",
+          "description": "サービスレベル目標"
+        },
+        "slashingRate": {
+          "name": "Slashing Rate",
+          "description": "CP-4: 不正Proverペナルティ"
+        },
+        "lockFee": {
+          "name": "Lock Fee",
+          "description": "ロック時手数料"
+        },
+        "unlockFee": {
+          "name": "Unlock Fee",
+          "description": "アンロック時手数料"
+        },
+        "enterpriseDiscount": {
+          "name": "Enterprise Discount",
+          "description": "法人向け手数料割引率"
+        },
+        "challengePeriod": {
+          "name": "Challenge Period",
+          "description": "チャレンジ待機期間"
+        },
+        "multiSigThreshold": {
+          "name": "Multi-sig Threshold",
+          "description": "緊急操作の必要署名数"
+        },
+        "quantumAlgorithm": {
+          "name": "Quantum Algorithm",
+          "description": "CP-1: 量子耐性アルゴリズム"
+        }
+      },
+      "units": {
+        "days": "days",
+        "daysYears": "days ({years} years)",
+        "ofLocked": "of locked amount",
+        "usdc": "USDC",
+        "uptime": "uptime",
+        "ofStake": "of stake",
+        "ofAmount": "of amount",
+        "discount": "discount",
+        "hours": "hours",
+        "signers": "signers",
+        "nistApproved": "NIST approved"
+      },
+      "badge": {
+        "locked": "Locked",
+        "adjustable": "Adjustable"
+      }
+    },
+    "enterprise": {
+      "meta": {
+        "title": "Enterprise Accounts | QS Admin",
+        "description": "法人契約・大口顧客管理"
+      },
+      "title": "Enterprise Accounts",
+      "subtitle": "法人契約・大口顧客管理",
+      "ariaLabel": "エンタープライズアカウントページ",
+      "addButton": "Add Enterprise",
+      "stats": {
+        "totalEnterprises": {
+          "label": "Total Enterprises"
+        },
+        "enterpriseTvl": {
+          "label": "Enterprise TVL"
+        },
+        "activeContracts": {
+          "label": "Active Contracts"
+        },
+        "monthlyRevenue": {
+          "label": "Monthly Revenue"
+        }
+      },
+      "tabs": {
+        "all": "All Enterprises",
+        "platinum": "Platinum",
+        "gold": "Gold",
+        "pending": "Pending"
+      },
+      "card": {
+        "title": "Enterprise List"
+      },
+      "table": {
+        "columns": {
+          "company": "Company",
+          "tier": "Tier",
+          "tvl": "TVL",
+          "status": "Status",
+          "contractRenewal": "Contract Renewal"
+        },
+        "empty": "No enterprises found"
+      },
+      "tier": {
+        "platinum": "Platinum",
+        "gold": "Gold",
+        "silver": "Silver"
+      },
+      "status": {
+        "active": "Active",
+        "renewalPending": "Renewal Pending",
+        "inactive": "Inactive"
+      },
+      "companyType": {
+        "financialInstitution": "Financial Institution",
+        "cryptoExchange": "Crypto Exchange",
+        "investmentBank": "Investment Bank"
+      }
+    },
+    "community": {
+      "meta": {
+        "title": "Community Management | QS Admin",
+        "description": "アナウンスメント・FAQ・コミュニティ管理"
+      },
+      "title": "Community Management",
+      "subtitle": "アナウンスメント・FAQ・コミュニティ管理",
+      "ariaLabel": "コミュニティ管理ページ",
+      "newAnnouncementButton": "New Announcement",
+      "stats": {
+        "totalUsers": {
+          "label": "Total Users"
+        },
+        "activeThisWeek": {
+          "label": "Active This Week"
+        },
+        "supportTickets": {
+          "label": "Support Tickets"
+        },
+        "avgResponseTime": {
+          "label": "Avg Response Time"
+        }
+      },
+      "tabs": {
+        "announcements": "Announcements",
+        "faq": "FAQ",
+        "supportTickets": "Support Tickets",
+        "analytics": "Analytics"
+      },
+      "announcements": {
+        "title": "Recent Announcements",
+        "type": {
+          "important": "Important",
+          "update": "Update",
+          "event": "Event"
+        },
+        "meta": {
+          "views": "views",
+          "comments": "comments"
+        }
+      },
+      "faq": {
+        "title": "Top FAQs",
+        "views": "views"
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "discord": "Discord Server",
+        "twitter": "Twitter/X",
+        "documentation": "Documentation",
+        "statusPage": "Status Page"
+      }
+    },
+    "prover": {
+      "meta": {
+        "title": "Prover Management | QS Admin",
+        "description": "Proverネットワーク監視・管理"
+      },
+      "title": "Prover Management",
+      "subtitle": "Proverネットワーク監視・管理",
+      "ariaLabel": "Prover管理ページ",
+      "tabs": {
+        "all": "All Provers",
+        "queue": "Signing Queue",
+        "applications": "Applications",
+        "performance": "Performance"
+      },
+      "stats": {
+        "activeProvers": {
+          "label": "Active Provers",
+          "healthy": "Healthy"
+        },
+        "totalStake": {
+          "label": "Total Stake"
+        },
+        "avgSla": {
+          "label": "Avg SLA"
+        },
+        "pendingQueue": {
+          "label": "Pending Queue"
+        }
+      },
+      "table": {
+        "title": "Prover List",
+        "columns": {
+          "proverId": "Prover ID",
+          "operator": "Operator",
+          "status": "Status",
+          "stake": "Stake",
+          "sla": "SLA",
+          "signatures": "Signatures (24h)",
+          "lastActive": "Last Active"
+        },
+        "empty": "No provers found"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "slaWarning": "SLA Warning",
+        "suspended": "Suspended"
+      },
+      "time": {
+        "minAgo": "{count}分前",
+        "hourAgo": "{count}時間前",
+        "justNow": "たった今"
+      },
+      "applications": {
+        "title": "Pending Applications",
+        "approve": "Approve",
+        "reject": "Reject",
+        "reviewButton": "Review"
+      }
+    },
+    "onboarding": {
+      "meta": {
+        "title": "Staff Onboarding | QS Admin",
+        "description": "スタッフ向けオンボーディング研修"
+      },
+      "ariaLabel": "スタッフオンボーディングページ",
+      "progress": {
+        "step": "ステップ {current} / {total}",
+        "stepLabel": "ステップ {number}"
+      },
+      "steps": {
+        "welcome": "Welcome",
+        "overview": "Overview",
+        "principles": "Principles",
+        "emergency": "Emergency",
+        "quiz": "Quiz"
+      },
+      "welcome": {
+        "title": "Welcome to QS Admin",
+        "subtitle": "Quantum Shield 管理システムへようこそ",
+        "greeting": "こんにちは、{name}さん！",
+        "message": "Quantum Shield チームへの参加を歓迎します。このオンボーディングでは、QSの全体像とCore Principles（5原則）について学びます。",
+        "roleBadge": "{from} → {to} への権限昇格準備",
+        "startButton": "Start Onboarding"
+      },
+      "overview": {
+        "title": "Quantum Shield Overview",
+        "subtitle": "量子耐性を持つ資産保護プロトコル",
+        "systems": {
+          "consumer": {
+            "title": "Consumer App",
+            "description": "エンドユーザーが資産をLock/Unlockするアプリ。Dilithium署名で量子耐性を実現。"
+          },
+          "prover": {
+            "title": "Prover Network",
+            "description": "SPHINCS+署名でUnlockを承認する分散ネットワーク。127ノードが稼働中。"
+          },
+          "governance": {
+            "title": "Governance",
+            "description": "veQSホルダーによる分散型意思決定。パラメータ変更は投票で決定。"
+          },
+          "admin": {
+            "title": "QS Admin",
+            "description": "あなたが使用する管理システム。監視・運用・緊急対応を担当。"
+          }
+        }
+      },
+      "principles": {
+        "title": "Core Principles",
+        "subtitle": "5つの不変原則（変更不可）",
+        "items": {
+          "cp1": {
+            "title": "完全量子耐性 (Quantum Resistance)",
+            "description": "NIST準拠の量子耐性アルゴリズムのみ使用。ECDSA, SHA-256は使用禁止。",
+            "tag": "CP-1"
+          },
+          "cp2": {
+            "title": "Self-Custody",
+            "description": "ユーザーが自身の秘密鍵を管理。サーバーに秘密鍵を保存することは禁止。",
+            "tag": "CP-2"
+          },
+          "cp3": {
+            "title": "Time Lock存在",
+            "description": "Time Lockを0にすることは不可。通常24時間、緊急7日間のロック期間。",
+            "tag": "CP-3"
+          },
+          "cp4": {
+            "title": "Slashing存在",
+            "description": "Slashingメカニズムの削除は不可。不正行為への抑止力として機能。",
+            "tag": "CP-4"
+          },
+          "cp5": {
+            "title": "透明性 (Transparency)",
+            "description": "全てオンチェーンで検証可能。オフチェーン秘密計算は禁止。",
+            "tag": "CP-5"
+          }
+        }
+      },
+      "emergency": {
+        "title": "Emergency Procedures",
+        "subtitle": "緊急時の対応手順",
+        "steps": {
+          "step1": {
+            "title": "異常を検知したら",
+            "description": "まず上長（松本さん）に報告。自己判断でPauseしない。"
+          },
+          "step2": {
+            "title": "状況を記録",
+            "description": "スクリーンショット、ログ、時刻を記録。Slackの#incidentチャンネルに投稿。"
+          },
+          "step3": {
+            "title": "Pause判断（Admin以上）",
+            "description": "Admin権限保持者がPause必要性を判断。Super Admin 2名以上で実行。"
+          },
+          "step4": {
+            "title": "復旧作業",
+            "description": "原因特定 → 修正 → テスト → Security Council承認 → Resume"
+          },
+          "step5": {
+            "title": "ポストモーテム",
+            "description": "インシデントレポートを作成し、コミュニティに公開。"
+          }
+        }
+      },
+      "quiz": {
+        "title": "Confirmation Quiz",
+        "subtitle": "理解度を確認しましょう",
+        "question1": {
+          "title": "Question 1",
+          "question": "CP-1「完全量子耐性」で禁止されているアルゴリズムはどれですか？",
+          "options": {
+            "a": "Dilithium-III",
+            "b": "SPHINCS+-128s",
+            "c": "ECDSA",
+            "d": "SHA3-256"
+          },
+          "correct": "c"
+        },
+        "question2": {
+          "title": "Question 2",
+          "question": "通常UnlockのTime Lock期間は？",
+          "options": {
+            "a": "12時間",
+            "b": "24時間",
+            "c": "48時間",
+            "d": "7日間"
+          },
+          "correct": "b"
+        },
+        "completeButton": "Complete Onboarding",
+        "incorrectWarning": "正しい回答を選択してください"
+      },
+      "completion": {
+        "title": "Onboarding Complete!",
+        "message": "おめでとうございます！オンボーディングが完了しました。これであなたはOperator権限を取得しました。",
+        "permissionLabel": "New Permission Level",
+        "permissionValue": "Operator",
+        "dashboardButton": "Go to Dashboard"
+      },
+      "navigation": {
+        "back": "Back",
+        "next": "Next"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Dashboard | QS Admin",
+        "description": "Quantum Shield システム監視"
+      },
+      "title": "Dashboard",
+      "subtitle": "Quantum Shield システム監視",
+      "ariaLabel": "QS Admin ダッシュボード",
+      "liveIndicator": "Live Updates",
+      "emergencyButton": "Emergency Pause",
+      "stats": {
+        "tvl": {
+          "label": "Total Value Locked",
+          "change": "(24h)"
+        },
+        "provers": {
+          "label": "Active Provers",
+          "healthy": "Healthy"
+        },
+        "pendingUnlocks": {
+          "label": "Pending Unlocks",
+          "attention": "require attention"
+        },
+        "alerts": {
+          "label": "Active Alerts",
+          "highPriority": "high priority"
+        }
+      },
+      "systemStatus": {
+        "title": "System Status",
+        "allOperational": "All Systems Operational",
+        "systems": {
+          "l3Network": {
+            "name": "L3 Aegis Network",
+            "block": "Block",
+            "tps": "TPS"
+          },
+          "proverNetwork": {
+            "name": "Prover Network",
+            "online": "Online",
+            "queue": "Queue"
+          },
+          "l1Vault": {
+            "name": "L1 Vault",
+            "sync": "Sync",
+            "gas": "Gas"
+          },
+          "observerNetwork": {
+            "name": "Observer Network",
+            "active": "Active",
+            "challenges": "Challenges"
+          },
+          "apiGateway": {
+            "name": "API Gateway",
+            "latency": "Latency",
+            "rps": "RPS"
+          },
+          "securityMonitors": {
+            "name": "Security Monitors",
+            "scans": "Scans",
+            "threats": "Threats"
+          }
+        }
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "types": {
+          "lock": "Lock",
+          "unlock": "Unlock completed",
+          "proverSigned": "Prover signed Unlock request",
+          "proverApplication": "New Prover application submitted"
+        },
+        "timeAgo": {
+          "minutes": "分前",
+          "hours": "時間前"
+        }
+      },
+      "alerts": {
+        "title": "Active Alerts",
+        "severity": {
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "items": {
+          "proverSlaWarning": "Prover SLA Warning",
+          "largeUnlockRequest": "Large Unlock Request",
+          "newProverApplication": "New Prover Application",
+          "gasPriceSpike": "Gas price spike on L1",
+          "scheduledMaintenance": "Scheduled maintenance reminder"
+        }
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "reviewProvers": "Review Provers",
+        "txMonitor": "TX Monitor",
+        "dailyReport": "Daily Report",
+        "auditLog": "Audit Log"
+      }
+    }
+  }
+}
