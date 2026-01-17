@@ -170,6 +170,7 @@ export function DelegateProfile({ delegateId }: DelegateProfileProps) {
   const router = useRouter();
   const [delegateAmount, setDelegateAmount] = useState('');
   const [isDelegating, setIsDelegating] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const delegate = useMemo(() => {
     return DELEGATES_DATA[delegateId] || DELEGATES_DATA['1'];
@@ -185,8 +186,109 @@ export function DelegateProfile({ delegateId }: DelegateProfileProps) {
     // Simulate transaction
     await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsDelegating(false);
+    setIsSuccess(true);
+  }, [delegateAmount]);
+
+  const handleDone = useCallback(() => {
     router.push('/token-hub/delegate');
-  }, [delegateAmount, router]);
+  }, [router]);
+
+  // Success State
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen bg-background pb-8">
+        {/* Premium Background Effect - Success Glow */}
+        <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+          <div
+            className={cn(
+              'absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2',
+              'w-[600px] h-[600px]',
+              'bg-[radial-gradient(ellipse,rgba(34,197,94,0.15),transparent_60%)]'
+            )}
+          />
+        </div>
+
+        <main className="relative z-10 max-w-[600px] mx-auto px-4 sm:px-6 pt-6" role="main">
+          <TokenHubHeader />
+
+          {/* Success Card */}
+          <Card padding="none" className="overflow-hidden mt-8">
+            <div className="p-8 text-center">
+              {/* Success Icon */}
+              <div className="relative w-24 h-24 mx-auto mb-6">
+                <div className="absolute inset-0 bg-success/20 rounded-full animate-ping" />
+                <div className="relative w-24 h-24 bg-success/20 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center">
+                    <Check className="w-8 h-8 text-white" aria-hidden="true" />
+                  </div>
+                </div>
+              </div>
+
+              <h1 className="text-2xl font-bold mb-2">{tProfile('success.title')}</h1>
+              <p className="text-foreground-secondary mb-6">{tProfile('success.description')}</p>
+
+              {/* Delegation Summary */}
+              <div className="bg-background-secondary rounded-xl p-6 mb-6 text-left">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-foreground-secondary">{tProfile('success.delegatedTo')}</span>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full',
+                          'bg-gradient-to-br from-gold to-hinomaru',
+                          'flex items-center justify-center',
+                          'text-sm font-semibold text-white'
+                        )}
+                      >
+                        {delegate.initial}
+                      </div>
+                      <span className="font-semibold">{t(delegate.name)}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-foreground-secondary">{tProfile('success.amount')}</span>
+                    <span className="font-bold font-mono text-gold">{Number(delegateAmount).toLocaleString()} veQS</span>
+                  </div>
+                  <div className="h-px bg-border" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-foreground-secondary">{tProfile('success.txHash')}</span>
+                    <a
+                      href="https://etherscan.io/tx/0x8b4c...2e3f"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-mono text-gold hover:underline inline-flex items-center gap-1"
+                    >
+                      0x8b4c...2e3f
+                      <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <Button
+                  variant="gold"
+                  size="lg"
+                  onClick={handleDone}
+                  className="w-full"
+                >
+                  {tProfile('success.done')}
+                </Button>
+                <Link
+                  href="/token-hub/dashboard"
+                  className="text-sm text-gold hover:underline"
+                >
+                  {tProfile('success.dashboardLink')}
+                </Link>
+              </div>
+            </div>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-8">
