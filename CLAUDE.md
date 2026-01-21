@@ -30,11 +30,11 @@ READ PARALLEL（実装ガイド）:  ★ 最重要
 └── docs/specs/DATA_MODEL.md              ← API型・エンティティ
 
 READ PARALLEL（プロンプト）:
-├── docs_new/02_agents_prompt/02_prompts/38_orchestrator.md
-├── docs_new/02_agents_prompt/02_prompts/30_ui_impl.md
-├── docs_new/02_agents_prompt/02_prompts/31_design_pir.md
-├── docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md
-└── docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md  ← 進捗管理
+├── docs/agents/prompts/38_orchestrator.md
+├── docs/agents/prompts/30_ui_impl.md
+├── docs/agents/prompts/31_design_pir.md
+├── docs/design/DESIGN_REVIEW_AGENTS.md
+└── docs/phase6/PHASE6_PROGRESS.md  ← 進捗管理
 
 READ PARALLEL（デザインアセット）:
 ├── docs/design/assets/design-concept-5-japan-premium.html  ← 必須！
@@ -301,7 +301,7 @@ ls docs/design/mocks/{app}/*.html
 
 ### 5.1 進捗ファイル更新（必須）
 
-画面完了後、`docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` を更新：
+画面完了後、`docs/phase6/PHASE6_PROGRESS.md` を更新：
 
 ```markdown
 ## 更新手順
@@ -457,7 +457,7 @@ ls docs/design/mocks/{app}/*.html
 
 「Phase 6 進捗確認」を受けたら以下を実行：
 
-1. `docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` を読み込み
+1. `docs/phase6/PHASE6_PROGRESS.md` を読み込み
 2. Overview Dashboardセクションを表示
 3. 各システムの進捗サマリーを計算して報告
 
@@ -508,20 +508,20 @@ ls docs/design/mocks/{app}/*.html
 
 | 用途 | パス |
 |------|------|
-| Orchestrator | `docs_new/02_agents_prompt/02_prompts/38_orchestrator.md` |
-| UI実装 | `docs_new/02_agents_prompt/02_prompts/30_ui_impl.md` |
-| ペルソナレビュー | `docs_new/02_agents_prompt/02_prompts/31_design_pir.md` |
-| i18n監査 | `docs_new/02_agents_prompt/02_prompts/32_i18n_audit.md` |
-| A11yチェック | `docs_new/02_agents_prompt/02_prompts/33_a11y_check.md` |
-| API実装 | `docs_new/02_agents_prompt/02_prompts/34_api_impl.md` |
-| E2Eテスト | `docs_new/02_agents_prompt/02_prompts/37_e2e_test.md` |
+| Orchestrator | `docs/agents/prompts/38_orchestrator.md` |
+| UI実装 | `docs/agents/prompts/30_ui_impl.md` |
+| ペルソナレビュー | `docs/agents/prompts/31_design_pir.md` |
+| i18n監査 | `docs/agents/prompts/32_i18n_audit.md` |
+| A11yチェック | `docs/agents/prompts/33_a11y_check.md` |
+| API実装 | `docs/agents/prompts/34_api_impl.md` |
+| E2Eテスト | `docs/agents/prompts/37_e2e_test.md` |
 
 ### 進捗・計画
 
 | 用途 | パス |
 |------|------|
-| 進捗管理 | `docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` |
-| ペルソナ定義 | `docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md` |
+| 進捗管理 | `docs/phase6/PHASE6_PROGRESS.md` |
+| ペルソナ定義 | `docs/design/DESIGN_REVIEW_AGENTS.md` |
 
 ### 経緯・履歴（参照用）
 

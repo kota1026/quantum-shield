@@ -1584,5 +1584,14 @@
       "next": "Next",
       "submit": "Submit"
     }
+  },
+  "provers": {
+    "meta": {
+      "title": "Prover Management | Enterprise - Quantum Shield",
+      "description": "Enterprise Prover node management"
+    },
+    "title": "Prover Management",
+    "subtitle": "Monitor and manage enterprise Prover nodes",
+    "ariaLabel": "Prover management page"
   }
 }

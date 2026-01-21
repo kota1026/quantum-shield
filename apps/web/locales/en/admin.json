@@ -830,6 +830,51 @@
         "dailyReport": "Daily Report",
         "auditLog": "Audit Log"
       }
+    },
+    "saasUserRisks": {
+      "meta": {
+        "title": "Risk Management | QS Admin",
+        "description": "SaaS user risk monitoring"
+      },
+      "title": "Risk Management",
+      "subtitle": "Monitor and respond to user risk alerts",
+      "ariaLabel": "Risk Management"
+    },
+    "saasProverQs": {
+      "meta": {
+        "title": "QS Prover Management | QS Admin",
+        "description": "Quantum Shield Prover management"
+      },
+      "title": "QS Prover Management",
+      "subtitle": "Monitor and manage Quantum Shield native Provers",
+      "ariaLabel": "QS Prover Management"
+    },
+    "settingsRoles": {
+      "meta": {
+        "title": "Role Management | QS Admin",
+        "description": "Permission role management"
+      },
+      "title": "Role Management",
+      "subtitle": "Manage access permission roles",
+      "ariaLabel": "Role Management"
+    },
+    "settingsAuditLog": {
+      "meta": {
+        "title": "Audit Log | QS Admin",
+        "description": "System operation audit history"
+      },
+      "title": "Audit Log",
+      "subtitle": "Audit and track system operations",
+      "ariaLabel": "Audit Log"
+    },
+    "saasBilling": {
+      "meta": {
+        "title": "Billing Management | Enterprise SaaS | QS Admin",
+        "description": "Enterprise SaaS billing and invoicing"
+      },
+      "title": "Billing Management",
+      "subtitle": "Enterprise SaaS billing and revenue management",
+      "ariaLabel": "Billing management page"
     }
   }
 }

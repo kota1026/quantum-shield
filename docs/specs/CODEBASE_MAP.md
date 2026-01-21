@@ -12,7 +12,6 @@
 3. [ドキュメント](#3-ドキュメント)
 4. [アーカイブ・非推奨](#4-アーカイブ非推奨)
 5. [開発時の参照ガイド](#5-開発時の参照ガイド)
-6. [コンポーネント一覧](#6-コンポーネント一覧)
 
 ---
 
@@ -28,20 +27,17 @@ quantum-shield/
 ├── 🟢 circuits/                # ZK回路
 ├── 🟢 packages/                # 共有パッケージ
 ├── 🟢 shared-types/            # 共有型定義
+├── 🟢 docs/                    # ドキュメント（整理済み）
 │
-├── 🟡 docs_new/                # ドキュメント（整理予定）
 ├── 🟡 scripts/                 # 運用スクリプト
 ├── 🟡 docker/                  # Docker設定
 │
-├── 🔴 ui/                      # 旧UIモノレポ（非推奨）
-├── 🔴 web/                     # 旧Web（非推奨）
-├── 🔴 api/                     # 旧API（非推奨）
 ├── 🔴 _archive/                # アーカイブ
 │
 └── 設定ファイル群
 ```
 
-凡例: 🟢 アクティブ / 🟡 整理予定 / 🔴 非推奨・アーカイブ
+凡例: 🟢 アクティブ / 🟡 整理予定 / 🔴 アーカイブ
 
 ---
 
@@ -220,37 +216,48 @@ shared-types/
 
 ## 3. ドキュメント
 
-### 3.1 現在の構造 (`docs_new/`)
+### 3.1 現在の構造 (`docs/`)
 
 ```
-docs_new/
-├── 00_core/                       # コア仕様
-│   └── specs/
-│       ├── UNIFIED_SPEC.md        # 統合仕様書
-│       ├── SEQUENCES.md           # シーケンス詳細
-│       └── ...
+docs/
+├── agents/                        # AIエージェント関連
+│   └── prompts/                   # 各種プロンプト
+│       ├── 30_ui_impl.md          # UI実装
+│       ├── 31_design_pir.md       # ペルソナレビュー
+│       ├── 33_a11y_check.md       # A11yチェック
+│       ├── 37_e2e_test.md         # E2Eテスト
+│       └── 38_orchestrator.md     # オーケストレーター
 │
-├── 01_phase/                      # フェーズ別ドキュメント
-│   ├── 01_Phase1/                 # Phase 1
-│   ├── 03_Phase3/                 # Phase 3
-│   ├── 04_phase4/                 # Phase 4
-│   │   └── 01_design/             # デザイン関連
-│   │       ├── assets/            # デザインアセット
-│   │       │   └── design-concept-5-japan-premium.html
-│   │       └── system_01_consumer/  # Consumer App モック
-│   │           └── wip/mocks/     # HTMLモック
-│   │
-│   └── 06_phase6/                 # Phase 6（現在）
-│       ├── DESIGN_SYSTEM.md       # デザイン標準 ⭐
-│       ├── DESIGN_SPEC_v3.md      # 設計仕様書 ⭐
-│       ├── CODEBASE_MAP.md        # 本ドキュメント ⭐
-│       ├── DATA_MODEL.md          # データモデル ⭐
-│       └── URL_REFERENCE.md       # URL一覧
+├── archive/                       # アーカイブ（過去フェーズ）
+│   ├── 01_Phase1/
+│   ├── 02_Phase2/
+│   └── 03_Phase3/
 │
-├── 02_agents_prompt/              # AIエージェント関連
-│   ├── 01_Agent strategic meeting format/  # 会議プロトコル
-│   ├── 02_prompts/                # 各種プロンプト
-│   └── 99_11Agents/               # 11体エージェント定義
+├── core/                          # コア仕様
+│   ├── UNIFIED_SPEC.md            # 統合仕様書
+│   └── SEQUENCES.md               # シーケンス詳細
+│
+├── design/                        # デザイン関連
+│   ├── DESIGN_SYSTEM.md           # デザイン標準 ⭐
+│   ├── DESIGN_SPEC_v3.md          # 設計仕様書 ⭐
+│   ├── DESIGN_REVIEW_AGENTS.md    # ペルソナ定義
+│   ├── assets/                    # デザインアセット
+│   │   └── design-concept-5-japan-premium.html
+│   └── system_XX_{name}/          # 各システムのモック
+│       └── wip/mocks/
+│
+├── phase6/                        # Phase 6 進捗・計画
+│   ├── PHASE6_PROGRESS.md         # 進捗管理 ⭐
+│   ├── PHASE6_PLANNING_PROPOSAL.md
+│   └── DEVELOPMENT_*.md
+│
+├── specs/                         # 仕様書
+│   ├── IMPLEMENTATION_GUIDE.md    # 実装ガイド ⭐最重要
+│   ├── DATA_MODEL.md              # データモデル ⭐
+│   ├── CODEBASE_MAP.md            # 本ドキュメント
+│   └── URL_REFERENCE.md           # URL一覧
+│
+├── process-history/               # 経緯履歴
 │
 └── README.md
 ```
@@ -259,19 +266,19 @@ docs_new/
 
 | ドキュメント | パス | 用途 |
 |-------------|------|------|
-| **DESIGN_SYSTEM.md** | `06_phase6/` | デザイン標準ルール |
-| **DESIGN_SPEC_v3.md** | `06_phase6/` | アプリ中心設計仕様 |
-| **CODEBASE_MAP.md** | `06_phase6/` | コードベース地図 |
-| **DATA_MODEL.md** | `06_phase6/` | エンティティ中心データ設計 |
-| **URL_REFERENCE.md** | `06_phase6/` | 全画面URL一覧 |
-| **SEQUENCES.md** | `00_core/specs/` | シーケンス詳細 |
-| **UNIFIED_SPEC.md** | `00_core/specs/` | 統合仕様書 |
+| **IMPLEMENTATION_GUIDE.md** | `docs/specs/` | 実装ガイド（最重要） |
+| **DESIGN_SYSTEM.md** | `docs/design/` | デザイン標準ルール |
+| **DATA_MODEL.md** | `docs/specs/` | エンティティ中心データ設計 |
+| **CODEBASE_MAP.md** | `docs/specs/` | コードベース地図 |
+| **PHASE6_PROGRESS.md** | `docs/phase6/` | Phase 6進捗管理 |
+| **DESIGN_SPEC_v3.md** | `docs/design/` | アプリ中心設計仕様 |
+| **URL_REFERENCE.md** | `docs/specs/` | 全画面URL一覧 |
 
 ---
 
 ## 4. アーカイブ・非推奨
 
-### 4.1 使用しないフォルダ
+### 4.1 削除済みフォルダ（2026-01-22）
 
 | フォルダ | 理由 | 代替 |
 |----------|------|------|
@@ -279,14 +286,14 @@ docs_new/
 | `web/` | 旧Web | `apps/web/` |
 | `api/` | 旧API | `services/api/` |
 | `client/` | 旧クライアント | `packages/sdk/` |
-| `_archive/` | アーカイブ | - |
+| `docs_new/` | 整理済み | `docs/` |
 
-### 4.2 整理予定
+### 4.2 残存アーカイブ
 
-| フォルダ | 現状 | 計画 |
-|----------|------|------|
-| `docs_new/` | 6階層と深い | `docs/` に整理 |
-| `scripts/` | 散在 | 整理・統合 |
+| フォルダ | 内容 |
+|----------|------|
+| `_archive/` | デプロイ履歴（v1-optimistic-bridge等） |
+| `docs/archive/` | 過去フェーズのドキュメント |
 
 ---
 
@@ -296,11 +303,11 @@ docs_new/
 
 ```
 1. デザイン確認
-   → docs_new/01_phase/06_phase6/DESIGN_SYSTEM.md
-   → docs_new/01_phase/04_phase4/01_design/system_XX/wip/mocks/
+   → docs/design/DESIGN_SYSTEM.md
+   → docs/design/system_XX_{name}/wip/mocks/
 
 2. 仕様確認
-   → docs_new/01_phase/06_phase6/DESIGN_SPEC_v3.md の該当アプリセクション
+   → docs/specs/IMPLEMENTATION_GUIDE.md の該当アプリセクション
 
 3. ページ作成
    → apps/web/src/app/[locale]/{app}/{screen}/page.tsx
@@ -414,200 +421,10 @@ const amount = searchParams.get('amount') || 'default';
 
 ---
 
-## 6. コンポーネント一覧
-
-### 6.1 概要
-
-| カテゴリ | コンポーネント数 | パス |
-|----------|:---------------:|------|
-| **共通UI** | 5 | `components/ui/` |
-| **Consumer App** | 51 | `components/consumer/` |
-| **Token Hub** | 25 | `components/token-hub/` |
-| **Governance** | 10 | `components/governance/` |
-| **Prover Portal** | 14 | `components/prover/` |
-| **Observer** | 23 | `components/observer/` |
-| **Explorer** | 11 | `components/explorer/` |
-| **Enterprise Admin** | 54 | `components/enterprise/` |
-| **QS Admin** | 67 | `components/admin/` |
-| **合計** | **261** | - |
-
-### 6.2 共通UIコンポーネント（`components/ui/`）
-
-| コンポーネント | ファイル | 用途 |
-|---------------|----------|------|
-| Button | `button.tsx` | ボタン（9バリエーション: primary, secondary, outline, ghost, danger, warning, success, link, gold） |
-| Card | `card.tsx` | コンテンツカード |
-| Input | `input.tsx` | 入力フィールド |
-| Badge | `badge.tsx` | ステータスバッジ |
-| Tooltip | `tooltip.tsx` | ツールチップ |
-
-### 6.3 Consumer App コンポーネント（`components/consumer/`）
-
-| ディレクトリ | 主要コンポーネント | 画面 |
-|-------------|-------------------|------|
-| `Dashboard/` | HinomaryVisual, LockAssetCard, StatCard, RecentActivity | ダッシュボード |
-| `Landing/` | HinomaryVisual, HinomaryLogo, Tooltip | ランディング |
-| `Lock/` | LockForm, ConfirmModal | ロック入力 |
-| `LockProcessing/` | ProcessingStatus, ProgressIndicator | 処理中 |
-| `LockSuccess/` | SuccessCard, TransactionDetails | 完了 |
-| `Unlock/` | LockCard, MethodCard, TimeLockModal | アンロック選択 |
-| `UnlockProcessing/` | UnlockStatus | アンロック処理中 |
-| `UnlockSuccess/` | UnlockConfirmation | アンロック完了 |
-| `EmergencyBond/` | BondForm | 緊急アンロック |
-| `History/` | FilterTabs, HistoryItem, HistoryStats | 履歴一覧 |
-| `HistoryDetail/` | TransactionDetail | 履歴詳細 |
-| `Onboarding/` | OnboardingSteps | オンボーディング |
-| `WalletConnect/` | WalletList | ウォレット接続 |
-| `KeyManagement/` | BackupModal, ExportModal, RegenerateModal | 鍵管理 |
-| `Settings/` | SettingsItem, ToggleSwitch, SettingsSection | 設定 |
-| `Notifications/` | NotificationList | 通知 |
-| `Security/` | SecuritySettings | セキュリティ |
-| `FAQ/` | FAQItem | よくある質問 |
-| `Help/` | HelpContent | ヘルプ |
-| `Contact/` | ContactForm | お問い合わせ |
-| `Terms/` | TermsContent | 利用規約 |
-| `Privacy/` | PrivacyContent | プライバシー |
-| `Cookie/` | CookiePolicy | クッキーポリシー |
-
-### 6.4 Token Hub コンポーネント（`components/token-hub/`）
-
-| ディレクトリ | 主要コンポーネント | 画面 |
-|-------------|-------------------|------|
-| `Dashboard/` | StakeOverview, TokenHubHeader, StakeCard | ダッシュボード |
-| `Onboarding/` | StakeIntro | オンボーディング |
-| `Stake/` | StakeForm, PeriodSelector | ステーク入力 |
-| `StakeProcessing/` | StakeStatus | 処理中 |
-| `StakeSuccess/` | StakeConfirmation | 完了 |
-| `Unstake/` | UnstakeForm | アンステーク |
-| `Delegate/` | DelegateForm, ValidatorList | デリゲート |
-| `Rewards/` | RewardsOverview, RewardsHistory | 報酬 |
-| `Landing/` | TokenHubIntro | ランディング |
-
-### 6.5 Governance コンポーネント（`components/governance/`）
-
-| ディレクトリ | 主要コンポーネント | 画面 |
-|-------------|-------------------|------|
-| `GovernanceDashboard.tsx` | ProposalList, VotingPower | ダッシュボード |
-| `ProposalsList.tsx` | ProposalCard, FilterTabs | 提案一覧 |
-| `ProposalDetail.tsx` | VoteProgress, VoteForm | 提案詳細 |
-| `Council.tsx` | CouncilMembers | 評議員一覧 |
-| `GovernanceOnboarding.tsx` | OnboardingSteps | オンボーディング |
-| `GovernanceFAQ.tsx` | FAQItems | FAQ |
-| `GovernanceSettings.tsx` | SettingsForm | 設定 |
-| `GovernanceHeader.tsx` | Navigation | ヘッダー |
-
-### 6.6 Prover Portal コンポーネント（`components/prover/`）
-
-| ファイル | 用途 |
-|----------|------|
-| `ProverDashboard.tsx` | ダッシュボード（メトリクス、チャレンジ状況） |
-| `ProverApplication.tsx` | 申請フォーム |
-| `ProverApplicationStatus.tsx` | 申請ステータス |
-| `ProverLanding.tsx` | ランディングページ |
-| `ProverChallenge.tsx` | チャレンジ応答 |
-| `ProverMetrics.tsx` | パフォーマンスメトリクス |
-| `ProverQueue.tsx` | 証明キュー |
-| `ProverAlerts.tsx` | アラート一覧 |
-| `ProverExit.tsx` | 退出申請 |
-| `ProverLogin.tsx` | ログイン |
-| `ProverRequirements.tsx` | 要件確認 |
-| `ProverSettings.tsx` | 設定 |
-| `ProverTerms.tsx` | 利用規約 |
-| `ProverSidebar.tsx` | サイドバー |
-
-### 6.7 Observer コンポーネント（`components/observer/`）
-
-| ディレクトリ | 主要コンポーネント | 画面 |
-|-------------|-------------------|------|
-| `Dashboard/` | ObserverHeader, StatCard, ActiveChallengesSidebar, EarningsSidebar | ダッシュボード |
-| `Suspicious/` | SuspiciousAlertCard, ChallengeSubmit | 不正検知 |
-| `Challenge/` | ChallengeDetail, ChallengeForm | チャレンジ |
-| `ChallengeProgress/` | ProgressTracker | 進捗確認 |
-| `Earnings/` | EarningsChart, RewardsList | 収益 |
-| `History/` | ChallengeHistory | 履歴 |
-| `Application/` | ApplicationForm | 申請 |
-| `Landing/` | ObserverIntro | ランディング |
-| `Login/` | LoginForm | ログイン |
-| `Settings/` | SettingsForm | 設定 |
-
-### 6.8 Explorer コンポーネント（`components/explorer/`）
-
-| ファイル/ディレクトリ | 用途 |
-|----------------------|------|
-| `Landing/` | 検索インターフェース、統計概要 |
-| `Challenges.tsx` | チャレンジ一覧 |
-| `Provers.tsx` | Prover一覧 |
-| `TransactionDetail/` | トランザクション詳細 |
-| `LockDetail/` | ロック詳細 |
-| `UnlockDetail/` | アンロック詳細 |
-
-### 6.9 Enterprise Admin コンポーネント（`components/enterprise/`）
-
-| ディレクトリ | 主要コンポーネント | 画面 |
-|-------------|-------------------|------|
-| `Dashboard/` | EnterpriseOverview, UsageChart | ダッシュボード |
-| `Users/` | UserTable, UserDetail, UserInvite | ユーザー管理 |
-| `ApiKeys/` | ApiKeyList, ApiKeyCreate | APIキー管理 |
-| `Billing/` | BillingOverview, InvoiceList | 課金管理 |
-| `EnterpriseApplication.tsx` | 申請フォーム | 申請 |
-| `EnterpriseApprovals.tsx` | 承認管理 | 承認 |
-| `EnterpriseContract.tsx` | 契約管理 | 契約 |
-| `EnterpriseKYB.tsx` | KYB | 本人確認 |
-| `EnterpriseLanding.tsx` | ランディング | LP |
-| `EnterpriseOnboarding.tsx` | オンボーディング | 初期設定 |
-| `EnterprisePlanSelection.tsx` | プラン選択 | 料金プラン |
-| `EnterpriseProvers.tsx` | Prover管理 | 専用Prover |
-
-### 6.10 QS Admin コンポーネント（`components/admin/`）
-
-| ファイル | 用途 |
-|----------|------|
-| `AdminDashboard.tsx` | 統合ダッシュボード |
-| `AdminIntegratedDashboard.tsx` | 統合ダッシュボードv2 |
-| `AdminSidebar.tsx` | サイドバーナビゲーション |
-| `AdminSidebarV2.tsx` | サイドバーv2 |
-| `AdminProver.tsx` | Prover申請管理 |
-| `AdminEnterprise.tsx` | Enterprise管理 |
-| `AdminNodes.tsx` | ノード管理 |
-| `AdminEmergency.tsx` | 緊急停止 |
-| `AdminParameters.tsx` | パラメータ設定 |
-| `AdminStaff.tsx` | スタッフ管理 |
-| `AdminAudit.tsx` | 監査ログ |
-| `AdminReports.tsx` | レポート |
-| `AdminTxMonitor.tsx` | トランザクション監視 |
-| `AdminCommunity.tsx` | コミュニティ管理 |
-| `AdminOnboarding.tsx` | オンボーディング |
-| `license/` | ライセンス管理 |
-| `public/` | 公開設定 |
-| `saas/` | SaaS管理 |
-| `settings/` | システム設定 |
-
-### 6.11 コンポーネント命名規則
-
-```
-ディレクトリ構造:
-components/
-├── {app}/              # アプリ別（consumer, token-hub等）
-│   ├── {Screen}/       # 画面別ディレクトリ
-│   │   ├── index.tsx   # メインコンポーネント
-│   │   ├── {Sub}.tsx   # サブコンポーネント
-│   │   └── {Screen}.stories.tsx  # Storybook
-│   └── index.ts        # 再エクスポート
-└── ui/                 # 共通UI
-
-命名規則:
-- ディレクトリ: PascalCase（Dashboard, Lock等）
-- ファイル: PascalCase.tsx または index.tsx
-- コンポーネント: PascalCase（export function LockScreen）
-- Stories: {Component}.stories.tsx
-```
-
----
-
 ## 更新履歴
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-22 | Claude | 初版作成 |
 | 1.1 | 2026-01-22 | Claude | Mock API, lib/api追加。画面間データ渡しパターン追加 |
-| 1.2 | 2026-01-22 | Claude | コンポーネント一覧（セクション6）追加 |
+| 1.2 | 2026-01-22 | Claude | フォルダ整理完了: docs_new→docs統合、非推奨フォルダ削除 |
