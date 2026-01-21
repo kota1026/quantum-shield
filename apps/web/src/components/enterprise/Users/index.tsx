@@ -20,6 +20,9 @@ const MOCK_USERS: User[] = [
     status: 'active',
     twoFaEnabled: true,
     lastActive: '2分前',
+    kycStatus: 'verified',
+    amlStatus: 'cleared',
+    riskScore: 12,
   },
   {
     id: 'user_002',
@@ -30,6 +33,9 @@ const MOCK_USERS: User[] = [
     status: 'active',
     twoFaEnabled: true,
     lastActive: '1時間前',
+    kycStatus: 'verified',
+    amlStatus: 'cleared',
+    riskScore: 8,
   },
   {
     id: 'user_003',
@@ -40,6 +46,9 @@ const MOCK_USERS: User[] = [
     status: 'active',
     twoFaEnabled: true,
     lastActive: '3時間前',
+    kycStatus: 'pending',
+    amlStatus: 'review',
+    riskScore: 45,
   },
   {
     id: 'user_004',
@@ -50,6 +59,9 @@ const MOCK_USERS: User[] = [
     status: 'active',
     twoFaEnabled: false,
     lastActive: '昨日',
+    kycStatus: 'verified',
+    amlStatus: 'flagged',
+    riskScore: 78,
   },
   {
     id: 'user_005',
@@ -60,6 +72,9 @@ const MOCK_USERS: User[] = [
     status: 'invited',
     twoFaEnabled: false,
     lastActive: '保留中',
+    kycStatus: 'not_submitted',
+    amlStatus: 'not_checked',
+    riskScore: undefined,
   },
 ];
 

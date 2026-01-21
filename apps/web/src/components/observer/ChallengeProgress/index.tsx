@@ -77,6 +77,7 @@ function TimelineItem({ status, number, title, time, description }: TimelineItem
 
 export function ChallengeProgress() {
   const t = useTranslations('observer.dashboard.challengeProgress');
+  const tCommon = useTranslations('observer.dashboard');
   const [countdown, setCountdown] = useState({ hours: 47, minutes: 22, seconds: 15 });
   const [progress, setProgress] = useState(35);
 
@@ -145,10 +146,9 @@ export function ChallengeProgress() {
             <Check className="w-6 h-6 text-success" />
           </div>
           <div>
-            <div className="font-semibold text-success">Challenge Successfully Submitted</div>
+            <div className="font-semibold text-success">{t('submitted.title')}</div>
             <div className="text-sm text-text-secondary">
-              Your challenge has been recorded on-chain. TX: {mockChallenge.txHash.slice(0, 6)}...
-              {mockChallenge.txHash.slice(-4)}
+              {t('submitted.description', { txHash: `${mockChallenge.txHash.slice(0, 6)}...${mockChallenge.txHash.slice(-4)}` })}
             </div>
           </div>
         </div>
@@ -156,10 +156,10 @@ export function ChallengeProgress() {
         {/* Challenge Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Challenge #{mockChallenge.id}</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('header.title', { id: mockChallenge.id })}</h1>
             <div className="font-mono text-sm text-text-tertiary">
-              vs {mockChallenge.targetAddress.slice(0, 6)}...{mockChallenge.targetAddress.slice(-4)} •{' '}
-              {mockChallenge.targetAmount} ETH Emergency Unlock
+              {t('header.vs')} {mockChallenge.targetAddress.slice(0, 6)}...{mockChallenge.targetAddress.slice(-4)} •{' '}
+              {mockChallenge.targetAmount} ETH {t('header.emergencyUnlock')}
             </div>
           </div>
           <div
@@ -173,36 +173,36 @@ export function ChallengeProgress() {
         {/* Countdown */}
         <section
           className="bg-card border border-border-subtle rounded-2xl p-8 mb-8 text-center"
-          aria-label="Defense period countdown"
+          aria-label={t('countdown.ariaLabel')}
         >
-          <div className="text-sm text-text-tertiary mb-4">Defense Period Remaining</div>
-          <div className="flex justify-center gap-8 mb-6">
+          <div className="text-sm text-text-tertiary mb-6">{t('countdown.remaining')}</div>
+          <div className="flex justify-center gap-12 mb-8">
             <div className="text-center">
-              <div className="text-5xl font-bold font-mono text-accent-hinomaru-light">
+              <div className="text-6xl font-bold font-mono text-hinomaru-400 tabular-nums">
                 {String(countdown.hours).padStart(2, '0')}
               </div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mt-1">Hours</div>
+              <div className="text-xs text-text-tertiary uppercase tracking-widest mt-2">{t('countdown.hours')}</div>
             </div>
             <div className="text-center">
-              <div className="text-5xl font-bold font-mono text-accent-hinomaru-light">
+              <div className="text-6xl font-bold font-mono text-hinomaru-400 tabular-nums">
                 {String(countdown.minutes).padStart(2, '0')}
               </div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mt-1">Minutes</div>
+              <div className="text-xs text-text-tertiary uppercase tracking-widest mt-2">{t('countdown.minutes')}</div>
             </div>
             <div className="text-center">
-              <div className="text-5xl font-bold font-mono text-accent-hinomaru-light">
+              <div className="text-6xl font-bold font-mono text-hinomaru-400 tabular-nums">
                 {String(countdown.seconds).padStart(2, '0')}
               </div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mt-1">Seconds</div>
+              <div className="text-xs text-text-tertiary uppercase tracking-widest mt-2">{t('countdown.seconds')}</div>
             </div>
           </div>
           <div className="h-2 bg-background-primary rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-accent-hinomaru to-accent-gold rounded-full transition-all duration-1000"
+              className="h-full bg-gradient-to-r from-hinomaru to-gold rounded-full transition-all duration-1000"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="text-xs text-text-tertiary mt-2">{progress}% of defense period elapsed</div>
+          <div className="text-xs text-text-tertiary mt-3">{t('countdown.elapsed', { percent: progress })}</div>
         </section>
 
         {/* Timeline */}
@@ -218,33 +218,33 @@ export function ChallengeProgress() {
               status="completed"
               title={t('timeline.submitted')}
               time="2026-01-08 14:32:18 UTC"
-              description={`You submitted a challenge against ${mockChallenge.targetAddress.slice(0, 6)}...${mockChallenge.targetAddress.slice(-4)} with ${mockChallenge.yourBond} ETH bond.`}
+              description={t('timeline.submittedDesc', { address: `${mockChallenge.targetAddress.slice(0, 6)}...${mockChallenge.targetAddress.slice(-4)}`, bond: mockChallenge.yourBond })}
             />
             <TimelineItem
               status="completed"
-              title="Bond Locked"
+              title={t('timeline.bondLocked')}
               time="2026-01-08 14:32:20 UTC"
-              description={`Your ${mockChallenge.yourBond} ETH bond has been locked in the challenge contract.`}
+              description={t('timeline.bondLockedDesc', { bond: mockChallenge.yourBond })}
             />
             <TimelineItem
               status="current"
               title={t('timeline.defenseEnd')}
-              time="Ends: 2026-01-11 14:32:18 UTC"
-              description="The Prover has 72 hours to respond and defend. No response received yet."
+              time={t('timeline.endsAt', { time: '2026-01-11 14:32:18 UTC' })}
+              description={t('timeline.defenseDesc')}
             />
             <TimelineItem
               status="pending"
               number={4}
               title={t('timeline.judgment')}
-              time="Pending"
-              description="After defense period, automatic judgment will be issued."
+              time={t('timeline.pending')}
+              description={t('timeline.judgmentDesc')}
             />
             <TimelineItem
               status="pending"
               number={5}
               title={t('timeline.resolution')}
-              time="Pending"
-              description="Rewards distributed or bond forfeited based on judgment."
+              time={t('timeline.pending')}
+              description={t('timeline.resolutionDesc')}
             />
           </div>
         </section>
@@ -260,11 +260,11 @@ export function ChallengeProgress() {
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
-                <span className="text-text-secondary">Challenge ID</span>
+                <span className="text-text-secondary">{t('details.challengeId')}</span>
                 <span className="font-semibold font-mono">#{mockChallenge.id}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
-                <span className="text-text-secondary">Submitted</span>
+                <span className="text-text-secondary">{t('details.submitted')}</span>
                 <span className="font-semibold">2026-01-08 14:32</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
@@ -272,11 +272,11 @@ export function ChallengeProgress() {
                 <span className="font-semibold text-warning">{mockChallenge.yourBond} ETH</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
-                <span className="text-text-secondary">Potential Reward</span>
+                <span className="text-text-secondary">{t('details.potentialReward')}</span>
                 <span className="font-semibold text-success">~{mockChallenge.potentialReward} ETH</span>
               </div>
               <div className="flex justify-between py-2 text-sm">
-                <span className="text-text-secondary">TX Hash</span>
+                <span className="text-text-secondary">{t('details.txHash')}</span>
                 <span className="font-semibold font-mono text-xs">
                   {mockChallenge.txHash.slice(0, 6)}...{mockChallenge.txHash.slice(-4)}
                 </span>
@@ -289,29 +289,29 @@ export function ChallengeProgress() {
             aria-labelledby="target-details-title"
           >
             <h3 id="target-details-title" className="text-sm text-text-tertiary mb-4">
-              Target Transaction
+              {t('target.title')}
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
-                <span className="text-text-secondary">Address</span>
+                <span className="text-text-secondary">{t('target.address')}</span>
                 <span className="font-semibold font-mono text-xs">
                   {mockChallenge.targetAddress.slice(0, 6)}...{mockChallenge.targetAddress.slice(-4)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
-                <span className="text-text-secondary">Amount</span>
+                <span className="text-text-secondary">{t('target.amount')}</span>
                 <span className="font-semibold">{mockChallenge.targetAmount} ETH</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
-                <span className="text-text-secondary">Type</span>
-                <span className="font-semibold text-warning">Emergency Unlock</span>
+                <span className="text-text-secondary">{t('target.type')}</span>
+                <span className="font-semibold text-warning">{t('target.emergencyUnlock')}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
-                <span className="text-text-secondary">Risk Score</span>
+                <span className="text-text-secondary">{t('target.riskScore')}</span>
                 <span className="font-semibold text-error">{mockChallenge.riskScore}</span>
               </div>
               <div className="flex justify-between py-2 text-sm">
-                <span className="text-text-secondary">Original TX</span>
+                <span className="text-text-secondary">{t('target.originalTx')}</span>
                 <span className="font-semibold font-mono text-xs">
                   {mockChallenge.originalTxHash.slice(0, 6)}...{mockChallenge.originalTxHash.slice(-4)}
                 </span>

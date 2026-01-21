@@ -468,6 +468,37 @@
     "status": {
       "active": "Active",
       "inactive": "Inactive"
+    },
+    "riskCompliance": {
+      "title": "Risk & Compliance",
+      "riskScore": {
+        "label": "Risk Score",
+        "description": "Calculated based on transaction history, KYC/AML status, and behavioral patterns.",
+        "levels": {
+          "low": "Low Risk",
+          "medium": "Medium Risk",
+          "high": "High Risk",
+          "unknown": "Not Evaluated"
+        }
+      },
+      "kyc": {
+        "label": "KYC Status",
+        "verified": "Verified",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "notSubmitted": "Not Submitted"
+      },
+      "aml": {
+        "label": "AML Status",
+        "cleared": "Cleared",
+        "review": "Under Review",
+        "flagged": "Flagged",
+        "notChecked": "Not Checked"
+      },
+      "highRiskAlert": {
+        "title": "High Risk User",
+        "description": "This user has been classified as high risk. Consider additional verification or transaction restrictions."
+      }
     }
   },
   "apiKeys": {
@@ -1414,6 +1445,144 @@
       "sentAgo": "Sent {time} ago",
       "resend": "Resend",
       "cancel": "Cancel"
+    }
+  },
+  "landing": {
+    "meta": {
+      "title": "Enterprise Solutions | Quantum Shield",
+      "description": "Protect your business with quantum-resistant asset protection solutions."
+    },
+    "hero": {
+      "badge": "Enterprise Solutions",
+      "title": "Asset Protection Platform\nfor the Quantum Era",
+      "description": "Quantum Shield is an enterprise asset protection solution using NIST-compliant quantum-resistant cryptography.",
+      "cta": "Request Consultation",
+      "secondaryCta": "Contact Us",
+      "stats": {
+        "companies": "50+ Companies",
+        "tvl": "$500M+ Protected",
+        "users": "100,000+ Users"
+      }
+    },
+    "features": {
+      "title": "Key Features",
+      "subtitle": "Enterprise-grade asset protection",
+      "quantumSecurity": {
+        "title": "Quantum-Resistant Security",
+        "description": "NIST-approved quantum-resistant algorithms including Dilithium-III and SPHINCS+."
+      },
+      "highPerformance": {
+        "title": "High Performance",
+        "description": "1,000+ TPS with 99.9% uptime SLA guaranteed."
+      },
+      "compliance": {
+        "title": "Compliance Ready",
+        "description": "SOC2 and ISO27001 compliant with audit logs and detailed reporting."
+      },
+      "dedicatedSupport": {
+        "title": "Dedicated Support",
+        "description": "24/7 support from a dedicated Customer Success Manager."
+      }
+    },
+    "plans": {
+      "title": "Plans",
+      "subtitle": "Flexible plans tailored to your needs",
+      "starter": {
+        "name": "Starter",
+        "description": "For small teams",
+        "price": "From $2,500/mo",
+        "features": ["Up to 100 users", "Basic API", "Email support", "Standard SLA"]
+      },
+      "business": {
+        "name": "Business",
+        "description": "For growing companies",
+        "price": "From $8,000/mo",
+        "features": ["Up to 1,000 users", "Full API", "Priority support", "99.9% SLA", "Custom integrations"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "For large organizations",
+        "price": "Contact Us",
+        "features": ["Unlimited users", "Dedicated infrastructure", "24/7 dedicated support", "99.99% SLA", "On-premise available", "Custom SLA"]
+      }
+    },
+    "cta": {
+      "title": "Get Started Today",
+      "description": "Start protecting your assets for the quantum era today.",
+      "button": "Request Free Consultation"
+    }
+  },
+  "application": {
+    "meta": {
+      "title": "Service Application | Enterprise - Quantum Shield",
+      "description": "Apply for Quantum Shield Enterprise service"
+    },
+    "title": "Service Application",
+    "subtitle": "Please fill in the required information below",
+    "steps": {
+      "company": "Company Info",
+      "contact": "Contact",
+      "plan": "Plan Selection",
+      "kyb": "Verification",
+      "contract": "Contract",
+      "confirm": "Confirm"
+    },
+    "fields": {
+      "companyName": "Company Name",
+      "industry": "Industry",
+      "companySize": "Company Size",
+      "website": "Website",
+      "contactName": "Contact Name",
+      "contactEmail": "Email Address",
+      "contactPhone": "Phone Number",
+      "plan": "Plan",
+      "expectedUsers": "Expected Users",
+      "useCase": "Use Case"
+    },
+    "placeholders": {
+      "companyName": "Company Inc.",
+      "selectIndustry": "Select industry",
+      "selectSize": "Select company size",
+      "contactName": "John Doe",
+      "contactEmail": "john@example.com",
+      "contactPhone": "+1-123-456-7890",
+      "selectUsers": "Select expected users",
+      "useCase": "Describe your use case and requirements"
+    },
+    "industries": {
+      "financial": "Financial Institution",
+      "exchange": "Crypto Exchange",
+      "custody": "Custody Service",
+      "defi": "DeFi Protocol",
+      "other": "Other"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "description": "For small teams"
+      },
+      "business": {
+        "name": "Business",
+        "description": "For growing companies"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "For large organizations"
+      }
+    },
+    "recommended": "Recommended",
+    "confirmation": {
+      "summary": "Application Summary",
+      "termsText": "",
+      "termsLink": "Terms of Service",
+      "and": "and",
+      "privacyLink": "Privacy Policy",
+      "agree": "I agree to the"
+    },
+    "navigation": {
+      "back": "Back",
+      "next": "Next",
+      "submit": "Submit"
     }
   }
 }

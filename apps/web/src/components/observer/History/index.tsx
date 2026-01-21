@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ObserverHeader } from '../Dashboard/ObserverHeader';
@@ -78,6 +78,45 @@ export function ChallengeHistory() {
   const itemsPerPage = 10;
   const totalItems = 14;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const handleExportCsv = () => {
+    const headers = [
+      t('table.challengeId'),
+      t('table.targetAddress'),
+      t('table.amount'),
+      t('table.date'),
+      t('table.result'),
+      t('table.rewardPenalty'),
+    ];
+
+    const rows = mockChallenges.map((challenge) => [
+      challenge.id,
+      challenge.targetAddress,
+      challenge.amount,
+      challenge.date,
+      challenge.result === 'inProgress'
+        ? t('results.inProgress')
+        : challenge.result === 'won'
+          ? t('results.won')
+          : t('results.lost'),
+      challenge.rewardPenalty || '-',
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `observer-history-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const resultBadgeStyles = {
     inProgress: 'bg-foreground-tertiary/10 text-foreground-tertiary',
@@ -176,6 +215,7 @@ export function ChallengeHistory() {
             <option value="allTime">{t('filters.period.allTime')}</option>
           </select>
           <button
+            onClick={handleExportCsv}
             className={cn(
               'ml-auto px-4 py-2 flex items-center gap-2',
               'bg-gold/10 border border-gold rounded-lg',
@@ -221,11 +261,18 @@ export function ChallengeHistory() {
                   <tr
                     key={challenge.id}
                     className="border-b border-border/30 hover:bg-background-secondary cursor-pointer transition-colors"
+                    onClick={() => {
+                      window.location.href = `/observer/challenge/${challenge.id.replace('#CHG-', '')}`;
+                    }}
                   >
                     <td className="px-4 py-4">
-                      <span className="font-mono text-sm text-foreground">
+                      <Link
+                        href={`/observer/challenge/${challenge.id.replace('#CHG-', '')}`}
+                        className="font-mono text-sm text-foreground hover:text-gold"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {challenge.id}
-                      </span>
+                      </Link>
                     </td>
                     <td className="px-4 py-4">
                       <span className="font-mono text-sm text-foreground-secondary">

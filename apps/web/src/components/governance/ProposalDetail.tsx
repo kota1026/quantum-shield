@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import {
@@ -194,7 +194,8 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   const [selectedVote, setSelectedVote] = useState<VoteChoice>('for');
 
   // Mock data - will be replaced with real data from API
-  const proposal: ProposalData = {
+  // useMemo to prevent recreating the Date object on every render
+  const proposal: ProposalData = useMemo(() => ({
     id: proposalId,
     title: 'Increase Prover Bond Amount from 100 ETH to 150 ETH',
     status: 'active',
@@ -228,7 +229,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
       createdAt: '2026-01-08 14:30 UTC',
       votingEnds: '2026-01-15 14:30 UTC',
     },
-  };
+  }), [proposalId]);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -423,10 +424,10 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                       <div className="w-6 h-6 rounded-full bg-background-secondary border-2 border-border flex items-center justify-center z-10" />
                       <div>
                         <SimpleTooltip content={t('timeline.timeLockTooltip')} side="right">
-                          <p className="font-semibold text-sm flex items-center gap-1 cursor-help">
+                          <span className="font-semibold text-sm flex items-center gap-1">
                             {t('timeline.timeLock')}
                             <HelpCircle className="w-3 h-3 text-foreground-tertiary" aria-hidden="true" />
-                          </p>
+                          </span>
                         </SimpleTooltip>
                         <p className="text-xs text-foreground-tertiary">{t('timeline.timeLockNote')}</p>
                       </div>
@@ -575,10 +576,16 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                 {tFooter('documentation')}
               </a>
               <Link
-                href="/governance/terms"
+                href="/consumer/terms"
                 className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
               >
                 {tFooter('terms')}
+              </Link>
+              <Link
+                href="/consumer/privacy"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+              >
+                {tFooter('privacy')}
               </Link>
             </nav>
             <p className="text-xs text-foreground-muted">{tFooter('disclaimer')}</p>

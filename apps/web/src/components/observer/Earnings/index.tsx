@@ -2,8 +2,14 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { ObserverHeader } from '../Dashboard/ObserverHeader';
-import { Trophy, Wallet, Check, X } from 'lucide-react';
+import { Trophy, Wallet, Check, X, Loader2, ExternalLink, ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Link } from '@/i18n/navigation';
+
+type ClaimStep = 'idle' | 'confirm' | 'processing' | 'success';
 
 interface EarningItem {
   id: string;
@@ -56,14 +62,16 @@ const mockHistory: EarningItem[] = [
 ];
 
 interface ClaimModalProps {
-  isOpen: boolean;
+  step: ClaimStep;
   onClose: () => void;
   onConfirm: () => void;
+  onDone: () => void;
   amount: string;
+  t: ReturnType<typeof useTranslations>;
 }
 
-function ClaimModal({ isOpen, onClose, onConfirm, amount }: ClaimModalProps) {
-  if (!isOpen) return null;
+function ClaimModal({ step, onClose, onConfirm, onDone, amount, t }: ClaimModalProps) {
+  if (step === 'idle') return null;
 
   return (
     <div
@@ -73,32 +81,105 @@ function ClaimModal({ isOpen, onClose, onConfirm, amount }: ClaimModalProps) {
       aria-labelledby="claim-modal-title"
     >
       <div className="bg-card border border-border-default rounded-2xl p-8 max-w-md w-[90%] text-center">
-        <div className="text-5xl mb-4">
-          <Wallet className="w-12 h-12 mx-auto text-success" />
-        </div>
-        <h2 id="claim-modal-title" className="text-xl font-bold mb-2">
-          Confirm Claim
-        </h2>
-        <div className="text-4xl font-bold text-success my-6">{amount} ETH</div>
-        <p className="text-text-secondary text-sm mb-8">
-          This amount will be transferred to your connected wallet:
-          <br />
-          <span className="font-mono text-xs">0x7a3f...9c2d</span>
-        </p>
-        <div className="flex gap-4">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 px-6 bg-transparent border border-border-default rounded-lg text-text-secondary hover:border-accent-gold hover:text-accent-gold transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-3 px-6 bg-gradient-to-br from-success to-success/80 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-success/30 transition-all"
-          >
-            Confirm Claim
-          </button>
-        </div>
+        {/* Confirm Step */}
+        {step === 'confirm' && (
+          <>
+            <div className="mb-6">
+              <Wallet className="w-12 h-12 mx-auto text-success" />
+            </div>
+            <h2 id="claim-modal-title" className="text-xl font-bold mb-2">
+              {t('claimModal.title')}
+            </h2>
+            <div className="text-4xl font-bold text-success my-6">{amount} ETH</div>
+            <p className="text-foreground-secondary text-sm mb-8">
+              {t('claimModal.description')}
+              <br />
+              <span className="font-mono text-xs">0x7a3f...9c2d</span>
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={onClose}
+                className="flex-1 py-3 px-6 bg-transparent border border-border rounded-lg text-foreground-secondary hover:border-gold hover:text-gold transition-colors"
+              >
+                {t('claimModal.cancel')}
+              </button>
+              <button
+                onClick={onConfirm}
+                className="flex-1 py-3 px-6 bg-gradient-to-br from-success to-success/80 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-success/30 transition-all"
+              >
+                {t('claimModal.confirm')}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Processing Step */}
+        {step === 'processing' && (
+          <>
+            <div className="mb-6">
+              <div className="w-16 h-16 mx-auto bg-gold/20 rounded-full flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-gold animate-spin" />
+              </div>
+            </div>
+            <h2 id="claim-modal-title" className="text-xl font-bold mb-2">
+              {t('claimModal.processingTitle')}
+            </h2>
+            <p className="text-foreground-secondary text-sm mb-4">
+              {t('claimModal.processingDescription')}
+            </p>
+            <div className="text-3xl font-bold text-gold my-6">{amount} ETH</div>
+            <div className="flex items-center justify-center gap-2 text-sm text-foreground-tertiary">
+              <span className="w-2 h-2 bg-gold rounded-full animate-pulse" />
+              {t('claimModal.waitingForConfirmation')}
+            </div>
+          </>
+        )}
+
+        {/* Success Step */}
+        {step === 'success' && (
+          <>
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="absolute inset-0 bg-success/20 rounded-full animate-ping" />
+              <div className="relative w-20 h-20 bg-success/20 rounded-full flex items-center justify-center">
+                <div className="w-14 h-14 bg-success rounded-full flex items-center justify-center">
+                  <Check className="w-7 h-7 text-white" />
+                </div>
+              </div>
+            </div>
+            <h2 id="claim-modal-title" className="text-xl font-bold mb-2">
+              {t('claimModal.successTitle')}
+            </h2>
+            <p className="text-foreground-secondary text-sm mb-2">
+              {t('claimModal.successDescription')}
+            </p>
+            <div className="text-3xl font-bold text-success my-6">{amount} ETH</div>
+
+            {/* Transaction Hash */}
+            <div className="bg-background-secondary rounded-xl p-4 mb-6">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-foreground-secondary">{t('claimModal.txHash')}</span>
+                <a
+                  href="https://etherscan.io/tx/0x7a3f9c2d8e1b4f6a...3d4e"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-mono text-gold hover:underline inline-flex items-center gap-1"
+                >
+                  0x7a3f...3d4e
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={onDone}
+              className="w-full"
+            >
+              {t('claimModal.done')}
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -106,12 +187,27 @@ function ClaimModal({ isOpen, onClose, onConfirm, amount }: ClaimModalProps) {
 
 export function Earnings() {
   const t = useTranslations('observer.dashboard.earnings');
-  const [showClaimModal, setShowClaimModal] = useState(false);
+  const router = useRouter();
+  const [claimStep, setClaimStep] = useState<ClaimStep>('idle');
 
-  const handleClaim = () => {
-    // In production, this would submit the claim transaction
-    setShowClaimModal(false);
-    alert('Claim submitted! Transaction pending confirmation.');
+  const handleOpenClaimModal = () => {
+    setClaimStep('confirm');
+  };
+
+  const handleCloseClaimModal = () => {
+    setClaimStep('idle');
+  };
+
+  const handleConfirmClaim = async () => {
+    setClaimStep('processing');
+    // Simulate transaction processing
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    setClaimStep('success');
+  };
+
+  const handleDone = () => {
+    setClaimStep('idle');
+    // Optionally refresh page data here
   };
 
   return (
@@ -133,22 +229,23 @@ export function Earnings() {
               className="relative bg-gradient-to-br from-card to-background-secondary border border-border-subtle rounded-2xl p-8 mb-8 overflow-hidden"
               aria-labelledby="claim-section-title"
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-success to-accent-gold" />
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-success to-gold" />
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <h2 id="claim-section-title" className="text-base text-text-secondary mb-2">
+                  <h2 id="claim-section-title" className="text-base text-foreground-secondary mb-2">
                     {t('claim.available')}
                   </h2>
-                  <div className="text-5xl font-bold text-success">{mockClaimableAmount} ETH</div>
-                  <div className="text-base text-text-tertiary mt-1">≈ ${mockClaimableUsd} USD</div>
+                  <div className="text-5xl font-bold text-success tabular-nums">{mockClaimableAmount} ETH</div>
+                  <div className="text-base text-foreground-tertiary mt-2">≈ ${mockClaimableUsd} USD</div>
                 </div>
-                <span className="px-4 py-2 bg-success/10 border border-success rounded-full text-success text-xs font-medium">
-                  Ready to Claim
+                <span className="px-4 py-2 bg-success/10 border border-success rounded-full text-success text-xs font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                  {t('claim.readyToClaim')}
                 </span>
               </div>
               <button
-                onClick={() => setShowClaimModal(true)}
-                className="w-full py-4 bg-gradient-to-br from-success to-success/80 rounded-xl text-white text-lg font-semibold hover:shadow-lg hover:shadow-success/30 hover:-translate-y-0.5 transition-all"
+                onClick={handleOpenClaimModal}
+                className="w-full py-5 bg-gradient-to-br from-success to-[#00a080] rounded-xl text-white text-lg font-semibold hover:shadow-xl hover:shadow-success/30 hover:-translate-y-0.5 transition-all"
               >
                 {t('claim.claimButton')} {mockClaimableAmount} ETH
               </button>
@@ -194,8 +291,8 @@ export function Earnings() {
                       </div>
                       <div>
                         <div className="font-semibold text-sm">
-                          Challenge #{item.challengeId}{' '}
-                          {item.type === 'reward' ? 'Reward' : 'Bond Return'}
+                          {t('breakdown.challenge', { id: item.challengeId })}{' '}
+                          {item.type === 'reward' ? t('breakdown.reward') : t('breakdown.bondReturn')}
                         </div>
                         <div className="text-xs text-text-tertiary">
                           {item.description} • {item.date}
@@ -229,7 +326,7 @@ export function Earnings() {
                         {t('history.type')}
                       </th>
                       <th className="text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider px-6 py-4">
-                        Challenge
+                        {t('history.challenge')}
                       </th>
                       <th className="text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider px-6 py-4">
                         {t('history.amount')}
@@ -247,8 +344,8 @@ export function Earnings() {
                           {item.type === 'reward'
                             ? t('types.challengeWin')
                             : item.type === 'bond_return'
-                              ? 'Bond Return'
-                              : 'Bond Lost'}
+                              ? t('types.bondReturn')
+                              : t('types.bondLost')}
                         </td>
                         <td className="px-6 py-4 text-sm font-mono">#{item.challengeId}</td>
                         <td
@@ -272,7 +369,7 @@ export function Earnings() {
                               ? t('statuses.claimable')
                               : item.status === 'claimed'
                                 ? t('statuses.claimed')
-                                : 'Settled'}
+                                : t('statuses.settled')}
                           </span>
                         </td>
                       </tr>
@@ -291,11 +388,11 @@ export function Earnings() {
               aria-labelledby="performance-title"
             >
               <h3 id="performance-title" className="text-base font-semibold mb-6">
-                Performance Statistics
+                {t('performance.title')}
               </h3>
               <div className="text-center py-6 border-b border-border-subtle">
                 <div className="text-3xl font-bold text-success">85.7%</div>
-                <div className="text-xs text-text-tertiary mt-1">Success Rate</div>
+                <div className="text-xs text-text-tertiary mt-1">{t('performance.successRate')}</div>
                 <div className="h-2 bg-background-primary rounded-full overflow-hidden mt-4">
                   <div
                     className="h-full bg-gradient-to-r from-success to-accent-gold rounded-full"
@@ -305,15 +402,15 @@ export function Earnings() {
               </div>
               <div className="text-center py-6 border-b border-border-subtle">
                 <div className="text-3xl font-bold">14</div>
-                <div className="text-xs text-text-tertiary mt-1">Total Challenges</div>
+                <div className="text-xs text-text-tertiary mt-1">{t('performance.totalChallenges')}</div>
               </div>
               <div className="text-center py-6 border-b border-border-subtle">
                 <div className="text-3xl font-bold text-success">12</div>
-                <div className="text-xs text-text-tertiary mt-1">Successful</div>
+                <div className="text-xs text-text-tertiary mt-1">{t('performance.successful')}</div>
               </div>
               <div className="text-center py-6">
                 <div className="text-3xl font-bold text-error">2</div>
-                <div className="text-xs text-text-tertiary mt-1">Failed</div>
+                <div className="text-xs text-text-tertiary mt-1">{t('performance.failed')}</div>
               </div>
             </section>
 
@@ -323,21 +420,21 @@ export function Earnings() {
               aria-labelledby="stake-title"
             >
               <h3 id="stake-title" className="text-base font-semibold mb-6">
-                Your Observer Stake
+                {t('stake.title')}
               </h3>
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <div className="text-2xl font-bold">5.00 ETH</div>
-                  <div className="text-xs text-text-tertiary">Staked Amount</div>
+                  <div className="text-xs text-text-tertiary">{t('stake.stakedAmount')}</div>
                 </div>
                 <span className="px-3 py-1 bg-success/10 text-success rounded-full text-xs font-medium">
-                  Active
+                  {t('stake.active')}
                 </span>
               </div>
               <div className="text-sm text-text-secondary">
-                Active since: 2025-11-15
+                {t('stake.activeSince')}: 2025-11-15
                 <br />
-                Days staked: 56
+                {t('stake.daysStaked')}: 56
               </div>
             </section>
 
@@ -347,18 +444,18 @@ export function Earnings() {
               aria-labelledby="roi-title"
             >
               <h3 id="roi-title" className="text-base font-semibold mb-6">
-                ROI Calculator
+                {t('roi.title')}
               </h3>
               <div className="flex justify-between py-2 border-b border-border-subtle">
-                <span className="text-sm text-text-secondary">Total Invested</span>
+                <span className="text-sm text-text-secondary">{t('roi.totalInvested')}</span>
                 <span className="font-semibold">5.00 ETH</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle">
-                <span className="text-sm text-text-secondary">Total Earned</span>
+                <span className="text-sm text-text-secondary">{t('roi.totalEarned')}</span>
                 <span className="font-semibold text-success">4.28 ETH</span>
               </div>
               <div className="flex justify-between py-2">
-                <span className="text-sm text-text-secondary">ROI</span>
+                <span className="text-sm text-text-secondary">{t('roi.roi')}</span>
                 <span className="font-bold text-success text-lg">+85.6%</span>
               </div>
             </section>
@@ -367,10 +464,12 @@ export function Earnings() {
       </div>
 
       <ClaimModal
-        isOpen={showClaimModal}
-        onClose={() => setShowClaimModal(false)}
-        onConfirm={handleClaim}
+        step={claimStep}
+        onClose={handleCloseClaimModal}
+        onConfirm={handleConfirmClaim}
+        onDone={handleDone}
         amount={mockClaimableAmount}
+        t={t}
       />
     </div>
   );

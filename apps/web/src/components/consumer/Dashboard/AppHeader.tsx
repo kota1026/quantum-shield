@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Settings, Coins } from 'lucide-react';
+import { Settings, Coins, Vote } from 'lucide-react';
 import { HinomaryLogo } from '../Landing/HinomaryLogo';
+import { EcosystemLink } from '@/components/shared/EcosystemLink';
 import { cn } from '@/lib/utils';
 import { formatAddress } from '@/lib/utils';
 
@@ -91,11 +92,14 @@ export function AppHeader({
 
       {/* Header Actions */}
       <div className="flex gap-3 items-center">
+        {/* Ecosystem Link */}
+        <EcosystemLink variant="inline" className="hidden lg:flex" />
+
         {/* Token Hub Button */}
         <Link
           href="/token-hub/dashboard"
           className={cn(
-            'hidden sm:flex items-center gap-2 px-4 py-2',
+            'hidden sm:flex items-center gap-2 px-3 py-2',
             'bg-gold/10 border border-gold/50 rounded-full',
             'text-gold text-sm font-medium',
             'hover:bg-gold hover:text-background transition-all'
@@ -104,6 +108,21 @@ export function AppHeader({
         >
           <Coins className="w-4 h-4" aria-hidden="true" />
           {t('tokenHub')}
+        </Link>
+
+        {/* Governance Button */}
+        <Link
+          href="/governance/landing"
+          className={cn(
+            'hidden sm:flex items-center gap-2 px-3 py-2',
+            'border border-border rounded-full',
+            'text-foreground-secondary text-sm font-medium',
+            'hover:border-gold hover:text-gold transition-all'
+          )}
+          aria-label={t('governance')}
+        >
+          <Vote className="w-4 h-4" aria-hidden="true" />
+          {t('governance')}
         </Link>
 
         {/* Settings Button */}

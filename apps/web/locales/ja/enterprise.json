@@ -59,6 +59,25 @@
         "tooltip": "過去30日間に1回以上トランザクションを実行したユーザー数です。"
       }
     },
+    "actionItems": {
+      "ariaLabel": "要対応タスク",
+      "title": "要対応タスク",
+      "kycPending": {
+        "title": "KYC審査待ち",
+        "description": "新規ユーザーのKYC審査が完了していません。ユーザーの本人確認を行ってください。",
+        "action": "KYC審査を確認"
+      },
+      "emergencyUnlock": {
+        "title": "緊急アンロック申請",
+        "description": "緊急アンロックの申請があります。24時間以内に承認が必要です。",
+        "action": "申請を確認"
+      },
+      "approvalPending": {
+        "title": "承認待ちリクエスト",
+        "description": "マルチシグ承認が必要なリクエストがあります。",
+        "action": "承認センターへ"
+      }
+    },
     "recentTransactions": {
       "title": "最近のトランザクション",
       "export": "エクスポート",
@@ -392,9 +411,22 @@
         "user": "ユーザー",
         "role": "ロール",
         "status": "ステータス",
+        "kycAml": "KYC/AML",
         "twoFa": "2FA",
         "lastActive": "最終アクティブ",
         "actions": "操作"
+      },
+      "kyc": {
+        "verified": "KYC完了",
+        "pending": "KYC審査中",
+        "rejected": "KYC却下",
+        "notSubmitted": "KYC未提出"
+      },
+      "aml": {
+        "cleared": "AMLクリア",
+        "review": "AMLレビュー中",
+        "flagged": "AMLフラグ",
+        "notChecked": "AML未チェック"
       },
       "roles": {
         "admin": "Admin",
@@ -468,6 +500,37 @@
     "status": {
       "active": "アクティブ",
       "inactive": "無効"
+    },
+    "riskCompliance": {
+      "title": "リスク＆コンプライアンス",
+      "riskScore": {
+        "label": "リスクスコア",
+        "description": "トランザクション履歴、KYC/AML状態、行動パターンに基づいて算出されます。",
+        "levels": {
+          "low": "低リスク",
+          "medium": "中リスク",
+          "high": "高リスク",
+          "unknown": "未評価"
+        }
+      },
+      "kyc": {
+        "label": "KYC状態",
+        "verified": "完了",
+        "pending": "審査中",
+        "rejected": "却下",
+        "notSubmitted": "未提出"
+      },
+      "aml": {
+        "label": "AML状態",
+        "cleared": "クリア",
+        "review": "レビュー中",
+        "flagged": "フラグ付き",
+        "notChecked": "未チェック"
+      },
+      "highRiskAlert": {
+        "title": "高リスクユーザー",
+        "description": "このユーザーは高リスクに分類されています。追加の確認やトランザクション制限の検討をお勧めします。"
+      }
     }
   },
   "apiKeys": {
@@ -1415,5 +1478,487 @@
       "resend": "再送信",
       "cancel": "キャンセル"
     }
+  },
+  "landing": {
+    "meta": {
+      "title": "Enterprise Solutions | Quantum Shield",
+      "description": "量子耐性を持つ資産保護ソリューションで、お客様のビジネスを守ります。"
+    },
+    "hero": {
+      "badge": "Enterprise Solutions",
+      "title": "量子時代に備える\n資産保護プラットフォーム",
+      "description": "Quantum Shieldは、NIST準拠の量子耐性暗号技術を採用した、エンタープライズ向けの資産保護ソリューションです。",
+      "cta": "導入相談を申し込む",
+      "secondaryCta": "お問い合わせ",
+      "stats": {
+        "companies": "50+社の導入実績",
+        "tvl": "$500M+ 保護資産",
+        "users": "100,000+ ユーザー"
+      }
+    },
+    "features": {
+      "title": "主な機能",
+      "subtitle": "エンタープライズグレードの資産保護",
+      "quantumSecurity": {
+        "title": "量子耐性セキュリティ",
+        "description": "Dilithium-III、SPHINCS+など、NIST承認の量子耐性アルゴリズムを採用。"
+      },
+      "highPerformance": {
+        "title": "高性能",
+        "description": "1,000+ TPS、99.9%のアップタイムSLAを保証。"
+      },
+      "compliance": {
+        "title": "コンプライアンス対応",
+        "description": "SOC2、ISO27001準拠。監査ログと詳細なレポート機能。"
+      },
+      "dedicatedSupport": {
+        "title": "専任サポート",
+        "description": "24/7の専任カスタマーサクセスマネージャーによるサポート。"
+      }
+    },
+    "plans": {
+      "title": "プラン",
+      "subtitle": "お客様のニーズに合わせた柔軟なプラン",
+      "starter": {
+        "name": "Starter",
+        "description": "小規模チーム向け",
+        "price": "$2,500/月〜",
+        "features": ["最大100ユーザー", "基本API", "メールサポート", "標準SLA"]
+      },
+      "business": {
+        "name": "Business",
+        "description": "成長中の企業向け",
+        "price": "$8,000/月〜",
+        "features": ["最大1,000ユーザー", "フルAPI", "優先サポート", "99.9% SLA", "カスタムインテグレーション"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "大規模組織向け",
+        "price": "お問い合わせ",
+        "features": ["無制限ユーザー", "専用インフラ", "24/7専任サポート", "99.99% SLA", "オンプレミス対応", "カスタムSLA"]
+      }
+    },
+    "cta": {
+      "title": "今すぐ始めましょう",
+      "description": "量子時代に備えた資産保護を、今日から始めることができます。",
+      "button": "無料相談を申し込む"
+    }
+  },
+  "application": {
+    "meta": {
+      "title": "サービス申し込み | Enterprise - Quantum Shield",
+      "description": "Quantum Shield Enterpriseサービスへの申し込み"
+    },
+    "title": "サービス申し込み",
+    "subtitle": "以下のフォームに必要事項をご入力ください",
+    "steps": {
+      "company": "企業情報",
+      "contact": "連絡先",
+      "plan": "プラン選択",
+      "kyb": "本人確認",
+      "contract": "契約締結",
+      "confirm": "確認"
+    },
+    "fields": {
+      "companyName": "企業名",
+      "industry": "業種",
+      "companySize": "従業員数",
+      "website": "Webサイト",
+      "contactName": "担当者名",
+      "contactEmail": "メールアドレス",
+      "contactPhone": "電話番号",
+      "plan": "プラン",
+      "expectedUsers": "予定ユーザー数",
+      "useCase": "利用用途"
+    },
+    "placeholders": {
+      "companyName": "株式会社〇〇",
+      "selectIndustry": "業種を選択",
+      "selectSize": "従業員数を選択",
+      "contactName": "山田 太郎",
+      "contactEmail": "yamada@example.com",
+      "contactPhone": "+81-3-1234-5678",
+      "selectUsers": "予定ユーザー数を選択",
+      "useCase": "利用用途やご要望をご記入ください"
+    },
+    "industries": {
+      "financial": "金融機関",
+      "exchange": "暗号資産取引所",
+      "custody": "カストディサービス",
+      "defi": "DeFiプロトコル",
+      "other": "その他"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "description": "小規模チーム向け"
+      },
+      "business": {
+        "name": "Business",
+        "description": "成長中の企業向け"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "大規模組織向け"
+      }
+    },
+    "recommended": "推奨",
+    "confirmation": {
+      "summary": "申し込み内容の確認",
+      "termsText": "",
+      "termsLink": "利用規約",
+      "and": "および",
+      "privacyLink": "プライバシーポリシー",
+      "agree": "に同意します"
+    },
+    "navigation": {
+      "back": "戻る",
+      "next": "次へ",
+      "submit": "申し込む"
+    }
+  },
+  "kyb": {
+    "meta": {
+      "title": "企業確認（KYB） | Enterprise - Quantum Shield",
+      "description": "企業確認書類のアップロード"
+    },
+    "title": "企業確認（KYB）",
+    "subtitle": "サービス利用開始には、以下の書類の提出が必要です",
+    "breadcrumb": {
+      "apply": "申し込み",
+      "kyb": "企業確認"
+    },
+    "progress": {
+      "uploaded": "件アップロード済み",
+      "required": "必須書類"
+    },
+    "documentsTitle": "必要書類",
+    "documents": {
+      "registration": {
+        "name": "登記簿謄本",
+        "description": "発行から3ヶ月以内の登記事項証明書"
+      },
+      "incorporation": {
+        "name": "定款",
+        "description": "現行の定款の写し"
+      },
+      "financials": {
+        "name": "財務諸表",
+        "description": "直近の決算書または財務諸表"
+      },
+      "compliance": {
+        "name": "コンプライアンス証明",
+        "description": "AML/CFTポリシー、ライセンス等（該当する場合）"
+      },
+      "representative": {
+        "name": "代表者本人確認書類",
+        "description": "パスポートまたは運転免許証の写し"
+      }
+    },
+    "required": "必須",
+    "status": {
+      "pending": "未提出",
+      "uploaded": "確認中",
+      "verified": "承認済み",
+      "rejected": "要再提出"
+    },
+    "uploadButton": "アップロード",
+    "reuploadButton": "再アップロード",
+    "reviewPending": "審査中",
+    "verified": "承認済み",
+    "securityNote": {
+      "title": "書類の取り扱いについて",
+      "description": "アップロードされた書類は暗号化され、安全に保管されます。審査完了後、必要な期間のみ保持され、適切に削除されます。"
+    },
+    "navigation": {
+      "back": "戻る",
+      "submit": "審査を申請する"
+    }
+  },
+  "onboarding": {
+    "meta": {
+      "title": "オンボーディング | Enterprise - Quantum Shield",
+      "description": "Quantum Shield Enterpriseの初期設定"
+    },
+    "title": "オンボーディング",
+    "subtitle": "サービス利用開始に向けた初期設定を完了させてください",
+    "breadcrumb": {
+      "onboarding": "オンボーディング"
+    },
+    "progress": {
+      "title": "{completed} / {total} ステップ完了",
+      "subtitle": "セットアップを完了してサービスを開始しましょう"
+    },
+    "stepsTitle": "セットアップステップ",
+    "steps": {
+      "contract": {
+        "title": "契約締結",
+        "description": "利用規約とSLA契約への同意"
+      },
+      "team": {
+        "title": "チームメンバー招待",
+        "description": "管理者とメンバーをチームに追加"
+      },
+      "api": {
+        "title": "APIキー設定",
+        "description": "本番環境用のAPIキーを作成・設定"
+      },
+      "settings": {
+        "title": "セキュリティ設定",
+        "description": "2FA、IP制限、Webhook設定"
+      },
+      "launch": {
+        "title": "サービス開始",
+        "description": "最終確認とサービス利用開始"
+      }
+    },
+    "statusBadge": {
+      "current": "進行中",
+      "completed": "完了",
+      "pending": "未開始"
+    },
+    "continueButton": "続ける",
+    "help": {
+      "title": "サポートが必要ですか？",
+      "description": "専任のカスタマーサクセスマネージャーがセットアップをサポートします",
+      "contactButton": "サポートに連絡"
+    }
+  },
+  "provers": {
+    "meta": {
+      "title": "Prover管理 | Enterprise - Quantum Shield",
+      "description": "エンタープライズProverノードの管理"
+    },
+    "title": "Prover管理",
+    "subtitle": "エンタープライズProverノードの監視・管理",
+    "ariaLabel": "Prover管理ページ",
+    "addProver": "Proverを追加",
+    "tabs": {
+      "all": "全Prover",
+      "dedicated": "専用ノード",
+      "shared": "共有ノード"
+    },
+    "stats": {
+      "totalProvers": "総Prover数",
+      "activeProvers": "アクティブ",
+      "avgSla": "平均SLA",
+      "signatures24h": "署名数（24h）"
+    },
+    "listTitle": "Prover一覧",
+    "search": {
+      "placeholder": "検索..."
+    },
+    "filter": "フィルター",
+    "viewDetails": "詳細",
+    "status": {
+      "active": "アクティブ",
+      "standby": "スタンバイ",
+      "offline": "オフライン"
+    },
+    "type": {
+      "dedicated": "専用",
+      "shared": "共有"
+    },
+    "region": "リージョン",
+    "lastActive": "最終アクティブ",
+    "sla": "SLA",
+    "signatures24h": "署名数（24h）"
+  },
+  "planSelection": {
+    "meta": {
+      "title": "プラン選択 | Enterprise - Quantum Shield",
+      "description": "ビジネスニーズに合った最適なプランを選択してください"
+    },
+    "title": "プランを選択",
+    "subtitle": "ビジネスニーズに合った最適なプランを選択してください",
+    "ariaLabel": "プラン選択ページ",
+    "breadcrumb": {
+      "apply": "申し込み",
+      "plan": "プラン選択"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "description": "小規模チーム向け",
+        "price": "$2,500/月〜"
+      },
+      "business": {
+        "name": "Business",
+        "description": "成長中の企業向け",
+        "price": "$8,000/月〜"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "大規模組織向け",
+        "price": "お問い合わせ",
+        "priceNote": "カスタム見積り"
+      }
+    },
+    "features": {
+      "users100": "最大100ユーザー",
+      "users1000": "最大1,000ユーザー",
+      "usersUnlimited": "無制限ユーザー",
+      "basicApi": "基本API",
+      "fullApi": "フルAPI",
+      "emailSupport": "メールサポート",
+      "prioritySupport": "優先サポート",
+      "support247": "24/7専任サポート",
+      "standardSla": "標準SLA",
+      "sla999": "99.9% SLA",
+      "sla9999": "99.99% SLA",
+      "dedicatedCsm": "専任CSM",
+      "customIntegration": "カスタムインテグレーション",
+      "onPremise": "オンプレミス対応"
+    },
+    "recommended": "推奨",
+    "selected": "選択中",
+    "selectPlan": "このプランを選択",
+    "comparison": {
+      "title": "プラン比較",
+      "feature": "機能",
+      "security": "セキュリティ",
+      "support": "サポート",
+      "infrastructure": "インフラストラクチャ",
+      "quantumResistant": "量子耐性暗号",
+      "twoFa": "二要素認証",
+      "ipAllowlist": "IP許可リスト",
+      "customSecurity": "カスタムセキュリティ",
+      "emailSupport": "メールサポート",
+      "prioritySupport": "優先サポート",
+      "phoneSupport": "電話サポート",
+      "dedicatedTeam": "専任サポートチーム",
+      "sharedInfra": "共有インフラ",
+      "dedicatedInfra": "専用インフラ",
+      "multiRegion": "マルチリージョン",
+      "onPremise": "オンプレミス"
+    },
+    "included": "含む",
+    "notIncluded": "含まない",
+    "cta": {
+      "title": "プランを選択しました",
+      "description": "次のステップに進んでKYB書類をアップロードしてください",
+      "back": "戻る",
+      "continue": "次へ進む"
+    }
+  },
+  "contract": {
+    "meta": {
+      "title": "契約締結 | Enterprise - Quantum Shield",
+      "description": "契約書類の確認と電子署名"
+    },
+    "title": "契約締結",
+    "subtitle": "以下の契約書類を確認し、電子署名で同意してください",
+    "ariaLabel": "契約締結ページ",
+    "breadcrumb": {
+      "onboarding": "オンボーディング",
+      "contract": "契約締結"
+    },
+    "summary": {
+      "title": "契約概要"
+    },
+    "info": {
+      "plan": "プラン",
+      "term": "契約期間",
+      "termValue": "12ヶ月",
+      "startDate": "開始日",
+      "fee": "月額料金"
+    },
+    "documentsTitle": "契約書類",
+    "documents": {
+      "msa": {
+        "name": "マスターサービス契約（MSA）",
+        "description": "サービス提供の基本条件を定める契約書"
+      },
+      "sla": {
+        "name": "サービスレベル契約（SLA）",
+        "description": "稼働率保証とサポート対応時間の詳細"
+      },
+      "dpa": {
+        "name": "データ処理契約（DPA）",
+        "description": "個人データの処理に関する条項"
+      },
+      "nda": {
+        "name": "秘密保持契約（NDA）",
+        "description": "機密情報の取り扱いに関する契約"
+      }
+    },
+    "required": "必須",
+    "view": "表示",
+    "download": "ダウンロード",
+    "accept": "同意する",
+    "unaccept": "同意を取り消す",
+    "selectAll": "すべて選択",
+    "unselectAll": "選択解除",
+    "notes": {
+      "title": "重要事項",
+      "item1": "契約は電子署名法に基づき法的効力を持ちます",
+      "item2": "署名後は契約期間中の解約には違約金が発生する場合があります",
+      "item3": "ご不明点はサポートまでお問い合わせください"
+    },
+    "signature": {
+      "title": "電子署名",
+      "name": "署名者氏名",
+      "namePlaceholder": "山田 太郎",
+      "title": "役職",
+      "titlePlaceholder": "代表取締役",
+      "preview": "署名プレビュー"
+    },
+    "navigation": {
+      "back": "戻る",
+      "sign": "署名して契約締結"
+    }
+  },
+  "approvals": {
+    "meta": {
+      "title": "承認管理 | Enterprise - Quantum Shield",
+      "description": "承認待ちリクエストの確認と処理"
+    },
+    "title": "承認管理",
+    "subtitle": "承認が必要なリクエストを確認・処理します",
+    "ariaLabel": "承認管理ページ",
+    "tabs": {
+      "pending": "承認待ち",
+      "approved": "承認済み",
+      "rejected": "却下済み",
+      "all": "すべて"
+    },
+    "stats": {
+      "pending": "承認待ち",
+      "approved": "承認済み",
+      "rejected": "却下済み",
+      "highRisk": "高リスク"
+    },
+    "listTitle": "承認リクエスト一覧",
+    "search": {
+      "placeholder": "検索..."
+    },
+    "filter": "フィルター",
+    "requests": {
+      "largeUnlock": "大口アンロック申請",
+      "largeUnlockDesc": "{amount}のアンロック申請（上限超過）",
+      "adminInvite": "管理者ユーザー招待",
+      "adminInviteDesc": "{email}をAdminとして招待",
+      "ipChange": "IP許可リスト変更",
+      "ipChangeDesc": "新しいIPアドレスの追加リクエスト",
+      "apiCreate": "本番APIキー作成",
+      "apiCreateDesc": "本番環境用APIキーの作成リクエスト",
+      "emergencyUnlock": "緊急アンロック申請",
+      "emergencyUnlockDesc": "24時間ロック期間のスキップリクエスト"
+    },
+    "status": {
+      "pending": "承認待ち",
+      "approved": "承認済み",
+      "rejected": "却下済み"
+    },
+    "risk": {
+      "high": "高リスク",
+      "medium": "中リスク",
+      "low": "低リスク"
+    },
+    "requestedBy": "申請者",
+    "viewDetails": "詳細",
+    "approve": "承認",
+    "reject": "却下",
+    "noResults": "該当するリクエストがありません"
   }
 }

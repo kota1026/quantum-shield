@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { Check, Lock } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type StepStatus = 'pending' | 'active' | 'complete';
@@ -16,9 +16,28 @@ interface Step {
 const TOTAL_DURATION = 5000;
 const STEP_INTERVAL = 1250;
 
+// Mock tx hash generator (in production, this would come from the actual transaction)
+const generateMockTxHash = () => {
+  const chars = '0123456789abcdef';
+  let hash = '0x';
+  for (let i = 0; i < 8; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)];
+  }
+  hash += '...';
+  for (let i = 0; i < 4; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return hash;
+};
+
 export function LockProcessing() {
   const t = useTranslations('consumer.lockProcessing');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get data from URL params
+  const amount = searchParams.get('amount') || '5.00';
+  const period = searchParams.get('period') || '2';
 
   const [steps, setSteps] = useState<Step[]>([
     { id: 1, status: 'complete' },
@@ -28,6 +47,7 @@ export function LockProcessing() {
   ]);
 
   const [showTxHash, setShowTxHash] = useState(false);
+  const [txHash] = useState(() => generateMockTxHash());
 
   useEffect(() => {
     const timer1 = setTimeout(() => {
@@ -47,7 +67,13 @@ export function LockProcessing() {
     }, STEP_INTERVAL * 2);
 
     const timer3 = setTimeout(() => {
-      router.push('/consumer/lock/success');
+      // Pass data to success page
+      const params = new URLSearchParams({
+        amount,
+        period,
+        txHash,
+      });
+      router.push(`/consumer/lock/success?${params.toString()}`);
     }, TOTAL_DURATION);
 
     return () => {
@@ -55,7 +81,7 @@ export function LockProcessing() {
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
-  }, [router]);
+  }, [router, amount, period, txHash]);
 
   const stepLabels = [
     t('steps.sign'),
@@ -81,7 +107,7 @@ export function LockProcessing() {
         </div>
 
         <h1 className="text-2xl font-bold mb-3">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground mb-8">{t('subtitle')}</p>
+        <p className="text-sm text-foreground-secondary mb-8">{t('subtitle')}</p>
 
         <div className="text-left space-y-2 mb-8">
           {steps.map((step, index) => (
@@ -97,7 +123,7 @@ export function LockProcessing() {
               <div
                 className={cn(
                   'w-7 h-7 flex items-center justify-center rounded-full text-sm',
-                  step.status === 'pending' && 'bg-white/5 text-muted-foreground',
+                  step.status === 'pending' && 'bg-white/5 text-foreground-secondary',
                   step.status === 'active' && 'bg-hinomaru text-white animate-pulse',
                   step.status === 'complete' && 'bg-success text-white'
                 )}
@@ -107,7 +133,7 @@ export function LockProcessing() {
               <span
                 className={cn(
                   'flex-1 text-sm',
-                  step.status === 'pending' && 'text-muted-foreground',
+                  step.status === 'pending' && 'text-foreground-secondary',
                   step.status === 'active' && 'text-foreground font-medium',
                   step.status === 'complete' && 'text-success'
                 )}
@@ -119,8 +145,8 @@ export function LockProcessing() {
         </div>
 
         {showTxHash && (
-          <p className="text-xs text-muted-foreground font-mono">
-            TX: <a href="https://sepolia.etherscan.io/tx/0x7a3f...9c2d" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">0x7a3f...9c2d</a>
+          <p className="text-xs text-foreground-secondary font-mono">
+            TX: <span className="text-gold">{txHash}</span>
           </p>
         )}
       </div>

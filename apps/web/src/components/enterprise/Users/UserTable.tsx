@@ -2,10 +2,14 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { Shield, AlertTriangle, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 export type UserRole = 'admin' | 'member' | 'viewer';
 export type UserStatus = 'active' | 'invited';
+export type KycStatus = 'verified' | 'pending' | 'rejected' | 'not_submitted';
+export type AmlStatus = 'cleared' | 'review' | 'flagged' | 'not_checked';
 
 export interface User {
   id: string;
@@ -16,6 +20,9 @@ export interface User {
   status: UserStatus;
   twoFaEnabled: boolean;
   lastActive: string;
+  kycStatus?: KycStatus;
+  amlStatus?: AmlStatus;
+  riskScore?: number;
 }
 
 interface UserTableProps {
@@ -86,6 +93,9 @@ export function UserTable({ users, searchQuery, onSearchChange, className }: Use
                 {t('columns.status')}
               </th>
               <th className="text-left p-4 text-xs font-semibold text-text-tertiary uppercase border-b border-white/5">
+                {t('columns.kycAml')}
+              </th>
+              <th className="text-left p-4 text-xs font-semibold text-text-tertiary uppercase border-b border-white/5">
                 {t('columns.twoFa')}
               </th>
               <th className="text-left p-4 text-xs font-semibold text-text-tertiary uppercase border-b border-white/5">
@@ -142,6 +152,62 @@ export function UserTable({ users, searchQuery, onSearchChange, className }: Use
                   >
                     {t(`statuses.${user.status}`)}
                   </span>
+                </td>
+                {/* KYC/AML Status */}
+                <td className="p-4">
+                  <div className="flex flex-col gap-1">
+                    {/* KYC Status */}
+                    <div className="flex items-center gap-1.5">
+                      {user.kycStatus === 'verified' && (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+                          <span className="text-xs text-success">{t('kyc.verified')}</span>
+                        </>
+                      )}
+                      {user.kycStatus === 'pending' && (
+                        <>
+                          <Clock className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
+                          <span className="text-xs text-warning">{t('kyc.pending')}</span>
+                        </>
+                      )}
+                      {user.kycStatus === 'rejected' && (
+                        <>
+                          <XCircle className="h-3.5 w-3.5 text-danger" aria-hidden="true" />
+                          <span className="text-xs text-danger">{t('kyc.rejected')}</span>
+                        </>
+                      )}
+                      {(user.kycStatus === 'not_submitted' || !user.kycStatus) && (
+                        <>
+                          <span className="h-3.5 w-3.5" />
+                          <span className="text-xs text-text-tertiary">{t('kyc.notSubmitted')}</span>
+                        </>
+                      )}
+                    </div>
+                    {/* AML Status */}
+                    <div className="flex items-center gap-1.5">
+                      {user.amlStatus === 'cleared' && (
+                        <>
+                          <Shield className="h-3 w-3 text-success" aria-hidden="true" />
+                          <span className="text-[10px] text-success">{t('aml.cleared')}</span>
+                        </>
+                      )}
+                      {user.amlStatus === 'review' && (
+                        <>
+                          <Clock className="h-3 w-3 text-warning" aria-hidden="true" />
+                          <span className="text-[10px] text-warning">{t('aml.review')}</span>
+                        </>
+                      )}
+                      {user.amlStatus === 'flagged' && (
+                        <>
+                          <AlertTriangle className="h-3 w-3 text-danger" aria-hidden="true" />
+                          <span className="text-[10px] text-danger">{t('aml.flagged')}</span>
+                        </>
+                      )}
+                      {(user.amlStatus === 'not_checked' || !user.amlStatus) && (
+                        <span className="text-[10px] text-text-tertiary">{t('aml.notChecked')}</span>
+                      )}
+                    </div>
+                  </div>
                 </td>
                 <td className="p-4">
                   <span

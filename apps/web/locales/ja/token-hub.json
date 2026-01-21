@@ -1,5 +1,94 @@
 {
   "token-hub": {
+    "landing": {
+      "meta": {
+        "title": "Token Hub | Quantum Shield",
+        "description": "QSトークンをロックしてveQSを獲得し、ガバナンスに参加しましょう"
+      },
+      "hero": {
+        "badge": "Token Hub",
+        "title": "QSをロックして\nガバナンスに参加",
+        "description": "QSトークンをロックしてveQSを獲得。投票権を得て、プロトコルの将来を一緒に決めましょう。報酬も獲得できます。",
+        "cta": "ダッシュボードへ",
+        "secondaryCta": "詳しく学ぶ"
+      },
+      "stats": {
+        "totalLocked": {
+          "value": "52.4M",
+          "label": "総ロック量 (QS)"
+        },
+        "holders": {
+          "value": "12,847",
+          "label": "veQS保有者"
+        },
+        "apy": {
+          "value": "12.5%",
+          "label": "平均APY"
+        },
+        "distributed": {
+          "value": "$4.2M",
+          "label": "累計報酬分配"
+        }
+      },
+      "features": {
+        "title": "Token Hubでできること",
+        "subtitle": "QSトークンを活用してQuantum Shieldの運営に参加",
+        "lock": {
+          "title": "QSをロック",
+          "description": "1〜4年の期間でQSをロックし、veQS（投票エスクロートークン）を獲得"
+        },
+        "rewards": {
+          "title": "報酬を獲得",
+          "description": "プロトコル収益の一部がveQS保有者に分配されます"
+        },
+        "delegate": {
+          "title": "投票権を委任",
+          "description": "信頼できるデリゲートに投票権を委任し、代わりに投票してもらう"
+        },
+        "governance": {
+          "title": "ガバナンス投票",
+          "description": "プロトコルの重要な決定に投票し、将来の方向性を決める"
+        }
+      },
+      "howItWorks": {
+        "title": "参加の流れ",
+        "subtitle": "3ステップでToken Hubに参加",
+        "step1": {
+          "title": "QSを入手",
+          "description": "DEXで購入するか、報酬やエアドロップで獲得"
+        },
+        "step2": {
+          "title": "QSをロック",
+          "description": "1〜4年の期間を選んでロック。長いほど多くのveQSを獲得"
+        },
+        "step3": {
+          "title": "参加 & 報酬",
+          "description": "投票に参加し、毎週の報酬を受け取る"
+        }
+      },
+      "benefits": {
+        "title": "なぜveQSを持つの？",
+        "earn": "プロトコル収益から報酬を獲得（平均APY 12.5%）",
+        "vote": "手数料調整やプロトコル改善の投票に参加",
+        "boost": "流動性提供などの報酬が最大2.5倍にブースト",
+        "delegate": "投票権を委任して、信頼できる人に任せることも可能",
+        "cta": "今すぐ始める"
+      },
+      "veqs": {
+        "title": "veQSとは？",
+        "description": "veQS（投票エスクローQS）は、QSをロックすると獲得できる投票権トークンです。ロック期間が長いほど多くのveQSがもらえます。",
+        "lockPeriod": "ロック期間",
+        "years": "年",
+        "maxMultiplier": "最大倍率",
+        "rewardsBoost": "報酬ブースト",
+        "upTo": "最大"
+      },
+      "cta": {
+        "title": "さあ、始めましょう",
+        "description": "QSをロックしてveQSを獲得し、Quantum Shieldの運営に参加しましょう。",
+        "button": "ダッシュボードへ"
+      }
+    },
     "onboarding": {
       "meta": {
         "title": "トークノミクスについて | Token Hub | Quantum Shield",
@@ -131,6 +220,23 @@
         "end": "ロック終了",
         "visualAriaLabel": "veQSがフルからゼロに減衰する様子の可視化",
         "note": "いつでもロックを延長してveQS残高を回復できます"
+      },
+      "prover": {
+        "title": "Proverとして参加する",
+        "description": "QSをステーキングして、Quantum Shield ネットワークの署名プロバイダ（Prover）として参加しませんか？安定した報酬を獲得できます。",
+        "stake": {
+          "label": "最小ステーク",
+          "value": "100,000 QS"
+        },
+        "reward": {
+          "label": "予想年利",
+          "value": "15-20%"
+        },
+        "status": {
+          "label": "現在のProver数",
+          "value": "42 アクティブ"
+        },
+        "button": "Prover Portalを見る"
       },
       "cta": {
         "title": "さあ、始めましょう",
@@ -338,6 +444,9 @@
         "walletConnected": "{address} に接続中",
         "connectWallet": "ウォレット接続",
         "consumerApp": "Consumer App",
+        "governance": "ガバナンス",
+        "observerPortal": "Observer",
+        "proverPortal": "Prover",
         "settings": "設定"
       },
       "footer": {
@@ -476,6 +585,10 @@
         "faq": {
           "title": "よくある質問",
           "description": "「ロックしたら戻せない？」など、みんなが気になる疑問にお答えします"
+        },
+        "prover": {
+          "title": "Proverになる",
+          "description": "ネットワークに貢献して報酬を獲得。技術力を活かして参加しましょう"
         }
       },
       "footer": {

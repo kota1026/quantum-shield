@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
+import { AdminIntegratedDashboard } from '@/components/admin/AdminIntegratedDashboard';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -9,7 +8,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'admin.dashboard.meta' });
+  const t = await getTranslations({ locale, namespace: 'admin.integratedDashboard.meta' });
 
   return {
     title: t('title'),
@@ -18,10 +17,5 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function AdminDashboardPage() {
-  return (
-    <div className="min-h-screen bg-background">
-      <AdminSidebar />
-      <AdminDashboard />
-    </div>
-  );
+  return <AdminIntegratedDashboard />;
 }

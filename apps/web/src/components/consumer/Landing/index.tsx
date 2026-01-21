@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { Link as I18nLink } from '@/i18n/navigation';
 import {
   Lock,
   Unlock,
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { EcosystemLink } from '@/components/shared/EcosystemLink';
 import { HinomaryLogo } from './HinomaryLogo';
 import { HinomaryVisual } from './HinomaryVisual';
 import { Tooltip } from './Tooltip';
@@ -70,6 +72,7 @@ export function Landing() {
             aria-label="Main navigation"
             role="navigation"
           >
+            <EcosystemLink variant="inline" />
             <Link
               href="#features"
               className="text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"

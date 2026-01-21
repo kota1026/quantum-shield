@@ -1,0 +1,613 @@
+# Quantum Shield Codebase Map
+
+> **目的**: どこに何があるかを明確にし、開発効率を向上させる
+> **更新日**: 2026-01-22
+
+---
+
+## 目次
+
+1. [プロジェクト構造概要](#1-プロジェクト構造概要)
+2. [アクティブコード](#2-アクティブコード)
+3. [ドキュメント](#3-ドキュメント)
+4. [アーカイブ・非推奨](#4-アーカイブ非推奨)
+5. [開発時の参照ガイド](#5-開発時の参照ガイド)
+6. [コンポーネント一覧](#6-コンポーネント一覧)
+
+---
+
+## 1. プロジェクト構造概要
+
+```
+quantum-shield/
+│
+├── 🟢 apps/                    # フロントエンド（アクティブ）
+├── 🟢 services/                # バックエンドサービス
+├── 🟢 contracts/               # Solidityコントラクト（L1）
+├── 🟢 l3-aegis/                # L3チェーン（Rust）
+├── 🟢 circuits/                # ZK回路
+├── 🟢 packages/                # 共有パッケージ
+├── 🟢 shared-types/            # 共有型定義
+│
+├── 🟡 docs_new/                # ドキュメント（整理予定）
+├── 🟡 scripts/                 # 運用スクリプト
+├── 🟡 docker/                  # Docker設定
+│
+├── 🔴 ui/                      # 旧UIモノレポ（非推奨）
+├── 🔴 web/                     # 旧Web（非推奨）
+├── 🔴 api/                     # 旧API（非推奨）
+├── 🔴 _archive/                # アーカイブ
+│
+└── 設定ファイル群
+```
+
+凡例: 🟢 アクティブ / 🟡 整理予定 / 🔴 非推奨・アーカイブ
+
+---
+
+## 2. アクティブコード
+
+### 2.1 フロントエンド (`apps/`)
+
+```
+apps/
+└── web/                           # メインWebアプリ（Next.js 15）
+    ├── src/
+    │   ├── app/                   # App Router ページ
+    │   │   ├── [locale]/          # 国際化対応
+    │   │   │   ├── consumer/      # Consumer App
+    │   │   │   ├── token-hub/     # Token Hub
+    │   │   │   ├── governance/    # Governance
+    │   │   │   ├── prover/        # Prover Portal
+    │   │   │   ├── observer/      # Observer
+    │   │   │   ├── explorer/      # Explorer
+    │   │   │   ├── enterprise/    # Enterprise Admin
+    │   │   │   └── admin/         # QS Admin
+    │   │   │
+    │   │   └── api/               # Mock API Routes (Next.js Route Handlers)
+    │   │       └── lock/          # Lock API
+    │   │           ├── route.ts   # POST /api/lock
+    │   │           └── status/[lockId]/route.ts  # GET /api/lock/status/:id
+    │   │
+    │   ├── components/            # Reactコンポーネント
+    │   │   ├── ui/                # 共通UIコンポーネント
+    │   │   │   ├── button.tsx     # ボタン（9バリエーション）
+    │   │   │   ├── card.tsx       # カード
+    │   │   │   ├── input.tsx      # 入力フィールド
+    │   │   │   ├── badge.tsx      # バッジ
+    │   │   │   └── tooltip.tsx    # ツールチップ
+    │   │   │
+    │   │   ├── consumer/          # Consumer専用
+    │   │   ├── token-hub/         # Token Hub専用
+    │   │   ├── governance/        # Governance専用
+    │   │   ├── prover/            # Prover専用
+    │   │   ├── observer/          # Observer専用
+    │   │   ├── explorer/          # Explorer専用
+    │   │   ├── enterprise/        # Enterprise専用
+    │   │   ├── admin/             # Admin専用
+    │   │   └── shared/            # 複数アプリ共通
+    │   │
+    │   ├── lib/                   # ユーティリティ
+    │   │   ├── utils.ts           # 共通ユーティリティ (cn関数等)
+    │   │   └── api/               # APIクライアント
+    │   │       ├── index.ts       # エクスポート
+    │   │       └── lock.ts        # Lock API クライアント
+    │   │
+    │   ├── hooks/                 # カスタムフック
+    │   ├── stores/                # Zustand ストア
+    │   └── styles/                # グローバルCSS
+    │
+    ├── locales/                   # 翻訳ファイル
+    │   ├── ja/                    # 日本語
+    │   └── en/                    # 英語
+    │
+    ├── e2e/                       # E2Eテスト（Playwright）
+    ├── public/                    # 静的ファイル
+    │
+    ├── tailwind.config.ts         # Tailwind設定
+    ├── next.config.js             # Next.js設定
+    └── package.json
+```
+
+**技術スタック**:
+- Next.js 15 (App Router)
+- React 19
+- TypeScript 5.7
+- Tailwind CSS 3.4
+- next-intl (i18n)
+- wagmi + RainbowKit (Web3)
+- Zustand (状態管理)
+
+### 2.2 バックエンド (`services/`)
+
+```
+services/
+├── api/                           # メインREST API（Rust）
+│   ├── src/
+│   │   ├── routes/                # APIエンドポイント
+│   │   │   ├── auth.rs            # 認証（SIWE）
+│   │   │   ├── user.rs            # ユーザー管理
+│   │   │   ├── lock.rs            # ロック操作
+│   │   │   ├── unlock.rs          # アンロック操作
+│   │   │   ├── prover.rs          # Prover管理
+│   │   │   ├── observer.rs        # Observer管理
+│   │   │   ├── governance.rs      # ガバナンス
+│   │   │   ├── token_hub.rs       # Token Hub
+│   │   │   ├── enterprise.rs      # Enterprise
+│   │   │   ├── admin.rs           # Admin
+│   │   │   └── mod.rs             # ルート定義
+│   │   │
+│   │   ├── db/                    # データベース
+│   │   ├── models/                # データモデル
+│   │   └── middleware/            # ミドルウェア
+│   │
+│   └── Cargo.toml
+│
+├── monitor-bot/                   # 監視Bot
+├── sig-queue/                     # 署名キュー管理
+└── event-bridge/                  # イベントブリッジ
+```
+
+**技術スタック**:
+- Rust (Axum)
+- PostgreSQL
+- Redis
+
+### 2.3 スマートコントラクト (`contracts/`)
+
+```
+contracts/
+├── src/                           # Solidityコントラクト
+│   ├── L1Vault.sol                # メインVault
+│   ├── TimeLock.sol               # タイムロック
+│   ├── Staking.sol                # ステーキング
+│   ├── Governance.sol             # ガバナンス
+│   └── ...
+│
+├── test/                          # テスト（Foundry）
+├── script/                        # デプロイスクリプト
+└── foundry.toml
+```
+
+**技術スタック**:
+- Solidity 0.8.x
+- Foundry (forge, cast, anvil)
+- OpenZeppelin
+
+### 2.4 L3チェーン (`l3-aegis/`)
+
+```
+l3-aegis/
+├── crates/                        # Rustクレート
+│   ├── aegis-core/                # コアロジック
+│   ├── aegis-consensus/           # コンセンサス
+│   ├── aegis-crypto/              # 暗号処理（Dilithium等）
+│   ├── aegis-node/                # ノード実装
+│   ├── aegis-sequencer/           # シーケンサー
+│   ├── aegis-storage/             # ストレージ
+│   ├── aegis-network/             # P2Pネットワーク
+│   ├── aegis-types/               # 型定義
+│   ├── aegis-smt/                 # Sparse Merkle Tree
+│   ├── aegis-keygen/              # 鍵生成
+│   └── aegis-cli/                 # CLI
+│
+├── src/                           # メインエントリ
+└── Cargo.toml
+```
+
+### 2.5 ZK回路 (`circuits/`)
+
+```
+circuits/
+└── dilithium-stark/               # Dilithium STARK証明
+    ├── src/
+    │   ├── lib.rs
+    │   └── ...
+    └── Cargo.toml
+```
+
+### 2.6 共有パッケージ (`packages/`, `shared-types/`)
+
+```
+packages/
+└── sdk/                           # クライアントSDK
+
+shared-types/
+└── src/                           # 共有型定義（Rust）
+```
+
+---
+
+## 3. ドキュメント
+
+### 3.1 現在の構造 (`docs_new/`)
+
+```
+docs_new/
+├── 00_core/                       # コア仕様
+│   └── specs/
+│       ├── UNIFIED_SPEC.md        # 統合仕様書
+│       ├── SEQUENCES.md           # シーケンス詳細
+│       └── ...
+│
+├── 01_phase/                      # フェーズ別ドキュメント
+│   ├── 01_Phase1/                 # Phase 1
+│   ├── 03_Phase3/                 # Phase 3
+│   ├── 04_phase4/                 # Phase 4
+│   │   └── 01_design/             # デザイン関連
+│   │       ├── assets/            # デザインアセット
+│   │       │   └── design-concept-5-japan-premium.html
+│   │       └── system_01_consumer/  # Consumer App モック
+│   │           └── wip/mocks/     # HTMLモック
+│   │
+│   └── 06_phase6/                 # Phase 6（現在）
+│       ├── DESIGN_SYSTEM.md       # デザイン標準 ⭐
+│       ├── DESIGN_SPEC_v3.md      # 設計仕様書 ⭐
+│       ├── CODEBASE_MAP.md        # 本ドキュメント ⭐
+│       ├── DATA_MODEL.md          # データモデル ⭐
+│       └── URL_REFERENCE.md       # URL一覧
+│
+├── 02_agents_prompt/              # AIエージェント関連
+│   ├── 01_Agent strategic meeting format/  # 会議プロトコル
+│   ├── 02_prompts/                # 各種プロンプト
+│   └── 99_11Agents/               # 11体エージェント定義
+│
+└── README.md
+```
+
+### 3.2 主要ドキュメント一覧
+
+| ドキュメント | パス | 用途 |
+|-------------|------|------|
+| **DESIGN_SYSTEM.md** | `06_phase6/` | デザイン標準ルール |
+| **DESIGN_SPEC_v3.md** | `06_phase6/` | アプリ中心設計仕様 |
+| **CODEBASE_MAP.md** | `06_phase6/` | コードベース地図 |
+| **DATA_MODEL.md** | `06_phase6/` | エンティティ中心データ設計 |
+| **URL_REFERENCE.md** | `06_phase6/` | 全画面URL一覧 |
+| **SEQUENCES.md** | `00_core/specs/` | シーケンス詳細 |
+| **UNIFIED_SPEC.md** | `00_core/specs/` | 統合仕様書 |
+
+---
+
+## 4. アーカイブ・非推奨
+
+### 4.1 使用しないフォルダ
+
+| フォルダ | 理由 | 代替 |
+|----------|------|------|
+| `ui/` | 旧UIモノレポ | `apps/web/` |
+| `web/` | 旧Web | `apps/web/` |
+| `api/` | 旧API | `services/api/` |
+| `client/` | 旧クライアント | `packages/sdk/` |
+| `_archive/` | アーカイブ | - |
+
+### 4.2 整理予定
+
+| フォルダ | 現状 | 計画 |
+|----------|------|------|
+| `docs_new/` | 6階層と深い | `docs/` に整理 |
+| `scripts/` | 散在 | 整理・統合 |
+
+---
+
+## 5. 開発時の参照ガイド
+
+### 5.1 新しい画面を追加する時
+
+```
+1. デザイン確認
+   → docs_new/01_phase/06_phase6/DESIGN_SYSTEM.md
+   → docs_new/01_phase/04_phase4/01_design/system_XX/wip/mocks/
+
+2. 仕様確認
+   → docs_new/01_phase/06_phase6/DESIGN_SPEC_v3.md の該当アプリセクション
+
+3. ページ作成
+   → apps/web/src/app/[locale]/{app}/{screen}/page.tsx
+
+4. コンポーネント作成
+   → apps/web/src/components/{app}/{Screen}.tsx
+
+5. 翻訳追加
+   → apps/web/locales/ja/{app}.json
+   → apps/web/locales/en/{app}.json
+```
+
+### 5.2 新しいAPIを追加する時
+
+```
+1. 仕様確認
+   → docs_new/01_phase/06_phase6/DESIGN_SPEC_v3.md の該当アプリAPI一覧
+   → docs_new/01_phase/06_phase6/DATA_MODEL.md でエンティティ確認
+
+2. ルート追加
+   → services/api/src/routes/{domain}.rs
+
+3. モデル追加（必要な場合）
+   → services/api/src/models/
+
+4. テスト追加
+   → services/api/tests/
+```
+
+### 5.3 コンポーネントを使う時
+
+```
+共通UIコンポーネント:
+→ apps/web/src/components/ui/
+  - Button: 9バリエーション（primary, secondary, outline, ghost, danger, warning, success, link, gold）
+  - Card: カード
+  - Input: 入力フィールド
+  - Badge: バッジ
+  - Tooltip: ツールチップ
+
+使用例:
+import { Button } from '@/components/ui/button';
+<Button variant="primary" size="lg">ロックする</Button>
+```
+
+### 5.4 スタイルを適用する時
+
+```
+Tailwindカスタムクラス:
+→ apps/web/tailwind.config.ts で定義済み
+
+カラー:
+- bg-hinomaru, text-hinomaru
+- bg-gold, text-gold
+- bg-background, bg-card, bg-surface
+- text-foreground, text-foreground-secondary
+
+角丸:
+- rounded-qs (10px)
+- rounded-qs-lg (14px)
+- rounded-qs-xl (20px)
+
+シャドウ:
+- shadow-qs
+- shadow-qs-gold
+- shadow-qs-hover
+```
+
+### 5.5 Mock APIを追加する時
+
+```
+1. Route Handler作成
+   → apps/web/src/app/api/{domain}/route.ts
+
+2. APIクライアント作成
+   → apps/web/src/lib/api/{domain}.ts
+
+3. エクスポート追加
+   → apps/web/src/lib/api/index.ts に追加
+
+例（Lock API）:
+// route.ts
+export async function POST(request: NextRequest) { ... }
+export async function GET(request: NextRequest) { ... }
+
+// lib/api/lock.ts
+export async function createLock(request: LockRequest) { ... }
+export async function getLockStatus(lockId: string) { ... }
+```
+
+### 5.6 画面間でデータを渡す時
+
+```
+方法: URLSearchParams を使用
+
+1. 送信側
+const params = new URLSearchParams({
+  amount: '5.00',
+  period: '2',
+});
+router.push(`/consumer/lock/processing?${params.toString()}`);
+
+2. 受信側
+const searchParams = useSearchParams();
+const amount = searchParams.get('amount') || 'default';
+
+注意:
+- 大量データの場合はZustand storeを使用
+- 機密データはURLに含めない
+```
+
+---
+
+## 6. コンポーネント一覧
+
+### 6.1 概要
+
+| カテゴリ | コンポーネント数 | パス |
+|----------|:---------------:|------|
+| **共通UI** | 5 | `components/ui/` |
+| **Consumer App** | 51 | `components/consumer/` |
+| **Token Hub** | 25 | `components/token-hub/` |
+| **Governance** | 10 | `components/governance/` |
+| **Prover Portal** | 14 | `components/prover/` |
+| **Observer** | 23 | `components/observer/` |
+| **Explorer** | 11 | `components/explorer/` |
+| **Enterprise Admin** | 54 | `components/enterprise/` |
+| **QS Admin** | 67 | `components/admin/` |
+| **合計** | **261** | - |
+
+### 6.2 共通UIコンポーネント（`components/ui/`）
+
+| コンポーネント | ファイル | 用途 |
+|---------------|----------|------|
+| Button | `button.tsx` | ボタン（9バリエーション: primary, secondary, outline, ghost, danger, warning, success, link, gold） |
+| Card | `card.tsx` | コンテンツカード |
+| Input | `input.tsx` | 入力フィールド |
+| Badge | `badge.tsx` | ステータスバッジ |
+| Tooltip | `tooltip.tsx` | ツールチップ |
+
+### 6.3 Consumer App コンポーネント（`components/consumer/`）
+
+| ディレクトリ | 主要コンポーネント | 画面 |
+|-------------|-------------------|------|
+| `Dashboard/` | HinomaryVisual, LockAssetCard, StatCard, RecentActivity | ダッシュボード |
+| `Landing/` | HinomaryVisual, HinomaryLogo, Tooltip | ランディング |
+| `Lock/` | LockForm, ConfirmModal | ロック入力 |
+| `LockProcessing/` | ProcessingStatus, ProgressIndicator | 処理中 |
+| `LockSuccess/` | SuccessCard, TransactionDetails | 完了 |
+| `Unlock/` | LockCard, MethodCard, TimeLockModal | アンロック選択 |
+| `UnlockProcessing/` | UnlockStatus | アンロック処理中 |
+| `UnlockSuccess/` | UnlockConfirmation | アンロック完了 |
+| `EmergencyBond/` | BondForm | 緊急アンロック |
+| `History/` | FilterTabs, HistoryItem, HistoryStats | 履歴一覧 |
+| `HistoryDetail/` | TransactionDetail | 履歴詳細 |
+| `Onboarding/` | OnboardingSteps | オンボーディング |
+| `WalletConnect/` | WalletList | ウォレット接続 |
+| `KeyManagement/` | BackupModal, ExportModal, RegenerateModal | 鍵管理 |
+| `Settings/` | SettingsItem, ToggleSwitch, SettingsSection | 設定 |
+| `Notifications/` | NotificationList | 通知 |
+| `Security/` | SecuritySettings | セキュリティ |
+| `FAQ/` | FAQItem | よくある質問 |
+| `Help/` | HelpContent | ヘルプ |
+| `Contact/` | ContactForm | お問い合わせ |
+| `Terms/` | TermsContent | 利用規約 |
+| `Privacy/` | PrivacyContent | プライバシー |
+| `Cookie/` | CookiePolicy | クッキーポリシー |
+
+### 6.4 Token Hub コンポーネント（`components/token-hub/`）
+
+| ディレクトリ | 主要コンポーネント | 画面 |
+|-------------|-------------------|------|
+| `Dashboard/` | StakeOverview, TokenHubHeader, StakeCard | ダッシュボード |
+| `Onboarding/` | StakeIntro | オンボーディング |
+| `Stake/` | StakeForm, PeriodSelector | ステーク入力 |
+| `StakeProcessing/` | StakeStatus | 処理中 |
+| `StakeSuccess/` | StakeConfirmation | 完了 |
+| `Unstake/` | UnstakeForm | アンステーク |
+| `Delegate/` | DelegateForm, ValidatorList | デリゲート |
+| `Rewards/` | RewardsOverview, RewardsHistory | 報酬 |
+| `Landing/` | TokenHubIntro | ランディング |
+
+### 6.5 Governance コンポーネント（`components/governance/`）
+
+| ディレクトリ | 主要コンポーネント | 画面 |
+|-------------|-------------------|------|
+| `GovernanceDashboard.tsx` | ProposalList, VotingPower | ダッシュボード |
+| `ProposalsList.tsx` | ProposalCard, FilterTabs | 提案一覧 |
+| `ProposalDetail.tsx` | VoteProgress, VoteForm | 提案詳細 |
+| `Council.tsx` | CouncilMembers | 評議員一覧 |
+| `GovernanceOnboarding.tsx` | OnboardingSteps | オンボーディング |
+| `GovernanceFAQ.tsx` | FAQItems | FAQ |
+| `GovernanceSettings.tsx` | SettingsForm | 設定 |
+| `GovernanceHeader.tsx` | Navigation | ヘッダー |
+
+### 6.6 Prover Portal コンポーネント（`components/prover/`）
+
+| ファイル | 用途 |
+|----------|------|
+| `ProverDashboard.tsx` | ダッシュボード（メトリクス、チャレンジ状況） |
+| `ProverApplication.tsx` | 申請フォーム |
+| `ProverApplicationStatus.tsx` | 申請ステータス |
+| `ProverLanding.tsx` | ランディングページ |
+| `ProverChallenge.tsx` | チャレンジ応答 |
+| `ProverMetrics.tsx` | パフォーマンスメトリクス |
+| `ProverQueue.tsx` | 証明キュー |
+| `ProverAlerts.tsx` | アラート一覧 |
+| `ProverExit.tsx` | 退出申請 |
+| `ProverLogin.tsx` | ログイン |
+| `ProverRequirements.tsx` | 要件確認 |
+| `ProverSettings.tsx` | 設定 |
+| `ProverTerms.tsx` | 利用規約 |
+| `ProverSidebar.tsx` | サイドバー |
+
+### 6.7 Observer コンポーネント（`components/observer/`）
+
+| ディレクトリ | 主要コンポーネント | 画面 |
+|-------------|-------------------|------|
+| `Dashboard/` | ObserverHeader, StatCard, ActiveChallengesSidebar, EarningsSidebar | ダッシュボード |
+| `Suspicious/` | SuspiciousAlertCard, ChallengeSubmit | 不正検知 |
+| `Challenge/` | ChallengeDetail, ChallengeForm | チャレンジ |
+| `ChallengeProgress/` | ProgressTracker | 進捗確認 |
+| `Earnings/` | EarningsChart, RewardsList | 収益 |
+| `History/` | ChallengeHistory | 履歴 |
+| `Application/` | ApplicationForm | 申請 |
+| `Landing/` | ObserverIntro | ランディング |
+| `Login/` | LoginForm | ログイン |
+| `Settings/` | SettingsForm | 設定 |
+
+### 6.8 Explorer コンポーネント（`components/explorer/`）
+
+| ファイル/ディレクトリ | 用途 |
+|----------------------|------|
+| `Landing/` | 検索インターフェース、統計概要 |
+| `Challenges.tsx` | チャレンジ一覧 |
+| `Provers.tsx` | Prover一覧 |
+| `TransactionDetail/` | トランザクション詳細 |
+| `LockDetail/` | ロック詳細 |
+| `UnlockDetail/` | アンロック詳細 |
+
+### 6.9 Enterprise Admin コンポーネント（`components/enterprise/`）
+
+| ディレクトリ | 主要コンポーネント | 画面 |
+|-------------|-------------------|------|
+| `Dashboard/` | EnterpriseOverview, UsageChart | ダッシュボード |
+| `Users/` | UserTable, UserDetail, UserInvite | ユーザー管理 |
+| `ApiKeys/` | ApiKeyList, ApiKeyCreate | APIキー管理 |
+| `Billing/` | BillingOverview, InvoiceList | 課金管理 |
+| `EnterpriseApplication.tsx` | 申請フォーム | 申請 |
+| `EnterpriseApprovals.tsx` | 承認管理 | 承認 |
+| `EnterpriseContract.tsx` | 契約管理 | 契約 |
+| `EnterpriseKYB.tsx` | KYB | 本人確認 |
+| `EnterpriseLanding.tsx` | ランディング | LP |
+| `EnterpriseOnboarding.tsx` | オンボーディング | 初期設定 |
+| `EnterprisePlanSelection.tsx` | プラン選択 | 料金プラン |
+| `EnterpriseProvers.tsx` | Prover管理 | 専用Prover |
+
+### 6.10 QS Admin コンポーネント（`components/admin/`）
+
+| ファイル | 用途 |
+|----------|------|
+| `AdminDashboard.tsx` | 統合ダッシュボード |
+| `AdminIntegratedDashboard.tsx` | 統合ダッシュボードv2 |
+| `AdminSidebar.tsx` | サイドバーナビゲーション |
+| `AdminSidebarV2.tsx` | サイドバーv2 |
+| `AdminProver.tsx` | Prover申請管理 |
+| `AdminEnterprise.tsx` | Enterprise管理 |
+| `AdminNodes.tsx` | ノード管理 |
+| `AdminEmergency.tsx` | 緊急停止 |
+| `AdminParameters.tsx` | パラメータ設定 |
+| `AdminStaff.tsx` | スタッフ管理 |
+| `AdminAudit.tsx` | 監査ログ |
+| `AdminReports.tsx` | レポート |
+| `AdminTxMonitor.tsx` | トランザクション監視 |
+| `AdminCommunity.tsx` | コミュニティ管理 |
+| `AdminOnboarding.tsx` | オンボーディング |
+| `license/` | ライセンス管理 |
+| `public/` | 公開設定 |
+| `saas/` | SaaS管理 |
+| `settings/` | システム設定 |
+
+### 6.11 コンポーネント命名規則
+
+```
+ディレクトリ構造:
+components/
+├── {app}/              # アプリ別（consumer, token-hub等）
+│   ├── {Screen}/       # 画面別ディレクトリ
+│   │   ├── index.tsx   # メインコンポーネント
+│   │   ├── {Sub}.tsx   # サブコンポーネント
+│   │   └── {Screen}.stories.tsx  # Storybook
+│   └── index.ts        # 再エクスポート
+└── ui/                 # 共通UI
+
+命名規則:
+- ディレクトリ: PascalCase（Dashboard, Lock等）
+- ファイル: PascalCase.tsx または index.tsx
+- コンポーネント: PascalCase（export function LockScreen）
+- Stories: {Component}.stories.tsx
+```
+
+---
+
+## 更新履歴
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0 | 2026-01-22 | Claude | 初版作成 |
+| 1.1 | 2026-01-22 | Claude | Mock API, lib/api追加。画面間データ渡しパターン追加 |
+| 1.2 | 2026-01-22 | Claude | コンポーネント一覧（セクション6）追加 |

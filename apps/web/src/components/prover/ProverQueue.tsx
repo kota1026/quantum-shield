@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import {
   LayoutDashboard,
   FileText,
@@ -18,10 +17,16 @@ import {
   AlertCircle,
   Unlock,
   Inbox,
+  CheckCircle2,
+  Loader2,
+  ChevronRight,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Link } from '@/i18n/navigation';
+import { cn } from '@/lib/utils';
 
 // Mock data
 const mockStats = {
@@ -105,6 +110,7 @@ const mockQueueItems: QueueItem[] = [
 ];
 
 type FilterType = 'all' | 'normal' | 'emergency' | 'urgent';
+type SigningState = 'idle' | 'confirming' | 'processing' | 'success' | 'error';
 
 export function ProverQueue() {
   const t = useTranslations('prover');
@@ -113,6 +119,9 @@ export function ProverQueue() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showSignModal, setShowSignModal] = useState(false);
   const [showBatchModal, setShowBatchModal] = useState(false);
+  const [signingState, setSigningState] = useState<SigningState>('idle');
+  const [batchSigningState, setBatchSigningState] = useState<SigningState>('idle');
+  const [processingStep, setProcessingStep] = useState(0);
 
   const navItems = [
     { key: 'dashboard', icon: LayoutDashboard, href: '/prover/dashboard' },
@@ -123,8 +132,8 @@ export function ProverQueue() {
 
   const managementItems = [
     { key: 'alerts', icon: Bell, href: '/prover/alerts', badge: 2, badgeVariant: 'warning' as const },
-    { key: 'stake', icon: Lock, href: '/prover/stake' },
-    { key: 'challenges', icon: Swords, href: '/prover/challenges' },
+    { key: 'stake', icon: Lock, href: '/prover/alerts' },
+    { key: 'challenges', icon: Swords, href: '/prover/challenge' },
   ];
 
   const filters: { key: FilterType; count: number }[] = [
@@ -148,6 +157,9 @@ export function ProverQueue() {
     setShowDetailModal(false);
     setShowSignModal(false);
     setShowBatchModal(false);
+    setSigningState('idle');
+    setBatchSigningState('idle');
+    setProcessingStep(0);
   }, []);
 
   // Handle Escape key to close modals
@@ -185,12 +197,64 @@ export function ProverQueue() {
   const handleSignClick = (item: QueueItem, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedRequest(item);
+    setSigningState('confirming');
     setShowSignModal(true);
   };
 
   const handleRefresh = () => {
     window.location.reload();
   };
+
+  // Simulate signing process
+  const handleConfirmSign = async () => {
+    setSigningState('processing');
+    setProcessingStep(1);
+
+    // Step 1: Verifying Dilithium signature
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setProcessingStep(2);
+
+    // Step 2: Generating SPHINCS+ signature
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setProcessingStep(3);
+
+    // Step 3: Broadcasting to network
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setProcessingStep(4);
+
+    // Complete
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setSigningState('success');
+  };
+
+  // Simulate batch signing process
+  const handleConfirmBatchSign = async () => {
+    setBatchSigningState('processing');
+    setProcessingStep(1);
+
+    // Step 1: Verifying signatures
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setProcessingStep(2);
+
+    // Step 2: Generating batch signature
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setProcessingStep(3);
+
+    // Step 3: Broadcasting
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setProcessingStep(4);
+
+    // Complete
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setBatchSigningState('success');
+  };
+
+  const processingSteps = [
+    { key: 'verifying', label: t('queue.process.verifying') },
+    { key: 'generating', label: t('queue.process.generating') },
+    { key: 'broadcasting', label: t('queue.process.broadcasting') },
+    { key: 'complete', label: t('queue.process.complete') },
+  ];
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -209,7 +273,9 @@ export function ProverQueue() {
             <div
               className="absolute inset-0 border-[1.5px] border-gold rounded-full animate-spin"
               style={{ animationDuration: '25s' }}
-            />
+            >
+              <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-gold rounded-full" />
+            </div>
             <div className="w-5 h-5 bg-hinomaru rounded-full shadow-glow-hinomaru" />
           </div>
           <div>
@@ -288,166 +354,183 @@ export function ProverQueue() {
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 p-8 overflow-y-auto">
-        {/* Page Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">{t('queue.title')}</h1>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
-              {t('queue.refresh')}
-            </Button>
-            <Button variant="primary" onClick={() => setShowBatchModal(true)}>
-              {t('queue.signAll', { count: mockStats.pending })}
-            </Button>
+        {/* Premium Background Effect */}
+        <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+          <div
+            className={cn(
+              'absolute -top-24 left-1/2 -translate-x-1/2',
+              'w-[800px] h-[500px]',
+              'bg-[radial-gradient(ellipse,rgba(201,169,98,0.08),transparent_60%)]',
+              'opacity-50'
+            )}
+          />
+        </div>
+
+        <div className="relative z-10">
+          {/* Page Header */}
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold mb-1">{t('queue.title')}</h1>
+              <p className="text-foreground-secondary text-sm lg:text-base">{t('queue.description')}</p>
+            </div>
+            <div className="flex gap-3 flex-shrink-0">
+              <Button variant="outline" onClick={handleRefresh}>
+                <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
+                {t('queue.refresh')}
+              </Button>
+              <Button variant="primary" onClick={() => setShowBatchModal(true)}>
+                {t('queue.signAll', { count: mockStats.pending })}
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <Card className="p-4">
-            <div className="text-xs text-foreground-tertiary mb-1">{t('queue.stats.pending')}</div>
-            <div className="text-2xl font-bold font-mono">{mockStats.pending}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-xs text-foreground-tertiary mb-1">{t('queue.stats.urgent')}</div>
-            <div className="text-2xl font-bold font-mono text-warning">{mockStats.urgent}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-xs text-foreground-tertiary mb-1">{t('queue.stats.avgWait')}</div>
-            <div className="text-2xl font-bold font-mono">{mockStats.avgWait}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-xs text-foreground-tertiary mb-1">{t('queue.stats.todayProcessed')}</div>
-            <div className="text-2xl font-bold font-mono">{mockStats.todayProcessed}</div>
-          </Card>
-        </div>
+          {/* Stats Row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <Card variant="hoverGradient" padding="md">
+              <div className="text-xs text-foreground-tertiary mb-1">{t('queue.stats.pending')}</div>
+              <div className="text-2xl font-bold font-mono">{mockStats.pending}</div>
+            </Card>
+            <Card variant="hoverGradient" padding="md">
+              <div className="text-xs text-foreground-tertiary mb-1">{t('queue.stats.urgent')}</div>
+              <div className="text-2xl font-bold font-mono text-warning">{mockStats.urgent}</div>
+            </Card>
+            <Card variant="hoverGradient" padding="md">
+              <div className="text-xs text-foreground-tertiary mb-1">{t('queue.stats.avgWait')}</div>
+              <div className="text-2xl font-bold font-mono">{mockStats.avgWait}</div>
+            </Card>
+            <Card variant="hoverGradient" padding="md">
+              <div className="text-xs text-foreground-tertiary mb-1">{t('queue.stats.todayProcessed')}</div>
+              <div className="text-2xl font-bold font-mono">{mockStats.todayProcessed}</div>
+            </Card>
+          </div>
 
-        {/* Filter Bar */}
-        <div className="flex gap-3 mb-5" role="group" aria-label={t('queue.filterLabel')}>
-          {filters.map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
-                activeFilter === filter.key
-                  ? 'bg-hinomaru/10 border-hinomaru text-hinomaru-400'
-                  : 'bg-background-secondary border-surface-tertiary text-foreground-secondary hover:border-foreground-tertiary hover:text-foreground'
-              }`}
-              aria-pressed={activeFilter === filter.key}
-            >
-              {t(`queue.filter.${filter.key}`)} ({filter.count})
-            </button>
-          ))}
-        </div>
+          {/* Filter Bar */}
+          <div className="flex flex-wrap gap-3 mb-5" role="group" aria-label={t('queue.filterLabel')}>
+            {filters.map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => setActiveFilter(filter.key)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+                  activeFilter === filter.key
+                    ? 'bg-hinomaru/10 border-hinomaru text-hinomaru-400'
+                    : 'bg-background-secondary border-surface-tertiary text-foreground-secondary hover:border-foreground-tertiary hover:text-foreground'
+                }`}
+                aria-pressed={activeFilter === filter.key}
+              >
+                {t(`queue.filter.${filter.key}`)} ({filter.count})
+              </button>
+            ))}
+          </div>
 
-        {/* Queue Table or Empty State */}
-        {filteredItems.length === 0 ? (
-          <Card className="p-20 text-center">
-            <Inbox className="h-16 w-16 mx-auto mb-6 text-foreground-tertiary opacity-50" aria-hidden="true" />
-            <h3 className="text-xl font-semibold mb-3">{t('queue.empty.title')}</h3>
-            <p className="text-foreground-secondary max-w-md mx-auto mb-6">{t('queue.empty.description')}</p>
-            <Button variant="outline" onClick={handleRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
-              {t('queue.empty.refresh')}
-            </Button>
-          </Card>
-        ) : (
-          <Card className="overflow-hidden">
-            <table className="w-full" role="grid" aria-label={t('queue.tableLabel')}>
-              <thead>
-                <tr className="bg-background-secondary border-b border-surface-tertiary">
-                  <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
-                    {t('queue.table.requestId')}
-                  </th>
-                  <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
-                    {t('queue.table.type')}
-                  </th>
-                  <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
-                    {t('queue.table.userAddress')}
-                  </th>
-                  <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
-                    {t('queue.table.amount')}
-                  </th>
-                  <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
-                    {t('queue.table.waitTime')}
-                  </th>
-                  <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
-                    {t('queue.table.action')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.map((item) => (
-                  <tr
-                    key={item.id}
-                    onClick={() => handleRowClick(item)}
-                    className="border-b border-surface-tertiary hover:bg-surface cursor-pointer transition-colors"
-                    tabIndex={0}
-                    role="row"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleRowClick(item);
-                      }
-                    }}
-                  >
-                    <td className="px-5 py-4">
-                      <span className="font-mono text-sm text-gold">#{item.id}</span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <Badge
-                        variant={item.type === 'emergency' ? 'warning' : 'danger'}
-                        className="text-[11px] px-2.5 py-0.5"
-                      >
-                        {item.type === 'emergency' ? (
-                          <>
-                            <AlertCircle className="h-3 w-3 mr-1" aria-hidden="true" />
-                            {t('queue.type.emergency')}
-                          </>
-                        ) : (
-                          <>
-                            <Unlock className="h-3 w-3 mr-1" aria-hidden="true" />
-                            {t('queue.type.unlock')}
-                          </>
-                        )}
-                      </Badge>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="font-mono text-sm text-foreground-secondary">{item.address}</span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="font-mono text-sm font-semibold">{item.amount} ETH</span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`font-mono text-sm flex items-center gap-1 ${
-                          item.waitStatus === 'critical'
-                            ? 'text-danger'
-                            : item.waitStatus === 'urgent'
-                              ? 'text-warning'
-                              : 'text-foreground-secondary'
-                        }`}
-                      >
-                        <Clock className="h-3 w-3" aria-hidden="true" />
-                        {item.waitTime}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={(e) => handleSignClick(item, e)}
-                        aria-label={t('queue.signRequest', { id: item.id })}
-                      >
-                        {t('queue.sign')}
-                      </Button>
-                    </td>
+          {/* Queue Table or Empty State */}
+          {filteredItems.length === 0 ? (
+            <Card className="p-20 text-center">
+              <Inbox className="h-16 w-16 mx-auto mb-6 text-foreground-tertiary opacity-50" aria-hidden="true" />
+              <h3 className="text-xl font-semibold mb-3">{t('queue.empty.title')}</h3>
+              <p className="text-foreground-secondary max-w-md mx-auto mb-6">{t('queue.empty.description')}</p>
+              <Button variant="outline" onClick={handleRefresh}>
+                <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
+                {t('queue.empty.refresh')}
+              </Button>
+            </Card>
+          ) : (
+            <Card className="overflow-hidden overflow-x-auto">
+              <table className="w-full min-w-[700px]" role="grid" aria-label={t('queue.tableLabel')}>
+                <thead>
+                  <tr className="bg-background-secondary border-b border-surface-tertiary">
+                    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
+                      {t('queue.table.requestId')}
+                    </th>
+                    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
+                      {t('queue.table.type')}
+                    </th>
+                    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
+                      {t('queue.table.userAddress')}
+                    </th>
+                    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
+                      {t('queue.table.amount')}
+                    </th>
+                    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
+                      {t('queue.table.waitTime')}
+                    </th>
+                    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-tertiary">
+                      {t('queue.table.action')}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-        )}
+                </thead>
+                <tbody>
+                  {filteredItems.map((item) => (
+                    <tr
+                      key={item.id}
+                      onClick={() => handleRowClick(item)}
+                      className="border-b border-surface-tertiary hover:bg-surface cursor-pointer transition-colors"
+                      tabIndex={0}
+                      role="row"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleRowClick(item);
+                        }
+                      }}
+                    >
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-sm text-gold">#{item.id}</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <Badge
+                          variant={item.type === 'emergency' ? 'warning' : 'danger'}
+                          className="text-[11px] px-2.5 py-0.5"
+                        >
+                          {item.type === 'emergency' ? (
+                            <>
+                              <AlertCircle className="h-3 w-3 mr-1" aria-hidden="true" />
+                              {t('queue.type.emergency')}
+                            </>
+                          ) : (
+                            <>
+                              <Unlock className="h-3 w-3 mr-1" aria-hidden="true" />
+                              {t('queue.type.unlock')}
+                            </>
+                          )}
+                        </Badge>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-sm text-foreground-secondary">{item.address}</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-sm font-semibold">{item.amount} ETH</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`font-mono text-sm flex items-center gap-1 ${
+                            item.waitStatus === 'critical'
+                              ? 'text-danger'
+                              : item.waitStatus === 'urgent'
+                                ? 'text-warning'
+                                : 'text-foreground-secondary'
+                          }`}
+                        >
+                          <Clock className="h-3 w-3" aria-hidden="true" />
+                          {item.waitTime}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={(e) => handleSignClick(item, e)}
+                          aria-label={t('queue.signRequest', { id: item.id })}
+                        >
+                          {t('queue.sign')}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
+          )}
+        </div>
       </main>
 
       {/* Request Detail Modal */}
@@ -542,6 +625,7 @@ export function ProverQueue() {
                 className="flex-1"
                 onClick={() => {
                   setShowDetailModal(false);
+                  setSigningState('confirming');
                   setShowSignModal(true);
                 }}
               >
@@ -552,118 +636,272 @@ export function ProverQueue() {
         </div>
       )}
 
-      {/* Sign Confirm Modal */}
+      {/* Sign Modal with Processing/Success States */}
       {showSignModal && selectedRequest && (
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="sign-modal-title"
-          onClick={handleCloseModals}
+          onClick={signingState === 'confirming' ? handleCloseModals : undefined}
         >
           <div
             className="bg-background-secondary border border-surface-tertiary rounded-2xl w-full max-w-lg overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center px-6 py-5 border-b border-surface-tertiary">
-              <h2 id="sign-modal-title" className="text-lg font-semibold">
-                {t('queue.confirm.title')}
-              </h2>
-              <button
-                onClick={handleCloseModals}
-                className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
-                aria-label={t('queue.modal.close')}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="p-6 text-center">
-              <div className="text-5xl mb-4" aria-hidden="true">
-                🔐
-              </div>
-              <p className="text-foreground-secondary mb-5">{t('queue.confirm.description')}</p>
-              <div className="p-4 bg-surface rounded-lg text-left">
-                <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1">
-                  {t('queue.confirm.request')}
+            {/* Confirming State */}
+            {signingState === 'confirming' && (
+              <>
+                <div className="flex justify-between items-center px-6 py-5 border-b border-surface-tertiary">
+                  <h2 id="sign-modal-title" className="text-lg font-semibold">
+                    {t('queue.confirm.title')}
+                  </h2>
+                  <button
+                    onClick={handleCloseModals}
+                    className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
+                    aria-label={t('queue.modal.close')}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
-                <div className="text-base font-semibold font-mono">
-                  #{selectedRequest.id} • {selectedRequest.amount} ETH
+                <div className="p-6 text-center">
+                  <div className="w-16 h-16 bg-hinomaru/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Shield className="h-8 w-8 text-hinomaru" />
+                  </div>
+                  <p className="text-foreground-secondary mb-5">{t('queue.confirm.description')}</p>
+                  <div className="p-4 bg-surface rounded-lg text-left">
+                    <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1">
+                      {t('queue.confirm.request')}
+                    </div>
+                    <div className="text-base font-semibold font-mono">
+                      #{selectedRequest.id} • {selectedRequest.amount} ETH
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3 px-6 py-5 border-t border-surface-tertiary">
+                  <Button variant="outline" className="flex-1" onClick={handleCloseModals}>
+                    {t('queue.modal.cancel')}
+                  </Button>
+                  <Button variant="primary" className="flex-1" onClick={handleConfirmSign}>
+                    {t('queue.confirm.submit')}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {/* Processing State */}
+            {signingState === 'processing' && (
+              <div className="p-8">
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Loader2 className="h-8 w-8 text-gold animate-spin" />
+                  </div>
+                  <h2 className="text-xl font-semibold mb-2">{t('queue.process.title')}</h2>
+                  <p className="text-foreground-secondary">{t('queue.process.description')}</p>
+                </div>
+                <div className="space-y-4">
+                  {processingSteps.map((step, index) => (
+                    <div key={step.key} className="flex items-center gap-4">
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
+                          processingStep > index + 1
+                            ? 'bg-success text-white'
+                            : processingStep === index + 1
+                              ? 'bg-gold/20 text-gold'
+                              : 'bg-surface text-foreground-tertiary'
+                        )}
+                      >
+                        {processingStep > index + 1 ? (
+                          <CheckCircle2 className="h-5 w-5" />
+                        ) : processingStep === index + 1 ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <span className="text-sm font-mono">{index + 1}</span>
+                        )}
+                      </div>
+                      <span
+                        className={cn(
+                          'text-sm',
+                          processingStep > index + 1
+                            ? 'text-success'
+                            : processingStep === index + 1
+                              ? 'text-foreground font-medium'
+                              : 'text-foreground-tertiary'
+                        )}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-            <div className="flex gap-3 px-6 py-5 border-t border-surface-tertiary">
-              <Button variant="outline" className="flex-1" onClick={handleCloseModals}>
-                {t('queue.modal.cancel')}
-              </Button>
-              <Button
-                variant="primary"
-                className="flex-1"
-                onClick={() => {
-                  handleCloseModals();
-                }}
-              >
-                {t('queue.confirm.submit')}
-              </Button>
-            </div>
+            )}
+
+            {/* Success State */}
+            {signingState === 'success' && (
+              <div className="p-8 text-center">
+                <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="h-10 w-10 text-success" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">{t('queue.success.title')}</h2>
+                <p className="text-foreground-secondary mb-6">{t('queue.success.description')}</p>
+                <div className="p-4 bg-surface rounded-lg mb-6">
+                  <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1">
+                    {t('queue.success.txHash')}
+                  </div>
+                  <div className="text-sm font-mono text-gold">0x7a3f9c2d...4e8b1f</div>
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="outline" className="flex-1" onClick={handleCloseModals}>
+                    {t('queue.success.close')}
+                  </Button>
+                  <Button variant="primary" className="flex-1" onClick={handleCloseModals}>
+                    <ChevronRight className="h-4 w-4 mr-1" />
+                    {t('queue.success.next')}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Batch Sign Modal */}
+      {/* Batch Sign Modal with Processing/Success States */}
       {showBatchModal && (
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="batch-modal-title"
-          onClick={handleCloseModals}
+          onClick={batchSigningState === 'idle' ? handleCloseModals : undefined}
         >
           <div
             className="bg-background-secondary border border-surface-tertiary rounded-2xl w-full max-w-lg overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center px-6 py-5 border-b border-surface-tertiary">
-              <h2 id="batch-modal-title" className="text-lg font-semibold">
-                {t('queue.batch.title')}
-              </h2>
-              <button
-                onClick={handleCloseModals}
-                className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
-                aria-label={t('queue.modal.close')}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="p-6 text-center">
-              <div className="text-5xl mb-4" aria-hidden="true">
-                ✍️
-              </div>
-              <p className="text-foreground-secondary mb-5">
-                {t('queue.batch.description', { count: mockStats.pending })}
-              </p>
-              <div className="p-4 bg-surface rounded-lg text-left">
-                <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1">
-                  {t('queue.batch.summary')}
+            {/* Confirming State */}
+            {batchSigningState === 'idle' && (
+              <>
+                <div className="flex justify-between items-center px-6 py-5 border-b border-surface-tertiary">
+                  <h2 id="batch-modal-title" className="text-lg font-semibold">
+                    {t('queue.batch.title')}
+                  </h2>
+                  <button
+                    onClick={handleCloseModals}
+                    className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
+                    aria-label={t('queue.modal.close')}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
-                <div className="text-base font-semibold font-mono">
-                  {mockStats.pending} {t('queue.batch.requests')} • 24.00 ETH
+                <div className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <FileText className="h-8 w-8 text-gold" />
+                  </div>
+                  <p className="text-foreground-secondary mb-5">
+                    {t('queue.batch.description', { count: mockStats.pending })}
+                  </p>
+                  <div className="p-4 bg-surface rounded-lg text-left">
+                    <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1">
+                      {t('queue.batch.summary')}
+                    </div>
+                    <div className="text-base font-semibold font-mono">
+                      {mockStats.pending} {t('queue.batch.requests')} • 24.00 ETH
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3 px-6 py-5 border-t border-surface-tertiary">
+                  <Button variant="outline" className="flex-1" onClick={handleCloseModals}>
+                    {t('queue.modal.cancel')}
+                  </Button>
+                  <Button variant="primary" className="flex-1" onClick={handleConfirmBatchSign}>
+                    {t('queue.batch.confirm')}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {/* Processing State */}
+            {batchSigningState === 'processing' && (
+              <div className="p-8">
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Loader2 className="h-8 w-8 text-gold animate-spin" />
+                  </div>
+                  <h2 className="text-xl font-semibold mb-2">{t('queue.batch.processing.title')}</h2>
+                  <p className="text-foreground-secondary">
+                    {t('queue.batch.processing.description', { count: mockStats.pending })}
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  {processingSteps.map((step, index) => (
+                    <div key={step.key} className="flex items-center gap-4">
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
+                          processingStep > index + 1
+                            ? 'bg-success text-white'
+                            : processingStep === index + 1
+                              ? 'bg-gold/20 text-gold'
+                              : 'bg-surface text-foreground-tertiary'
+                        )}
+                      >
+                        {processingStep > index + 1 ? (
+                          <CheckCircle2 className="h-5 w-5" />
+                        ) : processingStep === index + 1 ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <span className="text-sm font-mono">{index + 1}</span>
+                        )}
+                      </div>
+                      <span
+                        className={cn(
+                          'text-sm',
+                          processingStep > index + 1
+                            ? 'text-success'
+                            : processingStep === index + 1
+                              ? 'text-foreground font-medium'
+                              : 'text-foreground-tertiary'
+                        )}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-            <div className="flex gap-3 px-6 py-5 border-t border-surface-tertiary">
-              <Button variant="outline" className="flex-1" onClick={handleCloseModals}>
-                {t('queue.modal.cancel')}
-              </Button>
-              <Button
-                variant="primary"
-                className="flex-1"
-                onClick={() => {
-                  handleCloseModals();
-                }}
-              >
-                {t('queue.batch.confirm')}
-              </Button>
-            </div>
+            )}
+
+            {/* Success State */}
+            {batchSigningState === 'success' && (
+              <div className="p-8 text-center">
+                <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="h-10 w-10 text-success" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">{t('queue.batch.success.title')}</h2>
+                <p className="text-foreground-secondary mb-6">
+                  {t('queue.batch.success.description', { count: mockStats.pending })}
+                </p>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 bg-surface rounded-lg">
+                    <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1">
+                      {t('queue.batch.success.processed')}
+                    </div>
+                    <div className="text-xl font-bold font-mono text-success">{mockStats.pending}</div>
+                  </div>
+                  <div className="p-4 bg-surface rounded-lg">
+                    <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1">
+                      {t('queue.batch.success.volume')}
+                    </div>
+                    <div className="text-xl font-bold font-mono">24.00 ETH</div>
+                  </div>
+                </div>
+                <Button variant="primary" className="w-full" onClick={handleCloseModals}>
+                  {t('queue.batch.success.done')}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

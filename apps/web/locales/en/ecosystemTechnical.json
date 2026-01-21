@@ -1,0 +1,252 @@
+{
+  "meta": {
+    "title": "Technical Specifications | Quantum Shield",
+    "description": "Quantum Shield technical specifications - architecture, cryptographic algorithms, sequences, and parameters"
+  },
+  "title": "Technical Specifications",
+  "description": "Detailed specifications of Quantum Shield's architecture, quantum-resistant cryptography, processing flows, and system parameters.",
+  "backToEcosystem": "Back to Ecosystem",
+  "toc": {
+    "title": "Table of Contents",
+    "architecture": "Architecture (3-Layer Structure)",
+    "crypto": "Quantum-Resistant Cryptography",
+    "sequences": "Processing Flows (Sequences)",
+    "roles": "Participant Roles",
+    "specs": "Key Parameters",
+    "principles": "Immutable Principles"
+  },
+  "architecture": {
+    "title": "Architecture",
+    "description": "Quantum Shield consists of a 3-layer structure: L1 (Ethereum), L3 (Aegis Chain), and User Layer. Without using L2, our dedicated L3 chain implements PBFT consensus and quantum-resistant signatures.",
+    "layers": {
+      "l1": {
+        "title": "L1: Ethereum (Settlement Layer)",
+        "description": "The foundation layer ensuring final asset settlement and security enforcement",
+        "components": [
+          "L1Vault: Executes lock/unlock/challenge operations",
+          "SPHINCSVerifier: On-chain verification of Prover signatures",
+          "ProverRegistry: Prover management and slashing",
+          "24-hour/7-day timelock enforcement"
+        ]
+      },
+      "l3": {
+        "title": "L3: Aegis Chain (Sequencing Layer)",
+        "description": "Dedicated chain for transaction ordering and consensus",
+        "components": [
+          "PBFT consensus (4 nodes, 3/4 signatures required)",
+          "5-second block intervals",
+          "VRF-based random Prover selection",
+          "Transparent recording of all state changes"
+        ]
+      },
+      "user": {
+        "title": "User Layer (Self-Custody)",
+        "description": "Self-custody design where private keys exist only on user's device",
+        "components": [
+          "Dilithium keypair generation (client-side)",
+          "Message signing (self-managed)",
+          "Secret keys never leave user's device"
+        ]
+      }
+    }
+  },
+  "crypto": {
+    "title": "Quantum-Resistant Cryptography",
+    "description": "Quantum Shield uses only NIST FIPS-certified algorithms. ECDSA/secp256k1 used in current blockchains is prohibited as it can be broken by quantum computers using Shor's algorithm.",
+    "algorithms": {
+      "dilithium": {
+        "name": "Dilithium-III",
+        "standard": "FIPS 204",
+        "use": "User signatures & L3 consensus",
+        "description": "Lattice-based digital signature. Used for users to sign unlock requests and L3 nodes to sign blocks."
+      },
+      "sphincs": {
+        "name": "SPHINCS+-128s",
+        "standard": "FIPS 205",
+        "use": "Prover signatures",
+        "description": "Hash-based digital signature. Used by Provers to sign unlock approvals. 7,856-byte signature size."
+      },
+      "sha3": {
+        "name": "SHA3-256",
+        "standard": "FIPS 202",
+        "use": "All hashing operations",
+        "description": "Used for state root calculation, block hashing, Merkle trees, and all other hash operations."
+      }
+    },
+    "prohibited": {
+      "title": "Prohibited (Quantum Vulnerable)",
+      "items": [
+        "ECDSA / secp256k1 - Breakable by Shor's algorithm",
+        "SHA-256 / keccak256 - Attackable by Grover's algorithm"
+      ]
+    }
+  },
+  "sequences": {
+    "title": "Processing Flows",
+    "description": "Detailed sequences from lock to unlock. Each flow is executed by smart contracts and the L3 chain.",
+    "lock": {
+      "title": "Lock (Deposit Assets)",
+      "steps": [
+        {"step": 1, "action": "User calls lock() with Dilithium signature", "detail": "Send ETH and Dilithium public key hash"},
+        {"step": 2, "action": "4-node BFT consensus on L3 Aegis", "detail": "Dilithium verification, nonce check, expiry check"},
+        {"step": 3, "action": "Calculate state root SR_0", "detail": "Hash lock info with SHA3-256, issue lock_id"},
+        {"step": 4, "action": "Deposit to L1 Vault", "detail": "ERC20 Transfer, ~135K gas"},
+        {"step": 5, "action": "Emit Locked event", "detail": "Lock complete, sync notification to L3"}
+      ],
+      "gas": "~135,000 gas (~$7)",
+      "time": "Immediate"
+    },
+    "unlock": {
+      "title": "Unlock (Normal Path)",
+      "steps": [
+        {"step": 1, "action": "User calls initiateUnlock() with Dilithium signature", "detail": "Specify lock_id, amount, destination"},
+        {"step": 2, "action": "BFT consensus on L3, obtain randomness via VRF", "detail": "Chainlink VRF, 5-minute timeout"},
+        {"step": 3, "action": "Select Provers (2/5)", "detail": "Stake-weighted random selection, no duplicates"},
+        {"step": 4, "action": "Selected Provers sign with SPHINCS+", "detail": "2-of-3 internal approval in HSM, generate signature within 5 minutes"},
+        {"step": 5, "action": "Submit Unlock to L1", "detail": "SR_0 verification, SPHINCS+ verification x2 (~400K gas)"},
+        {"step": 6, "action": "24-hour timelock begins", "detail": "Cannot cancel or modify, monitoring bots observe"},
+        {"step": 7, "action": "finalizeUnlock() transfers assets", "detail": "After timelock confirmation, ETH transfer"}
+      ],
+      "gas": "~490,000 gas (~$27)",
+      "time": "24 hours (minimum guaranteed, immutable)"
+    },
+    "emergency": {
+      "title": "Emergency Unlock",
+      "trigger": "Automatically triggered when Provers don't respond for 72 hours",
+      "steps": [
+        {"step": 1, "action": "Timeout detected (72 hours)", "detail": "No signatures from Provers, or VRF failure"},
+        {"step": 2, "action": "Submit to L1 in emergency mode", "detail": "No Prover signatures, Emergency Mode flag"},
+        {"step": 3, "action": "Deposit emergency bond", "detail": "MAX(0.5 ETH, 5% of amount) as collateral"},
+        {"step": 4, "action": "7-day enhanced monitoring period", "detail": "Observers monitor 24/7, full SR transition verification"},
+        {"step": 5, "action": "finalizeEmergencyUnlock() after 7 days", "detail": "If no challenge, bond returned, ETH transferred"}
+      ],
+      "gas": "~550,000 gas (~$30) + bond",
+      "time": "7 days"
+    }
+  },
+  "roles": {
+    "title": "Participant Roles",
+    "description": "Three key roles supporting the Quantum Shield ecosystem. Each monitors the others to ensure system security.",
+    "responsibilitiesLabel": "Responsibilities",
+    "actionsLabel": "Actions",
+    "requirementsLabel": "Requirements",
+    "benefitsLabel": "Benefits",
+    "stakeLabel": "Stake",
+    "uptimeLabel": "Uptime",
+    "prover": {
+      "title": "Prover (Signature Provider)",
+      "description": "Core role generating quantum-resistant signatures to approve unlock requests. Manages private keys in HSM and contributes to 2/5 threshold signatures.",
+      "responsibilities": [
+        "Generate SPHINCS+ signature when selected by VRF",
+        "Submit signature to L3 within 5 minutes",
+        "Manage private keys securely with HSM",
+        "2-of-3 multisig for internal approval"
+      ],
+      "requirements": {
+        "stake": "Minimum 1 ETH (Phase 1) / $400K (production)",
+        "hsm": "HSM required (AWS CloudHSM, etc.)",
+        "uptime": "99.9%+ recommended"
+      }
+    },
+    "observer": {
+      "title": "Observer (Monitor)",
+      "description": "Monitors fraudulent unlocks and earns rewards through challenges. Contributes to network security with 24/7 monitoring.",
+      "responsibilities": [
+        "Monitor all pending unlocks",
+        "Detect fraud through Dilithium signature re-verification",
+        "Submit challenges",
+        "Judgment after 48-hour defense period"
+      ],
+      "requirements": {
+        "stake": "Minimum 5 ETH",
+        "monitoring": "24/7 monitoring recommended"
+      }
+    },
+    "user": {
+      "title": "User (Asset Holder)",
+      "description": "General users protecting crypto assets with quantum resistance. Self-manage private keys and receive assets safely after 24-hour wait.",
+      "actions": [
+        "Lock ETH in L1Vault",
+        "Self-manage Dilithium keypair",
+        "Sign unlock requests with Dilithium",
+        "Receive assets after 24-hour wait"
+      ],
+      "benefits": [
+        "Protect assets from future quantum attacks",
+        "Only you control your private keys",
+        "Transparent on-chain processing"
+      ]
+    }
+  },
+  "specs": {
+    "title": "Key Parameters",
+    "description": "Important system configuration values. Timelocks are hardcoded in smart contracts and cannot be changed.",
+    "timing": {
+      "title": "Timelocks (Immutable)",
+      "items": {
+        "normalUnlock": {"label": "Normal Unlock", "value": "24 hours", "description": "Waiting period after Prover signatures"},
+        "emergencyUnlock": {"label": "Emergency Unlock", "value": "7 days", "description": "Monitoring period after emergency path activation"},
+        "proverTimeout": {"label": "Prover Timeout", "value": "72 hours", "description": "Triggers emergency path if exceeded"},
+        "challengeDefense": {"label": "Challenge Defense", "value": "48 hours", "description": "Period for Prover to respond to challenge"}
+      }
+    },
+    "signatures": {
+      "title": "Signature Requirements",
+      "items": {
+        "threshold": {"label": "Prover Threshold", "value": "2/5", "description": "2 out of 5 signatures required"},
+        "vrfTimeout": {"label": "VRF Timeout", "value": "5 minutes", "description": "Time limit for randomness retrieval"},
+        "sigDeadline": {"label": "Signature Deadline", "value": "5 minutes", "description": "Deadline for Provers to submit signatures"}
+      }
+    },
+    "staking": {
+      "title": "Staking Requirements",
+      "items": {
+        "proverMin": {"label": "Prover Minimum Stake", "value": "1 ETH", "description": "Phase 1 minimum requirement"},
+        "observerMin": {"label": "Observer Minimum Stake", "value": "5 ETH", "description": "Minimum to participate as Observer"},
+        "emergencyBond": {"label": "Emergency Bond", "value": "0.5 ETH + 5%", "description": "Deposit for emergency unlock activation"}
+      }
+    },
+    "limits": {
+      "title": "Limits",
+      "items": {
+        "tvlCap": {"label": "TVL Cap", "value": "400 ETH", "description": "Phase 1 total lock limit"},
+        "minLock": {"label": "Minimum Lock", "value": "0.01 ETH", "description": "Minimum lockable amount"}
+      }
+    }
+  },
+  "principles": {
+    "title": "Immutable Principles (Core Principles)",
+    "description": "These principles are hardcoded in smart contracts and defined as a 'constitution' that cannot be changed even by governance voting.",
+    "items": {
+      "cp1": {
+        "title": "CP-1: Complete Quantum Resistance",
+        "description": "All signatures and hashes are NIST FIPS compliant. Only Dilithium + SPHINCS+ + SHA3-256. ECDSA, SHA-256 prohibited."
+      },
+      "cp2": {
+        "title": "CP-2: Self-Custody",
+        "description": "User secret keys are never stored by the system. Client-side signing only. Asset control belongs to users."
+      },
+      "cp3": {
+        "title": "CP-3: Timelock Existence",
+        "description": "Timelocks cannot be set to 0. 24 hours (normal) / 7 days (emergency) are minimum guarantees. Ensures time for fraud detection."
+      },
+      "cp4": {
+        "title": "CP-4: Slashing Existence",
+        "description": "Slashing mechanism cannot be removed. N²×10% quadratic penalty strongly deters collusion."
+      },
+      "cp5": {
+        "title": "CP-5: Transparency",
+        "description": "All operations are verifiable on-chain. No secret computations exist. All state changes recorded on L3 chain."
+      }
+    }
+  },
+  "cta": {
+    "title": "Start Using Quantum Shield",
+    "description": "Now that you understand the technical specifications, try using the apps.",
+    "getStarted": "Get Started with Consumer App",
+    "backToApps": "Back to App List"
+  },
+  "footer": {
+    "copyright": "© 2026 Quantum Shield. All rights reserved."
+  }
+}

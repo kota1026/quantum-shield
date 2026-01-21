@@ -1,5 +1,94 @@
 {
   "token-hub": {
+    "landing": {
+      "meta": {
+        "title": "Token Hub | Quantum Shield",
+        "description": "Lock QS tokens to earn veQS and participate in governance"
+      },
+      "hero": {
+        "badge": "Token Hub",
+        "title": "Lock QS and\nJoin Governance",
+        "description": "Lock QS tokens to earn veQS. Gain voting power and help shape the future of the protocol. Earn rewards too.",
+        "cta": "Go to Dashboard",
+        "secondaryCta": "Learn More"
+      },
+      "stats": {
+        "totalLocked": {
+          "value": "52.4M",
+          "label": "Total Locked (QS)"
+        },
+        "holders": {
+          "value": "12,847",
+          "label": "veQS Holders"
+        },
+        "apy": {
+          "value": "12.5%",
+          "label": "Avg APY"
+        },
+        "distributed": {
+          "value": "$4.2M",
+          "label": "Total Rewards"
+        }
+      },
+      "features": {
+        "title": "What You Can Do",
+        "subtitle": "Use QS tokens to participate in Quantum Shield governance",
+        "lock": {
+          "title": "Lock QS",
+          "description": "Lock QS for 1-4 years to earn veQS (vote-escrowed tokens)"
+        },
+        "rewards": {
+          "title": "Earn Rewards",
+          "description": "A portion of protocol revenue is distributed to veQS holders"
+        },
+        "delegate": {
+          "title": "Delegate Votes",
+          "description": "Delegate your voting power to trusted delegates"
+        },
+        "governance": {
+          "title": "Governance Voting",
+          "description": "Vote on important protocol decisions and shape the future"
+        }
+      },
+      "howItWorks": {
+        "title": "How It Works",
+        "subtitle": "Join Token Hub in 3 steps",
+        "step1": {
+          "title": "Get QS",
+          "description": "Purchase on DEX or earn through rewards and airdrops"
+        },
+        "step2": {
+          "title": "Lock QS",
+          "description": "Choose 1-4 year lock period. Longer locks earn more veQS"
+        },
+        "step3": {
+          "title": "Participate & Earn",
+          "description": "Vote on proposals and claim weekly rewards"
+        }
+      },
+      "benefits": {
+        "title": "Why Hold veQS?",
+        "earn": "Earn rewards from protocol revenue (avg APY 12.5%)",
+        "vote": "Vote on fee adjustments and protocol improvements",
+        "boost": "Boost liquidity rewards up to 2.5x",
+        "delegate": "Delegate voting power to trusted representatives",
+        "cta": "Get Started"
+      },
+      "veqs": {
+        "title": "What is veQS?",
+        "description": "veQS (vote-escrowed QS) is a voting power token earned by locking QS. The longer you lock, the more veQS you receive.",
+        "lockPeriod": "Lock Period",
+        "years": "years",
+        "maxMultiplier": "Max Multiplier",
+        "rewardsBoost": "Rewards Boost",
+        "upTo": "Up to"
+      },
+      "cta": {
+        "title": "Get Started Today",
+        "description": "Lock QS to earn veQS and participate in Quantum Shield governance.",
+        "button": "Go to Dashboard"
+      }
+    },
     "onboarding": {
       "meta": {
         "title": "Learn About Tokenomics | Token Hub | Quantum Shield",
@@ -130,6 +219,23 @@
         "end": "Lock End",
         "visualAriaLabel": "Visualization of veQS decay from full to zero",
         "note": "You can extend your lock at any time to restore full veQS balance"
+      },
+      "prover": {
+        "title": "Become a Prover",
+        "description": "Stake QS to become a signature provider (Prover) for the Quantum Shield network and earn consistent rewards.",
+        "stake": {
+          "label": "Minimum Stake",
+          "value": "100,000 QS"
+        },
+        "reward": {
+          "label": "Expected APY",
+          "value": "15-20%"
+        },
+        "status": {
+          "label": "Current Provers",
+          "value": "42 Active"
+        },
+        "button": "Explore Prover Portal"
       },
       "cta": {
         "title": "Ready to Start?",
@@ -337,6 +443,9 @@
         "walletConnected": "Connected to {address}",
         "connectWallet": "Connect Wallet",
         "consumerApp": "Consumer App",
+        "governance": "Governance",
+        "observerPortal": "Observer",
+        "proverPortal": "Prover",
         "settings": "Settings"
       },
       "footer": {
@@ -475,6 +584,10 @@
         "faq": {
           "title": "FAQ",
           "description": "Common questions answered - 'Can I unlock early?' and more"
+        },
+        "prover": {
+          "title": "Become a Prover",
+          "description": "Contribute to the network and earn rewards. Put your technical skills to work"
         }
       },
       "footer": {

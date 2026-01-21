@@ -1,11 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { usePathname } from 'next/navigation';
 import { Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatAddress } from '@/lib/utils';
+import { EcosystemLink } from '@/components/shared/EcosystemLink';
 
 interface ObserverHeaderProps {
   walletAddress?: string;
@@ -81,17 +82,21 @@ export function ObserverHeader({
       </nav>
 
       {/* Header Actions */}
-      <div className="flex gap-3 items-center">
+      <div className="flex gap-2 items-center">
+        {/* Ecosystem Link */}
+        <EcosystemLink variant="inline" className="hidden xl:flex" />
+
         {/* Settings Button */}
         <Link
           href="/observer/settings"
           className={cn(
             'w-10 h-10 flex items-center justify-center',
-            'bg-surface border border-border rounded-lg',
+            'border border-border rounded-full',
             'text-foreground-secondary hover:border-gold hover:text-gold',
-            'transition-all'
+            'transition-colors',
+            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
           )}
-          aria-label="Settings"
+          aria-label={t('settings')}
         >
           <Settings className="w-5 h-5" aria-hidden="true" />
         </Link>

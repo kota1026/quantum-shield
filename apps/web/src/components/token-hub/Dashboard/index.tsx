@@ -15,6 +15,7 @@ import {
   BookOpen,
   ShoppingCart,
   MessageCircleQuestion,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -207,7 +208,7 @@ export function TokenHubDashboard() {
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Learn Tokenomics */}
             <Link
               href="/token-hub/onboarding"
@@ -250,6 +251,27 @@ export function TokenHubDashboard() {
               <ChevronRight className="w-5 h-5 text-foreground-tertiary group-hover:text-gold transition-colors flex-shrink-0 mt-2" aria-hidden="true" />
             </Link>
 
+            {/* Become a Prover */}
+            <Link
+              href="/prover/landing"
+              className={cn(
+                'group flex items-start gap-4 p-4 bg-background-secondary border border-border rounded-xl',
+                'hover:border-hinomaru hover:bg-hinomaru/5 transition-all duration-200',
+                'focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              )}
+            >
+              <div className="w-10 h-10 rounded-lg bg-hinomaru/10 flex items-center justify-center flex-shrink-0 group-hover:bg-hinomaru/20 transition-colors">
+                <Shield className="w-5 h-5 text-hinomaru" aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium mb-1">{t('gettingStarted.prover.title')}</div>
+                <p className="text-sm text-foreground-tertiary line-clamp-2">
+                  {t('gettingStarted.prover.description')}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-foreground-tertiary group-hover:text-hinomaru transition-colors flex-shrink-0 mt-2" aria-hidden="true" />
+            </Link>
+
             {/* FAQ */}
             <Link
               href="/token-hub/faq"
@@ -259,8 +281,8 @@ export function TokenHubDashboard() {
                 'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
               )}
             >
-              <div className="w-10 h-10 rounded-lg bg-hinomaru/10 flex items-center justify-center flex-shrink-0 group-hover:bg-hinomaru/20 transition-colors">
-                <MessageCircleQuestion className="w-5 h-5 text-hinomaru" aria-hidden="true" />
+              <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0 group-hover:bg-warning/20 transition-colors">
+                <MessageCircleQuestion className="w-5 h-5 text-warning" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium mb-1">{t('gettingStarted.faq.title')}</div>

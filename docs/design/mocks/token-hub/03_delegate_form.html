@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Delegation - Token Hub | Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --accent-gold-glow: rgba(201, 169, 98, 0.3);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-gold-dim), transparent 60%); opacity: 0.4; }
+        .noise { position: absolute; inset: 0; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+        .container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; padding: var(--space-xl); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .card-header { padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); text-align: center; }
+        .card-title { font-size: 24px; font-weight: 600; }
+        .card-body { padding: var(--space-xl); }
+        .delegation-visual { text-align: center; padding: var(--space-xl) 0; }
+        .visual-flow { display: flex; align-items: center; justify-content: center; gap: var(--space-md); }
+        .visual-item { text-align: center; }
+        .visual-avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; margin: 0 auto var(--space-sm); }
+        .visual-avatar.you { background: var(--accent-hinomaru-dim); border: 2px solid var(--accent-hinomaru); color: var(--accent-hinomaru-light); }
+        .visual-avatar.delegate { background: linear-gradient(135deg, var(--accent-gold), var(--accent-hinomaru)); color: white; }
+        .visual-name { font-size: 14px; font-weight: 500; }
+        .visual-arrow { font-size: 24px; color: var(--accent-gold); animation: arrow-pulse 1.5s ease-in-out infinite; }
+        @keyframes arrow-pulse { 0%, 100% { transform: translateX(0); opacity: 0.5; } 50% { transform: translateX(5px); opacity: 1; } }
+        .summary-box { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); margin: var(--space-xl) 0; }
+        .summary-row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; }
+        .summary-row:not(:last-child) { border-bottom: 1px solid var(--border-subtle); }
+        .summary-label { color: var(--text-tertiary); font-size: 14px; }
+        .summary-value { font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
+        .summary-value.gold { color: var(--accent-gold); }
+        .info-list { margin: var(--space-lg) 0; }
+        .info-item { display: flex; align-items: flex-start; gap: var(--space-sm); padding: var(--space-sm) 0; }
+        .info-icon { color: var(--success); font-size: 16px; }
+        .info-text { font-size: 14px; color: var(--text-secondary); }
+        .btn-group { display: flex; gap: var(--space-md); margin-top: var(--space-xl); }
+        .btn-primary { flex: 1; padding: 16px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; border-radius: var(--radius-lg); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-hinomaru-glow); }
+        .btn-secondary { flex: 1; padding: 16px; background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: var(--text-secondary); font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; }
+        .btn-secondary:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .gas-info { text-align: center; margin-top: var(--space-md); font-size: 12px; color: var(--text-tertiary); }
+        .success-state { display: none; text-align: center; padding: var(--space-2xl) 0; }
+        .success-state.show { display: block; }
+        .success-icon { width: 80px; height: 80px; margin: 0 auto var(--space-lg); background: var(--success-dim); border: 3px solid var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; animation: success-bounce 0.5s ease-out; }
+        @keyframes success-bounce { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .success-title { font-size: 24px; font-weight: 700; color: var(--success); margin-bottom: var(--space-sm); }
+        .success-text { font-size: 16px; color: var(--text-secondary); margin-bottom: var(--space-xl); }
+        .success-stats { display: flex; justify-content: center; gap: var(--space-xl); padding: var(--space-lg) 0; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); margin-bottom: var(--space-xl); }
+        .success-stat { text-align: center; }
+        .success-stat-value { font-size: 20px; font-weight: 700; font-family: var(--font-mono); color: var(--accent-gold); }
+        .success-stat-label { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+        .btn-success { width: 100%; padding: 16px; background: var(--success); border: none; border-radius: var(--radius-lg); color: white; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; display: block; }
+        .form-state.hide { display: none; }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="gold-glow"></div><div class="noise"></div></div>
+    <div class="container">
+        <div class="card">
+            <div class="card-header"><h1 class="card-title">🤝 Confirm Delegation</h1></div>
+            <div class="card-body">
+                <div class="form-state" id="formState">
+                    <div class="delegation-visual">
+                        <div class="visual-flow">
+                            <div class="visual-item"><div class="visual-avatar you">👤</div><div class="visual-name">You</div></div>
+                            <div class="visual-arrow">→</div>
+                            <div class="visual-item"><div class="visual-avatar delegate">W</div><div class="visual-name">渡辺 Delegate</div></div>
+                        </div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="summary-row"><span class="summary-label">Delegate To</span><span class="summary-value">渡辺 Delegate</span></div>
+                        <div class="summary-row"><span class="summary-label">Amount</span><span class="summary-value gold">3,000 veQS</span></div>
+                        <div class="summary-row"><span class="summary-label">Your Remaining</span><span class="summary-value">3,225 veQS</span></div>
+                        <div class="summary-row"><span class="summary-label">Delegate Rank</span><span class="summary-value">#1</span></div>
+                    </div>
+                    <div class="info-list">
+                        <div class="info-item"><span class="info-icon">✓</span><span class="info-text">Your veQS tokens remain in your wallet</span></div>
+                        <div class="info-item"><span class="info-icon">✓</span><span class="info-text">You can undelegate at any time</span></div>
+                        <div class="info-item"><span class="info-icon">✓</span><span class="info-text">Delegate will vote on your behalf</span></div>
+                        <div class="info-item"><span class="info-icon">✓</span><span class="info-text">You still receive rewards</span></div>
+                    </div>
+                    <div class="btn-group">
+                        <a href="03_delegate_detail.html" class="btn-secondary">Cancel</a>
+                        <button class="btn-primary" onclick="confirmDelegate()">Confirm Delegation</button>
+                    </div>
+                    <div class="gas-info">Estimated Gas: ~0.001 ETH</div>
+                </div>
+                <div class="success-state" id="successState">
+                    <div class="success-icon">✓</div>
+                    <h2 class="success-title">Delegation Successful!</h2>
+                    <p class="success-text">Your voting power has been delegated to 渡辺 Delegate</p>
+                    <div class="success-stats">
+                        <div class="success-stat"><div class="success-stat-value">3,000</div><div class="success-stat-label">veQS Delegated</div></div>
+                        <div class="success-stat"><div class="success-stat-value">渡辺</div><div class="success-stat-label">Delegate</div></div>
+                    </div>
+                    <a href="01_dashboard.html" class="btn-success">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>function confirmDelegate() { document.getElementById('formState').classList.add('hide'); document.getElementById('successState').classList.add('show'); }</script>
+</body>
+</html>

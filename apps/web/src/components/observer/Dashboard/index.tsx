@@ -107,27 +107,27 @@ export function ObserverDashboard() {
         <ObserverHeader />
 
         {/* Page Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-[28px] font-bold text-foreground">
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="text-[32px] font-bold text-foreground tracking-tight">
             {t('pageTitle')}
           </h1>
           <div
             className={cn(
-              'flex items-center gap-2 px-4 py-2',
-              'bg-success/10 border border-success rounded-full',
-              'text-success text-xs font-medium'
+              'flex items-center gap-2 px-5 py-2.5',
+              'bg-success/15 border border-success/50 rounded-full',
+              'text-success text-sm font-semibold'
             )}
             role="status"
             aria-label={t('monitoringBadgeAriaLabel')}
           >
-            <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
+            <span className="w-2.5 h-2.5 bg-success rounded-full animate-pulse" />
             {t('monitoringBadge')}
           </div>
         </div>
 
         {/* Stats Grid */}
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10 items-stretch"
           role="region"
           aria-label="Observer statistics"
         >
@@ -137,6 +137,7 @@ export function ObserverDashboard() {
             variant="warning"
             tooltip={t('stats.pendingUnlocks.tooltip')}
             change={t('stats.pendingUnlocks.change', { count: 12 })}
+            href="/observer/pending"
           />
           <ObserverStatCard
             label={t('stats.suspicious.label')}
@@ -147,12 +148,14 @@ export function ObserverDashboard() {
               text: t('stats.suspicious.badge'),
               variant: 'danger',
             }}
+            href="/observer/suspicious"
           />
           <ObserverStatCard
             label={t('stats.activeChallenges.label')}
             value={2}
             variant="default"
             tooltip={t('stats.activeChallenges.tooltip')}
+            href="/observer/history"
           />
           <ObserverStatCard
             label={t('stats.totalEarnings.label')}
@@ -161,6 +164,7 @@ export function ObserverDashboard() {
             variant="success"
             tooltip={t('stats.totalEarnings.tooltip')}
             change={t('stats.totalEarnings.change', { amount: '0.35 ETH' })}
+            href="/observer/earnings"
           />
         </div>
 

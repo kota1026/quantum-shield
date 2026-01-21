@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   ExternalLink,
   HelpCircle,
+  ArrowLeft,
 } from 'lucide-react';
 
 // Mock data for council members
@@ -215,6 +216,15 @@ export function Council() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 pt-8">
+        {/* Back to Dashboard */}
+        <Link
+          href="/governance/landing"
+          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gold transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t('backToDashboard')}
+        </Link>
+
         {/* Page Header */}
         <header className="mb-8">
           <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold text-white">

@@ -37,6 +37,7 @@ const TooltipContent = React.forwardRef<
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 // SimpleTooltip - A convenience wrapper for common tooltip usage
+// Uses native title attribute to avoid Radix UI infinite loop issues
 interface SimpleTooltipProps {
   content: React.ReactNode;
   children: React.ReactNode;
@@ -47,16 +48,17 @@ interface SimpleTooltipProps {
 function SimpleTooltip({
   content,
   children,
-  side = 'top',
-  delayDuration = 200,
 }: SimpleTooltipProps) {
+  // Use native title attribute for simple tooltips to avoid React state issues
+  const titleText = typeof content === 'string' ? content : '';
+
   return (
-    <TooltipProvider delayDuration={delayDuration}>
-      <Tooltip>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent side={side}>{content}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <span
+      title={titleText}
+      className="inline-flex cursor-help"
+    >
+      {children}
+    </span>
   );
 }
 

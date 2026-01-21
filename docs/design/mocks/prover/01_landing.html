@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Prover - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!--
+    ## File Info
+    - System: Prover Portal
+    - Screen: Prover LP (4-1), Economics Preview (4-3), Calculator Preview (4-4)
+    - Created: 2026-01-10
+
+    ## Interactions Defined
+    | Element | Action | Target |
+    |---------|--------|--------|
+    | #btn-apply | click | 03_application.html |
+    | #btn-requirements | click | 02_requirements.html |
+    | #btn-calculator | click | 02_requirements.html#calculator |
+    | .nav-requirements | click | 02_requirements.html |
+    | .nav-economics | click | 02_requirements.html#economics |
+    | .nav-apply | click | 03_application.html |
+    | .nav-login | click | 04_status.html |
+    -->
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896;
+            --warning: #f0a030;
+            --error: #e07040;
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        a { color: inherit; text-decoration: none; }
+        .premium-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .red-glow {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%);
+            opacity: 0.5;
+        }
+        .gold-glow {
+            position: absolute;
+            bottom: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-gold-dim), transparent 60%);
+            opacity: 0.3;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-hinomaru {
+            width: 44px;
+            height: 44px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-circle-outer {
+            position: absolute;
+            inset: 0;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: rotate 25s linear infinite;
+        }
+        .logo-hinomaru-inner {
+            width: 22px;
+            height: 22px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--accent-hinomaru-glow);
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .logo-text .logo-main {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .logo-text .logo-sub {
+            font-size: 10px;
+            color: var(--accent-gold);
+            letter-spacing: 1.5px;
+        }
+        .nav {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border-subtle);
+        }
+        .nav-item {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light));
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-hinomaru-glow);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 80px 0 60px;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--accent-gold-dim);
+            border: 1px solid var(--accent-gold);
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-gold);
+            margin-bottom: 24px;
+        }
+        .hero-title {
+            font-size: 52px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+        .hero-title span {
+            color: var(--accent-hinomaru-light);
+        }
+        .hero-desc {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+        .hero-buttons .btn {
+            padding: 16px 32px;
+            font-size: 15px;
+        }
+        /* Stats */
+        .stats-section {
+            padding: 60px 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .stat-card:hover {
+            border-color: var(--border-default);
+            transform: translateY(-4px);
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            margin-bottom: 8px;
+        }
+        .stat-value.highlight { color: var(--accent-hinomaru-light); }
+        .stat-value.gold { color: var(--accent-gold); }
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        /* Requirements Preview */
+        .section {
+            padding: 80px 0;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            margin-bottom: 16px;
+        }
+        .section-label::before,
+        .section-label::after {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--accent-gold);
+        }
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .section-desc {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .requirements-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .req-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            transition: all 0.2s;
+        }
+        .req-card:hover {
+            border-color: var(--border-default);
+        }
+        .req-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-hinomaru-dim);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .req-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .req-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: var(--accent-gold);
+            margin-bottom: 8px;
+        }
+        .req-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        /* ROI Calculator Preview */
+        .calculator-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            padding: 48px;
+        }
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+        .calc-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .calc-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .calc-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .calc-input {
+            padding: 14px 18px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: var(--font-mono);
+        }
+        .calc-input:focus {
+            outline: none;
+            border-color: var(--accent-hinomaru);
+            box-shadow: 0 0 0 3px var(--accent-hinomaru-dim);
+        }
+        .calc-result {
+            background: var(--bg-card);
+            border: 1px solid var(--accent-gold);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+        }
+        .calc-result-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .calc-result-value {
+            font-size: 42px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: var(--success);
+            margin-bottom: 16px;
+        }
+        .calc-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .calc-row-label { color: var(--text-secondary); }
+        .calc-row-value { font-family: var(--font-mono); font-weight: 600; }
+        /* Slashing Warning */
+        .warning-section {
+            background: var(--bg-card);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-top: 48px;
+        }
+        .warning-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .warning-icon {
+            font-size: 24px;
+        }
+        .warning-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--warning);
+        }
+        .slashing-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .slashing-table th,
+        .slashing-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .slashing-table th {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .slashing-table td {
+            font-family: var(--font-mono);
+        }
+        .slashing-table .danger { color: var(--error); }
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0;
+        }
+        .cta-card {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border: 1px solid var(--accent-hinomaru);
+            border-radius: var(--radius-xl);
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold));
+        }
+        .cta-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .cta-desc {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        /* Footer */
+        .footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+        .footer-tagline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+        }
+        .footer-hinomaru {
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .footer-hinomaru::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg">
+        <div class="red-glow"></div>
+        <div class="gold-glow"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-main">Quantum Shield</div>
+                    <div class="logo-sub">Prover Portal</div>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <a href="01_landing.html" class="nav-item active">Overview</a>
+                <a href="02_requirements.html" class="nav-item nav-requirements">Requirements</a>
+                <a href="02_requirements.html#economics" class="nav-item nav-economics">Economics</a>
+                <a href="03_application.html" class="nav-item nav-apply">Apply</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="04_status.html" class="btn btn-outline nav-login">Login</a>
+                <a href="03_application.html" class="btn btn-primary" id="btn-apply">Apply Now</a>
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-badge">
+                <span>🛡️</span>
+                Quantum-Resistant Infrastructure
+            </div>
+            <h1 class="hero-title">
+                Become a <span>Prover</span><br>
+                Earn While Securing the Future
+            </h1>
+            <p class="hero-desc">
+                Join the quantum-resistant validator network.
+                Earn competitive rewards while helping secure cross-chain assets with SPHINCS+ signatures.
+            </p>
+            <div class="hero-buttons">
+                <a href="03_application.html" class="btn btn-primary" id="btn-apply">Apply to Become a Prover</a>
+                <a href="02_requirements.html" class="btn btn-outline" id="btn-requirements">View Requirements</a>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value highlight">127</div>
+                    <div class="stat-label">Active Provers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$50.8M</div>
+                    <div class="stat-label">Total Staked</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value gold">18.5%</div>
+                    <div class="stat-label">Est. Annual ROI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">99.97%</div>
+                    <div class="stat-label">Network Uptime</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Requirements Preview -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">Requirements</div>
+                <h2 class="section-title">What You Need</h2>
+                <p class="section-desc">
+                    Technical requirements for becoming a Quantum Shield Prover
+                </p>
+            </div>
+
+            <div class="requirements-grid">
+                <div class="req-card">
+                    <div class="req-icon">💰</div>
+                    <h3 class="req-title">Stake Requirement</h3>
+                    <div class="req-value">$400,000</div>
+                    <p class="req-desc">Minimum stake in ETH equivalent. Collateral for network security.</p>
+                </div>
+                <div class="req-card">
+                    <div class="req-icon">🔐</div>
+                    <h3 class="req-title">HSM Requirement</h3>
+                    <div class="req-value">FIPS 140-2 L3+</div>
+                    <p class="req-desc">Hardware Security Module for SPHINCS+ key storage.</p>
+                </div>
+                <div class="req-card">
+                    <div class="req-icon">⏱️</div>
+                    <h3 class="req-title">SLA Requirement</h3>
+                    <div class="req-value">99.9% / 30s</div>
+                    <p class="req-desc">Uptime and maximum response time requirements.</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 32px;">
+                <a href="02_requirements.html" class="btn btn-outline">View All Requirements →</a>
+            </div>
+        </section>
+
+        <!-- ROI Calculator -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">Economics</div>
+                <h2 class="section-title">ROI Calculator</h2>
+                <p class="section-desc">
+                    Estimate your potential earnings as a Prover
+                </p>
+            </div>
+
+            <div class="calculator-section">
+                <div class="calc-grid">
+                    <div class="calc-form">
+                        <div class="calc-input-group">
+                            <label class="calc-label">Stake Amount (ETH)</label>
+                            <input type="number" class="calc-input" value="150" placeholder="150">
+                        </div>
+                        <div class="calc-input-group">
+                            <label class="calc-label">Expected Monthly Volume (ETH)</label>
+                            <input type="number" class="calc-input" value="50000" placeholder="50000">
+                        </div>
+                        <div class="calc-input-group">
+                            <label class="calc-label">Expected Uptime (%)</label>
+                            <input type="number" class="calc-input" value="99.9" placeholder="99.9">
+                        </div>
+                        <a href="02_requirements.html#calculator" class="btn btn-primary" id="btn-calculator">
+                            Calculate ROI →
+                        </a>
+                    </div>
+                    <div class="calc-result">
+                        <div class="calc-result-title">Estimated Annual Earnings</div>
+                        <div class="calc-result-value">27.75 ETH</div>
+                        <div class="calc-breakdown">
+                            <div class="calc-row">
+                                <span class="calc-row-label">Signature Fees</span>
+                                <span class="calc-row-value">24.00 ETH</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-row-label">Performance Bonus</span>
+                                <span class="calc-row-value">3.75 ETH</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-row-label">ROI on Stake</span>
+                                <span class="calc-row-value" style="color: var(--success);">18.5%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slashing Warning -->
+            <div class="warning-section">
+                <div class="warning-header">
+                    <span class="warning-icon">⚠️</span>
+                    <h3 class="warning-title">Quadratic Slashing Risk</h3>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Slashing penalties increase quadratically if multiple Provers commit the same violation.
+                    This mechanism strongly discourages collusion.
+                </p>
+                <table class="slashing-table">
+                    <thead>
+                        <tr>
+                            <th>Violating Provers</th>
+                            <th>Slashing Rate</th>
+                            <th>Loss on $400K Stake</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1 Prover</td>
+                            <td>10%</td>
+                            <td>$40,000</td>
+                        </tr>
+                        <tr>
+                            <td>2 Provers</td>
+                            <td>40%</td>
+                            <td class="danger">$160,000</td>
+                        </tr>
+                        <tr>
+                            <td>3 Provers</td>
+                            <td>90%</td>
+                            <td class="danger">$360,000</td>
+                        </tr>
+                        <tr>
+                            <td>4+ Provers</td>
+                            <td>100%</td>
+                            <td class="danger">$400,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="cta-section">
+            <div class="cta-card">
+                <h2 class="cta-title">Ready to Join the Network?</h2>
+                <p class="cta-desc">
+                    Start your application today. The review process typically takes 3-5 business days.
+                </p>
+                <a href="03_application.html" class="btn btn-primary">Start Application</a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-tagline">
+                <div class="footer-hinomaru"></div>
+                Quantum Shield • Made in Japan
+                <div class="footer-hinomaru"></div>
+            </div>
+            <div class="footer-links" style="display: flex; justify-content: center; gap: 24px; margin-top: 16px; font-size: 12px;">
+                <a href="#" style="color: var(--text-tertiary); transition: color 0.2s;">Terms of Service</a>
+                <a href="#" style="color: var(--text-tertiary); transition: color 0.2s;">Privacy Policy</a>
+                <a href="#" style="color: var(--text-tertiary); transition: color 0.2s;">Cookie Policy</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

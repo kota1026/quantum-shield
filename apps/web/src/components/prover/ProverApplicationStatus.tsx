@@ -7,15 +7,12 @@ import {
   ArrowLeft,
   Search,
   Clock,
-  CheckCircle,
   Mail,
-  Phone,
   FileText,
   Building,
   Calendar,
   User,
   Send,
-  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -382,22 +379,13 @@ export function ProverApplicationStatus() {
           <p className="text-foreground-secondary mb-6">
             {t('status.help.description')}
           </p>
-          <div className="flex justify-center gap-4">
-            <a
-              href="mailto:prover-support@quantum-shield.io"
-              className="flex items-center gap-2 px-6 py-3 bg-background-secondary border border-surface-tertiary rounded-lg hover:border-gold transition-colors"
-            >
-              <Mail className="h-4 w-4" aria-hidden="true" />
-              <span>{t('status.help.email')}</span>
-            </a>
-            <a
-              href="tel:+81-3-1234-5678"
-              className="flex items-center gap-2 px-6 py-3 bg-background-secondary border border-surface-tertiary rounded-lg hover:border-gold transition-colors"
-            >
-              <Phone className="h-4 w-4" aria-hidden="true" />
-              <span>{t('status.help.phone')}</span>
-            </a>
-          </div>
+          <a
+            href="mailto:prover-support@quantum-shield.io"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-background-secondary border border-surface-tertiary rounded-lg hover:border-gold transition-colors"
+          >
+            <Mail className="h-4 w-4" aria-hidden="true" />
+            <span>prover-support@quantum-shield.io</span>
+          </a>
         </Card>
       </main>
     </div>

@@ -1,0 +1,28 @@
+{
+  "ecosystemLink": {
+    "title": "Quantum Shieldとは？",
+    "description": "量子耐性技術で暗号資産を守るエコシステムの全体像を見る",
+    "cta": "詳しく見る",
+    "footerText": "Quantum Shieldについて"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "ecosystem": "エコシステム",
+    "apps": {
+      "consumer": "Consumer App",
+      "tokenHub": "Token Hub",
+      "governance": "Governance",
+      "explorer": "Explorer",
+      "prover": "Prover Portal",
+      "observer": "Observer Portal",
+      "enterprise": "Enterprise"
+    }
+  },
+  "footer": {
+    "copyright": "© 2026 Quantum Shield. All rights reserved.",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "security": "セキュリティ",
+    "docs": "ドキュメント"
+  }
+}

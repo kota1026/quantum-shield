@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "title": "Ecosystem | Quantum Shield",
+    "description": "Explore the Quantum Shield ecosystem - an integrated platform protecting crypto assets with quantum-resistant technology"
+  },
+  "hero": {
+    "badge": "Quantum-Resistant Technology",
+    "title": "Protect Your Crypto Assets",
+    "titleHighlight": "From Future Threats",
+    "description": "Quantum Shield is a comprehensive security ecosystem built for the quantum computing era. NIST-certified quantum-resistant cryptography and our L3 chain protect your assets.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More"
+  },
+  "about": {
+    "title": "What is Quantum Shield?",
+    "description": "Quantum Shield is a protocol that protects crypto assets from future quantum computer attacks. Lock ETH and secure it with NIST-certified quantum-resistant signatures (Dilithium / SPHINCS+). A 24-hour timelock detects and prevents unauthorized unlocks.",
+    "steps": {
+      "lock": {
+        "title": "1. Lock Your Assets",
+        "description": "Deposit ETH into L1 Vault. Authenticate with Dilithium signature so only you can unlock."
+      },
+      "protect": {
+        "title": "2. Quantum Protection",
+        "description": "5 Provers approve with 2/5 threshold signatures (SPHINCS+). VRF random selection prevents collusion."
+      },
+      "unlock": {
+        "title": "3. Safe Unlock",
+        "description": "Receive assets after 24-hour timelock. Observers monitor during this period to detect fraud."
+      }
+    },
+    "features": {
+      "quantumSafe": {
+        "title": "Quantum-Resistant Cryptography",
+        "description": "Only NIST FIPS-certified Dilithium + SPHINCS+ + SHA3-256"
+      },
+      "selfCustody": {
+        "title": "Self-Custody",
+        "description": "Private keys exist only on your device. Never stored by the system"
+      },
+      "timelock": {
+        "title": "Timelock Protection",
+        "description": "24-hour (normal) / 7-day (emergency) waiting periods prevent unauthorized access"
+      },
+      "transparent": {
+        "title": "Transparency",
+        "description": "All operations recorded and verifiable on-chain"
+      }
+    },
+    "technicalLink": "View Technical Details"
+  },
+  "apps": {
+    "title": "Ecosystem Apps",
+    "description": "Choose the right app for your needs to maximize your Quantum Shield experience",
+    "explore": "Learn More",
+    "categories": {
+      "consumer": "For General Users",
+      "participant": "For Network Participants",
+      "enterprise": "For Enterprises"
+    },
+    "consumerApp": {
+      "title": "Consumer App",
+      "tagline": "Protect assets with quantum resistance",
+      "description": "Lock and protect your ETH and crypto assets with Dilithium signatures. 24-hour timelock prevents unauthorized access."
+    },
+    "tokenHub": {
+      "title": "Token Hub",
+      "tagline": "Earn rewards through staking",
+      "description": "Lock QS tokens to earn veQS. Participate in governance voting and reward distribution."
+    },
+    "governance": {
+      "title": "Governance",
+      "tagline": "Shape the protocol's future",
+      "description": "Create and vote on proposals to determine Quantum Shield's direction. Gain more authority as a council member."
+    },
+    "explorer": {
+      "title": "Explorer",
+      "tagline": "Explore blockchain data",
+      "description": "Visualize all on-chain data including lock/unlock history, challenges, and Prover activity."
+    },
+    "observer": {
+      "title": "Observer Portal",
+      "tagline": "Monitor and earn rewards",
+      "description": "Monitor fraudulent unlocks and submit challenges. Earn 60% of slash rewards on success."
+    },
+    "prover": {
+      "title": "Prover Portal",
+      "tagline": "Support the network with SPHINCS+ signatures",
+      "description": "Generate SPHINCS+ signatures with HSM and approve unlock requests. Earn rewards from signing fees."
+    },
+    "enterprise": {
+      "title": "Enterprise",
+      "tagline": "Asset protection for enterprises",
+      "description": "Customizable security solutions for enterprises holding large amounts of crypto assets. Dedicated support included."
+    }
+  },
+  "useCases": {
+    "title": "Which App Is Right for You?",
+    "description": "Choose the best app based on your goals",
+    "recommendedLabel": "Recommended",
+    "hodler": {
+      "title": "Long-Term Holder",
+      "description": "Want to protect ETH and crypto assets from future quantum computer attacks",
+      "recommended": "Consumer App"
+    },
+    "investor": {
+      "title": "Staking Investor",
+      "description": "Want to earn stable returns using QS tokens",
+      "recommended": "Token Hub"
+    },
+    "curious": {
+      "title": "Researcher",
+      "description": "Want to analyze protocol activity and on-chain data",
+      "recommended": "Explorer"
+    },
+    "governance": {
+      "title": "Governance Participant",
+      "description": "Want to influence protocol direction and participate in decision-making",
+      "recommended": "Governance"
+    },
+    "technical": {
+      "title": "Infrastructure Provider",
+      "description": "Want to operate high-performance infrastructure as a core network participant",
+      "recommended": "Prover Portal"
+    },
+    "security": {
+      "title": "Security Monitor",
+      "description": "Want to contribute to network security while earning rewards",
+      "recommended": "Observer Portal"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": {
+      "q1": {
+        "question": "Why is quantum resistance necessary?",
+        "answer": "ECDSA signatures used in current blockchains could be broken by future quantum computers using Shor's algorithm. Quantum Shield uses NIST-certified quantum-resistant algorithms (Dilithium, SPHINCS+) to protect assets from future threats."
+      },
+      "q2": {
+        "question": "Can the 24-hour waiting period be shortened?",
+        "answer": "No. The 24-hour timelock is hardcoded in the smart contract and immutable. This is an essential security requirement that ensures time to protect assets if unauthorized access occurs."
+      },
+      "q3": {
+        "question": "What happens if Provers don't respond?",
+        "answer": "If no signatures are received from Provers for 72 hours, the emergency unlock path is automatically triggered. Deposit an emergency bond (0.5 ETH + 5% of amount) and recover assets after a 7-day monitoring period."
+      },
+      "q4": {
+        "question": "Where are private keys stored?",
+        "answer": "Your private keys (Dilithium keypair) exist only on your device. They are never stored by Quantum Shield's system. This is the self-custody principle."
+      },
+      "q5": {
+        "question": "What happens when an Observer's challenge is approved?",
+        "answer": "When a challenge is approved, the misbehaving Prover is slashed (penalized). 60% of the slashed amount goes to the Observer as a reward, 20% to the insurance pool, and 20% is burned."
+      }
+    }
+  },
+  "cta": {
+    "title": "Start Using Quantum Shield",
+    "description": "Protect your assets with quantum-resistant technology today. Dilithium signatures protect your crypto from future threats.",
+    "button": "Get Started with Consumer App"
+  },
+  "footer": {
+    "copyright": "© 2026 Quantum Shield. All rights reserved."
+  }
+}

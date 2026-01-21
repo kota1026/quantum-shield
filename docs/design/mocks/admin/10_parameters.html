@@ -1,0 +1,163 @@
+<!--
+## File Info
+- System: QS Admin
+- Screen: Protocol Parameters Management
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-parameters | click | 10_parameters.html |
+| .param-row | click | showParamDetail() |
+| #btn-request-change | click | showChangeRequest() |
+| .param-history | click | showParamHistory() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QS Admin - Protocol Parameters</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-card: #0e0e11; --bg-elevated: #18181c; --accent-hinomaru: #bc002d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-light: #e8334d; --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12); --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12); --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12); --info: #4a90d9; --info-dim: rgba(74, 144, 217, 0.12); --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08); --font-body: 'Plus Jakarta Sans', sans-serif; --font-mono: 'DM Mono', monospace; --sidebar-width: 260px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; }
+        .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); position: fixed; height: 100vh; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-subtle); }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 40px; height: 40px; background: var(--accent-hinomaru); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-text { font-size: 16px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .sidebar-nav { padding: 16px 12px; }
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-tertiary); padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .nav-item.emergency { background: var(--accent-hinomaru); color: white; margin-top: 8px; }
+        .nav-icon { width: 20px; text-align: center; }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 24px 32px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 28px; font-weight: 700; }
+        .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+        .btn-secondary { padding: 12px 24px; background: var(--bg-secondary); border: 1px solid var(--border-default); color: var(--text-secondary); border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-secondary:hover { border-color: var(--accent-hinomaru); color: var(--text-primary); }
+        .info-banner { background: var(--info-dim); border: 1px solid rgba(74, 144, 217, 0.3); border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .info-banner-icon { font-size: 20px; }
+        .info-banner-text { font-size: 13px; color: var(--info); }
+        .params-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 16px; font-weight: 600; }
+        .card-body { padding: 20px; }
+        .param-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 10px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+        .param-item:last-child { margin-bottom: 0; }
+        .param-item:hover { background: var(--bg-elevated); }
+        .param-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .param-desc { font-size: 12px; color: var(--text-tertiary); }
+        .param-value { text-align: right; }
+        .param-current { font-size: 18px; font-weight: 700; font-family: var(--font-mono); margin-bottom: 4px; }
+        .param-unit { font-size: 11px; color: var(--text-tertiary); }
+        .param-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; }
+        .param-badge.locked { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .param-badge.adjustable { background: var(--success-dim); color: var(--success); }
+        .history-link { font-size: 12px; color: var(--accent-gold); cursor: pointer; }
+        .history-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo"><div class="logo-icon">QS</div><div><div class="logo-text">QS Admin</div><div class="logo-sub">Internal Dashboard</div></div></div></div>
+        <nav class="sidebar-nav">
+            <div class="nav-section"><div class="nav-section-label">Overview</div><a href="01_dashboard.html" class="nav-item"><span class="nav-icon">📊</span>Dashboard</a><a href="02_emergency.html" class="nav-item emergency"><span class="nav-icon">🚨</span>Emergency</a></div>
+            <div class="nav-section"><div class="nav-section-label">Operations</div><a href="04_prover.html" class="nav-item"><span class="nav-icon">🔐</span>Prover</a><a href="05_tx_monitor.html" class="nav-item"><span class="nav-icon">📡</span>TX Monitor</a><a href="06_nodes.html" class="nav-item"><span class="nav-icon">🖥️</span>L3 Nodes</a><a href="10_parameters.html" class="nav-item active"><span class="nav-icon">⚙️</span>Parameters</a></div>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="page-header">
+            <div><h1 class="page-title">Protocol Parameters</h1><p class="page-subtitle">プロトコルパラメータ管理・変更リクエスト</p></div>
+            <button class="btn-secondary" id="btn-request-change" onclick="showChangeRequest()">📝 Request Change</button>
+        </div>
+        <div class="info-banner">
+            <span class="info-banner-icon">ℹ️</span>
+            <span class="info-banner-text">パラメータ変更はガバナンス承認が必要です。Lockパラメータ（CP-1〜5）は変更不可です。</span>
+        </div>
+        <div class="params-grid">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Time Lock Parameters</h2><span class="param-history" onclick="showParamHistory()">History →</span></div>
+                <div class="card-body">
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Minimum Lock Period<span class="param-badge locked">🔒 Locked</span></div><div class="param-desc">CP-3: 最低ロック期間（不変）</div></div>
+                        <div class="param-value"><div class="param-current">30</div><div class="param-unit">days</div></div>
+                    </div>
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Maximum Lock Period<span class="param-badge adjustable">Adjustable</span></div><div class="param-desc">最大ロック期間</div></div>
+                        <div class="param-value"><div class="param-current">3,650</div><div class="param-unit">days (10 years)</div></div>
+                    </div>
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Early Unlock Penalty<span class="param-badge locked">🔒 Locked</span></div><div class="param-desc">CP-4: 早期解除ペナルティ率</div></div>
+                        <div class="param-value"><div class="param-current">10%</div><div class="param-unit">of locked amount</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Prover Parameters</h2><span class="param-history" onclick="showParamHistory()">History →</span></div>
+                <div class="card-body">
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Minimum Stake<span class="param-badge adjustable">Adjustable</span></div><div class="param-desc">Prover最低ステーク額</div></div>
+                        <div class="param-value"><div class="param-current">100,000</div><div class="param-unit">USDC</div></div>
+                    </div>
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">SLA Target<span class="param-badge adjustable">Adjustable</span></div><div class="param-desc">サービスレベル目標</div></div>
+                        <div class="param-value"><div class="param-current">99.9%</div><div class="param-unit">uptime</div></div>
+                    </div>
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Slashing Rate<span class="param-badge locked">🔒 Locked</span></div><div class="param-desc">CP-4: 不正Proverペナルティ</div></div>
+                        <div class="param-value"><div class="param-current">100%</div><div class="param-unit">of stake</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Fee Parameters</h2><span class="param-history" onclick="showParamHistory()">History →</span></div>
+                <div class="card-body">
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Lock Fee<span class="param-badge adjustable">Adjustable</span></div><div class="param-desc">ロック時手数料</div></div>
+                        <div class="param-value"><div class="param-current">0.1%</div><div class="param-unit">of amount</div></div>
+                    </div>
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Unlock Fee<span class="param-badge adjustable">Adjustable</span></div><div class="param-desc">アンロック時手数料</div></div>
+                        <div class="param-value"><div class="param-current">0.05%</div><div class="param-unit">of amount</div></div>
+                    </div>
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Enterprise Discount<span class="param-badge adjustable">Adjustable</span></div><div class="param-desc">法人向け手数料割引率</div></div>
+                        <div class="param-value"><div class="param-current">20%</div><div class="param-unit">discount</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Security Parameters</h2><span class="param-history" onclick="showParamHistory()">History →</span></div>
+                <div class="card-body">
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Challenge Period<span class="param-badge adjustable">Adjustable</span></div><div class="param-desc">チャレンジ待機期間</div></div>
+                        <div class="param-value"><div class="param-current">24</div><div class="param-unit">hours</div></div>
+                    </div>
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Multi-sig Threshold<span class="param-badge locked">🔒 Locked</span></div><div class="param-desc">緊急操作の必要署名数</div></div>
+                        <div class="param-value"><div class="param-current">3/5</div><div class="param-unit">signers</div></div>
+                    </div>
+                    <div class="param-item param-row" onclick="showParamDetail()">
+                        <div><div class="param-name">Quantum Algorithm<span class="param-badge locked">🔒 Locked</span></div><div class="param-desc">CP-1: 量子耐性アルゴリズム</div></div>
+                        <div class="param-value"><div class="param-current">Dilithium</div><div class="param-unit">NIST approved</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        function showParamDetail() { alert('Parameter detail modal would open here with edit history'); }
+        function showChangeRequest() { alert('Parameter change request form would open here'); }
+        function showParamHistory() { alert('Parameter change history would open here'); }
+    </script>
+</body>
+</html>

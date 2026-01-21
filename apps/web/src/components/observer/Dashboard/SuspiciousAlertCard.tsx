@@ -29,22 +29,22 @@ export function SuspiciousAlertCard({
 
   const riskStyles = {
     high: {
-      bg: 'bg-warning/10',
-      border: 'border-warning',
+      bg: 'bg-warning/15',
+      border: 'border-warning/70',
       titleColor: 'text-warning',
       scoreBg: 'bg-warning text-background',
       icon: AlertTriangle,
     },
     medium: {
-      bg: 'bg-foreground-tertiary/10',
-      border: 'border-foreground-tertiary',
-      titleColor: 'text-foreground-tertiary',
-      scoreBg: 'bg-foreground-tertiary text-background',
+      bg: 'bg-foreground-secondary/10',
+      border: 'border-foreground-secondary/50',
+      titleColor: 'text-foreground-secondary',
+      scoreBg: 'bg-foreground-secondary text-background',
       icon: Zap,
     },
     low: {
-      bg: 'bg-success/10',
-      border: 'border-success',
+      bg: 'bg-success/15',
+      border: 'border-success/70',
       titleColor: 'text-success',
       scoreBg: 'bg-success text-background',
       icon: Zap,
@@ -54,11 +54,11 @@ export function SuspiciousAlertCard({
   return (
     <Card variant="default" padding="none" className={cn(className)}>
       {/* Header */}
-      <div className="flex justify-between items-center px-6 py-4 border-b border-border/30">
-        <h2 className="text-lg font-semibold text-foreground">{t('title')}</h2>
+      <div className="flex justify-between items-center px-6 py-5 border-b border-border/50">
+        <h2 className="text-xl font-bold text-foreground">{t('title')}</h2>
         <Link
           href="/observer/suspicious"
-          className="text-sm text-gold hover:underline"
+          className="text-sm font-medium text-gold hover:text-gold/80 hover:underline transition-colors"
         >
           {t('viewAll')} →
         </Link>
@@ -96,16 +96,16 @@ export function SuspiciousAlertCard({
               }}
             >
               {/* Alert Header */}
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-3">
                 <div
-                  className={cn('flex items-center gap-2 font-semibold', style.titleColor)}
+                  className={cn('flex items-center gap-2 text-base font-bold', style.titleColor)}
                 >
-                  <Icon className="w-4 h-4" aria-hidden="true" />
+                  <Icon className="w-5 h-5" aria-hidden="true" />
                   {tx.riskLevel === 'high' ? t('highRisk') : t('mediumRisk')}
                 </div>
                 <span
                   className={cn(
-                    'text-xs px-2 py-0.5 rounded-full font-semibold',
+                    'text-sm px-3 py-1 rounded-full font-bold',
                     style.scoreBg
                   )}
                 >
@@ -114,11 +114,11 @@ export function SuspiciousAlertCard({
               </div>
 
               {/* Alert Detail */}
-              <div className="text-sm text-foreground-secondary">
+              <div className="text-sm font-medium text-foreground">
                 <span className="font-mono">{tx.address}</span> • {tx.amount}{' '}
                 {tx.type === 'emergency' ? 'Emergency' : 'Normal'} Unlock
                 <br />
-                <small className={style.titleColor}>{tx.reason}</small>
+                <span className={cn('text-sm', style.titleColor)}>{tx.reason}</span>
               </div>
 
               {/* Challenge Button for High Risk */}

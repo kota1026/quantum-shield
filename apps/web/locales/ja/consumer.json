@@ -6,7 +6,8 @@
         "lock": "ロック",
         "unlock": "アンロック",
         "history": "履歴",
-        "tokenHub": "Token Hub"
+        "tokenHub": "Token Hub",
+        "governance": "ガバナンス"
       },
       "wallet": {
         "connected": "接続中",
@@ -870,6 +871,22 @@
         "lockButton": "Dilithium署名でロック",
         "lockButtonAriaLabel": "Dilithium署名で資産をロックする"
       },
+      "period": {
+        "label": "ロック期間",
+        "years": {
+          "1": "1年",
+          "2": "2年",
+          "3": "3年",
+          "5": "5年"
+        }
+      },
+      "summary": {
+        "title": "ロック概要",
+        "amount": "ロック金額",
+        "period": "ロック期間",
+        "unlockDate": "解除可能日",
+        "fee": "ネットワーク手数料"
+      },
       "info": {
         "title": "ロックについて",
         "items": {
@@ -892,6 +909,8 @@
         "title": "ロック確認",
         "description": "以下の内容でロックを実行します。Dilithium署名が必要です。",
         "amount": "ロック金額",
+        "period": "ロック期間",
+        "unlockDate": "解除可能日",
         "gasFee": "ガス代（概算）",
         "note": "※ アンロック時には24時間の待機期間があります",
         "confirm": "署名してロック",
@@ -918,8 +937,20 @@
       "title": "ロック完了",
       "subtitle": "資産が量子耐性保護でロックされました",
       "details": {
+        "title": "ロック詳細",
+        "status": "Locked",
+        "lockId": "ロックID",
         "amount": "ロック金額",
-        "txHash": "TX Hash"
+        "period": "ロック期間",
+        "unlockDate": "解除可能日",
+        "copy": "コピー",
+        "copied": "コピーしました",
+        "periodYears": {
+          "1": "1年",
+          "2": "2年",
+          "3": "3年",
+          "5": "5年"
+        }
       },
       "buttons": {
         "viewHistory": "履歴を確認",

@@ -177,54 +177,54 @@ export function ChallengeForm() {
           className="bg-card border border-border-subtle rounded-2xl p-8 mb-6"
           aria-labelledby="target-section-title"
         >
-          <h2 id="target-section-title" className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <span className="w-6 h-6 bg-accent-hinomaru rounded-full flex items-center justify-center text-xs font-semibold">
+          <h2 id="target-section-title" className="text-lg font-semibold mb-6 flex items-center gap-3">
+            <span className="w-6 h-6 bg-hinomaru rounded-full flex items-center justify-center text-xs font-semibold text-white">
               1
             </span>
             {t('targetTransaction.title')}
           </h2>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mb-1">
+          <div className="grid grid-cols-2 gap-6 mb-4">
+            <div className="space-y-1">
+              <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.targetAddress')}
               </div>
-              <div className="font-mono text-sm">{mockTransaction.address}</div>
+              <div className="font-mono text-sm break-all">{mockTransaction.address}</div>
             </div>
-            <div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mb-1">
+            <div className="space-y-1">
+              <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.amount')}
               </div>
               <div className="text-base font-semibold">{mockTransaction.amount} ETH</div>
             </div>
-            <div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mb-1">
+            <div className="space-y-1">
+              <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.unlockType')}
               </div>
               <div className="text-base font-semibold text-warning">
                 {t('targetTransaction.emergency')}
               </div>
             </div>
-            <div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mb-1">
+            <div className="space-y-1">
+              <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.timeRemaining')}
               </div>
               <div className="font-mono text-base font-semibold text-warning">
                 {mockTransaction.timeRemaining}
               </div>
             </div>
-            <div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mb-1">
+            <div className="space-y-1">
+              <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.txHash')}
               </div>
-              <div className="font-mono text-sm">{mockTransaction.txHash}</div>
+              <div className="font-mono text-sm break-all">{mockTransaction.txHash}</div>
             </div>
-            <div>
-              <div className="text-xs text-text-tertiary uppercase tracking-wider mb-1">
+            <div className="space-y-1">
+              <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.riskScore')}
               </div>
-              <div className="text-base font-semibold text-error">
-                {mockTransaction.riskScore} / 100 (High Risk)
+              <div className="text-base font-semibold text-danger">
+                {mockTransaction.riskScore} / 100 <span className="text-sm">(High Risk)</span>
               </div>
             </div>
           </div>
@@ -235,8 +235,8 @@ export function ChallengeForm() {
           className="bg-card border border-border-subtle rounded-2xl p-8 mb-6"
           aria-labelledby="evidence-section-title"
         >
-          <h2 id="evidence-section-title" className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <span className="w-6 h-6 bg-accent-hinomaru rounded-full flex items-center justify-center text-xs font-semibold">
+          <h2 id="evidence-section-title" className="text-lg font-semibold mb-6 flex items-center gap-3">
+            <span className="w-6 h-6 bg-hinomaru rounded-full flex items-center justify-center text-xs font-semibold text-white">
               2
             </span>
             {t('evidence.title')}
@@ -306,8 +306,8 @@ export function ChallengeForm() {
           className="bg-card border border-border-subtle rounded-2xl p-8 mb-6"
           aria-labelledby="bond-section-title"
         >
-          <h2 id="bond-section-title" className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <span className="w-6 h-6 bg-accent-hinomaru rounded-full flex items-center justify-center text-xs font-semibold">
+          <h2 id="bond-section-title" className="text-lg font-semibold mb-6 flex items-center gap-3">
+            <span className="w-6 h-6 bg-hinomaru rounded-full flex items-center justify-center text-xs font-semibold text-white">
               3
             </span>
             {t('bond.title')}
@@ -317,15 +317,15 @@ export function ChallengeForm() {
             <div className="text-sm font-semibold text-warning mb-4">
               {t('bond.requiredAmount')}
             </div>
-            <div className="text-sm text-text-secondary mb-4">
+            <div className="text-sm text-foreground-secondary mb-4 font-mono">
               {t('bond.calculation')}
               <br />
               = MAX(0.1 ETH, {mockTransaction.amount} ETH × 1%)
               <br />
               = MAX(0.1 ETH, {bondAmount} ETH)
             </div>
-            <div className="text-2xl font-bold text-warning mb-2">{bondAmount} ETH</div>
-            <div className="text-xs text-text-tertiary space-y-1">
+            <div className="text-3xl font-bold text-warning mb-3">{bondAmount} ETH</div>
+            <div className="text-xs text-foreground-tertiary space-y-1">
               <p>{t('bond.warningLose')}</p>
               <p>{t('bond.warningWin')}</p>
             </div>

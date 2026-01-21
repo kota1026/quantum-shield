@@ -1,4 +1,74 @@
 {
+  "landing": {
+    "meta": {
+      "title": "Explorer | Quantum Shield",
+      "description": "Quantum Shieldのすべてのトランザクション、Lock、Unlockをリアルタイムで確認"
+    },
+    "hero": {
+      "badge": "ブロックチェーンエクスプローラー",
+      "title": "Quantum Shieldの",
+      "titleHighlight": "すべてを可視化",
+      "description": "Lock、Unlock、Challengeのすべてのトランザクションをリアルタイムで追跡。完全な透明性でプロトコルの健全性を確認できます。",
+      "openExplorer": "Explorerを開く",
+      "learnMore": "詳しく見る"
+    },
+    "stats": {
+      "tvl": "総ロック量 (TVL)",
+      "totalLocks": "総Lock数",
+      "totalUnlocks": "総Unlock数",
+      "activeProvers": "アクティブProver"
+    },
+    "features": {
+      "title": "Explorerでできること",
+      "description": "Quantum Shieldプロトコルのすべての活動を透明に追跡",
+      "realtime": {
+        "title": "リアルタイム追跡",
+        "description": "Lock/Unlockトランザクションをリアルタイムで監視し、最新の状態を確認"
+      },
+      "transparency": {
+        "title": "完全な透明性",
+        "description": "すべてのトランザクションとChallengeがオンチェーンで公開・検証可能"
+      },
+      "analytics": {
+        "title": "詳細な分析",
+        "description": "TVL推移、取引量、Prover稼働状況などの統計データを可視化"
+      },
+      "search": {
+        "title": "高度な検索",
+        "description": "アドレス、TX Hash、Lock IDで素早く検索・フィルタリング"
+      }
+    },
+    "whatYouCanDo": {
+      "title": "探索できるデータ",
+      "description": "プロトコルのあらゆるデータにアクセス",
+      "locks": {
+        "title": "Lock一覧",
+        "description": "すべてのロックされた資産を確認。金額、日時、ステータスで絞り込み可能。",
+        "link": "Lockを見る"
+      },
+      "unlocks": {
+        "title": "Unlock一覧",
+        "description": "アンロック要求の進捗、Time Lock残り時間、Prover署名状況を追跡。",
+        "link": "Unlockを見る"
+      },
+      "analytics": {
+        "title": "分析ダッシュボード",
+        "description": "TVL推移、日次取引量、Prover稼働率などの詳細な統計データ。",
+        "link": "分析を見る"
+      }
+    },
+    "cta": {
+      "title": "今すぐExplorerを始めよう",
+      "description": "Quantum Shieldプロトコルの透明性を体験してください。すべてのトランザクションがオンチェーンで検証可能です。",
+      "button": "Explorerを開く"
+    },
+    "footer": {
+      "tagline": "量子耐性セキュリティ",
+      "madeIn": "日本製",
+      "terms": "利用規約",
+      "privacy": "プライバシー"
+    }
+  },
   "common": {
     "header": {
       "overview": "概要",
@@ -553,6 +623,68 @@
     "cta": {
       "explore": "Explorerを開始",
       "learnMore": "詳細を見る"
+    }
+  },
+  "challenges": {
+    "meta": {
+      "title": "Challenge一覧 | Explorer | Quantum Shield",
+      "description": "Quantum Shieldのすべての異議申立て（Challenge）を確認"
+    },
+    "pageTitle": "全Challenge",
+    "stats": {
+      "totalChallenges": "総Challenge数",
+      "active": "アクティブ",
+      "resolved": "解決済み",
+      "successRate": "成功率"
+    },
+    "filters": {
+      "all": "すべて",
+      "active": "アクティブ",
+      "defense": "反論期間中",
+      "judgment": "判定待ち",
+      "resolved": "解決済み"
+    },
+    "table": {
+      "challengeId": "Challenge ID",
+      "targetUnlock": "対象Unlock",
+      "amount": "金額",
+      "bond": "Bond",
+      "deadline": "期限",
+      "status": "ステータス"
+    },
+    "status": {
+      "defense": "反論期間中",
+      "judgment": "判定待ち",
+      "resolved": "解決済み"
+    },
+    "result": {
+      "challenger_won": "Challenger勝利",
+      "prover_won": "Prover勝利"
+    }
+  },
+  "provers": {
+    "meta": {
+      "title": "Prover一覧 | Explorer | Quantum Shield",
+      "description": "Quantum Shieldのすべての署名者（Prover）のステータスを確認"
+    },
+    "pageTitle": "全Prover",
+    "stats": {
+      "totalProvers": "総Prover数",
+      "online": "オンライン",
+      "avgUptime": "平均稼働率",
+      "avgResponseTime": "平均応答時間",
+      "totalSignatures": "総署名数"
+    },
+    "fields": {
+      "uptime": "稼働率",
+      "responseTime": "応答時間",
+      "signatures": "署名数",
+      "stake": "ステーク",
+      "lastActive": "最終アクティブ"
+    },
+    "info": {
+      "title": "Proverとは？",
+      "description": "Proverは、アンロック要求を検証する独立した署名者です。5社のうち2社がランダムに選出され、SPHINCS+量子耐性署名を生成します。99.5%以上の稼働率が要求されています。"
     }
   }
 }
