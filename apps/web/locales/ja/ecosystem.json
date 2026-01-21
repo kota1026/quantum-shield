@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "title": "エコシステム | Quantum Shield",
+    "description": "Quantum Shieldエコシステムを探索 - 量子耐性技術で暗号資産を守る統合プラットフォーム"
+  },
+  "hero": {
+    "badge": "量子耐性テクノロジー",
+    "title": "暗号資産を守る",
+    "titleHighlight": "未来の脅威から",
+    "description": "Quantum Shieldは量子コンピュータ時代に備えた包括的なセキュリティエコシステムです。NIST認証の量子耐性暗号とL3チェーンで、あなたの資産を保護します。",
+    "getStarted": "はじめる",
+    "learnMore": "詳しく見る"
+  },
+  "about": {
+    "title": "Quantum Shieldとは",
+    "description": "Quantum Shieldは、将来の量子コンピュータによる攻撃から暗号資産を守るためのプロトコルです。ETHをロックし、NIST認証の量子耐性署名（Dilithium / SPHINCS+）で保護。24時間のタイムロックにより、不正なアンロックを検知・防止します。",
+    "steps": {
+      "lock": {
+        "title": "1. 資産をロック",
+        "description": "ETHをL1 Vaultに預け入れ。Dilithium署名で認証し、あなただけがアンロックできる状態に。"
+      },
+      "protect": {
+        "title": "2. 量子耐性で保護",
+        "description": "5社のProverが2/5の閾値署名（SPHINCS+）で承認。VRFでランダム選出され、不正共謀を防止。"
+      },
+      "unlock": {
+        "title": "3. 安全にアンロック",
+        "description": "24時間のタイムロック後に資産を受け取り。この間にObserverが監視し、不正を検知可能。"
+      }
+    },
+    "features": {
+      "quantumSafe": {
+        "title": "量子耐性暗号",
+        "description": "NIST FIPS認証のDilithium + SPHINCS+ + SHA3-256のみ使用"
+      },
+      "selfCustody": {
+        "title": "自己管理",
+        "description": "秘密鍵はあなたのデバイスにのみ存在。システムには保存されません"
+      },
+      "timelock": {
+        "title": "タイムロック",
+        "description": "24時間（通常）/ 7日（緊急）の待機期間で不正アクセスを防止"
+      },
+      "transparent": {
+        "title": "透明性",
+        "description": "すべての操作はオンチェーンで記録・検証可能"
+      }
+    },
+    "technicalLink": "技術詳細を見る"
+  },
+  "apps": {
+    "title": "エコシステムアプリ",
+    "description": "目的に合わせて最適なアプリを選択し、Quantum Shield体験を最大化",
+    "explore": "詳しく見る",
+    "categories": {
+      "consumer": "一般ユーザー向け",
+      "participant": "ネットワーク参加者向け",
+      "enterprise": "企業向け"
+    },
+    "consumerApp": {
+      "title": "Consumer App",
+      "tagline": "量子耐性で資産を守る",
+      "description": "ETHなどの暗号資産をDilithium署名でロック・保護。24時間のタイムロックで不正アクセスを防止します。"
+    },
+    "tokenHub": {
+      "title": "Token Hub",
+      "tagline": "ステーキングで報酬を獲得",
+      "description": "QSトークンをロックしてveQSを獲得。ガバナンス投票や報酬分配に参加できます。"
+    },
+    "governance": {
+      "title": "Governance",
+      "tagline": "プロトコルの未来を形作る",
+      "description": "提案の作成・投票を通じて、Quantum Shieldの方向性を決定。カウンシルメンバーとしてより大きな権限も。"
+    },
+    "explorer": {
+      "title": "Explorer",
+      "tagline": "ブロックチェーンデータを探索",
+      "description": "ロック・アンロック履歴、チャレンジ、Proverの活動など、すべてのオンチェーンデータを可視化。"
+    },
+    "observer": {
+      "title": "Observer Portal",
+      "tagline": "監視して報酬を得る",
+      "description": "不正なアンロックを監視し、チャレンジを提出。成功時にはスラッシュ報酬の60%を獲得できます。"
+    },
+    "prover": {
+      "title": "Prover Portal",
+      "tagline": "SPHINCS+署名でネットワークを支える",
+      "description": "HSMでSPHINCS+署名を生成し、アンロック要求を承認。署名手数料から報酬を獲得します。"
+    },
+    "enterprise": {
+      "title": "Enterprise",
+      "tagline": "企業向け資産保護ソリューション",
+      "description": "大規模な暗号資産を保有する企業向けのカスタマイズ可能なセキュリティソリューション。専任サポート付き。"
+    }
+  },
+  "useCases": {
+    "title": "あなたに最適なアプリは?",
+    "description": "目的に合わせて最適なアプリを選択",
+    "recommendedLabel": "おすすめ",
+    "hodler": {
+      "title": "長期保有者",
+      "description": "ETHや暗号資産を将来の量子コンピュータ攻撃から守りたい",
+      "recommended": "Consumer App"
+    },
+    "investor": {
+      "title": "ステーキング投資家",
+      "description": "QSトークンを使って安定した収益を得たい",
+      "recommended": "Token Hub"
+    },
+    "curious": {
+      "title": "リサーチャー",
+      "description": "プロトコルの活動状況やオンチェーンデータを分析したい",
+      "recommended": "Explorer"
+    },
+    "governance": {
+      "title": "ガバナンス参加者",
+      "description": "プロトコルの方向性に影響を与え、意思決定に参加したい",
+      "recommended": "Governance"
+    },
+    "technical": {
+      "title": "インフラ提供者",
+      "description": "高性能なインフラを運用してネットワークのコア参加者になりたい",
+      "recommended": "Prover Portal"
+    },
+    "security": {
+      "title": "セキュリティ監視者",
+      "description": "ネットワークのセキュリティに貢献しながら報酬を得たい",
+      "recommended": "Observer Portal"
+    }
+  },
+  "faq": {
+    "title": "よくある質問",
+    "items": {
+      "q1": {
+        "question": "なぜ量子耐性が必要なのですか？",
+        "answer": "現在のブロックチェーンで使われているECDSA署名は、将来の量子コンピュータによってShorアルゴリズムで解読される可能性があります。Quantum Shieldは、NIST認証の量子耐性アルゴリズム（Dilithium、SPHINCS+）を使用し、将来の脅威から資産を保護します。"
+      },
+      "q2": {
+        "question": "24時間の待機期間は短縮できますか？",
+        "answer": "いいえ。24時間のタイムロックはスマートコントラクトにハードコードされており、変更不可能です。これはセキュリティ上の必須要件で、不正アクセスが発生した場合に資産を保護する時間を確保します。"
+      },
+      "q3": {
+        "question": "Proverが応答しない場合はどうなりますか？",
+        "answer": "72時間Proverから署名が得られない場合、緊急アンロックパスが自動発動します。緊急ボンド（0.5 ETH + 金額の5%）を預け入れ、7日間の監視期間後に資産を回収できます。"
+      },
+      "q4": {
+        "question": "秘密鍵はどこに保存されますか？",
+        "answer": "あなたの秘密鍵（Dilithium鍵ペア）は、あなたのデバイスにのみ存在します。Quantum Shieldのシステムには一切保存されません。これがセルフカストディの原則です。"
+      },
+      "q5": {
+        "question": "Observerのチャレンジが承認されるとどうなりますか？",
+        "answer": "チャレンジが承認されると、不正を行ったProverはスラッシュ（ペナルティ）されます。スラッシュ額の60%がObserverへの報酬、20%が保険プール、20%がバーンされます。"
+      }
+    }
+  },
+  "cta": {
+    "title": "Quantum Shieldを始めよう",
+    "description": "量子耐性技術で今日から資産を保護。Dilithium署名があなたの暗号資産を未来の脅威から守ります。",
+    "button": "Consumer Appで始める"
+  },
+  "footer": {
+    "copyright": "© 2026 Quantum Shield. All rights reserved."
+  }
+}

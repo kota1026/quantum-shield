@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 
 interface EarningsSidebarProps {
@@ -18,18 +18,18 @@ export function EarningsSidebar({
   return (
     <div
       className={cn(
-        'bg-card border border-border/30 rounded-xl p-6',
+        'bg-card border border-border/50 rounded-xl p-6',
         className
       )}
     >
-      <h3 className="text-sm font-semibold text-foreground mb-4">
+      <h3 className="text-base font-bold text-foreground mb-4">
         {t('title')}
       </h3>
       <div className="text-center py-6">
-        <div className="text-[32px] font-bold text-success">
+        <div className="text-[36px] font-bold text-success tracking-tight">
           {claimableAmount}
         </div>
-        <div className="text-xs text-foreground-tertiary mt-1">
+        <div className="text-sm text-foreground-secondary mt-2">
           {t('available')}
         </div>
       </div>

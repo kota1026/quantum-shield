@@ -21,9 +21,11 @@ import {
   X,
   AlertTriangle,
   HelpCircle,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SimpleTooltip } from '@/components/ui/tooltip';
+import { HinomaryLogo } from '@/components/consumer/Landing/HinomaryLogo';
 import { cn } from '@/lib/utils';
 
 type ProposalStatus = 'active' | 'pending' | 'passed' | 'executed' | 'defeated' | 'vetoed';
@@ -330,7 +332,7 @@ function Pagination({ currentPage, totalPages, onPageChange, t }: PaginationProp
 }
 
 export function ProposalsList() {
-  const t = useTranslations('governance.proposals');
+  const t = useTranslations('governance.landing.proposals');
   const tFooter = useTranslations('governance.landing.footer');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -467,12 +469,22 @@ export function ProposalsList() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+        {/* Back to Dashboard */}
+        <Link
+          href="/governance/landing"
+          className="inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-gold transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t('backToDashboard')}
+        </Link>
+
         {/* Page Header */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <FileText className="w-8 h-8 text-hinomaru" aria-hidden="true" />
-            {t('pageTitle')}
-          </h1>
+        <header className="flex flex-col items-center text-center mb-12">
+          <div className="flex items-center gap-3 mb-2">
+            <HinomaryLogo size="md" aria-hidden="true" />
+            <h1 className="text-3xl font-bold">{t('pageTitle')}</h1>
+          </div>
+          <p className="text-foreground-secondary mb-6">{t('pageSubtitle')}</p>
           <Button asChild variant="primary" className="gap-2">
             <Link href="/governance/create">
               <Plus className="w-4 h-4" aria-hidden="true" />
@@ -588,10 +600,16 @@ export function ProposalsList() {
                 {tFooter('documentation')}
               </a>
               <Link
-                href="/governance/terms"
+                href="/consumer/terms"
                 className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
               >
                 {tFooter('terms')}
+              </Link>
+              <Link
+                href="/consumer/privacy"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+              >
+                {tFooter('privacy')}
               </Link>
             </nav>
             <p className="text-xs text-foreground-muted">

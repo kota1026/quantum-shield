@@ -2,13 +2,226 @@
   "prover": {
     "common": {
       "header": {
-        "overview": "Overview",
-        "requirements": "Requirements",
-        "economics": "Economics",
-        "apply": "Apply"
+        "overview": "概要",
+        "requirements": "要件",
+        "economics": "報酬",
+        "apply": "申請"
       },
       "login": "ログイン",
       "applyNow": "今すぐ申請"
+    },
+    "login": {
+      "meta": {
+        "title": "Proverログイン | Quantum Shield",
+        "description": "ウォレットを接続してProver Portalにログイン"
+      },
+      "title": "Prover Portalにログイン",
+      "description": "登録済みのウォレットを接続してダッシュボードにアクセス",
+      "backToLanding": "概要に戻る",
+      "selectWallet": "ウォレットを選択",
+      "popular": "人気",
+      "connecting": {
+        "title": "接続中...",
+        "description": "{wallet}に接続しています。ウォレットで承認してください。"
+      },
+      "success": {
+        "title": "接続完了",
+        "description": "ダッシュボードに移動します..."
+      },
+      "error": {
+        "title": "接続エラー",
+        "connectionFailed": "ウォレットとの接続に失敗しました。もう一度お試しください。",
+        "tryAgain": "再試行"
+      },
+      "notRegistered": {
+        "title": "未登録のウォレット",
+        "description": "このウォレットはProverとして登録されていません。まずは申請を完了してください。",
+        "applyButton": "Prover申請へ進む",
+        "tryAnotherWallet": "別のウォレットで試す"
+      },
+      "noWallet": "ウォレットをお持ちでない場合は",
+      "getWallet": "MetaMaskを入手",
+      "newToProver": "Proverに初めて申請する方",
+      "applyNow": "新規申請を開始",
+      "footer": "Quantum Shield Prover Portal - 量子耐性署名プロバイダ"
+    },
+    "requirements": {
+      "meta": {
+        "title": "Prover要件 | Quantum Shield",
+        "description": "Quantum Shield Proverになるための技術要件と運用基準"
+      },
+      "backToLanding": "概要に戻る",
+      "title": "Prover要件",
+      "subtitle": "Quantum Shield Proverとして参加するために必要な技術要件、セキュリティ基準、運用要件をご確認ください。",
+      "coreRequirements": {
+        "title": "基本要件",
+        "stake": {
+          "title": "ステーク要件",
+          "description": "ETH相当の最低担保。ネットワークセキュリティを保証します。"
+        },
+        "hsm": {
+          "title": "HSM認証",
+          "description": "SPHINCS+鍵保管用のハードウェアセキュリティモジュール。"
+        },
+        "uptime": {
+          "title": "稼働率",
+          "description": "24時間365日の高可用性を維持する必要があります。"
+        },
+        "responseTime": {
+          "title": "応答時間",
+          "description": "署名リクエストへの最大応答時間。"
+        }
+      },
+      "technicalSpecs": {
+        "title": "技術仕様",
+        "cpu": {
+          "title": "CPU",
+          "value": "16コア以上",
+          "note": "Intel Xeon または同等品推奨"
+        },
+        "memory": {
+          "title": "メモリ",
+          "value": "64GB以上",
+          "note": "ECC RAM推奨"
+        },
+        "storage": {
+          "title": "ストレージ",
+          "value": "1TB NVMe SSD",
+          "note": "RAID構成推奨"
+        },
+        "network": {
+          "title": "ネットワーク",
+          "value": "1Gbps以上",
+          "note": "冗長化必須"
+        }
+      },
+      "security": {
+        "title": "セキュリティ要件",
+        "hsmCertification": {
+          "title": "HSM認証",
+          "description": "FIPS 140-2 Level 3以上の認証を取得したHSMを使用すること。"
+        },
+        "keyManagement": {
+          "title": "鍵管理",
+          "description": "秘密鍵は常にHSM内で生成・保管し、エクスポート不可とすること。"
+        },
+        "accessControl": {
+          "title": "アクセス制御",
+          "description": "多要素認証と最小権限の原則に基づくアクセス管理。"
+        },
+        "auditLogging": {
+          "title": "監査ログ",
+          "description": "すべての署名操作の改ざん防止ログを保持すること。"
+        },
+        "incidentResponse": {
+          "title": "インシデント対応",
+          "description": "セキュリティインシデント発生時の対応計画を策定すること。"
+        }
+      },
+      "operational": {
+        "title": "運用要件",
+        "availability": {
+          "title": "可用性",
+          "description": "99.9%以上の稼働率を維持。計画メンテナンスは事前通知必須。"
+        },
+        "monitoring": {
+          "title": "監視",
+          "description": "24時間365日のシステム監視と異常検知体制。"
+        },
+        "backup": {
+          "title": "バックアップ",
+          "description": "定期的なバックアップと災害復旧計画の策定。"
+        },
+        "updates": {
+          "title": "アップデート",
+          "description": "セキュリティパッチの迅速な適用（重大な脆弱性は24時間以内）。"
+        },
+        "communication": {
+          "title": "コミュニケーション",
+          "description": "Quantum Shieldチームとの連絡体制（Slack/Discord）を維持。"
+        }
+      },
+      "slashing": {
+        "title": "スラッシングリスク",
+        "description": "Proverは不正行為やSLA違反に対してステークの一部を失うリスクがあります。スラッシング率は違反の重大度と同時違反者数に応じて決定されます。",
+        "minor": {
+          "title": "軽微な違反",
+          "description": "SLA違反、短時間のダウンタイム、軽微な応答遅延など。"
+        },
+        "major": {
+          "title": "重大な違反",
+          "description": "長時間のダウンタイム、繰り返しのSLA違反、セキュリティインシデントなど。"
+        },
+        "critical": {
+          "title": "致命的な違反",
+          "description": "不正な署名、共謀行為、意図的な妨害行為など。"
+        },
+        "quadratic": {
+          "title": "二次スラッシング（Quadratic Slashing）",
+          "description": "同時に複数のProverが違反した場合、スラッシング率は二次関数的に増加します。これは共謀攻撃を抑制し、分散化を促進するための仕組みです。例えば、1人の違反者の場合は1%のスラッシングでも、10人が同時に違反した場合は各Proverに対して100%のスラッシングが適用される可能性があります。"
+        }
+      },
+      "cta": {
+        "title": "要件を満たしていますか？",
+        "description": "上記の要件を満たしている場合は、Prover申請を開始してください。審査には通常3〜5営業日かかります。",
+        "applyButton": "申請を開始",
+        "termsButton": "利用規約を確認"
+      }
+    },
+    "terms": {
+      "meta": {
+        "title": "Prover利用規約 | Quantum Shield",
+        "description": "Quantum Shield Proverサービスの利用規約"
+      },
+      "backToApplication": "申請に戻る",
+      "title": "Prover利用規約",
+      "lastUpdated": "最終更新日",
+      "notice": {
+        "title": "重要なお知らせ",
+        "content": "本規約をよくお読みください。Proverとして申請することにより、本規約のすべての条件に同意したものとみなされます。特にスラッシングリスクと責任に関する条項を十分にご理解ください。"
+      },
+      "toc": {
+        "title": "目次"
+      },
+      "sections": {
+        "definitions": {
+          "title": "定義",
+          "content": "「Prover」とは、Quantum Shieldネットワークにおいて署名サービスを提供する事業者を指します。\n\n「ステーク」とは、Proverがネットワークに預託する担保金を指します。\n\n「スラッシング」とは、規約違反や不正行為に対するステークの没収を指します。\n\n「HSM」とは、ハードウェアセキュリティモジュールを指し、SPHINCS+秘密鍵の安全な保管に使用されます。"
+        },
+        "eligibility": {
+          "title": "参加資格",
+          "content": "Proverとして参加するには、以下の要件を満たす必要があります：\n\n• 法人格を有すること\n• KYB（Know Your Business）審査に合格すること\n• 最低$400,000相当のETHをステークできること\n• FIPS 140-2 Level 3以上のHSMを保有すること\n• 99.9%以上の稼働率を維持できるインフラを有すること"
+        },
+        "obligations": {
+          "title": "Proverの義務",
+          "content": "Proverは以下の義務を負います：\n\n• 署名リクエストに30秒以内に応答すること\n• 99.9%以上の稼働率を維持すること\n• セキュリティアップデートを迅速に適用すること\n• インシデント発生時に速やかに報告すること\n• Quantum Shieldチームとの連絡を維持すること\n• 監査要請に協力すること"
+        },
+        "staking": {
+          "title": "ステーキング",
+          "content": "Proverは最低$400,000相当のETHをステークする必要があります。\n\n• ステークは承認後にスマートコントラクトにロックされます\n• ステークは不正行為やSLA違反の際の担保となります\n• ステークの引き出しには21日間の待機期間が必要です\n• 待機期間中もスラッシングの対象となります"
+        },
+        "slashing": {
+          "title": "スラッシング",
+          "content": "以下の行為はスラッシングの対象となります：\n\n【軽微な違反（1-5%）】\n• SLA違反（稼働率99.9%未満）\n• 応答時間超過（30秒以上）\n\n【重大な違反（5-25%）】\n• 長時間のダウンタイム\n• 繰り返しのSLA違反\n• セキュリティインシデント\n\n【致命的な違反（25-100%）】\n• 不正な署名の生成\n• 共謀行為\n• 意図的な妨害行為\n\n【二次スラッシング】\n同時に複数のProverが違反した場合、スラッシング率は二次関数的に増加します。"
+        },
+        "termination": {
+          "title": "契約終了",
+          "content": "Proverは21日前の通知により自主的に退出できます。\n\nQuantum Shieldは以下の場合に即時解除できます：\n• 重大な規約違反\n• 不正行為の発覚\n• KYB情報の虚偽申告\n\n解除後もスラッシングに関する条項は有効です。"
+        },
+        "liability": {
+          "title": "責任制限",
+          "content": "Quantum Shieldは、法律で許容される最大限の範囲において、以下について責任を負いません：\n\n• 暗号資産の価格変動による損失\n• ステークのスラッシングによる損失\n• 第三者の行為による損害\n• 間接的・結果的損害\n\nProverは自己の責任においてサービスを運営し、必要に応じて保険に加入することを推奨します。"
+        },
+        "modifications": {
+          "title": "規約の変更",
+          "content": "Quantum Shieldは本規約を変更する権利を留保します。\n\n• 重要な変更は30日前に通知されます\n• 変更後もサービスを継続することで変更に同意したとみなされます\n• 変更に同意しない場合は退出手続きを行ってください"
+        }
+      },
+      "acceptance": {
+        "title": "規約への同意",
+        "content": "Proverとして申請することにより、上記のすべての条件に同意したものとみなされます。ご不明な点がございましたら、申請前にお問い合わせください。",
+        "button": "申請に進む"
+      }
     },
     "landing": {
       "meta": {
@@ -41,8 +254,43 @@
           "label": "ネットワーク稼働率"
         }
       },
+      "about": {
+        "sectionLabel": "仕組み",
+        "title": "Quantum Shieldとは",
+        "description": "Quantum Shieldは、量子コンピュータ時代に備えた次世代の資産保護プロトコルです。Proverはこのエコシステムの中核を担い、SPHINCS+署名によりユーザー資産の安全を守ります。",
+        "step1": {
+          "title": "量子耐性署名",
+          "description": "SPHINCS+やDilithiumなどのポスト量子暗号アルゴリズムを使用し、量子コンピュータからの攻撃に耐性のある署名を提供します。"
+        },
+        "step2": {
+          "title": "分散型Proverネットワーク",
+          "description": "複数のProverが独立して動作し、単一障害点を排除。24時間待機期間と多重署名により、不正な資産移動を防止します。"
+        },
+        "step3": {
+          "title": "報酬とインセンティブ",
+          "description": "署名手数料とパフォーマンスボーナスにより、Proverは持続可能な収益を得ながらネットワークセキュリティに貢献できます。"
+        },
+        "ecosystem": {
+          "title": "Quantum Shieldエコシステム",
+          "consumer": {
+            "title": "Consumer App",
+            "description": "一般ユーザーが資産をロックし、量子耐性保護を受けるためのアプリケーション。",
+            "link": "Consumer Appへ"
+          },
+          "tokenomics": {
+            "title": "QSトークン",
+            "description": "QSトークンをロックしてveQSを取得。Prover報酬の一部はQSトークンで配布されます。",
+            "link": "Token Hubへ"
+          },
+          "governance": {
+            "title": "ガバナンス",
+            "description": "Prover要件の変更やプロトコルアップグレードは、veQS保有者による投票で決定されます。",
+            "link": "Governanceへ"
+          }
+        }
+      },
       "requirements": {
-        "sectionLabel": "Requirements",
+        "sectionLabel": "要件",
         "title": "必要なもの",
         "description": "Quantum Shield Proverになるための技術要件",
         "stake": {
@@ -63,7 +311,7 @@
         "viewAll": "すべての要件を見る"
       },
       "calculator": {
-        "sectionLabel": "Economics",
+        "sectionLabel": "報酬",
         "title": "ROI計算機",
         "description": "Proverとしての収益見込みを計算",
         "stakeAmount": {
@@ -105,6 +353,66 @@
         "terms": "利用規約",
         "privacy": "プライバシーポリシー",
         "cookie": "Cookieポリシー"
+      },
+      "versionToggle": {
+        "label": "バージョン選択",
+        "public": "パブリック版",
+        "enterprise": "企業版"
+      },
+      "enterprise": {
+        "badge": "企業向けProverプログラム",
+        "title": "企業Proverになろう",
+        "titleHighlight": "安定収益とプレミアムサポート",
+        "description": "QS財団から直接招待を受け、専任サポートと安定した収益を享受しながらQuantum Shieldネットワークに貢献。企業向けの特別条件をご用意しています。",
+        "applyButton": "企業版に申し込む",
+        "benefitsButton": "特典を確認",
+        "applyNow": "企業版申請",
+        "benefits": {
+          "sectionLabel": "企業版特典",
+          "title": "企業Proverならではのメリット",
+          "description": "パブリック版にはない、企業向けの特別なサポートと条件をご提供します",
+          "support": {
+            "title": "専任サポート",
+            "description": "24時間365日対応の専任テクニカルサポート。障害発生時も迅速に対応します。"
+          },
+          "infrastructure": {
+            "title": "マネージドインフラ",
+            "description": "QS財団がインフラの監視・保守を代行。運用負担を大幅に軽減できます。"
+          },
+          "sla": {
+            "title": "SLA保証",
+            "description": "99.99%の稼働率保証。ダウンタイムに対するペナルティ補償付き。"
+          },
+          "revenue": {
+            "title": "安定収益",
+            "description": "最低保証収益付きの契約。市場変動に左右されない安定したリターン。"
+          }
+        },
+        "comparison": {
+          "title": "パブリック版 vs 企業版",
+          "feature": "項目",
+          "public": "パブリック版",
+          "enterprise": "企業版",
+          "rows": {
+            "stakeRequirement": "ステーク要件",
+            "stakeFlexible": "柔軟な条件",
+            "support": "サポート",
+            "community": "コミュニティ",
+            "dedicated24x7": "専任24時間対応",
+            "revenueModel": "収益モデル",
+            "variable": "変動型",
+            "guaranteed": "最低保証付き",
+            "sla": "SLA",
+            "onboarding": "オンボーディング",
+            "selfService": "セルフサービス",
+            "whiteGlove": "ホワイトグローブ対応"
+          }
+        },
+        "cta": {
+          "title": "企業版Proverに興味がありますか？",
+          "description": "QS財団の担当者が、貴社に最適なプランをご提案いたします。",
+          "button": "お問い合わせ"
+        }
       }
     },
     "application": {
@@ -113,6 +421,27 @@
         "description": "Quantum Shield Proverとして申請する"
       },
       "backToOverview": "Overviewに戻る",
+      "type": {
+        "public": "パブリック申請",
+        "enterprise": "企業版招待"
+      },
+      "enterprise": {
+        "invitation": {
+          "title": "招待コード入力",
+          "description": "運営企業から受け取った招待コードを入力してください。招待コードをお持ちでない場合は、パブリック申請をお選びください。",
+          "placeholder": "例: ENT-INV-2026-XXXX",
+          "verify": "確認",
+          "error": "招待コードが無効です。コードを確認して再度お試しください。",
+          "hint": "招待コードは運営企業の管理者から送付されます"
+        },
+        "verified": {
+          "title": "招待が確認されました",
+          "operator": "運営企業",
+          "managedInfra": "マネージドインフラ対応",
+          "dedicatedSupport": "専任サポート24時間対応",
+          "minRevenue": "最低保証収益"
+        }
+      },
       "steps": {
         "basicInfo": "基本情報",
         "technical": "技術要件",
@@ -166,8 +495,17 @@
         "countries": {
           "japan": "日本",
           "usa": "アメリカ",
+          "uk": "イギリス",
+          "germany": "ドイツ",
+          "france": "フランス",
           "singapore": "シンガポール",
+          "hongkong": "香港",
+          "korea": "韓国",
+          "australia": "オーストラリア",
+          "canada": "カナダ",
           "switzerland": "スイス",
+          "uae": "アラブ首長国連邦",
+          "netherlands": "オランダ",
           "other": "その他"
         },
         "website": "ウェブサイト",
@@ -185,11 +523,14 @@
         "other": "その他",
         "infrastructureLocation": "インフラの場所",
         "infrastructurePlaceholder": "例: AWS Tokyo, GCP Singapore",
-        "businessRegistrationNumber": "事業者登録番号",
-        "registrationNumberPlaceholder": "登録番号を入力",
-        "uploadDocument": "事業者登録書類をアップロード",
+        "businessId": "事業者識別番号",
+        "businessIdPlaceholder": "例: 法人番号、EIN、会社登録番号など",
+        "businessIdHint": "国・地域により異なります：日本は法人番号(13桁)、米国はEIN、英国は会社登録番号、シンガポールはUEN等",
+        "uploadDocument": "事業者証明書類をアップロード",
         "chooseFile": "ファイルを選択",
         "fileFormats": "PDF, JPG, PNG形式に対応",
+        "requiredDocuments": "必要書類",
+        "requiredDocumentsHint": "以下のいずれかをご提出ください：法人登記簿謄本、事業許可証、会社設立証明書、または同等の公式書類（発行日から6ヶ月以内）",
         "agreeTerms": "Prover利用規約を読み、スラッシングリスクを理解した上で同意します。",
         "proverTerms": "Prover利用規約",
         "agreeKyb": "KYB（事業者確認）に同意し、必要に応じて追加書類を提供することに同意します。",
@@ -210,6 +551,8 @@
         "title": "申請が送信されました！",
         "description": "Quantum Shield Proverへのご申請ありがとうございます。審査チームが3〜5営業日以内にレビューいたします。",
         "applicationId": "申請ID",
+        "saveIdNote": "このIDは申請状況の確認に必要です。必ずメモしておいてください。",
+        "emailSentNote": "申請IDと詳細は、ご登録のメールアドレスにも送信されます。",
         "checkStatus": "申請状況を確認",
         "backToHome": "ホームに戻る"
       }
@@ -277,9 +620,7 @@
       "backToSearch": "検索に戻る",
       "help": {
         "title": "お困りですか？",
-        "description": "審査状況についてご不明な点がございましたらお問い合わせください",
-        "email": "メール",
-        "phone": "電話（平日 9:00-18:00）"
+        "description": "審査状況についてご不明な点がございましたらお問い合わせください"
       }
     },
     "dashboard": {
@@ -288,6 +629,18 @@
         "description": "署名とパフォーマンスを監視するProver運用ダッシュボード"
       },
       "title": "運用ダッシュボード",
+      "welcomeMessage": "署名リクエストを処理し、パフォーマンスを監視しましょう。",
+      "enterprise": {
+        "contract": {
+          "title": "企業契約情報",
+          "sla": "SLA保証",
+          "guaranteedRevenue": "最低保証収益",
+          "support": "サポート",
+          "managedInfra": "マネージドインフラ有効",
+          "contact": "担当者",
+          "contactSupport": "サポートに連絡"
+        }
+      },
       "nav": {
         "operations": "オペレーション",
         "dashboard": "ダッシュボード",
@@ -299,7 +652,13 @@
         "stake": "ステーク",
         "challenges": "チャレンジ",
         "account": "アカウント",
-        "exit": "終了"
+        "settings": "設定",
+        "exit": "終了",
+        "ecosystem": "エコシステム",
+        "consumerApp": "Consumer App",
+        "tokenHub": "Token Hub",
+        "governance": "Governance",
+        "observer": "Observer"
       },
       "alert": {
         "slaWarning": "SLA警告: 応答時間がしきい値に近づいています",
@@ -309,6 +668,34 @@
       "actions": {
         "viewMetrics": "メトリクスを見る",
         "processQueue": "キューを処理"
+      },
+      "quickActions": {
+        "title": "クイックアクション",
+        "processQueue": {
+          "title": "署名キューを処理",
+          "description": "{count}件の署名リクエストが待機中です"
+        },
+        "claimRewards": {
+          "title": "報酬を請求",
+          "description": "{amount} ETHを請求できます"
+        },
+        "viewMetrics": {
+          "title": "パフォーマンスを確認",
+          "description": "応答時間・成功率・稼働率をチェック"
+        }
+      },
+      "help": {
+        "title": "ヘルプ",
+        "requirements": "要件・仕様を確認",
+        "terms": "利用規約"
+      },
+      "ecosystem": {
+        "title": "エコシステム連携",
+        "description": "QSトークンの管理やガバナンスへの参加が可能です。",
+        "tokenHub": "Token Hub",
+        "tokenHubDesc": "QSトークンの管理・ステーキング",
+        "governance": "Governance",
+        "governanceDesc": "投票・提案への参加"
       },
       "stats": {
         "pendingSignatures": "保留中の署名",
@@ -357,6 +744,7 @@
     },
     "queue": {
       "title": "署名キュー",
+      "description": "保留中のアンロックリクエストを処理しましょう。",
       "refresh": "更新",
       "signAll": "すべて署名 ({count})",
       "filterLabel": "リクエストフィルター",
@@ -414,19 +802,62 @@
         "request": "リクエスト",
         "submit": "署名を確認"
       },
+      "process": {
+        "title": "署名処理中...",
+        "description": "しばらくお待ちください。",
+        "verifying": "Dilithium署名を検証中",
+        "generating": "SPHINCS+署名を生成中",
+        "broadcasting": "ネットワークにブロードキャスト中",
+        "complete": "完了"
+      },
+      "success": {
+        "title": "署名完了!",
+        "description": "リクエストが正常に処理されました。",
+        "txHash": "トランザクションハッシュ",
+        "close": "閉じる",
+        "next": "次のリクエスト"
+      },
       "batch": {
         "title": "一括署名の確認",
         "description": "{count}件のリクエストにSPHINCS+キーで一括署名しようとしています。",
         "summary": "サマリー",
         "requests": "件のリクエスト",
-        "confirm": "一括署名を確認"
+        "confirm": "一括署名を確認",
+        "processing": {
+          "title": "一括署名処理中...",
+          "description": "{count}件のリクエストを処理しています。"
+        },
+        "success": {
+          "title": "一括署名完了!",
+          "description": "{count}件のリクエストが正常に処理されました。",
+          "processed": "処理件数",
+          "volume": "総ボリューム",
+          "done": "完了"
+        }
       }
     },
     "metrics": {
       "title": "パフォーマンス & 報酬",
+      "description": "署名処理の成績と報酬の推移を確認できます。",
       "periodSelect": "期間を選択",
       "export": "CSV出力",
       "tabs": "メトリクスタブ",
+      "enterprise": {
+        "title": "企業版報酬サマリー",
+        "totalEarned": "累計報酬",
+        "totalEarnedDesc": "契約期間中の累計獲得報酬",
+        "guaranteedRevenue": "保証収益",
+        "monthly": "月額保証",
+        "received": "受取済み",
+        "remaining": "契約残り",
+        "performanceBonus": "パフォーマンスボーナス",
+        "eligible": "対象",
+        "bonusRate": "ボーナス率",
+        "thisMonth": "今月",
+        "bonusTotal": "累計ボーナス",
+        "additionalIncentives": "追加インセンティブ",
+        "contractPeriod": "契約期間"
+      },
       "period": {
         "7d": "過去7日間",
         "30d": "過去30日間",
@@ -439,6 +870,8 @@
       },
       "stats": {
         "uptime": "アップタイム",
+        "uptimeHelp": "アップタイムとは",
+        "uptimeDescription": "システムが正常に稼働していた時間の割合です。99.9%以上でSLA達成となります。",
         "signaturesCompleted": "署名完了数",
         "avgLatency": "平均レイテンシ",
         "violations": "違反/Slashing"
@@ -446,6 +879,7 @@
       "chart": {
         "performance": "署名処理パフォーマンス",
         "signatureCount": "署名数",
+        "signatures": "件の署名",
         "successRate": "成功率"
       },
       "history": {
@@ -464,10 +898,37 @@
         "availability": "可用性",
         "responseTime": "レスポンス時間"
       },
+      "modal": {
+        "withdraw": {
+          "title": "報酬を引き出す",
+          "description": "獲得した報酬をウォレットに引き出すことができます。ステーク額は維持されます。",
+          "available": "引き出し可能な報酬",
+          "amountLabel": "引き出し金額",
+          "max": "全額を引き出す",
+          "addressLabel": "送金先アドレス",
+          "feeNotice": "ガス代として約0.002 ETH相当が必要です。トランザクション完了まで数分かかる場合があります。",
+          "confirm": "引き出す",
+          "success": "{amount} QSの引き出しが完了しました"
+        },
+        "reinvest": {
+          "title": "報酬をステークに再投資",
+          "description": "獲得した報酬をステークに追加して、より多くの報酬を獲得できるようにします。",
+          "availableRewards": "再投資可能な報酬",
+          "currentStake": "現在のステーク",
+          "amountLabel": "再投資金額",
+          "max": "全額を再投資",
+          "newStake": "再投資後のステーク",
+          "benefitNotice": "ステークを増やすと、より多くの署名リクエストを受け取り、報酬獲得の機会が増えます。",
+          "confirm": "再投資する",
+          "success": "{amount} QSをステークに再投資しました"
+        }
+      },
       "rewards": {
         "totalLabel": "累計報酬（過去{days}日間）",
         "withdraw": "報酬を引き出す",
+        "withdrawAlert": "引き出し機能は実装予定です",
         "reinvest": "再投資する",
+        "reinvestAlert": "再投資機能は実装予定です",
         "chartTitle": "報酬推移",
         "dailyRewards": "日次報酬",
         "breakdownTitle": "報酬内訳",
@@ -489,10 +950,23 @@
     },
     "alerts": {
       "title": "アラート & ステーク管理",
+      "description": "システムの警告やステークの状況を確認・管理できます。",
       "tabs": "アラートとステーク管理タブ",
       "tab": {
         "alerts": "アラート",
         "stake": "ステーク管理"
+      },
+      "whatIsAlert": {
+        "title": "アラートとは？",
+        "description": "アラートは、システムに注意が必要な状況が発生した際に通知されます。緊急（赤）は即座の対応が必要、警告（黄）は早めの確認を推奨、情報（青）は参考情報です。未対応のアラートがあるとSLA違反やステークのスラッシング（没収）のリスクがあります。"
+      },
+      "whatIsStaking": {
+        "title": "ステーキングとは？",
+        "description": "ステーキングは、Proverとしての活動を保証するためにQSトークンを担保として預け入れる仕組みです。正常に運用すれば報酬を獲得できますが、SLA違反や不正行為があった場合はスラッシング（担保没収）の対象となります。"
+      },
+      "empty": {
+        "title": "アラートはありません",
+        "description": "現在、対応が必要なアラートはありません。システムは正常に稼働しています。"
       },
       "filterLabel": "アラートフィルター",
       "listLabel": "アラート一覧",
@@ -521,16 +995,18 @@
         "signatureTimeout": {
           "title": "署名タイムアウト警告",
           "description": "署名リクエストの処理に通常より長い時間がかかっています。SLA違反のリスクがあります。",
-          "action": "今すぐ対応"
+          "action": "今すぐ対応",
+          "hint": "署名キューを確認し、該当リクエストを優先的に処理してください。"
         },
         "systemResource": {
           "title": "システムリソース警告",
           "description": "CPU使用率が80%を超えています。署名処理のパフォーマンスに影響が出る可能性があります。",
-          "action": "リソース確認"
+          "action": "リソース確認",
+          "hint": "不要なプロセスを停止するか、サーバーのスケールアップを検討してください。"
         },
         "maintenanceComplete": {
           "title": "定期メンテナンス完了",
-          "description": "定期システムメンテナンスが正常に完了しました。全サービスが稼働中です。"
+          "description": "定期システムメンテナンスが正常に完了しました。全サービスが稼働中です."
         }
       },
       "stake": {
@@ -543,8 +1019,28 @@
         "totalSlashing": "累計Slashing",
         "noViolations": "違反なし"
       },
+      "enterprise": {
+        "stakeTitle": "企業版ステーク条件",
+        "reducedRequirements": "優遇条件",
+        "minimumRequired": "最低必要額",
+        "vsPublic": "パブリック版は$400,000",
+        "operatorContribution": "運営企業負担分",
+        "partialCoverage": "一部を運営企業が負担",
+        "yourStake": "あなたの負担分",
+        "slashingProtection": "スラッシング保護",
+        "coverage": "カバー",
+        "maxCoverage": "最大${amount}まで",
+        "unlockPeriod": "ロック解除期間",
+        "days": "日",
+        "vs180Days": "パブリック版は180日",
+        "earlyExitPenalty": "早期解約ペナルティ",
+        "vs10Percent": "パブリック版は10%",
+        "stakeQuestions": "ステーク条件についてご質問がありますか？",
+        "contactSupport": "サポートに連絡"
+      },
       "risk": {
         "title": "リスクメーター",
+        "description": "違反を重ねるとリスクレベルが上昇し、スラッシングの可能性が高まります。",
         "level": "リスクレベル",
         "low": "低リスク",
         "medium": "中リスク",
@@ -557,6 +1053,7 @@
       "slashing": {
         "title": "Quadratic Slashingメカニズム",
         "description": "違反が累積すると、ペナルティは指数関数的に増加します。複数の違反を避けることが重要です。",
+        "userFriendlyDescription": "違反を繰り返すと、没収されるステークの割合が急激に増加します。例えば1回の違反で10%ですが、2回目は40%、3回目は90%となり、4回以上で全額没収＋資格剥奪となります。日々の運用を丁寧に行い、違反を防ぐことが最も重要です。",
         "formula": "Slashing = N² × 10%",
         "formulaDesc": "N = 過去90日間の違反回数",
         "tableLabel": "スラッシング率テーブル",
@@ -567,12 +1064,49 @@
         "fourPlus": "4回以上",
         "fullConfiscation": "全額没収 + 資格剥奪"
       },
+      "modal": {
+        "description": "詳細内容",
+        "recommendedAction": "推奨対応",
+        "addStake": {
+          "title": "ステークを追加",
+          "description": "追加のQSトークンをステークとして預け入れ、リスク耐性を高めることができます。",
+          "minimum": "最低追加額",
+          "amountLabel": "追加する金額",
+          "newTotal": "追加後の合計",
+          "confirm": "ステークを追加",
+          "success": "{amount} QSのステーク追加が完了しました"
+        },
+        "withdraw": {
+          "title": "報酬を引き出す",
+          "description": "獲得した報酬をウォレットに引き出すことができます。ステーク額は維持されます。",
+          "available": "引き出し可能な報酬",
+          "amountLabel": "引き出し金額",
+          "max": "全額を引き出す",
+          "addressLabel": "送金先アドレス",
+          "feeNotice": "ガス代として約0.002 ETH相当が必要です。トランザクション完了まで数分かかる場合があります。",
+          "confirm": "引き出す"
+        },
+        "processing": {
+          "title": "処理中...",
+          "description": "トランザクションを処理しています。しばらくお待ちください。"
+        },
+        "complete": {
+          "stakeTitle": "ステーク追加完了",
+          "stakeDescription": "ステークが正常に追加されました。新しいステーク額がダッシュボードに反映されます。",
+          "withdrawTitle": "引き出し完了",
+          "withdrawDescription": "報酬が正常に引き出されました。トランザクションが確認されると、ウォレットに反映されます。",
+          "close": "閉じる"
+        }
+      },
       "actions": {
         "title": "ステーク操作",
+        "description": "ステークの追加や報酬の引き出し、Exit申請を行えます。",
+        "checkingResources": "システムリソースを確認しています...",
         "addStake": {
           "title": "ステーク追加",
           "description": "追加の担保を預入してリスク耐性を高める",
-          "button": "追加する"
+          "button": "追加する",
+          "comingSoon": "ステーク追加機能は実装予定です"
         },
         "withdrawRewards": {
           "title": "報酬引き出し",
@@ -588,7 +1122,16 @@
     },
     "challenge": {
       "title": "チャレンジ対応",
+      "description": "Watcherからの違反報告への対応と、過去のチャレンジ履歴を確認できます。",
       "tabs": "チャレンジタブ",
+      "whatIsChallenge": {
+        "title": "チャレンジとは？",
+        "description": "チャレンジは、ネットワーク監視者（Watcher）があなたの署名処理に問題を検出した際に発行される違反報告です。チャレンジを受けた場合、24時間以内に弁明を提出する必要があります。正当な弁明が認められれば棄却されますが、認められない場合はステークの一部が没収（スラッシング）されます。"
+      },
+      "empty": {
+        "title": "チャレンジはありません",
+        "description": "現在、対応が必要なチャレンジはありません。引き続き正常な運用を維持してください。"
+      },
       "tab": {
         "notification": "通知",
         "defense": "弁明提出",
@@ -597,11 +1140,17 @@
       "notification": {
         "title": "チャレンジ通知",
         "deadline": "弁明期限",
+        "deadlineHint": "期限を過ぎると自動で敗訴となります",
         "applicant": "申立人",
+        "applicantHint": "ネットワーク監視者",
         "date": "日時",
         "violationType": "違反種類",
         "potentialSlashing": "潜在的Slashing",
+        "slashingHint": "弁明が認められない場合に没収",
+        "whatThisMeans": "これはどういう意味ですか？",
+        "whatThisMeansDesc": "あなたの署名処理に問題が報告されました。このまま放置するとステークの一部が没収されます。内容を確認し、問題がなければ弁明を提出してください。",
         "accusationContent": "申立内容",
+        "accusationContentHint": "Watcherが検出した問題の詳細です。",
         "accusationText": "リクエスト{requestId}に対して無効な署名が検出されました。署名検証中に以下のエラーが発生しました：",
         "signatureLength": "署名長: 期待値 {expected} バイト、実際 {actual} バイト",
         "errorCode": "検証結果",
@@ -609,18 +1158,32 @@
         "attachedEvidence": "添付証拠",
         "download": "ダウンロード",
         "submitDefense": "弁明を提出",
-        "viewGuidelines": "ガイドラインを見る"
+        "viewGuidelines": "ガイドラインを見る",
+        "nextSteps": "次のステップ",
+        "step1": "申立内容と添付証拠を確認してください",
+        "step2": "サーバーログや署名生成記録を収集してください",
+        "step3": "弁明タブで弁明書を作成・提出してください"
       },
       "violation": {
         "invalidSignature": "無効な署名",
+        "invalidSignatureHint": "署名データに問題がある可能性",
         "timeout": "タイムアウト",
-        "doubleSigning": "二重署名"
+        "timeoutHint": "応答時間がSLAを超過",
+        "doubleSigning": "二重署名",
+        "doubleSigningHint": "同じリクエストに複数回署名"
       },
       "defense": {
         "title": "弁明書の提出",
+        "titleHint": "チャレンジに対する反論を提出します。正当な理由があれば棄却されます。",
+        "guidance": {
+          "title": "弁明のポイント",
+          "description": "技術的な説明を具体的に記載し、サーバーログや署名生成記録などの証拠を添付してください。ネットワーク障害やシステムエラーなど、あなたの責任ではない原因がある場合は、それを証明する資料が有効です。"
+        },
         "contentLabel": "弁明内容",
+        "contentHint": "何が起こったのか、なぜ問題がないと考えるのかを説明してください。",
         "placeholder": "チャレンジに対する詳細な弁明を記載してください。技術的な説明、状況の説明、反論の根拠などを含めてください。",
         "evidenceLabel": "証拠のアップロード",
+        "evidenceHint": "サーバーログ、署名生成記録、ネットワーク状況のスクリーンショットなど",
         "uploadInstruction": "ファイルをドラッグ＆ドロップするか、クリックしてアップロード",
         "fileFormats": "PDF, JSON, TXT, PNG, JPG（最大10MB）",
         "removeFile": "{name}を削除",
@@ -639,6 +1202,7 @@
       },
       "history": {
         "title": "チャレンジ履歴",
+        "description": "過去に受けたチャレンジとその結果を確認できます。",
         "challengeId": "チャレンジID",
         "date": "日時",
         "violationType": "違反種類",
@@ -649,6 +1213,77 @@
         "pending": "審査中",
         "won": "棄却",
         "lost": "認容"
+      }
+    },
+    "settings": {
+      "title": "設定",
+      "description": "アカウント設定、通知設定、セキュリティ設定を管理できます。",
+      "tabs": "設定タブ",
+      "save": "保存",
+      "saved": "保存しました",
+      "tab": {
+        "profile": "プロフィール",
+        "notifications": "通知",
+        "security": "セキュリティ"
+      },
+      "profile": {
+        "basicInfo": "基本情報",
+        "proverId": "Prover ID",
+        "organization": "組織名",
+        "email": "メールアドレス",
+        "country": "国",
+        "accountStatus": "アカウントステータス",
+        "tier": "ティア",
+        "status": "ステータス",
+        "joinedDate": "登録日",
+        "language": "言語設定",
+        "languageDescription": "表示言語を選択してください。変更は即座に反映されます。"
+      },
+      "notifications": {
+        "title": "通知設定",
+        "description": "アラートやレポートの受信方法を設定します。",
+        "email": {
+          "title": "メール通知",
+          "description": "重要なアラートをメールで受け取る"
+        },
+        "slack": {
+          "title": "Slack通知",
+          "description": "Slackでリアルタイムにアラートを受信"
+        },
+        "slaWarning": {
+          "title": "SLA警告",
+          "description": "SLA違反のリスクがある場合に通知"
+        },
+        "dailyReport": {
+          "title": "日次レポート",
+          "description": "毎日のパフォーマンスサマリーを受け取る"
+        },
+        "challengeAlert": {
+          "title": "チャレンジアラート",
+          "description": "新しいチャレンジが発生した場合に即座に通知"
+        }
+      },
+      "security": {
+        "twoFactor": {
+          "title": "二要素認証",
+          "description": "アカウントのセキュリティを強化するために、二要素認証を有効にしてください。",
+          "enabled": "有効",
+          "disabled": "無効",
+          "lastUsed": "最終使用",
+          "manage": "管理"
+        },
+        "apiKeys": {
+          "title": "APIキー",
+          "description": "外部システムとの連携用のAPIキーを管理します。",
+          "active": "アクティブなキー",
+          "manage": "APIキーを管理"
+        },
+        "ipWhitelist": {
+          "title": "IPホワイトリスト",
+          "description": "署名リクエストを許可するIPアドレスを制限します。",
+          "add": "IPアドレスを追加",
+          "remove": "削除"
+        }
       }
     },
     "exit": {
@@ -731,6 +1366,29 @@
         "signaturesProcessed": "処理した署名数",
         "count": "件",
         "backToHome": "ホームに戻る"
+      },
+      "stages": {
+        "inProgress": "処理中",
+        "completed": "完了",
+        "demoNote": "（デモ用）次のステージに進む",
+        "demoNext": "次へ進む",
+        "queueProcessing": {
+          "title": "署名キュー処理中",
+          "description": "保留中の署名リクエストを処理しています。すべてのリクエストが完了するまでお待ちください。",
+          "pendingSignatures": "残りの署名リクエスト",
+          "remaining": "件",
+          "estimatedTime": "推定完了時間",
+          "within24h": "24時間以内"
+        },
+        "coolingPeriod": {
+          "title": "クーリング期間中",
+          "description": "セキュリティのため、7日間のクーリング期間が設けられています。この期間中はステークの引き出しができません。",
+          "startDate": "開始日",
+          "endDate": "終了予定日",
+          "progress": "経過日数",
+          "days": "日",
+          "notice": "クーリング期間中も、未解決のチャレンジがあった場合はスラッシングの対象となる可能性があります。"
+        }
       },
       "thankYou": {
         "title": "Quantum Shieldをご利用いただきありがとうございました",

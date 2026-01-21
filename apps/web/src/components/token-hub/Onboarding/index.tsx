@@ -18,6 +18,7 @@ import {
   Atom,
   Wallet,
   FileText,
+  Cpu,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
@@ -410,6 +411,49 @@ export function TokenHubOnboarding() {
               {t('decay.note')}
             </p>
           </div>
+        </Card>
+
+        {/* Become a Prover - New Section */}
+        <Card padding="lg" className="mb-8 border-2 border-hinomaru/30">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-hinomaru/10 flex items-center justify-center flex-shrink-0">
+              <Cpu className="w-6 h-6 text-hinomaru" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold mb-2">{t('prover.title')}</h2>
+              <p className="text-foreground-secondary">{t('prover.description')}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="bg-background-secondary rounded-xl p-4">
+              <div className="text-sm text-foreground-tertiary mb-1">{t('prover.stake.label')}</div>
+              <div className="text-lg font-bold font-mono text-gold">{t('prover.stake.value')}</div>
+            </div>
+            <div className="bg-background-secondary rounded-xl p-4">
+              <div className="text-sm text-foreground-tertiary mb-1">{t('prover.reward.label')}</div>
+              <div className="text-lg font-bold font-mono text-success">{t('prover.reward.value')}</div>
+            </div>
+            <div className="bg-background-secondary rounded-xl p-4">
+              <div className="text-sm text-foreground-tertiary mb-1">{t('prover.status.label')}</div>
+              <div className="text-lg font-bold">{t('prover.status.value')}</div>
+            </div>
+          </div>
+
+          <Link
+            href="/prover/landing"
+            className={cn(
+              'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold',
+              'bg-gradient-to-r from-hinomaru to-hinomaru-400 text-white',
+              'transition-all duration-200',
+              'hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(188,0,45,0.4)]',
+              'focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+            )}
+          >
+            <Cpu className="w-5 h-5" aria-hidden="true" />
+            {t('prover.button')}
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
         </Card>
 
         {/* CTA Section */}

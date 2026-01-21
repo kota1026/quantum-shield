@@ -24,16 +24,20 @@ Phase 6 進捗確認        ← 進捗状況を表示
 以下のファイルを**並列で読み込み**、内容を理解してから作業開始：
 
 ```
+READ PARALLEL（実装ガイド）:  ★ 最重要
+├── docs/specs/IMPLEMENTATION_GUIDE.md    ← これ1つで実装できる！
+├── docs/design/DESIGN_SYSTEM.md          ← デザイン標準
+└── docs/specs/DATA_MODEL.md              ← API型・エンティティ
+
 READ PARALLEL（プロンプト）:
 ├── docs_new/02_agents_prompt/02_prompts/38_orchestrator.md
 ├── docs_new/02_agents_prompt/02_prompts/30_ui_impl.md
 ├── docs_new/02_agents_prompt/02_prompts/31_design_pir.md
 ├── docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md
-├── docs_new/01_phase/06_phase6/PHASE6_PLANNING_PROPOSAL.md
-└── docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md  ← 進捗管理ファイル
+└── docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md  ← 進捗管理
 
-READ PARALLEL（デザインシステム）:
-├── docs_new/01_phase/04_phase4/01_design/assets/design-concept-5-japan-premium.html  ← 必須！
+READ PARALLEL（デザインアセット）:
+├── docs/design/assets/design-concept-5-japan-premium.html  ← 必須！
 ├── apps/web/tailwind.config.ts
 └── apps/web/src/styles/globals.css
 ```
@@ -62,19 +66,19 @@ module.exports = {
 ### 0.3 対象システムのモック一覧取得
 
 ```bash
-ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
+ls docs/design/mocks/{app}/*.html
 ```
 
 | System | ID | Path | 画面数 |
 |--------|:--:|------|:------:|
-| Consumer App | 01 | `system_01_consumer/wip/mocks/` | 19 |
-| Token Hub | 02 | `system_02_token_hub/wip/mocks/` | 10 |
-| Governance | 03 | `system_03_governance/wip/mocks/` | 6 |
-| Prover Portal | 04 | `system_04_prover_portal/wip/mocks/` | 11 |
-| Observer | 05 | `system_05_observer/wip/mocks/` | 7 |
-| Explorer | 06 | `system_06_explorer/wip/mocks/` | 8 |
-| Enterprise Admin | 07 | `system_07_enterprise/wip/mocks/` | 25 |
-| QS Admin | 08 | `system_08_qs_admin/wip/mocks/` | 12 |
+| Consumer App | 01 | `docs/design/mocks/consumer/` | 19 |
+| Token Hub | 02 | `docs/design/mocks/token-hub/` | 10 |
+| Governance | 03 | `docs/design/mocks/governance/` | 6 |
+| Prover Portal | 04 | `docs/design/mocks/prover/` | 11 |
+| Observer | 05 | `docs/design/mocks/observer/` | 7 |
+| Explorer | 06 | `docs/design/mocks/explorer/` | 8 |
+| Enterprise Admin | 07 | `docs/design/mocks/enterprise/` | 25 |
+| QS Admin | 08 | `docs/design/mocks/admin/` | 12 |
 
 ### 0.4 初期化完了報告
 
@@ -481,14 +485,24 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 
 ## ファイル参照一覧
 
-### デザインシステム（PHASE 0 必須読み込み）
+### 実装ドキュメント（★最重要）
 
 | 用途 | パス | 重要度 |
 |------|------|:------:|
-| **デザインコンセプト** | `docs_new/01_phase/04_phase4/01_design/assets/design-concept-5-japan-premium.html` | ⚠️ 必須 |
+| **実装ガイド** | `docs/specs/IMPLEMENTATION_GUIDE.md` | ⚠️ 最重要 |
+| **デザインシステム** | `docs/design/DESIGN_SYSTEM.md` | ⚠️ 必須 |
+| **データモデル** | `docs/specs/DATA_MODEL.md` | ⚠️ 必須 |
+| コードベース地図 | `docs/specs/CODEBASE_MAP.md` | 参照 |
+| URL一覧 | `docs/specs/URL_REFERENCE.md` | 参照 |
+
+### デザインアセット
+
+| 用途 | パス | 重要度 |
+|------|------|:------:|
+| **デザインコンセプト** | `docs/design/assets/design-concept-5-japan-premium.html` | ⚠️ 必須 |
+| HTMLモック | `docs/design/mocks/{app}/` | 参照 |
 | Tailwind設定 | `apps/web/tailwind.config.ts` | ⚠️ 必須 |
 | CSS Variables | `apps/web/src/styles/globals.css` | ⚠️ 必須 |
-| PostCSS設定 | `apps/web/postcss.config.js` | ⚠️ 必須 |
 
 ### プロンプト
 
@@ -502,15 +516,21 @@ ls docs_new/01_phase/04_phase4/01_design/system_{ID}_{NAME}/wip/mocks/*.html
 | API実装 | `docs_new/02_agents_prompt/02_prompts/34_api_impl.md` |
 | E2Eテスト | `docs_new/02_agents_prompt/02_prompts/37_e2e_test.md` |
 
-### 計画・仕様書
+### 進捗・計画
 
 | 用途 | パス |
 |------|------|
-| ペルソナ定義 | `docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md` |
-| 計画書 | `docs_new/01_phase/06_phase6/PHASE6_PLANNING_PROPOSAL.md` |
 | 進捗管理 | `docs_new/01_phase/06_phase6/PHASE6_PROGRESS.md` |
-| リサーチ | `docs_new/01_phase/06_phase6/AI_AGENTIC_UIUX_RESEARCH.md` |
-| 実装計画 | `docs_new/01_phase/06_phase6/AI_AGENTIC_IMPLEMENTATION_PLAN.md` |
+| ペルソナ定義 | `docs_new/01_phase/04_phase4/01_design/DESIGN_REVIEW_AGENTS.md` |
+
+### 経緯・履歴（参照用）
+
+| 用途 | パス |
+|------|------|
+| 経緯サマリー | `docs/process-history/README.md` |
+| Phase 1 | `docs/process-history/phase1/` |
+| Phase 2 | `docs/process-history/phase2/` |
+| Phase 3 | `docs/process-history/phase3/` |
 
 ---
 
@@ -552,3 +572,13 @@ https://github.com/kota1026/quantum-shield/compare/main...{branch-name}
 ### 3. 進捗更新
 
 `PHASE6_PROGRESS.md` を更新済みか確認。未更新なら更新する。
+
+---
+
+## ドキュメント更新履歴
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 2026-01-XX | 初版作成 |
+| 1.1 | 2026-01-22 | docs/フォルダ構造整理、IMPLEMENTATION_GUIDE.md統合 |
+| 1.2 | 2026-01-22 | IMPLEMENTATION_GUIDE.md v1.3対応（全8アプリ詳細仕様、テンプレート追加） |

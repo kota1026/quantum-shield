@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { EnterpriseDashboard } from '@/components/enterprise/Dashboard';
+import { EnterpriseLanding } from '@/components/enterprise/EnterpriseLanding';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -8,7 +8,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'enterprise.dashboard.meta' });
+  const t = await getTranslations({ locale, namespace: 'enterprise.landing.meta' });
 
   return {
     title: t('title'),
@@ -17,5 +17,5 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function EnterpriseLandingPage() {
-  return <EnterpriseDashboard />;
+  return <EnterpriseLanding />;
 }

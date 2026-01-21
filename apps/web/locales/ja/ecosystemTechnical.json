@@ -1,0 +1,252 @@
+{
+  "meta": {
+    "title": "技術仕様 | Quantum Shield",
+    "description": "Quantum Shieldの技術仕様 - アーキテクチャ、暗号アルゴリズム、シーケンス、パラメータの詳細"
+  },
+  "title": "技術仕様",
+  "description": "Quantum Shieldのアーキテクチャ、量子耐性暗号、処理フロー、システムパラメータの詳細仕様です。",
+  "backToEcosystem": "エコシステムに戻る",
+  "toc": {
+    "title": "目次",
+    "architecture": "アーキテクチャ（3層構造）",
+    "crypto": "量子耐性暗号",
+    "sequences": "処理フロー（シーケンス）",
+    "roles": "参加者の役割",
+    "specs": "主要パラメータ",
+    "principles": "不変の原則"
+  },
+  "architecture": {
+    "title": "アーキテクチャ",
+    "description": "Quantum Shieldは、L1（Ethereum）、L3（Aegis Chain）、ユーザー層の3層構造で構成されています。L2を使用せず、専用のL3チェーンでPBFTコンセンサスと量子耐性署名を実現します。",
+    "layers": {
+      "l1": {
+        "title": "L1: Ethereum（決済層）",
+        "description": "最終的な資産の決済とセキュリティを担保する基盤層",
+        "components": [
+          "L1Vault: ロック/アンロック/チャレンジの実行",
+          "SPHINCSVerifier: Prover署名のオンチェーン検証",
+          "ProverRegistry: Prover管理とスラッシング",
+          "24時間/7日間のタイムロック強制"
+        ]
+      },
+      "l3": {
+        "title": "L3: Aegis Chain（シーケンシング層）",
+        "description": "トランザクションの順序付けと合意形成を担う専用チェーン",
+        "components": [
+          "PBFTコンセンサス（4ノード、3/4署名必要）",
+          "5秒間隔のブロック生成",
+          "VRFによるProverランダム選定",
+          "すべての状態変更を透明に記録"
+        ]
+      },
+      "user": {
+        "title": "ユーザー層（セルフカストディ）",
+        "description": "秘密鍵がユーザーのデバイスにのみ存在するセルフカストディ設計",
+        "components": [
+          "Dilithium鍵ペアの生成（クライアント側）",
+          "メッセージ署名（自己管理）",
+          "秘密鍵がシステムに渡ることは一切なし"
+        ]
+      }
+    }
+  },
+  "crypto": {
+    "title": "量子耐性暗号",
+    "description": "Quantum ShieldはNIST FIPS認定のアルゴリズムのみを使用します。現在のブロックチェーンで使われるECDSA/secp256k1は量子コンピュータのShorアルゴリズムで解読可能なため、使用を禁止しています。",
+    "algorithms": {
+      "dilithium": {
+        "name": "Dilithium-III",
+        "standard": "FIPS 204",
+        "use": "ユーザー署名 & L3コンセンサス",
+        "description": "格子ベースのデジタル署名。ユーザーがアンロック要求に署名し、L3ノードがブロックに署名するために使用。"
+      },
+      "sphincs": {
+        "name": "SPHINCS+-128s",
+        "standard": "FIPS 205",
+        "use": "Prover署名",
+        "description": "ハッシュベースのデジタル署名。Proverがアンロック承認に署名。7,856バイトの署名サイズ。"
+      },
+      "sha3": {
+        "name": "SHA3-256",
+        "standard": "FIPS 202",
+        "use": "すべてのハッシュ処理",
+        "description": "状態ルート計算、ブロックハッシュ、マークルツリーなど、すべてのハッシュ処理に使用。"
+      }
+    },
+    "prohibited": {
+      "title": "使用禁止（量子脆弱）",
+      "items": [
+        "ECDSA / secp256k1 - Shorアルゴリズムで解読可能",
+        "SHA-256 / keccak256 - Groverアルゴリズムで攻撃可能"
+      ]
+    }
+  },
+  "sequences": {
+    "title": "処理フロー",
+    "description": "ロックからアンロックまでの詳細なシーケンス。各フローはスマートコントラクトとL3チェーンで実行されます。",
+    "lock": {
+      "title": "ロック（資産を預ける）",
+      "steps": [
+        {"step": 1, "action": "ユーザーがDilithium署名付きでlock()を呼び出し", "detail": "ETHとDilithium公開鍵ハッシュを送信"},
+        {"step": 2, "action": "L3 Aegisで4ノードBFT合意", "detail": "Dilithium検証、nonce検証、expiry検証を実行"},
+        {"step": 3, "action": "状態ルートSR_0を計算", "detail": "SHA3-256でロック情報をハッシュ化、lock_id発行"},
+        {"step": 4, "action": "L1 Vaultに預け入れ", "detail": "ERC20 Transfer、約135K gas"},
+        {"step": 5, "action": "Lockedイベントを発行", "detail": "ロック完了、L3に同期通知"}
+      ],
+      "gas": "約135,000 gas（約$7）",
+      "time": "即時"
+    },
+    "unlock": {
+      "title": "アンロック（通常パス）",
+      "steps": [
+        {"step": 1, "action": "ユーザーがDilithium署名でinitiateUnlock()を呼び出し", "detail": "lock_id、金額、宛先を指定"},
+        {"step": 2, "action": "L3でBFT合意、VRFでランダム性を取得", "detail": "Chainlink VRF、タイムアウト5分"},
+        {"step": 3, "action": "Proverを選定（2/5）", "detail": "ステーク加重でランダム選定、重複なし"},
+        {"step": 4, "action": "選定されたProverがSPHINCS+で署名", "detail": "HSM内で2-of-3承認後、5分以内に署名生成"},
+        {"step": 5, "action": "L1にUnlockをSubmit", "detail": "SR_0照合、SPHINCS+検証×2（約400K gas）"},
+        {"step": 6, "action": "24時間のタイムロック開始", "detail": "この間、キャンセル・変更不可、監視ボットが監視"},
+        {"step": 7, "action": "finalizeUnlock()で資産送金", "detail": "Time Lock完了確認後、ETH送金"}
+      ],
+      "gas": "約490,000 gas（約$27）",
+      "time": "24時間（最低保証、変更不可）"
+    },
+    "emergency": {
+      "title": "緊急アンロック",
+      "trigger": "Proverが72時間応答しない場合に自動発動",
+      "steps": [
+        {"step": 1, "action": "タイムアウト検出（72時間）", "detail": "Proverからの署名が得られない、またはVRF障害"},
+        {"step": 2, "action": "緊急モードでL1にSubmit", "detail": "Prover署名なし、Emergency Modeフラグ"},
+        {"step": 3, "action": "緊急ボンドを預託", "detail": "MAX(0.5 ETH, 金額の5%)を担保として預け入れ"},
+        {"step": 4, "action": "7日間の強化監視期間", "detail": "Observerが24時間365日監視、SR遷移完全検証"},
+        {"step": 5, "action": "7日後にfinalizeEmergencyUnlock()", "detail": "Challenge無しならボンド返却、ETH送金"}
+      ],
+      "gas": "約550,000 gas（約$30）+ ボンド",
+      "time": "7日間"
+    }
+  },
+  "roles": {
+    "title": "参加者の役割",
+    "description": "Quantum Shieldエコシステムを支える3つの主要な役割。それぞれが相互に監視し、システムの安全性を確保します。",
+    "responsibilitiesLabel": "責任",
+    "actionsLabel": "アクション",
+    "requirementsLabel": "要件",
+    "benefitsLabel": "メリット",
+    "stakeLabel": "ステーク",
+    "uptimeLabel": "稼働率",
+    "prover": {
+      "title": "Prover（署名プロバイダ）",
+      "description": "量子耐性署名を生成し、アンロック要求を承認する中核的な役割。HSMで秘密鍵を管理し、2/5閾値署名の一部を担当。",
+      "responsibilities": [
+        "VRFで選定されたらSPHINCS+署名を生成",
+        "5分以内に署名をL3に提出",
+        "HSMで秘密鍵を安全に管理",
+        "2-of-3マルチシグで内部承認"
+      ],
+      "requirements": {
+        "stake": "最低1 ETH（Phase 1）/ $400K（本番）",
+        "hsm": "HSM必須（AWS CloudHSM等）",
+        "uptime": "99.9%以上推奨"
+      }
+    },
+    "observer": {
+      "title": "Observer（監視者）",
+      "description": "不正なアンロックを監視し、異議申立て（Challenge）で報酬を獲得。24時間監視でネットワークの安全性に貢献。",
+      "responsibilities": [
+        "すべての待機中アンロックを監視",
+        "Dilithium署名の再検証で不正検知",
+        "異議申立て（Challenge）を提出",
+        "48時間の防御期間後に判定"
+      ],
+      "requirements": {
+        "stake": "最低5 ETH",
+        "monitoring": "24時間監視推奨"
+      }
+    },
+    "user": {
+      "title": "ユーザー（資産保有者）",
+      "description": "暗号資産を量子耐性で保護する一般利用者。秘密鍵を自己管理し、24時間待機後に安全に資産を受け取る。",
+      "actions": [
+        "ETHをL1Vaultにロック",
+        "Dilithium鍵ペアを自己管理",
+        "アンロック要求をDilithium署名",
+        "24時間待機後に資産受領"
+      ],
+      "benefits": [
+        "将来の量子攻撃から資産を保護",
+        "秘密鍵は自分だけが管理",
+        "透明性のあるオンチェーン処理"
+      ]
+    }
+  },
+  "specs": {
+    "title": "主要パラメータ",
+    "description": "システムの重要な設定値。タイムロックはスマートコントラクトにハードコードされており、変更不可能です。",
+    "timing": {
+      "title": "タイムロック（変更不可）",
+      "items": {
+        "normalUnlock": {"label": "通常アンロック", "value": "24時間", "description": "Prover署名後の待機期間"},
+        "emergencyUnlock": {"label": "緊急アンロック", "value": "7日間", "description": "緊急パス発動後の監視期間"},
+        "proverTimeout": {"label": "Proverタイムアウト", "value": "72時間", "description": "これを超えると緊急パス発動"},
+        "challengeDefense": {"label": "異議防御期間", "value": "48時間", "description": "Proverが反論できる期間"}
+      }
+    },
+    "signatures": {
+      "title": "署名要件",
+      "items": {
+        "threshold": {"label": "Prover閾値", "value": "2/5", "description": "5人中2人の署名が必要"},
+        "vrfTimeout": {"label": "VRFタイムアウト", "value": "5分", "description": "ランダム性取得の制限時間"},
+        "sigDeadline": {"label": "署名期限", "value": "5分", "description": "Proverが署名を提出する期限"}
+      }
+    },
+    "staking": {
+      "title": "ステーキング要件",
+      "items": {
+        "proverMin": {"label": "Prover最低ステーク", "value": "1 ETH", "description": "Phase 1の最低要件"},
+        "observerMin": {"label": "Observer最低ステーク", "value": "5 ETH", "description": "監視者として参加するための最低額"},
+        "emergencyBond": {"label": "緊急ボンド", "value": "0.5 ETH + 5%", "description": "緊急アンロック発動時の預託金"}
+      }
+    },
+    "limits": {
+      "title": "制限",
+      "items": {
+        "tvlCap": {"label": "TVL上限", "value": "400 ETH", "description": "Phase 1のロック総額上限"},
+        "minLock": {"label": "最低ロック額", "value": "0.01 ETH", "description": "ロック可能な最低金額"}
+      }
+    }
+  },
+  "principles": {
+    "title": "不変の原則（Core Principles）",
+    "description": "これらの原則はスマートコントラクトでハードコードされ、ガバナンス投票によっても変更不可能な「憲法」として定義されています。",
+    "items": {
+      "cp1": {
+        "title": "CP-1: 完全な量子耐性",
+        "description": "すべての署名とハッシュはNIST FIPS準拠。Dilithium + SPHINCS+ + SHA3-256のみ使用。ECDSA、SHA-256は禁止。"
+      },
+      "cp2": {
+        "title": "CP-2: セルフカストディ",
+        "description": "ユーザーの秘密鍵はシステムに保存されない。クライアント側での署名のみ。資産の管理権はユーザーに帰属。"
+      },
+      "cp3": {
+        "title": "CP-3: タイムロックの存在",
+        "description": "タイムロックは0に設定できない。24時間（通常）/ 7日間（緊急）は最低保証。不正検知の時間を確保。"
+      },
+      "cp4": {
+        "title": "CP-4: スラッシングの存在",
+        "description": "スラッシングメカニズムは削除不可。N²×10%の2次関数的ペナルティで共謀による不正を強力に抑止。"
+      },
+      "cp5": {
+        "title": "CP-5: 透明性",
+        "description": "すべての操作はオンチェーンで検証可能。秘密の計算は存在しない。L3チェーンに全状態変更を記録。"
+      }
+    }
+  },
+  "cta": {
+    "title": "Quantum Shieldを始めよう",
+    "description": "技術仕様を理解したら、実際にアプリを使ってみましょう。",
+    "getStarted": "Consumer Appで始める",
+    "backToApps": "アプリ一覧に戻る"
+  },
+  "footer": {
+    "copyright": "© 2026 Quantum Shield. All rights reserved."
+  }
+}

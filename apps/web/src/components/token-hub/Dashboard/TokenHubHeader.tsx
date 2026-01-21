@@ -6,7 +6,8 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
-import { Shield, Settings } from 'lucide-react';
+import { EcosystemLink } from '@/components/shared/EcosystemLink';
+import { Shield, Settings, Vote, Eye, Cpu } from 'lucide-react';
 
 function WalletButton() {
   const t = useTranslations('token-hub.common.header');
@@ -143,11 +144,14 @@ export function TokenHubHeader() {
 
       {/* Right side actions */}
       <div className="flex items-center gap-3 order-2 md:order-3">
+        {/* Ecosystem Link */}
+        <EcosystemLink variant="inline" className="hidden xl:flex" />
+
         {/* Consumer App Link */}
         <Link
           href="/consumer/dashboard"
           className={cn(
-            'flex items-center gap-2 px-4 py-2',
+            'flex items-center gap-2 px-3 py-2',
             'border border-border rounded-full',
             'text-sm font-medium text-foreground-secondary',
             'hover:border-gold hover:text-gold transition-colors',
@@ -157,6 +161,54 @@ export function TokenHubHeader() {
         >
           <Shield className="w-4 h-4" aria-hidden="true" />
           <span className="hidden sm:inline">{t('consumerApp')}</span>
+        </Link>
+
+        {/* Governance Link */}
+        <Link
+          href="/governance/landing"
+          className={cn(
+            'flex items-center gap-2 px-3 py-2',
+            'border border-border rounded-full',
+            'text-sm font-medium text-foreground-secondary',
+            'hover:border-gold hover:text-gold transition-colors',
+            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+          )}
+          aria-label={t('governance')}
+        >
+          <Vote className="w-4 h-4" aria-hidden="true" />
+          <span className="hidden sm:inline">{t('governance')}</span>
+        </Link>
+
+        {/* Observer Portal Link */}
+        <Link
+          href="/observer/dashboard"
+          className={cn(
+            'flex items-center gap-2 px-3 py-2',
+            'border border-border rounded-full',
+            'text-sm font-medium text-foreground-secondary',
+            'hover:border-gold hover:text-gold transition-colors',
+            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+          )}
+          aria-label={t('observerPortal')}
+        >
+          <Eye className="w-4 h-4" aria-hidden="true" />
+          <span className="hidden sm:inline">{t('observerPortal')}</span>
+        </Link>
+
+        {/* Prover Portal Link */}
+        <Link
+          href="/prover/landing"
+          className={cn(
+            'flex items-center gap-2 px-3 py-2',
+            'border border-border rounded-full',
+            'text-sm font-medium text-foreground-secondary',
+            'hover:border-gold hover:text-gold transition-colors',
+            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+          )}
+          aria-label={t('proverPortal')}
+        >
+          <Cpu className="w-4 h-4" aria-hidden="true" />
+          <span className="hidden sm:inline">{t('proverPortal')}</span>
         </Link>
 
         {/* Settings Button */}

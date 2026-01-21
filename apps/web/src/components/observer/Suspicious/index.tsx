@@ -122,10 +122,10 @@ export function SuspiciousMonitor() {
               <span className="text-2xl">✓</span>
             </div>
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              No Suspicious Transactions
+              {t('emptyState.title')}
             </h2>
             <p className="text-foreground-secondary">
-              All transactions are currently within normal parameters.
+              {t('emptyState.description')}
             </p>
           </div>
         )}

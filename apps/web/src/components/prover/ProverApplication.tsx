@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,14 +14,24 @@ import {
   Zap,
   Lock,
   Building,
+  Building2,
   Globe,
   Mail,
   FileText,
   AlertTriangle,
+  Ticket,
+  CheckCircle2,
+  Headphones,
+  Server,
+  Gift,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
+// Application type: public or enterprise (via invitation)
+type ApplicationType = 'public' | 'enterprise';
 
 interface FormData {
   // Step 1: Basic Info
@@ -63,14 +74,60 @@ const initialFormData: FormData = {
   agreeStake: false,
 };
 
+// Mock invitation data
+const mockInvitation = {
+  code: 'ENT-INV-2026-ACME',
+  operatorName: 'ACME Corporation',
+  plan: 'Enterprise Plus',
+  benefits: {
+    managedInfra: true,
+    dedicatedSupport: true,
+    slaGuarantee: '99.99%',
+    minRevenue: '24 ETH/mo',
+  },
+  expiresAt: '2026-02-28',
+  contactPerson: '山田 太郎',
+  contactEmail: 'yamada@acme.co.jp',
+};
+
 export function ProverApplication() {
   const t = useTranslations('prover');
+  const locale = useLocale();
+  const searchParams = useSearchParams();
+  const [applicationType, setApplicationType] = useState<ApplicationType>('public');
+  const [invitationCode, setInvitationCode] = useState('');
+  const [invitationVerified, setInvitationVerified] = useState(false);
+  const [invitationError, setInvitationError] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [applicationId] = useState(
     `PRV-2026-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`
   );
+
+  // Check for invitation code in URL
+  useEffect(() => {
+    const code = searchParams.get('invite');
+    if (code) {
+      setApplicationType('enterprise');
+      setInvitationCode(code);
+      // Auto-verify if matches mock
+      if (code === mockInvitation.code) {
+        setInvitationVerified(true);
+      }
+    }
+  }, [searchParams]);
+
+  const verifyInvitation = () => {
+    // Mock verification - in production, this would call an API
+    if (invitationCode === mockInvitation.code) {
+      setInvitationVerified(true);
+      setInvitationError(false);
+    } else {
+      setInvitationError(true);
+      setInvitationVerified(false);
+    }
+  };
 
   const steps = [
     { number: 1, label: t('application.steps.basicInfo') },
@@ -140,13 +197,207 @@ export function ProverApplication() {
     setIsSubmitted(true);
   };
 
+  // Full ISO 3166-1 country list
+  const allCountries = [
+    { value: 'AF', ja: 'アフガニスタン', en: 'Afghanistan' },
+    { value: 'AL', ja: 'アルバニア', en: 'Albania' },
+    { value: 'DZ', ja: 'アルジェリア', en: 'Algeria' },
+    { value: 'AD', ja: 'アンドラ', en: 'Andorra' },
+    { value: 'AO', ja: 'アンゴラ', en: 'Angola' },
+    { value: 'AG', ja: 'アンティグア・バーブーダ', en: 'Antigua and Barbuda' },
+    { value: 'AR', ja: 'アルゼンチン', en: 'Argentina' },
+    { value: 'AM', ja: 'アルメニア', en: 'Armenia' },
+    { value: 'AU', ja: 'オーストラリア', en: 'Australia' },
+    { value: 'AT', ja: 'オーストリア', en: 'Austria' },
+    { value: 'AZ', ja: 'アゼルバイジャン', en: 'Azerbaijan' },
+    { value: 'BS', ja: 'バハマ', en: 'Bahamas' },
+    { value: 'BH', ja: 'バーレーン', en: 'Bahrain' },
+    { value: 'BD', ja: 'バングラデシュ', en: 'Bangladesh' },
+    { value: 'BB', ja: 'バルバドス', en: 'Barbados' },
+    { value: 'BY', ja: 'ベラルーシ', en: 'Belarus' },
+    { value: 'BE', ja: 'ベルギー', en: 'Belgium' },
+    { value: 'BZ', ja: 'ベリーズ', en: 'Belize' },
+    { value: 'BJ', ja: 'ベナン', en: 'Benin' },
+    { value: 'BT', ja: 'ブータン', en: 'Bhutan' },
+    { value: 'BO', ja: 'ボリビア', en: 'Bolivia' },
+    { value: 'BA', ja: 'ボスニア・ヘルツェゴビナ', en: 'Bosnia and Herzegovina' },
+    { value: 'BW', ja: 'ボツワナ', en: 'Botswana' },
+    { value: 'BR', ja: 'ブラジル', en: 'Brazil' },
+    { value: 'BN', ja: 'ブルネイ', en: 'Brunei' },
+    { value: 'BG', ja: 'ブルガリア', en: 'Bulgaria' },
+    { value: 'BF', ja: 'ブルキナファソ', en: 'Burkina Faso' },
+    { value: 'BI', ja: 'ブルンジ', en: 'Burundi' },
+    { value: 'CV', ja: 'カーボベルデ', en: 'Cabo Verde' },
+    { value: 'KH', ja: 'カンボジア', en: 'Cambodia' },
+    { value: 'CM', ja: 'カメルーン', en: 'Cameroon' },
+    { value: 'CA', ja: 'カナダ', en: 'Canada' },
+    { value: 'CF', ja: '中央アフリカ', en: 'Central African Republic' },
+    { value: 'TD', ja: 'チャド', en: 'Chad' },
+    { value: 'CL', ja: 'チリ', en: 'Chile' },
+    { value: 'CN', ja: '中国', en: 'China' },
+    { value: 'CO', ja: 'コロンビア', en: 'Colombia' },
+    { value: 'KM', ja: 'コモロ', en: 'Comoros' },
+    { value: 'CG', ja: 'コンゴ共和国', en: 'Congo' },
+    { value: 'CR', ja: 'コスタリカ', en: 'Costa Rica' },
+    { value: 'HR', ja: 'クロアチア', en: 'Croatia' },
+    { value: 'CU', ja: 'キューバ', en: 'Cuba' },
+    { value: 'CY', ja: 'キプロス', en: 'Cyprus' },
+    { value: 'CZ', ja: 'チェコ', en: 'Czechia' },
+    { value: 'DK', ja: 'デンマーク', en: 'Denmark' },
+    { value: 'DJ', ja: 'ジブチ', en: 'Djibouti' },
+    { value: 'DM', ja: 'ドミニカ国', en: 'Dominica' },
+    { value: 'DO', ja: 'ドミニカ共和国', en: 'Dominican Republic' },
+    { value: 'EC', ja: 'エクアドル', en: 'Ecuador' },
+    { value: 'EG', ja: 'エジプト', en: 'Egypt' },
+    { value: 'SV', ja: 'エルサルバドル', en: 'El Salvador' },
+    { value: 'GQ', ja: '赤道ギニア', en: 'Equatorial Guinea' },
+    { value: 'ER', ja: 'エリトリア', en: 'Eritrea' },
+    { value: 'EE', ja: 'エストニア', en: 'Estonia' },
+    { value: 'SZ', ja: 'エスワティニ', en: 'Eswatini' },
+    { value: 'ET', ja: 'エチオピア', en: 'Ethiopia' },
+    { value: 'FJ', ja: 'フィジー', en: 'Fiji' },
+    { value: 'FI', ja: 'フィンランド', en: 'Finland' },
+    { value: 'FR', ja: 'フランス', en: 'France' },
+    { value: 'GA', ja: 'ガボン', en: 'Gabon' },
+    { value: 'GM', ja: 'ガンビア', en: 'Gambia' },
+    { value: 'GE', ja: 'ジョージア', en: 'Georgia' },
+    { value: 'DE', ja: 'ドイツ', en: 'Germany' },
+    { value: 'GH', ja: 'ガーナ', en: 'Ghana' },
+    { value: 'GR', ja: 'ギリシャ', en: 'Greece' },
+    { value: 'GD', ja: 'グレナダ', en: 'Grenada' },
+    { value: 'GT', ja: 'グアテマラ', en: 'Guatemala' },
+    { value: 'GN', ja: 'ギニア', en: 'Guinea' },
+    { value: 'GW', ja: 'ギニアビサウ', en: 'Guinea-Bissau' },
+    { value: 'GY', ja: 'ガイアナ', en: 'Guyana' },
+    { value: 'HT', ja: 'ハイチ', en: 'Haiti' },
+    { value: 'HN', ja: 'ホンジュラス', en: 'Honduras' },
+    { value: 'HK', ja: '香港', en: 'Hong Kong' },
+    { value: 'HU', ja: 'ハンガリー', en: 'Hungary' },
+    { value: 'IS', ja: 'アイスランド', en: 'Iceland' },
+    { value: 'IN', ja: 'インド', en: 'India' },
+    { value: 'ID', ja: 'インドネシア', en: 'Indonesia' },
+    { value: 'IR', ja: 'イラン', en: 'Iran' },
+    { value: 'IQ', ja: 'イラク', en: 'Iraq' },
+    { value: 'IE', ja: 'アイルランド', en: 'Ireland' },
+    { value: 'IL', ja: 'イスラエル', en: 'Israel' },
+    { value: 'IT', ja: 'イタリア', en: 'Italy' },
+    { value: 'JM', ja: 'ジャマイカ', en: 'Jamaica' },
+    { value: 'JP', ja: '日本', en: 'Japan' },
+    { value: 'JO', ja: 'ヨルダン', en: 'Jordan' },
+    { value: 'KZ', ja: 'カザフスタン', en: 'Kazakhstan' },
+    { value: 'KE', ja: 'ケニア', en: 'Kenya' },
+    { value: 'KI', ja: 'キリバス', en: 'Kiribati' },
+    { value: 'KP', ja: '北朝鮮', en: 'North Korea' },
+    { value: 'KR', ja: '韓国', en: 'South Korea' },
+    { value: 'KW', ja: 'クウェート', en: 'Kuwait' },
+    { value: 'KG', ja: 'キルギス', en: 'Kyrgyzstan' },
+    { value: 'LA', ja: 'ラオス', en: 'Laos' },
+    { value: 'LV', ja: 'ラトビア', en: 'Latvia' },
+    { value: 'LB', ja: 'レバノン', en: 'Lebanon' },
+    { value: 'LS', ja: 'レソト', en: 'Lesotho' },
+    { value: 'LR', ja: 'リベリア', en: 'Liberia' },
+    { value: 'LY', ja: 'リビア', en: 'Libya' },
+    { value: 'LI', ja: 'リヒテンシュタイン', en: 'Liechtenstein' },
+    { value: 'LT', ja: 'リトアニア', en: 'Lithuania' },
+    { value: 'LU', ja: 'ルクセンブルク', en: 'Luxembourg' },
+    { value: 'MG', ja: 'マダガスカル', en: 'Madagascar' },
+    { value: 'MW', ja: 'マラウイ', en: 'Malawi' },
+    { value: 'MY', ja: 'マレーシア', en: 'Malaysia' },
+    { value: 'MV', ja: 'モルディブ', en: 'Maldives' },
+    { value: 'ML', ja: 'マリ', en: 'Mali' },
+    { value: 'MT', ja: 'マルタ', en: 'Malta' },
+    { value: 'MH', ja: 'マーシャル諸島', en: 'Marshall Islands' },
+    { value: 'MR', ja: 'モーリタニア', en: 'Mauritania' },
+    { value: 'MU', ja: 'モーリシャス', en: 'Mauritius' },
+    { value: 'MX', ja: 'メキシコ', en: 'Mexico' },
+    { value: 'FM', ja: 'ミクロネシア', en: 'Micronesia' },
+    { value: 'MD', ja: 'モルドバ', en: 'Moldova' },
+    { value: 'MC', ja: 'モナコ', en: 'Monaco' },
+    { value: 'MN', ja: 'モンゴル', en: 'Mongolia' },
+    { value: 'ME', ja: 'モンテネグロ', en: 'Montenegro' },
+    { value: 'MA', ja: 'モロッコ', en: 'Morocco' },
+    { value: 'MZ', ja: 'モザンビーク', en: 'Mozambique' },
+    { value: 'MM', ja: 'ミャンマー', en: 'Myanmar' },
+    { value: 'NA', ja: 'ナミビア', en: 'Namibia' },
+    { value: 'NR', ja: 'ナウル', en: 'Nauru' },
+    { value: 'NP', ja: 'ネパール', en: 'Nepal' },
+    { value: 'NL', ja: 'オランダ', en: 'Netherlands' },
+    { value: 'NZ', ja: 'ニュージーランド', en: 'New Zealand' },
+    { value: 'NI', ja: 'ニカラグア', en: 'Nicaragua' },
+    { value: 'NE', ja: 'ニジェール', en: 'Niger' },
+    { value: 'NG', ja: 'ナイジェリア', en: 'Nigeria' },
+    { value: 'MK', ja: '北マケドニア', en: 'North Macedonia' },
+    { value: 'NO', ja: 'ノルウェー', en: 'Norway' },
+    { value: 'OM', ja: 'オマーン', en: 'Oman' },
+    { value: 'PK', ja: 'パキスタン', en: 'Pakistan' },
+    { value: 'PW', ja: 'パラオ', en: 'Palau' },
+    { value: 'PA', ja: 'パナマ', en: 'Panama' },
+    { value: 'PG', ja: 'パプアニューギニア', en: 'Papua New Guinea' },
+    { value: 'PY', ja: 'パラグアイ', en: 'Paraguay' },
+    { value: 'PE', ja: 'ペルー', en: 'Peru' },
+    { value: 'PH', ja: 'フィリピン', en: 'Philippines' },
+    { value: 'PL', ja: 'ポーランド', en: 'Poland' },
+    { value: 'PT', ja: 'ポルトガル', en: 'Portugal' },
+    { value: 'QA', ja: 'カタール', en: 'Qatar' },
+    { value: 'RO', ja: 'ルーマニア', en: 'Romania' },
+    { value: 'RU', ja: 'ロシア', en: 'Russia' },
+    { value: 'RW', ja: 'ルワンダ', en: 'Rwanda' },
+    { value: 'KN', ja: 'セントクリストファー・ネイビス', en: 'Saint Kitts and Nevis' },
+    { value: 'LC', ja: 'セントルシア', en: 'Saint Lucia' },
+    { value: 'VC', ja: 'セントビンセント・グレナディーン', en: 'Saint Vincent and the Grenadines' },
+    { value: 'WS', ja: 'サモア', en: 'Samoa' },
+    { value: 'SM', ja: 'サンマリノ', en: 'San Marino' },
+    { value: 'ST', ja: 'サントメ・プリンシペ', en: 'Sao Tome and Principe' },
+    { value: 'SA', ja: 'サウジアラビア', en: 'Saudi Arabia' },
+    { value: 'SN', ja: 'セネガル', en: 'Senegal' },
+    { value: 'RS', ja: 'セルビア', en: 'Serbia' },
+    { value: 'SC', ja: 'セーシェル', en: 'Seychelles' },
+    { value: 'SL', ja: 'シエラレオネ', en: 'Sierra Leone' },
+    { value: 'SG', ja: 'シンガポール', en: 'Singapore' },
+    { value: 'SK', ja: 'スロバキア', en: 'Slovakia' },
+    { value: 'SI', ja: 'スロベニア', en: 'Slovenia' },
+    { value: 'SB', ja: 'ソロモン諸島', en: 'Solomon Islands' },
+    { value: 'SO', ja: 'ソマリア', en: 'Somalia' },
+    { value: 'ZA', ja: '南アフリカ', en: 'South Africa' },
+    { value: 'SS', ja: '南スーダン', en: 'South Sudan' },
+    { value: 'ES', ja: 'スペイン', en: 'Spain' },
+    { value: 'LK', ja: 'スリランカ', en: 'Sri Lanka' },
+    { value: 'SD', ja: 'スーダン', en: 'Sudan' },
+    { value: 'SR', ja: 'スリナム', en: 'Suriname' },
+    { value: 'SE', ja: 'スウェーデン', en: 'Sweden' },
+    { value: 'CH', ja: 'スイス', en: 'Switzerland' },
+    { value: 'SY', ja: 'シリア', en: 'Syria' },
+    { value: 'TW', ja: '台湾', en: 'Taiwan' },
+    { value: 'TJ', ja: 'タジキスタン', en: 'Tajikistan' },
+    { value: 'TZ', ja: 'タンザニア', en: 'Tanzania' },
+    { value: 'TH', ja: 'タイ', en: 'Thailand' },
+    { value: 'TL', ja: '東ティモール', en: 'Timor-Leste' },
+    { value: 'TG', ja: 'トーゴ', en: 'Togo' },
+    { value: 'TO', ja: 'トンガ', en: 'Tonga' },
+    { value: 'TT', ja: 'トリニダード・トバゴ', en: 'Trinidad and Tobago' },
+    { value: 'TN', ja: 'チュニジア', en: 'Tunisia' },
+    { value: 'TR', ja: 'トルコ', en: 'Turkey' },
+    { value: 'TM', ja: 'トルクメニスタン', en: 'Turkmenistan' },
+    { value: 'TV', ja: 'ツバル', en: 'Tuvalu' },
+    { value: 'UG', ja: 'ウガンダ', en: 'Uganda' },
+    { value: 'UA', ja: 'ウクライナ', en: 'Ukraine' },
+    { value: 'AE', ja: 'アラブ首長国連邦', en: 'United Arab Emirates' },
+    { value: 'GB', ja: 'イギリス', en: 'United Kingdom' },
+    { value: 'US', ja: 'アメリカ', en: 'United States' },
+    { value: 'UY', ja: 'ウルグアイ', en: 'Uruguay' },
+    { value: 'UZ', ja: 'ウズベキスタン', en: 'Uzbekistan' },
+    { value: 'VU', ja: 'バヌアツ', en: 'Vanuatu' },
+    { value: 'VA', ja: 'バチカン市国', en: 'Vatican City' },
+    { value: 'VE', ja: 'ベネズエラ', en: 'Venezuela' },
+    { value: 'VN', ja: 'ベトナム', en: 'Vietnam' },
+    { value: 'YE', ja: 'イエメン', en: 'Yemen' },
+    { value: 'ZM', ja: 'ザンビア', en: 'Zambia' },
+    { value: 'ZW', ja: 'ジンバブエ', en: 'Zimbabwe' },
+  ];
+
   const countries = [
     { value: '', label: t('application.form.selectCountry') },
-    { value: 'JP', label: t('application.form.countries.japan') },
-    { value: 'US', label: t('application.form.countries.usa') },
-    { value: 'SG', label: t('application.form.countries.singapore') },
-    { value: 'CH', label: t('application.form.countries.switzerland') },
-    { value: 'OTHER', label: t('application.form.countries.other') },
+    ...allCountries.map(c => ({ value: c.value, label: locale === 'ja' ? c.ja : c.en })),
   ];
 
   const experienceLevels = [
@@ -195,12 +446,23 @@ export function ProverApplication() {
             <h1 className="text-3xl font-bold mb-4">
               {t('application.submitted.title')}
             </h1>
-            <p className="text-foreground-secondary mb-8">
+            <p className="text-foreground-secondary mb-6">
               {t('application.submitted.description')}
             </p>
-            <div className="inline-block px-6 py-3 bg-background-secondary rounded-lg font-mono text-lg mb-8">
-              {t('application.submitted.applicationId')}: #{applicationId}
+            <div className="bg-background-secondary rounded-lg p-6 mb-6">
+              <p className="text-sm text-foreground-secondary mb-2">
+                {t('application.submitted.applicationId')}
+              </p>
+              <div className="font-mono text-2xl font-bold text-gold mb-4">
+                {applicationId}
+              </div>
+              <p className="text-xs text-foreground-tertiary">
+                {t('application.submitted.saveIdNote')}
+              </p>
             </div>
+            <p className="text-sm text-foreground-secondary mb-8">
+              {t('application.submitted.emailSentNote')}
+            </p>
             <div className="flex gap-4 justify-center">
               <Button variant="primary" asChild>
                 <Link href="/prover/application-status">
@@ -256,7 +518,130 @@ export function ProverApplication() {
       </header>
 
       <div className="max-w-2xl mx-auto px-8">
-        {/* Progress Steps */}
+        {/* Application Type Toggle (only shown before invitation is verified for enterprise) */}
+        {!invitationVerified && (
+          <div className="py-6">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setApplicationType('public');
+                  setInvitationCode('');
+                  setInvitationError(false);
+                }}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-lg border transition-all',
+                  applicationType === 'public'
+                    ? 'border-hinomaru bg-hinomaru/10 text-hinomaru'
+                    : 'border-surface-tertiary text-foreground-secondary hover:border-foreground-tertiary'
+                )}
+              >
+                <Globe className="h-4 w-4" aria-hidden="true" />
+                <span className="text-sm font-medium">{t('application.type.public')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setApplicationType('enterprise')}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-lg border transition-all',
+                  applicationType === 'enterprise'
+                    ? 'border-gold bg-gold/10 text-gold'
+                    : 'border-surface-tertiary text-foreground-secondary hover:border-foreground-tertiary'
+                )}
+              >
+                <Building2 className="h-4 w-4" aria-hidden="true" />
+                <span className="text-sm font-medium">{t('application.type.enterprise')}</span>
+              </button>
+            </div>
+
+            {/* Enterprise Invitation Code Input */}
+            {applicationType === 'enterprise' && (
+              <Card className="p-6 border-gold bg-gradient-to-br from-gold/5 to-transparent mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Ticket className="h-5 w-5 text-gold" aria-hidden="true" />
+                  <h2 className="font-semibold">{t('application.enterprise.invitation.title')}</h2>
+                </div>
+                <p className="text-sm text-foreground-secondary mb-4">
+                  {t('application.enterprise.invitation.description')}
+                </p>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    className={cn(
+                      'flex-1 px-4 py-3 bg-background border rounded-lg text-foreground',
+                      'focus:outline-none focus:ring-2 focus:ring-gold/20',
+                      invitationError
+                        ? 'border-danger focus:border-danger'
+                        : 'border-surface-tertiary focus:border-gold'
+                    )}
+                    placeholder={t('application.enterprise.invitation.placeholder')}
+                    value={invitationCode}
+                    onChange={(e) => {
+                      setInvitationCode(e.target.value);
+                      setInvitationError(false);
+                    }}
+                  />
+                  <Button variant="gold" onClick={verifyInvitation} disabled={!invitationCode.trim()}>
+                    {t('application.enterprise.invitation.verify')}
+                  </Button>
+                </div>
+                {invitationError && (
+                  <p className="text-sm text-danger mt-2" role="alert">
+                    {t('application.enterprise.invitation.error')}
+                  </p>
+                )}
+                <p className="text-xs text-foreground-tertiary mt-3">
+                  {t('application.enterprise.invitation.hint')}
+                </p>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Enterprise Invitation Verified Banner */}
+        {invitationVerified && (
+          <Card className="p-6 border-gold bg-gradient-to-br from-gold/10 to-transparent mb-6 mt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{t('application.enterprise.verified.title')}</span>
+                  <Badge variant="gold" className="text-[10px]">
+                    {mockInvitation.plan}
+                  </Badge>
+                </div>
+                <div className="text-sm text-foreground-secondary">
+                  {t('application.enterprise.verified.operator')}: {mockInvitation.operatorName}
+                </div>
+              </div>
+            </div>
+
+            {/* Enterprise Benefits Summary */}
+            <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gold/30">
+              <div className="flex items-center gap-2 text-xs">
+                <Server className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+                <span>{t('application.enterprise.verified.managedInfra')}</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <Headphones className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
+                <span>{t('application.enterprise.verified.dedicatedSupport')}</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <Shield className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
+                <span>SLA {mockInvitation.benefits.slaGuarantee}</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <Gift className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+                <span>{t('application.enterprise.verified.minRevenue')}: {mockInvitation.benefits.minRevenue}</span>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Progress Steps - only show when public or invitation verified */}
+        {(applicationType === 'public' || invitationVerified) && (
         <nav
           className="py-10"
           role="navigation"
@@ -298,8 +683,10 @@ export function ProverApplication() {
             ))}
           </ol>
         </nav>
+        )}
 
-        {/* Form Section */}
+        {/* Form Section - only show when public or invitation verified */}
+        {(applicationType === 'public' || invitationVerified) && (
         <main id="application-form" className="pb-16">
           {/* Step 1: Basic Info */}
           {currentStep === 1 && (
@@ -549,26 +936,37 @@ export function ProverApplication() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label htmlFor="reg-number" className="text-sm text-foreground-secondary">
-                    {t('application.form.businessRegistrationNumber')}{' '}
+                    {t('application.form.businessId')}{' '}
                     <span className="text-hinomaru">*</span>
                   </label>
                   <input
                     id="reg-number"
                     type="text"
                     className="w-full px-4 py-3 bg-background-secondary border border-surface-tertiary rounded-lg text-foreground focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
-                    placeholder={t('application.form.registrationNumberPlaceholder')}
+                    placeholder={t('application.form.businessIdPlaceholder')}
                     value={formData.businessRegistrationNumber}
                     onChange={(e) =>
                       updateFormData('businessRegistrationNumber', e.target.value)
                     }
                     required
                   />
+                  <p className="text-xs text-foreground-tertiary mt-1">
+                    {t('application.form.businessIdHint')}
+                  </p>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm text-foreground-secondary">
                     {t('application.form.uploadDocument')}
                   </label>
+                  <div className="bg-background-secondary/50 border border-surface-tertiary rounded-lg p-4 mb-3">
+                    <p className="text-sm font-medium mb-1">
+                      {t('application.form.requiredDocuments')}
+                    </p>
+                    <p className="text-xs text-foreground-tertiary">
+                      {t('application.form.requiredDocumentsHint')}
+                    </p>
+                  </div>
                   <div className="flex items-center gap-4 p-4 bg-background-secondary border border-dashed border-surface-tertiary rounded-lg">
                     <Upload className="h-6 w-6 text-foreground-tertiary" aria-hidden="true" />
                     <div className="flex-1">
@@ -764,6 +1162,7 @@ export function ProverApplication() {
             </Card>
           )}
         </main>
+        )}
       </div>
     </div>
   );

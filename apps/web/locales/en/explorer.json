@@ -1,4 +1,74 @@
 {
+  "landing": {
+    "meta": {
+      "title": "Explorer | Quantum Shield",
+      "description": "View all transactions, locks, and unlocks on Quantum Shield in real-time"
+    },
+    "hero": {
+      "badge": "Blockchain Explorer",
+      "title": "Visualize Everything on",
+      "titleHighlight": "Quantum Shield",
+      "description": "Track all Lock, Unlock, and Challenge transactions in real-time. Complete transparency to verify protocol health.",
+      "openExplorer": "Open Explorer",
+      "learnMore": "Learn More"
+    },
+    "stats": {
+      "tvl": "Total Value Locked (TVL)",
+      "totalLocks": "Total Locks",
+      "totalUnlocks": "Total Unlocks",
+      "activeProvers": "Active Provers"
+    },
+    "features": {
+      "title": "What You Can Do with Explorer",
+      "description": "Transparently track all activities on the Quantum Shield protocol",
+      "realtime": {
+        "title": "Real-time Tracking",
+        "description": "Monitor Lock/Unlock transactions in real-time and check the latest status"
+      },
+      "transparency": {
+        "title": "Complete Transparency",
+        "description": "All transactions and challenges are publicly verifiable on-chain"
+      },
+      "analytics": {
+        "title": "Detailed Analytics",
+        "description": "Visualize TVL trends, trading volume, and Prover uptime statistics"
+      },
+      "search": {
+        "title": "Advanced Search",
+        "description": "Quickly search and filter by address, TX hash, or Lock ID"
+      }
+    },
+    "whatYouCanDo": {
+      "title": "Data You Can Explore",
+      "description": "Access all protocol data",
+      "locks": {
+        "title": "Lock List",
+        "description": "View all locked assets. Filter by amount, date, and status.",
+        "link": "View Locks"
+      },
+      "unlocks": {
+        "title": "Unlock List",
+        "description": "Track unlock request progress, Time Lock remaining, and Prover signature status.",
+        "link": "View Unlocks"
+      },
+      "analytics": {
+        "title": "Analytics Dashboard",
+        "description": "Detailed statistics including TVL trends, daily volume, and Prover uptime.",
+        "link": "View Analytics"
+      }
+    },
+    "cta": {
+      "title": "Start Exploring Now",
+      "description": "Experience the transparency of the Quantum Shield protocol. All transactions are verifiable on-chain.",
+      "button": "Open Explorer"
+    },
+    "footer": {
+      "tagline": "Quantum-Resistant Security",
+      "madeIn": "Made in Japan",
+      "terms": "Terms",
+      "privacy": "Privacy"
+    }
+  },
   "common": {
     "header": {
       "overview": "Overview",
@@ -469,6 +539,68 @@
       "button": "Export Data",
       "csv": "CSV Format",
       "json": "JSON Format"
+    }
+  },
+  "challenges": {
+    "meta": {
+      "title": "All Challenges | Explorer | Quantum Shield",
+      "description": "View all challenges on Quantum Shield"
+    },
+    "pageTitle": "All Challenges",
+    "stats": {
+      "totalChallenges": "Total Challenges",
+      "active": "Active",
+      "resolved": "Resolved",
+      "successRate": "Success Rate"
+    },
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "defense": "Defense Period",
+      "judgment": "In Judgment",
+      "resolved": "Resolved"
+    },
+    "table": {
+      "challengeId": "Challenge ID",
+      "targetUnlock": "Target Unlock",
+      "amount": "Amount",
+      "bond": "Bond",
+      "deadline": "Deadline",
+      "status": "Status"
+    },
+    "status": {
+      "defense": "Defense",
+      "judgment": "Judgment",
+      "resolved": "Resolved"
+    },
+    "result": {
+      "challenger_won": "Challenger Won",
+      "prover_won": "Prover Won"
+    }
+  },
+  "provers": {
+    "meta": {
+      "title": "All Provers | Explorer | Quantum Shield",
+      "description": "View all Provers on Quantum Shield"
+    },
+    "pageTitle": "All Provers",
+    "stats": {
+      "totalProvers": "Total Provers",
+      "online": "Online",
+      "avgUptime": "Avg Uptime",
+      "avgResponseTime": "Avg Response Time",
+      "totalSignatures": "Total Signatures"
+    },
+    "fields": {
+      "uptime": "Uptime",
+      "responseTime": "Response Time",
+      "signatures": "Signatures",
+      "stake": "Stake",
+      "lastActive": "Last Active"
+    },
+    "info": {
+      "title": "About Provers",
+      "description": "Provers are independent verifiers that validate unlock requests. When an unlock is requested, 2 of 5 Provers are randomly selected and must approve with their signatures. This distributed verification mechanism protects your assets from unauthorized unlocks."
     }
   },
   "about": {
