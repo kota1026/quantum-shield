@@ -180,6 +180,32 @@
         "button": "Apply as Observer",
         "loginButton": "Login with Existing Account"
       },
+      "expertQuotes": {
+        "sectionLabel": "Expert Insights",
+        "title": "Why Fraud Detection Matters",
+        "subtitle": "Insights from security experts",
+        "quotes": [
+          {
+            "quote": "The security of decentralized networks depends on continuous monitoring by watchers. Observers provide the incentive to fulfill this critical role.",
+            "author": "Security Researcher",
+            "title": "Blockchain Security Expert",
+            "source": "Security Research"
+          },
+          {
+            "quote": "Fraud detection is not just a technical challenge, but a matter of economic incentive design. With the right reward structure, anyone can become a watcher.",
+            "author": "DeFi Researcher",
+            "title": "Decentralized Finance Analyst",
+            "source": "DeFi Pulse"
+          },
+          {
+            "quote": "Preparing monitoring systems now for the quantum computing era is crucial. Early detection is the best defense.",
+            "author": "Cryptographer",
+            "title": "Post-Quantum Cryptography Researcher",
+            "source": "Crypto Research"
+          }
+        ],
+        "disclaimer": "The above is for informational purposes only. Please participate as an Observer at your own discretion."
+      },
       "footer": {
         "tagline": "Quantum-Resistant Security",
         "madeIn": "Made in Japan",

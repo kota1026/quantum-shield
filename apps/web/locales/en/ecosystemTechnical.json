@@ -8,9 +8,10 @@
   "backToEcosystem": "Back to Ecosystem",
   "toc": {
     "title": "Table of Contents",
+    "dataFlow": "Data Flow Overview",
     "architecture": "Architecture (3-Layer Structure)",
     "crypto": "Quantum-Resistant Cryptography",
-    "sequences": "Processing Flows (Sequences)",
+    "sequences": "Processing Flows (Animated)",
     "roles": "Participant Roles",
     "specs": "Key Parameters",
     "principles": "Immutable Principles"
@@ -79,49 +80,117 @@
         "ECDSA / secp256k1 - Breakable by Shor's algorithm",
         "SHA-256 / keccak256 - Attackable by Grover's algorithm"
       ]
-    }
+    },
+    "usedIn": "Used in:"
   },
   "sequences": {
     "title": "Processing Flows",
-    "description": "Detailed sequences from lock to unlock. Each flow is executed by smart contracts and the L3 chain.",
+    "description": "Detailed sequences from lock to unlock. Each flow is executed by smart contracts and the L3 chain. Click Play to see the animated flow.",
     "lock": {
       "title": "Lock (Deposit Assets)",
-      "steps": [
-        {"step": 1, "action": "User calls lock() with Dilithium signature", "detail": "Send ETH and Dilithium public key hash"},
-        {"step": 2, "action": "4-node BFT consensus on L3 Aegis", "detail": "Dilithium verification, nonce check, expiry check"},
-        {"step": 3, "action": "Calculate state root SR_0", "detail": "Hash lock info with SHA3-256, issue lock_id"},
-        {"step": 4, "action": "Deposit to L1 Vault", "detail": "ERC20 Transfer, ~135K gas"},
-        {"step": 5, "action": "Emit Locked event", "detail": "Lock complete, sync notification to L3"}
-      ],
       "gas": "~135,000 gas (~$7)",
-      "time": "Immediate"
+      "time": "Immediate",
+      "steps": {
+        "0": "User signs lock() with Dilithium",
+        "1": "L3 Aegis: 4-node BFT consensus",
+        "2": "Calculate state root SR_0",
+        "3": "Deposit to L1 Vault",
+        "4": "Emit Locked event"
+      },
+      "details": {
+        "0": "Send ETH + Dilithium public key hash to L3",
+        "1": "Dilithium signature verification, nonce & expiry check",
+        "2": "SHA3-256 hash of lock info, issue lock_id",
+        "3": "ERC20 Transfer to L1Vault contract (~135K gas)",
+        "4": "Lock complete, sync notification to L3 chain"
+      }
     },
     "unlock": {
       "title": "Unlock (Normal Path)",
-      "steps": [
-        {"step": 1, "action": "User calls initiateUnlock() with Dilithium signature", "detail": "Specify lock_id, amount, destination"},
-        {"step": 2, "action": "BFT consensus on L3, obtain randomness via VRF", "detail": "Chainlink VRF, 5-minute timeout"},
-        {"step": 3, "action": "Select Provers (2/5)", "detail": "Stake-weighted random selection, no duplicates"},
-        {"step": 4, "action": "Selected Provers sign with SPHINCS+", "detail": "2-of-3 internal approval in HSM, generate signature within 5 minutes"},
-        {"step": 5, "action": "Submit Unlock to L1", "detail": "SR_0 verification, SPHINCS+ verification x2 (~400K gas)"},
-        {"step": 6, "action": "24-hour timelock begins", "detail": "Cannot cancel or modify, monitoring bots observe"},
-        {"step": 7, "action": "finalizeUnlock() transfers assets", "detail": "After timelock confirmation, ETH transfer"}
-      ],
       "gas": "~490,000 gas (~$27)",
-      "time": "24 hours (minimum guaranteed, immutable)"
+      "time": "24 hours (minimum guaranteed)",
+      "steps": {
+        "0": "User signs initiateUnlock() with Dilithium",
+        "1": "L3: BFT consensus + VRF randomness",
+        "2": "Select 2/5 Provers via VRF",
+        "3": "Provers sign with SPHINCS+",
+        "4": "Submit to L1 + verify SPHINCS+",
+        "5": "24-hour timelock begins",
+        "6": "finalizeUnlock() transfers assets"
+      },
+      "details": {
+        "0": "Specify lock_id, amount, destination address",
+        "1": "Chainlink VRF for randomness, 5-min timeout",
+        "2": "Stake-weighted random selection, no duplicates",
+        "3": "HSM 2-of-3 internal approval, sign within 5 min",
+        "4": "SPHINCSVerifier: verify 2 signatures (~400K gas)",
+        "5": "Cannot cancel/modify, Observers monitoring",
+        "6": "After timelock, ETH transferred to destination"
+      }
     },
     "emergency": {
       "title": "Emergency Unlock",
       "trigger": "Automatically triggered when Provers don't respond for 72 hours",
-      "steps": [
-        {"step": 1, "action": "Timeout detected (72 hours)", "detail": "No signatures from Provers, or VRF failure"},
-        {"step": 2, "action": "Submit to L1 in emergency mode", "detail": "No Prover signatures, Emergency Mode flag"},
-        {"step": 3, "action": "Deposit emergency bond", "detail": "MAX(0.5 ETH, 5% of amount) as collateral"},
-        {"step": 4, "action": "7-day enhanced monitoring period", "detail": "Observers monitor 24/7, full SR transition verification"},
-        {"step": 5, "action": "finalizeEmergencyUnlock() after 7 days", "detail": "If no challenge, bond returned, ETH transferred"}
-      ],
       "gas": "~550,000 gas (~$30) + bond",
-      "time": "7 days"
+      "time": "7 days",
+      "steps": {
+        "0": "Timeout detected (72 hours)",
+        "1": "Submit to L1 in emergency mode",
+        "2": "Deposit emergency bond",
+        "3": "7-day enhanced monitoring",
+        "4": "finalizeEmergencyUnlock()"
+      },
+      "details": {
+        "0": "No Prover signatures received, or VRF failure",
+        "1": "No Prover sigs required, Emergency Mode flag set",
+        "2": "MAX(0.5 ETH, 5% of amount) as collateral",
+        "3": "Observers 24/7 monitoring, full SR verification",
+        "4": "If no challenge: bond returned + ETH transferred"
+      }
+    }
+  },
+  "diagram": {
+    "play": "Play",
+    "pause": "Pause",
+    "reset": "Reset",
+    "actors": {
+      "user": "User",
+      "l3": "L3 Aegis",
+      "l1": "L1 Ethereum",
+      "prover": "Prover",
+      "observer": "Observer"
+    },
+    "legend": {
+      "userSig": "User signature",
+      "proverSig": "Prover signature",
+      "hash": "Hashing",
+      "random": "Randomness",
+      "storage": "Data storage"
+    }
+  },
+  "dataFlow": {
+    "sectionTitle": "Data Flow Overview",
+    "sectionDesc": "How data flows between User, L3 Aegis Chain, and L1 Ethereum. Each layer has specific responsibilities and uses different cryptographic algorithms.",
+    "title": "System Data Flow",
+    "userLayer": {
+      "title": "User Layer (Self-Custody)",
+      "keypair": "Keypair Generation",
+      "signing": "Message Signing",
+      "signingDesc": "Sign lock/unlock requests client-side",
+      "storage": "Key Storage",
+      "storageDesc": "Private keys never leave device"
+    },
+    "l3Layer": {
+      "consensus": "BFT Consensus",
+      "vrf": "VRF Random",
+      "stateRoot": "State Root",
+      "records": "Transaction Log",
+      "recordsDesc": "All state changes recorded"
+    },
+    "l1Layer": {
+      "verifier": "On-chain SPHINCS+ verification",
+      "registry": "Prover management & slashing",
+      "immutable": "(immutable)"
     }
   },
   "roles": {
@@ -240,6 +309,11 @@
       }
     }
   },
+  "rewards": {
+    "title": "Prover & Observer Rewards",
+    "description": "Learn about reward models, staking requirements, and APY details for Provers and Observers in Token Hub.",
+    "link": "Learn more in Token Hub"
+  },
   "cta": {
     "title": "Start Using Quantum Shield",
     "description": "Now that you understand the technical specifications, try using the apps.",
@@ -248,5 +322,81 @@
   },
   "footer": {
     "copyright": "© 2026 Quantum Shield. All rights reserved."
+  },
+  "glossary": {
+    "title": "Glossary",
+    "description": "Explanations of technical terms used on this page.",
+    "terms": {
+      "pbft": {
+        "term": "PBFT",
+        "definition": "Practical Byzantine Fault Tolerance. A consensus algorithm that works correctly even if 1/3 of nodes are malicious. Quantum Shield's L3 chain requires 3 out of 4 nodes to agree."
+      },
+      "vrf": {
+        "term": "VRF",
+        "definition": "Verifiable Random Function. Generates tamper-proof random numbers that anyone can verify. Used to ensure fair Prover selection."
+      },
+      "lattice": {
+        "term": "Lattice-based cryptography",
+        "definition": "Cryptography using mathematical 'lattice' structures. Considered resistant to quantum computers and forms the basis of Dilithium signatures."
+      },
+      "hashBased": {
+        "term": "Hash-based signatures",
+        "definition": "Digital signatures using only hash functions. SPHINCS+ uses this method to provide the most conservative quantum resistance."
+      },
+      "shor": {
+        "term": "Shor's Algorithm",
+        "definition": "A quantum algorithm that can quickly factor integers. Could potentially break ECDSA used in Bitcoin and Ethereum."
+      },
+      "grover": {
+        "term": "Grover's Algorithm",
+        "definition": "A quantum algorithm that speeds up searching. It halves SHA-256's security, which is why we use SHA3-256."
+      },
+      "timelock": {
+        "term": "Timelock",
+        "definition": "A mechanism preventing asset withdrawal until a certain time passes. During this waiting period, Observers can detect fraud and protect user assets."
+      },
+      "slashing": {
+        "term": "Slashing",
+        "definition": "A penalty that confiscates the stake (collateral) of Provers who act maliciously. Makes collusion economically irrational."
+      },
+      "hsm": {
+        "term": "HSM",
+        "definition": "Hardware Security Module. Specialized hardware that physically protects private keys. Required for all Provers."
+      },
+      "l3": {
+        "term": "L3 Chain",
+        "definition": "A dedicated chain built on top of L1 (Ethereum). By using L3 instead of L2, we can implement unique features like quantum-resistant signatures and PBFT consensus."
+      }
+    }
+  },
+  "tooltips": {
+    "pbft": "Fault-tolerant consensus requiring 3/4 node agreement",
+    "vrf": "Generates tamper-proof randomness for fair Prover selection",
+    "lattice": "Mathematical structure resistant to quantum computers",
+    "hashBased": "Most conservative signature method using only hash functions",
+    "shor": "Quantum algorithm that could break ECDSA",
+    "grover": "Quantum algorithm that halves SHA-256 security",
+    "dilithium": "Lattice-based quantum-resistant signature (NIST FIPS 204)",
+    "sphincs": "Hash-based quantum-resistant signature (NIST FIPS 205)",
+    "sha3": "Quantum-resistant hash function (NIST FIPS 202)",
+    "timelock": "Waiting period for fraud detection. Cannot cancel during Observer monitoring",
+    "slashing": "Confiscates malicious Prover's stake. Penalty increases with collusion",
+    "quadraticPenalty": "For N colluders: N²×10% penalty. E.g., 3 colluders = 90% confiscated",
+    "hsm": "Specialized hardware for physical private key protection",
+    "l3": "Dedicated chain for quantum-resistant features (L3 over L2)"
+  },
+  "whyExplanations": {
+    "why24Hours": {
+      "title": "Why 24-hour waiting?",
+      "content": "The 24-hour waiting period allows Observers to detect fraudulent unlock requests. If there's a problem with signatures, a Challenge can be submitted during this time to protect your assets. This ensures your assets are safe even if a Prover acts maliciously."
+    },
+    "why7Days": {
+      "title": "Why 7 days for emergency?",
+      "content": "Emergency unlocks execute without Prover signatures, so more careful monitoring is needed. The 7-day enhanced monitoring ensures the entire system is verified for fraud."
+    },
+    "whyL3": {
+      "title": "Why L3 instead of L2?",
+      "content": "Existing L2s are ECDSA-based and quantum-vulnerable. By building a dedicated L3 chain, we achieve a fully quantum-resistant design with PBFT consensus and Dilithium signatures."
+    }
   }
 }

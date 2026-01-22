@@ -29,6 +29,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { CookieBanner } from '@/components/shared/CookieBanner';
+import { EcosystemVisual } from './EcosystemVisual';
 
 // アプリカテゴリ
 const appCategories = {
@@ -37,21 +39,21 @@ const appCategories = {
     apps: [
       { key: 'consumerApp', icon: Shield, href: '/consumer/landing', color: 'hinomaru' },
       { key: 'tokenHub', icon: Coins, href: '/token-hub/landing', color: 'gold' },
-      { key: 'governance', icon: Vote, href: '/governance/landing', color: 'blue-500' },
-      { key: 'explorer', icon: Search, href: '/explorer/landing', color: 'cyan-500' },
+      { key: 'governance', icon: Vote, href: '/governance/landing', color: 'hinomaru' },
+      { key: 'explorer', icon: Search, href: '/explorer/landing', color: 'gold' },
     ],
   },
   participant: {
     titleKey: 'apps.categories.participant',
     apps: [
-      { key: 'prover', icon: Cpu, href: '/prover/landing', color: 'purple-500' },
-      { key: 'observer', icon: Eye, href: '/observer/landing', color: 'emerald-500' },
+      { key: 'prover', icon: Cpu, href: '/prover/landing', color: 'hinomaru' },
+      { key: 'observer', icon: Eye, href: '/observer/landing', color: 'gold' },
     ],
   },
   enterprise: {
     titleKey: 'apps.categories.enterprise',
     apps: [
-      { key: 'enterprise', icon: Building2, href: '/enterprise/landing', color: 'amber-500' },
+      { key: 'enterprise', icon: Building2, href: '/enterprise/landing', color: 'gold' },
     ],
   },
 };
@@ -69,11 +71,6 @@ function getColorClasses(color: string) {
   const colorMap: Record<string, { bg: string; text: string }> = {
     hinomaru: { bg: 'bg-hinomaru/10', text: 'text-hinomaru' },
     gold: { bg: 'bg-gold/10', text: 'text-gold' },
-    'blue-500': { bg: 'bg-blue-500/10', text: 'text-blue-500' },
-    'cyan-500': { bg: 'bg-cyan-500/10', text: 'text-cyan-500' },
-    'emerald-500': { bg: 'bg-emerald-500/10', text: 'text-emerald-500' },
-    'purple-500': { bg: 'bg-purple-500/10', text: 'text-purple-500' },
-    'amber-500': { bg: 'bg-amber-500/10', text: 'text-amber-500' },
   };
   return colorMap[color] || { bg: 'bg-foreground/10', text: 'text-foreground' };
 }
@@ -150,6 +147,11 @@ export function EcosystemLanding() {
               </Button>
             </Link>
           </div>
+
+          {/* Custom Visual */}
+          <div className="mt-12">
+            <EcosystemVisual />
+          </div>
         </section>
 
         {/* What is Quantum Shield - 概要セクション */}
@@ -184,8 +186,8 @@ export function EcosystemLanding() {
             </Card>
 
             <Card className="p-6 text-center">
-              <div className="w-14 h-14 bg-emerald-500/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Unlock className="w-7 h-7 text-emerald-500" />
+              <div className="w-14 h-14 bg-success/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Unlock className="w-7 h-7 text-success" />
               </div>
               <h3 className="font-bold text-lg mb-2">{t('about.steps.unlock.title')}</h3>
               <p className="text-sm text-foreground-secondary">
@@ -406,6 +408,44 @@ export function EcosystemLanding() {
           </div>
         </section>
 
+        {/* Expert Quotes Section */}
+        <section
+          id="expert-quotes"
+          className="mb-20 py-16 bg-surface-secondary/30 -mx-8 px-8 rounded-2xl"
+        >
+          <div className="max-w-[1200px] mx-auto">
+            <div className="flex items-center gap-3 text-xs font-semibold tracking-widest uppercase text-gold mb-4">
+              <span className="w-6 h-px bg-gold" aria-hidden="true" />
+              {t('expertQuotes.sectionLabel')}
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">
+              {t('expertQuotes.title')}
+            </h2>
+            <p className="text-foreground-secondary mb-12">
+              {t('expertQuotes.subtitle')}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[0, 1, 2].map((index) => (
+                <article key={index} className="bg-surface border border-border rounded-xl p-6 hover:border-gold/30 transition-all duration-300">
+                  <blockquote className="text-sm text-foreground-secondary leading-relaxed mb-4 italic">
+                    &ldquo;{t(`expertQuotes.quotes.${index}.quote`)}&rdquo;
+                  </blockquote>
+                  <div className="border-t border-border pt-4">
+                    <div className="font-semibold text-foreground">{t(`expertQuotes.quotes.${index}.author`)}</div>
+                    <div className="text-xs text-foreground-tertiary">{t(`expertQuotes.quotes.${index}.title`)}</div>
+                    <div className="text-xs text-gold mt-1">{t(`expertQuotes.quotes.${index}.source`)}</div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <p className="text-xs text-foreground-tertiary text-center mt-6">
+              {t('expertQuotes.disclaimer')}
+            </p>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="text-center bg-gradient-to-br from-hinomaru/10 to-gold/10 rounded-2xl p-12 border border-hinomaru/20">
           <h2 className="text-2xl font-bold mb-4">{t('cta.title')}</h2>
@@ -427,6 +467,9 @@ export function EcosystemLanding() {
           <p>{t('footer.copyright')}</p>
         </div>
       </footer>
+
+      {/* Cookie Banner */}
+      <CookieBanner />
     </div>
   );
 }

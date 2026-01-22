@@ -60,15 +60,18 @@
         "description": "Quantum Shield governance lets the community decide on protocol operations. Users with QS tokens can vote on proposals and create new ones.",
         "point1": {
           "title": "Proposals & Voting",
-          "description": "Vote on important protocol decisions like fee changes and new features"
+          "description": "Vote on important protocol decisions like fee changes and new features",
+          "tooltip": "Anyone can create proposals. The voting period is typically 7 days, and proposals are executed when quorum is reached."
         },
         "point2": {
           "title": "Vote with QS Tokens",
-          "description": "Lock QS in Token Hub to get veQS and earn voting power"
+          "description": "Lock QS in Token Hub to get veQS and earn voting power",
+          "tooltip": "Your voting power is determined by your veQS balance. A maximum 4-year lock gives you a 1:1 ratio."
         },
         "point3": {
           "title": "Security Council",
-          "description": "Council can veto proposals that pose security risks"
+          "description": "Council can veto proposals that pose security risks",
+          "tooltip": "The council consists of 5 security experts who only exercise veto power in emergencies."
         }
       },
       "howToVote": {
@@ -164,6 +167,32 @@
       "purposeCommittee": "Purpose Committee",
       "active": "Active",
       "viewCouncil": "View Council"
+    },
+    "expertQuotes": {
+      "sectionLabel": "Expert Insights",
+      "title": "Why Decentralized Governance Matters",
+      "subtitle": "Insights from blockchain industry leaders",
+      "quotes": [
+        {
+          "quote": "Decentralized governance is the only way to make community decision-making truly democratic. It achieves transparency and fairness without centralized administrators.",
+          "author": "Vitalik Buterin",
+          "title": "Ethereum Co-founder",
+          "source": "vitalik.eth.limo"
+        },
+        {
+          "quote": "On-chain governance is at the heart of DAOs. Decision-making processes guaranteed by code enable trustless cooperation.",
+          "author": "DAO Researcher",
+          "title": "Decentralized Organization Expert",
+          "source": "DAO Alliance"
+        },
+        {
+          "quote": "The veToken model gives voting power to participants with long-term commitment, reducing the influence of short-term speculators.",
+          "author": "DeFi Researcher",
+          "title": "Token Economics Expert",
+          "source": "DeFi Pulse"
+        }
+      ],
+      "disclaimer": "The above is for informational purposes only. Please participate in governance at your own discretion."
     },
     "proposals": {
     "meta": {

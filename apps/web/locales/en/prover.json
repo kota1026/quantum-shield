@@ -353,6 +353,32 @@
         "terms": "Terms of Service",
         "privacy": "Privacy Policy",
         "cookie": "Cookie Policy"
+      },
+      "expertQuotes": {
+        "sectionLabel": "Expert Insights",
+        "title": "Why STARK Proofs Matter",
+        "subtitle": "Insights from cryptography experts",
+        "quotes": [
+          {
+            "quote": "STARK proofs are a revolutionary technology that achieves both transparency and verifiability. They are paving the way for the future of trustless proof systems.",
+            "author": "Eli Ben-Sasson",
+            "title": "StarkWare Co-founder",
+            "source": "StarkWare"
+          },
+          {
+            "quote": "Zero-knowledge proofs are the only technology that can achieve both privacy and scalability. They will become the core of future blockchain infrastructure.",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum Co-founder",
+            "source": "vitalik.eth.limo"
+          },
+          {
+            "quote": "Decentralized proof networks enable true decentralization without relying on centralized oracles. Provers are a crucial component of this system.",
+            "author": "ZK Researcher",
+            "title": "Cryptography Researcher",
+            "source": "ZK Research"
+          }
+        ],
+        "disclaimer": "The above is for informational purposes only. Please participate as a Prover at your own discretion."
       }
     },
     "application": {

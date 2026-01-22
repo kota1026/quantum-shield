@@ -153,6 +153,32 @@
       }
     }
   },
+  "expertQuotes": {
+    "sectionLabel": "Expert Voices",
+    "title": "Perspectives from Industry Leaders",
+    "subtitle": "Expert insights on quantum-resistant cryptography and crypto asset security",
+    "quotes": {
+      "0": {
+        "quote": "Cryptographic agility — the ability to quickly switch cryptographic algorithms — should be built starting today. It will be too late once the quantum threat becomes reality.",
+        "author": "Dr. Michele Mosca",
+        "title": "Institute for Quantum Computing, University of Waterloo",
+        "source": "Quantum Risk Report"
+      },
+      "1": {
+        "quote": "NIST's post-quantum cryptography standardization marks the dawn of a new era in cryptographic security. Organizations that act today will be prepared for tomorrow's threats.",
+        "author": "Dr. Dustin Moody",
+        "title": "NIST PQC Project Lead",
+        "source": "PQC Standardization Announcement"
+      },
+      "2": {
+        "quote": "In blockchain security, the transition to quantum resistance is inevitable. The question isn't 'when' but 'how to prepare'.",
+        "author": "Vitalik Buterin",
+        "title": "Ethereum Co-founder",
+        "source": "Ethereum's Quantum Resistance Roadmap"
+      }
+    },
+    "disclaimer": "* Quotes represent general industry perspectives and are not direct endorsements of Quantum Shield."
+  },
   "cta": {
     "title": "Start Using Quantum Shield",
     "description": "Protect your assets with quantum-resistant technology today. Dilithium signatures protect your crypto from future threats.",

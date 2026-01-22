@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { GovernanceLanding } from '@/components/governance/GovernanceLanding';
+import { GovernanceDashboard } from '@/components/governance/GovernanceDashboard';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -16,6 +16,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function GovernanceLandingPage() {
-  return <GovernanceLanding />;
+export default async function GovernanceDashboardPage() {
+  return <GovernanceDashboard />;
 }
