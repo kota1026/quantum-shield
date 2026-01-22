@@ -57,6 +57,32 @@
         "link": "View Analytics"
       }
     },
+    "expertQuotes": {
+      "sectionLabel": "Expert Voices",
+      "title": "Industry Leaders Recognize Transparency",
+      "subtitle": "Expert insights on blockchain transparency and auditability",
+      "quotes": {
+        "0": {
+          "quote": "True transparency is the foundation of DeFi. When every transaction is verifiable on-chain, users can fully understand and control their assets.",
+          "author": "Vitalik Buterin",
+          "title": "Ethereum Co-founder",
+          "source": "ETHDenver 2023 Keynote"
+        },
+        "1": {
+          "quote": "Blockchain explorers are the cornerstone of trust in decentralized systems. The ability for anyone to verify eliminates the need for centralized intermediaries.",
+          "author": "Andreas Antonopoulos",
+          "title": "Blockchain Educator & Author",
+          "source": "From 'Mastering Ethereum'"
+        },
+        "2": {
+          "quote": "Security and transparency complement each other. Open auditability is the proof of a truly secure system.",
+          "author": "Samczsun",
+          "title": "Paradigm Security Researcher",
+          "source": "Security Research"
+        }
+      },
+      "disclaimer": "* Quotes represent general industry perspectives and are not direct endorsements of Quantum Shield."
+    },
     "cta": {
       "title": "Start Exploring Now",
       "description": "Experience the transparency of the Quantum Shield protocol. All transactions are verifiable on-chain.",

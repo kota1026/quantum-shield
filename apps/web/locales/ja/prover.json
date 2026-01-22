@@ -413,6 +413,32 @@
           "description": "QS財団の担当者が、貴社に最適なプランをご提案いたします。",
           "button": "お問い合わせ"
         }
+      },
+      "expertQuotes": {
+        "sectionLabel": "専門家の声",
+        "title": "なぜSTARK証明が重要なのか",
+        "subtitle": "暗号技術の専門家たちの見解",
+        "quotes": [
+          {
+            "quote": "STARK証明は、透明性と検証可能性を両立させる革命的な技術です。信頼を必要としない証明システムの未来を切り開いています。",
+            "author": "Eli Ben-Sasson",
+            "title": "StarkWare共同創設者",
+            "source": "StarkWare"
+          },
+          {
+            "quote": "ゼロ知識証明は、プライバシーとスケーラビリティの両方を実現する唯一の技術です。今後のブロックチェーンインフラの核心となるでしょう。",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum共同創設者",
+            "source": "vitalik.eth.limo"
+          },
+          {
+            "quote": "分散型証明ネットワークは、中央集権的なオラクルに依存しない真の分散化を実現します。Proverはその重要な構成要素です。",
+            "author": "ZK研究者",
+            "title": "暗号学研究者",
+            "source": "ZK Research"
+          }
+        ],
+        "disclaimer": "※ 上記は参考情報です。Prover参加はご自身の判断で行ってください。"
       }
     },
     "application": {

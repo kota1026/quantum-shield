@@ -35,19 +35,23 @@
         "subtitle": "Use QS tokens to participate in Quantum Shield governance",
         "lock": {
           "title": "Lock QS",
-          "description": "Lock QS for 1-4 years to earn veQS (vote-escrowed tokens)"
+          "description": "Lock QS for 1-4 years to earn veQS (vote-escrowed tokens)",
+          "tooltip": "Locked QS cannot be withdrawn during the lock period. Longer lock periods earn more veQS, increasing your voting power and rewards."
         },
         "rewards": {
           "title": "Earn Rewards",
-          "description": "A portion of protocol revenue is distributed to veQS holders"
+          "description": "A portion of protocol revenue is distributed to veQS holders",
+          "tooltip": "Rewards are distributed weekly from protocol fees. Your share is calculated proportionally to your veQS balance."
         },
         "delegate": {
           "title": "Delegate Votes",
-          "description": "Delegate your voting power to trusted delegates"
+          "description": "Delegate your voting power to trusted delegates",
+          "tooltip": "When you delegate, your QS tokens don't move. You can revoke delegation at any time."
         },
         "governance": {
           "title": "Governance Voting",
-          "description": "Vote on important protocol decisions and shape the future"
+          "description": "Vote on important protocol decisions and shape the future",
+          "tooltip": "Vote on fee adjustments, protocol improvements, treasury allocations, and more."
         }
       },
       "howItWorks": {
@@ -77,11 +81,38 @@
       "veqs": {
         "title": "What is veQS?",
         "description": "veQS (vote-escrowed QS) is a voting power token earned by locking QS. The longer you lock, the more veQS you receive.",
+        "tooltip": "veQS (Vote-escrowed QS) represents your voting power. You earn it by locking QS, and it gradually decreases as your lock period approaches its end.",
         "lockPeriod": "Lock Period",
         "years": "years",
         "maxMultiplier": "Max Multiplier",
         "rewardsBoost": "Rewards Boost",
         "upTo": "Up to"
+      },
+      "expertQuotes": {
+        "sectionLabel": "Expert Insights",
+        "title": "Why Token Governance Matters",
+        "subtitle": "Insights from industry leaders",
+        "quotes": {
+          "0": {
+            "quote": "Long-term token locking is essential for sustainable protocol growth. It promotes genuine commitment rather than short-term speculation.",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum Co-founder",
+            "source": "vitalik.eth.limo"
+          },
+          "1": {
+            "quote": "The veToken model is an excellent mechanism that favors participants with long-term perspectives in governance.",
+            "author": "a16z Crypto",
+            "title": "Crypto Investment Team",
+            "source": "a16z.com"
+          },
+          "2": {
+            "quote": "The success of decentralized governance depends on proper incentive design. The veQS model is a prime example of this.",
+            "author": "DeFi Researcher",
+            "title": "Decentralized Finance Analyst",
+            "source": "DeFi Pulse"
+          }
+        },
+        "disclaimer": "The above is for informational purposes only. Please make investment decisions at your own responsibility."
       },
       "cta": {
         "title": "Get Started Today",

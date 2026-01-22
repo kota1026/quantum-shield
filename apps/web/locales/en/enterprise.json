@@ -1452,6 +1452,9 @@
       "title": "Enterprise Solutions | Quantum Shield",
       "description": "Protect your business with quantum-resistant asset protection solutions."
     },
+    "header": {
+      "login": "Login"
+    },
     "hero": {
       "badge": "Enterprise Solutions",
       "title": "Asset Protection Platform\nfor the Quantum Era",
@@ -1487,6 +1490,8 @@
     "plans": {
       "title": "Plans",
       "subtitle": "Flexible plans tailored to your needs",
+      "recommended": "Recommended",
+      "ctaLabel": "Get Started",
       "starter": {
         "name": "Starter",
         "description": "For small teams",
@@ -1510,6 +1515,94 @@
       "title": "Get Started Today",
       "description": "Start protecting your assets for the quantum era today.",
       "button": "Request Free Consultation"
+    },
+    "security": {
+      "title": "Enterprise-Grade Security",
+      "subtitle": "Built with compliance and security at its core",
+      "soc2": {
+        "title": "SOC 2 Type II Certified",
+        "description": "Annual third-party audits verify our security controls meet the highest standards for data protection and privacy."
+      },
+      "iso": {
+        "title": "ISO 27001 Compliant",
+        "description": "Our information security management system follows international best practices for protecting your data."
+      },
+      "encryption": {
+        "title": "End-to-End Encryption",
+        "description": "All data is encrypted at rest and in transit using quantum-resistant cryptographic algorithms."
+      },
+      "support": {
+        "title": "24/7 Dedicated Support",
+        "description": "Enterprise customers receive a dedicated Customer Success Manager and priority support channel."
+      }
+    },
+    "integration": {
+      "title": "Seamless Integration",
+      "description": "Connect Quantum Shield to your existing infrastructure with our comprehensive API and developer tools.",
+      "features": [
+        "RESTful API with comprehensive documentation",
+        "Real-time webhooks for transaction events",
+        "SDK support for major programming languages",
+        "Single Sign-On (SSO) integration",
+        "Custom reporting and analytics API"
+      ],
+      "cta": "View API Documentation",
+      "api": {
+        "title": "REST API",
+        "description": "Full-featured API for programmatic access"
+      },
+      "webhooks": {
+        "title": "Webhooks",
+        "description": "Real-time notifications for all events"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Find answers to common questions about our enterprise solutions",
+      "items": {
+        "0": {
+          "question": "What is the minimum contract term?",
+          "answer": "Our enterprise plans start with a minimum 12-month commitment. This ensures we can provide dedicated support and customization for your organization."
+        },
+        "1": {
+          "question": "How long does onboarding take?",
+          "answer": "Typical enterprise onboarding takes 2-4 weeks, including KYB verification, API integration, and team training. We provide a dedicated onboarding specialist to ensure a smooth transition."
+        },
+        "2": {
+          "question": "Can we run on-premise?",
+          "answer": "Yes, our Enterprise plan offers on-premise deployment options. This includes dedicated infrastructure, custom SLA, and full control over your data environment."
+        },
+        "3": {
+          "question": "What compliance certifications do you have?",
+          "answer": "We maintain SOC 2 Type II and ISO 27001 certifications. We can also provide compliance documentation for GDPR, CCPA, and other regulatory requirements upon request."
+        }
+      }
+    },
+    "expertQuotes": {
+      "sectionLabel": "Industry Voices",
+      "title": "Why Enterprises Choose Us",
+      "subtitle": "Expert perspectives on crypto asset security and enterprise adoption",
+      "quotes": {
+        "0": {
+          "quote": "The advancement of quantum computing poses a real threat to current cryptographic systems. Organizations that adopt quantum-resistant security today will be the winners of tomorrow.",
+          "author": "Dr. Michele Mosca",
+          "title": "Institute for Quantum Computing, University of Waterloo",
+          "source": "Quantum Threat Timeline Report"
+        },
+        "1": {
+          "quote": "In enterprise crypto adoption, security is non-negotiable. Institutional investors demand custody solutions that are regulatory-compliant and future-proof.",
+          "author": "Caitlin Long",
+          "title": "CEO, Custodia Bank",
+          "source": "Institutional Investor Conference"
+        },
+        "2": {
+          "quote": "NIST's post-quantum cryptography standardization has given the industry clear direction. Organizations that adopt early will gain competitive advantage.",
+          "author": "Dr. Dustin Moody",
+          "title": "NIST PQC Project Lead",
+          "source": "PQC Standardization Announcement"
+        }
+      },
+      "disclaimer": "* Quotes represent general industry perspectives and are not direct endorsements of Quantum Shield."
     }
   },
   "application": {

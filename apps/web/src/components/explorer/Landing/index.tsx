@@ -21,6 +21,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EcosystemLink } from '@/components/shared/EcosystemLink';
+import { CookieBanner } from '@/components/shared/CookieBanner';
+import { ExplorerVisual } from '../ExplorerVisual';
 import { cn } from '@/lib/utils';
 
 export function ExplorerLanding() {
@@ -187,6 +189,11 @@ export function ExplorerLanding() {
                 </Button>
               </Link>
             </div>
+
+            {/* Custom Visual */}
+            <div className="mt-16">
+              <ExplorerVisual />
+            </div>
           </section>
 
           {/* Stats Section */}
@@ -305,6 +312,44 @@ export function ExplorerLanding() {
             </div>
           </section>
 
+          {/* Expert Quotes Section */}
+          <section
+            id="expert-quotes"
+            className="py-20 bg-surface-secondary/30 -mx-8 px-8"
+          >
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center gap-3 text-xs font-semibold tracking-widest uppercase text-gold mb-4">
+                <span className="w-6 h-px bg-gold" aria-hidden="true" />
+                {t('landing.expertQuotes.sectionLabel')}
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                {t('landing.expertQuotes.title')}
+              </h2>
+              <p className="text-foreground-secondary mb-12">
+                {t('landing.expertQuotes.subtitle')}
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[0, 1, 2].map((index) => (
+                  <article key={index} className="bg-surface border border-border rounded-xl p-6 hover:border-gold/30 transition-all duration-300">
+                    <blockquote className="text-sm text-foreground-secondary leading-relaxed mb-4 italic">
+                      &ldquo;{t(`landing.expertQuotes.quotes.${index}.quote`)}&rdquo;
+                    </blockquote>
+                    <div className="border-t border-border pt-4">
+                      <div className="font-semibold text-foreground">{t(`landing.expertQuotes.quotes.${index}.author`)}</div>
+                      <div className="text-xs text-foreground-tertiary">{t(`landing.expertQuotes.quotes.${index}.title`)}</div>
+                      <div className="text-xs text-gold mt-1">{t(`landing.expertQuotes.quotes.${index}.source`)}</div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <p className="text-xs text-foreground-tertiary text-center mt-6">
+                {t('landing.expertQuotes.disclaimer')}
+              </p>
+            </div>
+          </section>
+
           {/* CTA Section */}
           <section className="py-20">
             <Card className="p-12 text-center bg-gradient-to-br from-hinomaru/10 to-gold/10 border-hinomaru/30">
@@ -347,6 +392,9 @@ export function ExplorerLanding() {
           </div>
         </footer>
       </div>
+
+      {/* Cookie Banner */}
+      <CookieBanner />
     </div>
   );
 }

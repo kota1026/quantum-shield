@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { useTranslations, useLocale } from 'next-intl';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import {
   Lock,
   Coins,
@@ -12,11 +12,16 @@ import {
   ArrowRight,
   Check,
   ChevronRight,
+  Globe,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { EcosystemLink } from '@/components/shared/EcosystemLink';
+import { CookieBanner } from '@/components/shared/CookieBanner';
+import { Tooltip } from '@/components/shared/Tooltip';
+import { TokenHubVisual } from './TokenHubVisual';
 import { cn } from '@/lib/utils';
 
 // Feature card component
@@ -24,16 +29,27 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
+  tooltip?: string;
 }
 
-function FeatureCard({ icon, title, description }: FeatureCardProps) {
+function FeatureCard({ icon, title, description, tooltip }: FeatureCardProps) {
   return (
-    <Card className="bg-background-secondary border-surface-tertiary">
+    <Card className="bg-background-secondary border-surface-tertiary hover:border-gold/30 transition-all duration-300">
       <CardContent className="pt-6">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10">
           {icon}
         </div>
-        <h3 className="text-lg font-bold text-foreground">{title}</h3>
+        <h3 className="text-lg font-bold text-foreground">
+          {tooltip ? (
+            <Tooltip content={tooltip} showHelpIcon>
+              <span className="border-b border-dashed border-foreground-tertiary cursor-help">
+                {title}
+              </span>
+            </Tooltip>
+          ) : (
+            title
+          )}
+        </h3>
         <p className="mt-2 text-sm text-foreground-secondary">{description}</p>
       </CardContent>
     </Card>
@@ -55,29 +71,78 @@ function StatItem({ value, label }: StatItemProps) {
   );
 }
 
+// Expert Quote Card
+interface ExpertQuoteCardProps {
+  quote: string;
+  author: string;
+  title: string;
+  source: string;
+  sourceUrl?: string;
+}
+
+function ExpertQuoteCard({ quote, author, title, source, sourceUrl }: ExpertQuoteCardProps) {
+  return (
+    <article className="bg-surface border border-border rounded-xl p-6 hover:border-gold/30 transition-all duration-300">
+      <blockquote className="text-sm text-foreground-secondary leading-relaxed mb-4 italic">
+        &ldquo;{quote}&rdquo;
+      </blockquote>
+      <div className="border-t border-border pt-4">
+        <div className="font-semibold text-foreground">{author}</div>
+        <div className="text-xs text-foreground-tertiary">{title}</div>
+        {sourceUrl ? (
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gold mt-1 inline-flex items-center gap-1 hover:underline"
+          >
+            {source}
+            <ExternalLink className="w-3 h-3" aria-hidden="true" />
+          </a>
+        ) : (
+          <div className="text-xs text-gold mt-1">{source}</div>
+        )}
+      </div>
+    </article>
+  );
+}
+
 export function TokenHubLanding() {
   const t = useTranslations('token-hub.landing');
+  const tGlobal = useTranslations('common');
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const toggleLocale = () => {
+    const newLocale = locale === 'ja' ? 'en' : 'ja';
+    router.replace(pathname, { locale: newLocale });
+  };
 
   const features = [
     {
       icon: <Lock className="h-6 w-6 text-gold" />,
       titleKey: 'features.lock.title',
       descriptionKey: 'features.lock.description',
+      tooltipKey: 'features.lock.tooltip',
     },
     {
       icon: <Coins className="h-6 w-6 text-gold" />,
       titleKey: 'features.rewards.title',
       descriptionKey: 'features.rewards.description',
+      tooltipKey: 'features.rewards.tooltip',
     },
     {
       icon: <Users className="h-6 w-6 text-gold" />,
       titleKey: 'features.delegate.title',
       descriptionKey: 'features.delegate.description',
+      tooltipKey: 'features.delegate.tooltip',
     },
     {
       icon: <Vote className="h-6 w-6 text-gold" />,
       titleKey: 'features.governance.title',
       descriptionKey: 'features.governance.description',
+      tooltipKey: 'features.governance.tooltip',
     },
   ];
 
@@ -88,8 +153,39 @@ export function TokenHubLanding() {
     'benefits.delegate',
   ];
 
+  const expertQuotes = [
+    {
+      quote: t('expertQuotes.quotes.0.quote'),
+      author: t('expertQuotes.quotes.0.author'),
+      title: t('expertQuotes.quotes.0.title'),
+      source: t('expertQuotes.quotes.0.source'),
+      sourceUrl: 'https://vitalik.eth.limo/general/2024/01/31/end.html',
+    },
+    {
+      quote: t('expertQuotes.quotes.1.quote'),
+      author: t('expertQuotes.quotes.1.author'),
+      title: t('expertQuotes.quotes.1.title'),
+      source: t('expertQuotes.quotes.1.source'),
+      sourceUrl: 'https://a]6z.com/the-future-of-token-governance/',
+    },
+    {
+      quote: t('expertQuotes.quotes.2.quote'),
+      author: t('expertQuotes.quotes.2.author'),
+      title: t('expertQuotes.quotes.2.title'),
+      source: t('expertQuotes.quotes.2.source'),
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:bg-hinomaru focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
+      >
+        {tGlobal('accessibility.skipToContent')}
+      </a>
+
       {/* Premium Background Effect - Gold Glow */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
@@ -103,175 +199,272 @@ export function TokenHubLanding() {
             'opacity-50'
           )}
         />
+        <div
+          className={cn(
+            'absolute bottom-[-100px] right-[-100px]',
+            'w-[400px] h-[400px]',
+            'bg-[radial-gradient(circle,rgba(188,0,45,0.08),transparent_60%)]',
+            'opacity-30'
+          )}
+        />
       </div>
 
       {/* Header with Ecosystem Link */}
-      <header className="relative z-10 flex justify-between items-center px-6 py-4 lg:px-8">
-        <Link href="/token-hub/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center">
-            <Coins className="w-4 h-4 text-gold" />
+      <header className="relative z-10 flex justify-between items-center px-6 py-4 lg:px-8" role="banner">
+        <Link href="/token-hub/landing" className="flex items-center gap-3 group">
+          <div className="relative w-12 h-12 flex items-center justify-center">
+            <div
+              className="absolute inset-0 border border-gold rounded-full animate-[spin_25s_linear_infinite]"
+              aria-hidden="true"
+            >
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-gold rounded-full" />
+            </div>
+            <div
+              className="w-6 h-6 bg-hinomaru rounded-full shadow-[0_0_20px_rgba(188,0,45,0.4)]"
+              aria-hidden="true"
+            />
           </div>
-          <span className="font-semibold text-lg">Token Hub</span>
+          <div className="flex flex-col">
+            <span className="text-lg font-semibold text-foreground group-hover:text-gold transition-colors">
+              Quantum Shield
+            </span>
+            <span className="text-[10px] text-gold tracking-[2px] uppercase">
+              Token Hub
+            </span>
+          </div>
         </Link>
-        <EcosystemLink variant="inline" />
+        <div className="flex items-center gap-3">
+          <EcosystemLink variant="inline" />
+          <button
+            onClick={toggleLocale}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            aria-label={tGlobal('accessibility.switchToJapanese')}
+          >
+            <Globe className="w-4 h-4" />
+            {locale === 'ja' ? 'EN' : 'JA'}
+          </button>
+        </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative z-10 overflow-hidden px-6 py-24 lg:px-8">
-        <div className="mx-auto max-w-5xl text-center">
-          <Badge variant="gold" className="mb-4">
-            {t('hero.badge')}
-          </Badge>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
-            {t('hero.title')}
-          </h1>
-          <p className="mt-6 text-lg text-foreground-secondary max-w-2xl mx-auto">
-            {t('hero.description')}
-          </p>
-          <div className="mt-10 flex items-center justify-center gap-4">
-            <Link href="/token-hub/dashboard">
-              <Button size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
-                {t('hero.cta')}
-              </Button>
-            </Link>
-            <Link href="/token-hub/onboarding">
-              <Button size="lg" variant="outline">
-                {t('hero.secondaryCta')}
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Main Content */}
+      <main id="main-content" role="main" className="relative z-10">
+        {/* Hero Section */}
+        <section className="overflow-hidden px-6 py-24 lg:px-8">
+          <div className="mx-auto max-w-5xl text-center">
+            <Badge variant="gold" className="mb-4">
+              {t('hero.badge')}
+            </Badge>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
+              {t('hero.title')}
+            </h1>
+            <p className="mt-6 text-lg text-foreground-secondary max-w-2xl mx-auto">
+              {t('hero.description')}
+            </p>
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <Link href="/token-hub/onboarding">
+                <Button size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
+                  {t('hero.cta')}
+                </Button>
+              </Link>
+              <Link href="/token-hub/onboarding">
+                <Button size="lg" variant="outline">
+                  {t('hero.secondaryCta')}
+                </Button>
+              </Link>
+            </div>
 
-      {/* Stats Section */}
-      <section className="relative z-10 border-t border-surface-tertiary bg-background-secondary px-6 py-16 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatItem value={t('stats.totalLocked.value')} label={t('stats.totalLocked.label')} />
-            <StatItem value={t('stats.holders.value')} label={t('stats.holders.label')} />
-            <StatItem value={t('stats.apy.value')} label={t('stats.apy.label')} />
-            <StatItem value={t('stats.distributed.value')} label={t('stats.distributed.label')} />
+            {/* Custom Visual */}
+            <div className="mt-16">
+              <TokenHubVisual />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Section */}
-      <section className="relative z-10 border-t border-surface-tertiary px-6 py-24 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-foreground">{t('features.title')}</h2>
-            <p className="mt-4 text-foreground-secondary">{t('features.subtitle')}</p>
+        {/* Stats Section */}
+        <section className="border-t border-surface-tertiary bg-background-secondary px-6 py-16 lg:px-8">
+          <div className="mx-auto max-w-5xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <StatItem value={t('stats.totalLocked.value')} label={t('stats.totalLocked.label')} />
+              <StatItem value={t('stats.holders.value')} label={t('stats.holders.label')} />
+              <StatItem value={t('stats.apy.value')} label={t('stats.apy.label')} />
+              <StatItem value={t('stats.distributed.value')} label={t('stats.distributed.label')} />
+            </div>
           </div>
-          <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature, index) => (
-              <FeatureCard
-                key={index}
-                icon={feature.icon}
-                title={t(feature.titleKey)}
-                description={t(feature.descriptionKey)}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* How it Works Section */}
-      <section className="relative z-10 border-t border-surface-tertiary bg-background-secondary px-6 py-24 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-foreground">{t('howItWorks.title')}</h2>
-            <p className="mt-4 text-foreground-secondary">{t('howItWorks.subtitle')}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Step 1 */}
+        {/* Features Section */}
+        <section className="border-t border-surface-tertiary px-6 py-24 lg:px-8">
+          <div className="mx-auto max-w-5xl">
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gold/10 flex items-center justify-center">
-                <span className="text-2xl font-bold text-gold">1</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">{t('howItWorks.step1.title')}</h3>
-              <p className="text-sm text-foreground-secondary">{t('howItWorks.step1.description')}</p>
+              <h2 className="text-3xl font-bold text-foreground">{t('features.title')}</h2>
+              <p className="mt-4 text-foreground-secondary">{t('features.subtitle')}</p>
             </div>
-            {/* Step 2 */}
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gold/10 flex items-center justify-center">
-                <span className="text-2xl font-bold text-gold">2</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">{t('howItWorks.step2.title')}</h3>
-              <p className="text-sm text-foreground-secondary">{t('howItWorks.step2.description')}</p>
-            </div>
-            {/* Step 3 */}
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gold/10 flex items-center justify-center">
-                <span className="text-2xl font-bold text-gold">3</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">{t('howItWorks.step3.title')}</h3>
-              <p className="text-sm text-foreground-secondary">{t('howItWorks.step3.description')}</p>
+            <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {features.map((feature, index) => (
+                <FeatureCard
+                  key={index}
+                  icon={feature.icon}
+                  title={t(feature.titleKey)}
+                  description={t(feature.descriptionKey)}
+                  tooltip={feature.tooltipKey ? t(feature.tooltipKey) : undefined}
+                />
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Benefits Section */}
-      <section className="relative z-10 border-t border-surface-tertiary px-6 py-24 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground mb-6">{t('benefits.title')}</h2>
-              <ul className="space-y-4">
-                {benefits.map((benefitKey, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-success/10 flex items-center justify-center mt-0.5">
-                      <Check className="w-4 h-4 text-success" />
-                    </div>
-                    <span className="text-foreground-secondary">{t(benefitKey)}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-8">
-                <Link href="/token-hub/dashboard">
-                  <Button rightIcon={<ChevronRight className="h-4 w-4" />}>
-                    {t('benefits.cta')}
-                  </Button>
-                </Link>
-              </div>
+        {/* How it Works Section */}
+        <section className="border-t border-surface-tertiary bg-background-secondary px-6 py-24 lg:px-8">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-foreground">{t('howItWorks.title')}</h2>
+              <p className="mt-4 text-foreground-secondary">{t('howItWorks.subtitle')}</p>
             </div>
-            <div className="bg-background-secondary border border-surface-tertiary rounded-2xl p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <Shield className="w-8 h-8 text-gold" />
-                <span className="text-xl font-semibold">{t('veqs.title')}</span>
-              </div>
-              <p className="text-foreground-secondary mb-6">{t('veqs.description')}</p>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-background rounded-lg">
-                  <span className="text-sm text-foreground-tertiary">{t('veqs.lockPeriod')}</span>
-                  <span className="font-mono font-medium">1-4 {t('veqs.years')}</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Step 1 */}
+              <div className="text-center group">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-hinomaru/10 border border-hinomaru/30 flex items-center justify-center group-hover:bg-hinomaru/20 transition-colors">
+                  <span className="text-2xl font-bold text-hinomaru">1</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-background rounded-lg">
-                  <span className="text-sm text-foreground-tertiary">{t('veqs.maxMultiplier')}</span>
-                  <span className="font-mono font-medium text-gold">4x</span>
+                <h3 className="text-lg font-semibold mb-2">{t('howItWorks.step1.title')}</h3>
+                <p className="text-sm text-foreground-secondary">{t('howItWorks.step1.description')}</p>
+              </div>
+              {/* Step 2 */}
+              <div className="text-center group">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center group-hover:bg-gold/20 transition-colors">
+                  <span className="text-2xl font-bold text-gold">2</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-background rounded-lg">
-                  <span className="text-sm text-foreground-tertiary">{t('veqs.rewardsBoost')}</span>
-                  <span className="font-mono font-medium text-success">{t('veqs.upTo')} 2.5x</span>
+                <h3 className="text-lg font-semibold mb-2">{t('howItWorks.step2.title')}</h3>
+                <p className="text-sm text-foreground-secondary">{t('howItWorks.step2.description')}</p>
+              </div>
+              {/* Step 3 */}
+              <div className="text-center group">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-success/10 border border-success/30 flex items-center justify-center group-hover:bg-success/20 transition-colors">
+                  <span className="text-2xl font-bold text-success">3</span>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{t('howItWorks.step3.title')}</h3>
+                <p className="text-sm text-foreground-secondary">{t('howItWorks.step3.description')}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Benefits Section */}
+        <section className="border-t border-surface-tertiary px-6 py-24 lg:px-8">
+          <div className="mx-auto max-w-5xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-foreground mb-6">{t('benefits.title')}</h2>
+                <ul className="space-y-4">
+                  {benefits.map((benefitKey, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-success/10 flex items-center justify-center mt-0.5">
+                        <Check className="w-4 h-4 text-success" />
+                      </div>
+                      <span className="text-foreground-secondary">{t(benefitKey)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8">
+                  <Link href="/token-hub/onboarding">
+                    <Button rightIcon={<ChevronRight className="h-4 w-4" />}>
+                      {t('benefits.cta')}
+                    </Button>
+                  </Link>
                 </div>
               </div>
+              <div className="bg-background-secondary border border-surface-tertiary rounded-2xl p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <Shield className="w-8 h-8 text-gold" />
+                  <Tooltip content={t('veqs.tooltip')} showHelpIcon>
+                    <span className="text-xl font-semibold cursor-help">{t('veqs.title')}</span>
+                  </Tooltip>
+                </div>
+                <p className="text-foreground-secondary mb-6">{t('veqs.description')}</p>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-background rounded-lg">
+                    <span className="text-sm text-foreground-tertiary">{t('veqs.lockPeriod')}</span>
+                    <span className="font-mono font-medium">1-4 {t('veqs.years')}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-background rounded-lg">
+                    <span className="text-sm text-foreground-tertiary">{t('veqs.maxMultiplier')}</span>
+                    <span className="font-mono font-medium text-gold">4x</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-background rounded-lg">
+                    <span className="text-sm text-foreground-tertiary">{t('veqs.rewardsBoost')}</span>
+                    <span className="font-mono font-medium text-success">{t('veqs.upTo')} 2.5x</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="relative z-10 border-t border-surface-tertiary bg-gradient-to-b from-background-secondary to-background px-6 py-24 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold text-foreground">{t('cta.title')}</h2>
-          <p className="mt-4 text-foreground-secondary">{t('cta.description')}</p>
-          <div className="mt-10 flex items-center justify-center gap-4">
-            <Link href="/token-hub/dashboard">
-              <Button size="lg">{t('cta.button')}</Button>
-            </Link>
+        {/* Expert Quotes Section */}
+        <section id="expert-quotes" className="border-t border-surface-tertiary py-20 bg-surface-secondary/30 px-6 lg:px-8">
+          <div className="mx-auto max-w-5xl">
+            <div className="flex items-center gap-3 text-xs font-semibold tracking-widest uppercase text-gold mb-4">
+              <span className="w-6 h-px bg-gold" aria-hidden="true" />
+              {t('expertQuotes.sectionLabel')}
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {t('expertQuotes.title')}
+            </h2>
+            <p className="text-foreground-secondary mb-12">
+              {t('expertQuotes.subtitle')}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {expertQuotes.map((quote, index) => (
+                <ExpertQuoteCard key={index} {...quote} />
+              ))}
+            </div>
+
+            <p className="text-xs text-foreground-tertiary text-center mt-6">
+              {t('expertQuotes.disclaimer')}
+            </p>
           </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="border-t border-surface-tertiary bg-gradient-to-b from-background-secondary to-background px-6 py-24 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="text-3xl font-bold text-foreground">{t('cta.title')}</h2>
+            <p className="mt-4 text-foreground-secondary">{t('cta.description')}</p>
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <Link href="/token-hub/onboarding">
+                <Button size="lg">{t('cta.button')}</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-border px-6 py-8 lg:px-8" role="contentinfo">
+        <div className="mx-auto max-w-5xl flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-foreground-tertiary">
+            {tGlobal('footer.copyright')}
+          </div>
+          <nav className="flex gap-6 text-sm" aria-label={tGlobal('accessibility.footerNav')}>
+            <Link
+              href="/consumer/terms"
+              className="text-foreground-tertiary hover:text-gold transition-colors"
+            >
+              {tGlobal('footer.terms')}
+            </Link>
+            <Link
+              href="/consumer/privacy"
+              className="text-foreground-tertiary hover:text-gold transition-colors"
+            >
+              {tGlobal('footer.privacy')}
+            </Link>
+          </nav>
         </div>
-      </section>
+      </footer>
+
+      {/* Cookie Banner */}
+      <CookieBanner />
     </div>
   );
 }

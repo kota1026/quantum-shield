@@ -60,15 +60,18 @@
         "description": "Quantum Shieldのガバナンスは、プロトコルの運営方針をコミュニティが決める仕組みです。QSトークンを持つユーザーは、提案への投票や新しい提案の作成ができます。",
         "point1": {
           "title": "提案と投票",
-          "description": "手数料率の変更や新機能の追加など、プロトコルの重要な決定に投票"
+          "description": "手数料率の変更や新機能の追加など、プロトコルの重要な決定に投票",
+          "tooltip": "提案は誰でも作成できます。投票期間は通常7日間で、定足数を満たすと実行されます。"
         },
         "point2": {
           "title": "QSトークンで投票",
-          "description": "Token HubでQSをロックしてveQSを取得し、投票権を獲得"
+          "description": "Token HubでQSをロックしてveQSを取得し、投票権を獲得",
+          "tooltip": "veQS保有量に応じて投票力が決まります。最大4年ロックで1:1の比率になります。"
         },
         "point3": {
           "title": "セキュリティ評議会",
-          "description": "セキュリティリスクのある提案は評議会が拒否権を持つ"
+          "description": "セキュリティリスクのある提案は評議会が拒否権を持つ",
+          "tooltip": "評議会は5名のセキュリティ専門家で構成され、緊急時にのみ拒否権を行使します。"
         }
       },
       "howToVote": {
@@ -164,6 +167,32 @@
       "purposeCommittee": "目的委員会",
       "active": "アクティブ",
       "viewCouncil": "評議会を見る"
+    },
+    "expertQuotes": {
+      "sectionLabel": "専門家の声",
+      "title": "なぜ分散型ガバナンスが重要なのか",
+      "subtitle": "ブロックチェーン業界のリーダーたちの見解",
+      "quotes": [
+        {
+          "quote": "分散型ガバナンスは、コミュニティの意思決定を真に民主的にする唯一の方法です。中央集権的な管理者なしで、透明性と公平性を実現できます。",
+          "author": "Vitalik Buterin",
+          "title": "Ethereum共同創設者",
+          "source": "vitalik.eth.limo"
+        },
+        {
+          "quote": "オンチェーンガバナンスは、DAOの核心です。コードによって保証された意思決定プロセスこそが、信頼を必要としない協力を可能にします。",
+          "author": "DAO研究者",
+          "title": "分散型組織専門家",
+          "source": "DAO Alliance"
+        },
+        {
+          "quote": "veTokenモデルは長期的なコミットメントを持つ参加者に投票権を与え、短期的な投機者の影響を抑える優れた仕組みです。",
+          "author": "DeFi研究者",
+          "title": "トークンエコノミクス専門家",
+          "source": "DeFi Pulse"
+        }
+      ],
+      "disclaimer": "※ 上記は参考情報です。ガバナンス参加はご自身の判断で行ってください。"
     },
     "proposals": {
     "meta": {

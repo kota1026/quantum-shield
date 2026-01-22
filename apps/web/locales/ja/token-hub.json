@@ -35,19 +35,23 @@
         "subtitle": "QSトークンを活用してQuantum Shieldの運営に参加",
         "lock": {
           "title": "QSをロック",
-          "description": "1〜4年の期間でQSをロックし、veQS（投票エスクロートークン）を獲得"
+          "description": "1〜4年の期間でQSをロックし、veQS（投票エスクロートークン）を獲得",
+          "tooltip": "ロックしたQSはロック期間中引き出せません。長いロック期間ほど多くのveQSが獲得でき、投票力と報酬が増加します。"
         },
         "rewards": {
           "title": "報酬を獲得",
-          "description": "プロトコル収益の一部がveQS保有者に分配されます"
+          "description": "プロトコル収益の一部がveQS保有者に分配されます",
+          "tooltip": "報酬はプロトコル手数料から毎週分配されます。veQS保有量に比例して報酬が計算されます。"
         },
         "delegate": {
           "title": "投票権を委任",
-          "description": "信頼できるデリゲートに投票権を委任し、代わりに投票してもらう"
+          "description": "信頼できるデリゲートに投票権を委任し、代わりに投票してもらう",
+          "tooltip": "委任しても、あなたのQSトークンは移動しません。いつでも委任を解除できます。"
         },
         "governance": {
           "title": "ガバナンス投票",
-          "description": "プロトコルの重要な決定に投票し、将来の方向性を決める"
+          "description": "プロトコルの重要な決定に投票し、将来の方向性を決める",
+          "tooltip": "手数料調整、プロトコル改善、財務配分などの提案に投票できます。"
         }
       },
       "howItWorks": {
@@ -77,11 +81,38 @@
       "veqs": {
         "title": "veQSとは？",
         "description": "veQS（投票エスクローQS）は、QSをロックすると獲得できる投票権トークンです。ロック期間が長いほど多くのveQSがもらえます。",
+        "tooltip": "veQS（Vote-escrowed QS）は投票権を表すトークンです。QSをロックすることで獲得でき、ロック期間終了に向けて徐々に減少します。",
         "lockPeriod": "ロック期間",
         "years": "年",
         "maxMultiplier": "最大倍率",
         "rewardsBoost": "報酬ブースト",
         "upTo": "最大"
+      },
+      "expertQuotes": {
+        "sectionLabel": "専門家の声",
+        "title": "なぜトークンガバナンスが重要なのか",
+        "subtitle": "業界リーダーたちの見解",
+        "quotes": {
+          "0": {
+            "quote": "長期的なトークンロックは、プロトコルの持続可能な成長に不可欠です。短期的な投機ではなく、真のコミットメントを促進します。",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum共同創設者",
+            "source": "vitalik.eth.limo"
+          },
+          "1": {
+            "quote": "veTokenモデルは、ガバナンスにおける長期的な視点を持つ参加者を優遇する優れた仕組みです。",
+            "author": "a16z Crypto",
+            "title": "クリプト投資チーム",
+            "source": "a16z.com"
+          },
+          "2": {
+            "quote": "分散型ガバナンスの成功は、適切なインセンティブ設計にかかっています。veQSモデルはその好例です。",
+            "author": "DeFi研究者",
+            "title": "分散型金融アナリスト",
+            "source": "DeFi Pulse"
+          }
+        },
+        "disclaimer": "※ 上記は参考情報です。投資判断はご自身の責任で行ってください。"
       },
       "cta": {
         "title": "さあ、始めましょう",

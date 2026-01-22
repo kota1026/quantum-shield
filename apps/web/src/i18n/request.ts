@@ -27,6 +27,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const adminJson = (await import(`../../locales/${locale}/admin.json`)).default;
   const ecosystemJson = (await import(`../../locales/${locale}/ecosystem.json`)).default;
   const ecosystemTechnicalJson = (await import(`../../locales/${locale}/ecosystemTechnical.json`)).default;
+  const ecosystemNewJson = (await import(`../../locales/${locale}/ecosystemNew.json`)).default;
 
   // Extract nested content if the JSON has a root key matching the namespace
   const common = commonJson.common || commonJson;
@@ -40,6 +41,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const admin = adminJson.admin || adminJson;
   const ecosystem = ecosystemJson.ecosystem || ecosystemJson;
   const ecosystemTechnical = ecosystemTechnicalJson.ecosystemTechnical || ecosystemTechnicalJson;
+  const ecosystemNew = ecosystemNewJson.ecosystemNew || ecosystemNewJson;
 
   return {
     locale,
@@ -55,6 +57,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       admin,
       ecosystem,
       ecosystemTechnical,
+      ecosystemNew,
     },
   };
 });

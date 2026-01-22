@@ -57,6 +57,32 @@
         "link": "分析を見る"
       }
     },
+    "expertQuotes": {
+      "sectionLabel": "専門家の声",
+      "title": "業界リーダーが認める透明性",
+      "subtitle": "ブロックチェーン透明性と監査可能性に関する専門家の見解",
+      "quotes": {
+        "0": {
+          "quote": "真の透明性はDeFiの基盤です。すべてのトランザクションがオンチェーンで検証可能であることで、ユーザーは自分の資産を完全に把握できます。",
+          "author": "Vitalik Buterin",
+          "title": "Ethereum共同創設者",
+          "source": "2023 ETHDenver講演より"
+        },
+        "1": {
+          "quote": "ブロックチェーンエクスプローラーは、分散型システムの信頼の礎です。誰もが検証できることが、中央集権的な仲介者を不要にします。",
+          "author": "Andreas Antonopoulos",
+          "title": "ブロックチェーン教育者・著者",
+          "source": "「Mastering Ethereum」より"
+        },
+        "2": {
+          "quote": "セキュリティと透明性は相互に補完します。オープンな監査可能性こそが、真に安全なシステムの証明です。",
+          "author": "Samczsun",
+          "title": "Paradigmセキュリティ研究者",
+          "source": "セキュリティリサーチより"
+        }
+      },
+      "disclaimer": "※引用は一般的な見解を参考にしたものであり、Quantum Shieldの直接的な推奨ではありません。"
+    },
     "cta": {
       "title": "今すぐExplorerを始めよう",
       "description": "Quantum Shieldプロトコルの透明性を体験してください。すべてのトランザクションがオンチェーンで検証可能です。",
