@@ -324,8 +324,8 @@ docs/
 
 ```
 1. 仕様確認
-   → docs_new/01_phase/06_phase6/DESIGN_SPEC_v3.md の該当アプリAPI一覧
-   → docs_new/01_phase/06_phase6/DATA_MODEL.md でエンティティ確認
+   → docs/design/DESIGN_SPEC_v3.md の該当アプリAPI一覧
+   → docs/specs/DATA_MODEL.md でエンティティ確認
 
 2. ルート追加
    → services/api/src/routes/{domain}.rs
