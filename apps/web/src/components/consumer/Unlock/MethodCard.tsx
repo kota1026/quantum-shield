@@ -132,7 +132,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
                 <span
                   className={cn(
                     'font-medium',
-                    detail.warning ? 'text-warning' : 'text-foreground'
+                    'warning' in detail && detail.warning ? 'text-warning' : 'text-foreground'
                   )}
                 >
                   {detail.value}
@@ -142,7 +142,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
               <span
                 className={cn(
                   'font-medium',
-                  detail.warning ? 'text-warning' : 'text-foreground'
+                  'warning' in detail && detail.warning ? 'text-warning' : 'text-foreground'
                 )}
               >
                 {detail.value}
