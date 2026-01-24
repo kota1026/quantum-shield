@@ -87,6 +87,11 @@ const config: Config = {
           challenged: '#E84057', // Danger - under challenge (matching mock)
           emergency: '#BC002D',  // Hinomaru - emergency
         },
+        // Border colors
+        border: {
+          DEFAULT: '#2A2A2E',
+          secondary: '#3A3A3E',
+        },
       },
       fontFamily: {
         sans: [
@@ -150,6 +155,9 @@ const config: Config = {
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
+      },
+      transitionDuration: {
+        '250': '250ms',
       },
     },
   },
