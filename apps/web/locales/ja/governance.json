@@ -1,4 +1,33 @@
 {
+  "login": {
+    "meta": {
+      "title": "ログイン | ガバナンス | Quantum Shield",
+      "description": "ウォレットを接続してガバナンスにアクセス"
+    },
+    "title": "ガバナンスにログイン",
+    "description": "ウォレットを接続して提案に投票し、プロトコルの将来を決めましょう",
+    "backToLanding": "ランディングに戻る",
+    "selectWallet": "ウォレットを選択",
+    "wallets": {
+      "metamask": "MetaMask",
+      "walletConnect": "WalletConnect",
+      "coinbase": "Coinbase Wallet"
+    },
+    "popular": "人気",
+    "connecting": {
+      "title": "接続中...",
+      "description": "ウォレットで接続を承認してください"
+    },
+    "success": {
+      "title": "接続完了",
+      "description": "提案一覧に移動します..."
+    },
+    "noWallet": "ウォレットをお持ちでないですか？",
+    "getWallet": "ウォレットを作成",
+    "newUser": "はじめての方はこちら",
+    "startOnboarding": "ガバナンスについて学ぶ",
+    "footer": "© 2026 Quantum Shield Foundation"
+  },
   "common": {
     "header": {
       "dashboard": "ダッシュボード",
@@ -7,10 +36,17 @@
       "create": "提案作成",
       "myActivity": "マイアクティビティ",
       "navLabel": "ガバナンスナビゲーション",
-      "consumerApp": "資産管理",
+      "ecosystem": "エコシステム",
+      "consumerApp": "Quantum Shield",
+      "consumerAppDesc": "資産を量子耐性で保護",
       "tokenHub": "Token Hub",
+      "tokenHubDesc": "トークンの管理・ロック",
       "observerPortal": "Observer",
+      "observerPortalDesc": "ネットワーク監視",
       "proverPortal": "Prover",
+      "proverPortalDesc": "署名検証ノード運用",
+      "ecosystemLink": "Ecosystem を見る",
+      "ecosystemLinkDesc": "公式サイトで詳細を確認",
       "settings": "設定",
       "connectWallet": "ウォレット接続",
       "walletConnected": "{address} 接続中"
@@ -25,6 +61,7 @@
       "title": "ガバナンス | Quantum Shield",
       "description": "Quantum Shieldの将来を決める投票に参加しましょう"
     },
+    "backToLanding": "← ホームに戻る",
     "pageTitle": "ガバナンス",
     "pageSubtitle": "Quantum Shieldの将来を決める投票に参加しましょう",
     "ariaLabel": "ガバナンスダッシュボード",
@@ -105,7 +142,8 @@
       "viewDetails": "詳細を見る",
       "totalLabel": "Total Voting Power",
       "howCalculated": "計算方法",
-      "howCalculatedTooltip": "veQS = QS × (残り日数 / 730日)。ロック期間が長いほど投票力が増加します",
+      "howCalculatedTooltip": "veQS = QS × (残り日数 / 730日)。ロック期間が長いほど投票力が増加します。最大2年（730日）ロックで1:1の比率になります。",
+      "ariaLabel": "投票力の計算方法について詳しく見る",
       "unit": "veQS",
       "breakdown": {
         "myVeqs": "My veQS",
@@ -142,7 +180,8 @@
     "quorum": {
       "title": "必要な投票参加率",
       "description": "提案が有効になるには、一定以上の投票参加が必要です。種類により異なります。",
-      "explanation": "定足数とは、投票が有効になるために必要な最低参加率のことです",
+      "explanation": "定足数（Quorum）とは、投票が有効になるために必要な最低参加率のことです。提案の種類によって異なる定足数が設定されています。",
+      "ariaLabel": "定足数について詳しく見る",
       "currentTotal": "現在の総veQS",
       "types": {
         "parameter": "設定変更",
@@ -517,6 +556,7 @@
       "description": "あなたの投票履歴、提案、委任状況を確認"
     },
     "ariaLabel": "マイアクティビティページ",
+    "backToDashboard": "ダッシュボードに戻る",
     "pageTitle": "マイアクティビティ",
     "stats": {
       "totalVotes": "投票総数",

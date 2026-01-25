@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { EnterpriseProvers } from '@/components/enterprise/EnterpriseProvers';
+import { EnterpriseProvers } from '@/components/enterprise/Provers';
 
 interface PageProps {
   params: Promise<{ locale: string }>;

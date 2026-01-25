@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Tooltip } from '@/components/shared/Tooltip';
 
 // Status indicator component
 function StatusDot({ status }: { status: 'healthy' | 'warning' | 'error' }) {
@@ -59,9 +60,10 @@ interface StatCardProps {
   change?: string;
   changeType?: 'up' | 'down' | 'neutral';
   status?: 'healthy' | 'warning' | 'critical';
+  tooltip?: string;
 }
 
-function StatCard({ label, value, change, changeType = 'neutral', status = 'healthy' }: StatCardProps) {
+function StatCard({ label, value, change, changeType = 'neutral', status = 'healthy', tooltip }: StatCardProps) {
   return (
     <article
       className={cn(
@@ -80,7 +82,13 @@ function StatCard({ label, value, change, changeType = 'neutral', status = 'heal
         )}
         aria-hidden="true"
       />
-      <div className="text-xs text-foreground-tertiary">{label}</div>
+      {tooltip ? (
+        <Tooltip content={tooltip} showHelpIcon>
+          <span className="text-xs text-foreground-tertiary">{label}</span>
+        </Tooltip>
+      ) : (
+        <div className="text-xs text-foreground-tertiary">{label}</div>
+      )}
       <div
         className={cn(
           'mt-2 font-mono text-3xl font-bold',
@@ -362,6 +370,7 @@ export function AdminDashboard() {
             change={`+${stats.tvl.change} ${t('stats.tvl.change')}`}
             changeType="up"
             status={stats.tvl.status}
+            tooltip={t('stats.tvl.tooltip')}
           />
           <StatCard
             label={t('stats.provers.label')}
@@ -369,6 +378,7 @@ export function AdminDashboard() {
             change={`${stats.provers.change} ${t('stats.provers.healthy')}`}
             changeType="up"
             status={stats.provers.status}
+            tooltip={t('stats.provers.tooltip')}
           />
           <StatCard
             label={t('stats.pendingUnlocks.label')}
@@ -376,6 +386,7 @@ export function AdminDashboard() {
             change={`${stats.pendingUnlocks.change} ${t('stats.pendingUnlocks.attention')}`}
             changeType="neutral"
             status={stats.pendingUnlocks.status}
+            tooltip={t('stats.pendingUnlocks.tooltip')}
           />
           <StatCard
             label={t('stats.alerts.label')}
@@ -383,6 +394,7 @@ export function AdminDashboard() {
             change={`${stats.alerts.change} ${t('stats.alerts.highPriority')}`}
             changeType="neutral"
             status={stats.alerts.status}
+            tooltip={t('stats.alerts.tooltip')}
           />
         </div>
 

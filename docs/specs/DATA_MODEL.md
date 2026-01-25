@@ -1,8 +1,9 @@
 # Quantum Shield Data Model
 
 > **目的**: エンティティ中心のデータ設計。各エンティティがどのアプリから参照・更新されるかを明確化。
-> **更新日**: 2026-01-22
-> **関連**: [DESIGN_SPEC_v3.md](./DESIGN_SPEC_v3.md), [CODEBASE_MAP.md](./CODEBASE_MAP.md)
+> **更新日**: 2026-01-24
+> **バージョン**: v3.1（技術譲渡モデル対応）
+> **関連**: [APP_DESIGN_SPECS.md](./APP_DESIGN_SPECS.md), [CODEBASE_MAP.md](./CODEBASE_MAP.md)
 
 ---
 
@@ -94,6 +95,18 @@
 | 16 | ProverKYB | Prover法人確認 | オフチェーン |
 | 17 | ObserverKYB | Observer法人確認 | オフチェーン |
 | 18 | EnterpriseContract | 企業契約 | オフチェーン |
+
+### 2.3 v3.1 追加エンティティ（技術譲渡モデル対応）
+
+| # | エンティティ | 説明 | 保存場所 |
+|---|-------------|------|----------|
+| 19 | **Licensee** | 技術譲渡先企業 | オフチェーン |
+| 20 | **LicenseContract** | ライセンス契約情報 | オフチェーン |
+| 21 | **SupportTicket** | サポートチケット | オフチェーン |
+| 22 | **MaintenanceEvent** | メンテナンスイベント | オフチェーン |
+| 23 | **AuditReport** | 監査レポート | オフチェーン |
+| 24 | **EnvironmentConfig** | 環境設定（本番/ステージング/テスト） | オフチェーン |
+| 25 | **SavedSearch** | 保存された検索条件 | オフチェーン |
 
 ---
 
@@ -523,9 +536,229 @@ export async function createLock(request: LockRequest): Promise<LockResponse> {
 
 ---
 
+## 8. v3.1 追加エンティティ詳細
+
+### 8.1 Licensee（技術譲渡先企業）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Licensee                                                       │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: licensee_id (UUID)                                         │
+│                                                                 │
+│  company_name: string               # 企業名                    │
+│  company_name_en: string?           # 企業名（英語）            │
+│  contact_email: string              # 代表連絡先メール          │
+│  contact_name: string               # 担当者名                  │
+│  license_type: enum                 # Standard/Enterprise/Premium│
+│  status: enum                       # Active/Suspended/Terminated│
+│  explorer_url: string?              # 公開Explorer URL (必須義務)│
+│  created_at: timestamp                                          │
+│  updated_at: timestamp                                          │
+│                                                                 │
+│  Relations:                                                     │
+│  - LicenseContract (1:N)                                        │
+│  - SupportTicket (1:N)                                          │
+│  - AuditReport (1:N)                                            │
+│  - EnvironmentConfig (1:N)                                      │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- QS Admin: Create, Read (All), Update (All)
+- Enterprise Admin: Read (Own), Update (Own, 一部フィールド)
+```
+
+### 8.2 LicenseContract（ライセンス契約）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  LicenseContract                                                │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: contract_id (UUID)                                         │
+│  FK: licensee_id → Licensee                                     │
+│                                                                 │
+│  contract_number: string            # 契約番号                  │
+│  start_date: date                   # 契約開始日                │
+│  end_date: date                     # 契約終了日                │
+│  renewal_date: date?                # 更新期限                  │
+│  annual_fee: decimal                # 年間保守料（JPY）         │
+│  status: enum                       # Active/Expiring/Expired   │
+│  terms_version: string              # 利用規約バージョン        │
+│  signed_by: string                  # 署名者                    │
+│  signed_at: timestamp               # 署名日時                  │
+│  created_at: timestamp                                          │
+│  updated_at: timestamp                                          │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- QS Admin: Create, Read (All), Update (All)
+- Enterprise Admin: Read (Own)
+```
+
+### 8.3 SupportTicket（サポートチケット）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  SupportTicket                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: ticket_id (UUID)                                           │
+│  FK: licensee_id → Licensee                                     │
+│  FK: assigned_to → QSAdminUser?                                 │
+│                                                                 │
+│  ticket_number: string              # チケット番号（自動生成）  │
+│  title: string                      # タイトル                  │
+│  description: text                  # 詳細説明                  │
+│  priority: enum                     # Critical/High/Normal      │
+│  status: enum                       # Open/InProgress/Resolved/Closed│
+│  category: enum                     # Technical/Security/Billing/Other│
+│  resolution: text?                  # 解決内容                  │
+│  resolved_at: timestamp?            # 解決日時                  │
+│  sla_deadline: timestamp            # SLA期限                   │
+│  created_by: string                 # 作成者（Enterprise Admin）│
+│  created_at: timestamp                                          │
+│  updated_at: timestamp                                          │
+│                                                                 │
+│  Relations:                                                     │
+│  - TicketComment (1:N)  # チケットへのコメント                  │
+└─────────────────────────────────────────────────────────────────┘
+
+SLA基準:
+- Critical: 1時間以内に初期対応
+- High: 4時間以内に初期対応
+- Normal: 1営業日以内に初期対応
+
+アクセス権限:
+- QS Admin: Read (All), Update (All)
+- Enterprise Admin: Create (Own), Read (Own), Update (Own, statusは読取専用)
+```
+
+### 8.4 MaintenanceEvent（メンテナンスイベント）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  MaintenanceEvent                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: event_id (UUID)                                            │
+│  FK: licensee_id → Licensee                                     │
+│  FK: prover_id → Prover                                         │
+│                                                                 │
+│  event_type: enum                   # Scheduled/Emergency/Update│
+│  title: string                      # イベントタイトル          │
+│  description: text                  # 詳細説明                  │
+│  scheduled_start: timestamp         # 予定開始日時              │
+│  scheduled_end: timestamp           # 予定終了日時              │
+│  actual_start: timestamp?           # 実際の開始日時            │
+│  actual_end: timestamp?             # 実際の終了日時            │
+│  status: enum                       # Scheduled/InProgress/Completed/Cancelled│
+│  fallback_prover_id: UUID?          # 代替Prover                │
+│  reason: text                       # メンテナンス理由          │
+│  created_by: string                 # 作成者                    │
+│  created_at: timestamp                                          │
+│  updated_at: timestamp                                          │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- Enterprise Admin: Create, Read (Own), Update (Own), Delete (Own, Scheduled状態のみ)
+- QS Admin: Read (All) # 技術譲渡先の運用状況把握
+```
+
+### 8.5 AuditReport（監査レポート）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  AuditReport                                                    │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: report_id (UUID)                                           │
+│  FK: licensee_id → Licensee                                     │
+│                                                                 │
+│  report_type: enum                  # Quarterly/Annual/Security │
+│  period_start: date                 # 対象期間開始              │
+│  period_end: date                   # 対象期間終了              │
+│  file_url: string                   # レポートファイルURL       │
+│  file_hash: string                  # ファイルハッシュ          │
+│  status: enum                       # Submitted/Reviewed/Approved/Rejected│
+│  reviewed_by: string?               # レビュー担当者            │
+│  reviewed_at: timestamp?            # レビュー日時              │
+│  reviewer_notes: text?              # レビューコメント          │
+│  submitted_by: string               # 提出者                    │
+│  submitted_at: timestamp            # 提出日時                  │
+│  created_at: timestamp                                          │
+│  updated_at: timestamp                                          │
+│                                                                 │
+│  ライセンス条件:                                                │
+│  - 四半期ごとに運用レポートをQS財団に提出（必須義務）          │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- Enterprise Admin: Create (Own), Read (Own)
+- QS Admin: Read (All), Update (status, reviewer_notes)
+```
+
+### 8.6 EnvironmentConfig（環境設定）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  EnvironmentConfig                                              │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: config_id (UUID)                                           │
+│  FK: licensee_id → Licensee                                     │
+│                                                                 │
+│  environment: enum                  # Production/Staging/Test   │
+│  name: string                       # 環境表示名                │
+│  api_endpoint: string               # APIエンドポイント         │
+│  l1_contract_address: string        # L1コントラクトアドレス    │
+│  l3_contract_address: string?       # L3コントラクトアドレス    │
+│  explorer_url: string?              # Explorer URL              │
+│  color_code: string                 # 環境識別カラー            │
+│  is_active: boolean                 # アクティブフラグ          │
+│  created_at: timestamp                                          │
+│  updated_at: timestamp                                          │
+│                                                                 │
+│  環境別カラー（v3.1仕様）:                                       │
+│  - Production: 青 (#3B82F6)                                     │
+│  - Staging: 黄 (#EAB308)                                        │
+│  - Test: 灰 (#6B7280)                                           │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- Enterprise Admin: Create (Own), Read (Own), Update (Own), Delete (Own, Test環境のみ)
+```
+
+### 8.7 SavedSearch（保存された検索条件）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  SavedSearch                                                    │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: search_id (UUID)                                           │
+│  FK: user_id → User (QSAdminUser or EnterpriseAdminUser)        │
+│                                                                 │
+│  name: string                       # 検索名                    │
+│  target_entity: string              # 対象エンティティ          │
+│  filters: jsonb                     # フィルター条件（JSON）    │
+│  columns: jsonb?                    # 表示カラム設定            │
+│  sort_by: string?                   # ソートキー                │
+│  sort_order: enum?                  # ASC/DESC                  │
+│  is_default: boolean                # デフォルト検索フラグ      │
+│  created_at: timestamp                                          │
+│  updated_at: timestamp                                          │
+│                                                                 │
+│  使用例:                                                         │
+│  - 監査ログの複合条件検索保存（v3.1新機能）                     │
+│  - よく使うフィルター条件の保存                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- QS Admin: Create (Own), Read (Own), Update (Own), Delete (Own)
+- Enterprise Admin: Create (Own), Read (Own), Update (Own), Delete (Own)
+```
+
+---
+
 ## 更新履歴
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-22 | Claude | 初版作成 |
 | 1.1 | 2026-01-22 | Claude | 開発時のAPI実装パターン追加（Mock API、クライアントパターン）|
+| 2.0 | 2026-01-24 | Claude | v3.1対応: 技術譲渡モデルエンティティ追加（Licensee, LicenseContract, SupportTicket, MaintenanceEvent, AuditReport, EnvironmentConfig, SavedSearch）|

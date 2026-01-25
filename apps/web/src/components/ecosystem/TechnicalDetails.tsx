@@ -939,7 +939,7 @@ export function TechnicalDetails() {
                   </p>
                 </div>
               </div>
-              <Link href="/token-hub/landing">
+              <Link href="/qs-hub/landing">
                 <Button variant="outline" className="flex items-center gap-2 h-11 whitespace-nowrap">
                   {t('rewards.link')}
                   <ArrowRight className="w-4 h-4" />
@@ -962,7 +962,7 @@ export function TechnicalDetails() {
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
-            <Link href="/ecosystem">
+            <Link href="/ecosystem#apps">
               <Button variant="outline" size="lg" className="h-12">
                 {t('cta.backToApps')}
               </Button>

@@ -1,4 +1,8 @@
 {
+  "header": {
+    "login": "Login",
+    "getStarted": "Get Started"
+  },
   "accessibility": {
     "skipToContent": "Skip to main content",
     "switchToJapanese": "日本語に切り替え",

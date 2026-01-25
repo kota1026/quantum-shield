@@ -284,6 +284,11 @@
         "tagline": "量子耐性で資産を守る",
         "description": "ETHをロックし、将来の量子脅威から保護。シンプルなUIで誰でも簡単に利用可能。"
       },
+      "qsHub": {
+        "title": "QS Hub",
+        "tagline": "veQSの管理・ガバナンス参加",
+        "description": "veQSの管理、ガバナンスへの参加、報酬の獲得を一箇所で。Quantum Shieldエコシステムの中核。"
+      },
       "tokenHub": {
         "title": "Token Hub",
         "tagline": "ステーキングで報酬を獲得",

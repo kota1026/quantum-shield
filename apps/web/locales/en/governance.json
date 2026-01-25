@@ -1,4 +1,33 @@
 {
+  "login": {
+    "meta": {
+      "title": "Login | Governance | Quantum Shield",
+      "description": "Connect your wallet to access Governance"
+    },
+    "title": "Login to Governance",
+    "description": "Connect your wallet to vote on proposals and shape the future of the protocol",
+    "backToLanding": "Back to Landing",
+    "selectWallet": "Select Wallet",
+    "wallets": {
+      "metamask": "MetaMask",
+      "walletConnect": "WalletConnect",
+      "coinbase": "Coinbase Wallet"
+    },
+    "popular": "Popular",
+    "connecting": {
+      "title": "Connecting...",
+      "description": "Please approve the connection in your wallet"
+    },
+    "success": {
+      "title": "Connected",
+      "description": "Redirecting to proposals..."
+    },
+    "noWallet": "Don't have a wallet?",
+    "getWallet": "Create a wallet",
+    "newUser": "New to Governance?",
+    "startOnboarding": "Learn about Governance",
+    "footer": "© 2026 Quantum Shield Foundation"
+  },
   "common": {
     "header": {
       "dashboard": "Dashboard",
@@ -7,10 +36,17 @@
       "create": "Create",
       "myActivity": "My Activity",
       "navLabel": "Governance navigation",
-      "consumerApp": "Asset Manager",
+      "ecosystem": "Ecosystem",
+      "consumerApp": "Quantum Shield",
+      "consumerAppDesc": "Protect assets with quantum resistance",
       "tokenHub": "Token Hub",
+      "tokenHubDesc": "Manage and lock tokens",
       "observerPortal": "Observer",
+      "observerPortalDesc": "Network monitoring",
       "proverPortal": "Prover",
+      "proverPortalDesc": "Run signature verification nodes",
+      "ecosystemLink": "View Ecosystem",
+      "ecosystemLinkDesc": "Learn more on our website",
       "settings": "Settings",
       "connectWallet": "Connect Wallet",
       "walletConnected": "{address} connected"
@@ -25,6 +61,7 @@
       "title": "Governance | Quantum Shield",
       "description": "Participate in voting to shape the future of Quantum Shield"
     },
+    "backToLanding": "← Back to Home",
     "pageTitle": "Governance",
     "pageSubtitle": "Participate in voting to shape the future of Quantum Shield",
     "ariaLabel": "Governance Dashboard",
@@ -105,7 +142,8 @@
       "viewDetails": "View Details",
       "totalLabel": "Total Voting Power",
       "howCalculated": "How is this calculated?",
-      "howCalculatedTooltip": "veQS = QS × (remaining_days / 730). The longer the lock period, the more voting power you get",
+      "howCalculatedTooltip": "veQS = QS × (remaining_days / 730). The longer the lock period, the more voting power you get. Max 2 years (730 days) lock gives 1:1 ratio.",
+      "ariaLabel": "Learn more about voting power calculation",
       "unit": "veQS",
       "breakdown": {
         "myVeqs": "My veQS",
@@ -142,7 +180,8 @@
     "quorum": {
       "title": "Required Participation",
       "description": "Proposals need minimum voter participation to be valid. Thresholds vary by type.",
-      "explanation": "Quorum is the minimum participation needed for a vote to be valid",
+      "explanation": "Quorum is the minimum participation needed for a vote to be valid. Different proposal types have different quorum requirements.",
+      "ariaLabel": "Learn more about quorum",
       "currentTotal": "Current Total veQS",
       "types": {
         "parameter": "Settings Change",
@@ -517,6 +556,7 @@
       "description": "View your voting history, proposals, and delegations"
     },
     "ariaLabel": "My Activity page",
+    "backToDashboard": "Back to Dashboard",
     "pageTitle": "My Activity",
     "stats": {
       "totalVotes": "Total Votes Cast",

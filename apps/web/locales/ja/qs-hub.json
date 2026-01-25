@@ -1,0 +1,727 @@
+{
+  "common": {
+    "portalName": "QS Hub",
+    "backToHome": "ホームに戻る",
+    "ecosystem": "エコシステム",
+    "consumerApp": "Consumer App",
+    "consumerAppDesc": "資産を量子耐性で保護",
+    "observerPortal": "Observer Portal",
+    "observerPortalDesc": "ネットワーク監視",
+    "proverPortal": "Prover Portal",
+    "proverPortalDesc": "署名検証ノード運用",
+    "explorer": "Explorer",
+    "explorerDesc": "ブロックチェーン情報確認",
+    "ecosystemLink": "Ecosystem を見る",
+    "ecosystemLinkDesc": "公式サイトで詳細を確認"
+  },
+  "dashboard": {
+    "meta": {
+      "title": "QS Hub ダッシュボード | Quantum Shield",
+      "description": "veQSの管理、提案への投票、報酬の請求を一箇所で"
+    },
+    "title": "QS Hub",
+    "subtitle": "veQSの管理、ガバナンスへの参加、報酬の獲得",
+    "nav": {
+      "stake": "ステーク",
+      "vote": "投票",
+      "rewards": "報酬",
+      "settings": "設定"
+    },
+    "stats": {
+      "veQSBalance": "veQS残高",
+      "veQSTooltip": "veQSはロックしたQSトークンから得られる投票権です。ロック期間が長いほど多くのveQSを獲得できます。",
+      "lockedQS": "ロック中QS",
+      "lockedTooltip": "現在ロックしているQSトークンの量です。ロック期間終了後に引き出し可能になります。",
+      "activeProposals": "アクティブな提案",
+      "votingOpen": "投票受付中",
+      "claimableRewards": "請求可能な報酬"
+    },
+    "proposals": {
+      "title": "アクティブな提案",
+      "viewAll": "すべて見る",
+      "createNew": "新しい提案を作成",
+      "listAriaLabel": "アクティブな提案一覧",
+      "status": {
+        "active": "投票中",
+        "pending": "投票待ち",
+        "passed": "可決",
+        "rejected": "否決"
+      }
+    },
+    "lockStatus": {
+      "title": "ロック状況",
+      "extend": "期間延長",
+      "locked": "ロック量",
+      "duration": "ロック期間",
+      "remaining": "残り {time}",
+      "multiplier": "倍率",
+      "veQSRate": "veQS変換率",
+      "lockMore": "追加ロック",
+      "unlock": "アンロック"
+    },
+    "rewards": {
+      "title": "報酬",
+      "epochProgress": "エポック進捗",
+      "nextEpoch": "次のエポック: {time}",
+      "claim": "報酬を請求"
+    },
+    "delegations": {
+      "title": "委任先",
+      "manage": "管理",
+      "addDelegate": "委任先を追加"
+    },
+    "council": {
+      "title": "カウンシル",
+      "viewAll": "詳細を見る",
+      "members": "メンバー",
+      "description": "カウンシルメンバーは緊急時の対応権限を持つ信頼された代表者です。"
+    },
+    "states": {
+      "loading": "読み込み中...",
+      "error": {
+        "title": "エラーが発生しました",
+        "description": "データの取得中に問題が発生しました。しばらくしてからもう一度お試しください。",
+        "retry": "再試行"
+      },
+      "empty": {
+        "title": "veQSがありません",
+        "description": "QSトークンをロックしてveQSを獲得しましょう。投票権と報酬を得ることができます。",
+        "cta": "QSをロックする"
+      }
+    }
+  },
+  "landing": {
+    "meta": {
+      "title": "QS Hub | Quantum Shield",
+      "description": "QSトークンをロックしてveQSを獲得。ガバナンスに参加して報酬を得よう。"
+    },
+    "nav": {
+      "features": "機能",
+      "howItWorks": "使い方",
+      "login": "ログイン",
+      "launchApp": "アプリを開く"
+    },
+    "hero": {
+      "badge": "トークンエコノミクス",
+      "title": "QSトークンをロックして",
+      "titleHighlight": "ガバナンス権を獲得",
+      "description": "QSトークンをロックしてveQSを獲得。プロトコルの意思決定に参加し、報酬を獲得しましょう。",
+      "lockButton": "QSをロックする",
+      "learnMore": "詳しく見る"
+    },
+    "stats": {
+      "sectionAriaLabel": "QS Hub統計",
+      "totalLocked": "総ロック量",
+      "veQSHolders": "veQS保有者数",
+      "activeProposals": "アクティブな提案",
+      "rewardsDistributed": "分配済み報酬"
+    },
+    "features": {
+      "title": "主要機能",
+      "subtitle": "Quantum Shieldエコシステムへの参加を最大化",
+      "stake": {
+        "title": "ステーク＆ロック",
+        "description": "QSトークンをロックしてveQSを獲得。ロック期間が長いほど投票力と報酬が増加します。"
+      },
+      "vote": {
+        "title": "ガバナンス",
+        "description": "veQSを使ってプロトコル提案に投票。Quantum Shieldの未来を形作りましょう。"
+      },
+      "rewards": {
+        "title": "報酬獲得",
+        "description": "veQS保有者としてプロトコル手数料やステーキング報酬を請求できます。"
+      },
+      "learnMore": "詳しく見る"
+    },
+    "howItWorks": {
+      "title": "使い方",
+      "subtitle": "4つの簡単なステップで始めましょう",
+      "step1": {
+        "title": "QSトークンを入手",
+        "description": "対応取引所やエコシステム活動でQSトークンを購入・獲得できます。"
+      },
+      "step2": {
+        "title": "トークンをロック",
+        "description": "QSを1週間〜4年間ロック。長期ロックほど多くのveQSを獲得。"
+      },
+      "step3": {
+        "title": "投票する",
+        "description": "veQSを使って提案に投票し、プロトコルの方向性に影響を与えましょう。"
+      },
+      "step4": {
+        "title": "報酬を獲得",
+        "description": "プロトコル手数料とステーキング報酬を毎週請求できます。"
+      }
+    },
+    "cta": {
+      "title": "始める準備はできましたか？",
+      "description": "今すぐQSトークンをロックして、veQS、投票権、報酬を獲得しましょう。",
+      "button": "QS Hubを開く"
+    },
+    "security": {
+      "title": "フィッシング詐欺にご注意ください",
+      "description": "偽サイトにアクセスしないよう、URLを必ず確認してください。公式URLをブックマークしておくことをお勧めします。",
+      "officialUrl": "公式URL",
+      "contractVerified": "コントラクト検証済み"
+    },
+    "footer": {
+      "copyright": "© 2024 Quantum Shield. All rights reserved."
+    }
+  },
+  "stake": {
+    "lock": {
+      "meta": {
+        "title": "QSをロック | QS Hub | Quantum Shield",
+        "description": "QSトークンをロックしてveQSを獲得"
+      },
+      "title": "QSをロック",
+      "subtitle": "QSトークンをロックしてveQSを獲得し、投票権を得ましょう",
+      "steps": {
+        "ariaLabel": "ロックプロセスのステップ",
+        "step1": "設定",
+        "step2": "確認",
+        "step3": "完了"
+      },
+      "form": {
+        "title": "ロック設定"
+      },
+      "amount": {
+        "label": "ロック数量",
+        "tooltip": "ロックするQSトークンの数量を入力してください。ロックしたトークンはロック期間終了まで引き出せません。",
+        "helpAriaLabel": "ロック数量についてのヘルプ",
+        "balance": "利用可能",
+        "maxAriaLabel": "最大数量を使用",
+        "quickAmountsAriaLabel": "クイック数量選択",
+        "errors": {
+          "insufficientBalance": "残高が不足しています"
+        }
+      },
+      "duration": {
+        "label": "ロック期間",
+        "tooltip": "トークンをロックする期間を選択してください。長い期間ほど多くのveQSを獲得できます。最長は4年です。",
+        "helpAriaLabel": "ロック期間についてのヘルプ",
+        "ariaLabel": "ロック期間を選択"
+      },
+      "preview": {
+        "label": "予想veQS",
+        "formulaTooltip": "veQS = QS数量 × (ロック期間 / 4年)。veQSは時間経過とともに線形に減少します。",
+        "formulaAriaLabel": "veQS計算についてのヘルプ"
+      },
+      "warning": {
+        "lockPeriod": "ロックしたトークンはロック期間終了まで引き出せません。ロック期間は慎重に検討してください。"
+      },
+      "previewButton": {
+        "text": "ロック内容を確認",
+        "ariaLabel": "ロック取引をプレビュー"
+      },
+      "info": {
+        "title": "重要な情報",
+        "point1": "veQSはプロトコルガバナンスでの投票権を付与します",
+        "point2": "veQS保有者はプロトコル手数料の分配を受けられます",
+        "point3": "veQSを増やすためにいつでもロック期間を延長できます"
+      }
+    },
+    "extend": {
+      "meta": {
+        "title": "ロック期間延長 | QS Hub | Quantum Shield",
+        "description": "veQSロックの期間を延長"
+      },
+      "title": "ロック期間を延長",
+      "subtitle": "ロック期間を延長してより多くのveQSを獲得",
+      "currentLock": {
+        "title": "現在のロック状況",
+        "locked": "ロック数量",
+        "veQS": "現在のveQS",
+        "remaining": "残り期間",
+        "unlockDate": "アンロック日"
+      },
+      "form": {
+        "title": "延長設定"
+      },
+      "extension": {
+        "label": "延長期間",
+        "tooltip": "ロック期間をどれだけ延長するかを選択してください。長い延長ほど多くのveQSを獲得できます。最長合計期間は4年です。",
+        "helpAriaLabel": "ロック延長についてのヘルプ",
+        "ariaLabel": "延長期間を選択",
+        "options": {
+          "6": "6ヶ月",
+          "12": "1年",
+          "24": "2年",
+          "36": "3年"
+        }
+      },
+      "preview": {
+        "title": "延長後",
+        "newVeQS": "新しいveQS残高",
+        "newDuration": "新しいロック期間",
+        "newUnlockDate": "新しいアンロック日",
+        "multiplier": "新しい倍率",
+        "maxReached": "最大ロック期間に到達（4年）"
+      },
+      "warning": {
+        "extension": "ロック期間を延長すると、トークンを引き出せる日が遅くなります。この操作は取り消せません。"
+      },
+      "confirmButton": {
+        "text": "延長を確認",
+        "ariaLabel": "ロック延長を確認"
+      },
+      "info": {
+        "title": "ロック延長について",
+        "point1": "延長するとveQSと投票力が増加します",
+        "point2": "ロック中のQS数量は変わりません",
+        "point3": "最大ロック期間は4年です"
+      }
+    },
+    "unlock": {
+      "meta": {
+        "title": "アンロック | QS Hub | Quantum Shield",
+        "description": "ロック期間終了後にQSをアンロック"
+      },
+      "title": "QSをアンロック",
+      "subtitle": "ロック期間が終了したQSトークンを引き出す",
+      "stats": {
+        "ariaLabel": "ロック概要統計",
+        "totalLocked": "総ロック量",
+        "currentVeQS": "現在のveQS",
+        "veqsTooltip": "veQSはロック期間の経過とともに線形に減少します。アンロック時にゼロになります。",
+        "veqsTooltipAriaLabel": "veQS減衰についてのヘルプ",
+        "positions": "ポジション数",
+        "unlockable": "アンロック可能"
+      },
+      "notice": {
+        "noEarlyUnlock": "トークンを早期に引き出すことはできません。ロック期間終了までお待ちください。"
+      },
+      "positions": {
+        "title": "ロック中のポジション",
+        "listAriaLabel": "ロック中のポジション一覧",
+        "status": {
+          "unlockable": "アンロック可能",
+          "locked": "ロック中"
+        },
+        "veqs": "現在のveQS",
+        "lockDate": "ロック日",
+        "unlockDate": "アンロック日",
+        "remaining": "残り時間",
+        "ready": "準備完了",
+        "days": "日",
+        "hours": "時間",
+        "withdraw": "引き出す",
+        "withdrawing": "引き出し中...",
+        "withdrawAriaLabel": "{amount} QSを引き出す",
+        "lockedButton": "ロック中",
+        "progress": "ロック進捗",
+        "progressAriaLabel": "ロック期間の進捗"
+      },
+      "cta": {
+        "title": "より多くのveQSを獲得したいですか？",
+        "description": "追加のQSトークンをロックして投票力と報酬を増やしましょう。",
+        "lockMore": "QSを追加ロック",
+        "viewDashboard": "ダッシュボードを見る"
+      },
+      "empty": {
+        "title": "ロック中のポジションがありません",
+        "description": "QSトークンをロックしてveQSを獲得しましょう。投票権と報酬を得ることができます。",
+        "cta": "QSをロックする"
+      }
+    }
+  },
+  "vote": {
+    "proposals": {
+      "meta": {
+        "title": "提案一覧 | QS Hub | Quantum Shield",
+        "description": "アクティブな提案を確認して投票"
+      },
+      "title": "提案一覧",
+      "subtitle": "コミュニティの提案を確認し、投票に参加しましょう",
+      "createNew": "新しい提案を作成",
+      "statsAriaLabel": "提案統計",
+      "stats": {
+        "total": "総提案数",
+        "active": "投票中",
+        "passed": "可決済み",
+        "participation": "参加率"
+      },
+      "filters": {
+        "all": "すべて",
+        "active": "投票中",
+        "pending": "投票待ち",
+        "passed": "可決",
+        "rejected": "否決"
+      },
+      "filtersAriaLabel": "提案フィルター",
+      "listAriaLabel": "提案一覧",
+      "status": {
+        "active": "投票中",
+        "pending": "投票待ち",
+        "passed": "可決",
+        "rejected": "否決",
+        "executed": "実行済み"
+      },
+      "proposedBy": "提案者",
+      "startsIn": "{time}後に開始",
+      "timeRemaining": {
+        "days": "{days}日 {hours}時間",
+        "hours": "{hours}時間"
+      },
+      "timeExpired": "終了",
+      "votingProgress": "投票状況",
+      "for": "賛成",
+      "against": "反対",
+      "empty": {
+        "title": "提案がありません",
+        "description": "この条件に一致する提案が見つかりませんでした。"
+      }
+    },
+    "delegates": {
+      "meta": {
+        "title": "委任先 | QS Hub | Quantum Shield",
+        "description": "投票権を委任する代表者を選択"
+      },
+      "title": "委任先",
+      "subtitle": "信頼できる代表者に投票権を委任",
+      "myDelegations": {
+        "title": "委任状況",
+        "subtitle": "あなたの委任中のveQS",
+        "delegatedVeQS": "委任中 veQS",
+        "delegates": "委任先数"
+      },
+      "featured": {
+        "title": "おすすめの委任先"
+      },
+      "verified": "認証済み",
+      "delegators": "委任者",
+      "participation": "参加率",
+      "myDelegation": "{amount} veQS委任中",
+      "searchPlaceholder": "名前やアドレスで検索...",
+      "searchAriaLabel": "委任先を検索",
+      "allDelegates": "すべての委任先",
+      "listAriaLabel": "委任先一覧",
+      "manage": "管理",
+      "delegate": "委任する",
+      "empty": {
+        "title": "委任先が見つかりません",
+        "description": "検索条件に一致する委任先がありません。"
+      }
+    },
+    "history": {
+      "meta": {
+        "title": "投票履歴 | QS Hub | Quantum Shield",
+        "description": "過去の投票履歴を確認"
+      },
+      "title": "投票履歴",
+      "subtitle": "あなたの投票履歴を確認",
+      "stats": {
+        "ariaLabel": "投票統計",
+        "totalVotes": "総投票数",
+        "votesFor": "賛成票",
+        "votesAgainst": "反対票",
+        "veQSUsed": "使用veQS"
+      },
+      "filters": {
+        "ariaLabel": "投票フィルター",
+        "all": "すべて",
+        "for": "賛成",
+        "against": "反対"
+      },
+      "listAriaLabel": "投票履歴一覧",
+      "proposalStatus": {
+        "active": "投票中",
+        "pending": "投票待ち",
+        "passed": "可決",
+        "rejected": "否決"
+      },
+      "vote": {
+        "for": "賛成",
+        "against": "反対"
+      },
+      "result": {
+        "passed": "可決",
+        "rejected": "否決"
+      },
+      "viewProposal": "提案を見る",
+      "empty": {
+        "title": "投票履歴がありません",
+        "description": "まだ投票していません。提案一覧で投票に参加しましょう。",
+        "viewProposals": "提案を見る"
+      }
+    },
+    "proposalDetail": {
+      "meta": {
+        "title": "提案 {id} | QS Hub | Quantum Shield",
+        "description": "提案の詳細を確認"
+      },
+      "backToProposals": "提案一覧に戻る",
+      "status": {
+        "active": "投票中",
+        "pending": "投票待ち",
+        "passed": "可決",
+        "rejected": "否決"
+      },
+      "proposedBy": "提案者:",
+      "timeRemaining": "残り: {time}",
+      "description": "提案内容",
+      "timeline": {
+        "title": "タイムライン"
+      },
+      "voting": {
+        "title": "投票",
+        "for": "賛成",
+        "against": "反対",
+        "quorum": "定足数",
+        "voteFor": "賛成する",
+        "voteAgainst": "反対する",
+        "voteSubmitted": "投票が送信されました"
+      },
+      "proposer": {
+        "title": "提案者情報",
+        "viewProfile": "プロフィールを見る"
+      }
+    },
+    "createProposal": {
+      "meta": {
+        "title": "提案を作成 | QS Hub | Quantum Shield",
+        "description": "新しい提案を作成"
+      },
+      "title": "提案を作成",
+      "subtitle": "新しいガバナンス提案を作成",
+      "backToProposals": "提案一覧に戻る",
+      "steps": {
+        "ariaLabel": "作成ステップ",
+        "draft": "下書き",
+        "preview": "プレビュー",
+        "submit": "提出"
+      },
+      "requirements": {
+        "notMet": "提案要件を満たしていません",
+        "description": "提案を作成するには {required} veQS が必要です。現在 {current} veQS を保有しています。"
+      },
+      "form": {
+        "title": "提案内容",
+        "proposalTitle": {
+          "label": "提案タイトル",
+          "placeholder": "簡潔で分かりやすいタイトル"
+        },
+        "summary": {
+          "label": "概要",
+          "placeholder": "提案の概要を280文字以内で"
+        },
+        "description": {
+          "label": "詳細説明",
+          "placeholder": "## 概要\n\n## 動機\n\n## 仕様\n\n## 根拠",
+          "tooltip": "Markdown形式で詳細な説明を記述してください",
+          "markdownHint": "Markdownがサポートされています"
+        },
+        "discussionLink": {
+          "label": "議論リンク（任意）",
+          "placeholder": "https://forum.quantumshield.io/..."
+        },
+        "previewButton": "プレビュー"
+      },
+      "preview": {
+        "title": "提案プレビュー",
+        "editButton": "編集に戻る",
+        "continueButton": "提出へ進む"
+      },
+      "submit": {
+        "title": "提案を提出",
+        "warning": {
+          "title": "注意",
+          "description": "提出後は提案内容を変更できません。内容をよく確認してください。"
+        },
+        "votingPeriod": "投票期間",
+        "quorumRequired": "必要定足数",
+        "yourVeQS": "あなたのveQS",
+        "backButton": "戻る",
+        "submitButton": "提案を提出",
+        "submitting": "提出中..."
+      },
+      "success": {
+        "title": "提案が作成されました",
+        "description": "提案がオンチェーンに記録されました。投票期間が開始されます。",
+        "viewProposals": "提案一覧を見る",
+        "goToDashboard": "ダッシュボードへ"
+      }
+    }
+  },
+  "council": {
+    "meta": {
+      "title": "カウンシル | QS Hub | Quantum Shield",
+      "description": "Quantum Shieldカウンシルメンバー"
+    },
+    "title": "カウンシル",
+    "subtitle": "緊急時の意思決定を担う信頼されたメンバー",
+    "about": {
+      "title": "カウンシルについて",
+      "description": "カウンシルは緊急時にプロトコルを保護するための信頼された代表者グループです。通常のガバナンスプロセスでは対応できない緊急事態に限り、迅速な対応を行う権限を持ちます。",
+      "feature1": "5/7マルチシグ署名",
+      "feature2": "24時間タイムロック",
+      "feature3": "コミュニティ監視"
+    },
+    "statsAriaLabel": "カウンシル統計",
+    "stats": {
+      "members": "メンバー数",
+      "threshold": "署名閾値",
+      "actions": "実行済みアクション",
+      "status": "ステータス",
+      "active": "アクティブ"
+    },
+    "members": {
+      "title": "メンバー一覧",
+      "listAriaLabel": "カウンシルメンバー一覧"
+    },
+    "roles": {
+      "chair": "議長",
+      "security": "セキュリティ",
+      "technical": "技術",
+      "integration": "インテグレーション",
+      "community": "コミュニティ",
+      "legal": "法務",
+      "risk": "リスク"
+    },
+    "actions": {
+      "title": "最近の緊急アクション",
+      "listAriaLabel": "緊急アクション一覧",
+      "status": {
+        "executed": "実行済み",
+        "pending": "保留中",
+        "cancelled": "キャンセル"
+      }
+    }
+  },
+  "login": {
+    "meta": {
+      "title": "ログイン | QS Hub | Quantum Shield",
+      "description": "QS Hubにログイン"
+    },
+    "title": "QS Hubにログイン",
+    "description": "ウォレットを接続してveQS残高にアクセス",
+    "backToLanding": "ランディングに戻る",
+    "selectWallet": "ウォレットを選択",
+    "popular": "人気",
+    "noVeQS": "veQSをお持ちでないですか？",
+    "lockQS": "QSをロックして獲得",
+    "connecting": {
+      "title": "接続中...",
+      "walletPrompt": "ウォレットで接続を承認してください"
+    },
+    "checking": {
+      "title": "確認中...",
+      "description": "veQS残高を確認しています"
+    },
+    "success": {
+      "title": "接続完了",
+      "description": "ダッシュボードにリダイレクトしています..."
+    },
+    "error": {
+      "title": "接続エラー",
+      "connectionFailed": "ウォレットとの接続に失敗しました。もう一度お試しください。",
+      "tryAgain": "再試行"
+    },
+    "footer": "© 2024 Quantum Shield. All rights reserved."
+  },
+  "rewards": {
+    "meta": {
+      "title": "報酬 | QS Hub | Quantum Shield",
+      "description": "veQS保有報酬を確認・請求"
+    },
+    "title": "報酬",
+    "subtitle": "veQS保有による報酬を確認・請求",
+    "stats": {
+      "ariaLabel": "報酬統計",
+      "claimable": "請求可能",
+      "pending": "未確定",
+      "totalClaimed": "総請求済み",
+      "nextEpoch": "次のエポック: {time}"
+    },
+    "claim": {
+      "button": "報酬を請求",
+      "claiming": "請求中...",
+      "success": "請求完了"
+    },
+    "epoch": {
+      "title": "エポック進捗",
+      "progress": "進捗",
+      "endsIn": "終了まで: {time}"
+    },
+    "history": {
+      "title": "報酬履歴",
+      "listAriaLabel": "報酬履歴一覧",
+      "viewTransaction": "トランザクションを確認"
+    },
+    "types": {
+      "protocol_fee": "プロトコル手数料",
+      "voting_reward": "投票報酬",
+      "staking_bonus": "ステーキングボーナス"
+    },
+    "status": {
+      "claimable": "請求可能",
+      "claimed": "請求済み"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "設定 | QS Hub | Quantum Shield",
+      "description": "QS Hubの設定"
+    },
+    "title": "設定",
+    "subtitle": "アカウント設定と通知の管理",
+    "tabs": {
+      "ariaLabel": "設定タブ",
+      "profile": "プロフィール",
+      "notifications": "通知",
+      "security": "セキュリティ"
+    },
+    "profile": {
+      "title": "プロフィール設定",
+      "walletAddress": "ウォレットアドレス",
+      "email": "メールアドレス",
+      "language": "言語設定",
+      "veQSBalance": "veQS残高",
+      "memberSince": "登録日"
+    },
+    "notifications": {
+      "title": "通知設定",
+      "email": {
+        "title": "メール通知",
+        "description": "重要な更新をメールで受け取る"
+      },
+      "browser": {
+        "title": "ブラウザ通知",
+        "description": "ブラウザでプッシュ通知を受け取る"
+      },
+      "proposalUpdates": {
+        "title": "提案の更新",
+        "description": "新しい提案や投票結果の通知"
+      },
+      "rewardAlerts": {
+        "title": "報酬アラート",
+        "description": "報酬が請求可能になった時に通知"
+      },
+      "delegationChanges": {
+        "title": "委任の変更",
+        "description": "委任状況が変わった時に通知"
+      }
+    },
+    "security": {
+      "title": "セキュリティ設定",
+      "twoFactor": {
+        "title": "二要素認証",
+        "description": "アカウントのセキュリティを強化",
+        "enable": "有効にする"
+      },
+      "sessions": {
+        "title": "アクティブセッション",
+        "description": "接続中のデバイスを管理",
+        "manage": "管理"
+      },
+      "dangerZone": {
+        "title": "危険な操作",
+        "description": "ウォレットの接続を解除します",
+        "disconnect": "接続を解除"
+      }
+    },
+    "saveButton": "保存",
+    "saving": "保存中...",
+    "saveSuccess": "保存しました"
+  }
+}

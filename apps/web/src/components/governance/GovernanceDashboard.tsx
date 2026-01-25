@@ -14,13 +14,18 @@ import {
   ExternalLink,
   Coins,
   ArrowRight,
-  Info,
   HelpCircle,
   BookOpen,
   MessageCircleQuestion,
   Cpu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { GovernanceHeader } from './GovernanceHeader';
 
 // Hover card with gradient border effect
@@ -261,6 +266,7 @@ export function GovernanceDashboard() {
   ];
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-background pb-8" role="main" aria-label={t('ariaLabel')}>
       {/* Premium Background Effect - Gold Glow */}
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
@@ -306,7 +312,7 @@ export function GovernanceDashboard() {
 
             {/* Get veQS to Vote */}
             <Link
-              href="/token-hub/lock"
+              href="/qs-hub/stake/lock"
               className="group flex items-start gap-4 p-4 bg-background-secondary border border-border rounded-xl hover:border-gold hover:bg-gold/5 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0 group-hover:bg-success/20 transition-colors">
@@ -409,10 +415,17 @@ export function GovernanceDashboard() {
                 <div className="bg-gradient-to-br from-background-secondary to-gold/5 border border-gold/30 rounded-xl p-5 mb-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-foreground-secondary">{t('votingPower.totalLabel')}</span>
-                    <span className="text-xs text-gold flex items-center gap-1 cursor-help" title={t('votingPower.howCalculatedTooltip')}>
-                      <HelpCircle className="w-3 h-3" />
-                      {t('votingPower.howCalculated')}
-                    </span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="text-xs text-gold flex items-center gap-1 p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('votingPower.ariaLabel')}>
+                          <HelpCircle className="w-3 h-3" />
+                          {t('votingPower.howCalculated')}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>{t('votingPower.howCalculatedTooltip')}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   <div className="mb-4">
                     <span className="text-3xl font-bold font-mono text-gold">{stats.votingPower.toLocaleString()}</span>
@@ -484,9 +497,16 @@ export function GovernanceDashboard() {
                     <Users className="w-5 h-5 text-hinomaru" />
                     {t('quorum.title')}
                   </h2>
-                  <span className="text-xs text-gold flex items-center gap-1 cursor-help" title={t('quorum.explanation')}>
-                    <HelpCircle className="w-4 h-4" />
-                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('quorum.ariaLabel')}>
+                        <HelpCircle className="w-4 h-4 text-gold" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('quorum.explanation')}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
 
                 <p className="text-xs text-foreground-tertiary mb-4">{t('quorum.description')}</p>
@@ -609,5 +629,6 @@ export function GovernanceDashboard() {
         </footer>
       </main>
     </div>
+    </TooltipProvider>
   );
 }

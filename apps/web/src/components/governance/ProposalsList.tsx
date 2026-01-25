@@ -70,7 +70,7 @@ function FilterTab({ filter, activeFilter, count, label, onClick }: FilterTabPro
       type="button"
       onClick={() => onClick(filter)}
       className={cn(
-        'px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 flex items-center gap-2',
+        'min-h-11 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 flex items-center gap-2',
         isActive
           ? 'bg-background-tertiary text-foreground'
           : 'text-foreground-secondary hover:text-foreground'
@@ -294,7 +294,7 @@ function Pagination({ currentPage, totalPages, onPageChange, t }: PaginationProp
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="w-10 h-10 flex items-center justify-center bg-background-secondary border border-border rounded-lg text-foreground-secondary hover:border-gold hover:text-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-11 h-11 flex items-center justify-center bg-background-secondary border border-border rounded-lg text-foreground-secondary hover:border-gold hover:text-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label={t('pagination.previous')}
       >
         <ChevronLeft className="w-4 h-4" />
@@ -306,7 +306,7 @@ function Pagination({ currentPage, totalPages, onPageChange, t }: PaginationProp
           type="button"
           onClick={() => onPageChange(page)}
           className={cn(
-            'w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors',
+            'w-11 h-11 flex items-center justify-center rounded-lg text-sm font-medium transition-colors',
             page === currentPage
               ? 'bg-gold text-background border border-gold'
               : 'bg-background-secondary border border-border text-foreground-secondary hover:border-gold hover:text-gold'
@@ -322,7 +322,7 @@ function Pagination({ currentPage, totalPages, onPageChange, t }: PaginationProp
         type="button"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="w-10 h-10 flex items-center justify-center bg-background-secondary border border-border rounded-lg text-foreground-secondary hover:border-gold hover:text-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-11 h-11 flex items-center justify-center bg-background-secondary border border-border rounded-lg text-foreground-secondary hover:border-gold hover:text-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label={t('pagination.next')}
       >
         <ChevronRight className="w-4 h-4" />

@@ -20,6 +20,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const consumerJson = (await import(`../../locales/${locale}/consumer.json`)).default;
   const tokenHubJson = (await import(`../../locales/${locale}/token-hub.json`)).default;
   const governanceJson = (await import(`../../locales/${locale}/governance.json`)).default;
+  const qsHubJson = (await import(`../../locales/${locale}/qs-hub.json`)).default;
   const proverJson = (await import(`../../locales/${locale}/prover.json`)).default;
   const observerJson = (await import(`../../locales/${locale}/observer.json`)).default;
   const explorerJson = (await import(`../../locales/${locale}/explorer.json`)).default;
@@ -34,6 +35,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const consumer = consumerJson.consumer || consumerJson;
   const tokenHub = tokenHubJson['token-hub'] || tokenHubJson;
   const governance = governanceJson.governance || governanceJson;
+  const qsHub = qsHubJson['qs-hub'] || qsHubJson;
   const prover = proverJson.prover || proverJson;
   const observer = observerJson.observer || observerJson;
   const explorer = explorerJson.explorer || explorerJson;
@@ -50,6 +52,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       consumer,
       'token-hub': tokenHub,
       governance,
+      'qs-hub': qsHub,
       prover,
       observer,
       explorer,

@@ -24,6 +24,9 @@ import {
   Headphones,
   Server,
   Gift,
+  Wallet,
+  Coins,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -53,6 +56,10 @@ interface FormData {
   agreeTerms: boolean;
   agreeKyb: boolean;
   agreeStake: boolean;
+  // Step 4: Stake
+  stakeAmount: string;
+  walletConnected: boolean;
+  stakeConfirmed: boolean;
 }
 
 const initialFormData: FormData = {
@@ -72,6 +79,9 @@ const initialFormData: FormData = {
   agreeTerms: false,
   agreeKyb: false,
   agreeStake: false,
+  stakeAmount: '',
+  walletConnected: false,
+  stakeConfirmed: false,
 };
 
 // Mock invitation data
@@ -133,7 +143,8 @@ export function ProverApplication() {
     { number: 1, label: t('application.steps.basicInfo') },
     { number: 2, label: t('application.steps.technical') },
     { number: 3, label: t('application.steps.legal') },
-    { number: 4, label: t('application.steps.review') },
+    { number: 4, label: t('application.steps.stake') },
+    { number: 5, label: t('application.steps.review') },
   ];
 
   const updateFormData = (field: keyof FormData, value: string | boolean) => {
@@ -168,6 +179,14 @@ export function ProverApplication() {
     );
   };
 
+  const isStep4Valid = () => {
+    return (
+      formData.stakeAmount !== '' &&
+      formData.walletConnected &&
+      formData.stakeConfirmed
+    );
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case 1:
@@ -176,13 +195,15 @@ export function ProverApplication() {
         return isStep2Valid();
       case 3:
         return isStep3Valid();
+      case 4:
+        return isStep4Valid();
       default:
         return true;
     }
   };
 
   const nextStep = () => {
-    if (currentStep < 4 && canProceed()) {
+    if (currentStep < 5 && canProceed()) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -1068,7 +1089,7 @@ export function ProverApplication() {
             </Card>
           )}
 
-          {/* Step 4: Review */}
+          {/* Step 4: Stake */}
           {currentStep === 4 && (
             <Card className="p-10">
               <h1 className="text-2xl font-bold mb-2">
@@ -1076,6 +1097,149 @@ export function ProverApplication() {
               </h1>
               <p className="text-foreground-secondary mb-8">
                 {t('application.step4.description')}
+              </p>
+
+              {/* Stake Amount Selection */}
+              <div className="space-y-6 mb-8">
+                <div className="space-y-2">
+                  <label className="text-sm text-foreground-secondary">
+                    {t('application.step4.stakeAmount')}{' '}
+                    <span className="text-hinomaru">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 gap-3">
+                    {[
+                      { value: '100', label: '100 ETH', description: t('application.step4.stakeOptions.minimum') },
+                      { value: '200', label: '200 ETH', description: t('application.step4.stakeOptions.standard') },
+                      { value: '500', label: '500 ETH', description: t('application.step4.stakeOptions.premium') },
+                    ].map((option) => (
+                      <label
+                        key={option.value}
+                        className={cn(
+                          'flex items-center gap-4 p-4 rounded-lg cursor-pointer border transition-all',
+                          formData.stakeAmount === option.value
+                            ? 'border-hinomaru bg-hinomaru/10'
+                            : 'border-surface-tertiary bg-background-secondary hover:border-foreground-tertiary'
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="stakeAmount"
+                          value={option.value}
+                          checked={formData.stakeAmount === option.value}
+                          onChange={(e) => updateFormData('stakeAmount', e.target.value)}
+                          className="w-5 h-5 accent-hinomaru"
+                        />
+                        <Coins
+                          className={cn(
+                            'h-6 w-6',
+                            formData.stakeAmount === option.value ? 'text-hinomaru' : 'text-foreground-tertiary'
+                          )}
+                          aria-hidden="true"
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold">{option.label}</div>
+                          <div className="text-sm text-foreground-secondary">{option.description}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Wallet Connection */}
+                <div className="space-y-3">
+                  <label className="text-sm text-foreground-secondary">
+                    {t('application.step4.walletConnection')}{' '}
+                    <span className="text-hinomaru">*</span>
+                  </label>
+                  {!formData.walletConnected ? (
+                    <button
+                      type="button"
+                      onClick={() => updateFormData('walletConnected', true)}
+                      className="w-full flex items-center justify-center gap-3 p-4 bg-background-secondary border border-surface-tertiary rounded-lg hover:border-hinomaru transition-colors"
+                    >
+                      <Wallet className="h-5 w-5 text-foreground-tertiary" aria-hidden="true" />
+                      <span className="font-medium">{t('application.step4.connectWallet')}</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3 p-4 bg-success/10 border border-success rounded-lg">
+                      <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
+                      <div className="flex-1">
+                        <div className="font-medium text-success">{t('application.step4.walletConnected')}</div>
+                        <div className="text-sm text-foreground-secondary font-mono">0x1234...5678</div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => updateFormData('walletConnected', false)}
+                      >
+                        {t('application.step4.disconnect')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Stake Info Box */}
+                <div className="bg-gold/10 border border-gold rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Info className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" aria-hidden="true" />
+                    <div className="space-y-2">
+                      <div className="font-semibold text-gold">{t('application.step4.stakeInfo.title')}</div>
+                      <ul className="text-sm text-foreground-secondary space-y-1">
+                        <li>• {t('application.step4.stakeInfo.lockPeriod')}</li>
+                        <li>• {t('application.step4.stakeInfo.slashingRisk')}</li>
+                        <li>• {t('application.step4.stakeInfo.rewardsInfo')}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stake Confirmation Checkbox */}
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 rounded accent-hinomaru mt-0.5"
+                    checked={formData.stakeConfirmed}
+                    onChange={(e) => updateFormData('stakeConfirmed', e.target.checked)}
+                    required
+                  />
+                  <span className="text-sm text-foreground-secondary">
+                    {t('application.step4.confirmStake')}
+                  </span>
+                </label>
+              </div>
+
+              {!isStep4Valid() && (
+                <p className="text-sm text-hinomaru mt-4" role="alert">
+                  {t('application.step4.validationMessage')}
+                </p>
+              )}
+
+              <div className="flex justify-between mt-8">
+                <Button variant="outline" onClick={prevStep}>
+                  <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
+                  {t('application.back')}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={nextStep}
+                  disabled={!isStep4Valid()}
+                  aria-disabled={!isStep4Valid()}
+                >
+                  {t('application.continue')}
+                  <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* Step 5: Review */}
+          {currentStep === 5 && (
+            <Card className="p-10">
+              <h1 className="text-2xl font-bold mb-2">
+                {t('application.step5.title')}
+              </h1>
+              <p className="text-foreground-secondary mb-8">
+                {t('application.step5.description')}
               </p>
 
               <div className="space-y-4 mb-8">
@@ -1111,8 +1275,8 @@ export function ProverApplication() {
                   },
                   {
                     label: t('application.review.stakeCommitment'),
-                    value: '$400,000+',
-                    icon: FileText,
+                    value: `${formData.stakeAmount} ETH`,
+                    icon: Coins,
                     highlight: true,
                   },
                 ].map((item) => (

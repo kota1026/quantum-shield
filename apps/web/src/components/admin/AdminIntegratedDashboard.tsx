@@ -238,7 +238,7 @@ export function AdminIntegratedDashboard() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as typeof activeTab)}
                 className={cn(
-                  'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                  'flex-1 rounded-md px-4 py-2 min-h-[44px] text-sm font-medium transition-all',
                   activeTab === tab.key
                     ? 'bg-gold text-background'
                     : 'text-foreground-secondary hover:text-foreground'
@@ -403,16 +403,16 @@ export function AdminIntegratedDashboard() {
           {activeTab === 'public' && (
             <div className="rounded-xl border border-surface-tertiary bg-card p-8 text-center">
               <Globe className="mx-auto h-12 w-12 text-success" />
-              <h3 className="mt-4 text-lg font-semibold">パブリック版管理</h3>
+              <h3 className="mt-4 text-lg font-semibold">{t('publicTab.title')}</h3>
               <p className="mt-2 text-sm text-foreground-secondary">
-                左のサイドバーから各管理画面にアクセスしてください
+                {t('publicTab.description')}
               </p>
               <div className="mt-6 flex justify-center gap-4">
-                <Button asChild>
-                  <Link href="/admin/public/provers">Prover管理</Link>
+                <Button asChild className="min-h-[44px]">
+                  <Link href="/admin/public/provers">{t('publicTab.proverManagement')}</Link>
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/admin/public/protocol">プロトコル監視</Link>
+                <Button variant="outline" asChild className="min-h-[44px]">
+                  <Link href="/admin/public/protocol">{t('publicTab.protocolMonitoring')}</Link>
                 </Button>
               </div>
             </div>
@@ -422,16 +422,16 @@ export function AdminIntegratedDashboard() {
           {activeTab === 'saas' && (
             <div className="rounded-xl border border-surface-tertiary bg-card p-8 text-center">
               <Building2 className="mx-auto h-12 w-12 text-info" />
-              <h3 className="mt-4 text-lg font-semibold">企業版SaaS管理</h3>
+              <h3 className="mt-4 text-lg font-semibold">{t('saasTab.title')}</h3>
               <p className="mt-2 text-sm text-foreground-secondary">
-                左のサイドバーから各管理画面にアクセスしてください
+                {t('saasTab.description')}
               </p>
               <div className="mt-6 flex justify-center gap-4">
-                <Button asChild>
-                  <Link href="/admin/saas/operators">運営企業管理</Link>
+                <Button asChild className="min-h-[44px]">
+                  <Link href="/admin/saas/operators">{t('saasTab.operatorManagement')}</Link>
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/admin/saas/billing">課金管理</Link>
+                <Button variant="outline" asChild className="min-h-[44px]">
+                  <Link href="/admin/saas/billing">{t('saasTab.billingManagement')}</Link>
                 </Button>
               </div>
             </div>
@@ -441,16 +441,16 @@ export function AdminIntegratedDashboard() {
           {activeTab === 'license' && (
             <div className="rounded-xl border border-surface-tertiary bg-card p-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-warning" />
-              <h3 className="mt-4 text-lg font-semibold">技術譲渡管理</h3>
+              <h3 className="mt-4 text-lg font-semibold">{t('licenseTab.title')}</h3>
               <p className="mt-2 text-sm text-foreground-secondary">
-                左のサイドバーから各管理画面にアクセスしてください
+                {t('licenseTab.description')}
               </p>
               <div className="mt-6 flex justify-center gap-4">
-                <Button asChild>
-                  <Link href="/admin/license/companies">ライセンス企業</Link>
+                <Button asChild className="min-h-[44px]">
+                  <Link href="/admin/license/companies">{t('licenseTab.licensedCompanies')}</Link>
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/admin/license/projects">導入プロジェクト</Link>
+                <Button variant="outline" asChild className="min-h-[44px]">
+                  <Link href="/admin/license/projects">{t('licenseTab.projects')}</Link>
                 </Button>
               </div>
             </div>

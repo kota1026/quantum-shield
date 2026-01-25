@@ -2,9 +2,15 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { AlertTriangle, Zap } from 'lucide-react';
+import { AlertTriangle, Zap, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface SuspiciousTransaction {
   id: string;
@@ -26,6 +32,7 @@ export function SuspiciousAlertCard({
   className,
 }: SuspiciousAlertCardProps) {
   const t = useTranslations('observer.dashboard.suspicious');
+  const tCommon = useTranslations('observer.common');
 
   const riskStyles = {
     high: {
@@ -52,6 +59,7 @@ export function SuspiciousAlertCard({
   };
 
   return (
+    <TooltipProvider>
     <Card variant="default" padding="none" className={cn(className)}>
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-5 border-b border-border/50">
@@ -103,20 +111,37 @@ export function SuspiciousAlertCard({
                   <Icon className="w-5 h-5" aria-hidden="true" />
                   {tx.riskLevel === 'high' ? t('highRisk') : t('mediumRisk')}
                 </div>
-                <span
-                  className={cn(
-                    'text-sm px-3 py-1 rounded-full font-bold',
-                    style.scoreBg
-                  )}
-                >
-                  {t('score')}: {tx.score}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={cn(
+                        'text-sm px-3 py-1 rounded-full font-bold cursor-help flex items-center gap-1',
+                        style.scoreBg
+                      )}
+                    >
+                      {t('score')}: {tx.score}
+                      <HelpCircle className="h-3 w-3" aria-hidden="true" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{tCommon('tooltip.riskScore')}</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
 
               {/* Alert Detail */}
               <div className="text-sm font-medium text-foreground">
                 <span className="font-mono">{tx.address}</span> • {tx.amount}{' '}
-                {tx.type === 'emergency' ? 'Emergency' : 'Normal'} Unlock
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help border-b border-dotted border-foreground-tertiary">
+                      {tx.type === 'emergency' ? 'Emergency' : 'Normal'} Unlock
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{tx.type === 'emergency' ? tCommon('tooltip.emergencyUnlock') : tCommon('tooltip.normalUnlock')}</p>
+                  </TooltipContent>
+                </Tooltip>
                 <br />
                 <span className={cn('text-sm', style.titleColor)}>{tx.reason}</span>
               </div>
@@ -142,5 +167,6 @@ export function SuspiciousAlertCard({
         })}
       </div>
     </Card>
+    </TooltipProvider>
   );
 }

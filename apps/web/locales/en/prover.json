@@ -20,9 +20,19 @@
       "backToLanding": "Back to Overview",
       "selectWallet": "Select Wallet",
       "popular": "Popular",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
       "connecting": {
         "title": "Connecting...",
-        "description": "Connecting to {wallet}. Please approve in your wallet."
+        "description": "Connecting to {wallet}. Please approve in your wallet.",
+        "walletPrompt": "Please approve the connection in your wallet"
+      },
+      "checking": {
+        "title": "Checking registration...",
+        "description": "Verifying your wallet's Prover registration status"
       },
       "success": {
         "title": "Connected",
@@ -356,29 +366,32 @@
       },
       "expertQuotes": {
         "sectionLabel": "Expert Insights",
-        "title": "Why STARK Proofs Matter",
-        "subtitle": "Insights from cryptography experts",
+        "title": "Why Quantum-Resistant Signatures Matter",
+        "subtitle": "Insights from post-quantum cryptography experts",
         "quotes": [
           {
-            "quote": "STARK proofs are a revolutionary technology that achieves both transparency and verifiability. They are paving the way for the future of trustless proof systems.",
-            "author": "Eli Ben-Sasson",
-            "title": "StarkWare Co-founder",
-            "source": "StarkWare"
+            "quote": "SPHINCS+ is a hash-based signature scheme that is mathematically secure against quantum computer attacks. NIST standardization ensures long-term security.",
+            "author": "NIST",
+            "title": "National Institute of Standards and Technology",
+            "source": "NIST Post-Quantum Cryptography",
+            "sourceUrl": "https://csrc.nist.gov/projects/post-quantum-cryptography"
           },
           {
-            "quote": "Zero-knowledge proofs are the only technology that can achieve both privacy and scalability. They will become the core of future blockchain infrastructure.",
-            "author": "Vitalik Buterin",
-            "title": "Ethereum Co-founder",
-            "source": "vitalik.eth.limo"
+            "quote": "Hash-based signatures are the most conservative and secure choice compared to lattice or code-based schemes. SPHINCS is stateless and easy to implement.",
+            "author": "Daniel J. Bernstein",
+            "title": "Cryptographer & SPHINCS Co-designer",
+            "source": "SPHINCS Official Site",
+            "sourceUrl": "https://sphincs.org/"
           },
           {
-            "quote": "Decentralized proof networks enable true decentralization without relying on centralized oracles. Provers are a crucial component of this system.",
-            "author": "ZK Researcher",
-            "title": "Cryptography Researcher",
-            "source": "ZK Research"
+            "quote": "Once quantum computers become practical, current ECDSA signatures could be broken within hours. It's crucial to prepare for the transition to post-quantum cryptography now.",
+            "author": "Ethereum Foundation",
+            "title": "Ethereum Official Documentation",
+            "source": "ethereum.org",
+            "sourceUrl": "https://ethereum.org/en/roadmap/future-proofing/"
           }
         ],
-        "disclaimer": "The above is for informational purposes only. Please participate as a Prover at your own discretion."
+        "disclaimer": "The above are references from each source. Please participate as a Prover at your own discretion."
       }
     },
     "application": {
@@ -391,6 +404,7 @@
         "basicInfo": "Basic Info",
         "technical": "Technical",
         "legal": "Legal & KYB",
+        "stake": "Stake",
         "review": "Review"
       },
       "continue": "Continue",
@@ -429,6 +443,28 @@
         "validationMessage": "Please complete the business registration number and agree to all terms before proceeding."
       },
       "step4": {
+        "title": "Stake Deposit",
+        "description": "Set up your stake to operate as a Prover",
+        "stakeAmount": "Stake Amount",
+        "stakeOptions": {
+          "minimum": "Minimum stake - Basic processing allocation",
+          "standard": "Standard stake - Priority processing included",
+          "premium": "Premium stake - Highest priority + Bonus rewards"
+        },
+        "walletConnection": "Wallet Connection",
+        "connectWallet": "Connect Wallet",
+        "walletConnected": "Wallet Connected",
+        "disconnect": "Disconnect",
+        "stakeInfo": {
+          "title": "Important Stake Information",
+          "lockPeriod": "Stake is locked for a minimum of 180 days",
+          "slashingRisk": "SLA violations are subject to Quadratic Slashing",
+          "rewardsInfo": "Reward distribution ratio is determined by stake amount"
+        },
+        "confirmStake": "I understand and agree to the stake amount, lock period, and slashing risks",
+        "validationMessage": "Please select a stake amount, connect your wallet, and confirm"
+      },
+      "step5": {
         "title": "Review Application",
         "description": "Please review your information before submitting"
       },
@@ -641,6 +677,12 @@
         "uptime": "Uptime (30d)",
         "slaMin": "SLA: {min}%"
       },
+      "tooltips": {
+        "pendingSignatures": "Number of Dilithium quantum-resistant signatures that need to be generated for user unlock requests. Failure to process in time may result in SLA violations.",
+        "uptime": "Prover node uptime over the past 30 days. SLA requires at least 99.9% uptime. Falling below this may result in slashing penalties.",
+        "sla": "Service Level Agreement - the performance standards Provers must maintain including response time and uptime thresholds.",
+        "stake": "The ETH (or equivalent) deposited to become a Prover. Part or all of this may be slashed in case of misconduct or SLA violations."
+      },
       "queue": {
         "title": "Signature Queue",
         "unlockRequest": "Unlock Request",
@@ -725,6 +767,14 @@
         "sourceChain": "Source Chain",
         "destChain": "Destination",
         "dilithiumSig": "Dilithium Signature (User)"
+      },
+      "tooltip": {
+        "dilithium": "Dilithium is a next-generation cryptographic signature algorithm resistant to quantum computers. Users generate this signature when requesting an unlock.",
+        "dilithiumAriaLabel": "Learn more about Dilithium signature",
+        "sphincs": "SPHINCS+ is another quantum-resistant cryptographic signature algorithm. When a Prover signs with SPHINCS+, the unlock request is approved.",
+        "sphincsAriaLabel": "Learn more about SPHINCS+ signature",
+        "emergency": "Emergency Unlock is a special unlock method used when private keys are lost. It requires a 7-day waiting period.",
+        "emergencyAriaLabel": "Learn more about Emergency Unlock"
       },
       "modal": {
         "close": "Close",

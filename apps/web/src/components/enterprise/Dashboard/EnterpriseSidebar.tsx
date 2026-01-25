@@ -6,16 +6,17 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
-  Wallet,
-  BarChart3,
+  Server,
+  Eye,
   Activity,
-  FileText,
   Users,
-  Key,
   Settings,
   HelpCircle,
-  FileBarChart,
   History,
+  AlertTriangle,
+  Sliders,
+  LifeBuoy,
+  Calendar,
 } from 'lucide-react';
 
 interface NavItem {
@@ -32,31 +33,31 @@ interface NavSection {
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    labelKey: 'dashboard',
+    labelKey: 'overview',
     items: [
-      { key: 'overview', href: '/enterprise/landing', icon: LayoutDashboard },
-      { key: 'tvl', href: '/enterprise/tvl', icon: Wallet },
-      { key: 'volume', href: '/enterprise/volume', icon: BarChart3 },
-      { key: 'status', href: '/enterprise/status', icon: Activity },
+      { key: 'dashboard', href: '/enterprise/dashboard', icon: LayoutDashboard },
+      { key: 'monitoring', href: '/enterprise/monitoring', icon: Activity },
     ],
   },
   {
-    labelKey: 'transactions',
+    labelKey: 'infrastructure',
     items: [
-      { key: 'allTransactions', href: '/enterprise/transactions', icon: FileText, badge: 247 },
+      { key: 'provers', href: '/enterprise/provers', icon: Server },
+      { key: 'proverCalendar', href: '/enterprise/provers/calendar', icon: Calendar },
+      { key: 'observers', href: '/enterprise/observers', icon: Eye },
     ],
   },
   {
     labelKey: 'management',
     items: [
       { key: 'users', href: '/enterprise/users', icon: Users },
-      { key: 'apiKeys', href: '/enterprise/api-keys', icon: Key },
+      { key: 'parameters', href: '/enterprise/parameters', icon: Sliders },
+      { key: 'emergency', href: '/enterprise/emergency', icon: AlertTriangle },
     ],
   },
   {
     labelKey: 'reports',
     items: [
-      { key: 'reports', href: '/enterprise/reports', icon: FileBarChart },
       { key: 'auditLog', href: '/enterprise/audit-log', icon: History },
     ],
   },
@@ -64,7 +65,8 @@ const NAV_SECTIONS: NavSection[] = [
     labelKey: 'system',
     items: [
       { key: 'settings', href: '/enterprise/settings', icon: Settings },
-      { key: 'support', href: '/enterprise/support', icon: HelpCircle },
+      { key: 'support', href: '/enterprise/support', icon: LifeBuoy },
+      { key: 'help', href: '/enterprise/help', icon: HelpCircle },
     ],
   },
 ];
@@ -139,7 +141,7 @@ export function EnterpriseSidebar({
                   key={item.key}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-4 px-4 py-2 rounded-lg text-sm mb-0.5',
+                    'flex items-center gap-4 px-4 py-2 min-h-[44px] rounded-lg text-sm mb-0.5',
                     'transition-all duration-200',
                     active
                       ? 'bg-hinomaru/10 text-hinomaru-400'

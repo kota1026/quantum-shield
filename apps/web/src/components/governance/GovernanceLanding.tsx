@@ -1,16 +1,14 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
-import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import {
   Vote,
   Users,
   FileText,
   Shield,
   ArrowRight,
-  Globe,
   Clock,
-  ChevronRight,
   Coins,
   Scale,
   CheckCircle2,
@@ -19,10 +17,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { EcosystemLink } from '@/components/shared/EcosystemLink';
 import { CookieBanner } from '@/components/shared/CookieBanner';
 import { Tooltip } from '@/components/shared/Tooltip';
-import { GovernanceVisual } from './GovernanceVisual';
+import { LandingHeader } from '@/components/shared/LandingHeader';
+import { LandingFooter } from '@/components/shared/LandingFooter';
+import { HinomaryVisual } from '@/components/shared/HinomaryVisual';
 import { cn } from '@/lib/utils';
 
 interface FeatureCardProps {
@@ -124,14 +123,6 @@ function ExpertQuoteCard({ quote, author, title, source, sourceUrl }: ExpertQuot
 export function GovernanceLanding() {
   const t = useTranslations('governance');
   const tCommon = useTranslations('common');
-  const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const toggleLocale = () => {
-    const newLocale = locale === 'ja' ? 'en' : 'ja';
-    router.replace(pathname, { locale: newLocale });
-  };
 
   const stats = [
     { key: 'activeProposals', value: '5', icon: FileText, highlight: true },
@@ -216,53 +207,18 @@ export function GovernanceLanding() {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-8">
-        {/* Header */}
-        <header className="flex justify-between items-center py-5" role="banner">
-          <Link href="/governance/landing" className="flex items-center gap-3 group">
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              <div
-                className="absolute inset-0 border border-gold rounded-full animate-[spin_25s_linear_infinite]"
-                aria-hidden="true"
-              >
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-gold rounded-full" />
-              </div>
-              <div
-                className="w-6 h-6 bg-hinomaru rounded-full shadow-[0_0_20px_rgba(188,0,45,0.4)]"
-                aria-hidden="true"
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold text-foreground group-hover:text-gold transition-colors">
-                Quantum Shield
-              </span>
-              <span className="text-[10px] text-gold tracking-[2px] uppercase">
-                Governance
-              </span>
-            </div>
-          </Link>
+      {/* Fixed Header */}
+      <LandingHeader
+        appName="Governance"
+        appKey="Governance"
+        homeHref="/governance/landing"
+        loginHref="/governance/login"
+        registerHref="/governance/onboarding"
+      />
 
-          <div className="flex items-center gap-3">
-            <EcosystemLink variant="inline" />
-            <button
-              onClick={toggleLocale}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
-              aria-label={tCommon('accessibility.switchToJapanese')}
-            >
-              <Globe className="w-4 h-4" />
-              {locale === 'ja' ? 'EN' : 'JA'}
-            </button>
-            <Link href="/governance/onboarding">
-              <Button variant="primary" size="sm">
-                {t('onboarding.cta.lockButton')}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main id="main-content" role="main">
+      {/* Main Content - Add padding-top for fixed header */}
+      <main id="main-content" role="main" className="relative z-10 pt-16">
+        <div className="max-w-7xl mx-auto px-8">
           {/* Hero Section */}
           <section className="py-20 text-center" aria-label={t('landing.ariaLabel')}>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/10 border border-gold/30 rounded-full text-gold text-sm font-medium mb-6">
@@ -276,22 +232,17 @@ export function GovernanceLanding() {
               {t('landing.hero.whatIsGovernance.description')}
             </p>
             <div className="flex gap-4 justify-center">
-              <Link href="/governance/onboarding">
+              <Link href="/governance/login">
                 <Button variant="primary" size="lg">
                   {t('onboarding.cta.lockButton')}
                   <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/governance/proposals">
-                <Button variant="outline" size="lg">
-                  {t('onboarding.cta.viewProposals')}
                 </Button>
               </Link>
             </div>
 
             {/* Custom Visual */}
             <div className="mt-16">
-              <GovernanceVisual />
+              <HinomaryVisual />
             </div>
           </section>
 
@@ -438,61 +389,20 @@ export function GovernanceLanding() {
                 {t('onboarding.cta.description')}
               </p>
               <div className="flex gap-4 justify-center">
-                <Link href="/token-hub/lock">
-                  <Button variant="primary" size="lg">
+                <Link href="/governance/login">
+                  <Button variant="secondary" size="lg">
                     {t('onboarding.cta.lockButton')}
                     <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-                <Link href="/governance/proposals">
-                  <Button variant="outline" size="lg">
-                    {t('onboarding.cta.viewProposals')}
                   </Button>
                 </Link>
               </div>
             </Card>
           </section>
-        </main>
+        </div>
 
-        {/* Footer */}
-        <footer className="py-8 border-t border-border" role="contentinfo">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4 text-sm text-foreground-tertiary">
-              <span>{t('landing.footer.copyright')}</span>
-            </div>
-            <nav className="flex gap-6 text-sm" aria-label={t('landing.footer.navLabel')}>
-              <a
-                href="https://forum.quantumshield.io/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground-tertiary hover:text-gold transition-colors"
-              >
-                {t('landing.footer.governanceForum')}
-              </a>
-              <a
-                href="https://docs.quantumshield.io/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground-tertiary hover:text-gold transition-colors"
-              >
-                {t('landing.footer.documentation')}
-              </a>
-              <Link
-                href="/consumer/terms"
-                className="text-foreground-tertiary hover:text-gold transition-colors"
-              >
-                {t('landing.footer.terms')}
-              </Link>
-              <Link
-                href="/consumer/privacy"
-                className="text-foreground-tertiary hover:text-gold transition-colors"
-              >
-                {t('landing.footer.privacy')}
-              </Link>
-            </nav>
-          </div>
-        </footer>
-      </div>
+        {/* Ecosystem Footer */}
+        <LandingFooter />
+      </main>
 
       {/* Cookie Banner */}
       <CookieBanner />

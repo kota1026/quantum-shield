@@ -4,20 +4,19 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import {
   AlertTriangle,
-  UserCheck,
   FileWarning,
   Clock,
   ArrowRight,
-  CheckCircle2,
-  Shield,
   AlertCircle,
 } from 'lucide-react';
 import { EnterpriseSidebar } from './EnterpriseSidebar';
 import { EnterpriseTopBar } from './EnterpriseTopBar';
 import { EnterpriseStatCard } from './EnterpriseStatCard';
+import { KPIGrid } from './KPIGrid';
 import { RecentTransactionsTable, EnterpriseTransaction } from './RecentTransactionsTable';
 import { RecentActivityList, ActivityItem } from './RecentActivityList';
 import { SystemStatusList, SystemStatus } from './SystemStatusList';
+import { EnvironmentSelector, EnvironmentBadge, useEnvironment } from '@/components/enterprise/shared';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,12 +34,6 @@ interface ActionItem {
 }
 
 // Demo data - In production, this would come from API
-const DEMO_STATS = {
-  tvl: { value: '$124.5', unit: 'M', change: { value: '12.4% vs last month', isPositive: true } },
-  volume: { value: '$47.2', unit: 'M', change: { value: '8.7% vs last month', isPositive: true } },
-  transactions: { value: '12,847', change: { value: '247 today', isPositive: true } },
-  activeUsers: { value: '1,234', change: { value: '56 this week', isPositive: true } },
-};
 
 const DEMO_TRANSACTIONS: EnterpriseTransaction[] = [
   { id: '1', hash: '0x7a3f...9c2d', type: 'lock', amount: '5.00 ETH', status: 'complete', time: '2 min ago' },
@@ -71,7 +64,7 @@ const DEMO_ACTION_ITEMS: ActionItem[] = [
     type: 'critical',
     title: 'actionItems.kycPending.title',
     description: 'actionItems.kycPending.description',
-    link: '/enterprise/users?filter=kyc-pending',
+    link: '/enterprise/users-stats',
     linkText: 'actionItems.kycPending.action',
     count: 3,
   },
@@ -80,7 +73,7 @@ const DEMO_ACTION_ITEMS: ActionItem[] = [
     type: 'warning',
     title: 'actionItems.emergencyUnlock.title',
     description: 'actionItems.emergencyUnlock.description',
-    link: '/enterprise/transactions?filter=emergency',
+    link: '/enterprise/emergency',
     linkText: 'actionItems.emergencyUnlock.action',
     count: 1,
   },
@@ -89,7 +82,7 @@ const DEMO_ACTION_ITEMS: ActionItem[] = [
     type: 'info',
     title: 'actionItems.approvalPending.title',
     description: 'actionItems.approvalPending.description',
-    link: '/enterprise/approvals',
+    link: '/enterprise/audit-log',
     linkText: 'actionItems.approvalPending.action',
     count: 5,
   },
@@ -114,42 +107,13 @@ export function EnterpriseDashboard() {
 
         {/* Page Content */}
         <main className="p-8" role="main" aria-label={t('ariaLabel')}>
-          {/* Stats Grid */}
-          <section
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8"
-            aria-label={t('stats.ariaLabel')}
-          >
-            <EnterpriseStatCard
-              label={t('stats.tvl.label')}
-              value={DEMO_STATS.tvl.value}
-              unit={DEMO_STATS.tvl.unit}
-              tooltip={t('stats.tvl.tooltip')}
-              change={DEMO_STATS.tvl.change}
-              icon="wallet"
-            />
-            <EnterpriseStatCard
-              label={t('stats.volume.label')}
-              value={DEMO_STATS.volume.value}
-              unit={DEMO_STATS.volume.unit}
-              tooltip={t('stats.volume.tooltip')}
-              change={DEMO_STATS.volume.change}
-              icon="chart"
-            />
-            <EnterpriseStatCard
-              label={t('stats.transactions.label')}
-              value={DEMO_STATS.transactions.value}
-              tooltip={t('stats.transactions.tooltip')}
-              change={DEMO_STATS.transactions.change}
-              icon="document"
-            />
-            <EnterpriseStatCard
-              label={t('stats.activeUsers.label')}
-              value={DEMO_STATS.activeUsers.value}
-              tooltip={t('stats.activeUsers.tooltip')}
-              change={DEMO_STATS.activeUsers.change}
-              icon="users"
-            />
-          </section>
+          {/* Environment Badge for non-production */}
+          <div className="mb-4">
+            <EnvironmentBadge />
+          </div>
+
+          {/* 6 KPI Grid */}
+          <KPIGrid className="mb-8" />
 
           {/* Action Items Section */}
           {DEMO_ACTION_ITEMS.length > 0 && (
@@ -245,6 +209,8 @@ export default EnterpriseDashboard;
 export { EnterpriseSidebar } from './EnterpriseSidebar';
 export { EnterpriseTopBar } from './EnterpriseTopBar';
 export { EnterpriseStatCard } from './EnterpriseStatCard';
+export { KPIGrid } from './KPIGrid';
+export { KPICard } from './KPICard';
 export { RecentTransactionsTable } from './RecentTransactionsTable';
 export { RecentActivityList } from './RecentActivityList';
 export { SystemStatusList } from './SystemStatusList';

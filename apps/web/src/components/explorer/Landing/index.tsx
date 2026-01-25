@@ -1,40 +1,28 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
-import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import {
   Search,
-  Shield,
   Activity,
   Users,
   ArrowRight,
-  TrendingUp,
   Lock,
   Unlock,
-  AlertTriangle,
-  Globe,
   BarChart3,
   Eye,
-  Clock,
   Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { EcosystemLink } from '@/components/shared/EcosystemLink';
 import { CookieBanner } from '@/components/shared/CookieBanner';
-import { ExplorerVisual } from '../ExplorerVisual';
+import { LandingHeader } from '@/components/shared/LandingHeader';
+import { LandingFooter } from '@/components/shared/LandingFooter';
+import { HinomaryVisual } from '@/components/shared/HinomaryVisual';
 import { cn } from '@/lib/utils';
 
 export function ExplorerLanding() {
   const t = useTranslations('explorer');
-  const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const toggleLocale = () => {
-    const newLocale = locale === 'ja' ? 'en' : 'ja';
-    router.replace(pathname, { locale: newLocale });
-  };
 
   const stats = [
     {
@@ -110,54 +98,16 @@ export function ExplorerLanding() {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-8">
-        {/* Header */}
-        <header
-          className="flex justify-between items-center py-5"
-          role="banner"
-        >
-          <Link href="/explorer/landing" className="flex items-center gap-3 group">
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              <div
-                className="absolute inset-0 border border-gold rounded-full animate-[spin_25s_linear_infinite]"
-                aria-hidden="true"
-              >
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-gold rounded-full" />
-              </div>
-              <div
-                className="w-6 h-6 bg-hinomaru rounded-full shadow-[0_0_20px_rgba(188,0,45,0.4)]"
-                aria-hidden="true"
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold text-foreground group-hover:text-gold transition-colors">
-                Quantum Shield
-              </span>
-              <span className="text-[10px] text-gold tracking-[2px] uppercase">
-                Explorer
-              </span>
-            </div>
-          </Link>
+      {/* Fixed Header */}
+      <LandingHeader
+        appName="Explorer"
+        appKey="Explorer"
+        homeHref="/explorer/landing"
+        loginHref="/explorer/overview"
+        registerHref="/explorer/overview"
+      />
 
-          <div className="flex items-center gap-3">
-            <EcosystemLink variant="inline" />
-            <button
-              onClick={toggleLocale}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
-              aria-label={locale === 'ja' ? 'Switch to English' : '日本語に切り替え'}
-            >
-              <Globe className="w-4 h-4" />
-              {locale === 'ja' ? 'EN' : 'JA'}
-            </button>
-            <Link href="/explorer/overview">
-              <Button variant="primary" size="sm">
-                {t('landing.hero.openExplorer')}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </header>
-
+      <div className="relative z-10 max-w-7xl mx-auto px-8 pt-16">
         {/* Main Content */}
         <main id="main-content" role="main">
           {/* Hero Section */}
@@ -192,7 +142,7 @@ export function ExplorerLanding() {
 
             {/* Custom Visual */}
             <div className="mt-16">
-              <ExplorerVisual />
+              <HinomaryVisual />
             </div>
           </section>
 
@@ -338,7 +288,14 @@ export function ExplorerLanding() {
                     <div className="border-t border-border pt-4">
                       <div className="font-semibold text-foreground">{t(`landing.expertQuotes.quotes.${index}.author`)}</div>
                       <div className="text-xs text-foreground-tertiary">{t(`landing.expertQuotes.quotes.${index}.title`)}</div>
-                      <div className="text-xs text-gold mt-1">{t(`landing.expertQuotes.quotes.${index}.source`)}</div>
+                      <a
+                        href={t(`landing.expertQuotes.quotes.${index}.sourceUrl`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-gold hover:underline mt-1 inline-block"
+                      >
+                        {t(`landing.expertQuotes.quotes.${index}.source`)} →
+                      </a>
                     </div>
                   </article>
                 ))}
@@ -367,31 +324,10 @@ export function ExplorerLanding() {
           </section>
         </main>
 
-        {/* Footer */}
-        <footer className="py-8 border-t border-border">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4 text-sm text-foreground-tertiary">
-              <span>{t('landing.footer.tagline')}</span>
-              <span>|</span>
-              <span>{t('landing.footer.madeIn')}</span>
-            </div>
-            <nav className="flex gap-6 text-sm">
-              <Link
-                href="/consumer/terms"
-                className="text-foreground-tertiary hover:text-gold transition-colors"
-              >
-                {t('landing.footer.terms')}
-              </Link>
-              <Link
-                href="/consumer/privacy"
-                className="text-foreground-tertiary hover:text-gold transition-colors"
-              >
-                {t('landing.footer.privacy')}
-              </Link>
-            </nav>
-          </div>
-        </footer>
       </div>
+
+      {/* Ecosystem Footer */}
+      <LandingFooter />
 
       {/* Cookie Banner */}
       <CookieBanner />

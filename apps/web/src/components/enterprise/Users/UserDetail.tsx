@@ -118,7 +118,7 @@ export function UserDetail({ userId, className }: UserDetailProps) {
           <div className="flex items-center gap-4">
             <Link
               href="/enterprise/users"
-              className="w-9 h-9 flex items-center justify-center bg-background-elevated border border-white/5 rounded-lg text-text-secondary hover:border-hinomaru hover:text-hinomaru transition-colors"
+              className="w-11 h-11 flex items-center justify-center bg-background-elevated border border-white/5 rounded-lg text-text-secondary hover:border-hinomaru hover:text-hinomaru transition-colors"
               aria-label={t('backToList')}
             >
               ←

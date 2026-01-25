@@ -1,20 +1,14 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
-import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import {
   Eye,
   Shield,
   AlertTriangle,
   Coins,
-  TrendingUp,
   Users,
-  ArrowRight,
-  Clock,
   CheckCircle,
-  LogIn,
-  Globe,
-  Target,
   Zap,
   Search,
   Gavel,
@@ -24,20 +18,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { EcosystemLink } from '@/components/shared/EcosystemLink';
 import { CookieBanner } from '@/components/shared/CookieBanner';
-import { ObserverVisual } from '../ObserverVisual';
+import { LandingHeader } from '@/components/shared/LandingHeader';
+import { LandingFooter } from '@/components/shared/LandingFooter';
+import { HinomaryVisual } from '@/components/shared/HinomaryVisual';
 
 export function ObserverLanding() {
   const t = useTranslations('observer');
-  const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const toggleLocale = () => {
-    const newLocale = locale === 'ja' ? 'en' : 'ja';
-    router.replace(pathname, { locale: newLocale });
-  };
 
   const stats = [
     {
@@ -129,91 +116,16 @@ export function ObserverLanding() {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-8">
-        {/* Header */}
-        <header
-          className="flex justify-between items-center py-5"
-          role="banner"
-        >
-          <Link href="/observer/landing" className="flex items-center gap-3 group">
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              {/* Outer rotating ring with dot */}
-              <div
-                className="absolute inset-0 border border-gold rounded-full animate-[spin_25s_linear_infinite]"
-                aria-hidden="true"
-              >
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-gold rounded-full" />
-              </div>
-              {/* Inner hinomaru */}
-              <div
-                className="w-6 h-6 bg-hinomaru rounded-full shadow-[0_0_20px_rgba(188,0,45,0.4)]"
-                aria-hidden="true"
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-semibold tracking-tight">Quantum Shield</span>
-              <span className="text-[10px] text-gold tracking-widest uppercase">
-                Observer Portal
-              </span>
-            </div>
-          </Link>
+      {/* Fixed Header */}
+      <LandingHeader
+        appName="Observer"
+        appKey="Observer"
+        homeHref="/observer/landing"
+        loginHref="/observer/login"
+        registerHref="/observer/application"
+      />
 
-          <nav
-            className="hidden md:flex gap-1 bg-background-secondary p-1 rounded-full border border-surface-tertiary/30"
-            role="navigation"
-            aria-label="Main navigation"
-          >
-            <a
-              href="#main-content"
-              className="px-5 py-2.5 text-sm font-medium text-foreground bg-surface rounded-full"
-              aria-current="page"
-            >
-              {t('landing.nav.overview')}
-            </a>
-            <a
-              href="#about-quantum-shield"
-              className="px-5 py-2.5 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
-            >
-              {t('landing.nav.about')}
-            </a>
-            <a
-              href="#how-it-works"
-              className="px-5 py-2.5 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
-            >
-              {t('landing.nav.howItWorks')}
-            </a>
-            <a
-              href="#requirements"
-              className="px-5 py-2.5 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
-            >
-              {t('landing.nav.requirements')}
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            {/* Ecosystem Link */}
-            <EcosystemLink variant="inline" className="hidden lg:flex" />
-
-            {/* Language Toggle */}
-            <button
-              onClick={toggleLocale}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground border border-surface-tertiary/30 rounded-full transition-colors"
-              aria-label={locale === 'ja' ? 'Switch to English' : '日本語に切り替え'}
-            >
-              <Globe className="h-4 w-4" aria-hidden="true" />
-              {locale === 'ja' ? 'EN' : 'JA'}
-            </button>
-            <Button variant="outline" asChild>
-              <Link href="/observer/login">
-                <LogIn className="h-4 w-4 mr-2" aria-hidden="true" />
-                {t('landing.login')}
-              </Link>
-            </Button>
-            <Button variant="primary" asChild>
-              <Link href="/observer/application">{t('landing.applyNow')}</Link>
-            </Button>
-          </div>
-        </header>
+      <div className="relative z-10 max-w-7xl mx-auto px-8 pt-16">
 
         {/* Hero Section */}
         <main
@@ -260,7 +172,7 @@ export function ObserverLanding() {
 
           {/* Custom Visual */}
           <div className="mt-16">
-            <ObserverVisual />
+            <HinomaryVisual />
           </div>
         </main>
 
@@ -708,7 +620,14 @@ export function ObserverLanding() {
                   <div className="border-t border-border pt-4">
                     <div className="font-semibold text-foreground">{t(`landing.expertQuotes.quotes.${index}.author`)}</div>
                     <div className="text-xs text-foreground-tertiary">{t(`landing.expertQuotes.quotes.${index}.title`)}</div>
-                    <div className="text-xs text-gold mt-1">{t(`landing.expertQuotes.quotes.${index}.source`)}</div>
+                    <a
+                      href={t(`landing.expertQuotes.quotes.${index}.sourceUrl`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-gold hover:underline mt-1 inline-block"
+                    >
+                      {t(`landing.expertQuotes.quotes.${index}.source`)} →
+                    </a>
                   </div>
                 </article>
               ))}
@@ -754,43 +673,10 @@ export function ObserverLanding() {
           </Card>
         </section>
 
-        {/* Footer */}
-        <footer
-          className="py-10 border-t border-surface-tertiary text-center"
-          role="contentinfo"
-        >
-          <div className="flex items-center justify-center gap-3 text-[11px] tracking-[2px] text-gold uppercase mb-4">
-            <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-hinomaru rounded-full" />
-            </div>
-            {t('landing.footer.tagline')} • {t('landing.footer.madeIn')}
-            <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-hinomaru rounded-full" />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-6 text-xs text-foreground-tertiary">
-            <Link
-              href="/consumer/terms"
-              className="hover:text-foreground transition-colors"
-            >
-              {t('landing.footer.terms')}
-            </Link>
-            <Link
-              href="/consumer/privacy"
-              className="hover:text-foreground transition-colors"
-            >
-              {t('landing.footer.privacy')}
-            </Link>
-            <Link
-              href="/consumer/cookie"
-              className="hover:text-foreground transition-colors"
-            >
-              {t('landing.footer.cookie')}
-            </Link>
-          </div>
-        </footer>
       </div>
+
+      {/* Ecosystem Footer */}
+      <LandingFooter />
 
       {/* Cookie Banner */}
       <CookieBanner />

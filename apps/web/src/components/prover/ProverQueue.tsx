@@ -25,8 +25,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
+import { HelpCircle } from 'lucide-react';
 
 // Mock data
 const mockStats = {
@@ -257,6 +264,7 @@ export function ProverQueue() {
   ];
 
   return (
+    <TooltipProvider>
     <div className="flex min-h-screen bg-background">
       {/* Skip Link */}
       <a
@@ -410,7 +418,7 @@ export function ProverQueue() {
               <button
                 key={filter.key}
                 onClick={() => setActiveFilter(filter.key)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+                className={`min-h-11 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
                   activeFilter === filter.key
                     ? 'bg-hinomaru/10 border-hinomaru text-hinomaru-400'
                     : 'bg-background-secondary border-surface-tertiary text-foreground-secondary hover:border-foreground-tertiary hover:text-foreground'
@@ -477,22 +485,30 @@ export function ProverQueue() {
                         <span className="font-mono text-sm text-gold">#{item.id}</span>
                       </td>
                       <td className="px-5 py-4">
-                        <Badge
-                          variant={item.type === 'emergency' ? 'warning' : 'danger'}
-                          className="text-[11px] px-2.5 py-0.5"
-                        >
-                          {item.type === 'emergency' ? (
-                            <>
-                              <AlertCircle className="h-3 w-3 mr-1" aria-hidden="true" />
-                              {t('queue.type.emergency')}
-                            </>
-                          ) : (
-                            <>
-                              <Unlock className="h-3 w-3 mr-1" aria-hidden="true" />
-                              {t('queue.type.unlock')}
-                            </>
-                          )}
-                        </Badge>
+                        {item.type === 'emergency' ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="warning"
+                                className="text-[11px] px-2.5 py-0.5 cursor-help"
+                              >
+                                <AlertCircle className="h-3 w-3 mr-1" aria-hidden="true" />
+                                {t('queue.type.emergency')}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>{t('queue.tooltip.emergency')}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <Badge
+                            variant="danger"
+                            className="text-[11px] px-2.5 py-0.5"
+                          >
+                            <Unlock className="h-3 w-3 mr-1" aria-hidden="true" />
+                            {t('queue.type.unlock')}
+                          </Badge>
+                        )}
                       </td>
                       <td className="px-5 py-4">
                         <span className="font-mono text-sm text-foreground-secondary">{item.address}</span>
@@ -552,7 +568,7 @@ export function ProverQueue() {
               </h2>
               <button
                 onClick={handleCloseModals}
-                className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
+                className="w-11 h-11 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
                 aria-label={t('queue.modal.close')}
               >
                 <X className="h-5 w-5" />
@@ -610,8 +626,18 @@ export function ProverQueue() {
                 </div>
               </div>
               <div className="p-4 bg-surface rounded-lg">
-                <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1">
+                <div className="text-[11px] uppercase tracking-wider text-foreground-tertiary mb-1 flex items-center gap-1">
                   {t('queue.detail.dilithiumSig')}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('queue.tooltip.dilithiumAriaLabel')}>
+                        <HelpCircle className="h-3 w-3 text-foreground-tertiary" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('queue.tooltip.dilithium')}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="text-sm font-mono text-success break-all">{selectedRequest.dilithiumSig} ✓</div>
               </div>
@@ -620,17 +646,24 @@ export function ProverQueue() {
               <Button variant="outline" className="flex-1" onClick={handleCloseModals}>
                 {t('queue.modal.cancel')}
               </Button>
-              <Button
-                variant="primary"
-                className="flex-1"
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSigningState('confirming');
-                  setShowSignModal(true);
-                }}
-              >
-                {t('queue.signWithSphincx')}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="primary"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      setSigningState('confirming');
+                      setShowSignModal(true);
+                    }}
+                  >
+                    {t('queue.signWithSphincx')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>{t('queue.tooltip.sphincs')}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -658,7 +691,7 @@ export function ProverQueue() {
                   </h2>
                   <button
                     onClick={handleCloseModals}
-                    className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
+                    className="w-11 h-11 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
                     aria-label={t('queue.modal.close')}
                   >
                     <X className="h-5 w-5" />
@@ -789,7 +822,7 @@ export function ProverQueue() {
                   </h2>
                   <button
                     onClick={handleCloseModals}
-                    className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
+                    className="w-11 h-11 flex items-center justify-center bg-surface rounded-lg text-foreground-secondary hover:text-foreground transition-colors"
                     aria-label={t('queue.modal.close')}
                   >
                     <X className="h-5 w-5" />
@@ -906,5 +939,6 @@ export function ProverQueue() {
         </div>
       )}
     </div>
+    </TooltipProvider>
   );
 }

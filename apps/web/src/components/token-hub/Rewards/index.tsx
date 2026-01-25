@@ -17,6 +17,7 @@ import {
   Sparkles,
   BarChart3,
   ExternalLink,
+  ArrowLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
@@ -108,6 +109,15 @@ export function TokenHubRewards() {
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6" role="main">
         {/* Header */}
         <TokenHubHeader />
+
+        {/* Back to Dashboard Link */}
+        <Link
+          href="/token-hub/dashboard"
+          className="inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-gold transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+          {t('backToDashboard')}
+        </Link>
 
         {/* Page Header */}
         <div className="mb-8">

@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { CheckCircle } from 'lucide-react';
+import { Tooltip } from '@/components/shared/Tooltip';
 
 export type ServiceStatus = 'online' | 'warning' | 'offline';
 
@@ -10,6 +11,7 @@ export interface ServiceItem {
   name: string;
   status: ServiceStatus;
   value: string;
+  tooltip?: string;
 }
 
 interface StatusServiceCardProps {
@@ -71,7 +73,13 @@ export function StatusServiceCard({
                   index < services.length - 1 && 'border-b border-white/5'
                 )}
               >
-                <span className="text-sm text-foreground">{service.name}</span>
+                {service.tooltip ? (
+                  <Tooltip content={service.tooltip} showHelpIcon>
+                    <span className="text-sm text-foreground">{service.name}</span>
+                  </Tooltip>
+                ) : (
+                  <span className="text-sm text-foreground">{service.name}</span>
+                )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span
                     className={cn(

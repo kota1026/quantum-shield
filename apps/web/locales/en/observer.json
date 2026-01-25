@@ -10,7 +10,19 @@
         "ecosystem": "Ecosystem",
         "settings": "Settings"
       },
-      "portalName": "Observer Portal"
+      "portalName": "Observer Portal",
+      "tooltip": {
+        "emergencyUnlock": "Emergency unlock is a special method used when you lose your private key. Requires a 7-day waiting period.",
+        "emergencyUnlockAriaLabel": "Learn more about emergency unlock",
+        "normalUnlock": "Normal unlock is a standard withdrawal method using Dilithium signatures. Requires a 24-hour waiting period.",
+        "normalUnlockAriaLabel": "Learn more about normal unlock",
+        "challenge": "A challenge is a dispute filed by an observer against a suspicious unlock request. Successful challenges earn rewards.",
+        "challengeAriaLabel": "Learn more about challenges",
+        "slashing": "Slashing is the mechanism where a prover's stake (collateral) is confiscated for misconduct.",
+        "slashingAriaLabel": "Learn more about slashing",
+        "riskScore": "Risk score evaluates the fraud risk of a transaction from 0-100. Higher scores indicate greater likelihood of fraud.",
+        "riskScoreAriaLabel": "Learn more about risk score"
+      }
     },
     "landing": {
       "meta": {
@@ -184,26 +196,29 @@
         "sectionLabel": "Expert Insights",
         "title": "Why Fraud Detection Matters",
         "subtitle": "Insights from security experts",
-        "quotes": [
-          {
-            "quote": "The security of decentralized networks depends on continuous monitoring by watchers. Observers provide the incentive to fulfill this critical role.",
-            "author": "Security Researcher",
-            "title": "Blockchain Security Expert",
-            "source": "Security Research"
+        "quotes": {
+          "0": {
+            "quote": "Fraud proofs enable open participation where anyone can verify that the chain is secure. With even a single honest verifier, the security of the entire system is guaranteed.",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum Co-founder",
+            "source": "The different types of ZK-EVMs",
+            "sourceUrl": "https://vitalik.eth.limo/general/2022/08/04/zkevm.html"
           },
-          {
-            "quote": "Fraud detection is not just a technical challenge, but a matter of economic incentive design. With the right reward structure, anyone can become a watcher.",
-            "author": "DeFi Researcher",
-            "title": "Decentralized Finance Analyst",
-            "source": "DeFi Pulse"
+          "1": {
+            "quote": "Optimistic Rollups ensure security by allowing anyone to monitor transactions and submit challenges against fraudulent state transitions.",
+            "author": "Ethereum Foundation",
+            "title": "Official Ethereum Documentation",
+            "source": "Optimistic Rollups",
+            "sourceUrl": "https://ethereum.org/en/developers/docs/scaling/optimistic-rollups/"
           },
-          {
-            "quote": "Preparing monitoring systems now for the quantum computing era is crucial. Early detection is the best defense.",
-            "author": "Cryptographer",
-            "title": "Post-Quantum Cryptography Researcher",
-            "source": "Crypto Research"
+          "2": {
+            "quote": "Security is a matter of economic incentive design. By rewarding correct behavior and penalizing fraud, the trustworthiness of decentralized systems is ensured.",
+            "author": "Ed Felten",
+            "title": "Arbitrum Co-founder, Former White House CTO",
+            "source": "Arbitrum Documentation",
+            "sourceUrl": "https://docs.arbitrum.io/intro/"
           }
-        ],
+        },
         "disclaimer": "The above is for informational purposes only. Please participate as an Observer at your own discretion."
       },
       "footer": {
@@ -224,9 +239,18 @@
       "backToLanding": "Back to Landing",
       "selectWallet": "Select Wallet",
       "popular": "Popular",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
       "connecting": {
         "title": "Connecting...",
-        "description": "Connecting to {wallet}"
+        "walletPrompt": "Please approve the connection in your wallet"
+      },
+      "checking": {
+        "title": "Checking registration...",
+        "description": "Verifying your Observer registration status"
       },
       "success": {
         "title": "Connected",
@@ -303,6 +327,17 @@
       "pageTitle": "Observer Dashboard",
       "monitoringBadge": "Monitoring Active",
       "monitoringBadgeAriaLabel": "Monitoring status: Active",
+      "practiceMode": {
+        "title": "Practice Mode Active",
+        "badge": "Practice",
+        "description": "You're in practice mode for the first 3 months after registration. Submit challenges without staking to learn the process. No real rewards, but you can learn the workflow.",
+        "daysRemaining": "{days} days left",
+        "dismiss": "Dismiss",
+        "ariaLabel": "Practice mode information banner",
+        "learnMore": "Learn more about practice mode",
+        "noStakeRequired": "No stake required",
+        "simulationOnly": "Simulation only"
+      },
       "stats": {
         "pendingUnlocks": {
           "label": "Pending Unlocks",

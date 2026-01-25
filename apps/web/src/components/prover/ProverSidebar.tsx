@@ -157,18 +157,11 @@ export function ProverSidebar({ activePage = 'dashboard' }: ProverSidebarProps) 
         {t('dashboard.nav.consumerApp')}
       </Link>
       <Link
-        href="/token-hub/dashboard"
+        href="/qs-hub/dashboard"
         className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium mb-1 transition-colors text-foreground-secondary hover:bg-surface hover:text-foreground"
       >
         <Coins className="h-[18px] w-[18px]" aria-hidden="true" />
-        {t('dashboard.nav.tokenHub')}
-      </Link>
-      <Link
-        href="/governance/landing"
-        className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium mb-1 transition-colors text-foreground-secondary hover:bg-surface hover:text-foreground"
-      >
-        <Vote className="h-[18px] w-[18px]" aria-hidden="true" />
-        {t('dashboard.nav.governance')}
+        {t('dashboard.nav.qsHub')}
       </Link>
       <Link
         href="/observer/dashboard"

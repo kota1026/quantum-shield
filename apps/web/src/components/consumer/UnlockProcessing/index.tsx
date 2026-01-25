@@ -3,8 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Check, Unlock } from 'lucide-react';
+import { Check, Unlock, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type StepStatus = 'pending' | 'active' | 'complete';
 
@@ -58,13 +64,14 @@ export function UnlockProcessing() {
   }, [router]);
 
   const stepLabels = [
-    t('steps.sign'),
-    t('steps.verify'),
-    t('steps.broadcast'),
-    t('steps.confirm'),
+    { label: t('steps.sign'), tooltip: t('steps.signTooltip') },
+    { label: t('steps.verify'), tooltip: t('steps.verifyTooltip') },
+    { label: t('steps.broadcast'), tooltip: null },
+    { label: t('steps.confirm'), tooltip: null },
   ];
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-gold/15 to-transparent" />
@@ -108,13 +115,25 @@ export function UnlockProcessing() {
               </div>
               <span
                 className={cn(
-                  'flex-1 text-sm',
+                  'flex-1 text-sm flex items-center gap-1',
                   step.status === 'pending' && 'text-foreground-tertiary',
                   step.status === 'active' && 'text-foreground font-medium',
                   step.status === 'complete' && 'text-success'
                 )}
               >
-                {stepLabels[index]}
+                {stepLabels[index].label}
+                {stepLabels[index].tooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('steps.tooltipAriaLabel')}>
+                        <HelpCircle className="h-3 w-3 text-foreground-tertiary" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{stepLabels[index].tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </span>
             </div>
           ))}
@@ -127,5 +146,6 @@ export function UnlockProcessing() {
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 }

@@ -1,4 +1,8 @@
 {
+  "header": {
+    "login": "ログイン",
+    "getStarted": "はじめる"
+  },
   "accessibility": {
     "skipToContent": "メインコンテンツへスキップ",
     "switchToJapanese": "Switch to English",

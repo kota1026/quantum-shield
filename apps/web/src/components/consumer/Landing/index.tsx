@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import Link from 'next/link';
 import { Link as I18nLink } from '@/i18n/navigation';
 import {
@@ -13,19 +13,18 @@ import {
   Key,
   AlertTriangle,
   Eye,
-  X,
   ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { EcosystemLink } from '@/components/shared/EcosystemLink';
-import { HinomaryLogo } from './HinomaryLogo';
-import { HinomaryVisual } from './HinomaryVisual';
-import { Tooltip } from './Tooltip';
+import { LandingHeader } from '@/components/shared/LandingHeader';
+import { LandingFooter } from '@/components/shared/LandingFooter';
+import { CookieBanner } from '@/components/shared/CookieBanner';
+import { HinomaryVisual } from '@/components/shared/HinomaryVisual';
+import { Tooltip } from '@/components/shared/Tooltip';
 
 export function Landing() {
   const t = useTranslations('consumer.landing');
-  const [cookieBannerVisible, setCookieBannerVisible] = useState(true);
   const mainRef = useRef<HTMLElement>(null);
 
   // Handle skip link focus
@@ -53,59 +52,14 @@ export function Landing() {
         <div className="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(201,169,98,0.1),transparent_60%)] opacity-30" />
       </div>
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <Link
-            href="/consumer"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-            aria-label="Quantum Shield Home"
-          >
-            <HinomaryLogo size="sm" />
-            <span className="text-lg font-semibold text-foreground">
-              Quantum Shield
-            </span>
-          </Link>
-
-          <nav
-            className="hidden md:flex items-center gap-8"
-            aria-label="Main navigation"
-            role="navigation"
-          >
-            <EcosystemLink variant="inline" />
-            <Link
-              href="#features"
-              className="text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"
-            >
-              {t('header.product')}
-            </Link>
-            <Link
-              href="/consumer/security"
-              className="text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"
-            >
-              {t('header.security')}
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"
-            >
-              {t('header.howItWorks')}
-            </Link>
-            <Link
-              href="/consumer/faq"
-              className="text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"
-            >
-              {t('header.faq')}
-            </Link>
-          </nav>
-
-          <Link href="/consumer/onboarding">
-            <Button variant="primary" size="sm">
-              {t('header.openApp')}
-            </Button>
-          </Link>
-        </div>
-      </header>
+      {/* Fixed Header */}
+      <LandingHeader
+        appName="Consumer App"
+        appKey="Consumer"
+        homeHref="/consumer/landing"
+        loginHref="/consumer/login"
+        registerHref="/consumer/onboarding"
+      />
 
       {/* Main Content */}
       <main
@@ -387,7 +341,7 @@ export function Landing() {
               {t('cta.description')}
             </p>
             <Link href="/consumer/onboarding">
-              <Button variant="primary" size="lg">
+              <Button variant="secondary" size="lg">
                 {t('cta.button')}
               </Button>
             </Link>
@@ -395,198 +349,11 @@ export function Landing() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer
-        className="border-t border-border mt-20 py-16"
-        role="contentinfo"
-        aria-label="Site footer"
-      >
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-            <div className="lg:col-span-1">
-              <div className="flex items-center gap-3 mb-4">
-                <HinomaryLogo size="sm" />
-                <span className="text-lg font-semibold">Quantum Shield</span>
-              </div>
-              <p className="text-sm text-foreground-secondary leading-relaxed">
-                {t('footer.brand.description')}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-semibold tracking-widest uppercase text-foreground-tertiary mb-4">
-                {t('footer.product.title')}
-              </h3>
-              <ul className="space-y-3">
-                <li>
-                  <a
-                    href="https://sepolia.etherscan.io"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.product.explorer')}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://docs.quantumshield.io"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.product.docs')}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://api.quantumshield.io"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.product.api')}
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-semibold tracking-widest uppercase text-foreground-tertiary mb-4">
-                {t('footer.resources.title')}
-              </h3>
-              <ul className="space-y-3">
-                <li>
-                  <a
-                    href="/whitepaper.pdf"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.resources.whitepaper')}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://blog.quantumshield.io"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.resources.blog')}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/quantumshield"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.resources.github')}
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-semibold tracking-widest uppercase text-foreground-tertiary mb-4">
-                {t('footer.support.title')}
-              </h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/consumer/faq"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.support.faq')}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/consumer/security"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.support.security')}
-                  </Link>
-                </li>
-                <li>
-                  <a
-                    href="mailto:support@quantumshield.io"
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
-                  >
-                    {t('footer.support.contact')}
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border gap-4">
-            <p className="text-sm text-foreground-tertiary">
-              {t('footer.copyright')} 🇯🇵
-            </p>
-            <div className="flex gap-6">
-              <Link
-                href="/consumer/terms"
-                className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors"
-              >
-                {t('footer.legal.terms')}
-              </Link>
-              <Link
-                href="/consumer/privacy"
-                className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors"
-              >
-                {t('footer.legal.privacy')}
-              </Link>
-              <a
-                href="/risk-disclosure.html"
-                className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors"
-              >
-                {t('footer.legal.risk')}
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Ecosystem Footer */}
+      <LandingFooter />
 
       {/* Cookie Banner */}
-      {cookieBannerVisible && (
-        <div
-          className="fixed bottom-6 left-6 right-6 max-w-md bg-surface border border-border rounded-qs-xl p-5 flex items-center gap-5 z-50"
-          role="alertdialog"
-          aria-modal="false"
-          aria-labelledby="cookie-banner-title"
-          aria-describedby="cookie-banner-desc"
-        >
-          <p id="cookie-banner-title" className="sr-only">
-            Cookie Consent
-          </p>
-          <p id="cookie-banner-desc" className="flex-1 text-sm text-foreground-secondary">
-            {t('cookie.message')}{' '}
-            <a
-              href="/cookie-policy.html"
-              className="text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-surface rounded"
-            >
-              {t('cookie.details')}
-            </a>
-          </p>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setCookieBannerVisible(false)}
-            aria-label={t('cookie.accept')}
-          >
-            {t('cookie.accept')}
-          </Button>
-          <button
-            onClick={() => setCookieBannerVisible(false)}
-            className="text-foreground-tertiary hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-surface rounded"
-            aria-label="Close cookie banner"
-            type="button"
-          >
-            <X className="w-5 h-5" aria-hidden="true" />
-          </button>
-        </div>
-      )}
+      <CookieBanner />
     </div>
   );
 }

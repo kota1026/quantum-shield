@@ -12,23 +12,23 @@ export function Help() {
 
   const gettingStartedItems = [
     { key: 'setup', icon: '🚀', href: '/enterprise/settings' },
-    { key: 'apiKeys', icon: '🔑', href: '/enterprise/api-keys' },
-    { key: 'integration', icon: '🔧', href: '#' },
-    { key: 'security', icon: '🛡️', href: '/enterprise/settings' },
+    { key: 'apiKeys', icon: '🔑', href: '/enterprise/settings?tab=developer' },
+    { key: 'integration', icon: '🔧', href: 'https://docs.quantumshield.io/integration' },
+    { key: 'security', icon: '🛡️', href: '/enterprise/settings?tab=security' },
   ];
 
   const topicItems = [
-    { key: 'transactions', icon: '📊', href: '/enterprise/transactions' },
-    { key: 'users', icon: '👥', href: '/enterprise/users' },
-    { key: 'webhooks', icon: '🔔', href: '/enterprise/webhooks' },
-    { key: 'reports', icon: '📈', href: '/enterprise/reports' },
+    { key: 'transactions', icon: '📊', href: '/enterprise/monitoring' },
+    { key: 'users', icon: '👥', href: '/enterprise/users-stats' },
+    { key: 'webhooks', icon: '🔔', href: '/enterprise/settings?tab=notifications' },
+    { key: 'reports', icon: '📈', href: '/enterprise/monitoring' },
   ];
 
   const resourceItems = [
     { key: 'docs', icon: '📚', href: 'https://docs.quantumshield.io' },
     { key: 'support', icon: '🎧', href: '/enterprise/support' },
-    { key: 'changelog', icon: '📋', href: '#' },
-    { key: 'status', icon: '⚡', href: '/enterprise/status' },
+    { key: 'changelog', icon: '📋', href: 'https://docs.quantumshield.io/changelog' },
+    { key: 'status', icon: '⚡', href: '/enterprise/dashboard' },
   ];
 
   return (

@@ -109,7 +109,7 @@ export function GovernanceSettings() {
           <Link
             href="/governance/landing"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-card border border-border rounded-xl',
               'text-foreground-secondary hover:border-gold hover:text-gold',
               'transition-all'

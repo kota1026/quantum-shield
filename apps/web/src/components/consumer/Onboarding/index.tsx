@@ -148,7 +148,7 @@ export function Onboarding() {
           <header className="flex items-center gap-4 mb-8">
             <Link
               href="/consumer"
-              className="w-10 h-10 flex items-center justify-center bg-surface border border-border rounded-qs hover:border-hinomaru hover:text-hinomaru-400 transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-background"
+              className="w-11 h-11 flex items-center justify-center bg-surface border border-border rounded-qs hover:border-hinomaru hover:text-hinomaru-400 transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-background"
               aria-label={t('header.backAriaLabel')}
             >
               <ArrowLeft className="w-5 h-5" aria-hidden="true" />

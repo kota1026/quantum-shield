@@ -4,6 +4,12 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface PendingUnlock {
   id: string;
@@ -24,6 +30,7 @@ export function PendingUnlocksTable({
   className,
 }: PendingUnlocksTableProps) {
   const t = useTranslations('observer.dashboard.pendingUnlocks');
+  const tCommon = useTranslations('observer.common');
 
   const typeBadgeStyles = {
     normal: 'bg-foreground-secondary/15 text-foreground-secondary',
@@ -36,6 +43,7 @@ export function PendingUnlocksTable({
   };
 
   return (
+    <TooltipProvider>
     <Card variant="default" padding="none" className={cn(className)}>
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-5 border-b border-border/50">
@@ -108,14 +116,21 @@ export function PendingUnlocksTable({
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold',
-                      typeBadgeStyles[unlock.type]
-                    )}
-                  >
-                    {t(`types.${unlock.type}`)}
-                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold cursor-help',
+                          typeBadgeStyles[unlock.type]
+                        )}
+                      >
+                        {t(`types.${unlock.type}`)}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{unlock.type === 'emergency' ? tCommon('tooltip.emergencyUnlock') : tCommon('tooltip.normalUnlock')}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </td>
                 <td className="px-4 py-4">
                   <span className="font-mono text-base font-semibold text-warning">
@@ -138,5 +153,6 @@ export function PendingUnlocksTable({
         </table>
       </div>
     </Card>
+    </TooltipProvider>
   );
 }
