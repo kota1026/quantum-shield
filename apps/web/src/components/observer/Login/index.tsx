@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import {
@@ -13,77 +13,87 @@ import {
   Globe,
   ExternalLink,
 } from 'lucide-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-// Mock wallet options
+// Wallet options for display
 const WALLET_OPTIONS = [
   {
     id: 'metamask',
-    name: 'MetaMask',
-    icon: '/images/wallets/metamask.svg',
+    nameKey: 'metamask',
+    icon: '🦊',
     popular: true,
   },
   {
     id: 'walletconnect',
-    name: 'WalletConnect',
-    icon: '/images/wallets/walletconnect.svg',
+    nameKey: 'walletConnect',
+    icon: '🔗',
     popular: true,
   },
   {
     id: 'coinbase',
-    name: 'Coinbase Wallet',
-    icon: '/images/wallets/coinbase.svg',
-    popular: false,
-  },
-  {
-    id: 'rabby',
-    name: 'Rabby',
-    icon: '/images/wallets/rabby.svg',
+    nameKey: 'coinbase',
+    icon: '💠',
     popular: false,
   },
 ];
 
-type ConnectionState = 'idle' | 'connecting' | 'success' | 'error' | 'not-registered';
+type RegistrationState = 'checking' | 'registered' | 'not-registered';
 
 export function ObserverLogin() {
   const t = useTranslations('observer.login');
   const locale = useLocale();
   const router = useRouter();
-  const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
-  const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string>('');
 
-  const handleWalletConnect = async (walletId: string) => {
-    setSelectedWallet(walletId);
-    setConnectionState('connecting');
-    setErrorMessage('');
+  // RainbowKit wallet connection
+  const { openConnectModal } = useConnectModal();
+  const { isConnected, isConnecting, address } = useAccount();
 
-    // Simulate wallet connection
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+  // Registration check state (would be replaced with real API call)
+  const [registrationState, setRegistrationState] = useState<RegistrationState | null>(null);
 
-    // For demo: randomly succeed, fail, or show not-registered
-    const random = Math.random();
-    if (random < 0.6) {
-      // Success - redirect to dashboard
-      setConnectionState('success');
-      setTimeout(() => {
-        router.push('/observer/dashboard');
-      }, 1500);
-    } else if (random < 0.8) {
-      // Not registered
-      setConnectionState('not-registered');
-    } else {
-      // Error
-      setConnectionState('error');
-      setErrorMessage(t('error.connectionFailed'));
+  // Check registration status when wallet is connected
+  useEffect(() => {
+    if (isConnected && address) {
+      setRegistrationState('checking');
+
+      // Mock registration check - in production, this would be an API call
+      const checkRegistration = async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // For demo: assume registered if address ends with even hex digit
+        const lastChar = address.slice(-1).toLowerCase();
+        const isRegistered = '02468ace'.includes(lastChar);
+
+        if (isRegistered) {
+          setRegistrationState('registered');
+          setTimeout(() => {
+            router.push('/observer/dashboard');
+          }, 1500);
+        } else {
+          setRegistrationState('not-registered');
+        }
+      };
+
+      checkRegistration();
     }
-  };
+  }, [isConnected, address, router]);
 
   const toggleLocale = () => {
     const newLocale = locale === 'ja' ? 'en' : 'ja';
     router.replace('/observer/login', { locale: newLocale });
+  };
+
+  const handleWalletConnect = () => {
+    if (openConnectModal) {
+      openConnectModal();
+    }
+  };
+
+  const resetState = () => {
+    setRegistrationState(null);
   };
 
   return (
@@ -132,20 +142,34 @@ export function ObserverLogin() {
             <p className="text-foreground-secondary">{t('description')}</p>
           </div>
 
-          {/* Connection States */}
-          {connectionState === 'connecting' && (
+          {/* Connecting State */}
+          {isConnecting && (
             <Card className="p-8 text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 bg-gold/20 rounded-full flex items-center justify-center">
                 <Loader2 className="h-8 w-8 text-gold animate-spin" aria-hidden="true" />
               </div>
               <h2 className="text-lg font-semibold mb-2">{t('connecting.title')}</h2>
               <p className="text-sm text-foreground-secondary">
-                {t('connecting.description', { wallet: WALLET_OPTIONS.find(w => w.id === selectedWallet)?.name })}
+                {t('connecting.walletPrompt')}
               </p>
             </Card>
           )}
 
-          {connectionState === 'success' && (
+          {/* Checking Registration */}
+          {isConnected && registrationState === 'checking' && (
+            <Card className="p-8 text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gold/20 rounded-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-gold animate-spin" aria-hidden="true" />
+              </div>
+              <h2 className="text-lg font-semibold mb-2">{t('checking.title')}</h2>
+              <p className="text-sm text-foreground-secondary">
+                {t('checking.description')}
+              </p>
+            </Card>
+          )}
+
+          {/* Success - Registered */}
+          {isConnected && registrationState === 'registered' && (
             <Card className="p-8 text-center mb-6 border-success bg-success/5">
               <div className="w-16 h-16 mx-auto mb-4 bg-success/20 rounded-full flex items-center justify-center">
                 <CheckCircle className="h-8 w-8 text-success" aria-hidden="true" />
@@ -155,20 +179,8 @@ export function ObserverLogin() {
             </Card>
           )}
 
-          {connectionState === 'error' && (
-            <Card className="p-8 text-center mb-6 border-danger bg-danger/5">
-              <div className="w-16 h-16 mx-auto mb-4 bg-danger/20 rounded-full flex items-center justify-center">
-                <AlertCircle className="h-8 w-8 text-danger" aria-hidden="true" />
-              </div>
-              <h2 className="text-lg font-semibold mb-2 text-danger">{t('error.title')}</h2>
-              <p className="text-sm text-foreground-secondary mb-4">{errorMessage}</p>
-              <Button variant="outline" onClick={() => setConnectionState('idle')}>
-                {t('error.tryAgain')}
-              </Button>
-            </Card>
-          )}
-
-          {connectionState === 'not-registered' && (
+          {/* Not Registered */}
+          {isConnected && registrationState === 'not-registered' && (
             <Card className="p-8 text-center mb-6 border-warning bg-warning/5">
               <div className="w-16 h-16 mx-auto mb-4 bg-warning/20 rounded-full flex items-center justify-center">
                 <AlertCircle className="h-8 w-8 text-warning" aria-hidden="true" />
@@ -179,7 +191,7 @@ export function ObserverLogin() {
                 <Button variant="primary" asChild>
                   <Link href="/observer/application">{t('notRegistered.applyButton')}</Link>
                 </Button>
-                <Button variant="outline" onClick={() => setConnectionState('idle')}>
+                <Button variant="outline" onClick={resetState}>
                   {t('notRegistered.tryAnotherWallet')}
                 </Button>
               </div>
@@ -187,7 +199,7 @@ export function ObserverLogin() {
           )}
 
           {/* Wallet Selection */}
-          {(connectionState === 'idle' || connectionState === 'error') && (
+          {!isConnected && !isConnecting && (
             <Card className="p-6 mb-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-gold" aria-hidden="true" />
@@ -198,18 +210,18 @@ export function ObserverLogin() {
                 {WALLET_OPTIONS.map((wallet) => (
                   <button
                     key={wallet.id}
-                    onClick={() => handleWalletConnect(wallet.id)}
+                    onClick={handleWalletConnect}
                     className={cn(
                       'w-full flex items-center gap-4 p-4 rounded-xl border border-surface-tertiary',
                       'hover:border-gold hover:bg-gold/5 transition-all duration-200',
                       'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
                     )}
                   >
-                    <div className="w-10 h-10 bg-background-secondary rounded-lg flex items-center justify-center">
-                      <Wallet className="h-5 w-5 text-foreground-secondary" aria-hidden="true" />
+                    <div className="w-10 h-10 bg-background-secondary rounded-lg flex items-center justify-center text-2xl">
+                      {wallet.icon}
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="font-medium">{wallet.name}</div>
+                      <div className="font-medium">{t(`wallets.${wallet.nameKey}`)}</div>
                       {wallet.popular && (
                         <span className="text-xs text-gold">{t('popular')}</span>
                       )}
@@ -222,7 +234,7 @@ export function ObserverLogin() {
           )}
 
           {/* Help Section */}
-          {connectionState === 'idle' && (
+          {!isConnected && !isConnecting && (
             <div className="text-center space-y-4">
               <p className="text-sm text-foreground-tertiary">
                 {t('noWallet')}{' '}

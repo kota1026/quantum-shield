@@ -6,8 +6,11 @@
         "lock": "Lock",
         "unlock": "Unlock",
         "history": "History",
-        "tokenHub": "Token Hub",
-        "governance": "Governance"
+        "qsHub": "QS Hub",
+        "qsHubDesc": "Token management, governance & voting",
+        "ecosystem": "Ecosystem",
+        "ecosystemLink": "View Ecosystem",
+        "ecosystemLinkDesc": "Learn more on our website"
       },
       "wallet": {
         "connected": "Connected",
@@ -24,6 +27,7 @@
       }
     },
     "dashboard": {
+      "backToLanding": "← Back to Home",
       "meta": {
         "title": "Dashboard | Quantum Shield",
         "description": "Manage and monitor your quantum-resistant assets"
@@ -764,8 +768,11 @@
       "steps": {
         "verify": "Verifying wallet signature",
         "sendBond": "Sending Bond (0.50 ETH)...",
+        "sendBondTooltip": "Bond is collateral that proves the emergency unlock is legitimate. If no challenges are filed during the 7-day waiting period, it will be returned along with your assets.",
         "register": "Registering Emergency Unlock request",
-        "startTimeLock": "Starting 7-day Time Lock"
+        "startTimeLock": "Starting 7-day Time Lock",
+        "startTimeLockTooltip": "Time Lock is a waiting period to prevent fraudulent unlocks. Emergency unlocks require a 7-day waiting period. During this time, Observers can detect fraud.",
+        "tooltipAriaLabel": "Learn more"
       }
     },
     "emergencySuccess": {
@@ -887,9 +894,11 @@
       "subtitle": "Please wait. Do not close this page.",
       "steps": {
         "sign": "Generate Dilithium signature",
+        "signTooltip": "Dilithium is a NIST-approved next-generation digital signature algorithm resistant to quantum computers. Your private key signs the lock request.",
         "createTx": "Create transaction",
         "broadcast": "Broadcasting to blockchain...",
-        "confirm": "Waiting for confirmation"
+        "confirm": "Waiting for confirmation",
+        "tooltipAriaLabel": "Learn more"
       }
     },
     "lockSuccess": {
@@ -921,9 +930,12 @@
       "subtitle": "Please wait. Do not close this page.",
       "steps": {
         "sign": "Generate Dilithium signature",
+        "signTooltip": "Dilithium is a NIST-approved next-generation digital signature algorithm resistant to quantum computers. Your private key signs the unlock request.",
         "verify": "Verify Prover signature",
+        "verifyTooltip": "Provers are independent verifiers who validate unlock requests and provide SPHINCS+ signatures. 2 of 5 are randomly selected.",
         "broadcast": "Broadcasting to blockchain...",
-        "confirm": "Waiting for confirmation"
+        "confirm": "Waiting for confirmation",
+        "tooltipAriaLabel": "Learn more"
       }
     },
     "unlockSuccess": {

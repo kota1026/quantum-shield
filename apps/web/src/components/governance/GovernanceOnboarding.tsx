@@ -180,7 +180,7 @@ export function GovernanceOnboarding() {
           <p className="text-foreground-secondary mb-6">{t('cta.description')}</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button asChild variant="primary" size="lg" className="gap-2">
-              <Link href="/token-hub/lock">
+              <Link href="/qs-hub/stake/lock">
                 {t('cta.lockButton')}
                 <ArrowRight className="w-4 h-4" />
               </Link>

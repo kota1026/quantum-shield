@@ -45,13 +45,13 @@ export function RecentTransactionsTable({
         <h2 className="text-base font-semibold text-foreground">{t('title')}</h2>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
-            <Link href="/enterprise/transactions/export">
+            <Link href="/enterprise/monitoring?tab=export">
               <Download className="w-4 h-4 mr-2" aria-hidden="true" />
               {t('export')}
             </Link>
           </Button>
           <Button variant="primary" size="sm" asChild>
-            <Link href="/enterprise/transactions">
+            <Link href="/enterprise/monitoring">
               {t('viewAll')}
               <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
             </Link>
@@ -104,7 +104,7 @@ export function RecentTransactionsTable({
               >
                 <td className="px-6 py-4">
                   <Link
-                    href={`/enterprise/transactions/${tx.id}`}
+                    href={`/enterprise/monitoring?tx=${tx.id}`}
                     className="font-mono text-sm text-gold hover:text-gold/80 transition-colors"
                   >
                     {tx.hash}

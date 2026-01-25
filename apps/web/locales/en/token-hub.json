@@ -1,5 +1,34 @@
 {
   "token-hub": {
+    "login": {
+      "meta": {
+        "title": "Login | Token Hub | Quantum Shield",
+        "description": "Connect your wallet to access Token Hub"
+      },
+      "title": "Login to Token Hub",
+      "description": "Connect your wallet to manage veQS and participate in governance",
+      "backToLanding": "Back to Landing",
+      "selectWallet": "Select Wallet",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
+      "popular": "Popular",
+      "connecting": {
+        "title": "Connecting...",
+        "description": "Please approve the connection in your wallet"
+      },
+      "success": {
+        "title": "Connected",
+        "description": "Redirecting to dashboard..."
+      },
+      "noWallet": "Don't have a wallet?",
+      "getWallet": "Create a wallet",
+      "newUser": "New to Token Hub?",
+      "startOnboarding": "Learn about Token Hub",
+      "footer": "© 2026 Quantum Shield Foundation"
+    },
     "landing": {
       "meta": {
         "title": "Token Hub | Quantum Shield",
@@ -473,10 +502,17 @@
         "navLabel": "Token Hub navigation",
         "walletConnected": "Connected to {address}",
         "connectWallet": "Connect Wallet",
-        "consumerApp": "Consumer App",
+        "ecosystem": "Ecosystem",
+        "consumerApp": "Quantum Shield",
+        "consumerAppDesc": "Protect assets with quantum resistance",
         "governance": "Governance",
+        "governanceDesc": "Vote on proposals",
         "observerPortal": "Observer",
+        "observerPortalDesc": "Network monitoring",
         "proverPortal": "Prover",
+        "proverPortalDesc": "Run signature verification nodes",
+        "ecosystemLink": "View Ecosystem",
+        "ecosystemLinkDesc": "Learn more on our website",
         "settings": "Settings"
       },
       "footer": {
@@ -733,6 +769,7 @@
         "title": "Delegates | Token Hub | Quantum Shield",
         "description": "Delegate your veQS to trusted delegates and leverage voting power"
       },
+      "backToDashboard": "← Back to Dashboard",
       "title": "Delegates",
       "subtitle": "Delegate your veQS to trusted delegates and leverage voting power",
       "myDelegation": {
@@ -814,6 +851,7 @@
         "title": "Rewards | Token Hub | Quantum Shield",
         "description": "View and claim your rewards as a veQS holder"
       },
+      "backToDashboard": "← Back to Dashboard",
       "title": "Rewards",
       "subtitle": "View and claim your rewards as a veQS holder",
       "claim": {

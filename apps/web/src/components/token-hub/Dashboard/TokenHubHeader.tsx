@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
-import { EcosystemLink } from '@/components/shared/EcosystemLink';
-import { Shield, Settings, Vote, Eye, Cpu } from 'lucide-react';
+import { Shield, Settings, Vote, Eye, Cpu, ChevronDown, ExternalLink } from 'lucide-react';
 
 function WalletButton() {
   const t = useTranslations('token-hub.common.header');
@@ -76,9 +75,23 @@ export function TokenHubHeader() {
   const t = useTranslations('token-hub.common.header');
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const navItems = [
@@ -144,72 +157,118 @@ export function TokenHubHeader() {
 
       {/* Right side actions */}
       <div className="flex items-center gap-3 order-2 md:order-3">
-        {/* Ecosystem Link */}
-        <EcosystemLink variant="inline" className="hidden xl:flex" />
+        {/* Ecosystem Dropdown Menu */}
+        <div className="relative hidden sm:block" ref={menuRef}>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className={cn(
+              'flex items-center gap-2 px-3 py-2',
+              'border border-border rounded-full',
+              'text-foreground-secondary text-sm font-medium',
+              'hover:border-gold hover:text-gold transition-all',
+              isMenuOpen && 'border-gold text-gold'
+            )}
+            aria-expanded={isMenuOpen}
+            aria-haspopup="true"
+          >
+            {t('ecosystem')}
+            <ChevronDown className={cn('w-4 h-4 transition-transform', isMenuOpen && 'rotate-180')} aria-hidden="true" />
+          </button>
 
-        {/* Consumer App Link */}
-        <Link
-          href="/consumer/dashboard"
-          className={cn(
-            'flex items-center gap-2 px-3 py-2',
-            'border border-border rounded-full',
-            'text-sm font-medium text-foreground-secondary',
-            'hover:border-gold hover:text-gold transition-colors',
-            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-          )}
-          aria-label={t('consumerApp')}
-        >
-          <Shield className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{t('consumerApp')}</span>
-        </Link>
+          {/* Dropdown Menu */}
+          {isMenuOpen && (
+            <div
+              className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded-xl shadow-lg py-2 z-50"
+              role="menu"
+              aria-orientation="vertical"
+            >
+              {/* Consumer App */}
+              <Link
+                href="/consumer/dashboard"
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface-secondary transition-colors"
+                role="menuitem"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <div className="w-8 h-8 rounded-lg bg-hinomaru/10 flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-hinomaru" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="font-medium">{t('consumerApp')}</div>
+                  <div className="text-xs text-foreground-tertiary">{t('consumerAppDesc')}</div>
+                </div>
+              </Link>
 
-        {/* Governance Link */}
-        <Link
-          href="/governance/landing"
-          className={cn(
-            'flex items-center gap-2 px-3 py-2',
-            'border border-border rounded-full',
-            'text-sm font-medium text-foreground-secondary',
-            'hover:border-gold hover:text-gold transition-colors',
-            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-          )}
-          aria-label={t('governance')}
-        >
-          <Vote className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{t('governance')}</span>
-        </Link>
+              {/* Governance */}
+              <Link
+                href="/governance/landing"
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface-secondary transition-colors"
+                role="menuitem"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center">
+                  <Vote className="w-4 h-4 text-gold" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="font-medium">{t('governance')}</div>
+                  <div className="text-xs text-foreground-tertiary">{t('governanceDesc')}</div>
+                </div>
+              </Link>
 
-        {/* Observer Portal Link */}
-        <Link
-          href="/observer/dashboard"
-          className={cn(
-            'flex items-center gap-2 px-3 py-2',
-            'border border-border rounded-full',
-            'text-sm font-medium text-foreground-secondary',
-            'hover:border-gold hover:text-gold transition-colors',
-            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-          )}
-          aria-label={t('observerPortal')}
-        >
-          <Eye className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{t('observerPortal')}</span>
-        </Link>
+              {/* Observer Portal */}
+              <Link
+                href="/observer/dashboard"
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface-secondary transition-colors"
+                role="menuitem"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                  <Eye className="w-4 h-4 text-success" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="font-medium">{t('observerPortal')}</div>
+                  <div className="text-xs text-foreground-tertiary">{t('observerPortalDesc')}</div>
+                </div>
+              </Link>
 
-        {/* Prover Portal Link */}
-        <Link
-          href="/prover/landing"
-          className={cn(
-            'flex items-center gap-2 px-3 py-2',
-            'border border-border rounded-full',
-            'text-sm font-medium text-foreground-secondary',
-            'hover:border-gold hover:text-gold transition-colors',
-            'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              {/* Prover Portal */}
+              <Link
+                href="/prover/landing"
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface-secondary transition-colors"
+                role="menuitem"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <Cpu className="w-4 h-4 text-warning" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="font-medium">{t('proverPortal')}</div>
+                  <div className="text-xs text-foreground-tertiary">{t('proverPortalDesc')}</div>
+                </div>
+              </Link>
+
+              {/* Divider */}
+              <div className="border-t border-border my-2" />
+
+              {/* Ecosystem Link */}
+              <a
+                href="https://quantumshield.io/ecosystem"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface-secondary transition-colors"
+                role="menuitem"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center">
+                  <ExternalLink className="w-4 h-4 text-foreground-secondary" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="font-medium">{t('ecosystemLink')}</div>
+                  <div className="text-xs text-foreground-tertiary">{t('ecosystemLinkDesc')}</div>
+                </div>
+              </a>
+            </div>
           )}
-          aria-label={t('proverPortal')}
-        >
-          <Cpu className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{t('proverPortal')}</span>
-        </Link>
+        </div>
 
         {/* Settings Button */}
         <Link

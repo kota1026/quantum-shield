@@ -44,7 +44,7 @@ export function TeamInvite() {
         <header className="flex items-center gap-4 px-8 py-4 bg-background-secondary border-b border-white/5">
           <Link
             href="/enterprise/users"
-            className="w-9 h-9 flex items-center justify-center bg-white/5 border border-white/10 rounded-lg text-text-secondary hover:text-text-primary transition-colors"
+            className="w-11 h-11 flex items-center justify-center bg-white/5 border border-white/10 rounded-lg text-text-secondary hover:text-text-primary transition-colors"
             aria-label={t('backToUsers')}
           >
             ←

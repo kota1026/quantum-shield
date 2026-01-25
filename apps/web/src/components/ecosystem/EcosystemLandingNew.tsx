@@ -1,9 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Link as I18nLink } from '@/i18n/navigation';
+import { Link as I18nLink, usePathname, useRouter } from '@/i18n/navigation';
 import {
   Shield,
   Lock,
@@ -27,6 +27,7 @@ import {
   PieChart,
   TrendingUp,
   Percent,
+  Globe,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -43,17 +44,10 @@ const apps = [
     role: 'user',
   },
   {
-    key: 'tokenHub',
+    key: 'qsHub',
     icon: Coins,
-    href: '/token-hub/landing',
+    href: '/qs-hub/landing',
     color: 'gold',
-    role: 'user',
-  },
-  {
-    key: 'governance',
-    icon: Vote,
-    href: '/governance/landing',
-    color: 'hinomaru',
     role: 'user',
   },
   {
@@ -97,8 +91,16 @@ const players = [
 
 export function EcosystemLandingNew() {
   const t = useTranslations('ecosystemNew');
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const [cookieBannerVisible, setCookieBannerVisible] = useState(true);
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
+
+  const toggleLocale = () => {
+    const newLocale = locale === 'ja' ? 'en' : 'ja';
+    router.replace(pathname, { locale: newLocale });
+  };
 
   const toggleFaq = (key: string) => {
     setExpandedFaq(expandedFaq === key ? null : key);
@@ -157,25 +159,18 @@ export function EcosystemLandingNew() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Language Switcher */}
-            <div className="hidden md:flex items-center gap-2 text-sm">
-              <Link
-                href="/ja/ecosystem"
-                className="text-foreground-secondary hover:text-foreground transition-colors"
-              >
-                日本語
-              </Link>
-              <span className="text-foreground-tertiary">/</span>
-              <Link
-                href="/en/ecosystem"
-                className="text-foreground-secondary hover:text-foreground transition-colors"
-              >
-                English
-              </Link>
-            </div>
+            <button
+              onClick={toggleLocale}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"
+              aria-label={locale === 'ja' ? 'Switch to English' : '日本語に切り替え'}
+            >
+              <Globe className="w-4 h-4" aria-hidden="true" />
+              {locale === 'ja' ? 'EN' : 'JA'}
+            </button>
 
-            <Link href="/consumer/onboarding">
+            <Link href="#apps">
               <Button variant="primary" size="sm">
                 {t('header.getStarted')}
               </Button>

@@ -34,6 +34,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
+import { Tooltip } from '@/components/shared/Tooltip';
 import { ProverSidebar } from './ProverSidebar';
 
 // Prover type: public or enterprise
@@ -193,7 +194,9 @@ export function ProverDashboard() {
               onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/prover/queue')}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-foreground-tertiary">{t('dashboard.stats.pendingSignatures')}</span>
+                <Tooltip content={t('dashboard.tooltips.pendingSignatures')} showHelpIcon>
+                  <span className="text-xs text-foreground-tertiary">{t('dashboard.stats.pendingSignatures')}</span>
+                </Tooltip>
                 {mockStats.urgentCount > 0 && (
                   <Badge variant="danger" className="text-[10px]">
                     {mockStats.urgentCount} urgent
@@ -256,7 +259,9 @@ export function ProverDashboard() {
               onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/prover/metrics')}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-foreground-tertiary">{t('dashboard.stats.uptime')}</span>
+                <Tooltip content={t('dashboard.tooltips.uptime')} showHelpIcon>
+                  <span className="text-xs text-foreground-tertiary">{t('dashboard.stats.uptime')}</span>
+                </Tooltip>
                 <Badge variant="success" className="text-[10px]">
                   <CheckCircle2 className="h-3 w-3 mr-0.5" aria-hidden="true" />
                   SLA OK
@@ -625,28 +630,15 @@ export function ProverDashboard() {
                   <p className="text-xs text-foreground-tertiary mb-4">{t('dashboard.ecosystem.description')}</p>
                   <div className="space-y-3">
                     <Link
-                      href="/token-hub/dashboard"
+                      href="/qs-hub/dashboard"
                       className="flex items-center gap-3 p-3 bg-gradient-to-r from-hinomaru/5 to-transparent border border-hinomaru/30 rounded-lg hover:border-hinomaru transition-colors"
                     >
                       <div className="w-8 h-8 bg-hinomaru/10 rounded-lg flex items-center justify-center">
                         <Wallet className="w-4 h-4 text-hinomaru" aria-hidden="true" />
                       </div>
                       <div className="flex-1">
-                        <span className="text-sm font-medium">{t('dashboard.ecosystem.tokenHub')}</span>
-                        <p className="text-xs text-foreground-tertiary">{t('dashboard.ecosystem.tokenHubDesc')}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-foreground-tertiary" aria-hidden="true" />
-                    </Link>
-                    <Link
-                      href="/governance/landing"
-                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-gold/5 to-transparent border border-gold/30 rounded-lg hover:border-gold transition-colors"
-                    >
-                      <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center">
-                        <Vote className="w-4 h-4 text-gold" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-sm font-medium">{t('dashboard.ecosystem.governance')}</span>
-                        <p className="text-xs text-foreground-tertiary">{t('dashboard.ecosystem.governanceDesc')}</p>
+                        <span className="text-sm font-medium">{t('dashboard.ecosystem.qsHub')}</span>
+                        <p className="text-xs text-foreground-tertiary">{t('dashboard.ecosystem.qsHubDesc')}</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-foreground-tertiary" aria-hidden="true" />
                     </Link>

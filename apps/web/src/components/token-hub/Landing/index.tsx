@@ -1,27 +1,26 @@
 'use client';
 
-import { useTranslations, useLocale } from 'next-intl';
-import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import {
   Lock,
   Coins,
   Users,
   Vote,
   Shield,
-  TrendingUp,
   ArrowRight,
   Check,
   ChevronRight,
-  Globe,
   ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { EcosystemLink } from '@/components/shared/EcosystemLink';
 import { CookieBanner } from '@/components/shared/CookieBanner';
 import { Tooltip } from '@/components/shared/Tooltip';
-import { TokenHubVisual } from './TokenHubVisual';
+import { LandingHeader } from '@/components/shared/LandingHeader';
+import { LandingFooter } from '@/components/shared/LandingFooter';
+import { HinomaryVisual } from '@/components/shared/HinomaryVisual';
 import { cn } from '@/lib/utils';
 
 // Feature card component
@@ -110,14 +109,6 @@ function ExpertQuoteCard({ quote, author, title, source, sourceUrl }: ExpertQuot
 export function TokenHubLanding() {
   const t = useTranslations('token-hub.landing');
   const tGlobal = useTranslations('common');
-  const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const toggleLocale = () => {
-    const newLocale = locale === 'ja' ? 'en' : 'ja';
-    router.replace(pathname, { locale: newLocale });
-  };
 
   const features = [
     {
@@ -209,45 +200,17 @@ export function TokenHubLanding() {
         />
       </div>
 
-      {/* Header with Ecosystem Link */}
-      <header className="relative z-10 flex justify-between items-center px-6 py-4 lg:px-8" role="banner">
-        <Link href="/token-hub/landing" className="flex items-center gap-3 group">
-          <div className="relative w-12 h-12 flex items-center justify-center">
-            <div
-              className="absolute inset-0 border border-gold rounded-full animate-[spin_25s_linear_infinite]"
-              aria-hidden="true"
-            >
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-gold rounded-full" />
-            </div>
-            <div
-              className="w-6 h-6 bg-hinomaru rounded-full shadow-[0_0_20px_rgba(188,0,45,0.4)]"
-              aria-hidden="true"
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-semibold text-foreground group-hover:text-gold transition-colors">
-              Quantum Shield
-            </span>
-            <span className="text-[10px] text-gold tracking-[2px] uppercase">
-              Token Hub
-            </span>
-          </div>
-        </Link>
-        <div className="flex items-center gap-3">
-          <EcosystemLink variant="inline" />
-          <button
-            onClick={toggleLocale}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
-            aria-label={tGlobal('accessibility.switchToJapanese')}
-          >
-            <Globe className="w-4 h-4" />
-            {locale === 'ja' ? 'EN' : 'JA'}
-          </button>
-        </div>
-      </header>
+      {/* Fixed Header */}
+      <LandingHeader
+        appName="Token Hub"
+        appKey="Token Hub"
+        homeHref="/token-hub/landing"
+        loginHref="/token-hub/login"
+        registerHref="/token-hub/onboarding"
+      />
 
-      {/* Main Content */}
-      <main id="main-content" role="main" className="relative z-10">
+      {/* Main Content - Add padding-top for fixed header */}
+      <main id="main-content" role="main" className="relative z-10 pt-16">
         {/* Hero Section */}
         <section className="overflow-hidden px-6 py-24 lg:px-8">
           <div className="mx-auto max-w-5xl text-center">
@@ -261,12 +224,12 @@ export function TokenHubLanding() {
               {t('hero.description')}
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
-              <Link href="/token-hub/onboarding">
+              <Link href="/token-hub/login">
                 <Button size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
                   {t('hero.cta')}
                 </Button>
               </Link>
-              <Link href="/token-hub/onboarding">
+              <Link href="/token-hub/login">
                 <Button size="lg" variant="outline">
                   {t('hero.secondaryCta')}
                 </Button>
@@ -275,7 +238,7 @@ export function TokenHubLanding() {
 
             {/* Custom Visual */}
             <div className="mt-16">
-              <TokenHubVisual />
+              <HinomaryVisual />
             </div>
           </div>
         </section>
@@ -366,7 +329,7 @@ export function TokenHubLanding() {
                   ))}
                 </ul>
                 <div className="mt-8">
-                  <Link href="/token-hub/onboarding">
+                  <Link href="/token-hub/login">
                     <Button rightIcon={<ChevronRight className="h-4 w-4" />}>
                       {t('benefits.cta')}
                     </Button>
@@ -432,7 +395,7 @@ export function TokenHubLanding() {
             <h2 className="text-3xl font-bold text-foreground">{t('cta.title')}</h2>
             <p className="mt-4 text-foreground-secondary">{t('cta.description')}</p>
             <div className="mt-10 flex items-center justify-center gap-4">
-              <Link href="/token-hub/onboarding">
+              <Link href="/token-hub/login">
                 <Button size="lg">{t('cta.button')}</Button>
               </Link>
             </div>
@@ -440,28 +403,8 @@ export function TokenHubLanding() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-border px-6 py-8 lg:px-8" role="contentinfo">
-        <div className="mx-auto max-w-5xl flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-foreground-tertiary">
-            {tGlobal('footer.copyright')}
-          </div>
-          <nav className="flex gap-6 text-sm" aria-label={tGlobal('accessibility.footerNav')}>
-            <Link
-              href="/consumer/terms"
-              className="text-foreground-tertiary hover:text-gold transition-colors"
-            >
-              {tGlobal('footer.terms')}
-            </Link>
-            <Link
-              href="/consumer/privacy"
-              className="text-foreground-tertiary hover:text-gold transition-colors"
-            >
-              {tGlobal('footer.privacy')}
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      {/* Ecosystem Footer */}
+      <LandingFooter />
 
       {/* Cookie Banner */}
       <CookieBanner />

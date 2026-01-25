@@ -72,6 +72,7 @@ export function StatusDashboard() {
                 ...s,
                 name: t(`externalConnections.items.${s.id}.name`),
                 value: t(`externalConnections.items.${s.id}.value`),
+                tooltip: t.has(`externalConnections.items.${s.id}.tooltip`) ? t(`externalConnections.items.${s.id}.tooltip`) : undefined,
               }))}
             />
 

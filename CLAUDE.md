@@ -13,6 +13,13 @@ Phase 6 Token Hub 開始
 Phase 6 Prover Portal 開始
 Phase 6 Week {N} 開始
 Phase 6 進捗確認        ← 進捗状況を表示
+
+# 画面レビュー系コマンド（NEW）
+画面レビュー 全画面          ← 175画面のスモークテスト
+画面レビュー {app}          ← 特定アプリの詳細レビュー
+画面レビュー {url}          ← 単一画面の詳細レビュー
+ペルソナテスト {app}        ← 田中さんとして操作テスト
+ナビゲーションテスト {app}  ← 遷移フローの検証
 ```
 
 ---
@@ -515,6 +522,16 @@ ls docs/design/mocks/{app}/*.html
 | A11yチェック | `docs/agents/prompts/33_a11y_check.md` |
 | API実装 | `docs/agents/prompts/34_api_impl.md` |
 | E2Eテスト | `docs/agents/prompts/37_e2e_test.md` |
+| **画面レビュー** | `docs/agents/prompts/40_screen_review.md` |
+
+### 画面レビュー・ナビゲーション
+
+| 用途 | パス |
+|------|------|
+| **Navigation Flow仕様** | `docs/specs/NAVIGATION_FLOW_SPEC.md` |
+| **AI画面レビューワークフロー** | `docs/specs/AI_SCREEN_REVIEW_WORKFLOW.md` |
+| 全画面スモークテスト | `apps/web/e2e/smoke/all-screens.spec.ts` |
+| ナビゲーションテスト | `apps/web/e2e/navigation/` |
 
 ### 進捗・計画
 
@@ -575,6 +592,52 @@ https://github.com/kota1026/quantum-shield/compare/main...{branch-name}
 
 ---
 
+## 画面レビューワークフロー（NEW）
+
+### コマンド一覧
+
+| コマンド | 説明 |
+|---------|------|
+| `画面レビュー 全画面` | 175画面のスモークテスト実行 |
+| `画面レビュー consumer` | Consumer App 19画面の詳細レビュー |
+| `画面レビュー http://localhost:3000/ja/consumer/dashboard` | 単一画面の詳細レビュー |
+| `ペルソナテスト consumer` | 田中さんとしてConsumer Appを操作 |
+| `ナビゲーションテスト consumer` | 全ボタン/リンクの遷移確認 |
+
+### 実行手順
+
+#### 1. 全画面スモークテスト
+```bash
+cd apps/web
+pnpm dev  # 別ターミナルで
+npx playwright test e2e/smoke/all-screens.spec.ts
+```
+
+#### 2. ナビゲーションテスト
+```bash
+npx playwright test e2e/navigation/
+```
+
+#### 3. AI画面レビュー（Playwright MCP使用）
+```
+「http://localhost:3000/ja/consumer/dashboard を開いて
+以下を確認してください:
+1. 文字の見切れ
+2. 全ボタンの遷移先
+3. モバイル表示
+スクリーンショットを撮って報告」
+```
+
+### 関連ファイル
+
+- `docs/agents/prompts/40_screen_review.md` - レビュープロンプト
+- `docs/specs/NAVIGATION_FLOW_SPEC.md` - 遷移仕様書
+- `docs/specs/AI_SCREEN_REVIEW_WORKFLOW.md` - ワークフロー詳細
+- `apps/web/e2e/smoke/all-screens.spec.ts` - 全画面テスト
+- `apps/web/e2e/navigation/` - ナビゲーションテスト
+
+---
+
 ## ドキュメント更新履歴
 
 | Version | Date | Changes |
@@ -582,3 +645,4 @@ https://github.com/kota1026/quantum-shield/compare/main...{branch-name}
 | 1.0 | 2026-01-XX | 初版作成 |
 | 1.1 | 2026-01-22 | docs/フォルダ構造整理、IMPLEMENTATION_GUIDE.md統合 |
 | 1.2 | 2026-01-22 | IMPLEMENTATION_GUIDE.md v1.3対応（全8アプリ詳細仕様、テンプレート追加） |
+| 1.3 | 2026-01-25 | 画面レビューワークフロー追加（Navigation Flow, AI Screen Review, Playwright MCP） |

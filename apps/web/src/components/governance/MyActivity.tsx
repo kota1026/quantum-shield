@@ -1,9 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useState } from 'react';
 import {
+  ArrowLeft,
   BarChart3,
   Vote,
   FileText,
@@ -258,6 +259,13 @@ export function MyActivity() {
       <div className="relative z-10 mx-auto max-w-6xl px-6 pt-8">
         {/* Page Header */}
         <header className="mb-8">
+          <Link
+            href="/governance/landing"
+            className="inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-gold transition-colors mb-4 group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
+            {t('backToDashboard')}
+          </Link>
           <h1 className="flex items-center gap-3 text-3xl font-bold text-white">
             <BarChart3 className="h-8 w-8 text-gold" aria-hidden="true" />
             {t('pageTitle')}

@@ -1,5 +1,34 @@
 {
   "token-hub": {
+    "login": {
+      "meta": {
+        "title": "ログイン | Token Hub | Quantum Shield",
+        "description": "ウォレットを接続してToken Hubにアクセス"
+      },
+      "title": "Token Hubにログイン",
+      "description": "ウォレットを接続してveQSを管理し、ガバナンスに参加しましょう",
+      "backToLanding": "ランディングに戻る",
+      "selectWallet": "ウォレットを選択",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
+      "popular": "人気",
+      "connecting": {
+        "title": "接続中...",
+        "description": "ウォレットで接続を承認してください"
+      },
+      "success": {
+        "title": "接続完了",
+        "description": "ダッシュボードに移動します..."
+      },
+      "noWallet": "ウォレットをお持ちでないですか？",
+      "getWallet": "ウォレットを作成",
+      "newUser": "はじめての方はこちら",
+      "startOnboarding": "Token Hubについて学ぶ",
+      "footer": "© 2026 Quantum Shield Foundation"
+    },
     "landing": {
       "meta": {
         "title": "Token Hub | Quantum Shield",
@@ -474,10 +503,17 @@
         "navLabel": "Token Hub ナビゲーション",
         "walletConnected": "{address} に接続中",
         "connectWallet": "ウォレット接続",
-        "consumerApp": "Consumer App",
+        "ecosystem": "エコシステム",
+        "consumerApp": "Quantum Shield",
+        "consumerAppDesc": "資産を量子耐性で保護",
         "governance": "ガバナンス",
+        "governanceDesc": "提案・投票に参加",
         "observerPortal": "Observer",
+        "observerPortalDesc": "ネットワーク監視",
         "proverPortal": "Prover",
+        "proverPortalDesc": "署名検証ノード運用",
+        "ecosystemLink": "Ecosystem を見る",
+        "ecosystemLinkDesc": "公式サイトで詳細を確認",
         "settings": "設定"
       },
       "footer": {
@@ -734,6 +770,7 @@
         "title": "デリゲート | Token Hub | Quantum Shield",
         "description": "信頼できるデリゲートにveQSを委任して投票力を活用"
       },
+      "backToDashboard": "← ダッシュボードに戻る",
       "title": "デリゲート",
       "subtitle": "信頼できるデリゲートにveQSを委任して投票力を活用",
       "myDelegation": {
@@ -815,6 +852,7 @@
         "title": "報酬 | Token Hub | Quantum Shield",
         "description": "veQSホルダーとしての報酬を確認・請求"
       },
+      "backToDashboard": "← ダッシュボードに戻る",
       "title": "報酬",
       "subtitle": "veQSホルダーとしての報酬を確認・請求",
       "claim": {

@@ -10,7 +10,19 @@
         "ecosystem": "エコシステム",
         "settings": "設定"
       },
-      "portalName": "監視者ポータル"
+      "portalName": "監視者ポータル",
+      "tooltip": {
+        "emergencyUnlock": "緊急アンロックは、秘密鍵を紛失した場合などに使用される特別なアンロック方法です。7日間の待機期間が必要です。",
+        "emergencyUnlockAriaLabel": "緊急アンロックについて詳しく見る",
+        "normalUnlock": "通常のアンロックは、Dilithium署名を使用した標準的な引き出し方法です。24時間の待機期間が必要です。",
+        "normalUnlockAriaLabel": "通常アンロックについて詳しく見る",
+        "challenge": "異議申立ては、不正と思われるアンロック要求に対して監視者が提出する申し立てです。成功すると報酬を獲得できます。",
+        "challengeAriaLabel": "異議申立てについて詳しく見る",
+        "slashing": "スラッシングは、署名者が不正行為を行った場合にステーク（担保）が没収される仕組みです。",
+        "slashingAriaLabel": "スラッシングについて詳しく見る",
+        "riskScore": "リスクスコアは取引の不正リスクを0-100で評価した数値です。高いほど不正の可能性が高くなります。",
+        "riskScoreAriaLabel": "リスクスコアについて詳しく見る"
+      }
     },
     "landing": {
       "meta": {
@@ -184,26 +196,29 @@
         "sectionLabel": "専門家の声",
         "title": "なぜ不正検知が重要なのか",
         "subtitle": "セキュリティ専門家たちの見解",
-        "quotes": [
-          {
-            "quote": "分散型ネットワークの安全性は、監視者による継続的な監視に依存しています。Observerは、この重要な役割を果たすインセンティブを提供します。",
-            "author": "セキュリティ研究者",
-            "title": "ブロックチェーンセキュリティ専門家",
-            "source": "Security Research"
+        "quotes": {
+          "0": {
+            "quote": "詐欺証明は、チェーンが安全であることを誰もが確認できるオープンな参加を可能にします。1人の正直な検証者がいれば、システム全体の安全性が保証されます。",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum共同創設者",
+            "source": "The different types of ZK-EVMs",
+            "sourceUrl": "https://vitalik.eth.limo/general/2022/08/04/zkevm.html"
           },
-          {
-            "quote": "不正検知システムは、単なる技術的な課題ではなく、経済的インセンティブの設計問題です。適切な報酬構造があれば、誰もが監視者になれます。",
-            "author": "DeFi研究者",
-            "title": "分散型金融アナリスト",
-            "source": "DeFi Pulse"
+          "1": {
+            "quote": "Optimistic Rollupは、誰もがトランザクションを監視し、不正な状態遷移に対してチャレンジを提出できることで安全性を確保します。",
+            "author": "Ethereum Foundation",
+            "title": "Ethereum公式ドキュメント",
+            "source": "Optimistic Rollups",
+            "sourceUrl": "https://ethereum.org/en/developers/docs/scaling/optimistic-rollups/"
           },
-          {
-            "quote": "量子コンピュータ時代に備えて、今から監視体制を整えることが重要です。早期発見こそが最大の防御です。",
-            "author": "暗号学者",
-            "title": "ポスト量子暗号研究者",
-            "source": "Crypto Research"
+          "2": {
+            "quote": "セキュリティは経済的インセンティブの設計問題です。正しい行動に報酬を、不正行為に罰則を設けることで、分散型システムの信頼性が確保されます。",
+            "author": "Ed Felten",
+            "title": "Arbitrum共同創設者・元ホワイトハウスCTO",
+            "source": "Arbitrum Documentation",
+            "sourceUrl": "https://docs.arbitrum.io/intro/"
           }
-        ],
+        },
         "disclaimer": "※ 上記は参考情報です。Observer参加はご自身の判断で行ってください。"
       },
       "footer": {
@@ -224,9 +239,18 @@
       "backToLanding": "ランディングに戻る",
       "selectWallet": "ウォレットを選択",
       "popular": "人気",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
       "connecting": {
         "title": "接続中...",
-        "description": "{wallet}と接続しています"
+        "walletPrompt": "ウォレットで接続を承認してください"
+      },
+      "checking": {
+        "title": "登録状況を確認中...",
+        "description": "監視者として登録されているか確認しています"
       },
       "success": {
         "title": "接続完了",
@@ -303,6 +327,17 @@
       "pageTitle": "監視者ダッシュボード",
       "monitoringBadge": "監視中",
       "monitoringBadgeAriaLabel": "監視ステータス: アクティブ",
+      "practiceMode": {
+        "title": "練習モード有効",
+        "badge": "練習中",
+        "description": "登録後3ヶ月間は練習モードです。異議申立てにステーク不要でシミュレーション体験ができます。実際の報酬は発生しませんが、操作方法を学べます。",
+        "daysRemaining": "残り{days}日",
+        "dismiss": "閉じる",
+        "ariaLabel": "練習モード情報バナー",
+        "learnMore": "練習モードについて詳しく見る",
+        "noStakeRequired": "ステーク不要",
+        "simulationOnly": "シミュレーションのみ"
+      },
       "stats": {
         "pendingUnlocks": {
           "label": "待機中のアンロック",

@@ -162,7 +162,7 @@ export function Notifications() {
             <Link
               href="/consumer/settings"
               className={cn(
-                'w-10 h-10 flex items-center justify-center',
+                'w-11 h-11 flex items-center justify-center',
                 'bg-surface border border-border rounded-qs',
                 'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
                 'transition-all',

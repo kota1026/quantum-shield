@@ -38,8 +38,7 @@ const appCategories = {
     titleKey: 'apps.categories.consumer',
     apps: [
       { key: 'consumerApp', icon: Shield, href: '/consumer/landing', color: 'hinomaru' },
-      { key: 'tokenHub', icon: Coins, href: '/token-hub/landing', color: 'gold' },
-      { key: 'governance', icon: Vote, href: '/governance/landing', color: 'hinomaru' },
+      { key: 'qsHub', icon: Coins, href: '/qs-hub/landing', color: 'gold' },
       { key: 'explorer', icon: Search, href: '/explorer/landing', color: 'gold' },
     ],
   },
@@ -60,9 +59,9 @@ const appCategories = {
 
 const useCases = [
   { key: 'hodler', icon: Wallet, appKey: 'consumerApp', href: '/consumer/landing' },
-  { key: 'investor', icon: BarChart3, appKey: 'tokenHub', href: '/token-hub/landing' },
+  { key: 'investor', icon: BarChart3, appKey: 'qsHub', href: '/qs-hub/landing' },
   { key: 'curious', icon: Search, appKey: 'explorer', href: '/explorer/landing' },
-  { key: 'governance', icon: Gavel, appKey: 'governance', href: '/governance/landing' },
+  { key: 'governance', icon: Gavel, appKey: 'qsHub', href: '/qs-hub/landing' },
   { key: 'technical', icon: HardDrive, appKey: 'prover', href: '/prover/landing' },
   { key: 'security', icon: AlertTriangle, appKey: 'observer', href: '/observer/landing' },
 ];

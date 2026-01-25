@@ -103,10 +103,16 @@
           "staff": "Staff",
           "reports": "Reports",
           "auditLog": "Audit Log",
-          "onboarding": "Onboarding"
+          "onboarding": "Onboarding",
+          "licensees": "Licensees",
+          "updates": "Update Distribution",
+          "licenseeSupport": "Support Management",
+          "licenseeBilling": "Billing Management"
         },
         "user": {
-          "role": "Senior Engineer",
+          "initial": "M",
+          "name": "Matsumoto",
+          "role": "Super Admin",
           "permissionBadge": "Super Admin"
         }
       }
@@ -744,19 +750,23 @@
       "stats": {
         "tvl": {
           "label": "Total Value Locked",
-          "change": "(24h)"
+          "change": "(24h)",
+          "tooltip": "Total assets locked in the Quantum Shield protocol across all users and chains."
         },
         "provers": {
           "label": "Active Provers",
-          "healthy": "Healthy"
+          "healthy": "Healthy",
+          "tooltip": "Prover nodes verify quantum-resistant signatures and generate STARK proofs. Shows online/total count."
         },
         "pendingUnlocks": {
           "label": "Pending Unlocks",
-          "attention": "require attention"
+          "attention": "require attention",
+          "tooltip": "Unlock requests waiting for 24-hour timelock to expire or manual review."
         },
         "alerts": {
           "label": "Active Alerts",
-          "highPriority": "high priority"
+          "highPriority": "high priority",
+          "tooltip": "System alerts requiring operator attention, including SLA warnings and security events."
         }
       },
       "systemStatus": {
@@ -831,6 +841,85 @@
         "auditLog": "Audit Log"
       }
     },
+    "integratedDashboard": {
+      "meta": {
+        "title": "Integrated Dashboard | QS Admin",
+        "description": "Public, SaaS, and License management"
+      },
+      "title": "Integrated Dashboard",
+      "subtitle": "Quantum Shield Full Management",
+      "ariaLabel": "QS Admin Integrated Dashboard",
+      "liveIndicator": "Real-time Updates",
+      "emergencyButton": "Emergency Pause",
+      "tabs": {
+        "overview": "Overview",
+        "public": "Public",
+        "saas": "Enterprise SaaS",
+        "license": "Technology License"
+      },
+      "overview": {
+        "title": "Overall Summary",
+        "totalTvl": "Total TVL",
+        "totalUsers": "Total Users",
+        "totalProvers": "Total Provers",
+        "monthlyRevenue": "Monthly Revenue"
+      },
+      "publicStats": {
+        "title": "Public Version",
+        "tvl": "TVL",
+        "users": "Active Users",
+        "provers": "Provers",
+        "observers": "Observers",
+        "pendingProposals": "Pending Proposals"
+      },
+      "saasStats": {
+        "title": "Enterprise SaaS",
+        "operators": "Operators",
+        "endUsers": "End Users",
+        "mrr": "MRR",
+        "pendingApplications": "Pending Applications",
+        "activeTickets": "Active Tickets"
+      },
+      "licenseStats": {
+        "title": "Technology License",
+        "companies": "Licensed Companies",
+        "activeProjects": "Active Projects",
+        "totalRevenue": "Total License Revenue"
+      },
+      "alerts": {
+        "title": "Action Required",
+        "viewAll": "View All",
+        "types": {
+          "proverApplication": "Prover Application",
+          "saasApplication": "SaaS Application",
+          "slaWarning": "SLA Warning",
+          "paymentOverdue": "Payment Overdue",
+          "securityAlert": "Security Alert"
+        }
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "viewAll": "View All"
+      },
+      "publicTab": {
+        "title": "Public Version Management",
+        "description": "Access management screens from the sidebar",
+        "proverManagement": "Prover Management",
+        "protocolMonitoring": "Protocol Monitoring"
+      },
+      "saasTab": {
+        "title": "Enterprise SaaS Management",
+        "description": "Access management screens from the sidebar",
+        "operatorManagement": "Operator Management",
+        "billingManagement": "Billing Management"
+      },
+      "licenseTab": {
+        "title": "Technology License Management",
+        "description": "Access management screens from the sidebar",
+        "licensedCompanies": "Licensed Companies",
+        "projects": "Projects"
+      }
+    },
     "saasUserRisks": {
       "meta": {
         "title": "Risk Management | QS Admin",
@@ -875,6 +964,333 @@
       "title": "Billing Management",
       "subtitle": "Enterprise SaaS billing and revenue management",
       "ariaLabel": "Billing management page"
+    },
+    "licensees": {
+      "meta": {
+        "title": "Licensees | QS Admin",
+        "description": "Technology licensee management"
+      },
+      "title": "Licensees",
+      "subtitle": "Manage technology license partners",
+      "stats": {
+        "total": "Total Licenses",
+        "active": "Active",
+        "suspended": "Suspended",
+        "monthlyRevenue": "Monthly Maintenance Revenue"
+      },
+      "searchPlaceholder": "Search by company name, country...",
+      "searchAriaLabel": "Search licensees",
+      "filters": {
+        "all": "All",
+        "active": "Active",
+        "suspended": "Suspended",
+        "pending": "Pending"
+      },
+      "tableTitle": "Technology Licensees",
+      "tableAriaLabel": "Licensees table",
+      "table": {
+        "company": "Company",
+        "type": "License Type",
+        "status": "Status",
+        "nodes": "Nodes",
+        "provers": "Provers",
+        "observers": "Observers",
+        "monthlyFee": "Monthly Fee",
+        "expiry": "Expiry Date",
+        "tickets": "Support",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "pending": "Pending",
+        "expired": "Expired"
+      },
+      "type": {
+        "standard": "Standard",
+        "enterprise": "Enterprise"
+      },
+      "actions": {
+        "view": "View details",
+        "suspend": "Suspend",
+        "reactivate": "Reactivate"
+      },
+      "empty": {
+        "title": "No licensees found",
+        "description": "No companies match your search criteria"
+      },
+      "suspendModal": {
+        "title": "Confirm License Suspension",
+        "description": "Are you sure you want to suspend this company's license? All nodes will be immediately stopped.",
+        "securityCouncilNote": "⚠️ This action requires Security Council approval",
+        "cancel": "Cancel",
+        "confirm": "Request Suspension"
+      },
+      "reactivateModal": {
+        "title": "Confirm License Reactivation",
+        "description": "Are you sure you want to reactivate this company's license? All nodes will become operational again.",
+        "cancel": "Cancel",
+        "confirm": "Reactivate"
+      }
+    },
+    "licenseeDetail": {
+      "meta": {
+        "title": "Licensee Details | QS Admin",
+        "description": "Technology licensee details"
+      },
+      "backToLicensees": "Back to list",
+      "supportButton": "Support",
+      "suspendButton": "Suspend",
+      "reactivateButton": "Reactivate",
+      "monthlyFee": "Monthly Maintenance Fee",
+      "type": {
+        "standard": "Standard",
+        "enterprise": "Enterprise"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "nodes": "Nodes",
+        "compliance": "Compliance",
+        "activity": "Activity"
+      },
+      "contract": {
+        "title": "Contract Information",
+        "startDate": "Contract Start Date",
+        "expiryDate": "Contract Expiry Date",
+        "proverNodes": "Prover Nodes",
+        "observerNodes": "Observer Nodes"
+      },
+      "contact": {
+        "title": "Contact",
+        "name": "Contact Name",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "technical": {
+        "title": "Technical Information",
+        "explorer": "Explorer URL",
+        "viewExplorer": "Open Explorer",
+        "version": "Protocol Version",
+        "lastUpdate": "Last Update",
+        "lastSync": "Last Sync"
+      },
+      "nodes": {
+        "provers": "Prover Nodes",
+        "observers": "Observer Nodes",
+        "uptime": "Uptime",
+        "challenges": "Challenges"
+      },
+      "compliance": {
+        "title": "Compliance Status",
+        "explorerPublic": "Public Explorer",
+        "explorerPublicDesc": "Public Explorer is available",
+        "auditReport": "Audit Report",
+        "lastAudit": "Last Audit Date",
+        "designSystem": "Design System Compliance",
+        "designSystemDesc": "Compliant with Japan Premium design system"
+      },
+      "activity": {
+        "title": "Recent Activity"
+      }
+    },
+    "licenseeSupport": {
+      "meta": {
+        "title": "Licensee Support | QS Admin",
+        "description": "Support for technology licensees"
+      },
+      "backToDetail": "Back to details",
+      "newTicket": "New Ticket",
+      "supportFor": "Support for",
+      "tickets": "Support Tickets",
+      "ticketStatus": {
+        "open": "Open",
+        "in_progress": "In Progress",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "ticketPriority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      },
+      "updatedAt": "Updated",
+      "assignee": "Assignee",
+      "resolve": "Mark as Resolved",
+      "escalate": "Escalate",
+      "messagePlaceholder": "Type a message..."
+    },
+    "support": {
+      "meta": {
+        "title": "Support Tickets | QS Admin",
+        "description": "All licensee support ticket management"
+      },
+      "stats": {
+        "total": "Total Tickets",
+        "open": "Open",
+        "inProgress": "In Progress",
+        "avgResponseTime": "Avg Response Time"
+      },
+      "searchPlaceholder": "Search by ticket ID, subject, company...",
+      "searchAriaLabel": "Search tickets",
+      "filters": {
+        "all": "All",
+        "open": "Open",
+        "in_progress": "In Progress",
+        "resolved": "Resolved"
+      },
+      "priorityFilters": {
+        "all": "Priority",
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "tableTitle": "Support Tickets",
+      "tableAriaLabel": "Support tickets table",
+      "table": {
+        "ticket": "Ticket",
+        "licensee": "Licensee",
+        "status": "Status",
+        "priority": "Priority",
+        "assignee": "Assignee",
+        "responseTime": "Response Time",
+        "updated": "Updated"
+      },
+      "status": {
+        "open": "Open",
+        "in_progress": "In Progress",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      },
+      "empty": {
+        "title": "No tickets found",
+        "description": "No tickets match your search criteria"
+      }
+    },
+    "updates": {
+      "meta": {
+        "title": "Update Management | QS Admin",
+        "description": "Protocol update distribution management"
+      },
+      "stats": {
+        "latestVersion": "Latest Version",
+        "upToDate": "Up to Date",
+        "outdated": "Need Update",
+        "pending": "Scheduled"
+      },
+      "tabs": {
+        "releases": "Releases",
+        "licensees": "Licensee Status"
+      },
+      "newRelease": "New Release",
+      "releaseType": {
+        "major": "Major",
+        "minor": "Minor",
+        "patch": "Patch",
+        "security": "Security"
+      },
+      "criticalFixes": "Critical Fixes",
+      "latest": "Latest",
+      "changelog": "Changelog",
+      "pushUpdate": "Push Update",
+      "licenseeVersions": "Licensee Version Status",
+      "tableAriaLabel": "Version status table",
+      "table": {
+        "licensee": "Licensee",
+        "currentVersion": "Current Version",
+        "targetVersion": "Target Version",
+        "status": "Status",
+        "lastUpdated": "Last Updated",
+        "scheduled": "Scheduled",
+        "actions": "Actions"
+      },
+      "status": {
+        "latest": "Latest",
+        "pending": "Scheduled",
+        "outdated": "Needs Update",
+        "critical": "Critical Update Required"
+      },
+      "scheduleUpdate": "Schedule Update"
+    },
+    "billing": {
+      "meta": {
+        "title": "Revenue Management | QS Admin",
+        "description": "Maintenance revenue and billing management"
+      },
+      "stats": {
+        "monthlyRevenue": "Monthly Revenue",
+        "vsLastMonth": "vs last month",
+        "yearlyRevenue": "Yearly Revenue",
+        "pendingPayments": "Pending",
+        "overduePayments": "Overdue"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "invoices": "Invoices"
+      },
+      "revenueChart": {
+        "title": "Revenue Trend"
+      },
+      "revenueByLicensee": {
+        "title": "Revenue by Licensee"
+      },
+      "paymentMethods": {
+        "title": "Payment Methods",
+        "bankTransfer": "Bank Transfer",
+        "bankTransferDesc": "Net 30 payment terms",
+        "crypto": "Cryptocurrency",
+        "cryptoDesc": "USDC/ETH accepted"
+      },
+      "invoices": {
+        "title": "Invoices",
+        "tableAriaLabel": "Invoices table",
+        "table": {
+          "invoice": "Invoice #",
+          "licensee": "Licensee",
+          "period": "Period",
+          "amount": "Amount",
+          "dueDate": "Due Date",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "sendReminder": "Send Reminder"
+      },
+      "filters": {
+        "all": "All",
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "paid": "Paid"
+      },
+      "status": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "overdue": "Overdue"
+      }
+    },
+    "states": {
+      "loading": {
+        "default": "Loading...",
+        "licensees": "Loading licensee information...",
+        "support": "Loading support tickets...",
+        "billing": "Loading billing information...",
+        "updates": "Loading update information..."
+      },
+      "error": {
+        "title": "Error Loading Data",
+        "description": "An error occurred while fetching data. Please try again.",
+        "retry": "Retry"
+      }
     }
   }
 }

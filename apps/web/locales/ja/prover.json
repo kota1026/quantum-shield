@@ -20,9 +20,19 @@
       "backToLanding": "概要に戻る",
       "selectWallet": "ウォレットを選択",
       "popular": "人気",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
       "connecting": {
         "title": "接続中...",
-        "description": "{wallet}に接続しています。ウォレットで承認してください。"
+        "description": "{wallet}に接続しています。ウォレットで承認してください。",
+        "walletPrompt": "ウォレットで接続を承認してください"
+      },
+      "checking": {
+        "title": "登録状況を確認中...",
+        "description": "ウォレットのProver登録状況を確認しています"
       },
       "success": {
         "title": "接続完了",
@@ -416,29 +426,32 @@
       },
       "expertQuotes": {
         "sectionLabel": "専門家の声",
-        "title": "なぜSTARK証明が重要なのか",
-        "subtitle": "暗号技術の専門家たちの見解",
+        "title": "なぜ量子耐性署名が重要なのか",
+        "subtitle": "ポスト量子暗号の専門家たちの見解",
         "quotes": [
           {
-            "quote": "STARK証明は、透明性と検証可能性を両立させる革命的な技術です。信頼を必要としない証明システムの未来を切り開いています。",
-            "author": "Eli Ben-Sasson",
-            "title": "StarkWare共同創設者",
-            "source": "StarkWare"
+            "quote": "SPHINCS+はハッシュベースの署名方式であり、量子コンピュータの攻撃に対して数学的に安全です。NISTの標準化により、長期的なセキュリティが保証されます。",
+            "author": "NIST",
+            "title": "米国国立標準技術研究所",
+            "source": "NIST Post-Quantum Cryptography",
+            "sourceUrl": "https://csrc.nist.gov/projects/post-quantum-cryptography"
           },
           {
-            "quote": "ゼロ知識証明は、プライバシーとスケーラビリティの両方を実現する唯一の技術です。今後のブロックチェーンインフラの核心となるでしょう。",
-            "author": "Vitalik Buterin",
-            "title": "Ethereum共同創設者",
-            "source": "vitalik.eth.limo"
+            "quote": "ハッシュベース署名は、格子や符号ベースの方式と比較して、最も保守的で安全な選択肢です。SPHINCSはステートレスで実装が容易です。",
+            "author": "Daniel J. Bernstein",
+            "title": "暗号学者・SPHINCS共同設計者",
+            "source": "SPHINCS公式サイト",
+            "sourceUrl": "https://sphincs.org/"
           },
           {
-            "quote": "分散型証明ネットワークは、中央集権的なオラクルに依存しない真の分散化を実現します。Proverはその重要な構成要素です。",
-            "author": "ZK研究者",
-            "title": "暗号学研究者",
-            "source": "ZK Research"
+            "quote": "量子コンピュータが実用化されれば、現在のECDSA署名は数時間で破られる可能性があります。今からポスト量子暗号への移行を準備することが重要です。",
+            "author": "Ethereum Foundation",
+            "title": "Ethereum公式ドキュメント",
+            "source": "ethereum.org",
+            "sourceUrl": "https://ethereum.org/en/roadmap/future-proofing/"
           }
         ],
-        "disclaimer": "※ 上記は参考情報です。Prover参加はご自身の判断で行ってください。"
+        "disclaimer": "※ 上記は各情報源からの参照です。Prover参加はご自身の判断で行ってください。"
       }
     },
     "application": {
@@ -472,6 +485,7 @@
         "basicInfo": "基本情報",
         "technical": "技術要件",
         "legal": "法務・KYB",
+        "stake": "ステーク",
         "review": "確認"
       },
       "continue": "続ける",
@@ -510,6 +524,28 @@
         "validationMessage": "続行する前に事業者登録番号を入力し、すべての規約に同意してください。"
       },
       "step4": {
+        "title": "ステークデポジット",
+        "description": "Proverとして活動するためのステークを設定します",
+        "stakeAmount": "ステーク額",
+        "stakeOptions": {
+          "minimum": "最低ステーク額 - 基本的な処理枠",
+          "standard": "標準ステーク額 - 優先処理枠あり",
+          "premium": "プレミアムステーク額 - 最優先処理 + ボーナス報酬"
+        },
+        "walletConnection": "ウォレット接続",
+        "connectWallet": "ウォレットを接続",
+        "walletConnected": "ウォレット接続済み",
+        "disconnect": "切断",
+        "stakeInfo": {
+          "title": "ステークに関する重要事項",
+          "lockPeriod": "ステークは最低180日間ロックされます",
+          "slashingRisk": "SLA違反時はQuadratic Slashingの対象となります",
+          "rewardsInfo": "ステーク額に応じて報酬配分比率が決定されます"
+        },
+        "confirmStake": "ステーク額とロック期間、Slashingリスクを理解し、同意します",
+        "validationMessage": "ステーク額を選択し、ウォレットを接続して確認してください"
+      },
+      "step5": {
         "title": "申請内容の確認",
         "description": "送信前に情報を確認してください"
       },
@@ -733,6 +769,12 @@
         "uptime": "稼働率（30日）",
         "slaMin": "SLA: {min}%"
       },
+      "tooltips": {
+        "pendingSignatures": "ユーザーからのアンロックリクエストに対するDilithium量子耐性署名を生成する必要がある件数です。タイムリーに処理しないとSLA違反になる可能性があります。",
+        "uptime": "過去30日間のProverノードの稼働率。SLAでは99.9%以上の稼働率が要求されます。これを下回るとスラッシング（ペナルティ）の対象になる場合があります。",
+        "sla": "Service Level Agreement（サービス品質保証）の略。Proverとして維持すべき応答時間と稼働率の基準を定めています。",
+        "stake": "Proverになるために預け入れるETH（または同等資産）。不正行為やSLA違反があった場合、この資金の一部または全部が没収（スラッシング）される可能性があります。"
+      },
       "queue": {
         "title": "署名キュー",
         "unlockRequest": "アンロックリクエスト",
@@ -817,6 +859,14 @@
         "sourceChain": "ソースチェーン",
         "destChain": "宛先チェーン",
         "dilithiumSig": "Dilithium署名（ユーザー）"
+      },
+      "tooltip": {
+        "dilithium": "Dilithiumは量子コンピュータでも破れない次世代の暗号署名アルゴリズムです。ユーザーがアンロックを要求する際にこの署名を生成します。",
+        "dilithiumAriaLabel": "Dilithium署名について詳しく見る",
+        "sphincs": "SPHINCS+は量子耐性を持つもう一つの暗号署名アルゴリズムです。ProverがSPHINCS+で署名することで、アンロック要求が承認されます。",
+        "sphincsAriaLabel": "SPHINCS+署名について詳しく見る",
+        "emergency": "緊急アンロックは、秘密鍵を紛失した場合などに使用される特別なアンロック方法です。7日間の待機期間が必要です。",
+        "emergencyAriaLabel": "緊急アンロックについて詳しく見る"
       },
       "modal": {
         "close": "閉じる",

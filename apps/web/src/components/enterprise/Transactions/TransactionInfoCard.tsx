@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { Shield } from 'lucide-react';
+import { Tooltip } from '@/components/shared/Tooltip';
 
 export type TxDetailStatus = 'complete' | 'pending' | 'failed';
 export type TxDetailType = 'lock' | 'unlock' | 'emergency';
@@ -111,10 +112,14 @@ export function TransactionInfoCard({ transaction, className }: TransactionInfoC
           >
             <Shield className="w-6 h-6 text-hinomaru-400" aria-hidden="true" />
             <div className="text-sm">
-              <strong className="block text-hinomaru-400">{t('quantumProtected')}</strong>
-              <span className="text-muted-foreground">
-                {t('signedWith', { algorithm: transaction.signatureAlgorithm || 'CRYSTALS-Dilithium' })}
-              </span>
+              <Tooltip content={t('tooltips.quantumProtected')}>
+                <strong className="block text-hinomaru-400 cursor-help">{t('quantumProtected')}</strong>
+              </Tooltip>
+              <Tooltip content={t('tooltips.dilithium')}>
+                <span className="text-muted-foreground cursor-help">
+                  {t('signedWith', { algorithm: transaction.signatureAlgorithm || 'CRYSTALS-Dilithium' })}
+                </span>
+              </Tooltip>
             </div>
           </div>
         )}

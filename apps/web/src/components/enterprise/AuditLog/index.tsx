@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
-import { Button } from '@/components/ui/button';
+import { EnterpriseTopBar } from '../Dashboard/EnterpriseTopBar';
+import { ExportButton } from '../shared/ExportButton';
+import { AdvancedSearch, type AuditSearchFilters } from './AdvancedSearch';
+import { SavedSearches } from './SavedSearches';
+import { SavedSearchProvider } from '../shared/SavedSearchProvider';
 
 export type AuditCategory = 'auth' | 'transactions' | 'users' | 'api' | 'settings' | 'security';
 
@@ -17,6 +21,7 @@ export interface AuditEvent {
   details: string;
   timestamp: string;
   ipAddress: string;
+  severity?: 'info' | 'warning' | 'critical';
 }
 
 // Mock data
@@ -116,115 +121,178 @@ interface AuditLogProps {
   className?: string;
 }
 
+const DEFAULT_FILTERS: AuditSearchFilters = {
+  query: '',
+  categories: [],
+  users: [],
+  actions: [],
+  ipAddresses: [],
+  dateFrom: '2026-01-01',
+  dateTo: '2026-01-11',
+  severity: 'all',
+};
+
 export function AuditLog({ className }: AuditLogProps) {
   const t = useTranslations('enterprise.auditLog');
 
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [userFilter, setUserFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<AuditSearchFilters>(DEFAULT_FILTERS);
+  const [isSearchApplied, setIsSearchApplied] = useState(false);
 
-  // Get unique users for filter
-  const users = Array.from(new Set(MOCK_AUDIT_EVENTS.map((e) => e.actor)));
+  // Get unique users and actions for filter options
+  const availableUsers = useMemo(
+    () => Array.from(new Set(MOCK_AUDIT_EVENTS.map((e) => e.actor))),
+    []
+  );
+  const availableActions = useMemo(
+    () => Array.from(new Set(MOCK_AUDIT_EVENTS.map((e) => e.action))),
+    []
+  );
 
-  // Filter events
-  const filteredEvents = MOCK_AUDIT_EVENTS.filter((event) => {
-    if (categoryFilter !== 'all' && event.category !== categoryFilter) return false;
-    if (userFilter !== 'all' && event.actor !== userFilter) return false;
-    if (searchQuery && !event.action.toLowerCase().includes(searchQuery.toLowerCase()) && !event.details.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  // Filter events based on advanced search filters
+  const filteredEvents = useMemo(() => {
+    return MOCK_AUDIT_EVENTS.filter((event) => {
+      // Query filter (search in action and details)
+      if (filters.query) {
+        const query = filters.query.toLowerCase();
+        if (
+          !event.action.toLowerCase().includes(query) &&
+          !event.details.toLowerCase().includes(query) &&
+          !event.actor.toLowerCase().includes(query)
+        ) {
+          return false;
+        }
+      }
+
+      // Category filter
+      if (filters.categories.length > 0 && !filters.categories.includes(event.category)) {
+        return false;
+      }
+
+      // User filter
+      if (filters.users.length > 0 && !filters.users.includes(event.actor)) {
+        return false;
+      }
+
+      // Action filter
+      if (filters.actions.length > 0 && !filters.actions.includes(event.action)) {
+        return false;
+      }
+
+      // IP Address filter
+      if (filters.ipAddresses.length > 0) {
+        const matchesIp = filters.ipAddresses.some((ip) => event.ipAddress.includes(ip));
+        if (!matchesIp) return false;
+      }
+
+      // Date filter
+      if (filters.dateFrom) {
+        const eventDate = new Date(event.timestamp.split(' ')[0]);
+        const fromDate = new Date(filters.dateFrom);
+        if (eventDate < fromDate) return false;
+      }
+      if (filters.dateTo) {
+        const eventDate = new Date(event.timestamp.split(' ')[0]);
+        const toDate = new Date(filters.dateTo);
+        if (eventDate > toDate) return false;
+      }
+
+      // Severity filter
+      if (filters.severity && filters.severity !== 'all' && event.severity !== filters.severity) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [filters]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const totalEvents = 1234;
-  const totalPages = 62;
-  const showingStart = (currentPage - 1) * 20 + 1;
-  const showingEnd = Math.min(currentPage * 20, totalEvents);
+  const itemsPerPage = 20;
+  const totalEvents = filteredEvents.length > 0 ? 1234 : 0; // Mock total
+  const totalPages = Math.ceil(totalEvents / itemsPerPage);
+  const showingStart = totalEvents > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+  const showingEnd = Math.min(currentPage * itemsPerPage, totalEvents);
+
+  const handleSearch = () => {
+    setIsSearchApplied(true);
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+    setIsSearchApplied(false);
+    setCurrentPage(1);
+  };
+
+  const handleLoadSavedSearch = (savedFilters: AuditSearchFilters) => {
+    setFilters(savedFilters);
+    setIsSearchApplied(true);
+    setCurrentPage(1);
+  };
+
+  // Export data
+  const exportData = filteredEvents.map((event) => ({
+    id: event.id,
+    category: event.category,
+    actor: event.actor,
+    action: event.action,
+    details: event.details,
+    timestamp: event.timestamp,
+    ipAddress: event.ipAddress,
+  }));
+
+  const exportColumns = [
+    { key: 'id', label: 'ID' },
+    { key: 'timestamp', label: t('export.timestamp') },
+    { key: 'category', label: t('export.category') },
+    { key: 'actor', label: t('export.actor') },
+    { key: 'action', label: t('export.action') },
+    { key: 'details', label: t('export.details') },
+    { key: 'ipAddress', label: t('export.ipAddress') },
+  ];
 
   return (
-    <div className={cn('flex min-h-screen bg-background', className)}>
-      <EnterpriseSidebar />
+    <SavedSearchProvider scope="audit-log">
+      <div className={cn('flex min-h-screen bg-background', className)}>
+        <EnterpriseSidebar />
 
-      <main
-        className="flex-1 ml-[260px] min-h-screen"
-        role="main"
-        aria-label={t('ariaLabel')}
-      >
-        {/* Top Bar */}
-        <header
-          className="flex items-center justify-between px-8 py-4 bg-background-secondary border-b border-white/5 sticky top-0 z-50"
-          role="banner"
+        <main
+          className="flex-1 ml-[260px] min-h-screen"
+          role="main"
+          aria-label={t('ariaLabel')}
         >
-          <h1 className="text-xl font-semibold text-text-primary">{t('pageTitle')}</h1>
-          <div className="flex items-center gap-3">
-            <Button variant="secondary" size="sm">
-              <span aria-hidden="true">📥</span> {t('exportCsv')}
-            </Button>
-          </div>
-        </header>
+        {/* Top Bar */}
+        <EnterpriseTopBar
+          title={t('pageTitle')}
+          actions={
+            <ExportButton
+              data={exportData}
+              columns={exportColumns}
+              filename="audit-log"
+              title={t('pageTitle')}
+            />
+          }
+        />
 
         {/* Page Content */}
         <div className="p-8">
-          {/* Filter Bar */}
-          <section
-            className="flex flex-wrap gap-4 mb-6"
-            aria-label={t('filters.ariaLabel')}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-text-tertiary">{t('filters.category.label')}:</span>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 bg-background-secondary border border-white/10 rounded-lg text-text-primary text-sm"
-              >
-                <option value="all">{t('filters.category.all')}</option>
-                <option value="auth">{t('filters.category.auth')}</option>
-                <option value="transactions">{t('filters.category.transactions')}</option>
-                <option value="users">{t('filters.category.users')}</option>
-                <option value="api">{t('filters.category.api')}</option>
-                <option value="settings">{t('filters.category.settings')}</option>
-                <option value="security">{t('filters.category.security')}</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-text-tertiary">{t('filters.user.label')}:</span>
-              <select
-                value={userFilter}
-                onChange={(e) => setUserFilter(e.target.value)}
-                className="px-3 py-2 bg-background-secondary border border-white/10 rounded-lg text-text-primary text-sm"
-              >
-                <option value="all">{t('filters.user.all')}</option>
-                {users.map((user) => (
-                  <option key={user} value={user}>{user}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-text-tertiary">{t('filters.date.label')}:</span>
-              <input
-                type="date"
-                defaultValue="2026-01-01"
-                className="px-3 py-2 bg-background-secondary border border-white/10 rounded-lg text-text-primary text-sm"
-              />
-              <span className="text-text-tertiary">{t('filters.date.to')}</span>
-              <input
-                type="date"
-                defaultValue="2026-01-11"
-                className="px-3 py-2 bg-background-secondary border border-white/10 rounded-lg text-text-primary text-sm"
-              />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('filters.search.placeholder')}
-              aria-label={t('filters.search.ariaLabel')}
-              className="px-3 py-2 bg-background-secondary border border-white/10 rounded-lg text-text-primary text-sm w-48"
-            />
-            <Button variant="primary" size="sm">
-              {t('filters.apply')}
-            </Button>
-          </section>
+          {/* Saved Searches */}
+          <SavedSearches
+            currentFilters={filters}
+            onLoadSearch={handleLoadSavedSearch}
+            className="mb-4"
+          />
+
+          {/* Advanced Search */}
+          <AdvancedSearch
+            filters={filters}
+            onFiltersChange={setFilters}
+            onSearch={handleSearch}
+            onClear={handleClearFilters}
+            availableUsers={availableUsers}
+            availableActions={availableActions}
+            className="mb-6"
+          />
 
           {/* Audit Log List */}
           <section className="bg-background-secondary border border-white/5 rounded-2xl overflow-hidden">
@@ -282,7 +350,7 @@ export function AuditLog({ className }: AuditLogProps) {
                   type="button"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="px-4 py-2 bg-background-primary border border-white/10 rounded-lg text-sm text-text-secondary disabled:opacity-50"
+                  className="px-4 py-2 min-h-[44px] bg-background-primary border border-white/10 rounded-lg text-sm text-text-secondary disabled:opacity-50"
                 >
                   ← {t('pagination.previous')}
                 </button>
@@ -292,7 +360,7 @@ export function AuditLog({ className }: AuditLogProps) {
                     type="button"
                     onClick={() => setCurrentPage(page)}
                     className={cn(
-                      'px-4 py-2 rounded-lg text-sm',
+                      'px-4 py-2 min-h-[44px] min-w-[44px] rounded-lg text-sm',
                       page === currentPage
                         ? 'bg-hinomaru text-white'
                         : 'bg-background-primary border border-white/10 text-text-secondary'
@@ -306,7 +374,7 @@ export function AuditLog({ className }: AuditLogProps) {
                 <button
                   type="button"
                   onClick={() => setCurrentPage(totalPages)}
-                  className="px-4 py-2 bg-background-primary border border-white/10 rounded-lg text-sm text-text-secondary"
+                  className="px-4 py-2 min-h-[44px] min-w-[44px] bg-background-primary border border-white/10 rounded-lg text-sm text-text-secondary"
                 >
                   {totalPages}
                 </button>
@@ -314,7 +382,7 @@ export function AuditLog({ className }: AuditLogProps) {
                   type="button"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-4 py-2 bg-background-primary border border-white/10 rounded-lg text-sm text-text-secondary disabled:opacity-50"
+                  className="px-4 py-2 min-h-[44px] bg-background-primary border border-white/10 rounded-lg text-sm text-text-secondary disabled:opacity-50"
                 >
                   {t('pagination.next')} →
                 </button>
@@ -322,7 +390,8 @@ export function AuditLog({ className }: AuditLogProps) {
             </nav>
           </section>
         </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </SavedSearchProvider>
   );
 }

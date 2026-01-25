@@ -27,6 +27,8 @@ import {
   Database,
   ChevronDown,
   ChevronRight,
+  MessageSquare,
+  Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -213,16 +215,27 @@ export function AdminSidebarV2() {
         {
           labelKey: 'sections.licenseManagement',
           collapsible: true,
+          defaultOpen: true,
           items: [
             {
-              href: '/admin/license/companies',
-              labelKey: 'nav.licenseCompanies',
+              href: '/admin/licensees',
+              labelKey: 'nav.licensees',
               icon: <Building2 className="h-4 w-4" aria-hidden="true" />,
             },
             {
-              href: '/admin/license/projects',
-              labelKey: 'nav.licenseProjects',
-              icon: <FileText className="h-4 w-4" aria-hidden="true" />,
+              href: '/admin/updates',
+              labelKey: 'nav.updates',
+              icon: <Download className="h-4 w-4" aria-hidden="true" />,
+            },
+            {
+              href: '/admin/support',
+              labelKey: 'nav.licenseeSupport',
+              icon: <MessageSquare className="h-4 w-4" aria-hidden="true" />,
+            },
+            {
+              href: '/admin/billing',
+              labelKey: 'nav.licenseeBilling',
+              icon: <CreditCard className="h-4 w-4" aria-hidden="true" />,
             },
           ],
         },
@@ -317,7 +330,7 @@ export function AdminSidebarV2() {
                         key={item.href}
                         href={item.href}
                         className={cn(
-                          'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all',
+                          'flex items-center gap-2.5 rounded-lg px-3 py-2 min-h-[44px] text-[13px] font-medium transition-all',
                           item.isEmergency
                             ? 'mt-1 bg-hinomaru text-white hover:bg-hinomaru-400'
                             : isActive(item.href)
@@ -347,14 +360,14 @@ export function AdminSidebarV2() {
       <div className="border-t border-surface-tertiary p-3">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold/10 text-sm text-gold">
-            松
+            {t('user.initial')}
           </div>
           <div>
             <div className="text-sm font-medium text-foreground">
-              松本さん
+              {t('user.name')}
             </div>
             <div className="text-[11px] text-foreground-tertiary">
-              Super Admin
+              {t('user.role')}
             </div>
           </div>
         </div>

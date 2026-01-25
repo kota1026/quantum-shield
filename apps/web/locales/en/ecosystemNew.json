@@ -284,6 +284,11 @@
         "tagline": "Protect assets with quantum resistance",
         "description": "Lock ETH and protect from future quantum threats. Simple UI anyone can use."
       },
+      "qsHub": {
+        "title": "QS Hub",
+        "tagline": "Manage veQS & Participate in Governance",
+        "description": "Manage veQS, participate in governance, and earn rewards in one place. The core of the Quantum Shield ecosystem."
+      },
       "tokenHub": {
         "title": "Token Hub",
         "tagline": "Earn rewards through staking",

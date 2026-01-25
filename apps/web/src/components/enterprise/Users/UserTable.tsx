@@ -226,14 +226,14 @@ export function UserTable({ users, searchQuery, onSearchChange, className }: Use
                   {user.status === 'active' ? (
                     <Link
                       href={`/enterprise/users/${user.id}`}
-                      className="inline-flex px-3 py-1 bg-background-elevated border border-white/10 rounded-lg text-xs text-text-secondary hover:border-hinomaru hover:text-hinomaru transition-colors"
+                      className="inline-flex px-4 py-2.5 bg-background-elevated border border-white/10 rounded-lg text-xs text-text-secondary hover:border-hinomaru hover:text-hinomaru transition-colors min-h-[40px] items-center"
                     >
                       {t('edit')}
                     </Link>
                   ) : (
                     <button
                       type="button"
-                      className="inline-flex px-3 py-1 bg-background-elevated border border-white/10 rounded-lg text-xs text-text-secondary hover:border-hinomaru hover:text-hinomaru transition-colors"
+                      className="inline-flex px-4 py-2.5 bg-background-elevated border border-white/10 rounded-lg text-xs text-text-secondary hover:border-hinomaru hover:text-hinomaru transition-colors min-h-[40px] items-center"
                     >
                       {t('resend')}
                     </button>

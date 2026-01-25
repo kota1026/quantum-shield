@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -240,49 +240,55 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
           {/* Provers Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {mockProvers.map((prover) => (
-              <Card key={prover.id} className="p-6 hover:border-gold/50 transition-colors">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center">
-                      <Server className="w-5 h-5 text-gold" />
+              <Link
+                key={prover.id}
+                href={`/${locale}/explorer/provers/${prover.id}`}
+                className="block"
+              >
+                <Card className="p-6 hover:border-gold/50 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center">
+                        <Server className="w-5 h-5 text-gold" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{prover.name}</h3>
+                        <span className="text-xs text-foreground-tertiary font-mono">{prover.address}</span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold">{prover.name}</h3>
-                      <span className="text-xs text-foreground-tertiary font-mono">{prover.address}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-success rounded-full" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-success rounded-full" />
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-foreground-secondary">{t('provers.fields.uptime')}</span>
-                    <span className={cn('font-mono font-semibold', getUptimeColor(prover.uptime))}>
-                      {prover.uptime}%
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-foreground-secondary">{t('provers.fields.uptime')}</span>
+                      <span className={cn('font-mono font-semibold', getUptimeColor(prover.uptime))}>
+                        {prover.uptime}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-foreground-secondary">{t('provers.fields.responseTime')}</span>
+                      <span className="font-mono">{prover.responseTime}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-foreground-secondary">{t('provers.fields.signatures')}</span>
+                      <span className="font-mono">{prover.signaturesCount.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-foreground-secondary">{t('provers.fields.stake')}</span>
+                      <span className="font-mono">{prover.stake} ETH</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-border/50">
+                    <span className="text-xs text-foreground-tertiary">
+                      {t('provers.fields.lastActive')}: {prover.lastActive}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-foreground-secondary">{t('provers.fields.responseTime')}</span>
-                    <span className="font-mono">{prover.responseTime}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-foreground-secondary">{t('provers.fields.signatures')}</span>
-                    <span className="font-mono">{prover.signaturesCount.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-foreground-secondary">{t('provers.fields.stake')}</span>
-                    <span className="font-mono">{prover.stake} ETH</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border/50">
-                  <span className="text-xs text-foreground-tertiary">
-                    {t('provers.fields.lastActive')}: {prover.lastActive}
-                  </span>
-                </div>
-              </Card>
+                </Card>
+              </Link>
             ))}
           </div>
 

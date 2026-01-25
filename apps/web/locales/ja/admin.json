@@ -37,9 +37,18 @@
         "infrastructure": "インフラ",
         "licenseCompanies": "ライセンス企業",
         "licenseProjects": "導入プロジェクト",
+        "licensees": "ライセンシー",
+        "updates": "アップデート配信",
+        "licenseeSupport": "サポート管理",
+        "licenseeBilling": "請求管理",
         "members": "メンバー管理",
         "auditLog": "監査ログ",
         "security": "セキュリティ"
+      },
+      "user": {
+        "initial": "松",
+        "name": "松本さん",
+        "role": "スーパー管理者"
       }
     },
     "integratedDashboard": {
@@ -101,6 +110,24 @@
       "recentActivity": {
         "title": "最近のアクティビティ",
         "viewAll": "全て表示"
+      },
+      "publicTab": {
+        "title": "パブリック版管理",
+        "description": "左のサイドバーから各管理画面にアクセスしてください",
+        "proverManagement": "Prover管理",
+        "protocolMonitoring": "プロトコル監視"
+      },
+      "saasTab": {
+        "title": "企業版SaaS管理",
+        "description": "左のサイドバーから各管理画面にアクセスしてください",
+        "operatorManagement": "運営企業管理",
+        "billingManagement": "課金管理"
+      },
+      "licenseTab": {
+        "title": "技術譲渡管理",
+        "description": "左のサイドバーから各管理画面にアクセスしてください",
+        "licensedCompanies": "ライセンス企業",
+        "projects": "導入プロジェクト"
       }
     },
     "publicObservers": {
@@ -1373,19 +1400,23 @@
       "stats": {
         "tvl": {
           "label": "Total Value Locked",
-          "change": "(24h)"
+          "change": "(24h)",
+          "tooltip": "Quantum Shieldプロトコルにロックされた全資産の総額です。全ユーザー、全チェーンを含みます。"
         },
         "provers": {
           "label": "Active Provers",
-          "healthy": "Healthy"
+          "healthy": "Healthy",
+          "tooltip": "Proverノードは量子耐性署名を検証し、STARK証明を生成します。オンライン数/総数を表示します。"
         },
         "pendingUnlocks": {
           "label": "Pending Unlocks",
-          "attention": "require attention"
+          "attention": "require attention",
+          "tooltip": "24時間タイムロックの満了待ち、または手動レビュー待ちのアンロック要求です。"
         },
         "alerts": {
           "label": "Active Alerts",
-          "highPriority": "high priority"
+          "highPriority": "high priority",
+          "tooltip": "SLA警告やセキュリティイベントなど、オペレーターの対応が必要なシステムアラートです。"
         }
       },
       "systemStatus": {
@@ -3725,6 +3756,333 @@
           "daily": "毎日",
           "weekly": "毎週"
         }
+      }
+    },
+    "licensees": {
+      "meta": {
+        "title": "技術譲渡先一覧 | QS Admin",
+        "description": "技術譲渡先企業の管理"
+      },
+      "title": "技術譲渡先一覧",
+      "subtitle": "技術ライセンス企業の管理",
+      "stats": {
+        "total": "総ライセンス数",
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "monthlyRevenue": "月間保守料収益"
+      },
+      "searchPlaceholder": "企業名、国で検索...",
+      "searchAriaLabel": "技術譲渡先を検索",
+      "filters": {
+        "all": "すべて",
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "pending": "審査中"
+      },
+      "tableTitle": "技術譲渡先企業",
+      "tableAriaLabel": "技術譲渡先一覧テーブル",
+      "table": {
+        "company": "企業名",
+        "type": "ライセンスタイプ",
+        "status": "ステータス",
+        "nodes": "ノード数",
+        "provers": "Prover",
+        "observers": "Observer",
+        "monthlyFee": "月額保守料",
+        "expiry": "契約終了日",
+        "tickets": "サポート",
+        "actions": "アクション"
+      },
+      "status": {
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "pending": "審査中",
+        "expired": "期限切れ"
+      },
+      "type": {
+        "standard": "Standard",
+        "enterprise": "Enterprise"
+      },
+      "actions": {
+        "view": "詳細を見る",
+        "suspend": "停止する",
+        "reactivate": "再開する"
+      },
+      "empty": {
+        "title": "技術譲渡先がありません",
+        "description": "条件に一致する企業が見つかりませんでした"
+      },
+      "suspendModal": {
+        "title": "ライセンス停止の確認",
+        "description": "この企業のライセンスを停止しますか？停止するとすべてのノードが即座に停止されます。",
+        "securityCouncilNote": "⚠️ この操作にはSecurity Councilの承認が必要です",
+        "cancel": "キャンセル",
+        "confirm": "停止を申請"
+      },
+      "reactivateModal": {
+        "title": "ライセンス再開の確認",
+        "description": "この企業のライセンスを再開しますか？再開するとすべてのノードが運用可能になります。",
+        "cancel": "キャンセル",
+        "confirm": "再開する"
+      }
+    },
+    "licenseeDetail": {
+      "meta": {
+        "title": "技術譲渡先詳細 | QS Admin",
+        "description": "技術譲渡先企業の詳細情報"
+      },
+      "backToLicensees": "一覧に戻る",
+      "supportButton": "サポート",
+      "suspendButton": "停止する",
+      "reactivateButton": "再開する",
+      "monthlyFee": "月額保守料",
+      "type": {
+        "standard": "Standard",
+        "enterprise": "Enterprise"
+      },
+      "status": {
+        "active": "アクティブ",
+        "suspended": "停止中"
+      },
+      "tabs": {
+        "overview": "概要",
+        "nodes": "ノード",
+        "compliance": "コンプライアンス",
+        "activity": "アクティビティ"
+      },
+      "contract": {
+        "title": "契約情報",
+        "startDate": "契約開始日",
+        "expiryDate": "契約終了日",
+        "proverNodes": "Proverノード数",
+        "observerNodes": "Observerノード数"
+      },
+      "contact": {
+        "title": "連絡先",
+        "name": "担当者名",
+        "email": "メールアドレス",
+        "phone": "電話番号"
+      },
+      "technical": {
+        "title": "技術情報",
+        "explorer": "Explorer URL",
+        "viewExplorer": "Explorerを開く",
+        "version": "プロトコルバージョン",
+        "lastUpdate": "最終更新日",
+        "lastSync": "最終同期"
+      },
+      "nodes": {
+        "provers": "Proverノード",
+        "observers": "Observerノード",
+        "uptime": "稼働率",
+        "challenges": "Challenge数"
+      },
+      "compliance": {
+        "title": "コンプライアンス状況",
+        "explorerPublic": "Explorer公開",
+        "explorerPublicDesc": "一般向けExplorerが公開されていること",
+        "auditReport": "監査レポート",
+        "lastAudit": "最終監査日",
+        "designSystem": "デザインシステム準拠",
+        "designSystemDesc": "Japan Premiumデザインシステムに準拠していること"
+      },
+      "activity": {
+        "title": "最近のアクティビティ"
+      }
+    },
+    "licenseeSupport": {
+      "meta": {
+        "title": "Licenseeサポート | QS Admin",
+        "description": "技術譲渡先へのサポート対応"
+      },
+      "backToDetail": "詳細に戻る",
+      "newTicket": "新規チケット",
+      "supportFor": "サポート対応",
+      "tickets": "サポートチケット",
+      "ticketStatus": {
+        "open": "未対応",
+        "in_progress": "対応中",
+        "resolved": "解決済み",
+        "closed": "クローズ"
+      },
+      "ticketPriority": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "critical": "緊急"
+      },
+      "updatedAt": "更新日",
+      "assignee": "担当",
+      "resolve": "解決済みにする",
+      "escalate": "エスカレート",
+      "messagePlaceholder": "メッセージを入力..."
+    },
+    "support": {
+      "meta": {
+        "title": "サポートチケット | QS Admin",
+        "description": "全Licenseeのサポートチケット管理"
+      },
+      "stats": {
+        "total": "総チケット数",
+        "open": "未対応",
+        "inProgress": "対応中",
+        "avgResponseTime": "平均応答時間"
+      },
+      "searchPlaceholder": "チケットID、件名、企業名で検索...",
+      "searchAriaLabel": "チケットを検索",
+      "filters": {
+        "all": "すべて",
+        "open": "未対応",
+        "in_progress": "対応中",
+        "resolved": "解決済み"
+      },
+      "priorityFilters": {
+        "all": "優先度",
+        "critical": "緊急",
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "tableTitle": "サポートチケット",
+      "tableAriaLabel": "サポートチケット一覧",
+      "table": {
+        "ticket": "チケット",
+        "licensee": "Licensee",
+        "status": "ステータス",
+        "priority": "優先度",
+        "assignee": "担当",
+        "responseTime": "応答時間",
+        "updated": "更新日"
+      },
+      "status": {
+        "open": "未対応",
+        "in_progress": "対応中",
+        "resolved": "解決済み",
+        "closed": "クローズ"
+      },
+      "priority": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "critical": "緊急"
+      },
+      "empty": {
+        "title": "チケットがありません",
+        "description": "条件に一致するチケットが見つかりませんでした"
+      }
+    },
+    "updates": {
+      "meta": {
+        "title": "アップデート管理 | QS Admin",
+        "description": "プロトコルアップデートの配信管理"
+      },
+      "stats": {
+        "latestVersion": "最新バージョン",
+        "upToDate": "最新版適用済み",
+        "outdated": "更新必要",
+        "pending": "更新予定"
+      },
+      "tabs": {
+        "releases": "リリース",
+        "licensees": "Licensee適用状況"
+      },
+      "newRelease": "新規リリース",
+      "releaseType": {
+        "major": "メジャー",
+        "minor": "マイナー",
+        "patch": "パッチ",
+        "security": "セキュリティ"
+      },
+      "criticalFixes": "重要修正",
+      "latest": "最新",
+      "changelog": "変更内容",
+      "pushUpdate": "更新を配信",
+      "licenseeVersions": "Licenseeバージョン状況",
+      "tableAriaLabel": "バージョン状況テーブル",
+      "table": {
+        "licensee": "Licensee",
+        "currentVersion": "現在のバージョン",
+        "targetVersion": "目標バージョン",
+        "status": "ステータス",
+        "lastUpdated": "最終更新",
+        "scheduled": "更新予定日",
+        "actions": "アクション"
+      },
+      "status": {
+        "latest": "最新版",
+        "pending": "更新予定",
+        "outdated": "更新必要",
+        "critical": "緊急更新必要"
+      },
+      "scheduleUpdate": "更新を予約"
+    },
+    "billing": {
+      "meta": {
+        "title": "収益管理 | QS Admin",
+        "description": "保守料収益と請求管理"
+      },
+      "stats": {
+        "monthlyRevenue": "月間収益",
+        "vsLastMonth": "先月比",
+        "yearlyRevenue": "年間収益",
+        "pendingPayments": "未払い",
+        "overduePayments": "延滞"
+      },
+      "tabs": {
+        "overview": "概要",
+        "invoices": "請求書"
+      },
+      "revenueChart": {
+        "title": "収益推移"
+      },
+      "revenueByLicensee": {
+        "title": "Licensee別収益"
+      },
+      "paymentMethods": {
+        "title": "支払方法",
+        "bankTransfer": "銀行振込",
+        "bankTransferDesc": "月末締め翌月払い",
+        "crypto": "暗号資産",
+        "cryptoDesc": "USDC/ETH対応"
+      },
+      "invoices": {
+        "title": "請求書一覧",
+        "tableAriaLabel": "請求書テーブル",
+        "table": {
+          "invoice": "請求書番号",
+          "licensee": "Licensee",
+          "period": "対象期間",
+          "amount": "金額",
+          "dueDate": "支払期限",
+          "status": "ステータス",
+          "actions": "アクション"
+        },
+        "sendReminder": "リマインダー送信"
+      },
+      "filters": {
+        "all": "すべて",
+        "pending": "未払い",
+        "overdue": "延滞",
+        "paid": "支払済み"
+      },
+      "status": {
+        "paid": "支払済み",
+        "pending": "未払い",
+        "overdue": "延滞"
+      }
+    },
+    "states": {
+      "loading": {
+        "default": "読み込み中...",
+        "licensees": "ライセンシー情報を読み込み中...",
+        "support": "サポート情報を読み込み中...",
+        "billing": "請求情報を読み込み中...",
+        "updates": "アップデート情報を読み込み中..."
+      },
+      "error": {
+        "title": "読み込みエラー",
+        "description": "データの取得中にエラーが発生しました。再度お試しください。",
+        "retry": "再試行"
       }
     }
   }

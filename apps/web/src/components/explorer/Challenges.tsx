@@ -242,7 +242,7 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-background-secondary border border-border rounded-lg px-4 py-2 text-sm"
+              className="min-h-11 bg-background-secondary border border-border rounded-lg px-4 py-2 text-sm"
             >
               <option value="all">{t('challenges.filters.all')}</option>
               <option value="active">{t('challenges.filters.active')}</option>
@@ -268,13 +268,37 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
                       {t('challenges.table.amount')}
                     </th>
                     <th className="text-left text-xs font-semibold text-foreground-tertiary uppercase tracking-wider px-6 py-4">
-                      {t('challenges.table.bond')}
+                      <div className="flex items-center gap-1">
+                        {t('challenges.table.bond')}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('challenges.tooltip.bondAriaLabel')}>
+                              <HelpCircle className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>{t('challenges.tooltip.bond')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </th>
                     <th className="text-left text-xs font-semibold text-foreground-tertiary uppercase tracking-wider px-6 py-4">
                       {t('challenges.table.deadline')}
                     </th>
                     <th className="text-left text-xs font-semibold text-foreground-tertiary uppercase tracking-wider px-6 py-4">
-                      {t('challenges.table.status')}
+                      <div className="flex items-center gap-1">
+                        {t('challenges.table.status')}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('challenges.tooltip.statusAriaLabel')}>
+                              <HelpCircle className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>{t('challenges.tooltip.status')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </th>
                   </tr>
                 </thead>

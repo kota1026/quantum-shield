@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
+import { GraduationCap, X, Info } from 'lucide-react';
 import { ObserverHeader } from './ObserverHeader';
 import { ObserverStatCard } from './ObserverStatCard';
 import { PendingUnlocksTable } from './PendingUnlocksTable';
@@ -10,6 +12,25 @@ import { EarningsSidebar } from './EarningsSidebar';
 import { ChallengeStatsSidebar } from './ChallengeStatsSidebar';
 import { ActiveChallengesSidebar } from './ActiveChallengesSidebar';
 import { ObserverStakeSidebar } from './ObserverStakeSidebar';
+
+// Mock user data - In production, this would come from API
+const mockObserverData = {
+  registrationDate: new Date('2026-01-01'),
+  practicePeriodMonths: 3,
+};
+
+// Calculate if user is still in practice period
+const calculatePracticeMode = () => {
+  const now = new Date();
+  const registrationDate = mockObserverData.registrationDate;
+  const practiceEndDate = new Date(registrationDate);
+  practiceEndDate.setMonth(practiceEndDate.getMonth() + mockObserverData.practicePeriodMonths);
+
+  const isInPracticePeriod = now < practiceEndDate;
+  const daysRemaining = Math.ceil((practiceEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  return { isInPracticePeriod, daysRemaining, practiceEndDate };
+};
 
 // Mock data - In production, this would come from API
 const mockPendingUnlocks = [
@@ -83,6 +104,8 @@ const mockActiveChallenges = [
 
 export function ObserverDashboard() {
   const t = useTranslations('observer.dashboard');
+  const [showPracticeBanner, setShowPracticeBanner] = useState(true);
+  const { isInPracticePeriod, daysRemaining } = calculatePracticeMode();
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,11 +129,59 @@ export function ObserverDashboard() {
         {/* Header */}
         <ObserverHeader />
 
+        {/* Practice Mode Banner */}
+        {isInPracticePeriod && showPracticeBanner && (
+          <div
+            className={cn(
+              'flex items-center gap-4 mb-6 px-5 py-4',
+              'bg-gold/10 border border-gold/50 rounded-xl'
+            )}
+            role="alert"
+            aria-label={t('practiceMode.ariaLabel')}
+          >
+            <div className="flex items-center justify-center w-10 h-10 bg-gold/20 rounded-full flex-shrink-0">
+              <GraduationCap className="w-5 h-5 text-gold" aria-hidden="true" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold text-gold">{t('practiceMode.title')}</span>
+                <span className="px-2 py-0.5 bg-gold/20 rounded text-xs font-medium text-gold">
+                  {t('practiceMode.daysRemaining', { days: daysRemaining })}
+                </span>
+              </div>
+              <p className="text-sm text-foreground-secondary">
+                {t('practiceMode.description')}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPracticeBanner(false)}
+              className="p-2 hover:bg-gold/10 rounded-lg transition-colors"
+              aria-label={t('practiceMode.dismiss')}
+            >
+              <X className="w-4 h-4 text-foreground-tertiary" aria-hidden="true" />
+            </button>
+          </div>
+        )}
+
         {/* Page Header */}
         <div className="flex justify-between items-center mb-10">
-          <h1 className="text-[32px] font-bold text-foreground tracking-tight">
-            {t('pageTitle')}
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-[32px] font-bold text-foreground tracking-tight">
+              {t('pageTitle')}
+            </h1>
+            {isInPracticePeriod && (
+              <span
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5',
+                  'bg-gold/15 border border-gold/50 rounded-full',
+                  'text-gold text-xs font-semibold'
+                )}
+              >
+                <GraduationCap className="w-3.5 h-3.5" aria-hidden="true" />
+                {t('practiceMode.badge')}
+              </span>
+            )}
+          </div>
           <div
             className={cn(
               'flex items-center gap-2 px-5 py-2.5',

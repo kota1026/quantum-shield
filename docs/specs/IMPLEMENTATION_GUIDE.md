@@ -15,6 +15,7 @@
    - 3.8 [セキュリティパターン](#38-セキュリティパターンmust)
    - 3.9 [エラーハンドリングパターン](#39-エラーハンドリングパターンmust)
    - 3.10 [型定義の場所](#310-型定義の場所must)
+   - 3.11 [認証フローパターン](#311-認証フローパターンmust)
 4. [Consumer App](#4-consumer-app)
 5. [Token Hub](#5-token-hub)
 6. [Governance](#6-governance)
@@ -677,6 +678,168 @@ export interface User {
   dilithiumPubkey?: string;
   createdAt: string;
 }
+```
+
+### 3.11 認証フローパターン（MUST）
+
+#### 3.11.1 各アプリの認証フロー
+
+全アプリでRainbowKit + wagmiを使用してウォレット接続を行う。
+
+| アプリ | フロー | 接続後の遷移 | 登録確認 |
+|--------|--------|--------------|:--------:|
+| Consumer | Landing → Onboarding → RainbowKit | Dashboard | 不要 |
+| Token Hub | Landing → Login → RainbowKit | Dashboard | 不要 |
+| Governance | Landing → Login → RainbowKit | Proposals | 不要 |
+| Prover | Landing → Login → RainbowKit → 登録確認 | Dashboard | 必要 |
+| Observer | Landing → Login → RainbowKit → 登録確認 | Dashboard | 必要 |
+| Explorer | Landing → Dashboard | - | 不要（認証不要） |
+| Enterprise | Landing → Login → RainbowKit | Dashboard | 別途KYB |
+| QS Admin | 内部認証 | Dashboard | 別途認証 |
+
+#### 3.11.2 共通Loginコンポーネントパターン
+
+```typescript
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from '@/i18n/navigation';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
+
+// 標準パターン（Token Hub, Governance）
+export function LoginScreen() {
+  const router = useRouter();
+  const { openConnectModal } = useConnectModal();
+  const { isConnected, isConnecting } = useAccount();
+
+  useEffect(() => {
+    if (isConnected) {
+      // 接続成功 → ダッシュボードへ
+      const timer = setTimeout(() => {
+        router.push('/{app}/dashboard');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, router]);
+
+  const handleWalletConnect = () => {
+    if (openConnectModal) {
+      openConnectModal();
+    }
+  };
+
+  // UI実装...
+}
+```
+
+#### 3.11.3 登録確認パターン（Prover/Observer用）
+
+```typescript
+type RegistrationState = 'checking' | 'registered' | 'not-registered';
+
+export function LoginWithRegistrationCheck() {
+  const router = useRouter();
+  const { openConnectModal } = useConnectModal();
+  const { isConnected, isConnecting, address } = useAccount();
+  const [registrationState, setRegistrationState] = useState<RegistrationState | null>(null);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      setRegistrationState('checking');
+
+      const checkRegistration = async () => {
+        // 実際はAPIで登録状況を確認
+        const response = await fetch(`/api/{app}/check-registration?address=${address}`);
+        const { isRegistered } = await response.json();
+
+        if (isRegistered) {
+          setRegistrationState('registered');
+          setTimeout(() => router.push('/{app}/dashboard'), 1500);
+        } else {
+          setRegistrationState('not-registered');
+        }
+      };
+
+      checkRegistration();
+    }
+  }, [isConnected, address, router]);
+
+  // 状態別UI:
+  // - checking: ローディング表示
+  // - registered: 成功表示 → ダッシュボードへ遷移
+  // - not-registered: 登録申請ボタン表示
+}
+```
+
+#### 3.11.4 必須インポート
+
+```typescript
+// RainbowKit
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+
+// wagmi
+import { useAccount } from 'wagmi';
+
+// i18n対応ルーター
+import { useRouter } from '@/i18n/navigation';
+
+// 翻訳
+import { useTranslations, useLocale } from 'next-intl';
+```
+
+#### 3.11.5 翻訳キー構造
+
+```json
+{
+  "{app}": {
+    "login": {
+      "title": "ログイン",
+      "description": "ウォレットを接続して開始",
+      "backToLanding": "戻る",
+      "selectWallet": "ウォレットを選択",
+      "popular": "人気",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
+      "connecting": {
+        "title": "接続中...",
+        "walletPrompt": "ウォレットで接続を承認してください"
+      },
+      "checking": {
+        "title": "登録状況を確認中...",
+        "description": "登録されているか確認しています"
+      },
+      "success": {
+        "title": "ログイン成功",
+        "description": "ダッシュボードに移動します..."
+      },
+      "notRegistered": {
+        "title": "未登録",
+        "description": "このウォレットは登録されていません",
+        "applyButton": "登録申請",
+        "tryAnotherWallet": "別のウォレットで試す"
+      },
+      "noWallet": "ウォレットをお持ちでない方は",
+      "getWallet": "ウォレットを取得",
+      "footer": "© 2026 Quantum Shield"
+    }
+  }
+}
+```
+
+#### 3.11.6 認証フローチェックリスト
+
+```
+□ useConnectModal + useAccount を使用しているか？
+□ isConnecting 状態でローディング表示しているか？
+□ isConnected 後に適切な遷移があるか？
+□ Prover/Observerで登録確認を行っているか？
+□ 戻るボタン（Landing への導線）があるか？
+□ 言語切替ボタンがあるか？
+□ 翻訳キーが ja/en 両方にあるか？
 ```
 
 ---

@@ -73,7 +73,7 @@ export function ApiKeyCreate({ className }: ApiKeyCreateProps) {
         >
           <Link
             href="/enterprise/api-keys"
-            className="w-9 h-9 flex items-center justify-center bg-background-primary border border-white/10 rounded-lg text-text-secondary hover:bg-white/5"
+            className="w-11 h-11 flex items-center justify-center bg-background-primary border border-white/10 rounded-lg text-text-secondary hover:bg-white/5"
             aria-label={t('backToList')}
           >
             ←

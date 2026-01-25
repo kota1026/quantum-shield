@@ -2,7 +2,7 @@
 
 > **目的**: 全画面を統一基準でチェックし、品質を担保する
 > **作成日**: 2026-01-22
-> **最終更新**: 2026-01-22
+> **最終更新**: 2026-01-24（品質監査実施・Consumer/Token Hub/Governance/Prover/Observer結果反映）
 
 ---
 
@@ -77,7 +77,22 @@
 | T7 | モーダル/ドロワー | 開閉が正常か？閉じた後の状態は正しいか？ |
 | T8 | フォーム | 送信後の遷移先は正しいか？ |
 
-### 2.3 DESIGN_SYSTEM.md準拠
+### 2.3 認証フローチェック
+
+認証・ウォレット接続が正しく実装されているか確認。
+
+| # | チェック項目 | 説明 |
+|:-:|-------------|------|
+| A1 | RainbowKit使用 | `useConnectModal` + `useAccount` を使用しているか？ |
+| A2 | 接続状態表示 | `isConnecting` 時にローディング表示があるか？ |
+| A3 | 接続後遷移 | `isConnected` 後に正しい画面へ遷移するか？ |
+| A4 | 登録確認 | Prover/Observerで登録確認APIを呼んでいるか？ |
+| A5 | 未登録対応 | 未登録時に申請ページへの導線があるか？ |
+| A6 | Landingへ戻る | Login画面からLandingへ戻れるか？ |
+| A7 | 言語切替 | Login画面で言語切替可能か？ |
+| A8 | 翻訳完備 | ja/en両方のlogin翻訳キーがあるか？ |
+
+### 2.4 DESIGN_SYSTEM.md準拠
 
 デザインシステムに準拠しているか確認。
 
@@ -101,98 +116,101 @@
 
 ### 3.1 全体進捗
 
-| System | Total | Done | Progress | Status |
-|--------|:-----:|:----:|:--------:|:------:|
-| Consumer App | 19 | 0 | 0% | 🔄 In Progress |
-| Token Hub | 16 | 0 | 0% | ⬜ Pending |
-| Governance | 6 | 0 | 0% | ⬜ Pending |
-| Prover Portal | 9 | 0 | 0% | ⬜ Pending |
-| Observer | 7 | 0 | 0% | ⬜ Pending |
-| Explorer | 9 | 0 | 0% | ⬜ Pending |
-| Enterprise Admin | 33 | 0 | 0% | ⬜ Pending |
-| QS Admin | 61 | 0 | 0% | ⬜ Pending |
-| **Total** | **160** | **0** | **0%** | |
+| System | Total | 監査済 | Progress | Status | 高優先度 | 中優先度 |
+|--------|:-----:|:------:|:--------:|:------:|:--------:|:--------:|
+| Consumer App | 19 | 3 | 16% | ⚠️ 修正必要 | 2件 | 3件 |
+| Token Hub | 16 | 5 | 31% | ⚠️ 修正必要 | 3件 | 1件 |
+| Governance | 6 | 6 | 100% | ⚠️ 修正必要 | 2件 | 3件 |
+| Prover Portal | 9 | 1 | 11% | ✅ OK | 0件 | 0件 |
+| Observer | 7 | 1 | 14% | ✅ OK | 0件 | 0件 |
+| Explorer | 9 | 0 | 0% | ⬜ Pending | - | - |
+| Enterprise Admin | 33 | 0 | 0% | ⬜ Pending | - | - |
+| QS Admin | 61 | 0 | 0% | ⬜ Pending | - | - |
+| **Total** | **160** | **16** | **10%** | | **7件** | **7件** |
 
 ### 3.2 Consumer App 詳細
 
-| # | 画面 | URL | J | T | D | Status | Issues |
-|:-:|------|-----|:-:|:-:|:-:|:------:|--------|
-| 1 | Landing | /consumer/landing | ⬜ | ⬜ | ⬜ | Pending | |
-| 2 | Dashboard | /consumer/dashboard | ⬜ | ⬜ | ⬜ | Pending | |
-| 3 | Lock | /consumer/lock | ⬜ | ⬜ | ⬜ | Pending | |
-| 4 | Lock Confirm | /consumer/lock/confirm | ⬜ | ⬜ | ⬜ | Pending | |
-| 5 | Lock Processing | /consumer/lock/processing | ⬜ | ⬜ | ⬜ | Pending | |
-| 6 | Lock Complete | /consumer/lock/complete | ⬜ | ⬜ | ⬜ | Pending | |
-| 7 | Unlock | /consumer/unlock | ⬜ | ⬜ | ⬜ | Pending | |
-| 8 | Unlock Confirm | /consumer/unlock/confirm | ⬜ | ⬜ | ⬜ | Pending | |
-| 9 | Unlock Processing | /consumer/unlock/processing | ⬜ | ⬜ | ⬜ | Pending | |
-| 10 | Unlock Complete | /consumer/unlock/complete | ⬜ | ⬜ | ⬜ | Pending | |
-| 11 | Emergency Unlock | /consumer/emergency-unlock | ⬜ | ⬜ | ⬜ | Pending | |
-| 12 | History | /consumer/history | ⬜ | ⬜ | ⬜ | Pending | |
-| 13 | History Detail | /consumer/history/[id] | ⬜ | ⬜ | ⬜ | Pending | |
-| 14 | Notifications | /consumer/notifications | ⬜ | ⬜ | ⬜ | Pending | |
-| 15 | Settings | /consumer/settings | ⬜ | ⬜ | ⬜ | Pending | |
-| 16 | Settings Security | /consumer/settings/security | ⬜ | ⬜ | ⬜ | Pending | |
-| 17 | Settings Keys | /consumer/settings/keys | ⬜ | ⬜ | ⬜ | Pending | |
-| 18 | Help | /consumer/help | ⬜ | ⬜ | ⬜ | Pending | |
-| 19 | Onboarding | /consumer/onboarding | ⬜ | ⬜ | ⬜ | Pending | |
+| # | 画面 | URL | J | T | A | D | Status | Issues |
+|:-:|------|-----|:-:|:-:|:-:|:-:|:------:|--------|
+| 1 | Landing | /consumer/landing | ✅ | ✅ | - | ⚠️ | ⚠️ 修正必要 | D4: 複数primaryボタン, D8: 一部tooltip不足 |
+| 2 | Dashboard | /consumer/dashboard | ✅ | ❌ | - | ⚠️ | ⚠️ 修正必要 | T3: 戻るボタンなし, D9: StatCard要確認, T6: アイコンサイズ不統一 |
+| 3 | Lock | /consumer/lock | ✅ | ✅ | - | ✅ | ✅ Done | |
+| 4 | Lock Confirm | /consumer/lock/confirm | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 5 | Lock Processing | /consumer/lock/processing | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 6 | Lock Complete | /consumer/lock/complete | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 7 | Unlock | /consumer/unlock | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 8 | Unlock Confirm | /consumer/unlock/confirm | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 9 | Unlock Processing | /consumer/unlock/processing | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 10 | Unlock Complete | /consumer/unlock/complete | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 11 | Emergency Unlock | /consumer/emergency-unlock | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 12 | History | /consumer/history | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 13 | History Detail | /consumer/history/[id] | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 14 | Notifications | /consumer/notifications | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 15 | Settings | /consumer/settings | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 16 | Settings Security | /consumer/settings/security | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 17 | Settings Keys | /consumer/settings/keys | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 18 | Help | /consumer/help | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 19 | Onboarding | /consumer/onboarding | ⬜ | ⬜ | - | ⬜ | Pending | |
 
 ### 3.3 Token Hub 詳細
 
-| # | 画面 | URL | J | T | D | Status | Issues |
-|:-:|------|-----|:-:|:-:|:-:|:------:|--------|
-| 1 | Landing | /token-hub/landing | ⬜ | ⬜ | ⬜ | Pending | |
-| 2 | Dashboard | /token-hub/dashboard | ⬜ | ⬜ | ⬜ | Pending | |
-| 3 | Stake | /token-hub/stake | ⬜ | ⬜ | ⬜ | Pending | |
-| 4 | Stake Confirm | /token-hub/stake/confirm | ⬜ | ⬜ | ⬜ | Pending | |
-| 5 | Unstake | /token-hub/unstake | ⬜ | ⬜ | ⬜ | Pending | |
-| 6 | Rewards | /token-hub/rewards | ⬜ | ⬜ | ⬜ | Pending | |
-| 7 | Rewards Claim | /token-hub/rewards/claim | ⬜ | ⬜ | ⬜ | Pending | |
-| 8 | Delegate | /token-hub/delegate | ⬜ | ⬜ | ⬜ | Pending | |
-| 9 | Governance Power | /token-hub/governance-power | ⬜ | ⬜ | ⬜ | Pending | |
-| 10 | History | /token-hub/history | ⬜ | ⬜ | ⬜ | Pending | |
-| 11 | Analytics | /token-hub/analytics | ⬜ | ⬜ | ⬜ | Pending | |
-| 12 | Settings | /token-hub/settings | ⬜ | ⬜ | ⬜ | Pending | |
-| 13 | Lock Preview | /token-hub/lock-preview | ⬜ | ⬜ | ⬜ | Pending | |
-| 14 | Onboarding | /token-hub/onboarding | ⬜ | ⬜ | ⬜ | Pending | |
-| 15 | Unlock | /token-hub/unlock | ⬜ | ⬜ | ⬜ | Pending | |
-| 16 | Rewards History | /token-hub/rewards/history | ⬜ | ⬜ | ⬜ | Pending | |
+| # | 画面 | URL | J | T | A | D | Status | Issues |
+|:-:|------|-----|:-:|:-:|:-:|:-:|:------:|--------|
+| 1 | Landing | /token-hub/landing | ✅ | ✅ | - | ✅ | ✅ Done | |
+| 2 | **Login** | /token-hub/login | ✅ | ✅ | ✅ | ✅ | ✅ Done | RainbowKit統一済 |
+| 3 | Dashboard | /token-hub/dashboard | ✅ | ✅ | - | ⚠️ | ⚠️ 修正必要 | D4: アクションボタン4つが同等重要度 |
+| 4 | Lock | /token-hub/lock | ✅ | ❌ | - | ❌ | ⚠️ 修正必要 | T3: 戻るボタンなし, D9: QuickAmount/Duration<44px |
+| 5 | Unlock | /token-hub/unlock | ✅ | ❌ | - | ✅ | ⚠️ 修正必要 | T3: 戻るボタンなし |
+| 6 | Rewards | /token-hub/rewards | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 7 | Rewards Claim | /token-hub/rewards/claim | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 8 | Delegate | /token-hub/delegate | ✅ | ❌ | - | ⚠️ | ⚠️ 修正必要 | T3: 戻るボタンなし, D9: Filterボタン<44px |
+| 9 | Governance Power | /token-hub/governance-power | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 10 | History | /token-hub/history | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 11 | Analytics | /token-hub/analytics | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 12 | Settings | /token-hub/settings | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 13 | Lock Preview | /token-hub/lock-preview | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 14 | Onboarding | /token-hub/onboarding | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 15 | Rewards History | /token-hub/rewards/history | ⬜ | ⬜ | - | ⬜ | Pending | |
 
 ### 3.4 Governance 詳細
 
-| # | 画面 | URL | J | T | D | Status | Issues |
-|:-:|------|-----|:-:|:-:|:-:|:------:|--------|
-| 1 | Landing | /governance/landing | ⬜ | ⬜ | ⬜ | Pending | |
-| 2 | Proposals | /governance/proposals | ⬜ | ⬜ | ⬜ | Pending | |
-| 3 | Proposal Detail | /governance/proposals/[id] | ⬜ | ⬜ | ⬜ | Pending | |
-| 4 | Proposal Create | /governance/proposals/create | ⬜ | ⬜ | ⬜ | Pending | |
-| 5 | Delegates | /governance/delegates | ⬜ | ⬜ | ⬜ | Pending | |
-| 6 | My Votes | /governance/my-votes | ⬜ | ⬜ | ⬜ | Pending | |
+| # | 画面 | URL | J | T | A | D | Status | Issues |
+|:-:|------|-----|:-:|:-:|:-:|:-:|:------:|--------|
+| 1 | Landing | /governance/landing | ✅ | ✅ | - | ✅ | ✅ Done | |
+| 2 | **Login** | /governance/login | ✅ | ✅ | ✅ | ✅ | ✅ Done | RainbowKit統一済 |
+| 3 | Dashboard | /governance/dashboard | ✅ | ✅ | - | ⚠️ | ⚠️ 修正必要 | D8: title属性のみ(SimpleTooltip未使用) |
+| 4 | Proposals | /governance/proposals | ✅ | ✅ | - | ✅ | ✅ Done | |
+| 5 | Proposal Detail | /governance/proposals/[id] | ✅ | ✅ | - | ✅ | ✅ Done | |
+| 6 | Council | /governance/council | ✅ | ✅ | - | ⚠️ | ⚠️ 修正必要 | D8: カスタムtooltip(SimpleTooltip未使用) |
+| 7 | Create Proposal | /governance/proposals/create | ✅ | ✅ | - | ⚠️ | ⚠️ 修正必要 | D8: veQS/Quorum説明不足 |
+| 8 | My Activity | /governance/my-activity | ✅ | ❌ | - | ⚠️ | ⚠️ 修正必要 | T3: 戻るボタンなし, D8: veQS説明なし |
 
 ### 3.5 Prover Portal 詳細
 
-| # | 画面 | URL | J | T | D | Status | Issues |
-|:-:|------|-----|:-:|:-:|:-:|:------:|--------|
-| 1 | Landing | /prover/landing | ⬜ | ⬜ | ⬜ | Pending | |
-| 2 | Dashboard | /prover/dashboard | ⬜ | ⬜ | ⬜ | Pending | |
-| 3 | Register | /prover/register | ⬜ | ⬜ | ⬜ | Pending | |
-| 4 | Node Setup | /prover/node-setup | ⬜ | ⬜ | ⬜ | Pending | |
-| 5 | Signatures | /prover/signatures | ⬜ | ⬜ | ⬜ | Pending | |
-| 6 | Earnings | /prover/earnings | ⬜ | ⬜ | ⬜ | Pending | |
-| 7 | Stake | /prover/stake | ⬜ | ⬜ | ⬜ | Pending | |
-| 8 | Settings | /prover/settings | ⬜ | ⬜ | ⬜ | Pending | |
-| 9 | Alerts | /prover/alerts | ⬜ | ⬜ | ⬜ | Pending | |
+| # | 画面 | URL | J | T | A | D | Status | Issues |
+|:-:|------|-----|:-:|:-:|:-:|:-:|:------:|--------|
+| 1 | Landing | /prover/landing | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 2 | **Login** | /prover/login | ✅ | ✅ | ✅ | ✅ | ✅ Done | RainbowKit+登録確認フロー実装済 |
+| 3 | Dashboard | /prover/dashboard | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 4 | Application | /prover/application | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 5 | Node Setup | /prover/node-setup | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 6 | Signatures | /prover/signatures | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 7 | Earnings | /prover/earnings | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 8 | Stake | /prover/stake | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 9 | Settings | /prover/settings | ⬜ | ⬜ | - | ⬜ | Pending | |
 
 ### 3.6 Observer 詳細
 
-| # | 画面 | URL | J | T | D | Status | Issues |
-|:-:|------|-----|:-:|:-:|:-:|:------:|--------|
-| 1 | Landing | /observer/landing | ⬜ | ⬜ | ⬜ | Pending | |
-| 2 | Dashboard | /observer/dashboard | ⬜ | ⬜ | ⬜ | Pending | |
-| 3 | Pending | /observer/pending | ⬜ | ⬜ | ⬜ | Pending | |
-| 4 | Suspicious | /observer/suspicious | ⬜ | ⬜ | ⬜ | Pending | |
-| 5 | History | /observer/history | ⬜ | ⬜ | ⬜ | Pending | |
-| 6 | Earnings | /observer/earnings | ⬜ | ⬜ | ⬜ | Pending | |
+| # | 画面 | URL | J | T | A | D | Status | Issues |
+|:-:|------|-----|:-:|:-:|:-:|:-:|:------:|--------|
+| 1 | Landing | /observer/landing | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 2 | **Login** | /observer/login | ✅ | ✅ | ✅ | ✅ | ✅ Done | RainbowKit+登録確認フロー実装済 |
+| 3 | Dashboard | /observer/dashboard | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 4 | Application | /observer/application | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 5 | Pending | /observer/pending | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 6 | Suspicious | /observer/suspicious | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 7 | History | /observer/history | ⬜ | ⬜ | - | ⬜ | Pending | |
+| 8 | Earnings | /observer/earnings | ⬜ | ⬜ | - | ⬜ | Pending | |
 | 7 | Settings | /observer/settings | ⬜ | ⬜ | ⬜ | Pending | |
 
 ### 3.7 Explorer 詳細

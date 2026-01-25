@@ -63,22 +63,25 @@
       "subtitle": "ブロックチェーン透明性と監査可能性に関する専門家の見解",
       "quotes": {
         "0": {
-          "quote": "真の透明性はDeFiの基盤です。すべてのトランザクションがオンチェーンで検証可能であることで、ユーザーは自分の資産を完全に把握できます。",
+          "quote": "ブロックチェーンの透明性は、信頼を必要としないシステムを構築する基盤です。誰もがオンチェーンで検証できることが、真の分散化を実現します。",
           "author": "Vitalik Buterin",
           "title": "Ethereum共同創設者",
-          "source": "2023 ETHDenver講演より"
+          "source": "On-chain transparency",
+          "sourceUrl": "https://vitalik.eth.limo/general/2022/06/12/nonfin.html"
         },
         "1": {
-          "quote": "ブロックチェーンエクスプローラーは、分散型システムの信頼の礎です。誰もが検証できることが、中央集権的な仲介者を不要にします。",
+          "quote": "ブロックチェーンエクスプローラーは、分散型システムの信頼の礎です。すべてのトランザクションを追跡・検証できることが、中央集権的な仲介者を不要にします。",
           "author": "Andreas Antonopoulos",
           "title": "ブロックチェーン教育者・著者",
-          "source": "「Mastering Ethereum」より"
+          "source": "Mastering Ethereum",
+          "sourceUrl": "https://github.com/ethereumbook/ethereumbook"
         },
         "2": {
           "quote": "セキュリティと透明性は相互に補完します。オープンな監査可能性こそが、真に安全なシステムの証明です。",
           "author": "Samczsun",
           "title": "Paradigmセキュリティ研究者",
-          "source": "セキュリティリサーチより"
+          "source": "Security Research",
+          "sourceUrl": "https://samczsun.com/"
         }
       },
       "disclaimer": "※引用は一般的な見解を参考にしたものであり、Quantum Shieldの直接的な推奨ではありません。"
@@ -686,6 +689,12 @@
     "result": {
       "challenger_won": "Challenger勝利",
       "prover_won": "Prover勝利"
+    },
+    "tooltip": {
+      "bond": "Bond（保証金）は、異議申立てを行う際に預ける担保です。Challengeが成功すれば返却されますが、失敗すると没収されます。",
+      "bondAriaLabel": "Bond（保証金）について詳しく見る",
+      "status": "ステータス: 反論期間中 → Proverが反論を準備中、判定待ち → 結果の判定を待機中、解決済み → 判定完了",
+      "statusAriaLabel": "ステータスについて詳しく見る"
     }
   },
   "provers": {
@@ -711,6 +720,200 @@
     "info": {
       "title": "Proverとは？",
       "description": "Proverは、アンロック要求を検証する独立した署名者です。5社のうち2社がランダムに選出され、SPHINCS+量子耐性署名を生成します。99.5%以上の稼働率が要求されています。"
+    }
+  },
+  "proverDetail": {
+    "meta": {
+      "title": "Prover詳細 | Explorer | Quantum Shield",
+      "description": "Proverの詳細情報とパフォーマンス統計"
+    },
+    "breadcrumb": {
+      "provers": "Prover一覧",
+      "detail": "詳細"
+    },
+    "notFound": {
+      "title": "Proverが見つかりません",
+      "description": "指定されたProver IDは存在しないか、削除された可能性があります。",
+      "backToProvers": "Prover一覧に戻る"
+    },
+    "sections": {
+      "overview": "概要",
+      "performance": "パフォーマンス",
+      "signatures": "署名履歴",
+      "staking": "ステーキング情報"
+    },
+    "fields": {
+      "proverId": "Prover ID",
+      "name": "名前",
+      "address": "アドレス",
+      "status": "ステータス",
+      "uptime": "稼働率",
+      "uptimeTooltip": "過去30日間の稼働率です。99.5%以上が要求されます",
+      "responseTime": "応答時間",
+      "responseTimeTooltip": "署名要求に対する平均応答時間です",
+      "totalSignatures": "総署名数",
+      "totalSignaturesTooltip": "このProverがこれまでに生成した署名の総数です",
+      "dailySignatures": "今日の署名数",
+      "dailySignaturesTooltip": "本日生成された署名の数です",
+      "stake": "ステーク量",
+      "stakeTooltip": "Proverとして必要なステーク額。不正行為の場合は没収されます",
+      "registeredAt": "登録日",
+      "lastActive": "最終アクティブ"
+    },
+    "status": {
+      "active": "アクティブ",
+      "warning": "警告",
+      "offline": "オフライン"
+    },
+    "chart": {
+      "title": "稼働率推移（過去30日）",
+      "uptime": "稼働率",
+      "target": "目標ライン"
+    },
+    "recentSignatures": {
+      "title": "最近の署名",
+      "empty": "署名履歴がありません",
+      "table": {
+        "unlockId": "Unlock ID",
+        "timestamp": "日時",
+        "responseTime": "応答時間",
+        "status": "ステータス"
+      }
+    },
+    "actions": {
+      "viewOnEtherscan": "Etherscanで見る",
+      "copyAddress": "アドレスをコピー"
+    }
+  },
+  "glossary": {
+    "meta": {
+      "title": "用語集 | Explorer | Quantum Shield",
+      "description": "Quantum Shieldプロトコルで使用される用語と概念の解説"
+    },
+    "title": "用語集",
+    "subtitle": "Quantum Shieldプロトコルで使用される用語と概念",
+    "backToExplorer": "Explorerに戻る",
+    "searchPlaceholder": "用語を検索...",
+    "searchAriaLabel": "用語を検索",
+    "categoriesAriaLabel": "カテゴリーフィルター",
+    "categories": {
+      "all": "すべて",
+      "core": "コア技術",
+      "locking": "ロック・アンロック",
+      "roles": "ロール",
+      "governance": "ガバナンス",
+      "security": "セキュリティ"
+    },
+    "terms": {
+      "quantum-shield": {
+        "name": "Quantum Shield",
+        "definition": "量子コンピュータ時代に備えた次世代のセキュリティプロトコル。Dilithium署名とSTARK証明を組み合わせ、資産を保護します。",
+        "example": "ETHをQuantum Shieldにロックすることで、将来の量子コンピュータによる攻撃から資産を守れます。"
+      },
+      "dilithium": {
+        "name": "Dilithium署名",
+        "definition": "NIST標準化された耐量子暗号署名アルゴリズム。量子コンピュータでも解読できない安全な電子署名を生成します。",
+        "example": "アンロック要求時にDilithium署名を使用して、正当な所有者であることを証明します。"
+      },
+      "stark-proof": {
+        "name": "STARK証明",
+        "definition": "ゼロ知識証明の一種。計算の正しさを証明しながらも、元の情報を明かさずに検証できます。",
+        "example": "Proverの計算結果はSTARK証明でオンチェーンに記録され、誰でも検証可能です。"
+      },
+      "post-quantum": {
+        "name": "耐量子暗号",
+        "definition": "量子コンピュータによる攻撃に耐性を持つ暗号技術の総称。Dilithium、SPHINCS+などが含まれます。",
+        "example": "従来の暗号は量子コンピュータで解読される恐れがありますが、耐量子暗号は安全です。"
+      },
+      "lock": {
+        "name": "ロック (Lock)",
+        "definition": "ETHなどの資産をQuantum Shieldのスマートコントラクトに預け入れること。ロック中の資産は量子耐性で保護されます。",
+        "example": "10 ETHをロックすると、Dilithium鍵が発行され、その鍵でのみアンロックできます。"
+      },
+      "unlock": {
+        "name": "アンロック (Unlock)",
+        "definition": "ロックした資産を引き出すこと。Dilithium署名とProverの検証が必要で、待機期間後に実行されます。",
+        "example": "アンロックを要求すると、24時間の待機期間後に資産を引き出せます。"
+      },
+      "emergency-unlock": {
+        "name": "緊急アンロック",
+        "definition": "通常より厳格な条件での即時アンロック。全Proverの承認と7日間の待機期間が必要です。",
+        "example": "鍵の紛失が疑われる場合、緊急アンロックを使用して資産を救出できます。"
+      },
+      "waiting-period": {
+        "name": "待機期間 (Time Lock)",
+        "definition": "アンロック要求後に必要な待機時間。通常は24時間、緊急時は7日間。不正アンロックを検知する猶予期間です。",
+        "example": "24時間の待機期間中にChallengeがなければ、資産を引き出せます。"
+      },
+      "veqs": {
+        "name": "veQS",
+        "definition": "投票権を持つガバナンストークン。QSをロックすることで獲得でき、ロック期間が長いほど多くの投票力を得られます。",
+        "example": "1000 QSを1年間ロックすると、1000 veQSの投票力が得られます。"
+      },
+      "prover": {
+        "name": "Prover",
+        "definition": "アンロック要求を検証する独立した署名者。5社のうち2社がランダムに選出され、SPHINCS+署名を生成します。",
+        "example": "アンロック時、選ばれた2社のProverが署名することで、要求が承認されます。"
+      },
+      "observer": {
+        "name": "Observer",
+        "definition": "不正なアンロックを監視し、Challengeを発動する役割。インセンティブとしてChallengeの報酬を受け取れます。",
+        "example": "Observerが不正なアンロックを検知すると、Challengeを発動してネットワークを保護します。"
+      },
+      "challenger": {
+        "name": "Challenger",
+        "definition": "不正なアンロック要求に対して異議を申し立てる者。正しいChallengeには報酬が、誤ったChallengeにはペナルティがあります。",
+        "example": "ChallengerがBondを預けてChallengeに成功すると、没収された資産の一部を報酬として受け取れます。"
+      },
+      "delegate": {
+        "name": "デリゲート (Delegate)",
+        "definition": "他のユーザーから投票権を委任された代表者。委任者に代わってガバナンス投票を行います。",
+        "example": "技術的な判断が難しい場合、信頼できるデリゲートに投票権を委任できます。"
+      },
+      "proposal": {
+        "name": "提案 (Proposal)",
+        "definition": "プロトコルの変更を求めるガバナンス議題。一定量のveQSを持つメンバーが作成でき、投票で可決されると実行されます。",
+        "example": "待機期間を48時間に変更する提案が出され、veQS保有者の投票で可決されました。"
+      },
+      "quorum": {
+        "name": "クォーラム (Quorum)",
+        "definition": "提案が有効となるために必要な最低投票参加率。通常は総veQSの10%以上の参加が必要です。",
+        "example": "投票率が10%を下回ると、クォーラム未達成で提案は無効になります。"
+      },
+      "council": {
+        "name": "カウンシル (Council)",
+        "definition": "緊急時の対応や重要な決定を行う選出された委員会。コミュニティ投票で選ばれた9名で構成されます。",
+        "example": "セキュリティ脆弱性が発見された場合、Councilが緊急アップデートを承認できます。"
+      },
+      "epoch": {
+        "name": "エポック (Epoch)",
+        "definition": "プロトコルの時間単位。報酬の計算やガバナンスの周期として使用されます。通常は1週間です。",
+        "example": "毎エポック終了時に、Proverへの報酬が計算・配分されます。"
+      },
+      "challenge": {
+        "name": "Challenge",
+        "definition": "不正が疑われるアンロック要求に対する異議申し立て。Challengerはボンドを預け、裁定を待ちます。",
+        "example": "不審なアンロックを検知したObserverがChallengeを発動し、アンロックを一時停止しました。"
+      },
+      "slashing": {
+        "name": "スラッシング (Slashing)",
+        "definition": "不正行為に対するペナルティとして、ステークした資産の一部を没収すること。Proverの不正や誤ったChallengeに適用されます。",
+        "example": "不正な署名を行ったProverは、ステークの50%がスラッシングされました。"
+      },
+      "stake": {
+        "name": "ステーク (Stake)",
+        "definition": "役割を担う際に担保として預け入れる資産。不正行為時のペナルティ（スラッシング）の対象となります。",
+        "example": "Proverになるには100 ETH以上のステークが必要です。"
+      },
+      "bond": {
+        "name": "ボンド (Bond)",
+        "definition": "Challengeを発動する際に預け入れる担保。正しいChallengeでは返還され、誤りでは没収されます。",
+        "example": "1 ETHのボンドを預けてChallengeを発動しました。"
+      }
+    },
+    "empty": {
+      "title": "該当する用語がありません",
+      "description": "検索条件を変更して再度お試しください"
     }
   }
 }

@@ -90,7 +90,7 @@ export function ObserverHeader({
         <Link
           href="/observer/settings"
           className={cn(
-            'w-10 h-10 flex items-center justify-center',
+            'w-11 h-11 flex items-center justify-center',
             'border border-border rounded-full',
             'text-foreground-secondary hover:border-gold hover:text-gold',
             'transition-colors',
