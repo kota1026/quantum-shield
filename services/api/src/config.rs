@@ -6,11 +6,35 @@ use config::{ConfigError, Environment, File};
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub server: ServerConfig,
+    pub database: DatabaseConfig,
     pub redis: RedisConfig,
     pub rabbitmq: RabbitMQConfig,
     pub jwt: JwtConfig,
     pub security: SecurityConfig,
     pub vrf: VRFConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct DatabaseConfig {
+    pub url: String,
+    #[serde(default = "default_db_max_connections")]
+    pub max_connections: u32,
+    #[serde(default = "default_db_min_connections")]
+    pub min_connections: u32,
+}
+
+fn default_db_max_connections() -> u32 { 10 }
+fn default_db_min_connections() -> u32 { 2 }
+
+impl Default for DatabaseConfig {
+    fn default() -> Self {
+        Self {
+            url: std::env::var("DATABASE_URL")
+                .unwrap_or_else(|_| "postgres://localhost/quantum_shield".to_string()),
+            max_connections: 10,
+            min_connections: 2,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -119,6 +143,7 @@ impl Default for Config {
                 host: "0.0.0.0".to_string(),
                 port: 8080,
             },
+            database: DatabaseConfig::default(),
             redis: RedisConfig {
                 url: "redis://localhost:6379".to_string(),
                 password: None,
