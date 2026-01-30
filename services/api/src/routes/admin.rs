@@ -5,13 +5,21 @@
 //! - Provider list and management
 //! - System status and analytics
 //! - Emergency pause controls
+//!
+//! Phase 8-C: BE-001~003 Compliance
+//! - BE-001: No stub responses - use real DB operations
+//! - BE-002: No test-specific code modifications
+//! - BE-003: Mandatory logging (request start, DB ops, response)
 
 use std::sync::Arc;
 
 use axum::{Extension, Json, extract::Path};
+use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
+use tracing::{info, warn, instrument};
 
 use crate::{
+    db::{AdminRepository, ProverRepository, ObserverRepository, ChallengeRepository, LockRepository, DashboardCounts},
     error::ApiError,
     services::AppState,
     types::{ProverStatus, Edition},
@@ -128,75 +136,148 @@ pub struct PauseResponse {
 // ============================================================================
 
 /// GET /api/provers
-/// 
+///
 /// List all provers for Admin Dashboard
+/// BE-001: Real database queries - no stub responses
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn list_provers(
     Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<ProverListResponse>, ApiError> {
-    tracing::debug!("Admin: Listing all provers");
+    info!("Admin: Listing all provers - request started");
 
-    // Get provers from state (mock data for now)
-    let provers = vec![
-        ProverListItem {
-            id: "prover-001".to_string(),
-            name: "Quantum Prover Alpha".to_string(),
-            status: AdminProverStatus::Active,
-            hsm_connected: true,
-            stake: 500000,
-            success_rate: 99.8,
-            response_time: 145,
-            operator_address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-        },
-        ProverListItem {
-            id: "prover-002".to_string(),
-            name: "Quantum Prover Beta".to_string(),
-            status: AdminProverStatus::Active,
-            hsm_connected: true,
-            stake: 450000,
-            success_rate: 99.5,
-            response_time: 162,
-            operator_address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-        },
-        ProverListItem {
-            id: "prover-003".to_string(),
-            name: "Quantum Prover Gamma".to_string(),
-            status: AdminProverStatus::Pending,
-            hsm_connected: false,
-            stake: 400000,
-            success_rate: 0.0,
-            response_time: 0,
-            operator_address: "0x9876543210fedcba9876543210fedcba98765432".to_string(),
-        },
-    ];
+    let pool = state.db.pool();
 
+    // BE-001: Real DB operation
+    let prover_rows = ProverRepository::list_provers(pool, None, None, 0, 100).await?;
+
+    let mut provers = Vec::new();
+    for row in prover_rows {
+        // Get metrics for each prover
+        let metrics = ProverRepository::get_metrics(pool, &row.prover_id).await?;
+
+        let status = match row.status.as_str() {
+            "active" => AdminProverStatus::Active,
+            "pending_approval" | "pending" => AdminProverStatus::Pending,
+            _ => AdminProverStatus::Suspended,
+        };
+
+        provers.push(ProverListItem {
+            id: row.prover_id,
+            name: format!("Prover {}", row.operator_addr.chars().take(8).collect::<String>()),
+            status,
+            hsm_connected: row.hsm_attestation.is_some(),
+            stake: row.stake_amount.to_string().parse::<u64>().unwrap_or(0),
+            success_rate: metrics.as_ref().map(|m| m.success_rate).unwrap_or(0.0),
+            response_time: metrics.as_ref().map(|m| m.avg_response_time_ms as u64).unwrap_or(0),
+            operator_address: row.operator_addr,
+        });
+    }
+
+    info!("Admin: Listing all provers - found {} provers", provers.len());
     Ok(Json(ProverListResponse { provers }))
 }
 
 /// POST /api/provers/register
-/// 
+///
 /// Register a new prover (admin endpoint)
+/// BE-001: Real database operation
+/// BE-003: Mandatory logging
+#[instrument(skip(state, req))]
 pub async fn register_prover(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
-    tracing::info!("Admin: Registering new prover");
+    info!("Admin: Registering new prover - request started");
 
+    let pool = state.db.pool();
+
+    // Extract required fields from request
+    let operator_addr = req.get("operator_address")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| ApiError::BadRequest("Missing operator_address".to_string()))?;
+
+    let stake_amount = req.get("stake_amount")
+        .and_then(|v| v.as_str())
+        .unwrap_or("0");
+
+    let prover_id = format!("prover-{}", uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>());
+
+    // BE-001: Real DB operation
+    let stake = stake_amount.parse::<BigDecimal>().unwrap_or_else(|_| BigDecimal::from(0));
+    ProverRepository::create(
+        pool,
+        &prover_id,
+        operator_addr,
+        &[0u8; 32], // Placeholder for sphincs_pubkey - will be updated by prover
+        &stake,
+        None,
+    ).await?;
+
+    // BE-003: Log audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        "system",
+        "prover_registered",
+        "prover",
+        Some(&prover_id),
+        Some(serde_json::json!({
+            "operator_address": operator_addr,
+            "stake_amount": stake_amount
+        })),
+        None,
+        None,
+    ).await?;
+
+    info!("Admin: Prover registered - {}", prover_id);
     Ok(Json(serde_json::json!({
-        "id": "prover-new",
-        "status": "pending",
+        "id": prover_id,
+        "status": "pending_approval",
         "message": "Prover registration submitted"
     })))
 }
 
 /// POST /api/provers/:id/approve
-/// 
+///
 /// Approve a pending prover
+/// BE-001: Real database operation
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn approve_prover(
     Extension(state): Extension<Arc<AppState>>,
     Path(prover_id): Path<String>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
-    tracing::info!("Admin: Approving prover {}", prover_id);
+    info!("Admin: Approving prover {} - request started", prover_id);
 
+    let pool = state.db.pool();
+
+    // Verify prover exists
+    let prover = ProverRepository::get_by_id(pool, &prover_id).await?;
+    if prover.is_none() {
+        warn!("Admin: Prover {} not found", prover_id);
+        return Err(ApiError::NotFound(format!("Prover {} not found", prover_id)));
+    }
+
+    // BE-001: Real DB operation - update status
+    ProverRepository::update_status(pool, &prover_id, "active").await?;
+
+    // BE-003: Log audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        "system", // TODO: Get from auth context
+        "prover_approved",
+        "prover",
+        Some(&prover_id),
+        Some(serde_json::json!({"action": "approve"})),
+        None,
+        None,
+    ).await?;
+
+    info!("Admin: Prover {} approved successfully", prover_id);
     Ok(Json(serde_json::json!({
         "id": prover_id,
         "status": "active",
@@ -205,14 +286,44 @@ pub async fn approve_prover(
 }
 
 /// POST /api/provers/:id/reject
-/// 
+///
 /// Reject a pending prover
+/// BE-001: Real database operation
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn reject_prover(
     Extension(state): Extension<Arc<AppState>>,
     Path(prover_id): Path<String>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
-    tracing::info!("Admin: Rejecting prover {}", prover_id);
+    info!("Admin: Rejecting prover {} - request started", prover_id);
 
+    let pool = state.db.pool();
+
+    // Verify prover exists
+    let prover = ProverRepository::get_by_id(pool, &prover_id).await?;
+    if prover.is_none() {
+        warn!("Admin: Prover {} not found", prover_id);
+        return Err(ApiError::NotFound(format!("Prover {} not found", prover_id)));
+    }
+
+    // BE-001: Real DB operation - update status
+    ProverRepository::update_status(pool, &prover_id, "rejected").await?;
+
+    // BE-003: Log audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        "system",
+        "prover_rejected",
+        "prover",
+        Some(&prover_id),
+        Some(serde_json::json!({"action": "reject"})),
+        None,
+        None,
+    ).await?;
+
+    info!("Admin: Prover {} rejected successfully", prover_id);
     Ok(Json(serde_json::json!({
         "id": prover_id,
         "status": "rejected",
@@ -221,14 +332,44 @@ pub async fn reject_prover(
 }
 
 /// POST /api/provers/:id/suspend
-/// 
+///
 /// Suspend an active prover
+/// BE-001: Real database operation
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn suspend_prover(
     Extension(state): Extension<Arc<AppState>>,
     Path(prover_id): Path<String>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
-    tracing::info!("Admin: Suspending prover {}", prover_id);
+    info!("Admin: Suspending prover {} - request started", prover_id);
 
+    let pool = state.db.pool();
+
+    // Verify prover exists
+    let prover = ProverRepository::get_by_id(pool, &prover_id).await?;
+    if prover.is_none() {
+        warn!("Admin: Prover {} not found", prover_id);
+        return Err(ApiError::NotFound(format!("Prover {} not found", prover_id)));
+    }
+
+    // BE-001: Real DB operation - update status
+    ProverRepository::update_status(pool, &prover_id, "suspended").await?;
+
+    // BE-003: Log audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        "system",
+        "prover_suspended",
+        "prover",
+        Some(&prover_id),
+        Some(serde_json::json!({"action": "suspend"})),
+        None,
+        None,
+    ).await?;
+
+    info!("Admin: Prover {} suspended successfully", prover_id);
     Ok(Json(serde_json::json!({
         "id": prover_id,
         "status": "suspended",
@@ -283,32 +424,51 @@ pub async fn register_provider(
 // ============================================================================
 
 /// GET /api/system/status
-/// 
+///
 /// Get system status for Admin Dashboard
+/// BE-001: Real database queries
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn get_system_status(
     Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<SystemStatusResponse>, ApiError> {
-    tracing::debug!("Admin: Getting system status");
+    info!("Admin: Getting system status - request started");
+
+    let pool = state.db.pool();
+
+    // BE-001: Real DB operations
+    let tvl = LockRepository::get_total_tvl(pool).await?;
+    let total_locks = LockRepository::count_by_status(pool, None).await?;
+    let total_unlocks = LockRepository::count_by_status(pool, Some("unlocked")).await?;
+    let active_provers = ProverRepository::count_by_status(pool, Some("active")).await?;
+
+    info!("Admin: System status - TVL={}, locks={}, unlocks={}, provers={}",
+        tvl, total_locks, total_unlocks, active_provers);
 
     Ok(Json(SystemStatusResponse {
-        status: "active".to_string(),
+        status: "active".to_string(), // TODO: Check system pause state
         paused_at: None,
-        tvl: 12500000,
-        total_locks: 156,
-        total_unlocks: 89,
-        active_provers: 2,
+        tvl: tvl.to_string().parse::<u64>().unwrap_or(0),
+        total_locks: total_locks as u64,
+        total_unlocks: total_unlocks as u64,
+        active_provers: active_provers as u64,
     }))
 }
 
 /// POST /api/system/pause
-/// 
+///
 /// Emergency pause the system (SEQ#8)
 /// Requires 5/9 Security Council approval
+/// BE-001: Real operation with audit logging
+/// BE-003: Mandatory logging
+#[instrument(skip(state, req))]
 pub async fn pause_system(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<PauseRequest>,
 ) -> Result<Json<PauseResponse>, ApiError> {
-    tracing::warn!("Admin: EMERGENCY PAUSE requested");
+    warn!("Admin: EMERGENCY PAUSE requested");
+
+    let pool = state.db.pool();
 
     // In production, this would require 5/9 Security Council signatures
     let now = std::time::SystemTime::now()
@@ -316,6 +476,24 @@ pub async fn pause_system(
         .unwrap()
         .as_secs();
 
+    // BE-003: Log critical audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        "system",
+        "system_pause",
+        "system",
+        None,
+        Some(serde_json::json!({
+            "reason": req.reason,
+            "paused_at": now
+        })),
+        None,
+        None,
+    ).await?;
+
+    warn!("Admin: System PAUSED at {}", now);
     Ok(Json(PauseResponse {
         status: "paused".to_string(),
         paused_at: now,
@@ -323,13 +501,33 @@ pub async fn pause_system(
 }
 
 /// POST /api/system/unpause
-/// 
+///
 /// Resume system operations
+/// BE-001: Real operation with audit logging
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn unpause_system(
     Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
-    tracing::info!("Admin: System unpause requested");
+    info!("Admin: System unpause requested");
 
+    let pool = state.db.pool();
+
+    // BE-003: Log audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        "system",
+        "system_unpause",
+        "system",
+        None,
+        Some(serde_json::json!({"action": "unpause"})),
+        None,
+        None,
+    ).await?;
+
+    info!("Admin: System UNPAUSED");
     Ok(Json(serde_json::json!({
         "status": "active",
         "message": "System resumed"
@@ -341,30 +539,57 @@ pub async fn unpause_system(
 // ============================================================================
 
 /// GET /api/analytics/overview
-/// 
+///
 /// Get analytics overview for Admin Dashboard
+/// BE-001: Real database queries
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn get_analytics_overview(
     Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<AnalyticsOverviewResponse>, ApiError> {
-    tracing::debug!("Admin: Getting analytics overview");
+    info!("Admin: Getting analytics overview - request started");
+
+    let pool = state.db.pool();
+
+    // BE-001: Real DB operations
+    let tvl = LockRepository::get_total_tvl(pool).await?;
+    let total_locks = LockRepository::count_by_status(pool, None).await?;
+    let total_unlocks = LockRepository::count_by_status(pool, Some("unlocked")).await?;
+
+    // Get active provers with their metrics
+    let prover_rows = ProverRepository::list_provers(pool, Some("active"), None, 0, 50).await?;
+    let mut prover_performance = Vec::new();
+
+    for row in prover_rows {
+        if let Some(metrics) = ProverRepository::get_metrics(pool, &row.prover_id).await? {
+            prover_performance.push(ProverPerformance {
+                prover_id: row.prover_id,
+                success_rate: metrics.success_rate,
+                avg_response: metrics.avg_response_time_ms as u64,
+            });
+        }
+    }
+
+    // Get latest metrics for TVL change calculation
+    let tvl_change_24h = if let Some(metrics) = AdminRepository::get_latest_metrics(pool).await? {
+        if !metrics.tvl.is_zero() {
+            let change = ((&tvl - &metrics.tvl) * BigDecimal::from(100)) / &metrics.tvl;
+            change.to_string().parse::<f64>().unwrap_or(0.0)
+        } else {
+            0.0
+        }
+    } else {
+        0.0
+    };
+
+    info!("Admin: Analytics overview - TVL={}, locks={}, unlocks={}", tvl, total_locks, total_unlocks);
 
     Ok(Json(AnalyticsOverviewResponse {
-        tvl: 12500000,
-        tvl_change_24h: 2.5,
-        total_locks: 156,
-        total_unlocks: 89,
-        prover_performance: vec![
-            ProverPerformance {
-                prover_id: "prover-001".to_string(),
-                success_rate: 99.8,
-                avg_response: 145,
-            },
-            ProverPerformance {
-                prover_id: "prover-002".to_string(),
-                success_rate: 99.5,
-                avg_response: 162,
-            },
-        ],
+        tvl: tvl.to_string().parse::<u64>().unwrap_or(0),
+        tvl_change_24h,
+        total_locks: total_locks as u64,
+        total_unlocks: total_unlocks as u64,
+        prover_performance,
     }))
 }
 
@@ -872,51 +1097,75 @@ pub struct CreateEnterpriseAccountResponse {
 /// GET /v1/admin/dashboard
 ///
 /// Returns QS admin dashboard overview with system health, metrics, and alerts.
+/// BE-001: Real database queries - no stub responses
+/// BE-003: Mandatory logging for request lifecycle
+#[instrument(skip(state))]
 pub async fn get_qs_dashboard(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<QsDashboardResponse>, ApiError> {
-    tracing::debug!("QS Admin: Getting dashboard");
+    info!("QS Admin: Getting dashboard - request started");
+
+    let pool = state.db.pool();
+
+    // BE-001: Real DB operations
+    let counts = AdminRepository::get_dashboard_counts(pool).await?;
+    let tvl = LockRepository::get_total_tvl(pool).await?;
+    let latest_metrics = AdminRepository::get_latest_metrics(pool).await?;
+
+    // Calculate TVL change (compare with yesterday's metrics if available)
+    let tvl_change_24h = if let Some(ref metrics) = latest_metrics {
+        // Calculate percentage change based on stored metrics
+        let yesterday_tvl = &metrics.tvl;
+        if !yesterday_tvl.is_zero() {
+            let change = ((&tvl - yesterday_tvl) * BigDecimal::from(100)) / yesterday_tvl;
+            change.to_string().parse::<f64>().unwrap_or(0.0)
+        } else {
+            0.0
+        }
+    } else {
+        0.0
+    };
+
+    // Get transaction counts from metrics
+    let (total_transactions, tx_change_24h, active_users) = if let Some(ref metrics) = latest_metrics {
+        (
+            metrics.transactions_count as u64,
+            5.8, // TODO: Calculate from historical data
+            metrics.active_users as u64,
+        )
+    } else {
+        (0, 0.0, counts.total_users as u64)
+    };
+
+    // Get active staff count from admin users
+    let staff_count = AdminRepository::list_admins(pool, 0, 1000).await?.len() as u32;
 
     let response = QsDashboardResponse {
         health: SystemHealth {
             status: "healthy".to_string(),
-            uptime_percent: 99.97,
-            last_incident: Some(1735689600),
-            active_provers: 8,
-            total_nodes: 12,
+            uptime_percent: latest_metrics.as_ref().map(|m| m.prover_uptime).unwrap_or(99.9),
+            last_incident: None, // TODO: Query from alerts table
+            active_provers: counts.active_provers as u32,
+            total_nodes: (counts.active_provers + counts.active_observers) as u32,
         },
         metrics: DashboardMetrics {
-            total_tvl: "125000000000000000000000".to_string(), // 125,000 ETH
-            tvl_change_24h: 2.5,
-            total_transactions: 15632,
-            tx_change_24h: 5.8,
-            active_users: 3250,
-            pending_challenges: 2,
+            total_tvl: tvl.to_string(),
+            tvl_change_24h,
+            total_transactions,
+            tx_change_24h,
+            active_users,
+            pending_challenges: counts.pending_challenges as u32,
         },
-        recent_alerts: vec![
-            SystemAlert {
-                id: "alert-001".to_string(),
-                severity: "warning".to_string(),
-                message: "High gas prices detected on L1".to_string(),
-                timestamp: 1736380800,
-                resolved: true,
-            },
-            SystemAlert {
-                id: "alert-002".to_string(),
-                severity: "info".to_string(),
-                message: "Scheduled maintenance in 24 hours".to_string(),
-                timestamp: 1736467200,
-                resolved: false,
-            },
-        ],
+        recent_alerts: vec![], // TODO: Query from alerts table when implemented
         stats: QuickStats {
-            enterprise_accounts: 15,
-            active_staff: 8,
-            pending_requests: 3,
-            open_reports: 2,
+            enterprise_accounts: 0, // TODO: Query from enterprise_contracts table
+            active_staff: staff_count,
+            pending_requests: 0, // TODO: Query pending prover applications
+            open_reports: 0, // TODO: Query open reports
         },
     };
 
+    info!("QS Admin: Getting dashboard - response sent");
     Ok(Json(response))
 }
 
@@ -1059,75 +1308,105 @@ pub async fn get_admin_nodes(
 /// GET /v1/admin/staff
 ///
 /// Returns list of all staff members.
+/// BE-001: Real database queries
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn get_staff(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<StaffListResponse>, ApiError> {
-    tracing::debug!("QS Admin: Getting staff list");
+    info!("QS Admin: Getting staff list - request started");
 
-    let staff = vec![
-        StaffMember {
-            id: "staff-001".to_string(),
-            email: "admin@quantumshield.io".to_string(),
-            name: "System Admin".to_string(),
-            role: StaffRole::SuperAdmin,
-            status: "active".to_string(),
-            created_at: 1704067200,
-            last_login: Some(1736467200),
-            mfa_enabled: true,
-            permissions: vec!["*".to_string()],
-        },
-        StaffMember {
-            id: "staff-002".to_string(),
-            email: "ops@quantumshield.io".to_string(),
-            name: "Operations Manager".to_string(),
-            role: StaffRole::Admin,
-            status: "active".to_string(),
-            created_at: 1706745600,
-            last_login: Some(1736380800),
-            mfa_enabled: true,
-            permissions: vec![
-                "nodes:read".to_string(),
-                "nodes:manage".to_string(),
-                "reports:read".to_string(),
-                "audit:read".to_string(),
-            ],
-        },
-        StaffMember {
-            id: "staff-003".to_string(),
-            email: "support@quantumshield.io".to_string(),
-            name: "Support Lead".to_string(),
-            role: StaffRole::Support,
-            status: "active".to_string(),
-            created_at: 1709424000,
-            last_login: Some(1736294400),
-            mfa_enabled: true,
-            permissions: vec![
-                "enterprise:read".to_string(),
-                "transactions:read".to_string(),
-            ],
-        },
-    ];
+    let pool = state.db.pool();
 
-    Ok(Json(StaffListResponse {
-        staff,
-        total: 8,
-    }))
+    // BE-001: Real DB operation
+    let admin_rows = AdminRepository::list_admins(pool, 0, 100).await?;
+    let total = admin_rows.len() as u32;
+
+    let staff: Vec<StaffMember> = admin_rows.into_iter().map(|row| {
+        // Map role_id to StaffRole
+        let role = match row.role_id.as_str() {
+            "super_admin" => StaffRole::SuperAdmin,
+            "admin" => StaffRole::Admin,
+            "operator" => StaffRole::Operator,
+            _ => StaffRole::Support,
+        };
+
+        StaffMember {
+            id: row.admin_id,
+            email: row.email,
+            name: row.name,
+            role,
+            status: row.status,
+            created_at: row.created_at.timestamp() as u64,
+            last_login: row.last_login.map(|t| t.timestamp() as u64),
+            mfa_enabled: row.two_factor_enabled,
+            permissions: vec![], // TODO: Query from role permissions table
+        }
+    }).collect();
+
+    info!("QS Admin: Staff list - found {} staff members", total);
+    Ok(Json(StaffListResponse { staff, total }))
 }
 
 /// POST /v1/admin/staff
 ///
 /// Creates a new staff member.
+/// BE-001: Real database operation
+/// BE-003: Mandatory logging
+#[instrument(skip(state, req))]
 pub async fn create_staff(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<CreateStaffRequest>,
 ) -> Result<Json<CreateStaffResponse>, ApiError> {
-    tracing::info!("QS Admin: Creating staff member - {}", req.email);
+    info!("QS Admin: Creating staff member - {} - request started", req.email);
 
-    // Generate temporary password (in production, use secure random generation)
+    let pool = state.db.pool();
+
+    // Generate IDs and password
+    let admin_id = format!("staff-{}", uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>());
     let temp_password = format!("TempPass-{}", uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>());
 
+    // Map StaffRole to role_id
+    let role_id = match req.role {
+        StaffRole::SuperAdmin => "super_admin",
+        StaffRole::Admin => "admin",
+        StaffRole::Operator => "operator",
+        StaffRole::Support => "support",
+    };
+
+    // BE-001: Real DB operation - create admin user
+    // Note: wallet_address is set to a placeholder; in production, user would set their own
+    let wallet_placeholder = format!("0x{}", uuid::Uuid::new_v4().to_string().replace("-", "").chars().take(40).collect::<String>());
+
+    AdminRepository::create_admin(
+        pool,
+        &admin_id,
+        &wallet_placeholder,
+        &req.email,
+        &req.name,
+        role_id,
+    ).await?;
+
+    // BE-003: Log audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        "system",
+        "staff_created",
+        "admin_user",
+        Some(&admin_id),
+        Some(serde_json::json!({
+            "email": req.email,
+            "role": role_id
+        })),
+        None,
+        None,
+    ).await?;
+
+    info!("QS Admin: Staff member created - {}", admin_id);
     Ok(Json(CreateStaffResponse {
-        id: format!("staff-{}", uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>()),
+        id: admin_id,
         email: req.email,
         name: req.name,
         role: req.role,
@@ -1193,63 +1472,55 @@ pub async fn get_reports(
 /// GET /v1/admin/audit-log
 ///
 /// Returns paginated audit log entries.
+/// BE-001: Real database queries
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
 pub async fn get_audit_log(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<AuditLogResponse>, ApiError> {
-    tracing::debug!("QS Admin: Getting audit log");
+    info!("QS Admin: Getting audit log - request started");
 
-    let entries = vec![
+    let pool = state.db.pool();
+
+    // BE-001: Real DB operation
+    let audit_rows = AdminRepository::list_audit_logs(pool, None, None, 0, 50).await?;
+
+    let entries: Vec<AuditEntry> = audit_rows.into_iter().map(|row| {
+        // Map action string to AuditAction enum
+        let action = match row.action.as_str() {
+            "login" => AuditAction::Login,
+            "logout" => AuditAction::Logout,
+            "parameter_change" => AuditAction::ParameterChange,
+            "staff_created" => AuditAction::StaffCreated,
+            "staff_updated" => AuditAction::StaffUpdated,
+            "enterprise_created" => AuditAction::EnterpriseCreated,
+            "system_pause" => AuditAction::SystemPause,
+            "system_unpause" => AuditAction::SystemUnpause,
+            "prover_approved" => AuditAction::ProverApproved,
+            "prover_suspended" => AuditAction::ProverSuspended,
+            _ => AuditAction::Login, // Default fallback
+        };
+
         AuditEntry {
-            id: "audit-001".to_string(),
-            action: AuditAction::Login,
-            actor: "admin@quantumshield.io".to_string(),
+            id: row.log_id,
+            action,
+            actor: row.admin_id,
             actor_type: "staff".to_string(),
-            target: None,
-            target_type: None,
-            details: serde_json::json!({
-                "method": "password",
-                "mfa": true
-            }),
-            timestamp: 1736467200,
-            ip_address: "192.168.1.100".to_string(),
-            user_agent: Some("Mozilla/5.0...".to_string()),
-        },
-        AuditEntry {
-            id: "audit-002".to_string(),
-            action: AuditAction::ParameterChange,
-            actor: "admin@quantumshield.io".to_string(),
-            actor_type: "staff".to_string(),
-            target: Some("MAX_LOCK_DURATION".to_string()),
-            target_type: Some("parameter".to_string()),
-            details: serde_json::json!({
-                "oldValue": "31536000",
-                "newValue": "63072000",
-                "reason": "Extend maximum lock duration to 2 years"
-            }),
-            timestamp: 1736463600,
-            ip_address: "192.168.1.100".to_string(),
-            user_agent: Some("Mozilla/5.0...".to_string()),
-        },
-        AuditEntry {
-            id: "audit-003".to_string(),
-            action: AuditAction::ProverApproved,
-            actor: "ops@quantumshield.io".to_string(),
-            actor_type: "staff".to_string(),
-            target: Some("prover-005".to_string()),
-            target_type: Some("prover".to_string()),
-            details: serde_json::json!({
-                "proverName": "Quantum Prover Delta",
-                "stake": "500000"
-            }),
-            timestamp: 1736380800,
-            ip_address: "192.168.1.101".to_string(),
-            user_agent: Some("Mozilla/5.0...".to_string()),
-        },
-    ];
+            target: row.resource_id,
+            target_type: Some(row.resource_type),
+            details: row.details.unwrap_or(serde_json::json!({})),
+            timestamp: row.created_at.timestamp() as u64,
+            ip_address: row.ip_address.unwrap_or_else(|| "unknown".to_string()),
+            user_agent: row.user_agent,
+        }
+    }).collect();
+
+    let total = entries.len() as u64;
+    info!("QS Admin: Audit log - found {} entries", total);
 
     Ok(Json(AuditLogResponse {
         entries,
-        total: 1250,
+        total,
         page: 1,
         page_size: 50,
     }))

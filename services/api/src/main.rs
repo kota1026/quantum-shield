@@ -24,6 +24,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod config;
 pub mod crypto;
+pub mod db;
 mod error;
 mod middleware;
 mod routes;

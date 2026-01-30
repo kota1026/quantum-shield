@@ -1,6 +1,7 @@
 //! Services module
 //!
 //! This module provides the core services for the Quantum Shield API:
+//! - Database: PostgreSQL connection pool (Phase 8-C)
 //! - RedisClient: State storage and caching
 //! - RabbitMQClient: Message queue for async processing
 //! - HsmClient: Hardware Security Module integration
@@ -15,9 +16,11 @@ mod sphincs_service;
 pub mod auth_service;
 
 use anyhow::Result;
+use sqlx::PgPool;
 
 use crate::{
     config::Config,
+    db::Database,
     error::ApiError,
     types::{
         Lock, LockRequest, LockStatus, Edition,
@@ -50,6 +53,8 @@ pub use auth_service::AuthService;
 /// Application state shared across handlers
 pub struct AppState {
     pub config: Config,
+    /// PostgreSQL database connection pool (Phase 8-C)
+    pub db: Database,
     pub redis: RedisClient,
     pub rabbitmq: RabbitMQClient,
     pub hsm: HsmClient,
@@ -69,12 +74,23 @@ pub struct EditionState {
 impl AppState {
     pub async fn new(config: &Config) -> Result<Self> {
         tracing::info!("Initializing application state");
+
+        // Initialize database connection pool (Phase 8-C)
+        tracing::info!("Connecting to PostgreSQL database...");
+        let db = Database::new(&config.database).await?;
+        tracing::info!("Database connection established");
+
         let redis = RedisClient::new(&config.redis).await?;
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
         let vrf = VRFService::new(&config.vrf).await?;
         let auth_service = AuthService::new(config.jwt.clone());
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf, auth_service })
+        Ok(Self { config: config.clone(), db, redis, rabbitmq, hsm, vrf, auth_service })
+    }
+
+    /// Get database pool reference
+    pub fn pool(&self) -> &PgPool {
+        self.db.pool()
     }
 
     pub async fn is_nonce_used(&self, pk: &str, nonce: u64) -> Result<bool, ApiError> {
