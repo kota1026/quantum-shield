@@ -1,0 +1,32 @@
+/target
+**/target
+.DS_Store
+proofs/lean4/.lake/
+.env
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+*.tsbuildinfo
+
+# Next.js
+.next/
+**/.next/
+next-env.d.ts
+**/next-env.d.ts
+
+# Playwright
+playwright-report/
+**/playwright-report/
+test-results/
+**/test-results/
+
+# Foundry build artifacts
+/out/
+/cache/
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+
+# L3 Aegis
+l3-aegis/cache/

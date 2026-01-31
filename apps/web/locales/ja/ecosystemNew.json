@@ -1,0 +1,360 @@
+{
+  "header": {
+    "threat": "量子脅威",
+    "howItWorks": "仕組み",
+    "tokenomics": "トークン",
+    "apps": "アプリ",
+    "getStarted": "はじめる"
+  },
+  "hero": {
+    "badge": "量子耐性テクノロジー",
+    "title": "量子コンピュータの脅威に備えよう",
+    "subtitle": "今日の暗号資産を、明日の量子コンピュータから守る。NIST認証の量子耐性暗号で、あなたの資産を未来の脅威から保護します。"
+  },
+  "threat": {
+    "sectionLabel": "量子脅威とは",
+    "title": "なぜ今、対策が必要なのか",
+    "description": "量子コンピュータは、現在のブロックチェーンで使われている暗号（ECDSA）を数分で解読できる可能性があります。そして攻撃者は「今」すでに行動を始めています。",
+    "progress": {
+      "title": "加速する量子コンピュータ開発",
+      "description": "世界の主要テック企業と国家が量子コンピュータ開発に巨額投資。実用化は予想より早まる可能性があります。",
+      "items": {
+        "0": {
+          "company": "IBM",
+          "achievement": "1,121量子ビット「Condor」発表",
+          "year": "2023",
+          "source": "IBM Newsroom"
+        },
+        "1": {
+          "company": "Google",
+          "achievement": "Willow: 105量子ビットで誤り訂正の飛躍的進歩",
+          "year": "2024",
+          "source": "Google AI Blog"
+        },
+        "2": {
+          "company": "中国",
+          "achievement": "「九章三号」で量子超越性を実証",
+          "year": "2023",
+          "source": "Physical Review Letters"
+        },
+        "3": {
+          "company": "Microsoft",
+          "achievement": "トポロジカル量子ビットで安定性向上",
+          "year": "2025",
+          "source": "Microsoft Research"
+        }
+      }
+    },
+    "harvestNow": {
+      "title": "「Harvest Now, Decrypt Later」攻撃",
+      "description": "攻撃者は今日、暗号化されたデータを収集・保存しています。将来、量子コンピュータが実用化されたとき、それらを一気に解読する戦略です。",
+      "step1": {
+        "label": "1. 今日",
+        "text": "攻撃者が暗号化されたブロックチェーンデータを大量に収集"
+      },
+      "step2": {
+        "label": "2. 数年後",
+        "text": "量子コンピュータが暗号解読可能なレベルに到達"
+      },
+      "step3": {
+        "label": "3. 解読",
+        "text": "保存していたデータから秘密鍵を抽出、資産を奪取"
+      }
+    },
+    "experts": {
+      "title": "専門家の見解",
+      "quotes": {
+        "0": {
+          "quote": "「今収集して後で解読」攻撃は現実の脅威です。今日暗号化されたデータが、将来の量子コンピュータで解読される可能性があります。",
+          "author": "Michele Mosca博士",
+          "title": "ウォータールー大学 量子コンピューティング研究所",
+          "source": "Global Risk Institute Report 2023"
+        },
+        "1": {
+          "quote": "NISTは2024年に耐量子暗号標準（ML-DSA、ML-KEM、SLH-DSA）を正式発表しました。組織は今すぐ移行計画を開始すべきです。",
+          "author": "NIST",
+          "title": "米国国立標準技術研究所",
+          "source": "Post-Quantum Cryptography Standardization"
+        }
+      }
+    },
+    "probability": {
+      "title": "量子脅威が現実化する確率予測",
+      "timeline": {
+        "0": {
+          "year": "2030年まで",
+          "probability": "5-10%",
+          "description": "限定的な暗号解読能力"
+        },
+        "1": {
+          "year": "2035年まで",
+          "probability": "30-50%",
+          "description": "RSA-2048解読可能"
+        },
+        "2": {
+          "year": "2040年まで",
+          "probability": "70%以上",
+          "description": "現在の暗号の多くが脆弱に"
+        }
+      },
+      "source": "出典:"
+    }
+  },
+  "solution": {
+    "sectionLabel": "Quantum Shieldの解決策",
+    "title": "量子耐性で資産を守る",
+    "description": "Quantum Shieldは、NIST（米国国立標準技術研究所）が認証した耐量子暗号アルゴリズムを採用。将来の量子コンピュータでも解読できない暗号で、あなたの資産を保護します。",
+    "nist": {
+      "badge": "NIST FIPS 204 認証",
+      "title": "Dilithium（ML-DSA）署名",
+      "description": "2024年に正式標準化された耐量子デジタル署名アルゴリズム。米国政府機関での使用が義務付けられる最高レベルのセキュリティ基準です。"
+    },
+    "features": {
+      "dilithium": {
+        "title": "量子耐性署名",
+        "description": "Dilithium（ML-DSA）による署名で、量子コンピュータでも解読不可能な保護を実現"
+      },
+      "timelock": {
+        "title": "24時間タイムロック",
+        "description": "アンロック要求から24時間の待機期間。不正アクセスを検知・対応する時間を確保"
+      },
+      "monitoring": {
+        "title": "24時間監視",
+        "description": "Observerネットワークが常時監視。不正な操作を検知し、チャレンジを提出"
+      }
+    }
+  },
+  "howItWorks": {
+    "sectionLabel": "仕組み",
+    "title": "How it Works",
+    "description": "3ステップで、あなたのETHを量子コンピュータの脅威から保護します。",
+    "steps": {
+      "0": {
+        "title": "量子耐性鍵を生成",
+        "subtitle": "ウォレット認証",
+        "description": "ウォレット（MetaMask等）で認証後、米国政府機関認証の量子耐性暗号鍵をあなたのデバイス上で生成。秘密鍵はあなたのデバイスから外部に送信されることはありません。"
+      },
+      "1": {
+        "title": "ETHをロック",
+        "subtitle": "スマートコントラクトで施錠",
+        "description": "あなたのETHをスマートコントラクトに預け入れ。量子耐性暗号鍵による署名がないと移動できない状態で施錠されます。従来の秘密鍵が量子コンピュータで解読されても、資産は保護されます。"
+      },
+      "2": {
+        "title": "安全にアンロック",
+        "subtitle": "24時間監視 → Proverが解錠",
+        "description": "解錠を要求すると、不正防止のため24時間の監視期間が始まります。この間、Observer（監視者）が不正な操作を監視。問題がなければ、認証されたProver（証明者）が量子耐性署名で解錠を承認し、ETHが返還されます。"
+      }
+    },
+    "players": {
+      "title": "エコシステムの登場人物",
+      "description": "Quantum Shieldは、経済的インセンティブで各役割が協力し合う分散型システムです。",
+      "incentiveLabel": "報酬",
+      "user": {
+        "title": "ユーザー",
+        "role": "資産を預ける人",
+        "description": "ETHをロックして量子脅威から保護。",
+        "incentive": "資産の安全な保管"
+      },
+      "tokenHolder": {
+        "title": "トークン保有者",
+        "role": "プロトコルを支える人",
+        "description": "QSトークンをステーキングしてveQSを獲得。ガバナンス投票でプロトコルの方向性を決定。",
+        "incentive": "ステーキング報酬（APY）+ 投票権"
+      },
+      "prover": {
+        "title": "Prover（証明者）",
+        "role": "解錠を承認する人",
+        "description": "専用ハードウェアを運用し、ユーザーの解錠要求を量子耐性署名で承認。",
+        "incentive": "署名手数料（解錠1件ごとに報酬）"
+      },
+      "observer": {
+        "title": "Observer（監視者）",
+        "role": "不正を見張る人",
+        "description": "24時間体制で全ての解錠要求を監視。不正な操作を検知しチャレンジを提出。",
+        "incentive": "スラッシュ報酬（不正検知で報酬）"
+      },
+      "enterprise": {
+        "title": "Enterprise（企業）",
+        "role": "技術導入・提携企業",
+        "description": "Quantum Shieldの技術を自社サービスに導入したい企業向け。専用インフラでの運用や、技術ライセンス提供。",
+        "incentive": "自社サービスへの量子耐性技術の導入"
+      }
+    },
+    "flow": {
+      "title": "解錠フローの詳細",
+      "step1": "ユーザーが解錠を要求",
+      "step2": "24時間の監視期間開始",
+      "step3": "Observerが不正を監視",
+      "step4": "問題なければProverが承認",
+      "step5": "ETHがユーザーに返還"
+    },
+    "detailLink": "詳細なシステム仕様を見る"
+  },
+  "tokenomics": {
+    "sectionLabel": "トークノミクス",
+    "title": "なぜトークンが必要なのか",
+    "description": "Quantum Shieldは分散型システムです。Prover（証明者）やObserver（監視者）が自発的に参加し、システムを維持するには経済的インセンティブが必要です。QSトークンは、各役割に報酬を支払い、全員の利害を一致させる仕組みです。",
+    "why": {
+      "title": "トークンの役割",
+      "items": {
+        "0": {
+          "title": "Proverへの報酬",
+          "description": "解錠1件ごとに署名手数料をQSトークンで支払い。専用ハードウェアを運用するProverへの対価です。"
+        },
+        "1": {
+          "title": "Observerへの報酬",
+          "description": "不正を検知したObserverにスラッシュ報酬を支払い。24時間監視を続けるインセンティブです。"
+        },
+        "2": {
+          "title": "ガバナンス投票",
+          "description": "QSをステーキングしてveQSを獲得。プロトコルの重要な決定に投票できます。"
+        },
+        "3": {
+          "title": "不正防止",
+          "description": "Prover/ObserverはQSをステーキング。不正行為をすると没収（スラッシュ）されるため、正直に行動するインセンティブが生まれます。"
+        }
+      }
+    },
+    "token": {
+      "name": "QS Token",
+      "symbol": "QS",
+      "totalSupply": "1,000,000,000 QS",
+      "network": "Ethereum"
+    },
+    "distribution": {
+      "title": "トークン配布",
+      "items": {
+        "0": {
+          "category": "コミュニティ報酬",
+          "percentage": "40%",
+          "description": "Prover/Observer報酬、エアドロップ"
+        },
+        "1": {
+          "category": "チーム & アドバイザー",
+          "percentage": "20%",
+          "description": "4年ベスティング、1年クリフ"
+        },
+        "2": {
+          "category": "エコシステム開発",
+          "percentage": "20%",
+          "description": "パートナーシップ、助成金"
+        },
+        "3": {
+          "category": "トレジャリー",
+          "percentage": "15%",
+          "description": "プロトコル運営、緊急対応"
+        },
+        "4": {
+          "category": "初期流動性",
+          "percentage": "5%",
+          "description": "DEX流動性提供"
+        }
+      }
+    },
+    "utility": {
+      "title": "トークンユーティリティ",
+      "items": {
+        "0": {
+          "title": "ガバナンス投票",
+          "description": "veQSでプロトコル方針を決定"
+        },
+        "1": {
+          "title": "ステーキング報酬",
+          "description": "ロック期間に応じたAPY獲得"
+        },
+        "2": {
+          "title": "手数料割引",
+          "description": "QS保有でアンロック手数料を割引"
+        },
+        "3": {
+          "title": "Prover/Observer参加",
+          "description": "ネットワーク運営に必要なステーク"
+        }
+      }
+    }
+  },
+  "apps": {
+    "sectionLabel": "アプリケーション",
+    "title": "エコシステムアプリ",
+    "description": "目的に合わせて最適なアプリを選択。それぞれが連携し、Quantum Shieldエコシステムを構成します。",
+    "learnMore": "詳しく見る",
+    "list": {
+      "consumer": {
+        "title": "Consumer App",
+        "tagline": "量子耐性で資産を守る",
+        "description": "ETHをロックし、将来の量子脅威から保護。シンプルなUIで誰でも簡単に利用可能。"
+      },
+      "qsHub": {
+        "title": "QS Hub",
+        "tagline": "veQSの管理・ガバナンス参加",
+        "description": "veQSの管理、ガバナンスへの参加、報酬の獲得を一箇所で。Quantum Shieldエコシステムの中核。"
+      },
+      "tokenHub": {
+        "title": "Token Hub",
+        "tagline": "ステーキングで報酬を獲得",
+        "description": "QSトークンをロックしてveQSを獲得。ガバナンス投票と報酬分配に参加。"
+      },
+      "governance": {
+        "title": "Governance",
+        "tagline": "プロトコルの未来を決める",
+        "description": "提案と投票でQuantum Shieldの方向性を決定。コミュニティ主導の運営。"
+      },
+      "explorer": {
+        "title": "Explorer",
+        "tagline": "ブロックチェーンを探索",
+        "description": "ロック・アンロック履歴、Prover活動など、すべてのオンチェーンデータを可視化。"
+      },
+      "prover": {
+        "title": "Prover Portal",
+        "tagline": "ネットワークを支える",
+        "description": "SPHINCS+署名を生成し、アンロック要求を承認。署名手数料から報酬を獲得。"
+      },
+      "observer": {
+        "title": "Observer Portal",
+        "tagline": "監視して報酬を得る",
+        "description": "不正なアンロックを監視し、チャレンジを提出。スラッシュ報酬を獲得。"
+      },
+      "enterprise": {
+        "title": "Enterprise",
+        "tagline": "企業向け技術導入",
+        "description": "Quantum Shield技術の自社サービスへの導入。専用インフラ運用、技術ライセンス、API連携など。"
+      }
+    }
+  },
+  "cta": {
+    "title": "量子時代に備えよう",
+    "description": "「Harvest Now, Decrypt Later」攻撃から資産を守る。将来の脅威に、今日から対策を。",
+    "button": "無料で始める"
+  },
+  "footer": {
+    "brand": {
+      "description": "量子コンピュータ時代のデジタル資産保護。NIST認証暗号技術で、あなたの資産を未来の脅威から守ります。"
+    },
+    "products": {
+      "title": "プロダクト"
+    },
+    "resources": {
+      "title": "リソース",
+      "whitepaper": "ホワイトペーパー",
+      "blog": "ブログ",
+      "github": "GitHub"
+    },
+    "support": {
+      "title": "サポート",
+      "faq": "FAQ",
+      "security": "セキュリティ",
+      "contact": "お問い合わせ"
+    },
+    "copyright": "© 2026 Quantum Shield. All rights reserved.",
+    "legal": {
+      "terms": "利用規約",
+      "privacy": "プライバシー",
+      "risk": "リスク開示"
+    }
+  },
+  "cookie": {
+    "message": "当サイトではCookieを使用しています。",
+    "details": "詳細",
+    "accept": "同意する"
+  }
+}

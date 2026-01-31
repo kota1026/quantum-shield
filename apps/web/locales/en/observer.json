@@ -1,0 +1,857 @@
+{
+  "observer": {
+    "common": {
+      "header": {
+        "dashboard": "Dashboard",
+        "pending": "Pending",
+        "suspicious": "Suspicious",
+        "history": "History",
+        "earnings": "Earnings",
+        "ecosystem": "Ecosystem",
+        "settings": "Settings"
+      },
+      "portalName": "Observer Portal",
+      "tooltip": {
+        "emergencyUnlock": "Emergency unlock is a special method used when you lose your private key. Requires a 7-day waiting period.",
+        "emergencyUnlockAriaLabel": "Learn more about emergency unlock",
+        "normalUnlock": "Normal unlock is a standard withdrawal method using Dilithium signatures. Requires a 24-hour waiting period.",
+        "normalUnlockAriaLabel": "Learn more about normal unlock",
+        "challenge": "A challenge is a dispute filed by an observer against a suspicious unlock request. Successful challenges earn rewards.",
+        "challengeAriaLabel": "Learn more about challenges",
+        "slashing": "Slashing is the mechanism where a prover's stake (collateral) is confiscated for misconduct.",
+        "slashingAriaLabel": "Learn more about slashing",
+        "riskScore": "Risk score evaluates the fraud risk of a transaction from 0-100. Higher scores indicate greater likelihood of fraud.",
+        "riskScoreAriaLabel": "Learn more about risk score"
+      }
+    },
+    "landing": {
+      "meta": {
+        "title": "Observer Portal | Quantum Shield",
+        "description": "Monitor suspicious unlocks and earn rewards. Become an Observer to protect Quantum Shield's security."
+      },
+      "nav": {
+        "overview": "Overview",
+        "about": "About QS",
+        "howItWorks": "How It Works",
+        "requirements": "Requirements"
+      },
+      "login": "Login",
+      "applyNow": "Apply as Observer",
+      "hero": {
+        "badge": "Network Guardian",
+        "title": "Find Fraud",
+        "titleHighlight": "Earn Rewards",
+        "description": "Quantum Shield has a \"waiting period\" when users withdraw their assets. As an Observer, you monitor for fraudulent withdrawals during this period. Report fraud successfully and earn rewards.",
+        "applyButton": "Apply as Observer",
+        "learnMore": "Learn More"
+      },
+      "stats": {
+        "activeObservers": {
+          "value": "89",
+          "label": "Active Observers"
+        },
+        "totalMonitored": {
+          "value": "12,450",
+          "label": "Unlocks Monitored"
+        },
+        "fraudPrevented": {
+          "value": "$2.1M",
+          "label": "Fraud Prevented"
+        },
+        "rewardsDistributed": {
+          "value": "156 ETH",
+          "label": "Rewards Distributed"
+        }
+      },
+      "about": {
+        "sectionLabel": "Getting Started",
+        "title": "What is Quantum Shield & Observer?",
+        "description": "Let's understand how Quantum Shield works and the role of Observers.",
+        "whatIsQS": {
+          "title": "What is Quantum Shield?",
+          "description1": "Quantum Shield is a security service that protects crypto assets from future quantum computer attacks. Users can \"lock\" their ETH and other assets for safe storage.",
+          "description2": "When withdrawing (unlocking) assets, there's a \"waiting period\" of 24 hours to 7 days to prevent fraud. Observers monitor during this waiting period to catch any fraudulent withdrawals.",
+          "flowTitle": "Quantum Shield Basic Flow",
+          "flow1": "User locks assets in Quantum Shield",
+          "flow2": "Prover (signer) generates quantum-resistant signatures",
+          "flow3": "Withdrawal triggers waiting period (24h-7 days)",
+          "flow4": "Observer monitors; if no issues, withdrawal completes"
+        },
+        "whatIsObserver": {
+          "title": "What is an Observer?",
+          "description1": "An Observer is a \"guardian\" who protects Quantum Shield's security. They review unlock requests during waiting periods and check for fraudulent transactions.",
+          "description2": "If fraud is detected, Observers can file a \"dispute\". If the dispute is upheld, they receive a portion of the assets confiscated from the fraudster as a reward.",
+          "roleTitle": "Main Observer Responsibilities",
+          "role1": "Monitor pending unlock requests in real-time",
+          "role2": "Review \"suspicious transactions\" detected by AI",
+          "role3": "Submit disputes for suspected fraudulent transactions",
+          "role4": "Earn rewards when disputes are successful"
+        }
+      },
+      "howItWorks": {
+        "sectionLabel": "Observer's Job",
+        "title": "4 Steps to Earn Rewards",
+        "description": "Here's how you detect fraud and earn rewards as an Observer.",
+        "steps": {
+          "monitor": {
+            "title": "1. Monitor Unlocks",
+            "description": "View pending unlock requests on your dashboard. AI automatically detects and alerts you to \"suspicious transactions\"."
+          },
+          "detect": {
+            "title": "2. Find Fraud",
+            "description": "Analyze high-risk transactions like large emergency unlocks, withdrawals from new accounts, and unusual patterns."
+          },
+          "dispute": {
+            "title": "3. File a Dispute",
+            "description": "If you determine it's fraud, deposit a bond and submit a \"dispute\". The Prover gets 48-72 hours to defend."
+          },
+          "earn": {
+            "title": "4. Earn Rewards",
+            "description": "If your dispute is upheld, your bond is returned plus you receive 60% of the assets confiscated from the fraudster."
+          }
+        }
+      },
+      "rewards": {
+        "sectionLabel": "Reward System",
+        "title": "Rewards for Successful Disputes",
+        "description": "When you discover and report fraud, a portion of the confiscated Prover stake is distributed as rewards.",
+        "distribution": {
+          "title": "Confiscated Asset Distribution",
+          "challenger": "You (Observer)",
+          "challengerDesc": "Reward to the Observer who filed the dispute",
+          "insurance": "Insurance Pool",
+          "insuranceDesc": "Accumulated for victim compensation",
+          "burn": "Burn",
+          "burnDesc": "Burned to increase token scarcity"
+        },
+        "example": {
+          "title": "Reward Calculation Example",
+          "fraudAmount": "Fraudulent Unlock Amount",
+          "proverStake": "Prover's Stake (Collateral)",
+          "slashRate": "Slashing Rate",
+          "slashNote": "※ For 1 violator. Increases with multiple violations",
+          "yourReward": "Your Reward",
+          "calculation": "100 ETH × 10% × 60% = 6 ETH",
+          "bondReturn": "Your bond is also fully returned"
+        },
+        "warning": {
+          "title": "If Your Dispute Fails",
+          "description": "If you dispute a legitimate transaction, your deposited bond is forfeited. Only file disputes when you have solid evidence."
+        }
+      },
+      "requirements": {
+        "sectionLabel": "Requirements",
+        "title": "Become an Observer",
+        "description": "No special qualifications needed, but some preparation is required.",
+        "items": {
+          "stake": {
+            "title": "Observer Stake",
+            "value": "Not Required",
+            "description": "No collateral needed to become an Observer. Bond is only required when filing disputes."
+          },
+          "bond": {
+            "title": "Dispute Bond",
+            "value": "0.1 ETH+",
+            "description": "Bond deposited when filing a dispute. Returned on success, forfeited on failure."
+          },
+          "knowledge": {
+            "title": "Required Knowledge",
+            "value": "Basic Level",
+            "description": "Basic blockchain and security knowledge is sufficient. AI provides support."
+          }
+        },
+        "bondTable": {
+          "title": "Bond Calculation",
+          "unlockAmount": "Unlock Amount",
+          "calculation": "Formula",
+          "bondRequired": "Bond Required",
+          "note": "※ Bond = MAX(0.1 ETH, Unlock Amount × 1%)"
+        }
+      },
+      "ecosystem": {
+        "title": "Quantum Shield Ecosystem",
+        "consumer": {
+          "title": "Consumer App",
+          "description": "Protect your assets with quantum-resistant cryptography",
+          "link": "View Consumer App"
+        },
+        "prover": {
+          "title": "Prover Network",
+          "description": "Become a Prover to generate quantum signatures and earn rewards",
+          "link": "Become a Prover"
+        },
+        "governance": {
+          "title": "Governance",
+          "description": "Participate in protocol decisions with QS tokens",
+          "link": "Join Governance"
+        }
+      },
+      "cta": {
+        "title": "Ready to Become an Observer?",
+        "description": "Monitor for fraud, protect the network, and earn rewards. No special qualifications required—apply now.",
+        "button": "Apply as Observer",
+        "loginButton": "Login with Existing Account"
+      },
+      "expertQuotes": {
+        "sectionLabel": "Expert Insights",
+        "title": "Why Fraud Detection Matters",
+        "subtitle": "Insights from security experts",
+        "quotes": {
+          "0": {
+            "quote": "Fraud proofs enable open participation where anyone can verify that the chain is secure. With even a single honest verifier, the security of the entire system is guaranteed.",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum Co-founder",
+            "source": "The different types of ZK-EVMs",
+            "sourceUrl": "https://vitalik.eth.limo/general/2022/08/04/zkevm.html"
+          },
+          "1": {
+            "quote": "Optimistic Rollups ensure security by allowing anyone to monitor transactions and submit challenges against fraudulent state transitions.",
+            "author": "Ethereum Foundation",
+            "title": "Official Ethereum Documentation",
+            "source": "Optimistic Rollups",
+            "sourceUrl": "https://ethereum.org/en/developers/docs/scaling/optimistic-rollups/"
+          },
+          "2": {
+            "quote": "Security is a matter of economic incentive design. By rewarding correct behavior and penalizing fraud, the trustworthiness of decentralized systems is ensured.",
+            "author": "Ed Felten",
+            "title": "Arbitrum Co-founder, Former White House CTO",
+            "source": "Arbitrum Documentation",
+            "sourceUrl": "https://docs.arbitrum.io/intro/"
+          }
+        },
+        "disclaimer": "The above is for informational purposes only. Please participate as an Observer at your own discretion."
+      },
+      "footer": {
+        "tagline": "Quantum-Resistant Security",
+        "madeIn": "Made in Japan",
+        "terms": "Terms of Service",
+        "privacy": "Privacy",
+        "cookie": "Cookie Policy"
+      }
+    },
+    "login": {
+      "meta": {
+        "title": "Observer Login | Quantum Shield",
+        "description": "Login to Observer Portal"
+      },
+      "title": "Login to Observer Portal",
+      "description": "Connect your registered wallet to access the dashboard",
+      "backToLanding": "Back to Landing",
+      "selectWallet": "Select Wallet",
+      "popular": "Popular",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
+      "connecting": {
+        "title": "Connecting...",
+        "walletPrompt": "Please approve the connection in your wallet"
+      },
+      "checking": {
+        "title": "Checking registration...",
+        "description": "Verifying your Observer registration status"
+      },
+      "success": {
+        "title": "Connected",
+        "description": "Redirecting to dashboard..."
+      },
+      "error": {
+        "title": "Connection Error",
+        "connectionFailed": "Failed to connect to wallet. Please try again.",
+        "tryAgain": "Try Again"
+      },
+      "notRegistered": {
+        "title": "Unregistered Wallet",
+        "description": "This wallet address is not registered as an Observer. Please apply first.",
+        "applyButton": "Apply as Observer",
+        "tryAnotherWallet": "Try Another Wallet"
+      },
+      "noWallet": "Don't have a wallet?",
+      "getWallet": "Get MetaMask",
+      "newToObserver": "New to Observer?",
+      "applyNow": "Apply Now",
+      "footer": "© 2025 Quantum Shield. All rights reserved."
+    },
+    "application": {
+      "meta": {
+        "title": "Observer Application | Quantum Shield",
+        "description": "Register as an Observer to participate in network monitoring"
+      },
+      "title": "Observer Application",
+      "description": "Connect your wallet to register as an Observer",
+      "backToLanding": "Back to Landing",
+      "steps": {
+        "connect": {
+          "title": "Connect Wallet",
+          "description": "Connect the wallet you'll use as an Observer",
+          "connecting": "Connecting to {wallet}...",
+          "popular": "Popular"
+        },
+        "terms": {
+          "title": "Terms of Service",
+          "description": "Please agree to the Observer Terms of Service",
+          "agree": "I agree to the Terms of Service",
+          "agreeDetails": "I understand the rules regarding disputes and the reward/penalty mechanism",
+          "termsIntro": "By registering as an Observer, you agree to the following terms:",
+          "termsItem1": "You are responsible for filing evidence-based disputes when you discover fraudulent transactions",
+          "termsItem2": "You must deposit a bond when filing a dispute, which will be forfeited if the dispute fails",
+          "termsItem3": "Filing malicious disputes against legitimate transactions is prohibited",
+          "termsItem4": "Rewards are only paid upon successful disputes",
+          "back": "Back",
+          "next": "Next"
+        },
+        "confirm": {
+          "title": "Confirm",
+          "description": "You will be registered with the following details",
+          "walletAddress": "Wallet Address",
+          "registrationFee": "Registration Fee",
+          "free": "Free",
+          "feeNote": "※ First registration is free",
+          "back": "Back"
+        }
+      },
+      "submit": "Register as Observer",
+      "submitting": "Registering...",
+      "success": {
+        "title": "Registration Complete",
+        "description": "You are now registered as an Observer. You can start monitoring from the dashboard.",
+        "goToDashboard": "Go to Dashboard"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Observer Dashboard | Quantum Shield",
+        "description": "Observer Dashboard - Monitor unlocks and detect fraud"
+      },
+      "pageTitle": "Observer Dashboard",
+      "monitoringBadge": "Monitoring Active",
+      "monitoringBadgeAriaLabel": "Monitoring status: Active",
+      "practiceMode": {
+        "title": "Practice Mode Active",
+        "badge": "Practice",
+        "description": "You're in practice mode for the first 3 months after registration. Submit challenges without staking to learn the process. No real rewards, but you can learn the workflow.",
+        "daysRemaining": "{days} days left",
+        "dismiss": "Dismiss",
+        "ariaLabel": "Practice mode information banner",
+        "learnMore": "Learn more about practice mode",
+        "noStakeRequired": "No stake required",
+        "simulationOnly": "Simulation only"
+      },
+      "stats": {
+        "pendingUnlocks": {
+          "label": "Pending Unlocks",
+          "tooltip": "Number of unlock requests in 24-hour or 7-day waiting period",
+          "change": "+{count} in last hour"
+        },
+        "suspicious": {
+          "label": "Suspicious Detected",
+          "tooltip": "Transactions flagged by AI as potentially fraudulent. Review and consider filing a dispute",
+          "badge": "Requires attention"
+        },
+        "activeChallenges": {
+          "label": "Active Disputes",
+          "tooltip": "A dispute is a mechanism to report fraudulent transactions. Successful disputes earn rewards"
+        },
+        "totalEarnings": {
+          "label": "Total Earnings",
+          "tooltip": "Total rewards earned from successful disputes and monitoring activities",
+          "change": "+{amount} this week"
+        }
+      },
+      "pendingUnlocks": {
+        "title": "Pending Unlocks",
+        "live": "Live",
+        "viewAll": "View All",
+        "table": {
+          "address": "Address",
+          "amount": "Amount",
+          "type": "Type",
+          "timeRemaining": "Time Remaining",
+          "status": "Status"
+        },
+        "types": {
+          "normal": "Normal",
+          "emergency": "Emergency"
+        },
+        "statuses": {
+          "pending": "Pending",
+          "monitoring": "Monitoring"
+        }
+      },
+      "suspicious": {
+        "title": "Suspicious Transactions",
+        "viewAll": "View All",
+        "highRisk": "High Risk Detected",
+        "mediumRisk": "Medium Risk",
+        "score": "Score",
+        "firstTimeEmergency": "First-time emergency unlock with large amount",
+        "unusualPattern": "Unusual unlock pattern detected",
+        "challengeButton": "Dispute This Transaction"
+      },
+      "pending": {
+        "meta": {
+          "title": "Pending Unlocks | Observer | Quantum Shield",
+          "description": "Monitor pending unlock requests"
+        },
+        "pageTitle": "Pending Unlocks",
+        "liveMonitoring": "Live Monitoring",
+        "filters": {
+          "unlockType": {
+            "label": "Unlock Type",
+            "all": "All Types",
+            "normal": "Normal",
+            "emergency": "Emergency"
+          },
+          "minAmount": {
+            "label": "Min Amount",
+            "placeholder": "0.00 ETH"
+          },
+          "maxAmount": {
+            "label": "Max Amount",
+            "placeholder": "∞ ETH"
+          },
+          "riskScore": {
+            "label": "Risk Score",
+            "all": "All Scores",
+            "high": "High (70+)",
+            "medium": "Medium (40-69)",
+            "low": "Low (0-39)"
+          },
+          "sortBy": {
+            "label": "Sort By",
+            "timeAsc": "Time Remaining ↑",
+            "amountDesc": "Amount ↓",
+            "riskDesc": "Risk Score ↓"
+          }
+        },
+        "table": {
+          "userAddress": "User Address",
+          "amount": "Amount",
+          "type": "Type",
+          "timeRemaining": "Time Remaining",
+          "risk": "Risk",
+          "status": "Status",
+          "action": "Action"
+        },
+        "statuses": {
+          "monitoring": "Monitoring",
+          "pending": "Pending",
+          "review": "Review",
+          "lowRisk": "Low Risk"
+        },
+        "actions": {
+          "challenge": "Dispute",
+          "monitor": "Monitor"
+        },
+        "detail": {
+          "fullAddress": "Full Address",
+          "startedAt": "Started At",
+          "bondPaid": "Bond Paid",
+          "txHash": "TX Hash",
+          "accountAge": "Account Age",
+          "previousUnlocks": "Previous Unlocks",
+          "previousUnlocksValue": "{count} (all successful)",
+          "riskFactors": "Risk Factors",
+          "riskFactorFirstTime": "First-time emergency unlock",
+          "riskFactorLargeAmount": "Large amount (top 5% of unlocks)",
+          "riskFactorNewAccount": "Account age: {days} days",
+          "challengeButton": "Dispute This Transaction",
+          "viewOnExplorer": "View on Explorer",
+          "copyTxHash": "Copy TX Hash",
+          "copySuccess": "Copied"
+        },
+        "pagination": {
+          "showing": "Showing {start}-{end} of {total} pending unlocks",
+          "prev": "← Prev",
+          "next": "Next →"
+        }
+      },
+      "suspiciousPage": {
+        "meta": {
+          "title": "Suspicious Transactions | Observer | Quantum Shield",
+          "description": "Monitor suspicious transaction alerts"
+        },
+        "pageTitle": "Suspicious Transactions",
+        "alertCount": "{count} Alerts Requiring Attention",
+        "riskLevels": {
+          "high": "High Risk Detected",
+          "medium": "Medium Risk"
+        },
+        "detectedAgo": "Detected {time} ago",
+        "txSummary": {
+          "address": "Address",
+          "amount": "Amount",
+          "unlockType": "Unlock Type",
+          "timeRemaining": "Time Remaining"
+        },
+        "riskFactors": {
+          "title": "Risk Factors Identified",
+          "firstTimeEmergency": "First-time emergency unlock from this address",
+          "largeAmount": "Amount is in top 5% of all unlock requests",
+          "newAccount": "Account created only {days} days ago",
+          "unusualTiming": "Unusual timing pattern ({time} local time)",
+          "unusualPattern": "Unusual unlock pattern - {count} unlocks in 24 hours",
+          "exceedsAverage": "Total unlocked amount exceeds historical average by {percent}%",
+          "flaggedAssociation": "Address previously associated with flagged account"
+        },
+        "actions": {
+          "challenge": "Dispute This Transaction",
+          "viewDetails": "View Full Details",
+          "dismiss": "Dismiss",
+          "monitorClosely": "Monitor Closely"
+        },
+        "emptyState": {
+          "title": "No Suspicious Transactions",
+          "description": "All transactions are currently within normal parameters."
+        }
+      },
+      "history": {
+        "meta": {
+          "title": "Dispute History | Observer | Quantum Shield",
+          "description": "View past dispute results and earnings"
+        },
+        "pageTitle": "Dispute History",
+        "stats": {
+          "totalChallenges": "Total Disputes",
+          "successful": "Successful",
+          "failed": "Failed",
+          "totalEarnings": "Total Earnings"
+        },
+        "filters": {
+          "result": {
+            "all": "All Results",
+            "successful": "Successful",
+            "failed": "Failed"
+          },
+          "period": {
+            "last30": "Last 30 Days",
+            "last7": "Last 7 Days",
+            "last90": "Last 90 Days",
+            "allTime": "All Time"
+          },
+          "exportCsv": "Export CSV"
+        },
+        "table": {
+          "challengeId": "Dispute ID",
+          "targetAddress": "Target Address",
+          "amount": "Amount",
+          "date": "Date",
+          "result": "Result",
+          "rewardPenalty": "Reward/Penalty",
+          "action": "Action"
+        },
+        "results": {
+          "inProgress": "In Progress",
+          "won": "✓ Won",
+          "lost": "✗ Lost"
+        },
+        "actions": {
+          "view": "View"
+        },
+        "pagination": {
+          "showing": "Showing {start}-{end} of {total} disputes",
+          "prev": "← Prev",
+          "next": "Next →"
+        }
+      },
+      "claimableEarnings": {
+        "title": "Claimable Earnings",
+        "available": "Available to Claim",
+        "claimButton": "Claim Rewards"
+      },
+      "challengeStats": {
+        "title": "Your Dispute Stats",
+        "successful": "Successful",
+        "failed": "Failed",
+        "successRate": "Success Rate"
+      },
+      "activeChallenges": {
+        "title": "Active Disputes",
+        "defensePeriod": "Defense Period Active",
+        "awaitingJudgment": "Awaiting Judgment",
+        "vs": "vs"
+      },
+      "observerStake": {
+        "title": "Your Observer Stake",
+        "activeSince": "Active Since",
+        "statusActive": "Active"
+      },
+      "challenge": {
+        "meta": {
+          "title": "Submit Dispute | Observer | Quantum Shield",
+          "description": "Submit a dispute against a suspicious transaction"
+        },
+        "pageTitle": "Submit Dispute",
+        "backToSuspicious": "← Back",
+        "targetTransaction": {
+          "title": "Target Transaction",
+          "targetAddress": "Target Address",
+          "amount": "Amount",
+          "unlockType": "Unlock Type",
+          "timeRemaining": "Time Remaining",
+          "txHash": "TX Hash",
+          "riskScore": "Risk Score",
+          "emergency": "Emergency Unlock"
+        },
+        "evidence": {
+          "title": "Evidence & Reason",
+          "selectFactors": "Select Applicable Risk Factors",
+          "firstTimeEmergency": "First-time emergency unlock from this address",
+          "largeAmount": "Amount is in top 5% of all unlock requests",
+          "newAccount": "Account created less than 30 days ago",
+          "suspicious": "Address associated with known suspicious activity",
+          "additionalEvidence": "Additional Evidence",
+          "additionalPlaceholder": "Provide any additional evidence or context for your dispute...",
+          "evidenceHint": "Include transaction hashes, on-chain evidence, or other relevant information",
+          "supportingLinks": "Supporting Links (Optional)",
+          "addLink": "+ Add Link"
+        },
+        "bond": {
+          "title": "Dispute Bond",
+          "requiredAmount": "Required Bond Amount",
+          "calculation": "Bond = MAX(0.1 ETH, Unlock Amount × 1%)",
+          "warningLose": "⚠️ If your dispute is unsuccessful, this bond will be forfeited",
+          "warningWin": "✓ If successful, bond is returned + you receive a portion of the Prover's stake"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "submit": "Submit Dispute ({amount})"
+        },
+        "confirm": {
+          "title": "Confirm Dispute Submission",
+          "target": "Target",
+          "unlockAmount": "Unlock Amount",
+          "bondRequired": "Bond Required",
+          "defensePeriod": "Defense Period",
+          "warning": "⚠️ Warning: If your dispute fails, you will lose your {amount} bond. Only submit disputes with strong evidence.",
+          "acknowledgement": "I understand that my bond may be forfeited if this dispute is unsuccessful. I have provided accurate evidence and believe this transaction is fraudulent.",
+          "cancelButton": "Cancel",
+          "confirmButton": "Confirm & Submit"
+        }
+      },
+      "challengeProgress": {
+        "meta": {
+          "title": "Dispute Progress | Observer | Quantum Shield",
+          "description": "Track dispute status"
+        },
+        "pageTitle": "Dispute #{id}",
+        "backToHistory": "← Back to History",
+        "status": {
+          "defensePeriod": "Defense Period Active",
+          "awaitingJudgment": "Awaiting Judgment",
+          "resolved": "Resolved"
+        },
+        "submitted": {
+          "title": "Dispute Successfully Submitted",
+          "description": "Your dispute has been recorded on-chain. TX: {txHash}"
+        },
+        "header": {
+          "title": "Dispute #{id}",
+          "vs": "vs",
+          "emergencyUnlock": "Emergency Unlock"
+        },
+        "countdown": {
+          "ariaLabel": "Defense period countdown",
+          "remaining": "Defense Period Remaining",
+          "hours": "Hours",
+          "minutes": "Minutes",
+          "seconds": "Seconds",
+          "elapsed": "{percent}% of defense period elapsed"
+        },
+        "timeline": {
+          "title": "Timeline",
+          "submitted": "Dispute Submitted",
+          "submittedDesc": "You submitted a dispute against {address} with {bond} ETH bond.",
+          "bondLocked": "Bond Locked",
+          "bondLockedDesc": "Your {bond} ETH bond has been locked in the dispute contract.",
+          "defenseStart": "Defense Period Started",
+          "defenseEnd": "Defense Period",
+          "defenseDesc": "The Prover has 72 hours to respond and defend. No response received yet.",
+          "endsAt": "Ends: {time}",
+          "pending": "Pending",
+          "judgment": "Judgment",
+          "judgmentDesc": "After defense period, automatic judgment will be issued.",
+          "resolution": "Resolution",
+          "resolutionDesc": "Rewards distributed or bond forfeited based on judgment."
+        },
+        "details": {
+          "title": "Dispute Details",
+          "challengeId": "Dispute ID",
+          "submitted": "Submitted",
+          "yourBond": "Your Bond",
+          "potentialReward": "Potential Reward",
+          "txHash": "TX Hash",
+          "targetAmount": "Target Amount",
+          "timeRemaining": "Time Remaining",
+          "proverDefense": "Prover Defense",
+          "none": "None"
+        },
+        "target": {
+          "title": "Target Transaction",
+          "address": "Address",
+          "amount": "Amount",
+          "type": "Type",
+          "emergencyUnlock": "Emergency Unlock",
+          "riskScore": "Risk Score",
+          "originalTx": "Original TX"
+        },
+        "yourEvidence": "Your Evidence"
+      },
+      "earnings": {
+        "meta": {
+          "title": "Earnings | Observer | Quantum Shield",
+          "description": "Dispute rewards and claims"
+        },
+        "pageTitle": "Earnings Management",
+        "summary": {
+          "totalEarnings": "Total Earnings",
+          "claimable": "Claimable",
+          "pending": "Pending",
+          "claimed": "Claimed"
+        },
+        "claim": {
+          "title": "Claimable Rewards",
+          "available": "Available",
+          "claimButton": "Claim Rewards",
+          "claimAll": "Claim All",
+          "readyToClaim": "Ready to Claim"
+        },
+        "breakdown": {
+          "challenge": "Dispute #{id}",
+          "reward": "Reward",
+          "bondReturn": "Bond Return"
+        },
+        "history": {
+          "title": "Rewards History",
+          "challengeId": "Dispute ID",
+          "challenge": "Dispute",
+          "amount": "Amount",
+          "type": "Type",
+          "date": "Date",
+          "status": "Status"
+        },
+        "types": {
+          "challengeWin": "Dispute Win",
+          "monitoringReward": "Monitoring Reward",
+          "bonusReward": "Bonus Reward",
+          "bondReturn": "Bond Return",
+          "bondLost": "Bond Lost"
+        },
+        "statuses": {
+          "claimable": "Claimable",
+          "claimed": "Claimed",
+          "pending": "Pending",
+          "settled": "Settled"
+        },
+        "performance": {
+          "title": "Performance Statistics",
+          "successRate": "Success Rate",
+          "totalChallenges": "Total Disputes",
+          "successful": "Successful",
+          "failed": "Failed"
+        },
+        "stake": {
+          "title": "Your Observer Stake",
+          "stakedAmount": "Staked Amount",
+          "active": "Active",
+          "activeSince": "Active since",
+          "daysStaked": "Days staked"
+        },
+        "roi": {
+          "title": "ROI Calculator",
+          "totalInvested": "Total Invested",
+          "totalEarned": "Total Earned",
+          "roi": "ROI"
+        },
+        "claimModal": {
+          "title": "Confirm Claim",
+          "description": "This amount will be transferred to your connected wallet:",
+          "cancel": "Cancel",
+          "confirm": "Confirm Claim",
+          "processingTitle": "Processing Transaction",
+          "processingDescription": "After wallet approval, your transaction is being processed.",
+          "waitingForConfirmation": "Waiting for blockchain confirmation...",
+          "successTitle": "Claim Successful",
+          "successDescription": "Rewards have been transferred to your wallet.",
+          "txHash": "Transaction",
+          "done": "Done"
+        }
+      }
+    },
+    "settings": {
+      "meta": {
+        "title": "Settings | Observer | Quantum Shield",
+        "description": "Observer account settings"
+      },
+      "title": "Settings",
+      "description": "Manage your Observer account settings",
+      "save": "Save",
+      "saved": "Saved",
+      "tabs": "Settings tabs",
+      "tab": {
+        "profile": "Profile",
+        "notifications": "Notifications",
+        "security": "Security"
+      },
+      "profile": {
+        "basicInfo": "Basic Information",
+        "observerId": "Observer ID",
+        "walletAddress": "Wallet Address",
+        "email": "Email Address",
+        "accountStatus": "Account Status",
+        "status": "Status",
+        "statusActive": "Active",
+        "joinedDate": "Joined Date",
+        "totalChallenges": "Total Disputes",
+        "successRate": "Success Rate",
+        "language": "Language Settings",
+        "languageDescription": "Select your preferred interface language"
+      },
+      "notifications": {
+        "title": "Notification Settings",
+        "description": "Choose which notifications you want to receive",
+        "email": {
+          "title": "Email Notifications",
+          "description": "Receive important updates via email"
+        },
+        "browser": {
+          "title": "Browser Notifications",
+          "description": "Receive push notifications in your browser"
+        },
+        "suspiciousAlert": {
+          "title": "Suspicious Transaction Alerts",
+          "description": "Get notified when high-risk transactions are detected"
+        },
+        "challengeUpdate": {
+          "title": "Dispute Updates",
+          "description": "Get notified about dispute progress and results"
+        },
+        "earningsAlert": {
+          "title": "Earnings Alerts",
+          "description": "Get notified when you have claimable rewards"
+        }
+      },
+      "security": {
+        "twoFactor": {
+          "title": "Two-Factor Authentication",
+          "description": "Enhance your account security",
+          "enabled": "Enabled",
+          "lastUsed": "Last used",
+          "manage": "Manage"
+        },
+        "loginHistory": {
+          "title": "Login History",
+          "description": "View recent login activity",
+          "lastLogin": "Last Login",
+          "totalLogins": "Logins this month"
+        },
+        "dangerZone": {
+          "title": "Danger Zone",
+          "description": "Deactivating your account will prevent you from acting as an Observer. This action cannot be undone.",
+          "deactivate": "Deactivate Account"
+        }
+      }
+    }
+  }
+}

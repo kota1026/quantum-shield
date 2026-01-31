@@ -1,0 +1,1386 @@
+{
+  "token-hub": {
+    "login": {
+      "meta": {
+        "title": "ログイン | Token Hub | Quantum Shield",
+        "description": "ウォレットを接続してToken Hubにアクセス"
+      },
+      "title": "Token Hubにログイン",
+      "description": "ウォレットを接続してveQSを管理し、ガバナンスに参加しましょう",
+      "backToLanding": "ランディングに戻る",
+      "selectWallet": "ウォレットを選択",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
+      "popular": "人気",
+      "connecting": {
+        "title": "接続中...",
+        "description": "ウォレットで接続を承認してください"
+      },
+      "success": {
+        "title": "接続完了",
+        "description": "ダッシュボードに移動します..."
+      },
+      "noWallet": "ウォレットをお持ちでないですか？",
+      "getWallet": "ウォレットを作成",
+      "newUser": "はじめての方はこちら",
+      "startOnboarding": "Token Hubについて学ぶ",
+      "footer": "© 2026 Quantum Shield Foundation"
+    },
+    "landing": {
+      "meta": {
+        "title": "Token Hub | Quantum Shield",
+        "description": "QSトークンをロックしてveQSを獲得し、ガバナンスに参加しましょう"
+      },
+      "hero": {
+        "badge": "Token Hub",
+        "title": "QSをロックして\nガバナンスに参加",
+        "description": "QSトークンをロックしてveQSを獲得。投票権を得て、プロトコルの将来を一緒に決めましょう。報酬も獲得できます。",
+        "cta": "ダッシュボードへ",
+        "secondaryCta": "詳しく学ぶ"
+      },
+      "stats": {
+        "totalLocked": {
+          "value": "52.4M",
+          "label": "総ロック量 (QS)"
+        },
+        "holders": {
+          "value": "12,847",
+          "label": "veQS保有者"
+        },
+        "apy": {
+          "value": "12.5%",
+          "label": "平均APY"
+        },
+        "distributed": {
+          "value": "$4.2M",
+          "label": "累計報酬分配"
+        }
+      },
+      "features": {
+        "title": "Token Hubでできること",
+        "subtitle": "QSトークンを活用してQuantum Shieldの運営に参加",
+        "lock": {
+          "title": "QSをロック",
+          "description": "1〜4年の期間でQSをロックし、veQS（投票エスクロートークン）を獲得",
+          "tooltip": "ロックしたQSはロック期間中引き出せません。長いロック期間ほど多くのveQSが獲得でき、投票力と報酬が増加します。"
+        },
+        "rewards": {
+          "title": "報酬を獲得",
+          "description": "プロトコル収益の一部がveQS保有者に分配されます",
+          "tooltip": "報酬はプロトコル手数料から毎週分配されます。veQS保有量に比例して報酬が計算されます。"
+        },
+        "delegate": {
+          "title": "投票権を委任",
+          "description": "信頼できるデリゲートに投票権を委任し、代わりに投票してもらう",
+          "tooltip": "委任しても、あなたのQSトークンは移動しません。いつでも委任を解除できます。"
+        },
+        "governance": {
+          "title": "ガバナンス投票",
+          "description": "プロトコルの重要な決定に投票し、将来の方向性を決める",
+          "tooltip": "手数料調整、プロトコル改善、財務配分などの提案に投票できます。"
+        }
+      },
+      "howItWorks": {
+        "title": "参加の流れ",
+        "subtitle": "3ステップでToken Hubに参加",
+        "step1": {
+          "title": "QSを入手",
+          "description": "DEXで購入するか、報酬やエアドロップで獲得"
+        },
+        "step2": {
+          "title": "QSをロック",
+          "description": "1〜4年の期間を選んでロック。長いほど多くのveQSを獲得"
+        },
+        "step3": {
+          "title": "参加 & 報酬",
+          "description": "投票に参加し、毎週の報酬を受け取る"
+        }
+      },
+      "benefits": {
+        "title": "なぜveQSを持つの？",
+        "earn": "プロトコル収益から報酬を獲得（平均APY 12.5%）",
+        "vote": "手数料調整やプロトコル改善の投票に参加",
+        "boost": "流動性提供などの報酬が最大2.5倍にブースト",
+        "delegate": "投票権を委任して、信頼できる人に任せることも可能",
+        "cta": "今すぐ始める"
+      },
+      "veqs": {
+        "title": "veQSとは？",
+        "description": "veQS（投票エスクローQS）は、QSをロックすると獲得できる投票権トークンです。ロック期間が長いほど多くのveQSがもらえます。",
+        "tooltip": "veQS（Vote-escrowed QS）は投票権を表すトークンです。QSをロックすることで獲得でき、ロック期間終了に向けて徐々に減少します。",
+        "lockPeriod": "ロック期間",
+        "years": "年",
+        "maxMultiplier": "最大倍率",
+        "rewardsBoost": "報酬ブースト",
+        "upTo": "最大"
+      },
+      "expertQuotes": {
+        "sectionLabel": "専門家の声",
+        "title": "なぜトークンガバナンスが重要なのか",
+        "subtitle": "業界リーダーたちの見解",
+        "quotes": {
+          "0": {
+            "quote": "長期的なトークンロックは、プロトコルの持続可能な成長に不可欠です。短期的な投機ではなく、真のコミットメントを促進します。",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum共同創設者",
+            "source": "vitalik.eth.limo"
+          },
+          "1": {
+            "quote": "veTokenモデルは、ガバナンスにおける長期的な視点を持つ参加者を優遇する優れた仕組みです。",
+            "author": "a16z Crypto",
+            "title": "クリプト投資チーム",
+            "source": "a16z.com"
+          },
+          "2": {
+            "quote": "分散型ガバナンスの成功は、適切なインセンティブ設計にかかっています。veQSモデルはその好例です。",
+            "author": "DeFi研究者",
+            "title": "分散型金融アナリスト",
+            "source": "DeFi Pulse"
+          }
+        },
+        "disclaimer": "※ 上記は参考情報です。投資判断はご自身の責任で行ってください。"
+      },
+      "cta": {
+        "title": "さあ、始めましょう",
+        "description": "QSをロックしてveQSを獲得し、Quantum Shieldの運営に参加しましょう。",
+        "button": "ダッシュボードへ"
+      }
+    },
+    "onboarding": {
+      "meta": {
+        "title": "トークノミクスについて | Token Hub | Quantum Shield",
+        "description": "QSトークン、veQS投票エスクロー、ガバナンス参加方法を理解する"
+      },
+      "breadcrumb": {
+        "ariaLabel": "パンくずリストナビゲーション",
+        "dashboard": "ダッシュボード",
+        "current": "トークノミクス"
+      },
+      "hero": {
+        "badge": "はじめてのToken Hub",
+        "title": "なぜQSをロックするの？",
+        "description": "ロックすることで、あなたはQuantum Shieldの運営に参加でき、報酬も受け取れます。長期保有を決めた方への特典です。"
+      },
+      "overview": {
+        "title": "Quantum Shieldとは？",
+        "description": "Quantum Shieldは、量子コンピュータの時代に備えた次世代の資産保護プラットフォームです。あなたの暗号資産を、将来の脅威からも守ります。",
+        "pillars": {
+          "protection": {
+            "title": "量子耐性技術",
+            "description": "将来の量子コンピュータでも解読できない最新の暗号技術で、あなたの資産を保護します"
+          },
+          "wallet": {
+            "title": "Consumer App",
+            "description": "ETHなどの資産をロック・アンロックする資産保護アプリ。シンプルで使いやすいUI"
+          },
+          "governance": {
+            "title": "Token Hub",
+            "description": "QSを量子耐性ロックしてveQSを獲得。ガバナンス投票と報酬で、プロジェクト運営に参加"
+          }
+        },
+        "whyQuantum": {
+          "title": "なぜ量子耐性が必要？",
+          "description": "現在の暗号技術（ECDSA）は、将来の量子コンピュータで突破される可能性があります。Quantum Shieldは、米国NISTが認定した最新の耐量子暗号アルゴリズムを採用し、「今のうちに対策」を可能にします。",
+          "tags": {
+            "dilithium": "Dilithium署名",
+            "stark": "STARKプルーフ",
+            "futureProof": "将来も安心"
+          }
+        }
+      },
+      "governance": {
+        "title": "ガバナンスで何を決めるの？",
+        "description": "veQS保有者は、Quantum Shieldの重要な意思決定に参加できます。委任することで、信頼できる代表者に投票を任せることも可能です。",
+        "topics": {
+          "fees": {
+            "title": "手数料の調整",
+            "description": "ロック・アンロック手数料の設定や変更"
+          },
+          "upgrades": {
+            "title": "プロトコル改善",
+            "description": "新機能の追加やセキュリティ強化"
+          },
+          "treasury": {
+            "title": "財務の使い道",
+            "description": "開発資金やマーケティング予算の配分"
+          },
+          "parameters": {
+            "title": "システム設定",
+            "description": "報酬配分率や緊急アンロック条件など"
+          }
+        }
+      },
+      "qs": {
+        "title": "QSトークンって何？",
+        "description": "QSはQuantum Shieldの「会員証」のようなものです。持っているだけでも価値がありますが、ロックするとさらに特典が得られます。",
+        "totalSupply": "総発行枚数",
+        "network": "使用ネットワーク",
+        "type": "トークン規格",
+        "whyTooltip": "Ethereumの標準規格で、多くのウォレットやサービスで利用できます"
+      },
+      "veqs": {
+        "title": "veQSって何？なぜ必要？",
+        "description": "veQSは「ロックした証」です。長く預けるほど多くもらえて、投票権と報酬の配分が増えます。短期売買目的の人と、本気で参加したい人を区別するための仕組みです。",
+        "formulaTitle": "計算式を見る",
+        "formulaDescription": "ロック期間が長いほど、もらえるveQSが増えます。4年ロックで最大（1:1）になります。",
+        "examplesAriaLabel": "veQS計算を示すロック期間の例",
+        "lockPeriod": "ロック期間",
+        "multiplier": "倍率",
+        "result": "結果（10,000 QS）",
+        "months": "ヶ月",
+        "years": "年",
+        "tableNote": "10,000 QSトークンをロックした場合の例"
+      },
+      "timeline": {
+        "title": "参加の流れ",
+        "ariaLabel": "Token Hubに参加するためのステップ",
+        "acquire": {
+          "title": "QSを手に入れる",
+          "description": "取引所で購入や報酬で獲得"
+        },
+        "lock": {
+          "title": "ロックする",
+          "description": "6ヶ月〜4年の期間を選択"
+        },
+        "vote": {
+          "title": "運営に参加",
+          "description": "手数料配分などに投票"
+        },
+        "earn": {
+          "title": "報酬を受取",
+          "description": "毎週の報酬が自動で貯まる"
+        }
+      },
+      "benefits": {
+        "title": "ロックするとどうなる？",
+        "governance": {
+          "title": "運営に声が届く",
+          "description": "「手数料を下げてほしい」「新機能がほしい」など、あなたの意見を投票で反映できます"
+        },
+        "rewards": {
+          "title": "報酬がもらえる",
+          "description": "Quantum Shieldが得た手数料の一部が、veQS保有者に分配されます"
+        },
+        "boost": {
+          "title": "他の報酬もアップ",
+          "description": "流動性提供などの報酬が最大2.5倍に。長期参加者への優遇です"
+        },
+        "security": {
+          "title": "みんなで守る",
+          "description": "長期保有者が増えると、短期的な価格操作が難しくなり、安定性が高まります"
+        }
+      },
+      "decay": {
+        "title": "veQSは時間で減る？",
+        "description": "はい、ロック終了に近づくほど減っていきます。これは「長く約束した人ほど発言権が大きい」という公平性のためです。",
+        "start": "ロック開始",
+        "end": "ロック終了",
+        "visualAriaLabel": "veQSがフルからゼロに減衰する様子の可視化",
+        "note": "いつでもロックを延長してveQS残高を回復できます"
+      },
+      "prover": {
+        "title": "Proverとして参加する",
+        "description": "QSをステーキングして、Quantum Shield ネットワークの署名プロバイダ（Prover）として参加しませんか？安定した報酬を獲得できます。",
+        "stake": {
+          "label": "最小ステーク",
+          "value": "100,000 QS"
+        },
+        "reward": {
+          "label": "予想年利",
+          "value": "15-20%"
+        },
+        "status": {
+          "label": "現在のProver数",
+          "value": "42 アクティブ"
+        },
+        "button": "Prover Portalを見る"
+      },
+      "cta": {
+        "title": "さあ、始めましょう",
+        "description": "まずはQSを入手して、ロックしてみましょう。少額からでも大丈夫です。",
+        "lockButton": "QSをロックする",
+        "getQSButton": "QSを入手する方法"
+      },
+      "faqPreview": {
+        "text": "まだ不安がありますか？",
+        "link": "よくある質問を見る"
+      }
+    },
+    "faq": {
+      "meta": {
+        "title": "よくある質問 | Token Hub | Quantum Shield",
+        "description": "QSトークン、veQS、ロック、ガバナンスに関するよくある質問"
+      },
+      "breadcrumb": {
+        "ariaLabel": "パンくずリストナビゲーション",
+        "dashboard": "ダッシュボード",
+        "current": "よくある質問"
+      },
+      "badge": "ヘルプセンター",
+      "title": "よくある質問",
+      "description": "Token Hub、veQS、ガバナンスに関する一般的な質問への回答",
+      "categories": {
+        "ariaLabel": "FAQカテゴリー",
+        "general": "一般",
+        "locking": "ロック",
+        "veqs": "veQS",
+        "governance": "ガバナンス",
+        "rewards": "報酬"
+      },
+      "items": {
+        "general": {
+          "what_is_token_hub": {
+            "question": "Token Hubとは何ですか？",
+            "answer": "Token HubはQuantum Shieldプロトコルのガバナンスおよびステーキングプラットフォームです。QSトークンをロックしてveQS（投票エスクローQS）を獲得し、ガバナンス投票に参加し、プロトコル報酬を獲得できます。"
+          },
+          "who_can_participate": {
+            "question": "誰がToken Hubに参加できますか？",
+            "answer": "QSトークンを保有している方であれば誰でも参加できます。互換性のあるWeb3ウォレット（MetaMask、WalletConnectなど）とQSトークンが必要です。"
+          },
+          "is_it_safe": {
+            "question": "トークンをロックしても安全ですか？",
+            "answer": "スマートコントラクトは大手セキュリティ企業による監査を受けています。ただし、他のDeFiプロトコルと同様に固有のリスクがあります。ロックされたトークンはロック期間が終了するまで引き出すことができません。参加前にご自身で調査を行ってください。"
+          }
+        },
+        "locking": {
+          "how_to_lock": {
+            "question": "QSトークンをロックするにはどうすればよいですか？",
+            "answer": "ロックページに移動し、ロックするQSの量を入力し、ロック期間（6ヶ月〜4年）を選択し、プレビューを確認し、ウォレットでトランザクションを承認します。"
+          },
+          "minimum_amount": {
+            "question": "最低ロック量はありますか？",
+            "answer": "QSトークンのロックに最低量はありません。ただし、ガス代により非常に少額のロックは経済的に実用的でない場合があります。"
+          },
+          "can_unlock_early": {
+            "question": "早期にトークンをロック解除できますか？",
+            "answer": "いいえ、ロックされたトークンはロック期間が終了する前に引き出すことができません。これはガバナンスにおける長期的なコミットメントと安定性を確保するための設計です。確認前にロック期間を慎重に検討してください。"
+          },
+          "extend_lock": {
+            "question": "ロック期間を延長できますか？",
+            "answer": "はい、いつでもロックを延長できます。ロックを延長すると、新しいロック期間に基づいてveQS残高が再計算され、投票力が回復します。"
+          }
+        },
+        "veqs": {
+          "what_is_veqs": {
+            "question": "veQSとは何ですか？",
+            "answer": "veQS（投票エスクローQS）は、あなたのガバナンス権限と報酬シェアを表す譲渡不可能なトークンです。ロックするQSの量とロック期間に基づいて計算されます。"
+          },
+          "how_calculated": {
+            "question": "veQSはどのように計算されますか？",
+            "answer": "veQS = QS × (ロック期間 / 4年)。例えば、10,000 QSを2年間ロックすると5,000 veQSを獲得します。最大4年間ロックすると1:1の比率になります。"
+          },
+          "why_decay": {
+            "question": "なぜveQSは時間とともに減少するのですか？",
+            "answer": "veQSはロック期間の終了時にゼロになるまで線形に減少します。これにより長期的なコミットメントが促進され、ガバナンス権限がアクティブでコミットしている参加者に自然に移行します。"
+          },
+          "non_transferable": {
+            "question": "veQSを別のウォレットに移すことはできますか？",
+            "answer": "いいえ、veQSは譲渡不可能で、あなたのウォレットアドレスに紐づいています。これにより投票の買収を防ぎ、ガバナンス権限が真の長期ステークホルダーに留まることを保証します。"
+          }
+        },
+        "governance": {
+          "what_is_governance": {
+            "question": "ガバナンス投票とは何ですか？",
+            "answer": "ガバナンス投票により、veQS保有者は手数料調整、パラメータ変更、財務配分、戦略的決定を含むプロトコル提案に投票できます。"
+          },
+          "how_to_vote": {
+            "question": "提案に投票するにはどうすればよいですか？",
+            "answer": "ガバナンスポータルにウォレットを接続し、アクティブな提案を閲覧し、詳細を確認し、投票を行います。投票力は投票時のveQS残高に比例します。"
+          },
+          "proposal_types": {
+            "question": "どのような種類の提案に投票できますか？",
+            "answer": "提案にはプロトコルパラメータの変更、手数料分配の調整、財務資金の配分、戦略的パートナーシップ、プロトコルのアップグレードが含まれます。十分なveQSを持っている方であれば提案を提出できます。"
+          },
+          "voting_power": {
+            "question": "投票力はどのように決まりますか？",
+            "answer": "投票力はveQS残高に直接比例します。veQSが多いほど、ガバナンス決定への影響力が大きくなります。信頼できるデリゲートに投票力を委任することもできます。"
+          }
+        },
+        "rewards": {
+          "how_rewards_work": {
+            "question": "報酬はどのように機能しますか？",
+            "answer": "プロトコル手数料はveQS残高に比例してveQS保有者に分配されます。veQSが多いほど、プロトコル報酬のシェアが大きくなります。"
+          },
+          "when_distributed": {
+            "question": "報酬はいつ分配されますか？",
+            "answer": "報酬は各エポック（通常週次）の終了時に分配されます。蓄積された報酬はいつでも報酬ページから請求できます。"
+          },
+          "claim_process": {
+            "question": "報酬を請求するにはどうすればよいですか？",
+            "answer": "報酬ページに移動し、請求可能な残高を確認し、請求ボタンをクリックします。ウォレットでトランザクションを承認すると報酬を受け取れます。"
+          },
+          "reward_boost": {
+            "question": "報酬ブーストとは何ですか？",
+            "answer": "veQS保有者は流動性マイニングやその他のプロトコル報酬で最大2.5倍のブーストを受けることができます。ブースト量はステーキングポジションに対するveQS残高によって決まります。"
+          }
+        }
+      },
+      "notice": {
+        "title": "重要なお知らせ",
+        "description": "このFAQは情報提供のみを目的としており、金融アドバイスを構成するものではありません。参加前にご自身で調査を行い、リスクを理解してください。"
+      },
+      "quickLinks": {
+        "onboarding": "トークノミクスを学ぶ",
+        "onboardingDesc": "veQSの基本を理解",
+        "lock": "QSをロック",
+        "lockDesc": "veQSを獲得開始",
+        "getQS": "QSトークンを入手",
+        "getQSDesc": "QSトークンを取得"
+      }
+    },
+    "getQS": {
+      "meta": {
+        "title": "QSトークンを入手 | Token Hub | Quantum Shield",
+        "description": "DEX、報酬、エアドロップ、ステーキングを通じてQSトークンを取得する方法"
+      },
+      "breadcrumb": {
+        "ariaLabel": "パンくずリストナビゲーション",
+        "dashboard": "ダッシュボード",
+        "current": "QSを入手"
+      },
+      "badge": "トークン取得",
+      "title": "QSトークンの入手方法",
+      "description": "QSトークンを取得してToken Hubガバナンスへの参加を始める様々な方法を探索します。",
+      "recommended": "おすすめ",
+      "methods": {
+        "dex": {
+          "title": "DEXで購入",
+          "description": "ETHまたはステーブルコインを使用して分散型取引所でQSトークンを購入します。QSを取得する最も直接的な方法です。",
+          "tags": "即時, KYC不要, 市場価格"
+        },
+        "rewards": {
+          "title": "プロトコル報酬を獲得",
+          "description": "ガバナンス参加、流動性提供、ステーキングによりQSトークンを獲得します。報酬は毎週配布されます。",
+          "tags": "無料, 参加が必要, 継続的"
+        },
+        "airdrop": {
+          "title": "エアドロップ",
+          "description": "アーリーアダプターや活発なコミュニティメンバーはQSエアドロップを受け取る可能性があります。対象条件についてはアナウンスをご確認ください。",
+          "tags": "無料, 限定, 対象確認"
+        },
+        "staking": {
+          "title": "ステーキング報酬",
+          "description": "対応資産をステークしてQS報酬を獲得します。長期コミットメントほど高いAPYが得られます。",
+          "tags": "パッシブ収入, 変動APY"
+        }
+      },
+      "dex": {
+        "title": "分散型取引所で購入",
+        "subtitle": "QSが上場されているおすすめの取引所",
+        "howToBuy": {
+          "title": "QSの購入方法",
+          "step1": "ウォレットをDEXに接続（MetaMask、WalletConnectなど）",
+          "step2": "入力トークンとしてETHまたはUSDCを選択",
+          "step3": "出力トークンとしてQSを入力するか、コントラクトアドレスを貼り付け",
+          "step4": "取引内容を確認し、ウォレットで承認"
+        }
+      },
+      "contract": {
+        "title": "公式トークンコントラクト",
+        "subtitle": "必ず正しいコントラクトアドレスを使用しているか確認してください",
+        "network": "ネットワーク",
+        "warning": {
+          "title": "重要",
+          "description": "公式コントラクトアドレスのみを使用してください。取引前にEtherscanで確認してください。非公式ソースからのリンクは信用しないでください。"
+        }
+      },
+      "cta": {
+        "title": "QSをロックする準備はできましたか？",
+        "description": "QSトークンを入手したら、ロックしてveQSを獲得し、報酬を得始めましょう。",
+        "lockButton": "今すぐQSをロック",
+        "learnButton": "veQSについてもっと学ぶ"
+      }
+    },
+    "common": {
+      "header": {
+        "dashboard": "ダッシュボード",
+        "lock": "ロック",
+        "delegate": "委任",
+        "rewards": "報酬",
+        "navLabel": "Token Hub ナビゲーション",
+        "walletConnected": "{address} に接続中",
+        "connectWallet": "ウォレット接続",
+        "ecosystem": "エコシステム",
+        "consumerApp": "Quantum Shield",
+        "consumerAppDesc": "資産を量子耐性で保護",
+        "governance": "ガバナンス",
+        "governanceDesc": "提案・投票に参加",
+        "observerPortal": "Observer",
+        "observerPortalDesc": "ネットワーク監視",
+        "proverPortal": "Prover",
+        "proverPortalDesc": "署名検証ノード運用",
+        "ecosystemLink": "Ecosystem を見る",
+        "ecosystemLinkDesc": "公式サイトで詳細を確認",
+        "settings": "設定"
+      },
+      "footer": {
+        "navLabel": "フッターナビゲーション",
+        "terms": "利用規約",
+        "privacy": "プライバシーポリシー",
+        "security": "セキュリティ",
+        "disclaimer": "本サービスは投資助言ではありません。暗号資産への投資にはリスクが伴います。ご自身の責任において投資判断を行ってください。"
+      }
+    },
+    "lock": {
+      "meta": {
+        "title": "QSをロック | Token Hub | Quantum Shield",
+        "description": "QSトークンを量子耐性技術でロックしてveQSを獲得し、ガバナンスに参加"
+      },
+      "title": "QSを量子耐性ロックしてveQSを獲得",
+      "quantumBadge": "量子耐性で保護",
+      "steps": {
+        "ariaLabel": "ロックプロセスのステップ",
+        "step1": "入力",
+        "step2": "プレビュー",
+        "step3": "確認"
+      },
+      "amount": {
+        "label": "ロック数量",
+        "tooltip": "QSトークンを量子耐性技術（Dilithium署名）でロックしてveQS投票権を獲得します。将来の量子コンピュータからも保護されます。",
+        "helpAriaLabel": "ロック数量についてのヘルプ",
+        "balance": "残高",
+        "maxAriaLabel": "最大数量を入力",
+        "quickAmountsAriaLabel": "クイック数量選択"
+      },
+      "duration": {
+        "label": "ロック期間",
+        "tooltip": "長期ロック = より多くのveQS。最大4年で1:1の比率になります。",
+        "helpAriaLabel": "ロック期間についてのヘルプ",
+        "ariaLabel": "ロック期間を選択",
+        "options": {
+          "6": "6ヶ月",
+          "12": "1年",
+          "24": "2年",
+          "48": "4年"
+        }
+      },
+      "preview": {
+        "label": "獲得予定",
+        "formulaLabel": "veQS計算式",
+        "formulaAriaLabel": "veQS計算式を表示",
+        "formulaTitle": "veQS計算式",
+        "formulaDescription": "veQSは時間経過で線形に減少し、ロック終了時に0になります。投票力はveQS残高に比例します。",
+        "years": "年"
+      },
+      "previewButton": {
+        "text": "プレビュー",
+        "ariaLabel": "ロック内容をプレビュー"
+      },
+      "warning": {
+        "lockPeriod": "ロック期間中はトークンを引き出すことができません。ロック期間が終了するまでお待ちいただく必要があります。"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Token Hub ダッシュボード | Quantum Shield",
+        "description": "QSトークンをロックしてveQSを獲得し、ガバナンスに参加"
+      },
+      "stats": {
+        "ariaLabel": "トークン統計",
+        "qsBalance": {
+          "label": "QS残高"
+        },
+        "lockedQS": {
+          "label": "ロック中のQS"
+        },
+        "veQSBalance": {
+          "label": "veQS残高"
+        },
+        "votingPower": {
+          "label": "投票力"
+        }
+      },
+      "chart": {
+        "title": "投票力の減衰",
+        "subtitle": "veQS減衰予測",
+        "ariaLabel": "veQSの時間経過による減衰を示すチャート"
+      },
+      "veqsBox": {
+        "currentVeQS": "現在のveQS",
+        "lockEnds": "ロック終了",
+        "remaining": "残り2年3ヶ月"
+      },
+      "veqsTooltip": {
+        "title": "veQS 計算式",
+        "formula": "veQS = QS × (lock_period / 4 years)",
+        "example": "例: 8,500 QS を 3年間ロック\n→ 8,500 × (3/4) = 6,375 veQS\n※ veQSは時間経過とともに線形に減衰します",
+        "ariaLabel": "veQSの計算方法を説明するツールチップ"
+      },
+      "lockInfo": {
+        "lockedAmount": "ロック数量",
+        "lockDuration": "ロック期間",
+        "timeRemaining": "残り時間",
+        "multiplier": "倍率"
+      },
+      "actions": {
+        "lockMore": "QSをロック",
+        "extendLock": "ロック延長",
+        "delegatePower": "委任する",
+        "claimRewards": "報酬を受取"
+      },
+      "votingPowerTooltip": {
+        "title": "投票力とは？",
+        "description": "投票力は、Quantum Shieldのガバナンス（運営方針の決定）において、あなたの投票がどれだけ影響力を持つかを示す割合です。veQSが多いほど投票力が高くなります。",
+        "ariaLabel": "投票力の説明を表示するツールチップ"
+      },
+      "delegations": {
+        "title": "委任先一覧",
+        "ariaLabel": "あなたが委任しているデリゲート一覧",
+        "totalPower": "合計"
+      },
+      "rewards": {
+        "title": "報酬",
+        "claimable": "受取可能",
+        "claimButton": "受け取る",
+        "epochProgress": "エポック進行状況"
+      },
+      "gettingStarted": {
+        "ariaLabel": "はじめての方へ",
+        "title": "はじめての方へ",
+        "viewAll": "すべて見る",
+        "onboarding": {
+          "title": "仕組みを理解する",
+          "description": "なぜQSをロックするの？あなたの資産を守りながら報酬を得る方法を学びましょう"
+        },
+        "getQS": {
+          "title": "QSを手に入れる",
+          "description": "Token Hubに参加するためのQSトークン入手方法をご案内します"
+        },
+        "faq": {
+          "title": "よくある質問",
+          "description": "「ロックしたら戻せない？」など、みんなが気になる疑問にお答えします"
+        },
+        "prover": {
+          "title": "Proverになる",
+          "description": "ネットワークに貢献して報酬を獲得。技術力を活かして参加しましょう"
+        }
+      },
+      "footer": {
+        "navLabel": "フッターナビゲーション",
+        "terms": "利用規約",
+        "privacy": "プライバシーポリシー",
+        "docs": "ドキュメント",
+        "github": "GitHub",
+        "disclaimer": "これは投資アドバイスではありません。Token Hubはガバナンスツールであり、金融サービスを構成するものではありません。QSトークンのロックには流動性の喪失を含むリスクが伴います。参加前にご自身で調査を行ってください。",
+        "copyright": "© 2026 Quantum Shield Foundation. All rights reserved."
+      }
+    },
+    "delegateList": {
+      "meta": {
+        "title": "デリゲート一覧 | Token Hub | Quantum Shield",
+        "description": "信頼できるデリゲートにveQSを量子耐性署名で安全に委任"
+      },
+      "title": "デリゲート一覧",
+      "subtitle": "信頼できるデリゲートにveQSを委任して投票力を活用",
+      "quantumBadge": "量子耐性で委任を保護",
+      "myDelegation": {
+        "label": "委任済みveQS",
+        "ariaLabel": "あなたの委任状況",
+        "delegateCount": "{count}名のデリゲートに委任中"
+      },
+      "totalStats": {
+        "ariaLabel": "デリゲート全体の統計",
+        "totalVeQS": "総veQS",
+        "totalDelegators": "総委任者数",
+        "avgParticipation": "平均投票率"
+      },
+      "search": {
+        "placeholder": "名前またはアドレスで検索...",
+        "ariaLabel": "デリゲートを検索"
+      },
+      "filters": {
+        "ariaLabel": "デリゲートフィルター",
+        "all": "すべて",
+        "top10": "トップ10",
+        "mostActive": "最も活発",
+        "securityCouncil": "セキュリティ委員会"
+      },
+      "results": {
+        "count": "{count}件のデリゲートが見つかりました"
+      },
+      "list": {
+        "ariaLabel": "デリゲート一覧"
+      },
+      "delegates": {
+        "watanabe": "渡辺 デリゲート",
+        "watanabeBio": "Quantum Shield初期からの支持者。セキュリティとプロトコルの長期的な発展を重視。投票は常にコミュニティの利益を優先します。",
+        "sato": "佐藤 クリプト",
+        "satoBio": "ブロックチェーン研究者。プロトコルの技術的な改善提案に注力。透明性のある意思決定を支持。",
+        "tanaka": "田中 DeFi",
+        "tanakaBio": "DeFiプロトコルのエキスパート。収益最適化とリスク管理のバランスを重視した提案を支持します。",
+        "yamamoto": "山本 ノード",
+        "yamamotoBio": "インフラ運用者としてプロトコルの安定性を最優先。ノード運用の経験を活かした技術的な視点で投票。",
+        "suzuki": "鈴木 クォンタム",
+        "suzukiBio": "暗号学研究者。量子耐性の技術的正確性を確保するための投票を行います。CP原則の厳格な遵守を支持。",
+        "matsumoto": "松本 DAO",
+        "matsumotoBio": "コミュニティビルダー。DAOガバナンスの経験を活かし、包括的で公平な意思決定プロセスを推進。"
+      },
+      "stats": {
+        "rank": "ランク",
+        "delegators": "委任者",
+        "participation": "投票参加率",
+        "lastVote": "{days}日前に投票"
+      },
+      "tags": {
+        "securityCouncil": "セキュリティ委員会",
+        "purposeCommittee": "目的委員会",
+        "defiExpert": "DeFiエキスパート",
+        "defi": "DeFi",
+        "longTermHolder": "長期保有者",
+        "research": "リサーチ",
+        "governance": "ガバナンス",
+        "yieldStrategy": "収益戦略",
+        "infrastructure": "インフラ",
+        "prover": "Prover",
+        "cryptography": "暗号学",
+        "daoGovernance": "DAOガバナンス",
+        "community": "コミュニティ"
+      },
+      "actions": {
+        "viewProfile": "プロフィールを見る"
+      },
+      "tooltip": {
+        "ariaLabel": "委任について詳しく見る",
+        "title": "委任（デリゲート）とは？",
+        "description": "委任とは、あなたのveQS投票権を信頼できる人に預けることです。委任しても、あなたのトークン（QS）は移動しません。投票の権利だけを代理で行使してもらえます。",
+        "note": "委任はいつでも解除できます。トークンが減ることはありません。",
+        "quantumNote": "委任操作は量子耐性署名（Dilithium）で保護されており、将来の量子コンピュータからも安全です。"
+      },
+      "participationTooltip": {
+        "ariaLabel": "投票参加率について詳しく見る",
+        "description": "投票参加率は、このデリゲートが過去の提案にどれだけ積極的に投票したかを示します。高いほど、あなたの代わりにしっかり投票してくれる可能性が高いです。"
+      },
+      "empty": {
+        "title": "デリゲートが見つかりません",
+        "description": "検索条件を変更するか、フィルターをクリアしてください"
+      },
+      "footer": {
+        "navLabel": "フッターナビゲーション",
+        "terms": "利用規約",
+        "privacy": "プライバシーポリシー",
+        "docs": "ドキュメント",
+        "disclaimer": "これは投資アドバイスではありません。委任は投票権の移転を意味しますが、トークン自体は移動しません。デリゲートの投票履歴を確認し、慎重に選択してください。"
+      }
+    },
+    "delegate": {
+      "meta": {
+        "title": "デリゲート | Token Hub | Quantum Shield",
+        "description": "信頼できるデリゲートにveQSを委任して投票力を活用"
+      },
+      "backToDashboard": "← ダッシュボードに戻る",
+      "title": "デリゲート",
+      "subtitle": "信頼できるデリゲートにveQSを委任して投票力を活用",
+      "myDelegation": {
+        "label": "委任済みveQS",
+        "ariaLabel": "あなたの委任状況",
+        "delegateCount": "{count}名のデリゲートに委任中"
+      },
+      "search": {
+        "placeholder": "名前またはアドレスで検索...",
+        "ariaLabel": "デリゲートを検索"
+      },
+      "filters": {
+        "ariaLabel": "デリゲートフィルター",
+        "all": "すべて",
+        "top10": "トップ10",
+        "mostActive": "最も活発",
+        "securityCouncil": "セキュリティ委員会"
+      },
+      "list": {
+        "ariaLabel": "デリゲート一覧",
+        "rank": "ランク",
+        "delegators": "委任者",
+        "participation": "投票参加率",
+        "lastVote": "{days}日前に投票",
+        "viewProfile": "プロフィールを見る",
+        "watanabe": "渡辺 デリゲート",
+        "watanabeBio": "Quantum Shield初期からの支持者。セキュリティとプロトコルの長期的な発展を重視。投票は常にコミュニティの利益を優先します。",
+        "sato": "佐藤 クリプト",
+        "satoBio": "ブロックチェーン研究者。プロトコルの技術的な改善提案に注力。透明性のある意思決定を支持。",
+        "tanaka": "田中 DeFi",
+        "tanakaBio": "DeFiプロトコルのエキスパート。収益最適化とリスク管理のバランスを重視した提案を支持します。",
+        "yamamoto": "山本 ノード",
+        "yamamotoBio": "インフラ運用者としてプロトコルの安定性を最優先。ノード運用の経験を活かした技術的な視点で投票。",
+        "suzuki": "鈴木 クォンタム",
+        "suzukiBio": "暗号学研究者。量子耐性の技術的正確性を確保するための投票を行います。CP原則の厳格な遵守を支持。",
+        "matsumoto": "松本 DAO",
+        "matsumotoBio": "コミュニティビルダー。DAOガバナンスの経験を活かし、包括的で公平な意思決定プロセスを推進。"
+      },
+      "tags": {
+        "securityCouncil": "セキュリティ委員会",
+        "purposeCommittee": "目的委員会",
+        "defiExpert": "DeFiエキスパート",
+        "defi": "DeFi",
+        "longTermHolder": "長期保有者",
+        "research": "リサーチ",
+        "governance": "ガバナンス",
+        "yieldStrategy": "収益戦略",
+        "infrastructure": "インフラ",
+        "prover": "Prover",
+        "cryptography": "暗号学",
+        "daoGovernance": "DAOガバナンス",
+        "community": "コミュニティ"
+      },
+      "tooltip": {
+        "ariaLabel": "委任について詳しく見る",
+        "title": "委任（デリゲート）とは？",
+        "description": "委任とは、あなたのveQS投票権を信頼できる人に預けることです。委任しても、あなたのトークン（QS）は移動しません。投票の権利だけを代理で行使してもらえます。",
+        "note": "委任はいつでも解除できます。トークンが減ることはありません。",
+        "quantumNote": "委任操作は量子耐性署名（Dilithium）で保護されており、将来の量子コンピュータからも安全です。"
+      },
+      "participationTooltip": {
+        "ariaLabel": "投票参加率について詳しく見る",
+        "description": "投票参加率は、このデリゲートが過去の提案にどれだけ積極的に投票したかを示します。高いほど、あなたの代わりにしっかり投票してくれる可能性が高いです。"
+      },
+      "empty": {
+        "title": "デリゲートが見つかりません",
+        "description": "検索条件を変更するか、フィルターをクリアしてください"
+      },
+      "footer": {
+        "navLabel": "フッターナビゲーション",
+        "terms": "利用規約",
+        "privacy": "プライバシーポリシー",
+        "docs": "ドキュメント",
+        "disclaimer": "これは投資アドバイスではありません。委任は投票権の移転を意味しますが、トークン自体は移動しません。デリゲートの投票履歴を確認し、慎重に選択してください。"
+      }
+    },
+    "rewards": {
+      "meta": {
+        "title": "報酬 | Token Hub | Quantum Shield",
+        "description": "veQSホルダーとしての報酬を確認・請求"
+      },
+      "backToDashboard": "← ダッシュボードに戻る",
+      "title": "報酬",
+      "subtitle": "veQSホルダーとしての報酬を確認・請求",
+      "claim": {
+        "label": "請求可能な報酬",
+        "usdValue": "≈ ${amount} USD",
+        "button": "報酬を請求",
+        "buttonAriaLabel": "{amount} QSを請求"
+      },
+      "stats": {
+        "ariaLabel": "報酬統計",
+        "totalEarned": {
+          "label": "累計獲得（全期間）"
+        },
+        "weeklyAverage": {
+          "label": "週平均"
+        },
+        "currentApy": {
+          "label": "現在のAPY"
+        },
+        "nextReward": {
+          "label": "次回報酬"
+        }
+      },
+      "history": {
+        "title": "報酬履歴",
+        "viewAll": "すべて見る",
+        "chartAriaLabel": "週ごとの報酬を示すバーチャート",
+        "chartTitle": "週ごとの報酬履歴",
+        "week": "週",
+        "listAriaLabel": "報酬履歴リスト",
+        "type": {
+          "weeklyReward": "週次報酬請求"
+        }
+      },
+      "breakdown": {
+        "title": "報酬内訳",
+        "ariaLabel": "報酬の内訳リスト",
+        "veqsHolding": "veQS保有報酬",
+        "votingParticipation": "投票参加ボーナス",
+        "delegationBonus": "委任ボーナス"
+      },
+      "epoch": {
+        "title": "現在のエポック",
+        "number": "エポック #{number}",
+        "remaining": "残り {time}",
+        "progressAriaLabel": "エポック進行状況: {progress}%"
+      },
+      "apyTooltip": {
+        "title": "APY（年利）とは？",
+        "description": "APY（Annual Percentage Yield）は、1年間で得られる報酬の割合を示します。例えば12.5%の場合、10,000 QSをロックすると1年間で約1,250 QSの報酬が期待できます。",
+        "ariaLabel": "APYについて詳しく見る"
+      },
+      "epochTooltip": {
+        "title": "エポックとは？",
+        "description": "エポックは報酬計算の期間単位です。通常1週間ごとに区切られ、各エポック終了時に報酬が確定・配布されます。",
+        "ariaLabel": "エポックについて詳しく見る"
+      }
+    },
+    "rewardsHistory": {
+      "meta": {
+        "title": "報酬履歴 | Token Hub | Quantum Shield",
+        "description": "過去の報酬履歴を確認・分析"
+      },
+      "breadcrumb": {
+        "ariaLabel": "パンくずリストナビゲーション",
+        "rewards": "報酬",
+        "current": "履歴"
+      },
+      "title": "報酬履歴",
+      "subtitle": "過去の報酬履歴を確認・分析",
+      "export": {
+        "button": "エクスポート",
+        "ariaLabel": "報酬履歴をCSVでエクスポート"
+      },
+      "stats": {
+        "ariaLabel": "報酬統計サマリー",
+        "totalClaimed": "請求済み合計",
+        "pending": "未請求",
+        "avgPerWeek": "週平均",
+        "highest": "最高週",
+        "lowest": "最低週",
+        "totalEpochs": "参加エポック数"
+      },
+      "chart": {
+        "title": "報酬推移",
+        "ariaLabel": "報酬推移チャート",
+        "chartTitle": "期間別報酬履歴",
+        "timeViewAriaLabel": "期間表示切替",
+        "views": {
+          "weekly": "週次",
+          "monthly": "月次"
+        }
+      },
+      "list": {
+        "title": "報酬明細",
+        "ariaLabel": "報酬履歴リスト",
+        "filterAriaLabel": "報酬種別フィルター",
+        "filters": {
+          "all": "すべて",
+          "holding": "保有報酬",
+          "voting": "投票報酬",
+          "delegation": "委任報酬"
+        },
+        "filterDescriptions": {
+          "all": "すべての報酬を表示",
+          "holding": "veQSを保有しているだけでもらえる基本報酬",
+          "voting": "ガバナンス提案に投票するともらえるボーナス",
+          "delegation": "他の人に投票を委任するともらえるボーナス"
+        },
+        "type": {
+          "weeklyReward": "週次報酬請求"
+        },
+        "epoch": "エポック #{number}",
+        "breakdown": {
+          "holding": "保有",
+          "voting": "投票",
+          "delegation": "委任"
+        },
+        "empty": "該当する報酬履歴がありません"
+      },
+      "pagination": {
+        "page": "{current} / {total} ページ",
+        "previous": "前のページ",
+        "next": "次のページ"
+      },
+      "backToRewards": "報酬ページに戻る"
+    },
+    "unlock": {
+      "meta": {
+        "title": "ロック解除 | Token Hub | Quantum Shield",
+        "description": "ロック期間が終了したQSトークンを引き出す"
+      },
+      "title": "ロック解除",
+      "subtitle": "ロック期間が終了したQSトークンを引き出せます",
+      "ariaLabel": "QSトークンのロック解除ページ",
+      "stats": {
+        "ariaLabel": "ロック統計",
+        "totalLocked": "総ロック量",
+        "currentVeQS": "現在のveQS",
+        "veqsTooltip": "veQS（投票エスクローQS）はあなたの投票権を表します。ロック期間終了に近づくほど減少します。",
+        "positions": "ポジション数",
+        "unlockable": "解除可能"
+      },
+      "notice": {
+        "noEarlyUnlock": "ロック期間中はトークンを引き出すことができません。ロック終了日まで待つ必要があります。これはガバナンスの長期的な安定性を確保するための仕様です。",
+        "faqLink": "詳しくはFAQをご覧ください"
+      },
+      "positions": {
+        "title": "ロックポジション",
+        "listAriaLabel": "ロックポジション一覧",
+        "status": {
+          "locked": "ロック中",
+          "unlockable": "解除可能"
+        },
+        "veqs": "現在のveQS",
+        "lockDate": "ロック日",
+        "unlockDate": "解除可能日",
+        "remaining": "残り時間",
+        "ready": "準備完了",
+        "days": "日",
+        "hours": "時間",
+        "withdraw": "引き出す",
+        "withdrawing": "処理中...",
+        "withdrawAriaLabel": "{amount} QSを引き出す",
+        "lockedButton": "ロック中",
+        "lockedAriaLabel": "まだロック期間中です",
+        "progress": "進行状況",
+        "progressAriaLabel": "ロック期間の進行状況"
+      },
+      "tooltip": {
+        "ariaLabel": "ロック解除について詳しく見る",
+        "label": "ロック解除について",
+        "title": "ロック解除の仕組み",
+        "description": "QSトークンは、選択したロック期間が終了するまで引き出すことができません。ロック期間終了後、この画面から引き出しが可能になります。",
+        "note": "早期解除はできません。ロック期間を慎重に選択してください。ロックを延長することはいつでも可能です。"
+      },
+      "empty": {
+        "title": "ロックポジションがありません",
+        "description": "まだQSをロックしていません。ロックしてveQSを獲得し、ガバナンスに参加しましょう。",
+        "lockButton": "QSをロックする"
+      },
+      "cta": {
+        "title": "もっとロックしますか？",
+        "description": "追加のQSをロックしてveQS残高を増やし、投票力と報酬を高めましょう。",
+        "lockMore": "追加でロック",
+        "viewDashboard": "ダッシュボードを見る"
+      }
+    },
+    "settings": {
+      "meta": {
+        "title": "設定 | Token Hub | Quantum Shield",
+        "description": "Token Hubの通知、表示、報酬設定を管理"
+      },
+      "header": {
+        "title": "設定",
+        "back": "ダッシュボードに戻る"
+      },
+      "sections": {
+        "account": "アカウント",
+        "notifications": "通知",
+        "rewards": "報酬設定",
+        "display": "表示",
+        "support": "サポート",
+        "dangerZone": "危険な操作"
+      },
+      "account": {
+        "connectedWallet": {
+          "title": "接続中のウォレット",
+          "description": "veQSを保有するウォレットアドレス"
+        },
+        "lockPositions": {
+          "title": "ロックポジション",
+          "description": "QSのロック状況を確認・管理"
+        },
+        "delegations": {
+          "title": "委任の管理",
+          "description": "投票権の委任先を確認・変更"
+        }
+      },
+      "notifications": {
+        "push": {
+          "title": "プッシュ通知",
+          "description": "ガバナンス提案や報酬に関する通知を受け取る"
+        },
+        "email": {
+          "title": "メール通知",
+          "description": "重要なアップデートをメールで受け取る"
+        },
+        "voteReminders": {
+          "title": "投票リマインダー",
+          "description": "アクティブな提案への投票を忘れないように通知"
+        }
+      },
+      "rewards": {
+        "autoCompound": {
+          "title": "報酬の自動複利",
+          "description": "獲得した報酬を自動的にロックに追加"
+        }
+      },
+      "display": {
+        "darkMode": {
+          "title": "ダークモード",
+          "description": "目に優しいダークテーマを使用"
+        },
+        "language": {
+          "title": "言語",
+          "description": "アプリの表示言語を選択",
+          "japanese": "日本語",
+          "english": "English"
+        },
+        "currency": {
+          "title": "表示通貨",
+          "description": "価値の表示に使用する通貨"
+        }
+      },
+      "support": {
+        "faq": {
+          "title": "よくある質問",
+          "description": "Token Hubの使い方について"
+        },
+        "contact": {
+          "title": "お問い合わせ",
+          "description": "サポートチームに連絡"
+        },
+        "legal": {
+          "title": "法的情報",
+          "description": "利用規約とプライバシーポリシー"
+        }
+      },
+      "danger": {
+        "disconnectWallet": {
+          "title": "ウォレットを切断",
+          "description": "Token Hubからウォレットを切断します"
+        }
+      },
+      "version": {
+        "label": "Token Hub バージョン",
+        "version": "v{version} (Build {build})"
+      }
+    },
+    "help": {
+      "meta": {
+        "title": "ヘルプ | Token Hub | Quantum Shield",
+        "description": "Token Hubの使い方やよくある質問を確認"
+      },
+      "header": {
+        "title": "ヘルプ",
+        "back": "設定に戻る"
+      },
+      "search": {
+        "placeholder": "質問を検索...",
+        "ariaLabel": "ヘルプトピックを検索"
+      },
+      "quickLinks": {
+        "title": "クイックリンク",
+        "items": {
+          "tokenomics": {
+            "title": "トークノミクスを学ぶ",
+            "description": "QSとveQSの基本を理解する"
+          },
+          "locking": {
+            "title": "QSをロックする",
+            "description": "ロックしてveQSを獲得する方法"
+          },
+          "governance": {
+            "title": "ガバナンス参加",
+            "description": "投票と委任の仕組み"
+          },
+          "rewards": {
+            "title": "報酬を確認",
+            "description": "報酬の計算と請求方法"
+          }
+        }
+      },
+      "resources": {
+        "title": "リソース",
+        "faq": {
+          "title": "FAQ",
+          "description": "よくある質問"
+        },
+        "getQS": {
+          "title": "QSを入手",
+          "description": "トークン取得方法"
+        },
+        "docs": {
+          "title": "ドキュメント",
+          "description": "詳細な技術資料"
+        },
+        "status": {
+          "title": "システム状態",
+          "description": "稼働状況を確認"
+        }
+      },
+      "tutorial": {
+        "title": "はじめてのToken Hub",
+        "description": "veQSの仕組みからガバナンス参加まで、ステップバイステップで解説します。",
+        "button": "チュートリアルを見る"
+      },
+      "consumerApp": {
+        "title": "Consumer Appを探していますか？",
+        "description": "資産のロック・アンロックはConsumer Appで行えます。",
+        "button": "Consumer Appへ"
+      }
+    },
+    "delegateProfile": {
+      "meta": {
+        "title": "デリゲートプロフィール | Token Hub | Quantum Shield",
+        "description": "デリゲートの詳細情報と投票履歴を確認"
+      },
+      "back": "デリゲート一覧に戻る",
+      "stats": {
+        "veqs": "保有veQS",
+        "delegators": "委任者数",
+        "participation": "投票参加率"
+      },
+      "bio": {
+        "title": "プロフィール"
+      },
+      "statement": {
+        "title": "投票方針"
+      },
+      "votes": {
+        "title": "最近の投票",
+        "yes": "賛成",
+        "no": "反対",
+        "abstain": "棄権"
+      },
+      "delegateForm": {
+        "title": "このデリゲートに委任",
+        "amount": "委任するveQS",
+        "available": "委任可能",
+        "submit": "委任する",
+        "delegating": "処理中...",
+        "notice": "委任はいつでも解除できます。トークンは移動しません。"
+      },
+      "success": {
+        "title": "委任完了！",
+        "description": "veQSの委任が正常に完了しました",
+        "delegatedTo": "委任先",
+        "amount": "委任量",
+        "txHash": "トランザクション",
+        "done": "デリゲート一覧に戻る",
+        "dashboardLink": "ダッシュボードに戻る"
+      },
+      "profile": {
+        "watanabeStatement": "Quantum Shieldの長期的な発展と安全性を最優先に考えています。短期的な利益よりもプロトコルの持続可能性を重視し、セキュリティに関する提案には特に慎重に検討します。",
+        "satoStatement": "技術的な観点からプロトコルの改善を推進します。透明性のある意思決定と、エビデンスに基づいた提案を支持します。",
+        "tanakaStatement": "DeFiエコシステムにおける収益最適化とリスク管理のバランスを重視します。ユーザーの利益を守りながら、プロトコルの成長を支援します。",
+        "yamamotoStatement": "インフラの安定性と信頼性を最優先に考えています。ノード運用の経験を活かし、技術的な視点から投票します。",
+        "suzukiStatement": "量子耐性技術の正確な実装を確保するため、暗号学的な観点から提案を評価します。CP原則の厳格な遵守を支持します。",
+        "matsumotoStatement": "コミュニティ全体の利益を代表し、包括的で公平な意思決定プロセスを推進します。新しい参加者の声にも耳を傾けます。"
+      }
+    },
+    "lockPreview": {
+      "meta": {
+        "title": "ロック確認 | Token Hub | Quantum Shield",
+        "description": "QSトークンのロック内容を確認"
+      },
+      "title": "ロック内容の確認",
+      "steps": {
+        "ariaLabel": "ロックプロセスのステップ",
+        "step1": "入力",
+        "step2": "プレビュー",
+        "step3": "確認"
+      },
+      "summary": {
+        "title": "ロックサマリー",
+        "lockAmount": "ロック数量",
+        "lockDuration": "ロック期間",
+        "veqsReceive": "獲得veQS"
+      },
+      "details": {
+        "unlockDate": "ロック解除日",
+        "multiplier": "倍率"
+      },
+      "warning": {
+        "title": "ご注意ください",
+        "description": "ロック期間中はトークンを引き出すことができません。この操作は取り消すことができません。"
+      },
+      "actions": {
+        "back": "戻る",
+        "confirm": "ロックを確定",
+        "processing": "処理中..."
+      },
+      "success": {
+        "title": "ロック完了！",
+        "description": "QSトークンが正常にロックされ、veQSを獲得しました",
+        "txHash": "トランザクション",
+        "done": "ダッシュボードに戻る",
+        "delegateLink": "veQSを委任してガバナンスに参加する →",
+        "whatsNext": {
+          "title": "次にできること",
+          "vote": "ガバナンス投票に参加する",
+          "rewards": "報酬を確認する"
+        }
+      }
+    },
+    "rewardsClaim": {
+      "meta": {
+        "title": "報酬を請求 | Token Hub | Quantum Shield",
+        "description": "蓄積した報酬を請求してウォレットに受け取る"
+      },
+      "title": "報酬の請求",
+      "back": "報酬ページに戻る",
+      "claimable": {
+        "label": "請求可能な報酬",
+        "usdValue": "≈ ${amount} USD"
+      },
+      "breakdown": {
+        "title": "報酬内訳",
+        "veqsHolding": "veQS保有報酬",
+        "votingParticipation": "投票参加ボーナス",
+        "delegationBonus": "委任ボーナス"
+      },
+      "claimButton": "報酬を請求する",
+      "claiming": "処理中...",
+      "notice": "報酬請求にはガス代がかかります。トランザクションを確認してください。",
+      "success": {
+        "title": "請求完了！",
+        "description": "報酬がウォレットに送金されました",
+        "done": "完了"
+      }
+    },
+    "consumerLink": {
+      "meta": {
+        "title": "アプリ連携 | Token Hub | Quantum Shield",
+        "description": "Consumer AppとToken Hubの違いと使い分けを理解する"
+      },
+      "header": {
+        "title": "アプリ連携",
+        "subtitle": "Consumer AppとToken Hubの使い分け",
+        "back": "ダッシュボードに戻る"
+      },
+      "consumerApp": {
+        "title": "Consumer App",
+        "subtitle": "資産保護アプリ",
+        "description": "ETHなどの暗号資産を量子耐性技術で安全に保護します。ロック・アンロック・緊急アンロックの操作はこちらで行います。",
+        "featuresLabel": "Consumer Appの機能一覧",
+        "features": {
+          "lock": {
+            "title": "資産をロック",
+            "description": "量子耐性で保護"
+          },
+          "unlock": {
+            "title": "アンロック",
+            "description": "24時間待機後に引き出し"
+          },
+          "emergency": {
+            "title": "緊急アンロック",
+            "description": "ボンド支払いで即時引き出し"
+          },
+          "history": {
+            "title": "取引履歴",
+            "description": "過去の操作を確認"
+          }
+        },
+        "button": "Consumer Appを開く"
+      },
+      "tokenHub": {
+        "title": "Token Hub",
+        "subtitle": "ガバナンスアプリ",
+        "currentBadge": "現在のアプリ",
+        "description": "QSトークンをロックしてveQSを獲得し、Quantum Shieldの運営に参加できます。投票、委任、報酬の請求はこちらで行います。",
+        "featuresLabel": "Token Hubの機能一覧",
+        "features": {
+          "veqs": {
+            "title": "veQSを獲得",
+            "description": "QSをロックして投票権を取得"
+          },
+          "governance": {
+            "title": "ガバナンス投票",
+            "description": "プロトコルの方針決定に参加"
+          },
+          "delegate": {
+            "title": "投票権の委任",
+            "description": "信頼できる人に投票を委ねる"
+          },
+          "rewards": {
+            "title": "報酬を請求",
+            "description": "プロトコル収益の分配を受け取る"
+          }
+        },
+        "button": "Token Hubダッシュボード"
+      },
+      "connection": {
+        "title": "2つのアプリは連携しています",
+        "description": "Consumer Appでロックした資産の一部を使って、Token HubでQSを購入・ロックできます。両方を使いこなすことで、資産保護とガバナンス参加の両方が実現できます。"
+      }
+    }
+  }
+}

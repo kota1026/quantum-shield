@@ -1,0 +1,39 @@
+[package]
+name = "aegis-cli"
+version = "0.1.0"
+edition = "2021"
+authors = ["Quantum Shield Team"]
+description = "L3 Aegis CLI Tools"
+license = "MIT"
+
+[[bin]]
+name = "aegis-cli"
+path = "src/main.rs"
+
+[dependencies]
+# Internal crates
+aegis-types = { path = "../aegis-types" }
+aegis-crypto = { path = "../aegis-crypto" }
+
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Cryptography (for keygen) - CP-1 Compliant
+sha3 = { workspace = true }
+rand = { workspace = true }
+pqcrypto-dilithium = { workspace = true }
+pqcrypto-traits = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Utilities
+hex = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.10"

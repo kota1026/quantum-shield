@@ -1,0 +1,15 @@
+# Placeholder for node keys
+# Keys should be generated using aegis-cli keygen
+# DO NOT commit actual keys to version control
+#
+# Expected files per node:
+#   - node{N}.dilithium.key  (Dilithium-III private key)
+#   - node{N}.dilithium.pub  (Dilithium-III public key)
+#   - node{N}.crt            (TLS certificate)
+#   - node{N}.key            (TLS private key)
+#
+# Generate keys:
+#   aegis-cli keygen --algorithm dilithium-iii --output node0
+#
+# Generate TLS certificates:
+#   openssl req -x509 -newkey rsa:4096 -keyout node0.key -out node0.crt -days 365 -nodes

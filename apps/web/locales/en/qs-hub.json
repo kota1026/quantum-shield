@@ -1,0 +1,727 @@
+{
+  "common": {
+    "portalName": "QS Hub",
+    "backToHome": "Back to Home",
+    "ecosystem": "Ecosystem",
+    "consumerApp": "Consumer App",
+    "consumerAppDesc": "Protect assets with quantum resistance",
+    "observerPortal": "Observer Portal",
+    "observerPortalDesc": "Network monitoring",
+    "proverPortal": "Prover Portal",
+    "proverPortalDesc": "Run signature verification nodes",
+    "explorer": "Explorer",
+    "explorerDesc": "View blockchain information",
+    "ecosystemLink": "View Ecosystem",
+    "ecosystemLinkDesc": "Learn more on our website"
+  },
+  "dashboard": {
+    "meta": {
+      "title": "QS Hub Dashboard | Quantum Shield",
+      "description": "Manage veQS, vote on proposals, and claim rewards in one place"
+    },
+    "title": "QS Hub",
+    "subtitle": "Manage veQS, participate in governance, and earn rewards",
+    "nav": {
+      "stake": "Stake",
+      "vote": "Vote",
+      "rewards": "Rewards",
+      "settings": "Settings"
+    },
+    "stats": {
+      "veQSBalance": "veQS Balance",
+      "veQSTooltip": "veQS is voting power earned from locked QS tokens. Longer lock periods yield more veQS.",
+      "lockedQS": "Locked QS",
+      "lockedTooltip": "Amount of QS tokens currently locked. Withdrawable after lock period ends.",
+      "activeProposals": "Active Proposals",
+      "votingOpen": "Voting Open",
+      "claimableRewards": "Claimable Rewards"
+    },
+    "proposals": {
+      "title": "Active Proposals",
+      "viewAll": "View All",
+      "createNew": "Create New Proposal",
+      "listAriaLabel": "List of active proposals",
+      "status": {
+        "active": "Voting",
+        "pending": "Pending",
+        "passed": "Passed",
+        "rejected": "Rejected"
+      }
+    },
+    "lockStatus": {
+      "title": "Lock Status",
+      "extend": "Extend",
+      "locked": "Locked",
+      "duration": "Duration",
+      "remaining": "{time} remaining",
+      "multiplier": "Multiplier",
+      "veQSRate": "veQS rate",
+      "lockMore": "Lock More",
+      "unlock": "Unlock"
+    },
+    "rewards": {
+      "title": "Rewards",
+      "epochProgress": "Epoch Progress",
+      "nextEpoch": "Next epoch: {time}",
+      "claim": "Claim Rewards"
+    },
+    "delegations": {
+      "title": "Delegations",
+      "manage": "Manage",
+      "addDelegate": "Add Delegate"
+    },
+    "council": {
+      "title": "Council",
+      "viewAll": "View Details",
+      "members": "Members",
+      "description": "Council members are trusted representatives with emergency response authority."
+    },
+    "states": {
+      "loading": "Loading...",
+      "error": {
+        "title": "An Error Occurred",
+        "description": "There was a problem loading your data. Please try again later.",
+        "retry": "Retry"
+      },
+      "empty": {
+        "title": "No veQS Found",
+        "description": "Lock QS tokens to earn veQS. Gain voting power and rewards.",
+        "cta": "Lock QS"
+      }
+    }
+  },
+  "landing": {
+    "meta": {
+      "title": "QS Hub | Quantum Shield",
+      "description": "Lock QS tokens to earn veQS. Participate in governance and earn rewards."
+    },
+    "nav": {
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "login": "Login",
+      "launchApp": "Launch App"
+    },
+    "hero": {
+      "badge": "Token Economics",
+      "title": "Lock QS Tokens to",
+      "titleHighlight": "Earn Governance Rights",
+      "description": "Lock QS tokens to earn veQS. Participate in protocol decisions and earn rewards.",
+      "lockButton": "Lock QS",
+      "learnMore": "Learn More"
+    },
+    "stats": {
+      "sectionAriaLabel": "QS Hub Statistics",
+      "totalLocked": "Total Locked",
+      "veQSHolders": "veQS Holders",
+      "activeProposals": "Active Proposals",
+      "rewardsDistributed": "Rewards Distributed"
+    },
+    "features": {
+      "title": "Core Features",
+      "subtitle": "Maximize your participation in the Quantum Shield ecosystem",
+      "stake": {
+        "title": "Stake & Lock",
+        "description": "Lock QS tokens to earn veQS. Longer lock periods yield more voting power and rewards."
+      },
+      "vote": {
+        "title": "Governance",
+        "description": "Vote on protocol proposals using veQS. Shape the future of Quantum Shield."
+      },
+      "rewards": {
+        "title": "Earn Rewards",
+        "description": "Claim protocol fee distributions and staking rewards as a veQS holder."
+      },
+      "learnMore": "Learn More"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Get started in four simple steps",
+      "step1": {
+        "title": "Get QS Tokens",
+        "description": "Purchase or earn QS tokens from supported exchanges or ecosystem activities."
+      },
+      "step2": {
+        "title": "Lock Tokens",
+        "description": "Lock QS for 1 week to 4 years. Longer locks earn more veQS."
+      },
+      "step3": {
+        "title": "Vote",
+        "description": "Use veQS to vote on proposals and influence protocol direction."
+      },
+      "step4": {
+        "title": "Earn Rewards",
+        "description": "Claim your share of protocol fees and staking rewards weekly."
+      }
+    },
+    "cta": {
+      "title": "Ready to Get Started?",
+      "description": "Lock QS tokens today and start earning veQS, voting power, and rewards.",
+      "button": "Launch QS Hub"
+    },
+    "security": {
+      "title": "Beware of Phishing Scams",
+      "description": "Always verify the URL before connecting your wallet. Bookmark the official URL to avoid fake sites.",
+      "officialUrl": "Official URL",
+      "contractVerified": "Contract Verified"
+    },
+    "footer": {
+      "copyright": "© 2024 Quantum Shield. All rights reserved."
+    }
+  },
+  "stake": {
+    "lock": {
+      "meta": {
+        "title": "Lock QS | QS Hub | Quantum Shield",
+        "description": "Lock QS tokens to earn veQS"
+      },
+      "title": "Lock QS",
+      "subtitle": "Lock QS tokens to earn veQS and gain voting power",
+      "steps": {
+        "ariaLabel": "Lock process steps",
+        "step1": "Configure",
+        "step2": "Confirm",
+        "step3": "Complete"
+      },
+      "form": {
+        "title": "Lock Settings"
+      },
+      "amount": {
+        "label": "Amount to Lock",
+        "tooltip": "Enter the amount of QS tokens you want to lock. Locked tokens cannot be withdrawn until the lock period ends.",
+        "helpAriaLabel": "Help about lock amount",
+        "balance": "Available",
+        "maxAriaLabel": "Use maximum amount",
+        "quickAmountsAriaLabel": "Quick amount selection",
+        "errors": {
+          "insufficientBalance": "Insufficient balance"
+        }
+      },
+      "duration": {
+        "label": "Lock Duration",
+        "tooltip": "Choose how long to lock your tokens. Longer periods earn more veQS. Maximum is 4 years.",
+        "helpAriaLabel": "Help about lock duration",
+        "ariaLabel": "Select lock duration"
+      },
+      "preview": {
+        "label": "Estimated veQS",
+        "formulaTooltip": "veQS = QS Amount × (Lock Duration / 4 Years). veQS decreases linearly over time.",
+        "formulaAriaLabel": "Help about veQS calculation"
+      },
+      "warning": {
+        "lockPeriod": "Locked tokens cannot be withdrawn until the lock period ends. Consider your lock duration carefully."
+      },
+      "previewButton": {
+        "text": "Preview Lock",
+        "ariaLabel": "Preview lock transaction"
+      },
+      "info": {
+        "title": "Important Information",
+        "point1": "veQS grants voting power in protocol governance",
+        "point2": "veQS holders receive a share of protocol fees",
+        "point3": "You can extend your lock period at any time to increase veQS"
+      }
+    },
+    "extend": {
+      "meta": {
+        "title": "Extend Lock | QS Hub | Quantum Shield",
+        "description": "Extend your veQS lock period"
+      },
+      "title": "Extend Lock Period",
+      "subtitle": "Extend lock period to earn more veQS",
+      "currentLock": {
+        "title": "Current Lock Status",
+        "locked": "Locked Amount",
+        "veQS": "Current veQS",
+        "remaining": "Time Remaining",
+        "unlockDate": "Unlock Date"
+      },
+      "form": {
+        "title": "Extension Settings"
+      },
+      "extension": {
+        "label": "Extend By",
+        "tooltip": "Choose how much to extend your lock period. Longer extensions earn more veQS. Maximum total duration is 4 years.",
+        "helpAriaLabel": "Help about lock extension",
+        "ariaLabel": "Select extension duration",
+        "options": {
+          "6": "6 months",
+          "12": "1 year",
+          "24": "2 years",
+          "36": "3 years"
+        }
+      },
+      "preview": {
+        "title": "After Extension",
+        "newVeQS": "New veQS Balance",
+        "newDuration": "New Lock Duration",
+        "newUnlockDate": "New Unlock Date",
+        "multiplier": "New Multiplier",
+        "maxReached": "Maximum lock duration reached (4 years)"
+      },
+      "warning": {
+        "extension": "Extending your lock will delay when you can withdraw your tokens. This action cannot be undone."
+      },
+      "confirmButton": {
+        "text": "Confirm Extension",
+        "ariaLabel": "Confirm lock extension"
+      },
+      "info": {
+        "title": "About Lock Extension",
+        "point1": "Extending increases your veQS and voting power",
+        "point2": "Your locked QS amount remains unchanged",
+        "point3": "The maximum lock duration is 4 years"
+      }
+    },
+    "unlock": {
+      "meta": {
+        "title": "Unlock | QS Hub | Quantum Shield",
+        "description": "Unlock QS after lock period ends"
+      },
+      "title": "Unlock QS",
+      "subtitle": "Withdraw QS tokens after lock period ends",
+      "stats": {
+        "ariaLabel": "Lock summary statistics",
+        "totalLocked": "Total Locked",
+        "currentVeQS": "Current veQS",
+        "veqsTooltip": "veQS decreases linearly over time as the lock period progresses. It reaches zero at unlock.",
+        "veqsTooltipAriaLabel": "Help about veQS decay",
+        "positions": "Positions",
+        "unlockable": "Unlockable"
+      },
+      "notice": {
+        "noEarlyUnlock": "Tokens cannot be withdrawn early. Wait until the lock period ends to unlock your QS."
+      },
+      "positions": {
+        "title": "Your Locked Positions",
+        "listAriaLabel": "List of locked positions",
+        "status": {
+          "unlockable": "Ready to Unlock",
+          "locked": "Locked"
+        },
+        "veqs": "Current veQS",
+        "lockDate": "Lock Date",
+        "unlockDate": "Unlock Date",
+        "remaining": "Remaining",
+        "ready": "Ready",
+        "days": "d",
+        "hours": "h",
+        "withdraw": "Withdraw",
+        "withdrawing": "Withdrawing...",
+        "withdrawAriaLabel": "Withdraw {amount} QS",
+        "lockedButton": "Locked",
+        "progress": "Lock Progress",
+        "progressAriaLabel": "Lock period progress"
+      },
+      "cta": {
+        "title": "Want to earn more veQS?",
+        "description": "Lock additional QS tokens to increase your voting power and rewards.",
+        "lockMore": "Lock More QS",
+        "viewDashboard": "View Dashboard"
+      },
+      "empty": {
+        "title": "No Locked Positions",
+        "description": "Lock QS tokens to earn veQS. Gain voting power and rewards.",
+        "cta": "Lock QS"
+      }
+    }
+  },
+  "vote": {
+    "proposals": {
+      "meta": {
+        "title": "Proposals | QS Hub | Quantum Shield",
+        "description": "View and vote on active proposals"
+      },
+      "title": "Proposals",
+      "subtitle": "Review community proposals and participate in voting",
+      "createNew": "Create New Proposal",
+      "statsAriaLabel": "Proposal statistics",
+      "stats": {
+        "total": "Total Proposals",
+        "active": "Active",
+        "passed": "Passed",
+        "participation": "Participation"
+      },
+      "filters": {
+        "all": "All",
+        "active": "Active",
+        "pending": "Pending",
+        "passed": "Passed",
+        "rejected": "Rejected"
+      },
+      "filtersAriaLabel": "Proposal filters",
+      "listAriaLabel": "List of proposals",
+      "status": {
+        "active": "Voting",
+        "pending": "Pending",
+        "passed": "Passed",
+        "rejected": "Rejected",
+        "executed": "Executed"
+      },
+      "proposedBy": "Proposed by",
+      "startsIn": "Starts in {time}",
+      "timeRemaining": {
+        "days": "{days}d {hours}h",
+        "hours": "{hours}h"
+      },
+      "timeExpired": "Ended",
+      "votingProgress": "Voting Progress",
+      "for": "For",
+      "against": "Against",
+      "empty": {
+        "title": "No Proposals Found",
+        "description": "No proposals match the selected filter."
+      }
+    },
+    "delegates": {
+      "meta": {
+        "title": "Delegates | QS Hub | Quantum Shield",
+        "description": "Choose delegates to represent your voting power"
+      },
+      "title": "Delegates",
+      "subtitle": "Delegate your voting power to trusted representatives",
+      "myDelegations": {
+        "title": "My Delegations",
+        "subtitle": "Your delegated veQS",
+        "delegatedVeQS": "Delegated veQS",
+        "delegates": "Delegates"
+      },
+      "featured": {
+        "title": "Featured Delegates"
+      },
+      "verified": "Verified",
+      "delegators": "delegators",
+      "participation": "Participation",
+      "myDelegation": "{amount} veQS delegated",
+      "searchPlaceholder": "Search by name or address...",
+      "searchAriaLabel": "Search delegates",
+      "allDelegates": "All Delegates",
+      "listAriaLabel": "List of delegates",
+      "manage": "Manage",
+      "delegate": "Delegate",
+      "empty": {
+        "title": "No Delegates Found",
+        "description": "No delegates match your search criteria."
+      }
+    },
+    "history": {
+      "meta": {
+        "title": "Voting History | QS Hub | Quantum Shield",
+        "description": "View your voting history"
+      },
+      "title": "Voting History",
+      "subtitle": "Review your past votes",
+      "stats": {
+        "ariaLabel": "Voting statistics",
+        "totalVotes": "Total Votes",
+        "votesFor": "Votes For",
+        "votesAgainst": "Votes Against",
+        "veQSUsed": "veQS Used"
+      },
+      "filters": {
+        "ariaLabel": "Vote filters",
+        "all": "All",
+        "for": "For",
+        "against": "Against"
+      },
+      "listAriaLabel": "Voting history list",
+      "proposalStatus": {
+        "active": "Voting",
+        "pending": "Pending",
+        "passed": "Passed",
+        "rejected": "Rejected"
+      },
+      "vote": {
+        "for": "For",
+        "against": "Against"
+      },
+      "result": {
+        "passed": "Passed",
+        "rejected": "Rejected"
+      },
+      "viewProposal": "View Proposal",
+      "empty": {
+        "title": "No Voting History",
+        "description": "You haven't voted yet. Check out the proposals to participate.",
+        "viewProposals": "View Proposals"
+      }
+    },
+    "proposalDetail": {
+      "meta": {
+        "title": "Proposal {id} | QS Hub | Quantum Shield",
+        "description": "View proposal details"
+      },
+      "backToProposals": "Back to Proposals",
+      "status": {
+        "active": "Voting",
+        "pending": "Pending",
+        "passed": "Passed",
+        "rejected": "Rejected"
+      },
+      "proposedBy": "Proposed by:",
+      "timeRemaining": "Remaining: {time}",
+      "description": "Description",
+      "timeline": {
+        "title": "Timeline"
+      },
+      "voting": {
+        "title": "Voting",
+        "for": "For",
+        "against": "Against",
+        "quorum": "Quorum",
+        "voteFor": "Vote For",
+        "voteAgainst": "Vote Against",
+        "voteSubmitted": "Vote submitted successfully"
+      },
+      "proposer": {
+        "title": "Proposer",
+        "viewProfile": "View Profile"
+      }
+    },
+    "createProposal": {
+      "meta": {
+        "title": "Create Proposal | QS Hub | Quantum Shield",
+        "description": "Create a new proposal"
+      },
+      "title": "Create Proposal",
+      "subtitle": "Create a new governance proposal",
+      "backToProposals": "Back to Proposals",
+      "steps": {
+        "ariaLabel": "Creation steps",
+        "draft": "Draft",
+        "preview": "Preview",
+        "submit": "Submit"
+      },
+      "requirements": {
+        "notMet": "Requirements not met",
+        "description": "You need {required} veQS to create a proposal. You currently have {current} veQS."
+      },
+      "form": {
+        "title": "Proposal Content",
+        "proposalTitle": {
+          "label": "Proposal Title",
+          "placeholder": "A clear and concise title"
+        },
+        "summary": {
+          "label": "Summary",
+          "placeholder": "Brief summary in 280 characters or less"
+        },
+        "description": {
+          "label": "Detailed Description",
+          "placeholder": "## Summary\n\n## Motivation\n\n## Specification\n\n## Rationale",
+          "tooltip": "Write a detailed description using Markdown format",
+          "markdownHint": "Markdown is supported"
+        },
+        "discussionLink": {
+          "label": "Discussion Link (optional)",
+          "placeholder": "https://forum.quantumshield.io/..."
+        },
+        "previewButton": "Preview"
+      },
+      "preview": {
+        "title": "Proposal Preview",
+        "editButton": "Back to Edit",
+        "continueButton": "Continue to Submit"
+      },
+      "submit": {
+        "title": "Submit Proposal",
+        "warning": {
+          "title": "Warning",
+          "description": "The proposal cannot be modified after submission. Please review carefully."
+        },
+        "votingPeriod": "Voting Period",
+        "quorumRequired": "Quorum Required",
+        "yourVeQS": "Your veQS",
+        "backButton": "Back",
+        "submitButton": "Submit Proposal",
+        "submitting": "Submitting..."
+      },
+      "success": {
+        "title": "Proposal Created",
+        "description": "Your proposal has been recorded on-chain. The voting period will begin shortly.",
+        "viewProposals": "View Proposals",
+        "goToDashboard": "Go to Dashboard"
+      }
+    }
+  },
+  "council": {
+    "meta": {
+      "title": "Council | QS Hub | Quantum Shield",
+      "description": "Quantum Shield Council Members"
+    },
+    "title": "Council",
+    "subtitle": "Trusted members for emergency decision-making",
+    "about": {
+      "title": "About the Council",
+      "description": "The Council is a group of trusted representatives authorized to protect the protocol during emergencies. They have the authority to take rapid action only in urgent situations that cannot be addressed through normal governance processes.",
+      "feature1": "5/7 Multisig",
+      "feature2": "24h Timelock",
+      "feature3": "Community Oversight"
+    },
+    "statsAriaLabel": "Council statistics",
+    "stats": {
+      "members": "Members",
+      "threshold": "Threshold",
+      "actions": "Actions Taken",
+      "status": "Status",
+      "active": "Active"
+    },
+    "members": {
+      "title": "Members",
+      "listAriaLabel": "List of council members"
+    },
+    "roles": {
+      "chair": "Chair",
+      "security": "Security",
+      "technical": "Technical",
+      "integration": "Integration",
+      "community": "Community",
+      "legal": "Legal",
+      "risk": "Risk"
+    },
+    "actions": {
+      "title": "Recent Emergency Actions",
+      "listAriaLabel": "List of emergency actions",
+      "status": {
+        "executed": "Executed",
+        "pending": "Pending",
+        "cancelled": "Cancelled"
+      }
+    }
+  },
+  "login": {
+    "meta": {
+      "title": "Login | QS Hub | Quantum Shield",
+      "description": "Login to QS Hub"
+    },
+    "title": "Login to QS Hub",
+    "description": "Connect your wallet to access your veQS balance",
+    "backToLanding": "Back to Landing",
+    "selectWallet": "Select Wallet",
+    "popular": "Popular",
+    "noVeQS": "Don't have veQS?",
+    "lockQS": "Lock QS to get started",
+    "connecting": {
+      "title": "Connecting...",
+      "walletPrompt": "Please approve the connection in your wallet"
+    },
+    "checking": {
+      "title": "Checking...",
+      "description": "Verifying your veQS balance"
+    },
+    "success": {
+      "title": "Connected",
+      "description": "Redirecting to dashboard..."
+    },
+    "error": {
+      "title": "Connection Error",
+      "connectionFailed": "Failed to connect to wallet. Please try again.",
+      "tryAgain": "Try Again"
+    },
+    "footer": "© 2024 Quantum Shield. All rights reserved."
+  },
+  "rewards": {
+    "meta": {
+      "title": "Rewards | QS Hub | Quantum Shield",
+      "description": "View and claim veQS holder rewards"
+    },
+    "title": "Rewards",
+    "subtitle": "View and claim your veQS holder rewards",
+    "stats": {
+      "ariaLabel": "Reward statistics",
+      "claimable": "Claimable",
+      "pending": "Pending",
+      "totalClaimed": "Total Claimed",
+      "nextEpoch": "Next epoch: {time}"
+    },
+    "claim": {
+      "button": "Claim Rewards",
+      "claiming": "Claiming...",
+      "success": "Claimed Successfully"
+    },
+    "epoch": {
+      "title": "Epoch Progress",
+      "progress": "Progress",
+      "endsIn": "Ends in: {time}"
+    },
+    "history": {
+      "title": "Reward History",
+      "listAriaLabel": "Reward history list",
+      "viewTransaction": "View Transaction"
+    },
+    "types": {
+      "protocol_fee": "Protocol Fee",
+      "voting_reward": "Voting Reward",
+      "staking_bonus": "Staking Bonus"
+    },
+    "status": {
+      "claimable": "Claimable",
+      "claimed": "Claimed"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "Settings | QS Hub | Quantum Shield",
+      "description": "QS Hub settings"
+    },
+    "title": "Settings",
+    "subtitle": "Manage account settings and notifications",
+    "tabs": {
+      "ariaLabel": "Settings tabs",
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "security": "Security"
+    },
+    "profile": {
+      "title": "Profile Settings",
+      "walletAddress": "Wallet Address",
+      "email": "Email Address",
+      "language": "Language",
+      "veQSBalance": "veQS Balance",
+      "memberSince": "Member Since"
+    },
+    "notifications": {
+      "title": "Notification Settings",
+      "email": {
+        "title": "Email Notifications",
+        "description": "Receive important updates via email"
+      },
+      "browser": {
+        "title": "Browser Notifications",
+        "description": "Receive push notifications in browser"
+      },
+      "proposalUpdates": {
+        "title": "Proposal Updates",
+        "description": "Notifications for new proposals and results"
+      },
+      "rewardAlerts": {
+        "title": "Reward Alerts",
+        "description": "Notify when rewards are claimable"
+      },
+      "delegationChanges": {
+        "title": "Delegation Changes",
+        "description": "Notify when delegation status changes"
+      }
+    },
+    "security": {
+      "title": "Security Settings",
+      "twoFactor": {
+        "title": "Two-Factor Authentication",
+        "description": "Enhance account security",
+        "enable": "Enable"
+      },
+      "sessions": {
+        "title": "Active Sessions",
+        "description": "Manage connected devices",
+        "manage": "Manage"
+      },
+      "dangerZone": {
+        "title": "Danger Zone",
+        "description": "Disconnect your wallet",
+        "disconnect": "Disconnect"
+      }
+    },
+    "saveButton": "Save",
+    "saving": "Saving...",
+    "saveSuccess": "Saved successfully"
+  }
+}

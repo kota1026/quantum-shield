@@ -1,0 +1,323 @@
+<!--
+## File Info
+- System: Governance
+- Screen: Council Dashboard + Emergency Actions + Veto History
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-governance | click | 01_dashboard.html |
+| .nav-proposals | click | 02_proposals_list.html |
+| .tab-btn | click | switchTab() |
+| .veto-row | click | 02_proposal_detail.html |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Council | Quantum Shield Governance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040; --error-dim: rgba(224, 112, 64, 0.12);
+            --pending: #8080a0; --pending-dim: rgba(128, 128, 160, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.6; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, var(--accent-gold-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: var(--space-xl); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-xl); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); text-decoration: none; color: inherit; }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+        .nav { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: var(--space-sm) var(--space-lg); font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: var(--radius-full); transition: all 0.2s; text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .wallet-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-lg); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; cursor: pointer; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .page-header { margin-bottom: var(--space-xl); }
+        .page-title { font-size: 32px; font-weight: 700; margin-bottom: var(--space-sm); display: flex; align-items: center; gap: var(--space-md); }
+        .page-subtitle { color: var(--text-secondary); }
+
+        /* Council Cards */
+        .council-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-xl); margin-bottom: var(--space-xl); }
+        .council-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .council-header { padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+        .council-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: var(--space-sm); }
+        .council-status { font-size: 12px; padding: 4px 12px; border-radius: var(--radius-full); font-weight: 500; }
+        .council-status.active { background: var(--success-dim); color: var(--success); }
+        .council-body { padding: var(--space-xl); }
+        .council-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-lg); line-height: 1.6; }
+
+        .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--space-md); }
+        .member-card { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-md); text-align: center; }
+        .member-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-hinomaru)); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; margin: 0 auto var(--space-sm); }
+        .member-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .member-role { font-size: 10px; color: var(--text-tertiary); }
+        .member-status { margin-top: var(--space-sm); }
+        .member-status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: var(--space-xs); }
+        .member-status-dot.active { background: var(--success); }
+        .member-status-text { font-size: 10px; color: var(--text-tertiary); }
+
+        /* Tabs */
+        .tabs { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); margin-bottom: var(--space-xl); width: fit-content; }
+        .tab-btn { padding: var(--space-sm) var(--space-xl); font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-full); transition: all 0.2s; background: none; border: none; }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active { background: var(--bg-elevated); color: var(--text-primary); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .card-header { padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); font-weight: 600; }
+        .card-body { padding: var(--space-xl); }
+
+        /* Emergency Status */
+        .emergency-status { background: var(--success-dim); border: 1px solid var(--success); border-radius: var(--radius-lg); padding: var(--space-xl); text-align: center; margin-bottom: var(--space-xl); }
+        .emergency-icon { font-size: 48px; margin-bottom: var(--space-md); }
+        .emergency-text { font-size: 18px; font-weight: 600; color: var(--success); margin-bottom: var(--space-sm); }
+        .emergency-subtext { font-size: 13px; color: var(--text-secondary); }
+
+        /* Veto Table */
+        .veto-table { width: 100%; }
+        .veto-row { display: grid; grid-template-columns: 80px 1fr 150px 150px 120px; gap: var(--space-md); padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); align-items: center; transition: background 0.2s; cursor: pointer; text-decoration: none; color: inherit; }
+        .veto-row:hover { background: var(--bg-secondary); }
+        .veto-row:last-child { border-bottom: none; }
+        .proposal-id { font-weight: 700; color: var(--accent-gold); font-family: var(--font-mono); }
+        .proposal-title-cell { font-weight: 500; }
+        .veto-by { font-size: 12px; color: var(--text-secondary); }
+        .veto-reason { font-size: 12px; color: var(--warning); display: flex; align-items: center; gap: var(--space-xs); }
+        .veto-date { font-size: 12px; color: var(--text-tertiary); }
+
+        /* Info Box */
+        .info-box { background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-xl); }
+        .info-title { font-weight: 600; color: var(--accent-gold); margin-bottom: var(--space-sm); display: flex; align-items: center; gap: var(--space-sm); }
+        .info-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+        .footer { margin-top: var(--space-2xl); padding: var(--space-lg) 0; border-top: 1px solid var(--border-subtle); font-size: 11px; color: var(--text-muted); text-align: center; }
+
+        @media (max-width: 1024px) {
+            .council-grid { grid-template-columns: 1fr; }
+            .veto-row { grid-template-columns: 60px 1fr 100px; }
+            .veto-reason, .veto-date { display: none; }
+        }
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: var(--space-md); }
+            .nav { order: 3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="gold-glow"></div></div>
+
+    <div class="container">
+        <header class="header">
+            <a href="01_dashboard.html" class="logo">
+                <div class="logo-hinomaru"><div class="logo-circle-outer"></div><div class="logo-hinomaru-inner"></div></div>
+                <div class="logo-text"><span class="logo-main">Quantum Shield</span><span class="logo-sub">Governance</span></div>
+            </a>
+            <nav class="nav">
+                <a href="01_dashboard.html" class="nav-item">Dashboard</a>
+                <a href="02_proposals_list.html" class="nav-item">Proposals</a>
+                <a href="03_create_proposal.html" class="nav-item">Create</a>
+                <a href="04_my_activity.html" class="nav-item">My Activity</a>
+            </nav>
+            <button class="wallet-btn"><span class="wallet-dot"></span>0x1a2b...3c4d</button>
+        </header>
+
+        <div class="page-header">
+            <h1 class="page-title">&#128736; Council</h1>
+            <p class="page-subtitle">Security Council and Purpose Committee oversight</p>
+        </div>
+
+        <div class="info-box">
+            <div class="info-title">&#128712; Council Veto Rights (CP-3)</div>
+            <div class="info-text">
+                The Security Council can veto proposals that pose security risks. The Purpose Committee can veto proposals that violate Core Principles (CP-1〜CP-5). All veto actions require public disclosure of reasoning for transparency (CP-5).
+            </div>
+        </div>
+
+        <div class="council-grid">
+            <div class="council-card">
+                <div class="council-header">
+                    <div class="council-title">&#128737; Security Council</div>
+                    <span class="council-status active">5/7 Active</span>
+                </div>
+                <div class="council-body">
+                    <p class="council-desc">Responsible for protocol security. Can execute emergency pause and veto security-related proposals. Requires 4/7 multisig for actions.</p>
+                    <div class="member-grid">
+                        <div class="member-card">
+                            <div class="member-avatar">S1</div>
+                            <div class="member-name">security.eth</div>
+                            <div class="member-role">Lead</div>
+                            <div class="member-status"><span class="member-status-dot active"></span><span class="member-status-text">Active</span></div>
+                        </div>
+                        <div class="member-card">
+                            <div class="member-avatar">S2</div>
+                            <div class="member-name">audit_pro.eth</div>
+                            <div class="member-role">Member</div>
+                            <div class="member-status"><span class="member-status-dot active"></span><span class="member-status-text">Active</span></div>
+                        </div>
+                        <div class="member-card">
+                            <div class="member-avatar">S3</div>
+                            <div class="member-name">crypto_sec.eth</div>
+                            <div class="member-role">Member</div>
+                            <div class="member-status"><span class="member-status-dot active"></span><span class="member-status-text">Active</span></div>
+                        </div>
+                        <div class="member-card">
+                            <div class="member-avatar">S4</div>
+                            <div class="member-name">quantum_ex.eth</div>
+                            <div class="member-role">Member</div>
+                            <div class="member-status"><span class="member-status-dot active"></span><span class="member-status-text">Active</span></div>
+                        </div>
+                        <div class="member-card">
+                            <div class="member-avatar">S5</div>
+                            <div class="member-name">stark_dev.eth</div>
+                            <div class="member-role">Member</div>
+                            <div class="member-status"><span class="member-status-dot active"></span><span class="member-status-text">Active</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="council-card">
+                <div class="council-header">
+                    <div class="council-title">&#127919; Purpose Committee</div>
+                    <span class="council-status active">3/3 Active</span>
+                </div>
+                <div class="council-body">
+                    <p class="council-desc">Guardians of Core Principles (CP-1〜CP-5). Can veto proposals that violate the protocol's fundamental values and mission.</p>
+                    <div class="member-grid">
+                        <div class="member-card">
+                            <div class="member-avatar">P1</div>
+                            <div class="member-name">founder.eth</div>
+                            <div class="member-role">Chair</div>
+                            <div class="member-status"><span class="member-status-dot active"></span><span class="member-status-text">Active</span></div>
+                        </div>
+                        <div class="member-card">
+                            <div class="member-avatar">P2</div>
+                            <div class="member-name">advisor.eth</div>
+                            <div class="member-role">Member</div>
+                            <div class="member-status"><span class="member-status-dot active"></span><span class="member-status-text">Active</span></div>
+                        </div>
+                        <div class="member-card">
+                            <div class="member-avatar">P3</div>
+                            <div class="member-name">community.eth</div>
+                            <div class="member-role">Member</div>
+                            <div class="member-status"><span class="member-status-dot active"></span><span class="member-status-text">Active</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('status')">&#128994; System Status</button>
+            <button class="tab-btn" onclick="switchTab('veto')">&#9940; Veto History</button>
+        </div>
+
+        <!-- Status Tab -->
+        <div class="tab-content active" id="status-tab">
+            <div class="card">
+                <div class="card-header">Emergency System Status</div>
+                <div class="card-body">
+                    <div class="emergency-status">
+                        <div class="emergency-icon">&#9989;</div>
+                        <div class="emergency-text">All Systems Operational</div>
+                        <div class="emergency-subtext">No emergency pause is currently active. Last status check: 2026-01-10 15:30 UTC</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md);">
+                        <div style="background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: var(--space-sm);">&#128274;</div>
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: var(--space-xs);">Lock Contract</div>
+                            <div style="font-size: 12px; color: var(--success);">&#9679; Active</div>
+                        </div>
+                        <div style="background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: var(--space-sm);">&#128640;</div>
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: var(--space-xs);">STARK Verifier</div>
+                            <div style="font-size: 12px; color: var(--success);">&#9679; Active</div>
+                        </div>
+                        <div style="background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); text-align: center;">
+                            <div style="font-size: 24px; margin-bottom: var(--space-sm);">&#127919;</div>
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: var(--space-xs);">Governance</div>
+                            <div style="font-size: 12px; color: var(--success);">&#9679; Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Veto Tab -->
+        <div class="tab-content" id="veto-tab">
+            <div class="card">
+                <div class="card-header">Veto History (1 total)</div>
+                <div class="veto-table">
+                    <a href="02_proposal_detail.html" class="veto-row">
+                        <div class="proposal-id">QIP-32</div>
+                        <div class="proposal-title-cell">Remove Time Lock for Parameter Changes</div>
+                        <div class="veto-by">Purpose Committee</div>
+                        <div class="veto-reason">&#9888; Violates CP-3</div>
+                        <div class="veto-date">2025-09-20</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: var(--space-lg);">
+                <div class="card-header">Veto Details: QIP-32</div>
+                <div class="card-body">
+                    <div style="margin-bottom: var(--space-lg);">
+                        <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-xs);">Vetoed By</div>
+                        <div style="font-size: 15px; font-weight: 600;">Purpose Committee (2/3 approval)</div>
+                    </div>
+                    <div style="margin-bottom: var(--space-lg);">
+                        <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-xs);">Reason (Required by CP-5)</div>
+                        <div style="background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); font-size: 14px; line-height: 1.6;">
+                            This proposal was vetoed because it directly violates Core Principle 3 (CP-3: Security First). The Time Lock mechanism is a critical security feature that provides the community with time to review and respond to governance decisions. Removing it would significantly reduce the protocol's security posture and eliminate an important safeguard against malicious proposals.
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-xs);">On-chain Reference</div>
+                        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-gold);">0x7a8b9c0d...ef12</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            Council actions are recorded on-chain and publicly verifiable per CP-5 (Transparency). &copy; 2026 Quantum Shield.
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+# =============================================================================
+# L3-Aegis 4-Node BFT Testnet
+# =============================================================================
+# Per L3_CHAIN_SPECIFICATION.md:
+# - 4 nodes with PBFT consensus (f=1)
+# - 5 second block time
+# - CP-1 compliant cryptography
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Node 0 - Primary/Genesis Node
+  # ---------------------------------------------------------------------------
+  node0:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aegis-node-0
+    hostname: node0
+    ports:
+      - "30303:30303"  # P2P
+      - "8545:8545"    # RPC
+      - "9090:9090"    # Metrics
+    volumes:
+      - node0-data:/data/aegis
+      - ./config/node0.toml:/config/node.toml:ro
+      - ./keys/node0:/keys:ro
+    environment:
+      - AEGIS_NODE_ID=0
+      - AEGIS_LOG_LEVEL=info
+      - AEGIS_METRICS_ENABLED=true
+    networks:
+      aegis-network:
+        ipv4_address: 172.28.0.10
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Node 1 - Validator
+  # ---------------------------------------------------------------------------
+  node1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aegis-node-1
+    hostname: node1
+    ports:
+      - "30304:30303"
+      - "8546:8545"
+      - "9091:9090"
+    volumes:
+      - node1-data:/data/aegis
+      - ./config/node1.toml:/config/node.toml:ro
+      - ./keys/node1:/keys:ro
+    environment:
+      - AEGIS_NODE_ID=1
+      - AEGIS_LOG_LEVEL=info
+      - AEGIS_METRICS_ENABLED=true
+    networks:
+      aegis-network:
+        ipv4_address: 172.28.0.11
+    depends_on:
+      - node0
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Node 2 - Validator
+  # ---------------------------------------------------------------------------
+  node2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aegis-node-2
+    hostname: node2
+    ports:
+      - "30305:30303"
+      - "8547:8545"
+      - "9092:9090"
+    volumes:
+      - node2-data:/data/aegis
+      - ./config/node2.toml:/config/node.toml:ro
+      - ./keys/node2:/keys:ro
+    environment:
+      - AEGIS_NODE_ID=2
+      - AEGIS_LOG_LEVEL=info
+      - AEGIS_METRICS_ENABLED=true
+    networks:
+      aegis-network:
+        ipv4_address: 172.28.0.12
+    depends_on:
+      - node0
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Node 3 - Validator
+  # ---------------------------------------------------------------------------
+  node3:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aegis-node-3
+    hostname: node3
+    ports:
+      - "30306:30303"
+      - "8548:8545"
+      - "9093:9090"
+    volumes:
+      - node3-data:/data/aegis
+      - ./config/node3.toml:/config/node.toml:ro
+      - ./keys/node3:/keys:ro
+    environment:
+      - AEGIS_NODE_ID=3
+      - AEGIS_LOG_LEVEL=info
+      - AEGIS_METRICS_ENABLED=true
+    networks:
+      aegis-network:
+        ipv4_address: 172.28.0.13
+    depends_on:
+      - node0
+    restart: unless-stopped
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  aegis-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  node0-data:
+  node1-data:
+  node2-data:
+  node3-data:
