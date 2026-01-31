@@ -8,18 +8,48 @@
 ## Trigger Commands
 
 ```
+# ===== Phase 6: 既存アプリ画面実装 =====
 Phase 6 Consumer App 開始
 Phase 6 Token Hub 開始
 Phase 6 Prover Portal 開始
 Phase 6 Week {N} 開始
 Phase 6 進捗確認        ← 進捗状況を表示
 
-# 画面レビュー系コマンド（NEW）
+# ===== Phase 8: QS Admin管理画面開発 ===== ★NEW
+Phase 8 開始            ← Phase 8-A から順次開始
+Phase 8-A 開始          ← 画面実装（38画面）
+Phase 8-B 開始          ← 画面検証（Playwright MCP）
+Phase 8-C 開始          ← バックエンド実装（次の未実装カテゴリから自動開始）
+Phase 8-C {category} 実装 ← 特定カテゴリ実装（auth, dashboard, transactions等）
+Phase 8-C 進捗確認      ← バックエンド実装の進捗表示
+Phase 8-D 開始          ← L3/L1統合
+Phase 8-D L3 開始       ← L3 Dilithium署名統合
+Phase 8-D L1 開始       ← L1 Sepolia統合
+Phase 8-E 開始          ← 統合テスト
+Phase 8-E E2E 開始      ← E2Eテスト作成・実行
+Phase 8-E ログ検証 開始  ← バックエンドログ整合性検証
+Phase 8 進捗確認        ← Phase 8全体の進捗表示
+Phase 8 ゲートチェック   ← 現在Phaseのゲート検証
+Phase 8-{X} ゲートチェック ← 特定Phaseのゲート検証
+
+# Phase 8-C カテゴリ一覧 (65 endpoints):
+# auth(5), dashboard(3), transactions(8), users(6), prover(6),
+# observer(4), treasury(10), governance(5), members(2),
+# support(4), announcements(2), analytics(4), system(6)
+
+# ===== 統合画面レビュー（5観点）=====
+画面レビュー 開始            ← 進捗トラッカーから自動で続きを開始（★推奨）
+
+# 画面レビュー系コマンド
 画面レビュー 全画面          ← 175画面のスモークテスト
 画面レビュー {app}          ← 特定アプリの詳細レビュー
 画面レビュー {url}          ← 単一画面の詳細レビュー
 ペルソナテスト {app}        ← 田中さんとして操作テスト
 ナビゲーションテスト {app}  ← 遷移フローの検証
+
+# デザインシステム検証コマンド
+デザイン検証 {app}          ← DESIGN_SYSTEM.md準拠チェック
+デザイン検証 {url}          ← 単一画面のデザイン検証
 ```
 
 ---
@@ -433,6 +463,143 @@ ls docs/design/mocks/{app}/*.html
   存在しないクラス（border-border, duration-250等）は使用禁止。
   globals.css のCSS Variables を直接参照する場合は Tailwind変換表を確認。
 </rule>
+
+<rule id="CR-11" level="ABSOLUTE">
+  【画面レビュー時の必須ドキュメント読み込み】
+
+  画面レビューを開始する前に、以下のファイルを**必ず読み込む**こと。
+  読み込み完了を報告してから作業開始。これをスキップしたレビューは無効。
+
+  **必須読み込みファイル:**
+  1. docs/agents/prompts/42_unified_screen_review.md  ← 5観点レビュー手順
+  2. docs/agents/prompts/41_design_system_check.md   ← D観点 Playwright検証コード（★必須）
+  3. docs/specs/DATA_MODEL.md                        ← M観点チェック用
+  4. docs/design/DESIGN_SYSTEM.md                    ← D観点チェック用
+
+  **読み込み確認の出力（必須）:**
+  ```
+  ## レビュー前チェック完了
+  - [x] 42_unified_screen_review.md 読み込み完了
+  - [x] 41_design_system_check.md 読み込み完了（検証コード取得）
+  - [x] DATA_MODEL.md 読み込み完了
+  - [x] DESIGN_SYSTEM.md 読み込み完了
+  - [x] 5観点（D, J, N, M, C）の各チェック項目を理解
+  → レビュー開始します
+  ```
+
+  このテンプレートを出力せずにレビューを開始することは**禁止**。
+</rule>
+
+<rule id="CR-12" level="ABSOLUTE">
+  【5観点レビューの完全実施】
+
+  各画面レビューは以下の5観点を**すべて**チェックすること。
+  1つでも欠落した場合、そのレビューは無効とし、やり直しが必要。
+
+  | 観点 | 必須チェック項目 |
+  |:----:|------------------|
+  | D | D1-D6（ブランド色、デザインシステム、44pxタップ、コントラスト、階層、状態定義） |
+  | J | J1-J5（エントリーポイント、出口、戻るボタン、次アクション、死エンド） |
+  | N | N1-N5（全リンク・ボタンのクリック検証、遷移先確認） |
+  | M | M1-M4（DATA_MODEL.mdとの整合性、型定義、必須フィールド） |
+  | C | C1-C5（必須機能、不要要素、ツールチップ、ペルソナ視点、状態網羅） |
+
+  **D観点でのDESIGN_SYSTEM.md準拠チェック（必須）:**
+  - Section 1.2: 44pxタップエリア、12px最小フォント、4.5:1コントラスト
+  - Section 2: ブランドカラー（Hinomaru Red, Gold）の適切な使用
+  - Section 5: ボタンバリエーション（primary 1画面1つ等）
+  - Section 7: カードスタイル
+  - Section 10: アクセシビリティ（aria-*, focus states）
+  - Section 13: 禁止パターンに該当しないこと
+  - **専門用語へのツールチップ**（Section 1.1 Clarity原則）
+
+  **レビュー結果の出力（必須）:**
+  ```
+  ## {画面名} - 5観点レビュー結果
+
+  | 観点 | 結果 | 詳細 |
+  |:----:|:----:|------|
+  | D | ✅/⚠️/❌ | {具体的な確認内容} |
+  | J | ✅/⚠️/❌ | {具体的な確認内容} |
+  | N | ✅/⚠️/❌ | {リンク数、問題数} |
+  | M | ✅/-/❌ | {モデル整合性} |
+  | C | ✅/⚠️/❌ | {完全性確認} |
+
+  ### 発見した問題
+  | # | 問題 | 深刻度 | 対応案 |
+  |---|------|:------:|--------|
+  ```
+
+  このテンプレート外の形式での報告は無効。
+</rule>
+
+<rule id="CR-13" level="ABSOLUTE">
+  【Playwright MCP による実検証の必須実行】
+
+  画面レビュー時、以下の検証を**必ず Playwright MCP で実行**すること。
+  コード解析や目視のみでの確認は不十分。実行結果をレポートに含めること。
+
+  **D観点: browser_evaluate 必須実行**
+  41_design_system_check.md に記載のJavaScriptコードを実行:
+
+  1. タップエリア44px検証（必須）:
+     ```javascript
+     () => {
+       const buttons = document.querySelectorAll('button, a, [role="button"], [tabindex="0"]');
+       const issues = [];
+       buttons.forEach((btn, i) => {
+         const rect = btn.getBoundingClientRect();
+         if (rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44)) {
+           issues.push({ text: btn.textContent?.substring(0, 30), width: Math.round(rect.width), height: Math.round(rect.height) });
+         }
+       });
+       return { total: buttons.length, issues };
+     }
+     ```
+
+  2. Primary CTA数検証（必須）:
+     ```javascript
+     () => {
+       const primaryBtns = document.querySelectorAll('button[class*="bg-gradient-hinomaru"], button[class*="bg-hinomaru"]:not([class*="bg-hinomaru/"])');
+       return { count: primaryBtns.length, rule: primaryBtns.length <= 1 ? 'PASS' : 'FAIL' };
+     }
+     ```
+
+  **N観点: browser_click 必須実行**
+  - ヘッダーの全ボタン・リンクを実際にクリック
+  - メインコンテンツのCTAボタンをクリック
+  - モーダル開閉の動作確認
+  - 遷移先URLの記録
+
+  **C観点: ツールチップ hover 必須実行**
+  - 専門用語（veQS, Dilithium等）にhover
+  - ツールチップ表示を確認
+  - テキスト見切れがないか確認
+
+  **検証結果の記録形式:**
+  ```
+  ## Playwright検証結果
+
+  ### D観点: タップエリア
+  - 検証ボタン数: {N}
+  - 違反数: {N}
+  - 違反詳細: [{text, width, height}, ...]
+
+  ### D観点: Primary CTA
+  - Primary CTA数: {N}
+  - 判定: PASS/FAIL
+
+  ### N観点: クリックテスト
+  | 要素 | 期待遷移先 | 実際の遷移先 | 結果 |
+  |------|-----------|-------------|:----:|
+  | {要素名} | {expected} | {actual} | ✅/❌ |
+
+  ### C観点: ツールチップ
+  | 用語 | 表示 | 見切れ | 結果 |
+  |------|:----:|:------:|:----:|
+  | {term} | ✅/❌ | なし/あり | ✅/❌ |
+  ```
+</rule>
 ```
 
 ---
@@ -523,6 +690,8 @@ ls docs/design/mocks/{app}/*.html
 | API実装 | `docs/agents/prompts/34_api_impl.md` |
 | E2Eテスト | `docs/agents/prompts/37_e2e_test.md` |
 | **画面レビュー** | `docs/agents/prompts/40_screen_review.md` |
+| **統合画面レビュー（5観点）** | `docs/agents/prompts/42_unified_screen_review.md` |
+| **デザインシステムチェック** | `docs/agents/prompts/41_design_system_check.md` |
 
 ### 画面レビュー・ナビゲーション
 
@@ -533,12 +702,40 @@ ls docs/design/mocks/{app}/*.html
 | 全画面スモークテスト | `apps/web/e2e/smoke/all-screens.spec.ts` |
 | ナビゲーションテスト | `apps/web/e2e/navigation/` |
 
+### デザインシステム準拠検証（NEW）
+
+| 用途 | パス |
+|------|------|
+| **検証プロンプト** | `docs/agents/prompts/41_design_system_check.md` |
+| **準拠トラッカー** | `docs/phase6/DESIGN_COMPLIANCE_TRACKER.md` |
+| デザインシステム仕様 | `docs/design/DESIGN_SYSTEM.md` |
+
 ### 進捗・計画
 
 | 用途 | パス |
 |------|------|
-| 進捗管理 | `docs/phase6/PHASE6_PROGRESS.md` |
+| Phase 6 進捗管理 | `docs/phase6/PHASE6_PROGRESS.md` |
+| **画面レビュー進捗** | `docs/phase6/SCREEN_REVIEW_TRACKER.md` |
+| **デザイン準拠進捗** | `docs/phase6/DESIGN_COMPLIANCE_TRACKER.md` |
 | ペルソナ定義 | `docs/design/DESIGN_REVIEW_AGENTS.md` |
+
+### Phase 8: QS Admin開発（★NEW）
+
+| 用途 | パス |
+|------|------|
+| **オーケストレーター** | `docs/agents/prompts/phase8/00_phase8_orchestrator.md` |
+| 画面実装 | `docs/agents/prompts/phase8/01_screen_impl.md` |
+| 画面検証 | `docs/agents/prompts/phase8/02_screen_verify.md` |
+| **バックエンド実装** | `docs/agents/prompts/phase8/03_backend_impl.md` |
+| L3統合 | `docs/agents/prompts/phase8/04_l3_integration.md` |
+| L1統合 | `docs/agents/prompts/phase8/05_l1_integration.md` |
+| E2Eテスト | `docs/agents/prompts/phase8/06_e2e_test.md` |
+| **ログ検証** | `docs/agents/prompts/phase8/07_log_verification.md` |
+| **ゲートチェック** | `docs/agents/prompts/phase8/08_gate_check.md` |
+| **BEルール** | `docs/agents/prompts/rules/BE_RULES.md` |
+| テストルール | `docs/agents/prompts/rules/TEST_RULES.md` |
+| 設計書 | `docs/specs/QS_ADMIN_DESIGN_PLAN.md` |
+| 進捗管理 | `docs/phase8/PHASE8_PROGRESS.md` |
 
 ### 経緯・履歴（参照用）
 
@@ -592,17 +789,62 @@ https://github.com/kota1026/quantum-shield/compare/main...{branch-name}
 
 ---
 
-## 画面レビューワークフロー（NEW）
+## 画面レビューワークフロー
 
 ### コマンド一覧
 
 | コマンド | 説明 |
 |---------|------|
+| **`画面レビュー 開始`** | **進捗トラッカーから自動で続きを開始（★推奨）** |
 | `画面レビュー 全画面` | 175画面のスモークテスト実行 |
 | `画面レビュー consumer` | Consumer App 19画面の詳細レビュー |
-| `画面レビュー http://localhost:3000/ja/consumer/dashboard` | 単一画面の詳細レビュー |
-| `ペルソナテスト consumer` | 田中さんとしてConsumer Appを操作 |
-| `ナビゲーションテスト consumer` | 全ボタン/リンクの遷移確認 |
+| `画面レビュー {url}` | 単一画面の詳細レビュー |
+| `ペルソナテスト {app}` | 田中さんとして操作テスト |
+| `ナビゲーションテスト {app}` | 全ボタン/リンクの遷移確認 |
+
+### 「画面レビュー 開始」の実行フロー
+
+```
+STEP 0: 必須ドキュメント読み込み（スキップ禁止）
+────────────────────────────────────────────
+この手順を省略したレビューは無効です。
+
+1. レビュープロンプト読み込み:
+   Read: docs/agents/prompts/42_unified_screen_review.md
+   → STEP 1-8 のフローを確認
+
+2. データモデル読み込み:
+   Read: docs/specs/DATA_MODEL.md
+   → M観点チェックで使用するエンティティを確認
+
+3. デザインシステム読み込み:
+   Read: docs/design/DESIGN_SYSTEM.md
+   → D観点チェックで使用する準拠基準を確認
+   → 特に: 44pxタップ、ブランドカラー、専門用語tooltip
+
+4. 読み込み完了報告（必須出力）:
+   ```
+   ## レビュー前チェック完了
+   - [x] 42_unified_screen_review.md 読み込み完了
+   - [x] DATA_MODEL.md 読み込み完了
+   - [x] DESIGN_SYSTEM.md 読み込み完了
+   - [x] 5観点（D, J, N, M, C）の各チェック項目を理解
+   → レビュー開始します
+   ```
+
+STEP 1-5: レビュー実行
+────────────────────────────────────────────
+1. SCREEN_REVIEW_TRACKER.md を読み込み
+2. Status = "Pending" の最初の画面を特定
+3. 42_unified_screen_review.md の手順に従い5観点レビュー:
+   - D: デザイン（D1-D6: ブランド、44px、コントラスト等）
+   - J: ジャーニー（J1-J5: エントリー、出口、戻る、次、死エンド）
+   - N: ナビゲーション（N1-N5: 全リンク・ボタン検証）
+   - M: モデル整合性（M1-M4: DATA_MODEL.md準拠）
+   - C: 完全性（C1-C5: 必須機能、ペルソナ視点）
+4. 5観点レビュー結果をテンプレートで報告
+5. SCREEN_REVIEW_TRACKER.md 更新 → 次の画面へ
+```
 
 ### 実行手順
 
@@ -630,11 +872,115 @@ npx playwright test e2e/navigation/
 
 ### 関連ファイル
 
-- `docs/agents/prompts/40_screen_review.md` - レビュープロンプト
+- `docs/agents/prompts/42_unified_screen_review.md` - 統合レビュープロンプト（★推奨）
+- `docs/phase6/SCREEN_REVIEW_TRACKER.md` - 画面レビュー進捗トラッカー（★推奨）
+- `docs/agents/prompts/40_screen_review.md` - レビュープロンプト（旧）
 - `docs/specs/NAVIGATION_FLOW_SPEC.md` - 遷移仕様書
 - `docs/specs/AI_SCREEN_REVIEW_WORKFLOW.md` - ワークフロー詳細
 - `apps/web/e2e/smoke/all-screens.spec.ts` - 全画面テスト
 - `apps/web/e2e/navigation/` - ナビゲーションテスト
+
+---
+
+## Phase 8: QS Admin管理画面開発ワークフロー
+
+### 概要
+
+Phase 8はQS Foundation管理画面の開発フェーズ。5つのサブフェーズで構成され、各フェーズの品質ゲートを通過しないと次に進めない。
+
+```
+Phase 8-A（画面実装）→ Gate → Phase 8-B（画面検証）→ Gate →
+Phase 8-C（バックエンド）→ Gate → Phase 8-D（L3/L1統合）→ Gate →
+Phase 8-E（統合テスト）→ Gate → 完了
+```
+
+### トリガーコマンド
+
+| コマンド | 実行内容 |
+|---------|---------|
+| `Phase 8 開始` | Phase 8-Aから順次開始 |
+| `Phase 8-A 開始` | 画面実装（38画面） |
+| `Phase 8-B 開始` | Playwright MCP検証 |
+| `Phase 8-C 開始` | バックエンドAPI実装（次の未実装カテゴリから自動開始） |
+| `Phase 8-C {category} 実装` | 特定カテゴリ実装（auth, dashboard, transactions等） |
+| `Phase 8-C 進捗確認` | バックエンド実装の進捗表示 |
+| `Phase 8-D 開始` | L3/L1統合 |
+| `Phase 8-E 開始` | E2E + ログ検証 |
+| `Phase 8 進捗確認` | 進捗状況表示 |
+| `Phase 8 ゲートチェック` | ゲート検証実行 |
+
+**Phase 8-C カテゴリ一覧（65 endpoints）:**
+auth(5), dashboard(3), transactions(8), users(6), prover(6), observer(4),
+treasury(10), governance(5), members(2), support(4), announcements(2),
+analytics(4), system(6)
+
+### Phase 8 初期化（トリガー検出時に実行）
+
+```
+READ PARALLEL:
+├── docs/specs/QS_ADMIN_DESIGN_PLAN.md      ← 設計・画面一覧
+├── docs/specs/DATABASE_DESIGN.md           ← DBスキーマ
+├── docs/specs/API_SPECIFICATION.yaml       ← APIエンドポイント
+├── docs/agents/prompts/rules/BE_RULES.md   ← BEルール（★必須）
+└── docs/phase8/PHASE8_PROGRESS.md          ← 進捗管理
+```
+
+### Phase別プロンプト
+
+| Phase | プロンプト | 内容 |
+|:-----:|-----------|------|
+| 8-A | `01_screen_impl.md` | React Component + i18n + Storybook |
+| 8-B | `02_screen_verify.md` | 5観点レビュー（Playwright MCP） |
+| 8-C | `03_backend_impl_v2.md` ★ | Rust API + sqlx + BE-001〜003ルール（自動化対応） |
+| 8-D | `04_l3_integration.md`, `05_l1_integration.md` | Dilithium署名 + L1実行 |
+| 8-E | `06_e2e_test.md`, `07_log_verification.md` | E2E + ログ整合性検証 |
+
+### Phase 8-C 自動化ツール
+
+```bash
+# 実装後スタブ検出（BE-001準拠確認）
+cd services/api
+./scripts/detect-stubs.sh src/routes/admin.rs
+
+# 進捗更新（エンドポイント番号指定）
+./scripts/update-backend-progress.sh 06 done
+```
+
+### バックエンドルール（BE-001〜003）
+
+Phase 8-C以降で**絶対遵守**:
+
+```xml
+<rule id="BE-001">スタブレスポンス禁止（常にOKを返す実装禁止）</rule>
+<rule id="BE-002">テスト用コード修正禁止</rule>
+<rule id="BE-003">ログ出力必須（リクエスト、DB操作、レスポンス）</rule>
+```
+
+### ゲートチェック
+
+各Phase完了時に実行:
+
+```bash
+./scripts/gate-check.sh 8-{X}
+```
+
+| Phase | 主要チェック項目 |
+|:-----:|-----------------|
+| 8-A | TypeScript/ESLint/i18n/Storybook |
+| 8-B | 5観点レビュー全画面PASS |
+| 8-C | テスト通過/スタブ検出0/ログ出力確認 |
+| 8-D | L3ヘルス/署名検証/L1接続 |
+| 8-E | E2E全通過/ログ整合性検証PASS |
+
+### ログ整合性検証
+
+E2Eテストの期待値とバックエンドログを照合し、「テスト成功だが実処理なし」を検出:
+
+```bash
+./scripts/verify-test-logs.sh
+```
+
+不整合があればFAIL → 修正必須
 
 ---
 
@@ -646,3 +992,8 @@ npx playwright test e2e/navigation/
 | 1.1 | 2026-01-22 | docs/フォルダ構造整理、IMPLEMENTATION_GUIDE.md統合 |
 | 1.2 | 2026-01-22 | IMPLEMENTATION_GUIDE.md v1.3対応（全8アプリ詳細仕様、テンプレート追加） |
 | 1.3 | 2026-01-25 | 画面レビューワークフロー追加（Navigation Flow, AI Screen Review, Playwright MCP） |
+| 1.4 | 2026-01-26 | CR-11/CR-12追加: 画面レビュー時の必須ドキュメント読み込みと5観点完全実施ルール |
+| 1.5 | 2026-01-26 | CR-11にDESIGN_SYSTEM.md追加、CR-12にデザイン準拠チェック項目追加 |
+| 1.6 | 2026-01-26 | CR-11に41_design_system_check.md追加、CR-13追加（Playwright MCP実検証必須化） |
+| 1.7 | 2026-01-27 | Phase 8 QS Admin開発ワークフロー追加（8プロンプト、BEルール、ログ検証） |
+| 1.8 | 2026-01-31 | Phase 8-C自動化対応（03_backend_impl_v2.md、進捗更新スクリプト追加） |

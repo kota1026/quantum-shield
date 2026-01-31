@@ -13,7 +13,7 @@
 │                                                                     │
 │  8-A Screen Implementation   [████████████████████]  38/38 100%   │
 │  8-B Screen Verification     [█████░░░░░░░░░░░░░░░]  10/38  26%   │
-│  8-C Backend Implementation  [████░░░░░░░░░░░░░░░░]  13/55  24%   │
+│  8-C Backend Implementation  [████░░░░░░░░░░░░░░░░]  13/65  20%   │
 │  8-D L3/L1 Integration       [░░░░░░░░░░░░░░░░░░░░]   0/10   0%    │
 │  8-E Integration Testing     [░░░░░░░░░░░░░░░░░░░░]   0/38   0%    │
 │                                                                     │
@@ -26,7 +26,7 @@
 |:-----:|-------------|:------:|:--------:|:----:|
 | 8-A | Screen Implementation | 🟢 Complete | 38/38 | ✅ |
 | 8-B | Screen Verification | 🟡 In Progress | 10/38 | - |
-| 8-C | Backend Implementation | 🟡 In Progress | 13/55 | - |
+| 8-C | Backend Implementation | 🟡 In Progress | 13/65 | - |
 | 8-D | L3/L1 Integration | 🔴 Not Started | 0/10 | - |
 | 8-E | Integration Testing | 🔴 Not Started | 0/38 | - |
 
@@ -167,6 +167,24 @@
 
 ## Phase 8-C: Backend Implementation (55 endpoints)
 
+### 実装カテゴリ一覧
+
+| # | Category | Endpoints | Priority | Status |
+|---|----------|:---------:|:--------:|:------:|
+| 1 | auth | 5 | P0 | Pending |
+| 2 | dashboard | 3 | P0 | Partial (2/3) |
+| 3 | transactions | 8 | P0 | Pending |
+| 4 | users | 6 | P0 | Pending |
+| 5 | prover | 6 | P0 | Partial (5/6) |
+| 6 | observer | 4 | P0 | Pending |
+| 7 | treasury | 10 | P0 | Pending |
+| 8 | governance | 5 | P1 | Pending |
+| 9 | members | 2 | P1 | Pending |
+| 10 | support | 4 | P2 | Pending |
+| 11 | announcements | 2 | P2 | Pending |
+| 12 | analytics | 4 | P2 | Partial (1/4) |
+| 13 | system | 6 | P2 | Partial (4/6) |
+
 ### Infrastructure (完了)
 
 | # | Item | Status | Notes |
@@ -177,7 +195,9 @@
 | 04 | マイグレーションSQL作成 | ✅ | migrations/001_initial_schema.sql |
 | 05 | AppState更新 | ✅ | services/mod.rs |
 
-### Auth (5 endpoints)
+---
+
+### 1. Auth (5 endpoints) - P0
 
 | # | Method | Endpoint | Impl | Test | Log | Status |
 |---|--------|----------|:----:|:----:|:---:|:------:|
@@ -187,50 +207,143 @@
 | 04 | GET | /admin/auth/me | ⬜ | ⬜ | ⬜ | Pending |
 | 05 | POST | /admin/auth/2fa/verify | ⬜ | ⬜ | ⬜ | Pending |
 
-### Dashboard (3 endpoints)
+### 2. Dashboard (3 endpoints) - P0
 
 | # | Method | Endpoint | Impl | Test | Log | Status |
 |---|--------|----------|:----:|:----:|:---:|:------:|
-| 06 | GET | /admin/dashboard | ✅ | ⬜ | ✅ | Done |
+| 06 | GET | /admin/dashboard/overview | ✅ | ⬜ | ✅ | Done |
 | 07 | GET | /admin/dashboard/stats | ✅ | ⬜ | ✅ | Done |
 | 08 | GET | /admin/dashboard/alerts | ⬜ | ⬜ | ⬜ | Pending |
 
-### Prover Management (6 endpoints)
+### 3. Transactions (8 endpoints) - P0
 
 | # | Method | Endpoint | Impl | Test | Log | Status |
 |---|--------|----------|:----:|:----:|:---:|:------:|
-| 09 | GET | /api/provers | ✅ | ⬜ | ✅ | Done |
-| 10 | POST | /api/provers/register | ✅ | ⬜ | ✅ | Done |
-| 11 | POST | /api/provers/:id/approve | ✅ | ⬜ | ✅ | Done |
-| 12 | POST | /api/provers/:id/reject | ✅ | ⬜ | ✅ | Done |
-| 13 | POST | /api/provers/:id/suspend | ✅ | ⬜ | ✅ | Done |
-| 14 | GET | /api/provers/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 09 | GET | /admin/transactions/locks | ⬜ | ⬜ | ⬜ | Pending |
+| 10 | GET | /admin/transactions/locks/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 11 | GET | /admin/transactions/unlocks | ⬜ | ⬜ | ⬜ | Pending |
+| 12 | GET | /admin/transactions/unlocks/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 13 | GET | /admin/transactions/emergency | ⬜ | ⬜ | ⬜ | Pending |
+| 14 | GET | /admin/transactions/emergency/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 15 | GET | /admin/challenges | ⬜ | ⬜ | ⬜ | Pending |
+| 16 | POST | /admin/challenges/:id/intervene | ⬜ | ⬜ | ⬜ | Pending |
 
-### System (4 endpoints)
-
-| # | Method | Endpoint | Impl | Test | Log | Status |
-|---|--------|----------|:----:|:----:|:---:|:------:|
-| 15 | GET | /api/system/status | ✅ | ⬜ | ✅ | Done |
-| 16 | POST | /api/system/pause | ✅ | ⬜ | ✅ | Done |
-| 17 | POST | /api/system/unpause | ✅ | ⬜ | ✅ | Done |
-| 18 | GET | /api/analytics/overview | ✅ | ⬜ | ✅ | Done |
-
-### Staff/Audit (3 endpoints)
+### 4. Users (6 endpoints) - P0
 
 | # | Method | Endpoint | Impl | Test | Log | Status |
 |---|--------|----------|:----:|:----:|:---:|:------:|
-| 19 | GET | /v1/admin/staff | ✅ | ⬜ | ✅ | Done |
-| 20 | POST | /v1/admin/staff | ✅ | ⬜ | ✅ | Done |
-| 21 | GET | /v1/admin/audit-log | ✅ | ⬜ | ✅ | Done |
+| 17 | GET | /admin/users | ⬜ | ⬜ | ⬜ | Pending |
+| 18 | GET | /admin/users/:wallet_address | ⬜ | ⬜ | ⬜ | Pending |
+| 19 | PUT | /admin/users/:wallet_address | ⬜ | ⬜ | ⬜ | Pending |
+| 20 | GET | /admin/users/:wallet_address/locks | ⬜ | ⬜ | ⬜ | Pending |
+| 21 | GET | /admin/users/:wallet_address/unlocks | ⬜ | ⬜ | ⬜ | Pending |
+| 22 | POST | /admin/users/:wallet_address/suspend | ⬜ | ⬜ | ⬜ | Pending |
 
-### (Other categories - 34 endpoints remaining)
+### 5. Prover (6 endpoints) - P0
 
-**Progress: 13/55 (24%)**
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 23 | GET | /admin/applications/prover | ✅ | ⬜ | ✅ | Done |
+| 24 | POST | /admin/applications/prover/:id/approve | ✅ | ⬜ | ✅ | Done |
+| 25 | POST | /admin/applications/prover/:id/reject | ✅ | ⬜ | ✅ | Done |
+| 26 | GET | /admin/provers | ✅ | ⬜ | ✅ | Done |
+| 27 | GET | /admin/provers/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 28 | POST | /admin/provers/:id/suspend | ✅ | ⬜ | ✅ | Done |
+
+### 6. Observer (4 endpoints) - P0
+
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 29 | GET | /admin/observers | ⬜ | ⬜ | ⬜ | Pending |
+| 30 | GET | /admin/observers/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 31 | POST | /admin/observers/:id/suspend | ⬜ | ⬜ | ⬜ | Pending |
+| 32 | GET | /admin/observers/:id/challenges | ⬜ | ⬜ | ⬜ | Pending |
+
+### 7. Treasury (10 endpoints) - P0
+
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 33 | GET | /admin/treasury/overview | ⬜ | ⬜ | ⬜ | Pending |
+| 34 | GET | /admin/treasury/wallets | ⬜ | ⬜ | ⬜ | Pending |
+| 35 | GET | /admin/treasury/wallets/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 36 | POST | /admin/treasury/wallets/:id/transfer | ⬜ | ⬜ | ⬜ | Pending |
+| 37 | GET | /admin/treasury/transfers | ⬜ | ⬜ | ⬜ | Pending |
+| 38 | GET | /admin/treasury/transfers/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 39 | POST | /admin/treasury/transfers/:id/approve | ⬜ | ⬜ | ⬜ | Pending |
+| 40 | GET | /admin/treasury/budget | ⬜ | ⬜ | ⬜ | Pending |
+| 41 | GET | /admin/treasury/expenses | ⬜ | ⬜ | ⬜ | Pending |
+| 42 | GET | /admin/treasury/audit | ⬜ | ⬜ | ⬜ | Pending |
+
+### 8. Governance (5 endpoints) - P1
+
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 43 | GET | /admin/governance/proposals | ⬜ | ⬜ | ⬜ | Pending |
+| 44 | GET | /admin/governance/proposals/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 45 | POST | /admin/governance/proposals/:id/execute | ⬜ | ⬜ | ⬜ | Pending |
+| 46 | GET | /admin/governance/council | ⬜ | ⬜ | ⬜ | Pending |
+| 47 | GET | /admin/governance/votes | ⬜ | ⬜ | ⬜ | Pending |
+
+### 9. Members (2 endpoints) - P1
+
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 48 | GET | /admin/settings/users | ⬜ | ⬜ | ⬜ | Pending |
+| 49 | POST | /admin/settings/users | ⬜ | ⬜ | ⬜ | Pending |
+
+### 10. Support (4 endpoints) - P2
+
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 50 | GET | /admin/support/tickets | ⬜ | ⬜ | ⬜ | Pending |
+| 51 | GET | /admin/support/tickets/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 52 | PUT | /admin/support/tickets/:id | ⬜ | ⬜ | ⬜ | Pending |
+| 53 | GET | /admin/support/faq | ⬜ | ⬜ | ⬜ | Pending |
+
+### 11. Announcements (2 endpoints) - P2
+
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 54 | GET | /admin/support/announcements | ⬜ | ⬜ | ⬜ | Pending |
+| 55 | POST | /admin/support/announcements | ⬜ | ⬜ | ⬜ | Pending |
+
+### 12. Analytics (4 endpoints) - P2
+
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 56 | GET | /admin/analytics/overview | ✅ | ⬜ | ✅ | Done |
+| 57 | GET | /admin/analytics/users | ⬜ | ⬜ | ⬜ | Pending |
+| 58 | GET | /admin/analytics/revenue | ⬜ | ⬜ | ⬜ | Pending |
+| 59 | GET | /admin/analytics/reports | ⬜ | ⬜ | ⬜ | Pending |
+
+### 13. System (6 endpoints) - P2
+
+| # | Method | Endpoint | Impl | Test | Log | Status |
+|---|--------|----------|:----:|:----:|:---:|:------:|
+| 60 | GET | /admin/system/status | ✅ | ⬜ | ✅ | Done |
+| 61 | POST | /admin/emergency/pause | ✅ | ⬜ | ✅ | Done |
+| 62 | POST | /admin/emergency/resume | ✅ | ⬜ | ✅ | Done |
+| 63 | GET | /admin/audit/logs | ✅ | ⬜ | ✅ | Done |
+| 64 | GET | /admin/system/alerts | ⬜ | ⬜ | ⬜ | Pending |
+| 65 | GET | /admin/system/maintenance | ⬜ | ⬜ | ⬜ | Pending |
+
+---
+
+**Progress: 13/65 (20%)**
 
 **BE Rules Compliance:**
 - BE-001 (No Stubs): ✅ 13 endpoints converted to real DB
 - BE-002 (No Test Hacks): ✅ Verified
 - BE-003 (Logging): ✅ All converted handlers have #[instrument] + info!/warn!
+
+**ヘルパースクリプト:**
+```bash
+# スタブ検出
+./scripts/detect-stubs.sh src/routes/admin.rs
+
+# 進捗更新（エンドポイント番号指定）
+./scripts/update-backend-progress.sh 06 done
+```
 
 ---
 
