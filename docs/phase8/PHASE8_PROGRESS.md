@@ -12,12 +12,12 @@
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  8-A Screen Implementation   [████████████████████]  38/38 100%   │
-│  8-B Screen Verification     [░░░░░░░░░░░░░░░░░░░░]   0/38   0%    │
+│  8-B Screen Verification     [█████░░░░░░░░░░░░░░░]  10/38  26%   │
 │  8-C Backend Implementation  [████░░░░░░░░░░░░░░░░]  13/55  24%   │
 │  8-D L3/L1 Integration       [░░░░░░░░░░░░░░░░░░░░]   0/10   0%    │
 │  8-E Integration Testing     [░░░░░░░░░░░░░░░░░░░░]   0/38   0%    │
 │                                                                     │
-│  Overall Progress            [██████████░░░░░░░░░░]  29%           │
+│  Overall Progress            [███████████░░░░░░░░░]  34%           │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -25,7 +25,7 @@
 | Phase | Description | Status | Progress | Gate |
 |:-----:|-------------|:------:|:--------:|:----:|
 | 8-A | Screen Implementation | 🟢 Complete | 38/38 | ✅ |
-| 8-B | Screen Verification | 🔴 Not Started | 0/38 | - |
+| 8-B | Screen Verification | 🟡 In Progress | 10/38 | - |
 | 8-C | Backend Implementation | 🟡 In Progress | 13/55 | - |
 | 8-D | L3/L1 Integration | 🔴 Not Started | 0/10 | - |
 | 8-E | Integration Testing | 🔴 Not Started | 0/38 | - |
@@ -107,17 +107,17 @@
 
 | # | Screen | D | J | N | M | C | Status |
 |---|--------|:-:|:-:|:-:|:-:|:-:|:------:|
-| 01 | Dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 02 | Transactions Dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 03 | Transactions - Lock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 04 | Transactions - Unlock | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 05 | Transactions - Emergency | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 06 | Transactions - Challenge | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 07 | Treasury Dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 08 | Treasury Wallets | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 09 | Treasury Transfers | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 10 | Treasury Budget | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
-| 11 | Treasury Audit | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
+| 01 | Dashboard | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 02 | Transactions Dashboard | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 03 | Transactions - Lock | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 04 | Transactions - Unlock | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 05 | Transactions - Emergency | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 06 | Transactions - Challenge | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 07 | Treasury Dashboard | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 08 | Treasury Wallets | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 09 | Treasury Transfers | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 10 | Treasury Budget | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
+| 11 | Treasury Audit | ⚠️ | ✅ | ✅ | ✅ | ✅ | Conditional |
 | 12 | Users Dashboard | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 13 | Users List | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
 | 14 | Users Wallets | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Pending |
@@ -148,7 +148,20 @@
 
 **Legend:** D=Design, J=Journey, N=Navigation, M=Model, C=Completeness
 
-**Progress: 0/38 (0%)**
+**Progress: 10/38 (26%)**
+
+### 8-B Verification Notes
+
+**D観点の共通問題:**
+- サイドバーナビゲーションの44pxタップエリア違反を発見
+- **修正済み:** `apps/web/src/components/qs-admin/Layout/Sidebar.tsx` に `min-h-11` を追加
+- 全画面で共有コンポーネントのため、修正は全画面に適用される
+- サーバー再起動後に修正を検証予定
+
+**CONDITIONAL判定の理由:**
+- J, N, M, C観点: すべてPASS
+- D観点: サイドバー44px問題（修正コミット済み、反映待ち）
+- チャートのフォントサイズ(10px)は補助情報のためMinor扱い
 
 ---
 
