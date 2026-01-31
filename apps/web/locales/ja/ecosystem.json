@@ -84,8 +84,8 @@
     },
     "prover": {
       "title": "Prover Portal",
-      "tagline": "SPHINCS+署名でネットワークを支える",
-      "description": "HSMでSPHINCS+署名を生成し、アンロック要求を承認。署名手数料から報酬を獲得します。"
+      "tagline": "L3ノード運営でネットワークを支える",
+      "description": "L3ノードを運営しBFTコンセンサスに参加。VRF選定時にSPHINCS+署名でアンロックを承認し報酬を獲得。"
     },
     "enterprise": {
       "title": "Enterprise",

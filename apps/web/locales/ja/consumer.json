@@ -472,7 +472,8 @@
         "transparency": {
           "title": "透明性",
           "description": "全てのトランザクションはオンチェーンで検証可能。オープンソースで監査済みのスマートコントラクト。",
-          "badge": "オープンソース"
+          "badge": "オープンソース",
+          "tooltip": "透明性とは、全ての取引履歴やスマートコントラクトのコードが公開されており、誰でも検証できることを意味します。第三者による監査も完了しています。"
         }
       },
       "howItWorks": {
@@ -569,6 +570,19 @@
         "details": "詳細",
         "accept": "同意する"
       }
+    },
+    "login": {
+      "meta": {
+        "title": "ログイン | Quantum Shield",
+        "description": "ウォレットを接続してQuantum Shieldにログイン"
+      },
+      "backToHome": "ホームに戻る",
+      "title": "Quantum Shieldにログイン",
+      "description": "ウォレットを接続して、量子耐性保護を開始しましょう",
+      "connectWallet": "ウォレットを接続",
+      "or": "または",
+      "noAccount": "アカウントをお持ちでない方は",
+      "createAccount": "新規登録"
     },
     "keyManagement": {
       "meta": {
@@ -695,6 +709,11 @@
           "question": "秘密鍵を紛失した場合はどうすればいいですか？",
           "answer": "緊急Unlock機能を使用してください。Bond（保証金）を支払い、7日間の待機後に資産を回収できます。Bondは正当なUnlockであれば返還されます。"
         }
+      },
+      "contact": {
+        "title": "お探しの回答が見つかりませんか？",
+        "description": "サポートチームがお手伝いします。お気軽にお問い合わせください。",
+        "button": "お問い合わせ"
       }
     },
     "security": {

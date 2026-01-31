@@ -10,15 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-
-interface PendingUnlock {
-  id: string;
-  address: string;
-  amount: string;
-  type: 'normal' | 'emergency';
-  timeRemaining: string;
-  status: 'pending' | 'monitoring';
-}
+import type { PendingUnlock } from '@/lib/api/observer/mock';
 
 interface PendingUnlocksTableProps {
   unlocks: PendingUnlock[];
@@ -40,6 +32,8 @@ export function PendingUnlocksTable({
   const statusBadgeStyles = {
     pending: 'bg-foreground-secondary/15 text-foreground-secondary',
     monitoring: 'bg-warning/20 text-warning',
+    review: 'bg-info/20 text-info',
+    lowRisk: 'bg-success/20 text-success',
   };
 
   return (
@@ -61,7 +55,7 @@ export function PendingUnlocksTable({
         </div>
         <Link
           href="/observer/pending"
-          className="text-sm font-medium text-gold hover:text-gold/80 hover:underline transition-colors"
+          className="text-sm font-medium text-gold hover:text-gold/80 hover:underline transition-colors inline-flex items-center min-h-[44px]"
         >
           {t('viewAll')} →
         </Link>

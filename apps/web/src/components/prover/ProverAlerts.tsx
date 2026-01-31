@@ -33,51 +33,12 @@ import { Badge } from '@/components/ui/badge';
 import { Link, usePathname } from '@/i18n/navigation';
 import { ProverSidebar } from './ProverSidebar';
 import { cn } from '@/lib/utils';
+import { useProverAlerts, useStakeData } from '@/hooks/prover';
+import { MOCK_PROVER_ALERTS, MOCK_STAKE_DATA } from '@/lib/api/prover/mock';
 
-// Mock data
-const mockAlerts = [
-  {
-    id: 1,
-    type: 'critical' as const,
-    title: 'signatureTimeout',
-    timestamp: '2026/01/17 15:32',
-    requestId: 'REQ-789012',
-    description: 'signatureTimeoutDesc',
-    remainingTime: 45,
-    resolved: false,
-  },
-  {
-    id: 2,
-    type: 'warning' as const,
-    title: 'systemResource',
-    timestamp: '2026/01/17 14:15',
-    server: 'prover-node-01',
-    description: 'systemResourceDesc',
-    cpuUsage: 82,
-    resolved: false,
-  },
-  {
-    id: 3,
-    type: 'info' as const,
-    title: 'maintenanceComplete',
-    timestamp: '2026/01/16 03:00',
-    description: 'maintenanceCompleteDesc',
-    resolved: true,
-  },
-];
-
-const mockStakeData = {
-  currentStake: 400000,
-  unlockDate: '2026/09/20',
-  daysRemaining: 183,
-  totalRewards: 47520,
-  annualRate: 15.8,
-  totalSlashing: 0,
-  violations30d: 0,
-  slaRate: 100,
-  potentialSlashing: 0,
-  riskLevel: 5,
-};
+// Fallback data
+const FALLBACK_ALERTS = MOCK_PROVER_ALERTS;
+const FALLBACK_STAKE_DATA = MOCK_STAKE_DATA;
 
 const mockSlashingTable = [
   { violations: 1, rate: 10, loss: 40000 },
@@ -110,7 +71,7 @@ const mockEnterpriseStakeData = {
 
 type TabType = 'alerts' | 'stake';
 type FilterType = 'all' | 'critical' | 'warning' | 'info';
-type AlertItem = typeof mockAlerts[0];
+type AlertItem = typeof FALLBACK_ALERTS[0];
 
 export function ProverAlerts() {
   const t = useTranslations('prover');
@@ -129,6 +90,14 @@ export function ProverAlerts() {
   // For demo: toggle between public and enterprise view
   const [proverType] = useState<ProverType>('enterprise');
   const [completedAction, setCompletedAction] = useState<'stake' | 'withdraw' | null>(null);
+
+  // Fetch data using hooks
+  const { data: alertsApi } = useProverAlerts();
+  const { data: stakeDataApi } = useStakeData();
+
+  // Use API data with fallback
+  const alerts = alertsApi ?? FALLBACK_ALERTS;
+  const stakeData = stakeDataApi ?? FALLBACK_STAKE_DATA;
 
   // Handle URL query params for tab switching
   useEffect(() => {
@@ -171,7 +140,7 @@ export function ProverAlerts() {
 
   const handleWithdraw = () => {
     const amount = parseFloat(withdrawAmount);
-    if (withdrawAmount && !isNaN(amount) && amount > 0 && amount <= mockStakeData.totalRewards) {
+    if (withdrawAmount && !isNaN(amount) && amount > 0 && amount <= stakeData.totalRewards) {
       // Show processing state
       setIsProcessing(true);
       setShowWithdrawModal(false);
@@ -191,15 +160,15 @@ export function ProverAlerts() {
     setCompletedAction(null);
   };
 
-  const filteredAlerts = mockAlerts.filter((alert) => {
+  const filteredAlerts = alerts.filter((alert) => {
     if (alertFilter === 'all') return true;
     return alert.type === alertFilter;
   });
 
   const alertCounts = {
-    critical: mockAlerts.filter((a) => a.type === 'critical' && !a.resolved).length,
-    warning: mockAlerts.filter((a) => a.type === 'warning' && !a.resolved).length,
-    info: mockAlerts.filter((a) => a.type === 'info' && !a.resolved).length,
+    critical: alerts.filter((a) => a.type === 'critical' && !a.resolved).length,
+    warning: alerts.filter((a) => a.type === 'warning' && !a.resolved).length,
+    info: alerts.filter((a) => a.type === 'info' && !a.resolved).length,
   };
 
   const getAlertIcon = (type: 'critical' | 'warning' | 'info') => {
@@ -260,7 +229,7 @@ export function ProverAlerts() {
               aria-selected={activeTab === 'alerts'}
               aria-controls="alerts-panel"
               onClick={() => setActiveTab('alerts')}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px] ${
                 activeTab === 'alerts' ? 'bg-gold text-background' : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
@@ -277,7 +246,7 @@ export function ProverAlerts() {
               aria-selected={activeTab === 'stake'}
               aria-controls="stake-panel"
               onClick={() => setActiveTab('stake')}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px] ${
                 activeTab === 'stake' ? 'bg-gold text-background' : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
@@ -311,7 +280,7 @@ export function ProverAlerts() {
               <button
                 onClick={() => setAlertFilter('all')}
                 aria-pressed={alertFilter === 'all'}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-colors min-h-[44px] ${
                   alertFilter === 'all'
                     ? 'border-gold text-gold bg-gold/10'
                     : 'border-surface-tertiary text-foreground-secondary hover:text-foreground hover:border-foreground-tertiary'
@@ -322,7 +291,7 @@ export function ProverAlerts() {
               <button
                 onClick={() => setAlertFilter('critical')}
                 aria-pressed={alertFilter === 'critical'}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-colors min-h-[44px] ${
                   alertFilter === 'critical'
                     ? 'border-danger text-danger bg-danger/10'
                     : 'border-surface-tertiary text-foreground-secondary hover:text-foreground hover:border-foreground-tertiary'
@@ -334,7 +303,7 @@ export function ProverAlerts() {
               <button
                 onClick={() => setAlertFilter('warning')}
                 aria-pressed={alertFilter === 'warning'}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-colors min-h-[44px] ${
                   alertFilter === 'warning'
                     ? 'border-warning text-warning bg-warning/10'
                     : 'border-surface-tertiary text-foreground-secondary hover:text-foreground hover:border-foreground-tertiary'
@@ -346,7 +315,7 @@ export function ProverAlerts() {
               <button
                 onClick={() => setAlertFilter('info')}
                 aria-pressed={alertFilter === 'info'}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-colors min-h-[44px] ${
                   alertFilter === 'info'
                     ? 'border-info text-info bg-info/10'
                     : 'border-surface-tertiary text-foreground-secondary hover:text-foreground hover:border-foreground-tertiary'
@@ -580,7 +549,7 @@ export function ProverAlerts() {
               <Card variant="hoverGradient" padding="md" className="border-gold bg-gradient-to-br from-gold/10 to-transparent">
                 <div className="text-xs text-foreground-tertiary mb-2">{t('alerts.stake.currentStake')}</div>
                 <div className="text-2xl font-bold font-mono text-gold">
-                  {mockStakeData.currentStake.toLocaleString()} QS
+                  {stakeData.currentStake.toLocaleString()} QS
                 </div>
                 <div className="text-xs text-success mt-1 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" />
@@ -589,24 +558,24 @@ export function ProverAlerts() {
               </Card>
               <Card variant="hoverGradient" padding="md">
                 <div className="text-xs text-foreground-tertiary mb-2">{t('alerts.stake.unlockDate')}</div>
-                <div className="text-2xl font-bold font-mono">{mockStakeData.unlockDate}</div>
+                <div className="text-2xl font-bold font-mono">{stakeData.unlockDate}</div>
                 <div className="text-xs text-foreground-tertiary mt-1">
-                  {t('alerts.stake.daysRemaining', { days: mockStakeData.daysRemaining })}
+                  {t('alerts.stake.daysRemaining', { days: stakeData.daysRemaining })}
                 </div>
               </Card>
               <Card variant="hoverGradient" padding="md">
                 <div className="text-xs text-foreground-tertiary mb-2">{t('alerts.stake.totalRewards')}</div>
                 <div className="text-2xl font-bold font-mono text-success">
-                  {mockStakeData.totalRewards.toLocaleString()} QS
+                  {stakeData.totalRewards.toLocaleString()} QS
                 </div>
                 <div className="text-xs text-foreground-tertiary mt-1 flex items-center gap-1">
                   <TrendingUp className="h-3 w-3 text-success" />
-                  {t('alerts.stake.annualRate', { rate: mockStakeData.annualRate })}
+                  {t('alerts.stake.annualRate', { rate: stakeData.annualRate })}
                 </div>
               </Card>
               <Card variant="hoverGradient" padding="md">
                 <div className="text-xs text-foreground-tertiary mb-2">{t('alerts.stake.totalSlashing')}</div>
-                <div className="text-2xl font-bold font-mono text-success">{mockStakeData.totalSlashing} QS</div>
+                <div className="text-2xl font-bold font-mono text-success">{stakeData.totalSlashing} QS</div>
                 <div className="text-xs text-success mt-1 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" />
                   {t('alerts.stake.noViolations')}
@@ -627,16 +596,16 @@ export function ProverAlerts() {
                 <div
                   className="h-6 rounded-xl bg-gradient-to-r from-success via-warning to-danger"
                   role="progressbar"
-                  aria-valuenow={mockStakeData.riskLevel}
+                  aria-valuenow={stakeData.riskLevel}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-label={t('alerts.risk.level')}
                 />
                 <div
                   className="absolute top-1/2 -translate-y-1/2 w-10 h-10 bg-background border-[3px] border-white rounded-full flex items-center justify-center text-sm font-semibold shadow-lg"
-                  style={{ left: `${mockStakeData.riskLevel}%`, transform: 'translate(-50%, -50%)' }}
+                  style={{ left: `${stakeData.riskLevel}%`, transform: 'translate(-50%, -50%)' }}
                 >
-                  {mockStakeData.riskLevel === 0 ? '0' : mockStakeData.riskLevel}
+                  {stakeData.riskLevel === 0 ? '0' : stakeData.riskLevel}
                 </div>
               </div>
               <div className="flex justify-between text-xs text-foreground-tertiary mb-6">
@@ -649,15 +618,15 @@ export function ProverAlerts() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-background rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.risk.violations30d')}</div>
-                  <div className="font-semibold text-success">{mockStakeData.violations30d}{t('alerts.risk.count')}</div>
+                  <div className="font-semibold text-success">{stakeData.violations30d}{t('alerts.risk.count')}</div>
                 </div>
                 <div className="p-4 bg-background rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.risk.slaRate')}</div>
-                  <div className="font-semibold text-success">{mockStakeData.slaRate}%</div>
+                  <div className="font-semibold text-success">{stakeData.slaRate}%</div>
                 </div>
                 <div className="p-4 bg-background rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.risk.potentialSlashing')}</div>
-                  <div className="font-semibold">{mockStakeData.potentialSlashing} QS</div>
+                  <div className="font-semibold">{stakeData.potentialSlashing} QS</div>
                 </div>
               </div>
             </Card>
@@ -997,7 +966,7 @@ export function ProverAlerts() {
               <div className="p-4 bg-background rounded-xl">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">{t('alerts.modal.withdraw.available')}</span>
-                  <span className="font-semibold text-gold">{mockStakeData.totalRewards.toLocaleString()} QS</span>
+                  <span className="font-semibold text-gold">{stakeData.totalRewards.toLocaleString()} QS</span>
                 </div>
               </div>
 
@@ -1012,17 +981,17 @@ export function ProverAlerts() {
                     type="number"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
-                    placeholder={mockStakeData.totalRewards.toString()}
+                    placeholder={stakeData.totalRewards.toString()}
                     className="w-full px-4 py-3 bg-background border border-surface-tertiary rounded-xl focus:outline-none focus:ring-2 focus:ring-gold text-right pr-16 font-mono"
                     min="0"
-                    max={mockStakeData.totalRewards}
+                    max={stakeData.totalRewards}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground-tertiary">QS</span>
                 </div>
                 <button
                   type="button"
                   className="text-sm text-gold hover:underline mt-1"
-                  onClick={() => setWithdrawAmount(mockStakeData.totalRewards.toString())}
+                  onClick={() => setWithdrawAmount(stakeData.totalRewards.toString())}
                 >
                   {t('alerts.modal.withdraw.max')}
                 </button>
@@ -1064,7 +1033,7 @@ export function ProverAlerts() {
                 variant="primary"
                 className="flex-1"
                 onClick={handleWithdraw}
-                disabled={!withdrawAmount || isNaN(parseFloat(withdrawAmount)) || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > mockStakeData.totalRewards}
+                disabled={!withdrawAmount || isNaN(parseFloat(withdrawAmount)) || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > stakeData.totalRewards}
               >
                 {t('alerts.modal.withdraw.confirm')}
               </Button>
@@ -1117,7 +1086,7 @@ export function ProverAlerts() {
               <div className="p-4 bg-background rounded-xl">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-foreground-secondary">{t('alerts.stake.currentStake')}</span>
-                  <span className="font-semibold text-gold">{mockStakeData.currentStake.toLocaleString()} QS</span>
+                  <span className="font-semibold text-gold">{stakeData.currentStake.toLocaleString()} QS</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">{t('alerts.modal.addStake.minimum')}</span>
@@ -1151,7 +1120,7 @@ export function ProverAlerts() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm">{t('alerts.modal.addStake.newTotal')}</span>
                     <span className="font-semibold text-success">
-                      {(mockStakeData.currentStake + parseFloat(stakeAmount)).toLocaleString()} QS
+                      {(stakeData.currentStake + parseFloat(stakeAmount)).toLocaleString()} QS
                     </span>
                   </div>
                 </div>

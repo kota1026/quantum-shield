@@ -115,6 +115,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
             }}
             className={cn(
               'mt-4 flex items-center gap-1.5',
+              'min-h-[44px] py-2 -ml-2 pl-2 pr-4',
               'text-xs text-gold hover:underline'
             )}
           >

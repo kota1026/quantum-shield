@@ -4,18 +4,26 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useKeyInfo } from '@/hooks/consumer';
+import { MOCK_KEY_INFO } from '@/lib/api/consumer/mock';
 
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Demo secret key - In production this would be retrieved securely
-const DEMO_SECRET_KEY =
-  '5f8c2a3b7d9e1f4a6c0b8d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4...';
+// Fallback data
+const FALLBACK_KEY_INFO = MOCK_KEY_INFO;
 
 export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   const t = useTranslations('consumer.keyManagement.exportModal');
+
+  // Fetch data using hooks
+  const { data: keyInfoData } = useKeyInfo();
+
+  // Use API data with fallback
+  const keyInfo = keyInfoData ?? FALLBACK_KEY_INFO;
+
   const [confirmed, setConfirmed] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
@@ -115,7 +123,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
               )}
               aria-label={revealed ? t('secretKeyRevealed') : t('secretKeyHidden')}
             >
-              {DEMO_SECRET_KEY}
+              {keyInfo.secretKey}
             </div>
           </div>
 

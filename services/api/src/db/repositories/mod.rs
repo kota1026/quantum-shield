@@ -14,6 +14,7 @@ mod lock;
 mod challenge;
 mod governance;
 mod treasury;
+mod support;
 
 pub use admin::*;
 pub use prover::*;
@@ -23,3 +24,4 @@ pub use lock::*;
 pub use challenge::*;
 pub use governance::*;
 pub use treasury::*;
+pub use support::*;

@@ -193,6 +193,7 @@ export function Landing() {
                 title={t('features.transparency.title')}
                 description={t('features.transparency.description')}
                 badge={t('features.transparency.badge')}
+                tooltip={t('features.transparency.tooltip')}
               />
             </div>
           </div>

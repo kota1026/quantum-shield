@@ -108,6 +108,91 @@
 | 24 | **EnvironmentConfig** | 環境設定（本番/ステージング/テスト） | オフチェーン |
 | 25 | **SavedSearch** | 保存された検索条件 | オフチェーン |
 
+### 2.4 v3.2 L3ステート管理エンティティ ★NEW
+
+> **原則**: L3 = Quantum-Resistant Application Layer
+> 全ての価値移動・ガバナンス操作をL3で管理し、L1は Settlement Layer として機能
+
+| # | エンティティ | 説明 | 保存場所 |
+|---|-------------|------|----------|
+| 26 | **L3_VeQSBalance** | veQS残高・ロック期間 | L3 (RocksDB + SMT) |
+| 27 | **L3_Delegation** | 投票権委任 | L3 (RocksDB + SMT) |
+| 28 | **L3_Proposal** | ガバナンス提案（状態管理） | L3 (RocksDB + SMT) |
+| 29 | **L3_Vote** | 投票記録 | L3 (RocksDB + SMT) |
+| 30 | **L3_TreasuryRequest** | Treasury支出申請 | L3 (RocksDB + SMT) |
+| 31 | **L3_MultisigApproval** | Multisig承認記録 | L3 (RocksDB + SMT) |
+| 32 | **L3_UnlockRequest** | アンロック申請（既存拡張） | L3 (RocksDB + SMT) |
+| 33 | **L3_ProverSignature** | Prover署名（SPHINCS+） | L3 (RocksDB + SMT) |
+| 34 | **L3_TransferApproval** | 大口送金承認 | L3 (RocksDB + SMT) |
+| 35 | **L3_AdminAction** | 管理者操作記録 | L3 (RocksDB + SMT) |
+| 36 | **L3_StateProof** | L1提出用証明 | L3 → L1 Bridge |
+
+### 2.5 v3.2 Admin/Treasury エンティティ ★NEW
+
+| # | エンティティ | 説明 | 保存場所 |
+|---|-------------|------|----------|
+| 37 | **AdminUser** | 管理者アカウント | オフチェーン |
+| 38 | **AdminRole** | 権限ロール | オフチェーン |
+| 39 | **AdminAuditLog** | 管理者操作ログ | オフチェーン |
+| 40 | **TreasuryWallet** | Treasuryウォレット情報 | オフチェーン + L1 |
+| 41 | **TreasuryTransaction** | Treasury取引記録 | オフチェーン + L1 |
+| 42 | **BudgetAllocation** | 予算配分 | オフチェーン |
+| 43 | **ExpenseRequest** | 支出申請 | オフチェーン + L3 |
+| 44 | **DailyMetrics** | 日次KPI | オフチェーン |
+| 45 | **Alert** | アラート | オフチェーン |
+
+### 2.6 L3-L1 データフロー
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        L3 = Source of Truth (Quantum-Resistant)             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ユーザー操作                                                               │
+│       │ Dilithium署名                                                       │
+│       ▼                                                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                         L3 State                                    │   │
+│  │                                                                     │   │
+│  │  veQS残高 ←─────── StakeLockTx ←───────── ユーザー                  │   │
+│  │  Proposal状態 ←─── ProposalCreateTx ←──── ユーザー                  │   │
+│  │  投票集計 ←──────── VoteTx ←────────────── ユーザー                  │   │
+│  │  Treasury承認 ←─── MultisigApproveTx ←── Admin (Dilithium)          │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│       │                                                                     │
+│       │ 確定した操作のみ                                                    │
+│       │ Merkle Proof + Dilithium署名                                        │
+│       ▼                                                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    L3 → L1 Bridge                                   │   │
+│  │                                                                     │   │
+│  │  ・L3StateProof (SMT Merkle Root)                                   │   │
+│  │  ・Dilithium署名バンドル                                            │   │
+│  │  ・実行命令（Transfer, Execute Proposal等）                         │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│       │                                                                     │
+│       ▼                                                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                        L1 = Settlement Layer (Execution)                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    L1 Contracts                                     │   │
+│  │                                                                     │   │
+│  │  1. L3 Proof検証 (verifyL3Proof)                                    │   │
+│  │  2. 実行 (transfer, execute, pause等)                               │   │
+│  │  3. イベント発行                                                    │   │
+│  │                                                                     │   │
+│  │  ※ L3 Proofなしでの実行は拒否                                       │   │
+│  │  ※ 小額送金のみECDSA許可（閾値以下）                                │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 3. エンティティ詳細
@@ -755,6 +840,180 @@ SLA基準:
 
 ---
 
+## 9. v3.3 UI検証で追加が必要なエンティティ
+
+> **注記**: 2026-01-30のPlaywright MCP検証で発見されたUIに存在するがモデルに不足していたエンティティ
+
+### 9.1 UnlockRiskScore（アンロックリスクスコア）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  UnlockRiskScore                                                │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: unlock_id (string)             # アンロックID              │
+│                                                                 │
+│  score: number                      # 0-100のリスクスコア       │
+│  level: enum                        # low/medium/high           │
+│  reasons: string[]                  # リスク理由の配列          │
+│  calculated_at: timestamp           # 計算日時                  │
+│                                                                 │
+│  使用画面:                                                       │
+│  - Observer Portal: /observer/pending                           │
+│  - Observer Portal: /observer/dashboard                         │
+│                                                                 │
+│  リスク理由の例:                                                 │
+│  - unusual_amount: 通常より大きな金額                           │
+│  - suspicious_pattern: 不審な取引パターン                       │
+│  - new_address: 新しい送金先アドレス                            │
+│  - rapid_unlock: 短期間での連続アンロック                       │
+│  - high_value_first_tx: 初回取引で高額                          │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- Observer App: Read (All)
+- QS Admin: Read (All)
+- System: Create, Update
+```
+
+### 9.2 ProverHealth（Proverヘルス状態）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ProverHealth                                                   │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: prover_id (string)             # ProverID                  │
+│                                                                 │
+│  hsm_status: enum                   # healthy/degraded/offline  │
+│  response_time_avg: number          # 平均応答時間（ms）        │
+│  success_rate: number               # 成功率（0-100%）          │
+│  uptime_30d: number                 # 30日稼働率（0-100%）      │
+│  last_health_check: timestamp       # 最終ヘルスチェック日時    │
+│                                                                 │
+│  使用画面:                                                       │
+│  - Prover Portal: /prover/dashboard                             │
+│  - QS Admin: /qs-admin/prover/list                              │
+│                                                                 │
+│  SLA基準:                                                        │
+│  - 稼働率: 99.9%以上必須                                        │
+│  - 応答時間: 1000ms以下推奨                                     │
+│  - 成功率: 99%以上必須                                          │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- Prover Portal: Read (Own)
+- QS Admin: Read (All)
+- System: Create, Update
+```
+
+### 9.3 EnterpriseContract（Enterprise契約）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  EnterpriseContract                                             │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: contract_id (UUID)                                         │
+│  FK: prover_id → Prover                                         │
+│                                                                 │
+│  company_name: string               # 企業名                    │
+│  sla_guarantee: number              # SLA保証（例: 99.90%）     │
+│  minimum_revenue: decimal           # 最低保証収益（ETH）       │
+│  start_date: date                   # 契約開始日                │
+│  end_date: date                     # 契約終了日                │
+│  status: enum                       # active/expired/terminated │
+│  created_at: timestamp                                          │
+│  updated_at: timestamp                                          │
+│                                                                 │
+│  使用画面:                                                       │
+│  - Prover Portal: /prover/dashboard（Enterprise契約情報）       │
+│  - Prover Portal: /prover/application（Step 5でEnterprise選択） │
+│  - QS Admin: /qs-admin/prover/requests                          │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- Prover Portal: Read (Own)
+- QS Admin: Create, Read (All), Update (All)
+```
+
+### 9.4 ProverTier（Proverティア拡張）
+
+```
+既存のProverエンティティに以下のフィールドを追加:
+
+┌─────────────────────────────────────────────────────────────────┐
+│  Prover（拡張フィールド）                                        │
+├─────────────────────────────────────────────────────────────────┤
+│  tier: enum                         # standard/professional/    │
+│                                     # enterprise               │
+│                                                                 │
+│  ティア別要件:                                                   │
+│  ┌──────────────┬────────────┬──────────────┬────────────────┐  │
+│  │ ティア       │ ステーク   │ インフラ     │ サポート       │  │
+│  ├──────────────┼────────────┼──────────────┼────────────────┤  │
+│  │ Standard     │ 2,500 QS   │ 自己管理     │ コミュニティ   │  │
+│  │ Professional │ 5,000 QS   │ クラウド推奨 │ 優先サポート   │  │
+│  │ Enterprise   │ 10,000 QS  │ 専用HSM      │ 専任担当者     │  │
+│  └──────────────┴────────────┴──────────────┴────────────────┘  │
+│                                                                 │
+│  使用画面:                                                       │
+│  - Prover Portal: /prover/application                           │
+│  - QS Admin: /qs-admin/prover/requests（ティアバッジ表示）      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 9.5 TreasuryApproval（Treasury承認記録）
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  TreasuryApproval                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  PK: approval_id (UUID)                                         │
+│  FK: transfer_id → TreasuryTransaction                          │
+│  FK: approver_id → AdminUser                                    │
+│                                                                 │
+│  approver_wallet: string            # 承認者ウォレット          │
+│  approved_at: timestamp             # 承認日時                  │
+│  signature: bytes                   # Dilithium署名             │
+│  status: enum                       # approved/rejected         │
+│  rejection_reason: string?          # 却下理由                  │
+│                                                                 │
+│  使用画面:                                                       │
+│  - QS Admin: /qs-admin/treasury/transfers                       │
+│  - 承認数表示（例: 1/2、2/3、3/3）                              │
+│                                                                 │
+│  マルチシグ要件:                                                 │
+│  - 小額（<100 ETH）: 2/3承認                                    │
+│  - 中額（100-1000 ETH）: 3/5承認                                │
+│  - 大額（>1000 ETH）: 4/5承認                                   │
+└─────────────────────────────────────────────────────────────────┘
+
+アクセス権限:
+- QS Admin: Create (Own), Read (All)
+```
+
+### 9.6 ObserverPracticeMode（Observer練習モード拡張）
+
+```
+既存のObserverエンティティに以下のフィールドを追加:
+
+┌─────────────────────────────────────────────────────────────────┐
+│  Observer（拡張フィールド）                                      │
+├─────────────────────────────────────────────────────────────────┤
+│  practice_mode_until: timestamp     # 練習モード終了日時        │
+│                                                                 │
+│  練習モード仕様:                                                 │
+│  - 登録後3ヶ月間は練習モード                                    │
+│  - 練習モード中はChallenge Bondが免除                           │
+│  - 練習モード中の報酬は50%に制限                                │
+│  - 練習モード終了後、正式Observerとして活動可能                 │
+│                                                                 │
+│  使用画面:                                                       │
+│  - Observer Portal: /observer/dashboard（練習モード表示）       │
+│  - Observer Portal: /observer/landing（練習モード説明）         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 更新履歴
 
 | Version | Date | Author | Changes |
@@ -762,3 +1021,4 @@ SLA基準:
 | 1.0 | 2026-01-22 | Claude | 初版作成 |
 | 1.1 | 2026-01-22 | Claude | 開発時のAPI実装パターン追加（Mock API、クライアントパターン）|
 | 2.0 | 2026-01-24 | Claude | v3.1対応: 技術譲渡モデルエンティティ追加（Licensee, LicenseContract, SupportTicket, MaintenanceEvent, AuditReport, EnvironmentConfig, SavedSearch）|
+| 3.0 | 2026-01-30 | Claude | v3.3対応: UI検証で発見された不足エンティティ追加（UnlockRiskScore, ProverHealth, EnterpriseContract, ProverTier, TreasuryApproval, ObserverPracticeMode）|

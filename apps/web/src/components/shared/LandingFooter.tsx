@@ -39,12 +39,12 @@ export function LandingFooter() {
             <h3 className="text-xs font-semibold tracking-widest uppercase text-foreground-tertiary mb-4">
               {t('footer.products.title')}
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1">
               {apps.map((app) => (
                 <li key={app.key}>
                   <I18nLink
                     href={app.href}
-                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                    className="text-sm text-foreground-secondary hover:text-foreground transition-colors inline-flex items-center min-h-[44px] px-1"
                   >
                     {t(`apps.list.${app.key}.title`)}
                   </I18nLink>
@@ -58,11 +58,11 @@ export function LandingFooter() {
             <h3 className="text-xs font-semibold tracking-widest uppercase text-foreground-tertiary mb-4">
               {t('footer.resources.title')}
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1">
               <li>
                 <a
                   href="/whitepaper.pdf"
-                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors inline-flex items-center min-h-[44px] px-1"
                 >
                   {t('footer.resources.whitepaper')}
                 </a>
@@ -72,7 +72,7 @@ export function LandingFooter() {
                   href="https://blog.quantumshield.io"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors inline-flex items-center min-h-[44px] px-1"
                 >
                   {t('footer.resources.blog')}
                 </a>
@@ -82,7 +82,7 @@ export function LandingFooter() {
                   href="https://github.com/quantumshield"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors inline-flex items-center min-h-[44px] px-1"
                 >
                   {t('footer.resources.github')}
                 </a>
@@ -95,11 +95,11 @@ export function LandingFooter() {
             <h3 className="text-xs font-semibold tracking-widest uppercase text-foreground-tertiary mb-4">
               {t('footer.support.title')}
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1">
               <li>
                 <I18nLink
                   href="/consumer/faq"
-                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors inline-flex items-center min-h-[44px] min-w-[44px] px-1"
                 >
                   {t('footer.support.faq')}
                 </I18nLink>
@@ -107,7 +107,7 @@ export function LandingFooter() {
               <li>
                 <I18nLink
                   href="/consumer/security"
-                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors inline-flex items-center min-h-[44px] px-1"
                 >
                   {t('footer.support.security')}
                 </I18nLink>
@@ -115,7 +115,7 @@ export function LandingFooter() {
               <li>
                 <a
                   href="mailto:support@quantumshield.io"
-                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                  className="text-sm text-foreground-secondary hover:text-foreground transition-colors inline-flex items-center min-h-[44px] px-1"
                 >
                   {t('footer.support.contact')}
                 </a>
@@ -129,22 +129,22 @@ export function LandingFooter() {
           <p className="text-sm text-foreground-tertiary">
             {t('footer.copyright')}
           </p>
-          <div className="flex gap-6">
+          <div className="flex gap-2">
             <I18nLink
               href="/consumer/terms"
-              className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors"
+              className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors inline-flex items-center min-h-[44px] px-2"
             >
               {tCommon('footer.terms')}
             </I18nLink>
             <I18nLink
               href="/consumer/privacy"
-              className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors"
+              className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors inline-flex items-center min-h-[44px] px-2"
             >
               {tCommon('footer.privacy')}
             </I18nLink>
             <a
               href="/risk-disclosure.html"
-              className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors"
+              className="text-sm text-foreground-tertiary hover:text-foreground-secondary transition-colors inline-flex items-center min-h-[44px] px-2"
             >
               {t('footer.legal.risk')}
             </a>

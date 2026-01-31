@@ -1,0 +1,910 @@
+{
+  "qsAdmin": {
+    "common": {
+      "appName": "QS Admin",
+      "appDescription": "Quantum Shield Foundation Admin Console",
+      "loading": "Loading...",
+      "error": "An error occurred",
+      "retry": "Retry",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "view": "View",
+      "detail": "Detail",
+      "create": "Create",
+      "search": "Search",
+      "filter": "Filter",
+      "export": "Export",
+      "refresh": "Refresh",
+      "back": "Back",
+      "all": "All",
+      "trend": {
+        "fromLastWeek": "from last week"
+      }
+    },
+    "sidebar": {
+      "title": "QS Admin",
+      "subtitle": "Foundation Console",
+      "nav": {
+        "dashboard": "Dashboard",
+        "transactions": "Transactions",
+        "transactionsLock": "Locks",
+        "transactionsUnlock": "Unlocks",
+        "transactionsEmergency": "Emergency Unlocks",
+        "transactionsChallenge": "Challenges",
+        "users": "Users",
+        "usersAll": "All Users",
+        "usersWallets": "Wallets",
+        "prover": "Prover",
+        "proverRequests": "Applications",
+        "proverList": "Prover List",
+        "observer": "Observer",
+        "observerList": "Observer List",
+        "governance": "Governance",
+        "governanceProposals": "Proposals",
+        "governanceVoting": "Voting Status",
+        "treasury": "Treasury",
+        "treasuryWallets": "Wallets",
+        "treasuryTransfers": "Transfers",
+        "treasuryBudget": "Budget",
+        "treasuryAudit": "Audit Log",
+        "members": "Members",
+        "membersRoles": "Roles",
+        "support": "Support",
+        "supportTickets": "Tickets",
+        "supportFaq": "FAQ Management",
+        "announcements": "Announcements",
+        "announcementsEdit": "Edit Announcement",
+        "analytics": "Analytics",
+        "analyticsUsers": "User Analytics",
+        "analyticsRevenue": "Revenue Analytics",
+        "analyticsReports": "Reports",
+        "system": "System",
+        "systemAlerts": "Alerts",
+        "systemLogs": "System Logs",
+        "systemMaintenance": "Maintenance"
+      },
+      "sections": {
+        "main": "Main",
+        "operations": "Operations",
+        "network": "Network",
+        "finance": "Finance",
+        "organization": "Organization",
+        "settings": "Settings"
+      },
+      "user": {
+        "name": "Admin",
+        "role": "Superadmin",
+        "logout": "Logout",
+        "settings": "Settings"
+      }
+    },
+    "header": {
+      "search": "Search...",
+      "notifications": "Notifications",
+      "noNotifications": "No new notifications",
+      "language": "Language"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Quantum Shield Foundation Overview",
+      "tabs": {
+        "overview": "Overview",
+        "stats": "Statistics"
+      },
+      "period": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "total": "Total"
+      },
+      "stats": {
+        "totalUsers": "Total Users",
+        "totalUsersDesc": "Active users",
+        "totalLocked": "Total Locked",
+        "totalLockedDesc": "Quantum-resistant protected",
+        "activeProvers": "Active Provers",
+        "activeProversDesc": "Running nodes",
+        "activeObservers": "Active Observers",
+        "activeObserversDesc": "Monitoring nodes",
+        "pendingUnlocks": "Pending Unlocks",
+        "pendingUnlocksDesc": "Within 24 hours",
+        "treasuryBalance": "Treasury Balance",
+        "treasuryBalanceDesc": "All wallets total"
+      },
+      "charts": {
+        "lockVolume": "Lock Volume (30 days)",
+        "userGrowth": "User Growth Trend",
+        "transactionTypes": "Transaction Types",
+        "tvlTrend": "TVL Trend (Total Value Locked)",
+        "transactionVolume": "Transaction Volume Trend",
+        "last7Days": "Last 7 days",
+        "tvlUnit": "Unit: ETH",
+        "volumeUnit": "Unit: Count",
+        "userUnit": "Unit: Users",
+        "locks": "Locks",
+        "unlocks": "Unlocks"
+      },
+      "statsTable": {
+        "title": "Statistics Data",
+        "metric": "Metric",
+        "value": "Value",
+        "totalUsers": "Total Users",
+        "locks": "Locks (Amount)",
+        "unlocks": "Unlocks (Amount)",
+        "provers": "Provers",
+        "observers": "Observers",
+        "revenue": "Revenue",
+        "proposals": "Proposals",
+        "treasury": "Treasury Balance"
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "viewAll": "View All",
+        "noActivity": "No activity",
+        "items": {
+          "proverRequest": "New Prover application received",
+          "largeUnlock": "Large unlock request ({amount})",
+          "challengeInitiated": "Challenge initiated on unlock #{id}",
+          "treasuryTransfer": "Treasury transfer approved"
+        },
+        "time": {
+          "minutesAgo": "{minutes} min ago",
+          "hoursAgo": "{hours} hour ago"
+        }
+      },
+      "alerts": {
+        "title": "Alerts",
+        "viewAll": "View All",
+        "noAlerts": "No alerts",
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info",
+        "items": {
+          "proverDegraded": "Prover node #{id} response time degraded",
+          "maintenanceScheduled": "System maintenance scheduled for tonight"
+        }
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "reviewProver": "Review Prover Applications",
+        "viewPendingUnlocks": "View Pending Unlocks",
+        "createAnnouncement": "Create Announcement",
+        "viewTreasury": "View Treasury"
+      }
+    },
+    "transactions": {
+      "title": "Transactions",
+      "subtitle": "Monitor and manage all transactions",
+      "lockTitle": "Lock Transactions",
+      "lockSubtitle": "Manage lock transactions",
+      "unlockTitle": "Unlock Transactions",
+      "unlockSubtitle": "Manage unlock transactions",
+      "emergencyTitle": "Emergency Unlocks",
+      "emergencySubtitle": "Manage emergency unlock transactions",
+      "challengeTitle": "Challenges",
+      "challengeSubtitle": "Manage challenge transactions",
+      "filters": {
+        "all": "All",
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "emergency": "Emergency",
+        "challenge": "Challenge"
+      },
+      "stats": {
+        "totalLocks": "Total Locks",
+        "lockVolume": "Lock Volume",
+        "avgLockAmount": "Avg Lock Amount",
+        "avgLockDuration": "Avg Lock Duration",
+        "totalUnlocks": "Total Unlocks",
+        "unlockVolume": "Unlock Volume",
+        "avgUnlockAmount": "Avg Unlock Amount",
+        "pendingUnlocks": "Pending Unlocks",
+        "totalEmergency": "Emergency Unlocks",
+        "totalChallenges": "Total Challenges",
+        "successfulChallenges": "Successful Challenges",
+        "challengeSuccessRate": "Challenge Success Rate"
+      },
+      "table": {
+        "id": "ID",
+        "type": "Type",
+        "user": "User",
+        "amount": "Amount",
+        "status": "Status",
+        "timestamp": "Timestamp",
+        "duration": "Duration",
+        "prover": "Prover",
+        "challenger": "Challenger",
+        "reason": "Reason",
+        "actions": "Actions"
+      },
+      "status": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "completed": "Completed",
+        "failed": "Failed",
+        "challenged": "Challenged",
+        "challenge_period": "Challenge Period",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "empty": {
+        "lock": "No lock transactions found",
+        "unlock": "No unlock transactions found",
+        "emergency": "No emergency unlocks found",
+        "challenge": "No challenges found"
+      },
+      "emergency": {
+        "activeChallenges": "emergency unlocks in challenge period",
+        "challengePeriodNote": "※ Emergency unlocks auto-execute after 7-day challenge period",
+        "bond": "Bond",
+        "challengeEnd": "Challenge Ends",
+        "challenges": "Challenges"
+      },
+      "detail": {
+        "title": "Transaction Detail",
+        "subtitle": "View transaction information",
+        "basicInfo": "Basic Information",
+        "transactionInfo": "Transaction Information",
+        "timeline": "Timeline",
+        "txHash": "Transaction Hash",
+        "blockNumber": "Block Number",
+        "gasUsed": "Gas Used",
+        "confirmations": "Confirmations",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At",
+        "lockPeriod": "Lock Period",
+        "unlockDate": "Unlock Date",
+        "proofGenerated": "Proof Generated",
+        "proofVerified": "Proof Verified",
+        "viewOnExplorer": "View on Explorer",
+        "actions": {
+          "approve": "Approve",
+          "reject": "Reject",
+          "cancel": "Cancel",
+          "retry": "Retry"
+        }
+      }
+    },
+    "prover": {
+      "title": "Prover Management",
+      "subtitle": "Manage Prover node applications",
+      "listTitle": "Prover List",
+      "listSubtitle": "Monitor and manage registered provers",
+      "requestsTitle": "Prover Applications",
+      "requestsSubtitle": "Review and approve new prover applications",
+      "stats": {
+        "totalProvers": "Total Provers",
+        "activeProvers": "Active Provers",
+        "pendingRequests": "Pending Requests",
+        "totalStaked": "Total Staked",
+        "avgUptime": "Avg Uptime",
+        "approvedThisMonth": "Approved This Month",
+        "rejectedThisMonth": "Rejected This Month",
+        "avgProcessTime": "Avg Process Time"
+      },
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "applicant": "Applicant",
+        "wallet": "Wallet",
+        "tier": "Tier",
+        "staked": "Staked",
+        "infrastructure": "Infrastructure",
+        "documents": "Docs",
+        "uptime": "Uptime",
+        "proofs": "Proofs",
+        "resources": "Resources",
+        "status": "Status",
+        "submittedAt": "Submitted",
+        "since": "Since",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "under_review": "Under Review",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "suspended": "Suspended",
+        "inactive": "Inactive",
+        "maintenance": "Maintenance"
+      },
+      "tier": {
+        "standard": "Standard",
+        "professional": "Professional",
+        "enterprise": "Enterprise"
+      },
+      "filters": {
+        "all": "All",
+        "maintenance": "Maintenance"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "viewDetail": "View Details",
+        "reviewNow": "Review Now",
+        "startReview": "Start Review",
+        "confirmApprove": "Confirm Approval",
+        "confirmReject": "Confirm Rejection"
+      },
+      "alert": {
+        "pendingReview": "applications awaiting review"
+      },
+      "empty": "No applications found",
+      "searchPlaceholder": "Search applications...",
+      "detail": {
+        "title": "Application Detail",
+        "subtitle": "Review prover application details",
+        "applicantInfo": "Applicant Information",
+        "technicalInfo": "Technical Information",
+        "documents": "Submitted Documents",
+        "reviewHistory": "Review History",
+        "companyName": "Company Name",
+        "contactEmail": "Contact Email",
+        "website": "Website",
+        "stakeAmount": "Stake Amount",
+        "hardwareSpecs": "Hardware Specs",
+        "networkBandwidth": "Network Bandwidth",
+        "expectedUptime": "Expected Uptime",
+        "rejectionReason": "Rejection Reason",
+        "approvalComment": "Approval Comment",
+        "pendingReview": "This application is awaiting review",
+        "pendingReviewDesc": "Start the review to examine the application details.",
+        "startReviewTitle": "Start Review?",
+        "startReviewDesc": "Starting the review will change the application status to \"Under Review\". The applicant will be notified.",
+        "reviewDecision": "Review Decision",
+        "commentPlaceholder": "Enter a comment for approval/rejection (optional)",
+        "confirmApproveTitle": "Confirm Approval?",
+        "confirmApproveDesc": "Approving this application will trigger the following actions:",
+        "approveEffect1": "The applicant will be granted Prover privileges",
+        "approveEffect2": "The applicant's stake (10,000 QS) will be locked",
+        "approveEffect3": "The Prover node will be activated and can generate proofs",
+        "confirmRejectTitle": "Confirm Rejection?",
+        "confirmRejectDesc": "Rejecting this application will send a rejection notice to the applicant. The rejection reason will be visible to the applicant.",
+        "rejectReason": "Rejection Reason",
+        "rejectReasonPlaceholder": "Enter the reason for rejection (required)",
+        "rejectReasonRequired": "Rejection reason is required",
+        "approvedStatus": "This application has been approved",
+        "approvedStatusDesc": "The applicant has been granted Prover privileges.",
+        "rejectedStatus": "This application has been rejected",
+        "rejectedStatusDesc": "A rejection notice has been sent to the applicant."
+      }
+    },
+    "observer": {
+      "title": "Observer Management",
+      "subtitle": "Monitor and manage Observer nodes",
+      "listTitle": "Observer List",
+      "listSubtitle": "Monitor all registered observers",
+      "stats": {
+        "totalObservers": "Total Observers",
+        "activeObservers": "Active Observers",
+        "totalChallenges": "Total Challenges",
+        "successRate": "Success Rate",
+        "totalEarnings": "Total Earnings"
+      },
+      "table": {
+        "id": "ID",
+        "wallet": "Wallet",
+        "bond": "Bond",
+        "challenges": "Challenges",
+        "successRate": "Success Rate",
+        "earnings": "Earnings",
+        "lastActive": "Last Active",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "warning": "Warning"
+      },
+      "filters": {
+        "all": "All",
+        "warning": "Warning"
+      },
+      "searchPlaceholder": "Search observers...",
+      "empty": "No observers found",
+      "actions": {
+        "viewDetail": "View Details",
+        "suspend": "Suspend",
+        "activate": "Activate",
+        "viewOnExplorer": "View on Explorer"
+      },
+      "detail": {
+        "title": "Observer Detail",
+        "subtitle": "View observer information",
+        "basicInfo": "Basic Information",
+        "performanceInfo": "Performance Information",
+        "challengeHistory": "Challenge History",
+        "recentChallenges": "Recent Challenges",
+        "viewAllChallenges": "View All Challenges",
+        "registeredAt": "Registered At",
+        "totalEarnings": "Total Earnings",
+        "avgResponseTime": "Avg Response Time",
+        "successfulChallenges": "Successful Challenges",
+        "failedChallenges": "Failed Challenges"
+      }
+    },
+    "governance": {
+      "title": "Governance Management",
+      "subtitle": "Manage proposals and voting",
+      "proposalsTitle": "Proposals",
+      "proposalsSubtitle": "Manage all governance proposals",
+      "votingTitle": "Voting Status",
+      "votingSubtitle": "Monitor active voting",
+      "stats": {
+        "activeProposals": "Active Proposals",
+        "totalVotes": "Total Votes",
+        "participation": "Participation",
+        "passedProposals": "Passed Proposals",
+        "avgTurnout": "Avg Turnout"
+      },
+      "table": {
+        "id": "ID",
+        "title": "Title",
+        "proposer": "Proposer",
+        "status": "Status",
+        "votes": "Votes",
+        "forVotes": "For",
+        "againstVotes": "Against",
+        "turnout": "Turnout",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "passed": "Passed",
+        "rejected": "Rejected",
+        "pending": "Pending",
+        "executed": "Executed"
+      },
+      "empty": "No proposals found",
+      "actions": {
+        "viewDetail": "View Details",
+        "execute": "Execute",
+        "cancel": "Cancel"
+      },
+      "detail": {
+        "title": "Proposal Detail",
+        "subtitle": "View proposal information",
+        "proposalInfo": "Proposal Information",
+        "votingInfo": "Voting Information",
+        "voteHistory": "Vote History",
+        "recentVotes": "Recent Votes",
+        "viewAllVotes": "View All Votes",
+        "description": "Description",
+        "category": "Category",
+        "quorum": "Quorum",
+        "currentVotes": "Current Votes",
+        "requiredVotes": "Required Votes",
+        "timeRemaining": "Time Remaining",
+        "daysRemaining": "days remaining",
+        "votingPeriod": "Voting Period"
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage Consumer App users",
+      "listTitle": "All Users",
+      "listSubtitle": "View detailed user information",
+      "walletsTitle": "Wallets",
+      "walletsSubtitle": "Manage connected wallets",
+      "stats": {
+        "totalUsers": "Total Users",
+        "activeUsers": "Active Users",
+        "newUsers": "New Users (30 days)",
+        "lockedVolume": "Total Locked Volume",
+        "totalTransactions": "Total Transactions"
+      },
+      "table": {
+        "wallet": "Wallet",
+        "email": "Email",
+        "joined": "Joined",
+        "lastActive": "Last Active",
+        "locked": "Locked Amount",
+        "unlocked": "Unlocked Amount",
+        "transactions": "Transactions",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "suspended": "Suspended"
+      },
+      "actions": {
+        "viewDetail": "View Details",
+        "suspend": "Suspend",
+        "activate": "Activate",
+        "suspendSelected": "Suspend Selected"
+      },
+      "empty": "No users found",
+      "searchPlaceholder": "Search by wallet or email...",
+      "detail": {
+        "title": "User Detail",
+        "subtitle": "View user information",
+        "basicInfo": "Basic Information",
+        "activityInfo": "Activity Information",
+        "transactionHistory": "Transaction History",
+        "recentTransactions": "Recent Transactions",
+        "viewAllTransactions": "View All Transactions"
+      },
+      "userWallets": {
+        "title": "User Wallets",
+        "subtitle": "Wallet addresses and lock status",
+        "listTitle": "Wallets",
+        "searchPlaceholder": "Search by address...",
+        "stats": {
+          "totalWallets": "Total Wallets",
+          "walletsWithLocks": "Wallets with Locks",
+          "totalLocked": "Total Locked",
+          "avgLockAmount": "Avg Lock Amount"
+        },
+        "filters": {
+          "all": "All Wallets",
+          "withLocks": "With Locks",
+          "withUnlocking": "Unlocking",
+          "empty": "No Locks"
+        },
+        "table": {
+          "walletAddress": "Wallet Address",
+          "locked": "Locked",
+          "unlocking": "Unlocking",
+          "pending": "Pending",
+          "transactions": "Transactions",
+          "lastActivity": "Last Activity",
+          "actions": "Actions"
+        },
+        "actions": {
+          "viewDetails": "View Details",
+          "viewOnEtherscan": "View on Etherscan"
+        },
+        "noWalletsFound": "No wallets found"
+      }
+    },
+    "treasury": {
+      "title": "Treasury",
+      "subtitle": "Foundation fund management",
+      "transfersSubtitle": "Manage treasury transfers and approvals",
+      "wallets": {
+        "title": "Wallets",
+        "subtitle": "Manage foundation wallets and signers",
+        "addWallet": "Add Wallet",
+        "main": "Main Wallet",
+        "operational": "Operational",
+        "grants": "Grants",
+        "insurance": "Insurance Fund",
+        "emergency": "Emergency",
+        "balance": "Balance",
+        "signers": "Signers",
+        "threshold": "Threshold",
+        "stats": {
+          "totalBalance": "Total Balance",
+          "activeWallets": "Active Wallets",
+          "totalSigners": "Total Signers",
+          "avgThreshold": "Avg Threshold"
+        },
+        "authorizedSigners": "Authorized Signers",
+        "walletDetails": "Wallet Details",
+        "status": "Status",
+        "active": "Active",
+        "lastActivity": "Last Activity",
+        "ofSignatures": "of {total} signatures",
+        "viewOnEtherscan": "View on Etherscan",
+        "noWalletsFound": "No wallets found"
+      },
+      "transfers": {
+        "title": "Transfers",
+        "newTransfer": "New Transfer",
+        "pendingApprovals": "Pending Approvals",
+        "history": "History",
+        "transfersThisMonth": "Transfers This Month",
+        "totalVolume": "Total Volume",
+        "avgTransferSize": "Avg Transfer Size"
+      },
+      "table": {
+        "id": "ID",
+        "route": "Route",
+        "amount": "Amount",
+        "purpose": "Purpose",
+        "approvals": "Approvals",
+        "status": "Status",
+        "time": "Time",
+        "actions": "Actions",
+        "initiator": "Initiator",
+        "from": "From",
+        "to": "To"
+      },
+      "status": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "rejected": "Rejected",
+        "all": "All"
+      },
+      "empty": "No transfers found",
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "viewDetail": "View Details"
+      },
+      "detail": {
+        "title": "Transfer Detail",
+        "subtitle": "View transfer information",
+        "transferInfo": "Transfer Information",
+        "approvalInfo": "Approval Information",
+        "approvalHistory": "Approval History",
+        "txHash": "Transaction Hash",
+        "createdAt": "Created At",
+        "completedAt": "Completed At",
+        "requiredApprovals": "Required Approvals",
+        "currentApprovals": "Current Approvals",
+        "approvers": "Approvers"
+      },
+      "newTransfer": {
+        "title": "New Transfer",
+        "subtitle": "Create a new transfer request",
+        "fromWallet": "From Wallet",
+        "toAddress": "To Address",
+        "amount": "Amount",
+        "purpose": "Purpose / Description",
+        "submit": "Submit Transfer Request",
+        "selectWallet": "Select wallet",
+        "enterAddress": "0x... or select wallet",
+        "enterAmount": "Enter amount",
+        "enterPurpose": "Enter purpose of transfer"
+      },
+      "budget": {
+        "title": "Budget Management",
+        "subtitle": "Budget allocation and tracking",
+        "totalBudget": "Total Budget",
+        "allocated": "Allocated",
+        "spent": "Spent",
+        "remaining": "Remaining",
+        "utilization": "utilization",
+        "vsLastQuarter": "vs last quarter",
+        "editBudget": "Edit Budget",
+        "byCategory": "Budget by Category",
+        "addCategory": "Add Category",
+        "monthlyBreakdown": "Monthly Breakdown",
+        "quarterSummary": "Quarter Summary",
+        "budgetUtilization": "Budget Utilization",
+        "ofAllocated": "of allocated budget",
+        "avgMonthlySpend": "Avg Monthly Spend",
+        "perMonth": "per month",
+        "projectedSurplus": "Projected Surplus",
+        "byQuarterEnd": "by quarter end",
+        "used": "used",
+        "onTrack": "On Track",
+        "overBudget": "Over Budget",
+        "ofMonthlyBudget": "of monthly budget"
+      },
+      "audit": {
+        "title": "Audit Log",
+        "subtitle": "Treasury activity and security audit trail",
+        "totalLogs": "Total Logs",
+        "thisWeek": "This Week",
+        "criticalEvents": "Critical Events",
+        "pendingReview": "Pending Review",
+        "auditTrail": "Audit Trail",
+        "severity": {
+          "all": "All",
+          "critical": "Critical",
+          "warning": "Warning",
+          "info": "Info"
+        },
+        "table": {
+          "id": "ID",
+          "timestamp": "Timestamp",
+          "action": "Action",
+          "actor": "Actor",
+          "details": "Details",
+          "severity": "Severity",
+          "ip": "IP",
+          "actions": "Actions"
+        },
+        "actions": {
+          "transfer_initiated": "Transfer Initiated",
+          "transfer_approved": "Transfer Approved",
+          "transfer_rejected": "Transfer Rejected",
+          "signer_added": "Signer Added",
+          "signer_removed": "Signer Removed",
+          "threshold_changed": "Threshold Changed",
+          "budget_updated": "Budget Updated",
+          "wallet_created": "Wallet Created",
+          "login_failed": "Login Failed"
+        },
+        "empty": "No audit logs found"
+      }
+    },
+    "members": {
+      "title": "Member Management",
+      "subtitle": "Manage foundation members",
+      "rolesTitle": "Role Management",
+      "rolesSubtitle": "Configure roles and permissions",
+      "stats": {
+        "totalMembers": "Total Members",
+        "activeMembers": "Active Members",
+        "roles": "Roles",
+        "pendingInvites": "Pending Invites"
+      },
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "lastActive": "Last Active",
+        "joined": "Joined",
+        "actions": "Actions"
+      },
+      "roles": {
+        "superadmin": "Superadmin",
+        "admin": "Admin",
+        "operator": "Operator",
+        "viewer": "Viewer"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending"
+      },
+      "actions": {
+        "invite": "Invite Member",
+        "editRole": "Edit Role",
+        "remove": "Remove"
+      }
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Manage support tickets",
+      "ticketsTitle": "Tickets",
+      "ticketsSubtitle": "Manage user support tickets",
+      "faqTitle": "FAQ Management",
+      "faqSubtitle": "Edit frequently asked questions",
+      "stats": {
+        "totalTickets": "Total Tickets",
+        "openTickets": "Open Tickets",
+        "avgResponseTime": "Avg Response Time",
+        "satisfaction": "Satisfaction"
+      },
+      "table": {
+        "id": "ID",
+        "subject": "Subject",
+        "user": "User",
+        "category": "Category",
+        "priority": "Priority",
+        "status": "Status",
+        "created": "Created",
+        "updated": "Updated",
+        "actions": "Actions"
+      },
+      "priority": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "status": {
+        "open": "Open",
+        "pending": "Pending",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "categories": {
+        "account": "Account",
+        "transaction": "Transaction",
+        "technical": "Technical",
+        "other": "Other"
+      }
+    },
+    "announcements": {
+      "title": "Announcements",
+      "subtitle": "Create and manage announcements",
+      "stats": {
+        "totalAnnouncements": "Total Announcements",
+        "published": "Published",
+        "scheduled": "Scheduled",
+        "draft": "Draft"
+      },
+      "table": {
+        "title": "Title",
+        "type": "Type",
+        "status": "Status",
+        "publishDate": "Publish Date",
+        "views": "Views",
+        "actions": "Actions"
+      },
+      "types": {
+        "info": "Info",
+        "update": "Update",
+        "maintenance": "Maintenance",
+        "alert": "Alert"
+      },
+      "status": {
+        "published": "Published",
+        "scheduled": "Scheduled",
+        "draft": "Draft"
+      },
+      "actions": {
+        "create": "Create New",
+        "edit": "Edit",
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "delete": "Delete"
+      }
+    },
+    "analytics": {
+      "title": "Analytics",
+      "subtitle": "Platform analytics and reports",
+      "usersTitle": "User Analytics",
+      "usersSubtitle": "Analyze user behavior",
+      "revenueTitle": "Revenue Analytics",
+      "revenueSubtitle": "Analyze revenue and fees",
+      "reportsTitle": "Reports",
+      "reportsSubtitle": "Generate periodic reports",
+      "stats": {
+        "dailyActiveUsers": "DAU",
+        "monthlyActiveUsers": "MAU",
+        "totalRevenue": "Total Revenue",
+        "avgTransactionValue": "Avg Transaction Value"
+      },
+      "charts": {
+        "userGrowth": "User Growth",
+        "transactionVolume": "Transaction Volume",
+        "revenueBreakdown": "Revenue Breakdown",
+        "userRetention": "User Retention"
+      },
+      "periods": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "year": "Year"
+      }
+    },
+    "system": {
+      "title": "System",
+      "subtitle": "System settings and monitoring",
+      "alertsTitle": "Alerts",
+      "alertsSubtitle": "Monitor system alerts",
+      "logsTitle": "System Logs",
+      "logsSubtitle": "View system logs",
+      "maintenanceTitle": "Maintenance",
+      "maintenanceSubtitle": "Manage maintenance windows",
+      "stats": {
+        "activeAlerts": "Active Alerts",
+        "systemHealth": "System Health",
+        "uptime": "Uptime",
+        "lastMaintenance": "Last Maintenance"
+      },
+      "table": {
+        "timestamp": "Timestamp",
+        "level": "Level",
+        "source": "Source",
+        "message": "Message",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "levels": {
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info",
+        "debug": "Debug"
+      },
+      "status": {
+        "active": "Active",
+        "acknowledged": "Acknowledged",
+        "resolved": "Resolved"
+      },
+      "maintenance": {
+        "schedule": "Schedule Maintenance",
+        "history": "Maintenance History",
+        "status": {
+          "scheduled": "Scheduled",
+          "inProgress": "In Progress",
+          "completed": "Completed"
+        }
+      }
+    }
+  }
+}

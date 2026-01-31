@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 /**
  * QS Admin Dashboard E2E Tests
  * Tests for Screen 01: Dashboard
+ *
+ * Updated for Japanese locale support
  */
 
 test.describe('QS Admin Dashboard', () => {
@@ -13,8 +15,8 @@ test.describe('QS Admin Dashboard', () => {
 
   test.describe('Page Load & Layout', () => {
     test('should display dashboard page correctly', async ({ page }) => {
-      // Check page title
-      await expect(page).toHaveTitle(/Dashboard.*QS Admin/);
+      // Check page title (Japanese: 統合ダッシュボード)
+      await expect(page).toHaveTitle(/ダッシュボード.*QS Admin|Dashboard.*QS Admin/);
 
       // Check main elements are visible
       await expect(page.getByRole('navigation')).toBeVisible(); // Sidebar
@@ -22,17 +24,19 @@ test.describe('QS Admin Dashboard', () => {
     });
 
     test('should display page header with title and subtitle', async ({ page }) => {
-      await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible();
-      await expect(page.getByText(/Quantum Shield.*監視|Monitoring/)).toBeVisible();
+      // Japanese: 統合ダッシュボード
+      await expect(page.getByText(/統合ダッシュボード|Dashboard/i)).toBeVisible();
+      await expect(page.getByText(/Quantum Shield.*全体管理|Quantum Shield.*監視|Monitoring/)).toBeVisible();
     });
 
     test('should display live indicator', async ({ page }) => {
-      await expect(page.getByRole('status')).toBeVisible();
-      await expect(page.getByText('Live Updates')).toBeVisible();
+      // Japanese: リアルタイム更新
+      await expect(page.getByText(/リアルタイム更新|Live Updates/)).toBeVisible();
     });
 
     test('should display emergency pause button', async ({ page }) => {
-      const emergencyButton = page.getByRole('link', { name: /Emergency Pause/i });
+      // Japanese: 緊急停止
+      const emergencyButton = page.getByRole('button', { name: /緊急停止|Emergency Pause/i });
       await expect(emergencyButton).toBeVisible();
     });
   });

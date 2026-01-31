@@ -289,7 +289,7 @@ export function ProverLanding() {
                 </div>
                 <h4 className="font-semibold mb-2">{t('landing.about.ecosystem.consumer.title')}</h4>
                 <p className="text-sm text-foreground-secondary mb-3">{t('landing.about.ecosystem.consumer.description')}</p>
-                <Link href="/consumer/landing" className="text-sm text-gold hover:underline">
+                <Link href="/consumer/landing" className="text-sm text-gold hover:underline inline-flex items-center min-h-[44px]">
                   {t('landing.about.ecosystem.consumer.link')} →
                 </Link>
               </div>
@@ -299,7 +299,7 @@ export function ProverLanding() {
                 </div>
                 <h4 className="font-semibold mb-2">{t('landing.about.ecosystem.qsHub.title')}</h4>
                 <p className="text-sm text-foreground-secondary mb-3">{t('landing.about.ecosystem.qsHub.description')}</p>
-                <Link href="/qs-hub/landing" className="text-sm text-gold hover:underline">
+                <Link href="/qs-hub/landing" className="text-sm text-gold hover:underline inline-flex items-center min-h-[44px]">
                   {t('landing.about.ecosystem.qsHub.link')} →
                 </Link>
               </div>
@@ -570,7 +570,7 @@ export function ProverLanding() {
                       href={t(`landing.expertQuotes.quotes.${index}.sourceUrl`)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-gold hover:underline mt-1 inline-block"
+                      className="text-xs text-gold hover:underline mt-1 inline-flex items-center min-h-[44px]"
                     >
                       {t(`landing.expertQuotes.quotes.${index}.source`)} →
                     </a>

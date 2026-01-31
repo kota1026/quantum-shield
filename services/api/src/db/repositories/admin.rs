@@ -595,3 +595,147 @@ pub struct DashboardCounts {
     pub active_observers: i64,
     pub pending_challenges: i64,
 }
+
+// ============================================================================
+// Alert Models (Phase 8-C: dashboard/alerts endpoint)
+// ============================================================================
+
+/// Alert row from alerts table
+#[derive(Debug, Clone, FromRow)]
+pub struct AlertRow {
+    pub alert_id: String,
+    pub rule_id: Option<String>,
+    pub severity: String,
+    pub message: String,
+    pub details: Option<serde_json::Value>,
+    pub status: String,
+    pub acknowledged_by: Option<String>,
+    pub triggered_at: DateTime<Utc>,
+    pub acknowledged_at: Option<DateTime<Utc>>,
+    pub resolved_at: Option<DateTime<Utc>>,
+}
+
+impl AdminRepository {
+    // ========================================================================
+    // Alert Operations (Phase 8-C)
+    // ========================================================================
+
+    /// List alerts with optional status and severity filters
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool), fields(status = ?status, severity = ?severity))]
+    pub async fn list_alerts(
+        pool: &PgPool,
+        status: Option<&str>,
+        severity: Option<&str>,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<AlertRow>, ApiError> {
+        info!("DB query: list_alerts started");
+
+        let results = match (status, severity) {
+            (Some(s), Some(sev)) => {
+                sqlx::query_as::<_, AlertRow>(
+                    r#"
+                    SELECT alert_id, rule_id, severity, message, details, status,
+                           acknowledged_by, triggered_at, acknowledged_at, resolved_at
+                    FROM alerts
+                    WHERE status = $1 AND severity = $2
+                    ORDER BY triggered_at DESC
+                    OFFSET $3 LIMIT $4
+                    "#,
+                )
+                .bind(s)
+                .bind(sev)
+                .bind(offset)
+                .bind(limit)
+                .fetch_all(pool)
+                .await
+            }
+            (Some(s), None) => {
+                sqlx::query_as::<_, AlertRow>(
+                    r#"
+                    SELECT alert_id, rule_id, severity, message, details, status,
+                           acknowledged_by, triggered_at, acknowledged_at, resolved_at
+                    FROM alerts
+                    WHERE status = $1
+                    ORDER BY triggered_at DESC
+                    OFFSET $2 LIMIT $3
+                    "#,
+                )
+                .bind(s)
+                .bind(offset)
+                .bind(limit)
+                .fetch_all(pool)
+                .await
+            }
+            (None, Some(sev)) => {
+                sqlx::query_as::<_, AlertRow>(
+                    r#"
+                    SELECT alert_id, rule_id, severity, message, details, status,
+                           acknowledged_by, triggered_at, acknowledged_at, resolved_at
+                    FROM alerts
+                    WHERE severity = $1
+                    ORDER BY triggered_at DESC
+                    OFFSET $2 LIMIT $3
+                    "#,
+                )
+                .bind(sev)
+                .bind(offset)
+                .bind(limit)
+                .fetch_all(pool)
+                .await
+            }
+            (None, None) => {
+                sqlx::query_as::<_, AlertRow>(
+                    r#"
+                    SELECT alert_id, rule_id, severity, message, details, status,
+                           acknowledged_by, triggered_at, acknowledged_at, resolved_at
+                    FROM alerts
+                    ORDER BY triggered_at DESC
+                    OFFSET $1 LIMIT $2
+                    "#,
+                )
+                .bind(offset)
+                .bind(limit)
+                .fetch_all(pool)
+                .await
+            }
+        }
+        .map_err(|e| {
+            warn!("DB error: list_alerts failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: list_alerts completed, count={}", results.len());
+        Ok(results)
+    }
+
+    /// Count alerts by status
+    #[instrument(skip(pool), fields(status = ?status))]
+    pub async fn count_alerts(
+        pool: &PgPool,
+        status: Option<&str>,
+    ) -> Result<i64, ApiError> {
+        info!("DB query: count_alerts started");
+
+        let count: i64 = if let Some(s) = status {
+            sqlx::query_scalar("SELECT COUNT(*) FROM alerts WHERE status = $1")
+                .bind(s)
+                .fetch_one(pool)
+                .await
+        } else {
+            sqlx::query_scalar("SELECT COUNT(*) FROM alerts")
+                .fetch_one(pool)
+                .await
+        }
+        .map_err(|e| {
+            warn!("DB error: count_alerts failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?
+        .unwrap_or(0);
+
+        info!("DB query: count_alerts completed, count={}", count);
+        Ok(count)
+    }
+}

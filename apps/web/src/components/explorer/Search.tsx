@@ -186,37 +186,37 @@ export function ExplorerSearch({ locale = 'ja', initialQuery = '' }: ExplorerSea
           >
             <Link
               href={`/${locale}/explorer/overview`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.overview')}
             </Link>
             <Link
               href={`/${locale}/explorer/locks`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.locks')}
             </Link>
             <Link
               href={`/${locale}/explorer/unlocks`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.unlocks')}
             </Link>
             <Link
               href={`/${locale}/explorer/challenges`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.challenges')}
             </Link>
             <Link
               href={`/${locale}/explorer/provers`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.provers')}
             </Link>
             <Link
               href={`/${locale}/explorer/analytics`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.analytics')}
             </Link>
@@ -234,7 +234,7 @@ export function ExplorerSearch({ locale = 'ja', initialQuery = '' }: ExplorerSea
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('common.search.placeholder')}
                 aria-label={t('common.search.ariaLabel')}
-                className="flex-1 bg-transparent border-none text-base text-foreground placeholder:text-foreground-tertiary outline-none"
+                className="flex-1 bg-transparent border-none min-h-[44px] text-base text-foreground placeholder:text-foreground-tertiary outline-none"
               />
               <Button type="submit" variant="primary" size="md">
                 {t('search.searchButton')}
@@ -263,7 +263,7 @@ export function ExplorerSearch({ locale = 'ja', initialQuery = '' }: ExplorerSea
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru ${
+              className={`flex items-center gap-2 px-4 py-2 min-h-[44px] text-sm font-medium rounded-full border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru ${
                 activeFilter === filter
                   ? 'bg-hinomaru/10 border-hinomaru text-hinomaru'
                   : 'bg-background-secondary border-surface-tertiary text-foreground-secondary hover:text-foreground hover:border-surface-secondary'

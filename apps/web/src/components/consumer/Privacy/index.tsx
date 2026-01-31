@@ -47,7 +47,7 @@ export function Privacy() {
         <div className="max-w-3xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link
             href="/consumer"
-            className="flex items-center gap-3 text-foreground hover:text-gold transition-colors"
+            className="flex items-center gap-3 text-foreground hover:text-gold transition-colors min-h-[44px]"
           >
             <div className="relative w-10 h-10 flex items-center justify-center">
               <div className="absolute inset-0 border border-gold rounded-full animate-[spin_20s_linear_infinite]">
@@ -59,7 +59,7 @@ export function Privacy() {
           </Link>
           <Link
             href="/consumer"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors min-h-[44px] px-2 -mr-2"
           >
             <ArrowLeft className="w-4 h-4" />
             {t('header.back')}
@@ -122,17 +122,17 @@ export function Privacy() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-border-subtle py-10">
         <div className="max-w-3xl mx-auto px-6">
-          <div className="flex justify-center gap-6 mb-5">
-            <Link href="/consumer" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">
+          <div className="flex justify-center gap-2 mb-5">
+            <Link href="/consumer" className="text-sm text-foreground-secondary hover:text-foreground transition-colors min-h-[44px] px-3 inline-flex items-center">
               {t('footer.home')}
             </Link>
-            <Link href="/consumer/terms" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">
+            <Link href="/consumer/terms" className="text-sm text-foreground-secondary hover:text-foreground transition-colors min-h-[44px] px-3 inline-flex items-center">
               {t('footer.terms')}
             </Link>
-            <Link href="/consumer/privacy" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">
+            <Link href="/consumer/privacy" className="text-sm text-foreground-secondary hover:text-foreground transition-colors min-h-[44px] px-3 inline-flex items-center">
               {t('footer.privacy')}
             </Link>
-            <Link href="/consumer/faq" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">
+            <Link href="/consumer/faq" className="text-sm text-foreground-secondary hover:text-foreground transition-colors min-h-[44px] px-3 inline-flex items-center">
               {t('footer.faq')}
             </Link>
           </div>

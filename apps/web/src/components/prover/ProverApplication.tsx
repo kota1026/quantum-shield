@@ -32,9 +32,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useVerifyInvitation } from '@/hooks/prover';
+import { MOCK_PROVER_INVITATION } from '@/lib/api/prover/mock';
 
 // Application type: public or enterprise (via invitation)
 type ApplicationType = 'public' | 'enterprise';
+
+// Fallback invitation data
+const FALLBACK_INVITATION = MOCK_PROVER_INVITATION;
 
 interface FormData {
   // Step 1: Basic Info
@@ -84,21 +89,7 @@ const initialFormData: FormData = {
   stakeConfirmed: false,
 };
 
-// Mock invitation data
-const mockInvitation = {
-  code: 'ENT-INV-2026-ACME',
-  operatorName: 'ACME Corporation',
-  plan: 'Enterprise Plus',
-  benefits: {
-    managedInfra: true,
-    dedicatedSupport: true,
-    slaGuarantee: '99.99%',
-    minRevenue: '24 ETH/mo',
-  },
-  expiresAt: '2026-02-28',
-  contactPerson: '山田 太郎',
-  contactEmail: 'yamada@acme.co.jp',
-};
+// Invitation data (use fallback for demo)
 
 export function ProverApplication() {
   const t = useTranslations('prover');
@@ -122,7 +113,7 @@ export function ProverApplication() {
       setApplicationType('enterprise');
       setInvitationCode(code);
       // Auto-verify if matches mock
-      if (code === mockInvitation.code) {
+      if (code === FALLBACK_INVITATION.code) {
         setInvitationVerified(true);
       }
     }
@@ -130,7 +121,7 @@ export function ProverApplication() {
 
   const verifyInvitation = () => {
     // Mock verification - in production, this would call an API
-    if (invitationCode === mockInvitation.code) {
+    if (invitationCode === FALLBACK_INVITATION.code) {
       setInvitationVerified(true);
       setInvitationError(false);
     } else {
@@ -531,7 +522,7 @@ export function ProverApplication() {
         </Link>
         <Link
           href="/prover/landing"
-          className="flex items-center gap-2 text-foreground-secondary hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-foreground-secondary hover:text-foreground transition-colors min-h-[44px]"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           {t('application.backToOverview')}
@@ -551,7 +542,7 @@ export function ProverApplication() {
                   setInvitationError(false);
                 }}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg border transition-all',
+                  'flex items-center gap-2 px-4 py-3 rounded-lg border transition-all min-h-[44px]',
                   applicationType === 'public'
                     ? 'border-hinomaru bg-hinomaru/10 text-hinomaru'
                     : 'border-surface-tertiary text-foreground-secondary hover:border-foreground-tertiary'
@@ -564,7 +555,7 @@ export function ProverApplication() {
                 type="button"
                 onClick={() => setApplicationType('enterprise')}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg border transition-all',
+                  'flex items-center gap-2 px-4 py-3 rounded-lg border transition-all min-h-[44px]',
                   applicationType === 'enterprise'
                     ? 'border-gold bg-gold/10 text-gold'
                     : 'border-surface-tertiary text-foreground-secondary hover:border-foreground-tertiary'
@@ -630,11 +621,11 @@ export function ProverApplication() {
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{t('application.enterprise.verified.title')}</span>
                   <Badge variant="gold" className="text-[10px]">
-                    {mockInvitation.plan}
+                    {FALLBACK_INVITATION.plan}
                   </Badge>
                 </div>
                 <div className="text-sm text-foreground-secondary">
-                  {t('application.enterprise.verified.operator')}: {mockInvitation.operatorName}
+                  {t('application.enterprise.verified.operator')}: {FALLBACK_INVITATION.operatorName}
                 </div>
               </div>
             </div>
@@ -651,11 +642,11 @@ export function ProverApplication() {
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Shield className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
-                <span>SLA {mockInvitation.benefits.slaGuarantee}</span>
+                <span>SLA {FALLBACK_INVITATION.benefits.slaGuarantee}</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Gift className="h-3.5 w-3.5 text-success" aria-hidden="true" />
-                <span>{t('application.enterprise.verified.minRevenue')}: {mockInvitation.benefits.minRevenue}</span>
+                <span>{t('application.enterprise.verified.minRevenue')}: {FALLBACK_INVITATION.benefits.minRevenue}</span>
               </div>
             </div>
           </Card>

@@ -50,14 +50,14 @@ export function SavedSearches({
 
   const handleSaveSearch = () => {
     if (newSearchName.trim()) {
-      saveSearch(newSearchName.trim(), currentFilters);
+      saveSearch(newSearchName.trim(), currentFilters as unknown as Record<string, unknown>);
       setNewSearchName('');
       setIsSaveModalOpen(false);
     }
   };
 
   const handleLoadSearch = (search: SavedSearch) => {
-    onLoadSearch(search.filters as AuditSearchFilters);
+    onLoadSearch(search.filters as unknown as AuditSearchFilters);
     updateLastUsed(search.id);
   };
 
@@ -244,7 +244,7 @@ export function SavedSearches({
                     className="w-full flex items-center justify-between p-3 bg-background-primary border border-white/5 rounded-lg hover:bg-white/5 transition-colors text-left"
                   >
                     <span className="text-sm text-text-secondary truncate">
-                      {getFilterSummary(search.filters as AuditSearchFilters)}
+                      {getFilterSummary(search.filters as unknown as AuditSearchFilters)}
                     </span>
                   </button>
                 ))}
@@ -329,7 +329,7 @@ function SearchItem({
         >
           <p className="text-sm font-medium text-text-primary truncate">{search.name}</p>
           <p className="text-xs text-text-muted truncate">
-            {getFilterSummary(search.filters as AuditSearchFilters)}
+            {getFilterSummary(search.filters as unknown as AuditSearchFilters)}
           </p>
         </button>
       )}

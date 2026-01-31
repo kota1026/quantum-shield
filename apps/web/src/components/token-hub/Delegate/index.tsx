@@ -20,107 +20,12 @@ import { Card } from '@/components/ui/card';
 import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { DelegateTooltip, ParticipationTooltip } from './DelegateTooltip';
+import { useUserDelegation, useDelegateList } from '@/hooks/token-hub/useTokenHub';
+import { MOCK_USER_DELEGATION, MOCK_DELEGATES, type DelegateInfo } from '@/lib/api/token-hub/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_USER_DELEGATION = {
-  totalDelegated: 6225,
-  delegateCount: 3,
-};
-
-interface Delegate {
-  id: string;
-  name: string;
-  initial: string;
-  address: string;
-  rank: number;
-  veQS: string;
-  delegators: number;
-  participation: number;
-  tags: string[];
-  bio: string;
-  lastVote: string;
-}
-
-const DEMO_DELEGATES: Delegate[] = [
-  {
-    id: '1',
-    name: 'list.watanabe',
-    initial: 'W',
-    address: '0x1a2b...3c4d',
-    rank: 1,
-    veQS: '285K',
-    delegators: 1247,
-    participation: 98,
-    tags: ['securityCouncil', 'defiExpert', 'longTermHolder'],
-    bio: 'list.watanabeBio',
-    lastVote: '2',
-  },
-  {
-    id: '2',
-    name: 'list.sato',
-    initial: 'S',
-    address: '0x5e6f...7g8h',
-    rank: 2,
-    veQS: '198K',
-    delegators: 892,
-    participation: 95,
-    tags: ['research', 'governance'],
-    bio: 'list.satoBio',
-    lastVote: '5',
-  },
-  {
-    id: '3',
-    name: 'list.tanaka',
-    initial: 'T',
-    address: '0x9i0j...1k2l',
-    rank: 3,
-    veQS: '156K',
-    delegators: 634,
-    participation: 92,
-    tags: ['defi', 'yieldStrategy'],
-    bio: 'list.tanakaBio',
-    lastVote: '7',
-  },
-  {
-    id: '4',
-    name: 'list.yamamoto',
-    initial: 'Y',
-    address: '0x3m4n...5o6p',
-    rank: 4,
-    veQS: '124K',
-    delegators: 412,
-    participation: 89,
-    tags: ['infrastructure', 'prover'],
-    bio: 'list.yamamotoBio',
-    lastVote: '3',
-  },
-  {
-    id: '5',
-    name: 'list.suzuki',
-    initial: 'K',
-    address: '0x7q8r...9s0t',
-    rank: 5,
-    veQS: '98K',
-    delegators: 287,
-    participation: 100,
-    tags: ['purposeCommittee', 'cryptography'],
-    bio: 'list.suzukiBio',
-    lastVote: '1',
-  },
-  {
-    id: '6',
-    name: 'list.matsumoto',
-    initial: 'M',
-    address: '0x1u2v...3w4x',
-    rank: 6,
-    veQS: '76K',
-    delegators: 198,
-    participation: 94,
-    tags: ['daoGovernance', 'community'],
-    bio: 'list.matsumotoBio',
-    lastVote: '4',
-  },
-];
+// Fallback data
+const FALLBACK_USER_DELEGATION = MOCK_USER_DELEGATION;
+const FALLBACK_DELEGATES = MOCK_DELEGATES;
 
 type FilterType = 'all' | 'top10' | 'mostActive' | 'securityCouncil';
 
@@ -155,6 +60,14 @@ export function TokenHubDelegate() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
+  // Fetch data from API with fallback
+  const { data: userDelegationApi } = useUserDelegation();
+  const { data: delegatesApi } = useDelegateList();
+
+  // Use API data or fallback
+  const userDelegation = userDelegationApi ?? FALLBACK_USER_DELEGATION;
+  const delegatesList = delegatesApi ?? FALLBACK_DELEGATES;
+
   const filters: { key: FilterType; label: string }[] = [
     { key: 'all', label: t('filters.all') },
     { key: 'top10', label: t('filters.top10') },
@@ -163,7 +76,7 @@ export function TokenHubDelegate() {
   ];
 
   const filteredDelegates = useMemo(() => {
-    let result = [...DEMO_DELEGATES];
+    let result = [...delegatesList];
 
     // Apply search filter
     if (searchQuery) {
@@ -243,10 +156,10 @@ export function TokenHubDelegate() {
             <div>
               <div className="text-sm text-foreground-secondary">{t('myDelegation.label')}</div>
               <div className="text-2xl font-bold font-mono text-gold">
-                {DEMO_USER_DELEGATION.totalDelegated.toLocaleString()}
+                {userDelegation.totalDelegated.toLocaleString()}
               </div>
               <div className="text-xs text-foreground-tertiary">
-                {t('myDelegation.delegateCount', { count: DEMO_USER_DELEGATION.delegateCount })}
+                {t('myDelegation.delegateCount', { count: userDelegation.delegateCount })}
               </div>
             </div>
           </div>

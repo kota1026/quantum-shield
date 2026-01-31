@@ -117,7 +117,7 @@ export function ProverRequirements() {
           <div className="flex items-center gap-3">
             <button
               onClick={toggleLocale}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground border border-surface-tertiary/30 rounded-full transition-colors"
+              className="flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm font-medium text-foreground-secondary hover:text-foreground border border-surface-tertiary/30 rounded-full transition-colors"
               aria-label={locale === 'ja' ? 'Switch to English' : '日本語に切り替え'}
             >
               <Globe className="h-4 w-4" aria-hidden="true" />
@@ -125,7 +125,7 @@ export function ProverRequirements() {
             </button>
             <Link
               href="/prover/landing"
-              className="flex items-center gap-2 text-foreground-secondary hover:text-foreground transition-colors"
+              className="flex items-center gap-2 min-h-[44px] text-foreground-secondary hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               {t('backToLanding')}

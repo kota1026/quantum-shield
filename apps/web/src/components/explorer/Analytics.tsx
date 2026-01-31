@@ -21,9 +21,33 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  useAnalyticsStats,
+  useTvlData,
+  useVolumeData,
+  useProverPerformance,
+  useLockDistribution,
+  useUnlockDistribution,
+} from '@/hooks/explorer';
+import {
+  MOCK_TVL_DATA,
+  MOCK_VOLUME_DATA,
+  MOCK_PROVER_PERFORMANCE,
+  MOCK_ANALYTICS_STATS,
+  MOCK_LOCK_STATUS_DISTRIBUTION,
+  MOCK_UNLOCK_TYPE_DISTRIBUTION,
+} from '@/lib/api/explorer/mock';
 
-// Mock data for charts
-const mockTvlData = [
+// Fallback data
+const FALLBACK_TVL_DATA = MOCK_TVL_DATA;
+const FALLBACK_VOLUME_DATA = MOCK_VOLUME_DATA;
+const FALLBACK_PROVER_PERFORMANCE = MOCK_PROVER_PERFORMANCE;
+const FALLBACK_ANALYTICS_STATS = MOCK_ANALYTICS_STATS;
+const FALLBACK_LOCK_DISTRIBUTION = MOCK_LOCK_STATUS_DISTRIBUTION;
+const FALLBACK_UNLOCK_DISTRIBUTION = MOCK_UNLOCK_TYPE_DISTRIBUTION;
+
+// Mock data for charts (kept for reference)
+const mockTvlDataOriginal = [
   { date: '01/01', value: 12500 },
   { date: '01/02', value: 12800 },
   { date: '01/03', value: 13200 },
@@ -64,33 +88,21 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
   const t = useTranslations('explorer');
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
 
-  // Stats data
-  const stats = {
-    currentTvl: '15,234.5',
-    tvlChange: '+2.8%',
-    tvlTrend: 'up' as const,
-    totalLocks: '8,234',
-    totalUnlocks: '7,891',
-    avgLockAmount: '45.2',
-    avgLockDuration: '18.5',
-    successRate: '98.2%',
-    challengeRate: '1.8%',
-    resolvedChallenges: 142,
-    pendingChallenges: 3,
-  };
+  // Fetch data using hooks
+  const { data: analyticsStatsApi } = useAnalyticsStats();
+  const { data: tvlDataApi } = useTvlData(timeRange);
+  const { data: volumeDataApi } = useVolumeData(timeRange);
+  const { data: proverPerformanceApi } = useProverPerformance();
+  const { data: lockDistributionApi } = useLockDistribution();
+  const { data: unlockDistributionApi } = useUnlockDistribution();
 
-  // Lock status distribution
-  const lockStatusData = {
-    active: 2847,
-    unlocking: 127,
-    unlocked: 5260,
-  };
-
-  // Unlock type distribution
-  const unlockTypeData = {
-    normal: 7623,
-    emergency: 268,
-  };
+  // Use API data with fallback
+  const stats = analyticsStatsApi ?? FALLBACK_ANALYTICS_STATS;
+  const mockTvlData = tvlDataApi ?? FALLBACK_TVL_DATA;
+  const mockVolumeData = volumeDataApi ?? FALLBACK_VOLUME_DATA;
+  const mockProverData = proverPerformanceApi ?? FALLBACK_PROVER_PERFORMANCE;
+  const lockStatusData = lockDistributionApi ?? FALLBACK_LOCK_DISTRIBUTION;
+  const unlockTypeData = unlockDistributionApi ?? FALLBACK_UNLOCK_DISTRIBUTION;
 
   const timeRangeOptions: TimeRange[] = ['7d', '30d', '90d', '1y', 'all'];
 
@@ -129,37 +141,37 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
           >
             <Link
               href={`/${locale}/explorer/overview`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.overview')}
             </Link>
             <Link
               href={`/${locale}/explorer/locks`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.locks')}
             </Link>
             <Link
               href={`/${locale}/explorer/unlocks`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.unlocks')}
             </Link>
             <Link
               href={`/${locale}/explorer/challenges`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.challenges')}
             </Link>
             <Link
               href={`/${locale}/explorer/provers`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.provers')}
             </Link>
             <Link
               href={`/${locale}/explorer/analytics`}
-              className="px-5 py-2 text-sm font-medium bg-background-tertiary text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium bg-background-tertiary text-foreground rounded-full transition-colors"
               aria-current="page"
             >
               {t('common.header.analytics')}
@@ -183,7 +195,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
                   <button
                     key={range}
                     onClick={() => setTimeRange(range)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                    className={`px-3 py-1.5 min-h-[44px] text-sm font-medium rounded-md transition-colors ${
                       timeRange === range
                         ? 'bg-gold text-background'
                         : 'text-foreground-secondary hover:text-foreground'
@@ -234,7 +246,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="text-foreground-tertiary hover:text-foreground-secondary">
+                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
                       <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </TooltipTrigger>
@@ -252,7 +264,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="text-foreground-tertiary hover:text-foreground-secondary">
+                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
                       <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </TooltipTrigger>
@@ -277,7 +289,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="text-foreground-tertiary hover:text-foreground-secondary">
+                      <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
                         <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
                     </TooltipTrigger>
@@ -315,7 +327,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="text-foreground-tertiary hover:text-foreground-secondary">
+                      <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
                         <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
                     </TooltipTrigger>
@@ -426,7 +438,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="text-foreground-tertiary hover:text-foreground-secondary">
+                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
                       <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </TooltipTrigger>
@@ -471,7 +483,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="text-foreground-tertiary hover:text-foreground-secondary">
+                      <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
                         <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
                     </TooltipTrigger>
@@ -513,7 +525,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
                     <td className="py-3">
                       <Link
                         href={`/${locale}/explorer/provers`}
-                        className="text-gold hover:underline"
+                        className="text-gold hover:underline inline-flex items-center min-h-[44px]"
                       >
                         {prover.name}
                       </Link>
