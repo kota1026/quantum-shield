@@ -560,7 +560,7 @@ export function ObserverLanding() {
                 <p className="text-sm text-foreground-secondary mb-3">
                   {t('landing.ecosystem.consumer.description')}
                 </p>
-                <Link href="/consumer/landing" className="text-sm text-gold hover:underline">
+                <Link href="/consumer/landing" className="inline-flex items-center min-h-[44px] text-sm text-gold hover:underline">
                   {t('landing.ecosystem.consumer.link')} →
                 </Link>
               </div>
@@ -572,7 +572,7 @@ export function ObserverLanding() {
                 <p className="text-sm text-foreground-secondary mb-3">
                   {t('landing.ecosystem.prover.description')}
                 </p>
-                <Link href="/prover/landing" className="text-sm text-gold hover:underline">
+                <Link href="/prover/landing" className="inline-flex items-center min-h-[44px] text-sm text-gold hover:underline">
                   {t('landing.ecosystem.prover.link')} →
                 </Link>
               </div>
@@ -584,7 +584,7 @@ export function ObserverLanding() {
                 <p className="text-sm text-foreground-secondary mb-3">
                   {t('landing.ecosystem.governance.description')}
                 </p>
-                <Link href="/governance/landing" className="text-sm text-gold hover:underline">
+                <Link href="/governance/landing" className="inline-flex items-center min-h-[44px] text-sm text-gold hover:underline">
                   {t('landing.ecosystem.governance.link')} →
                 </Link>
               </div>
@@ -624,7 +624,7 @@ export function ObserverLanding() {
                       href={t(`landing.expertQuotes.quotes.${index}.sourceUrl`)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-gold hover:underline mt-1 inline-block"
+                      className="text-xs text-gold hover:underline mt-1 inline-flex items-center min-h-[44px]"
                     >
                       {t(`landing.expertQuotes.quotes.${index}.source`)} →
                     </a>

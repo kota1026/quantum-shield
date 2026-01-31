@@ -69,7 +69,7 @@ export function GovernanceOnboarding() {
             href="/governance/landing"
             className={cn(
               'inline-flex items-center gap-2 text-sm text-foreground-secondary',
-              'hover:text-gold transition-colors mb-4'
+              'hover:text-gold transition-colors mb-4 min-h-[44px]'
             )}
           >
             <ArrowLeft className="w-4 h-4" />

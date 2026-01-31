@@ -5,23 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp, ExternalLink, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface PendingUnlock {
-  id: string;
-  address: string;
-  fullAddress: string;
-  amount: string;
-  type: 'normal' | 'emergency';
-  timeRemaining: string;
-  riskScore: number;
-  status: 'monitoring' | 'pending' | 'review' | 'lowRisk';
-  startedAt: string;
-  bondPaid?: string;
-  txHash: string;
-  accountAge?: number;
-  previousUnlocks?: number;
-  riskFactors?: string[];
-}
+import type { PendingUnlock } from '@/lib/api/observer/mock';
 
 interface PendingUnlockRowProps {
   unlock: PendingUnlock;
@@ -59,7 +43,7 @@ export function PendingUnlockRow({ unlock }: PendingUnlockRowProps) {
   const showChallengeButton =
     unlock.status === 'monitoring' ||
     unlock.status === 'review' ||
-    unlock.riskScore >= 40;
+    (unlock.riskScore ?? 0) >= 40;
 
   return (
     <>
@@ -113,10 +97,10 @@ export function PendingUnlockRow({ unlock }: PendingUnlockRowProps) {
           <span
             className={cn(
               'inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium',
-              getRiskBadgeStyle(unlock.riskScore)
+              getRiskBadgeStyle(unlock.riskScore ?? 0)
             )}
           >
-            {unlock.riskScore}
+            {unlock.riskScore ?? 0}
           </span>
         </td>
         <td className="px-4 py-4">
@@ -134,7 +118,7 @@ export function PendingUnlockRow({ unlock }: PendingUnlockRowProps) {
             <Link
               href={`/observer/challenge/new?address=${unlock.address}`}
               className={cn(
-                'inline-flex items-center px-3 py-1.5',
+                'inline-flex items-center px-3 py-1.5 min-h-[44px]',
                 'bg-hinomaru text-white rounded text-xs font-medium',
                 'hover:bg-hinomaru-400 transition-colors'
               )}
@@ -145,7 +129,7 @@ export function PendingUnlockRow({ unlock }: PendingUnlockRowProps) {
           ) : (
             <button
               className={cn(
-                'inline-flex items-center px-3 py-1.5',
+                'inline-flex items-center px-3 py-1.5 min-h-[44px]',
                 'bg-transparent border border-border rounded text-xs',
                 'text-foreground-secondary hover:border-gold hover:text-gold transition-colors'
               )}
@@ -261,7 +245,7 @@ export function PendingUnlockRow({ unlock }: PendingUnlockRowProps) {
                 {t('detail.viewOnExplorer')}
               </a>
               <button
-                onClick={() => copyToClipboard(unlock.txHash)}
+                onClick={() => copyToClipboard(unlock.txHash ?? '')}
                 className={cn(
                   'inline-flex items-center gap-2 px-4 py-2',
                   'bg-transparent border border-border rounded-lg text-sm',

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { usePathname } from 'next/navigation';
 import { Settings, Coins, Vote, ChevronDown, ExternalLink } from 'lucide-react';
 import { HinomaryLogo } from '../Landing/HinomaryLogo';
@@ -73,7 +73,7 @@ export function AppHeader({
               key={item.key}
               onClick={item.onClick}
               className={cn(
-                'px-5 py-2 text-sm rounded-qs-lg transition-all relative overflow-hidden',
+                'px-5 py-3 min-h-[44px] text-sm rounded-qs-lg transition-all relative overflow-hidden',
                 'text-foreground-secondary hover:text-foreground hover:bg-surface-secondary'
               )}
             >
@@ -84,7 +84,7 @@ export function AppHeader({
               key={item.key}
               href={item.href}
               className={cn(
-                'px-5 py-2 text-sm rounded-qs-lg transition-all relative overflow-hidden',
+                'px-5 py-3 min-h-[44px] text-sm rounded-qs-lg transition-all relative overflow-hidden',
                 isActive(item.href)
                   ? 'bg-surface-secondary text-foreground border border-gold/30'
                   : 'text-foreground-secondary hover:text-foreground hover:bg-surface-secondary border border-transparent'
@@ -111,7 +111,7 @@ export function AppHeader({
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={cn(
-              'flex items-center gap-2 px-3 py-2',
+              'flex items-center gap-2 px-4 py-2.5 min-h-[44px]',
               'border border-border rounded-full',
               'text-foreground-secondary text-sm font-medium',
               'hover:border-gold hover:text-gold transition-all',
@@ -151,10 +151,8 @@ export function AppHeader({
               <div className="border-t border-border my-2" />
 
               {/* Ecosystem Link */}
-              <a
-                href="https://quantumshield.io/ecosystem"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/ecosystem"
                 className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface-secondary transition-colors"
                 role="menuitem"
                 onClick={() => setIsMenuOpen(false)}
@@ -166,7 +164,7 @@ export function AppHeader({
                   <div className="font-medium">{t('ecosystemLink')}</div>
                   <div className="text-xs text-foreground-tertiary">{t('ecosystemLinkDesc')}</div>
                 </div>
-              </a>
+              </Link>
             </div>
           )}
         </div>
@@ -189,7 +187,7 @@ export function AppHeader({
         <button
           onClick={onWalletClick}
           className={cn(
-            'flex items-center gap-2 px-4 py-2',
+            'flex items-center gap-2 px-4 py-2.5 min-h-[44px]',
             'bg-hinomaru/10 border border-hinomaru rounded-full',
             'text-hinomaru text-sm font-medium',
             'hover:bg-hinomaru hover:text-white transition-all'

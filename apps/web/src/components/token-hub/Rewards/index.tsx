@@ -26,53 +26,24 @@ import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { ApyTooltip } from './ApyTooltip';
 import { EpochTooltip } from './EpochTooltip';
+import {
+  useRewardsSummary,
+  useRewardsHistory,
+  useRewardsBreakdown,
+  useEpoch,
+} from '@/hooks/token-hub/useTokenHub';
+import {
+  MOCK_REWARDS_SUMMARY,
+  MOCK_REWARDS_HISTORY,
+  MOCK_REWARDS_BREAKDOWN,
+  MOCK_EPOCH,
+} from '@/lib/api/token-hub/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_REWARDS = {
-  claimable: 847,
-  claimableUsd: 4235,
-  totalEarned: 12450,
-  totalEarnedChange: 1234,
-  weeklyAverage: 156,
-  currentApy: 12.5,
-  nextReward: 42,
-};
-
-const DEMO_HISTORY = [
-  {
-    id: '1',
-    type: 'weekly_reward',
-    date: '2026-01-06 14:32',
-    amount: 156,
-    status: 'complete',
-  },
-  {
-    id: '2',
-    type: 'weekly_reward',
-    date: '2025-12-30 10:15',
-    amount: 148,
-    status: 'complete',
-  },
-  {
-    id: '3',
-    type: 'weekly_reward',
-    date: '2025-12-23 09:42',
-    amount: 162,
-    status: 'complete',
-  },
-];
-
-const DEMO_BREAKDOWN = {
-  veqsHolding: 620,
-  votingParticipation: 127,
-  delegationBonus: 100,
-};
-
-const DEMO_EPOCH = {
-  number: 42,
-  progress: 65,
-  remaining: '2d 14h',
-};
+// Fallback data for when API is unavailable
+const FALLBACK_REWARDS = MOCK_REWARDS_SUMMARY;
+const FALLBACK_HISTORY = MOCK_REWARDS_HISTORY;
+const FALLBACK_BREAKDOWN = MOCK_REWARDS_BREAKDOWN;
+const FALLBACK_EPOCH = MOCK_EPOCH;
 
 // Weekly chart data (8 weeks)
 const CHART_DATA = [130, 150, 160, 140, 170, 155, 165, 175];
@@ -83,6 +54,18 @@ export function TokenHubRewards() {
   const tCommon = useTranslations('token-hub.common');
   const router = useRouter();
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+
+  // Fetch data from API with fallback
+  const { data: rewardsApi } = useRewardsSummary();
+  const { data: historyApi } = useRewardsHistory();
+  const { data: breakdownApi } = useRewardsBreakdown();
+  const { data: epochApi } = useEpoch();
+
+  // Use API data or fallback
+  const rewardsSummary = rewardsApi ?? FALLBACK_REWARDS;
+  const history = historyApi ?? FALLBACK_HISTORY;
+  const breakdown = breakdownApi ?? FALLBACK_BREAKDOWN;
+  const epoch = epochApi ?? FALLBACK_EPOCH;
 
   const handleNavigate = useCallback((path: string) => {
     router.push(path);
@@ -149,10 +132,10 @@ export function TokenHubRewards() {
               {t('claim.label')}
             </div>
             <div className="text-4xl md:text-5xl font-bold font-mono text-gold mb-1">
-              {DEMO_REWARDS.claimable.toLocaleString()} QS
+              {rewardsSummary.claimable.toLocaleString()} QS
             </div>
             <div className="text-lg text-foreground-secondary">
-              {t('claim.usdValue', { amount: DEMO_REWARDS.claimableUsd.toLocaleString() })}
+              {t('claim.usdValue', { amount: rewardsSummary.claimableUsd.toLocaleString() })}
             </div>
           </div>
 
@@ -161,7 +144,7 @@ export function TokenHubRewards() {
             size="lg"
             onClick={() => handleNavigate('/token-hub/rewards/claim')}
             className="relative z-10 px-8 py-4 text-lg font-bold"
-            aria-label={t('claim.buttonAriaLabel', { amount: DEMO_REWARDS.claimable })}
+            aria-label={t('claim.buttonAriaLabel', { amount: rewardsSummary.claimable })}
           >
             <Sparkles className="w-5 h-5 mr-2" aria-hidden="true" />
             {t('claim.button')}
@@ -181,11 +164,11 @@ export function TokenHubRewards() {
                 {t('stats.totalEarned.label')}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-medium">
-                +{DEMO_REWARDS.totalEarnedChange.toLocaleString()}
+                +{rewardsSummary.totalEarnedChange.toLocaleString()}
               </span>
             </div>
             <div className="text-2xl font-bold font-mono text-gold">
-              {DEMO_REWARDS.totalEarned.toLocaleString()}
+              {rewardsSummary.totalEarned.toLocaleString()}
               <span className="text-sm font-medium text-foreground-secondary ml-1">QS</span>
             </div>
           </Card>
@@ -199,7 +182,7 @@ export function TokenHubRewards() {
               </span>
             </div>
             <div className="text-2xl font-bold font-mono text-foreground">
-              {DEMO_REWARDS.weeklyAverage}
+              {rewardsSummary.weeklyAverage}
               <span className="text-sm font-medium text-foreground-secondary ml-1">QS</span>
             </div>
           </Card>
@@ -213,7 +196,7 @@ export function TokenHubRewards() {
               </div>
             </div>
             <div className="text-2xl font-bold font-mono text-gold">
-              {DEMO_REWARDS.currentApy}
+              {rewardsSummary.currentApy}
               <span className="text-sm font-medium text-foreground-secondary ml-1">%</span>
             </div>
           </Card>
@@ -227,7 +210,7 @@ export function TokenHubRewards() {
               </span>
             </div>
             <div className="text-2xl font-bold font-mono text-foreground">
-              ~{DEMO_REWARDS.nextReward}
+              ~{rewardsSummary.nextReward}
               <span className="text-sm font-medium text-foreground-secondary ml-1">QS</span>
             </div>
           </Card>
@@ -301,7 +284,7 @@ export function TokenHubRewards() {
 
               {/* History List */}
               <ul className="divide-y divide-border" role="list" aria-label={t('history.listAriaLabel')}>
-                {DEMO_HISTORY.map((item) => (
+                {history.map((item) => (
                   <li key={item.id}>
                     <div className="flex items-center gap-4 py-4">
                       <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
@@ -338,7 +321,7 @@ export function TokenHubRewards() {
                     {t('breakdown.veqsHolding')}
                   </span>
                   <span className="font-mono font-semibold text-gold">
-                    {DEMO_BREAKDOWN.veqsHolding} QS
+                    {breakdown.veqsHolding} QS
                   </span>
                 </li>
                 <li className="flex justify-between items-center py-4">
@@ -347,7 +330,7 @@ export function TokenHubRewards() {
                     {t('breakdown.votingParticipation')}
                   </span>
                   <span className="font-mono font-semibold text-gold">
-                    {DEMO_BREAKDOWN.votingParticipation} QS
+                    {breakdown.votingParticipation} QS
                   </span>
                 </li>
                 <li className="flex justify-between items-center py-4">
@@ -356,7 +339,7 @@ export function TokenHubRewards() {
                     {t('breakdown.delegationBonus')}
                   </span>
                   <span className="font-mono font-semibold text-gold">
-                    {DEMO_BREAKDOWN.delegationBonus} QS
+                    {breakdown.delegationBonus} QS
                   </span>
                 </li>
               </ul>
@@ -370,19 +353,19 @@ export function TokenHubRewards() {
                 <div
                   className="h-2 bg-background rounded-full overflow-hidden mb-2"
                   role="progressbar"
-                  aria-valuenow={DEMO_EPOCH.progress}
+                  aria-valuenow={epoch.progress}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label={t('epoch.progressAriaLabel', { progress: DEMO_EPOCH.progress })}
+                  aria-label={t('epoch.progressAriaLabel', { progress: epoch.progress })}
                 >
                   <div
                     className="h-full bg-gradient-to-r from-hinomaru to-gold rounded-full transition-all duration-500"
-                    style={{ width: `${DEMO_EPOCH.progress}%` }}
+                    style={{ width: `${epoch.progress}%` }}
                   />
                 </div>
                 <div className="flex justify-between text-xs text-foreground-tertiary">
-                  <span>{t('epoch.number', { number: DEMO_EPOCH.number })}</span>
-                  <span>{t('epoch.remaining', { time: DEMO_EPOCH.remaining })}</span>
+                  <span>{t('epoch.number', { number: epoch.number })}</span>
+                  <span>{t('epoch.remaining', { time: epoch.remaining })}</span>
                 </div>
               </div>
             </div>

@@ -127,7 +127,7 @@ export function ProverDetail({ proverId }: ProverDetailProps) {
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   <h1 className="text-2xl font-bold">{prover.name}</h1>
-                  <Badge variant={prover.type === 'dedicated' ? 'gold' : 'outline'}>
+                  <Badge variant={prover.type === 'dedicated' ? 'gold' : 'default'}>
                     {prover.type}
                   </Badge>
                 </div>
@@ -320,7 +320,7 @@ export function ProverDetail({ proverId }: ProverDetailProps) {
                         {log.timestamp}
                       </span>
                       <Badge
-                        variant={log.level === 'warn' ? 'warning' : log.level === 'error' ? 'danger' : 'outline'}
+                        variant={log.level === 'warn' ? 'warning' : log.level === 'error' ? 'danger' : 'info'}
                         className="text-xs"
                       >
                         {log.level.toUpperCase()}

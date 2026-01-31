@@ -107,13 +107,13 @@ function ExpertQuoteCard({ quote, author, title, source, sourceUrl }: ExpertQuot
             href={sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-gold mt-1 inline-flex items-center gap-1 hover:underline"
+            className="text-xs text-gold mt-1 min-h-[44px] inline-flex items-center gap-1 hover:underline"
           >
             {source}
             <ExternalLink className="w-3 h-3" aria-hidden="true" />
           </a>
         ) : (
-          <div className="text-xs text-gold mt-1">{source}</div>
+          <div className="text-xs text-gold mt-1 min-h-[44px] flex items-center">{source}</div>
         )}
       </div>
     </article>

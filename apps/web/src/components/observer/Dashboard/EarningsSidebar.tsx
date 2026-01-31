@@ -33,10 +33,10 @@ export function EarningsSidebar({
           {t('available')}
         </div>
       </div>
-      <Link href="/observer/earnings">
+      <Link href="/observer/earnings" className="block min-h-[44px]">
         <button
           className={cn(
-            'w-full py-3 rounded-lg font-semibold text-sm text-white',
+            'w-full py-3 min-h-[44px] rounded-lg font-semibold text-sm text-white',
             'bg-gradient-to-r from-hinomaru to-hinomaru-400',
             'hover:translate-y-[-2px] hover:shadow-glow-hinomaru transition-all'
           )}

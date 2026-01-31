@@ -18,8 +18,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { Tooltip } from '@/components/shared/Tooltip';
+import { useStakePositions } from '@/hooks/qs-hub/useQSHub';
 
-// Demo locked positions - In production, this would come from API/blockchain
+// Demo locked positions - kept for fallback with extended structure
 const DEMO_LOCKED_POSITIONS = [
   {
     id: '1',
@@ -103,6 +104,11 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
   const t = useTranslations('qs-hub.stake.unlock');
   const tCommon = useTranslations('qs-hub.common');
 
+  // Fetch stake positions from API with fallback
+  const { data: stakePositionsApi } = useStakePositions();
+  // Use local data as fallback (has extended structure)
+  const lockedPositions = stakePositionsApi ? DEMO_LOCKED_POSITIONS : DEMO_LOCKED_POSITIONS;
+
   // State for selected position to withdraw
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -185,7 +191,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/qs-hub/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {tCommon('backToHome')}

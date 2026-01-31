@@ -8,9 +8,14 @@ import { cn } from '@/lib/utils';
 import { ObserverHeader } from '../Dashboard/ObserverHeader';
 import { Card } from '@/components/ui/card';
 import { Pagination } from '../Pending/Pagination';
+import { useChallengeHistory } from '@/hooks/observer';
+import { MOCK_CHALLENGE_HISTORY } from '@/lib/api/observer/mock';
 
-// Mock data
-const mockChallenges = [
+// Fallback data
+const FALLBACK_CHALLENGES = MOCK_CHALLENGE_HISTORY;
+
+// Extended mock data (kept for reference)
+const extendedChallenges = [
   {
     id: '#CHG-2843',
     targetAddress: '0x9a2e...1f3c',
@@ -72,11 +77,17 @@ const mockChallenges = [
 export function ChallengeHistory() {
   const t = useTranslations('observer.dashboard.history');
 
+  // Fetch data using hooks
+  const { data: challengeHistoryApi } = useChallengeHistory();
+
+  // Use API data with fallback
+  const challenges = challengeHistoryApi ?? extendedChallenges;
+
   const [resultFilter, setResultFilter] = useState('all');
   const [periodFilter, setPeriodFilter] = useState('last30');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalItems = 14;
+  const totalItems = challenges.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleExportCsv = () => {
@@ -89,7 +100,7 @@ export function ChallengeHistory() {
       t('table.rewardPenalty'),
     ];
 
-    const rows = mockChallenges.map((challenge) => [
+    const rows = challenges.map((challenge) => [
       challenge.id,
       challenge.targetAddress,
       challenge.amount,
@@ -125,7 +136,7 @@ export function ChallengeHistory() {
   };
 
   const inputClasses = cn(
-    'px-3 py-2 bg-background-secondary border border-border rounded-lg',
+    'px-3 py-2 min-h-[44px] bg-background-secondary border border-border rounded-lg',
     'text-sm text-foreground outline-none',
     'focus:border-hinomaru transition-colors'
   );
@@ -217,7 +228,7 @@ export function ChallengeHistory() {
           <button
             onClick={handleExportCsv}
             className={cn(
-              'ml-auto px-4 py-2 flex items-center gap-2',
+              'ml-auto px-4 py-2 min-h-[44px] flex items-center gap-2',
               'bg-gold/10 border border-gold rounded-lg',
               'text-gold text-sm hover:bg-gold hover:text-background transition-colors'
             )}
@@ -257,7 +268,7 @@ export function ChallengeHistory() {
                 </tr>
               </thead>
               <tbody>
-                {mockChallenges.map((challenge) => (
+                {challenges.map((challenge) => (
                   <tr
                     key={challenge.id}
                     className="border-b border-border/30 hover:bg-background-secondary cursor-pointer transition-colors"
@@ -268,7 +279,7 @@ export function ChallengeHistory() {
                     <td className="px-4 py-4">
                       <Link
                         href={`/observer/challenge/${challenge.id.replace('#CHG-', '')}`}
-                        className="font-mono text-sm text-foreground hover:text-gold"
+                        className="font-mono text-sm text-foreground hover:text-gold inline-flex items-center min-h-[44px]"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {challenge.id}
@@ -319,7 +330,7 @@ export function ChallengeHistory() {
                       <Link
                         href={`/observer/challenge/${challenge.id.replace('#', '')}`}
                         className={cn(
-                          'inline-flex items-center px-3 py-1.5',
+                          'inline-flex items-center px-3 py-1.5 min-h-[44px]',
                           'bg-transparent border border-border rounded text-xs',
                           'text-foreground-secondary hover:border-gold hover:text-gold transition-colors'
                         )}
@@ -345,7 +356,7 @@ export function ChallengeHistory() {
             <div className="flex gap-1">
               <button
                 className={cn(
-                  'px-3 py-2 bg-background-secondary border border-border/30 rounded text-sm',
+                  'px-3 py-2 min-h-[44px] bg-background-secondary border border-border/30 rounded text-sm',
                   'text-foreground-secondary hover:border-border hover:text-foreground transition-colors'
                 )}
               >
@@ -353,7 +364,7 @@ export function ChallengeHistory() {
               </button>
               <button
                 className={cn(
-                  'px-3 py-2 rounded text-sm font-medium',
+                  'px-3 py-2 min-w-[44px] min-h-[44px] rounded text-sm font-medium',
                   'bg-hinomaru/10 border border-hinomaru text-hinomaru'
                 )}
               >
@@ -361,7 +372,7 @@ export function ChallengeHistory() {
               </button>
               <button
                 className={cn(
-                  'px-3 py-2 bg-background-secondary border border-border/30 rounded text-sm',
+                  'px-3 py-2 min-w-[44px] min-h-[44px] bg-background-secondary border border-border/30 rounded text-sm',
                   'text-foreground-secondary hover:border-border hover:text-foreground transition-colors'
                 )}
               >
@@ -369,7 +380,7 @@ export function ChallengeHistory() {
               </button>
               <button
                 className={cn(
-                  'px-3 py-2 bg-background-secondary border border-border/30 rounded text-sm',
+                  'px-3 py-2 min-h-[44px] bg-background-secondary border border-border/30 rounded text-sm',
                   'text-foreground-secondary hover:border-border hover:text-foreground transition-colors'
                 )}
               >

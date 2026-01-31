@@ -39,7 +39,7 @@ const buttonVariants = cva(
         gold: 'bg-gold text-background hover:bg-gold/90 hover:shadow-qs-gold focus-visible:ring-gold',
       },
       size: {
-        sm: 'h-10 px-4 text-xs',
+        sm: 'h-11 px-4 text-xs',
         md: 'h-11 px-6 text-sm',
         lg: 'h-13 px-8 text-base',
         icon: 'h-11 w-11',

@@ -67,7 +67,7 @@ export function LandingHeader({
         {/* Navigation (optional) */}
         {navItems && navItems.length > 0 && (
           <nav
-            className="hidden md:flex items-center gap-6"
+            className="hidden md:flex items-center gap-4"
             aria-label="Main navigation"
             role="navigation"
           >
@@ -75,7 +75,7 @@ export function LandingHeader({
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"
+                className="text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors px-2 py-2 min-h-[44px] inline-flex items-center"
               >
                 {item.label}
               </Link>
@@ -91,7 +91,7 @@ export function LandingHeader({
           {/* Language Switcher */}
           <button
             onClick={toggleLocale}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"
+            className="flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm font-medium text-foreground-secondary hover:text-foreground transition-colors"
             aria-label={locale === 'ja' ? 'Switch to English' : '日本語に切り替え'}
           >
             <Globe className="w-4 h-4" aria-hidden="true" />
@@ -99,14 +99,14 @@ export function LandingHeader({
           </button>
 
           {/* Login Button */}
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" className="min-h-[44px]" asChild>
             <I18nLink href={loginHref}>
               {t('header.login')}
             </I18nLink>
           </Button>
 
           {/* Register Button */}
-          <Button variant="primary" size="sm" asChild>
+          <Button variant="primary" size="sm" className="min-h-[44px]" asChild>
             <I18nLink href={registerHref}>
               {t('header.getStarted')}
             </I18nLink>

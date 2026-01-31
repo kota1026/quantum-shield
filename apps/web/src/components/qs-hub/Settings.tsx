@@ -76,7 +76,7 @@ export function QSHubSettings() {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/qs-hub/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {tCommon('backToHome')}
@@ -318,6 +318,13 @@ export function QSHubSettings() {
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-12 pt-8 border-t border-border text-center">
+          <p className="text-xs text-foreground-tertiary">
+            © 2024 Quantum Shield. All rights reserved.
+          </p>
+        </footer>
       </main>
     </div>
   );

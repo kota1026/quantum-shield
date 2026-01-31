@@ -17,6 +17,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { Tooltip } from '@/components/shared/Tooltip';
+import { useStakePositions } from '@/hooks/qs-hub/useQSHub';
 
 // Duration extension options (in weeks from current position)
 const EXTENSION_OPTIONS = [
@@ -39,6 +40,11 @@ export function StakeExtend() {
   const t = useTranslations('qs-hub.stake.extend');
   const tCommon = useTranslations('qs-hub.common');
   const router = useRouter();
+
+  // Fetch stake positions from API
+  const { data: stakePositions } = useStakePositions();
+  // Use local data as fallback (has extended structure)
+  const currentLock = stakePositions?.[0] ?? DEMO_CURRENT_LOCK;
 
   // Form state
   const [selectedExtension, setSelectedExtension] = useState<number>(52); // weeks
@@ -118,7 +124,7 @@ export function StakeExtend() {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/qs-hub/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {tCommon('backToHome')}

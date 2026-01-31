@@ -248,10 +248,8 @@ export function GovernanceHeader() {
               <div className="border-t border-border my-2" />
 
               {/* Ecosystem Link */}
-              <a
-                href="https://quantumshield.io/ecosystem"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/ecosystem"
                 className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface-secondary transition-colors"
                 role="menuitem"
                 onClick={() => setIsMenuOpen(false)}
@@ -263,7 +261,7 @@ export function GovernanceHeader() {
                   <div className="font-medium">{t('ecosystemLink')}</div>
                   <div className="text-xs text-foreground-tertiary">{t('ecosystemLinkDesc')}</div>
                 </div>
-              </a>
+              </Link>
             </div>
           )}
         </div>

@@ -84,8 +84,8 @@
     },
     "prover": {
       "title": "Prover Portal",
-      "tagline": "Support the network with SPHINCS+ signatures",
-      "description": "Generate SPHINCS+ signatures with HSM and approve unlock requests. Earn rewards from signing fees."
+      "tagline": "Support the network with L3 node operation",
+      "description": "Operate L3 nodes and participate in BFT consensus. Approve unlocks with SPHINCS+ signatures when selected by VRF and earn rewards."
     },
     "enterprise": {
       "title": "Enterprise",

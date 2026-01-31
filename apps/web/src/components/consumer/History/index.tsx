@@ -10,71 +10,15 @@ import { cn } from '@/lib/utils';
 import { HistoryStats, HistoryStatsData } from './HistoryStats';
 import { FilterTabs, FilterType } from './FilterTabs';
 import { HistoryItem, HistoryTransaction, TransactionType } from './HistoryItem';
+import { useHistory } from '@/hooks/consumer';
+import {
+  MOCK_HISTORY_STATS,
+  MOCK_HISTORY_TRANSACTIONS,
+} from '@/lib/api/consumer/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_STATS: HistoryStatsData = {
-  totalLocked: '24.85',
-  totalLockedUnit: 'ETH',
-  totalTransactions: 15,
-  inProgress: 2,
-};
-
-const DEMO_TRANSACTIONS: HistoryTransaction[] = [
-  {
-    id: '1',
-    type: 'lock',
-    status: 'complete',
-    amount: '5.00 ETH',
-    timestamp: '2026-01-06 14:32',
-    txHash: '0x7a3f...9c2d',
-    blockConfirmed: 12,
-  },
-  {
-    id: '2',
-    type: 'normalUnlock',
-    status: 'pending24h',
-    amount: '2.50 ETH',
-    timestamp: '2026-01-05 09:15',
-    txHash: '0x8b4c...1e5f',
-    remainingTime: '23:41:02',
-  },
-  {
-    id: '3',
-    type: 'emergencyUnlock',
-    status: 'pending7d',
-    amount: '0.75 ETH',
-    timestamp: '2026-01-04 18:00',
-    txHash: '0x2d7a...4f8b',
-    bondAmount: '0.5 ETH',
-  },
-  {
-    id: '4',
-    type: 'unlockComplete',
-    status: 'complete',
-    amount: '1.25 ETH',
-    timestamp: '2026-01-03 18:45',
-    txHash: '0x5e9c...3a7d',
-    blockConfirmed: 12,
-  },
-  {
-    id: '5',
-    type: 'lock',
-    status: 'complete',
-    amount: '10.00 ETH',
-    timestamp: '2026-01-02 10:20',
-    txHash: '0x1f4a...8c2e',
-    blockConfirmed: 12,
-  },
-  {
-    id: '6',
-    type: 'lock',
-    status: 'complete',
-    amount: '5.35 ETH',
-    timestamp: '2026-01-01 08:00',
-    txHash: '0x9b3e...7d1a',
-    blockConfirmed: 12,
-  },
-];
+// Fallback data
+const FALLBACK_STATS = MOCK_HISTORY_STATS;
+const FALLBACK_TRANSACTIONS = MOCK_HISTORY_TRANSACTIONS;
 
 // Mapping filter types to transaction types
 const FILTER_TO_TYPES: Record<FilterType, TransactionType[] | null> = {
@@ -89,13 +33,20 @@ export function History() {
   const t = useTranslations('consumer.history');
   const router = useRouter();
 
+  // Fetch data using hooks
+  const { data: historyData } = useHistory();
+
+  // Use API data with fallback
+  const historyStats = (historyData?.stats ?? FALLBACK_STATS) as HistoryStatsData;
+  const historyTransactions = (historyData?.transactions ?? FALLBACK_TRANSACTIONS) as HistoryTransaction[];
+
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   const filteredTransactions = useMemo(() => {
     const allowedTypes = FILTER_TO_TYPES[activeFilter];
-    if (!allowedTypes) return DEMO_TRANSACTIONS;
-    return DEMO_TRANSACTIONS.filter((tx) => allowedTypes.includes(tx.type));
-  }, [activeFilter]);
+    if (!allowedTypes) return historyTransactions;
+    return historyTransactions.filter((tx) => allowedTypes.includes(tx.type));
+  }, [activeFilter, historyTransactions]);
 
   const handleExportCSV = useCallback(() => {
     alert(t('header.exportNotAvailable'));
@@ -149,7 +100,7 @@ export function History() {
           <button
             onClick={handleExportCSV}
             className={cn(
-              'flex items-center gap-2 px-5 py-2.5',
+              'flex items-center gap-2 px-5 py-2.5 min-h-[44px]',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary text-sm font-medium',
               'hover:border-gold hover:text-gold transition-all',
@@ -163,7 +114,7 @@ export function History() {
         </header>
 
         {/* Stats Row */}
-        <HistoryStats stats={DEMO_STATS} className="mb-6" />
+        <HistoryStats stats={historyStats} className="mb-6" />
 
         {/* Filter Tabs */}
         <FilterTabs

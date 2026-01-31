@@ -169,4 +169,120 @@ impl ObserverRepository {
         info!("DB query: get_observer_earnings completed, count={}", results.len());
         Ok(results)
     }
+
+    // ========================================================================
+    // Admin Observer Operations (Phase 8-C)
+    // ========================================================================
+
+    /// Update observer status
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool), fields(observer_id = %observer_id, status = %status))]
+    pub async fn update_status(
+        pool: &PgPool,
+        observer_id: &str,
+        status: &str,
+    ) -> Result<(), ApiError> {
+        info!("DB query: update_observer_status started");
+
+        sqlx::query(
+            r#"
+            UPDATE observers
+            SET status = $2
+            WHERE observer_id = $1
+            "#,
+        )
+        .bind(observer_id)
+        .bind(status)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: update_observer_status failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: update_observer_status completed");
+        Ok(())
+    }
+
+    /// Get challenges submitted by an observer
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool), fields(observer_id = %observer_id))]
+    pub async fn get_challenges_by_observer(
+        pool: &PgPool,
+        observer_id: &str,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<ObserverChallengeRow>, ApiError> {
+        info!("DB query: get_challenges_by_observer started");
+
+        let results = sqlx::query_as::<_, ObserverChallengeRow>(
+            r#"
+            SELECT c.challenge_id, c.lock_id, c.unlock_id, c.challenger, c.status,
+                   c.bond, c.challenged_at, c.defense_deadline, c.resolved_at
+            FROM challenges c
+            WHERE c.challenger = (SELECT wallet_address FROM observers WHERE observer_id = $1)
+            ORDER BY c.challenged_at DESC
+            OFFSET $2 LIMIT $3
+            "#,
+        )
+        .bind(observer_id)
+        .bind(offset)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_challenges_by_observer failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_challenges_by_observer completed, count={}", results.len());
+        Ok(results)
+    }
+
+    /// Count challenges by observer
+    #[instrument(skip(pool), fields(observer_id = %observer_id))]
+    pub async fn count_challenges_by_observer(
+        pool: &PgPool,
+        observer_id: &str,
+    ) -> Result<i64, ApiError> {
+        info!("DB query: count_challenges_by_observer started");
+
+        let count: i64 = sqlx::query_scalar(
+            r#"
+            SELECT COUNT(*)
+            FROM challenges c
+            WHERE c.challenger = (SELECT wallet_address FROM observers WHERE observer_id = $1)
+            "#,
+        )
+        .bind(observer_id)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: count_challenges_by_observer failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?
+        .unwrap_or(0);
+
+        info!("DB query: count_challenges_by_observer completed, count={}", count);
+        Ok(count)
+    }
+}
+
+// ============================================================================
+// Additional Models (Phase 8-C)
+// ============================================================================
+
+#[derive(Debug, Clone, FromRow)]
+pub struct ObserverChallengeRow {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub unlock_id: Option<String>,
+    pub challenger: String,
+    pub status: String,
+    pub bond: BigDecimal,
+    pub challenged_at: DateTime<Utc>,
+    pub defense_deadline: DateTime<Utc>,
+    pub resolved_at: Option<DateTime<Utc>>,
 }

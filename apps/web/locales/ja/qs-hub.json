@@ -723,5 +723,250 @@
     "saveButton": "保存",
     "saving": "保存中...",
     "saveSuccess": "保存しました"
+  },
+  "help": {
+    "meta": {
+      "title": "ヘルプ | QS Hub | Quantum Shield",
+      "description": "QS Hubの使い方やよくある質問を確認"
+    },
+    "header": {
+      "title": "ヘルプセンター",
+      "back": "ダッシュボードに戻る"
+    },
+    "search": {
+      "placeholder": "質問を検索...",
+      "ariaLabel": "ヘルプを検索"
+    },
+    "quickLinks": {
+      "title": "クイックアクセス",
+      "items": {
+        "staking": {
+          "title": "ステーキング",
+          "description": "QSトークンをロックしてveQSを獲得"
+        },
+        "voting": {
+          "title": "投票",
+          "description": "提案への投票方法"
+        },
+        "rewards": {
+          "title": "報酬",
+          "description": "報酬の確認と請求"
+        },
+        "settings": {
+          "title": "設定",
+          "description": "アカウント設定の変更"
+        }
+      }
+    },
+    "resources": {
+      "title": "サポートリソース",
+      "faq": {
+        "title": "よくある質問",
+        "description": "一般的な疑問の回答"
+      },
+      "contact": {
+        "title": "お問い合わせ",
+        "description": "サポートチームに連絡"
+      }
+    },
+    "tutorial": {
+      "title": "初めての方へ",
+      "description": "QS Hubの基本操作をステップバイステップで学びましょう",
+      "button": "チュートリアルを開始"
+    },
+    "footer": {
+      "copyright": "© 2024 Quantum Shield. All rights reserved."
+    }
+  },
+  "faq": {
+    "meta": {
+      "title": "よくある質問 | QS Hub | Quantum Shield",
+      "description": "QS Hubに関するよくある質問と回答"
+    },
+    "header": {
+      "title": "よくある質問",
+      "back": "ダッシュボードに戻る"
+    },
+    "sections": {
+      "basics": "基本",
+      "staking": "ステーキング",
+      "governance": "ガバナンス",
+      "rewards": "報酬"
+    },
+    "questions": {
+      "whatIsVeQS": {
+        "question": "veQSとは何ですか？",
+        "answer": "veQS（vote-escrowed QS）は、QSトークンをロックすることで得られる投票権トークンです。ロック期間が長いほど多くのveQSを獲得でき、ガバナンスでの投票力と報酬分配が増加します。veQSは譲渡不可で、ロック期間の経過とともに線形に減少します。"
+      },
+      "whyLock": {
+        "question": "なぜQSをロックする必要があるのですか？",
+        "answer": "QSをロックすることで、プロトコルの意思決定に参加する権利（veQS）を得られます。また、ロックしたユーザーはプロトコル手数料やステーキング報酬の分配を受けることができます。長期保有者にインセンティブを与え、プロトコルの安定性を高める仕組みです。"
+      },
+      "howToLock": {
+        "question": "QSをロックするにはどうすればよいですか？",
+        "answer": "1. ウォレットを接続します\n2. 「ステーク」メニューから「ロック」を選択\n3. ロックするQSの数量を入力\n4. ロック期間を選択（1週間〜4年）\n5. 「ロック」ボタンをクリックし、トランザクションを承認\n\nロック完了後、選択した期間に応じたveQSが付与されます。"
+      },
+      "lockDuration": {
+        "question": "ロック期間はどれくらいですか？",
+        "answer": "最短1週間から最長4年までの期間を選択できます。ロック期間が長いほど獲得できるveQSが多くなります。例えば、100 QSを4年間ロックすると100 veQSを獲得できますが、1年間ロックすると25 veQSになります。"
+      },
+      "earlyUnlock": {
+        "question": "ロック期間中に引き出すことはできますか？",
+        "answer": "いいえ、ロック期間中はトークンを引き出すことができません。ロック期間が終了するまでお待ちください。これはプロトコルの安定性を確保するための仕組みです。"
+      },
+      "howToVote": {
+        "question": "提案に投票するにはどうすればよいですか？",
+        "answer": "1. 「投票」メニューから「提案一覧」を開く\n2. 投票したい提案を選択\n3. 提案内容を確認\n4. 「賛成」または「反対」を選択\n5. 投票を確定\n\n投票にはveQSが必要です。投票後もveQSは消費されません。"
+      },
+      "delegate": {
+        "question": "投票を委任するとは？",
+        "answer": "投票の委任とは、あなたのveQSの投票権を信頼できる別のアドレスに委ねることです。委任しても、veQSの所有権や報酬受取権は変わりません。いつでも委任を解除して自分で投票することができます。"
+      },
+      "howRewards": {
+        "question": "報酬はどのように計算されますか？",
+        "answer": "報酬は、あなたのveQS残高が総veQS供給量に占める割合に基づいて計算されます。プロトコル手数料とステーキング報酬が毎週（エポックごとに）分配されます。veQSが多いほど、より多くの報酬を受け取れます。"
+      },
+      "claimRewards": {
+        "question": "報酬の請求方法は？",
+        "answer": "1. 「報酬」メニューを開く\n2. 請求可能な報酬額を確認\n3. 「請求」ボタンをクリック\n4. トランザクションを承認\n\n報酬は毎週更新されます。未請求の報酬は累積されるので、いつでもまとめて請求できます。"
+      }
+    },
+    "contact": {
+      "title": "解決しませんでしたか？",
+      "description": "お探しの回答が見つからない場合は、サポートチームにお問い合わせください。",
+      "button": "サポートに連絡"
+    },
+    "footer": {
+      "copyright": "© 2024 Quantum Shield. All rights reserved."
+    }
+  },
+  "onboarding": {
+    "meta": {
+      "title": "はじめに | QS Hub | Quantum Shield",
+      "description": "QS Hubの使い方を学ぶ"
+    },
+    "header": {
+      "title": "QS Hubをはじめよう",
+      "back": "ホームに戻る"
+    },
+    "progress": {
+      "ariaLabel": "オンボーディング進捗"
+    },
+    "steps": {
+      "getTokens": {
+        "title": "QSトークンを入手",
+        "description": "QS Hubを利用するには、まずQSトークンが必要です。取引所で購入するか、エコシステム活動で獲得できます。",
+        "points": {
+          "1": "DEX（Uniswap, Curve）でETHやステーブルコインと交換",
+          "2": "Quantum Shieldプロトコルの利用でエアドロップを獲得",
+          "3": "ガバナンス参加やリファラルプログラムでボーナスを獲得"
+        },
+        "action": "トークンの入手方法を見る",
+        "actionHref": "/qs-hub/get-qs"
+      },
+      "lockTokens": {
+        "title": "トークンをロック",
+        "description": "QSをロックしてveQSを獲得します。ロック期間が長いほど多くのveQSが得られます。",
+        "points": {
+          "1": "1週間〜4年の間でロック期間を選択",
+          "2": "長期ロックで最大4倍のveQSを獲得",
+          "3": "ロック中はいつでも期間を延長可能"
+        },
+        "action": "QSをロックする",
+        "actionHref": "/qs-hub/stake/lock"
+      },
+      "vote": {
+        "title": "ガバナンスに参加",
+        "description": "veQSを使ってプロトコルの提案に投票し、Quantum Shieldの未来を形作りましょう。",
+        "points": {
+          "1": "アクティブな提案に投票して意思決定に参加",
+          "2": "新しい提案を作成してコミュニティに問いかけ",
+          "3": "信頼できる代表者に投票を委任することも可能"
+        },
+        "action": "提案を見る",
+        "actionHref": "/qs-hub/vote/proposals"
+      },
+      "earnRewards": {
+        "title": "報酬を獲得",
+        "description": "veQS保有者として、プロトコル手数料やステーキング報酬を受け取れます。",
+        "points": {
+          "1": "毎週のエポックで報酬が分配",
+          "2": "veQS残高に応じた比率で報酬を獲得",
+          "3": "報酬はいつでも請求可能"
+        },
+        "action": "報酬を確認",
+        "actionHref": "/qs-hub/rewards"
+      }
+    },
+    "actions": {
+      "startNow": "ダッシュボードへ"
+    },
+    "navigation": {
+      "prev": "前へ",
+      "next": "次へ",
+      "skip": "スキップしてダッシュボードへ"
+    },
+    "footer": {
+      "copyright": "© 2024 Quantum Shield. All rights reserved."
+    }
+  },
+  "getQS": {
+    "meta": {
+      "title": "QSトークンの入手 | QS Hub | Quantum Shield",
+      "description": "QSトークンの購入方法や獲得方法"
+    },
+    "header": {
+      "title": "QSトークンを入手",
+      "subtitle": "取引所での購入やエコシステム活動での獲得方法",
+      "back": "ダッシュボードに戻る"
+    },
+    "tokenInfo": {
+      "name": "Quantum Shield Token",
+      "symbol": "QS",
+      "description": "QSはQuantum Shieldプロトコルのガバナンストークンです。QSをロックしてveQSを獲得し、プロトコルの意思決定に参加したり、報酬を獲得できます。",
+      "verified": "コントラクト検証済み"
+    },
+    "exchanges": {
+      "title": "取引所で購入",
+      "description": "以下のDEX（分散型取引所）でQSトークンを購入できます。",
+      "types": {
+        "cex": "CEX",
+        "dex": "DEX"
+      }
+    },
+    "earn": {
+      "title": "活動で獲得",
+      "description": "Quantum Shieldエコシステムへの参加を通じてQSトークンを獲得できます。",
+      "methods": {
+        "staking": {
+          "title": "Consumer Appでのステーキング",
+          "description": "Consumer AppでETHをロックし、量子耐性保護を利用すると、QSトークンがエアドロップされます。"
+        },
+        "governance": {
+          "title": "ガバナンス参加",
+          "description": "提案への投票やガバナンス活動に積極的に参加すると、追加のQSトークンを獲得できます。"
+        },
+        "referral": {
+          "title": "リファラルプログラム",
+          "description": "友人をQuantum Shieldに紹介すると、紹介者と被紹介者の両方にQSトークンがプレゼントされます。"
+        }
+      }
+    },
+    "security": {
+      "title": "セキュリティに関する注意",
+      "description": "QSトークンを購入する際は、以下の点に注意してください。",
+      "tips": {
+        "1": "公式のコントラクトアドレスを必ず確認してください",
+        "2": "フィッシングサイトに注意し、URLを確認してください",
+        "3": "非公式のエアドロップやプライベートセールには参加しないでください"
+      }
+    },
+    "cta": {
+      "button": "QSをロックしてveQSを獲得",
+      "description": "QSトークンを入手したら、ロックしてveQSを獲得しましょう"
+    },
+    "footer": {
+      "copyright": "© 2024 Quantum Shield. All rights reserved."
+    }
   }
 }

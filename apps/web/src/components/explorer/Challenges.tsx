@@ -23,16 +23,26 @@ import {
 } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useChallengeStats, useChallenges } from '@/hooks/explorer';
+import {
+  MOCK_CHALLENGE_STATS,
+  MOCK_CHALLENGES,
+  type ChallengeDetail,
+} from '@/lib/api/explorer/mock';
 
-// Mock data
-const mockStats = {
+// Fallback data
+const FALLBACK_CHALLENGE_STATS = MOCK_CHALLENGE_STATS;
+const FALLBACK_CHALLENGES = MOCK_CHALLENGES;
+
+// Mock data (kept for reference)
+const mockStatsOriginal = {
   totalChallenges: 156,
   active: 3,
   resolved: 153,
   successRate: 78.5,
 };
 
-const mockChallenges = [
+const mockChallengesOriginal = [
   {
     id: 'CHG-0x4f2c...891',
     targetUnlock: '0x7d4e...a563',
@@ -97,6 +107,14 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Fetch data using hooks
+  const { data: challengeStatsApi } = useChallengeStats();
+  const { data: challengesApi } = useChallenges({ status: statusFilter });
+
+  // Use API data with fallback
+  const mockStats = challengeStatsApi ?? FALLBACK_CHALLENGE_STATS;
+  const mockChallenges = challengesApi?.challenges ?? FALLBACK_CHALLENGES;
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -178,7 +196,7 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
                   key={item}
                   href={`/${locale}/explorer/${item === 'overview' ? 'overview' : item}`}
                   className={cn(
-                    'px-5 py-2 text-sm font-medium rounded-full transition-all',
+                    'px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium rounded-full transition-all',
                     item === 'challenges'
                       ? 'bg-background-tertiary text-foreground'
                       : 'text-foreground-secondary hover:text-foreground'
@@ -272,7 +290,7 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
                         {t('challenges.table.bond')}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('challenges.tooltip.bondAriaLabel')}>
+                            <button className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-surface-secondary transition-colors" aria-label={t('challenges.tooltip.bondAriaLabel')}>
                               <HelpCircle className="h-3 w-3" />
                             </button>
                           </TooltipTrigger>
@@ -290,7 +308,7 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
                         {t('challenges.table.status')}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('challenges.tooltip.statusAriaLabel')}>
+                            <button className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-surface-secondary transition-colors" aria-label={t('challenges.tooltip.statusAriaLabel')}>
                               <HelpCircle className="h-3 w-3" />
                             </button>
                           </TooltipTrigger>
@@ -315,7 +333,7 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
                       <td className="px-6 py-4">
                         <Link
                           href={`/${locale}/explorer/unlocks/${challenge.targetUnlock}`}
-                          className="font-mono text-sm text-gold hover:underline"
+                          className="font-mono text-sm text-gold hover:underline inline-flex items-center min-h-[44px]"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {challenge.targetUnlock}

@@ -69,7 +69,7 @@ export function ObserverHeader({
             key={item.key}
             href={item.href}
             className={cn(
-              'px-6 py-2 text-sm font-medium rounded-full transition-all',
+              'px-6 py-2 min-h-[44px] flex items-center text-sm font-medium rounded-full transition-all',
               isActive(item.href)
                 ? 'bg-background-tertiary text-foreground'
                 : 'text-foreground-secondary hover:text-foreground'
@@ -105,7 +105,7 @@ export function ObserverHeader({
         <button
           onClick={onWalletClick}
           className={cn(
-            'flex items-center gap-2 px-4 py-2',
+            'flex items-center gap-2 px-4 py-2 min-h-[44px]',
             'bg-hinomaru/10 border border-hinomaru rounded-full',
             'text-hinomaru text-sm font-medium',
             'hover:bg-hinomaru hover:text-white transition-all'

@@ -128,7 +128,7 @@ export function LockAssetCard({ balance, onLock, className }: LockAssetCardProps
                 key={percent}
                 onClick={() => handleQuickAmount(percent)}
                 className={cn(
-                  'flex-1 py-2.5 text-sm font-medium',
+                  'flex-1 py-3 min-h-[44px] text-sm font-medium',
                   'bg-surface-secondary border border-border rounded-qs',
                   'text-foreground-secondary',
                   'hover:bg-surface-tertiary hover:border-border-secondary hover:text-foreground',

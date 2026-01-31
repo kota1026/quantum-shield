@@ -233,13 +233,13 @@ export function EnterpriseMonitoring() {
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium">{alert.title}</span>
                             <Badge
-                              variant={alert.severity === 'critical' ? 'danger' : alert.severity === 'warning' ? 'warning' : 'outline'}
+                              variant={alert.severity === 'critical' ? 'danger' : alert.severity === 'warning' ? 'warning' : 'default'}
                               className="text-xs"
                             >
                               {alert.severity}
                             </Badge>
                             {alert.acknowledged && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="default" className="text-xs">
                                 Acknowledged
                               </Badge>
                             )}

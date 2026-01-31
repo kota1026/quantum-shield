@@ -12,9 +12,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useUnlocks } from '@/hooks/explorer';
+import { MOCK_UNLOCKS, type UnlockDetail } from '@/lib/api/explorer/mock';
 
-// Mock data
-const mockUnlocks = [
+// Fallback data
+const FALLBACK_UNLOCKS = MOCK_UNLOCKS;
+
+// Mock data (kept for reference)
+const mockUnlocksOriginal = [
   {
     id: '0x2e7f8d9a1b2c3d4e...d934a127',
     shortId: '0x2e7f...d934',
@@ -139,12 +144,22 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
   const [statusFilter, setStatusFilter] = useState<UnlockStatus | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<UnlockType | 'all'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUnlock, setSelectedUnlock] = useState<typeof mockUnlocks[0] | null>(null);
+  const [selectedUnlock, setSelectedUnlock] = useState<UnlockDetail | null>(null);
+
+  // Fetch data using hooks
+  const { data: unlocksApi } = useUnlocks({
+    status: statusFilter,
+    type: typeFilter,
+    page: currentPage,
+  });
+
+  // Use API data with fallback
+  const mockUnlocks = unlocksApi?.unlocks ?? FALLBACK_UNLOCKS;
 
   const itemsPerPage = 5;
-  const pendingCount = 127;
-  const completedCount = 8234;
-  const totalUnlocks = 8361;
+  const pendingCount = unlocksApi?.pending ?? 127;
+  const completedCount = unlocksApi?.completed ?? 8234;
+  const totalUnlocks = unlocksApi?.total ?? 8361;
 
   // Filter unlocks
   const filteredUnlocks = useMemo(() => {
@@ -229,38 +244,38 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
           >
             <Link
               href={`/${locale}/explorer/overview`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.overview')}
             </Link>
             <Link
               href={`/${locale}/explorer/locks`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.locks')}
             </Link>
             <Link
               href={`/${locale}/explorer/unlocks`}
-              className="px-5 py-2 text-sm font-medium bg-background-tertiary text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium bg-background-tertiary text-foreground rounded-full transition-colors"
               aria-current="page"
             >
               {t('common.header.unlocks')}
             </Link>
             <Link
               href={`/${locale}/explorer/challenges`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.challenges')}
             </Link>
             <Link
               href={`/${locale}/explorer/provers`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.provers')}
             </Link>
             <Link
               href={`/${locale}/explorer/analytics`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.analytics')}
             </Link>
@@ -293,7 +308,7 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
               setStatusFilter(e.target.value as UnlockStatus | 'all');
               setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-background-secondary border border-surface-tertiary rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
+            className="px-4 py-2 min-h-[44px] bg-background-secondary border border-surface-tertiary rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
             aria-label={t('unlocks.table.status')}
           >
             <option value="all">{t('unlocks.filters.status.all')}</option>
@@ -308,7 +323,7 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
               setTypeFilter(e.target.value as UnlockType | 'all');
               setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-background-secondary border border-surface-tertiary rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
+            className="px-4 py-2 min-h-[44px] bg-background-secondary border border-surface-tertiary rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
             aria-label={t('unlocks.table.type')}
           >
             <option value="all">{t('unlocks.filters.type.all')}</option>
@@ -341,7 +356,7 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button className="text-foreground-tertiary hover:text-foreground-secondary transition-colors">
+                            <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary transition-colors">
                               <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
                               <span className="sr-only">{t('unlocks.table.proverSigsTooltip')}</span>
                             </button>
@@ -441,6 +456,7 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
                     key={page}
                     variant={currentPage === page ? 'primary' : 'secondary'}
                     size="sm"
+                    className="min-w-[44px]"
                     onClick={() => setCurrentPage(page)}
                     aria-label={`Page ${page}`}
                     aria-current={currentPage === page ? 'page' : undefined}

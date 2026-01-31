@@ -114,7 +114,7 @@ export function ProverLogin() {
       <header className="relative z-10 flex items-center justify-between px-8 py-6">
         <Link
           href="/prover/landing"
-          className="flex items-center gap-2 text-foreground-secondary hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-foreground-secondary hover:text-foreground transition-colors min-h-[44px]"
         >
           <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           <span className="text-sm font-medium">{t('login.backToLanding')}</span>
@@ -122,7 +122,7 @@ export function ProverLogin() {
 
         <button
           onClick={toggleLocale}
-          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground border border-surface-tertiary/30 rounded-full transition-colors"
+          className="flex items-center gap-2 px-4 py-2 min-h-[44px] text-sm font-medium text-foreground-secondary hover:text-foreground border border-surface-tertiary/30 rounded-full transition-colors"
           aria-label={locale === 'ja' ? 'Switch to English' : '日本語に切り替え'}
         >
           <Globe className="h-4 w-4" aria-hidden="true" />
@@ -242,7 +242,7 @@ export function ProverLogin() {
                   href="https://metamask.io/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gold hover:underline inline-flex items-center gap-1"
+                  className="text-gold hover:underline inline-flex items-center gap-1 min-h-[44px]"
                 >
                   {t('login.getWallet')}
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />

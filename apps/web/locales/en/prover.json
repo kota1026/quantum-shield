@@ -267,18 +267,18 @@
       "about": {
         "sectionLabel": "How It Works",
         "title": "What is Quantum Shield?",
-        "description": "Quantum Shield is a next-generation asset protection protocol designed for the quantum computing era. Provers form the core of this ecosystem, safeguarding user assets through SPHINCS+ signatures.",
+        "description": "Quantum Shield is a next-generation asset protection protocol designed for the quantum computing era. Provers form the core of this ecosystem, operating L3 nodes while safeguarding user assets through SPHINCS+ signatures.",
         "step1": {
-          "title": "Quantum-Resistant Signatures",
-          "description": "Using post-quantum cryptographic algorithms like SPHINCS+ and Dilithium, we provide signatures resistant to attacks from quantum computers."
+          "title": "L3 Node Operation + Quantum-Resistant Signatures",
+          "description": "Provers operate L3 nodes and participate in BFT consensus. When selected by VRF, they also provide SPHINCS+ signatures, achieving complete quantum resistance."
         },
         "step2": {
-          "title": "Distributed Prover Network",
-          "description": "Multiple Provers operate independently, eliminating single points of failure. The 24-hour waiting period and multi-signature requirements prevent unauthorized asset transfers."
+          "title": "Integrated Distributed Network",
+          "description": "Each Prover handles both L3 node operation and SPHINCS+ signing. As more participants join, network scalability and decentralization improve."
         },
         "step3": {
           "title": "Rewards & Incentives",
-          "description": "Through signature fees and performance bonuses, Provers can earn sustainable returns while contributing to network security."
+          "description": "Through consensus rewards, signature fees, and performance bonuses, Provers can earn sustainable returns while contributing to network security."
         },
         "ecosystem": {
           "title": "Quantum Shield Ecosystem",
@@ -287,10 +287,10 @@
             "description": "Application for everyday users to lock assets and receive quantum-resistant protection.",
             "link": "Go to Consumer App"
           },
-          "tokenomics": {
-            "title": "QS Token",
-            "description": "Lock QS tokens to obtain veQS. A portion of Prover rewards is distributed in QS tokens.",
-            "link": "Go to Token Hub"
+          "qsHub": {
+            "title": "QS Hub",
+            "description": "Lock QS tokens to obtain veQS. Manage staking and rewards.",
+            "link": "Go to QS Hub"
           },
           "governance": {
             "title": "Governance",
@@ -627,6 +627,7 @@
         "ecosystem": "Ecosystem",
         "consumerApp": "Consumer App",
         "tokenHub": "Token Hub",
+        "qsHub": "QS Hub",
         "governance": "Governance",
         "observer": "Observer"
       },
@@ -664,6 +665,8 @@
         "description": "Manage QS tokens and participate in governance.",
         "tokenHub": "Token Hub",
         "tokenHubDesc": "Manage QS tokens & staking",
+        "qsHub": "QS Hub",
+        "qsHubDesc": "Manage QS tokens & staking",
         "governance": "Governance",
         "governanceDesc": "Vote & submit proposals"
       },

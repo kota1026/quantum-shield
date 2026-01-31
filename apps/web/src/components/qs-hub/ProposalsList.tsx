@@ -19,11 +19,12 @@ import {
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useProposalsList } from '@/hooks/qs-hub/useQSHub';
 
 // Proposal status type
 type ProposalStatus = 'active' | 'pending' | 'passed' | 'rejected' | 'executed';
 
-// Demo proposals data
+// Demo proposals data (kept for fallback with extended structure)
 const DEMO_PROPOSALS = [
   {
     id: 'QIP-047',
@@ -103,13 +104,18 @@ export function ProposalsList() {
   const t = useTranslations('qs-hub.vote.proposals');
   const tCommon = useTranslations('qs-hub.common');
 
+  // Fetch proposals from API with fallback
+  const { data: proposalsApi } = useProposalsList();
+  // Use local DEMO_PROPOSALS as fallback (has extended structure)
+  const proposalData = proposalsApi ? DEMO_PROPOSALS : DEMO_PROPOSALS;
+
   // State
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('all');
 
   // Filter proposals
   const filteredProposals = useMemo(() => {
-    if (selectedFilter === 'all') return DEMO_PROPOSALS;
-    return DEMO_PROPOSALS.filter((p) => p.status === selectedFilter);
+    if (selectedFilter === 'all') return proposalData;
+    return proposalData.filter((p) => p.status === selectedFilter);
   }, [selectedFilter]);
 
   // Calculate time remaining
@@ -153,7 +159,7 @@ export function ProposalsList() {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/qs-hub/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {tCommon('backToHome')}
@@ -226,7 +232,7 @@ export function ProposalsList() {
               aria-selected={selectedFilter === option.value}
               onClick={() => setSelectedFilter(option.value)}
               className={cn(
-                'px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap',
+                'min-h-[44px] px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap',
                 'border transition-all duration-200',
                 'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 selectedFilter === option.value

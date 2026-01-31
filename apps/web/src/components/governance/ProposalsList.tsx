@@ -27,31 +27,12 @@ import { Button } from '@/components/ui/button';
 import { SimpleTooltip } from '@/components/ui/tooltip';
 import { HinomaryLogo } from '@/components/consumer/Landing/HinomaryLogo';
 import { cn } from '@/lib/utils';
+import { useProposals } from '@/hooks/governance';
+import { MOCK_PROPOSALS } from '@/lib/api/governance/mock';
+import type { Proposal, ProposalStatus, ProposalType, UserVote } from '@/lib/api/governance/mock';
 
-type ProposalStatus = 'active' | 'pending' | 'passed' | 'executed' | 'defeated' | 'vetoed';
-type ProposalType = 'parameter' | 'upgrade' | 'council';
-type UserVote = 'for' | 'against' | null;
-
-interface Proposal {
-  id: number;
-  title: string;
-  description: string;
-  status: ProposalStatus;
-  type: ProposalType;
-  proposer: string;
-  createdAt: string;
-  executedAt?: string;
-  endedAt?: string;
-  timeLeft?: string;
-  timeLock?: string;
-  forPercentage: number;
-  againstPercentage: number;
-  quorumPercentage?: number;
-  quorumRequired?: number;
-  quorumReached?: boolean;
-  commentsCount: number;
-  userVote: UserVote;
-}
+// Fallback data
+const FALLBACK_PROPOSALS = MOCK_PROPOSALS;
 
 type FilterType = 'all' | 'active' | 'passed' | 'defeated' | 'vetoed';
 
@@ -338,88 +319,11 @@ export function ProposalsList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Mock data - will be replaced with real data from API
-  const proposals: Proposal[] = [
-    {
-      id: 47,
-      title: 'Increase Prover Bond Amount from 100 ETH to 150 ETH',
-      description: 'This proposal seeks to increase the minimum bond requirement for Provers from 100 ETH to 150 ETH to improve network security and reduce the risk of malicious behavior.',
-      status: 'active',
-      type: 'parameter',
-      proposer: '0xabc...def',
-      createdAt: '2026-01-08',
-      timeLeft: '2d 14h 32m',
-      forPercentage: 72,
-      againstPercentage: 28,
-      quorumPercentage: 65,
-      quorumRequired: 4,
-      quorumReached: true,
-      commentsCount: 24,
-      userVote: 'for',
-    },
-    {
-      id: 46,
-      title: 'Add New Security Council Member: quantum_expert.eth',
-      description: 'Nominate quantum_expert.eth as a new Security Council member. This individual has extensive experience in post-quantum cryptography and has contributed to multiple audits.',
-      status: 'active',
-      type: 'council',
-      proposer: '0x123...456',
-      createdAt: '2026-01-05',
-      timeLeft: '5d 8h 15m',
-      forPercentage: 85,
-      againstPercentage: 15,
-      quorumPercentage: 78,
-      quorumRequired: 15,
-      quorumReached: true,
-      commentsCount: 47,
-      userVote: null,
-    },
-    {
-      id: 45,
-      title: 'Upgrade STARK Verifier Contract to v2.1',
-      description: 'Upgrade the STARK verifier contract to version 2.1 which includes optimized proof verification and reduced gas costs for on-chain verification.',
-      status: 'pending',
-      type: 'upgrade',
-      proposer: '0x789...abc',
-      createdAt: '2026-01-02',
-      timeLock: '5d remaining',
-      forPercentage: 91,
-      againstPercentage: 9,
-      quorumPercentage: 12,
-      quorumRequired: 8,
-      quorumReached: true,
-      commentsCount: 89,
-      userVote: 'for',
-    },
-    {
-      id: 44,
-      title: 'Reduce Challenge Period from 14 days to 7 days',
-      description: "Based on the network's stability and proven security track record, this proposal reduces the challenge period from 14 days to 7 days to improve capital efficiency.",
-      status: 'executed',
-      type: 'parameter',
-      proposer: '0xdef...123',
-      createdAt: '2025-12-20',
-      executedAt: '2025-12-28',
-      forPercentage: 88,
-      againstPercentage: 12,
-      commentsCount: 156,
-      userVote: 'for',
-    },
-    {
-      id: 40,
-      title: 'Decrease Minimum Lock Period from 30 days to 7 days',
-      description: 'Proposal to reduce the minimum lock period for QS tokens to increase accessibility. This proposal was defeated due to concerns about governance stability.',
-      status: 'defeated',
-      type: 'parameter',
-      proposer: '0x555...666',
-      createdAt: '2025-12-01',
-      endedAt: '2025-12-15',
-      forPercentage: 35,
-      againstPercentage: 65,
-      commentsCount: 234,
-      userVote: 'against',
-    },
-  ];
+  // Fetch data using hooks
+  const { data: proposalsApi } = useProposals({ status: activeFilter, search: searchQuery });
+
+  // Use API data with fallback
+  const proposals = proposalsApi?.proposals ?? FALLBACK_PROPOSALS;
 
   const filterCounts = useMemo(() => ({
     all: proposals.length,
@@ -472,7 +376,7 @@ export function ProposalsList() {
         {/* Back to Dashboard */}
         <Link
           href="/governance/landing"
-          className="inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-gold transition-colors mb-6"
+          className="inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-gold transition-colors mb-6 min-h-[44px]"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('backToDashboard')}
@@ -539,14 +443,14 @@ export function ProposalsList() {
           </div>
 
           {/* Search */}
-          <div className="flex items-center gap-2 bg-background-secondary border border-border rounded-full px-4 py-2">
+          <div className="flex items-center gap-2 bg-background-secondary border border-border rounded-full px-4 min-h-[44px]">
             <Search className="w-4 h-4 text-foreground-tertiary" aria-hidden="true" />
             <input
               type="text"
               placeholder={t('search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none text-sm text-foreground placeholder:text-foreground-muted outline-none w-48"
+              className="bg-transparent border-none text-sm text-foreground placeholder:text-foreground-muted outline-none w-48 min-h-[44px]"
               aria-label={t('search.ariaLabel')}
             />
           </div>
@@ -582,12 +486,12 @@ export function ProposalsList() {
         {/* Footer */}
         <footer className="mt-16 pt-8 border-t border-border/50">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <nav className="flex gap-6" aria-label="Footer navigation">
+            <nav className="flex gap-4" aria-label="Footer navigation">
               <a
                 href="https://forum.quantumshield.io/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] inline-flex items-center px-2"
               >
                 {tFooter('governanceForum')}
               </a>
@@ -595,19 +499,19 @@ export function ProposalsList() {
                 href="https://docs.quantumshield.io/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] inline-flex items-center px-2"
               >
                 {tFooter('documentation')}
               </a>
               <Link
                 href="/consumer/terms"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] min-w-[44px] inline-flex items-center px-2"
               >
                 {tFooter('terms')}
               </Link>
               <Link
                 href="/consumer/privacy"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] inline-flex items-center px-2"
               >
                 {tFooter('privacy')}
               </Link>

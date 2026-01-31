@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { GraduationCap, X, Info } from 'lucide-react';
@@ -12,100 +12,53 @@ import { EarningsSidebar } from './EarningsSidebar';
 import { ChallengeStatsSidebar } from './ChallengeStatsSidebar';
 import { ActiveChallengesSidebar } from './ActiveChallengesSidebar';
 import { ObserverStakeSidebar } from './ObserverStakeSidebar';
+import {
+  useObserverData,
+  usePendingUnlocks,
+  useSuspiciousTransactions,
+  useActiveChallenges,
+} from '@/hooks/observer';
+import {
+  MOCK_OBSERVER_DATA,
+  MOCK_PENDING_UNLOCKS,
+  MOCK_SUSPICIOUS_TRANSACTIONS,
+  MOCK_ACTIVE_CHALLENGES,
+} from '@/lib/api/observer/mock';
 
-// Mock user data - In production, this would come from API
-const mockObserverData = {
-  registrationDate: new Date('2026-01-01'),
-  practicePeriodMonths: 3,
-};
-
-// Calculate if user is still in practice period
-const calculatePracticeMode = () => {
-  const now = new Date();
-  const registrationDate = mockObserverData.registrationDate;
-  const practiceEndDate = new Date(registrationDate);
-  practiceEndDate.setMonth(practiceEndDate.getMonth() + mockObserverData.practicePeriodMonths);
-
-  const isInPracticePeriod = now < practiceEndDate;
-  const daysRemaining = Math.ceil((practiceEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-  return { isInPracticePeriod, daysRemaining, practiceEndDate };
-};
-
-// Mock data - In production, this would come from API
-const mockPendingUnlocks = [
-  {
-    id: '1',
-    address: '0x8f2a...3d4e',
-    amount: '12.50 ETH',
-    type: 'normal' as const,
-    timeRemaining: '23:41:02',
-    status: 'pending' as const,
-  },
-  {
-    id: '2',
-    address: '0x4b7c...9e1f',
-    amount: '45.00 ETH',
-    type: 'emergency' as const,
-    timeRemaining: '6d 14:22:18',
-    status: 'monitoring' as const,
-  },
-  {
-    id: '3',
-    address: '0x1a9d...7b2c',
-    amount: '8.75 ETH',
-    type: 'normal' as const,
-    timeRemaining: '18:05:33',
-    status: 'pending' as const,
-  },
-];
-
-const mockSuspiciousTransactions = [
-  {
-    id: '1',
-    address: '0x4b7c...9e1f',
-    amount: '45.00 ETH',
-    type: 'emergency' as const,
-    riskLevel: 'high' as const,
-    score: 87,
-    reason: 'First-time emergency unlock with large amount',
-  },
-  {
-    id: '2',
-    address: '0x2e5f...8a1b',
-    amount: '25.00 ETH',
-    type: 'normal' as const,
-    riskLevel: 'medium' as const,
-    score: 62,
-    reason: 'Unusual unlock pattern detected',
-  },
-];
-
-const mockActiveChallenges = [
-  {
-    id: '1',
-    challengeId: '#CHG-2847',
-    targetAddress: '0x4b7c...9e1f',
-    amount: '45.00 ETH',
-    countdown: '47:22:15',
-    progress: 35,
-    status: 'defense' as const,
-  },
-  {
-    id: '2',
-    challengeId: '#CHG-2843',
-    targetAddress: '0x9a2e...1f3c',
-    amount: '18.25 ETH',
-    countdown: '12:08:44',
-    progress: 83,
-    status: 'judgment' as const,
-  },
-];
+// Fallback data
+const FALLBACK_OBSERVER_DATA = MOCK_OBSERVER_DATA;
+const FALLBACK_PENDING_UNLOCKS = MOCK_PENDING_UNLOCKS;
+const FALLBACK_SUSPICIOUS = MOCK_SUSPICIOUS_TRANSACTIONS;
+const FALLBACK_CHALLENGES = MOCK_ACTIVE_CHALLENGES;
 
 export function ObserverDashboard() {
   const t = useTranslations('observer.dashboard');
   const [showPracticeBanner, setShowPracticeBanner] = useState(true);
-  const { isInPracticePeriod, daysRemaining } = calculatePracticeMode();
+
+  // Fetch data using hooks
+  const { data: observerDataApi } = useObserverData();
+  const { data: pendingUnlocksApi } = usePendingUnlocks();
+  const { data: suspiciousApi } = useSuspiciousTransactions();
+  const { data: activeChallengesApi } = useActiveChallenges();
+
+  // Use API data with fallback
+  const observerData = observerDataApi ?? FALLBACK_OBSERVER_DATA;
+  const pendingUnlocks = pendingUnlocksApi?.items ?? FALLBACK_PENDING_UNLOCKS;
+  const suspiciousTransactions = suspiciousApi ?? FALLBACK_SUSPICIOUS;
+  const activeChallenges = activeChallengesApi ?? FALLBACK_CHALLENGES;
+
+  // Calculate practice mode from observer data
+  const { isInPracticePeriod, daysRemaining } = useMemo(() => {
+    const now = new Date();
+    const registrationDate = new Date(observerData.registrationDate);
+    const practiceEndDate = new Date(registrationDate);
+    practiceEndDate.setMonth(practiceEndDate.getMonth() + observerData.practicePeriodMonths);
+
+    const isInPractice = now < practiceEndDate;
+    const days = Math.ceil((practiceEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    return { isInPracticePeriod: isInPractice, daysRemaining: days, practiceEndDate };
+  }, [observerData]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -155,7 +108,7 @@ export function ObserverDashboard() {
             </div>
             <button
               onClick={() => setShowPracticeBanner(false)}
-              className="p-2 hover:bg-gold/10 rounded-lg transition-colors"
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gold/10 rounded-lg transition-colors"
               aria-label={t('practiceMode.dismiss')}
             >
               <X className="w-4 h-4 text-foreground-tertiary" aria-hidden="true" />
@@ -243,15 +196,15 @@ export function ObserverDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
           {/* Left Column - Tables */}
           <div className="space-y-8">
-            <PendingUnlocksTable unlocks={mockPendingUnlocks} />
-            <SuspiciousAlertCard transactions={mockSuspiciousTransactions} />
+            <PendingUnlocksTable unlocks={pendingUnlocks} />
+            <SuspiciousAlertCard transactions={suspiciousTransactions} />
           </div>
 
           {/* Right Column - Sidebar */}
           <div className="space-y-4">
             <EarningsSidebar claimableAmount="1.24 ETH" />
             <ChallengeStatsSidebar successful={12} failed={2} />
-            <ActiveChallengesSidebar challenges={mockActiveChallenges} />
+            <ActiveChallengesSidebar challenges={activeChallenges} />
             <ObserverStakeSidebar
               stakeAmount="5.00 ETH"
               activeSince="2025-11-15"

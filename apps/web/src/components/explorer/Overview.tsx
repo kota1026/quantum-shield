@@ -22,45 +22,24 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
+import {
+  useExplorerStats,
+  useRecentLocks,
+  useRecentUnlocks,
+  useActiveChallenges,
+} from '@/hooks/explorer';
+import {
+  MOCK_EXPLORER_STATS,
+  MOCK_RECENT_LOCKS,
+  MOCK_RECENT_UNLOCKS,
+  MOCK_ACTIVE_CHALLENGES,
+} from '@/lib/api/explorer/mock';
 
-// Mock data for demonstration
-const mockStats = {
-  tvl: '$847.2M',
-  tvlChange: 12.4,
-  totalLocks: 24891,
-  locksChange: 342,
-  pendingUnlocks: 127,
-  pendingInTimeLock: 12,
-  activeProvers: 8,
-  proverUptime: 100,
-};
-
-const mockRecentLocks = [
-  { id: '0x7a3f...e821', amount: '125.5', status: 'active', time: '2 min ago' },
-  { id: '0x9b2c...f412', amount: '50.0', status: 'active', time: '8 min ago' },
-  { id: '0x4d8e...a923', amount: '200.0', status: 'unlocking', time: '15 min ago' },
-  { id: '0x1f6a...c734', amount: '75.25', status: 'active', time: '23 min ago' },
-  { id: '0x8c3d...b156', amount: '320.0', status: 'complete', time: '31 min ago' },
-];
-
-const mockRecentUnlocks = [
-  { id: '0x2e7f...d934', type: 'normal', status: 'pending', timeLock: '23h 14m left' },
-  { id: '0x5c9a...e127', type: 'emergency', status: 'pending', timeLock: '6d 18h left' },
-  { id: '0x3b1d...f842', type: 'normal', status: 'complete', timeLock: 'Executed' },
-  { id: '0x7d4e...a563', type: 'normal', status: 'challenged', timeLock: 'Defense: 47h' },
-  { id: '0x9f2c...b718', type: 'normal', status: 'complete', timeLock: 'Executed' },
-];
-
-const mockActiveChallenges = [
-  {
-    id: '0xa4f2...c891',
-    targetUnlock: '0x7d4e...a563',
-    challenger: '0x8b3c...d412',
-    bond: '0.15',
-    deadline: '47h 23m left',
-    status: 'open',
-  },
-];
+// Fallback data
+const FALLBACK_STATS = MOCK_EXPLORER_STATS;
+const FALLBACK_RECENT_LOCKS = MOCK_RECENT_LOCKS;
+const FALLBACK_RECENT_UNLOCKS = MOCK_RECENT_UNLOCKS;
+const FALLBACK_ACTIVE_CHALLENGES = MOCK_ACTIVE_CHALLENGES;
 
 interface ExplorerOverviewProps {
   locale?: string;
@@ -70,6 +49,18 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
   const t = useTranslations('explorer');
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch data using hooks
+  const { data: statsApi } = useExplorerStats();
+  const { data: recentLocksApi } = useRecentLocks();
+  const { data: recentUnlocksApi } = useRecentUnlocks();
+  const { data: activeChallengesApi } = useActiveChallenges();
+
+  // Use API data with fallback
+  const mockStats = statsApi ?? FALLBACK_STATS;
+  const mockRecentLocks = recentLocksApi ?? FALLBACK_RECENT_LOCKS;
+  const mockRecentUnlocks = recentUnlocksApi ?? FALLBACK_RECENT_UNLOCKS;
+  const mockActiveChallenges = activeChallengesApi ?? FALLBACK_ACTIVE_CHALLENGES;
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -144,7 +135,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
             onSubmit={handleSearch}
             className="flex-1 max-w-[500px] w-full lg:mx-6"
           >
-            <div className="flex items-center bg-background-secondary border border-surface-tertiary rounded-full px-4 py-2 gap-3 focus-within:border-hinomaru focus-within:ring-2 focus-within:ring-hinomaru/20 transition-all">
+            <div className="flex items-center bg-background-secondary border border-surface-tertiary rounded-full px-4 py-2 min-h-[44px] gap-3 focus-within:border-hinomaru focus-within:ring-2 focus-within:ring-hinomaru/20 transition-all">
               <Search className="w-[18px] h-[18px] text-foreground-tertiary" aria-hidden="true" />
               <input
                 type="text"
@@ -152,7 +143,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('common.search.placeholder')}
                 aria-label={t('common.search.ariaLabel')}
-                className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-foreground-tertiary outline-none"
+                className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-foreground-tertiary outline-none min-h-[44px]"
               />
             </div>
           </form>
@@ -165,38 +156,38 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
           >
             <Link
               href={`/${locale}/explorer/overview`}
-              className="px-5 py-2 text-sm font-medium text-foreground bg-background-tertiary rounded-full"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground bg-background-tertiary rounded-full"
               aria-current="page"
             >
               {t('common.header.overview')}
             </Link>
             <Link
               href={`/${locale}/explorer/locks`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.locks')}
             </Link>
             <Link
               href={`/${locale}/explorer/unlocks`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.unlocks')}
             </Link>
             <Link
               href={`/${locale}/explorer/challenges`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.challenges')}
             </Link>
             <Link
               href={`/${locale}/explorer/provers`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.provers')}
             </Link>
             <Link
               href={`/${locale}/explorer/analytics`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.analytics')}
             </Link>
@@ -215,7 +206,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                 {t('overview.stats.tvl.label')}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="TVLについて">
+                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="TVLについて">
                       <HelpCircle className="w-3 h-3 text-foreground-tertiary hover:text-foreground-secondary" />
                     </button>
                   </TooltipTrigger>
@@ -274,7 +265,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                 {t('overview.stats.activeProvers.label')}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="Proverについて">
+                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="Proverについて">
                       <HelpCircle className="w-3 h-3 text-foreground-tertiary hover:text-foreground-secondary" />
                     </button>
                   </TooltipTrigger>
@@ -302,7 +293,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
               </h2>
               <Link
                 href={`/${locale}/explorer/locks`}
-                className="text-sm text-gold flex items-center gap-1 hover:opacity-80 transition-opacity"
+                className="text-sm text-gold flex items-center gap-1 min-h-[44px] hover:opacity-80 transition-opacity"
               >
                 {t('common.viewAll')}
                 <ChevronRight className="w-[14px] h-[14px]" aria-hidden="true" />
@@ -380,7 +371,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                 </div>
                 <Link
                   href={`/${locale}/explorer/unlocks`}
-                  className="text-sm text-gold flex items-center gap-1 hover:opacity-80 transition-opacity"
+                  className="text-sm text-gold flex items-center gap-1 min-h-[44px] hover:opacity-80 transition-opacity"
                 >
                   {t('common.viewAll')}
                   <ChevronRight className="w-[14px] h-[14px]" aria-hidden="true" />
@@ -463,7 +454,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
               {t('overview.activeChallenges.title')}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button className="focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="Challengeについて">
+                  <button className="min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="Challengeについて">
                     <HelpCircle className="w-4 h-4 text-foreground-tertiary hover:text-foreground-secondary" />
                   </button>
                 </TooltipTrigger>
@@ -474,7 +465,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
             </h2>
             <Link
               href={`/${locale}/explorer/challenges`}
-              className="text-sm text-gold flex items-center gap-1 hover:opacity-80 transition-opacity"
+              className="text-sm text-gold flex items-center gap-1 min-h-[44px] hover:opacity-80 transition-opacity"
             >
               {t('common.viewAll')}
               <ChevronRight className="w-[14px] h-[14px]" aria-hidden="true" />
@@ -526,7 +517,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                     <td className="px-4 py-3">
                       <Link
                         href={`/${locale}/explorer/unlocks/${challenge.targetUnlock}`}
-                        className="font-mono text-sm text-gold hover:underline"
+                        className="font-mono text-sm text-gold hover:underline inline-flex items-center min-h-[44px]"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {challenge.targetUnlock}
@@ -535,7 +526,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                     <td className="px-4 py-3">
                       <Link
                         href={`/${locale}/explorer/address/${challenge.challenger}`}
-                        className="font-mono text-sm hover:underline"
+                        className="font-mono text-sm hover:underline inline-flex items-center min-h-[44px]"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {challenge.challenger}

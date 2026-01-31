@@ -22,8 +22,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
+import { useExtendedRewardsHistory } from '@/hooks/token-hub/useTokenHub';
+import { MOCK_EXTENDED_HISTORY } from '@/lib/api/token-hub/mock';
 
-// Extended demo data for history page
+// Fallback history data
+const FALLBACK_HISTORY = MOCK_EXTENDED_HISTORY;
+
+// Extended history data (will be replaced by API) - keeping full array for backwards compatibility
 const DEMO_HISTORY = [
   {
     id: '1',
@@ -141,10 +146,14 @@ export function RewardsHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  // Fetch history from API with fallback (uses extended local data for now)
+  const { data: historyApi } = useExtendedRewardsHistory();
+  const history = historyApi ?? DEMO_HISTORY;
+
   const chartData = timeView === 'weekly' ? WEEKLY_CHART_DATA : MONTHLY_CHART_DATA;
   const chartMax = Math.max(...chartData);
 
-  const filteredHistory = DEMO_HISTORY.filter((item) => {
+  const filteredHistory = history.filter((item) => {
     if (filterType === 'all') return true;
     return item.breakdown[filterType as keyof typeof item.breakdown] > 0;
   });

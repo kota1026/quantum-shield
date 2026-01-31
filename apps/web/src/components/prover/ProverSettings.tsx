@@ -136,7 +136,7 @@ export function ProverSettings() {
               aria-selected={activeTab === 'profile'}
               aria-controls="profile-panel"
               onClick={() => setActiveTab('profile')}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px] ${
                 activeTab === 'profile' ? 'bg-gold text-background' : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
@@ -148,7 +148,7 @@ export function ProverSettings() {
               aria-selected={activeTab === 'notifications'}
               aria-controls="notifications-panel"
               onClick={() => setActiveTab('notifications')}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px] ${
                 activeTab === 'notifications' ? 'bg-gold text-background' : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
@@ -160,7 +160,7 @@ export function ProverSettings() {
               aria-selected={activeTab === 'security'}
               aria-controls="security-panel"
               onClick={() => setActiveTab('security')}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px] ${
                 activeTab === 'security' ? 'bg-gold text-background' : 'text-foreground-secondary hover:text-foreground'
               }`}
             >

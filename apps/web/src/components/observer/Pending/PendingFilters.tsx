@@ -25,7 +25,7 @@ export function PendingFilters({
   const t = useTranslations('observer.dashboard.pending.filters');
 
   const inputClasses = cn(
-    'px-3 py-2 bg-background-secondary border border-border rounded-lg',
+    'px-3 py-2 min-h-[44px] bg-background-secondary border border-border rounded-lg',
     'text-sm text-foreground outline-none',
     'focus:border-hinomaru transition-colors'
   );

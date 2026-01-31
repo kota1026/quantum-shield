@@ -149,7 +149,7 @@ export function LockProcessing() {
                 {stepLabels[index].tooltip && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('steps.tooltipAriaLabel')}>
+                      <button className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-3 rounded hover:bg-surface-secondary/50 transition-colors" aria-label={t('steps.tooltipAriaLabel')}>
                         <HelpCircle className="h-3 w-3 text-foreground-tertiary" />
                       </button>
                     </TooltipTrigger>

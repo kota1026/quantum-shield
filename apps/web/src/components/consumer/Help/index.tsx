@@ -12,8 +12,6 @@ import {
   Wrench,
   HelpCircle,
   Mail,
-  FileText,
-  Activity,
   ChevronRight,
   PlayCircle,
 } from 'lucide-react';
@@ -34,16 +32,14 @@ interface ResourceItem {
 
 const QUICK_LINKS: QuickLinkItem[] = [
   { id: 'gettingStarted', icon: <Rocket className="w-5 h-5" />, href: '/consumer/onboarding' },
-  { id: 'lockUnlock', icon: <Lock className="w-5 h-5" />, href: '/consumer/how-it-works' },
-  { id: 'security', icon: <Shield className="w-5 h-5" />, href: '/consumer/security' },
+  { id: 'lockUnlock', icon: <Lock className="w-5 h-5" />, href: '/consumer/dashboard' },
+  { id: 'security', icon: <Shield className="w-5 h-5" />, href: '/consumer/faq' },
   { id: 'troubleshooting', icon: <Wrench className="w-5 h-5" />, href: '/consumer/faq' },
 ];
 
 const RESOURCES: ResourceItem[] = [
   { id: 'faq', icon: <HelpCircle className="w-5 h-5" />, href: '/consumer/faq' },
   { id: 'contact', icon: <Mail className="w-5 h-5" />, href: '/consumer/contact' },
-  { id: 'docs', icon: <FileText className="w-5 h-5" />, href: '#' },
-  { id: 'status', icon: <Activity className="w-5 h-5" />, href: '#' },
 ];
 
 export function Help() {
@@ -162,7 +158,7 @@ export function Help() {
           >
             {t('resources.title')}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {RESOURCES.map((item) => (
               <Link
                 key={item.id}

@@ -267,18 +267,18 @@
       "about": {
         "sectionLabel": "仕組み",
         "title": "Quantum Shieldとは",
-        "description": "Quantum Shieldは、量子コンピュータ時代に備えた次世代の資産保護プロトコルです。Proverはこのエコシステムの中核を担い、SPHINCS+署名によりユーザー資産の安全を守ります。",
+        "description": "Quantum Shieldは、量子コンピュータ時代に備えた次世代の資産保護プロトコルです。Proverはこのエコシステムの中核を担い、L3ノードを運営しながらSPHINCS+署名によりユーザー資産の安全を守ります。",
         "step1": {
-          "title": "量子耐性署名",
-          "description": "SPHINCS+やDilithiumなどのポスト量子暗号アルゴリズムを使用し、量子コンピュータからの攻撃に耐性のある署名を提供します。"
+          "title": "L3ノード運営 + 量子耐性署名",
+          "description": "ProverはL3ノードを運営しBFTコンセンサスに参加。同時にVRF選定時にはSPHINCS+署名を提供し、完全な量子耐性を実現します。"
         },
         "step2": {
-          "title": "分散型Proverネットワーク",
-          "description": "複数のProverが独立して動作し、単一障害点を排除。24時間待機期間と多重署名により、不正な資産移動を防止します。"
+          "title": "統合型分散ネットワーク",
+          "description": "各ProverがL3ノードとSPHINCS+署名の両方を担当。ネットワーク参加者が増えるほどスケーラビリティと分散性が向上します。"
         },
         "step3": {
           "title": "報酬とインセンティブ",
-          "description": "署名手数料とパフォーマンスボーナスにより、Proverは持続可能な収益を得ながらネットワークセキュリティに貢献できます。"
+          "description": "コンセンサス参加報酬と署名手数料、パフォーマンスボーナスにより、Proverは持続可能な収益を得ながらネットワークセキュリティに貢献できます。"
         },
         "ecosystem": {
           "title": "Quantum Shieldエコシステム",
@@ -287,10 +287,10 @@
             "description": "一般ユーザーが資産をロックし、量子耐性保護を受けるためのアプリケーション。",
             "link": "Consumer Appへ"
           },
-          "tokenomics": {
-            "title": "QSトークン",
-            "description": "QSトークンをロックしてveQSを取得。Prover報酬の一部はQSトークンで配布されます。",
-            "link": "Token Hubへ"
+          "qsHub": {
+            "title": "QS Hub",
+            "description": "QSトークンをロックしてveQSを取得。ステーキングや報酬管理が可能です。",
+            "link": "QS Hubへ"
           },
           "governance": {
             "title": "ガバナンス",
@@ -719,6 +719,7 @@
         "ecosystem": "エコシステム",
         "consumerApp": "Consumer App",
         "tokenHub": "Token Hub",
+        "qsHub": "QS Hub",
         "governance": "Governance",
         "observer": "Observer"
       },
@@ -756,6 +757,8 @@
         "description": "QSトークンの管理やガバナンスへの参加が可能です。",
         "tokenHub": "Token Hub",
         "tokenHubDesc": "QSトークンの管理・ステーキング",
+        "qsHub": "QS Hub",
+        "qsHubDesc": "QSトークンの管理・ステーキング",
         "governance": "Governance",
         "governanceDesc": "投票・提案への参加"
       },

@@ -1,0 +1,3200 @@
+openapi: 3.0.3
+info:
+  title: Quantum Shield API
+  description: |
+    Quantum Shield API Specification
+
+    ## Overview
+    Post-quantum secure cross-chain bridge API using ML-DSA-65 (FIPS 204) and SPHINCS+ signatures.
+
+    ## Authentication
+    - **SIWE (Sign-In With Ethereum)**: Uses Dilithium-III signature for quantum-safe authentication
+    - **JWT**: Access tokens (15min) and refresh tokens (7 days)
+
+    ## Cryptographic Standards (CP-1)
+    - User Signatures: ML-DSA-65 (NIST FIPS 204)
+    - Prover Signatures: SPHINCS+-128s
+    - Hashing: SHA3-256 (NIST FIPS 202)
+    - VRF: Chainlink VRF v2.5
+
+    ## Time Locks
+    - Normal Unlock: 24 hours
+    - Emergency Unlock: 7 days + bond
+
+  version: "2.0.0"
+  contact:
+    name: Quantum Shield Team
+    url: https://quantum-shield.io
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.quantum-shield.io/v1
+    description: Production
+  - url: https://api-staging.quantum-shield.io/v1
+    description: Staging
+  - url: http://localhost:3001/v1
+    description: Development
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Auth
+    description: Authentication (SIWE/JWT)
+  - name: Lock
+    description: Lock API (Sequence #1)
+  - name: Unlock
+    description: Unlock API (Sequence #2, #3)
+  - name: Challenge
+    description: Challenge API (Sequence #4)
+  - name: Prover
+    description: Prover Portal API
+  - name: Observer
+    description: Observer Portal API
+  - name: Governance
+    description: Governance API
+  - name: TokenHub
+    description: Token Hub (veQS) API
+  - name: Explorer
+    description: Public Explorer API
+  - name: Admin
+    description: QS Admin API
+
+paths:
+  # ==========================================================================
+  # Health Check
+  # ==========================================================================
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  # ==========================================================================
+  # Authentication (TASK-P5-012)
+  # ==========================================================================
+  /auth/siwe:
+    post:
+      tags: [Auth]
+      summary: Authenticate with SIWE (Dilithium-III signature)
+      operationId: siweAuth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SiweRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiweResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user info
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==========================================================================
+  # Lock API (Sequence #1)
+  # ==========================================================================
+  /lock:
+    post:
+      tags: [Lock]
+      summary: Create a new lock
+      description: |
+        Lock assets for cross-chain transfer.
+
+        ## Sequence #1: Lock
+        1. Validate ML-DSA-65 signature (NIST FIPS 204)
+        2. Check nonce uniqueness
+        3. Check expiry
+        4. Compute SR_0 using SHA3-256
+        5. Generate lock_id
+        6. Store lock record
+        7. Notify Event Bridge
+
+      operationId: createLock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LockRequest'
+      responses:
+        '200':
+          description: Lock created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LockResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==========================================================================
+  # Unlock API (Sequence #2, #3)
+  # ==========================================================================
+  /unlock:
+    post:
+      tags: [Unlock]
+      summary: Create normal unlock request (24h time lock)
+      description: |
+        ## Sequence #2: Normal Unlock
+        1. Validate ML-DSA-65 signature
+        2. Verify lock ownership
+        3. Compute SR_1 using SHA3-256
+        4. Request VRF for prover selection
+        5. Wait for 2-of-5 SPHINCS+ signatures
+        6. Start 24-hour time lock
+
+      operationId: createUnlock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnlockRequest'
+      responses:
+        '200':
+          description: Unlock request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnlockResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /unlock/emergency:
+    post:
+      tags: [Unlock]
+      summary: Create emergency unlock request (7-day time lock)
+      description: |
+        ## Sequence #3: Emergency Unlock
+        - 7-day time lock (not 24h)
+        - Bond required: MAX(0.1 ETH, amount × 5%)
+        - Bond returned after time lock expires
+
+      operationId: createEmergencyUnlock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnlockRequest'
+      responses:
+        '200':
+          description: Emergency unlock request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyUnlockResponse'
+
+  # ==========================================================================
+  # Status API
+  # ==========================================================================
+  /status/{lock_id}:
+    get:
+      tags: [Lock]
+      summary: Get lock status
+      operationId: getLockStatus
+      parameters:
+        - name: lock_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^0x[a-fA-F0-9]{64}$'
+      responses:
+        '200':
+          description: Lock status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /status/pending:
+    get:
+      tags: [Unlock]
+      summary: Get pending unlocks
+      operationId: getPendingUnlocks
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of pending unlocks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingUnlocksResponse'
+
+  # ==========================================================================
+  # Challenge API (Sequence #4)
+  # ==========================================================================
+  /challenge:
+    post:
+      tags: [Challenge]
+      summary: Submit a challenge
+      description: |
+        ## Sequence #4: Challenge + Slashing
+        - Bond required: MAX(0.1 ETH, amount × 1%)
+        - Defense period: 48 hours
+        - Quadratic slashing: N² × 10%
+        - Distribution: 60% Challenger, 20% Insurance, 20% Burn
+
+      operationId: submitChallenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChallengeRequest'
+      responses:
+        '200':
+          description: Challenge submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeResponse'
+
+  /challenge/{lock_id}:
+    get:
+      tags: [Challenge]
+      summary: Get challenge info
+      operationId: getChallenge
+      parameters:
+        - name: lock_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Challenge info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /challenge/{lock_id}/defense:
+    post:
+      tags: [Challenge]
+      summary: Submit defense (Prover only)
+      operationId: submitDefense
+      parameters:
+        - name: lock_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefenseRequest'
+      responses:
+        '200':
+          description: Defense submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefenseResponse'
+
+  /challenge/{lock_id}/auto-resolve:
+    post:
+      tags: [Challenge]
+      summary: Auto-resolve challenge after deadline
+      operationId: autoResolve
+      parameters:
+        - name: lock_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Challenge resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutoResolveResponse'
+
+  # ==========================================================================
+  # Prover API (Sequence #5, #6)
+  # ==========================================================================
+  /prover/register:
+    post:
+      tags: [Prover]
+      summary: Register as a prover
+      operationId: registerProver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProverRegisterRequest'
+      responses:
+        '200':
+          description: Prover registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProverRegisterResponse'
+
+  /prover/{prover_id}:
+    get:
+      tags: [Prover]
+      summary: Get prover info
+      operationId: getProverInfo
+      parameters:
+        - name: prover_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Prover info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProverInfoResponse'
+
+  /prover/{prover_id}/dashboard:
+    get:
+      tags: [Prover]
+      summary: Get prover dashboard
+      operationId: getProverDashboard
+      parameters:
+        - name: prover_id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Prover dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProverDashboard'
+
+  /prover/{prover_id}/queue:
+    get:
+      tags: [Prover]
+      summary: Get signing queue
+      operationId: getSigningQueue
+      parameters:
+        - name: prover_id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Signing queue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SigningQueueResponse'
+
+  /prover/{prover_id}/sign:
+    post:
+      tags: [Prover]
+      summary: Submit SPHINCS+ signature
+      operationId: submitSignature
+      parameters:
+        - name: prover_id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProverSignRequest'
+      responses:
+        '200':
+          description: Signature submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProverSignResponse'
+
+  /prover/{prover_id}/exit:
+    post:
+      tags: [Prover]
+      summary: Initiate prover exit (7-day unbonding)
+      operationId: initiateProverExit
+      parameters:
+        - name: prover_id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Exit initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProverExitResponse'
+
+  /prover/{prover_id}/withdraw:
+    post:
+      tags: [Prover]
+      summary: Withdraw stake after unbonding
+      operationId: withdrawStake
+      parameters:
+        - name: prover_id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProverWithdrawRequest'
+      responses:
+        '200':
+          description: Withdrawal successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProverWithdrawResponse'
+
+  # ==========================================================================
+  # Observer API
+  # ==========================================================================
+  /observer/dashboard:
+    get:
+      tags: [Observer]
+      summary: Get observer dashboard
+      operationId: getObserverDashboard
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Observer dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObserverDashboard'
+
+  /observer/pending-unlocks:
+    get:
+      tags: [Observer]
+      summary: Get pending unlocks for monitoring
+      operationId: getObserverPendingUnlocks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [amount_desc, amount_asc, release_time_asc, release_time_desc]
+      responses:
+        '200':
+          description: Pending unlocks list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObserverPendingUnlocksResponse'
+
+  /observer/suspicious-txs:
+    get:
+      tags: [Observer]
+      summary: Get suspicious transactions
+      operationId: getSuspiciousTxs
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Suspicious transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuspiciousTxsResponse'
+
+  /observer/challenge:
+    post:
+      tags: [Observer]
+      summary: Submit challenge as observer
+      operationId: submitObserverChallenge
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObserverChallengeRequest'
+      responses:
+        '200':
+          description: Challenge submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObserverChallengeResponse'
+
+  /observer/earnings:
+    get:
+      tags: [Observer]
+      summary: Get observer earnings
+      operationId: getObserverEarnings
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Earnings data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObserverEarningsResponse'
+
+  /observer/claim-earnings:
+    post:
+      tags: [Observer]
+      summary: Claim observer earnings
+      operationId: claimObserverEarnings
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Earnings claimed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimEarningsResponse'
+
+  # ==========================================================================
+  # Token Hub API (veQS)
+  # ==========================================================================
+  /token-hub/dashboard:
+    get:
+      tags: [TokenHub]
+      summary: Get Token Hub dashboard
+      operationId: getTokenHubDashboard
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Token Hub dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenHubDashboard'
+
+  /token-hub/lock:
+    post:
+      tags: [TokenHub]
+      summary: Lock QS tokens for veQS
+      operationId: createVeqsLock
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VeqsLockRequest'
+      responses:
+        '200':
+          description: Lock created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VeqsLockResponse'
+
+  /token-hub/delegates:
+    get:
+      tags: [TokenHub]
+      summary: Get available delegates
+      operationId: getDelegates
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [veqs, participation, delegators]
+      responses:
+        '200':
+          description: Delegates list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DelegatesResponse'
+
+  /token-hub/delegate:
+    post:
+      tags: [TokenHub]
+      summary: Delegate voting power
+      operationId: delegatePower
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DelegateRequest'
+      responses:
+        '200':
+          description: Delegation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DelegateResponse'
+
+  /token-hub/rewards:
+    get:
+      tags: [TokenHub]
+      summary: Get rewards info
+      operationId: getRewards
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Rewards info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenHubRewardsResponse'
+
+  /token-hub/claim:
+    post:
+      tags: [TokenHub]
+      summary: Claim rewards
+      operationId: claimRewards
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Rewards claimed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimRewardsResponse'
+
+  # ==========================================================================
+  # Governance API
+  # ==========================================================================
+  /governance/dashboard:
+    get:
+      tags: [Governance]
+      summary: Get governance dashboard
+      operationId: getGovernanceDashboard
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Governance dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernanceDashboard'
+
+  /governance/proposals:
+    get:
+      tags: [Governance]
+      summary: List proposals
+      operationId: listProposals
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, pending, passed, rejected, all]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Proposals list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalsResponse'
+
+    post:
+      tags: [Governance]
+      summary: Create proposal
+      operationId: createProposal
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProposalRequest'
+      responses:
+        '200':
+          description: Proposal created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+
+  /governance/proposals/{id}:
+    get:
+      tags: [Governance]
+      summary: Get proposal detail
+      operationId: getProposal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Proposal detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalDetail'
+
+  /governance/vote:
+    post:
+      tags: [Governance]
+      summary: Submit vote
+      operationId: submitVote
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteRequest'
+      responses:
+        '200':
+          description: Vote submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoteResponse'
+
+  # ==========================================================================
+  # Explorer API (Public)
+  # ==========================================================================
+  /explorer/overview:
+    get:
+      tags: [Explorer]
+      summary: Get explorer overview statistics
+      operationId: getExplorerOverview
+      responses:
+        '200':
+          description: Overview statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplorerOverview'
+
+  /explorer/search:
+    get:
+      tags: [Explorer]
+      summary: Search locks, unlocks, addresses
+      operationId: explorerSearch
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+
+  /explorer/locks:
+    get:
+      tags: [Explorer]
+      summary: List all locks
+      operationId: getExplorerLocks
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, active, released, challenged]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Locks list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplorerLocksResponse'
+
+  /explorer/locks/{id}:
+    get:
+      tags: [Explorer]
+      summary: Get lock detail
+      operationId: getExplorerLockDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lock detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplorerLockDetail'
+
+  /explorer/analytics:
+    get:
+      tags: [Explorer]
+      summary: Get analytics data
+      operationId: getExplorerAnalytics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [24h, 7d, 30d, all]
+            default: 7d
+      responses:
+        '200':
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplorerAnalytics'
+
+# ==========================================================================
+# Components
+# ==========================================================================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    # ========================================================================
+    # Common Schemas
+    # ========================================================================
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required: [code, message]
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    # ========================================================================
+    # Auth Schemas
+    # ========================================================================
+    SiweRequest:
+      type: object
+      properties:
+        message:
+          type: string
+          description: SIWE message (EIP-4361)
+        signature:
+          type: string
+          description: ML-DSA-65 signature (hex)
+        public_key:
+          type: string
+          description: Dilithium-III public key (hex)
+      required: [message, signature, public_key]
+
+    SiweResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_at:
+          type: integer
+          format: int64
+        address:
+          type: string
+
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+      required: [refresh_token]
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_at:
+          type: integer
+          format: int64
+
+    UserInfoResponse:
+      type: object
+      properties:
+        address:
+          type: string
+        public_key_hash:
+          type: string
+        issued_at:
+          type: integer
+          format: int64
+        expires_at:
+          type: integer
+          format: int64
+
+    # ========================================================================
+    # Lock Schemas
+    # ========================================================================
+    LockRequest:
+      type: object
+      properties:
+        chain_id:
+          type: integer
+          format: int64
+          description: Destination chain ID
+        asset:
+          type: string
+          description: ERC20 asset address
+        amount:
+          type: string
+          description: Amount in wei
+        dest_addr:
+          type: string
+          description: Destination address
+        expiry:
+          type: integer
+          format: int64
+          description: Lock expiry timestamp
+        nonce:
+          type: integer
+          format: int64
+          description: Unique nonce
+        pk_dilithium:
+          type: string
+          description: Dilithium public key (hex)
+        sig_dilithium:
+          type: string
+          description: ML-DSA-65 signature (hex)
+      required: [chain_id, asset, amount, dest_addr, expiry, nonce, pk_dilithium, sig_dilithium]
+
+    LockResponse:
+      type: object
+      properties:
+        lock_id:
+          type: string
+          description: Lock ID (bytes32)
+        sr_0:
+          type: string
+          description: State root SR_0 (SHA3-256)
+        smt_proof:
+          type: string
+          description: SMT inclusion proof
+        status:
+          $ref: '#/components/schemas/LockStatus'
+
+    LockStatus:
+      type: string
+      enum: [pending, confirmed, locked, unlock_pending, released, emergency_pending, challenged, slashed]
+
+    StatusResponse:
+      type: object
+      properties:
+        lock_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/LockStatus'
+        amount:
+          type: string
+        asset:
+          type: string
+        owner:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        time_lock_remaining:
+          type: integer
+          format: int64
+          nullable: true
+        release_time:
+          type: integer
+          format: int64
+          nullable: true
+        is_emergency:
+          type: boolean
+
+    # ========================================================================
+    # Unlock Schemas
+    # ========================================================================
+    UnlockRequest:
+      type: object
+      properties:
+        lock_id:
+          type: string
+        dest_addr:
+          type: string
+        amount:
+          type: string
+        sig_dilithium:
+          type: string
+      required: [lock_id, dest_addr, amount, sig_dilithium]
+
+    UnlockResponse:
+      type: object
+      properties:
+        unlock_id:
+          type: string
+        sr_1:
+          type: string
+        release_time:
+          type: integer
+          format: int64
+        time_lock_hours:
+          type: integer
+        prover_signatures_required:
+          type: integer
+        prover_signatures_collected:
+          type: integer
+        status:
+          type: string
+          enum: [pending_signatures, submitted, emergency_pending]
+        vrf_request_id:
+          type: string
+          nullable: true
+        selected_provers:
+          type: array
+          items:
+            type: string
+        vrf_status:
+          type: string
+          enum: [not_started, pending, fulfilled, fallback_used, failed]
+
+    EmergencyUnlockResponse:
+      type: object
+      properties:
+        unlock_id:
+          type: string
+        sr_1:
+          type: string
+        release_time:
+          type: integer
+          format: int64
+        time_lock_days:
+          type: integer
+        bond_required:
+          type: string
+        bond_calculation:
+          type: string
+        status:
+          type: string
+
+    PendingUnlocksResponse:
+      type: object
+      properties:
+        pending_unlocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PendingUnlock'
+        total:
+          type: integer
+
+    PendingUnlock:
+      type: object
+      properties:
+        unlock_id:
+          type: string
+        lock_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/LockStatus'
+        release_time:
+          type: integer
+          format: int64
+        time_lock_remaining:
+          type: integer
+          format: int64
+        is_emergency:
+          type: boolean
+
+    # ========================================================================
+    # Challenge Schemas
+    # ========================================================================
+    ChallengeRequest:
+      type: object
+      properties:
+        lock_id:
+          type: string
+        challenger:
+          type: string
+        fraud_proof:
+          type: string
+        bond:
+          type: string
+      required: [lock_id, challenger, fraud_proof, bond]
+
+    ChallengeResponse:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        lock_id:
+          type: string
+        fraud_proof_hash:
+          type: string
+        bond:
+          type: string
+        defense_deadline:
+          type: integer
+          format: int64
+        status:
+          $ref: '#/components/schemas/ChallengeStatus'
+
+    ChallengeStatus:
+      type: string
+      enum: [none, pending, defense_submitted, resolved_valid, resolved_invalid]
+
+    ChallengeInfo:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        lock_id:
+          type: string
+        challenger:
+          type: string
+        fraud_proof_hash:
+          type: string
+        bond:
+          type: string
+        challenged_at:
+          type: integer
+          format: int64
+        defense_deadline:
+          type: integer
+          format: int64
+        status:
+          $ref: '#/components/schemas/ChallengeStatus'
+        defender:
+          type: string
+          nullable: true
+        defense_proof_hash:
+          type: string
+          nullable: true
+
+    DefenseRequest:
+      type: object
+      properties:
+        prover_id:
+          type: string
+        defense_proof:
+          type: string
+      required: [prover_id, defense_proof]
+
+    DefenseResponse:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        lock_id:
+          type: string
+        defender:
+          type: string
+        defense_proof_hash:
+          type: string
+        status:
+          $ref: '#/components/schemas/ChallengeStatus'
+
+    AutoResolveResponse:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        lock_id:
+          type: string
+        challenge_valid:
+          type: boolean
+        slash_amount:
+          type: string
+        challenger_reward:
+          type: string
+        insurance_amount:
+          type: string
+        burn_amount:
+          type: string
+        status:
+          $ref: '#/components/schemas/ChallengeStatus'
+
+    # ========================================================================
+    # Prover Schemas
+    # ========================================================================
+    ProverRegisterRequest:
+      type: object
+      properties:
+        operator_addr:
+          type: string
+        sphincs_pubkey:
+          type: string
+        stake_amount:
+          type: string
+        hsm_attestation:
+          type: string
+        multisig_proof:
+          type: string
+      required: [operator_addr, sphincs_pubkey, stake_amount, hsm_attestation, multisig_proof]
+
+    ProverRegisterResponse:
+      type: object
+      properties:
+        prover_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProverStatus'
+        stake_locked:
+          type: string
+
+    ProverStatus:
+      type: string
+      enum: [pending_approval, active, inactive, exiting, exited, slashed]
+
+    ProverInfoResponse:
+      type: object
+      properties:
+        prover_id:
+          type: string
+        operator_addr:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProverStatus'
+        stake_amount:
+          type: string
+        total_signatures:
+          type: integer
+          format: int64
+        slashing_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlashingEvent'
+
+    SlashingEvent:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+        amount:
+          type: string
+        reason:
+          type: string
+
+    ProverDashboard:
+      type: object
+      properties:
+        prover_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProverStatus'
+        stake_amount:
+          type: string
+        total_signatures:
+          type: integer
+          format: int64
+        signatures_24h:
+          type: integer
+          format: int64
+        pending_rewards:
+          type: string
+        total_earnings:
+          type: string
+        queue_size:
+          type: integer
+          format: int64
+        active_challenges:
+          type: integer
+          format: int64
+        slash_count:
+          type: integer
+        uptime_percentage:
+          type: number
+          format: double
+        last_activity:
+          type: integer
+          format: int64
+
+    SigningQueueResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SigningQueueItem'
+        total:
+          type: integer
+        pending_count:
+          type: integer
+
+    SigningQueueItem:
+      type: object
+      properties:
+        queue_id:
+          type: string
+        unlock_id:
+          type: string
+        lock_id:
+          type: string
+        sr_0:
+          type: string
+        sr_1:
+          type: string
+        amount:
+          type: string
+        reward:
+          type: string
+        deadline:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [pending, signed, expired]
+
+    ProverSignRequest:
+      type: object
+      properties:
+        queue_id:
+          type: string
+        sphincs_signature:
+          type: string
+          description: SPHINCS+-128s signature (hex)
+      required: [queue_id, sphincs_signature]
+
+    ProverSignResponse:
+      type: object
+      properties:
+        queue_id:
+          type: string
+        unlock_id:
+          type: string
+        signature_accepted:
+          type: boolean
+        total_signatures:
+          type: integer
+        required_signatures:
+          type: integer
+        reward_earned:
+          type: string
+
+    ProverExitResponse:
+      type: object
+      properties:
+        prover_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProverStatus'
+        exit_initiated_at:
+          type: integer
+          format: int64
+        unbonding_end:
+          type: integer
+          format: int64
+        unbonding_days:
+          type: integer
+        stake_to_return:
+          type: string
+        pending_rewards:
+          type: string
+
+    ProverWithdrawRequest:
+      type: object
+      properties:
+        destination_address:
+          type: string
+      required: [destination_address]
+
+    ProverWithdrawResponse:
+      type: object
+      properties:
+        prover_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProverStatus'
+        stake_returned:
+          type: string
+        rewards_returned:
+          type: string
+        total_returned:
+          type: string
+        destination_address:
+          type: string
+        l1_tx_hash:
+          type: string
+          nullable: true
+        withdrawn_at:
+          type: integer
+          format: int64
+
+    # ========================================================================
+    # Observer Schemas
+    # ========================================================================
+    ObserverDashboard:
+      type: object
+      properties:
+        total_monitored:
+          type: integer
+        active_challenges:
+          type: integer
+        total_earnings:
+          type: string
+        pending_earnings:
+          type: string
+        success_rate:
+          type: number
+          format: double
+
+    ObserverPendingUnlocksResponse:
+      type: object
+      properties:
+        unlocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObserverPendingUnlock'
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    ObserverPendingUnlock:
+      type: object
+      properties:
+        unlock_id:
+          type: string
+        lock_id:
+          type: string
+        amount:
+          type: string
+        release_time:
+          type: integer
+          format: int64
+        time_remaining:
+          type: integer
+          format: int64
+        risk_score:
+          type: number
+          format: double
+        is_emergency:
+          type: boolean
+
+    SuspiciousTxsResponse:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuspiciousTx'
+        total:
+          type: integer
+
+    SuspiciousTx:
+      type: object
+      properties:
+        unlock_id:
+          type: string
+        lock_id:
+          type: string
+        amount:
+          type: string
+        risk_score:
+          type: number
+          format: double
+        risk_factors:
+          type: array
+          items:
+            type: string
+        detected_at:
+          type: integer
+          format: int64
+
+    ObserverChallengeRequest:
+      type: object
+      properties:
+        unlock_id:
+          type: string
+        evidence:
+          type: string
+      required: [unlock_id, evidence]
+
+    ObserverChallengeResponse:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        bond_amount:
+          type: string
+        tx_hash:
+          type: string
+
+    ObserverEarningsResponse:
+      type: object
+      properties:
+        total_earned:
+          type: string
+        pending:
+          type: string
+        claimable:
+          type: string
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/EarningsHistoryItem'
+
+    EarningsHistoryItem:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        amount:
+          type: string
+        earned_at:
+          type: integer
+          format: int64
+        status:
+          type: string
+
+    ClaimEarningsResponse:
+      type: object
+      properties:
+        claimed_amount:
+          type: string
+        tx_hash:
+          type: string
+
+    # ========================================================================
+    # Token Hub Schemas
+    # ========================================================================
+    TokenHubDashboard:
+      type: object
+      properties:
+        qs_balance:
+          type: string
+        veqs_balance:
+          type: string
+        voting_power_percent:
+          type: number
+          format: double
+        lock_position:
+          $ref: '#/components/schemas/LockPosition'
+        delegations_count:
+          type: integer
+        pending_rewards:
+          type: string
+
+    LockPosition:
+      type: object
+      properties:
+        locked_amount:
+          type: string
+        veqs_value:
+          type: string
+        lock_end:
+          type: integer
+          format: int64
+        lock_duration_days:
+          type: integer
+        created_at:
+          type: integer
+          format: int64
+
+    VeqsLockRequest:
+      type: object
+      properties:
+        amount:
+          type: string
+        duration_days:
+          type: integer
+          minimum: 7
+          maximum: 1460
+      required: [amount, duration_days]
+
+    VeqsLockResponse:
+      type: object
+      properties:
+        lock_id:
+          type: string
+        veqs_amount:
+          type: string
+        lock_end:
+          type: integer
+          format: int64
+        tx_hash:
+          type: string
+
+    DelegatesResponse:
+      type: object
+      properties:
+        delegates:
+          type: array
+          items:
+            $ref: '#/components/schemas/DelegateInfo'
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    DelegateInfo:
+      type: object
+      properties:
+        address:
+          type: string
+        name:
+          type: string
+          nullable: true
+        total_veqs:
+          type: string
+        delegators_count:
+          type: integer
+        participation_rate:
+          type: number
+          format: double
+        recent_votes:
+          type: integer
+
+    DelegateRequest:
+      type: object
+      properties:
+        delegatee:
+          type: string
+        amount:
+          type: string
+      required: [delegatee, amount]
+
+    DelegateResponse:
+      type: object
+      properties:
+        delegation_id:
+          type: string
+        delegatee:
+          type: string
+        amount:
+          type: string
+        tx_hash:
+          type: string
+
+    TokenHubRewardsResponse:
+      type: object
+      properties:
+        claimable:
+          type: string
+        claimable_usd:
+          type: string
+        total_claimed:
+          type: string
+        current_epoch:
+          type: integer
+        epoch_progress:
+          type: number
+          format: double
+        estimated_epoch_rewards:
+          type: string
+        apy:
+          type: number
+          format: double
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/RewardHistory'
+
+    RewardHistory:
+      type: object
+      properties:
+        epoch:
+          type: integer
+        amount:
+          type: string
+        claimed_at:
+          type: integer
+          format: int64
+          nullable: true
+
+    ClaimRewardsResponse:
+      type: object
+      properties:
+        claimed_amount:
+          type: string
+        tx_hash:
+          type: string
+
+    # ========================================================================
+    # Governance Schemas
+    # ========================================================================
+    GovernanceDashboard:
+      type: object
+      properties:
+        active_proposals:
+          type: integer
+        my_voting_power:
+          type: string
+        votes_cast:
+          type: integer
+        participation_rate:
+          type: number
+          format: double
+
+    ProposalsResponse:
+      type: object
+      properties:
+        proposals:
+          type: array
+          items:
+            $ref: '#/components/schemas/Proposal'
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    Proposal:
+      type: object
+      properties:
+        proposal_id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum: [pending, active, passed, rejected, executed, cancelled]
+        proposer:
+          type: string
+        votes_for:
+          type: string
+        votes_against:
+          type: string
+        votes_abstain:
+          type: string
+        start_time:
+          type: integer
+          format: int64
+        end_time:
+          type: integer
+          format: int64
+        created_at:
+          type: integer
+          format: int64
+
+    ProposalDetail:
+      allOf:
+        - $ref: '#/components/schemas/Proposal'
+        - type: object
+          properties:
+            description:
+              type: string
+            actions:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProposalAction'
+            quorum:
+              type: string
+            quorum_reached:
+              type: boolean
+
+    ProposalAction:
+      type: object
+      properties:
+        target:
+          type: string
+        value:
+          type: string
+        data:
+          type: string
+        description:
+          type: string
+
+    CreateProposalRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 10000
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProposalAction'
+      required: [title, description, actions]
+
+    VoteRequest:
+      type: object
+      properties:
+        proposal_id:
+          type: string
+        support:
+          type: integer
+          enum: [0, 1, 2]
+          description: "0=Against, 1=For, 2=Abstain"
+      required: [proposal_id, support]
+
+    VoteResponse:
+      type: object
+      properties:
+        vote_id:
+          type: string
+        proposal_id:
+          type: string
+        voter:
+          type: string
+        support:
+          type: integer
+        weight:
+          type: string
+        tx_hash:
+          type: string
+
+    # ========================================================================
+    # Explorer Schemas
+    # ========================================================================
+    ExplorerOverview:
+      type: object
+      properties:
+        total_value_locked:
+          type: string
+        total_value_locked_usd:
+          type: string
+        total_locks:
+          type: integer
+        total_unlocks:
+          type: integer
+        active_provers:
+          type: integer
+        total_volume_24h:
+          type: string
+        challenges_24h:
+          type: integer
+
+    SearchResults:
+      type: object
+      properties:
+        locks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultLock'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultAddress'
+        total:
+          type: integer
+
+    SearchResultLock:
+      type: object
+      properties:
+        lock_id:
+          type: string
+        amount:
+          type: string
+        status:
+          $ref: '#/components/schemas/LockStatus'
+
+    SearchResultAddress:
+      type: object
+      properties:
+        address:
+          type: string
+        type:
+          type: string
+          enum: [user, prover, contract]
+        lock_count:
+          type: integer
+
+    ExplorerLocksResponse:
+      type: object
+      properties:
+        locks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExplorerLock'
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    ExplorerLock:
+      type: object
+      properties:
+        lock_id:
+          type: string
+        owner:
+          type: string
+        amount:
+          type: string
+        asset:
+          type: string
+        status:
+          $ref: '#/components/schemas/LockStatus'
+        created_at:
+          type: integer
+          format: int64
+
+    ExplorerLockDetail:
+      allOf:
+        - $ref: '#/components/schemas/ExplorerLock'
+        - type: object
+          properties:
+            chain_id:
+              type: integer
+            dest_addr:
+              type: string
+            sr_0:
+              type: string
+            l1_tx_hash:
+              type: string
+              nullable: true
+            unlock_requests:
+              type: array
+              items:
+                type: object
+                properties:
+                  unlock_id:
+                    type: string
+                  status:
+                    type: string
+                  created_at:
+                    type: integer
+                    format: int64
+
+    ExplorerAnalytics:
+      type: object
+      properties:
+        period:
+          type: string
+        tvl_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeSeriesPoint'
+        volume_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeSeriesPoint'
+        locks_count_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeSeriesPoint'
+
+    TimeSeriesPoint:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+        value:
+          type: string
+
+    # ========================================
+    # Admin Schemas
+    # ========================================
+
+    AdminUser:
+      type: object
+      properties:
+        admin_id:
+          type: string
+        wallet_address:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/AdminRole'
+        status:
+          type: string
+          enum: [active, suspended, revoked]
+        two_factor_enabled:
+          type: boolean
+        created_at:
+          type: integer
+          format: int64
+        last_login:
+          type: integer
+          format: int64
+          nullable: true
+
+    AdminRole:
+      type: object
+      properties:
+        role_id:
+          type: string
+        name:
+          type: string
+          enum: [superadmin, admin, operator, viewer]
+        level:
+          type: integer
+          minimum: 1
+          maximum: 4
+        permissions:
+          type: array
+          items:
+            type: string
+
+    AdminAuditLog:
+      type: object
+      properties:
+        log_id:
+          type: string
+        admin_id:
+          type: string
+        action:
+          type: string
+        resource_type:
+          type: string
+        resource_id:
+          type: string
+          nullable: true
+        details:
+          type: object
+        ip_address:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+
+    TreasuryWallet:
+      type: object
+      properties:
+        wallet_id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [main, operational, grants, insurance, emergency]
+        address:
+          type: string
+        multisig_threshold:
+          type: integer
+        multisig_signers:
+          type: array
+          items:
+            type: string
+        balance:
+          type: string
+        currency:
+          type: string
+
+    TreasuryTransaction:
+      type: object
+      properties:
+        tx_id:
+          type: string
+        wallet_id:
+          type: string
+        type:
+          type: string
+          enum: [deposit, withdrawal, transfer, fee]
+        amount:
+          type: string
+        currency:
+          type: string
+        from_address:
+          type: string
+          nullable: true
+        to_address:
+          type: string
+          nullable: true
+        purpose:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, executed, failed, cancelled]
+        approved_by:
+          type: array
+          items:
+            type: string
+        tx_hash:
+          type: string
+          nullable: true
+        created_at:
+          type: integer
+          format: int64
+
+    ExpenseRequest:
+      type: object
+      properties:
+        request_id:
+          type: string
+        wallet_id:
+          type: string
+        requester_id:
+          type: string
+        amount:
+          type: string
+        currency:
+          type: string
+        purpose:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected, executed]
+        approved_by:
+          type: array
+          items:
+            type: string
+        rejection_reason:
+          type: string
+          nullable: true
+        created_at:
+          type: integer
+          format: int64
+
+    SupportTicket:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+        user_wallet:
+          type: string
+        subject:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [general, technical, billing, security]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [open, in_progress, pending, resolved, closed]
+        assigned_to:
+          type: string
+          nullable: true
+        created_at:
+          type: integer
+          format: int64
+        resolved_at:
+          type: integer
+          format: int64
+          nullable: true
+
+    Announcement:
+      type: object
+      properties:
+        announcement_id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+          enum: [maintenance, update, security, general]
+        target_audience:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, scheduled, published, archived]
+        published_at:
+          type: integer
+          format: int64
+          nullable: true
+        expires_at:
+          type: integer
+          format: int64
+          nullable: true
+
+    DashboardOverview:
+      type: object
+      properties:
+        tvl:
+          type: string
+        tvl_change_24h:
+          type: number
+        active_users:
+          type: integer
+        active_users_change_24h:
+          type: number
+        transactions_today:
+          type: integer
+        prover_uptime:
+          type: number
+        pending_tasks:
+          type: integer
+
+    Alert:
+      type: object
+      properties:
+        alert_id:
+          type: string
+        rule_id:
+          type: string
+        severity:
+          type: string
+          enum: [info, warning, critical]
+        message:
+          type: string
+        status:
+          type: string
+          enum: [active, acknowledged, resolved]
+        triggered_at:
+          type: integer
+          format: int64
+
+# ========================================
+# Admin API Paths (Separate section)
+# ========================================
+
+paths:
+  # Admin Authentication
+  /admin/auth/login:
+    post:
+      tags: [Admin]
+      summary: Admin login with wallet signature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet_address, signature, message]
+              properties:
+                wallet_address:
+                  type: string
+                signature:
+                  type: string
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  admin:
+                    $ref: '#/components/schemas/AdminUser'
+
+  /admin/auth/2fa/verify:
+    post:
+      tags: [Admin]
+      summary: Verify 2FA code
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+      responses:
+        '200':
+          description: 2FA verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+
+  # Dashboard
+  /admin/dashboard/overview:
+    get:
+      tags: [Admin]
+      summary: Get dashboard overview metrics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOverview'
+
+  /admin/dashboard/alerts:
+    get:
+      tags: [Admin]
+      summary: Get active alerts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, acknowledged, resolved]
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [info, warning, critical]
+      responses:
+        '200':
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Alert'
+
+  # Ecosystem - Users
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List all users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  total:
+                    type: integer
+
+  /admin/users/{wallet_address}:
+    get:
+      tags: [Admin]
+      summary: Get user detail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: wallet_address
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # Prover Applications
+  /admin/applications/prover:
+    get:
+      tags: [Admin]
+      summary: List prover applications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+      responses:
+        '200':
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProverApplication'
+
+  /admin/applications/prover/{application_id}/approve:
+    post:
+      tags: [Admin]
+      summary: Approve prover application
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Application approved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  prover_id:
+                    type: string
+
+  /admin/applications/prover/{application_id}/reject:
+    post:
+      tags: [Admin]
+      summary: Reject prover application
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Application rejected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # Challenges
+  /admin/challenges:
+    get:
+      tags: [Admin]
+      summary: List all challenges
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_defense, resolved, expired]
+      responses:
+        '200':
+          description: List of challenges
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenges:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Challenge'
+
+  /admin/challenges/{challenge_id}/intervene:
+    post:
+      tags: [Admin]
+      summary: Admin intervention on challenge
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: challenge_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, reason]
+              properties:
+                action:
+                  type: string
+                  enum: [approve_challenge, reject_challenge, extend_defense]
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Intervention completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # Treasury
+  /admin/treasury/overview:
+    get:
+      tags: [Admin]
+      summary: Get treasury overview
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Treasury overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_balance:
+                    type: string
+                  wallets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TreasuryWallet'
+
+  /admin/treasury/wallets/{wallet_id}/transfer:
+    post:
+      tags: [Admin]
+      summary: Initiate treasury transfer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: wallet_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to_address, amount, purpose]
+              properties:
+                to_address:
+                  type: string
+                amount:
+                  type: string
+                purpose:
+                  type: string
+      responses:
+        '200':
+          description: Transfer initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tx_id:
+                    type: string
+                  status:
+                    type: string
+
+  /admin/treasury/expenses:
+    get:
+      tags: [Admin]
+      summary: List expense requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected, executed]
+      responses:
+        '200':
+          description: List of expense requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  expenses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExpenseRequest'
+    post:
+      tags: [Admin]
+      summary: Create expense request
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet_id, amount, purpose, category]
+              properties:
+                wallet_id:
+                  type: string
+                amount:
+                  type: string
+                purpose:
+                  type: string
+                category:
+                  type: string
+      responses:
+        '201':
+          description: Expense request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseRequest'
+
+  # Emergency Controls
+  /admin/emergency/status:
+    get:
+      tags: [Admin]
+      summary: Get system emergency status
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: System status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_paused:
+                    type: boolean
+                  paused_at:
+                    type: integer
+                    format: int64
+                    nullable: true
+                  paused_by:
+                    type: string
+                    nullable: true
+                  services:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        status:
+                          type: string
+                          enum: [running, paused, error]
+
+  /admin/emergency/pause:
+    post:
+      tags: [Admin]
+      summary: Pause system (emergency)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                services:
+                  type: array
+                  items:
+                    type: string
+                  description: Specific services to pause, or all if empty
+      responses:
+        '200':
+          description: System paused
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  paused_services:
+                    type: array
+                    items:
+                      type: string
+
+  /admin/emergency/resume:
+    post:
+      tags: [Admin]
+      summary: Resume system from pause
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                services:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: System resumed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # Support
+  /admin/support/tickets:
+    get:
+      tags: [Admin]
+      summary: List support tickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, in_progress, pending, resolved, closed]
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+      responses:
+        '200':
+          description: List of tickets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SupportTicket'
+
+  /admin/support/tickets/{ticket_id}:
+    patch:
+      tags: [Admin]
+      summary: Update support ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: ticket_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [open, in_progress, pending, resolved, closed]
+                priority:
+                  type: string
+                  enum: [low, medium, high, critical]
+                assigned_to:
+                  type: string
+      responses:
+        '200':
+          description: Ticket updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicket'
+
+  /admin/support/announcements:
+    get:
+      tags: [Admin]
+      summary: List announcements
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of announcements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  announcements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Announcement'
+    post:
+      tags: [Admin]
+      summary: Create announcement
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content, category]
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                category:
+                  type: string
+                  enum: [maintenance, update, security, general]
+                target_audience:
+                  type: array
+                  items:
+                    type: string
+                publish_at:
+                  type: integer
+                  format: int64
+                expires_at:
+                  type: integer
+                  format: int64
+      responses:
+        '201':
+          description: Announcement created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Announcement'
+
+  # Audit
+  /admin/audit/logs:
+    get:
+      tags: [Admin]
+      summary: Get audit logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: admin_id
+          in: query
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: resource_type
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: to
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminAuditLog'
+                  total:
+                    type: integer
+
+  # Admin Settings
+  /admin/settings/users:
+    get:
+      tags: [Admin]
+      summary: List admin users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of admin users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminUser'
+    post:
+      tags: [Admin]
+      summary: Create admin user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet_address, email, name, role_id]
+              properties:
+                wallet_address:
+                  type: string
+                email:
+                  type: string
+                name:
+                  type: string
+                role_id:
+                  type: string
+      responses:
+        '201':
+          description: Admin user created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+
+  /admin/settings/users/{admin_id}:
+    patch:
+      tags: [Admin]
+      summary: Update admin user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: admin_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                name:
+                  type: string
+                role_id:
+                  type: string
+                status:
+                  type: string
+                  enum: [active, suspended, revoked]
+      responses:
+        '200':
+          description: Admin user updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+    delete:
+      tags: [Admin]
+      summary: Revoke admin user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: admin_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin user revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean

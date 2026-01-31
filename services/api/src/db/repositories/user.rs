@@ -172,4 +172,184 @@ impl UserRepository {
         info!("DB query: get_user_settings completed, found={}", result.is_some());
         Ok(result)
     }
+
+    // ========================================================================
+    // Admin User Operations (Phase 8-C)
+    // ========================================================================
+
+    /// List users with search and status filter (for admin)
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool), fields(search = ?search, status = ?status))]
+    pub async fn list_users_admin(
+        pool: &PgPool,
+        search: Option<&str>,
+        status: Option<&str>,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<AdminUserRow>, ApiError> {
+        info!("DB query: list_users_admin started");
+
+        let results = sqlx::query_as::<_, AdminUserRow>(
+            r#"
+            SELECT u.wallet_address, u.pk_dilithium, u.created_at, u.last_active,
+                   us.email, us.language,
+                   COALESCE(us.status, 'active') as status,
+                   (SELECT COUNT(*) FROM locks l WHERE l.wallet_address = u.wallet_address) as total_locks,
+                   (SELECT COALESCE(SUM(amount), 0) FROM locks l WHERE l.wallet_address = u.wallet_address AND l.status IN ('confirmed', 'locked')) as total_locked
+            FROM users u
+            LEFT JOIN user_settings us ON u.wallet_address = us.wallet_address
+            WHERE ($1::TEXT IS NULL OR u.wallet_address ILIKE '%' || $1 || '%' OR us.email ILIKE '%' || $1 || '%')
+              AND ($2::TEXT IS NULL OR COALESCE(us.status, 'active') = $2)
+            ORDER BY u.created_at DESC
+            OFFSET $3 LIMIT $4
+            "#,
+        )
+        .bind(search)
+        .bind(status)
+        .bind(offset)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: list_users_admin failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: list_users_admin completed, count={}", results.len());
+        Ok(results)
+    }
+
+    /// Count users with filters
+    #[instrument(skip(pool), fields(search = ?search, status = ?status))]
+    pub async fn count_users_admin(
+        pool: &PgPool,
+        search: Option<&str>,
+        status: Option<&str>,
+    ) -> Result<i64, ApiError> {
+        info!("DB query: count_users_admin started");
+
+        let count: i64 = sqlx::query_scalar(
+            r#"
+            SELECT COUNT(*)
+            FROM users u
+            LEFT JOIN user_settings us ON u.wallet_address = us.wallet_address
+            WHERE ($1::TEXT IS NULL OR u.wallet_address ILIKE '%' || $1 || '%' OR us.email ILIKE '%' || $1 || '%')
+              AND ($2::TEXT IS NULL OR COALESCE(us.status, 'active') = $2)
+            "#,
+        )
+        .bind(search)
+        .bind(status)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: count_users_admin failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?
+        .unwrap_or(0);
+
+        info!("DB query: count_users_admin completed, count={}", count);
+        Ok(count)
+    }
+
+    /// Get detailed user info for admin
+    #[instrument(skip(pool), fields(wallet = %wallet_address))]
+    pub async fn get_user_detail_admin(
+        pool: &PgPool,
+        wallet_address: &str,
+    ) -> Result<Option<AdminUserDetailRow>, ApiError> {
+        info!("DB query: get_user_detail_admin started");
+
+        let result = sqlx::query_as::<_, AdminUserDetailRow>(
+            r#"
+            SELECT u.wallet_address, u.pk_dilithium, u.created_at, u.last_active,
+                   us.email, us.language, us.notification_email, us.notification_browser,
+                   us.two_factor_enabled,
+                   COALESCE(us.status, 'active') as status,
+                   (SELECT COUNT(*) FROM locks l WHERE l.wallet_address = u.wallet_address) as total_locks,
+                   (SELECT COUNT(*) FROM unlock_requests ur WHERE ur.wallet_address = u.wallet_address) as total_unlocks,
+                   (SELECT COALESCE(SUM(amount), 0) FROM locks l WHERE l.wallet_address = u.wallet_address AND l.status IN ('confirmed', 'locked')) as total_locked
+            FROM users u
+            LEFT JOIN user_settings us ON u.wallet_address = us.wallet_address
+            WHERE u.wallet_address = $1
+            "#,
+        )
+        .bind(wallet_address)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_user_detail_admin failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_user_detail_admin completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    /// Update user status (suspend/activate)
+    #[instrument(skip(pool), fields(wallet = %wallet_address, status = %new_status))]
+    pub async fn update_user_status(
+        pool: &PgPool,
+        wallet_address: &str,
+        new_status: &str,
+    ) -> Result<(), ApiError> {
+        info!("DB query: update_user_status started");
+
+        // Upsert user_settings with new status
+        sqlx::query(
+            r#"
+            INSERT INTO user_settings (wallet_address, status, updated_at)
+            VALUES ($1, $2, NOW())
+            ON CONFLICT (wallet_address) DO UPDATE
+            SET status = $2, updated_at = NOW()
+            "#,
+        )
+        .bind(wallet_address)
+        .bind(new_status)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: update_user_status failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: update_user_status completed");
+        Ok(())
+    }
+}
+
+// ============================================================================
+// Admin User Models (Phase 8-C)
+// ============================================================================
+
+use bigdecimal::BigDecimal;
+
+#[derive(Debug, Clone, FromRow)]
+pub struct AdminUserRow {
+    pub wallet_address: String,
+    pub pk_dilithium: Option<Vec<u8>>,
+    pub created_at: DateTime<Utc>,
+    pub last_active: Option<DateTime<Utc>>,
+    pub email: Option<String>,
+    pub language: Option<String>,
+    pub status: String,
+    pub total_locks: i64,
+    pub total_locked: BigDecimal,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct AdminUserDetailRow {
+    pub wallet_address: String,
+    pub pk_dilithium: Option<Vec<u8>>,
+    pub created_at: DateTime<Utc>,
+    pub last_active: Option<DateTime<Utc>>,
+    pub email: Option<String>,
+    pub language: Option<String>,
+    pub notification_email: Option<bool>,
+    pub notification_browser: Option<bool>,
+    pub two_factor_enabled: Option<bool>,
+    pub status: String,
+    pub total_locks: i64,
+    pub total_unlocks: i64,
+    pub total_locked: BigDecimal,
 }

@@ -12,9 +12,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useLocks } from '@/hooks/explorer';
+import { MOCK_LOCKS, type LockDetail } from '@/lib/api/explorer/mock';
 
-// Mock data
-const mockLocks = [
+// Fallback data
+const FALLBACK_LOCKS = MOCK_LOCKS;
+
+// Mock data (kept for reference)
+const mockLocksOriginal = [
   {
     id: '0x7a3f8b2c4d5e6f...e821d4f9',
     shortId: '0x7a3f...e821',
@@ -114,11 +119,22 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedLock, setSelectedLock] = useState<typeof mockLocks[0] | null>(null);
+  const [selectedLock, setSelectedLock] = useState<LockDetail | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Fetch data using hooks
+  const { data: locksApi } = useLocks({
+    status: statusFilter,
+    sort: sortOption,
+    search: searchQuery,
+    page: currentPage,
+  });
+
+  // Use API data with fallback
+  const mockLocks = locksApi?.locks ?? FALLBACK_LOCKS;
+
   const itemsPerPage = 6;
-  const totalLocks = 24891;
+  const totalLocks = locksApi?.total ?? 24891;
   const totalValue = '$847.2M';
 
   // Filter and sort locks
@@ -232,38 +248,38 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
           >
             <Link
               href={`/${locale}/explorer/overview`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.overview')}
             </Link>
             <Link
               href={`/${locale}/explorer/locks`}
-              className="px-5 py-2 text-sm font-medium bg-background-tertiary text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium bg-background-tertiary text-foreground rounded-full transition-colors"
               aria-current="page"
             >
               {t('common.header.locks')}
             </Link>
             <Link
               href={`/${locale}/explorer/unlocks`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.unlocks')}
             </Link>
             <Link
               href={`/${locale}/explorer/challenges`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.challenges')}
             </Link>
             <Link
               href={`/${locale}/explorer/provers`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.provers')}
             </Link>
             <Link
               href={`/${locale}/explorer/analytics`}
-              className="px-5 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
+              className="px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-foreground-secondary hover:text-foreground rounded-full transition-colors"
             >
               {t('common.header.analytics')}
             </Link>
@@ -296,7 +312,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
               setStatusFilter(e.target.value as LockStatus | 'all');
               setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-background-secondary border border-surface-tertiary rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
+            className="px-4 py-2 min-h-[44px] bg-background-secondary border border-surface-tertiary rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
             aria-label={t('locks.table.status')}
           >
             <option value="all">{t('locks.filters.status.all')}</option>
@@ -308,7 +324,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
           <select
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value as SortOption)}
-            className="px-4 py-2 bg-background-secondary border border-surface-tertiary rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
+            className="px-4 py-2 min-h-[44px] bg-background-secondary border border-surface-tertiary rounded-lg text-sm text-foreground cursor-pointer focus:outline-none focus:border-hinomaru focus:ring-2 focus:ring-hinomaru/20"
             aria-label="Sort order"
           >
             <option value="newest">{t('locks.filters.sort.newest')}</option>
@@ -317,7 +333,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
             <option value="amountLow">{t('locks.filters.sort.amountLow')}</option>
           </select>
 
-          <div className="flex items-center gap-2 px-4 py-2 bg-background-secondary border border-surface-tertiary rounded-lg flex-1 md:max-w-xs focus-within:border-hinomaru focus-within:ring-2 focus-within:ring-hinomaru/20">
+          <div className="flex items-center gap-2 px-4 py-2 min-h-[44px] bg-background-secondary border border-surface-tertiary rounded-lg flex-1 md:max-w-xs focus-within:border-hinomaru focus-within:ring-2 focus-within:ring-hinomaru/20">
             <Search className="w-4 h-4 text-foreground-tertiary flex-shrink-0" aria-hidden="true" />
             <input
               type="text"
@@ -327,7 +343,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
                 setCurrentPage(1);
               }}
               placeholder={t('locks.filters.searchPlaceholder')}
-              className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-foreground-tertiary outline-none"
+              className="flex-1 bg-transparent border-none text-sm text-foreground placeholder:text-foreground-tertiary outline-none min-h-[44px]"
               aria-label={t('locks.filters.searchPlaceholder')}
             />
           </div>
@@ -434,6 +450,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
                     key={page}
                     variant={currentPage === page ? 'primary' : 'secondary'}
                     size="sm"
+                    className="min-w-[44px]"
                     onClick={() => setCurrentPage(page)}
                     aria-label={`Page ${page}`}
                     aria-current={currentPage === page ? 'page' : undefined}

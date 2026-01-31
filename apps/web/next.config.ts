@@ -92,35 +92,65 @@ const nextConfig: NextConfig = {
         destination: '/:locale/qs-hub/dashboard',
         permanent: true,
       },
-      // Governance → QS Hub
+      // Governance → QS Hub (only for ja/en locales, not qs-admin)
       {
-        source: '/:locale/governance',
-        destination: '/:locale/qs-hub/dashboard',
+        source: '/ja/governance',
+        destination: '/ja/qs-hub/dashboard',
         permanent: true,
       },
       {
-        source: '/:locale/governance/landing',
-        destination: '/:locale/qs-hub/dashboard',
+        source: '/en/governance',
+        destination: '/en/qs-hub/dashboard',
         permanent: true,
       },
       {
-        source: '/:locale/governance/dashboard',
-        destination: '/:locale/qs-hub/dashboard',
+        source: '/ja/governance/landing',
+        destination: '/ja/qs-hub/dashboard',
         permanent: true,
       },
       {
-        source: '/:locale/governance/proposals',
-        destination: '/:locale/qs-hub/vote/proposals',
+        source: '/en/governance/landing',
+        destination: '/en/qs-hub/dashboard',
         permanent: true,
       },
       {
-        source: '/:locale/governance/proposals/:id',
-        destination: '/:locale/qs-hub/vote/proposals/:id',
+        source: '/ja/governance/dashboard',
+        destination: '/ja/qs-hub/dashboard',
         permanent: true,
       },
       {
-        source: '/:locale/governance/council',
-        destination: '/:locale/qs-hub/council',
+        source: '/en/governance/dashboard',
+        destination: '/en/qs-hub/dashboard',
+        permanent: true,
+      },
+      {
+        source: '/ja/governance/proposals',
+        destination: '/ja/qs-hub/vote/proposals',
+        permanent: true,
+      },
+      {
+        source: '/en/governance/proposals',
+        destination: '/en/qs-hub/vote/proposals',
+        permanent: true,
+      },
+      {
+        source: '/ja/governance/proposals/:id',
+        destination: '/ja/qs-hub/vote/proposals/:id',
+        permanent: true,
+      },
+      {
+        source: '/en/governance/proposals/:id',
+        destination: '/en/qs-hub/vote/proposals/:id',
+        permanent: true,
+      },
+      {
+        source: '/ja/governance/council',
+        destination: '/ja/qs-hub/council',
+        permanent: true,
+      },
+      {
+        source: '/en/governance/council',
+        destination: '/en/qs-hub/council',
         permanent: true,
       },
     ];
