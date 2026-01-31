@@ -27,6 +27,21 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { GovernanceHeader } from './GovernanceHeader';
+import {
+  useGovernanceStats,
+  useVotingPower,
+  useDashboardProposals,
+} from '@/hooks/governance';
+import {
+  MOCK_GOVERNANCE_STATS,
+  MOCK_VOTING_POWER,
+  MOCK_DASHBOARD_PROPOSALS,
+} from '@/lib/api/governance/mock';
+
+// Fallback data
+const FALLBACK_STATS = MOCK_GOVERNANCE_STATS;
+const FALLBACK_VOTING_POWER = MOCK_VOTING_POWER;
+const FALLBACK_PROPOSALS = MOCK_DASHBOARD_PROPOSALS;
 
 // Hover card with gradient border effect
 function HoverCard({
@@ -226,44 +241,15 @@ function ActivityItem({
 export function GovernanceDashboard() {
   const t = useTranslations('governance.landing');
 
-  // Mock data
-  const stats = {
-    activeProposals: 5,
-    votingPower: 125000,
-    participationRate: 78,
-    totalProposals: 47,
-  };
+  // Fetch data using hooks
+  const { data: statsApi } = useGovernanceStats();
+  const { data: votingPowerApi } = useVotingPower();
+  const { data: proposalsApi } = useDashboardProposals();
 
-  const votingPowerBreakdown = {
-    myVeqs: 100000,
-    delegatedToMe: 25000,
-    iDelegated: 0,
-    delegators: 3,
-    lockExpiry: '2028-01-15',
-  };
-
-  const proposals = [
-    {
-      id: 'QIP-47',
-      title: 'Increase Prover Bond Amount from 100 ETH to 150 ETH',
-      status: 'active' as const,
-      timeLeft: '2d 14h',
-      forPercentage: 72,
-    },
-    {
-      id: 'QIP-46',
-      title: 'Add New Security Council Member: quantum_expert.eth',
-      status: 'active' as const,
-      timeLeft: '5d 8h',
-      forPercentage: 85,
-    },
-    {
-      id: 'QIP-45',
-      title: 'Upgrade STARK Verifier Contract to v2.1',
-      status: 'pending' as const,
-      forPercentage: 91,
-    },
-  ];
+  // Use API data with fallback
+  const stats = statsApi ?? FALLBACK_STATS;
+  const votingPowerBreakdown = votingPowerApi ?? FALLBACK_VOTING_POWER;
+  const proposals = proposalsApi ?? FALLBACK_PROPOSALS;
 
   return (
     <TooltipProvider>
@@ -286,7 +272,7 @@ export function GovernanceDashboard() {
             </h2>
             <Link
               href="/governance/faq"
-              className="text-sm text-foreground-tertiary hover:text-gold transition-colors flex items-center gap-1"
+              className="text-sm text-foreground-tertiary hover:text-gold transition-colors flex items-center gap-1 min-h-[44px]"
             >
               {t('gettingStarted.viewAll')}
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
@@ -406,7 +392,7 @@ export function GovernanceDashboard() {
                     <Vote className="w-5 h-5 text-hinomaru" />
                     {t('votingPower.title')}
                   </h2>
-                  <Link href="/governance/activity" className="text-sm text-gold hover:underline flex items-center gap-1">
+                  <Link href="/governance/activity" className="text-sm text-gold hover:underline flex items-center gap-1 min-h-[44px]">
                     {t('votingPower.viewDetails')}
                     <ChevronRight className="w-4 h-4" />
                   </Link>
@@ -417,7 +403,7 @@ export function GovernanceDashboard() {
                     <span className="text-sm text-foreground-secondary">{t('votingPower.totalLabel')}</span>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button className="text-xs text-gold flex items-center gap-1 p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('votingPower.ariaLabel')}>
+                        <button className="text-xs text-gold flex items-center gap-1 px-2 py-2 min-h-[44px] rounded hover:bg-surface-secondary transition-colors" aria-label={t('votingPower.ariaLabel')}>
                           <HelpCircle className="w-3 h-3" />
                           {t('votingPower.howCalculated')}
                         </button>
@@ -472,7 +458,7 @@ export function GovernanceDashboard() {
                     <FileText className="w-5 h-5 text-hinomaru" />
                     {t('activeProposals.title')}
                   </h2>
-                  <Link href="/governance/proposals" className="text-sm text-gold hover:underline flex items-center gap-1">
+                  <Link href="/governance/proposals" className="text-sm text-gold hover:underline flex items-center gap-1 min-h-[44px]">
                     {t('activeProposals.viewAll')}
                     <ChevronRight className="w-4 h-4" />
                   </Link>
@@ -499,7 +485,7 @@ export function GovernanceDashboard() {
                   </h2>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('quorum.ariaLabel')}>
+                      <button className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-surface-secondary transition-colors" aria-label={t('quorum.ariaLabel')}>
                         <HelpCircle className="w-4 h-4 text-gold" />
                       </button>
                     </TooltipTrigger>
@@ -597,7 +583,7 @@ export function GovernanceDashboard() {
                 href="https://forum.quantumshield.io/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors flex items-center gap-1 min-h-[44px] px-2 focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
               >
                 {t('footer.governanceForum')}
                 <ExternalLink className="w-3 h-3" />
@@ -606,20 +592,20 @@ export function GovernanceDashboard() {
                 href="https://docs.quantumshield.io/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors flex items-center gap-1 min-h-[44px] px-2 focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
               >
                 {t('footer.documentation')}
                 <ExternalLink className="w-3 h-3" />
               </a>
               <Link
                 href="/consumer/terms"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] px-2 inline-flex items-center focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
               >
                 {t('footer.terms')}
               </Link>
               <Link
                 href="/consumer/privacy"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] px-2 inline-flex items-center focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
               >
                 {t('footer.privacy')}
               </Link>

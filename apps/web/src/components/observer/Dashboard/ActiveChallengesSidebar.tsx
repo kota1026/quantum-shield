@@ -3,16 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
-
-interface ActiveChallenge {
-  id: string;
-  challengeId: string;
-  targetAddress: string;
-  amount: string;
-  countdown: string;
-  progress: number;
-  status: 'defense' | 'judgment';
-}
+import type { ActiveChallenge } from '@/lib/api/observer/mock';
 
 interface ActiveChallengesSidebarProps {
   challenges: ActiveChallenge[];

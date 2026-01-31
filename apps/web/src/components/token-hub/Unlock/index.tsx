@@ -17,37 +17,11 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { Link } from '@/i18n/navigation';
+import { useLockedPositions } from '@/hooks/token-hub/useTokenHub';
+import { MOCK_LOCKED_POSITIONS, type LockedPosition } from '@/lib/api/token-hub/mock';
 
-// Demo locked positions - In production, this would come from API/blockchain
-const DEMO_LOCKED_POSITIONS = [
-  {
-    id: '1',
-    lockedAmount: 5000,
-    veQSAmount: 2500,
-    lockDate: new Date('2025-01-15'),
-    unlockDate: new Date('2027-01-15'),
-    durationMonths: 24,
-    multiplier: 0.5,
-  },
-  {
-    id: '2',
-    lockedAmount: 3000,
-    veQSAmount: 750,
-    lockDate: new Date('2025-06-01'),
-    unlockDate: new Date('2026-01-01'),
-    durationMonths: 6,
-    multiplier: 0.125,
-  },
-  {
-    id: '3',
-    lockedAmount: 2000,
-    veQSAmount: 500,
-    lockDate: new Date('2024-06-16'),
-    unlockDate: new Date('2025-12-16'),
-    durationMonths: 18,
-    multiplier: 0.375,
-  },
-];
+// Fallback data
+const FALLBACK_LOCKED_POSITIONS = MOCK_LOCKED_POSITIONS;
 
 // Calculate time remaining from now to unlock date
 function calculateTimeRemaining(unlockDate: Date): {
@@ -155,6 +129,10 @@ export function TokenHubUnlock() {
   const t = useTranslations('token-hub.unlock');
   const tCommon = useTranslations('token-hub.common');
 
+  // Fetch locked positions from API with fallback
+  const { data: lockedPositionsApi } = useLockedPositions();
+  const lockedPositions = lockedPositionsApi ?? FALLBACK_LOCKED_POSITIONS;
+
   // State for selected position to withdraw
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -166,7 +144,7 @@ export function TokenHubUnlock() {
     let unlockableCount = 0;
     let unlockableAmount = 0;
 
-    DEMO_LOCKED_POSITIONS.forEach((pos) => {
+    lockedPositions.forEach((pos) => {
       totalLocked += pos.lockedAmount;
       const currentVeQS = calculateCurrentVeQS(
         pos.veQSAmount,
@@ -288,7 +266,7 @@ export function TokenHubUnlock() {
               {t('stats.positions')}
             </div>
             <div className="text-xl font-bold text-foreground">
-              {DEMO_LOCKED_POSITIONS.length}
+              {lockedPositions.length}
             </div>
           </Card>
           <Card
@@ -345,7 +323,7 @@ export function TokenHubUnlock() {
           </div>
 
           <div className="space-y-4" role="list" aria-label={t('positions.listAriaLabel')}>
-            {DEMO_LOCKED_POSITIONS.map((position) => {
+            {lockedPositions.map((position) => {
               const timeRemaining = calculateTimeRemaining(position.unlockDate);
               const currentVeQS = calculateCurrentVeQS(
                 position.veQSAmount,
@@ -555,7 +533,7 @@ export function TokenHubUnlock() {
         </section>
 
         {/* Empty State */}
-        {DEMO_LOCKED_POSITIONS.length === 0 && (
+        {lockedPositions.length === 0 && (
           <Card className="p-8 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gold/10 flex items-center justify-center">
               <Lock className="w-8 h-8 text-gold" aria-hidden="true" />

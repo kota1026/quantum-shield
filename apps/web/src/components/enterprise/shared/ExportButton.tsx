@@ -35,7 +35,7 @@ interface ExportButtonProps {
   filename?: string;
   formats?: ExportFormat[];
   className?: string;
-  variant?: 'default' | 'outline' | 'ghost';
+  variant?: 'outline' | 'ghost' | 'secondary';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
 }

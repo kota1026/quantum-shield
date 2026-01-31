@@ -45,6 +45,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       import('@/lib/wagmi'),
     ]).then(([wagmi, rainbowkit, wagmiConfig]) => {
       // Import CSS on client side
+      // @ts-expect-error CSS modules don't have type declarations
       import('@rainbow-me/rainbowkit/styles.css');
 
       const theme = rainbowkit.darkTheme({

@@ -18,7 +18,7 @@
   },
   "architecture": {
     "title": "アーキテクチャ",
-    "description": "Quantum Shieldは、L1（Ethereum）、L3（Aegis Chain）、ユーザー層の3層構造で構成されています。L2を使用せず、専用のL3チェーンでPBFTコンセンサスと量子耐性署名を実現します。",
+    "description": "Quantum Shieldは、L1（Ethereum）、L3（Proverネットワーク）、ユーザー層の3層構造で構成されています。L2を使用せず、Proverが運営する分散L3ネットワークでBFTコンセンサスと量子耐性署名を実現します。",
     "layers": {
       "l1": {
         "title": "L1: Ethereum（決済層）",
@@ -31,12 +31,12 @@
         ]
       },
       "l3": {
-        "title": "L3: Aegis Chain（シーケンシング層）",
-        "description": "トランザクションの順序付けと合意形成を担う専用チェーン",
+        "title": "L3: Proverネットワーク（検証層）",
+        "description": "Proverが運営するL3ノードで構成される分散ネットワーク。BFT合意とSPHINCS+署名の両方を担当",
         "components": [
-          "PBFTコンセンサス（4ノード、3/4署名必要）",
+          "Prover運営のBFTコンセンサス（3/4署名必要）",
           "5秒間隔のブロック生成",
-          "VRFによるProverランダム選定",
+          "VRFによるProver選定（署名担当）",
           "すべての状態変更を透明に記録"
         ]
       },
@@ -58,8 +58,8 @@
       "dilithium": {
         "name": "Dilithium-III",
         "standard": "FIPS 204",
-        "use": "ユーザー署名 & L3コンセンサス",
-        "description": "格子ベースのデジタル署名。ユーザーがアンロック要求に署名し、L3ノードがブロックに署名するために使用。"
+        "use": "ユーザー署名 & Proverコンセンサス",
+        "description": "格子ベースのデジタル署名。ユーザーがアンロック要求に署名し、Proverが運営するL3ノードがブロックに署名するために使用。"
       },
       "sphincs": {
         "name": "SPHINCS+-128s",
@@ -92,7 +92,7 @@
       "time": "即時",
       "steps": {
         "0": "ユーザーがDilithiumでlock()に署名",
-        "1": "L3 Aegis: 4ノードBFT合意",
+        "1": "Proverネットワーク: BFT合意",
         "2": "状態ルートSR_0を計算",
         "3": "L1 Vaultに預け入れ",
         "4": "Lockedイベントを発行"
@@ -111,9 +111,9 @@
       "time": "24時間（最低保証）",
       "steps": {
         "0": "ユーザーがDilithiumでinitiateUnlock()に署名",
-        "1": "L3: BFT合意 + VRFランダム性取得",
-        "2": "VRFで2/5のProverを選定",
-        "3": "ProverがSPHINCS+で署名",
+        "1": "Proverネットワーク: BFT合意 + VRF",
+        "2": "VRFで2/5のProverを署名担当に選定",
+        "3": "選定ProverがSPHINCS+で署名",
         "4": "L1にSubmit + SPHINCS+検証",
         "5": "24時間タイムロック開始",
         "6": "finalizeUnlock()で資産送金"
@@ -203,13 +203,13 @@
     "stakeLabel": "ステーク",
     "uptimeLabel": "稼働率",
     "prover": {
-      "title": "Prover（署名プロバイダ）",
-      "description": "量子耐性署名を生成し、アンロック要求を承認する中核的な役割。HSMで秘密鍵を管理し、2/5閾値署名の一部を担当。",
+      "title": "Prover（L3ノードオペレーター）",
+      "description": "L3ノードの運営と量子耐性署名を担う中核的な役割。BFTコンセンサスに参加しながら、VRFで選定された際はSPHINCS+署名を提供。HSMで秘密鍵を管理。",
       "responsibilities": [
+        "L3ノードを運営しBFTコンセンサスに参加",
         "VRFで選定されたらSPHINCS+署名を生成",
         "5分以内に署名をL3に提出",
-        "HSMで秘密鍵を安全に管理",
-        "2-of-3マルチシグで内部承認"
+        "HSMで秘密鍵を安全に管理"
       ],
       "requirements": {
         "stake": "最低1 ETH（Phase 1）/ $400K（本番）",
@@ -329,7 +329,7 @@
     "terms": {
       "pbft": {
         "term": "PBFT",
-        "definition": "Practical Byzantine Fault Tolerance の略。ノードの1/3が悪意を持っていても正しく動作する合意アルゴリズム。Quantum ShieldのL3チェーンでは4ノード中3ノードの合意が必要です。"
+        "definition": "Practical Byzantine Fault Tolerance の略。ノードの1/3が悪意を持っていても正しく動作する合意アルゴリズム。Quantum ShieldではProverネットワークの3/4以上の合意が必要です。"
       },
       "vrf": {
         "term": "VRF",
@@ -364,13 +364,13 @@
         "definition": "Hardware Security Module（ハードウェアセキュリティモジュール）の略。秘密鍵を物理的に保護する専用ハードウェアで、Proverは必須で使用します。"
       },
       "l3": {
-        "term": "L3チェーン",
-        "definition": "L1（Ethereum）の上に構築された専用チェーン。L2を使わずL3にすることで、量子耐性署名やPBFTコンセンサスなど独自の機能を実装できます。"
+        "term": "L3チェーン（Proverネットワーク）",
+        "definition": "Proverが運営するL3ノードで構成される分散ネットワーク。各ProverはL3ノードを運営しながら、VRFで選定された際にSPHINCS+署名を提供します。"
       }
     }
   },
   "tooltips": {
-    "pbft": "4ノード中3ノードの合意が必要な、耐障害性の高い合意アルゴリズム",
+    "pbft": "Proverネットワークの3/4以上の合意が必要な、耐障害性の高い合意アルゴリズム",
     "vrf": "操作不可能な乱数を生成し、Prover選定の公平性を保証",
     "lattice": "量子コンピュータでも解読困難な数学的構造を利用",
     "hashBased": "ハッシュ関数のみを使用した最も保守的な署名方式",
@@ -383,7 +383,7 @@
     "slashing": "不正Proverの担保没収。共謀するほどペナルティ増大",
     "quadraticPenalty": "共謀者N人の場合、N²×10%のペナルティ。例：3人共謀で90%没収",
     "hsm": "秘密鍵を物理的に保護する専用ハードウェア",
-    "l3": "量子耐性機能を実装するための専用チェーン（L2ではなくL3を選択）"
+    "l3": "Proverが運営する分散L3ネットワーク。BFT合意とSPHINCS+署名の両方を担当"
   },
   "whyExplanations": {
     "why24Hours": {
@@ -396,7 +396,7 @@
     },
     "whyL3": {
       "title": "なぜL2ではなくL3？",
-      "content": "既存のL2はECDSAベースで量子脆弱性があります。専用のL3チェーンを構築することで、PBFTコンセンサスやDilithium署名など、完全に量子耐性のある設計を実現しています。"
+      "content": "既存のL2はECDSAベースで量子脆弱性があります。Proverが運営するL3ネットワークを構築することで、BFTコンセンサスとSPHINCS+署名を統合した完全に量子耐性のある設計を実現しています。"
     }
   }
 }

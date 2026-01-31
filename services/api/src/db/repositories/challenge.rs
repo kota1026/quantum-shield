@@ -201,4 +201,57 @@ impl ChallengeRepository {
         info!("DB query: get_slashing completed, found={}", result.is_some());
         Ok(result)
     }
+
+    // ========================================================================
+    // Admin Challenge Operations (Phase 8-C)
+    // ========================================================================
+
+    /// Admin intervention on a challenge
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool), fields(challenge_id = %challenge_id, action = %action))]
+    pub async fn admin_intervene(
+        pool: &PgPool,
+        challenge_id: &str,
+        action: &str,
+        admin_id: &str,
+        reason: &str,
+    ) -> Result<ChallengeRow, ApiError> {
+        info!("DB query: admin_intervene started");
+
+        let new_status = match action {
+            "approve_challenge" => "approved_by_admin",
+            "reject_challenge" => "rejected_by_admin",
+            "extend_defense" => "defense_extended",
+            _ => return Err(ApiError::BadRequest(format!("Invalid action: {}", action))),
+        };
+
+        // Update challenge status
+        let result = sqlx::query_as::<_, ChallengeRow>(
+            r#"
+            UPDATE challenges
+            SET status = $2,
+                defense_proof_hash = CASE WHEN $3 = 'extend_defense' THEN defense_proof_hash ELSE $4 END,
+                defense_deadline = CASE WHEN $3 = 'extend_defense' THEN defense_deadline + INTERVAL '48 hours' ELSE defense_deadline END,
+                resolved_at = CASE WHEN $3 IN ('approve_challenge', 'reject_challenge') THEN NOW() ELSE resolved_at END
+            WHERE challenge_id = $1
+            RETURNING challenge_id, lock_id, unlock_id, challenger, fraud_proof_hash,
+                      bond, challenged_at, defense_deadline, status, defender,
+                      defense_proof_hash, resolved_at
+            "#,
+        )
+        .bind(challenge_id)
+        .bind(new_status)
+        .bind(action)
+        .bind(format!("Admin intervention: {} - {}", admin_id, reason))
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: admin_intervene failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: admin_intervene completed, new_status={}", new_status);
+        Ok(result)
+    }
 }

@@ -75,7 +75,7 @@ export function CookieBanner({
         {t('message')}{' '}
         <a
           href={policyUrl}
-          className="text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-surface rounded"
+          className="text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-surface rounded min-h-[44px] inline-flex items-center"
         >
           {t('details')}
         </a>
@@ -83,6 +83,7 @@ export function CookieBanner({
       <Button
         variant="primary"
         size="sm"
+        className="min-h-[44px]"
         onClick={handleAccept}
         aria-label={t('accept')}
       >
@@ -90,7 +91,7 @@ export function CookieBanner({
       </Button>
       <button
         onClick={handleDismiss}
-        className="text-foreground-tertiary hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-surface rounded"
+        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-surface rounded"
         aria-label={t('close')}
         type="button"
       >

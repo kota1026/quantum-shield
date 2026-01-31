@@ -22,9 +22,15 @@ import {
 } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useProverStats, useProvers } from '@/hooks/explorer';
+import { MOCK_PROVER_STATS, MOCK_PROVERS } from '@/lib/api/explorer/mock';
 
-// Mock data
-const mockStats = {
+// Fallback data
+const FALLBACK_PROVER_STATS = MOCK_PROVER_STATS;
+const FALLBACK_PROVERS = MOCK_PROVERS;
+
+// Mock data (kept for reference)
+const mockStatsOriginal = {
   totalProvers: 8,
   activeProvers: 8,
   avgUptime: 99.87,
@@ -32,7 +38,7 @@ const mockStats = {
   totalSignatures: 45892,
 };
 
-const mockProvers = [
+const mockProversOriginal = [
   {
     id: 'prover-1',
     name: 'Prover Alpha',
@@ -131,6 +137,14 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
   const t = useTranslations('explorer');
   const router = useRouter();
 
+  // Fetch data using hooks
+  const { data: proverStatsApi } = useProverStats();
+  const { data: proversApi } = useProvers();
+
+  // Use API data with fallback
+  const mockStats = proverStatsApi ?? FALLBACK_PROVER_STATS;
+  const mockProvers = proversApi ?? FALLBACK_PROVERS;
+
   const getUptimeColor = (uptime: number) => {
     if (uptime >= 99.9) return 'text-success';
     if (uptime >= 99.5) return 'text-gold';
@@ -180,7 +194,7 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
                   key={item}
                   href={`/${locale}/explorer/${item === 'overview' ? 'overview' : item}`}
                   className={cn(
-                    'px-5 py-2 text-sm font-medium rounded-full transition-all',
+                    'px-5 py-2 min-h-[44px] inline-flex items-center text-sm font-medium rounded-full transition-all',
                     item === 'provers'
                       ? 'bg-background-tertiary text-foreground'
                       : 'text-foreground-secondary hover:text-foreground'

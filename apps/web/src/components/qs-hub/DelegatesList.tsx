@@ -147,7 +147,7 @@ export function DelegatesList() {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/qs-hub/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {tCommon('backToHome')}
@@ -270,7 +270,7 @@ export function DelegatesList() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-foreground-tertiary"
+              className="flex-1 min-h-[44px] bg-transparent border-none outline-none text-foreground placeholder:text-foreground-tertiary"
               aria-label={t('searchAriaLabel')}
             />
           </div>
@@ -319,11 +319,11 @@ export function DelegatesList() {
                       </div>
                     </div>
                     {myDelegation ? (
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="min-h-[44px]">
                         {t('manage')}
                       </Button>
                     ) : (
-                      <Button variant="primary" size="sm">
+                      <Button variant="primary" size="sm" className="min-h-[44px]">
                         {t('delegate')}
                       </Button>
                     )}

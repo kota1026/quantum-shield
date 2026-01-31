@@ -66,7 +66,7 @@ export function SuspiciousAlertCard({
         <h2 className="text-xl font-bold text-foreground">{t('title')}</h2>
         <Link
           href="/observer/suspicious"
-          className="text-sm font-medium text-gold hover:text-gold/80 hover:underline transition-colors"
+          className="text-sm font-medium text-gold hover:text-gold/80 hover:underline transition-colors inline-flex items-center min-h-[44px]"
         >
           {t('viewAll')} →
         </Link>
@@ -152,7 +152,7 @@ export function SuspiciousAlertCard({
                   <Link
                     href="/observer/challenge/new"
                     className={cn(
-                      'inline-flex items-center gap-2 px-4 py-2',
+                      'inline-flex items-center gap-2 px-4 py-2 min-h-[44px]',
                       'bg-hinomaru text-white rounded-lg text-sm font-medium',
                       'hover:bg-hinomaru-400 hover:shadow-glow-hinomaru transition-all'
                     )}

@@ -17,8 +17,9 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useQSHubRewards } from '@/hooks/qs-hub/useQSHub';
 
-// Demo data
+// Demo data (kept for fallback with extended structure)
 const DEMO_REWARDS = {
   claimable: 0.85,
   pending: 0.32,
@@ -89,6 +90,11 @@ export function QSHubRewards() {
   const [isClaiming, setIsClaiming] = useState(false);
   const [claimSuccess, setClaimSuccess] = useState(false);
 
+  // Fetch rewards from API with fallback
+  const { data: rewardsApi } = useQSHubRewards();
+  // Use local data as fallback (has extended structure)
+  const rewards = rewardsApi ?? DEMO_REWARDS;
+
   const handleClaim = async () => {
     setIsClaiming(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -115,7 +121,7 @@ export function QSHubRewards() {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/qs-hub/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {tCommon('backToHome')}
@@ -265,7 +271,7 @@ export function QSHubRewards() {
                         href={`https://etherscan.io/tx/${reward.txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-gold hover:underline"
+                        className="min-h-[44px] inline-flex items-center gap-1 text-xs text-gold hover:underline"
                       >
                         {t('history.viewTransaction')}
                         <ExternalLink className="w-3 h-3" />
@@ -277,6 +283,13 @@ export function QSHubRewards() {
             })}
           </div>
         </section>
+
+        {/* Footer */}
+        <footer className="mt-12 pt-8 border-t border-border text-center">
+          <p className="text-xs text-foreground-tertiary">
+            © 2024 Quantum Shield. All rights reserved.
+          </p>
+        </footer>
       </main>
     </div>
   );

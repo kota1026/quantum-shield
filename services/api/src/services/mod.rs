@@ -7,6 +7,8 @@
 //! - HsmClient: Hardware Security Module integration
 //! - VRFService: Chainlink VRF integration (SEQUENCES §2.3-§2.4)
 //! - SphincsService: SPHINCS+-128s signature validation (CP-1)
+//! - L3Client: L3 node connectivity for admin operations (Phase 8-D)
+//! - L1Client: Ethereum Sepolia connectivity (Phase 8-D)
 
 mod redis_client;
 mod rabbitmq_client;
@@ -14,6 +16,12 @@ mod hsm_client;
 mod vrf_service;
 mod sphincs_service;
 pub mod auth_service;
+pub mod l3_client;
+pub mod l1_client;
+pub mod admin_l3_ops;
+pub mod bridge_verifier;
+pub mod treasury_vault;
+pub mod l3_l1_bridge;
 
 use anyhow::Result;
 use sqlx::PgPool;
@@ -49,6 +57,12 @@ pub use hsm_client::HsmClient;
 pub use vrf_service::{VRFService, VRFError};
 pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
 pub use auth_service::AuthService;
+pub use l3_client::{L3Client, L3Config, L3HealthStatus, L3Transaction, L3TxReceipt, L3TxStatus, L3TxType};
+pub use l1_client::{L1Client, L1Config, L1Error, L1Monitor, TxStatus, SEPOLIA_CHAIN_ID};
+pub use admin_l3_ops::{AdminL3OpsService, TreasuryTransferRequest, TreasuryTransferResult, ProverApprovalRequest, ProverApprovalResult, ProverApprovalAction};
+pub use bridge_verifier::{BridgeVerifierService, VerificationStatus, BridgeVerificationResult};
+pub use treasury_vault::{TreasuryVaultService, TreasuryBalance, TreasuryWithdrawRequest, TreasuryWithdrawResult, Withdrawal, WithdrawalStatus};
+pub use l3_l1_bridge::{L3L1BridgeService, E2EOperationStatus, E2EOperationResult, E2ETreasuryWithdrawRequest};
 
 /// Application state shared across handlers
 pub struct AppState {
@@ -62,6 +76,10 @@ pub struct AppState {
     pub vrf: VRFService,
     /// Authentication service for SIWE/JWT (TASK-P5-012)
     pub auth_service: AuthService,
+    /// L3 Client for admin operations (Phase 8-D)
+    pub l3_client: Option<L3Client>,
+    /// L1 Client for Sepolia operations (Phase 8-D)
+    pub l1_client: Option<L1Client>,
 }
 
 /// Edition state tracking
@@ -85,7 +103,66 @@ impl AppState {
         let hsm = HsmClient::new().await?;
         let vrf = VRFService::new(&config.vrf).await?;
         let auth_service = AuthService::new(config.jwt.clone());
-        Ok(Self { config: config.clone(), db, redis, rabbitmq, hsm, vrf, auth_service })
+
+        // Initialize L3 client (Phase 8-D)
+        let l3_client = if let Some(ref l3_endpoint) = config.l3_endpoint {
+            tracing::info!("Initializing L3 client...");
+            let l3_config = L3Config {
+                endpoint: l3_endpoint.clone(),
+                chain_id: config.l3_chain_id.unwrap_or(31337),
+                timeout_ms: 30000,
+            };
+            match L3Client::new(&l3_config) {
+                Ok(client) => {
+                    tracing::info!("L3 client initialized");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!("L3 client initialization failed: {}", e);
+                    None
+                }
+            }
+        } else {
+            tracing::info!("L3 client not configured");
+            None
+        };
+
+        // Initialize L1 client (Phase 8-D)
+        let l1_client = if let Some(ref l1_rpc_url) = config.l1_rpc_url {
+            tracing::info!("Initializing L1 client...");
+            let l1_config = L1Config {
+                rpc_url: l1_rpc_url.clone(),
+                chain_id: config.l1_chain_id.unwrap_or(SEPOLIA_CHAIN_ID),
+                timeout_ms: 60000,
+                bridge_verifier_address: config.bridge_verifier_address.clone(),
+                treasury_vault_address: config.treasury_vault_address.clone(),
+            };
+            match L1Client::new(&l1_config).await {
+                Ok(client) => {
+                    tracing::info!("L1 client initialized");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!("L1 client initialization failed: {}", e);
+                    None
+                }
+            }
+        } else {
+            tracing::info!("L1 client not configured");
+            None
+        };
+
+        Ok(Self {
+            config: config.clone(),
+            db,
+            redis,
+            rabbitmq,
+            hsm,
+            vrf,
+            auth_service,
+            l3_client,
+            l1_client,
+        })
     }
 
     /// Get database pool reference

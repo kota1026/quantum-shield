@@ -125,7 +125,7 @@ export function UnlockProcessing() {
                 {stepLabels[index].tooltip && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('steps.tooltipAriaLabel')}>
+                      <button className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-3 rounded hover:bg-surface-secondary/50 transition-colors" aria-label={t('steps.tooltipAriaLabel')}>
                         <HelpCircle className="h-3 w-3 text-foreground-tertiary" />
                       </button>
                     </TooltipTrigger>
@@ -140,8 +140,8 @@ export function UnlockProcessing() {
         </div>
 
         {showTxHash && (
-          <p className="text-xs text-foreground-secondary font-mono">
-            TX: <a href="https://sepolia.etherscan.io/tx/0x8b4e...1d3f" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">0x8b4e...1d3f</a>
+          <p className="text-xs text-foreground-secondary font-mono flex items-center justify-center gap-1">
+            TX: <a href="https://sepolia.etherscan.io/tx/0x8b4e...1d3f" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline min-h-[44px] inline-flex items-center px-2">0x8b4e...1d3f</a>
           </p>
         )}
       </div>

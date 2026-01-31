@@ -23,11 +23,14 @@ import {
 import { cn } from '@/lib/utils';
 import { SettingsSection } from '@/components/consumer/Settings/SettingsSection';
 import { SettingsItem } from '@/components/consumer/Settings/SettingsItem';
+import { useTokenHubStats } from '@/hooks/token-hub/useTokenHub';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_WALLET_ADDRESS = '0x7a3f...9c2d';
+// Static constants
 const VERSION = '1.0.0';
 const BUILD = '2026.01.16';
+
+// Fallback wallet address
+const FALLBACK_WALLET_ADDRESS = '0x7a3f...9c2d';
 
 export function TokenHubSettings() {
   const t = useTranslations('token-hub.settings');
@@ -131,7 +134,7 @@ export function TokenHubSettings() {
             description={t('account.connectedWallet.description')}
             action={{
               type: 'value',
-              value: DEMO_WALLET_ADDRESS,
+              value: FALLBACK_WALLET_ADDRESS,
               onClick: handleConnectedWallet,
             }}
           />

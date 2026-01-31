@@ -16,46 +16,11 @@ import {
   HelpCircle,
   ArrowLeft,
 } from 'lucide-react';
+import { useCouncil } from '@/hooks/governance';
+import { MOCK_COUNCIL_DATA } from '@/lib/api/governance/mock';
 
-// Mock data for council members
-const securityCouncilMembers = [
-  { id: 'S1', name: 'security.eth', role: 'lead', active: true },
-  { id: 'S2', name: 'audit_pro.eth', role: 'member', active: true },
-  { id: 'S3', name: 'crypto_sec.eth', role: 'member', active: true },
-  { id: 'S4', name: 'quantum_ex.eth', role: 'member', active: true },
-  { id: 'S5', name: 'stark_dev.eth', role: 'member', active: true },
-  { id: 'S6', name: 'zk_expert.eth', role: 'member', active: false },
-  { id: 'S7', name: 'security_7.eth', role: 'member', active: false },
-];
-
-const purposeCommitteeMembers = [
-  { id: 'P1', name: 'founder.eth', role: 'chair', active: true },
-  { id: 'P2', name: 'advisor.eth', role: 'member', active: true },
-  { id: 'P3', name: 'community.eth', role: 'member', active: true },
-];
-
-// Mock data for veto history
-const vetoHistory = [
-  {
-    id: 'QIP-32',
-    title: 'Remove Time Lock for Parameter Changes',
-    vetoedBy: 'Purpose Committee',
-    approvalCount: '2/3',
-    reason: 'cp3',
-    date: '2025-09-20',
-    onchainRef: '0x7a8b9c0d...ef12',
-    reasonText:
-      'This proposal was vetoed because it directly violates Core Principle 3 (CP-3: Security First). The Time Lock mechanism is a critical security feature that provides the community with time to review and respond to governance decisions. Removing it would significantly reduce the protocol\'s security posture and eliminate an important safeguard against malicious proposals.',
-  },
-];
-
-// Mock data for system status
-const systemStatus = {
-  lockContract: true,
-  starkVerifier: true,
-  governance: true,
-  lastCheck: '2026-01-17 15:30 UTC',
-};
+// Fallback data
+const FALLBACK_COUNCIL = MOCK_COUNCIL_DATA;
 
 type TabType = 'status' | 'veto';
 
@@ -199,6 +164,17 @@ export function Council() {
   const t = useTranslations('governance.council');
   const tFooter = useTranslations('governance.landing.footer');
   const [activeTab, setActiveTab] = useState<TabType>('status');
+
+  // Fetch data using hooks
+  const { data: councilApi } = useCouncil();
+
+  // Use API data with fallback
+  const councilData = councilApi ?? FALLBACK_COUNCIL;
+  const securityCouncilMembers = councilData.securityCouncil;
+  const purposeCommitteeMembers = councilData.purposeCommittee;
+  const vetoHistory = councilData.vetoHistory;
+  const systemStatus = councilData.systemStatus;
+
   const [selectedVeto, setSelectedVeto] = useState<string | null>(vetoHistory[0]?.id || null);
 
   const securityActiveCount = securityCouncilMembers.filter((m) => m.active).length;
@@ -219,7 +195,7 @@ export function Council() {
         {/* Back to Dashboard */}
         <Link
           href="/governance/landing"
-          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gold transition-colors mb-6"
+          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gold transition-colors mb-6 min-h-[44px]"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('backToDashboard')}
@@ -294,7 +270,7 @@ export function Council() {
             aria-selected={activeTab === 'status'}
             aria-controls="status-panel"
             id="status-tab"
-            className={`flex items-center gap-2 rounded-full px-6 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 rounded-full px-6 min-h-[44px] text-sm font-medium transition-colors ${
               activeTab === 'status'
                 ? 'bg-[#18181c] text-white'
                 : 'text-gray-400 hover:text-white'
@@ -309,7 +285,7 @@ export function Council() {
             aria-selected={activeTab === 'veto'}
             aria-controls="veto-panel"
             id="veto-tab"
-            className={`flex items-center gap-2 rounded-full px-6 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 rounded-full px-6 min-h-[44px] text-sm font-medium transition-colors ${
               activeTab === 'veto' ? 'bg-[#18181c] text-white' : 'text-gray-400 hover:text-white'
             }`}
             onClick={() => setActiveTab('veto')}
@@ -450,17 +426,27 @@ export function Council() {
 
         {/* Footer */}
         <footer className="mt-12 border-t border-white/5 pt-6">
-          <div className="mb-4 flex flex-wrap justify-center gap-6 text-xs text-gray-500">
-            <Link href="/governance" className="transition-colors hover:text-white">
+          <div className="mb-4 flex flex-wrap justify-center gap-4 text-xs text-gray-500">
+            <a
+              href="https://forum.quantumshield.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white min-h-[44px] inline-flex items-center px-2"
+            >
               {tFooter('governanceForum')}
-            </Link>
-            <Link href="/docs" className="transition-colors hover:text-white">
+            </a>
+            <a
+              href="https://docs.quantumshield.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white min-h-[44px] inline-flex items-center px-2"
+            >
               {tFooter('documentation')}
-            </Link>
-            <Link href="/terms" className="transition-colors hover:text-white">
+            </a>
+            <Link href="/consumer/terms" className="transition-colors hover:text-white min-h-[44px] min-w-[44px] inline-flex items-center px-2">
               {tFooter('terms')}
             </Link>
-            <Link href="/privacy" className="transition-colors hover:text-white">
+            <Link href="/consumer/privacy" className="transition-colors hover:text-white min-h-[44px] inline-flex items-center px-2">
               {tFooter('privacy')}
             </Link>
           </div>

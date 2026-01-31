@@ -20,28 +20,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ObserverHeader } from '../Dashboard/ObserverHeader';
+import { useObserverSettings } from '@/hooks/observer';
+import { MOCK_OBSERVER_SETTINGS } from '@/lib/api/observer/mock';
 
-// Mock data
-const mockSettings = {
-  profile: {
-    observerId: 'OBS-089',
-    walletAddress: '0x7a3f9c2d8e1b4f6a...',
-    email: 'observer@example.io',
-    joinedDate: '2025/11/15',
-  },
-  notifications: {
-    email: true,
-    browser: true,
-    suspiciousAlert: true,
-    challengeUpdate: true,
-    earningsAlert: true,
-  },
-  security: {
-    twoFactorEnabled: true,
-    lastLogin: '2026/01/17 14:32',
-    loginHistory: 12,
-  },
-};
+// Fallback data
+const FALLBACK_SETTINGS = MOCK_OBSERVER_SETTINGS;
 
 type TabType = 'profile' | 'notifications' | 'security';
 
@@ -51,8 +34,15 @@ export function ObserverSettings() {
   const router = useRouter();
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<TabType>('profile');
-  const [notifications, setNotifications] = useState(mockSettings.notifications);
   const [saved, setSaved] = useState(false);
+
+  // Fetch data using hooks
+  const { data: settingsApi } = useObserverSettings();
+
+  // Use API data with fallback
+  const settings = settingsApi ?? FALLBACK_SETTINGS;
+
+  const [notifications, setNotifications] = useState(settings.notifications);
 
   const handleLanguageChange = (newLocale: string) => {
     router.replace(pathname, { locale: newLocale });
@@ -121,7 +111,7 @@ export function ObserverSettings() {
             aria-selected={activeTab === 'profile'}
             aria-controls="profile-panel"
             onClick={() => setActiveTab('profile')}
-            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+            className={`px-5 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
               activeTab === 'profile' ? 'bg-hinomaru text-white' : 'text-foreground-secondary hover:text-foreground'
             }`}
           >
@@ -133,7 +123,7 @@ export function ObserverSettings() {
             aria-selected={activeTab === 'notifications'}
             aria-controls="notifications-panel"
             onClick={() => setActiveTab('notifications')}
-            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+            className={`px-5 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
               activeTab === 'notifications' ? 'bg-hinomaru text-white' : 'text-foreground-secondary hover:text-foreground'
             }`}
           >
@@ -145,7 +135,7 @@ export function ObserverSettings() {
             aria-selected={activeTab === 'security'}
             aria-controls="security-panel"
             onClick={() => setActiveTab('security')}
-            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+            className={`px-5 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
               activeTab === 'security' ? 'bg-hinomaru text-white' : 'text-foreground-secondary hover:text-foreground'
             }`}
           >
@@ -173,14 +163,14 @@ export function ObserverSettings() {
                   <label className="block text-sm text-foreground-tertiary mb-1">
                     {t('profile.observerId')}
                   </label>
-                  <div className="font-mono text-lg">{mockSettings.profile.observerId}</div>
+                  <div className="font-mono text-lg">{settings.profile.observerId}</div>
                 </div>
                 <div>
                   <label className="block text-sm text-foreground-tertiary mb-1">
                     {t('profile.walletAddress')}
                   </label>
                   <div className="flex items-center gap-2 font-mono text-sm">
-                    {mockSettings.profile.walletAddress}
+                    {settings.profile.walletAddress}
                   </div>
                 </div>
                 <div>
@@ -189,7 +179,7 @@ export function ObserverSettings() {
                   </label>
                   <input
                     type="email"
-                    defaultValue={mockSettings.profile.email}
+                    defaultValue={settings.profile.email}
                     className="w-full px-4 py-2 bg-background border border-surface-tertiary rounded-lg focus:outline-none focus:ring-2 focus:ring-hinomaru"
                   />
                 </div>
@@ -212,7 +202,7 @@ export function ObserverSettings() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-background rounded-lg">
                   <span className="text-sm text-foreground-secondary">{t('profile.joinedDate')}</span>
-                  <span className="text-sm">{mockSettings.profile.joinedDate}</span>
+                  <span className="text-sm">{settings.profile.joinedDate}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-background rounded-lg">
                   <span className="text-sm text-foreground-secondary">{t('profile.totalChallenges')}</span>
@@ -374,13 +364,13 @@ export function ObserverSettings() {
                   <span className="text-sm text-foreground-secondary">
                     {t('security.loginHistory.lastLogin')}
                   </span>
-                  <span className="text-sm">{mockSettings.security.lastLogin}</span>
+                  <span className="text-sm">{settings.security.lastLogin}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">
                     {t('security.loginHistory.totalLogins')}
                   </span>
-                  <Badge variant="info">{mockSettings.security.loginHistory}</Badge>
+                  <Badge variant="info">{settings.security.loginHistory}</Badge>
                 </div>
               </div>
             </Card>

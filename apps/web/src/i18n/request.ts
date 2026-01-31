@@ -29,6 +29,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const ecosystemJson = (await import(`../../locales/${locale}/ecosystem.json`)).default;
   const ecosystemTechnicalJson = (await import(`../../locales/${locale}/ecosystemTechnical.json`)).default;
   const ecosystemNewJson = (await import(`../../locales/${locale}/ecosystemNew.json`)).default;
+  const qsAdminJson = (await import(`../../locales/${locale}/qs-admin.json`)).default;
 
   // Extract nested content if the JSON has a root key matching the namespace
   const common = commonJson.common || commonJson;
@@ -44,6 +45,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const ecosystem = ecosystemJson.ecosystem || ecosystemJson;
   const ecosystemTechnical = ecosystemTechnicalJson.ecosystemTechnical || ecosystemTechnicalJson;
   const ecosystemNew = ecosystemNewJson.ecosystemNew || ecosystemNewJson;
+  const qsAdmin = qsAdminJson.qsAdmin || qsAdminJson;
 
   return {
     locale,
@@ -61,6 +63,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       ecosystem,
       ecosystemTechnical,
       ecosystemNew,
+      qsAdmin,
     },
   };
 });

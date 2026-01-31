@@ -148,7 +148,7 @@ export function ProverChallenge() {
               aria-controls="notification-panel"
               tabIndex={activeTab === 'notification' ? 0 : -1}
               onClick={() => setActiveTab('notification')}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px] ${
                 activeTab === 'notification' ? 'bg-gold text-background' : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
@@ -165,7 +165,7 @@ export function ProverChallenge() {
               aria-controls="defense-panel"
               tabIndex={activeTab === 'defense' ? 0 : -1}
               onClick={() => setActiveTab('defense')}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px] ${
                 activeTab === 'defense' ? 'bg-gold text-background' : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
@@ -179,7 +179,7 @@ export function ProverChallenge() {
               aria-controls="result-panel"
               tabIndex={activeTab === 'result' ? 0 : -1}
               onClick={() => setActiveTab('result')}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px] ${
                 activeTab === 'result' ? 'bg-gold text-background' : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
@@ -280,7 +280,7 @@ export function ProverChallenge() {
                           </div>
                           <span className="flex-1 text-sm">{file.name}</span>
                           <button
-                            className="text-info text-sm hover:underline flex items-center gap-1"
+                            className="text-info text-sm hover:underline inline-flex items-center gap-1 min-h-[44px]"
                             aria-label={`${t('challenge.notification.download')} ${file.name}`}
                           >
                             <FileDown className="h-4 w-4" aria-hidden="true" />
@@ -384,7 +384,7 @@ export function ProverChallenge() {
                           <span className="flex-1 text-sm">{file.name}</span>
                           <button
                             onClick={() => removeFile(i)}
-                            className="text-danger hover:text-danger/80"
+                            className="text-danger hover:text-danger/80 min-h-[44px] min-w-[44px] flex items-center justify-center"
                             aria-label={t('challenge.defense.removeFile', { name: file.name })}
                           >
                             <X className="h-4 w-4" />

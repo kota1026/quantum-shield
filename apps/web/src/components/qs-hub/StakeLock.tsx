@@ -18,6 +18,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { Tooltip } from '@/components/shared/Tooltip';
+import { useQSBalance } from '@/hooks/qs-hub/useQSHub';
+import { MOCK_BALANCE } from '@/lib/api/qs-hub/mock';
 
 // Lock duration options
 const DURATION_OPTIONS = [
@@ -33,7 +35,7 @@ const DURATION_OPTIONS = [
 const QUICK_AMOUNTS = [25, 50, 75, 100];
 
 // Demo balance - In production, this would come from wallet/API
-const DEMO_BALANCE = 15000;
+const balance = 15000;
 
 // Step type
 type Step = 1 | 2 | 3;
@@ -42,6 +44,10 @@ export function StakeLock() {
   const t = useTranslations('qs-hub.stake.lock');
   const tCommon = useTranslations('qs-hub.common');
   const router = useRouter();
+
+  // Fetch balance from API with fallback
+  const { data: balanceApi } = useQSBalance();
+  const balance = balanceApi ?? MOCK_BALANCE;
 
   // Form state
   const [amount, setAmount] = useState<string>('');
@@ -69,9 +75,9 @@ export function StakeLock() {
       return;
     }
     const numValue = parseInt(value, 10);
-    if (numValue <= DEMO_BALANCE) {
+    if (numValue <= balance) {
       setAmount(numValue.toLocaleString());
-      const percent = Math.round((numValue / DEMO_BALANCE) * 100);
+      const percent = Math.round((numValue / balance) * 100);
       if (QUICK_AMOUNTS.includes(percent)) {
         setSelectedQuickAmount(percent);
       } else {
@@ -82,14 +88,14 @@ export function StakeLock() {
 
   // Handle quick amount selection
   const handleQuickAmount = useCallback((percent: number) => {
-    const calculatedAmount = Math.floor((DEMO_BALANCE * percent) / 100);
+    const calculatedAmount = Math.floor((balance * percent) / 100);
     setAmount(calculatedAmount.toLocaleString());
     setSelectedQuickAmount(percent);
   }, []);
 
   // Handle max button
   const handleMax = useCallback(() => {
-    setAmount(DEMO_BALANCE.toLocaleString());
+    setAmount(balance.toLocaleString());
     setSelectedQuickAmount(100);
   }, []);
 
@@ -109,13 +115,13 @@ export function StakeLock() {
   // Validate form
   const isFormValid = useMemo(() => {
     const numAmount = parseFloat(amount.replace(/,/g, '')) || 0;
-    return numAmount > 0 && numAmount <= DEMO_BALANCE;
+    return numAmount > 0 && numAmount <= balance;
   }, [amount]);
 
   // Check for error states
   const amountError = useMemo(() => {
     const numAmount = parseFloat(amount.replace(/,/g, '')) || 0;
-    if (numAmount > DEMO_BALANCE) {
+    if (numAmount > balance) {
       return 'insufficientBalance';
     }
     return null;
@@ -148,7 +154,7 @@ export function StakeLock() {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/qs-hub/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {tCommon('backToHome')}
@@ -262,12 +268,12 @@ export function StakeLock() {
               {/* Balance Row */}
               <div id="balance-info" className="flex justify-between items-center mt-2">
                 <span className="text-xs text-foreground-tertiary">
-                  {t('amount.balance')}: {DEMO_BALANCE.toLocaleString()} QS
+                  {t('amount.balance')}: {balance.toLocaleString()} QS
                 </span>
                 <button
                   type="button"
                   onClick={handleMax}
-                  className="text-xs text-gold font-medium hover:underline focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+                  className="min-h-[44px] min-w-[44px] px-2 inline-flex items-center justify-center text-xs text-gold font-medium hover:underline focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
                   aria-label={t('amount.maxAriaLabel')}
                 >
                   MAX
@@ -290,7 +296,7 @@ export function StakeLock() {
                     type="button"
                     onClick={() => handleQuickAmount(percent)}
                     className={cn(
-                      'flex-1 py-2 px-3 text-sm font-medium rounded-lg',
+                      'flex-1 min-h-[44px] py-2 px-3 text-sm font-medium rounded-lg',
                       'border transition-all duration-200',
                       'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                       selectedQuickAmount === percent

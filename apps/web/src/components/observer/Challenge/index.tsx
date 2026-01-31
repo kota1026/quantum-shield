@@ -164,7 +164,7 @@ export function ChallengeForm() {
 
         <Link
           href="/observer/suspicious"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-transparent border border-border-default rounded-lg text-text-secondary text-sm hover:border-accent-gold hover:text-accent-gold transition-colors mb-6"
+          className="inline-flex items-center gap-2 px-4 py-2 min-h-[44px] bg-transparent border border-border-default rounded-lg text-text-secondary text-sm hover:border-accent-gold hover:text-accent-gold transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('backToSuspicious')}
@@ -248,14 +248,16 @@ export function ChallengeForm() {
               {riskFactors.map((factor) => (
                 <label
                   key={factor.key}
-                  className="flex items-center gap-4 py-2 border-b border-border-subtle last:border-0 cursor-pointer"
+                  className="flex items-center gap-4 py-2 min-h-[44px] border-b border-border-subtle last:border-0 cursor-pointer"
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedFactors.includes(factor.key)}
-                    onChange={() => toggleFactor(factor.key)}
-                    className="w-5 h-5 accent-accent-hinomaru"
-                  />
+                  <span className="relative flex items-center justify-center min-w-[44px] min-h-[44px] -m-3 mr-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedFactors.includes(factor.key)}
+                      onChange={() => toggleFactor(factor.key)}
+                      className="w-5 h-5 accent-accent-hinomaru"
+                    />
+                  </span>
                   <span className="text-sm">{factor.label}</span>
                 </label>
               ))}
@@ -293,7 +295,7 @@ export function ChallengeForm() {
             <button
               type="button"
               onClick={addLink}
-              className="flex items-center gap-2 px-4 py-2 bg-transparent border border-dashed border-border-default rounded-lg text-text-secondary text-sm hover:border-accent-gold hover:text-accent-gold transition-colors mt-2"
+              className="flex items-center gap-2 px-4 py-2 min-h-[44px] bg-transparent border border-dashed border-border-default rounded-lg text-text-secondary text-sm hover:border-accent-gold hover:text-accent-gold transition-colors mt-2"
             >
               <Plus className="w-4 h-4" />
               {t('evidence.addLink')}

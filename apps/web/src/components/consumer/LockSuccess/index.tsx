@@ -82,7 +82,7 @@ export function LockSuccess() {
                 <button
                   onClick={handleCopy}
                   className={cn(
-                    'p-1.5 rounded-qs transition-colors',
+                    'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-qs transition-colors -m-2',
                     'hover:bg-surface-secondary',
                     copied ? 'text-success' : 'text-foreground-secondary hover:text-foreground'
                   )}

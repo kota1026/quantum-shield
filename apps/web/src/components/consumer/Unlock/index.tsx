@@ -10,32 +10,11 @@ import { cn } from '@/lib/utils';
 import { LockCard, LockItem } from './LockCard';
 import { MethodCard } from './MethodCard';
 import { TimeLockModal } from './TimeLockModal';
+import { useLocks } from '@/hooks/consumer';
+import { MOCK_LOCKS } from '@/lib/api/consumer/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_LOCKS: LockItem[] = [
-  {
-    id: '1',
-    number: 1,
-    amount: '10.00 ETH',
-    timestamp: '2026-01-01 10:00',
-    status: 'locked',
-  },
-  {
-    id: '2',
-    number: 2,
-    amount: '5.00 ETH',
-    timestamp: '2026-01-03 14:30',
-    status: 'locked',
-  },
-  {
-    id: '3',
-    number: 3,
-    amount: '2.50 ETH',
-    timestamp: '2026-01-05 09:15',
-    status: 'pending',
-    remainingTime: '23:41:02',
-  },
-];
+// Fallback data
+const FALLBACK_LOCKS = MOCK_LOCKS;
 
 type UnlockMethod = 'normal' | 'emergency';
 
@@ -43,7 +22,13 @@ export function Unlock() {
   const t = useTranslations('consumer.unlock');
   const router = useRouter();
 
-  const [selectedLockId, setSelectedLockId] = useState<string>(DEMO_LOCKS[0]?.id || '');
+  // Fetch data using hooks
+  const { data: locksData } = useLocks();
+
+  // Use API data with fallback
+  const locks = (locksData?.locks ?? FALLBACK_LOCKS) as LockItem[];
+
+  const [selectedLockId, setSelectedLockId] = useState<string>(locks[0]?.id || '');
   const [selectedMethod, setSelectedMethod] = useState<UnlockMethod>('normal');
   const [isTimeLockModalOpen, setIsTimeLockModalOpen] = useState(false);
 
@@ -111,12 +96,12 @@ export function Unlock() {
             role="radiogroup"
             aria-labelledby="select-lock-label"
           >
-            {DEMO_LOCKS.length === 0 ? (
+            {locks.length === 0 ? (
               <p className="text-center text-foreground-secondary py-8">
                 {t('selectLock.emptyState')}
               </p>
             ) : (
-              DEMO_LOCKS.map((lock) => (
+              locks.map((lock) => (
                 <LockCard
                   key={lock.id}
                   lock={lock}

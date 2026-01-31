@@ -84,19 +84,7 @@ export function Settings({ className }: SettingsProps) {
         role="main"
         aria-label={t('ariaLabel')}
       >
-        <EnterpriseTopBar
-          title={t('pageTitle')}
-          actions={
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              {isSaving ? t('saving') : t('save')}
-            </Button>
-          }
-        />
+        <EnterpriseTopBar pageTitle={t('pageTitle')} />
 
         <div className="p-8">
           <div className="grid grid-cols-[240px_1fr] gap-8">

@@ -316,7 +316,7 @@ export function EnterpriseProvers() {
                         <StatusBadge status={prover.status} />
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant={prover.type === 'dedicated' ? 'gold' : 'outline'} className="text-xs">
+                        <Badge variant={prover.type === 'dedicated' ? 'gold' : 'default'} className="text-xs">
                           {t(`type.${prover.type}`)}
                         </Badge>
                       </td>

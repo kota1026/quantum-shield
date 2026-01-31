@@ -2,20 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AlertTriangle, Clock, Lightbulb, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useEmergencyResult } from '@/hooks/consumer';
+import { MOCK_EMERGENCY_RESULT } from '@/lib/api/consumer/mock';
 
-// Demo data
-const DEMO_DATA = {
-  amount: '10.00',
-  symbol: 'ETH',
-  bond: '0.50',
-  waitDays: 7,
-  completionDate: '2026-01-21 14:35:00',
-  txHash: '0x9c5h2e4f8a3b7d1c6e9f0a2b4c6d8e0f1a3b5c7d9e1f2a4b6c8d0e2f4a6b8c0d',
-};
+// Fallback data
+const FALLBACK_RESULT = MOCK_EMERGENCY_RESULT;
 
 function formatCountdown(totalSeconds: number): string {
   const days = Math.floor(totalSeconds / (24 * 3600));
@@ -28,10 +24,19 @@ function formatCountdown(totalSeconds: number): string {
 
 export function EmergencySuccess() {
   const t = useTranslations('consumer.emergencySuccess');
+  const searchParams = useSearchParams();
+  const txId = searchParams.get('txId') || '';
+
+  // Fetch data using hooks
+  const { data: resultDataApi } = useEmergencyResult(txId);
+
+  // Use API data with fallback
+  const resultData = resultDataApi ?? FALLBACK_RESULT;
 
   // 7 days countdown starting from ~6d 23:59:59
-  const [totalSeconds, setTotalSeconds] = useState(6 * 24 * 3600 + 23 * 3600 + 59 * 60 + 59);
-  const totalDuration = 7 * 24 * 3600;
+  const waitDays = resultData.waitDays;
+  const [totalSeconds, setTotalSeconds] = useState((waitDays - 1) * 24 * 3600 + 23 * 3600 + 59 * 60 + 59);
+  const totalDuration = waitDays * 24 * 3600;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -41,7 +46,7 @@ export function EmergencySuccess() {
   }, []);
 
   const progress = ((totalDuration - totalSeconds) / totalDuration) * 100;
-  const shortTxHash = `${DEMO_DATA.txHash.slice(0, 6)}...${DEMO_DATA.txHash.slice(-4)}`;
+  const shortTxHash = `${resultData.txHash.slice(0, 6)}...${resultData.txHash.slice(-4)}`;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center py-8">
@@ -118,7 +123,7 @@ export function EmergencySuccess() {
               {t('details.amount')}
             </span>
             <span className="text-lg font-medium text-warning">
-              {DEMO_DATA.amount} {DEMO_DATA.symbol}
+              {resultData.amount} {resultData.symbol}
             </span>
           </div>
           <div className="flex justify-between py-2.5 border-b border-border-subtle">
@@ -126,7 +131,7 @@ export function EmergencySuccess() {
               {t('details.bond')}
             </span>
             <span className="text-sm font-medium">
-              {DEMO_DATA.bond} {DEMO_DATA.symbol} ({t('details.bondRefund')})
+              {resultData.bond} {resultData.symbol} ({t('details.bondRefund')})
             </span>
           </div>
           <div className="flex justify-between py-2.5 border-b border-border-subtle">
@@ -134,7 +139,7 @@ export function EmergencySuccess() {
               {t('details.estimatedCompletion')}
             </span>
             <span className="text-sm font-medium">
-              {DEMO_DATA.completionDate}
+              {resultData.completionDate}
             </span>
           </div>
           <div className="flex justify-between py-2.5">
@@ -142,7 +147,7 @@ export function EmergencySuccess() {
               {t('details.txHash')}
             </span>
             <a
-              href={`https://sepolia.etherscan.io/tx/${DEMO_DATA.txHash}`}
+              href={`https://sepolia.etherscan.io/tx/${resultData.txHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-mono text-gold hover:underline flex items-center gap-1"

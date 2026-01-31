@@ -221,7 +221,7 @@ export function ExplorerLanding() {
                 </p>
                 <Link
                   href="/explorer/locks"
-                  className="text-sm text-gold hover:underline inline-flex items-center gap-1"
+                  className="text-sm text-gold hover:underline inline-flex items-center gap-1 min-h-[44px]"
                 >
                   {t('landing.whatYouCanDo.locks.link')}
                   <ArrowRight className="w-4 h-4" />
@@ -237,7 +237,7 @@ export function ExplorerLanding() {
                 </p>
                 <Link
                   href="/explorer/unlocks"
-                  className="text-sm text-gold hover:underline inline-flex items-center gap-1"
+                  className="text-sm text-gold hover:underline inline-flex items-center gap-1 min-h-[44px]"
                 >
                   {t('landing.whatYouCanDo.unlocks.link')}
                   <ArrowRight className="w-4 h-4" />
@@ -253,7 +253,7 @@ export function ExplorerLanding() {
                 </p>
                 <Link
                   href="/explorer/analytics"
-                  className="text-sm text-gold hover:underline inline-flex items-center gap-1"
+                  className="text-sm text-gold hover:underline inline-flex items-center gap-1 min-h-[44px]"
                 >
                   {t('landing.whatYouCanDo.analytics.link')}
                   <ArrowRight className="w-4 h-4" />
@@ -292,7 +292,7 @@ export function ExplorerLanding() {
                         href={t(`landing.expertQuotes.quotes.${index}.sourceUrl`)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-gold hover:underline mt-1 inline-block"
+                        className="text-xs text-gold hover:underline mt-1 inline-flex items-center min-h-[44px]"
                       >
                         {t(`landing.expertQuotes.quotes.${index}.source`)} →
                       </a>
@@ -314,7 +314,7 @@ export function ExplorerLanding() {
               <p className="text-foreground-secondary max-w-xl mx-auto mb-8">
                 {t('landing.cta.description')}
               </p>
-              <Link href="/explorer/overview">
+              <Link href="/explorer/overview" className="inline-flex">
                 <Button variant="primary" size="lg">
                   {t('landing.cta.button')}
                   <ArrowRight className="w-5 h-5 ml-2" />

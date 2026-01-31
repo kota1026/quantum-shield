@@ -28,72 +28,24 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tooltip } from '@/components/shared/Tooltip';
+import {
+  useQSHubStats,
+  useQSHubProposals,
+  useQSHubRewards,
+  useQSHubDelegates,
+} from '@/hooks/qs-hub/useQSHub';
+import {
+  MOCK_STATS,
+  MOCK_PROPOSALS,
+  MOCK_REWARDS,
+  MOCK_DELEGATES,
+} from '@/lib/api/qs-hub/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_STATS = {
-  // Token Hub data
-  qsBalance: 12450,
-  lockedQS: 8500,
-  veQSBalance: 6225,
-  votingPower: 0.12,
-  lockEndDate: '2028-01-15',
-  lockDuration: '3 Years',
-  timeRemaining: '2Y 3M 7D',
-  multiplier: 0.73,
-  // Governance data
-  activeProposals: 3,
-  totalProposals: 47,
-  delegatedVotes: 5225,
-  councilMembers: 7,
-};
-
-const DEMO_PROPOSALS = [
-  {
-    id: 'QIP-047',
-    title: 'Increase Observer Rewards by 15%',
-    status: 'active' as const,
-    endTime: '2d 14h',
-    votes: { for: 67, against: 23 },
-  },
-  {
-    id: 'QIP-046',
-    title: 'Add Support for Polygon zkEVM',
-    status: 'active' as const,
-    endTime: '5d 8h',
-    votes: { for: 82, against: 12 },
-  },
-  {
-    id: 'QIP-045',
-    title: 'Treasury Diversification Strategy',
-    status: 'pending' as const,
-    endTime: '7d 0h',
-    votes: { for: 0, against: 0 },
-  },
-];
-
-const DEMO_REWARDS = {
-  claimable: 847,
-  usdValue: 4235,
-  epochProgress: 65,
-  nextEpoch: '3d 12h',
-};
-
-const DEMO_DELEGATES = [
-  {
-    id: '1',
-    name: 'Watanabe Delegate',
-    initial: 'W',
-    totalPower: '285K veQS',
-    delegatedAmount: 3000,
-  },
-  {
-    id: '2',
-    name: 'Sato Crypto',
-    initial: 'S',
-    totalPower: '198K veQS',
-    delegatedAmount: 2000,
-  },
-];
+// Fallback data
+const FALLBACK_STATS = MOCK_STATS;
+const FALLBACK_PROPOSALS = MOCK_PROPOSALS;
+const FALLBACK_REWARDS = MOCK_REWARDS;
+const FALLBACK_DELEGATES = MOCK_DELEGATES;
 
 // Hover card component
 function HoverCard({
@@ -201,6 +153,18 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
   const [isEcosystemMenuOpen, setIsEcosystemMenuOpen] = useState(false);
   const ecosystemMenuRef = useRef<HTMLDivElement>(null);
 
+  // Fetch data from API with fallback
+  const { data: statsApi } = useQSHubStats();
+  const { data: proposalsApi } = useQSHubProposals();
+  const { data: rewardsApi } = useQSHubRewards();
+  const { data: delegatesApi } = useQSHubDelegates();
+
+  // Use API data or fallback
+  const stats = statsApi ?? FALLBACK_STATS;
+  const proposals = proposalsApi ?? FALLBACK_PROPOSALS;
+  const rewards = rewardsApi ?? FALLBACK_REWARDS;
+  const delegates = delegatesApi ?? FALLBACK_DELEGATES;
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -304,14 +268,14 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
               </div>
             </Link>
           </div>
-          <nav className="flex items-center gap-6">
-            <Link href="/qs-hub/stake/lock" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">
+          <nav className="flex items-center gap-4">
+            <Link href="/qs-hub/stake/lock" className="min-h-[44px] px-2 inline-flex items-center text-sm text-foreground-secondary hover:text-foreground transition-colors">
               {t('nav.stake')}
             </Link>
-            <Link href="/qs-hub/vote/proposals" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">
+            <Link href="/qs-hub/vote/proposals" className="min-h-[44px] px-2 inline-flex items-center text-sm text-foreground-secondary hover:text-foreground transition-colors">
               {t('nav.vote')}
             </Link>
-            <Link href="/qs-hub/rewards" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">
+            <Link href="/qs-hub/rewards" className="min-h-[44px] px-2 inline-flex items-center text-sm text-foreground-secondary hover:text-foreground transition-colors">
               {t('nav.rewards')}
             </Link>
 
@@ -320,7 +284,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
               <button
                 onClick={() => setIsEcosystemMenuOpen(!isEcosystemMenuOpen)}
                 className={cn(
-                  'flex items-center gap-1 text-sm font-medium transition-colors',
+                  'min-h-[44px] px-2 inline-flex items-center gap-1 text-sm font-medium transition-colors',
                   isEcosystemMenuOpen
                     ? 'text-gold'
                     : 'text-foreground-secondary hover:text-foreground'
@@ -407,10 +371,8 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                   <div className="border-t border-border my-2" />
 
                   {/* Ecosystem Link */}
-                  <a
-                    href="https://quantumshield.io/ecosystem"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/ecosystem"
                     className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface-secondary transition-colors"
                     role="menuitem"
                     onClick={() => setIsEcosystemMenuOpen(false)}
@@ -422,7 +384,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                       <div className="font-medium">{tCommon('ecosystemLink')}</div>
                       <div className="text-xs text-foreground-tertiary">{tCommon('ecosystemLinkDesc')}</div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>
@@ -454,9 +416,9 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
           <StatCard
             icon={<Coins className="w-5 h-5 text-gold" />}
             label={t('stats.veQSBalance')}
-            value={DEMO_STATS.veQSBalance}
+            value={stats.veQSBalance}
             unit="veQS"
-            badge={`${(DEMO_STATS.votingPower * 100).toFixed(2)}%`}
+            badge={`${(stats.votingPower * 100).toFixed(2)}%`}
             badgeColor="gold"
             href="/qs-hub/stake/lock"
             tooltip={t('stats.veQSTooltip')}
@@ -464,9 +426,9 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
           <StatCard
             icon={<Lock className="w-5 h-5 text-hinomaru" />}
             label={t('stats.lockedQS')}
-            value={DEMO_STATS.lockedQS}
+            value={stats.lockedQS}
             unit="QS"
-            badge={DEMO_STATS.timeRemaining}
+            badge={stats.timeRemaining}
             badgeColor="hinomaru"
             href="/qs-hub/stake/unlock"
             tooltip={t('stats.lockedTooltip')}
@@ -474,7 +436,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
           <StatCard
             icon={<Vote className="w-5 h-5 text-success" />}
             label={t('stats.activeProposals')}
-            value={DEMO_STATS.activeProposals}
+            value={stats.activeProposals}
             badge={t('stats.votingOpen')}
             badgeColor="success"
             href="/qs-hub/vote/proposals"
@@ -482,9 +444,9 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
           <StatCard
             icon={<Award className="w-5 h-5 text-gold" />}
             label={t('stats.claimableRewards')}
-            value={DEMO_REWARDS.claimable}
+            value={rewards.claimable}
             unit="QS"
-            badge={`$${DEMO_REWARDS.usdValue.toLocaleString()}`}
+            badge={`$${rewards.usdValue.toLocaleString()}`}
             badgeColor="gold"
             href="/qs-hub/rewards"
           />
@@ -503,14 +465,14 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                 </h2>
                 <Link
                   href="/qs-hub/vote/proposals"
-                  className="text-sm text-gold hover:underline flex items-center gap-1"
+                  className="min-h-[44px] px-2 -mr-2 text-sm text-gold hover:underline inline-flex items-center gap-1"
                 >
                   {t('proposals.viewAll')}
                   <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
               <div className="space-y-3" role="list" aria-label={t('proposals.listAriaLabel')}>
-                {DEMO_PROPOSALS.map((proposal) => (
+                {proposals.map((proposal) => (
                   <Link
                     key={proposal.id}
                     href={`/qs-hub/vote/proposals/${proposal.id}`}
@@ -550,8 +512,8 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                 ))}
               </div>
               <div className="mt-4 pt-4 border-t border-border">
-                <Link href="/qs-hub/vote/proposals/create">
-                  <Button variant="outline" className="w-full">
+                <Link href="/qs-hub/vote/proposals/create" className="block">
+                  <Button variant="outline" className="w-full min-h-[44px]">
                     <Plus className="w-4 h-4 mr-2" />
                     {t('proposals.createNew')}
                   </Button>
@@ -568,7 +530,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                 </h2>
                 <Link
                   href="/qs-hub/stake/extend"
-                  className="text-sm text-gold hover:underline flex items-center gap-1"
+                  className="min-h-[44px] px-2 -mr-2 text-sm text-gold hover:underline inline-flex items-center gap-1"
                 >
                   {t('lockStatus.extend')}
                   <ChevronRight className="w-4 h-4" />
@@ -577,17 +539,17 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.locked')}</div>
-                  <div className="text-xl font-bold">{DEMO_STATS.lockedQS.toLocaleString()}</div>
+                  <div className="text-xl font-bold">{stats.lockedQS.toLocaleString()}</div>
                   <div className="text-xs text-foreground-secondary">QS</div>
                 </div>
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.duration')}</div>
-                  <div className="text-xl font-bold">{DEMO_STATS.lockDuration}</div>
-                  <div className="text-xs text-foreground-secondary">{t('lockStatus.remaining', { time: DEMO_STATS.timeRemaining })}</div>
+                  <div className="text-xl font-bold">{stats.lockDuration}</div>
+                  <div className="text-xs text-foreground-secondary">{t('lockStatus.remaining', { time: stats.timeRemaining })}</div>
                 </div>
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.multiplier')}</div>
-                  <div className="text-xl font-bold text-gold">{DEMO_STATS.multiplier}x</div>
+                  <div className="text-xl font-bold text-gold">{stats.multiplier}x</div>
                   <div className="text-xs text-foreground-secondary">{t('lockStatus.veQSRate')}</div>
                 </div>
               </div>
@@ -619,29 +581,29 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
               </div>
               <div className="text-center mb-4">
                 <div className="text-3xl font-bold text-gold mb-1">
-                  {DEMO_REWARDS.claimable.toLocaleString()} QS
+                  {rewards.claimable.toLocaleString()} QS
                 </div>
                 <div className="text-sm text-foreground-secondary">
-                  ≈ ${DEMO_REWARDS.usdValue.toLocaleString()}
+                  ≈ ${rewards.usdValue.toLocaleString()}
                 </div>
               </div>
               <div className="mb-4">
                 <div className="flex justify-between text-xs text-foreground-tertiary mb-1">
                   <span>{t('rewards.epochProgress')}</span>
-                  <span>{DEMO_REWARDS.epochProgress}%</span>
+                  <span>{rewards.epochProgress}%</span>
                 </div>
                 <div className="h-2 bg-background-secondary rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gold rounded-full transition-all"
-                    style={{ width: `${DEMO_REWARDS.epochProgress}%` }}
+                    style={{ width: `${rewards.epochProgress}%` }}
                   />
                 </div>
                 <div className="text-xs text-foreground-tertiary mt-1">
-                  {t('rewards.nextEpoch', { time: DEMO_REWARDS.nextEpoch })}
+                  {t('rewards.nextEpoch', { time: rewards.nextEpoch })}
                 </div>
               </div>
-              <Link href="/qs-hub/rewards">
-                <Button variant="gold" className="w-full">
+              <Link href="/qs-hub/rewards" className="block">
+                <Button variant="gold" className="w-full min-h-[44px]">
                   {t('rewards.claim')}
                 </Button>
               </Link>
@@ -656,14 +618,14 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                 </h2>
                 <Link
                   href="/qs-hub/vote/delegates"
-                  className="text-sm text-gold hover:underline flex items-center gap-1"
+                  className="min-h-[44px] px-2 -mr-2 text-sm text-gold hover:underline inline-flex items-center gap-1"
                 >
                   {t('delegations.manage')}
                   <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
               <div className="space-y-3">
-                {DEMO_DELEGATES.map((delegate) => (
+                {delegates.map((delegate) => (
                   <div
                     key={delegate.id}
                     className="flex items-center justify-between p-3 bg-background-secondary rounded-lg"
@@ -701,14 +663,14 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                 </h2>
                 <Link
                   href="/qs-hub/council"
-                  className="text-sm text-gold hover:underline flex items-center gap-1"
+                  className="min-h-[44px] px-2 -mr-2 text-sm text-gold hover:underline inline-flex items-center gap-1"
                 >
                   {t('council.viewAll')}
                   <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
               <div className="text-center mb-4">
-                <div className="text-3xl font-bold mb-1">{DEMO_STATS.councilMembers}</div>
+                <div className="text-3xl font-bold mb-1">{stats.councilMembers}</div>
                 <div className="text-sm text-foreground-secondary">{t('council.members')}</div>
               </div>
               <p className="text-sm text-foreground-tertiary text-center">

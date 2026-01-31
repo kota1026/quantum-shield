@@ -30,27 +30,27 @@
     --color-surface-secondary: #1E1E22;
     --color-surface-tertiary: #2A2A2E;
 
-    /* Text */
-    --color-text-primary: #FAFAFA;
-    --color-text-secondary: #A1A1AA;
-    --color-text-tertiary: #71717A;
-    --color-text-muted: #52525B;
+    /* Text (matching DESIGN_SYSTEM.md & tailwind.config.ts) */
+    --color-text-primary: #F8F8FA;
+    --color-text-secondary: #9898A0;
+    --color-text-tertiary: #606068;
+    --color-text-muted: #404048;
 
     /* Border */
     --color-border: #2A2A2E;
     --color-border-secondary: #3A3A3E;
 
-    /* Semantic */
-    --color-success: #10B981;
-    --color-warning: #F59E0B;
-    --color-danger: #EF4444;
+    /* Semantic (matching DESIGN_SYSTEM.md & tailwind.config.ts) */
+    --color-success: #00C896;
+    --color-warning: #F0A030;
+    --color-danger: #E84057;
     --color-info: #3B82F6;
 
-    /* Status (Quantum Shield specific) */
+    /* Status (Quantum Shield specific - matching DESIGN_SYSTEM.md) */
     --color-status-locked: #C9A962;
-    --color-status-unlocking: #F59E0B;
-    --color-status-unlocked: #10B981;
-    --color-status-challenged: #EF4444;
+    --color-status-unlocking: #F0A030;
+    --color-status-unlocked: #00C896;
+    --color-status-challenged: #E84057;
     --color-status-emergency: #BC002D;
 
     /* Spacing */

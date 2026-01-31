@@ -262,17 +262,7 @@ export function AuditLog({ className }: AuditLogProps) {
           aria-label={t('ariaLabel')}
         >
         {/* Top Bar */}
-        <EnterpriseTopBar
-          title={t('pageTitle')}
-          actions={
-            <ExportButton
-              data={exportData}
-              columns={exportColumns}
-              filename="audit-log"
-              title={t('pageTitle')}
-            />
-          }
-        />
+        <EnterpriseTopBar pageTitle={t('pageTitle')} />
 
         {/* Page Content */}
         <div className="p-8">

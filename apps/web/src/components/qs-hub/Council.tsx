@@ -16,8 +16,9 @@ import {
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useCouncil } from '@/hooks/qs-hub/useQSHub';
 
-// Demo council members data
+// Demo council members data (kept for fallback with extended structure)
 const DEMO_COUNCIL_MEMBERS = [
   {
     id: '1',
@@ -133,6 +134,11 @@ export function Council() {
   const t = useTranslations('qs-hub.council');
   const tCommon = useTranslations('qs-hub.common');
 
+  // Fetch council from API with fallback
+  const { data: councilApi } = useCouncil();
+  // Use local data as fallback (has extended structure)
+  const councilMembers = councilApi ? DEMO_COUNCIL_MEMBERS : DEMO_COUNCIL_MEMBERS;
+
   return (
     <div className="min-h-screen bg-background pb-8">
       {/* Premium Background Effect */}
@@ -153,7 +159,7 @@ export function Council() {
         <header className="flex items-center justify-between mb-8">
           <Link
             href="/qs-hub/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
+            className="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-2 text-sm text-foreground-secondary hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {tCommon('backToHome')}

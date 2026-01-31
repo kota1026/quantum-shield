@@ -57,12 +57,12 @@ export function Pagination({
   };
 
   const pageButtonClasses = cn(
-    'px-3 py-2 bg-background-secondary border border-border/30 rounded text-sm',
+    'px-3 py-2 min-w-[44px] min-h-[44px] bg-background-secondary border border-border/30 rounded text-sm',
     'text-foreground-secondary hover:border-border hover:text-foreground transition-colors'
   );
 
   const activePageClasses = cn(
-    'px-3 py-2 rounded text-sm font-medium',
+    'px-3 py-2 min-w-[44px] min-h-[44px] rounded text-sm font-medium',
     'bg-hinomaru/10 border border-hinomaru text-hinomaru'
   );
 

@@ -204,6 +204,7 @@ pub fn admin_routes() -> Router {
         // === TASK-P5-015: QS Admin API (11 EP) ===
         // Dashboard & Overview
         .route("/admin/dashboard", get(admin::get_qs_dashboard))
+        .route("/admin/dashboard/alerts", get(admin::get_dashboard_alerts))
         .route("/admin/transactions", get(admin::get_admin_transactions))
         .route("/admin/nodes", get(admin::get_admin_nodes))
         // Staff Management
@@ -227,6 +228,7 @@ pub fn admin_routes() -> Router {
         // Prover Management
         .route("/provers", get(admin::list_provers))
         .route("/provers/register", post(admin::register_prover))
+        .route("/provers/:id", get(admin::get_admin_prover_detail))
         .route("/provers/:id/approve", post(admin::approve_prover))
         .route("/provers/:id/reject", post(admin::reject_prover))
         .route("/provers/:id/suspend", post(admin::suspend_prover))
@@ -242,4 +244,62 @@ pub fn admin_routes() -> Router {
         // Edition
         .route("/edition/current", get(admin::get_current_edition))
         .route("/edition/switch", post(admin::switch_edition))
+        // === Phase 8-C: Admin Auth (5 EP) ===
+        .route("/admin/auth/login", post(admin::admin_login))
+        .route("/admin/auth/logout", post(admin::admin_logout))
+        .route("/admin/auth/refresh", post(admin::admin_refresh_token))
+        .route("/admin/auth/me", get(admin::admin_get_me))
+        .route("/admin/auth/2fa/verify", post(admin::admin_verify_2fa))
+        // === Phase 8-C: Admin Transactions (8 EP) ===
+        .route("/admin/transactions/locks", get(admin::get_admin_locks))
+        .route("/admin/transactions/locks/:id", get(admin::get_admin_lock_detail))
+        .route("/admin/transactions/unlocks", get(admin::get_admin_unlocks))
+        .route("/admin/transactions/unlocks/:id", get(admin::get_admin_unlock_detail))
+        .route("/admin/transactions/emergency", get(admin::get_admin_emergency_unlocks))
+        .route("/admin/transactions/emergency/:id", get(admin::get_admin_emergency_unlock_detail))
+        .route("/admin/challenges", get(admin::get_admin_challenges))
+        .route("/admin/challenges/:id/intervene", post(admin::admin_challenge_intervene))
+        // === Phase 8-C: Admin Users (6 EP) ===
+        .route("/admin/users", get(admin::get_admin_users))
+        .route("/admin/users/:wallet_address", get(admin::get_admin_user_detail).put(admin::update_admin_user))
+        .route("/admin/users/:wallet_address/locks", get(admin::get_admin_user_locks))
+        .route("/admin/users/:wallet_address/unlocks", get(admin::get_admin_user_unlocks))
+        .route("/admin/users/:wallet_address/suspend", post(admin::suspend_admin_user))
+        // === Phase 8-C: Admin Observers (4 EP) ===
+        .route("/admin/observers", get(admin::get_admin_observers))
+        .route("/admin/observers/:id", get(admin::get_admin_observer_detail))
+        .route("/admin/observers/:id/suspend", post(admin::suspend_admin_observer))
+        .route("/admin/observers/:id/challenges", get(admin::get_admin_observer_challenges))
+        // === Phase 8-C: Admin Treasury (10 EP) ===
+        .route("/admin/treasury/overview", get(admin::get_admin_treasury_overview))
+        .route("/admin/treasury/wallets", get(admin::get_admin_treasury_wallets))
+        .route("/admin/treasury/wallets/:id", get(admin::get_admin_treasury_wallet_detail))
+        .route("/admin/treasury/wallets/:id/transfer", post(admin::create_admin_treasury_transfer))
+        .route("/admin/treasury/transfers", get(admin::get_admin_treasury_transfers))
+        .route("/admin/treasury/transfers/:id", get(admin::get_admin_treasury_transfer_detail))
+        .route("/admin/treasury/transfers/:id/approve", post(admin::approve_admin_treasury_transfer))
+        .route("/admin/treasury/transfers/:id/execute", post(admin::execute_admin_treasury_transfer))
+        .route("/admin/treasury/budget", get(admin::get_admin_treasury_budget))
+        .route("/admin/treasury/audit", get(admin::get_admin_treasury_audit))
+        // === Phase 8-C: Admin Governance (5 EP) ===
+        .route("/admin/governance/proposals", get(admin::get_admin_governance_proposals))
+        .route("/admin/governance/proposals/:id", get(admin::get_admin_governance_proposal_detail))
+        .route("/admin/governance/proposals/:id/execute", post(admin::execute_admin_governance_proposal))
+        .route("/admin/governance/council", get(admin::get_admin_governance_council))
+        .route("/admin/governance/votes", get(admin::get_admin_governance_votes))
+        // === Phase 8-C: Admin Settings/Members (2 EP) ===
+        .route("/admin/settings/users", get(admin::get_settings_users).post(admin::create_settings_user))
+        // === Phase 8-C: Admin Support (4 EP) ===
+        .route("/admin/support/tickets", get(admin::get_support_tickets))
+        .route("/admin/support/tickets/:id", get(admin::get_support_ticket_detail).put(admin::update_support_ticket))
+        .route("/admin/support/faq", get(admin::get_support_faq))
+        // === Phase 8-C: Admin Announcements (2 EP) ===
+        .route("/admin/support/announcements", get(admin::get_announcements).post(admin::create_announcement))
+        // === Phase 8-C: Admin Analytics (3 EP) ===
+        .route("/admin/analytics/users", get(admin::get_analytics_users))
+        .route("/admin/analytics/revenue", get(admin::get_analytics_revenue))
+        .route("/admin/analytics/reports", get(admin::get_analytics_reports))
+        // === Phase 8-C: Admin System (2 EP) ===
+        .route("/admin/system/alerts", get(admin::get_system_alerts))
+        .route("/admin/system/maintenance", get(admin::get_system_maintenance))
 }

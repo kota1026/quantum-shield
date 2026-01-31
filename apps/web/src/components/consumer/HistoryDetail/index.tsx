@@ -266,7 +266,7 @@ export function HistoryDetail({ transaction }: HistoryDetailProps) {
                   <button
                     onClick={handleCopyTxHash}
                     className={cn(
-                      'p-1 transition-colors focus:outline-none focus:ring-2 focus:ring-gold/50 rounded',
+                      'min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 transition-colors focus:outline-none focus:ring-2 focus:ring-gold/50 rounded',
                       copied ? 'text-success' : 'text-foreground-tertiary hover:text-foreground'
                     )}
                     aria-label={t('details.copyAriaLabel')}
@@ -282,7 +282,7 @@ export function HistoryDetail({ transaction }: HistoryDetailProps) {
                     href={`https://sepolia.etherscan.io/tx/${transaction.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1 text-foreground-tertiary hover:text-foreground transition-colors"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 text-foreground-tertiary hover:text-foreground transition-colors"
                     aria-label={t('details.viewOnExplorerAriaLabel')}
                   >
                     <ExternalLink className="w-4 h-4" />

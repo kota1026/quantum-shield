@@ -20,15 +20,20 @@ import { Tooltip } from '../Dashboard/Tooltip';
 import { BackupModal } from './BackupModal';
 import { ExportModal } from './ExportModal';
 import { RegenerateModal } from './RegenerateModal';
+import { useKeyInfo } from '@/hooks/consumer';
+import { MOCK_KEY_INFO } from '@/lib/api/consumer/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_PUBLIC_KEY =
-  '0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d1e3f5a7b9c0d2e4f6a8b0c2d4e6f8a0b...';
-const DEMO_KEY_CREATED_DATE = '2026-01-01 10:00:00';
-const DEMO_LAST_BACKUP_DATE = '2026-01-01 10:05:32';
+// Fallback data
+const FALLBACK_KEY_INFO = MOCK_KEY_INFO;
 
 export function KeyManagement() {
   const t = useTranslations('consumer.keyManagement');
+
+  // Fetch data using hooks
+  const { data: keyInfoData } = useKeyInfo();
+
+  // Use API data with fallback
+  const keyInfo = keyInfoData ?? FALLBACK_KEY_INFO;
 
   // Modal states
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
@@ -40,13 +45,13 @@ export function KeyManagement() {
 
   const handleCopyPublicKey = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(DEMO_PUBLIC_KEY);
+      await navigator.clipboard.writeText(keyInfo.publicKey);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
     }
-  }, []);
+  }, [keyInfo.publicKey]);
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -144,7 +149,7 @@ export function KeyManagement() {
             )}
             aria-label={t('publicKey.ariaLabel')}
           >
-            {DEMO_PUBLIC_KEY}
+            {keyInfo.publicKey}
           </div>
 
           <button
@@ -325,7 +330,7 @@ export function KeyManagement() {
                   {t('history.created.title')}
                 </h3>
                 <p className="text-xs text-foreground-tertiary font-mono">
-                  {DEMO_KEY_CREATED_DATE}
+                  {keyInfo.createdAt}
                 </p>
               </div>
             </div>
@@ -346,7 +351,7 @@ export function KeyManagement() {
                   {t('history.lastBackup.title')}
                 </h3>
                 <p className="text-xs text-foreground-tertiary font-mono">
-                  {DEMO_LAST_BACKUP_DATE}
+                  {keyInfo.lastBackup}
                 </p>
               </div>
             </div>

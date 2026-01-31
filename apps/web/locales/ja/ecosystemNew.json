@@ -163,9 +163,9 @@
       },
       "prover": {
         "title": "Prover（証明者）",
-        "role": "解錠を承認する人",
-        "description": "専用ハードウェアを運用し、ユーザーの解錠要求を量子耐性署名で承認。",
-        "incentive": "署名手数料（解錠1件ごとに報酬）"
+        "role": "L3ネットワークを運営する人",
+        "description": "L3ノードを運営しBFTコンセンサスに参加。VRFで選定された際はSPHINCS+署名で解錠を承認。",
+        "incentive": "コンセンサス報酬 + 署名手数料"
       },
       "observer": {
         "title": "Observer（監視者）",
@@ -199,7 +199,7 @@
       "items": {
         "0": {
           "title": "Proverへの報酬",
-          "description": "解錠1件ごとに署名手数料をQSトークンで支払い。専用ハードウェアを運用するProverへの対価です。"
+          "description": "L3ノード運営によるコンセンサス報酬と、解錠承認時の署名手数料をQSトークンで支払い。"
         },
         "1": {
           "title": "Observerへの報酬",
@@ -307,7 +307,7 @@
       "prover": {
         "title": "Prover Portal",
         "tagline": "ネットワークを支える",
-        "description": "SPHINCS+署名を生成し、アンロック要求を承認。署名手数料から報酬を獲得。"
+        "description": "L3ノードを運営しBFTコンセンサスに参加。VRF選定時にSPHINCS+署名でアンロックを承認し報酬を獲得。"
       },
       "observer": {
         "title": "Observer Portal",

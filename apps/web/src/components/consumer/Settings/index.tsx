@@ -22,11 +22,12 @@ import {
 import { cn } from '@/lib/utils';
 import { SettingsSection } from './SettingsSection';
 import { SettingsItem } from './SettingsItem';
+import { useUserSettings, useUpdateSettings } from '@/hooks/consumer';
+import { MOCK_USER_SETTINGS } from '@/lib/api/consumer/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_WALLET_ADDRESS = '0x7a3f...9c2d';
-const DEMO_AUTO_LOCK_MINUTES = 5;
-const DEMO_CURRENCY = 'JPY (¥)';
+// Fallback data
+const FALLBACK_SETTINGS = MOCK_USER_SETTINGS;
+const DEMO_WALLET_ADDRESS = MOCK_USER_SETTINGS.walletAddress;
 const VERSION = '1.0.0';
 const BUILD = '2026.01.06';
 

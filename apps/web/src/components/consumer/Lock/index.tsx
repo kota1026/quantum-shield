@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { HinomaryVisual } from '../Dashboard/HinomaryVisual';
+import { useConsumerStats } from '@/hooks/consumer';
+import { MOCK_CONSUMER_STATS } from '@/lib/api/consumer/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_BALANCE = 12.50;
+// Fallback data
+const FALLBACK_BALANCE = MOCK_CONSUMER_STATS.available;
 
 // Lock period options
 type LockPeriod = 1 | 2 | 3 | 5;
@@ -218,10 +220,12 @@ function Tooltip({ content, children }: TooltipProps) {
       {children || (
         <button
           type="button"
-          className="w-4 h-4 rounded-full bg-surface-tertiary text-foreground-secondary flex items-center justify-center text-xs hover:bg-surface-secondary transition-colors"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-surface-secondary/50 transition-colors rounded-full -m-3"
           aria-label="More info"
         >
-          ?
+          <span className="w-4 h-4 rounded-full bg-surface-tertiary text-foreground-secondary flex items-center justify-center text-xs">
+            ?
+          </span>
         </button>
       )}
       {isVisible && (
@@ -249,11 +253,16 @@ export function Lock() {
   const t = useTranslations('consumer.lock');
   const router = useRouter();
 
+  // Fetch data using hooks
+  const { data: stats } = useConsumerStats();
+
+  // Use API data with fallback
+  const balance = stats?.available ?? FALLBACK_BALANCE;
+
   const [amount, setAmount] = useState('');
   const [period, setPeriod] = useState<LockPeriod>(2); // Default 2 years
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState('');
-  const balance = DEMO_BALANCE;
 
   // Calculate unlock date based on selected period
   const unlockDate = useMemo(() => {

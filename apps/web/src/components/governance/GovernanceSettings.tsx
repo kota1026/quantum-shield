@@ -62,11 +62,11 @@ export function GovernanceSettings() {
   }, [currency]);
 
   const handleVotingHistory = useCallback(() => {
-    router.push('/governance/activity');
+    router.push('/governance/history');
   }, [router]);
 
   const handleDelegations = useCallback(() => {
-    router.push('/governance/activity');
+    router.push('/qs-hub/vote/delegates');
   }, [router]);
 
   const handleFAQ = useCallback(() => {

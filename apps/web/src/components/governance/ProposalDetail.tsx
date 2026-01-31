@@ -287,7 +287,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-foreground-tertiary mb-6" aria-label="Breadcrumb">
-          <Link href="/governance/proposals" className="text-gold hover:underline">
+          <Link href="/governance/proposals" className="text-gold hover:underline min-h-[44px] inline-flex items-center">
             {t('breadcrumb.proposals')}
           </Link>
           <ChevronRight className="w-4 h-4" aria-hidden="true" />
@@ -558,12 +558,12 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
         {/* Footer */}
         <footer className="mt-16 pt-8 border-t border-border/50">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <nav className="flex gap-6" aria-label="Footer navigation">
+            <nav className="flex gap-4" aria-label="Footer navigation">
               <a
                 href="https://forum.quantumshield.io/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] inline-flex items-center px-2"
               >
                 {tFooter('governanceForum')}
               </a>
@@ -571,19 +571,19 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                 href="https://docs.quantumshield.io/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] inline-flex items-center px-2"
               >
                 {tFooter('documentation')}
               </a>
               <Link
                 href="/consumer/terms"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] min-w-[44px] inline-flex items-center px-2"
               >
                 {tFooter('terms')}
               </Link>
               <Link
                 href="/consumer/privacy"
-                className="text-sm text-foreground-tertiary hover:text-gold transition-colors"
+                className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] inline-flex items-center px-2"
               >
                 {tFooter('privacy')}
               </Link>

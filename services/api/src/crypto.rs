@@ -15,7 +15,7 @@
 //! - ❌ Pre-FIPS Dilithium (use FIPS 204 ML-DSA)
 
 use fips204::ml_dsa_65;
-use fips204::traits::{SerDes, Verifier};
+use fips204::traits::{SerDes, Signer, Verifier};
 use crate::error::ApiError;
 
 /// ML-DSA-65 public key size (NIST FIPS 204)
@@ -23,6 +23,9 @@ pub const ML_DSA_65_PUBLIC_KEY_BYTES: usize = 1952;
 
 /// ML-DSA-65 signature size (NIST FIPS 204)
 pub const ML_DSA_65_SIGNATURE_BYTES: usize = 3309;
+
+/// ML-DSA-65 private key size (NIST FIPS 204)
+pub const ML_DSA_65_PRIVATE_KEY_BYTES: usize = 4032;
 
 /// Verify ML-DSA-65 (Dilithium) signature
 ///
@@ -101,6 +104,136 @@ pub fn verify_ml_dsa_65_signature(
     let result = public_key.verify(message, &sig_array, &[]);
 
     Ok(result)
+}
+
+// ============================================================================
+// Admin Signature Generation (Phase 8-D L3 Integration)
+// ============================================================================
+
+/// Generate ML-DSA-65 (Dilithium) signature for admin operations
+///
+/// This function implements NIST FIPS 204 compliant signature generation.
+/// It is used for QS Admin operations that require quantum-resistant signatures.
+///
+/// # CP-1 Compliance
+/// - Uses NIST FIPS 204 ML-DSA-65 (NOT pre-FIPS Dilithium)
+/// - Constant-time implementation
+/// - Pure Rust, no unsafe code
+///
+/// # Security Note
+/// In production, the private key should be retrieved from HSM/KMS.
+/// Never store private keys in environment variables or code.
+///
+/// # Arguments
+/// * `message` - The message to sign
+/// * `private_key_bytes` - ML-DSA-65 private key bytes (4032 bytes)
+///
+/// # Returns
+/// * `Ok(Vec<u8>)` if signature generation succeeds
+/// * `Err` if signing fails
+pub fn sign_ml_dsa_65(
+    message: &[u8],
+    private_key_bytes: &[u8],
+) -> Result<Vec<u8>, ApiError> {
+    // Validate private key size
+    if private_key_bytes.len() != ML_DSA_65_PRIVATE_KEY_BYTES {
+        return Err(ApiError::InvalidSignature(format!(
+            "Invalid private key size: expected {} bytes (FIPS 204 ML-DSA-65), got {}",
+            ML_DSA_65_PRIVATE_KEY_BYTES, private_key_bytes.len()
+        )));
+    }
+
+    // Convert to fixed-size array
+    let sk_array: [u8; ML_DSA_65_PRIVATE_KEY_BYTES] = private_key_bytes
+        .try_into()
+        .map_err(|_| ApiError::InvalidSignature("Failed to convert private key to array".into()))?;
+
+    // Parse private key using FIPS 204 API
+    let private_key = ml_dsa_65::PrivateKey::try_from_bytes(sk_array)
+        .map_err(|_| ApiError::InvalidSignature("Failed to parse ML-DSA-65 private key".into()))?;
+
+    // Sign the message (empty context for basic signing)
+    let signature = private_key
+        .try_sign(message, &[])
+        .map_err(|_| ApiError::Internal("Dilithium signing failed".into()))?;
+
+    Ok(signature.to_vec())
+}
+
+/// Generate ML-DSA-65 keypair for testing
+///
+/// # Warning
+/// This function is for development/testing only.
+/// In production, keys should be generated and stored in HSM/KMS.
+///
+/// # Returns
+/// * `Ok((public_key, private_key))` - Hex-encoded keypair
+/// * `Err` if key generation fails
+pub fn generate_ml_dsa_65_keypair() -> Result<(String, String), ApiError> {
+    let (pk, sk) = ml_dsa_65::try_keygen()
+        .map_err(|_| ApiError::Internal("Failed to generate ML-DSA-65 keypair".into()))?;
+
+    let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+    let sk_hex = format!("0x{}", hex::encode(sk.into_bytes()));
+
+    Ok((pk_hex, sk_hex))
+}
+
+/// Build admin signing message for L3 operations
+///
+/// This creates a standardized message format for admin operations
+/// that require Dilithium signatures.
+///
+/// # Format
+/// `QS_ADMIN_V1|action_type|resource_id|timestamp|nonce`
+///
+/// # Arguments
+/// * `action_type` - Type of admin action (e.g., "TREASURY_TRANSFER", "PROVER_APPROVE")
+/// * `resource_id` - ID of the resource being acted upon
+/// * `timestamp` - Unix timestamp of the action
+/// * `nonce` - Unique nonce to prevent replay attacks
+///
+/// # Returns
+/// * Message bytes for signing
+pub fn build_admin_signing_message(
+    action_type: &str,
+    resource_id: &str,
+    timestamp: u64,
+    nonce: &str,
+) -> Vec<u8> {
+    format!(
+        "QS_ADMIN_V1|{}|{}|{}|{}",
+        action_type, resource_id, timestamp, nonce
+    ).into_bytes()
+}
+
+/// Verify admin signature with message reconstruction
+///
+/// This function reconstructs the admin signing message and verifies
+/// the Dilithium signature.
+///
+/// # Arguments
+/// * `action_type` - Type of admin action
+/// * `resource_id` - ID of the resource
+/// * `timestamp` - Unix timestamp
+/// * `nonce` - Unique nonce
+/// * `signature_hex` - Hex-encoded signature
+/// * `public_key_hex` - Hex-encoded public key
+///
+/// # Returns
+/// * `Ok(true)` if signature is valid
+/// * `Ok(false)` if signature is invalid
+/// * `Err` if input format is invalid
+pub fn verify_admin_signature(
+    action_type: &str,
+    resource_id: &str,
+    timestamp: u64,
+    nonce: &str,
+    signature_hex: &str,
+    public_key_hex: &str,
+) -> Result<bool, ApiError> {
+    let message = build_admin_signing_message(action_type, resource_id, timestamp, nonce);
+    verify_ml_dsa_65_signature(&message, signature_hex, public_key_hex)
 }
 
 #[cfg(test)]
@@ -224,5 +357,126 @@ mod tests {
         let result = verify_ml_dsa_65_signature(message, &sig_hex, &pk_hex);
         assert!(result.is_ok());
         assert!(result.unwrap());
+    }
+
+    // ========================================================================
+    // Admin Signature Tests (Phase 8-D)
+    // ========================================================================
+
+    #[test]
+    fn test_sign_ml_dsa_65() {
+        // Generate a test keypair
+        let (pk, sk) = ml_dsa_65::try_keygen().expect("Key generation failed");
+        let message = b"QS_ADMIN_V1|TREASURY_TRANSFER|tx_123|1706745600|nonce_abc";
+
+        // Sign using our new function
+        let signature = sign_ml_dsa_65(message, &sk.into_bytes())
+            .expect("Signing should succeed");
+
+        // Verify size
+        assert_eq!(signature.len(), ML_DSA_65_SIGNATURE_BYTES);
+
+        // Verify signature is valid
+        let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+        let sig_hex = format!("0x{}", hex::encode(&signature));
+        let result = verify_ml_dsa_65_signature(message, &sig_hex, &pk_hex);
+        assert!(result.is_ok());
+        assert!(result.unwrap());
+    }
+
+    #[test]
+    fn test_sign_ml_dsa_65_invalid_key_size() {
+        let message = b"test message";
+        let invalid_key = vec![0u8; 100]; // Too short
+
+        let result = sign_ml_dsa_65(message, &invalid_key);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Invalid private key size"));
+    }
+
+    #[test]
+    fn test_generate_ml_dsa_65_keypair() {
+        let result = generate_ml_dsa_65_keypair();
+        assert!(result.is_ok());
+
+        let (pk_hex, sk_hex) = result.unwrap();
+
+        // Check format
+        assert!(pk_hex.starts_with("0x"));
+        assert!(sk_hex.starts_with("0x"));
+
+        // Check sizes (hex encoded with 0x prefix)
+        assert_eq!(pk_hex.len(), 2 + ML_DSA_65_PUBLIC_KEY_BYTES * 2);
+        assert_eq!(sk_hex.len(), 2 + ML_DSA_65_PRIVATE_KEY_BYTES * 2);
+    }
+
+    #[test]
+    fn test_build_admin_signing_message() {
+        let message = build_admin_signing_message(
+            "TREASURY_TRANSFER",
+            "tx_123",
+            1706745600,
+            "nonce_abc",
+        );
+
+        let expected = b"QS_ADMIN_V1|TREASURY_TRANSFER|tx_123|1706745600|nonce_abc";
+        assert_eq!(message, expected);
+    }
+
+    #[test]
+    fn test_verify_admin_signature_success() {
+        // Generate a test keypair
+        let (pk, sk) = ml_dsa_65::try_keygen().expect("Key generation failed");
+
+        // Create admin message
+        let action_type = "PROVER_APPROVE";
+        let resource_id = "prover_123";
+        let timestamp = 1706745600u64;
+        let nonce = "nonce_xyz";
+
+        let message = build_admin_signing_message(action_type, resource_id, timestamp, nonce);
+        let signature = sk.try_sign(&message, &[]).expect("Signing failed");
+
+        // Verify
+        let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+        let sig_hex = format!("0x{}", hex::encode(signature));
+
+        let result = verify_admin_signature(
+            action_type,
+            resource_id,
+            timestamp,
+            nonce,
+            &sig_hex,
+            &pk_hex,
+        );
+
+        assert!(result.is_ok());
+        assert!(result.unwrap());
+    }
+
+    #[test]
+    fn test_verify_admin_signature_wrong_params() {
+        // Generate a test keypair
+        let (pk, sk) = ml_dsa_65::try_keygen().expect("Key generation failed");
+
+        // Sign with one set of params
+        let message = build_admin_signing_message("ACTION_A", "id_1", 1000, "nonce_1");
+        let signature = sk.try_sign(&message, &[]).expect("Signing failed");
+
+        // Verify with different params - should fail
+        let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+        let sig_hex = format!("0x{}", hex::encode(signature));
+
+        let result = verify_admin_signature(
+            "ACTION_B", // Different action
+            "id_1",
+            1000,
+            "nonce_1",
+            &sig_hex,
+            &pk_hex,
+        );
+
+        assert!(result.is_ok());
+        assert!(!result.unwrap()); // Signature should be invalid
     }
 }

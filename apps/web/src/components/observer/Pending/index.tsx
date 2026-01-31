@@ -8,9 +8,14 @@ import { PendingFilters } from './PendingFilters';
 import { PendingUnlockRow } from './PendingUnlockRow';
 import { Pagination } from './Pagination';
 import { Card } from '@/components/ui/card';
+import { usePendingUnlocks } from '@/hooks/observer';
+import { MOCK_PENDING_UNLOCKS } from '@/lib/api/observer/mock';
 
-// Mock data
-const mockPendingUnlocks = [
+// Fallback data
+const FALLBACK_PENDING_UNLOCKS = MOCK_PENDING_UNLOCKS;
+
+// Extended mock data for display (kept local for additional fields)
+const extendedPendingUnlocks = [
   {
     id: '1',
     address: '0x4b7c...9e1f',
@@ -91,6 +96,12 @@ const mockPendingUnlocks = [
 export function PendingMonitor() {
   const t = useTranslations('observer.dashboard.pending');
 
+  // Fetch data using hooks
+  const { data: pendingUnlocksApi } = usePendingUnlocks();
+
+  // Use API data with fallback (use extended data for display)
+  const pendingUnlocks = pendingUnlocksApi?.items ?? extendedPendingUnlocks;
+
   const [filters, setFilters] = useState({
     unlockType: 'all',
     minAmount: '',
@@ -101,7 +112,7 @@ export function PendingMonitor() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalItems = 47;
+  const totalItems = pendingUnlocksApi?.total ?? 47;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleFilterChange = (
@@ -186,7 +197,7 @@ export function PendingMonitor() {
                 </tr>
               </thead>
               <tbody>
-                {mockPendingUnlocks.map((unlock) => (
+                {pendingUnlocks.map((unlock) => (
                   <PendingUnlockRow key={unlock.id} unlock={unlock} />
                 ))}
               </tbody>

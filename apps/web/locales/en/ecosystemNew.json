@@ -163,9 +163,9 @@
       },
       "prover": {
         "title": "Prover",
-        "role": "Unlock Approver",
-        "description": "Operate specialized hardware and approve user unlock requests with quantum-resistant signatures.",
-        "incentive": "Signing fees (reward per unlock)"
+        "role": "L3 Network Operator",
+        "description": "Operate L3 nodes and participate in BFT consensus. When selected by VRF, approve unlocks with SPHINCS+ signatures.",
+        "incentive": "Consensus rewards + Signing fees"
       },
       "observer": {
         "title": "Observer",
@@ -199,7 +199,7 @@
       "items": {
         "0": {
           "title": "Prover Rewards",
-          "description": "Pay signing fees in QS tokens per unlock. Compensation for Provers operating specialized hardware."
+          "description": "Consensus rewards for L3 node operation plus signing fees for unlock approvals, paid in QS tokens."
         },
         "1": {
           "title": "Observer Rewards",
@@ -307,7 +307,7 @@
       "prover": {
         "title": "Prover Portal",
         "tagline": "Support the network",
-        "description": "Generate SPHINCS+ signatures and approve unlock requests. Earn rewards from signing fees."
+        "description": "Operate L3 nodes and participate in BFT consensus. Approve unlocks with SPHINCS+ signatures when selected by VRF and earn rewards."
       },
       "observer": {
         "title": "Observer Portal",

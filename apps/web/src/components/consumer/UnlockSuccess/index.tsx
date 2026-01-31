@@ -58,7 +58,7 @@ export function UnlockSuccess() {
               href="https://sepolia.etherscan.io/tx/0x8b4e...1d3f"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-gold hover:underline font-mono"
+              className="text-sm text-gold hover:underline font-mono min-h-[44px] inline-flex items-center px-2 -mr-2"
             >
               0x8b4e...1d3f
             </a>

@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import {
   ArrowLeft,
   Key,
@@ -147,7 +147,7 @@ export function Onboarding() {
           {/* Header */}
           <header className="flex items-center gap-4 mb-8">
             <Link
-              href="/consumer"
+              href="/consumer/landing"
               className="w-11 h-11 flex items-center justify-center bg-surface border border-border rounded-qs hover:border-hinomaru hover:text-hinomaru-400 transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-background"
               aria-label={t('header.backAriaLabel')}
             >
@@ -298,7 +298,7 @@ function Step1WalletConnect({ t, onWalletSelect, onHelpClick }: Step1Props) {
       <div className="mt-auto text-center">
         <button
           onClick={onHelpClick}
-          className="text-sm text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded"
+          className="text-sm text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded px-4 py-2 min-h-[44px] inline-flex items-center"
           type="button"
         >
           {t('step1.helpLink')}
@@ -440,7 +440,7 @@ function Step2KeyGeneration({
 
       <button
         onClick={onDilithiumHelp}
-        className="inline-flex items-center gap-1.5 text-xs text-gold hover:underline mb-6 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded"
+        className="inline-flex items-center gap-1.5 text-xs text-gold hover:underline mb-6 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded px-3 py-2 min-h-[44px]"
         type="button"
       >
         <BookOpen className="w-4 h-4" aria-hidden="true" />
@@ -660,7 +660,7 @@ function Step4Ready({ t, onTutorialClick }: Step4Props) {
 
         <button
           onClick={onTutorialClick}
-          className="mt-4 text-sm text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded"
+          className="mt-4 text-sm text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded px-4 py-2 min-h-[44px] inline-flex items-center"
           type="button"
         >
           {t('step4.tutorialLink')}

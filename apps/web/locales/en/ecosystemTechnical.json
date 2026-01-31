@@ -18,7 +18,7 @@
   },
   "architecture": {
     "title": "Architecture",
-    "description": "Quantum Shield consists of a 3-layer structure: L1 (Ethereum), L3 (Aegis Chain), and User Layer. Without using L2, our dedicated L3 chain implements PBFT consensus and quantum-resistant signatures.",
+    "description": "Quantum Shield consists of a 3-layer structure: L1 (Ethereum), L3 (Prover Network), and User Layer. Without using L2, our decentralized L3 network operated by Provers implements BFT consensus and quantum-resistant signatures.",
     "layers": {
       "l1": {
         "title": "L1: Ethereum (Settlement Layer)",
@@ -31,12 +31,12 @@
         ]
       },
       "l3": {
-        "title": "L3: Aegis Chain (Sequencing Layer)",
-        "description": "Dedicated chain for transaction ordering and consensus",
+        "title": "L3: Prover Network (Verification Layer)",
+        "description": "Decentralized network of L3 nodes operated by Provers. Handles both BFT consensus and SPHINCS+ signatures",
         "components": [
-          "PBFT consensus (4 nodes, 3/4 signatures required)",
+          "Prover-operated BFT consensus (3/4 signatures required)",
           "5-second block intervals",
-          "VRF-based random Prover selection",
+          "VRF-based Prover selection (for signing)",
           "Transparent recording of all state changes"
         ]
       },
@@ -58,8 +58,8 @@
       "dilithium": {
         "name": "Dilithium-III",
         "standard": "FIPS 204",
-        "use": "User signatures & L3 consensus",
-        "description": "Lattice-based digital signature. Used for users to sign unlock requests and L3 nodes to sign blocks."
+        "use": "User signatures & Prover consensus",
+        "description": "Lattice-based digital signature. Used for users to sign unlock requests and Prover-operated L3 nodes to sign blocks."
       },
       "sphincs": {
         "name": "SPHINCS+-128s",
@@ -92,7 +92,7 @@
       "time": "Immediate",
       "steps": {
         "0": "User signs lock() with Dilithium",
-        "1": "L3 Aegis: 4-node BFT consensus",
+        "1": "Prover Network: BFT consensus",
         "2": "Calculate state root SR_0",
         "3": "Deposit to L1 Vault",
         "4": "Emit Locked event"
@@ -111,9 +111,9 @@
       "time": "24 hours (minimum guaranteed)",
       "steps": {
         "0": "User signs initiateUnlock() with Dilithium",
-        "1": "L3: BFT consensus + VRF randomness",
-        "2": "Select 2/5 Provers via VRF",
-        "3": "Provers sign with SPHINCS+",
+        "1": "Prover Network: BFT consensus + VRF",
+        "2": "VRF selects 2/5 Provers for signing",
+        "3": "Selected Provers sign with SPHINCS+",
         "4": "Submit to L1 + verify SPHINCS+",
         "5": "24-hour timelock begins",
         "6": "finalizeUnlock() transfers assets"
@@ -203,13 +203,13 @@
     "stakeLabel": "Stake",
     "uptimeLabel": "Uptime",
     "prover": {
-      "title": "Prover (Signature Provider)",
-      "description": "Core role generating quantum-resistant signatures to approve unlock requests. Manages private keys in HSM and contributes to 2/5 threshold signatures.",
+      "title": "Prover (L3 Node Operator)",
+      "description": "Core role operating L3 nodes and providing quantum-resistant signatures. Participates in BFT consensus while also providing SPHINCS+ signatures when selected by VRF. Manages private keys in HSM.",
       "responsibilities": [
+        "Operate L3 node and participate in BFT consensus",
         "Generate SPHINCS+ signature when selected by VRF",
         "Submit signature to L3 within 5 minutes",
-        "Manage private keys securely with HSM",
-        "2-of-3 multisig for internal approval"
+        "Manage private keys securely with HSM"
       ],
       "requirements": {
         "stake": "Minimum 1 ETH (Phase 1) / $400K (production)",
@@ -329,7 +329,7 @@
     "terms": {
       "pbft": {
         "term": "PBFT",
-        "definition": "Practical Byzantine Fault Tolerance. A consensus algorithm that works correctly even if 1/3 of nodes are malicious. Quantum Shield's L3 chain requires 3 out of 4 nodes to agree."
+        "definition": "Practical Byzantine Fault Tolerance. A consensus algorithm that works correctly even if 1/3 of nodes are malicious. Quantum Shield's Prover Network requires 3/4+ agreement."
       },
       "vrf": {
         "term": "VRF",
@@ -364,13 +364,13 @@
         "definition": "Hardware Security Module. Specialized hardware that physically protects private keys. Required for all Provers."
       },
       "l3": {
-        "term": "L3 Chain",
-        "definition": "A dedicated chain built on top of L1 (Ethereum). By using L3 instead of L2, we can implement unique features like quantum-resistant signatures and PBFT consensus."
+        "term": "L3 Chain (Prover Network)",
+        "definition": "A decentralized network of L3 nodes operated by Provers. Each Prover operates an L3 node for consensus while also providing SPHINCS+ signatures when selected by VRF."
       }
     }
   },
   "tooltips": {
-    "pbft": "Fault-tolerant consensus requiring 3/4 node agreement",
+    "pbft": "Fault-tolerant consensus requiring 3/4+ Prover Network agreement",
     "vrf": "Generates tamper-proof randomness for fair Prover selection",
     "lattice": "Mathematical structure resistant to quantum computers",
     "hashBased": "Most conservative signature method using only hash functions",
@@ -383,7 +383,7 @@
     "slashing": "Confiscates malicious Prover's stake. Penalty increases with collusion",
     "quadraticPenalty": "For N colluders: N²×10% penalty. E.g., 3 colluders = 90% confiscated",
     "hsm": "Specialized hardware for physical private key protection",
-    "l3": "Dedicated chain for quantum-resistant features (L3 over L2)"
+    "l3": "Decentralized L3 network operated by Provers. Handles both BFT consensus and SPHINCS+ signing"
   },
   "whyExplanations": {
     "why24Hours": {
@@ -396,7 +396,7 @@
     },
     "whyL3": {
       "title": "Why L3 instead of L2?",
-      "content": "Existing L2s are ECDSA-based and quantum-vulnerable. By building a dedicated L3 chain, we achieve a fully quantum-resistant design with PBFT consensus and Dilithium signatures."
+      "content": "Existing L2s are ECDSA-based and quantum-vulnerable. By building a Prover-operated L3 network, we achieve a fully quantum-resistant design integrating BFT consensus and SPHINCS+ signatures."
     }
   }
 }

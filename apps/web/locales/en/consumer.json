@@ -469,7 +469,8 @@
         "transparency": {
           "title": "Transparency",
           "description": "All transactions are verifiable on-chain. Open-source, audited smart contracts.",
-          "badge": "Open Source"
+          "badge": "Open Source",
+          "tooltip": "Transparency means all transaction history and smart contract code is publicly available and verifiable by anyone. Third-party audits have also been completed."
         }
       },
       "howItWorks": {
@@ -528,6 +529,19 @@
         "details": "Details",
         "accept": "Accept"
       }
+    },
+    "login": {
+      "meta": {
+        "title": "Login | Quantum Shield",
+        "description": "Connect your wallet to login to Quantum Shield"
+      },
+      "backToHome": "Back to Home",
+      "title": "Login to Quantum Shield",
+      "description": "Connect your wallet to start quantum-resistant protection",
+      "connectWallet": "Connect Wallet",
+      "or": "or",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Sign Up"
     },
     "keyManagement": {
       "meta": {
@@ -654,6 +668,11 @@
           "question": "What should I do if I lose my secret key?",
           "answer": "Use the Emergency Unlock feature. Pay a Bond (collateral) and after a 7-day waiting period, you can recover your assets. The Bond is returned if the unlock is legitimate."
         }
+      },
+      "contact": {
+        "title": "Can't find what you're looking for?",
+        "description": "Our support team is here to help. Feel free to reach out.",
+        "button": "Contact Us"
       }
     },
     "security": {

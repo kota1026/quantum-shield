@@ -30,6 +30,7 @@ export function EcosystemLink({ variant = 'inline', className }: EcosystemLinkPr
           'inline-flex items-center gap-1.5 text-sm text-foreground-tertiary',
           'hover:text-gold transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded',
+          'px-2 py-2 min-h-[44px]',
           className
         )}
       >
@@ -111,6 +112,7 @@ export function EcosystemLink({ variant = 'inline', className }: EcosystemLinkPr
         'inline-flex items-center gap-1 text-xs text-foreground-tertiary',
         'hover:text-foreground-secondary transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded',
+        'px-2 py-2 min-h-[44px]',
         className
       )}
     >

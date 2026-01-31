@@ -322,35 +322,41 @@ export function ProverExit() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="flex items-start gap-3 p-4 bg-background rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={confirmations.penalty}
-                        onChange={(e) => setConfirmations({ ...confirmations, penalty: e.target.checked })}
-                        className="w-5 h-5 mt-0.5"
-                      />
+                    <label className="flex items-start gap-3 p-4 bg-background rounded-lg cursor-pointer min-h-[44px]">
+                      <span className="relative flex items-center justify-center min-w-[44px] min-h-[44px] -m-3 mr-0">
+                        <input
+                          type="checkbox"
+                          checked={confirmations.penalty}
+                          onChange={(e) => setConfirmations({ ...confirmations, penalty: e.target.checked })}
+                          className="w-5 h-5"
+                        />
+                      </span>
                       <span className="text-sm text-foreground-secondary">
                         {t('exit.form.confirm.penalty', { amount: mockExitData.penaltyAmount.toLocaleString() })}
                       </span>
                     </label>
 
-                    <label className="flex items-start gap-3 p-4 bg-background rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={confirmations.activityEnd}
-                        onChange={(e) => setConfirmations({ ...confirmations, activityEnd: e.target.checked })}
-                        className="w-5 h-5 mt-0.5"
-                      />
+                    <label className="flex items-start gap-3 p-4 bg-background rounded-lg cursor-pointer min-h-[44px]">
+                      <span className="relative flex items-center justify-center min-w-[44px] min-h-[44px] -m-3 mr-0">
+                        <input
+                          type="checkbox"
+                          checked={confirmations.activityEnd}
+                          onChange={(e) => setConfirmations({ ...confirmations, activityEnd: e.target.checked })}
+                          className="w-5 h-5"
+                        />
+                      </span>
                       <span className="text-sm text-foreground-secondary">{t('exit.form.confirm.activityEnd')}</span>
                     </label>
 
-                    <label className="flex items-start gap-3 p-4 bg-background rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={confirmations.coolingPeriod}
-                        onChange={(e) => setConfirmations({ ...confirmations, coolingPeriod: e.target.checked })}
-                        className="w-5 h-5 mt-0.5"
-                      />
+                    <label className="flex items-start gap-3 p-4 bg-background rounded-lg cursor-pointer min-h-[44px]">
+                      <span className="relative flex items-center justify-center min-w-[44px] min-h-[44px] -m-3 mr-0">
+                        <input
+                          type="checkbox"
+                          checked={confirmations.coolingPeriod}
+                          onChange={(e) => setConfirmations({ ...confirmations, coolingPeriod: e.target.checked })}
+                          className="w-5 h-5"
+                        />
+                      </span>
                       <span className="text-sm text-foreground-secondary">{t('exit.form.confirm.coolingPeriod')}</span>
                     </label>
                   </div>

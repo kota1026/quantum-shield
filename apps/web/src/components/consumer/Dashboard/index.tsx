@@ -11,44 +11,30 @@ import { RecentActivity, Transaction } from './RecentActivity';
 import { LockModal } from './LockModal';
 import { WalletModal } from './WalletModal';
 import { cn } from '@/lib/utils';
+import { useConsumerStats, useRecentTransactions } from '@/hooks/consumer';
+import {
+  MOCK_CONSUMER_STATS,
+  MOCK_TRANSACTIONS,
+  MOCK_USER_SETTINGS,
+} from '@/lib/api/consumer/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_STATS = {
-  totalLocked: 24.85,
-  available: 12.50,
-  pendingUnlock: 2,
-  transactions: 47,
-};
-
-const DEMO_TRANSACTIONS: Transaction[] = [
-  {
-    id: '1',
-    type: 'lock',
-    amount: '5.00 ETH',
-    timestamp: '2026-01-06 14:32',
-    status: 'complete',
-  },
-  {
-    id: '2',
-    type: 'unlocking',
-    amount: '2.50 ETH',
-    timestamp: '2026-01-05 09:15',
-    status: 'pending',
-  },
-  {
-    id: '3',
-    type: 'unlock',
-    amount: '1.25 ETH',
-    timestamp: '2026-01-03 18:45',
-    status: 'complete',
-  },
-];
-
-const WALLET_ADDRESS = '0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d';
+// Fallback data
+const FALLBACK_STATS = MOCK_CONSUMER_STATS;
+const FALLBACK_TRANSACTIONS = MOCK_TRANSACTIONS;
+const FALLBACK_WALLET = MOCK_USER_SETTINGS.walletAddress;
 
 export function Dashboard() {
   const t = useTranslations('consumer.dashboard');
   const router = useRouter();
+
+  // Fetch data using hooks
+  const { data: apiStats } = useConsumerStats();
+  const { data: txData } = useRecentTransactions();
+
+  // Use API data with fallback
+  const stats = apiStats ?? FALLBACK_STATS;
+  const transactions = (txData?.transactions ?? FALLBACK_TRANSACTIONS) as Transaction[];
+  const walletAddress = FALLBACK_WALLET;
 
   // Modal states
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
@@ -69,7 +55,7 @@ export function Dashboard() {
 
   const handleCopyAddress = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(WALLET_ADDRESS);
+      await navigator.clipboard.writeText(walletAddress);
       // In production, show toast notification
     } catch (err) {
       console.error('Failed to copy:', err);
@@ -113,7 +99,7 @@ export function Dashboard() {
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6" role="main">
         {/* Header */}
         <AppHeader
-          walletAddress={WALLET_ADDRESS}
+          walletAddress={walletAddress}
           onWalletClick={() => setIsWalletModalOpen(true)}
           onLockClick={scrollToLockInput}
         />
@@ -125,35 +111,35 @@ export function Dashboard() {
         >
           <StatCard
             label={t('stats.totalLocked.label')}
-            value={DEMO_STATS.totalLocked.toFixed(2)}
+            value={stats.totalLocked.toFixed(2)}
             unit="ETH"
             tooltip={t('stats.totalLocked.tooltip')}
             badge={{ text: '+12.4%', variant: 'success' }}
             highlight
             onClick={() => router.push('/consumer/history')}
-            ariaLabel={`${t('stats.totalLocked.label')}: ${DEMO_STATS.totalLocked} ETH`}
+            ariaLabel={`${t('stats.totalLocked.label')}: ${stats.totalLocked} ETH`}
           />
           <StatCard
             label={t('stats.available.label')}
-            value={DEMO_STATS.available.toFixed(2)}
+            value={stats.available.toFixed(2)}
             unit="ETH"
             tooltip={t('stats.available.tooltip')}
             onClick={() => router.push('/consumer/unlock')}
-            ariaLabel={`${t('stats.available.label')}: ${DEMO_STATS.available} ETH`}
+            ariaLabel={`${t('stats.available.label')}: ${stats.available} ETH`}
           />
           <StatCard
             label={t('stats.pendingUnlock.label')}
-            value={DEMO_STATS.pendingUnlock}
+            value={stats.pendingUnlock}
             tooltip={t('stats.pendingUnlock.tooltip')}
             onClick={() => router.push('/consumer/unlock')}
-            ariaLabel={`${t('stats.pendingUnlock.label')}: ${DEMO_STATS.pendingUnlock}`}
+            ariaLabel={`${t('stats.pendingUnlock.label')}: ${stats.pendingUnlock}`}
           />
           <StatCard
             label={t('stats.transactions.label')}
-            value={DEMO_STATS.transactions}
+            value={stats.transactions}
             tooltip={t('stats.transactions.tooltip')}
             onClick={() => router.push('/consumer/history')}
-            ariaLabel={`${t('stats.transactions.label')}: ${DEMO_STATS.transactions}`}
+            ariaLabel={`${t('stats.transactions.label')}: ${stats.transactions}`}
           />
         </section>
 
@@ -161,12 +147,12 @@ export function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
           {/* Lock Asset Card */}
           <LockAssetCard
-            balance={DEMO_STATS.available}
+            balance={stats.available}
             onLock={handleLock}
           />
 
           {/* Recent Activity */}
-          <RecentActivity transactions={DEMO_TRANSACTIONS} />
+          <RecentActivity transactions={transactions} />
         </div>
       </main>
 
@@ -185,7 +171,7 @@ export function Dashboard() {
         onClose={() => setIsWalletModalOpen(false)}
         onCopy={handleCopyAddress}
         onDisconnect={handleDisconnect}
-        address={WALLET_ADDRESS}
+        address={walletAddress}
       />
     </div>
   );

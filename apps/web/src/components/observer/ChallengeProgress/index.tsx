@@ -134,7 +134,7 @@ export function ChallengeProgress() {
 
         <Link
           href="/observer/history"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-transparent border border-border-default rounded-lg text-text-secondary text-sm hover:border-accent-gold hover:text-accent-gold transition-colors mb-6"
+          className="inline-flex items-center gap-2 px-4 py-2 min-h-[44px] bg-transparent border border-border-default rounded-lg text-text-secondary text-sm hover:border-accent-gold hover:text-accent-gold transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('backToHistory')}
