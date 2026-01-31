@@ -49,6 +49,17 @@ pub struct AdminAuditLogRow {
     pub created_at: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, FromRow)]
+pub struct AdminSessionRow {
+    pub session_id: String,
+    pub admin_id: String,
+    pub ip_address: String,
+    pub user_agent: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub expires_at: DateTime<Utc>,
+    pub revoked_at: Option<DateTime<Utc>>,
+}
+
 // ============================================================================
 // Dashboard Metrics Models
 // ============================================================================
@@ -200,6 +211,182 @@ impl AdminRepository {
 
         info!("DB query: create_admin completed, admin_id={}", admin_id);
         Ok(result)
+    }
+
+    // ========================================================================
+    // Admin Session Operations
+    // ========================================================================
+
+    /// Create a new admin session
+    /// BE-001: Real DB operation required
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool), fields(admin_id = %admin_id))]
+    pub async fn create_session(
+        pool: &PgPool,
+        session_id: &str,
+        admin_id: &str,
+        ip_address: &str,
+        user_agent: Option<&str>,
+        expires_at: DateTime<Utc>,
+    ) -> Result<AdminSessionRow, ApiError> {
+        info!("DB query: create_session started");
+
+        let result = sqlx::query_as::<_, AdminSessionRow>(
+            r#"
+            INSERT INTO admin_sessions (session_id, admin_id, ip_address, user_agent, created_at, expires_at)
+            VALUES ($1, $2, $3, $4, NOW(), $5)
+            RETURNING session_id, admin_id, ip_address, user_agent, created_at, expires_at, revoked_at
+            "#,
+        )
+        .bind(session_id)
+        .bind(admin_id)
+        .bind(ip_address)
+        .bind(user_agent)
+        .bind(expires_at)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: create_session failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: create_session completed, session_id={}", session_id);
+        Ok(result)
+    }
+
+    /// Get active session by ID
+    #[instrument(skip(pool), fields(session_id = %session_id))]
+    pub async fn get_session(
+        pool: &PgPool,
+        session_id: &str,
+    ) -> Result<Option<AdminSessionRow>, ApiError> {
+        info!("DB query: get_session started");
+
+        let result = sqlx::query_as::<_, AdminSessionRow>(
+            r#"
+            SELECT session_id, admin_id, ip_address, user_agent, created_at, expires_at, revoked_at
+            FROM admin_sessions
+            WHERE session_id = $1 AND revoked_at IS NULL AND expires_at > NOW()
+            "#,
+        )
+        .bind(session_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_session failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_session completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    /// Revoke a session (logout)
+    #[instrument(skip(pool), fields(session_id = %session_id))]
+    pub async fn revoke_session(
+        pool: &PgPool,
+        session_id: &str,
+    ) -> Result<bool, ApiError> {
+        info!("DB query: revoke_session started");
+
+        let result = sqlx::query(
+            r#"
+            UPDATE admin_sessions
+            SET revoked_at = NOW()
+            WHERE session_id = $1 AND revoked_at IS NULL
+            "#,
+        )
+        .bind(session_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: revoke_session failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: revoke_session completed, rows_affected={}", result.rows_affected());
+        Ok(result.rows_affected() > 0)
+    }
+
+    /// Revoke all sessions for an admin (logout all devices)
+    #[instrument(skip(pool), fields(admin_id = %admin_id))]
+    pub async fn revoke_all_sessions(
+        pool: &PgPool,
+        admin_id: &str,
+    ) -> Result<u64, ApiError> {
+        info!("DB query: revoke_all_sessions started");
+
+        let result = sqlx::query(
+            r#"
+            UPDATE admin_sessions
+            SET revoked_at = NOW()
+            WHERE admin_id = $1 AND revoked_at IS NULL
+            "#,
+        )
+        .bind(admin_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: revoke_all_sessions failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: revoke_all_sessions completed, count={}", result.rows_affected());
+        Ok(result.rows_affected())
+    }
+
+    /// Update admin last login time
+    #[instrument(skip(pool), fields(admin_id = %admin_id))]
+    pub async fn update_last_login(
+        pool: &PgPool,
+        admin_id: &str,
+    ) -> Result<(), ApiError> {
+        info!("DB query: update_last_login started");
+
+        sqlx::query(
+            r#"
+            UPDATE admin_users
+            SET last_login = NOW()
+            WHERE admin_id = $1
+            "#,
+        )
+        .bind(admin_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: update_last_login failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: update_last_login completed");
+        Ok(())
+    }
+
+    /// Get admin's 2FA secret
+    #[instrument(skip(pool), fields(admin_id = %admin_id))]
+    pub async fn get_two_factor_secret(
+        pool: &PgPool,
+        admin_id: &str,
+    ) -> Result<Option<String>, ApiError> {
+        info!("DB query: get_two_factor_secret started");
+
+        let result: Option<(Option<String>,)> = sqlx::query_as(
+            r#"
+            SELECT two_factor_secret
+            FROM admin_users
+            WHERE admin_id = $1 AND two_factor_enabled = true
+            "#,
+        )
+        .bind(admin_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_two_factor_secret failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_two_factor_secret completed");
+        Ok(result.and_then(|(secret,)| secret))
     }
 
     // ========================================================================

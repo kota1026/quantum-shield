@@ -13,7 +13,7 @@
 │                                                                     │
 │  8-A Screen Implementation   [████████████████████]  38/38 100%   │
 │  8-B Screen Verification     [█████░░░░░░░░░░░░░░░]  10/38  26%   │
-│  8-C Backend Implementation  [████░░░░░░░░░░░░░░░░]  13/65  20%   │
+│  8-C Backend Implementation  [█████░░░░░░░░░░░░░░░]  18/65  28%   │
 │  8-D L3/L1 Integration       [░░░░░░░░░░░░░░░░░░░░]   0/10   0%    │
 │  8-E Integration Testing     [░░░░░░░░░░░░░░░░░░░░]   0/38   0%    │
 │                                                                     │
@@ -26,7 +26,7 @@
 |:-----:|-------------|:------:|:--------:|:----:|
 | 8-A | Screen Implementation | 🟢 Complete | 38/38 | ✅ |
 | 8-B | Screen Verification | 🟡 In Progress | 10/38 | - |
-| 8-C | Backend Implementation | 🟡 In Progress | 13/65 | - |
+| 8-C | Backend Implementation | 🟡 In Progress | 18/65 | - |
 | 8-D | L3/L1 Integration | 🔴 Not Started | 0/10 | - |
 | 8-E | Integration Testing | 🔴 Not Started | 0/38 | - |
 
@@ -171,7 +171,7 @@
 
 | # | Category | Endpoints | Priority | Status |
 |---|----------|:---------:|:--------:|:------:|
-| 1 | auth | 5 | P0 | Pending |
+| 1 | auth | 5 | P0 | Done |
 | 2 | dashboard | 3 | P0 | Partial (2/3) |
 | 3 | transactions | 8 | P0 | Pending |
 | 4 | users | 6 | P0 | Pending |
@@ -197,15 +197,15 @@
 
 ---
 
-### 1. Auth (5 endpoints) - P0
+### 1. Auth (5 endpoints) - P0 ✅
 
 | # | Method | Endpoint | Impl | Test | Log | Status |
 |---|--------|----------|:----:|:----:|:---:|:------:|
-| 01 | POST | /admin/auth/login | ⬜ | ⬜ | ⬜ | Pending |
-| 02 | POST | /admin/auth/logout | ⬜ | ⬜ | ⬜ | Pending |
-| 03 | POST | /admin/auth/refresh | ⬜ | ⬜ | ⬜ | Pending |
-| 04 | GET | /admin/auth/me | ⬜ | ⬜ | ⬜ | Pending |
-| 05 | POST | /admin/auth/2fa/verify | ⬜ | ⬜ | ⬜ | Pending |
+| 01 | POST | /admin/auth/login | ✅ | - | ✅ | Done |
+| 02 | POST | /admin/auth/logout | ✅ | - | ✅ | Done |
+| 03 | POST | /admin/auth/refresh | ✅ | - | ✅ | Done |
+| 04 | GET | /admin/auth/me | ✅ | - | ✅ | Done |
+| 05 | POST | /admin/auth/2fa/verify | ✅ | - | ✅ | Done |
 
 ### 2. Dashboard (3 endpoints) - P0
 
@@ -329,10 +329,10 @@
 
 ---
 
-**Progress: 13/65 (20%)**
+**Progress: 18/65 (28%)**
 
 **BE Rules Compliance:**
-- BE-001 (No Stubs): ✅ 13 endpoints converted to real DB
+- BE-001 (No Stubs): ✅ 18 endpoints converted to real DB
 - BE-002 (No Test Hacks): ✅ Verified
 - BE-003 (Logging): ✅ All converted handlers have #[instrument] + info!/warn!
 
