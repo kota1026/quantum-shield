@@ -1,18 +1,18 @@
 [workspace]
 members = [
-    "client",
     "shared-types",
     "circuits/dilithium-stark",
     "circuits/plonky3-poc",
-    "stark-prover",
     "services/event-bridge",
     "services/api",
     "services/sig-queue",
     "services/monitor-bot",
 ]
-# WASM packages are excluded from workspace (different target)
+# Excluded packages (missing dependencies or different target)
 exclude = [
     "packages/sdk/wasm",
+    "stark-prover",
+    "client",
 ]
 resolver = "2"
 

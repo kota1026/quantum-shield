@@ -544,38 +544,34 @@ impl AdminRepository {
         info!("DB query: get_dashboard_counts started");
 
         // Total users
-        let total_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+        let total_users: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM users")
             .fetch_one(pool)
             .await
-            .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?
-            .unwrap_or(0);
+            .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?;
 
         // Active provers
-        let active_provers: i64 = sqlx::query_scalar(
+        let active_provers: i64 = sqlx::query_scalar::<_, i64>(
             "SELECT COUNT(*) FROM provers WHERE status = 'active'"
         )
         .fetch_one(pool)
         .await
-        .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?
-        .unwrap_or(0);
+        .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?;
 
         // Active observers
-        let active_observers: i64 = sqlx::query_scalar(
+        let active_observers: i64 = sqlx::query_scalar::<_, i64>(
             "SELECT COUNT(*) FROM observers WHERE status = 'active'"
         )
         .fetch_one(pool)
         .await
-        .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?
-        .unwrap_or(0);
+        .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?;
 
         // Pending challenges
-        let pending_challenges: i64 = sqlx::query_scalar(
+        let pending_challenges: i64 = sqlx::query_scalar::<_, i64>(
             "SELECT COUNT(*) FROM challenges WHERE status = 'pending'"
         )
         .fetch_one(pool)
         .await
-        .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?
-        .unwrap_or(0);
+        .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?;
 
         info!("DB query: get_dashboard_counts completed");
         Ok(DashboardCounts {
@@ -720,20 +716,19 @@ impl AdminRepository {
         info!("DB query: count_alerts started");
 
         let count: i64 = if let Some(s) = status {
-            sqlx::query_scalar("SELECT COUNT(*) FROM alerts WHERE status = $1")
+            sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM alerts WHERE status = $1")
                 .bind(s)
                 .fetch_one(pool)
                 .await
         } else {
-            sqlx::query_scalar("SELECT COUNT(*) FROM alerts")
+            sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM alerts")
                 .fetch_one(pool)
                 .await
         }
         .map_err(|e| {
             warn!("DB error: count_alerts failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
 
         info!("DB query: count_alerts completed, count={}", count);
         Ok(count)
