@@ -120,7 +120,7 @@ impl GovernanceRepository {
     ) -> Result<i64, ApiError> {
         info!("DB query: count_proposals_by_status started");
 
-        let count: i64 = sqlx::query_scalar(
+        let count: i64 = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*)
             FROM proposals
@@ -133,8 +133,8 @@ impl GovernanceRepository {
         .map_err(|e| {
             warn!("DB error: count_proposals_by_status failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
+
 
         info!("DB query: count_proposals_by_status completed, count={}", count);
         Ok(count)
@@ -313,14 +313,14 @@ impl GovernanceRepository {
     pub async fn count_all_votes(pool: &PgPool) -> Result<i64, ApiError> {
         info!("DB query: count_all_votes started");
 
-        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM votes")
+        let count: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM votes")
             .fetch_one(pool)
             .await
             .map_err(|e| {
                 warn!("DB error: count_all_votes failed: {}", e);
                 ApiError::Internal(format!("Database error: {}", e))
-            })?
-            .unwrap_or(0);
+            })?;
+    
 
         info!("DB query: count_all_votes completed, count={}", count);
         Ok(count)

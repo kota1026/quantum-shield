@@ -109,6 +109,10 @@ pub enum ApiError {
 
     #[error("Forbidden: {0}")]
     Forbidden(String),
+
+    // Generic bad request (Admin API)
+    #[error("Bad request: {0}")]
+    BadRequest(String),
 }
 
 #[derive(Serialize)]
@@ -157,6 +161,8 @@ impl ApiError {
             // Prover Portal errors (6xxx)
             ApiError::NotFound(_) => 6001,
             ApiError::Forbidden(_) => 6002,
+            // Generic bad request
+            ApiError::BadRequest(_) => 4000,
         }
     }
 
@@ -199,6 +205,8 @@ impl ApiError {
             // Prover Portal errors
             ApiError::NotFound(_) => StatusCode::NOT_FOUND,
             ApiError::Forbidden(_) => StatusCode::FORBIDDEN,
+            // Generic bad request
+            ApiError::BadRequest(_) => StatusCode::BAD_REQUEST,
         }
     }
 }

@@ -101,14 +101,14 @@ impl UserRepository {
     pub async fn count_users(pool: &PgPool) -> Result<i64, ApiError> {
         info!("DB query: count_users started");
 
-        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+        let count: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM users")
             .fetch_one(pool)
             .await
             .map_err(|e| {
                 warn!("DB error: count_users failed: {}", e);
                 ApiError::Internal(format!("Database error: {}", e))
-            })?
-            .unwrap_or(0);
+            })?;
+    
 
         info!("DB query: count_users completed, count={}", count);
         Ok(count)
@@ -229,7 +229,7 @@ impl UserRepository {
     ) -> Result<i64, ApiError> {
         info!("DB query: count_users_admin started");
 
-        let count: i64 = sqlx::query_scalar(
+        let count: i64 = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*)
             FROM users u
@@ -245,8 +245,8 @@ impl UserRepository {
         .map_err(|e| {
             warn!("DB error: count_users_admin failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
+
 
         info!("DB query: count_users_admin completed, count={}", count);
         Ok(count)
