@@ -132,7 +132,7 @@ impl LockRepository {
     ) -> Result<i64, ApiError> {
         info!("DB query: count_locks_by_status started");
 
-        let count: i64 = sqlx::query_scalar(
+        let count: i64 = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*)
             FROM locks
@@ -145,8 +145,8 @@ impl LockRepository {
         .map_err(|e| {
             warn!("DB error: count_locks_by_status failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
+
 
         info!("DB query: count_locks_by_status completed, count={}", count);
         Ok(count)
@@ -157,7 +157,7 @@ impl LockRepository {
     pub async fn get_total_tvl(pool: &PgPool) -> Result<BigDecimal, ApiError> {
         info!("DB query: get_total_tvl started");
 
-        let tvl: BigDecimal = sqlx::query_scalar(
+        let tvl: BigDecimal = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COALESCE(SUM(amount), 0)
             FROM locks
@@ -169,8 +169,8 @@ impl LockRepository {
         .map_err(|e| {
             warn!("DB error: get_total_tvl failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or_else(|| BigDecimal::from(0));
+        })?;
+        ;
 
         info!("DB query: get_total_tvl completed");
         Ok(tvl)
@@ -291,7 +291,7 @@ impl LockRepository {
     ) -> Result<i64, ApiError> {
         info!("DB query: count_unlocks started");
 
-        let count: i64 = sqlx::query_scalar(
+        let count: i64 = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*)
             FROM unlock_requests
@@ -306,8 +306,8 @@ impl LockRepository {
         .map_err(|e| {
             warn!("DB error: count_unlocks failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
+
 
         info!("DB query: count_unlocks completed, count={}", count);
         Ok(count)
@@ -321,7 +321,7 @@ impl LockRepository {
     ) -> Result<i64, ApiError> {
         info!("DB query: count_locks started");
 
-        let count: i64 = sqlx::query_scalar(
+        let count: i64 = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*)
             FROM locks
@@ -334,8 +334,8 @@ impl LockRepository {
         .map_err(|e| {
             warn!("DB error: count_locks failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
+
 
         info!("DB query: count_locks completed, count={}", count);
         Ok(count)
@@ -394,7 +394,7 @@ impl LockRepository {
     ) -> Result<i64, ApiError> {
         info!("DB query: count_locks_by_wallet started");
 
-        let count: i64 = sqlx::query_scalar(
+        let count: i64 = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*)
             FROM locks
@@ -409,8 +409,8 @@ impl LockRepository {
         .map_err(|e| {
             warn!("DB error: count_locks_by_wallet failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
+
 
         info!("DB query: count_locks_by_wallet completed, count={}", count);
         Ok(count)
@@ -465,7 +465,7 @@ impl LockRepository {
     ) -> Result<i64, ApiError> {
         info!("DB query: count_unlocks_by_wallet started");
 
-        let count: i64 = sqlx::query_scalar(
+        let count: i64 = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*)
             FROM unlock_requests
@@ -480,8 +480,8 @@ impl LockRepository {
         .map_err(|e| {
             warn!("DB error: count_unlocks_by_wallet failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
+
 
         info!("DB query: count_unlocks_by_wallet completed, count={}", count);
         Ok(count)

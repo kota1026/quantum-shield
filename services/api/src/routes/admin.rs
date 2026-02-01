@@ -14,7 +14,7 @@
 use std::sync::Arc;
 
 use axum::{Extension, Json, extract::Path};
-use bigdecimal::BigDecimal;
+use bigdecimal::{BigDecimal, Zero};
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn, instrument};
 
@@ -4165,13 +4165,13 @@ pub async fn admin_login(
         .await?
         .ok_or_else(|| {
             warn!(wallet = %req.wallet_address, "Admin: Wallet not found");
-            ApiError::Unauthorized("Invalid credentials".to_string())
+            ApiError::Forbidden("Invalid credentials".to_string())
         })?;
 
     // Check if admin is active
     if admin.status != "active" {
         warn!(admin_id = %admin.admin_id, status = %admin.status, "Admin: Account not active");
-        return Err(ApiError::Unauthorized("Account is not active".to_string()));
+        return Err(ApiError::Forbidden("Account is not active".to_string()));
     }
 
     // TODO: Verify wallet signature (in production, verify SIWE signature)
@@ -4338,7 +4338,7 @@ pub async fn admin_get_me(
     // For now, return the first admin as placeholder
     let admins = AdminRepository::list_admins(pool, 0, 1).await?;
     let admin = admins.into_iter().next().ok_or_else(|| {
-        ApiError::Unauthorized("No admin user found".to_string())
+        ApiError::Forbidden("No admin user found".to_string())
     })?;
 
     // TODO: Extract permissions from role
@@ -5518,11 +5518,13 @@ pub async fn get_admin_user_locks(
         .map(|row| AdminLockItem {
             lock_id: row.lock_id,
             wallet_address: row.wallet_address,
+            chain_id: row.chain_id,
+            asset: row.asset.clone(),
             amount: row.amount.to_string(),
-            asset_type: row.asset.clone(),
             status: row.status,
-            l1_tx_hash: row.l1_tx_hash,
             created_at: row.created_at.timestamp(),
+            confirmed_at: row.confirmed_at.map(|t| t.timestamp()),
+            l1_tx_hash: row.l1_tx_hash,
         })
         .collect();
 
@@ -5582,10 +5584,11 @@ pub async fn get_admin_user_unlocks(
             lock_id: row.lock_id,
             wallet_address: row.wallet_address,
             amount: row.amount.to_string(),
-            is_emergency: row.is_emergency,
             status: row.status,
-            l1_tx_hash: None, // unlock_requests doesn't have l1_tx_hash
-            requested_at: row.created_at.timestamp(),
+            is_emergency: row.is_emergency,
+            bond_amount: row.bond_amount.map(|b| b.to_string()),
+            release_time: row.release_time.map(|t| t.timestamp()),
+            created_at: row.created_at.timestamp(),
         })
         .collect();
 

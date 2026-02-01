@@ -122,7 +122,7 @@ impl ChallengeRepository {
     ) -> Result<i64, ApiError> {
         info!("DB query: count_challenges_by_status started");
 
-        let count: i64 = sqlx::query_scalar(
+        let count: i64 = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*)
             FROM challenges
@@ -135,8 +135,8 @@ impl ChallengeRepository {
         .map_err(|e| {
             warn!("DB error: count_challenges_by_status failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
-        })?
-        .unwrap_or(0);
+        })?;
+
 
         info!("DB query: count_challenges_by_status completed, count={}", count);
         Ok(count)
