@@ -43,23 +43,47 @@ import {
   useProverStake,
   useEnterpriseContract,
 } from '@/hooks/prover';
-import {
-  MOCK_PROVER_STATS,
-  MOCK_QUEUE_ITEMS,
-  MOCK_PROVER_REWARDS,
-  MOCK_PROVER_STAKE,
-  MOCK_ENTERPRISE_CONTRACT,
-} from '@/lib/api/prover/mock';
 
 // Prover type: public or enterprise
 type ProverType = 'public' | 'enterprise';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_PROVER_STATS;
-const FALLBACK_QUEUE_ITEMS = MOCK_QUEUE_ITEMS;
-const FALLBACK_REWARDS = MOCK_PROVER_REWARDS;
-const FALLBACK_STAKE = MOCK_PROVER_STAKE;
-const FALLBACK_CONTRACT = MOCK_ENTERPRISE_CONTRACT;
+// Fallback data (used when API is unavailable)
+const FALLBACK_STATS = {
+  pendingSignatures: 12,
+  urgentCount: 3,
+  todaysProcessed: 487,
+  processedChange: 12,
+  avgProcessed: 420,
+  uptime: 99.8,
+  slaMinUptime: 99.5,
+  responseTime: 28.2,
+};
+const FALLBACK_QUEUE_ITEMS = [
+  { id: 'q1', type: 'normal', address: '0x1234...5678', amount: '125.5', time: '23:15:42', urgent: false },
+  { id: 'q2', type: 'emergency', address: '0x8765...4321', amount: '500.0', time: '23:00:15', urgent: true },
+];
+const FALLBACK_REWARDS = {
+  claimable: 3.75,
+  thisMonth: 12.5,
+  allTime: 156.8,
+};
+const FALLBACK_STAKE = {
+  amount: 100.0,
+  usdValue: 265000,
+  challenges: 0,
+};
+const FALLBACK_CONTRACT = {
+  operatorName: 'ACME Corporation',
+  contractId: 'ENT-2026-001',
+  plan: 'Enterprise Plus',
+  sla: '99.9%',
+  guaranteedRevenue: 24,
+  startDate: '2025-06-01',
+  endDate: '2026-05-31',
+  supportLevel: 'Premium 24/7',
+  infrastructureManaged: true,
+  contactPerson: 'John Smith',
+};
 
 export function ProverDashboard() {
   const t = useTranslations('prover');

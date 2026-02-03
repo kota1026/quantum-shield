@@ -23,10 +23,30 @@ import { cn } from '@/lib/utils';
 import { SettingsSection } from './SettingsSection';
 import { SettingsItem } from './SettingsItem';
 import { useUserSettingsV2, useUpdateUserSettings } from '@/hooks/consumer';
-import { MOCK_USER_SETTINGS, type UserSettings } from '@/lib/api/consumer/mock';
 
-// Fallback data
-const FALLBACK_SETTINGS = MOCK_USER_SETTINGS;
+// Type definition for user settings
+interface UserSettings {
+  walletAddress: string;
+  pushNotifications: boolean;
+  emailNotifications: boolean;
+  darkMode: boolean;
+  biometricAuth: boolean;
+  currency: string;
+  autoLockMinutes: number;
+  locale: string;
+}
+
+// Fallback data (used when API is unavailable)
+const FALLBACK_SETTINGS: UserSettings = {
+  walletAddress: '0x1234...5678',
+  pushNotifications: true,
+  emailNotifications: false,
+  darkMode: true,
+  biometricAuth: false,
+  currency: 'JPY (¥)',
+  autoLockMinutes: 5,
+  locale: 'ja',
+};
 const VERSION = '1.0.0';
 const BUILD = '2026.01.06';
 

@@ -8,10 +8,14 @@ import { ArrowLeft, AlertTriangle, Zap, Check, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEmergencyUnlockData, useSubmitEmergencyUnlock } from '@/hooks/consumer';
-import { MOCK_EMERGENCY_UNLOCK_DATA } from '@/lib/api/consumer/mock';
 
-// Fallback data
-const FALLBACK_UNLOCK_DATA = MOCK_EMERGENCY_UNLOCK_DATA;
+// Fallback data (used when API is unavailable)
+const FALLBACK_UNLOCK_DATA = {
+  lockId: 'lock-1',
+  amount: '12.5',
+  symbol: 'ETH',
+  waitDays: 7,
+};
 
 // Bond calculation: MAX(0.5 ETH, amount × 5%)
 function calculateBond(amount: number): number {

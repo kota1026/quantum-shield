@@ -5,15 +5,29 @@ import { useTranslations } from 'next-intl';
 import { X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUserKeys } from '@/hooks/consumer';
-import { MOCK_KEY_INFO, type KeyInfo } from '@/lib/api/consumer/mock';
+
+// Type definition for key info
+interface KeyInfo {
+  publicKey: string;
+  secretKey: string;
+  algorithm: string;
+  createdAt: string;
+  lastBackup: string;
+}
 
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Fallback data
-const FALLBACK_KEY_INFO = MOCK_KEY_INFO;
+// Fallback data (used when API is unavailable)
+const FALLBACK_KEY_INFO: KeyInfo = {
+  publicKey: 'ml-dsa-65-pub-xxx...',
+  secretKey: '',
+  algorithm: 'ML-DSA-65',
+  createdAt: '2026-01-01',
+  lastBackup: '2026-01-15',
+};
 
 export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   const t = useTranslations('consumer.keyManagement.exportModal');

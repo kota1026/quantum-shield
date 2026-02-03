@@ -33,13 +33,23 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useVerifyInvitation } from '@/hooks/prover';
-import { MOCK_PROVER_INVITATION } from '@/lib/api/prover/mock';
 
 // Application type: public or enterprise (via invitation)
 type ApplicationType = 'public' | 'enterprise';
 
-// Fallback invitation data
-const FALLBACK_INVITATION = MOCK_PROVER_INVITATION;
+// Fallback invitation data (used when API is unavailable)
+const FALLBACK_INVITATION = {
+  code: 'ACME-2026-PROVER',
+  operatorName: 'ACME Corporation',
+  plan: 'Enterprise Plus',
+  expiresAt: '2026-03-31',
+  benefits: {
+    managedInfrastructure: true,
+    dedicatedSupport: true,
+    slaGuarantee: '99.9%',
+    minRevenue: '24 ETH/month',
+  },
+};
 
 interface FormData {
   // Step 1: Basic Info
