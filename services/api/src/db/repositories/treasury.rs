@@ -122,7 +122,7 @@ impl TreasuryRepository {
     pub async fn get_total_balance(pool: &PgPool) -> Result<BigDecimal, ApiError> {
         info!("DB query: get_total_treasury_balance started");
 
-        let balance: BigDecimal = sqlx::query_scalar::<_, i64>(
+        let balance_value: i64 = sqlx::query_scalar::<_, i64>(
             "SELECT COALESCE(SUM(balance), 0) FROM treasury_wallets"
         )
         .fetch_one(pool)
@@ -131,7 +131,7 @@ impl TreasuryRepository {
             warn!("DB error: get_total_treasury_balance failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
         })?;
-        ;
+        let balance = BigDecimal::from(balance_value);
 
         info!("DB query: get_total_treasury_balance completed");
         Ok(balance)
@@ -429,7 +429,7 @@ impl TreasuryRepository {
 
         // Get today's revenue
         let today = chrono::Utc::now().date_naive();
-        let today_revenue: BigDecimal = sqlx::query_scalar::<_, i64>(
+        let today_revenue: BigDecimal = sqlx::query_scalar::<_, BigDecimal>(
             "SELECT COALESCE(SUM(amount), 0) FROM protocol_revenue WHERE date = $1"
         )
         .bind(today)
@@ -439,7 +439,6 @@ impl TreasuryRepository {
             warn!("DB error: get_today_revenue failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
         })?;
-        ;
 
         info!("DB query: get_treasury_overview completed");
         Ok(TreasuryOverviewRow {
