@@ -18,18 +18,22 @@ import {
   useSuspiciousTransactions,
   useActiveChallenges,
 } from '@/hooks/observer';
-import {
-  MOCK_OBSERVER_DATA,
-  MOCK_PENDING_UNLOCKS,
-  MOCK_SUSPICIOUS_TRANSACTIONS,
-  MOCK_ACTIVE_CHALLENGES,
-} from '@/lib/api/observer/mock';
 
-// Fallback data
-const FALLBACK_OBSERVER_DATA = MOCK_OBSERVER_DATA;
-const FALLBACK_PENDING_UNLOCKS = MOCK_PENDING_UNLOCKS;
-const FALLBACK_SUSPICIOUS = MOCK_SUSPICIOUS_TRANSACTIONS;
-const FALLBACK_CHALLENGES = MOCK_ACTIVE_CHALLENGES;
+// Fallback data (used when API is unavailable)
+const FALLBACK_OBSERVER_DATA = {
+  registrationDate: '2025-11-15',
+  practicePeriodMonths: 3,
+};
+const FALLBACK_PENDING_UNLOCKS = [
+  { id: '1', address: '0x4b7c...9e1f', amount: '45.00 ETH', type: 'emergency' as const, timeRemaining: '6d 14:22:18', riskScore: 87, status: 'monitoring' as const },
+  { id: '2', address: '0x8f2a...3d4e', amount: '12.50 ETH', type: 'normal' as const, timeRemaining: '23:41:02', riskScore: 24, status: 'pending' as const },
+];
+const FALLBACK_SUSPICIOUS = [
+  { id: 's1', address: '0x9d4e...7c2f', amount: '125.00 ETH', type: 'emergency' as const, riskLevel: 'high' as const, score: 92, reason: 'Unusual pattern detected' },
+];
+const FALLBACK_CHALLENGES = [
+  { id: 'c1', challengeId: 'CHG-2847', targetAddress: '0x7d3f...8c2a', amount: '32.50 ETH', status: 'defense' as const, countdown: '5d 12:30:00', progress: 45 },
+];
 
 export function ObserverDashboard() {
   const t = useTranslations('observer.dashboard');

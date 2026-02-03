@@ -38,23 +38,37 @@ import {
   useRewardsSummary,
   usePayoutHistory,
 } from '@/hooks/prover';
-import {
-  MOCK_PERFORMANCE_STATS,
-  MOCK_SIGNATURE_HISTORY,
-  MOCK_DETAIL_METRICS,
-  MOCK_REWARDS_SUMMARY,
-  MOCK_PAYOUT_HISTORY,
-} from '@/lib/api/prover/mock';
 
 // Prover type: public or enterprise
 type ProverType = 'public' | 'enterprise';
 
-// Fallback data
-const FALLBACK_PERFORMANCE = MOCK_PERFORMANCE_STATS;
-const FALLBACK_SIGNATURE_HISTORY = MOCK_SIGNATURE_HISTORY;
-const FALLBACK_DETAIL_METRICS = MOCK_DETAIL_METRICS;
-const FALLBACK_REWARDS_SUMMARY = MOCK_REWARDS_SUMMARY;
-const FALLBACK_PAYOUT_HISTORY = MOCK_PAYOUT_HISTORY;
+// Fallback data (used when API is unavailable)
+const FALLBACK_PERFORMANCE = {
+  uptime: { value: 99.8, change: 0.1 },
+  signatures: { value: 12847, change: 8.5 },
+  latency: { value: 142, change: -12 },
+  violations: { value: 0 },
+};
+const FALLBACK_SIGNATURE_HISTORY = [
+  { date: '2026-01-17', count: 487, successRate: 100, avgTime: 145, reward: 2435 },
+  { date: '2026-01-16', count: 510, successRate: 99.8, avgTime: 138, reward: 2615 },
+  { date: '2026-01-15', count: 412, successRate: 100, avgTime: 152, reward: 2060 },
+];
+const FALLBACK_DETAIL_METRICS = [
+  { key: 'slaCompliance', value: 99.8, status: 'success' },
+  { key: 'avgResponseTime', value: 94.2, status: 'success' },
+  { key: 'successRate', value: 99.97, status: 'success' },
+  { key: 'availability', value: 99.9, status: 'gold' },
+];
+const FALLBACK_REWARDS_SUMMARY = {
+  total: 47520,
+  period: 90,
+};
+const FALLBACK_PAYOUT_HISTORY = [
+  { date: '2026-01-15', amount: 15000, address: '0x742d...8bD34' },
+  { date: '2025-12-15', amount: 12500, address: '0x742d...8bD34' },
+  { date: '2025-11-15', amount: 11200, address: '0x742d...8bD34' },
+];
 
 // Local visualization data (uses Lucide icon components)
 const rewardsBreakdownConfig = [
