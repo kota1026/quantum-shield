@@ -312,12 +312,12 @@ export function Dashboard() {
 
   // Use API data with fallback to mock data
   const dashboardData = overviewQuery.data;
-  const stats = dashboardData ? {
-    totalUsers: dashboardData.metrics.active_users,
-    totalLocked: dashboardData.metrics.total_tvl,
-    activeProvers: dashboardData.health.active_provers,
-    activeObservers: dashboardData.health.total_nodes - dashboardData.health.active_provers,
-    pendingUnlocks: dashboardData.metrics.pending_challenges,
+  const stats = dashboardData?.metrics && dashboardData?.health ? {
+    totalUsers: dashboardData.metrics.activeUsers ?? 0,
+    totalLocked: dashboardData.metrics.totalTvl ?? '0',
+    activeProvers: dashboardData.health.activeProvers ?? 0,
+    activeObservers: (dashboardData.health.totalNodes ?? 0) - (dashboardData.health.activeProvers ?? 0),
+    pendingUnlocks: dashboardData.metrics.pendingChallenges ?? 0,
     treasuryBalance: '125,000 ETH', // From static for now
   } : FALLBACK_STATS;
   const tvlData = tvlQuery.data ?? FALLBACK_TVL_DATA;
@@ -478,16 +478,7 @@ export function Dashboard() {
                   <Activity className="h-5 w-5 text-hinomaru" />
                   {t('charts.transactionVolume')}
                 </CardTitle>
-                <div className="flex items-center gap-4 text-xs">
-                  <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 bg-success rounded" />
-                    {t('charts.locks')}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 bg-info rounded" />
-                    {t('charts.unlocks')}
-                  </span>
-                </div>
+                <span className="text-xs text-muted-foreground">{t('charts.last7Days')}</span>
               </CardHeader>
               <CardContent>
                 {volumeQuery.isLoading ? (

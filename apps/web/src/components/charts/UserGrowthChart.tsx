@@ -68,21 +68,24 @@ export function UserGrowthChart({ data, height = 300 }: UserGrowthChartProps) {
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: 'hsl(var(--background-elevated))',
-            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'rgba(17, 17, 17, 0.95)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '8px',
-            padding: '8px 12px',
+            padding: '12px 16px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
           }}
-          labelStyle={{ color: 'hsl(var(--foreground-secondary))', marginBottom: 4 }}
+          labelStyle={{ color: '#ffffff', marginBottom: 8, fontWeight: 600 }}
+          itemStyle={{ color: '#e5e5e5' }}
           formatter={(value) => [formatUsers(Number(value)), 'ユーザー数']}
+          cursor={{ stroke: 'rgba(255, 255, 255, 0.2)' }}
         />
         <Line
           type="monotone"
           dataKey="value"
-          stroke="hsl(var(--info))"
+          stroke="#00C896"
           strokeWidth={2}
           dot={false}
-          activeDot={{ r: 4, fill: 'hsl(var(--info))' }}
+          activeDot={{ r: 4, fill: '#00C896' }}
         />
       </LineChart>
     </ResponsiveContainer>

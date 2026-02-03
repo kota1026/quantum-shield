@@ -58,31 +58,38 @@ export function VolumeChart({ data, height = 300 }: VolumeChartProps) {
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: 'hsl(var(--background-elevated))',
-            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'rgba(17, 17, 17, 0.95)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '8px',
-            padding: '8px 12px',
+            padding: '12px 16px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
           }}
-          labelStyle={{ color: 'hsl(var(--foreground-secondary))', marginBottom: 4 }}
+          labelStyle={{ color: '#ffffff', marginBottom: 8, fontWeight: 600 }}
+          itemStyle={{ color: '#e5e5e5', padding: '2px 0' }}
+          cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
         />
         <Legend
           wrapperStyle={{ paddingTop: 20 }}
+          payload={[
+            { value: 'ロック', type: 'square', color: '#BC002D' },
+            { value: 'アンロック', type: 'square', color: '#C9A962' },
+          ]}
           formatter={(value: string) => (
             <span className="text-foreground-secondary text-sm">
-              {value === 'locks' ? 'ロック' : 'アンロック'}
+              {value}
             </span>
           )}
         />
         <Bar
           dataKey="locks"
-          name="locks"
-          fill="hsl(var(--hinomaru))"
+          name="ロック"
+          fill="#BC002D"
           radius={[4, 4, 0, 0]}
         />
         <Bar
           dataKey="unlocks"
-          name="unlocks"
-          fill="hsl(var(--gold))"
+          name="アンロック"
+          fill="#C9A962"
           radius={[4, 4, 0, 0]}
         />
       </BarChart>
