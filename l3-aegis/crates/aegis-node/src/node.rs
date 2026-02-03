@@ -11,7 +11,7 @@ use tracing::{info, warn, error, debug};
 use thiserror::Error;
 
 use crate::config::NodeConfig;
-use crate::rpc::{RpcConfig, RpcHandler};
+use crate::rpc::{RpcConfig, RpcHandler, RpcServer};
 
 use aegis_core::Executor;
 use aegis_storage::{Storage, StorageConfig};
@@ -210,13 +210,25 @@ impl AegisNode {
             .ok_or_else(|| NodeError::NotInitialized)?;
 
         // Start RPC server if enabled
-        if self.config.rpc.enabled {
+        let _rpc_handle = if self.config.rpc.enabled {
             let rpc_addr: SocketAddr = format!("{}:{}", self.config.rpc.host, self.config.rpc.port)
                 .parse()
                 .map_err(|e| NodeError::Rpc(format!("Invalid RPC address: {}", e)))?;
-            info!(addr = %rpc_addr, "RPC server would start here");
-            // Note: RPC server integration would be implemented with actix-web
-        }
+
+            let rpc_handler = RpcHandler::new(
+                components.executor.clone(),
+                Some(components.storage.clone()),
+                Some(components.tx_sender.clone()),
+            );
+            let rpc_config = RpcConfig {
+                bind_addr: rpc_addr,
+                max_connections: 100,
+            };
+            let server = RpcServer::new(rpc_handler, rpc_config);
+            Some(server.start().await.map_err(|e| NodeError::Rpc(e.to_string()))?)
+        } else {
+            None
+        };
 
         // Wait for shutdown signal
         let shutdown = tokio::signal::ctrl_c();
@@ -303,12 +315,25 @@ impl AegisNode {
         }
 
         // 3. Start RPC server if enabled
-        if self.config.rpc.enabled {
+        let _rpc_handle = if self.config.rpc.enabled {
             let rpc_addr: SocketAddr = format!("{}:{}", self.config.rpc.host, self.config.rpc.port)
                 .parse()
                 .map_err(|e| NodeError::Rpc(format!("Invalid RPC address: {}", e)))?;
-            info!(addr = %rpc_addr, "RPC server would start here");
-        }
+
+            let rpc_handler = RpcHandler::new(
+                components.executor.clone(),
+                Some(components.storage.clone()),
+                Some(components.tx_sender.clone()),
+            );
+            let rpc_config = RpcConfig {
+                bind_addr: rpc_addr,
+                max_connections: 100,
+            };
+            let server = RpcServer::new(rpc_handler, rpc_config);
+            Some(server.start().await.map_err(|e| NodeError::Rpc(e.to_string()))?)
+        } else {
+            None
+        };
 
         // 4. Start consensus participation (if validator)
         if components.is_validator {
