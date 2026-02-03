@@ -22,8 +22,8 @@ import {
 import { cn } from '@/lib/utils';
 import { SettingsSection } from './SettingsSection';
 import { SettingsItem } from './SettingsItem';
-import { useUserSettings, useUpdateSettings } from '@/hooks/consumer';
-import { MOCK_USER_SETTINGS } from '@/lib/api/consumer/mock';
+import { useUserSettingsV2, useUpdateUserSettings } from '@/hooks/consumer';
+import { MOCK_USER_SETTINGS, type UserSettings } from '@/lib/api/consumer/mock';
 
 // Fallback data
 const FALLBACK_SETTINGS = MOCK_USER_SETTINGS;
@@ -36,9 +36,20 @@ export function Settings() {
   const pathname = usePathname();
   const locale = useLocale();
 
-  // Fetch user settings
-  const { data: settingsData } = useUserSettings();
-  const settings = settingsData ?? FALLBACK_SETTINGS;
+  // Fetch user settings using new API hooks
+  const { data: settingsData } = useUserSettingsV2();
+
+  // Transform API data to component format
+  const settings: UserSettings = settingsData ? {
+    walletAddress: settingsData.address,
+    pushNotifications: true, // TODO: Add to API
+    emailNotifications: settingsData.notifications?.emailEnabled ?? false,
+    darkMode: true, // TODO: Add to API
+    biometricAuth: settingsData.twoFactorEnabled ?? false,
+    currency: 'JPY (¥)', // TODO: Add to API
+    autoLockMinutes: 5, // TODO: Add to API
+    locale: settingsData.language || 'ja',
+  } : FALLBACK_SETTINGS;
 
   // Toggle states (initialized from API data)
   const [pushNotifications, setPushNotifications] = useState(settings.pushNotifications ?? true);

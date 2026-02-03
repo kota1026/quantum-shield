@@ -70,13 +70,9 @@ export function VolumeChart({ data, height = 300 }: VolumeChartProps) {
         />
         <Legend
           wrapperStyle={{ paddingTop: 20 }}
-          payload={[
-            { value: 'ロック', type: 'square', color: '#BC002D' },
-            { value: 'アンロック', type: 'square', color: '#C9A962' },
-          ]}
           formatter={(value: string) => (
             <span className="text-foreground-secondary text-sm">
-              {value}
+              {value === 'ロック' ? 'ロック' : 'アンロック'}
             </span>
           )}
         />

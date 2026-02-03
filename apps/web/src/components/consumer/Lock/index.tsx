@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { HinomaryVisual } from '../Dashboard/HinomaryVisual';
-import { useConsumerStats } from '@/hooks/consumer';
+import { useUserDashboard } from '@/hooks/consumer';
 import { MOCK_CONSUMER_STATS } from '@/lib/api/consumer/mock';
 
 // Fallback data
@@ -253,11 +253,11 @@ export function Lock() {
   const t = useTranslations('consumer.lock');
   const router = useRouter();
 
-  // Fetch data using hooks
-  const { data: stats } = useConsumerStats();
+  // Fetch data using new API hooks
+  const { data: dashboardData } = useUserDashboard();
 
-  // Use API data with fallback
-  const balance = stats?.available ?? FALLBACK_BALANCE;
+  // Use API data with fallback (available balance not in API yet, use totalLocked as proxy)
+  const balance = dashboardData ? parseFloat(dashboardData.totalLocked) || FALLBACK_BALANCE : FALLBACK_BALANCE;
 
   const [amount, setAmount] = useState('');
   const [period, setPeriod] = useState<LockPeriod>(2); // Default 2 years

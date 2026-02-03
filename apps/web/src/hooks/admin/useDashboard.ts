@@ -97,7 +97,31 @@ export function useDashboardOverview() {
     queryKey: dashboardKeys.overview(),
     queryFn: async () => {
       const response = await adminApi.get<QsDashboardResponse>('/api/admin/dashboard');
-      return response;
+      // Transform snake_case to camelCase for frontend consistency
+      return {
+        health: {
+          status: response.health.status,
+          uptimePercent: response.health.uptime_percent,
+          lastIncident: response.health.last_incident,
+          activeProvers: response.health.active_provers,
+          totalNodes: response.health.total_nodes,
+        },
+        metrics: {
+          totalTvl: response.metrics.total_tvl,
+          tvlChange24h: response.metrics.tvl_change_24h,
+          totalTransactions: response.metrics.total_transactions,
+          txChange24h: response.metrics.tx_change_24h,
+          activeUsers: response.metrics.active_users,
+          pendingChallenges: response.metrics.pending_challenges,
+        },
+        recentAlerts: response.recent_alerts,
+        stats: {
+          enterpriseAccounts: response.stats.enterprise_accounts,
+          activeStaff: response.stats.active_staff,
+          pendingRequests: response.stats.pending_requests,
+          openReports: response.stats.open_reports,
+        },
+      };
     },
     staleTime: 30_000, // 30 seconds
     refetchInterval: 60_000, // Refetch every minute
