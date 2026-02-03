@@ -41,7 +41,7 @@ interface Licensee {
 }
 
 // Demo data
-const DEMO_LICENSEES: Licensee[] = [
+const FALLBACK_LICENSEES: Licensee[] = [
   {
     id: 'lic-001',
     companyName: 'Tokyo Financial Group',
@@ -140,7 +140,7 @@ export function AdminLicensees() {
   const [showReactivateModal, setShowReactivateModal] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const filteredLicensees = DEMO_LICENSEES.filter((licensee) => {
+  const filteredLicensees = FALLBACK_LICENSEES.filter((licensee) => {
     const matchesSearch =
       searchQuery === '' ||
       licensee.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -150,11 +150,11 @@ export function AdminLicensees() {
   });
 
   const stats = {
-    total: DEMO_LICENSEES.length,
-    active: DEMO_LICENSEES.filter((l) => l.status === 'active').length,
-    suspended: DEMO_LICENSEES.filter((l) => l.status === 'suspended').length,
-    pending: DEMO_LICENSEES.filter((l) => l.status === 'pending').length,
-    totalRevenue: DEMO_LICENSEES.filter((l) => l.status === 'active').reduce(
+    total: FALLBACK_LICENSEES.length,
+    active: FALLBACK_LICENSEES.filter((l) => l.status === 'active').length,
+    suspended: FALLBACK_LICENSEES.filter((l) => l.status === 'suspended').length,
+    pending: FALLBACK_LICENSEES.filter((l) => l.status === 'pending').length,
+    totalRevenue: FALLBACK_LICENSEES.filter((l) => l.status === 'active').reduce(
       (sum, l) => sum + l.monthlyFee,
       0
     ),

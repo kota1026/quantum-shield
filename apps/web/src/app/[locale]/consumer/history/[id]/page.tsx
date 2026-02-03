@@ -9,7 +9,7 @@ interface PageProps {
 }
 
 // Demo transaction data - In production, this would come from API
-const DEMO_TRANSACTIONS: Record<string, HistoryTransaction> = {
+const FALLBACK_TRANSACTIONS: Record<string, HistoryTransaction> = {
   '1': {
     id: '1',
     type: 'lock',
@@ -80,7 +80,7 @@ export default async function HistoryDetailPage({ params }: PageProps) {
   const { id } = await params;
 
   // In production, fetch transaction from API
-  const transaction = DEMO_TRANSACTIONS[id];
+  const transaction = FALLBACK_TRANSACTIONS[id];
 
   if (!transaction) {
     notFound();

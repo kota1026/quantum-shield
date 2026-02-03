@@ -258,7 +258,7 @@ export function LockTransactions() {
           {/* Filter Tabs */}
           <div className="flex space-x-2 mb-4 border-b border-border">
             {statusFilters.map((filter) => (
-              <button key={filter.key} onClick={() => setStatusFilter(filter.key)} className={cn('px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors', statusFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button key={filter.key} onClick={() => setStatusFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', statusFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
                 {filter.label}
               </button>
             ))}
@@ -321,8 +321,8 @@ export function LockTransactions() {
                           {typeof tx.createdAt === 'number' ? formatTimestamp(tx.createdAt) : tx.createdAt}
                         </td>
                         <td className="py-3 px-4">
-                          <Link href={`/qs-admin/transactions/lock/${tx.id}`}>
-                            <Button variant="outline" size="sm">{tCommon('detail')}</Button>
+                          <Link href={`/qs-admin/transactions/lock/${tx.id}`} className="inline-flex items-center justify-center min-h-[44px] px-4 py-2 text-sm font-medium border border-border rounded-md hover:bg-accent transition-colors">
+                            {tCommon('detail')}
                           </Link>
                         </td>
                       </tr>

@@ -438,6 +438,70 @@ pub struct ClaimEarningsResponse {
 // API Handlers
 // ============================================================================
 
+/// POST /v1/observer/register
+///
+/// Register a new observer to participate in the challenge system.
+/// Observers monitor pending unlocks and can submit fraud challenges.
+pub async fn register_observer(
+    Extension(state): Extension<Arc<AppState>>,
+    Json(req): Json<crate::types::ObserverRegisterRequest>,
+) -> Result<Json<crate::types::ObserverRegisterResponse>, ApiError> {
+    tracing::info!("Registering new observer: {}", req.operator_addr);
+
+    // 1. Validate operator address format
+    if !req.operator_addr.starts_with("0x") || req.operator_addr.len() != 42 {
+        return Err(ApiError::InvalidRequest(format!(
+            "Invalid operator address: {}",
+            req.operator_addr
+        )));
+    }
+
+    // 2. Check if observer already exists
+    if let Some(_existing) = state.get_observer_by_address(&req.operator_addr).await? {
+        return Err(ApiError::AlreadyExists(format!(
+            "Observer already registered for address: {}",
+            req.operator_addr
+        )));
+    }
+
+    // 3. Generate observer ID using SHA3-256
+    let mut hasher = Sha3_256::new();
+    hasher.update(b"OBSERVER_V1");
+    hasher.update(req.operator_addr.as_bytes());
+    hasher.update(&chrono::Utc::now().timestamp().to_be_bytes());
+    let observer_id = format!("obs_{}", hex::encode(&hasher.finalize()[..16]));
+
+    let now = chrono::Utc::now().timestamp() as u64;
+
+    // 4. Create observer record
+    let observer = crate::types::Observer {
+        observer_id: observer_id.clone(),
+        operator_addr: req.operator_addr.clone(),
+        status: crate::types::ObserverStatus::PendingApproval,
+        stake_amount: req.stake_amount.clone(),
+        registered_at: now,
+        total_challenges: 0,
+        successful_challenges: 0,
+        total_earnings: "0".to_string(),
+    };
+
+    // 5. Store observer
+    state.store_observer(&observer).await?;
+
+    tracing::info!(
+        "Observer registered: {} for address: {}",
+        observer_id,
+        req.operator_addr
+    );
+
+    Ok(Json(crate::types::ObserverRegisterResponse {
+        observer_id,
+        status: crate::types::ObserverStatus::PendingApproval,
+        operator_addr: req.operator_addr,
+        registered_at: now,
+    }))
+}
+
 /// GET /v1/observer/dashboard
 ///
 /// Returns observer's dashboard with earnings, challenges, and network stats.

@@ -1280,6 +1280,83 @@ impl AppState {
     }
 
     // Governance methods removed - implemented directly in routes::governance
+
+    // ========================================================================
+    // Observer API methods (TASK-P5-019 Extension: Registration)
+    // ========================================================================
+
+    /// Store observer in Redis
+    pub async fn store_observer(&self, observer: &crate::types::Observer) -> Result<(), ApiError> {
+        // Store by ID
+        let key = format!("observer:{}", observer.observer_id);
+        let value = serde_json::to_string(observer).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Store mapping by address
+        let addr_key = format!("observer:addr:{}", observer.operator_addr);
+        self.redis.set(&addr_key, &observer.observer_id, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        tracing::info!("Stored observer: {} for address: {}", observer.observer_id, observer.operator_addr);
+        Ok(())
+    }
+
+    /// Get observer by ID
+    pub async fn get_observer(&self, observer_id: &str) -> Result<Option<crate::types::Observer>, ApiError> {
+        let key = format!("observer:{}", observer_id);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get observer by operator address
+    pub async fn get_observer_by_address(&self, address: &str) -> Result<Option<crate::types::Observer>, ApiError> {
+        let addr_key = format!("observer:addr:{}", address);
+        let observer_id = match self.redis.get(&addr_key).await {
+            Ok(Some(id)) => id,
+            Ok(None) => return Ok(None),
+            Err(e) => return Err(ApiError::Internal(e.to_string())),
+        };
+        self.get_observer(&observer_id).await
+    }
+
+    /// Update observer status
+    pub async fn update_observer_status(&self, observer_id: &str, status: crate::types::ObserverStatus) -> Result<(), ApiError> {
+        if let Some(mut observer) = self.get_observer(observer_id).await? {
+            observer.status = status;
+            self.store_observer(&observer).await?;
+        }
+        Ok(())
+    }
+
+    /// Get all observers (for admin)
+    pub async fn get_all_observers(&self) -> Result<Vec<crate::types::Observer>, ApiError> {
+        let pattern = "observer:obs_*";
+        let keys = self.redis.scan(pattern).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        let mut observers = Vec::new();
+        for key in keys {
+            if let Ok(Some(value)) = self.redis.get(&key).await {
+                if let Ok(observer) = serde_json::from_str::<crate::types::Observer>(&value) {
+                    observers.push(observer);
+                }
+            }
+        }
+
+        // Sort by registered_at descending
+        observers.sort_by(|a, b| b.registered_at.cmp(&a.registered_at));
+
+        Ok(observers)
+    }
+
+    /// Get pending observers (for admin approval)
+    pub async fn get_pending_observers(&self) -> Result<Vec<crate::types::Observer>, ApiError> {
+        let all_observers = self.get_all_observers().await?;
+        Ok(all_observers.into_iter()
+            .filter(|o| o.status == crate::types::ObserverStatus::PendingApproval)
+            .collect())
+    }
 }
 
 /// Helper: SHA3-256 hash for proof hashing

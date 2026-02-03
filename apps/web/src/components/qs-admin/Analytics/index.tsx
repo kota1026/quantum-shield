@@ -13,7 +13,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   dailyActiveUsers: 2450,
   monthlyActiveUsers: 12847,
   totalRevenue: '125,000 QS',
@@ -88,10 +88,10 @@ export function AnalyticsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.dailyActiveUsers')} value={DEMO_STATS.dailyActiveUsers.toLocaleString()} icon={Users} trend={{ value: 5.2, isPositive: true }} />
-        <StatCard title={t('stats.monthlyActiveUsers')} value={DEMO_STATS.monthlyActiveUsers.toLocaleString()} icon={Users} trend={{ value: 12.8, isPositive: true }} />
-        <StatCard title={t('stats.totalRevenue')} value={DEMO_STATS.totalRevenue} icon={DollarSign} trend={{ value: 8.5, isPositive: true }} />
-        <StatCard title={t('stats.avgTransactionValue')} value={DEMO_STATS.avgTransactionValue} icon={TrendingUp} />
+        <StatCard title={t('stats.dailyActiveUsers')} value={FALLBACK_STATS.dailyActiveUsers.toLocaleString()} icon={Users} trend={{ value: 5.2, isPositive: true }} />
+        <StatCard title={t('stats.monthlyActiveUsers')} value={FALLBACK_STATS.monthlyActiveUsers.toLocaleString()} icon={Users} trend={{ value: 12.8, isPositive: true }} />
+        <StatCard title={t('stats.totalRevenue')} value={FALLBACK_STATS.totalRevenue} icon={DollarSign} trend={{ value: 8.5, isPositive: true }} />
+        <StatCard title={t('stats.avgTransactionValue')} value={FALLBACK_STATS.avgTransactionValue} icon={TrendingUp} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

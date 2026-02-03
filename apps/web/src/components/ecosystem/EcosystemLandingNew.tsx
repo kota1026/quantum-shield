@@ -74,7 +74,7 @@ const apps = [
   {
     key: 'enterprise',
     icon: Building2,
-    href: '/enterprise/landing',
+    href: '/enterprise/login',
     color: 'gold',
     role: 'enterprise',
   },

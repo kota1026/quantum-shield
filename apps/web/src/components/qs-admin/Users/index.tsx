@@ -245,7 +245,7 @@ export function UsersDashboard() {
                 key={filter.key}
                 onClick={() => setActiveFilter(filter.key)}
                 className={cn(
-                  'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                  'px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors',
                   activeFilter === filter.key
                     ? 'border-hinomaru text-hinomaru'
                     : 'border-transparent text-foreground-secondary hover:text-foreground'

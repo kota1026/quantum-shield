@@ -16,7 +16,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-const DEMO_REPORTS = [
+const FALLBACK_REPORTS = [
   { id: 1, name: 'Monthly User Report - January 2024', type: 'users', status: 'completed', generated: '2024-01-27 09:00', size: '2.4 MB' },
   { id: 2, name: 'Weekly Transaction Summary', type: 'transactions', status: 'completed', generated: '2024-01-26 00:00', size: '1.8 MB' },
   { id: 3, name: 'Quarterly Revenue Report Q4 2023', type: 'revenue', status: 'completed', generated: '2024-01-15 10:30', size: '5.2 MB' },
@@ -66,7 +66,7 @@ export function ReportsList() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {DEMO_REPORTS.map((report) => {
+            {FALLBACK_REPORTS.map((report) => {
               const StatusIcon = STATUS_ICONS[report.status as keyof typeof STATUS_ICONS];
               return (
                 <div

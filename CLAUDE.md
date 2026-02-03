@@ -78,8 +78,33 @@ Phase 8-{X} ゲートチェック ← 特定Phaseのゲート検証
 # qs-admin, consumer, prover, observer, explorer,
 # governance, token-hub, qs-hub, enterprise
 
-# ===== Full Stack Integration (UI→Backend→DB→Blockchain) ===== ★NEW
-フルスタック統合 開始           ← Phase A から順次実行（★推奨）
+# ===== Layer Integration (Every.to + SEP v3) ===== ★★★ RECOMMENDED
+レイヤー統合 開始               ← Phase 0 から順次実行（★★★推奨）
+レイヤー統合 {app}              ← 特定アプリの5ステップ自動実行
+レイヤー統合 Phase 0            ← Infrastructure (Docker/DB/Backend)
+レイヤー統合 Phase 1            ← Core Roles (Prover/Observer登録承認)
+レイヤー統合 Phase 2            ← Core Functions (Lock/Unlock)
+レイヤー統合 Phase 3            ← Governance
+レイヤー統合 Phase 4            ← Supporting Apps (Explorer/Token Hub/QS Hub)
+レイヤー統合 Phase 5            ← QS Admin
+レイヤー統合 Phase 6            ← E2E Verification (全画面Playwright+ログ検証)
+レイヤー統合 検証 {app}         ← 検証スクリプトのみ実行
+レイヤー統合 進捗確認           ← 全体の統合状況
+
+# Layer Integration 5-Step Pipeline:
+# Step 1: Planning (CLAUDE.md作成, 完了条件定義)
+# Step 2: Test First (検証スクリプト+E2E作成)
+# Step 3: Implementation Loop (実装→検証→修正, max 5ループ)
+# Step 4: 3-Agent Review (Impl/Review/Test全員APPROVE)
+# Step 5: PR Checkpoint (進捗更新+PR作成)
+
+# 7 Phases (依存順):
+# Phase 0: Infrastructure → Phase 1: Prover/Observer → Phase 2: Lock/Unlock
+# → Phase 3: Governance → Phase 4: Explorer/TokenHub/QSHub
+# → Phase 5: QS Admin → Phase 6: E2E Verification
+
+# ===== Full Stack Integration (Legacy) =====
+フルスタック統合 開始           ← Phase A から順次実行
 フルスタック統合 {app}          ← 特定アプリの全レイヤー統合
 フルスタック Phase-A 開始       ← Database セットアップ
 フルスタック Phase-B 開始       ← Backend API 検証
@@ -87,12 +112,6 @@ Phase 8-{X} ゲートチェック ← 特定Phaseのゲート検証
 フルスタック Phase-D 開始       ← E2E テスト
 フルスタック 進捗確認           ← 全体の統合状況
 フルスタック ゲートチェック     ← 現在Phaseのゲート検証
-
-# Full Stack 4 Phases:
-# Phase A: Database (Prisma setup, migration, seed)
-# Phase B: Backend (実DB接続確認, スタブ検出, ログ確認)
-# Phase C: Blockchain (L1 Sepolia, L3 Dilithium)
-# Phase D: E2E Test (全レイヤー結合テスト)
 ```
 
 ---

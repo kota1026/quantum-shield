@@ -667,6 +667,145 @@ pub async fn get_admin_observer_detail(
     }))
 }
 
+/// POST /admin/observers/:id/approve
+///
+/// Approve a pending observer registration.
+/// BE-001: Real database operations
+/// BE-003: Mandatory logging
+#[instrument(skip(state))]
+pub async fn approve_admin_observer(
+    Extension(state): Extension<Arc<AppState>>,
+    Path(observer_id): Path<String>,
+) -> Result<Json<serde_json::Value>, ApiError> {
+    info!(observer_id = %observer_id, "Admin: Approve observer - request started");
+
+    let pool = state.db.pool();
+
+    // Verify observer exists and is pending
+    let current = ObserverRepository::get_by_id(pool, &observer_id)
+        .await?
+        .ok_or_else(|| {
+            warn!(observer_id = %observer_id, "Admin: Observer not found for approval");
+            ApiError::NotFound(format!("Observer not found: {}", observer_id))
+        })?;
+
+    if current.status != "pending" {
+        warn!(
+            observer_id = %observer_id,
+            status = %current.status,
+            "Admin: Observer is not pending approval"
+        );
+        return Err(ApiError::BadRequest(format!(
+            "Observer {} is not pending approval (current status: {})",
+            observer_id, current.status
+        )));
+    }
+
+    // BE-001: Real DB operation - update status to active
+    ObserverRepository::update_status(pool, &observer_id, "active").await?;
+
+    // TODO: Extract admin_id from auth token
+    let admin_id = "admin"; // Placeholder
+
+    // BE-003: Log audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        admin_id,
+        "observer_approved",
+        "observer",
+        Some(&observer_id),
+        Some(serde_json::json!({
+            "action": "approve",
+            "previous_status": "pending"
+        })),
+        None,
+        None,
+    ).await?;
+
+    info!(observer_id = %observer_id, "Admin: Approve observer - completed");
+
+    Ok(Json(serde_json::json!({
+        "observer_id": observer_id,
+        "status": "active",
+        "message": "Observer approved successfully"
+    })))
+}
+
+/// POST /admin/observers/:id/reject
+///
+/// Reject a pending observer registration.
+/// BE-001: Real database operations
+/// BE-003: Mandatory logging
+#[instrument(skip(state, req))]
+pub async fn reject_admin_observer(
+    Extension(state): Extension<Arc<AppState>>,
+    Path(observer_id): Path<String>,
+    Json(req): Json<SuspendObserverRequest>, // Reusing same request structure for reason
+) -> Result<Json<serde_json::Value>, ApiError> {
+    info!(
+        observer_id = %observer_id,
+        reason = %req.reason,
+        "Admin: Reject observer - request started"
+    );
+
+    let pool = state.db.pool();
+
+    // Verify observer exists and is pending
+    let current = ObserverRepository::get_by_id(pool, &observer_id)
+        .await?
+        .ok_or_else(|| {
+            warn!(observer_id = %observer_id, "Admin: Observer not found for rejection");
+            ApiError::NotFound(format!("Observer not found: {}", observer_id))
+        })?;
+
+    if current.status != "pending" {
+        warn!(
+            observer_id = %observer_id,
+            status = %current.status,
+            "Admin: Observer is not pending approval"
+        );
+        return Err(ApiError::BadRequest(format!(
+            "Observer {} is not pending approval (current status: {})",
+            observer_id, current.status
+        )));
+    }
+
+    // BE-001: Real DB operation - update status to rejected
+    ObserverRepository::update_status(pool, &observer_id, "rejected").await?;
+
+    // TODO: Extract admin_id from auth token
+    let admin_id = "admin"; // Placeholder
+
+    // BE-003: Log audit action
+    let log_id = format!("audit-{}", uuid::Uuid::new_v4());
+    AdminRepository::create_audit_log(
+        pool,
+        &log_id,
+        admin_id,
+        "observer_rejected",
+        "observer",
+        Some(&observer_id),
+        Some(serde_json::json!({
+            "action": "reject",
+            "reason": req.reason,
+            "previous_status": "pending"
+        })),
+        None,
+        None,
+    ).await?;
+
+    info!(observer_id = %observer_id, reason = %req.reason, "Admin: Reject observer - completed");
+
+    Ok(Json(serde_json::json!({
+        "observer_id": observer_id,
+        "status": "rejected",
+        "reason": req.reason,
+        "message": "Observer rejected successfully"
+    })))
+}
+
 /// POST /admin/observers/:id/suspend
 ///
 /// Suspend or reactivate an observer.

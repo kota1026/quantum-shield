@@ -48,7 +48,7 @@ interface Message {
 }
 
 // Demo data
-const DEMO_TICKETS: Ticket[] = [
+const FALLBACK_TICKETS: Ticket[] = [
   {
     id: 'tkt-001',
     subject: 'Prover node sync issue after v2.4.1 update',
@@ -69,7 +69,7 @@ const DEMO_TICKETS: Ticket[] = [
   },
 ];
 
-const DEMO_MESSAGES: Message[] = [
+const FALLBACK_MESSAGES: Message[] = [
   {
     id: 'msg-001',
     sender: 'licensee',
@@ -140,10 +140,10 @@ function PriorityBadge({ priority }: { priority: TicketPriority }) {
 
 export function AdminLicenseeSupport({ licenseeId }: LicenseeSupportProps) {
   const t = useTranslations('admin.licenseeSupport');
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(DEMO_TICKETS[0]?.id || null);
+  const [selectedTicket, setSelectedTicket] = useState<string | null>(FALLBACK_TICKETS[0]?.id || null);
   const [newMessage, setNewMessage] = useState('');
 
-  const currentTicket = DEMO_TICKETS.find((t) => t.id === selectedTicket);
+  const currentTicket = FALLBACK_TICKETS.find((t) => t.id === selectedTicket);
 
   return (
     <div className="space-y-6">
@@ -187,7 +187,7 @@ export function AdminLicenseeSupport({ licenseeId }: LicenseeSupportProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 p-2">
-            {DEMO_TICKETS.map((ticket) => (
+            {FALLBACK_TICKETS.map((ticket) => (
               <button
                 key={ticket.id}
                 onClick={() => setSelectedTicket(ticket.id)}
@@ -242,7 +242,7 @@ export function AdminLicenseeSupport({ licenseeId }: LicenseeSupportProps) {
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto p-4">
               <div className="space-y-4">
-                {DEMO_MESSAGES.map((message) => (
+                {FALLBACK_MESSAGES.map((message) => (
                   <div
                     key={message.id}
                     className={cn(

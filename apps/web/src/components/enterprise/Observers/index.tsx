@@ -23,6 +23,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useObservers } from '@/hooks/enterprise';
 
 type ObserverStatus = 'active' | 'warning' | 'offline';
 
@@ -36,7 +37,7 @@ interface Observer {
   alertsRaised: number;
 }
 
-const DEMO_OBSERVERS: Observer[] = [
+const FALLBACK_OBSERVERS: Observer[] = [
   {
     id: 'obs-001',
     name: 'Tokyo Observer Alpha',
@@ -84,12 +85,7 @@ const DEMO_OBSERVERS: Observer[] = [
   },
 ];
 
-const STATS = {
-  total: DEMO_OBSERVERS.length,
-  active: DEMO_OBSERVERS.filter((o) => o.status === 'active').length,
-  warning: DEMO_OBSERVERS.filter((o) => o.status === 'warning').length,
-  offline: DEMO_OBSERVERS.filter((o) => o.status === 'offline').length,
-};
+// Stats computed in component
 
 function StatusIcon({ status }: { status: ObserverStatus }) {
   switch (status) {
@@ -125,7 +121,29 @@ export function EnterpriseObservers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ObserverStatus | 'all'>('all');
 
-  const filteredObservers = DEMO_OBSERVERS.filter((observer) => {
+  // Fetch observers using hook
+  const { data: observersData } = useObservers();
+
+  // Map API data or use fallback
+  const observers: Observer[] = observersData?.observers?.map((o) => ({
+    id: o.id,
+    name: o.address.slice(0, 12) + '...',
+    status: o.status === 'inactive' ? 'offline' : 'active' as ObserverStatus,
+    region: 'tokyo',
+    lastSeen: 'Recently',
+    blocksObserved: o.challenges_submitted * 100,
+    alertsRaised: o.challenges_submitted,
+  })) ?? FALLBACK_OBSERVERS;
+
+  // Compute stats
+  const stats = {
+    total: observers.length,
+    active: observers.filter((o) => o.status === 'active').length,
+    warning: observers.filter((o) => o.status === 'warning').length,
+    offline: observers.filter((o) => o.status === 'offline').length,
+  };
+
+  const filteredObservers = observers.filter((observer) => {
     const matchesSearch = observer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       observer.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || observer.status === statusFilter;
@@ -169,7 +187,7 @@ export function EnterpriseObservers() {
                   <Eye className="h-5 w-5 text-foreground-secondary" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">{STATS.total}</div>
+                  <div className="text-2xl font-bold">{stats.total}</div>
                   <div className="text-xs text-foreground-secondary">{t('stats.total')}</div>
                 </div>
               </div>
@@ -180,7 +198,7 @@ export function EnterpriseObservers() {
                   <CheckCircle2 className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-success">{STATS.active}</div>
+                  <div className="text-2xl font-bold text-success">{stats.active}</div>
                   <div className="text-xs text-foreground-secondary">{t('stats.active')}</div>
                 </div>
               </div>
@@ -191,7 +209,7 @@ export function EnterpriseObservers() {
                   <AlertTriangle className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-warning">{STATS.warning}</div>
+                  <div className="text-2xl font-bold text-warning">{stats.warning}</div>
                   <div className="text-xs text-foreground-secondary">{t('stats.warning')}</div>
                 </div>
               </div>
@@ -202,7 +220,7 @@ export function EnterpriseObservers() {
                   <XCircle className="h-5 w-5 text-danger" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-danger">{STATS.offline}</div>
+                  <div className="text-2xl font-bold text-danger">{stats.offline}</div>
                   <div className="text-xs text-foreground-secondary">{t('stats.offline')}</div>
                 </div>
               </div>

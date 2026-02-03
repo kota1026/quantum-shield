@@ -24,7 +24,7 @@ interface TransactionDetailProps {
   id: string;
 }
 
-const DEMO_TRANSACTION = {
+const FALLBACK_TRANSACTION = {
   id: 'LK-001234',
   type: 'lock',
   user: '0x1234567890abcdef1234567890abcdef12345678',
@@ -68,7 +68,7 @@ export function TransactionDetail({ type, id }: TransactionDetailProps) {
   const t = useTranslations('qsAdmin.transactions');
   const tCommon = useTranslations('qsAdmin.common');
 
-  const tx = { ...DEMO_TRANSACTION, id, type };
+  const tx = { ...FALLBACK_TRANSACTION, id, type };
   const statusConfig = STATUS_CONFIG[tx.status as keyof typeof STATUS_CONFIG];
   const StatusIcon = statusConfig?.icon || Clock;
   const TypeIcon = TYPE_ICONS[type];

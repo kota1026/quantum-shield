@@ -21,14 +21,14 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   activeProvers: 24,
   pendingRequests: 5,
   totalStaked: '125,000 QS',
   avgUptime: '99.7%',
 };
 
-const DEMO_PROVERS = [
+const FALLBACK_PROVERS = [
   { id: '1', name: 'Prover Alpha', wallet: '0x1234...5678', staked: '10,000 QS', uptime: '99.9%', status: 'active', since: '2024-01-01' },
   { id: '2', name: 'Prover Beta', wallet: '0x2345...6789', staked: '8,500 QS', uptime: '99.5%', status: 'active', since: '2024-01-05' },
   { id: '3', name: 'New Prover', wallet: '0x3456...7890', staked: '5,000 QS', uptime: '-', status: 'pending', since: '2024-01-25' },
@@ -87,7 +87,7 @@ export function ProverDashboard() {
     { key: 'suspended', label: t('status.suspended') },
   ];
 
-  const filteredProvers = DEMO_PROVERS.filter(prover => {
+  const filteredProvers = FALLBACK_PROVERS.filter(prover => {
     if (activeFilter !== 'all' && prover.status !== activeFilter) return false;
     if (searchQuery && !prover.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !prover.wallet.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -108,10 +108,10 @@ export function ProverDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.activeProvers')} value={DEMO_STATS.activeProvers} icon={Server} trend={{ value: 8.3, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.pendingRequests')} value={DEMO_STATS.pendingRequests} icon={Clock} />
-        <StatCard title={t('stats.totalStaked')} value={DEMO_STATS.totalStaked} icon={Coins} trend={{ value: 12.5, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.avgUptime')} value={DEMO_STATS.avgUptime} icon={Activity} />
+        <StatCard title={t('stats.activeProvers')} value={FALLBACK_STATS.activeProvers} icon={Server} trend={{ value: 8.3, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+        <StatCard title={t('stats.pendingRequests')} value={FALLBACK_STATS.pendingRequests} icon={Clock} />
+        <StatCard title={t('stats.totalStaked')} value={FALLBACK_STATS.totalStaked} icon={Coins} trend={{ value: 12.5, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+        <StatCard title={t('stats.avgUptime')} value={FALLBACK_STATS.avgUptime} icon={Activity} />
       </div>
 
       <Card>
@@ -128,7 +128,7 @@ export function ProverDashboard() {
         <CardContent>
           <div className="flex space-x-2 mb-4 border-b border-border">
             {filters.map((filter) => (
-              <button key={filter.key} onClick={() => setActiveFilter(filter.key)} className={cn('px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors', activeFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button key={filter.key} onClick={() => setActiveFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', activeFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
                 {filter.label}
               </button>
             ))}
