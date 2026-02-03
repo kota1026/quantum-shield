@@ -27,7 +27,6 @@ import { MOCK_USER_SETTINGS } from '@/lib/api/consumer/mock';
 
 // Fallback data
 const FALLBACK_SETTINGS = MOCK_USER_SETTINGS;
-const DEMO_WALLET_ADDRESS = MOCK_USER_SETTINGS.walletAddress;
 const VERSION = '1.0.0';
 const BUILD = '2026.01.06';
 
@@ -37,13 +36,17 @@ export function Settings() {
   const pathname = usePathname();
   const locale = useLocale();
 
-  // Toggle states
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
-  const [biometricAuth, setBiometricAuth] = useState(true);
-  const [currency, setCurrency] = useState('JPY (¥)');
-  const [autoLockMinutes, setAutoLockMinutes] = useState(5);
+  // Fetch user settings
+  const { data: settingsData } = useUserSettings();
+  const settings = settingsData ?? FALLBACK_SETTINGS;
+
+  // Toggle states (initialized from API data)
+  const [pushNotifications, setPushNotifications] = useState(settings.pushNotifications ?? true);
+  const [emailNotifications, setEmailNotifications] = useState(settings.emailNotifications ?? false);
+  const [darkMode, setDarkMode] = useState(settings.darkMode ?? true);
+  const [biometricAuth, setBiometricAuth] = useState(settings.biometricAuth ?? true);
+  const [currency, setCurrency] = useState(settings.currency ?? 'JPY (¥)');
+  const [autoLockMinutes, setAutoLockMinutes] = useState(settings.autoLockMinutes ?? 5);
 
   // Navigation handlers
   const handleKeyManagement = useCallback(() => {
@@ -146,7 +149,7 @@ export function Settings() {
             description={t('account.connectedWallet.description')}
             action={{
               type: 'value',
-              value: DEMO_WALLET_ADDRESS,
+              value: settings.walletAddress,
               onClick: handleConnectedWallet,
             }}
           />

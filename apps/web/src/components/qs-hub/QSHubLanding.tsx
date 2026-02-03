@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 // Demo stats
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   totalLocked: '24.5M',
   veQSHolders: '12,847',
   activeProposals: 3,
@@ -114,10 +114,10 @@ export function QSHubLanding() {
       <section className="relative z-10 max-w-7xl mx-auto px-8 pb-20" aria-label={t('stats.sectionAriaLabel')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
-            { label: t('stats.totalLocked'), value: DEMO_STATS.totalLocked, unit: 'QS', icon: Lock },
-            { label: t('stats.veQSHolders'), value: DEMO_STATS.veQSHolders, icon: Users },
-            { label: t('stats.activeProposals'), value: DEMO_STATS.activeProposals, icon: Vote },
-            { label: t('stats.rewardsDistributed'), value: DEMO_STATS.totalRewardsDistributed, unit: 'QS', icon: Award },
+            { label: t('stats.totalLocked'), value: FALLBACK_STATS.totalLocked, unit: 'QS', icon: Lock },
+            { label: t('stats.veQSHolders'), value: FALLBACK_STATS.veQSHolders, icon: Users },
+            { label: t('stats.activeProposals'), value: FALLBACK_STATS.activeProposals, icon: Vote },
+            { label: t('stats.rewardsDistributed'), value: FALLBACK_STATS.totalRewardsDistributed, unit: 'QS', icon: Award },
           ].map((stat, index) => (
             <div
               key={index}

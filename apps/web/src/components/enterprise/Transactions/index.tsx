@@ -10,9 +10,10 @@ import { Pagination } from './Pagination';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Download } from 'lucide-react';
 import Link from 'next/link';
+import { useTransactions } from '@/hooks/enterprise';
 
 // Demo data - In production, this would come from API
-const DEMO_TRANSACTIONS: Transaction[] = [
+const FALLBACK_TRANSACTIONS: Transaction[] = [
   { id: '1', txHash: '0x7a3f...9c2d', type: 'lock', amount: '5.00 ETH', fromAddress: '0x1234...5678', status: 'complete', timestamp: '2026-01-11 14:32' },
   { id: '2', txHash: '0x3b2e...1f4a', type: 'unlock', amount: '2.50 ETH', fromAddress: '0x9abc...def0', status: 'pending', statusLabel: '24h Lock', timestamp: '2026-01-11 14:17' },
   { id: '3', txHash: '0x9d1c...8e5b', type: 'lock', amount: '10.00 ETH', fromAddress: '0x5678...9012', status: 'complete', timestamp: '2026-01-11 14:00' },
@@ -40,9 +41,32 @@ export function TransactionList() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Fetch transactions using hook
+  const { data: transactionsData } = useTransactions({
+    page: currentPage,
+    limit: PAGE_SIZE,
+    type: typeFilter !== 'all' ? typeFilter : undefined,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    from_date: dateFrom,
+    to_date: dateTo,
+  });
+
+  // Map API data or use fallback
+  const transactions: Transaction[] = transactionsData?.transactions?.map((tx) => ({
+    id: tx.id,
+    txHash: tx.hash,
+    type: tx.type as Transaction['type'],
+    amount: tx.amount,
+    fromAddress: tx.user_address ?? '0x...',
+    status: tx.status as Transaction['status'],
+    timestamp: tx.time,
+  })) ?? FALLBACK_TRANSACTIONS;
+
+  const totalTransactions = transactionsData?.total ?? TOTAL_TRANSACTIONS;
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(DEMO_TRANSACTIONS.map((tx) => tx.id));
+      setSelectedIds(transactions.map((tx) => tx.id));
     } else {
       setSelectedIds([]);
     }
@@ -61,9 +85,9 @@ export function TransactionList() {
     setCurrentPage(1);
   };
 
-  const totalPages = Math.ceil(TOTAL_TRANSACTIONS / PAGE_SIZE);
+  const totalPages = Math.ceil(totalTransactions / PAGE_SIZE);
   const pageStart = (currentPage - 1) * PAGE_SIZE + 1;
-  const pageEnd = Math.min(currentPage * PAGE_SIZE, TOTAL_TRANSACTIONS);
+  const pageEnd = Math.min(currentPage * PAGE_SIZE, totalTransactions);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -114,11 +138,11 @@ export function TransactionList() {
           {/* Transaction Table */}
           <div className="bg-background-secondary border border-white/5 rounded-xl overflow-hidden">
             <TransactionTable
-              transactions={DEMO_TRANSACTIONS}
+              transactions={transactions}
               selectedIds={selectedIds}
               onSelectAll={handleSelectAll}
               onSelectOne={handleSelectOne}
-              total={TOTAL_TRANSACTIONS}
+              total={totalTransactions}
               pageStart={pageStart}
               pageEnd={pageEnd}
             />
@@ -127,7 +151,7 @@ export function TransactionList() {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              total={TOTAL_TRANSACTIONS}
+              total={totalTransactions}
               pageSize={PAGE_SIZE}
               onPageChange={setCurrentPage}
             />

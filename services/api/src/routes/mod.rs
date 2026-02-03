@@ -23,6 +23,7 @@ mod explorer;
 pub mod council;
 mod resync;
 mod emergency;
+mod qs_hub;
 
 use std::sync::Arc;
 use axum::middleware;
@@ -131,7 +132,8 @@ pub fn api_routes() -> Router {
         .route("/enterprise/application/:id", get(enterprise::get_application))
         .route("/enterprise/contract/sign", post(enterprise::sign_contract))
         .route("/enterprise/onboarding", get(enterprise::get_onboarding))
-        // Observer API (TASK-P5-019) - 8 endpoints
+        // Observer API (TASK-P5-019) - 9 endpoints
+        .route("/observer/register", post(observer::register_observer))
         .route("/observer/dashboard", get(observer::get_dashboard))
         .route("/observer/pending-unlocks", get(observer::get_pending_unlocks))
         .route("/observer/suspicious-txs", get(observer::get_suspicious_txs))
@@ -177,6 +179,21 @@ pub fn api_routes() -> Router {
         .route("/emergency/status", get(emergency::get_status))
         .route("/emergency/unpause", post(emergency::execute_unpause))
         .route("/emergency/extend", post(emergency::request_extension))
+        // QS Hub API (TASK-P5-025) - 14 endpoints
+        .route("/qs-hub/dashboard/stats", get(qs_hub::get_dashboard_stats))
+        .route("/qs-hub/proposals/active", get(qs_hub::get_active_proposals))
+        .route("/qs-hub/rewards", get(qs_hub::get_rewards))
+        .route("/qs-hub/delegates", get(qs_hub::get_delegates))
+        .route("/qs-hub/proposals", get(qs_hub::get_proposals))
+        .route("/qs-hub/proposals/:id", get(qs_hub::get_proposal_detail))
+        .route("/qs-hub/proposals/:id/vote", post(qs_hub::vote_on_proposal))
+        .route("/qs-hub/council", get(qs_hub::get_council))
+        .route("/qs-hub/stakes", get(qs_hub::get_stakes))
+        .route("/qs-hub/stakes", post(qs_hub::create_stake))
+        .route("/qs-hub/stakes/:id/extend", post(qs_hub::extend_stake))
+        .route("/qs-hub/balance", get(qs_hub::get_balance))
+        .route("/qs-hub/votes/history", get(qs_hub::get_vote_history))
+        .route("/qs-hub/rewards/claim", post(qs_hub::claim_rewards))
 }
 
 /// Authentication routes (TASK-P5-012: SIWE→JWT)
@@ -265,9 +282,11 @@ pub fn admin_routes() -> Router {
         .route("/admin/users/:wallet_address/locks", get(admin::get_admin_user_locks))
         .route("/admin/users/:wallet_address/unlocks", get(admin::get_admin_user_unlocks))
         .route("/admin/users/:wallet_address/suspend", post(admin::suspend_admin_user))
-        // === Phase 8-C: Admin Observers (4 EP) ===
+        // === Phase 8-C: Admin Observers (6 EP) ===
         .route("/admin/observers", get(admin::get_admin_observers))
         .route("/admin/observers/:id", get(admin::get_admin_observer_detail))
+        .route("/admin/observers/:id/approve", post(admin::approve_admin_observer))
+        .route("/admin/observers/:id/reject", post(admin::reject_admin_observer))
         .route("/admin/observers/:id/suspend", post(admin::suspend_admin_observer))
         .route("/admin/observers/:id/challenges", get(admin::get_admin_observer_challenges))
         // === Phase 8-C: Admin Treasury (10 EP) ===

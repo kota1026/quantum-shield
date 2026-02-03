@@ -177,11 +177,12 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     active: 'bg-success/10 text-success',
     pending: 'bg-warning/10 text-warning',
     passed: 'bg-gold/10 text-gold',
     rejected: 'bg-danger/10 text-danger',
+    executed: 'bg-success/10 text-success',
   };
 
   // Loading State

@@ -35,7 +35,7 @@ interface Alert {
   acknowledged: boolean;
 }
 
-const DEMO_ALERTS: Alert[] = [
+const FALLBACK_ALERTS: Alert[] = [
   {
     id: '1',
     title: 'High latency detected',
@@ -89,7 +89,7 @@ export function EnterpriseMonitoring() {
   const t = useTranslations('enterprise.monitoring');
   const tCommon = useTranslations('enterprise');
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
-  const [alerts, setAlerts] = useState(DEMO_ALERTS);
+  const [alerts, setAlerts] = useState(FALLBACK_ALERTS);
 
   const timeRanges: TimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 

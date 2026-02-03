@@ -28,7 +28,7 @@ const EXTENSION_OPTIONS = [
 ];
 
 // Demo current lock data - In production, this would come from wallet/API
-const DEMO_CURRENT_LOCK = {
+const FALLBACK_CURRENT_LOCK = {
   lockedAmount: 10000,
   currentDurationWeeks: 52, // 1 year remaining
   lockEndDate: new Date(Date.now() + 52 * 7 * 24 * 60 * 60 * 1000), // 1 year from now
@@ -44,7 +44,7 @@ export function StakeExtend() {
   // Fetch stake positions from API
   const { data: stakePositions } = useStakePositions();
   // Use local data as fallback (has extended structure)
-  const currentLock = stakePositions?.[0] ?? DEMO_CURRENT_LOCK;
+  const currentLock = stakePositions?.[0] ?? FALLBACK_CURRENT_LOCK;
 
   // Form state
   const [selectedExtension, setSelectedExtension] = useState<number>(52); // weeks
@@ -56,14 +56,14 @@ export function StakeExtend() {
 
   // Calculate new lock duration and veQS
   const calculations = useMemo(() => {
-    const newTotalWeeks = DEMO_CURRENT_LOCK.currentDurationWeeks + selectedExtension;
+    const newTotalWeeks = FALLBACK_CURRENT_LOCK.currentDurationWeeks + selectedExtension;
     const maxWeeks = 208; // 4 years
     const cappedWeeks = Math.min(newTotalWeeks, maxWeeks);
     const newMultiplier = cappedWeeks / maxWeeks;
-    const newVeQS = Math.floor(DEMO_CURRENT_LOCK.lockedAmount * newMultiplier);
-    const veQSGain = newVeQS - DEMO_CURRENT_LOCK.currentVeQS;
+    const newVeQS = Math.floor(FALLBACK_CURRENT_LOCK.lockedAmount * newMultiplier);
+    const veQSGain = newVeQS - FALLBACK_CURRENT_LOCK.currentVeQS;
     const newEndDate = new Date(
-      DEMO_CURRENT_LOCK.lockEndDate.getTime() + selectedExtension * 7 * 24 * 60 * 60 * 1000
+      FALLBACK_CURRENT_LOCK.lockEndDate.getTime() + selectedExtension * 7 * 24 * 60 * 60 * 1000
     );
 
     return {
@@ -161,24 +161,24 @@ export function StakeExtend() {
             <div>
               <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.locked')}</div>
               <div className="text-xl font-bold font-mono">
-                {DEMO_CURRENT_LOCK.lockedAmount.toLocaleString()} <span className="text-gold text-sm">QS</span>
+                {FALLBACK_CURRENT_LOCK.lockedAmount.toLocaleString()} <span className="text-gold text-sm">QS</span>
               </div>
             </div>
             <div>
               <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.veQS')}</div>
               <div className="text-xl font-bold font-mono text-gold">
-                {DEMO_CURRENT_LOCK.currentVeQS.toLocaleString()} <span className="text-sm">veQS</span>
+                {FALLBACK_CURRENT_LOCK.currentVeQS.toLocaleString()} <span className="text-sm">veQS</span>
               </div>
             </div>
             <div>
               <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.remaining')}</div>
               <div className="text-lg font-semibold">
-                {formatDuration(DEMO_CURRENT_LOCK.currentDurationWeeks)}
+                {formatDuration(FALLBACK_CURRENT_LOCK.currentDurationWeeks)}
               </div>
             </div>
             <div>
               <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.unlockDate')}</div>
-              <div className="text-lg font-semibold">{formatDate(DEMO_CURRENT_LOCK.lockEndDate)}</div>
+              <div className="text-lg font-semibold">{formatDate(FALLBACK_CURRENT_LOCK.lockEndDate)}</div>
             </div>
           </div>
         </Card>

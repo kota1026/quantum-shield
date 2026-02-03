@@ -24,14 +24,14 @@ import {
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   totalAnnouncements: 45,
   published: 38,
   scheduled: 4,
   draft: 3,
 };
 
-const DEMO_ANNOUNCEMENTS = [
+const FALLBACK_ANNOUNCEMENTS = [
   { id: 1, title: 'System Maintenance Scheduled', type: 'maintenance', status: 'scheduled', publishDate: '2024-01-30 02:00', views: 0, excerpt: 'We will be performing scheduled maintenance...' },
   { id: 2, title: 'New Token Support: WBTC', type: 'update', status: 'published', publishDate: '2024-01-25 10:00', views: 3450, excerpt: 'We are excited to announce support for Wrapped Bitcoin...' },
   { id: 3, title: 'Enhanced Security Features', type: 'info', status: 'published', publishDate: '2024-01-20 14:00', views: 5200, excerpt: 'We have implemented additional security measures...' },
@@ -111,7 +111,7 @@ export function AnnouncementsDashboard() {
     { key: 'draft', label: t('status.draft') },
   ];
 
-  const filteredAnnouncements = DEMO_ANNOUNCEMENTS.filter(ann => {
+  const filteredAnnouncements = FALLBACK_ANNOUNCEMENTS.filter(ann => {
     if (statusFilter !== 'all' && ann.status !== statusFilter) return false;
     if (searchQuery && !ann.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -131,10 +131,10 @@ export function AnnouncementsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.totalAnnouncements')} value={DEMO_STATS.totalAnnouncements} icon={Megaphone} />
-        <StatCard title={t('stats.published')} value={DEMO_STATS.published} icon={CheckCircle} />
-        <StatCard title={t('stats.scheduled')} value={DEMO_STATS.scheduled} icon={Calendar} />
-        <StatCard title={t('stats.draft')} value={DEMO_STATS.draft} icon={FileText} />
+        <StatCard title={t('stats.totalAnnouncements')} value={FALLBACK_STATS.totalAnnouncements} icon={Megaphone} />
+        <StatCard title={t('stats.published')} value={FALLBACK_STATS.published} icon={CheckCircle} />
+        <StatCard title={t('stats.scheduled')} value={FALLBACK_STATS.scheduled} icon={Calendar} />
+        <StatCard title={t('stats.draft')} value={FALLBACK_STATS.draft} icon={FileText} />
       </div>
 
       <Card>
@@ -151,7 +151,7 @@ export function AnnouncementsDashboard() {
         <CardContent>
           <div className="flex space-x-2 mb-4 border-b border-border">
             {statusFilters.map((filter) => (
-              <button key={filter.key} onClick={() => setStatusFilter(filter.key)} className={cn('px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors', statusFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button key={filter.key} onClick={() => setStatusFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', statusFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
                 {filter.label}
               </button>
             ))}

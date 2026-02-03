@@ -21,6 +21,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import {
+  useTransactions,
+  useRecentActivity,
+  useSystemStatus,
+} from '@/hooks/enterprise';
 
 // Action items interface
 interface ActionItem {
@@ -35,7 +40,7 @@ interface ActionItem {
 
 // Demo data - In production, this would come from API
 
-const DEMO_TRANSACTIONS: EnterpriseTransaction[] = [
+const FALLBACK_TRANSACTIONS: EnterpriseTransaction[] = [
   { id: '1', hash: '0x7a3f...9c2d', type: 'lock', amount: '5.00 ETH', status: 'complete', time: '2 min ago' },
   { id: '2', hash: '0x3b2e...1f4a', type: 'unlock', amount: '2.50 ETH', status: 'pending', time: '15 min ago' },
   { id: '3', hash: '0x9d1c...8e5b', type: 'lock', amount: '10.00 ETH', status: 'complete', time: '32 min ago' },
@@ -43,14 +48,14 @@ const DEMO_TRANSACTIONS: EnterpriseTransaction[] = [
   { id: '5', hash: '0x2f4a...6c3e', type: 'lock', amount: '15.00 ETH', status: 'complete', time: '2 hr ago' },
 ];
 
-const DEMO_ACTIVITIES: ActivityItem[] = [
+const FALLBACK_ACTIVITIES: ActivityItem[] = [
   { id: '1', type: 'lock', title: 'New lock transaction', meta: '5.00 ETH • 2 min ago' },
   { id: '2', type: 'user', title: 'User invited: tanaka@acme.co', meta: 'Admin • 15 min ago' },
   { id: '3', type: 'api', title: 'API key created', meta: 'Production • 1 hr ago' },
   { id: '4', type: 'unlock', title: 'Unlock completed', meta: '2.50 ETH • 3 hr ago' },
 ];
 
-const DEMO_SYSTEMS: SystemStatus[] = [
+const FALLBACK_SYSTEMS: SystemStatus[] = [
   { id: '1', name: 'API Gateway', status: 'online', value: 'Operational' },
   { id: '2', name: 'Prover Network', status: 'online', value: '127 nodes' },
   { id: '3', name: 'Ethereum RPC', status: 'online', value: 'Operational' },
@@ -58,7 +63,7 @@ const DEMO_SYSTEMS: SystemStatus[] = [
 ];
 
 // Demo action items requiring attention
-const DEMO_ACTION_ITEMS: ActionItem[] = [
+const FALLBACK_ACTION_ITEMS: ActionItem[] = [
   {
     id: '1',
     type: 'critical',
@@ -91,6 +96,47 @@ const DEMO_ACTION_ITEMS: ActionItem[] = [
 export function EnterpriseDashboard() {
   const t = useTranslations('enterprise.dashboard');
 
+  // Fetch data using hooks with fallback
+  const { data: transactionsData } = useTransactions({ limit: 5 });
+  const { data: activityData } = useRecentActivity();
+  const { data: systemData } = useSystemStatus();
+
+  // Map API data to component format or use fallback
+  const transactions: EnterpriseTransaction[] = transactionsData?.transactions?.map((tx) => ({
+    id: tx.id,
+    hash: tx.hash,
+    type: tx.type as EnterpriseTransaction['type'],
+    amount: tx.amount,
+    status: tx.status as EnterpriseTransaction['status'],
+    time: tx.time,
+  })) ?? FALLBACK_TRANSACTIONS;
+
+  // Map activity type to component expected type (exclude 'system')
+  const mapActivityType = (type: string): ActivityItem['type'] => {
+    if (type === 'system') return 'api';
+    return type as ActivityItem['type'];
+  };
+
+  const activities: ActivityItem[] = activityData?.activities?.map((a) => ({
+    id: a.id,
+    type: mapActivityType(a.type),
+    title: a.title,
+    meta: a.meta,
+  })) ?? FALLBACK_ACTIVITIES;
+
+  // Map system status to component expected type (exclude 'degraded')
+  const mapSystemStatus = (status: string): SystemStatus['status'] => {
+    if (status === 'degraded') return 'warning';
+    return status as SystemStatus['status'];
+  };
+
+  const systems: SystemStatus[] = systemData?.systems?.map((s) => ({
+    id: s.id,
+    name: s.name,
+    status: mapSystemStatus(s.status),
+    value: s.value,
+  })) ?? FALLBACK_SYSTEMS;
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
@@ -116,17 +162,17 @@ export function EnterpriseDashboard() {
           <KPIGrid className="mb-8" />
 
           {/* Action Items Section */}
-          {DEMO_ACTION_ITEMS.length > 0 && (
+          {FALLBACK_ACTION_ITEMS.length > 0 && (
             <section className="mb-8" aria-label={t('actionItems.ariaLabel')}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-warning" aria-hidden="true" />
                 {t('actionItems.title')}
                 <Badge variant="warning" className="ml-2">
-                  {DEMO_ACTION_ITEMS.length}
+                  {FALLBACK_ACTION_ITEMS.length}
                 </Badge>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {DEMO_ACTION_ITEMS.map((item) => {
+                {FALLBACK_ACTION_ITEMS.map((item) => {
                   const getIcon = () => {
                     switch (item.type) {
                       case 'critical':
@@ -189,12 +235,12 @@ export function EnterpriseDashboard() {
           {/* Content Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-8">
             {/* Left Column - Transactions */}
-            <RecentTransactionsTable transactions={DEMO_TRANSACTIONS} />
+            <RecentTransactionsTable transactions={transactions} />
 
             {/* Right Column */}
             <div className="flex flex-col gap-8">
-              <RecentActivityList activities={DEMO_ACTIVITIES} />
-              <SystemStatusList systems={DEMO_SYSTEMS} />
+              <RecentActivityList activities={activities} />
+              <SystemStatusList systems={systems} />
             </div>
           </div>
         </main>

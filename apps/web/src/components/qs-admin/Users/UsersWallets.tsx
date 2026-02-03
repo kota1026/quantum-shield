@@ -210,7 +210,7 @@ export function UsersWallets() {
           {/* Filter Tabs */}
           <div className="flex space-x-2 mb-4 border-b border-border">
             {lockFilters.map((filter) => (
-              <button key={filter.key} onClick={() => setLockFilter(filter.key)} className={cn('px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors', lockFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button key={filter.key} onClick={() => setLockFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', lockFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
                 {filter.label}
               </button>
             ))}

@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 // Demo data
-const DEMO_VOTES = [
+const FALLBACK_VOTES = [
   {
     id: '1',
     proposalId: 'QIP-47',
@@ -62,7 +62,7 @@ const DEMO_VOTES = [
   },
 ];
 
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   totalVotes: 4,
   votesFor: 3,
   votesAgainst: 1,
@@ -81,7 +81,7 @@ export function VoteHistory() {
   const tCommon = useTranslations('qs-hub.common');
   const [filter, setFilter] = useState<'all' | 'for' | 'against'>('all');
 
-  const filteredVotes = DEMO_VOTES.filter((vote) => {
+  const filteredVotes = FALLBACK_VOTES.filter((vote) => {
     if (filter === 'all') return true;
     return vote.vote === filter;
   });
@@ -140,19 +140,19 @@ export function VoteHistory() {
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" aria-label={t('stats.ariaLabel')}>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.totalVotes')}</div>
-            <div className="text-2xl font-bold">{DEMO_STATS.totalVotes}</div>
+            <div className="text-2xl font-bold">{FALLBACK_STATS.totalVotes}</div>
           </Card>
           <Card className="p-4 border-success/30">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.votesFor')}</div>
-            <div className="text-2xl font-bold text-success">{DEMO_STATS.votesFor}</div>
+            <div className="text-2xl font-bold text-success">{FALLBACK_STATS.votesFor}</div>
           </Card>
           <Card className="p-4 border-danger/30">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.votesAgainst')}</div>
-            <div className="text-2xl font-bold text-danger">{DEMO_STATS.votesAgainst}</div>
+            <div className="text-2xl font-bold text-danger">{FALLBACK_STATS.votesAgainst}</div>
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.veQSUsed')}</div>
-            <div className="text-2xl font-bold">{(DEMO_STATS.veQSUsed / 1000).toFixed(0)}K</div>
+            <div className="text-2xl font-bold">{(FALLBACK_STATS.veQSUsed / 1000).toFixed(0)}K</div>
           </Card>
         </section>
 

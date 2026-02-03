@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   totalUsers: 12847,
   newUsers: 1250,
   activeUsers: 8450,
@@ -107,10 +107,10 @@ export function UserAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.monthlyActiveUsers')} value={DEMO_STATS.totalUsers.toLocaleString()} icon={Users} trend={{ value: 5.2, isPositive: true }} />
-        <StatCard title={t('stats.dailyActiveUsers')} value={DEMO_STATS.newUsers.toLocaleString()} icon={UserPlus} trend={{ value: 12.8, isPositive: true }} />
-        <StatCard title={t('stats.monthlyActiveUsers')} value={DEMO_STATS.activeUsers.toLocaleString()} icon={Activity} trend={{ value: 3.5, isPositive: true }} />
-        <StatCard title={t('stats.monthlyActiveUsers')} value={DEMO_STATS.churned.toLocaleString()} icon={UserMinus} trend={{ value: 2.1, isPositive: false }} />
+        <StatCard title={t('stats.monthlyActiveUsers')} value={FALLBACK_STATS.totalUsers.toLocaleString()} icon={Users} trend={{ value: 5.2, isPositive: true }} />
+        <StatCard title={t('stats.dailyActiveUsers')} value={FALLBACK_STATS.newUsers.toLocaleString()} icon={UserPlus} trend={{ value: 12.8, isPositive: true }} />
+        <StatCard title={t('stats.monthlyActiveUsers')} value={FALLBACK_STATS.activeUsers.toLocaleString()} icon={Activity} trend={{ value: 3.5, isPositive: true }} />
+        <StatCard title={t('stats.monthlyActiveUsers')} value={FALLBACK_STATS.churned.toLocaleString()} icon={UserMinus} trend={{ value: 2.1, isPositive: false }} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
