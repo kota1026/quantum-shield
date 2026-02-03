@@ -75,7 +75,7 @@ class ConsumerApiClient {
 
   // Dashboard
   async getDashboard() {
-    return this.request<{ balance: string; locks: number; transactions: number }>('/v1/consumer/dashboard');
+    return this.request<{ balance: string; locks: number; transactions: number }>('/v1/user/dashboard');
   }
 
   // Locks
