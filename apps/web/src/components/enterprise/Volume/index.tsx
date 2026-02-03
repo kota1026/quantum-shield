@@ -9,14 +9,14 @@ import { VolumeChart } from './VolumeChart';
 import { TokenBreakdown, TokenVolume } from './TokenBreakdown';
 
 // Demo data - In production, this would come from API
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   volume24h: { value: '$4.2', unit: 'M', change: { value: '15.3% vs yesterday', isPositive: true } },
   volume7d: { value: '$28.7', unit: 'M', change: { value: '8.2% vs last week', isPositive: true } },
   volume30d: { value: '$124.5', unit: 'M', change: { value: '12.4% vs last month', isPositive: true } },
   transactions: { value: '12,847', change: { value: '247 today', isPositive: true } },
 };
 
-const DEMO_TOKENS: TokenVolume[] = [
+const FALLBACK_TOKENS: TokenVolume[] = [
   { id: '1', symbol: 'ETH', name: 'Ethereum', volume: '$67.2M', percentage: 54.0, change: '12.5%', isPositive: true },
   { id: '2', symbol: 'WBTC', name: 'Wrapped Bitcoin', volume: '$35.8M', percentage: 28.7, change: '8.3%', isPositive: true },
   { id: '3', symbol: 'USDC', name: 'USD Coin', volume: '$21.5M', percentage: 17.3, change: '-2.1%', isPositive: false },
@@ -55,33 +55,33 @@ export function VolumeDashboard() {
           >
             <EnterpriseStatCard
               label={t('stats.volume24h.label')}
-              value={DEMO_STATS.volume24h.value}
-              unit={DEMO_STATS.volume24h.unit}
+              value={FALLBACK_STATS.volume24h.value}
+              unit={FALLBACK_STATS.volume24h.unit}
               tooltip={t('stats.volume24h.tooltip')}
-              change={DEMO_STATS.volume24h.change}
+              change={FALLBACK_STATS.volume24h.change}
               icon="trending"
             />
             <EnterpriseStatCard
               label={t('stats.volume7d.label')}
-              value={DEMO_STATS.volume7d.value}
-              unit={DEMO_STATS.volume7d.unit}
+              value={FALLBACK_STATS.volume7d.value}
+              unit={FALLBACK_STATS.volume7d.unit}
               tooltip={t('stats.volume7d.tooltip')}
-              change={DEMO_STATS.volume7d.change}
+              change={FALLBACK_STATS.volume7d.change}
               icon="trending"
             />
             <EnterpriseStatCard
               label={t('stats.volume30d.label')}
-              value={DEMO_STATS.volume30d.value}
-              unit={DEMO_STATS.volume30d.unit}
+              value={FALLBACK_STATS.volume30d.value}
+              unit={FALLBACK_STATS.volume30d.unit}
               tooltip={t('stats.volume30d.tooltip')}
-              change={DEMO_STATS.volume30d.change}
+              change={FALLBACK_STATS.volume30d.change}
               icon="trending"
             />
             <EnterpriseStatCard
               label={t('stats.transactions.label')}
-              value={DEMO_STATS.transactions.value}
+              value={FALLBACK_STATS.transactions.value}
               tooltip={t('stats.transactions.tooltip')}
-              change={DEMO_STATS.transactions.change}
+              change={FALLBACK_STATS.transactions.change}
               icon="activity"
             />
           </section>
@@ -90,7 +90,7 @@ export function VolumeDashboard() {
           <VolumeChart className="mb-8" />
 
           {/* Token Breakdown */}
-          <TokenBreakdown tokens={DEMO_TOKENS} />
+          <TokenBreakdown tokens={FALLBACK_TOKENS} />
         </main>
       </div>
     </div>

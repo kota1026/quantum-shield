@@ -17,14 +17,14 @@ import {
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   activeObservers: 156,
   totalChallenges: 1234,
   successRate: '94.2%',
   totalEarnings: '45,000 QS',
 };
 
-const DEMO_OBSERVERS = [
+const FALLBACK_OBSERVERS = [
   { id: '1', wallet: '0x1234...5678', challenges: 125, successRate: '98.4%', earnings: '2,450 QS', lastActive: '2024-01-27 14:30', status: 'active' },
   { id: '2', wallet: '0x2345...6789', challenges: 89, successRate: '95.5%', earnings: '1,780 QS', lastActive: '2024-01-27 13:15', status: 'active' },
   { id: '3', wallet: '0x3456...7890', challenges: 234, successRate: '92.3%', earnings: '4,680 QS', lastActive: '2024-01-27 12:00', status: 'active' },
@@ -80,7 +80,7 @@ export function ObserverDashboard() {
     { key: 'inactive', label: t('status.inactive') },
   ];
 
-  const filteredObservers = DEMO_OBSERVERS.filter(observer => {
+  const filteredObservers = FALLBACK_OBSERVERS.filter(observer => {
     if (activeFilter !== 'all' && observer.status !== activeFilter) return false;
     if (searchQuery && !observer.wallet.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -100,10 +100,10 @@ export function ObserverDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.activeObservers')} value={DEMO_STATS.activeObservers} icon={Eye} trend={{ value: 5.2, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.totalChallenges')} value={DEMO_STATS.totalChallenges} icon={Shield} trend={{ value: 15.3, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.successRate')} value={DEMO_STATS.successRate} icon={TrendingUp} />
-        <StatCard title={t('stats.totalEarnings')} value={DEMO_STATS.totalEarnings} icon={Coins} trend={{ value: 8.7, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+        <StatCard title={t('stats.activeObservers')} value={FALLBACK_STATS.activeObservers} icon={Eye} trend={{ value: 5.2, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+        <StatCard title={t('stats.totalChallenges')} value={FALLBACK_STATS.totalChallenges} icon={Shield} trend={{ value: 15.3, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+        <StatCard title={t('stats.successRate')} value={FALLBACK_STATS.successRate} icon={TrendingUp} />
+        <StatCard title={t('stats.totalEarnings')} value={FALLBACK_STATS.totalEarnings} icon={Coins} trend={{ value: 8.7, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
       </div>
 
       <Card>
@@ -120,7 +120,7 @@ export function ObserverDashboard() {
         <CardContent>
           <div className="flex space-x-2 mb-4 border-b border-border">
             {filters.map((filter) => (
-              <button key={filter.key} onClick={() => setActiveFilter(filter.key)} className={cn('px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors', activeFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button key={filter.key} onClick={() => setActiveFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', activeFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
                 {filter.label}
               </button>
             ))}

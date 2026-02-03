@@ -25,7 +25,7 @@ import { useProposalsList } from '@/hooks/qs-hub/useQSHub';
 type ProposalStatus = 'active' | 'pending' | 'passed' | 'rejected' | 'executed';
 
 // Demo proposals data (kept for fallback with extended structure)
-const DEMO_PROPOSALS = [
+const FALLBACK_PROPOSALS = [
   {
     id: 'QIP-047',
     title: 'Increase Observer Rewards by 15%',
@@ -106,8 +106,8 @@ export function ProposalsList() {
 
   // Fetch proposals from API with fallback
   const { data: proposalsApi } = useProposalsList();
-  // Use local DEMO_PROPOSALS as fallback (has extended structure)
-  const proposalData = proposalsApi ? DEMO_PROPOSALS : DEMO_PROPOSALS;
+  // Use local FALLBACK_PROPOSALS as fallback (has extended structure)
+  const proposalData = proposalsApi ? FALLBACK_PROPOSALS : FALLBACK_PROPOSALS;
 
   // State
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('all');
@@ -202,18 +202,18 @@ export function ProposalsList() {
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" aria-label={t('statsAriaLabel')}>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.total')}</div>
-            <div className="text-2xl font-bold">{DEMO_PROPOSALS.length}</div>
+            <div className="text-2xl font-bold">{FALLBACK_PROPOSALS.length}</div>
           </Card>
           <Card className="p-4 border-success/30 bg-success/5">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.active')}</div>
             <div className="text-2xl font-bold text-success">
-              {DEMO_PROPOSALS.filter((p) => p.status === 'active').length}
+              {FALLBACK_PROPOSALS.filter((p) => p.status === 'active').length}
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.passed')}</div>
             <div className="text-2xl font-bold text-gold">
-              {DEMO_PROPOSALS.filter((p) => p.status === 'passed').length}
+              {FALLBACK_PROPOSALS.filter((p) => p.status === 'passed').length}
             </div>
           </Card>
           <Card className="p-4">

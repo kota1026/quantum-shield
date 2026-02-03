@@ -52,7 +52,7 @@ const appCategories = {
   enterprise: {
     titleKey: 'apps.categories.enterprise',
     apps: [
-      { key: 'enterprise', icon: Building2, href: '/enterprise/landing', color: 'gold' },
+      { key: 'enterprise', icon: Building2, href: '/enterprise/login', color: 'gold' },
     ],
   },
 };

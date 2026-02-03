@@ -23,6 +23,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useProvers } from '@/hooks/enterprise';
 
 type ProverStatus = 'active' | 'standby' | 'offline';
 type ProverType = 'dedicated' | 'shared';
@@ -40,7 +41,7 @@ interface Prover {
 }
 
 // Demo data
-const DEMO_PROVERS: Prover[] = [
+const FALLBACK_PROVERS: Prover[] = [
   {
     id: 'prv-001',
     name: 'Tokyo Primary',
@@ -98,12 +99,7 @@ const DEMO_PROVERS: Prover[] = [
   },
 ];
 
-const STATS = {
-  total: DEMO_PROVERS.length,
-  active: DEMO_PROVERS.filter((p) => p.status === 'active').length,
-  standby: DEMO_PROVERS.filter((p) => p.status === 'standby').length,
-  offline: DEMO_PROVERS.filter((p) => p.status === 'offline').length,
-};
+// Stats will be computed in component based on data
 
 function StatusIcon({ status }: { status: ProverStatus }) {
   switch (status) {
@@ -139,12 +135,36 @@ export function EnterpriseProvers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProverStatus | 'all'>('all');
 
-  const filteredProvers = DEMO_PROVERS.filter((prover) => {
+  // Fetch provers using hook
+  const { data: proversData } = useProvers();
+
+  // Map API data or use fallback
+  const provers: Prover[] = proversData?.provers?.map((p) => ({
+    id: p.id,
+    name: p.address.slice(0, 10) + '...',
+    status: p.status === 'slashed' ? 'offline' : p.status as ProverStatus,
+    type: 'shared' as ProverType,
+    region: 'ap-northeast-1',
+    lastActive: 'Recently',
+    uptime: `${p.success_rate}%`,
+    signatures24h: p.jobs_completed,
+    stakeAmount: p.stake_amount,
+  })) ?? FALLBACK_PROVERS;
+
+  const filteredProvers = provers.filter((prover) => {
     const matchesSearch = prover.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prover.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || prover.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Compute stats from current data
+  const stats = {
+    total: provers.length,
+    active: provers.filter((p) => p.status === 'active').length,
+    standby: provers.filter((p) => p.status === 'standby').length,
+    offline: provers.filter((p) => p.status === 'offline').length,
+  };
 
   const handleExport = async (format: 'pdf' | 'csv') => {
     if (format === 'csv') {
@@ -185,7 +205,7 @@ export function EnterpriseProvers() {
                   <Server className="h-5 w-5 text-foreground-secondary" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">{STATS.total}</div>
+                  <div className="text-2xl font-bold">{stats.total}</div>
                   <div className="text-xs text-foreground-secondary">{t('stats.totalProvers')}</div>
                 </div>
               </div>
@@ -196,7 +216,7 @@ export function EnterpriseProvers() {
                   <CheckCircle2 className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-success">{STATS.active}</div>
+                  <div className="text-2xl font-bold text-success">{stats.active}</div>
                   <div className="text-xs text-foreground-secondary">{t('stats.activeProvers')}</div>
                 </div>
               </div>
@@ -207,7 +227,7 @@ export function EnterpriseProvers() {
                   <AlertTriangle className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-warning">{STATS.standby}</div>
+                  <div className="text-2xl font-bold text-warning">{stats.standby}</div>
                   <div className="text-xs text-foreground-secondary">{t('stats.standby')}</div>
                 </div>
               </div>
@@ -218,7 +238,7 @@ export function EnterpriseProvers() {
                   <XCircle className="h-5 w-5 text-danger" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-danger">{STATS.offline}</div>
+                  <div className="text-2xl font-bold text-danger">{stats.offline}</div>
                   <div className="text-xs text-foreground-secondary">{t('stats.offline')}</div>
                 </div>
               </div>

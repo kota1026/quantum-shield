@@ -21,7 +21,7 @@ import { Tooltip } from '@/components/shared/Tooltip';
 import { useStakePositions } from '@/hooks/qs-hub/useQSHub';
 
 // Demo locked positions - kept for fallback with extended structure
-const DEMO_LOCKED_POSITIONS = [
+const FALLBACK_LOCKED_POSITIONS = [
   {
     id: '1',
     lockedAmount: 5000,
@@ -107,7 +107,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
   // Fetch stake positions from API with fallback
   const { data: stakePositionsApi } = useStakePositions();
   // Use local data as fallback (has extended structure)
-  const lockedPositions = stakePositionsApi ? DEMO_LOCKED_POSITIONS : DEMO_LOCKED_POSITIONS;
+  const lockedPositions = stakePositionsApi ? FALLBACK_LOCKED_POSITIONS : FALLBACK_LOCKED_POSITIONS;
 
   // State for selected position to withdraw
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
@@ -120,7 +120,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
     let unlockableCount = 0;
     let unlockableAmount = 0;
 
-    DEMO_LOCKED_POSITIONS.forEach((pos) => {
+    FALLBACK_LOCKED_POSITIONS.forEach((pos) => {
       totalLocked += pos.lockedAmount;
       const currentVeQS = calculateCurrentVeQS(
         pos.veQSAmount,
@@ -151,7 +151,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
   }, []);
 
   // Empty State (no positions)
-  if (isEmpty || DEMO_LOCKED_POSITIONS.length === 0) {
+  if (isEmpty || FALLBACK_LOCKED_POSITIONS.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-4">
@@ -247,7 +247,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.positions')}</div>
-            <div className="text-xl font-bold">{DEMO_LOCKED_POSITIONS.length}</div>
+            <div className="text-xl font-bold">{FALLBACK_LOCKED_POSITIONS.length}</div>
           </Card>
           <Card className={cn('p-4', totals.unlockableCount > 0 && 'border-success/50 bg-success/5')}>
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.unlockable')}</div>
@@ -271,7 +271,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
           </h2>
 
           <div className="space-y-4" role="list" aria-label={t('positions.listAriaLabel')}>
-            {DEMO_LOCKED_POSITIONS.map((position) => {
+            {FALLBACK_LOCKED_POSITIONS.map((position) => {
               const timeRemaining = calculateTimeRemaining(position.unlockDate);
               const currentVeQS = calculateCurrentVeQS(
                 position.veQSAmount,

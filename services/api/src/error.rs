@@ -113,6 +113,13 @@ pub enum ApiError {
     // Generic bad request (Admin API)
     #[error("Bad request: {0}")]
     BadRequest(String),
+
+    // Observer errors (TASK-P5-019)
+    #[error("Observer not found: {0}")]
+    ObserverNotFound(String),
+
+    #[error("Already exists: {0}")]
+    AlreadyExists(String),
 }
 
 #[derive(Serialize)]
@@ -163,6 +170,9 @@ impl ApiError {
             ApiError::Forbidden(_) => 6002,
             // Generic bad request
             ApiError::BadRequest(_) => 4000,
+            // Observer errors (7xxx)
+            ApiError::ObserverNotFound(_) => 7001,
+            ApiError::AlreadyExists(_) => 7002,
         }
     }
 
@@ -207,6 +217,9 @@ impl ApiError {
             ApiError::Forbidden(_) => StatusCode::FORBIDDEN,
             // Generic bad request
             ApiError::BadRequest(_) => StatusCode::BAD_REQUEST,
+            // Observer errors
+            ApiError::ObserverNotFound(_) => StatusCode::NOT_FOUND,
+            ApiError::AlreadyExists(_) => StatusCode::CONFLICT,
         }
     }
 }

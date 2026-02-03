@@ -86,7 +86,7 @@ export function useQSHubStats() {
     queryKey: qsHubKeys.stats(),
     queryFn: async () => {
       try {
-        return await fetchApi<QSHubStats>('/api/qs-hub/dashboard/stats');
+        return await fetchApi<QSHubStats>('/v1/qs-hub/dashboard/stats');
       } catch {
         return MOCK_STATS;
       }
@@ -100,7 +100,7 @@ export function useQSHubProposals() {
     queryKey: qsHubKeys.proposals(),
     queryFn: async () => {
       try {
-        return await fetchApi<QSHubProposal[]>('/api/qs-hub/proposals/active');
+        return await fetchApi<QSHubProposal[]>('/v1/qs-hub/proposals/active');
       } catch {
         return MOCK_PROPOSALS;
       }
@@ -114,7 +114,7 @@ export function useQSHubRewards() {
     queryKey: qsHubKeys.rewards(),
     queryFn: async () => {
       try {
-        return await fetchApi<QSHubRewards>('/api/qs-hub/rewards');
+        return await fetchApi<QSHubRewards>('/v1/qs-hub/rewards');
       } catch {
         return MOCK_REWARDS;
       }
@@ -128,7 +128,7 @@ export function useQSHubDelegates() {
     queryKey: qsHubKeys.delegates(),
     queryFn: async () => {
       try {
-        return await fetchApi<QSHubDelegate[]>('/api/qs-hub/delegates');
+        return await fetchApi<QSHubDelegate[]>('/v1/qs-hub/delegates');
       } catch {
         return MOCK_DELEGATES;
       }
@@ -146,7 +146,7 @@ export function useProposalsList() {
     queryKey: qsHubKeys.proposalsList(),
     queryFn: async () => {
       try {
-        return await fetchApi<ProposalDetail[]>('/api/qs-hub/proposals');
+        return await fetchApi<ProposalDetail[]>('/v1/qs-hub/proposals');
       } catch {
         return MOCK_PROPOSALS_LIST;
       }
@@ -178,7 +178,7 @@ export function useCouncil() {
     queryKey: qsHubKeys.council(),
     queryFn: async () => {
       try {
-        return await fetchApi<CouncilMember[]>('/api/qs-hub/council');
+        return await fetchApi<CouncilMember[]>('/v1/qs-hub/council');
       } catch {
         return MOCK_COUNCIL;
       }
@@ -196,7 +196,7 @@ export function useStakePositions() {
     queryKey: qsHubKeys.stakePositions(),
     queryFn: async () => {
       try {
-        return await fetchApi<StakeLockPosition[]>('/api/qs-hub/stakes');
+        return await fetchApi<StakeLockPosition[]>('/v1/qs-hub/stakes');
       } catch {
         return MOCK_STAKE_POSITIONS;
       }
@@ -210,7 +210,7 @@ export function useQSBalance() {
     queryKey: qsHubKeys.balance(),
     queryFn: async () => {
       try {
-        const data = await fetchApi<{ balance: number }>('/api/qs-hub/balance');
+        const data = await fetchApi<{ balance: number }>('/v1/qs-hub/balance');
         return data.balance;
       } catch {
         return MOCK_BALANCE;
@@ -229,7 +229,7 @@ export function useVoteHistory() {
     queryKey: qsHubKeys.voteHistory(),
     queryFn: async () => {
       try {
-        return await fetchApi<VoteRecord[]>('/api/qs-hub/votes/history');
+        return await fetchApi<VoteRecord[]>('/v1/qs-hub/votes/history');
       } catch {
         return MOCK_VOTE_HISTORY;
       }
@@ -252,7 +252,7 @@ export function useCreateStake() {
 
   return useMutation({
     mutationFn: async (params: CreateStakeParams) => {
-      return postApi<StakeLockPosition>('/api/qs-hub/stakes', params);
+      return postApi<StakeLockPosition>('/v1/qs-hub/stakes', params);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qsHubKeys.stakePositions() });
@@ -310,7 +310,7 @@ export function useClaimRewards() {
 
   return useMutation({
     mutationFn: async () => {
-      return postApi<{ claimed: number }>('/api/qs-hub/rewards/claim');
+      return postApi<{ claimed: number }>('/v1/qs-hub/rewards/claim');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qsHubKeys.rewards() });

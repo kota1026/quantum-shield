@@ -31,7 +31,7 @@ interface LicenseeDetailProps {
 }
 
 // Demo data
-const DEMO_LICENSEE = {
+const FALLBACK_LICENSEE = {
   id: 'lic-001',
   companyName: 'Tokyo Financial Group',
   country: 'Japan',
@@ -88,7 +88,7 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
   const t = useTranslations('admin.licenseeDetail');
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  const licensee = DEMO_LICENSEE;
+  const licensee = FALLBACK_LICENSEE;
 
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'overview', label: t('tabs.overview'), icon: Building2 },

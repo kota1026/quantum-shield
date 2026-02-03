@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const DEMO_LOGS = [
+const FALLBACK_LOGS = [
   { id: 1, timestamp: '2024-01-27 14:32:15', level: 'info', source: 'API', message: 'User login successful: 0x1234...5678' },
   { id: 2, timestamp: '2024-01-27 14:32:10', level: 'debug', source: 'DB', message: 'Query executed in 12ms: SELECT * FROM locks' },
   { id: 3, timestamp: '2024-01-27 14:31:58', level: 'warning', source: 'Prover', message: 'Node #12 response time exceeded threshold' },
@@ -48,7 +48,7 @@ export function LogsViewer() {
     { key: 'debug', label: t('levels.debug') },
   ];
 
-  const filteredLogs = DEMO_LOGS.filter(log => {
+  const filteredLogs = FALLBACK_LOGS.filter(log => {
     if (levelFilter !== 'all' && log.level !== levelFilter) return false;
     if (searchQuery && !log.message.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !log.source.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -95,7 +95,7 @@ export function LogsViewer() {
         <CardContent>
           <div className="flex space-x-2 mb-4 border-b border-border">
             {levelFilters.map((filter) => (
-              <button key={filter.key} onClick={() => setLevelFilter(filter.key)} className={cn('px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors', levelFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button key={filter.key} onClick={() => setLevelFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', levelFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
                 {filter.label}
               </button>
             ))}

@@ -1336,3 +1336,57 @@ pub struct ProverWithdrawResponse {
     /// Withdrawal timestamp
     pub withdrawn_at: u64,
 }
+
+// ============================================================================
+// Observer Types (TASK-P5-019 Extension: Registration)
+// ============================================================================
+
+/// Observer registration request
+/// POST /v1/observer/register
+#[derive(Debug, Deserialize)]
+pub struct ObserverRegisterRequest {
+    /// Operator wallet address
+    pub operator_addr: String,
+    /// Optional stake amount (not required for observers, but can stake for enhanced rewards)
+    pub stake_amount: Option<String>,
+}
+
+/// Observer registration response
+#[derive(Debug, Serialize)]
+pub struct ObserverRegisterResponse {
+    /// Unique observer ID
+    pub observer_id: String,
+    /// Registration status
+    pub status: ObserverStatus,
+    /// Operator address
+    pub operator_addr: String,
+    /// Registration timestamp
+    pub registered_at: u64,
+}
+
+/// Observer status enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ObserverStatus {
+    /// Pending admin approval
+    PendingApproval,
+    /// Active and can submit challenges
+    Active,
+    /// Temporarily inactive
+    Inactive,
+    /// Suspended by admin
+    Suspended,
+}
+
+/// Observer info for admin/internal use
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Observer {
+    pub observer_id: String,
+    pub operator_addr: String,
+    pub status: ObserverStatus,
+    pub stake_amount: Option<String>,
+    pub registered_at: u64,
+    pub total_challenges: u32,
+    pub successful_challenges: u32,
+    pub total_earnings: String,
+}

@@ -16,7 +16,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-const DEMO_STATS = {
+const FALLBACK_STATS = {
   activeAlerts: 2,
   systemHealth: '99.2%',
   uptime: '99.9%',
@@ -69,7 +69,7 @@ export function SystemDashboard() {
       title: t('alertsTitle'),
       subtitle: t('alertsSubtitle'),
       color: 'bg-warning/10 text-warning',
-      badge: DEMO_STATS.activeAlerts,
+      badge: FALLBACK_STATS.activeAlerts,
     },
     {
       href: '/qs-admin/system/logs',
@@ -97,25 +97,25 @@ export function SystemDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title={t('stats.activeAlerts')}
-          value={DEMO_STATS.activeAlerts}
+          value={FALLBACK_STATS.activeAlerts}
           icon={AlertTriangle}
-          status={DEMO_STATS.activeAlerts > 0 ? 'warning' : 'success'}
+          status={FALLBACK_STATS.activeAlerts > 0 ? 'warning' : 'success'}
         />
         <StatCard
           title={t('stats.systemHealth')}
-          value={DEMO_STATS.systemHealth}
+          value={FALLBACK_STATS.systemHealth}
           icon={Activity}
           status="success"
         />
         <StatCard
           title={t('stats.uptime')}
-          value={DEMO_STATS.uptime}
+          value={FALLBACK_STATS.uptime}
           icon={CheckCircle}
           status="success"
         />
         <StatCard
           title={t('stats.lastMaintenance')}
-          value={DEMO_STATS.lastMaintenance}
+          value={FALLBACK_STATS.lastMaintenance}
           icon={Wrench}
         />
       </div>

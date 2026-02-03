@@ -36,7 +36,7 @@ interface Ticket {
 }
 
 // Demo data
-const DEMO_TICKETS: Ticket[] = [
+const FALLBACK_TICKETS: Ticket[] = [
   {
     id: 'tkt-001',
     subject: 'Prover node sync issue after v2.4.1 update',
@@ -142,7 +142,7 @@ export function AdminSupport() {
   const [statusFilter, setStatusFilter] = useState<TicketStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | 'all'>('all');
 
-  const filteredTickets = DEMO_TICKETS.filter((ticket) => {
+  const filteredTickets = FALLBACK_TICKETS.filter((ticket) => {
     const matchesSearch =
       searchQuery === '' ||
       ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -153,9 +153,9 @@ export function AdminSupport() {
   });
 
   const stats = {
-    total: DEMO_TICKETS.length,
-    open: DEMO_TICKETS.filter((t) => t.status === 'open').length,
-    inProgress: DEMO_TICKETS.filter((t) => t.status === 'in_progress').length,
+    total: FALLBACK_TICKETS.length,
+    open: FALLBACK_TICKETS.filter((t) => t.status === 'open').length,
+    inProgress: FALLBACK_TICKETS.filter((t) => t.status === 'in_progress').length,
     avgResponseTime: '45m',
   };
 

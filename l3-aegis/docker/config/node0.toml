@@ -1,10 +1,8 @@
 # Aegis L3 Node Configuration - Node 0 (Primary)
 # CP-1 Compliant: SHA3-256, Dilithium-III only
 
-[node]
-id = 0
+# Node configuration (top level, per NodeConfig struct)
 node_id = "aegis-node-0"
-local_address = "172.28.0.10"
 data_dir = "/data"
 dev_mode = false
 
@@ -17,40 +15,17 @@ max_connections = 100
 [p2p]
 listen_addr = "0.0.0.0"
 port = 30303
-enable_tls = true
 max_peers = 10
-
-# Bootstrap peers (other validators)
-[[p2p.peer]]
-address = "172.28.0.11:30303"
-[[p2p.peer]]
-address = "172.28.0.12:30303"
-[[p2p.peer]]
-address = "172.28.0.13:30303"
+static_peers = [
+  "172.28.0.11:30303",
+  "172.28.0.12:30303",
+  "172.28.0.13:30303"
+]
 
 [consensus]
 block_time_secs = 5
 view_change_timeout_secs = 10
 validator_key_path = "/keys/dilithium.key"
-
-# Validators list
-[[consensus.validator]]
-id = 0
-pubkey_path = "/keys/node0.pub"
-[[consensus.validator]]
-id = 1
-pubkey_path = "/keys/node1.pub"
-[[consensus.validator]]
-id = 2
-pubkey_path = "/keys/node2.pub"
-[[consensus.validator]]
-id = 3
-pubkey_path = "/keys/node3.pub"
-
-# CP-1 Compliance: Quantum-resistant algorithms (CORE_PRINCIPLES.md)
-[crypto]
-hash_algorithm = "sha3-256"
-signature_algorithm = "dilithium-iii"
 
 [storage]
 db_path = "db"

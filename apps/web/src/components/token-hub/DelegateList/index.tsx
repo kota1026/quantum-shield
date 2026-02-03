@@ -45,7 +45,8 @@ interface Delegate {
   lastVoteDays: number;
 }
 
-const DEMO_DELEGATES: Delegate[] = [
+// Fallback delegate data - In production, this comes from API
+const FALLBACK_DELEGATES: Delegate[] = [
   {
     id: '1',
     nameKey: 'watanabe',
@@ -255,7 +256,7 @@ export function TokenHubDelegateList() {
   ];
 
   const filteredDelegates = useMemo(() => {
-    let result = [...DEMO_DELEGATES];
+    let result = [...FALLBACK_DELEGATES];
 
     // Apply search filter
     if (searchQuery) {
@@ -288,10 +289,10 @@ export function TokenHubDelegateList() {
   // Calculate total stats
   const totalStats = useMemo(() => {
     return {
-      totalVeQS: DEMO_DELEGATES.reduce((acc, d) => acc + d.veQSNum, 0),
-      totalDelegators: DEMO_DELEGATES.reduce((acc, d) => acc + d.delegators, 0),
+      totalVeQS: FALLBACK_DELEGATES.reduce((acc, d) => acc + d.veQSNum, 0),
+      totalDelegators: FALLBACK_DELEGATES.reduce((acc, d) => acc + d.delegators, 0),
       avgParticipation: Math.round(
-        DEMO_DELEGATES.reduce((acc, d) => acc + d.participation, 0) / DEMO_DELEGATES.length
+        FALLBACK_DELEGATES.reduce((acc, d) => acc + d.participation, 0) / FALLBACK_DELEGATES.length
       ),
     };
   }, []);

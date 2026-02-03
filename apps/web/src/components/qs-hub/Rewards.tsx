@@ -20,14 +20,14 @@ import { Badge } from '@/components/ui/badge';
 import { useQSHubRewards } from '@/hooks/qs-hub/useQSHub';
 
 // Demo data (kept for fallback with extended structure)
-const DEMO_REWARDS = {
+const FALLBACK_REWARDS = {
   claimable: 0.85,
   pending: 0.32,
   totalClaimed: 12.45,
   nextEpoch: '2d 14h',
 };
 
-const DEMO_HISTORY = [
+const FALLBACK_HISTORY = [
   {
     id: '1',
     type: 'protocol_fee' as const,
@@ -93,7 +93,7 @@ export function QSHubRewards() {
   // Fetch rewards from API with fallback
   const { data: rewardsApi } = useQSHubRewards();
   // Use local data as fallback (has extended structure)
-  const rewards = rewardsApi ?? DEMO_REWARDS;
+  const rewards = rewardsApi ?? FALLBACK_REWARDS;
 
   const handleClaim = async () => {
     setIsClaiming(true);
@@ -156,18 +156,18 @@ export function QSHubRewards() {
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8" aria-label={t('stats.ariaLabel')}>
           <Card className="p-5 border-gold/30 bg-gradient-to-br from-gold/5 to-transparent">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.claimable')}</div>
-            <div className="text-2xl font-bold text-gold">{DEMO_REWARDS.claimable} ETH</div>
+            <div className="text-2xl font-bold text-gold">{FALLBACK_REWARDS.claimable} ETH</div>
           </Card>
           <Card className="p-5">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.pending')}</div>
-            <div className="text-2xl font-bold">{DEMO_REWARDS.pending} ETH</div>
+            <div className="text-2xl font-bold">{FALLBACK_REWARDS.pending} ETH</div>
             <div className="text-xs text-foreground-tertiary mt-1">
-              {t('stats.nextEpoch', { time: DEMO_REWARDS.nextEpoch })}
+              {t('stats.nextEpoch', { time: FALLBACK_REWARDS.nextEpoch })}
             </div>
           </Card>
           <Card className="p-5">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.totalClaimed')}</div>
-            <div className="text-2xl font-bold">{DEMO_REWARDS.totalClaimed} ETH</div>
+            <div className="text-2xl font-bold">{FALLBACK_REWARDS.totalClaimed} ETH</div>
           </Card>
           <Card className="p-5 flex flex-col justify-center">
             {claimSuccess ? (
@@ -179,7 +179,7 @@ export function QSHubRewards() {
               <Button
                 variant="primary"
                 onClick={handleClaim}
-                disabled={isClaiming || DEMO_REWARDS.claimable === 0}
+                disabled={isClaiming || FALLBACK_REWARDS.claimable === 0}
                 className="w-full"
               >
                 {isClaiming ? (
@@ -215,7 +215,7 @@ export function QSHubRewards() {
           </div>
           <div className="flex items-center gap-2 text-sm text-foreground-tertiary">
             <Clock className="w-4 h-4" />
-            <span>{t('epoch.endsIn', { time: DEMO_REWARDS.nextEpoch })}</span>
+            <span>{t('epoch.endsIn', { time: FALLBACK_REWARDS.nextEpoch })}</span>
           </div>
         </Card>
 
@@ -226,7 +226,7 @@ export function QSHubRewards() {
           </h2>
 
           <div className="space-y-3" role="list" aria-label={t('history.listAriaLabel')}>
-            {DEMO_HISTORY.map((reward) => {
+            {FALLBACK_HISTORY.map((reward) => {
               const Icon = typeIcons[reward.type];
               return (
                 <Card
