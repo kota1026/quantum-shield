@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { LockCard, LockItem } from './LockCard';
 import { MethodCard } from './MethodCard';
 import { TimeLockModal } from './TimeLockModal';
-import { useLocks } from '@/hooks/consumer';
+import { useUserTransactions } from '@/hooks/consumer';
 import { MOCK_LOCKS } from '@/lib/api/consumer/mock';
 
 // Fallback data
@@ -22,11 +22,17 @@ export function Unlock() {
   const t = useTranslations('consumer.unlock');
   const router = useRouter();
 
-  // Fetch data using hooks
-  const { data: locksData } = useLocks();
+  // Fetch data using new API hooks - get only locks
+  const { data: txData } = useUserTransactions({ txType: 'lock', perPage: 50 });
 
-  // Use API data with fallback
-  const locks = (locksData?.locks ?? FALLBACK_LOCKS) as LockItem[];
+  // Transform API data to component format
+  const locks = (txData?.transactions?.filter(tx => tx.status !== 'completed').map((tx, index) => ({
+    id: tx.id,
+    number: index + 1,
+    amount: `${tx.amount} ETH`,
+    timestamp: new Date(tx.createdAt * 1000).toLocaleDateString('ja-JP'),
+    status: tx.status === 'pending' ? ('pending' as const) : ('locked' as const),
+  })) ?? FALLBACK_LOCKS) as LockItem[];
 
   const [selectedLockId, setSelectedLockId] = useState<string>(locks[0]?.id || '');
   const [selectedMethod, setSelectedMethod] = useState<UnlockMethod>('normal');

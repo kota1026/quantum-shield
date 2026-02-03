@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { HistoryStats, HistoryStatsData } from './HistoryStats';
 import { FilterTabs, FilterType } from './FilterTabs';
-import { HistoryItem, HistoryTransaction, TransactionType } from './HistoryItem';
-import { useHistory } from '@/hooks/consumer';
+import { HistoryItem, HistoryTransaction, TransactionType, TransactionStatus } from './HistoryItem';
+import { useUserDashboard, useUserTransactions } from '@/hooks/consumer';
 import {
   MOCK_HISTORY_STATS,
   MOCK_HISTORY_TRANSACTIONS,
@@ -29,16 +29,42 @@ const FILTER_TO_TYPES: Record<FilterType, TransactionType[] | null> = {
   emergency: ['emergencyUnlock'],
 };
 
+// Map API transaction type to component type
+function mapTxType(txType: string): TransactionType {
+  switch (txType) {
+    case 'lock': return 'lock';
+    case 'normal_unlock': return 'normalUnlock';
+    case 'emergency_unlock': return 'emergencyUnlock';
+    default: return 'lock';
+  }
+}
+
 export function History() {
   const t = useTranslations('consumer.history');
   const router = useRouter();
 
-  // Fetch data using hooks
-  const { data: historyData } = useHistory();
+  // Fetch data using new API hooks
+  const { data: dashboardData } = useUserDashboard();
+  const { data: txData } = useUserTransactions({ perPage: 50 });
 
-  // Use API data with fallback
-  const historyStats = (historyData?.stats ?? FALLBACK_STATS) as HistoryStatsData;
-  const historyTransactions = (historyData?.transactions ?? FALLBACK_TRANSACTIONS) as HistoryTransaction[];
+  // Transform API data to component format
+  const historyStats: HistoryStatsData = dashboardData ? {
+    totalLocked: dashboardData.totalLocked,
+    totalLockedUnit: 'ETH',
+    totalTransactions: txData?.total || 0,
+    inProgress: dashboardData.pendingUnlocks || 0,
+  } : FALLBACK_STATS;
+
+  const historyTransactions: HistoryTransaction[] = (txData?.transactions?.map(tx => ({
+    id: tx.id,
+    type: mapTxType(tx.txType),
+    status: (tx.status === 'completed' ? 'complete' : 'pending24h') as TransactionStatus,
+    amount: `${tx.amount} ETH`,
+    timestamp: new Date(tx.createdAt * 1000).toLocaleString('ja-JP'),
+    txHash: tx.l1TxHash || '0x...',
+    blockConfirmed: tx.status === 'completed' ? 12 : undefined,
+    remainingTime: tx.releaseTime ? `${Math.max(0, Math.floor((tx.releaseTime * 1000 - Date.now()) / 3600000))}h` : undefined,
+  })) ?? FALLBACK_TRANSACTIONS) as HistoryTransaction[];
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 

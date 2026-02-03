@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useKeyInfo } from '@/hooks/consumer';
-import { MOCK_KEY_INFO } from '@/lib/api/consumer/mock';
+import { useUserKeys } from '@/hooks/consumer';
+import { MOCK_KEY_INFO, type KeyInfo } from '@/lib/api/consumer/mock';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -18,11 +18,17 @@ const FALLBACK_KEY_INFO = MOCK_KEY_INFO;
 export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   const t = useTranslations('consumer.keyManagement.exportModal');
 
-  // Fetch data using hooks
-  const { data: keyInfoData } = useKeyInfo();
+  // Fetch data using new API hooks
+  const { data: keysData } = useUserKeys();
 
-  // Use API data with fallback
-  const keyInfo = keyInfoData ?? FALLBACK_KEY_INFO;
+  // Transform API data to component format
+  const keyInfo: KeyInfo = keysData ? {
+    publicKey: keysData.dilithiumPublicKey || '',
+    secretKey: '', // Not exposed via API for security
+    algorithm: keysData.algorithm?.name || 'ML-DSA-65',
+    createdAt: keysData.registeredAt ? new Date(keysData.registeredAt * 1000).toLocaleDateString('ja-JP') : '',
+    lastBackup: '', // TODO: Add to API
+  } : FALLBACK_KEY_INFO;
 
   const [confirmed, setConfirmed] = useState(false);
   const [revealed, setRevealed] = useState(false);

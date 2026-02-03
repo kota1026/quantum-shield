@@ -323,7 +323,7 @@ export function Dashboard() {
   const tvlData = tvlQuery.data ?? FALLBACK_TVL_DATA;
   const volumeData = volumeQuery.data ?? FALLBACK_VOLUME_DATA;
   const userData = userGrowthQuery.data ?? FALLBACK_USER_DATA;
-  const activityData = dashboardData?.recent_alerts?.map((a, i) => ({
+  const activityData = dashboardData?.recentAlerts?.map((a: AlertItem, i: number) => ({
     id: String(i),
     type: 'lock' as const,
     message: a.message,
