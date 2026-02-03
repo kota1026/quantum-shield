@@ -21,11 +21,41 @@ import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { DelegateTooltip, ParticipationTooltip } from './DelegateTooltip';
 import { useUserDelegation, useDelegateList } from '@/hooks/token-hub/useTokenHub';
-import { MOCK_USER_DELEGATION, MOCK_DELEGATES, type DelegateInfo } from '@/lib/api/token-hub/mock';
+import type { DelegateInfo } from '@/lib/api/token-hub/mock';
 
-// Fallback data
-const FALLBACK_USER_DELEGATION = MOCK_USER_DELEGATION;
-const FALLBACK_DELEGATES = MOCK_DELEGATES;
+// Fallback data (used when API is unavailable)
+const FALLBACK_USER_DELEGATION = {
+  totalDelegated: 25000,
+  delegateCount: 2,
+};
+const FALLBACK_DELEGATES: DelegateInfo[] = [
+  {
+    id: '1',
+    name: 'delegates.watanabe',
+    initial: 'W',
+    address: '0x1a2b...3c4d',
+    rank: 1,
+    veQS: '285K',
+    delegators: 1247,
+    participation: 98,
+    tags: ['securityCouncil', 'defiExpert'],
+    bio: 'delegates.watanabeBio',
+    lastVote: '2',
+  },
+  {
+    id: '2',
+    name: 'delegates.sato',
+    initial: 'S',
+    address: '0x5e6f...7g8h',
+    rank: 2,
+    veQS: '198K',
+    delegators: 892,
+    participation: 95,
+    tags: ['research', 'governance'],
+    bio: 'delegates.satoBio',
+    lastVote: '5',
+  },
+];
 
 type FilterType = 'all' | 'top10' | 'mostActive' | 'securityCouncil';
 

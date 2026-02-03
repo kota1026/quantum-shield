@@ -17,7 +17,6 @@ import { HelpTooltip } from './HelpTooltip';
 import { FormulaTooltip } from './FormulaTooltip';
 import { Link } from '@/i18n/navigation';
 import { useBalance } from '@/hooks/token-hub/useTokenHub';
-import { MOCK_BALANCE } from '@/lib/api/token-hub/mock';
 
 // Lock duration options
 const DURATION_OPTIONS = [
@@ -30,8 +29,8 @@ const DURATION_OPTIONS = [
 // Quick amount percentages
 const QUICK_AMOUNTS = [25, 50, 75, 100];
 
-// Fallback balance
-const FALLBACK_BALANCE = MOCK_BALANCE;
+// Fallback balance (used when API is unavailable)
+const FALLBACK_BALANCE = 125000;
 
 // Step type
 type Step = 1 | 2 | 3;

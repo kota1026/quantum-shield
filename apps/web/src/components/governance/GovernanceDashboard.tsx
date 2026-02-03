@@ -32,16 +32,46 @@ import {
   useVotingPower,
   useDashboardProposals,
 } from '@/hooks/governance';
-import {
-  MOCK_GOVERNANCE_STATS,
-  MOCK_VOTING_POWER,
-  MOCK_DASHBOARD_PROPOSALS,
-} from '@/lib/api/governance/mock';
+import type { GovernanceStats, VotingPowerBreakdown, ProposalSummary } from '@/lib/api/governance/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_GOVERNANCE_STATS;
-const FALLBACK_VOTING_POWER = MOCK_VOTING_POWER;
-const FALLBACK_PROPOSALS = MOCK_DASHBOARD_PROPOSALS;
+// Fallback data (used when API is unavailable)
+const FALLBACK_STATS: GovernanceStats = {
+  activeProposals: 5,
+  votingPower: 125000,
+  participationRate: 78,
+  totalProposals: 47,
+};
+
+const FALLBACK_VOTING_POWER: VotingPowerBreakdown = {
+  myVeqs: 100000,
+  delegatedToMe: 25000,
+  iDelegated: 0,
+  delegators: 3,
+  lockExpiry: '2028-01-15',
+};
+
+const FALLBACK_PROPOSALS: ProposalSummary[] = [
+  {
+    id: 'QIP-47',
+    title: 'Increase Prover Bond Amount from 100 ETH to 150 ETH',
+    status: 'active',
+    timeLeft: '2d 14h',
+    forPercentage: 72,
+  },
+  {
+    id: 'QIP-46',
+    title: 'Add New Security Council Member: quantum_expert.eth',
+    status: 'active',
+    timeLeft: '5d 8h',
+    forPercentage: 85,
+  },
+  {
+    id: 'QIP-45',
+    title: 'Upgrade STARK Verifier Contract to v2.1',
+    status: 'pending',
+    forPercentage: 91,
+  },
+];
 
 // Hover card with gradient border effect
 function HoverCard({

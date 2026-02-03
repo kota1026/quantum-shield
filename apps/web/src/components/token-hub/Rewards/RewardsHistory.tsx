@@ -23,10 +23,31 @@ import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { useExtendedRewardsHistory } from '@/hooks/token-hub/useTokenHub';
-import { MOCK_EXTENDED_HISTORY } from '@/lib/api/token-hub/mock';
 
-// Fallback history data
-const FALLBACK_HISTORY = MOCK_EXTENDED_HISTORY;
+// Fallback history data (used when API is unavailable)
+const FALLBACK_HISTORY = [
+  {
+    id: '1',
+    epoch: 42,
+    date: '2026-01-17',
+    amount: 168,
+    breakdown: { holding: 120, voting: 35, delegation: 13 },
+  },
+  {
+    id: '2',
+    epoch: 41,
+    date: '2026-01-10',
+    amount: 162,
+    breakdown: { holding: 118, voting: 32, delegation: 12 },
+  },
+  {
+    id: '3',
+    epoch: 40,
+    date: '2026-01-03',
+    amount: 156,
+    breakdown: { holding: 115, voting: 30, delegation: 11 },
+  },
+];
 
 
 // Chart data for different time views

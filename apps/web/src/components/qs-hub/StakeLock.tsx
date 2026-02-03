@@ -19,7 +19,9 @@ import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { Tooltip } from '@/components/shared/Tooltip';
 import { useQSBalance } from '@/hooks/qs-hub/useQSHub';
-import { MOCK_BALANCE } from '@/lib/api/qs-hub/mock';
+
+// Fallback balance (used when API is unavailable)
+const FALLBACK_BALANCE = 15000;
 
 // Lock duration options
 const DURATION_OPTIONS = [
@@ -47,7 +49,7 @@ export function StakeLock() {
 
   // Fetch balance from API with fallback
   const { data: balanceApi } = useQSBalance();
-  const balance = balanceApi ?? MOCK_BALANCE;
+  const balance = balanceApi ?? FALLBACK_BALANCE;
 
   // Form state
   const [amount, setAmount] = useState<string>('');

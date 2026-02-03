@@ -28,18 +28,46 @@ import {
   useRecentUnlocks,
   useActiveChallenges,
 } from '@/hooks/explorer';
-import {
-  MOCK_EXPLORER_STATS,
-  MOCK_RECENT_LOCKS,
-  MOCK_RECENT_UNLOCKS,
-  MOCK_ACTIVE_CHALLENGES,
-} from '@/lib/api/explorer/mock';
+import type { ExplorerStats, RecentLock, RecentUnlock, ActiveChallenge } from '@/lib/api/explorer/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_EXPLORER_STATS;
-const FALLBACK_RECENT_LOCKS = MOCK_RECENT_LOCKS;
-const FALLBACK_RECENT_UNLOCKS = MOCK_RECENT_UNLOCKS;
-const FALLBACK_ACTIVE_CHALLENGES = MOCK_ACTIVE_CHALLENGES;
+// Fallback data (used when API is unavailable)
+const FALLBACK_STATS: ExplorerStats = {
+  tvl: '$847.2M',
+  tvlChange: 12.4,
+  totalLocks: 24891,
+  locksChange: 342,
+  pendingUnlocks: 127,
+  pendingInTimeLock: 12,
+  activeProvers: 8,
+  proverUptime: 100,
+};
+
+const FALLBACK_RECENT_LOCKS: RecentLock[] = [
+  { id: '0x7a3f...e821', amount: '125.5', status: 'active', time: '2 min ago' },
+  { id: '0x9b2c...f412', amount: '50.0', status: 'active', time: '8 min ago' },
+  { id: '0x4d8e...a923', amount: '200.0', status: 'unlocking', time: '15 min ago' },
+  { id: '0x1f6a...c734', amount: '75.25', status: 'active', time: '23 min ago' },
+  { id: '0x8c3d...b156', amount: '320.0', status: 'complete', time: '31 min ago' },
+];
+
+const FALLBACK_RECENT_UNLOCKS: RecentUnlock[] = [
+  { id: '0x2e7f...d934', type: 'normal', status: 'pending', timeLock: '23h 14m left' },
+  { id: '0x5c9a...e127', type: 'emergency', status: 'pending', timeLock: '6d 18h left' },
+  { id: '0x3b1d...f842', type: 'normal', status: 'complete', timeLock: 'Executed' },
+  { id: '0x7d4e...a563', type: 'normal', status: 'challenged', timeLock: 'Defense: 47h' },
+  { id: '0x9f2c...b718', type: 'normal', status: 'complete', timeLock: 'Executed' },
+];
+
+const FALLBACK_ACTIVE_CHALLENGES: ActiveChallenge[] = [
+  {
+    id: '0xa4f2...c891',
+    targetUnlock: '0x7d4e...a563',
+    challenger: '0x8b3c...d412',
+    bond: '0.15',
+    deadline: '47h 23m left',
+    status: 'open',
+  },
+];
 
 interface ExplorerOverviewProps {
   locale?: string;

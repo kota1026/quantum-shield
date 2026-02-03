@@ -19,10 +19,17 @@ import { Button } from '@/components/ui/button';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { Link } from '@/i18n/navigation';
 import { useClaimableRewards, useClaimRewards } from '@/hooks/token-hub/useTokenHub';
-import { MOCK_CLAIMABLE } from '@/lib/api/token-hub/mock';
 
-// Fallback data
-const FALLBACK_CLAIMABLE = MOCK_CLAIMABLE;
+// Fallback data (used when API is unavailable)
+const FALLBACK_CLAIMABLE = {
+  total: 847,
+  usdValue: 2541,
+  breakdown: {
+    veqsHolding: 600,
+    votingParticipation: 180,
+    delegationBonus: 67,
+  },
+};
 
 export function RewardsClaim() {
   const t = useTranslations('token-hub.rewardsClaim');
