@@ -53,8 +53,8 @@ export function TvlChart({ data, height = 300 }: TvlChartProps) {
       <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="tvlGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(var(--hinomaru))" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="hsl(var(--hinomaru))" stopOpacity={0} />
+            <stop offset="5%" stopColor="#BC002D" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#BC002D" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
@@ -74,18 +74,21 @@ export function TvlChart({ data, height = 300 }: TvlChartProps) {
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: 'hsl(var(--background-elevated))',
-            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'rgba(17, 17, 17, 0.95)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '8px',
-            padding: '8px 12px',
+            padding: '12px 16px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
           }}
-          labelStyle={{ color: 'hsl(var(--foreground-secondary))', marginBottom: 4 }}
+          labelStyle={{ color: '#ffffff', marginBottom: 8, fontWeight: 600 }}
+          itemStyle={{ color: '#e5e5e5' }}
           formatter={(value) => [formatTvl(Number(value)), 'TVL']}
+          cursor={{ stroke: 'rgba(255, 255, 255, 0.2)' }}
         />
         <Area
           type="monotone"
           dataKey="value"
-          stroke="hsl(var(--hinomaru))"
+          stroke="#BC002D"
           strokeWidth={2}
           fill="url(#tvlGradient)"
         />
