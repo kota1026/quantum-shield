@@ -13,20 +13,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useUnlocks } from '@/hooks/explorer';
-import { MOCK_UNLOCKS, type UnlockDetail } from '@/lib/api/explorer/mock';
+import type { UnlockDetail } from '@/lib/api/explorer/mock';
 
-// Fallback data
-const FALLBACK_UNLOCKS = MOCK_UNLOCKS;
-
-// Mock data (kept for reference)
-const mockUnlocksOriginal = [
+// Fallback data (used when API is unavailable)
+const FALLBACK_UNLOCKS: UnlockDetail[] = [
   {
     id: '0x2e7f8d9a1b2c3d4e...d934a127',
     shortId: '0x2e7f...d934',
     lockId: '0x7a3f...e821',
     lockIdFull: '0x7a3f8b2c4d5e6f...e821d4f9',
-    type: 'normal' as const,
-    status: 'pending' as const,
+    type: 'normal',
+    status: 'pending',
     timeLock: '23h 14m',
     timeLockProgress: 3,
     proverSigs: { signed: 3, total: 5 },
@@ -47,7 +44,7 @@ const mockUnlocksOriginal = [
     shortId: '0x5c9a...e127',
     lockId: '0x4d8e...a923',
     lockIdFull: '0x4d8e9f0a1b2c3d...a923b4c5',
-    type: 'emergency' as const,
+    type: 'emergency',
     status: 'pending' as const,
     timeLock: '6d 18h',
     timeLockProgress: 5,

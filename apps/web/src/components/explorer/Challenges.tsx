@@ -24,25 +24,17 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChallengeStats, useChallenges } from '@/hooks/explorer';
-import {
-  MOCK_CHALLENGE_STATS,
-  MOCK_CHALLENGES,
-  type ChallengeDetail,
-} from '@/lib/api/explorer/mock';
+import type { ChallengeStats, ChallengeDetail } from '@/lib/api/explorer/mock';
 
-// Fallback data
-const FALLBACK_CHALLENGE_STATS = MOCK_CHALLENGE_STATS;
-const FALLBACK_CHALLENGES = MOCK_CHALLENGES;
-
-// Mock data (kept for reference)
-const mockStatsOriginal = {
+// Fallback data (used when API is unavailable)
+const FALLBACK_CHALLENGE_STATS: ChallengeStats = {
   totalChallenges: 156,
   active: 3,
   resolved: 153,
   successRate: 78.5,
 };
 
-const mockChallengesOriginal = [
+const FALLBACK_CHALLENGES: ChallengeDetail[] = [
   {
     id: 'CHG-0x4f2c...891',
     targetUnlock: '0x7d4e...a563',

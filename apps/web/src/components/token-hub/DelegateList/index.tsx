@@ -25,10 +25,12 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useUserDelegation } from '@/hooks/token-hub/useTokenHub';
-import { MOCK_USER_DELEGATION } from '@/lib/api/token-hub/mock';
 
-// Fallback data
-const FALLBACK_USER_DELEGATION = MOCK_USER_DELEGATION;
+// Fallback data (used when API is unavailable)
+const FALLBACK_USER_DELEGATION = {
+  totalDelegated: 25000,
+  delegateCount: 2,
+};
 
 interface Delegate {
   id: string;

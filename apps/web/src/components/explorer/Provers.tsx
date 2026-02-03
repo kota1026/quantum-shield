@@ -23,14 +23,10 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProverStats, useProvers } from '@/hooks/explorer';
-import { MOCK_PROVER_STATS, MOCK_PROVERS } from '@/lib/api/explorer/mock';
+import type { ProverStats, ProverSummary } from '@/lib/api/explorer/mock';
 
-// Fallback data
-const FALLBACK_PROVER_STATS = MOCK_PROVER_STATS;
-const FALLBACK_PROVERS = MOCK_PROVERS;
-
-// Mock data (kept for reference)
-const mockStatsOriginal = {
+// Fallback data (used when API is unavailable)
+const FALLBACK_PROVER_STATS: ProverStats = {
   totalProvers: 8,
   activeProvers: 8,
   avgUptime: 99.87,
@@ -38,7 +34,7 @@ const mockStatsOriginal = {
   totalSignatures: 45892,
 };
 
-const mockProversOriginal = [
+const FALLBACK_PROVERS: ProverSummary[] = [
   {
     id: 'prover-1',
     name: 'Prover Alpha',

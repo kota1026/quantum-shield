@@ -18,10 +18,29 @@ import { Card } from '@/components/ui/card';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { Link } from '@/i18n/navigation';
 import { useLockedPositions } from '@/hooks/token-hub/useTokenHub';
-import { MOCK_LOCKED_POSITIONS, type LockedPosition } from '@/lib/api/token-hub/mock';
+import type { LockedPosition } from '@/lib/api/token-hub/mock';
 
-// Fallback data
-const FALLBACK_LOCKED_POSITIONS = MOCK_LOCKED_POSITIONS;
+// Fallback data (used when API is unavailable)
+const FALLBACK_LOCKED_POSITIONS: LockedPosition[] = [
+  {
+    id: '1',
+    lockedAmount: 50000,
+    veQSAmount: 25000,
+    lockDate: new Date('2025-07-17'),
+    unlockDate: new Date('2027-07-17'),
+    durationMonths: 24,
+    multiplier: 0.5,
+  },
+  {
+    id: '2',
+    lockedAmount: 75000,
+    veQSAmount: 75000,
+    lockDate: new Date('2025-01-17'),
+    unlockDate: new Date('2029-01-17'),
+    durationMonths: 48,
+    multiplier: 1.0,
+  },
+];
 
 // Calculate time remaining from now to unlock date
 function calculateTimeRemaining(unlockDate: Date): {
