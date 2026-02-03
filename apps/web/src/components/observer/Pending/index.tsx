@@ -9,10 +9,6 @@ import { PendingUnlockRow } from './PendingUnlockRow';
 import { Pagination } from './Pagination';
 import { Card } from '@/components/ui/card';
 import { usePendingUnlocks } from '@/hooks/observer';
-import { MOCK_PENDING_UNLOCKS } from '@/lib/api/observer/mock';
-
-// Fallback data
-const FALLBACK_PENDING_UNLOCKS = MOCK_PENDING_UNLOCKS;
 
 // Extended mock data for display (kept local for additional fields)
 const extendedPendingUnlocks = [

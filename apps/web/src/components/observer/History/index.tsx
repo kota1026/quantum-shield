@@ -9,10 +9,6 @@ import { ObserverHeader } from '../Dashboard/ObserverHeader';
 import { Card } from '@/components/ui/card';
 import { Pagination } from '../Pending/Pagination';
 import { useChallengeHistory } from '@/hooks/observer';
-import { MOCK_CHALLENGE_HISTORY } from '@/lib/api/observer/mock';
-
-// Fallback data
-const FALLBACK_CHALLENGES = MOCK_CHALLENGE_HISTORY;
 
 // Extended mock data (kept for reference)
 const extendedChallenges = [

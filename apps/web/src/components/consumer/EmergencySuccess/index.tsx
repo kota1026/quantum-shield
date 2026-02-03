@@ -8,10 +8,16 @@ import { AlertTriangle, Clock, Lightbulb, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEmergencyResult } from '@/hooks/consumer';
-import { MOCK_EMERGENCY_RESULT } from '@/lib/api/consumer/mock';
 
-// Fallback data
-const FALLBACK_RESULT = MOCK_EMERGENCY_RESULT;
+// Fallback data (used when API is unavailable)
+const FALLBACK_RESULT = {
+  txHash: '0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
+  amount: '12.5',
+  symbol: 'ETH',
+  bond: '0.625',
+  waitDays: 7,
+  completionDate: '2026-01-24 10:30 UTC',
+};
 
 function formatCountdown(totalSeconds: number): string {
   const days = Math.floor(totalSeconds / (24 * 3600));

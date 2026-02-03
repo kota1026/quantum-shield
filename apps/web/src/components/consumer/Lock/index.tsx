@@ -11,10 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { HinomaryVisual } from '../Dashboard/HinomaryVisual';
 import { useUserDashboard } from '@/hooks/consumer';
-import { MOCK_CONSUMER_STATS } from '@/lib/api/consumer/mock';
 
-// Fallback data
-const FALLBACK_BALANCE = MOCK_CONSUMER_STATS.available;
+// Fallback data (used when API is unavailable)
+const FALLBACK_BALANCE = 125.5;
 
 // Lock period options
 type LockPeriod = 1 | 2 | 3 | 5;

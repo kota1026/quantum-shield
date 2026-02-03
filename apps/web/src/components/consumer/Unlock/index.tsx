@@ -11,10 +11,12 @@ import { LockCard, LockItem } from './LockCard';
 import { MethodCard } from './MethodCard';
 import { TimeLockModal } from './TimeLockModal';
 import { useUserTransactions } from '@/hooks/consumer';
-import { MOCK_LOCKS } from '@/lib/api/consumer/mock';
 
-// Fallback data
-const FALLBACK_LOCKS = MOCK_LOCKS;
+// Fallback data (used when API is unavailable)
+const FALLBACK_LOCKS = [
+  { id: '1', number: 1, amount: '10.00 ETH', timestamp: '2026-01-01', status: 'locked' as const },
+  { id: '2', number: 2, amount: '5.25 ETH', timestamp: '2026-01-05', status: 'locked' as const },
+];
 
 type UnlockMethod = 'normal' | 'emergency';
 

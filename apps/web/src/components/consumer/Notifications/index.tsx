@@ -16,10 +16,31 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNotifications, useMarkAllNotificationsRead, useMarkNotificationRead } from '@/hooks/consumer';
-import { MOCK_NOTIFICATIONS, type Notification, type NotificationType } from '@/lib/api/consumer/mock';
+import type { Notification } from '@/lib/api/consumer/mock';
 
-// Fallback data
-const FALLBACK_NOTIFICATIONS = MOCK_NOTIFICATIONS;
+// Notification types
+type NotificationType = 'lockComplete' | 'unlockStarted' | 'unlockComplete' | 'emergencyStarted' | 'emergencyComplete' | 'securityAlert' | 'systemUpdate';
+
+// Fallback data (used when API is unavailable)
+const FALLBACK_NOTIFICATIONS: Notification[] = [
+  {
+    id: '1',
+    type: 'lockComplete',
+    title: 'Lock Completed',
+    message: '12.5 ETH has been locked successfully',
+    timestamp: '2 hours ago',
+    read: false,
+  },
+  {
+    id: '2',
+    type: 'unlockStarted',
+    title: 'Unlock Request Started',
+    message: '5.0 ETH unlock request is being processed',
+    timestamp: '1 day ago',
+    read: true,
+    link: '/consumer/history',
+  },
+];
 
 const TYPE_CONFIG: Record<
   NotificationType,
