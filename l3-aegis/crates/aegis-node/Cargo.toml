@@ -23,6 +23,11 @@ aegis-storage = { path = "../aegis-storage" }
 tokio = { workspace = true }
 async-trait = { workspace = true }
 
+# HTTP server for RPC
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors"] }
+
 # CLI & Configuration
 clap = { version = "4.4", features = ["derive", "env"] }
 config = "0.14"

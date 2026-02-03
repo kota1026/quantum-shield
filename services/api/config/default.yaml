@@ -4,6 +4,10 @@ server:
   host: "0.0.0.0"
   port: 8080
 
+database:
+  url: "postgres://quantum:quantum_dev@localhost:5432/quantum_shield"
+  max_connections: 10
+
 redis:
   url: "redis://localhost:6379"
   # password: null  # Set via QS__REDIS__PASSWORD env var
@@ -29,3 +33,19 @@ security:
   min_emergency_bond_wei: "500000000000000000"
   # Emergency Bond percentage (500 = 5%)
   emergency_bond_bps: 500
+
+vrf:
+  contract_address: "0x0000000000000000000000000000000000000000"
+  rpc_url: "http://localhost:8545"
+  timeout_seconds: 300
+  polling_interval_seconds: 5
+
+# L1 Sepolia Configuration (Phase 8-D)
+l1_rpc_url: "https://sepolia.infura.io/v3/edc966483baa4c86bbcab9a8653247b7"
+l1_chain_id: 11155111
+# bridge_verifier_address: "0x..."  # Set when deployed
+# treasury_vault_address: "0x..."   # Set when deployed
+
+# L3 Configuration (Phase 8-D)
+l3_endpoint: "http://localhost:8545"
+l3_chain_id: 31337
