@@ -13,13 +13,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useLocks } from '@/hooks/explorer';
-import { MOCK_LOCKS, type LockDetail } from '@/lib/api/explorer/mock';
+import type { LockDetail } from '@/lib/api/explorer/mock';
 
-// Fallback data
-const FALLBACK_LOCKS = MOCK_LOCKS;
-
-// Mock data (kept for reference)
-const mockLocksOriginal = [
+// Fallback data (used when API is unavailable)
+const FALLBACK_LOCKS: LockDetail[] = [
   {
     id: '0x7a3f8b2c4d5e6f...e821d4f9',
     shortId: '0x7a3f...e821',
@@ -28,7 +25,7 @@ const mockLocksOriginal = [
     amount: '125.5',
     lockTime: '2026-01-10 14:32:18 UTC',
     lockTimeShort: '2026-01-10 14:32',
-    status: 'active' as const,
+    status: 'active',
     l2Tx: '0x4d8e...a923',
     l2TxFull: '0x4d8e9f0a1b2c3d4e5f6a7b8c...a923b4c5',
     blockNumber: '18,234,567',
@@ -42,7 +39,7 @@ const mockLocksOriginal = [
     amount: '50.0',
     lockTime: '2026-01-10 14:24:45 UTC',
     lockTimeShort: '2026-01-10 14:24',
-    status: 'active' as const,
+    status: 'active',
     l2Tx: '0x8c3d...b156',
     l2TxFull: '0x8c3d4e5f6a7b8c9d0e1f...b156c2d3',
     blockNumber: '18,234,521',

@@ -34,18 +34,71 @@ import {
   useQSHubRewards,
   useQSHubDelegates,
 } from '@/hooks/qs-hub/useQSHub';
-import {
-  MOCK_STATS,
-  MOCK_PROPOSALS,
-  MOCK_REWARDS,
-  MOCK_DELEGATES,
-} from '@/lib/api/qs-hub/mock';
+import type { QSHubStats, QSHubProposal, QSHubRewards, QSHubDelegate } from '@/lib/api/qs-hub/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_STATS;
-const FALLBACK_PROPOSALS = MOCK_PROPOSALS;
-const FALLBACK_REWARDS = MOCK_REWARDS;
-const FALLBACK_DELEGATES = MOCK_DELEGATES;
+// Fallback data (used when API is unavailable)
+const FALLBACK_STATS: QSHubStats = {
+  qsBalance: 12450,
+  lockedQS: 8500,
+  veQSBalance: 6225,
+  votingPower: 0.12,
+  lockEndDate: '2028-01-15',
+  lockDuration: '3 Years',
+  timeRemaining: '2Y 3M 7D',
+  multiplier: 0.73,
+  activeProposals: 3,
+  totalProposals: 47,
+  delegatedVotes: 5225,
+  councilMembers: 7,
+};
+
+const FALLBACK_PROPOSALS: QSHubProposal[] = [
+  {
+    id: 'QIP-047',
+    title: 'Increase Observer Rewards by 15%',
+    status: 'active',
+    endTime: '2d 14h',
+    votes: { for: 67, against: 23 },
+  },
+  {
+    id: 'QIP-046',
+    title: 'Add Support for Polygon zkEVM',
+    status: 'active',
+    endTime: '5d 8h',
+    votes: { for: 82, against: 12 },
+  },
+  {
+    id: 'QIP-045',
+    title: 'Treasury Diversification Strategy',
+    status: 'pending',
+    endTime: '7d 0h',
+    votes: { for: 0, against: 0 },
+  },
+];
+
+const FALLBACK_REWARDS: QSHubRewards = {
+  claimable: 847,
+  usdValue: 4235,
+  epochProgress: 65,
+  nextEpoch: '3d 12h',
+};
+
+const FALLBACK_DELEGATES: QSHubDelegate[] = [
+  {
+    id: '1',
+    name: 'Watanabe Delegate',
+    initial: 'W',
+    totalPower: '285K veQS',
+    delegatedAmount: 3000,
+  },
+  {
+    id: '2',
+    name: 'Sato Crypto',
+    initial: 'S',
+    totalPower: '198K veQS',
+    delegatedAmount: 2000,
+  },
+];
 
 // Hover card component
 function HoverCard({
