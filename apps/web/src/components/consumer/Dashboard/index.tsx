@@ -11,11 +11,12 @@ import { RecentActivity, Transaction } from './RecentActivity';
 import { LockModal } from './LockModal';
 import { WalletModal } from './WalletModal';
 import { cn } from '@/lib/utils';
-import { useConsumerStats, useRecentTransactions } from '@/hooks/consumer';
+import { useUserDashboard, useUserTransactions } from '@/hooks/consumer';
 import {
   MOCK_CONSUMER_STATS,
   MOCK_TRANSACTIONS,
   MOCK_USER_SETTINGS,
+  type ConsumerStats,
 } from '@/lib/api/consumer/mock';
 
 // Fallback data
@@ -27,14 +28,27 @@ export function Dashboard() {
   const t = useTranslations('consumer.dashboard');
   const router = useRouter();
 
-  // Fetch data using hooks
-  const { data: apiStats } = useConsumerStats();
-  const { data: txData } = useRecentTransactions();
+  // Fetch data using new API hooks
+  const { data: dashboardData } = useUserDashboard();
+  const { data: txData } = useUserTransactions({ perPage: 10 });
 
-  // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const transactions = (txData?.transactions ?? FALLBACK_TRANSACTIONS) as Transaction[];
-  const walletAddress = FALLBACK_WALLET;
+  // Transform API data to component format, with fallback
+  const stats: ConsumerStats = dashboardData ? {
+    totalLocked: parseFloat(dashboardData.totalLocked) || 0,
+    available: 0, // TODO: Add available balance to API
+    pendingUnlock: dashboardData.pendingUnlocks || 0,
+    transactions: txData?.total || 0,
+  } : FALLBACK_STATS;
+
+  const transactions = (txData?.transactions?.map(tx => ({
+    id: tx.id,
+    type: tx.txType === 'lock' ? 'lock' : tx.txType === 'normal_unlock' ? 'unlock' : 'unlocking',
+    amount: tx.amount,
+    timestamp: new Date(tx.createdAt * 1000).toISOString(),
+    status: tx.status === 'completed' ? 'complete' : 'pending',
+  })) ?? FALLBACK_TRANSACTIONS) as Transaction[];
+
+  const walletAddress = dashboardData?.address || FALLBACK_WALLET;
 
   // Modal states
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
