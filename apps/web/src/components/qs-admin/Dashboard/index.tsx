@@ -25,23 +25,32 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import {
-  useDashboardStats,
+  useDashboardOverview,
   useTvlHistory,
   useVolumeHistory,
   useUserGrowthHistory,
-  useRecentActivity,
   useAlerts,
 } from '@/hooks/admin/useDashboard';
+import { TvlChart, VolumeChart, UserGrowthChart } from '@/components/charts';
 import type {
-  DashboardStats,
   ChartDataPoint,
   VolumeDataPoint,
   ActivityItem,
   AlertItem,
 } from '@/lib/api/admin/types';
 
+// Local fallback stats type
+interface FallbackStats {
+  totalUsers: number;
+  totalLocked: string;
+  activeProvers: number;
+  activeObservers: number;
+  pendingUnlocks: number;
+  treasuryBalance: string;
+}
+
 // Fallback mock data for development when API is unavailable
-const FALLBACK_STATS: DashboardStats = {
+const FALLBACK_STATS: FallbackStats = {
   totalUsers: 12847,
   totalLocked: '45,230 ETH',
   activeProvers: 24,
@@ -295,19 +304,31 @@ export function Dashboard() {
   const [statsPeriod, setStatsPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'total'>('weekly');
 
   // Fetch data using React Query hooks
-  const statsQuery = useDashboardStats();
+  const overviewQuery = useDashboardOverview();
   const tvlQuery = useTvlHistory();
   const volumeQuery = useVolumeHistory();
   const userGrowthQuery = useUserGrowthHistory();
-  const activityQuery = useRecentActivity();
   const alertsQuery = useAlerts(false);
 
   // Use API data with fallback to mock data
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const dashboardData = overviewQuery.data;
+  const stats = dashboardData ? {
+    totalUsers: dashboardData.metrics.active_users,
+    totalLocked: dashboardData.metrics.total_tvl,
+    activeProvers: dashboardData.health.active_provers,
+    activeObservers: dashboardData.health.total_nodes - dashboardData.health.active_provers,
+    pendingUnlocks: dashboardData.metrics.pending_challenges,
+    treasuryBalance: '125,000 ETH', // From static for now
+  } : FALLBACK_STATS;
   const tvlData = tvlQuery.data ?? FALLBACK_TVL_DATA;
   const volumeData = volumeQuery.data ?? FALLBACK_VOLUME_DATA;
   const userData = userGrowthQuery.data ?? FALLBACK_USER_DATA;
-  const activityData = activityQuery.data ?? FALLBACK_ACTIVITY;
+  const activityData = dashboardData?.recent_alerts?.map((a, i) => ({
+    id: String(i),
+    type: 'lock' as const,
+    message: a.message,
+    timestamp: a.timestamp,
+  })) ?? FALLBACK_ACTIVITY;
   const alertsData = alertsQuery.data ?? FALLBACK_ALERTS;
   const currentMetrics = FALLBACK_METRICS[statsPeriod];
 
@@ -324,9 +345,9 @@ export function Dashboard() {
   ];
 
   // Loading state for main stats
-  const isMainLoading = statsQuery.isLoading;
+  const isMainLoading = overviewQuery.isLoading;
   const isChartsLoading = tvlQuery.isLoading || volumeQuery.isLoading || userGrowthQuery.isLoading;
-  const isActivityLoading = activityQuery.isLoading;
+  const isActivityLoading = overviewQuery.isLoading;
   const isAlertsLoading = alertsQuery.isLoading;
 
   return (
@@ -368,12 +389,12 @@ export function Dashboard() {
                 <StatCardSkeleton />
                 <StatCardSkeleton />
               </>
-            ) : statsQuery.isError ? (
+            ) : overviewQuery.isError ? (
               <Card className="col-span-full">
                 <CardContent className="p-6">
                   <ErrorState
                     message="Failed to load statistics"
-                    onRetry={() => statsQuery.refetch()}
+                    onRetry={() => overviewQuery.refetch()}
                   />
                 </CardContent>
               </Card>
@@ -440,25 +461,12 @@ export function Dashboard() {
                     message="Failed to load TVL data"
                     onRetry={() => tvlQuery.refetch()}
                   />
+                ) : tvlData && tvlData.length > 0 ? (
+                  <TvlChart data={tvlData} height={200} />
                 ) : (
-                  <>
-                    <div className="h-48 flex items-end gap-1">
-                      {tvlData.map((d) => {
-                        const maxTvl = Math.max(...tvlData.map(item => item.value));
-                        return (
-                          <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
-                            <div
-                              className="w-full bg-gradient-to-t from-hinomaru to-gold rounded-t transition-all hover:opacity-80"
-                              style={{ height: `${(d.value / maxTvl) * 100}%` }}
-                              title={`${d.date}: ${d.value.toLocaleString()} ETH`}
-                            />
-                            <span className="text-[10px] text-muted-foreground">{d.date}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="text-xs text-muted-foreground text-center mt-2">{t('charts.tvlUnit')}</div>
-                  </>
+                  <div className="h-48 flex items-center justify-center text-muted-foreground">
+                    No data available
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -489,32 +497,12 @@ export function Dashboard() {
                     message="Failed to load volume data"
                     onRetry={() => volumeQuery.refetch()}
                   />
+                ) : volumeData && volumeData.length > 0 ? (
+                  <VolumeChart data={volumeData} height={200} />
                 ) : (
-                  <>
-                    <div className="h-48 flex items-end gap-2">
-                      {volumeData.map((d) => {
-                        const maxVolume = Math.max(...volumeData.map(item => Math.max(item.locks, item.unlocks)));
-                        return (
-                          <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
-                            <div className="w-full flex gap-0.5 items-end h-[180px]">
-                              <div
-                                className="flex-1 bg-success rounded-t transition-all hover:opacity-80"
-                                style={{ height: `${(d.locks / maxVolume) * 100}%` }}
-                                title={`${t('charts.locks')}: ${d.locks}`}
-                              />
-                              <div
-                                className="flex-1 bg-info rounded-t transition-all hover:opacity-80"
-                                style={{ height: `${(d.unlocks / maxVolume) * 100}%` }}
-                                title={`${t('charts.unlocks')}: ${d.unlocks}`}
-                              />
-                            </div>
-                            <span className="text-[10px] text-muted-foreground">{d.date}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="text-xs text-muted-foreground text-center mt-2">{t('charts.volumeUnit')}</div>
-                  </>
+                  <div className="h-48 flex items-center justify-center text-muted-foreground">
+                    No data available
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -537,28 +525,12 @@ export function Dashboard() {
                   message="Failed to load user growth data"
                   onRetry={() => userGrowthQuery.refetch()}
                 />
+              ) : userData && userData.length > 0 ? (
+                <UserGrowthChart data={userData} height={200} />
               ) : (
-                <>
-                  <div className="h-48 flex items-end gap-1">
-                    {userData.map((d) => {
-                      const maxUsers = Math.max(...userData.map(item => item.value));
-                      const minUsers = Math.min(...userData.map(item => item.value));
-                      const range = maxUsers - minUsers;
-                      const heightPercent = range > 0 ? ((d.value - minUsers) / range) * 80 + 20 : 100;
-                      return (
-                        <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
-                          <div
-                            className="w-full bg-gradient-to-t from-info to-success rounded-t transition-all hover:opacity-80"
-                            style={{ height: `${heightPercent}%` }}
-                            title={`${d.date}: ${d.value.toLocaleString()}`}
-                          />
-                          <span className="text-[10px] text-muted-foreground">{d.date}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="text-xs text-muted-foreground text-center mt-2">{t('charts.userUnit')}</div>
-                </>
+                <div className="h-48 flex items-center justify-center text-muted-foreground">
+                  No data available
+                </div>
               )}
             </CardContent>
           </Card>
@@ -577,12 +549,12 @@ export function Dashboard() {
                 </Button>
               </CardHeader>
               <CardContent>
-                {activityQuery.isLoading ? (
+                {isActivityLoading ? (
                   <ActivitySkeleton />
-                ) : activityQuery.isError ? (
+                ) : overviewQuery.isError ? (
                   <ErrorState
                     message="Failed to load activity"
-                    onRetry={() => activityQuery.refetch()}
+                    onRetry={() => overviewQuery.refetch()}
                   />
                 ) : activityData.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
