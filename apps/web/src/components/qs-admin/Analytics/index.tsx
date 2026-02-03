@@ -2,23 +2,23 @@
 
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   BarChart3,
   Users,
   TrendingUp,
   DollarSign,
   ArrowRight,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-
-const FALLBACK_STATS = {
-  dailyActiveUsers: 2450,
-  monthlyActiveUsers: 12847,
-  totalRevenue: '125,000 QS',
-  avgTransactionValue: '2.5 ETH',
-};
+import { UserGrowthChart, VolumeChart } from '@/components/charts';
+import {
+  useAnalyticsUsers,
+  useAnalyticsRevenue,
+  useUserGrowthHistory,
+  useVolumeHistory,
+} from '@/hooks/admin/useDashboard';
 
 interface StatCardProps {
   title: string;
@@ -56,6 +56,12 @@ export function AnalyticsDashboard() {
   const t = useTranslations('qsAdmin.analytics');
   const tCommon = useTranslations('qsAdmin.common');
 
+  // Fetch real data from API
+  const { data: usersData, isLoading: usersLoading } = useAnalyticsUsers();
+  const { data: revenueData, isLoading: revenueLoading } = useAnalyticsRevenue();
+  const { data: userGrowthData, isLoading: userGrowthLoading } = useUserGrowthHistory('30d');
+  const { data: volumeData, isLoading: volumeLoading } = useVolumeHistory('30d');
+
   const analyticsLinks = [
     {
       href: '/qs-admin/analytics/users',
@@ -88,10 +94,29 @@ export function AnalyticsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.dailyActiveUsers')} value={FALLBACK_STATS.dailyActiveUsers.toLocaleString()} icon={Users} trend={{ value: 5.2, isPositive: true }} />
-        <StatCard title={t('stats.monthlyActiveUsers')} value={FALLBACK_STATS.monthlyActiveUsers.toLocaleString()} icon={Users} trend={{ value: 12.8, isPositive: true }} />
-        <StatCard title={t('stats.totalRevenue')} value={FALLBACK_STATS.totalRevenue} icon={DollarSign} trend={{ value: 8.5, isPositive: true }} />
-        <StatCard title={t('stats.avgTransactionValue')} value={FALLBACK_STATS.avgTransactionValue} icon={TrendingUp} />
+        <StatCard
+          title={t('stats.dailyActiveUsers')}
+          value={usersLoading ? '-' : (usersData?.active_users_24h ?? 0).toLocaleString()}
+          icon={Users}
+          trend={{ value: 5.2, isPositive: true }}
+        />
+        <StatCard
+          title={t('stats.monthlyActiveUsers')}
+          value={usersLoading ? '-' : (usersData?.active_users_30d ?? 0).toLocaleString()}
+          icon={Users}
+          trend={{ value: 12.8, isPositive: true }}
+        />
+        <StatCard
+          title={t('stats.totalRevenue')}
+          value={revenueLoading ? '-' : `${(parseFloat(revenueData?.total_revenue ?? '0') / 1e18).toFixed(0)} ETH`}
+          icon={DollarSign}
+          trend={{ value: revenueData?.revenue_change_24h ?? 0, isPositive: (revenueData?.revenue_change_24h ?? 0) >= 0 }}
+        />
+        <StatCard
+          title={t('stats.avgTransactionValue')}
+          value="2.5 ETH"
+          icon={TrendingUp}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -123,10 +148,18 @@ export function AnalyticsDashboard() {
             <CardTitle className="text-lg">{t('charts.userGrowth')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center text-foreground-tertiary">
-              <BarChart3 className="h-12 w-12 mr-2" />
-              <span>{t('charts.userGrowth')}</span>
-            </div>
+            {userGrowthLoading ? (
+              <div className="h-64 flex items-center justify-center text-foreground-tertiary">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : userGrowthData && userGrowthData.length > 0 ? (
+              <UserGrowthChart data={userGrowthData} height={256} />
+            ) : (
+              <div className="h-64 flex items-center justify-center text-foreground-tertiary">
+                <BarChart3 className="h-12 w-12 mr-2" />
+                <span>No data available</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -135,10 +168,18 @@ export function AnalyticsDashboard() {
             <CardTitle className="text-lg">{t('charts.transactionVolume')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center text-foreground-tertiary">
-              <TrendingUp className="h-12 w-12 mr-2" />
-              <span>{t('charts.transactionVolume')}</span>
-            </div>
+            {volumeLoading ? (
+              <div className="h-64 flex items-center justify-center text-foreground-tertiary">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : volumeData && volumeData.length > 0 ? (
+              <VolumeChart data={volumeData} height={256} />
+            ) : (
+              <div className="h-64 flex items-center justify-center text-foreground-tertiary">
+                <TrendingUp className="h-12 w-12 mr-2" />
+                <span>No data available</span>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
