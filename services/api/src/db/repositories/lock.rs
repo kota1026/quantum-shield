@@ -157,7 +157,7 @@ impl LockRepository {
     pub async fn get_total_tvl(pool: &PgPool) -> Result<BigDecimal, ApiError> {
         info!("DB query: get_total_tvl started");
 
-        let tvl: BigDecimal = sqlx::query_scalar::<_, i64>(
+        let tvl: BigDecimal = sqlx::query_scalar::<_, BigDecimal>(
             r#"
             SELECT COALESCE(SUM(amount), 0)
             FROM locks
@@ -170,7 +170,6 @@ impl LockRepository {
             warn!("DB error: get_total_tvl failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
         })?;
-        ;
 
         info!("DB query: get_total_tvl completed");
         Ok(tvl)
