@@ -69,12 +69,22 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       const originalError = console.error;
       console.error = (...args) => {
         const message = args[0]?.toString() || '';
+        // Suppress WalletConnect/Reown connection errors in development
         if (
           message.includes('Connection interrupted') ||
           message.includes('WebSocket') ||
           message.includes('subscription') ||
-          message.includes('watchBlockNumber')
+          message.includes('watchBlockNumber') ||
+          message.includes('WalletConnect') ||
+          message.includes('walletconnect') ||
+          message.includes('projectId') ||
+          message.includes('Reown') ||
+          message.includes('appkit') ||
+          message.includes('web3modal') ||
+          message.includes('Failed to fetch remote')
         ) {
+          // Log as debug instead of error for development visibility
+          console.debug('[Suppressed WalletConnect error]', ...args);
           return;
         }
         originalError.apply(console, args);
