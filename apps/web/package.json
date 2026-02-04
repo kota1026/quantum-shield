@@ -30,6 +30,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.0",
     "recharts": "^3.7.0",
+    "siwe": "^3.0.0",
     "tailwind-merge": "^2.6.0",
     "viem": "^2.21.0",
     "wagmi": "^2.14.0",
