@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useLocks } from '@/hooks/explorer';
-import type { LockDetail } from '@/lib/api/explorer/mock';
+import type { LockDetail } from '@/lib/v1/explorer/mock';
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_LOCKS: LockDetail[] = [

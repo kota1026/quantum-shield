@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useUnlocks } from '@/hooks/explorer';
-import type { UnlockDetail } from '@/lib/api/explorer/mock';
+import type { UnlockDetail } from '@/lib/v1/explorer/mock';
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_UNLOCKS: UnlockDetail[] = [

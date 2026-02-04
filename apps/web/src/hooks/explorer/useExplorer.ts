@@ -16,7 +16,7 @@ import type {
   AnalyticsStats,
   LockStatusDistribution,
   UnlockTypeDistribution,
-} from '@/lib/api/explorer/types';
+} from '@/lib/v1/explorer/types';
 
 // API Base
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -69,7 +69,7 @@ export function useExplorerStats() {
   return useQuery({
     queryKey: explorerKeys.stats(),
     queryFn: async () => {
-      return fetchApi<ExplorerStats>('/api/explorer/stats');
+      return fetchApi<ExplorerStats>('/v1/explorer/overview');
     },
     staleTime: 30_000,
   });
@@ -79,7 +79,7 @@ export function useRecentLocks() {
   return useQuery({
     queryKey: explorerKeys.recentLocks(),
     queryFn: async () => {
-      return fetchApi<RecentLock[]>('/api/explorer/locks/recent');
+      return fetchApi<RecentLock[]>('/v1/explorer/locks/recent');
     },
     staleTime: 15_000,
   });
@@ -89,7 +89,7 @@ export function useRecentUnlocks() {
   return useQuery({
     queryKey: explorerKeys.recentUnlocks(),
     queryFn: async () => {
-      return fetchApi<RecentUnlock[]>('/api/explorer/unlocks/recent');
+      return fetchApi<RecentUnlock[]>('/v1/explorer/unlocks/recent');
     },
     staleTime: 15_000,
   });
@@ -99,7 +99,7 @@ export function useActiveChallenges() {
   return useQuery({
     queryKey: explorerKeys.activeChallenges(),
     queryFn: async () => {
-      return fetchApi<ActiveChallenge[]>('/api/explorer/challenges/active');
+      return fetchApi<ActiveChallenge[]>('/v1/explorer/challenges/active');
     },
     staleTime: 15_000,
   });
@@ -135,7 +135,7 @@ export function useLocks(params?: {
       }
       const query = searchParams.toString();
       return fetchApi<{ locks: LockDetail[]; total: number }>(
-        `/api/explorer/locks${query ? `?${query}` : ''}`
+        `/v1/explorer/locks${query ? `?${query}` : ''}`
       );
     },
     staleTime: 30_000,
@@ -146,7 +146,7 @@ export function useLockDetail(id: string) {
   return useQuery({
     queryKey: explorerKeys.lock(id),
     queryFn: async () => {
-      return fetchApi<LockDetail>(`/api/explorer/locks/${id}`);
+      return fetchApi<LockDetail>(`/v1/explorer/locks/${id}`);
     },
     enabled: !!id,
     staleTime: 60_000,
@@ -179,7 +179,7 @@ export function useUnlocks(params?: {
       }
       const query = searchParams.toString();
       return fetchApi<{ unlocks: UnlockDetail[]; total: number; pending: number; completed: number }>(
-        `/api/explorer/unlocks${query ? `?${query}` : ''}`
+        `/v1/explorer/unlocks${query ? `?${query}` : ''}`
       );
     },
     staleTime: 30_000,
@@ -190,7 +190,7 @@ export function useUnlockDetail(id: string) {
   return useQuery({
     queryKey: explorerKeys.unlock(id),
     queryFn: async () => {
-      return fetchApi<UnlockDetail>(`/api/explorer/unlocks/${id}`);
+      return fetchApi<UnlockDetail>(`/v1/explorer/unlocks/${id}`);
     },
     enabled: !!id,
     staleTime: 60_000,
@@ -203,7 +203,7 @@ export function useChallengeStats() {
   return useQuery({
     queryKey: explorerKeys.challengeStats(),
     queryFn: async () => {
-      return fetchApi<ChallengeStats>('/api/explorer/challenges/stats');
+      return fetchApi<ChallengeStats>('/v1/explorer/challenges/stats');
     },
     staleTime: 30_000,
   });
@@ -229,7 +229,7 @@ export function useChallenges(params?: {
       }
       const query = searchParams.toString();
       return fetchApi<{ challenges: ChallengeDetail[]; total: number }>(
-        `/api/explorer/challenges${query ? `?${query}` : ''}`
+        `/v1/explorer/challenges${query ? `?${query}` : ''}`
       );
     },
     staleTime: 30_000,
@@ -240,7 +240,7 @@ export function useChallengeDetail(id: string) {
   return useQuery({
     queryKey: explorerKeys.challenge(id),
     queryFn: async () => {
-      return fetchApi<ChallengeDetail>(`/api/explorer/challenges/${id}`);
+      return fetchApi<ChallengeDetail>(`/v1/explorer/challenges/${id}`);
     },
     enabled: !!id,
     staleTime: 60_000,
@@ -253,7 +253,7 @@ export function useProverStats() {
   return useQuery({
     queryKey: explorerKeys.proverStats(),
     queryFn: async () => {
-      return fetchApi<ProverStats>('/api/explorer/provers/stats');
+      return fetchApi<ProverStats>('/v1/explorer/provers/stats');
     },
     staleTime: 30_000,
   });
@@ -263,7 +263,7 @@ export function useProvers() {
   return useQuery({
     queryKey: explorerKeys.provers(),
     queryFn: async () => {
-      return fetchApi<ProverSummary[]>('/api/explorer/provers');
+      return fetchApi<ProverSummary[]>('/v1/explorer/provers');
     },
     staleTime: 30_000,
   });
@@ -273,7 +273,7 @@ export function useProverDetail(id: string) {
   return useQuery({
     queryKey: explorerKeys.prover(id),
     queryFn: async () => {
-      return fetchApi<ProverSummary>(`/api/explorer/provers/${id}`);
+      return fetchApi<ProverSummary>(`/v1/explorer/provers/${id}`);
     },
     enabled: !!id,
     staleTime: 60_000,
@@ -286,7 +286,7 @@ export function useAnalyticsStats() {
   return useQuery({
     queryKey: explorerKeys.analyticsStats(),
     queryFn: async () => {
-      return fetchApi<AnalyticsStats>('/api/explorer/analytics/stats');
+      return fetchApi<AnalyticsStats>('/v1/explorer/analytics/stats');
     },
     staleTime: 60_000,
   });
@@ -296,7 +296,7 @@ export function useTvlData(range: string = '7d') {
   return useQuery({
     queryKey: explorerKeys.tvlData(range),
     queryFn: async () => {
-      return fetchApi<TvlDataPoint[]>(`/api/explorer/analytics/tvl?range=${range}`);
+      return fetchApi<TvlDataPoint[]>(`/v1/explorer/analytics/tvl?range=${range}`);
     },
     staleTime: 60_000,
   });
@@ -306,7 +306,7 @@ export function useVolumeData(range: string = '7d') {
   return useQuery({
     queryKey: explorerKeys.volumeData(range),
     queryFn: async () => {
-      return fetchApi<VolumeDataPoint[]>(`/api/explorer/analytics/volume?range=${range}`);
+      return fetchApi<VolumeDataPoint[]>(`/v1/explorer/analytics/volume?range=${range}`);
     },
     staleTime: 60_000,
   });
@@ -316,7 +316,7 @@ export function useProverPerformance() {
   return useQuery({
     queryKey: explorerKeys.proverPerformance(),
     queryFn: async () => {
-      return fetchApi<ProverPerformance[]>('/api/explorer/analytics/provers');
+      return fetchApi<ProverPerformance[]>('/v1/explorer/analytics/provers');
     },
     staleTime: 60_000,
   });
@@ -326,7 +326,7 @@ export function useLockDistribution() {
   return useQuery({
     queryKey: explorerKeys.lockDistribution(),
     queryFn: async () => {
-      return fetchApi<LockStatusDistribution>('/api/explorer/analytics/locks/distribution');
+      return fetchApi<LockStatusDistribution>('/v1/explorer/analytics/locks/distribution');
     },
     staleTime: 60_000,
   });
@@ -336,7 +336,7 @@ export function useUnlockDistribution() {
   return useQuery({
     queryKey: explorerKeys.unlockDistribution(),
     queryFn: async () => {
-      return fetchApi<UnlockTypeDistribution>('/api/explorer/analytics/unlocks/distribution');
+      return fetchApi<UnlockTypeDistribution>('/v1/explorer/analytics/unlocks/distribution');
     },
     staleTime: 60_000,
   });
