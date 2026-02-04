@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Lock as LockIcon, Shield, Unlock, Clock, Info, X, Calendar } from 'lucide-react';
+import { ArrowLeft, Lock as LockIcon, Shield, Unlock, Clock, Info, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,17 +15,11 @@ import { useUserDashboard } from '@/hooks/consumer';
 // Fallback data (used when API is unavailable)
 const FALLBACK_BALANCE = 125.5;
 
-// Lock period options
-type LockPeriod = 1 | 2 | 3 | 5;
-const LOCK_PERIODS: LockPeriod[] = [1, 2, 3, 5];
-
 interface LockModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   amount: number;
-  period: LockPeriod;
-  unlockDate: string;
   estimatedGas?: string;
 }
 
@@ -34,12 +28,9 @@ function LockConfirmModal({
   onClose,
   onConfirm,
   amount,
-  period,
-  unlockDate,
   estimatedGas = '~0.005',
 }: LockModalProps) {
   const t = useTranslations('consumer.lock.modal');
-  const tPeriod = useTranslations('consumer.lock.period');
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
 
@@ -145,22 +136,6 @@ function LockConfirmModal({
                 {amount.toFixed(2)} ETH
               </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-foreground-secondary">
-                {t('period')}
-              </span>
-              <span className="font-semibold text-foreground">
-                {tPeriod(`years.${period}`)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-foreground-secondary">
-                {t('unlockDate')}
-              </span>
-              <span className="font-semibold text-foreground">
-                {unlockDate}
-              </span>
-            </div>
             <div className="border-t border-border pt-3 flex justify-between items-center">
               <span className="text-sm text-foreground-secondary">
                 {t('gasFee')}
@@ -171,10 +146,10 @@ function LockConfirmModal({
             </div>
           </div>
 
-          {/* Note about 24h waiting period */}
+          {/* Note about unlock process */}
           <p className="mt-4 text-xs text-foreground-tertiary flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-            {t('note')}
+            {t('unlockNote')}
           </p>
         </div>
 
@@ -259,20 +234,8 @@ export function Lock() {
   const balance = dashboardData ? parseFloat(dashboardData.totalLocked) || FALLBACK_BALANCE : FALLBACK_BALANCE;
 
   const [amount, setAmount] = useState('');
-  const [period, setPeriod] = useState<LockPeriod>(2); // Default 2 years
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState('');
-
-  // Calculate unlock date based on selected period
-  const unlockDate = useMemo(() => {
-    const date = new Date();
-    date.setFullYear(date.getFullYear() + period);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  }, [period]);
 
   const handleQuickAmount = (percent: number) => {
     const calculatedAmount = (balance * percent / 100).toFixed(2);
@@ -314,11 +277,10 @@ export function Lock() {
   const handleConfirmLock = useCallback(() => {
     setIsModalOpen(false);
     const params = new URLSearchParams({
-      amount: parseFloat(amount).toFixed(2),
-      period: period.toString(),
+      amount: parseFloat(amount).toFixed(6), // Use more precision for ETH amounts
     });
     router.push(`/consumer/lock/processing?${params.toString()}`);
-  }, [router, amount, period]);
+  }, [router, amount]);
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -479,57 +441,22 @@ export function Lock() {
               ))}
             </div>
 
-            {/* Period Selection */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-foreground mb-3">
-                {t('period.label')}
-              </label>
-              <div
-                className="grid grid-cols-4 gap-2"
-                role="radiogroup"
-                aria-label={t('period.label')}
-              >
-                {LOCK_PERIODS.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    role="radio"
-                    aria-checked={period === p}
-                    onClick={() => setPeriod(p)}
-                    className={cn(
-                      'py-3 text-sm font-medium rounded-qs transition-all',
-                      'focus:outline-none focus:ring-2 focus:ring-gold/50',
-                      period === p
-                        ? 'bg-gold/20 border-2 border-gold text-gold'
-                        : 'bg-surface-secondary border border-border text-foreground-secondary hover:bg-surface-tertiary hover:text-foreground'
-                    )}
-                  >
-                    {t(`period.years.${p}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Lock Summary */}
             <div className="mt-6 p-4 bg-surface-secondary rounded-qs border border-border">
               <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gold" aria-hidden="true" />
+                <Shield className="w-4 h-4 text-gold" aria-hidden="true" />
                 {t('summary.title')}
               </h4>
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-foreground-secondary">{t('summary.amount')}</span>
                   <span className="font-medium text-foreground">
-                    {amount ? `${parseFloat(amount).toFixed(2)} ETH` : '- ETH'}
+                    {amount ? `${parseFloat(amount).toFixed(6)} ETH` : '- ETH'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-foreground-secondary">{t('summary.period')}</span>
-                  <span className="font-medium text-foreground">{t(`period.years.${period}`)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-foreground-secondary">{t('summary.unlockDate')}</span>
-                  <span className="font-medium text-gold">{unlockDate}</span>
+                  <span className="text-foreground-secondary">{t('summary.unlockWait')}</span>
+                  <span className="font-medium text-foreground">{t('summary.unlockWaitValue')}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm pt-2 border-t border-border">
                   <span className="text-foreground-secondary">{t('summary.fee')}</span>
@@ -614,8 +541,6 @@ export function Lock() {
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmLock}
         amount={parseFloat(amount) || 0}
-        period={period}
-        unlockDate={unlockDate}
       />
     </div>
   );

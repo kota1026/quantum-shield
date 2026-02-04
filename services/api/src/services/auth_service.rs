@@ -1,7 +1,13 @@
 //! Authentication Service (TASK-P5-012: SIWE→JWT)
 //!
-//! Provides JWT-based authentication using SIWE (Sign-In with Ethereum/Quantum-safe).
-//! Uses Dilithium-III signatures for CP-1 compliance.
+//! Provides JWT-based authentication using SIWE (Sign-In with Ethereum).
+//!
+//! ## Design (per SEQUENCES.md §1.1)
+//! - Authentication: Uses standard ECDSA (wallet signatures) for UX compatibility
+//! - Asset Protection: Dilithium is used separately in Lock/Unlock operations
+//!
+//! This separation allows users to authenticate with their standard wallet
+//! while still providing quantum-resistant protection for their assets.
 
 use sha3::{Digest, Sha3_256};
 use crate::config::JwtConfig;
@@ -61,28 +67,41 @@ impl AuthService {
         })
     }
 
-    /// Authenticate using SIWE
+    /// Authenticate using SIWE (Sign-In with Ethereum)
+    ///
+    /// Uses ECDSA signature verification per SEQUENCES.md §1.1.
+    /// The address is recovered from the ECDSA signature and verified against
+    /// the address in the SIWE message.
     pub fn authenticate_siwe(&self, req: &crate::types::SiweRequest) -> Result<SiweResponse, ApiError> {
         let siwe = Self::parse_siwe_message(&req.message)?;
 
-        let message_bytes = req.message.as_bytes();
-        let is_valid = crate::crypto::verify_ml_dsa_65_signature(
-            message_bytes,
+        // Verify ECDSA signature and recover address
+        let recovered_address = crate::crypto::verify_ecdsa_signature(
+            &req.message,
             &req.signature,
-            &req.public_key,
         )?;
 
-        if !is_valid {
-            return Err(ApiError::InvalidSignature("Dilithium signature verification failed".into()));
+        // Verify recovered address matches the address in the SIWE message
+        let siwe_address_lower = siwe.address.to_lowercase();
+        let recovered_address_lower = recovered_address.to_lowercase();
+
+        if siwe_address_lower != recovered_address_lower {
+            return Err(ApiError::InvalidSignature(format!(
+                "Address mismatch: SIWE message address {} does not match recovered address {}",
+                siwe.address, recovered_address
+            )));
         }
 
-        let address = self.derive_address_from_pk(&req.public_key);
+        // Use the address from the SIWE message (standardized format)
+        let address = siwe.address.clone();
 
         let now = chrono::Utc::now().timestamp() as u64;
         let access_expires = now + self.config.access_token_expiry;
         let refresh_expires = now + self.config.refresh_token_expiry;
 
-        let pk_hash = self.hash_public_key(&req.public_key);
+        // For ECDSA auth, use address hash as the pkh field
+        // (Dilithium public key hash is only relevant for Lock/Unlock operations)
+        let pk_hash = self.hash_address(&address);
 
         let access_token = self.generate_token(&address, &pk_hash, access_expires, "access")?;
         let refresh_token = self.generate_token(&address, &pk_hash, refresh_expires, "refresh")?;
@@ -155,6 +174,15 @@ impl AuthService {
         let pk_bytes = hex::decode(public_key.trim_start_matches("0x")).unwrap_or_default();
         let mut hasher = Sha3_256::new();
         hasher.update(&pk_bytes);
+        format!("0x{}", hex::encode(hasher.finalize()))
+    }
+
+    /// Hash an Ethereum address for use in JWT claims
+    /// Used when authenticating via ECDSA (no separate public key)
+    fn hash_address(&self, address: &str) -> String {
+        let addr_bytes = hex::decode(address.trim_start_matches("0x")).unwrap_or_default();
+        let mut hasher = Sha3_256::new();
+        hasher.update(&addr_bytes);
         format!("0x{}", hex::encode(hasher.finalize()))
     }
 }

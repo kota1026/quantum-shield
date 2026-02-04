@@ -212,8 +212,11 @@ pub async fn get_transaction_detail(
         .await?
         .ok_or_else(|| ApiError::LockNotFound(tx_id.clone()))?;
 
-    // Verify ownership
-    if lock.owner != user_address && lock.user_public_key != user_address {
+    // Verify ownership (check owner, user_public_key, OR dest_addr for wallet address match)
+    let is_owner = lock.owner == user_address
+        || lock.user_public_key == user_address
+        || lock.dest_addr.to_lowercase() == user_address.to_lowercase();
+    if !is_owner {
         return Err(ApiError::Unauthorized);
     }
 

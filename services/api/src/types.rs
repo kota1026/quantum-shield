@@ -420,15 +420,19 @@ pub struct VRFStatusResponse {
 // Authentication Types (TASK-P5-012: SIWE→JWT)
 // ============================================================================
 
-/// SIWE (Sign-In with Ethereum/Quantum-safe) request
-/// Uses Dilithium-III signature for CP-1 compliance
+/// SIWE (Sign-In with Ethereum) request
+///
+/// Uses ECDSA signature for wallet compatibility (per SEQUENCES.md §1.1).
+/// Quantum-resistant Dilithium signatures are used separately for Lock/Unlock operations.
 #[derive(Debug, Deserialize)]
 pub struct SiweRequest {
     /// The SIWE message to sign (EIP-4361 format)
     pub message: String,
-    /// Dilithium-III signature of the message (hex encoded)
+    /// ECDSA signature of the message (hex encoded, 65 bytes)
     pub signature: String,
-    /// User's Dilithium-III public key (hex encoded)
+    /// Optional: User's Dilithium public key for future Lock operations
+    /// Not required for authentication itself
+    #[serde(default)]
     pub public_key: String,
 }
 

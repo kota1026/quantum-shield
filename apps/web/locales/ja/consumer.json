@@ -576,13 +576,45 @@
         "title": "ログイン | Quantum Shield",
         "description": "ウォレットを接続してQuantum Shieldにログイン"
       },
-      "backToHome": "ホームに戻る",
+      "backToLanding": "ホームに戻る",
       "title": "Quantum Shieldにログイン",
-      "description": "ウォレットを接続して、量子耐性保護を開始しましょう",
+      "description": "ウォレットを接続してEthereumでサインイン",
+      "selectWallet": "ウォレットを選択",
       "connectWallet": "ウォレットを接続",
-      "or": "または",
-      "noAccount": "アカウントをお持ちでない方は",
-      "createAccount": "新規登録"
+      "supportedWallets": "MetaMask, WalletConnect, Coinbase Wallet などに対応",
+      "noWallet": "ウォレットをお持ちでない方は",
+      "getWallet": "MetaMaskを入手",
+      "newUser": "Quantum Shieldが初めての方",
+      "learnMore": "詳しく見る",
+      "footer": "量子耐性暗号技術で保護されています",
+      "connecting": {
+        "title": "接続中...",
+        "walletPrompt": "ウォレットで接続を承認してください"
+      },
+      "connected": {
+        "title": "ウォレット接続済み",
+        "description": "以下のアドレスでサインインできます",
+        "signInButton": "サインインする",
+        "changeWallet": "別のウォレットを使用"
+      },
+      "signing": {
+        "title": "メッセージに署名",
+        "description": "所有権を確認するため、ウォレットでメッセージに署名してください"
+      },
+      "authenticating": {
+        "title": "認証中...",
+        "description": "サーバーで署名を検証しています"
+      },
+      "success": {
+        "title": "ようこそ！",
+        "description": "ダッシュボードにリダイレクトしています..."
+      },
+      "error": {
+        "title": "認証に失敗しました",
+        "description": "サインイン中にエラーが発生しました。もう一度お試しください。",
+        "retryButton": "再試行",
+        "tryAnotherWallet": "別のウォレットを使用"
+      }
     },
     "keyManagement": {
       "meta": {
@@ -909,8 +941,8 @@
       "summary": {
         "title": "ロック概要",
         "amount": "ロック金額",
-        "period": "ロック期間",
-        "unlockDate": "解除可能日",
+        "unlockWait": "解除時の待機",
+        "unlockWaitValue": "24時間",
         "fee": "ネットワーク手数料"
       },
       "info": {
@@ -935,10 +967,8 @@
         "title": "ロック確認",
         "description": "以下の内容でロックを実行します。Dilithium署名が必要です。",
         "amount": "ロック金額",
-        "period": "ロック期間",
-        "unlockDate": "解除可能日",
         "gasFee": "ガス代（概算）",
-        "note": "※ アンロック時には24時間の待機期間があります",
+        "unlockNote": "アンロック時は24時間の待機期間後に資産を受け取れます",
         "confirm": "署名してロック",
         "cancel": "キャンセル"
       },
@@ -952,12 +982,27 @@
     "lockProcessing": {
       "title": "Lock処理中...",
       "subtitle": "しばらくお待ちください。このページを閉じないでください。",
+      "waitingForWallet": "ウォレットでの署名を待っています...",
+      "waitingForL1": "L1ブロックチェーンでの確認を待っています...",
+      "generatingKeys": "Dilithium鍵を生成中...",
+      "signingMessage": "Dilithium署名を生成中...",
+      "submittingToL3": "L3 Aegisに送信中...",
+      "submittingToL1": "L1 Vaultに送信中...",
+      "errorTitle": "ロックに失敗しました",
+      "errorRevert": "L1でトランザクションが失敗しました。金額が不足している（最低0.01 ETH）か、TVL上限を超えている可能性があります。",
+      "retry": "再試行",
+      "cancel": "キャンセル",
       "steps": {
-        "sign": "Dilithium署名を生成",
+        "generateKeys": "Dilithium鍵を準備",
+        "generateKeysTooltip": "量子耐性暗号のDilithium-III（ML-DSA-65）鍵ペアを生成します。この鍵はブラウザに安全に保存されます。",
+        "sign": "ロックメッセージに署名",
         "signTooltip": "Dilithiumは量子コンピュータでも解読が困難なNIST認定の次世代電子署名アルゴリズムです。あなたの秘密鍵でロック要求に署名します。",
-        "createTx": "トランザクションを作成",
-        "broadcast": "ブロックチェーンに送信中...",
-        "confirm": "確認を待機",
+        "submitL3": "L3 Aegisに送信",
+        "submitL3Tooltip": "L3 Aegisがあなたの署名を検証し、State Root (SR_0)を計算します。これにより、Dilithiumの公開鍵全体をL1に送る必要がなくなり、ガス代が大幅に削減されます。",
+        "submitL1": "L1 Vaultに送信",
+        "submitL1Tooltip": "MetaMaskなどのウォレットでトランザクションに署名して、Sepoliaネットワークに送信します。L3からのlock_idとSR_0のみを送信するため、ガス代が抑えられます。",
+        "confirm": "L1で確認待ち",
+        "confirmTooltip": "トランザクションがSepoliaブロックチェーンで確認されるのを待っています。通常1-2分かかります。",
         "tooltipAriaLabel": "詳しく見る"
       }
     },
@@ -969,16 +1014,10 @@
         "status": "Locked",
         "lockId": "ロックID",
         "amount": "ロック金額",
-        "period": "ロック期間",
-        "unlockDate": "解除可能日",
+        "unlockWait": "解除時の待機",
+        "unlockWaitValue": "24時間",
         "copy": "コピー",
-        "copied": "コピーしました",
-        "periodYears": {
-          "1": "1年",
-          "2": "2年",
-          "3": "3年",
-          "5": "5年"
-        }
+        "copied": "コピーしました"
       },
       "buttons": {
         "viewHistory": "履歴を確認",

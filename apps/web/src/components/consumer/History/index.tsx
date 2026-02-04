@@ -5,20 +5,21 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, FileText, History as HistoryIcon } from 'lucide-react';
+import { formatEther } from 'viem';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { HistoryStats, HistoryStatsData } from './HistoryStats';
 import { FilterTabs, FilterType } from './FilterTabs';
 import { HistoryItem, HistoryTransaction, TransactionType, TransactionStatus } from './HistoryItem';
 import { useUserDashboard, useUserTransactions } from '@/hooks/consumer';
-import {
-  MOCK_HISTORY_STATS,
-  MOCK_HISTORY_TRANSACTIONS,
-} from '@/lib/api/consumer/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_HISTORY_STATS;
-const FALLBACK_TRANSACTIONS = MOCK_HISTORY_TRANSACTIONS;
+// Empty state defaults (no mock data - shows real empty state)
+const EMPTY_STATS: HistoryStatsData = {
+  totalLocked: '0',
+  totalLockedUnit: 'ETH',
+  totalTransactions: 0,
+  inProgress: 0,
+};
 
 // Mapping filter types to transaction types
 const FILTER_TO_TYPES: Record<FilterType, TransactionType[] | null> = {
@@ -47,24 +48,57 @@ export function History() {
   const { data: dashboardData } = useUserDashboard();
   const { data: txData } = useUserTransactions({ perPage: 50 });
 
-  // Transform API data to component format
+  // Transform API data to component format (empty defaults, no mock data)
   const historyStats: HistoryStatsData = dashboardData ? {
-    totalLocked: dashboardData.totalLocked,
+    // Convert totalLocked to ETH - handle both wei format (integer string) and ETH format (decimal string)
+    totalLocked: (() => {
+      const total = dashboardData.totalLocked || '0';
+      try {
+        if (total.includes('.')) {
+          // Already in ETH format
+          return parseFloat(total).toString();
+        } else {
+          // In wei format - convert to ETH
+          return parseFloat(formatEther(BigInt(total))).toString();
+        }
+      } catch {
+        return parseFloat(total).toString();
+      }
+    })(),
     totalLockedUnit: 'ETH',
     totalTransactions: txData?.total || 0,
     inProgress: dashboardData.pendingUnlocks || 0,
-  } : FALLBACK_STATS;
+  } : EMPTY_STATS;
 
-  const historyTransactions: HistoryTransaction[] = (txData?.transactions?.map(tx => ({
-    id: tx.id,
-    type: mapTxType(tx.txType),
-    status: (tx.status === 'completed' ? 'complete' : 'pending24h') as TransactionStatus,
-    amount: `${tx.amount} ETH`,
-    timestamp: new Date(tx.createdAt * 1000).toLocaleString('ja-JP'),
-    txHash: tx.l1TxHash || '0x...',
-    blockConfirmed: tx.status === 'completed' ? 12 : undefined,
-    remainingTime: tx.releaseTime ? `${Math.max(0, Math.floor((tx.releaseTime * 1000 - Date.now()) / 3600000))}h` : undefined,
-  })) ?? FALLBACK_TRANSACTIONS) as HistoryTransaction[];
+  const historyTransactions: HistoryTransaction[] = (txData?.transactions || []).map(tx => {
+    // Convert amount to ETH - handle both wei format (integer string) and ETH format (decimal string)
+    let formattedAmount: string;
+    try {
+      // Check if amount contains a decimal point (already in ETH format)
+      if (tx.amount.includes('.')) {
+        // Already in ETH format
+        formattedAmount = parseFloat(tx.amount).toString();
+      } else {
+        // In wei format - convert to ETH
+        const amountEth = formatEther(BigInt(tx.amount));
+        formattedAmount = parseFloat(amountEth).toString();
+      }
+    } catch {
+      // Fallback: try parsing as float directly
+      formattedAmount = parseFloat(tx.amount).toString();
+    }
+
+    return {
+      id: tx.id,
+      type: mapTxType(tx.txType),
+      status: (tx.status === 'completed' ? 'complete' : 'pending24h') as TransactionStatus,
+      amount: `${formattedAmount} ETH`,
+      timestamp: new Date(tx.createdAt * 1000).toLocaleString('ja-JP'),
+      txHash: tx.l1TxHash || '0x...',
+      blockConfirmed: tx.status === 'completed' ? 12 : undefined,
+      remainingTime: tx.releaseTime ? `${Math.max(0, Math.floor((tx.releaseTime * 1000 - Date.now()) / 3600000))}h` : undefined,
+    };
+  });
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
