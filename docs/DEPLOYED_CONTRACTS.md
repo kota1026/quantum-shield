@@ -41,7 +41,7 @@
 | **Address** | [`0xEF851795bc8DE8e0d40781761a0b5B618fED6dE0`](https://sepolia.etherscan.io/address/0xEF851795bc8DE8e0d40781761a0b5B618fED6dE0) |
 | **Tx Hash** | `0x7546f6edf0b4b5f9a5a2d055c43d7db8784206bd4e731146a2aa39a2a2d959f5` |
 | **Constructor Args** | `owner: 0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3`, `sphincsVerifier: 0x655122b1e816c262168B7f6625346d1914142214` |
-| **Verification** | ⚠️ Pending (bytecode mismatch) |
+| **Verification** | ✅ Verified |
 | **Description** | Main vault for quantum-safe asset locking |
 
 ---
