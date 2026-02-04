@@ -5,7 +5,7 @@ server:
   port: 8080
 
 database:
-  url: "postgres://quantum:quantum_dev@localhost:5432/quantum_shield"
+  url: "postgres://kotakato@localhost/quantum_shield"
   max_connections: 10
 
 redis:
