@@ -7,6 +7,8 @@ import { Shield, AlertTriangle, CheckCircle2, Clock, XCircle, AlertCircle } from
 import { cn } from '@/lib/utils';
 import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { Button } from '@/components/ui/button';
+import { useUserDetail, useUserActivity } from '@/hooks/enterprise';
+import { MOCK_USER_DETAIL, MOCK_USER_ACTIVITY } from '@/lib/api/enterprise/mock';
 
 export type UserRole = 'admin' | 'member' | 'viewer';
 export type KycStatus = 'verified' | 'pending' | 'rejected' | 'not_submitted';
@@ -31,25 +33,32 @@ interface UserData {
   riskScore?: number;
 }
 
-// Mock data
-const MOCK_USER: UserData = {
-  id: 'user_001',
-  name: '佐藤 太郎',
-  email: 'sato@acme.co.jp',
-  initial: '佐',
-  role: 'admin',
-  isActive: true,
-  kycStatus: 'verified',
-  amlStatus: 'cleared',
-  riskScore: 12,
+const ACTIVITY_ICONS: Record<string, string> = {
+  login: '🔐',
+  createApiKey: '🔑',
+  inviteUser: '👤',
+  updateSettings: '⚙️',
 };
 
-const MOCK_ACTIVITY: ActivityEvent[] = [
-  { id: '1', type: 'login', icon: '🔐', time: '2分前' },
-  { id: '2', type: 'createApiKey', icon: '🔑', time: '1時間前' },
-  { id: '3', type: 'inviteUser', icon: '👤', time: '3時間前' },
-  { id: '4', type: 'updateSettings', icon: '⚙️', time: '昨日' },
-];
+// Fallback data for when API is unavailable
+const FALLBACK_USER: UserData = {
+  id: MOCK_USER_DETAIL.id,
+  name: MOCK_USER_DETAIL.name,
+  email: MOCK_USER_DETAIL.email,
+  initial: MOCK_USER_DETAIL.name.charAt(0),
+  role: (MOCK_USER_DETAIL.role === 'owner' ? 'admin' : MOCK_USER_DETAIL.role) as UserRole,
+  isActive: MOCK_USER_DETAIL.is_active,
+  kycStatus: MOCK_USER_DETAIL.kyc_status as KycStatus,
+  amlStatus: MOCK_USER_DETAIL.aml_status as AmlStatus,
+  riskScore: MOCK_USER_DETAIL.risk_score,
+};
+
+const FALLBACK_ACTIVITY: ActivityEvent[] = MOCK_USER_ACTIVITY.map(a => ({
+  id: a.id,
+  type: a.type as ActivityEvent['type'],
+  icon: ACTIVITY_ICONS[a.type] || '📋',
+  time: a.time,
+}));
 
 interface UserDetailProps {
   userId: string;
@@ -80,11 +89,35 @@ const RISK_STYLES: Record<'low' | 'medium' | 'high' | 'unknown', { bg: string; t
 export function UserDetail({ userId, className }: UserDetailProps) {
   const t = useTranslations('enterprise.userDetail');
 
-  const [user, setUser] = useState<UserData>(MOCK_USER);
+  // Use API hooks with fallback
+  const { data: userData } = useUserDetail(userId);
+  const { data: activityData } = useUserActivity(userId);
+
+  // Map API user to component user data, using fallback values for fields not in API response
+  const initialUser: UserData = userData ? {
+    id: userData.id,
+    name: userData.name,
+    email: userData.email,
+    initial: userData.name.charAt(0),
+    role: (userData.role === 'owner' ? 'admin' : userData.role) as UserRole,
+    isActive: userData.status === 'active',
+    kycStatus: 'verified' as KycStatus,
+    amlStatus: 'cleared' as AmlStatus,
+    riskScore: 12,
+  } : FALLBACK_USER;
+
+  const activityEvents: ActivityEvent[] = activityData?.activities?.map(a => ({
+    id: a.id,
+    type: a.type as ActivityEvent['type'],
+    icon: ACTIVITY_ICONS[a.type] || '📋',
+    time: a.time,
+  })) ?? FALLBACK_ACTIVITY;
+
+  const [user, setUser] = useState<UserData>(initialUser);
   const [formData, setFormData] = useState({
-    name: MOCK_USER.name,
-    email: MOCK_USER.email,
-    role: MOCK_USER.role,
+    name: initialUser.name,
+    email: initialUser.email,
+    role: initialUser.role,
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -374,7 +407,7 @@ export function UserDetail({ userId, className }: UserDetailProps) {
                   aria-labelledby="activity-title"
                   aria-label={t('activity.ariaLabel')}
                 >
-                  {MOCK_ACTIVITY.map((activity) => (
+                  {activityEvents.map((activity) => (
                     <li key={activity.id} className="flex items-center gap-4">
                       <div
                         className="w-7 h-7 flex items-center justify-center bg-background-primary rounded text-xs"

@@ -7,13 +7,51 @@
 //! - BE-001: No stubs - real L3 transactions submitted
 //! - BE-002: No test hacks
 //! - BE-003: Full logging of all L3 operations
+//!
+//! ## L3 RPC Protocol
+//! Uses JSON-RPC 2.0 with aegis_* methods:
+//! - aegis_blockNumber: Get current block height
+//! - aegis_sendTransaction: Submit transaction
+//! - aegis_chainId: Get chain ID
+//! - aegis_nodeInfo: Get node status
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 use tracing::{info, warn, instrument};
 
 use crate::error::ApiError;
+
+/// JSON-RPC 2.0 Request
+#[derive(Debug, Serialize)]
+struct JsonRpcRequest<'a> {
+    jsonrpc: &'static str,
+    method: &'a str,
+    params: serde_json::Value,
+    id: u64,
+}
+
+/// JSON-RPC 2.0 Response
+#[derive(Debug, Deserialize)]
+struct JsonRpcResponse<T> {
+    #[allow(dead_code)]
+    jsonrpc: String,
+    result: Option<T>,
+    error: Option<JsonRpcError>,
+    #[allow(dead_code)]
+    id: serde_json::Value,
+}
+
+/// JSON-RPC 2.0 Error
+#[derive(Debug, Deserialize)]
+struct JsonRpcError {
+    code: i32,
+    message: String,
+}
+
+/// Request ID counter for JSON-RPC
+static REQUEST_ID: AtomicU64 = AtomicU64::new(1);
 
 /// L3 node health status
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -125,15 +163,18 @@ impl L3Client {
 
     /// Check L3 node health
     ///
+    /// Uses GET /health endpoint (returns "OK" string) and aegis_nodeInfo RPC
+    ///
     /// # Returns
     /// * `Result<L3HealthStatus, ApiError>` - Health status or error
     #[instrument(skip(self), fields(endpoint = %self.endpoint))]
     pub async fn health_check(&self) -> Result<L3HealthStatus, ApiError> {
         info!("Checking L3 node health");
 
-        let url = format!("{}/health", self.endpoint);
-        let response = self.client
-            .get(&url)
+        // First check basic health endpoint
+        let health_url = format!("{}/health", self.endpoint);
+        let health_response = self.client
+            .get(&health_url)
             .send()
             .await
             .map_err(|e| {
@@ -141,16 +182,55 @@ impl L3Client {
                 ApiError::Internal(format!("L3 connection failed: {}", e))
             })?;
 
-        if !response.status().is_success() {
-            let status = response.status();
+        if !health_response.status().is_success() {
+            let status = health_response.status();
             warn!(status = %status, "L3 health check returned non-success status");
             return Err(ApiError::Internal(format!("L3 health check failed: {}", status)));
         }
 
-        let health: L3HealthStatus = response
+        // Get detailed node info via JSON-RPC
+        let request = JsonRpcRequest {
+            jsonrpc: "2.0",
+            method: "aegis_nodeInfo",
+            params: serde_json::json!([]),
+            id: REQUEST_ID.fetch_add(1, Ordering::SeqCst),
+        };
+
+        let response = self.client
+            .post(&self.endpoint)
+            .json(&request)
+            .send()
+            .await
+            .map_err(|e| ApiError::Internal(format!("L3 RPC failed: {}", e)))?;
+
+        #[derive(Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct NodeInfo {
+            current_block: u64,
+            #[allow(dead_code)]
+            version: String,
+            #[allow(dead_code)]
+            network: String,
+        }
+
+        let rpc_response: JsonRpcResponse<NodeInfo> = response
             .json()
             .await
-            .map_err(|e| ApiError::Internal(format!("Failed to parse health response: {}", e)))?;
+            .map_err(|e| ApiError::Internal(format!("Failed to parse RPC response: {}", e)))?;
+
+        if let Some(err) = rpc_response.error {
+            return Err(ApiError::Internal(format!("L3 RPC error: {} ({})", err.message, err.code)));
+        }
+
+        let node_info = rpc_response.result
+            .ok_or_else(|| ApiError::Internal("Empty RPC response".into()))?;
+
+        let health = L3HealthStatus {
+            status: "healthy".to_string(),
+            block_height: node_info.current_block,
+            syncing: false,
+            peer_count: 0, // Single node mode
+        };
 
         info!(
             status = %health.status,
@@ -163,34 +243,47 @@ impl L3Client {
 
     /// Get current L3 block height
     ///
+    /// Uses aegis_blockNumber JSON-RPC method
+    ///
     /// # Returns
     /// * `Result<u64, ApiError>` - Block height or error
     #[instrument(skip(self))]
     pub async fn get_block_height(&self) -> Result<u64, ApiError> {
         info!("Getting L3 block height");
 
-        let url = format!("{}/block/latest", self.endpoint);
+        let request = JsonRpcRequest {
+            jsonrpc: "2.0",
+            method: "aegis_blockNumber",
+            params: serde_json::json!([]),
+            id: REQUEST_ID.fetch_add(1, Ordering::SeqCst),
+        };
+
         let response = self.client
-            .get(&url)
+            .post(&self.endpoint)
+            .json(&request)
             .send()
             .await
-            .map_err(|e| ApiError::Internal(format!("L3 request failed: {}", e)))?;
+            .map_err(|e| ApiError::Internal(format!("L3 RPC failed: {}", e)))?;
 
-        #[derive(Deserialize)]
-        struct BlockResponse {
-            height: u64,
-        }
-
-        let block: BlockResponse = response
+        let rpc_response: JsonRpcResponse<u64> = response
             .json()
             .await
-            .map_err(|e| ApiError::Internal(format!("Failed to parse block response: {}", e)))?;
+            .map_err(|e| ApiError::Internal(format!("Failed to parse RPC response: {}", e)))?;
 
-        info!(block_height = block.height, "Got L3 block height");
-        Ok(block.height)
+        if let Some(err) = rpc_response.error {
+            return Err(ApiError::Internal(format!("L3 RPC error: {} ({})", err.message, err.code)));
+        }
+
+        let block_height = rpc_response.result
+            .ok_or_else(|| ApiError::Internal("Empty RPC response".into()))?;
+
+        info!(block_height = block_height, "Got L3 block height");
+        Ok(block_height)
     }
 
     /// Submit a transaction to L3
+    ///
+    /// Uses aegis_sendTransaction JSON-RPC method
     ///
     /// # Arguments
     /// * `tx` - L3 transaction to submit
@@ -205,10 +298,16 @@ impl L3Client {
             "Submitting L3 transaction"
         );
 
-        let url = format!("{}/tx/submit", self.endpoint);
+        let request = JsonRpcRequest {
+            jsonrpc: "2.0",
+            method: "aegis_sendTransaction",
+            params: serde_json::json!([tx]),
+            id: REQUEST_ID.fetch_add(1, Ordering::SeqCst),
+        };
+
         let response = self.client
-            .post(&url)
-            .json(&tx)
+            .post(&self.endpoint)
+            .json(&request)
             .send()
             .await
             .map_err(|e| {
@@ -216,21 +315,31 @@ impl L3Client {
                 ApiError::Internal(format!("L3 transaction failed: {}", e))
             })?;
 
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            warn!(status = %status, body = %body, "L3 transaction rejected");
-            return Err(ApiError::Internal(format!("L3 transaction rejected: {} - {}", status, body)));
-        }
-
-        let receipt: L3TxReceipt = response
+        let rpc_response: JsonRpcResponse<String> = response
             .json()
             .await
-            .map_err(|e| ApiError::Internal(format!("Failed to parse tx receipt: {}", e)))?;
+            .map_err(|e| ApiError::Internal(format!("Failed to parse RPC response: {}", e)))?;
+
+        if let Some(err) = rpc_response.error {
+            warn!(code = err.code, message = %err.message, "L3 transaction rejected");
+            return Err(ApiError::Internal(format!("L3 transaction rejected: {} ({})", err.message, err.code)));
+        }
+
+        let tx_hash = rpc_response.result
+            .ok_or_else(|| ApiError::Internal("Empty RPC response".into()))?;
+
+        // Return receipt with pending status (will be confirmed later)
+        let receipt = L3TxReceipt {
+            tx_hash: tx_hash.clone(),
+            block_number: 0, // Will be set when confirmed
+            status: L3TxStatus::Pending,
+            gas_used: 0,
+            prover_signatures: vec![],
+            bridge_tx_hash: None,
+        };
 
         info!(
             tx_hash = %receipt.tx_hash,
-            block_number = receipt.block_number,
             status = ?receipt.status,
             "L3 transaction submitted"
         );

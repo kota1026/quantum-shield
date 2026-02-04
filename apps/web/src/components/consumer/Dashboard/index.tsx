@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { AppHeader } from './AppHeader';
@@ -24,13 +24,50 @@ const FALLBACK_STATS = MOCK_CONSUMER_STATS;
 const FALLBACK_TRANSACTIONS = MOCK_TRANSACTIONS;
 const FALLBACK_WALLET = MOCK_USER_SETTINGS.walletAddress;
 
+// Skeleton component for loading state
+function StatCardSkeleton() {
+  return (
+    <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-gold/10 animate-pulse">
+      <div className="h-4 bg-muted rounded w-24 mb-2" />
+      <div className="h-8 bg-muted rounded w-32" />
+    </div>
+  );
+}
+
+// Error banner component
+function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span className="text-sm text-destructive">{message}</span>
+        </div>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="text-sm text-destructive hover:text-destructive/80 underline"
+          >
+            Retry
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function Dashboard() {
   const t = useTranslations('consumer.dashboard');
   const router = useRouter();
 
-  // Fetch data using new API hooks
-  const { data: dashboardData } = useUserDashboard();
-  const { data: txData } = useUserTransactions({ perPage: 10 });
+  // Fetch data using new API hooks with loading and error states
+  const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError, refetch: refetchDashboard } = useUserDashboard();
+  const { data: txData, isLoading: isTxLoading, error: txError, refetch: refetchTx } = useUserTransactions({ perPage: 10 });
+
+  const isLoading = isDashboardLoading || isTxLoading;
+  const hasError = dashboardError || txError;
 
   // Transform API data to component format, with fallback
   const stats: ConsumerStats = dashboardData ? {
@@ -118,43 +155,65 @@ export function Dashboard() {
           onLockClick={scrollToLockInput}
         />
 
+        {/* Error Banner */}
+        {hasError && (
+          <ErrorBanner
+            message={dashboardError?.message || txError?.message || 'Failed to load data'}
+            onRetry={() => {
+              refetchDashboard();
+              refetchTx();
+            }}
+          />
+        )}
+
         {/* Stats Grid */}
         <section
           className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
           aria-label={t('stats.ariaLabel')}
         >
-          <StatCard
-            label={t('stats.totalLocked.label')}
-            value={stats.totalLocked.toFixed(2)}
-            unit="ETH"
-            tooltip={t('stats.totalLocked.tooltip')}
-            badge={{ text: '+12.4%', variant: 'success' }}
-            highlight
-            onClick={() => router.push('/consumer/history')}
-            ariaLabel={`${t('stats.totalLocked.label')}: ${stats.totalLocked} ETH`}
-          />
-          <StatCard
-            label={t('stats.available.label')}
-            value={stats.available.toFixed(2)}
-            unit="ETH"
-            tooltip={t('stats.available.tooltip')}
-            onClick={() => router.push('/consumer/unlock')}
-            ariaLabel={`${t('stats.available.label')}: ${stats.available} ETH`}
-          />
-          <StatCard
-            label={t('stats.pendingUnlock.label')}
-            value={stats.pendingUnlock}
-            tooltip={t('stats.pendingUnlock.tooltip')}
-            onClick={() => router.push('/consumer/unlock')}
-            ariaLabel={`${t('stats.pendingUnlock.label')}: ${stats.pendingUnlock}`}
-          />
-          <StatCard
-            label={t('stats.transactions.label')}
-            value={stats.transactions}
-            tooltip={t('stats.transactions.tooltip')}
-            onClick={() => router.push('/consumer/history')}
-            ariaLabel={`${t('stats.transactions.label')}: ${stats.transactions}`}
-          />
+          {isLoading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <StatCard
+                label={t('stats.totalLocked.label')}
+                value={stats.totalLocked.toFixed(2)}
+                unit="ETH"
+                tooltip={t('stats.totalLocked.tooltip')}
+                badge={{ text: '+12.4%', variant: 'success' }}
+                highlight
+                onClick={() => router.push('/consumer/history')}
+                ariaLabel={`${t('stats.totalLocked.label')}: ${stats.totalLocked} ETH`}
+              />
+              <StatCard
+                label={t('stats.available.label')}
+                value={stats.available.toFixed(2)}
+                unit="ETH"
+                tooltip={t('stats.available.tooltip')}
+                onClick={() => router.push('/consumer/unlock')}
+                ariaLabel={`${t('stats.available.label')}: ${stats.available} ETH`}
+              />
+              <StatCard
+                label={t('stats.pendingUnlock.label')}
+                value={stats.pendingUnlock}
+                tooltip={t('stats.pendingUnlock.tooltip')}
+                onClick={() => router.push('/consumer/unlock')}
+                ariaLabel={`${t('stats.pendingUnlock.label')}: ${stats.pendingUnlock}`}
+              />
+              <StatCard
+                label={t('stats.transactions.label')}
+                value={stats.transactions}
+                tooltip={t('stats.transactions.tooltip')}
+                onClick={() => router.push('/consumer/history')}
+                ariaLabel={`${t('stats.transactions.label')}: ${stats.transactions}`}
+              />
+            </>
+          )}
         </section>
 
         {/* Main Grid */}
