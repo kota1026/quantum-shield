@@ -36,7 +36,7 @@ import type {
   AnalyticsStats,
   LockStatusDistribution,
   UnlockTypeDistribution,
-} from '@/lib/v1/explorer/mock';
+} from '@/lib/api/explorer/mock';
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_TVL_DATA: TvlDataPoint[] = [
