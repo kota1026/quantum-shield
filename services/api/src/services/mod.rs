@@ -15,6 +15,7 @@ mod rabbitmq_client;
 mod hsm_client;
 mod vrf_service;
 mod sphincs_service;
+pub mod smt_service;
 pub mod auth_service;
 pub mod l3_client;
 pub mod l1_client;
@@ -63,6 +64,7 @@ pub use admin_l3_ops::{AdminL3OpsService, TreasuryTransferRequest, TreasuryTrans
 pub use bridge_verifier::{BridgeVerifierService, VerificationStatus, BridgeVerificationResult};
 pub use treasury_vault::{TreasuryVaultService, TreasuryBalance, TreasuryWithdrawRequest, TreasuryWithdrawResult, Withdrawal, WithdrawalStatus};
 pub use l3_l1_bridge::{L3L1BridgeService, E2EOperationStatus, E2EOperationResult, E2ETreasuryWithdrawRequest};
+pub use smt_service::{SmtService, SmtProof, SmtLeaf};
 
 /// Application state shared across handlers
 pub struct AppState {
@@ -74,6 +76,8 @@ pub struct AppState {
     pub hsm: HsmClient,
     /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
     pub vrf: VRFService,
+    /// SMT Service for Sparse Merkle Tree operations (L3 state management)
+    pub smt: SmtService,
     /// Authentication service for SIWE/JWT (TASK-P5-012)
     pub auth_service: AuthService,
     /// L3 Client for admin operations (Phase 8-D)
@@ -102,6 +106,12 @@ impl AppState {
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
         let vrf = VRFService::new(&config.vrf).await?;
+
+        // Initialize SMT service for Sparse Merkle Tree operations
+        tracing::info!("Initializing SMT service...");
+        let smt = SmtService::new();
+        tracing::info!("SMT service initialized");
+
         let auth_service = AuthService::new(config.jwt.clone());
 
         // Initialize L3 client (Phase 8-D)
@@ -159,6 +169,7 @@ impl AppState {
             rabbitmq,
             hsm,
             vrf,
+            smt,
             auth_service,
             l3_client,
             l1_client,

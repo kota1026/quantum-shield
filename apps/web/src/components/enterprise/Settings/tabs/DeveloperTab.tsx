@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useApiKeys, useWebhooks } from '@/hooks/enterprise';
+import { MOCK_API_KEYS as MOCK_API_KEYS_DATA, MOCK_WEBHOOKS as MOCK_WEBHOOKS_DATA } from '@/lib/api/enterprise/mock';
 
 interface ApiKey {
   id: string;
@@ -36,40 +38,48 @@ interface Webhook {
   lastTriggered: string | null;
 }
 
-const MOCK_API_KEYS: ApiKey[] = [
-  {
-    id: '1',
-    name: 'Production Key',
-    prefix: 'qs_live_7a3f',
-    permissions: ['read', 'write', 'delete'],
-    lastUsed: '2026-01-11 14:32:00',
-    createdAt: '2025-01-01',
-  },
-  {
-    id: '2',
-    name: 'Read-Only Key',
-    prefix: 'qs_live_9c2d',
-    permissions: ['read'],
-    lastUsed: '2026-01-10 09:15:00',
-    createdAt: '2025-06-15',
-  },
-];
+// Fallback data for when API is unavailable
+const FALLBACK_API_KEYS: ApiKey[] = MOCK_API_KEYS_DATA.map(k => ({
+  id: k.id,
+  name: k.name,
+  prefix: k.maskedKey.split('...')[0] || 'qs_live_',
+  permissions: k.environment === 'production' ? ['read', 'write', 'delete'] : ['read'],
+  lastUsed: k.createdAt,
+  createdAt: k.createdAt,
+}));
 
-const MOCK_WEBHOOKS: Webhook[] = [
-  {
-    id: '1',
-    url: 'https://api.acme.co.jp/webhooks/qs',
-    events: ['lock.completed', 'unlock.completed'],
-    status: 'active',
-    lastTriggered: '2026-01-11 14:32:00',
-  },
-];
+const FALLBACK_WEBHOOKS: Webhook[] = MOCK_WEBHOOKS_DATA.map(w => ({
+  id: w.id,
+  url: w.url,
+  events: w.events,
+  status: w.isActive ? 'active' : 'inactive',
+  lastTriggered: w.lastTriggered ?? null,
+}));
 
 export function DeveloperTab() {
   const t = useTranslations('enterprise.settings.developer');
 
-  const [apiKeys] = useState<ApiKey[]>(MOCK_API_KEYS);
-  const [webhooks] = useState<Webhook[]>(MOCK_WEBHOOKS);
+  // Use API hooks with fallback
+  const { data: apiKeysData } = useApiKeys();
+  const { data: webhooksData } = useWebhooks();
+
+  const apiKeys: ApiKey[] = apiKeysData?.api_keys?.map(k => ({
+    id: k.id,
+    name: k.name,
+    prefix: k.key_prefix,
+    permissions: k.status === 'active' ? ['read', 'write', 'delete'] : ['read'],
+    lastUsed: k.last_used ?? null,
+    createdAt: k.created_at,
+  })) ?? FALLBACK_API_KEYS;
+
+  const webhooks: Webhook[] = webhooksData?.webhooks?.map(w => ({
+    id: w.id,
+    url: w.url,
+    events: w.events,
+    status: w.is_active ? 'active' : 'inactive',
+    lastTriggered: w.last_triggered ?? null,
+  })) ?? FALLBACK_WEBHOOKS;
+
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const copyToClipboard = async (text: string, id: string) => {

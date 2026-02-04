@@ -6,69 +6,15 @@ import { cn } from '@/lib/utils';
 import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { EnterpriseStatCard } from '../Dashboard/EnterpriseStatCard';
 import { Button } from '@/components/ui/button';
+import { useApiKeys } from '@/hooks/enterprise';
+import { MOCK_API_KEYS, type MockApiKey } from '@/lib/api/enterprise/mock';
 
 export type KeyEnvironment = 'production' | 'test';
 
-export interface ApiKey {
-  id: string;
-  name: string;
-  environment: KeyEnvironment;
-  maskedKey: string;
-  isActive: boolean;
-  createdAt: string;
-  expiresAt?: string;
-  revokedAt?: string;
-  callsToday: number;
-  createdBy: string;
-}
+export type ApiKey = MockApiKey;
 
-// Mock data
-const MOCK_API_KEYS: ApiKey[] = [
-  {
-    id: 'key_001',
-    name: 'Production Key #1',
-    environment: 'production',
-    maskedKey: 'qs_live_••••••••••••••••7a3f',
-    isActive: true,
-    createdAt: '2025-12-01',
-    expiresAt: '2026-01-18',
-    callsToday: 12345,
-    createdBy: '佐藤',
-  },
-  {
-    id: 'key_002',
-    name: 'Production Key #2',
-    environment: 'production',
-    maskedKey: 'qs_live_••••••••••••••••9c2d',
-    isActive: true,
-    createdAt: '2026-01-05',
-    expiresAt: '2026-07-05',
-    callsToday: 8234,
-    createdBy: '田中',
-  },
-  {
-    id: 'key_003',
-    name: 'Test Key #1',
-    environment: 'test',
-    maskedKey: 'qs_test_••••••••••••••••4b2a',
-    isActive: true,
-    createdAt: '2026-01-10',
-    expiresAt: '2026-04-10',
-    callsToday: 3567,
-    createdBy: '佐藤',
-  },
-  {
-    id: 'key_004',
-    name: 'Legacy Key (Deprecated)',
-    environment: 'test',
-    maskedKey: 'qs_test_••••••••••••••••1e3f',
-    isActive: false,
-    createdAt: '2025-06-01',
-    revokedAt: '2026-01-01',
-    callsToday: 0,
-    createdBy: '鈴木',
-  },
-];
+// Fallback data for when API is unavailable
+const FALLBACK_API_KEYS = MOCK_API_KEYS;
 
 interface ApiKeyListProps {
   className?: string;
@@ -77,14 +23,29 @@ interface ApiKeyListProps {
 export function ApiKeyList({ className }: ApiKeyListProps) {
   const t = useTranslations('enterprise.apiKeys');
 
+  // Use API hook with fallback
+  const { data: apiKeysData } = useApiKeys();
+  const apiKeys = apiKeysData?.api_keys?.map(k => ({
+    id: k.id,
+    name: k.name,
+    environment: (k.status === 'active' ? 'production' : 'test') as KeyEnvironment,
+    maskedKey: k.key_prefix,
+    isActive: k.status === 'active',
+    createdAt: k.created_at,
+    expiresAt: undefined,
+    revokedAt: k.status === 'revoked' ? k.last_used : undefined,
+    callsToday: 0,
+    createdBy: '',
+  })) ?? FALLBACK_API_KEYS;
+
   const stats = {
-    total: MOCK_API_KEYS.length,
-    active: MOCK_API_KEYS.filter((k) => k.isActive).length,
-    callsToday: MOCK_API_KEYS.reduce((sum, k) => sum + k.callsToday, 0),
+    total: apiKeys.length,
+    active: apiKeys.filter((k) => k.isActive).length,
+    callsToday: apiKeys.reduce((sum, k) => sum + k.callsToday, 0),
     rateLimit: '1000/min',
   };
 
-  const expiringKey = MOCK_API_KEYS.find(
+  const expiringKey = apiKeys.find(
     (k) => k.isActive && k.expiresAt && new Date(k.expiresAt) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   );
 
@@ -190,7 +151,7 @@ export function ApiKeyList({ className }: ApiKeyListProps) {
             </div>
             <div className="p-6">
               <ul className="space-y-4" aria-labelledby="api-keys-title">
-                {MOCK_API_KEYS.map((apiKey) => (
+                {apiKeys.map((apiKey) => (
                   <li
                     key={apiKey.id}
                     className={cn(

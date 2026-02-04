@@ -6,6 +6,12 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { Button } from '@/components/ui/button';
+import { useReports } from '@/hooks/enterprise';
+import {
+  MOCK_REPORT_STATS,
+  MOCK_TRANSACTION_SUMMARY as MOCK_TX_SUMMARY,
+  MOCK_TOP_USERS as MOCK_TOP_USERS_DATA,
+} from '@/lib/api/enterprise/mock';
 
 interface TransactionSummary {
   type: 'lock' | 'normalUnlock' | 'emergencyUnlock';
@@ -29,25 +35,28 @@ interface ReportStats {
   activeUsers: { value: number; change: number };
 }
 
-// Mock data
-const MOCK_STATS: ReportStats = {
-  totalTransactions: { value: 1234, change: 12 },
-  totalVolume: { value: '$47.2M', change: 8.7 },
-  avgTvl: { value: '$118.4M', change: 5.2 },
-  activeUsers: { value: 847, change: 23 },
+// Fallback data for when API is unavailable
+const FALLBACK_STATS: ReportStats = {
+  totalTransactions: { value: MOCK_REPORT_STATS.total_transactions.value, change: MOCK_REPORT_STATS.total_transactions.change },
+  totalVolume: { value: MOCK_REPORT_STATS.total_volume.value, change: MOCK_REPORT_STATS.total_volume.change },
+  avgTvl: { value: MOCK_REPORT_STATS.avg_tvl.value, change: MOCK_REPORT_STATS.avg_tvl.change },
+  activeUsers: { value: MOCK_REPORT_STATS.active_users.value, change: MOCK_REPORT_STATS.active_users.change },
 };
 
-const MOCK_TRANSACTION_SUMMARY: TransactionSummary[] = [
-  { type: 'lock', count: 847, volume: '$32.4M', avgSize: '$38,252', percentage: '68.6%' },
-  { type: 'normalUnlock', count: 342, volume: '$12.8M', avgSize: '$37,426', percentage: '27.7%' },
-  { type: 'emergencyUnlock', count: 45, volume: '$2.0M', avgSize: '$44,444', percentage: '3.7%' },
-];
+const FALLBACK_TRANSACTION_SUMMARY: TransactionSummary[] = MOCK_TX_SUMMARY.map(t => ({
+  type: t.type as 'lock' | 'normalUnlock' | 'emergencyUnlock',
+  count: t.count,
+  volume: t.volume,
+  avgSize: t.avg_size,
+  percentage: t.percentage,
+}));
 
-const MOCK_TOP_USERS: TopUser[] = [
-  { rank: 1, address: '0x1234...5678', transactions: 47, volume: '$4.2M' },
-  { rank: 2, address: '0x9abc...def0', transactions: 35, volume: '$3.1M' },
-  { rank: 3, address: '0x5678...9012', transactions: 28, volume: '$2.8M' },
-];
+const FALLBACK_TOP_USERS: TopUser[] = MOCK_TOP_USERS_DATA.map((u, i) => ({
+  rank: i + 1,
+  address: u.address,
+  transactions: u.transactions,
+  volume: u.volume,
+}));
 
 interface ReportsProps {
   className?: string;
@@ -56,6 +65,28 @@ interface ReportsProps {
 export function Reports({ className }: ReportsProps) {
   const t = useTranslations('enterprise.reports');
   const [selectedPeriod, setSelectedPeriod] = useState('december');
+
+  // Use API hook with fallback
+  const { data: reportsData } = useReports();
+  const stats: ReportStats = reportsData?.stats ? {
+    totalTransactions: { value: reportsData.stats.total_transactions.value, change: reportsData.stats.total_transactions.change },
+    totalVolume: { value: reportsData.stats.total_volume.value, change: reportsData.stats.total_volume.change },
+    avgTvl: { value: reportsData.stats.avg_tvl.value, change: reportsData.stats.avg_tvl.change },
+    activeUsers: { value: reportsData.stats.active_users.value, change: reportsData.stats.active_users.change },
+  } : FALLBACK_STATS;
+  const transactionSummary: TransactionSummary[] = reportsData?.transaction_summary?.map(t => ({
+    type: t.type as 'lock' | 'normalUnlock' | 'emergencyUnlock',
+    count: t.count,
+    volume: t.volume,
+    avgSize: t.avg_size,
+    percentage: t.percentage,
+  })) ?? FALLBACK_TRANSACTION_SUMMARY;
+  const topUsers: TopUser[] = reportsData?.top_users?.map((u, i) => ({
+    rank: i + 1,
+    address: u.address,
+    transactions: u.transactions,
+    volume: u.volume,
+  })) ?? FALLBACK_TOP_USERS;
 
   return (
     <div className={cn('flex min-h-screen bg-background', className)}>
@@ -108,33 +139,33 @@ export function Reports({ className }: ReportsProps) {
             <div className="bg-background-secondary border border-white/5 rounded-xl p-6">
               <p className="text-xs text-text-tertiary mb-1">{t('stats.totalTransactions.label')}</p>
               <p className="text-2xl font-bold text-text-primary">
-                {MOCK_STATS.totalTransactions.value.toLocaleString()}
+                {stats.totalTransactions.value.toLocaleString()}
               </p>
               <p className="text-xs text-success mt-1">
-                ↑ {t('stats.totalTransactions.change', { percent: MOCK_STATS.totalTransactions.change })}
+                ↑ {t('stats.totalTransactions.change', { percent: stats.totalTransactions.change })}
               </p>
             </div>
             <div className="bg-background-secondary border border-white/5 rounded-xl p-6">
               <p className="text-xs text-text-tertiary mb-1">{t('stats.totalVolume.label')}</p>
-              <p className="text-2xl font-bold text-text-primary">{MOCK_STATS.totalVolume.value}</p>
+              <p className="text-2xl font-bold text-text-primary">{stats.totalVolume.value}</p>
               <p className="text-xs text-success mt-1">
-                ↑ {t('stats.totalVolume.change', { percent: MOCK_STATS.totalVolume.change })}
+                ↑ {t('stats.totalVolume.change', { percent: stats.totalVolume.change })}
               </p>
             </div>
             <div className="bg-background-secondary border border-white/5 rounded-xl p-6">
               <p className="text-xs text-text-tertiary mb-1">{t('stats.avgTvl.label')}</p>
-              <p className="text-2xl font-bold text-text-primary">{MOCK_STATS.avgTvl.value}</p>
+              <p className="text-2xl font-bold text-text-primary">{stats.avgTvl.value}</p>
               <p className="text-xs text-success mt-1">
-                ↑ {t('stats.avgTvl.change', { percent: MOCK_STATS.avgTvl.change })}
+                ↑ {t('stats.avgTvl.change', { percent: stats.avgTvl.change })}
               </p>
             </div>
             <div className="bg-background-secondary border border-white/5 rounded-xl p-6">
               <p className="text-xs text-text-tertiary mb-1">{t('stats.activeUsers.label')}</p>
               <p className="text-2xl font-bold text-text-primary">
-                {MOCK_STATS.activeUsers.value.toLocaleString()}
+                {stats.activeUsers.value.toLocaleString()}
               </p>
               <p className="text-xs text-success mt-1">
-                ↑ {t('stats.activeUsers.change', { count: MOCK_STATS.activeUsers.change })}
+                ↑ {t('stats.activeUsers.change', { count: stats.activeUsers.change })}
               </p>
             </div>
           </section>
@@ -166,8 +197,8 @@ export function Reports({ className }: ReportsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {MOCK_TRANSACTION_SUMMARY.map((row, index) => (
-                    <tr key={row.type} className={index !== MOCK_TRANSACTION_SUMMARY.length - 1 ? 'border-b border-white/5' : ''}>
+                  {transactionSummary.map((row, index) => (
+                    <tr key={row.type} className={index !== transactionSummary.length - 1 ? 'border-b border-white/5' : ''}>
                       <td className="py-4 text-sm text-text-primary">
                         {t(`transactionSummary.types.${row.type}`)}
                       </td>
@@ -218,8 +249,8 @@ export function Reports({ className }: ReportsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {MOCK_TOP_USERS.map((user, index) => (
-                    <tr key={user.address} className={index !== MOCK_TOP_USERS.length - 1 ? 'border-b border-white/5' : ''}>
+                  {topUsers.map((user, index) => (
+                    <tr key={user.address} className={index !== topUsers.length - 1 ? 'border-b border-white/5' : ''}>
                       <td className="py-4 text-sm text-text-secondary">{user.rank}</td>
                       <td className="py-4 text-sm text-gold font-mono">{user.address}</td>
                       <td className="py-4 text-sm text-text-secondary font-mono">{user.transactions}</td>

@@ -8,75 +8,30 @@ import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { EnterpriseStatCard } from '../Dashboard/EnterpriseStatCard';
 import { UserTable, User } from './UserTable';
 import { Button } from '@/components/ui/button';
+import { useUsers } from '@/hooks/enterprise';
+import { MOCK_USERS as MOCK_USERS_DATA } from '@/lib/api/enterprise/mock';
 
-// Mock data for users
-const MOCK_USERS: User[] = [
-  {
-    id: 'user_001',
-    name: '佐藤 太郎',
-    email: 'sato@acme.co.jp',
-    initial: '佐',
-    role: 'admin',
-    status: 'active',
-    twoFaEnabled: true,
-    lastActive: '2分前',
-    kycStatus: 'verified',
-    amlStatus: 'cleared',
-    riskScore: 12,
-  },
-  {
-    id: 'user_002',
-    name: '田中 花子',
-    email: 'tanaka@acme.co.jp',
-    initial: '田',
-    role: 'admin',
-    status: 'active',
-    twoFaEnabled: true,
-    lastActive: '1時間前',
-    kycStatus: 'verified',
-    amlStatus: 'cleared',
-    riskScore: 8,
-  },
-  {
-    id: 'user_003',
-    name: '鈴木 一郎',
-    email: 'suzuki@acme.co.jp',
-    initial: '鈴',
-    role: 'member',
-    status: 'active',
-    twoFaEnabled: true,
-    lastActive: '3時間前',
-    kycStatus: 'pending',
-    amlStatus: 'review',
-    riskScore: 45,
-  },
-  {
-    id: 'user_004',
-    name: '高橋 二郎',
-    email: 'takahashi@acme.co.jp',
-    initial: '高',
-    role: 'viewer',
-    status: 'active',
-    twoFaEnabled: false,
-    lastActive: '昨日',
-    kycStatus: 'verified',
-    amlStatus: 'flagged',
-    riskScore: 78,
-  },
-  {
-    id: 'user_005',
-    name: '山本 三郎',
-    email: 'yamamoto@acme.co.jp',
-    initial: '山',
-    role: 'member',
-    status: 'invited',
-    twoFaEnabled: false,
-    lastActive: '保留中',
-    kycStatus: 'not_submitted',
-    amlStatus: 'not_checked',
-    riskScore: undefined,
-  },
-];
+// Map mock roles to UI roles
+function mapRole(role: string): 'admin' | 'member' | 'viewer' {
+  if (role === 'owner' || role === 'admin') return 'admin';
+  if (role === 'member' || role === 'operator') return 'member';
+  return 'viewer';
+}
+
+// Fallback data for when API is unavailable
+const FALLBACK_USERS: User[] = MOCK_USERS_DATA.map(u => ({
+  id: u.id,
+  name: u.name,
+  email: u.email,
+  initial: u.name.charAt(0),
+  role: mapRole(u.role),
+  status: u.status === 'suspended' ? 'active' : u.status === 'invited' ? 'invited' : 'active',
+  twoFaEnabled: u.twoFactorEnabled,
+  lastActive: u.lastActive || '不明',
+  kycStatus: 'verified' as const,
+  amlStatus: 'cleared' as const,
+  riskScore: 10,
+}));
 
 interface UserListProps {
   className?: string;
@@ -87,29 +42,45 @@ export function UserList({ className }: UserListProps) {
 
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Use API hook with fallback
+  const { data: usersData } = useUsers();
+  const users: User[] = usersData?.users?.map(u => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    initial: u.name.charAt(0),
+    role: mapRole(u.role),
+    status: u.status === 'suspended' ? 'active' : u.status === 'pending' ? 'invited' : 'active',
+    twoFaEnabled: false,
+    lastActive: u.last_login || '不明',
+    kycStatus: 'verified' as const,
+    amlStatus: 'cleared' as const,
+    riskScore: 10,
+  })) ?? FALLBACK_USERS;
+
   // Filter users based on search query
   const filteredUsers = useMemo(() => {
-    if (!searchQuery) return MOCK_USERS;
+    if (!searchQuery) return users;
     const query = searchQuery.toLowerCase();
-    return MOCK_USERS.filter(
+    return users.filter(
       (user) =>
         user.name.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, users]);
 
   // Calculate stats
   const stats = useMemo(() => {
-    const admins = MOCK_USERS.filter((u) => u.role === 'admin').length;
-    const members = MOCK_USERS.filter((u) => u.role === 'member' || u.role === 'viewer').length;
-    const pending = MOCK_USERS.filter((u) => u.status === 'invited').length;
+    const admins = users.filter((u) => u.role === 'admin').length;
+    const members = users.filter((u) => u.role === 'member' || u.role === 'viewer').length;
+    const pending = users.filter((u) => u.status === 'invited').length;
     return {
-      total: MOCK_USERS.length,
+      total: users.length,
       admins,
       members,
       pending,
     };
-  }, []);
+  }, [users]);
 
   // Current page for pagination (demo)
   const currentPage = 1;
