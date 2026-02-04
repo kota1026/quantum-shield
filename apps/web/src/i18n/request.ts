@@ -7,23 +7,63 @@ export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = 'ja';
 
 export default getRequestConfig(async ({ requestLocale }) => {
-  // Await the requestLocale to get the actual locale value
   const locale = await requestLocale;
 
-  // Validate that the incoming locale is valid
   if (!locale || !locales.includes(locale as Locale)) {
     notFound();
   }
 
   // Load all translation namespaces
-  const consumer = (await import(`../../locales/${locale}/consumer.json`)).default;
-  const tokenHub = (await import(`../../locales/${locale}/token-hub.json`)).default;
+  // Note: JSON files may have a root key matching the namespace name (e.g., { "consumer": {...} })
+  // We spread the nested content to avoid double-nesting
+  const commonJson = (await import(`../../locales/${locale}/common.json`)).default;
+  const consumerJson = (await import(`../../locales/${locale}/consumer.json`)).default;
+  const tokenHubJson = (await import(`../../locales/${locale}/token-hub.json`)).default;
+  const governanceJson = (await import(`../../locales/${locale}/governance.json`)).default;
+  const qsHubJson = (await import(`../../locales/${locale}/qs-hub.json`)).default;
+  const proverJson = (await import(`../../locales/${locale}/prover.json`)).default;
+  const observerJson = (await import(`../../locales/${locale}/observer.json`)).default;
+  const explorerJson = (await import(`../../locales/${locale}/explorer.json`)).default;
+  const enterpriseJson = (await import(`../../locales/${locale}/enterprise.json`)).default;
+  const adminJson = (await import(`../../locales/${locale}/admin.json`)).default;
+  const ecosystemJson = (await import(`../../locales/${locale}/ecosystem.json`)).default;
+  const ecosystemTechnicalJson = (await import(`../../locales/${locale}/ecosystemTechnical.json`)).default;
+  const ecosystemNewJson = (await import(`../../locales/${locale}/ecosystemNew.json`)).default;
+  const qsAdminJson = (await import(`../../locales/${locale}/qs-admin.json`)).default;
+
+  // Extract nested content if the JSON has a root key matching the namespace
+  const common = commonJson.common || commonJson;
+  const consumer = consumerJson.consumer || consumerJson;
+  const tokenHub = tokenHubJson['token-hub'] || tokenHubJson;
+  const governance = governanceJson.governance || governanceJson;
+  const qsHub = qsHubJson['qs-hub'] || qsHubJson;
+  const prover = proverJson.prover || proverJson;
+  const observer = observerJson.observer || observerJson;
+  const explorer = explorerJson.explorer || explorerJson;
+  const enterprise = enterpriseJson.enterprise || enterpriseJson;
+  const admin = adminJson.admin || adminJson;
+  const ecosystem = ecosystemJson.ecosystem || ecosystemJson;
+  const ecosystemTechnical = ecosystemTechnicalJson.ecosystemTechnical || ecosystemTechnicalJson;
+  const ecosystemNew = ecosystemNewJson.ecosystemNew || ecosystemNewJson;
+  const qsAdmin = qsAdminJson.qsAdmin || qsAdminJson;
 
   return {
     locale,
     messages: {
-      ...consumer,
-      ...tokenHub,
+      common,
+      consumer,
+      'token-hub': tokenHub,
+      governance,
+      'qs-hub': qsHub,
+      prover,
+      observer,
+      explorer,
+      enterprise,
+      admin,
+      ecosystem,
+      ecosystemTechnical,
+      ecosystemNew,
+      qsAdmin,
     },
   };
 });

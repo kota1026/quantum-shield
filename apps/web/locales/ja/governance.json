@@ -1,0 +1,854 @@
+{
+  "login": {
+    "meta": {
+      "title": "ログイン | ガバナンス | Quantum Shield",
+      "description": "ウォレットを接続してガバナンスにアクセス"
+    },
+    "title": "ガバナンスにログイン",
+    "description": "ウォレットを接続して提案に投票し、プロトコルの将来を決めましょう",
+    "backToLanding": "ランディングに戻る",
+    "selectWallet": "ウォレットを選択",
+    "wallets": {
+      "metamask": "MetaMask",
+      "walletConnect": "WalletConnect",
+      "coinbase": "Coinbase Wallet"
+    },
+    "popular": "人気",
+    "connecting": {
+      "title": "接続中...",
+      "description": "ウォレットで接続を承認してください"
+    },
+    "success": {
+      "title": "接続完了",
+      "description": "提案一覧に移動します..."
+    },
+    "noWallet": "ウォレットをお持ちでないですか？",
+    "getWallet": "ウォレットを作成",
+    "newUser": "はじめての方はこちら",
+    "startOnboarding": "ガバナンスについて学ぶ",
+    "footer": "© 2026 Quantum Shield Foundation"
+  },
+  "common": {
+    "header": {
+      "dashboard": "ダッシュボード",
+      "proposals": "提案一覧",
+      "council": "評議会",
+      "create": "提案作成",
+      "myActivity": "マイアクティビティ",
+      "navLabel": "ガバナンスナビゲーション",
+      "ecosystem": "エコシステム",
+      "consumerApp": "Quantum Shield",
+      "consumerAppDesc": "資産を量子耐性で保護",
+      "tokenHub": "Token Hub",
+      "tokenHubDesc": "トークンの管理・ロック",
+      "observerPortal": "Observer",
+      "observerPortalDesc": "ネットワーク監視",
+      "proverPortal": "Prover",
+      "proverPortalDesc": "署名検証ノード運用",
+      "ecosystemLink": "Ecosystem を見る",
+      "ecosystemLinkDesc": "公式サイトで詳細を確認",
+      "settings": "設定",
+      "connectWallet": "ウォレット接続",
+      "walletConnected": "{address} 接続中"
+    },
+    "wallet": {
+      "connected": "接続中",
+      "disconnect": "切断"
+    }
+  },
+  "landing": {
+    "meta": {
+      "title": "ガバナンス | Quantum Shield",
+      "description": "Quantum Shieldの将来を決める投票に参加しましょう"
+    },
+    "backToLanding": "← ホームに戻る",
+    "pageTitle": "ガバナンス",
+    "pageSubtitle": "Quantum Shieldの将来を決める投票に参加しましょう",
+    "ariaLabel": "ガバナンスダッシュボード",
+    "gettingStarted": {
+      "ariaLabel": "はじめに",
+      "title": "はじめに",
+      "viewAll": "もっと見る",
+      "onboarding": {
+        "title": "ガバナンスを学ぶ",
+        "description": "投票の仕組みや提案の作成方法を学びましょう"
+      },
+      "getVeQS": {
+        "title": "veQSを取得する",
+        "description": "投票するにはToken HubでQSをロックする必要があります"
+      },
+      "faq": {
+        "title": "よくある質問",
+        "description": "ガバナンスに関するよくある質問と回答"
+      },
+      "prover": {
+        "title": "Proverになる",
+        "description": "ネットワークの署名プロバイダとして参加し、報酬を獲得"
+      }
+    },
+    "systemNav": {
+      "consumerApp": "資産管理",
+      "tokenHub": "Token Hub",
+      "governance": "ガバナンス"
+    },
+    "hero": {
+      "whatIsGovernance": {
+        "title": "ガバナンスとは？",
+        "description": "Quantum Shieldのガバナンスは、プロトコルの運営方針をコミュニティが決める仕組みです。QSトークンを持つユーザーは、提案への投票や新しい提案の作成ができます。",
+        "point1": {
+          "title": "提案と投票",
+          "description": "手数料率の変更や新機能の追加など、プロトコルの重要な決定に投票",
+          "tooltip": "提案は誰でも作成できます。投票期間は通常7日間で、定足数を満たすと実行されます。"
+        },
+        "point2": {
+          "title": "QSトークンで投票",
+          "description": "Token HubでQSをロックしてveQSを取得し、投票権を獲得",
+          "tooltip": "veQS保有量に応じて投票力が決まります。最大4年ロックで1:1の比率になります。"
+        },
+        "point3": {
+          "title": "セキュリティ評議会",
+          "description": "セキュリティリスクのある提案は評議会が拒否権を持つ",
+          "tooltip": "評議会は5名のセキュリティ専門家で構成され、緊急時にのみ拒否権を行使します。"
+        }
+      },
+      "howToVote": {
+        "title": "投票権を取得するには？",
+        "description": "Token HubでQSトークンをロックしてveQSを取得すると投票できます。ロック期間が長いほど投票力がアップ！",
+        "button": "Token Hubへ"
+      }
+    },
+    "stats": {
+      "ariaLabel": "ガバナンス統計",
+      "activeProposals": {
+        "label": "アクティブな提案",
+        "badge": "Live"
+      },
+      "votingPower": {
+        "label": "あなたの投票力",
+        "badge": "Votes",
+        "unit": "veQS",
+        "tooltip": "veQSは投票権の単位です。QSトークンをロックすることで獲得でき、ロック期間が長いほど投票力が増加します"
+      },
+      "participationRate": {
+        "label": "参加率",
+        "unit": "%"
+      },
+      "totalProposals": {
+        "label": "累計提案数"
+      }
+    },
+    "votingPower": {
+      "title": "My Voting Power",
+      "viewDetails": "詳細を見る",
+      "totalLabel": "Total Voting Power",
+      "howCalculated": "計算方法",
+      "howCalculatedTooltip": "veQS = QS × (残り日数 / 730日)。ロック期間が長いほど投票力が増加します。最大2年（730日）ロックで1:1の比率になります。",
+      "ariaLabel": "投票力の計算方法について詳しく見る",
+      "unit": "veQS",
+      "breakdown": {
+        "myVeqs": "My veQS",
+        "delegatedToMe": "委任された分",
+        "iDelegated": "委任した分"
+      },
+      "delegation": {
+        "delegators": "委任者数",
+        "delegatorsUnit": "アドレス",
+        "lockExpiry": "ロック期限"
+      },
+      "buttons": {
+        "voteNow": "投票する",
+        "createProposal": "提案を作成"
+      }
+    },
+    "activeProposals": {
+      "title": "アクティブな提案",
+      "viewAll": "すべて見る",
+      "timeLeft": "残り",
+      "proposedBy": "提案者",
+      "type": "タイプ",
+      "typeTooltip": {
+        "parameter": "プロトコルの設定値（手数料率、ボンド額など）の変更",
+        "upgrade": "スマートコントラクトのアップグレード",
+        "council": "セキュリティ評議会や委員会メンバーの変更"
+      },
+      "status": {
+        "active": "投票中",
+        "pending": "実行待ち"
+      },
+      "forVote": "賛成"
+    },
+    "quorum": {
+      "title": "必要な投票参加率",
+      "description": "提案が有効になるには、一定以上の投票参加が必要です。種類により異なります。",
+      "explanation": "定足数（Quorum）とは、投票が有効になるために必要な最低参加率のことです。提案の種類によって異なる定足数が設定されています。",
+      "ariaLabel": "定足数について詳しく見る",
+      "currentTotal": "現在の総veQS",
+      "types": {
+        "parameter": "設定変更",
+        "upgrade": "アップグレード",
+        "council": "評議会変更"
+      }
+    },
+    "recentActivity": {
+      "title": "最近のアクティビティ",
+      "votedFor": "に<strong>賛成</strong>投票しました",
+      "votedAgainst": "に<strong>反対</strong>投票しました",
+      "receivedDelegation": "から委任を受けました",
+      "proposalPassed": "が可決されました（承認率{percent}%）",
+      "timeAgo": {
+        "hoursAgo": "{count}時間前",
+        "daysAgo": "{count}日前"
+      }
+    },
+    "councilStatus": {
+      "title": "評議会ステータス",
+      "securityCouncil": "セキュリティ評議会",
+      "purposeCommittee": "目的委員会",
+      "active": "アクティブ",
+      "viewCouncil": "評議会を見る"
+    },
+    "expertQuotes": {
+      "sectionLabel": "専門家の声",
+      "title": "なぜ分散型ガバナンスが重要なのか",
+      "subtitle": "ブロックチェーン業界のリーダーたちの見解",
+      "quotes": [
+        {
+          "quote": "分散型ガバナンスは、コミュニティの意思決定を真に民主的にする唯一の方法です。中央集権的な管理者なしで、透明性と公平性を実現できます。",
+          "author": "Vitalik Buterin",
+          "title": "Ethereum共同創設者",
+          "source": "vitalik.eth.limo"
+        },
+        {
+          "quote": "オンチェーンガバナンスは、DAOの核心です。コードによって保証された意思決定プロセスこそが、信頼を必要としない協力を可能にします。",
+          "author": "DAO研究者",
+          "title": "分散型組織専門家",
+          "source": "DAO Alliance"
+        },
+        {
+          "quote": "veTokenモデルは長期的なコミットメントを持つ参加者に投票権を与え、短期的な投機者の影響を抑える優れた仕組みです。",
+          "author": "DeFi研究者",
+          "title": "トークンエコノミクス専門家",
+          "source": "DeFi Pulse"
+        }
+      ],
+      "disclaimer": "※ 上記は参考情報です。ガバナンス参加はご自身の判断で行ってください。"
+    },
+    "proposals": {
+    "meta": {
+      "title": "提案一覧 | Quantum Shield Governance",
+      "description": "Quantum Shieldガバナンスの提案一覧を確認し、投票に参加しましょう"
+    },
+    "pageTitle": "提案一覧",
+    "pageSubtitle": "Quantum Shieldの将来を決める提案に投票しましょう",
+    "backToDashboard": "ダッシュボードに戻る",
+    "ariaLabel": "提案一覧ページ",
+    "createProposal": "提案を作成",
+    "filters": {
+      "all": "すべて",
+      "active": "投票中",
+      "passed": "可決",
+      "defeated": "否決",
+      "vetoed": "拒否"
+    },
+    "search": {
+      "placeholder": "提案を検索...",
+      "ariaLabel": "提案を検索"
+    },
+    "proposalCard": {
+      "ariaLabel": "提案 {id}: {title}",
+      "proposer": "提案者",
+      "created": "作成日",
+      "executed": "実行日",
+      "ended": "終了日",
+      "comments": "コメント",
+      "timeLeft": "残り",
+      "timeLock": "タイムロック残り"
+    },
+    "status": {
+      "active": "投票中",
+      "pending": "実行待ち",
+      "passed": "可決",
+      "executed": "実行済み",
+      "defeated": "否決",
+      "vetoed": "拒否"
+    },
+    "types": {
+      "parameter": "パラメータ",
+      "upgrade": "アップグレード",
+      "council": "評議会"
+    },
+    "vote": {
+      "for": "賛成",
+      "against": "反対",
+      "quorum": "定足数",
+      "quorumReached": "達成",
+      "quorumTooltip": "定足数とは、提案が有効となるために必要な最低投票参加率です。定足数に達しないと、投票結果に関わらず提案は成立しません。"
+    },
+    "yourVote": {
+      "votedFor": "賛成票を投じました",
+      "votedAgainst": "反対票を投じました",
+      "notVoted": "まだ投票していません"
+    },
+    "pagination": {
+      "previous": "前へ",
+      "next": "次へ",
+      "page": "ページ {number}"
+    },
+    "emptyState": {
+      "title": "提案がありません",
+      "description": "現在このカテゴリには提案がありません"
+    }
+  },
+  "footer": {
+      "navLabel": "フッターナビゲーション",
+      "governanceForum": "ガバナンスフォーラム",
+      "documentation": "ドキュメント",
+      "terms": "利用規約",
+      "privacy": "プライバシーポリシー",
+      "disclaimer": "ガバナンスへの参加は任意です。投票は財務アドバイスを構成するものではありません。すべての提案にはタイムロック（7日間）と評議会拒否権が適用されます。",
+      "copyright": "© 2026 Quantum Shield. Made in Japan."
+    }
+  },
+  "proposalDetail": {
+    "meta": {
+      "title": "{id}: {title} | Quantum Shield Governance",
+      "description": "提案の詳細を確認し、投票に参加しましょう"
+    },
+    "ariaLabel": "提案詳細ページ",
+    "breadcrumb": {
+      "proposals": "提案一覧"
+    },
+    "header": {
+      "proposer": "提案者",
+      "created": "作成日",
+      "comments": "コメント"
+    },
+    "countdown": {
+      "label": "投票終了まで",
+      "days": "日",
+      "hours": "時間",
+      "minutes": "分",
+      "seconds": "秒"
+    },
+    "content": {
+      "title": "提案詳細",
+      "summary": "概要",
+      "motivation": "動機",
+      "specification": "仕様",
+      "securityConsiderations": "セキュリティ考慮事項"
+    },
+    "timeline": {
+      "title": "タイムライン",
+      "proposalCreated": "提案作成",
+      "votingPeriod": "投票期間",
+      "votingEnds": "終了予定",
+      "timeLock": "タイムロック（7日間）",
+      "timeLockNote": "可決時に適用",
+      "timeLockTooltip": "タイムロックとは、提案が可決されてから実行されるまでの待機期間です。この期間中、セキュリティ評議会が問題を発見した場合は提案を拒否できます。これはプロトコルの安全性を守るための重要な仕組みです。",
+      "execution": "実行",
+      "executionNote": "タイムロック終了後"
+    },
+    "vote": {
+      "title": "投票する",
+      "for": "賛成",
+      "against": "反対",
+      "abstain": "棄権",
+      "yourPower": "あなたの投票力",
+      "quorum": "定足数",
+      "quorumRequired": "必要",
+      "quorumReached": "達成",
+      "quorumTooltip": "定足数とは、提案が有効となるために必要な最低投票参加率です。"
+    },
+    "voteModal": {
+      "title": "投票を確認",
+      "confirmText": "{id}に{vote}票を投じます",
+      "votingPower": "投票力",
+      "submit": "署名して投票",
+      "cancel": "キャンセル"
+    },
+    "voteSuccess": {
+      "title": "投票完了！",
+      "subtitle": "あなたの投票がオンチェーンに記録されました",
+      "proposal": "提案",
+      "yourVote": "あなたの投票",
+      "votingPower": "投票力",
+      "txHash": "トランザクションハッシュ",
+      "backToProposals": "提案一覧に戻る"
+    },
+    "status": {
+      "active": "投票中",
+      "pending": "実行待ち",
+      "passed": "可決",
+      "executed": "実行済み",
+      "defeated": "否決",
+      "vetoed": "拒否"
+    },
+    "types": {
+      "parameter": "パラメータ変更",
+      "upgrade": "アップグレード",
+      "council": "評議会変更"
+    }
+  },
+  "createProposal": {
+    "meta": {
+      "title": "提案作成 | Quantum Shield Governance",
+      "description": "新しいガバナンス提案を作成し、コミュニティ投票に提出しましょう"
+    },
+    "ariaLabel": "提案作成ページ",
+    "pageTitle": "提案作成",
+    "pageSubtitle": "新しいガバナンス提案をコミュニティ投票に提出",
+    "stepper": {
+      "type": "タイプ",
+      "details": "詳細",
+      "preview": "プレビュー"
+    },
+    "step1": {
+      "title": "提案タイプを選択",
+      "types": {
+        "parameter": {
+          "name": "パラメータ変更",
+          "description": "ボンド額、手数料、期間などのプロトコルパラメータを変更",
+          "quorum": "定足数: 4%"
+        },
+        "upgrade": {
+          "name": "コントラクトアップグレード",
+          "description": "スマートコントラクトのアップグレードや新機能の追加",
+          "quorum": "定足数: 8%"
+        },
+        "council": {
+          "name": "評議会変更",
+          "description": "セキュリティ評議会や目的委員会のメンバー追加・削除",
+          "quorum": "定足数: 15%"
+        }
+      },
+      "requirement": {
+        "title": "提案要件",
+        "description": "提案を作成するには最低 {minVeqs} veQS が必要です。",
+        "yourBalance": "あなたの残高",
+        "sufficient": "条件を満たしています",
+        "insufficient": "veQSが不足しています"
+      },
+      "cancel": "キャンセル",
+      "next": "次へ: 詳細入力"
+    },
+    "step2": {
+      "title": "提案の詳細",
+      "titleLabel": "タイトル",
+      "titlePlaceholder": "分かりやすいタイトルを入力してください",
+      "summaryLabel": "説明",
+      "summaryPlaceholder": "提案の詳細を記述してください。\n- 動機\n- 仕様\n- セキュリティ考慮事項",
+      "summaryHint": "Markdown形式に対応しています",
+      "forumLinkLabel": "フォーラムリンク（任意）",
+      "forumLinkPlaceholder": "https://forum.quantumshield.io/t/...",
+      "forumLinkHint": "ガバナンスフォーラムでの事前議論へのリンク",
+      "back": "戻る",
+      "next": "次へ: プレビュー"
+    },
+    "step3": {
+      "title": "確認して提出",
+      "summary": {
+        "proposalType": "提案タイプ",
+        "requiredQuorum": "必要定足数",
+        "votingPeriod": "投票期間",
+        "votingPeriodValue": "7日間",
+        "timeLock": "タイムロック",
+        "timeLockValue": "可決後7日間"
+      },
+      "previewTitle": "タイトル",
+      "previewDescription": "説明",
+      "warning": {
+        "title": "重要なお知らせ",
+        "text": "提出後、この提案は編集またはキャンセルできません。提案は7日間のコミュニティ投票を経て、可決された場合は7日間のタイムロックが適用されます。セキュリティ評議会と目的委員会はCP-3に基づき拒否権を行使できます。"
+      },
+      "back": "戻る",
+      "submit": "署名して提案を提出"
+    },
+    "success": {
+      "title": "提案が作成されました！",
+      "subtitle": "あなたの提案は投票に公開されました",
+      "proposalId": "提案ID",
+      "viewProposal": "提案を見る",
+      "backToProposals": "提案一覧に戻る"
+    }
+  },
+  "council": {
+    "meta": {
+      "title": "評議会 | Quantum Shield Governance",
+      "description": "セキュリティ評議会と目的委員会の概要を確認"
+    },
+    "ariaLabel": "評議会ページ",
+    "backToDashboard": "ダッシュボードに戻る",
+    "pageTitle": "評議会",
+    "pageSubtitle": "セキュリティ評議会と目的委員会の監督機能",
+    "infoBox": {
+      "title": "評議会拒否権（CP-3）",
+      "text": "セキュリティ評議会はセキュリティリスクのある提案を拒否できます。目的委員会はコア原則（CP-1〜CP-5）に違反する提案を拒否できます。すべての拒否権行使は透明性のため（CP-5）理由の公開が必要です。"
+    },
+    "securityCouncil": {
+      "title": "セキュリティ評議会",
+      "status": "{active}/{total} アクティブ",
+      "description": "プロトコルセキュリティを担当。緊急停止の実行とセキュリティ関連提案の拒否が可能。アクションには4/7マルチシグが必要。",
+      "multisigTooltip": "マルチシグ（複数署名）とは、複数のメンバーの署名（承認）がないと実行できない仕組みです。4/7は7人のうち4人の署名が必要という意味です。",
+      "roles": {
+        "lead": "リーダー",
+        "member": "メンバー",
+        "chair": "議長"
+      }
+    },
+    "purposeCommittee": {
+      "title": "目的委員会",
+      "status": "{active}/{total} アクティブ",
+      "description": "コア原則（CP-1〜CP-5）の守護者。プロトコルの基本的価値観とミッションに違反する提案を拒否できます。"
+    },
+    "memberCard": {
+      "active": "アクティブ",
+      "inactive": "非アクティブ"
+    },
+    "tabs": {
+      "status": "システムステータス",
+      "vetoHistory": "拒否履歴"
+    },
+    "systemStatus": {
+      "title": "緊急システムステータス",
+      "allOperational": "すべてのシステムが正常稼働中",
+      "lastCheck": "最終チェック: {time}",
+      "systems": {
+        "lockContract": "ロックコントラクト",
+        "starkVerifier": "STARK検証器",
+        "governance": "ガバナンス"
+      },
+      "statusActive": "稼働中",
+      "statusPaused": "一時停止中"
+    },
+    "vetoHistory": {
+      "title": "拒否履歴",
+      "total": "{count}件",
+      "noHistory": "拒否履歴はありません",
+      "columns": {
+        "proposalId": "提案ID",
+        "title": "タイトル",
+        "vetoedBy": "拒否者",
+        "reason": "理由",
+        "date": "日付"
+      },
+      "vetoDetail": {
+        "title": "拒否詳細: {id}",
+        "vetoedBy": "拒否者",
+        "approvalCount": "{count}承認",
+        "reason": "理由（CP-5による必須公開）",
+        "onchainRef": "オンチェーン参照"
+      },
+      "violations": {
+        "cp1": "CP-1違反",
+        "cp2": "CP-2違反",
+        "cp3": "CP-3違反",
+        "cp4": "CP-4違反",
+        "cp5": "CP-5違反"
+      }
+    },
+    "footer": {
+      "disclaimer": "評議会のアクションはCP-5（透明性）に基づきオンチェーンで記録され、公開検証可能です。"
+    }
+  },
+  "myActivity": {
+    "meta": {
+      "title": "マイアクティビティ | Quantum Shield Governance",
+      "description": "あなたの投票履歴、提案、委任状況を確認"
+    },
+    "ariaLabel": "マイアクティビティページ",
+    "backToDashboard": "ダッシュボードに戻る",
+    "pageTitle": "マイアクティビティ",
+    "stats": {
+      "totalVotes": "投票総数",
+      "participationRate": "参加率",
+      "proposalsCreated": "作成した提案",
+      "delegationsReceived": "委任受領数"
+    },
+    "tabs": {
+      "votes": "投票履歴",
+      "proposals": "作成した提案",
+      "delegations": "委任"
+    },
+    "votesTab": {
+      "title": "投票履歴",
+      "columns": {
+        "proposalId": "提案ID",
+        "title": "タイトル",
+        "vote": "投票",
+        "powerUsed": "投票力",
+        "date": "日付"
+      },
+      "voteBadge": {
+        "for": "賛成",
+        "against": "反対",
+        "abstain": "棄権"
+      },
+      "emptyState": {
+        "title": "投票履歴がありません",
+        "description": "まだ投票していません。提案一覧から投票に参加してみましょう。"
+      }
+    },
+    "proposalsTab": {
+      "title": "作成した提案",
+      "columns": {
+        "proposalId": "提案ID",
+        "title": "タイトル",
+        "status": "ステータス",
+        "date": "作成日"
+      },
+      "status": {
+        "passed": "可決",
+        "defeated": "否決",
+        "active": "投票中",
+        "pending": "実行待ち"
+      },
+      "emptyState": {
+        "title": "作成した提案がありません",
+        "description": "まだ提案を作成していません。新しい提案を作成してみましょう。"
+      }
+    },
+    "delegationsTab": {
+      "title": "委任受領",
+      "delegatedSince": "委任開始",
+      "delegatedPower": "委任された投票力",
+      "emptyState": {
+        "title": "委任がありません",
+        "description": "まだ誰からも委任を受けていません。"
+      }
+    },
+    "footer": {
+      "disclaimer": "あなたのガバナンスアクティビティはオンチェーンで記録され、公開検証可能です。"
+    }
+  },
+  "settings": {
+    "meta": {
+      "title": "設定 | Quantum Shield Governance",
+      "description": "ガバナンス設定を管理"
+    },
+    "header": {
+      "title": "設定",
+      "back": "ダッシュボードに戻る"
+    },
+    "sections": {
+      "account": "アカウント",
+      "notifications": "通知",
+      "display": "表示設定",
+      "support": "サポート",
+      "dangerZone": "危険な操作"
+    },
+    "account": {
+      "connectedWallet": {
+        "title": "接続中のウォレット",
+        "description": "ガバナンスに使用するウォレット"
+      },
+      "votingHistory": {
+        "title": "投票履歴",
+        "description": "過去の投票を確認"
+      },
+      "delegations": {
+        "title": "委任管理",
+        "description": "投票権の委任状況を確認"
+      }
+    },
+    "notifications": {
+      "push": {
+        "title": "プッシュ通知",
+        "description": "ブラウザ通知を受け取る"
+      },
+      "email": {
+        "title": "メール通知",
+        "description": "重要な更新をメールで受け取る"
+      },
+      "proposals": {
+        "title": "新規提案通知",
+        "description": "新しい提案が作成されたら通知"
+      },
+      "voteReminders": {
+        "title": "投票リマインダー",
+        "description": "投票期限が近づいたら通知"
+      },
+      "delegations": {
+        "title": "委任通知",
+        "description": "委任の変更を通知"
+      }
+    },
+    "display": {
+      "darkMode": {
+        "title": "ダークモード",
+        "description": "ダークテーマを使用"
+      },
+      "language": {
+        "title": "言語",
+        "description": "表示言語を変更",
+        "japanese": "日本語",
+        "english": "English"
+      },
+      "currency": {
+        "title": "通貨表示",
+        "description": "価格の表示通貨"
+      }
+    },
+    "support": {
+      "faq": {
+        "title": "よくある質問",
+        "description": "ガバナンスに関するFAQ"
+      },
+      "contact": {
+        "title": "お問い合わせ",
+        "description": "サポートチームに連絡"
+      },
+      "legal": {
+        "title": "利用規約",
+        "description": "利用規約とプライバシーポリシー"
+      }
+    },
+    "danger": {
+      "disconnectWallet": {
+        "title": "ウォレットを切断",
+        "description": "ガバナンスからウォレットを切断"
+      }
+    },
+    "version": {
+      "label": "アプリバージョン",
+      "version": "v{version} (Build {build})"
+    }
+  },
+  "onboarding": {
+    "meta": {
+      "title": "ガバナンスを学ぶ | Quantum Shield",
+      "description": "Quantum Shieldガバナンスの仕組みと参加方法を学びましょう"
+    },
+    "title": "ガバナンスを学ぶ",
+    "subtitle": "Quantum Shieldの将来を一緒に決めましょう",
+    "backToGovernance": "ガバナンスに戻る",
+    "whatIs": {
+      "title": "ガバナンスとは？",
+      "description": "ガバナンスとは、Quantum Shieldの運営方針をコミュニティで決める仕組みです。手数料の変更、新機能の追加、セキュリティ対策など、プロトコルの重要な決定に投票できます。あなたの1票が、プロジェクトの未来を形作ります。",
+      "highlight": "中央集権的な管理者はいません。コミュニティ全員で運営します。"
+    },
+    "howTo": {
+      "title": "参加するには？"
+    },
+    "steps": {
+      "getQS": {
+        "title": "QSトークンを入手する",
+        "description": "まずはQSトークンを入手しましょう。DEXで購入するか、エアドロップなどで獲得できます。"
+      },
+      "lockQS": {
+        "title": "QSをロックしてveQSを取得",
+        "description": "Token HubでQSトークンをロックすると、投票権（veQS）が付与されます。ロック期間が長いほど、より多くの投票力が得られます。"
+      },
+      "vote": {
+        "title": "提案に投票する",
+        "description": "アクティブな提案を確認し、賛成・反対を投票しましょう。投票は無料で、ガス代のみかかります。"
+      }
+    },
+    "benefits": {
+      "title": "参加するメリット",
+      "proposals": {
+        "title": "提案を作成できる",
+        "description": "十分なveQSがあれば、自分で提案を作成してコミュニティに投票を求めることができます。"
+      },
+      "delegate": {
+        "title": "委任で楽に参加",
+        "description": "忙しい時は、信頼できる代表者に投票を委任できます。いつでも委任を解除可能です。"
+      },
+      "council": {
+        "title": "セキュリティ評議会",
+        "description": "セキュリティリスクのある提案は評議会が拒否でき、プロトコルの安全性が守られます。"
+      }
+    },
+    "veqs": {
+      "title": "veQSとは？",
+      "description": "veQS（Vote-escrowed QS）は投票権の単位です。QSトークンをロックすることで獲得でき、ロック期間に応じて量が変わります。",
+      "point1": "最大2年ロックで、1 QS = 1 veQS",
+      "point2": "ロック期間が短いと、veQSも少なくなります",
+      "point3": "時間経過でveQSは減少します（ロック終了時に0）"
+    },
+    "cta": {
+      "title": "さあ、始めましょう！",
+      "description": "QSをロックして、ガバナンスに参加しましょう。あなたの声が、Quantum Shieldの未来を決めます。",
+      "lockButton": "QSをロックする",
+      "viewProposals": "提案を見る"
+    }
+  },
+  "faq": {
+    "meta": {
+      "title": "よくある質問 | Quantum Shield Governance",
+      "description": "ガバナンスに関するよくある質問と回答"
+    },
+    "title": "よくある質問",
+    "subtitle": "ガバナンスについての疑問にお答えします",
+    "backToGovernance": "ガバナンスに戻る",
+    "categories": {
+      "basics": {
+        "title": "基本",
+        "q1": {
+          "question": "ガバナンスとは何ですか？",
+          "answer": "ガバナンスは、Quantum Shieldの運営方針をコミュニティで決める仕組みです。veQS（投票権）を持つユーザーは、提案への投票や新しい提案の作成ができます。中央集権的な管理者はおらず、コミュニティ全員で運営します。"
+        },
+        "q2": {
+          "question": "誰でも参加できますか？",
+          "answer": "はい、veQSを持っていれば誰でも投票に参加できます。veQSはToken HubでQSトークンをロックすることで取得できます。"
+        },
+        "q3": {
+          "question": "投票にコストはかかりますか？",
+          "answer": "投票自体は無料ですが、トランザクションのガス代（少量のETH）が必要です。投票してもveQSは消費されません。"
+        }
+      },
+      "voting": {
+        "title": "投票について",
+        "q1": {
+          "question": "どうやって投票しますか？",
+          "answer": "1. 提案一覧から投票したい提案を選びます\n2. 提案内容を確認し、「賛成」または「反対」を選択します\n3. ウォレットで署名して投票を確定します\n投票は投票期間中いつでも変更可能です。"
+        },
+        "q2": {
+          "question": "投票期間はどれくらいですか？",
+          "answer": "通常の提案の投票期間は7日間です。投票期間終了後、結果が確定します。可決された場合は、7日間のタイムロックの後に実行されます。"
+        },
+        "q3": {
+          "question": "定足数（クオーラム）とは？",
+          "answer": "定足数は、提案が有効になるために必要な最低投票参加率です。定足数に達しないと、投票結果に関わらず提案は成立しません。提案の種類により4%〜15%で異なります。"
+        }
+      },
+      "veqs": {
+        "title": "veQSについて",
+        "q1": {
+          "question": "veQSの計算方法は？",
+          "answer": "veQS = QS × (残り日数 / 730日) で計算されます。最大2年ロックで1:1の比率になります。例えば、1000 QSを1年ロックすると、約500 veQSが付与されます。"
+        },
+        "q2": {
+          "question": "veQSは時間とともに減りますか？",
+          "answer": "はい、veQSはロック終了日に向かって徐々に減少します。投票力を維持するには、ロック期間を延長するか、追加でQSをロックする必要があります。"
+        }
+      },
+      "council": {
+        "title": "評議会について",
+        "q1": {
+          "question": "セキュリティ評議会とは？",
+          "answer": "セキュリティ評議会は、プロトコルのセキュリティを担当する7名の専門家グループです。緊急時にはシステムを一時停止でき、セキュリティリスクのある提案を拒否できます。4/7のマルチシグで運営されます。"
+        },
+        "q2": {
+          "question": "評議会はどんな提案を拒否できますか？",
+          "answer": "セキュリティ評議会はセキュリティリスクのある提案を、目的委員会はコア原則（CP-1〜CP-5）に違反する提案を拒否できます。すべての拒否には理由の公開が必要です（透明性原則）。"
+        }
+      },
+      "delegation": {
+        "title": "委任について",
+        "q1": {
+          "question": "委任とは何ですか？",
+          "answer": "委任とは、自分の投票権を信頼できる代表者に預けることです。忙しくて提案を追えない場合や、専門知識のある人に判断を任せたい場合に便利です。委任しても、いつでも自分で投票でき、その場合は委任より優先されます。"
+        },
+        "q2": {
+          "question": "委任はいつでも解除できますか？",
+          "answer": "はい、委任はいつでも解除・変更できます。解除すると、即座に投票権が自分に戻ります。"
+        }
+      }
+    },
+    "contact": {
+      "title": "他に質問がありますか？",
+      "description": "解決しない疑問があれば、お気軽にお問い合わせください。",
+      "link": "お問い合わせ →"
+    }
+  }
+}

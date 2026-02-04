@@ -10,31 +10,12 @@ import { cn } from '@/lib/utils';
 import { LockCard, LockItem } from './LockCard';
 import { MethodCard } from './MethodCard';
 import { TimeLockModal } from './TimeLockModal';
+import { useUserTransactions } from '@/hooks/consumer';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_LOCKS: LockItem[] = [
-  {
-    id: '1',
-    number: 1,
-    amount: '10.00 ETH',
-    timestamp: '2026-01-01 10:00',
-    status: 'locked',
-  },
-  {
-    id: '2',
-    number: 2,
-    amount: '5.00 ETH',
-    timestamp: '2026-01-03 14:30',
-    status: 'locked',
-  },
-  {
-    id: '3',
-    number: 3,
-    amount: '2.50 ETH',
-    timestamp: '2026-01-05 09:15',
-    status: 'pending',
-    remainingTime: '23:41:02',
-  },
+// Fallback data (used when API is unavailable)
+const FALLBACK_LOCKS = [
+  { id: '1', number: 1, amount: '10.00 ETH', timestamp: '2026-01-01', status: 'locked' as const },
+  { id: '2', number: 2, amount: '5.25 ETH', timestamp: '2026-01-05', status: 'locked' as const },
 ];
 
 type UnlockMethod = 'normal' | 'emergency';
@@ -43,7 +24,19 @@ export function Unlock() {
   const t = useTranslations('consumer.unlock');
   const router = useRouter();
 
-  const [selectedLockId, setSelectedLockId] = useState<string>(DEMO_LOCKS[0]?.id || '');
+  // Fetch data using new API hooks - get only locks
+  const { data: txData } = useUserTransactions({ txType: 'lock', perPage: 50 });
+
+  // Transform API data to component format
+  const locks = (txData?.transactions?.filter(tx => tx.status !== 'completed').map((tx, index) => ({
+    id: tx.id,
+    number: index + 1,
+    amount: `${tx.amount} ETH`,
+    timestamp: new Date(tx.createdAt * 1000).toLocaleDateString('ja-JP'),
+    status: tx.status === 'pending' ? ('pending' as const) : ('locked' as const),
+  })) ?? FALLBACK_LOCKS) as LockItem[];
+
+  const [selectedLockId, setSelectedLockId] = useState<string>(locks[0]?.id || '');
   const [selectedMethod, setSelectedMethod] = useState<UnlockMethod>('normal');
   const [isTimeLockModalOpen, setIsTimeLockModalOpen] = useState(false);
 
@@ -80,7 +73,7 @@ export function Unlock() {
           <Link
             href="/consumer/dashboard"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
               'transition-all'
@@ -111,12 +104,12 @@ export function Unlock() {
             role="radiogroup"
             aria-labelledby="select-lock-label"
           >
-            {DEMO_LOCKS.length === 0 ? (
+            {locks.length === 0 ? (
               <p className="text-center text-foreground-secondary py-8">
                 {t('selectLock.emptyState')}
               </p>
             ) : (
-              DEMO_LOCKS.map((lock) => (
+              locks.map((lock) => (
                 <LockCard
                   key={lock.id}
                   lock={lock}

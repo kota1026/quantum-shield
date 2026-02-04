@@ -191,7 +191,7 @@ export function LockPreview() {
               {/* Action Buttons */}
               <div className="flex flex-col gap-3">
                 <Button
-                  variant="gold"
+                  variant="secondary"
                   size="lg"
                   onClick={handleDone}
                   className="w-full"
@@ -358,7 +358,7 @@ export function LockPreview() {
               </Button>
 
               <Button
-                variant="gold"
+                variant="secondary"
                 size="lg"
                 onClick={handleConfirm}
                 disabled={isProcessing}

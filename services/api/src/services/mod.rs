@@ -1,23 +1,35 @@
 //! Services module
 //!
 //! This module provides the core services for the Quantum Shield API:
+//! - Database: PostgreSQL connection pool (Phase 8-C)
 //! - RedisClient: State storage and caching
 //! - RabbitMQClient: Message queue for async processing
 //! - HsmClient: Hardware Security Module integration
 //! - VRFService: Chainlink VRF integration (SEQUENCES §2.3-§2.4)
 //! - SphincsService: SPHINCS+-128s signature validation (CP-1)
+//! - L3Client: L3 node connectivity for admin operations (Phase 8-D)
+//! - L1Client: Ethereum Sepolia connectivity (Phase 8-D)
 
 mod redis_client;
 mod rabbitmq_client;
 mod hsm_client;
 mod vrf_service;
 mod sphincs_service;
+pub mod smt_service;
 pub mod auth_service;
+pub mod l3_client;
+pub mod l1_client;
+pub mod admin_l3_ops;
+pub mod bridge_verifier;
+pub mod treasury_vault;
+pub mod l3_l1_bridge;
 
 use anyhow::Result;
+use sqlx::PgPool;
 
 use crate::{
     config::Config,
+    db::Database,
     error::ApiError,
     types::{
         Lock, LockRequest, LockStatus, Edition,
@@ -46,17 +58,32 @@ pub use hsm_client::HsmClient;
 pub use vrf_service::{VRFService, VRFError};
 pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
 pub use auth_service::AuthService;
+pub use l3_client::{L3Client, L3Config, L3HealthStatus, L3Transaction, L3TxReceipt, L3TxStatus, L3TxType};
+pub use l1_client::{L1Client, L1Config, L1Error, L1Monitor, TxStatus, SEPOLIA_CHAIN_ID};
+pub use admin_l3_ops::{AdminL3OpsService, TreasuryTransferRequest, TreasuryTransferResult, ProverApprovalRequest, ProverApprovalResult, ProverApprovalAction};
+pub use bridge_verifier::{BridgeVerifierService, VerificationStatus, BridgeVerificationResult};
+pub use treasury_vault::{TreasuryVaultService, TreasuryBalance, TreasuryWithdrawRequest, TreasuryWithdrawResult, Withdrawal, WithdrawalStatus};
+pub use l3_l1_bridge::{L3L1BridgeService, E2EOperationStatus, E2EOperationResult, E2ETreasuryWithdrawRequest};
+pub use smt_service::{SmtService, SmtProof, SmtLeaf};
 
 /// Application state shared across handlers
 pub struct AppState {
     pub config: Config,
+    /// PostgreSQL database connection pool (Phase 8-C)
+    pub db: Database,
     pub redis: RedisClient,
     pub rabbitmq: RabbitMQClient,
     pub hsm: HsmClient,
     /// VRF Service for Chainlink VRF integration (SEQUENCES §2.3-§2.4)
     pub vrf: VRFService,
+    /// SMT Service for Sparse Merkle Tree operations (L3 state management)
+    pub smt: SmtService,
     /// Authentication service for SIWE/JWT (TASK-P5-012)
     pub auth_service: AuthService,
+    /// L3 Client for admin operations (Phase 8-D)
+    pub l3_client: Option<L3Client>,
+    /// L1 Client for Sepolia operations (Phase 8-D)
+    pub l1_client: Option<L1Client>,
 }
 
 /// Edition state tracking
@@ -69,12 +96,89 @@ pub struct EditionState {
 impl AppState {
     pub async fn new(config: &Config) -> Result<Self> {
         tracing::info!("Initializing application state");
+
+        // Initialize database connection pool (Phase 8-C)
+        tracing::info!("Connecting to PostgreSQL database...");
+        let db = Database::new(&config.database).await?;
+        tracing::info!("Database connection established");
+
         let redis = RedisClient::new(&config.redis).await?;
         let rabbitmq = RabbitMQClient::new(&config.rabbitmq).await?;
         let hsm = HsmClient::new().await?;
         let vrf = VRFService::new(&config.vrf).await?;
+
+        // Initialize SMT service for Sparse Merkle Tree operations
+        tracing::info!("Initializing SMT service...");
+        let smt = SmtService::new();
+        tracing::info!("SMT service initialized");
+
         let auth_service = AuthService::new(config.jwt.clone());
-        Ok(Self { config: config.clone(), redis, rabbitmq, hsm, vrf, auth_service })
+
+        // Initialize L3 client (Phase 8-D)
+        let l3_client = if let Some(ref l3_endpoint) = config.l3_endpoint {
+            tracing::info!("Initializing L3 client...");
+            let l3_config = L3Config {
+                endpoint: l3_endpoint.clone(),
+                chain_id: config.l3_chain_id.unwrap_or(31337),
+                timeout_ms: 30000,
+            };
+            match L3Client::new(&l3_config) {
+                Ok(client) => {
+                    tracing::info!("L3 client initialized");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!("L3 client initialization failed: {}", e);
+                    None
+                }
+            }
+        } else {
+            tracing::info!("L3 client not configured");
+            None
+        };
+
+        // Initialize L1 client (Phase 8-D)
+        let l1_client = if let Some(ref l1_rpc_url) = config.l1_rpc_url {
+            tracing::info!("Initializing L1 client...");
+            let l1_config = L1Config {
+                rpc_url: l1_rpc_url.clone(),
+                chain_id: config.l1_chain_id.unwrap_or(SEPOLIA_CHAIN_ID),
+                timeout_ms: 60000,
+                bridge_verifier_address: config.bridge_verifier_address.clone(),
+                treasury_vault_address: config.treasury_vault_address.clone(),
+            };
+            match L1Client::new(&l1_config).await {
+                Ok(client) => {
+                    tracing::info!("L1 client initialized");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!("L1 client initialization failed: {}", e);
+                    None
+                }
+            }
+        } else {
+            tracing::info!("L1 client not configured");
+            None
+        };
+
+        Ok(Self {
+            config: config.clone(),
+            db,
+            redis,
+            rabbitmq,
+            hsm,
+            vrf,
+            smt,
+            auth_service,
+            l3_client,
+            l1_client,
+        })
+    }
+
+    /// Get database pool reference
+    pub fn pool(&self) -> &PgPool {
+        self.db.pool()
     }
 
     pub async fn is_nonce_used(&self, pk: &str, nonce: u64) -> Result<bool, ApiError> {
@@ -1187,6 +1291,83 @@ impl AppState {
     }
 
     // Governance methods removed - implemented directly in routes::governance
+
+    // ========================================================================
+    // Observer API methods (TASK-P5-019 Extension: Registration)
+    // ========================================================================
+
+    /// Store observer in Redis
+    pub async fn store_observer(&self, observer: &crate::types::Observer) -> Result<(), ApiError> {
+        // Store by ID
+        let key = format!("observer:{}", observer.observer_id);
+        let value = serde_json::to_string(observer).map_err(|e| ApiError::Internal(e.to_string()))?;
+        self.redis.set(&key, &value, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        // Store mapping by address
+        let addr_key = format!("observer:addr:{}", observer.operator_addr);
+        self.redis.set(&addr_key, &observer.observer_id, 0).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        tracing::info!("Stored observer: {} for address: {}", observer.observer_id, observer.operator_addr);
+        Ok(())
+    }
+
+    /// Get observer by ID
+    pub async fn get_observer(&self, observer_id: &str) -> Result<Option<crate::types::Observer>, ApiError> {
+        let key = format!("observer:{}", observer_id);
+        match self.redis.get(&key).await {
+            Ok(Some(value)) => Ok(Some(serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(ApiError::Internal(e.to_string())),
+        }
+    }
+
+    /// Get observer by operator address
+    pub async fn get_observer_by_address(&self, address: &str) -> Result<Option<crate::types::Observer>, ApiError> {
+        let addr_key = format!("observer:addr:{}", address);
+        let observer_id = match self.redis.get(&addr_key).await {
+            Ok(Some(id)) => id,
+            Ok(None) => return Ok(None),
+            Err(e) => return Err(ApiError::Internal(e.to_string())),
+        };
+        self.get_observer(&observer_id).await
+    }
+
+    /// Update observer status
+    pub async fn update_observer_status(&self, observer_id: &str, status: crate::types::ObserverStatus) -> Result<(), ApiError> {
+        if let Some(mut observer) = self.get_observer(observer_id).await? {
+            observer.status = status;
+            self.store_observer(&observer).await?;
+        }
+        Ok(())
+    }
+
+    /// Get all observers (for admin)
+    pub async fn get_all_observers(&self) -> Result<Vec<crate::types::Observer>, ApiError> {
+        let pattern = "observer:obs_*";
+        let keys = self.redis.scan(pattern).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+
+        let mut observers = Vec::new();
+        for key in keys {
+            if let Ok(Some(value)) = self.redis.get(&key).await {
+                if let Ok(observer) = serde_json::from_str::<crate::types::Observer>(&value) {
+                    observers.push(observer);
+                }
+            }
+        }
+
+        // Sort by registered_at descending
+        observers.sort_by(|a, b| b.registered_at.cmp(&a.registered_at));
+
+        Ok(observers)
+    }
+
+    /// Get pending observers (for admin approval)
+    pub async fn get_pending_observers(&self) -> Result<Vec<crate::types::Observer>, ApiError> {
+        let all_observers = self.get_all_observers().await?;
+        Ok(all_observers.into_iter()
+            .filter(|o| o.status == crate::types::ObserverStatus::PendingApproval)
+            .collect())
+    }
 }
 
 /// Helper: SHA3-256 hash for proof hashing

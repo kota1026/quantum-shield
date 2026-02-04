@@ -6,7 +6,11 @@
         "lock": "ロック",
         "unlock": "アンロック",
         "history": "履歴",
-        "tokenHub": "Token Hub"
+        "qsHub": "QS Hub",
+        "qsHubDesc": "トークン管理・ガバナンス・投票",
+        "ecosystem": "エコシステム",
+        "ecosystemLink": "Ecosystem を見る",
+        "ecosystemLinkDesc": "公式サイトで詳細を確認"
       },
       "wallet": {
         "connected": "接続中",
@@ -23,6 +27,7 @@
       }
     },
     "dashboard": {
+      "backToLanding": "← ホームに戻る",
       "meta": {
         "title": "ダッシュボード | Quantum Shield",
         "description": "あなたの量子耐性資産を管理・監視"
@@ -467,7 +472,8 @@
         "transparency": {
           "title": "透明性",
           "description": "全てのトランザクションはオンチェーンで検証可能。オープンソースで監査済みのスマートコントラクト。",
-          "badge": "オープンソース"
+          "badge": "オープンソース",
+          "tooltip": "透明性とは、全ての取引履歴やスマートコントラクトのコードが公開されており、誰でも検証できることを意味します。第三者による監査も完了しています。"
         }
       },
       "howItWorks": {
@@ -564,6 +570,19 @@
         "details": "詳細",
         "accept": "同意する"
       }
+    },
+    "login": {
+      "meta": {
+        "title": "ログイン | Quantum Shield",
+        "description": "ウォレットを接続してQuantum Shieldにログイン"
+      },
+      "backToHome": "ホームに戻る",
+      "title": "Quantum Shieldにログイン",
+      "description": "ウォレットを接続して、量子耐性保護を開始しましょう",
+      "connectWallet": "ウォレットを接続",
+      "or": "または",
+      "noAccount": "アカウントをお持ちでない方は",
+      "createAccount": "新規登録"
     },
     "keyManagement": {
       "meta": {
@@ -690,6 +709,11 @@
           "question": "秘密鍵を紛失した場合はどうすればいいですか？",
           "answer": "緊急Unlock機能を使用してください。Bond（保証金）を支払い、7日間の待機後に資産を回収できます。Bondは正当なUnlockであれば返還されます。"
         }
+      },
+      "contact": {
+        "title": "お探しの回答が見つかりませんか？",
+        "description": "サポートチームがお手伝いします。お気軽にお問い合わせください。",
+        "button": "お問い合わせ"
       }
     },
     "security": {
@@ -804,8 +828,11 @@
       "steps": {
         "verify": "ウォレット署名を検証",
         "sendBond": "Bond (0.50 ETH) を送金中...",
+        "sendBondTooltip": "Bond（保証金）は、緊急Unlockが正当であることを証明するための担保です。7日間の待機期間中に異議申立てがなければ、資産と共に返却されます。",
         "register": "緊急Unlock要求を登録",
-        "startTimeLock": "7日間Time Lock開始"
+        "startTimeLock": "7日間Time Lock開始",
+        "startTimeLockTooltip": "Time Lockは、不正なアンロックを防ぐための待機期間です。緊急Unlockの場合は7日間の待機が必要です。この間に監視者（Observer）が不正を検知できます。",
+        "tooltipAriaLabel": "詳しく見る"
       }
     },
     "emergencySuccess": {
@@ -870,6 +897,22 @@
         "lockButton": "Dilithium署名でロック",
         "lockButtonAriaLabel": "Dilithium署名で資産をロックする"
       },
+      "period": {
+        "label": "ロック期間",
+        "years": {
+          "1": "1年",
+          "2": "2年",
+          "3": "3年",
+          "5": "5年"
+        }
+      },
+      "summary": {
+        "title": "ロック概要",
+        "amount": "ロック金額",
+        "period": "ロック期間",
+        "unlockDate": "解除可能日",
+        "fee": "ネットワーク手数料"
+      },
       "info": {
         "title": "ロックについて",
         "items": {
@@ -892,6 +935,8 @@
         "title": "ロック確認",
         "description": "以下の内容でロックを実行します。Dilithium署名が必要です。",
         "amount": "ロック金額",
+        "period": "ロック期間",
+        "unlockDate": "解除可能日",
         "gasFee": "ガス代（概算）",
         "note": "※ アンロック時には24時間の待機期間があります",
         "confirm": "署名してロック",
@@ -909,17 +954,31 @@
       "subtitle": "しばらくお待ちください。このページを閉じないでください。",
       "steps": {
         "sign": "Dilithium署名を生成",
+        "signTooltip": "Dilithiumは量子コンピュータでも解読が困難なNIST認定の次世代電子署名アルゴリズムです。あなたの秘密鍵でロック要求に署名します。",
         "createTx": "トランザクションを作成",
         "broadcast": "ブロックチェーンに送信中...",
-        "confirm": "確認を待機"
+        "confirm": "確認を待機",
+        "tooltipAriaLabel": "詳しく見る"
       }
     },
     "lockSuccess": {
       "title": "ロック完了",
       "subtitle": "資産が量子耐性保護でロックされました",
       "details": {
+        "title": "ロック詳細",
+        "status": "Locked",
+        "lockId": "ロックID",
         "amount": "ロック金額",
-        "txHash": "TX Hash"
+        "period": "ロック期間",
+        "unlockDate": "解除可能日",
+        "copy": "コピー",
+        "copied": "コピーしました",
+        "periodYears": {
+          "1": "1年",
+          "2": "2年",
+          "3": "3年",
+          "5": "5年"
+        }
       },
       "buttons": {
         "viewHistory": "履歴を確認",
@@ -931,9 +990,12 @@
       "subtitle": "しばらくお待ちください。このページを閉じないでください。",
       "steps": {
         "sign": "Dilithium署名を生成",
+        "signTooltip": "Dilithiumは量子コンピュータでも解読が困難なNIST認定の次世代電子署名アルゴリズムです。あなたの秘密鍵でアンロック要求に署名します。",
         "verify": "Prover署名を検証",
+        "verifyTooltip": "Proverは独立した承認者で、アンロック要求が正当かどうかを検証しSPHINCS+署名を付与します。5社から2社がランダムに選ばれます。",
         "broadcast": "ブロックチェーンに送信中...",
-        "confirm": "確認を待機"
+        "confirm": "確認を待機",
+        "tooltipAriaLabel": "詳しく見る"
       }
     },
     "unlockSuccess": {

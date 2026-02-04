@@ -6,11 +6,54 @@ use config::{ConfigError, Environment, File};
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub server: ServerConfig,
+    pub database: DatabaseConfig,
     pub redis: RedisConfig,
     pub rabbitmq: RabbitMQConfig,
     pub jwt: JwtConfig,
     pub security: SecurityConfig,
     pub vrf: VRFConfig,
+    // Phase 8-D: L3/L1 Integration
+    /// L3 node endpoint (e.g., "http://localhost:8545")
+    #[serde(default)]
+    pub l3_endpoint: Option<String>,
+    /// L3 chain ID (default: 31337 for local)
+    #[serde(default)]
+    pub l3_chain_id: Option<u64>,
+    /// L1 RPC URL (e.g., "https://sepolia.infura.io/v3/...")
+    #[serde(default)]
+    pub l1_rpc_url: Option<String>,
+    /// L1 chain ID (default: 11155111 for Sepolia)
+    #[serde(default)]
+    pub l1_chain_id: Option<u64>,
+    /// Bridge Verifier contract address on L1
+    #[serde(default)]
+    pub bridge_verifier_address: Option<String>,
+    /// Treasury Vault contract address on L1
+    #[serde(default)]
+    pub treasury_vault_address: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct DatabaseConfig {
+    pub url: String,
+    #[serde(default = "default_db_max_connections")]
+    pub max_connections: u32,
+    #[serde(default = "default_db_min_connections")]
+    pub min_connections: u32,
+}
+
+fn default_db_max_connections() -> u32 { 10 }
+fn default_db_min_connections() -> u32 { 2 }
+
+impl Default for DatabaseConfig {
+    fn default() -> Self {
+        Self {
+            url: std::env::var("DATABASE_URL")
+                .unwrap_or_else(|_| "postgres://localhost/quantum_shield".to_string()),
+            max_connections: 10,
+            min_connections: 2,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -119,6 +162,7 @@ impl Default for Config {
                 host: "0.0.0.0".to_string(),
                 port: 8080,
             },
+            database: DatabaseConfig::default(),
             redis: RedisConfig {
                 url: "redis://localhost:6379".to_string(),
                 password: None,
@@ -135,6 +179,13 @@ impl Default for Config {
             },
             security: SecurityConfig::default(),
             vrf: VRFConfig::default(),
+            // Phase 8-D: L3/L1 defaults (None = not configured)
+            l3_endpoint: None,
+            l3_chain_id: None,
+            l1_rpc_url: None,
+            l1_chain_id: None,
+            bridge_verifier_address: None,
+            treasury_vault_address: None,
         }
     }
 }

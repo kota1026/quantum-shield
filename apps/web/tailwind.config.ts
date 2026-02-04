@@ -190,6 +190,7 @@ const config: Config = {
         },
       },
       spacing: {
+        '13': '3.25rem', // 52px - Button lg size
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',

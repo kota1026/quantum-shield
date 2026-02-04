@@ -1,0 +1,867 @@
+{
+  "observer": {
+    "common": {
+      "header": {
+        "dashboard": "ダッシュボード",
+        "pending": "待機中",
+        "suspicious": "疑わしい取引",
+        "history": "履歴",
+        "earnings": "報酬",
+        "ecosystem": "エコシステム",
+        "settings": "設定"
+      },
+      "portalName": "監視者ポータル",
+      "tooltip": {
+        "emergencyUnlock": "緊急アンロックは、秘密鍵を紛失した場合などに使用される特別なアンロック方法です。7日間の待機期間が必要です。",
+        "emergencyUnlockAriaLabel": "緊急アンロックについて詳しく見る",
+        "normalUnlock": "通常のアンロックは、Dilithium署名を使用した標準的な引き出し方法です。24時間の待機期間が必要です。",
+        "normalUnlockAriaLabel": "通常アンロックについて詳しく見る",
+        "challenge": "異議申立ては、不正と思われるアンロック要求に対して監視者が提出する申し立てです。成功すると報酬を獲得できます。",
+        "challengeAriaLabel": "異議申立てについて詳しく見る",
+        "slashing": "スラッシングは、署名者が不正行為を行った場合にステーク（担保）が没収される仕組みです。",
+        "slashingAriaLabel": "スラッシングについて詳しく見る",
+        "riskScore": "リスクスコアは取引の不正リスクを0-100で評価した数値です。高いほど不正の可能性が高くなります。",
+        "riskScoreAriaLabel": "リスクスコアについて詳しく見る"
+      }
+    },
+    "landing": {
+      "meta": {
+        "title": "監視者ポータル | Quantum Shield",
+        "description": "不正なアンロックを監視し、報酬を獲得。Quantum Shieldのセキュリティを守る監視者になりましょう。"
+      },
+      "nav": {
+        "overview": "概要",
+        "about": "QSとは",
+        "howItWorks": "仕組み",
+        "requirements": "要件"
+      },
+      "login": "ログイン",
+      "applyNow": "監視者に申請",
+      "hero": {
+        "badge": "ネットワークの監視役",
+        "title": "不正取引を見つけて",
+        "titleHighlight": "報酬を獲得しよう",
+        "description": "Quantum Shieldでは、ユーザーが資産を引き出す際に「待機期間」があります。監視者はこの期間中に不正な引き出しがないか監視し、不正を発見・申告すると報酬を獲得できます。",
+        "applyButton": "監視者に申請する",
+        "learnMore": "詳しく見る"
+      },
+      "stats": {
+        "activeObservers": {
+          "value": "89",
+          "label": "アクティブ監視者"
+        },
+        "totalMonitored": {
+          "value": "12,450",
+          "label": "監視済みアンロック"
+        },
+        "fraudPrevented": {
+          "value": "約3億円",
+          "label": "防止した不正額"
+        },
+        "rewardsDistributed": {
+          "value": "156 ETH",
+          "label": "分配済み報酬"
+        }
+      },
+      "about": {
+        "sectionLabel": "はじめに",
+        "title": "Quantum Shieldと監視者とは",
+        "description": "まずはQuantum Shieldの仕組みと、監視者の役割について理解しましょう。",
+        "whatIsQS": {
+          "title": "Quantum Shieldとは？",
+          "description1": "Quantum Shieldは、将来の量子コンピュータによる攻撃から暗号資産を守るセキュリティサービスです。ユーザーは自分のETHなどの資産を「ロック」して安全に保管できます。",
+          "description2": "資産を引き出す（アンロックする）際には、不正防止のため24時間〜7日間の「待機期間」が設けられています。この待機期間中に不正な引き出しがないか監視するのが監視者の役割です。",
+          "flowTitle": "Quantum Shieldの基本フロー",
+          "flow1": "ユーザーが資産をQuantum Shieldにロック",
+          "flow2": "署名者（Prover）が量子耐性署名を生成",
+          "flow3": "引き出し時は待機期間が発生（24時間〜7日）",
+          "flow4": "監視者が監視し、問題なければ引き出し完了"
+        },
+        "whatIsObserver": {
+          "title": "監視者とは？",
+          "description1": "監視者は、Quantum Shieldのセキュリティを守る「監視役」です。待機期間中のアンロック要求を確認し、不正な取引がないかチェックします。",
+          "description2": "不正を発見した場合、「異議申立て」を行うことができます。異議申立てが認められれば、不正者から没収された資産の一部を報酬として受け取れます。",
+          "roleTitle": "監視者の主な役割",
+          "role1": "待機中のアンロック要求をリアルタイムで監視",
+          "role2": "システムが検出した「疑わしい取引」を確認",
+          "role3": "不正と判断した場合は「異議申立て」を提出",
+          "role4": "異議申立てが成功すると報酬を獲得"
+        }
+      },
+      "howItWorks": {
+        "sectionLabel": "監視者の仕事",
+        "title": "4ステップで報酬を獲得",
+        "description": "監視者として不正を発見し報酬を得るまでの流れを説明します。",
+        "steps": {
+          "monitor": {
+            "title": "1. アンロックを監視",
+            "description": "ダッシュボードで待機中のアンロック要求を確認します。システムが自動で「疑わしい取引」を検出してアラートを表示します。"
+          },
+          "detect": {
+            "title": "2. 不正を見つける",
+            "description": "高額な緊急アンロック、新規アカウントからの引き出し、異常なパターンなど、リスクの高い取引を分析します。"
+          },
+          "dispute": {
+            "title": "3. 異議を申し立てる",
+            "description": "不正と判断した場合、保証金を預けて「異議申立て」を提出します。署名者には48時間の反論期間が与えられます。"
+          },
+          "earn": {
+            "title": "4. 報酬を獲得",
+            "description": "異議申立てが認められると、保証金が返却され、さらに不正者から没収された資産の60%を報酬として受け取れます。"
+          }
+        }
+      },
+      "rewards": {
+        "sectionLabel": "報酬システム",
+        "title": "異議申立て成功時の報酬",
+        "description": "不正を発見・申告した場合、署名者のステーク（担保）から没収された金額の一部が報酬として分配されます。",
+        "distribution": {
+          "title": "没収資産の分配",
+          "challenger": "あなた（監視者）",
+          "challengerDesc": "異議申立てを行った監視者への報酬",
+          "insurance": "保険プール",
+          "insuranceDesc": "被害者への補償用プールに積立",
+          "burn": "バーン（焼却）",
+          "burnDesc": "トークンの希少性向上のため焼却"
+        },
+        "example": {
+          "title": "報酬計算の例",
+          "fraudAmount": "不正なアンロック金額",
+          "proverStake": "署名者のステーク（担保）",
+          "slashRate": "没収率",
+          "slashNote": "※ 違反者1名の場合。複数違反では増加",
+          "yourReward": "あなたの報酬",
+          "calculation": "100 ETH × 10% × 60% = 6 ETH",
+          "bondReturn": "保証金も全額返却されます"
+        },
+        "warning": {
+          "title": "異議申立てが失敗した場合",
+          "description": "不正でない取引に異議申立てを行った場合、預けた保証金は没収されます。確かな証拠がある場合のみ異議申立てを行ってください。"
+        }
+      },
+      "requirements": {
+        "sectionLabel": "参加要件",
+        "title": "監視者になるには",
+        "description": "特別な資格は不要ですが、以下の準備が必要です。",
+        "items": {
+          "stake": {
+            "title": "監視者ステーク",
+            "value": "不要",
+            "description": "監視者になるために預ける担保は不要です。異議申立て時にのみ保証金が必要です。"
+          },
+          "bond": {
+            "title": "異議申立て保証金",
+            "value": "0.1 ETH〜",
+            "description": "異議申立て時に預ける保証金です。成功すれば返却、失敗すると没収されます。"
+          },
+          "knowledge": {
+            "title": "必要な知識",
+            "value": "基礎レベル",
+            "description": "ブロックチェーンとセキュリティの基本知識があれば参加できます。"
+          }
+        },
+        "bondTable": {
+          "title": "保証金の計算方法",
+          "unlockAmount": "アンロック金額",
+          "calculation": "計算式",
+          "bondRequired": "必要な保証金",
+          "note": "※ 保証金 = 最大値(0.1 ETH, アンロック金額 × 1%)"
+        }
+      },
+      "ecosystem": {
+        "title": "Quantum Shield エコシステム",
+        "consumer": {
+          "title": "コンシューマーアプリ",
+          "description": "量子耐性暗号で資産を保護する個人ユーザー向けアプリ",
+          "link": "コンシューマーアプリを見る"
+        },
+        "prover": {
+          "title": "署名者ネットワーク",
+          "description": "量子署名を生成する署名者として参加し報酬を獲得",
+          "link": "署名者になる"
+        },
+        "governance": {
+          "title": "ガバナンス",
+          "description": "QSトークンでプロトコルの意思決定に参加",
+          "link": "ガバナンスに参加"
+        }
+      },
+      "cta": {
+        "title": "監視者として参加しませんか？",
+        "description": "不正を監視してネットワークを守りながら、報酬を獲得できます。特別な資格は不要、今すぐ申請できます。",
+        "button": "監視者に申請する",
+        "loginButton": "既存アカウントでログイン"
+      },
+      "expertQuotes": {
+        "sectionLabel": "専門家の声",
+        "title": "なぜ不正検知が重要なのか",
+        "subtitle": "セキュリティ専門家たちの見解",
+        "quotes": {
+          "0": {
+            "quote": "詐欺証明は、チェーンが安全であることを誰もが確認できるオープンな参加を可能にします。1人の正直な検証者がいれば、システム全体の安全性が保証されます。",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum共同創設者",
+            "source": "The different types of ZK-EVMs",
+            "sourceUrl": "https://vitalik.eth.limo/general/2022/08/04/zkevm.html"
+          },
+          "1": {
+            "quote": "Optimistic Rollupは、誰もがトランザクションを監視し、不正な状態遷移に対してチャレンジを提出できることで安全性を確保します。",
+            "author": "Ethereum Foundation",
+            "title": "Ethereum公式ドキュメント",
+            "source": "Optimistic Rollups",
+            "sourceUrl": "https://ethereum.org/en/developers/docs/scaling/optimistic-rollups/"
+          },
+          "2": {
+            "quote": "セキュリティは経済的インセンティブの設計問題です。正しい行動に報酬を、不正行為に罰則を設けることで、分散型システムの信頼性が確保されます。",
+            "author": "Ed Felten",
+            "title": "Arbitrum共同創設者・元ホワイトハウスCTO",
+            "source": "Arbitrum Documentation",
+            "sourceUrl": "https://docs.arbitrum.io/intro/"
+          }
+        },
+        "disclaimer": "※ 上記は参考情報です。Observer参加はご自身の判断で行ってください。"
+      },
+      "footer": {
+        "tagline": "量子耐性セキュリティ",
+        "madeIn": "日本製",
+        "terms": "利用規約",
+        "privacy": "プライバシー",
+        "cookie": "クッキーポリシー"
+      }
+    },
+    "login": {
+      "meta": {
+        "title": "監視者ログイン | Quantum Shield",
+        "description": "監視者ポータルにログイン"
+      },
+      "title": "監視者ポータルにログイン",
+      "description": "登録済みのウォレットを接続してダッシュボードにアクセス",
+      "backToLanding": "ランディングに戻る",
+      "selectWallet": "ウォレットを選択",
+      "popular": "人気",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
+      "connecting": {
+        "title": "接続中...",
+        "walletPrompt": "ウォレットで接続を承認してください"
+      },
+      "checking": {
+        "title": "登録状況を確認中...",
+        "description": "監視者として登録されているか確認しています"
+      },
+      "success": {
+        "title": "接続完了",
+        "description": "ダッシュボードにリダイレクトしています..."
+      },
+      "signing": {
+        "title": "署名をお願いします",
+        "description": "ウォレットでログインメッセージに署名してください"
+      },
+      "authenticating": {
+        "title": "認証中...",
+        "description": "サーバーと認証を行っています"
+      },
+      "error": {
+        "title": "認証エラー",
+        "description": "認証に失敗しました。もう一度お試しください。",
+        "connectionFailed": "ウォレットとの接続に失敗しました。もう一度お試しください。",
+        "tryAgain": "再試行",
+        "retryButton": "再試行"
+      },
+      "notRegistered": {
+        "title": "未登録のウォレット",
+        "description": "このウォレットアドレスは監視者として登録されていません。まずは申請を行ってください。",
+        "applyButton": "監視者に申請",
+        "tryAnotherWallet": "別のウォレットで試す"
+      },
+      "noWallet": "ウォレットをお持ちでないですか？",
+      "getWallet": "MetaMaskを取得",
+      "newToObserver": "監視者は初めてですか？",
+      "applyNow": "今すぐ申請",
+      "footer": "© 2025 Quantum Shield. All rights reserved."
+    },
+    "application": {
+      "meta": {
+        "title": "監視者申請 | Quantum Shield",
+        "description": "監視者として登録してネットワークの監視に参加"
+      },
+      "title": "監視者申請",
+      "description": "ウォレットを接続して監視者として登録",
+      "backToLanding": "ランディングに戻る",
+      "steps": {
+        "connect": {
+          "title": "ウォレット接続",
+          "description": "監視者として使用するウォレットを接続してください",
+          "connecting": "{wallet}と接続中...",
+          "popular": "人気"
+        },
+        "terms": {
+          "title": "利用規約",
+          "description": "監視者利用規約に同意してください",
+          "agree": "利用規約に同意する",
+          "agreeDetails": "異議申立てに関するルール、報酬・ペナルティの仕組みを理解しました",
+          "termsIntro": "監視者として登録することで、以下の条件に同意したものとみなされます：",
+          "termsItem1": "不正な取引を発見した場合、証拠に基づいて異議申立てを行う責任があります",
+          "termsItem2": "異議申立て時には保証金を預ける必要があり、失敗した場合は没収されます",
+          "termsItem3": "正当な取引に対して悪意を持って異議申立てを行うことは禁止されています",
+          "termsItem4": "報酬は異議申立て成功時にのみ支払われます",
+          "back": "戻る",
+          "next": "次へ"
+        },
+        "confirm": {
+          "title": "確認",
+          "description": "以下の内容で登録します",
+          "walletAddress": "ウォレットアドレス",
+          "registrationFee": "登録手数料",
+          "free": "無料",
+          "feeNote": "※ 初回登録は無料です",
+          "back": "戻る"
+        }
+      },
+      "submit": "監視者として登録",
+      "submitting": "登録中...",
+      "success": {
+        "title": "登録完了",
+        "description": "監視者として登録されました。ダッシュボードから監視を開始できます。",
+        "goToDashboard": "ダッシュボードへ"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "監視者ダッシュボード | Quantum Shield",
+        "description": "監視者ダッシュボード - アンロック監視と不正検知"
+      },
+      "pageTitle": "監視者ダッシュボード",
+      "monitoringBadge": "監視中",
+      "monitoringBadgeAriaLabel": "監視ステータス: アクティブ",
+      "practiceMode": {
+        "title": "練習モード有効",
+        "badge": "練習中",
+        "description": "登録後3ヶ月間は練習モードです。異議申立てにステーク不要でシミュレーション体験ができます。実際の報酬は発生しませんが、操作方法を学べます。",
+        "daysRemaining": "残り{days}日",
+        "dismiss": "閉じる",
+        "ariaLabel": "練習モード情報バナー",
+        "learnMore": "練習モードについて詳しく見る",
+        "noStakeRequired": "ステーク不要",
+        "simulationOnly": "シミュレーションのみ"
+      },
+      "stats": {
+        "pendingUnlocks": {
+          "label": "待機中のアンロック",
+          "tooltip": "24時間または7日間の待機期間中のアンロック要求数",
+          "change": "直近1時間で+{count}件"
+        },
+        "suspicious": {
+          "label": "疑わしい取引",
+          "tooltip": "不正の可能性がある取引。確認して異議申立てを検討してください",
+          "badge": "要確認"
+        },
+        "activeChallenges": {
+          "label": "進行中の異議申立て",
+          "tooltip": "異議申立てとは不正な取引を申し立てる仕組みです。成功すると報酬を獲得できます"
+        },
+        "totalEarnings": {
+          "label": "累計報酬",
+          "tooltip": "異議申立ての成功や監視活動で獲得した報酬の合計",
+          "change": "今週+{amount}"
+        }
+      },
+      "pendingUnlocks": {
+        "title": "待機中のアンロック",
+        "live": "リアルタイム",
+        "viewAll": "すべて見る",
+        "table": {
+          "address": "アドレス",
+          "amount": "金額",
+          "type": "種別",
+          "timeRemaining": "残り時間",
+          "status": "ステータス"
+        },
+        "types": {
+          "normal": "通常",
+          "emergency": "緊急"
+        },
+        "statuses": {
+          "pending": "待機中",
+          "monitoring": "監視中"
+        }
+      },
+      "suspicious": {
+        "title": "疑わしい取引",
+        "viewAll": "すべて見る",
+        "highRisk": "高リスク検出",
+        "mediumRisk": "中リスク",
+        "score": "スコア",
+        "firstTimeEmergency": "初回の緊急アンロック（高額）",
+        "unusualPattern": "異常なパターンを検出",
+        "challengeButton": "この取引に異議申立て"
+      },
+      "pending": {
+        "meta": {
+          "title": "待機中のアンロック | 監視者 | Quantum Shield",
+          "description": "監視対象の待機中アンロック一覧"
+        },
+        "pageTitle": "待機中のアンロック",
+        "liveMonitoring": "リアルタイム監視",
+        "filters": {
+          "unlockType": {
+            "label": "種別",
+            "all": "すべての種別",
+            "normal": "通常",
+            "emergency": "緊急"
+          },
+          "minAmount": {
+            "label": "最小金額",
+            "placeholder": "0.00 ETH"
+          },
+          "maxAmount": {
+            "label": "最大金額",
+            "placeholder": "上限なし"
+          },
+          "riskScore": {
+            "label": "リスクスコア",
+            "all": "すべてのスコア",
+            "high": "高 (70以上)",
+            "medium": "中 (40〜69)",
+            "low": "低 (0〜39)"
+          },
+          "sortBy": {
+            "label": "並び替え",
+            "timeAsc": "残り時間（昇順）",
+            "amountDesc": "金額（降順）",
+            "riskDesc": "リスクスコア（降順）"
+          }
+        },
+        "table": {
+          "userAddress": "ユーザーアドレス",
+          "amount": "金額",
+          "type": "種別",
+          "timeRemaining": "残り時間",
+          "risk": "リスク",
+          "status": "ステータス",
+          "action": "アクション"
+        },
+        "statuses": {
+          "monitoring": "監視中",
+          "pending": "待機中",
+          "review": "要確認",
+          "lowRisk": "低リスク"
+        },
+        "actions": {
+          "challenge": "異議申立て",
+          "monitor": "監視"
+        },
+        "detail": {
+          "fullAddress": "完全なアドレス",
+          "startedAt": "開始日時",
+          "bondPaid": "支払い済み保証金",
+          "txHash": "トランザクションハッシュ",
+          "accountAge": "アカウント経過日数",
+          "previousUnlocks": "過去のアンロック",
+          "previousUnlocksValue": "{count}回（すべて成功）",
+          "riskFactors": "リスク要因",
+          "riskFactorFirstTime": "初回の緊急アンロック",
+          "riskFactorLargeAmount": "高額取引（上位5%）",
+          "riskFactorNewAccount": "アカウント経過日数: {days}日",
+          "challengeButton": "この取引に異議申立て",
+          "viewOnExplorer": "エクスプローラーで確認",
+          "copyTxHash": "ハッシュをコピー",
+          "copySuccess": "コピーしました"
+        },
+        "pagination": {
+          "showing": "{start}〜{end}件 / {total}件の待機中アンロック",
+          "prev": "← 前へ",
+          "next": "次へ →"
+        }
+      },
+      "suspiciousPage": {
+        "meta": {
+          "title": "疑わしい取引 | 監視者 | Quantum Shield",
+          "description": "監視対象の疑わしい取引一覧"
+        },
+        "pageTitle": "疑わしい取引",
+        "alertCount": "{count}件のアラートが要確認",
+        "riskLevels": {
+          "high": "高リスク検出",
+          "medium": "中リスク"
+        },
+        "detectedAgo": "{time}前に検出",
+        "txSummary": {
+          "address": "アドレス",
+          "amount": "金額",
+          "unlockType": "種別",
+          "timeRemaining": "残り時間"
+        },
+        "riskFactors": {
+          "title": "検出されたリスク要因",
+          "firstTimeEmergency": "このアドレスからの初回緊急アンロック",
+          "largeAmount": "全アンロック要求の上位5%に該当する金額",
+          "newAccount": "アカウント作成からわずか{days}日",
+          "unusualTiming": "異常なタイミングパターン（現地時間{time}）",
+          "unusualPattern": "異常なアンロックパターン - 24時間で{count}回のアンロック",
+          "exceedsAverage": "合計アンロック金額が過去平均の{percent}%を超過",
+          "flaggedAssociation": "フラグ付きアカウントとの関連あり"
+        },
+        "actions": {
+          "challenge": "この取引に異議申立て",
+          "viewDetails": "詳細を見る",
+          "dismiss": "却下",
+          "monitorClosely": "注視する"
+        },
+        "emptyState": {
+          "title": "疑わしい取引はありません",
+          "description": "すべての取引は現在正常なパラメータ内です。"
+        }
+      },
+      "history": {
+        "meta": {
+          "title": "異議申立て履歴 | 監視者 | Quantum Shield",
+          "description": "過去の異議申立て結果と報酬履歴"
+        },
+        "pageTitle": "異議申立て履歴",
+        "stats": {
+          "totalChallenges": "総異議申立て数",
+          "successful": "成功",
+          "failed": "失敗",
+          "totalEarnings": "累計報酬"
+        },
+        "filters": {
+          "result": {
+            "all": "すべての結果",
+            "successful": "成功",
+            "failed": "失敗"
+          },
+          "period": {
+            "last30": "直近30日",
+            "last7": "直近7日",
+            "last90": "直近90日",
+            "allTime": "全期間"
+          },
+          "exportCsv": "CSVエクスポート"
+        },
+        "table": {
+          "challengeId": "異議申立てID",
+          "targetAddress": "対象アドレス",
+          "amount": "金額",
+          "date": "日付",
+          "result": "結果",
+          "rewardPenalty": "報酬/ペナルティ",
+          "action": "アクション"
+        },
+        "results": {
+          "inProgress": "進行中",
+          "won": "✓ 勝利",
+          "lost": "✗ 敗北"
+        },
+        "actions": {
+          "view": "詳細"
+        },
+        "pagination": {
+          "showing": "{start}〜{end}件 / {total}件の異議申立て",
+          "prev": "← 前へ",
+          "next": "次へ →"
+        }
+      },
+      "challenge": {
+        "meta": {
+          "title": "異議申立て提出 | 監視者 | Quantum Shield",
+          "description": "不正な取引に異議申立てを提出"
+        },
+        "pageTitle": "異議申立て提出",
+        "backToSuspicious": "← 戻る",
+        "targetTransaction": {
+          "title": "対象取引",
+          "targetAddress": "対象アドレス",
+          "amount": "金額",
+          "unlockType": "種別",
+          "timeRemaining": "残り時間",
+          "txHash": "トランザクションハッシュ",
+          "riskScore": "リスクスコア",
+          "emergency": "緊急アンロック"
+        },
+        "evidence": {
+          "title": "証拠と理由",
+          "selectFactors": "該当するリスク要因を選択",
+          "firstTimeEmergency": "このアドレスからの初回緊急アンロック",
+          "largeAmount": "全アンロック要求の上位5%に該当",
+          "newAccount": "アカウント作成から30日未満",
+          "suspicious": "既知の疑わしい活動に関連するアドレス",
+          "additionalEvidence": "追加の証拠",
+          "additionalPlaceholder": "異議申立てに関する追加の証拠やコンテキストを入力...",
+          "evidenceHint": "トランザクションハッシュ、オンチェーン証拠、その他関連情報を含めてください",
+          "supportingLinks": "関連リンク（任意）",
+          "addLink": "+ リンクを追加"
+        },
+        "bond": {
+          "title": "保証金",
+          "requiredAmount": "必要な保証金",
+          "calculation": "保証金 = 最大値(0.1 ETH, アンロック金額 × 1%)",
+          "warningLose": "⚠️ 異議申立てが失敗した場合、この保証金は没収されます",
+          "warningWin": "✓ 成功した場合、保証金は返却され、さらに署名者のステークの一部を受け取ります"
+        },
+        "actions": {
+          "cancel": "キャンセル",
+          "submit": "異議申立てを提出 ({amount})"
+        },
+        "confirm": {
+          "title": "異議申立て提出の確認",
+          "target": "対象",
+          "unlockAmount": "アンロック金額",
+          "bondRequired": "必要保証金",
+          "defensePeriod": "反論期間",
+          "warning": "⚠️ 警告: 異議申立てが失敗した場合、{amount}の保証金は没収されます。確かな証拠がある場合のみ提出してください。",
+          "acknowledgement": "保証金が没収される可能性があることを理解しています。正確な証拠を提供しており、この取引が不正であると確信しています。",
+          "cancelButton": "キャンセル",
+          "confirmButton": "確認して提出"
+        }
+      },
+      "challengeProgress": {
+        "meta": {
+          "title": "異議申立て進捗 | 監視者 | Quantum Shield",
+          "description": "異議申立て状況の確認"
+        },
+        "pageTitle": "異議申立て #{id}",
+        "backToHistory": "← 履歴に戻る",
+        "status": {
+          "defensePeriod": "反論期間中",
+          "awaitingJudgment": "判定待ち",
+          "resolved": "解決済み"
+        },
+        "submitted": {
+          "title": "異議申立てが正常に送信されました",
+          "description": "異議申立てがオンチェーンに記録されました。TX: {txHash}"
+        },
+        "header": {
+          "title": "異議申立て #{id}",
+          "vs": "対象:",
+          "emergencyUnlock": "緊急アンロック"
+        },
+        "countdown": {
+          "ariaLabel": "反論期間カウントダウン",
+          "remaining": "反論期間の残り時間",
+          "hours": "時間",
+          "minutes": "分",
+          "seconds": "秒",
+          "elapsed": "反論期間の{percent}%が経過"
+        },
+        "timeline": {
+          "title": "タイムライン",
+          "submitted": "異議申立て提出",
+          "submittedDesc": "{address}に対して{bond} ETHの保証金で異議申立てを提出しました",
+          "bondLocked": "保証金ロック",
+          "bondLockedDesc": "{bond} ETHの保証金が異議申立てコントラクトにロックされました",
+          "defenseStart": "反論期間開始",
+          "defenseEnd": "反論期間",
+          "defenseDesc": "署名者には72時間の反論期間があります。まだ反論はありません。",
+          "endsAt": "終了: {time}",
+          "pending": "保留中",
+          "judgment": "判定",
+          "judgmentDesc": "反論期間終了後、自動判定が行われます。",
+          "resolution": "解決",
+          "resolutionDesc": "判定に基づき、報酬が分配されるか保証金が没収されます。"
+        },
+        "details": {
+          "title": "異議申立て詳細",
+          "challengeId": "異議申立てID",
+          "submitted": "提出日時",
+          "yourBond": "あなたの保証金",
+          "potentialReward": "想定報酬",
+          "txHash": "トランザクションハッシュ",
+          "targetAmount": "対象金額",
+          "timeRemaining": "残り時間",
+          "proverDefense": "署名者の反論",
+          "none": "なし"
+        },
+        "target": {
+          "title": "対象取引",
+          "address": "アドレス",
+          "amount": "金額",
+          "type": "種別",
+          "emergencyUnlock": "緊急アンロック",
+          "riskScore": "リスクスコア",
+          "originalTx": "元トランザクション"
+        },
+        "yourEvidence": "あなたの証拠"
+      },
+      "earnings": {
+        "meta": {
+          "title": "報酬 | 監視者 | Quantum Shield",
+          "description": "異議申立て報酬と請求"
+        },
+        "pageTitle": "報酬管理",
+        "summary": {
+          "totalEarnings": "累計報酬",
+          "claimable": "請求可能",
+          "pending": "未確定",
+          "claimed": "請求済み"
+        },
+        "claim": {
+          "title": "請求可能な報酬",
+          "available": "請求可能",
+          "claimButton": "報酬を請求",
+          "claimAll": "すべて請求",
+          "readyToClaim": "請求可能"
+        },
+        "breakdown": {
+          "challenge": "異議申立て #{id}",
+          "reward": "報酬",
+          "bondReturn": "保証金返却"
+        },
+        "history": {
+          "title": "報酬履歴",
+          "challengeId": "異議申立てID",
+          "challenge": "異議申立て",
+          "amount": "金額",
+          "type": "種別",
+          "date": "日付",
+          "status": "ステータス"
+        },
+        "types": {
+          "challengeWin": "異議申立て勝利",
+          "monitoringReward": "監視報酬",
+          "bonusReward": "ボーナス報酬",
+          "bondReturn": "保証金返却",
+          "bondLost": "保証金没収"
+        },
+        "statuses": {
+          "claimable": "請求可能",
+          "claimed": "請求済み",
+          "pending": "未確定",
+          "settled": "確定済み"
+        },
+        "performance": {
+          "title": "パフォーマンス統計",
+          "successRate": "成功率",
+          "totalChallenges": "総異議申立て数",
+          "successful": "成功",
+          "failed": "失敗"
+        },
+        "stake": {
+          "title": "あなたの監視者ステーク",
+          "stakedAmount": "ステーク金額",
+          "active": "アクティブ",
+          "activeSince": "アクティブ開始日",
+          "daysStaked": "ステーク日数"
+        },
+        "roi": {
+          "title": "ROI計算",
+          "totalInvested": "総投資額",
+          "totalEarned": "総獲得額",
+          "roi": "ROI"
+        },
+        "claimModal": {
+          "title": "請求の確認",
+          "description": "この金額が接続されたウォレットに送金されます：",
+          "cancel": "キャンセル",
+          "confirm": "請求を確認",
+          "processingTitle": "トランザクション処理中",
+          "processingDescription": "ウォレットで承認後、トランザクションが処理されます。",
+          "waitingForConfirmation": "ブロックチェーンの承認を待機中...",
+          "successTitle": "請求が完了しました",
+          "successDescription": "報酬がウォレットに送金されました。",
+          "txHash": "トランザクション",
+          "done": "完了"
+        }
+      },
+      "claimableEarnings": {
+        "title": "請求可能な報酬",
+        "available": "請求可能",
+        "claimButton": "報酬を請求"
+      },
+      "challengeStats": {
+        "title": "あなたの異議申立て統計",
+        "successful": "成功",
+        "failed": "失敗",
+        "successRate": "成功率"
+      },
+      "activeChallenges": {
+        "title": "進行中の異議申立て",
+        "defensePeriod": "反論期間中",
+        "awaitingJudgment": "判定待ち",
+        "vs": "対"
+      },
+      "observerStake": {
+        "title": "あなたの監視者ステーク",
+        "activeSince": "アクティブ開始日",
+        "statusActive": "アクティブ"
+      }
+    },
+    "settings": {
+      "meta": {
+        "title": "設定 | 監視者 | Quantum Shield",
+        "description": "監視者アカウント設定"
+      },
+      "title": "設定",
+      "description": "監視者アカウントの設定を管理します",
+      "save": "保存",
+      "saved": "保存しました",
+      "tabs": "設定タブ",
+      "tab": {
+        "profile": "プロフィール",
+        "notifications": "通知",
+        "security": "セキュリティ"
+      },
+      "profile": {
+        "basicInfo": "基本情報",
+        "observerId": "監視者ID",
+        "walletAddress": "ウォレットアドレス",
+        "email": "メールアドレス",
+        "accountStatus": "アカウント状態",
+        "status": "ステータス",
+        "statusActive": "アクティブ",
+        "joinedDate": "登録日",
+        "totalChallenges": "総異議申立て数",
+        "successRate": "成功率",
+        "language": "言語設定",
+        "languageDescription": "インターフェースの言語を選択してください"
+      },
+      "notifications": {
+        "title": "通知設定",
+        "description": "受け取る通知を選択してください",
+        "email": {
+          "title": "メール通知",
+          "description": "重要な更新をメールで受け取る"
+        },
+        "browser": {
+          "title": "ブラウザ通知",
+          "description": "ブラウザでプッシュ通知を受け取る"
+        },
+        "suspiciousAlert": {
+          "title": "疑わしい取引アラート",
+          "description": "高リスクの取引が検出された際に通知"
+        },
+        "challengeUpdate": {
+          "title": "異議申立て更新",
+          "description": "異議申立ての進捗と結果を通知"
+        },
+        "earningsAlert": {
+          "title": "報酬アラート",
+          "description": "請求可能な報酬がある際に通知"
+        }
+      },
+      "security": {
+        "twoFactor": {
+          "title": "二要素認証",
+          "description": "アカウントのセキュリティを強化します",
+          "enabled": "有効",
+          "lastUsed": "最終使用日",
+          "manage": "管理"
+        },
+        "loginHistory": {
+          "title": "ログイン履歴",
+          "description": "最近のログインアクティビティを確認",
+          "lastLogin": "最終ログイン",
+          "totalLogins": "今月のログイン回数"
+        },
+        "dangerZone": {
+          "title": "危険な操作",
+          "description": "アカウントを無効化すると、監視者として活動できなくなります。この操作は元に戻せません。",
+          "deactivate": "アカウントを無効化"
+        }
+      }
+    }
+  }
+}

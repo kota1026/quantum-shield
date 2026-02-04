@@ -22,100 +22,33 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
+import { useExtendedRewardsHistory } from '@/hooks/token-hub/useTokenHub';
 
-// Extended demo data for history page
-const DEMO_HISTORY = [
+// Fallback history data (used when API is unavailable)
+const FALLBACK_HISTORY = [
   {
     id: '1',
-    type: 'weekly_reward',
-    date: '2026-01-06 14:32',
-    amount: 156,
     epoch: 42,
-    status: 'complete',
-    breakdown: { holding: 112, voting: 24, delegation: 20 },
+    date: '2026-01-17',
+    amount: 168,
+    breakdown: { holding: 120, voting: 35, delegation: 13 },
   },
   {
     id: '2',
-    type: 'weekly_reward',
-    date: '2025-12-30 10:15',
-    amount: 148,
     epoch: 41,
-    status: 'complete',
-    breakdown: { holding: 108, voting: 22, delegation: 18 },
+    date: '2026-01-10',
+    amount: 162,
+    breakdown: { holding: 118, voting: 32, delegation: 12 },
   },
   {
     id: '3',
-    type: 'weekly_reward',
-    date: '2025-12-23 09:42',
-    amount: 162,
     epoch: 40,
-    status: 'complete',
-    breakdown: { holding: 118, voting: 26, delegation: 18 },
-  },
-  {
-    id: '4',
-    type: 'weekly_reward',
-    date: '2025-12-16 11:20',
-    amount: 145,
-    epoch: 39,
-    status: 'complete',
-    breakdown: { holding: 105, voting: 22, delegation: 18 },
-  },
-  {
-    id: '5',
-    type: 'weekly_reward',
-    date: '2025-12-09 08:55',
-    amount: 170,
-    epoch: 38,
-    status: 'complete',
-    breakdown: { holding: 124, voting: 28, delegation: 18 },
-  },
-  {
-    id: '6',
-    type: 'weekly_reward',
-    date: '2025-12-02 15:30',
-    amount: 158,
-    epoch: 37,
-    status: 'complete',
-    breakdown: { holding: 114, voting: 26, delegation: 18 },
-  },
-  {
-    id: '7',
-    type: 'weekly_reward',
-    date: '2025-11-25 12:10',
-    amount: 165,
-    epoch: 36,
-    status: 'complete',
-    breakdown: { holding: 119, voting: 28, delegation: 18 },
-  },
-  {
-    id: '8',
-    type: 'weekly_reward',
-    date: '2025-11-18 09:45',
-    amount: 175,
-    epoch: 35,
-    status: 'complete',
-    breakdown: { holding: 127, voting: 30, delegation: 18 },
-  },
-  {
-    id: '9',
-    type: 'weekly_reward',
-    date: '2025-11-11 14:22',
-    amount: 152,
-    epoch: 34,
-    status: 'complete',
-    breakdown: { holding: 110, voting: 24, delegation: 18 },
-  },
-  {
-    id: '10',
-    type: 'weekly_reward',
-    date: '2025-11-04 10:08',
-    amount: 168,
-    epoch: 33,
-    status: 'complete',
-    breakdown: { holding: 122, voting: 28, delegation: 18 },
+    date: '2026-01-03',
+    amount: 156,
+    breakdown: { holding: 115, voting: 30, delegation: 11 },
   },
 ];
+
 
 // Chart data for different time views
 const WEEKLY_CHART_DATA = [130, 150, 160, 140, 170, 155, 165, 175, 148, 156, 162, 168];
@@ -141,10 +74,14 @@ export function RewardsHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  // Fetch history from API with fallback (uses extended local data for now)
+  const { data: historyApi } = useExtendedRewardsHistory();
+  const history = historyApi ?? FALLBACK_HISTORY;
+
   const chartData = timeView === 'weekly' ? WEEKLY_CHART_DATA : MONTHLY_CHART_DATA;
   const chartMax = Math.max(...chartData);
 
-  const filteredHistory = DEMO_HISTORY.filter((item) => {
+  const filteredHistory = history.filter((item) => {
     if (filterType === 'all') return true;
     return item.breakdown[filterType as keyof typeof item.breakdown] > 0;
   });

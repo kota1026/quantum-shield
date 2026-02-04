@@ -30,16 +30,16 @@ test.describe('Consumer Lock Page', () => {
     });
 
     test('should display hero section', async ({ page }) => {
-      // Check badge
-      await expect(page.getByText('量子耐性保護')).toBeVisible();
+      // Check badge (use .first() as it appears multiple times)
+      await expect(page.locator('section').getByText('量子耐性保護').first()).toBeVisible();
 
       // Check hero title and subtitle
       await expect(page.getByRole('heading', { name: /あなたの資産を将来の脅威から守る/i })).toBeVisible();
     });
 
     test('should display Hinomary visual', async ({ page }) => {
-      // The visual is decorative but should be present
-      await expect(page.locator('.rounded-full')).toBeVisible();
+      // The visual container has a specific structure
+      await expect(page.locator('[class*="hinomary"]').first()).toBeVisible();
     });
   });
 
@@ -112,8 +112,8 @@ test.describe('Consumer Lock Page', () => {
     });
 
     test('should display Dilithium tooltip', async ({ page }) => {
-      // The Dilithium text and tooltip trigger should be visible
-      await expect(page.getByText('Dilithium')).toBeVisible();
+      // The Dilithium text should be visible below the button
+      await expect(page.locator('p').filter({ hasText: /Dilithium/ })).toBeVisible();
     });
   });
 
@@ -241,8 +241,10 @@ test.describe('Consumer Lock Page', () => {
     });
 
     test('should display quantum protection info', async ({ page }) => {
-      await expect(page.getByText('量子耐性保護')).toBeVisible();
-      await expect(page.getByText('NIST認定のDilithium暗号で資産を保護')).toBeVisible();
+      // Use getByLabel to target the info section list
+      const infoSection = page.getByLabel('ロックについて');
+      await expect(infoSection.getByText('量子耐性保護')).toBeVisible();
+      await expect(infoSection.getByText('NIST認定のDilithium暗号で資産を保護')).toBeVisible();
     });
 
     test('should display unlock info', async ({ page }) => {
@@ -365,8 +367,8 @@ test.describe('Consumer Lock Page', () => {
     });
 
     test('should show English validation messages', async ({ page }) => {
-      // Trigger error
-      await page.getByRole('button', { name: /Lock with Dilithium Signature/i }).click();
+      // Trigger error - button aria-label is "Lock assets with Dilithium signature"
+      await page.getByRole('button', { name: /Lock assets with Dilithium signature/i }).click();
 
       await expect(page.getByText('Please enter an amount to lock')).toBeVisible();
     });

@@ -5,6 +5,13 @@
     "phase": "6",
     "description": "Quantum Shield - AI Agentic Service Release Preparation"
   },
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "env": {}
+    }
+  },
   "hooks": {
     "user-prompt-submit": {
       "phase6-orchestrator": {
