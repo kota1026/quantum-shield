@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount, useDisconnect, useBalance, useReadContract } from 'wagmi';
+import { formatEther } from 'viem';
 import { AppHeader } from './AppHeader';
 import { MobileNav } from './MobileNav';
 import { StatCard } from './StatCard';
@@ -11,18 +14,18 @@ import { RecentActivity, Transaction } from './RecentActivity';
 import { LockModal } from './LockModal';
 import { WalletModal } from './WalletModal';
 import { cn } from '@/lib/utils';
-import { useUserDashboard, useUserTransactions } from '@/hooks/consumer';
-import {
-  MOCK_CONSUMER_STATS,
-  MOCK_TRANSACTIONS,
-  MOCK_USER_SETTINGS,
-  type ConsumerStats,
-} from '@/lib/api/consumer/mock';
+import { useUserDashboard, useUserTransactions, setUserAddress, clearUserAddress, useUserLockedBalance } from '@/hooks/consumer';
+import { useConsumerAuthStore, useIsConsumerAuthenticated } from '@/stores/consumerAuthStore';
+import type { ConsumerStats } from '@/lib/api/consumer/mock';
+import { SEPOLIA_CHAIN_ID, L1_VAULT_ADDRESS, L1_VAULT_ABI } from '@/lib/contracts/l1vault';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_CONSUMER_STATS;
-const FALLBACK_TRANSACTIONS = MOCK_TRANSACTIONS;
-const FALLBACK_WALLET = MOCK_USER_SETTINGS.walletAddress;
+// Empty state defaults (no mock data - shows real 0 values)
+const EMPTY_STATS: ConsumerStats = {
+  totalLocked: 0,
+  available: 0,
+  pendingUnlock: 0,
+  transactions: 0,
+};
 
 // Skeleton component for loading state
 function StatCardSkeleton() {
@@ -62,30 +65,97 @@ export function Dashboard() {
   const t = useTranslations('consumer.dashboard');
   const router = useRouter();
 
+  // Authentication state
+  const isAuthenticated = useIsConsumerAuthenticated();
+  const { logout } = useConsumerAuthStore();
+
+  // RainbowKit/Wagmi hooks for wallet connection
+  const { openConnectModal } = useConnectModal();
+  const { isConnected, address: connectedAddress } = useAccount();
+  const { disconnect } = useDisconnect();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/consumer/login');
+    }
+  }, [isAuthenticated, router]);
+
+  // Get wallet balance on Sepolia
+  const { data: balanceData } = useBalance({
+    address: connectedAddress,
+    chainId: SEPOLIA_CHAIN_ID,
+  });
+
+  // Read user's locked balance from L1Vault contract (user-specific)
+  const { balanceEth: userLockedBalanceEth, isLoading: isUserLockedLoading } = useUserLockedBalance();
+
+  // Read totalLocked directly from L1Vault contract (global - for reference only)
+  const { data: totalLockedOnChain } = useReadContract({
+    address: L1_VAULT_ADDRESS,
+    abi: L1_VAULT_ABI,
+    functionName: 'totalLocked',
+    chainId: SEPOLIA_CHAIN_ID,
+  });
+
+  // Sync wallet address to localStorage for API requests
+  useEffect(() => {
+    if (isConnected && connectedAddress) {
+      setUserAddress(connectedAddress);
+    } else {
+      clearUserAddress();
+    }
+  }, [isConnected, connectedAddress]);
+
   // Fetch data using new API hooks with loading and error states
   const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError, refetch: refetchDashboard } = useUserDashboard();
   const { data: txData, isLoading: isTxLoading, error: txError, refetch: refetchTx } = useUserTransactions({ perPage: 10 });
 
-  const isLoading = isDashboardLoading || isTxLoading;
+  const isLoading = isDashboardLoading || isTxLoading || isUserLockedLoading;
   const hasError = dashboardError || txError;
 
-  // Transform API data to component format, with fallback
-  const stats: ConsumerStats = dashboardData ? {
-    totalLocked: parseFloat(dashboardData.totalLocked) || 0,
-    available: 0, // TODO: Add available balance to API
-    pendingUnlock: dashboardData.pendingUnlocks || 0,
+  // Transform API data to component format (show real data, default to 0/empty)
+  // Use user-specific locked balance from L1Vault contract
+  const totalLockedEth = userLockedBalanceEth;
+
+  // Get available balance from wallet (Sepolia ETH)
+  const availableEth = balanceData?.value
+    ? parseFloat(formatEther(balanceData.value))
+    : 0;
+
+  const stats: ConsumerStats = {
+    totalLocked: totalLockedEth,
+    available: availableEth,
+    pendingUnlock: dashboardData?.pendingUnlocks || 0,
     transactions: txData?.total || 0,
-  } : FALLBACK_STATS;
+  };
 
-  const transactions = (txData?.transactions?.map(tx => ({
-    id: tx.id,
-    type: tx.txType === 'lock' ? 'lock' : tx.txType === 'normal_unlock' ? 'unlock' : 'unlocking',
-    amount: tx.amount,
-    timestamp: new Date(tx.createdAt * 1000).toISOString(),
-    status: tx.status === 'completed' ? 'complete' : 'pending',
-  })) ?? FALLBACK_TRANSACTIONS) as Transaction[];
+  const transactions: Transaction[] = (txData?.transactions || []).map(tx => {
+    // Convert amount to ETH - handle both wei format (integer string) and ETH format (decimal string)
+    let amountEth: string;
+    try {
+      if (tx.amount.includes('.')) {
+        // Already in ETH format
+        amountEth = parseFloat(tx.amount).toString();
+      } else {
+        // In wei format - convert to ETH
+        amountEth = formatEther(BigInt(tx.amount));
+      }
+    } catch {
+      // Fallback: parse as float directly
+      amountEth = parseFloat(tx.amount).toString();
+    }
+    return {
+      id: tx.id,
+      type: tx.txType === 'lock' ? 'lock' : tx.txType === 'normal_unlock' ? 'unlock' : 'unlocking',
+      amount: amountEth,
+      timestamp: new Date(tx.createdAt * 1000).toISOString(),
+      status: tx.status === 'completed' ? 'complete' : 'pending',
+    };
+  });
 
-  const walletAddress = dashboardData?.address || FALLBACK_WALLET;
+  // Use connected wallet address if available, otherwise show "Not connected"
+  const walletAddress = isConnected && connectedAddress ? connectedAddress : 'Not connected';
 
   // Modal states
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
@@ -100,9 +170,12 @@ export function Dashboard() {
 
   const handleConfirmLock = useCallback(() => {
     setIsLockModalOpen(false);
-    // Navigate to processing page
-    router.push('/consumer/lock/processing');
-  }, [router]);
+    // Navigate to processing page with amount
+    const params = new URLSearchParams({
+      amount: lockAmount.toFixed(6),
+    });
+    router.push(`/consumer/lock/processing?${params.toString()}`);
+  }, [router, lockAmount]);
 
   const handleCopyAddress = useCallback(async () => {
     try {
@@ -111,13 +184,24 @@ export function Dashboard() {
     } catch (err) {
       console.error('Failed to copy:', err);
     }
-  }, []);
+  }, [walletAddress]);
 
   const handleDisconnect = useCallback(() => {
     if (window.confirm('Disconnect wallet?')) {
+      logout();  // Clear auth state
+      disconnect();
       router.push('/consumer');
     }
-  }, [router]);
+  }, [logout, disconnect, router]);
+
+  // Handle wallet button click - open connect modal if not connected, or wallet modal if connected
+  const handleWalletClick = useCallback(() => {
+    if (!isConnected && openConnectModal) {
+      openConnectModal();
+    } else {
+      setIsWalletModalOpen(true);
+    }
+  }, [isConnected, openConnectModal]);
 
   // ロックボタンクリック時に金額入力欄にスクロール＆フォーカス
   const scrollToLockInput = useCallback(() => {
@@ -151,7 +235,7 @@ export function Dashboard() {
         {/* Header */}
         <AppHeader
           walletAddress={walletAddress}
-          onWalletClick={() => setIsWalletModalOpen(true)}
+          onWalletClick={handleWalletClick}
           onLockClick={scrollToLockInput}
         />
 

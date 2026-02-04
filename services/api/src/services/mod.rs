@@ -478,8 +478,11 @@ impl AppState {
         for key in keys {
             if let Ok(Some(value)) = self.redis.get(&key).await {
                 if let Ok(lock) = serde_json::from_str::<Lock>(&value) {
-                    // Filter by owner address
-                    if lock.owner == user_address || lock.user_public_key == user_address {
+                    // Filter by owner address, user_public_key, OR dest_addr (wallet address)
+                    // dest_addr is the user's Ethereum wallet address from the lock request
+                    if lock.owner == user_address
+                        || lock.user_public_key == user_address
+                        || lock.dest_addr.to_lowercase() == user_address.to_lowercase() {
                         user_locks.push(lock);
                     }
                 }

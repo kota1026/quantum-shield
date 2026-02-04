@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -15,20 +15,8 @@ export function LockSuccess() {
   const [copied, setCopied] = useState(false);
 
   // Get data from URL params or use defaults
-  const amount = searchParams.get('amount') || '5.00';
-  const period = searchParams.get('period') || '2';
+  const amount = searchParams.get('amount') || '0';
   const txHash = searchParams.get('txHash') || '0x7a3f...9c2d';
-
-  // Calculate unlock date based on period
-  const unlockDate = useMemo(() => {
-    const date = new Date();
-    date.setFullYear(date.getFullYear() + parseInt(period));
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  }, [period]);
 
   const handleCopy = async () => {
     try {
@@ -78,11 +66,13 @@ export function LockSuccess() {
             <div className="flex justify-between items-center">
               <span className="text-sm text-foreground-secondary">{t('details.lockId')}</span>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-mono text-foreground">{txHash}</span>
+                <span className="text-sm font-mono text-foreground truncate max-w-[160px]" title={txHash}>
+                  {txHash.length > 20 ? `${txHash.slice(0, 10)}...${txHash.slice(-8)}` : txHash}
+                </span>
                 <button
                   onClick={handleCopy}
                   className={cn(
-                    'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-qs transition-colors -m-2',
+                    'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-qs transition-colors -m-2 flex-shrink-0',
                     'hover:bg-surface-secondary',
                     copied ? 'text-success' : 'text-foreground-secondary hover:text-foreground'
                   )}
@@ -103,16 +93,10 @@ export function LockSuccess() {
               <span className="text-lg font-semibold text-foreground">{amount} ETH</span>
             </div>
 
-            {/* Period */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-foreground-secondary">{t('details.period')}</span>
-              <span className="font-medium text-foreground">{t(`details.periodYears.${period}`)}</span>
-            </div>
-
-            {/* Unlock Date */}
+            {/* Unlock Info */}
             <div className="flex justify-between items-center pt-3 border-t border-border">
-              <span className="text-sm text-foreground-secondary">{t('details.unlockDate')}</span>
-              <span className="font-medium text-gold">{unlockDate}</span>
+              <span className="text-sm text-foreground-secondary">{t('details.unlockWait')}</span>
+              <span className="font-medium text-gold">{t('details.unlockWaitValue')}</span>
             </div>
           </div>
         </div>

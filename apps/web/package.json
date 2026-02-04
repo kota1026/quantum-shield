@@ -35,7 +35,8 @@
     "viem": "^2.21.0",
     "wagmi": "^2.14.0",
     "zod": "^3.24.0",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.0",
+    "quantum-shield-wasm": "file:../../packages/sdk/wasm/pkg"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
