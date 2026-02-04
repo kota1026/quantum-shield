@@ -7,7 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api/admin/client';
-import type { MembersStats, Member, Role } from '@/lib/api/admin/mock';
+import type { MembersStats, Member, Role } from '@/lib/api/admin/types';
 
 // Query key factory
 export const membersKeys = {

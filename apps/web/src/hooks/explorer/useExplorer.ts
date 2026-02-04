@@ -16,7 +16,7 @@ import type {
   AnalyticsStats,
   LockStatusDistribution,
   UnlockTypeDistribution,
-} from '@/lib/api/explorer/mock';
+} from '@/lib/api/explorer/types';
 
 // API Base
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';

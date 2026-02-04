@@ -10,11 +10,11 @@ import { adminApi } from '@/lib/api/admin/client';
 import type {
   UsersStats,
   User,
-  UserDetail,
+  UserDetailSimple,
   UserTransaction,
   WalletsStats,
   UserWallet,
-} from '@/lib/api/admin/mock';
+} from '@/lib/api/admin/types';
 
 // ============================================================================
 // Query Keys
@@ -59,7 +59,7 @@ interface UsersListResponse {
 }
 
 interface UserDetailResponse {
-  user: UserDetail;
+  user: UserDetailSimple;
 }
 
 interface UserTransactionsResponse {

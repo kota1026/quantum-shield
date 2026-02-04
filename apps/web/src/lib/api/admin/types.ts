@@ -512,3 +512,189 @@ export interface RoleDefinition {
   permissions: string[];
   memberCount: number;
 }
+
+// ============= Stats Types (from hooks) =============
+
+export interface ProverStats {
+  totalProvers: number;
+  activeProvers: number;
+  totalStaked: string;
+  avgUptime: string;
+}
+
+export interface ProverRequestStats {
+  pendingRequests: number;
+  approvedThisMonth: number;
+  rejectedThisMonth: number;
+  avgProcessTime: string;
+}
+
+export interface ObserverStats {
+  totalObservers: number;
+  activeObservers: number;
+  totalChallenges: number;
+  successRate: string;
+}
+
+export interface TransactionStats {
+  totalTransactions: number;
+  lockVolume: string;
+  unlockVolume: string;
+  pendingUnlocks: number;
+  emergencyUnlocks: number;
+  activeChallenges: number;
+}
+
+export interface LockStats {
+  totalLocks: number;
+  lockVolume: string;
+  avgLockAmount: string;
+  avgLockDuration: string;
+}
+
+export interface UnlockStats {
+  totalUnlocks: number;
+  unlockVolume: string;
+  pendingUnlocks: number;
+  avgWaitTime: string;
+}
+
+export interface EmergencyStats {
+  totalEmergency: number;
+  activeEmergency: number;
+  approvedRate: string;
+  avgProcessTime: string;
+}
+
+export interface ChallengeStats {
+  totalChallenges: number;
+  activeChallenges: number;
+  successRate: string;
+  totalSlashed: string;
+}
+
+export interface UsersStats {
+  totalUsers: number;
+  activeUsers: number;
+  newUsers: number;
+  lockedVolume: string;
+}
+
+export interface WalletsStats {
+  totalWallets: number;
+  walletsWithLocks: number;
+  totalLocked: string;
+  avgLockAmount: string;
+}
+
+export interface MembersStats {
+  totalMembers: number;
+  activeMembers: number;
+  roles: number;
+  pendingInvites: number;
+}
+
+export interface SupportStats {
+  totalTickets: number;
+  openTickets: number;
+  avgResponseTime: string;
+  satisfaction: string;
+}
+
+// ============= User Types (simplified for list views) =============
+// Note: These are simplified mock types used in UI components
+// For API response types, use UserListItem and UserDetail above
+
+export interface User {
+  id: string;
+  wallet: string;
+  email?: string | null;
+  joined: string;
+  lastActive: string;
+  locked: string;
+  unlocked?: string;
+  transactions?: number;
+  status: 'active' | 'inactive' | 'suspended';
+}
+
+export interface UserDetailSimple {
+  id: string;
+  wallet: string;
+  email?: string | null;
+  joined: string;
+  lastActive: string;
+  locked: string;
+  unlocked: string;
+  totalValue: string;
+  transactions: number;
+  status: 'active' | 'inactive' | 'suspended';
+  kycStatus?: 'verified' | 'pending' | 'rejected' | 'none';
+  riskScore?: 'low' | 'medium' | 'high';
+  notes?: string;
+}
+
+export interface UserTransaction {
+  id: string;
+  type: 'lock' | 'unlock';
+  amount: string;
+  timestamp: string;
+  status: string;
+}
+
+export interface UserWallet {
+  address: string;
+  shortAddress: string;
+  locked: string;
+  unlocking: string;
+  pendingUnlocks: number;
+  lastTx: string;
+  totalTx: number;
+}
+
+// ============= Member Types =============
+
+export interface Member {
+  id: number;
+  name: string;
+  email: string;
+  role: 'superadmin' | 'admin' | 'operator' | 'viewer';
+  status: 'active' | 'inactive' | 'pending';
+  lastActive: string;
+  joined: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  members: number;
+  permissions: string[];
+}
+
+// ============= Support Types =============
+
+export interface Ticket {
+  id: string;
+  subject: string;
+  user: string;
+  category: 'transaction' | 'technical' | 'account' | 'other';
+  priority: 'high' | 'medium' | 'low';
+  status: 'open' | 'pending' | 'resolved' | 'closed';
+  created: string;
+  updated: string;
+  messages?: number;
+}
+
+export interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+  views: number;
+  updated: string;
+}
+
+export interface FAQCategory {
+  id: string;
+  name: string;
+  faqs: FAQ[];
+}
