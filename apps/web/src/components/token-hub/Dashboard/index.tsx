@@ -15,6 +15,7 @@ import {
   BookOpen,
   ShoppingCart,
   MessageCircleQuestion,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,55 +24,31 @@ import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from './TokenHubHeader';
 import { VeQSTooltip } from './VeQSTooltip';
 import { VotingPowerTooltip } from './VotingPowerTooltip';
+import { useTokenHubStats, useDelegations, useDashboardRewards } from '@/hooks/token-hub/useTokenHub';
+import {
+  MOCK_STATS,
+  MOCK_DELEGATIONS,
+  MOCK_DASHBOARD_REWARDS,
+} from '@/lib/api/token-hub/mock';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_STATS = {
-  qsBalance: 12450,
-  lockedQS: 8500,
-  veQSBalance: 6225,
-  votingPower: 0.12,
-  lockEndDate: '2028-01-15',
-  lockDuration: '3 Years',
-  timeRemaining: '2Y 3M 7D',
-  multiplier: 0.73,
-};
-
-const DEMO_DELEGATIONS = [
-  {
-    id: '1',
-    name: 'Watanabe Delegate',
-    initial: 'W',
-    totalPower: '285K veQS',
-    amount: 3000,
-    percent: 48,
-  },
-  {
-    id: '2',
-    name: 'Sato Crypto',
-    initial: 'S',
-    totalPower: '198K veQS',
-    amount: 2000,
-    percent: 32,
-  },
-  {
-    id: '3',
-    name: 'Tanaka DeFi',
-    initial: 'T',
-    totalPower: '156K veQS',
-    amount: 1225,
-    percent: 20,
-  },
-];
-
-const DEMO_REWARDS = {
-  claimable: 847,
-  usdValue: 4235,
-  epochProgress: 65,
-};
+// Fallback data for when API is unavailable
+const FALLBACK_STATS = MOCK_STATS;
+const FALLBACK_DELEGATIONS = MOCK_DELEGATIONS;
+const FALLBACK_REWARDS = MOCK_DASHBOARD_REWARDS;
 
 export function TokenHubDashboard() {
   const t = useTranslations('token-hub.dashboard');
   const router = useRouter();
+
+  // Fetch data from API with fallback
+  const { data: statsApi } = useTokenHubStats();
+  const { data: delegationsApi } = useDelegations();
+  const { data: rewardsApi } = useDashboardRewards();
+
+  // Use API data or fallback
+  const stats = statsApi ?? FALLBACK_STATS;
+  const delegations = delegationsApi ?? FALLBACK_DELEGATIONS;
+  const rewards = rewardsApi ?? FALLBACK_REWARDS;
 
   const handleNavigate = useCallback((path: string) => {
     router.push(path);
@@ -113,7 +90,7 @@ export function TokenHubDashboard() {
             tabIndex={0}
             onClick={() => handleNavigate('/token-hub/get-qs')}
             onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/token-hub/get-qs')}
-            aria-label={`${t('stats.qsBalance.label')}: ${DEMO_STATS.qsBalance.toLocaleString()} QS`}
+            aria-label={`${t('stats.qsBalance.label')}: ${stats.qsBalance.toLocaleString()} QS`}
           >
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs text-foreground-tertiary">
@@ -121,7 +98,7 @@ export function TokenHubDashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold font-mono text-foreground">
-              {DEMO_STATS.qsBalance.toLocaleString()}
+              {stats.qsBalance.toLocaleString()}
               <span className="text-sm font-medium text-foreground-secondary ml-1">QS</span>
             </div>
           </Card>
@@ -135,7 +112,7 @@ export function TokenHubDashboard() {
             tabIndex={0}
             onClick={() => handleNavigate('/token-hub/unlock')}
             onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/token-hub/unlock')}
-            aria-label={`${t('stats.lockedQS.label')}: ${DEMO_STATS.lockedQS.toLocaleString()} QS`}
+            aria-label={`${t('stats.lockedQS.label')}: ${stats.lockedQS.toLocaleString()} QS`}
           >
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs text-foreground-tertiary">
@@ -146,7 +123,7 @@ export function TokenHubDashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold font-mono text-foreground">
-              {DEMO_STATS.lockedQS.toLocaleString()}
+              {stats.lockedQS.toLocaleString()}
               <span className="text-sm font-medium text-foreground-secondary ml-1">QS</span>
             </div>
           </Card>
@@ -160,13 +137,13 @@ export function TokenHubDashboard() {
             tabIndex={0}
             onClick={() => handleNavigate('/token-hub/dashboard')}
             onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/token-hub/dashboard')}
-            aria-label={`${t('stats.veQSBalance.label')}: ${DEMO_STATS.veQSBalance.toLocaleString()} veQS`}
+            aria-label={`${t('stats.veQSBalance.label')}: ${stats.veQSBalance.toLocaleString()} veQS`}
           >
             <div className="flex justify-between items-center mb-2">
               <VeQSTooltip label={t('stats.veQSBalance.label')} />
             </div>
             <div className="text-2xl font-bold font-mono text-gold">
-              {DEMO_STATS.veQSBalance.toLocaleString()}
+              {stats.veQSBalance.toLocaleString()}
               <span className="text-sm font-medium text-foreground-secondary ml-1">veQS</span>
             </div>
           </Card>
@@ -180,13 +157,13 @@ export function TokenHubDashboard() {
             tabIndex={0}
             onClick={() => handleNavigate('/token-hub/delegate')}
             onKeyDown={(e) => e.key === 'Enter' && handleNavigate('/token-hub/delegate')}
-            aria-label={`${t('stats.votingPower.label')}: ${DEMO_STATS.votingPower}%`}
+            aria-label={`${t('stats.votingPower.label')}: ${stats.votingPower}%`}
           >
             <div className="flex justify-between items-center mb-2">
               <VotingPowerTooltip label={t('stats.votingPower.label')} />
             </div>
             <div className="text-2xl font-bold font-mono text-foreground">
-              {DEMO_STATS.votingPower}
+              {stats.votingPower}
               <span className="text-sm font-medium text-foreground-secondary ml-1">%</span>
             </div>
           </Card>
@@ -207,7 +184,7 @@ export function TokenHubDashboard() {
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Learn Tokenomics */}
             <Link
               href="/token-hub/onboarding"
@@ -250,6 +227,27 @@ export function TokenHubDashboard() {
               <ChevronRight className="w-5 h-5 text-foreground-tertiary group-hover:text-gold transition-colors flex-shrink-0 mt-2" aria-hidden="true" />
             </Link>
 
+            {/* Become a Prover */}
+            <Link
+              href="/prover/landing"
+              className={cn(
+                'group flex items-start gap-4 p-4 bg-background-secondary border border-border rounded-xl',
+                'hover:border-hinomaru hover:bg-hinomaru/5 transition-all duration-200',
+                'focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              )}
+            >
+              <div className="w-10 h-10 rounded-lg bg-hinomaru/10 flex items-center justify-center flex-shrink-0 group-hover:bg-hinomaru/20 transition-colors">
+                <Shield className="w-5 h-5 text-hinomaru" aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium mb-1">{t('gettingStarted.prover.title')}</div>
+                <p className="text-sm text-foreground-tertiary line-clamp-2">
+                  {t('gettingStarted.prover.description')}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-foreground-tertiary group-hover:text-hinomaru transition-colors flex-shrink-0 mt-2" aria-hidden="true" />
+            </Link>
+
             {/* FAQ */}
             <Link
               href="/token-hub/faq"
@@ -259,8 +257,8 @@ export function TokenHubDashboard() {
                 'focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background'
               )}
             >
-              <div className="w-10 h-10 rounded-lg bg-hinomaru/10 flex items-center justify-center flex-shrink-0 group-hover:bg-hinomaru/20 transition-colors">
-                <MessageCircleQuestion className="w-5 h-5 text-hinomaru" aria-hidden="true" />
+              <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0 group-hover:bg-warning/20 transition-colors">
+                <MessageCircleQuestion className="w-5 h-5 text-warning" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium mb-1">{t('gettingStarted.faq.title')}</div>
@@ -336,14 +334,14 @@ export function TokenHubDashboard() {
                     {t('veqsBox.currentVeQS')}
                   </span>
                   <span className="text-xs text-gold">
-                    {t('veqsBox.lockEnds')}: {DEMO_STATS.lockEndDate}
+                    {t('veqsBox.lockEnds')}: {stats.lockEndDate}
                   </span>
                 </div>
                 <div className="text-3xl font-bold font-mono text-gold mb-1">
-                  {DEMO_STATS.veQSBalance.toLocaleString()} veQS
+                  {stats.veQSBalance.toLocaleString()} veQS
                 </div>
                 <div className="text-sm text-foreground-secondary">
-                  = {DEMO_STATS.lockedQS.toLocaleString()} QS × {DEMO_STATS.multiplier} ({t('veqsBox.remaining')})
+                  = {stats.lockedQS.toLocaleString()} QS × {stats.multiplier} ({t('veqsBox.remaining')})
                 </div>
               </div>
 
@@ -351,19 +349,19 @@ export function TokenHubDashboard() {
               <div className="grid grid-cols-2 gap-3 mb-6">
                 <div className="bg-background-secondary rounded-lg p-4">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockInfo.lockedAmount')}</div>
-                  <div className="text-base font-semibold font-mono">{DEMO_STATS.lockedQS.toLocaleString()} QS</div>
+                  <div className="text-base font-semibold font-mono">{stats.lockedQS.toLocaleString()} QS</div>
                 </div>
                 <div className="bg-background-secondary rounded-lg p-4">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockInfo.lockDuration')}</div>
-                  <div className="text-base font-semibold font-mono">{DEMO_STATS.lockDuration}</div>
+                  <div className="text-base font-semibold font-mono">{stats.lockDuration}</div>
                 </div>
                 <div className="bg-background-secondary rounded-lg p-4">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockInfo.timeRemaining')}</div>
-                  <div className="text-base font-semibold font-mono">{DEMO_STATS.timeRemaining}</div>
+                  <div className="text-base font-semibold font-mono">{stats.timeRemaining}</div>
                 </div>
                 <div className="bg-background-secondary rounded-lg p-4">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockInfo.multiplier')}</div>
-                  <div className="text-base font-semibold font-mono">{DEMO_STATS.multiplier}x</div>
+                  <div className="text-base font-semibold font-mono">{stats.multiplier}x</div>
                 </div>
               </div>
 
@@ -417,7 +415,7 @@ export function TokenHubDashboard() {
               </div>
               <div className="p-6">
                 <ul className="divide-y divide-border" role="list" aria-label={t('delegations.ariaLabel')}>
-                  {DEMO_DELEGATIONS.map((delegation) => (
+                  {delegations.map((delegation) => (
                     <li key={delegation.id}>
                       <button
                         onClick={() => handleNavigate('/token-hub/delegate')}
@@ -460,17 +458,17 @@ export function TokenHubDashboard() {
                     <button
                       onClick={() => handleNavigate('/token-hub/rewards')}
                       className="text-xs text-success hover:underline flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
-                      aria-label={`${t('rewards.claimButton')} ${DEMO_REWARDS.claimable.toLocaleString()} QS`}
+                      aria-label={`${t('rewards.claimButton')} ${rewards.claimable.toLocaleString()} QS`}
                     >
                       {t('rewards.claimButton')}
                       <ChevronRight className="w-3 h-3" aria-hidden="true" />
                     </button>
                   </div>
                   <div className="text-2xl font-bold font-mono text-success mb-1">
-                    {DEMO_REWARDS.claimable.toLocaleString()} QS
+                    {rewards.claimable.toLocaleString()} QS
                   </div>
                   <div className="text-xs text-foreground-tertiary">
-                    ≈ ${DEMO_REWARDS.usdValue.toLocaleString()} USD
+                    ≈ ${rewards.usdValue.toLocaleString()} USD
                   </div>
                 </div>
 
@@ -478,17 +476,17 @@ export function TokenHubDashboard() {
                 <div className="mt-6">
                   <div className="flex justify-between mb-2">
                     <span className="text-xs text-foreground-tertiary">{t('rewards.epochProgress')}</span>
-                    <span className="text-xs font-mono text-gold">{DEMO_REWARDS.epochProgress}%</span>
+                    <span className="text-xs font-mono text-gold">{rewards.epochProgress}%</span>
                   </div>
                   <div className="h-1.5 bg-background rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-hinomaru to-gold rounded-full transition-all duration-500"
-                      style={{ width: `${DEMO_REWARDS.epochProgress}%` }}
+                      style={{ width: `${rewards.epochProgress}%` }}
                       role="progressbar"
-                      aria-valuenow={DEMO_REWARDS.epochProgress}
+                      aria-valuenow={rewards.epochProgress}
                       aria-valuemin={0}
                       aria-valuemax={100}
-                      aria-label={`${t('rewards.epochProgress')}: ${DEMO_REWARDS.epochProgress}%`}
+                      aria-label={`${t('rewards.epochProgress')}: ${rewards.epochProgress}%`}
                     />
                   </div>
                 </div>

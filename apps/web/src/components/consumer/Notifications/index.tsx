@@ -15,70 +15,30 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useNotifications, useMarkAllNotificationsRead, useMarkNotificationRead } from '@/hooks/consumer';
+import type { Notification } from '@/lib/api/consumer/mock';
 
-type NotificationType =
-  | 'lockComplete'
-  | 'unlockStarted'
-  | 'unlockComplete'
-  | 'emergencyStarted'
-  | 'emergencyComplete'
-  | 'securityAlert'
-  | 'systemUpdate';
+// Notification types
+type NotificationType = 'lockComplete' | 'unlockStarted' | 'unlockComplete' | 'emergencyStarted' | 'emergencyComplete' | 'securityAlert' | 'systemUpdate';
 
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  link?: string;
-}
-
-// Demo notifications
-const DEMO_NOTIFICATIONS: Notification[] = [
+// Fallback data (used when API is unavailable)
+const FALLBACK_NOTIFICATIONS: Notification[] = [
   {
     id: '1',
     type: 'lockComplete',
-    title: 'Lock完了',
-    message: '5.00 ETHのロックが完了しました',
-    timestamp: '2026-01-16 14:32',
+    title: 'Lock Completed',
+    message: '12.5 ETH has been locked successfully',
+    timestamp: '2 hours ago',
     read: false,
-    link: '/consumer/history/1',
   },
   {
     id: '2',
     type: 'unlockStarted',
-    title: 'Unlock開始',
-    message: '2.50 ETHのアンロックを開始しました。24時間後に完了します。',
-    timestamp: '2026-01-15 09:15',
-    read: false,
-    link: '/consumer/history/2',
-  },
-  {
-    id: '3',
-    type: 'securityAlert',
-    title: 'セキュリティアラート',
-    message: '新しいデバイスからのアクセスを検出しました',
-    timestamp: '2026-01-14 22:00',
+    title: 'Unlock Request Started',
+    message: '5.0 ETH unlock request is being processed',
+    timestamp: '1 day ago',
     read: true,
-  },
-  {
-    id: '4',
-    type: 'unlockComplete',
-    title: 'Unlock完了',
-    message: '1.25 ETHがウォレットに送金されました',
-    timestamp: '2026-01-13 18:45',
-    read: true,
-    link: '/consumer/history/4',
-  },
-  {
-    id: '5',
-    type: 'systemUpdate',
-    title: 'システム更新',
-    message: '新機能が追加されました。詳細を確認してください。',
-    timestamp: '2026-01-12 10:00',
-    read: true,
+    link: '/consumer/history',
   },
 ];
 
@@ -119,7 +79,15 @@ const TYPE_CONFIG: Record<
 export function Notifications() {
   const t = useTranslations('consumer.notifications');
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
-  const [notifications, setNotifications] = useState(DEMO_NOTIFICATIONS);
+
+  // Fetch data using hooks
+  const { data: notificationsData } = useNotifications();
+  const markAllReadMutation = useMarkAllNotificationsRead();
+  const markReadMutation = useMarkNotificationRead();
+
+  // Use API data with fallback (local state for optimistic updates)
+  const [localNotifications, setLocalNotifications] = useState<Notification[]>(FALLBACK_NOTIFICATIONS);
+  const notifications = notificationsData?.notifications ?? localNotifications;
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -129,14 +97,16 @@ export function Notifications() {
       : notifications;
 
   const handleMarkAllRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }, []);
+    setLocalNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    markAllReadMutation.mutate();
+  }, [markAllReadMutation]);
 
   const handleMarkRead = useCallback((id: string) => {
-    setNotifications((prev) =>
+    setLocalNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
-  }, []);
+    markReadMutation.mutate(id);
+  }, [markReadMutation]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -162,7 +132,7 @@ export function Notifications() {
             <Link
               href="/consumer/settings"
               className={cn(
-                'w-10 h-10 flex items-center justify-center',
+                'w-11 h-11 flex items-center justify-center',
                 'bg-surface border border-border rounded-qs',
                 'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
                 'transition-all',
@@ -194,7 +164,7 @@ export function Notifications() {
               variant="ghost"
               size="sm"
               onClick={handleMarkAllRead}
-              className="text-sm"
+              className="text-sm min-h-[44px]"
             >
               <Check className="w-4 h-4 mr-1" />
               {t('header.markAllRead')}
@@ -214,7 +184,7 @@ export function Notifications() {
             aria-controls="notification-list"
             onClick={() => setActiveTab('all')}
             className={cn(
-              'px-4 py-2 text-sm font-medium rounded-full transition-all',
+              'px-4 py-2 min-h-[44px] text-sm font-medium rounded-full transition-all',
               activeTab === 'all'
                 ? 'bg-hinomaru/10 border-2 border-hinomaru text-hinomaru'
                 : 'bg-surface border border-border text-foreground-secondary hover:border-border-emphasis'
@@ -228,7 +198,7 @@ export function Notifications() {
             aria-controls="notification-list"
             onClick={() => setActiveTab('unread')}
             className={cn(
-              'px-4 py-2 text-sm font-medium rounded-full transition-all',
+              'px-4 py-2 min-h-[44px] text-sm font-medium rounded-full transition-all',
               activeTab === 'unread'
                 ? 'bg-hinomaru/10 border-2 border-hinomaru text-hinomaru'
                 : 'bg-surface border border-border text-foreground-secondary hover:border-border-emphasis'

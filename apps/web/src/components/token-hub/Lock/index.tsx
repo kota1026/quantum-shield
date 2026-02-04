@@ -16,6 +16,7 @@ import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { HelpTooltip } from './HelpTooltip';
 import { FormulaTooltip } from './FormulaTooltip';
 import { Link } from '@/i18n/navigation';
+import { useBalance } from '@/hooks/token-hub/useTokenHub';
 
 // Lock duration options
 const DURATION_OPTIONS = [
@@ -28,8 +29,8 @@ const DURATION_OPTIONS = [
 // Quick amount percentages
 const QUICK_AMOUNTS = [25, 50, 75, 100];
 
-// Demo balance - In production, this would come from wallet/API
-const DEMO_BALANCE = 12450;
+// Fallback balance (used when API is unavailable)
+const FALLBACK_BALANCE = 125000;
 
 // Step type
 type Step = 1 | 2 | 3;
@@ -38,6 +39,10 @@ export function TokenHubLock() {
   const t = useTranslations('token-hub.lock');
   const tCommon = useTranslations('token-hub.common');
   const router = useRouter();
+
+  // Fetch balance from API with fallback
+  const { data: balanceApi } = useBalance();
+  const balance = balanceApi ?? FALLBACK_BALANCE;
 
   // Form state
   const [amount, setAmount] = useState<string>('');
@@ -65,10 +70,10 @@ export function TokenHubLock() {
       return;
     }
     const numValue = parseInt(value, 10);
-    if (numValue <= DEMO_BALANCE) {
+    if (numValue <= balance) {
       setAmount(numValue.toLocaleString());
       // Check if it matches a quick amount
-      const percent = Math.round((numValue / DEMO_BALANCE) * 100);
+      const percent = Math.round((numValue / balance) * 100);
       if (QUICK_AMOUNTS.includes(percent)) {
         setSelectedQuickAmount(percent);
       } else {
@@ -79,14 +84,14 @@ export function TokenHubLock() {
 
   // Handle quick amount selection
   const handleQuickAmount = useCallback((percent: number) => {
-    const calculatedAmount = Math.floor((DEMO_BALANCE * percent) / 100);
+    const calculatedAmount = Math.floor((balance * percent) / 100);
     setAmount(calculatedAmount.toLocaleString());
     setSelectedQuickAmount(percent);
   }, []);
 
   // Handle max button
   const handleMax = useCallback(() => {
-    setAmount(DEMO_BALANCE.toLocaleString());
+    setAmount(balance.toLocaleString());
     setSelectedQuickAmount(100);
   }, []);
 
@@ -107,7 +112,7 @@ export function TokenHubLock() {
   // Validate form
   const isFormValid = useMemo(() => {
     const numAmount = parseFloat(amount.replace(/,/g, '')) || 0;
-    return numAmount > 0 && numAmount <= DEMO_BALANCE;
+    return numAmount > 0 && numAmount <= balance;
   }, [amount]);
 
   return (
@@ -236,7 +241,7 @@ export function TokenHubLock() {
                 className="flex justify-between items-center mt-2"
               >
                 <span className="text-xs text-foreground-tertiary">
-                  {t('amount.balance')}: {DEMO_BALANCE.toLocaleString()} QS
+                  {t('amount.balance')}: {balance.toLocaleString()} QS
                 </span>
                 <button
                   type="button"

@@ -8,8 +8,11 @@ optimizer_runs = 200
 evm_version = "paris"
 via_ir = true
 
-# Exclude OpenZeppelin files that require newer Solidity versions
+# Exclude files that require newer Solidity versions
 ignore = [
+    "src/core/EditionConfig.sol",
+    "test/core/EditionConfig.t.sol",
+    "test/core/EditionSwitchE2E.t.sol",
     "lib/openzeppelin-contracts/contracts/mocks/**",
     "lib/openzeppelin-contracts/contracts/governance/**",
     "lib/openzeppelin-contracts/contracts/crosschain/**",

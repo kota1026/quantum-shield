@@ -2,15 +2,17 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, AlertTriangle, Zap, Check, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useEmergencyUnlockData, useSubmitEmergencyUnlock } from '@/hooks/consumer';
 
-// Demo data - In production, this would come from route params or context
-const DEMO_UNLOCK_DATA = {
-  amount: '10.00',
+// Fallback data (used when API is unavailable)
+const FALLBACK_UNLOCK_DATA = {
+  lockId: 'lock-1',
+  amount: '12.5',
   symbol: 'ETH',
   waitDays: 7,
 };
@@ -25,11 +27,20 @@ function calculateBond(amount: number): number {
 export function EmergencyBond() {
   const t = useTranslations('consumer.emergencyBond');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const lockId = searchParams.get('lockId') || '';
+
+  // Fetch data using hooks
+  const { data: unlockDataApi } = useEmergencyUnlockData(lockId);
+  const submitEmergencyMutation = useSubmitEmergencyUnlock();
+
+  // Use API data with fallback
+  const unlockData = unlockDataApi ?? FALLBACK_UNLOCK_DATA;
 
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const amount = parseFloat(DEMO_UNLOCK_DATA.amount);
+  const amount = parseFloat(unlockData.amount);
   const bondAmount = calculateBond(amount);
   const percentBond = (amount * 0.05).toFixed(2);
 
@@ -66,7 +77,7 @@ export function EmergencyBond() {
           <Link
             href="/consumer/unlock"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary hover:border-warning hover:text-warning',
               'transition-all'
@@ -114,7 +125,7 @@ export function EmergencyBond() {
                 {t('bondCard.unlockAmount')}
               </span>
               <span className="text-xl font-medium text-warning">
-                {DEMO_UNLOCK_DATA.amount} {DEMO_UNLOCK_DATA.symbol}
+                {unlockData.amount} {unlockData.symbol}
               </span>
             </div>
             <div className="flex justify-between py-2.5">
@@ -122,7 +133,7 @@ export function EmergencyBond() {
                 {t('bondCard.waitTime')}
               </span>
               <span className="text-sm font-medium text-foreground">
-                {t('bondCard.waitDays', { days: DEMO_UNLOCK_DATA.waitDays })}
+                {t('bondCard.waitDays', { days: unlockData.waitDays })}
               </span>
             </div>
           </div>
@@ -137,14 +148,14 @@ export function EmergencyBond() {
               {t('bondCard.formula')}
             </div>
             <div className="font-mono text-sm text-foreground-secondary mb-3">
-              = MAX(0.5 ETH, {DEMO_UNLOCK_DATA.amount} × 5%) = MAX(0.5, {percentBond})
+              = MAX(0.5 ETH, {unlockData.amount} × 5%) = MAX(0.5, {percentBond})
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-foreground">
                 {t('bondCard.requiredBond')}
               </span>
               <span className="text-2xl font-bold text-warning">
-                {bondAmount.toFixed(2)} {DEMO_UNLOCK_DATA.symbol}
+                {bondAmount.toFixed(2)} {unlockData.symbol}
               </span>
             </div>
           </div>
@@ -186,7 +197,7 @@ export function EmergencyBond() {
             aria-describedby="confirm-label"
           />
           <span id="confirm-label" className="text-sm text-foreground-secondary">
-            {t('confirm.label', { amount: bondAmount.toFixed(2), symbol: DEMO_UNLOCK_DATA.symbol })}
+            {t('confirm.label', { amount: bondAmount.toFixed(2), symbol: unlockData.symbol })}
           </span>
         </label>
 
