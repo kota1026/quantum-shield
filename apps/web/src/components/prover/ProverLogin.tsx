@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import {
@@ -14,10 +14,12 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi';
+import { useAccount, useSignMessage } from 'wagmi';
+import { SiweMessage } from 'siwe';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useProverAuthStore } from '@/stores/proverAuthStore';
 
 // Wallet options for display
 const WALLET_OPTIONS = [
@@ -41,7 +43,7 @@ const WALLET_OPTIONS = [
   },
 ];
 
-type RegistrationState = 'checking' | 'registered' | 'not-registered';
+type RegistrationState = 'checking' | 'signing' | 'authenticating' | 'registered' | 'not-registered' | 'error';
 
 export function ProverLogin() {
   const t = useTranslations('prover');
@@ -50,36 +52,77 @@ export function ProverLogin() {
 
   // RainbowKit wallet connection
   const { openConnectModal } = useConnectModal();
-  const { isConnected, isConnecting, address } = useAccount();
+  const { isConnected, isConnecting, address, chainId } = useAccount();
+  const { signMessageAsync } = useSignMessage();
 
-  // Registration check state (would be replaced with real API call)
+  // Auth store
+  const { authenticateSiwe, isAuthenticated, isLoading: isAuthLoading, error: authError, clearError } = useProverAuthStore();
+
+  // Registration check state
   const [registrationState, setRegistrationState] = useState<RegistrationState | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Check registration status when wallet is connected
-  useEffect(() => {
-    if (isConnected && address) {
-      setRegistrationState('checking');
+  // SIWE authentication flow
+  const performSiweAuth = useCallback(async () => {
+    if (!address || !chainId) return;
 
-      // Mock registration check - in production, this would be an API call
-      const checkRegistration = async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        // For demo: assume registered if address ends with even hex digit
-        const lastChar = address.slice(-1).toLowerCase();
-        const isRegistered = '02468ace'.includes(lastChar);
+    try {
+      setRegistrationState('signing');
+      setErrorMessage(null);
 
-        if (isRegistered) {
-          setRegistrationState('registered');
-          setTimeout(() => {
-            router.push('/prover/dashboard');
-          }, 1500);
-        } else {
-          setRegistrationState('not-registered');
-        }
-      };
+      // Create SIWE message
+      const siweMessage = new SiweMessage({
+        domain: window.location.host,
+        address,
+        statement: 'Sign in to Quantum Shield Prover Portal',
+        uri: window.location.origin,
+        version: '1',
+        chainId,
+        nonce: Math.random().toString(36).substring(2, 15),
+        issuedAt: new Date().toISOString(),
+      });
 
-      checkRegistration();
+      const message = siweMessage.prepareMessage();
+
+      // Sign the message
+      const signature = await signMessageAsync({ message });
+
+      setRegistrationState('authenticating');
+
+      // Authenticate with backend
+      await authenticateSiwe(message, signature, address);
+
+      // Authentication successful - check if registered as prover
+      setRegistrationState('registered');
+      setTimeout(() => {
+        router.push('/prover/dashboard');
+      }, 1500);
+    } catch (error) {
+      console.error('SIWE authentication failed:', error);
+      const message = error instanceof Error ? error.message : 'Authentication failed';
+      setErrorMessage(message);
+      setRegistrationState('error');
     }
-  }, [isConnected, address, router]);
+  }, [address, chainId, signMessageAsync, authenticateSiwe, router]);
+
+  // Check authentication status when wallet is connected
+  useEffect(() => {
+    if (isConnected && address && !isAuthenticated && registrationState === null) {
+      setRegistrationState('checking');
+      // Start SIWE auth flow after a brief delay
+      const timer = setTimeout(() => {
+        performSiweAuth();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, address, isAuthenticated, registrationState, performSiweAuth]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/prover/dashboard');
+    }
+  }, [isAuthenticated, router]);
 
   const toggleLocale = () => {
     const newLocale = locale === 'ja' ? 'en' : 'ja';
@@ -94,6 +137,15 @@ export function ProverLogin() {
 
   const resetState = () => {
     setRegistrationState(null);
+    setErrorMessage(null);
+    clearError();
+  };
+
+  const retryAuth = () => {
+    resetState();
+    if (isConnected && address) {
+      performSiweAuth();
+    }
   };
 
   return (
@@ -155,7 +207,7 @@ export function ProverLogin() {
             </Card>
           )}
 
-          {/* Checking Registration */}
+          {/* Checking / Preparing */}
           {isConnected && registrationState === 'checking' && (
             <Card className="p-8 text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 bg-gold/20 rounded-full flex items-center justify-center">
@@ -165,6 +217,53 @@ export function ProverLogin() {
               <p className="text-sm text-foreground-secondary">
                 {t('login.checking.description')}
               </p>
+            </Card>
+          )}
+
+          {/* Signing Message */}
+          {isConnected && registrationState === 'signing' && (
+            <Card className="p-8 text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gold/20 rounded-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-gold animate-spin" aria-hidden="true" />
+              </div>
+              <h2 className="text-lg font-semibold mb-2">{t('login.signing.title')}</h2>
+              <p className="text-sm text-foreground-secondary">
+                {t('login.signing.description')}
+              </p>
+            </Card>
+          )}
+
+          {/* Authenticating */}
+          {isConnected && registrationState === 'authenticating' && (
+            <Card className="p-8 text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gold/20 rounded-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-gold animate-spin" aria-hidden="true" />
+              </div>
+              <h2 className="text-lg font-semibold mb-2">{t('login.authenticating.title')}</h2>
+              <p className="text-sm text-foreground-secondary">
+                {t('login.authenticating.description')}
+              </p>
+            </Card>
+          )}
+
+          {/* Error State */}
+          {isConnected && registrationState === 'error' && (
+            <Card className="p-8 text-center mb-6 border-danger bg-danger/5">
+              <div className="w-16 h-16 mx-auto mb-4 bg-danger/20 rounded-full flex items-center justify-center">
+                <AlertCircle className="h-8 w-8 text-danger" aria-hidden="true" />
+              </div>
+              <h2 className="text-lg font-semibold mb-2 text-danger">{t('login.error.title')}</h2>
+              <p className="text-sm text-foreground-secondary mb-4">
+                {errorMessage || authError || t('login.error.description')}
+              </p>
+              <div className="flex flex-col gap-3">
+                <Button variant="primary" onClick={retryAuth}>
+                  {t('login.error.retryButton')}
+                </Button>
+                <Button variant="outline" onClick={resetState}>
+                  {t('login.notRegistered.tryAnotherWallet')}
+                </Button>
+              </div>
             </Card>
           )}
 

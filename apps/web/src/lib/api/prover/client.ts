@@ -13,6 +13,32 @@ export class ProverApiError extends Error {
   }
 }
 
+// Auth types
+export interface SiweAuthRequest {
+  message: string;
+  signature: string;
+  public_key: string;
+}
+
+export interface SiweAuthResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_at: number;
+  address: string;
+}
+
+export interface RefreshTokenResponse {
+  access_token: string;
+  expires_at: number;
+}
+
+export interface ProverUserInfo {
+  address: string;
+  prover_id?: string;
+  status?: string;
+  created_at: string;
+}
+
 interface RequestConfig extends Omit<RequestInit, 'body'> {
   params?: Record<string, string | number | boolean | undefined>;
   body?: unknown;
@@ -21,6 +47,8 @@ interface RequestConfig extends Omit<RequestInit, 'body'> {
 class ProverApiClient {
   private baseUrl: string;
   private accessToken: string | null = null;
+  private refreshToken: string | null = null;
+  private onUnauthorized: (() => void) | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -28,6 +56,14 @@ class ProverApiClient {
 
   setAccessToken(token: string | null) {
     this.accessToken = token;
+  }
+
+  setRefreshToken(token: string | null) {
+    this.refreshToken = token;
+  }
+
+  setOnUnauthorized(callback: () => void) {
+    this.onUnauthorized = callback;
   }
 
   private buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined>): string {
@@ -66,11 +102,34 @@ class ProverApiClient {
     });
 
     if (!response.ok) {
+      // Handle 401 Unauthorized
+      if (response.status === 401 && this.onUnauthorized) {
+        this.onUnauthorized();
+      }
       const error = await response.json().catch(() => ({ message: 'Request failed' }));
       throw new ProverApiError(response.status, error.message || 'Request failed');
     }
 
     return response.json();
+  }
+
+  // Authentication
+  async authenticateSiwe(data: SiweAuthRequest): Promise<SiweAuthResponse> {
+    return this.request<SiweAuthResponse>('/v1/auth/siwe', {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    return this.request<RefreshTokenResponse>('/v1/auth/refresh', {
+      method: 'POST',
+      body: { refresh_token: refreshToken },
+    });
+  }
+
+  async getCurrentUser(): Promise<ProverUserInfo> {
+    return this.request<ProverUserInfo>('/v1/auth/me');
   }
 
   // Registration
