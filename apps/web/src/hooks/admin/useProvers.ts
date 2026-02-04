@@ -6,8 +6,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api/admin/client';
-import type { ProverListItem, ProverDetail, ProverApplication } from '@/lib/api/admin/types';
-import type { ProverStats, ProverRequestStats } from '@/lib/api/admin/mock';
+import type { ProverListItem, ProverDetail, ProverApplication, ProverStats, ProverRequestStats } from '@/lib/api/admin/types';
 
 // Query keys factory
 export const proverKeys = {

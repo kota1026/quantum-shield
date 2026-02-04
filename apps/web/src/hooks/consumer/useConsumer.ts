@@ -28,7 +28,7 @@ import type {
   KeyInfo,
   EmergencyUnlockData,
   EmergencyResultData,
-} from '@/lib/api/consumer/mock';
+} from '@/lib/api/consumer/types';
 
 // ==================== API BASE ====================
 

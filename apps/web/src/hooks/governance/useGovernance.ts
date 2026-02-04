@@ -6,7 +6,7 @@ import type {
   ProposalSummary,
   CouncilData,
   ActivityItem,
-} from '@/lib/api/governance/mock';
+} from '@/lib/api/governance/types';
 
 // API Base
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';

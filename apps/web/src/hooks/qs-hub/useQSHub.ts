@@ -10,7 +10,7 @@ import type {
   CouncilMember,
   StakeLockPosition,
   VoteRecord,
-} from '@/lib/api/qs-hub/mock';
+} from '@/lib/api/qs-hub/types';
 import {
   MOCK_STATS,
   MOCK_PROPOSALS,
