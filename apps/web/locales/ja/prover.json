@@ -38,10 +38,20 @@
         "title": "接続完了",
         "description": "ダッシュボードに移動します..."
       },
+      "signing": {
+        "title": "署名をお願いします",
+        "description": "ウォレットでログインメッセージに署名してください"
+      },
+      "authenticating": {
+        "title": "認証中...",
+        "description": "サーバーと認証を行っています"
+      },
       "error": {
-        "title": "接続エラー",
+        "title": "認証エラー",
+        "description": "認証に失敗しました。もう一度お試しください。",
         "connectionFailed": "ウォレットとの接続に失敗しました。もう一度お試しください。",
-        "tryAgain": "再試行"
+        "tryAgain": "再試行",
+        "retryButton": "再試行"
       },
       "notRegistered": {
         "title": "未登録のウォレット",

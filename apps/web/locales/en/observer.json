@@ -256,10 +256,20 @@
         "title": "Connected",
         "description": "Redirecting to dashboard..."
       },
+      "signing": {
+        "title": "Please Sign",
+        "description": "Sign the login message in your wallet"
+      },
+      "authenticating": {
+        "title": "Authenticating...",
+        "description": "Verifying your signature with the server"
+      },
       "error": {
-        "title": "Connection Error",
+        "title": "Authentication Error",
+        "description": "Authentication failed. Please try again.",
         "connectionFailed": "Failed to connect to wallet. Please try again.",
-        "tryAgain": "Try Again"
+        "tryAgain": "Try Again",
+        "retryButton": "Retry"
       },
       "notRegistered": {
         "title": "Unregistered Wallet",
