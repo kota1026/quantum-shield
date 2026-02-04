@@ -23,7 +23,7 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProverStats, useProvers } from '@/hooks/explorer';
-import type { ProverStats, ProverSummary } from '@/lib/v1/explorer/mock';
+import type { ProverStats, ProverSummary } from '@/lib/api/explorer/mock';
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_PROVER_STATS: ProverStats = {
