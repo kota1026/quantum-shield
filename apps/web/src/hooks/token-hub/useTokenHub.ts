@@ -15,7 +15,7 @@ import type {
   DelegateInfo,
   ClaimableRewards,
   ExtendedRewardsHistory,
-} from '@/lib/v1/token-hub/types';
+} from '@/lib/api/token-hub/types';
 import {
   MOCK_STATS,
   MOCK_DELEGATIONS,
@@ -31,7 +31,7 @@ import {
   MOCK_DELEGATES,
   MOCK_CLAIMABLE,
   MOCK_EXTENDED_HISTORY,
-} from '@/lib/v1/token-hub/mock';
+} from '@/lib/api/token-hub/mock';
 
 // =============================================================================
 // API Client

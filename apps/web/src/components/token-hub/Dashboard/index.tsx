@@ -29,7 +29,7 @@ import {
   MOCK_STATS,
   MOCK_DELEGATIONS,
   MOCK_DASHBOARD_REWARDS,
-} from '@/lib/v1/token-hub/mock';
+} from '@/lib/api/token-hub/mock';
 
 // Fallback data for when API is unavailable
 const FALLBACK_STATS = MOCK_STATS;

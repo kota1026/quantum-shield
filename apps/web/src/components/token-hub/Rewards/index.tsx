@@ -37,7 +37,7 @@ import {
   MOCK_REWARDS_HISTORY,
   MOCK_REWARDS_BREAKDOWN,
   MOCK_EPOCH,
-} from '@/lib/v1/token-hub/mock';
+} from '@/lib/api/token-hub/mock';
 
 // Fallback data for when API is unavailable
 const FALLBACK_REWARDS = MOCK_REWARDS_SUMMARY;

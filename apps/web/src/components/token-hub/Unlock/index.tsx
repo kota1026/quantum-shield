@@ -18,7 +18,7 @@ import { Card } from '@/components/ui/card';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { Link } from '@/i18n/navigation';
 import { useLockedPositions } from '@/hooks/token-hub/useTokenHub';
-import type { LockedPosition } from '@/lib/v1/token-hub/mock';
+import type { LockedPosition } from '@/lib/api/token-hub/mock';
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_LOCKED_POSITIONS: LockedPosition[] = [

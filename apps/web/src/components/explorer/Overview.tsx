@@ -28,7 +28,7 @@ import {
   useRecentUnlocks,
   useActiveChallenges,
 } from '@/hooks/explorer';
-import type { ExplorerStats, RecentLock, RecentUnlock, ActiveChallenge } from '@/lib/v1/explorer/mock';
+import type { ExplorerStats, RecentLock, RecentUnlock, ActiveChallenge } from '@/lib/api/explorer/mock';
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_STATS: ExplorerStats = {
