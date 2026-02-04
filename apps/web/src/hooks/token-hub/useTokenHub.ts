@@ -15,7 +15,7 @@ import type {
   DelegateInfo,
   ClaimableRewards,
   ExtendedRewardsHistory,
-} from '@/lib/api/token-hub/types';
+} from '@/lib/v1/token-hub/types';
 import {
   MOCK_STATS,
   MOCK_DELEGATIONS,
@@ -31,7 +31,7 @@ import {
   MOCK_DELEGATES,
   MOCK_CLAIMABLE,
   MOCK_EXTENDED_HISTORY,
-} from '@/lib/api/token-hub/mock';
+} from '@/lib/v1/token-hub/mock';
 
 // =============================================================================
 // API Client
@@ -100,7 +100,7 @@ export function useTokenHubStats() {
     queryKey: tokenHubKeys.stats(),
     queryFn: async () => {
       try {
-        return await fetchApi<TokenHubStats>('/api/token-hub/dashboard');
+        return await fetchApi<TokenHubStats>('/v1/token-hub/dashboard');
       } catch {
         // Fallback to mock data in development
         return MOCK_STATS;
@@ -115,7 +115,7 @@ export function useDelegations() {
     queryKey: tokenHubKeys.delegations(),
     queryFn: async () => {
       try {
-        return await fetchApi<Delegation[]>('/api/token-hub/my-delegations');
+        return await fetchApi<Delegation[]>('/v1/token-hub/my-delegations');
       } catch {
         return MOCK_DELEGATIONS;
       }
@@ -129,7 +129,7 @@ export function useDashboardRewards() {
     queryKey: tokenHubKeys.dashboardRewards(),
     queryFn: async () => {
       try {
-        return await fetchApi<DashboardRewards>('/api/token-hub/rewards/summary');
+        return await fetchApi<DashboardRewards>('/v1/token-hub/rewards/summary');
       } catch {
         return MOCK_DASHBOARD_REWARDS;
       }
@@ -147,7 +147,7 @@ export function useRewardsSummary() {
     queryKey: tokenHubKeys.rewardsSummary(),
     queryFn: async () => {
       try {
-        return await fetchApi<RewardsSummary>('/api/token-hub/rewards');
+        return await fetchApi<RewardsSummary>('/v1/token-hub/rewards');
       } catch {
         return MOCK_REWARDS_SUMMARY;
       }
@@ -161,7 +161,7 @@ export function useRewardsHistory() {
     queryKey: tokenHubKeys.rewardsHistory(),
     queryFn: async () => {
       try {
-        return await fetchApi<RewardsHistory[]>('/api/token-hub/rewards/history');
+        return await fetchApi<RewardsHistory[]>('/v1/token-hub/rewards/history');
       } catch {
         return MOCK_REWARDS_HISTORY;
       }
@@ -175,7 +175,7 @@ export function useRewardsBreakdown() {
     queryKey: tokenHubKeys.rewardsBreakdown(),
     queryFn: async () => {
       try {
-        return await fetchApi<RewardsBreakdown>('/api/token-hub/rewards/breakdown');
+        return await fetchApi<RewardsBreakdown>('/v1/token-hub/rewards/breakdown');
       } catch {
         return MOCK_REWARDS_BREAKDOWN;
       }
@@ -189,7 +189,7 @@ export function useEpoch() {
     queryKey: tokenHubKeys.epoch(),
     queryFn: async () => {
       try {
-        return await fetchApi<EpochInfo>('/api/token-hub/epoch');
+        return await fetchApi<EpochInfo>('/v1/token-hub/epoch');
       } catch {
         return MOCK_EPOCH;
       }
@@ -207,7 +207,7 @@ export function useLocks() {
     queryKey: tokenHubKeys.locks(),
     queryFn: async () => {
       try {
-        return await fetchApi<Lock[]>('/api/token-hub/locks');
+        return await fetchApi<Lock[]>('/v1/token-hub/locks');
       } catch {
         return MOCK_LOCKS;
       }
@@ -225,7 +225,7 @@ export function useBalance() {
     queryKey: tokenHubKeys.balance(),
     queryFn: async () => {
       try {
-        const data = await fetchApi<{ balance: number }>('/api/token-hub/balance');
+        const data = await fetchApi<{ balance: number }>('/v1/token-hub/balance');
         return data.balance;
       } catch {
         return MOCK_BALANCE;
@@ -244,7 +244,7 @@ export function useLockedPositions() {
     queryKey: tokenHubKeys.lockedPositions(),
     queryFn: async () => {
       try {
-        return await fetchApi<LockedPosition[]>('/api/token-hub/locked-positions');
+        return await fetchApi<LockedPosition[]>('/v1/token-hub/locked-positions');
       } catch {
         return MOCK_LOCKED_POSITIONS;
       }
@@ -262,7 +262,7 @@ export function useUserDelegation() {
     queryKey: tokenHubKeys.userDelegation(),
     queryFn: async () => {
       try {
-        return await fetchApi<UserDelegation>('/api/token-hub/user-delegation');
+        return await fetchApi<UserDelegation>('/v1/token-hub/user-delegation');
       } catch {
         return MOCK_USER_DELEGATION;
       }
@@ -276,7 +276,7 @@ export function useDelegateList() {
     queryKey: tokenHubKeys.delegates(),
     queryFn: async () => {
       try {
-        return await fetchApi<DelegateInfo[]>('/api/token-hub/delegates');
+        return await fetchApi<DelegateInfo[]>('/v1/token-hub/delegates');
       } catch {
         return MOCK_DELEGATES;
       }
@@ -294,7 +294,7 @@ export function useClaimableRewards() {
     queryKey: tokenHubKeys.claimable(),
     queryFn: async () => {
       try {
-        return await fetchApi<ClaimableRewards>('/api/token-hub/rewards/claimable');
+        return await fetchApi<ClaimableRewards>('/v1/token-hub/rewards/claimable');
       } catch {
         return MOCK_CLAIMABLE;
       }
@@ -308,7 +308,7 @@ export function useExtendedRewardsHistory() {
     queryKey: tokenHubKeys.extendedHistory(),
     queryFn: async () => {
       try {
-        return await fetchApi<ExtendedRewardsHistory[]>('/api/token-hub/rewards/history/extended');
+        return await fetchApi<ExtendedRewardsHistory[]>('/v1/token-hub/rewards/history/extended');
       } catch {
         return MOCK_EXTENDED_HISTORY;
       }
@@ -331,7 +331,7 @@ export function useCreateLock() {
 
   return useMutation({
     mutationFn: async (params: CreateLockParams) => {
-      return postApi<Lock>('/api/token-hub/locks', params);
+      return postApi<Lock>('/v1/token-hub/locks', params);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tokenHubKeys.locks() });
@@ -350,7 +350,7 @@ export function useExtendLock() {
 
   return useMutation({
     mutationFn: async (params: ExtendLockParams) => {
-      return postApi<Lock>(`/api/token-hub/locks/${params.lockId}/extend`, {
+      return postApi<Lock>(`/v1/token-hub/locks/${params.lockId}/extend`, {
         additionalDuration: params.additionalDuration,
       });
     },
@@ -371,7 +371,7 @@ export function useDelegatePower() {
 
   return useMutation({
     mutationFn: async (params: DelegatePowerParams) => {
-      return postApi<Delegation>('/api/token-hub/delegate', params);
+      return postApi<Delegation>('/v1/token-hub/delegate', params);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tokenHubKeys.delegations() });
@@ -385,7 +385,7 @@ export function useClaimRewards() {
 
   return useMutation({
     mutationFn: async () => {
-      return postApi<{ claimed: number }>('/api/token-hub/rewards/claim');
+      return postApi<{ claimed: number }>('/v1/token-hub/rewards/claim');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tokenHubKeys.rewardsSummary() });

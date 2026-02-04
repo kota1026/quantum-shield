@@ -24,7 +24,7 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChallengeStats, useChallenges } from '@/hooks/explorer';
-import type { ChallengeStats, ChallengeDetail } from '@/lib/api/explorer/mock';
+import type { ChallengeStats, ChallengeDetail } from '@/lib/v1/explorer/mock';
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_CHALLENGE_STATS: ChallengeStats = {

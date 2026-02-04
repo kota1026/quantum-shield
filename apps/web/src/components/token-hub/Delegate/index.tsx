@@ -21,7 +21,7 @@ import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { DelegateTooltip, ParticipationTooltip } from './DelegateTooltip';
 import { useUserDelegation, useDelegateList } from '@/hooks/token-hub/useTokenHub';
-import type { DelegateInfo } from '@/lib/api/token-hub/mock';
+import type { DelegateInfo } from '@/lib/v1/token-hub/mock';
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_USER_DELEGATION = {
