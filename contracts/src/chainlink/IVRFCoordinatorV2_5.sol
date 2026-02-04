@@ -72,8 +72,11 @@ interface IVRFCoordinatorV2_5 {
     /// @return pending True if pending request exists
     function pendingRequestExists(uint256 subId, address consumer) external view returns (bool pending);
 
-    /// @notice Get the current block number
-    /// @return blockNumber The current block number
+    /// @notice Get the request configuration
+    /// @return minimumRequestConfirmations The minimum request confirmations
+    /// @return maxGasLimit The max gas limit
+    /// @return stalenessSeconds The staleness in seconds
+    /// @return gasAfterPaymentCalculation Gas after payment calculation
     function getRequestConfig()
         external
         view

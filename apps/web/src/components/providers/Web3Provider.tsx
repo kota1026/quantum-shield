@@ -2,39 +2,20 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider, State } from 'wagmi';
-import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
-import { config } from '@/lib/wagmi';
-import '@rainbow-me/rainbowkit/styles.css';
 
 interface Web3ProviderProps {
   children: ReactNode;
-  initialState?: State;
 }
-
-// Custom theme matching Quantum Shield design
-const quantumShieldTheme = darkTheme({
-  accentColor: '#BC002D', // hinomaru
-  accentColorForeground: '#FAFAFA',
-  borderRadius: 'medium',
-  fontStack: 'system',
-  overlayBlur: 'small',
-});
 
 // Create query client outside of component to prevent recreation
 const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
       queries: {
-        // Disable retries to prevent error spam
         retry: false,
-        // Don't refetch on window focus
         refetchOnWindowFocus: false,
-        // Longer stale time for mock data
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        // Prevent immediate garbage collection
-        gcTime: 1000 * 60 * 10, // 10 minutes
-        // Don't throw errors to UI
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
         throwOnError: false,
       },
       mutations: {
@@ -44,25 +25,66 @@ const createQueryClient = () =>
     },
   });
 
-export function Web3Provider({ children, initialState }: Web3ProviderProps) {
+export function Web3Provider({ children }: Web3ProviderProps) {
   const [queryClient] = useState(createQueryClient);
+  const [Web3Components, setWeb3Components] = useState<{
+    WagmiProvider: React.ComponentType<{ config: unknown; reconnectOnMount: boolean; children: ReactNode }>;
+    RainbowKitProvider: React.ComponentType<{ theme: unknown; modalSize: string; coolMode: boolean; children: ReactNode }>;
+    config: unknown;
+    theme: unknown;
+  } | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    // Dynamically import wagmi and rainbowkit on client side only
+    Promise.all([
+      import('wagmi'),
+      import('@rainbow-me/rainbowkit'),
+      import('@/lib/wagmi'),
+    ]).then(([wagmi, rainbowkit, wagmiConfig]) => {
+      // Import CSS on client side
+      // @ts-expect-error CSS modules don't have type declarations
+      import('@rainbow-me/rainbowkit/styles.css');
+
+      const theme = rainbowkit.darkTheme({
+        accentColor: '#BC002D',
+        accentColorForeground: '#FAFAFA',
+        borderRadius: 'medium',
+        fontStack: 'system',
+        overlayBlur: 'small',
+      });
+
+      setWeb3Components({
+        WagmiProvider: wagmi.WagmiProvider as unknown as typeof Web3Components extends null ? never : NonNullable<typeof Web3Components>['WagmiProvider'],
+        RainbowKitProvider: rainbowkit.RainbowKitProvider as unknown as typeof Web3Components extends null ? never : NonNullable<typeof Web3Components>['RainbowKitProvider'],
+        config: wagmiConfig.config,
+        theme,
+      });
+    });
 
     // Suppress connection errors in development
     if (process.env.NODE_ENV !== 'production') {
       const originalError = console.error;
       console.error = (...args) => {
         const message = args[0]?.toString() || '';
-        // Suppress known Wagmi/WebSocket connection errors
+        // Suppress WalletConnect/Reown connection errors in development
         if (
           message.includes('Connection interrupted') ||
           message.includes('WebSocket') ||
           message.includes('subscription') ||
-          message.includes('watchBlockNumber')
+          message.includes('watchBlockNumber') ||
+          message.includes('WalletConnect') ||
+          message.includes('walletconnect') ||
+          message.includes('projectId') ||
+          message.includes('Reown') ||
+          message.includes('appkit') ||
+          message.includes('web3modal') ||
+          message.includes('Failed to fetch remote')
         ) {
+          // Log as debug instead of error for development visibility
+          console.debug('[Suppressed WalletConnect error]', ...args);
           return;
         }
         originalError.apply(console, args);
@@ -74,20 +96,26 @@ export function Web3Provider({ children, initialState }: Web3ProviderProps) {
     }
   }, []);
 
-  // Render children during SSR but without web3 providers to prevent hydration mismatch
-  if (!mounted) {
+  // Show loading state before mount and while loading components
+  // Don't render children until WagmiProvider is available to prevent hook errors
+  if (!mounted || !Web3Components) {
     return (
-      <div className="min-h-screen bg-background">
-        {children}
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        </div>
       </div>
     );
   }
 
+  const { WagmiProvider, RainbowKitProvider, config, theme } = Web3Components;
+
   return (
-    <WagmiProvider config={config} initialState={initialState} reconnectOnMount={false}>
+    <WagmiProvider config={config} reconnectOnMount={false}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          theme={quantumShieldTheme}
+          theme={theme}
           modalSize="compact"
           coolMode
         >

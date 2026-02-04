@@ -22,11 +22,31 @@ import {
 import { cn } from '@/lib/utils';
 import { SettingsSection } from './SettingsSection';
 import { SettingsItem } from './SettingsItem';
+import { useUserSettingsV2, useUpdateUserSettings } from '@/hooks/consumer';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_WALLET_ADDRESS = '0x7a3f...9c2d';
-const DEMO_AUTO_LOCK_MINUTES = 5;
-const DEMO_CURRENCY = 'JPY (¥)';
+// Type definition for user settings
+interface UserSettings {
+  walletAddress: string;
+  pushNotifications: boolean;
+  emailNotifications: boolean;
+  darkMode: boolean;
+  biometricAuth: boolean;
+  currency: string;
+  autoLockMinutes: number;
+  locale: string;
+}
+
+// Fallback data (used when API is unavailable)
+const FALLBACK_SETTINGS: UserSettings = {
+  walletAddress: '0x1234...5678',
+  pushNotifications: true,
+  emailNotifications: false,
+  darkMode: true,
+  biometricAuth: false,
+  currency: 'JPY (¥)',
+  autoLockMinutes: 5,
+  locale: 'ja',
+};
 const VERSION = '1.0.0';
 const BUILD = '2026.01.06';
 
@@ -36,13 +56,28 @@ export function Settings() {
   const pathname = usePathname();
   const locale = useLocale();
 
-  // Toggle states
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
-  const [biometricAuth, setBiometricAuth] = useState(true);
-  const [currency, setCurrency] = useState('JPY (¥)');
-  const [autoLockMinutes, setAutoLockMinutes] = useState(5);
+  // Fetch user settings using new API hooks
+  const { data: settingsData } = useUserSettingsV2();
+
+  // Transform API data to component format
+  const settings: UserSettings = settingsData ? {
+    walletAddress: settingsData.address,
+    pushNotifications: true, // TODO: Add to API
+    emailNotifications: settingsData.notifications?.emailEnabled ?? false,
+    darkMode: true, // TODO: Add to API
+    biometricAuth: settingsData.twoFactorEnabled ?? false,
+    currency: 'JPY (¥)', // TODO: Add to API
+    autoLockMinutes: 5, // TODO: Add to API
+    locale: settingsData.language || 'ja',
+  } : FALLBACK_SETTINGS;
+
+  // Toggle states (initialized from API data)
+  const [pushNotifications, setPushNotifications] = useState(settings.pushNotifications ?? true);
+  const [emailNotifications, setEmailNotifications] = useState(settings.emailNotifications ?? false);
+  const [darkMode, setDarkMode] = useState(settings.darkMode ?? true);
+  const [biometricAuth, setBiometricAuth] = useState(settings.biometricAuth ?? true);
+  const [currency, setCurrency] = useState(settings.currency ?? 'JPY (¥)');
+  const [autoLockMinutes, setAutoLockMinutes] = useState(settings.autoLockMinutes ?? 5);
 
   // Navigation handlers
   const handleKeyManagement = useCallback(() => {
@@ -117,7 +152,7 @@ export function Settings() {
           <Link
             href="/consumer/dashboard"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
               'transition-all'
@@ -145,7 +180,7 @@ export function Settings() {
             description={t('account.connectedWallet.description')}
             action={{
               type: 'value',
-              value: DEMO_WALLET_ADDRESS,
+              value: settings.walletAddress,
               onClick: handleConnectedWallet,
             }}
           />

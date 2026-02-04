@@ -269,7 +269,7 @@ export function DelegateProfile({ delegateId }: DelegateProfileProps) {
               {/* Action Buttons */}
               <div className="flex flex-col gap-3">
                 <Button
-                  variant="gold"
+                  variant="secondary"
                   size="lg"
                   onClick={handleDone}
                   className="w-full"
@@ -471,7 +471,7 @@ export function DelegateProfile({ delegateId }: DelegateProfileProps) {
                 </div>
 
                 <Button
-                  variant="gold"
+                  variant="secondary"
                   size="lg"
                   onClick={handleDelegate}
                   disabled={!delegateAmount || isDelegating}

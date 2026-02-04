@@ -116,7 +116,7 @@ abstract contract VRFConsumerBaseV2Plus {
     ) internal returns (uint256 requestId) {
         // Encode native payment flag in extraArgs
         // Format: 0x01 for native, 0x00 for LINK
-        bytes memory extraArgs = nativePayment ? abi.encodePacked(uint8(1)) : "";
+        bytes memory extraArgs = nativePayment ? abi.encodePacked(uint8(1)) : bytes("");
 
         requestId = s_vrfCoordinator.requestRandomWords(
             keyHash,

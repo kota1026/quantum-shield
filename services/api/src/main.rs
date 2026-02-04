@@ -24,6 +24,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod config;
 pub mod crypto;
+pub mod db;
 mod error;
 mod middleware;
 mod routes;
@@ -59,8 +60,8 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         // V1 API routes (Lock/Unlock/Status/Prover/Edition)
         .nest("/v1", routes::api_routes())
-        // TODO: V1 Auth routes (TASK-P5-012: SIWE→JWT) - to be implemented
-        // .nest("/v1", routes::auth_routes(state.clone()))
+        // V1 Auth routes (TASK-P5-012: SIWE→JWT)
+        .nest("/v1", routes::auth_routes(state.clone()))
         // Admin Dashboard API routes
         .nest("/api", routes::admin_routes())
         .layer(Extension(state))
@@ -73,7 +74,7 @@ async fn main() -> anyhow::Result<()> {
         .expect("Invalid server address");
 
     tracing::info!("Listening on {}", addr);
-    // tracing::info!("Auth API available at /v1/auth/*"); // TASK-P5-012: Not yet implemented
+    tracing::info!("Auth API available at /v1/auth/*");
     tracing::info!("Admin Dashboard API available at /api/*");
 
     let listener = tokio::net::TcpListener::bind(addr).await?;

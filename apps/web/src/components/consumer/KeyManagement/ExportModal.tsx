@@ -4,18 +4,46 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUserKeys } from '@/hooks/consumer';
+
+// Type definition for key info
+interface KeyInfo {
+  publicKey: string;
+  secretKey: string;
+  algorithm: string;
+  createdAt: string;
+  lastBackup: string;
+}
 
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Demo secret key - In production this would be retrieved securely
-const DEMO_SECRET_KEY =
-  '5f8c2a3b7d9e1f4a6c0b8d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4...';
+// Fallback data (used when API is unavailable)
+const FALLBACK_KEY_INFO: KeyInfo = {
+  publicKey: 'ml-dsa-65-pub-xxx...',
+  secretKey: '',
+  algorithm: 'ML-DSA-65',
+  createdAt: '2026-01-01',
+  lastBackup: '2026-01-15',
+};
 
 export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   const t = useTranslations('consumer.keyManagement.exportModal');
+
+  // Fetch data using new API hooks
+  const { data: keysData } = useUserKeys();
+
+  // Transform API data to component format
+  const keyInfo: KeyInfo = keysData ? {
+    publicKey: keysData.dilithiumPublicKey || '',
+    secretKey: '', // Not exposed via API for security
+    algorithm: keysData.algorithm?.name || 'ML-DSA-65',
+    createdAt: keysData.registeredAt ? new Date(keysData.registeredAt * 1000).toLocaleDateString('ja-JP') : '',
+    lastBackup: '', // TODO: Add to API
+  } : FALLBACK_KEY_INFO;
+
   const [confirmed, setConfirmed] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
@@ -115,7 +143,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
               )}
               aria-label={revealed ? t('secretKeyRevealed') : t('secretKeyHidden')}
             >
-              {DEMO_SECRET_KEY}
+              {keyInfo.secretKey}
             </div>
           </div>
 

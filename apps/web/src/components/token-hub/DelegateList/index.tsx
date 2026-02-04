@@ -24,11 +24,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useUserDelegation } from '@/hooks/token-hub/useTokenHub';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_USER_DELEGATION = {
-  totalDelegated: 6225,
-  delegateCount: 3,
+// Fallback data (used when API is unavailable)
+const FALLBACK_USER_DELEGATION = {
+  totalDelegated: 25000,
+  delegateCount: 2,
 };
 
 interface Delegate {
@@ -46,7 +47,8 @@ interface Delegate {
   lastVoteDays: number;
 }
 
-const DEMO_DELEGATES: Delegate[] = [
+// Fallback delegate data - In production, this comes from API
+const FALLBACK_DELEGATES: Delegate[] = [
   {
     id: '1',
     nameKey: 'watanabe',
@@ -244,6 +246,10 @@ export function TokenHubDelegateList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
+  // Fetch user delegation from API with fallback
+  const { data: userDelegationApi } = useUserDelegation();
+  const userDelegation = userDelegationApi ?? FALLBACK_USER_DELEGATION;
+
   const filters: { key: FilterType; label: string }[] = [
     { key: 'all', label: t('filters.all') },
     { key: 'top10', label: t('filters.top10') },
@@ -252,7 +258,7 @@ export function TokenHubDelegateList() {
   ];
 
   const filteredDelegates = useMemo(() => {
-    let result = [...DEMO_DELEGATES];
+    let result = [...FALLBACK_DELEGATES];
 
     // Apply search filter
     if (searchQuery) {
@@ -285,10 +291,10 @@ export function TokenHubDelegateList() {
   // Calculate total stats
   const totalStats = useMemo(() => {
     return {
-      totalVeQS: DEMO_DELEGATES.reduce((acc, d) => acc + d.veQSNum, 0),
-      totalDelegators: DEMO_DELEGATES.reduce((acc, d) => acc + d.delegators, 0),
+      totalVeQS: FALLBACK_DELEGATES.reduce((acc, d) => acc + d.veQSNum, 0),
+      totalDelegators: FALLBACK_DELEGATES.reduce((acc, d) => acc + d.delegators, 0),
       avgParticipation: Math.round(
-        DEMO_DELEGATES.reduce((acc, d) => acc + d.participation, 0) / DEMO_DELEGATES.length
+        FALLBACK_DELEGATES.reduce((acc, d) => acc + d.participation, 0) / FALLBACK_DELEGATES.length
       ),
     };
   }, []);
@@ -336,10 +342,10 @@ export function TokenHubDelegateList() {
             <div>
               <div className="text-sm text-foreground-secondary">{t('myDelegation.label')}</div>
               <div className="text-2xl font-bold font-mono text-gold">
-                {DEMO_USER_DELEGATION.totalDelegated.toLocaleString()}
+                {userDelegation.totalDelegated.toLocaleString()}
               </div>
               <div className="text-xs text-foreground-tertiary">
-                {t('myDelegation.delegateCount', { count: DEMO_USER_DELEGATION.delegateCount })}
+                {t('myDelegation.delegateCount', { count: userDelegation.delegateCount })}
               </div>
             </div>
           </div>

@@ -143,7 +143,7 @@ export function Contact() {
           <Link
             href="/consumer/help"
             aria-label={t('header.back')}
-            className="p-2 -ml-2 hover:bg-surface rounded-qs transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center -ml-2 hover:bg-surface rounded-qs transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -171,7 +171,7 @@ export function Contact() {
               </p>
               <Link
                 href="/consumer/faq"
-                className="text-xs text-gold hover:underline inline-flex items-center gap-1"
+                className="text-xs text-gold hover:underline inline-flex items-center gap-1 min-h-[44px] py-2"
               >
                 {t('faq.link')}
                 <ExternalLink className="w-3 h-3" />

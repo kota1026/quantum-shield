@@ -3,8 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Check } from 'lucide-react';
+import { AlertTriangle, Check, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type StepStatus = 'pending' | 'active' | 'complete';
 
@@ -68,13 +74,14 @@ export function EmergencyProcessing() {
   }, [router]);
 
   const stepLabels = [
-    t('steps.verify'),
-    t('steps.sendBond'),
-    t('steps.register'),
-    t('steps.startTimeLock'),
+    { label: t('steps.verify'), tooltip: null },
+    { label: t('steps.sendBond'), tooltip: t('steps.sendBondTooltip') },
+    { label: t('steps.register'), tooltip: null },
+    { label: t('steps.startTimeLock'), tooltip: t('steps.startTimeLockTooltip') },
   ];
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-background flex items-center justify-center">
       {/* Premium Background Effect */}
       <div
@@ -160,13 +167,25 @@ export function EmergencyProcessing() {
               </div>
               <span
                 className={cn(
-                  'text-sm flex-1',
+                  'text-sm flex-1 flex items-center gap-1',
                   step.status === 'pending' && 'text-foreground-tertiary',
                   step.status === 'active' && 'text-foreground font-medium',
                   step.status === 'complete' && 'text-success'
                 )}
               >
-                {stepLabels[index]}
+                {stepLabels[index].label}
+                {stepLabels[index].tooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="p-1 -m-1 rounded hover:bg-surface-secondary transition-colors" aria-label={t('steps.tooltipAriaLabel')}>
+                        <HelpCircle className="h-3 w-3 text-foreground-tertiary" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{stepLabels[index].tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </span>
             </div>
           ))}
@@ -178,6 +197,7 @@ export function EmergencyProcessing() {
         </p>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
 

@@ -3,8 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Check, Unlock } from 'lucide-react';
+import { Check, Unlock, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type StepStatus = 'pending' | 'active' | 'complete';
 
@@ -58,13 +64,14 @@ export function UnlockProcessing() {
   }, [router]);
 
   const stepLabels = [
-    t('steps.sign'),
-    t('steps.verify'),
-    t('steps.broadcast'),
-    t('steps.confirm'),
+    { label: t('steps.sign'), tooltip: t('steps.signTooltip') },
+    { label: t('steps.verify'), tooltip: t('steps.verifyTooltip') },
+    { label: t('steps.broadcast'), tooltip: null },
+    { label: t('steps.confirm'), tooltip: null },
   ];
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-gold/15 to-transparent" />
@@ -108,24 +115,37 @@ export function UnlockProcessing() {
               </div>
               <span
                 className={cn(
-                  'flex-1 text-sm',
+                  'flex-1 text-sm flex items-center gap-1',
                   step.status === 'pending' && 'text-foreground-tertiary',
                   step.status === 'active' && 'text-foreground font-medium',
                   step.status === 'complete' && 'text-success'
                 )}
               >
-                {stepLabels[index]}
+                {stepLabels[index].label}
+                {stepLabels[index].tooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-3 rounded hover:bg-surface-secondary/50 transition-colors" aria-label={t('steps.tooltipAriaLabel')}>
+                        <HelpCircle className="h-3 w-3 text-foreground-tertiary" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{stepLabels[index].tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </span>
             </div>
           ))}
         </div>
 
         {showTxHash && (
-          <p className="text-xs text-foreground-secondary font-mono">
-            TX: <a href="https://sepolia.etherscan.io/tx/0x8b4e...1d3f" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">0x8b4e...1d3f</a>
+          <p className="text-xs text-foreground-secondary font-mono flex items-center justify-center gap-1">
+            TX: <a href="https://sepolia.etherscan.io/tx/0x8b4e...1d3f" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline min-h-[44px] inline-flex items-center px-2">0x8b4e...1d3f</a>
           </p>
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 }

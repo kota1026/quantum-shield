@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { Check, Lock } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Check, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type StepStatus = 'pending' | 'active' | 'complete';
 
@@ -16,9 +22,28 @@ interface Step {
 const TOTAL_DURATION = 5000;
 const STEP_INTERVAL = 1250;
 
+// Mock tx hash generator (in production, this would come from the actual transaction)
+const generateMockTxHash = () => {
+  const chars = '0123456789abcdef';
+  let hash = '0x';
+  for (let i = 0; i < 8; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)];
+  }
+  hash += '...';
+  for (let i = 0; i < 4; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return hash;
+};
+
 export function LockProcessing() {
   const t = useTranslations('consumer.lockProcessing');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get data from URL params
+  const amount = searchParams.get('amount') || '5.00';
+  const period = searchParams.get('period') || '2';
 
   const [steps, setSteps] = useState<Step[]>([
     { id: 1, status: 'complete' },
@@ -28,6 +53,7 @@ export function LockProcessing() {
   ]);
 
   const [showTxHash, setShowTxHash] = useState(false);
+  const [txHash] = useState(() => generateMockTxHash());
 
   useEffect(() => {
     const timer1 = setTimeout(() => {
@@ -47,7 +73,13 @@ export function LockProcessing() {
     }, STEP_INTERVAL * 2);
 
     const timer3 = setTimeout(() => {
-      router.push('/consumer/lock/success');
+      // Pass data to success page
+      const params = new URLSearchParams({
+        amount,
+        period,
+        txHash,
+      });
+      router.push(`/consumer/lock/success?${params.toString()}`);
     }, TOTAL_DURATION);
 
     return () => {
@@ -55,16 +87,17 @@ export function LockProcessing() {
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
-  }, [router]);
+  }, [router, amount, period, txHash]);
 
   const stepLabels = [
-    t('steps.sign'),
-    t('steps.createTx'),
-    t('steps.broadcast'),
-    t('steps.confirm'),
+    { label: t('steps.sign'), tooltip: t('steps.signTooltip') },
+    { label: t('steps.createTx'), tooltip: null },
+    { label: t('steps.broadcast'), tooltip: null },
+    { label: t('steps.confirm'), tooltip: null },
   ];
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-hinomaru/15 to-transparent" />
@@ -81,7 +114,7 @@ export function LockProcessing() {
         </div>
 
         <h1 className="text-2xl font-bold mb-3">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground mb-8">{t('subtitle')}</p>
+        <p className="text-sm text-foreground-secondary mb-8">{t('subtitle')}</p>
 
         <div className="text-left space-y-2 mb-8">
           {steps.map((step, index) => (
@@ -97,7 +130,7 @@ export function LockProcessing() {
               <div
                 className={cn(
                   'w-7 h-7 flex items-center justify-center rounded-full text-sm',
-                  step.status === 'pending' && 'bg-white/5 text-muted-foreground',
+                  step.status === 'pending' && 'bg-white/5 text-foreground-secondary',
                   step.status === 'active' && 'bg-hinomaru text-white animate-pulse',
                   step.status === 'complete' && 'bg-success text-white'
                 )}
@@ -106,24 +139,37 @@ export function LockProcessing() {
               </div>
               <span
                 className={cn(
-                  'flex-1 text-sm',
-                  step.status === 'pending' && 'text-muted-foreground',
+                  'flex-1 text-sm flex items-center gap-1',
+                  step.status === 'pending' && 'text-foreground-secondary',
                   step.status === 'active' && 'text-foreground font-medium',
                   step.status === 'complete' && 'text-success'
                 )}
               >
-                {stepLabels[index]}
+                {stepLabels[index].label}
+                {stepLabels[index].tooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="min-w-[44px] min-h-[44px] flex items-center justify-center -m-3 rounded hover:bg-surface-secondary/50 transition-colors" aria-label={t('steps.tooltipAriaLabel')}>
+                        <HelpCircle className="h-3 w-3 text-foreground-tertiary" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{stepLabels[index].tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </span>
             </div>
           ))}
         </div>
 
         {showTxHash && (
-          <p className="text-xs text-muted-foreground font-mono">
-            TX: <a href="https://sepolia.etherscan.io/tx/0x7a3f...9c2d" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">0x7a3f...9c2d</a>
+          <p className="text-xs text-foreground-secondary font-mono">
+            TX: <span className="text-gold">{txHash}</span>
           </p>
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 }

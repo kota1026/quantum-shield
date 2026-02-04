@@ -1,0 +1,360 @@
+{
+  "header": {
+    "threat": "Quantum Threat",
+    "howItWorks": "How it Works",
+    "tokenomics": "Tokenomics",
+    "apps": "Apps",
+    "getStarted": "Get Started"
+  },
+  "hero": {
+    "badge": "Quantum-Resistant Technology",
+    "title": "Prepare for the Quantum Computer Threat",
+    "subtitle": "Protect today's crypto assets from tomorrow's quantum computers. NIST-certified quantum-resistant cryptography shields your assets from future threats."
+  },
+  "threat": {
+    "sectionLabel": "The Quantum Threat",
+    "title": "Why Action is Needed Now",
+    "description": "Quantum computers could break the cryptography (ECDSA) used in current blockchains within minutes. And attackers are already taking action today.",
+    "progress": {
+      "title": "Accelerating Quantum Computer Development",
+      "description": "Major tech companies and nations are investing heavily in quantum computing. Practical applications may arrive sooner than expected.",
+      "items": {
+        "0": {
+          "company": "IBM",
+          "achievement": "Announced 1,121-qubit 'Condor' processor",
+          "year": "2023",
+          "source": "IBM Newsroom"
+        },
+        "1": {
+          "company": "Google",
+          "achievement": "Willow: Breakthrough in error correction with 105 qubits",
+          "year": "2024",
+          "source": "Google AI Blog"
+        },
+        "2": {
+          "company": "China",
+          "achievement": "'Jiuzhang 3' demonstrates quantum supremacy",
+          "year": "2023",
+          "source": "Physical Review Letters"
+        },
+        "3": {
+          "company": "Microsoft",
+          "achievement": "Topological qubits for improved stability",
+          "year": "2025",
+          "source": "Microsoft Research"
+        }
+      }
+    },
+    "harvestNow": {
+      "title": "\"Harvest Now, Decrypt Later\" Attack",
+      "description": "Attackers are collecting and storing encrypted data today. Their strategy: decrypt everything at once when quantum computers become practical.",
+      "step1": {
+        "label": "1. Today",
+        "text": "Attackers mass-collect encrypted blockchain data"
+      },
+      "step2": {
+        "label": "2. Years Later",
+        "text": "Quantum computers reach cryptographic-breaking capability"
+      },
+      "step3": {
+        "label": "3. Decrypt",
+        "text": "Extract private keys from stored data, steal assets"
+      }
+    },
+    "experts": {
+      "title": "Expert Perspectives",
+      "quotes": {
+        "0": {
+          "quote": "The 'harvest now, decrypt later' attack is a real threat. Data encrypted today could be decrypted by future quantum computers.",
+          "author": "Dr. Michele Mosca",
+          "title": "Institute for Quantum Computing, University of Waterloo",
+          "source": "Global Risk Institute Report 2023"
+        },
+        "1": {
+          "quote": "NIST officially released post-quantum cryptography standards (ML-DSA, ML-KEM, SLH-DSA) in 2024. Organizations should begin migration planning immediately.",
+          "author": "NIST",
+          "title": "National Institute of Standards and Technology",
+          "source": "Post-Quantum Cryptography Standardization"
+        }
+      }
+    },
+    "probability": {
+      "title": "Probability of Quantum Threat Realization",
+      "timeline": {
+        "0": {
+          "year": "By 2030",
+          "probability": "5-10%",
+          "description": "Limited cryptographic breaking capability"
+        },
+        "1": {
+          "year": "By 2035",
+          "probability": "30-50%",
+          "description": "RSA-2048 breakable"
+        },
+        "2": {
+          "year": "By 2040",
+          "probability": "70%+",
+          "description": "Most current cryptography vulnerable"
+        }
+      },
+      "source": "Source:"
+    }
+  },
+  "solution": {
+    "sectionLabel": "Quantum Shield's Solution",
+    "title": "Protect Assets with Quantum Resistance",
+    "description": "Quantum Shield uses post-quantum cryptographic algorithms certified by NIST (National Institute of Standards and Technology). Your assets are protected by cryptography that even future quantum computers cannot break.",
+    "nist": {
+      "badge": "NIST FIPS 204 Certified",
+      "title": "Dilithium (ML-DSA) Signatures",
+      "description": "A post-quantum digital signature algorithm officially standardized in 2024. The highest security standard required for use in U.S. government agencies."
+    },
+    "features": {
+      "dilithium": {
+        "title": "Quantum-Resistant Signatures",
+        "description": "Dilithium (ML-DSA) signatures provide protection that quantum computers cannot break"
+      },
+      "timelock": {
+        "title": "24-Hour Timelock",
+        "description": "24-hour waiting period after unlock request. Time to detect and respond to unauthorized access"
+      },
+      "monitoring": {
+        "title": "24/7 Monitoring",
+        "description": "Observer network monitors constantly. Detects suspicious operations and submits challenges"
+      }
+    }
+  },
+  "howItWorks": {
+    "sectionLabel": "How It Works",
+    "title": "How it Works",
+    "description": "Protect your ETH from quantum computer threats in 3 steps.",
+    "steps": {
+      "0": {
+        "title": "Generate Quantum-Resistant Keys",
+        "subtitle": "Wallet Authentication",
+        "description": "After authenticating with your wallet (MetaMask, etc.), generate US government-certified quantum-resistant cryptographic keys on your device. Your private key never leaves your device."
+      },
+      "1": {
+        "title": "Lock Your ETH",
+        "subtitle": "Smart Contract Secured",
+        "description": "Deposit your ETH into a smart contract. It's locked and can only be moved with your quantum-resistant signature. Even if your traditional private key is cracked by quantum computers, your assets remain protected."
+      },
+      "2": {
+        "title": "Safely Unlock",
+        "subtitle": "24-Hour Monitoring → Prover Approval",
+        "description": "When you request to unlock, a 24-hour monitoring period begins for fraud prevention. Observers watch for suspicious activity. If clear, authenticated Provers approve the unlock with quantum-resistant signatures, and your ETH is returned."
+      }
+    },
+    "players": {
+      "title": "Ecosystem Players",
+      "description": "Quantum Shield is a decentralized system where economic incentives align all participants.",
+      "incentiveLabel": "Incentive",
+      "user": {
+        "title": "User",
+        "role": "Asset Depositor",
+        "description": "Lock ETH to protect from quantum threats.",
+        "incentive": "Secure asset storage"
+      },
+      "tokenHolder": {
+        "title": "Token Holder",
+        "role": "Protocol Supporter",
+        "description": "Stake QS tokens to earn veQS. Vote on governance proposals to shape the protocol's direction.",
+        "incentive": "Staking rewards (APY) + Voting power"
+      },
+      "prover": {
+        "title": "Prover",
+        "role": "L3 Network Operator",
+        "description": "Operate L3 nodes and participate in BFT consensus. When selected by VRF, approve unlocks with SPHINCS+ signatures.",
+        "incentive": "Consensus rewards + Signing fees"
+      },
+      "observer": {
+        "title": "Observer",
+        "role": "Fraud Monitor",
+        "description": "Monitor all unlock requests 24/7. Detect and challenge fraudulent operations.",
+        "incentive": "Slashing rewards (reward for catching fraud)"
+      },
+      "enterprise": {
+        "title": "Enterprise",
+        "role": "Technology Partner",
+        "description": "For companies wanting to integrate Quantum Shield technology into their services. Dedicated infrastructure or technology licensing available.",
+        "incentive": "Quantum-resistant technology for your services"
+      }
+    },
+    "flow": {
+      "title": "Unlock Flow Details",
+      "step1": "User requests unlock",
+      "step2": "24-hour monitoring period begins",
+      "step3": "Observers monitor for fraud",
+      "step4": "If clear, Prover approves",
+      "step5": "ETH returned to user"
+    },
+    "detailLink": "View Detailed System Specs"
+  },
+  "tokenomics": {
+    "sectionLabel": "Tokenomics",
+    "title": "Why Tokens Are Needed",
+    "description": "Quantum Shield is a decentralized system. For Provers and Observers to voluntarily participate and maintain the system, economic incentives are required. QS tokens pay rewards to each role and align everyone's interests.",
+    "why": {
+      "title": "Token Roles",
+      "items": {
+        "0": {
+          "title": "Prover Rewards",
+          "description": "Consensus rewards for L3 node operation plus signing fees for unlock approvals, paid in QS tokens."
+        },
+        "1": {
+          "title": "Observer Rewards",
+          "description": "Pay slashing rewards to Observers who detect fraud. Incentive for 24/7 monitoring."
+        },
+        "2": {
+          "title": "Governance Voting",
+          "description": "Stake QS to earn veQS. Vote on important protocol decisions."
+        },
+        "3": {
+          "title": "Fraud Prevention",
+          "description": "Provers/Observers must stake QS. Misconduct results in slashing, creating incentive for honest behavior."
+        }
+      }
+    },
+    "token": {
+      "name": "QS Token",
+      "symbol": "QS",
+      "totalSupply": "1,000,000,000 QS",
+      "network": "Ethereum"
+    },
+    "distribution": {
+      "title": "Token Distribution",
+      "items": {
+        "0": {
+          "category": "Community Rewards",
+          "percentage": "40%",
+          "description": "Prover/Observer rewards, airdrops"
+        },
+        "1": {
+          "category": "Team & Advisors",
+          "percentage": "20%",
+          "description": "4-year vesting, 1-year cliff"
+        },
+        "2": {
+          "category": "Ecosystem Development",
+          "percentage": "20%",
+          "description": "Partnerships, grants"
+        },
+        "3": {
+          "category": "Treasury",
+          "percentage": "15%",
+          "description": "Protocol operations, emergency fund"
+        },
+        "4": {
+          "category": "Initial Liquidity",
+          "percentage": "5%",
+          "description": "DEX liquidity provision"
+        }
+      }
+    },
+    "utility": {
+      "title": "Token Utility",
+      "items": {
+        "0": {
+          "title": "Governance Voting",
+          "description": "Vote on protocol decisions with veQS"
+        },
+        "1": {
+          "title": "Staking Rewards",
+          "description": "Earn APY based on lock duration"
+        },
+        "2": {
+          "title": "Fee Discounts",
+          "description": "QS holders get unlock fee discounts"
+        },
+        "3": {
+          "title": "Prover/Observer Participation",
+          "description": "Stake required for network operations"
+        }
+      }
+    }
+  },
+  "apps": {
+    "sectionLabel": "Applications",
+    "title": "Ecosystem Apps",
+    "description": "Choose the app that fits your needs. Each works together to form the Quantum Shield ecosystem.",
+    "learnMore": "Learn More",
+    "list": {
+      "consumer": {
+        "title": "Consumer App",
+        "tagline": "Protect assets with quantum resistance",
+        "description": "Lock ETH and protect from future quantum threats. Simple UI anyone can use."
+      },
+      "qsHub": {
+        "title": "QS Hub",
+        "tagline": "Manage veQS & Participate in Governance",
+        "description": "Manage veQS, participate in governance, and earn rewards in one place. The core of the Quantum Shield ecosystem."
+      },
+      "tokenHub": {
+        "title": "Token Hub",
+        "tagline": "Earn rewards through staking",
+        "description": "Lock QS tokens to earn veQS. Participate in governance voting and reward distribution."
+      },
+      "governance": {
+        "title": "Governance",
+        "tagline": "Shape the protocol's future",
+        "description": "Determine Quantum Shield's direction through proposals and voting. Community-driven governance."
+      },
+      "explorer": {
+        "title": "Explorer",
+        "tagline": "Explore the blockchain",
+        "description": "Visualize all on-chain data including lock/unlock history and Prover activity."
+      },
+      "prover": {
+        "title": "Prover Portal",
+        "tagline": "Support the network",
+        "description": "Operate L3 nodes and participate in BFT consensus. Approve unlocks with SPHINCS+ signatures when selected by VRF and earn rewards."
+      },
+      "observer": {
+        "title": "Observer Portal",
+        "tagline": "Monitor and earn",
+        "description": "Monitor fraudulent unlocks and submit challenges. Earn slashing rewards."
+      },
+      "enterprise": {
+        "title": "Enterprise",
+        "tagline": "Technology Integration",
+        "description": "Integrate Quantum Shield technology into your services. Dedicated infrastructure, technology licensing, and API integration available."
+      }
+    }
+  },
+  "cta": {
+    "title": "Prepare for the Quantum Era",
+    "description": "Protect your assets from \"Harvest Now, Decrypt Later\" attacks. Start preparing for future threats today.",
+    "button": "Get Started Free"
+  },
+  "footer": {
+    "brand": {
+      "description": "Digital asset protection for the quantum computer era. NIST-certified cryptography shields your assets from future threats."
+    },
+    "products": {
+      "title": "Products"
+    },
+    "resources": {
+      "title": "Resources",
+      "whitepaper": "Whitepaper",
+      "blog": "Blog",
+      "github": "GitHub"
+    },
+    "support": {
+      "title": "Support",
+      "faq": "FAQ",
+      "security": "Security",
+      "contact": "Contact"
+    },
+    "copyright": "© 2026 Quantum Shield. All rights reserved.",
+    "legal": {
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "risk": "Risk Disclosure"
+    }
+  },
+  "cookie": {
+    "message": "This site uses cookies.",
+    "details": "Details",
+    "accept": "Accept"
+  }
+}

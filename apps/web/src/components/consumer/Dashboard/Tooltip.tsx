@@ -137,7 +137,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
       {children || (
         <button
           type="button"
-          className="ml-1 text-foreground-tertiary hover:text-foreground-secondary transition-colors"
+          className="ml-1 min-w-[44px] min-h-[44px] -m-3 p-3 flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary transition-colors"
           aria-label="More information"
         >
           <HelpCircle className="w-4 h-4" />

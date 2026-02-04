@@ -6,7 +6,11 @@
         "lock": "Lock",
         "unlock": "Unlock",
         "history": "History",
-        "tokenHub": "Token Hub"
+        "qsHub": "QS Hub",
+        "qsHubDesc": "Token management, governance & voting",
+        "ecosystem": "Ecosystem",
+        "ecosystemLink": "View Ecosystem",
+        "ecosystemLinkDesc": "Learn more on our website"
       },
       "wallet": {
         "connected": "Connected",
@@ -23,6 +27,7 @@
       }
     },
     "dashboard": {
+      "backToLanding": "← Back to Home",
       "meta": {
         "title": "Dashboard | Quantum Shield",
         "description": "Manage and monitor your quantum-resistant assets"
@@ -464,7 +469,8 @@
         "transparency": {
           "title": "Transparency",
           "description": "All transactions are verifiable on-chain. Open-source, audited smart contracts.",
-          "badge": "Open Source"
+          "badge": "Open Source",
+          "tooltip": "Transparency means all transaction history and smart contract code is publicly available and verifiable by anyone. Third-party audits have also been completed."
         }
       },
       "howItWorks": {
@@ -523,6 +529,19 @@
         "details": "Details",
         "accept": "Accept"
       }
+    },
+    "login": {
+      "meta": {
+        "title": "Login | Quantum Shield",
+        "description": "Connect your wallet to login to Quantum Shield"
+      },
+      "backToHome": "Back to Home",
+      "title": "Login to Quantum Shield",
+      "description": "Connect your wallet to start quantum-resistant protection",
+      "connectWallet": "Connect Wallet",
+      "or": "or",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Sign Up"
     },
     "keyManagement": {
       "meta": {
@@ -649,6 +668,11 @@
           "question": "What should I do if I lose my secret key?",
           "answer": "Use the Emergency Unlock feature. Pay a Bond (collateral) and after a 7-day waiting period, you can recover your assets. The Bond is returned if the unlock is legitimate."
         }
+      },
+      "contact": {
+        "title": "Can't find what you're looking for?",
+        "description": "Our support team is here to help. Feel free to reach out.",
+        "button": "Contact Us"
       }
     },
     "security": {
@@ -763,8 +787,11 @@
       "steps": {
         "verify": "Verifying wallet signature",
         "sendBond": "Sending Bond (0.50 ETH)...",
+        "sendBondTooltip": "Bond is collateral that proves the emergency unlock is legitimate. If no challenges are filed during the 7-day waiting period, it will be returned along with your assets.",
         "register": "Registering Emergency Unlock request",
-        "startTimeLock": "Starting 7-day Time Lock"
+        "startTimeLock": "Starting 7-day Time Lock",
+        "startTimeLockTooltip": "Time Lock is a waiting period to prevent fraudulent unlocks. Emergency unlocks require a 7-day waiting period. During this time, Observers can detect fraud.",
+        "tooltipAriaLabel": "Learn more"
       }
     },
     "emergencySuccess": {
@@ -829,6 +856,22 @@
         "lockButton": "Lock with Dilithium Signature",
         "lockButtonAriaLabel": "Lock assets with Dilithium signature"
       },
+      "period": {
+        "label": "Lock Period",
+        "years": {
+          "1": "1 Year",
+          "2": "2 Years",
+          "3": "3 Years",
+          "5": "5 Years"
+        }
+      },
+      "summary": {
+        "title": "Lock Summary",
+        "amount": "Lock Amount",
+        "period": "Lock Period",
+        "unlockDate": "Unlock Date",
+        "fee": "Network Fee"
+      },
       "info": {
         "title": "About Locking",
         "items": {
@@ -851,6 +894,8 @@
         "title": "Confirm Lock",
         "description": "You are about to lock the following amount. Dilithium signature required.",
         "amount": "Lock Amount",
+        "period": "Lock Period",
+        "unlockDate": "Unlock Date",
         "gasFee": "Gas Fee (est.)",
         "note": "* Unlocking requires a 24-hour waiting period",
         "confirm": "Sign and Lock",
@@ -868,17 +913,31 @@
       "subtitle": "Please wait. Do not close this page.",
       "steps": {
         "sign": "Generate Dilithium signature",
+        "signTooltip": "Dilithium is a NIST-approved next-generation digital signature algorithm resistant to quantum computers. Your private key signs the lock request.",
         "createTx": "Create transaction",
         "broadcast": "Broadcasting to blockchain...",
-        "confirm": "Waiting for confirmation"
+        "confirm": "Waiting for confirmation",
+        "tooltipAriaLabel": "Learn more"
       }
     },
     "lockSuccess": {
       "title": "Lock Complete",
       "subtitle": "Your assets are now protected with quantum-resistant security",
       "details": {
+        "title": "Lock Details",
+        "status": "Locked",
+        "lockId": "Lock ID",
         "amount": "Locked Amount",
-        "txHash": "TX Hash"
+        "period": "Lock Period",
+        "unlockDate": "Unlock Date",
+        "copy": "Copy",
+        "copied": "Copied",
+        "periodYears": {
+          "1": "1 Year",
+          "2": "2 Years",
+          "3": "3 Years",
+          "5": "5 Years"
+        }
       },
       "buttons": {
         "viewHistory": "View History",
@@ -890,9 +949,12 @@
       "subtitle": "Please wait. Do not close this page.",
       "steps": {
         "sign": "Generate Dilithium signature",
+        "signTooltip": "Dilithium is a NIST-approved next-generation digital signature algorithm resistant to quantum computers. Your private key signs the unlock request.",
         "verify": "Verify Prover signature",
+        "verifyTooltip": "Provers are independent verifiers who validate unlock requests and provide SPHINCS+ signatures. 2 of 5 are randomly selected.",
         "broadcast": "Broadcasting to blockchain...",
-        "confirm": "Waiting for confirmation"
+        "confirm": "Waiting for confirmation",
+        "tooltipAriaLabel": "Learn more"
       }
     },
     "unlockSuccess": {
