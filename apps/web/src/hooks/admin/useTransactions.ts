@@ -11,8 +11,12 @@ import type {
   UnlockTransaction,
   EmergencyUnlock,
   ChallengeTransaction,
+  TransactionStats,
+  LockStats,
+  UnlockStats,
+  EmergencyStats,
+  ChallengeStats,
 } from '@/lib/api/admin/types';
-import type { TransactionStats, LockStats, UnlockStats, EmergencyStats, ChallengeStats } from '@/lib/api/admin/mock';
 
 // Query keys factory
 export const transactionKeys = {

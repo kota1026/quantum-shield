@@ -6,8 +6,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api/admin/client';
-import type { ObserverListItem, ObserverDetail } from '@/lib/api/admin/types';
-import type { ObserverStats } from '@/lib/api/admin/mock';
+import type { ObserverListItem, ObserverDetail, ObserverStats } from '@/lib/api/admin/types';
 
 // Query keys factory
 export const observerKeys = {

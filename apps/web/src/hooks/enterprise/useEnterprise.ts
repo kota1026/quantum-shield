@@ -470,6 +470,17 @@ export function useUpdateSettings() {
 
 // ==================== AUDIT LOG HOOKS ====================
 
+export interface AuditEvent {
+  id: string;
+  category: string;
+  actor: string;
+  action: string;
+  details: string;
+  timestamp: string;
+  ip_address: string;
+  severity?: string;
+}
+
 /**
  * Get audit log
  */
@@ -482,7 +493,7 @@ export function useAuditLog(filters?: { page?: number; limit?: number; action?: 
       if (filters?.limit) params.set('limit', String(filters.limit));
       if (filters?.action) params.set('action', filters.action);
       const query = params.toString();
-      return fetchApi<{ entries: AuditLogEntry[]; total: number }>(
+      return fetchApi<{ events: AuditEvent[]; entries: AuditLogEntry[]; total: number }>(
         `/v1/enterprise/audit-log${query ? `?${query}` : ''}`
       );
     },
@@ -534,6 +545,132 @@ export function useRecentActivity() {
   return useQuery({
     queryKey: enterpriseKeys.recentActivity(),
     queryFn: () => fetchApi<{ activities: ActivityItem[] }>('/v1/enterprise/activity'),
+    staleTime: 30 * 1000,
+  });
+}
+
+// ==================== WEBHOOKS HOOKS ====================
+
+export interface Webhook {
+  id: string;
+  name: string;
+  url: string;
+  events: string[];
+  is_active: boolean;
+  success_rate: number;
+  last_triggered: string | null;
+}
+
+/**
+ * Get webhooks list
+ */
+export function useWebhooks() {
+  return useQuery({
+    queryKey: [...enterpriseKeys.all, 'webhooks'] as const,
+    queryFn: () => fetchApi<{ webhooks: Webhook[] }>('/v1/enterprise/webhooks'),
+    staleTime: 60 * 1000,
+  });
+}
+
+// ==================== REPORTS HOOKS ====================
+
+export interface ReportStats {
+  total_transactions: { value: number; change: number };
+  total_volume: { value: string; change: number };
+  avg_tvl: { value: string; change: number };
+  active_users: { value: number; change: number };
+}
+
+export interface TransactionSummary {
+  type: string;
+  count: number;
+  volume: string;
+  avg_size: string;
+  percentage: string;
+}
+
+export interface TopUser {
+  address: string;
+  transactions: number;
+  volume: string;
+}
+
+/**
+ * Get reports data
+ */
+export function useReports() {
+  return useQuery({
+    queryKey: [...enterpriseKeys.all, 'reports'] as const,
+    queryFn: () => fetchApi<{
+      stats: ReportStats;
+      transaction_summary: TransactionSummary[];
+      top_users: TopUser[];
+    }>('/v1/enterprise/reports'),
+    staleTime: 60 * 1000,
+  });
+}
+
+// ==================== LICENSE REPORTS HOOKS ====================
+
+export interface LicenseReport {
+  id: string;
+  name: string;
+  period: string;
+  status: string;
+  submitted_at: string | null;
+  due_date: string;
+}
+
+/**
+ * Get license/audit reports
+ */
+export function useLicenseReports() {
+  return useQuery({
+    queryKey: [...enterpriseKeys.all, 'license-reports'] as const,
+    queryFn: () => fetchApi<{ reports: LicenseReport[] }>('/v1/enterprise/license/reports'),
+    staleTime: 60 * 1000,
+  });
+}
+
+// ==================== ENVIRONMENTS HOOKS ====================
+
+export interface Environment {
+  id: string;
+  name: string;
+  type: string;
+  endpoint: string;
+  api_key: string;
+  status: string;
+  created_at: string;
+}
+
+/**
+ * Get environments list
+ */
+export function useEnvironments() {
+  return useQuery({
+    queryKey: [...enterpriseKeys.all, 'environments'] as const,
+    queryFn: () => fetchApi<{ environments: Environment[] }>('/v1/enterprise/environments'),
+    staleTime: 60 * 1000,
+  });
+}
+
+// ==================== USER ACTIVITY HOOKS ====================
+
+export interface UserActivityItem {
+  id: string;
+  type: string;
+  time: string;
+}
+
+/**
+ * Get user activity
+ */
+export function useUserActivity(userId: string) {
+  return useQuery({
+    queryKey: [...enterpriseKeys.userDetail(userId), 'activity'] as const,
+    queryFn: () => fetchApi<{ activities: UserActivityItem[] }>(`/v1/enterprise/users/${userId}/activity`),
+    enabled: !!userId,
     staleTime: 30 * 1000,
   });
 }
