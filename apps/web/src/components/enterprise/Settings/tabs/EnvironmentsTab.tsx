@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Server, Globe, Shield, Copy, Eye, EyeOff, Plus, Trash2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useEnvironments } from '@/hooks/enterprise';
+import { MOCK_ENVIRONMENTS as MOCK_ENVIRONMENTS_DATA } from '@/lib/api/enterprise/mock';
 
 interface Environment {
   id: string;
@@ -16,35 +18,16 @@ interface Environment {
   createdAt: string;
 }
 
-const MOCK_ENVIRONMENTS: Environment[] = [
-  {
-    id: '1',
-    name: 'Production',
-    type: 'production',
-    endpoint: 'https://api.quantumshield.io/v1',
-    apiKey: 'qs_live_7a3f9c2d8e1b5a4f',
-    status: 'active',
-    createdAt: '2025-01-01',
-  },
-  {
-    id: '2',
-    name: 'Staging',
-    type: 'staging',
-    endpoint: 'https://staging-api.quantumshield.io/v1',
-    apiKey: 'qs_staging_3b2e1f4a9c8d7e6f',
-    status: 'active',
-    createdAt: '2025-01-15',
-  },
-  {
-    id: '3',
-    name: 'Test',
-    type: 'test',
-    endpoint: 'https://test-api.quantumshield.io/v1',
-    apiKey: 'qs_test_5d4c3b2a1e9f8g7h',
-    status: 'active',
-    createdAt: '2025-02-01',
-  },
-];
+// Fallback data for when API is unavailable
+const FALLBACK_ENVIRONMENTS: Environment[] = MOCK_ENVIRONMENTS_DATA.map(e => ({
+  id: e.id,
+  name: e.name,
+  type: e.type as 'production' | 'staging' | 'test',
+  endpoint: e.endpoint,
+  apiKey: e.api_key,
+  status: e.status as 'active' | 'inactive',
+  createdAt: e.created_at,
+}));
 
 const ENV_COLORS = {
   production: { bg: 'bg-hinomaru/10', text: 'text-hinomaru', border: 'border-hinomaru/30' },
@@ -55,7 +38,18 @@ const ENV_COLORS = {
 export function EnvironmentsTab() {
   const t = useTranslations('enterprise.settings.environments');
 
-  const [environments] = useState<Environment[]>(MOCK_ENVIRONMENTS);
+  // Use API hook with fallback
+  const { data: envsData } = useEnvironments();
+  const environments: Environment[] = envsData?.environments?.map(e => ({
+    id: e.id,
+    name: e.name,
+    type: e.type as 'production' | 'staging' | 'test',
+    endpoint: e.endpoint,
+    apiKey: e.api_key,
+    status: e.status as 'active' | 'inactive',
+    createdAt: e.created_at,
+  })) ?? FALLBACK_ENVIRONMENTS;
+
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [selectedEnv, setSelectedEnv] = useState<string | null>(null);
 

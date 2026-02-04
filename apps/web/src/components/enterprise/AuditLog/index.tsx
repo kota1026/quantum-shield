@@ -9,6 +9,8 @@ import { ExportButton } from '../shared/ExportButton';
 import { AdvancedSearch, type AuditSearchFilters } from './AdvancedSearch';
 import { SavedSearches } from './SavedSearches';
 import { SavedSearchProvider } from '../shared/SavedSearchProvider';
+import { useAuditLog } from '@/hooks/enterprise';
+import { MOCK_AUDIT_EVENTS as MOCK_AUDIT_EVENTS_DATA } from '@/lib/api/enterprise/mock';
 
 export type AuditCategory = 'auth' | 'transactions' | 'users' | 'api' | 'settings' | 'security';
 
@@ -24,89 +26,27 @@ export interface AuditEvent {
   severity?: 'info' | 'warning' | 'critical';
 }
 
-// Mock data
-const MOCK_AUDIT_EVENTS: AuditEvent[] = [
-  {
-    id: '1',
-    category: 'auth',
-    icon: '🔐',
-    actor: '佐藤 太郎',
-    action: 'login',
-    details: 'Browser: Chrome 120 • OS: macOS',
-    timestamp: '2026-01-11 14:32:15',
-    ipAddress: '203.0.113.42',
-  },
-  {
-    id: '2',
-    category: 'transactions',
-    icon: '📝',
-    actor: 'API',
-    action: 'lockTx',
-    details: 'TX: 0x7a3f...9c2d • Amount: 5.00 ETH • API Key: qs_live_...7a3f',
-    timestamp: '2026-01-11 14:32:00',
-    ipAddress: '198.51.100.10',
-  },
-  {
-    id: '3',
-    category: 'users',
-    icon: '👤',
-    actor: '佐藤 太郎',
-    action: 'inviteUser',
-    details: 'Email: yamamoto@acme.co.jp • Role: Member',
-    timestamp: '2026-01-11 13:45:22',
-    ipAddress: '203.0.113.42',
-  },
-  {
-    id: '4',
-    category: 'api',
-    icon: '🔑',
-    actor: '田中 花子',
-    action: 'createApiKey',
-    details: 'Key: qs_live_...9c2d • Environment: Production',
-    timestamp: '2026-01-11 11:20:05',
-    ipAddress: '203.0.113.55',
-  },
-  {
-    id: '5',
-    category: 'settings',
-    icon: '⚙️',
-    actor: '佐藤 太郎',
-    action: 'updateSettings',
-    details: 'Changed: Session timeout (15min → 30min)',
-    timestamp: '2026-01-11 10:15:33',
-    ipAddress: '203.0.113.42',
-  },
-  {
-    id: '6',
-    category: 'security',
-    icon: '🛡️',
-    actor: 'System',
-    action: 'blockedLogin',
-    details: 'Email: sato@acme.co.jp • Reason: Unknown IP address',
-    timestamp: '2026-01-11 09:45:12',
-    ipAddress: '192.0.2.99',
-  },
-  {
-    id: '7',
-    category: 'transactions',
-    icon: '📝',
-    actor: 'API',
-    action: 'unlockTx',
-    details: 'TX: 0x3b2e...1f4a • Amount: 2.50 ETH • API Key: qs_live_...7a3f',
-    timestamp: '2026-01-11 09:15:00',
-    ipAddress: '198.51.100.10',
-  },
-  {
-    id: '8',
-    category: 'auth',
-    icon: '🔐',
-    actor: '鈴木 一郎',
-    action: 'enabled2fa',
-    details: 'Method: TOTP (Authenticator App)',
-    timestamp: '2026-01-10 16:30:45',
-    ipAddress: '203.0.113.78',
-  },
-];
+const CATEGORY_ICONS: Record<AuditCategory, string> = {
+  auth: '🔐',
+  transactions: '📝',
+  users: '👤',
+  api: '🔑',
+  settings: '⚙️',
+  security: '🛡️',
+};
+
+// Fallback data for when API is unavailable
+const FALLBACK_AUDIT_EVENTS: AuditEvent[] = MOCK_AUDIT_EVENTS_DATA.map(e => ({
+  id: e.id,
+  category: e.category as AuditCategory,
+  icon: CATEGORY_ICONS[e.category as AuditCategory] || '📋',
+  actor: e.actor,
+  action: e.action,
+  details: e.details,
+  timestamp: e.timestamp,
+  ipAddress: e.ip_address,
+  severity: e.severity as 'info' | 'warning' | 'critical' | undefined,
+}));
 
 const CATEGORY_STYLES: Record<AuditCategory, string> = {
   auth: 'bg-info/10 text-info',
@@ -138,19 +78,33 @@ export function AuditLog({ className }: AuditLogProps) {
   const [filters, setFilters] = useState<AuditSearchFilters>(DEFAULT_FILTERS);
   const [isSearchApplied, setIsSearchApplied] = useState(false);
 
+  // Use API hook with fallback
+  const { data: auditData } = useAuditLog();
+  const auditEvents: AuditEvent[] = auditData?.events?.map(e => ({
+    id: e.id,
+    category: e.category as AuditCategory,
+    icon: CATEGORY_ICONS[e.category as AuditCategory] || '📋',
+    actor: e.actor,
+    action: e.action,
+    details: e.details,
+    timestamp: e.timestamp,
+    ipAddress: e.ip_address,
+    severity: e.severity as 'info' | 'warning' | 'critical' | undefined,
+  })) ?? FALLBACK_AUDIT_EVENTS;
+
   // Get unique users and actions for filter options
   const availableUsers = useMemo(
-    () => Array.from(new Set(MOCK_AUDIT_EVENTS.map((e) => e.actor))),
-    []
+    () => Array.from(new Set(auditEvents.map((e) => e.actor))),
+    [auditEvents]
   );
   const availableActions = useMemo(
-    () => Array.from(new Set(MOCK_AUDIT_EVENTS.map((e) => e.action))),
-    []
+    () => Array.from(new Set(auditEvents.map((e) => e.action))),
+    [auditEvents]
   );
 
   // Filter events based on advanced search filters
   const filteredEvents = useMemo(() => {
-    return MOCK_AUDIT_EVENTS.filter((event) => {
+    return auditEvents.filter((event) => {
       // Query filter (search in action and details)
       if (filters.query) {
         const query = filters.query.toLowerCase();

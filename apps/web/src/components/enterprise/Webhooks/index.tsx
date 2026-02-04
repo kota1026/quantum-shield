@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { Button } from '@/components/ui/button';
+import { useWebhooks } from '@/hooks/enterprise';
+import { MOCK_WEBHOOKS } from '@/lib/api/enterprise/mock';
 
 type WebhookStatus = 'active' | 'inactive';
 
@@ -24,46 +26,17 @@ interface Webhook {
   totalDeliveries: number;
 }
 
-// Mock data
-const MOCK_WEBHOOKS: Webhook[] = [
-  {
-    id: '1',
-    name: 'Production Events',
-    url: 'https://api.acme.com/webhooks/quantum',
-    status: 'active',
-    events: [
-      { type: 'transaction.created', label: 'transaction.created' },
-      { type: 'transaction.completed', label: 'transaction.completed' },
-      { type: 'transaction.failed', label: 'transaction.failed' },
-    ],
-    lastDelivery: '2',
-    successRate: 99.8,
-    totalDeliveries: 12847,
-  },
-  {
-    id: '2',
-    name: 'Slack Notifications',
-    url: 'https://hooks.slack.com/services/T00.../B00.../xxx',
-    status: 'active',
-    events: [
-      { type: 'alert.security', label: 'alert.security' },
-      { type: 'alert.limit', label: 'alert.limit' },
-    ],
-    lastDelivery: '60',
-    successRate: 100,
-    totalDeliveries: 234,
-  },
-  {
-    id: '3',
-    name: 'Staging Events',
-    url: 'https://staging-api.acme.com/webhooks',
-    status: 'inactive',
-    events: [{ type: 'transaction.created', label: 'transaction.created' }],
-    lastDelivery: '4320',
-    successRate: 95.2,
-    totalDeliveries: 1024,
-  },
-];
+// Fallback data for when API is unavailable
+const FALLBACK_WEBHOOKS: Webhook[] = MOCK_WEBHOOKS.map(w => ({
+  id: w.id,
+  name: w.name,
+  url: w.url,
+  status: w.isActive ? 'active' as const : 'inactive' as const,
+  events: w.events.map(e => ({ type: e, label: e })),
+  lastDelivery: w.lastTriggered ? '2' : '0',
+  successRate: w.successRate,
+  totalDeliveries: 1000,
+}));
 
 interface WebhooksProps {
   className?: string;
@@ -71,6 +44,19 @@ interface WebhooksProps {
 
 export function Webhooks({ className }: WebhooksProps) {
   const t = useTranslations('enterprise.webhooks');
+
+  // Use API hook with fallback
+  const { data: webhooksData } = useWebhooks();
+  const webhooks: Webhook[] = webhooksData?.webhooks?.map(w => ({
+    id: w.id,
+    name: w.name,
+    url: w.url,
+    status: w.is_active ? 'active' as const : 'inactive' as const,
+    events: w.events.map(e => ({ type: e, label: e })),
+    lastDelivery: w.last_triggered ? '2' : '0',
+    successRate: w.success_rate,
+    totalDeliveries: 1000,
+  })) ?? FALLBACK_WEBHOOKS;
 
   const formatLastDelivery = (minutes: string) => {
     const mins = parseInt(minutes);
@@ -108,7 +94,7 @@ export function Webhooks({ className }: WebhooksProps) {
         {/* Page Content */}
         <div className="p-8">
           <div className="flex flex-col gap-4" aria-label={t('list.ariaLabel')}>
-            {MOCK_WEBHOOKS.map((webhook) => (
+            {webhooks.map((webhook) => (
               <article
                 key={webhook.id}
                 className="bg-background-secondary border border-white/5 rounded-2xl p-6 hover:border-hinomaru/50 transition-colors cursor-pointer"

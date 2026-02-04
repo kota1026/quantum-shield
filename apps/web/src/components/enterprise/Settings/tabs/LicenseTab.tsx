@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useLicenseReports } from '@/hooks/enterprise';
+import { MOCK_AUDIT_REPORTS as MOCK_AUDIT_REPORTS_DATA } from '@/lib/api/enterprise/mock';
 
 interface AuditReport {
   id: string;
@@ -25,29 +27,29 @@ interface AuditReport {
   dueDate: string;
 }
 
-const MOCK_AUDIT_REPORTS: AuditReport[] = [
-  {
-    id: '1',
-    name: 'Q4 2025 Compliance Report',
-    period: '2025-Q4',
-    status: 'submitted',
-    submittedAt: '2026-01-05',
-    dueDate: '2026-01-15',
-  },
-  {
-    id: '2',
-    name: 'Q1 2026 Compliance Report',
-    period: '2026-Q1',
-    status: 'pending',
-    submittedAt: null,
-    dueDate: '2026-04-15',
-  },
-];
+// Fallback data for when API is unavailable
+const FALLBACK_AUDIT_REPORTS: AuditReport[] = MOCK_AUDIT_REPORTS_DATA.map(r => ({
+  id: r.id,
+  name: r.name,
+  period: r.period,
+  status: r.status as 'submitted' | 'pending' | 'overdue',
+  submittedAt: r.submitted_at,
+  dueDate: r.due_date,
+}));
 
 export function LicenseTab() {
   const t = useTranslations('enterprise.settings.license');
 
-  const [auditReports] = useState<AuditReport[]>(MOCK_AUDIT_REPORTS);
+  // Use API hook with fallback
+  const { data: reportsData } = useLicenseReports();
+  const auditReports: AuditReport[] = reportsData?.reports?.map(r => ({
+    id: r.id,
+    name: r.name,
+    period: r.period,
+    status: r.status as 'submitted' | 'pending' | 'overdue',
+    submittedAt: r.submitted_at,
+    dueDate: r.due_date,
+  })) ?? FALLBACK_AUDIT_REPORTS;
 
   const getStatusIcon = (status: AuditReport['status']) => {
     switch (status) {
