@@ -44,6 +44,17 @@ pub async fn create_lock(
 
     // 1. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
     let message = construct_lock_message(&req);
+
+    // Debug: Log message details for signature verification debugging
+    tracing::debug!(
+        "Lock message constructed: chain_id={}, asset={}, amount={}, dest_addr={}, expiry={}, nonce={}",
+        req.chain_id, req.asset, req.amount, req.dest_addr, req.expiry, req.nonce
+    );
+    tracing::debug!("Message hex: {}", hex::encode(&message));
+    tracing::debug!("Message length: {} bytes", message.len());
+    tracing::debug!("Public key length: {} chars", req.pk_dilithium.len());
+    tracing::debug!("Signature length: {} chars", req.sig_dilithium.len());
+
     if !verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &req.pk_dilithium)? {
         return Err(ApiError::InvalidSignature(
             "ML-DSA-65 (FIPS 204) verification failed".into(),

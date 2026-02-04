@@ -535,13 +535,45 @@
         "title": "Login | Quantum Shield",
         "description": "Connect your wallet to login to Quantum Shield"
       },
-      "backToHome": "Back to Home",
+      "backToLanding": "Back to Home",
       "title": "Login to Quantum Shield",
-      "description": "Connect your wallet to start quantum-resistant protection",
+      "description": "Connect your wallet and sign in with Ethereum",
+      "selectWallet": "Select a Wallet",
       "connectWallet": "Connect Wallet",
-      "or": "or",
-      "noAccount": "Don't have an account?",
-      "createAccount": "Sign Up"
+      "supportedWallets": "Supports MetaMask, WalletConnect, Coinbase Wallet and more",
+      "noWallet": "Don't have a wallet?",
+      "getWallet": "Get MetaMask",
+      "newUser": "New to Quantum Shield?",
+      "learnMore": "Learn More",
+      "footer": "Powered by quantum-resistant cryptography",
+      "connecting": {
+        "title": "Connecting...",
+        "walletPrompt": "Please approve the connection in your wallet"
+      },
+      "connected": {
+        "title": "Wallet Connected",
+        "description": "You can sign in with the address below",
+        "signInButton": "Sign In",
+        "changeWallet": "Use Different Wallet"
+      },
+      "signing": {
+        "title": "Sign Message",
+        "description": "Please sign the message in your wallet to verify ownership"
+      },
+      "authenticating": {
+        "title": "Authenticating...",
+        "description": "Verifying your signature with the server"
+      },
+      "success": {
+        "title": "Welcome!",
+        "description": "Redirecting to dashboard..."
+      },
+      "error": {
+        "title": "Authentication Failed",
+        "description": "An error occurred during sign-in. Please try again.",
+        "retryButton": "Try Again",
+        "tryAnotherWallet": "Use Another Wallet"
+      }
     },
     "keyManagement": {
       "meta": {
@@ -868,8 +900,8 @@
       "summary": {
         "title": "Lock Summary",
         "amount": "Lock Amount",
-        "period": "Lock Period",
-        "unlockDate": "Unlock Date",
+        "unlockWait": "Unlock Wait Time",
+        "unlockWaitValue": "24 hours",
         "fee": "Network Fee"
       },
       "info": {
@@ -894,10 +926,8 @@
         "title": "Confirm Lock",
         "description": "You are about to lock the following amount. Dilithium signature required.",
         "amount": "Lock Amount",
-        "period": "Lock Period",
-        "unlockDate": "Unlock Date",
         "gasFee": "Gas Fee (est.)",
-        "note": "* Unlocking requires a 24-hour waiting period",
+        "unlockNote": "Unlock requires a 24-hour waiting period before you receive your assets",
         "confirm": "Sign and Lock",
         "cancel": "Cancel"
       },
@@ -911,12 +941,27 @@
     "lockProcessing": {
       "title": "Processing Lock...",
       "subtitle": "Please wait. Do not close this page.",
+      "waitingForWallet": "Waiting for wallet signature...",
+      "waitingForL1": "Waiting for L1 blockchain confirmation...",
+      "generatingKeys": "Generating Dilithium keys...",
+      "signingMessage": "Signing with Dilithium...",
+      "submittingToL3": "Submitting to L3 Aegis...",
+      "submittingToL1": "Submitting to L1 Vault...",
+      "errorTitle": "Lock Failed",
+      "errorRevert": "Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH) or TVL cap exceeded.",
+      "retry": "Retry",
+      "cancel": "Cancel",
       "steps": {
-        "sign": "Generate Dilithium signature",
+        "generateKeys": "Prepare Dilithium keys",
+        "generateKeysTooltip": "Generate a Dilithium-III (ML-DSA-65) quantum-resistant key pair. These keys are securely stored in your browser.",
+        "sign": "Sign lock message",
         "signTooltip": "Dilithium is a NIST-approved next-generation digital signature algorithm resistant to quantum computers. Your private key signs the lock request.",
-        "createTx": "Create transaction",
-        "broadcast": "Broadcasting to blockchain...",
-        "confirm": "Waiting for confirmation",
+        "submitL3": "Submit to L3 Aegis",
+        "submitL3Tooltip": "L3 Aegis validates your signature and computes the State Root (SR_0). This eliminates the need to send your full Dilithium public key to L1, significantly reducing gas costs.",
+        "submitL1": "Submit to L1 Vault",
+        "submitL1Tooltip": "Sign the transaction with your wallet (e.g., MetaMask) and submit to the Sepolia network. Only the lock_id and SR_0 from L3 are sent, keeping gas costs low.",
+        "confirm": "Waiting for L1 confirmation",
+        "confirmTooltip": "Waiting for the transaction to be confirmed on the Sepolia blockchain. This usually takes 1-2 minutes.",
         "tooltipAriaLabel": "Learn more"
       }
     },
@@ -928,16 +973,10 @@
         "status": "Locked",
         "lockId": "Lock ID",
         "amount": "Locked Amount",
-        "period": "Lock Period",
-        "unlockDate": "Unlock Date",
+        "unlockWait": "Unlock Wait Time",
+        "unlockWaitValue": "24 hours",
         "copy": "Copy",
-        "copied": "Copied",
-        "periodYears": {
-          "1": "1 Year",
-          "2": "2 Years",
-          "3": "3 Years",
-          "5": "5 Years"
-        }
+        "copied": "Copied"
       },
       "buttons": {
         "viewHistory": "View History",

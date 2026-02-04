@@ -1,22 +1,81 @@
-//! Quantum-Resistant Cryptography Module (CP-1 Compliant)
+//! Cryptography Module
 //!
-//! This module provides NIST FIPS 204 ML-DSA-65 (Dilithium) signature verification.
-//! All cryptographic operations comply with Core Principle #1 (Complete Quantum Resistance).
+//! This module provides signature verification for the Quantum Shield system.
 //!
-//! ## Algorithms Used
-//! - **User Signatures**: ML-DSA-65 (NIST FIPS 204)
-//! - **Hashing**: SHA3-256 (NIST FIPS 202)
+//! ## Authentication Signatures (SIWE)
+//! - **ECDSA** (secp256k1): Standard Ethereum wallet signatures
+//!   Used for SIWE (Sign-In with Ethereum) authentication as per SEQUENCES.md §1.1
 //!
-//! ## Prohibited Algorithms (CP-1 Violation)
-//! - ❌ ECDSA (quantum vulnerable - Shor's algorithm)
-//! - ❌ RSA (quantum vulnerable - Shor's algorithm)
-//! - ❌ keccak256 (use SHA3-256 instead)
-//! - ❌ SHA-256 (Grover attack risk)
-//! - ❌ Pre-FIPS Dilithium (use FIPS 204 ML-DSA)
+//! ## Asset Protection Signatures (Lock/Unlock)
+//! - **ML-DSA-65** (NIST FIPS 204): Quantum-resistant signatures
+//!   Used for Lock/Unlock operations as per SEQUENCES.md §2.1
+//!   Provides CP-1 (Complete Quantum Resistance) for asset protection
+//!
+//! ## Design Philosophy
+//! - Authentication: Uses standard ECDSA for wallet compatibility
+//! - Asset Protection: Uses Dilithium for quantum resistance
+//! - This separation allows standard wallet UX while protecting locked assets
 
 use fips204::ml_dsa_65;
 use fips204::traits::{SerDes, Signer, Verifier};
+use ethers::core::types::{RecoveryMessage, Signature};
 use crate::error::ApiError;
+
+// ============================================================================
+// ECDSA Signature Verification (SIWE Authentication)
+// ============================================================================
+
+/// ECDSA signature size (65 bytes: r[32] + s[32] + v[1])
+pub const ECDSA_SIGNATURE_BYTES: usize = 65;
+
+/// Verify ECDSA signature for SIWE authentication
+///
+/// This function verifies Ethereum wallet signatures (secp256k1 ECDSA).
+/// Used for SIWE (Sign-In with Ethereum) authentication as per SEQUENCES.md §1.1.
+///
+/// # Arguments
+/// * `message` - The SIWE message that was signed (as string)
+/// * `signature_hex` - Hex-encoded ECDSA signature (65 bytes, with or without 0x prefix)
+///
+/// # Returns
+/// * `Ok(address)` - The recovered Ethereum address if signature is valid
+/// * `Err` - If signature is invalid or recovery fails
+///
+/// # Example
+/// ```rust,ignore
+/// let message = "example.com wants you to sign in with your account...";
+/// let signature = "0x..."; // 65-byte ECDSA signature
+/// let address = verify_ecdsa_signature(message, signature)?;
+/// ```
+pub fn verify_ecdsa_signature(
+    message: &str,
+    signature_hex: &str,
+) -> Result<String, ApiError> {
+    // Decode hex signature (strip 0x prefix if present)
+    let sig_bytes = hex::decode(signature_hex.strip_prefix("0x").unwrap_or(signature_hex))
+        .map_err(|e| ApiError::InvalidSignature(format!("Invalid signature hex: {}", e)))?;
+
+    // Validate signature size
+    if sig_bytes.len() != ECDSA_SIGNATURE_BYTES {
+        return Err(ApiError::InvalidSignature(format!(
+            "Invalid signature size: expected {} bytes (ECDSA), got {}",
+            ECDSA_SIGNATURE_BYTES, sig_bytes.len()
+        )));
+    }
+
+    // Parse signature
+    let signature = Signature::try_from(sig_bytes.as_slice())
+        .map_err(|e| ApiError::InvalidSignature(format!("Failed to parse ECDSA signature: {}", e)))?;
+
+    // Ethereum personal sign message (EIP-191)
+    let recovery_message = RecoveryMessage::Data(message.as_bytes().to_vec());
+
+    // Recover the address from the signature
+    let recovered_address = signature.recover(recovery_message)
+        .map_err(|e| ApiError::InvalidSignature(format!("Failed to recover address: {}", e)))?;
+
+    Ok(format!("{:?}", recovered_address))
+}
 
 /// ML-DSA-65 public key size (NIST FIPS 204)
 pub const ML_DSA_65_PUBLIC_KEY_BYTES: usize = 1952;

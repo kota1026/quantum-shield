@@ -17,7 +17,8 @@ export class ConsumerApiError extends Error {
 export interface SiweAuthRequest {
   message: string;
   signature: string;
-  public_key: string;
+  /** Optional: Dilithium public key for future Lock operations */
+  public_key?: string;
 }
 
 export interface SiweAuthResponse {

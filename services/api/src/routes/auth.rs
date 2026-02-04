@@ -1,9 +1,12 @@
 //! Authentication routes (TASK-P5-012: SIWE→JWT)
 //!
 //! Endpoints:
-//! - POST /v1/auth/siwe - Authenticate with SIWE message and Dilithium signature
+//! - POST /v1/auth/siwe - Authenticate with SIWE message and ECDSA signature
 //! - POST /v1/auth/refresh - Refresh an access token
 //! - GET /v1/auth/me - Get current authenticated user info
+//!
+//! Note: ECDSA (wallet signatures) is used for authentication for wallet compatibility.
+//! Dilithium signatures are used separately for Lock/Unlock operations (SEQUENCES.md §2.1).
 
 use axum::{
     extract::Extension,
@@ -22,16 +25,18 @@ use crate::{
 
 /// POST /v1/auth/siwe
 ///
-/// Authenticate a user using SIWE (Sign-In with Ethereum/Quantum-safe).
-/// The user signs a SIWE message with their Dilithium-III private key,
+/// Authenticate a user using SIWE (Sign-In with Ethereum).
+/// The user signs a SIWE message with their Ethereum wallet (ECDSA),
 /// and receives JWT access and refresh tokens on successful verification.
+///
+/// Per SEQUENCES.md §1.1, authentication uses standard ECDSA for wallet compatibility.
+/// Dilithium signatures are used separately for Lock/Unlock operations.
 ///
 /// # Request Body
 /// ```json
 /// {
 ///     "message": "example.com wants you to sign in...",
-///     "signature": "0x...",
-///     "public_key": "0x..."
+///     "signature": "0x..." // ECDSA signature (65 bytes)
 /// }
 /// ```
 ///
