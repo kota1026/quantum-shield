@@ -136,13 +136,23 @@ const xxx = xxxApi ?? FALLBACK_XXX;
 
 ### Priority 2 (Nice to Have)
 
-#### Enterprise - ✅ COMPLETE (NEW)
+#### Enterprise - 🔄 MOSTLY COMPLETE (38 MOCK_* remaining)
 | Layer | Status | Files | Details |
 |-------|:------:|:-----:|---------|
 | Components | ✅ | 104 | Complete |
-| Hooks | ✅ | 2 | `useEnterprise.ts`, `index.ts` |
-| Connection | ✅ | 5 | Dashboard, Transactions, Provers, Observers, Status |
+| Hooks | ✅ | 20+ | `useEnterprise.ts` (comprehensive) |
+| Connection | ✅ | 7 | Dashboard, Transactions, Provers, Observers, Status, ApiKeys, Users |
 | API Routes | ✅ | 1 | enterprise.rs (76KB) |
+| MOCK_* Cleanup | 🔄 | 38 | Settings tabs, UserDetail, Webhooks, AuditLog, Reports |
+
+**Remaining MOCK_* locations:**
+- `Settings/tabs/DeveloperTab.tsx` (4)
+- `Settings/tabs/LicenseTab.tsx` (2)
+- `Settings/tabs/EnvironmentsTab.tsx` (2)
+- `Users/UserDetail.tsx` (6)
+- `Webhooks/index.tsx` (1)
+- `AuditLog/index.tsx` (4)
+- `Reports/index.tsx` (6)
 
 ---
 
@@ -159,6 +169,7 @@ const xxx = xxxApi ?? FALLBACK_XXX;
 | 7 | ~~Update components to use hooks~~ | explorer | P1 | ✅ Done |
 | 8 | ~~Update components to use hooks~~ | qs-admin | P1 | ✅ Done |
 | 9 | ~~Create hooks & connect~~ | enterprise | P2 | ✅ Done |
+| 10 | Remove remaining MOCK_* | enterprise | P2 | 🔄 38 left |
 
 ---
 
@@ -191,3 +202,6 @@ done
 | 2026-02-01 | Token Hub integration complete (9 components, 20+ hooks) | Claude |
 | 2026-02-01 | QS Hub integration complete (7 components, 15+ hooks) | Claude |
 | 2026-02-03 | **Enterprise integration complete** (5 components, 20+ hooks) - ALL APPS INTEGRATED 100% | Claude |
+| 2026-02-03 | Updated ApiKeys, Users to use hooks + fallback pattern | Claude |
+| 2026-02-03 | Created mock.ts for Enterprise with comprehensive fallback data | Claude |
+| 2026-02-03 | Documented 38 remaining MOCK_* locations for cleanup | Claude |
