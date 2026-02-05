@@ -6,8 +6,9 @@ l1:
   ws_rpc_url: "wss://sepolia.infura.io/ws/v3/${INFURA_KEY}"
   # Sepolia HTTP RPC (fallback)
   http_rpc_url: "https://sepolia.infura.io/v3/${INFURA_KEY}"
-  # L1Vault contract address (from Phase 2-3 deployment)
-  vault_contract: "0x..."
+  # L1Vault contract address (deployed 2026-02-03)
+  # See: docs/DEPLOYED_CONTRACTS.md
+  vault_contract: "0xEF851795bc8DE8e0d40781761a0b5B618fED6dE0"
   # Block confirmations for reorg protection (SEQUENCES.md requirement)
   confirmation_blocks: 12
 
