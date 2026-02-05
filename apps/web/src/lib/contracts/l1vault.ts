@@ -12,8 +12,9 @@
  */
 
 // L1Vault contract address on Sepolia
-// Deployed: 2026-02-05 with lockWithSR0 function (SEQUENCES.md compliant)
-export const L1_VAULT_ADDRESS = '0x78f649d20d02E7064EDD14F2E0bf64EBc0392a14' as const;
+// Must match deployments/sepolia.json
+// v2.0.0: Supports lockWithSR0 (SEQUENCES.md compliant)
+export const L1_VAULT_ADDRESS = '0x108A5CE65f927ACfAC55325f1c471010FdEC8599' as const;
 
 // Sepolia chain ID
 export const SEPOLIA_CHAIN_ID = 11155111;

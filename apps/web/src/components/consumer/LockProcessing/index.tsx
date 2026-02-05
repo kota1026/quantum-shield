@@ -70,7 +70,7 @@ export function LockProcessing() {
   } = useLockL1();
 
   // Wait for L1 transaction receipt
-  const { data: receipt } = useWaitForTransactionReceipt({
+  const { data: receipt, error: receiptError, isError: isReceiptError } = useWaitForTransactionReceipt({
     hash: l1TxHash,
   });
 
@@ -275,6 +275,18 @@ export function LockProcessing() {
       setSteps(prev => prev.map(s => (s.status === 'active' ? { ...s, status: 'error' } : s)));
     }
   }, [l1Error]);
+
+  // Handle receipt error (transaction reverted on-chain)
+  useEffect(() => {
+    if (isReceiptError && receiptError && !hasNavigated.current) {
+      hasNavigated.current = true;
+      const errorMsg = receiptError.message.includes('reverted')
+        ? 'Transaction reverted on L1. The contract may have been upgraded - please try again.'
+        : `Transaction failed: ${receiptError.message}`;
+      setError(errorMsg);
+      updateStep(5, 'error');
+    }
+  }, [isReceiptError, receiptError, updateStep]);
 
   // Handle retry
   const handleRetry = useCallback(() => {

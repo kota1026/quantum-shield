@@ -269,7 +269,6 @@ export function Dashboard() {
                 value={stats.totalLocked.toFixed(2)}
                 unit="ETH"
                 tooltip={t('stats.totalLocked.tooltip')}
-                badge={{ text: '+12.4%', variant: 'success' }}
                 highlight
                 onClick={() => router.push('/consumer/history')}
                 ariaLabel={`${t('stats.totalLocked.label')}: ${stats.totalLocked} ETH`}
