@@ -246,7 +246,8 @@ export function ProverApplication() {
     try {
       // Generate placeholder values for HSM attestation and multisig proof
       // In production, these would come from actual HSM and multisig setup
-      const hsmAttestation = `HSM_ATTESTATION_${Date.now()}_${address}`;
+      // Note: HSM attestation must start with "HSM_ATT_" prefix for backend validation
+      const hsmAttestation = `HSM_ATT_${Date.now()}_${address}`;
       const multisigProof = `MULTISIG_PROOF_${Date.now()}_${address}`;
 
       // Generate placeholder SPHINCS+ public key (in production, this comes from HSM)
@@ -1081,7 +1082,7 @@ export function ProverApplication() {
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="w-5 h-5 rounded accent-hinomaru mt-0.5"
+                      className="w-5 h-5 min-w-5 min-h-5 flex-shrink-0 rounded accent-hinomaru mt-0.5"
                       checked={formData.agreeTerms}
                       onChange={(e) => updateFormData('agreeTerms', e.target.checked)}
                       required
@@ -1097,7 +1098,7 @@ export function ProverApplication() {
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="w-5 h-5 rounded accent-hinomaru mt-0.5"
+                      className="w-5 h-5 min-w-5 min-h-5 flex-shrink-0 rounded accent-hinomaru mt-0.5"
                       checked={formData.agreeKyb}
                       onChange={(e) => updateFormData('agreeKyb', e.target.checked)}
                       required
@@ -1110,7 +1111,7 @@ export function ProverApplication() {
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="w-5 h-5 rounded accent-hinomaru mt-0.5"
+                      className="w-5 h-5 min-w-5 min-h-5 flex-shrink-0 rounded accent-hinomaru mt-0.5"
                       checked={formData.agreeStake}
                       onChange={(e) => updateFormData('agreeStake', e.target.checked)}
                       required

@@ -1,0 +1,35 @@
+Warning: Found unknown `ignore` config for profile `default` defined in foundry.toml.
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  Deployer: 0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3
+  Balance: 815305095156076625
+  SPHINCSVerifier deployed at: 0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103
+  STARKVerifier deployed at: 0x083F33B0AF571F17599AEAd056f746c0d9f0FDfd
+  L1Vault deployed at: 0x108A5CE65f927ACfAC55325f1c471010FdEC8599
+  === Deployment Complete ===
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 11155111
+
+Estimated gas price: 1.849222505 gwei
+
+Estimated total gas used for script: 11609507
+
+Estimated amount required: 0.021468561616355035 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /Users/kotakato/dev/quantum-shield/contracts/broadcast/Deploy.s.sol/11155111/run-latest.json
+
+Sensitive values saved to: /Users/kotakato/dev/quantum-shield/contracts/cache/Deploy.s.sol/11155111/run-latest.json
+

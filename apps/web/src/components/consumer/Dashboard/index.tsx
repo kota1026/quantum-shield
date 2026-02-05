@@ -88,7 +88,19 @@ export function Dashboard() {
   });
 
   // Read user's locked balance from L1Vault contract (user-specific)
-  const { balanceEth: userLockedBalanceEth, isLoading: isUserLockedLoading } = useUserLockedBalance();
+  const { balanceEth: userLockedBalanceEth, balanceWei, isLoading: isUserLockedLoading, error: lockedBalanceError } = useUserLockedBalance();
+
+  // Debug: Log locked balance data
+  useEffect(() => {
+    console.log('Dashboard - Locked Balance Debug:', {
+      connectedAddress,
+      balanceWei: balanceWei?.toString(),
+      balanceEth: userLockedBalanceEth,
+      isLoading: isUserLockedLoading,
+      error: lockedBalanceError?.message,
+      L1_VAULT_ADDRESS,
+    });
+  }, [connectedAddress, balanceWei, userLockedBalanceEth, isUserLockedLoading, lockedBalanceError]);
 
   // Read totalLocked directly from L1Vault contract (global - for reference only)
   const { data: totalLockedOnChain } = useReadContract({
