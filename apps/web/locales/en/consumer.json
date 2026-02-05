@@ -1019,17 +1019,23 @@
     "unlockSuccess": {
       "title": "Unlock Started",
       "subtitle": "After the 24-hour Time Lock, assets will be transferred to your wallet",
+      "subtitleEmergency": "After the 7-day Time Lock, assets will be transferred to your wallet",
+      "emergency": {
+        "warning": "Emergency unlock requires a 7-day waiting period. If a Challenge is raised during this period, your bond may be forfeited."
+      },
       "timelock": {
         "title": "Time Lock Remaining",
+        "titleEmergency": "Emergency Time Lock Remaining",
         "label": "Until unlock available"
       },
       "details": {
         "amount": "Unlock Amount",
         "estimatedCompletion": "Estimated Completion",
+        "unlockId": "Unlock ID",
         "txHash": "TX Hash"
       },
       "info": {
-        "message": "If there are no issues during the 24-hour security waiting period, assets will be automatically transferred to your wallet. You can track progress from the dashboard."
+        "message": "If there are no issues during the security waiting period, assets will be automatically transferred to your wallet. You can track progress from the dashboard."
       },
       "buttons": {
         "viewHistory": "View History",
