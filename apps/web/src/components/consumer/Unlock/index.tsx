@@ -5,12 +5,28 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { formatEther } from 'viem';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { LockCard, LockItem } from './LockCard';
 import { MethodCard } from './MethodCard';
 import { TimeLockModal } from './TimeLockModal';
 import { useUserTransactions } from '@/hooks/consumer';
+
+// Helper to convert amount to ETH string
+function formatAmountToEth(amount: string): string {
+  try {
+    // If already contains a decimal point, assume it's in ETH
+    if (amount.includes('.')) {
+      return parseFloat(amount).toFixed(2);
+    }
+    // Otherwise assume it's in wei and convert
+    return parseFloat(formatEther(BigInt(amount))).toFixed(2);
+  } catch {
+    // Fallback: just parse as float
+    return parseFloat(amount).toFixed(2);
+  }
+}
 
 // Fallback data (used when API is unavailable)
 const FALLBACK_LOCKS = [
@@ -31,7 +47,7 @@ export function Unlock() {
   const locks = (txData?.transactions?.filter(tx => tx.status !== 'completed').map((tx, index) => ({
     id: tx.id,
     number: index + 1,
-    amount: `${tx.amount} ETH`,
+    amount: `${formatAmountToEth(tx.amount)} ETH`,
     timestamp: new Date(tx.createdAt * 1000).toLocaleDateString('ja-JP'),
     status: tx.status === 'pending' ? ('pending' as const) : ('locked' as const),
   })) ?? FALLBACK_LOCKS) as LockItem[];
@@ -42,11 +58,12 @@ export function Unlock() {
 
   const handleStartUnlock = useCallback(() => {
     if (selectedMethod === 'normal') {
-      // Normal unlock: navigate to processing page with lock ID
-      router.push(`/consumer/unlock/processing?lockId=${selectedLockId}`);
+      // Normal unlock: navigate to processing page with lock ID and method
+      router.push(`/consumer/unlock/processing?lockId=${selectedLockId}&method=normal`);
     } else {
-      // Emergency unlock: navigate to bond confirmation page with lock ID
-      router.push(`/consumer/emergency-bond?lockId=${selectedLockId}`);
+      // Emergency unlock: navigate to processing page with emergency method
+      // Note: Bond confirmation could be a separate step, but for now we go directly to processing
+      router.push(`/consumer/unlock/processing?lockId=${selectedLockId}&method=emergency`);
     }
   }, [selectedMethod, selectedLockId, router]);
 
