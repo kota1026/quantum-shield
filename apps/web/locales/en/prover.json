@@ -420,6 +420,11 @@
       "continue": "Continue",
       "back": "Back",
       "submit": "Submit Application",
+      "submitting": "Submitting...",
+      "errors": {
+        "walletNotConnected": "Wallet is not connected. Please connect your wallet.",
+        "submissionFailed": "Failed to submit application. Please try again."
+      },
       "step1": {
         "title": "Basic Information",
         "description": "Tell us about your organization"
@@ -563,11 +568,25 @@
         "emailPlaceholder": "e.g., admin@example.com",
         "checkButton": "Check Status"
       },
+      "loading": "Loading application status...",
       "result": {
         "underReview": "Under Review",
+        "underReviewDescription": "Document review in progress (3-5 business days)",
         "reviewingDocuments": "Document review in progress (3-5 business days)",
         "approved": "Approved",
-        "pending": "Pending"
+        "approvedDescription": "You have been approved as a Prover. You can now access the dashboard.",
+        "inactive": "Inactive",
+        "inactiveDescription": "Your Prover account is currently inactive.",
+        "pending": "Pending",
+        "notFound": "Application Not Found",
+        "notFoundDescription": "No application found with the provided Application ID."
+      },
+      "statusLabels": {
+        "pending_approval": "Under Review",
+        "active": "Active",
+        "inactive": "Inactive",
+        "exiting": "Exiting",
+        "exited": "Exited"
       },
       "timeline": {
         "title": "Review Progress",
@@ -586,7 +605,10 @@
         "applicationId": "Application ID",
         "applicationDate": "Application Date",
         "organization": "Organization",
-        "reviewer": "Assigned Reviewer"
+        "reviewer": "Assigned Reviewer",
+        "operatorAddress": "Operator Address",
+        "stakeAmount": "Stake Amount",
+        "status": "Status"
       },
       "questions": {
         "title": "Questions from Review Team",

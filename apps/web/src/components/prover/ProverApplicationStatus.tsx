@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -13,10 +14,15 @@ import {
   Calendar,
   User,
   Send,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
 
 interface TimelineStep {
   id: string;
@@ -35,64 +41,127 @@ interface Question {
   answer?: string;
 }
 
-// Mock data - in production this would come from API
-const mockTimelineSteps: TimelineStep[] = [
-  {
-    id: '1',
-    title: 'applicationReceived',
-    date: '2026/01/15 14:32',
-    status: 'completed',
-  },
-  {
-    id: '2',
-    title: 'documentReview',
-    date: '2026/01/15 15:45',
-    description: 'documentsConfirmed',
-    status: 'completed',
-  },
-  {
-    id: '3',
-    title: 'technicalReview',
-    date: '2026/01/16 ~',
-    description: 'reviewingInfrastructure',
-    status: 'current',
-  },
-  {
-    id: '4',
-    title: 'finalApproval',
-    date: '2026/01/20',
-    status: 'pending',
-  },
-];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-const mockQuestions: Question[] = [
-  {
-    id: '1',
-    title: 'infrastructureRedundancy',
-    content: 'infrastructureRedundancyContent',
-    date: '2026/01/17 10:15',
-    status: 'pending',
-  },
-  {
-    id: '2',
-    title: 'securityAudit',
-    content: 'securityAuditContent',
-    date: '2026/01/16 15:30',
-    status: 'answered',
-    answer: 'securityAuditAnswer',
-  },
-];
+// API types
+interface ProverInfoResponse {
+  prover_id: string;
+  operator_addr: string;
+  status: 'pending_approval' | 'active' | 'inactive' | 'exiting' | 'exited';
+  stake_amount: string;
+  total_signatures: number;
+  created_at?: string;
+}
+
+// Timeline step mapping based on prover status
+function getTimelineSteps(status: string, createdAt?: string): TimelineStep[] {
+  const now = new Date();
+  const createdDate = createdAt ? new Date(createdAt) : now;
+  const formatDate = (date: Date) =>
+    `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+
+  const steps: TimelineStep[] = [
+    {
+      id: '1',
+      title: 'applicationReceived',
+      date: formatDate(createdDate),
+      status: 'completed',
+    },
+    {
+      id: '2',
+      title: 'documentReview',
+      date: formatDate(new Date(createdDate.getTime() + 60 * 60 * 1000)),
+      description: 'documentsConfirmed',
+      status: status === 'pending_approval' ? 'current' : 'completed',
+    },
+    {
+      id: '3',
+      title: 'technicalReview',
+      date: status === 'pending_approval' ? `${formatDate(now)} ~` : formatDate(new Date(createdDate.getTime() + 2 * 24 * 60 * 60 * 1000)),
+      description: 'reviewingInfrastructure',
+      status: status === 'active' ? 'completed' : status === 'pending_approval' ? 'pending' : 'pending',
+    },
+    {
+      id: '4',
+      title: 'finalApproval',
+      date: status === 'active' ? formatDate(new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000)) : '—',
+      status: status === 'active' ? 'completed' : 'pending',
+    },
+  ];
+
+  // Update current step
+  if (status === 'pending_approval') {
+    const docReviewStep = steps.find((s) => s.id === '2');
+    if (docReviewStep) docReviewStep.status = 'current';
+  }
+
+  return steps;
+}
+
+// Questions (empty for now - would come from API in production)
+const defaultQuestions: Question[] = [];
 
 export function ProverApplicationStatus() {
   const t = useTranslations('prover');
+  const searchParams = useSearchParams();
   const [applicationId, setApplicationId] = useState('');
   const [email, setEmail] = useState('');
   const [isSearched, setIsSearched] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
+  // Get prover_id from URL if present
+  const urlProverId = searchParams.get('id');
+
+  // Auto-search if prover_id is in URL
+  useEffect(() => {
+    if (urlProverId) {
+      setApplicationId(urlProverId);
+      setIsSearched(true);
+    }
+  }, [urlProverId]);
+
+  // Fetch prover info when searching
+  const {
+    data: proverInfo,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['prover-status', applicationId],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/v1/prover/${applicationId}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Prover not found' }));
+        throw new Error(err.message || 'Prover not found');
+      }
+      return res.json() as Promise<ProverInfoResponse>;
+    },
+    enabled: isSearched && applicationId.trim() !== '',
+    retry: false,
+  });
+
   const handleSearch = () => {
     if (applicationId.trim() !== '' && email.trim() !== '') {
       setIsSearched(true);
+    }
+  };
+
+  // Get timeline steps based on current status
+  const timelineSteps = proverInfo
+    ? getTimelineSteps(proverInfo.status, proverInfo.created_at)
+    : [];
+
+  // Status display mapping
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'pending_approval':
+        return { icon: Clock, color: 'info', key: 'underReview' };
+      case 'active':
+        return { icon: CheckCircle, color: 'success', key: 'approved' };
+      case 'inactive':
+        return { icon: AlertCircle, color: 'warning', key: 'inactive' };
+      default:
+        return { icon: Clock, color: 'info', key: 'underReview' };
     }
   };
 
@@ -209,103 +278,162 @@ export function ProverApplicationStatus() {
         {/* Status Result */}
         {isSearched && (
           <div className="space-y-8">
-            {/* Status Header */}
-            <Card className="p-8">
-              <div className="flex items-center gap-4 p-4 bg-info/10 border border-info/30 rounded-xl mb-8">
-                <div className="w-12 h-12 bg-info rounded-full flex items-center justify-center flex-shrink-0">
-                  <Clock className="h-6 w-6 text-white" aria-hidden="true" />
+            {/* Loading State */}
+            {isLoading && (
+              <Card className="p-8">
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-12 w-12 text-hinomaru animate-spin mb-4" />
+                  <p className="text-foreground-secondary">{t('status.loading')}</p>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold">{t('status.result.underReview')}</h3>
-                  <p className="text-foreground-secondary text-sm">
-                    {t('status.result.reviewingDocuments')}
-                  </p>
+              </Card>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <Card className="p-8">
+                <div className="flex items-center gap-4 p-4 bg-hinomaru/10 border border-hinomaru/30 rounded-xl">
+                  <div className="w-12 h-12 bg-hinomaru rounded-full flex items-center justify-center flex-shrink-0">
+                    <XCircle className="h-6 w-6 text-white" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-hinomaru">{t('status.result.notFound')}</h3>
+                    <p className="text-foreground-secondary text-sm">
+                      {error.message || t('status.result.notFoundDescription')}
+                    </p>
+                  </div>
                 </div>
-              </div>
+                <div className="mt-6 text-center">
+                  <Button variant="outline" onClick={() => setIsSearched(false)}>
+                    <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
+                    {t('status.backToSearch')}
+                  </Button>
+                </div>
+              </Card>
+            )}
 
-              {/* Timeline */}
-              <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                <Calendar className="h-5 w-5" aria-hidden="true" />
-                {t('status.timeline.title')}
-              </h3>
+            {/* Success State */}
+            {proverInfo && (
+              <>
+                {/* Status Header */}
+                <Card className="p-8">
+                  {(() => {
+                    const statusInfo = getStatusInfo(proverInfo.status);
+                    const StatusIcon = statusInfo.icon;
+                    return (
+                      <div className={`flex items-center gap-4 p-4 bg-${statusInfo.color}/10 border border-${statusInfo.color}/30 rounded-xl mb-8`}>
+                        <div className={`w-12 h-12 bg-${statusInfo.color} rounded-full flex items-center justify-center flex-shrink-0`}>
+                          <StatusIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-semibold">{t(`status.result.${statusInfo.key}`)}</h3>
+                          <p className="text-foreground-secondary text-sm">
+                            {t(`status.result.${statusInfo.key}Description`)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
-              <div className="relative pl-8" role="list" aria-label={t('status.timeline.title')}>
-                <div
-                  className="absolute left-[7px] top-0 bottom-0 w-0.5 bg-surface-tertiary"
-                  aria-hidden="true"
-                />
+                  {/* Timeline */}
+                  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                    <Calendar className="h-5 w-5" aria-hidden="true" />
+                    {t('status.timeline.title')}
+                  </h3>
 
-                {mockTimelineSteps.map((step, index) => (
-                  <div
-                    key={step.id}
-                    className={`relative pb-6 ${index === mockTimelineSteps.length - 1 ? 'pb-0' : ''}`}
-                    role="listitem"
-                  >
+                  <div className="relative pl-8" role="list" aria-label={t('status.timeline.title')}>
                     <div
-                      className={`absolute -left-8 top-0 w-4 h-4 rounded-full border-2 border-background ${
-                        step.status === 'completed'
-                          ? 'bg-success'
-                          : step.status === 'current'
-                            ? 'bg-info ring-4 ring-info/30'
-                            : 'bg-surface-tertiary'
-                      }`}
+                      className="absolute left-[7px] top-0 bottom-0 w-0.5 bg-surface-tertiary"
                       aria-hidden="true"
                     />
-                    <div
-                      className={`p-4 bg-background-secondary border rounded-lg ${
-                        step.status === 'completed'
-                          ? 'border-success/30'
-                          : step.status === 'current'
-                            ? 'border-info/30'
-                            : 'border-surface-tertiary'
-                      }`}
-                    >
-                      <div className="font-semibold">
-                        {t(`status.timeline.steps.${step.title}`)}
-                      </div>
-                      <div className="text-xs text-foreground-tertiary">
-                        {step.date}
-                      </div>
-                      {step.description && (
-                        <div className="text-sm text-foreground-secondary mt-2">
-                          {t(`status.timeline.descriptions.${step.description}`)}
+
+                    {timelineSteps.map((step, index) => (
+                      <div
+                        key={step.id}
+                        className={`relative pb-6 ${index === timelineSteps.length - 1 ? 'pb-0' : ''}`}
+                        role="listitem"
+                      >
+                        <div
+                          className={`absolute -left-8 top-0 w-4 h-4 rounded-full border-2 border-background ${
+                            step.status === 'completed'
+                              ? 'bg-success'
+                              : step.status === 'current'
+                                ? 'bg-info ring-4 ring-info/30'
+                                : 'bg-surface-tertiary'
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <div
+                          className={`p-4 bg-background-secondary border rounded-lg ${
+                            step.status === 'completed'
+                              ? 'border-success/30'
+                              : step.status === 'current'
+                                ? 'border-info/30'
+                                : 'border-surface-tertiary'
+                          }`}
+                        >
+                          <div className="font-semibold">
+                            {t(`status.timeline.steps.${step.title}`)}
+                          </div>
+                          <div className="text-xs text-foreground-tertiary">
+                            {step.date}
+                          </div>
+                          {step.description && (
+                            <div className="text-sm text-foreground-secondary mt-2">
+                              {t(`status.timeline.descriptions.${step.description}`)}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              {/* Application Details */}
-              <div className="grid grid-cols-2 gap-4 mt-8">
-                {[
-                  { label: 'applicationId', value: 'PRV-2026-0001', icon: FileText },
-                  { label: 'applicationDate', value: '2026/01/15 14:32', icon: Calendar },
-                  { label: 'organization', value: 'Example Infrastructure Co.', icon: Building },
-                  { label: 'reviewer', value: 'Technical Review Team', icon: User },
-                ].map((item) => (
-                  <div key={item.label} className="p-4 bg-background-secondary rounded-lg">
-                    <div className="flex items-center gap-2 mb-1">
-                      <item.icon className="h-4 w-4 text-foreground-tertiary" aria-hidden="true" />
-                      <span className="text-xs text-foreground-tertiary">
-                        {t(`status.details.${item.label}`)}
-                      </span>
-                    </div>
-                    <div className="font-semibold">{item.value}</div>
+                  {/* Application Details */}
+                  <div className="grid grid-cols-2 gap-4 mt-8">
+                    {[
+                      {
+                        label: 'applicationId',
+                        value: proverInfo.prover_id.slice(0, 18) + '...',
+                        icon: FileText,
+                      },
+                      {
+                        label: 'operatorAddress',
+                        value: `${proverInfo.operator_addr.slice(0, 6)}...${proverInfo.operator_addr.slice(-4)}`,
+                        icon: User,
+                      },
+                      {
+                        label: 'stakeAmount',
+                        value: `${(BigInt(proverInfo.stake_amount) / BigInt(10 ** 18)).toString()} ETH`,
+                        icon: Building,
+                      },
+                      {
+                        label: 'status',
+                        value: t(`status.statusLabels.${proverInfo.status}`),
+                        icon: Calendar,
+                      },
+                    ].map((item) => (
+                      <div key={item.label} className="p-4 bg-background-secondary rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <item.icon className="h-4 w-4 text-foreground-tertiary" aria-hidden="true" />
+                          <span className="text-xs text-foreground-tertiary">
+                            {t(`status.details.${item.label}`)}
+                          </span>
+                        </div>
+                        <div className="font-semibold font-mono text-sm">{item.value}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </Card>
+                </Card>
 
-            {/* Questions from Reviewers */}
-            <Card className="p-8">
-              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <Mail className="h-5 w-5" aria-hidden="true" />
-                {t('status.questions.title')}
-              </h2>
+                {/* Questions from Reviewers */}
+                {defaultQuestions.length > 0 && (
+                  <Card className="p-8">
+                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                      <Mail className="h-5 w-5" aria-hidden="true" />
+                      {t('status.questions.title')}
+                    </h2>
 
-              <div className="space-y-4">
-                {mockQuestions.map((question) => (
+                    <div className="space-y-4">
+                      {defaultQuestions.map((question) => (
                   <div
                     key={question.id}
                     className={`p-6 rounded-xl border ${
@@ -359,17 +487,20 @@ export function ProverApplicationStatus() {
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            </Card>
+                      ))}
+                    </div>
+                  </Card>
+                )}
 
-            {/* Back to search */}
-            <div className="text-center">
-              <Button variant="ghost" onClick={() => setIsSearched(false)}>
-                <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
-                {t('status.backToSearch')}
-              </Button>
-            </div>
+                {/* Back to search */}
+                <div className="text-center">
+                  <Button variant="ghost" onClick={() => setIsSearched(false)}>
+                    <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
+                    {t('status.backToSearch')}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
