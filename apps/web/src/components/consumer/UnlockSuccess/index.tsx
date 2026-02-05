@@ -1,13 +1,94 @@
 'use client';
 
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTransactionDetail } from '@/hooks/consumer';
+
+// Format remaining time as HH:MM:SS
+function formatRemainingTime(seconds: number): string {
+  if (seconds <= 0) return '00:00:00';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Format timestamp to readable date
+function formatDate(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+// Truncate hash for display
+function truncateHash(hash: string): string {
+  if (!hash || hash.length < 12) return hash || '-';
+  return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
+}
 
 export function UnlockSuccess() {
   const t = useTranslations('consumer.unlockSuccess');
+  const searchParams = useSearchParams();
+
+  // Get parameters from URL
+  const lockId = searchParams.get('lockId') || '';
+  const unlockId = searchParams.get('unlockId') || '';
+  const releaseTimeParam = searchParams.get('releaseTime');
+  const method = searchParams.get('method') || 'normal';
+
+  // Parse release time from URL parameter
+  const releaseTime = releaseTimeParam ? parseInt(releaseTimeParam, 10) : 0;
+
+  // Fetch transaction detail for amount
+  const { data: txDetail } = useTransactionDetail(lockId);
+
+  // Calculate remaining time
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!releaseTime) return;
+
+    const calculateRemaining = () => {
+      const now = Math.floor(Date.now() / 1000);
+      const remaining = Math.max(0, releaseTime - now);
+      setRemainingSeconds(remaining);
+    };
+
+    calculateRemaining();
+    const interval = setInterval(calculateRemaining, 1000);
+
+    return () => clearInterval(interval);
+  }, [releaseTime]);
+
+  // Format amount from transaction detail
+  const formattedAmount = useMemo(() => {
+    if (!txDetail?.transaction?.amount) return '-';
+    const amount = txDetail.transaction.amount;
+    // If amount has decimal, assume it's already in ETH
+    if (amount.includes('.')) {
+      return `${parseFloat(amount).toFixed(4)} ETH`;
+    }
+    // Otherwise assume wei and convert
+    try {
+      const wei = BigInt(amount);
+      const eth = Number(wei) / 1e18;
+      return `${eth.toFixed(4)} ETH`;
+    } catch {
+      return `${amount} ETH`;
+    }
+  }, [txDetail]);
+
+  const isEmergency = method === 'emergency';
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -25,19 +106,37 @@ export function UnlockSuccess() {
         </div>
 
         <h1 className="text-2xl font-bold mb-3">{t('title')}</h1>
-        <p className="text-sm text-foreground-secondary mb-8">{t('subtitle')}</p>
+        <p className="text-sm text-foreground-secondary mb-8">
+          {isEmergency ? t('subtitleEmergency') : t('subtitle')}
+        </p>
+
+        {/* Emergency Warning */}
+        {isEmergency && (
+          <div className={cn(
+            'flex items-start gap-3 p-4 mb-6',
+            'bg-warning/10 border border-warning rounded-qs-lg'
+          )} role="alert">
+            <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-foreground-secondary text-left">
+              {t('emergency.warning')}
+            </p>
+          </div>
+        )}
 
         {/* Time Lock Info Card */}
         <div className={cn(
-          'p-6 rounded-qs-lg border border-gold/30 bg-gold/5 mb-8'
+          'p-6 rounded-qs-lg border mb-8',
+          isEmergency ? 'border-warning/30 bg-warning/5' : 'border-gold/30 bg-gold/5'
         )}>
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Clock className="w-5 h-5 text-gold" />
-            <span className="text-sm font-semibold text-gold">{t('timelock.title')}</span>
+            <Clock className={cn('w-5 h-5', isEmergency ? 'text-warning' : 'text-gold')} />
+            <span className={cn('text-sm font-semibold', isEmergency ? 'text-warning' : 'text-gold')}>
+              {isEmergency ? t('timelock.titleEmergency') : t('timelock.title')}
+            </span>
           </div>
 
           <div className="text-4xl font-bold text-foreground mb-2 font-mono">
-            23:59:59
+            {formatRemainingTime(remainingSeconds)}
           </div>
           <p className="text-xs text-foreground-secondary">{t('timelock.label')}</p>
         </div>
@@ -46,22 +145,19 @@ export function UnlockSuccess() {
         <div className="space-y-3 mb-8 text-left">
           <div className="flex justify-between items-center p-3 bg-surface rounded-qs">
             <span className="text-sm text-foreground-secondary">{t('details.amount')}</span>
-            <span className="text-sm font-semibold text-foreground">10.00 ETH</span>
+            <span className="text-sm font-semibold text-foreground">{formattedAmount}</span>
           </div>
           <div className="flex justify-between items-center p-3 bg-surface rounded-qs">
             <span className="text-sm text-foreground-secondary">{t('details.estimatedCompletion')}</span>
-            <span className="text-sm font-medium text-foreground">2026-01-16 12:00</span>
+            <span className="text-sm font-medium text-foreground">
+              {releaseTime ? formatDate(releaseTime) : '-'}
+            </span>
           </div>
           <div className="flex justify-between items-center p-3 bg-surface rounded-qs">
-            <span className="text-sm text-foreground-secondary">{t('details.txHash')}</span>
-            <a
-              href="https://sepolia.etherscan.io/tx/0x8b4e...1d3f"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-gold hover:underline font-mono min-h-[44px] inline-flex items-center px-2 -mr-2"
-            >
-              0x8b4e...1d3f
-            </a>
+            <span className="text-sm text-foreground-secondary">{t('details.unlockId')}</span>
+            <span className="text-sm font-mono text-foreground">
+              {truncateHash(unlockId)}
+            </span>
           </div>
         </div>
 

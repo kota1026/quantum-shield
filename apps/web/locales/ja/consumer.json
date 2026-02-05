@@ -1060,17 +1060,23 @@
     "unlockSuccess": {
       "title": "アンロック開始完了",
       "subtitle": "24時間のTime Lock後、資産がウォレットに転送されます",
+      "subtitleEmergency": "7日間のTime Lock後、資産がウォレットに転送されます",
+      "emergency": {
+        "warning": "緊急アンロックは7日間の待機期間が必要です。この期間中にChallengeが発生した場合、ボンドが没収される可能性があります。"
+      },
       "timelock": {
         "title": "Time Lock残り時間",
+        "titleEmergency": "緊急Time Lock残り時間",
         "label": "アンロック可能まで"
       },
       "details": {
         "amount": "アンロック金額",
         "estimatedCompletion": "アンロック可能日時",
+        "unlockId": "Unlock ID",
         "txHash": "TX Hash"
       },
       "info": {
-        "message": "24時間のセキュリティ待機期間中に問題がなければ、資産は自動的にウォレットに転送されます。ダッシュボードから進捗を確認できます。"
+        "message": "セキュリティ待機期間中に問題がなければ、資産は自動的にウォレットに転送されます。ダッシュボードから進捗を確認できます。"
       },
       "buttons": {
         "viewHistory": "履歴を確認",
