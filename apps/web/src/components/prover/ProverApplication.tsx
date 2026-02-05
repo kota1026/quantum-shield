@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import {
   ArrowLeft,
@@ -27,12 +27,15 @@ import {
   Wallet,
   Coins,
   Info,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useVerifyInvitation } from '@/hooks/prover';
+import { useVerifyInvitation, useRegisterProver } from '@/hooks/prover';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount, useDisconnect } from 'wagmi';
 
 // Application type: public or enterprise (via invitation)
 type ApplicationType = 'public' | 'enterprise';
@@ -104,6 +107,7 @@ const initialFormData: FormData = {
 export function ProverApplication() {
   const t = useTranslations('prover');
   const locale = useLocale();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [applicationType, setApplicationType] = useState<ApplicationType>('public');
   const [invitationCode, setInvitationCode] = useState('');
@@ -112,9 +116,25 @@ export function ProverApplication() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [applicationId] = useState(
-    `PRV-2026-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`
-  );
+  const [applicationId, setApplicationId] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Wallet connection via wagmi/RainbowKit
+  const { openConnectModal } = useConnectModal();
+  const { isConnected, address } = useAccount();
+  const { disconnect } = useDisconnect();
+
+  // Prover registration mutation
+  const registerProver = useRegisterProver();
+
+  // Sync wallet connection state with form
+  useEffect(() => {
+    if (isConnected && !formData.walletConnected) {
+      updateFormData('walletConnected', true);
+    } else if (!isConnected && formData.walletConnected) {
+      updateFormData('walletConnected', false);
+    }
+  }, [isConnected, formData.walletConnected]);
 
   // Check for invitation code in URL
   useEffect(() => {
@@ -215,8 +235,50 @@ export function ProverApplication() {
     }
   };
 
-  const handleSubmit = () => {
-    setIsSubmitted(true);
+  const handleSubmit = async () => {
+    if (!address) {
+      setSubmitError(t('application.errors.walletNotConnected'));
+      return;
+    }
+
+    setSubmitError(null);
+
+    try {
+      // Generate placeholder values for HSM attestation and multisig proof
+      // In production, these would come from actual HSM and multisig setup
+      const hsmAttestation = `HSM_ATTESTATION_${Date.now()}_${address}`;
+      const multisigProof = `MULTISIG_PROOF_${Date.now()}_${address}`;
+
+      // Generate placeholder SPHINCS+ public key (in production, this comes from HSM)
+      // SPHINCS+-128s public key is 32 bytes
+      const sphincsPubkey = `0x${Array.from({ length: 64 }, () =>
+        Math.floor(Math.random() * 16).toString(16)
+      ).join('')}`;
+
+      const result = await registerProver.mutateAsync({
+        operatorAddr: address,
+        sphincsPubkey,
+        stakeAmount: `${formData.stakeAmount}000000000000000000`, // Convert ETH to wei
+        hsmAttestation,
+        multisigProof,
+        endpoint: formData.website || `https://prover.${formData.organizationName.toLowerCase().replace(/\s+/g, '-')}.io`,
+      });
+
+      setApplicationId(result.prover_id);
+      setIsSubmitted(true);
+
+      // Redirect to application status page after short delay
+      setTimeout(() => {
+        router.push(`/${locale}/prover/application-status?id=${result.prover_id}`);
+      }, 3000);
+    } catch (error) {
+      console.error('Prover registration error:', error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : t('application.errors.submissionFailed')
+      );
+    }
   };
 
   // Full ISO 3166-1 country list
@@ -487,7 +549,7 @@ export function ProverApplication() {
             </p>
             <div className="flex gap-4 justify-center">
               <Button variant="primary" asChild>
-                <Link href="/prover/application-status">
+                <Link href={`/prover/application-status?id=${applicationId}`}>
                   {t('application.submitted.checkStatus')}
                 </Link>
               </Button>
@@ -1152,10 +1214,10 @@ export function ProverApplication() {
                     {t('application.step4.walletConnection')}{' '}
                     <span className="text-hinomaru">*</span>
                   </label>
-                  {!formData.walletConnected ? (
+                  {!isConnected ? (
                     <button
                       type="button"
-                      onClick={() => updateFormData('walletConnected', true)}
+                      onClick={() => openConnectModal?.()}
                       className="w-full flex items-center justify-center gap-3 p-4 bg-background-secondary border border-surface-tertiary rounded-lg hover:border-hinomaru transition-colors"
                     >
                       <Wallet className="h-5 w-5 text-foreground-tertiary" aria-hidden="true" />
@@ -1166,12 +1228,14 @@ export function ProverApplication() {
                       <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
                       <div className="flex-1">
                         <div className="font-medium text-success">{t('application.step4.walletConnected')}</div>
-                        <div className="text-sm text-foreground-secondary font-mono">0x1234...5678</div>
+                        <div className="text-sm text-foreground-secondary font-mono">
+                          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : ''}
+                        </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => updateFormData('walletConnected', false)}
+                        onClick={() => disconnect()}
                       >
                         {t('application.step4.disconnect')}
                       </Button>
@@ -1315,13 +1379,33 @@ export function ProverApplication() {
                 </div>
               </div>
 
+              {submitError && (
+                <div className="bg-hinomaru/10 border border-hinomaru rounded-lg p-4 mb-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-hinomaru flex-shrink-0 mt-0.5" aria-hidden="true" />
+                    <span className="text-hinomaru">{submitError}</span>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between">
-                <Button variant="outline" onClick={prevStep}>
+                <Button variant="outline" onClick={prevStep} disabled={registerProver.isPending}>
                   <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                   {t('application.back')}
                 </Button>
-                <Button variant="primary" onClick={handleSubmit}>
-                  {t('application.submit')}
+                <Button
+                  variant="primary"
+                  onClick={handleSubmit}
+                  disabled={registerProver.isPending || !isConnected}
+                >
+                  {registerProver.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                      {t('application.submitting')}
+                    </>
+                  ) : (
+                    t('application.submit')
+                  )}
                 </Button>
               </div>
             </Card>

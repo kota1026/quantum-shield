@@ -501,6 +501,11 @@
       "continue": "続ける",
       "back": "戻る",
       "submit": "申請を送信",
+      "submitting": "送信中...",
+      "errors": {
+        "walletNotConnected": "ウォレットが接続されていません。ウォレットを接続してください。",
+        "submissionFailed": "申請の送信に失敗しました。もう一度お試しください。"
+      },
       "step1": {
         "title": "基本情報",
         "description": "組織についてお知らせください"
@@ -644,11 +649,25 @@
         "emailPlaceholder": "例: admin@example.com",
         "checkButton": "状況を確認"
       },
+      "loading": "申請情報を取得中...",
       "result": {
         "underReview": "審査中",
+        "underReviewDescription": "書類審査を実施しています（3〜5営業日）",
         "reviewingDocuments": "書類審査を実施しています（3〜5営業日）",
         "approved": "承認済み",
-        "pending": "保留中"
+        "approvedDescription": "Proverとして承認されました。ダッシュボードにアクセスできます。",
+        "inactive": "無効",
+        "inactiveDescription": "現在、Proverアカウントは無効になっています。",
+        "pending": "保留中",
+        "notFound": "申請が見つかりません",
+        "notFoundDescription": "入力された申請IDに該当する申請が見つかりませんでした。"
+      },
+      "statusLabels": {
+        "pending_approval": "審査中",
+        "active": "アクティブ",
+        "inactive": "無効",
+        "exiting": "退出中",
+        "exited": "退出済み"
       },
       "timeline": {
         "title": "審査進捗",
@@ -667,7 +686,10 @@
         "applicationId": "申請ID",
         "applicationDate": "申請日時",
         "organization": "組織名",
-        "reviewer": "審査担当"
+        "reviewer": "審査担当",
+        "operatorAddress": "オペレーターアドレス",
+        "stakeAmount": "ステーク額",
+        "status": "ステータス"
       },
       "questions": {
         "title": "審査チームからの質問",
