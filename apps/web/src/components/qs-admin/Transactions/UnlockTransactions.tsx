@@ -9,7 +9,6 @@ import {
   Search,
   Filter,
   Download,
-  TrendingUp,
   ArrowLeft,
   CheckCircle,
   Clock,
@@ -17,6 +16,9 @@ import {
   Timer,
   RefreshCw,
   AlertTriangle,
+  Wallet,
+  Activity,
+  ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -27,44 +29,23 @@ import type { UnlockTransaction } from '@/lib/api/admin/types';
 
 // Fallback data - Used when API is unavailable
 const FALLBACK_STATS: UnlockStats = {
-  totalUnlocks: 8920,
-  unlockVolume: '45,230 ETH',
-  pendingUnlocks: 18,
-  avgWaitTime: '23.5 hours',
+  totalUnlocks: 0,
+  unlockVolume: '0 ETH',
+  pendingUnlocks: 0,
+  avgWaitTime: '-',
 };
-
-interface FallbackUnlockTransaction {
-  id: string;
-  user: string;
-  amount: string;
-  token: string;
-  requestTime: string;
-  unlockTime: string;
-  status: string;
-  remainingTime: string;
-}
-
-const FALLBACK_UNLOCK_TRANSACTIONS: FallbackUnlockTransaction[] = [
-  { id: 'UL-001234', user: '0x1234...5678', amount: '10.5 ETH', token: 'ETH', requestTime: '2024-01-26 14:30', unlockTime: '2024-01-27 14:30', status: 'completed', remainingTime: '-' },
-  { id: 'UL-001235', user: '0x2345...6789', amount: '5.0 ETH', token: 'ETH', requestTime: '2024-01-27 10:00', unlockTime: '2024-01-28 10:00', status: 'pending', remainingTime: '19h 30m' },
-  { id: 'UL-001236', user: '0x3456...7890', amount: '100.0 ETH', token: 'ETH', requestTime: '2024-01-27 08:00', unlockTime: '2024-01-28 08:00', status: 'pending', remainingTime: '17h 30m' },
-  { id: 'UL-001237', user: '0x4567...8901', amount: '50.0 ETH', token: 'ETH', requestTime: '2024-01-26 20:00', unlockTime: '2024-01-27 20:00', status: 'processing', remainingTime: '5h 30m' },
-  { id: 'UL-001238', user: '0x5678...9012', amount: '25.0 ETH', token: 'ETH', requestTime: '2024-01-26 12:00', unlockTime: '2024-01-27 12:00', status: 'completed', remainingTime: '-' },
-  { id: 'UL-001239', user: '0x6789...0123', amount: '15.0 ETH', token: 'ETH', requestTime: '2024-01-25 14:00', unlockTime: '2024-01-26 14:00', status: 'failed', remainingTime: '-' },
-];
 
 // Loading skeleton components
 function StatCardSkeleton() {
   return (
-    <Card>
+    <Card className="bg-card border-border/10">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="h-4 bg-muted rounded w-24 animate-pulse" />
-            <div className="h-8 bg-muted rounded w-32 animate-pulse" />
-            <div className="h-3 bg-muted rounded w-16 animate-pulse" />
+          <div className="space-y-3">
+            <div className="h-4 bg-elevated rounded w-24 animate-pulse" />
+            <div className="h-8 bg-elevated rounded w-32 animate-pulse" />
           </div>
-          <div className="h-12 w-12 rounded-lg bg-muted animate-pulse" />
+          <div className="h-12 w-12 rounded-[14px] bg-elevated animate-pulse" />
         </div>
       </CardContent>
     </Card>
@@ -73,15 +54,14 @@ function StatCardSkeleton() {
 
 function TableRowSkeleton() {
   return (
-    <tr className="border-b border-border">
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-20 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-24 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-28 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-28 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-6 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-8 bg-muted rounded w-16 animate-pulse" /></td>
+    <tr className="border-b border-border/10">
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-24 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-28 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-20 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-24 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-6 bg-elevated rounded-full w-20 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-32 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-9 bg-elevated rounded-[10px] w-16 animate-pulse" /></td>
     </tr>
   );
 }
@@ -94,13 +74,15 @@ interface ErrorStateProps {
 
 function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <AlertTriangle className="h-8 w-8 text-warning mb-2" />
-      <p className="text-sm text-muted-foreground mb-4">{message}</p>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="h-16 w-16 rounded-[20px] bg-error/10 flex items-center justify-center mb-4">
+        <AlertTriangle className="h-8 w-8 text-[#E07040]" />
+      </div>
+      <p className="text-secondary mb-4">{message}</p>
       {onRetry && (
-        <Button variant="outline" size="sm" onClick={onRetry}>
+        <Button variant="outline" onClick={onRetry} className="min-h-[44px] rounded-[10px]">
           <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
+          再読み込み
         </Button>
       )}
     </div>
@@ -118,52 +100,98 @@ function formatTimestamp(timestamp: number): string {
   });
 }
 
-const STATUS_COLORS = {
-  pending: 'bg-warning/10 text-warning',
-  waiting: 'bg-warning/10 text-warning',
-  processing: 'bg-info/10 text-info',
-  completed: 'bg-success/10 text-success',
-  failed: 'bg-danger/10 text-danger',
-};
-
-const STATUS_ICONS = {
-  pending: Clock,
-  waiting: Clock,
-  processing: Timer,
-  completed: CheckCircle,
-  failed: XCircle,
+// Status configuration (following UI_DESIGN_GUIDELINES.md)
+const STATUS_CONFIG = {
+  pending: {
+    icon: Clock,
+    color: 'text-[#8080A0]',
+    bg: 'bg-[#8080A0]/10',
+    label: '承認待ち',
+  },
+  waiting: {
+    icon: Clock,
+    color: 'text-[#F0A030]',
+    bg: 'bg-[#F0A030]/10',
+    label: '待機中',
+  },
+  ready: {
+    icon: CheckCircle,
+    color: 'text-[#4A90D9]',
+    bg: 'bg-[#4A90D9]/10',
+    label: '準備完了',
+  },
+  challenged: {
+    icon: AlertTriangle,
+    color: 'text-[#E07040]',
+    bg: 'bg-[#E07040]/10',
+    label: 'チャレンジ中',
+  },
+  completed: {
+    icon: CheckCircle,
+    color: 'text-[#00C896]',
+    bg: 'bg-[#00C896]/10',
+    label: '完了',
+  },
+  cancelled: {
+    icon: XCircle,
+    color: 'text-[#8080A0]',
+    bg: 'bg-[#8080A0]/10',
+    label: 'キャンセル',
+  },
 };
 
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.ElementType;
-  trend?: { value: number; isPositive: boolean };
+  iconColor?: string;
+  iconBg?: string;
   highlight?: boolean;
+  trend?: { value: number; isPositive: boolean };
 }
 
-function StatCard({ title, value, icon: Icon, trend, highlight }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, iconColor = 'text-hinomaru', iconBg = 'bg-hinomaru/10', highlight, trend }: StatCardProps) {
   return (
-    <Card className={highlight ? 'border-warning' : ''}>
+    <Card className={cn('bg-card border-border/10 rounded-[20px] hover:border-border/20 transition-colors', highlight && 'border-[#F0A030]/50')}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-foreground-secondary">{title}</p>
-            <p className={cn('text-2xl font-bold mt-2', highlight && 'text-warning')}>{value}</p>
+            <p className="text-sm font-medium text-secondary">{title}</p>
+            <p className={cn('text-2xl font-bold mt-2 tracking-tight font-mono', highlight && 'text-[#F0A030]')}>{value}</p>
             {trend && (
-              <p className={cn('text-xs mt-2 flex items-center', trend.isPositive ? 'text-success' : 'text-danger')}>
-                <TrendingUp className={cn('h-3 w-3 mr-1', !trend.isPositive && 'rotate-180')} />
-                {trend.isPositive ? '+' : ''}{trend.value}%
+              <p className={cn('text-xs mt-1', trend.isPositive ? 'text-success' : 'text-danger')}>
+                {trend.isPositive ? '+' : '-'}{trend.value}%
               </p>
             )}
           </div>
-          <div className={cn('h-12 w-12 rounded-lg flex items-center justify-center', highlight ? 'bg-warning/10' : 'bg-info/10')}>
-            <Icon className={cn('h-6 w-6', highlight ? 'text-warning' : 'text-info')} />
+          <div className={cn('h-12 w-12 rounded-[14px] flex items-center justify-center', iconBg)}>
+            <Icon className={cn('h-6 w-6', iconColor)} />
           </div>
         </div>
       </CardContent>
     </Card>
   );
+}
+
+// Helper to truncate transaction ID
+function truncateId(id: string): string {
+  if (id.length <= 14) return id;
+  return `${id.slice(0, 6)}...${id.slice(-4)}`;
+}
+
+// Helper function to calculate remaining time
+function calculateRemainingTime(timelockEnd: number): string {
+  const now = Date.now();
+  if (timelockEnd <= now) return '-';
+
+  const diff = timelockEnd - now;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (hours > 0) {
+    return `${hours}時間 ${minutes}分`;
+  }
+  return `${minutes}分`;
 }
 
 export function UnlockTransactions() {
@@ -178,22 +206,20 @@ export function UnlockTransactions() {
 
   // Use API data or fallback
   const stats = statsQuery.data ?? FALLBACK_STATS;
-  const transactions = transactionsQuery.data?.transactions ?? FALLBACK_UNLOCK_TRANSACTIONS;
+  const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
-    { key: 'all', label: tCommon('all') },
-    { key: 'pending', label: t('status.pending') },
-    { key: 'processing', label: t('status.processing') },
-    { key: 'completed', label: t('status.completed') },
-    { key: 'failed', label: t('status.failed') },
+    { key: 'all', label: 'すべて', count: transactions.length },
+    { key: 'pending', label: '承認待ち', count: transactions.filter(tx => tx.status === 'pending' || tx.status === 'waiting').length },
+    { key: 'ready', label: '準備完了', count: transactions.filter(tx => tx.status === 'ready').length },
+    { key: 'completed', label: '完了', count: transactions.filter(tx => tx.status === 'completed').length },
   ];
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
-      // Map API status to filter status
       const txStatus = tx.status === 'waiting' ? 'pending' : tx.status;
       if (statusFilter !== 'all' && txStatus !== statusFilter) return false;
-      const userAddr = 'userAddress' in tx ? tx.userAddress : ('user' in tx ? tx.user : '');
+      const userAddr = 'userAddress' in tx ? tx.userAddress : '';
       if (searchQuery && !tx.id.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !userAddr.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
@@ -204,20 +230,20 @@ export function UnlockTransactions() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <Link href="/qs-admin/transactions">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-11 w-11 rounded-[10px]">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('unlockTitle')}</h1>
-            <p className="text-foreground-secondary">{t('unlockSubtitle')}</p>
+            <h1 className="text-2xl font-bold text-primary">アンロックトランザクション</h1>
+            <p className="text-secondary">ETHアンロックの履歴と管理</p>
           </div>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="min-h-[44px] rounded-[10px]">
           <Download className="h-4 w-4 mr-2" />
-          {tCommon('export')}
+          エクスポート
         </Button>
       </div>
 
@@ -233,58 +259,124 @@ export function UnlockTransactions() {
         ) : statsQuery.isError ? (
           <div className="col-span-4">
             <ErrorState
-              message="Failed to load statistics"
+              message="統計データの読み込みに失敗しました"
               onRetry={() => statsQuery.refetch()}
             />
           </div>
         ) : (
           <>
-            <StatCard title={t('stats.totalUnlocks')} value={stats.totalUnlocks.toLocaleString()} icon={Unlock} trend={{ value: 5.2, isPositive: false }} />
-            <StatCard title={t('stats.unlockVolume')} value={stats.unlockVolume} icon={Unlock} />
-            <StatCard title={t('stats.pendingUnlocks')} value={stats.pendingUnlocks} icon={Clock} highlight />
-            <StatCard title={t('stats.avgUnlockAmount')} value={stats.avgWaitTime} icon={Timer} />
+            <StatCard
+              title="総アンロック数"
+              value={stats.totalUnlocks.toLocaleString()}
+              icon={Unlock}
+              iconColor="text-[#4A90D9]"
+              iconBg="bg-[#4A90D9]/10"
+              trend={{ value: 5.2, isPositive: false }}
+            />
+            <StatCard
+              title="アンロック総額"
+              value={stats.unlockVolume}
+              icon={Wallet}
+              iconColor="text-[#00C896]"
+              iconBg="bg-[#00C896]/10"
+            />
+            <StatCard
+              title="承認待ち"
+              value={stats.pendingUnlocks}
+              icon={Clock}
+              iconColor="text-[#F0A030]"
+              iconBg="bg-[#F0A030]/10"
+              highlight={stats.pendingUnlocks > 0}
+            />
+            <StatCard
+              title="平均処理時間"
+              value={stats.avgWaitTime}
+              icon={Timer}
+              iconColor="text-gold"
+              iconBg="bg-gold/10"
+            />
           </>
         )}
       </div>
 
       {/* Transaction List */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">{t('unlockTitle')}</CardTitle>
-          <div className="flex items-center space-x-2">
+      <Card className="bg-card border-border/10 rounded-[20px]">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="text-lg">トランザクション一覧</CardTitle>
+          <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground-tertiary" />
-              <Input type="text" placeholder={tCommon('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 w-64" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
+              <Input
+                type="text"
+                placeholder="ID または アドレスで検索..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-72 min-h-[44px] rounded-[14px] bg-secondary border-border/10"
+              />
             </div>
-            <Button variant="outline" size="icon"><Filter className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" className="h-11 w-11 rounded-[10px]">
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
           {/* Filter Tabs */}
-          <div className="flex space-x-2 mb-4 border-b border-border">
+          <div className="flex gap-2 mb-6 p-1 bg-secondary rounded-[14px] w-fit">
             {statusFilters.map((filter) => (
-              <button key={filter.key} onClick={() => setStatusFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', statusFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button
+                key={filter.key}
+                onClick={() => setStatusFilter(filter.key)}
+                className={cn(
+                  'px-4 py-2 min-h-[40px] text-sm font-medium rounded-[10px] transition-all duration-normal',
+                  statusFilter === filter.key
+                    ? 'bg-card text-primary shadow-sm'
+                    : 'text-secondary hover:text-primary'
+                )}
+              >
                 {filter.label}
+                {filter.count > 0 && (
+                  <span className={cn(
+                    'ml-2 px-2 py-0.5 text-xs rounded-full',
+                    statusFilter === filter.key
+                      ? 'bg-hinomaru/10 text-hinomaru'
+                      : 'bg-elevated text-secondary'
+                  )}>
+                    {filter.count}
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-[14px] border border-border/10">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.id')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.user')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.amount')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.timestamp')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('detail.unlockDate')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.duration')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.status')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.actions')}</th>
+                <tr className="bg-secondary">
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    ユーザー
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    金額
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    残り時間
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    ステータス
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    申請日時
+                  </th>
+                  <th className="text-right py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    操作
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/10">
                 {transactionsQuery.isLoading ? (
                   <>
                     <TableRowSkeleton />
@@ -295,44 +387,84 @@ export function UnlockTransactions() {
                   </>
                 ) : transactionsQuery.isError ? (
                   <tr>
-                    <td colSpan={8}>
+                    <td colSpan={7}>
                       <ErrorState
-                        message="Failed to load transactions"
+                        message="トランザクションの読み込みに失敗しました"
                         onRetry={() => transactionsQuery.refetch()}
                       />
                     </td>
                   </tr>
+                ) : filteredTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={7}>
+                      <div className="text-center py-12">
+                        <Unlock className="h-12 w-12 text-tertiary mx-auto mb-4" />
+                        <p className="text-secondary">
+                          {searchQuery || statusFilter !== 'all'
+                            ? '条件に一致するトランザクションがありません'
+                            : 'アンロックトランザクションはまだありません'
+                          }
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
                 ) : (
                   filteredTransactions.map((tx) => {
-                    const statusKey = tx.status === 'waiting' ? 'pending' : tx.status;
-                    const StatusIcon = STATUS_ICONS[statusKey as keyof typeof STATUS_ICONS] || Clock;
-                    const userAddr = 'userAddress' in tx ? tx.userAddress : ('user' in tx ? tx.user : '-');
-                    const requestTime = 'createdAt' in tx && typeof tx.createdAt === 'number' ? formatTimestamp(tx.createdAt) : ('requestTime' in tx ? tx.requestTime : '-');
-                    const unlockTime = 'timelockEnd' in tx && typeof tx.timelockEnd === 'number' ? formatTimestamp(tx.timelockEnd) : ('unlockTime' in tx ? tx.unlockTime : '-');
-                    const remainingTime = 'timelockEnd' in tx && typeof tx.timelockEnd === 'number' ? calculateRemainingTime(tx.timelockEnd) : ('remainingTime' in tx ? tx.remainingTime : '-');
+                    const statusKey = tx.status as keyof typeof STATUS_CONFIG;
+                    const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending;
+                    const StatusIcon = config.icon;
+                    const userAddr = 'userAddress' in tx ? tx.userAddress : '-';
+                    const requestTime = 'createdAt' in tx && typeof tx.createdAt === 'number' ? formatTimestamp(tx.createdAt) : '-';
+                    const remainingTime = 'timelockEnd' in tx && typeof tx.timelockEnd === 'number' ? calculateRemainingTime(tx.timelockEnd) : '-';
+
                     return (
-                      <tr key={tx.id} className="border-b border-border hover:bg-surface transition-colors">
-                        <td className="py-3 px-4"><code className="text-sm font-mono text-info">{tx.id}</code></td>
-                        <td className="py-3 px-4"><code className="text-sm font-mono">{userAddr}</code></td>
-                        <td className="py-3 px-4 font-medium">{tx.amount}</td>
-                        <td className="py-3 px-4 text-foreground-secondary">{requestTime}</td>
-                        <td className="py-3 px-4 text-foreground-secondary">{unlockTime}</td>
-                        <td className="py-3 px-4">
+                      <tr
+                        key={tx.id}
+                        className="group hover:bg-elevated transition-colors"
+                      >
+                        <td className="py-4 px-6">
+                          <code className="text-sm font-mono font-medium text-[#4A90D9]" title={tx.id}>
+                            {truncateId(tx.id)}
+                          </code>
+                        </td>
+                        <td className="py-4 px-6">
+                          <code className="text-sm font-mono text-secondary">
+                            {userAddr}
+                          </code>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="font-semibold font-mono">{tx.amount}</span>
+                        </td>
+                        <td className="py-4 px-6">
                           {remainingTime !== '-' ? (
-                            <span className="text-warning font-medium">{remainingTime}</span>
+                            <span className="text-[#F0A030] font-medium font-mono">{remainingTime}</span>
                           ) : (
-                            <span className="text-foreground-tertiary">-</span>
+                            <span className="text-tertiary">-</span>
                           )}
                         </td>
-                        <td className="py-3 px-4">
-                          <span className={cn('inline-flex items-center px-2 py-1 rounded-md text-xs font-medium', STATUS_COLORS[statusKey as keyof typeof STATUS_COLORS] || 'bg-muted text-muted-foreground')}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {t(`status.${statusKey}`)}
+                        <td className="py-4 px-6">
+                          <span className={cn(
+                            'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium',
+                            config.bg,
+                            config.color
+                          )}>
+                            <StatusIcon className="h-3 w-3" />
+                            {config.label}
                           </span>
                         </td>
-                        <td className="py-3 px-4">
-                          <Link href={`/qs-admin/transactions/unlock/${tx.id}`} className="inline-flex items-center justify-center min-h-[44px] px-4 py-2 text-sm font-medium border border-border rounded-md hover:bg-accent transition-colors">
-                            {tCommon('detail')}
+                        <td className="py-4 px-6 text-sm text-secondary font-mono">
+                          {requestTime}
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <Link href={`/qs-admin/transactions/unlock/${tx.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="min-h-[36px] rounded-[6px] opacity-0 group-hover:opacity-100 transition-opacity text-gold hover:text-gold-light"
+                            >
+                              詳細
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
                           </Link>
                         </td>
                       </tr>
@@ -343,26 +475,24 @@ export function UnlockTransactions() {
             </table>
           </div>
 
-          {!transactionsQuery.isLoading && !transactionsQuery.isError && filteredTransactions.length === 0 && (
-            <div className="text-center py-8 text-foreground-secondary">{t('empty.unlock')}</div>
+          {/* Pagination placeholder */}
+          {!transactionsQuery.isLoading && !transactionsQuery.isError && filteredTransactions.length > 0 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/10">
+              <p className="text-sm text-secondary">
+                {filteredTransactions.length} 件のトランザクション
+              </p>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="min-h-[36px] rounded-[6px]" disabled>
+                  前へ
+                </Button>
+                <Button variant="outline" size="sm" className="min-h-[36px] rounded-[6px]" disabled>
+                  次へ
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
     </div>
   );
-}
-
-// Helper function to calculate remaining time
-function calculateRemainingTime(timelockEnd: number): string {
-  const now = Date.now();
-  if (timelockEnd <= now) return '-';
-
-  const diff = timelockEnd - now;
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-  return `${minutes}m`;
 }

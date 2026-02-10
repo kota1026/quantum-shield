@@ -16,22 +16,6 @@ import type {
   ClaimableRewards,
   ExtendedRewardsHistory,
 } from '@/lib/api/token-hub/types';
-import {
-  MOCK_STATS,
-  MOCK_DELEGATIONS,
-  MOCK_DASHBOARD_REWARDS,
-  MOCK_REWARDS_SUMMARY,
-  MOCK_REWARDS_HISTORY,
-  MOCK_REWARDS_BREAKDOWN,
-  MOCK_EPOCH,
-  MOCK_LOCKS,
-  MOCK_BALANCE,
-  MOCK_LOCKED_POSITIONS,
-  MOCK_USER_DELEGATION,
-  MOCK_DELEGATES,
-  MOCK_CLAIMABLE,
-  MOCK_EXTENDED_HISTORY,
-} from '@/lib/api/token-hub/mock';
 
 // =============================================================================
 // API Client
@@ -39,12 +23,24 @@ import {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+// User address storage key - shared with consumer hooks
+const USER_ADDRESS_KEY = 'quantum_shield_user_address';
+
+function getUserAddress(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(USER_ADDRESS_KEY);
+}
+
 async function fetchApi<T>(endpoint: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  const userAddress = getUserAddress();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (userAddress) {
+    headers['X-User-Address'] = userAddress;
+  }
+
+  const res = await fetch(`${API_BASE}${endpoint}`, { headers });
 
   if (!res.ok) {
     throw new Error(`API Error: ${res.status}`);
@@ -54,11 +50,17 @@ async function fetchApi<T>(endpoint: string): Promise<T> {
 }
 
 async function postApi<T>(endpoint: string, body?: unknown): Promise<T> {
+  const userAddress = getUserAddress();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (userAddress) {
+    headers['X-User-Address'] = userAddress;
+  }
+
   const res = await fetch(`${API_BASE}${endpoint}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
 
@@ -99,14 +101,14 @@ export function useTokenHubStats() {
   return useQuery({
     queryKey: tokenHubKeys.stats(),
     queryFn: async () => {
-      try {
-        return await fetchApi<TokenHubStats>('/v1/token-hub/dashboard');
-      } catch {
-        // Fallback to mock data in development
-        return MOCK_STATS;
-      }
+      const address = getUserAddress();
+      const url = address
+        ? `/v1/token-hub/dashboard?address=${address}`
+        : '/v1/token-hub/dashboard';
+      return await fetchApi<TokenHubStats>(url);
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -114,13 +116,14 @@ export function useDelegations() {
   return useQuery({
     queryKey: tokenHubKeys.delegations(),
     queryFn: async () => {
-      try {
-        return await fetchApi<Delegation[]>('/v1/token-hub/my-delegations');
-      } catch {
-        return MOCK_DELEGATIONS;
-      }
+      const address = getUserAddress();
+      const url = address
+        ? `/v1/token-hub/my-delegations?address=${address}`
+        : '/v1/token-hub/my-delegations';
+      return await fetchApi<Delegation[]>(url);
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -128,13 +131,10 @@ export function useDashboardRewards() {
   return useQuery({
     queryKey: tokenHubKeys.dashboardRewards(),
     queryFn: async () => {
-      try {
-        return await fetchApi<DashboardRewards>('/v1/token-hub/rewards/summary');
-      } catch {
-        return MOCK_DASHBOARD_REWARDS;
-      }
+      return await fetchApi<DashboardRewards>('/v1/token-hub/rewards/summary');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -146,13 +146,14 @@ export function useRewardsSummary() {
   return useQuery({
     queryKey: tokenHubKeys.rewardsSummary(),
     queryFn: async () => {
-      try {
-        return await fetchApi<RewardsSummary>('/v1/token-hub/rewards');
-      } catch {
-        return MOCK_REWARDS_SUMMARY;
-      }
+      const address = getUserAddress();
+      const url = address
+        ? `/v1/token-hub/rewards?address=${address}`
+        : '/v1/token-hub/rewards';
+      return await fetchApi<RewardsSummary>(url);
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -160,13 +161,14 @@ export function useRewardsHistory() {
   return useQuery({
     queryKey: tokenHubKeys.rewardsHistory(),
     queryFn: async () => {
-      try {
-        return await fetchApi<RewardsHistory[]>('/v1/token-hub/rewards/history');
-      } catch {
-        return MOCK_REWARDS_HISTORY;
-      }
+      const address = getUserAddress();
+      const url = address
+        ? `/v1/token-hub/rewards/history?address=${address}`
+        : '/v1/token-hub/rewards/history';
+      return await fetchApi<RewardsHistory[]>(url);
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -174,13 +176,10 @@ export function useRewardsBreakdown() {
   return useQuery({
     queryKey: tokenHubKeys.rewardsBreakdown(),
     queryFn: async () => {
-      try {
-        return await fetchApi<RewardsBreakdown>('/v1/token-hub/rewards/breakdown');
-      } catch {
-        return MOCK_REWARDS_BREAKDOWN;
-      }
+      return await fetchApi<RewardsBreakdown>('/v1/token-hub/rewards/breakdown');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -188,13 +187,10 @@ export function useEpoch() {
   return useQuery({
     queryKey: tokenHubKeys.epoch(),
     queryFn: async () => {
-      try {
-        return await fetchApi<EpochInfo>('/v1/token-hub/epoch');
-      } catch {
-        return MOCK_EPOCH;
-      }
+      return await fetchApi<EpochInfo>('/v1/token-hub/epoch');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -206,13 +202,14 @@ export function useLocks() {
   return useQuery({
     queryKey: tokenHubKeys.locks(),
     queryFn: async () => {
-      try {
-        return await fetchApi<Lock[]>('/v1/token-hub/locks');
-      } catch {
-        return MOCK_LOCKS;
-      }
+      const address = getUserAddress();
+      const url = address
+        ? `/v1/token-hub/locks?address=${address}`
+        : '/v1/token-hub/locks';
+      return await fetchApi<Lock[]>(url);
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -224,14 +221,11 @@ export function useBalance() {
   return useQuery({
     queryKey: tokenHubKeys.balance(),
     queryFn: async () => {
-      try {
-        const data = await fetchApi<{ balance: number }>('/v1/token-hub/balance');
-        return data.balance;
-      } catch {
-        return MOCK_BALANCE;
-      }
+      const data = await fetchApi<{ balance: number }>('/v1/token-hub/balance');
+      return data.balance;
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -243,13 +237,14 @@ export function useLockedPositions() {
   return useQuery({
     queryKey: tokenHubKeys.lockedPositions(),
     queryFn: async () => {
-      try {
-        return await fetchApi<LockedPosition[]>('/v1/token-hub/locked-positions');
-      } catch {
-        return MOCK_LOCKED_POSITIONS;
-      }
+      const address = getUserAddress();
+      const url = address
+        ? `/v1/token-hub/locked-positions?address=${address}`
+        : '/v1/token-hub/locked-positions';
+      return await fetchApi<LockedPosition[]>(url);
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -261,13 +256,10 @@ export function useUserDelegation() {
   return useQuery({
     queryKey: tokenHubKeys.userDelegation(),
     queryFn: async () => {
-      try {
-        return await fetchApi<UserDelegation>('/v1/token-hub/user-delegation');
-      } catch {
-        return MOCK_USER_DELEGATION;
-      }
+      return await fetchApi<UserDelegation>('/v1/token-hub/user-delegation');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -275,13 +267,10 @@ export function useDelegateList() {
   return useQuery({
     queryKey: tokenHubKeys.delegates(),
     queryFn: async () => {
-      try {
-        return await fetchApi<DelegateInfo[]>('/v1/token-hub/delegates');
-      } catch {
-        return MOCK_DELEGATES;
-      }
+      return await fetchApi<DelegateInfo[]>('/v1/token-hub/delegates');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -293,13 +282,14 @@ export function useClaimableRewards() {
   return useQuery({
     queryKey: tokenHubKeys.claimable(),
     queryFn: async () => {
-      try {
-        return await fetchApi<ClaimableRewards>('/v1/token-hub/rewards/claimable');
-      } catch {
-        return MOCK_CLAIMABLE;
-      }
+      const address = getUserAddress();
+      const url = address
+        ? `/v1/token-hub/rewards/claimable?address=${address}`
+        : '/v1/token-hub/rewards/claimable';
+      return await fetchApi<ClaimableRewards>(url);
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -307,13 +297,10 @@ export function useExtendedRewardsHistory() {
   return useQuery({
     queryKey: tokenHubKeys.extendedHistory(),
     queryFn: async () => {
-      try {
-        return await fetchApi<ExtendedRewardsHistory[]>('/v1/token-hub/rewards/history/extended');
-      } catch {
-        return MOCK_EXTENDED_HISTORY;
-      }
+      return await fetchApi<ExtendedRewardsHistory[]>('/v1/token-hub/rewards/history/extended');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 

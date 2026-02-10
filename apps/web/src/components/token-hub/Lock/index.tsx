@@ -18,12 +18,16 @@ import { FormulaTooltip } from './FormulaTooltip';
 import { Link } from '@/i18n/navigation';
 import { useBalance } from '@/hooks/token-hub/useTokenHub';
 
-// Lock duration options
+// Maximum lock time: 48 months = 4 years (SEQUENCES.md §9.1)
+const MAX_LOCK_MONTHS = 48;
+
+// Lock duration options — ratio = months / MAX_LOCK_MONTHS (linear time-decay)
+// veQS voting_power = QS_locked × ratio
 const DURATION_OPTIONS = [
-  { months: 6, label: '6M', multiplier: 0.125 },
-  { months: 12, label: '1Y', multiplier: 0.25 },
-  { months: 24, label: '2Y', multiplier: 0.5 },
-  { months: 48, label: '4Y', multiplier: 1.0 },
+  { months: 6, label: '6M', ratio: 6 / MAX_LOCK_MONTHS },
+  { months: 12, label: '1Y', ratio: 12 / MAX_LOCK_MONTHS },
+  { months: 24, label: '2Y', ratio: 24 / MAX_LOCK_MONTHS },
+  { months: 48, label: '4Y', ratio: 1.0 },
 ];
 
 // Quick amount percentages
@@ -58,7 +62,7 @@ export function TokenHubLock() {
   // Calculate veQS
   const calculatedVeQS = useMemo(() => {
     const numAmount = parseFloat(amount.replace(/,/g, '')) || 0;
-    return Math.floor(numAmount * durationOption.multiplier);
+    return Math.floor(numAmount * durationOption.ratio);
   }, [amount, durationOption]);
 
   // Handle amount change
@@ -328,7 +332,7 @@ export function TokenHubLock() {
                       {t(`duration.options.${option.months}`)}
                     </div>
                     <div className="text-xs font-mono text-gold">
-                      ×{option.multiplier.toFixed(option.multiplier < 1 ? 3 : 2)}
+                      ×{option.ratio.toFixed(option.ratio < 1 ? 3 : 1)}
                     </div>
                   </button>
                 ))}
@@ -358,7 +362,7 @@ export function TokenHubLock() {
               </div>
 
               <div className="text-xs font-mono text-foreground-tertiary">
-                = {amount || '0'} QS × {durationOption.multiplier.toFixed(durationOption.multiplier < 1 ? 3 : 2)} ({durationOption.months / 12}{t('preview.years')} / 4{t('preview.years')})
+                = {amount || '0'} QS × {durationOption.ratio.toFixed(durationOption.ratio < 1 ? 3 : 2)} ({durationOption.months / 12}{t('preview.years')} / 4{t('preview.years')})
               </div>
             </section>
 

@@ -120,6 +120,9 @@
         "tvlTrend": "TVL推移（Total Value Locked）",
         "transactionVolume": "トランザクション件数推移",
         "last7Days": "直近7日間",
+        "last30Days": "直近30日間",
+        "today": "本日",
+        "allTime": "全期間",
         "tvlUnit": "単位: ETH",
         "volumeUnit": "単位: 件数",
         "userUnit": "単位: 人",
@@ -223,11 +226,18 @@
         "pending": "保留中",
         "processing": "処理中",
         "completed": "完了",
+        "confirmed": "確認済み",
+        "active": "アクティブ",
+        "unlocking": "アンロック中",
+        "unlocked": "アンロック済み",
         "failed": "失敗",
         "challenged": "異議申立中",
         "challenge_period": "チャレンジ期間中",
         "approved": "承認済み",
-        "rejected": "却下"
+        "rejected": "却下",
+        "waiting": "待機中",
+        "ready": "準備完了",
+        "cancelled": "キャンセル"
       },
       "empty": {
         "lock": "ロックトランザクションはありません",
@@ -377,7 +387,12 @@
         "approvedStatus": "この申請は承認されました",
         "approvedStatusDesc": "申請者にProverとしての権限が付与されました。",
         "rejectedStatus": "この申請は却下されました",
-        "rejectedStatusDesc": "申請者に却下通知が送信されました。"
+        "rejectedStatusDesc": "申請者に却下通知が送信されました。",
+        "submissionInfo": "申請情報",
+        "documentsNote": "申請時に提出されたドキュメント",
+        "businessRegistrationNumber": "法人番号",
+        "hsmProvider": "HSMプロバイダー",
+        "validatorExperience": "バリデーター経験"
       },
       "listDetail": {
         "title": "Prover詳細",

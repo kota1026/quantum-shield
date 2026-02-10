@@ -19,21 +19,14 @@ import {
   useActiveChallenges,
 } from '@/hooks/observer';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_OBSERVER_DATA = {
-  registrationDate: '2025-11-15',
+  registrationDate: new Date().toISOString().split('T')[0],
   practicePeriodMonths: 3,
 };
-const FALLBACK_PENDING_UNLOCKS = [
-  { id: '1', address: '0x4b7c...9e1f', amount: '45.00 ETH', type: 'emergency' as const, timeRemaining: '6d 14:22:18', riskScore: 87, status: 'monitoring' as const },
-  { id: '2', address: '0x8f2a...3d4e', amount: '12.50 ETH', type: 'normal' as const, timeRemaining: '23:41:02', riskScore: 24, status: 'pending' as const },
-];
-const FALLBACK_SUSPICIOUS = [
-  { id: 's1', address: '0x9d4e...7c2f', amount: '125.00 ETH', type: 'emergency' as const, riskLevel: 'high' as const, score: 92, reason: 'Unusual pattern detected' },
-];
-const FALLBACK_CHALLENGES = [
-  { id: 'c1', challengeId: 'CHG-2847', targetAddress: '0x7d3f...8c2a', amount: '32.50 ETH', status: 'defense' as const, countdown: '5d 12:30:00', progress: 45 },
-];
+const FALLBACK_PENDING_UNLOCKS: { id: string; address: string; amount: string; type: 'normal' | 'emergency'; timeRemaining: string; riskScore: number; status: 'monitoring' | 'pending' }[] = [];
+const FALLBACK_SUSPICIOUS: { id: string; address: string; amount: string; type: 'normal' | 'emergency'; riskLevel: 'high' | 'medium' | 'low'; score: number; reason: string }[] = [];
+const FALLBACK_CHALLENGES: { id: string; challengeId: string; targetAddress: string; amount: string; status: 'defense' | 'judgment' | 'pending'; countdown: string; progress: number }[] = [];
 
 export function ObserverDashboard() {
   const t = useTranslations('observer.dashboard');

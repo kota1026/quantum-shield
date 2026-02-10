@@ -88,6 +88,32 @@ interface DashboardAlertsResponse {
   unacknowledged_count: number;
 }
 
+// Backend response types (matching actual API response - already camelCase)
+interface ActualDashboardResponse {
+  health: {
+    status: string;
+    uptime: number;
+    lastIncident: string | null;
+    activeProvers: number;
+    totalNodes: number;
+  };
+  metrics: {
+    totalTvl: string;
+    tvlChange24h: number;
+    totalTransactions: number;
+    txChange24h: number;
+    activeUsers: number;
+    pendingChallenges: number;
+  };
+  recentAlerts: AlertItem[];
+  stats: {
+    enterpriseAccounts: number;
+    activeStaff: number;
+    pendingRequests: number;
+    openReports: number;
+  };
+}
+
 /**
  * Fetch QS Admin Dashboard overview
  * Endpoint: GET /api/admin/dashboard
@@ -96,30 +122,30 @@ export function useDashboardOverview() {
   return useQuery({
     queryKey: dashboardKeys.overview(),
     queryFn: async () => {
-      const response = await adminApi.get<QsDashboardResponse>('/api/admin/dashboard');
-      // Transform snake_case to camelCase for frontend consistency
+      const response = await adminApi.get<ActualDashboardResponse>('/api/admin/dashboard');
+      // API already returns camelCase, pass through with minor adjustments
       return {
         health: {
           status: response.health.status,
-          uptimePercent: response.health.uptime_percent,
-          lastIncident: response.health.last_incident,
-          activeProvers: response.health.active_provers,
-          totalNodes: response.health.total_nodes,
+          uptimePercent: response.health.uptime,
+          lastIncident: response.health.lastIncident,
+          activeProvers: response.health.activeProvers,
+          totalNodes: response.health.totalNodes,
         },
         metrics: {
-          totalTvl: response.metrics.total_tvl,
-          tvlChange24h: response.metrics.tvl_change_24h,
-          totalTransactions: response.metrics.total_transactions,
-          txChange24h: response.metrics.tx_change_24h,
-          activeUsers: response.metrics.active_users,
-          pendingChallenges: response.metrics.pending_challenges,
+          totalTvl: response.metrics.totalTvl,
+          tvlChange24h: response.metrics.tvlChange24h,
+          totalTransactions: response.metrics.totalTransactions,
+          txChange24h: response.metrics.txChange24h,
+          activeUsers: response.metrics.activeUsers,
+          pendingChallenges: response.metrics.pendingChallenges,
         },
-        recentAlerts: response.recent_alerts,
+        recentAlerts: response.recentAlerts,
         stats: {
-          enterpriseAccounts: response.stats.enterprise_accounts,
-          activeStaff: response.stats.active_staff,
-          pendingRequests: response.stats.pending_requests,
-          openReports: response.stats.open_reports,
+          enterpriseAccounts: response.stats.enterpriseAccounts,
+          activeStaff: response.stats.activeStaff,
+          pendingRequests: response.stats.pendingRequests,
+          openReports: response.stats.openReports,
         },
       };
     },
@@ -192,115 +218,112 @@ export function useAlerts(acknowledged?: boolean) {
   });
 }
 
-/**
- * Generate mock chart data for TVL history
- * Used until backend implements historical data endpoint
- */
-function generateMockTvlHistory(days: number): ChartDataPoint[] {
-  const data: ChartDataPoint[] = [];
-  const now = new Date();
-  let value = 1250000; // Starting TVL
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    // Random walk with slight upward trend
-    value = value * (1 + (Math.random() - 0.45) * 0.05);
-    data.push({
-      date: date.toISOString().split('T')[0],
-      value: Math.round(value),
-    });
-  }
-  return data;
-}
+// Mock generators removed — API should return real chart data
 
 /**
- * Generate mock chart data for transaction volume
- * Used until backend implements historical data endpoint
- */
-function generateMockVolumeHistory(days: number): VolumeDataPoint[] {
-  const data: VolumeDataPoint[] = [];
-  const now = new Date();
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    data.push({
-      date: date.toISOString().split('T')[0],
-      locks: Math.floor(Math.random() * 50) + 20,
-      unlocks: Math.floor(Math.random() * 30) + 10,
-    });
-  }
-  return data;
-}
-
-/**
- * Generate mock chart data for user growth
- * Used until backend implements historical data endpoint
- */
-function generateMockUserGrowth(days: number): ChartDataPoint[] {
-  const data: ChartDataPoint[] = [];
-  const now = new Date();
-  let value = 2000; // Starting users
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    // Gradual growth
-    value = value + Math.floor(Math.random() * 30) + 5;
-    data.push({
-      date: date.toISOString().split('T')[0],
-      value,
-    });
-  }
-  return data;
-}
-
-/**
- * Fetch TVL history chart data (with mock fallback)
+ * Fetch TVL history chart data from real API
  */
 export function useTvlHistory(period: '7d' | '30d' | '90d' = '7d') {
-  const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-
   return useQuery({
     queryKey: [...dashboardKeys.all, 'tvl', period] as const,
     queryFn: async () => {
-      // Use mock data until backend implements historical endpoint
-      return generateMockTvlHistory(days);
+      const response = await adminApi.get<{ data: ChartDataPoint[]; period: string }>(
+        `/api/admin/dashboard/tvl-history?period=${period}`
+      );
+      return response.data;
     },
+    retry: 2,
     staleTime: 5 * 60_000,
   });
 }
 
 /**
- * Fetch transaction volume chart data (with mock fallback)
+ * Fetch transaction volume chart data from real API
  */
 export function useVolumeHistory(period: '7d' | '30d' | '90d' = '7d') {
-  const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-
   return useQuery({
     queryKey: [...dashboardKeys.all, 'volume', period] as const,
     queryFn: async () => {
-      // Use mock data until backend implements historical endpoint
-      return generateMockVolumeHistory(days);
+      const response = await adminApi.get<{ data: VolumeDataPoint[]; period: string }>(
+        `/api/admin/dashboard/volume-history?period=${period}`
+      );
+      return response.data;
     },
+    retry: 2,
     staleTime: 5 * 60_000,
   });
 }
 
 /**
- * Fetch user growth chart data (with mock fallback)
+ * Fetch user growth chart data from real API
  */
 export function useUserGrowthHistory(period: '7d' | '30d' | '90d' = '7d') {
-  const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-
   return useQuery({
     queryKey: [...dashboardKeys.all, 'userGrowth', period] as const,
     queryFn: async () => {
-      // Use mock data until backend implements historical endpoint
-      return generateMockUserGrowth(days);
+      const response = await adminApi.get<{ data: ChartDataPoint[]; period: string }>(
+        `/api/admin/dashboard/user-growth?period=${period}`
+      );
+      return response.data;
     },
+    retry: 2,
     staleTime: 5 * 60_000,
+  });
+}
+
+// Dashboard stats response type
+interface DashboardStatsResponse {
+  period: string;
+  users: number;
+  locks: number;
+  lockAmount: string;
+  unlocks: number;
+  unlockAmount: string;
+  provers: number;
+  observers: number;
+  revenue: string;
+  proposals: number;
+  treasury: string;
+}
+
+// Activity response type
+interface ActivityResponse {
+  activities: Array<{
+    id: string;
+    type: string;
+    message: string;
+    timestamp: string;
+  }>;
+}
+
+/**
+ * Fetch dashboard statistics with period filtering
+ */
+export function useDashboardStats(period: 'daily' | 'weekly' | 'monthly' | 'total' = 'weekly') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'stats', period] as const,
+    queryFn: async () => {
+      const response = await adminApi.get<DashboardStatsResponse>(
+        `/api/admin/dashboard/stats?period=${period}`
+      );
+      return response;
+    },
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * Fetch dashboard activity
+ */
+export function useDashboardActivity() {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'activity'] as const,
+    queryFn: async () => {
+      const response = await adminApi.get<ActivityResponse>('/api/admin/dashboard/activity');
+      return response.activities;
+    },
+    staleTime: 30_000,
+    refetchInterval: 60_000,
   });
 }
 
@@ -328,4 +351,224 @@ export function useDashboardData() {
     isError: overview.isError || analyticsOverview.isError || tvl.isError,
     error: overview.error || analyticsOverview.error || tvl.error,
   };
+}
+
+// ============================================================================
+// Metrics History Hooks (for Stats Tab Charts)
+// ============================================================================
+
+interface MetricsHistoryResponse {
+  data: ChartDataPoint[];
+  period: string;
+  metric: string;
+}
+
+type MetricPeriod = '7d' | '30d' | '90d' | 'daily' | 'weekly' | 'monthly' | 'total';
+
+function mapPeriodToQuery(period: MetricPeriod): string {
+  switch (period) {
+    case 'daily': return '7d';
+    case 'weekly': return '7d';
+    case 'monthly': return '30d';
+    case 'total': return '90d';
+    default: return period;
+  }
+}
+
+/**
+ * Fetch locks count history
+ */
+export function useLocksCountHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'locks-count', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/locks-count?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Locks count API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * Fetch locks amount history (ETH * 10000)
+ */
+export function useLocksAmountHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'locks-amount', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/locks-amount?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Locks amount API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * Fetch unlocks count history
+ */
+export function useUnlocksCountHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'unlocks-count', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/unlocks-count?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Unlocks count API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * Fetch unlocks amount history (ETH * 10000)
+ */
+export function useUnlocksAmountHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'unlocks-amount', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/unlocks-amount?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Unlocks amount API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * Fetch provers count history
+ */
+export function useProversHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'provers', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/provers?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Provers history API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * Fetch observers count history
+ */
+export function useObserversHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'observers', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/observers?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Observers history API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * Fetch proposals count history
+ */
+export function useProposalsHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'proposals', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/proposals?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Proposals history API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * Fetch treasury balance history (ETH * 10000)
+ */
+export function useTreasuryHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'treasury', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/treasury?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Treasury history API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * Fetch revenue history (ETH * 10000)
+ */
+export function useRevenueHistory(period: MetricPeriod = '7d') {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'metrics', 'revenue', period] as const,
+    queryFn: async () => {
+      try {
+        const queryPeriod = mapPeriodToQuery(period);
+        const response = await adminApi.get<MetricsHistoryResponse>(
+          `/api/admin/dashboard/metrics/revenue?period=${queryPeriod}`
+        );
+        return response.data;
+      } catch (error) {
+        console.warn('Revenue history API failed:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
 }

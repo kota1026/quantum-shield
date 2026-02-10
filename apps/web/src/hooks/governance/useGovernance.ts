@@ -35,11 +35,11 @@ export const governanceKeys = {
   proposals: () => [...governanceKeys.all, 'proposals'] as const,
   proposalsList: (filters?: { status?: string; search?: string }) =>
     [...governanceKeys.proposals(), 'list', filters] as const,
-  proposal: (id: number) => [...governanceKeys.proposals(), id] as const,
+  proposal: (id: string) => [...governanceKeys.proposals(), id] as const,
   dashboardProposals: () => [...governanceKeys.proposals(), 'dashboard'] as const,
   council: () => [...governanceKeys.all, 'council'] as const,
   activity: () => [...governanceKeys.all, 'activity'] as const,
-  userVote: (proposalId: number) => [...governanceKeys.all, 'vote', proposalId] as const,
+  userVote: (proposalId: string) => [...governanceKeys.all, 'vote', proposalId] as const,
 };
 
 // ============ Dashboard Hooks ============
@@ -48,7 +48,7 @@ export function useGovernanceStats() {
   return useQuery({
     queryKey: governanceKeys.stats(),
     queryFn: async () => {
-      return fetchApi<GovernanceStats>('/api/governance/dashboard');
+      return fetchApi<GovernanceStats>('/v1/governance/dashboard');
     },
     staleTime: 30_000,
   });
@@ -58,7 +58,7 @@ export function useVotingPower() {
   return useQuery({
     queryKey: governanceKeys.votingPower(),
     queryFn: async () => {
-      return fetchApi<VotingPowerBreakdown>('/api/governance/voting-power');
+      return fetchApi<VotingPowerBreakdown>('/v1/governance/voting-power');
     },
     staleTime: 60_000,
   });
@@ -68,7 +68,7 @@ export function useDashboardProposals() {
   return useQuery({
     queryKey: governanceKeys.dashboardProposals(),
     queryFn: async () => {
-      return fetchApi<ProposalSummary[]>('/api/governance/proposals?limit=3&status=active');
+      return fetchApi<ProposalSummary[]>('/v1/governance/proposals?limit=3&status=active');
     },
     staleTime: 30_000,
   });
@@ -100,18 +100,18 @@ export function useProposals(params?: {
       }
       const query = searchParams.toString();
       return fetchApi<{ proposals: Proposal[]; total: number }>(
-        `/api/governance/proposals${query ? `?${query}` : ''}`
+        `/v1/governance/proposals${query ? `?${query}` : ''}`
       );
     },
     staleTime: 30_000,
   });
 }
 
-export function useProposal(id: number) {
+export function useProposal(id: string) {
   return useQuery({
     queryKey: governanceKeys.proposal(id),
     queryFn: async () => {
-      return fetchApi<Proposal>(`/api/governance/proposals/${id}`);
+      return fetchApi<Proposal>(`/v1/governance/proposals/${id}`);
     },
     enabled: !!id,
     staleTime: 60_000,
@@ -124,7 +124,7 @@ export function useCouncil() {
   return useQuery({
     queryKey: governanceKeys.council(),
     queryFn: async () => {
-      return fetchApi<CouncilData>('/api/governance/council');
+      return fetchApi<CouncilData>('/v1/governance/council');
     },
     staleTime: 120_000, // 2 minutes
   });
@@ -136,7 +136,7 @@ export function useGovernanceActivity() {
   return useQuery({
     queryKey: governanceKeys.activity(),
     queryFn: async () => {
-      return fetchApi<ActivityItem[]>('/api/governance/activity');
+      return fetchApi<ActivityItem[]>('/v1/governance/activity');
     },
     staleTime: 30_000,
   });
@@ -144,11 +144,11 @@ export function useGovernanceActivity() {
 
 // ============ Voting Hooks ============
 
-export function useUserVote(proposalId: number) {
+export function useUserVote(proposalId: string) {
   return useQuery({
     queryKey: governanceKeys.userVote(proposalId),
     queryFn: async () => {
-      return fetchApi<{ vote: 'for' | 'against' | null }>(`/api/governance/proposals/${proposalId}/vote`);
+      return fetchApi<{ vote: 'for' | 'against' | null }>(`/v1/governance/proposals/${proposalId}/vote`);
     },
     enabled: !!proposalId,
     staleTime: 60_000,
@@ -163,10 +163,10 @@ export function useSubmitVote() {
       proposalId,
       vote,
     }: {
-      proposalId: number;
+      proposalId: string;
       vote: 'for' | 'against';
     }) => {
-      return fetchApi<{ success: boolean }>(`/api/governance/proposals/${proposalId}/vote`, {
+      return fetchApi<{ success: boolean }>(`/v1/governance/proposals/${proposalId}/vote`, {
         method: 'POST',
         body: JSON.stringify({ vote }),
       });
@@ -190,11 +190,23 @@ export function useCreateProposal() {
     mutationFn: async (proposal: {
       title: string;
       description: string;
-      type: 'parameter' | 'upgrade' | 'council';
+      fullDescription: string;
+      type: 'parameter' | 'treasury' | 'upgrade' | 'signal' | 'emergency';
+      signature: string;
+      votingDuration?: number;
+      executionParams?: Record<string, unknown>;
     }) => {
-      return fetchApi<{ id: number; success: boolean }>('/api/governance/proposals', {
+      return fetchApi<{ proposalId: string; status: string; startTime: number; endTime: number; message: string }>('/v1/governance/proposals', {
         method: 'POST',
-        body: JSON.stringify(proposal),
+        body: JSON.stringify({
+          title: proposal.title,
+          description: proposal.description,
+          fullDescription: proposal.fullDescription,
+          type: proposal.type,
+          signature: proposal.signature,
+          votingDuration: proposal.votingDuration,
+          executionParams: proposal.executionParams,
+        }),
       });
     },
     onSuccess: () => {

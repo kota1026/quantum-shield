@@ -29,7 +29,7 @@ const FALLBACK_LOCKED_POSITIONS: LockedPosition[] = [
     lockDate: new Date('2025-07-17'),
     unlockDate: new Date('2027-07-17'),
     durationMonths: 24,
-    multiplier: 0.5,
+    ratio: 0.5, // 24mo / 48mo (linear time-decay)
   },
   {
     id: '2',
@@ -38,7 +38,7 @@ const FALLBACK_LOCKED_POSITIONS: LockedPosition[] = [
     lockDate: new Date('2025-01-17'),
     unlockDate: new Date('2029-01-17'),
     durationMonths: 48,
-    multiplier: 1.0,
+    ratio: 1.0, // 48mo / 48mo (max)
   },
 ];
 

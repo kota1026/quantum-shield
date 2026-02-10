@@ -11,17 +11,6 @@ import type {
   StakeLockPosition,
   VoteRecord,
 } from '@/lib/api/qs-hub/types';
-import {
-  MOCK_STATS,
-  MOCK_PROPOSALS,
-  MOCK_REWARDS,
-  MOCK_DELEGATES,
-  MOCK_PROPOSALS_LIST,
-  MOCK_COUNCIL,
-  MOCK_STAKE_POSITIONS,
-  MOCK_BALANCE,
-  MOCK_VOTE_HISTORY,
-} from '@/lib/api/qs-hub/mock';
 
 // =============================================================================
 // API Client
@@ -85,13 +74,10 @@ export function useQSHubStats() {
   return useQuery({
     queryKey: qsHubKeys.stats(),
     queryFn: async () => {
-      try {
-        return await fetchApi<QSHubStats>('/v1/qs-hub/dashboard/stats');
-      } catch {
-        return MOCK_STATS;
-      }
+      return await fetchApi<QSHubStats>('/v1/qs-hub/dashboard/stats');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -99,13 +85,10 @@ export function useQSHubProposals() {
   return useQuery({
     queryKey: qsHubKeys.proposals(),
     queryFn: async () => {
-      try {
-        return await fetchApi<QSHubProposal[]>('/v1/qs-hub/proposals/active');
-      } catch {
-        return MOCK_PROPOSALS;
-      }
+      return await fetchApi<QSHubProposal[]>('/v1/qs-hub/proposals/active');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -113,13 +96,10 @@ export function useQSHubRewards() {
   return useQuery({
     queryKey: qsHubKeys.rewards(),
     queryFn: async () => {
-      try {
-        return await fetchApi<QSHubRewards>('/v1/qs-hub/rewards');
-      } catch {
-        return MOCK_REWARDS;
-      }
+      return await fetchApi<QSHubRewards>('/v1/qs-hub/rewards');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -127,13 +107,10 @@ export function useQSHubDelegates() {
   return useQuery({
     queryKey: qsHubKeys.delegates(),
     queryFn: async () => {
-      try {
-        return await fetchApi<QSHubDelegate[]>('/v1/qs-hub/delegates');
-      } catch {
-        return MOCK_DELEGATES;
-      }
+      return await fetchApi<QSHubDelegate[]>('/v1/qs-hub/delegates');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -145,13 +122,10 @@ export function useProposalsList() {
   return useQuery({
     queryKey: qsHubKeys.proposalsList(),
     queryFn: async () => {
-      try {
-        return await fetchApi<ProposalDetail[]>('/v1/qs-hub/proposals');
-      } catch {
-        return MOCK_PROPOSALS_LIST;
-      }
+      return await fetchApi<ProposalDetail[]>('/v1/qs-hub/proposals');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -159,13 +133,10 @@ export function useProposalDetail(proposalId: string) {
   return useQuery({
     queryKey: qsHubKeys.proposal(proposalId),
     queryFn: async () => {
-      try {
-        return await fetchApi<ProposalDetail>(`/api/qs-hub/proposals/${proposalId}`);
-      } catch {
-        return MOCK_PROPOSALS_LIST.find((p) => p.id === proposalId) ?? MOCK_PROPOSALS_LIST[0];
-      }
+      return await fetchApi<ProposalDetail>(`/v1/qs-hub/proposals/${proposalId}`);
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -177,13 +148,10 @@ export function useCouncil() {
   return useQuery({
     queryKey: qsHubKeys.council(),
     queryFn: async () => {
-      try {
-        return await fetchApi<CouncilMember[]>('/v1/qs-hub/council');
-      } catch {
-        return MOCK_COUNCIL;
-      }
+      return await fetchApi<CouncilMember[]>('/v1/qs-hub/council');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -195,13 +163,10 @@ export function useStakePositions() {
   return useQuery({
     queryKey: qsHubKeys.stakePositions(),
     queryFn: async () => {
-      try {
-        return await fetchApi<StakeLockPosition[]>('/v1/qs-hub/stakes');
-      } catch {
-        return MOCK_STAKE_POSITIONS;
-      }
+      return await fetchApi<StakeLockPosition[]>('/v1/qs-hub/stakes');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -209,14 +174,11 @@ export function useQSBalance() {
   return useQuery({
     queryKey: qsHubKeys.balance(),
     queryFn: async () => {
-      try {
-        const data = await fetchApi<{ balance: number }>('/v1/qs-hub/balance');
-        return data.balance;
-      } catch {
-        return MOCK_BALANCE;
-      }
+      const data = await fetchApi<{ balance: number }>('/v1/qs-hub/balance');
+      return data.balance;
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -228,13 +190,10 @@ export function useVoteHistory() {
   return useQuery({
     queryKey: qsHubKeys.voteHistory(),
     queryFn: async () => {
-      try {
-        return await fetchApi<VoteRecord[]>('/v1/qs-hub/votes/history');
-      } catch {
-        return MOCK_VOTE_HISTORY;
-      }
+      return await fetchApi<VoteRecord[]>('/v1/qs-hub/votes/history');
     },
     staleTime: 30_000,
+    retry: 2,
   });
 }
 
@@ -272,7 +231,7 @@ export function useExtendStake() {
 
   return useMutation({
     mutationFn: async (params: ExtendStakeParams) => {
-      return postApi<StakeLockPosition>(`/api/qs-hub/stakes/${params.stakeId}/extend`, {
+      return postApi<StakeLockPosition>(`/v1/qs-hub/stakes/${params.stakeId}/extend`, {
         additionalDuration: params.additionalDuration,
       });
     },
@@ -293,7 +252,7 @@ export function useVote() {
 
   return useMutation({
     mutationFn: async (params: VoteParams) => {
-      return postApi<{ success: boolean }>(`/api/qs-hub/proposals/${params.proposalId}/vote`, {
+      return postApi<{ success: boolean }>(`/v1/qs-hub/proposals/${params.proposalId}/vote`, {
         vote: params.vote,
       });
     },

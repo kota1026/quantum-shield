@@ -89,16 +89,16 @@ function UserDetailSkeleton() {
 
 // Error State
 function UserDetailError({ onRetry }: { onRetry: () => void }) {
-  const t = useTranslations('qsAdmin.common');
+  const t = useTranslations('qsAdmin');
   return (
     <Card>
       <CardContent className="p-6">
         <div className="text-center py-8">
           <AlertCircle className="h-12 w-12 text-danger mx-auto mb-4" />
-          <p className="text-foreground-secondary mb-4">{t('error')}</p>
+          <p className="text-foreground-secondary mb-4">{t('common.error')}</p>
           <Button variant="outline" onClick={onRetry}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            {t('retry')}
+            {t('common.retry')}
           </Button>
         </div>
       </CardContent>
@@ -107,9 +107,7 @@ function UserDetailError({ onRetry }: { onRetry: () => void }) {
 }
 
 export function UserDetail({ id }: UserDetailProps) {
-  const t = useTranslations('qsAdmin.users');
-  const tTx = useTranslations('qsAdmin.transactions');
-  const tCommon = useTranslations('qsAdmin.common');
+  const t = useTranslations('qsAdmin');
 
   // Fetch data using hooks
   const { data: apiUser, isLoading: userLoading, error: userError, refetch: refetchUser } = useUserDetail(id);
@@ -143,7 +141,8 @@ export function UserDetail({ id }: UserDetailProps) {
     return <UserDetailSkeleton />;
   }
 
-  if (hasError && !apiUser) {
+  // In development, use fallback data even when API fails
+  if (hasError && !apiUser && !FALLBACK_USER) {
     return <UserDetailError onRetry={() => { refetchUser(); refetchTx(); }} />;
   }
 
@@ -162,7 +161,7 @@ export function UserDetail({ id }: UserDetailProps) {
               <StatusIcon className={cn('h-6 w-6', statusConfig.color)} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">{t('detail.title')}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{t('users.detail.title')}</h1>
               <p className="text-foreground-secondary font-mono text-sm">{user.wallet.substring(0, 10)}...{user.wallet.substring(user.wallet.length - 8)}</p>
             </div>
           </div>
@@ -170,7 +169,7 @@ export function UserDetail({ id }: UserDetailProps) {
         <div className="flex items-center space-x-2">
           <span className={cn('inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium', statusConfig.bg, statusConfig.color)}>
             <StatusIcon className="h-4 w-4 mr-1.5" />
-            {t(`status.${user.status}`)}
+            {t(`users.status.${user.status}`)}
           </span>
           {user.status === 'active' && (
             <Button
@@ -184,7 +183,7 @@ export function UserDetail({ id }: UserDetailProps) {
               ) : (
                 <Ban className="h-4 w-4 mr-2" />
               )}
-              {t('actions.suspend')}
+              {t('users.actions.suspend')}
             </Button>
           )}
           {user.status === 'suspended' && (
@@ -199,7 +198,7 @@ export function UserDetail({ id }: UserDetailProps) {
               ) : (
                 <CheckCircle className="h-4 w-4 mr-2" />
               )}
-              {t('actions.activate')}
+              {t('users.actions.activate')}
             </Button>
           )}
         </div>
@@ -211,25 +210,27 @@ export function UserDetail({ id }: UserDetailProps) {
           {/* Basic Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('detail.basicInfo')}</CardTitle>
+              <CardTitle className="text-lg">{t('users.detail.basicInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm text-foreground-secondary mb-2">{t('table.wallet')}</p>
+                <p className="text-sm text-foreground-secondary mb-2">{t('users.table.wallet')}</p>
                 <div className="flex items-center space-x-2">
                   <code className="font-mono text-sm bg-surface px-3 py-2 rounded-lg flex-1">{user.wallet}</code>
                   <Button variant="ghost" size="icon" onClick={() => copyToClipboard(user.wallet)}>
                     <Copy className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon">
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
+                  <a href={`https://sepolia.etherscan.io/address/${user.wallet}`} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="icon">
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </a>
                 </div>
               </div>
 
               {user.email && (
                 <div className="pt-4 border-t border-border">
-                  <p className="text-sm text-foreground-secondary mb-2">{t('table.email')}</p>
+                  <p className="text-sm text-foreground-secondary mb-2">{t('users.table.email')}</p>
                   <div className="flex items-center space-x-2">
                     <Mail className="h-4 w-4 text-foreground-tertiary" />
                     <span>{user.email}</span>
@@ -239,14 +240,14 @@ export function UserDetail({ id }: UserDetailProps) {
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                 <div>
-                  <p className="text-sm text-foreground-secondary">{t('table.joined')}</p>
+                  <p className="text-sm text-foreground-secondary">{t('users.table.joined')}</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <Calendar className="h-4 w-4 text-foreground-tertiary" />
                     <span className="font-medium">{user.joined}</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-foreground-secondary">{t('table.lastActive')}</p>
+                  <p className="text-sm text-foreground-secondary">{t('users.table.lastActive')}</p>
                   <p className="font-medium mt-1">{user.lastActive}</p>
                 </div>
               </div>
@@ -256,29 +257,29 @@ export function UserDetail({ id }: UserDetailProps) {
           {/* Activity Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('detail.activityInfo')}</CardTitle>
+              <CardTitle className="text-lg">{t('users.detail.activityInfo')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-surface rounded-lg">
                   <Lock className="h-6 w-6 text-success mx-auto mb-2" />
                   <p className="text-lg font-bold">{user.locked}</p>
-                  <p className="text-xs text-foreground-secondary">{t('table.locked')}</p>
+                  <p className="text-xs text-foreground-secondary">{t('users.table.locked')}</p>
                 </div>
                 <div className="text-center p-4 bg-surface rounded-lg">
                   <Unlock className="h-6 w-6 text-info mx-auto mb-2" />
                   <p className="text-lg font-bold">{user.unlocked}</p>
-                  <p className="text-xs text-foreground-secondary">{t('table.unlocked')}</p>
+                  <p className="text-xs text-foreground-secondary">{t('users.table.unlocked')}</p>
                 </div>
                 <div className="text-center p-4 bg-surface rounded-lg">
                   <Activity className="h-6 w-6 text-gold mx-auto mb-2" />
                   <p className="text-lg font-bold">{user.totalValue}</p>
-                  <p className="text-xs text-foreground-secondary">{t('stats.lockedVolume')}</p>
+                  <p className="text-xs text-foreground-secondary">{t('users.stats.lockedVolume')}</p>
                 </div>
                 <div className="text-center p-4 bg-surface rounded-lg">
                   <Activity className="h-6 w-6 text-hinomaru mx-auto mb-2" />
                   <p className="text-lg font-bold">{user.transactions}</p>
-                  <p className="text-xs text-foreground-secondary">{t('table.transactions')}</p>
+                  <p className="text-xs text-foreground-secondary">{t('users.table.transactions')}</p>
                 </div>
               </div>
             </CardContent>
@@ -287,31 +288,45 @@ export function UserDetail({ id }: UserDetailProps) {
           {/* Transaction History */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('detail.transactionHistory')}</CardTitle>
+              <CardTitle className="text-lg">{t('users.detail.transactionHistory')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {transactions.map((tx) => {
                   const TxIcon = TX_TYPE_CONFIG[tx.type as keyof typeof TX_TYPE_CONFIG].icon;
                   const txColor = TX_TYPE_CONFIG[tx.type as keyof typeof TX_TYPE_CONFIG].color;
+                  // Use L1 tx hash if available, otherwise show shortened internal ID
+                  const displayHash = tx.txHash || tx.id;
+                  const shortHash = `${displayHash.slice(0, 10)}...${displayHash.slice(-6)}`;
+                  const hasEtherscanLink = !!tx.txHash;
                   return (
-                    <Link key={tx.id} href={`/qs-admin/transactions/${tx.type}/${tx.id}`}>
-                      <div className="flex items-center justify-between p-3 bg-surface rounded-lg hover:bg-surface/80 transition-colors">
-                        <div className="flex items-center space-x-3">
-                          <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center bg-background')}>
-                            <TxIcon className={cn('h-4 w-4', txColor)} />
-                          </div>
-                          <div>
-                            <p className="font-mono text-sm">{tx.id}</p>
-                            <p className="text-xs text-foreground-secondary">{tx.timestamp}</p>
-                          </div>
+                    <div key={tx.id} className="flex items-center justify-between p-3 bg-surface rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center bg-background')}>
+                          <TxIcon className={cn('h-4 w-4', txColor)} />
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium">{tx.amount}</p>
-                          <p className="text-xs text-success">{tTx(`status.${tx.status}`)}</p>
+                        <div>
+                          {hasEtherscanLink ? (
+                            <a
+                              href={`https://sepolia.etherscan.io/tx/${tx.txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-mono text-sm hover:text-hinomaru transition-colors flex items-center gap-1"
+                            >
+                              {shortHash}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <p className="font-mono text-sm text-foreground-secondary">{shortHash}</p>
+                          )}
+                          <p className="text-xs text-foreground-secondary">{tx.timestamp}</p>
                         </div>
                       </div>
-                    </Link>
+                      <div className="text-right">
+                        <p className="font-medium">{tx.amount}</p>
+                        <p className="text-xs text-success">{t(`transactions.status.${tx.status}`)}</p>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -323,7 +338,7 @@ export function UserDetail({ id }: UserDetailProps) {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('table.actions')}</CardTitle>
+              <CardTitle className="text-lg">{t('users.table.actions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <a href={`https://etherscan.io/address/${user.wallet}`} target="_blank" rel="noopener noreferrer">

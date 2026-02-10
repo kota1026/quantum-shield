@@ -24,14 +24,26 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { formatEther } from 'viem';
 import {
   useDashboardOverview,
   useTvlHistory,
   useVolumeHistory,
   useUserGrowthHistory,
   useAlerts,
+  useDashboardStats,
+  useDashboardActivity,
+  useLocksCountHistory,
+  useLocksAmountHistory,
+  useUnlocksCountHistory,
+  useUnlocksAmountHistory,
+  useProversHistory,
+  useObserversHistory,
+  useProposalsHistory,
+  useTreasuryHistory,
+  useRevenueHistory,
 } from '@/hooks/admin/useDashboard';
-import { TvlChart, VolumeChart, UserGrowthChart } from '@/components/charts';
+import { TvlChart, VolumeChart, UserGrowthChart, MetricChart } from '@/components/charts';
 import type {
   ChartDataPoint,
   VolumeDataPoint,
@@ -309,28 +321,77 @@ export function Dashboard() {
   const volumeQuery = useVolumeHistory();
   const userGrowthQuery = useUserGrowthHistory();
   const alertsQuery = useAlerts(false);
+  const statsQuery = useDashboardStats(statsPeriod);
+  const activityQuery = useDashboardActivity();
+
+  // Metrics history hooks for Stats tab
+  const locksCountQuery = useLocksCountHistory(statsPeriod);
+  const locksAmountQuery = useLocksAmountHistory(statsPeriod);
+  const unlocksCountQuery = useUnlocksCountHistory(statsPeriod);
+  const unlocksAmountQuery = useUnlocksAmountHistory(statsPeriod);
+  const proversQuery = useProversHistory(statsPeriod);
+  const observersQuery = useObserversHistory(statsPeriod);
+  const proposalsQuery = useProposalsHistory(statsPeriod);
+  const treasuryQuery = useTreasuryHistory(statsPeriod);
+  const revenueQuery = useRevenueHistory(statsPeriod);
 
   // Use API data with fallback to mock data
   const dashboardData = overviewQuery.data;
+
+  // Helper function to format wei to ETH with proper formatting
+  const formatTvl = (weiValue: string): string => {
+    try {
+      const ethValue = formatEther(BigInt(weiValue));
+      const numValue = parseFloat(ethValue);
+      // Format with appropriate decimals based on size
+      if (numValue >= 1000) {
+        return `${numValue.toLocaleString(undefined, { maximumFractionDigits: 2 })} ETH`;
+      } else if (numValue >= 1) {
+        return `${numValue.toLocaleString(undefined, { maximumFractionDigits: 4 })} ETH`;
+      } else {
+        return `${numValue.toLocaleString(undefined, { maximumFractionDigits: 8 })} ETH`;
+      }
+    } catch {
+      return '0 ETH';
+    }
+  };
+
+  // Treasury balance from stats query (fetched from L1 in real-time)
+  const treasuryBalance = statsQuery.data?.treasury ?? '0 ETH';
+
   const stats = dashboardData?.metrics && dashboardData?.health ? {
     totalUsers: dashboardData.metrics.activeUsers ?? 0,
-    totalLocked: dashboardData.metrics.totalTvl ?? '0',
+    totalLocked: formatTvl(dashboardData.metrics.totalTvl ?? '0'),
     activeProvers: dashboardData.health.activeProvers ?? 0,
     activeObservers: (dashboardData.health.totalNodes ?? 0) - (dashboardData.health.activeProvers ?? 0),
     pendingUnlocks: dashboardData.metrics.pendingChallenges ?? 0,
-    treasuryBalance: '125,000 ETH', // From static for now
+    treasuryBalance,
   } : FALLBACK_STATS;
   const tvlData = tvlQuery.data ?? FALLBACK_TVL_DATA;
   const volumeData = volumeQuery.data ?? FALLBACK_VOLUME_DATA;
   const userData = userGrowthQuery.data ?? FALLBACK_USER_DATA;
-  const activityData = dashboardData?.recentAlerts?.map((a: AlertItem, i: number) => ({
-    id: String(i),
-    type: 'lock' as const,
+  // Activity data from API or fallback
+  const activityData = activityQuery.data?.map((a, i) => ({
+    id: a.id || String(i),
+    type: a.type as 'prover_request' | 'unlock' | 'challenge' | 'treasury',
     message: a.message,
     timestamp: a.timestamp,
   })) ?? FALLBACK_ACTIVITY;
   const alertsData = alertsQuery.data ?? FALLBACK_ALERTS;
-  const currentMetrics = FALLBACK_METRICS[statsPeriod];
+
+  // Stats data from API or fallback
+  const currentMetrics = statsQuery.data ? {
+    users: statsQuery.data.users,
+    locks: statsQuery.data.locks,
+    lockAmount: statsQuery.data.lockAmount,
+    unlocks: statsQuery.data.unlocks,
+    unlockAmount: statsQuery.data.unlockAmount,
+    provers: statsQuery.data.provers,
+    observers: statsQuery.data.observers,
+    revenue: statsQuery.data.revenue,
+    proposals: statsQuery.data.proposals,
+    treasury: statsQuery.data.treasury,
+  } : FALLBACK_METRICS[statsPeriod];
 
   const tabs = [
     { key: 'overview', label: t('tabs.overview') },
@@ -779,6 +840,291 @@ export function Dashboard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Stats Charts - Row 1: Users & Locks */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* User Growth Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4 text-info" />
+                  {t('statsTable.totalUsers')}
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {userGrowthQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : userData && userData.length > 0 ? (
+                  <MetricChart data={userData} height={160} type="count" color="#3B82F6" label={t('statsTable.totalUsers')} />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Locks Count Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-success" />
+                  {t('statsTable.locks')} (数)
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {locksCountQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : locksCountQuery.data && locksCountQuery.data.length > 0 ? (
+                  <MetricChart data={locksCountQuery.data} height={160} type="count" color="#22C55E" label={t('statsTable.locks')} chartType="bar" />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Stats Charts - Row 2: Lock Amount & Unlocks */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Locks Amount Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-success" />
+                  {t('statsTable.locks')} (金額)
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {locksAmountQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : locksAmountQuery.data && locksAmountQuery.data.length > 0 ? (
+                  <MetricChart data={locksAmountQuery.data} height={160} type="eth" color="#22C55E" label={t('statsTable.locks')} />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Unlocks Count Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-warning" />
+                  {t('statsTable.unlocks')} (数)
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {unlocksCountQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : unlocksCountQuery.data && unlocksCountQuery.data.length > 0 ? (
+                  <MetricChart data={unlocksCountQuery.data} height={160} type="count" color="#F59E0B" label={t('statsTable.unlocks')} chartType="bar" />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Stats Charts - Row 3: Unlock Amount & Provers */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Unlocks Amount Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-warning" />
+                  {t('statsTable.unlocks')} (金額)
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {unlocksAmountQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : unlocksAmountQuery.data && unlocksAmountQuery.data.length > 0 ? (
+                  <MetricChart data={unlocksAmountQuery.data} height={160} type="eth" color="#F59E0B" label={t('statsTable.unlocks')} />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Provers Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Server className="h-4 w-4 text-hinomaru" />
+                  {t('statsTable.provers')}
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {proversQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : proversQuery.data && proversQuery.data.length > 0 ? (
+                  <MetricChart data={proversQuery.data} height={160} type="count" color="#BC002D" label={t('statsTable.provers')} />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Stats Charts - Row 4: Observers & Revenue */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Observers Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-info" />
+                  {t('statsTable.observers')}
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {observersQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : observersQuery.data && observersQuery.data.length > 0 ? (
+                  <MetricChart data={observersQuery.data} height={160} type="count" color="#3B82F6" label={t('statsTable.observers')} />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Revenue Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Coins className="h-4 w-4 text-gold" />
+                  {t('statsTable.revenue')}
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {revenueQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : revenueQuery.data && revenueQuery.data.length > 0 ? (
+                  <MetricChart data={revenueQuery.data} height={160} type="eth" color="#D4AF37" label={t('statsTable.revenue')} />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Stats Charts - Row 5: Proposals & Treasury */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Proposals Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-info" />
+                  {t('statsTable.proposals')}
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {proposalsQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : proposalsQuery.data && proposalsQuery.data.length > 0 ? (
+                  <MetricChart data={proposalsQuery.data} height={160} type="count" color="#6366F1" label={t('statsTable.proposals')} />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Treasury Chart */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-hinomaru" />
+                  {t('statsTable.treasury')}
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {statsPeriod === 'daily' ? t('charts.today') :
+                   statsPeriod === 'weekly' ? t('charts.last7Days') :
+                   statsPeriod === 'monthly' ? t('charts.last30Days') :
+                   t('charts.allTime')}
+                </span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {treasuryQuery.isLoading ? (
+                  <ChartSkeleton />
+                ) : treasuryQuery.data && treasuryQuery.data.length > 0 ? (
+                  <MetricChart data={treasuryQuery.data} height={160} type="eth" color="#BC002D" label={t('statsTable.treasury')} />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </>
       )}
     </div>

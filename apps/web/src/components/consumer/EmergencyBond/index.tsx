@@ -71,7 +71,7 @@ export function EmergencyBond() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-lg mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-lg mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center gap-4 mb-6">
           <Link
@@ -221,7 +221,7 @@ export function EmergencyBond() {
             {isSubmitting ? t('buttons.submitting') : t('buttons.submit')}
           </Button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

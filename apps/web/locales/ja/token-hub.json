@@ -113,7 +113,7 @@
         "tooltip": "veQS（Vote-escrowed QS）は投票権を表すトークンです。QSをロックすることで獲得でき、ロック期間終了に向けて徐々に減少します。",
         "lockPeriod": "ロック期間",
         "years": "年",
-        "maxMultiplier": "最大倍率",
+        "maxRatio": "最大比率",
         "rewardsBoost": "報酬ブースト",
         "upTo": "最大"
       },
@@ -228,7 +228,7 @@
         "formulaDescription": "ロック期間が長いほど、もらえるveQSが増えます。4年ロックで最大（1:1）になります。",
         "examplesAriaLabel": "veQS計算を示すロック期間の例",
         "lockPeriod": "ロック期間",
-        "multiplier": "倍率",
+        "lockRatio": "ロック比率",
         "result": "結果（10,000 QS）",
         "months": "ヶ月",
         "years": "年",
@@ -613,7 +613,7 @@
         "lockedAmount": "ロック数量",
         "lockDuration": "ロック期間",
         "timeRemaining": "残り時間",
-        "multiplier": "倍率"
+        "lockRatio": "ロック比率"
       },
       "actions": {
         "lockMore": "QSをロック",
@@ -1266,7 +1266,7 @@
       },
       "details": {
         "unlockDate": "ロック解除日",
-        "multiplier": "倍率"
+        "lockRatio": "ロック比率"
       },
       "warning": {
         "title": "ご注意ください",

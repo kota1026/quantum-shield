@@ -23,14 +23,18 @@ import { useQSBalance } from '@/hooks/qs-hub/useQSHub';
 // Fallback balance (used when API is unavailable)
 const FALLBACK_BALANCE = 15000;
 
-// Lock duration options
+// Maximum lock time: 4 years = 208 weeks (SEQUENCES.md §9.1)
+const MAX_LOCK_WEEKS = 208;
+
+// Lock duration options — ratio = weeks / MAX_LOCK_WEEKS (linear time-decay)
+// veQS voting_power = QS_locked × ratio
 const DURATION_OPTIONS = [
-  { weeks: 1, label: '1W', months: 0, multiplier: 0.005 },
-  { weeks: 4, label: '1M', months: 1, multiplier: 0.02 },
-  { weeks: 26, label: '6M', months: 6, multiplier: 0.125 },
-  { weeks: 52, label: '1Y', months: 12, multiplier: 0.25 },
-  { weeks: 104, label: '2Y', months: 24, multiplier: 0.5 },
-  { weeks: 208, label: '4Y', months: 48, multiplier: 1.0 },
+  { weeks: 1, label: '1W', months: 0, ratio: 1 / MAX_LOCK_WEEKS },
+  { weeks: 4, label: '1M', months: 1, ratio: 4 / MAX_LOCK_WEEKS },
+  { weeks: 26, label: '6M', months: 6, ratio: 26 / MAX_LOCK_WEEKS },
+  { weeks: 52, label: '1Y', months: 12, ratio: 52 / MAX_LOCK_WEEKS },
+  { weeks: 104, label: '2Y', months: 24, ratio: 104 / MAX_LOCK_WEEKS },
+  { weeks: 208, label: '4Y', months: 48, ratio: 1.0 },
 ];
 
 // Quick amount percentages
@@ -65,7 +69,7 @@ export function StakeLock() {
   // Calculate veQS
   const calculatedVeQS = useMemo(() => {
     const numAmount = parseFloat(amount.replace(/,/g, '')) || 0;
-    return Math.floor(numAmount * durationOption.multiplier);
+    return Math.floor(numAmount * durationOption.ratio);
   }, [amount, durationOption]);
 
   // Handle amount change
@@ -355,7 +359,7 @@ export function StakeLock() {
                       {option.label}
                     </div>
                     <div className="text-[10px] font-mono text-foreground-tertiary">
-                      ×{option.multiplier < 0.1 ? option.multiplier.toFixed(3) : option.multiplier.toFixed(2)}
+                      ×{option.ratio < 0.1 ? option.ratio.toFixed(3) : option.ratio.toFixed(2)}
                     </div>
                   </button>
                 ))}
@@ -387,7 +391,7 @@ export function StakeLock() {
               </div>
 
               <div className="text-xs font-mono text-foreground-tertiary">
-                = {amount || '0'} QS × {durationOption.multiplier < 0.1 ? durationOption.multiplier.toFixed(3) : durationOption.multiplier.toFixed(2)} ({formatDuration(durationOption)} / 4Y)
+                = {amount || '0'} QS × {durationOption.ratio < 0.1 ? durationOption.ratio.toFixed(3) : durationOption.ratio.toFixed(2)} ({formatDuration(durationOption)} / 4Y)
               </div>
             </section>
 

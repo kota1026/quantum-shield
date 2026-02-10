@@ -113,7 +113,7 @@
         "tooltip": "veQS (Vote-escrowed QS) represents your voting power. You earn it by locking QS, and it gradually decreases as your lock period approaches its end.",
         "lockPeriod": "Lock Period",
         "years": "years",
-        "maxMultiplier": "Max Multiplier",
+        "maxRatio": "Max Ratio",
         "rewardsBoost": "Rewards Boost",
         "upTo": "Up to"
       },
@@ -227,7 +227,7 @@
         "formulaDescription": "Your veQS amount is calculated based on how long you lock your QS tokens. Maximum lock period is 4 years for 1:1 ratio.",
         "examplesAriaLabel": "Lock period examples showing veQS calculation",
         "lockPeriod": "Lock Period",
-        "multiplier": "Multiplier",
+        "lockRatio": "Lock Ratio",
         "result": "Result (10,000 QS)",
         "months": " months",
         "years": " years",
@@ -612,7 +612,7 @@
         "lockedAmount": "Locked Amount",
         "lockDuration": "Lock Duration",
         "timeRemaining": "Time Remaining",
-        "multiplier": "Multiplier"
+        "lockRatio": "Lock Ratio"
       },
       "actions": {
         "lockMore": "Lock More QS",
@@ -1265,7 +1265,7 @@
       },
       "details": {
         "unlockDate": "Unlock Date",
-        "multiplier": "Multiplier"
+        "lockRatio": "Lock Ratio"
       },
       "warning": {
         "title": "Please Note",

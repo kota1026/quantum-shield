@@ -40,17 +40,17 @@ import { useAccount, useDisconnect } from 'wagmi';
 // Application type: public or enterprise (via invitation)
 type ApplicationType = 'public' | 'enterprise';
 
-// Fallback invitation data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_INVITATION = {
-  code: 'ACME-2026-PROVER',
-  operatorName: 'ACME Corporation',
-  plan: 'Enterprise Plus',
-  expiresAt: '2026-03-31',
+  code: '',
+  operatorName: '-',
+  plan: '-',
+  expiresAt: '-',
   benefits: {
-    managedInfrastructure: true,
-    dedicatedSupport: true,
-    slaGuarantee: '99.9%',
-    minRevenue: '24 ETH/month',
+    managedInfrastructure: false,
+    dedicatedSupport: false,
+    slaGuarantee: '-',
+    minRevenue: '-',
   },
 };
 
@@ -263,6 +263,16 @@ export function ProverApplication() {
         hsmAttestation,
         multisigProof,
         endpoint: formData.website || `https://prover.${formData.organizationName.toLowerCase().replace(/\s+/g, '-')}.io`,
+        // Application form fields
+        organizationName: formData.organizationName,
+        country: formData.country,
+        website: formData.website,
+        contactEmail: formData.contactEmail,
+        validatorExperience: formData.validatorExperience,
+        hsmProvider: formData.hsmProvider,
+        infrastructureLocation: formData.infrastructureLocation,
+        businessRegistrationNumber: formData.businessRegistrationNumber,
+        documentsCount: formData.documentUploaded ? 3 : 0, // Assume 3 documents if uploaded
       });
 
       setApplicationId(result.prover_id);
@@ -538,7 +548,7 @@ export function ProverApplication() {
               <p className="text-sm text-foreground-secondary mb-2">
                 {t('application.submitted.applicationId')}
               </p>
-              <div className="font-mono text-2xl font-bold text-gold mb-4">
+              <div className="font-mono text-lg sm:text-xl font-bold text-gold mb-4 break-all">
                 {applicationId}
               </div>
               <p className="text-xs text-foreground-tertiary">

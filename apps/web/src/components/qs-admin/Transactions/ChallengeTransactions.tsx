@@ -17,54 +17,45 @@ import {
   Eye,
   Swords,
   RefreshCw,
+  ChevronRight,
+  Target,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useChallengeStats, useChallengeTransactions } from '@/hooks/admin/useTransactions';
 import type { ChallengeStats } from '@/lib/api/admin/mock';
-import type { ChallengeTransaction } from '@/lib/api/admin/types';
+
+// UI_DESIGN_GUIDELINES.md Colors
+const COLORS = {
+  success: '#00C896',
+  warning: '#F0A030',
+  error: '#E07040',
+  info: '#4A90D9',
+  pending: '#8080A0',
+  hinomaru: '#BC002D',
+  gold: '#C9A962',
+};
 
 // Fallback data - Used when API is unavailable
 const FALLBACK_STATS: ChallengeStats = {
-  totalChallenges: 342,
-  activeChallenges: 5,
-  successRate: '87.4%',
-  totalSlashed: '125.5 QS',
+  totalChallenges: 0,
+  activeChallenges: 0,
+  successRate: '-',
+  totalSlashed: '0 QS',
 };
-
-interface FallbackChallengeTransaction {
-  id: string;
-  observer: string;
-  target: string;
-  amount: string;
-  reason: string;
-  status: string;
-  startTime: string;
-  bond: string;
-  result: string;
-}
-
-const FALLBACK_CHALLENGE_TRANSACTIONS: FallbackChallengeTransaction[] = [
-  { id: 'CH-001234', observer: '0x1234...5678', target: 'UL-001234', amount: '10.5 ETH', reason: 'Invalid proof signature', status: 'active', startTime: '2024-01-27 14:30', bond: '50 QS', result: '-' },
-  { id: 'CH-001235', observer: '0x2345...6789', target: 'UL-001235', amount: '5.0 ETH', reason: 'Prover downtime detected', status: 'resolved', startTime: '2024-01-26 10:00', bond: '50 QS', result: 'upheld' },
-  { id: 'CH-001236', observer: '0x3456...7890', target: 'UL-001236', amount: '100.0 ETH', reason: 'Suspicious transaction pattern', status: 'active', startTime: '2024-01-27 08:00', bond: '100 QS', result: '-' },
-  { id: 'CH-001237', observer: '0x4567...8901', target: 'UL-001237', amount: '50.0 ETH', reason: 'Double unlock attempt', status: 'resolved', startTime: '2024-01-25 16:00', bond: '50 QS', result: 'rejected' },
-  { id: 'CH-001238', observer: '0x5678...9012', target: 'UL-001238', amount: '25.0 ETH', reason: 'Timing violation', status: 'pending', startTime: '2024-01-27 12:00', bond: '50 QS', result: '-' },
-  { id: 'CH-001239', observer: '0x6789...0123', target: 'UL-001239', amount: '75.0 ETH', reason: 'Invalid state transition', status: 'resolved', startTime: '2024-01-24 08:00', bond: '75 QS', result: 'upheld' },
-];
 
 // Loading skeleton components
 function StatCardSkeleton() {
   return (
-    <Card>
+    <Card className="bg-[#0E0E11] border-[#1a1a1f] rounded-[20px]">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="h-4 bg-muted rounded w-24 animate-pulse" />
-            <div className="h-8 bg-muted rounded w-32 animate-pulse" />
+          <div className="space-y-3">
+            <div className="h-4 bg-[#1a1a1f] rounded-[6px] w-24 animate-pulse" />
+            <div className="h-8 bg-[#1a1a1f] rounded-[6px] w-32 animate-pulse" />
           </div>
-          <div className="h-12 w-12 rounded-lg bg-muted animate-pulse" />
+          <div className="h-12 w-12 rounded-[14px] bg-[#1a1a1f] animate-pulse" />
         </div>
       </CardContent>
     </Card>
@@ -73,16 +64,14 @@ function StatCardSkeleton() {
 
 function TableRowSkeleton() {
   return (
-    <tr className="border-b border-border">
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-20 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-24 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-20 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-32 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-14 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-6 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-6 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-8 bg-muted rounded w-16 animate-pulse" /></td>
+    <tr className="border-b border-[#1a1a1f]">
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-24 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-28 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-24 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-32 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-6 bg-[#1a1a1f] rounded-full w-20 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-6 bg-[#1a1a1f] rounded-full w-16 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-9 bg-[#1a1a1f] rounded-[10px] w-16 animate-pulse" /></td>
     </tr>
   );
 }
@@ -95,61 +84,103 @@ interface ErrorStateProps {
 
 function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <AlertTriangle className="h-8 w-8 text-warning mb-2" />
-      <p className="text-sm text-muted-foreground mb-4">{message}</p>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div
+        className="h-16 w-16 rounded-[20px] flex items-center justify-center mb-4"
+        style={{ backgroundColor: `${COLORS.error}15` }}
+      >
+        <AlertTriangle className="h-8 w-8" style={{ color: COLORS.error }} />
+      </div>
+      <p className="text-[#808080] mb-4">{message}</p>
       {onRetry && (
-        <Button variant="outline" size="sm" onClick={onRetry}>
+        <Button
+          variant="outline"
+          onClick={onRetry}
+          className="min-h-[44px] rounded-[10px] border-[#1a1a1f] hover:border-[#2a2a2f]"
+        >
           <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
+          再読み込み
         </Button>
       )}
     </div>
   );
 }
 
-// Format timestamp helper
-function formatTimestamp(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+// Helper to truncate transaction ID
+function truncateId(id: string): string {
+  if (id.length <= 14) return id;
+  return `${id.slice(0, 6)}...${id.slice(-4)}`;
 }
 
-const STATUS_COLORS = {
-  pending: 'bg-warning/10 text-warning',
-  active: 'bg-info/10 text-info',
-  investigating: 'bg-info/10 text-info',
-  resolved: 'bg-success/10 text-success',
+// Status configuration - Following UI_DESIGN_GUIDELINES.md
+const STATUS_CONFIG = {
+  pending: {
+    icon: Clock,
+    color: COLORS.pending,
+    label: '審査待ち',
+  },
+  investigating: {
+    icon: Swords,
+    color: COLORS.info,
+    label: '調査中',
+  },
+  resolved: {
+    icon: CheckCircle,
+    color: COLORS.success,
+    label: '解決済み',
+  },
+  escalated: {
+    icon: AlertTriangle,
+    color: COLORS.error,
+    label: 'エスカレーション',
+  },
 };
 
-const RESULT_COLORS = {
-  upheld: 'bg-success/10 text-success',
-  rejected: 'bg-danger/10 text-danger',
-  '-': '',
+const RESULT_CONFIG = {
+  upheld: {
+    icon: CheckCircle,
+    color: COLORS.success,
+    label: '認容',
+  },
+  rejected: {
+    icon: XCircle,
+    color: COLORS.error,
+    label: '棄却',
+  },
 };
 
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.ElementType;
+  iconColor: string;
   highlight?: boolean;
 }
 
-function StatCard({ title, value, icon: Icon, highlight }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, iconColor, highlight }: StatCardProps) {
   return (
-    <Card className={highlight ? 'border-warning' : ''}>
+    <Card
+      className={cn(
+        'bg-[#0E0E11] border-[#1a1a1f] rounded-[20px] hover:border-[#2a2a2f] transition-colors',
+        highlight && 'border-[#F0A030]/50'
+      )}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-foreground-secondary">{title}</p>
-            <p className={cn('text-2xl font-bold mt-2', highlight && 'text-warning')}>{value}</p>
+            <p className="text-sm font-medium text-[#808080]">{title}</p>
+            <p
+              className="text-2xl font-bold mt-2 tracking-tight font-mono"
+              style={{ color: highlight ? COLORS.warning : undefined }}
+            >
+              {value}
+            </p>
           </div>
-          <div className={cn('h-12 w-12 rounded-lg flex items-center justify-center', highlight ? 'bg-warning/10' : 'bg-warning/10')}>
-            <Icon className={cn('h-6 w-6', highlight ? 'text-warning' : 'text-warning')} />
+          <div
+            className="h-12 w-12 rounded-[14px] flex items-center justify-center"
+            style={{ backgroundColor: `${iconColor}15` }}
+          >
+            <Icon className="h-6 w-6" style={{ color: iconColor }} />
           </div>
         </div>
       </CardContent>
@@ -169,22 +200,20 @@ export function ChallengeTransactions() {
 
   // Use API data or fallback
   const stats = statsQuery.data ?? FALLBACK_STATS;
-  const transactions = transactionsQuery.data?.transactions ?? FALLBACK_CHALLENGE_TRANSACTIONS;
+  const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
-    { key: 'all', label: tCommon('all') },
-    { key: 'active', label: t('status.processing') },
-    { key: 'pending', label: t('status.pending') },
-    { key: 'resolved', label: t('status.completed') },
+    { key: 'all', label: 'すべて', count: transactions.length },
+    { key: 'investigating', label: '調査中', count: transactions.filter(tx => tx.status === 'investigating').length },
+    { key: 'pending', label: '審査待ち', count: transactions.filter(tx => tx.status === 'pending').length },
+    { key: 'resolved', label: '解決済み', count: transactions.filter(tx => tx.status === 'resolved').length },
   ];
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
-      // Map API status to filter status
-      const txStatus = tx.status === 'investigating' ? 'active' : tx.status;
-      if (statusFilter !== 'all' && txStatus !== statusFilter) return false;
-      const observer = 'challengerAddress' in tx ? tx.challengerAddress : ('observer' in tx ? tx.observer : '');
-      const target = 'unlockId' in tx ? tx.unlockId : ('target' in tx ? tx.target : '');
+      if (statusFilter !== 'all' && tx.status !== statusFilter) return false;
+      const observer = 'challengerAddress' in tx ? tx.challengerAddress : '';
+      const target = 'unlockId' in tx ? tx.unlockId : '';
       if (searchQuery && !tx.id.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !observer.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !target.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -196,20 +225,27 @@ export function ChallengeTransactions() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <Link href="/qs-admin/transactions">
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 rounded-[10px] hover:bg-[#1a1a1f]"
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('challengeTitle')}</h1>
-            <p className="text-foreground-secondary">{t('challengeSubtitle')}</p>
+            <h1 className="text-2xl font-bold text-foreground">チャレンジ</h1>
+            <p className="text-[#808080]">アンロック要求への異議申し立て</p>
           </div>
         </div>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          className="min-h-[44px] rounded-[10px] border-[#1a1a1f] hover:border-[#2a2a2f]"
+        >
           <Download className="h-4 w-4 mr-2" />
-          {tCommon('export')}
+          エクスポート
         </Button>
       </div>
 
@@ -225,58 +261,129 @@ export function ChallengeTransactions() {
         ) : statsQuery.isError ? (
           <div className="col-span-4">
             <ErrorState
-              message="Failed to load statistics"
+              message="統計データの読み込みに失敗しました"
               onRetry={() => statsQuery.refetch()}
             />
           </div>
         ) : (
           <>
-            <StatCard title={t('stats.totalChallenges')} value={stats.totalChallenges} icon={Shield} />
-            <StatCard title={t('status.processing')} value={stats.activeChallenges} icon={Swords} highlight />
-            <StatCard title={t('stats.challengeSuccessRate')} value={stats.successRate} icon={CheckCircle} />
-            <StatCard title={t('stats.successfulChallenges')} value={stats.totalSlashed} icon={AlertTriangle} />
+            <StatCard
+              title="総チャレンジ数"
+              value={stats.totalChallenges}
+              icon={Shield}
+              iconColor={COLORS.warning}
+            />
+            <StatCard
+              title="審査中"
+              value={stats.activeChallenges}
+              icon={Swords}
+              iconColor={COLORS.info}
+              highlight={stats.activeChallenges > 0}
+            />
+            <StatCard
+              title="認容率"
+              value={stats.successRate}
+              icon={CheckCircle}
+              iconColor={COLORS.success}
+            />
+            <StatCard
+              title="没収総額"
+              value={stats.totalSlashed}
+              icon={AlertTriangle}
+              iconColor={COLORS.error}
+            />
           </>
         )}
       </div>
 
       {/* Challenge List */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">{t('challengeTitle')}</CardTitle>
-          <div className="flex items-center space-x-2">
+      <Card className="bg-[#0E0E11] border-[#1a1a1f] rounded-[20px]">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="text-lg">チャレンジ一覧</CardTitle>
+          <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground-tertiary" />
-              <Input type="text" placeholder={tCommon('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 w-64" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#606060]" />
+              <Input
+                type="text"
+                placeholder="ID または アドレスで検索..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-72 min-h-[44px] rounded-[14px] bg-[#0a0a0c] border-[#1a1a1f] focus:border-[#2a2a2f]"
+              />
             </div>
-            <Button variant="outline" size="icon"><Filter className="h-4 w-4" /></Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-11 w-11 rounded-[10px] border-[#1a1a1f] hover:border-[#2a2a2f]"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
           {/* Filter Tabs */}
-          <div className="flex space-x-2 mb-4 border-b border-border">
+          <div className="flex gap-2 mb-6 p-1 bg-[#0a0a0c] rounded-[14px] w-fit">
             {statusFilters.map((filter) => (
-              <button key={filter.key} onClick={() => setStatusFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', statusFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button
+                key={filter.key}
+                onClick={() => setStatusFilter(filter.key)}
+                className={cn(
+                  'px-4 py-2 min-h-[40px] text-sm font-medium rounded-[10px] transition-all duration-200',
+                  statusFilter === filter.key
+                    ? 'bg-[#1a1a1f] text-foreground shadow-sm'
+                    : 'text-[#808080] hover:text-foreground'
+                )}
+              >
                 {filter.label}
+                {filter.count > 0 && (
+                  <span
+                    className={cn(
+                      'ml-2 px-2 py-0.5 text-xs rounded-full',
+                      statusFilter === filter.key
+                        ? 'text-white'
+                        : 'bg-[#1a1a1f] text-[#808080]'
+                    )}
+                    style={statusFilter === filter.key ? {
+                      backgroundColor: `${COLORS.hinomaru}20`,
+                      color: COLORS.hinomaru
+                    } : undefined}
+                  >
+                    {filter.count}
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-[14px] border border-[#1a1a1f]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.id')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.challenger')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">Target</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.reason')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">Bond</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.status')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">Result</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.actions')}</th>
+                <tr className="bg-[#0a0a0c]">
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    チャレンジャー
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    対象
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    理由
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    ステータス
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    結果
+                  </th>
+                  <th className="text-right py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    操作
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#1a1a1f]">
                 {transactionsQuery.isLoading ? (
                   <>
                     <TableRowSkeleton />
@@ -287,55 +394,120 @@ export function ChallengeTransactions() {
                   </>
                 ) : transactionsQuery.isError ? (
                   <tr>
-                    <td colSpan={8}>
+                    <td colSpan={7}>
                       <ErrorState
-                        message="Failed to load transactions"
+                        message="チャレンジの読み込みに失敗しました"
                         onRetry={() => transactionsQuery.refetch()}
                       />
                     </td>
                   </tr>
+                ) : filteredTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={7}>
+                      <div className="text-center py-12">
+                        <Shield className="h-12 w-12 text-[#404040] mx-auto mb-4" />
+                        <p className="text-[#808080]">
+                          {searchQuery || statusFilter !== 'all'
+                            ? '条件に一致するチャレンジがありません'
+                            : 'チャレンジはまだありません'
+                          }
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
                 ) : (
                   filteredTransactions.map((tx) => {
-                    const statusKey = tx.status === 'investigating' ? 'active' : tx.status;
-                    const observer = 'challengerAddress' in tx ? tx.challengerAddress : ('observer' in tx ? tx.observer : '-');
-                    const target = 'unlockId' in tx ? tx.unlockId : ('target' in tx ? tx.target : '-');
+                    const statusConfig = STATUS_CONFIG[tx.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+                    const StatusIcon = statusConfig.icon;
+
+                    const observer = 'challengerAddress' in tx ? tx.challengerAddress : '-';
+                    const target = 'unlockId' in tx ? tx.unlockId : '-';
                     const reason = 'reason' in tx ? tx.reason : '-';
-                    const bond = 'bond' in tx ? tx.bond : '-';
-                    const result = 'resolution' in tx ? (tx.resolution ? 'upheld' : '-') : ('result' in tx ? tx.result : '-');
+                    const result = 'resolution' in tx ? (tx.resolution ? 'upheld' : null) : null;
+                    const resultConfig = result ? RESULT_CONFIG[result as keyof typeof RESULT_CONFIG] : null;
+
                     return (
-                      <tr key={tx.id} className={cn('border-b border-border hover:bg-surface transition-colors', statusKey === 'active' && 'bg-info/5')}>
-                        <td className="py-3 px-4"><code className="text-sm font-mono text-warning">{tx.id}</code></td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center space-x-2">
-                            <Eye className="h-4 w-4 text-foreground-tertiary" />
-                            <code className="text-sm font-mono">{observer}</code>
+                      <tr
+                        key={tx.id}
+                        className={cn(
+                          'group hover:bg-[#0a0a0c] transition-colors',
+                          tx.status === 'investigating' && 'bg-[#4A90D9]/5'
+                        )}
+                      >
+                        <td className="py-4 px-4">
+                          <code
+                            className="text-sm font-mono font-medium"
+                            style={{ color: COLORS.warning }}
+                            title={tx.id}
+                          >
+                            {truncateId(tx.id)}
+                          </code>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <Eye className="h-4 w-4 text-[#606060]" />
+                            <code className="text-sm font-mono text-[#808080]">
+                              {typeof observer === 'string' && observer.length > 20
+                                ? `${observer.slice(0, 6)}...${observer.slice(-4)}`
+                                : observer}
+                            </code>
                           </div>
                         </td>
-                        <td className="py-3 px-4"><code className="text-sm font-mono text-info">{target}</code></td>
-                        <td className="py-3 px-4 text-sm max-w-xs truncate">{reason}</td>
-                        <td className="py-3 px-4 text-foreground-secondary">{bond}</td>
-                        <td className="py-3 px-4">
-                          <span className={cn('inline-flex items-center px-2 py-1 rounded-md text-xs font-medium', STATUS_COLORS[statusKey as keyof typeof STATUS_COLORS] || 'bg-muted text-muted-foreground')}>
-                            {statusKey === 'active' && <Swords className="h-3 w-3 mr-1" />}
-                            {statusKey === 'pending' && <Clock className="h-3 w-3 mr-1" />}
-                            {statusKey === 'resolved' && <CheckCircle className="h-3 w-3 mr-1" />}
-                            {statusKey.charAt(0).toUpperCase() + statusKey.slice(1)}
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <Target className="h-4 w-4 text-[#606060]" />
+                            <code
+                              className="text-sm font-mono"
+                              style={{ color: COLORS.info }}
+                            >
+                              {target}
+                            </code>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-sm max-w-xs truncate block text-[#a0a0a0]">{reason}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                            style={{
+                              backgroundColor: `${statusConfig.color}15`,
+                              color: statusConfig.color,
+                              border: `1px solid ${statusConfig.color}30`
+                            }}
+                          >
+                            <StatusIcon className="h-3 w-3" />
+                            {statusConfig.label}
                           </span>
                         </td>
-                        <td className="py-3 px-4">
-                          {result !== '-' ? (
-                            <span className={cn('inline-flex items-center px-2 py-1 rounded-md text-xs font-medium', RESULT_COLORS[result as keyof typeof RESULT_COLORS] || 'bg-muted text-muted-foreground')}>
-                              {result === 'upheld' && <CheckCircle className="h-3 w-3 mr-1" />}
-                              {result === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
-                              {result.charAt(0).toUpperCase() + result.slice(1)}
+                        <td className="py-4 px-4">
+                          {resultConfig ? (
+                            <span
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                              style={{
+                                backgroundColor: `${resultConfig.color}15`,
+                                color: resultConfig.color,
+                                border: `1px solid ${resultConfig.color}30`
+                              }}
+                            >
+                              <resultConfig.icon className="h-3 w-3" />
+                              {resultConfig.label}
                             </span>
                           ) : (
-                            <span className="text-foreground-tertiary">-</span>
+                            <span className="text-[#606060] text-sm">-</span>
                           )}
                         </td>
-                        <td className="py-3 px-4">
-                          <Link href={`/qs-admin/transactions/challenge/${tx.id}`} className="inline-flex items-center justify-center min-h-[44px] px-4 py-2 text-sm font-medium border border-border rounded-md hover:bg-accent transition-colors">
-                            {tCommon('detail')}
+                        <td className="py-4 px-4 text-right">
+                          <Link href={`/qs-admin/transactions/challenge/${tx.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="min-h-[36px] rounded-[10px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#1a1a1f]"
+                              style={{ color: COLORS.gold }}
+                            >
+                              詳細
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
                           </Link>
                         </td>
                       </tr>
@@ -346,8 +518,31 @@ export function ChallengeTransactions() {
             </table>
           </div>
 
-          {!transactionsQuery.isLoading && !transactionsQuery.isError && filteredTransactions.length === 0 && (
-            <div className="text-center py-8 text-foreground-secondary">{t('empty.challenge')}</div>
+          {/* Pagination */}
+          {!transactionsQuery.isLoading && !transactionsQuery.isError && filteredTransactions.length > 0 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#1a1a1f]">
+              <p className="text-sm text-[#808080]">
+                {filteredTransactions.length} 件のチャレンジ
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[36px] rounded-[10px] border-[#1a1a1f]"
+                  disabled
+                >
+                  前へ
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[36px] rounded-[10px] border-[#1a1a1f]"
+                  disabled
+                >
+                  次へ
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -15,119 +15,8 @@ import {
 import { useUnlocks } from '@/hooks/explorer';
 import type { UnlockDetail } from '@/lib/api/explorer/mock';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_UNLOCKS: UnlockDetail[] = [
-  {
-    id: '0x2e7f8d9a1b2c3d4e...d934a127',
-    shortId: '0x2e7f...d934',
-    lockId: '0x7a3f...e821',
-    lockIdFull: '0x7a3f8b2c4d5e6f...e821d4f9',
-    type: 'normal',
-    status: 'pending',
-    timeLock: '23h 14m',
-    timeLockProgress: 3,
-    proverSigs: { signed: 3, total: 5 },
-    requestTime: '2026-01-10 14:46:22 UTC',
-    timeLockEnd: '2026-01-11 14:46:22 UTC',
-    dilithiumSig: 'dil3_sig_0x8f2a...verified',
-    dilithiumVerified: true,
-    provers: [
-      { name: 'Prover Alpha', signed: true },
-      { name: 'Prover Beta', signed: true },
-      { name: 'Prover Gamma', signed: true },
-      { name: 'Prover Delta', signed: false },
-      { name: 'Prover Epsilon', signed: false },
-    ],
-  },
-  {
-    id: '0x5c9a0b1c2d3e4f5a...e127f8a9',
-    shortId: '0x5c9a...e127',
-    lockId: '0x4d8e...a923',
-    lockIdFull: '0x4d8e9f0a1b2c3d...a923b4c5',
-    type: 'emergency',
-    status: 'pending' as const,
-    timeLock: '6d 18h',
-    timeLockProgress: 5,
-    proverSigs: { signed: 5, total: 5 },
-    requestTime: '2026-01-09 08:22:15 UTC',
-    timeLockEnd: '2026-01-16 08:22:15 UTC',
-    dilithiumSig: 'dil3_sig_0x9d2b...verified',
-    dilithiumVerified: true,
-    provers: [
-      { name: 'Prover Alpha', signed: true },
-      { name: 'Prover Beta', signed: true },
-      { name: 'Prover Gamma', signed: true },
-      { name: 'Prover Delta', signed: true },
-      { name: 'Prover Epsilon', signed: true },
-    ],
-  },
-  {
-    id: '0x3b1d4c5e6f7a8b9c...f842a1b2',
-    shortId: '0x3b1d...f842',
-    lockId: '0x1f6a...c734',
-    lockIdFull: '0x1f6a7b8c9d0e1f...c734d5e6',
-    type: 'normal' as const,
-    status: 'complete' as const,
-    timeLock: '-',
-    timeLockProgress: 100,
-    proverSigs: { signed: 5, total: 5 },
-    requestTime: '2026-01-08 12:15:45 UTC',
-    timeLockEnd: '2026-01-09 12:15:45 UTC',
-    dilithiumSig: 'dil3_sig_0x7a1d...verified',
-    dilithiumVerified: true,
-    provers: [
-      { name: 'Prover Alpha', signed: true },
-      { name: 'Prover Beta', signed: true },
-      { name: 'Prover Gamma', signed: true },
-      { name: 'Prover Delta', signed: true },
-      { name: 'Prover Epsilon', signed: true },
-    ],
-  },
-  {
-    id: '0x7d4e5f6a7b8c9d0e...a563b7c8',
-    shortId: '0x7d4e...a563',
-    lockId: '0x8c3d...b156',
-    lockIdFull: '0x8c3d4e5f6a7b8c...b156c2d3',
-    type: 'normal' as const,
-    status: 'challenged' as const,
-    timeLock: '47h',
-    timeLockProgress: 60,
-    proverSigs: { signed: 4, total: 5 },
-    requestTime: '2026-01-07 09:32:18 UTC',
-    timeLockEnd: '2026-01-08 09:32:18 UTC',
-    dilithiumSig: 'dil3_sig_0x5e8c...verified',
-    dilithiumVerified: true,
-    provers: [
-      { name: 'Prover Alpha', signed: true },
-      { name: 'Prover Beta', signed: true },
-      { name: 'Prover Gamma', signed: true },
-      { name: 'Prover Delta', signed: true },
-      { name: 'Prover Epsilon', signed: false },
-    ],
-  },
-  {
-    id: '0x9f2c3d4e5f6a7b8c...b718c9d0',
-    shortId: '0x9f2c...b718',
-    lockId: '0x2e7f...d934',
-    lockIdFull: '0x2e7f3a4b5c6d7e...d934e5f6',
-    type: 'normal' as const,
-    status: 'complete' as const,
-    timeLock: '-',
-    timeLockProgress: 100,
-    proverSigs: { signed: 5, total: 5 },
-    requestTime: '2026-01-06 16:48:33 UTC',
-    timeLockEnd: '2026-01-07 16:48:33 UTC',
-    dilithiumSig: 'dil3_sig_0x2f9e...verified',
-    dilithiumVerified: true,
-    provers: [
-      { name: 'Prover Alpha', signed: true },
-      { name: 'Prover Beta', signed: true },
-      { name: 'Prover Gamma', signed: true },
-      { name: 'Prover Delta', signed: true },
-      { name: 'Prover Epsilon', signed: true },
-    ],
-  },
-];
+// Empty initial state (no fake data)
+const FALLBACK_UNLOCKS: UnlockDetail[] = [];
 
 type UnlockStatus = 'pending' | 'complete' | 'challenged';
 type UnlockType = 'normal' | 'emergency';
@@ -154,9 +43,9 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
   const mockUnlocks = unlocksApi?.unlocks ?? FALLBACK_UNLOCKS;
 
   const itemsPerPage = 5;
-  const pendingCount = unlocksApi?.pending ?? 127;
-  const completedCount = unlocksApi?.completed ?? 8234;
-  const totalUnlocks = unlocksApi?.total ?? 8361;
+  const pendingCount = unlocksApi?.pending ?? 0;
+  const completedCount = unlocksApi?.completed ?? 0;
+  const totalUnlocks = unlocksApi?.total ?? 0;
 
   // Filter unlocks
   const filteredUnlocks = useMemo(() => {

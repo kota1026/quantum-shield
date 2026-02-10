@@ -30,73 +30,8 @@ import { cn } from '@/lib/utils';
 import { useProposals } from '@/hooks/governance';
 import type { Proposal, ProposalStatus, ProposalType, UserVote } from '@/lib/api/governance/mock';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_PROPOSALS: Proposal[] = [
-  {
-    id: 47,
-    title: 'Increase Prover Bond Amount from 100 ETH to 150 ETH',
-    description: 'This proposal seeks to increase the minimum bond requirement for Provers from 100 ETH to 150 ETH.',
-    status: 'active',
-    type: 'parameter',
-    proposer: '0xabc...def',
-    createdAt: '2026-01-08',
-    timeLeft: '2d 14h 32m',
-    forPercentage: 72,
-    againstPercentage: 28,
-    quorumPercentage: 65,
-    quorumRequired: 4,
-    quorumReached: true,
-    commentsCount: 24,
-    userVote: 'for',
-  },
-  {
-    id: 46,
-    title: 'Add New Security Council Member: quantum_expert.eth',
-    description: 'Nominate quantum_expert.eth as a new Security Council member.',
-    status: 'active',
-    type: 'council',
-    proposer: '0x123...456',
-    createdAt: '2026-01-05',
-    timeLeft: '5d 8h 15m',
-    forPercentage: 85,
-    againstPercentage: 15,
-    quorumPercentage: 78,
-    quorumRequired: 15,
-    quorumReached: true,
-    commentsCount: 47,
-    userVote: null,
-  },
-  {
-    id: 45,
-    title: 'Upgrade STARK Verifier Contract to v2.1',
-    description: 'Upgrade the STARK verifier contract to version 2.1.',
-    status: 'pending',
-    type: 'upgrade',
-    proposer: '0x789...abc',
-    createdAt: '2026-01-02',
-    timeLock: '5d remaining',
-    forPercentage: 91,
-    againstPercentage: 9,
-    quorumPercentage: 12,
-    quorumRequired: 8,
-    quorumReached: true,
-    commentsCount: 89,
-    userVote: 'for',
-  },
-  {
-    id: 44,
-    title: 'Reduce Challenge Period from 14 days to 7 days',
-    description: 'This proposal reduces the challenge period from 14 days to 7 days.',
-    status: 'executed',
-    type: 'parameter',
-    proposer: '0xdef...123',
-    createdAt: '2025-12-20',
-    executedAt: '2025-12-28',
-    forPercentage: 88,
-    againstPercentage: 12,
-    commentsCount: 156,
-    userVote: 'for',
-  },
 ];
 
 type FilterType = 'all' | 'active' | 'passed' | 'defeated' | 'vetoed';
@@ -173,8 +108,10 @@ function ProposalCard({ proposal, t }: ProposalCardProps) {
 
   const typeConfig: Record<ProposalType, string> = {
     parameter: 'bg-gold/10 text-gold',
+    treasury: 'bg-warning/10 text-warning',
     upgrade: 'bg-hinomaru/10 text-hinomaru-400',
-    council: 'bg-success/10 text-success',
+    signal: 'bg-success/10 text-success',
+    emergency: 'bg-danger/10 text-danger',
   };
 
   const { icon: statusIcon, className: statusClassName } = statusConfig[proposal.status];

@@ -145,9 +145,11 @@ export interface ProverApplication {
   applicantAddress: string;
   organizationName: string;
   tier: ProverTier;
+  stakeAmount?: string;
+  infrastructure?: string;
   submittedAt: number;
   status: 'pending' | 'approved' | 'rejected';
-  documents?: string[];
+  documents?: string[] | number;
 }
 
 // ============= Observer =============
@@ -639,6 +641,7 @@ export interface UserTransaction {
   amount: string;
   timestamp: string;
   status: string;
+  txHash?: string | null; // L1 transaction hash for Etherscan link
 }
 
 export interface UserWallet {

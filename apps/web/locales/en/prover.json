@@ -51,7 +51,11 @@
         "description": "Authentication failed. Please try again.",
         "connectionFailed": "Failed to connect to wallet. Please try again.",
         "tryAgain": "Try Again",
-        "retryButton": "Retry"
+        "retryButton": "Retry",
+        "notRegistered": "This wallet is not registered as a Prover. Please submit a Prover application first.",
+        "pendingApproval": "Your application is under review. Please wait for approval.",
+        "rejected": "Your application has been rejected. Please contact support for details.",
+        "accessDenied": "Access as a Prover is not permitted."
       },
       "notRegistered": {
         "title": "Wallet Not Registered",
@@ -680,7 +684,7 @@
         },
         "claimRewards": {
           "title": "Claim Rewards",
-          "description": "{amount} ETH available to claim"
+          "description": "{amount} QS available to claim"
         },
         "viewMetrics": {
           "title": "View Performance",
@@ -736,7 +740,8 @@
         "pending": "Pending",
         "thisMonth": "This Month",
         "allTime": "All Time",
-        "claimAmount": "Claim {amount} ETH"
+        "claimAmount": "Claim {amount} QS",
+        "claimableLabel": "QS Token Rewards"
       },
       "stake": {
         "title": "Your Stake",
@@ -853,6 +858,10 @@
           "volume": "Total Volume",
           "done": "Done"
         }
+      },
+      "error": {
+        "signing": "Signing error",
+        "batchSigning": "Batch signing error"
       }
     },
     "metrics": {
@@ -861,6 +870,25 @@
       "periodSelect": "Select period",
       "export": "Export CSV",
       "tabs": "Metrics tabs",
+      "enterprise": {
+        "title": "Enterprise Rewards Summary",
+        "totalEarned": "Total Earned",
+        "totalEarnedDesc": "Cumulative rewards during contract period",
+        "guaranteedRevenue": "Guaranteed Revenue",
+        "monthly": "Monthly Guarantee",
+        "received": "Received",
+        "remaining": "Remaining",
+        "performanceBonus": "Performance Bonus",
+        "eligible": "Eligible",
+        "bonusRate": "Bonus Rate",
+        "thisMonth": "This Month",
+        "bonusTotal": "Total Bonus",
+        "additionalIncentives": "Additional Incentives",
+        "contractPeriod": "Contract Period",
+        "earlyAdopterDescription": "Phase 1 Participation Bonus",
+        "perfectUptimeDescription": "3-Month Continuous 100% Uptime",
+        "referralDescription": "New Prover Referral"
+      },
       "period": {
         "7d": "Last 7 days",
         "30d": "Last 30 days",
@@ -899,7 +927,9 @@
         "verificationRate": "Verification Rate",
         "slaCompliance": "SLA Compliance",
         "availability": "Availability",
-        "responseTime": "Response Time"
+        "responseTime": "Response Time",
+        "avgResponseTime": "Avg Response Time",
+        "successRate": "Success Rate"
       },
       "modal": {
         "withdraw": {

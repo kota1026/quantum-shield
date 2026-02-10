@@ -12,7 +12,6 @@ interface PageProps {
 
 export default function ProposalDetailPage({ params }: PageProps) {
   const { id } = use(params);
-  const proposalId = parseInt(id, 10);
 
-  return <ProposalDetail proposalId={proposalId} />;
+  return <ProposalDetail proposalId={id} />;
 }

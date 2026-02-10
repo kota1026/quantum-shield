@@ -17,7 +17,7 @@ export interface TokenHubStats {
   lockEndDate: string;
   lockDuration: string;
   timeRemaining: string;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
 }
 
 // =============================================================================
@@ -133,7 +133,7 @@ export interface Lock {
   lockDuration: string;
   lockEndDate: string;
   veQSBalance: number;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
   createdAt: string;
 }
 
@@ -144,7 +144,7 @@ export interface LockedPosition {
   lockDate: Date;
   unlockDate: Date;
   durationMonths: number;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
 }
 
 // =============================================================================

@@ -49,7 +49,9 @@ const jaMessages = {
       types: {
         parameter: 'パラメータ',
         upgrade: 'アップグレード',
-        council: '評議会',
+        signal: 'シグナル',
+        treasury: 'トレジャリー',
+        emergency: '緊急',
       },
       vote: {
         for: '賛成',

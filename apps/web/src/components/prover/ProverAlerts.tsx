@@ -36,47 +36,18 @@ import { cn } from '@/lib/utils';
 import { useProverAlerts, useStakeData } from '@/hooks/prover';
 import type { ProverAlert } from '@/lib/api/prover/mock';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_ALERTS = [
-  {
-    id: 1,
-    type: 'critical' as const,
-    title: 'signatureTimeout',
-    timestamp: '2026-01-17 14:32:15',
-    description: 'Signature timeout alert',
-    requestId: 'REQ-2026-0001',
-    remainingTime: 120,
-    resolved: false,
-  },
-  {
-    id: 2,
-    type: 'warning' as const,
-    title: 'systemResource',
-    timestamp: '2026-01-17 13:45:00',
-    description: 'System resource alert',
-    server: 'prover-node-01',
-    cpuUsage: 85,
-    resolved: false,
-  },
-  {
-    id: 3,
-    type: 'info' as const,
-    title: 'maintenance',
-    timestamp: '2026-01-16 09:00:00',
-    description: 'Maintenance completed',
-    resolved: true,
-  },
-];
+// Empty initial state (no fake data)
+const FALLBACK_ALERTS: ProverAlert[] = [];
 const FALLBACK_STAKE_DATA = {
-  currentStake: 400000,
-  unlockDate: '2026-07-17',
-  daysRemaining: 180,
-  totalRewards: 47520,
-  annualRate: 15.2,
+  currentStake: 0,
+  unlockDate: '-',
+  daysRemaining: 0,
+  totalRewards: 0,
+  annualRate: 0,
   totalSlashing: 0,
   riskLevel: 0,
   violations30d: 0,
-  slaRate: 99.8,
+  slaRate: 0,
   potentialSlashing: 0,
 };
 
