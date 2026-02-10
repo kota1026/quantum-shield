@@ -30,3 +30,9 @@ contracts/broadcast/
 
 # L3 Aegis
 l3-aegis/cache/
+
+# Playwright MCP logs/screenshots
+.playwright-mcp/
+
+# Root-level screenshots (temporary)
+*.png
