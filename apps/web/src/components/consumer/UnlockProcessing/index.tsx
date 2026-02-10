@@ -124,6 +124,25 @@ export function UnlockProcessing() {
       const lockAmount = lockDetails?.transaction?.amount || parseEther('0.01').toString();
       console.log('Lock details loaded:', { lockId, amount: lockAmount });
 
+      // Pre-check: Verify Dilithium key matches the lock's owner public key
+      if (lockDetails?.ownerPublicKey && publicKey) {
+        const normalizedOwnerPk = lockDetails.ownerPublicKey.replace(/^0x/, '').toLowerCase();
+        const normalizedLocalPk = publicKey.replace(/^0x/, '').toLowerCase();
+        if (normalizedOwnerPk !== normalizedLocalPk) {
+          if (process.env.NODE_ENV === 'production') {
+            throw new Error(
+              'Dilithium key mismatch: Your current signing key does not match the key used to create this lock. ' +
+              'This can happen if browser data was cleared or you are using a different device. ' +
+              'Please use the same browser/device where the lock was originally created.'
+            );
+          }
+          // In development: warn but continue (test locks may not have matching keys)
+          console.warn('⚠️ Dilithium key mismatch (dev mode: continuing anyway)');
+        } else {
+          console.log('✓ Dilithium key pre-check passed');
+        }
+      }
+
       updateStep(1, 'complete');
 
       // ============================
@@ -317,7 +336,7 @@ export function UnlockProcessing() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-gold/15 to-transparent" />
         </div>
 
-        <div className="relative z-10 text-center px-6 max-w-md w-full">
+        <main role="main" className="relative z-10 text-center px-6 max-w-md w-full">
           {/* Animated spinner - only show when no error */}
           {!error && (
             <div className="relative w-40 h-40 mx-auto mb-8">
@@ -471,7 +490,7 @@ export function UnlockProcessing() {
               </p>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </TooltipProvider>
   );

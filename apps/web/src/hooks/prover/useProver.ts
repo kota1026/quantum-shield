@@ -533,6 +533,16 @@ export function useRegisterProver() {
       hsmAttestation: string;
       multisigProof: string;
       endpoint: string;
+      // Application form fields
+      organizationName?: string;
+      country?: string;
+      website?: string;
+      contactEmail?: string;
+      validatorExperience?: string;
+      hsmProvider?: string;
+      infrastructureLocation?: string;
+      businessRegistrationNumber?: string;
+      documentsCount?: number;
     }) => {
       return fetchApi<{
         prover_id: string;
@@ -547,6 +557,16 @@ export function useRegisterProver() {
           hsm_attestation: data.hsmAttestation,
           multisig_proof: data.multisigProof,
           endpoint: data.endpoint,
+          // Application form fields
+          organization_name: data.organizationName,
+          country: data.country,
+          website: data.website,
+          contact_email: data.contactEmail,
+          validator_experience: data.validatorExperience,
+          hsm_provider: data.hsmProvider,
+          infrastructure_location: data.infrastructureLocation,
+          business_registration_number: data.businessRegistrationNumber,
+          documents_count: data.documentsCount,
         }),
       });
     },
@@ -739,14 +759,25 @@ export function usePerformanceStats(proverId?: string) {
   return useQuery({
     queryKey: [...proverKeys.all, 'performanceStats', proverId],
     queryFn: async () => {
-      const response = await fetchApi<{
-        uptime: { value: number; change: number };
-        signatures: { value: number; change: number };
-        latency: { value: number; change: number };
-        violations: { value: number };
-      }>(`/v1/prover/${proverId}/performance`);
+      try {
+        const response = await fetchApi<{
+          uptime: { value: number; change?: number };
+          signatures: { value: number; change?: number };
+          latency: { value: number; change?: number };
+          violations: { value: number };
+        }>(`/v1/prover/${proverId}/performance`);
 
-      return response;
+        // Ensure change fields default to 0 to prevent undefined access
+        return {
+          uptime: { value: response.uptime?.value ?? 0, change: response.uptime?.change ?? 0 },
+          signatures: { value: response.signatures?.value ?? 0, change: response.signatures?.change ?? 0 },
+          latency: { value: response.latency?.value ?? 0, change: response.latency?.change ?? 0 },
+          violations: { value: response.violations?.value ?? 0 },
+        };
+      } catch {
+        // Endpoint may not exist yet — return null (fallback handled in component)
+        return null;
+      }
     },
     enabled: !!proverId,
     staleTime: 60_000,
@@ -766,18 +797,24 @@ export function useSignatureHistory(proverId?: string, params?: { days?: number 
       const endpoint = proverId
         ? `/v1/prover/${proverId}/signature-history${queryParams.toString() ? '?' + queryParams.toString() : ''}`
         : `/v1/prover/signature-history${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-      const response = await fetchApi<{
-        history: Array<{
-          date: string;
-          count: number;
-          successRate: number;
-          avgTime: number;
-          reward: number;
-        }>;
-      }>(endpoint);
+      try {
+        const response = await fetchApi<{
+          history: Array<{
+            date: string;
+            count: number;
+            successRate: number;
+            avgTime: number;
+            reward: number;
+          }>;
+        }>(endpoint);
 
-      return response.history;
+        return response.history ?? [];
+      } catch {
+        // Endpoint may not exist yet — return empty array
+        return [];
+      }
     },
+    enabled: !!proverId,
     staleTime: 300_000,
   });
 }
@@ -790,16 +827,22 @@ export function useDetailMetrics(proverId?: string) {
     queryKey: [...proverKeys.all, 'detailMetrics', proverId],
     queryFn: async () => {
       const endpoint = proverId ? `/v1/prover/${proverId}/metrics/detail` : '/v1/prover/metrics/detail';
-      const response = await fetchApi<{
-        metrics: Array<{
-          key: string;
-          value: number;
-          status: string;
-        }>;
-      }>(endpoint);
+      try {
+        const response = await fetchApi<{
+          metrics: Array<{
+            key: string;
+            value: number;
+            status: string;
+          }>;
+        }>(endpoint);
 
-      return response.metrics;
+        // Filter out entries with undefined/empty keys to prevent i18n errors
+        return (response.metrics ?? []).filter(m => m.key && m.key !== 'undefined');
+      } catch {
+        return [];
+      }
     },
+    enabled: !!proverId,
     staleTime: 60_000,
   });
 }
@@ -812,13 +855,18 @@ export function useRewardsSummary(proverId?: string) {
     queryKey: [...proverKeys.all, 'rewardsSummary', proverId],
     queryFn: async () => {
       const endpoint = proverId ? `/v1/prover/${proverId}/rewards/summary` : '/v1/prover/rewards/summary';
-      const response = await fetchApi<{
-        total: number;
-        period: number;
-      }>(endpoint);
+      try {
+        const response = await fetchApi<{
+          total: number;
+          period: number;
+        }>(endpoint);
 
-      return response;
+        return { total: response.total ?? 0, period: response.period ?? 0 };
+      } catch {
+        return { total: 0, period: 0 };
+      }
     },
+    enabled: !!proverId,
     staleTime: 60_000,
   });
 }
@@ -837,15 +885,20 @@ export function usePayoutHistory(proverId?: string, params?: { page?: number; li
       const endpoint = proverId
         ? `/v1/prover/${proverId}/payouts${queryParams.toString() ? '?' + queryParams.toString() : ''}`
         : `/v1/prover/payouts${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-      const response = await fetchApi<{
-        payouts: Array<{
-          date: string;
-          amount: number;
-          address: string;
-        }>;
-      }>(endpoint);
+      try {
+        const response = await fetchApi<{
+          payouts: Array<{
+            date: string;
+            amount: number;
+            address: string;
+          }>;
+        }>(endpoint);
 
-      return response.payouts;
+        return response.payouts ?? [];
+      } catch {
+        // Endpoint may not exist yet — return empty array
+        return [];
+      }
     },
     enabled: !!proverId,
     staleTime: 60_000,

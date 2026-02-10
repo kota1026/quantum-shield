@@ -87,7 +87,7 @@ export function Security() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
@@ -244,7 +244,7 @@ export function Security() {
             ))}
           </div>
         </section>
-      </div>
+      </main>
     </div>
   );
 }

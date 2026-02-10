@@ -341,7 +341,7 @@ export function TokenHubDashboard() {
                   {stats.veQSBalance.toLocaleString()} veQS
                 </div>
                 <div className="text-sm text-foreground-secondary">
-                  = {stats.lockedQS.toLocaleString()} QS × {stats.multiplier} ({t('veqsBox.remaining')})
+                  = {stats.lockedQS.toLocaleString()} QS × {stats.ratio} ({t('veqsBox.remaining')})
                 </div>
               </div>
 
@@ -360,8 +360,8 @@ export function TokenHubDashboard() {
                   <div className="text-base font-semibold font-mono">{stats.timeRemaining}</div>
                 </div>
                 <div className="bg-background-secondary rounded-lg p-4">
-                  <div className="text-xs text-foreground-tertiary mb-1">{t('lockInfo.multiplier')}</div>
-                  <div className="text-base font-semibold font-mono">{stats.multiplier}x</div>
+                  <div className="text-xs text-foreground-tertiary mb-1">{t('lockInfo.lockRatio')}</div>
+                  <div className="text-base font-semibold font-mono">{stats.ratio}</div>
                 </div>
               </div>
 

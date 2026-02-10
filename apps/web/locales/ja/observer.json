@@ -703,7 +703,8 @@
           "available": "請求可能",
           "claimButton": "報酬を請求",
           "claimAll": "すべて請求",
-          "readyToClaim": "請求可能"
+          "readyToClaim": "請求可能",
+          "rewardToken": "QS Token報酬"
         },
         "breakdown": {
           "challenge": "異議申立て #{id}",

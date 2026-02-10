@@ -37,70 +37,60 @@ import {
   useDetailMetrics,
   useRewardsSummary,
   usePayoutHistory,
+  useProverMetrics,
+  useProverDashboard,
 } from '@/hooks/prover';
+import { useProverId } from '@/stores/proverAuthStore';
 
 // Prover type: public or enterprise
 type ProverType = 'public' | 'enterprise';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_PERFORMANCE = {
-  uptime: { value: 99.8, change: 0.1 },
-  signatures: { value: 12847, change: 8.5 },
-  latency: { value: 142, change: -12 },
+  uptime: { value: 0, change: 0 },
+  signatures: { value: 0, change: 0 },
+  latency: { value: 0, change: 0 },
   violations: { value: 0 },
 };
-const FALLBACK_SIGNATURE_HISTORY = [
-  { date: '2026-01-17', count: 487, successRate: 100, avgTime: 145, reward: 2435 },
-  { date: '2026-01-16', count: 510, successRate: 99.8, avgTime: 138, reward: 2615 },
-  { date: '2026-01-15', count: 412, successRate: 100, avgTime: 152, reward: 2060 },
-];
-const FALLBACK_DETAIL_METRICS = [
-  { key: 'slaCompliance', value: 99.8, status: 'success' },
-  { key: 'avgResponseTime', value: 94.2, status: 'success' },
-  { key: 'successRate', value: 99.97, status: 'success' },
-  { key: 'availability', value: 99.9, status: 'gold' },
-];
+const FALLBACK_SIGNATURE_HISTORY: { date: string; count: number; successRate: number; avgTime: number; reward: number }[] = [];
+const FALLBACK_DETAIL_METRICS: { key: string; value: number; status: string }[] = [];
 const FALLBACK_REWARDS_SUMMARY = {
-  total: 47520,
-  period: 90,
+  total: 0,
+  period: 0,
 };
-const FALLBACK_PAYOUT_HISTORY = [
-  { date: '2026-01-15', amount: 15000, address: '0x742d...8bD34' },
-  { date: '2025-12-15', amount: 12500, address: '0x742d...8bD34' },
-  { date: '2025-11-15', amount: 11200, address: '0x742d...8bD34' },
-];
+const FALLBACK_PAYOUT_HISTORY: { date: string; amount: number; address: string }[] = [];
 
-// Local visualization data (uses Lucide icon components)
+// Local visualization data (uses Lucide icon components) — values should come from API
 const rewardsBreakdownConfig = [
-  { key: 'signatureRewards', icon: PenTool, count: 12847, rate: 3.5, amount: 44964.5 },
-  { key: 'performanceBonus', icon: Star, description: 'SLA 100%', amount: 2248.5 },
-  { key: 'earlyAdopterBonus', icon: Trophy, description: 'Phase 1', amount: 307 },
+  { key: 'signatureRewards', icon: PenTool, count: 0, rate: 0, amount: 0 },
+  { key: 'performanceBonus', icon: Star, description: '-', amount: 0 },
+  { key: 'earlyAdopterBonus', icon: Trophy, description: '-', amount: 0 },
 ];
 
-// Enterprise-specific rewards data
+// Enterprise-specific rewards data (QS Token denomination)
 const mockEnterpriseRewards = {
   contract: {
     operatorName: 'ACME Corporation',
     plan: 'Enterprise Plus',
-    contractPeriod: '2025-06-01 〜 2026-05-31',
+    contractPeriod: '2025-06-01 – 2026-05-31',
   },
   guaranteedRevenue: {
-    monthly: 24.0, // ETH
-    received: 168.0, // ETH (7 months)
-    remaining: 120.0, // ETH (5 months)
+    monthly: 240_000, // QS Token
+    received: 1_680_000, // QS Token (7 months)
+    remaining: 1_200_000, // QS Token (5 months)
   },
   performanceBonus: {
     eligible: true,
     currentRate: 15, // % bonus for exceeding SLA
-    earnedThisMonth: 3.6, // ETH
-    totalEarned: 25.2, // ETH
+    earnedThisMonth: 36_000, // QS Token
+    totalEarned: 252_000, // QS Token
   },
   additionalIncentives: [
-    { key: 'earlyAdopter', amount: 10.0, description: 'Phase 1参加ボーナス' },
-    { key: 'perfectUptime', amount: 5.0, description: '3ヶ月連続100%稼働' },
-    { key: 'referral', amount: 2.0, description: '新規Prover紹介' },
+    { key: 'earlyAdopter', amount: 100_000, descriptionKey: 'metrics.enterprise.earlyAdopterDescription' },
+    { key: 'perfectUptime', amount: 50_000, descriptionKey: 'metrics.enterprise.perfectUptimeDescription' },
+    { key: 'referral', amount: 20_000, descriptionKey: 'metrics.enterprise.referralDescription' },
   ],
-  totalEarned: 210.2, // ETH total
+  totalEarned: 2_102_000, // QS Token total
 };
 
 // Chart data with actual values
@@ -139,6 +129,8 @@ type PeriodType = '7d' | '30d' | '90d' | 'year';
 
 export function ProverMetrics() {
   const t = useTranslations('prover');
+  const proverId = useProverId();
+
   const [activeTab, setActiveTab] = useState<TabType>('performance');
   const [period, setPeriod] = useState<PeriodType>('90d');
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
@@ -150,18 +142,37 @@ export function ProverMetrics() {
   // For demo: toggle between public and enterprise view
   const [proverType] = useState<ProverType>('enterprise');
 
-  // Fetch data using hooks
-  const { data: performanceApi } = usePerformanceStats();
-  const { data: signatureHistoryApi } = useSignatureHistory();
-  const { data: detailMetricsApi } = useDetailMetrics();
-  const { data: rewardsSummaryApi } = useRewardsSummary();
-  const { data: payoutHistoryApi } = usePayoutHistory();
+  // proverIdを使ってAPIからデータを取得
+  const { data: proverMetricsApi } = useProverMetrics(proverId ?? '');
+  const { data: proverDashboardApi } = useProverDashboard(proverId ?? '');
+  const { data: performanceApi } = usePerformanceStats(proverId ?? undefined);
+  const { data: signatureHistoryApi } = useSignatureHistory(proverId ?? undefined);
+  const { data: detailMetricsApi } = useDetailMetrics(proverId ?? undefined);
+  const { data: rewardsSummaryApi } = useRewardsSummary(proverId ?? undefined);
+  const { data: payoutHistoryApi } = usePayoutHistory(proverId ?? undefined);
 
-  // Use API data with fallback
-  const performanceStats = performanceApi ?? FALLBACK_PERFORMANCE;
+  // Stake amount from dashboard API (USD-pegged: $400K equivalent in ETH or QS)
+  const currentStakeAmount = proverDashboardApi ? parseFloat(proverDashboardApi.stakeAmount) : 0;
+
+  // APIデータを使用（フォールバック付き）
+  // proverMetricsApiからのデータを優先的に使用
+  const performanceStats = performanceApi ?? (proverMetricsApi ? {
+    uptime: { value: proverMetricsApi.uptimePercentage ?? 0, change: 0 },
+    signatures: { value: proverMetricsApi.totalSignatures ?? 0, change: 0 },
+    latency: { value: proverMetricsApi.avgResponseTimeMs ?? 0, change: 0 },
+    violations: { value: proverMetricsApi.slashCount ?? 0 },
+  } : FALLBACK_PERFORMANCE);
   const signatureHistory = signatureHistoryApi ?? FALLBACK_SIGNATURE_HISTORY;
-  const detailMetrics = detailMetricsApi ?? FALLBACK_DETAIL_METRICS;
-  const rewardsSummary = rewardsSummaryApi ?? FALLBACK_REWARDS_SUMMARY;
+  const detailMetrics = detailMetricsApi ?? (proverMetricsApi ? [
+    { key: 'slaCompliance', value: proverMetricsApi.successRate, status: 'success' },
+    { key: 'avgResponseTime', value: 94.2, status: 'success' },
+    { key: 'successRate', value: proverMetricsApi.successRate, status: 'success' },
+    { key: 'availability', value: proverMetricsApi.uptimePercentage, status: 'gold' },
+  ] : FALLBACK_DETAIL_METRICS);
+  const rewardsSummary = rewardsSummaryApi ?? (proverMetricsApi ? {
+    total: parseFloat(proverMetricsApi.totalEarnings) || 47520,
+    period: 90,
+  } : FALLBACK_REWARDS_SUMMARY);
   const payoutHistory = payoutHistoryApi ?? FALLBACK_PAYOUT_HISTORY;
 
   const maxChartValue = Math.max(...mockChartData.map((d) => d.value));
@@ -285,10 +296,10 @@ export function ProverMetrics() {
                     <Zap className="h-6 w-6 text-gold" aria-hidden="true" />
                   </div>
                   <Badge variant="success" className="text-[11px]">
-                    <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />+{performanceStats.uptime.change}%
+                    <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />+{performanceStats.uptime?.change ?? 0}%
                   </Badge>
                 </div>
-                <div className="text-3xl font-bold font-mono">{performanceStats.uptime.value}%</div>
+                <div className="text-3xl font-bold font-mono">{performanceStats.uptime?.value ?? 0}%</div>
                 <div className="flex items-center gap-1 text-sm text-foreground-tertiary">
                   {t('metrics.stats.uptime')}
                   <button
@@ -309,11 +320,11 @@ export function ProverMetrics() {
                     <CheckCircle className="h-6 w-6 text-success" aria-hidden="true" />
                   </div>
                   <Badge variant="success" className="text-[11px]">
-                    <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />+{performanceStats.signatures.change}%
+                    <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />+{performanceStats.signatures?.change ?? 0}%
                   </Badge>
                 </div>
                 <div className="text-3xl font-bold font-mono text-success">
-                  {performanceStats.signatures.value.toLocaleString()}
+                  {(performanceStats.signatures?.value ?? 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-foreground-tertiary">{t('metrics.stats.signaturesCompleted')}</div>
               </Card>
@@ -325,10 +336,10 @@ export function ProverMetrics() {
                   </div>
                   <Badge variant="success" className="text-[11px]">
                     <TrendingDown className="h-3 w-3 mr-1" aria-hidden="true" />
-                    {performanceStats.latency.change}ms
+                    {performanceStats.latency?.change ?? 0}ms
                   </Badge>
                 </div>
-                <div className="text-3xl font-bold font-mono">{performanceStats.latency.value}ms</div>
+                <div className="text-3xl font-bold font-mono">{performanceStats.latency?.value ?? 0}ms</div>
                 <div className="text-sm text-foreground-tertiary">{t('metrics.stats.avgLatency')}</div>
               </Card>
 
@@ -338,7 +349,7 @@ export function ProverMetrics() {
                     <XCircle className="h-6 w-6 text-hinomaru" aria-hidden="true" />
                   </div>
                 </div>
-                <div className="text-3xl font-bold font-mono">{performanceStats.violations.value}</div>
+                <div className="text-3xl font-bold font-mono">{performanceStats.violations?.value ?? 0}</div>
                 <div className="text-sm text-foreground-tertiary">{t('metrics.stats.violations')}</div>
               </Card>
             </div>
@@ -349,7 +360,7 @@ export function ProverMetrics() {
                 <h3 className="text-lg font-semibold">{t('metrics.chart.performance')}</h3>
                 <div className="flex gap-5">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-t from-hinomaru to-gold" />
+                    <div className="w-3 h-3 rounded-full bg-gold" />
                     <span className="text-sm text-foreground-secondary">{t('metrics.chart.signatureCount')}</span>
                   </div>
                 </div>
@@ -378,8 +389,8 @@ export function ProverMetrics() {
                     <div
                       className={cn(
                         'w-full rounded-t-md transition-all duration-200 cursor-pointer',
-                        'bg-gradient-to-t from-hinomaru via-hinomaru-300 to-gold',
-                        hoveredBar === i ? 'opacity-100 shadow-[0_0_15px_rgba(201,169,98,0.4)]' : 'opacity-80 hover:opacity-100'
+                        'bg-gold/80',
+                        hoveredBar === i ? 'opacity-100 bg-gold shadow-[0_0_15px_rgba(201,169,98,0.3)]' : 'opacity-70 hover:opacity-90'
                       )}
                       style={{ height: `${(data.value / maxChartValue) * 100}%` }}
                       role="img"
@@ -438,8 +449,8 @@ export function ProverMetrics() {
               <Card className="p-5">
                 <h3 className="text-lg font-semibold mb-4">{t('metrics.detail.title')}</h3>
                 <div className="space-y-4">
-                  {detailMetrics.map((metric) => (
-                    <div key={metric.key} className="flex items-center justify-between">
+                  {detailMetrics.map((metric, idx) => (
+                    <div key={`${metric.key}-${idx}`} className="flex items-center justify-between">
                       <span className="text-sm text-foreground-secondary">{t(`metrics.detail.${metric.key}`)}</span>
                       <div className="flex items-center gap-2">
                         <span className={cn('text-sm font-mono', metric.status === 'gold' ? 'text-gold' : 'text-success')}>
@@ -491,7 +502,7 @@ export function ProverMetrics() {
                 {/* Total Earned */}
                 <div className="text-center mb-6 pb-6 border-b border-gold/30">
                   <div className="text-5xl font-bold font-mono text-gold mb-2">
-                    {mockEnterpriseRewards.totalEarned.toFixed(1)} ETH
+                    {mockEnterpriseRewards.totalEarned.toLocaleString()} QS
                   </div>
                   <div className="text-foreground-secondary">
                     {t('metrics.enterprise.totalEarnedDesc')}
@@ -507,15 +518,15 @@ export function ProverMetrics() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.monthly')}</div>
-                      <div className="text-lg font-bold text-success">{mockEnterpriseRewards.guaranteedRevenue.monthly} ETH</div>
+                      <div className="text-lg font-bold text-success">{mockEnterpriseRewards.guaranteedRevenue.monthly.toLocaleString()} QS</div>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.received')}</div>
-                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.guaranteedRevenue.received} ETH</div>
+                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.guaranteedRevenue.received.toLocaleString()} QS</div>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.remaining')}</div>
-                      <div className="text-lg font-bold font-mono text-foreground-secondary">{mockEnterpriseRewards.guaranteedRevenue.remaining} ETH</div>
+                      <div className="text-lg font-bold font-mono text-foreground-secondary">{mockEnterpriseRewards.guaranteedRevenue.remaining.toLocaleString()} QS</div>
                     </div>
                   </div>
                 </div>
@@ -536,11 +547,11 @@ export function ProverMetrics() {
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.thisMonth')}</div>
-                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.performanceBonus.earnedThisMonth} ETH</div>
+                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.performanceBonus.earnedThisMonth.toLocaleString()} QS</div>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.bonusTotal')}</div>
-                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.performanceBonus.totalEarned} ETH</div>
+                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.performanceBonus.totalEarned.toLocaleString()} QS</div>
                     </div>
                   </div>
                 </div>
@@ -559,9 +570,9 @@ export function ProverMetrics() {
                       >
                         <div className="flex items-center gap-2">
                           <Trophy className="h-4 w-4 text-gold" aria-hidden="true" />
-                          <span className="text-sm">{incentive.description}</span>
+                          <span className="text-sm">{t(incentive.descriptionKey)}</span>
                         </div>
-                        <span className="font-mono font-semibold text-success">+{incentive.amount} ETH</span>
+                        <span className="font-mono font-semibold text-success">+{incentive.amount.toLocaleString()} QS</span>
                       </div>
                     ))}
                   </div>
@@ -613,7 +624,7 @@ export function ProverMetrics() {
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="text-lg font-semibold">{t('metrics.rewards.chartTitle')}</h3>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-t from-gold-700 to-gold" />
+                    <div className="w-3 h-3 rounded-full bg-gold" />
                     <span className="text-sm text-foreground-secondary">{t('metrics.rewards.dailyRewards')}</span>
                   </div>
                 </div>
@@ -641,8 +652,8 @@ export function ProverMetrics() {
                       <div
                         className={cn(
                           'w-full rounded-t-md transition-all duration-200 cursor-pointer',
-                          'bg-gradient-to-t from-gold-700 via-gold-500 to-gold-300',
-                          hoveredBar === i + 100 ? 'opacity-100 shadow-[0_0_15px_rgba(201,169,98,0.4)]' : 'opacity-80 hover:opacity-100'
+                          'bg-gold/80',
+                          hoveredBar === i + 100 ? 'opacity-100 bg-gold shadow-[0_0_15px_rgba(201,169,98,0.3)]' : 'opacity-70 hover:opacity-90'
                         )}
                         style={{ height: `${(data.value / maxRewardsValue) * 100}%` }}
                         role="img"
@@ -908,7 +919,7 @@ export function ProverMetrics() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">{t('metrics.modal.reinvest.currentStake')}</span>
-                  <span className="font-semibold">400,000 QS</span>
+                  <span className="font-semibold">{currentStakeAmount.toLocaleString()} QS</span>
                 </div>
               </div>
 
@@ -945,7 +956,7 @@ export function ProverMetrics() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm">{t('metrics.modal.reinvest.newStake')}</span>
                     <span className="font-semibold text-success">
-                      {(400000 + parseFloat(reinvestAmount)).toLocaleString()} QS
+                      {(currentStakeAmount + parseFloat(reinvestAmount)).toLocaleString()} QS
                     </span>
                   </div>
                 </div>

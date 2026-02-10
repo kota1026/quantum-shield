@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useProverAuthStore } from '@/stores/proverAuthStore';
+import { proverApi } from '@/lib/api/prover/client';
 
 // Wallet options for display
 const WALLET_OPTIONS = [
@@ -56,7 +57,7 @@ export function ProverLogin() {
   const { signMessageAsync } = useSignMessage();
 
   // Auth store
-  const { authenticateSiwe, isAuthenticated, isLoading: isAuthLoading, error: authError, clearError } = useProverAuthStore();
+  const { authenticateSiwe, setProverId, isAuthenticated, isLoading: isAuthLoading, error: authError, clearError } = useProverAuthStore();
 
   // Registration check state
   const [registrationState, setRegistrationState] = useState<RegistrationState | null>(null);
@@ -67,8 +68,41 @@ export function ProverLogin() {
     if (!address || !chainId) return;
 
     try {
-      setRegistrationState('signing');
+      setRegistrationState('checking');
       setErrorMessage(null);
+
+      console.log('[ProverLogin] Checking prover status for wallet:', address);
+
+      // First, check if the wallet is registered as an approved Prover
+      const proverStatus = await proverApi.getProverStatusByWallet(address);
+
+      console.log('[ProverLogin] Prover status response:', proverStatus);
+
+      if (!proverStatus.registered) {
+        setRegistrationState('not-registered');
+        setErrorMessage(t('login.error.notRegistered'));
+        return;
+      }
+
+      if (!proverStatus.can_access) {
+        setRegistrationState('not-registered');
+        const statusMessage = proverStatus.status === 'pending_approval'
+          ? t('login.error.pendingApproval')
+          : proverStatus.status === 'rejected'
+          ? t('login.error.rejected')
+          : t('login.error.accessDenied');
+        setErrorMessage(statusMessage);
+        return;
+      }
+
+      // Save prover_id to auth store
+      if (proverStatus.prover_id) {
+        console.log('[ProverLogin] Saving prover_id to store:', proverStatus.prover_id);
+        setProverId(proverStatus.prover_id);
+      }
+
+      console.log('[ProverLogin] Prover approved, proceeding to signing');
+      setRegistrationState('signing');
 
       // Create SIWE message
       const siweMessage = new SiweMessage({
@@ -92,28 +126,25 @@ export function ProverLogin() {
       // Authenticate with backend
       await authenticateSiwe(message, signature, address);
 
-      // Authentication successful - check if registered as prover
+      // Authentication successful
       setRegistrationState('registered');
       setTimeout(() => {
         router.push('/prover/dashboard');
       }, 1500);
     } catch (error) {
       console.error('SIWE authentication failed:', error);
-      const message = error instanceof Error ? error.message : 'Authentication failed';
-      setErrorMessage(message);
+      const errorMsg = error instanceof Error ? error.message : 'Authentication failed';
+      setErrorMessage(errorMsg);
       setRegistrationState('error');
     }
-  }, [address, chainId, signMessageAsync, authenticateSiwe, router]);
+  }, [address, chainId, signMessageAsync, authenticateSiwe, setProverId, router]);
 
   // Check authentication status when wallet is connected
   useEffect(() => {
+    console.log('[ProverLogin] useEffect:', { isConnected, address, isAuthenticated, registrationState });
     if (isConnected && address && !isAuthenticated && registrationState === null) {
-      setRegistrationState('checking');
-      // Start SIWE auth flow after a brief delay
-      const timer = setTimeout(() => {
-        performSiweAuth();
-      }, 500);
-      return () => clearTimeout(timer);
+      console.log('[ProverLogin] Starting auth flow, calling performSiweAuth directly...');
+      performSiweAuth();
     }
   }, [isConnected, address, isAuthenticated, registrationState, performSiweAuth]);
 

@@ -344,7 +344,7 @@ export function LockProcessing() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-hinomaru/15 to-transparent" />
         </div>
 
-        <div className="relative z-10 text-center px-6 max-w-md w-full">
+        <main role="main" className="relative z-10 text-center px-6 max-w-md w-full">
           {/* Animated spinner - only show when no error */}
           {!error && (
             <div className="relative w-40 h-40 mx-auto mb-8">
@@ -485,7 +485,7 @@ export function LockProcessing() {
           {dilithiumError && (
             <p className="text-xs text-destructive mt-4">{dilithiumError}</p>
           )}
-        </div>
+        </main>
       </div>
     </TooltipProvider>
   );

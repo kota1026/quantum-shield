@@ -163,7 +163,7 @@ const navigation: NavSection[] = [
 ];
 
 export function Sidebar() {
-  const t = useTranslations('qsAdmin.sidebar');
+  const t = useTranslations('qsAdmin');
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>(['transactions', 'treasury']);
 
@@ -184,8 +184,8 @@ export function Sidebar() {
       <div className="h-16 flex items-center px-6 border-b border-border">
         <HinomaryLogo size="sm" animate={false} className="mr-3" />
         <div>
-          <h1 className="font-bold text-foreground">{t('title')}</h1>
-          <p className="text-xs text-muted-foreground">{t('subtitle')}</p>
+          <h1 className="font-bold text-foreground">{t('sidebar.title')}</h1>
+          <p className="text-xs text-muted-foreground">{t('sidebar.subtitle')}</p>
         </div>
       </div>
 
@@ -194,7 +194,7 @@ export function Sidebar() {
         {navigation.map((section) => (
           <div key={section.sectionKey} className="mb-6">
             <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              {t(`sections.${section.sectionKey}`)}
+              {t(`sidebar.sections.${section.sectionKey}`)}
             </h3>
             <ul className="space-y-1">
               {section.items.map((item) => {
@@ -218,7 +218,7 @@ export function Sidebar() {
                         >
                           <span className="flex items-center">
                             <Icon className="h-5 w-5 mr-3" />
-                            {t(`nav.${item.key}`)}
+                            {t(`sidebar.nav.${item.key}`)}
                           </span>
                           {isExpanded ? (
                             <ChevronDown className="h-4 w-4" />
@@ -239,7 +239,7 @@ export function Sidebar() {
                                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                   )}
                                 >
-                                  {t(`nav.${child.key}`)}
+                                  {t(`sidebar.nav.${child.key}`)}
                                 </Link>
                               </li>
                             ))}
@@ -257,7 +257,7 @@ export function Sidebar() {
                         )}
                       >
                         <Icon className="h-5 w-5 mr-3" />
-                        {t(`nav.${item.key}`)}
+                        {t(`sidebar.nav.${item.key}`)}
                       </Link>
                     )}
                   </li>
@@ -275,8 +275,8 @@ export function Sidebar() {
             A
           </div>
           <div className="ml-3 flex-1">
-            <p className="text-sm font-medium text-foreground">{t('user.name')}</p>
-            <p className="text-xs text-muted-foreground">{t('user.role')}</p>
+            <p className="text-sm font-medium text-foreground">{t('sidebar.user.name')}</p>
+            <p className="text-xs text-muted-foreground">{t('sidebar.user.role')}</p>
           </div>
         </div>
       </div>

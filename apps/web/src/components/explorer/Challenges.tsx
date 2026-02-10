@@ -26,69 +26,15 @@ import { cn } from '@/lib/utils';
 import { useChallengeStats, useChallenges } from '@/hooks/explorer';
 import type { ChallengeStats, ChallengeDetail } from '@/lib/api/explorer/mock';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_CHALLENGE_STATS: ChallengeStats = {
-  totalChallenges: 156,
-  active: 3,
-  resolved: 153,
-  successRate: 78.5,
+  totalChallenges: 0,
+  active: 0,
+  resolved: 0,
+  successRate: 0,
 };
 
-const FALLBACK_CHALLENGES: ChallengeDetail[] = [
-  {
-    id: 'CHG-0x4f2c...891',
-    targetUnlock: '0x7d4e...a563',
-    challenger: '0x8b3c...d412',
-    bond: '0.15',
-    amount: '45.00',
-    deadline: '47h 23m',
-    status: 'defense',
-    createdAt: '2026-01-17 14:32',
-  },
-  {
-    id: 'CHG-0x9a1e...f23',
-    targetUnlock: '0x2e7f...d934',
-    challenger: '0x1c4d...e891',
-    bond: '0.25',
-    amount: '120.50',
-    deadline: '23h 41m',
-    status: 'judgment',
-    createdAt: '2026-01-16 09:15',
-  },
-  {
-    id: 'CHG-0x7b3f...a45',
-    targetUnlock: '0x5c9a...e127',
-    challenger: '0x9f2a...c734',
-    bond: '0.50',
-    amount: '250.00',
-    deadline: '-',
-    status: 'resolved',
-    createdAt: '2026-01-15 18:42',
-    result: 'challenger_won',
-  },
-  {
-    id: 'CHG-0x3d8c...b67',
-    targetUnlock: '0x8a4e...f912',
-    challenger: '0x2b5f...d823',
-    bond: '0.10',
-    amount: '30.00',
-    deadline: '-',
-    status: 'resolved',
-    createdAt: '2026-01-14 11:28',
-    result: 'prover_won',
-  },
-  {
-    id: 'CHG-0x1e9a...c89',
-    targetUnlock: '0x6f3b...a456',
-    challenger: '0x4c7d...e234',
-    bond: '0.35',
-    amount: '180.75',
-    deadline: '-',
-    status: 'resolved',
-    createdAt: '2026-01-13 22:05',
-    result: 'challenger_won',
-  },
-];
+const FALLBACK_CHALLENGES: ChallengeDetail[] = [];
 
 interface ExplorerChallengesProps {
   locale?: string;

@@ -16,95 +16,19 @@ import {
   XCircle,
 } from 'lucide-react';
 
-// Mock data for votes
-const voteHistory = [
-  {
-    id: 'QIP-47',
-    title: 'Increase Prover Bond Amount from 100 ETH to 150 ETH',
-    vote: 'for',
-    power: '125,000',
-    date: '2026-01-10 14:32',
-  },
-  {
-    id: 'QIP-45',
-    title: 'Upgrade STARK Verifier Contract to v2.1',
-    vote: 'for',
-    power: '125,000',
-    date: '2026-01-05 09:15',
-  },
-  {
-    id: 'QIP-44',
-    title: 'Reduce Challenge Period from 14 days to 7 days',
-    vote: 'for',
-    power: '120,000',
-    date: '2025-12-20 16:45',
-  },
-  {
-    id: 'QIP-40',
-    title: 'Decrease Minimum Lock Period from 30 days to 7 days',
-    vote: 'against',
-    power: '115,000',
-    date: '2025-12-10 11:20',
-  },
-  {
-    id: 'QIP-38',
-    title: 'Add Emergency Pause Functionality for Security Council',
-    vote: 'for',
-    power: '110,000',
-    date: '2025-11-28 08:30',
-  },
-];
+// Empty initial state — TODO: integrate with useGovernanceActivity() hook
+const voteHistory: { id: string; title: string; vote: string; power: string; date: string }[] = [];
 
-// Mock data for proposals created by user
-const myProposals = [
-  {
-    id: 'QIP-35',
-    title: 'Implement Quarterly Security Audits',
-    status: 'passed',
-    date: '2025-11-15',
-  },
-  {
-    id: 'QIP-28',
-    title: 'Add Dilithium Signature Verification',
-    status: 'passed',
-    date: '2025-10-01',
-  },
-  {
-    id: 'QIP-22',
-    title: 'Increase Validator Rewards by 10%',
-    status: 'defeated',
-    date: '2025-09-12',
-  },
-];
+const myProposals: { id: string; title: string; status: string; date: string }[] = [];
 
-// Mock data for delegations received
-const delegations = [
-  {
-    address: '0x456...789',
-    initial: 'A',
-    since: '2025-12-15',
-    power: '12,500',
-  },
-  {
-    address: '0x789...abc',
-    initial: 'B',
-    since: '2025-11-20',
-    power: '8,000',
-  },
-  {
-    address: '0xdef...123',
-    initial: 'C',
-    since: '2026-01-08',
-    power: '4,500',
-  },
-];
+const delegations: { address: string; initial: string; since: string; power: string }[] = [];
 
-// Stats
+// Stats — should come from API
 const stats = {
-  totalVotes: 42,
-  participationRate: 89,
-  proposalsCreated: 3,
-  delegationsReceived: 3,
+  totalVotes: 0,
+  participationRate: 0,
+  proposalsCreated: 0,
+  delegationsReceived: 0,
 };
 
 type TabType = 'votes' | 'proposals' | 'delegations';

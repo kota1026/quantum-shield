@@ -20,9 +20,7 @@ import {
   HelpCircle,
   Zap,
   CheckCircle2,
-  ArrowUpRight,
   Vote,
-  Wallet,
   Building2,
   FileCheck,
   Calendar,
@@ -43,62 +41,63 @@ import {
   useProverStake,
   useEnterpriseContract,
 } from '@/hooks/prover';
+import { useProverId } from '@/stores/proverAuthStore';
 
 // Prover type: public or enterprise
 type ProverType = 'public' | 'enterprise';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_STATS = {
-  pendingSignatures: 12,
-  urgentCount: 3,
-  todaysProcessed: 487,
-  processedChange: 12,
-  avgProcessed: 420,
-  uptime: 99.8,
+  pendingSignatures: 0,
+  urgentCount: 0,
+  todaysProcessed: 0,
+  processedChange: 0,
+  avgProcessed: 0,
+  uptime: 0,
   slaMinUptime: 99.5,
-  responseTime: 28.2,
+  responseTime: 0,
 };
-const FALLBACK_QUEUE_ITEMS = [
-  { id: 'q1', type: 'normal', address: '0x1234...5678', amount: '125.5', time: '23:15:42', urgent: false },
-  { id: 'q2', type: 'emergency', address: '0x8765...4321', amount: '500.0', time: '23:00:15', urgent: true },
-];
+const FALLBACK_QUEUE_ITEMS: { id: string; type: string; address: string; amount: string; time: string; urgent: boolean }[] = [];
 const FALLBACK_REWARDS = {
-  claimable: 3.75,
-  thisMonth: 12.5,
-  allTime: 156.8,
+  claimable: 0,
+  thisMonth: 0,
+  allTime: 0,
 };
 const FALLBACK_STAKE = {
-  amount: 100.0,
-  usdValue: 265000,
+  amount: 0,
+  usdValue: 0,
   challenges: 0,
 };
 const FALLBACK_CONTRACT = {
-  operatorName: 'ACME Corporation',
-  contractId: 'ENT-2026-001',
-  plan: 'Enterprise Plus',
-  sla: '99.9%',
-  guaranteedRevenue: 24,
-  startDate: '2025-06-01',
-  endDate: '2026-05-31',
-  supportLevel: 'Premium 24/7',
-  infrastructureManaged: true,
-  contactPerson: 'John Smith',
+  operatorName: '-',
+  contractId: '-',
+  plan: '-',
+  sla: '-',
+  guaranteedRevenue: 0,
+  startDate: '-',
+  endDate: '-',
+  supportLevel: '-',
+  infrastructureManaged: false,
+  contactPerson: '-',
 };
 
 export function ProverDashboard() {
   const t = useTranslations('prover');
   const router = useRouter();
 
+  // Get prover ID from auth store
+  const proverId = useProverId();
+
   // For demo: toggle between public and enterprise view
   // In production, this would come from user context/API
   const [proverType] = useState<ProverType>('enterprise');
 
-  // Fetch data using hooks
-  const { data: statsApi } = useProverStats();
-  const { data: queueApi } = useProverQueue();
-  const { data: rewardsApi } = useProverRewards();
-  const { data: stakeApi } = useProverStake();
-  const { data: contractApi } = useEnterpriseContract();
+  // Fetch data using hooks - pass proverId
+  const { data: statsApi } = useProverStats(proverId ?? undefined);
+  const { data: queueApi } = useProverQueue(proverId ?? undefined);
+  const { data: rewardsApi } = useProverRewards(proverId ?? undefined);
+  const { data: stakeApi } = useProverStake(proverId ?? undefined);
+  const { data: contractApi } = useEnterpriseContract(proverId ?? undefined);
 
   // Use API data with fallback
   const stats = statsApi ?? FALLBACK_STATS;
@@ -230,8 +229,8 @@ export function ProverDashboard() {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs text-foreground-tertiary">{t('dashboard.rewards.claimable')}</span>
               </div>
-              <div className="text-3xl font-bold font-mono text-success">{rewards.claimable} ETH</div>
-              <div className="text-xs text-foreground-tertiary mt-1">≈ $13,250 USD</div>
+              <div className="text-3xl font-bold font-mono text-success">{rewards.claimable} QS</div>
+              <div className="text-xs text-foreground-tertiary mt-1">{t('dashboard.rewards.claimableLabel')}</div>
             </Card>
 
             {/* Uptime */}
@@ -515,7 +514,7 @@ export function ProverDashboard() {
                         </div>
                         <div className="p-3 bg-background/50 rounded-lg">
                           <div className="text-[10px] text-foreground-tertiary mb-1">{t('dashboard.enterprise.contract.guaranteedRevenue')}</div>
-                          <div className="text-sm font-bold text-gold">{enterpriseContract.guaranteedRevenue} ETH/mo</div>
+                          <div className="text-sm font-bold text-gold">{Number(enterpriseContract.guaranteedRevenue).toLocaleString()} QS/mo</div>
                         </div>
                       </div>
 
@@ -585,17 +584,17 @@ export function ProverDashboard() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-foreground-secondary">{t('dashboard.rewards.claimable')}</span>
                     </div>
-                    <div className="text-2xl font-bold font-mono text-success mb-1">{rewards.claimable} ETH</div>
-                    <div className="text-xs text-foreground-tertiary">≈ $13,250 USD</div>
+                    <div className="text-2xl font-bold font-mono text-success mb-1">{rewards.claimable} QS</div>
+                    <div className="text-xs text-foreground-tertiary">{t('dashboard.rewards.claimableLabel')}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="p-3 bg-background-secondary rounded-lg">
                       <div className="text-[11px] text-foreground-tertiary mb-1">{t('dashboard.rewards.thisMonth')}</div>
-                      <div className="text-base font-bold font-mono">{rewards.thisMonth} ETH</div>
+                      <div className="text-base font-bold font-mono">{rewards.thisMonth} QS</div>
                     </div>
                     <div className="p-3 bg-background-secondary rounded-lg">
                       <div className="text-[11px] text-foreground-tertiary mb-1">{t('dashboard.rewards.allTime')}</div>
-                      <div className="text-base font-bold font-mono">{rewards.allTime} ETH</div>
+                      <div className="text-base font-bold font-mono">{rewards.allTime} QS</div>
                     </div>
                   </div>
                   <Button variant="success" className="w-full" asChild>
@@ -603,32 +602,6 @@ export function ProverDashboard() {
                       {t('dashboard.rewards.claimAmount', { amount: rewards.claimable })}
                     </Link>
                   </Button>
-                </div>
-              </Card>
-
-              {/* Ecosystem Links */}
-              <Card padding="none" className="overflow-hidden">
-                <div className="p-6">
-                  <h3 className="font-semibold flex items-center gap-2 mb-4">
-                    <ArrowUpRight className="w-5 h-5 text-gold" aria-hidden="true" />
-                    {t('dashboard.ecosystem.title')}
-                  </h3>
-                  <p className="text-xs text-foreground-tertiary mb-4">{t('dashboard.ecosystem.description')}</p>
-                  <div className="space-y-3">
-                    <Link
-                      href="/qs-hub/dashboard"
-                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-hinomaru/5 to-transparent border border-hinomaru/30 rounded-lg hover:border-hinomaru transition-colors"
-                    >
-                      <div className="w-8 h-8 bg-hinomaru/10 rounded-lg flex items-center justify-center">
-                        <Wallet className="w-4 h-4 text-hinomaru" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-sm font-medium">{t('dashboard.ecosystem.qsHub')}</span>
-                        <p className="text-xs text-foreground-tertiary">{t('dashboard.ecosystem.qsHubDesc')}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-foreground-tertiary" aria-hidden="true" />
-                    </Link>
-                  </div>
                 </div>
               </Card>
 

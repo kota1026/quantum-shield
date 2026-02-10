@@ -17,14 +17,20 @@ interface TvlChartProps {
   height?: number;
 }
 
+// Value is ETH * 10000 (4 decimal precision from backend)
+// e.g., 0.01 ETH = 100, 1 ETH = 10000, 1000 ETH = 10000000
 function formatTvl(value: number): string {
-  if (value >= 1_000_000) {
-    return `$${(value / 1_000_000).toFixed(1)}M`;
+  const ethValue = value / 10000; // Convert back to ETH
+  if (ethValue >= 1_000_000) {
+    return `${(ethValue / 1_000_000).toFixed(1)}M ETH`;
   }
-  if (value >= 1_000) {
-    return `$${(value / 1_000).toFixed(0)}K`;
+  if (ethValue >= 1_000) {
+    return `${(ethValue / 1_000).toFixed(1)}K ETH`;
   }
-  return `$${value}`;
+  if (ethValue >= 1) {
+    return `${ethValue.toFixed(2)} ETH`;
+  }
+  return `${ethValue.toFixed(4)} ETH`;
 }
 
 function formatDate(dateStr: string): string {

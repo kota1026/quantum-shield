@@ -31,10 +31,10 @@ const jaMessages = {
             description: 'スマートコントラクトのアップグレードや新機能の追加',
             quorum: '定足数: 8%',
           },
-          council: {
-            name: '評議会変更',
-            description: 'セキュリティ評議会や目的委員会のメンバー追加・削除',
-            quorum: '定足数: 15%',
+          signal: {
+            name: 'シグナル提案',
+            description: 'コミュニティの意思表示のための拘束力のない投票提案',
+            quorum: '定足数: 3%',
           },
         },
         requirement: {

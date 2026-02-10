@@ -137,7 +137,7 @@ export function History() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -225,7 +225,7 @@ export function History() {
             {t('loadMore')}
           </Button>
         )}
-      </div>
+      </main>
     </div>
   );
 }

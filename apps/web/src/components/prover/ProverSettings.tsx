@@ -22,28 +22,28 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ProverSidebar } from './ProverSidebar';
 
-// Mock data
+// Empty initial state — TODO: integrate with useProverSettings() hook
 const mockSettings = {
   profile: {
-    proverId: 'PRV-047',
-    organizationName: 'Quantum Node Labs',
-    email: 'admin@quantumnodelabs.io',
-    country: 'Japan',
-    tier: 'Tier 1',
-    joinedDate: '2025/06/15',
+    proverId: '-',
+    organizationName: '-',
+    email: '-',
+    country: '-',
+    tier: '-',
+    joinedDate: '-',
   },
   notifications: {
-    email: true,
-    slack: true,
-    slaWarning: true,
-    dailyReport: true,
-    challengeAlert: true,
+    email: false,
+    slack: false,
+    slaWarning: false,
+    dailyReport: false,
+    challengeAlert: false,
   },
   security: {
-    twoFactorEnabled: true,
-    lastPasswordChange: '2025/12/01',
-    apiKeys: 2,
-    allowedIps: ['192.168.1.0/24', '10.0.0.0/8'],
+    twoFactorEnabled: false,
+    lastPasswordChange: '-',
+    apiKeys: 0,
+    allowedIps: [] as string[],
   },
 };
 

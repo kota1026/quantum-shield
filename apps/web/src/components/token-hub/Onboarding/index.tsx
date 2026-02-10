@@ -35,10 +35,10 @@ const TIMELINE_STEPS = [
 
 // Lock duration examples
 const LOCK_EXAMPLES = [
-  { months: 6, multiplier: 0.125, veqs: 1250 },
-  { months: 12, multiplier: 0.25, veqs: 2500 },
-  { months: 24, multiplier: 0.5, veqs: 5000 },
-  { months: 48, multiplier: 1.0, veqs: 10000 },
+  { months: 6, ratio: 6 / 48, veqs: 1250 },     // 0.125 (linear: 6mo / 4yr)
+  { months: 12, ratio: 12 / 48, veqs: 2500 },   // 0.25
+  { months: 24, ratio: 24 / 48, veqs: 5000 },   // 0.5
+  { months: 48, ratio: 48 / 48, veqs: 10000 },  // 1.0 (max)
 ];
 
 // Benefits
@@ -274,7 +274,7 @@ export function TokenHubOnboarding() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-3 px-4 text-sm font-medium text-foreground-tertiary">{t('veqs.lockPeriod')}</th>
-                  <th className="text-center py-3 px-4 text-sm font-medium text-foreground-tertiary">{t('veqs.multiplier')}</th>
+                  <th className="text-center py-3 px-4 text-sm font-medium text-foreground-tertiary">{t('veqs.lockRatio')}</th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-foreground-tertiary">{t('veqs.result')}</th>
                 </tr>
               </thead>
@@ -287,7 +287,7 @@ export function TokenHubOnboarding() {
                         : `${example.months / 12}${t('veqs.years')}`}
                     </td>
                     <td className="py-3 px-4 text-center font-mono text-gold">
-                      ×{example.multiplier.toFixed(example.multiplier < 1 ? 3 : 1)}
+                      ×{example.ratio.toFixed(example.ratio < 1 ? 3 : 1)}
                     </td>
                     <td className="py-3 px-4 text-right font-mono font-semibold">
                       {example.veqs.toLocaleString()} veQS

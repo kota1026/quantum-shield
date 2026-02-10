@@ -33,7 +33,7 @@ const FALLBACK_CURRENT_LOCK = {
   currentDurationWeeks: 52, // 1 year remaining
   lockEndDate: new Date(Date.now() + 52 * 7 * 24 * 60 * 60 * 1000), // 1 year from now
   currentVeQS: 2500,
-  multiplier: 0.25,
+  ratio: 0.25, // weeks_remaining / 208 (linear time-decay)
 };
 
 export function StakeExtend() {
@@ -59,8 +59,8 @@ export function StakeExtend() {
     const newTotalWeeks = FALLBACK_CURRENT_LOCK.currentDurationWeeks + selectedExtension;
     const maxWeeks = 208; // 4 years
     const cappedWeeks = Math.min(newTotalWeeks, maxWeeks);
-    const newMultiplier = cappedWeeks / maxWeeks;
-    const newVeQS = Math.floor(FALLBACK_CURRENT_LOCK.lockedAmount * newMultiplier);
+    const newRatio = cappedWeeks / maxWeeks;
+    const newVeQS = Math.floor(FALLBACK_CURRENT_LOCK.lockedAmount * newRatio);
     const veQSGain = newVeQS - FALLBACK_CURRENT_LOCK.currentVeQS;
     const newEndDate = new Date(
       FALLBACK_CURRENT_LOCK.lockEndDate.getTime() + selectedExtension * 7 * 24 * 60 * 60 * 1000
@@ -68,7 +68,7 @@ export function StakeExtend() {
 
     return {
       newTotalWeeks: cappedWeeks,
-      newMultiplier,
+      newRatio,
       newVeQS,
       veQSGain,
       newEndDate,
@@ -280,11 +280,11 @@ export function StakeExtend() {
                   <span className="text-lg font-semibold">{formatDate(calculations.newEndDate)}</span>
                 </div>
 
-                {/* New Multiplier */}
+                {/* New Lock Ratio */}
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-foreground-secondary">{t('preview.multiplier')}</span>
+                  <span className="text-sm text-foreground-secondary">{t('preview.lockRatio')}</span>
                   <span className="text-lg font-mono font-semibold text-gold">
-                    ×{calculations.newMultiplier.toFixed(3)}
+                    ×{calculations.newRatio.toFixed(3)}
                   </span>
                 </div>
               </div>

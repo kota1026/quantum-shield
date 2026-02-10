@@ -5,64 +5,55 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  AlertTriangle,
+  Shield,
   Search,
   Filter,
   Download,
-  ExternalLink,
   ArrowLeft,
   CheckCircle,
   Clock,
-  XCircle,
+  AlertTriangle,
   AlertCircle,
   RefreshCw,
+  Timer,
+  ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useEmergencyStats, useEmergencyTransactions } from '@/hooks/admin/useTransactions';
 import type { EmergencyStats } from '@/lib/api/admin/mock';
-import type { EmergencyUnlock } from '@/lib/api/admin/types';
+
+// UI_DESIGN_GUIDELINES.md Colors
+const COLORS = {
+  success: '#00C896',
+  warning: '#F0A030',
+  error: '#E07040',
+  info: '#4A90D9',
+  pending: '#8080A0',
+  hinomaru: '#BC002D',
+  gold: '#C9A962',
+};
 
 // Fallback data - Used when API is unavailable
 const FALLBACK_STATS: EmergencyStats = {
-  totalEmergency: 156,
-  activeEmergency: 3,
-  approvedRate: '92.3%',
-  avgProcessTime: '4.2 hours',
+  totalEmergency: 0,
+  activeEmergency: 0,
+  approvedRate: '-',
+  avgProcessTime: '-',
 };
-
-interface FallbackEmergencyTransaction {
-  id: string;
-  user: string;
-  amount: string;
-  bond: string;
-  reason: string;
-  status: string;
-  requestTime: string;
-  challengeEnd: string;
-  challenges: number;
-}
-
-const FALLBACK_EMERGENCY_TRANSACTIONS: FallbackEmergencyTransaction[] = [
-  { id: 'EM-001234', user: '0x1234...5678', amount: '100.0 ETH', bond: '10.0 ETH', reason: 'Private key compromise suspected', status: 'completed', requestTime: '2024-01-27 14:30', challengeEnd: '2024-02-03 14:30', challenges: 0 },
-  { id: 'EM-001235', user: '0x2345...6789', amount: '50.0 ETH', bond: '5.0 ETH', reason: 'Wallet migration required', status: 'challenge_period', requestTime: '2024-01-27 12:00', challengeEnd: '2024-02-03 12:00', challenges: 0 },
-  { id: 'EM-001236', user: '0x3456...7890', amount: '200.0 ETH', bond: '20.0 ETH', reason: 'Security breach detected', status: 'challenge_period', requestTime: '2024-01-27 10:00', challengeEnd: '2024-02-03 10:00', challenges: 1 },
-  { id: 'EM-001237', user: '0x4567...8901', amount: '25.0 ETH', bond: '2.5 ETH', reason: 'Account recovery', status: 'challenged', requestTime: '2024-01-26 16:00', challengeEnd: '2024-02-02 16:00', challenges: 2 },
-  { id: 'EM-001238', user: '0x5678...9012', amount: '75.0 ETH', bond: '7.5 ETH', reason: 'Phishing attack victim', status: 'completed', requestTime: '2024-01-26 08:00', challengeEnd: '2024-02-02 08:00', challenges: 0 },
-];
 
 // Loading skeleton components
 function StatCardSkeleton() {
   return (
-    <Card>
+    <Card className="bg-[#0E0E11] border-[#1a1a1f] rounded-[20px]">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="h-4 bg-muted rounded w-24 animate-pulse" />
-            <div className="h-8 bg-muted rounded w-32 animate-pulse" />
+          <div className="space-y-3">
+            <div className="h-4 bg-[#1a1a1f] rounded-[6px] w-24 animate-pulse" />
+            <div className="h-8 bg-[#1a1a1f] rounded-[6px] w-32 animate-pulse" />
           </div>
-          <div className="h-12 w-12 rounded-lg bg-muted animate-pulse" />
+          <div className="h-12 w-12 rounded-[14px] bg-[#1a1a1f] animate-pulse" />
         </div>
       </CardContent>
     </Card>
@@ -71,16 +62,15 @@ function StatCardSkeleton() {
 
 function TableRowSkeleton() {
   return (
-    <tr className="border-b border-border">
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-20 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-24 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-14 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-32 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-6 bg-muted rounded w-20 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-28 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-8 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-8 bg-muted rounded w-8 animate-pulse" /></td>
+    <tr className="border-b border-[#1a1a1f]">
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-24 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-28 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-20 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-32 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-6 bg-[#1a1a1f] rounded-full w-24 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-28 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-5 bg-[#1a1a1f] rounded-[6px] w-8 animate-pulse" /></td>
+      <td className="py-4 px-4"><div className="h-9 bg-[#1a1a1f] rounded-[10px] w-16 animate-pulse" /></td>
     </tr>
   );
 }
@@ -93,13 +83,22 @@ interface ErrorStateProps {
 
 function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <AlertTriangle className="h-8 w-8 text-warning mb-2" />
-      <p className="text-sm text-muted-foreground mb-4">{message}</p>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div
+        className="h-16 w-16 rounded-[20px] flex items-center justify-center mb-4"
+        style={{ backgroundColor: `${COLORS.error}15` }}
+      >
+        <AlertTriangle className="h-8 w-8" style={{ color: COLORS.error }} />
+      </div>
+      <p className="text-[#808080] mb-4">{message}</p>
       {onRetry && (
-        <Button variant="outline" size="sm" onClick={onRetry}>
+        <Button
+          variant="outline"
+          onClick={onRetry}
+          className="min-h-[44px] rounded-[10px] border-[#1a1a1f] hover:border-[#2a2a2f]"
+        >
           <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
+          再読み込み
         </Button>
       )}
     </div>
@@ -117,38 +116,68 @@ function formatTimestamp(timestamp: number): string {
   });
 }
 
-const STATUS_COLORS = {
-  pending: 'bg-warning/10 text-warning',
-  challenge_period: 'bg-warning/10 text-warning',
-  challenged: 'bg-danger/10 text-danger',
-  completed: 'bg-success/10 text-success',
-};
+// Helper to truncate transaction ID
+function truncateId(id: string): string {
+  if (id.length <= 14) return id;
+  return `${id.slice(0, 6)}...${id.slice(-4)}`;
+}
 
-const STATUS_ICONS = {
-  pending: Clock,
-  challenge_period: Clock,
-  challenged: AlertTriangle,
-  completed: CheckCircle,
+// Status configuration - Following UI_DESIGN_GUIDELINES.md
+const STATUS_CONFIG = {
+  waiting: {
+    icon: Clock,
+    color: COLORS.warning,
+    label: '待機中',
+  },
+  ready: {
+    icon: CheckCircle,
+    color: COLORS.info,
+    label: '準備完了',
+  },
+  challenged: {
+    icon: AlertTriangle,
+    color: COLORS.error,
+    label: 'チャレンジ中',
+  },
+  completed: {
+    icon: CheckCircle,
+    color: COLORS.success,
+    label: '完了',
+  },
 };
 
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.ElementType;
+  iconColor: string;
   critical?: boolean;
 }
 
-function StatCard({ title, value, icon: Icon, critical }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, iconColor, critical }: StatCardProps) {
   return (
-    <Card className={critical ? 'border-danger' : ''}>
+    <Card
+      className={cn(
+        'bg-[#0E0E11] border-[#1a1a1f] rounded-[20px] hover:border-[#2a2a2f] transition-colors',
+        critical && 'border-[#E07040]/50'
+      )}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-foreground-secondary">{title}</p>
-            <p className={cn('text-2xl font-bold mt-2', critical && 'text-danger')}>{value}</p>
+            <p className="text-sm font-medium text-[#808080]">{title}</p>
+            <p
+              className="text-2xl font-bold mt-2 tracking-tight font-mono"
+              style={{ color: critical ? COLORS.error : undefined }}
+            >
+              {value}
+            </p>
           </div>
-          <div className={cn('h-12 w-12 rounded-lg flex items-center justify-center', critical ? 'bg-danger/10' : 'bg-danger/10')}>
-            <Icon className={cn('h-6 w-6', critical ? 'text-danger' : 'text-danger')} />
+          <div
+            className="h-12 w-12 rounded-[14px] flex items-center justify-center"
+            style={{ backgroundColor: `${iconColor}15` }}
+          >
+            <Icon className="h-6 w-6" style={{ color: iconColor }} />
           </div>
         </div>
       </CardContent>
@@ -168,21 +197,19 @@ export function EmergencyTransactions() {
 
   // Use API data or fallback
   const stats = statsQuery.data ?? FALLBACK_STATS;
-  const transactions = transactionsQuery.data?.transactions ?? FALLBACK_EMERGENCY_TRANSACTIONS;
+  const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
-    { key: 'all', label: tCommon('all') },
-    { key: 'challenge_period', label: t('status.challenge_period') },
-    { key: 'challenged', label: t('status.challenged') },
-    { key: 'completed', label: t('status.completed') },
+    { key: 'all', label: 'すべて', count: transactions.length },
+    { key: 'waiting', label: '待機中', count: transactions.filter(tx => tx.status === 'waiting').length },
+    { key: 'challenged', label: 'チャレンジ中', count: transactions.filter(tx => tx.status === 'challenged').length },
+    { key: 'completed', label: '完了', count: transactions.filter(tx => tx.status === 'completed').length },
   ];
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
-      // Map API status to filter status
-      const txStatus = tx.status === 'pending' ? 'challenge_period' : tx.status;
-      if (statusFilter !== 'all' && txStatus !== statusFilter) return false;
-      const userAddr = 'userAddress' in tx ? tx.userAddress : ('user' in tx ? tx.user : '');
+      if (statusFilter !== 'all' && tx.status !== statusFilter) return false;
+      const userAddr = 'userAddress' in tx ? tx.userAddress : '';
       if (searchQuery && !tx.id.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !userAddr.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
@@ -192,34 +219,56 @@ export function EmergencyTransactions() {
   return (
     <div className="space-y-6">
       {/* Alert Banner */}
-      <Card className="border-warning bg-warning/5">
-        <CardContent className="p-4 flex items-center space-x-3">
-          <Clock className="h-5 w-5 text-warning" />
-          <p className="text-sm text-warning">
-            <span className="font-semibold">{stats.activeEmergency}</span> {t('emergency.activeChallenges')}
-          </p>
-          <p className="text-xs text-foreground-secondary ml-4">
-            {t('emergency.challengePeriodNote')}
-          </p>
-        </CardContent>
-      </Card>
+      {stats.activeEmergency > 0 && (
+        <Card
+          className="rounded-[20px]"
+          style={{
+            backgroundColor: `${COLORS.warning}08`,
+            borderColor: `${COLORS.warning}30`
+          }}
+        >
+          <CardContent className="p-4 flex items-center gap-3">
+            <div
+              className="h-10 w-10 rounded-[10px] flex items-center justify-center"
+              style={{ backgroundColor: `${COLORS.warning}15` }}
+            >
+              <AlertCircle className="h-5 w-5" style={{ color: COLORS.warning }} />
+            </div>
+            <div>
+              <p className="font-semibold" style={{ color: COLORS.warning }}>
+                {stats.activeEmergency} 件のアクティブな緊急アンロック
+              </p>
+              <p className="text-sm text-[#808080]">
+                チャレンジ期間（7日間）中は異議申し立てが可能です
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <Link href="/qs-admin/transactions">
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 rounded-[10px] hover:bg-[#1a1a1f]"
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('emergencyTitle')}</h1>
-            <p className="text-foreground-secondary">{t('emergencySubtitle')}</p>
+            <h1 className="text-2xl font-bold text-foreground">緊急アンロック</h1>
+            <p className="text-[#808080]">Dilithium署名による即時アンロック要求</p>
           </div>
         </div>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          className="min-h-[44px] rounded-[10px] border-[#1a1a1f] hover:border-[#2a2a2f]"
+        >
           <Download className="h-4 w-4 mr-2" />
-          {tCommon('export')}
+          エクスポート
         </Button>
       </div>
 
@@ -235,59 +284,132 @@ export function EmergencyTransactions() {
         ) : statsQuery.isError ? (
           <div className="col-span-4">
             <ErrorState
-              message="Failed to load statistics"
+              message="統計データの読み込みに失敗しました"
               onRetry={() => statsQuery.refetch()}
             />
           </div>
         ) : (
           <>
-            <StatCard title={t('stats.totalEmergency')} value={stats.totalEmergency} icon={AlertTriangle} />
-            <StatCard title={t('status.pending')} value={stats.activeEmergency} icon={AlertCircle} critical />
-            <StatCard title={t('stats.challengeSuccessRate')} value={stats.approvedRate} icon={CheckCircle} />
-            <StatCard title={t('stats.avgLockDuration')} value={stats.avgProcessTime} icon={Clock} />
+            <StatCard
+              title="総緊急アンロック"
+              value={stats.totalEmergency}
+              icon={Shield}
+              iconColor={COLORS.warning}
+            />
+            <StatCard
+              title="アクティブ"
+              value={stats.activeEmergency}
+              icon={AlertCircle}
+              iconColor={COLORS.error}
+              critical={stats.activeEmergency > 0}
+            />
+            <StatCard
+              title="成功率"
+              value={stats.approvedRate}
+              icon={CheckCircle}
+              iconColor={COLORS.success}
+            />
+            <StatCard
+              title="平均処理時間"
+              value={stats.avgProcessTime}
+              icon={Timer}
+              iconColor={COLORS.info}
+            />
           </>
         )}
       </div>
 
       {/* Transaction List */}
-      <Card id="pending">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">{t('emergencyTitle')}</CardTitle>
-          <div className="flex items-center space-x-2">
+      <Card className="bg-[#0E0E11] border-[#1a1a1f] rounded-[20px]">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="text-lg">緊急アンロック一覧</CardTitle>
+          <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground-tertiary" />
-              <Input type="text" placeholder={tCommon('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 w-64" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#606060]" />
+              <Input
+                type="text"
+                placeholder="ID または アドレスで検索..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-72 min-h-[44px] rounded-[14px] bg-[#0a0a0c] border-[#1a1a1f] focus:border-[#2a2a2f]"
+              />
             </div>
-            <Button variant="outline" size="icon"><Filter className="h-4 w-4" /></Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-11 w-11 rounded-[10px] border-[#1a1a1f] hover:border-[#2a2a2f]"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
           {/* Filter Tabs */}
-          <div className="flex space-x-2 mb-4 border-b border-border">
+          <div className="flex gap-2 mb-6 p-1 bg-[#0a0a0c] rounded-[14px] w-fit">
             {statusFilters.map((filter) => (
-              <button key={filter.key} onClick={() => setStatusFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', statusFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button
+                key={filter.key}
+                onClick={() => setStatusFilter(filter.key)}
+                className={cn(
+                  'px-4 py-2 min-h-[40px] text-sm font-medium rounded-[10px] transition-all duration-200',
+                  statusFilter === filter.key
+                    ? 'bg-[#1a1a1f] text-foreground shadow-sm'
+                    : 'text-[#808080] hover:text-foreground'
+                )}
+              >
                 {filter.label}
+                {filter.count > 0 && (
+                  <span
+                    className={cn(
+                      'ml-2 px-2 py-0.5 text-xs rounded-full',
+                      statusFilter === filter.key
+                        ? 'text-white'
+                        : 'bg-[#1a1a1f] text-[#808080]'
+                    )}
+                    style={statusFilter === filter.key ? {
+                      backgroundColor: `${COLORS.hinomaru}20`,
+                      color: COLORS.hinomaru
+                    } : undefined}
+                  >
+                    {filter.count}
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-[14px] border border-[#1a1a1f]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.id')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.user')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.amount')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('emergency.bond')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.reason')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.status')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('emergency.challengeEnd')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('emergency.challenges')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.actions')}</th>
+                <tr className="bg-[#0a0a0c]">
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    ユーザー
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    金額
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    理由
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    ステータス
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    チャレンジ期限
+                  </th>
+                  <th className="text-left py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    異議
+                  </th>
+                  <th className="text-right py-4 px-4 text-xs font-semibold text-[#606060] uppercase tracking-wider">
+                    操作
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#1a1a1f]">
                 {transactionsQuery.isLoading ? (
                   <>
                     <TableRowSkeleton />
@@ -298,48 +420,113 @@ export function EmergencyTransactions() {
                   </>
                 ) : transactionsQuery.isError ? (
                   <tr>
-                    <td colSpan={9}>
+                    <td colSpan={8}>
                       <ErrorState
-                        message="Failed to load transactions"
+                        message="トランザクションの読み込みに失敗しました"
                         onRetry={() => transactionsQuery.refetch()}
                       />
                     </td>
                   </tr>
+                ) : filteredTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={8}>
+                      <div className="text-center py-12">
+                        <Shield className="h-12 w-12 text-[#404040] mx-auto mb-4" />
+                        <p className="text-[#808080]">
+                          {searchQuery || statusFilter !== 'all'
+                            ? '条件に一致する緊急アンロックがありません'
+                            : '緊急アンロックはまだありません'
+                          }
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
                 ) : (
                   filteredTransactions.map((tx) => {
-                    const statusKey = tx.status === 'pending' ? 'challenge_period' : tx.status;
-                    const StatusIcon = STATUS_ICONS[statusKey as keyof typeof STATUS_ICONS] || Clock;
-                    const userAddr = 'userAddress' in tx ? tx.userAddress : ('user' in tx ? tx.user : '-');
+                    const statusKey = tx.status === 'pending' ? 'waiting' : tx.status;
+                    const config = STATUS_CONFIG[statusKey as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.waiting;
+                    const StatusIcon = config.icon;
+                    const userAddr = 'userAddress' in tx ? tx.userAddress : '-';
                     const reason = 'reason' in tx ? tx.reason : '-';
-                    const bond = 'emergencyFee' in tx ? tx.emergencyFee : ('bond' in tx ? tx.bond : '-');
                     const challengeEnd = 'createdAt' in tx && typeof tx.createdAt === 'number'
                       ? formatTimestamp(tx.createdAt + 7 * 24 * 60 * 60 * 1000) // 7 days challenge period
-                      : ('challengeEnd' in tx ? tx.challengeEnd : '-');
-                    const challenges = 'challenges' in tx ? tx.challenges : 0;
+                      : '-';
+                    const challenges = typeof (tx as unknown as { challenges?: number }).challenges === 'number' ? (tx as unknown as { challenges: number }).challenges : 0;
+
                     return (
-                      <tr key={tx.id} className={cn('border-b border-border hover:bg-surface transition-colors', statusKey === 'challenged' && 'bg-danger/5')}>
-                        <td className="py-3 px-4"><code className="text-sm font-mono text-danger">{tx.id}</code></td>
-                        <td className="py-3 px-4"><code className="text-sm font-mono">{userAddr}</code></td>
-                        <td className="py-3 px-4 font-medium">{tx.amount}</td>
-                        <td className="py-3 px-4 text-sm text-gold">{bond}</td>
-                        <td className="py-3 px-4 text-sm max-w-xs truncate">{reason}</td>
-                        <td className="py-3 px-4">
-                          <span className={cn('inline-flex items-center px-2 py-1 rounded-md text-xs font-medium', STATUS_COLORS[statusKey as keyof typeof STATUS_COLORS] || 'bg-muted text-muted-foreground')}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {t(`status.${statusKey}`)}
+                      <tr
+                        key={tx.id}
+                        className={cn(
+                          'group hover:bg-[#0a0a0c] transition-colors',
+                          statusKey === 'challenged' && 'bg-[#E07040]/5'
+                        )}
+                      >
+                        <td className="py-4 px-4">
+                          <code
+                            className="text-sm font-mono font-medium"
+                            style={{ color: COLORS.warning }}
+                            title={tx.id}
+                          >
+                            {truncateId(tx.id)}
+                          </code>
+                        </td>
+                        <td className="py-4 px-4">
+                          <code className="text-sm font-mono text-[#808080]">
+                            {typeof userAddr === 'string' && userAddr.length > 20
+                              ? `${userAddr.slice(0, 6)}...${userAddr.slice(-4)}`
+                              : userAddr}
+                          </code>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="font-semibold font-mono">{tx.amount}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-sm max-w-xs truncate block text-[#a0a0a0]">{reason}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                            style={{
+                              backgroundColor: `${config.color}15`,
+                              color: config.color,
+                              border: `1px solid ${config.color}30`
+                            }}
+                          >
+                            <StatusIcon className="h-3 w-3" />
+                            {config.label}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-sm text-foreground-secondary">{challengeEnd}</td>
-                        <td className="py-3 px-4">
+                        <td className="py-4 px-4 text-sm text-[#808080] font-mono">
+                          {challengeEnd}
+                        </td>
+                        <td className="py-4 px-4">
                           {challenges > 0 ? (
-                            <span className="text-danger font-medium">{challenges}</span>
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+                              style={{
+                                backgroundColor: `${COLORS.error}15`,
+                                color: COLORS.error,
+                                border: `1px solid ${COLORS.error}30`
+                              }}
+                            >
+                              <AlertTriangle className="h-3 w-3" />
+                              {challenges}
+                            </span>
                           ) : (
-                            <span className="text-foreground-tertiary">0</span>
+                            <span className="text-[#606060] text-sm">なし</span>
                           )}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-4 px-4 text-right">
                           <Link href={`/qs-admin/transactions/emergency/${tx.id}`}>
-                            <Button variant="ghost" size="sm"><ExternalLink className="h-4 w-4" /></Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="min-h-[36px] rounded-[10px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#1a1a1f]"
+                              style={{ color: COLORS.gold }}
+                            >
+                              詳細
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
                           </Link>
                         </td>
                       </tr>
@@ -350,8 +537,31 @@ export function EmergencyTransactions() {
             </table>
           </div>
 
-          {!transactionsQuery.isLoading && !transactionsQuery.isError && filteredTransactions.length === 0 && (
-            <div className="text-center py-8 text-foreground-secondary">{t('empty.emergency')}</div>
+          {/* Pagination */}
+          {!transactionsQuery.isLoading && !transactionsQuery.isError && filteredTransactions.length > 0 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#1a1a1f]">
+              <p className="text-sm text-[#808080]">
+                {filteredTransactions.length} 件の緊急アンロック
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[36px] rounded-[10px] border-[#1a1a1f]"
+                  disabled
+                >
+                  前へ
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[36px] rounded-[10px] border-[#1a1a1f]"
+                  disabled
+                >
+                  次へ
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

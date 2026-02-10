@@ -17,7 +17,7 @@ export interface QSHubStats {
   lockEndDate: string;
   lockDuration: string;
   timeRemaining: string;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
   activeProposals: number;
   totalProposals: number;
   delegatedVotes: number;
@@ -104,7 +104,7 @@ export interface StakeLockPosition {
   veQSAmount: number;
   lockDuration: string;
   lockEndDate: string;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
 }
 
 // =============================================================================

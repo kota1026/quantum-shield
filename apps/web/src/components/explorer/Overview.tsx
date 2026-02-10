@@ -30,44 +30,23 @@ import {
 } from '@/hooks/explorer';
 import type { ExplorerStats, RecentLock, RecentUnlock, ActiveChallenge } from '@/lib/api/explorer/mock';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_STATS: ExplorerStats = {
-  tvl: '$847.2M',
-  tvlChange: 12.4,
-  totalLocks: 24891,
-  locksChange: 342,
-  pendingUnlocks: 127,
-  pendingInTimeLock: 12,
-  activeProvers: 8,
-  proverUptime: 100,
+  tvl: '$0',
+  tvlChange: 0,
+  totalLocks: 0,
+  locksChange: 0,
+  pendingUnlocks: 0,
+  pendingInTimeLock: 0,
+  activeProvers: 0,
+  proverUptime: 0,
 };
 
-const FALLBACK_RECENT_LOCKS: RecentLock[] = [
-  { id: '0x7a3f...e821', amount: '125.5', status: 'active', time: '2 min ago' },
-  { id: '0x9b2c...f412', amount: '50.0', status: 'active', time: '8 min ago' },
-  { id: '0x4d8e...a923', amount: '200.0', status: 'unlocking', time: '15 min ago' },
-  { id: '0x1f6a...c734', amount: '75.25', status: 'active', time: '23 min ago' },
-  { id: '0x8c3d...b156', amount: '320.0', status: 'complete', time: '31 min ago' },
-];
+const FALLBACK_RECENT_LOCKS: RecentLock[] = [];
 
-const FALLBACK_RECENT_UNLOCKS: RecentUnlock[] = [
-  { id: '0x2e7f...d934', type: 'normal', status: 'pending', timeLock: '23h 14m left' },
-  { id: '0x5c9a...e127', type: 'emergency', status: 'pending', timeLock: '6d 18h left' },
-  { id: '0x3b1d...f842', type: 'normal', status: 'complete', timeLock: 'Executed' },
-  { id: '0x7d4e...a563', type: 'normal', status: 'challenged', timeLock: 'Defense: 47h' },
-  { id: '0x9f2c...b718', type: 'normal', status: 'complete', timeLock: 'Executed' },
-];
+const FALLBACK_RECENT_UNLOCKS: RecentUnlock[] = [];
 
-const FALLBACK_ACTIVE_CHALLENGES: ActiveChallenge[] = [
-  {
-    id: '0xa4f2...c891',
-    targetUnlock: '0x7d4e...a563',
-    challenger: '0x8b3c...d412',
-    bond: '0.15',
-    deadline: '47h 23m left',
-    status: 'open',
-  },
-];
+const FALLBACK_ACTIVE_CHALLENGES: ActiveChallenge[] = [];
 
 interface ExplorerOverviewProps {
   locale?: string;
@@ -84,11 +63,11 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
   const { data: recentUnlocksApi } = useRecentUnlocks();
   const { data: activeChallengesApi } = useActiveChallenges();
 
-  // Use API data with fallback
-  const mockStats = statsApi ?? FALLBACK_STATS;
-  const mockRecentLocks = recentLocksApi ?? FALLBACK_RECENT_LOCKS;
-  const mockRecentUnlocks = recentUnlocksApi ?? FALLBACK_RECENT_UNLOCKS;
-  const mockActiveChallenges = activeChallengesApi ?? FALLBACK_ACTIVE_CHALLENGES;
+  // Use API data with fallback (ensure arrays are always arrays)
+  const mockStats = statsApi ? { ...FALLBACK_STATS, ...statsApi } : FALLBACK_STATS;
+  const mockRecentLocks = Array.isArray(recentLocksApi) ? recentLocksApi : FALLBACK_RECENT_LOCKS;
+  const mockRecentUnlocks = Array.isArray(recentUnlocksApi) ? recentUnlocksApi : FALLBACK_RECENT_UNLOCKS;
+  const mockActiveChallenges = Array.isArray(activeChallengesApi) ? activeChallengesApi : FALLBACK_ACTIVE_CHALLENGES;
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();

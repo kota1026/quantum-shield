@@ -17,7 +17,7 @@ export interface QSHubStats {
   lockEndDate: string;
   lockDuration: string;
   timeRemaining: string;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
   activeProposals: number;
   totalProposals: number;
   delegatedVotes: number;
@@ -58,7 +58,7 @@ export const MOCK_STATS: QSHubStats = {
   lockEndDate: '2028-01-15',
   lockDuration: '3 Years',
   timeRemaining: '2Y 3M 7D',
-  multiplier: 0.73,
+  ratio: 0.73, // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
   activeProposals: 3,
   totalProposals: 47,
   delegatedVotes: 5225,
@@ -215,7 +215,7 @@ export interface StakeLockPosition {
   veQSAmount: number;
   lockDuration: string;
   lockEndDate: string;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
 }
 
 export const MOCK_STAKE_POSITIONS: StakeLockPosition[] = [
@@ -225,7 +225,7 @@ export const MOCK_STAKE_POSITIONS: StakeLockPosition[] = [
     veQSAmount: 6225,
     lockDuration: '3 Years',
     lockEndDate: '2028-01-15',
-    multiplier: 0.73,
+    ratio: 0.73, // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
   },
 ];
 

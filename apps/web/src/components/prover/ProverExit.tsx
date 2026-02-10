@@ -17,27 +17,27 @@ import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { ProverSidebar } from './ProverSidebar';
 
-// Mock data
+// Empty initial state — TODO: integrate with useProverExitStatus() hook
 const mockExitData = {
-  currentStake: 400000,
-  tokens: 80000,
-  unclaimedRewards: 12340,
-  unlockDate: '2026/09/20',
-  daysRemaining: 183,
+  currentStake: 0,
+  tokens: 0,
+  unclaimedRewards: 0,
+  unlockDate: '-',
+  daysRemaining: 0,
   penaltyRate: 5,
-  penaltyAmount: 20000,
-  returnAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f8bD34',
+  penaltyAmount: 0,
+  returnAddress: '',
 };
 
 const mockCompletedExit = {
-  proverId: 'PRV-2026-001234',
-  activityDays: 87,
-  stakeReturned: 380000,
-  totalRewards: 47520,
-  signaturesProcessed: 12847,
-  exitRequestDate: '2026/01/17',
-  queueCompleteDate: '2026/01/18',
-  coolingEndDate: '2026/01/24',
+  proverId: '-',
+  activityDays: 0,
+  stakeReturned: 0,
+  totalRewards: 0,
+  signaturesProcessed: 0,
+  exitRequestDate: '-',
+  queueCompleteDate: '-',
+  coolingEndDate: '-',
 };
 
 // Exit process stages following timeline:

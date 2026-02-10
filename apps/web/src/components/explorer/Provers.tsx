@@ -25,105 +25,16 @@ import { cn } from '@/lib/utils';
 import { useProverStats, useProvers } from '@/hooks/explorer';
 import type { ProverStats, ProverSummary } from '@/lib/api/explorer/mock';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_PROVER_STATS: ProverStats = {
-  totalProvers: 8,
-  activeProvers: 8,
-  avgUptime: 99.87,
-  avgResponseTime: '1.2s',
-  totalSignatures: 45892,
+  totalProvers: 0,
+  activeProvers: 0,
+  avgUptime: 0,
+  avgResponseTime: '-',
+  totalSignatures: 0,
 };
 
-const FALLBACK_PROVERS: ProverSummary[] = [
-  {
-    id: 'prover-1',
-    name: 'Prover Alpha',
-    address: '0x1a2b...3c4d',
-    stake: '100.00',
-    uptime: 99.99,
-    responseTime: '0.8s',
-    signaturesCount: 8234,
-    status: 'active',
-    lastActive: '2m ago',
-  },
-  {
-    id: 'prover-2',
-    name: 'Prover Beta',
-    address: '0x5e6f...7g8h',
-    stake: '100.00',
-    uptime: 99.95,
-    responseTime: '1.1s',
-    signaturesCount: 7892,
-    status: 'active',
-    lastActive: '1m ago',
-  },
-  {
-    id: 'prover-3',
-    name: 'Prover Gamma',
-    address: '0x9i0j...1k2l',
-    stake: '100.00',
-    uptime: 99.92,
-    responseTime: '1.3s',
-    signaturesCount: 6543,
-    status: 'active',
-    lastActive: '5m ago',
-  },
-  {
-    id: 'prover-4',
-    name: 'Prover Delta',
-    address: '0x3m4n...5o6p',
-    stake: '100.00',
-    uptime: 99.88,
-    responseTime: '1.5s',
-    signaturesCount: 5421,
-    status: 'active',
-    lastActive: '3m ago',
-  },
-  {
-    id: 'prover-5',
-    name: 'Prover Epsilon',
-    address: '0x7q8r...9s0t',
-    stake: '100.00',
-    uptime: 99.85,
-    responseTime: '1.2s',
-    signaturesCount: 6234,
-    status: 'active',
-    lastActive: '8m ago',
-  },
-  {
-    id: 'prover-6',
-    name: 'Prover Zeta',
-    address: '0x1u2v...3w4x',
-    stake: '100.00',
-    uptime: 99.78,
-    responseTime: '1.8s',
-    signaturesCount: 4123,
-    status: 'active',
-    lastActive: '12m ago',
-  },
-  {
-    id: 'prover-7',
-    name: 'Prover Eta',
-    address: '0x5y6z...7a8b',
-    stake: '100.00',
-    uptime: 99.72,
-    responseTime: '2.1s',
-    signaturesCount: 3892,
-    status: 'active',
-    lastActive: '15m ago',
-  },
-  {
-    id: 'prover-8',
-    name: 'Prover Theta',
-    address: '0x9c0d...1e2f',
-    stake: '100.00',
-    uptime: 99.65,
-    responseTime: '1.9s',
-    signaturesCount: 3553,
-    status: 'active',
-    lastActive: '20m ago',
-  },
-];
+const FALLBACK_PROVERS: ProverSummary[] = [];
 
 interface ExplorerProversProps {
   locale?: string;

@@ -350,8 +350,8 @@ export function TokenHubLanding() {
                     <span className="font-mono font-medium">1-4 {t('veqs.years')}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-background rounded-lg">
-                    <span className="text-sm text-foreground-tertiary">{t('veqs.maxMultiplier')}</span>
-                    <span className="font-mono font-medium text-gold">4x</span>
+                    <span className="text-sm text-foreground-tertiary">{t('veqs.maxRatio')}</span>
+                    <span className="font-mono font-medium text-gold">1:1</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-background rounded-lg">
                     <span className="text-sm text-foreground-tertiary">{t('veqs.rewardsBoost')}</span>

@@ -98,7 +98,7 @@ export function EmergencyProcessing() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 text-center px-6 max-w-md w-full">
+      <main role="main" className="relative z-10 text-center px-6 max-w-md w-full">
         {/* Processing Visual */}
         <div className="relative w-40 h-40 mx-auto mb-8">
           {/* Orbits */}
@@ -195,7 +195,7 @@ export function EmergencyProcessing() {
         <p className="text-xs text-foreground-tertiary">
           {t('message.doNotClose')}
         </p>
-      </div>
+      </main>
     </div>
     </TooltipProvider>
   );

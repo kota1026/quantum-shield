@@ -71,7 +71,7 @@ export function EmergencySuccess() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 text-center px-6 max-w-md w-full">
+      <main role="main" className="relative z-10 text-center px-6 max-w-md w-full">
         {/* Success Icon */}
         <div
           className={cn(
@@ -190,7 +190,7 @@ export function EmergencySuccess() {
             </Link>
           </Button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

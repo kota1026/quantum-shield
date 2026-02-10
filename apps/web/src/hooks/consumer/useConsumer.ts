@@ -170,6 +170,7 @@ interface UserTransactionDetailApiResponse {
     release_time?: number;
     l1_tx_hash?: string;
   };
+  owner_public_key: string;
   sr_0: string;
   sr_1?: string;
   prover_signatures: number;
@@ -236,31 +237,38 @@ interface LockApiResponse {
 
 interface UnlockApiRequest {
   lock_id: string;
-  pk_dilithium: string;
+  dest_addr: string;
+  amount: string;
   sig_dilithium: string;
-  nonce: number;
 }
 
 interface UnlockApiResponse {
   unlock_id: string;
   sr_1: string;
   release_time: number;
+  time_lock_hours: number;
+  prover_signatures_required: number;
+  prover_signatures_collected: number;
+  vrf_request_id?: string;
+  selected_provers: string[];
+  vrf_status: string;
   status: string;
 }
 
 interface EmergencyUnlockApiRequest {
   lock_id: string;
-  bond: string;
-  pk_dilithium: string;
+  dest_addr: string;
+  amount: string;
   sig_dilithium: string;
 }
 
 interface EmergencyUnlockApiResponse {
-  emergency_id: string;
-  lock_id: string;
-  bond: string;
-  challenge_deadline: number;
+  unlock_id: string;
+  sr_1: string;
   release_time: number;
+  time_lock_days: number;
+  bond_required: string;
+  bond_calculation: string;
   status: string;
 }
 
@@ -422,6 +430,7 @@ export function useTransactionDetail(txId: string) {
           releaseTime: response.transaction.release_time,
           l1TxHash: response.transaction.l1_tx_hash,
         },
+        ownerPublicKey: response.owner_public_key,
         sr0: response.sr_0,
         sr1: response.sr_1,
         proverSignatures: response.prover_signatures,
@@ -590,23 +599,29 @@ export function useRequestUnlock() {
   return useMutation({
     mutationFn: async (data: {
       lockId: string;
-      pkDilithium: string;
+      destAddr: string;
+      amount: string;
       sigDilithium: string;
-      nonce: number;
     }) => {
       const response = await fetchApi<UnlockApiResponse>('/v1/unlock', {
         method: 'POST',
         body: JSON.stringify({
           lock_id: data.lockId,
-          pk_dilithium: data.pkDilithium,
+          dest_addr: data.destAddr,
+          amount: data.amount,
           sig_dilithium: data.sigDilithium,
-          nonce: data.nonce,
         } as UnlockApiRequest),
       });
       return {
         unlockId: response.unlock_id,
         sr1: response.sr_1,
         releaseTime: response.release_time,
+        timeLockHours: response.time_lock_hours,
+        proverSignaturesRequired: response.prover_signatures_required,
+        proverSignaturesCollected: response.prover_signatures_collected,
+        vrfRequestId: response.vrf_request_id,
+        selectedProvers: response.selected_provers,
+        vrfStatus: response.vrf_status,
         status: response.status,
       };
     },
@@ -629,25 +644,26 @@ export function useRequestEmergencyUnlock() {
   return useMutation({
     mutationFn: async (data: {
       lockId: string;
-      bond: string;
-      pkDilithium: string;
+      destAddr: string;
+      amount: string;
       sigDilithium: string;
     }) => {
       const response = await fetchApi<EmergencyUnlockApiResponse>('/v1/unlock/emergency', {
         method: 'POST',
         body: JSON.stringify({
           lock_id: data.lockId,
-          bond: data.bond,
-          pk_dilithium: data.pkDilithium,
+          dest_addr: data.destAddr,
+          amount: data.amount,
           sig_dilithium: data.sigDilithium,
         } as EmergencyUnlockApiRequest),
       });
       return {
-        emergencyId: response.emergency_id,
-        lockId: response.lock_id,
-        bond: response.bond,
-        challengeDeadline: response.challenge_deadline,
+        unlockId: response.unlock_id,
+        sr1: response.sr_1,
         releaseTime: response.release_time,
+        timeLockDays: response.time_lock_days,
+        bondRequired: response.bond_required,
+        bondCalculation: response.bond_calculation,
         status: response.status,
       };
     },

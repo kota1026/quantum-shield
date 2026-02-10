@@ -24,11 +24,11 @@ import { SimpleTooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 type ProposalStatus = 'active' | 'pending' | 'passed' | 'executed' | 'defeated' | 'vetoed';
-type ProposalType = 'parameter' | 'upgrade' | 'council';
+type ProposalType = 'parameter' | 'treasury' | 'upgrade' | 'signal' | 'emergency';
 type VoteChoice = 'for' | 'against' | 'abstain';
 
 interface ProposalData {
-  id: number;
+  id: string;
   title: string;
   status: ProposalStatus;
   type: ProposalType;
@@ -68,7 +68,7 @@ interface VoteModalProps {
   isOpen: boolean;
   onClose: () => void;
   voteChoice: VoteChoice;
-  proposalId: number;
+  proposalId: string;
   votingPower: number;
   onConfirm: () => void;
   t: ReturnType<typeof useTranslations>;
@@ -132,7 +132,7 @@ function VoteModal({ isOpen, onClose, voteChoice, proposalId, votingPower, onCon
 interface VoteSuccessProps {
   isOpen: boolean;
   onClose: () => void;
-  proposalId: number;
+  proposalId: string;
   voteChoice: VoteChoice;
   votingPower: number;
   txHash: string;
@@ -158,7 +158,7 @@ function VoteSuccess({ isOpen, onClose, proposalId, voteChoice, votingPower, txH
         <div className="bg-card border border-border rounded-2xl p-6 text-left max-w-sm mx-auto mb-8">
           <div className="flex justify-between py-2 border-b border-border/50">
             <span className="text-foreground-tertiary text-sm">{t('voteSuccess.proposal')}</span>
-            <span className="font-semibold text-sm">QIP-{proposalId}</span>
+            <span className="font-semibold text-sm">{proposalId}</span>
           </div>
           <div className="flex justify-between py-2 border-b border-border/50">
             <span className="text-foreground-tertiary text-sm">{t('voteSuccess.yourVote')}</span>
@@ -182,7 +182,7 @@ function VoteSuccess({ isOpen, onClose, proposalId, voteChoice, votingPower, txH
 }
 
 interface ProposalDetailProps {
-  proposalId: number;
+  proposalId: string;
 }
 
 export function ProposalDetail({ proposalId }: ProposalDetailProps) {
@@ -273,8 +273,10 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
 
   const typeConfig: Record<ProposalType, string> = {
     parameter: 'bg-gold/10 text-gold',
+    treasury: 'bg-warning/10 text-warning',
     upgrade: 'bg-hinomaru/10 text-hinomaru-400',
-    council: 'bg-success/10 text-success',
+    signal: 'bg-success/10 text-success',
+    emergency: 'bg-danger/10 text-danger',
   };
 
   return (
@@ -291,7 +293,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
             {t('breadcrumb.proposals')}
           </Link>
           <ChevronRight className="w-4 h-4" aria-hidden="true" />
-          <span>QIP-{proposal.id}</span>
+          <span>{proposal.id}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
@@ -318,7 +320,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                   {t(`types.${proposal.type}`)}
                 </span>
               </div>
-              <p className="text-gold font-mono font-semibold mb-2">QIP-{proposal.id}</p>
+              <p className="text-gold font-mono font-semibold mb-2">{proposal.id}</p>
               <h1 className="text-2xl md:text-3xl font-bold mb-4">{proposal.title}</h1>
               <div className="flex flex-wrap gap-4 text-sm text-foreground-secondary">
                 <span className="flex items-center gap-1">

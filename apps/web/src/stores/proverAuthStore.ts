@@ -11,6 +11,7 @@ import { proverApi, type ProverUserInfo } from '@/lib/api/prover/client';
 interface ProverAuthState {
   // State
   user: ProverUserInfo | null;
+  proverId: string | null;
   accessToken: string | null;
   refreshToken: string | null;
   expiresAt: number | null;
@@ -19,6 +20,7 @@ interface ProverAuthState {
   error: string | null;
 
   // Actions
+  setProverId: (proverId: string) => void;
   authenticateSiwe: (message: string, signature: string, publicKey: string) => Promise<void>;
   logout: () => void;
   refreshAccessToken: () => Promise<void>;
@@ -31,12 +33,18 @@ export const useProverAuthStore = create<ProverAuthState>()(
     (set, get) => ({
       // Initial state
       user: null,
+      proverId: null,
       accessToken: null,
       refreshToken: null,
       expiresAt: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
+
+      // Set prover ID (called after status check)
+      setProverId: (proverId: string) => {
+        set({ proverId });
+      },
 
       // SIWE Authentication
       authenticateSiwe: async (message: string, signature: string, publicKey: string) => {
@@ -84,6 +92,7 @@ export const useProverAuthStore = create<ProverAuthState>()(
 
         set({
           user: null,
+          proverId: null,
           accessToken: null,
           refreshToken: null,
           expiresAt: null,
@@ -164,6 +173,7 @@ export const useProverAuthStore = create<ProverAuthState>()(
       partialize: (state) => ({
         // Only persist these fields
         user: state.user,
+        proverId: state.proverId,
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         expiresAt: state.expiresAt,
@@ -192,6 +202,7 @@ if (typeof window !== 'undefined') {
 
 // Selector hooks for common use cases
 export const useProverUser = () => useProverAuthStore((state) => state.user);
+export const useProverId = () => useProverAuthStore((state) => state.proverId);
 export const useIsProverAuthenticated = () => useProverAuthStore((state) => state.isAuthenticated);
 export const useProverAuthLoading = () => useProverAuthStore((state) => state.isLoading);
 export const useProverAuthError = () => useProverAuthStore((state) => state.error);

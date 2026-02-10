@@ -54,7 +54,7 @@
       "locked": "Locked",
       "duration": "Duration",
       "remaining": "{time} remaining",
-      "multiplier": "Multiplier",
+      "lockRatio": "Lock Ratio",
       "veQSRate": "veQS rate",
       "lockMore": "Lock More",
       "unlock": "Unlock"
@@ -255,7 +255,7 @@
         "newVeQS": "New veQS Balance",
         "newDuration": "New Lock Duration",
         "newUnlockDate": "New Unlock Date",
-        "multiplier": "New Multiplier",
+        "lockRatio": "New Lock Ratio",
         "maxReached": "Maximum lock duration reached (4 years)"
       },
       "warning": {

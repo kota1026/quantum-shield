@@ -34,44 +34,23 @@ import {
 } from '@/hooks/governance';
 import type { GovernanceStats, VotingPowerBreakdown, ProposalSummary } from '@/lib/api/governance/mock';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_STATS: GovernanceStats = {
-  activeProposals: 5,
-  votingPower: 125000,
-  participationRate: 78,
-  totalProposals: 47,
+  activeProposals: 0,
+  votingPower: 0,
+  participationRate: 0,
+  totalProposals: 0,
 };
 
 const FALLBACK_VOTING_POWER: VotingPowerBreakdown = {
-  myVeqs: 100000,
-  delegatedToMe: 25000,
+  myVeqs: 0,
+  delegatedToMe: 0,
   iDelegated: 0,
-  delegators: 3,
-  lockExpiry: '2028-01-15',
+  delegators: 0,
+  lockExpiry: '-',
 };
 
-const FALLBACK_PROPOSALS: ProposalSummary[] = [
-  {
-    id: 'QIP-47',
-    title: 'Increase Prover Bond Amount from 100 ETH to 150 ETH',
-    status: 'active',
-    timeLeft: '2d 14h',
-    forPercentage: 72,
-  },
-  {
-    id: 'QIP-46',
-    title: 'Add New Security Council Member: quantum_expert.eth',
-    status: 'active',
-    timeLeft: '5d 8h',
-    forPercentage: 85,
-  },
-  {
-    id: 'QIP-45',
-    title: 'Upgrade STARK Verifier Contract to v2.1',
-    status: 'pending',
-    forPercentage: 91,
-  },
-];
+const FALLBACK_PROPOSALS: ProposalSummary[] = [];
 
 // Hover card with gradient border effect
 function HoverCard({
@@ -537,7 +516,15 @@ export function GovernanceDashboard() {
                     <span className="text-sm font-mono text-gold">8%</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-background-secondary rounded-lg">
-                    <span className="text-sm">{t('quorum.types.council')}</span>
+                    <span className="text-sm">{t('quorum.types.signal')}</span>
+                    <span className="text-sm font-mono text-gold">3%</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-background-secondary rounded-lg">
+                    <span className="text-sm">{t('quorum.types.treasury')}</span>
+                    <span className="text-sm font-mono text-gold">6%</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-background-secondary rounded-lg">
+                    <span className="text-sm">{t('quorum.types.emergency')}</span>
                     <span className="text-sm font-mono text-gold">15%</span>
                   </div>
                 </div>

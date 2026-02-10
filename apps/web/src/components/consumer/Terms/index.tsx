@@ -68,7 +68,7 @@ export function Terms() {
       </header>
 
       {/* Content */}
-      <main className="relative z-10 max-w-3xl mx-auto px-6 pt-28 pb-20">
+      <main role="main" className="relative z-10 max-w-3xl mx-auto px-6 pt-28 pb-20">
         <h1 className="text-3xl font-bold mb-4 tracking-tight">
           {t('header.title')}
         </h1>
