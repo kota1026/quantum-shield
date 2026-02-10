@@ -17,7 +17,7 @@ export interface TokenHubStats {
   lockEndDate: string;
   lockDuration: string;
   timeRemaining: string;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
 }
 
 export interface Delegation {
@@ -71,7 +71,7 @@ export interface Lock {
   lockDuration: string;
   lockEndDate: string;
   veQSBalance: number;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
   createdAt: string;
 }
 
@@ -87,7 +87,7 @@ export const MOCK_STATS: TokenHubStats = {
   lockEndDate: '2028-01-15',
   lockDuration: '3 Years',
   timeRemaining: '2Y 3M 7D',
-  multiplier: 0.73,
+  ratio: 0.73, // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
 };
 
 export const MOCK_DELEGATIONS: Delegation[] = [
@@ -176,7 +176,7 @@ export const MOCK_LOCKS: Lock[] = [
     lockDuration: '3 Years',
     lockEndDate: '2028-01-15',
     veQSBalance: 6225,
-    multiplier: 0.73,
+    ratio: 0.73, // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
     createdAt: '2025-01-15',
   },
 ];
@@ -198,7 +198,7 @@ export interface LockedPosition {
   lockDate: Date;
   unlockDate: Date;
   durationMonths: number;
-  multiplier: number;
+  ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
 }
 
 export const MOCK_LOCKED_POSITIONS: LockedPosition[] = [
@@ -209,7 +209,7 @@ export const MOCK_LOCKED_POSITIONS: LockedPosition[] = [
     lockDate: new Date('2025-01-15'),
     unlockDate: new Date('2027-01-15'),
     durationMonths: 24,
-    multiplier: 0.5,
+    ratio: 0.5, // 24 months / 48 months
   },
   {
     id: '2',
@@ -218,7 +218,7 @@ export const MOCK_LOCKED_POSITIONS: LockedPosition[] = [
     lockDate: new Date('2025-06-01'),
     unlockDate: new Date('2026-01-01'),
     durationMonths: 6,
-    multiplier: 0.125,
+    ratio: 0.125, // 6 months / 48 months
   },
   {
     id: '3',
@@ -227,7 +227,7 @@ export const MOCK_LOCKED_POSITIONS: LockedPosition[] = [
     lockDate: new Date('2024-06-16'),
     unlockDate: new Date('2025-12-16'),
     durationMonths: 18,
-    multiplier: 0.375,
+    ratio: 0.375, // 18 months / 48 months
   },
 ];
 

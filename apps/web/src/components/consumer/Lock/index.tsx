@@ -5,15 +5,17 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Lock as LockIcon, Shield, Unlock, Clock, Info, X } from 'lucide-react';
+import { useAccount, useBalance } from 'wagmi';
+import { formatEther } from 'viem';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { HinomaryVisual } from '../Dashboard/HinomaryVisual';
-import { useUserDashboard } from '@/hooks/consumer';
+import { SEPOLIA_CHAIN_ID } from '@/lib/contracts/l1vault';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_BALANCE = 125.5;
+// Empty initial state (no fake data — real balance comes from wallet)
+const FALLBACK_BALANCE = 0;
 
 interface LockModalProps {
   isOpen: boolean;
@@ -227,11 +229,13 @@ export function Lock() {
   const t = useTranslations('consumer.lock');
   const router = useRouter();
 
-  // Fetch data using new API hooks
-  const { data: dashboardData } = useUserDashboard();
-
-  // Use API data with fallback (available balance not in API yet, use totalLocked as proxy)
-  const balance = dashboardData ? parseFloat(dashboardData.totalLocked) || FALLBACK_BALANCE : FALLBACK_BALANCE;
+  // Get wallet balance from wagmi (same pattern as Dashboard)
+  const { address: connectedAddress } = useAccount();
+  const { data: balanceData } = useBalance({
+    address: connectedAddress,
+    chainId: SEPOLIA_CHAIN_ID,
+  });
+  const balance = balanceData?.value ? parseFloat(formatEther(balanceData.value)) : FALLBACK_BALANCE;
 
   const [amount, setAmount] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -90,7 +90,7 @@ function ClaimModal({ step, onClose, onConfirm, onDone, amount, t }: ClaimModalP
             <h2 id="claim-modal-title" className="text-xl font-bold mb-2">
               {t('claimModal.title')}
             </h2>
-            <div className="text-4xl font-bold text-success my-6">{amount} ETH</div>
+            <div className="text-4xl font-bold text-success my-6">{amount} QS</div>
             <p className="text-foreground-secondary text-sm mb-8">
               {t('claimModal.description')}
               <br />
@@ -127,7 +127,7 @@ function ClaimModal({ step, onClose, onConfirm, onDone, amount, t }: ClaimModalP
             <p className="text-foreground-secondary text-sm mb-4">
               {t('claimModal.processingDescription')}
             </p>
-            <div className="text-3xl font-bold text-gold my-6">{amount} ETH</div>
+            <div className="text-3xl font-bold text-gold my-6">{amount} QS</div>
             <div className="flex items-center justify-center gap-2 text-sm text-foreground-tertiary">
               <span className="w-2 h-2 bg-gold rounded-full animate-pulse" />
               {t('claimModal.waitingForConfirmation')}
@@ -152,7 +152,7 @@ function ClaimModal({ step, onClose, onConfirm, onDone, amount, t }: ClaimModalP
             <p className="text-foreground-secondary text-sm mb-2">
               {t('claimModal.successDescription')}
             </p>
-            <div className="text-3xl font-bold text-success my-6">{amount} ETH</div>
+            <div className="text-3xl font-bold text-success my-6">{amount} QS</div>
 
             {/* Transaction Hash */}
             <div className="bg-background-secondary rounded-xl p-4 mb-6">
@@ -235,8 +235,8 @@ export function Earnings() {
                   <h2 id="claim-section-title" className="text-base text-foreground-secondary mb-2">
                     {t('claim.available')}
                   </h2>
-                  <div className="text-5xl font-bold text-success tabular-nums">{mockClaimableAmount} ETH</div>
-                  <div className="text-base text-foreground-tertiary mt-2">≈ ${mockClaimableUsd} USD</div>
+                  <div className="text-5xl font-bold text-success tabular-nums">{mockClaimableAmount} QS</div>
+                  <div className="text-base text-foreground-tertiary mt-2">{t('claim.rewardToken')}</div>
                 </div>
                 <span className="px-4 py-2 bg-success/10 border border-success rounded-full text-success text-xs font-medium flex items-center gap-2">
                   <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
@@ -247,7 +247,7 @@ export function Earnings() {
                 onClick={handleOpenClaimModal}
                 className="w-full py-5 bg-gradient-to-br from-success to-[#00a080] rounded-xl text-white text-lg font-semibold hover:shadow-xl hover:shadow-success/30 hover:-translate-y-0.5 transition-all"
               >
-                {t('claim.claimButton')} {mockClaimableAmount} ETH
+                {t('claim.claimButton')} {mockClaimableAmount} QS
               </button>
             </section>
 
@@ -255,11 +255,11 @@ export function Earnings() {
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div className="bg-card border border-border-subtle rounded-xl p-6">
                 <div className="text-xs text-text-tertiary mb-2">{t('summary.totalEarnings')}</div>
-                <div className="text-2xl font-bold text-accent-gold">{mockTotalEarned} ETH</div>
+                <div className="text-2xl font-bold text-accent-gold">{mockTotalEarned} QS</div>
               </div>
               <div className="bg-card border border-border-subtle rounded-xl p-6">
                 <div className="text-xs text-text-tertiary mb-2">{t('summary.claimed')}</div>
-                <div className="text-2xl font-bold">{mockTotalClaimed} ETH</div>
+                <div className="text-2xl font-bold">{mockTotalClaimed} QS</div>
               </div>
             </div>
 
@@ -299,7 +299,7 @@ export function Earnings() {
                         </div>
                       </div>
                     </div>
-                    <div className="font-mono font-semibold text-success">{item.amount} ETH</div>
+                    <div className="font-mono font-semibold text-success">{item.amount} QS</div>
                   </div>
                 ))}
               </div>
@@ -353,7 +353,7 @@ export function Earnings() {
                             item.amount.startsWith('+') ? 'text-success' : 'text-error'
                           }`}
                         >
-                          {item.amount} ETH
+                          {item.amount} QS
                         </td>
                         <td className="px-6 py-4">
                           <span
@@ -452,7 +452,7 @@ export function Earnings() {
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle">
                 <span className="text-sm text-text-secondary">{t('roi.totalEarned')}</span>
-                <span className="font-semibold text-success">4.28 ETH</span>
+                <span className="font-semibold text-success">4.28 QS</span>
               </div>
               <div className="flex justify-between py-2">
                 <span className="text-sm text-text-secondary">{t('roi.roi')}</span>

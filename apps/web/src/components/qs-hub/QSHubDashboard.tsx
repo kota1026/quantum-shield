@@ -45,7 +45,7 @@ const FALLBACK_STATS: QSHubStats = {
   lockEndDate: '2028-01-15',
   lockDuration: '3 Years',
   timeRemaining: '2Y 3M 7D',
-  multiplier: 0.73,
+  ratio: 0.73, // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
   activeProposals: 3,
   totalProposals: 47,
   delegatedVotes: 5225,
@@ -212,10 +212,10 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
   const { data: rewardsApi } = useQSHubRewards();
   const { data: delegatesApi } = useQSHubDelegates();
 
-  // Use API data or fallback
-  const stats = statsApi ?? FALLBACK_STATS;
+  // Use API data or fallback (merge with fallback to ensure all fields exist)
+  const stats = statsApi ? { ...FALLBACK_STATS, ...statsApi } : FALLBACK_STATS;
   const proposals = proposalsApi ?? FALLBACK_PROPOSALS;
-  const rewards = rewardsApi ?? FALLBACK_REWARDS;
+  const rewards = rewardsApi ? { ...FALLBACK_REWARDS, ...rewardsApi } : FALLBACK_REWARDS;
   const delegates = delegatesApi ?? FALLBACK_DELEGATES;
 
   // Close menu when clicking outside
@@ -472,7 +472,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
             label={t('stats.veQSBalance')}
             value={stats.veQSBalance}
             unit="veQS"
-            badge={`${(stats.votingPower * 100).toFixed(2)}%`}
+            badge={`${((stats.votingPower ?? 0) * 100).toFixed(2)}%`}
             badgeColor="gold"
             href="/qs-hub/stake/lock"
             tooltip={t('stats.veQSTooltip')}
@@ -500,7 +500,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
             label={t('stats.claimableRewards')}
             value={rewards.claimable}
             unit="QS"
-            badge={`$${rewards.usdValue.toLocaleString()}`}
+            badge={`$${(rewards.usdValue ?? 0).toLocaleString()}`}
             badgeColor="gold"
             href="/qs-hub/rewards"
           />
@@ -593,7 +593,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.locked')}</div>
-                  <div className="text-xl font-bold">{stats.lockedQS.toLocaleString()}</div>
+                  <div className="text-xl font-bold">{(stats.lockedQS ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-foreground-secondary">QS</div>
                 </div>
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
@@ -602,8 +602,8 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                   <div className="text-xs text-foreground-secondary">{t('lockStatus.remaining', { time: stats.timeRemaining })}</div>
                 </div>
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
-                  <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.multiplier')}</div>
-                  <div className="text-xl font-bold text-gold">{stats.multiplier}x</div>
+                  <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.lockRatio')}</div>
+                  <div className="text-xl font-bold text-gold">{stats.ratio}</div>
                   <div className="text-xs text-foreground-secondary">{t('lockStatus.veQSRate')}</div>
                 </div>
               </div>
@@ -635,10 +635,10 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
               </div>
               <div className="text-center mb-4">
                 <div className="text-3xl font-bold text-gold mb-1">
-                  {rewards.claimable.toLocaleString()} QS
+                  {(rewards.claimable ?? 0).toLocaleString()} QS
                 </div>
                 <div className="text-sm text-foreground-secondary">
-                  ≈ ${rewards.usdValue.toLocaleString()}
+                  ≈ ${(rewards.usdValue ?? 0).toLocaleString()}
                 </div>
               </div>
               <div className="mb-4">
@@ -694,7 +694,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-sm">{delegate.delegatedAmount.toLocaleString()}</div>
+                      <div className="font-semibold text-sm">{(delegate.delegatedAmount ?? 0).toLocaleString()}</div>
                       <div className="text-xs text-foreground-tertiary">veQS</div>
                     </div>
                   </div>

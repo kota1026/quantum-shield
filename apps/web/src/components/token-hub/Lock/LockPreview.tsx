@@ -22,12 +22,15 @@ import { Button } from '@/components/ui/button';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { Link } from '@/i18n/navigation';
 
-// Lock duration options
+// Maximum lock time: 48 months = 4 years (SEQUENCES.md §9.1)
+const MAX_LOCK_MONTHS = 48;
+
+// Lock duration options — ratio = months / MAX_LOCK_MONTHS (linear time-decay)
 const DURATION_OPTIONS = [
-  { months: 6, label: '6M', multiplier: 0.125 },
-  { months: 12, label: '1Y', multiplier: 0.25 },
-  { months: 24, label: '2Y', multiplier: 0.5 },
-  { months: 48, label: '4Y', multiplier: 1.0 },
+  { months: 6, label: '6M', ratio: 6 / MAX_LOCK_MONTHS },
+  { months: 12, label: '1Y', ratio: 12 / MAX_LOCK_MONTHS },
+  { months: 24, label: '2Y', ratio: 24 / MAX_LOCK_MONTHS },
+  { months: 48, label: '4Y', ratio: 1.0 },
 ];
 
 export function LockPreview() {
@@ -47,7 +50,7 @@ export function LockPreview() {
   }, [duration]);
 
   const calculatedVeQS = useMemo(() => {
-    return Math.floor(amount * durationOption.multiplier);
+    return Math.floor(amount * durationOption.ratio);
   }, [amount, durationOption]);
 
   const unlockDate = useMemo(() => {
@@ -324,9 +327,9 @@ export function LockPreview() {
               <div className="bg-background-secondary rounded-xl p-4">
                 <div className="flex items-center gap-2 text-xs text-foreground-tertiary mb-2">
                   <Clock className="w-4 h-4" aria-hidden="true" />
-                  {t('details.multiplier')}
+                  {t('details.lockRatio')}
                 </div>
-                <div className="text-sm font-semibold font-mono">×{durationOption.multiplier.toFixed(durationOption.multiplier < 1 ? 3 : 2)}</div>
+                <div className="text-sm font-semibold font-mono">×{durationOption.ratio.toFixed(durationOption.ratio < 1 ? 3 : 2)}</div>
               </div>
             </div>
 

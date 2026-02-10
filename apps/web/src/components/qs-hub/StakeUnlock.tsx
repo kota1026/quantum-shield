@@ -29,7 +29,7 @@ const FALLBACK_LOCKED_POSITIONS = [
     lockDate: new Date('2025-01-15'),
     unlockDate: new Date('2027-01-15'),
     durationWeeks: 104,
-    multiplier: 0.5,
+    ratio: 0.5, // weeks / 208 (linear time-decay)
   },
   {
     id: '2',
@@ -38,7 +38,7 @@ const FALLBACK_LOCKED_POSITIONS = [
     lockDate: new Date('2025-06-01'),
     unlockDate: new Date('2025-12-01'),
     durationWeeks: 26,
-    multiplier: 0.125,
+    ratio: 0.125, // weeks / 208 (linear time-decay)
   },
   {
     id: '3',
@@ -47,7 +47,7 @@ const FALLBACK_LOCKED_POSITIONS = [
     lockDate: new Date('2024-06-16'),
     unlockDate: new Date('2025-01-20'),
     durationWeeks: 32,
-    multiplier: 0.25,
+    ratio: 0.25, // weeks / 208 (linear time-decay)
   },
 ];
 

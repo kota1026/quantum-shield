@@ -51,7 +51,11 @@
         "description": "認証に失敗しました。もう一度お試しください。",
         "connectionFailed": "ウォレットとの接続に失敗しました。もう一度お試しください。",
         "tryAgain": "再試行",
-        "retryButton": "再試行"
+        "retryButton": "再試行",
+        "notRegistered": "このウォレットはProverとして登録されていません。まずProver申請を行ってください。",
+        "pendingApproval": "申請は審査中です。承認されるまでお待ちください。",
+        "rejected": "申請は却下されました。詳細はサポートにお問い合わせください。",
+        "accessDenied": "Proverとしてのアクセスが許可されていません。"
       },
       "notRegistered": {
         "title": "未登録のウォレット",
@@ -772,7 +776,7 @@
         },
         "claimRewards": {
           "title": "報酬を請求",
-          "description": "{amount} ETHを請求できます"
+          "description": "{amount} QSを請求できます"
         },
         "viewMetrics": {
           "title": "パフォーマンスを確認",
@@ -828,7 +832,8 @@
         "pending": "保留中",
         "thisMonth": "今月",
         "allTime": "累計",
-        "claimAmount": "{amount} ETHを請求"
+        "claimAmount": "{amount} QSを請求",
+        "claimableLabel": "QS Token報酬"
       },
       "stake": {
         "title": "あなたのステーク",
@@ -945,6 +950,10 @@
           "volume": "総ボリューム",
           "done": "完了"
         }
+      },
+      "error": {
+        "signing": "署名エラー",
+        "batchSigning": "バッチ署名エラー"
       }
     },
     "metrics": {
@@ -967,7 +976,10 @@
         "thisMonth": "今月",
         "bonusTotal": "累計ボーナス",
         "additionalIncentives": "追加インセンティブ",
-        "contractPeriod": "契約期間"
+        "contractPeriod": "契約期間",
+        "earlyAdopterDescription": "Phase 1参加ボーナス",
+        "perfectUptimeDescription": "3ヶ月連続100%稼働",
+        "referralDescription": "新規Prover紹介"
       },
       "period": {
         "7d": "過去7日間",
@@ -1007,7 +1019,9 @@
         "verificationRate": "検証成功率",
         "slaCompliance": "SLA準拠",
         "availability": "可用性",
-        "responseTime": "レスポンス時間"
+        "responseTime": "レスポンス時間",
+        "avgResponseTime": "平均レスポンス時間",
+        "successRate": "成功率"
       },
       "modal": {
         "withdraw": {

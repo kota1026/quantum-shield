@@ -753,8 +753,8 @@
       },
       "emergency-unlock": {
         "name": "Emergency Unlock",
-        "definition": "An expedited unlock with stricter conditions. Requires approval from all Provers and a 7-day waiting period.",
-        "example": "If key loss is suspected, you can use emergency unlock to rescue your assets."
+        "definition": "A rescue mechanism when Provers fail to respond (72 hours). No Prover signatures required. Requires posting a Bond (MAX(0.5 ETH, 5% of locked amount)) and a 7-day waiting period before withdrawal.",
+        "example": "If Provers are unresponsive for 72 hours, you can post a bond and initiate an emergency unlock, retrieving your assets after 7 days."
       },
       "waiting-period": {
         "name": "Waiting Period (Time Lock)",
@@ -793,8 +793,8 @@
       },
       "quorum": {
         "name": "Quorum",
-        "definition": "The minimum voting participation rate required for a proposal to be valid. Usually requires at least 10% of total veQS participation.",
-        "example": "If voting participation falls below 10%, the proposal becomes invalid due to quorum not being met."
+        "definition": "The minimum voting participation rate required for a proposal to be valid. Varies by type: Parameter changes 4%, Upgrades 8%, Council changes 15%, Immutable changes 30% (+2-year Time Lock).",
+        "example": "A parameter change proposal can pass with 4% quorum, while Council changes require 15%."
       },
       "council": {
         "name": "Council",
@@ -813,18 +813,18 @@
       },
       "slashing": {
         "name": "Slashing",
-        "definition": "Confiscation of a portion of staked assets as a penalty for misconduct. Applied to Prover misconduct or incorrect Challenges.",
-        "example": "A Prover who made fraudulent signatures had 50% of their stake slashed."
+        "definition": "Confiscation of staked assets as penalty for misconduct. Uses Quadratic formula (N\u00b2\u00d710%): 1 Prover = 10%, 2 simultaneous = 40%, 3 = 90%, 4+ = 100%. Confiscated amounts are distributed: Challenger 60%, Insurance 20%, Burn 20%.",
+        "example": "If 2 Provers commit fraud simultaneously, each loses 40% (N\u00b2\u00d710% = 4\u00d710%) of their stake."
       },
       "stake": {
         "name": "Stake",
-        "definition": "Assets deposited as collateral when taking on a role. Subject to penalty (slashing) in case of misconduct.",
-        "example": "Becoming a Prover requires staking at least 100 ETH."
+        "definition": "Assets deposited as collateral when taking on a role. Prover minimum stake: Phase 1 = $400K in ETH, Phase 2+ = $500K in QS (USD-denominated). HSM and 2-of-3 multisig required.",
+        "example": "To become a Prover in Phase 1, you must stake $400K worth of ETH and configure HSM with multisig."
       },
       "bond": {
         "name": "Bond",
-        "definition": "Collateral deposited when initiating a Challenge. Returned for correct Challenges; confiscated for incorrect ones.",
-        "example": "A 1 ETH bond was deposited to initiate the Challenge."
+        "definition": "Two types exist. Challenge Bond: MAX(0.1 ETH, 1% of target amount) \u2014 collateral for initiating a Challenge. Emergency Bond: MAX(0.5 ETH, 5% of locked amount) \u2014 collateral for emergency unlocks. Returned upon correct Challenge or successful completion.",
+        "example": "To challenge a 10 ETH unlock, you need MAX(0.1 ETH, 0.1 ETH) = 0.1 ETH as bond."
       }
     },
     "empty": {

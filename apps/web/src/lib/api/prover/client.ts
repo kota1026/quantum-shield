@@ -39,6 +39,13 @@ export interface ProverUserInfo {
   created_at: string;
 }
 
+export interface ProverStatusByWalletResponse {
+  registered: boolean;
+  prover_id: string | null;
+  status: string | null;
+  can_access: boolean;
+}
+
 interface RequestConfig extends Omit<RequestInit, 'body'> {
   params?: Record<string, string | number | boolean | undefined>;
   body?: unknown;
@@ -132,6 +139,11 @@ class ProverApiClient {
     return this.request<ProverUserInfo>('/v1/auth/me');
   }
 
+  // Check prover status by wallet address
+  async getProverStatusByWallet(walletAddress: string): Promise<ProverStatusByWalletResponse> {
+    return this.request<ProverStatusByWalletResponse>(`/v1/prover/status/by-wallet/${walletAddress}`);
+  }
+
   // Registration
   async register(data: { stakeAmount: string; endpoint: string }) {
     return this.request<{ proverId: string }>('/v1/prover/register', {
@@ -140,32 +152,37 @@ class ProverApiClient {
     });
   }
 
-  // Dashboard
-  async getDashboard() {
-    return this.request<{ status: string; staked: string; earnings: string }>('/v1/prover/dashboard');
+  // Dashboard - requires prover_id
+  async getDashboard(proverId: string) {
+    return this.request<{ status: string; staked: string; earnings: string }>(`/v1/prover/${proverId}/dashboard`);
   }
 
-  // Requests
-  async getRequests(params?: { status?: string; page?: number; limit?: number }) {
-    return this.request<{ requests: unknown[]; total: number }>('/v1/prover/requests', { params });
+  // Queue - signing queue for prover
+  async getQueue(proverId: string, params?: { status?: string; page?: number; limit?: number }) {
+    return this.request<{ items: unknown[]; total: number; pending_count: number }>(`/v1/prover/${proverId}/queue`, { params });
   }
 
-  // Sign
-  async sign(data: { requestId: string }) {
-    return this.request<{ signature: string }>('/v1/prover/sign', {
+  // Queue item detail
+  async getQueueItem(proverId: string, queueId: string) {
+    return this.request<unknown>(`/v1/prover/${proverId}/queue/${queueId}`);
+  }
+
+  // Sign - submit signature for unlock request
+  async sign(proverId: string, data: { unlock_id: string; signature: string }) {
+    return this.request<{ success: boolean; tx_hash?: string }>(`/v1/prover/${proverId}/sign`, {
       method: 'POST',
       body: data,
     });
   }
 
-  // Metrics
-  async getMetrics() {
-    return this.request<{ totalSigned: number; successRate: number }>('/v1/prover/metrics');
+  // Metrics - prover-specific metrics
+  async getMetrics(proverId: string) {
+    return this.request<{ totalSigned: number; successRate: number }>(`/v1/prover/${proverId}/metrics`);
   }
 
-  // List provers
+  // List provers (admin endpoint)
   async list(params?: { status?: string; page?: number; limit?: number }) {
-    return this.request<{ data: unknown[]; total: number }>('/v1/prover/list', { params });
+    return this.request<{ data: unknown[]; total: number }>('/v1/provers', { params });
   }
 }
 

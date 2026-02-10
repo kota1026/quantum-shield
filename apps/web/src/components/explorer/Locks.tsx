@@ -15,93 +15,8 @@ import {
 import { useLocks } from '@/hooks/explorer';
 import type { LockDetail } from '@/lib/api/explorer/mock';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_LOCKS: LockDetail[] = [
-  {
-    id: '0x7a3f8b2c4d5e6f...e821d4f9',
-    shortId: '0x7a3f...e821',
-    owner: '0x9b2c...f412',
-    ownerFull: '0x9b2c4d5e6f7a8b9c...f412d3e4',
-    amount: '125.5',
-    lockTime: '2026-01-10 14:32:18 UTC',
-    lockTimeShort: '2026-01-10 14:32',
-    status: 'active',
-    l2Tx: '0x4d8e...a923',
-    l2TxFull: '0x4d8e9f0a1b2c3d4e5f6a7b8c...a923b4c5',
-    blockNumber: '18,234,567',
-    dilithiumKey: 'dil3_0x8f2a...verified',
-  },
-  {
-    id: '0x9b2c4d5e6f7a8b...f412d3e4',
-    shortId: '0x9b2c...f412',
-    owner: '0x1f6a...c734',
-    ownerFull: '0x1f6a7b8c9d0e1f2a...c734d5e6',
-    amount: '50.0',
-    lockTime: '2026-01-10 14:24:45 UTC',
-    lockTimeShort: '2026-01-10 14:24',
-    status: 'active',
-    l2Tx: '0x8c3d...b156',
-    l2TxFull: '0x8c3d4e5f6a7b8c9d0e1f...b156c2d3',
-    blockNumber: '18,234,521',
-    dilithiumKey: 'dil3_0x3c7f...verified',
-  },
-  {
-    id: '0x4d8e9f0a1b2c3d...a923b4c5',
-    shortId: '0x4d8e...a923',
-    owner: '0x2e7f...d934',
-    ownerFull: '0x2e7f3a4b5c6d7e8f...d934e5f6',
-    amount: '200.0',
-    lockTime: '2026-01-10 14:17:33 UTC',
-    lockTimeShort: '2026-01-10 14:17',
-    status: 'unlocking' as const,
-    l2Tx: '0x5c9a...e127',
-    l2TxFull: '0x5c9a0b1c2d3e4f5a6b7c...e127f8a9',
-    blockNumber: '18,234,489',
-    dilithiumKey: 'dil3_0x9d2b...verified',
-  },
-  {
-    id: '0x1f6a7b8c9d0e1f...c734d5e6',
-    shortId: '0x1f6a...c734',
-    owner: '0x3b1d...f842',
-    ownerFull: '0x3b1d4c5e6f7a8b9c...f842a1b2',
-    amount: '75.25',
-    lockTime: '2026-01-10 14:09:12 UTC',
-    lockTimeShort: '2026-01-10 14:09',
-    status: 'active' as const,
-    l2Tx: '0x7d4e...a563',
-    l2TxFull: '0x7d4e5f6a7b8c9d0e1f2a...a563b7c8',
-    blockNumber: '18,234,456',
-    dilithiumKey: 'dil3_0x5e8c...verified',
-  },
-  {
-    id: '0x8c3d4e5f6a7b8c...b156c2d3',
-    shortId: '0x8c3d...b156',
-    owner: '0x9f2c...b718',
-    ownerFull: '0x9f2c3d4e5f6a7b8c...b718c9d0',
-    amount: '320.0',
-    lockTime: '2026-01-10 14:01:58 UTC',
-    lockTimeShort: '2026-01-10 14:01',
-    status: 'unlocked' as const,
-    l2Tx: '0xa4f2...c891',
-    l2TxFull: '0xa4f2b3c4d5e6f7a8b9c0...c891d0e1',
-    blockNumber: '18,234,412',
-    dilithiumKey: 'dil3_0x7a1d...verified',
-  },
-  {
-    id: '0x2e7f3a4b5c6d7e...d934e5f6',
-    shortId: '0x2e7f...d934',
-    owner: '0x8b3c...d412',
-    ownerFull: '0x8b3c4d5e6f7a8b9c...d412e3f4',
-    amount: '88.0',
-    lockTime: '2026-01-10 13:52:27 UTC',
-    lockTimeShort: '2026-01-10 13:52',
-    status: 'active' as const,
-    l2Tx: '0xb5e3...f924',
-    l2TxFull: '0xb5e3c4d5e6f7a8b9c0d1...f924a1b2',
-    blockNumber: '18,234,378',
-    dilithiumKey: 'dil3_0x2f9e...verified',
-  },
-];
+// Empty initial state (no fake data)
+const FALLBACK_LOCKS: LockDetail[] = [];
 
 type LockStatus = 'active' | 'unlocking' | 'unlocked';
 type SortOption = 'newest' | 'oldest' | 'amountHigh' | 'amountLow';
@@ -131,8 +46,8 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
   const mockLocks = locksApi?.locks ?? FALLBACK_LOCKS;
 
   const itemsPerPage = 6;
-  const totalLocks = locksApi?.total ?? 24891;
-  const totalValue = '$847.2M';
+  const totalLocks = locksApi?.total ?? 0;
+  const totalValue = locksApi ? `${totalLocks}` : '0';
 
   // Filter and sort locks
   const filteredLocks = useMemo(() => {

@@ -34,7 +34,7 @@ export function LockSuccess() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-success/15 to-transparent" />
       </div>
 
-      <div className="relative z-10 text-center px-6 max-w-md w-full">
+      <main role="main" className="relative z-10 text-center px-6 max-w-md w-full">
         {/* Success Icon */}
         <div className="relative w-32 h-32 mx-auto mb-8">
           <div className="absolute inset-0 bg-gradient-radial from-success/20 to-transparent rounded-full" />
@@ -110,7 +110,7 @@ export function LockSuccess() {
             <Link href="/consumer/history">{t('buttons.viewHistory')}</Link>
           </Button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

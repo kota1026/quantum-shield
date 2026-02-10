@@ -18,11 +18,11 @@ export interface VotingPowerBreakdown {
 }
 
 export type ProposalStatus = 'active' | 'pending' | 'passed' | 'executed' | 'defeated' | 'vetoed';
-export type ProposalType = 'parameter' | 'upgrade' | 'council';
+export type ProposalType = 'parameter' | 'treasury' | 'upgrade' | 'signal' | 'emergency';
 export type UserVote = 'for' | 'against' | null;
 
 export interface Proposal {
-  id: number;
+  id: string;
   title: string;
   description: string;
   status: ProposalStatus;
@@ -132,7 +132,7 @@ export const MOCK_DASHBOARD_PROPOSALS: ProposalSummary[] = [
 
 export const MOCK_PROPOSALS: Proposal[] = [
   {
-    id: 47,
+    id: 'QIP-47',
     title: 'Increase Prover Bond Amount from 100 ETH to 150 ETH',
     description: 'This proposal seeks to increase the minimum bond requirement for Provers from 100 ETH to 150 ETH to improve network security and reduce the risk of malicious behavior.',
     status: 'active',
@@ -149,11 +149,11 @@ export const MOCK_PROPOSALS: Proposal[] = [
     userVote: 'for',
   },
   {
-    id: 46,
+    id: 'QIP-46',
     title: 'Add New Security Council Member: quantum_expert.eth',
     description: 'Nominate quantum_expert.eth as a new Security Council member. This individual has extensive experience in post-quantum cryptography and has contributed to multiple audits.',
     status: 'active',
-    type: 'council',
+    type: 'signal',
     proposer: '0x123...456',
     createdAt: '2026-01-05',
     timeLeft: '5d 8h 15m',
@@ -166,7 +166,7 @@ export const MOCK_PROPOSALS: Proposal[] = [
     userVote: null,
   },
   {
-    id: 45,
+    id: 'QIP-45',
     title: 'Upgrade STARK Verifier Contract to v2.1',
     description: 'Upgrade the STARK verifier contract to version 2.1 which includes optimized proof verification and reduced gas costs for on-chain verification.',
     status: 'pending',
@@ -183,7 +183,7 @@ export const MOCK_PROPOSALS: Proposal[] = [
     userVote: 'for',
   },
   {
-    id: 44,
+    id: 'QIP-44',
     title: 'Reduce Challenge Period from 14 days to 7 days',
     description: "Based on the network's stability and proven security track record, this proposal reduces the challenge period from 14 days to 7 days to improve capital efficiency.",
     status: 'executed',
@@ -197,7 +197,7 @@ export const MOCK_PROPOSALS: Proposal[] = [
     userVote: 'for',
   },
   {
-    id: 40,
+    id: 'QIP-40',
     title: 'Decrease Minimum Lock Period from 30 days to 7 days',
     description: 'Proposal to reduce the minimum lock period for QS tokens to increase accessibility. This proposal was defeated due to concerns about governance stability.',
     status: 'defeated',

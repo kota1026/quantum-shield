@@ -54,7 +54,7 @@
       "locked": "ロック量",
       "duration": "ロック期間",
       "remaining": "残り {time}",
-      "multiplier": "倍率",
+      "lockRatio": "ロック比率",
       "veQSRate": "veQS変換率",
       "lockMore": "追加ロック",
       "unlock": "アンロック"
@@ -255,7 +255,7 @@
         "newVeQS": "新しいveQS残高",
         "newDuration": "新しいロック期間",
         "newUnlockDate": "新しいアンロック日",
-        "multiplier": "新しい倍率",
+        "lockRatio": "新しいロック比率",
         "maxReached": "最大ロック期間に到達（4年）"
       },
       "warning": {

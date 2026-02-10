@@ -31,10 +31,9 @@ export function EnterpriseLogin() {
     setError(null);
 
     try {
-      // Simulate login - in production, this would call an API
+      // TODO: Replace with real API authentication
+      // Currently accepts any credentials for development
       await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Demo: accept any credentials
       router.push('/enterprise/dashboard');
     } catch {
       setError(t('errors.networkError'));

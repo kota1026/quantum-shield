@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useState, useRef, useEffect } from 'react';
 
 export function Header() {
-  const t = useTranslations('qsAdmin.header');
-  const tSidebar = useTranslations('qsAdmin.sidebar');
+  const t = useTranslations('qsAdmin');
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
@@ -55,7 +54,7 @@ export function Header() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground-tertiary" />
           <Input
             type="text"
-            placeholder={t('search')}
+            placeholder={t('header.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 bg-background"
@@ -73,7 +72,7 @@ export function Header() {
             onClick={() => setLangMenuOpen(!langMenuOpen)}
             aria-expanded={langMenuOpen}
             aria-haspopup="true"
-            aria-label={t('language')}
+            aria-label={t('header.language')}
           >
             <Globe className="h-5 w-5" />
           </Button>
@@ -113,7 +112,7 @@ export function Header() {
           {notificationsOpen && (
             <div className="absolute right-0 mt-2 w-80 bg-card rounded-lg shadow-lg border border-border z-50">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                <h3 className="font-semibold">{t('notifications')}</h3>
+                <h3 className="font-semibold">{t('header.notifications')}</h3>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -124,7 +123,7 @@ export function Header() {
                 </Button>
               </div>
               <div className="py-4 px-4 text-sm text-foreground-secondary text-center">
-                {t('noNotifications')}
+                {t('header.noNotifications')}
               </div>
             </div>
           )}
@@ -146,8 +145,8 @@ export function Header() {
           {userMenuOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-card rounded-lg shadow-lg border border-border z-50">
               <div className="px-4 py-3 border-b border-border">
-                <p className="font-semibold">{tSidebar('user.name')}</p>
-                <p className="text-sm text-foreground-secondary">{tSidebar('user.role')}</p>
+                <p className="font-semibold">{t('sidebar.user.name')}</p>
+                <p className="text-sm text-foreground-secondary">{t('sidebar.user.role')}</p>
               </div>
               <div className="py-1">
                 <button
@@ -155,7 +154,7 @@ export function Header() {
                   onClick={() => setUserMenuOpen(false)}
                 >
                   <Settings className="mr-2 h-4 w-4" />
-                  {tSidebar('user.settings')}
+                  {t('sidebar.user.settings')}
                 </button>
                 <div className="border-t border-border my-1" />
                 <button
@@ -163,7 +162,7 @@ export function Header() {
                   onClick={() => setUserMenuOpen(false)}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  {tSidebar('user.logout')}
+                  {t('sidebar.user.logout')}
                 </button>
               </div>
             </div>

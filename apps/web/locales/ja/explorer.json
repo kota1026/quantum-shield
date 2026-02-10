@@ -837,8 +837,8 @@
       },
       "emergency-unlock": {
         "name": "緊急アンロック",
-        "definition": "通常より厳格な条件での即時アンロック。全Proverの承認と7日間の待機期間が必要です。",
-        "example": "鍵の紛失が疑われる場合、緊急アンロックを使用して資産を救出できます。"
+        "definition": "Prover障害時（72時間応答なし）にユーザーが資産を救済する仕組み。Prover署名は不要で、Bond（MAX(0.5 ETH, ロック額×5%)）を預け入れ、7日間の待機期間後に資産を引き出せます。",
+        "example": "Proverが72時間応答しない場合、ボンドを預けて緊急アンロックを発動し、7日後に資産を回収できます。"
       },
       "waiting-period": {
         "name": "待機期間 (Time Lock)",
@@ -877,8 +877,8 @@
       },
       "quorum": {
         "name": "クォーラム (Quorum)",
-        "definition": "提案が有効となるために必要な最低投票参加率。通常は総veQSの10%以上の参加が必要です。",
-        "example": "投票率が10%を下回ると、クォーラム未達成で提案は無効になります。"
+        "definition": "提案が有効となるために必要な最低投票参加率。提案タイプにより異なります: パラメータ変更 4%、アップグレード 8%、Council変更 15%、Immutable変更 30%（+2年Time Lock）。",
+        "example": "パラメータ変更の提案は4%のクォーラムで可決可能ですが、Council変更には15%が必要です。"
       },
       "council": {
         "name": "カウンシル (Council)",
@@ -897,18 +897,18 @@
       },
       "slashing": {
         "name": "スラッシング (Slashing)",
-        "definition": "不正行為に対するペナルティとして、ステークした資産の一部を没収すること。Proverの不正や誤ったChallengeに適用されます。",
-        "example": "不正な署名を行ったProverは、ステークの50%がスラッシングされました。"
+        "definition": "不正行為に対するペナルティとして、ステークの一部を没収すること。Quadratic方式（N\u00b2\u00d710%）で計算: 1社不正10%、2社同時40%、3社同時90%、4社以上100%。没収額はChallenger 60%、Insurance 20%、Burn 20%に配分されます。",
+        "example": "2社のProverが同時に不正を行った場合、各社のステークの40%（N\u00b2\u00d710% = 4\u00d710%）がスラッシングされます。"
       },
       "stake": {
         "name": "ステーク (Stake)",
-        "definition": "役割を担う際に担保として預け入れる資産。不正行為時のペナルティ（スラッシング）の対象となります。",
-        "example": "Proverになるには100 ETH以上のステークが必要です。"
+        "definition": "役割を担う際に担保として預け入れる資産。Proverの最低ステーク: Phase 1は$400K相当のETH、Phase 2以降は$500K相当のQS（USD建て）。HSM使用と2-of-3マルチシグが必須です。",
+        "example": "Phase 1でProverになるには$400K相当のETHをステークし、HSMとマルチシグを設定する必要があります。"
       },
       "bond": {
         "name": "ボンド (Bond)",
-        "definition": "Challengeを発動する際に預け入れる担保。正しいChallengeでは返還され、誤りでは没収されます。",
-        "example": "1 ETHのボンドを預けてChallengeを発動しました。"
+        "definition": "2種類あります。Challenge Bond: MAX(0.1 ETH, 対象金額×1%) — Challengeを発動する際の担保。Emergency Bond: MAX(0.5 ETH, ロック額×5%) — 緊急アンロック時の担保。正しいChallenge/正常完了時は返還されます。",
+        "example": "10 ETHのアンロックに対してChallengeする場合、MAX(0.1 ETH, 0.1 ETH) = 0.1 ETHのボンドが必要です。"
       }
     },
     "empty": {

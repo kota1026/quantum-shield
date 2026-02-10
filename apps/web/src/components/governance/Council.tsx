@@ -19,39 +19,16 @@ import {
 import { useCouncil } from '@/hooks/governance';
 import type { CouncilData } from '@/lib/api/governance/mock';
 
-// Fallback data (used when API is unavailable)
+// Empty initial state (no fake data)
 const FALLBACK_COUNCIL: CouncilData = {
-  securityCouncil: [
-    { id: 'SC1', name: 'sec_lead.eth', role: 'lead', active: true },
-    { id: 'SC2', name: 'sec_member1.eth', role: 'member', active: true },
-    { id: 'SC3', name: 'sec_member2.eth', role: 'member', active: true },
-    { id: 'SC4', name: 'sec_member3.eth', role: 'member', active: true },
-    { id: 'SC5', name: 'sec_member4.eth', role: 'member', active: true },
-    { id: 'SC6', name: 'sec_member5.eth', role: 'member', active: false },
-    { id: 'SC7', name: 'sec_member6.eth', role: 'member', active: false },
-  ],
-  purposeCommittee: [
-    { id: 'PC1', name: 'purpose_chair.eth', role: 'chair', active: true },
-    { id: 'PC2', name: 'purpose_member1.eth', role: 'member', active: true },
-    { id: 'PC3', name: 'purpose_member2.eth', role: 'member', active: true },
-  ],
-  vetoHistory: [
-    {
-      id: 'QIP-32',
-      title: 'Reduce challenge period to 3 days',
-      vetoedBy: 'Security Council',
-      approvalCount: '5/7',
-      reason: 'security',
-      date: '2025-08-15',
-      onchainRef: '0x123...abc',
-      reasonText: 'This proposal was vetoed due to security concerns regarding the shortened challenge period.',
-    },
-  ],
+  securityCouncil: [],
+  purposeCommittee: [],
+  vetoHistory: [],
   systemStatus: {
-    lockContract: true,
-    starkVerifier: true,
-    governance: true,
-    lastCheck: '2 minutes ago',
+    lockContract: false,
+    starkVerifier: false,
+    governance: false,
+    lastCheck: '-',
   },
 };
 

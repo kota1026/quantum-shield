@@ -28,12 +28,6 @@ function formatAmountToEth(amount: string): string {
   }
 }
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_LOCKS = [
-  { id: '1', number: 1, amount: '10.00 ETH', timestamp: '2026-01-01', status: 'locked' as const },
-  { id: '2', number: 2, amount: '5.25 ETH', timestamp: '2026-01-05', status: 'locked' as const },
-];
-
 type UnlockMethod = 'normal' | 'emergency';
 
 export function Unlock() {
@@ -41,16 +35,16 @@ export function Unlock() {
   const router = useRouter();
 
   // Fetch data using new API hooks - get only locks
-  const { data: txData } = useUserTransactions({ txType: 'lock', perPage: 50 });
+  const { data: txData, isLoading } = useUserTransactions({ txType: 'lock', perPage: 50 });
 
-  // Transform API data to component format
-  const locks = (txData?.transactions?.filter(tx => tx.status !== 'completed').map((tx, index) => ({
+  // Transform API data to component format - no fallback to fake data
+  const locks: LockItem[] = txData?.transactions?.filter(tx => tx.status !== 'completed').map((tx, index) => ({
     id: tx.id,
     number: index + 1,
     amount: `${formatAmountToEth(tx.amount)} ETH`,
     timestamp: new Date(tx.createdAt * 1000).toLocaleDateString('ja-JP'),
     status: tx.status === 'pending' ? ('pending' as const) : ('locked' as const),
-  })) ?? FALLBACK_LOCKS) as LockItem[];
+  })) ?? [];
 
   const [selectedLockId, setSelectedLockId] = useState<string>(locks[0]?.id || '');
   const [selectedMethod, setSelectedMethod] = useState<UnlockMethod>('normal');
@@ -84,7 +78,7 @@ export function Unlock() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
@@ -121,7 +115,16 @@ export function Unlock() {
             role="radiogroup"
             aria-labelledby="select-lock-label"
           >
-            {locks.length === 0 ? (
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="h-20 bg-surface border border-border rounded-qs animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : locks.length === 0 ? (
               <p className="text-center text-foreground-secondary py-8">
                 {t('selectLock.emptyState')}
               </p>
@@ -194,14 +197,14 @@ export function Unlock() {
             variant="primary"
             fullWidth
             onClick={handleStartUnlock}
-            disabled={!selectedLockId}
+            disabled={!selectedLockId || locks.length === 0 || isLoading}
           >
             {selectedMethod === 'normal'
               ? t('button.normalUnlock')
               : t('button.emergencyUnlock')}
           </Button>
         </section>
-      </div>
+      </main>
 
       {/* Time Lock Modal */}
       <TimeLockModal

@@ -21,26 +21,8 @@ import type { Notification } from '@/lib/api/consumer/mock';
 // Notification types
 type NotificationType = 'lockComplete' | 'unlockStarted' | 'unlockComplete' | 'emergencyStarted' | 'emergencyComplete' | 'securityAlert' | 'systemUpdate';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_NOTIFICATIONS: Notification[] = [
-  {
-    id: '1',
-    type: 'lockComplete',
-    title: 'Lock Completed',
-    message: '12.5 ETH has been locked successfully',
-    timestamp: '2 hours ago',
-    read: false,
-  },
-  {
-    id: '2',
-    type: 'unlockStarted',
-    title: 'Unlock Request Started',
-    message: '5.0 ETH unlock request is being processed',
-    timestamp: '1 day ago',
-    read: true,
-    link: '/consumer/history',
-  },
-];
+// Empty initial state (no fake notifications)
+const FALLBACK_NOTIFICATIONS: Notification[] = [];
 
 const TYPE_CONFIG: Record<
   NotificationType,

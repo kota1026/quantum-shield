@@ -980,6 +980,7 @@ export interface UserTransaction {
   amount: string;
   timestamp: string;
   status: string;
+  txHash?: string | null; // L1 transaction hash for Etherscan link
 }
 
 export const MOCK_USER_TRANSACTIONS: UserTransaction[] = [

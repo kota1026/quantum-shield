@@ -160,7 +160,7 @@ export function ConsumerLogin() {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-12">
+      <main role="main" className="relative z-10 flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           {/* Logo & Title */}
           <div className="text-center mb-8">

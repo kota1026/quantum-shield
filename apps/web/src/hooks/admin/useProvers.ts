@@ -4,7 +4,7 @@
  * React Query hooks for prover data fetching
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api/admin/client';
 import type { ProverListItem, ProverDetail, ProverApplication, ProverStats, ProverRequestStats } from '@/lib/api/admin/types';
 
@@ -133,6 +133,42 @@ export function useProverRequestDetail(id: string) {
       return response;
     },
     enabled: !!id,
+  });
+}
+
+// Mutation types
+interface UpdateProverStatusRequest {
+  status: string;
+  comment?: string;
+}
+
+interface UpdateProverStatusResponse {
+  success: boolean;
+  prover_id: string;
+  new_status: string;
+  message: string;
+}
+
+/**
+ * Update prover application status (approve/reject)
+ */
+export function useUpdateProverStatus(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: UpdateProverStatusRequest) => {
+      const response = await adminApi.post<UpdateProverStatusResponse>(
+        `/api/admin/provers/requests/${id}/status`,
+        data
+      );
+      return response;
+    },
+    onSuccess: () => {
+      // Invalidate related queries to refresh data
+      queryClient.invalidateQueries({ queryKey: proverKeys.requestDetail(id) });
+      queryClient.invalidateQueries({ queryKey: proverKeys.requests() });
+      queryClient.invalidateQueries({ queryKey: proverKeys.requestStats() });
+    },
   });
 }
 

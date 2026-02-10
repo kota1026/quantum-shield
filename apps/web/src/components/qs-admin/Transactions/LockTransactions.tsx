@@ -9,13 +9,16 @@ import {
   Search,
   Filter,
   Download,
-  TrendingUp,
   ArrowLeft,
   CheckCircle,
   Clock,
   XCircle,
   RefreshCw,
   AlertTriangle,
+  Wallet,
+  Activity,
+  Timer,
+  ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -26,45 +29,23 @@ import type { LockTransaction } from '@/lib/api/admin/types';
 
 // Fallback data - Used when API is unavailable
 const FALLBACK_STATS: LockStats = {
-  totalLocks: 12450,
-  lockVolume: '125,000 ETH',
-  avgLockAmount: '10.04 ETH',
-  avgLockDuration: '45 days',
+  totalLocks: 0,
+  lockVolume: '0 ETH',
+  avgLockAmount: '0 ETH',
+  avgLockDuration: '-',
 };
-
-interface FallbackLockTransaction {
-  id: string;
-  userAddress: string;
-  amount: string;
-  currency: string;
-  duration: string;
-  status: string;
-  createdAt: number;
-  prover: string;
-}
-
-const FALLBACK_LOCK_TRANSACTIONS: FallbackLockTransaction[] = [
-  { id: 'LK-001234', userAddress: '0x1234...5678', amount: '10.5 ETH', currency: 'ETH', duration: '30 days', status: 'active', createdAt: Date.now() - 3600000, prover: 'Prover-A' },
-  { id: 'LK-001235', userAddress: '0x2345...6789', amount: '5.0 ETH', currency: 'ETH', duration: '60 days', status: 'confirmed', createdAt: Date.now() - 7200000, prover: 'Prover-B' },
-  { id: 'LK-001236', userAddress: '0x3456...7890', amount: '100.0 ETH', currency: 'ETH', duration: '90 days', status: 'pending', createdAt: Date.now() - 10800000, prover: '-' },
-  { id: 'LK-001237', userAddress: '0x4567...8901', amount: '50.0 ETH', currency: 'ETH', duration: '30 days', status: 'active', createdAt: Date.now() - 14400000, prover: 'Prover-C' },
-  { id: 'LK-001238', userAddress: '0x5678...9012', amount: '25.0 ETH', currency: 'ETH', duration: '180 days', status: 'unlocked', createdAt: Date.now() - 18000000, prover: '-' },
-  { id: 'LK-001239', userAddress: '0x6789...0123', amount: '15.0 ETH', currency: 'ETH', duration: '30 days', status: 'active', createdAt: Date.now() - 21600000, prover: 'Prover-A' },
-  { id: 'LK-001240', userAddress: '0x7890...1234', amount: '8.5 ETH', currency: 'ETH', duration: '60 days', status: 'pending', createdAt: Date.now() - 25200000, prover: '-' },
-];
 
 // Loading skeleton components
 function StatCardSkeleton() {
   return (
-    <Card>
+    <Card className="bg-card border-border/10">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="h-4 bg-muted rounded w-24 animate-pulse" />
-            <div className="h-8 bg-muted rounded w-32 animate-pulse" />
-            <div className="h-3 bg-muted rounded w-16 animate-pulse" />
+          <div className="space-y-3">
+            <div className="h-4 bg-elevated rounded w-24 animate-pulse" />
+            <div className="h-8 bg-elevated rounded w-32 animate-pulse" />
           </div>
-          <div className="h-12 w-12 rounded-lg bg-muted animate-pulse" />
+          <div className="h-12 w-12 rounded-[14px] bg-elevated animate-pulse" />
         </div>
       </CardContent>
     </Card>
@@ -73,15 +54,13 @@ function StatCardSkeleton() {
 
 function TableRowSkeleton() {
   return (
-    <tr className="border-b border-border">
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-20 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-24 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-6 bg-muted rounded w-16 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-4 bg-muted rounded w-28 animate-pulse" /></td>
-      <td className="py-3 px-4"><div className="h-8 bg-muted rounded w-16 animate-pulse" /></td>
+    <tr className="border-b border-border/10">
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-24 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-28 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-20 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-6 bg-elevated rounded-full w-20 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-5 bg-elevated rounded w-32 animate-pulse" /></td>
+      <td className="py-4 px-6"><div className="h-9 bg-elevated rounded-[10px] w-16 animate-pulse" /></td>
     </tr>
   );
 }
@@ -94,13 +73,15 @@ interface ErrorStateProps {
 
 function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <AlertTriangle className="h-8 w-8 text-warning mb-2" />
-      <p className="text-sm text-muted-foreground mb-4">{message}</p>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="h-16 w-16 rounded-[20px] bg-error/10 flex items-center justify-center mb-4">
+        <AlertTriangle className="h-8 w-8 text-error" />
+      </div>
+      <p className="text-secondary mb-4">{message}</p>
       {onRetry && (
-        <Button variant="outline" size="sm" onClick={onRetry}>
+        <Button variant="outline" onClick={onRetry} className="min-h-[44px] rounded-[10px]">
           <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
+          再読み込み
         </Button>
       )}
     </div>
@@ -118,49 +99,77 @@ function formatTimestamp(timestamp: number): string {
   });
 }
 
-const STATUS_COLORS = {
-  pending: 'bg-warning/10 text-warning',
-  processing: 'bg-info/10 text-info',
-  completed: 'bg-success/10 text-success',
-  failed: 'bg-danger/10 text-danger',
-};
-
-const STATUS_ICONS = {
-  pending: Clock,
-  processing: Clock,
-  completed: CheckCircle,
-  failed: XCircle,
+// Status configuration (following UI_DESIGN_GUIDELINES.md)
+// Success: #00C896, Warning: #F0A030, Error: #E07040 (orange-red, not red), Info: #4A90D9, Pending: #8080A0
+const STATUS_CONFIG = {
+  pending: {
+    icon: Clock,
+    color: 'text-[#8080A0]',
+    bg: 'bg-[#8080A0]/10',
+    label: '承認待ち',
+  },
+  confirmed: {
+    icon: CheckCircle,
+    color: 'text-[#00C896]',
+    bg: 'bg-[#00C896]/10',
+    label: '確認済み',
+  },
+  active: {
+    icon: Activity,
+    color: 'text-[#4A90D9]',
+    bg: 'bg-[#4A90D9]/10',
+    label: 'アクティブ',
+  },
+  unlocking: {
+    icon: Timer,
+    color: 'text-[#F0A030]',
+    bg: 'bg-[#F0A030]/10',
+    label: 'アンロック中',
+  },
+  unlocked: {
+    icon: Lock,
+    color: 'text-[#8080A0]',
+    bg: 'bg-[#8080A0]/10',
+    label: '解除済み',
+  },
+  failed: {
+    icon: XCircle,
+    color: 'text-[#E07040]',
+    bg: 'bg-[#E07040]/10',
+    label: '失敗',
+  },
 };
 
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.ElementType;
-  trend?: { value: number; isPositive: boolean };
+  iconColor?: string;
+  iconBg?: string;
 }
 
-function StatCard({ title, value, icon: Icon, trend }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, iconColor = 'text-hinomaru', iconBg = 'bg-hinomaru/10' }: StatCardProps) {
   return (
-    <Card>
+    <Card className="bg-card border-border/10 rounded-[20px] hover:border-border/20 transition-colors">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-foreground-secondary">{title}</p>
-            <p className="text-2xl font-bold mt-2">{value}</p>
-            {trend && (
-              <p className={cn('text-xs mt-2 flex items-center', trend.isPositive ? 'text-success' : 'text-danger')}>
-                <TrendingUp className={cn('h-3 w-3 mr-1', !trend.isPositive && 'rotate-180')} />
-                {trend.isPositive ? '+' : ''}{trend.value}%
-              </p>
-            )}
+            <p className="text-sm font-medium text-secondary">{title}</p>
+            <p className="text-2xl font-bold mt-2 tracking-tight font-mono">{value}</p>
           </div>
-          <div className="h-12 w-12 rounded-lg bg-success/10 flex items-center justify-center">
-            <Icon className="h-6 w-6 text-success" />
+          <div className={cn('h-12 w-12 rounded-[14px] flex items-center justify-center', iconBg)}>
+            <Icon className={cn('h-6 w-6', iconColor)} />
           </div>
         </div>
       </CardContent>
     </Card>
   );
+}
+
+// Helper to truncate transaction ID
+function truncateId(id: string): string {
+  if (id.length <= 14) return id;
+  return `${id.slice(0, 6)}...${id.slice(-4)}`;
 }
 
 export function LockTransactions() {
@@ -175,14 +184,13 @@ export function LockTransactions() {
 
   // Use API data or fallback
   const stats = statsQuery.data ?? FALLBACK_STATS;
-  const transactions = transactionsQuery.data?.transactions ?? FALLBACK_LOCK_TRANSACTIONS;
+  const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
-    { key: 'all', label: tCommon('all') },
-    { key: 'active', label: t('status.completed') },
-    { key: 'pending', label: t('status.pending') },
-    { key: 'confirmed', label: t('status.processing') },
-    { key: 'unlocked', label: t('status.failed') },
+    { key: 'all', label: 'すべて', count: transactions.length },
+    { key: 'pending', label: '承認待ち', count: transactions.filter(tx => tx.status === 'pending').length },
+    { key: 'confirmed', label: '確認済み', count: transactions.filter(tx => tx.status === 'confirmed').length },
+    { key: 'active', label: 'アクティブ', count: transactions.filter(tx => tx.status === 'active').length },
   ];
 
   const filteredTransactions = useMemo(() => {
@@ -199,20 +207,20 @@ export function LockTransactions() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <Link href="/qs-admin/transactions">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-11 w-11 rounded-[10px]">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('lockTitle')}</h1>
-            <p className="text-foreground-secondary">{t('lockSubtitle')}</p>
+            <h1 className="text-2xl font-bold text-primary">ロックトランザクション</h1>
+            <p className="text-secondary">ETHロックの履歴と管理</p>
           </div>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="min-h-[44px] rounded-[10px]">
           <Download className="h-4 w-4 mr-2" />
-          {tCommon('export')}
+          エクスポート
         </Button>
       </div>
 
@@ -228,58 +236,117 @@ export function LockTransactions() {
         ) : statsQuery.isError ? (
           <div className="col-span-4">
             <ErrorState
-              message="Failed to load statistics"
+              message="統計データの読み込みに失敗しました"
               onRetry={() => statsQuery.refetch()}
             />
           </div>
         ) : (
           <>
-            <StatCard title={t('stats.totalLocks')} value={stats.totalLocks.toLocaleString()} icon={Lock} trend={{ value: 12.5, isPositive: true }} />
-            <StatCard title={t('stats.lockVolume')} value={stats.lockVolume} icon={Lock} trend={{ value: 8.3, isPositive: true }} />
-            <StatCard title={t('stats.avgLockAmount')} value={stats.avgLockAmount} icon={Lock} />
-            <StatCard title={t('stats.avgLockDuration')} value={stats.avgLockDuration} icon={Lock} />
+            <StatCard
+              title="総ロック数"
+              value={stats.totalLocks.toLocaleString()}
+              icon={Lock}
+            />
+            <StatCard
+              title="ロック総額"
+              value={stats.lockVolume}
+              icon={Wallet}
+              iconColor="text-[#00C896]"
+              iconBg="bg-[#00C896]/10"
+            />
+            <StatCard
+              title="平均ロック額"
+              value={stats.avgLockAmount}
+              icon={Activity}
+              iconColor="text-[#4A90D9]"
+              iconBg="bg-[#4A90D9]/10"
+            />
+            <StatCard
+              title="平均ロック期間"
+              value={stats.avgLockDuration}
+              icon={Timer}
+              iconColor="text-gold"
+              iconBg="bg-gold/10"
+            />
           </>
         )}
       </div>
 
       {/* Transaction List */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">{t('lockTitle')}</CardTitle>
-          <div className="flex items-center space-x-2">
+      <Card className="bg-card border-border/10 rounded-[20px]">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="text-lg">トランザクション一覧</CardTitle>
+          <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground-tertiary" />
-              <Input type="text" placeholder={tCommon('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 w-64" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
+              <Input
+                type="text"
+                placeholder="ID または アドレスで検索..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-72 min-h-[44px] rounded-[14px] bg-secondary border-border/10"
+              />
             </div>
-            <Button variant="outline" size="icon"><Filter className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" className="h-11 w-11 rounded-[10px]">
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
           {/* Filter Tabs */}
-          <div className="flex space-x-2 mb-4 border-b border-border">
+          <div className="flex gap-2 mb-6 p-1 bg-secondary rounded-[14px] w-fit">
             {statusFilters.map((filter) => (
-              <button key={filter.key} onClick={() => setStatusFilter(filter.key)} className={cn('px-4 py-3 min-h-[44px] text-sm font-medium border-b-2 -mb-px transition-colors', statusFilter === filter.key ? 'border-hinomaru text-hinomaru' : 'border-transparent text-foreground-secondary hover:text-foreground')}>
+              <button
+                key={filter.key}
+                onClick={() => setStatusFilter(filter.key)}
+                className={cn(
+                  'px-4 py-2 min-h-[40px] text-sm font-medium rounded-[10px] transition-all duration-normal',
+                  statusFilter === filter.key
+                    ? 'bg-card text-primary shadow-sm'
+                    : 'text-secondary hover:text-primary'
+                )}
+              >
                 {filter.label}
+                {filter.count > 0 && (
+                  <span className={cn(
+                    'ml-2 px-2 py-0.5 text-xs rounded-full',
+                    statusFilter === filter.key
+                      ? 'bg-hinomaru/10 text-hinomaru'
+                      : 'bg-elevated text-secondary'
+                  )}>
+                    {filter.count}
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-[14px] border border-border/10">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.id')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.user')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.amount')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.duration')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.prover')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.status')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.timestamp')}</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">{t('table.actions')}</th>
+                <tr className="bg-secondary">
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    ユーザー
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    金額
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    ステータス
+                  </th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    作成日時
+                  </th>
+                  <th className="text-right py-4 px-6 text-xs font-semibold text-secondary uppercase tracking-wider">
+                    操作
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/10">
                 {transactionsQuery.isLoading ? (
                   <>
                     <TableRowSkeleton />
@@ -290,39 +357,75 @@ export function LockTransactions() {
                   </>
                 ) : transactionsQuery.isError ? (
                   <tr>
-                    <td colSpan={8}>
+                    <td colSpan={6}>
                       <ErrorState
-                        message="Failed to load transactions"
+                        message="トランザクションの読み込みに失敗しました"
                         onRetry={() => transactionsQuery.refetch()}
                       />
                     </td>
                   </tr>
+                ) : filteredTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6}>
+                      <div className="text-center py-12">
+                        <Lock className="h-12 w-12 text-tertiary mx-auto mb-4" />
+                        <p className="text-secondary">
+                          {searchQuery || statusFilter !== 'all'
+                            ? '条件に一致するトランザクションがありません'
+                            : 'ロックトランザクションはまだありません'
+                          }
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
                 ) : (
                   filteredTransactions.map((tx) => {
-                    const statusKey = tx.status === 'active' ? 'completed' : tx.status === 'confirmed' ? 'processing' : tx.status === 'unlocked' ? 'failed' : tx.status;
-                    const StatusIcon = STATUS_ICONS[statusKey as keyof typeof STATUS_ICONS] || Clock;
+                    const statusKey = tx.status as keyof typeof STATUS_CONFIG;
+                    const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending;
+                    const StatusIcon = config.icon;
                     const userAddr = 'userAddress' in tx ? tx.userAddress : '-';
-                    const duration = 'duration' in tx ? tx.duration : '-';
-                    const prover = 'prover' in tx ? tx.prover : '-';
+
                     return (
-                      <tr key={tx.id} className="border-b border-border hover:bg-surface transition-colors">
-                        <td className="py-3 px-4"><code className="text-sm font-mono text-success">{tx.id}</code></td>
-                        <td className="py-3 px-4"><code className="text-sm font-mono">{userAddr}</code></td>
-                        <td className="py-3 px-4 font-medium">{tx.amount}</td>
-                        <td className="py-3 px-4 text-foreground-secondary">{duration}</td>
-                        <td className="py-3 px-4 text-foreground-secondary">{prover}</td>
-                        <td className="py-3 px-4">
-                          <span className={cn('inline-flex items-center px-2 py-1 rounded-md text-xs font-medium', STATUS_COLORS[statusKey as keyof typeof STATUS_COLORS] || 'bg-muted text-muted-foreground')}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {t(`status.${statusKey}`)}
+                      <tr
+                        key={tx.id}
+                        className="group hover:bg-elevated transition-colors"
+                      >
+                        <td className="py-4 px-6">
+                          <code className="text-sm font-mono font-medium text-hinomaru" title={tx.id}>
+                            {truncateId(tx.id)}
+                          </code>
+                        </td>
+                        <td className="py-4 px-6">
+                          <code className="text-sm font-mono text-secondary">
+                            {userAddr}
+                          </code>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="font-semibold font-mono">{tx.amount}</span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={cn(
+                            'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium',
+                            config.bg,
+                            config.color
+                          )}>
+                            <StatusIcon className="h-3 w-3" />
+                            {config.label}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-sm text-foreground-secondary">
+                        <td className="py-4 px-6 text-sm text-secondary font-mono">
                           {typeof tx.createdAt === 'number' ? formatTimestamp(tx.createdAt) : tx.createdAt}
                         </td>
-                        <td className="py-3 px-4">
-                          <Link href={`/qs-admin/transactions/lock/${tx.id}`} className="inline-flex items-center justify-center min-h-[44px] px-4 py-2 text-sm font-medium border border-border rounded-md hover:bg-accent transition-colors">
-                            {tCommon('detail')}
+                        <td className="py-4 px-6 text-right">
+                          <Link href={`/qs-admin/transactions/lock/${tx.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="min-h-[36px] rounded-[6px] opacity-0 group-hover:opacity-100 transition-opacity text-gold hover:text-gold-light"
+                            >
+                              詳細
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
                           </Link>
                         </td>
                       </tr>
@@ -333,8 +436,21 @@ export function LockTransactions() {
             </table>
           </div>
 
-          {!transactionsQuery.isLoading && !transactionsQuery.isError && filteredTransactions.length === 0 && (
-            <div className="text-center py-8 text-foreground-secondary">{t('empty.lock')}</div>
+          {/* Pagination placeholder */}
+          {!transactionsQuery.isLoading && !transactionsQuery.isError && filteredTransactions.length > 0 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/10">
+              <p className="text-sm text-secondary">
+                {filteredTransactions.length} 件のトランザクション
+              </p>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="min-h-[36px] rounded-[6px]" disabled>
+                  前へ
+                </Button>
+                <Button variant="outline" size="sm" className="min-h-[36px] rounded-[6px]" disabled>
+                  次へ
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

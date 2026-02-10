@@ -29,11 +29,11 @@ export interface VotingPowerBreakdown {
 // =============================================================================
 
 export type ProposalStatus = 'active' | 'pending' | 'passed' | 'executed' | 'defeated' | 'vetoed';
-export type ProposalType = 'parameter' | 'upgrade' | 'council';
+export type ProposalType = 'parameter' | 'upgrade' | 'treasury' | 'signal' | 'emergency';
 export type UserVote = 'for' | 'against' | null;
 
 export interface Proposal {
-  id: number;
+  id: string;
   title: string;
   description: string;
   status: ProposalStatus;
@@ -153,7 +153,7 @@ export interface CouncilResponse {
 }
 
 export interface VoteRequest {
-  proposalId: number;
+  proposalId: string;
   vote: 'for' | 'against';
 }
 

@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type ProposalType = 'parameter' | 'upgrade' | 'council';
+type ProposalType = 'parameter' | 'treasury' | 'upgrade' | 'signal' | 'emergency';
 
 interface StepIndicatorProps {
   step: number;
@@ -103,7 +103,7 @@ function TypeCard({ type, icon, name, description, quorum, isSelected, onClick }
 }
 
 interface SuccessScreenProps {
-  proposalId: number;
+  proposalId: string;
   t: ReturnType<typeof useTranslations>;
 }
 
@@ -117,7 +117,7 @@ function SuccessScreen({ proposalId, t }: SuccessScreenProps) {
         <div className="bg-card border border-border rounded-2xl p-6 text-left max-w-sm mx-auto mb-8">
           <div className="flex justify-between py-2">
             <span className="text-foreground-tertiary text-sm">{t('success.proposalId')}</span>
-            <span className="font-semibold text-sm text-gold">QIP-{proposalId}</span>
+            <span className="font-semibold text-sm text-gold">{proposalId}</span>
           </div>
         </div>
         <div className="flex flex-col gap-3">
@@ -142,7 +142,7 @@ export function CreateProposal() {
   const [summary, setSummary] = useState('');
   const [forumLink, setForumLink] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [newProposalId] = useState(48);
+  const [newProposalId] = useState('QIP-48');
 
   const minVeqs = 10000;
   const userVeqs = 125000;
@@ -150,8 +150,10 @@ export function CreateProposal() {
 
   const quorumMap: Record<ProposalType, { percent: number; veqs: number }> = {
     parameter: { percent: 4, veqs: 500000 },
+    treasury: { percent: 6, veqs: 750000 },
     upgrade: { percent: 8, veqs: 1000000 },
-    council: { percent: 15, veqs: 1875000 },
+    signal: { percent: 3, veqs: 375000 },
+    emergency: { percent: 15, veqs: 1875000 },
   };
 
   const handleNext = () => {
@@ -225,13 +227,13 @@ export function CreateProposal() {
                   onClick={() => setSelectedType('upgrade')}
                 />
                 <TypeCard
-                  type="council"
+                  type="signal"
                   icon={<Users className="w-9 h-9 mx-auto text-success" />}
-                  name={t('step1.types.council.name')}
-                  description={t('step1.types.council.description')}
-                  quorum={t('step1.types.council.quorum')}
-                  isSelected={selectedType === 'council'}
-                  onClick={() => setSelectedType('council')}
+                  name={t('step1.types.signal.name')}
+                  description={t('step1.types.signal.description')}
+                  quorum={t('step1.types.signal.quorum')}
+                  isSelected={selectedType === 'signal'}
+                  onClick={() => setSelectedType('signal')}
                 />
               </div>
 

@@ -38,94 +38,37 @@ import type {
   UnlockTypeDistribution,
 } from '@/lib/api/explorer/mock';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_TVL_DATA: TvlDataPoint[] = [
-  { date: '01/01', value: 12500 },
-  { date: '01/02', value: 12800 },
-  { date: '01/03', value: 13200 },
-  { date: '01/04', value: 12900 },
-  { date: '01/05', value: 13500 },
-  { date: '01/06', value: 14200 },
-  { date: '01/07', value: 14800 },
-  { date: '01/08', value: 15200 },
-  { date: '01/09', value: 15600 },
-  { date: '01/10', value: 15234 },
-];
+// Empty initial state (no fake data)
+const FALLBACK_TVL_DATA: TvlDataPoint[] = [];
 
-const FALLBACK_VOLUME_DATA: VolumeDataPoint[] = [
-  { date: '01/01', locks: 45, unlocks: 32 },
-  { date: '01/02', locks: 52, unlocks: 38 },
-  { date: '01/03', locks: 48, unlocks: 42 },
-  { date: '01/04', locks: 61, unlocks: 35 },
-  { date: '01/05', locks: 55, unlocks: 48 },
-  { date: '01/06', locks: 72, unlocks: 52 },
-  { date: '01/07', locks: 68, unlocks: 58 },
-];
+const FALLBACK_VOLUME_DATA: VolumeDataPoint[] = [];
 
-const FALLBACK_PROVER_PERFORMANCE: ProverPerformance[] = [
-  { name: 'Prover Alpha', uptime: 99.9, avgResponse: 1.2 },
-  { name: 'Prover Beta', uptime: 99.7, avgResponse: 1.4 },
-  { name: 'Prover Gamma', uptime: 99.5, avgResponse: 1.8 },
-  { name: 'Prover Delta', uptime: 99.8, avgResponse: 1.3 },
-  { name: 'Prover Epsilon', uptime: 99.6, avgResponse: 1.5 },
-];
+const FALLBACK_PROVER_PERFORMANCE: ProverPerformance[] = [];
 
 const FALLBACK_ANALYTICS_STATS: AnalyticsStats = {
-  currentTvl: '$847.2M',
-  tvlChange: '+12.4%',
+  currentTvl: '$0',
+  tvlChange: '0%',
   tvlTrend: 'up',
-  totalLocks: '24,891',
-  totalUnlocks: '18,234',
-  avgLockAmount: '34.2 ETH',
-  avgLockDuration: '45 days',
-  successRate: '99.8%',
-  challengeRate: '0.3%',
-  resolvedChallenges: 153,
-  pendingChallenges: 3,
+  totalLocks: '0',
+  totalUnlocks: '0',
+  avgLockAmount: '0 ETH',
+  avgLockDuration: '-',
+  successRate: '-',
+  challengeRate: '-',
+  resolvedChallenges: 0,
+  pendingChallenges: 0,
 };
 
 const FALLBACK_LOCK_DISTRIBUTION: LockStatusDistribution = {
-  active: 65,
-  unlocking: 25,
-  unlocked: 10,
+  active: 0,
+  unlocking: 0,
+  unlocked: 0,
 };
 
 const FALLBACK_UNLOCK_DISTRIBUTION: UnlockTypeDistribution = {
-  normal: 85,
-  emergency: 15,
+  normal: 0,
+  emergency: 0,
 };
-
-// Mock data for charts (kept for reference)
-const mockTvlDataOriginal = [
-  { date: '01/01', value: 12500 },
-  { date: '01/02', value: 12800 },
-  { date: '01/03', value: 13200 },
-  { date: '01/04', value: 12900 },
-  { date: '01/05', value: 13500 },
-  { date: '01/06', value: 14200 },
-  { date: '01/07', value: 14800 },
-  { date: '01/08', value: 15200 },
-  { date: '01/09', value: 15600 },
-  { date: '01/10', value: 15234 },
-];
-
-const mockVolumeData = [
-  { date: '01/01', locks: 45, unlocks: 32 },
-  { date: '01/02', locks: 52, unlocks: 38 },
-  { date: '01/03', locks: 48, unlocks: 42 },
-  { date: '01/04', locks: 61, unlocks: 35 },
-  { date: '01/05', locks: 55, unlocks: 48 },
-  { date: '01/06', locks: 72, unlocks: 52 },
-  { date: '01/07', locks: 68, unlocks: 58 },
-];
-
-const mockProverData = [
-  { name: 'Prover Alpha', uptime: 99.9, avgResponse: 1.2 },
-  { name: 'Prover Beta', uptime: 99.7, avgResponse: 1.4 },
-  { name: 'Prover Gamma', uptime: 99.5, avgResponse: 1.8 },
-  { name: 'Prover Delta', uptime: 99.8, avgResponse: 1.3 },
-  { name: 'Prover Epsilon', uptime: 99.6, avgResponse: 1.5 },
-];
 
 type TimeRange = '7d' | '30d' | '90d' | '1y' | 'all';
 
@@ -155,8 +98,8 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
 
   const timeRangeOptions: TimeRange[] = ['7d', '30d', '90d', '1y', 'all'];
 
-  const maxTvl = Math.max(...mockTvlData.map(d => d.value));
-  const maxVolume = Math.max(...mockVolumeData.map(d => Math.max(d.locks, d.unlocks)));
+  const maxTvl = mockTvlData.length > 0 ? Math.max(...mockTvlData.map(d => d.value)) : 1;
+  const maxVolume = mockVolumeData.length > 0 ? Math.max(...mockVolumeData.map(d => Math.max(d.locks, d.unlocks))) : 1;
 
   return (
     <div className="min-h-screen bg-background">

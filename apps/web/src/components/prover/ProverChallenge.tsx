@@ -23,38 +23,28 @@ import { Link } from '@/i18n/navigation';
 import { ProverSidebar } from './ProverSidebar';
 import { cn } from '@/lib/utils';
 
-// Mock data
+// Empty initial state — TODO: integrate with useProverChallenges() hook
 const mockActiveChallenge = {
-  id: 'CHG-2026-000123',
-  applicant: 'Watcher #W-0042',
-  date: '2026/01/17 10:15',
-  violationType: 'invalidSignature',
-  potentialSlashing: 40000,
-  slashingRate: 10,
-  timeRemaining: 23 * 3600 + 45 * 60 + 30,
+  id: '-',
+  applicant: '-',
+  date: '-',
+  violationType: '-',
+  potentialSlashing: 0,
+  slashingRate: 0,
+  timeRemaining: 0,
   accusation: {
-    requestId: 'REQ-789012',
-    expectedLength: 7856,
-    actualLength: 7854,
-    errorCode: 'INVALID_SIGNATURE_LENGTH',
-    verificationNodes: 3,
+    requestId: '-',
+    expectedLength: 0,
+    actualLength: 0,
+    errorCode: '-',
+    verificationNodes: 0,
   },
-  evidence: [
-    { name: 'signature_log_REQ-789012.json', type: 'json' },
-    { name: 'watcher_verification_report.pdf', type: 'pdf' },
-  ],
+  evidence: [] as { name: string; type: string }[],
 };
 
-const mockChallengeHistory = [
-  { id: 'CHG-2026-000123', date: '2026/01/17', type: 'invalidSignature', status: 'pending', slashing: null },
-  { id: 'CHG-2026-000122', date: '2026/02/15', type: 'timeout', status: 'won', slashing: 0 },
-  { id: 'CHG-2026-000098', date: '2026/01/08', type: 'doubleSigning', status: 'won', slashing: 0 },
-];
+const mockChallengeHistory: { id: string; date: string; type: string; status: string; slashing: number | null }[] = [];
 
-const mockUploadedFiles = [
-  { name: 'server_logs_20260117.json' },
-  { name: 'signature_generation_trace.txt' },
-];
+const mockUploadedFiles: { name: string }[] = [];
 
 type TabType = 'notification' | 'defense' | 'result';
 

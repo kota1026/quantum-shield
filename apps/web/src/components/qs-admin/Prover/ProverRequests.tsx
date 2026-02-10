@@ -26,8 +26,7 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useProverRequestStats, useProverRequests } from '@/hooks/admin/useProvers';
-import type { ProverRequestStats } from '@/lib/api/admin/mock';
-import type { ProverApplication } from '@/lib/api/admin/types';
+import type { ProverApplication, ProverRequestStats } from '@/lib/api/admin/types';
 
 // Fallback data - Used when API is unavailable
 const FALLBACK_STATS: ProverRequestStats = {
@@ -329,10 +328,14 @@ export function ProverRequests() {
                     const tier = req.tier || 'standard';
                     const infrastructure = 'infrastructure' in req ? req.infrastructure : '-';
                     const documents = 'documents' in req && typeof req.documents === 'number' ? req.documents : ('documents' in req && Array.isArray(req.documents) ? req.documents.length : 0);
-                    const submittedAt = 'submittedAt' in req && typeof req.submittedAt === 'string' ? req.submittedAt : ('submittedAt' in req && typeof req.submittedAt === 'number' ? new Date(req.submittedAt).toLocaleString('ja-JP') : '-');
+                    const submittedAt = 'submittedAt' in req && typeof req.submittedAt === 'string' ? req.submittedAt : ('submittedAt' in req && typeof req.submittedAt === 'number' ? new Date(req.submittedAt * 1000).toLocaleString('ja-JP') : '-');
                     return (
                       <tr key={req.id} className={cn('border-b border-border hover:bg-surface transition-colors', req.status === 'pending' && 'bg-warning/5')}>
-                        <td className="py-3 px-4"><code className="text-sm font-mono text-hinomaru">{req.id}</code></td>
+                        <td className="py-3 px-4">
+                          <code className="text-sm font-mono text-hinomaru" title={req.id}>
+                            {req.id.length > 16 ? `${req.id.slice(0, 10)}...${req.id.slice(-4)}` : req.id}
+                          </code>
+                        </td>
                         <td className="py-3 px-4">
                           <div>
                             <p className="font-medium">{applicant}</p>

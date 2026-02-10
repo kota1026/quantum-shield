@@ -725,7 +725,8 @@
           "available": "Available",
           "claimButton": "Claim Rewards",
           "claimAll": "Claim All",
-          "readyToClaim": "Ready to Claim"
+          "readyToClaim": "Ready to Claim",
+          "rewardToken": "QS Token Rewards"
         },
         "breakdown": {
           "challenge": "Dispute #{id}",

@@ -85,7 +85,9 @@ const jaMessages = {
       types: {
         parameter: 'パラメータ変更',
         upgrade: 'アップグレード',
-        council: '評議会変更',
+        signal: 'シグナル提案',
+        treasury: 'トレジャリー',
+        emergency: '緊急提案',
       },
     },
   },
@@ -117,13 +119,13 @@ type Story = StoryObj<typeof ProposalDetail>;
 
 export const Default: Story = {
   args: {
-    proposalId: 47,
+    proposalId: 'QIP-047',
   },
 };
 
 export const Mobile: Story = {
   args: {
-    proposalId: 47,
+    proposalId: 'QIP-047',
   },
   parameters: {
     viewport: {
@@ -134,7 +136,7 @@ export const Mobile: Story = {
 
 export const Tablet: Story = {
   args: {
-    proposalId: 47,
+    proposalId: 'QIP-047',
   },
   parameters: {
     viewport: {

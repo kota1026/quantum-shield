@@ -14,12 +14,6 @@ import {
   FileText,
   Coins,
   Server,
-  Mail,
-  Globe,
-  Cpu,
-  Wifi,
-  Timer,
-  Download,
   Copy,
   AlertTriangle,
   PlayCircle,
@@ -29,8 +23,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import { useProverRequestDetail } from '@/hooks/admin/useProvers';
-import type { ProverRequestDetailData } from '@/lib/api/admin/mock';
+import { useProverRequestDetail, useUpdateProverStatus } from '@/hooks/admin/useProvers';
 
 type ReviewStep = 'idle' | 'start_review' | 'confirm_approve' | 'confirm_reject';
 
@@ -38,32 +31,28 @@ interface ProverRequestDetailProps {
   id: string;
 }
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_REQUEST: ProverRequestDetailData = {
-  id: 'PR-001',
-  applicant: 'Prover Alpha Corp',
-  wallet: '0x1234567890abcdef1234567890abcdef12345678',
-  stakeAmount: '10,000 QS',
-  tier: 'enterprise',
-  submittedAt: '2024-01-27 10:00',
-  status: 'pending',
-  infrastructure: 'AWS Tokyo',
-  contactEmail: 'admin@proveralpha.com',
-  website: 'https://proveralpha.com',
-  hardwareSpecs: '64 vCPU, 256GB RAM, 4TB NVMe SSD',
-  networkBandwidth: '10 Gbps dedicated',
-  expectedUptime: '99.99%',
-  documents: [
-    { name: 'Company Registration', type: 'pdf', size: '1.2 MB' },
-    { name: 'Technical Whitepaper', type: 'pdf', size: '3.5 MB' },
-    { name: 'Infrastructure Audit Report', type: 'pdf', size: '2.1 MB' },
-    { name: 'Security Certification', type: 'pdf', size: '850 KB' },
-    { name: 'Team Credentials', type: 'pdf', size: '1.8 MB' },
-  ],
-  reviewHistory: [
-    { action: 'Application submitted', timestamp: '2024-01-27 10:00', user: 'Applicant' },
-  ],
-};
+// API response type - matches what the backend actually returns
+interface ProverRequestApiData {
+  id: string;
+  organizationName?: string;
+  applicantAddress?: string;
+  applicant?: string;
+  wallet?: string;
+  tier: string;
+  stakeAmount: string;
+  infrastructure: string;
+  documents?: number;
+  submittedAt: number; // Unix timestamp in seconds
+  status: string;
+  // Extended fields from application form
+  country?: string;
+  website?: string;
+  contactEmail?: string;
+  validatorExperience?: string;
+  hsmProvider?: string;
+  infrastructureLocation?: string;
+  businessRegistrationNumber?: string;
+}
 
 // Loading skeleton component
 function DetailSkeleton() {
@@ -162,39 +151,63 @@ export function ProverRequestDetail({ id }: ProverRequestDetailProps) {
   const [reviewStep, setReviewStep] = useState<ReviewStep>('idle');
   const [currentStatus, setCurrentStatus] = useState<string | null>(null);
 
-  // React Query hook
+  // React Query hooks
   const requestQuery = useProverRequestDetail(id);
+  const updateStatusMutation = useUpdateProverStatus(id);
 
-  // Map API data to component format
-  const mapApiData = (data: unknown): ProverRequestDetailData => {
-    if (!data || typeof data !== 'object') return { ...FALLBACK_REQUEST, id };
+  // Map API data to component format - only use real data from API
+  const mapApiData = (data: unknown): ProverRequestApiData | null => {
+    if (!data || typeof data !== 'object') return null;
     const d = data as Record<string, unknown>;
     return {
       id: (d.id as string) || id,
-      applicant: (d.applicant as string) || (d.organizationName as string) || FALLBACK_REQUEST.applicant,
-      wallet: (d.wallet as string) || (d.applicantAddress as string) || FALLBACK_REQUEST.wallet,
-      stakeAmount: (d.stakeAmount as string) || FALLBACK_REQUEST.stakeAmount,
-      tier: (d.tier as string) || FALLBACK_REQUEST.tier,
-      submittedAt: (d.submittedAt as string) || (typeof d.submittedAt === 'number' ? new Date(d.submittedAt).toLocaleString('ja-JP') : FALLBACK_REQUEST.submittedAt),
-      status: (d.status as string) || FALLBACK_REQUEST.status,
-      infrastructure: (d.infrastructure as string) || FALLBACK_REQUEST.infrastructure,
-      contactEmail: (d.contactEmail as string) || FALLBACK_REQUEST.contactEmail,
-      website: (d.website as string) || FALLBACK_REQUEST.website,
-      hardwareSpecs: (d.hardwareSpecs as string) || FALLBACK_REQUEST.hardwareSpecs,
-      networkBandwidth: (d.networkBandwidth as string) || FALLBACK_REQUEST.networkBandwidth,
-      expectedUptime: (d.expectedUptime as string) || FALLBACK_REQUEST.expectedUptime,
-      documents: (d.documents as ProverRequestDetailData['documents']) || FALLBACK_REQUEST.documents,
-      reviewHistory: (d.reviewHistory as ProverRequestDetailData['reviewHistory']) || FALLBACK_REQUEST.reviewHistory,
+      organizationName: d.organizationName as string | undefined,
+      applicantAddress: d.applicantAddress as string | undefined,
+      applicant: d.applicant as string | undefined,
+      wallet: d.wallet as string | undefined,
+      tier: (d.tier as string) || 'standard',
+      stakeAmount: (d.stakeAmount as string) || '0 QS',
+      infrastructure: (d.infrastructure as string) || 'Unknown',
+      documents: typeof d.documents === 'number' ? d.documents : undefined,
+      submittedAt: typeof d.submittedAt === 'number' ? d.submittedAt : 0,
+      status: (d.status as string) || 'pending',
+      // Extended fields from application form
+      country: d.country as string | undefined,
+      website: d.website as string | undefined,
+      contactEmail: d.contactEmail as string | undefined,
+      validatorExperience: d.validatorExperience as string | undefined,
+      hsmProvider: d.hsmProvider as string | undefined,
+      infrastructureLocation: d.infrastructureLocation as string | undefined,
+      businessRegistrationNumber: d.businessRegistrationNumber as string | undefined,
     };
   };
 
-  // Use API data or fallback
-  const apiRequest = requestQuery.data ? mapApiData(requestQuery.data) : { ...FALLBACK_REQUEST, id };
-  const request = { ...apiRequest, status: currentStatus ?? apiRequest.status };
+  // Use API data
+  const apiData = requestQuery.data ? mapApiData(requestQuery.data) : null;
+
+  // Derive display values from API data
+  const request = {
+    id: apiData?.id || id,
+    applicant: apiData?.applicant || apiData?.organizationName || `Prover ${id.slice(0, 8)}`,
+    wallet: apiData?.wallet || apiData?.applicantAddress || '',
+    tier: apiData?.tier || 'standard',
+    stakeAmount: apiData?.stakeAmount || '0 QS',
+    infrastructure: apiData?.infrastructure || apiData?.infrastructureLocation || 'Unknown',
+    documentCount: apiData?.documents ?? 0,
+    submittedAt: apiData?.submittedAt ? new Date(apiData.submittedAt * 1000).toLocaleString('ja-JP') : '-',
+    status: currentStatus ?? apiData?.status ?? 'pending',
+    // Extended fields
+    country: apiData?.country,
+    website: apiData?.website,
+    contactEmail: apiData?.contactEmail,
+    validatorExperience: apiData?.validatorExperience,
+    hsmProvider: apiData?.hsmProvider,
+    businessRegistrationNumber: apiData?.businessRegistrationNumber,
+  };
 
   // Initialize currentStatus from API data when it loads
-  if (currentStatus === null && requestQuery.data) {
-    setCurrentStatus(apiRequest.status);
+  if (currentStatus === null && apiData) {
+    setCurrentStatus(apiData.status);
   }
 
   // Show loading skeleton only for initial load
@@ -210,22 +223,37 @@ export function ProverRequestDetail({ id }: ProverRequestDetailProps) {
     navigator.clipboard.writeText(text);
   };
 
-  const handleStartReview = () => {
-    setCurrentStatus('under_review');
-    setReviewStep('idle');
+  const handleStartReview = async () => {
+    try {
+      await updateStatusMutation.mutateAsync({ status: 'under_review', comment });
+      setCurrentStatus('under_review');
+      setReviewStep('idle');
+    } catch (error) {
+      console.error('Failed to start review:', error);
+    }
   };
 
-  const handleApprove = () => {
-    setCurrentStatus('approved');
-    setReviewStep('idle');
+  const handleApprove = async () => {
+    try {
+      await updateStatusMutation.mutateAsync({ status: 'approved', comment });
+      setCurrentStatus('approved');
+      setReviewStep('idle');
+    } catch (error) {
+      console.error('Failed to approve:', error);
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!comment.trim()) {
       return; // Prevent rejection without reason
     }
-    setCurrentStatus('rejected');
-    setReviewStep('idle');
+    try {
+      await updateStatusMutation.mutateAsync({ status: 'rejected', comment });
+      setCurrentStatus('rejected');
+      setReviewStep('idle');
+    } catch (error) {
+      console.error('Failed to reject:', error);
+    }
   };
 
   return (
@@ -294,24 +322,33 @@ export function ProverRequestDetail({ id }: ProverRequestDetailProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-                <div>
-                  <p className="text-sm text-foreground-secondary">{t('detail.contactEmail')}</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Mail className="h-4 w-4 text-foreground-tertiary" />
-                    <span>{request.contactEmail}</span>
-                  </div>
+              {/* Contact Email & Website (if available) */}
+              {(request.contactEmail || request.website) && (
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+                  {request.contactEmail && (
+                    <div>
+                      <p className="text-sm text-foreground-secondary">{t('detail.contactEmail')}</p>
+                      <p className="font-medium mt-1">{request.contactEmail}</p>
+                    </div>
+                  )}
+                  {request.website && (
+                    <div>
+                      <p className="text-sm text-foreground-secondary">{t('detail.website')}</p>
+                      <a href={request.website} target="_blank" rel="noopener noreferrer" className="text-hinomaru hover:underline mt-1 inline-block">
+                        {request.website}
+                      </a>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <p className="text-sm text-foreground-secondary">{t('detail.website')}</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Globe className="h-4 w-4 text-foreground-tertiary" />
-                    <a href={request.website} target="_blank" rel="noopener noreferrer" className="text-hinomaru hover:underline">
-                      {request.website}
-                    </a>
-                  </div>
+              )}
+
+              {/* Business Registration (if available) */}
+              {request.businessRegistrationNumber && (
+                <div className="pt-4 border-t border-border">
+                  <p className="text-sm text-foreground-secondary">{t('detail.businessRegistrationNumber')}</p>
+                  <p className="font-medium mt-1">{request.businessRegistrationNumber}</p>
                 </div>
-              </div>
+              )}
 
               <div className="pt-4 border-t border-border">
                 <p className="text-sm text-foreground-secondary">{t('detail.stakeAmount')}</p>
@@ -337,30 +374,19 @@ export function ProverRequestDetail({ id }: ProverRequestDetailProps) {
                     <span className="font-medium">{request.infrastructure}</span>
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-foreground-secondary">{t('detail.expectedUptime')}</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Timer className="h-4 w-4 text-success" />
-                    <span className="font-medium text-success">{request.expectedUptime}</span>
+                {request.hsmProvider && (
+                  <div>
+                    <p className="text-sm text-foreground-secondary">{t('detail.hsmProvider')}</p>
+                    <span className="font-medium mt-1 inline-block">{request.hsmProvider}</span>
                   </div>
-                </div>
+                )}
               </div>
-
-              <div className="pt-4 border-t border-border">
-                <p className="text-sm text-foreground-secondary">{t('detail.hardwareSpecs')}</p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Cpu className="h-4 w-4 text-foreground-tertiary" />
-                  <span>{request.hardwareSpecs}</span>
+              {request.validatorExperience && (
+                <div className="pt-4 border-t border-border">
+                  <p className="text-sm text-foreground-secondary">{t('detail.validatorExperience')}</p>
+                  <p className="mt-1 text-foreground">{request.validatorExperience}</p>
                 </div>
-              </div>
-
-              <div className="pt-4 border-t border-border">
-                <p className="text-sm text-foreground-secondary">{t('detail.networkBandwidth')}</p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Wifi className="h-4 w-4 text-foreground-tertiary" />
-                  <span>{request.networkBandwidth}</span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -370,21 +396,12 @@ export function ProverRequestDetail({ id }: ProverRequestDetailProps) {
               <CardTitle className="text-lg">{t('detail.documents')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {request.documents.map((doc, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-surface rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <FileText className="h-5 w-5 text-hinomaru" />
-                      <div>
-                        <p className="font-medium">{doc.name}</p>
-                        <p className="text-xs text-foreground-secondary">{doc.type.toUpperCase()} • {doc.size}</p>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+              <div className="flex items-center space-x-3 p-3 bg-surface rounded-lg">
+                <FileText className="h-5 w-5 text-hinomaru" />
+                <div>
+                  <p className="font-medium">{request.documentCount} {t('table.documents')}</p>
+                  <p className="text-xs text-foreground-secondary">{t('detail.documentsNote')}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -596,38 +613,26 @@ export function ProverRequestDetail({ id }: ProverRequestDetailProps) {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Review History */}
+          {/* Submission Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('detail.reviewHistory')}</CardTitle>
+              <CardTitle className="text-lg">{t('detail.submissionInfo')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {request.reviewHistory.map((event, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <div className="h-2 w-2 rounded-full bg-hinomaru mt-2" />
-                    <div>
-                      <p className="font-medium text-sm">{event.action}</p>
-                      <p className="text-xs text-foreground-secondary">{event.timestamp}</p>
-                      <p className="text-xs text-foreground-tertiary">{event.user}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Submission Info */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-3">
                 <div>
                   <p className="text-sm text-foreground-secondary">{t('table.submittedAt')}</p>
                   <p className="font-medium">{request.submittedAt}</p>
                 </div>
                 <div>
                   <p className="text-sm text-foreground-secondary">{t('table.documents')}</p>
-                  <p className="font-medium">{request.documents.length} {t('table.documents')}</p>
+                  <p className="font-medium">{request.documentCount} {t('table.documents')}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-foreground-secondary">{t('table.tier')}</p>
+                  <span className={cn('inline-flex items-center px-2 py-1 rounded-md text-xs font-medium capitalize mt-1', tierConfig.bg, tierConfig.color)}>
+                    {t(`tier.${request.tier}`)}
+                  </span>
                 </div>
               </div>
             </CardContent>
