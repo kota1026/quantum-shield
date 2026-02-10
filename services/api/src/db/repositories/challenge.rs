@@ -6,7 +6,7 @@
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use sqlx::{FromRow, PgPool};
-use tracing::{info, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 
 use crate::error::ApiError;
 
@@ -50,6 +50,171 @@ pub struct SlashingRow {
 pub struct ChallengeRepository;
 
 impl ChallengeRepository {
+    // ========================================================================
+    // Write Operations (Storage Migration Phase 2)
+    // ========================================================================
+
+    /// Create a new challenge record in PostgreSQL
+    /// SM-001: PG first, then Redis cache
+    /// BE-001: Real DB operation (no stubs)
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool))]
+    pub async fn create(
+        pool: &PgPool,
+        challenge_id: &str,
+        lock_id: &str,
+        challenger: &str,
+        fraud_proof_hash: &str,
+        bond: &BigDecimal,
+        defense_deadline: DateTime<Utc>,
+    ) -> Result<(), ApiError> {
+        info!("DB insert: challenge create started, challenge_id={}", challenge_id);
+
+        sqlx::query(
+            r#"
+            INSERT INTO challenges (challenge_id, lock_id, challenger, fraud_proof_hash,
+                                   bond, defense_deadline, status)
+            VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+            ON CONFLICT (challenge_id) DO NOTHING
+            "#,
+        )
+        .bind(challenge_id)
+        .bind(lock_id)
+        .bind(challenger)
+        .bind(fraud_proof_hash)
+        .bind(bond)
+        .bind(defense_deadline)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: challenge create failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        debug!("DB insert: challenge create completed, challenge_id={}", challenge_id);
+        Ok(())
+    }
+
+    /// Update challenge status
+    /// SM-001: PG first
+    #[instrument(skip(pool), fields(challenge_id = %challenge_id, new_status = %new_status))]
+    pub async fn update_status(
+        pool: &PgPool,
+        challenge_id: &str,
+        new_status: &str,
+        defender: Option<&str>,
+        defense_proof_hash: Option<&str>,
+    ) -> Result<(), ApiError> {
+        info!("DB update: challenge update_status started, id={}, status={}", challenge_id, new_status);
+
+        let resolved_at = if new_status.starts_with("resolved") {
+            Some(Utc::now())
+        } else {
+            None
+        };
+
+        sqlx::query(
+            r#"
+            UPDATE challenges
+            SET status = $2,
+                defender = COALESCE($3, defender),
+                defense_proof_hash = COALESCE($4, defense_proof_hash),
+                resolved_at = COALESCE($5, resolved_at)
+            WHERE challenge_id = $1
+            "#,
+        )
+        .bind(challenge_id)
+        .bind(new_status)
+        .bind(defender)
+        .bind(defense_proof_hash)
+        .bind(resolved_at)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: challenge update_status failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        debug!("DB update: challenge update_status completed");
+        Ok(())
+    }
+
+    /// Create a slashing record
+    /// SM-001: PG first
+    #[instrument(skip(pool))]
+    pub async fn create_slashing(
+        pool: &PgPool,
+        slashing_id: &str,
+        challenge_id: &str,
+        prover_id: &str,
+        slash_amount: &BigDecimal,
+        challenger_reward: &BigDecimal,
+        insurance_amount: &BigDecimal,
+        burn_amount: &BigDecimal,
+    ) -> Result<(), ApiError> {
+        info!("DB insert: slashing create started, slashing_id={}", slashing_id);
+
+        sqlx::query(
+            r#"
+            INSERT INTO slashings (slashing_id, challenge_id, prover_id, slash_amount,
+                                  challenger_reward, insurance_amount, burn_amount)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (slashing_id) DO NOTHING
+            "#,
+        )
+        .bind(slashing_id)
+        .bind(challenge_id)
+        .bind(prover_id)
+        .bind(slash_amount)
+        .bind(challenger_reward)
+        .bind(insurance_amount)
+        .bind(burn_amount)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: slashing create failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        debug!("DB insert: slashing create completed, slashing_id={}", slashing_id);
+        Ok(())
+    }
+
+    /// Get challenge by lock_id
+    #[instrument(skip(pool), fields(lock_id = %lock_id))]
+    pub async fn get_by_lock_id(
+        pool: &PgPool,
+        lock_id: &str,
+    ) -> Result<Option<ChallengeRow>, ApiError> {
+        info!("DB query: get_challenge_by_lock_id started");
+
+        let result = sqlx::query_as::<_, ChallengeRow>(
+            r#"
+            SELECT challenge_id, lock_id, unlock_id, challenger, fraud_proof_hash,
+                   bond, challenged_at, defense_deadline, status, defender,
+                   defense_proof_hash, resolved_at
+            FROM challenges
+            WHERE lock_id = $1
+            ORDER BY challenged_at DESC
+            LIMIT 1
+            "#,
+        )
+        .bind(lock_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_challenge_by_lock_id failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_challenge_by_lock_id completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    // ========================================================================
+    // Read Operations (Phase 8-C)
+    // ========================================================================
+
     /// Get challenge by ID
     #[instrument(skip(pool))]
     pub async fn get_by_id(

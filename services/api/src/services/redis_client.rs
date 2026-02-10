@@ -91,4 +91,28 @@ impl RedisClient {
         tracing::info!("Redis DEL {}", key);
         Ok(())
     }
+
+    /// Add a member to a Redis set (R-3: per-user lock index)
+    pub async fn sadd(&self, key: &str, member: &str) -> Result<()> {
+        let mut conn = self.get_conn().await?;
+        let _: () = conn.sadd(key, member).await?;
+        tracing::debug!("Redis SADD {} {}", key, member);
+        Ok(())
+    }
+
+    /// Get all members of a Redis set (R-3: per-user lock index)
+    pub async fn smembers(&self, key: &str) -> Result<Vec<String>> {
+        let mut conn = self.get_conn().await?;
+        let members: Vec<String> = conn.smembers(key).await?;
+        tracing::debug!("Redis SMEMBERS {}: {} members", key, members.len());
+        Ok(members)
+    }
+
+    /// Remove a member from a Redis set
+    pub async fn srem(&self, key: &str, member: &str) -> Result<()> {
+        let mut conn = self.get_conn().await?;
+        let _: () = conn.srem(key, member).await?;
+        tracing::debug!("Redis SREM {} {}", key, member);
+        Ok(())
+    }
 }

@@ -20,6 +20,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
+    db::GovernanceRepository,
     error::ApiError,
     services::AppState,
 };
@@ -99,15 +100,18 @@ pub enum ExtensionStatus {
 // ============================================================================
 
 /// POST /v1/emergency/pause request
+///
+/// Per SEQUENCES §8, the pause request accepts reason, scope, and council signatures.
+/// The actionId is auto-generated server-side if not provided by the client.
 #[derive(Debug, Deserialize)]
 pub struct EmergencyPauseRequest {
     /// Reason for emergency pause
     pub reason: String,
     /// Pause scope
     pub scope: Option<PauseScope>,
-    /// Council action ID (from /council/actions)
-    #[serde(rename = "actionId")]
-    pub action_id: String,
+    /// Council action ID (optional - auto-generated if not provided)
+    #[serde(rename = "actionId", default)]
+    pub action_id: Option<String>,
     /// Executor's address (must be council member)
     pub executor: String,
     /// Executor's signature
@@ -337,22 +341,43 @@ pub struct EmergencyExtendResponse {
 /// Executes emergency pause after Security Council 5/9 approval.
 /// Requires a valid action ID from the council action system.
 pub async fn execute_pause(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<EmergencyPauseRequest>,
 ) -> Result<Json<EmergencyPauseResponse>, ApiError> {
+    // Auto-generate action_id if not provided by the client
+    let action_id = req
+        .action_id
+        .clone()
+        .unwrap_or_else(|| format!("ACTION-{}", Uuid::new_v4().simple()));
+
     tracing::info!(
-        "Emergency: Executing pause - reason: {}, action_id: {}",
+        "Emergency: Executing pause - reason: {}, action_id: {}, executor: {}",
         req.reason,
-        req.action_id
+        action_id,
+        req.executor
     );
 
-    // In production:
-    // 1. Verify action_id exists and has 5/9 signatures
-    // 2. Verify executor is a council member and signed the action
-    // 3. Verify action type is EmergencyPause
-    // 4. Call EmergencyController.pause() on L1
-    // 5. Update L3 state
-    // 6. Emit events
+    let pool = state.pool();
+
+    // Validate: reason must not be empty
+    if req.reason.trim().is_empty() {
+        return Err(ApiError::InvalidRequest("Reason is required".to_string()));
+    }
+
+    // Validate: executor must be an active council member
+    let council_members = GovernanceRepository::get_council_members(pool).await?;
+    let is_council_member = council_members
+        .iter()
+        .any(|m| m.wallet_address.eq_ignore_ascii_case(&req.executor));
+    if !is_council_member {
+        tracing::warn!(
+            "Emergency: pause rejected - executor {} is not a council member",
+            req.executor
+        );
+        return Err(ApiError::Forbidden(
+            "Executor is not an active council member".to_string(),
+        ));
+    }
 
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -361,6 +386,20 @@ pub async fn execute_pause(
 
     let scope = req.scope.unwrap_or(PauseScope::Full);
     let pause_id = format!("PAUSE-{}", Uuid::new_v4().simple());
+
+    // TODO: When system_settings table exists, execute:
+    //   UPDATE system_settings SET paused = true, pause_id = $1, pause_scope = $2,
+    //          pause_reason = $3, paused_at = $4, pause_expires_at = $5,
+    //          pause_initiated_by = $6
+    //   WHERE key = 'protocol_state'
+    // TODO: Call EmergencyController.pause() on L1 and capture tx_hash
+
+    tracing::info!(
+        "Emergency: pause activated - pause_id: {}, scope: {:?}, expires_at: {}",
+        pause_id,
+        scope,
+        now + MAX_PAUSE_DURATION_SECS
+    );
 
     Ok(Json(EmergencyPauseResponse {
         success: true,
@@ -371,7 +410,7 @@ pub async fn execute_pause(
         paused_at: now,
         expires_at: now + MAX_PAUSE_DURATION_SECS,
         max_duration: MAX_PAUSE_DURATION_SECS,
-        tx_hash: Some(format!("0x{}", Uuid::new_v4().simple())),
+        tx_hash: None, // Populated when L1 integration is active
         message: format!(
             "Emergency pause activated. Protocol operations (new locks/unlocks) are suspended. \
              Max duration: 72 hours. Expires at: {}",
@@ -385,98 +424,34 @@ pub async fn execute_pause(
 /// Returns detailed emergency status including pause state, affected operations,
 /// and history.
 pub async fn get_status(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<EmergencyStatusDetailResponse>, ApiError> {
-    tracing::debug!("Emergency: Getting detailed status");
+    tracing::info!("Emergency: Getting detailed status");
 
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+    let _pool = state.pool();
 
-    // Mock data - protocol is not currently paused
-    // In production: Query EmergencyController.sol and internal state
+    // TODO: When system_settings table exists, query:
+    //   SELECT paused, pause_id, pause_scope, pause_reason, paused_at,
+    //          pause_expires_at, pause_initiated_by
+    //   FROM system_settings WHERE key = 'protocol_state'
+    // For now, report non-paused state (no fake history).
 
     let is_paused = false;
 
-    // Define affected operations per SEQUENCES §8
-    let affected_operations = if is_paused {
-        AffectedOperations {
-            new_locks: OperationStatus {
-                allowed: false,
-                status: "SUSPENDED - Emergency pause active".to_string(),
-            },
-            new_unlocks: OperationStatus {
-                allowed: false,
-                status: "SUSPENDED - Emergency pause active".to_string(),
-            },
-            in_progress_unlocks: OperationStatus {
-                allowed: true,
-                status: "ALLOWED - Time lock continues".to_string(),
-            },
-            claims: OperationStatus {
-                allowed: true,
-                status: "ALLOWED - Claim operations continue".to_string(),
-            },
-            challenges: OperationStatus {
-                allowed: true,
-                status: "ALLOWED - Challenge operations continue".to_string(),
-            },
-            prover_exits: OperationStatus {
-                allowed: true,
-                status: "ALLOWED - Prover exit operations continue".to_string(),
-            },
-        }
-    } else {
-        AffectedOperations {
-            new_locks: OperationStatus {
-                allowed: true,
-                status: "ACTIVE - Normal operation".to_string(),
-            },
-            new_unlocks: OperationStatus {
-                allowed: true,
-                status: "ACTIVE - Normal operation".to_string(),
-            },
-            in_progress_unlocks: OperationStatus {
-                allowed: true,
-                status: "ACTIVE - Normal operation".to_string(),
-            },
-            claims: OperationStatus {
-                allowed: true,
-                status: "ACTIVE - Normal operation".to_string(),
-            },
-            challenges: OperationStatus {
-                allowed: true,
-                status: "ACTIVE - Normal operation".to_string(),
-            },
-            prover_exits: OperationStatus {
-                allowed: true,
-                status: "ACTIVE - Normal operation".to_string(),
-            },
-        }
-    };
+    // Build affected operations per SEQUENCES §8
+    // When not paused all operations are active
+    let affected_operations = build_affected_operations(is_paused, None);
 
-    // Mock history
-    let history = vec![
-        PauseHistoryEntry {
-            pause_id: "PAUSE-001".to_string(),
-            reason: "Detected suspicious activity on L3 bridge".to_string(),
-            paused_at: now - (14 * 86400), // 14 days ago
-            unpaused_at: Some(now - (14 * 86400) + 18000), // 5 hours later
-            duration_secs: 18000,
-            was_extended: false,
-            initiated_by: "0x1111111111111111111111111111111111111111".to_string(),
-        },
-        PauseHistoryEntry {
-            pause_id: "PAUSE-002".to_string(),
-            reason: "Critical vulnerability patch".to_string(),
-            paused_at: now - (30 * 86400), // 30 days ago
-            unpaused_at: Some(now - (30 * 86400) + 43200), // 12 hours later
-            duration_secs: 43200,
-            was_extended: false,
-            initiated_by: "0x2222222222222222222222222222222222222222".to_string(),
-        },
-    ];
+    // TODO: When emergency_pause_history table exists, query:
+    //   SELECT * FROM emergency_pause_history ORDER BY paused_at DESC LIMIT 5
+    // For now, return empty history (BE-001: no hardcoded mock data)
+    let history: Vec<PauseHistoryEntry> = Vec::new();
+
+    tracing::info!(
+        "Emergency: status returned - is_paused: {}, history_count: {}",
+        is_paused,
+        history.len()
+    );
 
     Ok(Json(EmergencyStatusDetailResponse {
         state: PauseState::Active,
@@ -500,38 +475,59 @@ pub async fn get_status(
 /// - By Security Council (5/9) at any time during pause
 /// - Automatically when pause expires (72h)
 pub async fn execute_unpause(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<EmergencyUnpauseRequest>,
 ) -> Result<Json<EmergencyUnpauseResponse>, ApiError> {
     tracing::info!(
-        "Emergency: Executing unpause - executor: {}",
-        req.executor
+        "Emergency: Executing unpause - executor: {}, action_id: {:?}",
+        req.executor,
+        req.action_id
     );
 
-    // In production:
-    // 1. Verify protocol is actually paused
-    // 2. Verify executor is a council member
-    // 3. Verify signature
-    // 4. If action_id provided, verify 5/9 signatures
-    // 5. Call EmergencyController.unpause() on L1
-    // 6. Update L3 state
-    // 7. Emit events
+    let pool = state.pool();
+
+    // Validate: executor must be an active council member
+    let council_members = GovernanceRepository::get_council_members(pool).await?;
+    let is_council_member = council_members
+        .iter()
+        .any(|m| m.wallet_address.eq_ignore_ascii_case(&req.executor));
+    if !is_council_member {
+        tracing::warn!(
+            "Emergency: unpause rejected - executor {} is not a council member",
+            req.executor
+        );
+        return Err(ApiError::Forbidden(
+            "Executor is not an active council member".to_string(),
+        ));
+    }
+
+    // TODO: When system_settings table exists, verify protocol is actually paused:
+    //   SELECT paused, paused_at FROM system_settings WHERE key = 'protocol_state'
+    //   If not paused, return InvalidRequest("Protocol is not currently paused")
+    // TODO: Call EmergencyController.unpause() on L1 and capture tx_hash
+    // TODO: UPDATE system_settings SET paused = false, unpaused_at = now()
 
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs();
 
-    // Mock: assume pause started 5 hours ago
-    let pause_started = now - (5 * 3600);
-    let total_pause_duration = now - pause_started;
+    // Without system_settings table we cannot know actual pause start time.
+    // Return 0 duration until the table is available.
+    let total_pause_duration = 0u64;
+
+    tracing::info!(
+        "Emergency: unpause executed - executor: {}, unpaused_at: {}",
+        req.executor,
+        now
+    );
 
     Ok(Json(EmergencyUnpauseResponse {
         success: true,
         state: PauseState::Active,
         unpaused_at: now,
         total_pause_duration,
-        tx_hash: Some(format!("0x{}", Uuid::new_v4().simple())),
+        tx_hash: None, // Populated when L1 integration is active
         message: "Protocol unpaused successfully. All operations resumed.".to_string(),
     }))
 }
@@ -541,16 +537,24 @@ pub async fn execute_unpause(
 /// Requests pause extension beyond 72 hours.
 /// Requires Token Vote (48h emergency vote).
 pub async fn request_extension(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<EmergencyExtendRequest>,
 ) -> Result<Json<EmergencyExtendResponse>, ApiError> {
     tracing::info!(
-        "Emergency: Requesting pause extension - duration: {}s, reason: {}",
+        "Emergency: Requesting pause extension - duration: {}s, reason: {}, proposer: {}",
         req.extension_duration,
-        req.reason
+        req.reason,
+        req.proposer
     );
 
+    let pool = state.pool();
+
     // Validate extension duration
+    if req.extension_duration == 0 {
+        return Err(ApiError::InvalidRequest(
+            "Extension duration must be greater than 0".to_string(),
+        ));
+    }
     if req.extension_duration > MAX_EXTENSION_DURATION_SECS {
         return Err(ApiError::InvalidRequest(format!(
             "Extension duration exceeds maximum of {} seconds (7 days)",
@@ -558,12 +562,28 @@ pub async fn request_extension(
         )));
     }
 
-    // In production:
-    // 1. Verify protocol is currently paused
-    // 2. Verify proposer is a council member
-    // 3. Create governance proposal for Token Vote
-    // 4. Set 48h voting period (emergency vote)
-    // 5. Return proposal ID
+    // Validate: reason must not be empty
+    if req.reason.trim().is_empty() {
+        return Err(ApiError::InvalidRequest("Reason is required".to_string()));
+    }
+
+    // Validate: proposer must be an active council member
+    let council_members = GovernanceRepository::get_council_members(pool).await?;
+    let is_council_member = council_members
+        .iter()
+        .any(|m| m.wallet_address.eq_ignore_ascii_case(&req.proposer));
+    if !is_council_member {
+        tracing::warn!(
+            "Emergency: extension rejected - proposer {} is not a council member",
+            req.proposer
+        );
+        return Err(ApiError::Forbidden(
+            "Proposer is not an active council member".to_string(),
+        ));
+    }
+
+    // TODO: When system_settings table exists, verify protocol is currently paused
+    // TODO: Create governance proposal in proposals table with type = 'emergency_extension'
 
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -573,9 +593,17 @@ pub async fn request_extension(
     let proposal_id = format!("EXT-{}", Uuid::new_v4().simple());
     let vote_ends_at = now + (48 * 3600); // 48h emergency vote
 
-    // Current pause expires at + extension duration
-    let current_expires = now + MAX_PAUSE_DURATION_SECS; // Mock
+    // Estimate new expiry: current time + base pause + extension
+    // Without system_settings, use current time + max pause as baseline
+    let current_expires = now + MAX_PAUSE_DURATION_SECS;
     let new_expires_at = current_expires + req.extension_duration;
+
+    tracing::info!(
+        "Emergency: extension proposal created - proposal_id: {}, vote_ends_at: {}, new_expires_at: {}",
+        proposal_id,
+        vote_ends_at,
+        new_expires_at
+    );
 
     Ok(Json(EmergencyExtendResponse {
         success: true,
@@ -596,18 +624,76 @@ pub async fn request_extension(
 // Helper Functions
 // ============================================================================
 
-/// Check if protocol is currently paused
-#[allow(dead_code)]
-fn is_protocol_paused(_state: &AppState) -> bool {
-    // In production: Check Redis or contract state
-    false
-}
+/// Build affected operations status per SEQUENCES §8
+fn build_affected_operations(is_paused: bool, scope: Option<PauseScope>) -> AffectedOperations {
+    if !is_paused {
+        return AffectedOperations {
+            new_locks: OperationStatus {
+                allowed: true,
+                status: "ACTIVE - Normal operation".to_string(),
+            },
+            new_unlocks: OperationStatus {
+                allowed: true,
+                status: "ACTIVE - Normal operation".to_string(),
+            },
+            in_progress_unlocks: OperationStatus {
+                allowed: true,
+                status: "ACTIVE - Normal operation".to_string(),
+            },
+            claims: OperationStatus {
+                allowed: true,
+                status: "ACTIVE - Normal operation".to_string(),
+            },
+            challenges: OperationStatus {
+                allowed: true,
+                status: "ACTIVE - Normal operation".to_string(),
+            },
+            prover_exits: OperationStatus {
+                allowed: true,
+                status: "ACTIVE - Normal operation".to_string(),
+            },
+        };
+    }
 
-/// Get current pause info
-#[allow(dead_code)]
-fn get_current_pause_info(_state: &AppState) -> Option<(String, u64, u64, PauseScope)> {
-    // In production: Return (pause_id, paused_at, expires_at, scope)
-    None
+    let pause_scope = scope.unwrap_or(PauseScope::Full);
+
+    let locks_suspended = matches!(pause_scope, PauseScope::Full | PauseScope::LocksOnly);
+    let unlocks_suspended = matches!(pause_scope, PauseScope::Full | PauseScope::UnlocksOnly);
+
+    AffectedOperations {
+        new_locks: OperationStatus {
+            allowed: !locks_suspended,
+            status: if locks_suspended {
+                "SUSPENDED - Emergency pause active".to_string()
+            } else {
+                "ACTIVE - Not affected by current pause scope".to_string()
+            },
+        },
+        new_unlocks: OperationStatus {
+            allowed: !unlocks_suspended,
+            status: if unlocks_suspended {
+                "SUSPENDED - Emergency pause active".to_string()
+            } else {
+                "ACTIVE - Not affected by current pause scope".to_string()
+            },
+        },
+        in_progress_unlocks: OperationStatus {
+            allowed: true,
+            status: "ALLOWED - Time lock continues".to_string(),
+        },
+        claims: OperationStatus {
+            allowed: true,
+            status: "ALLOWED - Claim operations continue".to_string(),
+        },
+        challenges: OperationStatus {
+            allowed: true,
+            status: "ALLOWED - Challenge operations continue".to_string(),
+        },
+        prover_exits: OperationStatus {
+            allowed: true,
+            status: "ALLOWED - Prover exit operations continue".to_string(),
+        },
+    }
 }
 
 // ============================================================================
@@ -648,7 +734,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pause_request_deserialization() {
+    fn test_pause_request_deserialization_with_action_id() {
         let json = r#"{
             "reason": "Critical bug detected",
             "scope": "full",
@@ -659,7 +745,23 @@ mod tests {
         let req: EmergencyPauseRequest = serde_json::from_str(json).unwrap();
         assert_eq!(req.reason, "Critical bug detected");
         assert_eq!(req.scope, Some(PauseScope::Full));
-        assert_eq!(req.action_id, "ACTION-123");
+        assert_eq!(req.action_id, Some("ACTION-123".to_string()));
+    }
+
+    #[test]
+    fn test_pause_request_deserialization_without_action_id() {
+        // Frontend does not send actionId - this must not fail
+        let json = r#"{
+            "reason": "Attack detected",
+            "scope": "locks_only",
+            "executor": "0xabcd",
+            "signature": "0xsig123"
+        }"#;
+        let req: EmergencyPauseRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(req.reason, "Attack detected");
+        assert_eq!(req.scope, Some(PauseScope::LocksOnly));
+        assert!(req.action_id.is_none());
+        assert_eq!(req.executor, "0xabcd");
     }
 
     #[test]

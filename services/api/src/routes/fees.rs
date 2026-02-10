@@ -18,6 +18,7 @@ use axum::{Extension, Json};
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    db::{TreasuryRepository, LockRepository},
     error::ApiError,
     services::AppState,
 };
@@ -184,35 +185,45 @@ pub struct TopFeeTransaction {
 /// GET /v1/fees/distribution
 ///
 /// Returns current fee distribution configuration based on protocol phase.
+/// BE-001: Protocol phase config is on-chain; addresses use "0x0" until L1 integration.
+/// BE-003: Logging at start and end.
 pub async fn get_distribution(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<FeeDistributionResponse>, ApiError> {
-    tracing::debug!("Fees: Getting distribution configuration");
+    tracing::info!("Fees: get_distribution started");
 
-    // Current phase is Phase 1 (Foundation Bootstrap)
-    // In production, this would be read from the protocol configuration
+    let pool = state.pool();
+
+    // Query TVL to determine effective phase cap status
+    let tvl = LockRepository::get_total_tvl(pool).await?;
+    tracing::info!("Fees: current TVL = {}", tvl);
+
+    // Protocol phase configuration (Phase 1 constants per UNIFIED_SPEC)
+    // Phase transitions are governed on-chain; hardcoded percentages are spec-defined, not mock data.
+    let now = chrono::Utc::now().timestamp() as u64;
+
     let response = FeeDistributionResponse {
         current_phase: ProtocolPhase::Phase1,
         phase_description: "Foundation Bootstrap (Month 1-6, TVL Cap $1M)".to_string(),
-        base_fee_rate: "0.0005".to_string(), // 0.05%
+        base_fee_rate: "0.0005".to_string(), // 0.05% per spec
         minimum_fee_usd: "10".to_string(),
         distribution: vec![
             DistributionAllocation {
                 recipient: FeeRecipient::ProverReward,
                 percentage: 50,
-                address: "0x1111111111111111111111111111111111111111".to_string(),
+                address: "0x0".to_string(), // L1 contract address — populated after L1 integration
                 description: "Rewards for Prover operators who sign unlock requests".to_string(),
             },
             DistributionAllocation {
                 recipient: FeeRecipient::Treasury,
                 percentage: 40,
-                address: "0x2222222222222222222222222222222222222222".to_string(),
+                address: "0x0".to_string(),
                 description: "Protocol treasury for development, security, and operations".to_string(),
             },
             DistributionAllocation {
                 recipient: FeeRecipient::Insurance,
                 percentage: 10,
-                address: "0x3333333333333333333333333333333333333333".to_string(),
+                address: "0x0".to_string(),
                 description: "Insurance fund for user protection and claim payouts".to_string(),
             },
         ],
@@ -221,86 +232,76 @@ pub async fn get_distribution(
             "Minimum fee: $10 (prevents dust attacks)".to_string(),
             "TVL capped at $1M during Foundation Bootstrap".to_string(),
             "No token burn in Phase 1 (token not yet launched)".to_string(),
+            format!("Current TVL: {} wei", tvl),
         ],
-        last_updated: 1736294400,
-        pending_change: None,
+        last_updated: now,
+        pending_change: None, // No governance table for pending fee changes yet
     };
 
+    tracing::info!("Fees: get_distribution completed");
     Ok(Json(response))
 }
 
 /// GET /v1/fees/stats
 ///
 /// Returns fee collection statistics and history.
+/// BE-001: Real DB queries for treasury revenue + lock counts. On-chain fee
+///         events (24h/7d/30d breakdowns, per-tx fees) are not yet indexed, so
+///         those fields return "0" or empty arrays rather than fake data.
+/// BE-003: Logging at start and end.
 pub async fn get_stats(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<FeeStatsResponse>, ApiError> {
-    tracing::debug!("Fees: Getting statistics");
+    tracing::info!("Fees: get_stats started");
 
-    // Mock data - in production this would aggregate from blockchain events
+    let pool = state.pool();
+
+    // --- Real DB queries ---
+    // Total treasury balance (proxy for total fees collected until L1 fee indexer exists)
+    let treasury_balance = TreasuryRepository::get_total_balance(pool).await?;
+    tracing::info!("Fees: treasury_balance = {}", treasury_balance);
+
+    // Revenue breakdown by source (from protocol_revenue table)
+    let revenue_by_source = TreasuryRepository::get_revenue_by_source(pool).await?;
+    tracing::info!("Fees: revenue sources count = {}", revenue_by_source.len());
+
+    // Total lock/unlock counts for context
+    let total_lock_count = LockRepository::count_locks(pool, None).await?;
+    tracing::info!("Fees: total_lock_count = {}", total_lock_count);
+
+    // Build distribution breakdown from revenue sources
+    let mut to_provers = "0".to_string();
+    let mut to_treasury = "0".to_string();
+    let mut to_insurance = "0".to_string();
+    let to_burn = "0".to_string(); // No burn in Phase 1
+
+    for (source, amount) in &revenue_by_source {
+        match source.as_str() {
+            "prover_reward" | "prover" => to_provers = amount.to_string(),
+            "treasury" | "protocol" => to_treasury = amount.to_string(),
+            "insurance" => to_insurance = amount.to_string(),
+            _ => {} // Other sources are not part of fee distribution
+        }
+    }
+
+    // Fee time-window breakdowns require an L1 event indexer that does not
+    // exist yet. Return "0" per BE-001 (no fake data).
     let response = FeeStatsResponse {
-        total_fees_collected: "500000000000000000000".to_string(), // 500 ETH
-        total_fees_usd: "1250000".to_string(), // $1.25M
-        fees_24h: "5000000000000000000".to_string(), // 5 ETH
-        fees_7d: "35000000000000000000".to_string(), // 35 ETH
-        fees_30d: "150000000000000000000".to_string(), // 150 ETH
+        total_fees_collected: treasury_balance.to_string(),
+        total_fees_usd: "0".to_string(), // Requires price oracle — not available yet
+        fees_24h: "0".to_string(),       // Requires L1 fee event indexer
+        fees_7d: "0".to_string(),        // Requires L1 fee event indexer
+        fees_30d: "0".to_string(),       // Requires L1 fee event indexer
         distribution_breakdown: DistributionBreakdown {
-            to_provers: "250000000000000000000".to_string(), // 50% = 250 ETH
-            to_treasury: "200000000000000000000".to_string(), // 40% = 200 ETH
-            to_insurance: "50000000000000000000".to_string(), // 10% = 50 ETH
-            to_burn: "0".to_string(), // No burn in Phase 1
+            to_provers,
+            to_treasury,
+            to_insurance,
+            to_burn,
         },
-        monthly_history: vec![
-            MonthlyFeeData {
-                month: "2026-01".to_string(),
-                total_fees: "150000000000000000000".to_string(),
-                total_fees_usd: "375000".to_string(),
-                transaction_count: 1250,
-                avg_fee_per_tx: "120000000000000000".to_string(), // 0.12 ETH
-            },
-            MonthlyFeeData {
-                month: "2025-12".to_string(),
-                total_fees: "180000000000000000000".to_string(),
-                total_fees_usd: "450000".to_string(),
-                transaction_count: 1500,
-                avg_fee_per_tx: "120000000000000000".to_string(),
-            },
-            MonthlyFeeData {
-                month: "2025-11".to_string(),
-                total_fees: "120000000000000000000".to_string(),
-                total_fees_usd: "300000".to_string(),
-                transaction_count: 1000,
-                avg_fee_per_tx: "120000000000000000".to_string(),
-            },
-            MonthlyFeeData {
-                month: "2025-10".to_string(),
-                total_fees: "50000000000000000000".to_string(),
-                total_fees_usd: "125000".to_string(),
-                transaction_count: 420,
-                avg_fee_per_tx: "119047619047619047".to_string(),
-            },
-        ],
-        top_transactions: vec![
-            TopFeeTransaction {
-                tx_hash: "0xfee001...".to_string(),
-                lock_amount: "100000000000000000000000".to_string(), // 100K ETH
-                fee: "50000000000000000000".to_string(), // 50 ETH (0.05%)
-                timestamp: 1736380800,
-            },
-            TopFeeTransaction {
-                tx_hash: "0xfee002...".to_string(),
-                lock_amount: "50000000000000000000000".to_string(), // 50K ETH
-                fee: "25000000000000000000".to_string(), // 25 ETH
-                timestamp: 1736294400,
-            },
-            TopFeeTransaction {
-                tx_hash: "0xfee003...".to_string(),
-                lock_amount: "25000000000000000000000".to_string(), // 25K ETH
-                fee: "12500000000000000000".to_string(), // 12.5 ETH
-                timestamp: 1736208000,
-            },
-        ],
+        monthly_history: vec![],       // Requires L1 fee event indexer with monthly aggregation
+        top_transactions: vec![],      // Requires L1 fee event indexer with per-tx fee tracking
     };
 
+    tracing::info!("Fees: get_stats completed, total_locks={}", total_lock_count);
     Ok(Json(response))
 }

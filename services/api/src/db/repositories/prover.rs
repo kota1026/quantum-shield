@@ -309,4 +309,113 @@ impl ProverRepository {
         info!("DB query: get_prover_exit completed, found={}", result.is_some());
         Ok(result)
     }
+
+    // ========================================================================
+    // Phase 2: SM-001/SM-002 Migration - New methods
+    // ========================================================================
+
+    /// Create a prover exit record
+    /// SM-001: PG first (Source of Truth)
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool))]
+    pub async fn create_exit(
+        pool: &PgPool,
+        exit_id: &str,
+        prover_id: &str,
+        unbonding_end: DateTime<Utc>,
+        stake_to_return: &BigDecimal,
+        pending_rewards: &BigDecimal,
+    ) -> Result<(), ApiError> {
+        info!("DB insert: prover_exit create started, prover_id={}", prover_id);
+
+        sqlx::query(
+            r#"
+            INSERT INTO prover_exits (exit_id, prover_id, unbonding_end, stake_to_return, pending_rewards, status)
+            VALUES ($1, $2, $3, $4, $5, 'unbonding')
+            ON CONFLICT (prover_id) DO UPDATE SET
+                unbonding_end = $3,
+                stake_to_return = $4,
+                pending_rewards = $5,
+                status = 'unbonding',
+                initiated_at = NOW()
+            "#,
+        )
+        .bind(exit_id)
+        .bind(prover_id)
+        .bind(unbonding_end)
+        .bind(stake_to_return)
+        .bind(pending_rewards)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: prover_exit create failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB insert: prover_exit create completed, prover_id={}", prover_id);
+        Ok(())
+    }
+
+    /// Update prover exit status
+    /// SM-001: PG first
+    #[instrument(skip(pool), fields(prover_id = %prover_id, new_status = %new_status))]
+    pub async fn update_exit_status(
+        pool: &PgPool,
+        prover_id: &str,
+        new_status: &str,
+    ) -> Result<(), ApiError> {
+        info!("DB update: prover_exit status started, status={}", new_status);
+
+        sqlx::query(
+            r#"
+            UPDATE prover_exits
+            SET status = $2
+            WHERE prover_id = $1
+            "#,
+        )
+        .bind(prover_id)
+        .bind(new_status)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: prover_exit update_status failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB update: prover_exit status completed");
+        Ok(())
+    }
+
+    /// Upsert prover metrics (insert or update)
+    /// SM-001: PG first
+    #[instrument(skip(pool))]
+    pub async fn upsert_metrics(
+        pool: &PgPool,
+        prover_id: &str,
+        total_signatures_increment: i64,
+    ) -> Result<(), ApiError> {
+        info!("DB upsert: prover_metrics started, prover_id={}", prover_id);
+
+        sqlx::query(
+            r#"
+            INSERT INTO prover_metrics (prover_id, total_signatures, signatures_24h, updated_at)
+            VALUES ($1, $2, 1, NOW())
+            ON CONFLICT (prover_id) DO UPDATE SET
+                total_signatures = prover_metrics.total_signatures + $2,
+                signatures_24h = prover_metrics.signatures_24h + 1,
+                updated_at = NOW()
+            "#,
+        )
+        .bind(prover_id)
+        .bind(total_signatures_increment)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: prover_metrics upsert failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB upsert: prover_metrics completed");
+        Ok(())
+    }
 }

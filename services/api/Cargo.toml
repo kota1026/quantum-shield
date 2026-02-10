@@ -50,6 +50,11 @@ jsonwebtoken = "9"
 rustls = "0.22"
 tokio-rustls = "0.25"
 
+# TOTP 2FA verification (Phase 3 - S-2 security fix)
+totp-rs = { version = "5", features = ["otpauth"] }
+# SHA-256 for refresh token hashing (Phase 3 - S-3 security fix)
+sha2 = "0.10"
+
 # Ethereum interaction (VRF Contract integration - TASK-P5-005)
 ethers = { version = "2", features = ["abigen"] }
 
