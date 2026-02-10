@@ -57,6 +57,23 @@ Phase 8-{X} ゲートチェック ← 特定Phaseのゲート検証
 次のタスク                 ← 優先度順で次のタスクを自動選択・実行
 進捗更新                   ← 進捗ドキュメントを実際の状態に更新
 
+# ===== SEQUENCES.md修正実行 (Fix Execution) ===== ★★★ CRITICAL
+修正実行 FIX-{NNN}        ← 特定のFIX項目を実行（FIX-001~027）
+修正実行 Phase {N}         ← Phase N の全FIX項目を順次実行（Phase 1-6）
+修正実行 進捗確認          ← 全FIX項目の進捗を表示
+修正実行 検証 FIX-{NNN}    ← 特定FIX項目の3点検証のみ実行
+シーケンステスト {N}       ← シーケンス#{N}のE2E実行テスト
+シーケンステスト 全て       ← 全9シーケンスのE2Eテスト
+
+# 修正計画: docs/architecture/FIX_EXECUTION_PLAN.md (27 FIX items)
+# プロンプト: docs/agents/prompts/80_fix_execution.md
+# Phase 1 (P0): FIX-001~004 クラッシュ修正 + Emergency Unlock
+# Phase 2 (P1): FIX-005~008 SEQUENCES.mdパラメータ統一
+# Phase 3 (P1): FIX-009~012 サイレントMock除去
+# Phase 4 (P1-2): FIX-013~016 残りMock/FALLBACK除去
+# Phase 5 (P2): FIX-017~022 i18n/UX修正
+# Phase 6 (P3): FIX-023~027 Architectureドキュメント更新
+
 # ===== Frontend-Backend Integration =====
 統合開始                   ← 次の未統合アプリから自動開始（★推奨）
 統合開始 {app}             ← 特定アプリの統合を開始
@@ -102,6 +119,21 @@ Phase 8-{X} ゲートチェック ← 特定Phaseのゲート検証
 # Phase 0: Infrastructure → Phase 1: Prover/Observer → Phase 2: Lock/Unlock
 # → Phase 3: Governance → Phase 4: Explorer/TokenHub/QSHub
 # → Phase 5: QS Admin → Phase 6: E2E Verification
+
+# ===== Storage Migration (Redis→Dual-Write) ===== ★★★ CRITICAL
+ストレージ移行 開始                 ← Phase 0 から順次実行（★★★推奨）
+ストレージ移行 Phase {N}           ← 特定 Phase の実装 (0-5)
+ストレージ移行 Phase {N} 検証      ← 特定 Phase のゲートチェック
+ストレージ移行 進捗確認            ← 全体の進捗表示
+ストレージ移行 影響確認            ← フロントエンド影響範囲の確認
+
+# Storage Migration 6 Phases (依存順):
+# Phase 0: Infrastructure (signing_queue + Repositories)
+# Phase 1: Lock/Unlock/Emergency (★Consumer空表示の根本修正)
+# Phase 2: Challenge/VRF/Signature
+# Phase 3: Observer/User
+# Phase 4: Token Hub (veQS)
+# Phase 5: Cleanup/Verification
 
 # ===== Full Stack Integration (Legacy) =====
 フルスタック統合 開始           ← Phase A から順次実行
@@ -766,6 +798,28 @@ ls docs/design/mocks/{app}/*.html
 | **要件定義** | `docs/specs/REQUIREMENTS.md` | 参照 |
 | **API仕様** | `docs/specs/API_SPECIFICATION.yaml` | 参照 |
 
+### Storage Architecture & Migration（★★★CRITICAL）
+
+| 用途 | パス | 重要度 |
+|------|------|:------:|
+| **ストレージアーキテクチャ** | `docs/architecture/STORAGE_ARCHITECTURE.md` | ⚠️ 最重要 |
+| **移行計画** | `docs/architecture/MIGRATION_PLAN.md` | ⚠️ 最重要 |
+| **App-API マッピング** | `docs/architecture/APP_API_MAPPING.md` | ⚠️ 必須 |
+| **DB実態一覧** | `docs/architecture/DATABASE_ACTUAL_STATE.md` | ⚠️ 必須 |
+| **ドキュメント矛盾** | `docs/architecture/DOCUMENT_CONTRADICTIONS.md` | 参照 |
+| **移行実装プロンプト** | `docs/agents/prompts/60_storage_migration.md` | ⚠️ 必須 |
+| **Core SEQUENCES** | `docs/core/SEQUENCES.md` | 参照 |
+
+### SEQUENCES.md修正実行（★★★CRITICAL）
+
+| 用途 | パス | 重要度 |
+|------|------|:------:|
+| **修正計画** | `docs/architecture/FIX_EXECUTION_PLAN.md` | ⚠️ 最重要 |
+| **実行プロンプト** | `docs/agents/prompts/80_fix_execution.md` | ⚠️ 最重要 |
+| **検証結果サマリー** | `docs/architecture/verification/VERIFICATION_SUMMARY.md` | ⚠️ 必須 |
+| **シーケンス横断照合** | `docs/architecture/verification/sequences_crosscheck.md` | ⚠️ 必須 |
+| **アプリ別検証** | `docs/architecture/verification/{app}_verification.md` | 参照 |
+
 ### 画面レビュー・ナビゲーション
 
 | 用途 | パス |
@@ -1162,3 +1216,4 @@ Report: 完了レポート出力
 | 1.7 | 2026-01-27 | Phase 8 QS Admin開発ワークフロー追加（8プロンプト、BEルール、ログ検証） |
 | 1.8 | 2026-01-31 | Phase 8-C自動化対応（03_backend_impl_v2.md、進捗更新スクリプト追加） |
 | 1.9 | 2026-01-31 | Frontend-Backend Integration ワークフロー追加（統合開始、統合テスト、統合進捗確認コマンド + 6ステップパイプライン） |
+| 2.0 | 2026-02-07 | Storage Migration ワークフロー追加（ストレージ移行コマンド、60_storage_migration.md、DATABASE_ACTUAL_STATE.md、Architecture参照一覧） |
