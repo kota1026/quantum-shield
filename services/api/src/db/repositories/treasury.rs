@@ -122,7 +122,7 @@ impl TreasuryRepository {
     pub async fn get_total_balance(pool: &PgPool) -> Result<BigDecimal, ApiError> {
         info!("DB query: get_total_treasury_balance started");
 
-        let balance_value: i64 = sqlx::query_scalar::<_, i64>(
+        let balance: BigDecimal = sqlx::query_scalar::<_, BigDecimal>(
             "SELECT COALESCE(SUM(balance), 0) FROM treasury_wallets"
         )
         .fetch_one(pool)
@@ -131,7 +131,6 @@ impl TreasuryRepository {
             warn!("DB error: get_total_treasury_balance failed: {}", e);
             ApiError::Internal(format!("Database error: {}", e))
         })?;
-        let balance = BigDecimal::from(balance_value);
 
         info!("DB query: get_total_treasury_balance completed");
         Ok(balance)

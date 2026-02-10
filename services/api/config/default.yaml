@@ -5,8 +5,12 @@ server:
   port: 8080
 
 database:
-  url: "postgres://kotakato@localhost/quantum_shield"
-  max_connections: 10
+  url: "postgres://quantum:quantum_dev@localhost:5432/quantum_shield"
+  max_connections: 50
+  min_connections: 5
+  acquire_timeout_secs: 10
+  idle_timeout_secs: 600
+  max_lifetime_secs: 1800
 
 redis:
   url: "redis://localhost:6379"

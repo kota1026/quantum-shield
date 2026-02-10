@@ -20,6 +20,7 @@ pub struct ProposalRow {
     pub title: String,
     pub description: Option<String>,
     pub proposer: String,
+    pub proposal_type: Option<String>,
     pub status: String,
     pub votes_for: BigDecimal,
     pub votes_against: BigDecimal,
@@ -58,8 +59,8 @@ impl GovernanceRepository {
 
         let result = sqlx::query_as::<_, ProposalRow>(
             r#"
-            SELECT proposal_id, title, description, proposer, status,
-                   votes_for, votes_against, votes_abstain, quorum,
+            SELECT proposal_id, title, description, proposer, proposal_type,
+                   status, votes_for, votes_against, votes_abstain, quorum,
                    start_time, end_time, created_at
             FROM proposals
             WHERE proposal_id = $1
@@ -89,8 +90,8 @@ impl GovernanceRepository {
 
         let results = sqlx::query_as::<_, ProposalRow>(
             r#"
-            SELECT proposal_id, title, description, proposer, status,
-                   votes_for, votes_against, votes_abstain, quorum,
+            SELECT proposal_id, title, description, proposer, proposal_type,
+                   status, votes_for, votes_against, votes_abstain, quorum,
                    start_time, end_time, created_at
             FROM proposals
             WHERE ($1::TEXT IS NULL OR status = $1)
@@ -182,8 +183,8 @@ impl GovernanceRepository {
 
         let results = sqlx::query_as::<_, ProposalRow>(
             r#"
-            SELECT proposal_id, title, description, proposer, status,
-                   votes_for, votes_against, votes_abstain, quorum,
+            SELECT proposal_id, title, description, proposer, proposal_type,
+                   status, votes_for, votes_against, votes_abstain, quorum,
                    start_time, end_time, created_at
             FROM proposals
             WHERE status = 'active'
@@ -226,8 +227,8 @@ impl GovernanceRepository {
                 executed_tx_hash = $3,
                 executed_at = NOW()
             WHERE proposal_id = $1 AND status = 'passed'
-            RETURNING proposal_id, title, description, proposer, status,
-                      votes_for, votes_against, votes_abstain, quorum,
+            RETURNING proposal_id, title, description, proposer, proposal_type,
+                      status, votes_for, votes_against, votes_abstain, quorum,
                       start_time, end_time, created_at
             "#,
         )
@@ -324,6 +325,254 @@ impl GovernanceRepository {
 
         info!("DB query: count_all_votes completed, count={}", count);
         Ok(count)
+    }
+
+    // ========================================================================
+    // Phase 4: Consumer Governance Route Support
+    // ========================================================================
+
+    /// Create a new proposal
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool))]
+    pub async fn create_proposal(
+        pool: &PgPool,
+        proposal_id: &str,
+        title: &str,
+        description: &str,
+        proposer: &str,
+        proposal_type: &str,
+        start_time: DateTime<Utc>,
+        end_time: DateTime<Utc>,
+    ) -> Result<ProposalRow, ApiError> {
+        info!("DB insert: create_proposal started, id={}, type={}", proposal_id, proposal_type);
+
+        // SEQUENCES.md §7: Quorum is type-dependent
+        // signal=3%, parameter=4%, treasury=6%, upgrade=8%, emergency=15%
+        let quorum_percent = match proposal_type {
+            "signal" => 3,
+            "parameter" => 4,
+            "treasury" => 6,
+            "upgrade" => 8,
+            "emergency" => 15,
+            _ => 4, // default to parameter quorum
+        };
+
+        let result = sqlx::query_as::<_, ProposalRow>(
+            r#"
+            INSERT INTO proposals (proposal_id, title, description, proposer, proposal_type,
+                                  status, quorum, votes_for, votes_against, votes_abstain,
+                                  start_time, end_time)
+            VALUES ($1, $2, $3, $4, $5, 'active', $6, 0, 0, 0, $7, $8)
+            RETURNING proposal_id, title, description, proposer, proposal_type,
+                     status, votes_for, votes_against, votes_abstain, quorum,
+                     start_time, end_time, created_at
+            "#,
+        )
+        .bind(proposal_id)
+        .bind(title)
+        .bind(description)
+        .bind(proposer)
+        .bind(proposal_type)
+        .bind(quorum_percent)
+        .bind(start_time)
+        .bind(end_time)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: create_proposal failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB insert: create_proposal completed, id={}, quorum={}%", proposal_id, quorum_percent);
+        Ok(result)
+    }
+
+    /// Check if a voter has already voted on a proposal
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool))]
+    pub async fn get_vote_by_proposal_and_voter(
+        pool: &PgPool,
+        proposal_id: &str,
+        voter: &str,
+    ) -> Result<Option<VoteRow>, ApiError> {
+        info!("DB query: get_vote_by_proposal_and_voter started, proposal={}, voter={}", proposal_id, voter);
+
+        let result = sqlx::query_as::<_, VoteRow>(
+            r#"
+            SELECT vote_id, proposal_id, voter, support, weight, l1_tx_hash, voted_at
+            FROM votes
+            WHERE proposal_id = $1 AND voter = $2
+            "#,
+        )
+        .bind(proposal_id)
+        .bind(voter)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_vote_by_proposal_and_voter failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_vote_by_proposal_and_voter completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    /// Create a vote on a proposal
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool))]
+    pub async fn create_vote(
+        pool: &PgPool,
+        vote_id: &str,
+        proposal_id: &str,
+        voter: &str,
+        support: i16,
+        weight: &BigDecimal,
+    ) -> Result<VoteRow, ApiError> {
+        info!("DB insert: create_vote started, id={}, proposal={}", vote_id, proposal_id);
+
+        let result = sqlx::query_as::<_, VoteRow>(
+            r#"
+            INSERT INTO votes (vote_id, proposal_id, voter, support, weight)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING vote_id, proposal_id, voter, support, weight, l1_tx_hash, voted_at
+            "#,
+        )
+        .bind(vote_id)
+        .bind(proposal_id)
+        .bind(voter)
+        .bind(support)
+        .bind(weight)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: create_vote failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        // Update proposal vote tallies
+        let tally_column = match support {
+            1 => "votes_for",
+            0 => "votes_abstain",
+            _ => "votes_against",
+        };
+        let update_query = format!(
+            "UPDATE proposals SET {} = {} + $1 WHERE proposal_id = $2",
+            tally_column, tally_column
+        );
+        sqlx::query(&update_query)
+            .bind(weight)
+            .bind(proposal_id)
+            .execute(pool)
+            .await
+            .map_err(|e| {
+                warn!("DB error: update proposal tally failed: {}", e);
+                ApiError::Internal(format!("Database error: {}", e))
+            })?;
+
+        info!("DB insert: create_vote completed, id={}", vote_id);
+        Ok(result)
+    }
+
+    /// Get a vote by ID with proposal info
+    #[instrument(skip(pool))]
+    pub async fn get_vote_by_id(
+        pool: &PgPool,
+        vote_id: &str,
+    ) -> Result<Option<VoteWithProposalRow>, ApiError> {
+        info!("DB query: get_vote_by_id started");
+
+        let result = sqlx::query_as::<_, VoteWithProposalRow>(
+            r#"
+            SELECT v.vote_id, v.proposal_id, p.title as proposal_title,
+                   v.voter, v.support, v.weight, v.l1_tx_hash, v.voted_at
+            FROM votes v
+            JOIN proposals p ON v.proposal_id = p.proposal_id
+            WHERE v.vote_id = $1
+            "#,
+        )
+        .bind(vote_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_vote_by_id failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_vote_by_id completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    /// Get votes by voter with proposal info
+    #[instrument(skip(pool))]
+    pub async fn get_votes_by_voter(
+        pool: &PgPool,
+        voter: &str,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<VoteWithProposalRow>, ApiError> {
+        info!("DB query: get_votes_by_voter started");
+
+        let results = sqlx::query_as::<_, VoteWithProposalRow>(
+            r#"
+            SELECT v.vote_id, v.proposal_id, p.title as proposal_title,
+                   v.voter, v.support, v.weight, v.l1_tx_hash, v.voted_at
+            FROM votes v
+            JOIN proposals p ON v.proposal_id = p.proposal_id
+            WHERE v.voter = $1
+            ORDER BY v.voted_at DESC
+            OFFSET $2 LIMIT $3
+            "#,
+        )
+        .bind(voter)
+        .bind(offset)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_votes_by_voter failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_votes_by_voter completed, count={}", results.len());
+        Ok(results)
+    }
+
+    /// Get proposals by proposer
+    #[instrument(skip(pool))]
+    pub async fn get_proposals_by_proposer(
+        pool: &PgPool,
+        proposer: &str,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<ProposalRow>, ApiError> {
+        info!("DB query: get_proposals_by_proposer started");
+
+        let results = sqlx::query_as::<_, ProposalRow>(
+            r#"
+            SELECT proposal_id, title, description, proposer, proposal_type, status,
+                   quorum, votes_for, votes_against, votes_abstain, start_time, end_time,
+                   executed_by, executed_tx_hash, executed_at, created_at
+            FROM proposals
+            WHERE proposer = $1
+            ORDER BY created_at DESC
+            OFFSET $2 LIMIT $3
+            "#,
+        )
+        .bind(proposer)
+        .bind(offset)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_proposals_by_proposer failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_proposals_by_proposer completed, count={}", results.len());
+        Ok(results)
     }
 }
 

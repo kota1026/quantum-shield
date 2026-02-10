@@ -6,7 +6,7 @@
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use sqlx::{FromRow, PgPool};
-use tracing::{info, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 
 use crate::error::ApiError;
 
@@ -46,6 +46,78 @@ pub struct ObserverEarningRow {
 pub struct ObserverRepository;
 
 impl ObserverRepository {
+    // ========================================================================
+    // Write Operations (Storage Migration Phase 3)
+    // ========================================================================
+
+    /// Create or update an observer record in PostgreSQL
+    /// SM-001: PG first, then Redis cache
+    /// BE-001: Real DB operation (no stubs)
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool))]
+    pub async fn create(
+        pool: &PgPool,
+        observer_id: &str,
+        wallet_address: &str,
+        stake_amount: Option<&BigDecimal>,
+    ) -> Result<(), ApiError> {
+        info!("DB insert: observer create started, observer_id={}", observer_id);
+
+        sqlx::query(
+            r#"
+            INSERT INTO observers (observer_id, wallet_address, status, total_earnings,
+                                  successful_challenges, failed_challenges, practice_mode_earnings)
+            VALUES ($1, $2, 'pending_approval', 0, 0, 0, 0)
+            ON CONFLICT (observer_id) DO UPDATE SET
+                wallet_address = EXCLUDED.wallet_address
+            "#,
+        )
+        .bind(observer_id)
+        .bind(wallet_address)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: observer create failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        debug!("DB insert: observer create completed, observer_id={}", observer_id);
+        Ok(())
+    }
+
+    /// Get observer by wallet address
+    #[instrument(skip(pool), fields(wallet = %wallet_address))]
+    pub async fn get_by_wallet(
+        pool: &PgPool,
+        wallet_address: &str,
+    ) -> Result<Option<ObserverRow>, ApiError> {
+        info!("DB query: get_observer_by_wallet started");
+
+        let result = sqlx::query_as::<_, ObserverRow>(
+            r#"
+            SELECT observer_id, wallet_address, status, total_earnings,
+                   successful_challenges, failed_challenges, registered_at,
+                   practice_mode_until, practice_mode_earnings
+            FROM observers
+            WHERE wallet_address = $1
+            "#,
+        )
+        .bind(wallet_address)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_observer_by_wallet failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_observer_by_wallet completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    // ========================================================================
+    // Read Operations (Phase 8-C)
+    // ========================================================================
+
     /// Get observer by ID
     #[instrument(skip(pool))]
     pub async fn get_by_id(
@@ -267,11 +339,88 @@ impl ObserverRepository {
         info!("DB query: count_challenges_by_observer completed, count={}", count);
         Ok(count)
     }
+
+    // ========================================================================
+    // Phase 4: Observer Consumer Route Support
+    // ========================================================================
+
+    /// Get earnings summary for an observer (aggregated totals)
+    #[instrument(skip(pool))]
+    pub async fn get_earnings_summary(
+        pool: &PgPool,
+        observer_id: &str,
+    ) -> Result<ObserverEarningsSummary, ApiError> {
+        info!("DB query: get_earnings_summary started");
+
+        let row: (BigDecimal, BigDecimal, i64) = sqlx::query_as(
+            r#"
+            SELECT
+                COALESCE(SUM(amount), 0) as total,
+                COALESCE(SUM(CASE WHEN claimed = true THEN amount ELSE 0 END), 0) as claimed,
+                COUNT(CASE WHEN claimed = false THEN 1 END) as unclaimed_count
+            FROM observer_earnings
+            WHERE observer_id = $1
+            "#,
+        )
+        .bind(observer_id)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_earnings_summary failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        let total_earnings = row.0;
+        let claimed_earnings = row.1.clone();
+        let unclaimed_earnings = &total_earnings - &claimed_earnings;
+
+        info!("DB query: get_earnings_summary completed");
+        Ok(ObserverEarningsSummary {
+            total_earnings,
+            claimed_earnings,
+            unclaimed_earnings,
+        })
+    }
+
+    /// Claim an earning (mark as claimed)
+    #[instrument(skip(pool))]
+    pub async fn claim_earning(
+        pool: &PgPool,
+        earning_id: &str,
+    ) -> Result<bool, ApiError> {
+        info!("DB update: claim_earning started, earning_id={}", earning_id);
+
+        let result = sqlx::query(
+            r#"
+            UPDATE observer_earnings
+            SET claimed = true, claimed_at = NOW()
+            WHERE earning_id = $1 AND claimed = false
+            "#,
+        )
+        .bind(earning_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: claim_earning failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        let updated = result.rows_affected() > 0;
+        info!("DB update: claim_earning completed, updated={}", updated);
+        Ok(updated)
+    }
 }
 
 // ============================================================================
-// Additional Models (Phase 8-C)
+// Additional Models (Phase 8-C + Phase 4)
 // ============================================================================
+
+/// Aggregated earnings summary
+pub struct ObserverEarningsSummary {
+    pub total_earnings: BigDecimal,
+    pub claimed_earnings: BigDecimal,
+    pub unclaimed_earnings: BigDecimal,
+}
 
 #[derive(Debug, Clone, FromRow)]
 pub struct ObserverChallengeRow {

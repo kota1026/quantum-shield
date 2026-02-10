@@ -19,6 +19,7 @@ use axum::{Extension, Json, extract::{Path, Query}};
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    db::{LockRepository, ChallengeRepository, ProverRepository, UserRepository},
     error::ApiError,
     services::AppState,
 };
@@ -931,121 +932,154 @@ pub struct TimeSeriesDataPoint {
 /// GET /v1/explorer/overview
 ///
 /// Returns network overview with statistics, recent activity, and health.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_overview(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<ExplorerOverviewResponse>, ApiError> {
-    tracing::info!("Fetching explorer overview");
+    tracing::info!("Explorer: get_overview started");
+    let pool = state.pool();
 
-    let now = chrono::Utc::now().timestamp() as u64;
+    // Fetch aggregate stats from DB
+    let tvl = LockRepository::get_total_tvl(pool).await?;
+    let total_locks = LockRepository::count_locks(pool, None).await? as u64;
+    let total_unlocks = LockRepository::count_unlocks(pool, None, None).await? as u64;
+    let active_provers = ProverRepository::count_by_status(pool, Some("active")).await? as u32;
+    let total_challenges = ChallengeRepository::count_by_status(pool, None).await? as u32;
+    let successful_challenges = ChallengeRepository::count_by_status(pool, Some("resolved_valid")).await? as u32;
+
+    // Top provers — list active provers ordered by registration (best proxy without a separate volume column)
+    let top_prover_rows = ProverRepository::list_provers(pool, Some("active"), None, 0, 3).await?;
+    let mut top_provers = Vec::new();
+    for p in &top_prover_rows {
+        let metrics = ProverRepository::get_metrics(pool, &p.prover_id).await?;
+        let (lock_count, success_rate) = match &metrics {
+            Some(m) => (m.total_signatures as u64, m.success_rate),
+            None => (0, 100.0),
+        };
+        top_provers.push(TopProverItem {
+            id: p.prover_id.clone(),
+            address: p.operator_addr.clone(),
+            name: None, // No display name column in ProverRow
+            volume: p.stake_amount.to_string(),
+            lock_count,
+            success_rate,
+        });
+    }
 
     let response = ExplorerOverviewResponse {
         network: NetworkStats {
-            total_value_locked: "1500000000000000000000".to_string(), // 1500 ETH
-            total_value_locked_usd: "3750000".to_string(), // $3.75M
-            total_locks: 2847,
-            total_unlocks: 1923,
-            active_provers: 12,
-            total_challenges: 47,
-            successful_challenges: 28,
-            total_fees: "75000000000000000000".to_string(), // 75 ETH
+            total_value_locked: tvl.to_string(),
+            total_value_locked_usd: "0".to_string(), // Requires price oracle — Phase 6
+            total_locks,
+            total_unlocks,
+            active_provers,
+            total_challenges,
+            successful_challenges,
+            total_fees: "0".to_string(), // Requires fee aggregation — Phase 5
             current_edition: "Community".to_string(),
         },
         recent_activity: RecentActivitySummary {
-            locks_24h: 45,
-            unlocks_24h: 32,
-            volume_24h: "125000000000000000000".to_string(), // 125 ETH
-            challenges_24h: 2,
+            locks_24h: 0,    // Requires time-windowed query — Phase 5
+            unlocks_24h: 0,
+            volume_24h: "0".to_string(),
+            challenges_24h: 0,
         },
-        top_provers: vec![
-            TopProverItem {
-                id: "prover_001".to_string(),
-                address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-                name: Some("Quantum Prover Alpha".to_string()),
-                volume: "500000000000000000000".to_string(), // 500 ETH
-                lock_count: 892,
-                success_rate: 99.8,
-            },
-            TopProverItem {
-                id: "prover_002".to_string(),
-                address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-                name: Some("Shield Node Beta".to_string()),
-                volume: "350000000000000000000".to_string(), // 350 ETH
-                lock_count: 654,
-                success_rate: 99.5,
-            },
-            TopProverItem {
-                id: "prover_003".to_string(),
-                address: "0x9876543210fedcba9876543210fedcba98765432".to_string(),
-                name: Some("Aegis Validator".to_string()),
-                volume: "280000000000000000000".to_string(), // 280 ETH
-                lock_count: 521,
-                success_rate: 99.9,
-            },
-        ],
+        top_provers,
         health: NetworkHealth {
             status: "healthy".to_string(),
-            avg_unlock_time: 86400, // 24 hours
-            avg_proof_time: 2500, // 2.5 seconds
-            l1_status: "connected".to_string(),
-            l3_status: "consensus_active".to_string(),
+            avg_unlock_time: 86400,
+            avg_proof_time: 0,
+            l1_status: "unknown".to_string(), // Requires L1 health check — Phase 8-D
+            l3_status: "unknown".to_string(),
         },
     };
 
+    tracing::info!("Explorer: get_overview completed, locks={}, unlocks={}", total_locks, total_unlocks);
     Ok(Json(response))
 }
 
 /// GET /v1/explorer/search
 ///
 /// Unified search for locks, unlocks, addresses, provers.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn search(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Query(params): Query<SearchQuery>,
 ) -> Result<Json<SearchResponse>, ApiError> {
-    tracing::info!("Explorer search: q={}, type={:?}", params.q, params.search_type);
+    tracing::info!("Explorer: search started, q={}, type={:?}", params.q, params.search_type);
+    let pool = state.pool();
 
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(20);
     let now = chrono::Utc::now().timestamp() as u64;
+    let mut results = Vec::new();
 
-    // Mock search results based on query
-    let results = if params.q.starts_with("0x") && params.q.len() == 42 {
-        // Address search
-        vec![SearchResult {
-            result_type: SearchType::Address,
-            id: params.q.clone(),
-            title: format!("Address: {}...{}", &params.q[0..10], &params.q[38..42]),
-            description: "User account with 5 locks, 3 unlocks".to_string(),
-            score: 1.0,
-            timestamp: now - 86400,
-        }]
-    } else if params.q.starts_with("0x") && params.q.len() == 66 {
-        // Lock ID or TX hash search
-        vec![SearchResult {
-            result_type: SearchType::Lock,
-            id: params.q.clone(),
-            title: format!("Lock: {}...{}", &params.q[0..10], &params.q[62..66]),
-            description: "Active lock: 10 ETH".to_string(),
-            score: 1.0,
-            timestamp: now - 3600,
-        }]
-    } else {
-        // General search
-        vec![
-            SearchResult {
+    let q = &params.q;
+    let search_type = params.search_type.unwrap_or(SearchType::All);
+
+    // Search by lock ID
+    if matches!(search_type, SearchType::Lock | SearchType::All) {
+        if let Ok(Some(lock)) = LockRepository::get_by_id(pool, q).await {
+            results.push(SearchResult {
+                result_type: SearchType::Lock,
+                id: lock.lock_id.clone(),
+                title: format!("Lock: {}", &lock.lock_id),
+                description: format!("Status: {}, Amount: {}", lock.status, lock.amount),
+                score: 1.0,
+                timestamp: lock.created_at.timestamp() as u64,
+            });
+        }
+    }
+
+    // Search by address (wallet)
+    if matches!(search_type, SearchType::Address | SearchType::All) {
+        if let Ok(Some(user)) = UserRepository::get_by_wallet(pool, q).await {
+            results.push(SearchResult {
+                result_type: SearchType::Address,
+                id: user.wallet_address.clone(),
+                title: format!("Address: {}", &user.wallet_address),
+                description: format!("User registered at {}", user.created_at),
+                score: 1.0,
+                timestamp: user.created_at.timestamp() as u64,
+            });
+        }
+    }
+
+    // Search by challenge ID
+    if matches!(search_type, SearchType::Challenge | SearchType::All) {
+        if let Ok(Some(ch)) = ChallengeRepository::get_by_id(pool, q).await {
+            results.push(SearchResult {
+                result_type: SearchType::Challenge,
+                id: ch.challenge_id.clone(),
+                title: format!("Challenge: {}", &ch.challenge_id),
+                description: format!("Status: {}, Bond: {}", ch.status, ch.bond),
+                score: 1.0,
+                timestamp: ch.challenged_at.timestamp() as u64,
+            });
+        }
+    }
+
+    // Search by prover ID
+    if matches!(search_type, SearchType::Prover | SearchType::All) {
+        if let Ok(Some(prover)) = ProverRepository::get_by_id(pool, q).await {
+            results.push(SearchResult {
                 result_type: SearchType::Prover,
-                id: "prover_001".to_string(),
-                title: format!("Prover matching '{}'", params.q),
-                description: "Active prover with 99% success rate".to_string(),
-                score: 0.8,
-                timestamp: now - 7200,
-            },
-        ]
-    };
+                id: prover.prover_id.clone(),
+                title: format!("Prover: {}", &prover.prover_id),
+                description: format!("Status: {}, Stake: {}", prover.status, prover.stake_amount),
+                score: 1.0,
+                timestamp: prover.registered_at.timestamp() as u64,
+            });
+        }
+    }
+
+    let total = results.len() as u32;
+    tracing::info!("Explorer: search completed, results={}", total);
 
     Ok(Json(SearchResponse {
         query: params.q,
         results,
-        total: 1,
+        total,
         page,
         page_size,
     }))
@@ -1054,535 +1088,1216 @@ pub async fn search(
 /// GET /v1/explorer/locks
 ///
 /// Returns paginated list of locks.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_locks(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Query(params): Query<ListQuery>,
 ) -> Result<Json<LocksListResponse>, ApiError> {
-    tracing::info!("Fetching explorer locks list");
+    tracing::info!("Explorer: get_locks started");
+    let pool = state.pool();
 
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(20);
-    let now = chrono::Utc::now().timestamp() as u64;
+    let offset = ((page - 1) * page_size) as i64;
+    let limit = page_size as i64;
 
-    let response = LocksListResponse {
-        locks: vec![
-            LockListItem {
-                id: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".to_string(),
-                owner: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-                amount: "10000000000000000000".to_string(), // 10 ETH
-                token: "0x0000000000000000000000000000000000000000".to_string(),
-                token_symbol: "ETH".to_string(),
-                status: ExplorerLockStatus::Active,
-                created_at: now - 86400,
-                l1_tx_hash: "0xtx_deposit_001".to_string(),
-            },
-            LockListItem {
-                id: "0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210".to_string(),
-                owner: "0x1234abcd5678ef901234abcd5678ef901234abcd".to_string(),
-                amount: "25000000000000000000".to_string(), // 25 ETH
-                token: "0x0000000000000000000000000000000000000000".to_string(),
-                token_symbol: "ETH".to_string(),
-                status: ExplorerLockStatus::UnlockPending,
-                created_at: now - 172800,
-                l1_tx_hash: "0xtx_deposit_002".to_string(),
-            },
-            LockListItem {
-                id: "0x5555666677778888999900001111222233334444555566667777888899990000".to_string(),
-                owner: "0x9999888877776666555544443333222211110000".to_string(),
-                amount: "50000000000000000000".to_string(), // 50 ETH
-                token: "0x0000000000000000000000000000000000000000".to_string(),
-                token_symbol: "ETH".to_string(),
-                status: ExplorerLockStatus::Challenged,
-                created_at: now - 259200,
-                l1_tx_hash: "0xtx_deposit_003".to_string(),
-            },
-        ],
-        total: 2847,
-        page,
-        page_size,
-    };
+    let status_filter = params.status.as_deref();
+    let total = LockRepository::count_locks(pool, status_filter).await? as u64;
+    let rows = LockRepository::list_locks(pool, None, status_filter, offset, limit).await?;
 
-    Ok(Json(response))
+    let locks: Vec<LockListItem> = rows.iter().map(|r| {
+        let status = match r.status.as_str() {
+            "active" | "confirmed" => ExplorerLockStatus::Active,
+            "unlock_pending" => ExplorerLockStatus::UnlockPending,
+            "emergency_pending" => ExplorerLockStatus::EmergencyPending,
+            "challenged" => ExplorerLockStatus::Challenged,
+            "unlocked" => ExplorerLockStatus::Unlocked,
+            "slashed" => ExplorerLockStatus::Slashed,
+            _ => ExplorerLockStatus::Active,
+        };
+        LockListItem {
+            id: r.lock_id.clone(),
+            owner: r.wallet_address.clone(),
+            amount: r.amount.to_string(),
+            token: r.asset.clone(),
+            token_symbol: "ETH".to_string(),
+            status,
+            created_at: r.created_at.timestamp() as u64,
+            l1_tx_hash: r.l1_tx_hash.clone().unwrap_or_default(),
+        }
+    }).collect();
+
+    tracing::info!("Explorer: get_locks completed, count={}, total={}", locks.len(), total);
+    Ok(Json(LocksListResponse { locks, total, page, page_size }))
 }
 
 /// GET /v1/explorer/locks/:id
 ///
 /// Returns detailed information about a specific lock.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_lock_detail(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(lock_id): Path<String>,
 ) -> Result<Json<LockDetailResponse>, ApiError> {
-    tracing::info!("Fetching lock detail: {}", lock_id);
+    tracing::info!("Explorer: get_lock_detail started, lock_id={}", lock_id);
+    let pool = state.pool();
 
-    let now = chrono::Utc::now().timestamp() as u64;
+    let lock = LockRepository::get_by_id(pool, &lock_id).await?
+        .ok_or_else(|| ApiError::NotFound(format!("Lock {} not found", lock_id)))?;
 
-    let response = LockDetailResponse {
-        id: lock_id.clone(),
-        owner: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-        amount: "10000000000000000000".to_string(), // 10 ETH
-        token: "0x0000000000000000000000000000000000000000".to_string(),
-        token_symbol: "ETH".to_string(),
-        token_decimals: 18,
-        status: ExplorerLockStatus::Active,
-        created_at: now - 86400,
-        l1_deposit_tx_hash: "0xtx_l1_deposit_123".to_string(),
-        l3_mint_tx_hash: Some("0xtx_l3_mint_456".to_string()),
-        stark_proof_hash: Some("0xstark_proof_hash_789".to_string()),
-        dilithium_signature: Some("0xdilithium_sig_abc".to_string()),
-        prover: Some(LockProverInfo {
-            id: "prover_001".to_string(),
-            address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-            name: Some("Quantum Prover Alpha".to_string()),
-        }),
-        timeline: vec![
-            LockEvent {
-                event_type: "deposit".to_string(),
-                description: "L1 deposit confirmed".to_string(),
-                timestamp: now - 86400,
-                tx_hash: Some("0xtx_l1_deposit_123".to_string()),
-            },
-            LockEvent {
-                event_type: "proof_generated".to_string(),
-                description: "STARK proof generated".to_string(),
-                timestamp: now - 86300,
-                tx_hash: None,
-            },
-            LockEvent {
-                event_type: "signed".to_string(),
-                description: "Dilithium signature added".to_string(),
-                timestamp: now - 86200,
-                tx_hash: None,
-            },
-            LockEvent {
-                event_type: "minted".to_string(),
-                description: "L3 tokens minted".to_string(),
-                timestamp: now - 86100,
-                tx_hash: Some("0xtx_l3_mint_456".to_string()),
-            },
-        ],
-        related_unlock: None,
-        challenge: None,
+    let status = match lock.status.as_str() {
+        "active" | "confirmed" => ExplorerLockStatus::Active,
+        "unlock_pending" => ExplorerLockStatus::UnlockPending,
+        "emergency_pending" => ExplorerLockStatus::EmergencyPending,
+        "challenged" => ExplorerLockStatus::Challenged,
+        "unlocked" => ExplorerLockStatus::Unlocked,
+        "slashed" => ExplorerLockStatus::Slashed,
+        _ => ExplorerLockStatus::Active,
     };
 
+    // Check for related unlock
+    let unlocks = LockRepository::list_unlocks(pool, None, None, 0, 100).await?;
+    let related_unlock = unlocks.iter()
+        .find(|u| u.lock_id == lock_id)
+        .map(|u| RelatedUnlockInfo {
+            unlock_id: u.unlock_id.clone(),
+            requested_at: u.created_at.timestamp() as u64,
+            status: u.status.clone(),
+        });
+
+    // Check for related challenge
+    let challenge_row = ChallengeRepository::get_by_lock_id(pool, &lock_id).await?;
+    let challenge = challenge_row.map(|c| {
+        let c_status = match c.status.as_str() {
+            "pending" => ExplorerChallengeStatus::Pending,
+            "defense_submitted" => ExplorerChallengeStatus::UnderReview,
+            "resolved_valid" => ExplorerChallengeStatus::Succeeded,
+            "resolved_invalid" => ExplorerChallengeStatus::Failed,
+            _ => ExplorerChallengeStatus::Pending,
+        };
+        LockChallengeInfo {
+            challenge_id: c.challenge_id,
+            challenger: c.challenger,
+            status: c_status,
+            submitted_at: c.challenged_at.timestamp() as u64,
+        }
+    });
+
+    // Build timeline from lock data
+    let mut timeline = vec![
+        LockEvent {
+            event_type: "created".to_string(),
+            description: "Lock created".to_string(),
+            timestamp: lock.created_at.timestamp() as u64,
+            tx_hash: lock.l1_tx_hash.clone(),
+        },
+    ];
+    if let Some(confirmed) = lock.confirmed_at {
+        timeline.push(LockEvent {
+            event_type: "confirmed".to_string(),
+            description: "Lock confirmed on L1".to_string(),
+            timestamp: confirmed.timestamp() as u64,
+            tx_hash: lock.l1_tx_hash.clone(),
+        });
+    }
+
+    let response = LockDetailResponse {
+        id: lock.lock_id.clone(),
+        owner: lock.wallet_address.clone(),
+        amount: lock.amount.to_string(),
+        token: lock.asset.clone(),
+        token_symbol: "ETH".to_string(),
+        token_decimals: 18,
+        status,
+        created_at: lock.created_at.timestamp() as u64,
+        l1_deposit_tx_hash: lock.l1_tx_hash.clone().unwrap_or_default(),
+        l3_mint_tx_hash: None,
+        stark_proof_hash: Some(lock.sr_0.clone()),
+        dilithium_signature: Some(hex::encode(&lock.sig_dilithium)),
+        prover: None, // Prover assignment not tracked in LockRow directly
+        timeline,
+        related_unlock,
+        challenge,
+    };
+
+    tracing::info!("Explorer: get_lock_detail completed, lock_id={}", lock_id);
     Ok(Json(response))
 }
 
 /// GET /v1/explorer/unlocks
 ///
 /// Returns paginated list of unlocks.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_unlocks(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Query(params): Query<ListQuery>,
 ) -> Result<Json<UnlocksListResponse>, ApiError> {
-    tracing::info!("Fetching explorer unlocks list");
+    tracing::info!("Explorer: get_unlocks started");
+    let pool = state.pool();
 
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(20);
-    let now = chrono::Utc::now().timestamp() as u64;
+    let offset = ((page - 1) * page_size) as i64;
+    let limit = page_size as i64;
 
-    let response = UnlocksListResponse {
-        unlocks: vec![
-            UnlockListItem {
-                id: "unlock_001".to_string(),
-                lock_id: "0xlock_001".to_string(),
-                owner: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-                amount: "5000000000000000000".to_string(), // 5 ETH
-                unlock_type: "normal".to_string(),
-                status: "pending".to_string(),
-                requested_at: now - 43200, // 12 hours ago
-                executable_at: now + 43200, // 12 hours remaining
-            },
-            UnlockListItem {
-                id: "unlock_002".to_string(),
-                lock_id: "0xlock_002".to_string(),
-                owner: "0x1234abcd5678ef901234abcd5678ef901234abcd".to_string(),
-                amount: "15000000000000000000".to_string(), // 15 ETH
-                unlock_type: "emergency".to_string(),
-                status: "pending".to_string(),
-                requested_at: now - 172800, // 2 days ago
-                executable_at: now + 432000, // 5 days remaining
-            },
-            UnlockListItem {
-                id: "unlock_003".to_string(),
-                lock_id: "0xlock_003".to_string(),
-                owner: "0x9876543210fedcba9876543210fedcba98765432".to_string(),
-                amount: "8000000000000000000".to_string(), // 8 ETH
-                unlock_type: "normal".to_string(),
-                status: "completed".to_string(),
-                requested_at: now - 259200, // 3 days ago
-                executable_at: now - 172800, // completed 2 days ago
-            },
-        ],
-        total: 1923,
-        page,
-        page_size,
-    };
+    let status_filter = params.status.as_deref();
+    let total = LockRepository::count_unlocks(pool, status_filter, None).await? as u64;
+    let rows = LockRepository::list_unlocks(pool, status_filter, None, offset, limit).await?;
 
-    Ok(Json(response))
+    let unlocks: Vec<UnlockListItem> = rows.iter().map(|r| {
+        let executable_at = r.release_time
+            .map(|rt| rt.timestamp() as u64)
+            .unwrap_or(0);
+        UnlockListItem {
+            id: r.unlock_id.clone(),
+            lock_id: r.lock_id.clone(),
+            owner: r.wallet_address.clone(),
+            amount: r.amount.to_string(),
+            unlock_type: if r.is_emergency { "emergency".to_string() } else { "normal".to_string() },
+            status: r.status.clone(),
+            requested_at: r.created_at.timestamp() as u64,
+            executable_at,
+        }
+    }).collect();
+
+    tracing::info!("Explorer: get_unlocks completed, count={}, total={}", unlocks.len(), total);
+    Ok(Json(UnlocksListResponse { unlocks, total, page, page_size }))
 }
 
 /// GET /v1/explorer/unlocks/:id
 ///
 /// Returns detailed information about a specific unlock.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_unlock_detail(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(unlock_id): Path<String>,
 ) -> Result<Json<UnlockDetailResponse>, ApiError> {
-    tracing::info!("Fetching unlock detail: {}", unlock_id);
+    tracing::info!("Explorer: get_unlock_detail started, unlock_id={}", unlock_id);
+    let pool = state.pool();
 
-    let now = chrono::Utc::now().timestamp() as u64;
+    let unlock = LockRepository::get_unlock_by_id(pool, &unlock_id).await?
+        .ok_or_else(|| ApiError::NotFound(format!("Unlock {} not found", unlock_id)))?;
+
+    let timelock_end = unlock.release_time
+        .map(|rt| rt.timestamp() as u64)
+        .unwrap_or(0);
+
+    let timeline = vec![
+        UnlockEvent {
+            event_type: "requested".to_string(),
+            description: if unlock.is_emergency { "Emergency unlock requested".to_string() } else { "Unlock requested".to_string() },
+            timestamp: unlock.created_at.timestamp() as u64,
+            tx_hash: None,
+        },
+        UnlockEvent {
+            event_type: "timelock_started".to_string(),
+            description: if unlock.is_emergency { "7-day timelock started".to_string() } else { "24-hour timelock started".to_string() },
+            timestamp: unlock.created_at.timestamp() as u64,
+            tx_hash: None,
+        },
+    ];
 
     let response = UnlockDetailResponse {
-        id: unlock_id.clone(),
-        lock_id: "0xlock_001".to_string(),
-        owner: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-        amount: "5000000000000000000".to_string(), // 5 ETH
-        token: "0x0000000000000000000000000000000000000000".to_string(),
+        id: unlock.unlock_id.clone(),
+        lock_id: unlock.lock_id.clone(),
+        owner: unlock.wallet_address.clone(),
+        amount: unlock.amount.to_string(),
+        token: "ETH".to_string(),
         token_symbol: "ETH".to_string(),
-        unlock_type: "normal".to_string(),
-        status: "pending".to_string(),
-        requested_at: now - 43200,
-        timelock_end: now + 43200,
+        unlock_type: if unlock.is_emergency { "emergency".to_string() } else { "normal".to_string() },
+        status: unlock.status.clone(),
+        requested_at: unlock.created_at.timestamp() as u64,
+        timelock_end,
         executed_at: None,
-        emergency_bond: None,
+        emergency_bond: unlock.bond_amount.as_ref().map(|b| b.to_string()),
         l1_burn_tx_hash: None,
         l3_release_tx_hash: None,
-        timeline: vec![
-            UnlockEvent {
-                event_type: "requested".to_string(),
-                description: "Unlock requested".to_string(),
-                timestamp: now - 43200,
-                tx_hash: Some("0xtx_unlock_request".to_string()),
-            },
-            UnlockEvent {
-                event_type: "timelock_started".to_string(),
-                description: "24-hour timelock started".to_string(),
-                timestamp: now - 43200,
-                tx_hash: None,
-            },
-        ],
+        timeline,
     };
 
+    tracing::info!("Explorer: get_unlock_detail completed, unlock_id={}", unlock_id);
     Ok(Json(response))
 }
 
 /// GET /v1/explorer/challenges
 ///
 /// Returns paginated list of challenges.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_challenges(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Query(params): Query<ListQuery>,
 ) -> Result<Json<ChallengesListResponse>, ApiError> {
-    tracing::info!("Fetching explorer challenges list");
+    tracing::info!("Explorer: get_challenges started");
+    let pool = state.pool();
 
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(20);
-    let now = chrono::Utc::now().timestamp() as u64;
+    let offset = ((page - 1) * page_size) as i64;
+    let limit = page_size as i64;
 
-    let response = ChallengesListResponse {
-        challenges: vec![
-            ChallengeListItem {
-                id: "challenge_001".to_string(),
-                lock_id: "0xlock_challenged_001".to_string(),
-                challenger: "0xchallenger_001".to_string(),
-                bond: "100000000000000000".to_string(), // 0.1 ETH
-                status: ExplorerChallengeStatus::Pending,
-                submitted_at: now - 3600, // 1 hour ago
-                defense_deadline: now + 169200, // ~47 hours remaining
-            },
-            ChallengeListItem {
-                id: "challenge_002".to_string(),
-                lock_id: "0xlock_challenged_002".to_string(),
-                challenger: "0xchallenger_002".to_string(),
-                bond: "500000000000000000".to_string(), // 0.5 ETH
-                status: ExplorerChallengeStatus::Succeeded,
-                submitted_at: now - 259200, // 3 days ago
-                defense_deadline: now - 86400, // expired 1 day ago
-            },
-        ],
-        total: 47,
-        page,
-        page_size,
-    };
+    let status_filter = params.status.as_deref();
+    let total = ChallengeRepository::count_by_status(pool, status_filter).await? as u64;
+    let rows = ChallengeRepository::list_challenges(pool, status_filter, offset, limit).await?;
 
-    Ok(Json(response))
+    let challenges: Vec<ChallengeListItem> = rows.iter().map(|c| {
+        let status = match c.status.as_str() {
+            "pending" => ExplorerChallengeStatus::Pending,
+            "defense_submitted" => ExplorerChallengeStatus::UnderReview,
+            "resolved_valid" => ExplorerChallengeStatus::Succeeded,
+            "resolved_invalid" => ExplorerChallengeStatus::Failed,
+            "expired" => ExplorerChallengeStatus::Expired,
+            _ => ExplorerChallengeStatus::Pending,
+        };
+        ChallengeListItem {
+            id: c.challenge_id.clone(),
+            lock_id: c.lock_id.clone(),
+            challenger: c.challenger.clone(),
+            bond: c.bond.to_string(),
+            status,
+            submitted_at: c.challenged_at.timestamp() as u64,
+            defense_deadline: c.defense_deadline.timestamp() as u64,
+        }
+    }).collect();
+
+    tracing::info!("Explorer: get_challenges completed, count={}, total={}", challenges.len(), total);
+    Ok(Json(ChallengesListResponse { challenges, total, page, page_size }))
 }
 
 /// GET /v1/explorer/challenges/:id
 ///
 /// Returns detailed information about a specific challenge.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_challenge_detail(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(challenge_id): Path<String>,
 ) -> Result<Json<ChallengeDetailResponse>, ApiError> {
-    tracing::info!("Fetching challenge detail: {}", challenge_id);
+    tracing::info!("Explorer: get_challenge_detail started, challenge_id={}", challenge_id);
+    let pool = state.pool();
 
-    let now = chrono::Utc::now().timestamp() as u64;
+    let ch = ChallengeRepository::get_by_id(pool, &challenge_id).await?
+        .ok_or_else(|| ApiError::NotFound(format!("Challenge {} not found", challenge_id)))?;
 
-    let response = ChallengeDetailResponse {
-        id: challenge_id.clone(),
-        lock_id: "0xlock_challenged_001".to_string(),
-        challenger: "0xchallenger_001".to_string(),
-        defender: Some("0xprover_001".to_string()),
-        bond: "100000000000000000".to_string(), // 0.1 ETH
-        fraud_proof_hash: "0xfraud_proof_hash_123".to_string(),
-        reason: "Invalid STARK proof detected".to_string(),
-        status: ExplorerChallengeStatus::Pending,
-        submitted_at: now - 3600,
-        defense_deadline: now + 169200,
-        defense: None,
-        resolution: None,
-        timeline: vec![
-            ChallengeEvent {
-                event_type: "submitted".to_string(),
-                description: "Challenge submitted".to_string(),
-                timestamp: now - 3600,
-                tx_hash: Some("0xtx_challenge_submit".to_string()),
-            },
-        ],
-        lock_summary: ChallengeLockSummary {
-            id: "0xlock_challenged_001".to_string(),
-            owner: "0xowner_001".to_string(),
-            amount: "50000000000000000000".to_string(), // 50 ETH
+    let status = match ch.status.as_str() {
+        "pending" => ExplorerChallengeStatus::Pending,
+        "defense_submitted" => ExplorerChallengeStatus::UnderReview,
+        "resolved_valid" => ExplorerChallengeStatus::Succeeded,
+        "resolved_invalid" => ExplorerChallengeStatus::Failed,
+        "expired" => ExplorerChallengeStatus::Expired,
+        _ => ExplorerChallengeStatus::Pending,
+    };
+
+    // Defense info
+    let defense = ch.defense_proof_hash.as_ref().map(|dph| ChallengeDefenseInfo {
+        defense_proof_hash: dph.clone(),
+        submitted_at: ch.challenged_at.timestamp() as u64, // approximate
+    });
+
+    // Resolution info (from slashing record)
+    let slashing = ChallengeRepository::get_slashing(pool, &challenge_id).await?;
+    let resolution = if let Some(ref s) = slashing {
+        Some(ChallengeResolutionInfo {
+            winner: if ch.status == "resolved_valid" { "challenger".to_string() } else { "defender".to_string() },
+            resolved_at: ch.resolved_at.map(|r| r.timestamp() as u64).unwrap_or(0),
+            slashed_amount: Some(s.slash_amount.to_string()),
+            reward_amount: Some(s.challenger_reward.to_string()),
+            tx_hash: s.l1_tx_hash.clone(),
+        })
+    } else if ch.resolved_at.is_some() {
+        Some(ChallengeResolutionInfo {
+            winner: if ch.status == "resolved_valid" { "challenger".to_string() } else { "defender".to_string() },
+            resolved_at: ch.resolved_at.map(|r| r.timestamp() as u64).unwrap_or(0),
+            slashed_amount: None,
+            reward_amount: None,
+            tx_hash: None,
+        })
+    } else {
+        None
+    };
+
+    // Build timeline
+    let mut timeline = vec![
+        ChallengeEvent {
+            event_type: "submitted".to_string(),
+            description: "Challenge submitted".to_string(),
+            timestamp: ch.challenged_at.timestamp() as u64,
+            tx_hash: None,
+        },
+    ];
+    if ch.defense_proof_hash.is_some() {
+        timeline.push(ChallengeEvent {
+            event_type: "defense_submitted".to_string(),
+            description: "Defense submitted".to_string(),
+            timestamp: ch.challenged_at.timestamp() as u64, // approximate
+            tx_hash: None,
+        });
+    }
+    if let Some(resolved) = ch.resolved_at {
+        timeline.push(ChallengeEvent {
+            event_type: "resolved".to_string(),
+            description: format!("Challenge resolved: {}", ch.status),
+            timestamp: resolved.timestamp() as u64,
+            tx_hash: slashing.as_ref().and_then(|s| s.l1_tx_hash.clone()),
+        });
+    }
+
+    // Lock summary
+    let lock = LockRepository::get_by_id(pool, &ch.lock_id).await?;
+    let lock_summary = match lock {
+        Some(l) => ChallengeLockSummary {
+            id: l.lock_id,
+            owner: l.wallet_address,
+            amount: l.amount.to_string(),
+            token: l.asset,
+        },
+        None => ChallengeLockSummary {
+            id: ch.lock_id.clone(),
+            owner: "unknown".to_string(),
+            amount: "0".to_string(),
             token: "ETH".to_string(),
         },
     };
 
+    let response = ChallengeDetailResponse {
+        id: ch.challenge_id.clone(),
+        lock_id: ch.lock_id.clone(),
+        challenger: ch.challenger.clone(),
+        defender: ch.defender.clone(),
+        bond: ch.bond.to_string(),
+        fraud_proof_hash: ch.fraud_proof_hash.clone(),
+        reason: "Challenge submitted by observer".to_string(),
+        status,
+        submitted_at: ch.challenged_at.timestamp() as u64,
+        defense_deadline: ch.defense_deadline.timestamp() as u64,
+        defense,
+        resolution,
+        timeline,
+        lock_summary,
+    };
+
+    tracing::info!("Explorer: get_challenge_detail completed, challenge_id={}", challenge_id);
     Ok(Json(response))
 }
 
 /// GET /v1/explorer/address/:addr
 ///
 /// Returns information about a specific address.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_address_info(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(addr): Path<String>,
 ) -> Result<Json<AddressInfoResponse>, ApiError> {
-    tracing::info!("Fetching address info: {}", addr);
+    tracing::info!("Explorer: get_address_info started, addr={}", addr);
+    let pool = state.pool();
 
-    let now = chrono::Utc::now().timestamp() as u64;
+    // Get user info
+    let user = UserRepository::get_by_wallet(pool, &addr).await?;
+    let first_seen = user.as_ref().map(|u| u.created_at.timestamp() as u64).unwrap_or(0);
+
+    // Lock stats
+    let total_locks_count = LockRepository::count_locks_by_wallet(pool, &addr, None).await? as u64;
+    let active_locks_count = LockRepository::count_locks_by_wallet(pool, &addr, Some("active")).await? as u64;
+    let locks_for_tvl = LockRepository::list_locks_by_wallet(pool, &addr, Some("active"), 0, 10000).await?;
+    let total_value_locked: bigdecimal::BigDecimal = locks_for_tvl.iter()
+        .map(|l| l.amount.clone())
+        .sum();
+
+    // Unlock stats
+    let total_unlocks_count = LockRepository::count_unlocks_by_wallet(pool, &addr, None).await? as u64;
+    let pending_unlocks_count = LockRepository::count_unlocks_by_wallet(pool, &addr, Some("pending")).await? as u64;
+    let unlocks_all = LockRepository::list_unlocks_by_wallet(pool, &addr, None, 0, 10000).await?;
+    let total_value_unlocked: bigdecimal::BigDecimal = unlocks_all.iter()
+        .filter(|u| u.status == "completed")
+        .map(|u| u.amount.clone())
+        .sum();
+
+    // Recent locks
+    let recent_lock_rows = LockRepository::list_locks_by_wallet(pool, &addr, None, 0, 5).await?;
+    let recent_locks: Vec<AddressRecentLock> = recent_lock_rows.iter().map(|r| {
+        let status = match r.status.as_str() {
+            "active" | "confirmed" => ExplorerLockStatus::Active,
+            "unlock_pending" => ExplorerLockStatus::UnlockPending,
+            "emergency_pending" => ExplorerLockStatus::EmergencyPending,
+            "challenged" => ExplorerLockStatus::Challenged,
+            "unlocked" => ExplorerLockStatus::Unlocked,
+            "slashed" => ExplorerLockStatus::Slashed,
+            _ => ExplorerLockStatus::Active,
+        };
+        AddressRecentLock {
+            id: r.lock_id.clone(),
+            amount: r.amount.to_string(),
+            status,
+            created_at: r.created_at.timestamp() as u64,
+        }
+    }).collect();
+
+    // Recent unlocks
+    let recent_unlock_rows = LockRepository::list_unlocks_by_wallet(pool, &addr, None, 0, 5).await?;
+    let recent_unlocks: Vec<AddressRecentUnlock> = recent_unlock_rows.iter().map(|u| {
+        AddressRecentUnlock {
+            id: u.unlock_id.clone(),
+            lock_id: u.lock_id.clone(),
+            amount: u.amount.to_string(),
+            status: u.status.clone(),
+            requested_at: u.created_at.timestamp() as u64,
+        }
+    }).collect();
+
+    // Determine address type and check if prover
+    let mut address_type = "user".to_string();
+    let mut prover_info = None;
+    // Check provers by operator_addr (walk through list; no direct wallet lookup in ProverRepository)
+    let provers = ProverRepository::list_provers(pool, None, None, 0, 1000).await?;
+    if let Some(p) = provers.iter().find(|p| p.operator_addr == addr) {
+        address_type = "prover".to_string();
+        let p_status = match p.status.as_str() {
+            "active" => ExplorerProverStatus::Active,
+            "pending" | "pending_approval" => ExplorerProverStatus::Pending,
+            "suspended" => ExplorerProverStatus::Suspended,
+            "exiting" => ExplorerProverStatus::Exiting,
+            "exited" => ExplorerProverStatus::Exited,
+            _ => ExplorerProverStatus::Active,
+        };
+        prover_info = Some(AddressProverInfo {
+            prover_id: p.prover_id.clone(),
+            status: p_status,
+            stake: p.stake_amount.to_string(),
+            total_volume: p.stake_amount.to_string(),
+        });
+    }
 
     let response = AddressInfoResponse {
         address: addr.clone(),
-        address_type: "user".to_string(),
-        first_seen: now - 2592000, // 30 days ago
-        last_active: now - 3600, // 1 hour ago
+        address_type,
+        first_seen,
+        last_active: first_seen, // Approximate — no last_active tracking
         lock_stats: AddressLockStats {
-            total_locks: 15,
-            active_locks: 5,
-            total_value_locked: "75000000000000000000".to_string(), // 75 ETH
+            total_locks: total_locks_count,
+            active_locks: active_locks_count,
+            total_value_locked: total_value_locked.to_string(),
         },
         unlock_stats: AddressUnlockStats {
-            total_unlocks: 10,
-            pending_unlocks: 2,
-            total_value_unlocked: "50000000000000000000".to_string(), // 50 ETH
+            total_unlocks: total_unlocks_count,
+            pending_unlocks: pending_unlocks_count,
+            total_value_unlocked: total_value_unlocked.to_string(),
         },
-        challenge_stats: None,
-        prover_info: None,
-        recent_locks: vec![
-            AddressRecentLock {
-                id: "0xlock_recent_001".to_string(),
-                amount: "10000000000000000000".to_string(), // 10 ETH
-                status: ExplorerLockStatus::Active,
-                created_at: now - 86400,
-            },
-            AddressRecentLock {
-                id: "0xlock_recent_002".to_string(),
-                amount: "15000000000000000000".to_string(), // 15 ETH
-                status: ExplorerLockStatus::UnlockPending,
-                created_at: now - 172800,
-            },
-        ],
-        recent_unlocks: vec![
-            AddressRecentUnlock {
-                id: "unlock_recent_001".to_string(),
-                lock_id: "0xlock_old_001".to_string(),
-                amount: "8000000000000000000".to_string(), // 8 ETH
-                status: "completed".to_string(),
-                requested_at: now - 259200,
-            },
-        ],
+        challenge_stats: None, // Observer stats require wallet→observer mapping
+        prover_info,
+        recent_locks,
+        recent_unlocks,
     };
 
+    tracing::info!("Explorer: get_address_info completed, addr={}", addr);
     Ok(Json(response))
 }
 
 /// GET /v1/explorer/provers
 ///
 /// Returns paginated list of provers.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_provers(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Query(params): Query<ListQuery>,
 ) -> Result<Json<ProversListResponse>, ApiError> {
-    tracing::info!("Fetching explorer provers list");
+    tracing::info!("Explorer: get_provers started");
+    let pool = state.pool();
 
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(20);
-    let now = chrono::Utc::now().timestamp() as u64;
+    let offset = ((page - 1) * page_size) as i64;
+    let limit = page_size as i64;
 
-    let response = ProversListResponse {
-        provers: vec![
-            ProverListItem {
-                id: "prover_001".to_string(),
-                address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-                name: Some("Quantum Prover Alpha".to_string()),
-                status: ExplorerProverStatus::Active,
-                stake: "32000000000000000000".to_string(), // 32 ETH
-                total_volume: "500000000000000000000".to_string(), // 500 ETH
-                total_locks: 892,
-                success_rate: 99.8,
-                joined_at: now - 7776000, // 90 days ago
-            },
-            ProverListItem {
-                id: "prover_002".to_string(),
-                address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-                name: Some("Shield Node Beta".to_string()),
-                status: ExplorerProverStatus::Active,
-                stake: "32000000000000000000".to_string(), // 32 ETH
-                total_volume: "350000000000000000000".to_string(), // 350 ETH
-                total_locks: 654,
-                success_rate: 99.5,
-                joined_at: now - 5184000, // 60 days ago
-            },
-            ProverListItem {
-                id: "prover_003".to_string(),
-                address: "0x9876543210fedcba9876543210fedcba98765432".to_string(),
-                name: Some("Aegis Validator".to_string()),
-                status: ExplorerProverStatus::Active,
-                stake: "32000000000000000000".to_string(), // 32 ETH
-                total_volume: "280000000000000000000".to_string(), // 280 ETH
-                total_locks: 521,
-                success_rate: 99.9,
-                joined_at: now - 2592000, // 30 days ago
-            },
-        ],
-        total: 12,
-        page,
-        page_size,
-    };
+    let status_filter = params.status.as_deref();
+    let total = ProverRepository::count_by_status(pool, status_filter).await? as u32;
+    let rows = ProverRepository::list_provers(pool, status_filter, None, offset, limit).await?;
 
-    Ok(Json(response))
+    let mut provers = Vec::new();
+    for p in &rows {
+        let metrics = ProverRepository::get_metrics(pool, &p.prover_id).await?;
+        let (total_locks, success_rate) = match &metrics {
+            Some(m) => (m.total_signatures as u64, m.success_rate),
+            None => (0, 100.0),
+        };
+        let p_status = match p.status.as_str() {
+            "active" => ExplorerProverStatus::Active,
+            "pending" | "pending_approval" => ExplorerProverStatus::Pending,
+            "suspended" => ExplorerProverStatus::Suspended,
+            "exiting" => ExplorerProverStatus::Exiting,
+            "exited" => ExplorerProverStatus::Exited,
+            _ => ExplorerProverStatus::Active,
+        };
+        provers.push(ProverListItem {
+            id: p.prover_id.clone(),
+            address: p.operator_addr.clone(),
+            name: None,
+            status: p_status,
+            stake: p.stake_amount.to_string(),
+            total_volume: p.stake_amount.to_string(), // Volume = stake as proxy
+            total_locks,
+            success_rate,
+            joined_at: p.registered_at.timestamp() as u64,
+        });
+    }
+
+    tracing::info!("Explorer: get_provers completed, count={}, total={}", provers.len(), total);
+    Ok(Json(ProversListResponse { provers, total, page, page_size }))
 }
 
 /// GET /v1/explorer/provers/:id
 ///
 /// Returns detailed information about a specific prover.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_prover_detail(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(prover_id): Path<String>,
 ) -> Result<Json<ProverDetailResponse>, ApiError> {
-    tracing::info!("Fetching prover detail: {}", prover_id);
+    tracing::info!("Explorer: get_prover_detail started, prover_id={}", prover_id);
+    let pool = state.pool();
 
-    let now = chrono::Utc::now().timestamp() as u64;
+    let prover = ProverRepository::get_by_id(pool, &prover_id).await?
+        .ok_or_else(|| ApiError::NotFound(format!("Prover {} not found", prover_id)))?;
+
+    let metrics = ProverRepository::get_metrics(pool, &prover_id).await?;
+
+    let p_status = match prover.status.as_str() {
+        "active" => ExplorerProverStatus::Active,
+        "pending" | "pending_approval" => ExplorerProverStatus::Pending,
+        "suspended" => ExplorerProverStatus::Suspended,
+        "exiting" => ExplorerProverStatus::Exiting,
+        "exited" => ExplorerProverStatus::Exited,
+        _ => ExplorerProverStatus::Active,
+    };
+
+    let (total_locks, success_rate, avg_response_time, uptime, total_rewards, last_active) = match &metrics {
+        Some(m) => (
+            m.total_signatures as u64,
+            m.success_rate,
+            m.avg_response_time_ms as u64,
+            m.uptime_percentage,
+            m.total_rewards.to_string(),
+            m.updated_at.timestamp() as u64,
+        ),
+        None => (0, 100.0, 0, 100.0, "0".to_string(), prover.registered_at.timestamp() as u64),
+    };
 
     let response = ProverDetailResponse {
-        id: prover_id.clone(),
-        address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-        name: Some("Quantum Prover Alpha".to_string()),
-        description: Some("High-performance quantum-resistant prover node".to_string()),
-        website: Some("https://quantumprover.example.com".to_string()),
-        status: ExplorerProverStatus::Active,
-        stake: "32000000000000000000".to_string(), // 32 ETH
+        id: prover.prover_id.clone(),
+        address: prover.operator_addr.clone(),
+        name: None,
+        description: None,
+        website: None,
+        status: p_status,
+        stake: prover.stake_amount.to_string(),
         performance: ProverPerformanceStats {
-            total_locks: 892,
-            success_rate: 99.8,
-            avg_response_time: 1500, // 1.5 seconds
-            uptime: 99.95,
-            last_active_at: now - 300, // 5 minutes ago
+            total_locks,
+            success_rate,
+            avg_response_time,
+            uptime,
+            last_active_at: last_active,
         },
         financial: ProverFinancialStats {
-            total_volume: "500000000000000000000".to_string(), // 500 ETH
-            total_fees: "2500000000000000000".to_string(), // 2.5 ETH
-            total_rewards: "3000000000000000000".to_string(), // 3 ETH
-            slashed_amount: "0".to_string(),
+            total_volume: prover.stake_amount.to_string(),
+            total_fees: "0".to_string(), // Requires fee aggregation
+            total_rewards,
+            slashed_amount: "0".to_string(), // Requires slashing aggregation
         },
-        hardware: Some(ProverHardwareInfo {
-            cpu: "AMD EPYC 7763".to_string(),
-            memory: "256 GB".to_string(),
-            storage: "2 TB NVMe".to_string(),
-            region: "US-East".to_string(),
-        }),
-        recent_activity: vec![
-            ProverActivityItem {
-                activity_type: "lock_signed".to_string(),
-                description: "Signed lock for 10 ETH".to_string(),
-                timestamp: now - 300,
-                lock_id: Some("0xlock_recent".to_string()),
-            },
-            ProverActivityItem {
-                activity_type: "lock_signed".to_string(),
-                description: "Signed lock for 25 ETH".to_string(),
-                timestamp: now - 1800,
-                lock_id: Some("0xlock_previous".to_string()),
-            },
-        ],
+        hardware: None, // No hardware info in DB
+        recent_activity: vec![], // Requires activity log
         challenge_history: ProverChallengeHistory {
-            total_challenges: 2,
-            challenges_won: 2,
+            total_challenges: 0,
+            challenges_won: 0,
             challenges_lost: 0,
             total_slashed: "0".to_string(),
         },
-        joined_at: now - 7776000, // 90 days ago
+        joined_at: prover.registered_at.timestamp() as u64,
     };
 
+    tracing::info!("Explorer: get_prover_detail completed, prover_id={}", prover_id);
     Ok(Json(response))
 }
 
 /// GET /v1/explorer/analytics
 ///
 /// Returns network analytics data.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
 pub async fn get_analytics(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<AnalyticsResponse>, ApiError> {
-    tracing::info!("Fetching explorer analytics");
+    tracing::info!("Explorer: get_analytics started");
+    let pool = state.pool();
 
     let now = chrono::Utc::now().timestamp() as u64;
-    let day_seconds = 86400u64;
 
-    let response = AnalyticsResponse {
-        period: "30d".to_string(),
-        volume: VolumeAnalytics {
-            total_volume: "4500000000000000000000".to_string(), // 4500 ETH
-            change: 12.5, // +12.5% from previous period
-            peak_day: now - 7 * day_seconds,
-            avg_daily: "150000000000000000000".to_string(), // 150 ETH
-        },
-        locks: LockAnalytics {
-            new_locks: 1234,
-            total_unlocks: 987,
-            avg_lock_size: "5000000000000000000".to_string(), // 5 ETH
-            avg_lock_duration: 604800, // 7 days
-        },
-        provers: ProverAnalytics {
-            active_provers: 12,
-            new_provers: 2,
-            exited_provers: 0,
-            avg_stake: "32000000000000000000".to_string(), // 32 ETH
-        },
-        challenges: ChallengeAnalytics {
-            total_challenges: 15,
-            successful_challenges: 9,
-            success_rate: 60.0,
-            total_slashed: "45000000000000000000".to_string(), // 45 ETH
-        },
-        fees: FeeAnalytics {
-            total_fees: "22500000000000000000".to_string(), // 22.5 ETH
-            prover_fees: "18000000000000000000".to_string(), // 18 ETH (80%)
-            protocol_fees: "3375000000000000000".to_string(), // 3.375 ETH (15%)
-            insurance_fees: "1125000000000000000".to_string(), // 1.125 ETH (5%)
-        },
-        time_series: (0..30).map(|i| {
-            TimeSeriesDataPoint {
-                timestamp: now - (29 - i) * day_seconds,
-                volume: format!("{}", 100_000_000_000_000_000_000u128 + (i as u128 * 10_000_000_000_000_000_000)),
-                locks: 30 + (i % 20) as u32,
-                unlocks: 20 + (i % 15) as u32,
-                challenges: (i % 3) as u32,
-            }
-        }).collect(),
+    // Aggregate current stats
+    let tvl = LockRepository::get_total_tvl(pool).await?;
+    let total_locks_count = LockRepository::count_locks(pool, None).await? as u64;
+    let total_unlocks_count = LockRepository::count_unlocks(pool, None, None).await? as u64;
+    let active_provers = ProverRepository::count_by_status(pool, Some("active")).await? as u32;
+    let total_challenges = ChallengeRepository::count_by_status(pool, None).await? as u32;
+    let successful_challenges = ChallengeRepository::count_by_status(pool, Some("resolved_valid")).await? as u32;
+    let success_rate = if total_challenges > 0 {
+        (successful_challenges as f64 / total_challenges as f64) * 100.0
+    } else {
+        0.0
     };
 
+    let response = AnalyticsResponse {
+        period: "all".to_string(),
+        volume: VolumeAnalytics {
+            total_volume: tvl.to_string(),
+            change: 0.0, // Requires historical data
+            peak_day: now,
+            avg_daily: "0".to_string(), // Requires daily_metrics table
+        },
+        locks: LockAnalytics {
+            new_locks: total_locks_count,
+            total_unlocks: total_unlocks_count,
+            avg_lock_size: "0".to_string(), // Requires AVG aggregate
+            avg_lock_duration: 0,
+        },
+        provers: ProverAnalytics {
+            active_provers,
+            new_provers: 0, // Requires time-windowed query
+            exited_provers: ProverRepository::count_by_status(pool, Some("exited")).await.unwrap_or(0) as u32,
+            avg_stake: "0".to_string(),
+        },
+        challenges: ChallengeAnalytics {
+            total_challenges,
+            successful_challenges,
+            success_rate,
+            total_slashed: "0".to_string(), // Requires slashing SUM aggregate
+        },
+        fees: FeeAnalytics {
+            total_fees: "0".to_string(), // Requires fee table
+            prover_fees: "0".to_string(),
+            protocol_fees: "0".to_string(),
+            insurance_fees: "0".to_string(),
+        },
+        time_series: vec![], // Requires daily_metrics table — Phase 5
+    };
+
+    tracing::info!("Explorer: get_analytics completed");
     Ok(Json(response))
+}
+
+// ============================================================================
+// Additional Response Types (FE-BE alignment)
+// ============================================================================
+
+/// GET /v1/explorer/locks/recent response
+#[derive(Debug, Serialize)]
+pub struct RecentLocksResponse {
+    pub locks: Vec<LockListItem>,
+}
+
+/// GET /v1/explorer/unlocks/recent response
+#[derive(Debug, Serialize)]
+pub struct RecentUnlocksResponse {
+    pub unlocks: Vec<UnlockListItem>,
+}
+
+/// GET /v1/explorer/challenges/active response
+#[derive(Debug, Serialize)]
+pub struct ActiveChallengesResponse {
+    pub challenges: Vec<ChallengeListItem>,
+    pub total: u64,
+}
+
+/// GET /v1/explorer/challenges/stats response
+#[derive(Debug, Serialize)]
+pub struct ChallengeStatsResponse {
+    #[serde(rename = "totalChallenges")]
+    pub total_challenges: u32,
+    #[serde(rename = "activeChallenges")]
+    pub active_challenges: u32,
+    #[serde(rename = "successfulChallenges")]
+    pub successful_challenges: u32,
+    #[serde(rename = "failedChallenges")]
+    pub failed_challenges: u32,
+    #[serde(rename = "successRate")]
+    pub success_rate: f64,
+    #[serde(rename = "totalSlashed")]
+    pub total_slashed: String,
+    #[serde(rename = "totalBondsLocked")]
+    pub total_bonds_locked: String,
+}
+
+/// GET /v1/explorer/provers/stats response
+#[derive(Debug, Serialize)]
+pub struct ProverStatsResponse {
+    #[serde(rename = "totalProvers")]
+    pub total_provers: u32,
+    #[serde(rename = "activeProvers")]
+    pub active_provers: u32,
+    #[serde(rename = "pendingProvers")]
+    pub pending_provers: u32,
+    #[serde(rename = "suspendedProvers")]
+    pub suspended_provers: u32,
+    #[serde(rename = "avgSuccessRate")]
+    pub avg_success_rate: f64,
+    #[serde(rename = "totalStaked")]
+    pub total_staked: String,
+}
+
+/// GET /v1/explorer/analytics/stats response
+#[derive(Debug, Serialize)]
+pub struct AnalyticsStatsResponse {
+    #[serde(rename = "totalValueLocked")]
+    pub total_value_locked: String,
+    #[serde(rename = "totalLocks")]
+    pub total_locks: u64,
+    #[serde(rename = "totalUnlocks")]
+    pub total_unlocks: u64,
+    #[serde(rename = "activeProvers")]
+    pub active_provers: u32,
+    #[serde(rename = "totalChallenges")]
+    pub total_challenges: u32,
+    #[serde(rename = "networkHealth")]
+    pub network_health: String,
+}
+
+/// Single data point for time-series analytics
+#[derive(Debug, Serialize)]
+pub struct AnalyticsDataPoint {
+    pub timestamp: u64,
+    pub value: String,
+}
+
+/// GET /v1/explorer/analytics/tvl response
+#[derive(Debug, Serialize)]
+pub struct AnalyticsTvlResponse {
+    pub data: Vec<AnalyticsDataPoint>,
+    pub current: String,
+    pub period: String,
+}
+
+/// GET /v1/explorer/analytics/volume response
+#[derive(Debug, Serialize)]
+pub struct AnalyticsVolumeResponse {
+    pub data: Vec<AnalyticsDataPoint>,
+    pub total: String,
+    pub period: String,
+}
+
+/// Prover performance item for analytics
+#[derive(Debug, Serialize)]
+pub struct ProverPerformanceItem {
+    pub id: String,
+    pub address: String,
+    pub name: Option<String>,
+    #[serde(rename = "successRate")]
+    pub success_rate: f64,
+    #[serde(rename = "totalSignatures")]
+    pub total_signatures: u64,
+    #[serde(rename = "avgResponseTimeMs")]
+    pub avg_response_time_ms: u64,
+    pub uptime: f64,
+}
+
+/// GET /v1/explorer/analytics/provers response
+#[derive(Debug, Serialize)]
+pub struct AnalyticsProversResponse {
+    pub provers: Vec<ProverPerformanceItem>,
+    pub total: u32,
+}
+
+/// Distribution bucket for lock/unlock breakdowns
+#[derive(Debug, Serialize)]
+pub struct DistributionBucket {
+    pub label: String,
+    pub count: u64,
+    pub percentage: f64,
+}
+
+/// GET /v1/explorer/analytics/locks/distribution response
+#[derive(Debug, Serialize)]
+pub struct LockDistributionResponse {
+    pub distribution: Vec<DistributionBucket>,
+    pub total: u64,
+}
+
+/// GET /v1/explorer/analytics/unlocks/distribution response
+#[derive(Debug, Serialize)]
+pub struct UnlockDistributionResponse {
+    pub distribution: Vec<DistributionBucket>,
+    pub total: u64,
+}
+
+// ============================================================================
+// Additional API Handlers (FE-BE alignment)
+// ============================================================================
+
+/// GET /v1/explorer/locks/recent
+///
+/// Returns the 10 most recent locks.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_recent_locks(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<RecentLocksResponse>, ApiError> {
+    tracing::info!("Explorer: get_recent_locks started");
+    let pool = state.pool();
+
+    let rows = LockRepository::list_locks(pool, None, None, 0, 10).await?;
+
+    let locks: Vec<LockListItem> = rows.iter().map(|r| {
+        let status = match r.status.as_str() {
+            "active" | "confirmed" => ExplorerLockStatus::Active,
+            "unlock_pending" => ExplorerLockStatus::UnlockPending,
+            "emergency_pending" => ExplorerLockStatus::EmergencyPending,
+            "challenged" => ExplorerLockStatus::Challenged,
+            "unlocked" => ExplorerLockStatus::Unlocked,
+            "slashed" => ExplorerLockStatus::Slashed,
+            _ => ExplorerLockStatus::Active,
+        };
+        LockListItem {
+            id: r.lock_id.clone(),
+            owner: r.wallet_address.clone(),
+            amount: r.amount.to_string(),
+            token: r.asset.clone(),
+            token_symbol: "ETH".to_string(),
+            status,
+            created_at: r.created_at.timestamp() as u64,
+            l1_tx_hash: r.l1_tx_hash.clone().unwrap_or_default(),
+        }
+    }).collect();
+
+    tracing::info!("Explorer: get_recent_locks completed, count={}", locks.len());
+    Ok(Json(RecentLocksResponse { locks }))
+}
+
+/// GET /v1/explorer/unlocks/recent
+///
+/// Returns the 10 most recent unlocks.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_recent_unlocks(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<RecentUnlocksResponse>, ApiError> {
+    tracing::info!("Explorer: get_recent_unlocks started");
+    let pool = state.pool();
+
+    let rows = LockRepository::list_unlocks(pool, None, None, 0, 10).await?;
+
+    let unlocks: Vec<UnlockListItem> = rows.iter().map(|r| {
+        let executable_at = r.release_time
+            .map(|rt| rt.timestamp() as u64)
+            .unwrap_or(0);
+        UnlockListItem {
+            id: r.unlock_id.clone(),
+            lock_id: r.lock_id.clone(),
+            owner: r.wallet_address.clone(),
+            amount: r.amount.to_string(),
+            unlock_type: if r.is_emergency { "emergency".to_string() } else { "normal".to_string() },
+            status: r.status.clone(),
+            requested_at: r.created_at.timestamp() as u64,
+            executable_at,
+        }
+    }).collect();
+
+    tracing::info!("Explorer: get_recent_unlocks completed, count={}", unlocks.len());
+    Ok(Json(RecentUnlocksResponse { unlocks }))
+}
+
+/// GET /v1/explorer/challenges/active
+///
+/// Returns currently active (pending / under_review) challenges.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_active_challenges(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<ActiveChallengesResponse>, ApiError> {
+    tracing::info!("Explorer: get_active_challenges started");
+    let pool = state.pool();
+
+    let pending_rows = ChallengeRepository::list_challenges(pool, Some("pending"), 0, 100).await?;
+    let defense_rows = ChallengeRepository::list_challenges(pool, Some("defense_submitted"), 0, 100).await?;
+
+    let mut all_rows = pending_rows;
+    all_rows.extend(defense_rows);
+
+    let challenges: Vec<ChallengeListItem> = all_rows.iter().map(|c| {
+        let status = match c.status.as_str() {
+            "pending" => ExplorerChallengeStatus::Pending,
+            "defense_submitted" => ExplorerChallengeStatus::UnderReview,
+            _ => ExplorerChallengeStatus::Pending,
+        };
+        ChallengeListItem {
+            id: c.challenge_id.clone(),
+            lock_id: c.lock_id.clone(),
+            challenger: c.challenger.clone(),
+            bond: c.bond.to_string(),
+            status,
+            submitted_at: c.challenged_at.timestamp() as u64,
+            defense_deadline: c.defense_deadline.timestamp() as u64,
+        }
+    }).collect();
+
+    let total = challenges.len() as u64;
+    tracing::info!("Explorer: get_active_challenges completed, total={}", total);
+    Ok(Json(ActiveChallengesResponse { challenges, total }))
+}
+
+/// GET /v1/explorer/challenges/stats
+///
+/// Returns aggregate challenge statistics.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_challenge_stats(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<ChallengeStatsResponse>, ApiError> {
+    tracing::info!("Explorer: get_challenge_stats started");
+    let pool = state.pool();
+
+    let total = ChallengeRepository::count_by_status(pool, None).await? as u32;
+    let active = ChallengeRepository::count_by_status(pool, Some("pending")).await? as u32
+        + ChallengeRepository::count_by_status(pool, Some("defense_submitted")).await? as u32;
+    let successful = ChallengeRepository::count_by_status(pool, Some("resolved_valid")).await? as u32;
+    let failed = ChallengeRepository::count_by_status(pool, Some("resolved_invalid")).await? as u32;
+
+    let success_rate = if total > 0 {
+        (successful as f64 / total as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    tracing::info!("Explorer: get_challenge_stats completed, total={}, active={}", total, active);
+    Ok(Json(ChallengeStatsResponse {
+        total_challenges: total,
+        active_challenges: active,
+        successful_challenges: successful,
+        failed_challenges: failed,
+        success_rate,
+        total_slashed: "0".to_string(),
+        total_bonds_locked: "0".to_string(),
+    }))
+}
+
+/// GET /v1/explorer/provers/stats
+///
+/// Returns aggregate prover statistics.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_prover_stats(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<ProverStatsResponse>, ApiError> {
+    tracing::info!("Explorer: get_prover_stats started");
+    let pool = state.pool();
+
+    let total = ProverRepository::count_by_status(pool, None).await? as u32;
+    let active = ProverRepository::count_by_status(pool, Some("active")).await? as u32;
+    let pending = ProverRepository::count_by_status(pool, Some("pending")).await? as u32
+        + ProverRepository::count_by_status(pool, Some("pending_approval")).await? as u32;
+    let suspended = ProverRepository::count_by_status(pool, Some("suspended")).await? as u32;
+
+    // Calculate average success rate from active provers
+    let active_provers = ProverRepository::list_provers(pool, Some("active"), None, 0, 1000).await?;
+    let mut total_rate = 0.0;
+    let mut rate_count = 0u32;
+    for p in &active_provers {
+        if let Ok(Some(m)) = ProverRepository::get_metrics(pool, &p.prover_id).await {
+            total_rate += m.success_rate;
+            rate_count += 1;
+        }
+    }
+    let avg_success_rate = if rate_count > 0 { total_rate / rate_count as f64 } else { 100.0 };
+
+    // Total staked from active provers
+    let total_staked: bigdecimal::BigDecimal = active_provers.iter()
+        .map(|p| p.stake_amount.clone())
+        .sum();
+
+    tracing::info!("Explorer: get_prover_stats completed, total={}, active={}", total, active);
+    Ok(Json(ProverStatsResponse {
+        total_provers: total,
+        active_provers: active,
+        pending_provers: pending,
+        suspended_provers: suspended,
+        avg_success_rate,
+        total_staked: total_staked.to_string(),
+    }))
+}
+
+/// GET /v1/explorer/analytics/stats
+///
+/// Returns high-level analytics overview.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_analytics_stats(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<AnalyticsStatsResponse>, ApiError> {
+    tracing::info!("Explorer: get_analytics_stats started");
+    let pool = state.pool();
+
+    let tvl = LockRepository::get_total_tvl(pool).await?;
+    let total_locks = LockRepository::count_locks(pool, None).await? as u64;
+    let total_unlocks = LockRepository::count_unlocks(pool, None, None).await? as u64;
+    let active_provers = ProverRepository::count_by_status(pool, Some("active")).await? as u32;
+    let total_challenges = ChallengeRepository::count_by_status(pool, None).await? as u32;
+
+    tracing::info!("Explorer: get_analytics_stats completed, tvl={}, locks={}", tvl, total_locks);
+    Ok(Json(AnalyticsStatsResponse {
+        total_value_locked: tvl.to_string(),
+        total_locks,
+        total_unlocks,
+        active_provers,
+        total_challenges,
+        network_health: "healthy".to_string(),
+    }))
+}
+
+/// GET /v1/explorer/analytics/tvl
+///
+/// Returns TVL time-series data points.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_analytics_tvl(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<AnalyticsTvlResponse>, ApiError> {
+    tracing::info!("Explorer: get_analytics_tvl started");
+    let pool = state.pool();
+
+    let current_tvl = LockRepository::get_total_tvl(pool).await?;
+    let now = chrono::Utc::now();
+
+    // Build time-series from lock creation timestamps by aggregating per-day
+    // For now, return current TVL as a single data point (daily_metrics table needed for full history)
+    let data = vec![
+        AnalyticsDataPoint {
+            timestamp: now.timestamp() as u64,
+            value: current_tvl.to_string(),
+        },
+    ];
+
+    tracing::info!("Explorer: get_analytics_tvl completed, current={}", current_tvl);
+    Ok(Json(AnalyticsTvlResponse {
+        data,
+        current: current_tvl.to_string(),
+        period: "all".to_string(),
+    }))
+}
+
+/// GET /v1/explorer/analytics/volume
+///
+/// Returns volume time-series data points.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_analytics_volume(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<AnalyticsVolumeResponse>, ApiError> {
+    tracing::info!("Explorer: get_analytics_volume started");
+    let pool = state.pool();
+
+    let tvl = LockRepository::get_total_tvl(pool).await?;
+    let now = chrono::Utc::now();
+
+    // Single data point — full history requires daily_metrics table
+    let data = vec![
+        AnalyticsDataPoint {
+            timestamp: now.timestamp() as u64,
+            value: tvl.to_string(),
+        },
+    ];
+
+    tracing::info!("Explorer: get_analytics_volume completed, total={}", tvl);
+    Ok(Json(AnalyticsVolumeResponse {
+        data,
+        total: tvl.to_string(),
+        period: "all".to_string(),
+    }))
+}
+
+/// GET /v1/explorer/analytics/provers
+///
+/// Returns prover performance data.
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_analytics_provers(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<AnalyticsProversResponse>, ApiError> {
+    tracing::info!("Explorer: get_analytics_provers started");
+    let pool = state.pool();
+
+    let rows = ProverRepository::list_provers(pool, Some("active"), None, 0, 50).await?;
+    let total = rows.len() as u32;
+
+    let mut provers = Vec::new();
+    for p in &rows {
+        let metrics = ProverRepository::get_metrics(pool, &p.prover_id).await?;
+        let (success_rate, total_sigs, avg_rt, uptime) = match &metrics {
+            Some(m) => (m.success_rate, m.total_signatures as u64, m.avg_response_time_ms as u64, m.uptime_percentage),
+            None => (100.0, 0, 0, 100.0),
+        };
+        provers.push(ProverPerformanceItem {
+            id: p.prover_id.clone(),
+            address: p.operator_addr.clone(),
+            name: None,
+            success_rate,
+            total_signatures: total_sigs,
+            avg_response_time_ms: avg_rt,
+            uptime,
+        });
+    }
+
+    tracing::info!("Explorer: get_analytics_provers completed, count={}", total);
+    Ok(Json(AnalyticsProversResponse { provers, total }))
+}
+
+/// GET /v1/explorer/analytics/locks/distribution
+///
+/// Returns lock status distribution (how many locks in each status).
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_lock_distribution(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<LockDistributionResponse>, ApiError> {
+    tracing::info!("Explorer: get_lock_distribution started");
+    let pool = state.pool();
+
+    let total = LockRepository::count_locks(pool, None).await? as u64;
+
+    let statuses = ["active", "confirmed", "unlock_pending", "emergency_pending", "challenged", "unlocked", "slashed"];
+    let mut distribution = Vec::new();
+
+    for status in &statuses {
+        let count = LockRepository::count_locks(pool, Some(status)).await? as u64;
+        if count > 0 {
+            let percentage = if total > 0 { (count as f64 / total as f64) * 100.0 } else { 0.0 };
+            distribution.push(DistributionBucket {
+                label: status.to_string(),
+                count,
+                percentage,
+            });
+        }
+    }
+
+    tracing::info!("Explorer: get_lock_distribution completed, total={}, buckets={}", total, distribution.len());
+    Ok(Json(LockDistributionResponse { distribution, total }))
+}
+
+/// GET /v1/explorer/analytics/unlocks/distribution
+///
+/// Returns unlock type distribution (normal vs emergency, and by status).
+/// BE-001: Real DB operation / BE-003: Mandatory logging
+pub async fn get_unlock_distribution(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<UnlockDistributionResponse>, ApiError> {
+    tracing::info!("Explorer: get_unlock_distribution started");
+    let pool = state.pool();
+
+    let total = LockRepository::count_unlocks(pool, None, None).await? as u64;
+    let normal_count = LockRepository::count_unlocks(pool, None, Some(false)).await? as u64;
+    let emergency_count = LockRepository::count_unlocks(pool, None, Some(true)).await? as u64;
+
+    let mut distribution = Vec::new();
+    if normal_count > 0 {
+        let percentage = if total > 0 { (normal_count as f64 / total as f64) * 100.0 } else { 0.0 };
+        distribution.push(DistributionBucket {
+            label: "normal".to_string(),
+            count: normal_count,
+            percentage,
+        });
+    }
+    if emergency_count > 0 {
+        let percentage = if total > 0 { (emergency_count as f64 / total as f64) * 100.0 } else { 0.0 };
+        distribution.push(DistributionBucket {
+            label: "emergency".to_string(),
+            count: emergency_count,
+            percentage,
+        });
+    }
+
+    tracing::info!("Explorer: get_unlock_distribution completed, total={}, normal={}, emergency={}", total, normal_count, emergency_count);
+    Ok(Json(UnlockDistributionResponse { distribution, total }))
 }
 
 // ============================================================================

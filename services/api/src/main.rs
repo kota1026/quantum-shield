@@ -62,8 +62,8 @@ async fn main() -> anyhow::Result<()> {
         .nest("/v1", routes::api_routes())
         // V1 Auth routes (TASK-P5-012: SIWE→JWT)
         .nest("/v1", routes::auth_routes(state.clone()))
-        // Admin Dashboard API routes
-        .nest("/api", routes::admin_routes())
+        // Admin Dashboard API routes (JWT-protected)
+        .nest("/api", routes::admin_routes(state.clone()))
         .layer(Extension(state))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http());
