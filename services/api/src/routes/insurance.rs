@@ -16,7 +16,11 @@ use std::sync::Arc;
 use axum::{Extension, Json};
 use serde::{Deserialize, Serialize};
 
+use bigdecimal::BigDecimal;
+use uuid::Uuid;
+
 use crate::{
+    db::InsuranceRepository,
     error::ApiError,
     services::AppState,
 };
@@ -248,6 +252,52 @@ pub enum InsuranceTransactionType {
 }
 
 // ============================================================================
+// Helper Functions
+// ============================================================================
+
+fn map_claim_type(ct: &str) -> ClaimType {
+    match ct {
+        "slashing_loss" => ClaimType::SlashingLoss,
+        "protocol_bug" => ClaimType::ProtocolBug,
+        "oracle_manipulation" => ClaimType::OracleManipulation,
+        "bridge_failure" => ClaimType::BridgeFailure,
+        _ => ClaimType::Other,
+    }
+}
+
+fn map_claim_status(s: &str) -> ClaimStatus {
+    match s {
+        "pending" => ClaimStatus::Pending,
+        "under_review" => ClaimStatus::UnderReview,
+        "approved" => ClaimStatus::Approved,
+        "rejected" => ClaimStatus::Rejected,
+        "paid" => ClaimStatus::Paid,
+        "cancelled" => ClaimStatus::Cancelled,
+        _ => ClaimStatus::Pending,
+    }
+}
+
+fn map_claim_type_to_str(ct: &ClaimType) -> &'static str {
+    match ct {
+        ClaimType::SlashingLoss => "slashing_loss",
+        ClaimType::ProtocolBug => "protocol_bug",
+        ClaimType::OracleManipulation => "oracle_manipulation",
+        ClaimType::BridgeFailure => "bridge_failure",
+        ClaimType::Other => "other",
+    }
+}
+
+fn map_tx_type(t: &str) -> InsuranceTransactionType {
+    match t {
+        "fee_income" => InsuranceTransactionType::FeeIncome,
+        "slashing_income" => InsuranceTransactionType::SlashingIncome,
+        "claim_payout" => InsuranceTransactionType::ClaimPayout,
+        "emergency_withdrawal" => InsuranceTransactionType::EmergencyWithdrawal,
+        _ => InsuranceTransactionType::FeeIncome,
+    }
+}
+
+// ============================================================================
 // Endpoint Handlers
 // ============================================================================
 
@@ -256,81 +306,88 @@ pub enum InsuranceTransactionType {
 /// Returns insurance fund dashboard overview including balance,
 /// statistics, and recent activity.
 pub async fn get_dashboard(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<InsuranceDashboardResponse>, ApiError> {
-    tracing::debug!("Insurance: Getting dashboard");
+    tracing::info!("Insurance: Getting dashboard");
+    let pool = state.pool();
 
-    // Mock data - in production this would query the L3 InsuranceFund contract
+    // Get fund summary
+    let fund = InsuranceRepository::get_fund(pool).await?;
+    let (balance, total_received, total_claims_paid, approved_claims, rejected_claims) =
+        if let Some(f) = fund {
+            (
+                f.total_balance.to_string(),
+                f.total_received.to_string(),
+                f.total_claims_paid.to_string(),
+                f.approved_claims_count as u32,
+                f.rejected_claims_count as u32,
+            )
+        } else {
+            ("0".to_string(), "0".to_string(), "0".to_string(), 0, 0)
+        };
+
+    // Count pending claims
+    let pending_claims = InsuranceRepository::count_claims(pool, Some("pending")).await? as u32;
+
+    // Get claims by type
+    let type_counts = InsuranceRepository::count_claims_by_type(pool).await?;
+    let claims_by_type: Vec<ClaimsByType> = type_counts
+        .into_iter()
+        .map(|(ct, count, total)| ClaimsByType {
+            claim_type: map_claim_type(&ct),
+            count: count as u32,
+            total_amount: total.to_string(),
+        })
+        .collect();
+
+    // Get recent claims (last 5)
+    let recent_claim_rows = InsuranceRepository::list_claims(pool, None, 0, 5).await?;
+    let recent_claims: Vec<ClaimSummary> = recent_claim_rows
+        .into_iter()
+        .map(|c| ClaimSummary {
+            id: c.claim_id,
+            claimant: c.claimant,
+            claim_type: map_claim_type(&c.claim_type),
+            amount: c.amount.to_string(),
+            status: map_claim_status(&c.status),
+            submitted_at: c.submitted_at.map(|t| t.timestamp() as u64).unwrap_or(0),
+        })
+        .collect();
+
+    // Get recent transactions (last 5)
+    let recent_tx_rows = InsuranceRepository::list_transactions(pool, None, 0, 5).await?;
+    let recent_transactions: Vec<InsuranceTransaction> = recent_tx_rows
+        .into_iter()
+        .map(|tx| InsuranceTransaction {
+            tx_hash: tx.tx_hash,
+            tx_type: tx.tx_type,
+            amount: tx.amount.to_string(),
+            timestamp: tx.created_at.map(|t| t.timestamp() as u64).unwrap_or(0),
+            description: tx.description.unwrap_or_default(),
+        })
+        .collect();
+
+    // Fund health ratio: balance / TVL — requires TVL from LockRepository (Phase 6)
+    let fund_health_ratio = 0.0;
+
     let response = InsuranceDashboardResponse {
-        balance: "150000000000000000000000".to_string(), // 150K ETH (mock)
-        balance_usd: "375000".to_string(), // $375K at $2500/ETH
-        total_claims_paid: "25000000000000000000000".to_string(), // 25K ETH
-        pending_claims: 3,
-        fund_health_ratio: 0.015, // 1.5% of TVL
+        balance,
+        balance_usd: "0".to_string(), // Requires price oracle — Phase 6
+        total_claims_paid,
+        pending_claims,
+        fund_health_ratio,
         stats: InsuranceStats {
-            total_received: "200000000000000000000000".to_string(),
-            approved_claims: 12,
-            rejected_claims: 5,
-            avg_processing_time: 72, // 72 hours
-            claims_by_type: vec![
-                ClaimsByType {
-                    claim_type: ClaimType::SlashingLoss,
-                    count: 8,
-                    total_amount: "15000000000000000000000".to_string(),
-                },
-                ClaimsByType {
-                    claim_type: ClaimType::ProtocolBug,
-                    count: 2,
-                    total_amount: "8000000000000000000000".to_string(),
-                },
-                ClaimsByType {
-                    claim_type: ClaimType::OracleManipulation,
-                    count: 1,
-                    total_amount: "1500000000000000000000".to_string(),
-                },
-                ClaimsByType {
-                    claim_type: ClaimType::Other,
-                    count: 1,
-                    total_amount: "500000000000000000000".to_string(),
-                },
-            ],
+            total_received,
+            approved_claims,
+            rejected_claims,
+            avg_processing_time: 0, // Requires processing time tracking — Phase 6
+            claims_by_type,
         },
-        recent_claims: vec![
-            ClaimSummary {
-                id: "CLM-001".to_string(),
-                claimant: "0xaaaa111111111111111111111111111111111111".to_string(),
-                claim_type: ClaimType::SlashingLoss,
-                amount: "2500000000000000000000".to_string(),
-                status: ClaimStatus::Pending,
-                submitted_at: 1736467200,
-            },
-            ClaimSummary {
-                id: "CLM-002".to_string(),
-                claimant: "0xbbbb222222222222222222222222222222222222".to_string(),
-                claim_type: ClaimType::ProtocolBug,
-                amount: "5000000000000000000000".to_string(),
-                status: ClaimStatus::UnderReview,
-                submitted_at: 1736380800,
-            },
-        ],
-        recent_transactions: vec![
-            InsuranceTransaction {
-                tx_hash: "0xins123...".to_string(),
-                tx_type: "fee_income".to_string(),
-                amount: "5000000000000000000".to_string(),
-                timestamp: 1736380800,
-                description: "10% fee allocation".to_string(),
-            },
-            InsuranceTransaction {
-                tx_hash: "0xins456...".to_string(),
-                tx_type: "slashing_income".to_string(),
-                amount: "10000000000000000000".to_string(),
-                timestamp: 1736294400,
-                description: "20% of prover slashing".to_string(),
-            },
-        ],
+        recent_claims,
+        recent_transactions,
     };
 
+    tracing::info!("Insurance: Dashboard retrieved, pending_claims={}", pending_claims);
     Ok(Json(response))
 }
 
@@ -338,67 +395,40 @@ pub async fn get_dashboard(
 ///
 /// Returns paginated list of insurance claims.
 pub async fn list_claims(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<ClaimsListResponse>, ApiError> {
-    tracing::debug!("Insurance: Listing claims");
+    tracing::info!("Insurance: Listing claims");
+    let pool = state.pool();
 
-    // Mock data
-    let claims = vec![
-        ClaimListItem {
-            id: "CLM-001".to_string(),
-            claimant: "0xaaaa111111111111111111111111111111111111".to_string(),
-            claim_type: ClaimType::SlashingLoss,
-            amount: "2500000000000000000000".to_string(),
-            amount_usd: "6250".to_string(),
-            status: ClaimStatus::Pending,
-            description: "Lost funds due to false challenge slashing".to_string(),
-            submitted_at: 1736467200,
-            processed_at: None,
-            incident_tx_hash: Some("0xslash123...".to_string()),
-        },
-        ClaimListItem {
-            id: "CLM-002".to_string(),
-            claimant: "0xbbbb222222222222222222222222222222222222".to_string(),
-            claim_type: ClaimType::ProtocolBug,
-            amount: "5000000000000000000000".to_string(),
-            amount_usd: "12500".to_string(),
-            status: ClaimStatus::UnderReview,
-            description: "Funds stuck due to contract bug in unlock flow".to_string(),
-            submitted_at: 1736380800,
-            processed_at: None,
-            incident_tx_hash: Some("0xbug456...".to_string()),
-        },
-        ClaimListItem {
-            id: "CLM-003".to_string(),
-            claimant: "0xcccc333333333333333333333333333333333333".to_string(),
-            claim_type: ClaimType::SlashingLoss,
-            amount: "1000000000000000000000".to_string(),
-            amount_usd: "2500".to_string(),
-            status: ClaimStatus::Approved,
-            description: "Partial compensation for wrongful slashing".to_string(),
-            submitted_at: 1736294400,
-            processed_at: Some(1736380800),
-            incident_tx_hash: Some("0xslash789...".to_string()),
-        },
-        ClaimListItem {
-            id: "CLM-004".to_string(),
-            claimant: "0xdddd444444444444444444444444444444444444".to_string(),
-            claim_type: ClaimType::OracleManipulation,
-            amount: "3000000000000000000000".to_string(),
-            amount_usd: "7500".to_string(),
-            status: ClaimStatus::Paid,
-            description: "Loss due to VRF oracle manipulation".to_string(),
-            submitted_at: 1736208000,
-            processed_at: Some(1736294400),
-            incident_tx_hash: Some("0xoracle...".to_string()),
-        },
-    ];
+    let page: u32 = 1;
+    let page_size: u32 = 10;
+    let offset = ((page - 1) * page_size) as i64;
 
+    let claim_rows = InsuranceRepository::list_claims(pool, None, offset, page_size as i64).await?;
+    let total = InsuranceRepository::count_claims(pool, None).await? as u32;
+
+    let claims: Vec<ClaimListItem> = claim_rows
+        .into_iter()
+        .map(|c| ClaimListItem {
+            id: c.claim_id,
+            claimant: c.claimant,
+            claim_type: map_claim_type(&c.claim_type),
+            amount: c.amount.to_string(),
+            amount_usd: c.amount_usd.map(|u| u.to_string()).unwrap_or_else(|| "0".to_string()),
+            status: map_claim_status(&c.status),
+            description: c.description,
+            submitted_at: c.submitted_at.map(|t| t.timestamp() as u64).unwrap_or(0),
+            processed_at: c.processed_at.map(|t| t.timestamp() as u64),
+            incident_tx_hash: c.incident_tx_hash,
+        })
+        .collect();
+
+    tracing::info!("Insurance: Listed {} claims, total={}", claims.len(), total);
     Ok(Json(ClaimsListResponse {
         claims,
-        total: 4,
-        page: 1,
-        page_size: 10,
+        total,
+        page,
+        page_size,
     }))
 }
 
@@ -406,15 +436,40 @@ pub async fn list_claims(
 ///
 /// Submits a new insurance claim.
 pub async fn submit_claim(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<SubmitClaimRequest>,
 ) -> Result<Json<SubmitClaimResponse>, ApiError> {
     tracing::info!("Insurance: Submitting claim for {} wei", req.amount);
+    let pool = state.pool();
 
-    // In production: verify signature, validate incident, create claim record
+    let claim_id = format!("CLM-{}", Uuid::new_v4().simple());
+    let claim_type_str = map_claim_type_to_str(&req.claim_type);
 
+    // Parse amount to BigDecimal
+    let amount: BigDecimal = req.amount.parse().map_err(|_| {
+        ApiError::InvalidRequest("Invalid amount format".to_string())
+    })?;
+
+    // Decode hex signature to bytes
+    let sig_bytes = hex::decode(req.signature.trim_start_matches("0x")).unwrap_or_default();
+
+    InsuranceRepository::create_claim(
+        pool,
+        &claim_id,
+        "0x0000000000000000000000000000000000000000", // Placeholder — auth context Phase 8-D
+        claim_type_str,
+        &amount,
+        &req.description,
+        &req.detailed_description,
+        &req.incident_tx_hash,
+        req.lock_id.as_deref(),
+        &sig_bytes,
+    )
+    .await?;
+
+    tracing::info!("Insurance: Claim {} created successfully", claim_id);
     Ok(Json(SubmitClaimResponse {
-        claim_id: "CLM-005".to_string(),
+        claim_id,
         status: ClaimStatus::Pending,
         estimated_processing_time: "48-72 hours".to_string(),
         message: "Claim submitted successfully. Our team will review your claim shortly.".to_string(),
@@ -425,58 +480,37 @@ pub async fn submit_claim(
 ///
 /// Returns paginated list of insurance fund transactions.
 pub async fn list_transactions(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<InsuranceTransactionsResponse>, ApiError> {
-    tracing::debug!("Insurance: Listing transactions");
+    tracing::info!("Insurance: Listing transactions");
+    let pool = state.pool();
 
-    // Mock data
-    let transactions = vec![
-        InsuranceTransactionDetail {
-            tx_hash: "0xins001...".to_string(),
-            tx_type: InsuranceTransactionType::FeeIncome,
-            amount: "5000000000000000000".to_string(),
-            amount_usd: "12.50".to_string(),
-            timestamp: 1736467200,
-            description: "10% protocol fee allocation".to_string(),
-            claim_id: None,
-            source: Some("Protocol Fees".to_string()),
-        },
-        InsuranceTransactionDetail {
-            tx_hash: "0xins002...".to_string(),
-            tx_type: InsuranceTransactionType::SlashingIncome,
-            amount: "10000000000000000000".to_string(),
-            amount_usd: "25.00".to_string(),
-            timestamp: 1736380800,
-            description: "20% of prover slashing proceeds".to_string(),
-            claim_id: None,
-            source: Some("Slashing".to_string()),
-        },
-        InsuranceTransactionDetail {
-            tx_hash: "0xins003...".to_string(),
-            tx_type: InsuranceTransactionType::ClaimPayout,
-            amount: "1000000000000000000000".to_string(),
-            amount_usd: "2500.00".to_string(),
-            timestamp: 1736294400,
-            description: "Claim payout for wrongful slashing".to_string(),
-            claim_id: Some("CLM-003".to_string()),
-            source: None,
-        },
-        InsuranceTransactionDetail {
-            tx_hash: "0xins004...".to_string(),
-            tx_type: InsuranceTransactionType::ClaimPayout,
-            amount: "3000000000000000000000".to_string(),
-            amount_usd: "7500.00".to_string(),
-            timestamp: 1736208000,
-            description: "Claim payout for oracle manipulation loss".to_string(),
-            claim_id: Some("CLM-004".to_string()),
-            source: None,
-        },
-    ];
+    let page: u32 = 1;
+    let page_size: u32 = 10;
+    let offset = ((page - 1) * page_size) as i64;
 
+    let tx_rows = InsuranceRepository::list_transactions(pool, None, offset, page_size as i64).await?;
+    let total = InsuranceRepository::count_transactions(pool, None).await? as u32;
+
+    let transactions: Vec<InsuranceTransactionDetail> = tx_rows
+        .into_iter()
+        .map(|tx| InsuranceTransactionDetail {
+            tx_hash: tx.tx_hash,
+            tx_type: map_tx_type(&tx.tx_type),
+            amount: tx.amount.to_string(),
+            amount_usd: tx.amount_usd.map(|u| u.to_string()).unwrap_or_else(|| "0".to_string()),
+            timestamp: tx.created_at.map(|t| t.timestamp() as u64).unwrap_or(0),
+            description: tx.description.unwrap_or_default(),
+            claim_id: tx.claim_id,
+            source: tx.source,
+        })
+        .collect();
+
+    tracing::info!("Insurance: Listed {} transactions, total={}", transactions.len(), total);
     Ok(Json(InsuranceTransactionsResponse {
         transactions,
-        total: 4,
-        page: 1,
-        page_size: 10,
+        total,
+        page,
+        page_size,
     }))
 }

@@ -32,7 +32,9 @@ impl Database {
         let pool = PgPoolOptions::new()
             .max_connections(config.max_connections)
             .min_connections(config.min_connections)
-            .acquire_timeout(std::time::Duration::from_secs(30))
+            .acquire_timeout(std::time::Duration::from_secs(config.acquire_timeout_secs))
+            .idle_timeout(std::time::Duration::from_secs(config.idle_timeout_secs))
+            .max_lifetime(std::time::Duration::from_secs(config.max_lifetime_secs))
             .connect(&config.url)
             .await?;
 

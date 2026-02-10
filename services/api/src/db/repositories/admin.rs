@@ -58,6 +58,8 @@ pub struct AdminSessionRow {
     pub created_at: DateTime<Utc>,
     pub expires_at: DateTime<Utc>,
     pub revoked_at: Option<DateTime<Utc>>,
+    /// SHA-256 hash of refresh token (Phase 3: S-3 security fix)
+    pub refresh_token_hash: Option<String>,
 }
 
 // ============================================================================
@@ -235,7 +237,7 @@ impl AdminRepository {
             r#"
             INSERT INTO admin_sessions (session_id, admin_id, ip_address, user_agent, created_at, expires_at)
             VALUES ($1, $2, $3, $4, NOW(), $5)
-            RETURNING session_id, admin_id, ip_address, user_agent, created_at, expires_at, revoked_at
+            RETURNING session_id, admin_id, ip_address, user_agent, created_at, expires_at, revoked_at, refresh_token_hash
             "#,
         )
         .bind(session_id)
@@ -264,7 +266,7 @@ impl AdminRepository {
 
         let result = sqlx::query_as::<_, AdminSessionRow>(
             r#"
-            SELECT session_id, admin_id, ip_address, user_agent, created_at, expires_at, revoked_at
+            SELECT session_id, admin_id, ip_address, user_agent, created_at, expires_at, revoked_at, refresh_token_hash
             FROM admin_sessions
             WHERE session_id = $1 AND revoked_at IS NULL AND expires_at > NOW()
             "#,
@@ -387,6 +389,100 @@ impl AdminRepository {
 
         info!("DB query: get_two_factor_secret completed");
         Ok(result.and_then(|(secret,)| secret))
+    }
+
+    // ========================================================================
+    // Refresh Token Operations (Phase 3: S-3 Security Fix)
+    // ========================================================================
+
+    /// Store refresh token hash for a session
+    /// S-3: Enables DB-side refresh token validation
+    #[instrument(skip(pool), fields(session_id = %session_id))]
+    pub async fn store_refresh_token_hash(
+        pool: &PgPool,
+        session_id: &str,
+        refresh_token_hash: &str,
+    ) -> Result<(), ApiError> {
+        info!("DB update: store_refresh_token_hash started");
+
+        sqlx::query(
+            r#"
+            UPDATE admin_sessions
+            SET refresh_token_hash = $1
+            WHERE session_id = $2
+            "#,
+        )
+        .bind(refresh_token_hash)
+        .bind(session_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: store_refresh_token_hash failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB update: store_refresh_token_hash completed");
+        Ok(())
+    }
+
+    /// Get active session by refresh token hash
+    /// S-3: Validates refresh token against DB before issuing new tokens
+    #[instrument(skip(pool))]
+    pub async fn get_session_by_refresh_hash(
+        pool: &PgPool,
+        refresh_token_hash: &str,
+    ) -> Result<Option<AdminSessionRow>, ApiError> {
+        info!("DB query: get_session_by_refresh_hash started");
+
+        let result = sqlx::query_as::<_, AdminSessionRow>(
+            r#"
+            SELECT session_id, admin_id, ip_address, user_agent, created_at, expires_at, revoked_at, refresh_token_hash
+            FROM admin_sessions
+            WHERE refresh_token_hash = $1
+              AND revoked_at IS NULL
+              AND expires_at > NOW()
+            "#,
+        )
+        .bind(refresh_token_hash)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_session_by_refresh_hash failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_session_by_refresh_hash completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    /// Revoke session and invalidate refresh token (rotation)
+    /// S-3: Old refresh token is invalidated when new one is issued
+    #[instrument(skip(pool), fields(session_id = %session_id))]
+    pub async fn rotate_refresh_token(
+        pool: &PgPool,
+        session_id: &str,
+        new_refresh_token_hash: &str,
+    ) -> Result<(), ApiError> {
+        info!("DB update: rotate_refresh_token started");
+
+        sqlx::query(
+            r#"
+            UPDATE admin_sessions
+            SET refresh_token_hash = $1
+            WHERE session_id = $2
+            "#,
+        )
+        .bind(new_refresh_token_hash)
+        .bind(session_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: rotate_refresh_token failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB update: rotate_refresh_token completed");
+        Ok(())
     }
 
     // ========================================================================

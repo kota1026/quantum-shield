@@ -40,18 +40,30 @@ pub struct DatabaseConfig {
     pub max_connections: u32,
     #[serde(default = "default_db_min_connections")]
     pub min_connections: u32,
+    #[serde(default = "default_db_acquire_timeout_secs")]
+    pub acquire_timeout_secs: u64,
+    #[serde(default = "default_db_idle_timeout_secs")]
+    pub idle_timeout_secs: u64,
+    #[serde(default = "default_db_max_lifetime_secs")]
+    pub max_lifetime_secs: u64,
 }
 
-fn default_db_max_connections() -> u32 { 10 }
-fn default_db_min_connections() -> u32 { 2 }
+fn default_db_max_connections() -> u32 { 50 }
+fn default_db_min_connections() -> u32 { 5 }
+fn default_db_acquire_timeout_secs() -> u64 { 10 }
+fn default_db_idle_timeout_secs() -> u64 { 600 }
+fn default_db_max_lifetime_secs() -> u64 { 1800 }
 
 impl Default for DatabaseConfig {
     fn default() -> Self {
         Self {
             url: std::env::var("DATABASE_URL")
                 .unwrap_or_else(|_| "postgres://localhost/quantum_shield".to_string()),
-            max_connections: 10,
-            min_connections: 2,
+            max_connections: 50,
+            min_connections: 5,
+            acquire_timeout_secs: 10,
+            idle_timeout_secs: 600,
+            max_lifetime_secs: 1800,
         }
     }
 }
@@ -126,6 +138,12 @@ pub struct SecurityConfig {
     pub min_emergency_bond_wei: String,
     /// Emergency bond percentage (basis points, 500 = 5%)
     pub emergency_bond_bps: u64,
+    /// Skip wallet signature verification (dev mode only, MUST be false in production)
+    #[serde(default)]
+    pub skip_signature_verification: bool,
+    /// Skip TOTP verification (dev mode only, MUST be false in production)
+    #[serde(default)]
+    pub skip_totp_verification: bool,
 }
 
 impl Default for SecurityConfig {
@@ -137,6 +155,8 @@ impl Default for SecurityConfig {
             max_pause_duration_hours: 72,    // SEQ#8: 72h
             min_emergency_bond_wei: "500000000000000000".to_string(), // 0.5 ETH
             emergency_bond_bps: 500,         // 5%
+            skip_signature_verification: true, // Dev default: skip. MUST be false in production!
+            skip_totp_verification: true,      // Dev default: skip. MUST be false in production!
         }
     }
 }

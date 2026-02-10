@@ -114,6 +114,34 @@ impl UserRepository {
         Ok(count)
     }
 
+    /// Ensure a user exists in the users table (lightweight, no update on conflict).
+    /// Used to satisfy FK constraints before inserting into veqs_locks, delegations, etc.
+    #[instrument(skip(pool))]
+    pub async fn ensure_exists(
+        pool: &PgPool,
+        wallet_address: &str,
+    ) -> Result<(), ApiError> {
+        info!("DB upsert: ensure_user_exists started, wallet={}", wallet_address);
+
+        sqlx::query(
+            r#"
+            INSERT INTO users (wallet_address, created_at, last_active)
+            VALUES ($1, NOW(), NOW())
+            ON CONFLICT (wallet_address) DO NOTHING
+            "#,
+        )
+        .bind(wallet_address)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: ensure_user_exists failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB upsert: ensure_user_exists completed, wallet={}", wallet_address);
+        Ok(())
+    }
+
     /// Create or update user
     #[instrument(skip(pool, pk_dilithium))]
     pub async fn upsert(
@@ -171,6 +199,51 @@ impl UserRepository {
 
         info!("DB query: get_user_settings completed, found={}", result.is_some());
         Ok(result)
+    }
+
+    /// Upsert user settings (Storage Migration Phase 3)
+    /// SM-001: PG first, then Redis cache
+    #[instrument(skip(pool))]
+    pub async fn upsert_settings(
+        pool: &PgPool,
+        wallet_address: &str,
+        email: Option<&str>,
+        language: &str,
+        notification_email: bool,
+        notification_browser: bool,
+        two_factor_enabled: bool,
+    ) -> Result<(), ApiError> {
+        info!("DB upsert: user_settings started, wallet={}", wallet_address);
+
+        sqlx::query(
+            r#"
+            INSERT INTO user_settings (wallet_address, email, language, notification_email,
+                                      notification_browser, two_factor_enabled, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, NOW())
+            ON CONFLICT (wallet_address) DO UPDATE SET
+                email = COALESCE($2, user_settings.email),
+                language = $3,
+                notification_email = $4,
+                notification_browser = $5,
+                two_factor_enabled = $6,
+                updated_at = NOW()
+            "#,
+        )
+        .bind(wallet_address)
+        .bind(email)
+        .bind(language)
+        .bind(notification_email)
+        .bind(notification_browser)
+        .bind(two_factor_enabled)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: upsert_settings failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB upsert: user_settings completed, wallet={}", wallet_address);
+        Ok(())
     }
 
     // ========================================================================
