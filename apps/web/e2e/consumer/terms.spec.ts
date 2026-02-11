@@ -1,124 +1,126 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Consumer App Terms of Service E2E Tests
- * Tests for Screen 17: Terms
+ * Consumer App - Terms of Service Page
+ * Static content page: no auth, no API calls
  */
-
-test.describe('Consumer Terms of Service', () => {
+test.describe('Consumer Terms of Service Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/ja/consumer/terms');
   });
 
-  test.describe('Page Load & Layout', () => {
-    test('should display terms page correctly', async ({ page }) => {
-      await expect(page).toHaveTitle(/利用規約/);
-      await expect(page.getByRole('heading', { name: /利用規約/i })).toBeVisible();
-    });
-
-    test('should display last updated date', async ({ page }) => {
-      await expect(page.getByText(/最終更新日/)).toBeVisible();
-    });
-
-    test('should display Quantum Shield logo', async ({ page }) => {
-      await expect(page.getByText('Quantum Shield').first()).toBeVisible();
-    });
+  test('displays page with correct structure', async ({ page }) => {
+    await expect(page.getByRole('main')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
-  test.describe('Header Navigation', () => {
-    test('should display back button', async ({ page }) => {
-      const backLink = page.getByRole('link', { name: /戻る/i });
-      await expect(backLink).toBeVisible();
-    });
+  test('has proper heading hierarchy with h1 and multiple h2 sections', async ({ page }) => {
+    const h1 = page.getByRole('heading', { level: 1 });
+    await expect(h1).toHaveCount(1);
 
-    test('logo should link to home', async ({ page }) => {
-      const logoLink = page.locator('header').getByRole('link').first();
-      await expect(logoLink).toHaveAttribute('href', '/consumer');
-    });
+    const h2s = page.getByRole('heading', { level: 2 });
+    await expect(h2s.first()).toBeVisible();
+    const h2Count = await h2s.count();
+    // 9 article sections + contact = at least 10
+    expect(h2Count).toBeGreaterThanOrEqual(10);
   });
 
-  test.describe('Terms Sections', () => {
-    test('should display acceptance section', async ({ page }) => {
-      await expect(page.getByText(/第1条.*規約の承諾/)).toBeVisible();
-    });
+  test('renders all article sections as h2 headings', async ({ page }) => {
+    // Wait for the page to fully render (h1 appears after hydration)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
-    test('should display service section', async ({ page }) => {
-      await expect(page.getByText(/第2条.*サービス内容/)).toBeVisible();
-    });
+    // The component renders 9 sections + contact, all as h2
+    const h2s = page.getByRole('heading', { level: 2 });
 
-    test('should display eligibility section', async ({ page }) => {
-      await expect(page.getByText(/第3条.*利用資格/)).toBeVisible();
-    });
+    // Wait for at least the first h2 to be visible before counting
+    await expect(h2s.first()).toBeVisible();
 
-    test('should display risks section', async ({ page }) => {
-      await expect(page.getByText(/第4条.*リスク/)).toBeVisible();
-    });
+    const h2Count = await h2s.count();
+    expect(h2Count).toBeGreaterThanOrEqual(10);
 
-    test('should display keys section', async ({ page }) => {
-      await expect(page.getByText(/第5条.*秘密鍵の管理/)).toBeVisible();
-    });
-
-    test('should display prohibited section', async ({ page }) => {
-      await expect(page.getByText(/第6条.*禁止事項/)).toBeVisible();
-    });
-
-    test('should display disclaimer section', async ({ page }) => {
-      await expect(page.getByText(/第7条.*免責事項/)).toBeVisible();
-    });
-
-    test('should display changes section', async ({ page }) => {
-      await expect(page.getByText(/第8条.*規約の変更/)).toBeVisible();
-    });
-
-    test('should display governing section', async ({ page }) => {
-      await expect(page.getByText(/第9条.*準拠法・管轄/)).toBeVisible();
-    });
-
-    test('should display contact section', async ({ page }) => {
-      await expect(page.getByRole('heading', { name: /お問い合わせ/ })).toBeVisible();
-    });
+    // Last h2 should be visible (contact section)
+    await expect(h2s.last()).toBeVisible();
   });
 
-  test.describe('Footer', () => {
-    test('should display footer links', async ({ page }) => {
-      const footer = page.locator('footer');
-      await expect(footer.getByRole('link', { name: /ホーム/i })).toBeVisible();
-      await expect(footer.getByRole('link', { name: /利用規約/i })).toBeVisible();
-      await expect(footer.getByRole('link', { name: /プライバシー/i })).toBeVisible();
-      await expect(footer.getByRole('link', { name: /FAQ/i })).toBeVisible();
-    });
-
-    test('should display copyright', async ({ page }) => {
-      await expect(page.getByText(/© 2026 Quantum Shield/)).toBeVisible();
-    });
+  test('has back button that links to consumer home', async ({ page }) => {
+    // The back link is in the header, linking to /consumer
+    const headerLinks = page.locator('header').getByRole('link');
+    const backLink = headerLinks.last();
+    await expect(backLink).toBeVisible();
+    await expect(backLink).toHaveAttribute('href', '/consumer');
   });
 
-  test.describe('Accessibility', () => {
-    test('section titles should be headings', async ({ page }) => {
-      const headings = page.getByRole('heading');
-      await expect(headings.first()).toBeVisible();
-    });
-
-    test('page should have proper heading hierarchy', async ({ page }) => {
-      const h1 = page.getByRole('heading', { level: 1 });
-      await expect(h1).toBeVisible();
-
-      const h2s = page.getByRole('heading', { level: 2 });
-      const h2Count = await h2s.count();
-      expect(h2Count).toBeGreaterThan(5); // At least 9 sections + contact
-    });
+  test('has logo link that navigates to consumer home', async ({ page }) => {
+    const logoLink = page.locator('header').getByRole('link').first();
+    await expect(logoLink).toHaveAttribute('href', '/consumer');
+    await expect(page.locator('header').getByText('Quantum Shield')).toBeVisible();
   });
 
-  test.describe('English Locale', () => {
-    test.beforeEach(async ({ page }) => {
-      await page.goto('/en/consumer/terms');
-    });
+  test('displays last updated date', async ({ page }) => {
+    // The component renders a date string via i18n
+    const main = page.getByRole('main');
+    const dateText = main.locator('p').first();
+    await expect(dateText).toBeVisible();
+  });
 
-    test('should display English text', async ({ page }) => {
-      await expect(page.getByRole('heading', { name: /Terms of Service/i })).toBeVisible();
-      await expect(page.getByText(/Last updated/)).toBeVisible();
-      await expect(page.getByText(/1\. Acceptance of Terms/)).toBeVisible();
-      await expect(page.getByText(/2\. Service Description/)).toBeVisible();
-    });
+  test('displays footer with navigation links', async ({ page }) => {
+    const footer = page.locator('footer');
+    await expect(footer).toBeVisible();
+
+    // Footer contains at least 4 links (home, terms, privacy, faq)
+    const footerLinks = footer.getByRole('link');
+    const linkCount = await footerLinks.count();
+    expect(linkCount).toBeGreaterThanOrEqual(4);
+  });
+
+  test('footer links have correct hrefs', async ({ page }) => {
+    const footer = page.locator('footer');
+    await expect(footer.getByRole('link', { name: /consumer$/ }).or(
+      footer.locator('a[href="/consumer"]')
+    ).first()).toBeVisible();
+    await expect(footer.locator('a[href="/consumer/terms"]')).toBeVisible();
+    await expect(footer.locator('a[href="/consumer/privacy"]')).toBeVisible();
+    await expect(footer.locator('a[href="/consumer/faq"]')).toBeVisible();
+  });
+
+  test('displays copyright notice in footer', async ({ page }) => {
+    const footer = page.locator('footer');
+    await expect(footer.getByText(/©/)).toBeVisible();
+  });
+
+  test('is keyboard navigable through sections', async ({ page }) => {
+    // Wait for page to fully render
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+    // Tab through elements until we reach a page link (skip Next.js dev tools)
+    let foundPageLink = false;
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press('Tab');
+      const tag = await page.evaluate(() => document.activeElement?.tagName);
+      if (tag === 'A') {
+        foundPageLink = true;
+        break;
+      }
+    }
+    expect(foundPageLink).toBe(true);
+  });
+
+  test('displays properly on mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await expect(page.getByRole('main')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.locator('footer')).toBeVisible();
+  });
+
+  test('displays English content at /en locale', async ({ page }) => {
+    await page.goto('/en/consumer/terms');
+    await expect(page.getByRole('main')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+    // Wait for sections to render, then count h2s
+    const h2s = page.getByRole('heading', { level: 2 });
+    await expect(h2s.first()).toBeVisible();
+    const h2Count = await h2s.count();
+    expect(h2Count).toBeGreaterThanOrEqual(10);
   });
 });

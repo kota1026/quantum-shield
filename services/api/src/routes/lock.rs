@@ -4,12 +4,17 @@
 //! - Validates ML-DSA-65 signature (NIST FIPS 204)
 //! - Computes SR_0 using SHA3-256 (CP-1 compliant)
 //! - Creates lock record
+//! - Generates SMT proof for L3 state verification
 //! - Notifies Event Bridge for L1→L3 sync
 //!
 //! ## CP-1 Compliance
 //! - Uses NIST FIPS 204 ML-DSA-65 for user signatures
-//! - Uses SHA3-256 for all hashing
+//! - Uses SHA3-256 for all hashing (including SMT)
 //! - NO keccak256, ECDSA, or pre-FIPS Dilithium
+//!
+//! ## BE Rules Compliance
+//! - BE-001: No stubs - real SMT proof generation
+//! - BE-003: Full logging of lock operations
 
 use std::sync::Arc;
 
@@ -19,7 +24,7 @@ use sha3::{Digest, Sha3_256};
 use crate::{
     crypto::verify_ml_dsa_65_signature,
     error::ApiError,
-    services::AppState,
+    services::{AppState, SmtService},
     types::{LockRequest, LockResponse, LockStatus},
 };
 
@@ -39,6 +44,17 @@ pub async fn create_lock(
 
     // 1. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
     let message = construct_lock_message(&req);
+
+    // Debug: Log message details for signature verification debugging
+    tracing::debug!(
+        "Lock message constructed: chain_id={}, asset={}, amount={}, dest_addr={}, expiry={}, nonce={}",
+        req.chain_id, req.asset, req.amount, req.dest_addr, req.expiry, req.nonce
+    );
+    tracing::debug!("Message hex: {}", hex::encode(&message));
+    tracing::debug!("Message length: {} bytes", message.len());
+    tracing::debug!("Public key length: {} chars", req.pk_dilithium.len());
+    tracing::debug!("Signature length: {} chars", req.sig_dilithium.len());
+
     if !verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &req.pk_dilithium)? {
         return Err(ApiError::InvalidSignature(
             "ML-DSA-65 (FIPS 204) verification failed".into(),
@@ -72,10 +88,17 @@ pub async fn create_lock(
     // 8. Notify Event Bridge for L1 sync
     state.notify_lock_created(&lock_id).await?;
 
-    // 9. Generate SMT proof (placeholder)
-    let smt_proof = generate_smt_proof(&lock_id, &sr_0);
+    // 9. Insert lock into SMT and generate proof (BE-001: No stubs)
+    let leaf_index = state.smt.insert_lock(&lock_id, &sr_0)?;
+    let smt_proof_obj = state.smt.generate_proof(&lock_id)?;
+    let smt_proof = SmtService::proof_to_hex(&smt_proof_obj);
 
-    tracing::info!("Lock created successfully: {}", lock_id);
+    tracing::info!(
+        "Lock created successfully: lock_id={}, smt_leaf_index={}, smt_root={}",
+        lock_id,
+        leaf_index,
+        smt_proof_obj.root
+    );
 
     Ok(Json(LockResponse {
         lock_id,
@@ -140,15 +163,8 @@ fn generate_lock_id(sr_0: &str, timestamp: u64) -> String {
     format!("0x{}", hex::encode(result))
 }
 
-/// Generate SMT proof (placeholder implementation)
-fn generate_smt_proof(lock_id: &str, sr_0: &str) -> String {
-    // TODO: Implement actual SMT proof generation
-    let mut hasher = Sha3_256::new();
-    hasher.update(lock_id.as_bytes());
-    hasher.update(sr_0.as_bytes());
-    let result = hasher.finalize();
-    format!("0x{}", hex::encode(result))
-}
+// Note: SMT proof generation is now handled by SmtService (BE-001 compliant)
+// The placeholder generate_smt_proof function has been removed.
 
 #[cfg(test)]
 mod tests {

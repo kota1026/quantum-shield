@@ -5,7 +5,12 @@
         "dashboard": "ダッシュボード",
         "lock": "ロック",
         "unlock": "アンロック",
-        "history": "履歴"
+        "history": "履歴",
+        "qsHub": "QS Hub",
+        "qsHubDesc": "トークン管理・ガバナンス・投票",
+        "ecosystem": "エコシステム",
+        "ecosystemLink": "Ecosystem を見る",
+        "ecosystemLinkDesc": "公式サイトで詳細を確認"
       },
       "wallet": {
         "connected": "接続中",
@@ -22,6 +27,7 @@
       }
     },
     "dashboard": {
+      "backToLanding": "← ホームに戻る",
       "meta": {
         "title": "ダッシュボード | Quantum Shield",
         "description": "あなたの量子耐性資産を管理・監視"
@@ -29,12 +35,12 @@
       "stats": {
         "ariaLabel": "資産統計",
         "totalLocked": {
-          "label": "ロック中",
-          "tooltip": "現在ロックされている資産の合計額"
+          "label": "量子耐性暗号鍵で保管中",
+          "tooltip": "現在量子耐性暗号で保護されている資産の合計額"
         },
         "available": {
           "label": "利用可能",
-          "tooltip": "ロック可能な残高"
+          "tooltip": "接続中のウォレットにある、まだロックされていないETH残高です。この金額を新たにロックして量子耐性保護できます。"
         },
         "pendingUnlock": {
           "label": "アンロック待ち",
@@ -59,7 +65,7 @@
         },
         "lockButton": "Dilithium署名でロック",
         "lockButtonAriaLabel": "Dilithium署名で資産をロックする",
-        "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です"
+        "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です。NIST（米国国立標準技術研究所）は、AES暗号やSHA-2など世界標準の暗号規格を策定する米国商務省の政府機関です"
       },
       "activity": {
         "title": "最近のアクティビティ",
@@ -161,7 +167,7 @@
           "waitTimeValue": "24時間",
           "required": "必要なもの",
           "requiredValue": "Dilithium秘密鍵",
-          "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です",
+          "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です。NIST（米国国立標準技術研究所）は、AES暗号やSHA-2など世界標準の暗号規格を策定する米国商務省の政府機関です",
           "fee": "手数料",
           "feeValue": "ガス代のみ"
         },
@@ -242,7 +248,7 @@
       "item": {
         "date": "日時",
         "blockConfirmed": "取引確定",
-        "blockConfirmedTooltip": "ブロックチェーン上で{count}回確認され、取引が確定しました",
+        "blockConfirmedTooltip": "この取引は{count}個のブロックで承認済みです。6ブロック以上で安全とされています。",
         "remaining": "残り {time}",
         "bond": "Bond: {amount}",
         "txHashLabel": "取引ID",
@@ -254,6 +260,53 @@
       },
       "loadMore": "さらに読み込む",
       "loadMoreNotAvailable": "さらに読み込みは開発中です"
+    },
+    "historyDetail": {
+      "meta": {
+        "title": "取引詳細 | Quantum Shield",
+        "description": "取引の詳細情報を確認"
+      },
+      "header": {
+        "title": "取引詳細",
+        "back": "履歴に戻る"
+      },
+      "summary": {
+        "ariaLabel": "取引概要"
+      },
+      "details": {
+        "title": "取引情報",
+        "txHash": "取引ID",
+        "copyTooltip": "クリップボードにコピー",
+        "copied": "コピーしました",
+        "copyAriaLabel": "取引IDをコピー",
+        "viewOnExplorer": "Etherscanで確認",
+        "viewOnExplorerAriaLabel": "Etherscanで取引を確認",
+        "date": "日時",
+        "amount": "金額",
+        "confirmations": "確認数",
+        "confirmationsTooltip": "ブロックチェーン上でこの取引が確認された回数。多いほど安全です。",
+        "blocks": "ブロック",
+        "bond": "Bond（保証金）",
+        "bondTooltip": "緊急Unlockに必要な保証金。7日間のChallenge期間後に返還されます。",
+        "remaining": "残り時間"
+      },
+      "timeline": {
+        "title": "進捗状況",
+        "ariaLabel": "取引の進捗タイムライン",
+        "initiated": "取引開始",
+        "confirmed": "取引確認完了",
+        "signed": "署名完了",
+        "waiting24h": "24時間待機中",
+        "challengePeriod": "Challenge期間（7日間）",
+        "bondDeposited": "Bond預け入れ完了",
+        "released": "資産解放完了",
+        "completed": "完了",
+        "remaining": "残り"
+      },
+      "actions": {
+        "backToHistory": "履歴に戻る",
+        "viewUnlockStatus": "Unlock状況を確認"
+      }
     },
     "settings": {
       "meta": {
@@ -347,7 +400,7 @@
     "landing": {
       "meta": {
         "title": "Quantum Shield - 量子耐性暗号で資産を守る",
-        "description": "Dilithium-IIIとZK-STARKを組み合わせた世界初の量子耐性暗号ブリッジ。将来の脅威から、今日の資産を守ります。"
+        "description": "Dilithium-IIIとSPHINCS+を組み合わせた世界初の量子耐性暗号ブリッジ。将来の脅威から、今日の資産を守ります。"
       },
       "header": {
         "product": "プロダクト",
@@ -357,10 +410,11 @@
         "openApp": "アプリを開く"
       },
       "hero": {
-        "badge": "NIST認定 量子耐性暗号",
+        "badge": "米国政府機関NIST公認",
+        "badgeTooltip": "NIST（米国国立標準技術研究所）は、米国商務省の政府機関で、暗号技術の国際標準を策定しています。AES暗号やSHA-2など、世界中で使われる暗号規格を定めています。",
         "titleLine1": "量子コンピュータ時代の",
         "titleHighlight": "デジタル資産保護",
-        "subtitle": "あなたのETHやトークンを、将来の量子コンピュータ攻撃から守ります。NIST認定の次世代暗号技術で、資産を安全に保管。3ステップで簡単に始められます。",
+        "subtitle": "あなたのETHやトークンを、将来の量子コンピュータ攻撃から守ります。米国政府機関NIST（国立標準技術研究所）公認の次世代暗号技術で、資産を安全に保管。3ステップで簡単に始められます。",
         "ctaPrimary": "今すぐ無料で始める",
         "ctaSecondary": "詳しく見る"
       },
@@ -388,9 +442,10 @@
         "title": "なぜQuantum Shieldなのか",
         "dilithium": {
           "title": "Dilithium-III暗号",
-          "description": "NIST認定の格子ベース電子署名。量子コンピュータでも解読が数学的に困難な次世代暗号技術。",
+          "description": "米国政府機関NIST（国立標準技術研究所）公認の格子ベース電子署名。量子コンピュータでも解読が数学的に困難な次世代暗号技術。",
           "badge": "NIST FIPS 204",
-          "tooltip": "Dilithiumは、量子コンピュータに対して安全な電子署名アルゴリズムです。NISTによって2024年に標準化されました。"
+          "tooltip": "Dilithiumは、量子コンピュータに対して安全な電子署名アルゴリズムです。NISTは米国商務省の政府機関で、AES暗号やSHAなど世界標準の暗号規格を策定しています。Dilithiumは2024年にFIPS 204として正式標準化されました。",
+          "learnMoreUrl": "https://csrc.nist.gov/pubs/fips/204/final"
         },
         "timeLock": {
           "title": "Time Lock保護",
@@ -398,11 +453,12 @@
           "badge": "多層防御",
           "tooltip": "Time Lockにより、資産の引き出し前に24時間の待機期間が設けられます。この間に不正を検知・阻止できます。"
         },
-        "zkStark": {
-          "title": "ZK-STARK検証",
-          "description": "ゼロ知識証明による透明性と検証可能性。量子耐性を維持しながらスケーラビリティを実現。",
-          "badge": "量子安全ZKP",
-          "tooltip": "ZK-STARKは、情報を公開せずに正当性を証明できる技術です。量子コンピュータにも耐性があります。"
+        "smtProof": {
+          "title": "改ざん検知システム",
+          "description": "あなたの資産データが一切改ざんされていないことを、数学的に証明します。取引記録の整合性を常に検証し、不正な変更があれば即座に検出。",
+          "badge": "暗号学的証明",
+          "tooltip": "SMT（Sparse Merkle Tree）は、銀行の複式簿記のデジタル版のようなものです。全ての取引が正確に記録され、1円でも数字が違えば数学的に検出されます。ブロックチェーン上で誰でも検証できるため、不正は絶対に隠せません。",
+          "technicalNote": "技術詳細: SHA3-256ハッシュによるSparse Merkle Tree。SPHINCS+マルチシグと組み合わせた多層防御を実現。"
         },
         "selfCustody": {
           "title": "セルフカストディ",
@@ -419,7 +475,8 @@
         "transparency": {
           "title": "透明性",
           "description": "全てのトランザクションはオンチェーンで検証可能。オープンソースで監査済みのスマートコントラクト。",
-          "badge": "オープンソース"
+          "badge": "オープンソース",
+          "tooltip": "透明性とは、全ての取引履歴やスマートコントラクトのコードが公開されており、誰でも検証できることを意味します。第三者による監査も完了しています。"
         }
       },
       "howItWorks": {
@@ -436,6 +493,45 @@
         "step3": {
           "title": "安全にUnlock",
           "description": "Dilithium署名でUnlock要求。24時間のTime Lock後、資産が安全にウォレットに戻ります。"
+        },
+        "learnMore": "システム構成を詳しく見る"
+      },
+      "expertQuotes": {
+        "sectionLabel": "Expert Insights",
+        "title": "量子コンピュータの脅威について",
+        "subtitle": "世界の専門家たちの見解",
+        "quotes": [
+          {
+            "quote": "量子コンピュータが現在の暗号を破る能力を持つのは時間の問題です。暗号資産の長期保有者は、今から量子耐性への移行を検討すべきです。",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum共同創設者",
+            "source": "2024年 Ethereum研究フォーラム",
+            "image": "/images/experts/vitalik.jpg"
+          },
+          {
+            "quote": "「今収集して後で解読」攻撃は現実の脅威です。今日暗号化されたデータが、将来の量子コンピュータで解読される可能性があります。",
+            "author": "Michelle Mosca",
+            "title": "量子暗号研究者・ウォータールー大学",
+            "source": "Global Risk Institute Report 2023",
+            "image": "/images/experts/mosca.jpg"
+          },
+          {
+            "quote": "2030年代には、現在のRSA暗号やECDSAを破れる量子コンピュータが登場する可能性が約50%あると推定されています。",
+            "author": "NIST",
+            "title": "米国国立標準技術研究所",
+            "source": "Post-Quantum Cryptography Standardization",
+            "image": "/images/experts/nist.jpg"
+          }
+        ],
+        "disclaimer": "※引用は一般的な見解を示すものであり、特定のサービスの推奨ではありません",
+        "probability": {
+          "title": "量子コンピュータの脅威が現実化する確率",
+          "timeline": [
+            {"year": "2030年まで", "probability": "5-10%", "description": "限定的な暗号解読能力"},
+            {"year": "2035年まで", "probability": "30-50%", "description": "RSA-2048解読可能"},
+            {"year": "2040年まで", "probability": "70%以上", "description": "現在の暗号の多くが脆弱に"}
+          ],
+          "source": "Global Risk Institute, RAND Corporation等の研究に基づく推定"
         }
       },
       "cta": {
@@ -476,6 +572,51 @@
         "message": "このサイトはCookieを使用しています。",
         "details": "詳細",
         "accept": "同意する"
+      }
+    },
+    "login": {
+      "meta": {
+        "title": "ログイン | Quantum Shield",
+        "description": "ウォレットを接続してQuantum Shieldにログイン"
+      },
+      "backToLanding": "ホームに戻る",
+      "title": "Quantum Shieldにログイン",
+      "description": "ウォレットを接続してEthereumでサインイン",
+      "selectWallet": "ウォレットを選択",
+      "connectWallet": "ウォレットを接続",
+      "supportedWallets": "MetaMask, WalletConnect, Coinbase Wallet などに対応",
+      "noWallet": "ウォレットをお持ちでない方は",
+      "getWallet": "MetaMaskを入手",
+      "newUser": "Quantum Shieldが初めての方",
+      "learnMore": "詳しく見る",
+      "footer": "量子耐性暗号技術で保護されています",
+      "connecting": {
+        "title": "接続中...",
+        "walletPrompt": "ウォレットで接続を承認してください"
+      },
+      "connected": {
+        "title": "ウォレット接続済み",
+        "description": "以下のアドレスでサインインできます",
+        "signInButton": "サインインする",
+        "changeWallet": "別のウォレットを使用"
+      },
+      "signing": {
+        "title": "メッセージに署名",
+        "description": "所有権を確認するため、ウォレットでメッセージに署名してください"
+      },
+      "authenticating": {
+        "title": "認証中...",
+        "description": "サーバーで署名を検証しています"
+      },
+      "success": {
+        "title": "ようこそ！",
+        "description": "ダッシュボードにリダイレクトしています..."
+      },
+      "error": {
+        "title": "認証に失敗しました",
+        "description": "サインイン中にエラーが発生しました。もう一度お試しください。",
+        "retryButton": "再試行",
+        "tryAnotherWallet": "別のウォレットを使用"
       }
     },
     "keyManagement": {
@@ -611,6 +752,11 @@
           "question": "技術的にはどう動いているのですか？",
           "answer": "①ユーザーがDilithium署名でUnlock要求 → ②VRFでProverがランダム選出 → ③ProverがZK-STARK証明を生成 → ④SPHINCS+でProverが署名 → ⑤24時間Time Lock → ⑥L3で検証、L1にSMT証明を記録 → ⑦資産がウォレットに戻る。この多層構造により、単一の攻撃点がなく、将来の量子コンピュータにも耐性があります。"
         }
+      },
+      "contact": {
+        "title": "お探しの回答が見つかりませんか？",
+        "description": "サポートチームがお手伝いします。お気軽にお問い合わせください。",
+        "button": "お問い合わせ"
       }
     },
     "security": {
@@ -620,7 +766,7 @@
       },
       "header": {
         "title": "セキュリティ",
-        "back": "設定に戻る"
+        "back": "戻る"
       },
       "hero": {
         "title": "量子耐性暗号",
@@ -642,10 +788,10 @@
           "description": "ハッシュベースの電子署名。Prover（承認者）の署名に使用。異なる数学的基盤により、多層防御を実現。",
           "badge": "NIST FIPS 205"
         },
-        "zkstark": {
-          "title": "ZK-STARK",
-          "description": "ゼロ知識証明技術。トランザクションの正当性を第三者が検証可能。量子耐性を維持しながらスケーラビリティを実現。",
-          "badge": "量子安全ZKP"
+        "smtProof": {
+          "title": "SMT Merkle Proof",
+          "description": "Sparse Merkle Treeによる暗号学的証明。SHA3-256ハッシュで状態遷移（SR_0→SR_1）を計算し、全てオンチェーンで検証可能。",
+          "badge": "SHA3-256"
         }
       },
       "features": {
@@ -725,8 +871,11 @@
       "steps": {
         "verify": "ウォレット署名を検証",
         "sendBond": "Bond (0.50 ETH) を送金中...",
+        "sendBondTooltip": "Bond（保証金）は、緊急Unlockが正当であることを証明するための担保です。7日間の待機期間中に異議申立てがなければ、資産と共に返却されます。",
         "register": "緊急Unlock要求を登録",
-        "startTimeLock": "7日間Time Lock開始"
+        "startTimeLock": "7日間Time Lock開始",
+        "startTimeLockTooltip": "Time Lockは、不正なアンロックを防ぐための待機期間です。緊急Unlockの場合は7日間の待機が必要です。この間に監視者（Observer）が不正を検知できます。",
+        "tooltipAriaLabel": "詳しく見る"
       }
     },
     "emergencySuccess": {
@@ -761,22 +910,184 @@
         "backToDashboard": "ダッシュボードに戻る"
       }
     },
+    "lock": {
+      "meta": {
+        "title": "ロック | Quantum Shield",
+        "description": "ETHを量子耐性暗号で安全にロック"
+      },
+      "header": {
+        "title": "資産をロック",
+        "back": "戻る",
+        "backAriaLabel": "ダッシュボードに戻る"
+      },
+      "hero": {
+        "badge": "量子耐性保護",
+        "badgeTooltip": "量子耐性暗号とは、将来の量子コンピュータからも資産を守れる次世代の暗号技術です",
+        "title": "あなたの資産を将来の脅威から守る",
+        "subtitle": "量子コンピュータ時代に備えて、今日からETHをDilithium暗号でロック"
+      },
+      "card": {
+        "title": "ロック金額",
+        "inputLabel": "ロックする金額を入力",
+        "inputPlaceholder": "0.00",
+        "availableBalance": "利用可能残高",
+        "quickAmounts": {
+          "25": "25%",
+          "50": "50%",
+          "75": "75%",
+          "max": "最大"
+        },
+        "lockButton": "Dilithium署名でロック",
+        "lockButtonAriaLabel": "Dilithium署名で資産をロックする"
+      },
+      "period": {
+        "label": "ロック期間",
+        "years": {
+          "1": "1年",
+          "2": "2年",
+          "3": "3年",
+          "5": "5年"
+        }
+      },
+      "summary": {
+        "title": "ロック概要",
+        "amount": "ロック金額",
+        "unlockWait": "解除時の待機",
+        "unlockWaitValue": "24時間",
+        "fee": "ネットワーク手数料"
+      },
+      "info": {
+        "title": "ロックについて",
+        "items": {
+          "quantum": {
+            "title": "量子耐性保護",
+            "description": "NIST認定のDilithium暗号で資産を保護"
+          },
+          "unlock": {
+            "title": "いつでもアンロック可能",
+            "description": "24時間の待機期間後に資産を取り出せます"
+          },
+          "fee": {
+            "title": "手数料",
+            "description": "ガス代のみ（約$7相当）"
+          }
+        }
+      },
+      "dilithiumTooltip": "Dilithiumは、量子コンピュータでも解読が困難なNIST認定の次世代電子署名です。NIST（米国国立標準技術研究所）は、AES暗号やSHA-2など世界標準の暗号規格を策定する米国商務省の政府機関です",
+      "modal": {
+        "title": "ロック確認",
+        "description": "以下の内容でロックを実行します。Dilithium署名が必要です。",
+        "amount": "ロック金額",
+        "gasFee": "ガス代（概算）",
+        "unlockNote": "アンロック時は24時間の待機期間後に資産を受け取れます",
+        "confirm": "署名してロック",
+        "cancel": "キャンセル"
+      },
+      "validation": {
+        "amountRequired": "ロック金額を入力してください",
+        "amountInvalid": "正しい金額を入力してください",
+        "insufficientBalance": "残高が不足しています",
+        "minimumAmount": "最低ロック金額は0.01 ETHです"
+      }
+    },
     "lockProcessing": {
       "title": "Lock処理中...",
       "subtitle": "しばらくお待ちください。このページを閉じないでください。",
+      "waitingForWallet": "ウォレットでの署名を待っています...",
+      "waitingForL1": "L1ブロックチェーンでの確認を待っています...",
+      "generatingKeys": "Dilithium鍵を生成中...",
+      "signingMessage": "Dilithium署名を生成中...",
+      "submittingToL3": "L3 Aegisに送信中...",
+      "submittingToL1": "L1 Vaultに送信中...",
+      "errorTitle": "ロックに失敗しました",
+      "errorRevert": "L1でトランザクションが失敗しました。金額が不足している（最低0.01 ETH）か、TVL上限を超えている可能性があります。",
+      "retry": "再試行",
+      "cancel": "キャンセル",
       "steps": {
-        "sign": "Dilithium署名を生成",
-        "createTx": "トランザクションを作成",
-        "broadcast": "ブロックチェーンに送信中...",
-        "confirm": "確認を待機"
+        "generateKeys": "Dilithium鍵を準備",
+        "generateKeysTooltip": "量子耐性暗号のDilithium-III（ML-DSA-65）鍵ペアを生成します。この鍵はブラウザに安全に保存されます。",
+        "sign": "ロックメッセージに署名",
+        "signTooltip": "Dilithiumは量子コンピュータでも解読が困難なNIST認定の次世代電子署名アルゴリズムです。あなたの秘密鍵でロック要求に署名します。",
+        "submitL3": "L3 Aegisに送信",
+        "submitL3Tooltip": "L3 Aegisがあなたの署名を検証し、State Root (SR_0)を計算します。これにより、Dilithiumの公開鍵全体をL1に送る必要がなくなり、ガス代が大幅に削減されます。",
+        "submitL1": "L1 Vaultに送信",
+        "submitL1Tooltip": "MetaMaskなどのウォレットでトランザクションに署名して、Sepoliaネットワークに送信します。L3からのlock_idとSR_0のみを送信するため、ガス代が抑えられます。",
+        "confirm": "L1で確認待ち",
+        "confirmTooltip": "トランザクションがSepoliaブロックチェーンで確認されるのを待っています。通常1-2分かかります。",
+        "tooltipAriaLabel": "詳しく見る"
       }
     },
     "lockSuccess": {
       "title": "ロック完了",
       "subtitle": "資産が量子耐性保護でロックされました",
       "details": {
+        "title": "ロック詳細",
+        "status": "Locked",
+        "lockId": "ロックID",
         "amount": "ロック金額",
+        "unlockWait": "解除時の待機",
+        "unlockWaitValue": "24時間",
+        "copy": "コピー",
+        "copied": "コピーしました"
+      },
+      "buttons": {
+        "viewHistory": "履歴を確認",
+        "backToDashboard": "ダッシュボードに戻る"
+      }
+    },
+    "unlockProcessing": {
+      "title": "アンロック処理中...",
+      "subtitle": "しばらくお待ちください。このページを閉じないでください。",
+      "errorTitle": "アンロック失敗",
+      "loadingLock": "ロック情報を読み込み中...",
+      "signingMessage": "Dilithium署名を生成中...",
+      "submittingToL3": "L3 Aegisに送信中...",
+      "submittingEmergency": "緊急アンロックを送信中...",
+      "selectingProvers": "Proverを選定中...",
+      "verifyingBond": "ボンドを確認中...",
+      "activatingTimelock": "タイムロックを有効化中...",
+      "emergencyWarning": "緊急アンロックは7日間の待機期間とボンド（最低0.5 ETH）が必要です",
+      "noKeysWarning": "Dilithium鍵がありません。先にロック操作を完了してください。",
+      "retry": "再試行",
+      "cancel": "キャンセル",
+      "steps": {
+        "loadLock": "ロック情報を取得",
+        "loadLockTooltip": "L3からロックの詳細情報を取得します。金額、所有者、ステータスを確認します。",
+        "sign": "Dilithium署名を生成",
+        "signTooltip": "Dilithiumは量子コンピュータでも解読が困難なNIST認定の次世代電子署名アルゴリズムです。あなたの秘密鍵でアンロック要求に署名します。",
+        "submitL3": "L3 Aegisに送信",
+        "submitL3Tooltip": "署名付きアンロック要求をL3 Aegisに送信します。L3はSR_1を計算し、VRFでProverを選定します。",
+        "submitEmergency": "緊急アンロックを送信",
+        "submitEmergencyTooltip": "緊急アンロック要求とボンドをL3 Aegisに送信します。7日間の待機期間が開始されます。",
+        "vrfSelection": "VRF Prover選定",
+        "vrfSelectionTooltip": "Chainlink VRFでランダムにProverが選定されます。選定されたProverがSPHINCS+署名を提供します。",
+        "bondVerify": "ボンド確認",
+        "bondVerifyTooltip": "緊急アンロックのボンド（最低0.5 ETH）が正しく受領されたことを確認します。",
+        "activateTimelock": "タイムロック有効化",
+        "activateTimelockTooltip": "24時間（通常）または7日間（緊急）のタイムロックが有効化されます。この期間中にChallengeが可能です。",
+        "tooltipAriaLabel": "詳しく見る"
+      }
+    },
+    "unlockSuccess": {
+      "title": "アンロック開始完了",
+      "subtitle": "24時間のTime Lock後、資産がウォレットに転送されます",
+      "subtitleEmergency": "7日間のTime Lock後、資産がウォレットに転送されます",
+      "emergency": {
+        "warning": "緊急アンロックは7日間の待機期間が必要です。この期間中にChallengeが発生した場合、ボンドが没収される可能性があります。"
+      },
+      "timelock": {
+        "title": "Time Lock残り時間",
+        "titleEmergency": "緊急Time Lock残り時間",
+        "label": "アンロック可能まで"
+      },
+      "details": {
+        "amount": "アンロック金額",
+        "estimatedCompletion": "アンロック可能日時",
+        "unlockId": "Unlock ID",
         "txHash": "TX Hash"
+      },
+      "info": {
+        "message": "セキュリティ待機期間中に問題がなければ、資産は自動的にウォレットに転送されます。ダッシュボードから進捗を確認できます。"
       },
       "buttons": {
         "viewHistory": "履歴を確認",
@@ -944,150 +1255,689 @@
         "faq": "FAQ",
         "copyright": "© 2026 Quantum Shield. Made in Japan"
       }
-    }
-  },
-  "onboarding": {
-    "meta": {
-      "title": "はじめる - Quantum Shield",
-      "description": "Quantum Shieldのセットアップを始めましょう"
     },
-    "header": {
-      "title": "はじめる",
-      "backAriaLabel": "ランディングページに戻る"
+    "howItWorksPage": {
+      "meta": {
+        "title": "なぜQuantum Shieldなのか"
+      },
+      "header": {
+        "title": "なぜQuantum Shieldなのか",
+        "subtitle": "あなたの資産を守る理由と仕組み",
+        "backAriaLabel": "Consumer Appに戻る"
+      },
+      "whyQS": {
+        "sectionLabel": "Why Quantum Shield",
+        "title": "なぜ今、Quantum Shieldなのか",
+        "description": "量子コンピュータの脅威は「いつか」ではなく「今すぐ」備えるべき課題です。今日のデータが将来解読される「Harvest Now, Decrypt Later」攻撃から、あなたの資産を守ります。",
+        "points": [
+          {
+            "title": "量子耐性暗号で守る",
+            "description": "NIST（米国標準技術研究所）公認のDilithium暗号を採用。将来の量子コンピュータでも解読が数学的に困難です。"
+          },
+          {
+            "title": "時間があなたを守る",
+            "description": "24時間のTime Lock機能。不正アクセスがあっても、気づいて対処する時間があります。"
+          },
+          {
+            "title": "鍵紛失でも安心",
+            "description": "業界初の緊急リカバリー機能。秘密鍵をなくしても、7日間の待機と担保金で資産を取り戻せます。"
+          }
+        ]
+      },
+      "processes": {
+        "lock": {
+          "title": "ロックのプロセス",
+          "subtitle": "資産を量子耐性金庫に預ける流れ",
+          "steps": [
+            {
+              "label": "ウォレット接続",
+              "description": "MetaMaskなどからETHを送金準備"
+            },
+            {
+              "label": "Dilithium署名",
+              "description": "量子耐性の電子署名で本人確認"
+            },
+            {
+              "label": "検証ネットワーク",
+              "description": "署名の正当性を複数ノードで確認"
+            },
+            {
+              "label": "金庫に保管",
+              "description": "Ethereumスマートコントラクトで安全に保管"
+            }
+          ],
+          "actors": [
+            {
+              "name": "あなた",
+              "role": "資産の所有者",
+              "description": "Dilithium秘密鍵を持つのはあなただけ。誰もあなたの資産を勝手に動かせません。"
+            },
+            {
+              "name": "スマートコントラクト",
+              "role": "コードで守られた金庫",
+              "description": "Ethereum上の透明なプログラムが資産を管理。人間の介入なしにルール通り動作。"
+            }
+          ],
+          "benefits": [
+            "量子コンピュータ攻撃から資産を保護",
+            "「今盗んで後で解読」攻撃を防御",
+            "長期保有でも安心のセキュリティ"
+          ],
+          "note": {
+            "title": "簡単＆低コスト：",
+            "description": "Lockは約$7のガス代で完了。複雑な手順は不要です。"
+          }
+        },
+        "unlock": {
+          "title": "アンロックのプロセス",
+          "subtitle": "安全に資産を取り出す流れ（24時間待機）",
+          "steps": [
+            {
+              "label": "Unlock要求",
+              "description": "Dilithium署名でアンロックを開始"
+            },
+            {
+              "label": "承認者の確認",
+              "description": "5社中2社がランダムに署名の正当性を確認"
+            },
+            {
+              "label": "24時間待機",
+              "description": "セキュリティのためのクーリングオフ期間"
+            },
+            {
+              "label": "資産を受け取り",
+              "description": "待機完了後、いつでもウォレットに送金可能"
+            }
+          ],
+          "actors": [
+            {
+              "name": "あなた",
+              "role": "Unlock要求者",
+              "description": "Dilithium秘密鍵で署名し、アンロックを開始します。"
+            },
+            {
+              "name": "独立した承認者（Prover）",
+              "role": "第三者チェック",
+              "description": "5社の独立企業から2社がランダムに選ばれ承認。談合を防ぎます。"
+            },
+            {
+              "name": "Time Lock",
+              "role": "セキュリティ待機",
+              "description": "24時間の待機期間中に不正を検知・対処できます。"
+            }
+          ],
+          "benefits": [
+            "不正アクセスを検知する時間的余裕",
+            "複数の独立した承認者による二重チェック",
+            "フィッシング被害からの保護"
+          ],
+          "note": {
+            "title": "なぜ24時間？",
+            "description": "この待機時間は「あなたを守る時間」です。万が一の不正アクセスに気づき、対処する余裕を確保します。"
+          }
+        },
+        "emergency": {
+          "title": "緊急アンロックのプロセス",
+          "subtitle": "秘密鍵を紛失した場合のセーフティネット",
+          "steps": [
+            {
+              "label": "緊急要求",
+              "description": "ウォレット署名で緊急アンロックを開始"
+            },
+            {
+              "label": "Bond預け入れ",
+              "description": "担保金（5%）を預けて本人確認"
+            },
+            {
+              "label": "7日間待機",
+              "description": "Challenge期間として長めの待機"
+            },
+            {
+              "label": "資産＋Bond返還",
+              "description": "問題なければ資産とBondが返還"
+            }
+          ],
+          "actors": [
+            {
+              "name": "あなた",
+              "role": "緊急要求者",
+              "description": "Dilithium鍵がなくても、ウォレット署名とBondで資産を取り戻せます。"
+            },
+            {
+              "name": "Challenge期間",
+              "role": "不正防止システム",
+              "description": "7日間の待機中に不正と判明した場合、Bondは没収されます。"
+            }
+          ],
+          "benefits": [
+            "秘密鍵を紛失しても資産を回収可能",
+            "他のセルフカストディにはない安全網",
+            "正当な要求ならBondは全額返還"
+          ],
+          "note": {
+            "title": "なぜ7日間＆Bond？",
+            "description": "長い待機期間と担保金は、不正な緊急アンロックを抑止する仕組みです。正当な要求なら問題ありません。"
+          }
+        }
+      },
+      "cta": {
+        "title": "今日から、未来の脅威に備える",
+        "description": "量子コンピュータの脅威が現実になる前に、あなたの資産を守りましょう。",
+        "startButton": "無料で始める",
+        "securityButton": "技術詳細を見る"
+      }
     },
-    "progress": {
-      "ariaLabel": "オンボーディングの進捗"
+    "onboarding": {
+      "meta": {
+        "title": "はじめる - Quantum Shield",
+        "description": "Quantum Shieldのセットアップを始めましょう"
+      },
+      "header": {
+        "title": "はじめる",
+        "backAriaLabel": "ランディングページに戻る"
+      },
+      "progress": {
+        "ariaLabel": "オンボーディングの進捗"
+      },
+      "step1": {
+        "indicator": "STEP 1 / 4",
+        "title": "ウォレットを接続",
+        "description": "お使いのウォレットを接続してください。MetaMaskなど、EVM互換のウォレットに対応しています。",
+        "wallets": {
+          "metamask": {
+            "name": "MetaMask",
+            "description": "ブラウザ拡張機能"
+          },
+          "walletconnect": {
+            "name": "WalletConnect",
+            "description": "QRコードでスキャン"
+          },
+          "coinbase": {
+            "name": "Coinbase Wallet",
+            "description": "モバイル・ブラウザ"
+          }
+        },
+        "helpLink": "ウォレットを持っていない方はこちら"
+      },
+      "step2": {
+        "indicator": "STEP 2 / 4",
+        "title": "Dilithium鍵を生成",
+        "description": "量子耐性のDilithium鍵ペアを生成します。この鍵はあなたのデバイスにのみ保存され、サーバーには送信されません。",
+        "dilithiumTooltip": "Dilithiumは、NIST（米国標準技術研究所）が2024年に正式採用した量子耐性電子署名アルゴリズムです。量子コンピュータでも解読が困難な格子ベースの暗号技術を使用しています。",
+        "selfCustodyNotice": {
+          "title": "あなただけの鍵です",
+          "description": "秘密鍵はあなたのデバイス内だけに保存されます。",
+          "whyTitle": "なぜサーバーに送らないのか？",
+          "whyPoints": [
+            "サーバー攻撃やデータ漏洩から完全に保護するため",
+            "Quantum Shield運営でも、あなたの資産に触れられない設計",
+            "真のセルフカストディ（自己管理）を実現"
+          ],
+          "warning": "鍵をなくすと復元できません。必ずバックアップを保存してください。"
+        },
+        "keyGeneration": {
+          "idle": "ボタンをクリックして生成を開始",
+          "generating": "Dilithium-III鍵ペアを生成中...",
+          "complete": "鍵ペアの生成が完了しました！"
+        },
+        "dilithiumHelpLink": "Dilithium暗号について詳しく知る",
+        "generateButton": "Dilithium鍵を生成",
+        "generatingButton": "生成中..."
+      },
+      "step3": {
+        "indicator": "STEP 3 / 4",
+        "title": "鍵をバックアップ",
+        "description": "秘密鍵を安全な場所にバックアップしてください。",
+        "warning": {
+          "title": "重要: 秘密鍵を安全に保管してください",
+          "description": "秘密鍵を失うと、資産へのアクセスが困難になります。必ずバックアップを作成してください。"
+        },
+        "backupOption": {
+          "name": "暗号化ファイルでダウンロード",
+          "description": "パスワードで保護されたJSONファイル",
+          "downloadedDescription": "ファイルがダウンロードされました",
+          "recommended": "推奨",
+          "completed": "完了"
+        },
+        "checklist": {
+          "downloaded": "バックアップファイルをダウンロードしました",
+          "saved": "安全な場所（USBメモリ、外付けHDD、紙に印刷など）に保存しました。クラウド保存は避け、紛失すると資産にアクセスできなくなることを理解しています。"
+        },
+        "continueButton": "次へ進む"
+      },
+      "step4": {
+        "indicator": "STEP 4 / 4",
+        "title": "準備完了！",
+        "description": "Quantum Shieldの設定が完了しました。これで量子耐性の保護を使用できます。",
+        "features": {
+          "keysGenerated": "Dilithium鍵ペアを生成しました",
+          "backupComplete": "秘密鍵をバックアップしました",
+          "protectionActive": "量子耐性保護が有効です"
+        },
+        "ctaButton": "ダッシュボードへ",
+        "tutorialLink": "使い方チュートリアルを見る"
+      },
+      "modals": {
+        "walletHelp": {
+          "title": "ウォレットの取得方法",
+          "intro": "暗号資産ウォレットを持っていない場合は、以下の手順で取得できます。",
+          "metamaskTitle": "MetaMaskの場合:",
+          "metamaskSteps": {
+            "step1": "metamask.io にアクセス",
+            "step2": "「Download」をクリックしてブラウザ拡張機能をインストール",
+            "step3": "画面の指示に従ってウォレットを作成",
+            "step4": "シードフレーズを安全に保管"
+          },
+          "warningTitle": "注意事項:",
+          "warnings": {
+            "warning1": "シードフレーズは絶対に他人に教えないでください",
+            "warning2": "オフラインの安全な場所に保管してください",
+            "warning3": "公式サイト以外からダウンロードしないでください"
+          },
+          "closeButton": "閉じる"
+        },
+        "dilithium": {
+          "title": "Dilithium暗号とは？",
+          "intro": "Dilithium（ダイリチウム）は、量子コンピュータに対して安全な電子署名アルゴリズムです。",
+          "whyTitle": "なぜ必要？",
+          "whyReasons": {
+            "reason1": "現在の暗号（ECDSA等）は将来の量子コンピュータで解読される可能性があります",
+            "reason2": "「今収集して後で解読」攻撃から資産を守るために、今から対策が必要です"
+          },
+          "featuresTitle": "Dilithiumの特徴:",
+          "features": {
+            "nist": "NIST認定: 2024年にFIPS 204として正式標準化",
+            "lattice": "格子ベース暗号: 量子コンピュータでも解読が数学的に困難",
+            "fast": "高速: 署名・検証が効率的",
+            "level": "Dilithium-III: Quantum Shieldで使用するセキュリティレベル"
+          },
+          "securityTitle": "安全性:",
+          "securityDescription": "Dilithium-IIIは、NIST Security Level 3を満たし、128ビット以上の古典的セキュリティと量子セキュリティを提供します。",
+          "closeButton": "閉じる"
+        },
+        "tutorial": {
+          "title": "使い方チュートリアル",
+          "intro": "Quantum Shieldの基本的な使い方を説明します。",
+          "lockTitle": "1. 資産をLockする",
+          "lockSteps": {
+            "step1": "ダッシュボードで「Lock」をクリック",
+            "step2": "保護したい金額を入力",
+            "step3": "Dilithium署名で確認"
+          },
+          "unlockTitle": "2. 資産をUnlockする",
+          "unlockSteps": {
+            "normal": "通常Unlock: Dilithium署名 + 24時間待機",
+            "emergency": "緊急Unlock: ウォレット署名 + Bond + 7日間待機"
+          },
+          "securityTitle": "3. セキュリティのポイント",
+          "securityTips": {
+            "tip1": "秘密鍵は必ずバックアップしてください",
+            "tip2": "Time Lockがあなたの資産を守ります",
+            "tip3": "不審なアクティビティはすぐに確認してください"
+          },
+          "closeButton": "閉じる"
+        }
+      }
     },
-    "step1": {
-      "indicator": "STEP 1 / 4",
-      "title": "ウォレットを接続",
-      "description": "お使いのウォレットを接続してください。MetaMaskなど、EVM互換のウォレットに対応しています。",
+    "notifications": {
+      "meta": {
+        "title": "通知 | Quantum Shield",
+        "description": "通知履歴と設定"
+      },
+      "header": {
+        "title": "通知",
+        "back": "戻る",
+        "markAllRead": "すべて既読にする"
+      },
+      "tabs": {
+        "all": "すべて",
+        "unread": "未読"
+      },
+      "types": {
+        "lockComplete": "Lock完了",
+        "unlockStarted": "Unlock開始",
+        "unlockComplete": "Unlock完了",
+        "emergencyStarted": "緊急Unlock開始",
+        "emergencyComplete": "緊急Unlock完了",
+        "securityAlert": "セキュリティアラート",
+        "systemUpdate": "システム更新"
+      },
+      "item": {
+        "unread": "未読",
+        "markRead": "既読にする"
+      },
+      "emptyState": {
+        "title": "通知はありません",
+        "description": "ロックやアンロックを行うと、ここに通知が表示されます"
+      },
+      "settings": {
+        "title": "通知設定",
+        "push": {
+          "title": "プッシュ通知",
+          "description": "重要なアクティビティをリアルタイムで通知"
+        },
+        "email": {
+          "title": "メール通知",
+          "description": "1日1回のダイジェストメール"
+        }
+      }
+    },
+    "help": {
+      "meta": {
+        "title": "ヘルプ | Quantum Shield",
+        "description": "Quantum Shieldのヘルプとサポート"
+      },
+      "header": {
+        "title": "ヘルプ",
+        "back": "戻る"
+      },
+      "search": {
+        "placeholder": "お困りのことを検索...",
+        "ariaLabel": "ヘルプを検索"
+      },
+      "quickLinks": {
+        "title": "クイックリンク",
+        "items": {
+          "gettingStarted": {
+            "title": "はじめに",
+            "description": "Quantum Shieldの基本的な使い方"
+          },
+          "lockUnlock": {
+            "title": "Lock / Unlock",
+            "description": "資産のロック・アンロック方法"
+          },
+          "security": {
+            "title": "セキュリティ",
+            "description": "量子耐性暗号について"
+          },
+          "troubleshooting": {
+            "title": "トラブルシューティング",
+            "description": "よくある問題と解決方法"
+          }
+        }
+      },
+      "resources": {
+        "title": "リソース",
+        "faq": {
+          "title": "よくある質問",
+          "description": "FAQ一覧を確認"
+        },
+        "contact": {
+          "title": "お問い合わせ",
+          "description": "サポートチームに連絡"
+        },
+        "docs": {
+          "title": "ドキュメント",
+          "description": "詳細なガイドとAPI"
+        },
+        "status": {
+          "title": "システムステータス",
+          "description": "サービス稼働状況"
+        }
+      },
+      "tutorial": {
+        "title": "チュートリアル",
+        "description": "初めての方はチュートリアルを確認してください",
+        "button": "チュートリアルを見る"
+      }
+    },
+    "contact": {
+      "meta": {
+        "title": "お問い合わせ | Quantum Shield",
+        "description": "Quantum Shieldサポートチームへのお問い合わせ"
+      },
+      "header": {
+        "title": "お問い合わせ",
+        "back": "戻る"
+      },
+      "intro": {
+        "title": "サポートチームにご連絡ください",
+        "description": "ご質問やお困りのことがありましたら、以下のフォームからお問い合わせください。通常1〜2営業日以内にご返信いたします。"
+      },
+      "form": {
+        "category": {
+          "label": "カテゴリ",
+          "placeholder": "選択してください",
+          "options": {
+            "general": "一般的な質問",
+            "technical": "技術的な問題",
+            "account": "アカウント関連",
+            "security": "セキュリティ",
+            "feedback": "フィードバック・要望",
+            "other": "その他"
+          }
+        },
+        "email": {
+          "label": "メールアドレス",
+          "placeholder": "your@email.com",
+          "description": "返信先のメールアドレス"
+        },
+        "subject": {
+          "label": "件名",
+          "placeholder": "お問い合わせの件名"
+        },
+        "message": {
+          "label": "内容",
+          "placeholder": "お問い合わせの内容を詳しくご記入ください..."
+        },
+        "walletAddress": {
+          "label": "ウォレットアドレス（任意）",
+          "placeholder": "0x...",
+          "description": "問題の調査に役立つ場合があります"
+        },
+        "submit": "送信する",
+        "submitting": "送信中..."
+      },
+      "validation": {
+        "categoryRequired": "カテゴリを選択してください",
+        "emailRequired": "メールアドレスを入力してください",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "subjectRequired": "件名を入力してください",
+        "messageRequired": "内容を入力してください",
+        "messageTooShort": "内容は10文字以上で入力してください"
+      },
+      "success": {
+        "title": "お問い合わせを受け付けました",
+        "message": "ご連絡いただきありがとうございます。1〜2営業日以内にご返信いたします。",
+        "ticketId": "お問い合わせ番号",
+        "backToHelp": "ヘルプに戻る",
+        "backToDashboard": "ダッシュボードに戻る"
+      },
+      "otherWays": {
+        "title": "その他のお問い合わせ方法",
+        "email": {
+          "title": "メール",
+          "value": "support@quantumshield.io"
+        },
+        "discord": {
+          "title": "Discord",
+          "value": "コミュニティに参加"
+        },
+        "twitter": {
+          "title": "Twitter / X",
+          "value": "@QuantumShield"
+        }
+      },
+      "faq": {
+        "title": "よくある質問",
+        "description": "お問い合わせの前に、FAQもご確認ください",
+        "link": "FAQを見る"
+      }
+    },
+    "cookie": {
+      "meta": {
+        "title": "Cookieポリシー | Quantum Shield",
+        "description": "Quantum Shield Cookieポリシー"
+      },
+      "header": {
+        "title": "Cookieポリシー",
+        "back": "戻る"
+      },
+      "lastUpdated": "最終更新日: {date}",
+      "sections": {
+        "intro": {
+          "title": "Cookieについて",
+          "content": "Quantum Shield（以下「当社」）は、ユーザー体験の向上とサービスの改善のためにCookieを使用しています。本ポリシーでは、当社が使用するCookieの種類と目的について説明します。"
+        },
+        "whatAreCookies": {
+          "title": "Cookieとは",
+          "content": "Cookieとは、ウェブサイトがユーザーのブラウザに保存する小さなテキストファイルです。これにより、ウェブサイトはユーザーの設定や行動を記憶し、より良いサービスを提供することができます。"
+        },
+        "essential": {
+          "title": "必須Cookie",
+          "content": "ウェブサイトの基本機能に必要なCookieです。これらがないとサービスが正常に動作しません。",
+          "items": {
+            "session": "セッション管理: ログイン状態の維持",
+            "security": "セキュリティ: CSRF対策トークン",
+            "preferences": "設定: 言語・テーマ設定"
+          }
+        },
+        "analytics": {
+          "title": "分析Cookie",
+          "content": "サービスの利用状況を匿名で分析し、改善に役立てるためのCookieです。",
+          "items": {
+            "pageViews": "ページビュー数の計測",
+            "userJourney": "ユーザー行動の分析",
+            "performance": "パフォーマンス測定"
+          }
+        },
+        "functional": {
+          "title": "機能Cookie",
+          "content": "ユーザー体験を向上させるための追加機能を提供するCookieです。",
+          "items": {
+            "walletConnection": "ウォレット接続状態の記憶",
+            "recentActivity": "最近のアクティビティ表示",
+            "notifications": "通知設定"
+          }
+        },
+        "thirdParty": {
+          "title": "サードパーティCookie",
+          "content": "当社は以下のサードパーティサービスを利用しています。各サービスのプライバシーポリシーをご確認ください。",
+          "services": {
+            "analytics": "Google Analytics: 利用状況分析",
+            "error": "Sentry: エラー追跡",
+            "cdn": "Cloudflare: コンテンツ配信"
+          }
+        },
+        "manage": {
+          "title": "Cookieの管理",
+          "content": "ブラウザの設定からCookieを管理・削除することができます。ただし、一部のCookieを無効にすると、サービスの機能が制限される場合があります。"
+        },
+        "changes": {
+          "title": "ポリシーの変更",
+          "content": "当社は、必要に応じて本ポリシーを変更することがあります。重要な変更がある場合は、サービス上で通知します。"
+        }
+      },
+      "consent": {
+        "title": "Cookie設定",
+        "description": "どのCookieを許可するか選択できます",
+        "essential": {
+          "title": "必須Cookie",
+          "description": "サービスの基本機能に必要（無効化不可）"
+        },
+        "analytics": {
+          "title": "分析Cookie",
+          "description": "サービス改善のための利用状況分析"
+        },
+        "functional": {
+          "title": "機能Cookie",
+          "description": "追加機能とユーザー体験の向上"
+        },
+        "saveSettings": "設定を保存",
+        "acceptAll": "すべて許可"
+      },
+      "contact": {
+        "title": "お問い合わせ",
+        "content": "Cookieに関するお問い合わせは、privacy@quantumshield.io までご連絡ください。"
+      },
+      "footer": {
+        "home": "ホーム",
+        "terms": "利用規約",
+        "privacy": "プライバシー",
+        "cookie": "Cookie",
+        "copyright": "© 2026 Quantum Shield. Made in Japan"
+      }
+    },
+    "walletConnect": {
+      "meta": {
+        "title": "ウォレット接続 | Quantum Shield",
+        "description": "ウォレットを接続してQuantum Shieldを始めましょう"
+      },
+      "header": {
+        "title": "ウォレット接続",
+        "back": "戻る"
+      },
+      "intro": {
+        "title": "ウォレットを接続",
+        "description": "お使いのウォレットを接続して、Quantum Shieldの量子耐性保護を始めましょう。"
+      },
       "wallets": {
+        "title": "ウォレットを選択",
         "metamask": {
           "name": "MetaMask",
-          "description": "ブラウザ拡張機能"
+          "description": "ブラウザ拡張機能で接続",
+          "popular": "人気"
         },
         "walletconnect": {
           "name": "WalletConnect",
-          "description": "QRコードでスキャン"
+          "description": "QRコードでモバイルウォレットに接続"
         },
         "coinbase": {
           "name": "Coinbase Wallet",
-          "description": "モバイル・ブラウザ"
+          "description": "Coinbaseアプリで接続"
+        },
+        "injected": {
+          "name": "その他のウォレット",
+          "description": "ブラウザで検出されたウォレット"
         }
       },
-      "helpLink": "ウォレットを持っていない方はこちら"
-    },
-    "step2": {
-      "indicator": "STEP 2 / 4",
-      "title": "Dilithium鍵を生成",
-      "description": "量子耐性のDilithium鍵ペアを生成します。この鍵はあなたのデバイスにのみ保存され、サーバーには送信されません。",
-      "dilithiumTooltip": "Dilithiumは、NIST（米国標準技術研究所）が2024年に正式採用した量子耐性電子署名アルゴリズムです。量子コンピュータでも解読が困難な格子ベースの暗号技術を使用しています。",
-      "selfCustodyNotice": {
-        "title": "あなただけが鍵を持ちます",
-        "description": "生成された秘密鍵は、あなたのデバイスにのみ保存されます。Quantum Shieldのサーバーには送信されないため、あなた以外は誰もアクセスできません。必ずバックアップを取り、安全に保管してください。"
+      "connecting": {
+        "title": "接続中...",
+        "description": "ウォレットで接続を承認してください",
+        "waiting": "ウォレットからの承認を待っています",
+        "cancel": "キャンセル"
       },
-      "keyGeneration": {
-        "idle": "ボタンをクリックして生成を開始",
-        "generating": "Dilithium-III鍵ペアを生成中...",
-        "complete": "鍵ペアの生成が完了しました！"
+      "connected": {
+        "title": "接続完了",
+        "description": "ウォレットが正常に接続されました",
+        "address": "接続アドレス",
+        "continue": "ダッシュボードへ",
+        "startOnboarding": "セットアップを開始"
       },
-      "dilithiumHelpLink": "Dilithium暗号について詳しく知る",
-      "generateButton": "Dilithium鍵を生成",
-      "generatingButton": "生成中..."
-    },
-    "step3": {
-      "indicator": "STEP 3 / 4",
-      "title": "鍵をバックアップ",
-      "description": "秘密鍵を安全な場所にバックアップしてください。",
-      "warning": {
-        "title": "重要: 秘密鍵を安全に保管してください",
-        "description": "秘密鍵を失うと、資産へのアクセスが困難になります。必ずバックアップを作成してください。"
+      "error": {
+        "title": "接続エラー",
+        "description": "ウォレットの接続中にエラーが発生しました",
+        "userRejected": "接続がキャンセルされました",
+        "notInstalled": "ウォレットがインストールされていません",
+        "retry": "再試行",
+        "installMetamask": "MetaMaskをインストール"
       },
-      "backupOption": {
-        "name": "暗号化ファイルでダウンロード",
-        "description": "パスワードで保護されたJSONファイル",
-        "downloadedDescription": "ファイルがダウンロードされました",
-        "recommended": "推奨",
-        "completed": "完了"
+      "help": {
+        "title": "ウォレットとは？",
+        "description": "暗号資産ウォレットは、あなたのデジタル資産を管理するためのツールです。",
+        "link": "ウォレットの取得方法",
+        "security": {
+          "title": "セキュリティのヒント",
+          "tips": {
+            "seed": "シードフレーズを他人に教えないでください",
+            "official": "公式サイトからのみダウンロード",
+            "verify": "接続先URLを必ず確認"
+          }
+        }
       },
-      "checklist": {
-        "downloaded": "バックアップファイルをダウンロードしました",
-        "saved": "ファイルを安全な場所（USBメモリ、外付けHDD、紙に印刷してオフライン保管など）に保存しました。クラウド保存は避け、紛失すると資産へアクセスできなくなることを理解しています。"
-      },
-      "continueButton": "次へ進む"
-    },
-    "step4": {
-      "indicator": "STEP 4 / 4",
-      "title": "準備完了！",
-      "description": "Quantum Shieldの設定が完了しました。これで量子耐性の保護を使用できます。",
       "features": {
-        "keysGenerated": "Dilithium鍵ペアを生成しました",
-        "backupComplete": "秘密鍵をバックアップしました",
-        "protectionActive": "量子耐性保護が有効です"
-      },
-      "ctaButton": "ダッシュボードへ",
-      "tutorialLink": "使い方チュートリアルを見る"
-    },
-    "modals": {
-      "walletHelp": {
-        "title": "ウォレットの取得方法",
-        "intro": "暗号資産ウォレットを持っていない場合は、以下の手順で取得できます。",
-        "metamaskTitle": "MetaMaskの場合:",
-        "metamaskSteps": {
-          "step1": "metamask.io にアクセス",
-          "step2": "「Download」をクリックしてブラウザ拡張機能をインストール",
-          "step3": "画面の指示に従ってウォレットを作成",
-          "step4": "シードフレーズを安全に保管"
+        "selfCustody": {
+          "title": "セルフカストディ",
+          "description": "あなただけが資産をコントロール"
         },
-        "warningTitle": "注意事項:",
-        "warnings": {
-          "warning1": "シードフレーズは絶対に他人に教えないでください",
-          "warning2": "オフラインの安全な場所に保管してください",
-          "warning3": "公式サイト以外からダウンロードしないでください"
+        "secure": {
+          "title": "安全な接続",
+          "description": "秘密鍵は送信されません"
         },
-        "closeButton": "閉じる"
-      },
-      "dilithium": {
-        "title": "Dilithium暗号とは？",
-        "intro": "Dilithium（ダイリチウム）は、量子コンピュータに対して安全な電子署名アルゴリズムです。",
-        "whyTitle": "なぜ必要？",
-        "whyReasons": {
-          "reason1": "現在の暗号（ECDSA等）は将来の量子コンピュータで解読される可能性があります",
-          "reason2": "「今収集して後で解読」攻撃から資産を守るために、今から対策が必要です"
-        },
-        "featuresTitle": "Dilithiumの特徴:",
-        "features": {
-          "nist": "NIST認定: 2024年にFIPS 204として正式標準化",
-          "lattice": "格子ベース暗号: 量子コンピュータでも解読が数学的に困難",
-          "fast": "高速: 署名・検証が効率的",
-          "level": "Dilithium-III: Quantum Shieldで使用するセキュリティレベル"
-        },
-        "securityTitle": "安全性:",
-        "securityDescription": "Dilithium-IIIは、NIST Security Level 3を満たし、128ビット以上の古典的セキュリティと量子セキュリティを提供します。",
-        "closeButton": "閉じる"
-      },
-      "tutorial": {
-        "title": "使い方チュートリアル",
-        "intro": "Quantum Shieldの基本的な使い方を説明します。",
-        "lockTitle": "1. 資産をLockする",
-        "lockSteps": {
-          "step1": "ダッシュボードで「Lock」をクリック",
-          "step2": "保護したい金額を入力",
-          "step3": "Dilithium署名で確認"
-        },
-        "unlockTitle": "2. 資産をUnlockする",
-        "unlockSteps": {
-          "normal": "通常Unlock: Dilithium署名 + 24時間待機",
-          "emergency": "緊急Unlock: ウォレット署名 + Bond + 7日間待機"
-        },
-        "securityTitle": "3. セキュリティのポイント",
-        "securityTips": {
-          "tip1": "秘密鍵は必ずバックアップしてください",
-          "tip2": "Time Lockがあなたの資産を守ります",
-          "tip3": "不審なアクティビティはすぐに確認してください"
-        },
-        "closeButton": "閉じる"
+        "quantum": {
+          "title": "量子耐性",
+          "description": "接続後、Dilithium鍵を生成"
+        }
       }
     }
   }

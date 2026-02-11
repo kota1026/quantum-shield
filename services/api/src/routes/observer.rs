@@ -23,9 +23,20 @@ use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 
 use crate::{
+    db::{ObserverRepository, ChallengeRepository, LockRepository},
     error::ApiError,
     services::AppState,
 };
+
+/// Extract wallet address from X-User-Address header
+/// TODO: Replace with JWT token extraction (TASK-P5-012)
+fn extract_observer_address(headers: &axum::http::HeaderMap) -> Result<String, ApiError> {
+    headers
+        .get("X-User-Address")
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.to_string())
+        .ok_or(ApiError::Unauthorized)
+}
 
 // ============================================================================
 // Observer Types
@@ -385,6 +396,8 @@ pub struct EarningsResponse {
     pub breakdown: EarningsBreakdown,
     /// Recent earnings history
     pub history: Vec<EarningItem>,
+    /// Reward currency: "QS" (QS Token on L3 Aegis)
+    pub currency: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -408,6 +421,8 @@ pub struct EarningItem {
     pub claimed: bool,
     #[serde(rename = "txHash")]
     pub tx_hash: Option<String>,
+    /// Earning currency: "QS" (QS Token on L3 Aegis)
+    pub currency: String,
 }
 
 /// POST /v1/observer/claim-earnings request
@@ -431,6 +446,8 @@ pub struct ClaimEarningsResponse {
     pub earnings_claimed: u32,
     #[serde(rename = "txHash")]
     pub tx_hash: String,
+    /// Claim currency: "QS" (QS Token on L3 Aegis)
+    pub currency: String,
     pub status: String,
 }
 
@@ -438,200 +455,328 @@ pub struct ClaimEarningsResponse {
 // API Handlers
 // ============================================================================
 
+/// POST /v1/observer/register
+///
+/// Register a new observer to participate in the challenge system.
+/// Observers monitor pending unlocks and can submit fraud challenges.
+pub async fn register_observer(
+    Extension(state): Extension<Arc<AppState>>,
+    Json(req): Json<crate::types::ObserverRegisterRequest>,
+) -> Result<Json<crate::types::ObserverRegisterResponse>, ApiError> {
+    tracing::info!("Registering new observer: {}", req.operator_addr);
+
+    // 1. Validate operator address format
+    if !req.operator_addr.starts_with("0x") || req.operator_addr.len() != 42 {
+        return Err(ApiError::InvalidRequest(format!(
+            "Invalid operator address: {}",
+            req.operator_addr
+        )));
+    }
+
+    // 2. Check if observer already exists
+    if let Some(_existing) = state.get_observer_by_address(&req.operator_addr).await? {
+        return Err(ApiError::AlreadyExists(format!(
+            "Observer already registered for address: {}",
+            req.operator_addr
+        )));
+    }
+
+    // 3. Generate observer ID using SHA3-256
+    let mut hasher = Sha3_256::new();
+    hasher.update(b"OBSERVER_V1");
+    hasher.update(req.operator_addr.as_bytes());
+    hasher.update(&chrono::Utc::now().timestamp().to_be_bytes());
+    let observer_id = format!("obs_{}", hex::encode(&hasher.finalize()[..16]));
+
+    let now = chrono::Utc::now().timestamp() as u64;
+
+    // 4. Create observer record
+    let observer = crate::types::Observer {
+        observer_id: observer_id.clone(),
+        operator_addr: req.operator_addr.clone(),
+        status: crate::types::ObserverStatus::PendingApproval,
+        stake_amount: req.stake_amount.clone(),
+        registered_at: now,
+        total_challenges: 0,
+        successful_challenges: 0,
+        total_earnings: "0".to_string(),
+    };
+
+    // 5. Store observer
+    state.store_observer(&observer).await?;
+
+    tracing::info!(
+        "Observer registered: {} for address: {}",
+        observer_id,
+        req.operator_addr
+    );
+
+    Ok(Json(crate::types::ObserverRegisterResponse {
+        observer_id,
+        status: crate::types::ObserverStatus::PendingApproval,
+        operator_addr: req.operator_addr,
+        registered_at: now,
+    }))
+}
+
 /// GET /v1/observer/dashboard
 ///
 /// Returns observer's dashboard with earnings, challenges, and network stats.
+/// Phase 4: PG-backed implementation
 pub async fn get_dashboard(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
 ) -> Result<Json<ObserverDashboardResponse>, ApiError> {
-    tracing::info!("Fetching observer dashboard");
+    // TODO: Replace with JWT token extraction (TASK-P5-012)
+    // Currently uses X-User-Address header for development (matches user.rs, token_hub.rs pattern)
+    let wallet_address = headers
+        .get("X-User-Address")
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.to_string())
+        .ok_or(ApiError::Unauthorized)?;
 
-    // Mock response for now - will integrate with actual data store
-    let response = ObserverDashboardResponse {
-        total_earnings: "5000000000000000000".to_string(), // 5 ETH
-        unclaimed_earnings: "1500000000000000000".to_string(), // 1.5 ETH
-        total_challenges: 12,
-        successful_challenges: 8,
-        success_rate: 66.67,
-        pending_unlocks_count: 45,
-        active_challenges: 3,
-        recent_activity: vec![
-            ObserverActivityItem {
-                id: "activity_001".to_string(),
-                activity_type: "challenge_won".to_string(),
-                description: "Challenge succeeded against lock 0x1234...".to_string(),
-                timestamp: chrono::Utc::now().timestamp() as u64 - 3600,
-                amount: Some("600000000000000000".to_string()),
-            },
-            ObserverActivityItem {
-                id: "activity_002".to_string(),
-                activity_type: "challenge_submitted".to_string(),
-                description: "New challenge submitted for lock 0x5678...".to_string(),
-                timestamp: chrono::Utc::now().timestamp() as u64 - 7200,
-                amount: None,
-            },
-        ],
-        stats: ObserverNetworkStats {
-            total_value_locked: "1000000000000000000000".to_string(), // 1000 ETH
-            network_pending_unlocks: 156,
-            network_challenges: 34,
-            network_success_rate: 58.82,
-        },
+    tracing::info!(wallet = %wallet_address, "Fetching observer dashboard");
+
+    let pool = state.db.pool();
+
+    // Get observer record
+    let observer = ObserverRepository::get_by_wallet(pool, &wallet_address).await?;
+    let (total_earnings_str, unclaimed_str, total_challenges, successful_challenges) =
+        if let Some(ref obs) = observer {
+            let summary = ObserverRepository::get_earnings_summary(pool, &obs.observer_id).await?;
+            (
+                summary.total_earnings.to_string(),
+                summary.unclaimed_earnings.to_string(),
+                obs.successful_challenges + obs.failed_challenges,
+                obs.successful_challenges,
+            )
+        } else {
+            ("0".to_string(), "0".to_string(), 0i64, 0i64)
+        };
+
+    let success_rate = if total_challenges > 0 {
+        (successful_challenges as f64 / total_challenges as f64) * 100.0
+    } else {
+        0.0
     };
 
-    Ok(Json(response))
+    // Network-wide stats from PG
+    let pending_count = LockRepository::count_by_status(pool, Some("unlock_pending")).await?
+        + LockRepository::count_by_status(pool, Some("emergency_pending")).await?;
+    let active_challenges = ChallengeRepository::count_by_status(pool, Some("pending")).await?;
+    let total_tvl = LockRepository::get_total_tvl(pool).await?;
+    let total_network_challenges = ChallengeRepository::count_by_status(pool, None).await?;
+    let resolved_valid = ChallengeRepository::count_by_status(pool, Some("resolved_valid")).await?;
+    let network_success_rate = if total_network_challenges > 0 {
+        (resolved_valid as f64 / total_network_challenges as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    // Recent activity from challenges
+    let recent_activity = if let Some(ref obs) = observer {
+        let challenges = ObserverRepository::get_challenges_by_observer(pool, &obs.observer_id, 0, 5).await?;
+        challenges.iter().map(|c| ObserverActivityItem {
+            id: c.challenge_id.clone(),
+            activity_type: format!("challenge_{}", c.status),
+            description: format!("Challenge {} for lock {}", c.status, &c.lock_id[..std::cmp::min(10, c.lock_id.len())]),
+            timestamp: c.challenged_at.timestamp() as u64,
+            amount: Some(c.bond.to_string()),
+        }).collect()
+    } else {
+        vec![]
+    };
+
+    Ok(Json(ObserverDashboardResponse {
+        total_earnings: total_earnings_str,
+        unclaimed_earnings: unclaimed_str,
+        total_challenges: total_challenges as u32,
+        successful_challenges: successful_challenges as u32,
+        success_rate: (success_rate * 100.0).round() / 100.0,
+        pending_unlocks_count: pending_count as u32,
+        active_challenges: active_challenges as u32,
+        recent_activity,
+        stats: ObserverNetworkStats {
+            total_value_locked: total_tvl.to_string(),
+            network_pending_unlocks: pending_count as u32,
+            network_challenges: total_network_challenges as u32,
+            network_success_rate: (network_success_rate * 100.0).round() / 100.0,
+        },
+    }))
 }
 
 /// GET /v1/observer/pending-unlocks
 ///
 /// Returns list of pending unlocks available to monitor/challenge.
+/// Phase 4: PG-backed implementation
 pub async fn get_pending_unlocks(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<PendingUnlocksResponse>, ApiError> {
     tracing::info!("Fetching pending unlocks for observer");
 
+    let pool = state.db.pool();
     let now = chrono::Utc::now().timestamp() as u64;
 
-    // Mock response - will integrate with actual L1/L3 data
-    let response = PendingUnlocksResponse {
-        unlocks: vec![
-            PendingUnlockItem {
-                lock_id: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-                owner: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-                amount: "10000000000000000000".to_string(), // 10 ETH
-                token: "0x0000000000000000000000000000000000000000".to_string(),
-                unlock_type: UnlockType::Normal,
-                unlock_requested_at: now - 43200, // 12 hours ago
-                time_remaining: 43200, // 12 hours left
-                suspicion_level: SuspicionLevel::Low,
-                risk_indicators: vec![],
-                can_challenge: true,
+    // Query pending unlock locks from PG
+    let statuses = &["unlock_pending", "emergency_pending"];
+    let rows = crate::db::LockRepository::list_locks_by_statuses(pool, statuses).await?;
+
+    let unlocks: Vec<PendingUnlockItem> = rows.iter().map(|row| {
+        let is_emergency = row.status == "emergency_pending";
+        let requested_at = row.created_at.timestamp() as u64;
+        let time_lock = if is_emergency {
+            state.config.security.emergency_time_lock_days * 24 * 3600
+        } else {
+            state.config.security.normal_time_lock_hours * 3600
+        };
+        let deadline = requested_at + time_lock;
+        let time_remaining = if deadline > now { deadline - now } else { 0 };
+
+        PendingUnlockItem {
+            lock_id: row.lock_id.clone(),
+            owner: row.wallet_address.clone(),
+            amount: row.amount.to_string(),
+            token: "0x0000000000000000000000000000000000000000".to_string(),
+            unlock_type: if is_emergency { UnlockType::Emergency } else { UnlockType::Normal },
+            unlock_requested_at: requested_at,
+            time_remaining,
+            suspicion_level: if is_emergency { SuspicionLevel::High } else { SuspicionLevel::Low },
+            risk_indicators: if is_emergency {
+                vec!["Emergency unlock request".to_string()]
+            } else {
+                vec![]
             },
-            PendingUnlockItem {
-                lock_id: "0xfedcba0987654321fedcba0987654321fedcba09".to_string(),
-                owner: "0x1234abcd5678ef901234abcd5678ef901234abcd".to_string(),
-                amount: "50000000000000000000".to_string(), // 50 ETH
-                token: "0x0000000000000000000000000000000000000000".to_string(),
-                unlock_type: UnlockType::Emergency,
-                unlock_requested_at: now - 172800, // 2 days ago
-                time_remaining: 432000, // 5 days left
-                suspicion_level: SuspicionLevel::High,
-                risk_indicators: vec![
-                    "Large amount emergency unlock".to_string(),
-                    "New account (< 30 days)".to_string(),
-                    "Unusual time pattern".to_string(),
-                ],
-                can_challenge: true,
-            },
-        ],
-        total: 2,
+            can_challenge: time_remaining > 0,
+        }
+    }).collect();
+
+    let total = unlocks.len() as u32;
+
+    Ok(Json(PendingUnlocksResponse {
+        unlocks,
+        total,
         page: 1,
         page_size: 20,
-    };
-
-    Ok(Json(response))
+    }))
 }
 
 /// GET /v1/observer/suspicious-txs
 ///
 /// Returns transactions flagged as suspicious by the monitoring system.
+/// Phase 4: PG-backed — queries emergency pending locks as suspicious
 pub async fn get_suspicious_txs(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<SuspiciousTxsResponse>, ApiError> {
     tracing::info!("Fetching suspicious transactions");
 
+    let pool = state.db.pool();
     let now = chrono::Utc::now().timestamp() as u64;
 
-    let response = SuspiciousTxsResponse {
-        transactions: vec![
-            SuspiciousTransaction {
-                lock_id: "0xsuspicious123456789abcdef123456789abcdef".to_string(),
-                owner: "0xowner123456789abcdef123456789abcdef1234".to_string(),
-                amount: "100000000000000000000".to_string(), // 100 ETH
-                suspicion_level: SuspicionLevel::Critical,
-                risk_analysis: RiskAnalysis {
-                    score: 92,
-                    factors: vec![
-                        RiskFactor {
-                            name: "Rapid unlock pattern".to_string(),
-                            description: "Multiple unlock requests in short period".to_string(),
-                            severity: "high".to_string(),
-                            weight: 35,
-                        },
-                        RiskFactor {
-                            name: "New account".to_string(),
-                            description: "Account created less than 7 days ago".to_string(),
-                            severity: "medium".to_string(),
-                            weight: 25,
-                        },
-                        RiskFactor {
-                            name: "Large amount".to_string(),
-                            description: "Amount exceeds 90th percentile".to_string(),
-                            severity: "high".to_string(),
-                            weight: 32,
-                        },
-                    ],
-                    summary: "High probability of fraudulent unlock attempt".to_string(),
-                },
-                recommended_action: "Submit challenge with fraud proof".to_string(),
-                challenge_bond: "1000000000000000000".to_string(), // 1 ETH (MAX(0.1 ETH, 1%))
-                detected_at: now - 1800, // 30 minutes ago
+    // Emergency pending locks are treated as suspicious
+    let rows = crate::db::LockRepository::list_locks_by_statuses(pool, &["emergency_pending"]).await?;
+
+    let transactions: Vec<SuspiciousTransaction> = rows.iter().map(|row| {
+        let amount_str = row.amount.to_string();
+        let amount_val: u128 = amount_str.parse().unwrap_or(0);
+        let bond = std::cmp::max(100_000_000_000_000_000u128, amount_val / 100);
+
+        SuspiciousTransaction {
+            lock_id: row.lock_id.clone(),
+            owner: row.wallet_address.clone(),
+            amount: amount_str,
+            suspicion_level: SuspicionLevel::High,
+            risk_analysis: RiskAnalysis {
+                score: 75,
+                factors: vec![
+                    RiskFactor {
+                        name: "Emergency unlock".to_string(),
+                        description: "Emergency unlock bypasses normal timelock".to_string(),
+                        severity: "high".to_string(),
+                        weight: 40,
+                    },
+                ],
+                summary: "Emergency unlock request requires observer verification".to_string(),
             },
-        ],
-        total: 1,
+            recommended_action: "Review and submit challenge if fraud is suspected".to_string(),
+            challenge_bond: bond.to_string(),
+            detected_at: row.created_at.timestamp() as u64,
+        }
+    }).collect();
+
+    let total = transactions.len() as u32;
+
+    Ok(Json(SuspiciousTxsResponse {
+        transactions,
+        total,
         page: 1,
         page_size: 20,
-    };
-
-    Ok(Json(response))
+    }))
 }
 
 /// GET /v1/observer/history
 ///
 /// Returns observer's challenge and earnings history.
+/// Phase 4: PG-backed implementation
 pub async fn get_history(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
 ) -> Result<Json<ObserverHistoryResponse>, ApiError> {
-    tracing::info!("Fetching observer history");
+    let wallet_address = extract_observer_address(&headers)?;
+    tracing::info!(wallet = %wallet_address, "Fetching observer history");
 
-    let now = chrono::Utc::now().timestamp() as u64;
+    let pool = state.db.pool();
 
-    let response = ObserverHistoryResponse {
-        history: vec![
+    let observer = ObserverRepository::get_by_wallet(pool, &wallet_address).await?;
+
+    let history = if let Some(ref obs) = observer {
+        // Get challenge history
+        let challenges = ObserverRepository::get_challenges_by_observer(pool, &obs.observer_id, 0, 20).await?;
+        let mut items: Vec<ObserverHistoryItem> = challenges.iter().map(|c| {
+            let history_type = match c.status.as_str() {
+                "resolved_valid" => "challenge_won",
+                "resolved_invalid" => "challenge_lost",
+                _ => "challenge_submitted",
+            };
             ObserverHistoryItem {
-                id: "hist_001".to_string(),
-                history_type: "challenge_won".to_string(),
-                lock_id: "0x1234...5678".to_string(),
-                amount: "600000000000000000".to_string(), // 0.6 ETH reward
-                status: "completed".to_string(),
-                timestamp: now - 86400,
-                tx_hash: Some("0xtx_challenge_won_123".to_string()),
-            },
-            ObserverHistoryItem {
-                id: "hist_002".to_string(),
-                history_type: "challenge_lost".to_string(),
-                lock_id: "0xabcd...ef01".to_string(),
-                amount: "100000000000000000".to_string(), // 0.1 ETH bond lost
-                status: "completed".to_string(),
-                timestamp: now - 172800,
-                tx_hash: Some("0xtx_challenge_lost_456".to_string()),
-            },
-            ObserverHistoryItem {
-                id: "hist_003".to_string(),
-                history_type: "earnings_claimed".to_string(),
-                lock_id: "".to_string(),
-                amount: "3000000000000000000".to_string(), // 3 ETH
-                status: "completed".to_string(),
-                timestamp: now - 259200,
-                tx_hash: Some("0xtx_claim_789".to_string()),
-            },
-        ],
-        total: 3,
-        page: 1,
-        page_size: 20,
+                id: c.challenge_id.clone(),
+                history_type: history_type.to_string(),
+                lock_id: c.lock_id.clone(),
+                amount: c.bond.to_string(),
+                status: c.status.clone(),
+                timestamp: c.challenged_at.timestamp() as u64,
+                tx_hash: None,
+            }
+        }).collect();
+
+        // Get earnings history
+        let earnings = ObserverRepository::get_earnings(pool, &obs.observer_id, 20).await?;
+        for e in &earnings {
+            items.push(ObserverHistoryItem {
+                id: e.earning_id.clone(),
+                history_type: if e.claimed { "earnings_claimed" } else { "earnings_earned" }.to_string(),
+                lock_id: e.challenge_id.clone(),
+                amount: e.amount.to_string(),
+                status: if e.claimed { "claimed" } else { "unclaimed" }.to_string(),
+                timestamp: e.earned_at.timestamp() as u64,
+                tx_hash: e.claim_tx_hash.clone(),
+            });
+        }
+
+        // Sort by timestamp descending
+        items.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        items
+    } else {
+        vec![]
     };
 
-    Ok(Json(response))
+    let total = history.len() as u32;
+
+    Ok(Json(ObserverHistoryResponse {
+        history,
+        total,
+        page: 1,
+        page_size: 20,
+    }))
 }
 
 /// POST /v1/observer/challenge
@@ -726,109 +871,98 @@ pub async fn submit_challenge(
 /// GET /v1/observer/challenge/:id
 ///
 /// Get details of a specific challenge.
+/// Phase 4: PG-backed implementation
 pub async fn get_challenge(
     Extension(state): Extension<Arc<AppState>>,
     Path(challenge_id): Path<String>,
 ) -> Result<Json<ChallengeDetailResponse>, ApiError> {
     tracing::info!("Fetching challenge details: {}", challenge_id);
 
-    // Mock challenge data (in production, query from storage)
-    let challenge = ChallengeInfo {
-        challenge_id: challenge_id.clone(),
-        lock_id: "lock-001".to_string(),
-        challenger: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-        fraud_proof_hash: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890".to_string(),
-        bond: "100000000000000000".to_string(), // 0.1 ETH
-        submitted_at: chrono::Utc::now().timestamp() as u64 - 3600, // 1 hour ago
-        defense_deadline: chrono::Utc::now().timestamp() as u64 + 172800 - 3600, // +48h from submission
-        defense_submitted: false,
-        defense_timestamp: None,
-        defender: None,
-        defense_proof_hash: None,
-        resolved: false,
-        resolved_at: None,
-        challenger_won: false,
-        slashed_amount: None,
-        reward_amount: None,
-        resolution_tx_hash: None,
-    };
+    let pool = state.db.pool();
+
+    let row = ChallengeRepository::get_by_id(pool, &challenge_id).await?
+        .ok_or_else(|| ApiError::NotFound(format!("Challenge {} not found", challenge_id)))?;
 
     let now = chrono::Utc::now().timestamp() as u64;
+    let submitted_at = row.challenged_at.timestamp() as u64;
+    let defense_deadline = row.defense_deadline.timestamp() as u64;
+
+    let is_defense_submitted = row.status == "defense_submitted"
+        || row.status == "resolved_valid"
+        || row.status == "resolved_invalid";
+    let is_resolved = row.status == "resolved_valid" || row.status == "resolved_invalid";
+    let challenger_won = row.status == "resolved_valid";
 
     // Build timeline
     let mut timeline = vec![
         ChallengeEvent {
             event_type: "challenge_submitted".to_string(),
-            description: format!("Challenge submitted by {}", challenge.challenger),
-            timestamp: challenge.submitted_at,
+            description: format!("Challenge submitted by {}", row.challenger),
+            timestamp: submitted_at,
             tx_hash: None,
         },
     ];
 
-    // Add defense event if exists
-    let defense = if challenge.defense_submitted {
+    let defense = if is_defense_submitted {
         timeline.push(ChallengeEvent {
             event_type: "defense_submitted".to_string(),
             description: "Defense proof submitted by prover".to_string(),
-            timestamp: challenge.defense_timestamp.unwrap_or(0),
+            timestamp: defense_deadline.saturating_sub(3600), // approximate
             tx_hash: None,
         });
         Some(DefenseInfo {
-            defender: challenge.defender.clone().unwrap_or_default(),
-            defense_proof_hash: challenge.defense_proof_hash.clone().unwrap_or_default(),
-            submitted_at: challenge.defense_timestamp.unwrap_or(0),
+            defender: row.defender.clone().unwrap_or_default(),
+            defense_proof_hash: row.defense_proof_hash.clone().unwrap_or_default(),
+            submitted_at: defense_deadline.saturating_sub(3600),
         })
     } else {
         None
     };
 
-    // Add resolution if resolved
-    let resolution = if challenge.resolved {
-        let winner = if challenge.challenger_won {
-            challenge.challenger.clone()
+    let resolution = if is_resolved {
+        let resolved_at = row.resolved_at.map(|t| t.timestamp() as u64).unwrap_or(now);
+        let winner = if challenger_won {
+            row.challenger.clone()
         } else {
-            challenge.defender.clone().unwrap_or_default()
+            row.defender.clone().unwrap_or_default()
         };
+        // Get slashing info if exists
+        let slashing = ChallengeRepository::get_slashing(pool, &challenge_id).await?;
         timeline.push(ChallengeEvent {
             event_type: "challenge_resolved".to_string(),
             description: format!("Challenge resolved. Winner: {}", winner),
-            timestamp: challenge.resolved_at.unwrap_or(now),
-            tx_hash: challenge.resolution_tx_hash.clone(),
+            timestamp: resolved_at,
+            tx_hash: slashing.as_ref().and_then(|s| s.l1_tx_hash.clone()),
         });
         Some(ResolutionInfo {
             winner,
-            resolved_at: challenge.resolved_at.unwrap_or(now),
-            slashed_amount: challenge.slashed_amount.clone(),
-            reward_amount: challenge.reward_amount.clone(),
+            resolved_at,
+            slashed_amount: slashing.as_ref().map(|s| s.slash_amount.to_string()),
+            reward_amount: slashing.as_ref().map(|s| s.challenger_reward.to_string()),
         })
     } else {
         None
     };
 
-    // Determine status
-    let status = if challenge.resolved {
-        if challenge.challenger_won {
-            ObserverChallengeStatus::Succeeded
-        } else {
-            ObserverChallengeStatus::Failed
-        }
-    } else if challenge.defense_submitted {
+    let status = if is_resolved {
+        if challenger_won { ObserverChallengeStatus::Succeeded } else { ObserverChallengeStatus::Failed }
+    } else if is_defense_submitted {
         ObserverChallengeStatus::UnderReview
-    } else if now > challenge.defense_deadline {
+    } else if now > defense_deadline {
         ObserverChallengeStatus::Expired
     } else {
         ObserverChallengeStatus::Pending
     };
 
     Ok(Json(ChallengeDetailResponse {
-        challenge_id: challenge.challenge_id,
-        lock_id: challenge.lock_id,
-        challenger: challenge.challenger,
-        fraud_proof_hash: challenge.fraud_proof_hash,
-        bond: challenge.bond,
+        challenge_id: row.challenge_id,
+        lock_id: row.lock_id,
+        challenger: row.challenger,
+        fraud_proof_hash: row.fraud_proof_hash,
+        bond: row.bond.to_string(),
         status,
-        submitted_at: challenge.submitted_at,
-        defense_deadline: challenge.defense_deadline,
+        submitted_at,
+        defense_deadline,
         defense,
         resolution,
         timeline,
@@ -838,65 +972,98 @@ pub async fn get_challenge(
 /// GET /v1/observer/earnings
 ///
 /// Get observer's earnings summary and history.
+/// Phase 4: PG-backed implementation
 pub async fn get_earnings(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
 ) -> Result<Json<EarningsResponse>, ApiError> {
-    tracing::info!("Fetching observer earnings");
+    let wallet_address = extract_observer_address(&headers)?;
+    tracing::info!(wallet = %wallet_address, "Fetching observer earnings");
 
-    let now = chrono::Utc::now().timestamp() as u64;
+    let pool = state.db.pool();
 
-    // Mock response - will integrate with actual earnings tracking
-    let response = EarningsResponse {
-        total_earnings: "5000000000000000000".to_string(), // 5 ETH
-        claimed_earnings: "3500000000000000000".to_string(), // 3.5 ETH
-        unclaimed_earnings: "1500000000000000000".to_string(), // 1.5 ETH
-        breakdown: EarningsBreakdown {
-            from_challenges: "5000000000000000000".to_string(),
-            winning_challenges: 8,
-        },
-        history: vec![
-            EarningItem {
-                id: "earn_001".to_string(),
-                challenge_id: "0xchallenge_001".to_string(),
-                amount: "600000000000000000".to_string(),
-                timestamp: now - 86400,
-                claimed: false,
-                tx_hash: None,
+    let observer = ObserverRepository::get_by_wallet(pool, &wallet_address).await?;
+
+    let (summary, earnings_rows) = if let Some(ref obs) = observer {
+        let s = ObserverRepository::get_earnings_summary(pool, &obs.observer_id).await?;
+        let rows = ObserverRepository::get_earnings(pool, &obs.observer_id, 50).await?;
+        (s, rows)
+    } else {
+        (
+            crate::db::ObserverEarningsSummary {
+                total_earnings: bigdecimal::BigDecimal::from(0),
+                claimed_earnings: bigdecimal::BigDecimal::from(0),
+                unclaimed_earnings: bigdecimal::BigDecimal::from(0),
             },
-            EarningItem {
-                id: "earn_002".to_string(),
-                challenge_id: "0xchallenge_002".to_string(),
-                amount: "900000000000000000".to_string(),
-                timestamp: now - 172800,
-                claimed: false,
-                tx_hash: None,
-            },
-            EarningItem {
-                id: "earn_003".to_string(),
-                challenge_id: "0xchallenge_003".to_string(),
-                amount: "1200000000000000000".to_string(),
-                timestamp: now - 259200,
-                claimed: true,
-                tx_hash: Some("0xtx_claim_001".to_string()),
-            },
-        ],
+            vec![],
+        )
     };
 
-    Ok(Json(response))
+    let winning_challenges = observer.as_ref().map(|o| o.successful_challenges as u32).unwrap_or(0);
+
+    let history: Vec<EarningItem> = earnings_rows.iter().map(|e| {
+        EarningItem {
+            id: e.earning_id.clone(),
+            challenge_id: e.challenge_id.clone(),
+            amount: e.amount.to_string(),
+            timestamp: e.earned_at.timestamp() as u64,
+            claimed: e.claimed,
+            tx_hash: e.claim_tx_hash.clone(),
+            currency: "QS".to_string(),
+        }
+    }).collect();
+
+    Ok(Json(EarningsResponse {
+        total_earnings: summary.total_earnings.to_string(),
+        claimed_earnings: summary.claimed_earnings.to_string(),
+        unclaimed_earnings: summary.unclaimed_earnings.to_string(),
+        breakdown: EarningsBreakdown {
+            from_challenges: summary.total_earnings.to_string(),
+            winning_challenges,
+        },
+        history,
+        currency: "QS".to_string(),
+    }))
 }
 
 /// POST /v1/observer/claim-earnings
 ///
 /// Claim accumulated earnings from successful challenges.
+/// Phase 4: PG-backed implementation
 pub async fn claim_earnings(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<ClaimEarningsRequest>,
 ) -> Result<Json<ClaimEarningsResponse>, ApiError> {
     tracing::info!("Observer {} claiming earnings", req.observer);
 
+    let pool = state.db.pool();
+
     // Validate observer address
     if !req.observer.starts_with("0x") || req.observer.len() != 42 {
         return Err(ApiError::InvalidRequest(format!("Invalid address: {}", req.observer)));
+    }
+
+    // Find observer
+    let observer = ObserverRepository::get_by_wallet(pool, &req.observer).await?
+        .ok_or_else(|| ApiError::NotFound("Observer not found".to_string()))?;
+
+    // Get unclaimed earnings
+    let earnings = ObserverRepository::get_earnings(pool, &observer.observer_id, 100).await?;
+    let unclaimed: Vec<_> = earnings.iter().filter(|e| !e.claimed).collect();
+
+    if unclaimed.is_empty() {
+        return Err(ApiError::BadRequest("No unclaimed earnings".to_string()));
+    }
+
+    // Claim all unclaimed earnings
+    let mut total_claimed = bigdecimal::BigDecimal::from(0);
+    let mut count = 0u32;
+    for earning in &unclaimed {
+        let claimed = ObserverRepository::claim_earning(pool, &earning.earning_id).await?;
+        if claimed {
+            total_claimed += &earning.amount;
+            count += 1;
+        }
     }
 
     // Generate claim ID
@@ -906,16 +1073,313 @@ pub async fn claim_earnings(
     hasher.update(&chrono::Utc::now().timestamp().to_be_bytes());
     let claim_id = format!("0x{}", hex::encode(hasher.finalize()));
 
-    // Mock claim - will integrate with L1 contract
-    let response = ClaimEarningsResponse {
+    tracing::info!(observer = %req.observer, claimed = count, "Observer earnings claimed");
+
+    Ok(Json(ClaimEarningsResponse {
         claim_id,
-        amount_claimed: "1500000000000000000".to_string(), // 1.5 ETH
-        earnings_claimed: 2,
-        tx_hash: "0xpending_tx_hash_will_be_replaced".to_string(),
+        amount_claimed: total_claimed.to_string(),
+        earnings_claimed: count,
+        tx_hash: "".to_string(), // L1 tx hash assigned after on-chain confirmation
         status: "pending".to_string(),
+        currency: "QS".to_string(),
+    }))
+}
+
+// ============================================================================
+// Profile / Active Challenges / Settings Types
+// ============================================================================
+
+/// GET /v1/observer/profile response
+#[derive(Debug, Serialize)]
+pub struct ObserverProfileResponse {
+    #[serde(rename = "observerId")]
+    pub observer_id: String,
+    #[serde(rename = "walletAddress")]
+    pub wallet_address: String,
+    #[serde(rename = "registrationDate")]
+    pub registration_date: u64,
+    #[serde(rename = "practicePeriodMonths")]
+    pub practice_period_months: u32,
+    pub status: String,
+    #[serde(rename = "stakeAmount")]
+    pub stake_amount: String,
+    #[serde(rename = "totalChallenges")]
+    pub total_challenges: u32,
+    #[serde(rename = "successfulChallenges")]
+    pub successful_challenges: u32,
+    #[serde(rename = "totalEarnings")]
+    pub total_earnings: String,
+}
+
+/// GET /v1/observer/challenges/active response
+#[derive(Debug, Serialize)]
+pub struct ActiveChallengesResponse {
+    pub challenges: Vec<ActiveChallengeItem>,
+    pub total: u32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ActiveChallengeItem {
+    #[serde(rename = "challengeId")]
+    pub challenge_id: String,
+    #[serde(rename = "lockId")]
+    pub lock_id: String,
+    pub bond: String,
+    pub status: String,
+    #[serde(rename = "challengedAt")]
+    pub challenged_at: u64,
+    #[serde(rename = "defenseDeadline")]
+    pub defense_deadline: u64,
+    #[serde(rename = "timeRemaining")]
+    pub time_remaining: u64,
+}
+
+/// GET /v1/observer/settings response
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObserverSettingsResponse {
+    pub notifications: ObserverNotificationSettings,
+    #[serde(rename = "autoChallenge")]
+    pub auto_challenge: ObserverAutoChallengeSettings,
+    pub display: ObserverDisplaySettings,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObserverNotificationSettings {
+    #[serde(rename = "emailAlerts")]
+    pub email_alerts: bool,
+    #[serde(rename = "pushNotifications")]
+    pub push_notifications: bool,
+    #[serde(rename = "challengeUpdates")]
+    pub challenge_updates: bool,
+    #[serde(rename = "earningsAlerts")]
+    pub earnings_alerts: bool,
+    #[serde(rename = "newSuspiciousTx")]
+    pub new_suspicious_tx: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObserverAutoChallengeSettings {
+    pub enabled: bool,
+    #[serde(rename = "minSuspicionLevel")]
+    pub min_suspicion_level: String,
+    #[serde(rename = "maxBondPerChallenge")]
+    pub max_bond_per_challenge: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObserverDisplaySettings {
+    #[serde(rename = "currency")]
+    pub currency: String,
+    #[serde(rename = "language")]
+    pub language: String,
+    #[serde(rename = "timezone")]
+    pub timezone: String,
+}
+
+/// PUT /v1/observer/settings request
+#[derive(Debug, Deserialize)]
+pub struct UpdateObserverSettingsRequest {
+    pub notifications: Option<ObserverNotificationSettings>,
+    #[serde(rename = "autoChallenge")]
+    pub auto_challenge: Option<ObserverAutoChallengeSettings>,
+    pub display: Option<ObserverDisplaySettings>,
+}
+
+// ============================================================================
+// Profile / Active Challenges / Settings Handlers
+// ============================================================================
+
+/// GET /v1/observer/profile
+///
+/// Returns observer profile data including registration date, status, and stake.
+/// Uses authenticated user's wallet address to look up observer record.
+pub async fn get_profile(
+    Extension(state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+) -> Result<Json<ObserverProfileResponse>, ApiError> {
+    let wallet_address = extract_observer_address(&headers)?;
+    tracing::info!(wallet = %wallet_address, "Fetching observer profile");
+
+    let pool = state.db.pool();
+
+    let observer = ObserverRepository::get_by_wallet(pool, &wallet_address)
+        .await?
+        .ok_or_else(|| ApiError::ObserverNotFound(wallet_address.clone()))?;
+
+    let total_challenges = (observer.successful_challenges + observer.failed_challenges) as u32;
+
+    // Determine practice period: if practice_mode_until is set, compute months from registration
+    let practice_period_months = if let Some(until) = observer.practice_mode_until {
+        let duration = until.signed_duration_since(observer.registered_at);
+        std::cmp::max(1, (duration.num_days() / 30) as u32)
+    } else {
+        3 // Default 3-month practice period
     };
 
-    Ok(Json(response))
+    tracing::info!(
+        observer_id = %observer.observer_id,
+        "Observer profile fetched successfully"
+    );
+
+    Ok(Json(ObserverProfileResponse {
+        observer_id: observer.observer_id,
+        wallet_address: observer.wallet_address,
+        registration_date: observer.registered_at.timestamp() as u64,
+        practice_period_months,
+        status: observer.status,
+        stake_amount: observer.total_earnings.to_string(),
+        total_challenges,
+        successful_challenges: observer.successful_challenges as u32,
+        total_earnings: observer.total_earnings.to_string(),
+    }))
+}
+
+/// GET /v1/observer/challenges/active
+///
+/// Returns active (pending/under_review) challenges for the authenticated observer.
+pub async fn get_active_challenges(
+    Extension(state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+) -> Result<Json<ActiveChallengesResponse>, ApiError> {
+    let wallet_address = extract_observer_address(&headers)?;
+    tracing::info!(wallet = %wallet_address, "Fetching active challenges for observer");
+
+    let pool = state.db.pool();
+
+    let observer = ObserverRepository::get_by_wallet(pool, &wallet_address).await?;
+
+    let challenges = if let Some(ref obs) = observer {
+        let all_challenges = ObserverRepository::get_challenges_by_observer(
+            pool,
+            &obs.observer_id,
+            0,
+            100,
+        )
+        .await?;
+
+        let now = chrono::Utc::now().timestamp() as u64;
+
+        // Filter to only active challenges (pending or defense_submitted / under review)
+        all_challenges
+            .into_iter()
+            .filter(|c| {
+                c.status == "pending"
+                    || c.status == "defense_submitted"
+                    || c.status == "under_review"
+            })
+            .map(|c| {
+                let challenged_at = c.challenged_at.timestamp() as u64;
+                let defense_deadline = c.defense_deadline.timestamp() as u64;
+                let time_remaining = if defense_deadline > now {
+                    defense_deadline - now
+                } else {
+                    0
+                };
+
+                ActiveChallengeItem {
+                    challenge_id: c.challenge_id,
+                    lock_id: c.lock_id,
+                    bond: c.bond.to_string(),
+                    status: c.status,
+                    challenged_at,
+                    defense_deadline,
+                    time_remaining,
+                }
+            })
+            .collect::<Vec<_>>()
+    } else {
+        vec![]
+    };
+
+    let total = challenges.len() as u32;
+
+    tracing::info!(
+        wallet = %wallet_address,
+        active_count = total,
+        "Active challenges fetched"
+    );
+
+    Ok(Json(ActiveChallengesResponse { challenges, total }))
+}
+
+/// GET /v1/observer/settings
+///
+/// Returns observer settings. Since there is no dedicated settings table,
+/// returns sensible defaults. In production these would be stored in a
+/// user-preferences table or Redis.
+pub async fn get_observer_settings(
+    Extension(_state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+) -> Result<Json<ObserverSettingsResponse>, ApiError> {
+    let wallet_address = extract_observer_address(&headers)?;
+    tracing::info!(wallet = %wallet_address, "Fetching observer settings");
+
+    // Return sensible defaults (no dedicated settings table yet)
+    let settings = ObserverSettingsResponse {
+        notifications: ObserverNotificationSettings {
+            email_alerts: true,
+            push_notifications: true,
+            challenge_updates: true,
+            earnings_alerts: true,
+            new_suspicious_tx: true,
+        },
+        auto_challenge: ObserverAutoChallengeSettings {
+            enabled: false,
+            min_suspicion_level: "high".to_string(),
+            max_bond_per_challenge: "100000000000000000".to_string(), // 0.1 ETH
+        },
+        display: ObserverDisplaySettings {
+            currency: "QS".to_string(), // Observer rewards are in QS Token (SEQUENCES.md §9.4)
+            language: "ja".to_string(),
+            timezone: "Asia/Tokyo".to_string(),
+        },
+    };
+
+    tracing::info!(wallet = %wallet_address, "Observer settings returned (defaults)");
+
+    Ok(Json(settings))
+}
+
+/// PUT /v1/observer/settings
+///
+/// Update observer settings. Accepts partial updates - only provided fields
+/// are applied. Currently returns the merged result without persistent storage;
+/// in production this would write to a user-preferences table or Redis.
+pub async fn update_observer_settings(
+    Extension(_state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+    Json(req): Json<UpdateObserverSettingsRequest>,
+) -> Result<Json<ObserverSettingsResponse>, ApiError> {
+    let wallet_address = extract_observer_address(&headers)?;
+    tracing::info!(wallet = %wallet_address, "Updating observer settings");
+
+    // Merge with defaults (in production, load existing then merge)
+    let settings = ObserverSettingsResponse {
+        notifications: req.notifications.unwrap_or(ObserverNotificationSettings {
+            email_alerts: true,
+            push_notifications: true,
+            challenge_updates: true,
+            earnings_alerts: true,
+            new_suspicious_tx: true,
+        }),
+        auto_challenge: req.auto_challenge.unwrap_or(ObserverAutoChallengeSettings {
+            enabled: false,
+            min_suspicion_level: "high".to_string(),
+            max_bond_per_challenge: "100000000000000000".to_string(),
+        }),
+        display: req.display.unwrap_or(ObserverDisplaySettings {
+            currency: "QS".to_string(), // Observer rewards are in QS Token (SEQUENCES.md §9.4)
+            language: "ja".to_string(),
+            timezone: "Asia/Tokyo".to_string(),
+        }),
+    };
+
+    tracing::info!(
+        wallet = %wallet_address,
+        "Observer settings updated successfully"
+    );
+
+    Ok(Json(settings))
 }
 
 // ============================================================================

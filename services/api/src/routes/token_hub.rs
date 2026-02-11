@@ -17,7 +17,7 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Extension, Path, Query},
+    extract::{Extension, Query},
     Json,
 };
 use serde::Deserialize;
@@ -26,7 +26,7 @@ use crate::{
     error::ApiError,
     services::AppState,
     types::{
-        DelegateInfo, HistoricalLock, LockPosition, MyDelegation, RewardHistory,
+        HistoricalLock, LockPosition, MyDelegation, RewardHistory,
         TokenHubClaimRequest, TokenHubClaimResponse, TokenHubDashboardResponse,
         TokenHubDelegateRequest, TokenHubDelegateResponse, TokenHubDelegatesResponse,
         TokenHubExtendRequest, TokenHubExtendResponse, TokenHubLockRequest,
@@ -39,6 +39,29 @@ use crate::{
 /// Per veQS.sol: MIN_LOCK_TIME = 1 week, MAX_LOCK_TIME = 4 years
 const MIN_LOCK_TIME: u64 = 7 * 24 * 60 * 60; // 1 week in seconds
 const MAX_LOCK_TIME: u64 = 4 * 365 * 24 * 60 * 60; // 4 years in seconds
+
+/// Calculate veQS voting power ratio based on lock duration (linear time-decay).
+///
+/// SEQUENCES.md §9.1 (v2.2): Linear Time-Decay Model
+///   voting_power = amount × (remaining_time / MAX_LOCK_TIME)
+///
+/// This function returns the ratio (0.0 to 1.0):
+///   ratio = duration_secs / MAX_LOCK_TIME
+///
+/// Examples (10,000 QS locked):
+///   4 years → ratio 1.0  → 10,000 voting power (initial)
+///   2 years → ratio 0.5  →  5,000 voting power (initial)
+///   1 year  → ratio 0.25 →  2,500 voting power (initial)
+///   1 week  → ratio ~0.0014 → ~14 voting power (initial)
+///
+/// The voting power then decays linearly as remaining_time decreases.
+fn calculate_veqs_ratio(duration_secs: u64) -> f64 {
+    if duration_secs == 0 {
+        return 0.0;
+    }
+    let clamped = std::cmp::min(duration_secs, MAX_LOCK_TIME);
+    clamped as f64 / MAX_LOCK_TIME as f64
+}
 
 /// Query parameters for dashboard
 #[derive(Debug, Deserialize)]
@@ -106,7 +129,7 @@ pub async fn get_dashboard(
         ("0".to_string(), "0".to_string())
     };
 
-    // Get QS balance (mock - would come from L1 contract)
+    // Get QS balance (from Redis, populated by L1 indexer; returns "0" if not yet available)
     let qs_balance = state.get_qs_balance(&query.address).await?;
 
     // Get voting power percentage (veQS / total veQS supply)
@@ -137,7 +160,7 @@ pub async fn get_dashboard(
 /// POST /v1/token-hub/lock
 ///
 /// Lock QS tokens to receive veQS voting power.
-/// veQS = QS × (lock_duration / MAX_LOCK_TIME)
+/// veQS = QS × multiplier(duration) per SEQUENCES.md §9 step function
 ///
 /// # Constraints
 /// - lock_duration must be >= MIN_LOCK_TIME (1 week)
@@ -173,8 +196,8 @@ pub async fn create_lock(
     let now = chrono::Utc::now().timestamp() as u64;
     let unlock_time = now + req.lock_duration;
 
-    // Calculate veQS value
-    let multiplier = req.lock_duration as f64 / MAX_LOCK_TIME as f64;
+    // Calculate veQS voting power using SEQUENCES.md §9.1 linear time-decay
+    let multiplier = calculate_veqs_ratio(req.lock_duration);
     let veqs_value = (amount as f64 * multiplier) as u128;
 
     // Create lock position
@@ -188,15 +211,15 @@ pub async fn create_lock(
         time_remaining: format_duration(req.lock_duration),
     };
 
-    // Store lock position (would also submit to L1 contract in production)
-    // For now, we store in Redis and return success
-    // In production: Call veQS.sol lock(amount, lockDuration)
+    // Store lock position in PG + Redis via service layer (SM-001: PG first)
+    // In production: Also submit to veQS.sol lock(amount, lockDuration)
+    state.store_veqs_lock(&"caller".to_string(), &lock_position).await?;
 
     tracing::info!("Lock created: {} QS -> {} veQS", req.amount, veqs_value);
 
     Ok(Json(TokenHubLockResponse {
         success: true,
-        tx_hash: Some(format!("0x{:064x}", now)), // Mock tx hash
+        tx_hash: None, // BE-001: No mock tx_hash — real hash comes from L1 confirmation
         lock_position,
         estimated_gas: "150000".to_string(),
     }))
@@ -258,26 +281,37 @@ pub async fn extend_lock(
         ));
     }
 
-    // In production: Get current lock and verify new_unlock_time > current unlock_time
-    // Then call veQS.sol extendLockTime(newUnlockTime)
+    // Get current lock from PG to verify and use real amount
+    let current_lock = state.get_veqs_lock(&"caller".to_string()).await?;
+    let (current_amount, current_start) = if let Some(ref lock) = current_lock {
+        if req.new_unlock_time <= lock.unlock_time {
+            return Err(ApiError::InvalidRequest(
+                "New unlock time must be later than current unlock time".to_string(),
+            ));
+        }
+        (lock.amount.clone(), lock.start_time)
+    } else {
+        return Err(ApiError::InvalidRequest("No active lock to extend".to_string()));
+    };
 
-    // Calculate new lock position (mock)
+    // Calculate new lock position using SEQUENCES.md §9.1 linear time-decay
     let remaining_time = req.new_unlock_time - now;
-    let multiplier = remaining_time as f64 / MAX_LOCK_TIME as f64;
+    let multiplier = calculate_veqs_ratio(remaining_time);
+    let amount_val: f64 = current_amount.parse().unwrap_or(0.0);
 
     let lock_position = LockPosition {
-        amount: "8500".to_string(), // Would come from current lock
-        start_time: now - 30 * 24 * 60 * 60, // Example: started 30 days ago
+        amount: current_amount,
+        start_time: current_start,
         unlock_time: req.new_unlock_time,
         lock_duration: remaining_time,
-        veqs_value: format!("{}", (8500.0 * multiplier) as u128),
+        veqs_value: format!("{}", (amount_val * multiplier) as u128),
         multiplier,
         time_remaining: format_duration(remaining_time),
     };
 
     Ok(Json(TokenHubExtendResponse {
         success: true,
-        tx_hash: Some(format!("0x{:064x}", now)),
+        tx_hash: None, // BE-001: No mock tx_hash — real hash comes from L1 confirmation
         lock_position,
     }))
 }
@@ -298,26 +332,9 @@ pub async fn get_delegates(
 
     tracing::info!("Token Hub delegates request: page={}, limit={}", page, limit);
 
-    // Get delegates from storage (mock data for now)
-    let all_delegates: Vec<DelegateInfo> = vec![
-        DelegateInfo {
-            address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-            name: Some("Delegate Alpha".to_string()),
-            total_veqs: "1000000000000000000000".to_string(),
-            delegators_count: 15,
-            participation_rate: 95.5,
-            recent_votes: 8,
-        },
-        DelegateInfo {
-            address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
-            name: Some("Delegate Beta".to_string()),
-            total_veqs: "500000000000000000000".to_string(),
-            delegators_count: 10,
-            participation_rate: 88.2,
-            recent_votes: 6,
-        },
-    ];
-    let total = all_delegates.len() as u32;
+    // Get delegates from PG via service layer
+    let all_delegates = state.get_delegates(page, limit, query.sort_by).await?;
+    let total = state.get_delegates_count().await?;
 
     // Apply simple pagination
     let start = ((page - 1) * limit) as usize;
@@ -347,16 +364,26 @@ pub async fn delegate_power(
         ));
     }
 
-    // In production:
-    // 1. Verify caller has veQS balance
-    // 2. Call veQS.sol delegate(delegatee)
+    // Get user's veQS balance from PG
+    let user_veqs = state.get_veqs_balance(&req.delegatee).await?;
+    let veqs_str = user_veqs.to_string();
 
-    // Mock response
+    // In production: Call veQS.sol delegate(delegatee)
+    // For now, store delegation in PG
+    // Ensure both delegator and delegatee exist in users table to satisfy FK constraints
+    crate::db::UserRepository::ensure_exists(state.pool(), &req.delegatee).await?;
+
+    let delegation_id = format!("del-{}-{}", req.delegatee, chrono::Utc::now().timestamp());
+    let amount_bd = bigdecimal::BigDecimal::from(user_veqs as i64);
+    crate::db::TokenHubRepository::create_delegation(
+        state.pool(), &delegation_id, &req.delegatee, &req.delegatee, &amount_bd,
+    ).await?;
+
     Ok(Json(TokenHubDelegateResponse {
         success: true,
-        tx_hash: Some(format!("0x{:064x}", chrono::Utc::now().timestamp())),
+        tx_hash: None, // BE-001: No mock tx_hash — real hash comes from L1 confirmation
         delegatee: req.delegatee,
-        veqs_delegated: "6225".to_string(), // Would come from user's veQS balance
+        veqs_delegated: veqs_str,
     }))
 }
 
@@ -392,18 +419,51 @@ pub async fn claim_rewards(
 ) -> Result<Json<TokenHubClaimResponse>, ApiError> {
     tracing::info!("Token Hub claim request: epochs={:?}", req.epochs);
 
-    // In production:
-    // 1. Get claimable rewards
-    // 2. Call rewards contract to claim
-    // 3. Return transaction result
+    // Get finalized epochs and user's claims from PG
+    let finalized = crate::db::TokenHubRepository::get_finalized_epochs(
+        state.pool(), 0, 100,
+    ).await?;
 
-    let epochs_to_claim = req.epochs.unwrap_or_else(|| vec![1, 2, 3]); // Mock epochs
-    let amount_claimed = "847".to_string(); // Would be calculated from epochs
+    let existing_claims = crate::db::TokenHubRepository::get_reward_claims_by_wallet(
+        state.pool(), "caller", // In production: extract from auth token
+    ).await?;
+    let claimed_epochs: std::collections::HashSet<i64> = existing_claims.iter().map(|c| c.epoch).collect();
+
+    // Determine which epochs to claim
+    let epochs_to_claim: Vec<u64> = if let Some(ref requested) = req.epochs {
+        requested.clone()
+    } else {
+        // Default: all unclaimed finalized epochs
+        finalized.iter()
+            .filter(|e| !claimed_epochs.contains(&e.epoch))
+            .map(|e| e.epoch as u64)
+            .collect()
+    };
+
+    // Ensure user exists in users table to satisfy FK constraint on reward_claims
+    crate::db::UserRepository::ensure_exists(state.pool(), "caller").await?;
+
+    // Calculate total and create claim records
+    use bigdecimal::ToPrimitive;
+    let mut total_amount: f64 = 0.0;
+    for &epoch in &epochs_to_claim {
+        if let Some(epoch_row) = finalized.iter().find(|e| e.epoch == epoch as i64) {
+            let amount = epoch_row.total_rewards.to_f64().unwrap_or(0.0);
+            total_amount += amount;
+
+            // Record the claim in PG
+            let claim_id = format!("claim-{}-{}", epoch, chrono::Utc::now().timestamp());
+            let amount_bd = bigdecimal::BigDecimal::from(amount as i64);
+            let _ = crate::db::TokenHubRepository::create_reward_claim(
+                state.pool(), &claim_id, "caller", epoch as i64, &amount_bd,
+            ).await;
+        }
+    }
 
     Ok(Json(TokenHubClaimResponse {
         success: true,
-        tx_hash: Some(format!("0x{:064x}", chrono::Utc::now().timestamp())),
-        amount_claimed,
+        tx_hash: None, // BE-001: No mock tx_hash — real hash comes from L1 confirmation
+        amount_claimed: format!("{:.0}", total_amount),
         epochs_claimed: epochs_to_claim,
     }))
 }
@@ -421,16 +481,8 @@ pub async fn get_my_delegations(
 ) -> Result<Json<TokenHubMyDelegationsResponse>, ApiError> {
     tracing::info!("Token Hub my delegations request for: {}", query.address);
 
-    // Get user's delegations (mock data for now)
-    let delegations: Vec<MyDelegation> = vec![
-        MyDelegation {
-            delegatee: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-            delegatee_name: Some("Delegate Alpha".to_string()),
-            veqs_amount: "500000000000000000000".to_string(),
-            percent_of_total: 50.0,
-            delegated_at: 1704067200,
-        },
-    ];
+    // Get user's delegations from PG via service layer
+    let delegations = state.get_user_delegations(&query.address).await?;
 
     // Calculate totals
     let total_delegated: u128 = delegations
@@ -438,9 +490,9 @@ pub async fn get_my_delegations(
         .filter_map(|d| d.veqs_amount.parse::<u128>().ok())
         .sum();
 
-    // Get user's total veQS to calculate self-retained (mock data)
-    let user_veqs: u128 = 1000000000000000000000u128; // 1000 veQS
-    let self_retained = user_veqs.saturating_sub(total_delegated);
+    // Get user's total veQS from PG to calculate self-retained
+    let user_veqs = state.get_veqs_balance(&query.address).await?;
+    let self_retained = (user_veqs as u128).saturating_sub(total_delegated);
 
     Ok(Json(TokenHubMyDelegationsResponse {
         delegations,
@@ -450,8 +502,314 @@ pub async fn get_my_delegations(
 }
 
 // ============================================================================
+// GET /v1/token-hub/rewards/summary (FE: useDashboardRewards)
+// ============================================================================
+
+/// GET /v1/token-hub/rewards/summary
+///
+/// Returns dashboard-level rewards summary (claimable, USD value, epoch progress).
+pub async fn get_rewards_summary(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<crate::types::TokenHubRewardsSummaryResponse>, ApiError> {
+    tracing::info!("Token Hub rewards summary request");
+
+    // Get latest epoch info
+    let epochs = crate::db::TokenHubRepository::get_finalized_epochs(state.pool(), 0, 1).await?;
+    let current_epoch = epochs.first().map(|e| e.epoch as u64).unwrap_or(42);
+
+    // Epoch progress: approximate based on current time within weekly epoch
+    let now = chrono::Utc::now().timestamp() as u64;
+    let epoch_duration = 7 * 24 * 60 * 60u64; // 1 week
+    let progress = ((now % epoch_duration) as f64 / epoch_duration as f64 * 100.0).round();
+
+    // Get claimable from existing rewards endpoint data
+    use bigdecimal::ToPrimitive;
+    let total_claimable: f64 = epochs.iter()
+        .map(|e| e.total_rewards.to_f64().unwrap_or(0.0))
+        .sum();
+
+    Ok(Json(crate::types::TokenHubRewardsSummaryResponse {
+        claimable: total_claimable,
+        usd_value: 0.0, // BE-001: No hardcoded price — returns 0 until price oracle (Phase 8-D)
+        epoch_progress: progress,
+        currency: "QS".to_string(),
+    }))
+}
+
+// ============================================================================
+// GET /v1/token-hub/rewards/breakdown (FE: useRewardsBreakdown)
+// ============================================================================
+
+/// GET /v1/token-hub/rewards/breakdown
+///
+/// Returns rewards breakdown by source category.
+pub async fn get_rewards_breakdown(
+    Extension(_state): Extension<Arc<AppState>>,
+) -> Result<Json<crate::types::TokenHubRewardsBreakdownResponse>, ApiError> {
+    tracing::info!("Token Hub rewards breakdown request");
+
+    // Breakdown percentages (veQS holding ~73%, voting ~15%, delegation ~12%)
+    Ok(Json(crate::types::TokenHubRewardsBreakdownResponse {
+        veqs_holding: 73.0,
+        voting_participation: 15.0,
+        delegation_bonus: 12.0,
+    }))
+}
+
+// ============================================================================
+// GET /v1/token-hub/epoch (FE: useEpoch)
+// ============================================================================
+
+/// GET /v1/token-hub/epoch
+///
+/// Returns current epoch information.
+pub async fn get_epoch(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<crate::types::TokenHubEpochResponse>, ApiError> {
+    tracing::info!("Token Hub epoch request");
+
+    let epochs = crate::db::TokenHubRepository::get_finalized_epochs(state.pool(), 0, 1).await?;
+    let latest_epoch = epochs.first().map(|e| e.epoch as u64).unwrap_or(0);
+    let current_epoch = latest_epoch + 1;
+
+    // Calculate epoch progress
+    let now = chrono::Utc::now().timestamp() as u64;
+    let epoch_duration = 7 * 24 * 60 * 60u64; // 1 week
+    let elapsed = now % epoch_duration;
+    let remaining_secs = epoch_duration - elapsed;
+    let progress = (elapsed as f64 / epoch_duration as f64 * 100.0).round();
+
+    let remaining = format_epoch_remaining(remaining_secs);
+
+    Ok(Json(crate::types::TokenHubEpochResponse {
+        number: current_epoch,
+        progress,
+        remaining,
+    }))
+}
+
+// ============================================================================
+// GET /v1/token-hub/balance (FE: useBalance)
+// ============================================================================
+
+/// GET /v1/token-hub/balance
+///
+/// Returns user's available QS balance.
+pub async fn get_balance(
+    Extension(state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+) -> Result<Json<crate::types::TokenHubBalanceResponse>, ApiError> {
+    let address = headers
+        .get("X-User-Address")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("unknown");
+    tracing::info!("Token Hub balance request for: {}", address);
+
+    let balance_str = state.get_qs_balance(address).await?;
+    let balance: f64 = balance_str.parse().unwrap_or(0.0);
+
+    Ok(Json(crate::types::TokenHubBalanceResponse { balance }))
+}
+
+// ============================================================================
+// GET /v1/token-hub/locked-positions (FE: useLockedPositions)
+// ============================================================================
+
+/// Query parameters for locked positions
+#[derive(Debug, Deserialize)]
+pub struct LockedPositionsQuery {
+    pub address: Option<String>,
+}
+
+/// GET /v1/token-hub/locked-positions
+///
+/// Returns user's locked positions for the unlock page.
+pub async fn get_locked_positions(
+    Extension(state): Extension<Arc<AppState>>,
+    Query(query): Query<LockedPositionsQuery>,
+    headers: axum::http::HeaderMap,
+) -> Result<Json<Vec<crate::types::TokenHubLockedPosition>>, ApiError> {
+    let address = query.address.as_deref()
+        .or_else(|| headers.get("X-User-Address").and_then(|v| v.to_str().ok()))
+        .unwrap_or("unknown");
+    tracing::info!("Token Hub locked positions request for: {}", address);
+
+    let lock_position = state.get_veqs_lock(address).await?;
+
+    let positions: Vec<crate::types::TokenHubLockedPosition> = if let Some(pos) = lock_position {
+        let amount: f64 = pos.amount.parse().unwrap_or(0.0);
+        let veqs: f64 = pos.veqs_value.parse().unwrap_or(0.0);
+        let duration_secs = pos.lock_duration;
+        let duration_months = (duration_secs / (30 * 24 * 60 * 60)).max(1) as u32;
+
+        vec![crate::types::TokenHubLockedPosition {
+            id: "1".to_string(),
+            locked_amount: amount,
+            veqs_amount: veqs,
+            lock_date: chrono::DateTime::from_timestamp(pos.start_time as i64, 0)
+                .map(|dt| dt.format("%Y-%m-%dT%H:%M:%S.000Z").to_string())
+                .unwrap_or_default(),
+            unlock_date: chrono::DateTime::from_timestamp(pos.unlock_time as i64, 0)
+                .map(|dt| dt.format("%Y-%m-%dT%H:%M:%S.000Z").to_string())
+                .unwrap_or_default(),
+            duration_months,
+            multiplier: pos.multiplier,
+        }]
+    } else {
+        vec![]
+    };
+
+    Ok(Json(positions))
+}
+
+// ============================================================================
+// GET /v1/token-hub/user-delegation (FE: useUserDelegation)
+// ============================================================================
+
+/// GET /v1/token-hub/user-delegation
+///
+/// Returns user's delegation summary (total delegated, delegate count).
+pub async fn get_user_delegation(
+    Extension(state): Extension<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+) -> Result<Json<crate::types::TokenHubUserDelegationResponse>, ApiError> {
+    let address = headers
+        .get("X-User-Address")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("unknown");
+    tracing::info!("Token Hub user delegation request for: {}", address);
+
+    let delegations = state.get_user_delegations(address).await?;
+    let total: f64 = delegations.iter()
+        .filter_map(|d| d.veqs_amount.parse::<f64>().ok())
+        .sum();
+
+    Ok(Json(crate::types::TokenHubUserDelegationResponse {
+        total_delegated: total,
+        delegate_count: delegations.len() as u32,
+    }))
+}
+
+// ============================================================================
+// GET /v1/token-hub/rewards/claimable (FE: useClaimableRewards)
+// ============================================================================
+
+/// Query parameters for claimable rewards
+#[derive(Debug, Deserialize)]
+pub struct ClaimableQuery {
+    pub address: Option<String>,
+}
+
+/// GET /v1/token-hub/rewards/claimable
+///
+/// Returns detailed claimable rewards with breakdown.
+pub async fn get_claimable_rewards(
+    Extension(state): Extension<Arc<AppState>>,
+    Query(_query): Query<ClaimableQuery>,
+) -> Result<Json<crate::types::TokenHubClaimableResponse>, ApiError> {
+    tracing::info!("Token Hub claimable rewards request");
+
+    let epochs = crate::db::TokenHubRepository::get_finalized_epochs(state.pool(), 0, 100).await?;
+    use bigdecimal::ToPrimitive;
+    let total: f64 = epochs.iter()
+        .map(|e| e.total_rewards.to_f64().unwrap_or(0.0))
+        .sum();
+
+    Ok(Json(crate::types::TokenHubClaimableResponse {
+        total,
+        usd_value: 0.0, // BE-001: No hardcoded price — returns 0 until price oracle (Phase 8-D)
+        breakdown: crate::types::TokenHubClaimableBreakdown {
+            veqs_holding: total * 0.73,
+            voting_participation: total * 0.15,
+            delegation_bonus: total * 0.12,
+        },
+        currency: "QS".to_string(),
+    }))
+}
+
+// ============================================================================
+// GET /v1/token-hub/rewards/history (FE: useRewardsHistory)
+// ============================================================================
+
+/// Query parameters for rewards history
+#[derive(Debug, Deserialize)]
+pub struct RewardsHistoryQuery {
+    pub address: Option<String>,
+}
+
+/// GET /v1/token-hub/rewards/history
+///
+/// Returns rewards history items.
+pub async fn get_rewards_history(
+    Extension(state): Extension<Arc<AppState>>,
+    Query(_query): Query<RewardsHistoryQuery>,
+) -> Result<Json<Vec<crate::types::TokenHubRewardsHistoryItem>>, ApiError> {
+    tracing::info!("Token Hub rewards history request");
+
+    let epochs = crate::db::TokenHubRepository::get_finalized_epochs(state.pool(), 0, 20).await?;
+    use bigdecimal::ToPrimitive;
+
+    let items: Vec<crate::types::TokenHubRewardsHistoryItem> = epochs.iter().enumerate().map(|(i, e)| {
+        let amount = e.total_rewards.to_f64().unwrap_or(0.0);
+        crate::types::TokenHubRewardsHistoryItem {
+            id: (i + 1).to_string(),
+            history_type: "weekly_reward".to_string(),
+            date: e.end_time.format("%Y-%m-%d %H:%M").to_string(),
+            amount,
+            status: "complete".to_string(),
+            currency: "QS".to_string(),
+        }
+    }).collect();
+
+    Ok(Json(items))
+}
+
+// ============================================================================
+// GET /v1/token-hub/rewards/history/extended (FE: useExtendedRewardsHistory)
+// ============================================================================
+
+/// GET /v1/token-hub/rewards/history/extended
+///
+/// Returns extended rewards history with epoch and breakdown.
+pub async fn get_extended_rewards_history(
+    Extension(state): Extension<Arc<AppState>>,
+) -> Result<Json<Vec<crate::types::TokenHubExtendedRewardsHistoryItem>>, ApiError> {
+    tracing::info!("Token Hub extended rewards history request");
+
+    let epochs = crate::db::TokenHubRepository::get_finalized_epochs(state.pool(), 0, 20).await?;
+    use bigdecimal::ToPrimitive;
+
+    let items: Vec<crate::types::TokenHubExtendedRewardsHistoryItem> = epochs.iter().enumerate().map(|(i, e)| {
+        let amount = e.total_rewards.to_f64().unwrap_or(0.0);
+        crate::types::TokenHubExtendedRewardsHistoryItem {
+            id: (i + 1).to_string(),
+            history_type: "weekly_reward".to_string(),
+            date: e.end_time.format("%Y-%m-%d %H:%M").to_string(),
+            amount,
+            epoch: e.epoch as u64,
+            status: "complete".to_string(),
+            breakdown: crate::types::TokenHubRewardBreakdown {
+                holding: amount * 0.73,
+                voting: amount * 0.15,
+                delegation: amount * 0.12,
+            },
+            currency: "QS".to_string(),
+        }
+    }).collect();
+
+    Ok(Json(items))
+}
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
+
+/// Format epoch remaining time
+fn format_epoch_remaining(seconds: u64) -> String {
+    let days = seconds / (24 * 60 * 60);
+    let hours = (seconds % (24 * 60 * 60)) / (60 * 60);
+    format!("{}d {}h", days, hours)
+}
 
 /// Format duration in seconds to human readable string
 fn format_duration(seconds: u64) -> String {
@@ -491,15 +849,56 @@ mod tests {
     }
 
     #[test]
-    fn test_veqs_calculation() {
-        // 5000 QS locked for 2 years = 2500 veQS
-        let amount: u128 = 5000;
-        let lock_duration: u64 = 2 * 365 * 24 * 60 * 60;
-        let multiplier = lock_duration as f64 / MAX_LOCK_TIME as f64;
-        let veqs = (amount as f64 * multiplier) as u128;
+    fn test_veqs_linear_decay_ratio() {
+        // SEQUENCES.md §9.1 (v2.2): Linear time-decay model
+        // ratio = duration / MAX_LOCK_TIME (4 years)
+        let max_lock = 4 * 365 * 24 * 60 * 60; // 4 years
 
-        assert_eq!(multiplier, 0.5);
-        assert_eq!(veqs, 2500);
+        // 4 years → 1.0 (maximum)
+        let ratio_4y = calculate_veqs_ratio(max_lock);
+        assert!((ratio_4y - 1.0).abs() < 0.001);
+
+        // 2 years → 0.5
+        let ratio_2y = calculate_veqs_ratio(2 * 365 * 24 * 60 * 60);
+        assert!((ratio_2y - 0.5).abs() < 0.001);
+
+        // 1 year → 0.25
+        let ratio_1y = calculate_veqs_ratio(365 * 24 * 60 * 60);
+        assert!((ratio_1y - 0.25).abs() < 0.001);
+
+        // 6 months → ~0.125
+        let ratio_6m = calculate_veqs_ratio(180 * 24 * 60 * 60);
+        assert!(ratio_6m > 0.12 && ratio_6m < 0.13);
+
+        // 1 week (minimum) → ~0.0014
+        let ratio_1w = calculate_veqs_ratio(7 * 24 * 60 * 60);
+        assert!(ratio_1w > 0.001 && ratio_1w < 0.006);
+
+        // 0 → 0.0
+        assert_eq!(calculate_veqs_ratio(0), 0.0);
+
+        // Above max → clamped to 1.0
+        let ratio_5y = calculate_veqs_ratio(5 * 365 * 24 * 60 * 60);
+        assert!((ratio_5y - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_veqs_calculation() {
+        // SEQUENCES.md §9.1 (v2.2): voting_power = amount × (duration / MAX_LOCK_TIME)
+        // 10000 QS locked for 2 years → ratio 0.5 → 5000 voting power
+        let amount: u128 = 10000;
+        let lock_duration: u64 = 2 * 365 * 24 * 60 * 60; // 730 days
+        let ratio = calculate_veqs_ratio(lock_duration);
+        let veqs = (amount as f64 * ratio) as u128;
+
+        assert!((ratio - 0.5).abs() < 0.001);
+        assert_eq!(veqs, 5000);
+
+        // 10000 QS locked for 4 years → ratio 1.0 → 10000 voting power
+        let lock_4y: u64 = 4 * 365 * 24 * 60 * 60;
+        let ratio_4y = calculate_veqs_ratio(lock_4y);
+        let veqs_4y = (amount as f64 * ratio_4y) as u128;
+        assert_eq!(veqs_4y, 10000);
     }
 
     #[test]

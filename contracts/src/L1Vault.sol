@@ -274,6 +274,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @dev Sequence #3: MON-001
     mapping(bytes32 => bool) public enhancedMonitoring;
 
+    /// @notice User's lock IDs for balance tracking
+    /// @dev Maps user address to array of their lock IDs
+    mapping(address => bytes32[]) public userLockIds;
+
+    /// @notice User's total locked balance (cached for O(1) lookup)
+    /// @dev Updated on lock/unlock operations
+    mapping(address => uint256) public userLockedBalance;
+
     // =========================================================================
     // Modifiers
     // =========================================================================
@@ -314,12 +322,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     /// @notice Lock funds with default expiry (delegates to lockWithExpiry)
     /// @dev No nonReentrant here since lockWithExpiry has it
+    /// @dev DEPRECATED: Use lockWithSR0 for SEQUENCES.md compliant flow
     function lock(address recipient, bytes calldata dilithiumPubKey) external payable whenNotPaused returns (bytes32 lockId) {
         return lockWithExpiry(recipient, dilithiumPubKey, block.timestamp + DEFAULT_LOCK_EXPIRY);
     }
 
     /// @notice Lock funds with custom expiry
     /// @dev FIX-010: dilithiumPubKeyHash now uses SHA3-256 instead of keccak256
+    /// @dev DEPRECATED: Use lockWithSR0 for SEQUENCES.md compliant flow
     function lockWithExpiry(address recipient, bytes calldata dilithiumPubKey, uint256 expiry) public payable whenNotPaused nonReentrant returns (bytes32 lockId) {
         if (msg.value < MIN_LOCK_AMOUNT) revert InsufficientAmount();
         if (totalLocked + msg.value > TVL_CAP) revert TVLCapExceeded();
@@ -349,7 +359,59 @@ contract L1Vault is ReentrancyGuard, Pausable {
         });
 
         totalLocked += msg.value;
+
+        // Track user's lock for balance lookup
+        userLockIds[msg.sender].push(lockId);
+        userLockedBalance[msg.sender] += msg.value;
+
         emit Locked(lockId, msg.sender, recipient, msg.value, dilithiumPubKeyHash, stateRoot);
+    }
+
+    /// @notice Lock funds using pre-computed lock_id and sr_0 from L3 Aegis
+    /// @dev SEQUENCES.md Sequence #1 compliant: L3 computes SR_0, L1 just stores
+    ///      This eliminates the 15.5M gas cost of SHA3-256 on large Dilithium keys
+    /// @param lockId Lock ID computed by L3 (SHA3-256 of SR_0 + timestamp)
+    /// @param sr0 State Root 0 computed by L3 (SHA3-256 of lock params + pk_dilithium)
+    /// @param recipient Address to receive funds on unlock
+    /// @param expiry Request expiry timestamp
+    function lockWithSR0(
+        bytes32 lockId,
+        bytes32 sr0,
+        address recipient,
+        uint256 expiry
+    ) external payable whenNotPaused nonReentrant {
+        if (msg.value < MIN_LOCK_AMOUNT) revert InsufficientAmount();
+        if (totalLocked + msg.value > TVL_CAP) revert TVLCapExceeded();
+        if (recipient == address(0)) revert ZeroAddress();
+        if (expiry <= block.timestamp) revert LockExpired();
+        if (lockId == bytes32(0)) revert LockNotFound();
+        if (sr0 == bytes32(0)) revert InvalidStateRoot();
+
+        // Verify lock doesn't already exist
+        if (locks[lockId].sender != address(0)) revert UnlockAlreadyRequested();
+
+        uint256 nonce = nonceCounter++;
+
+        locks[lockId] = Lock({
+            sender: msg.sender,
+            recipient: recipient,
+            amount: msg.value,
+            dilithiumPubKeyHash: sr0,  // Store SR_0 as the identifier (already includes pk hash)
+            lockedAt: block.timestamp,
+            status: LockStatus.ACTIVE,
+            stateRoot: sr0,
+            expiry: expiry,
+            nonce: nonce
+        });
+
+        totalLocked += msg.value;
+
+        // Track user's lock for balance lookup
+        userLockIds[msg.sender].push(lockId);
+        userLockedBalance[msg.sender] += msg.value;
+
+        // Emit with sr0 as both dilithiumPubKeyHash and stateRoot for compatibility
+        emit Locked(lockId, msg.sender, recipient, msg.value, sr0, sr0);
     }
 
     // =========================================================================
@@ -600,6 +662,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
         lockData.status = LockStatus.RELEASED;
         totalLocked -= request.amount;
+
+        // Update user's locked balance
+        if (userLockedBalance[lockData.sender] >= request.amount) {
+            userLockedBalance[lockData.sender] -= request.amount;
+        }
 
         uint256 bondToReturn = request.bond;
         bool wasSlashed = false;
@@ -1002,6 +1069,39 @@ contract L1Vault is ReentrancyGuard, Pausable {
     function getChallenge(bytes32 lockId) external view returns (Challenge memory) { return challenges[lockId]; }
     function getProver(address proverAddress) external view returns (Prover memory) { return provers[proverAddress]; }
     function getActiveProverCount() external view returns (uint256) { return activeProvers.length; }
+
+    /// @notice Get the total locked amount for a specific user
+    /// @dev Uses cached userLockedBalance mapping for O(1) lookup
+    /// @param user The user address to check
+    /// @return Total amount locked by the user (active locks only)
+    function lockedBalanceOf(address user) external view returns (uint256) {
+        return userLockedBalance[user];
+    }
+
+    /// @notice Get all lock IDs for a specific user
+    /// @dev Returns array of lock IDs where user is the sender
+    /// @param user The user address to check
+    /// @return lockIds Array of lock IDs belonging to the user
+    function getUserLockIds(address user) external view returns (bytes32[] memory lockIds) {
+        // Count locks first
+        uint256 count = 0;
+        for (uint256 i = 0; i < userLockIds[user].length; i++) {
+            bytes32 lockId = userLockIds[user][i];
+            if (locks[lockId].status == LockStatus.ACTIVE || locks[lockId].status == LockStatus.PENDING_UNLOCK || locks[lockId].status == LockStatus.EMERGENCY_PENDING) {
+                count++;
+            }
+        }
+
+        // Build result array
+        lockIds = new bytes32[](count);
+        uint256 idx = 0;
+        for (uint256 i = 0; i < userLockIds[user].length; i++) {
+            bytes32 lockId = userLockIds[user][i];
+            if (locks[lockId].status == LockStatus.ACTIVE || locks[lockId].status == LockStatus.PENDING_UNLOCK || locks[lockId].status == LockStatus.EMERGENCY_PENDING) {
+                lockIds[idx++] = lockId;
+            }
+        }
+    }
 
     function calculateChallengeBond(uint256 amount) external pure returns (uint256) {
         uint256 bond = (amount * CHALLENGE_BOND_PERCENT) / 100;

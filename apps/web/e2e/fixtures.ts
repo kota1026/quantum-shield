@@ -1,11 +1,17 @@
 import { test as base, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { setupConsumerAuth, getTestWalletAddress } from './helpers/consumer-auth';
 
 type Fixtures = {
   a11y: AxeBuilder;
   mockWallet: {
     address: string;
     connect: () => Promise<void>;
+  };
+  /** Authenticated page with real JWT from SIWE + live backend API */
+  authenticatedPage: {
+    address: string;
+    accessToken: string;
   };
 };
 
@@ -20,7 +26,7 @@ export const test = base.extend<Fixtures>({
   },
   mockWallet: async ({ page }, use) => {
     const wallet = {
-      address: '0x1234567890abcdef1234567890abcdef12345678',
+      address: getTestWalletAddress(),
       connect: async () => {
         await page.evaluate((addr) => {
           window.localStorage.setItem('mockWalletAddress', addr);
@@ -28,6 +34,10 @@ export const test = base.extend<Fixtures>({
       },
     };
     await use(wallet);
+  },
+  authenticatedPage: async ({ page }, use) => {
+    const { address, accessToken } = await setupConsumerAuth(page);
+    await use({ address, accessToken });
   },
 });
 

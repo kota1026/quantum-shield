@@ -201,6 +201,18 @@ impl VRFService {
             timeout
         );
 
+        // Development mode: Skip polling if contract is not configured
+        // In production, VRFConsumer contract would be deployed and configured
+        if self.config.contract_address == "0x0000000000000000000000000000000000000000" {
+            tracing::warn!(
+                "VRF contract not configured, using immediate fallback for unlock: {}",
+                unlock_request_id
+            );
+            let prover = self.trigger_fallback(unlock_request_id).await?;
+            let random = self.generate_fallback_random(unlock_request_id);
+            return Ok((prover, random, VRFStatus::FallbackUsed));
+        }
+
         loop {
             // Check if VRF is fulfilled
             if self.is_prover_selected(unlock_request_id).await? {

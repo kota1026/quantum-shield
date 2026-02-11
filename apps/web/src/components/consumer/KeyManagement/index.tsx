@@ -20,15 +20,40 @@ import { Tooltip } from '../Dashboard/Tooltip';
 import { BackupModal } from './BackupModal';
 import { ExportModal } from './ExportModal';
 import { RegenerateModal } from './RegenerateModal';
+import { useUserKeys } from '@/hooks/consumer';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_PUBLIC_KEY =
-  '0x7a3f9c2d8e1b4f6a0c5d7e9f2b4a6c8d1e3f5a7b9c0d2e4f6a8b0c2d4e6f8a0b...';
-const DEMO_KEY_CREATED_DATE = '2026-01-01 10:00:00';
-const DEMO_LAST_BACKUP_DATE = '2026-01-01 10:05:32';
+// Type definition for key info
+interface KeyInfo {
+  publicKey: string;
+  secretKey: string;
+  algorithm: string;
+  createdAt: string;
+  lastBackup: string;
+}
+
+// Fallback data (used when API is unavailable)
+const FALLBACK_KEY_INFO: KeyInfo = {
+  publicKey: 'ml-dsa-65-pub-xxx...',
+  secretKey: '',
+  algorithm: 'ML-DSA-65',
+  createdAt: '2026-01-01',
+  lastBackup: '2026-01-15',
+};
 
 export function KeyManagement() {
   const t = useTranslations('consumer.keyManagement');
+
+  // Fetch data using new API hooks
+  const { data: keysData } = useUserKeys();
+
+  // Transform API data to component format
+  const keyInfo: KeyInfo = keysData ? {
+    publicKey: keysData.dilithiumPublicKey || '',
+    secretKey: '', // Not exposed via API for security
+    algorithm: keysData.algorithm?.name || 'ML-DSA-65',
+    createdAt: keysData.registeredAt ? new Date(keysData.registeredAt * 1000).toLocaleDateString('ja-JP') : '',
+    lastBackup: '', // TODO: Add to API
+  } : FALLBACK_KEY_INFO;
 
   // Modal states
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
@@ -40,13 +65,13 @@ export function KeyManagement() {
 
   const handleCopyPublicKey = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(DEMO_PUBLIC_KEY);
+      await navigator.clipboard.writeText(keyInfo.publicKey);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
     }
-  }, []);
+  }, [keyInfo.publicKey]);
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -65,13 +90,13 @@ export function KeyManagement() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-[600px] mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-[600px] mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
             href="/consumer/settings"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
               'transition-all'
@@ -144,7 +169,7 @@ export function KeyManagement() {
             )}
             aria-label={t('publicKey.ariaLabel')}
           >
-            {DEMO_PUBLIC_KEY}
+            {keyInfo.publicKey}
           </div>
 
           <button
@@ -325,7 +350,7 @@ export function KeyManagement() {
                   {t('history.created.title')}
                 </h3>
                 <p className="text-xs text-foreground-tertiary font-mono">
-                  {DEMO_KEY_CREATED_DATE}
+                  {keyInfo.createdAt}
                 </p>
               </div>
             </div>
@@ -346,13 +371,13 @@ export function KeyManagement() {
                   {t('history.lastBackup.title')}
                 </h3>
                 <p className="text-xs text-foreground-tertiary font-mono">
-                  {DEMO_LAST_BACKUP_DATE}
+                  {keyInfo.lastBackup}
                 </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Modals */}
       <BackupModal

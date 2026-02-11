@@ -1,0 +1,109 @@
+{
+  "header": {
+    "login": "Login",
+    "getStarted": "Get Started"
+  },
+  "accessibility": {
+    "skipToContent": "Skip to main content",
+    "switchToJapanese": "日本語に切り替え",
+    "footerNav": "Footer navigation"
+  },
+  "ecosystemLink": {
+    "title": "What is Quantum Shield?",
+    "description": "Learn about the ecosystem protecting crypto assets with quantum-resistant technology",
+    "cta": "Learn More",
+    "footerText": "About Quantum Shield"
+  },
+  "navigation": {
+    "home": "Home",
+    "ecosystem": "Ecosystem",
+    "apps": {
+      "consumer": "Consumer App",
+      "tokenHub": "Token Hub",
+      "governance": "Governance",
+      "explorer": "Explorer",
+      "prover": "Prover Portal",
+      "observer": "Observer Portal",
+      "enterprise": "Enterprise"
+    }
+  },
+  "systems": {
+    "consumer": {
+      "name": "Consumer App",
+      "nameJa": "コンシューマーアプリ",
+      "subtitle": "Secure Asset Custody",
+      "subtitleJa": "資産を安全に保管",
+      "description": "Application for secure custody and management of crypto assets with quantum-resistant technology",
+      "descriptionJa": "量子耐性技術で暗号資産を安全に保管・管理するアプリケーション"
+    },
+    "tokenHub": {
+      "name": "Token Hub",
+      "nameJa": "トークンハブ",
+      "subtitle": "QS Token Management",
+      "subtitleJa": "QSトークン管理",
+      "description": "Portal for locking, staking, and managing QS token rewards",
+      "descriptionJa": "QSトークンのロック・ステーキング・報酬管理を行うポータル"
+    },
+    "governance": {
+      "name": "Governance",
+      "nameJa": "ガバナンス",
+      "subtitle": "Decentralized Voting",
+      "subtitleJa": "分散型投票",
+      "description": "Participate in protocol decisions through voting on proposals and creating new proposals",
+      "descriptionJa": "プロトコルの意思決定に参加し、提案への投票や新規提案の作成が可能"
+    },
+    "explorer": {
+      "name": "Explorer",
+      "nameJa": "エクスプローラー",
+      "subtitle": "Transaction Search",
+      "subtitleJa": "トランザクション検索",
+      "description": "Track all transactions including Locks, Unlocks, and Challenges in real-time",
+      "descriptionJa": "Lock、Unlock、Challengeなどすべてのトランザクションをリアルタイムで追跡"
+    },
+    "prover": {
+      "name": "Prover Portal",
+      "nameJa": "プルーバーポータル",
+      "subtitle": "Signature Provider Portal",
+      "subtitleJa": "署名プロバイダ管理",
+      "description": "Participate as a Prover providing quantum-resistant signatures and earn rewards",
+      "descriptionJa": "量子耐性署名を提供するProverとして参加し、報酬を獲得"
+    },
+    "observer": {
+      "name": "Observer Portal",
+      "nameJa": "オブザーバーポータル",
+      "subtitle": "Network Monitoring",
+      "subtitleJa": "ネットワーク監視",
+      "description": "Monitor for fraudulent transactions and earn rewards through challenges",
+      "descriptionJa": "不正な取引を監視し、異議申立てで報酬を獲得するWatcherポータル"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "nameJa": "エンタープライズ",
+      "subtitle": "Enterprise Solutions",
+      "subtitleJa": "法人向けソリューション",
+      "description": "Customized solutions for enterprises requiring large-scale asset protection",
+      "descriptionJa": "大規模な資産保護を必要とする企業向けのカスタマイズされたソリューション"
+    },
+    "admin": {
+      "name": "Admin Console",
+      "nameJa": "管理コンソール",
+      "subtitle": "System Administration",
+      "subtitleJa": "システム管理",
+      "description": "Administrator console for managing the Quantum Shield platform",
+      "descriptionJa": "Quantum Shieldプラットフォームの管理者向けコンソール"
+    }
+  },
+  "footer": {
+    "copyright": "© 2026 Quantum Shield. All rights reserved.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "security": "Security",
+    "docs": "Documentation"
+  },
+  "cookie": {
+    "message": "We use cookies to improve your experience on our site.",
+    "details": "Learn more",
+    "accept": "Accept",
+    "close": "Close"
+  }
+}

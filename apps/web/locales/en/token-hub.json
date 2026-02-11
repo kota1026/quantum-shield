@@ -1,0 +1,1385 @@
+{
+  "token-hub": {
+    "login": {
+      "meta": {
+        "title": "Login | Token Hub | Quantum Shield",
+        "description": "Connect your wallet to access Token Hub"
+      },
+      "title": "Login to Token Hub",
+      "description": "Connect your wallet to manage veQS and participate in governance",
+      "backToLanding": "Back to Landing",
+      "selectWallet": "Select Wallet",
+      "wallets": {
+        "metamask": "MetaMask",
+        "walletConnect": "WalletConnect",
+        "coinbase": "Coinbase Wallet"
+      },
+      "popular": "Popular",
+      "connecting": {
+        "title": "Connecting...",
+        "description": "Please approve the connection in your wallet"
+      },
+      "success": {
+        "title": "Connected",
+        "description": "Redirecting to dashboard..."
+      },
+      "noWallet": "Don't have a wallet?",
+      "getWallet": "Create a wallet",
+      "newUser": "New to Token Hub?",
+      "startOnboarding": "Learn about Token Hub",
+      "footer": "© 2026 Quantum Shield Foundation"
+    },
+    "landing": {
+      "meta": {
+        "title": "Token Hub | Quantum Shield",
+        "description": "Lock QS tokens to earn veQS and participate in governance"
+      },
+      "hero": {
+        "badge": "Token Hub",
+        "title": "Lock QS and\nJoin Governance",
+        "description": "Lock QS tokens to earn veQS. Gain voting power and help shape the future of the protocol. Earn rewards too.",
+        "cta": "Go to Dashboard",
+        "secondaryCta": "Learn More"
+      },
+      "stats": {
+        "totalLocked": {
+          "value": "52.4M",
+          "label": "Total Locked (QS)"
+        },
+        "holders": {
+          "value": "12,847",
+          "label": "veQS Holders"
+        },
+        "apy": {
+          "value": "12.5%",
+          "label": "Avg APY"
+        },
+        "distributed": {
+          "value": "$4.2M",
+          "label": "Total Rewards"
+        }
+      },
+      "features": {
+        "title": "What You Can Do",
+        "subtitle": "Use QS tokens to participate in Quantum Shield governance",
+        "lock": {
+          "title": "Lock QS",
+          "description": "Lock QS for 1-4 years to earn veQS (vote-escrowed tokens)",
+          "tooltip": "Locked QS cannot be withdrawn during the lock period. Longer lock periods earn more veQS, increasing your voting power and rewards."
+        },
+        "rewards": {
+          "title": "Earn Rewards",
+          "description": "A portion of protocol revenue is distributed to veQS holders",
+          "tooltip": "Rewards are distributed weekly from protocol fees. Your share is calculated proportionally to your veQS balance."
+        },
+        "delegate": {
+          "title": "Delegate Votes",
+          "description": "Delegate your voting power to trusted delegates",
+          "tooltip": "When you delegate, your QS tokens don't move. You can revoke delegation at any time."
+        },
+        "governance": {
+          "title": "Governance Voting",
+          "description": "Vote on important protocol decisions and shape the future",
+          "tooltip": "Vote on fee adjustments, protocol improvements, treasury allocations, and more."
+        }
+      },
+      "howItWorks": {
+        "title": "How It Works",
+        "subtitle": "Join Token Hub in 3 steps",
+        "step1": {
+          "title": "Get QS",
+          "description": "Purchase on DEX or earn through rewards and airdrops"
+        },
+        "step2": {
+          "title": "Lock QS",
+          "description": "Choose 1-4 year lock period. Longer locks earn more veQS"
+        },
+        "step3": {
+          "title": "Participate & Earn",
+          "description": "Vote on proposals and claim weekly rewards"
+        }
+      },
+      "benefits": {
+        "title": "Why Hold veQS?",
+        "earn": "Earn rewards from protocol revenue (avg APY 12.5%)",
+        "vote": "Vote on fee adjustments and protocol improvements",
+        "boost": "Boost liquidity rewards up to 2.5x",
+        "delegate": "Delegate voting power to trusted representatives",
+        "cta": "Get Started"
+      },
+      "veqs": {
+        "title": "What is veQS?",
+        "description": "veQS (vote-escrowed QS) is a voting power token earned by locking QS. The longer you lock, the more veQS you receive.",
+        "tooltip": "veQS (Vote-escrowed QS) represents your voting power. You earn it by locking QS, and it gradually decreases as your lock period approaches its end.",
+        "lockPeriod": "Lock Period",
+        "years": "years",
+        "maxRatio": "Max Ratio",
+        "rewardsBoost": "Rewards Boost",
+        "upTo": "Up to"
+      },
+      "expertQuotes": {
+        "sectionLabel": "Expert Insights",
+        "title": "Why Token Governance Matters",
+        "subtitle": "Insights from industry leaders",
+        "quotes": {
+          "0": {
+            "quote": "Long-term token locking is essential for sustainable protocol growth. It promotes genuine commitment rather than short-term speculation.",
+            "author": "Vitalik Buterin",
+            "title": "Ethereum Co-founder",
+            "source": "vitalik.eth.limo"
+          },
+          "1": {
+            "quote": "The veToken model is an excellent mechanism that favors participants with long-term perspectives in governance.",
+            "author": "a16z Crypto",
+            "title": "Crypto Investment Team",
+            "source": "a16z.com"
+          },
+          "2": {
+            "quote": "The success of decentralized governance depends on proper incentive design. The veQS model is a prime example of this.",
+            "author": "DeFi Researcher",
+            "title": "Decentralized Finance Analyst",
+            "source": "DeFi Pulse"
+          }
+        },
+        "disclaimer": "The above is for informational purposes only. Please make investment decisions at your own responsibility."
+      },
+      "cta": {
+        "title": "Get Started Today",
+        "description": "Lock QS to earn veQS and participate in Quantum Shield governance.",
+        "button": "Go to Dashboard"
+      }
+    },
+    "onboarding": {
+      "meta": {
+        "title": "Learn About Tokenomics | Token Hub | Quantum Shield",
+        "description": "Understand QS tokens, veQS voting escrow, and how to participate in governance"
+      },
+      "breadcrumb": {
+        "ariaLabel": "Breadcrumb navigation",
+        "dashboard": "Dashboard",
+        "current": "Tokenomics"
+      },
+      "hero": {
+        "badge": "Tokenomics Guide",
+        "title": "Understanding QS Tokenomics",
+        "description": "Learn how QS tokens power the Quantum Shield ecosystem through voting escrow and decentralized governance."
+      },
+      "overview": {
+        "title": "What is Quantum Shield?",
+        "description": "Quantum Shield is a next-generation asset protection platform built for the quantum computing era. We protect your crypto assets from future threats.",
+        "pillars": {
+          "protection": {
+            "title": "Quantum Resistance",
+            "description": "Protects your assets with cutting-edge cryptography that even future quantum computers cannot break"
+          },
+          "wallet": {
+            "title": "Consumer App",
+            "description": "Asset protection app for locking and unlocking ETH and other assets. Simple and easy-to-use UI"
+          },
+          "governance": {
+            "title": "Token Hub",
+            "description": "Lock QS with quantum-resistant protection to earn veQS. Participate in governance voting and earn rewards"
+          }
+        },
+        "whyQuantum": {
+          "title": "Why Quantum Resistance?",
+          "description": "Current cryptography (ECDSA) could be broken by future quantum computers. Quantum Shield adopts the latest post-quantum cryptographic algorithms certified by NIST, enabling you to \"prepare today\" for tomorrow's threats.",
+          "tags": {
+            "dilithium": "Dilithium Signatures",
+            "stark": "STARK Proofs",
+            "futureProof": "Future-Proof"
+          }
+        }
+      },
+      "governance": {
+        "title": "What Does Governance Decide?",
+        "description": "veQS holders can participate in important decisions for Quantum Shield. You can also delegate your voting power to trusted representatives.",
+        "topics": {
+          "fees": {
+            "title": "Fee Adjustments",
+            "description": "Setting and modifying lock/unlock fees"
+          },
+          "upgrades": {
+            "title": "Protocol Upgrades",
+            "description": "Adding new features and security enhancements"
+          },
+          "treasury": {
+            "title": "Treasury Allocation",
+            "description": "Distribution of development and marketing budgets"
+          },
+          "parameters": {
+            "title": "System Parameters",
+            "description": "Reward distribution rates, emergency unlock conditions, etc."
+          }
+        }
+      },
+      "qs": {
+        "title": "What is QS Token?",
+        "description": "QS is the native utility token of Quantum Shield protocol. It enables governance participation, staking rewards, and access to premium features.",
+        "totalSupply": "Total Supply",
+        "network": "Network",
+        "type": "Token Type"
+      },
+      "veqs": {
+        "title": "What is veQS?",
+        "description": "veQS (voting escrow QS) is a non-transferable token representing your governance power. The longer you lock QS, the more veQS you receive.",
+        "formulaTitle": "veQS Formula",
+        "formulaDescription": "Your veQS amount is calculated based on how long you lock your QS tokens. Maximum lock period is 4 years for 1:1 ratio.",
+        "examplesAriaLabel": "Lock period examples showing veQS calculation",
+        "lockPeriod": "Lock Period",
+        "lockRatio": "Lock Ratio",
+        "result": "Result (10,000 QS)",
+        "months": " months",
+        "years": " years",
+        "tableNote": "Examples based on locking 10,000 QS tokens"
+      },
+      "timeline": {
+        "title": "How It Works",
+        "ariaLabel": "Steps to participate in Token Hub",
+        "acquire": {
+          "title": "Acquire QS",
+          "description": "Get QS tokens from DEX or rewards"
+        },
+        "lock": {
+          "title": "Lock QS",
+          "description": "Lock for 6 months to 4 years"
+        },
+        "vote": {
+          "title": "Vote",
+          "description": "Participate in governance"
+        },
+        "earn": {
+          "title": "Earn Rewards",
+          "description": "Receive protocol fees"
+        }
+      },
+      "benefits": {
+        "title": "Benefits of Locking",
+        "governance": {
+          "title": "Governance Rights",
+          "description": "Vote on protocol proposals, fee distribution, and strategic decisions"
+        },
+        "rewards": {
+          "title": "Protocol Rewards",
+          "description": "Earn a share of protocol fees proportional to your veQS balance"
+        },
+        "boost": {
+          "title": "Boosted Yields",
+          "description": "Get up to 2.5x boost on liquidity mining and staking rewards"
+        },
+        "security": {
+          "title": "Network Security",
+          "description": "Help secure the network by aligning incentives long-term"
+        }
+      },
+      "decay": {
+        "title": "Understanding veQS Decay",
+        "description": "Your veQS balance decreases linearly over time until it reaches zero at the end of your lock period. This incentivizes long-term commitment.",
+        "start": "Lock Start",
+        "end": "Lock End",
+        "visualAriaLabel": "Visualization of veQS decay from full to zero",
+        "note": "You can extend your lock at any time to restore full veQS balance"
+      },
+      "prover": {
+        "title": "Become a Prover",
+        "description": "Stake QS to become a signature provider (Prover) for the Quantum Shield network and earn consistent rewards.",
+        "stake": {
+          "label": "Minimum Stake",
+          "value": "100,000 QS"
+        },
+        "reward": {
+          "label": "Expected APY",
+          "value": "15-20%"
+        },
+        "status": {
+          "label": "Current Provers",
+          "value": "42 Active"
+        },
+        "button": "Explore Prover Portal"
+      },
+      "cta": {
+        "title": "Ready to Start?",
+        "description": "Lock your QS tokens to receive veQS and start participating in Quantum Shield governance.",
+        "lockButton": "Lock QS Now",
+        "getQSButton": "Get QS Tokens"
+      },
+      "faqPreview": {
+        "text": "Have questions about tokenomics or locking?",
+        "link": "View Frequently Asked Questions"
+      }
+    },
+    "faq": {
+      "meta": {
+        "title": "FAQ | Token Hub | Quantum Shield",
+        "description": "Frequently asked questions about QS tokens, veQS, locking, and governance"
+      },
+      "breadcrumb": {
+        "ariaLabel": "Breadcrumb navigation",
+        "dashboard": "Dashboard",
+        "current": "FAQ"
+      },
+      "badge": "Help Center",
+      "title": "Frequently Asked Questions",
+      "description": "Find answers to common questions about Token Hub, veQS, and governance",
+      "categories": {
+        "ariaLabel": "FAQ categories",
+        "general": "General",
+        "locking": "Locking",
+        "veqs": "veQS",
+        "governance": "Governance",
+        "rewards": "Rewards"
+      },
+      "items": {
+        "general": {
+          "what_is_token_hub": {
+            "question": "What is Token Hub?",
+            "answer": "Token Hub is the governance and staking platform for Quantum Shield protocol. It allows you to lock QS tokens to receive veQS (voting escrow QS), participate in governance voting, and earn protocol rewards."
+          },
+          "who_can_participate": {
+            "question": "Who can participate in Token Hub?",
+            "answer": "Anyone who holds QS tokens can participate. You need a compatible Web3 wallet (like MetaMask, WalletConnect) and QS tokens to get started."
+          },
+          "is_it_safe": {
+            "question": "Is it safe to lock my tokens?",
+            "answer": "The smart contracts have been audited by leading security firms. However, as with any DeFi protocol, there are inherent risks. Locked tokens cannot be withdrawn until the lock period ends. Please do your own research before participating."
+          }
+        },
+        "locking": {
+          "how_to_lock": {
+            "question": "How do I lock my QS tokens?",
+            "answer": "Go to the Lock page, enter the amount of QS you want to lock, select your lock duration (6 months to 4 years), review the preview, and confirm the transaction in your wallet."
+          },
+          "minimum_amount": {
+            "question": "Is there a minimum lock amount?",
+            "answer": "There is no minimum amount for locking QS tokens. However, gas fees may make very small amounts economically impractical."
+          },
+          "can_unlock_early": {
+            "question": "Can I unlock my tokens early?",
+            "answer": "No, locked tokens cannot be withdrawn before the lock period ends. This is by design to ensure long-term commitment and stability in governance. Please carefully consider your lock duration before confirming."
+          },
+          "extend_lock": {
+            "question": "Can I extend my lock period?",
+            "answer": "Yes, you can extend your lock at any time. Extending your lock will recalculate your veQS balance based on the new lock duration, restoring your voting power."
+          }
+        },
+        "veqs": {
+          "what_is_veqs": {
+            "question": "What is veQS?",
+            "answer": "veQS (voting escrow QS) is a non-transferable token that represents your governance power and reward share. It is calculated based on how much QS you lock and for how long."
+          },
+          "how_calculated": {
+            "question": "How is veQS calculated?",
+            "answer": "veQS = QS × (lock_period / 4 years). For example, locking 10,000 QS for 2 years gives you 5,000 veQS. Locking for the maximum 4 years gives you a 1:1 ratio."
+          },
+          "why_decay": {
+            "question": "Why does veQS decay over time?",
+            "answer": "veQS decays linearly until it reaches zero at the end of your lock period. This incentivizes long-term commitment and allows governance power to naturally shift to active, committed participants."
+          },
+          "non_transferable": {
+            "question": "Can I transfer my veQS to another wallet?",
+            "answer": "No, veQS is non-transferable and bound to your wallet address. This prevents vote buying and ensures governance power remains with genuine long-term stakeholders."
+          }
+        },
+        "governance": {
+          "what_is_governance": {
+            "question": "What is governance voting?",
+            "answer": "Governance voting allows veQS holders to vote on protocol proposals, including fee adjustments, parameter changes, treasury allocations, and strategic decisions."
+          },
+          "how_to_vote": {
+            "question": "How do I vote on proposals?",
+            "answer": "Connect your wallet to the Governance portal, browse active proposals, review the details, and cast your vote. Your voting power is proportional to your veQS balance at the time of voting."
+          },
+          "proposal_types": {
+            "question": "What types of proposals can be voted on?",
+            "answer": "Proposals can include protocol parameter changes, fee distribution adjustments, treasury fund allocations, strategic partnerships, and protocol upgrades. Anyone with sufficient veQS can submit proposals."
+          },
+          "voting_power": {
+            "question": "How is my voting power determined?",
+            "answer": "Your voting power is directly proportional to your veQS balance. More veQS means more influence in governance decisions. You can also delegate your voting power to trusted delegates."
+          }
+        },
+        "rewards": {
+          "how_rewards_work": {
+            "question": "How do rewards work?",
+            "answer": "Protocol fees are distributed to veQS holders proportionally to their veQS balance. The more veQS you hold, the larger your share of protocol rewards."
+          },
+          "when_distributed": {
+            "question": "When are rewards distributed?",
+            "answer": "Rewards are distributed at the end of each epoch (typically weekly). You can claim accumulated rewards from the Rewards page at any time."
+          },
+          "claim_process": {
+            "question": "How do I claim my rewards?",
+            "answer": "Go to the Rewards page, view your claimable balance, and click the Claim button. Confirm the transaction in your wallet to receive your rewards."
+          },
+          "reward_boost": {
+            "question": "What is reward boost?",
+            "answer": "veQS holders can receive up to 2.5x boost on liquidity mining and other protocol rewards. The boost amount depends on your veQS balance relative to your staking position."
+          }
+        }
+      },
+      "notice": {
+        "title": "Important Notice",
+        "description": "This FAQ is for informational purposes only and does not constitute financial advice. Please do your own research and understand the risks before participating."
+      },
+      "quickLinks": {
+        "onboarding": "Learn Tokenomics",
+        "onboardingDesc": "Understand veQS basics",
+        "lock": "Lock QS",
+        "lockDesc": "Start earning veQS",
+        "getQS": "Get QS Tokens",
+        "getQSDesc": "Acquire QS tokens"
+      }
+    },
+    "getQS": {
+      "meta": {
+        "title": "Get QS Tokens | Token Hub | Quantum Shield",
+        "description": "Learn how to acquire QS tokens through DEX, rewards, airdrops, and staking"
+      },
+      "breadcrumb": {
+        "ariaLabel": "Breadcrumb navigation",
+        "dashboard": "Dashboard",
+        "current": "Get QS"
+      },
+      "badge": "Acquire Tokens",
+      "title": "How to Get QS Tokens",
+      "description": "Explore different ways to acquire QS tokens and start participating in Token Hub governance.",
+      "recommended": "Recommended",
+      "methods": {
+        "dex": {
+          "title": "Buy on DEX",
+          "description": "Purchase QS tokens on decentralized exchanges using ETH or stablecoins. The most direct way to acquire QS.",
+          "tags": "Instant, No KYC, Market price"
+        },
+        "rewards": {
+          "title": "Earn Protocol Rewards",
+          "description": "Earn QS tokens by participating in governance, providing liquidity, or staking. Rewards are distributed weekly.",
+          "tags": "Free, Requires participation, Ongoing"
+        },
+        "airdrop": {
+          "title": "Airdrops",
+          "description": "Early adopters and active community members may receive QS airdrops. Check announcements for eligibility criteria.",
+          "tags": "Free, Limited, Check eligibility"
+        },
+        "staking": {
+          "title": "Staking Rewards",
+          "description": "Stake supported assets to earn QS rewards. Higher APY for longer commitment periods.",
+          "tags": "Passive income, Variable APY"
+        }
+      },
+      "dex": {
+        "title": "Buy on Decentralized Exchanges",
+        "subtitle": "Recommended exchanges where QS is listed",
+        "howToBuy": {
+          "title": "How to Buy QS",
+          "step1": "Connect your wallet to the DEX (MetaMask, WalletConnect, etc.)",
+          "step2": "Select ETH or USDC as the input token",
+          "step3": "Enter QS as the output token or paste the contract address",
+          "step4": "Review the transaction and confirm in your wallet"
+        }
+      },
+      "contract": {
+        "title": "Official Token Contract",
+        "subtitle": "Always verify you are using the correct contract address",
+        "network": "Network",
+        "warning": {
+          "title": "Important",
+          "description": "Only use the official contract address. Verify on Etherscan before making any transactions. Never trust links from unofficial sources."
+        }
+      },
+      "cta": {
+        "title": "Ready to Lock Your QS?",
+        "description": "Once you have QS tokens, lock them to receive veQS and start earning rewards.",
+        "lockButton": "Lock QS Now",
+        "learnButton": "Learn More About veQS"
+      }
+    },
+    "common": {
+      "header": {
+        "dashboard": "Dashboard",
+        "lock": "Lock",
+        "delegate": "Delegate",
+        "rewards": "Rewards",
+        "navLabel": "Token Hub navigation",
+        "walletConnected": "Connected to {address}",
+        "connectWallet": "Connect Wallet",
+        "ecosystem": "Ecosystem",
+        "consumerApp": "Quantum Shield",
+        "consumerAppDesc": "Protect assets with quantum resistance",
+        "governance": "Governance",
+        "governanceDesc": "Vote on proposals",
+        "observerPortal": "Observer",
+        "observerPortalDesc": "Network monitoring",
+        "proverPortal": "Prover",
+        "proverPortalDesc": "Run signature verification nodes",
+        "ecosystemLink": "View Ecosystem",
+        "ecosystemLinkDesc": "Learn more on our website",
+        "settings": "Settings"
+      },
+      "footer": {
+        "navLabel": "Footer navigation",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "security": "Security",
+        "disclaimer": "This is not investment advice. Investment in crypto assets carries risk. Please make investment decisions at your own responsibility."
+      }
+    },
+    "lock": {
+      "meta": {
+        "title": "Lock QS | Token Hub | Quantum Shield",
+        "description": "Lock QS tokens with quantum-resistant technology to earn veQS and participate in governance"
+      },
+      "title": "Quantum-Secure Lock QS for veQS",
+      "quantumBadge": "Quantum-Resistant Protection",
+      "steps": {
+        "ariaLabel": "Lock process steps",
+        "step1": "Input",
+        "step2": "Preview",
+        "step3": "Confirm"
+      },
+      "amount": {
+        "label": "Lock Amount",
+        "tooltip": "Lock your QS tokens with quantum-resistant technology (Dilithium signatures) to receive veQS voting power. Protected against future quantum computer attacks.",
+        "helpAriaLabel": "Help about lock amount",
+        "balance": "Balance",
+        "maxAriaLabel": "Enter maximum amount",
+        "quickAmountsAriaLabel": "Quick amount selection"
+      },
+      "duration": {
+        "label": "Lock Duration",
+        "tooltip": "Longer lock = more veQS. Maximum 4 years for 1:1 ratio.",
+        "helpAriaLabel": "Help about lock duration",
+        "ariaLabel": "Select lock duration",
+        "options": {
+          "6": "6 Months",
+          "12": "1 Year",
+          "24": "2 Years",
+          "48": "4 Years"
+        }
+      },
+      "preview": {
+        "label": "You Will Receive",
+        "formulaLabel": "veQS Formula",
+        "formulaAriaLabel": "Show veQS formula",
+        "formulaTitle": "veQS Formula",
+        "formulaDescription": "veQS decays linearly over time and becomes 0 at the end of the lock. Voting power is proportional to veQS balance.",
+        "years": "Y"
+      },
+      "previewButton": {
+        "text": "Preview Lock",
+        "ariaLabel": "Preview lock details"
+      },
+      "warning": {
+        "lockPeriod": "Tokens cannot be withdrawn during the lock period. You must wait until the lock period ends."
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Token Hub Dashboard | Quantum Shield",
+        "description": "Lock QS tokens to earn veQS and participate in governance"
+      },
+      "stats": {
+        "ariaLabel": "Token statistics",
+        "qsBalance": {
+          "label": "QS Balance"
+        },
+        "lockedQS": {
+          "label": "Locked QS"
+        },
+        "veQSBalance": {
+          "label": "veQS Balance"
+        },
+        "votingPower": {
+          "label": "Voting Power"
+        }
+      },
+      "chart": {
+        "title": "Voting Power Decay",
+        "subtitle": "veQS decay projection",
+        "ariaLabel": "Chart showing veQS decay over time"
+      },
+      "veqsBox": {
+        "currentVeQS": "Current veQS",
+        "lockEnds": "Lock ends",
+        "remaining": "2Y 3M remaining"
+      },
+      "veqsTooltip": {
+        "title": "veQS Formula",
+        "formula": "veQS = QS × (lock_period / 4 years)",
+        "example": "Example: Lock 8,500 QS for 3 years\n→ 8,500 × (3/4) = 6,375 veQS\n※ veQS decays linearly over time",
+        "ariaLabel": "Tooltip explaining veQS calculation"
+      },
+      "lockInfo": {
+        "lockedAmount": "Locked Amount",
+        "lockDuration": "Lock Duration",
+        "timeRemaining": "Time Remaining",
+        "lockRatio": "Lock Ratio"
+      },
+      "actions": {
+        "lockMore": "Lock More QS",
+        "extendLock": "Extend Lock",
+        "delegatePower": "Delegate Power",
+        "claimRewards": "Claim Rewards"
+      },
+      "votingPowerTooltip": {
+        "title": "What is Voting Power?",
+        "description": "Voting Power represents how much influence your vote has in Quantum Shield's governance (decision-making on operational policies). The more veQS you have, the higher your voting power.",
+        "ariaLabel": "Tooltip explaining voting power"
+      },
+      "delegations": {
+        "title": "My Delegations",
+        "ariaLabel": "List of delegates you have delegated to",
+        "totalPower": "total"
+      },
+      "rewards": {
+        "title": "Rewards",
+        "claimable": "Claimable",
+        "claimButton": "Claim",
+        "epochProgress": "Epoch Progress"
+      },
+      "gettingStarted": {
+        "ariaLabel": "Getting Started",
+        "title": "Getting Started",
+        "viewAll": "View all",
+        "onboarding": {
+          "title": "Learn How It Works",
+          "description": "Why lock QS? Learn how to protect your assets while earning rewards"
+        },
+        "getQS": {
+          "title": "Get QS Tokens",
+          "description": "Find out how to acquire QS tokens to participate in Token Hub"
+        },
+        "faq": {
+          "title": "FAQ",
+          "description": "Common questions answered - 'Can I unlock early?' and more"
+        },
+        "prover": {
+          "title": "Become a Prover",
+          "description": "Contribute to the network and earn rewards. Put your technical skills to work"
+        }
+      },
+      "footer": {
+        "navLabel": "Footer navigation",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "docs": "Documentation",
+        "github": "GitHub",
+        "disclaimer": "This is not investment advice. Token Hub is a governance tool and does not constitute financial services. Locking QS tokens involves risk including loss of liquidity. Please do your own research before participating.",
+        "copyright": "© 2026 Quantum Shield Foundation. All rights reserved."
+      }
+    },
+    "delegateList": {
+      "meta": {
+        "title": "Delegate List | Token Hub | Quantum Shield",
+        "description": "Securely delegate your veQS with quantum-resistant signatures to trusted delegates"
+      },
+      "title": "Delegate List",
+      "subtitle": "Delegate your veQS to trusted delegates and leverage voting power",
+      "quantumBadge": "Quantum-Protected Delegation",
+      "myDelegation": {
+        "label": "My Delegated veQS",
+        "ariaLabel": "Your delegation status",
+        "delegateCount": "to {count} delegates"
+      },
+      "totalStats": {
+        "ariaLabel": "Overall delegate statistics",
+        "totalVeQS": "Total veQS",
+        "totalDelegators": "Total Delegators",
+        "avgParticipation": "Avg Participation"
+      },
+      "search": {
+        "placeholder": "Search by name or address...",
+        "ariaLabel": "Search delegates"
+      },
+      "filters": {
+        "ariaLabel": "Delegate filters",
+        "all": "All",
+        "top10": "Top 10",
+        "mostActive": "Most Active",
+        "securityCouncil": "Security Council"
+      },
+      "results": {
+        "count": "{count} delegates found"
+      },
+      "list": {
+        "ariaLabel": "Delegate list"
+      },
+      "delegates": {
+        "watanabe": "Watanabe Delegate",
+        "watanabeBio": "Early supporter of Quantum Shield. Prioritizes security and long-term protocol development. Votes always favor community interests.",
+        "sato": "Sato Crypto",
+        "satoBio": "Blockchain researcher. Focuses on technical improvement proposals for the protocol. Supports transparent decision-making.",
+        "tanaka": "Tanaka DeFi",
+        "tanakaBio": "DeFi protocol expert. Supports proposals that balance yield optimization with risk management.",
+        "yamamoto": "Yamamoto Node",
+        "yamamotoBio": "Infrastructure operator prioritizing protocol stability. Votes from a technical perspective based on node operation experience.",
+        "suzuki": "Suzuki Quantum",
+        "suzukiBio": "Cryptography researcher. Votes to ensure technical accuracy of quantum resistance. Supports strict adherence to CP principles.",
+        "matsumoto": "Matsumoto DAO",
+        "matsumotoBio": "Community builder. Leverages DAO governance experience to promote inclusive and fair decision-making processes."
+      },
+      "stats": {
+        "rank": "Rank",
+        "delegators": "Delegators",
+        "participation": "Participation",
+        "lastVote": "Last vote: {days} days ago"
+      },
+      "tags": {
+        "securityCouncil": "Security Council",
+        "purposeCommittee": "Purpose Committee",
+        "defiExpert": "DeFi Expert",
+        "defi": "DeFi",
+        "longTermHolder": "Long-term Holder",
+        "research": "Research",
+        "governance": "Governance",
+        "yieldStrategy": "Yield Strategy",
+        "infrastructure": "Infrastructure",
+        "prover": "Prover",
+        "cryptography": "Cryptography",
+        "daoGovernance": "DAO Governance",
+        "community": "Community"
+      },
+      "actions": {
+        "viewProfile": "View Profile"
+      },
+      "tooltip": {
+        "ariaLabel": "Learn more about delegation",
+        "title": "What is Delegation?",
+        "description": "Delegation means entrusting your veQS voting rights to someone you trust. Your tokens (QS) don't move when you delegate - only your voting rights are exercised on your behalf.",
+        "note": "You can revoke delegation at any time. Your tokens will never decrease.",
+        "quantumNote": "Delegation operations are protected with quantum-resistant signatures (Dilithium), ensuring security against future quantum computer attacks."
+      },
+      "participationTooltip": {
+        "ariaLabel": "Learn more about voting participation",
+        "description": "Voting participation shows how actively this delegate has voted on past proposals. Higher rates mean they're more likely to vote consistently on your behalf."
+      },
+      "empty": {
+        "title": "No delegates found",
+        "description": "Try adjusting your search or clearing filters"
+      },
+      "footer": {
+        "navLabel": "Footer navigation",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "docs": "Documentation",
+        "disclaimer": "This is not investment advice. Delegation transfers voting rights, not tokens. Review delegate voting history and choose carefully."
+      }
+    },
+    "delegate": {
+      "meta": {
+        "title": "Delegates | Token Hub | Quantum Shield",
+        "description": "Delegate your veQS to trusted delegates and leverage voting power"
+      },
+      "backToDashboard": "← Back to Dashboard",
+      "title": "Delegates",
+      "subtitle": "Delegate your veQS to trusted delegates and leverage voting power",
+      "myDelegation": {
+        "label": "My Delegated veQS",
+        "ariaLabel": "Your delegation status",
+        "delegateCount": "to {count} delegates"
+      },
+      "search": {
+        "placeholder": "Search by name or address...",
+        "ariaLabel": "Search delegates"
+      },
+      "filters": {
+        "ariaLabel": "Delegate filters",
+        "all": "All",
+        "top10": "Top 10",
+        "mostActive": "Most Active",
+        "securityCouncil": "Security Council"
+      },
+      "list": {
+        "ariaLabel": "Delegate list",
+        "rank": "Rank",
+        "delegators": "Delegators",
+        "participation": "Participation",
+        "lastVote": "Last vote: {days} days ago",
+        "viewProfile": "View Profile",
+        "watanabe": "Watanabe Delegate",
+        "watanabeBio": "Early supporter of Quantum Shield. Prioritizes security and long-term protocol development. Votes always favor community interests.",
+        "sato": "Sato Crypto",
+        "satoBio": "Blockchain researcher. Focuses on technical improvement proposals for the protocol. Supports transparent decision-making.",
+        "tanaka": "Tanaka DeFi",
+        "tanakaBio": "DeFi protocol expert. Supports proposals that balance yield optimization with risk management.",
+        "yamamoto": "Yamamoto Node",
+        "yamamotoBio": "Infrastructure operator prioritizing protocol stability. Votes from a technical perspective based on node operation experience.",
+        "suzuki": "Suzuki Quantum",
+        "suzukiBio": "Cryptography researcher. Votes to ensure technical accuracy of quantum resistance. Supports strict adherence to CP principles.",
+        "matsumoto": "Matsumoto DAO",
+        "matsumotoBio": "Community builder. Leverages DAO governance experience to promote inclusive and fair decision-making processes."
+      },
+      "tags": {
+        "securityCouncil": "Security Council",
+        "purposeCommittee": "Purpose Committee",
+        "defiExpert": "DeFi Expert",
+        "defi": "DeFi",
+        "longTermHolder": "Long-term Holder",
+        "research": "Research",
+        "governance": "Governance",
+        "yieldStrategy": "Yield Strategy",
+        "infrastructure": "Infrastructure",
+        "prover": "Prover",
+        "cryptography": "Cryptography",
+        "daoGovernance": "DAO Governance",
+        "community": "Community"
+      },
+      "tooltip": {
+        "ariaLabel": "Learn more about delegation",
+        "title": "What is Delegation?",
+        "description": "Delegation means entrusting your veQS voting rights to someone you trust. Your tokens (QS) don't move when you delegate - only your voting rights are exercised on your behalf.",
+        "note": "You can revoke delegation at any time. Your tokens will never decrease.",
+        "quantumNote": "Delegation operations are protected with quantum-resistant signatures (Dilithium), ensuring security against future quantum computer attacks."
+      },
+      "participationTooltip": {
+        "ariaLabel": "Learn more about voting participation",
+        "description": "Voting participation shows how actively this delegate has voted on past proposals. Higher rates mean they're more likely to vote consistently on your behalf."
+      },
+      "empty": {
+        "title": "No delegates found",
+        "description": "Try adjusting your search or clearing filters"
+      },
+      "footer": {
+        "navLabel": "Footer navigation",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "docs": "Documentation",
+        "disclaimer": "This is not investment advice. Delegation transfers voting rights, not tokens. Review delegate voting history and choose carefully."
+      }
+    },
+    "rewards": {
+      "meta": {
+        "title": "Rewards | Token Hub | Quantum Shield",
+        "description": "View and claim your rewards as a veQS holder"
+      },
+      "backToDashboard": "← Back to Dashboard",
+      "title": "Rewards",
+      "subtitle": "View and claim your rewards as a veQS holder",
+      "claim": {
+        "label": "Claimable Rewards",
+        "usdValue": "≈ ${amount} USD",
+        "button": "Claim Rewards",
+        "buttonAriaLabel": "Claim {amount} QS"
+      },
+      "stats": {
+        "ariaLabel": "Rewards statistics",
+        "totalEarned": {
+          "label": "Total Earned (All Time)"
+        },
+        "weeklyAverage": {
+          "label": "Weekly Average"
+        },
+        "currentApy": {
+          "label": "Current APY"
+        },
+        "nextReward": {
+          "label": "Next Reward"
+        }
+      },
+      "history": {
+        "title": "Rewards History",
+        "viewAll": "View All",
+        "chartAriaLabel": "Bar chart showing weekly rewards",
+        "chartTitle": "Weekly Rewards History",
+        "week": "Week",
+        "listAriaLabel": "Rewards history list",
+        "type": {
+          "weeklyReward": "Weekly Reward Claimed"
+        }
+      },
+      "breakdown": {
+        "title": "Reward Breakdown",
+        "ariaLabel": "Reward breakdown list",
+        "veqsHolding": "veQS Holding Rewards",
+        "votingParticipation": "Voting Participation",
+        "delegationBonus": "Delegation Bonus"
+      },
+      "epoch": {
+        "title": "Current Epoch",
+        "number": "Epoch #{number}",
+        "remaining": "{time} remaining",
+        "progressAriaLabel": "Epoch progress: {progress}%"
+      },
+      "apyTooltip": {
+        "title": "What is APY?",
+        "description": "APY (Annual Percentage Yield) shows the expected annual return on your locked tokens. For example, 12.5% APY means locking 10,000 QS could earn about 1,250 QS in rewards per year.",
+        "ariaLabel": "Learn more about APY"
+      },
+      "epochTooltip": {
+        "title": "What is an Epoch?",
+        "description": "An epoch is a time period used for reward calculation. Typically one week long, rewards are calculated and distributed at the end of each epoch.",
+        "ariaLabel": "Learn more about epochs"
+      }
+    },
+    "rewardsHistory": {
+      "meta": {
+        "title": "Rewards History | Token Hub | Quantum Shield",
+        "description": "View and analyze your past rewards history"
+      },
+      "breadcrumb": {
+        "ariaLabel": "Breadcrumb navigation",
+        "rewards": "Rewards",
+        "current": "History"
+      },
+      "title": "Rewards History",
+      "subtitle": "View and analyze your past rewards history",
+      "export": {
+        "button": "Export",
+        "ariaLabel": "Export rewards history as CSV"
+      },
+      "stats": {
+        "ariaLabel": "Rewards statistics summary",
+        "totalClaimed": "Total Claimed",
+        "pending": "Pending",
+        "avgPerWeek": "Weekly Average",
+        "highest": "Highest Week",
+        "lowest": "Lowest Week",
+        "totalEpochs": "Epochs Participated"
+      },
+      "chart": {
+        "title": "Rewards Trend",
+        "ariaLabel": "Rewards trend chart",
+        "chartTitle": "Rewards History by Period",
+        "timeViewAriaLabel": "Time view toggle",
+        "views": {
+          "weekly": "Weekly",
+          "monthly": "Monthly"
+        }
+      },
+      "list": {
+        "title": "Reward Details",
+        "ariaLabel": "Rewards history list",
+        "filterAriaLabel": "Reward type filter",
+        "filters": {
+          "all": "All",
+          "holding": "Holding",
+          "voting": "Voting",
+          "delegation": "Delegation"
+        },
+        "filterDescriptions": {
+          "all": "Show all rewards",
+          "holding": "Base rewards for holding veQS tokens",
+          "voting": "Bonus for participating in governance votes",
+          "delegation": "Bonus for delegating your votes to others"
+        },
+        "type": {
+          "weeklyReward": "Weekly Reward Claimed"
+        },
+        "epoch": "Epoch #{number}",
+        "breakdown": {
+          "holding": "Holding",
+          "voting": "Voting",
+          "delegation": "Delegation"
+        },
+        "empty": "No rewards found for the selected filter"
+      },
+      "pagination": {
+        "page": "Page {current} of {total}",
+        "previous": "Previous page",
+        "next": "Next page"
+      },
+      "backToRewards": "Back to Rewards"
+    },
+    "unlock": {
+      "meta": {
+        "title": "Unlock | Token Hub | Quantum Shield",
+        "description": "Withdraw QS tokens after the lock period ends"
+      },
+      "title": "Unlock QS",
+      "subtitle": "Withdraw your QS tokens when the lock period ends",
+      "ariaLabel": "QS token unlock page",
+      "stats": {
+        "ariaLabel": "Lock statistics",
+        "totalLocked": "Total Locked",
+        "currentVeQS": "Current veQS",
+        "veqsTooltip": "veQS (voting escrow QS) represents your voting power. It decreases as you approach the end of the lock period.",
+        "positions": "Positions",
+        "unlockable": "Unlockable"
+      },
+      "notice": {
+        "noEarlyUnlock": "Tokens cannot be withdrawn during the lock period. You must wait until the unlock date. This is by design to ensure long-term governance stability.",
+        "faqLink": "Learn more in FAQ"
+      },
+      "positions": {
+        "title": "Lock Positions",
+        "listAriaLabel": "Lock positions list",
+        "status": {
+          "locked": "Locked",
+          "unlockable": "Unlockable"
+        },
+        "veqs": "Current veQS",
+        "lockDate": "Lock Date",
+        "unlockDate": "Unlock Date",
+        "remaining": "Remaining",
+        "ready": "Ready",
+        "days": "d",
+        "hours": "h",
+        "withdraw": "Withdraw",
+        "withdrawing": "Processing...",
+        "withdrawAriaLabel": "Withdraw {amount} QS",
+        "lockedButton": "Locked",
+        "lockedAriaLabel": "Still in lock period",
+        "progress": "Progress",
+        "progressAriaLabel": "Lock period progress"
+      },
+      "tooltip": {
+        "ariaLabel": "Learn more about unlocking",
+        "label": "About Unlocking",
+        "title": "How Unlocking Works",
+        "description": "QS tokens cannot be withdrawn until your selected lock period ends. After the lock period ends, you can withdraw your tokens from this page.",
+        "note": "Early unlock is not possible. Choose your lock period carefully. You can always extend your lock."
+      },
+      "empty": {
+        "title": "No Lock Positions",
+        "description": "You haven't locked any QS yet. Lock your QS to earn veQS and participate in governance.",
+        "lockButton": "Lock QS"
+      },
+      "cta": {
+        "title": "Want to Lock More?",
+        "description": "Lock additional QS to increase your veQS balance and boost your voting power and rewards.",
+        "lockMore": "Lock More",
+        "viewDashboard": "View Dashboard"
+      }
+    },
+    "settings": {
+      "meta": {
+        "title": "Settings | Token Hub | Quantum Shield",
+        "description": "Manage Token Hub notifications, display, and reward settings"
+      },
+      "header": {
+        "title": "Settings",
+        "back": "Back to Dashboard"
+      },
+      "sections": {
+        "account": "Account",
+        "notifications": "Notifications",
+        "rewards": "Rewards Settings",
+        "display": "Display",
+        "support": "Support",
+        "dangerZone": "Danger Zone"
+      },
+      "account": {
+        "connectedWallet": {
+          "title": "Connected Wallet",
+          "description": "Wallet address holding your veQS"
+        },
+        "lockPositions": {
+          "title": "Lock Positions",
+          "description": "View and manage your QS lock positions"
+        },
+        "delegations": {
+          "title": "Manage Delegations",
+          "description": "View and modify your voting power delegations"
+        }
+      },
+      "notifications": {
+        "push": {
+          "title": "Push Notifications",
+          "description": "Receive notifications about governance proposals and rewards"
+        },
+        "email": {
+          "title": "Email Notifications",
+          "description": "Receive important updates via email"
+        },
+        "voteReminders": {
+          "title": "Vote Reminders",
+          "description": "Get reminded to vote on active proposals"
+        }
+      },
+      "rewards": {
+        "autoCompound": {
+          "title": "Auto-Compound Rewards",
+          "description": "Automatically add earned rewards to your lock"
+        }
+      },
+      "display": {
+        "darkMode": {
+          "title": "Dark Mode",
+          "description": "Use a dark theme that's easier on the eyes"
+        },
+        "language": {
+          "title": "Language",
+          "description": "Select the app display language",
+          "japanese": "日本語",
+          "english": "English"
+        },
+        "currency": {
+          "title": "Display Currency",
+          "description": "Currency used to display values"
+        }
+      },
+      "support": {
+        "faq": {
+          "title": "FAQ",
+          "description": "Get help with using Token Hub"
+        },
+        "contact": {
+          "title": "Contact Us",
+          "description": "Reach out to our support team"
+        },
+        "legal": {
+          "title": "Legal Information",
+          "description": "Terms of service and privacy policy"
+        }
+      },
+      "danger": {
+        "disconnectWallet": {
+          "title": "Disconnect Wallet",
+          "description": "Disconnect your wallet from Token Hub"
+        }
+      },
+      "version": {
+        "label": "Token Hub Version",
+        "version": "v{version} (Build {build})"
+      }
+    },
+    "help": {
+      "meta": {
+        "title": "Help | Token Hub | Quantum Shield",
+        "description": "Learn how to use Token Hub and find answers to common questions"
+      },
+      "header": {
+        "title": "Help",
+        "back": "Back to Settings"
+      },
+      "search": {
+        "placeholder": "Search questions...",
+        "ariaLabel": "Search help topics"
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "items": {
+          "tokenomics": {
+            "title": "Learn Tokenomics",
+            "description": "Understand QS and veQS basics"
+          },
+          "locking": {
+            "title": "Lock QS",
+            "description": "How to lock and earn veQS"
+          },
+          "governance": {
+            "title": "Governance",
+            "description": "Voting and delegation explained"
+          },
+          "rewards": {
+            "title": "View Rewards",
+            "description": "How rewards are calculated"
+          }
+        }
+      },
+      "resources": {
+        "title": "Resources",
+        "faq": {
+          "title": "FAQ",
+          "description": "Common questions"
+        },
+        "getQS": {
+          "title": "Get QS",
+          "description": "Acquire tokens"
+        },
+        "docs": {
+          "title": "Documentation",
+          "description": "Technical docs"
+        },
+        "status": {
+          "title": "System Status",
+          "description": "Check uptime"
+        }
+      },
+      "tutorial": {
+        "title": "New to Token Hub?",
+        "description": "Learn the basics of veQS and governance participation step by step.",
+        "button": "Start Tutorial"
+      },
+      "consumerApp": {
+        "title": "Looking for Consumer App?",
+        "description": "Lock and unlock assets in the Consumer App.",
+        "button": "Go to Consumer App"
+      }
+    },
+    "delegateProfile": {
+      "meta": {
+        "title": "Delegate Profile | Token Hub | Quantum Shield",
+        "description": "View delegate details and voting history"
+      },
+      "back": "Back to Delegates",
+      "stats": {
+        "veqs": "Total veQS",
+        "delegators": "Delegators",
+        "participation": "Participation"
+      },
+      "bio": {
+        "title": "About"
+      },
+      "statement": {
+        "title": "Voting Philosophy"
+      },
+      "votes": {
+        "title": "Recent Votes",
+        "yes": "Yes",
+        "no": "No",
+        "abstain": "Abstain"
+      },
+      "delegateForm": {
+        "title": "Delegate to this delegate",
+        "amount": "veQS to delegate",
+        "available": "Available",
+        "submit": "Delegate",
+        "delegating": "Processing...",
+        "notice": "You can revoke delegation anytime. Your tokens will not move."
+      },
+      "success": {
+        "title": "Delegation Complete!",
+        "description": "Your veQS has been successfully delegated",
+        "delegatedTo": "Delegated to",
+        "amount": "Amount",
+        "txHash": "Transaction",
+        "done": "Back to Delegates",
+        "dashboardLink": "Back to Dashboard"
+      },
+      "profile": {
+        "watanabeStatement": "I prioritize the long-term development and security of Quantum Shield. I value protocol sustainability over short-term gains and carefully consider security-related proposals.",
+        "satoStatement": "I promote protocol improvements from a technical perspective. I support transparent decision-making and evidence-based proposals.",
+        "tanakaStatement": "I focus on balancing yield optimization and risk management in the DeFi ecosystem. I support protocol growth while protecting user interests.",
+        "yamamotoStatement": "I prioritize infrastructure stability and reliability. I vote from a technical perspective based on my node operation experience.",
+        "suzukiStatement": "I evaluate proposals from a cryptographic perspective to ensure accurate implementation of quantum-resistant technology. I support strict adherence to CP principles.",
+        "matsumotoStatement": "I represent the interests of the entire community and promote inclusive and fair decision-making processes. I also listen to the voices of new participants."
+      }
+    },
+    "lockPreview": {
+      "meta": {
+        "title": "Lock Preview | Token Hub | Quantum Shield",
+        "description": "Review your QS token lock details"
+      },
+      "title": "Review Lock Details",
+      "steps": {
+        "ariaLabel": "Lock process steps",
+        "step1": "Input",
+        "step2": "Preview",
+        "step3": "Confirm"
+      },
+      "summary": {
+        "title": "Lock Summary",
+        "lockAmount": "Lock Amount",
+        "lockDuration": "Lock Duration",
+        "veqsReceive": "veQS to Receive"
+      },
+      "details": {
+        "unlockDate": "Unlock Date",
+        "lockRatio": "Lock Ratio"
+      },
+      "warning": {
+        "title": "Please Note",
+        "description": "Tokens cannot be withdrawn during the lock period. This action cannot be undone."
+      },
+      "actions": {
+        "back": "Back",
+        "confirm": "Confirm Lock",
+        "processing": "Processing..."
+      },
+      "success": {
+        "title": "Lock Complete!",
+        "description": "Your QS tokens have been locked and you've earned veQS",
+        "txHash": "Transaction",
+        "done": "Back to Dashboard",
+        "delegateLink": "Delegate veQS to participate in governance →",
+        "whatsNext": {
+          "title": "What's Next",
+          "vote": "Participate in governance voting",
+          "rewards": "Check your rewards"
+        }
+      }
+    },
+    "rewardsClaim": {
+      "meta": {
+        "title": "Claim Rewards | Token Hub | Quantum Shield",
+        "description": "Claim your accumulated rewards to your wallet"
+      },
+      "title": "Claim Rewards",
+      "back": "Back to Rewards",
+      "claimable": {
+        "label": "Claimable Rewards",
+        "usdValue": "≈ ${amount} USD"
+      },
+      "breakdown": {
+        "title": "Reward Breakdown",
+        "veqsHolding": "veQS Holding Rewards",
+        "votingParticipation": "Voting Participation",
+        "delegationBonus": "Delegation Bonus"
+      },
+      "claimButton": "Claim Rewards",
+      "claiming": "Processing...",
+      "notice": "Claiming rewards requires gas fees. Please confirm the transaction.",
+      "success": {
+        "title": "Claim Successful!",
+        "description": "Rewards have been sent to your wallet",
+        "done": "Done"
+      }
+    },
+    "consumerLink": {
+      "meta": {
+        "title": "App Integration | Token Hub | Quantum Shield",
+        "description": "Understand the differences between Consumer App and Token Hub"
+      },
+      "header": {
+        "title": "App Integration",
+        "subtitle": "Consumer App vs Token Hub",
+        "back": "Back to Dashboard"
+      },
+      "consumerApp": {
+        "title": "Consumer App",
+        "subtitle": "Asset Protection",
+        "description": "Securely protect your crypto assets like ETH with quantum-resistant technology. Lock, unlock, and emergency unlock operations are performed here.",
+        "featuresLabel": "Consumer App features list",
+        "features": {
+          "lock": {
+            "title": "Lock Assets",
+            "description": "Quantum-resistant protection"
+          },
+          "unlock": {
+            "title": "Unlock",
+            "description": "Withdraw after 24-hour wait"
+          },
+          "emergency": {
+            "title": "Emergency Unlock",
+            "description": "Instant withdrawal with bond"
+          },
+          "history": {
+            "title": "Transaction History",
+            "description": "View past operations"
+          }
+        },
+        "button": "Open Consumer App"
+      },
+      "tokenHub": {
+        "title": "Token Hub",
+        "subtitle": "Governance App",
+        "currentBadge": "Current App",
+        "description": "Lock QS tokens to earn veQS and participate in Quantum Shield governance. Voting, delegation, and reward claims are performed here.",
+        "featuresLabel": "Token Hub features list",
+        "features": {
+          "veqs": {
+            "title": "Earn veQS",
+            "description": "Lock QS to get voting power"
+          },
+          "governance": {
+            "title": "Governance Voting",
+            "description": "Participate in protocol decisions"
+          },
+          "delegate": {
+            "title": "Delegate Voting",
+            "description": "Entrust votes to trusted delegates"
+          },
+          "rewards": {
+            "title": "Claim Rewards",
+            "description": "Receive protocol revenue share"
+          }
+        },
+        "button": "Token Hub Dashboard"
+      },
+      "connection": {
+        "title": "The Two Apps Work Together",
+        "description": "You can use some assets locked in Consumer App to purchase and lock QS in Token Hub. By mastering both apps, you can achieve both asset protection and governance participation."
+      }
+    }
+  }
+}

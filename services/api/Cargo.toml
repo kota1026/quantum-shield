@@ -18,6 +18,8 @@ serde_json = "1"
 
 # Database & Cache
 redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "bigdecimal"] }
+bigdecimal = { version = "0.3", features = ["serde"] }
 
 # Message Queue
 lapin = "2.3"  # RabbitMQ client
@@ -48,8 +50,16 @@ jsonwebtoken = "9"
 rustls = "0.22"
 tokio-rustls = "0.25"
 
+# TOTP 2FA verification (Phase 3 - S-2 security fix)
+totp-rs = { version = "5", features = ["otpauth"] }
+# SHA-256 for refresh token hashing (Phase 3 - S-3 security fix)
+sha2 = "0.10"
+
 # Ethereum interaction (VRF Contract integration - TASK-P5-005)
 ethers = { version = "2", features = ["abigen"] }
+
+# HTTP client
+reqwest = { version = "0.11", features = ["json"] }
 
 [dev-dependencies]
 axum-test = "14"

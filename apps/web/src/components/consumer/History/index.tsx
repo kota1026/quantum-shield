@@ -3,77 +3,23 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, FileText, History as HistoryIcon } from 'lucide-react';
+import { formatEther } from 'viem';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { HistoryStats, HistoryStatsData } from './HistoryStats';
 import { FilterTabs, FilterType } from './FilterTabs';
-import { HistoryItem, HistoryTransaction, TransactionType } from './HistoryItem';
+import { HistoryItem, HistoryTransaction, TransactionType, TransactionStatus } from './HistoryItem';
+import { useUserDashboard, useUserTransactions } from '@/hooks/consumer';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_STATS: HistoryStatsData = {
-  totalLocked: '24.85',
+// Empty state defaults (no mock data - shows real empty state)
+const EMPTY_STATS: HistoryStatsData = {
+  totalLocked: '0',
   totalLockedUnit: 'ETH',
-  totalTransactions: 15,
-  inProgress: 2,
+  totalTransactions: 0,
+  inProgress: 0,
 };
-
-const DEMO_TRANSACTIONS: HistoryTransaction[] = [
-  {
-    id: '1',
-    type: 'lock',
-    status: 'complete',
-    amount: '5.00 ETH',
-    timestamp: '2026-01-06 14:32',
-    txHash: '0x7a3f...9c2d',
-    blockConfirmed: 12,
-  },
-  {
-    id: '2',
-    type: 'normalUnlock',
-    status: 'pending24h',
-    amount: '2.50 ETH',
-    timestamp: '2026-01-05 09:15',
-    txHash: '0x8b4c...1e5f',
-    remainingTime: '23:41:02',
-  },
-  {
-    id: '3',
-    type: 'emergencyUnlock',
-    status: 'pending7d',
-    amount: '0.75 ETH',
-    timestamp: '2026-01-04 18:00',
-    txHash: '0x2d7a...4f8b',
-    bondAmount: '0.5 ETH',
-  },
-  {
-    id: '4',
-    type: 'unlockComplete',
-    status: 'complete',
-    amount: '1.25 ETH',
-    timestamp: '2026-01-03 18:45',
-    txHash: '0x5e9c...3a7d',
-    blockConfirmed: 12,
-  },
-  {
-    id: '5',
-    type: 'lock',
-    status: 'complete',
-    amount: '10.00 ETH',
-    timestamp: '2026-01-02 10:20',
-    txHash: '0x1f4a...8c2e',
-    blockConfirmed: 12,
-  },
-  {
-    id: '6',
-    type: 'lock',
-    status: 'complete',
-    amount: '5.35 ETH',
-    timestamp: '2026-01-01 08:00',
-    txHash: '0x9b3e...7d1a',
-    blockConfirmed: 12,
-  },
-];
 
 // Mapping filter types to transaction types
 const FILTER_TO_TYPES: Record<FilterType, TransactionType[] | null> = {
@@ -84,16 +30,83 @@ const FILTER_TO_TYPES: Record<FilterType, TransactionType[] | null> = {
   emergency: ['emergencyUnlock'],
 };
 
+// Map API transaction type to component type
+function mapTxType(txType: string): TransactionType {
+  switch (txType) {
+    case 'lock': return 'lock';
+    case 'normal_unlock': return 'normalUnlock';
+    case 'emergency_unlock': return 'emergencyUnlock';
+    default: return 'lock';
+  }
+}
+
 export function History() {
   const t = useTranslations('consumer.history');
+  const router = useRouter();
+
+  // Fetch data using new API hooks
+  const { data: dashboardData } = useUserDashboard();
+  const { data: txData } = useUserTransactions({ perPage: 50 });
+
+  // Transform API data to component format (empty defaults, no mock data)
+  const historyStats: HistoryStatsData = dashboardData ? {
+    // Convert totalLocked to ETH - handle both wei format (integer string) and ETH format (decimal string)
+    totalLocked: (() => {
+      const total = dashboardData.totalLocked || '0';
+      try {
+        if (total.includes('.')) {
+          // Already in ETH format
+          return parseFloat(total).toString();
+        } else {
+          // In wei format - convert to ETH
+          return parseFloat(formatEther(BigInt(total))).toString();
+        }
+      } catch {
+        return parseFloat(total).toString();
+      }
+    })(),
+    totalLockedUnit: 'ETH',
+    totalTransactions: txData?.total || 0,
+    inProgress: dashboardData.pendingUnlocks || 0,
+  } : EMPTY_STATS;
+
+  const historyTransactions: HistoryTransaction[] = (txData?.transactions || []).map(tx => {
+    // Convert amount to ETH - handle both wei format (integer string) and ETH format (decimal string)
+    let formattedAmount: string;
+    try {
+      // Check if amount contains a decimal point (already in ETH format)
+      if (tx.amount.includes('.')) {
+        // Already in ETH format
+        formattedAmount = parseFloat(tx.amount).toString();
+      } else {
+        // In wei format - convert to ETH
+        const amountEth = formatEther(BigInt(tx.amount));
+        formattedAmount = parseFloat(amountEth).toString();
+      }
+    } catch {
+      // Fallback: try parsing as float directly
+      formattedAmount = parseFloat(tx.amount).toString();
+    }
+
+    return {
+      id: tx.id,
+      type: mapTxType(tx.txType),
+      status: (tx.status === 'completed' ? 'complete' : 'pending24h') as TransactionStatus,
+      amount: `${formattedAmount} ETH`,
+      timestamp: new Date(tx.createdAt * 1000).toLocaleString('ja-JP'),
+      txHash: tx.l1TxHash || '0x...',
+      blockConfirmed: tx.status === 'completed' ? 12 : undefined,
+      remainingTime: tx.releaseTime ? `${Math.max(0, Math.floor((tx.releaseTime * 1000 - Date.now()) / 3600000))}h` : undefined,
+    };
+  });
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   const filteredTransactions = useMemo(() => {
     const allowedTypes = FILTER_TO_TYPES[activeFilter];
-    if (!allowedTypes) return DEMO_TRANSACTIONS;
-    return DEMO_TRANSACTIONS.filter((tx) => allowedTypes.includes(tx.type));
-  }, [activeFilter]);
+    if (!allowedTypes) return historyTransactions;
+    return historyTransactions.filter((tx) => allowedTypes.includes(tx.type));
+  }, [activeFilter, historyTransactions]);
 
   const handleExportCSV = useCallback(() => {
     alert(t('header.exportNotAvailable'));
@@ -104,9 +117,8 @@ export function History() {
   }, [t]);
 
   const handleTransactionClick = useCallback((tx: HistoryTransaction) => {
-    // Future: navigate to transaction detail
-    console.log('Transaction clicked:', tx.id);
-  }, []);
+    router.push(`/consumer/history/${tx.id}`);
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -125,14 +137,14 @@ export function History() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Link
               href="/consumer/dashboard"
               className={cn(
-                'w-10 h-10 flex items-center justify-center',
+                'w-11 h-11 flex items-center justify-center',
                 'bg-surface border border-border rounded-qs',
                 'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
                 'transition-all'
@@ -148,7 +160,7 @@ export function History() {
           <button
             onClick={handleExportCSV}
             className={cn(
-              'flex items-center gap-2 px-5 py-2.5',
+              'flex items-center gap-2 px-5 py-2.5 min-h-[44px]',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary text-sm font-medium',
               'hover:border-gold hover:text-gold transition-all',
@@ -162,7 +174,7 @@ export function History() {
         </header>
 
         {/* Stats Row */}
-        <HistoryStats stats={DEMO_STATS} className="mb-6" />
+        <HistoryStats stats={historyStats} className="mb-6" />
 
         {/* Filter Tabs */}
         <FilterTabs
@@ -213,7 +225,7 @@ export function History() {
             {t('loadMore')}
           </Button>
         )}
-      </div>
+      </main>
     </div>
   );
 }

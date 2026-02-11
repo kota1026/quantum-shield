@@ -116,8 +116,7 @@ export function HistoryItem({ transaction, onClick }: HistoryItemProps) {
       className={cn(
         'flex flex-wrap md:flex-nowrap items-center gap-4',
         'bg-surface border border-border rounded-qs-lg p-5',
-        'cursor-pointer transition-all',
-        'hover:border-border-emphasis hover:bg-surface-elevated',
+        'cursor-pointer transition-all hover-gradient-border',
         'focus:outline-none focus:ring-2 focus:ring-hinomaru/30 focus:border-hinomaru'
       )}
       aria-label={`${t(`types.${transaction.type}`)} ${transaction.amount} ${t(`status.${transaction.status}`)}`}

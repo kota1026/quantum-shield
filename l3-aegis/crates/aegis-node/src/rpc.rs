@@ -1,10 +1,20 @@
 //! RPC server for L3 Aegis Chain
+//!
+//! Implements JSON-RPC 2.0 over HTTP using axum.
 
 use std::sync::Arc;
 use std::net::SocketAddr;
 use tokio::sync::RwLock;
 use serde::{Deserialize, Serialize};
-use tracing::debug;
+use tracing::{debug, info, error};
+use axum::{
+    Router,
+    routing::post,
+    extract::State,
+    Json,
+    http::StatusCode,
+};
+use tower_http::cors::{CorsLayer, Any};
 
 use aegis_types::{Hash256, Transaction};
 use aegis_core::Executor;
@@ -55,6 +65,8 @@ impl JsonRpcResponse {
     }
 }
 
+/// Shared state for the RPC server
+#[derive(Clone)]
 pub struct RpcHandler {
     executor: Arc<RwLock<Executor>>,
     storage: Option<Arc<Storage>>,
@@ -191,6 +203,71 @@ impl RpcHandler {
             "network": "l3-aegis-devnet",
             "currentBlock": height, "stateRoot": root.to_string(), "mode": "single-node",
         }), id)
+    }
+}
+
+// =============================================================================
+// HTTP Server Implementation (axum)
+// =============================================================================
+
+/// HTTP handler for JSON-RPC requests
+async fn handle_rpc(
+    State(handler): State<Arc<RpcHandler>>,
+    Json(request): Json<JsonRpcRequest>,
+) -> (StatusCode, Json<JsonRpcResponse>) {
+    let response = handler.handle(request).await;
+    (StatusCode::OK, Json(response))
+}
+
+/// Health check endpoint
+async fn health_check() -> &'static str {
+    "OK"
+}
+
+/// RPC Server that wraps the handler
+pub struct RpcServer {
+    handler: Arc<RpcHandler>,
+    config: RpcConfig,
+}
+
+impl RpcServer {
+    /// Create a new RPC server
+    pub fn new(handler: RpcHandler, config: RpcConfig) -> Self {
+        Self {
+            handler: Arc::new(handler),
+            config,
+        }
+    }
+
+    /// Start the RPC server and return a handle
+    pub async fn start(self) -> anyhow::Result<tokio::task::JoinHandle<()>> {
+        let addr = self.config.bind_addr;
+        let handler = self.handler.clone();
+
+        // Build the router
+        let app = Router::new()
+            .route("/", post(handle_rpc))
+            .route("/health", axum::routing::get(health_check))
+            .layer(CorsLayer::new()
+                .allow_origin(Any)
+                .allow_methods(Any)
+                .allow_headers(Any))
+            .with_state(handler);
+
+        info!(addr = %addr, "Starting RPC server");
+
+        // Create TCP listener
+        let listener = tokio::net::TcpListener::bind(addr).await?;
+        info!(addr = %addr, "RPC server listening");
+
+        // Spawn server task
+        let handle = tokio::spawn(async move {
+            if let Err(e) = axum::serve(listener, app).await {
+                error!(error = %e, "RPC server error");
+            }
+        });
+
+        Ok(handle)
     }
 }
 

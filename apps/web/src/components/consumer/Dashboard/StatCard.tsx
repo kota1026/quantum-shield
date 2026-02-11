@@ -3,16 +3,20 @@
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { HelpCircle } from 'lucide-react';
+import { Tooltip } from './Tooltip';
 
 interface StatCardProps {
   label: string;
   value: string | number;
   unit?: string;
+  tooltip?: string;
   badge?: {
     text: string;
     variant: 'success' | 'warning' | 'default';
   };
   highlight?: boolean;
+  selected?: boolean;
   onClick?: () => void;
   ariaLabel?: string;
   className?: string;
@@ -22,8 +26,10 @@ export function StatCard({
   label,
   value,
   unit,
+  tooltip,
   badge,
   highlight = false,
+  selected = false,
   onClick,
   ariaLabel,
   className,
@@ -36,12 +42,10 @@ export function StatCard({
 
   return (
     <Card
-      variant={onClick ? 'interactive' : 'default'}
+      variant={onClick ? 'hoverGradient' : 'default'}
       padding="md"
-      className={cn(
-        'cursor-pointer',
-        className
-      )}
+      className={cn(className)}
+      data-selected={selected}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -54,7 +58,19 @@ export function StatCard({
       }}
     >
       <div className="flex justify-between items-center mb-2">
-        <span className="text-xs text-foreground-tertiary">{label}</span>
+        <span className="text-xs text-foreground-tertiary flex items-center gap-1">
+          {label}
+          {tooltip && (
+            <Tooltip content={tooltip}>
+              <span
+                className="cursor-help inline-flex"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-foreground-tertiary hover:text-foreground-secondary transition-colors" />
+              </span>
+            </Tooltip>
+          )}
+        </span>
         {badge && (
           <Badge variant={badgeVariantMap[badge.variant]} size="sm">
             {badge.text}
