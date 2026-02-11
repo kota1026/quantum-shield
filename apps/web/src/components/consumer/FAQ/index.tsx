@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ArrowLeft, HelpCircle, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FAQItem } from './FAQItem';
 
@@ -116,13 +116,13 @@ export function FAQ() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
             href="/consumer/settings"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
               'transition-all'
@@ -164,7 +164,38 @@ export function FAQ() {
             </div>
           </div>
         ))}
-      </div>
+
+        {/* Contact Support Section */}
+        <div
+          className={cn(
+            'mt-10 p-6 rounded-qs-xl',
+            'bg-surface border border-border-subtle',
+            'text-center'
+          )}
+        >
+          <div className="w-12 h-12 mx-auto mb-4 bg-gold/10 rounded-full flex items-center justify-center">
+            <HelpCircle className="w-6 h-6 text-gold" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            {t('contact.title')}
+          </h3>
+          <p className="text-sm text-foreground-secondary mb-4">
+            {t('contact.description')}
+          </p>
+          <Link
+            href="/consumer/contact"
+            className={cn(
+              'inline-flex items-center gap-2 px-6 py-3 min-h-[44px]',
+              'bg-gold/10 border border-gold/30 rounded-qs-lg',
+              'text-sm font-medium text-gold',
+              'hover:bg-gold/20 hover:border-gold/50 transition-all'
+            )}
+          >
+            <Mail className="w-4 h-4" />
+            {t('contact.button')}
+          </Link>
+        </div>
+      </main>
     </div>
   );
 }

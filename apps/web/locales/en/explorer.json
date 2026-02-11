@@ -1,0 +1,919 @@
+{
+  "landing": {
+    "meta": {
+      "title": "Explorer | Quantum Shield",
+      "description": "View all transactions, locks, and unlocks on Quantum Shield in real-time"
+    },
+    "hero": {
+      "badge": "Blockchain Explorer",
+      "title": "Visualize Everything on",
+      "titleHighlight": "Quantum Shield",
+      "description": "Track all Lock, Unlock, and Challenge transactions in real-time. Complete transparency to verify protocol health.",
+      "openExplorer": "Open Explorer",
+      "learnMore": "Learn More"
+    },
+    "stats": {
+      "tvl": "Total Value Locked (TVL)",
+      "totalLocks": "Total Locks",
+      "totalUnlocks": "Total Unlocks",
+      "activeProvers": "Active Provers"
+    },
+    "features": {
+      "title": "What You Can Do with Explorer",
+      "description": "Transparently track all activities on the Quantum Shield protocol",
+      "realtime": {
+        "title": "Real-time Tracking",
+        "description": "Monitor Lock/Unlock transactions in real-time and check the latest status"
+      },
+      "transparency": {
+        "title": "Complete Transparency",
+        "description": "All transactions and challenges are publicly verifiable on-chain"
+      },
+      "analytics": {
+        "title": "Detailed Analytics",
+        "description": "Visualize TVL trends, trading volume, and Prover uptime statistics"
+      },
+      "search": {
+        "title": "Advanced Search",
+        "description": "Quickly search and filter by address, TX hash, or Lock ID"
+      }
+    },
+    "whatYouCanDo": {
+      "title": "Data You Can Explore",
+      "description": "Access all protocol data",
+      "locks": {
+        "title": "Lock List",
+        "description": "View all locked assets. Filter by amount, date, and status.",
+        "link": "View Locks"
+      },
+      "unlocks": {
+        "title": "Unlock List",
+        "description": "Track unlock request progress, Time Lock remaining, and Prover signature status.",
+        "link": "View Unlocks"
+      },
+      "analytics": {
+        "title": "Analytics Dashboard",
+        "description": "Detailed statistics including TVL trends, daily volume, and Prover uptime.",
+        "link": "View Analytics"
+      }
+    },
+    "expertQuotes": {
+      "sectionLabel": "Expert Voices",
+      "title": "Industry Leaders Recognize Transparency",
+      "subtitle": "Expert insights on blockchain transparency and auditability",
+      "quotes": {
+        "0": {
+          "quote": "Blockchain transparency is the foundation for building trustless systems. The ability for anyone to verify on-chain enables true decentralization.",
+          "author": "Vitalik Buterin",
+          "title": "Ethereum Co-founder",
+          "source": "On-chain transparency",
+          "sourceUrl": "https://vitalik.eth.limo/general/2022/06/12/nonfin.html"
+        },
+        "1": {
+          "quote": "Blockchain explorers are the cornerstone of trust in decentralized systems. The ability to track and verify every transaction eliminates the need for centralized intermediaries.",
+          "author": "Andreas Antonopoulos",
+          "title": "Blockchain Educator & Author",
+          "source": "Mastering Ethereum",
+          "sourceUrl": "https://github.com/ethereumbook/ethereumbook"
+        },
+        "2": {
+          "quote": "Security and transparency complement each other. Open auditability is the proof of a truly secure system.",
+          "author": "Samczsun",
+          "title": "Paradigm Security Researcher",
+          "source": "Security Research",
+          "sourceUrl": "https://samczsun.com/"
+        }
+      },
+      "disclaimer": "* Quotes represent general industry perspectives and are not direct endorsements of Quantum Shield."
+    },
+    "cta": {
+      "title": "Start Exploring Now",
+      "description": "Experience the transparency of the Quantum Shield protocol. All transactions are verifiable on-chain.",
+      "button": "Open Explorer"
+    },
+    "footer": {
+      "tagline": "Quantum-Resistant Security",
+      "madeIn": "Made in Japan",
+      "terms": "Terms",
+      "privacy": "Privacy"
+    }
+  },
+  "common": {
+    "header": {
+      "overview": "Overview",
+      "locks": "Locks",
+      "unlocks": "Unlocks",
+      "challenges": "Challenges",
+      "provers": "Provers",
+      "analytics": "Analytics"
+    },
+    "search": {
+      "placeholder": "Search by Address, TX Hash, or Lock ID...",
+      "ariaLabel": "Search"
+    },
+    "viewAll": "View All",
+    "live": "Live",
+    "time": {
+      "minutesAgo": "{minutes} min ago",
+      "hoursAgo": "{hours}h ago",
+      "daysAgo": "{days}d ago",
+      "hoursLeft": "{hours}h {minutes}m left",
+      "daysLeft": "{days}d {hours}h left"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "unlocking": "Unlocking",
+      "complete": "Complete",
+      "challenged": "Challenged",
+      "executed": "Executed",
+      "open": "Open"
+    },
+    "unlockType": {
+      "normal": "Normal",
+      "emergency": "Emergency"
+    }
+  },
+  "search": {
+    "meta": {
+      "title": "Search Results | Explorer | Quantum Shield",
+      "description": "View search results on Quantum Shield Explorer"
+    },
+    "resultsFor": "Results for \"{query}\"",
+    "foundResults": "Found {count} results",
+    "noResults": {
+      "title": "No results found",
+      "description": "No results matched your search. Try a different keyword."
+    },
+    "filters": {
+      "all": "All",
+      "locks": "Locks",
+      "unlocks": "Unlocks",
+      "addresses": "Addresses",
+      "challenges": "Challenges"
+    },
+    "resultTypes": {
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "address": "Address",
+      "challenge": "Challenge"
+    },
+    "resultFields": {
+      "amount": "Amount",
+      "owner": "Owner",
+      "lockedAt": "Locked At",
+      "unlockedAt": "Unlocked At",
+      "l2Tx": "L2 TX",
+      "type": "Type",
+      "lockId": "Lock ID",
+      "timeLock": "Time Lock",
+      "proverSigs": "Prover Sigs",
+      "totalLocked": "Total Locked",
+      "activeLocks": "Active Locks",
+      "totalTransactions": "Total Transactions",
+      "firstSeen": "First Seen"
+    },
+    "searchButton": "Search"
+  },
+  "overview": {
+    "meta": {
+      "title": "Explorer | Quantum Shield",
+      "description": "View Quantum Shield protocol statistics, locks, unlocks, and challenges"
+    },
+    "stats": {
+      "ariaLabel": "Protocol Statistics",
+      "tvl": {
+        "label": "Total Value Locked",
+        "tooltip": "TVL (Total Value Locked) = The total amount of assets currently locked in Quantum Shield",
+        "change": "{change}% (7d)"
+      },
+      "totalLocks": {
+        "label": "Total Locks",
+        "change": "+{count} (24h)"
+      },
+      "pendingUnlocks": {
+        "label": "Pending Unlocks",
+        "detail": "{count} in Time Lock"
+      },
+      "activeProvers": {
+        "label": "Active Provers",
+        "tooltip": "Provers = Independent verifiers that validate unlock requests. 2 of 5 are randomly selected to approve each request",
+        "uptime": "{uptime}% Uptime"
+      }
+    },
+    "recentLocks": {
+      "title": "Recent Locks",
+      "ariaLabel": "Recent Locks List",
+      "table": {
+        "lockId": "Lock ID",
+        "amount": "Amount",
+        "status": "Status",
+        "time": "Time"
+      },
+      "emptyState": "No locks found"
+    },
+    "recentUnlocks": {
+      "title": "Recent Unlocks",
+      "ariaLabel": "Recent Unlocks List",
+      "table": {
+        "unlockId": "Unlock ID",
+        "type": "Type",
+        "status": "Status",
+        "timeLock": "Time Lock"
+      },
+      "emptyState": "No unlocks found"
+    },
+    "activeChallenges": {
+      "title": "Active Challenges",
+      "titleTooltip": "Challenge = A mechanism to flag and dispute suspicious unlock requests",
+      "ariaLabel": "Active Challenges List",
+      "table": {
+        "challengeId": "Challenge ID",
+        "targetUnlock": "Target Unlock",
+        "challenger": "Challenger",
+        "bond": "Bond",
+        "defenseDeadline": "Defense Deadline",
+        "status": "Status"
+      },
+      "emptyState": "No active challenges",
+      "summary": "{active} active out of {total} total"
+    }
+  },
+  "locks": {
+    "meta": {
+      "title": "All Locks | Explorer | Quantum Shield",
+      "description": "View all assets locked in Quantum Shield"
+    },
+    "pageTitle": "All Locks",
+    "stats": {
+      "totalLocks": "Total Locks",
+      "totalValue": "Total Value"
+    },
+    "filters": {
+      "status": {
+        "all": "All Status",
+        "active": "Active",
+        "unlocking": "Unlocking",
+        "unlocked": "Unlocked"
+      },
+      "sort": {
+        "newest": "Newest First",
+        "oldest": "Oldest First",
+        "amountHigh": "Highest Amount",
+        "amountLow": "Lowest Amount"
+      },
+      "searchPlaceholder": "Filter by Lock ID or Address..."
+    },
+    "table": {
+      "ariaLabel": "Locks table",
+      "lockId": "Lock ID",
+      "owner": "Owner",
+      "amount": "Amount",
+      "lockTime": "Lock Time",
+      "status": "Status",
+      "l2Tx": "L2 TX"
+    },
+    "pagination": {
+      "showing": "Showing {start}-{end} of {total} locks",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "detail": {
+      "title": "Lock Details",
+      "sections": {
+        "lockInfo": "Lock Information",
+        "owner": "Owner",
+        "transactions": "Transactions"
+      },
+      "fields": {
+        "lockId": "Lock ID",
+        "amount": "Amount",
+        "lockTime": "Lock Time",
+        "blockNumber": "Block Number",
+        "blockNumberTooltip": "Block Number = The Ethereum block number where this lock was recorded",
+        "address": "Address",
+        "dilithiumKey": "Dilithium Key",
+        "dilithiumKeyTooltip": "Dilithium Key = A quantum-resistant cryptographic key that proves ownership of this lock",
+        "l2TxHash": "L2 TX Hash",
+        "l2TxHashTooltip": "L2 TX = Transaction recorded on Layer 2 (faster and cheaper processing layer)"
+      },
+      "actions": {
+        "viewUnlock": "View Unlock",
+        "copyLockId": "Copy Lock ID"
+      },
+      "close": "Close"
+    },
+    "emptyState": {
+      "title": "No Locks Found",
+      "description": "There are no locks to display"
+    }
+  },
+  "lockDetail": {
+    "meta": {
+      "title": "Lock Details | Explorer | Quantum Shield",
+      "description": "Quantum Shield Lock Details"
+    },
+    "breadcrumb": {
+      "locks": "All Locks",
+      "detail": "Details"
+    },
+    "notFound": {
+      "title": "Lock Not Found",
+      "description": "The specified Lock ID does not exist or has been removed.",
+      "backToLocks": "Back to Locks"
+    },
+    "sections": {
+      "overview": "Overview",
+      "lockInfo": "Lock Information",
+      "owner": "Owner Information",
+      "transactions": "Transactions",
+      "timeline": "Timeline"
+    },
+    "fields": {
+      "lockId": "Lock ID",
+      "amount": "Amount",
+      "status": "Status",
+      "lockTime": "Lock Time",
+      "blockNumber": "Block Number",
+      "blockNumberTooltip": "Block Number = The Ethereum block number where this lock was recorded",
+      "ownerAddress": "Owner Address",
+      "dilithiumKey": "Dilithium Key",
+      "dilithiumKeyTooltip": "Dilithium Key = A quantum-resistant cryptographic key that proves ownership",
+      "l2TxHash": "L2 TX Hash",
+      "l2TxHashTooltip": "L2 TX = Transaction recorded on Layer 2",
+      "l1TxHash": "L1 TX Hash",
+      "l1TxHashTooltip": "L1 TX = Transaction recorded on Ethereum Mainnet"
+    },
+    "timeline": {
+      "locked": "Lock Complete",
+      "unlockRequested": "Unlock Requested",
+      "timeLockStart": "Time Lock Started",
+      "proverApproval": "Prover Approval",
+      "unlocked": "Unlock Complete"
+    },
+    "actions": {
+      "copyLockId": "Copy Lock ID",
+      "viewOnL2": "View on L2",
+      "viewUnlock": "View Related Unlock",
+      "viewOwner": "View Owner"
+    },
+    "copied": "Copied"
+  },
+  "unlockDetail": {
+    "meta": {
+      "title": "Unlock Details | Explorer | Quantum Shield",
+      "description": "Quantum Shield Unlock Details"
+    },
+    "breadcrumb": {
+      "unlocks": "All Unlocks",
+      "detail": "Details"
+    },
+    "notFound": {
+      "title": "Unlock Not Found",
+      "description": "The specified Unlock ID does not exist or has been removed.",
+      "backToUnlocks": "Back to Unlocks"
+    },
+    "sections": {
+      "overview": "Overview",
+      "unlockInfo": "Unlock Information",
+      "dilithiumSig": "Dilithium Signature",
+      "proverSigs": "Prover Signatures",
+      "timeline": "Timeline",
+      "challenge": "Challenge Information"
+    },
+    "fields": {
+      "unlockId": "Unlock ID",
+      "lockId": "Lock ID",
+      "type": "Type",
+      "typeTooltip": "Type = Indicates whether this is a normal unlock (24h wait) or emergency unlock (7 days wait, all Provers must approve)",
+      "status": "Status",
+      "amount": "Amount",
+      "requestTime": "Request Time",
+      "timeLockEnd": "Time Lock End",
+      "timeLockEndTooltip": "Time Lock End = After this time, the assets can be withdrawn",
+      "signatureHash": "Signature Hash",
+      "signatureHashTooltip": "Signature Hash = Hash of the quantum-resistant signature generated with the Dilithium key",
+      "verified": "Verified",
+      "l2TxHash": "L2 TX Hash",
+      "l2TxHashTooltip": "L2 TX = Transaction recorded on Layer 2",
+      "challengeId": "Challenge ID",
+      "challenger": "Challenger",
+      "bond": "Bond",
+      "defenseDeadline": "Defense Deadline"
+    },
+    "timeline": {
+      "requested": "Unlock Requested",
+      "timeLockStart": "Time Lock Started",
+      "proverApproval": "Prover Approval",
+      "timeLockEnd": "Time Lock Ends",
+      "executed": "Unlock Executed",
+      "challenged": "Challenge Filed"
+    },
+    "proverStatus": {
+      "signed": "Signed",
+      "pending": "Pending"
+    },
+    "timeLockProgress": "Time Lock Progress",
+    "actions": {
+      "copyUnlockId": "Copy Unlock ID",
+      "viewLock": "View Related Lock",
+      "viewOnL2": "View on L2",
+      "viewChallenge": "View Challenge"
+    },
+    "copied": "Copied"
+  },
+  "unlocks": {
+    "meta": {
+      "title": "All Unlocks | Explorer | Quantum Shield",
+      "description": "View all unlock requests on Quantum Shield"
+    },
+    "pageTitle": "All Unlocks",
+    "stats": {
+      "pending": "Pending",
+      "completed": "Completed"
+    },
+    "filters": {
+      "status": {
+        "all": "All Status",
+        "pending": "Pending",
+        "complete": "Complete",
+        "challenged": "Challenged"
+      },
+      "type": {
+        "all": "All Types",
+        "normal": "Normal",
+        "emergency": "Emergency"
+      }
+    },
+    "table": {
+      "ariaLabel": "Unlocks table",
+      "unlockId": "Unlock ID",
+      "lockId": "Lock ID",
+      "type": "Type",
+      "timeLock": "Time Lock",
+      "proverSigs": "Prover Sigs",
+      "proverSigsTooltip": "Prover Sigs = How many of 5 independent verifiers have approved this unlock (e.g., 3/5 = 3 of 5 have signed)",
+      "status": "Status"
+    },
+    "timeLock": {
+      "remaining": "left",
+      "defense": "Defense",
+      "completed": "-"
+    },
+    "pagination": {
+      "showing": "Showing {start}-{end} of {total} unlocks",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "detail": {
+      "title": "Unlock Details",
+      "sections": {
+        "unlockInfo": "Unlock Information",
+        "dilithiumSig": "Dilithium Signature",
+        "proverSigs": "Prover Signatures"
+      },
+      "fields": {
+        "unlockId": "Unlock ID",
+        "lockId": "Lock ID",
+        "requestTime": "Request Time",
+        "timeLockEnd": "Time Lock End",
+        "signatureHash": "Signature Hash",
+        "verified": "Verified"
+      },
+      "timeLockProgress": "Time Lock Progress",
+      "proverStatus": {
+        "signed": "Signed",
+        "pending": "Pending"
+      },
+      "close": "Close"
+    },
+    "emptyState": {
+      "title": "No Unlocks Found",
+      "description": "There are no unlocks to display"
+    }
+  },
+  "analytics": {
+    "meta": {
+      "title": "Analytics | Explorer | Quantum Shield",
+      "description": "View Quantum Shield protocol analytics data"
+    },
+    "pageTitle": "Protocol Analytics",
+    "timeRange": {
+      "label": "Time Range",
+      "7d": "7 Days",
+      "30d": "30 Days",
+      "90d": "90 Days",
+      "1y": "1 Year",
+      "all": "All Time"
+    },
+    "sections": {
+      "tvl": "TVL Trend",
+      "tvlTooltip": "TVL = Total Value Locked trend over time",
+      "volume": "Volume",
+      "volumeTooltip": "Daily Lock/Unlock transaction volume",
+      "locks": "Lock Statistics",
+      "unlocks": "Unlock Statistics",
+      "provers": "Prover Performance",
+      "challenges": "Challenge Statistics"
+    },
+    "charts": {
+      "tvl": {
+        "title": "TVL Trend",
+        "yAxis": "TVL (ETH)",
+        "current": "Current TVL",
+        "change": "Change"
+      },
+      "volume": {
+        "title": "Daily Volume",
+        "locks": "Locks",
+        "unlocks": "Unlocks",
+        "yAxis": "Count"
+      },
+      "locksByStatus": {
+        "title": "Locks by Status",
+        "active": "Active",
+        "unlocking": "Unlocking",
+        "unlocked": "Unlocked"
+      },
+      "unlocksByType": {
+        "title": "Unlocks by Type",
+        "normal": "Normal",
+        "emergency": "Emergency"
+      },
+      "proverUptime": {
+        "title": "Prover Uptime",
+        "uptime": "Uptime",
+        "target": "Target: 99.5%+",
+        "avgResponseTime": "Avg Response Time",
+        "avgResponseTimeTooltip": "Average time to respond to signature requests"
+      },
+      "challengeRate": {
+        "title": "Challenge Rate",
+        "rate": "Rate",
+        "rateTooltip": "Percentage of unlocks that received challenges",
+        "resolved": "Resolved",
+        "pending": "Pending"
+      }
+    },
+    "stats": {
+      "totalLocks": "Total Locks",
+      "totalUnlocks": "Total Unlocks",
+      "avgLockAmount": "Avg Lock Amount",
+      "avgLockDuration": "Avg Lock Duration",
+      "avgLockDurationTooltip": "Average time from lock to unlock completion",
+      "successRate": "Success Rate",
+      "successRateTooltip": "Percentage of unlocks completed without challenges"
+    },
+    "export": {
+      "button": "Export Data",
+      "csv": "CSV Format",
+      "json": "JSON Format"
+    }
+  },
+  "challenges": {
+    "meta": {
+      "title": "All Challenges | Explorer | Quantum Shield",
+      "description": "View all challenges on Quantum Shield"
+    },
+    "pageTitle": "All Challenges",
+    "stats": {
+      "totalChallenges": "Total Challenges",
+      "active": "Active",
+      "resolved": "Resolved",
+      "successRate": "Success Rate"
+    },
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "defense": "Defense Period",
+      "judgment": "In Judgment",
+      "resolved": "Resolved"
+    },
+    "table": {
+      "challengeId": "Challenge ID",
+      "targetUnlock": "Target Unlock",
+      "amount": "Amount",
+      "bond": "Bond",
+      "deadline": "Deadline",
+      "status": "Status"
+    },
+    "status": {
+      "defense": "Defense",
+      "judgment": "Judgment",
+      "resolved": "Resolved"
+    },
+    "result": {
+      "challenger_won": "Challenger Won",
+      "prover_won": "Prover Won"
+    },
+    "tooltip": {
+      "bond": "Bond is the collateral deposited when filing a challenge. It is returned if the challenge succeeds, but forfeited if it fails.",
+      "bondAriaLabel": "Learn more about bond",
+      "status": "Status: Defense = Prover is preparing response, Judgment = Awaiting verdict, Resolved = Verdict complete",
+      "statusAriaLabel": "Learn more about status"
+    }
+  },
+  "provers": {
+    "meta": {
+      "title": "All Provers | Explorer | Quantum Shield",
+      "description": "View all Provers on Quantum Shield"
+    },
+    "pageTitle": "All Provers",
+    "stats": {
+      "totalProvers": "Total Provers",
+      "online": "Online",
+      "avgUptime": "Avg Uptime",
+      "avgResponseTime": "Avg Response Time",
+      "totalSignatures": "Total Signatures"
+    },
+    "fields": {
+      "uptime": "Uptime",
+      "responseTime": "Response Time",
+      "signatures": "Signatures",
+      "stake": "Stake",
+      "lastActive": "Last Active"
+    },
+    "info": {
+      "title": "About Provers",
+      "description": "Provers are independent verifiers that validate unlock requests. When an unlock is requested, 2 of 5 Provers are randomly selected and must approve with their signatures. This distributed verification mechanism protects your assets from unauthorized unlocks."
+    }
+  },
+  "proverDetail": {
+    "meta": {
+      "title": "Prover Detail | Explorer | Quantum Shield",
+      "description": "Prover details and performance statistics"
+    },
+    "breadcrumb": {
+      "provers": "All Provers",
+      "detail": "Detail"
+    },
+    "notFound": {
+      "title": "Prover Not Found",
+      "description": "The specified Prover ID does not exist or has been removed.",
+      "backToProvers": "Back to Provers"
+    },
+    "sections": {
+      "overview": "Overview",
+      "performance": "Performance",
+      "signatures": "Signature History",
+      "staking": "Staking Info"
+    },
+    "fields": {
+      "proverId": "Prover ID",
+      "name": "Name",
+      "address": "Address",
+      "status": "Status",
+      "uptime": "Uptime",
+      "uptimeTooltip": "Uptime over the past 30 days. 99.5%+ is required",
+      "responseTime": "Response Time",
+      "responseTimeTooltip": "Average response time to signing requests",
+      "totalSignatures": "Total Signatures",
+      "totalSignaturesTooltip": "Total number of signatures generated by this Prover",
+      "dailySignatures": "Today's Signatures",
+      "dailySignaturesTooltip": "Number of signatures generated today",
+      "stake": "Stake Amount",
+      "stakeTooltip": "Required stake as a Prover. Slashed in case of misbehavior",
+      "registeredAt": "Registered At",
+      "lastActive": "Last Active"
+    },
+    "status": {
+      "active": "Active",
+      "warning": "Warning",
+      "offline": "Offline"
+    },
+    "chart": {
+      "title": "Uptime Trend (Past 30 Days)",
+      "uptime": "Uptime",
+      "target": "Target Line"
+    },
+    "recentSignatures": {
+      "title": "Recent Signatures",
+      "empty": "No signature history",
+      "table": {
+        "unlockId": "Unlock ID",
+        "timestamp": "Timestamp",
+        "responseTime": "Response Time",
+        "status": "Status"
+      }
+    },
+    "actions": {
+      "viewOnEtherscan": "View on Etherscan",
+      "copyAddress": "Copy Address"
+    }
+  },
+  "glossary": {
+    "meta": {
+      "title": "Glossary | Explorer | Quantum Shield",
+      "description": "Definitions of terms and concepts used in the Quantum Shield protocol"
+    },
+    "title": "Glossary",
+    "subtitle": "Terms and concepts used in the Quantum Shield protocol",
+    "backToExplorer": "Back to Explorer",
+    "searchPlaceholder": "Search terms...",
+    "searchAriaLabel": "Search terms",
+    "categoriesAriaLabel": "Category filter",
+    "categories": {
+      "all": "All",
+      "core": "Core Technology",
+      "locking": "Lock & Unlock",
+      "roles": "Roles",
+      "governance": "Governance",
+      "security": "Security"
+    },
+    "terms": {
+      "quantum-shield": {
+        "name": "Quantum Shield",
+        "definition": "A next-generation security protocol designed for the quantum computing era. Combines Dilithium signatures with STARK proofs to protect assets.",
+        "example": "By locking ETH in Quantum Shield, you can protect your assets from future quantum computer attacks."
+      },
+      "dilithium": {
+        "name": "Dilithium Signature",
+        "definition": "A NIST-standardized post-quantum cryptographic signature algorithm. Generates secure digital signatures that cannot be broken by quantum computers.",
+        "example": "When requesting an unlock, use a Dilithium signature to prove you are the legitimate owner."
+      },
+      "stark-proof": {
+        "name": "STARK Proof",
+        "definition": "A type of zero-knowledge proof. Proves the correctness of computation while allowing verification without revealing the original information.",
+        "example": "Prover computation results are recorded on-chain with STARK proofs and can be verified by anyone."
+      },
+      "post-quantum": {
+        "name": "Post-Quantum Cryptography",
+        "definition": "A general term for cryptographic technologies resistant to attacks by quantum computers. Includes Dilithium, SPHINCS+, and others.",
+        "example": "Traditional cryptography may be broken by quantum computers, but post-quantum cryptography remains secure."
+      },
+      "lock": {
+        "name": "Lock",
+        "definition": "Depositing assets like ETH into the Quantum Shield smart contract. Locked assets are protected with quantum resistance.",
+        "example": "When you lock 10 ETH, a Dilithium key is issued, and only that key can unlock it."
+      },
+      "unlock": {
+        "name": "Unlock",
+        "definition": "Withdrawing locked assets. Requires a Dilithium signature and Prover verification, executed after a waiting period.",
+        "example": "After requesting an unlock, you can withdraw your assets after a 24-hour waiting period."
+      },
+      "emergency-unlock": {
+        "name": "Emergency Unlock",
+        "definition": "A rescue mechanism when Provers fail to respond (72 hours). No Prover signatures required. Requires posting a Bond (MAX(0.5 ETH, 5% of locked amount)) and a 7-day waiting period before withdrawal.",
+        "example": "If Provers are unresponsive for 72 hours, you can post a bond and initiate an emergency unlock, retrieving your assets after 7 days."
+      },
+      "waiting-period": {
+        "name": "Waiting Period (Time Lock)",
+        "definition": "Required waiting time after an unlock request. Usually 24 hours, or 7 days for emergencies. Provides time to detect fraudulent unlocks.",
+        "example": "If there are no Challenges during the 24-hour waiting period, you can withdraw your assets."
+      },
+      "veqs": {
+        "name": "veQS",
+        "definition": "A governance token with voting rights. Obtained by locking QS, with longer lock periods granting more voting power.",
+        "example": "Locking 1000 QS for 1 year grants 1000 veQS of voting power."
+      },
+      "prover": {
+        "name": "Prover",
+        "definition": "An independent signer that verifies unlock requests. 2 of 5 are randomly selected and generate SPHINCS+ signatures.",
+        "example": "During unlock, 2 selected Provers sign to approve the request."
+      },
+      "observer": {
+        "name": "Observer",
+        "definition": "A role that monitors for fraudulent unlocks and initiates Challenges. Receives Challenge rewards as incentive.",
+        "example": "When an Observer detects a fraudulent unlock, they initiate a Challenge to protect the network."
+      },
+      "challenger": {
+        "name": "Challenger",
+        "definition": "Someone who files an objection against a suspicious unlock request. Correct Challenges receive rewards; incorrect ones incur penalties.",
+        "example": "When a Challenger deposits a Bond and successfully challenges, they receive a portion of the confiscated assets as reward."
+      },
+      "delegate": {
+        "name": "Delegate",
+        "definition": "A representative who has been delegated voting rights by other users. Votes in governance on behalf of delegators.",
+        "example": "If you find technical decisions difficult, you can delegate your voting rights to a trusted delegate."
+      },
+      "proposal": {
+        "name": "Proposal",
+        "definition": "A governance item requesting protocol changes. Can be created by members with sufficient veQS and executed if approved by vote.",
+        "example": "A proposal to change the waiting period to 48 hours was submitted and approved by veQS holders."
+      },
+      "quorum": {
+        "name": "Quorum",
+        "definition": "The minimum voting participation rate required for a proposal to be valid. Varies by type: Parameter changes 4%, Upgrades 8%, Council changes 15%, Immutable changes 30% (+2-year Time Lock).",
+        "example": "A parameter change proposal can pass with 4% quorum, while Council changes require 15%."
+      },
+      "council": {
+        "name": "Council",
+        "definition": "An elected committee that handles emergencies and makes important decisions. Composed of 9 members elected by community vote.",
+        "example": "If a security vulnerability is discovered, the Council can approve an emergency update."
+      },
+      "epoch": {
+        "name": "Epoch",
+        "definition": "A unit of time in the protocol. Used for reward calculations and governance cycles. Usually one week.",
+        "example": "At the end of each epoch, rewards for Provers are calculated and distributed."
+      },
+      "challenge": {
+        "name": "Challenge",
+        "definition": "An objection filed against an unlock request suspected of fraud. The Challenger deposits a bond and awaits judgment.",
+        "example": "An Observer who detected a suspicious unlock initiated a Challenge, temporarily suspending the unlock."
+      },
+      "slashing": {
+        "name": "Slashing",
+        "definition": "Confiscation of staked assets as penalty for misconduct. Uses Quadratic formula (N\u00b2\u00d710%): 1 Prover = 10%, 2 simultaneous = 40%, 3 = 90%, 4+ = 100%. Confiscated amounts are distributed: Challenger 60%, Insurance 20%, Burn 20%.",
+        "example": "If 2 Provers commit fraud simultaneously, each loses 40% (N\u00b2\u00d710% = 4\u00d710%) of their stake."
+      },
+      "stake": {
+        "name": "Stake",
+        "definition": "Assets deposited as collateral when taking on a role. Prover minimum stake: Phase 1 = $400K in ETH, Phase 2+ = $500K in QS (USD-denominated). HSM and 2-of-3 multisig required.",
+        "example": "To become a Prover in Phase 1, you must stake $400K worth of ETH and configure HSM with multisig."
+      },
+      "bond": {
+        "name": "Bond",
+        "definition": "Two types exist. Challenge Bond: MAX(0.1 ETH, 1% of target amount) \u2014 collateral for initiating a Challenge. Emergency Bond: MAX(0.5 ETH, 5% of locked amount) \u2014 collateral for emergency unlocks. Returned upon correct Challenge or successful completion.",
+        "example": "To challenge a 10 ETH unlock, you need MAX(0.1 ETH, 0.1 ETH) = 0.1 ETH as bond."
+      }
+    },
+    "empty": {
+      "title": "No matching terms found",
+      "description": "Try changing your search criteria"
+    }
+  },
+  "about": {
+    "meta": {
+      "title": "About Explorer | Quantum Shield",
+      "description": "Overview and guide for Quantum Shield Explorer"
+    },
+    "pageTitle": "About Quantum Shield Explorer",
+    "hero": {
+      "title": "Enabling Protocol Transparency",
+      "subtitle": "Quantum Shield Explorer is a transparent dashboard that tracks all Locks, Unlocks, and Challenges in real-time."
+    },
+    "sections": {
+      "whatIs": {
+        "title": "What is Quantum Shield Explorer",
+        "description": "Quantum Shield Explorer is a tool that visualizes all activity on the Quantum Shield protocol. Monitor asset locks, unlock requests, and challenge states in real-time."
+      },
+      "features": {
+        "title": "Key Features",
+        "items": {
+          "realtime": {
+            "title": "Real-time Tracking",
+            "description": "Monitor Lock/Unlock transactions in real-time"
+          },
+          "search": {
+            "title": "Advanced Search",
+            "description": "Quickly search by Address, TX Hash, or Lock ID"
+          },
+          "analytics": {
+            "title": "Analytics Dashboard",
+            "description": "Visualize TVL trends, volume, and Prover performance"
+          },
+          "transparency": {
+            "title": "Full Transparency",
+            "description": "All transactions and challenges are public"
+          }
+        }
+      },
+      "howItWorks": {
+        "title": "How It Works",
+        "steps": {
+          "lock": {
+            "title": "1. Lock",
+            "description": "User locks ETH in Quantum Shield"
+          },
+          "unlock": {
+            "title": "2. Unlock Request",
+            "description": "Request unlock with Dilithium signature",
+            "tooltip": "Dilithium signature = A next-generation digital signature that cannot be cracked by quantum computers"
+          },
+          "prover": {
+            "title": "3. Prover Verification",
+            "description": "2 of 5 Provers randomly selected to sign",
+            "tooltip": "Prover = Independent verifiers that validate unlock requests. Multiple parties verify to prevent fraud"
+          },
+          "timelock": {
+            "title": "4. Time Lock",
+            "description": "24 hours (normal) or 7 days (emergency) wait period"
+          },
+          "complete": {
+            "title": "5. Complete",
+            "description": "Assets become withdrawable after wait period"
+          }
+        }
+      },
+      "resources": {
+        "title": "Resources",
+        "docs": {
+          "title": "Documentation",
+          "description": "Technical specs and detailed guides"
+        },
+        "github": {
+          "title": "GitHub",
+          "description": "Open source code"
+        },
+        "discord": {
+          "title": "Discord",
+          "description": "Join the community"
+        }
+      }
+    },
+    "cta": {
+      "explore": "Start Exploring",
+      "learnMore": "Learn More"
+    }
+  }
+}

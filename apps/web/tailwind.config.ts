@@ -41,15 +41,15 @@ const config: Config = {
           800: '#664926',
           900: '#452912',
         },
-        // Background colors (matching mock design)
+        // Background colors (matching design-concept-5-japan-premium.html)
         background: {
           DEFAULT: '#0A0A0C',
           secondary: '#111114',
           tertiary: '#18181C',
-          elevated: '#1E1E22',
+          elevated: '#18181C',
           card: '#0E0E11',
         },
-        // Surface colors
+        // Surface colors (matching design-concept-5-japan-premium.html)
         surface: {
           DEFAULT: '#18181C',
           secondary: '#1E1E22',
@@ -87,6 +87,23 @@ const config: Config = {
           challenged: '#E84057', // Danger - under challenge (matching mock)
           emergency: '#BC002D',  // Hinomaru - emergency
         },
+        // Border colors
+        border: {
+          DEFAULT: '#2A2A2E',
+          secondary: '#3A3A40',
+        },
+        // Muted colors (for compatibility)
+        muted: {
+          DEFAULT: '#18181C',
+          foreground: '#9898A0',
+        },
+        // Card colors
+        card: {
+          DEFAULT: '#0E0E11',
+          foreground: '#F8F8FA',
+        },
+        // Elevated background
+        elevated: '#1E1E22',
       },
       fontFamily: {
         sans: [
@@ -135,6 +152,10 @@ const config: Config = {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
         'shimmer': 'shimmer 2s linear infinite',
+        'orbit-gold': 'orbit-gold 12s linear infinite',
+        'orbit-red': 'orbit-red 18s linear infinite',
+        'orbit-white': 'orbit-white 24s linear infinite',
+        'hinomaru-pulse': 'hinomaru-pulse 4s ease-in-out infinite',
       },
       keyframes: {
         glow: {
@@ -145,11 +166,37 @@ const config: Config = {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
+        'orbit-gold': {
+          from: { transform: 'translate(-50%, -50%) rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg)' },
+          to: { transform: 'translate(-50%, -50%) rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg)' },
+        },
+        'orbit-red': {
+          from: { transform: 'translate(-50%, -50%) rotate(120deg) translateX(var(--orbit-radius)) rotate(-120deg)' },
+          to: { transform: 'translate(-50%, -50%) rotate(480deg) translateX(var(--orbit-radius)) rotate(-480deg)' },
+        },
+        'orbit-white': {
+          from: { transform: 'translate(-50%, -50%) rotate(240deg) translateX(var(--orbit-radius)) rotate(-240deg)' },
+          to: { transform: 'translate(-50%, -50%) rotate(600deg) translateX(var(--orbit-radius)) rotate(-600deg)' },
+        },
+        'hinomaru-pulse': {
+          '0%, 100%': {
+            transform: 'scale(1)',
+            boxShadow: '0 0 60px rgba(188, 0, 45, 0.4), 0 0 100px rgba(188, 0, 45, 0.2)',
+          },
+          '50%': {
+            transform: 'scale(1.03)',
+            boxShadow: '0 0 80px rgba(188, 0, 45, 0.4), 0 0 120px rgba(188, 0, 45, 0.3)',
+          },
+        },
       },
       spacing: {
+        '13': '3.25rem', // 52px - Button lg size
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
+      },
+      transitionDuration: {
+        '250': '250ms',
       },
     },
   },

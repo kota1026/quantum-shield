@@ -1,59 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Lock, AlertTriangle, HelpCircle, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface InlineTooltipProps {
-  content: string;
-  children: React.ReactNode;
-}
-
-function InlineTooltip({ content, children }: InlineTooltipProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const showTooltip = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsVisible(true);
-  };
-
-  const hideTooltip = () => {
-    timeoutRef.current = setTimeout(() => setIsVisible(false), 150);
-  };
-
-  return (
-    <span
-      className="relative inline-flex items-center gap-1 cursor-help"
-      onMouseEnter={showTooltip}
-      onMouseLeave={hideTooltip}
-      onFocus={showTooltip}
-      onBlur={hideTooltip}
-    >
-      {children}
-      <HelpCircle className="w-3 h-3 text-foreground-tertiary" aria-hidden="true" />
-      {isVisible && (
-        <span
-          role="tooltip"
-          className={cn(
-            'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
-            'px-3 py-2 max-w-xs',
-            'text-xs text-foreground bg-surface-secondary',
-            'border border-border rounded-qs shadow-lg',
-            'whitespace-normal text-center'
-          )}
-        >
-          {content}
-          <span
-            className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-border"
-            aria-hidden="true"
-          />
-        </span>
-      )}
-    </span>
-  );
-}
+import { Tooltip } from '@/components/consumer/Dashboard/Tooltip';
 
 type MethodType = 'normal' | 'emergency';
 
@@ -96,7 +46,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
       }}
       className={cn(
         'p-6 rounded-qs-xl border cursor-pointer transition-all',
-        'bg-surface hover:border-border-secondary',
+        'bg-surface hover-gradient-border',
         selected ? 'border-hinomaru' : 'border-border'
       )}
     >
@@ -128,21 +78,23 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
           <div key={index} className="flex justify-between text-xs">
             <span className="text-foreground-tertiary">{detail.label}</span>
             {detail.tooltip ? (
-              <InlineTooltip content={detail.tooltip}>
+              <Tooltip content={detail.tooltip}>
                 <span
                   className={cn(
-                    'font-medium',
-                    detail.warning ? 'text-warning' : 'text-foreground'
+                    'font-medium inline-flex items-center gap-1 cursor-help',
+                    'warning' in detail && detail.warning ? 'text-warning' : 'text-foreground'
                   )}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {detail.value}
+                  <HelpCircle className="w-3 h-3 text-foreground-tertiary" aria-hidden="true" />
                 </span>
-              </InlineTooltip>
+              </Tooltip>
             ) : (
               <span
                 className={cn(
                   'font-medium',
-                  detail.warning ? 'text-warning' : 'text-foreground'
+                  'warning' in detail && detail.warning ? 'text-warning' : 'text-foreground'
                 )}
               >
                 {detail.value}
@@ -163,6 +115,7 @@ export function MethodCard({ type, selected, onSelect, onHelpClick }: MethodCard
             }}
             className={cn(
               'mt-4 flex items-center gap-1.5',
+              'min-h-[44px] py-2 -ml-2 pl-2 pr-4',
               'text-xs text-gold hover:underline'
             )}
           >

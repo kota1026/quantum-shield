@@ -131,6 +131,25 @@ pub struct ProverRegisterRequest {
     pub stake_amount: String,
     pub hsm_attestation: String,
     pub multisig_proof: String,
+    // Application form fields (optional for backward compatibility)
+    #[serde(default)]
+    pub organization_name: Option<String>,
+    #[serde(default)]
+    pub country: Option<String>,
+    #[serde(default)]
+    pub website: Option<String>,
+    #[serde(default)]
+    pub contact_email: Option<String>,
+    #[serde(default)]
+    pub validator_experience: Option<String>,
+    #[serde(default)]
+    pub hsm_provider: Option<String>,
+    #[serde(default)]
+    pub infrastructure_location: Option<String>,
+    #[serde(default)]
+    pub business_registration_number: Option<String>,
+    #[serde(default)]
+    pub documents_count: Option<i32>,
 }
 
 #[derive(Debug, Serialize)]
@@ -420,15 +439,19 @@ pub struct VRFStatusResponse {
 // Authentication Types (TASK-P5-012: SIWE→JWT)
 // ============================================================================
 
-/// SIWE (Sign-In with Ethereum/Quantum-safe) request
-/// Uses Dilithium-III signature for CP-1 compliance
+/// SIWE (Sign-In with Ethereum) request
+///
+/// Uses ECDSA signature for wallet compatibility (per SEQUENCES.md §1.1).
+/// Quantum-resistant Dilithium signatures are used separately for Lock/Unlock operations.
 #[derive(Debug, Deserialize)]
 pub struct SiweRequest {
     /// The SIWE message to sign (EIP-4361 format)
     pub message: String,
-    /// Dilithium-III signature of the message (hex encoded)
+    /// ECDSA signature of the message (hex encoded, 65 bytes)
     pub signature: String,
-    /// User's Dilithium-III public key (hex encoded)
+    /// Optional: User's Dilithium public key for future Lock operations
+    /// Not required for authentication itself
+    #[serde(default)]
     pub public_key: String,
 }
 
@@ -634,6 +657,8 @@ pub enum TransactionStatus {
 pub struct UserTransactionDetailResponse {
     /// Basic transaction info
     pub transaction: UserTransaction,
+    /// Owner's Dilithium public key (hex-encoded, for signature pre-check)
+    pub owner_public_key: String,
     /// State root SR_0
     pub sr_0: String,
     /// State root SR_1 (for unlocks)
@@ -1004,6 +1029,125 @@ pub struct TokenHubClaimResponse {
 }
 
 // ============================================================================
+// Token Hub Additional Types (FE-BE alignment)
+// ============================================================================
+
+/// Rewards summary for dashboard widget
+/// GET /v1/token-hub/rewards/summary
+#[derive(Debug, Serialize)]
+pub struct TokenHubRewardsSummaryResponse {
+    pub claimable: f64,
+    pub usd_value: f64,
+    pub epoch_progress: f64,
+    /// Reward currency: "QS" (QS Token on L3 Aegis)
+    pub currency: String,
+}
+
+/// Rewards breakdown by source
+/// GET /v1/token-hub/rewards/breakdown
+#[derive(Debug, Serialize)]
+pub struct TokenHubRewardsBreakdownResponse {
+    pub veqs_holding: f64,
+    pub voting_participation: f64,
+    pub delegation_bonus: f64,
+}
+
+/// Current epoch information
+/// GET /v1/token-hub/epoch
+#[derive(Debug, Serialize)]
+pub struct TokenHubEpochResponse {
+    pub number: u64,
+    pub progress: f64,
+    pub remaining: String,
+}
+
+/// User QS balance
+/// GET /v1/token-hub/balance
+#[derive(Debug, Serialize)]
+pub struct TokenHubBalanceResponse {
+    pub balance: f64,
+}
+
+/// Locked position for unlock page
+/// GET /v1/token-hub/locked-positions
+#[derive(Debug, Serialize)]
+pub struct TokenHubLockedPosition {
+    pub id: String,
+    pub locked_amount: f64,
+    #[serde(rename = "veQSAmount")]
+    pub veqs_amount: f64,
+    pub lock_date: String,
+    pub unlock_date: String,
+    pub duration_months: u32,
+    pub multiplier: f64,
+}
+
+/// User delegation summary
+/// GET /v1/token-hub/user-delegation
+#[derive(Debug, Serialize)]
+pub struct TokenHubUserDelegationResponse {
+    pub total_delegated: f64,
+    pub delegate_count: u32,
+}
+
+/// Claimable rewards detail
+/// GET /v1/token-hub/rewards/claimable
+#[derive(Debug, Serialize)]
+pub struct TokenHubClaimableResponse {
+    pub total: f64,
+    pub usd_value: f64,
+    pub breakdown: TokenHubClaimableBreakdown,
+    /// Reward currency: "QS" (QS Token on L3 Aegis)
+    pub currency: String,
+}
+
+/// Breakdown for claimable rewards
+#[derive(Debug, Serialize)]
+pub struct TokenHubClaimableBreakdown {
+    pub veqs_holding: f64,
+    pub voting_participation: f64,
+    pub delegation_bonus: f64,
+}
+
+/// Rewards history item
+/// GET /v1/token-hub/rewards/history
+#[derive(Debug, Serialize)]
+pub struct TokenHubRewardsHistoryItem {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub history_type: String,
+    pub date: String,
+    pub amount: f64,
+    pub status: String,
+    /// Reward currency: "QS" (QS Token on L3 Aegis)
+    pub currency: String,
+}
+
+/// Extended rewards history item with epoch and breakdown
+/// GET /v1/token-hub/rewards/history/extended
+#[derive(Debug, Serialize)]
+pub struct TokenHubExtendedRewardsHistoryItem {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub history_type: String,
+    pub date: String,
+    pub amount: f64,
+    pub epoch: u64,
+    pub status: String,
+    pub breakdown: TokenHubRewardBreakdown,
+    /// Reward currency: "QS" (QS Token on L3 Aegis)
+    pub currency: String,
+}
+
+/// Per-item reward breakdown
+#[derive(Debug, Serialize)]
+pub struct TokenHubRewardBreakdown {
+    pub holding: f64,
+    pub voting: f64,
+    pub delegation: f64,
+}
+
+// ============================================================================
 // Prover Portal Types (TASK-P5-022)
 // SEQUENCES §5: Prover Registration, §6: Prover Exit
 // ============================================================================
@@ -1115,7 +1259,7 @@ pub struct ProverSignResponse {
 
 /// Prover metrics
 /// GET /v1/prover/metrics
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ProverMetrics {
     /// Total signatures all time
     pub total_signatures: u64,
@@ -1335,4 +1479,58 @@ pub struct ProverWithdrawResponse {
     pub l1_tx_hash: Option<String>,
     /// Withdrawal timestamp
     pub withdrawn_at: u64,
+}
+
+// ============================================================================
+// Observer Types (TASK-P5-019 Extension: Registration)
+// ============================================================================
+
+/// Observer registration request
+/// POST /v1/observer/register
+#[derive(Debug, Deserialize)]
+pub struct ObserverRegisterRequest {
+    /// Operator wallet address
+    pub operator_addr: String,
+    /// Optional stake amount (not required for observers, but can stake for enhanced rewards)
+    pub stake_amount: Option<String>,
+}
+
+/// Observer registration response
+#[derive(Debug, Serialize)]
+pub struct ObserverRegisterResponse {
+    /// Unique observer ID
+    pub observer_id: String,
+    /// Registration status
+    pub status: ObserverStatus,
+    /// Operator address
+    pub operator_addr: String,
+    /// Registration timestamp
+    pub registered_at: u64,
+}
+
+/// Observer status enum
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ObserverStatus {
+    /// Pending admin approval
+    PendingApproval,
+    /// Active and can submit challenges
+    Active,
+    /// Temporarily inactive
+    Inactive,
+    /// Suspended by admin
+    Suspended,
+}
+
+/// Observer info for admin/internal use
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Observer {
+    pub observer_id: String,
+    pub operator_addr: String,
+    pub status: ObserverStatus,
+    pub stake_amount: Option<String>,
+    pub registered_at: u64,
+    pub total_challenges: u32,
+    pub successful_challenges: u32,
+    pub total_earnings: String,
 }

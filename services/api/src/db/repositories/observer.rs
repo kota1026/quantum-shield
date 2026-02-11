@@ -1,0 +1,436 @@
+//! Observer repository for database operations
+//!
+//! Phase 8-C: Observer management for QS Admin
+//! Follows BE-001~003 rules
+
+use bigdecimal::BigDecimal;
+use chrono::{DateTime, Utc};
+use sqlx::{FromRow, PgPool};
+use tracing::{debug, info, instrument, warn};
+
+use crate::error::ApiError;
+
+// ============================================================================
+// Observer Models
+// ============================================================================
+
+#[derive(Debug, Clone, FromRow)]
+pub struct ObserverRow {
+    pub observer_id: String,
+    pub wallet_address: String,
+    pub status: String,
+    pub total_earnings: BigDecimal,
+    pub successful_challenges: i64,
+    pub failed_challenges: i64,
+    pub registered_at: DateTime<Utc>,
+    pub practice_mode_until: Option<DateTime<Utc>>,
+    pub practice_mode_earnings: BigDecimal,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct ObserverEarningRow {
+    pub earning_id: String,
+    pub observer_id: String,
+    pub challenge_id: String,
+    pub amount: BigDecimal,
+    pub claimed: bool,
+    pub claim_tx_hash: Option<String>,
+    pub earned_at: DateTime<Utc>,
+    pub claimed_at: Option<DateTime<Utc>>,
+}
+
+// ============================================================================
+// Observer Repository
+// ============================================================================
+
+pub struct ObserverRepository;
+
+impl ObserverRepository {
+    // ========================================================================
+    // Write Operations (Storage Migration Phase 3)
+    // ========================================================================
+
+    /// Create or update an observer record in PostgreSQL
+    /// SM-001: PG first, then Redis cache
+    /// BE-001: Real DB operation (no stubs)
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool))]
+    pub async fn create(
+        pool: &PgPool,
+        observer_id: &str,
+        wallet_address: &str,
+        stake_amount: Option<&BigDecimal>,
+    ) -> Result<(), ApiError> {
+        info!("DB insert: observer create started, observer_id={}", observer_id);
+
+        sqlx::query(
+            r#"
+            INSERT INTO observers (observer_id, wallet_address, status, total_earnings,
+                                  successful_challenges, failed_challenges, practice_mode_earnings)
+            VALUES ($1, $2, 'pending_approval', 0, 0, 0, 0)
+            ON CONFLICT (observer_id) DO UPDATE SET
+                wallet_address = EXCLUDED.wallet_address
+            "#,
+        )
+        .bind(observer_id)
+        .bind(wallet_address)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: observer create failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        debug!("DB insert: observer create completed, observer_id={}", observer_id);
+        Ok(())
+    }
+
+    /// Get observer by wallet address
+    #[instrument(skip(pool), fields(wallet = %wallet_address))]
+    pub async fn get_by_wallet(
+        pool: &PgPool,
+        wallet_address: &str,
+    ) -> Result<Option<ObserverRow>, ApiError> {
+        info!("DB query: get_observer_by_wallet started");
+
+        let result = sqlx::query_as::<_, ObserverRow>(
+            r#"
+            SELECT observer_id, wallet_address, status, total_earnings,
+                   successful_challenges, failed_challenges, registered_at,
+                   practice_mode_until, practice_mode_earnings
+            FROM observers
+            WHERE wallet_address = $1
+            "#,
+        )
+        .bind(wallet_address)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_observer_by_wallet failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_observer_by_wallet completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    // ========================================================================
+    // Read Operations (Phase 8-C)
+    // ========================================================================
+
+    /// Get observer by ID
+    #[instrument(skip(pool))]
+    pub async fn get_by_id(
+        pool: &PgPool,
+        observer_id: &str,
+    ) -> Result<Option<ObserverRow>, ApiError> {
+        info!("DB query: get_observer_by_id started");
+
+        let result = sqlx::query_as::<_, ObserverRow>(
+            r#"
+            SELECT observer_id, wallet_address, status, total_earnings,
+                   successful_challenges, failed_challenges, registered_at,
+                   practice_mode_until, practice_mode_earnings
+            FROM observers
+            WHERE observer_id = $1
+            "#,
+        )
+        .bind(observer_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_observer_by_id failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_observer_by_id completed, found={}", result.is_some());
+        Ok(result)
+    }
+
+    /// List observers with filtering
+    #[instrument(skip(pool))]
+    pub async fn list_observers(
+        pool: &PgPool,
+        status: Option<&str>,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<ObserverRow>, ApiError> {
+        info!("DB query: list_observers started");
+
+        let results = sqlx::query_as::<_, ObserverRow>(
+            r#"
+            SELECT observer_id, wallet_address, status, total_earnings,
+                   successful_challenges, failed_challenges, registered_at,
+                   practice_mode_until, practice_mode_earnings
+            FROM observers
+            WHERE ($1::TEXT IS NULL OR status = $1)
+            ORDER BY registered_at DESC
+            OFFSET $2 LIMIT $3
+            "#,
+        )
+        .bind(status)
+        .bind(offset)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: list_observers failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: list_observers completed, count={}", results.len());
+        Ok(results)
+    }
+
+    /// Count observers by status
+    #[instrument(skip(pool))]
+    pub async fn count_by_status(
+        pool: &PgPool,
+        status: Option<&str>,
+    ) -> Result<i64, ApiError> {
+        info!("DB query: count_observers_by_status started");
+
+        let count: i64 = sqlx::query_scalar::<_, i64>(
+            r#"
+            SELECT COUNT(*)
+            FROM observers
+            WHERE ($1::TEXT IS NULL OR status = $1)
+            "#,
+        )
+        .bind(status)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: count_observers_by_status failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: count_observers_by_status completed, count={}", count);
+        Ok(count)
+    }
+
+    /// Get observer earnings
+    #[instrument(skip(pool))]
+    pub async fn get_earnings(
+        pool: &PgPool,
+        observer_id: &str,
+        limit: i64,
+    ) -> Result<Vec<ObserverEarningRow>, ApiError> {
+        info!("DB query: get_observer_earnings started");
+
+        let results = sqlx::query_as::<_, ObserverEarningRow>(
+            r#"
+            SELECT earning_id, observer_id, challenge_id, amount, claimed,
+                   claim_tx_hash, earned_at, claimed_at
+            FROM observer_earnings
+            WHERE observer_id = $1
+            ORDER BY earned_at DESC
+            LIMIT $2
+            "#,
+        )
+        .bind(observer_id)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_observer_earnings failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_observer_earnings completed, count={}", results.len());
+        Ok(results)
+    }
+
+    // ========================================================================
+    // Admin Observer Operations (Phase 8-C)
+    // ========================================================================
+
+    /// Update observer status
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool), fields(observer_id = %observer_id, status = %status))]
+    pub async fn update_status(
+        pool: &PgPool,
+        observer_id: &str,
+        status: &str,
+    ) -> Result<(), ApiError> {
+        info!("DB query: update_observer_status started");
+
+        sqlx::query(
+            r#"
+            UPDATE observers
+            SET status = $2
+            WHERE observer_id = $1
+            "#,
+        )
+        .bind(observer_id)
+        .bind(status)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: update_observer_status failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: update_observer_status completed");
+        Ok(())
+    }
+
+    /// Get challenges submitted by an observer
+    /// BE-001: Real DB operation
+    /// BE-003: Mandatory logging
+    #[instrument(skip(pool), fields(observer_id = %observer_id))]
+    pub async fn get_challenges_by_observer(
+        pool: &PgPool,
+        observer_id: &str,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<ObserverChallengeRow>, ApiError> {
+        info!("DB query: get_challenges_by_observer started");
+
+        let results = sqlx::query_as::<_, ObserverChallengeRow>(
+            r#"
+            SELECT c.challenge_id, c.lock_id, c.unlock_id, c.challenger, c.status,
+                   c.bond, c.challenged_at, c.defense_deadline, c.resolved_at
+            FROM challenges c
+            WHERE c.challenger = (SELECT wallet_address FROM observers WHERE observer_id = $1)
+            ORDER BY c.challenged_at DESC
+            OFFSET $2 LIMIT $3
+            "#,
+        )
+        .bind(observer_id)
+        .bind(offset)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_challenges_by_observer failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: get_challenges_by_observer completed, count={}", results.len());
+        Ok(results)
+    }
+
+    /// Count challenges by observer
+    #[instrument(skip(pool), fields(observer_id = %observer_id))]
+    pub async fn count_challenges_by_observer(
+        pool: &PgPool,
+        observer_id: &str,
+    ) -> Result<i64, ApiError> {
+        info!("DB query: count_challenges_by_observer started");
+
+        let count: i64 = sqlx::query_scalar::<_, i64>(
+            r#"
+            SELECT COUNT(*)
+            FROM challenges c
+            WHERE c.challenger = (SELECT wallet_address FROM observers WHERE observer_id = $1)
+            "#,
+        )
+        .bind(observer_id)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: count_challenges_by_observer failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+
+        info!("DB query: count_challenges_by_observer completed, count={}", count);
+        Ok(count)
+    }
+
+    // ========================================================================
+    // Phase 4: Observer Consumer Route Support
+    // ========================================================================
+
+    /// Get earnings summary for an observer (aggregated totals)
+    #[instrument(skip(pool))]
+    pub async fn get_earnings_summary(
+        pool: &PgPool,
+        observer_id: &str,
+    ) -> Result<ObserverEarningsSummary, ApiError> {
+        info!("DB query: get_earnings_summary started");
+
+        let row: (BigDecimal, BigDecimal, i64) = sqlx::query_as(
+            r#"
+            SELECT
+                COALESCE(SUM(amount), 0) as total,
+                COALESCE(SUM(CASE WHEN claimed = true THEN amount ELSE 0 END), 0) as claimed,
+                COUNT(CASE WHEN claimed = false THEN 1 END) as unclaimed_count
+            FROM observer_earnings
+            WHERE observer_id = $1
+            "#,
+        )
+        .bind(observer_id)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: get_earnings_summary failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        let total_earnings = row.0;
+        let claimed_earnings = row.1.clone();
+        let unclaimed_earnings = &total_earnings - &claimed_earnings;
+
+        info!("DB query: get_earnings_summary completed");
+        Ok(ObserverEarningsSummary {
+            total_earnings,
+            claimed_earnings,
+            unclaimed_earnings,
+        })
+    }
+
+    /// Claim an earning (mark as claimed)
+    #[instrument(skip(pool))]
+    pub async fn claim_earning(
+        pool: &PgPool,
+        earning_id: &str,
+    ) -> Result<bool, ApiError> {
+        info!("DB update: claim_earning started, earning_id={}", earning_id);
+
+        let result = sqlx::query(
+            r#"
+            UPDATE observer_earnings
+            SET claimed = true, claimed_at = NOW()
+            WHERE earning_id = $1 AND claimed = false
+            "#,
+        )
+        .bind(earning_id)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: claim_earning failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        let updated = result.rows_affected() > 0;
+        info!("DB update: claim_earning completed, updated={}", updated);
+        Ok(updated)
+    }
+}
+
+// ============================================================================
+// Additional Models (Phase 8-C + Phase 4)
+// ============================================================================
+
+/// Aggregated earnings summary
+pub struct ObserverEarningsSummary {
+    pub total_earnings: BigDecimal,
+    pub claimed_earnings: BigDecimal,
+    pub unclaimed_earnings: BigDecimal,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct ObserverChallengeRow {
+    pub challenge_id: String,
+    pub lock_id: String,
+    pub unlock_id: Option<String>,
+    pub challenger: String,
+    pub status: String,
+    pub bond: BigDecimal,
+    pub challenged_at: DateTime<Utc>,
+    pub defense_deadline: DateTime<Utc>,
+    pub resolved_at: Option<DateTime<Utc>>,
+}

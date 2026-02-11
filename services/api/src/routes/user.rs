@@ -212,8 +212,11 @@ pub async fn get_transaction_detail(
         .await?
         .ok_or_else(|| ApiError::LockNotFound(tx_id.clone()))?;
 
-    // Verify ownership
-    if lock.owner != user_address && lock.user_public_key != user_address {
+    // Verify ownership (check owner, user_public_key, OR dest_addr for wallet address match)
+    let is_owner = lock.owner == user_address
+        || lock.user_public_key == user_address
+        || lock.dest_addr.to_lowercase() == user_address.to_lowercase();
+    if !is_owner {
         return Err(ApiError::Unauthorized);
     }
 
@@ -281,6 +284,7 @@ pub async fn get_transaction_detail(
 
     Ok(Json(UserTransactionDetailResponse {
         transaction,
+        owner_public_key: lock.user_public_key.clone(),
         sr_0: lock.sr_0.clone(),
         sr_1: None, // TODO: Store SR_1 for unlocks
         prover_signatures: 0, // TODO: Track prover signatures
@@ -465,12 +469,12 @@ fn format_wei_to_eth(wei: u128) -> String {
     format!("{:.18}", eth)
 }
 
-/// Calculate USD value from ETH amount (placeholder)
-fn calculate_usd_value(eth_amount: &str) -> String {
-    // TODO: Integrate with price oracle (Chainlink)
-    let eth: f64 = eth_amount.parse().unwrap_or(0.0);
-    let usd = eth * 3500.0; // Placeholder ETH price
-    format!("{:.2}", usd)
+/// Calculate USD value from ETH amount
+/// Returns "0.00" until a price oracle (Chainlink / system_settings) is integrated.
+/// BE-001: No hardcoded price — return zero rather than a fake ETH price.
+fn calculate_usd_value(_eth_amount: &str) -> String {
+    // TODO: Phase 8-D — Integrate with Chainlink price oracle or system_settings table
+    "0.00".to_string()
 }
 
 /// Convert internal LockStatus to user-facing TransactionStatus

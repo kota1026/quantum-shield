@@ -1,0 +1,961 @@
+{
+  "qsAdmin": {
+    "common": {
+      "appName": "QS Admin",
+      "appDescription": "Quantum Shield Foundation 管理画面",
+      "loading": "読み込み中...",
+      "error": "エラーが発生しました",
+      "retry": "再試行",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "delete": "削除",
+      "edit": "編集",
+      "view": "詳細",
+      "detail": "詳細",
+      "create": "作成",
+      "search": "検索",
+      "filter": "フィルター",
+      "export": "エクスポート",
+      "refresh": "更新",
+      "back": "戻る",
+      "all": "すべて",
+      "trend": {
+        "fromLastWeek": "先週比"
+      }
+    },
+    "sidebar": {
+      "title": "QS Admin",
+      "subtitle": "Foundation Console",
+      "nav": {
+        "dashboard": "ダッシュボード",
+        "transactions": "トランザクション",
+        "transactionsLock": "ロック",
+        "transactionsUnlock": "アンロック",
+        "transactionsEmergency": "緊急アンロック",
+        "transactionsChallenge": "チャレンジ",
+        "users": "ユーザー",
+        "usersAll": "全ユーザー",
+        "usersWallets": "ウォレット",
+        "prover": "Prover",
+        "proverRequests": "申請管理",
+        "proverList": "Prover一覧",
+        "observer": "Observer",
+        "observerList": "Observer一覧",
+        "governance": "ガバナンス",
+        "governanceProposals": "提案",
+        "governanceVoting": "投票状況",
+        "treasury": "トレジャリー",
+        "treasuryWallets": "ウォレット",
+        "treasuryTransfers": "送金",
+        "treasuryBudget": "予算配分",
+        "treasuryAudit": "監査ログ",
+        "members": "メンバー",
+        "membersRoles": "権限管理",
+        "support": "サポート",
+        "supportTickets": "チケット",
+        "supportFaq": "FAQ管理",
+        "announcements": "お知らせ",
+        "announcementsEdit": "お知らせ編集",
+        "analytics": "分析",
+        "analyticsUsers": "ユーザー分析",
+        "analyticsRevenue": "収益分析",
+        "analyticsReports": "レポート",
+        "system": "システム",
+        "systemAlerts": "アラート",
+        "systemLogs": "システムログ",
+        "systemMaintenance": "メンテナンス"
+      },
+      "sections": {
+        "main": "メイン",
+        "operations": "オペレーション",
+        "network": "ネットワーク",
+        "finance": "ファイナンス",
+        "organization": "組織",
+        "settings": "設定"
+      },
+      "user": {
+        "name": "管理者",
+        "role": "Superadmin",
+        "logout": "ログアウト",
+        "settings": "設定"
+      }
+    },
+    "header": {
+      "search": "検索...",
+      "notifications": "通知",
+      "noNotifications": "新しい通知はありません",
+      "language": "言語"
+    },
+    "dashboard": {
+      "title": "ダッシュボード",
+      "subtitle": "Quantum Shield Foundation 管理概要",
+      "tabs": {
+        "overview": "概要",
+        "stats": "統計"
+      },
+      "period": {
+        "daily": "日次",
+        "weekly": "週次",
+        "monthly": "月次",
+        "total": "累計"
+      },
+      "stats": {
+        "totalUsers": "総ユーザー数",
+        "totalUsersDesc": "アクティブユーザー",
+        "totalLocked": "総ロック額",
+        "totalLockedDesc": "量子耐性保護中",
+        "activeProvers": "アクティブProver",
+        "activeProversDesc": "稼働中ノード",
+        "activeObservers": "アクティブObserver",
+        "activeObserversDesc": "監視中ノード",
+        "pendingUnlocks": "アンロック待ち",
+        "pendingUnlocksDesc": "24時間以内",
+        "treasuryBalance": "トレジャリー残高",
+        "treasuryBalanceDesc": "全ウォレット合計"
+      },
+      "charts": {
+        "lockVolume": "ロック推移（30日間）",
+        "userGrowth": "ユーザー数推移",
+        "transactionTypes": "トランザクション種別",
+        "tvlTrend": "TVL推移（Total Value Locked）",
+        "transactionVolume": "トランザクション件数推移",
+        "last7Days": "直近7日間",
+        "last30Days": "直近30日間",
+        "today": "本日",
+        "allTime": "全期間",
+        "tvlUnit": "単位: ETH",
+        "volumeUnit": "単位: 件数",
+        "userUnit": "単位: 人",
+        "locks": "ロック",
+        "unlocks": "アンロック"
+      },
+      "statsTable": {
+        "title": "統計データ",
+        "metric": "指標",
+        "value": "値",
+        "totalUsers": "総ユーザー数",
+        "locks": "ロック数（金額）",
+        "unlocks": "アンロック数（金額）",
+        "provers": "Prover数",
+        "observers": "Observer数",
+        "revenue": "売上",
+        "proposals": "提案数",
+        "treasury": "トレジャリー残高"
+      },
+      "recentActivity": {
+        "title": "最近のアクティビティ",
+        "viewAll": "すべて見る",
+        "noActivity": "アクティビティはありません",
+        "items": {
+          "proverRequest": "新規Prover申請を受信",
+          "largeUnlock": "大口アンロック申請（{amount}）",
+          "challengeInitiated": "アンロック #{id} にチャレンジ開始",
+          "treasuryTransfer": "トレジャリー送金承認"
+        },
+        "time": {
+          "minutesAgo": "{minutes}分前",
+          "hoursAgo": "{hours}時間前"
+        }
+      },
+      "alerts": {
+        "title": "アラート",
+        "viewAll": "すべて見る",
+        "noAlerts": "アラートはありません",
+        "critical": "重大",
+        "warning": "警告",
+        "info": "情報",
+        "items": {
+          "proverDegraded": "Proverノード #{id} の応答時間が低下",
+          "maintenanceScheduled": "今夜システムメンテナンス予定"
+        }
+      },
+      "quickActions": {
+        "title": "クイックアクション",
+        "reviewProver": "Prover申請を確認",
+        "viewPendingUnlocks": "保留中のアンロックを確認",
+        "createAnnouncement": "お知らせを作成",
+        "viewTreasury": "トレジャリーを確認"
+      }
+    },
+    "transactions": {
+      "title": "トランザクション",
+      "subtitle": "全トランザクションの監視・管理",
+      "lockTitle": "ロックトランザクション",
+      "lockSubtitle": "ロックトランザクションの管理",
+      "unlockTitle": "アンロックトランザクション",
+      "unlockSubtitle": "アンロックトランザクションの管理",
+      "emergencyTitle": "緊急アンロック",
+      "emergencySubtitle": "緊急アンロックトランザクションの管理",
+      "challengeTitle": "チャレンジ",
+      "challengeSubtitle": "チャレンジトランザクションの管理",
+      "filters": {
+        "all": "すべて",
+        "lock": "ロック",
+        "unlock": "アンロック",
+        "emergency": "緊急",
+        "challenge": "チャレンジ"
+      },
+      "stats": {
+        "totalLocks": "総ロック数",
+        "lockVolume": "ロック総額",
+        "avgLockAmount": "平均ロック額",
+        "avgLockDuration": "平均ロック期間",
+        "totalUnlocks": "総アンロック数",
+        "unlockVolume": "アンロック総額",
+        "avgUnlockAmount": "平均アンロック額",
+        "pendingUnlocks": "保留中アンロック",
+        "totalEmergency": "緊急アンロック数",
+        "totalChallenges": "総チャレンジ数",
+        "successfulChallenges": "成功チャレンジ",
+        "challengeSuccessRate": "チャレンジ成功率"
+      },
+      "table": {
+        "id": "ID",
+        "type": "種別",
+        "user": "ユーザー",
+        "amount": "金額",
+        "status": "ステータス",
+        "timestamp": "日時",
+        "duration": "期間",
+        "prover": "Prover",
+        "challenger": "チャレンジャー",
+        "reason": "理由",
+        "actions": "操作"
+      },
+      "status": {
+        "pending": "保留中",
+        "processing": "処理中",
+        "completed": "完了",
+        "confirmed": "確認済み",
+        "active": "アクティブ",
+        "unlocking": "アンロック中",
+        "unlocked": "アンロック済み",
+        "failed": "失敗",
+        "challenged": "異議申立中",
+        "challenge_period": "チャレンジ期間中",
+        "approved": "承認済み",
+        "rejected": "却下",
+        "waiting": "待機中",
+        "ready": "準備完了",
+        "cancelled": "キャンセル"
+      },
+      "empty": {
+        "lock": "ロックトランザクションはありません",
+        "unlock": "アンロックトランザクションはありません",
+        "emergency": "緊急アンロックはありません",
+        "challenge": "チャレンジはありません"
+      },
+      "emergency": {
+        "activeChallenges": "件の緊急アンロックがチャレンジ期間中",
+        "challengePeriodNote": "※ 緊急アンロックは7日間のチャレンジ期間後に自動実行されます",
+        "bond": "保証金",
+        "challengeEnd": "チャレンジ終了",
+        "challenges": "異議申立"
+      },
+      "detail": {
+        "title": "トランザクション詳細",
+        "subtitle": "トランザクション情報の確認",
+        "basicInfo": "基本情報",
+        "transactionInfo": "トランザクション情報",
+        "timeline": "タイムライン",
+        "txHash": "トランザクションハッシュ",
+        "blockNumber": "ブロック番号",
+        "gasUsed": "使用Gas",
+        "confirmations": "確認数",
+        "createdAt": "作成日時",
+        "updatedAt": "更新日時",
+        "lockPeriod": "ロック期間",
+        "unlockDate": "アンロック予定日",
+        "proofGenerated": "証明生成日時",
+        "proofVerified": "証明検証日時",
+        "viewOnExplorer": "エクスプローラーで確認",
+        "actions": {
+          "approve": "承認",
+          "reject": "却下",
+          "cancel": "キャンセル",
+          "retry": "再試行"
+        }
+      }
+    },
+    "prover": {
+      "title": "Prover管理",
+      "subtitle": "Proverノードの申請・管理",
+      "listTitle": "Prover一覧",
+      "listSubtitle": "登録済みProverの監視・管理",
+      "requestsTitle": "Prover申請",
+      "requestsSubtitle": "新規Prover申請の審査・承認",
+      "stats": {
+        "totalProvers": "総Prover数",
+        "activeProvers": "アクティブProver",
+        "pendingRequests": "申請待ち",
+        "totalStaked": "総ステーク量",
+        "avgUptime": "平均稼働率",
+        "approvedThisMonth": "今月の承認数",
+        "rejectedThisMonth": "今月の却下数",
+        "avgProcessTime": "平均処理時間"
+      },
+      "table": {
+        "id": "ID",
+        "name": "名前",
+        "applicant": "申請者",
+        "wallet": "ウォレット",
+        "tier": "ティア",
+        "staked": "ステーク量",
+        "infrastructure": "インフラ",
+        "documents": "ドキュメント",
+        "uptime": "稼働率",
+        "proofs": "証明数",
+        "resources": "リソース",
+        "status": "ステータス",
+        "submittedAt": "申請日時",
+        "since": "参加日",
+        "actions": "操作"
+      },
+      "status": {
+        "active": "稼働中",
+        "pending": "申請中",
+        "under_review": "審査中",
+        "approved": "承認済み",
+        "rejected": "却下",
+        "suspended": "停止中",
+        "inactive": "非アクティブ",
+        "maintenance": "メンテナンス中"
+      },
+      "tier": {
+        "standard": "スタンダード",
+        "professional": "プロフェッショナル",
+        "enterprise": "エンタープライズ"
+      },
+      "filters": {
+        "all": "すべて",
+        "maintenance": "メンテナンス中"
+      },
+      "actions": {
+        "approve": "承認",
+        "reject": "却下",
+        "viewDetail": "詳細を見る",
+        "reviewNow": "今すぐ審査",
+        "startReview": "審査を開始",
+        "confirmApprove": "承認を確定",
+        "confirmReject": "却下を確定",
+        "suspend": "停止",
+        "resume": "再開",
+        "approveConfirm": "この申請を承認しますか？",
+        "approveSuccess": "申請を承認しました",
+        "rejectConfirm": "この申請を却下しますか？",
+        "rejectSuccess": "申請を却下しました",
+        "suspendConfirm": "このProverを停止しますか？",
+        "resumeConfirm": "このProverを再開しますか？"
+      },
+      "alert": {
+        "pendingReview": "件の申請が審査待ちです"
+      },
+      "empty": "申請が見つかりません",
+      "searchPlaceholder": "申請を検索...",
+      "detail": {
+        "title": "申請詳細",
+        "subtitle": "Prover申請の詳細確認",
+        "applicantInfo": "申請者情報",
+        "technicalInfo": "技術情報",
+        "documents": "提出ドキュメント",
+        "reviewHistory": "審査履歴",
+        "companyName": "会社名",
+        "contactEmail": "連絡先メール",
+        "website": "ウェブサイト",
+        "stakeAmount": "ステーク額",
+        "hardwareSpecs": "ハードウェア仕様",
+        "networkBandwidth": "ネットワーク帯域",
+        "expectedUptime": "予想稼働率",
+        "rejectionReason": "却下理由",
+        "approvalComment": "承認コメント",
+        "pendingReview": "審査待ちの申請です",
+        "pendingReviewDesc": "審査を開始して、申請内容を確認してください。",
+        "startReviewTitle": "審査を開始しますか？",
+        "startReviewDesc": "審査を開始すると、この申請のステータスが「審査中」に変更されます。申請者にも通知されます。",
+        "reviewDecision": "審査結果を入力",
+        "commentPlaceholder": "承認・却下に関するコメントを入力してください（任意）",
+        "confirmApproveTitle": "承認を確定しますか？",
+        "confirmApproveDesc": "この申請を承認すると、以下の処理が実行されます：",
+        "approveEffect1": "申請者にProverとしての権限が付与されます",
+        "approveEffect2": "申請者のステーク（10,000 QS）がロックされます",
+        "approveEffect3": "Proverノードが有効化され、証明生成が可能になります",
+        "confirmRejectTitle": "却下を確定しますか？",
+        "confirmRejectDesc": "この申請を却下すると、申請者に却下通知が送信されます。却下理由は申請者に表示されます。",
+        "rejectReason": "却下理由",
+        "rejectReasonPlaceholder": "却下の理由を入力してください（必須）",
+        "rejectReasonRequired": "却下理由は必須です",
+        "approvedStatus": "この申請は承認されました",
+        "approvedStatusDesc": "申請者にProverとしての権限が付与されました。",
+        "rejectedStatus": "この申請は却下されました",
+        "rejectedStatusDesc": "申請者に却下通知が送信されました。",
+        "submissionInfo": "申請情報",
+        "documentsNote": "申請時に提出されたドキュメント",
+        "businessRegistrationNumber": "法人番号",
+        "hsmProvider": "HSMプロバイダー",
+        "validatorExperience": "バリデーター経験"
+      },
+      "listDetail": {
+        "title": "Prover詳細",
+        "subtitle": "Prover情報の確認",
+        "basicInfo": "基本情報",
+        "performance": "パフォーマンス",
+        "resources": "リソース情報",
+        "recentProofs": "最近の証明",
+        "viewAllProofs": "すべての証明を見る",
+        "challengeStats": "チャレンジ統計",
+        "registeredAt": "登録日時",
+        "lastProof": "最終証明",
+        "avgResponseTime": "平均応答時間",
+        "totalRewards": "累計報酬",
+        "memory": "メモリ",
+        "storage": "ストレージ",
+        "challengesReceived": "受信チャレンジ",
+        "challengesPassed": "成功",
+        "challengesFailed": "失敗",
+        "successRate": "成功率",
+        "viewOnExplorer": "エクスプローラーで確認",
+        "suspendSuccess": "Proverを停止しました",
+        "resumeSuccess": "Proverを再開しました",
+        "actions": "操作",
+        "hardwareSpecs": "ハードウェア仕様",
+        "networkBandwidth": "ネットワーク帯域"
+      }
+    },
+    "observer": {
+      "title": "Observer管理",
+      "subtitle": "Observerノードの監視・管理",
+      "listTitle": "Observer一覧",
+      "listSubtitle": "登録済みObserverの監視",
+      "stats": {
+        "totalObservers": "総Observer数",
+        "activeObservers": "アクティブObserver",
+        "totalChallenges": "総チャレンジ数",
+        "successRate": "成功率",
+        "totalEarnings": "総報酬"
+      },
+      "table": {
+        "id": "ID",
+        "wallet": "ウォレット",
+        "bond": "ボンド",
+        "challenges": "チャレンジ数",
+        "successRate": "成功率",
+        "earnings": "報酬",
+        "lastActive": "最終アクティブ",
+        "status": "ステータス",
+        "actions": "操作"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ",
+        "warning": "警告"
+      },
+      "filters": {
+        "all": "すべて",
+        "warning": "警告"
+      },
+      "searchPlaceholder": "Observerを検索...",
+      "empty": "Observerが見つかりません",
+      "actions": {
+        "viewDetail": "詳細を見る",
+        "suspend": "停止",
+        "activate": "有効化",
+        "viewOnExplorer": "エクスプローラーで見る"
+      },
+      "detail": {
+        "title": "Observer詳細",
+        "subtitle": "Observer情報の確認",
+        "basicInfo": "基本情報",
+        "performanceInfo": "パフォーマンス情報",
+        "challengeHistory": "チャレンジ履歴",
+        "recentChallenges": "最近のチャレンジ",
+        "viewAllChallenges": "すべてのチャレンジを見る",
+        "registeredAt": "登録日時",
+        "totalEarnings": "累計報酬",
+        "avgResponseTime": "平均応答時間",
+        "successfulChallenges": "成功チャレンジ",
+        "failedChallenges": "失敗チャレンジ"
+      }
+    },
+    "governance": {
+      "title": "ガバナンス管理",
+      "subtitle": "提案・投票の管理",
+      "proposalsTitle": "提案一覧",
+      "proposalsSubtitle": "すべての提案を管理",
+      "votingTitle": "投票状況",
+      "votingSubtitle": "アクティブな投票の監視",
+      "stats": {
+        "activeProposals": "アクティブ提案",
+        "totalVotes": "総投票数",
+        "participation": "参加率",
+        "passedProposals": "可決提案数",
+        "avgTurnout": "平均投票率"
+      },
+      "table": {
+        "id": "ID",
+        "title": "タイトル",
+        "proposer": "提案者",
+        "status": "ステータス",
+        "votes": "投票数",
+        "forVotes": "賛成",
+        "againstVotes": "反対",
+        "turnout": "投票率",
+        "startDate": "開始日",
+        "endDate": "終了日",
+        "actions": "操作"
+      },
+      "status": {
+        "active": "投票中",
+        "passed": "可決",
+        "rejected": "否決",
+        "pending": "保留中",
+        "executed": "実行済み"
+      },
+      "empty": "提案が見つかりません",
+      "actions": {
+        "viewDetail": "詳細を見る",
+        "execute": "実行",
+        "cancel": "キャンセル"
+      },
+      "detail": {
+        "title": "提案詳細",
+        "subtitle": "提案情報の確認",
+        "proposalInfo": "提案情報",
+        "votingInfo": "投票情報",
+        "voteHistory": "投票履歴",
+        "recentVotes": "最近の投票",
+        "viewAllVotes": "すべての投票を見る",
+        "description": "説明",
+        "category": "カテゴリ",
+        "quorum": "定足数",
+        "currentVotes": "現在の投票",
+        "requiredVotes": "必要投票数",
+        "timeRemaining": "残り時間",
+        "daysRemaining": "日残り",
+        "votingPeriod": "投票期間"
+      }
+    },
+    "users": {
+      "title": "ユーザー管理",
+      "subtitle": "Consumer App ユーザーの管理",
+      "listTitle": "全ユーザー一覧",
+      "listSubtitle": "ユーザー詳細情報の確認",
+      "walletsTitle": "ウォレット一覧",
+      "walletsSubtitle": "接続されたウォレットの管理",
+      "stats": {
+        "totalUsers": "総ユーザー数",
+        "activeUsers": "アクティブユーザー",
+        "newUsers": "新規ユーザー（30日）",
+        "lockedVolume": "ロック中の総額",
+        "totalTransactions": "総トランザクション"
+      },
+      "table": {
+        "wallet": "ウォレット",
+        "email": "メール",
+        "joined": "登録日",
+        "lastActive": "最終アクティブ",
+        "locked": "ロック額",
+        "unlocked": "アンロック済",
+        "transactions": "トランザクション",
+        "status": "ステータス",
+        "actions": "操作"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ",
+        "suspended": "停止中"
+      },
+      "actions": {
+        "viewDetail": "詳細を見る",
+        "suspend": "停止",
+        "activate": "有効化",
+        "suspendSelected": "選択したユーザーを停止",
+        "suspendConfirm": "{count}件のユーザーを停止しますか？",
+        "suspendSuccess": "{count}件のユーザーを停止しました"
+      },
+      "empty": "ユーザーが見つかりません",
+      "searchPlaceholder": "ウォレットまたはメールで検索...",
+      "detail": {
+        "title": "ユーザー詳細",
+        "subtitle": "ユーザー情報の確認",
+        "basicInfo": "基本情報",
+        "activityInfo": "アクティビティ情報",
+        "transactionHistory": "トランザクション履歴",
+        "recentTransactions": "最近のトランザクション",
+        "viewAllTransactions": "すべてのトランザクションを見る"
+      },
+      "userWallets": {
+        "title": "ユーザーウォレット",
+        "subtitle": "ウォレットアドレスとロック状況",
+        "listTitle": "ウォレット一覧",
+        "searchPlaceholder": "アドレスで検索...",
+        "stats": {
+          "totalWallets": "総ウォレット数",
+          "walletsWithLocks": "ロック中ウォレット",
+          "totalLocked": "ロック中総額",
+          "avgLockAmount": "平均ロック額"
+        },
+        "filters": {
+          "all": "すべてのウォレット",
+          "withLocks": "ロック中",
+          "withUnlocking": "アンロック中",
+          "empty": "ロックなし"
+        },
+        "table": {
+          "walletAddress": "ウォレットアドレス",
+          "locked": "ロック中",
+          "unlocking": "アンロック中",
+          "pending": "保留中",
+          "transactions": "取引数",
+          "lastActivity": "最終アクティビティ",
+          "actions": "操作"
+        },
+        "actions": {
+          "viewDetails": "詳細を見る",
+          "viewOnEtherscan": "Etherscanで確認"
+        },
+        "noWalletsFound": "ウォレットが見つかりません"
+      }
+    },
+    "treasury": {
+      "title": "トレジャリー",
+      "subtitle": "財団資金の管理",
+      "transfersSubtitle": "送金と承認の管理",
+      "wallets": {
+        "title": "ウォレット",
+        "subtitle": "財団ウォレットと署名者の管理",
+        "addWallet": "ウォレットを追加",
+        "main": "メインウォレット",
+        "operational": "オペレーショナル",
+        "grants": "グラント",
+        "insurance": "保険基金",
+        "emergency": "緊急対応",
+        "balance": "残高",
+        "signers": "署名者",
+        "threshold": "閾値",
+        "stats": {
+          "totalBalance": "総残高",
+          "activeWallets": "アクティブウォレット",
+          "totalSigners": "総署名者数",
+          "avgThreshold": "平均閾値"
+        },
+        "authorizedSigners": "承認済み署名者",
+        "walletDetails": "ウォレット詳細",
+        "status": "ステータス",
+        "active": "アクティブ",
+        "lastActivity": "最終アクティビティ",
+        "ofSignatures": "{total}署名中",
+        "viewOnEtherscan": "Etherscanで確認",
+        "noWalletsFound": "ウォレットが見つかりません"
+      },
+      "transfers": {
+        "title": "送金",
+        "newTransfer": "新規送金",
+        "pendingApprovals": "承認待ち",
+        "history": "履歴",
+        "transfersThisMonth": "今月の送金",
+        "totalVolume": "総送金額",
+        "avgTransferSize": "平均送金額"
+      },
+      "table": {
+        "id": "ID",
+        "route": "経路",
+        "amount": "金額",
+        "purpose": "目的",
+        "approvals": "承認数",
+        "status": "ステータス",
+        "time": "日時",
+        "actions": "操作",
+        "initiator": "申請者",
+        "from": "送金元",
+        "to": "送金先"
+      },
+      "status": {
+        "pending": "承認待ち",
+        "completed": "完了",
+        "rejected": "却下",
+        "all": "すべて"
+      },
+      "empty": "送金が見つかりません",
+      "actions": {
+        "approve": "承認",
+        "reject": "却下",
+        "viewDetail": "詳細を見る"
+      },
+      "detail": {
+        "title": "送金詳細",
+        "subtitle": "送金情報の確認",
+        "transferInfo": "送金情報",
+        "approvalInfo": "承認情報",
+        "approvalHistory": "承認履歴",
+        "txHash": "トランザクションハッシュ",
+        "createdAt": "作成日時",
+        "completedAt": "完了日時",
+        "requiredApprovals": "必要承認数",
+        "currentApprovals": "現在の承認数",
+        "approvers": "承認者"
+      },
+      "newTransfer": {
+        "title": "新規送金",
+        "subtitle": "新しい送金リクエストを作成",
+        "fromWallet": "送金元ウォレット",
+        "toAddress": "送金先アドレス",
+        "amount": "金額",
+        "purpose": "目的・説明",
+        "submit": "送金リクエストを送信",
+        "selectWallet": "ウォレットを選択",
+        "enterAddress": "0x... またはウォレットを選択",
+        "enterAmount": "送金額を入力",
+        "enterPurpose": "送金の目的を入力"
+      },
+      "budget": {
+        "title": "予算管理",
+        "subtitle": "予算配分と追跡",
+        "totalBudget": "総予算",
+        "allocated": "割当済み",
+        "spent": "使用済み",
+        "remaining": "残額",
+        "utilization": "使用率",
+        "vsLastQuarter": "前四半期比",
+        "editBudget": "予算を編集",
+        "byCategory": "カテゴリ別予算",
+        "addCategory": "カテゴリを追加",
+        "monthlyBreakdown": "月次内訳",
+        "quarterSummary": "四半期サマリー",
+        "budgetUtilization": "予算使用率",
+        "ofAllocated": "割当予算に対する",
+        "avgMonthlySpend": "月平均支出",
+        "perMonth": "月あたり",
+        "projectedSurplus": "予測余剰",
+        "byQuarterEnd": "四半期末時点",
+        "used": "使用済み",
+        "onTrack": "予算内",
+        "overBudget": "予算超過",
+        "ofMonthlyBudget": "月次予算に対する"
+      },
+      "audit": {
+        "title": "監査ログ",
+        "subtitle": "トレジャリーの活動とセキュリティ監査証跡",
+        "totalLogs": "総ログ数",
+        "thisWeek": "今週",
+        "criticalEvents": "重大イベント",
+        "pendingReview": "レビュー待ち",
+        "auditTrail": "監査証跡",
+        "severity": {
+          "all": "すべて",
+          "critical": "重大",
+          "warning": "警告",
+          "info": "情報"
+        },
+        "table": {
+          "id": "ID",
+          "timestamp": "日時",
+          "action": "アクション",
+          "actor": "実行者",
+          "details": "詳細",
+          "severity": "重要度",
+          "ip": "IPアドレス",
+          "actions": "操作"
+        },
+        "actions": {
+          "transfer_initiated": "送金開始",
+          "transfer_approved": "送金承認",
+          "transfer_rejected": "送金却下",
+          "signer_added": "署名者追加",
+          "signer_removed": "署名者削除",
+          "threshold_changed": "閾値変更",
+          "budget_updated": "予算更新",
+          "wallet_created": "ウォレット作成",
+          "login_failed": "ログイン失敗"
+        },
+        "empty": "監査ログが見つかりません"
+      }
+    },
+    "members": {
+      "title": "メンバー管理",
+      "subtitle": "財団メンバーの管理",
+      "rolesTitle": "権限管理",
+      "rolesSubtitle": "ロールと権限の設定",
+      "stats": {
+        "totalMembers": "総メンバー数",
+        "activeMembers": "アクティブメンバー",
+        "roles": "ロール数",
+        "pendingInvites": "招待保留中"
+      },
+      "table": {
+        "name": "名前",
+        "email": "メール",
+        "role": "ロール",
+        "status": "ステータス",
+        "lastActive": "最終アクティブ",
+        "joined": "参加日",
+        "actions": "操作"
+      },
+      "roles": {
+        "superadmin": "Superadmin",
+        "admin": "Admin",
+        "operator": "Operator",
+        "viewer": "Viewer"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ",
+        "pending": "招待中"
+      },
+      "actions": {
+        "invite": "メンバーを招待",
+        "editRole": "ロールを編集",
+        "remove": "削除"
+      }
+    },
+    "support": {
+      "title": "サポート",
+      "subtitle": "サポートチケットの管理",
+      "ticketsTitle": "チケット一覧",
+      "ticketsSubtitle": "ユーザーサポートチケットの管理",
+      "faqTitle": "FAQ管理",
+      "faqSubtitle": "よくある質問の編集",
+      "stats": {
+        "totalTickets": "総チケット数",
+        "openTickets": "対応中",
+        "avgResponseTime": "平均応答時間",
+        "satisfaction": "満足度"
+      },
+      "table": {
+        "id": "ID",
+        "subject": "件名",
+        "user": "ユーザー",
+        "category": "カテゴリ",
+        "priority": "優先度",
+        "status": "ステータス",
+        "created": "作成日",
+        "updated": "更新日",
+        "actions": "操作"
+      },
+      "priority": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "status": {
+        "open": "対応中",
+        "pending": "保留中",
+        "resolved": "解決済み",
+        "closed": "クローズ"
+      },
+      "categories": {
+        "account": "アカウント",
+        "transaction": "トランザクション",
+        "technical": "技術的問題",
+        "other": "その他"
+      }
+    },
+    "announcements": {
+      "title": "お知らせ管理",
+      "subtitle": "お知らせの作成・編集",
+      "stats": {
+        "totalAnnouncements": "総お知らせ数",
+        "published": "公開中",
+        "scheduled": "予約投稿",
+        "draft": "下書き"
+      },
+      "table": {
+        "title": "タイトル",
+        "type": "種別",
+        "status": "ステータス",
+        "publishDate": "公開日",
+        "views": "閲覧数",
+        "actions": "操作"
+      },
+      "types": {
+        "info": "お知らせ",
+        "update": "アップデート",
+        "maintenance": "メンテナンス",
+        "alert": "重要"
+      },
+      "status": {
+        "published": "公開中",
+        "scheduled": "予約投稿",
+        "draft": "下書き"
+      },
+      "actions": {
+        "create": "新規作成",
+        "edit": "編集",
+        "publish": "公開",
+        "unpublish": "非公開",
+        "delete": "削除"
+      }
+    },
+    "analytics": {
+      "title": "分析",
+      "subtitle": "プラットフォーム分析・レポート",
+      "usersTitle": "ユーザー分析",
+      "usersSubtitle": "ユーザー行動の分析",
+      "revenueTitle": "収益分析",
+      "revenueSubtitle": "収益・手数料の分析",
+      "reportsTitle": "レポート",
+      "reportsSubtitle": "定期レポートの生成",
+      "stats": {
+        "dailyActiveUsers": "DAU",
+        "monthlyActiveUsers": "MAU",
+        "totalRevenue": "総収益",
+        "avgTransactionValue": "平均取引額"
+      },
+      "charts": {
+        "userGrowth": "ユーザー成長",
+        "transactionVolume": "取引量",
+        "revenueBreakdown": "収益内訳",
+        "userRetention": "ユーザー維持率"
+      },
+      "periods": {
+        "day": "日",
+        "week": "週",
+        "month": "月",
+        "year": "年"
+      }
+    },
+    "system": {
+      "title": "システム",
+      "subtitle": "システム設定・監視",
+      "alertsTitle": "アラート",
+      "alertsSubtitle": "システムアラートの監視",
+      "logsTitle": "システムログ",
+      "logsSubtitle": "システムログの確認",
+      "maintenanceTitle": "メンテナンス",
+      "maintenanceSubtitle": "メンテナンス管理",
+      "stats": {
+        "activeAlerts": "アクティブアラート",
+        "systemHealth": "システム健全性",
+        "uptime": "稼働率",
+        "lastMaintenance": "最終メンテナンス"
+      },
+      "table": {
+        "timestamp": "日時",
+        "level": "レベル",
+        "source": "ソース",
+        "message": "メッセージ",
+        "status": "ステータス",
+        "actions": "操作"
+      },
+      "levels": {
+        "critical": "重大",
+        "warning": "警告",
+        "info": "情報",
+        "debug": "デバッグ"
+      },
+      "status": {
+        "active": "アクティブ",
+        "acknowledged": "確認済み",
+        "resolved": "解決済み"
+      },
+      "maintenance": {
+        "schedule": "メンテナンス予約",
+        "history": "メンテナンス履歴",
+        "status": {
+          "scheduled": "予定",
+          "inProgress": "実行中",
+          "completed": "完了"
+        }
+      }
+    }
+  }
+}

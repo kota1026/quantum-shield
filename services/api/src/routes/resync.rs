@@ -13,6 +13,7 @@ use axum::{Extension, Json, extract::Path};
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    db::LockRepository,
     error::ApiError,
     services::AppState,
 };
@@ -284,11 +285,11 @@ pub struct ResyncSummary {
 /// 3. API updates L3 state with the verified lock
 /// 4. Returns resync confirmation
 pub async fn create_resync(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<ResyncRequest>,
 ) -> Result<Json<ResyncResponse>, ApiError> {
     tracing::info!(
-        "Resync: Manual resync request for lock_id={}, l1_tx_hash={}",
+        "Resync: Manual resync request started, lock_id={}, l1_tx_hash={}",
         req.lock_id,
         req.l1_tx_hash
     );
@@ -298,26 +299,64 @@ pub async fn create_resync(
         return Err(ApiError::InvalidRequest("Invalid L1 transaction hash format".to_string()));
     }
 
+    let pool = state.pool();
+
+    // Verify the lock exists in DB
+    let lock = LockRepository::get_by_id(pool, &req.lock_id)
+        .await?
+        .ok_or_else(|| ApiError::LockNotFound(req.lock_id.clone()))?;
+
     // Generate resync ID
     let resync_id = format!(
         "resync-{}",
         uuid::Uuid::new_v4().to_string().chars().take(8).collect::<String>()
     );
 
-    // In production:
-    // 1. Query L1 for the transaction
-    // 2. Verify the Lock event was emitted
-    // 3. Extract lock data (SR_0, asset, amount, etc.)
-    // 4. Update L3 SMT with the lock
-    // 5. Return confirmed status
+    // Store the L1 tx hash on the lock record
+    LockRepository::update_l1_tx_hash(pool, &req.lock_id, &req.l1_tx_hash).await?;
 
-    // Mock: Simulate successful resync
+    // Determine resync status from the lock's current DB status
+    let (status, message, estimated_time) = match lock.status.as_str() {
+        "confirmed" | "locked" => (
+            ResyncStatus::Synced,
+            "Lock is already synced on L3.".to_string(),
+            None,
+        ),
+        "pending" => (
+            ResyncStatus::PendingSync,
+            "Resync request accepted. Lock will be synced shortly.".to_string(),
+            Some(60u32),
+        ),
+        "pending_confirmation" => (
+            ResyncStatus::Syncing,
+            "Resync in progress. Awaiting L1 confirmation.".to_string(),
+            Some(120u32),
+        ),
+        "failed" => (
+            ResyncStatus::Failed,
+            "Lock is in failed state. Manual intervention may be required.".to_string(),
+            None,
+        ),
+        _ => (
+            ResyncStatus::PendingSync,
+            format!("Resync request accepted for lock in '{}' state.", lock.status),
+            Some(90u32),
+        ),
+    };
+
+    tracing::info!(
+        "Resync: Manual resync completed, lock_id={}, resync_id={}, status={:?}",
+        req.lock_id,
+        resync_id,
+        status
+    );
+
     Ok(Json(ResyncResponse {
         lock_id: req.lock_id,
-        status: ResyncStatus::Synced,
+        status,
         resync_id,
-        message: "Resync completed successfully. Lock is now synced on L3.".to_string(),
-        estimated_time: None,
+        message,
+        estimated_time,
     }))
 }
 
@@ -325,66 +364,94 @@ pub async fn create_resync(
 ///
 /// Get the current sync status for a specific lock, including L1 and L3 state.
 pub async fn get_resync_status(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(lock_id): Path<String>,
 ) -> Result<Json<ResyncStatusResponse>, ApiError> {
-    tracing::debug!("Resync: Getting status for lock_id={}", lock_id);
+    tracing::info!("Resync: Getting status started, lock_id={}", lock_id);
 
+    let pool = state.pool();
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs();
 
-    // Mock: Return synced status with full details
-    Ok(Json(ResyncStatusResponse {
-        lock_id: lock_id.clone(),
-        status: ResyncStatus::Synced,
-        lock: Some(SyncedLockInfo {
-            lock_id: lock_id.clone(),
-            asset: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".to_string(), // WETH
-            amount: "1000000000000000000".to_string(), // 1 ETH
-            dest_chain_id: 42161, // Arbitrum
-            dest_addr: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-            state_root: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890".to_string(),
-            created_at: now - 3600, // 1 hour ago
-            expiry: now + 86400, // 24 hours from now
-        }),
-        l1_info: Some(L1TransactionInfo {
-            tx_hash: "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba".to_string(),
-            block_number: 19000000,
-            confirmed: true,
-            confirmations: 12,
-            gas_used: 135000,
-            event_data: Some(LockEventData {
-                lock_id: lock_id.clone(),
-                state_root: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890".to_string(),
-                user: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
-                asset: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".to_string(),
-                amount: "1000000000000000000".to_string(),
+    // Query lock from DB
+    let lock_opt = LockRepository::get_by_id(pool, &lock_id).await?;
+
+    let (status, lock_info, l1_info, l3_info) = match lock_opt {
+        Some(ref lock) => {
+            let resync_status = match lock.status.as_str() {
+                "confirmed" | "locked" => ResyncStatus::Synced,
+                "pending" => ResyncStatus::PendingSync,
+                "pending_confirmation" => ResyncStatus::Syncing,
+                "failed" => ResyncStatus::Failed,
+                _ => ResyncStatus::PendingSync,
+            };
+
+            let dest_addr_hex = format!("0x{}", hex::encode(&lock.dest_addr));
+
+            let synced_lock = SyncedLockInfo {
+                lock_id: lock.lock_id.clone(),
+                asset: lock.asset.clone(),
+                amount: lock.amount.to_string(),
+                dest_chain_id: lock.chain_id as u64,
+                dest_addr: dest_addr_hex,
+                state_root: lock.sr_0.clone(),
+                created_at: lock.created_at.timestamp() as u64,
+                expiry: lock.expiry as u64,
+            };
+
+            // L1 info: populated from lock record if l1_tx_hash exists;
+            // block number / confirmations / gas are L1-specific and not stored in our DB
+            let l1 = lock.l1_tx_hash.as_ref().map(|tx_hash| L1TransactionInfo {
+                tx_hash: tx_hash.clone(),
+                block_number: 0,    // L1-specific, not available in DB
+                confirmed: resync_status == ResyncStatus::Synced,
+                confirmations: 0,   // L1-specific, not available in DB
+                gas_used: 0,        // L1-specific, not available in DB
+                event_data: None,   // L1-specific, not available in DB
+            });
+
+            // L3 info: derived from lock record existence and state root
+            let l3 = Some(L3StateInfo {
+                lock_known: true,
+                recorded_state_root: Some(lock.sr_0.clone()),
+                smt_leaf_index: None,   // SMT index not stored in locks table
+                last_sync_block: 0,     // L3-specific, not available in DB
+            });
+
+            (resync_status, Some(synced_lock), l1, l3)
+        }
+        None => (
+            ResyncStatus::NotFound,
+            None,
+            None,
+            Some(L3StateInfo {
+                lock_known: false,
+                recorded_state_root: None,
+                smt_leaf_index: None,
+                last_sync_block: 0,
             }),
-        }),
-        l3_info: Some(L3StateInfo {
-            lock_known: true,
-            recorded_state_root: Some("0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890".to_string()),
-            smt_leaf_index: Some(12345),
-            last_sync_block: 19000000,
-        }),
-        history: vec![
-            ResyncHistoryEntry {
-                timestamp: now - 3600,
-                action: "Lock created on L1".to_string(),
-                source: ResyncSource::AutoPoll,
-                result: "success".to_string(),
-                error: None,
-            },
-            ResyncHistoryEntry {
-                timestamp: now - 3590,
-                action: "L3 sync completed".to_string(),
-                source: ResyncSource::AutoPoll,
-                result: "success".to_string(),
-                error: None,
-            },
-        ],
+        ),
+    };
+
+    // No resync_history table exists; return empty history
+    let history = Vec::new();
+
+    tracing::info!(
+        "Resync: Getting status completed, lock_id={}, status={:?}, found={}",
+        lock_id,
+        status,
+        lock_opt.is_some()
+    );
+
+    Ok(Json(ResyncStatusResponse {
+        lock_id,
+        status,
+        lock: lock_info,
+        l1_info,
+        l3_info,
+        history,
         last_checked: now,
     }))
 }
@@ -394,54 +461,82 @@ pub async fn get_resync_status(
 /// Get list of all locks that are pending synchronization.
 /// This endpoint is useful for monitoring and manual intervention.
 pub async fn get_pending_resyncs(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<PendingResyncsResponse>, ApiError> {
-    tracing::debug!("Resync: Getting pending resyncs");
+    tracing::info!("Resync: Getting pending resyncs started");
 
+    let pool = state.pool();
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs();
 
-    // Mock: Return a few pending items for demonstration
-    // In production, this would query the database for unsynced locks
-    let pending = vec![
-        PendingResyncItem {
-            lock_id: "lock-pending-001".to_string(),
-            l1_tx_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
-            asset: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".to_string(),
-            amount: "500000000000000000".to_string(), // 0.5 ETH
-            user: "0xaaaa111122223333444455556666777788889999".to_string(),
-            l1_block_number: 18999990,
-            detected_at: now - 300, // 5 minutes ago
-            retry_count: 2,
-            last_retry: Some(now - 60),
-            status: ResyncStatus::PendingSync,
-        },
-        PendingResyncItem {
-            lock_id: "lock-pending-002".to_string(),
-            l1_tx_hash: "0x2222222222222222222222222222222222222222222222222222222222222222".to_string(),
-            asset: "0xA0b86a33E6a8CbB7b2c3bDdee8B0c2f3D4E5F6a7".to_string(), // Some token
-            amount: "1000000000000000000000".to_string(), // 1000 tokens
-            user: "0xbbbb111122223333444455556666777788889999".to_string(),
-            l1_block_number: 18999985,
-            detected_at: now - 600, // 10 minutes ago
-            retry_count: 3,
-            last_retry: Some(now - 120),
+    // Query locks with pending-like statuses from DB
+    let pending_locks = LockRepository::list_locks(pool, None, Some("pending"), 0, 1000).await?;
+    let pending_conf_locks =
+        LockRepository::list_locks(pool, None, Some("pending_confirmation"), 0, 1000).await?;
+    let failed_locks = LockRepository::list_locks(pool, None, Some("failed"), 0, 1000).await?;
+
+    // Count confirmed locks (for summary: synced in last 24h approximation)
+    let synced_count = LockRepository::count_by_status(pool, Some("confirmed")).await?
+        + LockRepository::count_by_status(pool, Some("locked")).await?;
+
+    // Combine pending + pending_confirmation into pending items
+    let mut pending: Vec<PendingResyncItem> = Vec::new();
+
+    for lock in pending_locks.iter().chain(pending_conf_locks.iter()) {
+        pending.push(PendingResyncItem {
+            lock_id: lock.lock_id.clone(),
+            l1_tx_hash: lock.l1_tx_hash.clone().unwrap_or_default(),
+            asset: lock.asset.clone(),
+            amount: lock.amount.to_string(),
+            user: lock.wallet_address.clone(),
+            l1_block_number: 0,  // L1-specific, not stored in locks table
+            detected_at: lock.created_at.timestamp() as u64,
+            retry_count: 0,      // No retry tracking table exists
+            last_retry: None,    // No retry tracking table exists
+            status: if lock.status == "pending" {
+                ResyncStatus::PendingSync
+            } else {
+                ResyncStatus::Syncing
+            },
+        });
+    }
+
+    for lock in &failed_locks {
+        pending.push(PendingResyncItem {
+            lock_id: lock.lock_id.clone(),
+            l1_tx_hash: lock.l1_tx_hash.clone().unwrap_or_default(),
+            asset: lock.asset.clone(),
+            amount: lock.amount.to_string(),
+            user: lock.wallet_address.clone(),
+            l1_block_number: 0,
+            detected_at: lock.created_at.timestamp() as u64,
+            retry_count: 0,
+            last_retry: None,
             status: ResyncStatus::Failed,
-        },
-    ];
+        });
+    }
+
+    let total = pending.len() as u32;
+    let failed_count = failed_locks.len() as u32;
+
+    tracing::info!(
+        "Resync: Getting pending resyncs completed, total={}, failed={}",
+        total,
+        failed_count
+    );
 
     Ok(Json(PendingResyncsResponse {
         pending,
-        total: 2,
-        last_auto_poll: now - 30, // 30 seconds ago
-        auto_poll_interval: 60, // 1 minute
+        total,
+        last_auto_poll: now,
+        auto_poll_interval: 60,
         summary: ResyncSummary {
-            total_pending: 2,
-            synced_last_24h: 156,
-            failed_count: 1,
-            avg_sync_time: 45, // 45 seconds average
+            total_pending: total,
+            synced_last_24h: synced_count as u32,
+            failed_count,
+            avg_sync_time: 0, // No timing data available in DB
         },
     }))
 }

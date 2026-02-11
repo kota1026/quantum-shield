@@ -1,0 +1,4089 @@
+{
+  "admin": {
+    "sidebar": {
+      "groups": {
+        "overview": "概要",
+        "public": "パブリック版管理",
+        "saas": "企業版SaaS管理",
+        "license": "技術譲渡管理",
+        "foundation": "財団設定"
+      },
+      "sections": {
+        "main": "メイン",
+        "publicUsers": "ユーザー管理",
+        "publicGovernance": "ガバナンス",
+        "publicProtocol": "プロトコル監視",
+        "saasOperators": "運営企業",
+        "saasBilling": "課金・サポート",
+        "licenseManagement": "ライセンス",
+        "foundationSettings": "設定"
+      },
+      "nav": {
+        "dashboard": "統合ダッシュボード",
+        "emergencyPause": "緊急停止",
+        "publicUsers": "ユーザー一覧",
+        "publicProvers": "Prover管理",
+        "publicObservers": "Observer管理",
+        "tokenHolders": "トークン保有者",
+        "proposals": "Proposal管理",
+        "treasury": "トレジャリー",
+        "protocolMonitor": "プロトコル監視",
+        "protocolAlerts": "アラート",
+        "saasOperators": "運営企業一覧",
+        "saasUsers": "エンドユーザー",
+        "saasProvers": "Prover（SaaS）",
+        "billing": "課金管理",
+        "support": "サポート",
+        "infrastructure": "インフラ",
+        "licenseCompanies": "ライセンス企業",
+        "licenseProjects": "導入プロジェクト",
+        "licensees": "ライセンシー",
+        "updates": "アップデート配信",
+        "licenseeSupport": "サポート管理",
+        "licenseeBilling": "請求管理",
+        "members": "メンバー管理",
+        "auditLog": "監査ログ",
+        "security": "セキュリティ"
+      },
+      "user": {
+        "initial": "松",
+        "name": "松本さん",
+        "role": "スーパー管理者"
+      }
+    },
+    "integratedDashboard": {
+      "meta": {
+        "title": "統合ダッシュボード | QS Admin",
+        "description": "パブリック版・企業版SaaS・技術譲渡の統合管理"
+      },
+      "title": "統合ダッシュボード",
+      "subtitle": "Quantum Shield 全体管理",
+      "ariaLabel": "QS Admin 統合ダッシュボード",
+      "liveIndicator": "リアルタイム更新",
+      "emergencyButton": "緊急停止",
+      "tabs": {
+        "overview": "概要",
+        "public": "パブリック版",
+        "saas": "企業版SaaS",
+        "license": "技術譲渡"
+      },
+      "overview": {
+        "title": "全体サマリー",
+        "totalTvl": "総TVL",
+        "totalUsers": "総ユーザー数",
+        "totalProvers": "総Prover数",
+        "monthlyRevenue": "月間収益"
+      },
+      "publicStats": {
+        "title": "パブリック版",
+        "tvl": "TVL",
+        "users": "アクティブユーザー",
+        "provers": "Prover数",
+        "observers": "Observer数",
+        "pendingProposals": "審議中Proposal"
+      },
+      "saasStats": {
+        "title": "企業版SaaS",
+        "operators": "運営企業数",
+        "endUsers": "エンドユーザー",
+        "mrr": "MRR",
+        "pendingApplications": "審査待ち申請",
+        "activeTickets": "対応中チケット"
+      },
+      "licenseStats": {
+        "title": "技術譲渡",
+        "companies": "契約企業数",
+        "activeProjects": "進行中プロジェクト",
+        "totalRevenue": "累計ライセンス収益"
+      },
+      "alerts": {
+        "title": "要対応アラート",
+        "viewAll": "全て表示",
+        "types": {
+          "proverApplication": "Prover申請",
+          "saasApplication": "SaaS申請",
+          "slaWarning": "SLA警告",
+          "paymentOverdue": "支払い遅延",
+          "securityAlert": "セキュリティ"
+        }
+      },
+      "recentActivity": {
+        "title": "最近のアクティビティ",
+        "viewAll": "全て表示"
+      },
+      "publicTab": {
+        "title": "パブリック版管理",
+        "description": "左のサイドバーから各管理画面にアクセスしてください",
+        "proverManagement": "Prover管理",
+        "protocolMonitoring": "プロトコル監視"
+      },
+      "saasTab": {
+        "title": "企業版SaaS管理",
+        "description": "左のサイドバーから各管理画面にアクセスしてください",
+        "operatorManagement": "運営企業管理",
+        "billingManagement": "課金管理"
+      },
+      "licenseTab": {
+        "title": "技術譲渡管理",
+        "description": "左のサイドバーから各管理画面にアクセスしてください",
+        "licensedCompanies": "ライセンス企業",
+        "projects": "導入プロジェクト"
+      }
+    },
+    "publicObservers": {
+      "meta": {
+        "title": "Observer管理 | パブリック版 | QS Admin",
+        "description": "パブリック版Observerネットワークの管理"
+      },
+      "title": "Observer管理",
+      "subtitle": "パブリック版 Observerネットワーク",
+      "ariaLabel": "パブリック版Observer管理ページ",
+      "tabs": {
+        "all": "全Observer",
+        "challenges": "チャレンジ",
+        "rewards": "報酬"
+      },
+      "stats": {
+        "totalObservers": "総Observer数",
+        "activeObservers": "アクティブ",
+        "pendingChallenges": "未処理チャレンジ",
+        "successfulChallenges": "成功チャレンジ",
+        "totalRewards": "累計報酬"
+      },
+      "observerList": {
+        "title": "Observer一覧"
+      },
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "table": {
+        "columns": {
+          "observerId": "Observer ID",
+          "operator": "オペレーター",
+          "status": "ステータス",
+          "challenges": "チャレンジ数",
+          "successRate": "成功率",
+          "rewards": "報酬",
+          "lastActive": "最終アクティブ"
+        }
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ"
+      },
+      "challengeStatus": {
+        "pending": "審査中",
+        "verified": "検証済み",
+        "rejected": "却下"
+      },
+      "viewDetails": "詳細",
+      "challenges": {
+        "title": "チャレンジ一覧",
+        "targetLabel": "対象",
+        "by": "提出者",
+        "verify": "検証",
+        "reject": "却下"
+      },
+      "rewards": {
+        "title": "報酬管理",
+        "placeholder": "報酬分析機能はこちらに表示されます"
+      }
+    },
+    "publicGovernance": {
+      "meta": {
+        "title": "ガバナンス管理 | パブリック版 | QS Admin",
+        "description": "パブリック版ガバナンスの管理"
+      },
+      "title": "ガバナンス管理",
+      "subtitle": "パブリック版 Proposal・パラメータ管理",
+      "ariaLabel": "パブリック版ガバナンス管理ページ",
+      "tabs": {
+        "proposals": "Proposal一覧",
+        "execution": "実行キュー",
+        "parameters": "パラメータ",
+        "emergency": "緊急操作"
+      },
+      "stats": {
+        "totalProposals": "総Proposal数",
+        "activeProposals": "投票中",
+        "pendingExecution": "実行待ち",
+        "totalVoters": "投票者数",
+        "avgQuorum": "平均Quorum"
+      },
+      "proposals": {
+        "title": "Proposal一覧",
+        "proposer": "提案者",
+        "endTime": "終了",
+        "quorum": "Quorum"
+      },
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "viewDetails": "詳細",
+      "status": {
+        "active": "投票中",
+        "pending": "開始待ち",
+        "passed": "可決",
+        "executed": "実行済み",
+        "rejected": "否決"
+      },
+      "proposalType": {
+        "parameter": "パラメータ",
+        "treasury": "トレジャリー",
+        "security": "セキュリティ"
+      },
+      "execution": {
+        "title": "実行キュー",
+        "scheduledAt": "実行予定",
+        "timelockRemaining": "残り時間",
+        "execute": "実行"
+      },
+      "executionStatus": {
+        "queued": "キュー中",
+        "ready": "実行可能"
+      },
+      "parameters": {
+        "title": "プロトコルパラメータ",
+        "placeholder": "パラメータ管理機能はこちらに表示されます"
+      },
+      "emergency": {
+        "title": "緊急操作",
+        "pauseTitle": "Emergency Pause",
+        "pauseDescription": "緊急時にプロトコル全体を一時停止します。この操作にはSecurity Council承認が必要です。",
+        "pauseButton": "Emergency Pause",
+        "pauseNote": "※ マルチシグ承認が必要"
+      }
+    },
+    "publicTreasury": {
+      "meta": {
+        "title": "トレジャリー管理 | パブリック版 | QS Admin",
+        "description": "パブリック版トレジャリーの管理"
+      },
+      "title": "トレジャリー管理",
+      "subtitle": "パブリック版 財務・支出管理",
+      "ariaLabel": "パブリック版トレジャリー管理ページ",
+      "tabs": {
+        "overview": "概要",
+        "expenses": "支出管理",
+        "distribution": "配分",
+        "audit": "監査"
+      },
+      "stats": {
+        "totalBalance": "総残高",
+        "monthlyIncome": "月間収入",
+        "monthlyExpenses": "月間支出",
+        "pendingApprovals": "承認待ち",
+        "runwayMonths": "ランウェイ"
+      },
+      "overview": {
+        "recentTransactions": "最近の取引",
+        "allocation": "資金配分"
+      },
+      "allocationCategory": {
+        "development": "開発",
+        "security": "セキュリティ",
+        "grants": "グラント",
+        "operations": "運営",
+        "reserves": "準備金"
+      },
+      "expenses": {
+        "title": "支出一覧"
+      },
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "viewDetails": "詳細",
+      "table": {
+        "columns": {
+          "id": "ID",
+          "category": "カテゴリ",
+          "description": "説明",
+          "amount": "金額",
+          "recipient": "受取先",
+          "status": "ステータス",
+          "date": "日付"
+        }
+      },
+      "status": {
+        "completed": "完了",
+        "pending": "承認待ち",
+        "rejected": "却下"
+      },
+      "category": {
+        "development": "開発",
+        "security": "セキュリティ",
+        "grant": "グラント",
+        "fees": "手数料収入",
+        "saas": "SaaS収益"
+      },
+      "distribution": {
+        "title": "資金配分",
+        "placeholder": "配分管理機能はこちらに表示されます"
+      },
+      "audit": {
+        "title": "監査レポート",
+        "placeholder": "監査レポートはこちらに表示されます"
+      }
+    },
+    "publicProvers": {
+      "meta": {
+        "title": "Prover管理 | パブリック版 | QS Admin",
+        "description": "パブリック版Proverネットワークの管理"
+      },
+      "title": "Prover管理",
+      "subtitle": "パブリック版 Proverネットワーク",
+      "ariaLabel": "パブリック版Prover管理ページ",
+      "tabs": {
+        "all": "全Prover",
+        "applications": "申請審査",
+        "performance": "パフォーマンス",
+        "slashing": "スラッシング履歴"
+      },
+      "stats": {
+        "totalProvers": "総Prover数",
+        "activeProvers": "アクティブ",
+        "totalStake": "総ステーク額",
+        "avgSla": "平均SLA",
+        "pendingApplications": "審査待ち申請"
+      },
+      "table": {
+        "columns": {
+          "proverId": "Prover ID",
+          "operator": "オペレーター",
+          "status": "ステータス",
+          "stake": "ステーク",
+          "sla": "SLA",
+          "signatures": "署名数（24h）",
+          "lastActive": "最終アクティブ"
+        }
+      },
+      "status": {
+        "active": "アクティブ",
+        "pending": "審査中",
+        "slaWarning": "SLA警告",
+        "suspended": "停止中"
+      },
+      "applications": {
+        "title": "申請一覧",
+        "approve": "承認",
+        "reject": "却下",
+        "review": "詳細確認"
+      },
+      "detail": {
+        "title": "Prover詳細",
+        "overview": "概要",
+        "performance": "パフォーマンス",
+        "history": "履歴",
+        "stake": "ステーク情報",
+        "actions": {
+          "suspend": "一時停止",
+          "resume": "再開",
+          "slash": "スラッシュ実行"
+        }
+      }
+    },
+    "publicProtocol": {
+      "meta": {
+        "title": "プロトコル監視 | パブリック版 | QS Admin",
+        "description": "パブリック版プロトコルの監視"
+      },
+      "title": "プロトコル監視",
+      "subtitle": "パブリック版 リアルタイム監視",
+      "ariaLabel": "プロトコル監視ページ",
+      "tabs": {
+        "realtime": "リアルタイム",
+        "alerts": "アラート",
+        "nodes": "ノード"
+      },
+      "stats": {
+        "totalSignatures": "総署名数",
+        "throughput": "スループット",
+        "avgLatency": "平均レイテンシ",
+        "successRate": "成功率",
+        "activeAlerts": "アクティブアラート",
+        "tvl": "Total Value Locked",
+        "dailyVolume": "24h取引量",
+        "activeLocks": "アクティブロック",
+        "pendingUnlocks": "保留中アンロック"
+      },
+      "realtime": {
+        "title": "リアルタイムメトリクス",
+        "chartTitle": "プロトコルパフォーマンス"
+      },
+      "alertStatus": {
+        "active": "アクティブ",
+        "resolved": "解決済み"
+      },
+      "nodeStatus": {
+        "healthy": "正常",
+        "degraded": "低下中",
+        "offline": "オフライン"
+      },
+      "alerts": {
+        "title": "アラート一覧",
+        "acknowledge": "確認済み",
+        "types": {
+          "anomaly": "異常検知",
+          "threshold": "閾値超過",
+          "security": "セキュリティ"
+        }
+      },
+      "nodes": {
+        "title": "ノード一覧",
+        "columns": {
+          "region": "リージョン",
+          "provers": "Prover数",
+          "avgLatency": "平均レイテンシ",
+          "status": "ステータス"
+        },
+        "viewDetails": "詳細確認"
+      },
+      "charts": {
+        "tvlTrend": "TVL推移",
+        "volumeTrend": "取引量推移",
+        "lockUnlockRatio": "Lock/Unlock比率"
+      },
+      "contracts": {
+        "title": "コントラクト状態",
+        "l1Vault": "L1 Vault",
+        "l3Bridge": "L3 Bridge",
+        "proverRegistry": "Prover Registry"
+      }
+    },
+    "saasOperators": {
+      "meta": {
+        "title": "運営企業管理 | 企業版SaaS | QS Admin",
+        "description": "企業版SaaS運営企業の管理"
+      },
+      "title": "運営企業管理",
+      "subtitle": "企業版SaaS 顧客管理",
+      "ariaLabel": "運営企業管理ページ",
+      "tabs": {
+        "all": "全企業",
+        "applications": "申請審査",
+        "contracts": "契約管理"
+      },
+      "stats": {
+        "totalOperators": "運営企業数",
+        "activeOperators": "アクティブ",
+        "pendingApplications": "審査待ち",
+        "mrr": "MRR",
+        "totalEndUsers": "エンドユーザー総数"
+      },
+      "table": {
+        "columns": {
+          "company": "企業名",
+          "plan": "プラン",
+          "status": "ステータス",
+          "endUsers": "エンドユーザー",
+          "tvl": "TVL",
+          "mrr": "MRR",
+          "contractEnd": "契約終了日"
+        }
+      },
+      "plans": {
+        "starter": "Starter",
+        "business": "Business",
+        "enterprise": "Enterprise"
+      },
+      "status": {
+        "active": "アクティブ",
+        "pending": "審査中",
+        "suspended": "停止中",
+        "churned": "解約"
+      },
+      "applications": {
+        "title": "申請一覧",
+        "approve": "承認",
+        "reject": "却下",
+        "requestInfo": "追加情報要求"
+      },
+      "detail": {
+        "title": "企業詳細",
+        "overview": "概要",
+        "contract": "契約情報",
+        "usage": "利用状況",
+        "users": "エンドユーザー",
+        "billing": "請求履歴"
+      }
+    },
+    "saasBilling": {
+      "meta": {
+        "title": "課金管理 | 企業版SaaS | QS Admin",
+        "description": "企業版SaaS課金・請求管理"
+      },
+      "title": "課金管理",
+      "subtitle": "企業版SaaS 請求・収益管理",
+      "ariaLabel": "課金管理ページ",
+      "tabs": {
+        "overview": "概要",
+        "invoices": "請求書",
+        "subscriptions": "サブスクリプション",
+        "payments": "支払い",
+        "revenue": "収益分析",
+        "reports": "レポート"
+      },
+      "stats": {
+        "mrr": "MRR",
+        "arr": "ARR",
+        "pendingInvoices": "未払い請求",
+        "overdueInvoices": "支払い遅延",
+        "collectionRate": "回収率"
+      },
+      "plans": {
+        "starter": "Starter",
+        "business": "Business",
+        "enterprise": "Enterprise"
+      },
+      "status": {
+        "paid": "支払済",
+        "pending": "未払い",
+        "overdue": "遅延",
+        "active": "アクティブ",
+        "expiring": "期限間近",
+        "cancelled": "解約済"
+      },
+      "invoices": {
+        "title": "請求書一覧",
+        "columns": {
+          "invoiceId": "請求書ID",
+          "operator": "運営企業",
+          "company": "企業名",
+          "plan": "プラン",
+          "amount": "金額",
+          "period": "請求期間",
+          "status": "ステータス",
+          "paidAt": "支払日",
+          "dueDate": "支払期限",
+          "issuedDate": "発行日"
+        }
+      },
+      "subscriptions": {
+        "title": "サブスクリプション一覧",
+        "columns": {
+          "operator": "運営企業",
+          "plan": "プラン",
+          "mrr": "MRR",
+          "startDate": "開始日",
+          "renewalDate": "更新日",
+          "status": "ステータス"
+        }
+      },
+      "revenue": {
+        "title": "収益分析",
+        "byPlan": "プラン別収益",
+        "trend": "収益推移",
+        "churnRate": "解約率"
+      },
+      "reports": {
+        "title": "レポート"
+      }
+    },
+    "license": {
+      "meta": {
+        "title": "技術譲渡管理 | QS Admin",
+        "description": "技術譲渡ライセンス企業の管理"
+      },
+      "title": "技術譲渡管理",
+      "subtitle": "ライセンス企業・プロジェクト管理",
+      "ariaLabel": "技術譲渡管理ページ",
+      "tabs": {
+        "companies": "ライセンス企業",
+        "projects": "プロジェクト",
+        "renewals": "更新管理",
+        "documents": "ドキュメント"
+      },
+      "stats": {
+        "totalCompanies": "契約企業数",
+        "activeContracts": "有効契約",
+        "activeProjects": "進行中PJ",
+        "renewalsPending": "更新期限",
+        "totalRevenue": "累計収益"
+      },
+      "addCompany": "企業追加",
+      "companies": {
+        "title": "ライセンス企業一覧"
+      },
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "viewDetails": "詳細",
+      "table": {
+        "columns": {
+          "company": "企業名",
+          "country": "国",
+          "licenseType": "ライセンス種別",
+          "status": "ステータス",
+          "projects": "PJ数",
+          "contractValue": "契約金額",
+          "renewalDate": "更新日"
+        }
+      },
+      "status": {
+        "active": "有効",
+        "negotiating": "交渉中",
+        "renewalPending": "更新期限",
+        "terminated": "終了"
+      },
+      "licenseType": {
+        "enterprise": "Enterprise",
+        "standard": "Standard"
+      },
+      "projects": {
+        "title": "導入プロジェクト一覧",
+        "startDate": "開始日",
+        "targetDate": "目標完了日",
+        "progress": "進捗"
+      },
+      "projectStatus": {
+        "active": "進行中",
+        "planning": "計画中",
+        "completed": "完了",
+        "onHold": "保留"
+      },
+      "renewals": {
+        "title": "更新管理",
+        "renewalDate": "更新期限",
+        "contractValue": "契約金額",
+        "contactButton": "連絡する"
+      },
+      "documents": {
+        "title": "ドキュメント管理",
+        "placeholder": "ドキュメント管理機能はこちらに表示されます"
+      }
+    },
+    "emergency": {
+      "meta": {
+        "title": "Emergency Operations | QS Admin",
+        "description": "システム緊急停止・復旧管理"
+      },
+      "title": "Emergency Operations",
+      "subtitle": "システム緊急停止・復旧管理",
+      "ariaLabel": "緊急操作ページ",
+      "status": {
+        "operational": "System Operational",
+        "paused": "System Paused"
+      },
+      "pauseControl": {
+        "title": "Emergency Pause",
+        "systemPause": "System Pause",
+        "description": "全てのLock/Unlock操作を即座に停止します",
+        "executeButton": "Execute Emergency Pause",
+        "warning": {
+          "title": "重要な注意事項",
+          "text1": "Pauseは最大72時間有効です。",
+          "text2": "実行前に必ずSecurity Councilメンバーと協議してください。",
+          "text3": "全ての操作は監査ログに記録されます。"
+        }
+      },
+      "checklist": {
+        "title": "Pre-Pause Checklist",
+        "items": {
+          "severity": "インシデントの深刻度を確認した",
+          "council": "Security Councilメンバーに連絡した",
+          "impact": "影響範囲を把握した（TVL、ユーザー数）",
+          "notification": "コミュニティ通知の準備ができている",
+          "recovery": "復旧計画の概要がある"
+        }
+      },
+      "recovery": {
+        "title": "Recovery Procedures",
+        "steps": {
+          "step1": {
+            "title": "根本原因の特定",
+            "description": "インシデントの原因を調査し、文書化する"
+          },
+          "step2": {
+            "title": "修正の実装",
+            "description": "必要なパッチまたは設定変更を適用"
+          },
+          "step3": {
+            "title": "テスト環境での検証",
+            "description": "修正が正しく機能することを確認"
+          },
+          "step4": {
+            "title": "Security Council承認",
+            "description": "復旧の承認を得る（マルチシグ）"
+          },
+          "step5": {
+            "title": "System Resume",
+            "description": "Pauseを解除し、監視を継続"
+          },
+          "step6": {
+            "title": "ポストモーテム作成",
+            "description": "インシデントレポートを公開"
+          }
+        }
+      },
+      "history": {
+        "title": "Pause History",
+        "resumed": "System Resumed",
+        "paused": "Emergency Pause",
+        "maintenance": "Scheduled Maintenance",
+        "duration": "Duration"
+      },
+      "modal": {
+        "title": "Confirm Emergency Pause",
+        "subtitle": "この操作は全システムを停止します",
+        "warning": "全てのLock/Unlock操作が停止されます。この操作は監査ログに記録され、Security Councilに通知されます。",
+        "confirmLabel": "確認のため「PAUSE」と入力してください:",
+        "placeholder": "PAUSE",
+        "cancelButton": "Cancel",
+        "confirmButton": "Execute Pause",
+        "inputError": "「PAUSE」と入力してください"
+      }
+    },
+    "common": {
+      "sidebar": {
+        "logo": "QS Admin",
+        "tagline": "Internal Dashboard",
+        "sections": {
+          "overview": "概要",
+          "operations": "運用",
+          "management": "管理",
+          "system": "システム"
+        },
+        "nav": {
+          "dashboard": "Dashboard",
+          "emergencyPause": "Emergency Pause",
+          "proverManagement": "Prover管理",
+          "txMonitor": "TX Monitor",
+          "l3Nodes": "L3 Nodes",
+          "parameters": "パラメータ",
+          "enterprise": "エンタープライズ",
+          "community": "コミュニティ",
+          "staff": "スタッフ",
+          "reports": "レポート",
+          "auditLog": "監査ログ",
+          "onboarding": "オンボーディング"
+        },
+        "user": {
+          "role": "Senior Engineer",
+          "permissionBadge": "Super Admin"
+        }
+      }
+    },
+    "txMonitor": {
+      "meta": {
+        "title": "TX Monitor | QS Admin",
+        "description": "Lock/Unlock/Challenge トランザクション監視"
+      },
+      "title": "Transaction Monitor",
+      "subtitle": "Lock/Unlock/Challenge トランザクション監視",
+      "ariaLabel": "トランザクション監視ページ",
+      "liveIndicator": "Live Updates",
+      "tabs": {
+        "all": "All Transactions",
+        "locks": "Locks",
+        "unlocks": "Unlocks",
+        "challenges": "Challenges",
+        "anomalies": "Anomalies"
+      },
+      "stats": {
+        "totalTxs": {
+          "label": "Total TXs (24h)"
+        },
+        "locks": {
+          "label": "Locks"
+        },
+        "unlocks": {
+          "label": "Unlocks"
+        },
+        "emergency": {
+          "label": "Emergency"
+        },
+        "challenges": {
+          "label": "Challenges"
+        }
+      },
+      "table": {
+        "title": "Recent Transactions",
+        "columns": {
+          "txHash": "TX Hash",
+          "type": "Type",
+          "from": "From",
+          "amount": "Amount",
+          "status": "Status",
+          "time": "Time"
+        },
+        "empty": "No transactions found"
+      },
+      "txType": {
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "emergency": "Emergency"
+      },
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "timelock": "Timelock"
+      },
+      "time": {
+        "minAgo": "{count}分前",
+        "hourAgo": "{count}時間前",
+        "hoursAgo": "{count}時間前",
+        "justNow": "たった今"
+      }
+    },
+    "nodes": {
+      "meta": {
+        "title": "L3 Nodes | QS Admin",
+        "description": "Aegis L3 ネットワークノード管理"
+      },
+      "title": "L3 Node Management",
+      "subtitle": "Aegis L3 ネットワークノード管理",
+      "ariaLabel": "L3ノード管理ページ",
+      "stats": {
+        "totalNodes": {
+          "label": "Total Nodes"
+        },
+        "healthy": {
+          "label": "Healthy"
+        },
+        "currentBlock": {
+          "label": "Current Block"
+        },
+        "avgTps": {
+          "label": "Avg TPS"
+        }
+      },
+      "card": {
+        "title": "Active Nodes"
+      },
+      "node": {
+        "primary": "Primary",
+        "metrics": {
+          "block": "Block",
+          "peers": "Peers",
+          "cpu": "CPU",
+          "memory": "Memory"
+        }
+      },
+      "status": {
+        "healthy": "Healthy",
+        "warning": "Warning",
+        "offline": "Offline"
+      }
+    },
+    "staff": {
+      "meta": {
+        "title": "Staff Management | QS Admin",
+        "description": "スタッフ権限・アクセス管理"
+      },
+      "title": "Staff Management",
+      "subtitle": "スタッフ権限・アクセス管理",
+      "ariaLabel": "スタッフ管理ページ",
+      "addButton": "Add Staff",
+      "card": {
+        "title": "Staff List"
+      },
+      "table": {
+        "columns": {
+          "name": "Name",
+          "role": "Role",
+          "permission": "Permission",
+          "status": "Status",
+          "lastActive": "Last Active"
+        },
+        "empty": "No staff found"
+      },
+      "permission": {
+        "superAdmin": "Super Admin",
+        "admin": "Admin",
+        "operator": "Operator",
+        "viewer": "Viewer"
+      },
+      "status": {
+        "active": "Active",
+        "onboarding": "Onboarding",
+        "inactive": "Inactive"
+      },
+      "time": {
+        "now": "Now",
+        "minAgo": "{count}分前",
+        "hourAgo": "{count}時間前",
+        "today": "Today"
+      }
+    },
+    "reports": {
+      "meta": {
+        "title": "Reports | QS Admin",
+        "description": "システムレポート・分析"
+      },
+      "title": "Reports",
+      "subtitle": "システムレポート・分析",
+      "ariaLabel": "レポートページ",
+      "exportButton": "Export All",
+      "types": {
+        "daily": {
+          "title": "Daily Report",
+          "description": "過去24時間のトランザクション、TVL、Proverパフォーマンス"
+        },
+        "weekly": {
+          "title": "Weekly Report",
+          "description": "週次サマリー、トレンド分析、異常検知"
+        },
+        "monthly": {
+          "title": "Monthly Report",
+          "description": "月次レビュー、成長指標、セキュリティ監査"
+        },
+        "revenue": {
+          "title": "Revenue Report",
+          "description": "手数料収入、Enterprise契約、コスト分析"
+        }
+      },
+      "lastGenerated": "Last generated",
+      "summary": {
+        "title": "Today's Summary",
+        "totalTx": "Total Transactions",
+        "tvlChange": "TVL Change",
+        "avgSla": "Avg Prover SLA",
+        "incidents": "Security Incidents"
+      }
+    },
+    "audit": {
+      "meta": {
+        "title": "Audit Log | QS Admin",
+        "description": "全操作ログ・セキュリティイベント監査"
+      },
+      "title": "Audit Log",
+      "subtitle": "全操作ログ・セキュリティイベント監査",
+      "ariaLabel": "監査ログページ",
+      "tabs": {
+        "all": "All Logs",
+        "user": "User Activity",
+        "security": "Security Events",
+        "system": "System Events"
+      },
+      "card": {
+        "title": "Recent Logs"
+      },
+      "table": {
+        "columns": {
+          "time": "Time",
+          "type": "Type",
+          "user": "User",
+          "action": "Action",
+          "details": "Details"
+        },
+        "empty": "No logs found"
+      },
+      "logType": {
+        "user": "User",
+        "prover": "Prover",
+        "security": "Security",
+        "system": "System"
+      }
+    },
+    "parameters": {
+      "meta": {
+        "title": "Protocol Parameters | QS Admin",
+        "description": "プロトコルパラメータ管理・変更リクエスト"
+      },
+      "title": "Protocol Parameters",
+      "subtitle": "プロトコルパラメータ管理・変更リクエスト",
+      "ariaLabel": "プロトコルパラメータページ",
+      "requestChangeButton": "Request Change",
+      "infoBanner": "パラメータ変更はガバナンス承認が必要です。Lockパラメータ（CP-1〜5）は変更不可です。",
+      "historyLink": "History →",
+      "categories": {
+        "timeLock": {
+          "title": "Time Lock Parameters"
+        },
+        "prover": {
+          "title": "Prover Parameters"
+        },
+        "fee": {
+          "title": "Fee Parameters"
+        },
+        "security": {
+          "title": "Security Parameters"
+        }
+      },
+      "params": {
+        "minLockPeriod": {
+          "name": "Minimum Lock Period",
+          "description": "CP-3: 最低ロック期間（不変）"
+        },
+        "maxLockPeriod": {
+          "name": "Maximum Lock Period",
+          "description": "最大ロック期間"
+        },
+        "earlyUnlockPenalty": {
+          "name": "Early Unlock Penalty",
+          "description": "CP-4: 早期解除ペナルティ率"
+        },
+        "minStake": {
+          "name": "Minimum Stake",
+          "description": "Prover最低ステーク額"
+        },
+        "slaTarget": {
+          "name": "SLA Target",
+          "description": "サービスレベル目標"
+        },
+        "slashingRate": {
+          "name": "Slashing Rate",
+          "description": "CP-4: 不正Proverペナルティ"
+        },
+        "lockFee": {
+          "name": "Lock Fee",
+          "description": "ロック時手数料"
+        },
+        "unlockFee": {
+          "name": "Unlock Fee",
+          "description": "アンロック時手数料"
+        },
+        "enterpriseDiscount": {
+          "name": "Enterprise Discount",
+          "description": "法人向け手数料割引率"
+        },
+        "challengePeriod": {
+          "name": "Challenge Period",
+          "description": "チャレンジ待機期間"
+        },
+        "multiSigThreshold": {
+          "name": "Multi-sig Threshold",
+          "description": "緊急操作の必要署名数"
+        },
+        "quantumAlgorithm": {
+          "name": "Quantum Algorithm",
+          "description": "CP-1: 量子耐性アルゴリズム"
+        }
+      },
+      "units": {
+        "days": "days",
+        "daysYears": "days ({years} years)",
+        "ofLocked": "of locked amount",
+        "usdc": "USDC",
+        "uptime": "uptime",
+        "ofStake": "of stake",
+        "ofAmount": "of amount",
+        "discount": "discount",
+        "hours": "hours",
+        "signers": "signers",
+        "nistApproved": "NIST approved"
+      },
+      "badge": {
+        "locked": "Locked",
+        "adjustable": "Adjustable"
+      }
+    },
+    "enterprise": {
+      "meta": {
+        "title": "Enterprise Accounts | QS Admin",
+        "description": "法人契約・大口顧客管理"
+      },
+      "title": "Enterprise Accounts",
+      "subtitle": "法人契約・大口顧客管理",
+      "ariaLabel": "エンタープライズアカウントページ",
+      "addButton": "Add Enterprise",
+      "stats": {
+        "totalEnterprises": {
+          "label": "Total Enterprises"
+        },
+        "enterpriseTvl": {
+          "label": "Enterprise TVL"
+        },
+        "activeContracts": {
+          "label": "Active Contracts"
+        },
+        "monthlyRevenue": {
+          "label": "Monthly Revenue"
+        }
+      },
+      "tabs": {
+        "all": "All Enterprises",
+        "platinum": "Platinum",
+        "gold": "Gold",
+        "pending": "Pending"
+      },
+      "card": {
+        "title": "Enterprise List"
+      },
+      "table": {
+        "columns": {
+          "company": "Company",
+          "tier": "Tier",
+          "tvl": "TVL",
+          "status": "Status",
+          "contractRenewal": "Contract Renewal"
+        },
+        "empty": "No enterprises found"
+      },
+      "tier": {
+        "platinum": "Platinum",
+        "gold": "Gold",
+        "silver": "Silver"
+      },
+      "status": {
+        "active": "Active",
+        "renewalPending": "Renewal Pending",
+        "inactive": "Inactive"
+      },
+      "companyType": {
+        "financialInstitution": "Financial Institution",
+        "cryptoExchange": "Crypto Exchange",
+        "investmentBank": "Investment Bank"
+      }
+    },
+    "community": {
+      "meta": {
+        "title": "Community Management | QS Admin",
+        "description": "アナウンスメント・FAQ・コミュニティ管理"
+      },
+      "title": "Community Management",
+      "subtitle": "アナウンスメント・FAQ・コミュニティ管理",
+      "ariaLabel": "コミュニティ管理ページ",
+      "newAnnouncementButton": "New Announcement",
+      "stats": {
+        "totalUsers": {
+          "label": "Total Users"
+        },
+        "activeThisWeek": {
+          "label": "Active This Week"
+        },
+        "supportTickets": {
+          "label": "Support Tickets"
+        },
+        "avgResponseTime": {
+          "label": "Avg Response Time"
+        }
+      },
+      "tabs": {
+        "announcements": "Announcements",
+        "faq": "FAQ",
+        "supportTickets": "Support Tickets",
+        "analytics": "Analytics"
+      },
+      "announcements": {
+        "title": "Recent Announcements",
+        "type": {
+          "important": "Important",
+          "update": "Update",
+          "event": "Event"
+        },
+        "meta": {
+          "views": "views",
+          "comments": "comments"
+        }
+      },
+      "faq": {
+        "title": "Top FAQs",
+        "views": "views"
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "discord": "Discord Server",
+        "twitter": "Twitter/X",
+        "documentation": "Documentation",
+        "statusPage": "Status Page"
+      }
+    },
+    "prover": {
+      "meta": {
+        "title": "Prover Management | QS Admin",
+        "description": "Proverネットワーク監視・管理"
+      },
+      "title": "Prover Management",
+      "subtitle": "Proverネットワーク監視・管理",
+      "ariaLabel": "Prover管理ページ",
+      "tabs": {
+        "all": "All Provers",
+        "queue": "Signing Queue",
+        "applications": "Applications",
+        "performance": "Performance"
+      },
+      "stats": {
+        "activeProvers": {
+          "label": "Active Provers",
+          "healthy": "Healthy"
+        },
+        "totalStake": {
+          "label": "Total Stake"
+        },
+        "avgSla": {
+          "label": "Avg SLA"
+        },
+        "pendingQueue": {
+          "label": "Pending Queue"
+        }
+      },
+      "table": {
+        "title": "Prover List",
+        "columns": {
+          "proverId": "Prover ID",
+          "operator": "Operator",
+          "status": "Status",
+          "stake": "Stake",
+          "sla": "SLA",
+          "signatures": "Signatures (24h)",
+          "lastActive": "Last Active"
+        },
+        "empty": "No provers found"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "slaWarning": "SLA Warning",
+        "suspended": "Suspended"
+      },
+      "time": {
+        "minAgo": "{count}分前",
+        "hourAgo": "{count}時間前",
+        "justNow": "たった今"
+      },
+      "applications": {
+        "title": "Pending Applications",
+        "approve": "Approve",
+        "reject": "Reject",
+        "reviewButton": "Review"
+      }
+    },
+    "onboarding": {
+      "meta": {
+        "title": "Staff Onboarding | QS Admin",
+        "description": "スタッフ向けオンボーディング研修"
+      },
+      "ariaLabel": "スタッフオンボーディングページ",
+      "progress": {
+        "step": "ステップ {current} / {total}",
+        "stepLabel": "ステップ {number}"
+      },
+      "steps": {
+        "welcome": "Welcome",
+        "overview": "Overview",
+        "principles": "Principles",
+        "emergency": "Emergency",
+        "quiz": "Quiz"
+      },
+      "welcome": {
+        "title": "Welcome to QS Admin",
+        "subtitle": "Quantum Shield 管理システムへようこそ",
+        "greeting": "こんにちは、{name}さん！",
+        "message": "Quantum Shield チームへの参加を歓迎します。このオンボーディングでは、QSの全体像とCore Principles（5原則）について学びます。",
+        "roleBadge": "{from} → {to} への権限昇格準備",
+        "startButton": "Start Onboarding"
+      },
+      "overview": {
+        "title": "Quantum Shield Overview",
+        "subtitle": "量子耐性を持つ資産保護プロトコル",
+        "systems": {
+          "consumer": {
+            "title": "Consumer App",
+            "description": "エンドユーザーが資産をLock/Unlockするアプリ。Dilithium署名で量子耐性を実現。"
+          },
+          "prover": {
+            "title": "Prover Network",
+            "description": "SPHINCS+署名でUnlockを承認する分散ネットワーク。127ノードが稼働中。"
+          },
+          "governance": {
+            "title": "Governance",
+            "description": "veQSホルダーによる分散型意思決定。パラメータ変更は投票で決定。"
+          },
+          "admin": {
+            "title": "QS Admin",
+            "description": "あなたが使用する管理システム。監視・運用・緊急対応を担当。"
+          }
+        }
+      },
+      "principles": {
+        "title": "Core Principles",
+        "subtitle": "5つの不変原則（変更不可）",
+        "items": {
+          "cp1": {
+            "title": "完全量子耐性 (Quantum Resistance)",
+            "description": "NIST準拠の量子耐性アルゴリズムのみ使用。ECDSA, SHA-256は使用禁止。",
+            "tag": "CP-1"
+          },
+          "cp2": {
+            "title": "Self-Custody",
+            "description": "ユーザーが自身の秘密鍵を管理。サーバーに秘密鍵を保存することは禁止。",
+            "tag": "CP-2"
+          },
+          "cp3": {
+            "title": "Time Lock存在",
+            "description": "Time Lockを0にすることは不可。通常24時間、緊急7日間のロック期間。",
+            "tag": "CP-3"
+          },
+          "cp4": {
+            "title": "Slashing存在",
+            "description": "Slashingメカニズムの削除は不可。不正行為への抑止力として機能。",
+            "tag": "CP-4"
+          },
+          "cp5": {
+            "title": "透明性 (Transparency)",
+            "description": "全てオンチェーンで検証可能。オフチェーン秘密計算は禁止。",
+            "tag": "CP-5"
+          }
+        }
+      },
+      "emergency": {
+        "title": "Emergency Procedures",
+        "subtitle": "緊急時の対応手順",
+        "steps": {
+          "step1": {
+            "title": "異常を検知したら",
+            "description": "まず上長（松本さん）に報告。自己判断でPauseしない。"
+          },
+          "step2": {
+            "title": "状況を記録",
+            "description": "スクリーンショット、ログ、時刻を記録。Slackの#incidentチャンネルに投稿。"
+          },
+          "step3": {
+            "title": "Pause判断（Admin以上）",
+            "description": "Admin権限保持者がPause必要性を判断。Super Admin 2名以上で実行。"
+          },
+          "step4": {
+            "title": "復旧作業",
+            "description": "原因特定 → 修正 → テスト → Security Council承認 → Resume"
+          },
+          "step5": {
+            "title": "ポストモーテム",
+            "description": "インシデントレポートを作成し、コミュニティに公開。"
+          }
+        }
+      },
+      "quiz": {
+        "title": "Confirmation Quiz",
+        "subtitle": "理解度を確認しましょう",
+        "question1": {
+          "title": "Question 1",
+          "question": "CP-1「完全量子耐性」で禁止されているアルゴリズムはどれですか？",
+          "options": {
+            "a": "Dilithium-III",
+            "b": "SPHINCS+-128s",
+            "c": "ECDSA",
+            "d": "SHA3-256"
+          },
+          "correct": "c"
+        },
+        "question2": {
+          "title": "Question 2",
+          "question": "通常UnlockのTime Lock期間は？",
+          "options": {
+            "a": "12時間",
+            "b": "24時間",
+            "c": "48時間",
+            "d": "7日間"
+          },
+          "correct": "b"
+        },
+        "completeButton": "Complete Onboarding",
+        "incorrectWarning": "正しい回答を選択してください"
+      },
+      "completion": {
+        "title": "Onboarding Complete!",
+        "message": "おめでとうございます！オンボーディングが完了しました。これであなたはOperator権限を取得しました。",
+        "permissionLabel": "New Permission Level",
+        "permissionValue": "Operator",
+        "dashboardButton": "Go to Dashboard"
+      },
+      "navigation": {
+        "back": "Back",
+        "next": "Next"
+      }
+    },
+    "dashboard": {
+      "meta": {
+        "title": "Dashboard | QS Admin",
+        "description": "Quantum Shield システム監視"
+      },
+      "title": "Dashboard",
+      "subtitle": "Quantum Shield システム監視",
+      "ariaLabel": "QS Admin ダッシュボード",
+      "liveIndicator": "Live Updates",
+      "emergencyButton": "Emergency Pause",
+      "stats": {
+        "tvl": {
+          "label": "Total Value Locked",
+          "change": "(24h)",
+          "tooltip": "Quantum Shieldプロトコルにロックされた全資産の総額です。全ユーザー、全チェーンを含みます。"
+        },
+        "provers": {
+          "label": "Active Provers",
+          "healthy": "Healthy",
+          "tooltip": "Proverノードは量子耐性署名を検証し、STARK証明を生成します。オンライン数/総数を表示します。"
+        },
+        "pendingUnlocks": {
+          "label": "Pending Unlocks",
+          "attention": "require attention",
+          "tooltip": "24時間タイムロックの満了待ち、または手動レビュー待ちのアンロック要求です。"
+        },
+        "alerts": {
+          "label": "Active Alerts",
+          "highPriority": "high priority",
+          "tooltip": "SLA警告やセキュリティイベントなど、オペレーターの対応が必要なシステムアラートです。"
+        }
+      },
+      "systemStatus": {
+        "title": "System Status",
+        "allOperational": "All Systems Operational",
+        "systems": {
+          "l3Network": {
+            "name": "L3 Aegis Network",
+            "block": "Block",
+            "tps": "TPS"
+          },
+          "proverNetwork": {
+            "name": "Prover Network",
+            "online": "Online",
+            "queue": "Queue"
+          },
+          "l1Vault": {
+            "name": "L1 Vault",
+            "sync": "Sync",
+            "gas": "Gas"
+          },
+          "observerNetwork": {
+            "name": "Observer Network",
+            "active": "Active",
+            "challenges": "Challenges"
+          },
+          "apiGateway": {
+            "name": "API Gateway",
+            "latency": "Latency",
+            "rps": "RPS"
+          },
+          "securityMonitors": {
+            "name": "Security Monitors",
+            "scans": "Scans",
+            "threats": "Threats"
+          }
+        }
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "types": {
+          "lock": "Lock",
+          "unlock": "Unlock completed",
+          "proverSigned": "Prover signed Unlock request",
+          "proverApplication": "New Prover application submitted"
+        },
+        "timeAgo": {
+          "minutes": "分前",
+          "hours": "時間前"
+        }
+      },
+      "alerts": {
+        "title": "Active Alerts",
+        "severity": {
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "items": {
+          "proverSlaWarning": "Prover SLA Warning",
+          "largeUnlockRequest": "Large Unlock Request",
+          "newProverApplication": "New Prover Application",
+          "gasPriceSpike": "Gas price spike on L1",
+          "scheduledMaintenance": "Scheduled maintenance reminder"
+        }
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "reviewProvers": "Review Provers",
+        "txMonitor": "TX Monitor",
+        "dailyReport": "Daily Report",
+        "auditLog": "Audit Log"
+      }
+    },
+    "proverDetail": {
+      "meta": {
+        "title": "Prover詳細: {id} | QS Admin",
+        "description": "Proverノードの詳細情報と管理"
+      },
+      "ariaLabel": "Prover詳細ページ",
+      "breadcrumb": {
+        "provers": "Prover管理"
+      },
+      "tabs": {
+        "overview": "概要",
+        "signatures": "署名履歴",
+        "slashing": "スラッシング",
+        "settings": "設定"
+      },
+      "status": {
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "pending": "審査中"
+      },
+      "stats": {
+        "stake": "ステーク",
+        "sla": "SLA",
+        "signatures24h": "署名数（24h）",
+        "uptime": "アップタイム",
+        "avgResponseTime": "平均応答時間"
+      },
+      "actions": {
+        "forceSync": "強制同期",
+        "suspend": "停止"
+      },
+      "overview": {
+        "info": "Prover情報",
+        "proverId": "Prover ID",
+        "region": "リージョン",
+        "version": "バージョン",
+        "registeredAt": "登録日",
+        "lastActive": "最終アクティブ",
+        "totalSignatures": "累計署名数",
+        "recentSignatures": "最近の署名"
+      },
+      "signatures": {
+        "title": "署名履歴",
+        "placeholder": "署名履歴の詳細がここに表示されます"
+      },
+      "slashing": {
+        "title": "スラッシング履歴",
+        "noEvents": "スラッシングイベントはありません"
+      },
+      "settings": {
+        "title": "管理設定",
+        "forceSlash": "強制スラッシング",
+        "forceSlashDesc": "手動でスラッシングを実行します（緊急時のみ使用）",
+        "executeSlash": "スラッシング実行",
+        "removeProver": "Prover削除",
+        "removeProverDesc": "このProverをネットワークから完全に削除します",
+        "remove": "削除"
+      }
+    },
+    "operatorDetail": {
+      "meta": {
+        "title": "運営企業詳細: {id} | QS Admin",
+        "description": "SaaS運営企業の詳細情報と管理"
+      },
+      "ariaLabel": "運営企業詳細ページ",
+      "breadcrumb": {
+        "operators": "運営企業一覧"
+      },
+      "tabs": {
+        "overview": "概要",
+        "users": "ユーザー",
+        "billing": "課金",
+        "contract": "契約",
+        "settings": "設定"
+      },
+      "status": {
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "pending": "審査中"
+      },
+      "stats": {
+        "mrr": "MRR",
+        "users": "ユーザー数",
+        "active": "アクティブ",
+        "tvl": "TVL",
+        "transactions": "トランザクション",
+        "lastActivity": "最終アクティビティ"
+      },
+      "actions": {
+        "viewContract": "契約書を表示",
+        "manage": "管理"
+      },
+      "overview": {
+        "info": "企業情報",
+        "operatorId": "運営企業ID",
+        "plan": "プラン",
+        "contractPeriod": "契約期間",
+        "accountManager": "担当CSM",
+        "recentActivity": "最近のアクティビティ"
+      },
+      "users": {
+        "title": "ユーザー管理",
+        "placeholder": "ユーザー一覧がここに表示されます"
+      },
+      "billing": {
+        "title": "課金履歴"
+      },
+      "contract": {
+        "title": "契約書類",
+        "msa": "マスターサービス契約",
+        "sla": "SLA契約",
+        "view": "表示"
+      },
+      "settings": {
+        "title": "アカウント設定",
+        "suspendAccount": "アカウント停止",
+        "suspendDesc": "一時的にサービス利用を停止します",
+        "suspend": "停止",
+        "terminateAccount": "契約解除",
+        "terminateDesc": "契約を解除し、全データを削除します（取り消し不可）",
+        "terminate": "解約"
+      }
+    },
+    "protocolAlerts": {
+      "meta": {
+        "title": "プロトコルアラート | QS Admin",
+        "description": "プロトコル監視アラートの管理"
+      },
+      "title": "プロトコルアラート",
+      "subtitle": "セキュリティ・パフォーマンスアラートの監視",
+      "ariaLabel": "プロトコルアラートページ",
+      "configureAlerts": "アラート設定",
+      "tabs": {
+        "active": "アクティブ",
+        "acknowledged": "確認済み",
+        "resolved": "解決済み",
+        "all": "すべて"
+      },
+      "stats": {
+        "activeAlerts": "アクティブアラート",
+        "criticalAlerts": "クリティカル",
+        "acknowledgedAlerts": "確認済み",
+        "resolvedToday": "本日解決"
+      },
+      "listTitle": "アラート一覧",
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "alerts": {
+        "suspiciousActivity": "不審なアクティビティ検出",
+        "suspiciousActivityDesc": "通常と異なるトランザクションパターンを検出しました",
+        "proverSlaWarning": "Prover SLA警告",
+        "proverSlaWarningDesc": "prover-003のSLAが99%を下回りました",
+        "gasSpike": "ガス価格急騰",
+        "gasSpikeDesc": "L1ガス価格が通常の3倍に上昇しています",
+        "highTraffic": "高トラフィック",
+        "highTrafficDesc": "トランザクション量が通常の2倍を超えています",
+        "failedAuth": "認証失敗",
+        "failedAuthDesc": "複数の認証失敗を検出しました"
+      },
+      "type": {
+        "critical": "クリティカル",
+        "warning": "警告",
+        "info": "情報"
+      },
+      "status": {
+        "active": "アクティブ",
+        "acknowledged": "確認済み",
+        "resolved": "解決済み"
+      },
+      "category": {
+        "security": "セキュリティ",
+        "prover": "Prover",
+        "contract": "コントラクト",
+        "performance": "パフォーマンス"
+      },
+      "actions": {
+        "acknowledge": "確認",
+        "resolve": "解決",
+        "viewDetails": "詳細"
+      },
+      "noAlerts": "アラートはありません"
+    },
+    "proverApplications": {
+      "meta": {
+        "title": "Prover申請審査 | QS Admin",
+        "description": "パブリック版Prover申請の審査・管理"
+      },
+      "title": "Prover申請審査",
+      "subtitle": "パブリック版 Prover参加申請の審査",
+      "ariaLabel": "Prover申請審査ページ",
+      "breadcrumb": {
+        "provers": "Prover管理"
+      },
+      "tabs": {
+        "pending": "審査待ち",
+        "reviewing": "審査中",
+        "approved": "承認済み",
+        "rejected": "却下",
+        "all": "すべて"
+      },
+      "stats": {
+        "totalApplications": "総申請数",
+        "pendingReview": "審査待ち",
+        "approved": "承認済み",
+        "rejected": "却下"
+      },
+      "listTitle": "申請一覧",
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "status": {
+        "pending": "審査待ち",
+        "reviewing": "審査中",
+        "approved": "承認済み",
+        "rejected": "却下"
+      },
+      "detail": {
+        "title": "申請詳細",
+        "selectApplication": "申請を選択してください",
+        "basicInfo": "基本情報",
+        "operator": "オペレーター",
+        "address": "アドレス",
+        "stake": "ステーク",
+        "region": "リージョン",
+        "nodeSpecs": "ノードスペック",
+        "experience": "運用経験"
+      },
+      "actions": {
+        "approve": "承認",
+        "reject": "却下",
+        "requestInfo": "追加情報要求"
+      },
+      "noApplications": "申請はありません"
+    },
+    "operatorApplications": {
+      "meta": {
+        "title": "SaaS申請審査 | QS Admin",
+        "description": "企業版SaaS運営企業申請の審査・管理"
+      },
+      "title": "運営企業申請審査",
+      "subtitle": "企業版SaaS 運営企業参加申請の審査",
+      "ariaLabel": "運営企業申請審査ページ",
+      "breadcrumb": {
+        "operators": "運営企業一覧"
+      },
+      "tabs": {
+        "pending": "審査待ち",
+        "kybReview": "KYB審査",
+        "contractReview": "契約審査",
+        "approved": "承認済み",
+        "rejected": "却下",
+        "all": "すべて"
+      },
+      "stats": {
+        "totalApplications": "総申請数",
+        "pendingReview": "審査待ち",
+        "kybReview": "KYB審査中",
+        "approved": "承認済み",
+        "rejected": "却下"
+      },
+      "listTitle": "申請一覧",
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "status": {
+        "pending": "審査待ち",
+        "kybReview": "KYB審査中",
+        "contractReview": "契約審査中",
+        "approved": "承認済み",
+        "rejected": "却下"
+      },
+      "detail": {
+        "title": "申請詳細",
+        "selectApplication": "申請を選択してください",
+        "companyInfo": "企業情報",
+        "companyName": "企業名",
+        "country": "国",
+        "industry": "業種",
+        "plan": "プラン",
+        "contactInfo": "連絡先",
+        "useCase": "利用目的",
+        "expectedUsers": "想定ユーザー数"
+      },
+      "actions": {
+        "startKyb": "KYB審査開始",
+        "startContract": "契約審査開始",
+        "approve": "承認",
+        "reject": "却下",
+        "requestInfo": "追加情報要求"
+      },
+      "noApplications": "申請はありません"
+    },
+    "operatorContracts": {
+      "meta": {
+        "title": "契約管理 | QS Admin",
+        "description": "企業版SaaS運営企業の契約管理"
+      },
+      "title": "契約管理",
+      "subtitle": "企業版SaaS 運営企業契約の管理",
+      "ariaLabel": "契約管理ページ",
+      "breadcrumb": {
+        "operators": "運営企業一覧"
+      },
+      "newContract": "新規契約",
+      "tabs": {
+        "active": "有効",
+        "expiring": "期限間近",
+        "pendingRenewal": "更新待ち",
+        "expired": "期限切れ",
+        "all": "すべて"
+      },
+      "stats": {
+        "totalContracts": "総契約数",
+        "activeContracts": "有効契約",
+        "expiringContracts": "期限間近",
+        "next30Days": "30日以内",
+        "pendingRenewals": "更新待ち",
+        "totalValue": "契約総額",
+        "annual": "年間"
+      },
+      "listTitle": "契約一覧",
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "status": {
+        "active": "有効",
+        "expiring": "期限間近",
+        "pendingRenewal": "更新待ち",
+        "expired": "期限切れ"
+      },
+      "contractPeriod": "契約期間",
+      "expiresIn": "あと{days}日で期限切れ",
+      "autoRenew": "自動更新",
+      "viewContract": "契約書を表示",
+      "download": "ダウンロード",
+      "renewContract": "契約更新",
+      "noContracts": "契約はありません"
+    },
+    "billingPayments": {
+      "meta": {
+        "title": "支払い管理 | QS Admin",
+        "description": "企業版SaaS支払いの管理"
+      },
+      "title": "支払い管理",
+      "subtitle": "企業版SaaS 請求・支払いの管理",
+      "ariaLabel": "支払い管理ページ",
+      "breadcrumb": {
+        "billing": "課金管理"
+      },
+      "exportReport": "レポート出力",
+      "tabs": {
+        "all": "すべて",
+        "pending": "未払い",
+        "overdue": "遅延",
+        "paid": "支払済",
+        "failed": "失敗"
+      },
+      "stats": {
+        "totalPayments": "総支払い数",
+        "collectedThisMonth": "今月回収額",
+        "pendingPayments": "未払い額",
+        "overdueAmount": "遅延額",
+        "collectionRate": "回収率"
+      },
+      "listTitle": "支払い一覧",
+      "search": {
+        "placeholder": "検索..."
+      },
+      "filter": "フィルター",
+      "table": {
+        "invoiceId": "請求書ID",
+        "company": "企業名",
+        "plan": "プラン",
+        "amount": "金額",
+        "dueDate": "支払期限",
+        "status": "ステータス",
+        "paymentMethod": "支払方法"
+      },
+      "status": {
+        "paid": "支払済",
+        "pending": "未払い",
+        "overdue": "遅延",
+        "failed": "失敗"
+      },
+      "paidOn": "支払日: {date}",
+      "sendReminder": "リマインダー送信",
+      "retry": "再試行",
+      "noPayments": "支払い情報はありません"
+    },
+    "licenseCompanyDetail": {
+      "meta": {
+        "title": "ライセンス企業詳細: {id} | QS Admin",
+        "description": "技術譲渡ライセンス企業の詳細管理"
+      },
+      "ariaLabel": "ライセンス企業詳細ページ",
+      "breadcrumb": {
+        "companies": "ライセンス企業一覧"
+      },
+      "tabs": {
+        "overview": "概要",
+        "projects": "プロジェクト",
+        "documents": "ドキュメント",
+        "billing": "課金",
+        "settings": "設定"
+      },
+      "status": {
+        "active": "有効",
+        "renewalPending": "更新待ち",
+        "terminated": "終了"
+      },
+      "stats": {
+        "contractValue": "契約金額",
+        "activeProjects": "進行中PJ",
+        "activeUsers": "アクティブユーザー",
+        "deployedNodes": "デプロイノード",
+        "daysToRenewal": "更新まで"
+      },
+      "actions": {
+        "renewContract": "契約更新",
+        "manage": "管理"
+      },
+      "contractPeriod": "契約期間",
+      "overview": {
+        "companyInfo": "企業情報",
+        "companyId": "企業ID",
+        "country": "国",
+        "licenseType": "ライセンス種別",
+        "contractValue": "契約金額",
+        "renewalDate": "更新日",
+        "accountManager": "担当者",
+        "contactInfo": "連絡先",
+        "primaryContact": "主要連絡先",
+        "email": "メール",
+        "phone": "電話"
+      },
+      "projects": {
+        "title": "プロジェクト一覧",
+        "progress": "進捗"
+      },
+      "projectStatus": {
+        "completed": "完了",
+        "active": "進行中",
+        "planning": "計画中"
+      },
+      "documents": {
+        "title": "ドキュメント一覧",
+        "download": "ダウンロード",
+        "types": {
+          "contract": "契約書",
+          "technical": "技術資料",
+          "training": "研修資料"
+        }
+      },
+      "billing": {
+        "title": "課金履歴",
+        "placeholder": "課金履歴がここに表示されます"
+      },
+      "settings": {
+        "title": "アカウント設定",
+        "suspendLicense": "ライセンス停止",
+        "suspendLicenseDesc": "一時的にライセンスを停止します",
+        "suspend": "停止",
+        "terminateLicense": "ライセンス解除",
+        "terminateLicenseDesc": "ライセンス契約を解除します（取り消し不可）",
+        "terminate": "解除"
+      }
+    },
+    "securitySettings": {
+      "meta": {
+        "title": "セキュリティ設定 | QS Admin",
+        "description": "QS Admin セキュリティ設定の管理"
+      },
+      "title": "セキュリティ設定",
+      "subtitle": "アカウントセキュリティと認証の管理",
+      "ariaLabel": "セキュリティ設定ページ",
+      "tabs": {
+        "overview": "概要",
+        "mfa": "多要素認証",
+        "sessions": "セッション",
+        "apiKeys": "APIキー",
+        "audit": "監査ログ"
+      },
+      "stats": {
+        "securityScore": "セキュリティスコア",
+        "activeSessions": "アクティブセッション",
+        "apiKeys": "APIキー",
+        "activeKeys": "有効: {count}件",
+        "failedLogins": "ログイン失敗",
+        "last24h": "24時間以内"
+      },
+      "overview": {
+        "securityStatus": "セキュリティ状態",
+        "mfaEnabled": "多要素認証が有効",
+        "strongPassword": "強力なパスワード",
+        "passwordAge": "パスワード経過日数",
+        "ipRestriction": "IPアドレス制限",
+        "active": "有効",
+        "configured": "設定済み",
+        "days": "{count}日",
+        "quickActions": "クイックアクション",
+        "changePassword": "パスワード変更",
+        "setupMfa": "MFA設定",
+        "generateApiKey": "APIキー生成",
+        "rotateKeys": "キーローテーション"
+      },
+      "mfa": {
+        "title": "多要素認証設定",
+        "authenticator": "認証アプリ",
+        "authenticatorDesc": "Google Authenticator等の認証アプリを使用",
+        "enabled": "有効",
+        "manage": "管理",
+        "emailOtp": "メールOTP",
+        "emailOtpDesc": "バックアップ用のメール認証",
+        "backup": "バックアップ",
+        "configure": "設定",
+        "recoveryCodes": "リカバリーコード",
+        "recoveryCodesDesc": "緊急時のバックアップコード",
+        "remaining": "残り{count}個",
+        "regenerate": "再生成"
+      },
+      "sessions": {
+        "title": "アクティブセッション",
+        "current": "現在のセッション",
+        "lastActive": "最終アクティブ",
+        "terminate": "終了",
+        "terminateAll": "すべて終了"
+      },
+      "apiKeys": {
+        "title": "APIキー管理",
+        "create": "新規作成",
+        "active": "有効",
+        "inactive": "無効",
+        "created": "作成日",
+        "lastUsed": "最終使用",
+        "revoke": "無効化"
+      },
+      "audit": {
+        "title": "最近のセキュリティイベント",
+        "viewAll": "すべて表示"
+      }
+    },
+    "proverSlashing": {
+      "meta": {
+        "title": "Slashing管理 | QS Admin",
+        "description": "Proverのペナルティ・スラッシング管理"
+      },
+      "title": "Slashing管理",
+      "subtitle": "Proverのペナルティとアピール管理",
+      "breadcrumb": "Slashing",
+      "ariaLabel": "Prover Slashing管理画面",
+      "tabs": {
+        "events": "Slashingイベント",
+        "pending": "審査中",
+        "appeals": "アピール",
+        "config": "設定"
+      },
+      "stats": {
+        "totalSlashed": "総Slashing額",
+        "pendingReview": "審査待ち",
+        "appealsActive": "アクティブなアピール",
+        "executedThisMonth": "今月実行済み",
+        "rejectedThisMonth": "今月却下"
+      },
+      "status": {
+        "executed": "実行済み",
+        "pending": "審査中",
+        "reviewing": "レビュー中",
+        "appealed": "アピール中",
+        "rejected": "却下"
+      },
+      "types": {
+        "slaViolation": "SLA違反",
+        "downtime": "ダウンタイム",
+        "invalidSignature": "不正署名"
+      },
+      "eventList": {
+        "title": "Slashingイベント一覧",
+        "searchPlaceholder": "オペレーター名で検索...",
+        "filter": "フィルター"
+      },
+      "detail": {
+        "title": "イベント詳細",
+        "eventId": "イベントID",
+        "prover": "Prover",
+        "type": "タイプ",
+        "amount": "Slashing額",
+        "reason": "理由",
+        "status": "ステータス",
+        "createdAt": "作成日時",
+        "executedAt": "実行日時",
+        "selectEvent": "イベントを選択してください",
+        "actions": {
+          "reject": "却下",
+          "execute": "実行",
+          "denyAppeal": "アピール却下",
+          "approveAppeal": "アピール承認"
+        }
+      },
+      "config": {
+        "title": "Slashing設定",
+        "slaThreshold": "SLA閾値",
+        "slaViolationPenalty": "SLA違反ペナルティ",
+        "ofStake": "ステーク額の割合",
+        "downtimePenalty": "ダウンタイムペナルティ",
+        "invalidSignaturePenalty": "不正署名ペナルティ",
+        "appealPeriod": "アピール期間",
+        "gracePeriod": "猶予期間",
+        "editParameters": "パラメータを編集"
+      }
+    },
+    "proverPerformance": {
+      "meta": {
+        "title": "Proverパフォーマンス | QS Admin",
+        "description": "Proverネットワークのパフォーマンス分析"
+      },
+      "title": "Proverパフォーマンス",
+      "subtitle": "ネットワーク全体のパフォーマンス分析",
+      "breadcrumb": "パフォーマンス",
+      "ariaLabel": "Proverパフォーマンス画面",
+      "exportReport": "レポート出力",
+      "timeRanges": {
+        "24h": "24時間",
+        "7d": "7日間",
+        "30d": "30日間"
+      },
+      "stats": {
+        "avgSla": "平均SLA",
+        "avgResponseTime": "平均応答時間",
+        "totalSignatures": "総署名数",
+        "activeProvers": "アクティブProver",
+        "avgUptime": "平均稼働率",
+        "totalErrors": "総エラー数"
+      },
+      "chart": {
+        "title": "パフォーマンス推移",
+        "sla": "SLA",
+        "responseTime": "応答時間",
+        "placeholder": "チャートがここに表示されます"
+      },
+      "topPerformers": {
+        "title": "トップパフォーマー"
+      },
+      "needsAttention": {
+        "title": "要注意Prover",
+        "view": "詳細"
+      },
+      "table": {
+        "title": "Prover別パフォーマンス",
+        "sortBy": "並び替え",
+        "sortOptions": {
+          "sla": "SLA順",
+          "signatures": "署名数順",
+          "response": "応答時間順"
+        },
+        "columns": {
+          "rank": "順位",
+          "prover": "Prover",
+          "sla": "SLA",
+          "responseTime": "応答時間",
+          "signatures": "署名数",
+          "uptime": "稼働率",
+          "errors": "エラー数",
+          "trend": "トレンド"
+        }
+      }
+    },
+    "protocolContracts": {
+      "meta": {
+        "title": "スマートコントラクト | QS Admin",
+        "description": "プロトコルスマートコントラクト管理"
+      },
+      "title": "スマートコントラクト",
+      "subtitle": "プロトコルコントラクトの管理と監視",
+      "breadcrumb": "コントラクト",
+      "ariaLabel": "プロトコルコントラクト管理画面",
+      "tabs": {
+        "contracts": "コントラクト",
+        "upgrades": "アップグレード",
+        "audits": "監査"
+      },
+      "stats": {
+        "totalContracts": "総コントラクト数",
+        "activeContracts": "アクティブ",
+        "totalTvl": "総TVL",
+        "pendingUpgrades": "保留中アップグレード",
+        "lastAudit": "最終監査"
+      },
+      "status": {
+        "active": "アクティブ",
+        "paused": "一時停止",
+        "deprecated": "非推奨",
+        "executed": "実行済み",
+        "pending": "保留中"
+      },
+      "contractList": {
+        "title": "コントラクト一覧",
+        "verified": "検証済み",
+        "audited": "監査済み"
+      },
+      "detail": {
+        "title": "コントラクト詳細",
+        "name": "コントラクト名",
+        "address": "アドレス",
+        "network": "ネットワーク",
+        "version": "バージョン",
+        "status": "ステータス",
+        "tvl": "TVL",
+        "lastUpgrade": "最終アップグレード",
+        "selectContract": "コントラクトを選択してください",
+        "actions": {
+          "viewCode": "コード表示",
+          "explorer": "Explorer",
+          "emergencyPause": "緊急停止"
+        }
+      },
+      "upgrades": {
+        "title": "アップグレード履歴",
+        "columns": {
+          "contract": "コントラクト",
+          "version": "バージョン",
+          "status": "ステータス",
+          "proposedAt": "提案日",
+          "executedAt": "実行日",
+          "proposer": "提案者"
+        },
+        "actions": {
+          "review": "レビュー"
+        }
+      },
+      "audits": {
+        "title": "セキュリティ監査",
+        "completedAt": "完了日",
+        "passed": "合格",
+        "viewReport": "レポート表示"
+      }
+    },
+    "operatorPlans": {
+      "meta": {
+        "title": "プラン管理 | QS Admin",
+        "description": "SaaS料金プランの管理"
+      },
+      "title": "プラン管理",
+      "subtitle": "SaaS料金プランの設定と管理",
+      "breadcrumb": "プラン",
+      "ariaLabel": "SaaSプラン管理画面",
+      "createPlan": "新規プラン作成",
+      "stats": {
+        "activePlans": "アクティブプラン",
+        "totalSubscribers": "総契約数",
+        "mrr": "MRR"
+      },
+      "perMonth": "月",
+      "perYear": "年",
+      "unlimited": "無制限",
+      "popular": "人気",
+      "features": {
+        "maxUsers": "最大ユーザー数",
+        "maxProvers": "最大Prover数",
+        "slaTarget": "SLA目標",
+        "apiRateLimit": "APIレート制限",
+        "customBranding": "カスタムブランディング",
+        "dedicatedProvers": "専用Prover",
+        "prioritySupport": "優先サポート"
+      },
+      "subscribers": "契約企業",
+      "mrr": "MRR",
+      "edit": "編集",
+      "supportLevels": {
+        "email": "メール",
+        "priority": "優先",
+        "dedicated": "専任"
+      },
+      "comparison": {
+        "title": "プラン比較",
+        "feature": "機能",
+        "rows": {
+          "monthlyPrice": "月額料金",
+          "maxUsers": "最大ユーザー数",
+          "maxProvers": "最大Prover数",
+          "sla": "SLA",
+          "support": "サポート",
+          "customBranding": "カスタムブランディング",
+          "dedicatedProvers": "専用Prover"
+        }
+      }
+    },
+    "billingUsage": {
+      "meta": {
+        "title": "使用量分析 | QS Admin",
+        "description": "SaaSサービス使用量の分析"
+      },
+      "title": "使用量分析",
+      "subtitle": "運営企業ごとのサービス使用状況",
+      "breadcrumb": "使用量",
+      "ariaLabel": "SaaS使用量分析画面",
+      "exportReport": "レポート出力",
+      "timeRanges": {
+        "today": "今日",
+        "7d": "7日間",
+        "30d": "30日間"
+      },
+      "stats": {
+        "totalUsers": "総ユーザー数",
+        "totalSignatures": "総署名数",
+        "totalApiCalls": "総APIコール",
+        "totalStorage": "総ストレージ",
+        "avgUtilization": "平均使用率"
+      },
+      "chart": {
+        "title": "使用量推移",
+        "signatures": "署名数",
+        "apiCalls": "APIコール",
+        "placeholder": "チャートがここに表示されます"
+      },
+      "table": {
+        "title": "運営企業別使用量",
+        "sortBy": "並び替え",
+        "sortOptions": {
+          "signatures": "署名数順",
+          "users": "ユーザー数順",
+          "apiCalls": "APIコール順"
+        },
+        "columns": {
+          "operator": "運営企業",
+          "plan": "プラン",
+          "users": "ユーザー",
+          "signatures": "署名",
+          "apiCalls": "API",
+          "storage": "ストレージ",
+          "status": "状態"
+        }
+      },
+      "unlimited": "無制限",
+      "status": {
+        "normal": "正常",
+        "nearLimit": "上限近接"
+      }
+    },
+    "billingRevenue": {
+      "meta": {
+        "title": "売上分析 | QS Admin",
+        "description": "SaaS売上の分析とレポート"
+      },
+      "title": "売上分析",
+      "subtitle": "SaaS事業の売上とトレンド分析",
+      "breadcrumb": "売上",
+      "ariaLabel": "SaaS売上分析画面",
+      "exportReport": "レポート出力",
+      "timeRanges": {
+        "30d": "30日間",
+        "90d": "90日間",
+        "12m": "12ヶ月"
+      },
+      "stats": {
+        "mrr": "MRR",
+        "arr": "ARR",
+        "arpu": "ARPU",
+        "churnRate": "解約率",
+        "ltv": "LTV"
+      },
+      "revenueChart": {
+        "title": "売上推移",
+        "placeholder": "チャートがここに表示されます",
+        "columns": {
+          "month": "月",
+          "revenue": "売上",
+          "growth": "成長率"
+        }
+      },
+      "revenueByPlan": {
+        "title": "プラン別売上",
+        "placeholder": "円グラフがここに表示されます"
+      },
+      "topOperators": {
+        "title": "売上トップ運営企業",
+        "columns": {
+          "rank": "順位",
+          "operator": "運営企業",
+          "plan": "プラン",
+          "revenue": "売上",
+          "growth": "成長率"
+        }
+      }
+    },
+    "publicUsers": {
+      "meta": {
+        "title": "ユーザー管理 | QS Admin",
+        "description": "パブリック版ユーザーの管理"
+      },
+      "title": "ユーザー管理",
+      "subtitle": "パブリック版のユーザー一覧と管理",
+      "breadcrumb": "ユーザー",
+      "ariaLabel": "パブリックユーザー管理画面",
+      "tabs": {
+        "all": "すべて",
+        "active": "アクティブ",
+        "pending": "ロック解除待ち",
+        "flagged": "要確認"
+      },
+      "stats": {
+        "totalUsers": "総ユーザー数",
+        "activeUsers": "アクティブユーザー",
+        "totalTvl": "総TVL",
+        "avgLockAmount": "平均ロック額",
+        "pendingUnlocks": "ロック解除待ち"
+      },
+      "status": {
+        "active": "アクティブ",
+        "pendingUnlock": "解除待ち",
+        "flagged": "要確認"
+      },
+      "userList": {
+        "title": "ユーザー一覧",
+        "searchPlaceholder": "アドレス・ENSで検索...",
+        "filter": "フィルター"
+      },
+      "table": {
+        "columns": {
+          "user": "ユーザー",
+          "status": "ステータス",
+          "totalLocked": "総ロック額",
+          "activeLocks": "アクティブロック",
+          "registeredAt": "登録日",
+          "lastActivity": "最終アクティビティ"
+        },
+        "viewDetail": "詳細"
+      }
+    },
+    "publicUserDetail": {
+      "meta": {
+        "title": "ユーザー詳細 | QS Admin",
+        "description": "パブリック版ユーザーの詳細情報"
+      },
+      "title": "ユーザー詳細",
+      "ariaLabel": "パブリックユーザー詳細画面",
+      "tabs": {
+        "locks": "ロック履歴",
+        "activity": "アクティビティ",
+        "signatures": "署名履歴"
+      },
+      "status": {
+        "active": "アクティブ",
+        "pendingUnlock": "解除待ち",
+        "flagged": "要確認"
+      },
+      "lockStatus": {
+        "locked": "ロック中",
+        "pendingUnlock": "解除待ち",
+        "unlocked": "解除済み"
+      },
+      "userInfo": {
+        "title": "ユーザー情報",
+        "status": "ステータス",
+        "totalLocked": "総ロック額",
+        "activeLocks": "アクティブロック",
+        "completedLocks": "完了ロック",
+        "registeredAt": "登録日",
+        "lastActivity": "最終アクティビティ",
+        "dilithiumKey": "Dilithium鍵",
+        "keyGenerated": "生成済み",
+        "keyNotGenerated": "未生成",
+        "flaggedWarning": "このユーザーは要確認フラグが設定されています",
+        "reviewFlag": "フラグを確認"
+      },
+      "locks": {
+        "title": "ロック履歴",
+        "lockedAt": "ロック日時",
+        "unlockRequested": "解除申請日時",
+        "unlockedAt": "解除完了日時"
+      },
+      "activity": {
+        "title": "アクティビティログ",
+        "types": {
+          "lock": "ロック",
+          "unlock_request": "ロック解除申請",
+          "unlock_complete": "ロック解除完了",
+          "signature": "署名生成"
+        }
+      },
+      "signatures": {
+        "title": "署名履歴",
+        "placeholder": "署名履歴がここに表示されます"
+      }
+    },
+    "licenseRenewals": {
+      "meta": {
+        "title": "ライセンス更新管理 | QS Admin",
+        "description": "ライセンス更新のスケジュールと管理"
+      },
+      "title": "ライセンス更新管理",
+      "subtitle": "契約更新のスケジュールと進捗管理",
+      "breadcrumb": "更新管理",
+      "ariaLabel": "ライセンス更新管理画面",
+      "tabs": {
+        "all": "すべて",
+        "urgent": "緊急",
+        "negotiating": "交渉中",
+        "confirmed": "確定済み"
+      },
+      "stats": {
+        "upcomingRenewals": "更新予定",
+        "next90Days": "今後90日以内",
+        "urgentRenewals": "緊急対応",
+        "within14Days": "14日以内",
+        "confirmedRenewals": "確定済み",
+        "renewalRate": "更新率",
+        "totalValue": "更新総額"
+      },
+      "status": {
+        "confirmed": "確定",
+        "negotiating": "交渉中",
+        "pending": "未対応",
+        "urgent": "緊急",
+        "scheduled": "予定"
+      },
+      "renewalList": {
+        "title": "更新予定一覧",
+        "daysRemaining": "残り{days}日"
+      },
+      "detail": {
+        "title": "更新詳細",
+        "company": "企業",
+        "currentPlan": "現行プラン",
+        "proposedPlan": "提案プラン",
+        "licenseEnd": "ライセンス終了日",
+        "daysRemaining": "残り日数",
+        "days": "日",
+        "status": "ステータス",
+        "contact": "担当者連絡先",
+        "lastContact": "最終連絡日",
+        "notes": "メモ",
+        "selectRenewal": "更新案件を選択してください",
+        "actions": {
+          "sendReminder": "リマインダー送信",
+          "generateQuote": "見積書作成",
+          "processRenewal": "更新処理"
+        }
+      }
+    },
+    "saasUsers": {
+      "meta": {
+        "title": "SaaSユーザー管理 | QS Admin",
+        "description": "SaaSエンドユーザーの管理"
+      },
+      "title": "SaaSユーザー管理",
+      "subtitle": "オペレーター経由のエンドユーザー管理",
+      "ariaLabel": "SaaSユーザー管理",
+      "breadcrumb": "ユーザー",
+      "tabs": {
+        "all": "全て",
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "flagged": "要注意",
+        "pending": "保留"
+      },
+      "status": {
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "flagged": "要注意",
+        "pending": "保留"
+      },
+      "risk": {
+        "high": "高リスク",
+        "medium": "中リスク",
+        "low": "低リスク"
+      },
+      "stats": {
+        "totalUsers": "総ユーザー数",
+        "activeUsers": "アクティブ",
+        "suspendedUsers": "停止中",
+        "flaggedUsers": "要注意",
+        "avgTransactions": "平均取引数",
+        "perUser": "ユーザーあたり"
+      },
+      "userList": {
+        "title": "ユーザー一覧",
+        "searchPlaceholder": "メール、ID、オペレーターで検索...",
+        "filter": "フィルター"
+      },
+      "table": {
+        "columns": {
+          "user": "ユーザー",
+          "operator": "オペレーター",
+          "status": "ステータス",
+          "riskScore": "リスクスコア",
+          "transactions": "取引数",
+          "lastActivity": "最終活動"
+        },
+        "viewDetail": "詳細"
+      },
+      "pagination": {
+        "showing": "{count} / {total} 件表示",
+        "previous": "前へ",
+        "next": "次へ"
+      },
+      "actions": {
+        "exportUsers": "エクスポート"
+      }
+    },
+    "saasUserRisks": {
+      "meta": {
+        "title": "リスク管理 | QS Admin",
+        "description": "SaaSユーザーのリスク監視"
+      },
+      "title": "リスク管理",
+      "subtitle": "ユーザーリスクアラートの監視・対応",
+      "ariaLabel": "リスク管理",
+      "breadcrumb": {
+        "users": "ユーザー",
+        "risks": "リスク"
+      },
+      "tabs": {
+        "all": "全て",
+        "critical": "重大",
+        "high": "高",
+        "medium": "中",
+        "resolved": "解決済み"
+      },
+      "severity": {
+        "critical": "重大",
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "status": {
+        "open": "未対応",
+        "investigating": "調査中",
+        "escalated": "エスカレーション",
+        "resolved": "解決済み"
+      },
+      "riskTypes": {
+        "unusual_activity": "異常な活動",
+        "suspicious_pattern": "不審なパターン",
+        "geo_anomaly": "地理的異常",
+        "velocity_breach": "速度違反",
+        "sanction_match": "制裁リスト一致"
+      },
+      "stats": {
+        "totalAlerts": "総アラート数",
+        "criticalAlerts": "重大",
+        "highAlerts": "高リスク",
+        "openAlerts": "未対応",
+        "needsReview": "要レビュー",
+        "resolvedToday": "本日解決"
+      },
+      "alertList": {
+        "title": "アラート一覧",
+        "searchPlaceholder": "ユーザー、オペレーターで検索...",
+        "filter": "フィルター",
+        "riskScore": "リスクスコア"
+      },
+      "detail": {
+        "title": "アラート詳細",
+        "user": "ユーザー",
+        "operator": "オペレーター",
+        "riskType": "リスク種別",
+        "riskScore": "リスクスコア",
+        "description": "説明",
+        "detectedAt": "検出日時",
+        "selectAlert": "アラートを選択してください",
+        "actions": {
+          "investigate": "調査開始",
+          "escalate": "エスカレート",
+          "resolve": "解決済み"
+        }
+      }
+    },
+    "saasProverQs": {
+      "meta": {
+        "title": "QS Prover管理 | QS Admin",
+        "description": "Quantum Shield Proverの管理"
+      },
+      "title": "QS Prover管理",
+      "subtitle": "Quantum ShieldネイティブProverの監視・管理",
+      "ariaLabel": "QS Prover管理",
+      "breadcrumb": "QS Prover",
+      "tabs": {
+        "all": "全て",
+        "active": "稼働中",
+        "degraded": "劣化",
+        "maintenance": "メンテナンス"
+      },
+      "status": {
+        "active": "稼働中",
+        "degraded": "劣化",
+        "maintenance": "メンテナンス",
+        "offline": "オフライン"
+      },
+      "stats": {
+        "totalProvers": "総Prover数",
+        "activeProvers": "稼働中",
+        "degradedProvers": "劣化",
+        "totalProofs": "総証明数",
+        "avgProofTime": "平均証明時間"
+      },
+      "proverList": {
+        "title": "Prover一覧",
+        "searchPlaceholder": "名前、リージョンで検索..."
+      },
+      "detail": {
+        "title": "Prover詳細",
+        "name": "名前",
+        "region": "リージョン",
+        "proofsGenerated": "生成証明数",
+        "avgProofTime": "平均証明時間",
+        "uptime": "稼働率",
+        "healthy": "正常",
+        "cpuUsage": "CPU使用率",
+        "memoryUsage": "メモリ使用率",
+        "selectProver": "Proverを選択してください",
+        "actions": {
+          "viewLogs": "ログ表示",
+          "manage": "管理"
+        }
+      }
+    },
+    "saasProverOperator": {
+      "meta": {
+        "title": "オペレーターProver管理 | QS Admin",
+        "description": "オペレーター専用Proverの管理"
+      },
+      "title": "オペレーターProver管理",
+      "subtitle": "オペレーター専用Proverの監視・管理",
+      "ariaLabel": "オペレーターProver管理",
+      "breadcrumb": "オペレーターProver",
+      "tabs": {
+        "all": "全て",
+        "active": "稼働中",
+        "degraded": "劣化",
+        "provisioning": "プロビジョニング中"
+      },
+      "status": {
+        "active": "稼働中",
+        "degraded": "劣化",
+        "provisioning": "プロビジョニング中",
+        "offline": "オフライン"
+      },
+      "stats": {
+        "totalProvers": "総Prover数",
+        "activeProvers": "稼働中",
+        "dedicatedNodes": "専用ノード",
+        "avgSlaCompliance": "平均SLA準拠率",
+        "totalProofs": "総証明数"
+      },
+      "proverList": {
+        "title": "Prover一覧",
+        "searchPlaceholder": "名前、オペレーターで検索...",
+        "nodes": "ノード",
+        "proofs": "証明",
+        "avgTime": "平均時間",
+        "sla": "SLA"
+      },
+      "detail": {
+        "title": "Prover詳細",
+        "proverName": "Prover名",
+        "operator": "オペレーター",
+        "dedicatedNodes": "専用ノード数",
+        "proofsGenerated": "生成証明数",
+        "avgProofTime": "平均証明時間",
+        "slaCompliance": "SLA準拠率",
+        "slaExcellent": "優秀",
+        "slaBelowTarget": "目標未達",
+        "selectProver": "Proverを選択してください",
+        "actions": {
+          "viewMetrics": "メトリクス",
+          "scaleNodes": "ノード拡張"
+        }
+      }
+    },
+    "saasProverPerformance": {
+      "meta": {
+        "title": "Proverパフォーマンス | QS Admin",
+        "description": "Proverのパフォーマンス分析"
+      },
+      "title": "Proverパフォーマンス",
+      "subtitle": "全Proverのパフォーマンス分析",
+      "ariaLabel": "Proverパフォーマンス",
+      "breadcrumb": "パフォーマンス",
+      "stats": {
+        "avgProofTime": "平均証明時間",
+        "p95ProofTime": "P95証明時間",
+        "p99ProofTime": "P99証明時間",
+        "successRate": "成功率",
+        "throughput": "スループット",
+        "proofsPerHour": "証明/時間",
+        "errorRate": "エラー率"
+      },
+      "chart": {
+        "title": "パフォーマンスチャート",
+        "proofsOverTime": "時間別証明数",
+        "latencyDistribution": "レイテンシ分布"
+      },
+      "proverRanking": {
+        "title": "Proverランキング",
+        "types": {
+          "all": "全て",
+          "qs": "QS",
+          "operator": "OP"
+        },
+        "viewDetailedReport": "詳細レポート"
+      }
+    },
+    "saasProverSla": {
+      "meta": {
+        "title": "Prover SLA管理 | QS Admin",
+        "description": "ProverのSLA管理"
+      },
+      "title": "Prover SLA管理",
+      "subtitle": "オペレーター別SLAコンプライアンス",
+      "ariaLabel": "Prover SLA管理",
+      "breadcrumb": "SLA",
+      "tabs": {
+        "all": "全て",
+        "meeting": "達成",
+        "atRisk": "リスク",
+        "breach": "違反"
+      },
+      "status": {
+        "exceeding": "超過達成",
+        "meeting": "達成",
+        "atRisk": "リスク",
+        "breach": "違反"
+      },
+      "stats": {
+        "avgCompliance": "平均準拠率",
+        "meetingSla": "SLA達成",
+        "atRisk": "リスク",
+        "inBreach": "違反",
+        "totalIncidents": "インシデント数",
+        "thisMonth": "今月"
+      },
+      "slaList": {
+        "title": "SLA一覧",
+        "target": "目標",
+        "currentSla": "現在のSLA",
+        "incidents": "インシデント",
+        "latency": "レイテンシ",
+        "creditEligible": "クレジット対象"
+      },
+      "detail": {
+        "title": "SLA詳細",
+        "operator": "オペレーター",
+        "slaTarget": "SLA目標",
+        "currentSla": "現在のSLA",
+        "uptimeThisMonth": "今月の稼働率",
+        "latencyTarget": "レイテンシ目標",
+        "currentLatency": "現在のレイテンシ",
+        "incidents": "インシデント数",
+        "thisMonth": "今月",
+        "lastIncident": "最後のインシデント",
+        "creditNotice": "クレジット対象",
+        "creditDescription": "SLA違反によりクレジット対象となります",
+        "selectSla": "SLAを選択してください",
+        "actions": {
+          "viewHistory": "履歴表示",
+          "generateReport": "レポート生成"
+        }
+      }
+    },
+    "saasInfrastructure": {
+      "meta": {
+        "title": "インフラ管理 | QS Admin",
+        "description": "SaaSインフラの監視"
+      },
+      "title": "インフラ管理",
+      "subtitle": "グローバルインフラの監視・管理",
+      "ariaLabel": "インフラ管理",
+      "breadcrumb": "インフラ",
+      "status": {
+        "healthy": "正常",
+        "degraded": "劣化",
+        "down": "停止"
+      },
+      "stats": {
+        "totalServers": "総サーバー",
+        "healthyServers": "正常サーバー",
+        "avgCpu": "平均CPU",
+        "avgMemory": "平均メモリ",
+        "totalBandwidth": "総帯域"
+      },
+      "regions": {
+        "title": "リージョン",
+        "servers": "サーバー"
+      },
+      "services": {
+        "title": "サービスステータス",
+        "latency": "レイテンシ",
+        "uptime": "稼働率"
+      },
+      "detail": {
+        "title": "リージョン詳細",
+        "regionId": "リージョンID",
+        "servers": "サーバー数",
+        "cpuUsage": "CPU使用率",
+        "memoryUsage": "メモリ使用率",
+        "networkIn": "受信",
+        "networkOut": "送信",
+        "selectRegion": "リージョンを選択してください",
+        "actions": {
+          "viewMetrics": "メトリクス",
+          "manage": "管理"
+        }
+      }
+    },
+    "saasInfraSla": {
+      "meta": {
+        "title": "インフラSLA | QS Admin",
+        "description": "インフラのSLA管理"
+      },
+      "title": "インフラSLA",
+      "subtitle": "サービス別SLAコンプライアンス",
+      "ariaLabel": "インフラSLA",
+      "breadcrumb": {
+        "infrastructure": "インフラ",
+        "sla": "SLA"
+      },
+      "status": {
+        "exceeding": "超過達成",
+        "meeting": "達成",
+        "atRisk": "リスク",
+        "breach": "違反"
+      },
+      "severity": {
+        "critical": "重大",
+        "major": "重要",
+        "minor": "軽微"
+      },
+      "stats": {
+        "overallSla": "全体SLA",
+        "meetingSla": "SLA達成",
+        "atRisk": "リスク",
+        "incidents": "インシデント数",
+        "thisMonth": "今月",
+        "avgMttr": "平均MTTR"
+      },
+      "serviceList": {
+        "title": "サービスSLA一覧",
+        "target": "目標",
+        "currentSla": "現在のSLA",
+        "incidents": "インシデント"
+      },
+      "incidentHistory": {
+        "title": "インシデント履歴"
+      },
+      "detail": {
+        "title": "サービス詳細",
+        "serviceName": "サービス名",
+        "slaTarget": "SLA目標",
+        "currentSla": "現在のSLA",
+        "uptimeThisMonth": "今月の稼働率",
+        "incidents": "インシデント数",
+        "mttr": "MTTR",
+        "lastIncident": "最後のインシデント",
+        "selectService": "サービスを選択してください",
+        "actions": {
+          "viewHistory": "履歴表示",
+          "generateReport": "レポート生成"
+        }
+      }
+    },
+    "saasSupport": {
+      "meta": {
+        "title": "サポート管理 | QS Admin",
+        "description": "サポートチケットの管理"
+      },
+      "title": "サポート管理",
+      "subtitle": "オペレーターサポートチケットの管理",
+      "ariaLabel": "サポート管理",
+      "breadcrumb": "サポート",
+      "tabs": {
+        "all": "全て",
+        "open": "未対応",
+        "inProgress": "対応中",
+        "waiting": "返信待ち",
+        "resolved": "解決済み"
+      },
+      "priority": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "status": {
+        "open": "未対応",
+        "inProgress": "対応中",
+        "waiting": "返信待ち",
+        "resolved": "解決済み"
+      },
+      "categories": {
+        "technical": "技術",
+        "billing": "課金",
+        "provisioning": "プロビジョニング",
+        "security": "セキュリティ"
+      },
+      "stats": {
+        "openTickets": "未対応チケット",
+        "avgResponseTime": "平均応答時間",
+        "avgResolutionTime": "平均解決時間",
+        "csat": "CSAT",
+        "ticketsToday": "本日のチケット"
+      },
+      "ticketList": {
+        "title": "チケット一覧",
+        "searchPlaceholder": "チケットID、件名で検索...",
+        "filter": "フィルター"
+      },
+      "detail": {
+        "title": "チケット詳細",
+        "ticketId": "チケットID",
+        "subject": "件名",
+        "operator": "オペレーター",
+        "category": "カテゴリ",
+        "createdAt": "作成日",
+        "lastUpdated": "最終更新",
+        "assignee": "担当者",
+        "unassigned": "未割当",
+        "messages": "メッセージ数",
+        "selectTicket": "チケットを選択してください",
+        "actions": {
+          "reply": "返信",
+          "resolve": "解決済み",
+          "assign": "担当者割当"
+        }
+      }
+    },
+    "licenseProjects": {
+      "meta": {
+        "title": "導入プロジェクト | QS Admin",
+        "description": "技術譲渡導入プロジェクトの管理"
+      },
+      "title": "導入プロジェクト",
+      "subtitle": "技術譲渡ライセンス導入プロジェクトの管理",
+      "ariaLabel": "導入プロジェクト",
+      "breadcrumb": "プロジェクト",
+      "tabs": {
+        "all": "全て",
+        "inProgress": "進行中",
+        "planning": "計画中",
+        "atRisk": "リスク",
+        "completed": "完了"
+      },
+      "status": {
+        "completed": "完了",
+        "inProgress": "進行中",
+        "planning": "計画中",
+        "atRisk": "リスク"
+      },
+      "phases": {
+        "kickoff": "キックオフ",
+        "requirements": "要件定義",
+        "design": "設計",
+        "integration": "統合",
+        "testing": "テスト",
+        "production": "本番"
+      },
+      "stats": {
+        "activeProjects": "進行中",
+        "completedProjects": "完了",
+        "atRiskProjects": "リスク",
+        "avgProgress": "平均進捗",
+        "totalTasks": "総タスク"
+      },
+      "projectList": {
+        "title": "プロジェクト一覧",
+        "searchPlaceholder": "プロジェクト名、企業名で検索...",
+        "progress": "進捗"
+      },
+      "detail": {
+        "title": "プロジェクト詳細",
+        "projectName": "プロジェクト名",
+        "company": "企業",
+        "progress": "進捗",
+        "tasks": "タスク",
+        "startDate": "開始日",
+        "targetDate": "目標完了日",
+        "teamSize": "チーム人数",
+        "members": "名",
+        "selectProject": "プロジェクトを選択してください",
+        "actions": {
+          "viewDetails": "詳細を見る"
+        }
+      },
+      "actions": {
+        "createProject": "新規プロジェクト"
+      }
+    },
+    "licenseProjectDetail": {
+      "meta": {
+        "title": "プロジェクト詳細 | QS Admin",
+        "description": "導入プロジェクトの詳細"
+      },
+      "ariaLabel": "プロジェクト詳細",
+      "breadcrumb": {
+        "projects": "プロジェクト"
+      },
+      "tabs": {
+        "overview": "概要",
+        "milestones": "マイルストーン",
+        "tasks": "タスク",
+        "activity": "アクティビティ"
+      },
+      "status": {
+        "completed": "完了",
+        "inProgress": "進行中",
+        "pending": "保留"
+      },
+      "phases": {
+        "kickoff": "キックオフ",
+        "requirements": "要件定義",
+        "design": "設計",
+        "integration": "統合",
+        "testing": "テスト",
+        "production": "本番"
+      },
+      "summary": {
+        "progress": "進捗",
+        "timeline": "期間",
+        "team": "チーム",
+        "members": "名",
+        "tasks": "タスク"
+      },
+      "overview": {
+        "description": "説明",
+        "upcomingMilestones": "次のマイルストーン",
+        "viewAll": "全て表示",
+        "team": "チームメンバー",
+        "recentActivity": "最近のアクティビティ"
+      },
+      "milestones": {
+        "title": "マイルストーン",
+        "add": "追加"
+      },
+      "tasks": {
+        "title": "タスク一覧",
+        "add": "追加",
+        "columns": {
+          "task": "タスク",
+          "assignee": "担当者",
+          "dueDate": "期限",
+          "status": "ステータス"
+        }
+      },
+      "activity": {
+        "title": "アクティビティ履歴"
+      },
+      "actions": {
+        "editProject": "編集"
+      }
+    },
+    "settingsMembers": {
+      "meta": {
+        "title": "メンバー管理 | QS Admin",
+        "description": "管理者メンバーの管理"
+      },
+      "title": "メンバー管理",
+      "subtitle": "QS Admin管理者メンバーの管理",
+      "ariaLabel": "メンバー管理",
+      "breadcrumb": "メンバー",
+      "tabs": {
+        "all": "全て",
+        "active": "アクティブ",
+        "invited": "招待中",
+        "inactive": "無効"
+      },
+      "status": {
+        "active": "アクティブ",
+        "invited": "招待中",
+        "inactive": "無効"
+      },
+      "roles": {
+        "admin": "管理者",
+        "operator": "オペレーター",
+        "viewer": "閲覧者"
+      },
+      "stats": {
+        "totalMembers": "総メンバー",
+        "activeMembers": "アクティブ",
+        "admins": "管理者",
+        "operators": "オペレーター"
+      },
+      "memberList": {
+        "title": "メンバー一覧",
+        "searchPlaceholder": "名前、メールで検索..."
+      },
+      "table": {
+        "columns": {
+          "member": "メンバー",
+          "role": "ロール",
+          "status": "ステータス",
+          "lastLogin": "最終ログイン",
+          "createdAt": "登録日"
+        }
+      },
+      "actions": {
+        "inviteMember": "メンバー招待"
+      }
+    },
+    "settingsRoles": {
+      "meta": {
+        "title": "ロール管理 | QS Admin",
+        "description": "権限ロールの管理"
+      },
+      "title": "ロール管理",
+      "subtitle": "アクセス権限ロールの管理",
+      "ariaLabel": "ロール管理",
+      "breadcrumb": "ロール",
+      "roleList": {
+        "title": "ロール一覧",
+        "system": "システム",
+        "members": "メンバー"
+      },
+      "detail": {
+        "title": "ロール詳細",
+        "systemRole": "システムロール",
+        "members": "メンバー",
+        "membersCount": "名が使用中",
+        "permissions": "権限",
+        "selectRole": "ロールを選択してください",
+        "systemRoleWarning": "システムロールは編集できません",
+        "actions": {
+          "edit": "編集"
+        }
+      },
+      "permissions": {
+        "category": "カテゴリ",
+        "view": "閲覧",
+        "create": "作成",
+        "edit": "編集",
+        "delete": "削除"
+      },
+      "actions": {
+        "createRole": "新規ロール"
+      }
+    },
+    "settingsAuditLog": {
+      "meta": {
+        "title": "監査ログ | QS Admin",
+        "description": "システム操作履歴の監査"
+      },
+      "title": "監査ログ",
+      "subtitle": "システム操作履歴の監査・追跡",
+      "ariaLabel": "監査ログ",
+      "breadcrumb": "監査ログ",
+      "searchPlaceholder": "アクター、対象で検索...",
+      "status": {
+        "success": "成功",
+        "failure": "失敗"
+      },
+      "actions": {
+        "user_login": "ログイン",
+        "user_create": "ユーザー作成",
+        "operator_update": "オペレーター更新",
+        "settings_update": "設定更新",
+        "billing_export": "請求エクスポート",
+        "prover_restart": "Prover再起動",
+        "role_update": "ロール更新",
+        "export": "エクスポート"
+      },
+      "logList": {
+        "title": "ログ一覧",
+        "target": "対象"
+      },
+      "detail": {
+        "title": "ログ詳細",
+        "action": "アクション",
+        "actor": "実行者",
+        "target": "対象",
+        "timestamp": "日時",
+        "ipAddress": "IPアドレス",
+        "details": "詳細",
+        "selectLog": "ログを選択してください"
+      },
+      "pagination": {
+        "showing": "{count} / {total} 件表示",
+        "previous": "前へ",
+        "next": "次へ"
+      }
+    },
+    "publicUserStats": {
+      "meta": {
+        "title": "ユーザー統計 | QS Admin",
+        "description": "パブリック版ユーザーの統計分析"
+      },
+      "title": "ユーザー統計",
+      "subtitle": "パブリック版ユーザーのアクティビティ・成長分析",
+      "ariaLabel": "ユーザー統計",
+      "breadcrumb": "統計",
+      "breadcrumbParent": "ユーザー管理",
+      "stats": {
+        "totalUsers": "総ユーザー数",
+        "activeUsers": "アクティブユーザー",
+        "newUsersThisMonth": "今月の新規",
+        "churnRate": "離脱率",
+        "avgSessionDuration": "平均セッション時間",
+        "retentionRate": "継続率"
+      },
+      "userGrowth": {
+        "title": "ユーザー成長推移",
+        "chartLabel": "ユーザー数推移",
+        "totalUsers": "累計ユーザー",
+        "newUsers": "新規ユーザー"
+      },
+      "userActivity": {
+        "title": "アクティビティ分布"
+      },
+      "userSegments": {
+        "title": "保有量セグメント"
+      },
+      "topRegions": {
+        "title": "地域別分布"
+      }
+    },
+    "publicHolders": {
+      "meta": {
+        "title": "トークン保有者 | QS Admin",
+        "description": "QSトークン保有者分布の分析"
+      },
+      "title": "トークン保有者分布",
+      "subtitle": "QSトークン保有者の分布・集中度分析",
+      "ariaLabel": "トークン保有者",
+      "breadcrumb": "保有者分布",
+      "stats": {
+        "totalHolders": "総保有者数",
+        "totalSupply": "総供給量",
+        "circulatingSupply": "流通供給量",
+        "topHoldersShare": "上位10保有率",
+        "top10": "Top 10",
+        "avgHolding": "平均保有量",
+        "medianHolding": "中央値保有量"
+      },
+      "distribution": {
+        "title": "保有量分布",
+        "ofSupply": "供給量"
+      },
+      "topHolders": {
+        "title": "上位保有者",
+        "searchPlaceholder": "アドレスで検索...",
+        "filter": "フィルター",
+        "viewAll": "全て表示"
+      },
+      "table": {
+        "columns": {
+          "rank": "#",
+          "address": "アドレス",
+          "type": "種別",
+          "balance": "保有量",
+          "share": "シェア"
+        }
+      },
+      "holderTypes": {
+        "treasury": "トレジャリー",
+        "staking": "ステーキング",
+        "whale": "大口",
+        "protocol": "プロトコル",
+        "investor": "投資家",
+        "dao": "DAO"
+      }
+    },
+    "publicDelegates": {
+      "meta": {
+        "title": "デリゲート一覧 | QS Admin",
+        "description": "投票権委任先の管理"
+      },
+      "title": "デリゲート一覧",
+      "subtitle": "投票権委任先の一覧・パフォーマンス分析",
+      "ariaLabel": "デリゲート一覧",
+      "breadcrumb": "デリゲート",
+      "tabs": {
+        "all": "全て",
+        "active": "アクティブ",
+        "inactive": "非アクティブ"
+      },
+      "stats": {
+        "totalDelegates": "総デリゲート数",
+        "activeDelegates": "アクティブ",
+        "totalVotingPower": "総投票権",
+        "avgParticipation": "平均参加率",
+        "delegationsThisMonth": "今月の委任",
+        "topDelegateShare": "Top1シェア"
+      },
+      "delegatesList": {
+        "title": "デリゲート一覧",
+        "searchPlaceholder": "アドレスで検索...",
+        "filter": "フィルター"
+      },
+      "table": {
+        "columns": {
+          "delegate": "デリゲート",
+          "votingPower": "投票権",
+          "delegators": "委任者数",
+          "participation": "参加率"
+        },
+        "viewDetail": "詳細"
+      },
+      "recentDelegations": {
+        "title": "最近の委任",
+        "delegatedTo": "委任先:"
+      }
+    },
+    "publicVotingPower": {
+      "meta": {
+        "title": "投票権分析 | QS Admin",
+        "description": "投票権の分布と分散度の分析"
+      },
+      "title": "投票権分析",
+      "subtitle": "ガバナンス投票権の分布・分散度分析",
+      "ariaLabel": "投票権分析",
+      "breadcrumb": "投票権分析",
+      "stats": {
+        "totalVotingPower": "総投票権",
+        "activeVotingPower": "アクティブ投票権",
+        "delegatedPower": "委任済み",
+        "quorumThreshold": "定足数",
+        "avgVoterTurnout": "平均投票率",
+        "nakamotoCoefficient": "Nakamoto係数"
+      },
+      "powerDistribution": {
+        "title": "投票権分布",
+        "total": "総投票権"
+      },
+      "decentralization": {
+        "title": "分散度指標"
+      },
+      "votingHistory": {
+        "title": "投票率推移"
+      },
+      "alerts": {
+        "title": "集中度アラート"
+      }
+    },
+    "saasUserStats": {
+      "meta": {
+        "title": "ユーザー統計 | SaaS管理",
+        "description": "SaaSエンドユーザーの統計分析"
+      },
+      "title": "SaaSユーザー統計",
+      "subtitle": "運営企業別エンドユーザーの統計・成長分析",
+      "ariaLabel": "SaaSユーザー統計",
+      "breadcrumb": "統計",
+      "breadcrumbParent": "SaaSユーザー",
+      "stats": {
+        "totalUsers": "総ユーザー数",
+        "activeUsers": "アクティブ",
+        "newUsersThisMonth": "今月の新規",
+        "avgSessionDuration": "平均セッション",
+        "totalOperators": "運営企業数",
+        "avgUsersPerOperator": "企業あたり平均"
+      },
+      "usersByOperator": {
+        "title": "運営企業別ユーザー数"
+      },
+      "userGrowth": {
+        "title": "ユーザー成長推移",
+        "chartLabel": "ユーザー数推移",
+        "totalUsers": "累計",
+        "newUsers": "新規"
+      },
+      "userActivity": {
+        "title": "アクティビティ分布"
+      },
+      "usersByPlan": {
+        "title": "プラン別ユーザー数"
+      }
+    },
+    "saasObservers": {
+      "meta": {
+        "title": "Observer管理 | SaaS管理",
+        "description": "QS提供Observerの管理"
+      },
+      "title": "Observer管理",
+      "subtitle": "QS財団提供Observerの一覧・監視",
+      "ariaLabel": "Observer管理",
+      "breadcrumb": "Observer",
+      "tabs": {
+        "all": "全て",
+        "active": "稼働中",
+        "degraded": "劣化",
+        "standby": "スタンバイ"
+      },
+      "stats": {
+        "totalObservers": "総Observer数",
+        "activeObservers": "稼働中",
+        "challengesThisMonth": "今月のチャレンジ",
+        "avgResponseTime": "平均応答時間",
+        "detectionRate": "検出率",
+        "falsePositiveRate": "誤検知率"
+      },
+      "status": {
+        "active": "稼働中",
+        "degraded": "劣化",
+        "standby": "スタンバイ"
+      },
+      "observerList": {
+        "title": "Observer一覧",
+        "searchPlaceholder": "名前で検索...",
+        "filter": "フィルター"
+      },
+      "table": {
+        "columns": {
+          "observer": "Observer",
+          "region": "リージョン",
+          "status": "ステータス",
+          "monitored": "監視件数",
+          "challenges": "チャレンジ",
+          "uptime": "稼働率",
+          "lastActivity": "最終活動"
+        },
+        "viewDetail": "詳細"
+      }
+    },
+    "saasObserverStatus": {
+      "meta": {
+        "title": "Observer監視状況 | SaaS管理",
+        "description": "Observer監視状況のリアルタイム確認"
+      },
+      "title": "Observer監視状況",
+      "subtitle": "リアルタイム監視状況・ヘルスチェック",
+      "ariaLabel": "Observer監視状況",
+      "breadcrumb": "監視状況",
+      "breadcrumbParent": "Observer",
+      "stats": {
+        "overallHealth": "全体ヘルス",
+        "activeMonitoring": "アクティブ監視",
+        "pendingChallenges": "保留中チャレンジ",
+        "resolvedToday": "本日解決",
+        "avgLatency": "平均レイテンシ",
+        "coverage": "カバレッジ"
+      },
+      "regionalStatus": {
+        "title": "リージョン別ステータス",
+        "observers": "Observer",
+        "latency": "レイテンシ",
+        "load": "負荷"
+      },
+      "healthHistory": {
+        "title": "ヘルス履歴"
+      },
+      "recentEvents": {
+        "title": "最近のイベント",
+        "viewAll": "全て表示"
+      }
+    },
+    "saasInfrastructureCapacity": {
+      "meta": {
+        "title": "キャパシティ管理 | SaaS管理",
+        "description": "インフラキャパシティの管理・予測"
+      },
+      "title": "キャパシティ管理",
+      "subtitle": "リソース使用状況・キャパシティプランニング",
+      "ariaLabel": "キャパシティ管理",
+      "breadcrumb": "キャパシティ",
+      "breadcrumbParent": "インフラ",
+      "stats": {
+        "totalCapacity": "総キャパシティ",
+        "usedCapacity": "使用中",
+        "availableCapacity": "利用可能",
+        "utilizationRate": "使用率",
+        "projectedGrowth": "予測成長率",
+        "nextQuarter": "次四半期",
+        "daysToCapacity": "残り日数",
+        "days": "日"
+      },
+      "status": {
+        "healthy": "正常",
+        "warning": "警告",
+        "critical": "危険"
+      },
+      "alerts": {
+        "title": "キャパシティアラート"
+      },
+      "regionalCapacity": {
+        "title": "リージョン別キャパシティ"
+      },
+      "projection": {
+        "title": "キャパシティ予測",
+        "description": "85%到達までの残り日数",
+        "days": "日",
+        "until85": "85%到達まで",
+        "viewDetailedReport": "詳細レポート"
+      },
+      "actions": {
+        "requestCapacity": "キャパシティ追加申請"
+      }
+    },
+    "saasSupportHistory": {
+      "meta": {
+        "title": "サポート履歴 | SaaS管理",
+        "description": "サポートチケットの履歴分析"
+      },
+      "title": "サポート履歴",
+      "subtitle": "過去のサポートチケット履歴・分析",
+      "ariaLabel": "サポート履歴",
+      "breadcrumb": "履歴",
+      "breadcrumbParent": "サポート",
+      "stats": {
+        "totalTickets": "総チケット数",
+        "resolvedTickets": "解決済み",
+        "avgResolutionTime": "平均解決時間",
+        "avgCsat": "平均CSAT",
+        "firstResponseTime": "初回応答時間",
+        "slaCompliance": "SLA遵守率"
+      },
+      "categories": {
+        "technical": "技術",
+        "billing": "請求",
+        "provisioning": "プロビジョニング",
+        "security": "セキュリティ"
+      },
+      "ticketHistory": {
+        "title": "チケット履歴",
+        "searchPlaceholder": "チケットで検索...",
+        "filter": "フィルター",
+        "loadMore": "さらに読み込む"
+      },
+      "table": {
+        "columns": {
+          "ticket": "チケット",
+          "operator": "運営企業",
+          "category": "カテゴリ",
+          "resolutionTime": "解決時間",
+          "csat": "CSAT"
+        },
+        "viewDetail": "詳細"
+      },
+      "categoryBreakdown": {
+        "title": "カテゴリ別内訳"
+      },
+      "monthlyTrend": {
+        "title": "月別推移",
+        "total": "合計",
+        "resolved": "解決"
+      }
+    },
+    "licenseDocuments": {
+      "meta": {
+        "title": "ドキュメント管理 | 技術譲渡",
+        "description": "技術譲渡ドキュメントの管理"
+      },
+      "title": "ドキュメント管理",
+      "subtitle": "技術譲渡用ドキュメントの提供・管理",
+      "ariaLabel": "ドキュメント管理",
+      "breadcrumb": "ドキュメント",
+      "stats": {
+        "totalDocuments": "総ドキュメント数",
+        "categories": "カテゴリ数",
+        "recentUpdates": "最近の更新",
+        "pendingReviews": "レビュー待ち"
+      },
+      "status": {
+        "published": "公開中",
+        "draft": "下書き",
+        "review": "レビュー中"
+      },
+      "categories": {
+        "title": "カテゴリ",
+        "all": "すべて"
+      },
+      "documentList": {
+        "title": "ドキュメント一覧",
+        "searchPlaceholder": "ドキュメント名で検索...",
+        "filter": "フィルター",
+        "downloads": "ダウンロード"
+      },
+      "recentActivity": {
+        "title": "最近のアクティビティ",
+        "downloaded": "がダウンロードしました",
+        "viewed": "が閲覧しました"
+      }
+    },
+    "licenseTraining": {
+      "meta": {
+        "title": "トレーニング管理 | 技術譲渡",
+        "description": "技術譲渡トレーニングの管理"
+      },
+      "title": "トレーニング管理",
+      "subtitle": "技術譲渡用トレーニングプログラムの管理",
+      "ariaLabel": "トレーニング管理",
+      "breadcrumb": "トレーニング",
+      "stats": {
+        "totalCourses": "総コース数",
+        "totalCompletions": "修了数",
+        "activeEnrollments": "受講中",
+        "avgCompletionRate": "平均修了率",
+        "totalCertifications": "認定数",
+        "scheduledSessions": "予定セッション"
+      },
+      "levels": {
+        "beginner": "初級",
+        "intermediate": "中級",
+        "advanced": "上級"
+      },
+      "courseList": {
+        "title": "コース一覧",
+        "searchPlaceholder": "コース名で検索...",
+        "filter": "フィルター",
+        "enrollments": "登録",
+        "completions": "修了",
+        "completionRate": "修了率"
+      },
+      "upcomingSessions": {
+        "title": "今後のセッション",
+        "viewAll": "全て表示"
+      },
+      "certifications": {
+        "title": "認定状況",
+        "total": "総認定数"
+      }
+    },
+    "settingsSystem": {
+      "meta": {
+        "title": "システム設定 | QS Admin",
+        "description": "システム全体の設定管理"
+      },
+      "title": "システム設定",
+      "subtitle": "システム全体の設定・パラメータ管理",
+      "ariaLabel": "システム設定",
+      "breadcrumb": "システム",
+      "breadcrumbParent": "設定",
+      "actions": {
+        "saveChanges": "変更を保存"
+      },
+      "general": {
+        "title": "一般設定",
+        "description": "サイト基本情報の設定",
+        "siteName": "サイト名",
+        "siteUrl": "サイトURL",
+        "supportEmail": "サポートメール",
+        "timezone": "タイムゾーン"
+      },
+      "notifications": {
+        "title": "通知設定",
+        "description": "通知・アラートの設定",
+        "emailNotifications": "メール通知",
+        "slackIntegration": "Slack連携",
+        "webhookAlerts": "Webhookアラート",
+        "dailyDigest": "日次ダイジェスト"
+      },
+      "security": {
+        "title": "セキュリティ設定",
+        "description": "認証・アクセス制御の設定",
+        "sessionTimeout": "セッションタイムアウト",
+        "minutes": "分",
+        "maxLoginAttempts": "最大ログイン試行",
+        "passwordExpiry": "パスワード有効期限",
+        "days": "日",
+        "requireMfa": "MFA必須",
+        "ipWhitelist": "IPホワイトリスト"
+      },
+      "maintenance": {
+        "title": "メンテナンス設定",
+        "description": "バックアップ・メンテナンスの設定",
+        "maintenanceMode": "メンテナンスモード",
+        "maintenanceModeDescription": "有効にすると管理者以外はアクセスできなくなります",
+        "lastBackup": "最終バックアップ",
+        "runBackup": "今すぐバックアップ",
+        "backupFrequency": "バックアップ頻度",
+        "frequencies": {
+          "hourly": "毎時",
+          "daily": "毎日",
+          "weekly": "毎週"
+        }
+      }
+    },
+    "licensees": {
+      "meta": {
+        "title": "技術譲渡先一覧 | QS Admin",
+        "description": "技術譲渡先企業の管理"
+      },
+      "title": "技術譲渡先一覧",
+      "subtitle": "技術ライセンス企業の管理",
+      "stats": {
+        "total": "総ライセンス数",
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "monthlyRevenue": "月間保守料収益"
+      },
+      "searchPlaceholder": "企業名、国で検索...",
+      "searchAriaLabel": "技術譲渡先を検索",
+      "filters": {
+        "all": "すべて",
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "pending": "審査中"
+      },
+      "tableTitle": "技術譲渡先企業",
+      "tableAriaLabel": "技術譲渡先一覧テーブル",
+      "table": {
+        "company": "企業名",
+        "type": "ライセンスタイプ",
+        "status": "ステータス",
+        "nodes": "ノード数",
+        "provers": "Prover",
+        "observers": "Observer",
+        "monthlyFee": "月額保守料",
+        "expiry": "契約終了日",
+        "tickets": "サポート",
+        "actions": "アクション"
+      },
+      "status": {
+        "active": "アクティブ",
+        "suspended": "停止中",
+        "pending": "審査中",
+        "expired": "期限切れ"
+      },
+      "type": {
+        "standard": "Standard",
+        "enterprise": "Enterprise"
+      },
+      "actions": {
+        "view": "詳細を見る",
+        "suspend": "停止する",
+        "reactivate": "再開する"
+      },
+      "empty": {
+        "title": "技術譲渡先がありません",
+        "description": "条件に一致する企業が見つかりませんでした"
+      },
+      "suspendModal": {
+        "title": "ライセンス停止の確認",
+        "description": "この企業のライセンスを停止しますか？停止するとすべてのノードが即座に停止されます。",
+        "securityCouncilNote": "⚠️ この操作にはSecurity Councilの承認が必要です",
+        "cancel": "キャンセル",
+        "confirm": "停止を申請"
+      },
+      "reactivateModal": {
+        "title": "ライセンス再開の確認",
+        "description": "この企業のライセンスを再開しますか？再開するとすべてのノードが運用可能になります。",
+        "cancel": "キャンセル",
+        "confirm": "再開する"
+      }
+    },
+    "licenseeDetail": {
+      "meta": {
+        "title": "技術譲渡先詳細 | QS Admin",
+        "description": "技術譲渡先企業の詳細情報"
+      },
+      "backToLicensees": "一覧に戻る",
+      "supportButton": "サポート",
+      "suspendButton": "停止する",
+      "reactivateButton": "再開する",
+      "monthlyFee": "月額保守料",
+      "type": {
+        "standard": "Standard",
+        "enterprise": "Enterprise"
+      },
+      "status": {
+        "active": "アクティブ",
+        "suspended": "停止中"
+      },
+      "tabs": {
+        "overview": "概要",
+        "nodes": "ノード",
+        "compliance": "コンプライアンス",
+        "activity": "アクティビティ"
+      },
+      "contract": {
+        "title": "契約情報",
+        "startDate": "契約開始日",
+        "expiryDate": "契約終了日",
+        "proverNodes": "Proverノード数",
+        "observerNodes": "Observerノード数"
+      },
+      "contact": {
+        "title": "連絡先",
+        "name": "担当者名",
+        "email": "メールアドレス",
+        "phone": "電話番号"
+      },
+      "technical": {
+        "title": "技術情報",
+        "explorer": "Explorer URL",
+        "viewExplorer": "Explorerを開く",
+        "version": "プロトコルバージョン",
+        "lastUpdate": "最終更新日",
+        "lastSync": "最終同期"
+      },
+      "nodes": {
+        "provers": "Proverノード",
+        "observers": "Observerノード",
+        "uptime": "稼働率",
+        "challenges": "Challenge数"
+      },
+      "compliance": {
+        "title": "コンプライアンス状況",
+        "explorerPublic": "Explorer公開",
+        "explorerPublicDesc": "一般向けExplorerが公開されていること",
+        "auditReport": "監査レポート",
+        "lastAudit": "最終監査日",
+        "designSystem": "デザインシステム準拠",
+        "designSystemDesc": "Japan Premiumデザインシステムに準拠していること"
+      },
+      "activity": {
+        "title": "最近のアクティビティ"
+      }
+    },
+    "licenseeSupport": {
+      "meta": {
+        "title": "Licenseeサポート | QS Admin",
+        "description": "技術譲渡先へのサポート対応"
+      },
+      "backToDetail": "詳細に戻る",
+      "newTicket": "新規チケット",
+      "supportFor": "サポート対応",
+      "tickets": "サポートチケット",
+      "ticketStatus": {
+        "open": "未対応",
+        "in_progress": "対応中",
+        "resolved": "解決済み",
+        "closed": "クローズ"
+      },
+      "ticketPriority": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "critical": "緊急"
+      },
+      "updatedAt": "更新日",
+      "assignee": "担当",
+      "resolve": "解決済みにする",
+      "escalate": "エスカレート",
+      "messagePlaceholder": "メッセージを入力..."
+    },
+    "support": {
+      "meta": {
+        "title": "サポートチケット | QS Admin",
+        "description": "全Licenseeのサポートチケット管理"
+      },
+      "stats": {
+        "total": "総チケット数",
+        "open": "未対応",
+        "inProgress": "対応中",
+        "avgResponseTime": "平均応答時間"
+      },
+      "searchPlaceholder": "チケットID、件名、企業名で検索...",
+      "searchAriaLabel": "チケットを検索",
+      "filters": {
+        "all": "すべて",
+        "open": "未対応",
+        "in_progress": "対応中",
+        "resolved": "解決済み"
+      },
+      "priorityFilters": {
+        "all": "優先度",
+        "critical": "緊急",
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "tableTitle": "サポートチケット",
+      "tableAriaLabel": "サポートチケット一覧",
+      "table": {
+        "ticket": "チケット",
+        "licensee": "Licensee",
+        "status": "ステータス",
+        "priority": "優先度",
+        "assignee": "担当",
+        "responseTime": "応答時間",
+        "updated": "更新日"
+      },
+      "status": {
+        "open": "未対応",
+        "in_progress": "対応中",
+        "resolved": "解決済み",
+        "closed": "クローズ"
+      },
+      "priority": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "critical": "緊急"
+      },
+      "empty": {
+        "title": "チケットがありません",
+        "description": "条件に一致するチケットが見つかりませんでした"
+      }
+    },
+    "updates": {
+      "meta": {
+        "title": "アップデート管理 | QS Admin",
+        "description": "プロトコルアップデートの配信管理"
+      },
+      "stats": {
+        "latestVersion": "最新バージョン",
+        "upToDate": "最新版適用済み",
+        "outdated": "更新必要",
+        "pending": "更新予定"
+      },
+      "tabs": {
+        "releases": "リリース",
+        "licensees": "Licensee適用状況"
+      },
+      "newRelease": "新規リリース",
+      "releaseType": {
+        "major": "メジャー",
+        "minor": "マイナー",
+        "patch": "パッチ",
+        "security": "セキュリティ"
+      },
+      "criticalFixes": "重要修正",
+      "latest": "最新",
+      "changelog": "変更内容",
+      "pushUpdate": "更新を配信",
+      "licenseeVersions": "Licenseeバージョン状況",
+      "tableAriaLabel": "バージョン状況テーブル",
+      "table": {
+        "licensee": "Licensee",
+        "currentVersion": "現在のバージョン",
+        "targetVersion": "目標バージョン",
+        "status": "ステータス",
+        "lastUpdated": "最終更新",
+        "scheduled": "更新予定日",
+        "actions": "アクション"
+      },
+      "status": {
+        "latest": "最新版",
+        "pending": "更新予定",
+        "outdated": "更新必要",
+        "critical": "緊急更新必要"
+      },
+      "scheduleUpdate": "更新を予約"
+    },
+    "billing": {
+      "meta": {
+        "title": "収益管理 | QS Admin",
+        "description": "保守料収益と請求管理"
+      },
+      "stats": {
+        "monthlyRevenue": "月間収益",
+        "vsLastMonth": "先月比",
+        "yearlyRevenue": "年間収益",
+        "pendingPayments": "未払い",
+        "overduePayments": "延滞"
+      },
+      "tabs": {
+        "overview": "概要",
+        "invoices": "請求書"
+      },
+      "revenueChart": {
+        "title": "収益推移"
+      },
+      "revenueByLicensee": {
+        "title": "Licensee別収益"
+      },
+      "paymentMethods": {
+        "title": "支払方法",
+        "bankTransfer": "銀行振込",
+        "bankTransferDesc": "月末締め翌月払い",
+        "crypto": "暗号資産",
+        "cryptoDesc": "USDC/ETH対応"
+      },
+      "invoices": {
+        "title": "請求書一覧",
+        "tableAriaLabel": "請求書テーブル",
+        "table": {
+          "invoice": "請求書番号",
+          "licensee": "Licensee",
+          "period": "対象期間",
+          "amount": "金額",
+          "dueDate": "支払期限",
+          "status": "ステータス",
+          "actions": "アクション"
+        },
+        "sendReminder": "リマインダー送信"
+      },
+      "filters": {
+        "all": "すべて",
+        "pending": "未払い",
+        "overdue": "延滞",
+        "paid": "支払済み"
+      },
+      "status": {
+        "paid": "支払済み",
+        "pending": "未払い",
+        "overdue": "延滞"
+      }
+    },
+    "states": {
+      "loading": {
+        "default": "読み込み中...",
+        "licensees": "ライセンシー情報を読み込み中...",
+        "support": "サポート情報を読み込み中...",
+        "billing": "請求情報を読み込み中...",
+        "updates": "アップデート情報を読み込み中..."
+      },
+      "error": {
+        "title": "読み込みエラー",
+        "description": "データの取得中にエラーが発生しました。再度お試しください。",
+        "retry": "再試行"
+      }
+    }
+  }
+}

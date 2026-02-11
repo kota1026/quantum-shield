@@ -42,8 +42,8 @@ export function SettingsSection({
 
       <div
         className={cn(
-          'bg-surface border rounded-qs-xl overflow-hidden',
-          isDanger ? 'border-danger/20' : 'border-border'
+          'bg-surface border rounded-qs-xl',
+          isDanger ? 'border-danger/20' : 'border-border hover-gradient-border'
         )}
       >
         {children}

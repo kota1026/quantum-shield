@@ -20,3 +20,19 @@ playwright-report/
 **/playwright-report/
 test-results/
 **/test-results/
+
+# Foundry build artifacts
+/out/
+/cache/
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+
+# L3 Aegis
+l3-aegis/cache/
+
+# Playwright MCP logs/screenshots
+.playwright-mcp/
+
+# Root-level screenshots (temporary)
+*.png

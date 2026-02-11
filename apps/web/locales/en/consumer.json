@@ -5,7 +5,12 @@
         "dashboard": "Dashboard",
         "lock": "Lock",
         "unlock": "Unlock",
-        "history": "History"
+        "history": "History",
+        "qsHub": "QS Hub",
+        "qsHubDesc": "Token management, governance & voting",
+        "ecosystem": "Ecosystem",
+        "ecosystemLink": "View Ecosystem",
+        "ecosystemLinkDesc": "Learn more on our website"
       },
       "wallet": {
         "connected": "Connected",
@@ -22,6 +27,7 @@
       }
     },
     "dashboard": {
+      "backToLanding": "← Back to Home",
       "meta": {
         "title": "Dashboard | Quantum Shield",
         "description": "Manage and monitor your quantum-resistant assets"
@@ -29,12 +35,12 @@
       "stats": {
         "ariaLabel": "Asset Statistics",
         "totalLocked": {
-          "label": "Total Locked",
-          "tooltip": "Total amount of currently locked assets"
+          "label": "Protected with Quantum Keys",
+          "tooltip": "Total amount protected with quantum-resistant cryptography"
         },
         "available": {
           "label": "Available",
-          "tooltip": "Balance available for locking"
+          "tooltip": "Your unlocked ETH balance in the connected wallet. You can lock this amount for quantum-resistant protection."
         },
         "pendingUnlock": {
           "label": "Pending Unlock",
@@ -59,7 +65,7 @@
         },
         "lockButton": "Lock with Dilithium Signature",
         "lockButtonAriaLabel": "Lock assets with Dilithium signature",
-        "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers"
+        "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers. NIST (National Institute of Standards and Technology) is a US government agency that establishes global cryptography standards like AES and SHA-2"
       },
       "activity": {
         "title": "Recent Activity",
@@ -242,7 +248,7 @@
       "item": {
         "date": "Date",
         "blockConfirmed": "Confirmed",
-        "blockConfirmedTooltip": "Transaction confirmed {count} times on the blockchain",
+        "blockConfirmedTooltip": "This transaction has been confirmed by {count} blocks. 6+ blocks is considered secure.",
         "remaining": "{time} remaining",
         "bond": "Bond: {amount}",
         "txHashLabel": "Transaction ID",
@@ -254,6 +260,53 @@
       },
       "loadMore": "Load More",
       "loadMoreNotAvailable": "Load more is coming soon"
+    },
+    "historyDetail": {
+      "meta": {
+        "title": "Transaction Details | Quantum Shield",
+        "description": "View detailed transaction information"
+      },
+      "header": {
+        "title": "Transaction Details",
+        "back": "Back to History"
+      },
+      "summary": {
+        "ariaLabel": "Transaction Summary"
+      },
+      "details": {
+        "title": "Transaction Information",
+        "txHash": "Transaction ID",
+        "copyTooltip": "Copy to clipboard",
+        "copied": "Copied!",
+        "copyAriaLabel": "Copy transaction ID",
+        "viewOnExplorer": "View on Etherscan",
+        "viewOnExplorerAriaLabel": "View transaction on Etherscan",
+        "date": "Date",
+        "amount": "Amount",
+        "confirmations": "Confirmations",
+        "confirmationsTooltip": "Number of times this transaction has been confirmed on the blockchain. More confirmations mean higher security.",
+        "blocks": "blocks",
+        "bond": "Bond",
+        "bondTooltip": "Security deposit required for emergency unlock. Returned after the 7-day challenge period.",
+        "remaining": "Time Remaining"
+      },
+      "timeline": {
+        "title": "Progress",
+        "ariaLabel": "Transaction progress timeline",
+        "initiated": "Transaction Initiated",
+        "confirmed": "Transaction Confirmed",
+        "signed": "Signature Complete",
+        "waiting24h": "24-Hour Waiting Period",
+        "challengePeriod": "Challenge Period (7 Days)",
+        "bondDeposited": "Bond Deposited",
+        "released": "Assets Released",
+        "completed": "Completed",
+        "remaining": "Remaining"
+      },
+      "actions": {
+        "backToHistory": "Back to History",
+        "viewUnlockStatus": "View Unlock Status"
+      }
     },
     "settings": {
       "meta": {
@@ -347,7 +400,7 @@
     "landing": {
       "meta": {
         "title": "Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography",
-        "description": "The world's first quantum-resistant cryptographic bridge combining Dilithium-III and ZK-STARKs. Protect your assets today from tomorrow's threats."
+        "description": "The world's first quantum-resistant cryptographic bridge combining Dilithium-III and SPHINCS+. Protect your assets today from tomorrow's threats."
       },
       "header": {
         "product": "Product",
@@ -398,11 +451,11 @@
           "badge": "Multi-layer Defense",
           "tooltip": "Time Lock provides a 24-hour waiting period before asset withdrawal. This allows time to detect and prevent fraud."
         },
-        "zkStark": {
-          "title": "ZK-STARK Verification",
-          "description": "Transparency and verifiability through zero-knowledge proofs. Achieves scalability while maintaining quantum resistance.",
-          "badge": "Quantum-Safe ZKP",
-          "tooltip": "ZK-STARKs allow proving validity without revealing information. They are also resistant to quantum computers."
+        "smtProof": {
+          "title": "SMT Merkle Verification",
+          "description": "Cryptographic proofs via Sparse Merkle Trees. All state transitions are verifiable on-chain, combined with SPHINCS+ multi-sig for layered defense.",
+          "badge": "Cryptographic Proof",
+          "tooltip": "SMT (Sparse Merkle Tree) efficiently verifies large-scale data integrity. Combined with SHA3-256 hashing to achieve quantum resistance."
         },
         "selfCustody": {
           "title": "Self-Custody",
@@ -419,7 +472,8 @@
         "transparency": {
           "title": "Transparency",
           "description": "All transactions are verifiable on-chain. Open-source, audited smart contracts.",
-          "badge": "Open Source"
+          "badge": "Open Source",
+          "tooltip": "Transparency means all transaction history and smart contract code is publicly available and verifiable by anyone. Third-party audits have also been completed."
         }
       },
       "howItWorks": {
@@ -436,7 +490,8 @@
         "step3": {
           "title": "Unlock Safely",
           "description": "Request unlock with Dilithium signature. After 24-hour Time Lock, assets safely return to your wallet."
-        }
+        },
+        "learnMore": "View detailed system architecture"
       },
       "cta": {
         "title": "Prepare for the Quantum Era",
@@ -476,6 +531,51 @@
         "message": "This site uses cookies.",
         "details": "Details",
         "accept": "Accept"
+      }
+    },
+    "login": {
+      "meta": {
+        "title": "Login | Quantum Shield",
+        "description": "Connect your wallet to login to Quantum Shield"
+      },
+      "backToLanding": "Back to Home",
+      "title": "Login to Quantum Shield",
+      "description": "Connect your wallet and sign in with Ethereum",
+      "selectWallet": "Select a Wallet",
+      "connectWallet": "Connect Wallet",
+      "supportedWallets": "Supports MetaMask, WalletConnect, Coinbase Wallet and more",
+      "noWallet": "Don't have a wallet?",
+      "getWallet": "Get MetaMask",
+      "newUser": "New to Quantum Shield?",
+      "learnMore": "Learn More",
+      "footer": "Powered by quantum-resistant cryptography",
+      "connecting": {
+        "title": "Connecting...",
+        "walletPrompt": "Please approve the connection in your wallet"
+      },
+      "connected": {
+        "title": "Wallet Connected",
+        "description": "You can sign in with the address below",
+        "signInButton": "Sign In",
+        "changeWallet": "Use Different Wallet"
+      },
+      "signing": {
+        "title": "Sign Message",
+        "description": "Please sign the message in your wallet to verify ownership"
+      },
+      "authenticating": {
+        "title": "Authenticating...",
+        "description": "Verifying your signature with the server"
+      },
+      "success": {
+        "title": "Welcome!",
+        "description": "Redirecting to dashboard..."
+      },
+      "error": {
+        "title": "Authentication Failed",
+        "description": "An error occurred during sign-in. Please try again.",
+        "retryButton": "Try Again",
+        "tryAnotherWallet": "Use Another Wallet"
       }
     },
     "keyManagement": {
@@ -611,6 +711,11 @@
           "question": "How does it work technically?",
           "answer": "①User signs unlock request with Dilithium → ②VRF randomly selects Prover → ③Prover generates ZK-STARK proof → ④Prover signs with SPHINCS+ → ⑤24h Time Lock → ⑥L3 verification, SMT proof recorded on L1 → ⑦Assets return to wallet. This multi-layer structure has no single attack point and is resistant to future quantum computers."
         }
+      },
+      "contact": {
+        "title": "Can't find what you're looking for?",
+        "description": "Our support team is here to help. Feel free to reach out.",
+        "button": "Contact Us"
       }
     },
     "security": {
@@ -642,10 +747,10 @@
           "description": "Hash-based digital signatures. Used for Prover (approver) signatures. Enables multi-layer defense with different mathematical foundations.",
           "badge": "NIST FIPS 205"
         },
-        "zkstark": {
-          "title": "ZK-STARK",
-          "description": "Zero-knowledge proof technology. Enables third-party verification of transaction validity. Achieves scalability while maintaining quantum resistance.",
-          "badge": "Quantum-Safe ZKP"
+        "smtProof": {
+          "title": "SMT Merkle Proof",
+          "description": "Cryptographic proofs via Sparse Merkle Trees. State transitions (SR_0→SR_1) are calculated with SHA3-256 hashing, all verifiable on-chain.",
+          "badge": "SHA3-256"
         }
       },
       "features": {
@@ -725,8 +830,11 @@
       "steps": {
         "verify": "Verifying wallet signature",
         "sendBond": "Sending Bond (0.50 ETH)...",
+        "sendBondTooltip": "Bond is collateral that proves the emergency unlock is legitimate. If no challenges are filed during the 7-day waiting period, it will be returned along with your assets.",
         "register": "Registering Emergency Unlock request",
-        "startTimeLock": "Starting 7-day Time Lock"
+        "startTimeLock": "Starting 7-day Time Lock",
+        "startTimeLockTooltip": "Time Lock is a waiting period to prevent fraudulent unlocks. Emergency unlocks require a 7-day waiting period. During this time, Observers can detect fraud.",
+        "tooltipAriaLabel": "Learn more"
       }
     },
     "emergencySuccess": {
@@ -761,22 +869,184 @@
         "backToDashboard": "Back to Dashboard"
       }
     },
+    "lock": {
+      "meta": {
+        "title": "Lock | Quantum Shield",
+        "description": "Securely lock your ETH with quantum-resistant cryptography"
+      },
+      "header": {
+        "title": "Lock Assets",
+        "back": "Back",
+        "backAriaLabel": "Back to dashboard"
+      },
+      "hero": {
+        "badge": "Quantum Protected",
+        "badgeTooltip": "Quantum-resistant cryptography protects your assets from future quantum computer attacks",
+        "title": "Protect Your Assets from Future Threats",
+        "subtitle": "Prepare for the quantum era by locking your ETH with Dilithium cryptography today"
+      },
+      "card": {
+        "title": "Lock Amount",
+        "inputLabel": "Enter amount to lock",
+        "inputPlaceholder": "0.00",
+        "availableBalance": "Available Balance",
+        "quickAmounts": {
+          "25": "25%",
+          "50": "50%",
+          "75": "75%",
+          "max": "MAX"
+        },
+        "lockButton": "Lock with Dilithium Signature",
+        "lockButtonAriaLabel": "Lock assets with Dilithium signature"
+      },
+      "period": {
+        "label": "Lock Period",
+        "years": {
+          "1": "1 Year",
+          "2": "2 Years",
+          "3": "3 Years",
+          "5": "5 Years"
+        }
+      },
+      "summary": {
+        "title": "Lock Summary",
+        "amount": "Lock Amount",
+        "unlockWait": "Unlock Wait Time",
+        "unlockWaitValue": "24 hours",
+        "fee": "Network Fee"
+      },
+      "info": {
+        "title": "About Locking",
+        "items": {
+          "quantum": {
+            "title": "Quantum Protection",
+            "description": "Assets protected with NIST-certified Dilithium cryptography"
+          },
+          "unlock": {
+            "title": "Unlock Anytime",
+            "description": "Withdraw your assets after a 24-hour waiting period"
+          },
+          "fee": {
+            "title": "Fees",
+            "description": "Gas fees only (~$7 equivalent)"
+          }
+        }
+      },
+      "dilithiumTooltip": "Dilithium is a NIST-certified next-gen digital signature that is secure against quantum computers. NIST (National Institute of Standards and Technology) is a US government agency that establishes global cryptography standards like AES and SHA-2",
+      "modal": {
+        "title": "Confirm Lock",
+        "description": "You are about to lock the following amount. Dilithium signature required.",
+        "amount": "Lock Amount",
+        "gasFee": "Gas Fee (est.)",
+        "unlockNote": "Unlock requires a 24-hour waiting period before you receive your assets",
+        "confirm": "Sign and Lock",
+        "cancel": "Cancel"
+      },
+      "validation": {
+        "amountRequired": "Please enter an amount to lock",
+        "amountInvalid": "Please enter a valid amount",
+        "insufficientBalance": "Insufficient balance",
+        "minimumAmount": "Minimum lock amount is 0.01 ETH"
+      }
+    },
     "lockProcessing": {
       "title": "Processing Lock...",
       "subtitle": "Please wait. Do not close this page.",
+      "waitingForWallet": "Waiting for wallet signature...",
+      "waitingForL1": "Waiting for L1 blockchain confirmation...",
+      "generatingKeys": "Generating Dilithium keys...",
+      "signingMessage": "Signing with Dilithium...",
+      "submittingToL3": "Submitting to L3 Aegis...",
+      "submittingToL1": "Submitting to L1 Vault...",
+      "errorTitle": "Lock Failed",
+      "errorRevert": "Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH) or TVL cap exceeded.",
+      "retry": "Retry",
+      "cancel": "Cancel",
       "steps": {
-        "sign": "Generate Dilithium signature",
-        "createTx": "Create transaction",
-        "broadcast": "Broadcasting to blockchain...",
-        "confirm": "Waiting for confirmation"
+        "generateKeys": "Prepare Dilithium keys",
+        "generateKeysTooltip": "Generate a Dilithium-III (ML-DSA-65) quantum-resistant key pair. These keys are securely stored in your browser.",
+        "sign": "Sign lock message",
+        "signTooltip": "Dilithium is a NIST-approved next-generation digital signature algorithm resistant to quantum computers. Your private key signs the lock request.",
+        "submitL3": "Submit to L3 Aegis",
+        "submitL3Tooltip": "L3 Aegis validates your signature and computes the State Root (SR_0). This eliminates the need to send your full Dilithium public key to L1, significantly reducing gas costs.",
+        "submitL1": "Submit to L1 Vault",
+        "submitL1Tooltip": "Sign the transaction with your wallet (e.g., MetaMask) and submit to the Sepolia network. Only the lock_id and SR_0 from L3 are sent, keeping gas costs low.",
+        "confirm": "Waiting for L1 confirmation",
+        "confirmTooltip": "Waiting for the transaction to be confirmed on the Sepolia blockchain. This usually takes 1-2 minutes.",
+        "tooltipAriaLabel": "Learn more"
       }
     },
     "lockSuccess": {
       "title": "Lock Complete",
       "subtitle": "Your assets are now protected with quantum-resistant security",
       "details": {
+        "title": "Lock Details",
+        "status": "Locked",
+        "lockId": "Lock ID",
         "amount": "Locked Amount",
+        "unlockWait": "Unlock Wait Time",
+        "unlockWaitValue": "24 hours",
+        "copy": "Copy",
+        "copied": "Copied"
+      },
+      "buttons": {
+        "viewHistory": "View History",
+        "backToDashboard": "Back to Dashboard"
+      }
+    },
+    "unlockProcessing": {
+      "title": "Processing Unlock...",
+      "subtitle": "Please wait. Do not close this page.",
+      "errorTitle": "Unlock Failed",
+      "loadingLock": "Loading lock details...",
+      "signingMessage": "Generating Dilithium signature...",
+      "submittingToL3": "Submitting to L3 Aegis...",
+      "submittingEmergency": "Submitting emergency unlock...",
+      "selectingProvers": "Selecting provers...",
+      "verifyingBond": "Verifying bond...",
+      "activatingTimelock": "Activating timelock...",
+      "emergencyWarning": "Emergency unlock requires a 7-day waiting period and bond (minimum 0.5 ETH)",
+      "noKeysWarning": "No Dilithium keys available. Please complete a lock operation first.",
+      "retry": "Retry",
+      "cancel": "Cancel",
+      "steps": {
+        "loadLock": "Load Lock Details",
+        "loadLockTooltip": "Fetch lock details from L3. Verify amount, owner, and status.",
+        "sign": "Generate Dilithium Signature",
+        "signTooltip": "Dilithium is a NIST-approved next-generation digital signature algorithm resistant to quantum computers. Your private key signs the unlock request.",
+        "submitL3": "Submit to L3 Aegis",
+        "submitL3Tooltip": "Send signed unlock request to L3 Aegis. L3 computes SR_1 and selects Provers via VRF.",
+        "submitEmergency": "Submit Emergency Unlock",
+        "submitEmergencyTooltip": "Send emergency unlock request with bond to L3 Aegis. A 7-day waiting period begins.",
+        "vrfSelection": "VRF Prover Selection",
+        "vrfSelectionTooltip": "Provers are randomly selected via Chainlink VRF. Selected provers provide SPHINCS+ signatures.",
+        "bondVerify": "Verify Bond",
+        "bondVerifyTooltip": "Confirm the emergency unlock bond (minimum 0.5 ETH) has been received correctly.",
+        "activateTimelock": "Activate Timelock",
+        "activateTimelockTooltip": "The 24-hour (normal) or 7-day (emergency) timelock is activated. Challenges can be submitted during this period.",
+        "tooltipAriaLabel": "Learn more"
+      }
+    },
+    "unlockSuccess": {
+      "title": "Unlock Started",
+      "subtitle": "After the 24-hour Time Lock, assets will be transferred to your wallet",
+      "subtitleEmergency": "After the 7-day Time Lock, assets will be transferred to your wallet",
+      "emergency": {
+        "warning": "Emergency unlock requires a 7-day waiting period. If a Challenge is raised during this period, your bond may be forfeited."
+      },
+      "timelock": {
+        "title": "Time Lock Remaining",
+        "titleEmergency": "Emergency Time Lock Remaining",
+        "label": "Until unlock available"
+      },
+      "details": {
+        "amount": "Unlock Amount",
+        "estimatedCompletion": "Estimated Completion",
+        "unlockId": "Unlock ID",
         "txHash": "TX Hash"
+      },
+      "info": {
+        "message": "If there are no issues during the security waiting period, assets will be automatically transferred to your wallet. You can track progress from the dashboard."
       },
       "buttons": {
         "viewHistory": "View History",
@@ -944,150 +1214,689 @@
         "faq": "FAQ",
         "copyright": "© 2026 Quantum Shield. Made in Japan"
       }
-    }
-  },
-  "onboarding": {
-    "meta": {
-      "title": "Get Started - Quantum Shield",
-      "description": "Set up your Quantum Shield protection"
     },
-    "header": {
-      "title": "Get Started",
-      "backAriaLabel": "Return to landing page"
+    "howItWorksPage": {
+      "meta": {
+        "title": "Why Quantum Shield"
+      },
+      "header": {
+        "title": "Why Quantum Shield",
+        "subtitle": "Protecting your assets today from tomorrow's threats",
+        "backAriaLabel": "Back to Consumer App"
+      },
+      "whyQS": {
+        "sectionLabel": "Why Quantum Shield",
+        "title": "Why Quantum Shield Now?",
+        "description": "The quantum computing threat is not a matter of 'someday' but 'now.' Protect your assets from 'Harvest Now, Decrypt Later' attacks where today's data could be decrypted in the future.",
+        "points": [
+          {
+            "title": "Quantum-Resistant Cryptography",
+            "description": "Using NIST-approved Dilithium cryptography. Mathematically difficult to break even with future quantum computers."
+          },
+          {
+            "title": "Time Is Your Shield",
+            "description": "24-hour Time Lock feature. Even if unauthorized access occurs, you have time to notice and respond."
+          },
+          {
+            "title": "Lost Keys? No Problem",
+            "description": "Industry-first emergency recovery feature. Recover your assets with a 7-day wait and collateral even if you lose your keys."
+          }
+        ]
+      },
+      "processes": {
+        "lock": {
+          "title": "Lock Process",
+          "subtitle": "How to deposit assets into the quantum-resistant vault",
+          "steps": [
+            {
+              "label": "Connect Wallet",
+              "description": "Prepare ETH transfer from MetaMask or similar"
+            },
+            {
+              "label": "Dilithium Signature",
+              "description": "Verify identity with quantum-resistant signature"
+            },
+            {
+              "label": "Verification Network",
+              "description": "Multiple nodes verify signature validity"
+            },
+            {
+              "label": "Store in Vault",
+              "description": "Securely stored in Ethereum smart contract"
+            }
+          ],
+          "actors": [
+            {
+              "name": "You",
+              "role": "Asset Owner",
+              "description": "Only you hold the Dilithium private key. No one can move your assets without your consent."
+            },
+            {
+              "name": "Smart Contract",
+              "role": "Code-Protected Vault",
+              "description": "Transparent program on Ethereum manages assets. Operates by rules without human intervention."
+            }
+          ],
+          "benefits": [
+            "Protection from quantum computer attacks",
+            "Defense against 'harvest now, decrypt later' attacks",
+            "Long-term security for holding assets"
+          ],
+          "note": {
+            "title": "Simple & Low Cost:",
+            "description": "Locking costs only ~$7 in gas. No complicated steps required."
+          }
+        },
+        "unlock": {
+          "title": "Unlock Process",
+          "subtitle": "How to safely withdraw assets (24-hour wait)",
+          "steps": [
+            {
+              "label": "Unlock Request",
+              "description": "Start unlock with Dilithium signature"
+            },
+            {
+              "label": "Prover Verification",
+              "description": "2 of 5 companies randomly verify signature validity"
+            },
+            {
+              "label": "24-Hour Wait",
+              "description": "Security cooling-off period"
+            },
+            {
+              "label": "Receive Assets",
+              "description": "Transfer to wallet anytime after wait completes"
+            }
+          ],
+          "actors": [
+            {
+              "name": "You",
+              "role": "Unlock Requester",
+              "description": "Sign with Dilithium private key to initiate unlock."
+            },
+            {
+              "name": "Independent Provers",
+              "role": "Third-Party Check",
+              "description": "2 of 5 independent companies randomly selected to approve. Prevents collusion."
+            },
+            {
+              "name": "Time Lock",
+              "role": "Security Wait",
+              "description": "24-hour period allows detection and response to fraud."
+            }
+          ],
+          "benefits": [
+            "Time buffer to detect unauthorized access",
+            "Double-check by multiple independent provers",
+            "Protection from phishing attacks"
+          ],
+          "note": {
+            "title": "Why 24 Hours?",
+            "description": "This waiting period protects you. It gives time to notice and respond to any unauthorized access."
+          }
+        },
+        "emergency": {
+          "title": "Emergency Unlock Process",
+          "subtitle": "Safety net when you lose your private key",
+          "steps": [
+            {
+              "label": "Emergency Request",
+              "description": "Start emergency unlock with wallet signature"
+            },
+            {
+              "label": "Bond Deposit",
+              "description": "Deposit collateral (5%) for identity verification"
+            },
+            {
+              "label": "7-Day Wait",
+              "description": "Extended wait as challenge period"
+            },
+            {
+              "label": "Assets + Bond Return",
+              "description": "If no issues, assets and bond are returned"
+            }
+          ],
+          "actors": [
+            {
+              "name": "You",
+              "role": "Emergency Requester",
+              "description": "Even without Dilithium key, recover assets with wallet signature and bond."
+            },
+            {
+              "name": "Challenge Period",
+              "role": "Fraud Prevention System",
+              "description": "If fraud is detected during 7-day wait, bond is forfeited."
+            }
+          ],
+          "benefits": [
+            "Recover assets even if private key is lost",
+            "Safety net not found in other self-custody solutions",
+            "Bond fully returned for legitimate requests"
+          ],
+          "note": {
+            "title": "Why 7 Days & Bond?",
+            "description": "The longer wait period and collateral deter fraudulent emergency unlocks. Legitimate requests face no issues."
+          }
+        }
+      },
+      "cta": {
+        "title": "Prepare Today for Tomorrow's Threats",
+        "description": "Protect your assets before quantum computing threats become reality.",
+        "startButton": "Start for Free",
+        "securityButton": "View Technical Details"
+      }
     },
-    "progress": {
-      "ariaLabel": "Onboarding progress"
+    "onboarding": {
+      "meta": {
+        "title": "Get Started - Quantum Shield",
+        "description": "Set up your Quantum Shield protection"
+      },
+      "header": {
+        "title": "Get Started",
+        "backAriaLabel": "Return to landing page"
+      },
+      "progress": {
+        "ariaLabel": "Onboarding progress"
+      },
+      "step1": {
+        "indicator": "STEP 1 / 4",
+        "title": "Connect Wallet",
+        "description": "Connect your wallet. We support MetaMask and other EVM-compatible wallets.",
+        "wallets": {
+          "metamask": {
+            "name": "MetaMask",
+            "description": "Browser extension"
+          },
+          "walletconnect": {
+            "name": "WalletConnect",
+            "description": "Scan QR code"
+          },
+          "coinbase": {
+            "name": "Coinbase Wallet",
+            "description": "Mobile & Browser"
+          }
+        },
+        "helpLink": "Don't have a wallet?"
+      },
+      "step2": {
+        "indicator": "STEP 2 / 4",
+        "title": "Generate Dilithium Keys",
+        "description": "Generate quantum-resistant Dilithium key pairs. These keys are stored only on your device and never sent to servers.",
+        "dilithiumTooltip": "Dilithium is a quantum-resistant digital signature algorithm officially adopted by NIST in 2024. It uses lattice-based cryptography that is difficult to break even with quantum computers.",
+        "selfCustodyNotice": {
+          "title": "Your Keys, Your Control",
+          "description": "Private keys are stored only on your device.",
+          "whyTitle": "Why not send to servers?",
+          "whyPoints": [
+            "Complete protection from server attacks and data breaches",
+            "Even Quantum Shield operators cannot access your assets",
+            "True self-custody for complete ownership"
+          ],
+          "warning": "Lost keys cannot be recovered. Always save your backup."
+        },
+        "keyGeneration": {
+          "idle": "Click the button to start generation",
+          "generating": "Generating Dilithium-III key pair...",
+          "complete": "Key pair generation complete!"
+        },
+        "dilithiumHelpLink": "Learn more about Dilithium cryptography",
+        "generateButton": "Generate Dilithium Keys",
+        "generatingButton": "Generating..."
+      },
+      "step3": {
+        "indicator": "STEP 3 / 4",
+        "title": "Backup Your Keys",
+        "description": "Back up your private keys in a safe location.",
+        "warning": {
+          "title": "Important: Keep your private keys safe",
+          "description": "Losing your private keys may result in difficulty accessing your assets. Always create a backup."
+        },
+        "backupOption": {
+          "name": "Download Encrypted File",
+          "description": "Password-protected JSON file",
+          "downloadedDescription": "File has been downloaded",
+          "recommended": "Recommended",
+          "completed": "Complete"
+        },
+        "checklist": {
+          "downloaded": "I have downloaded the backup file",
+          "saved": "I have saved the file securely (USB drive, external HDD, or printed). I understand cloud storage should be avoided and losing this file may make my assets inaccessible."
+        },
+        "continueButton": "Continue"
+      },
+      "step4": {
+        "indicator": "STEP 4 / 4",
+        "title": "Ready to Go!",
+        "description": "Quantum Shield setup is complete. You can now use quantum-resistant protection.",
+        "features": {
+          "keysGenerated": "Dilithium key pair generated",
+          "backupComplete": "Private key backed up",
+          "protectionActive": "Quantum-resistant protection active"
+        },
+        "ctaButton": "Go to Dashboard",
+        "tutorialLink": "View Tutorial"
+      },
+      "modals": {
+        "walletHelp": {
+          "title": "How to Get a Wallet",
+          "intro": "If you don't have a crypto wallet, follow these steps to get one.",
+          "metamaskTitle": "For MetaMask:",
+          "metamaskSteps": {
+            "step1": "Visit metamask.io",
+            "step2": "Click \"Download\" to install the browser extension",
+            "step3": "Follow the prompts to create your wallet",
+            "step4": "Save your seed phrase securely"
+          },
+          "warningTitle": "Important Notes:",
+          "warnings": {
+            "warning1": "Never share your seed phrase with anyone",
+            "warning2": "Store it in a secure offline location",
+            "warning3": "Only download from the official website"
+          },
+          "closeButton": "Close"
+        },
+        "dilithium": {
+          "title": "What is Dilithium?",
+          "intro": "Dilithium is a digital signature algorithm that is secure against quantum computers.",
+          "whyTitle": "Why is it needed?",
+          "whyReasons": {
+            "reason1": "Current cryptography (like ECDSA) may be broken by future quantum computers",
+            "reason2": "To protect against 'harvest now, decrypt later' attacks, we need to act now"
+          },
+          "featuresTitle": "Features of Dilithium:",
+          "features": {
+            "nist": "NIST Certified: Officially standardized as FIPS 204 in 2024",
+            "lattice": "Lattice-based: Mathematically resistant to quantum computers",
+            "fast": "High Performance: Efficient signing and verification",
+            "level": "Dilithium-III: Security level used by Quantum Shield"
+          },
+          "securityTitle": "Security:",
+          "securityDescription": "Dilithium-III meets NIST Security Level 3, providing 128+ bits of both classical and quantum security.",
+          "closeButton": "Close"
+        },
+        "tutorial": {
+          "title": "How to Use Tutorial",
+          "intro": "Here's a basic guide to using Quantum Shield.",
+          "lockTitle": "1. Lock Your Assets",
+          "lockSteps": {
+            "step1": "Click \"Lock\" on the dashboard",
+            "step2": "Enter the amount you want to protect",
+            "step3": "Confirm with Dilithium signature"
+          },
+          "unlockTitle": "2. Unlock Your Assets",
+          "unlockSteps": {
+            "normal": "Normal Unlock: Dilithium signature + 24-hour wait",
+            "emergency": "Emergency Unlock: Wallet signature + Bond + 7-day wait"
+          },
+          "securityTitle": "3. Security Tips",
+          "securityTips": {
+            "tip1": "Always back up your private keys",
+            "tip2": "Time Lock protects your assets",
+            "tip3": "Check suspicious activity immediately"
+          },
+          "closeButton": "Close"
+        }
+      }
     },
-    "step1": {
-      "indicator": "STEP 1 / 4",
-      "title": "Connect Wallet",
-      "description": "Connect your wallet. We support MetaMask and other EVM-compatible wallets.",
+    "notifications": {
+      "meta": {
+        "title": "Notifications | Quantum Shield",
+        "description": "Notification history and settings"
+      },
+      "header": {
+        "title": "Notifications",
+        "back": "Back",
+        "markAllRead": "Mark all as read"
+      },
+      "tabs": {
+        "all": "All",
+        "unread": "Unread"
+      },
+      "types": {
+        "lockComplete": "Lock Complete",
+        "unlockStarted": "Unlock Started",
+        "unlockComplete": "Unlock Complete",
+        "emergencyStarted": "Emergency Unlock Started",
+        "emergencyComplete": "Emergency Unlock Complete",
+        "securityAlert": "Security Alert",
+        "systemUpdate": "System Update"
+      },
+      "item": {
+        "unread": "Unread",
+        "markRead": "Mark as read"
+      },
+      "emptyState": {
+        "title": "No notifications",
+        "description": "Notifications will appear here when you lock or unlock assets"
+      },
+      "settings": {
+        "title": "Notification Settings",
+        "push": {
+          "title": "Push Notifications",
+          "description": "Get real-time alerts for important activities"
+        },
+        "email": {
+          "title": "Email Notifications",
+          "description": "Daily digest email"
+        }
+      }
+    },
+    "help": {
+      "meta": {
+        "title": "Help | Quantum Shield",
+        "description": "Quantum Shield help and support"
+      },
+      "header": {
+        "title": "Help",
+        "back": "Back"
+      },
+      "search": {
+        "placeholder": "Search for help...",
+        "ariaLabel": "Search help"
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "items": {
+          "gettingStarted": {
+            "title": "Getting Started",
+            "description": "Learn the basics of Quantum Shield"
+          },
+          "lockUnlock": {
+            "title": "Lock / Unlock",
+            "description": "How to lock and unlock assets"
+          },
+          "security": {
+            "title": "Security",
+            "description": "About quantum-resistant cryptography"
+          },
+          "troubleshooting": {
+            "title": "Troubleshooting",
+            "description": "Common issues and solutions"
+          }
+        }
+      },
+      "resources": {
+        "title": "Resources",
+        "faq": {
+          "title": "FAQ",
+          "description": "Frequently asked questions"
+        },
+        "contact": {
+          "title": "Contact Us",
+          "description": "Reach out to support"
+        },
+        "docs": {
+          "title": "Documentation",
+          "description": "Detailed guides and API"
+        },
+        "status": {
+          "title": "System Status",
+          "description": "Service uptime status"
+        }
+      },
+      "tutorial": {
+        "title": "Tutorial",
+        "description": "New to Quantum Shield? Check out our tutorial",
+        "button": "View Tutorial"
+      }
+    },
+    "contact": {
+      "meta": {
+        "title": "Contact Us | Quantum Shield",
+        "description": "Contact Quantum Shield support team"
+      },
+      "header": {
+        "title": "Contact Us",
+        "back": "Back"
+      },
+      "intro": {
+        "title": "Get in touch with our support team",
+        "description": "If you have any questions or concerns, please fill out the form below. We typically respond within 1-2 business days."
+      },
+      "form": {
+        "category": {
+          "label": "Category",
+          "placeholder": "Select a category",
+          "options": {
+            "general": "General Question",
+            "technical": "Technical Issue",
+            "account": "Account Related",
+            "security": "Security",
+            "feedback": "Feedback & Suggestions",
+            "other": "Other"
+          }
+        },
+        "email": {
+          "label": "Email Address",
+          "placeholder": "your@email.com",
+          "description": "We'll reply to this email"
+        },
+        "subject": {
+          "label": "Subject",
+          "placeholder": "Brief summary of your inquiry"
+        },
+        "message": {
+          "label": "Message",
+          "placeholder": "Please describe your inquiry in detail..."
+        },
+        "walletAddress": {
+          "label": "Wallet Address (Optional)",
+          "placeholder": "0x...",
+          "description": "May help us investigate the issue"
+        },
+        "submit": "Submit",
+        "submitting": "Submitting..."
+      },
+      "validation": {
+        "categoryRequired": "Please select a category",
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Please enter a valid email address",
+        "subjectRequired": "Subject is required",
+        "messageRequired": "Message is required",
+        "messageTooShort": "Message must be at least 10 characters"
+      },
+      "success": {
+        "title": "Your inquiry has been submitted",
+        "message": "Thank you for contacting us. We will respond within 1-2 business days.",
+        "ticketId": "Ticket ID",
+        "backToHelp": "Back to Help",
+        "backToDashboard": "Back to Dashboard"
+      },
+      "otherWays": {
+        "title": "Other Ways to Contact Us",
+        "email": {
+          "title": "Email",
+          "value": "support@quantumshield.io"
+        },
+        "discord": {
+          "title": "Discord",
+          "value": "Join our community"
+        },
+        "twitter": {
+          "title": "Twitter / X",
+          "value": "@QuantumShield"
+        }
+      },
+      "faq": {
+        "title": "Frequently Asked Questions",
+        "description": "Before contacting us, check our FAQ",
+        "link": "View FAQ"
+      }
+    },
+    "cookie": {
+      "meta": {
+        "title": "Cookie Policy | Quantum Shield",
+        "description": "Quantum Shield Cookie Policy"
+      },
+      "header": {
+        "title": "Cookie Policy",
+        "back": "Back"
+      },
+      "lastUpdated": "Last Updated: {date}",
+      "sections": {
+        "intro": {
+          "title": "About Cookies",
+          "content": "Quantum Shield (\"we\") uses cookies to improve user experience and enhance our services. This policy explains the types and purposes of cookies we use."
+        },
+        "whatAreCookies": {
+          "title": "What Are Cookies",
+          "content": "Cookies are small text files that websites store in your browser. They allow websites to remember your preferences and behavior, enabling better service delivery."
+        },
+        "essential": {
+          "title": "Essential Cookies",
+          "content": "These cookies are necessary for the basic functionality of the website. The service cannot work properly without them.",
+          "items": {
+            "session": "Session management: Maintaining login state",
+            "security": "Security: CSRF protection tokens",
+            "preferences": "Settings: Language and theme preferences"
+          }
+        },
+        "analytics": {
+          "title": "Analytics Cookies",
+          "content": "These cookies anonymously analyze service usage to help us improve.",
+          "items": {
+            "pageViews": "Page view tracking",
+            "userJourney": "User behavior analysis",
+            "performance": "Performance measurement"
+          }
+        },
+        "functional": {
+          "title": "Functional Cookies",
+          "content": "These cookies provide additional features to enhance user experience.",
+          "items": {
+            "walletConnection": "Remembering wallet connection state",
+            "recentActivity": "Displaying recent activity",
+            "notifications": "Notification settings"
+          }
+        },
+        "thirdParty": {
+          "title": "Third-Party Cookies",
+          "content": "We use the following third-party services. Please refer to their respective privacy policies.",
+          "services": {
+            "analytics": "Google Analytics: Usage analysis",
+            "error": "Sentry: Error tracking",
+            "cdn": "Cloudflare: Content delivery"
+          }
+        },
+        "manage": {
+          "title": "Managing Cookies",
+          "content": "You can manage and delete cookies through your browser settings. However, disabling certain cookies may limit some service features."
+        },
+        "changes": {
+          "title": "Policy Changes",
+          "content": "We may update this policy as necessary. Significant changes will be notified on the service."
+        }
+      },
+      "consent": {
+        "title": "Cookie Settings",
+        "description": "Choose which cookies to allow",
+        "essential": {
+          "title": "Essential Cookies",
+          "description": "Required for basic functionality (cannot be disabled)"
+        },
+        "analytics": {
+          "title": "Analytics Cookies",
+          "description": "Usage analysis for service improvement"
+        },
+        "functional": {
+          "title": "Functional Cookies",
+          "description": "Additional features and enhanced experience"
+        },
+        "saveSettings": "Save Settings",
+        "acceptAll": "Accept All"
+      },
+      "contact": {
+        "title": "Contact",
+        "content": "For questions about cookies, please contact privacy@quantumshield.io."
+      },
+      "footer": {
+        "home": "Home",
+        "terms": "Terms",
+        "privacy": "Privacy",
+        "cookie": "Cookies",
+        "copyright": "© 2026 Quantum Shield. Made in Japan"
+      }
+    },
+    "walletConnect": {
+      "meta": {
+        "title": "Connect Wallet | Quantum Shield",
+        "description": "Connect your wallet to start using Quantum Shield"
+      },
+      "header": {
+        "title": "Connect Wallet",
+        "back": "Back"
+      },
+      "intro": {
+        "title": "Connect Your Wallet",
+        "description": "Connect your wallet to start using Quantum Shield's quantum-resistant protection."
+      },
       "wallets": {
+        "title": "Select a Wallet",
         "metamask": {
           "name": "MetaMask",
-          "description": "Browser extension"
+          "description": "Connect with browser extension",
+          "popular": "Popular"
         },
         "walletconnect": {
           "name": "WalletConnect",
-          "description": "Scan QR code"
+          "description": "Connect mobile wallet via QR code"
         },
         "coinbase": {
           "name": "Coinbase Wallet",
-          "description": "Mobile & Browser"
+          "description": "Connect with Coinbase app"
+        },
+        "injected": {
+          "name": "Other Wallets",
+          "description": "Detected browser wallets"
         }
       },
-      "helpLink": "Don't have a wallet?"
-    },
-    "step2": {
-      "indicator": "STEP 2 / 4",
-      "title": "Generate Dilithium Keys",
-      "description": "Generate quantum-resistant Dilithium key pairs. These keys are stored only on your device and never sent to servers.",
-      "dilithiumTooltip": "Dilithium is a quantum-resistant digital signature algorithm officially adopted by NIST in 2024. It uses lattice-based cryptography that is difficult to break even with quantum computers.",
-      "selfCustodyNotice": {
-        "title": "Only You Hold the Keys",
-        "description": "Your private keys are stored only on your device. They are never sent to Quantum Shield servers, so no one else can access them. Be sure to create a backup and store it safely."
+      "connecting": {
+        "title": "Connecting...",
+        "description": "Please approve the connection in your wallet",
+        "waiting": "Waiting for wallet approval",
+        "cancel": "Cancel"
       },
-      "keyGeneration": {
-        "idle": "Click the button to start generation",
-        "generating": "Generating Dilithium-III key pair...",
-        "complete": "Key pair generation complete!"
+      "connected": {
+        "title": "Connected",
+        "description": "Your wallet has been successfully connected",
+        "address": "Connected Address",
+        "continue": "Go to Dashboard",
+        "startOnboarding": "Start Setup"
       },
-      "dilithiumHelpLink": "Learn more about Dilithium cryptography",
-      "generateButton": "Generate Dilithium Keys",
-      "generatingButton": "Generating..."
-    },
-    "step3": {
-      "indicator": "STEP 3 / 4",
-      "title": "Backup Your Keys",
-      "description": "Back up your private keys in a safe location.",
-      "warning": {
-        "title": "Important: Keep your private keys safe",
-        "description": "Losing your private keys may result in difficulty accessing your assets. Always create a backup."
+      "error": {
+        "title": "Connection Error",
+        "description": "An error occurred while connecting your wallet",
+        "userRejected": "Connection was cancelled",
+        "notInstalled": "Wallet is not installed",
+        "retry": "Try Again",
+        "installMetamask": "Install MetaMask"
       },
-      "backupOption": {
-        "name": "Download Encrypted File",
-        "description": "Password-protected JSON file",
-        "downloadedDescription": "File has been downloaded",
-        "recommended": "Recommended",
-        "completed": "Complete"
+      "help": {
+        "title": "What is a Wallet?",
+        "description": "A crypto wallet is a tool for managing your digital assets.",
+        "link": "How to get a wallet",
+        "security": {
+          "title": "Security Tips",
+          "tips": {
+            "seed": "Never share your seed phrase with anyone",
+            "official": "Only download from official sources",
+            "verify": "Always verify the connection URL"
+          }
+        }
       },
-      "checklist": {
-        "downloaded": "I have downloaded the backup file",
-        "saved": "I have saved the file to a secure location (USB drive, external HDD, printed on paper for offline storage). I avoid cloud storage and understand that losing this file may make my assets inaccessible."
-      },
-      "continueButton": "Continue"
-    },
-    "step4": {
-      "indicator": "STEP 4 / 4",
-      "title": "Ready to Go!",
-      "description": "Quantum Shield setup is complete. You can now use quantum-resistant protection.",
       "features": {
-        "keysGenerated": "Dilithium key pair generated",
-        "backupComplete": "Private key backed up",
-        "protectionActive": "Quantum-resistant protection active"
-      },
-      "ctaButton": "Go to Dashboard",
-      "tutorialLink": "View Tutorial"
-    },
-    "modals": {
-      "walletHelp": {
-        "title": "How to Get a Wallet",
-        "intro": "If you don't have a crypto wallet, follow these steps to get one.",
-        "metamaskTitle": "For MetaMask:",
-        "metamaskSteps": {
-          "step1": "Visit metamask.io",
-          "step2": "Click \"Download\" to install the browser extension",
-          "step3": "Follow the prompts to create your wallet",
-          "step4": "Save your seed phrase securely"
+        "selfCustody": {
+          "title": "Self-Custody",
+          "description": "You alone control your assets"
         },
-        "warningTitle": "Important Notes:",
-        "warnings": {
-          "warning1": "Never share your seed phrase with anyone",
-          "warning2": "Store it in a secure offline location",
-          "warning3": "Only download from the official website"
+        "secure": {
+          "title": "Secure Connection",
+          "description": "Your private keys are never sent"
         },
-        "closeButton": "Close"
-      },
-      "dilithium": {
-        "title": "What is Dilithium?",
-        "intro": "Dilithium is a digital signature algorithm that is secure against quantum computers.",
-        "whyTitle": "Why is it needed?",
-        "whyReasons": {
-          "reason1": "Current cryptography (like ECDSA) may be broken by future quantum computers",
-          "reason2": "To protect against 'harvest now, decrypt later' attacks, we need to act now"
-        },
-        "featuresTitle": "Features of Dilithium:",
-        "features": {
-          "nist": "NIST Certified: Officially standardized as FIPS 204 in 2024",
-          "lattice": "Lattice-based: Mathematically resistant to quantum computers",
-          "fast": "High Performance: Efficient signing and verification",
-          "level": "Dilithium-III: Security level used by Quantum Shield"
-        },
-        "securityTitle": "Security:",
-        "securityDescription": "Dilithium-III meets NIST Security Level 3, providing 128+ bits of both classical and quantum security.",
-        "closeButton": "Close"
-      },
-      "tutorial": {
-        "title": "How to Use Tutorial",
-        "intro": "Here's a basic guide to using Quantum Shield.",
-        "lockTitle": "1. Lock Your Assets",
-        "lockSteps": {
-          "step1": "Click \"Lock\" on the dashboard",
-          "step2": "Enter the amount you want to protect",
-          "step3": "Confirm with Dilithium signature"
-        },
-        "unlockTitle": "2. Unlock Your Assets",
-        "unlockSteps": {
-          "normal": "Normal Unlock: Dilithium signature + 24-hour wait",
-          "emergency": "Emergency Unlock: Wallet signature + Bond + 7-day wait"
-        },
-        "securityTitle": "3. Security Tips",
-        "securityTips": {
-          "tip1": "Always back up your private keys",
-          "tip2": "Time Lock protects your assets",
-          "tip3": "Check suspicious activity immediately"
-        },
-        "closeButton": "Close"
+        "quantum": {
+          "title": "Quantum-Resistant",
+          "description": "Generate Dilithium keys after connecting"
+        }
       }
     }
   }

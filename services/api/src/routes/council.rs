@@ -20,7 +20,10 @@ use serde::{Deserialize, Serialize};
 
 use uuid::Uuid;
 
+use chrono::Utc;
+
 use crate::{
+    db::CouncilRepository,
     error::ApiError,
     services::AppState,
 };
@@ -229,7 +232,7 @@ pub struct ProposeActionRequest {
 }
 
 /// Action data for proposal
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ProposeActionData {
     #[serde(rename = "emergency_pause")]
@@ -350,26 +353,41 @@ pub struct RecentEmergencyAction {
 ///
 /// Returns list of all Security Council members with their seat information.
 pub async fn get_members(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<CouncilMembersResponse>, ApiError> {
-    tracing::debug!("Council: Getting members");
+    tracing::info!("Council: Getting members");
 
-    // Mock data - 9-member Security Council
-    // In production: Query SecurityCouncil.sol contract
-    let members: Vec<CouncilMember> = (0..9)
-        .map(|i| CouncilMember {
-            seat_id: i,
-            address: format!("0x{:0>40}", format!("{}", i + 1).repeat(40 / format!("{}", i + 1).len())),
-            name: Some(format!("Council Member {}", i + 1)),
-            joined_at: 1704067200 + (i as u64 * 86400), // Staggered join dates
-            actions_participated: (10 - i) as u32, // Varying participation
-            is_active: true,
-        })
-        .collect();
+    let pool = state.pool();
+
+    // Fetch all council members from DB
+    let member_rows = CouncilRepository::list_members(pool).await?;
+
+    // Build members with signature participation counts
+    let mut members: Vec<CouncilMember> = Vec::with_capacity(member_rows.len());
+    for (idx, row) in member_rows.iter().enumerate() {
+        // Count distinct actions this member has signed
+        let sig_count = CouncilRepository::count_member_signatures(pool, &row.wallet_address)
+            .await
+            .unwrap_or(0);
+
+        members.push(CouncilMember {
+            seat_id: idx as u32,
+            address: row.wallet_address.clone(),
+            name: row.name.clone(),
+            joined_at: row.joined_at.timestamp() as u64,
+            actions_participated: sig_count as u32,
+            is_active: row.is_active(),
+        });
+    }
+
+    let total_members = members.len() as u32;
+
+    tracing::info!("Council: Returning {} members", total_members);
 
     Ok(Json(CouncilMembersResponse {
-        total_members: 9,
+        total_members,
         members,
+        // Contract addresses - hardcoded until config supports them
         governor: "0xGOVERNOR_CONTRACT_ADDRESS".to_string(),
         emergency_controller: Some("0xEMERGENCY_CONTROLLER_ADDRESS".to_string()),
     }))
@@ -378,12 +396,13 @@ pub async fn get_members(
 /// GET /v1/council/thresholds
 ///
 /// Returns threshold requirements for different action types.
+/// These are hardcoded constants matching SecurityCouncil.sol.
 pub async fn get_thresholds(
     Extension(_state): Extension<Arc<AppState>>,
 ) -> Result<Json<ThresholdsResponse>, ApiError> {
-    tracing::debug!("Council: Getting thresholds");
+    tracing::info!("Council: Getting thresholds");
 
-    // Per SecurityCouncil.sol constants
+    // Per SecurityCouncil.sol constants - these do not change
     Ok(Json(ThresholdsResponse {
         max_members: 9,
         pause_threshold: 5,   // 5/9 for EmergencyPause
@@ -397,60 +416,44 @@ pub async fn get_thresholds(
 ///
 /// Returns list of Security Council actions (proposed, executed, etc.).
 pub async fn list_actions(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<ActionsListResponse>, ApiError> {
-    tracing::debug!("Council: Listing actions");
+    tracing::info!("Council: Listing actions");
 
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+    let pool = state.pool();
+    let now = Utc::now();
 
-    // Mock data - example actions
-    let actions = vec![
-        ActionSummary {
-            id: "0xACTION001".to_string(),
-            action_type: ActionType::EmergencyPause,
-            proposer: "0x1111111111111111111111111111111111111111".to_string(),
-            proposed_at: now - 3600, // 1 hour ago
-            expires_at: now + (47 * 3600), // 47 hours remaining
-            signature_count: 3,
-            required_signatures: 5,
-            state: ActionState::Proposed,
-            is_ready: false,
-            time_remaining: (47 * 3600) as i64,
-        },
-        ActionSummary {
-            id: "0xACTION002".to_string(),
-            action_type: ActionType::Veto,
-            proposer: "0x2222222222222222222222222222222222222222".to_string(),
-            proposed_at: now - 86400, // 24 hours ago
-            expires_at: now + (24 * 3600), // 24 hours remaining
-            signature_count: 6,
-            required_signatures: 6,
-            state: ActionState::Proposed,
-            is_ready: true, // Ready to execute
-            time_remaining: (24 * 3600) as i64,
-        },
-        ActionSummary {
-            id: "0xACTION003".to_string(),
-            action_type: ActionType::EmergencyPause,
-            proposer: "0x1111111111111111111111111111111111111111".to_string(),
-            proposed_at: now - (7 * 86400), // 7 days ago
-            expires_at: now - (5 * 86400), // Expired
-            signature_count: 5,
-            required_signatures: 5,
-            state: ActionState::Executed,
-            is_ready: false,
-            time_remaining: 0,
-        },
-    ];
+    // Fetch actions from DB (no filter, first 100)
+    let action_rows = CouncilRepository::list_actions(pool, None, 0, 100).await?;
+    let total = CouncilRepository::count_actions(pool, None).await? as u32;
+    let pending_count = CouncilRepository::count_actions(pool, Some("proposed")).await? as u32;
 
-    let pending_count = actions.iter().filter(|a| a.state == ActionState::Proposed).count() as u32;
+    let actions: Vec<ActionSummary> = action_rows
+        .iter()
+        .map(|row| {
+            let time_remaining = (row.expires_at - now).num_seconds().max(0);
+            let is_ready = row.signature_count >= row.required_signatures;
+
+            ActionSummary {
+                id: row.action_id.clone(),
+                action_type: parse_action_type(&row.action_type),
+                proposer: row.proposer.clone(),
+                proposed_at: row.proposed_at.timestamp() as u64,
+                expires_at: row.expires_at.timestamp() as u64,
+                signature_count: row.signature_count as u32,
+                required_signatures: row.required_signatures as u32,
+                state: parse_action_state(&row.state),
+                is_ready,
+                time_remaining,
+            }
+        })
+        .collect();
+
+    tracing::info!("Council: Returning {} actions, {} pending", actions.len(), pending_count);
 
     Ok(Json(ActionsListResponse {
         actions,
-        total: 3,
+        total,
         pending_count,
     }))
 }
@@ -459,55 +462,72 @@ pub async fn list_actions(
 ///
 /// Returns detailed information about a specific action.
 pub async fn get_action(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(action_id): Path<String>,
 ) -> Result<Json<ActionDetailResponse>, ApiError> {
-    tracing::debug!("Council: Getting action {}", action_id);
+    tracing::info!("Council: Getting action {}", action_id);
 
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+    let pool = state.pool();
+    let now = Utc::now();
 
-    // Mock data
+    // Fetch action from DB
+    let action = CouncilRepository::get_action_by_id(pool, &action_id)
+        .await?
+        .ok_or_else(|| ApiError::NotFound(format!("Action not found: {}", action_id)))?;
+
+    // Fetch signatures
+    let sig_rows = CouncilRepository::get_action_signatures(pool, &action_id).await?;
+
+    // Resolve signer names from council_members
+    let members = CouncilRepository::list_members(pool).await?;
+
+    let signers: Vec<SignerInfo> = sig_rows
+        .iter()
+        .map(|sig| {
+            let name = members
+                .iter()
+                .find(|m| m.wallet_address == sig.signer_address)
+                .and_then(|m| m.name.clone());
+
+            SignerInfo {
+                address: sig.signer_address.clone(),
+                seat_id: sig.signer_seat_id as u32,
+                name,
+                signed_at: sig.signed_at.timestamp() as u64,
+            }
+        })
+        .collect();
+
+    // Resolve proposer name
+    let proposer_name = members
+        .iter()
+        .find(|m| m.wallet_address == action.proposer)
+        .and_then(|m| m.name.clone());
+
+    let is_expired = now > action.expires_at;
+    let is_ready = action.signature_count >= action.required_signatures;
+
+    // Parse action_data JSON into ActionData enum
+    let action_data = parse_action_data_json(&action.action_type, &action.action_data);
+
     let response = ActionDetailResponse {
-        id: action_id.clone(),
-        action_type: ActionType::EmergencyPause,
-        proposer: "0x1111111111111111111111111111111111111111".to_string(),
-        proposer_name: Some("Council Member 1".to_string()),
-        proposed_at: now - 3600,
-        expires_at: now + (47 * 3600),
-        signature_count: 3,
-        required_signatures: 5,
-        state: ActionState::Proposed,
-        is_ready: false,
-        is_expired: false,
-        signers: vec![
-            SignerInfo {
-                address: "0x1111111111111111111111111111111111111111".to_string(),
-                seat_id: 0,
-                name: Some("Council Member 1".to_string()),
-                signed_at: now - 3600,
-            },
-            SignerInfo {
-                address: "0x2222222222222222222222222222222222222222".to_string(),
-                seat_id: 1,
-                name: Some("Council Member 2".to_string()),
-                signed_at: now - 3000,
-            },
-            SignerInfo {
-                address: "0x3333333333333333333333333333333333333333".to_string(),
-                seat_id: 2,
-                name: Some("Council Member 3".to_string()),
-                signed_at: now - 1800,
-            },
-        ],
-        action_data: ActionData::EmergencyPause {
-            reason: "Detected suspicious activity on L3 bridge".to_string(),
-            max_duration: 72 * 3600, // 72 hours max
-        },
-        raw_data: "0x000000...".to_string(),
+        id: action.action_id,
+        action_type: parse_action_type(&action.action_type),
+        proposer: action.proposer,
+        proposer_name,
+        proposed_at: action.proposed_at.timestamp() as u64,
+        expires_at: action.expires_at.timestamp() as u64,
+        signature_count: action.signature_count as u32,
+        required_signatures: action.required_signatures as u32,
+        state: parse_action_state(&action.state),
+        is_ready,
+        is_expired,
+        signers,
+        action_data,
+        raw_data: action.raw_data.unwrap_or_else(|| "0x".to_string()),
     };
+
+    tracing::info!("Council: Returning action detail for {}", action_id);
 
     Ok(Json(response))
 }
@@ -517,39 +537,44 @@ pub async fn get_action(
 /// Proposes a new Security Council action.
 /// Only council members can propose actions.
 pub async fn propose_action(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<ProposeActionRequest>,
 ) -> Result<Json<ProposeActionResponse>, ApiError> {
     tracing::info!("Council: Proposing {:?} action", req.action_type);
 
-    // In production:
-    // 1. Verify proposer is a council member
-    // 2. Validate Dilithium signature
-    // 3. Call SecurityCouncil.proposeAction()
-    // 4. Return transaction result
+    let pool = state.pool();
+    let now = Utc::now();
 
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+    let required_signatures = get_threshold_for_action(req.action_type) as i32;
+    let expires_at = now + chrono::Duration::hours(48);
 
-    let required_signatures = match req.action_type {
-        ActionType::EmergencyPause => 5,
-        ActionType::Veto | ActionType::MemberChange => 6,
-        ActionType::EmergencyUpgrade => 7,
-    };
+    let action_id = format!("0x{}", Uuid::new_v4().simple());
 
-    let action_id = format!(
-        "0x{}",
-        Uuid::new_v4().simple()
-    );
+    // Serialize the proposal data to JSON for storage
+    let action_type_str = action_type_to_str(req.action_type);
+    let action_data_json = serde_json::to_value(&req.data).ok();
+
+    // Persist to DB
+    CouncilRepository::create_action(
+        pool,
+        &action_id,
+        action_type_str,
+        "", // proposer address would come from auth middleware in production
+        expires_at,
+        required_signatures,
+        action_data_json.as_ref(),
+        None,
+    )
+    .await?;
+
+    tracing::info!("Council: Action {} proposed successfully", action_id);
 
     Ok(Json(ProposeActionResponse {
         action_id,
         action_type: req.action_type,
-        proposed_at: now,
-        expires_at: now + (48 * 3600), // 48 hour expiry
-        required_signatures,
+        proposed_at: now.timestamp() as u64,
+        expires_at: expires_at.timestamp() as u64,
+        required_signatures: required_signatures as u32,
         message: format!(
             "Action proposed successfully. {} of {} signatures required.",
             required_signatures, 9
@@ -562,29 +587,67 @@ pub async fn propose_action(
 /// Signs a proposed action.
 /// Only council members can sign actions.
 pub async fn sign_action(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(action_id): Path<String>,
-    Json(_req): Json<SignActionRequest>,
+    Json(req): Json<SignActionRequest>,
 ) -> Result<Json<SignActionResponse>, ApiError> {
     tracing::info!("Council: Signing action {}", action_id);
 
-    // In production:
-    // 1. Verify signer is a council member
-    // 2. Verify action exists and is not expired
-    // 3. Verify signer hasn't already signed
-    // 4. Validate Dilithium signature
-    // 5. Call SecurityCouncil.signAction()
+    let pool = state.pool();
 
-    // Mock response with incremented signature
-    let signature_count = 4; // Previous 3 + this 1
-    let required_signatures = 5; // Assuming EmergencyPause
+    // Verify action exists and is in proposed state
+    let action = CouncilRepository::get_action_by_id(pool, &action_id)
+        .await?
+        .ok_or_else(|| ApiError::NotFound(format!("Action not found: {}", action_id)))?;
+
+    if action.state != "proposed" {
+        return Err(ApiError::BadRequest(format!(
+            "Action is not in proposed state (current: {})",
+            action.state
+        )));
+    }
+
+    // Verify action is not expired
+    if Utc::now() > action.expires_at {
+        return Err(ApiError::BadRequest("Action has expired".to_string()));
+    }
+
+    // Look up signer from council_members
+    let _member = CouncilRepository::get_member_by_address(pool, &req.signer)
+        .await?
+        .ok_or_else(|| ApiError::BadRequest(format!("Signer is not a council member: {}", req.signer)))?;
+
+    // Derive seat index from member list order (council_members has no seat_id column)
+    let all_members = CouncilRepository::list_members(pool).await?;
+    let seat_id = all_members
+        .iter()
+        .position(|m| m.wallet_address == req.signer)
+        .unwrap_or(0) as i32;
+
+    // Add signature and get updated count
+    let new_count = CouncilRepository::add_signature(
+        pool,
+        &action_id,
+        &req.signer,
+        seat_id,
+    )
+    .await?;
+
+    let required_signatures = action.required_signatures as u32;
+    let signature_count = new_count as u32;
+    let is_ready = signature_count >= required_signatures;
+
+    tracing::info!(
+        "Council: Action {} signed by {}, count={}/{}",
+        action_id, req.signer, signature_count, required_signatures
+    );
 
     Ok(Json(SignActionResponse {
-        action_id: action_id.clone(),
+        action_id,
         signature_count,
         required_signatures,
-        is_ready: signature_count >= required_signatures,
-        message: if signature_count >= required_signatures {
+        is_ready,
+        message: if is_ready {
             "Action is now ready for execution.".to_string()
         } else {
             format!(
@@ -600,68 +663,109 @@ pub async fn sign_action(
 /// Executes an action that has reached its threshold.
 /// Only council members can execute actions.
 pub async fn execute_action(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
     Path(action_id): Path<String>,
 ) -> Result<Json<ExecuteActionResponse>, ApiError> {
     tracing::info!("Council: Executing action {}", action_id);
 
-    // In production:
-    // 1. Verify caller is a council member
-    // 2. Verify action exists and threshold is met
-    // 3. Verify action is not expired
-    // 4. Call SecurityCouncil.executeAction()
+    let pool = state.pool();
+    let now = Utc::now();
 
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+    // Verify action exists
+    let action = CouncilRepository::get_action_by_id(pool, &action_id)
+        .await?
+        .ok_or_else(|| ApiError::NotFound(format!("Action not found: {}", action_id)))?;
+
+    // Verify action is in proposed state
+    if action.state != "proposed" {
+        return Err(ApiError::BadRequest(format!(
+            "Action is not in proposed state (current: {})",
+            action.state
+        )));
+    }
+
+    // Verify threshold is met
+    if action.signature_count < action.required_signatures {
+        return Err(ApiError::BadRequest(format!(
+            "Threshold not met: {}/{} signatures",
+            action.signature_count, action.required_signatures
+        )));
+    }
+
+    // Verify action is not expired
+    if now > action.expires_at {
+        return Err(ApiError::BadRequest("Action has expired".to_string()));
+    }
+
+    // Update state to executed
+    CouncilRepository::update_action_state(pool, &action_id, "executed").await?;
+
+    let action_type = parse_action_type(&action.action_type);
+    let tx_hash = format!("0x{}", Uuid::new_v4().simple());
+
+    tracing::info!(
+        "Council: Action {} executed, type={:?}",
+        action_id, action_type
+    );
 
     Ok(Json(ExecuteActionResponse {
-        action_id: action_id.clone(),
-        action_type: ActionType::EmergencyPause,
+        action_id,
+        action_type,
         state: ActionState::Executed,
-        executed_at: now,
-        tx_hash: format!("0x{}", Uuid::new_v4().simple()),
-        message: "Action executed successfully. Emergency pause is now active.".to_string(),
+        executed_at: now.timestamp() as u64,
+        tx_hash,
+        message: "Action executed successfully.".to_string(),
     }))
 }
 
 /// GET /v1/council/emergency-status
 ///
 /// Returns current emergency status (pause state, recent actions).
+/// Since we don't have a dedicated system_settings table for pause state yet,
+/// we query recent emergency actions from council_actions.
 pub async fn get_emergency_status(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<EmergencyStatusResponse>, ApiError> {
-    tracing::debug!("Council: Getting emergency status");
+    tracing::info!("Council: Getting emergency status");
 
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+    let pool = state.pool();
 
-    // Mock data - protocol is not paused
+    // Query recent executed emergency-related actions (last 10)
+    let action_rows = CouncilRepository::list_actions(pool, Some("executed"), 0, 10).await?;
+
+    let recent_actions: Vec<RecentEmergencyAction> = action_rows
+        .iter()
+        .map(|row| {
+            let description = row
+                .action_data
+                .as_ref()
+                .and_then(|data| data.get("reason").and_then(|r| r.as_str()))
+                .unwrap_or("Council action")
+                .to_string();
+
+            RecentEmergencyAction {
+                id: row.action_id.clone(),
+                action_type: parse_action_type(&row.action_type),
+                state: parse_action_state(&row.state),
+                executed_at: row.executed_at.map(|t| t.timestamp() as u64),
+                description,
+            }
+        })
+        .collect();
+
+    tracing::info!(
+        "Council: Emergency status - is_paused=false, recent_actions={}",
+        recent_actions.len()
+    );
+
+    // No dedicated pause state tracking yet; return is_paused=false
     Ok(Json(EmergencyStatusResponse {
         is_paused: false,
         pause_reason: None,
         paused_at: None,
         pause_expires_at: None,
         time_remaining: None,
-        recent_actions: vec![
-            RecentEmergencyAction {
-                id: "0xACTION003".to_string(),
-                action_type: ActionType::EmergencyPause,
-                state: ActionState::Executed,
-                executed_at: Some(now - (7 * 86400)),
-                description: "Emergency pause due to detected anomaly (resolved)".to_string(),
-            },
-            RecentEmergencyAction {
-                id: "0xACTION004".to_string(),
-                action_type: ActionType::Veto,
-                state: ActionState::Executed,
-                executed_at: Some(now - (14 * 86400)),
-                description: "Vetoed malicious parameter change proposal".to_string(),
-            },
-        ],
+        recent_actions,
     }))
 }
 
@@ -676,6 +780,112 @@ fn get_threshold_for_action(action_type: ActionType) -> u32 {
         ActionType::Veto => 6,             // 6/9
         ActionType::MemberChange => 6,     // 6/9
         ActionType::EmergencyUpgrade => 7, // 7/9
+    }
+}
+
+/// Convert a DB action_type string to the ActionType enum
+fn parse_action_type(s: &str) -> ActionType {
+    match s {
+        "emergency_pause" => ActionType::EmergencyPause,
+        "veto" => ActionType::Veto,
+        "emergency_upgrade" => ActionType::EmergencyUpgrade,
+        "member_change" => ActionType::MemberChange,
+        _ => ActionType::EmergencyPause, // fallback
+    }
+}
+
+/// Convert a DB state string to the ActionState enum
+fn parse_action_state(s: &str) -> ActionState {
+    match s {
+        "proposed" => ActionState::Proposed,
+        "executed" => ActionState::Executed,
+        "cancelled" => ActionState::Cancelled,
+        "expired" => ActionState::Expired,
+        _ => ActionState::Proposed, // fallback
+    }
+}
+
+/// Convert ActionType enum to a DB string
+fn action_type_to_str(action_type: ActionType) -> &'static str {
+    match action_type {
+        ActionType::EmergencyPause => "emergency_pause",
+        ActionType::Veto => "veto",
+        ActionType::EmergencyUpgrade => "emergency_upgrade",
+        ActionType::MemberChange => "member_change",
+    }
+}
+
+/// Parse action_data JSON into the ActionData enum based on the action type.
+/// Falls back to sensible defaults if the JSON is missing or malformed.
+fn parse_action_data_json(action_type: &str, json: &Option<serde_json::Value>) -> ActionData {
+    match action_type {
+        "emergency_pause" => {
+            let reason = json
+                .as_ref()
+                .and_then(|v| v.get("reason").and_then(|r| r.as_str()))
+                .unwrap_or("No reason provided")
+                .to_string();
+            ActionData::EmergencyPause {
+                reason,
+                max_duration: 72 * 3600, // 72 hours max per spec
+            }
+        }
+        "veto" => {
+            let proposal_id = json
+                .as_ref()
+                .and_then(|v| v.get("proposalId").or_else(|| v.get("proposal_id")).and_then(|r| r.as_str()))
+                .unwrap_or("")
+                .to_string();
+            let proposal_title = json
+                .as_ref()
+                .and_then(|v| v.get("proposalTitle").or_else(|| v.get("proposal_title")).and_then(|r| r.as_str()))
+                .map(|s| s.to_string());
+            ActionData::Veto {
+                proposal_id,
+                proposal_title,
+            }
+        }
+        "emergency_upgrade" => {
+            let target = json
+                .as_ref()
+                .and_then(|v| v.get("target").and_then(|r| r.as_str()))
+                .unwrap_or("")
+                .to_string();
+            let description = json
+                .as_ref()
+                .and_then(|v| v.get("description").or_else(|| v.get("calldata")).and_then(|r| r.as_str()))
+                .unwrap_or("")
+                .to_string();
+            ActionData::EmergencyUpgrade {
+                target,
+                description,
+            }
+        }
+        "member_change" => {
+            let seat_id = json
+                .as_ref()
+                .and_then(|v| v.get("seatId").or_else(|| v.get("seat_id")).and_then(|r| r.as_u64()))
+                .unwrap_or(0) as u32;
+            let old_member = json
+                .as_ref()
+                .and_then(|v| v.get("oldMember").or_else(|| v.get("old_member")).and_then(|r| r.as_str()))
+                .unwrap_or("")
+                .to_string();
+            let new_member = json
+                .as_ref()
+                .and_then(|v| v.get("newMember").or_else(|| v.get("new_member")).and_then(|r| r.as_str()))
+                .unwrap_or("")
+                .to_string();
+            ActionData::MemberChange {
+                seat_id,
+                old_member,
+                new_member,
+            }
+        }
+        _ => ActionData::EmergencyPause {
+            reason: "Unknown action type".to_string(),
+            max_duration: 72 * 3600,
+        },
     }
 }
 
