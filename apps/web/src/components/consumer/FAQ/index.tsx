@@ -70,6 +70,16 @@ export function FAQ() {
           question: t('questions.lostKey.question'),
           answer: t('questions.lostKey.answer'),
         },
+        {
+          id: 'what-is-prover',
+          question: t('questions.whatIsProver.question'),
+          answer: t('questions.whatIsProver.answer'),
+        },
+        {
+          id: 'how-it-works',
+          question: t('questions.howItWorks.question'),
+          answer: t('questions.howItWorks.answer'),
+        },
       ],
     },
   ];
