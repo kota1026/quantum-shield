@@ -1,11 +1,19 @@
 {
   "network": "sepolia",
   "chainId": 11155111,
-  "verifier": "0xF0f990c2b2F5aA803485289E7140E45b7831a844",
-  "bridge": "0x32aec14Aa82b7f8a5d85df04c16418a957E958b6",
-  "vkHash": "0x59eeb7122d50be8536a5c331806319b907b32475f3965a6af300a18bd082bbf1",
+  "l1Vault": "0x108A5CE65f927ACfAC55325f1c471010FdEC8599",
+  "sphincsVerifier": "0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103",
+  "starkVerifier": "0x083F33B0AF571F17599AEAd056f746c0d9f0FDfd",
   "deployer": "0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3",
-  "timestamp": "1765980792",
-  "verifierType": "groth16",
-  "isQuantumResistant": false
+  "timestamp": "1770254400",
+  "version": "2.0.0",
+  "features": ["lockWithSR0", "SEQUENCES_MD_COMPLIANT"],
+  "deprecated": {
+    "v1": {
+      "l1Vault": "0xEF851795bc8DE8e0d40781761a0b5B618fED6dE0",
+      "sphincsVerifier": "0x655122b1e816c262168B7f6625346d1914142214",
+      "starkVerifier": "0x2f2f36fAA504b79D26c5240CCd13AE5c1A08bf90",
+      "note": "Legacy contracts without lockWithSR0 - DO NOT USE"
+    }
+  }
 }

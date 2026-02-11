@@ -14,6 +14,9 @@ mod node;
 mod single_node;
 mod rpc;
 
+use std::net::SocketAddr;
+use std::sync::Arc;
+
 use clap::Parser;
 use tracing::{info, error};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -21,6 +24,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 pub use config::NodeConfig;
 pub use node::AegisNode;
 pub use single_node::{SingleNode, SingleNodeConfig};
+pub use rpc::{RpcServer, RpcHandler, RpcConfig};
 
 /// L3 Aegis Node - Quantum-resistant bridge layer
 #[derive(Parser, Debug)]
@@ -70,13 +74,28 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run_single_node(cli: &Cli) -> anyhow::Result<()> {
+    use tokio::sync::RwLock;
+    use aegis_core::Executor;
+
     let config = SingleNodeConfig {
         block_interval_ms: 1000, max_txs_per_block: 100, memory_limit_mb: 500,
         data_dir: std::path::PathBuf::from(&cli.data_dir),
     };
     let mut node = SingleNode::new(config)?.with_storage().await?;
     node.start().await?;
-    info!(rpc_port = cli.rpc_port, "Single node running. Press Ctrl+C to stop.");
+
+    // Start RPC server
+    let rpc_addr: SocketAddr = format!("0.0.0.0:{}", cli.rpc_port).parse()?;
+    let executor = Arc::new(RwLock::new(Executor::with_fresh_state()));
+    let rpc_handler = RpcHandler::new(executor, None, None);
+    let rpc_config = RpcConfig {
+        bind_addr: rpc_addr,
+        max_connections: 100,
+    };
+    let rpc_server = RpcServer::new(rpc_handler, rpc_config);
+    let _rpc_handle = rpc_server.start().await?;
+
+    info!(rpc_port = cli.rpc_port, "Single node running with RPC server. Press Ctrl+C to stop.");
     tokio::signal::ctrl_c().await?;
     info!("Shutting down...");
     node.stop().await?;

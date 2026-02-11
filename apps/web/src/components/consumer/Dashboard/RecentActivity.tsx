@@ -68,8 +68,8 @@ export function RecentActivity({ transactions, className }: RecentActivityProps)
                 href="/consumer/history"
                 className={cn(
                   'flex items-center gap-3 p-3',
-                  'bg-surface-secondary rounded-qs',
-                  'hover:bg-surface-tertiary transition-colors',
+                  'bg-surface-secondary rounded-qs-lg border border-transparent',
+                  'hover-gradient-border',
                   'group'
                 )}
                 role="listitem"

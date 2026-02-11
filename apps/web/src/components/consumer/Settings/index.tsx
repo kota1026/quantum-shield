@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
+import { useRouter, usePathname, Link } from '@/i18n/navigation';
 import {
   ArrowLeft,
   Key,
@@ -23,23 +22,62 @@ import {
 import { cn } from '@/lib/utils';
 import { SettingsSection } from './SettingsSection';
 import { SettingsItem } from './SettingsItem';
+import { useUserSettingsV2, useUpdateUserSettings } from '@/hooks/consumer';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_WALLET_ADDRESS = '0x7a3f...9c2d';
-const DEMO_AUTO_LOCK_MINUTES = 5;
-const DEMO_CURRENCY = 'JPY (¥)';
+// Type definition for user settings
+interface UserSettings {
+  walletAddress: string;
+  pushNotifications: boolean;
+  emailNotifications: boolean;
+  darkMode: boolean;
+  biometricAuth: boolean;
+  currency: string;
+  autoLockMinutes: number;
+  locale: string;
+}
+
+// Fallback data (used when API is unavailable)
+const FALLBACK_SETTINGS: UserSettings = {
+  walletAddress: '0x1234...5678',
+  pushNotifications: true,
+  emailNotifications: false,
+  darkMode: true,
+  biometricAuth: false,
+  currency: 'JPY (¥)',
+  autoLockMinutes: 5,
+  locale: 'ja',
+};
 const VERSION = '1.0.0';
 const BUILD = '2026.01.06';
 
 export function Settings() {
   const t = useTranslations('consumer.settings');
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = useLocale();
 
-  // Toggle states
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
-  const [biometricAuth, setBiometricAuth] = useState(true);
+  // Fetch user settings using new API hooks
+  const { data: settingsData } = useUserSettingsV2();
+
+  // Transform API data to component format
+  const settings: UserSettings = settingsData ? {
+    walletAddress: settingsData.address,
+    pushNotifications: true, // TODO: Add to API
+    emailNotifications: settingsData.notifications?.emailEnabled ?? false,
+    darkMode: true, // TODO: Add to API
+    biometricAuth: settingsData.twoFactorEnabled ?? false,
+    currency: 'JPY (¥)', // TODO: Add to API
+    autoLockMinutes: 5, // TODO: Add to API
+    locale: settingsData.language || 'ja',
+  } : FALLBACK_SETTINGS;
+
+  // Toggle states (initialized from API data)
+  const [pushNotifications, setPushNotifications] = useState(settings.pushNotifications ?? true);
+  const [emailNotifications, setEmailNotifications] = useState(settings.emailNotifications ?? false);
+  const [darkMode, setDarkMode] = useState(settings.darkMode ?? true);
+  const [biometricAuth, setBiometricAuth] = useState(settings.biometricAuth ?? true);
+  const [currency, setCurrency] = useState(settings.currency ?? 'JPY (¥)');
+  const [autoLockMinutes, setAutoLockMinutes] = useState(settings.autoLockMinutes ?? 5);
 
   // Navigation handlers
   const handleKeyManagement = useCallback(() => {
@@ -52,28 +90,35 @@ export function Settings() {
   }, []);
 
   const handleLanguage = useCallback(() => {
-    // Future: Open language selector
-    console.log('Language clicked');
-  }, []);
+    // Toggle between Japanese and English
+    const newLocale = locale === 'ja' ? 'en' : 'ja';
+    // Use next-intl's router to switch locale while staying on the same page
+    router.replace(pathname, { locale: newLocale });
+  }, [locale, pathname, router]);
 
   const handleCurrency = useCallback(() => {
-    // Future: Open currency selector
-    console.log('Currency clicked');
-  }, []);
+    // Simple currency toggle for demo
+    const currencies = ['JPY (¥)', 'USD ($)', 'EUR (€)'];
+    const currentIndex = currencies.indexOf(currency);
+    const nextIndex = (currentIndex + 1) % currencies.length;
+    setCurrency(currencies[nextIndex]);
+  }, [currency]);
 
   const handleAutoLock = useCallback(() => {
-    // Future: Open auto-lock selector
-    console.log('Auto lock clicked');
-  }, []);
+    // Simple auto-lock toggle for demo
+    const options = [5, 10, 15, 30];
+    const currentIndex = options.indexOf(autoLockMinutes);
+    const nextIndex = (currentIndex + 1) % options.length;
+    setAutoLockMinutes(options[nextIndex]);
+  }, [autoLockMinutes]);
 
   const handleFAQ = useCallback(() => {
     router.push('/consumer/faq');
   }, [router]);
 
   const handleContact = useCallback(() => {
-    // Future: Open contact form or email
-    console.log('Contact clicked');
-  }, []);
+    router.push('/consumer/contact');
+  }, [router]);
 
   const handleLegal = useCallback(() => {
     router.push('/consumer/terms');
@@ -101,13 +146,13 @@ export function Settings() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
             href="/consumer/dashboard"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
               'transition-all'
@@ -135,7 +180,7 @@ export function Settings() {
             description={t('account.connectedWallet.description')}
             action={{
               type: 'value',
-              value: DEMO_WALLET_ADDRESS,
+              value: settings.walletAddress,
               onClick: handleConnectedWallet,
             }}
           />
@@ -183,7 +228,7 @@ export function Settings() {
             description={t('display.language.description')}
             action={{
               type: 'value',
-              value: t('display.language.japanese'),
+              value: locale === 'ja' ? t('display.language.japanese') : t('display.language.english'),
               onClick: handleLanguage,
             }}
           />
@@ -193,7 +238,7 @@ export function Settings() {
             description={t('display.currency.description')}
             action={{
               type: 'value',
-              value: DEMO_CURRENCY,
+              value: currency,
               onClick: handleCurrency,
             }}
           />
@@ -207,7 +252,7 @@ export function Settings() {
             description={t('security.autoLock.description')}
             action={{
               type: 'value',
-              value: t('security.autoLock.minutes', { count: DEMO_AUTO_LOCK_MINUTES }),
+              value: t('security.autoLock.minutes', { count: autoLockMinutes }),
               onClick: handleAutoLock,
             }}
           />
@@ -269,7 +314,7 @@ export function Settings() {
             {t('version.version', { version: VERSION, build: BUILD })}
           </p>
         </footer>
-      </div>
+      </main>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const cardVariants = cva(
-  'rounded-qs-lg border bg-surface transition-all duration-250',
+  'rounded-qs-lg border bg-card transition-all duration-250',
   {
     variants: {
       variant: {
@@ -13,7 +13,11 @@ const cardVariants = cva(
         default: 'border-border',
         // Interactive card with hover effect
         interactive:
-          'border-border cursor-pointer hover:border-hinomaru/30 hover:shadow-qs',
+          'border-border cursor-pointer hover:border-gold/30 hover:shadow-qs-gold',
+        // Selectable card with gradient top border on hover/focus/selected
+        selectable: 'card-selectable',
+        // Hover gradient - レッドからゴールドのグラデーションボーダー
+        hoverGradient: 'border-border hover-gradient-border cursor-pointer',
         // Accent card with hinomaru glow
         accent:
           'border-hinomaru/30 bg-gradient-to-br from-surface to-hinomaru/5 shadow-qs',

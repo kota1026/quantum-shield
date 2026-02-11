@@ -5,37 +5,28 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { formatEther } from 'viem';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { LockCard, LockItem } from './LockCard';
 import { MethodCard } from './MethodCard';
 import { TimeLockModal } from './TimeLockModal';
+import { useUserTransactions } from '@/hooks/consumer';
 
-// Demo data - In production, this would come from API/hooks
-const DEMO_LOCKS: LockItem[] = [
-  {
-    id: '1',
-    number: 1,
-    amount: '10.00 ETH',
-    timestamp: '2026-01-01 10:00',
-    status: 'locked',
-  },
-  {
-    id: '2',
-    number: 2,
-    amount: '5.00 ETH',
-    timestamp: '2026-01-03 14:30',
-    status: 'locked',
-  },
-  {
-    id: '3',
-    number: 3,
-    amount: '2.50 ETH',
-    timestamp: '2026-01-05 09:15',
-    status: 'pending',
-    remainingTime: '23:41:02',
-  },
-];
+// Helper to convert amount to ETH string
+function formatAmountToEth(amount: string): string {
+  try {
+    // If already contains a decimal point, assume it's in ETH
+    if (amount.includes('.')) {
+      return parseFloat(amount).toFixed(2);
+    }
+    // Otherwise assume it's in wei and convert
+    return parseFloat(formatEther(BigInt(amount))).toFixed(2);
+  } catch {
+    // Fallback: just parse as float
+    return parseFloat(amount).toFixed(2);
+  }
+}
 
 type UnlockMethod = 'normal' | 'emergency';
 
@@ -43,17 +34,30 @@ export function Unlock() {
   const t = useTranslations('consumer.unlock');
   const router = useRouter();
 
-  const [selectedLockId, setSelectedLockId] = useState<string>(DEMO_LOCKS[0]?.id || '');
+  // Fetch data using new API hooks - get only locks
+  const { data: txData, isLoading } = useUserTransactions({ txType: 'lock', perPage: 50 });
+
+  // Transform API data to component format - no fallback to fake data
+  const locks: LockItem[] = txData?.transactions?.filter(tx => tx.status !== 'completed').map((tx, index) => ({
+    id: tx.id,
+    number: index + 1,
+    amount: `${formatAmountToEth(tx.amount)} ETH`,
+    timestamp: new Date(tx.createdAt * 1000).toLocaleDateString('ja-JP'),
+    status: tx.status === 'pending' ? ('pending' as const) : ('locked' as const),
+  })) ?? [];
+
+  const [selectedLockId, setSelectedLockId] = useState<string>(locks[0]?.id || '');
   const [selectedMethod, setSelectedMethod] = useState<UnlockMethod>('normal');
   const [isTimeLockModalOpen, setIsTimeLockModalOpen] = useState(false);
 
   const handleStartUnlock = useCallback(() => {
     if (selectedMethod === 'normal') {
-      // Pass selected lock ID as query parameter
-      router.push(`/consumer/unlock/processing?lockId=${selectedLockId}`);
+      // Normal unlock: navigate to processing page with lock ID and method
+      router.push(`/consumer/unlock/processing?lockId=${selectedLockId}&method=normal`);
     } else {
-      // Emergency unlock goes to bond confirmation page
-      router.push(`/consumer/emergency-bond?lockId=${selectedLockId}`);
+      // Emergency unlock: navigate to processing page with emergency method
+      // Note: Bond confirmation could be a separate step, but for now we go directly to processing
+      router.push(`/consumer/unlock/processing?lockId=${selectedLockId}&method=emergency`);
     }
   }, [selectedMethod, selectedLockId, router]);
 
@@ -74,13 +78,13 @@ export function Unlock() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
             href="/consumer/dashboard"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
               'transition-all'
@@ -111,12 +115,21 @@ export function Unlock() {
             role="radiogroup"
             aria-labelledby="select-lock-label"
           >
-            {DEMO_LOCKS.length === 0 ? (
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="h-20 bg-surface border border-border rounded-qs animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : locks.length === 0 ? (
               <p className="text-center text-foreground-secondary py-8">
                 {t('selectLock.emptyState')}
               </p>
             ) : (
-              DEMO_LOCKS.map((lock) => (
+              locks.map((lock) => (
                 <LockCard
                   key={lock.id}
                   lock={lock}
@@ -184,14 +197,14 @@ export function Unlock() {
             variant="primary"
             fullWidth
             onClick={handleStartUnlock}
-            disabled={!selectedLockId}
+            disabled={!selectedLockId || locks.length === 0 || isLoading}
           >
             {selectedMethod === 'normal'
               ? t('button.normalUnlock')
               : t('button.emergencyUnlock')}
           </Button>
         </section>
-      </div>
+      </main>
 
       {/* Time Lock Modal */}
       <TimeLockModal

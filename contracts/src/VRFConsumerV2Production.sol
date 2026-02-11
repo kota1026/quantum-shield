@@ -137,7 +137,7 @@ contract VRFConsumerV2Production is IVRFConsumer, VRFConsumerBaseV2Plus {
     error TimeoutNotReached();
     error InvalidSubscriptionId();
     error InvalidKeyHash();
-    error VRFRequestFailed();
+    // VRFRequestFailed is inherited from IVRFConsumer
 
     // =========================================================================
     // Modifiers

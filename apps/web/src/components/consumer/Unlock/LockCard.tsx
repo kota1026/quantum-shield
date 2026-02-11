@@ -37,7 +37,7 @@ export function LockCard({ lock, selected, onSelect }: LockCardProps) {
       }}
       className={cn(
         'p-5 rounded-qs-xl border cursor-pointer transition-all',
-        'bg-surface hover:border-border-secondary',
+        'bg-surface hover-gradient-border',
         selected
           ? 'border-hinomaru bg-hinomaru/5'
           : 'border-border'

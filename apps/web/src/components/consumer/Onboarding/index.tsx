@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import {
   ArrowLeft,
   Key,
@@ -14,6 +14,8 @@ import {
   BookOpen,
   X,
 } from 'lucide-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '../Landing/Tooltip';
@@ -22,7 +24,7 @@ type OnboardingStep = 1 | 2 | 3 | 4;
 type ModalType = 'walletHelp' | 'dilithium' | 'tutorial' | null;
 
 export function Onboarding() {
-  const t = useTranslations('onboarding');
+  const t = useTranslations('consumer.onboarding');
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -32,6 +34,10 @@ export function Onboarding() {
   const [checkSaved, setCheckSaved] = useState(false);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
+  // RainbowKit wallet connection
+  const { openConnectModal } = useConnectModal();
+  const { isConnected } = useAccount();
+
   const mainRef = useRef<HTMLElement>(null);
 
   // Progress to next step
@@ -39,12 +45,19 @@ export function Onboarding() {
     setCurrentStep(step);
   }, []);
 
-  // Handle wallet selection
-  const handleWalletSelect = useCallback(() => {
-    setTimeout(() => {
+  // Watch for wallet connection and proceed to step 2
+  useEffect(() => {
+    if (isConnected && currentStep === 1) {
       goToStep(2);
-    }, 500);
-  }, [goToStep]);
+    }
+  }, [isConnected, currentStep, goToStep]);
+
+  // Handle wallet selection - open RainbowKit modal
+  const handleWalletSelect = useCallback(() => {
+    if (openConnectModal) {
+      openConnectModal();
+    }
+  }, [openConnectModal]);
 
   // Handle key generation
   const handleGenerateKeys = useCallback(() => {
@@ -59,7 +72,7 @@ export function Onboarding() {
           setGenerationComplete(true);
           setTimeout(() => {
             goToStep(3);
-          }, 1000);
+          }, 1500);
           return 100;
         }
         return next;
@@ -134,8 +147,8 @@ export function Onboarding() {
           {/* Header */}
           <header className="flex items-center gap-4 mb-8">
             <Link
-              href="/consumer"
-              className="w-10 h-10 flex items-center justify-center bg-surface border border-border rounded-qs hover:border-hinomaru hover:text-hinomaru-400 transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-background"
+              href="/consumer/landing"
+              className="w-11 h-11 flex items-center justify-center bg-surface border border-border rounded-qs hover:border-hinomaru hover:text-hinomaru-400 transition-colors focus:outline-none focus:ring-2 focus:ring-hinomaru focus:ring-offset-2 focus:ring-offset-background"
               aria-label={t('header.backAriaLabel')}
             >
               <ArrowLeft className="w-5 h-5" aria-hidden="true" />
@@ -245,7 +258,7 @@ export function Onboarding() {
 
 // Step 1: Wallet Connection
 interface Step1Props {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onWalletSelect: () => void;
   onHelpClick: () => void;
 }
@@ -285,7 +298,7 @@ function Step1WalletConnect({ t, onWalletSelect, onHelpClick }: Step1Props) {
       <div className="mt-auto text-center">
         <button
           onClick={onHelpClick}
-          className="text-sm text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded"
+          className="text-sm text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded px-4 py-2 min-h-[44px] inline-flex items-center"
           type="button"
         >
           {t('step1.helpLink')}
@@ -330,7 +343,7 @@ function WalletOption({ icon, name, description, onClick }: WalletOptionProps) {
 
 // Step 2: Key Generation
 interface Step2Props {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   isGenerating: boolean;
   generationProgress: number;
   generationComplete: boolean;
@@ -369,12 +382,25 @@ function Step2KeyGeneration({
       </p>
 
       {/* Self-Custody Notice */}
-      <div className="flex items-start gap-3 p-4 bg-hinomaru/10 border border-hinomaru/30 rounded-qs-lg mb-6">
-        <Key className="w-5 h-5 text-hinomaru-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-        <div className="text-xs text-foreground-secondary leading-relaxed">
-          <strong className="text-hinomaru-400">{t('step2.selfCustodyNotice.title')}</strong>
-          <br />
+      <div className="p-4 bg-hinomaru/10 border border-hinomaru/30 rounded-qs-lg mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Key className="w-5 h-5 text-hinomaru-400 flex-shrink-0" aria-hidden="true" />
+          <strong className="text-sm text-hinomaru-400">{t('step2.selfCustodyNotice.title')}</strong>
+        </div>
+        <p className="text-xs text-foreground-secondary mb-3">
           {t('step2.selfCustodyNotice.description')}
+        </p>
+        <div className="text-xs text-foreground-secondary mb-2">
+          <strong className="text-foreground">{t('step2.selfCustodyNotice.whyTitle')}</strong>
+        </div>
+        <ul className="text-xs text-foreground-secondary space-y-1 mb-3 pl-4">
+          {(t.raw('step2.selfCustodyNotice.whyPoints') as string[]).map((point, index) => (
+            <li key={index} className="list-disc">{point}</li>
+          ))}
+        </ul>
+        <div className="flex items-start gap-2 p-2 bg-warning/10 rounded-qs">
+          <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <span className="text-xs text-warning">{t('step2.selfCustodyNotice.warning')}</span>
         </div>
       </div>
 
@@ -414,7 +440,7 @@ function Step2KeyGeneration({
 
       <button
         onClick={onDilithiumHelp}
-        className="inline-flex items-center gap-1.5 text-xs text-gold hover:underline mb-6 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded"
+        className="inline-flex items-center gap-1.5 text-xs text-gold hover:underline mb-6 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded px-3 py-2 min-h-[44px]"
         type="button"
       >
         <BookOpen className="w-4 h-4" aria-hidden="true" />
@@ -436,7 +462,7 @@ function Step2KeyGeneration({
 
 // Step 3: Backup
 interface Step3Props {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   backupDownloaded: boolean;
   checkDownloaded: boolean;
   checkSaved: boolean;
@@ -597,7 +623,7 @@ function CheckboxItem({ id, checked, onChange, label }: CheckboxItemProps) {
 
 // Step 4: Ready
 interface Step4Props {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onTutorialClick: () => void;
 }
 
@@ -634,7 +660,7 @@ function Step4Ready({ t, onTutorialClick }: Step4Props) {
 
         <button
           onClick={onTutorialClick}
-          className="mt-4 text-sm text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded"
+          className="mt-4 text-sm text-gold hover:underline focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-card rounded px-4 py-2 min-h-[44px] inline-flex items-center"
           type="button"
         >
           {t('step4.tutorialLink')}
@@ -733,7 +759,7 @@ function WalletHelpModalContent({
   t,
   onClose,
 }: {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onClose: () => void;
 }) {
   return (
@@ -785,7 +811,7 @@ function DilithiumModalContent({
   t,
   onClose,
 }: {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onClose: () => void;
 }) {
   return (
@@ -834,7 +860,7 @@ function TutorialModalContent({
   t,
   onClose,
 }: {
-  t: ReturnType<typeof useTranslations<'onboarding'>>;
+  t: ReturnType<typeof useTranslations<'consumer.onboarding'>>;
   onClose: () => void;
 }) {
   return (

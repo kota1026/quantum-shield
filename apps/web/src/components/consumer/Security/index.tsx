@@ -48,12 +48,12 @@ export function Security() {
       badgeIcon: '🏛️',
     },
     {
-      id: 'zkstark',
-      icon: '🔍',
-      title: t('algorithms.zkstark.title'),
-      description: t('algorithms.zkstark.description'),
-      badge: t('algorithms.zkstark.badge'),
-      badgeIcon: '⚡',
+      id: 'smtProof',
+      icon: '🌳',
+      title: t('algorithms.smtProof.title'),
+      description: t('algorithms.smtProof.description'),
+      badge: t('algorithms.smtProof.badge'),
+      badgeIcon: '#️⃣',
     },
   ];
 
@@ -87,13 +87,13 @@ export function Security() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 pt-6">
+      <main role="main" className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 pt-6">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
-            href="/consumer/settings"
+            href="/consumer"
             className={cn(
-              'w-10 h-10 flex items-center justify-center',
+              'w-11 h-11 flex items-center justify-center',
               'bg-surface border border-border rounded-qs',
               'text-foreground-secondary hover:border-hinomaru hover:text-hinomaru',
               'transition-all'
@@ -244,7 +244,7 @@ export function Security() {
             ))}
           </div>
         </section>
-      </div>
+      </main>
     </div>
   );
 }

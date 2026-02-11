@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getTranslations } from 'next-intl/server';
+import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales, type Locale } from '@/i18n/config';
-import { Web3Provider } from '@/components/providers';
+import { ClientWeb3Provider } from '@/components/providers';
 import '@/styles/globals.css';
 
 interface LocaleLayoutProps {
@@ -15,21 +15,31 @@ export async function generateMetadata({
   params,
 }: LocaleLayoutProps): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'consumer.landing.meta' });
+
+  // Use static metadata for the root layout since it's shared across all pages
+  // Individual pages can override this with their own metadata
+  const isJapanese = locale === 'ja';
+  const title = isJapanese
+    ? 'Quantum Shield - 量子耐性暗号で資産を守る'
+    : 'Quantum Shield - Protect Your Assets with Quantum-Resistant Cryptography';
+  const description = isJapanese
+    ? 'Dilithium-IIIとSPHINCS+を組み合わせた世界初の量子耐性暗号ブリッジ。将来の脅威から、今日の資産を守ります。'
+    : "The world's first quantum-resistant cryptographic bridge combining Dilithium-III and SPHINCS+. Protect your assets today from tomorrow's threats.";
 
   return {
     title: {
-      default: t('title'),
+      default: title,
       template: '%s | Quantum Shield',
     },
-    description: t('description'),
+    description,
     keywords: [
       'quantum-resistant',
       'cryptography',
       'blockchain',
       'security',
       'Dilithium',
-      'ZK-STARK',
+      'SPHINCS+',
+      'SMT',
       'asset protection',
     ],
     authors: [{ name: 'Quantum Shield Team' }],
@@ -40,13 +50,13 @@ export async function generateMetadata({
       locale: locale === 'ja' ? 'ja_JP' : 'en_US',
       url: 'https://quantumshield.io',
       siteName: 'Quantum Shield',
-      title: t('title'),
-      description: t('description'),
+      title,
+      description,
     },
     twitter: {
       card: 'summary_large_image',
-      title: t('title'),
-      description: t('description'),
+      title,
+      description,
     },
     robots: {
       index: true,
@@ -95,9 +105,9 @@ export default async function LocaleLayout({
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
-          <Web3Provider>
+          <ClientWeb3Provider>
             {children}
-          </Web3Provider>
+          </ClientWeb3Provider>
         </NextIntlClientProvider>
       </body>
     </html>
