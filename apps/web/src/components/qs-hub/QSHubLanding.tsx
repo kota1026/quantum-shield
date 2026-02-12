@@ -19,12 +19,12 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-// Demo stats
+// Empty fallback - real data comes from API
 const FALLBACK_STATS = {
-  totalLocked: '24.5M',
-  veQSHolders: '12,847',
-  activeProposals: 3,
-  totalRewardsDistributed: '1.2M',
+  totalLocked: '0',
+  veQSHolders: '0',
+  activeProposals: 0,
+  totalRewardsDistributed: '0',
 };
 
 export function QSHubLanding() {

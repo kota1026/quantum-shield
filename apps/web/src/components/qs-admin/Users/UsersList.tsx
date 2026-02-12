@@ -23,10 +23,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useUsersList, useSuspendUsers } from '@/hooks/admin/useUsers';
-import { MOCK_USERS, type User } from '@/lib/api/admin/mock';
+import type { User } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_USERS = MOCK_USERS;
+// Empty fallback - no fake data
+const FALLBACK_USERS: User[] = [];
 
 const STATUS_COLORS = {
   active: 'bg-success/10 text-success',
@@ -141,9 +141,8 @@ export function UsersList() {
     return <UsersListSkeleton />;
   }
 
-  // In development, use fallback data even when API fails
-  // Only show error when no fallback data is available (edge case)
-  if (error && !usersData && !FALLBACK_USERS) {
+  // Show error when API fails and no data available
+  if (error && !usersData) {
     return <UsersListError onRetry={refetch} />;
   }
 

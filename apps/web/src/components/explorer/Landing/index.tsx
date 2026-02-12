@@ -20,32 +20,35 @@ import { LandingHeader } from '@/components/shared/LandingHeader';
 import { LandingFooter } from '@/components/shared/LandingFooter';
 import { HinomaryVisual } from '@/components/shared/HinomaryVisual';
 import { cn } from '@/lib/utils';
+import { useExplorerStats } from '@/hooks/explorer';
 
 export function ExplorerLanding() {
   const t = useTranslations('explorer');
+  const { data: explorerData } = useExplorerStats();
 
+  // Use real API data (useExplorerStats returns flat ExplorerStats)
   const stats = [
     {
       key: 'tvl',
-      value: '12,450 ETH',
+      value: explorerData?.tvl ?? '$0',
       icon: Database,
       highlight: true,
     },
     {
       key: 'totalLocks',
-      value: '8,234',
+      value: (explorerData?.totalLocks ?? 0).toLocaleString(),
       icon: Lock,
       highlight: false,
     },
     {
       key: 'totalUnlocks',
-      value: '6,892',
+      value: (explorerData?.pendingUnlocks ?? 0).toLocaleString(),
       icon: Unlock,
       highlight: false,
     },
     {
       key: 'activeProvers',
-      value: '47',
+      value: (explorerData?.activeProvers ?? 0).toLocaleString(),
       icon: Users,
       highlight: false,
     },

@@ -77,10 +77,10 @@ const FALLBACK_PROPOSALS: QSHubProposal[] = [
 ];
 
 const FALLBACK_REWARDS: QSHubRewards = {
-  claimable: 847,
-  usdValue: 4235,
-  epochProgress: 65,
-  nextEpoch: '3d 12h',
+  claimable: 0,
+  usdValue: 0,
+  epochProgress: 0,
+  nextEpoch: '-',
 };
 
 const FALLBACK_DELEGATES: QSHubDelegate[] = [
