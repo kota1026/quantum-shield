@@ -1053,37 +1053,6 @@
         "backToDashboard": "Back to Dashboard"
       }
     },
-    "unlockProcessing": {
-      "title": "Processing Unlock...",
-      "subtitle": "Please wait. Do not close this page.",
-      "steps": {
-        "verify": "Verify Dilithium signature",
-        "createTx": "Create unlock request",
-        "broadcast": "Broadcasting to blockchain...",
-        "startTimeLock": "Start 24h Time Lock"
-      }
-    },
-    "unlockSuccess": {
-      "title": "Unlock Request Complete",
-      "subtitle": "After the 24-hour waiting period, assets will be transferred to your wallet",
-      "timeLock": {
-        "title": "Time Lock Remaining",
-        "description": "Security waiting period",
-        "remaining": "Time remaining"
-      },
-      "details": {
-        "amount": "Unlock Amount",
-        "estimatedCompletion": "Unlock Available",
-        "txHash": "TX Hash"
-      },
-      "info": {
-        "message": "During the 24-hour waiting period, fraudulent unlocks can be detected and stopped via Challenge. If no issues, you can receive your assets from the dashboard after the waiting period ends."
-      },
-      "buttons": {
-        "viewHistory": "View History",
-        "backToDashboard": "Back to Dashboard"
-      }
-    },
     "terms": {
       "meta": {
         "title": "Terms of Service | Quantum Shield",

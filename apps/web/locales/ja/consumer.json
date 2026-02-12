@@ -1094,37 +1094,6 @@
         "backToDashboard": "ダッシュボードに戻る"
       }
     },
-    "unlockProcessing": {
-      "title": "Unlock処理中...",
-      "subtitle": "しばらくお待ちください。このページを閉じないでください。",
-      "steps": {
-        "verify": "Dilithium署名を検証",
-        "createTx": "Unlock要求を作成",
-        "broadcast": "ブロックチェーンに送信中...",
-        "startTimeLock": "24時間Time Lock開始"
-      }
-    },
-    "unlockSuccess": {
-      "title": "Unlock要求完了",
-      "subtitle": "24時間の待機期間後、資産がウォレットに転送されます",
-      "timeLock": {
-        "title": "Time Lock残り時間",
-        "description": "セキュリティ待機期間",
-        "remaining": "残り時間"
-      },
-      "details": {
-        "amount": "Unlock金額",
-        "estimatedCompletion": "Unlock可能日時",
-        "txHash": "TX Hash"
-      },
-      "info": {
-        "message": "24時間の待機期間中、不正なUnlockを検出した場合はChallengeで阻止できます。問題がなければ、待機終了後にダッシュボードから資産を受け取れます。"
-      },
-      "buttons": {
-        "viewHistory": "履歴を確認",
-        "backToDashboard": "ダッシュボードに戻る"
-      }
-    },
     "terms": {
       "meta": {
         "title": "利用規約 | Quantum Shield",
