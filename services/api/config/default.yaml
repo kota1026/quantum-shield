@@ -5,7 +5,7 @@ server:
   port: 8080
 
 database:
-  url: "postgres://quantum:quantum@localhost:5432/quantum_shield"
+  url: "postgres://quantum:quantum_dev@localhost:5432/quantum_shield"
   max_connections: 50
   min_connections: 5
   acquire_timeout_secs: 10
