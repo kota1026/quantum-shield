@@ -14,6 +14,7 @@ import { ActiveChallengesSidebar } from './ActiveChallengesSidebar';
 import { ObserverStakeSidebar } from './ObserverStakeSidebar';
 import {
   useObserverData,
+  useObserverDashboard,
   usePendingUnlocks,
   useSuspiciousTransactions,
   useActiveChallenges,
@@ -34,6 +35,7 @@ export function ObserverDashboard() {
 
   // Fetch data using hooks
   const { data: observerDataApi } = useObserverData();
+  const { data: dashboardApi } = useObserverDashboard();
   const { data: pendingUnlocksApi } = usePendingUnlocks();
   const { data: suspiciousApi } = useSuspiciousTransactions();
   const { data: activeChallengesApi } = useActiveChallenges();
@@ -154,37 +156,37 @@ export function ObserverDashboard() {
         >
           <ObserverStatCard
             label={t('stats.pendingUnlocks.label')}
-            value={47}
+            value={dashboardApi?.pendingUnlocksCount ?? pendingUnlocks.length}
             variant="warning"
             tooltip={t('stats.pendingUnlocks.tooltip')}
-            change={t('stats.pendingUnlocks.change', { count: 12 })}
+            change={t('stats.pendingUnlocks.change', { count: pendingUnlocks.length })}
             href="/observer/pending"
           />
           <ObserverStatCard
             label={t('stats.suspicious.label')}
-            value={3}
+            value={suspiciousTransactions.length}
             variant="highlight"
             tooltip={t('stats.suspicious.tooltip')}
-            changeBadge={{
+            changeBadge={suspiciousTransactions.length > 0 ? {
               text: t('stats.suspicious.badge'),
               variant: 'danger',
-            }}
+            } : undefined}
             href="/observer/suspicious"
           />
           <ObserverStatCard
             label={t('stats.activeChallenges.label')}
-            value={2}
+            value={dashboardApi?.activeChallenges ?? activeChallenges.length}
             variant="default"
             tooltip={t('stats.activeChallenges.tooltip')}
             href="/observer/history"
           />
           <ObserverStatCard
             label={t('stats.totalEarnings.label')}
-            value="4.28"
+            value={dashboardApi?.totalEarnings ?? '0'}
             unit="ETH"
             variant="success"
             tooltip={t('stats.totalEarnings.tooltip')}
-            change={t('stats.totalEarnings.change', { amount: '0.35 ETH' })}
+            change={dashboardApi?.unclaimedEarnings ? t('stats.totalEarnings.change', { amount: `${dashboardApi.unclaimedEarnings} ETH` }) : undefined}
             href="/observer/earnings"
           />
         </div>
@@ -199,12 +201,15 @@ export function ObserverDashboard() {
 
           {/* Right Column - Sidebar */}
           <div className="space-y-4">
-            <EarningsSidebar claimableAmount="1.24 ETH" />
-            <ChallengeStatsSidebar successful={12} failed={2} />
+            <EarningsSidebar claimableAmount={dashboardApi?.unclaimedEarnings ? `${dashboardApi.unclaimedEarnings} ETH` : '0 ETH'} />
+            <ChallengeStatsSidebar
+              successful={dashboardApi?.successfulChallenges ?? 0}
+              failed={(dashboardApi?.totalChallenges ?? 0) - (dashboardApi?.successfulChallenges ?? 0)}
+            />
             <ActiveChallengesSidebar challenges={activeChallenges} />
             <ObserverStakeSidebar
-              stakeAmount="5.00 ETH"
-              activeSince="2025-11-15"
+              stakeAmount={observerData && 'stakeAmount' in observerData ? (observerData as { stakeAmount: string }).stakeAmount : '0 ETH'}
+              activeSince={observerData?.registrationDate ?? '-'}
             />
           </div>
         </div>

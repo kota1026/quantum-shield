@@ -23,16 +23,16 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useUsersStats, useUsersList } from '@/hooks/admin/useUsers';
-import {
-  MOCK_USERS_STATS,
-  MOCK_USERS,
-  type UsersStats,
-  type User,
-} from '@/lib/api/admin/mock';
+import type { UsersStats, User } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_USERS_STATS;
-const FALLBACK_USERS = MOCK_USERS;
+// Empty fallback - no fake data
+const FALLBACK_STATS: UsersStats = {
+  totalUsers: 0,
+  activeUsers: 0,
+  newUsers: 0,
+  lockedVolume: '0 ETH',
+};
+const FALLBACK_USERS: User[] = [];
 
 interface StatCardProps {
   title: string;

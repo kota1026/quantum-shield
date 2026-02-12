@@ -448,10 +448,10 @@ export function ProverDashboard() {
                     <div className="p-4 bg-background-secondary rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-2">{t('dashboard.performance.successRate')}</div>
                       <div className="text-2xl font-bold font-mono text-success">
-                        99.8<span className="text-sm text-foreground-secondary ml-1">%</span>
+                        {stats.uptime > 0 ? stats.uptime.toFixed(1) : '0.0'}<span className="text-sm text-foreground-secondary ml-1">%</span>
                       </div>
                       <div className="mt-2 h-1.5 bg-background rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-success" style={{ width: '99.8%' }} />
+                        <div className="h-full rounded-full bg-success" style={{ width: `${stats.uptime > 0 ? stats.uptime : 0}%` }} />
                       </div>
                     </div>
                     <div className="p-4 bg-background-secondary rounded-lg">

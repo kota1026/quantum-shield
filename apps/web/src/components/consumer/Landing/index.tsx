@@ -22,10 +22,12 @@ import { LandingFooter } from '@/components/shared/LandingFooter';
 import { CookieBanner } from '@/components/shared/CookieBanner';
 import { HinomaryVisual } from '@/components/shared/HinomaryVisual';
 import { Tooltip } from '@/components/shared/Tooltip';
+import { useExplorerStats } from '@/hooks/explorer';
 
 export function Landing() {
   const t = useTranslations('consumer.landing');
   const mainRef = useRef<HTMLElement>(null);
+  const { data: explorerData } = useExplorerStats();
 
   // Handle skip link focus
   const handleSkipToMain = () => {
@@ -119,12 +121,12 @@ export function Landing() {
           <div className="container mx-auto px-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
-                value={t('stats.protectedAssets.value')}
+                value={explorerData?.tvl ?? t('stats.protectedAssets.value')}
                 label={t('stats.protectedAssets.label')}
                 highlight
               />
               <StatCard
-                value={t('stats.activeProvers.value')}
+                value={explorerData?.activeProvers !== undefined ? String(explorerData.activeProvers) : t('stats.activeProvers.value')}
                 label={t('stats.activeProvers.label')}
               />
               <StatCard

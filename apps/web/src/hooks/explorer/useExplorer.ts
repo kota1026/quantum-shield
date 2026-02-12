@@ -65,11 +65,71 @@ export const explorerKeys = {
 
 // ============ Overview Hooks ============
 
+// API response from /v1/explorer/overview
+interface ExplorerOverviewResponse {
+  network: {
+    totalValueLocked: string;
+    totalValueLockedUsd: string;
+    totalLocks: number;
+    totalUnlocks: number;
+    activeProvers: number;
+    totalChallenges: number;
+    successfulChallenges: number;
+    totalFees: string;
+    currentEdition: string;
+  };
+  recentActivity: {
+    locks24h: number;
+    unlocks24h: number;
+    volume24h: string;
+    challenges24h: number;
+  };
+  topProvers: Array<{
+    id: string;
+    address: string;
+    name: string | null;
+    volume: string;
+    lockCount: number;
+    successRate: number;
+  }>;
+  health: {
+    status: string;
+    avgUnlockTime: number;
+    avgProofTime: number;
+    l1Status: string;
+    l3Status: string;
+  };
+}
+
+// Helper to format wei to display string
+function formatWeiToDisplay(wei: string): string {
+  if (!wei || wei === '0') return '$0';
+  const eth = Number(BigInt(wei)) / 1e18;
+  if (eth >= 1_000_000) return `$${(eth / 1_000_000).toFixed(1)}M`;
+  if (eth >= 1_000) return `$${(eth / 1_000).toFixed(1)}K`;
+  return `$${eth.toFixed(2)}`;
+}
+
 export function useExplorerStats() {
   return useQuery({
     queryKey: explorerKeys.stats(),
     queryFn: async () => {
-      return fetchApi<ExplorerStats>('/v1/explorer/overview');
+      const raw = await fetchApi<ExplorerOverviewResponse>('/v1/explorer/overview');
+
+      // Transform API response to match ExplorerStats flat structure
+      const stats: ExplorerStats = {
+        tvl: formatWeiToDisplay(raw.network.totalValueLocked),
+        tvlChange: 0,
+        totalLocks: raw.network.totalLocks,
+        locksChange: raw.recentActivity.locks24h,
+        pendingUnlocks: raw.network.totalUnlocks,
+        pendingInTimeLock: 0,
+        activeProvers: raw.network.activeProvers,
+        proverUptime: raw.topProvers.length > 0
+          ? raw.topProvers.reduce((sum, p) => sum + p.successRate, 0) / raw.topProvers.length
+          : 0,
+      };
+      return stats;
     },
     staleTime: 30_000,
   });
