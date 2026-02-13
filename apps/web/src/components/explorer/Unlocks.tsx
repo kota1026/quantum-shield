@@ -13,10 +13,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useUnlocks } from '@/hooks/explorer';
-import type { UnlockDetail } from '@/lib/api/explorer/mock';
+import type { UnlockDetail } from '@/lib/api/explorer/types';
 
-// Empty initial state (no fake data)
-const FALLBACK_UNLOCKS: UnlockDetail[] = [];
 
 type UnlockStatus = 'pending' | 'complete' | 'challenged';
 type UnlockType = 'normal' | 'emergency';
@@ -33,14 +31,14 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
   const [selectedUnlock, setSelectedUnlock] = useState<UnlockDetail | null>(null);
 
   // Fetch data using hooks
-  const { data: unlocksApi } = useUnlocks({
+  const { data: unlocksApi, isLoading: unlocksLoading, error: unlocksError } = useUnlocks({
     status: statusFilter,
     type: typeFilter,
     page: currentPage,
   });
 
-  // Use API data with fallback
-  const mockUnlocks = unlocksApi?.unlocks ?? FALLBACK_UNLOCKS;
+  // Use API data directly (no silent fallbacks per GR-1)
+  const unlocks = unlocksApi?.unlocks ?? [];
 
   const itemsPerPage = 5;
   const pendingCount = unlocksApi?.pending ?? 0;
@@ -49,7 +47,7 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
 
   // Filter unlocks
   const filteredUnlocks = useMemo(() => {
-    let result = [...mockUnlocks];
+    let result = [...unlocks];
 
     if (statusFilter !== 'all') {
       result = result.filter(unlock => unlock.status === statusFilter);
@@ -60,7 +58,7 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
     }
 
     return result;
-  }, [statusFilter, typeFilter]);
+  }, [unlocks, statusFilter, typeFilter]);
 
   const totalPages = Math.ceil(filteredUnlocks.length / itemsPerPage);
   const paginatedUnlocks = filteredUnlocks.slice(
@@ -260,7 +258,19 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
                 </tr>
               </thead>
               <tbody>
-                {paginatedUnlocks.length === 0 ? (
+                {unlocksLoading ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center text-foreground-tertiary">
+                      <div className="animate-pulse">{t('common.loading')}</div>
+                    </td>
+                  </tr>
+                ) : unlocksError ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center text-warning">
+                      {t('common.errors.loadFailed')}
+                    </td>
+                  </tr>
+                ) : paginatedUnlocks.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-12 text-center">
                       <div className="text-foreground-secondary">{t('unlocks.emptyState.title')}</div>

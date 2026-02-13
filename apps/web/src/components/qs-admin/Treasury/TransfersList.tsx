@@ -23,16 +23,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useTransferStats, useTreasuryTransfers } from '@/hooks/admin/useTreasury';
-import {
-  MOCK_TRANSFER_STATS,
-  MOCK_TREASURY_TRANSFERS,
-  type TransferStats,
-  type TreasuryTransfer,
-} from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_STATS = MOCK_TRANSFER_STATS;
-const FALLBACK_TRANSFERS = MOCK_TREASURY_TRANSFERS;
+import { type TreasuryTransferSimple as TreasuryTransfer, type TransferStats } from '@/lib/api/admin/types';
 
 const STATUS_COLORS = {
   pending: 'bg-warning/10 text-warning',
@@ -123,7 +114,7 @@ function TransfersListError({ error, onRetry }: { error: Error; onRetry: () => v
 
 // Map API transfer to component format
 function mapApiTransfer(data: unknown): TreasuryTransfer {
-  if (!data || typeof data !== 'object') return FALLBACK_TRANSFERS[0];
+  if (!data || typeof data !== 'object') return {} as any;
   const d = data as Record<string, unknown>;
   return {
     id: (d.id as string) || '',
@@ -150,11 +141,11 @@ export function TransfersList() {
   const transfersQuery = useTreasuryTransfers();
 
   // Map API data or use fallback
-  const stats: TransferStats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data!;
   const apiTransfers = transfersQuery.data?.transfers;
   const transfers: TreasuryTransfer[] = apiTransfers
     ? apiTransfers.map(mapApiTransfer)
-    : FALLBACK_TRANSFERS;
+    : [];
 
   // Show skeleton only on initial load
   if (statsQuery.isLoading && !statsQuery.data && transfersQuery.isLoading && !transfersQuery.data) {

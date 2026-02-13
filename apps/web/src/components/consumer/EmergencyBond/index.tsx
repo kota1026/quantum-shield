@@ -9,10 +9,10 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEmergencyUnlockData, useSubmitEmergencyUnlock } from '@/hooks/consumer';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_UNLOCK_DATA = {
-  lockId: 'lock-1',
-  amount: '12.5',
+// Default values when API data not yet loaded
+const DEFAULT_UNLOCK_DATA = {
+  lockId: '',
+  amount: '0',
   symbol: 'ETH',
   waitDays: 7,
 };
@@ -34,8 +34,8 @@ export function EmergencyBond() {
   const { data: unlockDataApi } = useEmergencyUnlockData(lockId);
   const submitEmergencyMutation = useSubmitEmergencyUnlock();
 
-  // Use API data with fallback
-  const unlockData = unlockDataApi ?? FALLBACK_UNLOCK_DATA;
+  // Use API data with safe defaults
+  const unlockData = unlockDataApi ?? DEFAULT_UNLOCK_DATA;
 
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

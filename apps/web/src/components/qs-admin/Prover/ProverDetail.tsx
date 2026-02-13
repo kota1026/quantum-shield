@@ -30,8 +30,8 @@ interface ProverDetailProps {
   id: string;
 }
 
-// Fallback data - Used when API is unavailable
-interface FallbackProver {
+// Prover display data shape
+interface ProverDisplayData {
   id: string;
   name: string;
   wallet: string;
@@ -60,36 +60,6 @@ interface FallbackProver {
     status: string;
   }>;
 }
-
-const FALLBACK_PROVER: FallbackProver = {
-  id: 'PRV-001',
-  name: 'Prover Alpha Corp',
-  wallet: '0x1234567890abcdef1234567890abcdef12345678',
-  staked: '50,000 QS',
-  uptime: '99.9%',
-  proofCount: 12450,
-  lastProof: '2024-01-27 14:30',
-  status: 'active',
-  tier: 'enterprise',
-  cpu: '85%',
-  memory: '72%',
-  registeredAt: '2023-06-15 10:00',
-  infrastructure: 'AWS Tokyo',
-  hardwareSpecs: '64 vCPU, 256GB RAM, 4TB NVMe SSD',
-  networkBandwidth: '10 Gbps dedicated',
-  totalRewards: '125,000 QS',
-  avgResponseTime: '0.8s',
-  challengesReceived: 156,
-  challengesPassed: 154,
-  challengesFailed: 2,
-  recentProofs: [
-    { id: 'PF-12450', type: 'lock', amount: '10.5 ETH', timestamp: '2024-01-27 14:30', status: 'success' },
-    { id: 'PF-12449', type: 'unlock', amount: '5.0 ETH', timestamp: '2024-01-27 14:25', status: 'success' },
-    { id: 'PF-12448', type: 'lock', amount: '25.0 ETH', timestamp: '2024-01-27 14:20', status: 'success' },
-    { id: 'PF-12447', type: 'lock', amount: '3.5 ETH', timestamp: '2024-01-27 14:15', status: 'success' },
-    { id: 'PF-12446', type: 'unlock', amount: '15.0 ETH', timestamp: '2024-01-27 14:10', status: 'success' },
-  ],
-};
 
 const STATUS_CONFIG = {
   active: { icon: CheckCircle, color: 'text-success', bg: 'bg-success/10', label: 'アクティブ' },
@@ -184,11 +154,10 @@ export function ProverDetail({ id }: ProverDetailProps) {
   // React Query hook
   const proverQuery = useProverDetail(id);
 
-  // Use API data or fallback
   const apiProver = proverQuery.data;
 
-  // Build prover object from API data or fallback
-  const prover: FallbackProver = apiProver ? {
+  // Build prover display object from API data
+  const prover: ProverDisplayData | null = apiProver ? {
     id: apiProver.id,
     name: apiProver.name,
     wallet: apiProver.operatorAddress,
@@ -210,10 +179,10 @@ export function ProverDetail({ id }: ProverDetailProps) {
     challengesPassed: 0,
     challengesFailed: 0,
     recentProofs: [],
-  } : { ...FALLBACK_PROVER, id };
+  } : null;
 
-  const statusConfig = STATUS_CONFIG[prover.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.active;
-  const tierConfig = TIER_CONFIG[prover.tier as keyof typeof TIER_CONFIG] || TIER_CONFIG.standard;
+  const statusConfig = STATUS_CONFIG[prover?.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.active;
+  const tierConfig = TIER_CONFIG[prover?.tier as keyof typeof TIER_CONFIG] || TIER_CONFIG.standard;
   const StatusIcon = statusConfig.icon;
 
   const copyToClipboard = (text: string) => {
@@ -233,9 +202,9 @@ export function ProverDetail({ id }: ProverDetailProps) {
     return <DetailSkeleton />;
   }
 
-  // Error state (still show fallback data)
-  if (proverQuery.isError && !prover) {
-    return <ErrorState message={proverQuery.error?.message || 'Unknown error'} onRetry={() => proverQuery.refetch()} />;
+  // Error state
+  if (proverQuery.isError || !prover) {
+    return <ErrorState message={proverQuery.error?.message || 'Prover not found'} onRetry={() => proverQuery.refetch()} />;
   }
 
   return (

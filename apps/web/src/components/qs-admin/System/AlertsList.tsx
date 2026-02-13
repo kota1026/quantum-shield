@@ -19,15 +19,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_ALERTS = [
-  { id: 1, level: 'warning', source: 'Prover Network', message: 'Prover node #12 response time degraded', timestamp: '2024-01-27 14:30', status: 'active', actionLink: '/qs-admin/prover/list/PRV-012', actionLabel: 'Prover詳細を確認' },
-  { id: 2, level: 'info', source: 'System', message: 'System maintenance scheduled for tonight', timestamp: '2024-01-27 10:00', status: 'acknowledged', actionLink: '/qs-admin/system/maintenance', actionLabel: 'メンテナンス管理' },
-  { id: 3, level: 'critical', source: 'API Server', message: 'High memory usage detected', timestamp: '2024-01-27 09:15', status: 'resolved', actionLink: '/qs-admin/system/logs', actionLabel: 'システムログ確認' },
-  { id: 4, level: 'warning', source: 'Database', message: 'Slow query detected', timestamp: '2024-01-26 22:30', status: 'resolved', actionLink: '/qs-admin/system/logs', actionLabel: 'システムログ確認' },
-  { id: 5, level: 'info', source: 'Observer Network', message: 'New observer joined the network', timestamp: '2024-01-26 18:00', status: 'acknowledged', actionLink: '/qs-admin/observer/list', actionLabel: 'Observer一覧' },
-  { id: 6, level: 'critical', source: 'Blockchain RPC', message: 'RPC endpoint timeout', timestamp: '2024-01-26 15:45', status: 'resolved', actionLink: '/qs-admin/system/logs', actionLabel: 'システムログ確認' },
-];
-
 const LEVEL_COLORS = {
   critical: 'bg-danger/10 text-danger border-danger/20',
   warning: 'bg-warning/10 text-warning border-warning/20',
@@ -59,7 +50,9 @@ export function AlertsList() {
     { key: 'resolved', label: t('status.resolved') },
   ];
 
-  const filteredAlerts = FALLBACK_ALERTS.filter(alert => {
+  const alerts: { id: number; level: string; source: string; message: string; timestamp: string; status: string; actionLink: string; actionLabel: string }[] = [];
+
+  const filteredAlerts = alerts.filter(alert => {
     if (statusFilter !== 'all' && alert.status !== statusFilter) return false;
     if (searchQuery && !alert.message.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !alert.source.toLowerCase().includes(searchQuery.toLowerCase())) return false;

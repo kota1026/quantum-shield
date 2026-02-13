@@ -14,8 +14,8 @@ import { cn } from '@/lib/utils';
 import { HinomaryVisual } from '../Dashboard/HinomaryVisual';
 import { SEPOLIA_CHAIN_ID } from '@/lib/contracts/l1vault';
 
-// Empty initial state (no fake data — real balance comes from wallet)
-const FALLBACK_BALANCE = 0;
+// Initial balance when wallet data not yet loaded (real balance comes from wagmi)
+const INITIAL_BALANCE = 0;
 
 interface LockModalProps {
   isOpen: boolean;
@@ -235,7 +235,7 @@ export function Lock() {
     address: connectedAddress,
     chainId: SEPOLIA_CHAIN_ID,
   });
-  const balance = balanceData?.value ? parseFloat(formatEther(balanceData.value)) : FALLBACK_BALANCE;
+  const balance = balanceData?.value ? parseFloat(formatEther(balanceData.value)) : INITIAL_BALANCE;
 
   const [amount, setAmount] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);

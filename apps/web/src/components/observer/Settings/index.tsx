@@ -22,27 +22,15 @@ import { cn } from '@/lib/utils';
 import { ObserverHeader } from '../Dashboard/ObserverHeader';
 import { useObserverSettings } from '@/hooks/observer';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_SETTINGS = {
-  profile: {
-    observerId: 'OBS-2025-1842',
-    walletAddress: '0x5c3e2d9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e',
-    email: 'observer@example.com',
-    joinedDate: '2025-11-15',
-  },
-  notifications: {
-    emergencyUnlock: true,
-    highRiskAlert: true,
-    challengeUpdate: true,
-    rewardPayment: true,
-  },
-  security: {
-    lastLogin: '2026-01-17 09:15:42 UTC',
-    loginHistory: '24',
-  },
-};
-
 type TabType = 'profile' | 'notifications' | 'security';
+
+// Default notification state (used before API loads)
+const DEFAULT_NOTIFICATIONS = {
+  emergencyUnlock: true,
+  highRiskAlert: true,
+  challengeUpdate: true,
+  rewardPayment: true,
+};
 
 export function ObserverSettings() {
   const t = useTranslations('observer.settings');
@@ -52,13 +40,10 @@ export function ObserverSettings() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [saved, setSaved] = useState(false);
 
-  // Fetch data using hooks
-  const { data: settingsApi } = useObserverSettings();
+  // Fetch data using hooks (with loading/error states)
+  const { data: settings, isLoading, error } = useObserverSettings();
 
-  // Use API data with fallback
-  const settings = settingsApi ?? FALLBACK_SETTINGS;
-
-  const [notifications, setNotifications] = useState(settings.notifications);
+  const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS);
 
   const handleLanguageChange = (newLocale: string) => {
     router.replace(pathname, { locale: newLocale });
@@ -179,14 +164,14 @@ export function ObserverSettings() {
                   <label className="block text-sm text-foreground-tertiary mb-1">
                     {t('profile.observerId')}
                   </label>
-                  <div className="font-mono text-lg">{settings.profile.observerId}</div>
+                  <div className="font-mono text-lg">{settings?.profile?.observerId ?? '-'}</div>
                 </div>
                 <div>
                   <label className="block text-sm text-foreground-tertiary mb-1">
                     {t('profile.walletAddress')}
                   </label>
                   <div className="flex items-center gap-2 font-mono text-sm">
-                    {settings.profile.walletAddress}
+                    {settings?.profile?.walletAddress ?? '-'}
                   </div>
                 </div>
                 <div>
@@ -195,7 +180,7 @@ export function ObserverSettings() {
                   </label>
                   <input
                     type="email"
-                    defaultValue={settings.profile.email}
+                    defaultValue={settings?.profile?.email ?? ''}
                     className="w-full px-4 py-2 bg-background border border-surface-tertiary rounded-lg focus:outline-none focus:ring-2 focus:ring-hinomaru"
                   />
                 </div>
@@ -218,7 +203,7 @@ export function ObserverSettings() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-background rounded-lg">
                   <span className="text-sm text-foreground-secondary">{t('profile.joinedDate')}</span>
-                  <span className="text-sm">{settings.profile.joinedDate}</span>
+                  <span className="text-sm">{settings?.profile?.joinedDate ?? '-'}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-background rounded-lg">
                   <span className="text-sm text-foreground-secondary">{t('profile.totalChallenges')}</span>
@@ -380,13 +365,13 @@ export function ObserverSettings() {
                   <span className="text-sm text-foreground-secondary">
                     {t('security.loginHistory.lastLogin')}
                   </span>
-                  <span className="text-sm">{settings.security.lastLogin}</span>
+                  <span className="text-sm">{settings?.security?.lastLogin ?? '-'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">
                     {t('security.loginHistory.totalLogins')}
                   </span>
-                  <Badge variant="info">{settings.security.loginHistory}</Badge>
+                  <Badge variant="info">{settings?.security?.loginHistory ?? 0}</Badge>
                 </div>
               </div>
             </Card>

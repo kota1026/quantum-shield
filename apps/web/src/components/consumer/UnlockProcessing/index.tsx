@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAccount } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Check, HelpCircle, AlertCircle, Unlock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -55,6 +56,7 @@ export function UnlockProcessing() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address: walletAddress, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
 
   // Get data from URL params
   const lockId = searchParams.get('lockId') || '';
@@ -100,12 +102,12 @@ export function UnlockProcessing() {
     try {
       // Ensure wallet is connected
       if (!isConnected || !walletAddress) {
-        throw new Error('Wallet not connected. Please connect your wallet and try again.');
+        throw new Error(t('walletNotConnected'));
       }
 
       // Ensure Dilithium keys are available
       if (!hasKeys || !publicKey) {
-        throw new Error('Dilithium keys not available. Please complete a lock operation first.');
+        throw new Error(t('noKeysWarning'));
       }
 
       // ============================
@@ -468,9 +470,15 @@ export function UnlockProcessing() {
           {/* Error actions */}
           {error && (
             <div className="flex flex-col gap-3">
-              <Button variant="primary" fullWidth onClick={handleRetry}>
-                {t('retry')}
-              </Button>
+              {!isConnected && openConnectModal ? (
+                <Button variant="primary" fullWidth onClick={openConnectModal}>
+                  {t('connectWallet')}
+                </Button>
+              ) : (
+                <Button variant="primary" fullWidth onClick={handleRetry}>
+                  {t('retry')}
+                </Button>
+              )}
               <Button variant="ghost" fullWidth onClick={handleCancel}>
                 {t('cancel')}
               </Button>

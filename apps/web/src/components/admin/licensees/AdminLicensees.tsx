@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useLicenseesList, useSuspendLicensee, useReactivateLicensee } from '@/hooks/admin/useLicensees';
 
 type LicenseStatus = 'active' | 'suspended' | 'pending' | 'expired';
 type LicenseType = 'standard' | 'enterprise';
@@ -39,66 +40,6 @@ interface Licensee {
   lastSyncDate: string;
   supportTickets: number;
 }
-
-// Demo data
-const FALLBACK_LICENSEES: Licensee[] = [
-  {
-    id: 'lic-001',
-    companyName: 'Tokyo Financial Group',
-    country: 'Japan',
-    type: 'enterprise',
-    status: 'active',
-    contractDate: '2024-06-15',
-    expiryDate: '2026-06-14',
-    proverNodes: 5,
-    observerNodes: 3,
-    monthlyFee: 50000,
-    lastSyncDate: '2026-01-24T14:30:00Z',
-    supportTickets: 2,
-  },
-  {
-    id: 'lic-002',
-    companyName: 'Singapore Quantum Labs',
-    country: 'Singapore',
-    type: 'standard',
-    status: 'active',
-    contractDate: '2024-09-01',
-    expiryDate: '2025-08-31',
-    proverNodes: 3,
-    observerNodes: 1,
-    monthlyFee: 15000,
-    lastSyncDate: '2026-01-24T12:00:00Z',
-    supportTickets: 0,
-  },
-  {
-    id: 'lic-003',
-    companyName: 'EU Crypto Holdings',
-    country: 'Germany',
-    type: 'enterprise',
-    status: 'suspended',
-    contractDate: '2024-03-01',
-    expiryDate: '2026-02-28',
-    proverNodes: 8,
-    observerNodes: 4,
-    monthlyFee: 75000,
-    lastSyncDate: '2026-01-20T09:00:00Z',
-    supportTickets: 5,
-  },
-  {
-    id: 'lic-004',
-    companyName: 'Swiss Digital Assets',
-    country: 'Switzerland',
-    type: 'standard',
-    status: 'pending',
-    contractDate: '2026-01-20',
-    expiryDate: '2027-01-19',
-    proverNodes: 0,
-    observerNodes: 0,
-    monthlyFee: 15000,
-    lastSyncDate: '-',
-    supportTickets: 1,
-  },
-];
 
 function StatusBadge({ status }: { status: LicenseStatus }) {
   const t = useTranslations('admin.licensees');
@@ -138,9 +79,15 @@ export function AdminLicensees() {
   const [statusFilter, setStatusFilter] = useState<LicenseStatus | 'all'>('all');
   const [showSuspendModal, setShowSuspendModal] = useState<string | null>(null);
   const [showReactivateModal, setShowReactivateModal] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
-  const filteredLicensees = FALLBACK_LICENSEES.filter((licensee) => {
+  // Fetch licensees from API
+  const { data: licenseesData, isLoading, error } = useLicenseesList();
+  const suspendMutation = useSuspendLicensee();
+  const reactivateMutation = useReactivateLicensee();
+
+  const licensees: Licensee[] = licenseesData?.licensees ?? [];
+
+  const filteredLicensees = licensees.filter((licensee) => {
     const matchesSearch =
       searchQuery === '' ||
       licensee.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -150,11 +97,11 @@ export function AdminLicensees() {
   });
 
   const stats = {
-    total: FALLBACK_LICENSEES.length,
-    active: FALLBACK_LICENSEES.filter((l) => l.status === 'active').length,
-    suspended: FALLBACK_LICENSEES.filter((l) => l.status === 'suspended').length,
-    pending: FALLBACK_LICENSEES.filter((l) => l.status === 'pending').length,
-    totalRevenue: FALLBACK_LICENSEES.filter((l) => l.status === 'active').reduce(
+    total: licensees.length,
+    active: licensees.filter((l) => l.status === 'active').length,
+    suspended: licensees.filter((l) => l.status === 'suspended').length,
+    pending: licensees.filter((l) => l.status === 'pending').length,
+    totalRevenue: licensees.filter((l) => l.status === 'active').reduce(
       (sum, l) => sum + l.monthlyFee,
       0
     ),
@@ -169,32 +116,26 @@ export function AdminLicensees() {
   };
 
   const confirmSuspend = async () => {
-    setIsProcessing(true);
+    if (!showSuspendModal) return;
     try {
-      // In production, this would call API and require Security Council approval
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call
+      await suspendMutation.mutateAsync(showSuspendModal);
       setShowSuspendModal(null);
-      // TODO: Show success toast
     } catch {
-      // TODO: Show error toast
-    } finally {
-      setIsProcessing(false);
+      // Error handled by mutation state
     }
   };
 
   const confirmReactivate = async () => {
-    setIsProcessing(true);
+    if (!showReactivateModal) return;
     try {
-      // In production, this would call API
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call
+      await reactivateMutation.mutateAsync(showReactivateModal);
       setShowReactivateModal(null);
-      // TODO: Show success toast
     } catch {
-      // TODO: Show error toast
-    } finally {
-      setIsProcessing(false);
+      // Error handled by mutation state
     }
   };
+
+  const isProcessing = suspendMutation.isPending || reactivateMutation.isPending;
 
   return (
     <div className="space-y-6">

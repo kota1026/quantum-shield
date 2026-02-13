@@ -1,13 +1,12 @@
 /**
  * QS Admin API Client
  *
- * Base API client with authentication support and mock fallback
+ * Base API client with authentication support
  */
 
 import type { ApiError } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const ENABLE_MOCK = process.env.NEXT_PUBLIC_ENABLE_MOCK === 'true';
 
 export class AdminApiError extends Error {
   code: number;
@@ -148,38 +147,8 @@ class AdminApiClient {
       requestConfig.body = JSON.stringify(body);
     }
 
-    try {
-      const response = await fetch(url, requestConfig);
-
-      // If service unavailable (503) and mock is enabled, try mock fallback
-      if (ENABLE_MOCK && response.status === 503) {
-        console.warn(`[AdminAPI] Service unavailable, attempting mock fallback for ${endpoint}`);
-        return this.getMockData<T>(endpoint);
-      }
-
-      return await this.handleResponse<T>(response);
-    } catch (error) {
-      // If network error and mock is enabled, try mock fallback
-      if (ENABLE_MOCK && error instanceof TypeError) {
-        console.warn(`[AdminAPI] Network error, attempting mock fallback for ${endpoint}`);
-        return this.getMockData<T>(endpoint);
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Get mock data for endpoint (fallback when API unavailable)
-   */
-  private async getMockData<T>(endpoint: string): Promise<T> {
-    // Dynamic import to avoid bundling mock data in production
-    const { getMockResponse } = await import('./mock');
-    const mockData = getMockResponse(endpoint);
-    if (mockData) {
-      console.info(`[AdminAPI] Using mock data for ${endpoint}`);
-      return mockData as T;
-    }
-    throw new AdminApiError(503, `API unavailable and no mock data for ${endpoint}`);
+    const response = await fetch(url, requestConfig);
+    return await this.handleResponse<T>(response);
   }
 
   /**

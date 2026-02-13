@@ -34,22 +34,8 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { ProverSidebar } from './ProverSidebar';
 import { cn } from '@/lib/utils';
 import { useProverAlerts, useStakeData } from '@/hooks/prover';
-import type { ProverAlert } from '@/lib/api/prover/mock';
+import type { ProverAlert } from '@/lib/api/prover/types';
 
-// Empty initial state (no fake data)
-const FALLBACK_ALERTS: ProverAlert[] = [];
-const FALLBACK_STAKE_DATA = {
-  currentStake: 0,
-  unlockDate: '-',
-  daysRemaining: 0,
-  totalRewards: 0,
-  annualRate: 0,
-  totalSlashing: 0,
-  riskLevel: 0,
-  violations30d: 0,
-  slaRate: 0,
-  potentialSlashing: 0,
-};
 
 const mockSlashingTable = [
   { violations: 1, rate: 10, loss: 40000 },
@@ -103,12 +89,12 @@ export function ProverAlerts() {
   const [completedAction, setCompletedAction] = useState<'stake' | 'withdraw' | null>(null);
 
   // Fetch data using hooks
-  const { data: alertsApi } = useProverAlerts();
-  const { data: stakeDataApi } = useStakeData();
+  const { data: alertsApi, isLoading: alertsLoading, error: alertsError } = useProverAlerts();
+  const { data: stakeDataApi, isLoading: stakeLoading, error: stakeError } = useStakeData();
 
-  // Use API data with fallback
-  const alerts = alertsApi ?? FALLBACK_ALERTS;
-  const stakeData = stakeDataApi ?? FALLBACK_STAKE_DATA;
+  // Use API data directly (no silent fallbacks per GR-1)
+  const alerts = alertsApi ?? [];
+  const stakeData = stakeDataApi;
 
   // Handle URL query params for tab switching
   useEffect(() => {
@@ -151,7 +137,7 @@ export function ProverAlerts() {
 
   const handleWithdraw = () => {
     const amount = parseFloat(withdrawAmount);
-    if (withdrawAmount && !isNaN(amount) && amount > 0 && amount <= stakeData.totalRewards) {
+    if (withdrawAmount && !isNaN(amount) && amount > 0 && amount <= (stakeData?.totalRewards ?? 0)) {
       // Show processing state
       setIsProcessing(true);
       setShowWithdrawModal(false);
@@ -560,7 +546,7 @@ export function ProverAlerts() {
               <Card variant="hoverGradient" padding="md" className="border-gold bg-gradient-to-br from-gold/10 to-transparent">
                 <div className="text-xs text-foreground-tertiary mb-2">{t('alerts.stake.currentStake')}</div>
                 <div className="text-2xl font-bold font-mono text-gold">
-                  {stakeData.currentStake.toLocaleString()} QS
+                  {(stakeData?.currentStake ?? 0).toLocaleString()} QS
                 </div>
                 <div className="text-xs text-success mt-1 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" />
@@ -569,24 +555,24 @@ export function ProverAlerts() {
               </Card>
               <Card variant="hoverGradient" padding="md">
                 <div className="text-xs text-foreground-tertiary mb-2">{t('alerts.stake.unlockDate')}</div>
-                <div className="text-2xl font-bold font-mono">{stakeData.unlockDate}</div>
+                <div className="text-2xl font-bold font-mono">{stakeData?.unlockDate ?? '-'}</div>
                 <div className="text-xs text-foreground-tertiary mt-1">
-                  {t('alerts.stake.daysRemaining', { days: stakeData.daysRemaining })}
+                  {t('alerts.stake.daysRemaining', { days: stakeData?.daysRemaining ?? 0 })}
                 </div>
               </Card>
               <Card variant="hoverGradient" padding="md">
                 <div className="text-xs text-foreground-tertiary mb-2">{t('alerts.stake.totalRewards')}</div>
                 <div className="text-2xl font-bold font-mono text-success">
-                  {stakeData.totalRewards.toLocaleString()} QS
+                  {(stakeData?.totalRewards ?? 0).toLocaleString()} QS
                 </div>
                 <div className="text-xs text-foreground-tertiary mt-1 flex items-center gap-1">
                   <TrendingUp className="h-3 w-3 text-success" />
-                  {t('alerts.stake.annualRate', { rate: stakeData.annualRate })}
+                  {t('alerts.stake.annualRate', { rate: stakeData?.annualRate ?? 0 })}
                 </div>
               </Card>
               <Card variant="hoverGradient" padding="md">
                 <div className="text-xs text-foreground-tertiary mb-2">{t('alerts.stake.totalSlashing')}</div>
-                <div className="text-2xl font-bold font-mono text-success">{stakeData.totalSlashing} QS</div>
+                <div className="text-2xl font-bold font-mono text-success">{stakeData?.totalSlashing ?? 0} QS</div>
                 <div className="text-xs text-success mt-1 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" />
                   {t('alerts.stake.noViolations')}
@@ -607,16 +593,16 @@ export function ProverAlerts() {
                 <div
                   className="h-6 rounded-xl bg-gradient-to-r from-success via-warning to-danger"
                   role="progressbar"
-                  aria-valuenow={stakeData.riskLevel}
+                  aria-valuenow={stakeData?.riskLevel ?? 0}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-label={t('alerts.risk.level')}
                 />
                 <div
                   className="absolute top-1/2 -translate-y-1/2 w-10 h-10 bg-background border-[3px] border-white rounded-full flex items-center justify-center text-sm font-semibold shadow-lg"
-                  style={{ left: `${stakeData.riskLevel}%`, transform: 'translate(-50%, -50%)' }}
+                  style={{ left: `${stakeData?.riskLevel ?? 0}%`, transform: 'translate(-50%, -50%)' }}
                 >
-                  {stakeData.riskLevel === 0 ? '0' : stakeData.riskLevel}
+                  {(stakeData?.riskLevel ?? 0) === 0 ? '0' : stakeData?.riskLevel}
                 </div>
               </div>
               <div className="flex justify-between text-xs text-foreground-tertiary mb-6">
@@ -629,15 +615,15 @@ export function ProverAlerts() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-background rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.risk.violations30d')}</div>
-                  <div className="font-semibold text-success">{stakeData.violations30d}{t('alerts.risk.count')}</div>
+                  <div className="font-semibold text-success">{stakeData?.violations30d ?? 0}{t('alerts.risk.count')}</div>
                 </div>
                 <div className="p-4 bg-background rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.risk.slaRate')}</div>
-                  <div className="font-semibold text-success">{stakeData.slaRate}%</div>
+                  <div className="font-semibold text-success">{stakeData?.slaRate ?? 0}%</div>
                 </div>
                 <div className="p-4 bg-background rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.risk.potentialSlashing')}</div>
-                  <div className="font-semibold">{stakeData.potentialSlashing} QS</div>
+                  <div className="font-semibold">{stakeData?.potentialSlashing ?? 0} QS</div>
                 </div>
               </div>
             </Card>
@@ -977,7 +963,7 @@ export function ProverAlerts() {
               <div className="p-4 bg-background rounded-xl">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">{t('alerts.modal.withdraw.available')}</span>
-                  <span className="font-semibold text-gold">{stakeData.totalRewards.toLocaleString()} QS</span>
+                  <span className="font-semibold text-gold">{(stakeData?.totalRewards ?? 0).toLocaleString()} QS</span>
                 </div>
               </div>
 
@@ -992,17 +978,17 @@ export function ProverAlerts() {
                     type="number"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
-                    placeholder={stakeData.totalRewards.toString()}
+                    placeholder={(stakeData?.totalRewards ?? 0).toString()}
                     className="w-full px-4 py-3 bg-background border border-surface-tertiary rounded-xl focus:outline-none focus:ring-2 focus:ring-gold text-right pr-16 font-mono"
                     min="0"
-                    max={stakeData.totalRewards}
+                    max={stakeData?.totalRewards ?? 0}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground-tertiary">QS</span>
                 </div>
                 <button
                   type="button"
                   className="text-sm text-gold hover:underline mt-1"
-                  onClick={() => setWithdrawAmount(stakeData.totalRewards.toString())}
+                  onClick={() => setWithdrawAmount((stakeData?.totalRewards ?? 0).toString())}
                 >
                   {t('alerts.modal.withdraw.max')}
                 </button>
@@ -1044,7 +1030,7 @@ export function ProverAlerts() {
                 variant="primary"
                 className="flex-1"
                 onClick={handleWithdraw}
-                disabled={!withdrawAmount || isNaN(parseFloat(withdrawAmount)) || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > stakeData.totalRewards}
+                disabled={!withdrawAmount || isNaN(parseFloat(withdrawAmount)) || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > (stakeData?.totalRewards ?? 0)}
               >
                 {t('alerts.modal.withdraw.confirm')}
               </Button>
@@ -1097,7 +1083,7 @@ export function ProverAlerts() {
               <div className="p-4 bg-background rounded-xl">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-foreground-secondary">{t('alerts.stake.currentStake')}</span>
-                  <span className="font-semibold text-gold">{stakeData.currentStake.toLocaleString()} QS</span>
+                  <span className="font-semibold text-gold">{(stakeData?.currentStake ?? 0).toLocaleString()} QS</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">{t('alerts.modal.addStake.minimum')}</span>
@@ -1131,7 +1117,7 @@ export function ProverAlerts() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm">{t('alerts.modal.addStake.newTotal')}</span>
                     <span className="font-semibold text-success">
-                      {(stakeData.currentStake + parseFloat(stakeAmount)).toLocaleString()} QS
+                      {((stakeData?.currentStake ?? 0) + parseFloat(stakeAmount)).toLocaleString()} QS
                     </span>
                   </div>
                 </div>

@@ -16,16 +16,8 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useRolesList } from '@/hooks/admin/useMembers';
-import {
-  MOCK_ROLES,
-  MOCK_PERMISSION_CATEGORIES,
-  type Role,
-  type PermissionCategory,
-} from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_ROLES = MOCK_ROLES;
-const FALLBACK_PERMISSION_CATEGORIES = MOCK_PERMISSION_CATEGORIES;
+import { type Role } from '@/lib/api/admin/types';
+import { type PermissionCategory } from '@/lib/api/admin/types';
 
 const ROLE_COLORS = {
   superadmin: 'border-hinomaru bg-hinomaru/5',
@@ -96,8 +88,8 @@ export function RolesManagement() {
   const { data: rolesData, isLoading, error, refetch } = useRolesList();
 
   // Use API data with fallback
-  const roles = rolesData?.roles ?? FALLBACK_ROLES;
-  const permissionCategories = FALLBACK_PERMISSION_CATEGORIES;
+  const roles = rolesData?.roles ?? [];
+  const permissionCategories: PermissionCategory[] = [];
 
   const hasPermission = (rolePermissions: string[], permissionId: string) => {
     return rolePermissions.includes('all') || rolePermissions.includes(permissionId);

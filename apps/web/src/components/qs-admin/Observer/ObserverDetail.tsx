@@ -21,34 +21,11 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useObserverDetail } from '@/hooks/admin/useObservers';
-import type { ObserverDetailData } from '@/lib/api/admin/mock';
+import type { ObserverDetailData } from '@/lib/api/admin/types';
 
 interface ObserverDetailProps {
   id: string;
 }
-
-// Fallback data - Used when API is unavailable
-const FALLBACK_OBSERVER: ObserverDetailData = {
-  id: 'OB-001',
-  wallet: '0x1234567890abcdef1234567890abcdef12345678',
-  challenges: 125,
-  successRate: '98.4%',
-  earnings: '2,450 QS',
-  bond: '500 QS',
-  lastChallenge: '2024-01-27 14:30',
-  status: 'active',
-  successfulChallenges: 123,
-  failedChallenges: 2,
-  registeredAt: '2023-06-15 10:00',
-  avgResponseTime: '1.2s',
-  recentChallenges: [
-    { id: 'CH-125', type: 'unlock', target: 'UL-789', result: 'success', timestamp: '2024-01-27 14:30', reward: '20 QS' },
-    { id: 'CH-124', type: 'unlock', target: 'UL-788', result: 'success', timestamp: '2024-01-27 12:15', reward: '20 QS' },
-    { id: 'CH-123', type: 'unlock', target: 'UL-787', result: 'failed', timestamp: '2024-01-27 09:00', reward: '0 QS' },
-    { id: 'CH-122', type: 'unlock', target: 'UL-786', result: 'success', timestamp: '2024-01-26 16:45', reward: '20 QS' },
-    { id: 'CH-121', type: 'unlock', target: 'UL-785', result: 'success', timestamp: '2024-01-26 11:30', reward: '20 QS' },
-  ],
-};
 
 // Loading skeleton component
 function DetailSkeleton() {
@@ -147,35 +124,58 @@ export function ObserverDetail({ id }: ObserverDetailProps) {
   const observerQuery = useObserverDetail(id);
 
   // Map API data to component format
-  const mapApiData = (data: unknown): ObserverDetailData => {
-    if (!data || typeof data !== 'object') return { ...FALLBACK_OBSERVER, id };
+  const mapApiData = (data: unknown): ObserverDetailData | null => {
+    if (!data || typeof data !== 'object') return null;
     const d = data as Record<string, unknown>;
     return {
       id: (d.id as string) || id,
-      wallet: (d.wallet as string) || (d.walletAddress as string) || FALLBACK_OBSERVER.wallet,
+      wallet: (d.wallet as string) || (d.walletAddress as string) || '-',
       challenges: (d.challenges as number) ||
         ((d.successfulChallenges as number) || 0) + ((d.failedChallenges as number) || 0) ||
-        FALLBACK_OBSERVER.challenges,
-      successRate: (d.successRate as string) || FALLBACK_OBSERVER.successRate,
-      earnings: (d.earnings as string) || (d.totalEarnings as string) || FALLBACK_OBSERVER.earnings,
-      bond: (d.bond as string) || FALLBACK_OBSERVER.bond,
-      lastChallenge: (d.lastChallenge as string) || FALLBACK_OBSERVER.lastChallenge,
-      status: (d.status as string) || FALLBACK_OBSERVER.status,
-      successfulChallenges: (d.successfulChallenges as number) ?? FALLBACK_OBSERVER.successfulChallenges,
-      failedChallenges: (d.failedChallenges as number) ?? FALLBACK_OBSERVER.failedChallenges,
+        0,
+      successRate: (d.successRate as string) || '0%',
+      earnings: (d.earnings as string) || (d.totalEarnings as string) || '0 QS',
+      bond: (d.bond as string) || '-',
+      lastChallenge: (d.lastChallenge as string) || '-',
+      status: (d.status as string) || 'inactive',
+      successfulChallenges: (d.successfulChallenges as number) ?? 0,
+      failedChallenges: (d.failedChallenges as number) ?? 0,
       registeredAt: (d.registeredAt as string) ||
-        (typeof d.registeredAt === 'number' ? new Date(d.registeredAt).toLocaleString('ja-JP') : FALLBACK_OBSERVER.registeredAt),
-      avgResponseTime: (d.avgResponseTime as string) || FALLBACK_OBSERVER.avgResponseTime,
-      recentChallenges: (d.recentChallenges as ObserverDetailData['recentChallenges']) || FALLBACK_OBSERVER.recentChallenges,
+        (typeof d.registeredAt === 'number' ? new Date(d.registeredAt).toLocaleString('ja-JP') : '-'),
+      avgResponseTime: (d.avgResponseTime as string) || '-',
+      recentChallenges: (d.recentChallenges as ObserverDetailData['recentChallenges']) || [],
     };
   };
 
-  // Use API data or fallback
-  const observer = observerQuery.data ? mapApiData(observerQuery.data) : { ...FALLBACK_OBSERVER, id };
+  // Use API data only
+  const observer = observerQuery.data ? mapApiData(observerQuery.data) : null;
 
   // Show loading skeleton only for initial load
   if (observerQuery.isLoading && !observerQuery.data) {
     return <DetailSkeleton />;
+  }
+
+  // Show error state when API fails or no data
+  if (observerQuery.isError || !observer) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Link href="/qs-admin/observer/list">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t('detail.title')}</h1>
+            <p className="text-foreground-secondary">{id}</p>
+          </div>
+        </div>
+        <ErrorState
+          message={observerQuery.error?.message || t('empty')}
+          onRetry={() => observerQuery.refetch()}
+        />
+      </div>
+    );
   }
 
   const statusConfig = STATUS_CONFIG[observer.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.active;

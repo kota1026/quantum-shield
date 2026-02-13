@@ -22,15 +22,9 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useSupportStats, useTicketsList } from '@/hooks/admin/useSupport';
 import {
-  MOCK_SUPPORT_STATS,
-  MOCK_TICKETS,
   type SupportStats,
   type Ticket,
-} from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_STATS = MOCK_SUPPORT_STATS;
-const FALLBACK_TICKETS = MOCK_TICKETS;
+} from '@/lib/api/admin/types';
 
 const STATUS_COLORS = {
   open: 'bg-info/10 text-info',
@@ -142,8 +136,8 @@ export function SupportDashboard() {
   const hasError = statsError || ticketsError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const tickets = ticketsData?.tickets ?? FALLBACK_TICKETS;
+  const stats = apiStats!;
+  const tickets = ticketsData?.tickets ?? [];
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },

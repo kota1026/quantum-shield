@@ -1007,6 +1007,8 @@
       "activatingTimelock": "Activating timelock...",
       "emergencyWarning": "Emergency unlock requires a 7-day waiting period and bond (minimum 0.5 ETH)",
       "noKeysWarning": "No Dilithium keys available. Please complete a lock operation first.",
+      "walletNotConnected": "Wallet not connected. Please connect your wallet and try again.",
+      "connectWallet": "Connect Wallet",
       "retry": "Retry",
       "cancel": "Cancel",
       "steps": {

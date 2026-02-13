@@ -254,7 +254,9 @@ impl L1Indexer {
             .await
             .ok();
 
-            // Insert lock record
+            // Insert or update lock record
+            // ON CONFLICT: update l1_tx_hash, status, confirmed_at for locks
+            // created via POST /v1/lock (which are in "pending" status with no l1_tx_hash)
             let result = sqlx::query(
                 r#"
                 INSERT INTO locks (
@@ -266,7 +268,10 @@ impl L1Indexer {
                     $3, $4::bytea, 0, 0, ''::bytea, ''::bytea, '', 'confirmed',
                     $5, to_timestamp($6), NOW()
                 )
-                ON CONFLICT (lock_id) DO NOTHING
+                ON CONFLICT (lock_id) DO UPDATE SET
+                    l1_tx_hash = COALESCE(EXCLUDED.l1_tx_hash, locks.l1_tx_hash),
+                    status = CASE WHEN locks.status = 'pending' THEN 'confirmed' ELSE locks.status END,
+                    confirmed_at = CASE WHEN locks.confirmed_at IS NULL THEN NOW() ELSE locks.confirmed_at END
                 "#
             )
             .bind(&lock.lock_id)

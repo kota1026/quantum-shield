@@ -24,19 +24,13 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useUserDetail, useUserTransactions, useSuspendUser, useActivateUser } from '@/hooks/admin/useUsers';
 import {
-  MOCK_USER_DETAIL,
-  MOCK_USER_TRANSACTIONS,
   type UserDetail as UserDetailType,
   type UserTransaction,
-} from '@/lib/api/admin/mock';
+} from '@/lib/api/admin/types';
 
 interface UserDetailProps {
   id: string;
 }
-
-// Fallback data
-const FALLBACK_USER = MOCK_USER_DETAIL;
-const FALLBACK_TRANSACTIONS = MOCK_USER_TRANSACTIONS;
 
 const STATUS_CONFIG = {
   active: { icon: UserCheck, color: 'text-success', bg: 'bg-success/10', label: 'active' },
@@ -118,13 +112,6 @@ export function UserDetail({ id }: UserDetailProps) {
   const isLoading = userLoading || txLoading;
   const hasError = userError || txError;
 
-  // Use API data with fallback
-  const user = apiUser ?? { ...FALLBACK_USER, id };
-  const transactions = txData?.transactions ?? FALLBACK_TRANSACTIONS;
-
-  const statusConfig = STATUS_CONFIG[user.status as keyof typeof STATUS_CONFIG];
-  const StatusIcon = statusConfig.icon;
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
@@ -141,10 +128,15 @@ export function UserDetail({ id }: UserDetailProps) {
     return <UserDetailSkeleton />;
   }
 
-  // In development, use fallback data even when API fails
-  if (hasError && !apiUser && !FALLBACK_USER) {
+  if (hasError && !apiUser) {
     return <UserDetailError onRetry={() => { refetchUser(); refetchTx(); }} />;
   }
+
+  // Data is guaranteed to exist after loading/error checks
+  const user = apiUser!;
+  const transactions = txData?.transactions ?? [];
+  const statusConfig = STATUS_CONFIG[user.status as keyof typeof STATUS_CONFIG];
+  const StatusIcon = statusConfig.icon;
 
   return (
     <div className="space-y-6">

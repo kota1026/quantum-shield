@@ -1048,6 +1048,8 @@
       "activatingTimelock": "タイムロックを有効化中...",
       "emergencyWarning": "緊急アンロックは7日間の待機期間とボンド（最低0.5 ETH）が必要です",
       "noKeysWarning": "Dilithium鍵がありません。先にロック操作を完了してください。",
+      "walletNotConnected": "ウォレットが接続されていません。ウォレットを接続してから再試行してください。",
+      "connectWallet": "ウォレットを接続",
       "retry": "再試行",
       "cancel": "キャンセル",
       "steps": {

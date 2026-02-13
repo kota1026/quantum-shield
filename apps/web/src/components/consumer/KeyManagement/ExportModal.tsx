@@ -20,13 +20,13 @@ interface ExportModalProps {
   onClose: () => void;
 }
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_KEY_INFO: KeyInfo = {
-  publicKey: 'ml-dsa-65-pub-xxx...',
+// Default key info when API data not yet loaded
+const DEFAULT_KEY_INFO: KeyInfo = {
+  publicKey: '',
   secretKey: '',
   algorithm: 'ML-DSA-65',
-  createdAt: '2026-01-01',
-  lastBackup: '2026-01-15',
+  createdAt: '',
+  lastBackup: '',
 };
 
 export function ExportModal({ isOpen, onClose }: ExportModalProps) {
@@ -42,7 +42,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
     algorithm: keysData.algorithm?.name || 'ML-DSA-65',
     createdAt: keysData.registeredAt ? new Date(keysData.registeredAt * 1000).toLocaleDateString('ja-JP') : '',
     lastBackup: '', // TODO: Add to API
-  } : FALLBACK_KEY_INFO;
+  } : DEFAULT_KEY_INFO;
 
   const [confirmed, setConfirmed] = useState(false);
   const [revealed, setRevealed] = useState(false);

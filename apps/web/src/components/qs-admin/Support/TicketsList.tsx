@@ -20,10 +20,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { RefreshCw } from 'lucide-react';
 import { useTicketsList } from '@/hooks/admin/useSupport';
-import { MOCK_TICKETS, type Ticket } from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_TICKETS = MOCK_TICKETS;
+import type { Ticket } from '@/lib/api/admin/types';
 
 const STATUS_COLORS = {
   open: 'bg-info/10 text-info',
@@ -99,8 +96,7 @@ export function TicketsList() {
   // Fetch data using hooks
   const { data: ticketsData, isLoading, error, refetch } = useTicketsList();
 
-  // Use API data with fallback
-  const tickets = ticketsData?.tickets ?? FALLBACK_TICKETS;
+  const tickets = ticketsData?.tickets ?? [];
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },

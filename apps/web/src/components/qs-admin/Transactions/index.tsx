@@ -25,60 +25,8 @@ import {
   useAllTransactions,
   type CombinedTransaction,
 } from '@/hooks/admin/useTransactions';
-import type { TransactionStats } from '@/lib/api/admin/mock';
+import type { TransactionStats } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: TransactionStats = {
-  totalTransactions: 45230,
-  lockVolume: '125,000 ETH',
-  unlockVolume: '45,230 ETH',
-  pendingUnlocks: 18,
-  emergencyUnlocks: 3,
-  activeChallenges: 5,
-};
-
-const FALLBACK_TRANSACTIONS: CombinedTransaction[] = [
-  {
-    id: 'TX-001234',
-    type: 'lock',
-    userAddress: '0x1234...5678',
-    amount: '10.5 ETH',
-    status: 'completed',
-    createdAt: Date.now() - 3600000,
-  },
-  {
-    id: 'TX-001235',
-    type: 'unlock',
-    userAddress: '0x2345...6789',
-    amount: '5.0 ETH',
-    status: 'pending',
-    createdAt: Date.now() - 7200000,
-  },
-  {
-    id: 'TX-001236',
-    type: 'emergency',
-    userAddress: '0x3456...7890',
-    amount: '100.0 ETH',
-    status: 'processing',
-    createdAt: Date.now() - 10800000,
-  },
-  {
-    id: 'TX-001237',
-    type: 'challenge',
-    challengerAddress: '0x4567...8901',
-    amount: '50.0 ETH',
-    status: 'challenged',
-    createdAt: Date.now() - 14400000,
-  },
-  {
-    id: 'TX-001238',
-    type: 'lock',
-    userAddress: '0x5678...9012',
-    amount: '25.0 ETH',
-    status: 'completed',
-    createdAt: Date.now() - 18000000,
-  },
-];
 
 // Loading skeleton components
 function StatCardSkeleton() {
@@ -222,8 +170,8 @@ export function TransactionsDashboard() {
   const transactionsQuery = useAllTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
-  const transactions = transactionsQuery.data?.transactions ?? FALLBACK_TRANSACTIONS;
+  const stats = statsQuery.data;
+  const transactions = transactionsQuery.data?.transactions ?? [];
 
   const filters = [
     { key: 'all', label: t('filters.all') },
@@ -276,21 +224,21 @@ export function TransactionsDashboard() {
           <>
             <StatCard
               title={t('filters.lock')}
-              value={stats.lockVolume}
+              value={stats?.lockVolume ?? '0 ETH'}
               icon={Lock}
               trend={{ value: 12.5, isPositive: true, label: tCommon('trend.fromLastWeek') }}
               href="/qs-admin/transactions/lock"
             />
             <StatCard
               title={t('filters.unlock')}
-              value={stats.unlockVolume}
+              value={stats?.unlockVolume ?? '0 ETH'}
               icon={Unlock}
               trend={{ value: 5.2, isPositive: false, label: tCommon('trend.fromLastWeek') }}
               href="/qs-admin/transactions/unlock"
             />
             <StatCard
               title={t('filters.emergency')}
-              value={stats.emergencyUnlocks}
+              value={stats?.emergencyUnlocks ?? 0}
               icon={AlertTriangle}
               href="/qs-admin/transactions/emergency"
             />

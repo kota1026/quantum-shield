@@ -117,6 +117,36 @@ export async function createLock(request: LockRequest): Promise<LockResponse> {
 }
 
 /**
+ * Confirm a lock after L1 transaction succeeds
+ *
+ * SEQUENCES.md Sequence #1, Step 5 callback:
+ * After lockWithSR0 TX is confirmed on Sepolia, notify backend
+ * so it can update status from "pending" to "confirmed" and store l1_tx_hash.
+ */
+export async function confirmLock(lockId: string, l1TxHash: string): Promise<{
+  lock_id: string;
+  status: LockStatus;
+  l1_tx_hash: string;
+}> {
+  const response = await fetch(`${API_BASE_URL}/v1/lock/${encodeURIComponent(lockId)}/confirm`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ l1_tx_hash: l1TxHash }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to confirm lock' }));
+    console.warn('Lock confirmation failed (non-critical):', error);
+    // Non-critical: lock still exists on L1 and in DB, just status won't update
+    throw new Error(error.error?.message || error.message || 'Failed to confirm lock');
+  }
+
+  return response.json();
+}
+
+/**
  * Get lock status from L3 Aegis
  */
 export async function getLockStatus(lockId: string): Promise<LockStatusResponse> {

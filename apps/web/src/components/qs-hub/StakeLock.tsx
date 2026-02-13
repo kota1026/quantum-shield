@@ -20,9 +20,6 @@ import { Link } from '@/i18n/navigation';
 import { Tooltip } from '@/components/shared/Tooltip';
 import { useQSBalance } from '@/hooks/qs-hub/useQSHub';
 
-// Fallback balance (used when API is unavailable)
-const FALLBACK_BALANCE = 15000;
-
 // Maximum lock time: 4 years = 208 weeks (SEQUENCES.md §9.1)
 const MAX_LOCK_WEEKS = 208;
 
@@ -40,9 +37,6 @@ const DURATION_OPTIONS = [
 // Quick amount percentages
 const QUICK_AMOUNTS = [25, 50, 75, 100];
 
-// Demo balance - In production, this would come from wallet/API
-const balance = 15000;
-
 // Step type
 type Step = 1 | 2 | 3;
 
@@ -51,9 +45,8 @@ export function StakeLock() {
   const tCommon = useTranslations('qs-hub.common');
   const router = useRouter();
 
-  // Fetch balance from API with fallback
-  const { data: balanceApi } = useQSBalance();
-  const balance = balanceApi ?? FALLBACK_BALANCE;
+  // Fetch balance from API
+  const { data: balance = 0, isLoading: balanceLoading, error: balanceError } = useQSBalance();
 
   // Form state
   const [amount, setAmount] = useState<string>('');
@@ -225,6 +218,14 @@ export function StakeLock() {
             </div>
           ))}
         </nav>
+
+        {/* Loading/Error States */}
+        {balanceLoading && (
+          <div className="text-center py-8 text-foreground-tertiary mb-6">{t('states.loading')}</div>
+        )}
+        {balanceError && (
+          <div className="text-center py-8 text-warning mb-6">{t('states.error')}</div>
+        )}
 
         {/* Lock Form Card */}
         <Card padding="none" className="overflow-hidden">

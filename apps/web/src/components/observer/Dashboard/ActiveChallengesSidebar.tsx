@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
-import type { ActiveChallenge } from '@/lib/api/observer/mock';
+import type { ActiveChallenge } from '@/lib/api/observer/types';
 
 interface ActiveChallengesSidebarProps {
   challenges: ActiveChallenge[];

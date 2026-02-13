@@ -9,14 +9,14 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEmergencyResult } from '@/hooks/consumer';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_RESULT = {
-  txHash: '0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
-  amount: '12.5',
+// Default result structure (populated from API data)
+const DEFAULT_RESULT = {
+  txHash: '',
+  amount: '0',
   symbol: 'ETH',
-  bond: '0.625',
+  bond: '0',
   waitDays: 7,
-  completionDate: '2026-01-24 10:30 UTC',
+  completionDate: '',
 };
 
 function formatCountdown(totalSeconds: number): string {
@@ -36,8 +36,8 @@ export function EmergencySuccess() {
   // Fetch data using hooks
   const { data: resultDataApi } = useEmergencyResult(txId);
 
-  // Use API data with fallback
-  const resultData = resultDataApi ?? FALLBACK_RESULT;
+  // Use API data with safe defaults
+  const resultData = resultDataApi ?? DEFAULT_RESULT;
 
   // 7 days countdown starting from ~6d 23:59:59
   const waitDays = resultData.waitDays;

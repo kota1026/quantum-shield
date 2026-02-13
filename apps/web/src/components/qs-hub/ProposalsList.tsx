@@ -24,70 +24,6 @@ import { useProposalsList } from '@/hooks/qs-hub/useQSHub';
 // Proposal status type
 type ProposalStatus = 'active' | 'pending' | 'passed' | 'rejected' | 'executed';
 
-// Demo proposals data (kept for fallback with extended structure)
-const FALLBACK_PROPOSALS = [
-  {
-    id: 'QIP-047',
-    title: 'Increase Observer Rewards by 15%',
-    description: 'Proposal to increase the base reward rate for Observer nodes to incentivize network security participation.',
-    status: 'active' as ProposalStatus,
-    proposer: '0x1234...5678',
-    startTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    votes: { for: 67, against: 23, quorum: 10 },
-    veQSRequired: 100000,
-    totalVotes: 1250000,
-  },
-  {
-    id: 'QIP-046',
-    title: 'Add Support for Polygon zkEVM',
-    description: 'Integration proposal to extend Quantum Shield protection to Polygon zkEVM network.',
-    status: 'active' as ProposalStatus,
-    proposer: '0xabcd...efgh',
-    startTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    votes: { for: 82, against: 12, quorum: 6 },
-    veQSRequired: 100000,
-    totalVotes: 980000,
-  },
-  {
-    id: 'QIP-045',
-    title: 'Treasury Diversification Strategy',
-    description: 'Proposal to diversify protocol treasury holdings into stable assets and yield-bearing positions.',
-    status: 'pending' as ProposalStatus,
-    proposer: '0x9876...5432',
-    startTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
-    votes: { for: 0, against: 0, quorum: 0 },
-    veQSRequired: 100000,
-    totalVotes: 0,
-  },
-  {
-    id: 'QIP-044',
-    title: 'Reduce Lock Period Minimum to 1 Week',
-    description: 'Amendment to allow shorter lock periods for increased accessibility while maintaining token economics.',
-    status: 'passed' as ProposalStatus,
-    proposer: '0xdef0...1234',
-    startTime: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    votes: { for: 78, against: 22, quorum: 55 },
-    veQSRequired: 100000,
-    totalVotes: 2100000,
-  },
-  {
-    id: 'QIP-043',
-    title: 'Emergency Council Expansion',
-    description: 'Proposal to add two additional members to the Emergency Council for improved decentralization.',
-    status: 'rejected' as ProposalStatus,
-    proposer: '0x5555...6666',
-    startTime: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-    votes: { for: 35, against: 65, quorum: 48 },
-    veQSRequired: 100000,
-    totalVotes: 1850000,
-  },
-];
-
 // Status config
 const statusConfig: Record<ProposalStatus, { icon: typeof CheckCircle2; color: string; bgColor: string }> = {
   active: { icon: Clock, color: 'text-success', bgColor: 'bg-success/10' },
@@ -104,24 +40,24 @@ export function ProposalsList() {
   const t = useTranslations('qs-hub.vote.proposals');
   const tCommon = useTranslations('qs-hub.common');
 
-  // Fetch proposals from API with fallback
-  const { data: proposalsApi } = useProposalsList();
-  // Use local FALLBACK_PROPOSALS as fallback (has extended structure)
-  const proposalData = proposalsApi ? FALLBACK_PROPOSALS : FALLBACK_PROPOSALS;
+  // Fetch proposals from API
+  const { data: proposalData, isLoading: proposalsLoading, error: proposalsError } = useProposalsList();
 
   // State
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('all');
 
   // Filter proposals
   const filteredProposals = useMemo(() => {
-    if (selectedFilter === 'all') return proposalData;
-    return proposalData.filter((p) => p.status === selectedFilter);
-  }, [selectedFilter]);
+    const data = proposalData ?? [];
+    if (selectedFilter === 'all') return data;
+    return data.filter((p) => p.status === selectedFilter);
+  }, [selectedFilter, proposalData]);
 
   // Calculate time remaining
-  const formatTimeRemaining = (endTime: Date): string => {
+  const formatTimeRemaining = (endTime: Date | string): string => {
+    const endDate = typeof endTime === 'string' ? new Date(endTime) : endTime;
     const now = new Date();
-    const diff = endTime.getTime() - now.getTime();
+    const diff = endDate.getTime() - now.getTime();
     if (diff <= 0) return t('timeExpired');
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -202,23 +138,23 @@ export function ProposalsList() {
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" aria-label={t('statsAriaLabel')}>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.total')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_PROPOSALS.length}</div>
+            <div className="text-2xl font-bold">{proposalData?.length ?? 0}</div>
           </Card>
           <Card className="p-4 border-success/30 bg-success/5">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.active')}</div>
             <div className="text-2xl font-bold text-success">
-              {FALLBACK_PROPOSALS.filter((p) => p.status === 'active').length}
+              {(proposalData ?? []).filter((p) => p.status === 'active').length}
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.passed')}</div>
             <div className="text-2xl font-bold text-gold">
-              {FALLBACK_PROPOSALS.filter((p) => p.status === 'passed').length}
+              {(proposalData ?? []).filter((p) => p.status === 'passed').length}
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.participation')}</div>
-            <div className="text-2xl font-bold">76%</div>
+            <div className="text-2xl font-bold">-</div>
           </Card>
         </section>
 
@@ -252,7 +188,11 @@ export function ProposalsList() {
           </h2>
 
           <div className="space-y-4" role="list">
-            {filteredProposals.map((proposal) => {
+            {proposalsLoading ? (
+              <div className="text-center py-8 text-foreground-tertiary">{t('loading')}</div>
+            ) : proposalsError ? (
+              <div className="text-center py-8 text-warning">{t('error')}</div>
+            ) : filteredProposals.map((proposal) => {
               const config = statusConfig[proposal.status];
               const StatusIcon = config.icon;
               const isActive = proposal.status === 'active';
@@ -300,18 +240,18 @@ export function ProposalsList() {
                         <div className="flex flex-wrap items-center gap-4 text-xs text-foreground-tertiary">
                           <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5" aria-hidden="true" />
-                            {t('proposedBy')}: {proposal.proposer}
+                            {t('proposedBy')}: {typeof proposal.proposer === 'string' ? proposal.proposer : proposal.proposer.name}
                           </span>
                           {(isActive || isPending) && (
                             <span className="flex items-center gap-1">
                               <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                              {isPending ? t('startsIn', { time: formatTimeRemaining(proposal.startTime) }) : formatTimeRemaining(proposal.endTime)}
+                              {isPending && proposal.startTime ? t('startsIn', { time: formatTimeRemaining(proposal.startTime) }) : formatTimeRemaining(proposal.endTime)}
                             </span>
                           )}
-                          {proposal.totalVotes > 0 && (
+                          {(proposal.totalVotes ?? 0) > 0 && (
                             <span className="flex items-center gap-1">
                               <TrendingUp className="w-3.5 h-3.5" aria-hidden="true" />
-                              {proposal.totalVotes.toLocaleString()} veQS
+                              {(proposal.totalVotes ?? 0).toLocaleString()} veQS
                             </span>
                           )}
                         </div>
@@ -345,7 +285,7 @@ export function ProposalsList() {
           </div>
 
           {/* Empty State */}
-          {filteredProposals.length === 0 && (
+          {!proposalsLoading && !proposalsError && filteredProposals.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-foreground-tertiary mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t('empty.title')}</h3>

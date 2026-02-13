@@ -9,27 +9,23 @@ import {
   User,
   Bell,
   Shield,
-  Globe,
   CheckCircle2,
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useQSHubStats } from '@/hooks/qs-hub/useQSHub';
 
 type Tab = 'profile' | 'notifications' | 'security';
-
-// Demo data
-const FALLBACK_USER = {
-  address: '0x7a3f9c2d8e1b4f6a...3d4e',
-  email: 'user@example.com',
-  veQS: 125000,
-  joinedDate: '2024-01-15',
-};
 
 export function QSHubSettings() {
   const t = useTranslations('qs-hub.settings');
   const tCommon = useTranslations('qs-hub.common');
+
+  // Fetch user stats from API
+  const { data: userStats, isLoading: statsLoading } = useQSHubStats();
+
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -145,7 +141,7 @@ export function QSHubSettings() {
                       {t('profile.walletAddress')}
                     </label>
                     <div className="px-4 py-3 bg-surface rounded-lg font-mono text-sm">
-                      {FALLBACK_USER.address}
+                      {statsLoading ? '-' : '-'}
                     </div>
                   </div>
 
@@ -155,7 +151,7 @@ export function QSHubSettings() {
                     </label>
                     <input
                       type="email"
-                      defaultValue={FALLBACK_USER.email}
+                      defaultValue=""
                       className={cn(
                         'w-full px-4 py-3 rounded-lg',
                         'bg-surface border border-border',
@@ -195,12 +191,12 @@ export function QSHubSettings() {
                     <div>
                       <div className="text-sm text-foreground-tertiary">{t('profile.veQSBalance')}</div>
                       <div className="text-lg font-semibold text-gold">
-                        {FALLBACK_USER.veQS.toLocaleString()} veQS
+                        {statsLoading ? '-' : `${(userStats?.veQSBalance ?? 0).toLocaleString()} veQS`}
                       </div>
                     </div>
                     <div>
                       <div className="text-sm text-foreground-tertiary">{t('profile.memberSince')}</div>
-                      <div className="text-lg font-semibold">{FALLBACK_USER.joinedDate}</div>
+                      <div className="text-lg font-semibold">-</div>
                     </div>
                   </div>
                 </div>

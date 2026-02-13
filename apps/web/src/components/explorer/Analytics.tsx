@@ -36,39 +36,8 @@ import type {
   AnalyticsStats,
   LockStatusDistribution,
   UnlockTypeDistribution,
-} from '@/lib/api/explorer/mock';
+} from '@/lib/api/explorer/types';
 
-// Empty initial state (no fake data)
-const FALLBACK_TVL_DATA: TvlDataPoint[] = [];
-
-const FALLBACK_VOLUME_DATA: VolumeDataPoint[] = [];
-
-const FALLBACK_PROVER_PERFORMANCE: ProverPerformance[] = [];
-
-const FALLBACK_ANALYTICS_STATS: AnalyticsStats = {
-  currentTvl: '$0',
-  tvlChange: '0%',
-  tvlTrend: 'up',
-  totalLocks: '0',
-  totalUnlocks: '0',
-  avgLockAmount: '0 ETH',
-  avgLockDuration: '-',
-  successRate: '-',
-  challengeRate: '-',
-  resolvedChallenges: 0,
-  pendingChallenges: 0,
-};
-
-const FALLBACK_LOCK_DISTRIBUTION: LockStatusDistribution = {
-  active: 0,
-  unlocking: 0,
-  unlocked: 0,
-};
-
-const FALLBACK_UNLOCK_DISTRIBUTION: UnlockTypeDistribution = {
-  normal: 0,
-  emergency: 0,
-};
 
 type TimeRange = '7d' | '30d' | '90d' | '1y' | 'all';
 
@@ -81,25 +50,25 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
 
   // Fetch data using hooks
-  const { data: analyticsStatsApi } = useAnalyticsStats();
-  const { data: tvlDataApi } = useTvlData(timeRange);
-  const { data: volumeDataApi } = useVolumeData(timeRange);
-  const { data: proverPerformanceApi } = useProverPerformance();
-  const { data: lockDistributionApi } = useLockDistribution();
-  const { data: unlockDistributionApi } = useUnlockDistribution();
+  const { data: analyticsStatsApi, isLoading: statsLoading, error: statsError } = useAnalyticsStats();
+  const { data: tvlDataApi, isLoading: tvlLoading, error: tvlError } = useTvlData(timeRange);
+  const { data: volumeDataApi, isLoading: volumeLoading, error: volumeError } = useVolumeData(timeRange);
+  const { data: proverPerformanceApi, isLoading: proverLoading, error: proverError } = useProverPerformance();
+  const { data: lockDistributionApi, isLoading: lockDistLoading, error: lockDistError } = useLockDistribution();
+  const { data: unlockDistributionApi, isLoading: unlockDistLoading, error: unlockDistError } = useUnlockDistribution();
 
-  // Use API data with fallback
-  const stats = analyticsStatsApi ?? FALLBACK_ANALYTICS_STATS;
-  const mockTvlData = tvlDataApi ?? FALLBACK_TVL_DATA;
-  const mockVolumeData = volumeDataApi ?? FALLBACK_VOLUME_DATA;
-  const mockProverData = proverPerformanceApi ?? FALLBACK_PROVER_PERFORMANCE;
-  const lockStatusData = lockDistributionApi ?? FALLBACK_LOCK_DISTRIBUTION;
-  const unlockTypeData = unlockDistributionApi ?? FALLBACK_UNLOCK_DISTRIBUTION;
+  // Use API data directly (no silent fallbacks per GR-1)
+  const stats = analyticsStatsApi;
+  const tvlData = tvlDataApi ?? [];
+  const volumeData = volumeDataApi ?? [];
+  const proverData = proverPerformanceApi ?? [];
+  const lockStatusData = lockDistributionApi;
+  const unlockTypeData = unlockDistributionApi;
 
   const timeRangeOptions: TimeRange[] = ['7d', '30d', '90d', '1y', 'all'];
 
-  const maxTvl = mockTvlData.length > 0 ? Math.max(...mockTvlData.map(d => d.value)) : 1;
-  const maxVolume = mockVolumeData.length > 0 ? Math.max(...mockVolumeData.map(d => Math.max(d.locks, d.unlocks))) : 1;
+  const maxTvl = tvlData.length > 0 ? Math.max(...tvlData.map(d => d.value)) : 1;
+  const maxVolume = volumeData.length > 0 ? Math.max(...volumeData.map(d => Math.max(d.locks, d.unlocks))) : 1;
 
   return (
     <div className="min-h-screen bg-background">
@@ -210,64 +179,83 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
 
         {/* Key Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-          <Card padding="md" className="text-center">
-            <div className="text-2xl font-bold text-gold">{stats.currentTvl}</div>
-            <div className="text-xs text-foreground-secondary mt-1 flex items-center justify-center gap-1">
-              {t('analytics.charts.tvl.current')} (ETH)
-              <span className={`flex items-center ${stats.tvlTrend === 'up' ? 'text-success' : 'text-error'}`}>
-                {stats.tvlTrend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {stats.tvlChange}
-              </span>
-            </div>
-          </Card>
-          <Card padding="md" className="text-center">
-            <div className="text-2xl font-bold">{stats.totalLocks}</div>
-            <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.totalLocks')}</div>
-          </Card>
-          <Card padding="md" className="text-center">
-            <div className="text-2xl font-bold">{stats.totalUnlocks}</div>
-            <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.totalUnlocks')}</div>
-          </Card>
-          <Card padding="md" className="text-center">
-            <div className="text-2xl font-bold">{stats.avgLockAmount}</div>
-            <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.avgLockAmount')} (ETH)</div>
-          </Card>
-          <Card padding="md" className="text-center">
-            <div className="text-2xl font-bold flex items-center justify-center gap-1">
-              {stats.avgLockDuration}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
-                      <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">{t('analytics.stats.avgLockDurationTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.avgLockDuration')} (days)</div>
-          </Card>
-          <Card padding="md" className="text-center">
-            <div className="text-2xl font-bold text-success flex items-center justify-center gap-1">
-              {stats.successRate}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
-                      <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">{t('analytics.stats.successRateTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.successRate')}</div>
-          </Card>
+          {statsLoading ? (
+            <>
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <Card key={i} padding="md" className="text-center">
+                  <div className="animate-pulse space-y-2">
+                    <div className="h-8 bg-surface-tertiary rounded w-2/3 mx-auto" />
+                    <div className="h-3 bg-surface-tertiary rounded w-1/2 mx-auto" />
+                  </div>
+                </Card>
+              ))}
+            </>
+          ) : statsError ? (
+            <Card padding="md" className="text-center col-span-full">
+              <div className="text-warning">{t('common.errors.loadFailed')}</div>
+            </Card>
+          ) : (
+            <>
+              <Card padding="md" className="text-center">
+                <div className="text-2xl font-bold text-gold">{stats?.currentTvl ?? '$0'}</div>
+                <div className="text-xs text-foreground-secondary mt-1 flex items-center justify-center gap-1">
+                  {t('analytics.charts.tvl.current')} (ETH)
+                  <span className={`flex items-center ${(stats?.tvlTrend ?? 'up') === 'up' ? 'text-success' : 'text-error'}`}>
+                    {(stats?.tvlTrend ?? 'up') === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {stats?.tvlChange ?? '0%'}
+                  </span>
+                </div>
+              </Card>
+              <Card padding="md" className="text-center">
+                <div className="text-2xl font-bold">{stats?.totalLocks ?? '0'}</div>
+                <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.totalLocks')}</div>
+              </Card>
+              <Card padding="md" className="text-center">
+                <div className="text-2xl font-bold">{stats?.totalUnlocks ?? '0'}</div>
+                <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.totalUnlocks')}</div>
+              </Card>
+              <Card padding="md" className="text-center">
+                <div className="text-2xl font-bold">{stats?.avgLockAmount ?? '0 ETH'}</div>
+                <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.avgLockAmount')} (ETH)</div>
+              </Card>
+              <Card padding="md" className="text-center">
+                <div className="text-2xl font-bold flex items-center justify-center gap-1">
+                  {stats?.avgLockDuration ?? '-'}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
+                          <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">{t('analytics.stats.avgLockDurationTooltip')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.avgLockDuration')} (days)</div>
+              </Card>
+              <Card padding="md" className="text-center">
+                <div className="text-2xl font-bold text-success flex items-center justify-center gap-1">
+                  {stats?.successRate ?? '-'}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground-tertiary hover:text-foreground-secondary">
+                          <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">{t('analytics.stats.successRateTooltip')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="text-xs text-foreground-secondary mt-1">{t('analytics.stats.successRate')}</div>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Charts Grid */}
@@ -294,7 +282,19 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
             </div>
             {/* Simple bar chart visualization */}
             <div className="h-48 flex items-end gap-1" role="img" aria-label={t('analytics.charts.tvl.title')}>
-              {mockTvlData.map((d, i) => (
+              {tvlLoading ? (
+                <div className="w-full h-full flex items-center justify-center text-foreground-tertiary">
+                  <div className="animate-pulse">{t('common.loading')}</div>
+                </div>
+              ) : tvlError ? (
+                <div className="w-full h-full flex items-center justify-center text-warning">
+                  {t('common.errors.loadFailed')}
+                </div>
+              ) : tvlData.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center text-foreground-tertiary">
+                  {t('common.noData')}
+                </div>
+              ) : tvlData.map((d, i) => (
                 <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
                   <div
                     className="w-full bg-gradient-to-t from-hinomaru to-gold rounded-t transition-all hover:opacity-80"
@@ -342,7 +342,19 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
             </div>
             {/* Grouped bar chart */}
             <div className="h-48 flex items-end gap-2" role="img" aria-label={t('analytics.charts.volume.title')}>
-              {mockVolumeData.map((d) => (
+              {volumeLoading ? (
+                <div className="w-full h-full flex items-center justify-center text-foreground-tertiary">
+                  <div className="animate-pulse">{t('common.loading')}</div>
+                </div>
+              ) : volumeError ? (
+                <div className="w-full h-full flex items-center justify-center text-warning">
+                  {t('common.errors.loadFailed')}
+                </div>
+              ) : volumeData.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center text-foreground-tertiary">
+                  {t('common.noData')}
+                </div>
+              ) : volumeData.map((d) => (
                 <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full flex gap-0.5 items-end h-[180px]">
                     <div
@@ -374,24 +386,34 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
               <PieChart className="w-4 h-4" aria-hidden="true" />
               {t('analytics.charts.locksByStatus.title')}
             </h2>
-            <div className="space-y-3">
-              {Object.entries(lockStatusData).map(([status, count]) => {
-                const total = Object.values(lockStatusData).reduce((a, b) => a + b, 0);
-                const percentage = ((count / total) * 100).toFixed(1);
-                const colorClass = status === 'active' ? 'bg-gold' : status === 'unlocking' ? 'bg-foreground-tertiary' : 'bg-success';
-                return (
-                  <div key={status}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>{t(`analytics.charts.locksByStatus.${status}`)}</span>
-                      <span className="text-foreground-secondary">{count.toLocaleString()} ({percentage}%)</span>
+            {lockDistLoading ? (
+              <div className="animate-pulse space-y-3">
+                {[0, 1, 2].map((i) => <div key={i} className="h-6 bg-surface-tertiary rounded" />)}
+              </div>
+            ) : lockDistError ? (
+              <div className="text-warning text-sm">{t('common.errors.loadFailed')}</div>
+            ) : !lockStatusData ? (
+              <div className="text-foreground-tertiary text-sm">{t('common.noData')}</div>
+            ) : (
+              <div className="space-y-3">
+                {Object.entries(lockStatusData).map(([status, count]) => {
+                  const total = Object.values(lockStatusData).reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                  const colorClass = status === 'active' ? 'bg-gold' : status === 'unlocking' ? 'bg-foreground-tertiary' : 'bg-success';
+                  return (
+                    <div key={status}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>{t(`analytics.charts.locksByStatus.${status}`)}</span>
+                        <span className="text-foreground-secondary">{count.toLocaleString()} ({percentage}%)</span>
+                      </div>
+                      <div className="h-2 bg-background-tertiary rounded-full overflow-hidden">
+                        <div className={`h-full ${colorClass} rounded-full`} style={{ width: `${percentage}%` }} />
+                      </div>
                     </div>
-                    <div className="h-2 bg-background-tertiary rounded-full overflow-hidden">
-                      <div className={`h-full ${colorClass} rounded-full`} style={{ width: `${percentage}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
 
           {/* Unlock Type Distribution */}
@@ -400,26 +422,36 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
               <PieChart className="w-4 h-4" aria-hidden="true" />
               {t('analytics.charts.unlocksByType.title')}
             </h2>
-            <div className="space-y-3">
-              {Object.entries(unlockTypeData).map(([type, count]) => {
-                const total = Object.values(unlockTypeData).reduce((a, b) => a + b, 0);
-                const percentage = ((count / total) * 100).toFixed(1);
-                const colorClass = type === 'normal' ? 'bg-gold' : 'bg-warning';
-                return (
-                  <div key={type}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className={type === 'emergency' ? 'text-warning' : ''}>
-                        {t(`analytics.charts.unlocksByType.${type}`)}
-                      </span>
-                      <span className="text-foreground-secondary">{count.toLocaleString()} ({percentage}%)</span>
+            {unlockDistLoading ? (
+              <div className="animate-pulse space-y-3">
+                {[0, 1].map((i) => <div key={i} className="h-6 bg-surface-tertiary rounded" />)}
+              </div>
+            ) : unlockDistError ? (
+              <div className="text-warning text-sm">{t('common.errors.loadFailed')}</div>
+            ) : !unlockTypeData ? (
+              <div className="text-foreground-tertiary text-sm">{t('common.noData')}</div>
+            ) : (
+              <div className="space-y-3">
+                {Object.entries(unlockTypeData).map(([type, count]) => {
+                  const total = Object.values(unlockTypeData).reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                  const colorClass = type === 'normal' ? 'bg-gold' : 'bg-warning';
+                  return (
+                    <div key={type}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className={type === 'emergency' ? 'text-warning' : ''}>
+                          {t(`analytics.charts.unlocksByType.${type}`)}
+                        </span>
+                        <span className="text-foreground-secondary">{count.toLocaleString()} ({percentage}%)</span>
+                      </div>
+                      <div className="h-2 bg-background-tertiary rounded-full overflow-hidden">
+                        <div className={`h-full ${colorClass} rounded-full`} style={{ width: `${percentage}%` }} />
+                      </div>
                     </div>
-                    <div className="h-2 bg-background-tertiary rounded-full overflow-hidden">
-                      <div className={`h-full ${colorClass} rounded-full`} style={{ width: `${percentage}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
 
           {/* Challenge Rate */}
@@ -441,17 +473,17 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
               </TooltipProvider>
             </h2>
             <div className="text-center mb-4">
-              <div className="text-3xl font-bold text-warning">{stats.challengeRate}</div>
+              <div className="text-3xl font-bold text-warning">{stats?.challengeRate ?? '-'}</div>
               <div className="text-xs text-foreground-secondary">{t('analytics.charts.challengeRate.rate')}</div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-success">{t('analytics.charts.challengeRate.resolved')}</span>
-                <span>{stats.resolvedChallenges}</span>
+                <span>{stats?.resolvedChallenges ?? 0}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-warning">{t('analytics.charts.challengeRate.pending')}</span>
-                <span>{stats.pendingChallenges}</span>
+                <span>{stats?.pendingChallenges ?? 0}</span>
               </div>
             </div>
           </Card>
@@ -464,14 +496,14 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
             </h2>
             <div className="text-center mb-4">
               <div className="text-3xl font-bold text-success">
-                {(mockProverData.reduce((a, b) => a + b.uptime, 0) / mockProverData.length).toFixed(1)}%
+                {proverData.length > 0 ? (proverData.reduce((a, b) => a + b.uptime, 0) / proverData.length).toFixed(1) : '0.0'}%
               </div>
               <div className="text-xs text-foreground-secondary">{t('analytics.charts.proverUptime.uptime')}</div>
               <div className="text-[10px] text-success mt-1">{t('analytics.charts.proverUptime.target')}</div>
             </div>
             <div className="text-center">
               <div className="text-xl font-bold flex items-center justify-center gap-1">
-                {(mockProverData.reduce((a, b) => a + b.avgResponse, 0) / mockProverData.length).toFixed(1)}s
+                {proverData.length > 0 ? (proverData.reduce((a, b) => a + b.avgResponse, 0) / proverData.length).toFixed(1) : '0.0'}s
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -512,7 +544,19 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
                 </tr>
               </thead>
               <tbody>
-                {mockProverData.map((prover) => (
+                {proverLoading ? (
+                  <tr><td colSpan={4} className="py-8 text-center text-foreground-tertiary">
+                    <div className="animate-pulse">{t('common.loading')}</div>
+                  </td></tr>
+                ) : proverError ? (
+                  <tr><td colSpan={4} className="py-8 text-center text-warning">
+                    {t('common.errors.loadFailed')}
+                  </td></tr>
+                ) : proverData.length === 0 ? (
+                  <tr><td colSpan={4} className="py-8 text-center text-foreground-tertiary">
+                    {t('common.noData')}
+                  </td></tr>
+                ) : proverData.map((prover) => (
                   <tr key={prover.name} className="border-b border-surface-tertiary last:border-0">
                     <td className="py-3">
                       <Link

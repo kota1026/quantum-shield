@@ -51,8 +51,8 @@ import type {
   AlertItem,
 } from '@/lib/api/admin/types';
 
-// Local fallback stats type
-interface FallbackStats {
+// Dashboard stats shape
+interface DashboardStats {
   totalUsers: number;
   totalLocked: string;
   activeProvers: number;
@@ -60,23 +60,6 @@ interface FallbackStats {
   pendingUnlocks: number;
   treasuryBalance: string;
 }
-
-// Empty fallback - real data comes from API
-const FALLBACK_STATS: FallbackStats = {
-  totalUsers: 0,
-  totalLocked: '0 ETH',
-  activeProvers: 0,
-  activeObservers: 0,
-  pendingUnlocks: 0,
-  treasuryBalance: '0 ETH',
-};
-
-// Empty fallback arrays - real data comes from API
-const FALLBACK_TVL_DATA: ChartDataPoint[] = [];
-const FALLBACK_VOLUME_DATA: VolumeDataPoint[] = [];
-const FALLBACK_USER_DATA: ChartDataPoint[] = [];
-const FALLBACK_ACTIVITY: ActivityItem[] = [];
-const FALLBACK_ALERTS: AlertItem[] = [];
 
 // Metrics data structure for Stats tab
 interface MetricsData {
@@ -92,17 +75,11 @@ interface MetricsData {
   treasury: string;
 }
 
-// Empty fallback metrics - real data comes from API
+// Zero-value metrics shape for when API data is unavailable
 const EMPTY_METRICS: MetricsData = {
   users: 0, locks: 0, lockAmount: '0 ETH', unlocks: 0,
   unlockAmount: '0 ETH', provers: 0, observers: 0,
   revenue: '0 ETH', proposals: 0, treasury: '0 ETH',
-};
-const FALLBACK_METRICS: Record<string, MetricsData> = {
-  daily: EMPTY_METRICS,
-  weekly: EMPTY_METRICS,
-  monthly: EMPTY_METRICS,
-  total: EMPTY_METRICS,
 };
 
 // ============= Loading Skeletons =============
@@ -262,7 +239,6 @@ export function Dashboard() {
   const treasuryQuery = useTreasuryHistory(statsPeriod);
   const revenueQuery = useRevenueHistory(statsPeriod);
 
-  // Use API data with fallback to mock data
   const dashboardData = overviewQuery.data;
 
   // Helper function to format wei to ETH with proper formatting
@@ -286,28 +262,33 @@ export function Dashboard() {
   // Treasury balance from stats query (fetched from L1 in real-time)
   const treasuryBalance = statsQuery.data?.treasury ?? '0 ETH';
 
-  const stats = dashboardData?.metrics && dashboardData?.health ? {
+  const stats: DashboardStats = dashboardData?.metrics && dashboardData?.health ? {
     totalUsers: dashboardData.metrics.activeUsers ?? 0,
     totalLocked: formatTvl(dashboardData.metrics.totalTvl ?? '0'),
     activeProvers: dashboardData.health.activeProvers ?? 0,
     activeObservers: (dashboardData.health.totalNodes ?? 0) - (dashboardData.health.activeProvers ?? 0),
     pendingUnlocks: dashboardData.metrics.pendingChallenges ?? 0,
     treasuryBalance,
-  } : FALLBACK_STATS;
-  const tvlData = tvlQuery.data ?? FALLBACK_TVL_DATA;
-  const volumeData = volumeQuery.data ?? FALLBACK_VOLUME_DATA;
-  const userData = userGrowthQuery.data ?? FALLBACK_USER_DATA;
-  // Activity data from API or fallback
+  } : {
+    totalUsers: 0,
+    totalLocked: '0 ETH',
+    activeProvers: 0,
+    activeObservers: 0,
+    pendingUnlocks: 0,
+    treasuryBalance: treasuryBalance,
+  };
+  const tvlData = tvlQuery.data ?? [];
+  const volumeData = volumeQuery.data ?? [];
+  const userData = userGrowthQuery.data ?? [];
   const activityData = activityQuery.data?.map((a, i) => ({
     id: a.id || String(i),
     type: a.type as 'prover_request' | 'unlock' | 'challenge' | 'treasury',
     message: a.message,
     timestamp: a.timestamp,
-  })) ?? FALLBACK_ACTIVITY;
-  const alertsData = alertsQuery.data ?? FALLBACK_ALERTS;
+  })) ?? [];
+  const alertsData = alertsQuery.data ?? [];
 
-  // Stats data from API or fallback
-  const currentMetrics = statsQuery.data ? {
+  const currentMetrics: MetricsData = statsQuery.data ? {
     users: statsQuery.data.users,
     locks: statsQuery.data.locks,
     lockAmount: statsQuery.data.lockAmount,
@@ -318,7 +299,7 @@ export function Dashboard() {
     revenue: statsQuery.data.revenue,
     proposals: statsQuery.data.proposals,
     treasury: statsQuery.data.treasury,
-  } : FALLBACK_METRICS[statsPeriod];
+  } : EMPTY_METRICS;
 
   const tabs = [
     { key: 'overview', label: t('tabs.overview') },

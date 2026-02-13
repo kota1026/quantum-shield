@@ -27,14 +27,6 @@ const EXTENSION_OPTIONS = [
   { weeks: 156, label: '+3Y', months: 36 },
 ];
 
-// Demo current lock data - In production, this would come from wallet/API
-const FALLBACK_CURRENT_LOCK = {
-  lockedAmount: 10000,
-  currentDurationWeeks: 52, // 1 year remaining
-  lockEndDate: new Date(Date.now() + 52 * 7 * 24 * 60 * 60 * 1000), // 1 year from now
-  currentVeQS: 2500,
-  ratio: 0.25, // weeks_remaining / 208 (linear time-decay)
-};
 
 export function StakeExtend() {
   const t = useTranslations('qs-hub.stake.extend');
@@ -42,9 +34,8 @@ export function StakeExtend() {
   const router = useRouter();
 
   // Fetch stake positions from API
-  const { data: stakePositions } = useStakePositions();
-  // Use local data as fallback (has extended structure)
-  const currentLock = stakePositions?.[0] ?? FALLBACK_CURRENT_LOCK;
+  const { data: stakePositions, isLoading: positionsLoading, error: positionsError } = useStakePositions();
+  const currentLock = stakePositions?.[0];
 
   // Form state
   const [selectedExtension, setSelectedExtension] = useState<number>(52); // weeks
@@ -56,14 +47,19 @@ export function StakeExtend() {
 
   // Calculate new lock duration and veQS
   const calculations = useMemo(() => {
-    const newTotalWeeks = FALLBACK_CURRENT_LOCK.currentDurationWeeks + selectedExtension;
+    const currentDurationWeeks = currentLock?.currentDurationWeeks ?? 0;
+    const lockedAmount = currentLock?.lockedAmount ?? 0;
+    const currentVeQS = currentLock?.currentVeQS ?? 0;
+    const lockEndDate = currentLock?.lockEndDate ? new Date(currentLock.lockEndDate) : new Date();
+
+    const newTotalWeeks = currentDurationWeeks + selectedExtension;
     const maxWeeks = 208; // 4 years
     const cappedWeeks = Math.min(newTotalWeeks, maxWeeks);
     const newRatio = cappedWeeks / maxWeeks;
-    const newVeQS = Math.floor(FALLBACK_CURRENT_LOCK.lockedAmount * newRatio);
-    const veQSGain = newVeQS - FALLBACK_CURRENT_LOCK.currentVeQS;
+    const newVeQS = Math.floor(lockedAmount * newRatio);
+    const veQSGain = newVeQS - currentVeQS;
     const newEndDate = new Date(
-      FALLBACK_CURRENT_LOCK.lockEndDate.getTime() + selectedExtension * 7 * 24 * 60 * 60 * 1000
+      lockEndDate.getTime() + selectedExtension * 7 * 24 * 60 * 60 * 1000
     );
 
     return {
@@ -74,7 +70,7 @@ export function StakeExtend() {
       newEndDate,
       isMaxed: newTotalWeeks >= maxWeeks,
     };
-  }, [selectedExtension]);
+  }, [selectedExtension, currentLock]);
 
   // Handle extension selection
   const handleExtensionSelect = useCallback((weeks: number) => {
@@ -157,30 +153,38 @@ export function StakeExtend() {
             <h2 className="text-lg font-semibold">{t('currentLock.title')}</h2>
           </div>
 
-          <div className="p-5 grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.locked')}</div>
-              <div className="text-xl font-bold font-mono">
-                {FALLBACK_CURRENT_LOCK.lockedAmount.toLocaleString()} <span className="text-gold text-sm">QS</span>
+          {positionsLoading ? (
+            <div className="p-5 text-center text-foreground-tertiary">{t('states.loading')}</div>
+          ) : positionsError ? (
+            <div className="p-5 text-center text-warning">{t('states.error')}</div>
+          ) : !currentLock ? (
+            <div className="p-5 text-center text-foreground-tertiary">{t('states.noLock')}</div>
+          ) : (
+            <div className="p-5 grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.locked')}</div>
+                <div className="text-xl font-bold font-mono">
+                  {(currentLock.lockedAmount ?? 0).toLocaleString()} <span className="text-gold text-sm">QS</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.veQS')}</div>
+                <div className="text-xl font-bold font-mono text-gold">
+                  {(currentLock.currentVeQS ?? 0).toLocaleString()} <span className="text-sm">veQS</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.remaining')}</div>
+                <div className="text-lg font-semibold">
+                  {formatDuration(currentLock.currentDurationWeeks ?? 0)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.unlockDate')}</div>
+                <div className="text-lg font-semibold">{currentLock.lockEndDate ? formatDate(new Date(currentLock.lockEndDate)) : '-'}</div>
               </div>
             </div>
-            <div>
-              <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.veQS')}</div>
-              <div className="text-xl font-bold font-mono text-gold">
-                {FALLBACK_CURRENT_LOCK.currentVeQS.toLocaleString()} <span className="text-sm">veQS</span>
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.remaining')}</div>
-              <div className="text-lg font-semibold">
-                {formatDuration(FALLBACK_CURRENT_LOCK.currentDurationWeeks)}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-foreground-tertiary mb-1">{t('currentLock.unlockDate')}</div>
-              <div className="text-lg font-semibold">{formatDate(FALLBACK_CURRENT_LOCK.lockEndDate)}</div>
-            </div>
-          </div>
+          )}
         </Card>
 
         {/* Extension Form Card */}

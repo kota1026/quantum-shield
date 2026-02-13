@@ -24,7 +24,7 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useChallengeStats, useChallengeTransactions } from '@/hooks/admin/useTransactions';
-import type { ChallengeStats } from '@/lib/api/admin/mock';
+import type { ChallengeStats } from '@/lib/api/admin/types';
 
 // UI_DESIGN_GUIDELINES.md Colors
 const COLORS = {
@@ -37,13 +37,6 @@ const COLORS = {
   gold: '#C9A962',
 };
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: ChallengeStats = {
-  totalChallenges: 0,
-  activeChallenges: 0,
-  successRate: '-',
-  totalSlashed: '0 QS',
-};
 
 // Loading skeleton components
 function StatCardSkeleton() {
@@ -199,7 +192,7 @@ export function ChallengeTransactions() {
   const transactionsQuery = useChallengeTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data;
   const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
@@ -269,26 +262,26 @@ export function ChallengeTransactions() {
           <>
             <StatCard
               title="総チャレンジ数"
-              value={stats.totalChallenges}
+              value={stats?.totalChallenges ?? 0}
               icon={Shield}
               iconColor={COLORS.warning}
             />
             <StatCard
               title="審査中"
-              value={stats.activeChallenges}
+              value={stats?.activeChallenges ?? 0}
               icon={Swords}
               iconColor={COLORS.info}
-              highlight={stats.activeChallenges > 0}
+              highlight={(stats?.activeChallenges ?? 0) > 0}
             />
             <StatCard
               title="認容率"
-              value={stats.successRate}
+              value={stats?.successRate ?? '-'}
               icon={CheckCircle}
               iconColor={COLORS.success}
             />
             <StatCard
               title="没収総額"
-              value={stats.totalSlashed}
+              value={stats?.totalSlashed ?? '0 QS'}
               icon={AlertTriangle}
               iconColor={COLORS.error}
             />
