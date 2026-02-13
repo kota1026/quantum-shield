@@ -25,13 +25,16 @@ export function ObserverDashboard() {
   const [showPracticeBanner, setShowPracticeBanner] = useState(true);
 
   // Fetch data using hooks (with loading/error states)
-  const { data: observerData, isLoading: isLoadingObserver } = useObserverData();
-  const { data: dashboardApi, isLoading: isLoadingDashboard } = useObserverDashboard();
-  const { data: pendingUnlocksApi, isLoading: isLoadingPending } = usePendingUnlocks();
-  const { data: suspiciousApi, isLoading: isLoadingSuspicious } = useSuspiciousTransactions();
-  const { data: activeChallengesApi, isLoading: isLoadingChallenges } = useActiveChallenges();
+  const { data: observerData, isLoading: isLoadingObserver, error: observerError } = useObserverData();
+  const { data: dashboardApi, isLoading: isLoadingDashboard, error: dashboardError } = useObserverDashboard();
+  const { data: pendingUnlocksApi, isLoading: isLoadingPending, error: pendingError } = usePendingUnlocks();
+  const { data: suspiciousApi, isLoading: isLoadingSuspicious, error: suspiciousError } = useSuspiciousTransactions();
+  const { data: activeChallengesApi, isLoading: isLoadingChallenges, error: challengesError } = useActiveChallenges();
 
-  // Use API data directly (no silent fallbacks)
+  const isLoading = isLoadingObserver || isLoadingDashboard || isLoadingPending || isLoadingSuspicious || isLoadingChallenges;
+  const hasError = dashboardError || pendingError;
+
+  // Use API data directly (empty arrays when data not yet available)
   const pendingUnlocks = pendingUnlocksApi?.items ?? [];
   const suspiciousTransactions = suspiciousApi ?? [];
   const activeChallenges = activeChallengesApi ?? [];
@@ -141,7 +144,18 @@ export function ObserverDashboard() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12 text-foreground-tertiary">{t('loading')}</div>
+        )}
+
+        {/* Error State */}
+        {!isLoading && hasError && (
+          <div className="text-center py-12 text-warning">{t('error')}</div>
+        )}
+
         {/* Stats Grid */}
+        {!isLoading && !hasError && (<>
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10 items-stretch"
           role="region"
@@ -206,6 +220,7 @@ export function ObserverDashboard() {
             />
           </div>
         </div>
+        </>)}
       </main>
     </div>
   );
