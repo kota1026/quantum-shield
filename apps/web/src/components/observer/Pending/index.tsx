@@ -10,93 +10,14 @@ import { Pagination } from './Pagination';
 import { Card } from '@/components/ui/card';
 import { usePendingUnlocks } from '@/hooks/observer';
 
-// Extended mock data for display (kept local for additional fields)
-const extendedPendingUnlocks = [
-  {
-    id: '1',
-    address: '0x4b7c...9e1f',
-    fullAddress: '0x4b7c8a2e1f9d3c6b5a4e7f8d9c1b2a3e4f5d6c7b8a9e1f',
-    amount: '45.00 ETH',
-    type: 'emergency' as const,
-    timeRemaining: '6d 14:22:18',
-    riskScore: 87,
-    status: 'monitoring' as const,
-    startedAt: '2026-01-04 09:15:42 UTC',
-    bondPaid: '2.25 ETH (5%)',
-    txHash: '0x7a8b...3c4d',
-    accountAge: 12,
-    riskFactors: [
-      'First-time emergency unlock',
-      'Large amount (top 5% of unlocks)',
-      'Account age: 12 days',
-    ],
-  },
-  {
-    id: '2',
-    address: '0x8f2a...3d4e',
-    fullAddress: '0x8f2a3d4e5c6b7a8f9d0e1c2b3a4d5e6f7c8b9a0d1e2f',
-    amount: '12.50 ETH',
-    type: 'normal' as const,
-    timeRemaining: '23:41:02',
-    riskScore: 24,
-    status: 'pending' as const,
-    startedAt: '2026-01-09 10:18:58 UTC',
-    txHash: '0x9c2d...5e6f',
-    accountAge: 287,
-    previousUnlocks: 4,
-  },
-  {
-    id: '3',
-    address: '0x1a9d...7b2c',
-    fullAddress: '0x1a9d7b2c3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d',
-    amount: '8.75 ETH',
-    type: 'normal' as const,
-    timeRemaining: '18:05:33',
-    riskScore: 15,
-    status: 'pending' as const,
-    startedAt: '2026-01-09 15:42:11 UTC',
-    txHash: '0x3e4f...7a8b',
-    accountAge: 156,
-    previousUnlocks: 2,
-  },
-  {
-    id: '4',
-    address: '0x2e5f...8a1b',
-    fullAddress: '0x2e5f8a1b9c0d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
-    amount: '25.00 ETH',
-    type: 'normal' as const,
-    timeRemaining: '21:33:47',
-    riskScore: 62,
-    status: 'review' as const,
-    startedAt: '2026-01-09 08:22:33 UTC',
-    txHash: '0x5c6d...9e0f',
-    accountAge: 45,
-    riskFactors: ['Unusual unlock pattern detected'],
-  },
-  {
-    id: '5',
-    address: '0x5c3e...2d9a',
-    fullAddress: '0x5c3e2d9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a',
-    amount: '3.25 ETH',
-    type: 'normal' as const,
-    timeRemaining: '15:22:11',
-    riskScore: 8,
-    status: 'lowRisk' as const,
-    startedAt: '2026-01-09 18:05:22 UTC',
-    txHash: '0x7a8b...1c2d',
-    accountAge: 542,
-    previousUnlocks: 12,
-  },
-];
-
 export function PendingMonitor() {
   const t = useTranslations('observer.dashboard.pending');
 
   // Fetch data using hooks
-  const { data: pendingUnlocksApi } = usePendingUnlocks();
+  const { data: pendingUnlocksApi, isLoading, error } = usePendingUnlocks();
 
-  // Use API data with fallback (use extended data for display)
-  const pendingUnlocks = pendingUnlocksApi?.items ?? extendedPendingUnlocks;
+  const pendingUnlocks = pendingUnlocksApi?.items ?? [];
+  const totalItems = pendingUnlocksApi?.total ?? 0;
 
   const [filters, setFilters] = useState({
     unlockType: 'all',
@@ -108,7 +29,6 @@ export function PendingMonitor() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalItems = pendingUnlocksApi?.total ?? 47;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleFilterChange = (
@@ -163,7 +83,18 @@ export function PendingMonitor() {
         {/* Filters */}
         <PendingFilters filters={filters} onFilterChange={handleFilterChange} />
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12 text-foreground-tertiary">{t('loading')}</div>
+        )}
+
+        {/* Error State */}
+        {!isLoading && error && (
+          <div className="text-center py-12 text-warning">{t('error')}</div>
+        )}
+
         {/* Data Table */}
+        {!isLoading && !error && (
         <Card variant="default" padding="none">
           <div className="overflow-x-auto">
             <table className="w-full" role="grid">
@@ -193,14 +124,23 @@ export function PendingMonitor() {
                 </tr>
               </thead>
               <tbody>
-                {pendingUnlocks.map((unlock) => (
-                  <PendingUnlockRow key={unlock.id} unlock={unlock} />
-                ))}
+                {pendingUnlocks.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-foreground-tertiary">
+                      {t('empty')}
+                    </td>
+                  </tr>
+                ) : (
+                  pendingUnlocks.map((unlock) => (
+                    <PendingUnlockRow key={unlock.id} unlock={unlock} />
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Pagination */}
+          {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -208,7 +148,9 @@ export function PendingMonitor() {
             itemsPerPage={itemsPerPage}
             onPageChange={setCurrentPage}
           />
+          )}
         </Card>
+        )}
       </main>
     </div>
   );
