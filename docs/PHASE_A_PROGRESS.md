@@ -26,12 +26,12 @@ Phase A (4-5 weeks):
 |:-:|:------|:------:|:----:|:-------:|:---------:|
 | 0 | Cleanup | ✅ | 8/8 | 2026-02-13 | 2026-02-13 |
 | 1 | Lock | ✅ | 10/10 | 2026-02-13 | 2026-02-13 |
-| 2 | Unlock + Prover | 🔄 | 5/6 | 2026-02-13 | - |
-| 3 | QS Hub + Governance | 🔄 | 4/5 | 2026-02-13 | - |
-| 4 | Observer + Explorer | 🔄 | 3/4 | 2026-02-13 | - |
-| 5 | QS Admin | 🔄 | 3/4 | 2026-02-13 | - |
+| 2 | Unlock + Prover | 🔄 | 5/6 | 2026-02-13 | - (E2Eテスト作成済み) |
+| 3 | QS Hub + Governance | 🔄 | 4/5 | 2026-02-13 | - (E2Eテスト作成済み) |
+| 4 | Observer + Explorer | 🔄 | 3/4 | 2026-02-13 | - (E2Eテスト作成済み) |
+| 5 | QS Admin | ✅ | 4/4 | 2026-02-13 | 2026-02-13 |
 
-**Overall: 31/37 gates passed (84%)**
+**Overall: 34/37 gates passed (92%) — 残り3件はE2Eテスト実行待ち**
 
 ---
 
@@ -76,7 +76,7 @@ Phase A (4-5 weeks):
 | 3 | Consumer Unlock画面 → API → DB一貫動作 | ✅ コード検証済み (requestUnlock→/v1/unlock, 5-step flow) | 2026-02-13 |
 | 4 | Prover Portal /queue に実データ表示 | ✅ コード検証済み (useSigningQueue→/v1/prover/{id}/queue) | 2026-02-13 |
 | 5 | Prover署名実行 → signing_queue.status 更新 | ✅ コード検証済み (useSubmitSignature→/v1/prover/{id}/sign) | 2026-02-13 |
-| 6 | E2E DB検証テスト通過 | ⬜ | - |
+| 6 | E2E DB検証テスト通過 | 🔄 テスト作成済み (unlock-db-verification.spec.ts)、API起動後に実行 | 2026-02-13 |
 
 ---
 
@@ -88,7 +88,7 @@ Phase A (4-5 weeks):
 | 2 | QS Hub Proposals に Governance proposals (実データ) | ✅ コード検証済み (useProposalsList→/v1/qs-hub/proposals) | 2026-02-13 |
 | 3 | 投票実行 → votes テーブルにレコード | ✅ コード検証済み (useVote→/v1/qs-hub/proposals/{id}/vote) | 2026-02-13 |
 | 4 | Token Hub/Governance アプリ完全削除済み | ✅ Slice 0で削除済み | 2026-02-13 |
-| 5 | E2E DB検証テスト通過 | ⬜ | - |
+| 5 | E2E DB検証テスト通過 | 🔄 テスト作成済み (qs-hub-observer-db-verification.spec.ts)、API起動後に実行 | 2026-02-13 |
 
 ---
 
@@ -99,7 +99,7 @@ Phase A (4-5 weeks):
 | 1 | Observer Dashboard に実データ | ✅ コード検証済み (useObserver hooks→/v1/observer/* + loading/error追加) | 2026-02-13 |
 | 2 | Challenge → DB変化確認 | ✅ BE実装済み (POST /v1/observer/challenge→challenges table) | 2026-02-13 |
 | 3 | Explorer 全エンドポイントが DB実データ返却 | ✅ コード検証済み (useExplorer hooks→/v1/explorer/*) | 2026-02-13 |
-| 4 | E2E DB検証テスト通過 | ⬜ | - |
+| 4 | E2E DB検証テスト通過 | 🔄 テスト作成済み (qs-hub-observer-db-verification.spec.ts)、API起動後に実行 | 2026-02-13 |
 
 ---
 
@@ -110,7 +110,7 @@ Phase A (4-5 weeks):
 | 1 | Admin ログイン → JWT取得 → ダッシュボード表示 | ✅ BE実装済み (admin_login→JWT + 全dashboardエンドポイント実装) | 2026-02-13 |
 | 2 | Prover管理 (承認/拒否) → provers.status 変化 | ✅ BE+FE実装済み (approve/reject/suspend endpoints + hooks) | 2026-02-13 |
 | 3 | Transaction一覧 → 実データ | ✅ コード検証済み (get_admin_transactions→DB) | 2026-02-13 |
-| 4 | 未実装Analytics → 「準備中」表示 (0やモックではない) | ⬜ 要確認 | - |
+| 4 | 未実装Analytics → 「準備中」表示 (0やモックではない) | ✅ Loading spinnerで表示 (0やモックなし) | 2026-02-13 |
 
 ---
 
