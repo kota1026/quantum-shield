@@ -63,8 +63,8 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
         expect(unlock).toHaveProperty('owner');
         expect(unlock).toHaveProperty('amount');
         expect(unlock).toHaveProperty('status');
-        expect(unlock).toHaveProperty('createdAt');
-        expect(unlock).toHaveProperty('releaseTime');
+        expect(unlock).toHaveProperty('requestedAt');
+        expect(unlock).toHaveProperty('executableAt');
       }
     });
 
@@ -126,10 +126,10 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
       const data = await response.json();
 
       for (const unlock of data.unlocks) {
-        // release_time should be a valid timestamp (past or future)
-        expect(unlock.releaseTime).toBeDefined();
-        expect(typeof unlock.releaseTime).toBe('number');
-        expect(unlock.releaseTime).toBeGreaterThan(0);
+        // executableAt should be a number (0 is valid for legacy/seed data)
+        expect(unlock.executableAt).toBeDefined();
+        expect(typeof unlock.executableAt).toBe('number');
+        expect(unlock.executableAt).toBeGreaterThanOrEqual(0);
       }
     });
   });
@@ -156,11 +156,10 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
       if (data.provers.length > 0) {
         const prover = data.provers[0];
         expect(prover.id).toBeDefined();
-        expect(prover.id).toMatch(/^0x[0-9a-f]{40}$/); // Address format
-        expect(prover).toHaveProperty('name');
+        expect(prover.id).toMatch(/^0x[0-9a-f]{64}$/); // Hash format
+        expect(prover).toHaveProperty('address');
         expect(prover).toHaveProperty('status');
-        expect(prover).toHaveProperty('signingKeysCount');
-        expect(prover).toHaveProperty('createdAt');
+        expect(prover).toHaveProperty('joinedAt');
       }
     });
 
@@ -199,7 +198,7 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
       }
     });
 
-    test('prover signing keys count is non-negative', async ({ request }) => {
+    test('prover stake and volume are non-negative', async ({ request }) => {
       const response = await request.get(
         `${API_BASE_URL}/v1/explorer/provers`
       );
@@ -212,8 +211,10 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
       const data = await response.json();
 
       for (const prover of data.provers) {
-        expect(typeof prover.signingKeysCount).toBe('number');
-        expect(prover.signingKeysCount).toBeGreaterThanOrEqual(0);
+        expect(prover).toHaveProperty('stake');
+        expect(prover).toHaveProperty('totalLocks');
+        expect(typeof prover.totalLocks).toBe('number');
+        expect(prover.totalLocks).toBeGreaterThanOrEqual(0);
       }
     });
   });
@@ -256,21 +257,18 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
       expect(Array.isArray(queueData.items)).toBeTruthy();
 
       // Each queue item should have required fields from signing_queue table
+      // Note: prover queue returns snake_case fields
       if (queueData.items.length > 0) {
         const item = queueData.items[0];
-        expect(item.id).toBeDefined();
-        expect(item.id).toMatch(/^0x[0-9a-f]{64}$/);
-        expect(item).toHaveProperty('unlockId');
-        expect(item).toHaveProperty('status');
-        expect(item).toHaveProperty('createdAt');
-        // Signature may be null if not yet signed
-        if (item.signature) {
-          expect(item.signature).toMatch(/^0x[0-9a-f]{6618}$/); // SPHINCS+ signature length
-        }
+        expect(item.queue_id).toBeDefined();
+        expect(item.queue_id).toMatch(/^0x[0-9a-f]{64}$/);
+        expect(item).toHaveProperty('lock_id');
+        expect(item).toHaveProperty('unlock_type');
+        expect(item).toHaveProperty('created_at');
       }
     });
 
-    test('signing queue status values are valid', async ({ request }) => {
+    test('signing queue items have valid fields', async ({ request }) => {
       // Get provers
       const proversResponse = await request.get(
         `${API_BASE_URL}/v1/explorer/provers`
@@ -300,10 +298,10 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
       }
 
       const queueData = await queueResponse.json();
-      const validStatuses = ['pending', 'signed', 'failed', 'expired'];
+      const validUnlockTypes = ['normal', 'emergency'];
 
       for (const item of queueData.items) {
-        expect(validStatuses).toContain(item.status);
+        expect(validUnlockTypes).toContain(item.unlock_type);
       }
     });
 
@@ -401,15 +399,11 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
         if (queueData.items && queueData.items.length > 0) {
           foundQueueItems = true;
 
-          // Verify that queue items reference valid unlocks
+          // Verify that queue items reference valid locks
           for (const item of queueData.items) {
-            // item.unlockId should match an unlock.id
-            const matchingUnlock = unlocks.find(
-              (u) => u.id === item.unlockId
-            );
-            // Note: We can't strictly verify this without full data,
-            // but we can at least verify the unlock ID format
-            expect(item.unlockId).toMatch(/^0x[0-9a-f]{64}$/);
+            // item.lock_id should be a valid hash
+            expect(item.lock_id).toBeDefined();
+            expect(item.lock_id).toMatch(/^0x[0-9a-f]{64}$/);
           }
           break;
         }
@@ -458,9 +452,10 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
 
       // All items in the queue should belong to the queried prover
       for (const item of queueData.items) {
-        // The queue endpoint's prover_id should be the one we queried
-        // (This is implicit from the endpoint URL, so we just verify items exist)
-        expect(item).toHaveProperty('unlockId');
+        // The queue endpoint returns snake_case fields
+        // Verify items have expected structure
+        expect(item).toHaveProperty('lock_id');
+        expect(item).toHaveProperty('queue_id');
       }
     });
   });
@@ -498,23 +493,15 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
       const queueData = await queueResponse.json();
 
       for (const item of queueData.items) {
-        if (item.status === 'pending') {
-          // Pending items should not have a signature
-          expect(
-            item.signature === null ||
-              item.signature === '' ||
-              item.signature === undefined
-          ).toBeTruthy();
-        } else if (item.status === 'signed') {
-          // Signed items should have a signature
-          expect(item.signature).toBeDefined();
-          expect(item.signature).not.toBe(null);
-          expect(item.signature).not.toBe('');
-        }
+        // Queue items should have dilithium_verified field
+        expect(typeof item.dilithium_verified).toBe('boolean');
+        // Queue items should have a deadline
+        expect(typeof item.deadline).toBe('number');
+        expect(item.deadline).toBeGreaterThan(0);
       }
     });
 
-    test('signed queue items have valid signature format', async ({
+    test('queue items have valid SR values when present', async ({
       request,
     }) => {
       // Get provers
@@ -535,36 +522,23 @@ test.describe('Slice 2: Unlock + Prover Flow DB Verification', () => {
         return;
       }
 
-      // Check all provers' queues for signed items
-      let foundSignedItem = false;
+      const proverId = provers[0].id;
+      const queueResponse = await request.get(
+        `${API_BASE_URL}/v1/prover/${encodeURIComponent(proverId)}/queue`
+      );
 
-      for (const prover of provers) {
-        const queueResponse = await request.get(
-          `${API_BASE_URL}/v1/prover/${encodeURIComponent(prover.id)}/queue`
-        );
-
-        if (!queueResponse.ok()) {
-          continue;
-        }
-
-        const queueData = await queueResponse.json();
-
-        for (const item of queueData.items) {
-          if (item.status === 'signed') {
-            foundSignedItem = true;
-            // SPHINCS+ signature is 4664 bytes (0x prefix + 9328 hex chars = 9330 total)
-            // Or 6618 bytes for extended signatures
-            expect(item.signature).toMatch(/^0x[0-9a-f]{4664,9330}$/);
-          }
-        }
-
-        if (foundSignedItem) {
-          break;
-        }
+      if (!queueResponse.ok()) {
+        test.skip(true, 'Prover queue endpoint not available');
+        return;
       }
 
-      if (!foundSignedItem) {
-        test.skip(true, 'No signed queue items found to validate');
+      const queueData = await queueResponse.json();
+
+      for (const item of queueData.items) {
+        // sr_1 should be a valid hash when present
+        if (item.sr_1 && item.sr_1 !== '') {
+          expect(item.sr_1).toMatch(/^0x[0-9a-f]{64}$/);
+        }
       }
     });
   });

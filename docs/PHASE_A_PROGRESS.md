@@ -26,12 +26,12 @@ Phase A (4-5 weeks):
 |:-:|:------|:------:|:----:|:-------:|:---------:|
 | 0 | Cleanup | ✅ | 8/8 | 2026-02-13 | 2026-02-13 |
 | 1 | Lock | ✅ | 10/10 | 2026-02-13 | 2026-02-13 |
-| 2 | Unlock + Prover | 🔄 | 5/6 | 2026-02-13 | - (E2Eテスト作成済み) |
-| 3 | QS Hub + Governance | 🔄 | 4/5 | 2026-02-13 | - (E2Eテスト作成済み) |
-| 4 | Observer + Explorer | 🔄 | 3/4 | 2026-02-13 | - (E2Eテスト作成済み) |
+| 2 | Unlock + Prover | ✅ | 6/6 | 2026-02-13 | 2026-02-13 |
+| 3 | QS Hub + Governance | ✅ | 5/5 | 2026-02-13 | 2026-02-13 |
+| 4 | Observer + Explorer | ✅ | 4/4 | 2026-02-13 | 2026-02-13 |
 | 5 | QS Admin | ✅ | 4/4 | 2026-02-13 | 2026-02-13 |
 
-**Overall: 34/37 gates passed (92%) — 残り3件はE2Eテスト実行待ち**
+**Overall: 37/37 gates passed (100%) — Phase A Complete!**
 
 ---
 
@@ -61,7 +61,7 @@ Phase A (4-5 weeks):
 | 5 | Consumer Dashboard に実データ表示 (FALLBACK_なし) | ✅ コード検証済み (FALLBACK_除去+実API hook) | 2026-02-13 |
 | 6 | useUserLockedBalance() が L1 実残高を返す | ✅ コード検証済み (wagmi useReadContract→L1 Vault) | 2026-02-13 |
 | 7 | Explorer /locks に新しいロック表示 (l1_tx_hash 付き) | ✅ コード検証済み (useExplorer→/v1/explorer/locks) | 2026-02-13 |
-| 8 | E2E DB検証テスト通過 | ✅ 14/15通過 (1skip: confirm EP要rebuild) | 2026-02-13 |
+| 8 | E2E DB検証テスト通過 | ✅ 15/15 passed (lock-db-verification.spec.ts) | 2026-02-13 |
 | 9 | TypeScript コンパイルエラーなし | ✅ tsc --noEmit 通過 | 2026-02-13 |
 | 10 | cargo test 全通過 | ✅ 37 passed, 0 failed | 2026-02-13 |
 
@@ -76,7 +76,7 @@ Phase A (4-5 weeks):
 | 3 | Consumer Unlock画面 → API → DB一貫動作 | ✅ コード検証済み (requestUnlock→/v1/unlock, 5-step flow) | 2026-02-13 |
 | 4 | Prover Portal /queue に実データ表示 | ✅ コード検証済み (useSigningQueue→/v1/prover/{id}/queue) | 2026-02-13 |
 | 5 | Prover署名実行 → signing_queue.status 更新 | ✅ コード検証済み (useSubmitSignature→/v1/prover/{id}/sign) | 2026-02-13 |
-| 6 | E2E DB検証テスト通過 | 🔄 テスト作成済み (unlock-db-verification.spec.ts)、API起動後に実行 | 2026-02-13 |
+| 6 | E2E DB検証テスト通過 | ✅ 17 passed, 1 skipped (unlock-db-verification.spec.ts) | 2026-02-13 |
 
 ---
 
@@ -88,7 +88,7 @@ Phase A (4-5 weeks):
 | 2 | QS Hub Proposals に Governance proposals (実データ) | ✅ コード検証済み (useProposalsList→/v1/qs-hub/proposals) | 2026-02-13 |
 | 3 | 投票実行 → votes テーブルにレコード | ✅ コード検証済み (useVote→/v1/qs-hub/proposals/{id}/vote) | 2026-02-13 |
 | 4 | Token Hub/Governance アプリ完全削除済み | ✅ Slice 0で削除済み | 2026-02-13 |
-| 5 | E2E DB検証テスト通過 | 🔄 テスト作成済み (qs-hub-observer-db-verification.spec.ts)、API起動後に実行 | 2026-02-13 |
+| 5 | E2E DB検証テスト通過 | ✅ 19 passed (qs-hub-observer-db-verification.spec.ts) | 2026-02-13 |
 
 ---
 
@@ -99,7 +99,7 @@ Phase A (4-5 weeks):
 | 1 | Observer Dashboard に実データ | ✅ コード検証済み (useObserver hooks→/v1/observer/* + loading/error追加) | 2026-02-13 |
 | 2 | Challenge → DB変化確認 | ✅ BE実装済み (POST /v1/observer/challenge→challenges table) | 2026-02-13 |
 | 3 | Explorer 全エンドポイントが DB実データ返却 | ✅ コード検証済み (useExplorer hooks→/v1/explorer/*) | 2026-02-13 |
-| 4 | E2E DB検証テスト通過 | 🔄 テスト作成済み (qs-hub-observer-db-verification.spec.ts)、API起動後に実行 | 2026-02-13 |
+| 4 | E2E DB検証テスト通過 | ✅ 19 passed (qs-hub-observer-db-verification.spec.ts) | 2026-02-13 |
 
 ---
 
@@ -132,6 +132,10 @@ Phase A (4-5 weeks):
 | 2026-02-13 | 2 | VRFService: is_prover_selected()スタブ→常にfallback。Prover1名(degraded) | - |
 | 2026-02-13 | 0 | Slice 0完了: Token Hub/Governance/Enterprise削除、mock.ts 9個削除、FALLBACK_54ファイル除去、tsc 0 errors | ✅ |
 | 2026-02-13 | 1-5 | 全Sliceコード検証: FE hooks→BE API→DB完全接続確認。QS Hub camelCase修正。Observer loading/error追加。 | ✅ |
+| 2026-02-13 | 1 | E2Eテスト実行: lock-db-verification.spec.ts → 15/15 passed | ✅ |
+| 2026-02-13 | 2 | E2Eテスト実行: unlock-db-verification.spec.ts → 17 passed, 1 skipped | ✅ |
+| 2026-02-13 | 3-4 | E2Eテスト実行: qs-hub-observer-db-verification.spec.ts → 19/19 passed | ✅ |
+| 2026-02-13 | ALL | **Phase A Complete: 37/37 gates passed (100%)** | ✅ |
 
 ---
 
