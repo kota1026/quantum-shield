@@ -25,15 +25,9 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useMembersStats, useMembersList } from '@/hooks/admin/useMembers';
 import {
-  MOCK_MEMBERS_STATS,
-  MOCK_MEMBERS,
   type MembersStats,
   type Member,
-} from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_STATS = MOCK_MEMBERS_STATS;
-const FALLBACK_MEMBERS = MOCK_MEMBERS;
+} from '@/lib/api/admin/types';
 
 const STATUS_COLORS = {
   active: 'bg-success/10 text-success',
@@ -151,8 +145,8 @@ export function MembersDashboard() {
   const hasError = statsError || membersError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const members = membersData?.members ?? FALLBACK_MEMBERS;
+  const stats = apiStats!;
+  const members = membersData?.members ?? [];
 
   const roleFilters = [
     { key: 'all', label: tCommon('all') },

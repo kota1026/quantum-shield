@@ -23,10 +23,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useUsersList, useSuspendUsers } from '@/hooks/admin/useUsers';
-import type { User } from '@/lib/api/admin/mock';
+import type { User } from '@/lib/api/admin/types';
 
-// Empty fallback - no fake data
-const FALLBACK_USERS: User[] = [];
 
 const STATUS_COLORS = {
   active: 'bg-success/10 text-success',
@@ -95,8 +93,7 @@ export function UsersList() {
   const { data: usersData, isLoading, error, refetch } = useUsersList();
   const suspendMutation = useSuspendUsers();
 
-  // Use API data with fallback
-  const users = usersData?.users ?? FALLBACK_USERS;
+  const users = usersData?.users ?? [];
 
   const statusFilters = [
     { key: 'all', label: t('common.all') },

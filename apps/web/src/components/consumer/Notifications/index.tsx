@@ -16,13 +16,13 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNotifications, useMarkAllNotificationsRead, useMarkNotificationRead } from '@/hooks/consumer';
-import type { Notification } from '@/lib/api/consumer/mock';
+import type { Notification } from '@/lib/api/consumer/types';
 
 // Notification types
 type NotificationType = 'lockComplete' | 'unlockStarted' | 'unlockComplete' | 'emergencyStarted' | 'emergencyComplete' | 'securityAlert' | 'systemUpdate';
 
-// Empty initial state (no fake notifications)
-const FALLBACK_NOTIFICATIONS: Notification[] = [];
+// Empty initial state for optimistic updates
+const INITIAL_NOTIFICATIONS: Notification[] = [];
 
 const TYPE_CONFIG: Record<
   NotificationType,
@@ -67,8 +67,8 @@ export function Notifications() {
   const markAllReadMutation = useMarkAllNotificationsRead();
   const markReadMutation = useMarkNotificationRead();
 
-  // Use API data with fallback (local state for optimistic updates)
-  const [localNotifications, setLocalNotifications] = useState<Notification[]>(FALLBACK_NOTIFICATIONS);
+  // Local state for optimistic updates
+  const [localNotifications, setLocalNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
   const notifications = notificationsData?.notifications ?? localNotifications;
 
   const unreadCount = notifications.filter((n) => !n.read).length;

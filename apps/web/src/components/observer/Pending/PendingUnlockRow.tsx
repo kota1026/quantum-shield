@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp, ExternalLink, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { PendingUnlock } from '@/lib/api/observer/mock';
+import type { PendingUnlock } from '@/lib/api/observer/types';
 
 interface PendingUnlockRowProps {
   unlock: PendingUnlock;

@@ -10,7 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { PendingUnlock } from '@/lib/api/observer/mock';
+import type { PendingUnlock } from '@/lib/api/observer/types';
 
 interface PendingUnlocksTableProps {
   unlocks: PendingUnlock[];

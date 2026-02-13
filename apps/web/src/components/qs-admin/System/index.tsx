@@ -16,13 +16,6 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_STATS = {
-  activeAlerts: 2,
-  systemHealth: '99.2%',
-  uptime: '99.9%',
-  lastMaintenance: '2024-01-15',
-};
-
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -69,7 +62,6 @@ export function SystemDashboard() {
       title: t('alertsTitle'),
       subtitle: t('alertsSubtitle'),
       color: 'bg-warning/10 text-warning',
-      badge: FALLBACK_STATS.activeAlerts,
     },
     {
       href: '/qs-admin/system/logs',
@@ -97,25 +89,23 @@ export function SystemDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title={t('stats.activeAlerts')}
-          value={FALLBACK_STATS.activeAlerts}
+          value={0}
           icon={AlertTriangle}
-          status={FALLBACK_STATS.activeAlerts > 0 ? 'warning' : 'success'}
+          status="success"
         />
         <StatCard
           title={t('stats.systemHealth')}
-          value={FALLBACK_STATS.systemHealth}
+          value="-"
           icon={Activity}
-          status="success"
         />
         <StatCard
           title={t('stats.uptime')}
-          value={FALLBACK_STATS.uptime}
+          value="-"
           icon={CheckCircle}
-          status="success"
         />
         <StatCard
           title={t('stats.lastMaintenance')}
-          value={FALLBACK_STATS.lastMaintenance}
+          value="-"
           icon={Wrench}
         />
       </div>
@@ -133,11 +123,6 @@ export function SystemDashboard() {
                     <div>
                       <div className="flex items-center">
                         <h3 className="font-semibold">{link.title}</h3>
-                        {link.badge && link.badge > 0 && (
-                          <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-warning/10 text-warning rounded-full">
-                            {link.badge}
-                          </span>
-                        )}
                       </div>
                       <p className="text-sm text-foreground-secondary">{link.subtitle}</p>
                     </div>

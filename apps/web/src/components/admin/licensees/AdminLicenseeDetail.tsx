@@ -25,62 +25,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useLicenseeDetail } from '@/hooks/admin/useLicensees';
 
 interface LicenseeDetailProps {
   licenseeId: string;
 }
-
-// Demo data
-const FALLBACK_LICENSEE = {
-  id: 'lic-001',
-  companyName: 'Tokyo Financial Group',
-  country: 'Japan',
-  type: 'enterprise' as const,
-  status: 'active' as const,
-  contractDate: '2024-06-15',
-  expiryDate: '2026-06-14',
-  proverNodes: 5,
-  observerNodes: 3,
-  monthlyFee: 50000,
-  lastSyncDate: '2026-01-24T14:30:00Z',
-  contact: {
-    name: 'Yamamoto Kenji',
-    email: 'k.yamamoto@tokyofg.co.jp',
-    phone: '+81-3-1234-5678',
-  },
-  technical: {
-    explorerUrl: 'https://explorer.tokyofg.co.jp',
-    apiEndpoint: 'https://api.tokyofg.co.jp/qs',
-    version: 'v2.4.1',
-    lastUpdate: '2026-01-20',
-  },
-  compliance: {
-    explorerPublic: true,
-    auditReportSubmitted: true,
-    lastAuditDate: '2025-12-15',
-    designSystemCompliant: true,
-  },
-  nodes: {
-    provers: [
-      { id: 'prover-1', status: 'online', uptime: 99.8, lastActive: '2026-01-24T14:30:00Z' },
-      { id: 'prover-2', status: 'online', uptime: 99.9, lastActive: '2026-01-24T14:28:00Z' },
-      { id: 'prover-3', status: 'online', uptime: 99.7, lastActive: '2026-01-24T14:29:00Z' },
-      { id: 'prover-4', status: 'warning', uptime: 98.5, lastActive: '2026-01-24T14:00:00Z' },
-      { id: 'prover-5', status: 'online', uptime: 99.6, lastActive: '2026-01-24T14:25:00Z' },
-    ],
-    observers: [
-      { id: 'observer-1', status: 'online', challenges: 3, lastActive: '2026-01-24T14:30:00Z' },
-      { id: 'observer-2', status: 'online', challenges: 1, lastActive: '2026-01-24T14:28:00Z' },
-      { id: 'observer-3', status: 'offline', challenges: 0, lastActive: '2026-01-23T10:00:00Z' },
-    ],
-  },
-  recentActivity: [
-    { type: 'sync', message: 'Protocol version synced to v2.4.1', date: '2026-01-20' },
-    { type: 'audit', message: 'Quarterly audit report submitted', date: '2025-12-15' },
-    { type: 'support', message: 'Support ticket #1234 resolved', date: '2025-12-10' },
-    { type: 'node', message: 'Prover node prover-5 added', date: '2025-11-01' },
-  ],
-};
 
 type Tab = 'overview' | 'nodes' | 'compliance' | 'activity';
 
@@ -88,7 +37,31 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
   const t = useTranslations('admin.licenseeDetail');
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  const licensee = FALLBACK_LICENSEE;
+  // Fetch licensee detail from API
+  const { data: licensee, isLoading, error } = useLicenseeDetail(licenseeId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-foreground-secondary">{t('loading')}</div>
+      </div>
+    );
+  }
+
+  if (error || !licensee) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <AlertTriangle className="h-12 w-12 text-danger" />
+        <div className="text-foreground-secondary">{error?.message ?? t('notFound')}</div>
+        <Link href="/admin/licensees">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t('backToLicensees')}
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'overview', label: t('tabs.overview'), icon: Building2 },
@@ -232,17 +205,17 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-foreground-tertiary">{t('contact.name')}</span>
-                <span>{licensee.contact.name}</span>
+                <span>{licensee.contact?.name ?? '-'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground-tertiary">{t('contact.email')}</span>
-                <a href={`mailto:${licensee.contact.email}`} className="text-gold hover:underline">
-                  {licensee.contact.email}
+                <a href={`mailto:${licensee.contact?.email ?? ''}`} className="text-gold hover:underline">
+                  {licensee.contact?.email ?? '-'}
                 </a>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground-tertiary">{t('contact.phone')}</span>
-                <span>{licensee.contact.phone}</span>
+                <span>{licensee.contact?.phone ?? '-'}</span>
               </div>
             </CardContent>
           </Card>
@@ -257,7 +230,7 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
                 <div className="rounded-lg bg-surface p-4">
                   <div className="text-sm text-foreground-tertiary">{t('technical.explorer')}</div>
                   <a
-                    href={licensee.technical.explorerUrl}
+                    href={licensee.technical?.explorerUrl ?? '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-1 flex items-center gap-1 text-gold hover:underline"
@@ -268,15 +241,15 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
                 </div>
                 <div className="rounded-lg bg-surface p-4">
                   <div className="text-sm text-foreground-tertiary">{t('technical.version')}</div>
-                  <div className="mt-1 font-mono">{licensee.technical.version}</div>
+                  <div className="mt-1 font-mono">{licensee.technical?.version ?? '-'}</div>
                 </div>
                 <div className="rounded-lg bg-surface p-4">
                   <div className="text-sm text-foreground-tertiary">{t('technical.lastUpdate')}</div>
-                  <div className="mt-1">{licensee.technical.lastUpdate}</div>
+                  <div className="mt-1">{licensee.technical?.lastUpdate ?? '-'}</div>
                 </div>
                 <div className="rounded-lg bg-surface p-4">
                   <div className="text-sm text-foreground-tertiary">{t('technical.lastSync')}</div>
-                  <div className="mt-1">{new Date(licensee.lastSyncDate).toLocaleString()}</div>
+                  <div className="mt-1">{licensee.lastSyncDate ? new Date(licensee.lastSyncDate).toLocaleString() : '-'}</div>
                 </div>
               </div>
             </CardContent>
@@ -291,12 +264,12 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Server className="h-5 w-5 text-gold" />
-                {t('nodes.provers')} ({licensee.nodes.provers.length})
+                {t('nodes.provers')} ({licensee.nodes?.provers?.length ?? 0})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {licensee.nodes.provers.map((node) => (
+                {(licensee.nodes?.provers ?? []).map((node) => (
                   <div
                     key={node.id}
                     className="flex items-center justify-between rounded-lg bg-surface p-4"
@@ -334,12 +307,12 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Eye className="h-5 w-5 text-gold" />
-                {t('nodes.observers')} ({licensee.nodes.observers.length})
+                {t('nodes.observers')} ({licensee.nodes?.observers?.length ?? 0})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {licensee.nodes.observers.map((node) => (
+                {(licensee.nodes?.observers ?? []).map((node) => (
                   <div
                     key={node.id}
                     className="flex items-center justify-between rounded-lg bg-surface p-4"
@@ -384,7 +357,7 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
                     {t('compliance.explorerPublicDesc')}
                   </div>
                 </div>
-                {licensee.compliance.explorerPublic ? (
+                {licensee.compliance?.explorerPublic ? (
                   <CheckCircle2 className="h-5 w-5 text-success" />
                 ) : (
                   <AlertTriangle className="h-5 w-5 text-danger" />
@@ -394,10 +367,10 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
                 <div>
                   <div className="font-medium">{t('compliance.auditReport')}</div>
                   <div className="text-sm text-foreground-tertiary">
-                    {t('compliance.lastAudit')}: {licensee.compliance.lastAuditDate}
+                    {t('compliance.lastAudit')}: {licensee.compliance?.lastAuditDate ?? '-'}
                   </div>
                 </div>
-                {licensee.compliance.auditReportSubmitted ? (
+                {licensee.compliance?.auditReportSubmitted ? (
                   <CheckCircle2 className="h-5 w-5 text-success" />
                 ) : (
                   <AlertTriangle className="h-5 w-5 text-danger" />
@@ -410,7 +383,7 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
                     {t('compliance.designSystemDesc')}
                   </div>
                 </div>
-                {licensee.compliance.designSystemCompliant ? (
+                {licensee.compliance?.designSystemCompliant ? (
                   <CheckCircle2 className="h-5 w-5 text-success" />
                 ) : (
                   <AlertTriangle className="h-5 w-5 text-danger" />
@@ -428,7 +401,7 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {licensee.recentActivity.map((activity, index) => (
+              {(licensee.recentActivity ?? []).map((activity, index) => (
                 <div
                   key={index}
                   className="flex items-start gap-4 border-l-2 border-gold/30 pl-4"

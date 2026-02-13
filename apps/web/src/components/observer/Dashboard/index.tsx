@@ -20,38 +20,31 @@ import {
   useActiveChallenges,
 } from '@/hooks/observer';
 
-// Empty initial state (no fake data)
-const FALLBACK_OBSERVER_DATA = {
-  registrationDate: new Date().toISOString().split('T')[0],
-  practicePeriodMonths: 3,
-};
-const FALLBACK_PENDING_UNLOCKS: { id: string; address: string; amount: string; type: 'normal' | 'emergency'; timeRemaining: string; riskScore: number; status: 'monitoring' | 'pending' }[] = [];
-const FALLBACK_SUSPICIOUS: { id: string; address: string; amount: string; type: 'normal' | 'emergency'; riskLevel: 'high' | 'medium' | 'low'; score: number; reason: string }[] = [];
-const FALLBACK_CHALLENGES: { id: string; challengeId: string; targetAddress: string; amount: string; status: 'defense' | 'judgment' | 'pending'; countdown: string; progress: number }[] = [];
-
 export function ObserverDashboard() {
   const t = useTranslations('observer.dashboard');
   const [showPracticeBanner, setShowPracticeBanner] = useState(true);
 
-  // Fetch data using hooks
-  const { data: observerDataApi } = useObserverData();
-  const { data: dashboardApi } = useObserverDashboard();
-  const { data: pendingUnlocksApi } = usePendingUnlocks();
-  const { data: suspiciousApi } = useSuspiciousTransactions();
-  const { data: activeChallengesApi } = useActiveChallenges();
+  // Fetch data using hooks (with loading/error states)
+  const { data: observerData, isLoading: isLoadingObserver } = useObserverData();
+  const { data: dashboardApi, isLoading: isLoadingDashboard } = useObserverDashboard();
+  const { data: pendingUnlocksApi, isLoading: isLoadingPending } = usePendingUnlocks();
+  const { data: suspiciousApi, isLoading: isLoadingSuspicious } = useSuspiciousTransactions();
+  const { data: activeChallengesApi, isLoading: isLoadingChallenges } = useActiveChallenges();
 
-  // Use API data with fallback
-  const observerData = observerDataApi ?? FALLBACK_OBSERVER_DATA;
-  const pendingUnlocks = pendingUnlocksApi?.items ?? FALLBACK_PENDING_UNLOCKS;
-  const suspiciousTransactions = suspiciousApi ?? FALLBACK_SUSPICIOUS;
-  const activeChallenges = activeChallengesApi ?? FALLBACK_CHALLENGES;
+  // Use API data directly (no silent fallbacks)
+  const pendingUnlocks = pendingUnlocksApi?.items ?? [];
+  const suspiciousTransactions = suspiciousApi ?? [];
+  const activeChallenges = activeChallengesApi ?? [];
 
   // Calculate practice mode from observer data
   const { isInPracticePeriod, daysRemaining } = useMemo(() => {
+    if (!observerData?.registrationDate) {
+      return { isInPracticePeriod: false, daysRemaining: 0, practiceEndDate: new Date() };
+    }
     const now = new Date();
     const registrationDate = new Date(observerData.registrationDate);
     const practiceEndDate = new Date(registrationDate);
-    practiceEndDate.setMonth(practiceEndDate.getMonth() + observerData.practicePeriodMonths);
+    practiceEndDate.setMonth(practiceEndDate.getMonth() + (observerData.practicePeriodMonths ?? 3));
 
     const isInPractice = now < practiceEndDate;
     const days = Math.ceil((practiceEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -208,7 +201,7 @@ export function ObserverDashboard() {
             />
             <ActiveChallengesSidebar challenges={activeChallenges} />
             <ObserverStakeSidebar
-              stakeAmount={observerData && 'stakeAmount' in observerData ? (observerData as { stakeAmount: string }).stakeAmount : '0 ETH'}
+              stakeAmount={observerData?.stakeAmount ?? '0 ETH'}
               activeSince={observerData?.registrationDate ?? '-'}
             />
           </div>

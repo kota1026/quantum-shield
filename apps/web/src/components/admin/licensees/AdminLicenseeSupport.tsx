@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useLicenseeTickets, useLicenseeTicketMessages } from '@/hooks/admin/useLicensees';
 
 interface LicenseeSupportProps {
   licenseeId: string;
@@ -27,79 +28,6 @@ interface LicenseeSupportProps {
 
 type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
-
-interface Ticket {
-  id: string;
-  subject: string;
-  status: TicketStatus;
-  priority: TicketPriority;
-  createdAt: string;
-  updatedAt: string;
-  assignee: string;
-}
-
-interface Message {
-  id: string;
-  sender: 'licensee' | 'support';
-  senderName: string;
-  content: string;
-  timestamp: string;
-  attachments?: string[];
-}
-
-// Demo data
-const FALLBACK_TICKETS: Ticket[] = [
-  {
-    id: 'tkt-001',
-    subject: 'Prover node sync issue after v2.4.1 update',
-    status: 'open',
-    priority: 'high',
-    createdAt: '2026-01-24T10:00:00Z',
-    updatedAt: '2026-01-24T14:30:00Z',
-    assignee: 'Support Team',
-  },
-  {
-    id: 'tkt-002',
-    subject: 'Question about audit report format',
-    status: 'in_progress',
-    priority: 'medium',
-    createdAt: '2026-01-20T09:00:00Z',
-    updatedAt: '2026-01-22T11:00:00Z',
-    assignee: 'Takahashi',
-  },
-];
-
-const FALLBACK_MESSAGES: Message[] = [
-  {
-    id: 'msg-001',
-    sender: 'licensee',
-    senderName: 'Yamamoto Kenji',
-    content: 'After updating to v2.4.1, one of our prover nodes is not syncing properly. The node shows "pending" status for over 2 hours.',
-    timestamp: '2026-01-24T10:00:00Z',
-  },
-  {
-    id: 'msg-002',
-    sender: 'support',
-    senderName: 'Support Team',
-    content: 'Thank you for reporting this issue. We are investigating. Could you please share the node ID and the log output from the last sync attempt?',
-    timestamp: '2026-01-24T10:15:00Z',
-  },
-  {
-    id: 'msg-003',
-    sender: 'licensee',
-    senderName: 'Yamamoto Kenji',
-    content: 'The node ID is prover-4. I\'ve attached the log file.',
-    timestamp: '2026-01-24T10:30:00Z',
-    attachments: ['prover-4-sync.log'],
-  },
-  {
-    id: 'msg-004',
-    sender: 'support',
-    senderName: 'Support Team',
-    content: 'We found the issue. There\'s a configuration mismatch in the new version. Please update your config file with the following settings and restart the node.',
-    timestamp: '2026-01-24T14:30:00Z',
-  },
-];
 
 function StatusBadge({ status }: { status: TicketStatus }) {
   const t = useTranslations('admin.licenseeSupport');
@@ -140,10 +68,21 @@ function PriorityBadge({ priority }: { priority: TicketPriority }) {
 
 export function AdminLicenseeSupport({ licenseeId }: LicenseeSupportProps) {
   const t = useTranslations('admin.licenseeSupport');
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(FALLBACK_TICKETS[0]?.id || null);
+  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
 
-  const currentTicket = FALLBACK_TICKETS.find((t) => t.id === selectedTicket);
+  // Fetch tickets and messages from API
+  const { data: ticketsData, isLoading: isLoadingTickets, error: ticketsError } = useLicenseeTickets(licenseeId);
+  const { data: messages, isLoading: isLoadingMessages } = useLicenseeTicketMessages(licenseeId, selectedTicket ?? '');
+
+  const tickets = ticketsData?.tickets ?? [];
+
+  // Auto-select first ticket when data loads
+  if (tickets.length > 0 && selectedTicket === null) {
+    setSelectedTicket(tickets[0].id);
+  }
+
+  const currentTicket = tickets.find((t) => t.id === selectedTicket);
 
   return (
     <div className="space-y-6">
@@ -187,7 +126,12 @@ export function AdminLicenseeSupport({ licenseeId }: LicenseeSupportProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 p-2">
-            {FALLBACK_TICKETS.map((ticket) => (
+            {tickets.length === 0 && !isLoadingTickets && (
+              <div className="py-8 text-center text-sm text-foreground-tertiary">
+                {t('empty.title')}
+              </div>
+            )}
+            {tickets.map((ticket) => (
               <button
                 key={ticket.id}
                 onClick={() => setSelectedTicket(ticket.id)}
@@ -242,7 +186,12 @@ export function AdminLicenseeSupport({ licenseeId }: LicenseeSupportProps) {
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto p-4">
               <div className="space-y-4">
-                {FALLBACK_MESSAGES.map((message) => (
+                {(messages ?? []).length === 0 && !isLoadingMessages && (
+                  <div className="py-8 text-center text-sm text-foreground-tertiary">
+                    {t('noMessages')}
+                  </div>
+                )}
+                {(messages ?? []).map((message) => (
                   <div
                     key={message.id}
                     className={cn(

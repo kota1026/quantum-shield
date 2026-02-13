@@ -40,19 +40,6 @@ import { useAccount, useDisconnect } from 'wagmi';
 // Application type: public or enterprise (via invitation)
 type ApplicationType = 'public' | 'enterprise';
 
-// Empty initial state (no fake data)
-const FALLBACK_INVITATION = {
-  code: '',
-  operatorName: '-',
-  plan: '-',
-  expiresAt: '-',
-  benefits: {
-    managedInfrastructure: false,
-    dedicatedSupport: false,
-    slaGuarantee: '-',
-    minRevenue: '-',
-  },
-};
 
 interface FormData {
   // Step 1: Basic Info
@@ -102,7 +89,19 @@ const initialFormData: FormData = {
   stakeConfirmed: false,
 };
 
-// Invitation data (use fallback for demo)
+// Verified invitation data from API
+interface VerifiedInvitation {
+  code: string;
+  operatorName: string;
+  plan: string;
+  expiresAt: string;
+  benefits: {
+    managedInfrastructure: boolean;
+    dedicatedSupport: boolean;
+    slaGuarantee: string;
+    minRevenue: string;
+  };
+}
 
 export function ProverApplication() {
   const t = useTranslations('prover');
@@ -113,6 +112,7 @@ export function ProverApplication() {
   const [invitationCode, setInvitationCode] = useState('');
   const [invitationVerified, setInvitationVerified] = useState(false);
   const [invitationError, setInvitationError] = useState(false);
+  const [verifiedInvitation, setVerifiedInvitation] = useState<VerifiedInvitation | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -142,19 +142,24 @@ export function ProverApplication() {
     if (code) {
       setApplicationType('enterprise');
       setInvitationCode(code);
-      // Auto-verify if matches mock
-      if (code === FALLBACK_INVITATION.code) {
-        setInvitationVerified(true);
-      }
     }
   }, [searchParams]);
 
-  const verifyInvitation = () => {
-    // Mock verification - in production, this would call an API
-    if (invitationCode === FALLBACK_INVITATION.code) {
-      setInvitationVerified(true);
-      setInvitationError(false);
-    } else {
+  // Invitation verification via API hook
+  const verifyInvitationMutation = useVerifyInvitation();
+
+  const verifyInvitation = async () => {
+    try {
+      const result = await verifyInvitationMutation.mutateAsync(invitationCode);
+      if (result) {
+        setVerifiedInvitation(result as VerifiedInvitation);
+        setInvitationVerified(true);
+        setInvitationError(false);
+      } else {
+        setInvitationError(true);
+        setInvitationVerified(false);
+      }
+    } catch {
       setInvitationError(true);
       setInvitationVerified(false);
     }
@@ -704,11 +709,11 @@ export function ProverApplication() {
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{t('application.enterprise.verified.title')}</span>
                   <Badge variant="gold" className="text-[10px]">
-                    {FALLBACK_INVITATION.plan}
+                    {verifiedInvitation?.plan ?? t('application.enterprise.verified.unknownPlan')}
                   </Badge>
                 </div>
                 <div className="text-sm text-foreground-secondary">
-                  {t('application.enterprise.verified.operator')}: {FALLBACK_INVITATION.operatorName}
+                  {t('application.enterprise.verified.operator')}: {verifiedInvitation?.operatorName ?? '-'}
                 </div>
               </div>
             </div>
@@ -725,11 +730,11 @@ export function ProverApplication() {
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Shield className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
-                <span>SLA {FALLBACK_INVITATION.benefits.slaGuarantee}</span>
+                <span>SLA {verifiedInvitation?.benefits?.slaGuarantee ?? '-'}</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Gift className="h-3.5 w-3.5 text-success" aria-hidden="true" />
-                <span>{t('application.enterprise.verified.minRevenue')}: {FALLBACK_INVITATION.benefits.minRevenue}</span>
+                <span>{t('application.enterprise.verified.minRevenue')}: {verifiedInvitation?.benefits?.minRevenue ?? '-'}</span>
               </div>
             </div>
           </Card>

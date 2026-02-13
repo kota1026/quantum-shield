@@ -21,11 +21,13 @@ use std::sync::Arc;
 use axum::{Extension, Json};
 use sha3::{Digest, Sha3_256};
 
+use axum::extract::Path;
+
 use crate::{
     crypto::verify_ml_dsa_65_signature,
     error::ApiError,
     services::{AppState, SmtService},
-    types::{LockRequest, LockResponse, LockStatus},
+    types::{LockRequest, LockResponse, LockConfirmRequest, LockConfirmResponse, LockStatus},
 };
 
 /// POST /v1/lock
@@ -105,6 +107,74 @@ pub async fn create_lock(
         sr_0,
         smt_proof,
         status: LockStatus::Pending,
+    }))
+}
+
+/// POST /v1/lock/:lock_id/confirm
+///
+/// Confirm a lock after L1 transaction succeeds.
+/// Called by frontend after lockWithSR0 TX is confirmed on Sepolia.
+///
+/// Updates:
+/// - locks.l1_tx_hash = provided tx hash
+/// - locks.status = "confirmed"
+/// - locks.confirmed_at = NOW()
+///
+/// ## BE Rules Compliance
+/// - BE-001: Real PG update (no stubs)
+/// - BE-003: Full logging
+pub async fn confirm_lock(
+    Extension(state): Extension<Arc<AppState>>,
+    Path(lock_id): Path<String>,
+    Json(req): Json<LockConfirmRequest>,
+) -> Result<Json<LockConfirmResponse>, ApiError> {
+    tracing::info!(
+        "Processing lock confirmation: lock_id={}, l1_tx_hash={}",
+        lock_id, req.l1_tx_hash
+    );
+
+    // 1. Validate tx hash format (must be 0x + 64 hex chars)
+    if !req.l1_tx_hash.starts_with("0x") || req.l1_tx_hash.len() != 66 {
+        return Err(ApiError::BadRequest(
+            "Invalid L1 transaction hash format".into(),
+        ));
+    }
+
+    // 2. Verify lock exists and is in pending status
+    let lock = state.get_lock(&lock_id).await?;
+    match lock {
+        None => {
+            return Err(ApiError::NotFound(format!("Lock {} not found", lock_id)));
+        }
+        Some(ref l) if l.status != LockStatus::Pending => {
+            tracing::warn!(
+                "Lock {} is not in pending status (current: {:?}), skipping confirm",
+                lock_id, l.status
+            );
+            // Return current state without error (idempotent)
+            return Ok(Json(LockConfirmResponse {
+                lock_id: lock_id.clone(),
+                status: l.status.clone(),
+                l1_tx_hash: req.l1_tx_hash.clone(),
+            }));
+        }
+        _ => {}
+    }
+
+    // 3. Update l1_tx_hash in PG
+    crate::db::LockRepository::update_l1_tx_hash(
+        state.pool(), &lock_id, &req.l1_tx_hash,
+    ).await?;
+    tracing::info!("PG: lock {} l1_tx_hash updated to {}", lock_id, req.l1_tx_hash);
+
+    // 4. Update status to confirmed
+    state.update_lock_status(&lock_id, LockStatus::Confirmed, None).await?;
+    tracing::info!("Lock {} confirmed with L1 tx {}", lock_id, req.l1_tx_hash);
+
+    Ok(Json(LockConfirmResponse {
+        lock_id,
+        status: LockStatus::Confirmed,
+        l1_tx_hash: req.l1_tx_hash,
     }))
 }
 

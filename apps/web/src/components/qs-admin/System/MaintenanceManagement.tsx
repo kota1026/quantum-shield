@@ -16,14 +16,6 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_MAINTENANCE = [
-  { id: 1, title: 'Database Optimization', description: 'Routine database maintenance and index optimization', status: 'scheduled', scheduledFor: '2024-01-30 02:00', duration: '2 hours' },
-  { id: 2, title: 'Security Patch Deployment', description: 'Apply latest security patches to all services', status: 'scheduled', scheduledFor: '2024-02-01 03:00', duration: '1 hour' },
-  { id: 3, title: 'API Server Upgrade', description: 'Upgrade API server to v2.5.0', status: 'completed', scheduledFor: '2024-01-15 02:00', duration: '3 hours' },
-  { id: 4, title: 'Network Infrastructure Update', description: 'Update network configuration for improved performance', status: 'completed', scheduledFor: '2024-01-10 01:00', duration: '4 hours' },
-  { id: 5, title: 'Certificate Renewal', description: 'Renew SSL certificates', status: 'completed', scheduledFor: '2024-01-05 00:00', duration: '30 minutes' },
-];
-
 const STATUS_COLORS = {
   scheduled: 'bg-info/10 text-info border-info/20',
   inProgress: 'bg-warning/10 text-warning border-warning/20',
@@ -40,8 +32,10 @@ export function MaintenanceManagement() {
   const t = useTranslations('qsAdmin.system');
   const tCommon = useTranslations('qsAdmin.common');
 
-  const scheduledMaintenance = FALLBACK_MAINTENANCE.filter(m => m.status === 'scheduled');
-  const completedMaintenance = FALLBACK_MAINTENANCE.filter(m => m.status === 'completed');
+  const maintenanceItems: { id: number; title: string; description: string; status: string; scheduledFor: string; duration: string }[] = [];
+
+  const scheduledMaintenance = maintenanceItems.filter(m => m.status === 'scheduled');
+  const completedMaintenance = maintenanceItems.filter(m => m.status === 'completed');
 
   return (
     <div className="space-y-6">

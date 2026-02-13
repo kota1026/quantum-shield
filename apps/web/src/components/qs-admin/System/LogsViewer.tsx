@@ -16,17 +16,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_LOGS = [
-  { id: 1, timestamp: '2024-01-27 14:32:15', level: 'info', source: 'API', message: 'User login successful: 0x1234...5678' },
-  { id: 2, timestamp: '2024-01-27 14:32:10', level: 'debug', source: 'DB', message: 'Query executed in 12ms: SELECT * FROM locks' },
-  { id: 3, timestamp: '2024-01-27 14:31:58', level: 'warning', source: 'Prover', message: 'Node #12 response time exceeded threshold' },
-  { id: 4, timestamp: '2024-01-27 14:31:45', level: 'info', source: 'API', message: 'Lock transaction initiated: TX-4521' },
-  { id: 5, timestamp: '2024-01-27 14:31:30', level: 'info', source: 'Observer', message: 'Challenge verified successfully: CH-892' },
-  { id: 6, timestamp: '2024-01-27 14:31:15', level: 'critical', source: 'RPC', message: 'Connection timeout to blockchain RPC' },
-  { id: 7, timestamp: '2024-01-27 14:31:00', level: 'info', source: 'System', message: 'Scheduled job completed: daily_report' },
-  { id: 8, timestamp: '2024-01-27 14:30:45', level: 'debug', source: 'Cache', message: 'Cache hit ratio: 94.5%' },
-];
-
 const LEVEL_COLORS = {
   critical: 'text-danger',
   warning: 'text-warning',
@@ -48,7 +37,9 @@ export function LogsViewer() {
     { key: 'debug', label: t('levels.debug') },
   ];
 
-  const filteredLogs = FALLBACK_LOGS.filter(log => {
+  const logs: { id: number; timestamp: string; level: string; source: string; message: string }[] = [];
+
+  const filteredLogs = logs.filter(log => {
     if (levelFilter !== 'all' && log.level !== levelFilter) return false;
     if (searchQuery && !log.message.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !log.source.toLowerCase().includes(searchQuery.toLowerCase())) return false;

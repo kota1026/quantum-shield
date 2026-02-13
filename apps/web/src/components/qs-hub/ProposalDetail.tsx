@@ -18,54 +18,19 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useProposalDetail } from '@/hooks/qs-hub/useQSHub';
 
 interface ProposalDetailProps {
   proposalId: string;
 }
 
-// Demo data
-const FALLBACK_PROPOSAL = {
-  id: 'QIP-47',
-  title: 'Increase Prover Rewards by 10%',
-  status: 'active' as const,
-  proposer: {
-    name: 'Quantum Foundation',
-    address: '0x1234...5678',
-  },
-  createdAt: '2024-01-20',
-  endTime: '2d 14h',
-  description: `## Summary
-This proposal aims to increase the rewards allocated to Provers by 10% to incentivize more participation in the network.
 
-## Motivation
-The current reward structure has led to a decrease in active Provers. This adjustment will help maintain network security and decentralization.
-
-## Specification
-- Increase base Prover rewards from 0.01 ETH to 0.011 ETH per signature
-- Adjust tier multipliers proportionally
-- Implementation timeline: Immediately upon passing
-
-## Rationale
-Historical data shows that reward adjustments correlate positively with Prover participation rates.`,
-  votes: {
-    for: 2450000,
-    against: 890000,
-    quorum: 3000000,
-    total: 3340000,
-  },
-  timeline: [
-    { event: 'Created', date: '2024-01-20 14:30', status: 'done' },
-    { event: 'Voting Started', date: '2024-01-21 00:00', status: 'done' },
-    { event: 'Voting Ends', date: '2024-01-28 00:00', status: 'pending' },
-    { event: 'Execution', date: '2024-01-30 00:00', status: 'pending' },
-  ],
-};
-
-const statusColors = {
+const statusColors: Record<string, string> = {
   active: 'bg-success/10 text-success border-success/30',
   pending: 'bg-warning/10 text-warning border-warning/30',
   passed: 'bg-gold/10 text-gold border-gold/30',
   rejected: 'bg-danger/10 text-danger border-danger/30',
+  executed: 'bg-success/10 text-success border-success/30',
 };
 
 export function ProposalDetail({ proposalId }: ProposalDetailProps) {
@@ -74,10 +39,21 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   const [hasVoted, setHasVoted] = useState(false);
   const [selectedVote, setSelectedVote] = useState<'for' | 'against' | null>(null);
 
-  const proposal = FALLBACK_PROPOSAL;
-  const forPercentage = Math.round((proposal.votes.for / proposal.votes.total) * 100);
-  const againstPercentage = 100 - forPercentage;
-  const quorumPercentage = Math.round((proposal.votes.total / proposal.votes.quorum) * 100);
+  // Fetch proposal from API
+  const { data: proposal, isLoading, error } = useProposalDetail(proposalId);
+
+  const votesTotal = proposal?.votes ? (proposal.votes.total ?? (proposal.votes.for + proposal.votes.against)) : 0;
+  const forPercentage = votesTotal ? Math.round((proposal!.votes.for / votesTotal) * 100) : 0;
+  const againstPercentage = proposal ? 100 - forPercentage : 0;
+  const quorumPercentage = proposal?.votes?.quorum ? Math.round((votesTotal / proposal.votes.quorum) * 100) : 0;
+
+  // Helper to get proposer info (can be string or object)
+  const proposerAddress = proposal?.proposer
+    ? typeof proposal.proposer === 'string' ? proposal.proposer : proposal.proposer.address
+    : '';
+  const proposerName = proposal?.proposer
+    ? typeof proposal.proposer === 'string' ? proposal.proposer : proposal.proposer.name
+    : '';
 
   const handleVote = (vote: 'for' | 'against') => {
     setSelectedVote(vote);
@@ -124,7 +100,26 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
           </div>
         </header>
 
-        {/* Proposal Header */}
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-16">
+            <div className="w-12 h-12 border-4 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-foreground-secondary">{t('loading')}</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-16">
+            <p className="text-warning mb-4">{t('error')}</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              {t('retry')}
+            </Button>
+          </div>
+        )}
+
+        {/* Proposal Content */}
+        {proposal && (<>
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-sm font-mono text-foreground-tertiary">{proposal.id}</span>
@@ -137,7 +132,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               <span>{t('proposedBy')}</span>
-              <span className="font-mono text-foreground">{proposal.proposer.address}</span>
+              <span className="font-mono text-foreground">{proposerAddress}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -160,10 +155,11 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
             </Card>
 
             {/* Timeline */}
+            {proposal.timeline && proposal.timeline.length > 0 && (
             <Card className="p-6">
               <h2 className="font-semibold mb-4">{t('timeline.title')}</h2>
               <div className="space-y-4">
-                {proposal.timeline.map((item, index) => (
+                {proposal.timeline.map((item: { event: string; date: string; status: string }, index: number) => (
                   <div key={index} className="flex items-start gap-4">
                     <div
                       className={cn(
@@ -185,6 +181,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                 ))}
               </div>
             </Card>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -285,9 +282,9 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                   <span className="text-gold font-bold">Q</span>
                 </div>
                 <div>
-                  <div className="font-medium">{proposal.proposer.name}</div>
+                  <div className="font-medium">{proposerName}</div>
                   <div className="text-xs font-mono text-foreground-tertiary">
-                    {proposal.proposer.address}
+                    {proposerAddress}
                   </div>
                 </div>
               </div>
@@ -298,6 +295,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
             </Card>
           </div>
         </div>
+        </>)}
       </main>
     </div>
   );

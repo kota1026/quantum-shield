@@ -9,7 +9,6 @@ import {
   Radio,
   Server,
   Settings,
-  Building2,
   Users,
   User,
   BarChart3,
@@ -82,12 +81,7 @@ export function AdminSidebar() {
           labelKey: 'nav.parameters',
           icon: <Settings className="h-5 w-5" aria-hidden="true" />,
         },
-        {
-          href: '/admin/enterprise',
-          labelKey: 'nav.enterprise',
-          icon: <Building2 className="h-5 w-5" aria-hidden="true" />,
-        },
-        {
+{
           href: '/admin/community',
           labelKey: 'nav.community',
           icon: <Users className="h-5 w-5" aria-hidden="true" />,

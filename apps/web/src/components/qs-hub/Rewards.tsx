@@ -6,12 +6,9 @@ import { Link } from '@/i18n/navigation';
 import {
   ArrowLeft,
   Gift,
-  Coins,
-  TrendingUp,
   Clock,
   CheckCircle2,
   Loader2,
-  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
@@ -19,81 +16,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQSHubRewards } from '@/hooks/qs-hub/useQSHub';
 
-// Demo data (kept for fallback with extended structure)
-const FALLBACK_REWARDS = {
-  claimable: 0.85,
-  pending: 0.32,
-  totalClaimed: 12.45,
-  nextEpoch: '2d 14h',
-};
-
-const FALLBACK_HISTORY = [
-  {
-    id: '1',
-    type: 'protocol_fee' as const,
-    amount: 0.25,
-    status: 'claimable' as const,
-    epoch: 'Epoch 47',
-    date: '2024-01-21',
-  },
-  {
-    id: '2',
-    type: 'voting_reward' as const,
-    amount: 0.35,
-    status: 'claimable' as const,
-    epoch: 'Epoch 47',
-    date: '2024-01-21',
-  },
-  {
-    id: '3',
-    type: 'staking_bonus' as const,
-    amount: 0.25,
-    status: 'claimable' as const,
-    epoch: 'Epoch 47',
-    date: '2024-01-21',
-  },
-  {
-    id: '4',
-    type: 'protocol_fee' as const,
-    amount: 0.42,
-    status: 'claimed' as const,
-    epoch: 'Epoch 46',
-    date: '2024-01-14',
-    txHash: '0x1234...5678',
-  },
-  {
-    id: '5',
-    type: 'voting_reward' as const,
-    amount: 0.55,
-    status: 'claimed' as const,
-    epoch: 'Epoch 46',
-    date: '2024-01-14',
-    txHash: '0x1234...5678',
-  },
-];
-
-const typeIcons = {
-  protocol_fee: Coins,
-  voting_reward: Gift,
-  staking_bonus: TrendingUp,
-};
-
-const typeColors = {
-  protocol_fee: 'bg-gold/10 text-gold',
-  voting_reward: 'bg-success/10 text-success',
-  staking_bonus: 'bg-hinomaru/10 text-hinomaru',
-};
-
 export function QSHubRewards() {
   const t = useTranslations('qs-hub.rewards');
   const tCommon = useTranslations('qs-hub.common');
   const [isClaiming, setIsClaiming] = useState(false);
   const [claimSuccess, setClaimSuccess] = useState(false);
 
-  // Fetch rewards from API with fallback
-  const { data: rewardsApi } = useQSHubRewards();
-  // Use local data as fallback (has extended structure)
-  const rewards = rewardsApi ?? FALLBACK_REWARDS;
+  // Fetch rewards from API
+  const { data: rewards, isLoading: rewardsLoading, error: rewardsError } = useQSHubRewards();
 
   const handleClaim = async () => {
     setIsClaiming(true);
@@ -154,45 +84,53 @@ export function QSHubRewards() {
 
         {/* Stats */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8" aria-label={t('stats.ariaLabel')}>
-          <Card className="p-5 border-gold/30 bg-gradient-to-br from-gold/5 to-transparent">
-            <div className="text-xs text-foreground-tertiary mb-1">{t('stats.claimable')}</div>
-            <div className="text-2xl font-bold text-gold">{FALLBACK_REWARDS.claimable} ETH</div>
-          </Card>
-          <Card className="p-5">
-            <div className="text-xs text-foreground-tertiary mb-1">{t('stats.pending')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_REWARDS.pending} ETH</div>
-            <div className="text-xs text-foreground-tertiary mt-1">
-              {t('stats.nextEpoch', { time: FALLBACK_REWARDS.nextEpoch })}
-            </div>
-          </Card>
-          <Card className="p-5">
-            <div className="text-xs text-foreground-tertiary mb-1">{t('stats.totalClaimed')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_REWARDS.totalClaimed} ETH</div>
-          </Card>
-          <Card className="p-5 flex flex-col justify-center">
-            {claimSuccess ? (
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle2 className="w-5 h-5" />
-                <span className="font-medium">{t('claim.success')}</span>
-              </div>
-            ) : (
-              <Button
-                variant="primary"
-                onClick={handleClaim}
-                disabled={isClaiming || FALLBACK_REWARDS.claimable === 0}
-                className="w-full"
-              >
-                {isClaiming ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t('claim.claiming')}
-                  </>
+          {rewardsLoading ? (
+            <div className="col-span-full text-center py-8 text-foreground-tertiary">{t('loading')}</div>
+          ) : rewardsError ? (
+            <div className="col-span-full text-center py-8 text-warning">{t('error')}</div>
+          ) : (
+            <>
+              <Card className="p-5 border-gold/30 bg-gradient-to-br from-gold/5 to-transparent">
+                <div className="text-xs text-foreground-tertiary mb-1">{t('stats.claimable')}</div>
+                <div className="text-2xl font-bold text-gold">{rewards?.claimable ?? 0} ETH</div>
+              </Card>
+              <Card className="p-5">
+                <div className="text-xs text-foreground-tertiary mb-1">{t('stats.pending')}</div>
+                <div className="text-2xl font-bold">-</div>
+                <div className="text-xs text-foreground-tertiary mt-1">
+                  {t('stats.nextEpoch', { time: rewards?.nextEpoch ?? '-' })}
+                </div>
+              </Card>
+              <Card className="p-5">
+                <div className="text-xs text-foreground-tertiary mb-1">{t('stats.totalClaimed')}</div>
+                <div className="text-2xl font-bold">-</div>
+              </Card>
+              <Card className="p-5 flex flex-col justify-center">
+                {claimSuccess ? (
+                  <div className="flex items-center gap-2 text-success">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">{t('claim.success')}</span>
+                  </div>
                 ) : (
-                  t('claim.button')
+                  <Button
+                    variant="primary"
+                    onClick={handleClaim}
+                    disabled={isClaiming || (rewards?.claimable ?? 0) === 0}
+                    className="w-full"
+                  >
+                    {isClaiming ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {t('claim.claiming')}
+                      </>
+                    ) : (
+                      t('claim.button')
+                    )}
+                  </Button>
                 )}
-              </Button>
-            )}
-          </Card>
+              </Card>
+            </>
+          )}
         </section>
 
         {/* Epoch Progress */}
@@ -215,7 +153,7 @@ export function QSHubRewards() {
           </div>
           <div className="flex items-center gap-2 text-sm text-foreground-tertiary">
             <Clock className="w-4 h-4" />
-            <span>{t('epoch.endsIn', { time: FALLBACK_REWARDS.nextEpoch })}</span>
+            <span>{t('epoch.endsIn', { time: rewards?.nextEpoch ?? '-' })}</span>
           </div>
         </Card>
 
@@ -225,62 +163,8 @@ export function QSHubRewards() {
             {t('history.title')}
           </h2>
 
-          <div className="space-y-3" role="list" aria-label={t('history.listAriaLabel')}>
-            {FALLBACK_HISTORY.map((reward) => {
-              const Icon = typeIcons[reward.type];
-              return (
-                <Card
-                  key={reward.id}
-                  className="p-4 hover:border-gold/30 transition-all duration-200"
-                  role="listitem"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={cn(
-                          'w-10 h-10 rounded-full flex items-center justify-center',
-                          typeColors[reward.type]
-                        )}
-                      >
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{t(`types.${reward.type}`)}</div>
-                        <div className="text-xs text-foreground-tertiary">
-                          {reward.epoch} • {reward.date}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold">{reward.amount} ETH</div>
-                      <div className="text-xs">
-                        {reward.status === 'claimable' ? (
-                          <span className="text-gold">{t('status.claimable')}</span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-foreground-tertiary">
-                            <CheckCircle2 className="w-3 h-3" />
-                            {t('status.claimed')}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  {reward.txHash && (
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <a
-                        href={`https://etherscan.io/tx/${reward.txHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="min-h-[44px] inline-flex items-center gap-1 text-xs text-gold hover:underline"
-                      >
-                        {t('history.viewTransaction')}
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
+          <div className="text-center py-8 text-foreground-tertiary">
+            {t('history.empty')}
           </div>
         </section>
 

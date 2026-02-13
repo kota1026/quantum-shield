@@ -25,15 +25,9 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useWalletsStats, useWalletsList } from '@/hooks/admin/useUsers';
 import {
-  MOCK_WALLETS_STATS,
-  MOCK_USER_WALLETS,
   type WalletsStats,
   type UserWallet,
-} from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_STATS = MOCK_WALLETS_STATS;
-const FALLBACK_WALLETS = MOCK_USER_WALLETS;
+} from '@/lib/api/admin/types';
 
 interface StatCardProps {
   title: string;
@@ -134,8 +128,8 @@ export function UsersWallets() {
   const hasError = statsError || walletsError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const wallets = walletsData?.wallets ?? FALLBACK_WALLETS;
+  const stats = apiStats!;
+  const wallets = walletsData?.wallets ?? [];
 
   const lockFilters = [
     { key: 'all', label: t('userWallets.filters.all') },

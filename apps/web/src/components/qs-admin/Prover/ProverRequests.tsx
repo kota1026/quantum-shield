@@ -28,38 +28,8 @@ import { cn } from '@/lib/utils';
 import { useProverRequestStats, useProverRequests } from '@/hooks/admin/useProvers';
 import type { ProverApplication, ProverRequestStats } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: ProverRequestStats = {
-  pendingRequests: 8,
-  approvedThisMonth: 12,
-  rejectedThisMonth: 3,
-  avgProcessTime: '2.5 days',
-};
-
-interface FallbackRequest {
-  id: string;
-  applicant: string;
-  wallet: string;
-  stakeAmount: string;
-  tier: string;
-  submittedAt: string;
-  status: string;
-  documents: number;
-  infrastructure: string;
-  rejectionReason?: string;
-}
-
-// Union type for request items (API or fallback)
-type RequestItem = ProverApplication | FallbackRequest;
-
-const FALLBACK_REQUESTS: FallbackRequest[] = [
-  { id: 'PR-001', applicant: 'Prover Alpha Corp', wallet: '0x1234...5678', stakeAmount: '10,000 QS', tier: 'enterprise', submittedAt: '2024-01-27 10:00', status: 'pending', documents: 5, infrastructure: 'AWS Tokyo' },
-  { id: 'PR-002', applicant: 'Node Runner Ltd', wallet: '0x2345...6789', stakeAmount: '5,000 QS', tier: 'professional', submittedAt: '2024-01-26 14:30', status: 'pending', documents: 4, infrastructure: 'GCP Singapore' },
-  { id: 'PR-003', applicant: 'Quantum Nodes Inc', wallet: '0x3456...7890', stakeAmount: '10,000 QS', tier: 'enterprise', submittedAt: '2024-01-25 09:15', status: 'under_review', documents: 6, infrastructure: 'Azure Japan' },
-  { id: 'PR-004', applicant: 'Decentralized Labs', wallet: '0x4567...8901', stakeAmount: '2,500 QS', tier: 'standard', submittedAt: '2024-01-24 16:45', status: 'approved', documents: 3, infrastructure: 'Self-hosted' },
-  { id: 'PR-005', applicant: 'Crypto Infrastructure Co', wallet: '0x5678...9012', stakeAmount: '5,000 QS', tier: 'professional', submittedAt: '2024-01-23 11:30', status: 'rejected', documents: 4, infrastructure: 'AWS US-East', rejectionReason: 'Insufficient technical documentation' },
-  { id: 'PR-006', applicant: 'Shield Nodes LLC', wallet: '0x6789...0123', stakeAmount: '10,000 QS', tier: 'enterprise', submittedAt: '2024-01-27 08:00', status: 'pending', documents: 5, infrastructure: 'Bare Metal Japan' },
-];
+// Request item type from API
+type RequestItem = ProverApplication;
 
 // Loading skeleton components
 function StatCardSkeleton() {
@@ -170,9 +140,8 @@ export function ProverRequests() {
   const statsQuery = useProverRequestStats();
   const requestsQuery = useProverRequests();
 
-  // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
-  const requests: RequestItem[] = requestsQuery.data?.applications ?? FALLBACK_REQUESTS;
+  const stats = statsQuery.data;
+  const requests: RequestItem[] = requestsQuery.data?.applications ?? [];
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },
@@ -185,8 +154,8 @@ export function ProverRequests() {
   const filteredRequests: RequestItem[] = useMemo(() => {
     return requests.filter((req: RequestItem) => {
       if (statusFilter !== 'all' && req.status !== statusFilter) return false;
-      const applicant = 'applicant' in req ? req.applicant : ('organizationName' in req ? req.organizationName : '');
-      const wallet = 'wallet' in req ? req.wallet : ('applicantAddress' in req ? req.applicantAddress : '');
+      const applicant = req.organizationName ?? '';
+      const wallet = req.applicantAddress ?? '';
       if (searchQuery && !applicant.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !wallet.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !req.id.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -255,10 +224,10 @@ export function ProverRequests() {
           </div>
         ) : (
           <>
-            <StatCard title={t('stats.pendingRequests')} value={stats.pendingRequests} icon={Clock} highlight />
-            <StatCard title={t('stats.approvedThisMonth')} value={stats.approvedThisMonth} icon={CheckCircle} />
-            <StatCard title={t('stats.rejectedThisMonth')} value={stats.rejectedThisMonth} icon={XCircle} />
-            <StatCard title={t('stats.avgProcessTime')} value={stats.avgProcessTime} icon={Clock} />
+            <StatCard title={t('stats.pendingRequests')} value={stats?.pendingRequests ?? 0} icon={Clock} highlight />
+            <StatCard title={t('stats.approvedThisMonth')} value={stats?.approvedThisMonth ?? 0} icon={CheckCircle} />
+            <StatCard title={t('stats.rejectedThisMonth')} value={stats?.rejectedThisMonth ?? 0} icon={XCircle} />
+            <StatCard title={t('stats.avgProcessTime')} value={stats?.avgProcessTime ?? '-'} icon={Clock} />
           </>
         )}
       </div>
@@ -322,13 +291,13 @@ export function ProverRequests() {
                 ) : (
                   filteredRequests.map((req: RequestItem) => {
                     const StatusIcon = STATUS_ICONS[req.status as keyof typeof STATUS_ICONS] || Clock;
-                    const applicant = 'applicant' in req ? req.applicant : ('organizationName' in req ? req.organizationName : '-');
-                    const wallet = 'wallet' in req ? req.wallet : ('applicantAddress' in req ? req.applicantAddress : '-');
-                    const stakeAmount = 'stakeAmount' in req ? req.stakeAmount : '-';
+                    const applicant = req.organizationName ?? '-';
+                    const wallet = req.applicantAddress ?? '-';
+                    const stakeAmount = req.stakeAmount ?? '-';
                     const tier = req.tier || 'standard';
-                    const infrastructure = 'infrastructure' in req ? req.infrastructure : '-';
-                    const documents = 'documents' in req && typeof req.documents === 'number' ? req.documents : ('documents' in req && Array.isArray(req.documents) ? req.documents.length : 0);
-                    const submittedAt = 'submittedAt' in req && typeof req.submittedAt === 'string' ? req.submittedAt : ('submittedAt' in req && typeof req.submittedAt === 'number' ? new Date(req.submittedAt * 1000).toLocaleString('ja-JP') : '-');
+                    const infrastructure = req.infrastructure ?? '-';
+                    const documents = typeof req.documents === 'number' ? req.documents : (Array.isArray(req.documents) ? req.documents.length : 0);
+                    const submittedAt = typeof req.submittedAt === 'number' ? new Date(req.submittedAt * 1000).toLocaleString('ja-JP') : '-';
                     return (
                       <tr key={req.id} className={cn('border-b border-border hover:bg-surface transition-colors', req.status === 'pending' && 'bg-warning/5')}>
                         <td className="py-3 px-4">

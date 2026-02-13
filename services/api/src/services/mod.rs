@@ -870,15 +870,29 @@ impl AppState {
         let deadline = chrono::DateTime::from_timestamp(release_time as i64, 0)
             .unwrap_or_else(|| chrono::Utc::now());
 
+        // Generate unique queue_id per (unlock_id, prover_id) pair
+        // Previously queue_id == unlock_id, causing UNIQUE constraint failure
+        // when multiple provers were selected for the same unlock (2-of-N selection)
+        let queue_id = {
+            use sha3::{Digest, Sha3_256};
+            let mut hasher = Sha3_256::new();
+            hasher.update(b"QUEUE_ID_V1");
+            hasher.update(unlock_id.as_bytes());
+            hasher.update(selected_prover.as_bytes());
+            let result = hasher.finalize();
+            format!("0x{}", hex::encode(result))
+        };
+
         sqlx::query(
             r#"
             INSERT INTO signing_queue
                 (queue_id, unlock_id, prover_id, lock_id, unlock_type, user_address, amount, asset, sr_0, sr_1, priority, status, dilithium_verified, deadline)
             VALUES
-                ($1, $1, $2, $3, $4, $5, $6, 'ETH', $7, $8, $9, 'pending', true, $10)
+                ($1, $2, $3, $4, $5, $6, $7, 'ETH', $8, $9, $10, 'pending', true, $11)
             ON CONFLICT (queue_id) DO NOTHING
             "#
         )
+        .bind(&queue_id)
         .bind(unlock_id)
         .bind(selected_prover)
         .bind(lock_id)
@@ -897,8 +911,8 @@ impl AppState {
         })?;
 
         tracing::info!(
-            "Created signing_queue entry: unlock_id={}, prover={}, amount={}",
-            unlock_id, selected_prover, amount
+            "Created signing_queue entry: queue_id={}, unlock_id={}, prover={}, amount={}",
+            queue_id, unlock_id, selected_prover, amount
         );
 
         // 2. Publish to RabbitMQ for async processing

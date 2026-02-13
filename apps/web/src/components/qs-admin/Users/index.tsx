@@ -23,16 +23,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useUsersStats, useUsersList } from '@/hooks/admin/useUsers';
-import type { UsersStats, User } from '@/lib/api/admin/mock';
+import type { UsersStats, User } from '@/lib/api/admin/types';
 
-// Empty fallback - no fake data
-const FALLBACK_STATS: UsersStats = {
-  totalUsers: 0,
-  activeUsers: 0,
-  newUsers: 0,
-  lockedVolume: '0 ETH',
-};
-const FALLBACK_USERS: User[] = [];
 
 interface StatCardProps {
   title: string;
@@ -147,9 +139,8 @@ export function UsersDashboard() {
   const isLoading = statsLoading || usersLoading;
   const hasError = statsError || usersError;
 
-  // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const users = usersData?.users ?? FALLBACK_USERS;
+  const stats = apiStats;
+  const users = usersData?.users ?? [];
 
   const filters = [
     { key: 'all', label: t('common.all') },
@@ -168,9 +159,8 @@ export function UsersDashboard() {
     return <UsersDashboardSkeleton />;
   }
 
-  // In development, use fallback data even when API fails
-  // Only show error when no fallback data is available (edge case)
-  if (hasError && !apiStats && !usersData && !FALLBACK_STATS) {
+  // Show error when API fails and no data available
+  if (hasError && !apiStats && !usersData) {
     return <UsersDashboardError onRetry={() => { refetchStats(); refetchUsers(); }} />;
   }
 
@@ -192,25 +182,25 @@ export function UsersDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title={t('users.stats.totalUsers')}
-          value={stats.totalUsers.toLocaleString()}
+          value={(stats?.totalUsers ?? 0).toLocaleString()}
           icon={Users}
           trend={{ value: 5.2, isPositive: true, label: t('common.trend.fromLastWeek') }}
         />
         <StatCard
           title={t('users.stats.activeUsers')}
-          value={stats.activeUsers.toLocaleString()}
+          value={(stats?.activeUsers ?? 0).toLocaleString()}
           icon={UserCheck}
           trend={{ value: 3.1, isPositive: true, label: t('common.trend.fromLastWeek') }}
         />
         <StatCard
           title={t('users.stats.newUsers')}
-          value={stats.newUsers.toLocaleString()}
+          value={(stats?.newUsers ?? 0).toLocaleString()}
           icon={UserPlus}
           trend={{ value: 12.5, isPositive: true, label: t('common.trend.fromLastWeek') }}
         />
         <StatCard
           title={t('users.stats.lockedVolume')}
-          value={stats.lockedVolume}
+          value={stats?.lockedVolume ?? '0 ETH'}
           icon={Lock}
           trend={{ value: 8.3, isPositive: true, label: t('common.trend.fromLastWeek') }}
         />

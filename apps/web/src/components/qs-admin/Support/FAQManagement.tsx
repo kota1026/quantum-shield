@@ -19,10 +19,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useFAQCategories } from '@/hooks/admin/useSupport';
-import { MOCK_FAQ_CATEGORIES, type FAQCategory } from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_FAQ_CATEGORIES = MOCK_FAQ_CATEGORIES;
+import type { FAQCategory } from '@/lib/api/admin/types';
 
 // Loading Skeleton
 function FAQManagementSkeleton() {
@@ -79,8 +76,15 @@ export function FAQManagement() {
   // Fetch data using hooks
   const { data: categoriesData, isLoading, error, refetch } = useFAQCategories();
 
-  // Use API data with fallback
-  const faqCategories = categoriesData?.categories ?? FALLBACK_FAQ_CATEGORIES;
+  if (isLoading) {
+    return <FAQManagementSkeleton />;
+  }
+
+  if (error || !categoriesData) {
+    return <FAQManagementError onRetry={refetch} />;
+  }
+
+  const faqCategories = categoriesData.categories ?? [];
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev =>
@@ -98,14 +102,6 @@ export function FAQManagement() {
       faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
     ),
   })).filter(category => category.faqs.length > 0);
-
-  if (isLoading) {
-    return <FAQManagementSkeleton />;
-  }
-
-  if (error && !categoriesData) {
-    return <FAQManagementError onRetry={refetch} />;
-  }
 
   return (
     <div className="space-y-6">

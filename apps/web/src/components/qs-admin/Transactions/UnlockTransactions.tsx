@@ -24,16 +24,9 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useUnlockStats, useUnlockTransactions } from '@/hooks/admin/useTransactions';
-import type { UnlockStats } from '@/lib/api/admin/mock';
+import type { UnlockStats } from '@/lib/api/admin/types';
 import type { UnlockTransaction } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: UnlockStats = {
-  totalUnlocks: 0,
-  unlockVolume: '0 ETH',
-  pendingUnlocks: 0,
-  avgWaitTime: '-',
-};
 
 // Loading skeleton components
 function StatCardSkeleton() {
@@ -205,7 +198,7 @@ export function UnlockTransactions() {
   const transactionsQuery = useUnlockTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data;
   const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
@@ -267,7 +260,7 @@ export function UnlockTransactions() {
           <>
             <StatCard
               title="総アンロック数"
-              value={stats.totalUnlocks.toLocaleString()}
+              value={(stats?.totalUnlocks ?? 0).toLocaleString()}
               icon={Unlock}
               iconColor="text-[#4A90D9]"
               iconBg="bg-[#4A90D9]/10"
@@ -275,22 +268,22 @@ export function UnlockTransactions() {
             />
             <StatCard
               title="アンロック総額"
-              value={stats.unlockVolume}
+              value={stats?.unlockVolume ?? '0 ETH'}
               icon={Wallet}
               iconColor="text-[#00C896]"
               iconBg="bg-[#00C896]/10"
             />
             <StatCard
               title="承認待ち"
-              value={stats.pendingUnlocks}
+              value={stats?.pendingUnlocks ?? 0}
               icon={Clock}
               iconColor="text-[#F0A030]"
               iconBg="bg-[#F0A030]/10"
-              highlight={stats.pendingUnlocks > 0}
+              highlight={(stats?.pendingUnlocks ?? 0) > 0}
             />
             <StatCard
               title="平均処理時間"
-              value={stats.avgWaitTime}
+              value={stats?.avgWaitTime ?? '-'}
               icon={Timer}
               iconColor="text-gold"
               iconBg="bg-gold/10"

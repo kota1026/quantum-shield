@@ -45,20 +45,6 @@ import { useProverId } from '@/stores/proverAuthStore';
 // Prover type: public or enterprise
 type ProverType = 'public' | 'enterprise';
 
-// Empty initial state (no fake data)
-const FALLBACK_PERFORMANCE = {
-  uptime: { value: 0, change: 0 },
-  signatures: { value: 0, change: 0 },
-  latency: { value: 0, change: 0 },
-  violations: { value: 0 },
-};
-const FALLBACK_SIGNATURE_HISTORY: { date: string; count: number; successRate: number; avgTime: number; reward: number }[] = [];
-const FALLBACK_DETAIL_METRICS: { key: string; value: number; status: string }[] = [];
-const FALLBACK_REWARDS_SUMMARY = {
-  total: 0,
-  period: 0,
-};
-const FALLBACK_PAYOUT_HISTORY: { date: string; amount: number; address: string }[] = [];
 
 // Local visualization data (uses Lucide icon components) — values should come from API
 const rewardsBreakdownConfig = [
@@ -143,7 +129,7 @@ export function ProverMetrics() {
   const [proverType] = useState<ProverType>('enterprise');
 
   // proverIdを使ってAPIからデータを取得
-  const { data: proverMetricsApi } = useProverMetrics(proverId ?? '');
+  const { data: proverMetricsApi, isLoading: metricsLoading, error: metricsError } = useProverMetrics(proverId ?? '');
   const { data: proverDashboardApi } = useProverDashboard(proverId ?? '');
   const { data: performanceApi } = usePerformanceStats(proverId ?? undefined);
   const { data: signatureHistoryApi } = useSignatureHistory(proverId ?? undefined);
@@ -154,26 +140,26 @@ export function ProverMetrics() {
   // Stake amount from dashboard API (USD-pegged: $400K equivalent in ETH or QS)
   const currentStakeAmount = proverDashboardApi ? parseFloat(proverDashboardApi.stakeAmount) : 0;
 
-  // APIデータを使用（フォールバック付き）
+  // APIデータを使用（no silent fallbacks per GR-1）
   // proverMetricsApiからのデータを優先的に使用
   const performanceStats = performanceApi ?? (proverMetricsApi ? {
     uptime: { value: proverMetricsApi.uptimePercentage ?? 0, change: 0 },
     signatures: { value: proverMetricsApi.totalSignatures ?? 0, change: 0 },
     latency: { value: proverMetricsApi.avgResponseTimeMs ?? 0, change: 0 },
     violations: { value: proverMetricsApi.slashCount ?? 0 },
-  } : FALLBACK_PERFORMANCE);
-  const signatureHistory = signatureHistoryApi ?? FALLBACK_SIGNATURE_HISTORY;
+  } : undefined);
+  const signatureHistory = signatureHistoryApi ?? [];
   const detailMetrics = detailMetricsApi ?? (proverMetricsApi ? [
     { key: 'slaCompliance', value: proverMetricsApi.successRate, status: 'success' },
     { key: 'avgResponseTime', value: 94.2, status: 'success' },
     { key: 'successRate', value: proverMetricsApi.successRate, status: 'success' },
     { key: 'availability', value: proverMetricsApi.uptimePercentage, status: 'gold' },
-  ] : FALLBACK_DETAIL_METRICS);
+  ] : []);
   const rewardsSummary = rewardsSummaryApi ?? (proverMetricsApi ? {
-    total: parseFloat(proverMetricsApi.totalEarnings) || 47520,
+    total: parseFloat(proverMetricsApi.totalEarnings) || 0,
     period: 90,
-  } : FALLBACK_REWARDS_SUMMARY);
-  const payoutHistory = payoutHistoryApi ?? FALLBACK_PAYOUT_HISTORY;
+  } : undefined);
+  const payoutHistory = payoutHistoryApi ?? [];
 
   const maxChartValue = Math.max(...mockChartData.map((d) => d.value));
   const maxRewardsValue = Math.max(...mockRewardsChartData.map((d) => d.value));
@@ -188,7 +174,7 @@ export function ProverMetrics() {
 
   const handleReinvest = () => {
     const amount = parseFloat(reinvestAmount);
-    if (reinvestAmount && !isNaN(amount) && amount > 0 && amount <= rewardsSummary.total) {
+    if (reinvestAmount && !isNaN(amount) && amount > 0 && amount <= (rewardsSummary?.total ?? 0)) {
       // In real app, this would trigger a blockchain transaction
       alert(t('metrics.modal.reinvest.success', { amount: reinvestAmount }));
       setShowReinvestModal(false);
@@ -296,10 +282,10 @@ export function ProverMetrics() {
                     <Zap className="h-6 w-6 text-gold" aria-hidden="true" />
                   </div>
                   <Badge variant="success" className="text-[11px]">
-                    <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />+{performanceStats.uptime?.change ?? 0}%
+                    <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />+{performanceStats?.uptime?.change ?? 0}%
                   </Badge>
                 </div>
-                <div className="text-3xl font-bold font-mono">{performanceStats.uptime?.value ?? 0}%</div>
+                <div className="text-3xl font-bold font-mono">{performanceStats?.uptime?.value ?? 0}%</div>
                 <div className="flex items-center gap-1 text-sm text-foreground-tertiary">
                   {t('metrics.stats.uptime')}
                   <button
@@ -320,11 +306,11 @@ export function ProverMetrics() {
                     <CheckCircle className="h-6 w-6 text-success" aria-hidden="true" />
                   </div>
                   <Badge variant="success" className="text-[11px]">
-                    <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />+{performanceStats.signatures?.change ?? 0}%
+                    <TrendingUp className="h-3 w-3 mr-1" aria-hidden="true" />+{performanceStats?.signatures?.change ?? 0}%
                   </Badge>
                 </div>
                 <div className="text-3xl font-bold font-mono text-success">
-                  {(performanceStats.signatures?.value ?? 0).toLocaleString()}
+                  {(performanceStats?.signatures?.value ?? 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-foreground-tertiary">{t('metrics.stats.signaturesCompleted')}</div>
               </Card>
@@ -336,10 +322,10 @@ export function ProverMetrics() {
                   </div>
                   <Badge variant="success" className="text-[11px]">
                     <TrendingDown className="h-3 w-3 mr-1" aria-hidden="true" />
-                    {performanceStats.latency?.change ?? 0}ms
+                    {performanceStats?.latency?.change ?? 0}ms
                   </Badge>
                 </div>
-                <div className="text-3xl font-bold font-mono">{performanceStats.latency?.value ?? 0}ms</div>
+                <div className="text-3xl font-bold font-mono">{performanceStats?.latency?.value ?? 0}ms</div>
                 <div className="text-sm text-foreground-tertiary">{t('metrics.stats.avgLatency')}</div>
               </Card>
 
@@ -349,7 +335,7 @@ export function ProverMetrics() {
                     <XCircle className="h-6 w-6 text-hinomaru" aria-hidden="true" />
                   </div>
                 </div>
-                <div className="text-3xl font-bold font-mono">{performanceStats.violations?.value ?? 0}</div>
+                <div className="text-3xl font-bold font-mono">{performanceStats?.violations?.value ?? 0}</div>
                 <div className="text-sm text-foreground-tertiary">{t('metrics.stats.violations')}</div>
               </Card>
             </div>
@@ -595,10 +581,10 @@ export function ProverMetrics() {
             {proverType === 'public' && (
             <Card className="p-8 mb-6 border-gold bg-gradient-to-br from-gold/10 to-transparent text-center">
               <div className="text-5xl font-bold font-mono text-gold mb-2">
-                {rewardsSummary.total.toLocaleString()} QS
+                {(rewardsSummary?.total ?? 0).toLocaleString()} QS
               </div>
               <div className="text-foreground-secondary mb-6">
-                {t('metrics.rewards.totalLabel', { days: rewardsSummary.period })}
+                {t('metrics.rewards.totalLabel', { days: (rewardsSummary?.period ?? 0) })}
               </div>
               <div className="flex gap-3 justify-center">
                 <Button
@@ -699,7 +685,7 @@ export function ProverMetrics() {
                   <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gold/10 to-transparent rounded-lg border border-gold/30">
                     <span className="font-semibold">{t('metrics.rewards.total')}</span>
                     <span className="text-lg font-bold font-mono text-gold">
-                      {rewardsSummary.total.toLocaleString()} QS
+                      {(rewardsSummary?.total ?? 0).toLocaleString()} QS
                     </span>
                   </div>
                 </div>
@@ -795,7 +781,7 @@ export function ProverMetrics() {
               <div className="p-4 bg-background rounded-xl">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">{t('metrics.modal.withdraw.available')}</span>
-                  <span className="font-semibold text-gold">{rewardsSummary.total.toLocaleString()} QS</span>
+                  <span className="font-semibold text-gold">{(rewardsSummary?.total ?? 0).toLocaleString()} QS</span>
                 </div>
               </div>
 
@@ -810,17 +796,17 @@ export function ProverMetrics() {
                     type="number"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
-                    placeholder={rewardsSummary.total.toString()}
+                    placeholder={(rewardsSummary?.total ?? 0).toString()}
                     className="w-full px-4 py-3 bg-background border border-surface-tertiary rounded-xl focus:outline-none focus:ring-2 focus:ring-gold text-right pr-16 font-mono"
                     min="0"
-                    max={rewardsSummary.total}
+                    max={(rewardsSummary?.total ?? 0)}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground-tertiary">QS</span>
                 </div>
                 <button
                   type="button"
                   className="text-sm text-gold hover:underline mt-1"
-                  onClick={() => setWithdrawAmount(rewardsSummary.total.toString())}
+                  onClick={() => setWithdrawAmount((rewardsSummary?.total ?? 0).toString())}
                 >
                   {t('metrics.modal.withdraw.max')}
                 </button>
@@ -862,7 +848,7 @@ export function ProverMetrics() {
                 variant="primary"
                 className="flex-1"
                 onClick={handleWithdraw}
-                disabled={!withdrawAmount || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > rewardsSummary.total}
+                disabled={!withdrawAmount || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > (rewardsSummary?.total ?? 0)}
               >
                 {t('metrics.modal.withdraw.confirm')}
               </Button>
@@ -915,7 +901,7 @@ export function ProverMetrics() {
               <div className="p-4 bg-background rounded-xl space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">{t('metrics.modal.reinvest.availableRewards')}</span>
-                  <span className="font-semibold text-gold">{rewardsSummary.total.toLocaleString()} QS</span>
+                  <span className="font-semibold text-gold">{(rewardsSummary?.total ?? 0).toLocaleString()} QS</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-foreground-secondary">{t('metrics.modal.reinvest.currentStake')}</span>
@@ -934,17 +920,17 @@ export function ProverMetrics() {
                     type="number"
                     value={reinvestAmount}
                     onChange={(e) => setReinvestAmount(e.target.value)}
-                    placeholder={rewardsSummary.total.toString()}
+                    placeholder={(rewardsSummary?.total ?? 0).toString()}
                     className="w-full px-4 py-3 bg-background border border-surface-tertiary rounded-xl focus:outline-none focus:ring-2 focus:ring-success text-right pr-16 font-mono"
                     min="0"
-                    max={rewardsSummary.total}
+                    max={(rewardsSummary?.total ?? 0)}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground-tertiary">QS</span>
                 </div>
                 <button
                   type="button"
                   className="text-sm text-gold hover:underline mt-1"
-                  onClick={() => setReinvestAmount(rewardsSummary.total.toString())}
+                  onClick={() => setReinvestAmount((rewardsSummary?.total ?? 0).toString())}
                 >
                   {t('metrics.modal.reinvest.max')}
                 </button>
@@ -984,7 +970,7 @@ export function ProverMetrics() {
                 variant="success"
                 className="flex-1"
                 onClick={handleReinvest}
-                disabled={!reinvestAmount || isNaN(parseFloat(reinvestAmount)) || parseFloat(reinvestAmount) <= 0 || parseFloat(reinvestAmount) > rewardsSummary.total}
+                disabled={!reinvestAmount || isNaN(parseFloat(reinvestAmount)) || parseFloat(reinvestAmount) <= 0 || parseFloat(reinvestAmount) > (rewardsSummary?.total ?? 0)}
               >
                 {t('metrics.modal.reinvest.confirm')}
               </Button>

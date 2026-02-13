@@ -24,16 +24,9 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useLockStats, useLockTransactions } from '@/hooks/admin/useTransactions';
-import type { LockStats } from '@/lib/api/admin/mock';
+import type { LockStats } from '@/lib/api/admin/types';
 import type { LockTransaction } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: LockStats = {
-  totalLocks: 0,
-  lockVolume: '0 ETH',
-  avgLockAmount: '0 ETH',
-  avgLockDuration: '-',
-};
 
 // Loading skeleton components
 function StatCardSkeleton() {
@@ -183,7 +176,7 @@ export function LockTransactions() {
   const transactionsQuery = useLockTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data;
   const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
@@ -244,26 +237,26 @@ export function LockTransactions() {
           <>
             <StatCard
               title="総ロック数"
-              value={stats.totalLocks.toLocaleString()}
+              value={(stats?.totalLocks ?? 0).toLocaleString()}
               icon={Lock}
             />
             <StatCard
               title="ロック総額"
-              value={stats.lockVolume}
+              value={stats?.lockVolume ?? '0 ETH'}
               icon={Wallet}
               iconColor="text-[#00C896]"
               iconBg="bg-[#00C896]/10"
             />
             <StatCard
               title="平均ロック額"
-              value={stats.avgLockAmount}
+              value={stats?.avgLockAmount ?? '0 ETH'}
               icon={Activity}
               iconColor="text-[#4A90D9]"
               iconBg="bg-[#4A90D9]/10"
             />
             <StatCard
               title="平均ロック期間"
-              value={stats.avgLockDuration}
+              value={stats?.avgLockDuration ?? '-'}
               icon={Timer}
               iconColor="text-gold"
               iconBg="bg-gold/10"

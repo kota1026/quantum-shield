@@ -19,14 +19,6 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-// Empty fallback - real data comes from API
-const FALLBACK_STATS = {
-  totalLocked: '0',
-  veQSHolders: '0',
-  activeProposals: 0,
-  totalRewardsDistributed: '0',
-};
-
 export function QSHubLanding() {
   const t = useTranslations('qs-hub.landing');
 
@@ -114,10 +106,10 @@ export function QSHubLanding() {
       <section className="relative z-10 max-w-7xl mx-auto px-8 pb-20" aria-label={t('stats.sectionAriaLabel')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
-            { label: t('stats.totalLocked'), value: FALLBACK_STATS.totalLocked, unit: 'QS', icon: Lock },
-            { label: t('stats.veQSHolders'), value: FALLBACK_STATS.veQSHolders, icon: Users },
-            { label: t('stats.activeProposals'), value: FALLBACK_STATS.activeProposals, icon: Vote },
-            { label: t('stats.rewardsDistributed'), value: FALLBACK_STATS.totalRewardsDistributed, unit: 'QS', icon: Award },
+            { label: t('stats.totalLocked'), value: '-', unit: 'QS', icon: Lock },
+            { label: t('stats.veQSHolders'), value: '-', icon: Users },
+            { label: t('stats.activeProposals'), value: '-', icon: Vote },
+            { label: t('stats.rewardsDistributed'), value: '-', unit: 'QS', icon: Award },
           ].map((stat, index) => (
             <div
               key={index}

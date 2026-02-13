@@ -24,15 +24,9 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useGovernanceStats, useGovernanceProposals } from '@/hooks/admin/useGovernance';
 import {
-  MOCK_GOVERNANCE_STATS,
-  MOCK_GOVERNANCE_PROPOSALS,
   type GovernanceStats,
   type GovernanceProposal,
-} from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_STATS = MOCK_GOVERNANCE_STATS;
-const FALLBACK_PROPOSALS = MOCK_GOVERNANCE_PROPOSALS;
+} from '@/lib/api/admin/types';
 
 const STATUS_COLORS = {
   active: 'bg-info/10 text-info',
@@ -150,8 +144,8 @@ export function ProposalsList() {
   const hasError = statsError || proposalsError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const proposals = proposalsData?.proposals ?? FALLBACK_PROPOSALS;
+  const stats = apiStats!;
+  const proposals = proposalsData?.proposals ?? [];
 
   const filters = [
     { key: 'all', label: tCommon('all') },

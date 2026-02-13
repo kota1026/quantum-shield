@@ -36,6 +36,7 @@ pub fn api_routes() -> Router {
         .route("/health", get(health::health_check))
         // Lock API (API-002)
         .route("/lock", post(lock::create_lock))
+        .route("/lock/:lock_id/confirm", post(lock::confirm_lock))
         // Unlock API (API-003)
         .route("/unlock", post(unlock::create_unlock))
         .route("/unlock/emergency", post(unlock::create_emergency_unlock))

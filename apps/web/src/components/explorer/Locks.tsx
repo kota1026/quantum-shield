@@ -13,10 +13,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useLocks } from '@/hooks/explorer';
-import type { LockDetail } from '@/lib/api/explorer/mock';
+import type { LockDetail } from '@/lib/api/explorer/types';
 
-// Empty initial state (no fake data)
-const FALLBACK_LOCKS: LockDetail[] = [];
 
 type LockStatus = 'active' | 'unlocking' | 'unlocked';
 type SortOption = 'newest' | 'oldest' | 'amountHigh' | 'amountLow';
@@ -35,15 +33,15 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
   const [copied, setCopied] = useState(false);
 
   // Fetch data using hooks
-  const { data: locksApi } = useLocks({
+  const { data: locksApi, isLoading: locksLoading, error: locksError } = useLocks({
     status: statusFilter,
     sort: sortOption,
     search: searchQuery,
     page: currentPage,
   });
 
-  // Use API data with fallback
-  const mockLocks = locksApi?.locks ?? FALLBACK_LOCKS;
+  // Use API data directly (no silent fallbacks per GR-1)
+  const locks = locksApi?.locks ?? [];
 
   const itemsPerPage = 6;
   const totalLocks = locksApi?.total ?? 0;
@@ -51,7 +49,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
 
   // Filter and sort locks
   const filteredLocks = useMemo(() => {
-    let result = [...mockLocks];
+    let result = [...locks];
 
     // Filter by status
     if (statusFilter !== 'all') {
@@ -82,7 +80,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
     }
 
     return result;
-  }, [statusFilter, sortOption, searchQuery]);
+  }, [locks, statusFilter, sortOption, searchQuery]);
 
   const totalPages = Math.ceil(filteredLocks.length / itemsPerPage);
   const paginatedLocks = filteredLocks.slice(
@@ -288,7 +286,19 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
                 </tr>
               </thead>
               <tbody>
-                {paginatedLocks.length === 0 ? (
+                {locksLoading ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center text-foreground-tertiary">
+                      <div className="animate-pulse">{t('common.loading')}</div>
+                    </td>
+                  </tr>
+                ) : locksError ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center text-warning">
+                      {t('common.errors.loadFailed')}
+                    </td>
+                  </tr>
+                ) : paginatedLocks.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-12 text-center">
                       <div className="text-foreground-secondary">{t('locks.emptyState.title')}</div>

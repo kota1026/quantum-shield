@@ -23,18 +23,8 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useProverStats, useProvers } from '@/hooks/explorer';
-import type { ProverStats, ProverSummary } from '@/lib/api/explorer/mock';
+import type { ProverStats, ProverSummary } from '@/lib/api/explorer/types';
 
-// Empty initial state (no fake data)
-const FALLBACK_PROVER_STATS: ProverStats = {
-  totalProvers: 0,
-  activeProvers: 0,
-  avgUptime: 0,
-  avgResponseTime: '-',
-  totalSignatures: 0,
-};
-
-const FALLBACK_PROVERS: ProverSummary[] = [];
 
 interface ExplorerProversProps {
   locale?: string;
@@ -45,12 +35,12 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
   const router = useRouter();
 
   // Fetch data using hooks
-  const { data: proverStatsApi } = useProverStats();
-  const { data: proversApi } = useProvers();
+  const { data: proverStatsApi, isLoading: statsLoading, error: statsError } = useProverStats();
+  const { data: proversApi, isLoading: proversLoading, error: proversError } = useProvers();
 
-  // Use API data with fallback
-  const mockStats = proverStatsApi ?? FALLBACK_PROVER_STATS;
-  const mockProvers = proversApi ?? FALLBACK_PROVERS;
+  // Use API data directly (no silent fallbacks per GR-1)
+  const proverStats = proverStatsApi;
+  const provers = proversApi ?? [];
 
   const getUptimeColor = (uptime: number) => {
     if (uptime >= 99.9) return 'text-success';
@@ -120,7 +110,7 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
               <div className="flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/30 rounded-full">
                 <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
                 <span className="text-sm text-success font-medium">
-                  {mockStats.activeProvers}/{mockStats.totalProvers} {t('provers.stats.online')}
+                  {proverStats?.activeProvers ?? 0}/{proverStats?.totalProvers ?? 0} {t('provers.stats.online')}
                 </span>
               </div>
             </div>
@@ -128,39 +118,85 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Server className="w-5 h-5 text-gold" />
-                <span className="text-sm text-foreground-secondary">{t('provers.stats.totalProvers')}</span>
-              </div>
-              <div className="text-2xl font-bold">{mockStats.totalProvers}</div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Activity className="w-5 h-5 text-success" />
-                <span className="text-sm text-foreground-secondary">{t('provers.stats.avgUptime')}</span>
-              </div>
-              <div className="text-2xl font-bold text-success">{mockStats.avgUptime}%</div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Clock className="w-5 h-5 text-foreground-secondary" />
-                <span className="text-sm text-foreground-secondary">{t('provers.stats.avgResponseTime')}</span>
-              </div>
-              <div className="text-2xl font-bold">{mockStats.avgResponseTime}</div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Shield className="w-5 h-5 text-hinomaru" />
-                <span className="text-sm text-foreground-secondary">{t('provers.stats.totalSignatures')}</span>
-              </div>
-              <div className="text-2xl font-bold">{mockStats.totalSignatures.toLocaleString()}</div>
-            </Card>
+            {statsLoading ? (
+              <>
+                {[0, 1, 2, 3].map((i) => (
+                  <Card key={i} className="p-6">
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-4 bg-surface-tertiary rounded w-2/3" />
+                      <div className="h-8 bg-surface-tertiary rounded w-1/2" />
+                    </div>
+                  </Card>
+                ))}
+              </>
+            ) : statsError ? (
+              <Card className="p-6 col-span-full">
+                <div className="text-center text-warning">{t('common.errors.loadFailed')}</div>
+              </Card>
+            ) : (
+              <>
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Server className="w-5 h-5 text-gold" />
+                    <span className="text-sm text-foreground-secondary">{t('provers.stats.totalProvers')}</span>
+                  </div>
+                  <div className="text-2xl font-bold">{proverStats?.totalProvers ?? 0}</div>
+                </Card>
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Activity className="w-5 h-5 text-success" />
+                    <span className="text-sm text-foreground-secondary">{t('provers.stats.avgUptime')}</span>
+                  </div>
+                  <div className="text-2xl font-bold text-success">{proverStats?.avgUptime ?? 0}%</div>
+                </Card>
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Clock className="w-5 h-5 text-foreground-secondary" />
+                    <span className="text-sm text-foreground-secondary">{t('provers.stats.avgResponseTime')}</span>
+                  </div>
+                  <div className="text-2xl font-bold">{proverStats?.avgResponseTime ?? '-'}</div>
+                </Card>
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Shield className="w-5 h-5 text-hinomaru" />
+                    <span className="text-sm text-foreground-secondary">{t('provers.stats.totalSignatures')}</span>
+                  </div>
+                  <div className="text-2xl font-bold">{(proverStats?.totalSignatures ?? 0).toLocaleString()}</div>
+                </Card>
+              </>
+            )}
           </div>
 
           {/* Provers Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {mockProvers.map((prover) => (
+            {proversLoading ? (
+              [0, 1, 2, 3].map((i) => (
+                <Card key={i} className="p-6">
+                  <div className="animate-pulse space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-surface-tertiary rounded-xl" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-surface-tertiary rounded w-2/3" />
+                        <div className="h-3 bg-surface-tertiary rounded w-1/2" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-surface-tertiary rounded" />
+                      <div className="h-3 bg-surface-tertiary rounded" />
+                      <div className="h-3 bg-surface-tertiary rounded" />
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : proversError ? (
+              <Card className="p-6 col-span-full">
+                <div className="text-center text-warning">{t('common.errors.loadFailed')}</div>
+              </Card>
+            ) : provers.length === 0 ? (
+              <Card className="p-6 col-span-full">
+                <div className="text-center text-foreground-tertiary">{t('common.noData')}</div>
+              </Card>
+            ) : provers.map((prover) => (
               <Link
                 key={prover.id}
                 href={`/${locale}/explorer/provers/${prover.id}`}

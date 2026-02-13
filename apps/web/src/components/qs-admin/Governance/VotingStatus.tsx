@@ -17,15 +17,9 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useVotingStats, useActiveVotes } from '@/hooks/admin/useGovernance';
 import {
-  MOCK_VOTING_STATS,
-  MOCK_ACTIVE_VOTES,
   type VotingStats,
   type ActiveVote,
-} from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_STATS = MOCK_VOTING_STATS;
-const FALLBACK_ACTIVE_VOTES = MOCK_ACTIVE_VOTES;
+} from '@/lib/api/admin/types';
 
 interface StatCardProps {
   title: string;
@@ -123,8 +117,8 @@ export function VotingStatus() {
   const hasError = statsError || votesError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const activeVotes = votesData?.votes ?? FALLBACK_ACTIVE_VOTES;
+  const stats = apiStats!;
+  const activeVotes = votesData?.votes ?? [];
 
   if (isLoading) {
     return <VotingStatusSkeleton />;

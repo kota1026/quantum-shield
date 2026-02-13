@@ -7,125 +7,44 @@ import {
   Users,
   ArrowLeft,
   Search,
-  ChevronRight,
   TrendingUp,
   Vote,
   CheckCircle2,
   Star,
-  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-// Demo delegates data
-const FALLBACK_DELEGATES = [
-  {
-    id: '1',
-    name: 'Watanabe DAO',
-    address: '0x1234...5678',
-    initial: 'W',
-    totalPower: 285000,
-    delegators: 156,
-    votingParticipation: 98,
-    proposalsCreated: 5,
-    description: 'Active community member focused on protocol security and sustainable growth.',
-    isVerified: true,
-    isFeatured: true,
-  },
-  {
-    id: '2',
-    name: 'Sato Crypto',
-    address: '0xabcd...efgh',
-    initial: 'S',
-    totalPower: 198000,
-    delegators: 89,
-    votingParticipation: 95,
-    proposalsCreated: 3,
-    description: 'DeFi researcher with expertise in tokenomics and governance design.',
-    isVerified: true,
-    isFeatured: true,
-  },
-  {
-    id: '3',
-    name: 'QS Council',
-    address: '0x9876...5432',
-    initial: 'Q',
-    totalPower: 450000,
-    delegators: 342,
-    votingParticipation: 100,
-    proposalsCreated: 12,
-    description: 'Official Quantum Shield Council multisig for emergency decisions.',
-    isVerified: true,
-    isFeatured: false,
-  },
-  {
-    id: '4',
-    name: 'Tanaka Labs',
-    address: '0xdef0...1234',
-    initial: 'T',
-    totalPower: 125000,
-    delegators: 67,
-    votingParticipation: 87,
-    proposalsCreated: 2,
-    description: 'Research lab focused on quantum-resistant cryptography.',
-    isVerified: false,
-    isFeatured: false,
-  },
-  {
-    id: '5',
-    name: 'Tokyo Node',
-    address: '0x5555...6666',
-    initial: 'N',
-    totalPower: 89000,
-    delegators: 45,
-    votingParticipation: 92,
-    proposalsCreated: 1,
-    description: 'Infrastructure provider running Observer and Prover nodes.',
-    isVerified: true,
-    isFeatured: false,
-  },
-];
-
-// User's current delegation
-const FALLBACK_MY_DELEGATIONS = [
-  { delegateId: '1', amount: 3000 },
-  { delegateId: '2', amount: 2000 },
-];
+import { useQSHubDelegates } from '@/hooks/qs-hub/useQSHub';
 
 export function DelegatesList() {
   const t = useTranslations('qs-hub.vote.delegates');
   const tCommon = useTranslations('qs-hub.common');
 
+  // Fetch delegates from API
+  const { data: delegates, isLoading: delegatesLoading, error: delegatesError } = useQSHubDelegates();
+
   // State
   const [searchQuery, setSearchQuery] = useState('');
 
+  const allDelegates = delegates ?? [];
+
   // Filter delegates
   const filteredDelegates = useMemo(() => {
-    if (!searchQuery) return FALLBACK_DELEGATES;
+    if (!searchQuery) return allDelegates;
     const query = searchQuery.toLowerCase();
-    return FALLBACK_DELEGATES.filter(
+    return allDelegates.filter(
       (d) =>
         d.name.toLowerCase().includes(query) ||
-        d.address.toLowerCase().includes(query) ||
-        d.description.toLowerCase().includes(query)
+        (d.address ?? '').toLowerCase().includes(query) ||
+        (d.description ?? '').toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, allDelegates]);
 
   // Featured delegates
   const featuredDelegates = useMemo(() => {
-    return FALLBACK_DELEGATES.filter((d) => d.isFeatured);
-  }, []);
-
-  // Get my delegation for a delegate
-  const getMyDelegation = (delegateId: string) => {
-    return FALLBACK_MY_DELEGATIONS.find((d) => d.delegateId === delegateId);
-  };
-
-  // Total delegated
-  const totalDelegated = useMemo(() => {
-    return FALLBACK_MY_DELEGATIONS.reduce((sum, d) => sum + d.amount, 0);
-  }, []);
+    return allDelegates.filter((d) => d.isFeatured);
+  }, [allDelegates]);
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -187,11 +106,11 @@ export function DelegatesList() {
             </div>
             <div className="flex items-center gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold font-mono text-gold">{totalDelegated.toLocaleString()}</div>
+                <div className="text-2xl font-bold font-mono text-gold">-</div>
                 <div className="text-xs text-foreground-tertiary">{t('myDelegations.delegatedVeQS')}</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">{FALLBACK_MY_DELEGATIONS.length}</div>
+                <div className="text-2xl font-bold">-</div>
                 <div className="text-xs text-foreground-tertiary">{t('myDelegations.delegates')}</div>
               </div>
             </div>
@@ -199,16 +118,14 @@ export function DelegatesList() {
         </Card>
 
         {/* Featured Delegates */}
-        {featuredDelegates.length > 0 && (
+        {!delegatesLoading && !delegatesError && featuredDelegates.length > 0 && (
           <section className="mb-8" aria-labelledby="featured-heading">
             <h2 id="featured-heading" className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-gold" aria-hidden="true" />
               {t('featured.title')}
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              {featuredDelegates.map((delegate) => {
-                const myDelegation = getMyDelegation(delegate.id);
-                return (
+              {featuredDelegates.map((delegate) => (
                   <Card
                     key={delegate.id}
                     className="p-5 hover:border-gold/50 transition-all duration-200"
@@ -239,18 +156,10 @@ export function DelegatesList() {
                             {delegate.votingParticipation}%
                           </span>
                         </div>
-                        {myDelegation && (
-                          <div className="mt-3 pt-3 border-t border-border">
-                            <span className="text-xs text-gold">
-                              {t('myDelegation', { amount: myDelegation.amount.toLocaleString() })}
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </Card>
-                );
-              })}
+                ))}
             </div>
           </section>
         )}
@@ -283,9 +192,11 @@ export function DelegatesList() {
           </h2>
 
           <div className="space-y-3" role="list" aria-label={t('listAriaLabel')}>
-            {filteredDelegates.map((delegate) => {
-              const myDelegation = getMyDelegation(delegate.id);
-              return (
+            {delegatesLoading ? (
+              <div className="text-center py-8 text-foreground-tertiary">{t('loading')}</div>
+            ) : delegatesError ? (
+              <div className="text-center py-8 text-warning">{t('error')}</div>
+            ) : filteredDelegates.map((delegate) => (
                 <Card
                   key={delegate.id}
                   className="p-4 hover:border-gold/30 transition-all duration-200"
@@ -318,23 +229,16 @@ export function DelegatesList() {
                         <div className="text-xs text-foreground-tertiary">{t('participation')}</div>
                       </div>
                     </div>
-                    {myDelegation ? (
-                      <Button variant="outline" size="sm" className="min-h-[44px]">
-                        {t('manage')}
-                      </Button>
-                    ) : (
-                      <Button variant="primary" size="sm" className="min-h-[44px]">
-                        {t('delegate')}
-                      </Button>
-                    )}
+                    <Button variant="primary" size="sm" className="min-h-[44px]">
+                      {t('delegate')}
+                    </Button>
                   </div>
                 </Card>
-              );
-            })}
+              ))}
           </div>
 
           {/* Empty State */}
-          {filteredDelegates.length === 0 && (
+          {!delegatesLoading && !delegatesError && filteredDelegates.length === 0 && (
             <div className="text-center py-12">
               <Users className="w-12 h-12 text-foreground-tertiary mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t('empty.title')}</h3>
