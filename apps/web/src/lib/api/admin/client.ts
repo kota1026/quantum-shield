@@ -6,7 +6,7 @@
 
 import type { ApiError } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api-proxy';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
 const ENABLE_MOCK = process.env.NEXT_PUBLIC_ENABLE_MOCK === 'true';
 
 export class AdminApiError extends Error {
