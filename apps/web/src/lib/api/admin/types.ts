@@ -701,3 +701,178 @@ export interface FAQCategory {
   name: string;
   faqs: FAQ[];
 }
+
+// ============= Observer Extended Types =============
+
+export interface ObserverDetailData {
+  id: string;
+  wallet: string;
+  challenges: number;
+  successRate: string;
+  earnings: string;
+  bond: string;
+  lastChallenge: string;
+  status: string;
+  successfulChallenges: number;
+  failedChallenges: number;
+  registeredAt: string;
+  avgResponseTime: string;
+  recentChallenges: Array<{
+    id: string;
+    type: string;
+    target: string;
+    result: string;
+    timestamp: string;
+    reward: string;
+  }>;
+}
+
+// ============= Treasury Extended Types =============
+
+export interface TreasuryWalletExtended {
+  id: string;
+  name: string;
+  address: string;
+  balance: string;
+  usdValue: string;
+  signers: number;
+  threshold: number;
+  status: string;
+  lastActivity: string;
+  signerList: string[];
+}
+
+export interface TreasuryWalletStats {
+  totalBalance: string;
+  totalBalanceUsd: string;
+  activeWallets: number;
+  totalSigners: number;
+  avgThresholdPercent: number;
+}
+
+export interface TransferStats {
+  pendingApprovals: number;
+  transfersThisMonth: number;
+  totalVolume: string;
+  avgTransferSize: string;
+}
+
+export interface TreasuryTransferSimple {
+  id: string;
+  from: string;
+  to: string;
+  amount: string;
+  initiator: string;
+  approvals: number;
+  required: number;
+  status: string;
+  timestamp: string;
+  purpose: string;
+}
+
+export interface BudgetData {
+  totalBudget: string;
+  allocated: string;
+  spent: string;
+  remaining: string;
+  period: string;
+}
+
+export interface BudgetCategory {
+  name: string;
+  allocated: number;
+  spent: number;
+  color: string;
+}
+
+export interface MonthlyBudget {
+  month: string;
+  budget: number;
+  spent: number;
+}
+
+export interface AuditLogStats {
+  totalLogs: number;
+  logsThisWeek: number;
+  criticalEvents: number;
+  pendingReviews: number;
+}
+
+export interface AuditLogEntrySimple {
+  id: string;
+  action: string;
+  actor: string;
+  target: string;
+  details: string;
+  severity: string;
+  timestamp: string;
+  ip: string;
+}
+
+// ============= Governance Extended Types =============
+
+export interface GovernanceStats {
+  activeProposals: number;
+  totalVotes: number;
+  participation: string;
+  passedProposals: number;
+}
+
+export interface GovernanceProposal {
+  id: string;
+  title: string;
+  proposer: string;
+  status: 'active' | 'passed' | 'rejected' | 'pending' | 'executed';
+  votes: number;
+  forVotes: number;
+  againstVotes: number;
+  turnout: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface RecentVote {
+  voter: string;
+  vote: 'for' | 'against';
+  amount: string;
+  timestamp: string;
+}
+
+export interface ProposalDetailExtended extends GovernanceProposal {
+  description: string;
+  category: string;
+  quorum: number;
+  requiredVotes: number;
+  daysRemaining: number;
+  recentVotes: RecentVote[];
+}
+
+export interface VotingStats {
+  activeVotes: number;
+  totalVoters: number;
+  avgTurnout: string;
+  endingSoon: number;
+}
+
+export interface ActiveVote {
+  id: string;
+  title: string;
+  forVotes: number;
+  againstVotes: number;
+  totalVoters: number;
+  turnout: string;
+  endDate: string;
+  daysLeft: number;
+}
+
+// ============= Permission Types =============
+
+export interface Permission {
+  id: string;
+  name: string;
+}
+
+export interface PermissionCategory {
+  category: string;
+  permissions: Permission[];
+}

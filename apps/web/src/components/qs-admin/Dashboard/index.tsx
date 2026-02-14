@@ -51,8 +51,8 @@ import type {
   AlertItem,
 } from '@/lib/api/admin/types';
 
-// Local fallback stats type
-interface FallbackStats {
+// Dashboard stats shape
+interface DashboardStats {
   totalUsers: number;
   totalLocked: string;
   activeProvers: number;
@@ -60,58 +60,6 @@ interface FallbackStats {
   pendingUnlocks: number;
   treasuryBalance: string;
 }
-
-// Fallback mock data for development when API is unavailable
-const FALLBACK_STATS: FallbackStats = {
-  totalUsers: 12847,
-  totalLocked: '45,230 ETH',
-  activeProvers: 24,
-  activeObservers: 156,
-  pendingUnlocks: 18,
-  treasuryBalance: '125,000 ETH',
-};
-
-const FALLBACK_TVL_DATA: ChartDataPoint[] = [
-  { date: '01/21', value: 38500 },
-  { date: '01/22', value: 39200 },
-  { date: '01/23', value: 40100 },
-  { date: '01/24', value: 41800 },
-  { date: '01/25', value: 43200 },
-  { date: '01/26', value: 44100 },
-  { date: '01/27', value: 45230 },
-];
-
-const FALLBACK_VOLUME_DATA: VolumeDataPoint[] = [
-  { date: '01/21', locks: 45, unlocks: 32 },
-  { date: '01/22', locks: 52, unlocks: 38 },
-  { date: '01/23', locks: 48, unlocks: 42 },
-  { date: '01/24', locks: 61, unlocks: 35 },
-  { date: '01/25', locks: 55, unlocks: 48 },
-  { date: '01/26', locks: 72, unlocks: 52 },
-  { date: '01/27', locks: 68, unlocks: 58 },
-];
-
-const FALLBACK_USER_DATA: ChartDataPoint[] = [
-  { date: '01/21', value: 11800 },
-  { date: '01/22', value: 12050 },
-  { date: '01/23', value: 12280 },
-  { date: '01/24', value: 12420 },
-  { date: '01/25', value: 12580 },
-  { date: '01/26', value: 12720 },
-  { date: '01/27', value: 12847 },
-];
-
-const FALLBACK_ACTIVITY: ActivityItem[] = [
-  { id: '1', type: 'prover_request', message: 'New Prover application received', timestamp: '5 min ago' },
-  { id: '2', type: 'unlock', message: 'Large unlock request (500 ETH)', timestamp: '12 min ago' },
-  { id: '3', type: 'challenge', message: 'Challenge initiated on unlock #4521', timestamp: '25 min ago' },
-  { id: '4', type: 'treasury', message: 'Treasury transfer approved', timestamp: '1 hour ago' },
-];
-
-const FALLBACK_ALERTS: AlertItem[] = [
-  { id: '1', level: 'warning', message: 'Prover node #12 response time degraded', timestamp: '10 min ago', acknowledged: false },
-  { id: '2', level: 'info', message: 'System maintenance scheduled for tonight', timestamp: '2 hours ago', acknowledged: true },
-];
 
 // Metrics data structure for Stats tab
 interface MetricsData {
@@ -127,55 +75,11 @@ interface MetricsData {
   treasury: string;
 }
 
-const FALLBACK_METRICS: Record<string, MetricsData> = {
-  daily: {
-    users: 147,
-    locks: 68,
-    lockAmount: '2,450 ETH',
-    unlocks: 58,
-    unlockAmount: '1,890 ETH',
-    provers: 0,
-    observers: 2,
-    revenue: '12.5 ETH',
-    proposals: 0,
-    treasury: '125,000 ETH',
-  },
-  weekly: {
-    users: 1047,
-    locks: 401,
-    lockAmount: '15,230 ETH',
-    unlocks: 305,
-    unlockAmount: '11,450 ETH',
-    provers: 2,
-    observers: 8,
-    revenue: '87.5 ETH',
-    proposals: 2,
-    treasury: '125,000 ETH',
-  },
-  monthly: {
-    users: 4520,
-    locks: 1680,
-    lockAmount: '62,500 ETH',
-    unlocks: 1240,
-    unlockAmount: '45,800 ETH',
-    provers: 8,
-    observers: 32,
-    revenue: '375 ETH',
-    proposals: 5,
-    treasury: '125,000 ETH',
-  },
-  total: {
-    users: 12847,
-    locks: 8920,
-    lockAmount: '245,000 ETH',
-    unlocks: 6340,
-    unlockAmount: '178,500 ETH',
-    provers: 24,
-    observers: 156,
-    revenue: '1,850 ETH',
-    proposals: 42,
-    treasury: '125,000 ETH',
-  },
+// Zero-value metrics shape for when API data is unavailable
+const EMPTY_METRICS: MetricsData = {
+  users: 0, locks: 0, lockAmount: '0 ETH', unlocks: 0,
+  unlockAmount: '0 ETH', provers: 0, observers: 0,
+  revenue: '0 ETH', proposals: 0, treasury: '0 ETH',
 };
 
 // ============= Loading Skeletons =============
@@ -335,7 +239,6 @@ export function Dashboard() {
   const treasuryQuery = useTreasuryHistory(statsPeriod);
   const revenueQuery = useRevenueHistory(statsPeriod);
 
-  // Use API data with fallback to mock data
   const dashboardData = overviewQuery.data;
 
   // Helper function to format wei to ETH with proper formatting
@@ -359,28 +262,33 @@ export function Dashboard() {
   // Treasury balance from stats query (fetched from L1 in real-time)
   const treasuryBalance = statsQuery.data?.treasury ?? '0 ETH';
 
-  const stats = dashboardData?.metrics && dashboardData?.health ? {
+  const stats: DashboardStats = dashboardData?.metrics && dashboardData?.health ? {
     totalUsers: dashboardData.metrics.activeUsers ?? 0,
     totalLocked: formatTvl(dashboardData.metrics.totalTvl ?? '0'),
     activeProvers: dashboardData.health.activeProvers ?? 0,
     activeObservers: (dashboardData.health.totalNodes ?? 0) - (dashboardData.health.activeProvers ?? 0),
     pendingUnlocks: dashboardData.metrics.pendingChallenges ?? 0,
     treasuryBalance,
-  } : FALLBACK_STATS;
-  const tvlData = tvlQuery.data ?? FALLBACK_TVL_DATA;
-  const volumeData = volumeQuery.data ?? FALLBACK_VOLUME_DATA;
-  const userData = userGrowthQuery.data ?? FALLBACK_USER_DATA;
-  // Activity data from API or fallback
+  } : {
+    totalUsers: 0,
+    totalLocked: '0 ETH',
+    activeProvers: 0,
+    activeObservers: 0,
+    pendingUnlocks: 0,
+    treasuryBalance: treasuryBalance,
+  };
+  const tvlData = tvlQuery.data ?? [];
+  const volumeData = volumeQuery.data ?? [];
+  const userData = userGrowthQuery.data ?? [];
   const activityData = activityQuery.data?.map((a, i) => ({
     id: a.id || String(i),
     type: a.type as 'prover_request' | 'unlock' | 'challenge' | 'treasury',
     message: a.message,
     timestamp: a.timestamp,
-  })) ?? FALLBACK_ACTIVITY;
-  const alertsData = alertsQuery.data ?? FALLBACK_ALERTS;
+  })) ?? [];
+  const alertsData = alertsQuery.data ?? [];
 
-  // Stats data from API or fallback
-  const currentMetrics = statsQuery.data ? {
+  const currentMetrics: MetricsData = statsQuery.data ? {
     users: statsQuery.data.users,
     locks: statsQuery.data.locks,
     lockAmount: statsQuery.data.lockAmount,
@@ -391,7 +299,7 @@ export function Dashboard() {
     revenue: statsQuery.data.revenue,
     proposals: statsQuery.data.proposals,
     treasury: statsQuery.data.treasury,
-  } : FALLBACK_METRICS[statsPeriod];
+  } : EMPTY_METRICS;
 
   const tabs = [
     { key: 'overview', label: t('tabs.overview') },

@@ -21,14 +21,11 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useProposalDetail, useExecuteProposal } from '@/hooks/admin/useGovernance';
-import { MOCK_PROPOSAL_DETAIL, type ProposalDetail as ProposalDetailType } from '@/lib/api/admin/mock';
+import type { ProposalDetail as ProposalDetailType } from '@/lib/api/admin/types';
 
 interface ProposalDetailProps {
   id: string;
 }
-
-// Fallback data
-const FALLBACK_PROPOSAL = MOCK_PROPOSAL_DETAIL;
 
 const STATUS_CONFIG = {
   active: { icon: Clock, color: 'text-info', bg: 'bg-info/10' },
@@ -110,16 +107,15 @@ export function ProposalDetail({ id }: ProposalDetailProps) {
   const { data: apiProposal, isLoading, error, refetch } = useProposalDetail(id);
   const executeMutation = useExecuteProposal();
 
-  // Use API data with fallback
-  const proposal = apiProposal ?? { ...FALLBACK_PROPOSAL, id };
-
   if (isLoading) {
     return <ProposalDetailSkeleton />;
   }
 
-  if (error && !apiProposal) {
+  if (error || !apiProposal) {
     return <ProposalDetailError onRetry={refetch} />;
   }
+
+  const proposal = apiProposal;
   const statusConfig = STATUS_CONFIG[proposal.status as keyof typeof STATUS_CONFIG];
   const StatusIcon = statusConfig.icon;
   const forPercentage = (proposal.forVotes / proposal.votes) * 100;

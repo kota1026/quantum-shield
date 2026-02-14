@@ -23,15 +23,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useTreasuryWallets } from '@/hooks/admin/useTreasury';
-import {
-  MOCK_TREASURY_WALLETS_EXTENDED,
-  MOCK_TREASURY_WALLET_STATS,
-  type TreasuryWalletExtended,
-} from '@/lib/api/admin/mock';
-
-// Fallback data
-const FALLBACK_WALLETS = MOCK_TREASURY_WALLETS_EXTENDED;
-const FALLBACK_STATS = MOCK_TREASURY_WALLET_STATS;
+import { type TreasuryWalletExtended } from '@/lib/api/admin/types';
 
 interface StatCardProps {
   title: string;
@@ -111,7 +103,7 @@ function WalletsListError({ error, onRetry }: { error: Error; onRetry: () => voi
 
 // Map API wallet to component format
 function mapApiWallet(data: unknown): TreasuryWalletExtended {
-  if (!data || typeof data !== 'object') return FALLBACK_WALLETS[0];
+  if (!data || typeof data !== 'object') return {} as any;
   const d = data as Record<string, unknown>;
   return {
     id: (d.id as string) || '',
@@ -140,7 +132,7 @@ export function WalletsList() {
   const apiWallets = walletsQuery.data;
   const wallets: TreasuryWalletExtended[] = apiWallets
     ? apiWallets.map(mapApiWallet)
-    : FALLBACK_WALLETS;
+    : [];
 
   const totalBalance = wallets.reduce((sum, w) => sum + parseFloat(w.balance.replace(/,/g, '')), 0);
 

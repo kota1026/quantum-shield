@@ -20,36 +20,6 @@ import { Link } from '@/i18n/navigation';
 import { Tooltip } from '@/components/shared/Tooltip';
 import { useStakePositions } from '@/hooks/qs-hub/useQSHub';
 
-// Demo locked positions - kept for fallback with extended structure
-const FALLBACK_LOCKED_POSITIONS = [
-  {
-    id: '1',
-    lockedAmount: 5000,
-    veQSAmount: 2500,
-    lockDate: new Date('2025-01-15'),
-    unlockDate: new Date('2027-01-15'),
-    durationWeeks: 104,
-    ratio: 0.5, // weeks / 208 (linear time-decay)
-  },
-  {
-    id: '2',
-    lockedAmount: 3000,
-    veQSAmount: 375,
-    lockDate: new Date('2025-06-01'),
-    unlockDate: new Date('2025-12-01'),
-    durationWeeks: 26,
-    ratio: 0.125, // weeks / 208 (linear time-decay)
-  },
-  {
-    id: '3',
-    lockedAmount: 2000,
-    veQSAmount: 500,
-    lockDate: new Date('2024-06-16'),
-    unlockDate: new Date('2025-01-20'),
-    durationWeeks: 32,
-    ratio: 0.25, // weeks / 208 (linear time-decay)
-  },
-];
 
 // Calculate time remaining from now to unlock date
 function calculateTimeRemaining(unlockDate: Date): {
@@ -104,10 +74,8 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
   const t = useTranslations('qs-hub.stake.unlock');
   const tCommon = useTranslations('qs-hub.common');
 
-  // Fetch stake positions from API with fallback
-  const { data: stakePositionsApi } = useStakePositions();
-  // Use local data as fallback (has extended structure)
-  const lockedPositions = stakePositionsApi ? FALLBACK_LOCKED_POSITIONS : FALLBACK_LOCKED_POSITIONS;
+  // Fetch stake positions from API
+  const { data: lockedPositions, isLoading: positionsLoading, error: positionsError } = useStakePositions();
 
   // State for selected position to withdraw
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
@@ -120,24 +88,27 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
     let unlockableCount = 0;
     let unlockableAmount = 0;
 
-    FALLBACK_LOCKED_POSITIONS.forEach((pos) => {
-      totalLocked += pos.lockedAmount;
+    (lockedPositions ?? []).forEach((pos) => {
+      const locked = pos.lockedAmount ?? pos.amount ?? 0;
+      const lock = pos.lockDate ?? new Date();
+      const unlock = pos.unlockDate ?? new Date(pos.lockEndDate);
+      totalLocked += locked;
       const currentVeQS = calculateCurrentVeQS(
         pos.veQSAmount,
-        pos.lockDate,
-        pos.unlockDate
+        lock,
+        unlock
       );
       totalVeQS += currentVeQS;
 
-      const timeRemaining = calculateTimeRemaining(pos.unlockDate);
+      const timeRemaining = calculateTimeRemaining(unlock);
       if (timeRemaining.isUnlockable) {
         unlockableCount++;
-        unlockableAmount += pos.lockedAmount;
+        unlockableAmount += locked;
       }
     });
 
     return { totalLocked, totalVeQS, unlockableCount, unlockableAmount };
-  }, []);
+  }, [lockedPositions]);
 
   // Handle withdraw click
   const handleWithdraw = useCallback(async (positionId: string) => {
@@ -150,8 +121,38 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
     }, 2000);
   }, []);
 
+  // Loading State
+  if (positionsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-foreground-secondary">{t('states.loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (positionsError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-4">
+            <Unlock className="w-8 h-8 text-danger" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">{t('error.title')}</h2>
+          <p className="text-foreground-secondary mb-6">{t('error.description')}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            {t('error.retry')}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Empty State (no positions)
-  if (isEmpty || FALLBACK_LOCKED_POSITIONS.length === 0) {
+  if (isEmpty || !lockedPositions || lockedPositions.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-4">
@@ -247,7 +248,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.positions')}</div>
-            <div className="text-xl font-bold">{FALLBACK_LOCKED_POSITIONS.length}</div>
+            <div className="text-xl font-bold">{lockedPositions?.length ?? 0}</div>
           </Card>
           <Card className={cn('p-4', totals.unlockableCount > 0 && 'border-success/50 bg-success/5')}>
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.unlockable')}</div>
@@ -271,20 +272,24 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
           </h2>
 
           <div className="space-y-4" role="list" aria-label={t('positions.listAriaLabel')}>
-            {FALLBACK_LOCKED_POSITIONS.map((position) => {
-              const timeRemaining = calculateTimeRemaining(position.unlockDate);
+            {(lockedPositions ?? []).map((position) => {
+              const posLockDate = position.lockDate ?? new Date();
+              const posUnlockDate = position.unlockDate ?? new Date(position.lockEndDate);
+              const posLockedAmount = position.lockedAmount ?? position.amount ?? 0;
+              const posDurationWeeks = position.durationWeeks ?? 0;
+              const timeRemaining = calculateTimeRemaining(posUnlockDate);
               const currentVeQS = calculateCurrentVeQS(
                 position.veQSAmount,
-                position.lockDate,
-                position.unlockDate
+                posLockDate,
+                posUnlockDate
               );
               const isSelected = selectedPosition === position.id;
-              const progressPercent = Math.min(
+              const progressPercent = posDurationWeeks > 0 ? Math.min(
                 100,
                 Math.round(
-                  ((position.durationWeeks * 7 - timeRemaining.totalDays) / (position.durationWeeks * 7)) * 100
+                  ((posDurationWeeks * 7 - timeRemaining.totalDays) / (posDurationWeeks * 7)) * 100
                 )
-              );
+              ) : 0;
 
               return (
                 <Card
@@ -314,7 +319,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
                         </div>
                         <div>
                           <div className="font-semibold text-lg">
-                            {position.lockedAmount.toLocaleString()} QS
+                            {posLockedAmount.toLocaleString()} QS
                           </div>
                           <div
                             className={cn(
@@ -341,7 +346,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
                             {t('positions.lockDate')}
                           </div>
                           <div className="font-mono text-foreground-secondary">
-                            {formatDate(position.lockDate)}
+                            {formatDate(posLockDate)}
                           </div>
                         </div>
                         <div>
@@ -350,7 +355,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
                             {t('positions.unlockDate')}
                           </div>
                           <div className="font-mono text-foreground-secondary">
-                            {formatDate(position.unlockDate)}
+                            {formatDate(posUnlockDate)}
                           </div>
                         </div>
                         <div>
@@ -375,7 +380,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
                           onClick={() => handleWithdraw(position.id)}
                           disabled={isWithdrawing}
                           className="w-full sm:w-auto bg-gradient-to-r from-success to-success/80"
-                          aria-label={t('positions.withdrawAriaLabel', { amount: position.lockedAmount })}
+                          aria-label={t('positions.withdrawAriaLabel', { amount: posLockedAmount })}
                         >
                           {isSelected && isWithdrawing ? (
                             <>

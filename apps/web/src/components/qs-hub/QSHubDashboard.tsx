@@ -34,71 +34,8 @@ import {
   useQSHubRewards,
   useQSHubDelegates,
 } from '@/hooks/qs-hub/useQSHub';
-import type { QSHubStats, QSHubProposal, QSHubRewards, QSHubDelegate } from '@/lib/api/qs-hub/mock';
+import type { QSHubStats, QSHubProposal, QSHubRewards, QSHubDelegate } from '@/lib/api/qs-hub/types';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_STATS: QSHubStats = {
-  qsBalance: 12450,
-  lockedQS: 8500,
-  veQSBalance: 6225,
-  votingPower: 0.12,
-  lockEndDate: '2028-01-15',
-  lockDuration: '3 Years',
-  timeRemaining: '2Y 3M 7D',
-  ratio: 0.73, // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
-  activeProposals: 3,
-  totalProposals: 47,
-  delegatedVotes: 5225,
-  councilMembers: 7,
-};
-
-const FALLBACK_PROPOSALS: QSHubProposal[] = [
-  {
-    id: 'QIP-047',
-    title: 'Increase Observer Rewards by 15%',
-    status: 'active',
-    endTime: '2d 14h',
-    votes: { for: 67, against: 23 },
-  },
-  {
-    id: 'QIP-046',
-    title: 'Add Support for Polygon zkEVM',
-    status: 'active',
-    endTime: '5d 8h',
-    votes: { for: 82, against: 12 },
-  },
-  {
-    id: 'QIP-045',
-    title: 'Treasury Diversification Strategy',
-    status: 'pending',
-    endTime: '7d 0h',
-    votes: { for: 0, against: 0 },
-  },
-];
-
-const FALLBACK_REWARDS: QSHubRewards = {
-  claimable: 847,
-  usdValue: 4235,
-  epochProgress: 65,
-  nextEpoch: '3d 12h',
-};
-
-const FALLBACK_DELEGATES: QSHubDelegate[] = [
-  {
-    id: '1',
-    name: 'Watanabe Delegate',
-    initial: 'W',
-    totalPower: '285K veQS',
-    delegatedAmount: 3000,
-  },
-  {
-    id: '2',
-    name: 'Sato Crypto',
-    initial: 'S',
-    totalPower: '198K veQS',
-    delegatedAmount: 2000,
-  },
-];
 
 // Hover card component
 function HoverCard({
@@ -206,17 +143,11 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
   const [isEcosystemMenuOpen, setIsEcosystemMenuOpen] = useState(false);
   const ecosystemMenuRef = useRef<HTMLDivElement>(null);
 
-  // Fetch data from API with fallback
-  const { data: statsApi } = useQSHubStats();
-  const { data: proposalsApi } = useQSHubProposals();
-  const { data: rewardsApi } = useQSHubRewards();
-  const { data: delegatesApi } = useQSHubDelegates();
-
-  // Use API data or fallback (merge with fallback to ensure all fields exist)
-  const stats = statsApi ? { ...FALLBACK_STATS, ...statsApi } : FALLBACK_STATS;
-  const proposals = proposalsApi ?? FALLBACK_PROPOSALS;
-  const rewards = rewardsApi ? { ...FALLBACK_REWARDS, ...rewardsApi } : FALLBACK_REWARDS;
-  const delegates = delegatesApi ?? FALLBACK_DELEGATES;
+  // Fetch data from API
+  const { data: stats, isLoading: statsLoading, error: statsError } = useQSHubStats();
+  const { data: proposals, isLoading: proposalsLoading, error: proposalsError } = useQSHubProposals();
+  const { data: rewards, isLoading: rewardsLoading, error: rewardsError } = useQSHubRewards();
+  const { data: delegates, isLoading: delegatesLoading, error: delegatesError } = useQSHubDelegates();
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -467,43 +398,51 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
 
         {/* Main Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            icon={<Coins className="w-5 h-5 text-gold" />}
-            label={t('stats.veQSBalance')}
-            value={stats.veQSBalance}
-            unit="veQS"
-            badge={`${((stats.votingPower ?? 0) * 100).toFixed(2)}%`}
-            badgeColor="gold"
-            href="/qs-hub/stake/lock"
-            tooltip={t('stats.veQSTooltip')}
-          />
-          <StatCard
-            icon={<Lock className="w-5 h-5 text-hinomaru" />}
-            label={t('stats.lockedQS')}
-            value={stats.lockedQS}
-            unit="QS"
-            badge={stats.timeRemaining}
-            badgeColor="hinomaru"
-            href="/qs-hub/stake/unlock"
-            tooltip={t('stats.lockedTooltip')}
-          />
-          <StatCard
-            icon={<Vote className="w-5 h-5 text-success" />}
-            label={t('stats.activeProposals')}
-            value={stats.activeProposals}
-            badge={t('stats.votingOpen')}
-            badgeColor="success"
-            href="/qs-hub/vote/proposals"
-          />
-          <StatCard
-            icon={<Award className="w-5 h-5 text-gold" />}
-            label={t('stats.claimableRewards')}
-            value={rewards.claimable}
-            unit="QS"
-            badge={`$${(rewards.usdValue ?? 0).toLocaleString()}`}
-            badgeColor="gold"
-            href="/qs-hub/rewards"
-          />
+          {statsLoading ? (
+            <div className="col-span-full text-center py-8 text-foreground-tertiary">{t('states.loading')}</div>
+          ) : statsError ? (
+            <div className="col-span-full text-center py-8 text-warning">{t('states.error.title')}</div>
+          ) : (
+            <>
+              <StatCard
+                icon={<Coins className="w-5 h-5 text-gold" />}
+                label={t('stats.veQSBalance')}
+                value={stats?.veQSBalance ?? 0}
+                unit="veQS"
+                badge={`${((stats?.votingPower ?? 0) * 100).toFixed(2)}%`}
+                badgeColor="gold"
+                href="/qs-hub/stake/lock"
+                tooltip={t('stats.veQSTooltip')}
+              />
+              <StatCard
+                icon={<Lock className="w-5 h-5 text-hinomaru" />}
+                label={t('stats.lockedQS')}
+                value={stats?.lockedQS ?? 0}
+                unit="QS"
+                badge={stats?.timeRemaining ?? '-'}
+                badgeColor="hinomaru"
+                href="/qs-hub/stake/unlock"
+                tooltip={t('stats.lockedTooltip')}
+              />
+              <StatCard
+                icon={<Vote className="w-5 h-5 text-success" />}
+                label={t('stats.activeProposals')}
+                value={stats?.activeProposals ?? 0}
+                badge={t('stats.votingOpen')}
+                badgeColor="success"
+                href="/qs-hub/vote/proposals"
+              />
+              <StatCard
+                icon={<Award className="w-5 h-5 text-gold" />}
+                label={t('stats.claimableRewards')}
+                value={rewards?.claimable ?? 0}
+                unit="QS"
+                badge={`$${(rewards?.usdValue ?? 0).toLocaleString()}`}
+                badgeColor="gold"
+                href="/qs-hub/rewards"
+              />
+            </>
+          )}
         </div>
 
         {/* Two Column Layout */}
@@ -526,7 +465,13 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                 </Link>
               </div>
               <div className="space-y-3" role="list" aria-label={t('proposals.listAriaLabel')}>
-                {proposals.map((proposal) => (
+                {proposalsLoading ? (
+                  <div className="text-center py-8 text-foreground-tertiary">{t('states.loading')}</div>
+                ) : proposalsError ? (
+                  <div className="text-center py-8 text-warning">{t('states.error.title')}</div>
+                ) : !proposals || proposals.length === 0 ? (
+                  <div className="text-center py-8 text-foreground-tertiary">{t('proposals.empty')}</div>
+                ) : proposals.map((proposal) => (
                   <Link
                     key={proposal.id}
                     href={`/qs-hub/vote/proposals/${proposal.id}`}
@@ -593,17 +538,17 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.locked')}</div>
-                  <div className="text-xl font-bold">{(stats.lockedQS ?? 0).toLocaleString()}</div>
+                  <div className="text-xl font-bold">{(stats?.lockedQS ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-foreground-secondary">QS</div>
                 </div>
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.duration')}</div>
-                  <div className="text-xl font-bold">{stats.lockDuration}</div>
-                  <div className="text-xs text-foreground-secondary">{t('lockStatus.remaining', { time: stats.timeRemaining })}</div>
+                  <div className="text-xl font-bold">{stats?.lockDuration ?? '-'}</div>
+                  <div className="text-xs text-foreground-secondary">{t('lockStatus.remaining', { time: stats?.timeRemaining ?? '-' })}</div>
                 </div>
                 <div className="text-center p-4 bg-background-secondary rounded-lg">
                   <div className="text-xs text-foreground-tertiary mb-1">{t('lockStatus.lockRatio')}</div>
-                  <div className="text-xl font-bold text-gold">{stats.ratio}</div>
+                  <div className="text-xl font-bold text-gold">{stats?.ratio ?? 0}</div>
                   <div className="text-xs text-foreground-secondary">{t('lockStatus.veQSRate')}</div>
                 </div>
               </div>
@@ -633,29 +578,37 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                   {t('rewards.title')}
                 </h2>
               </div>
-              <div className="text-center mb-4">
-                <div className="text-3xl font-bold text-gold mb-1">
-                  {(rewards.claimable ?? 0).toLocaleString()} QS
-                </div>
-                <div className="text-sm text-foreground-secondary">
-                  ≈ ${(rewards.usdValue ?? 0).toLocaleString()}
-                </div>
-              </div>
-              <div className="mb-4">
-                <div className="flex justify-between text-xs text-foreground-tertiary mb-1">
-                  <span>{t('rewards.epochProgress')}</span>
-                  <span>{rewards.epochProgress}%</span>
-                </div>
-                <div className="h-2 bg-background-secondary rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gold rounded-full transition-all"
-                    style={{ width: `${rewards.epochProgress}%` }}
-                  />
-                </div>
-                <div className="text-xs text-foreground-tertiary mt-1">
-                  {t('rewards.nextEpoch', { time: rewards.nextEpoch })}
-                </div>
-              </div>
+              {rewardsLoading ? (
+                <div className="text-center py-4 text-foreground-tertiary">{t('states.loading')}</div>
+              ) : rewardsError ? (
+                <div className="text-center py-4 text-warning">{t('states.error.title')}</div>
+              ) : (
+                <>
+                  <div className="text-center mb-4">
+                    <div className="text-3xl font-bold text-gold mb-1">
+                      {(rewards?.claimable ?? 0).toLocaleString()} QS
+                    </div>
+                    <div className="text-sm text-foreground-secondary">
+                      ≈ ${(rewards?.usdValue ?? 0).toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <div className="flex justify-between text-xs text-foreground-tertiary mb-1">
+                      <span>{t('rewards.epochProgress')}</span>
+                      <span>{rewards?.epochProgress ?? 0}%</span>
+                    </div>
+                    <div className="h-2 bg-background-secondary rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gold rounded-full transition-all"
+                        style={{ width: `${rewards?.epochProgress ?? 0}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-foreground-tertiary mt-1">
+                      {t('rewards.nextEpoch', { time: rewards?.nextEpoch ?? '-' })}
+                    </div>
+                  </div>
+                </>
+              )}
               <Link href="/qs-hub/rewards" className="block">
                 <Button variant="gold" className="w-full min-h-[44px]">
                   {t('rewards.claim')}
@@ -679,7 +632,13 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                 </Link>
               </div>
               <div className="space-y-3">
-                {delegates.map((delegate) => (
+                {delegatesLoading ? (
+                  <div className="text-center py-4 text-foreground-tertiary">{t('states.loading')}</div>
+                ) : delegatesError ? (
+                  <div className="text-center py-4 text-warning">{t('states.error.title')}</div>
+                ) : !delegates || delegates.length === 0 ? (
+                  <div className="text-center py-4 text-foreground-tertiary">{t('delegations.empty')}</div>
+                ) : delegates.map((delegate) => (
                   <div
                     key={delegate.id}
                     className="flex items-center justify-between p-3 bg-background-secondary rounded-lg"
@@ -724,7 +683,7 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
                 </Link>
               </div>
               <div className="text-center mb-4">
-                <div className="text-3xl font-bold mb-1">{stats.councilMembers}</div>
+                <div className="text-3xl font-bold mb-1">{stats?.councilMembers ?? 0}</div>
                 <div className="text-sm text-foreground-secondary">{t('council.members')}</div>
               </div>
               <p className="text-sm text-foreground-tertiary text-center">

@@ -24,17 +24,8 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChallengeStats, useChallenges } from '@/hooks/explorer';
-import type { ChallengeStats, ChallengeDetail } from '@/lib/api/explorer/mock';
+import type { ChallengeStats, ChallengeDetail } from '@/lib/api/explorer/types';
 
-// Empty initial state (no fake data)
-const FALLBACK_CHALLENGE_STATS: ChallengeStats = {
-  totalChallenges: 0,
-  active: 0,
-  resolved: 0,
-  successRate: 0,
-};
-
-const FALLBACK_CHALLENGES: ChallengeDetail[] = [];
 
 interface ExplorerChallengesProps {
   locale?: string;
@@ -47,12 +38,12 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Fetch data using hooks
-  const { data: challengeStatsApi } = useChallengeStats();
-  const { data: challengesApi } = useChallenges({ status: statusFilter });
+  const { data: challengeStatsApi, isLoading: statsLoading, error: statsError } = useChallengeStats();
+  const { data: challengesApi, isLoading: challengesLoading, error: challengesError } = useChallenges({ status: statusFilter });
 
-  // Use API data with fallback
-  const mockStats = challengeStatsApi ?? FALLBACK_CHALLENGE_STATS;
-  const mockChallenges = challengesApi?.challenges ?? FALLBACK_CHALLENGES;
+  // Use API data directly (no silent fallbacks per GR-1)
+  const challengeStats = challengeStatsApi;
+  const challenges = challengesApi?.challenges ?? [];
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -85,7 +76,7 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
     }
   };
 
-  const filteredChallenges = mockChallenges.filter((challenge) => {
+  const filteredChallenges = challenges.filter((challenge) => {
     if (statusFilter === 'all') return true;
     if (statusFilter === 'active') return challenge.status !== 'resolved';
     return challenge.status === statusFilter;
@@ -151,11 +142,11 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
             <h1 className="text-3xl font-bold">{t('challenges.pageTitle')}</h1>
             <div className="flex items-center gap-4 text-sm">
               <div className="text-right">
-                <span className="text-warning font-bold text-xl">{mockStats.active}</span>
+                <span className="text-warning font-bold text-xl">{challengeStats?.active ?? 0}</span>
                 <span className="text-foreground-secondary ml-2">{t('challenges.stats.active')}</span>
               </div>
               <div className="text-right">
-                <span className="text-foreground font-bold text-xl">{mockStats.resolved}</span>
+                <span className="text-foreground font-bold text-xl">{challengeStats?.resolved ?? 0}</span>
                 <span className="text-foreground-secondary ml-2">{t('challenges.stats.resolved')}</span>
               </div>
             </div>
@@ -163,34 +154,53 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <AlertTriangle className="w-5 h-5 text-warning" />
-                <span className="text-sm text-foreground-secondary">{t('challenges.stats.totalChallenges')}</span>
-              </div>
-              <div className="text-2xl font-bold">{mockStats.totalChallenges}</div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Clock className="w-5 h-5 text-gold" />
-                <span className="text-sm text-foreground-secondary">{t('challenges.stats.active')}</span>
-              </div>
-              <div className="text-2xl font-bold text-warning">{mockStats.active}</div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Gavel className="w-5 h-5 text-foreground-secondary" />
-                <span className="text-sm text-foreground-secondary">{t('challenges.stats.resolved')}</span>
-              </div>
-              <div className="text-2xl font-bold">{mockStats.resolved}</div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Shield className="w-5 h-5 text-success" />
-                <span className="text-sm text-foreground-secondary">{t('challenges.stats.successRate')}</span>
-              </div>
-              <div className="text-2xl font-bold text-success">{mockStats.successRate}%</div>
-            </Card>
+            {statsLoading ? (
+              <>
+                {[0, 1, 2, 3].map((i) => (
+                  <Card key={i} className="p-6">
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-4 bg-surface-tertiary rounded w-2/3" />
+                      <div className="h-8 bg-surface-tertiary rounded w-1/2" />
+                    </div>
+                  </Card>
+                ))}
+              </>
+            ) : statsError ? (
+              <Card className="p-6 col-span-full">
+                <div className="text-center text-warning">{t('common.errors.loadFailed')}</div>
+              </Card>
+            ) : (
+              <>
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <AlertTriangle className="w-5 h-5 text-warning" />
+                    <span className="text-sm text-foreground-secondary">{t('challenges.stats.totalChallenges')}</span>
+                  </div>
+                  <div className="text-2xl font-bold">{challengeStats?.totalChallenges ?? 0}</div>
+                </Card>
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Clock className="w-5 h-5 text-gold" />
+                    <span className="text-sm text-foreground-secondary">{t('challenges.stats.active')}</span>
+                  </div>
+                  <div className="text-2xl font-bold text-warning">{challengeStats?.active ?? 0}</div>
+                </Card>
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Gavel className="w-5 h-5 text-foreground-secondary" />
+                    <span className="text-sm text-foreground-secondary">{t('challenges.stats.resolved')}</span>
+                  </div>
+                  <div className="text-2xl font-bold">{challengeStats?.resolved ?? 0}</div>
+                </Card>
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Shield className="w-5 h-5 text-success" />
+                    <span className="text-sm text-foreground-secondary">{t('challenges.stats.successRate')}</span>
+                  </div>
+                  <div className="text-2xl font-bold text-success">{challengeStats?.successRate ?? 0}%</div>
+                </Card>
+              </>
+            )}
           </div>
 
           {/* Filters */}
@@ -259,7 +269,19 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredChallenges.map((challenge) => (
+                  {challengesLoading ? (
+                    <tr><td colSpan={6} className="px-6 py-12 text-center text-foreground-tertiary">
+                      <div className="animate-pulse">{t('common.loading')}</div>
+                    </td></tr>
+                  ) : challengesError ? (
+                    <tr><td colSpan={6} className="px-6 py-12 text-center text-warning">
+                      {t('common.errors.loadFailed')}
+                    </td></tr>
+                  ) : filteredChallenges.length === 0 ? (
+                    <tr><td colSpan={6} className="px-6 py-12 text-center text-foreground-tertiary">
+                      {t('common.noData')}
+                    </td></tr>
+                  ) : filteredChallenges.map((challenge) => (
                     <tr
                       key={challenge.id}
                       className="border-b border-border/50 hover:bg-background-secondary/50 cursor-pointer transition-colors"

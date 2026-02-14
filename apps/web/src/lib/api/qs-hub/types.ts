@@ -41,19 +41,34 @@ export interface QSHubProposal {
   };
 }
 
+export interface ProposalDetailProposer {
+  name: string;
+  address: string;
+}
+
+export interface ProposalTimelineItem {
+  event: string;
+  date: string;
+  status: 'done' | 'pending';
+}
+
 export interface ProposalDetail {
   id: string;
   title: string;
   description: string;
   status: QSHubProposalStatus;
-  proposer: string;
+  proposer: string | ProposalDetailProposer;
   createdAt: string;
+  startTime?: string;
   endTime: string;
+  totalVotes?: number;
   votes: {
     for: number;
     against: number;
     quorum: number;
+    total?: number;
   };
+  timeline?: ProposalTimelineItem[];
 }
 
 // =============================================================================
@@ -75,8 +90,14 @@ export interface QSHubDelegate {
   id: string;
   name: string;
   initial: string;
-  totalPower: string;
+  address?: string;
+  description?: string;
+  totalPower: number;
   delegatedAmount: number;
+  delegators?: number;
+  votingParticipation?: number;
+  isFeatured?: boolean;
+  isVerified?: boolean;
 }
 
 // =============================================================================
@@ -92,6 +113,9 @@ export interface CouncilMember {
   role: string;
   veQS: string;
   status: CouncilMemberStatus;
+  description?: string;
+  address?: string;
+  votingPower?: number;
 }
 
 // =============================================================================
@@ -105,6 +129,12 @@ export interface StakeLockPosition {
   lockDuration: string;
   lockEndDate: string;
   ratio: number; // veQS lock ratio: duration / MAX_LOCK_TIME (linear time-decay)
+  lockedAmount?: number;
+  currentVeQS?: number;
+  currentDurationWeeks?: number;
+  lockDate?: Date;
+  unlockDate?: Date;
+  durationWeeks?: number;
 }
 
 // =============================================================================
@@ -120,6 +150,10 @@ export interface VoteRecord {
   vote: VoteChoice;
   votePower: number;
   timestamp: string;
+  proposalStatus?: 'active' | 'pending' | 'passed' | 'rejected';
+  votedAt?: string;
+  veQSUsed?: number;
+  result?: 'passed' | 'rejected';
 }
 
 // =============================================================================

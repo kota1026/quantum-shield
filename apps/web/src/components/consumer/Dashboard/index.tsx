@@ -16,7 +16,7 @@ import { WalletModal } from './WalletModal';
 import { cn } from '@/lib/utils';
 import { useUserDashboard, useUserTransactions, setUserAddress, clearUserAddress, useUserLockedBalance } from '@/hooks/consumer';
 import { useConsumerAuthStore, useIsConsumerAuthenticated } from '@/stores/consumerAuthStore';
-import type { ConsumerStats } from '@/lib/api/consumer/mock';
+import type { ConsumerStats } from '@/lib/api/consumer/types';
 import { SEPOLIA_CHAIN_ID, L1_VAULT_ADDRESS, L1_VAULT_ABI } from '@/lib/contracts/l1vault';
 
 // Empty state defaults (no mock data - shows real 0 values)

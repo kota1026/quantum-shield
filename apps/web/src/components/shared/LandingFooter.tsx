@@ -12,7 +12,6 @@ const apps = [
   { key: 'explorer', href: '/explorer/landing' },
   { key: 'prover', href: '/prover/landing' },
   { key: 'observer', href: '/observer/landing' },
-  { key: 'enterprise', href: '/enterprise/landing' },
 ];
 
 export function LandingFooter() {

@@ -1048,6 +1048,8 @@
       "activatingTimelock": "タイムロックを有効化中...",
       "emergencyWarning": "緊急アンロックは7日間の待機期間とボンド（最低0.5 ETH）が必要です",
       "noKeysWarning": "Dilithium鍵がありません。先にロック操作を完了してください。",
+      "walletNotConnected": "ウォレットが接続されていません。ウォレットを接続してから再試行してください。",
+      "connectWallet": "ウォレットを接続",
       "retry": "再試行",
       "cancel": "キャンセル",
       "steps": {
@@ -1088,37 +1090,6 @@
       },
       "info": {
         "message": "セキュリティ待機期間中に問題がなければ、資産は自動的にウォレットに転送されます。ダッシュボードから進捗を確認できます。"
-      },
-      "buttons": {
-        "viewHistory": "履歴を確認",
-        "backToDashboard": "ダッシュボードに戻る"
-      }
-    },
-    "unlockProcessing": {
-      "title": "Unlock処理中...",
-      "subtitle": "しばらくお待ちください。このページを閉じないでください。",
-      "steps": {
-        "verify": "Dilithium署名を検証",
-        "createTx": "Unlock要求を作成",
-        "broadcast": "ブロックチェーンに送信中...",
-        "startTimeLock": "24時間Time Lock開始"
-      }
-    },
-    "unlockSuccess": {
-      "title": "Unlock要求完了",
-      "subtitle": "24時間の待機期間後、資産がウォレットに転送されます",
-      "timeLock": {
-        "title": "Time Lock残り時間",
-        "description": "セキュリティ待機期間",
-        "remaining": "残り時間"
-      },
-      "details": {
-        "amount": "Unlock金額",
-        "estimatedCompletion": "Unlock可能日時",
-        "txHash": "TX Hash"
-      },
-      "info": {
-        "message": "24時間の待機期間中、不正なUnlockを検出した場合はChallengeで阻止できます。問題がなければ、待機終了後にダッシュボードから資産を受け取れます。"
       },
       "buttons": {
         "viewHistory": "履歴を確認",

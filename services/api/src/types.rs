@@ -26,6 +26,21 @@ pub struct LockResponse {
     pub status: LockStatus,
 }
 
+/// Request to confirm a lock after L1 transaction succeeds
+/// Sent by frontend after lockWithSR0 TX is confirmed on Sepolia
+#[derive(Debug, Deserialize)]
+pub struct LockConfirmRequest {
+    pub l1_tx_hash: String,
+}
+
+/// Response for lock confirmation
+#[derive(Debug, Serialize)]
+pub struct LockConfirmResponse {
+    pub lock_id: String,
+    pub status: LockStatus,
+    pub l1_tx_hash: String,
+}
+
 // ============================================================================
 // Unlock Types
 // ============================================================================

@@ -18,106 +18,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCouncil } from '@/hooks/qs-hub/useQSHub';
 
-// Demo council members data (kept for fallback with extended structure)
-const FALLBACK_COUNCIL_MEMBERS = [
-  {
-    id: '1',
-    name: 'Nakamoto Foundation',
-    address: '0x1234...5678',
-    initial: 'N',
-    role: 'Chair',
-    joinedDate: '2024-01-15',
-    votingPower: 15,
-    description: 'Leading blockchain research foundation focused on decentralized governance.',
-    isActive: true,
-  },
-  {
-    id: '2',
-    name: 'Quantum Security Labs',
-    address: '0xabcd...efgh',
-    initial: 'Q',
-    role: 'Security',
-    joinedDate: '2024-01-15',
-    votingPower: 15,
-    description: 'Cryptography research lab specializing in post-quantum security.',
-    isActive: true,
-  },
-  {
-    id: '3',
-    name: 'Tokyo Tech Council',
-    address: '0x9876...5432',
-    initial: 'T',
-    role: 'Technical',
-    joinedDate: '2024-03-01',
-    votingPower: 14,
-    description: 'Academic institution providing technical oversight and research.',
-    isActive: true,
-  },
-  {
-    id: '4',
-    name: 'DeFi Alliance',
-    address: '0xdef0...1234',
-    initial: 'D',
-    role: 'Integration',
-    joinedDate: '2024-03-01',
-    votingPower: 14,
-    description: 'DeFi ecosystem representative ensuring cross-protocol compatibility.',
-    isActive: true,
-  },
-  {
-    id: '5',
-    name: 'Community DAO',
-    address: '0x5555...6666',
-    initial: 'C',
-    role: 'Community',
-    joinedDate: '2024-06-01',
-    votingPower: 14,
-    description: 'Elected community representative for user advocacy.',
-    isActive: true,
-  },
-  {
-    id: '6',
-    name: 'Legal Advisory',
-    address: '0x7777...8888',
-    initial: 'L',
-    role: 'Legal',
-    joinedDate: '2024-06-01',
-    votingPower: 14,
-    description: 'Legal counsel ensuring regulatory compliance across jurisdictions.',
-    isActive: true,
-  },
-  {
-    id: '7',
-    name: 'Risk Committee',
-    address: '0x9999...0000',
-    initial: 'R',
-    role: 'Risk',
-    joinedDate: '2024-09-01',
-    votingPower: 14,
-    description: 'Risk assessment team monitoring protocol health and safety.',
-    isActive: true,
-  },
-];
-
-// Demo emergency actions
-const FALLBACK_EMERGENCY_ACTIONS = [
-  {
-    id: 'EA-003',
-    title: 'Pause Prover Registration',
-    status: 'executed',
-    date: '2024-12-15',
-    votes: { for: 5, against: 2 },
-    reason: 'Security vulnerability in onboarding flow detected.',
-  },
-  {
-    id: 'EA-002',
-    title: 'Rate Limit Increase',
-    status: 'executed',
-    date: '2024-10-22',
-    votes: { for: 7, against: 0 },
-    reason: 'Network congestion required temporary parameter adjustment.',
-  },
-];
 
 // Role colors
 const roleColors: Record<string, string> = {
@@ -134,10 +34,8 @@ export function Council() {
   const t = useTranslations('qs-hub.council');
   const tCommon = useTranslations('qs-hub.common');
 
-  // Fetch council from API with fallback
-  const { data: councilApi } = useCouncil();
-  // Use local data as fallback (has extended structure)
-  const councilMembers = councilApi ? FALLBACK_COUNCIL_MEMBERS : FALLBACK_COUNCIL_MEMBERS;
+  // Fetch council from API
+  const { data: councilMembers, isLoading: councilLoading, error: councilError } = useCouncil();
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -219,7 +117,7 @@ export function Council() {
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" aria-label={t('statsAriaLabel')}>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.members')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_COUNCIL_MEMBERS.length}</div>
+            <div className="text-2xl font-bold">{councilMembers?.length ?? 0}</div>
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.threshold')}</div>
@@ -227,7 +125,7 @@ export function Council() {
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.actions')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_EMERGENCY_ACTIONS.length}</div>
+            <div className="text-2xl font-bold">-</div>
           </Card>
           <Card className="p-4 border-success/30">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.status')}</div>
@@ -243,7 +141,13 @@ export function Council() {
           </h2>
 
           <div className="grid sm:grid-cols-2 gap-4" role="list" aria-label={t('members.listAriaLabel')}>
-            {FALLBACK_COUNCIL_MEMBERS.map((member) => (
+            {councilLoading ? (
+              <div className="col-span-full text-center py-8 text-foreground-tertiary">{t('loading')}</div>
+            ) : councilError ? (
+              <div className="col-span-full text-center py-8 text-warning">{t('error')}</div>
+            ) : !councilMembers || councilMembers.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-foreground-tertiary">{t('members.empty')}</div>
+            ) : councilMembers.map((member) => (
               <Card
                 key={member.id}
                 className="p-5 hover:border-gold/30 transition-all duration-200"
@@ -287,38 +191,8 @@ export function Council() {
             {t('actions.title')}
           </h2>
 
-          <div className="space-y-3" role="list" aria-label={t('actions.listAriaLabel')}>
-            {FALLBACK_EMERGENCY_ACTIONS.map((action) => (
-              <Card
-                key={action.id}
-                className="p-4 hover:border-gold/30 transition-all duration-200"
-                role="listitem"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-mono text-foreground-tertiary">{action.id}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">
-                        {t(`actions.status.${action.status}`)}
-                      </span>
-                    </div>
-                    <h3 className="font-medium mb-1">{action.title}</h3>
-                    <p className="text-sm text-foreground-secondary">{action.reason}</p>
-                  </div>
-                  <div className="text-right text-sm">
-                    <div className="flex items-center gap-1 text-foreground-tertiary mb-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      {action.date}
-                    </div>
-                    <div className="text-xs">
-                      <span className="text-success">{action.votes.for}</span>
-                      <span className="text-foreground-tertiary mx-1">/</span>
-                      <span className="text-danger">{action.votes.against}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
+          <div className="text-center py-8 text-foreground-tertiary">
+            {t('actions.noActions')}
           </div>
         </section>
 

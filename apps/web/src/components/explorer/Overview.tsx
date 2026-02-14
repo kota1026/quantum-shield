@@ -28,25 +28,8 @@ import {
   useRecentUnlocks,
   useActiveChallenges,
 } from '@/hooks/explorer';
-import type { ExplorerStats, RecentLock, RecentUnlock, ActiveChallenge } from '@/lib/api/explorer/mock';
+import type { ExplorerStats, RecentLock, RecentUnlock, ActiveChallenge } from '@/lib/api/explorer/types';
 
-// Empty initial state (no fake data)
-const FALLBACK_STATS: ExplorerStats = {
-  tvl: '$0',
-  tvlChange: 0,
-  totalLocks: 0,
-  locksChange: 0,
-  pendingUnlocks: 0,
-  pendingInTimeLock: 0,
-  activeProvers: 0,
-  proverUptime: 0,
-};
-
-const FALLBACK_RECENT_LOCKS: RecentLock[] = [];
-
-const FALLBACK_RECENT_UNLOCKS: RecentUnlock[] = [];
-
-const FALLBACK_ACTIVE_CHALLENGES: ActiveChallenge[] = [];
 
 interface ExplorerOverviewProps {
   locale?: string;
@@ -58,16 +41,16 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch data using hooks
-  const { data: statsApi } = useExplorerStats();
-  const { data: recentLocksApi } = useRecentLocks();
-  const { data: recentUnlocksApi } = useRecentUnlocks();
-  const { data: activeChallengesApi } = useActiveChallenges();
+  const { data: statsApi, isLoading: statsLoading, error: statsError } = useExplorerStats();
+  const { data: recentLocksApi, isLoading: locksLoading, error: locksError } = useRecentLocks();
+  const { data: recentUnlocksApi, isLoading: unlocksLoading, error: unlocksError } = useRecentUnlocks();
+  const { data: activeChallengesApi, isLoading: challengesLoading, error: challengesError } = useActiveChallenges();
 
-  // Use API data with fallback (ensure arrays are always arrays)
-  const mockStats = statsApi ? { ...FALLBACK_STATS, ...statsApi } : FALLBACK_STATS;
-  const mockRecentLocks = Array.isArray(recentLocksApi) ? recentLocksApi : FALLBACK_RECENT_LOCKS;
-  const mockRecentUnlocks = Array.isArray(recentUnlocksApi) ? recentUnlocksApi : FALLBACK_RECENT_UNLOCKS;
-  const mockActiveChallenges = Array.isArray(activeChallengesApi) ? activeChallengesApi : FALLBACK_ACTIVE_CHALLENGES;
+  // Use API data directly (no silent fallbacks per GR-1)
+  const stats = statsApi;
+  const recentLocks = Array.isArray(recentLocksApi) ? recentLocksApi : [];
+  const recentUnlocks = Array.isArray(recentUnlocksApi) ? recentUnlocksApi : [];
+  const activeChallenges = Array.isArray(activeChallengesApi) ? activeChallengesApi : [];
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -206,87 +189,109 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8"
           aria-label={t('overview.stats.ariaLabel')}
         >
-          {/* TVL Card */}
-          <Card variant="hoverGradient" padding="md" className="relative">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-foreground-secondary uppercase tracking-wider flex items-center gap-1">
-                {t('overview.stats.tvl.label')}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="TVLについて">
-                      <HelpCircle className="w-3 h-3 text-foreground-tertiary hover:text-foreground-secondary" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('overview.stats.tvl.tooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" aria-hidden="true" />
-                +{mockStats.tvlChange}%
-              </span>
-            </div>
-            <div className="text-[28px] font-bold text-gold">{mockStats.tvl}</div>
-            <div className="text-xs text-success flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3 h-3" aria-hidden="true" />
-              {t('overview.stats.tvl.change', { change: mockStats.tvlChange })}
-            </div>
-          </Card>
+          {statsLoading ? (
+            <>
+              {[0, 1, 2, 3].map((i) => (
+                <Card key={i} variant="hoverGradient" padding="md" className="relative">
+                  <div className="animate-pulse space-y-3">
+                    <div className="h-3 bg-surface-tertiary rounded w-1/2" />
+                    <div className="h-8 bg-surface-tertiary rounded w-3/4" />
+                    <div className="h-3 bg-surface-tertiary rounded w-1/3" />
+                  </div>
+                </Card>
+              ))}
+            </>
+          ) : statsError ? (
+            <Card variant="hoverGradient" padding="md" className="col-span-full">
+              <div className="text-center py-4 text-warning">
+                {t('common.errors.loadFailed')}
+              </div>
+            </Card>
+          ) : (
+            <>
+              {/* TVL Card */}
+              <Card variant="hoverGradient" padding="md" className="relative">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-foreground-secondary uppercase tracking-wider flex items-center gap-1">
+                    {t('overview.stats.tvl.label')}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="TVLについて">
+                          <HelpCircle className="w-3 h-3 text-foreground-tertiary hover:text-foreground-secondary" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>{t('overview.stats.tvl.tooltip')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" aria-hidden="true" />
+                    +{stats?.tvlChange ?? 0}%
+                  </span>
+                </div>
+                <div className="text-[28px] font-bold text-gold">{stats?.tvl ?? '$0'}</div>
+                <div className="text-xs text-success flex items-center gap-1 mt-1">
+                  <TrendingUp className="w-3 h-3" aria-hidden="true" />
+                  {t('overview.stats.tvl.change', { change: stats?.tvlChange ?? 0 })}
+                </div>
+              </Card>
 
-          {/* Total Locks Card */}
-          <Card variant="hoverGradient" padding="md" className="relative">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-foreground-secondary uppercase tracking-wider">
-                {t('overview.stats.totalLocks.label')}
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" aria-hidden="true" />
-                +{mockStats.locksChange}
-              </span>
-            </div>
-            <div className="text-[28px] font-bold">{mockStats.totalLocks.toLocaleString()}</div>
-            <div className="text-xs text-success flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3 h-3" aria-hidden="true" />
-              {t('overview.stats.totalLocks.change', { count: mockStats.locksChange })}
-            </div>
-          </Card>
+              {/* Total Locks Card */}
+              <Card variant="hoverGradient" padding="md" className="relative">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-foreground-secondary uppercase tracking-wider">
+                    {t('overview.stats.totalLocks.label')}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" aria-hidden="true" />
+                    +{stats?.locksChange ?? 0}
+                  </span>
+                </div>
+                <div className="text-[28px] font-bold">{(stats?.totalLocks ?? 0).toLocaleString()}</div>
+                <div className="text-xs text-success flex items-center gap-1 mt-1">
+                  <TrendingUp className="w-3 h-3" aria-hidden="true" />
+                  {t('overview.stats.totalLocks.change', { count: stats?.locksChange ?? 0 })}
+                </div>
+              </Card>
 
-          {/* Pending Unlocks Card */}
-          <Card variant="hoverGradient" padding="md" className="relative">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-foreground-secondary uppercase tracking-wider">
-                {t('overview.stats.pendingUnlocks.label')}
-              </span>
-            </div>
-            <div className="text-[28px] font-bold">{mockStats.pendingUnlocks}</div>
-            <div className="text-xs text-foreground-secondary mt-1">
-              {t('overview.stats.pendingUnlocks.detail', { count: mockStats.pendingInTimeLock })}
-            </div>
-          </Card>
+              {/* Pending Unlocks Card */}
+              <Card variant="hoverGradient" padding="md" className="relative">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-foreground-secondary uppercase tracking-wider">
+                    {t('overview.stats.pendingUnlocks.label')}
+                  </span>
+                </div>
+                <div className="text-[28px] font-bold">{stats?.pendingUnlocks ?? 0}</div>
+                <div className="text-xs text-foreground-secondary mt-1">
+                  {t('overview.stats.pendingUnlocks.detail', { count: stats?.pendingInTimeLock ?? 0 })}
+                </div>
+              </Card>
 
-          {/* Active Provers Card */}
-          <Card variant="hoverGradient" padding="md" className="relative">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-foreground-secondary uppercase tracking-wider flex items-center gap-1">
-                {t('overview.stats.activeProvers.label')}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="Proverについて">
-                      <HelpCircle className="w-3 h-3 text-foreground-tertiary hover:text-foreground-secondary" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('overview.stats.activeProvers.tooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </span>
-            </div>
-            <div className="text-[28px] font-bold">{mockStats.activeProvers}</div>
-            <div className="text-xs text-success mt-1">
-              {t('overview.stats.activeProvers.uptime', { uptime: mockStats.proverUptime })}
-            </div>
-          </Card>
+              {/* Active Provers Card */}
+              <Card variant="hoverGradient" padding="md" className="relative">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-foreground-secondary uppercase tracking-wider flex items-center gap-1">
+                    {t('overview.stats.activeProvers.label')}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru rounded-full" aria-label="Proverについて">
+                          <HelpCircle className="w-3 h-3 text-foreground-tertiary hover:text-foreground-secondary" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>{t('overview.stats.activeProvers.tooltip')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </span>
+                </div>
+                <div className="text-[28px] font-bold">{stats?.activeProvers ?? 0}</div>
+                <div className="text-xs text-success mt-1">
+                  {t('overview.stats.activeProvers.uptime', { uptime: stats?.proverUptime ?? 0 })}
+                </div>
+              </Card>
+            </>
+          )}
         </section>
 
         {/* Two Column Layout: Recent Locks & Unlocks */}
@@ -325,7 +330,19 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockRecentLocks.map((lock, index) => (
+                  {locksLoading ? (
+                    <tr><td colSpan={4} className="px-4 py-8 text-center text-foreground-tertiary">
+                      <div className="animate-pulse">{t('common.loading')}</div>
+                    </td></tr>
+                  ) : locksError ? (
+                    <tr><td colSpan={4} className="px-4 py-8 text-center text-warning">
+                      {t('common.errors.loadFailed')}
+                    </td></tr>
+                  ) : recentLocks.length === 0 ? (
+                    <tr><td colSpan={4} className="px-4 py-8 text-center text-foreground-tertiary">
+                      {t('common.noData')}
+                    </td></tr>
+                  ) : recentLocks.map((lock) => (
                     <tr
                       key={lock.id}
                       className="border-b border-surface-tertiary last:border-b-0 hover:bg-background-tertiary cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-inset"
@@ -404,7 +421,19 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockRecentUnlocks.map((unlock, index) => (
+                  {unlocksLoading ? (
+                    <tr><td colSpan={4} className="px-4 py-8 text-center text-foreground-tertiary">
+                      <div className="animate-pulse">{t('common.loading')}</div>
+                    </td></tr>
+                  ) : unlocksError ? (
+                    <tr><td colSpan={4} className="px-4 py-8 text-center text-warning">
+                      {t('common.errors.loadFailed')}
+                    </td></tr>
+                  ) : recentUnlocks.length === 0 ? (
+                    <tr><td colSpan={4} className="px-4 py-8 text-center text-foreground-tertiary">
+                      {t('common.noData')}
+                    </td></tr>
+                  ) : recentUnlocks.map((unlock) => (
                     <tr
                       key={unlock.id}
                       className="border-b border-surface-tertiary last:border-b-0 hover:bg-background-tertiary cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-inset"
@@ -503,7 +532,19 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                 </tr>
               </thead>
               <tbody>
-                {mockActiveChallenges.map((challenge) => (
+                {challengesLoading ? (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-foreground-tertiary">
+                    <div className="animate-pulse">{t('common.loading')}</div>
+                  </td></tr>
+                ) : challengesError ? (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-warning">
+                    {t('common.errors.loadFailed')}
+                  </td></tr>
+                ) : activeChallenges.length === 0 ? (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-foreground-tertiary">
+                    {t('common.noData')}
+                  </td></tr>
+                ) : activeChallenges.map((challenge) => (
                   <tr
                     key={challenge.id}
                     className="border-b border-surface-tertiary last:border-b-0 hover:bg-background-tertiary cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-inset"
@@ -559,7 +600,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
             </table>
           </Card>
           <p className="text-center text-foreground-tertiary py-4 text-sm">
-            {t('overview.activeChallenges.summary', { active: 1, total: 142 })}
+            {t('overview.activeChallenges.summary', { active: activeChallenges.length, total: activeChallenges.length })}
           </p>
         </section>
       </div>

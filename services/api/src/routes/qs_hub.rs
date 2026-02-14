@@ -85,14 +85,19 @@ fn support_to_vote_direction(support: i16) -> VoteDirection {
 // =============================================================================
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QSHubStatsResponse {
+    #[serde(rename = "qsBalance")]
     pub qs_balance: f64,
+    #[serde(rename = "lockedQS")]
     pub locked_qs: f64,
+    #[serde(rename = "veQSBalance")]
     pub veqs_balance: f64,
     pub voting_power: f64,
     pub lock_end_date: String,
     pub lock_duration: String,
     pub time_remaining: String,
+    #[serde(rename = "ratio")]
     pub multiplier: f64,
     pub active_proposals: u32,
     pub total_proposals: u32,
@@ -101,6 +106,7 @@ pub struct QSHubStatsResponse {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QSHubProposal {
     pub id: String,
     pub title: String,
@@ -127,6 +133,7 @@ pub struct ProposalVotes {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QSHubRewardsResponse {
     pub claimable: f64,
     pub usd_value: f64,
@@ -137,6 +144,7 @@ pub struct QSHubRewardsResponse {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QSHubDelegate {
     pub id: String,
     pub name: String,
@@ -150,6 +158,7 @@ pub struct QSHubDelegate {
 // =============================================================================
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProposalDetail {
     pub id: String,
     pub title: String,
@@ -181,11 +190,13 @@ pub struct ProposalsQuery {
 // =============================================================================
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CouncilMember {
     pub id: String,
     pub name: String,
     pub initial: String,
     pub role: String,
+    #[serde(rename = "veQS")]
     pub veqs: String,
     pub status: MemberStatus,
 }
@@ -202,12 +213,15 @@ pub enum MemberStatus {
 // =============================================================================
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StakeLockPosition {
     pub id: String,
     pub amount: f64,
+    #[serde(rename = "veQSAmount")]
     pub veqs_amount: f64,
     pub lock_duration: String,
     pub lock_end_date: String,
+    #[serde(rename = "ratio")]
     pub multiplier: f64,
 }
 
@@ -218,6 +232,7 @@ pub struct CreateStakeRequest {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateStakeResponse {
     pub position: StakeLockPosition,
     pub transaction_hash: String,
@@ -229,6 +244,7 @@ pub struct ExtendStakeRequest {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExtendStakeResponse {
     pub position: StakeLockPosition,
     pub transaction_hash: String,
@@ -244,6 +260,7 @@ pub struct BalanceResponse {
 // =============================================================================
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VoteRecord {
     pub id: String,
     pub proposal_id: String,
@@ -268,6 +285,7 @@ pub struct VoteRequest {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VoteResponse {
     pub success: bool,
     pub transaction_hash: String,
@@ -279,6 +297,7 @@ pub struct VoteResponse {
 // =============================================================================
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ClaimRewardsResponse {
     pub claimed: f64,
     pub transaction_hash: String,

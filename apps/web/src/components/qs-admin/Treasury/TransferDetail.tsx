@@ -24,24 +24,6 @@ interface TransferDetailProps {
   id: string;
 }
 
-const FALLBACK_TRANSFER = {
-  id: 'TXF-001',
-  from: 'operational',
-  to: 'grants',
-  amount: '500 ETH',
-  initiator: 'admin@qs.foundation',
-  approvals: 1,
-  required: 2,
-  status: 'pending',
-  timestamp: '2024-01-27 14:30',
-  purpose: 'Q1 Grant Distribution',
-  txHash: '',
-  approvalHistory: [
-    { approver: 'cfo@qs.foundation', action: 'approved', timestamp: '2024-01-27 15:00', comment: 'Approved for Q1 distribution' },
-  ],
-  pendingApprovers: ['treasury@qs.foundation'],
-};
-
 const STATUS_CONFIG = {
   pending: { icon: Clock, color: 'text-warning', bg: 'bg-warning/10' },
   completed: { icon: CheckCircle, color: 'text-success', bg: 'bg-success/10' },
@@ -53,7 +35,49 @@ export function TransferDetail({ id }: TransferDetailProps) {
   const tCommon = useTranslations('qsAdmin.common');
   const [comment, setComment] = useState('');
 
-  const transfer = { ...FALLBACK_TRANSFER, id };
+  // No API hook available yet - show empty state
+  const transfer = null as null | {
+    id: string;
+    from: string;
+    to: string;
+    amount: string;
+    initiator: string;
+    approvals: number;
+    required: number;
+    status: string;
+    timestamp: string;
+    purpose: string;
+    txHash: string;
+    approvalHistory: { approver: string; action: string; timestamp: string; comment: string }[];
+    pendingApprovers: string[];
+  };
+
+  if (!transfer) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Link href="/qs-admin/treasury/transfers">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t('detail.title')}</h1>
+            <p className="text-foreground-secondary">{id}</p>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Clock className="h-12 w-12 text-foreground-tertiary mb-4" />
+              <p className="text-foreground-secondary">{t('empty')}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const statusConfig = STATUS_CONFIG[transfer.status as keyof typeof STATUS_CONFIG];
   const StatusIcon = statusConfig.icon;
 

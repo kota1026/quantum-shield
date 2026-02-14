@@ -21,21 +21,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_STATS = {
-  activeProvers: 24,
-  pendingRequests: 5,
-  totalStaked: '125,000 QS',
-  avgUptime: '99.7%',
-};
-
-const FALLBACK_PROVERS = [
-  { id: '1', name: 'Prover Alpha', wallet: '0x1234...5678', staked: '10,000 QS', uptime: '99.9%', status: 'active', since: '2024-01-01' },
-  { id: '2', name: 'Prover Beta', wallet: '0x2345...6789', staked: '8,500 QS', uptime: '99.5%', status: 'active', since: '2024-01-05' },
-  { id: '3', name: 'New Prover', wallet: '0x3456...7890', staked: '5,000 QS', uptime: '-', status: 'pending', since: '2024-01-25' },
-  { id: '4', name: 'Prover Gamma', wallet: '0x4567...8901', staked: '12,000 QS', uptime: '98.2%', status: 'active', since: '2023-12-15' },
-  { id: '5', name: 'Suspended Prover', wallet: '0x5678...9012', staked: '6,000 QS', uptime: '85.0%', status: 'suspended', since: '2023-11-20' },
-];
-
 const STATUS_COLORS = {
   active: 'bg-success/10 text-success',
   pending: 'bg-warning/10 text-warning',
@@ -87,7 +72,9 @@ export function ProverDashboard() {
     { key: 'suspended', label: t('status.suspended') },
   ];
 
-  const filteredProvers = FALLBACK_PROVERS.filter(prover => {
+  const provers: { id: string; name: string; wallet: string; staked: string; uptime: string; status: string; since: string }[] = [];
+
+  const filteredProvers = provers.filter(prover => {
     if (activeFilter !== 'all' && prover.status !== activeFilter) return false;
     if (searchQuery && !prover.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !prover.wallet.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -108,10 +95,10 @@ export function ProverDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.activeProvers')} value={FALLBACK_STATS.activeProvers} icon={Server} trend={{ value: 8.3, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.pendingRequests')} value={FALLBACK_STATS.pendingRequests} icon={Clock} />
-        <StatCard title={t('stats.totalStaked')} value={FALLBACK_STATS.totalStaked} icon={Coins} trend={{ value: 12.5, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.avgUptime')} value={FALLBACK_STATS.avgUptime} icon={Activity} />
+        <StatCard title={t('stats.activeProvers')} value={0} icon={Server} />
+        <StatCard title={t('stats.pendingRequests')} value={0} icon={Clock} />
+        <StatCard title={t('stats.totalStaked')} value="-" icon={Coins} />
+        <StatCard title={t('stats.avgUptime')} value="-" icon={Activity} />
       </div>
 
       <Card>

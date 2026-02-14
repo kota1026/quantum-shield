@@ -46,41 +46,6 @@ import { useProverId } from '@/stores/proverAuthStore';
 // Prover type: public or enterprise
 type ProverType = 'public' | 'enterprise';
 
-// Empty initial state (no fake data)
-const FALLBACK_STATS = {
-  pendingSignatures: 0,
-  urgentCount: 0,
-  todaysProcessed: 0,
-  processedChange: 0,
-  avgProcessed: 0,
-  uptime: 0,
-  slaMinUptime: 99.5,
-  responseTime: 0,
-};
-const FALLBACK_QUEUE_ITEMS: { id: string; type: string; address: string; amount: string; time: string; urgent: boolean }[] = [];
-const FALLBACK_REWARDS = {
-  claimable: 0,
-  thisMonth: 0,
-  allTime: 0,
-};
-const FALLBACK_STAKE = {
-  amount: 0,
-  usdValue: 0,
-  challenges: 0,
-};
-const FALLBACK_CONTRACT = {
-  operatorName: '-',
-  contractId: '-',
-  plan: '-',
-  sla: '-',
-  guaranteedRevenue: 0,
-  startDate: '-',
-  endDate: '-',
-  supportLevel: '-',
-  infrastructureManaged: false,
-  contactPerson: '-',
-};
-
 export function ProverDashboard() {
   const t = useTranslations('prover');
   const router = useRouter();
@@ -93,18 +58,18 @@ export function ProverDashboard() {
   const [proverType] = useState<ProverType>('enterprise');
 
   // Fetch data using hooks - pass proverId
-  const { data: statsApi } = useProverStats(proverId ?? undefined);
-  const { data: queueApi } = useProverQueue(proverId ?? undefined);
-  const { data: rewardsApi } = useProverRewards(proverId ?? undefined);
-  const { data: stakeApi } = useProverStake(proverId ?? undefined);
-  const { data: contractApi } = useEnterpriseContract(proverId ?? undefined);
+  const { data: statsApi, isLoading: statsLoading, error: statsError } = useProverStats(proverId ?? undefined);
+  const { data: queueApi, isLoading: queueLoading, error: queueError } = useProverQueue(proverId ?? undefined);
+  const { data: rewardsApi, isLoading: rewardsLoading, error: rewardsError } = useProverRewards(proverId ?? undefined);
+  const { data: stakeApi, isLoading: stakeLoading, error: stakeError } = useProverStake(proverId ?? undefined);
+  const { data: contractApi, isLoading: contractLoading, error: contractError } = useEnterpriseContract(proverId ?? undefined);
 
-  // Use API data with fallback
-  const stats = statsApi ?? FALLBACK_STATS;
-  const queueItems = queueApi?.items ?? FALLBACK_QUEUE_ITEMS;
-  const rewards = rewardsApi ?? FALLBACK_REWARDS;
-  const stake = stakeApi ?? FALLBACK_STAKE;
-  const enterpriseContract = contractApi ?? FALLBACK_CONTRACT;
+  // Use API data directly (no silent fallbacks per GR-1)
+  const stats = statsApi;
+  const queueItems = queueApi?.items ?? [];
+  const rewards = rewardsApi;
+  const stake = stakeApi;
+  const enterpriseContract = contractApi;
 
   const handleNavigate = useCallback(
     (path: string) => {
@@ -142,7 +107,7 @@ export function ProverDashboard() {
 
         <div className="relative z-10">
           {/* Alert Banner */}
-          {stats.responseTime > 25 && (
+          {(stats?.responseTime ?? 0) > 25 && (
             <div
               className="flex items-center gap-3 p-4 bg-warning/10 border border-warning rounded-xl mb-6"
               role="alert"
@@ -182,15 +147,15 @@ export function ProverDashboard() {
                 <Tooltip content={t('dashboard.tooltips.pendingSignatures')} showHelpIcon>
                   <span className="text-xs text-foreground-tertiary">{t('dashboard.stats.pendingSignatures')}</span>
                 </Tooltip>
-                {stats.urgentCount > 0 && (
+                {(stats?.urgentCount ?? 0) > 0 && (
                   <Badge variant="danger" className="text-[10px]">
-                    {stats.urgentCount} urgent
+                    {stats?.urgentCount ?? 0} urgent
                   </Badge>
                 )}
               </div>
-              <div className="text-3xl font-bold font-mono text-hinomaru-400">{stats.pendingSignatures}</div>
+              <div className="text-3xl font-bold font-mono text-hinomaru-400">{stats?.pendingSignatures ?? 0}</div>
               <div className="text-xs text-foreground-tertiary mt-1">
-                {t('dashboard.stats.urgent', { count: stats.urgentCount })}
+                {t('dashboard.stats.urgent', { count: stats?.urgentCount ?? 0 })}
               </div>
             </Card>
 
@@ -207,12 +172,12 @@ export function ProverDashboard() {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs text-foreground-tertiary">{t('dashboard.stats.todaysProcessed')}</span>
                 <Badge variant="success" className="text-[10px]">
-                  <TrendingUp className="h-3 w-3 mr-0.5" aria-hidden="true" />+{stats.processedChange}%
+                  <TrendingUp className="h-3 w-3 mr-0.5" aria-hidden="true" />+{stats?.processedChange ?? 0}%
                 </Badge>
               </div>
-              <div className="text-3xl font-bold font-mono">{stats.todaysProcessed}</div>
+              <div className="text-3xl font-bold font-mono">{stats?.todaysProcessed ?? 0}</div>
               <div className="text-xs text-foreground-tertiary mt-1">
-                {t('dashboard.stats.avgPerDay', { avg: stats.avgProcessed })}
+                {t('dashboard.stats.avgPerDay', { avg: stats?.avgProcessed ?? 0 })}
               </div>
             </Card>
 
@@ -229,7 +194,7 @@ export function ProverDashboard() {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs text-foreground-tertiary">{t('dashboard.rewards.claimable')}</span>
               </div>
-              <div className="text-3xl font-bold font-mono text-success">{rewards.claimable} QS</div>
+              <div className="text-3xl font-bold font-mono text-success">{rewards?.claimable ?? 0} QS</div>
               <div className="text-xs text-foreground-tertiary mt-1">{t('dashboard.rewards.claimableLabel')}</div>
             </Card>
 
@@ -252,9 +217,9 @@ export function ProverDashboard() {
                   SLA OK
                 </Badge>
               </div>
-              <div className="text-3xl font-bold font-mono">{stats.uptime}%</div>
+              <div className="text-3xl font-bold font-mono">{stats?.uptime ?? 0}%</div>
               <div className="text-xs text-foreground-tertiary mt-1">
-                {t('dashboard.stats.slaMin', { min: stats.slaMinUptime })}
+                {t('dashboard.stats.slaMin', { min: stats?.slaMinUptime ?? 99.5 })}
               </div>
             </Card>
           </section>
@@ -283,7 +248,7 @@ export function ProverDashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="font-medium mb-1">{t('dashboard.quickActions.processQueue.title')}</div>
                   <p className="text-sm text-foreground-tertiary line-clamp-2">
-                    {t('dashboard.quickActions.processQueue.description', { count: stats.pendingSignatures })}
+                    {t('dashboard.quickActions.processQueue.description', { count: stats?.pendingSignatures ?? 0 })}
                   </p>
                 </div>
                 <ChevronRight
@@ -307,7 +272,7 @@ export function ProverDashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="font-medium mb-1">{t('dashboard.quickActions.claimRewards.title')}</div>
                   <p className="text-sm text-foreground-tertiary line-clamp-2">
-                    {t('dashboard.quickActions.claimRewards.description', { amount: rewards.claimable })}
+                    {t('dashboard.quickActions.claimRewards.description', { amount: rewards?.claimable ?? 0 })}
                   </p>
                 </div>
                 <ChevronRight
@@ -362,6 +327,11 @@ export function ProverDashboard() {
                   </Link>
                 </div>
                 <div className="p-6">
+                  {queueItems.length === 0 ? (
+                    <div className="text-center py-8 text-foreground-tertiary">
+                      {t('dashboard.queue.empty')}
+                    </div>
+                  ) : (
                   <ul className="divide-y divide-border" role="list">
                     {queueItems.map((item) => (
                       <li key={item.id}>
@@ -406,6 +376,7 @@ export function ProverDashboard() {
                       </li>
                     ))}
                   </ul>
+                  )}
                   <Button variant="primary" className="w-full mt-4" asChild>
                     <Link href="/prover/queue">{t('dashboard.actions.processQueue')}</Link>
                   </Button>
@@ -432,35 +403,35 @@ export function ProverDashboard() {
                     <div className="p-4 bg-background-secondary rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-2">{t('dashboard.performance.responseTime')}</div>
                       <div className="text-2xl font-bold font-mono">
-                        {stats.responseTime}
+                        {stats?.responseTime ?? 0}
                         <span className="text-sm text-foreground-secondary ml-1">s</span>
                       </div>
                       <div className="mt-2 h-1.5 bg-background rounded-full overflow-hidden">
                         <div
                           className={cn(
                             'h-full rounded-full',
-                            stats.responseTime > 28 ? 'bg-warning' : 'bg-success'
+                            (stats?.responseTime ?? 0) > 28 ? 'bg-warning' : 'bg-success'
                           )}
-                          style={{ width: `${(stats.responseTime / 30) * 100}%` }}
+                          style={{ width: `${((stats?.responseTime ?? 0) / 30) * 100}%` }}
                         />
                       </div>
                     </div>
                     <div className="p-4 bg-background-secondary rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-2">{t('dashboard.performance.successRate')}</div>
                       <div className="text-2xl font-bold font-mono text-success">
-                        99.8<span className="text-sm text-foreground-secondary ml-1">%</span>
+                        {(stats?.uptime ?? 0) > 0 ? (stats?.uptime ?? 0).toFixed(1) : '0.0'}<span className="text-sm text-foreground-secondary ml-1">%</span>
                       </div>
                       <div className="mt-2 h-1.5 bg-background rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-success" style={{ width: '99.8%' }} />
+                        <div className="h-full rounded-full bg-success" style={{ width: `${(stats?.uptime ?? 0) > 0 ? stats?.uptime : 0}%` }} />
                       </div>
                     </div>
                     <div className="p-4 bg-background-secondary rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-2">{t('dashboard.performance.uptime')}</div>
                       <div className="text-2xl font-bold font-mono text-success">
-                        {stats.uptime}<span className="text-sm text-foreground-secondary ml-1">%</span>
+                        {stats?.uptime ?? 0}<span className="text-sm text-foreground-secondary ml-1">%</span>
                       </div>
                       <div className="mt-2 h-1.5 bg-background rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-success" style={{ width: `${stats.uptime}%` }} />
+                        <div className="h-full rounded-full bg-success" style={{ width: `${stats?.uptime ?? 0}%` }} />
                       </div>
                     </div>
                     <div className="p-4 bg-background-secondary rounded-lg">
@@ -490,10 +461,15 @@ export function ProverDashboard() {
                         <span className="text-sm font-semibold">{t('dashboard.enterprise.contract.title')}</span>
                       </div>
                       <Badge variant="gold" className="text-[10px]">
-                        {enterpriseContract.plan}
+                        {enterpriseContract?.plan ?? t('dashboard.enterprise.contract.notConnected')}
                       </Badge>
                     </div>
 
+                    {!enterpriseContract ? (
+                      <div className="text-center py-6 text-foreground-tertiary text-sm">
+                        {t('dashboard.enterprise.contract.notConnected')}
+                      </div>
+                    ) : (
                     <div className="space-y-4">
                       {/* Operator Info */}
                       <div className="flex items-center gap-3 pb-4 border-b border-surface-tertiary">
@@ -549,6 +525,7 @@ export function ProverDashboard() {
                         </Button>
                       </div>
                     </div>
+                    )}
                   </div>
                 </Card>
               )}
@@ -560,12 +537,12 @@ export function ProverDashboard() {
                     <Lock className="h-5 w-5 text-gold" aria-hidden="true" />
                     <span className="text-sm font-semibold">{t('dashboard.stake.title')}</span>
                   </div>
-                  <div className="text-3xl font-bold font-mono mb-1">{stake.amount.toFixed(2)} ETH</div>
-                  <div className="text-sm text-foreground-tertiary mb-4">≈ ${stake.usdValue.toLocaleString()} USD</div>
+                  <div className="text-3xl font-bold font-mono mb-1">{(stake?.amount ?? 0).toFixed(2)} ETH</div>
+                  <div className="text-sm text-foreground-tertiary mb-4">≈ ${(stake?.usdValue ?? 0).toLocaleString()} USD</div>
                   <div className="flex items-center gap-2 pt-3 border-t border-surface-tertiary">
                     <div className="w-2 h-2 bg-success rounded-full" aria-hidden="true" />
                     <span className="text-xs text-success">
-                      {t('dashboard.stake.noRisk', { challenges: stake.challenges })}
+                      {t('dashboard.stake.noRisk', { challenges: stake?.challenges ?? 0 })}
                     </span>
                   </div>
                 </div>
@@ -584,22 +561,22 @@ export function ProverDashboard() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-foreground-secondary">{t('dashboard.rewards.claimable')}</span>
                     </div>
-                    <div className="text-2xl font-bold font-mono text-success mb-1">{rewards.claimable} QS</div>
+                    <div className="text-2xl font-bold font-mono text-success mb-1">{rewards?.claimable ?? 0} QS</div>
                     <div className="text-xs text-foreground-tertiary">{t('dashboard.rewards.claimableLabel')}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="p-3 bg-background-secondary rounded-lg">
                       <div className="text-[11px] text-foreground-tertiary mb-1">{t('dashboard.rewards.thisMonth')}</div>
-                      <div className="text-base font-bold font-mono">{rewards.thisMonth} QS</div>
+                      <div className="text-base font-bold font-mono">{rewards?.thisMonth ?? 0} QS</div>
                     </div>
                     <div className="p-3 bg-background-secondary rounded-lg">
                       <div className="text-[11px] text-foreground-tertiary mb-1">{t('dashboard.rewards.allTime')}</div>
-                      <div className="text-base font-bold font-mono">{rewards.allTime} QS</div>
+                      <div className="text-base font-bold font-mono">{rewards?.allTime ?? 0} QS</div>
                     </div>
                   </div>
                   <Button variant="success" className="w-full" asChild>
                     <Link href="/prover/metrics">
-                      {t('dashboard.rewards.claimAmount', { amount: rewards.claimable })}
+                      {t('dashboard.rewards.claimAmount', { amount: rewards?.claimable ?? 0 })}
                     </Link>
                   </Button>
                 </div>

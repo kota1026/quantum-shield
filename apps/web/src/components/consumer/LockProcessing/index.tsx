@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useDilithium, useLockL1 } from '@/hooks/consumer';
 import { SEPOLIA_CHAIN_ID } from '@/lib/contracts/l1vault';
-import { constructLockMessage } from '@/lib/api/lock';
+import { constructLockMessage, confirmLock } from '@/lib/api/lock';
 
 type StepStatus = 'pending' | 'active' | 'complete' | 'error';
 
@@ -247,6 +247,17 @@ export function LockProcessing() {
       if (receipt.status === 'success') {
         hasNavigated.current = true;
         updateStep(5, 'complete');
+
+        // Notify backend of L1 confirmation (non-blocking)
+        // This updates locks.l1_tx_hash and status from "pending" → "confirmed"
+        if (l3Response?.lock_id) {
+          confirmLock(l3Response.lock_id, l1TxHash).then((resp) => {
+            console.log('Lock confirmed in backend:', resp);
+          }).catch((err) => {
+            // Non-critical: lock exists on L1 and in DB, status just won't update
+            console.warn('Backend lock confirmation failed (non-critical):', err);
+          });
+        }
 
         // Navigate to success page with L1 tx hash and L3 lock_id
         setTimeout(() => {

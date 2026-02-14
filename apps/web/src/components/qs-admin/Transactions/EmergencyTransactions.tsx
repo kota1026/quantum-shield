@@ -22,7 +22,7 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useEmergencyStats, useEmergencyTransactions } from '@/hooks/admin/useTransactions';
-import type { EmergencyStats } from '@/lib/api/admin/mock';
+import type { EmergencyStats } from '@/lib/api/admin/types';
 
 // UI_DESIGN_GUIDELINES.md Colors
 const COLORS = {
@@ -35,13 +35,6 @@ const COLORS = {
   gold: '#C9A962',
 };
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: EmergencyStats = {
-  totalEmergency: 0,
-  activeEmergency: 0,
-  approvedRate: '-',
-  avgProcessTime: '-',
-};
 
 // Loading skeleton components
 function StatCardSkeleton() {
@@ -196,7 +189,7 @@ export function EmergencyTransactions() {
   const transactionsQuery = useEmergencyTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data;
   const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
@@ -219,7 +212,7 @@ export function EmergencyTransactions() {
   return (
     <div className="space-y-6">
       {/* Alert Banner */}
-      {stats.activeEmergency > 0 && (
+      {(stats?.activeEmergency ?? 0) > 0 && (
         <Card
           className="rounded-[20px]"
           style={{
@@ -236,7 +229,7 @@ export function EmergencyTransactions() {
             </div>
             <div>
               <p className="font-semibold" style={{ color: COLORS.warning }}>
-                {stats.activeEmergency} 件のアクティブな緊急アンロック
+                {stats?.activeEmergency ?? 0} 件のアクティブな緊急アンロック
               </p>
               <p className="text-sm text-[#808080]">
                 チャレンジ期間（7日間）中は異議申し立てが可能です
@@ -292,26 +285,26 @@ export function EmergencyTransactions() {
           <>
             <StatCard
               title="総緊急アンロック"
-              value={stats.totalEmergency}
+              value={stats?.totalEmergency ?? 0}
               icon={Shield}
               iconColor={COLORS.warning}
             />
             <StatCard
               title="アクティブ"
-              value={stats.activeEmergency}
+              value={stats?.activeEmergency ?? 0}
               icon={AlertCircle}
               iconColor={COLORS.error}
-              critical={stats.activeEmergency > 0}
+              critical={(stats?.activeEmergency ?? 0) > 0}
             />
             <StatCard
               title="成功率"
-              value={stats.approvedRate}
+              value={stats?.approvedRate ?? '-'}
               icon={CheckCircle}
               iconColor={COLORS.success}
             />
             <StatCard
               title="平均処理時間"
-              value={stats.avgProcessTime}
+              value={stats?.avgProcessTime ?? '-'}
               icon={Timer}
               iconColor={COLORS.info}
             />

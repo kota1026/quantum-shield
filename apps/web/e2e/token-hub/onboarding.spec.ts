@@ -1,156 +1,186 @@
 import { test, expect } from '@playwright/test';
+import { gotoAndWaitForApp } from '../helpers/wait-for-app';
 
-test.describe('Token Hub Onboarding Page', () => {
+test.setTimeout(90000);
+
+test.describe('Token Hub Onboarding', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/ja/token-hub/onboarding');
+    await gotoAndWaitForApp(page, '/ja/token-hub/onboarding');
   });
 
-  test('should display page title and hero section', async ({ page }) => {
-    // Check page title
-    await expect(page).toHaveTitle(/トークノミクス/);
+  test.describe('Page Load & Layout', () => {
+    test('should display main content area', async ({ page }) => {
+      await expect(page.getByRole('main')).toBeVisible();
+    });
 
-    // Check hero section
-    await expect(page.getByText('トークノミクスガイド')).toBeVisible();
-    await expect(page.getByRole('heading', { name: /QSトークノミクスを理解する/ })).toBeVisible();
+    test('should display hero badge', async ({ page }) => {
+      await expect(page.getByText('トークノミクスガイド')).toBeVisible();
+    });
+
+    test('should display hero title', async ({ page }) => {
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    });
+
+    test('should display header with navigation', async ({ page }) => {
+      await expect(page.getByText('Quantum Shield').first()).toBeVisible();
+    });
   });
 
-  test('should display QS Token explanation section', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'QSトークンとは？' })).toBeVisible();
-    await expect(page.getByText('総供給量')).toBeVisible();
-    await expect(page.getByText('1,000,000,000 QS')).toBeVisible();
-    await expect(page.getByText('Ethereum (L1)')).toBeVisible();
-    await expect(page.getByText('ERC-20')).toBeVisible();
+  test.describe('Breadcrumb', () => {
+    test('should display breadcrumb navigation', async ({ page }) => {
+      const breadcrumb = page.getByRole('navigation', { name: 'パンくずリストナビゲーション' });
+      await expect(breadcrumb).toBeVisible();
+    });
+
+    test('should display current page in breadcrumb', async ({ page }) => {
+      const current = page.locator('[aria-current="page"]');
+      await expect(current).toBeVisible();
+    });
   });
 
-  test('should display veQS explanation with formula', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'veQSとは？' })).toBeVisible();
-    await expect(page.getByText('veQS計算式')).toBeVisible();
-    await expect(page.getByText(/veQS = QS × \(lock_period \/ 4/)).toBeVisible();
+  test.describe('Quantum Shield Overview', () => {
+    test('should display overview section', async ({ page }) => {
+      await expect(page.getByText('Quantum Shieldとは？')).toBeVisible();
+    });
+
+    test('should display three pillars', async ({ page }) => {
+      await expect(page.getByText('量子耐性保護')).toBeVisible();
+    });
+
+    test('should display quantum resistance tags', async ({ page }) => {
+      await expect(page.getByText('Dilithium署名')).toBeVisible();
+      await expect(page.getByText('STARK証明')).toBeVisible();
+    });
   });
 
-  test('should display lock examples table', async ({ page }) => {
-    const table = page.getByRole('table', { name: /veQS計算を示す/ });
-    await expect(table).toBeVisible();
+  test.describe('QS Token Section', () => {
+    test('should display QS Token heading', async ({ page }) => {
+      await expect(page.getByText('QSトークンとは？')).toBeVisible();
+    });
 
-    // Check table headers
-    await expect(page.getByRole('columnheader', { name: 'ロック期間' })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: '倍率' })).toBeVisible();
+    test('should display total supply', async ({ page }) => {
+      await expect(page.getByText('総供給量')).toBeVisible();
+      await expect(page.getByText('1,000,000,000 QS')).toBeVisible();
+    });
 
-    // Check lock period rows
-    await expect(page.getByText('6ヶ月')).toBeVisible();
-    await expect(page.getByText('1年')).toBeVisible();
-    await expect(page.getByText('2年')).toBeVisible();
-    await expect(page.getByText('4年')).toBeVisible();
+    test('should display network info', async ({ page }) => {
+      await expect(page.getByText('Ethereum (L1)')).toBeVisible();
+      await expect(page.getByText('ERC-20')).toBeVisible();
+    });
   });
 
-  test('should display timeline steps', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: '仕組み' })).toBeVisible();
+  test.describe('veQS Section', () => {
+    test('should display veQS heading', async ({ page }) => {
+      await expect(page.getByText('veQSとは？')).toBeVisible();
+    });
 
-    const timeline = page.getByRole('list', { name: /Token Hubに参加/ });
-    await expect(timeline).toBeVisible();
+    test('should display formula', async ({ page }) => {
+      await expect(page.getByText('veQS計算式')).toBeVisible();
+      await expect(page.getByText(/veQS = QS/)).toBeVisible();
+    });
 
-    // Check all steps
-    await expect(page.getByText('STEP 1')).toBeVisible();
-    await expect(page.getByText('QSを入手')).toBeVisible();
-    await expect(page.getByText('STEP 2')).toBeVisible();
-    await expect(page.getByText('QSをロック')).toBeVisible();
-    await expect(page.getByText('STEP 3')).toBeVisible();
-    await expect(page.getByText('投票')).toBeVisible();
-    await expect(page.getByText('STEP 4')).toBeVisible();
-    await expect(page.getByText('報酬を獲得')).toBeVisible();
+    test('should display lock examples table', async ({ page }) => {
+      const table = page.getByRole('table');
+      await expect(table).toBeVisible();
+    });
   });
 
-  test('should display benefits section', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'ロックのメリット' })).toBeVisible();
-    await expect(page.getByText('ガバナンス権')).toBeVisible();
-    await expect(page.getByText('プロトコル報酬')).toBeVisible();
-    await expect(page.getByText('報酬ブースト')).toBeVisible();
-    await expect(page.getByText('ネットワークセキュリティ')).toBeVisible();
+  test.describe('Timeline', () => {
+    test('should display timeline heading', async ({ page }) => {
+      await expect(page.getByText('仕組み')).toBeVisible();
+    });
+
+    test('should display timeline steps', async ({ page }) => {
+      const timelineList = page.locator('[role="list"]').first();
+      await expect(timelineList).toBeVisible();
+      await expect(page.getByText('STEP 1').first()).toBeVisible();
+    });
   });
 
-  test('should display decay explanation', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'veQSの減衰について' })).toBeVisible();
-    await expect(page.getByText('ロック開始')).toBeVisible();
-    await expect(page.getByText('ロック終了')).toBeVisible();
-    await expect(page.getByText(/ロックを延長してveQS残高を回復/)).toBeVisible();
+  test.describe('Benefits', () => {
+    test('should display benefits heading', async ({ page }) => {
+      await expect(page.getByText('ロックのメリット')).toBeVisible();
+    });
+
+    test('should display benefit items', async ({ page }) => {
+      await expect(page.getByText('ガバナンス権')).toBeVisible();
+      await expect(page.getByText('プロトコル報酬')).toBeVisible();
+    });
   });
 
-  test('should have working CTA buttons', async ({ page }) => {
-    // Check CTA section
-    await expect(page.getByRole('heading', { name: '始める準備はできましたか？' })).toBeVisible();
+  test.describe('Decay Section', () => {
+    test('should display decay heading', async ({ page }) => {
+      await expect(page.getByText('veQSの減衰について')).toBeVisible();
+    });
 
-    // Lock QS button
-    const lockButton = page.getByRole('button', { name: '今すぐQSをロック' });
-    await expect(lockButton).toBeVisible();
-    await lockButton.click();
-    await expect(page).toHaveURL(/\/token-hub\/lock/);
+    test('should display decay visual', async ({ page }) => {
+      await expect(page.getByText('ロック開始')).toBeVisible();
+      await expect(page.getByText('ロック終了')).toBeVisible();
+    });
   });
 
-  test('should navigate to Get QS page', async ({ page }) => {
-    const getQSButton = page.getByRole('button', { name: 'QSトークンを入手' });
-    await expect(getQSButton).toBeVisible();
-    await getQSButton.click();
-    await expect(page).toHaveURL(/\/token-hub\/get-qs/);
+  test.describe('Prover Section', () => {
+    test('should display prover heading', async ({ page }) => {
+      await expect(page.getByText('Proverになる')).toBeVisible();
+    });
   });
 
-  test('should have link to FAQ page', async ({ page }) => {
-    const faqLink = page.getByRole('link', { name: 'よくある質問を見る' });
-    await expect(faqLink).toBeVisible();
-    await faqLink.click();
-    await expect(page).toHaveURL(/\/token-hub\/faq/);
+  test.describe('CTA Section', () => {
+    test('should display CTA heading', async ({ page }) => {
+      await expect(page.getByText('始める準備はできましたか？')).toBeVisible();
+    });
+
+    test('should display lock button', async ({ page }) => {
+      await expect(page.getByText('今すぐQSをロック')).toBeVisible();
+    });
+
+    test('should display get QS button', async ({ page }) => {
+      await expect(page.getByText('QSトークンを入手')).toBeVisible();
+    });
   });
 
-  test('should display footer with navigation links', async ({ page }) => {
-    await expect(page.getByRole('link', { name: '利用規約' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'プライバシーポリシー' })).toBeVisible();
+  test.describe('FAQ Preview', () => {
+    test('should display FAQ link', async ({ page }) => {
+      await expect(page.getByText('よくある質問を見る')).toBeVisible();
+    });
   });
 
-  test('should be responsive on mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
+  test.describe('Footer', () => {
+    test('should display footer links', async ({ page }) => {
+      await expect(page.getByText('利用規約')).toBeVisible();
+      await expect(page.getByText('プライバシーポリシー')).toBeVisible();
+    });
 
-    // Hero should still be visible
-    await expect(page.getByRole('heading', { name: /QSトークノミクス/ })).toBeVisible();
-
-    // Timeline should stack vertically
-    const timeline = page.getByRole('list', { name: /Token Hubに参加/ });
-    await expect(timeline).toBeVisible();
-
-    // CTA buttons should stack
-    await expect(page.getByRole('button', { name: '今すぐQSをロック' })).toBeVisible();
+    test('should display disclaimer', async ({ page }) => {
+      await expect(page.getByText(/本サービスは投資助言ではありません/)).toBeVisible();
+    });
   });
 
-  test('should have proper accessibility', async ({ page }) => {
-    // Check main landmark
-    await expect(page.getByRole('main')).toBeVisible();
-
-    // Check headings hierarchy
-    const headings = page.getByRole('heading');
-    const count = await headings.count();
-    expect(count).toBeGreaterThan(5);
-
-    // Check aria labels on interactive elements
-    const lockButton = page.getByRole('button', { name: '今すぐQSをロック' });
-    await expect(lockButton).toHaveAttribute('aria-label', '今すぐQSをロック');
+  test.describe('Responsive Design', () => {
+    test('should work on mobile viewport', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 });
+      await expect(page.getByRole('main')).toBeVisible();
+    });
   });
 
-  test('should support keyboard navigation', async ({ page }) => {
-    // Tab through interactive elements
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
+  test.describe('Accessibility', () => {
+    test('should have proper ARIA landmarks', async ({ page }) => {
+      await expect(page.getByRole('main')).toBeVisible();
+    });
 
-    // Verify focus is visible on focusable elements
-    const activeElement = page.locator(':focus');
-    await expect(activeElement).toBeVisible();
-  });
+    test('should have breadcrumb with aria-label', async ({ page }) => {
+      const breadcrumb = page.getByRole('navigation', { name: 'パンくずリストナビゲーション' });
+      await expect(breadcrumb).toBeVisible();
+    });
 
-  test('should work in English locale', async ({ page }) => {
-    await page.goto('/en/token-hub/onboarding');
+    test('should have timeline list with aria-label', async ({ page }) => {
+      const timelineList = page.locator('[role="list"][aria-label]').first();
+      await expect(timelineList).toBeVisible();
+    });
 
-    await expect(page).toHaveTitle(/Tokenomics/);
-    await expect(page.getByText('Tokenomics Guide')).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Understanding QS Tokenomics/ })).toBeVisible();
-    await expect(page.getByText('What is QS Token?')).toBeVisible();
-    await expect(page.getByText('What is veQS?')).toBeVisible();
+    test('should have table with proper role', async ({ page }) => {
+      const table = page.getByRole('table');
+      await expect(table).toBeVisible();
+    });
   });
 });

@@ -17,13 +17,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_STATS = {
-  totalUsers: 12847,
-  newUsers: 1250,
-  activeUsers: 8450,
-  churned: 320,
-};
-
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -107,10 +100,10 @@ export function UserAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.monthlyActiveUsers')} value={FALLBACK_STATS.totalUsers.toLocaleString()} icon={Users} trend={{ value: 5.2, isPositive: true }} />
-        <StatCard title={t('stats.dailyActiveUsers')} value={FALLBACK_STATS.newUsers.toLocaleString()} icon={UserPlus} trend={{ value: 12.8, isPositive: true }} />
-        <StatCard title={t('stats.monthlyActiveUsers')} value={FALLBACK_STATS.activeUsers.toLocaleString()} icon={Activity} trend={{ value: 3.5, isPositive: true }} />
-        <StatCard title={t('stats.monthlyActiveUsers')} value={FALLBACK_STATS.churned.toLocaleString()} icon={UserMinus} trend={{ value: 2.1, isPositive: false }} />
+        <StatCard title={t('stats.monthlyActiveUsers')} value="-" icon={Users} />
+        <StatCard title={t('stats.dailyActiveUsers')} value="-" icon={UserPlus} />
+        <StatCard title={t('stats.monthlyActiveUsers')} value="-" icon={Activity} />
+        <StatCard title={t('stats.monthlyActiveUsers')} value="-" icon={UserMinus} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

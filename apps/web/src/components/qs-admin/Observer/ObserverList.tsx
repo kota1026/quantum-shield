@@ -24,19 +24,11 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useObserverStats, useObserverList } from '@/hooks/admin/useObservers';
-import type { ObserverStats } from '@/lib/api/admin/mock';
+import type { ObserverStats } from '@/lib/api/admin/types';
 import type { ObserverListItem } from '@/lib/api/admin/types';
 
-// Fallback stats - Used when API is unavailable
-const FALLBACK_STATS: ObserverStats = {
-  totalObservers: 156,
-  activeObservers: 142,
-  totalChallenges: 1234,
-  successRate: '94.2%',
-};
-
-// Fallback observer type for UI display
-interface FallbackObserver {
+// Display type for observer items
+interface ObserverDisplayItem {
   id: string;
   wallet: string;
   challenges: number;
@@ -48,20 +40,6 @@ interface FallbackObserver {
   successfulChallenges: number;
   failedChallenges: number;
 }
-
-const FALLBACK_OBSERVERS: FallbackObserver[] = [
-  { id: 'OB-001', wallet: '0x1234...5678', challenges: 125, successRate: '98.4%', earnings: '2,450 QS', bond: '500 QS', lastChallenge: '2024-01-27 14:30', status: 'active', successfulChallenges: 123, failedChallenges: 2 },
-  { id: 'OB-002', wallet: '0x2345...6789', challenges: 89, successRate: '95.5%', earnings: '1,780 QS', bond: '500 QS', lastChallenge: '2024-01-27 13:15', status: 'active', successfulChallenges: 85, failedChallenges: 4 },
-  { id: 'OB-003', wallet: '0x3456...7890', challenges: 234, successRate: '92.3%', earnings: '4,680 QS', bond: '1,000 QS', lastChallenge: '2024-01-27 12:00', status: 'active', successfulChallenges: 216, failedChallenges: 18 },
-  { id: 'OB-004', wallet: '0x4567...8901', challenges: 45, successRate: '88.9%', earnings: '900 QS', bond: '500 QS', lastChallenge: '2024-01-25 16:45', status: 'inactive', successfulChallenges: 40, failedChallenges: 5 },
-  { id: 'OB-005', wallet: '0x5678...9012', challenges: 178, successRate: '96.1%', earnings: '3,560 QS', bond: '500 QS', lastChallenge: '2024-01-27 11:30', status: 'active', successfulChallenges: 171, failedChallenges: 7 },
-  { id: 'OB-006', wallet: '0x6789...0123', challenges: 56, successRate: '100%', earnings: '1,120 QS', bond: '500 QS', lastChallenge: '2024-01-27 10:00', status: 'active', successfulChallenges: 56, failedChallenges: 0 },
-  { id: 'OB-007', wallet: '0x7890...1234', challenges: 12, successRate: '75.0%', earnings: '180 QS', bond: '200 QS', lastChallenge: '2024-01-26 08:00', status: 'warning', successfulChallenges: 9, failedChallenges: 3 },
-  { id: 'OB-008', wallet: '0x8901...2345', challenges: 320, successRate: '97.5%', earnings: '6,400 QS', bond: '1,000 QS', lastChallenge: '2024-01-27 09:45', status: 'active', successfulChallenges: 312, failedChallenges: 8 },
-];
-
-// Union type for API data and fallback data
-type ObserverItem = ObserverListItem | FallbackObserver;
 
 // Loading skeleton component
 function ListSkeleton() {
@@ -175,7 +153,7 @@ export function ObserverList() {
   const listQuery = useObserverList();
 
   // Map API data to display format
-  const mapApiObserver = (apiObserver: ObserverListItem): FallbackObserver => ({
+  const mapApiObserver = (apiObserver: ObserverListItem): ObserverDisplayItem => ({
     id: apiObserver.id,
     wallet: apiObserver.walletAddress,
     challenges: apiObserver.successfulChallenges + apiObserver.failedChallenges,
@@ -190,12 +168,12 @@ export function ObserverList() {
     failedChallenges: apiObserver.failedChallenges,
   });
 
-  // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  // Use API data
+  const stats = statsQuery.data;
   const apiObservers = listQuery.data?.observers;
-  const observers: FallbackObserver[] = apiObservers
+  const observers: ObserverDisplayItem[] = apiObservers
     ? apiObservers.map(mapApiObserver)
-    : FALLBACK_OBSERVERS;
+    : [];
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },
@@ -205,7 +183,7 @@ export function ObserverList() {
   ];
 
   const filteredObservers = useMemo(() => {
-    return observers.filter((observer: FallbackObserver) => {
+    return observers.filter((observer: ObserverDisplayItem) => {
       if (statusFilter !== 'all' && observer.status !== statusFilter) return false;
       if (searchQuery && !observer.wallet.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !observer.id.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -241,10 +219,10 @@ export function ObserverList() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.totalObservers')} value={stats.totalObservers} icon={Eye} />
-        <StatCard title={t('stats.activeObservers')} value={stats.activeObservers} icon={Activity} trend={{ value: 5.2, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.totalChallenges')} value={stats.totalChallenges.toLocaleString()} icon={Shield} trend={{ value: 15.3, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.successRate')} value={stats.successRate} icon={Target} />
+        <StatCard title={t('stats.totalObservers')} value={stats?.totalObservers ?? 0} icon={Eye} />
+        <StatCard title={t('stats.activeObservers')} value={stats?.activeObservers ?? 0} icon={Activity} />
+        <StatCard title={t('stats.totalChallenges')} value={(stats?.totalChallenges ?? 0).toLocaleString()} icon={Shield} />
+        <StatCard title={t('stats.successRate')} value={stats?.successRate ?? '-'} icon={Target} />
       </div>
 
       {/* Observers Table */}

@@ -14,42 +14,40 @@ import { ActiveChallengesSidebar } from './ActiveChallengesSidebar';
 import { ObserverStakeSidebar } from './ObserverStakeSidebar';
 import {
   useObserverData,
+  useObserverDashboard,
   usePendingUnlocks,
   useSuspiciousTransactions,
   useActiveChallenges,
 } from '@/hooks/observer';
 
-// Empty initial state (no fake data)
-const FALLBACK_OBSERVER_DATA = {
-  registrationDate: new Date().toISOString().split('T')[0],
-  practicePeriodMonths: 3,
-};
-const FALLBACK_PENDING_UNLOCKS: { id: string; address: string; amount: string; type: 'normal' | 'emergency'; timeRemaining: string; riskScore: number; status: 'monitoring' | 'pending' }[] = [];
-const FALLBACK_SUSPICIOUS: { id: string; address: string; amount: string; type: 'normal' | 'emergency'; riskLevel: 'high' | 'medium' | 'low'; score: number; reason: string }[] = [];
-const FALLBACK_CHALLENGES: { id: string; challengeId: string; targetAddress: string; amount: string; status: 'defense' | 'judgment' | 'pending'; countdown: string; progress: number }[] = [];
-
 export function ObserverDashboard() {
   const t = useTranslations('observer.dashboard');
   const [showPracticeBanner, setShowPracticeBanner] = useState(true);
 
-  // Fetch data using hooks
-  const { data: observerDataApi } = useObserverData();
-  const { data: pendingUnlocksApi } = usePendingUnlocks();
-  const { data: suspiciousApi } = useSuspiciousTransactions();
-  const { data: activeChallengesApi } = useActiveChallenges();
+  // Fetch data using hooks (with loading/error states)
+  const { data: observerData, isLoading: isLoadingObserver, error: observerError } = useObserverData();
+  const { data: dashboardApi, isLoading: isLoadingDashboard, error: dashboardError } = useObserverDashboard();
+  const { data: pendingUnlocksApi, isLoading: isLoadingPending, error: pendingError } = usePendingUnlocks();
+  const { data: suspiciousApi, isLoading: isLoadingSuspicious, error: suspiciousError } = useSuspiciousTransactions();
+  const { data: activeChallengesApi, isLoading: isLoadingChallenges, error: challengesError } = useActiveChallenges();
 
-  // Use API data with fallback
-  const observerData = observerDataApi ?? FALLBACK_OBSERVER_DATA;
-  const pendingUnlocks = pendingUnlocksApi?.items ?? FALLBACK_PENDING_UNLOCKS;
-  const suspiciousTransactions = suspiciousApi ?? FALLBACK_SUSPICIOUS;
-  const activeChallenges = activeChallengesApi ?? FALLBACK_CHALLENGES;
+  const isLoading = isLoadingObserver || isLoadingDashboard || isLoadingPending || isLoadingSuspicious || isLoadingChallenges;
+  const hasError = dashboardError || pendingError;
+
+  // Use API data directly (empty arrays when data not yet available)
+  const pendingUnlocks = pendingUnlocksApi?.items ?? [];
+  const suspiciousTransactions = suspiciousApi ?? [];
+  const activeChallenges = activeChallengesApi ?? [];
 
   // Calculate practice mode from observer data
   const { isInPracticePeriod, daysRemaining } = useMemo(() => {
+    if (!observerData?.registrationDate) {
+      return { isInPracticePeriod: false, daysRemaining: 0, practiceEndDate: new Date() };
+    }
     const now = new Date();
     const registrationDate = new Date(observerData.registrationDate);
     const practiceEndDate = new Date(registrationDate);
-    practiceEndDate.setMonth(practiceEndDate.getMonth() + observerData.practicePeriodMonths);
+    practiceEndDate.setMonth(practiceEndDate.getMonth() + (observerData.practicePeriodMonths ?? 3));
 
     const isInPractice = now < practiceEndDate;
     const days = Math.ceil((practiceEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -146,7 +144,18 @@ export function ObserverDashboard() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12 text-foreground-tertiary">{t('loading')}</div>
+        )}
+
+        {/* Error State */}
+        {!isLoading && hasError && (
+          <div className="text-center py-12 text-warning">{t('error')}</div>
+        )}
+
         {/* Stats Grid */}
+        {!isLoading && !hasError && (<>
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10 items-stretch"
           role="region"
@@ -154,37 +163,37 @@ export function ObserverDashboard() {
         >
           <ObserverStatCard
             label={t('stats.pendingUnlocks.label')}
-            value={47}
+            value={dashboardApi?.pendingUnlocksCount ?? pendingUnlocks.length}
             variant="warning"
             tooltip={t('stats.pendingUnlocks.tooltip')}
-            change={t('stats.pendingUnlocks.change', { count: 12 })}
+            change={t('stats.pendingUnlocks.change', { count: pendingUnlocks.length })}
             href="/observer/pending"
           />
           <ObserverStatCard
             label={t('stats.suspicious.label')}
-            value={3}
+            value={suspiciousTransactions.length}
             variant="highlight"
             tooltip={t('stats.suspicious.tooltip')}
-            changeBadge={{
+            changeBadge={suspiciousTransactions.length > 0 ? {
               text: t('stats.suspicious.badge'),
               variant: 'danger',
-            }}
+            } : undefined}
             href="/observer/suspicious"
           />
           <ObserverStatCard
             label={t('stats.activeChallenges.label')}
-            value={2}
+            value={dashboardApi?.activeChallenges ?? activeChallenges.length}
             variant="default"
             tooltip={t('stats.activeChallenges.tooltip')}
             href="/observer/history"
           />
           <ObserverStatCard
             label={t('stats.totalEarnings.label')}
-            value="4.28"
+            value={dashboardApi?.totalEarnings ?? '0'}
             unit="ETH"
             variant="success"
             tooltip={t('stats.totalEarnings.tooltip')}
-            change={t('stats.totalEarnings.change', { amount: '0.35 ETH' })}
+            change={dashboardApi?.unclaimedEarnings ? t('stats.totalEarnings.change', { amount: `${dashboardApi.unclaimedEarnings} ETH` }) : undefined}
             href="/observer/earnings"
           />
         </div>
@@ -199,15 +208,19 @@ export function ObserverDashboard() {
 
           {/* Right Column - Sidebar */}
           <div className="space-y-4">
-            <EarningsSidebar claimableAmount="1.24 ETH" />
-            <ChallengeStatsSidebar successful={12} failed={2} />
+            <EarningsSidebar claimableAmount={dashboardApi?.unclaimedEarnings ? `${dashboardApi.unclaimedEarnings} ETH` : '0 ETH'} />
+            <ChallengeStatsSidebar
+              successful={dashboardApi?.successfulChallenges ?? 0}
+              failed={(dashboardApi?.totalChallenges ?? 0) - (dashboardApi?.successfulChallenges ?? 0)}
+            />
             <ActiveChallengesSidebar challenges={activeChallenges} />
             <ObserverStakeSidebar
-              stakeAmount="5.00 ETH"
-              activeSince="2025-11-15"
+              stakeAmount={observerData?.stakeAmount ?? '0 ETH'}
+              activeSince={observerData?.registrationDate ?? '-'}
             />
           </div>
         </div>
+        </>)}
       </main>
     </div>
   );

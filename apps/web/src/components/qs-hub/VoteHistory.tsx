@@ -17,59 +17,9 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useVoteHistory } from '@/hooks/qs-hub/useQSHub';
 
-// Demo data
-const FALLBACK_VOTES = [
-  {
-    id: '1',
-    proposalId: 'QIP-47',
-    proposalTitle: 'Increase Prover Rewards by 10%',
-    vote: 'for' as const,
-    veQSUsed: 125000,
-    votedAt: '2024-01-21 14:30',
-    proposalStatus: 'active' as const,
-    result: null,
-  },
-  {
-    id: '2',
-    proposalId: 'QIP-46',
-    proposalTitle: 'Add Support for ERC-4337 Account Abstraction',
-    vote: 'for' as const,
-    veQSUsed: 125000,
-    votedAt: '2024-01-15 09:15',
-    proposalStatus: 'passed' as const,
-    result: 'passed' as const,
-  },
-  {
-    id: '3',
-    proposalId: 'QIP-45',
-    proposalTitle: 'Reduce Emergency Unlock Fee to 2%',
-    vote: 'against' as const,
-    veQSUsed: 125000,
-    votedAt: '2024-01-10 16:45',
-    proposalStatus: 'rejected' as const,
-    result: 'rejected' as const,
-  },
-  {
-    id: '4',
-    proposalId: 'QIP-44',
-    proposalTitle: 'Implement Cross-Chain Bridge to Arbitrum',
-    vote: 'for' as const,
-    veQSUsed: 100000,
-    votedAt: '2024-01-05 11:20',
-    proposalStatus: 'passed' as const,
-    result: 'passed' as const,
-  },
-];
-
-const FALLBACK_STATS = {
-  totalVotes: 4,
-  votesFor: 3,
-  votesAgainst: 1,
-  veQSUsed: 475000,
-};
-
-const statusColors = {
+const statusColors: Record<string, string> = {
   active: 'bg-success/10 text-success border-success/30',
   pending: 'bg-warning/10 text-warning border-warning/30',
   passed: 'bg-gold/10 text-gold border-gold/30',
@@ -81,10 +31,22 @@ export function VoteHistory() {
   const tCommon = useTranslations('qs-hub.common');
   const [filter, setFilter] = useState<'all' | 'for' | 'against'>('all');
 
-  const filteredVotes = FALLBACK_VOTES.filter((vote) => {
+  // Fetch vote history from API
+  const { data: votes, isLoading: votesLoading, error: votesError } = useVoteHistory();
+
+  const allVotes = votes ?? [];
+  const filteredVotes = allVotes.filter((vote) => {
     if (filter === 'all') return true;
     return vote.vote === filter;
   });
+
+  // Calculate stats from actual data
+  const voteStats = {
+    totalVotes: allVotes.length,
+    votesFor: allVotes.filter((v) => v.vote === 'for').length,
+    votesAgainst: allVotes.filter((v) => v.vote === 'against').length,
+    veQSUsed: allVotes.reduce((sum, v) => sum + (v.veQSUsed ?? 0), 0),
+  };
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -140,19 +102,19 @@ export function VoteHistory() {
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" aria-label={t('stats.ariaLabel')}>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.totalVotes')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_STATS.totalVotes}</div>
+            <div className="text-2xl font-bold">{voteStats.totalVotes}</div>
           </Card>
           <Card className="p-4 border-success/30">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.votesFor')}</div>
-            <div className="text-2xl font-bold text-success">{FALLBACK_STATS.votesFor}</div>
+            <div className="text-2xl font-bold text-success">{voteStats.votesFor}</div>
           </Card>
           <Card className="p-4 border-danger/30">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.votesAgainst')}</div>
-            <div className="text-2xl font-bold text-danger">{FALLBACK_STATS.votesAgainst}</div>
+            <div className="text-2xl font-bold text-danger">{voteStats.votesAgainst}</div>
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.veQSUsed')}</div>
-            <div className="text-2xl font-bold">{(FALLBACK_STATS.veQSUsed / 1000).toFixed(0)}K</div>
+            <div className="text-2xl font-bold">{voteStats.veQSUsed > 0 ? `${(voteStats.veQSUsed / 1000).toFixed(0)}K` : '0'}</div>
           </Card>
         </section>
 
@@ -178,7 +140,11 @@ export function VoteHistory() {
 
         {/* Vote List */}
         <div className="space-y-4" role="list" aria-label={t('listAriaLabel')}>
-          {filteredVotes.map((vote) => (
+          {votesLoading ? (
+            <div className="text-center py-8 text-foreground-tertiary">{t('loading')}</div>
+          ) : votesError ? (
+            <div className="text-center py-8 text-warning">{t('error')}</div>
+          ) : filteredVotes.map((vote) => (
             <Card
               key={vote.id}
               className="p-5 hover:border-gold/30 transition-all duration-200"
@@ -190,17 +156,19 @@ export function VoteHistory() {
                     <span className="text-xs font-mono text-foreground-tertiary">
                       {vote.proposalId}
                     </span>
+                    {vote.proposalStatus && (
                     <Badge className={cn('border', statusColors[vote.proposalStatus])}>
                       {t(`proposalStatus.${vote.proposalStatus}`)}
                     </Badge>
+                    )}
                   </div>
                   <h3 className="font-medium mb-2">{vote.proposalTitle}</h3>
                   <div className="flex flex-wrap items-center gap-4 text-xs text-foreground-tertiary">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      {vote.votedAt}
+                      {vote.votedAt ?? vote.timestamp}
                     </span>
-                    <span>{vote.veQSUsed.toLocaleString()} veQS</span>
+                    <span>{(vote.veQSUsed ?? vote.votePower ?? 0).toLocaleString()} veQS</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -250,7 +218,7 @@ export function VoteHistory() {
         </div>
 
         {/* Empty State */}
-        {filteredVotes.length === 0 && (
+        {!votesLoading && !votesError && filteredVotes.length === 0 && (
           <Card className="p-8 text-center">
             <History className="w-12 h-12 text-foreground-tertiary mx-auto mb-4" />
             <h3 className="font-semibold mb-2">{t('empty.title')}</h3>

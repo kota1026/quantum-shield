@@ -15,13 +15,12 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/shared/Tooltip';
+import { useQSHubStats } from '@/hooks/qs-hub/useQSHub';
 
 type Step = 'draft' | 'preview' | 'submit' | 'success';
 
-const FALLBACK_USER = {
-  veQS: 125000,
-  requiredVeQS: 100000,
-};
+// Required veQS to submit a proposal
+const REQUIRED_VEQS = 100000;
 
 export function CreateProposal() {
   const t = useTranslations('qs-hub.vote.createProposal');
@@ -37,7 +36,10 @@ export function CreateProposal() {
     discussionLink: '',
   });
 
-  const canSubmit = FALLBACK_USER.veQS >= FALLBACK_USER.requiredVeQS;
+  // Fetch user stats from API
+  const { data: userStats } = useQSHubStats();
+  const userVeQS = userStats?.veQSBalance ?? 0;
+  const canSubmit = userVeQS >= REQUIRED_VEQS;
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -132,8 +134,8 @@ export function CreateProposal() {
                 <p className="font-medium text-warning">{t('requirements.notMet')}</p>
                 <p className="text-sm text-foreground-secondary">
                   {t('requirements.description', {
-                    required: FALLBACK_USER.requiredVeQS.toLocaleString(),
-                    current: FALLBACK_USER.veQS.toLocaleString(),
+                    required: REQUIRED_VEQS.toLocaleString(),
+                    current: userVeQS.toLocaleString(),
                   })}
                 </p>
               </div>
@@ -310,7 +312,7 @@ export function CreateProposal() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground-secondary">{t('submit.yourVeQS')}</span>
-                <span className="text-gold">{FALLBACK_USER.veQS.toLocaleString()} veQS</span>
+                <span className="text-gold">{userVeQS.toLocaleString()} veQS</span>
               </div>
             </div>
 

@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useSupportStats, useTicketsList } from '@/hooks/admin/useSupport';
 
 type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
@@ -34,70 +35,6 @@ interface Ticket {
   assignee: string;
   responseTime?: string;
 }
-
-// Demo data
-const FALLBACK_TICKETS: Ticket[] = [
-  {
-    id: 'tkt-001',
-    subject: 'Prover node sync issue after v2.4.1 update',
-    licensee: 'Tokyo Financial Group',
-    licenseeId: 'lic-001',
-    status: 'open',
-    priority: 'high',
-    createdAt: '2026-01-24T10:00:00Z',
-    updatedAt: '2026-01-24T14:30:00Z',
-    assignee: 'Support Team',
-    responseTime: '15m',
-  },
-  {
-    id: 'tkt-002',
-    subject: 'Question about audit report format',
-    licensee: 'Tokyo Financial Group',
-    licenseeId: 'lic-001',
-    status: 'in_progress',
-    priority: 'medium',
-    createdAt: '2026-01-20T09:00:00Z',
-    updatedAt: '2026-01-22T11:00:00Z',
-    assignee: 'Takahashi',
-    responseTime: '2h',
-  },
-  {
-    id: 'tkt-003',
-    subject: 'License renewal inquiry',
-    licensee: 'Singapore Quantum Labs',
-    licenseeId: 'lic-002',
-    status: 'resolved',
-    priority: 'low',
-    createdAt: '2026-01-15T08:00:00Z',
-    updatedAt: '2026-01-16T10:00:00Z',
-    assignee: 'Suzuki',
-    responseTime: '4h',
-  },
-  {
-    id: 'tkt-004',
-    subject: 'Critical: All nodes offline',
-    licensee: 'EU Crypto Holdings',
-    licenseeId: 'lic-003',
-    status: 'open',
-    priority: 'critical',
-    createdAt: '2026-01-24T08:00:00Z',
-    updatedAt: '2026-01-24T08:05:00Z',
-    assignee: 'Emergency Team',
-    responseTime: '5m',
-  },
-  {
-    id: 'tkt-005',
-    subject: 'API endpoint documentation request',
-    licensee: 'Swiss Digital Assets',
-    licenseeId: 'lic-004',
-    status: 'in_progress',
-    priority: 'low',
-    createdAt: '2026-01-22T14:00:00Z',
-    updatedAt: '2026-01-23T09:00:00Z',
-    assignee: 'Tanaka',
-    responseTime: '1h',
-  },
-];
 
 function StatusBadge({ status }: { status: TicketStatus }) {
   const t = useTranslations('admin.support');
@@ -142,21 +79,31 @@ export function AdminSupport() {
   const [statusFilter, setStatusFilter] = useState<TicketStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | 'all'>('all');
 
-  const filteredTickets = FALLBACK_TICKETS.filter((ticket) => {
+  // Fetch tickets and stats from API
+  const { data: statsData, isLoading: isLoadingStats } = useSupportStats();
+  const { data: ticketsData, isLoading: isLoadingTickets, error: ticketsError } = useTicketsList({
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    priority: priorityFilter !== 'all' ? priorityFilter : undefined,
+    search: searchQuery || undefined,
+  });
+
+  const allTickets: Ticket[] = (ticketsData?.tickets ?? []) as unknown as Ticket[];
+
+  const filteredTickets = allTickets.filter((ticket) => {
     const matchesSearch =
       searchQuery === '' ||
       ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.licensee.toLowerCase().includes(searchQuery.toLowerCase());
+      (ticket.licensee ?? '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const stats = {
-    total: FALLBACK_TICKETS.length,
-    open: FALLBACK_TICKETS.filter((t) => t.status === 'open').length,
-    inProgress: FALLBACK_TICKETS.filter((t) => t.status === 'in_progress').length,
-    avgResponseTime: '45m',
+    total: statsData?.totalTickets ?? allTickets.length,
+    open: statsData?.openTickets ?? allTickets.filter((tk) => tk.status === 'open').length,
+    inProgress: allTickets.filter((tk) => tk.status === 'in_progress').length,
+    avgResponseTime: statsData?.avgResponseTime ?? '-',
   };
 
   return (

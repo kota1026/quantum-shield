@@ -28,40 +28,9 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useProverStats, useProverList } from '@/hooks/admin/useProvers';
-import type { ProverStats } from '@/lib/api/admin/mock';
+import type { ProverStats } from '@/lib/api/admin/types';
 import type { ProverListItem } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: ProverStats = {
-  totalProvers: 156,
-  activeProvers: 142,
-  totalStaked: '1,250,000 QS',
-  avgUptime: '99.2%',
-};
-
-interface FallbackProver {
-  id: string;
-  name: string;
-  wallet: string;
-  staked: string;
-  uptime: string;
-  proofCount: number;
-  lastProof: string;
-  status: string;
-  tier: string;
-  cpu: string;
-  memory: string;
-}
-
-const FALLBACK_PROVERS: FallbackProver[] = [
-  { id: 'PV-001', name: 'Prover Alpha Corp', wallet: '0x1234...5678', staked: '50,000 QS', uptime: '99.9%', proofCount: 12450, lastProof: '2024-01-27 14:30', status: 'active', tier: 'enterprise', cpu: '85%', memory: '72%' },
-  { id: 'PV-002', name: 'Node Runner Ltd', wallet: '0x2345...6789', staked: '25,000 QS', uptime: '99.5%', proofCount: 8920, lastProof: '2024-01-27 14:28', status: 'active', tier: 'professional', cpu: '65%', memory: '58%' },
-  { id: 'PV-003', name: 'Quantum Nodes Inc', wallet: '0x3456...7890', staked: '50,000 QS', uptime: '98.8%', proofCount: 15600, lastProof: '2024-01-27 14:25', status: 'active', tier: 'enterprise', cpu: '78%', memory: '82%' },
-  { id: 'PV-004', name: 'Decentralized Labs', wallet: '0x4567...8901', staked: '10,000 QS', uptime: '97.2%', proofCount: 3450, lastProof: '2024-01-27 14:20', status: 'active', tier: 'standard', cpu: '45%', memory: '38%' },
-  { id: 'PV-005', name: 'Shield Nodes LLC', wallet: '0x5678...9012', staked: '50,000 QS', uptime: '0%', proofCount: 11200, lastProof: '2024-01-25 08:30', status: 'suspended', tier: 'enterprise', cpu: '-', memory: '-' },
-  { id: 'PV-006', name: 'Crypto Infrastructure Co', wallet: '0x6789...0123', staked: '25,000 QS', uptime: '99.1%', proofCount: 7800, lastProof: '2024-01-27 14:15', status: 'active', tier: 'professional', cpu: '72%', memory: '65%' },
-  { id: 'PV-007', name: 'Bare Metal Nodes', wallet: '0x7890...1234', staked: '10,000 QS', uptime: '96.5%', proofCount: 2100, lastProof: '2024-01-27 12:00', status: 'maintenance', tier: 'standard', cpu: '-', memory: '-' },
-];
 
 // Loading skeleton components
 function StatCardSkeleton() {
@@ -178,9 +147,8 @@ export function ProverList() {
   const statsQuery = useProverStats();
   const proversQuery = useProverList();
 
-  // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
-  const provers = proversQuery.data?.provers ?? FALLBACK_PROVERS;
+  const stats = statsQuery.data;
+  const provers = proversQuery.data?.provers ?? [];
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },
@@ -190,11 +158,10 @@ export function ProverList() {
   ];
 
   const filteredProvers = useMemo(() => {
-    return provers.filter(prover => {
-      const proverStatus = prover.status;
-      if (statusFilter !== 'all' && proverStatus !== statusFilter) return false;
-      const name = 'name' in prover ? prover.name : '';
-      const wallet = 'wallet' in prover ? prover.wallet : ('operatorAddress' in prover ? prover.operatorAddress : '');
+    return provers.filter((prover: ProverListItem) => {
+      if (statusFilter !== 'all' && prover.status !== statusFilter) return false;
+      const name = prover.name ?? '';
+      const wallet = prover.operatorAddress ?? '';
       if (searchQuery && !name.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !wallet.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !prover.id.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -241,10 +208,10 @@ export function ProverList() {
           </div>
         ) : (
           <>
-            <StatCard title={t('stats.totalProvers')} value={stats.totalProvers} icon={Server} />
-            <StatCard title={t('stats.activeProvers')} value={stats.activeProvers} icon={Activity} trend={{ value: 5.2, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-            <StatCard title={t('stats.totalStaked')} value={stats.totalStaked} icon={Coins} />
-            <StatCard title={t('stats.avgUptime')} value={stats.avgUptime} icon={CheckCircle} />
+            <StatCard title={t('stats.totalProvers')} value={stats?.totalProvers ?? 0} icon={Server} />
+            <StatCard title={t('stats.activeProvers')} value={stats?.activeProvers ?? 0} icon={Activity} trend={{ value: 5.2, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+            <StatCard title={t('stats.totalStaked')} value={stats?.totalStaked ?? '-'} icon={Coins} />
+            <StatCard title={t('stats.avgUptime')} value={stats?.avgUptime ?? '-'} icon={CheckCircle} />
           </>
         )}
       </div>
@@ -308,14 +275,14 @@ export function ProverList() {
                 ) : (
                   filteredProvers.map((prover) => {
                     const StatusIcon = STATUS_ICONS[prover.status as keyof typeof STATUS_ICONS] || CheckCircle;
-                    const name = 'name' in prover ? prover.name : '-';
-                    const wallet = 'wallet' in prover ? prover.wallet : ('operatorAddress' in prover ? prover.operatorAddress : '-');
-                    const staked = 'staked' in prover ? prover.staked : ('stake' in prover ? prover.stake : '-');
-                    const uptime = 'uptime' in prover ? prover.uptime : '-';
-                    const proofCount = 'proofCount' in prover ? prover.proofCount : 0;
+                    const name = prover.name ?? '-';
+                    const wallet = prover.operatorAddress ?? '-';
+                    const staked = prover.stake ?? '-';
+                    const uptime = String(prover.successRate ?? '-');
+                    const proofCount = 0;
                     const tier = prover.tier || 'standard';
-                    const cpu = 'cpu' in prover ? prover.cpu : '-';
-                    const memory = 'memory' in prover ? prover.memory : '-';
+                    const cpu = '-';
+                    const memory = '-';
                     return (
                       <tr key={prover.id} className={cn('border-b border-border hover:bg-surface transition-colors', prover.status === 'suspended' && 'bg-danger/5')}>
                         <td className="py-3 px-4"><code className="text-sm font-mono text-hinomaru">{prover.id}</code></td>
