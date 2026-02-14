@@ -58,6 +58,18 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // API proxy: forward /api-proxy/* to backend API server
+  // This avoids CORS issues in Codespaces where localhost:8080 is not reachable from the browser
+  async rewrites() {
+    const apiUrl = process.env.API_SERVER_URL || 'http://localhost:8080';
+    return [
+      {
+        source: '/api-proxy/:path*',
+        destination: `${apiUrl}/:path*`,
+      },
+    ];
+  },
+
   // Redirects for legacy URLs (Token Hub, Governance → QS Hub統合)
   async redirects() {
     return [
