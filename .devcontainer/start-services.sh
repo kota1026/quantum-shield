@@ -9,109 +9,110 @@ cd /workspace
 
 # Load environment variables
 if [ -f ".env.local" ]; then
-    export $(grep -v '^#' .env.local | xargs)
+    set -a
+    source .env.local
+    set +a
 fi
 
 # ---------------------------------------------------------------------------
-# Start Infrastructure Services (Auto-start if not running)
+# Verify Infrastructure (started by Docker Compose depends_on)
 # ---------------------------------------------------------------------------
 echo ""
-echo "[1/3] Starting infrastructure services..."
+echo "[1/3] Checking infrastructure services..."
 
-# Check if docker compose file exists
-if [ -f "docker/docker-compose.dev.yml" ]; then
-    echo "  Starting PostgreSQL, Redis, RabbitMQ..."
-    docker compose -f docker/docker-compose.dev.yml up -d postgres redis rabbitmq 2>/dev/null || {
-        echo "  ⚠ Docker Compose failed. Trying alternative..."
-        docker-compose -f docker/docker-compose.dev.yml up -d postgres redis rabbitmq 2>/dev/null || {
-            echo "  ✗ Could not start infrastructure services"
-            echo "    Please run manually: docker compose -f docker/docker-compose.dev.yml up -d"
-        }
-    }
+# PostgreSQL
+for i in $(seq 1 15); do
+    if pg_isready -h postgres -p 5432 -U quantum -q 2>/dev/null; then
+        echo "  OK  PostgreSQL"
+        break
+    fi
+    [ "$i" -eq 15 ] && echo "  ERR PostgreSQL (not ready)"
+    sleep 1
+done
 
-    # Wait for services to be ready
-    echo "  Waiting for services to be ready..."
-    sleep 5
-fi
+# Redis
+redis-cli -h redis ping > /dev/null 2>&1 && echo "  OK  Redis" || echo "  ERR Redis"
 
-# Verify services
-echo ""
-echo "  Service Status:"
-pg_isready -h localhost -p 5432 -U quantum > /dev/null 2>&1 && echo "  ✓ PostgreSQL" || echo "  ✗ PostgreSQL"
-redis-cli -h localhost ping > /dev/null 2>&1 && echo "  ✓ Redis" || echo "  ✗ Redis"
-curl -s http://localhost:15672 > /dev/null 2>&1 && echo "  ✓ RabbitMQ" || echo "  ○ RabbitMQ (starting...)"
+# RabbitMQ
+curl -sf http://rabbitmq:15672 > /dev/null 2>&1 && echo "  OK  RabbitMQ" || echo "  ...  RabbitMQ (still starting)"
 
 # ---------------------------------------------------------------------------
-# Install Dependencies (if needed)
+# Start Rust API Server
 # ---------------------------------------------------------------------------
 echo ""
-echo "[2/3] Checking dependencies..."
+echo "[2/3] Starting Rust API server..."
 
-# Install apps/web dependencies if missing
-if [ -d "apps/web" ] && [ ! -d "apps/web/node_modules" ]; then
-    echo "  Installing apps/web dependencies..."
-    cd /workspace/apps/web
-    pnpm install
-    cd /workspace
-fi
-
-# ---------------------------------------------------------------------------
-# Start Frontend Services (apps/web only - the correct implementation)
-# ---------------------------------------------------------------------------
-echo ""
-echo "[3/3] Starting frontend services..."
-
-# Create logs directory
 mkdir -p /workspace/.devcontainer/logs
 
-# Kill any existing processes on port 3000
-fuser -k 3000/tcp 2>/dev/null || true
+# Kill any existing API server
+pkill -f 'api-server' 2>/dev/null || true
+sleep 1
 
-# Start apps/web (Next.js main - with i18n and shadcn/ui)
-if [ -d "apps/web" ]; then
-    echo "  Starting apps/web on port 3000..."
-    cd /workspace/apps/web
-    nohup pnpm dev > /workspace/.devcontainer/logs/web.log 2>&1 &
-    echo "  ✓ apps/web started (PID: $!)"
+if [ -f "/workspace/target/debug/api-server" ]; then
+    cd /workspace/services/api
+    nohup ../../target/debug/api-server > /workspace/.devcontainer/logs/api.log 2>&1 &
+    API_PID=$!
+    echo "  Started api-server (PID: $API_PID)"
     cd /workspace
+
+    # Wait for API to be ready
+    for i in $(seq 1 15); do
+        if curl -sf http://localhost:8080/v1/health > /dev/null 2>&1; then
+            echo "  OK  API server is ready"
+            break
+        fi
+        [ "$i" -eq 15 ] && echo "  WARN API not responding yet (check logs: .devcontainer/logs/api.log)"
+        sleep 1
+    done
+else
+    echo "  SKIP api-server binary not found"
+    echo "        Run: cargo build -p quantum-shield-api"
 fi
 
-# Note: ui/apps/consumer is DEPRECATED - do not start
-if [ -d "ui/apps/consumer" ]; then
-    echo ""
-    echo "  ⚠ Note: ui/apps/consumer is DEPRECATED"
-    echo "    Use apps/web instead (with proper i18n support)"
+# ---------------------------------------------------------------------------
+# Start Frontend (Next.js)
+# ---------------------------------------------------------------------------
+echo ""
+echo "[3/3] Starting Next.js frontend..."
+
+# Kill any existing frontend
+fuser -k 3000/tcp 2>/dev/null || true
+sleep 1
+
+if [ -d "apps/web" ] && [ -d "apps/web/node_modules" ]; then
+    cd /workspace/apps/web
+    nohup npm run dev > /workspace/.devcontainer/logs/web.log 2>&1 &
+    WEB_PID=$!
+    echo "  Started Next.js (PID: $WEB_PID)"
+    cd /workspace
+else
+    echo "  SKIP apps/web not ready (run: cd apps/web && npm install)"
 fi
 
-# Wait for servers to start
-echo ""
-echo "  Waiting for server to start..."
-sleep 8
+# Wait for frontend to start
+sleep 5
 
 # ---------------------------------------------------------------------------
-# Display Access Information
+# Status Summary
 # ---------------------------------------------------------------------------
 echo ""
 echo "=============================================="
-echo " Access URLs (in Codespaces)"
+echo " Services Running"
 echo "=============================================="
 echo ""
-echo "  Main App:               Port 3000 → Click 'Open in Browser'"
+echo "  Frontend:     http://localhost:3000"
+echo "  API Server:   http://localhost:8080"
+echo "  RabbitMQ UI:  http://localhost:15672  (quantum / quantum_dev)"
 echo ""
-echo "  Consumer Pages:"
-echo "    /ja/consumer/dashboard    - Dashboard"
-echo "    /ja/consumer/lock         - Lock Assets"
-echo "    /ja/consumer/unlock       - Unlock Assets"
-echo "    /ja/consumer/history      - Transaction History"
-echo "    /ja/consumer/key-management - Key Management"
-echo "    /ja/consumer/settings     - Settings"
+echo "  App URLs:"
+echo "    /ja/consumer/dashboard    Consumer Dashboard"
+echo "    /ja/consumer/lock         Lock Assets"
+echo "    /ja/prover/dashboard      Prover Dashboard"
+echo "    /ja/observer/dashboard    Observer Dashboard"
+echo "    /ja/explorer              Explorer"
+echo "    /ja/qs-admin/login        QS Admin"
 echo ""
-echo "  RabbitMQ Management:    Port 15672 (quantum/quantum_dev)"
-echo ""
-echo "=============================================="
-echo ""
-echo "Commands:"
-echo "  View logs:    tail -f .devcontainer/logs/web.log"
-echo "  Stop:         pkill -f 'pnpm dev'"
-echo "  Restart:      bash .devcontainer/start-services.sh"
+echo "  Logs:"
+echo "    API:      tail -f .devcontainer/logs/api.log"
+echo "    Frontend: tail -f .devcontainer/logs/web.log"
 echo ""
