@@ -27,10 +27,11 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getApiBaseUrl } from '@/lib/api/base-url';
 
 // ==================== API BASE ====================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
+const API_BASE = getApiBaseUrl();
 
 // Enterprise org ID storage key
 const ENTERPRISE_ORG_ID_KEY = 'quantum_shield_enterprise_org_id';

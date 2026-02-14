@@ -7,9 +7,10 @@ import type {
   CouncilData,
   ActivityItem,
 } from '@/lib/api/governance/types';
+import { getApiBaseUrl } from '@/lib/api/base-url';
 
 // API Base
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
+const API_BASE = getApiBaseUrl();
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${endpoint}`, {

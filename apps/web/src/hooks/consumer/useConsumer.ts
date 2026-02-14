@@ -17,6 +17,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getApiBaseUrl } from '@/lib/api/base-url';
 import type {
   ConsumerStats,
   Transaction,
@@ -32,7 +33,7 @@ import type {
 
 // ==================== API BASE ====================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
+const API_BASE = getApiBaseUrl();
 
 // User address storage key - in production, this would come from wallet connection
 const USER_ADDRESS_KEY = 'quantum_shield_user_address';

@@ -5,8 +5,9 @@
  */
 
 import type { ApiError } from './types';
+import { getApiBaseUrl } from '@/lib/api/base-url';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
+const API_BASE = getApiBaseUrl();
 const ENABLE_MOCK = process.env.NEXT_PUBLIC_ENABLE_MOCK === 'true';
 
 export class AdminApiError extends Error {

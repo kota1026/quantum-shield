@@ -2,7 +2,9 @@
  * QS Hub API Client
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
+import { getApiBaseUrl } from '@/lib/api/base-url';
+
+const API_BASE = getApiBaseUrl();
 
 export class QSHubApiError extends Error {
   code: number;

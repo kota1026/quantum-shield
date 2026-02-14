@@ -17,6 +17,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getApiBaseUrl } from '@/lib/api/base-url';
 
 // ==================== QUERY KEY FACTORY ====================
 
@@ -32,7 +33,7 @@ export const observerKeys = {
 
 // ==================== API CONFIG ====================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/proxy";
+const API_BASE = getApiBaseUrl();
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${endpoint}`, {
