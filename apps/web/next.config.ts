@@ -62,12 +62,16 @@ const nextConfig: NextConfig = {
   // This avoids CORS issues in Codespaces where localhost:8080 is not reachable from the browser
   async rewrites() {
     const apiUrl = process.env.API_SERVER_URL || 'http://localhost:8080';
-    return [
-      {
-        source: '/api-proxy/:path*',
-        destination: `${apiUrl}/:path*`,
-      },
-    ];
+    return {
+      beforeFiles: [
+        {
+          source: '/api-proxy/:path*',
+          destination: `${apiUrl}/:path*`,
+        },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
   },
 
   // Redirects for legacy URLs (Token Hub, Governance → QS Hub統合)
