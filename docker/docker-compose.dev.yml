@@ -10,8 +10,6 @@
 # Note: Rust backend services are started manually or via start-services.sh
 # =============================================================================
 
-version: "3.9"
-
 services:
   # ===========================================================================
   # DevContainer - Main Development Environment
