@@ -30,7 +30,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // ==================== API BASE ====================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api-proxy';
 
 // Enterprise org ID storage key
 const ENTERPRISE_ORG_ID_KEY = 'quantum_shield_enterprise_org_id';

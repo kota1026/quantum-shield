@@ -32,7 +32,7 @@ import type {
 
 // ==================== API BASE ====================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api-proxy';
 
 // User address storage key - in production, this would come from wallet connection
 const USER_ADDRESS_KEY = 'quantum_shield_user_address';

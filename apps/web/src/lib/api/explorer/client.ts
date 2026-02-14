@@ -2,7 +2,7 @@
  * Explorer API Client
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api-proxy';
 
 export class ExplorerApiError extends Error {
   code: number;
