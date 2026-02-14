@@ -238,6 +238,14 @@ export function LockProcessing() {
     }
   }, [isDilithiumReady, executeLock]);
 
+  // Handle Dilithium initialization failure - show error instead of spinning forever
+  useEffect(() => {
+    if (dilithiumError && !lockStarted.current) {
+      setError(dilithiumError);
+      updateStep(1, 'error');
+    }
+  }, [dilithiumError, updateStep]);
+
   // Update step 5 and navigate when confirmed OR show error if reverted
   useEffect(() => {
     console.log('Receipt effect:', { receipt, l1TxHash, hasNavigated: hasNavigated.current });
