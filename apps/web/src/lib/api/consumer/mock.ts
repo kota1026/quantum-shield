@@ -340,3 +340,58 @@ export const CONSUMER_MOCK_ENDPOINTS: Record<string, unknown> = {
   '/api/consumer/emergency-unlock': { data: MOCK_EMERGENCY_UNLOCK_DATA },
   '/api/consumer/emergency-result': { data: MOCK_EMERGENCY_RESULT },
 };
+
+// ==================== API ENDPOINT MOCK MAPPING ====================
+
+const API_MOCK_ENDPOINTS: Record<string, unknown> = {
+  '/v1/auth/siwe': {
+    access_token: 'mock-access-token-' + Date.now(),
+    refresh_token: 'mock-refresh-token-' + Date.now(),
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    address: MOCK_USER_SETTINGS.walletAddress,
+  },
+  '/v1/auth/refresh': {
+    access_token: 'mock-access-token-refreshed-' + Date.now(),
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+  },
+  '/v1/auth/me': {
+    address: MOCK_USER_SETTINGS.walletAddress,
+    created_at: '2026-01-01T10:00:00Z',
+  },
+  '/v1/user/dashboard': {
+    balance: String(MOCK_CONSUMER_STATS.totalLocked),
+    locks: MOCK_LOCKS.length,
+    transactions: MOCK_CONSUMER_STATS.transactions,
+  },
+  '/v1/user/locks': { locks: MOCK_LOCKS, total: MOCK_LOCKS.length },
+  '/v1/lock': {
+    lockId: 'mock-lock-' + Date.now(),
+    txHash: '0xmock' + '0'.repeat(60),
+  },
+  '/v1/unlock': { unlockId: 'mock-unlock-' + Date.now() },
+  '/v1/unlock/emergency': { unlockId: 'mock-emergency-unlock-' + Date.now() },
+  '/v1/user/transactions': {
+    transactions: MOCK_HISTORY_TRANSACTIONS,
+    total: MOCK_HISTORY_TRANSACTIONS.length,
+  },
+};
+
+/**
+ * Get mock response for a given API endpoint.
+ * Used as fallback when the backend is unavailable.
+ */
+export function getMockResponse(endpoint: string): unknown | null {
+  // Exact match first
+  if (API_MOCK_ENDPOINTS[endpoint]) {
+    return API_MOCK_ENDPOINTS[endpoint];
+  }
+
+  // Pattern match for parameterized routes
+  for (const [pattern, data] of Object.entries(API_MOCK_ENDPOINTS)) {
+    if (endpoint.startsWith(pattern)) {
+      return data;
+    }
+  }
+
+  return null;
+}

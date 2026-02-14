@@ -3,6 +3,7 @@
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const ENABLE_MOCK = process.env.NEXT_PUBLIC_ENABLE_MOCK === 'true';
 
 export class ConsumerApiError extends Error {
   code: number;
@@ -94,22 +95,47 @@ class ConsumerApiClient {
     const { params, body, headers, ...rest } = config;
     const url = this.buildUrl(endpoint, params);
 
-    const response = await fetch(url, {
-      ...rest,
-      headers: this.buildHeaders(headers),
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    try {
+      const response = await fetch(url, {
+        ...rest,
+        headers: this.buildHeaders(headers),
+        body: body ? JSON.stringify(body) : undefined,
+      });
 
-    if (!response.ok) {
-      // Handle 401 Unauthorized
-      if (response.status === 401 && this.onUnauthorized) {
-        this.onUnauthorized();
+      // If service unavailable (503) and mock is enabled, try mock fallback
+      if (ENABLE_MOCK && response.status === 503) {
+        console.warn(`[ConsumerAPI] Service unavailable, attempting mock fallback for ${endpoint}`);
+        return this.getMockData<T>(endpoint);
       }
-      const error = await response.json().catch(() => ({ message: 'Request failed' }));
-      throw new ConsumerApiError(response.status, error.message || 'Request failed');
-    }
 
-    return response.json();
+      if (!response.ok) {
+        // Handle 401 Unauthorized
+        if (response.status === 401 && this.onUnauthorized) {
+          this.onUnauthorized();
+        }
+        const error = await response.json().catch(() => ({ message: 'Request failed' }));
+        throw new ConsumerApiError(response.status, error.message || 'Request failed');
+      }
+
+      return response.json();
+    } catch (error) {
+      // If network error and mock is enabled, try mock fallback
+      if (ENABLE_MOCK && error instanceof TypeError) {
+        console.warn(`[ConsumerAPI] Network error, attempting mock fallback for ${endpoint}`);
+        return this.getMockData<T>(endpoint);
+      }
+      throw error;
+    }
+  }
+
+  private async getMockData<T>(endpoint: string): Promise<T> {
+    const { getMockResponse } = await import('./mock');
+    const mockData = getMockResponse(endpoint);
+    if (mockData) {
+      console.info(`[ConsumerAPI] Using mock data for ${endpoint}`);
+      return mockData as T;
+    }
+    throw new ConsumerApiError(503, `API unavailable and no mock data for ${endpoint}`);
   }
 
   // Authentication
