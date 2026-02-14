@@ -31,7 +31,8 @@ class GovernanceApiClient {
   }
 
   private buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined>): string {
-    const url = new URL(`${this.baseUrl}${endpoint}`);
+    const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const url = new URL(`${this.baseUrl}${endpoint}`, base);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
