@@ -105,5 +105,24 @@
     "details": "Learn more",
     "accept": "Accept",
     "close": "Close"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again later.",
+    "retry": "Try again",
+    "backToHome": "Back to Home",
+    "errorCode": "Error code",
+    "support": "If the problem persists, please contact support."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "backToHome": "Back to Home",
+    "errorCode": "404"
+  },
+  "globalError": {
+    "title": "System Error",
+    "description": "The system is experiencing a temporary issue. Please try again later.",
+    "retry": "Try again"
   }
 }
