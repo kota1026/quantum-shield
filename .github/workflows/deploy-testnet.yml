@@ -76,14 +76,14 @@ jobs:
 
       - name: Run Tests Before Deploy
         run: |
-          cd contracts
+          cd src/l1/contracts
           forge test -vvv
           echo "✅ All tests passed"
 
       - name: Run Slither Analysis
         uses: crytic/slither-action@v0.4.0
         with:
-          target: 'contracts/'
+          target: 'src/l1/contracts/'
           sarif: results.sarif
           fail-on: high
         continue-on-error: true
@@ -112,7 +112,7 @@ jobs:
 
       - name: Build Contracts
         run: |
-          cd contracts
+          cd src/l1/contracts
           forge build --force
           echo "✅ Build completed"
 
@@ -120,7 +120,7 @@ jobs:
         if: github.event.inputs.dry_run == 'true'
         run: |
           echo "🔄 DRY RUN MODE - Simulating deployment..."
-          cd contracts
+          cd src/l1/contracts
           
           forge script script/Deploy.s.sol:DeployScript \
             --rpc-url ${{ secrets.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org' }} \
@@ -139,7 +139,7 @@ jobs:
           BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
         run: |
           echo "🚀 LIVE DEPLOYMENT to ${{ needs.pre-deploy-checks.outputs.network_name }}"
-          cd contracts
+          cd src/l1/contracts
           
           case "${{ github.event.inputs.network }}" in
             sepolia)
@@ -170,7 +170,7 @@ jobs:
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
           echo "🔍 Verifying contracts on block explorer..."
-          cd contracts
+          cd src/l1/contracts
           
           case "${{ github.event.inputs.network }}" in
             sepolia)
@@ -195,8 +195,8 @@ jobs:
         with:
           name: deployment-${{ github.event.inputs.network }}-${{ github.run_number }}
           path: |
-            contracts/broadcast/
-            contracts/out/
+            src/l1/contracts/broadcast/
+            src/l1/contracts/out/
           retention-days: 30
 
   # ========================================

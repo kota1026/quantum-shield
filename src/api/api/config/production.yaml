@@ -1,0 +1,50 @@
+# Quantum Shield API - Production Configuration
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+redis:
+  url: "redis://redis-cluster:6379"
+  # password set via QS__REDIS__PASSWORD env var (FIX-001)
+
+rabbitmq:
+  url: "amqp://rabbitmq-cluster:5672"
+  queue_name: "sig_queue"
+
+jwt:
+  # secret set via QS__JWT__SECRET env var
+  expiry_hours: 1
+
+# Security parameters from CORE_PRINCIPLES.md
+security:
+  normal_time_lock_hours: 24
+  emergency_time_lock_days: 7
+  emergency_timeout_hours: 72
+  max_pause_duration_hours: 72
+  min_emergency_bond_wei: "500000000000000000"
+  emergency_bond_bps: 500
+  # CRITICAL: Must be false in production (enforced by startup guard)
+  skip_signature_verification: false
+  skip_totp_verification: false
+
+# Rate Limiting (production)
+rate_limit:
+  max_requests: 60    # 60 req/min per IP
+  window_secs: 60
+  enabled: true
+
+# L1 Feature Flags (production: mainnet)
+l1:
+  mode: "mainnet"
+  staking:
+    enabled: true
+    min_stake: "1000000000000000000"       # 1 ETH (mainnet minimum)
+  slashing:
+    l1_execution: true
+  # prover_registry_address set via QS__L1__PROVER_REGISTRY_ADDRESS env var
+
+# CORS Configuration (production origins only)
+cors:
+  allowed_origins:
+    - "https://app.quantum-shield.io"

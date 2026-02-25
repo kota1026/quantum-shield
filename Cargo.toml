@@ -1,17 +1,17 @@
 [workspace]
 members = [
-    "shared-types",
-    "circuits/dilithium-stark",
-    "circuits/plonky3-poc",
-    "services/event-bridge",
-    "services/api",
-    "services/sig-queue",
-    "services/monitor-bot",
+    "src/crypto/shared-types",
+    "src/crypto/circuits/dilithium-stark",
+    "src/crypto/circuits/plonky3-poc",
+    "src/services/event-bridge",
+    "src/api/api",
+    "src/services/sig-queue",
+    "src/services/monitor-bot",
 ]
 # Excluded packages (missing dependencies or different target)
 exclude = [
-    "packages/sdk/wasm",
-    "stark-prover",
+    "src/frontend/sdk/wasm",
+    "src/crypto/stark-prover",
     "client",
 ]
 resolver = "2"

@@ -1,0 +1,25 @@
+# Quantum Shield API - Testnet (Sepolia) Configuration
+#
+# Inherits from default.yaml, overrides L1 settings for Sepolia testnet.
+# Usage: RUN_MODE=testnet cargo run
+
+# L1 Feature Flags (testnet: Sepolia)
+l1:
+  mode: "testnet"
+  staking:
+    enabled: true
+    min_stake: "10000000000000000"         # 0.01 ETH (reduced for testnet)
+  slashing:
+    l1_execution: true
+  # prover_registry_address set via QS__L1__PROVER_REGISTRY_ADDRESS env var
+
+# Security: same as production (verify signatures)
+security:
+  skip_signature_verification: false
+  skip_totp_verification: false
+
+# Rate Limiting (enabled for testnet)
+rate_limit:
+  max_requests: 100
+  window_secs: 60
+  enabled: true

@@ -1,0 +1,109 @@
+# Quantum Shield API - Default Configuration
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+database:
+  url: "postgres://quantum:quantum_dev@localhost:5432/quantum_shield"
+  max_connections: 50
+  min_connections: 5
+  acquire_timeout_secs: 10
+  idle_timeout_secs: 600
+  max_lifetime_secs: 1800
+
+redis:
+  url: "redis://localhost:6379"
+  # password: null  # Set via QS__REDIS__PASSWORD env var
+
+rabbitmq:
+  url: "amqp://localhost:5672"
+  queue_name: "sig_queue"
+
+jwt:
+  secret: "development-secret-change-in-production"
+  expiry_hours: 24
+
+security:
+  # SEQ#2: Normal Time Lock
+  normal_time_lock_hours: 24
+  # SEQ#3: Emergency Time Lock
+  emergency_time_lock_days: 7
+  # SEQ#3: Emergency Timeout (triggers emergency path)
+  emergency_timeout_hours: 72
+  # SEQ#8: Maximum Pause Duration
+  max_pause_duration_hours: 72
+  # Emergency Bond minimum (0.5 ETH in wei)
+  min_emergency_bond_wei: "500000000000000000"
+  # Emergency Bond percentage (500 = 5%)
+  emergency_bond_bps: 500
+  # Dev mode: skip verification (MUST be false in production)
+  skip_signature_verification: true
+  skip_totp_verification: true
+
+# CORS Configuration
+cors:
+  allowed_origins:
+    - "http://localhost:3000"
+
+# Rate Limiting
+rate_limit:
+  max_requests: 100   # per window per IP
+  window_secs: 60     # 1 minute
+  enabled: false       # disabled in dev
+
+# Object Storage (MinIO/S3-compatible)
+storage:
+  endpoint: "http://localhost:9000"
+  region: "us-east-1"
+  bucket: "qs-documents"
+  access_key_id: "quantum"
+  secret_access_key: "quantum_dev_storage"
+  max_file_size: 10485760  # 10MB
+
+# Auto-Claim: automatically execute L1 claim after timelock expiry
+auto_claim:
+  enabled: true
+  poll_interval_secs: 60
+
+vrf:
+  contract_address: "0x0000000000000000000000000000000000000000"
+  rpc_url: "http://localhost:8545"
+  # private_key: Set via QS__VRF__PRIVATE_KEY env var (hex, without 0x prefix)
+  chain_id: 11155111  # Sepolia
+  timeout_seconds: 300  # 5 minutes per SEQUENCES §2.3
+  polling_interval_seconds: 5
+
+# L1 Feature Flags (mock / testnet / mainnet)
+l1:
+  mode: "testnet"                         # "mock" = no L1 calls, "testnet" = Sepolia, "mainnet" = Ethereum
+  staking:
+    enabled: false
+    min_stake: "10000000000000000"         # 0.01 ETH (testnet default)
+  slashing:
+    l1_execution: false
+  # prover_registry_address: "0x..."      # Set when deployed to Sepolia/mainnet
+
+# L1 Sepolia Configuration (Phase 8-D)
+l1_rpc_url: "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID"
+l1_chain_id: 11155111
+# L1 Vault address on Sepolia (v3.0.0 - ProverRegistry + Auto-claim)
+l1_vault_address: "0x43aF0A4b58CC3f040eF05746e72021dE6D35115B"
+# Prover Registry address on Sepolia (v3.0 architecture)
+l1_prover_registry_address: "0x08e1fc1A0d614bc132B48950760c7A291cCB8946"
+# SPHINCS+ Verifier on Sepolia
+l1_sphincs_verifier_address: "0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103"
+# bridge_verifier_address: "0x..."  # Set when deployed
+# treasury_vault_address: "0x..."   # Set when deployed
+
+# L3 Configuration (Phase 8-D)
+l3_endpoint: "http://localhost:8545"
+l3_chain_id: 31337
+
+# L3 Contract Addresses (deployed to local Anvil via DeployCore.s.sol)
+l3_core_layer_address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+l3_ve_qs_address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+l3_reward_router_address: "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
+l3_governor_address: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+l3_insurance_fund_address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+l3_treasury_address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"

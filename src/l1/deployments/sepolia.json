@@ -1,0 +1,32 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "l1Vault": "0x43aF0A4b58CC3f040eF05746e72021dE6D35115B",
+  "proverRegistry": "0x08e1fc1A0d614bc132B48950760c7A291cCB8946",
+  "sphincsVerifier": "0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103",
+  "starkVerifier": "0x083F33B0AF571F17599AEAd056f746c0d9f0FDfd",
+  "deployer": "0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3",
+  "timestamp": "1772150400",
+  "version": "3.0.0",
+  "features": ["lockWithSR0", "SEQUENCES_MD_V3", "ProverRegistry", "AutoClaim"],
+  "provers": {
+    "prover001": "0x0000000000000000000000000000000000000001",
+    "prover002": "0x0000000000000000000000000000000000000002"
+  },
+  "deprecated": {
+    "v2.1": {
+      "l1Vault": "0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67",
+      "note": "v2.1.0 - provers in Vault, no Registry integration"
+    },
+    "v2": {
+      "l1Vault": "0x108A5CE65f927ACfAC55325f1c471010FdEC8599",
+      "note": "v2.0.0 - no registered provers, 0.2 ETH locked"
+    },
+    "v1": {
+      "l1Vault": "0xEF851795bc8DE8e0d40781761a0b5B618fED6dE0",
+      "sphincsVerifier": "0x655122b1e816c262168B7f6625346d1914142214",
+      "starkVerifier": "0x2f2f36fAA504b79D26c5240CCd13AE5c1A08bf90",
+      "note": "Legacy contracts without lockWithSR0 - DO NOT USE"
+    }
+  }
+}
