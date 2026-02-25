@@ -7,13 +7,13 @@ on:
       - dev/phase2-native-stark
       - release/*
     paths:
-      - l3-aegis/**
+      - src/l3/**
       - .github/workflows/l3-aegis.yml
   pull_request:
     branches:
       - main
     paths:
-      - l3-aegis/**
+      - src/l3/**
   workflow_dispatch:
 
 env:
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: l3-aegis
+        working-directory: src/l3
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: l3-aegis
+        working-directory: src/l3
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,9 +73,9 @@ jobs:
       - name: Check for keccak256
         run: |
           echo "Checking for prohibited keccak256..."
-          if grep -rq "keccak256" l3-aegis/src/ 2>/dev/null; then
+          if grep -rq "keccak256" src/l3/src/ 2>/dev/null; then
             echo "ERROR: keccak256 found!"
-            grep -rn "keccak256" l3-aegis/src/
+            grep -rn "keccak256" src/l3/src/
             exit 1
           else
             echo "OK: No keccak256 found"
@@ -83,7 +83,7 @@ jobs:
       - name: Check for ECDSA
         run: |
           echo "Checking for prohibited ECDSA..."
-          if grep -rqiE "ecdsa|secp256k1|ecrecover" l3-aegis/src/ 2>/dev/null; then
+          if grep -rqiE "ecdsa|secp256k1|ecrecover" src/l3/src/ 2>/dev/null; then
             echo "ERROR: ECDSA found!"
             exit 1
           else
@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: l3-aegis
+        working-directory: src/l3
     steps:
       - name: Checkout
         uses: actions/checkout@v4

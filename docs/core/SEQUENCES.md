@@ -1,8 +1,90 @@
-# Quantum Shield L3 - Sequence Catalog v2.0
+# Quantum Shield L3 - Sequence Catalog v3.0
 
-> **Document Version**: 2.2
-> **Last Updated**: 2026-02-08
+> **Document Version**: 3.0
+> **Last Updated**: 2026-02-24
 > **Total Sequences**: 9 + 1 (補助)
+
+---
+
+## System Architecture v3.0
+
+### 設計原則
+
+| 原則 | 説明 |
+|:-----|:-----|
+| **関心の分離** | 資産管理(Vault)とProver管理(Registry)を分離 |
+| **Vault不変性** | L1 Vaultは再デプロイ不要、Immutable |
+| **動的Prover参加** | N個のProverが自由に参加・退出可能 |
+| **Auto-claim** | 24h後に自動でClaim実行、ユーザー操作不要 |
+
+### コントラクト構成
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ L1 (Ethereum)                                                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌───────────────────┐              ┌───────────────────┐                   │
+│  │    L1 Vault       │              │  Prover Registry  │                   │
+│  │   (Immutable)     │──参照───────►│   (Immutable)     │                   │
+│  │                   │              │                   │                   │
+│  │ • ETH Lock        │              │ • Prover登録      │                   │
+│  │ • ETH Unlock      │              │ • Stake管理       │                   │
+│  │ • ETH Release     │              │ • 公開鍵保持      │                   │
+│  │                   │              │ • Slashing        │                   │
+│  │ 署名検証時:       │              │                   │                   │
+│  │ registry.getPubKey│              │ getActiveProvers()│                   │
+│  └─────────┬─────────┘              └─────────┬─────────┘                   │
+│            │                                  │                             │
+│            │ Events                           │ Events                      │
+│            ▼                                  ▼                             │
+│  ┌─────────────────────────────────────────────────────────────┐           │
+│  │                    Auto-Claim Service                        │           │
+│  │                    (Off-chain Bot)                           │           │
+│  │                                                               │           │
+│  │  • UnlockRequested Event監視                                  │           │
+│  │  • 24h後に自動でexecuteUnlock()呼び出し                       │           │
+│  │  • ガス代: Protocol Treasury負担                              │           │
+│  └───────────────────────────────────────────────────────────────┘           │
+│                                                                               │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                      ▲
+                                      │ State Root / 署名
+                                      │
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ L3 Aegis (Off-chain Processing)                                               │
+├───────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │                           Core Layer (BFT 4-node)                        │ │
+│  │  • Dilithium署名検証 (off-chain、ガス不要)                               │ │
+│  │  • State Root計算 (SHA3-256)                                             │ │
+│  │  • VRF Prover選出                                                        │ │
+│  │  • Registry同期 (L1から読み取り)                                         │ │
+│  └──────────────────────────────────────────────────────────────────────────┘ │
+│                                      │ 署名要求                               │
+│                                      ▼                                        │
+│  ┌───────────────────────────────────────────────────────────────────────────┐│
+│  │                         Prover Pool (動的参加)                            ││
+│  │   ┌──────────┐  ┌──────────┐  ┌──────────┐       ┌──────────┐           ││
+│  │   │Prover 1  │  │Prover 2  │  │Prover 3  │  ...  │Prover N  │           ││
+│  │   │(AI/Human)│  │(AI/Human)│  │(AI/Human)│       │(AI/Human)│           ││
+│  │   │SPHINCS+  │  │SPHINCS+  │  │SPHINCS+  │       │SPHINCS+  │           ││
+│  │   └──────────┘  └──────────┘  └──────────┘       └──────────┘           ││
+│  │                                                                           ││
+│  │   登録: L1 Registry経由 (Stake + 公開鍵)                                  ││
+│  │   退出: L1 Registry経由 (7日 Unbonding)                                   ││
+│  └───────────────────────────────────────────────────────────────────────────┘│
+└───────────────────────────────────────────────────────────────────────────────┘
+```
+
+### コントラクトアドレス (Sepolia)
+
+| Contract | Address | 役割 |
+|:---------|:--------|:-----|
+| L1 Vault | `0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67` | 資産Lock/Unlock |
+| Prover Registry | (TBD - 新規デプロイ予定) | Prover管理 |
+| SPHINCS Verifier | `0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103` | 署名検証 |
 
 ---
 
@@ -147,17 +229,18 @@ User                      L3 Aegis (4node)                   L1 Vault
 
 ---
 
-## Sequence #2: Unlock (Normal Path)
+## Sequence #2: Unlock (Normal Path) + Auto-Claim
 
 ### 概要
 
 | 項目 | 内容 |
 |------|------|
 | 目的 | ユーザーがロック済み資産を引き出す |
-| 参加者 | User, L3 Aegis, Chainlink VRF, Prover (5社), L1 Vault, 監視ボット |
-| Prover署名 | SPHINCS+ 2/5 必要 |
+| 参加者 | User, L3 Aegis, Chainlink VRF, Prover (N社), L1 Vault, **Auto-Claim Service** |
+| Prover署名 | SPHINCS+ 2/N 必要 (Registryから動的取得) |
 | Time Lock | 24時間 |
-| Gas | ~490K gas (~$27) |
+| **Auto-Claim** | **24h後に自動実行（ユーザー操作不要）** |
+| Gas | ~490K gas (~$27) - Protocol Treasury負担 |
 
 ### データ構造
 
@@ -187,125 +270,122 @@ SR_1 = SHA3-256(
 ### シーケンス図
 
 ```
-User                 L3 Aegis (4node)    Chainlink VRF      Prover (5社)        L1 Vault           監視ボット
-  │                      │                   │                  │                  │                  │
-  │──(1) Unlock Req─────►│                   │                  │                  │                  │
-  │   {chain_id,         │                   │                  │                  │                  │
-  │    lock_id,          │                   │                  │                  │                  │
-  │    dest_addr,        │                   │                  │                  │                  │
-  │    amount,           │                   │                  │                  │                  │
-  │    expiry,           │                   │                  │                  │                  │
-  │    nonce,            │                   │                  │                  │                  │
-  │    sig_dilithium}    │                   │                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │                ┌─────┴─────┐             │                  │                  │                  │
-  │                │ 4ノード   │             │                  │                  │                  │
-  │                │ BFT合意   │             │                  │                  │                  │
-  │                │           │             │                  │                  │                  │
-  │                │ Dilithium │             │                  │                  │                  │
-  │                │ 検証 ✅    │             │                  │                  │                  │
-  │                │ lock_id ✅ │             │                  │                  │                  │
-  │                │ nonce ✅   │             │                  │                  │                  │
-  │                │ expiry ✅  │             │                  │                  │                  │
-  │                │ amount ✅  │             │                  │                  │                  │
-  │                │           │             │                  │                  │                  │
-  │                │ SR_1計算  │             │                  │                  │                  │
-  │                │ SMT更新   │             │                  │                  │                  │
-  │                └─────┬─────┘             │                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │                      │──(2) VRF Req─────►│                  │                  │                  │
-  │                      │   {unlock_id}     │                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │                      │             ┌─────┴─────┐            │                  │                  │
-  │                      │             │ VRF seed  │            │                  │                  │
-  │                      │             │ 生成      │            │                  │                  │
-  │                      │             └─────┬─────┘            │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │                      │◄──(3) seed────────│                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │                ┌─────┴─────┐             │                  │                  │                  │
-  │                │ Prover    │             │                  │                  │                  │
-  │                │ 選出 (2/5)│             │                  │                  │                  │
-  │                │           │             │                  │                  │                  │
-  │                │ P(i) =    │             │                  │                  │                  │
-  │                │ Stake_i / │             │                  │                  │                  │
-  │                │ Σ Stake   │             │                  │                  │                  │
-  │                │           │             │                  │                  │                  │
-  │                │ 選出:     │             │                  │                  │                  │
-  │                │ [P_A,P_B] │             │                  │                  │                  │
-  │                └─────┬─────┘             │                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │                      │──(4) 署名要求────────────────────────►│                  │                  │
-  │                      │   {unlock_data,   │                  │                  │                  │
-  │                      │    SR_0, SR_1}    │                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │                      │                   │            ┌─────┴─────┐            │                  │
-  │                      │                   │            │ HSM内     │            │                  │
-  │                      │                   │            │ 2-of-3    │            │                  │
-  │                      │                   │            │ 承認      │            │                  │
-  │                      │                   │            │           │            │                  │
-  │                      │                   │            │ L3検証    │            │                  │
-  │                      │                   │            │ 結果確認  │            │                  │
-  │                      │                   │            │           │            │                  │
-  │                      │                   │            │ SPHINCS+  │            │                  │
-  │                      │                   │            │ 署名生成  │            │                  │
-  │                      │                   │            │ (各8KB)   │            │                  │
-  │                      │                   │            └─────┬─────┘            │                  │
-  │                      │                   │                  │                  │                  │
-  │                      │◄──(5) 2×SPHINCS+─────────────────────│                  │                  │
-  │                      │   {sig_A, sig_B}  │                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │◄──(6) 署名完了────────│                   │                  │                  │                  │
-  │   {unlock_id,        │                   │                  │                  │                  │
-  │    sigs_ready}       │                   │                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │──(7) Submit Unlock───────────────────────────────────────────────────────────►│                  │
-  │   {lock_id,          │                   │                  │            ┌─────┴─────┐            │
-  │    SR_0,             │                   │                  │            │ SR_0照合  │            │
-  │    SR_1,             │                   │                  │            │ (Lock時)  │            │
-  │    SMT_proof,        │                   │                  │            │           │            │
-  │    unlock_data,      │                   │                  │            │ SPHINCS+  │            │
-  │    2×SPHINCS+ sigs}  │                   │                  │            │ 検証×2    │            │
-  │                      │                   │                  │            │ (~400K)   │            │
-  │                      │                   │                  │            │           │            │
-  │                      │                   │                  │            │ SMT検証   │            │
-  │                      │                   │                  │            │ SHA3検証  │            │
-  │                      │                   │                  │            │           │            │
-  │                      │                   │                  │            │ 24h LOCK  │            │
-  │                      │                   │                  │            │ 開始      │            │
-  │                      │                   │                  │            └─────┬─────┘            │
-  │                      │                   │                  │                  │                  │
-  │◄──(8) Pending────────────────────────────────────────────────────────────────│                  │
-  │   {unlock_id,        │                   │                  │                  │                  │
-  │    release_time}     │                   │                  │                  │──(9) 監視────────►│
-  │                      │                   │                  │                  │                  │
-  │                      │                   │                  │                  │            ┌─────┴─────┐
-  │                      │                   │                  │                  │            │ 24h監視   │
-  │                      │                   │                  │                  │            │           │
-  │                      │                   │                  │                  │            │ Dilithium │
-  │                      │                   │                  │                  │            │ 再検証    │
-  │                      │                   │                  │                  │            │           │
-  │                      │                   │                  │                  │            │ 異常検知  │
-  │                      │                   │                  │                  │            │ → Alert  │
-  │                      │                   │                  │                  │            └─────┬─────┘
-  │                      │                   │                  │                  │                  │
-  │                      │                   │                  │   [24h経過]      │                  │
-  │                      │                   │                  │   [Challenge無し]│                  │
-  │                      │                   │                  │                  │                  │
-  │──(10) Claim──────────────────────────────────────────────────────────────────►│                  │
-  │                      │                   │                  │            ┌─────┴─────┐            │
-  │                      │                   │                  │            │ Time Lock │            │
-  │                      │                   │                  │            │ 完了確認  │            │
-  │                      │                   │                  │            │           │            │
-  │                      │                   │                  │            │ 資産送金  │            │
-  │                      │                   │                  │            └─────┬─────┘            │
-  │                      │                   │                  │                  │                  │
-  │◄──(11) Release───────────────────────────────────────────────────────────────│                  │
-  │   {amount} ETH       │                   │                  │                  │                  │
-  │                      │                   │                  │                  │                  │
-  │                      │◄──(12) 完了通知──────────────────────────────────────│                  │
-  │                      │   {lock_id,       │                  │                  │                  │
-  │                      │    released}      │                  │                  │                  │
+User              L3 Aegis (4node)   VRF      Prover (N社)     L1 Vault      Auto-Claim     監視ボット
+  │                    │              │            │              │              │              │
+  │──(1) Unlock Req───►│              │            │              │              │              │
+  │   {chain_id,       │              │            │              │              │              │
+  │    lock_id,        │              │            │              │              │              │
+  │    dest_addr,      │              │            │              │              │              │
+  │    amount,         │              │            │              │              │              │
+  │    expiry,         │              │            │              │              │              │
+  │    nonce,          │              │            │              │              │              │
+  │    sig_dilithium}  │              │            │              │              │              │
+  │                    │              │            │              │              │              │
+  │              ┌─────┴─────┐        │            │              │              │              │
+  │              │ 4ノード   │        │            │              │              │              │
+  │              │ BFT合意   │        │            │              │              │              │
+  │              │           │        │            │              │              │              │
+  │              │ Dilithium │        │            │              │              │              │
+  │              │ 検証 ✅    │        │            │              │              │              │
+  │              │           │        │            │              │              │              │
+  │              │ SR_1計算  │        │            │              │              │              │
+  │              │ SMT更新   │        │            │              │              │              │
+  │              │           │        │            │              │              │              │
+  │              │ Registry  │        │            │              │              │              │
+  │              │ 参照 ✅    │        │            │              │              │              │
+  │              └─────┬─────┘        │            │              │              │              │
+  │                    │              │            │              │              │              │
+  │                    │──(2) VRF────►│            │              │              │              │
+  │                    │              │            │              │              │              │
+  │                    │◄──(3) seed───│            │              │              │              │
+  │                    │              │            │              │              │              │
+  │              ┌─────┴─────┐        │            │              │              │              │
+  │              │ Prover    │        │            │              │              │              │
+  │              │ 選出 (2/N)│        │  ★Registry│              │              │              │
+  │              │           │        │   から取得 │              │              │              │
+  │              │ P(i) =    │        │            │              │              │              │
+  │              │ Stake_i / │        │            │              │              │              │
+  │              │ Σ Stake   │        │            │              │              │              │
+  │              └─────┬─────┘        │            │              │              │              │
+  │                    │              │            │              │              │              │
+  │                    │──(4) 署名要求───────────►│              │              │              │
+  │                    │   {unlock_data,          │              │              │              │
+  │                    │    SR_0, SR_1}           │              │              │              │
+  │                    │              │      ┌─────┴─────┐        │              │              │
+  │                    │              │      │ SPHINCS+  │        │              │              │
+  │                    │              │      │ 署名生成  │        │              │              │
+  │                    │              │      │ (各8KB)   │        │              │              │
+  │                    │              │      └─────┬─────┘        │              │              │
+  │                    │              │            │              │              │              │
+  │                    │◄──(5) 2×SPHINCS+─────────│              │              │              │
+  │                    │   {sig_A, sig_B}         │              │              │              │
+  │                    │              │            │              │              │              │
+  │◄──(6) 署名完了─────│              │            │              │              │              │
+  │   {unlock_id,      │              │            │              │              │              │
+  │    sigs_ready}     │              │            │              │              │              │
+  │                    │              │            │              │              │              │
+  │──(7) Submit Unlock─────────────────────────────────────────►│              │              │
+  │   {lock_id,        │              │            │        ┌─────┴─────┐        │              │
+  │    SR_0, SR_1,     │              │            │        │ Registry  │        │              │
+  │    SMT_proof,      │              │            │        │ から公開鍵│        │              │
+  │    unlock_data,    │              │            │        │ 取得      │        │              │
+  │    2×SPHINCS+}     │              │            │        │           │        │              │
+  │                    │              │            │        │ SPHINCS+  │        │              │
+  │                    │              │            │        │ 検証×2    │        │              │
+  │                    │              │            │        │ (~400K)   │        │              │
+  │                    │              │            │        │           │        │              │
+  │                    │              │            │        │ 24h LOCK  │        │              │
+  │                    │              │            │        │ 開始      │        │              │
+  │                    │              │            │        └─────┬─────┘        │              │
+  │                    │              │            │              │              │              │
+  │◄──(8) Pending──────────────────────────────────────────────│              │              │
+  │   {unlock_id,      │              │            │              │──(9) 登録───►│              │
+  │    release_time}   │              │            │              │   {lockId,   │              │
+  │                    │              │            │              │    releaseAt}│──(10) 監視──►│
+  │                    │              │            │              │              │              │
+  │  ★ユーザーは      │              │            │              │              │        ┌─────┴─────┐
+  │    ここで完了     │              │            │              │              │        │ 24h監視   │
+  │    （Claim不要）  │              │            │              │              │        │ Challenge │
+  │                    │              │            │              │              │        │ 検知      │
+  │                    │              │            │              │              │        └─────┬─────┘
+  │                    │              │            │   [24h経過]  │              │              │
+  │                    │              │            │   [Challenge無し]           │              │
+  │                    │              │            │              │              │              │
+  │                    │              │            │              │◄─(11) Auto──│              │
+  │                    │              │            │              │    Claim     │              │
+  │                    │              │            │        ┌─────┴─────┐        │              │
+  │                    │              │            │        │ Time Lock │        │              │
+  │                    │              │            │        │ 完了確認  │        │              │
+  │                    │              │            │        │           │        │              │
+  │                    │              │            │        │ 資産送金  │        │              │
+  │                    │              │            │        └─────┬─────┘        │              │
+  │                    │              │            │              │              │              │
+  │◄──(12) Release─────────────────────────────────────────────│              │              │
+  │   {amount} ETH     │              │            │              │              │              │
+  │                    │              │            │              │              │              │
+  │                    │◄──(13) 完了通知───────────────────────│              │              │
+  │                    │   {lock_id, released}    │              │              │              │
+```
+
+### Auto-Claim Service 仕様
+
+| 項目 | 内容 |
+|:-----|:-----|
+| トリガー | UnlockRequested Event |
+| 実行タイミング | release_time + 1 block 経過後 |
+| 前提条件 | Challenge がないこと |
+| ガス代負担 | Protocol Treasury (運営) |
+| フォールバック | 手動Claim も可能（後方互換性） |
+
+```
+Auto-Claim Service Flow:
+1. L1 Vault の UnlockRequested Event を監視
+2. {lockId, releaseAt} を内部DBに記録
+3. releaseAt 到達を検知
+4. Challenge 状態を確認 (challenges[lockId].status)
+5. Challenge なし → executeUnlock(lockId) を呼び出し
+6. ガス代は Protocol Treasury から支払い
+7. 失敗時 → リトライ (max 3回) → アラート
 ```
 
 ### ステップ詳細
@@ -315,25 +395,28 @@ User                 L3 Aegis (4node)    Chainlink VRF      Prover (5社)       
 | 1 | User | L3 | Unlock Request + Dilithium署名 |
 | 2 | L3 | VRF | VRF seed要求 |
 | 3 | VRF | L3 | VRF seed |
-| 4 | L3 | Prover×2 | 署名要求 |
+| 4 | L3 | Prover×2 | 署名要求 (Registry参照) |
 | 5 | Prover×2 | L3 | SPHINCS+署名×2 |
 | 6 | L3 | User | 署名完了通知 |
 | 7 | User | L1 | Submit Unlock（全データ） |
-| 8 | L1 | User | Pending通知（release_time） |
-| 9 | L1 | 監視ボット | 監視開始 |
-| 10 | User | L1 | Claim要求 |
-| 11 | L1 | User | 資産Release |
-| 12 | L1 | L3 | 完了同期 |
+| 8 | L1 | User | Pending通知（release_time）**★ユーザー操作完了** |
+| 9 | L1 | Auto-Claim | Unlock登録 (Event経由) |
+| 10 | L1 | 監視ボット | 監視開始 |
+| 11 | **Auto-Claim** | L1 | **自動Claim実行** (24h後) |
+| 12 | L1 | User | 資産Release |
+| 13 | L1 | L3 | 完了同期 |
 
 ### タイムライン
 
 ```
-T+0:      Unlock Request
-T+~30s:   VRF完了、Prover選出
+T+0:      Unlock Request (User)
+T+~30s:   VRF完了、Prover選出 (Registry参照)
 T+~5min:  Prover署名完了
 T+~10min: L1 Submit完了、24h Lock開始
+          ★ユーザーの操作はここで完了
 T+24h:    Time Lock終了
-T+24h+:   User Claim → Release
+T+24h+:   Auto-Claim Service が自動で Claim → Release
+          （手動Claimも可能、後方互換性あり）
 ```
 
 ---
@@ -614,14 +697,18 @@ User                 L3 Aegis                          L1 Vault
 | 項目 | 内容 |
 |------|------|
 | 目的 | 新規Proverの登録 |
+| **登録先** | **Prover Registry (独立コントラクト)** |
 | 承認方式 | Phase別（招待制 → Council → 自動） |
 | 最低Stake | **$400K USD相当**（ETH or QS Token、Chainlink Oracle価格参照） |
 | Stake通貨 | ETH or QS Token（Phase問わず選択可） |
 
+> **v3.0 アーキテクチャ変更**: Prover管理はL1 Vaultから独立した「Prover Registry」コントラクトで行う。
+> これにより、Vaultのアップグレードなしに、Proverの動的参加・退出が可能。
+
 ### シーケンス図
 
 ```
-Prover候補            L1 Staking           L3 Aegis            Governance
+Prover候補          Prover Registry        L3 Aegis            Governance
      │                    │                    │                    │
      │──(1) 登録申請──────►│                    │                    │
      │   {operator_addr,  │                    │                    │
@@ -735,7 +822,7 @@ Stake Evaluation:
 ### シーケンス図
 
 ```
-Prover                L1 Staking           L3 Aegis            
+Prover                Prover Registry           L3 Aegis            
      │                    │                    │                    
      │──(1) 退出申請─────►│                    │                    
      │   {prover_id}      │                    │                    

@@ -1,0 +1,19 @@
+{
+  "transactions": [
+    {
+      "rpc": "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID"
+    },
+    {
+      "rpc": "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID"
+    },
+    {
+      "rpc": "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID"
+    },
+    {
+      "rpc": "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID"
+    },
+    {
+      "rpc": "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID"
+    }
+  ]
+}

@@ -1,12 +1,12 @@
 [profile.default]
-src = "contracts"
+src = "src/l1/contracts"
 out = "out"
-libs = ["lib"]
-test = "test"
-script = "scripts"
+libs = ["lib", "src/l1/contracts/lib"]
+test = "src/l1/test"
+script = "src/l1/contracts/script"
 
 # Solidity settings
-solc = "0.8.20"
+solc = "0.8.28"
 optimizer = true
 optimizer_runs = 200
 via_ir = true
@@ -20,10 +20,28 @@ gas_reports = ["QuantumShield"]
 
 # Remappings
 remappings = [
-    "forge-std/=lib/forge-std/src/"
+    "forge-std/=lib/forge-std/src/",
+    "@openzeppelin/=src/l1/contracts/lib/openzeppelin-contracts/",
+    "lib/openzeppelin-contracts/=src/l1/contracts/lib/openzeppelin-contracts/",
+    "@qs/=src/l1/contracts/src/"
 ]
 
 # File system permissions for scripts
+fs_permissions = [{ access = "read-write", path = "./" }]
+
+[profile.l3]
+src = "src/l3/src"
+out = "out-l3"
+libs = ["lib"]
+script = "src/l3/script"
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+remappings = [
+    "forge-std/=lib/forge-std/src/",
+    "@openzeppelin/=src/l1/contracts/lib/openzeppelin-contracts/"
+]
 fs_permissions = [{ access = "read-write", path = "./" }]
 
 [profile.ci]

@@ -2,11 +2,17 @@
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
 [submodule "contracts/lib/forge-std"]
-	path = contracts/lib/forge-std
+	path = src/l1/contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
 [submodule "pq-crystals-dilithium"]
 	path = pq-crystals-dilithium
 	url = https://github.com/pq-crystals/dilithium
 [submodule "contracts/lib/openzeppelin-contracts"]
-	path = contracts/lib/openzeppelin-contracts
+	path = src/l1/contracts/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git
+[submodule "l3-aegis/lib/forge-std"]
+	path = src/l3/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "l3-aegis/lib/openzeppelin-contracts"]
+	path = src/l3/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git

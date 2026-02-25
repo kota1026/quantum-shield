@@ -36,3 +36,14 @@ l3-aegis/cache/
 
 # Root-level screenshots (temporary)
 *.png
+
+# Claude worktrees
+.claude/worktrees/
+
+# L3 Foundry artifacts
+src/l3/broadcast/
+src/l3/cache/
+src/l3/out/
+
+# API server logs
+*.log

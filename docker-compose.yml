@@ -1,8 +1,6 @@
 # Quantum Shield Development Stack
 # Usage: docker-compose up -d
 
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -38,7 +36,8 @@ services:
 
   # RabbitMQ Message Queue
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3-management
+    platform: linux/arm64
     container_name: qs-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: quantum
@@ -81,6 +80,39 @@ services:
       timeout: 5s
       retries: 10
 
+  # MinIO Object Storage (S3-compatible) for document uploads
+  minio:
+    image: minio/minio:latest
+    container_name: qs-minio
+    environment:
+      MINIO_ROOT_USER: quantum
+      MINIO_ROOT_PASSWORD: quantum_dev_storage
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"    # S3 API
+      - "9001:9001"    # Web console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO bucket initialization (creates qs-documents bucket on first run)
+  minio-init:
+    image: minio/mc:latest
+    container_name: qs-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 quantum quantum_dev_storage;
+      mc mb --ignore-existing local/qs-documents;
+      echo 'Bucket qs-documents created';
+      "
+
   # L1 Local Node (Anvil - Foundry) - Optional for full local testing
   # Simulates Sepolia for local development
   l1-node:
@@ -114,6 +146,7 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
+  minio_data:
 
 networks:
   default:
