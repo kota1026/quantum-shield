@@ -66,38 +66,44 @@ from the quantum threat — before it's too late.
 
 ---
 
-## Slide 3: Market Opportunity — $50B by 2028
+## Slide 3: Market Opportunity — Multi-Billion Dollar PQC Wave
 
 ```
 ┌─────────────────────────────────────────────────┐
 │                                                   │
-│   TAM: $50B+                                      │
-│   Post-Quantum Crypto Infrastructure (2028)       │
-│   ├── Gartner/BCG estimates                       │
-│   └── Fortune 500 adoption wave                   │
+│   TAM: $2.8 - $4.6B by 2030                      │
+│   Post-Quantum Cryptography Market                │
+│   ├── MarketsandMarkets: $2.84B (46.2% CAGR)     │
+│   ├── Mordor Intelligence: $4.60B (39.3% CAGR)   │
+│   └── Precedence Research: $29.95B by 2034        │
 │                                                   │
-│   SAM: $5-10B                                     │
-│   Institutional DeFi + Custody (2027-2028)        │
+│   SAM: $400M - $900M                              │
+│   Crypto/DeFi PQ Infrastructure (15-20% of TAM)   │
 │   ├── EU financial institutions (DORA mandate)    │
-│   └── Crypto-native protocols                     │
+│   └── DeFi protocols + institutional custody      │
 │                                                   │
-│   SOM: $500M                                      │
-│   Early adopters + crypto natives (2026-2027)     │
-│   ├── DeFi protocols seeking PQ protection        │
-│   └── Institutional custody providers             │
+│   SOM: $50M - $150M                               │
+│   Ethereum-native PQ protection (2026-2028)       │
+│   ├── Early adopter DeFi protocols                │
+│   └── Institutional custody on Ethereum           │
 │                                                   │
 │   ── CRITICAL WINDOW ──                           │
 │   Ethereum's PQ upgrade: 2028                     │
 │   Our head start: 2 years                         │
 │                                                   │
+│   Context: PsiQuantum raised $1B in Sep 2025      │
+│   → Quantum is attracting serious capital          │
+│                                                   │
 └─────────────────────────────────────────────────┘
 ```
 
 **Key Messages**:
-- 耐量子暗号市場は2025年時点で**$9.37B市場規模**（暗号資産セクターのみ）
-- 規制が追い風: US Executive Order 14110、EU DORA/MiCA 2.0
+- PQC市場は2025年$420M-$1.68B → 2030年$2.84B-$4.6B（CAGR 37-46%）
+  - Source: MarketsandMarkets, Mordor Intelligence, Precedence Research
+- 規制が追い風: US Executive Order 14110（連邦$7.1Bの移行予算）、EU DORA/MiCA 2.0
+- PsiQuantumが2025年9月に$1B調達（BlackRock, Nvidia参加）→ 量子に巨額資本が流入中
 - Ethereumの耐量子対応完了は2028年 → **2年間の空白市場**
-- この2年間に橋頭堡を築いた者が市場を取る
+- QANplatformが$17.1M調達済み → PQ×Crypto市場にVC appetiteがある
 
 ---
 
@@ -515,13 +521,14 @@ from the quantum threat — before it's too late.
 > Seed資金でChief Cryptographer + Enterprise Sales 2名 + BizDev 1名を採用予定。
 > 技術実装はClaude Code + フリーランスRustエンジニアでスケール可能。
 
-## Q6: 「競合のQANplatformが$15M調達している。どう差別化する？」
+## Q6: 「競合のQANplatformが$17.1M調達している。どう差別化する？」
 
-> QANはEU政府向けのインフラプロバイダーで、アプローチが異なります。
-> QANは「Dilithium対応のL1チェーン」、QSは「Ethereum上のPQ保護プロトコル」。
-> QANのTAMはEU政府・金融機関、QSのTAMはDeFi + 機関投資家。
-> 市場は十分大きく、棲み分けが可能です。
-> むしろQANの調達は「PQ市場が投資対象として認知されている」証拠です。
+> QANは累計$17.1M調達（Seed $2.1M + Series A $15M from MBK Holding, Qatar）。
+> QANは「Dilithium対応の独自L1チェーン」で、EU政府・金融機関向け。
+> 2025年にはパラグアイ最大のUeno Bank（220万顧客）がQANを採用。
+> QSは「Ethereum上のPQ保護プロトコル」で、DeFi + 機関投資家向け。
+> 市場セグメントが異なり、棲み分けが可能です。
+> むしろQANの調達とUeno Bank採用は「PQ市場が投資対象として成熟している」証拠です。
 
 ---
 

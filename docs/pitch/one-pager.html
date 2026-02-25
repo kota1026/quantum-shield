@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Shield - One Pager</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #1a1a2e;
+    background: #fff;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 24px 28px 20px;
+    font-size: 9.5pt;
+    line-height: 1.45;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #C41E3A;
+    margin-bottom: 14px;
+  }
+  .logo-area h1 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #C41E3A;
+    letter-spacing: -0.5px;
+  }
+  .logo-area .tagline {
+    font-size: 9pt;
+    color: #666;
+    font-weight: 400;
+    margin-top: 1px;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 8pt;
+    color: #888;
+    line-height: 1.6;
+  }
+  .header-right .stage {
+    display: inline-block;
+    background: #C41E3A;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 8pt;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  .hero h2 {
+    font-size: 13pt;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #D4AF37;
+  }
+  .hero p {
+    font-size: 9pt;
+    line-height: 1.5;
+    color: #ccc;
+  }
+  .hero .highlight {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Two-column layout */
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* Section boxes */
+  .section {
+    margin-bottom: 14px;
+  }
+  .section h3 {
+    font-size: 9.5pt;
+    font-weight: 700;
+    color: #C41E3A;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+    padding-bottom: 3px;
+    border-bottom: 1.5px solid #eee;
+  }
+
+  /* Problem stats */
+  .stat-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .stat-box {
+    flex: 1;
+    background: #f8f8fc;
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid #eee;
+  }
+  .stat-box .number {
+    font-size: 16pt;
+    font-weight: 800;
+    color: #C41E3A;
+    line-height: 1.1;
+  }
+  .stat-box .label {
+    font-size: 7pt;
+    color: #888;
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+
+  /* Architecture */
+  .arch-box {
+    background: #f8f8fc;
+    border-radius: 6px;
+    padding: 10px 12px;
+    border: 1px solid #eee;
+    margin-bottom: 8px;
+  }
+  .arch-layer {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .arch-layer:last-child { border-bottom: none; }
+  .arch-layer .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12pt;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .arch-layer .icon.l1 { background: #C41E3A22; }
+  .arch-layer .icon.l3 { background: #D4AF3722; }
+  .arch-layer .icon.pp { background: #1a1a2e22; }
+  .arch-layer .name {
+    font-weight: 700;
+    font-size: 8.5pt;
+    min-width: 70px;
+  }
+  .arch-layer .desc {
+    font-size: 8pt;
+    color: #666;
+  }
+
+  /* Competitive table */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+    margin-top: 4px;
+  }
+  .comp-table th {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 4px 6px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 7.5pt;
+  }
+  .comp-table th:first-child { text-align: left; border-radius: 4px 0 0 0; }
+  .comp-table th:last-child { border-radius: 0 4px 0 0; background: #C41E3A; }
+  .comp-table td {
+    padding: 3px 6px;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 7.5pt;
+  }
+  .comp-table td:first-child { text-align: left; font-weight: 500; }
+  .comp-table td:last-child { background: #FFF5F5; font-weight: 600; }
+  .comp-table tr:last-child td { border-bottom: none; }
+
+  /* Traction */
+  .traction-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .traction-item {
+    background: #f8f8fc;
+    border-radius: 4px;
+    padding: 6px 8px;
+    text-align: center;
+    border: 1px solid #eee;
+  }
+  .traction-item .val {
+    font-size: 12pt;
+    font-weight: 800;
+    color: #1a1a2e;
+  }
+  .traction-item .lbl {
+    font-size: 6.5pt;
+    color: #888;
+    margin-top: 1px;
+  }
+
+  /* Business model */
+  .biz-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 10px;
+    margin-top: 4px;
+  }
+  .biz-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 0;
+    font-size: 8pt;
+  }
+  .biz-item .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #C41E3A;
+    flex-shrink: 0;
+  }
+
+  /* Roadmap */
+  .roadmap {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .rm-phase {
+    flex: 1;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 7.5pt;
+    border: 1px solid #eee;
+    position: relative;
+  }
+  .rm-phase.now {
+    border: 2px solid #C41E3A;
+    background: #FFF5F5;
+  }
+  .rm-phase .quarter {
+    font-weight: 700;
+    font-size: 8pt;
+    margin-bottom: 2px;
+  }
+  .rm-phase.now .quarter { color: #C41E3A; }
+  .rm-phase .now-badge {
+    position: absolute;
+    top: -7px;
+    right: 6px;
+    background: #C41E3A;
+    color: #fff;
+    font-size: 6pt;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+
+  /* Ask */
+  .ask-box {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .ask-box .amount {
+    font-size: 20pt;
+    font-weight: 800;
+    color: #D4AF37;
+  }
+  .ask-box .round {
+    font-size: 9pt;
+    color: #aaa;
+  }
+  .ask-funds {
+    display: flex;
+    gap: 12px;
+    font-size: 8pt;
+    color: #ccc;
+  }
+  .ask-funds .fund-item .pct {
+    font-weight: 700;
+    color: #D4AF37;
+    font-size: 10pt;
+  }
+
+  /* Footer */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+    font-size: 7.5pt;
+    color: #aaa;
+    margin-top: 6px;
+  }
+  .footer a {
+    color: #C41E3A;
+    text-decoration: none;
+  }
+
+  /* Differentiator pills */
+  .diff-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .pill {
+    background: #C41E3A11;
+    border: 1px solid #C41E3A33;
+    color: #C41E3A;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 7pt;
+    font-weight: 600;
+  }
+
+  /* UoF bar */
+  .uof-bar {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 6px 0 4px;
+  }
+  .uof-bar .seg { height: 100%; }
+  .uof-bar .eng { background: #C41E3A; width: 40%; }
+  .uof-bar .gtm { background: #D4AF37; width: 35%; }
+  .uof-bar .ops { background: #1a1a2e; width: 15%; }
+  .uof-bar .leg { background: #888; width: 10%; }
+  .uof-legend {
+    display: flex;
+    gap: 10px;
+    font-size: 7pt;
+    color: #666;
+    margin-top: 2px;
+  }
+  .uof-legend .dot-eng { color: #C41E3A; }
+  .uof-legend .dot-gtm { color: #D4AF37; }
+  .uof-legend .dot-ops { color: #1a1a2e; }
+
+  /* Print */
+  @media print {
+    body { padding: 20px 24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-area">
+    <h1>QUANTUM SHIELD</h1>
+    <div class="tagline">The First Quantum-Safe Asset Protection Protocol on Ethereum</div>
+  </div>
+  <div class="header-right">
+    <span class="stage">Seed Round</span><br>
+    February 2026 | Confidential
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <h2>Protecting $2.5T in Smart Contract Assets from the Quantum Threat</h2>
+  <p>
+    NIST finalized post-quantum standards in Aug 2024. US federal deadline: <span class="highlight">2028</span>.
+    Ethereum's PQ upgrade won't arrive until 2028 — leaving a <span class="highlight">2-year window</span>
+    where trillions in digital assets remain vulnerable.
+    Quantum Shield is the <span class="highlight">only dual-NIST compliant protocol</span> protecting assets today.
+  </p>
+</div>
+
+<!-- KEY STATS -->
+<div class="stat-row">
+  <div class="stat-box">
+    <div class="number">$4.6B</div>
+    <div class="label">PQ Market<br>by 2030</div>
+  </div>
+  <div class="stat-box">
+    <div class="number">2028</div>
+    <div class="label">US Federal<br>PQ Deadline</div>
+  </div>
+  <div class="stat-box">
+    <div class="number">2 yrs</div>
+    <div class="label">Window before<br>Ethereum PQ</div>
+  </div>
+  <div class="stat-box">
+    <div class="number">92%</div>
+    <div class="label">Product<br>Complete</div>
+  </div>
+  <div class="stat-box">
+    <div class="number">0</div>
+    <div class="label">Dual-NIST<br>Competitors</div>
+  </div>
+</div>
+
+<!-- TWO COLUMNS -->
+<div class="columns">
+
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- Architecture -->
+    <div class="section">
+      <h3>3-Layer Architecture</h3>
+      <div class="arch-box">
+        <div class="arch-layer">
+          <div class="icon l1">🛡</div>
+          <div class="name">L1 Vault</div>
+          <div class="desc">SPHINCS+ (FIPS 205) on-chain, immutable once deployed</div>
+        </div>
+        <div class="arch-layer">
+          <div class="icon l3">⚡</div>
+          <div class="name">L3 Aegis</div>
+          <div class="desc">Dilithium (FIPS 204) off-chain, 93% gas savings</div>
+        </div>
+        <div class="arch-layer">
+          <div class="icon pp">🔐</div>
+          <div class="name">Prover Pool</div>
+          <div class="desc">VRF selection + Quadratic Slashing economic security</div>
+        </div>
+      </div>
+      <div class="diff-pills">
+        <span class="pill">Dual NIST</span>
+        <span class="pill">Quadratic Slashing</span>
+        <span class="pill">Auto-Claim</span>
+        <span class="pill">24h TimeLock</span>
+        <span class="pill">Emergency Path</span>
+      </div>
+    </div>
+
+    <!-- Competitive -->
+    <div class="section">
+      <h3>Competitive Position</h3>
+      <table class="comp-table">
+        <tr>
+          <th>Feature</th>
+          <th>QRL</th>
+          <th>QAN</th>
+          <th>ETH PQ</th>
+          <th style="min-width: 42px;">QS ★</th>
+        </tr>
+        <tr><td>Dilithium (FIPS 204)</td><td>—</td><td>✓</td><td>2028</td><td>✓</td></tr>
+        <tr><td>SPHINCS+ (FIPS 205)</td><td>✓</td><td>—</td><td>2028</td><td>✓</td></tr>
+        <tr><td>Economic Security</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr>
+        <tr><td>Auto-Claim UX</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr>
+        <tr><td>Full App Ecosystem</td><td>1 app</td><td>1 app</td><td>—</td><td>9 apps</td></tr>
+        <tr><td>Ethereum-native</td><td>Own L1</td><td>Own L1</td><td>Core</td><td>✓</td></tr>
+        <tr><td>Status</td><td>Prod</td><td>Pilot</td><td>~2028</td><td>Testnet</td></tr>
+      </table>
+    </div>
+
+    <!-- Business Model -->
+    <div class="section">
+      <h3>Business Model</h3>
+      <div class="biz-items">
+        <div class="biz-item"><div class="dot"></div>Protocol fees (0.1-0.5% per lock)</div>
+        <div class="biz-item"><div class="dot"></div>Enterprise licensing (multi-org)</div>
+        <div class="biz-item"><div class="dot"></div>Prover rewards (consensus)</div>
+        <div class="biz-item"><div class="dot"></div>Treasury yield (POL)</div>
+      </div>
+      <div style="margin-top: 6px; font-size: 8pt; color: #666;">
+        <strong>Unit Economics:</strong> $34 per round-trip ($7 lock + $27 unlock) — 30-70% cheaper than on-chain PQ alternatives
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <!-- Traction -->
+    <div class="section">
+      <h3>Development Traction</h3>
+      <div class="traction-grid">
+        <div class="traction-item"><div class="val">9</div><div class="lbl">Applications</div></div>
+        <div class="traction-item"><div class="val">175</div><div class="lbl">Screens</div></div>
+        <div class="traction-item"><div class="val">375</div><div class="lbl">Components</div></div>
+        <div class="traction-item"><div class="val">202</div><div class="lbl">API Endpoints</div></div>
+        <div class="traction-item"><div class="val">144</div><div class="lbl">E2E Tests</div></div>
+        <div class="traction-item"><div class="val">Live</div><div class="lbl">Sepolia Testnet</div></div>
+      </div>
+      <div style="margin-top: 6px; font-size: 8pt; color: #666;">
+        Full stack: React + Rust/Axum + PostgreSQL + Solidity on Sepolia
+      </div>
+    </div>
+
+    <!-- Quadratic Slashing -->
+    <div class="section">
+      <h3>Novel: Quadratic Slashing</h3>
+      <div class="arch-box" style="font-size: 8pt;">
+        <div style="margin-bottom: 4px; color: #666;">
+          <strong>penalty = N² × 10% of stake</strong> — Making collusion financially irrational
+        </div>
+        <table style="width: 100%; font-size: 7.5pt; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 2px 0;"><strong>1 cheater</strong></td>
+            <td style="text-align: right;">10% lost</td>
+            <td style="text-align: right; color: #28a745;">90% remains</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 2px 0;"><strong>2 colluders</strong></td>
+            <td style="text-align: right;">40% lost</td>
+            <td style="text-align: right; color: #D4AF37;">60% remains</td>
+          </tr>
+          <tr>
+            <td style="padding: 2px 0;"><strong>3 colluders</strong></td>
+            <td style="text-align: right;">90% lost</td>
+            <td style="text-align: right; color: #C41E3A;">10% remains</td>
+          </tr>
+        </table>
+        <div style="margin-top: 4px; font-size: 7pt; color: #888;">
+          60% of slashed funds → Challenger rewards, incentivizing active fraud detection
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap -->
+    <div class="section">
+      <h3>Roadmap</h3>
+      <div class="roadmap">
+        <div class="rm-phase now">
+          <div class="now-badge">NOW</div>
+          <div class="quarter">Q1 '26</div>
+          Testnet public<br>9 apps live
+        </div>
+        <div class="rm-phase">
+          <div class="quarter">Q2 '26</div>
+          Security audit<br>Beta program
+        </div>
+        <div class="rm-phase">
+          <div class="quarter">Q3 '26</div>
+          Mainnet<br>veQS live
+        </div>
+        <div class="rm-phase">
+          <div class="quarter">Q4 '26</div>
+          Scale<br>Multi-chain
+        </div>
+      </div>
+    </div>
+
+    <!-- Seed Ask -->
+    <div class="section">
+      <h3>The Ask</h3>
+      <div class="ask-box">
+        <div>
+          <div class="round">Seed Round</div>
+          <div class="amount">$3 — 5M</div>
+        </div>
+        <div class="ask-funds">
+          <div class="fund-item"><div class="pct">40%</div>Engineering<br>& Audit</div>
+          <div class="fund-item"><div class="pct">35%</div>Go-to-<br>Market</div>
+          <div class="fund-item"><div class="pct">15%</div>Ops &<br>Infra</div>
+          <div class="fund-item"><div class="pct">10%</div>Legal &<br>Compliance</div>
+        </div>
+      </div>
+      <div style="font-size: 7.5pt; color: #666;">
+        <strong>18-month targets:</strong> Mainnet launch, $500M+ TVL, 4+ institutional clients, 8+ active Provers
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>
+    <strong style="color: #1a1a2e;">Quantum Shield</strong> — Confidential
+  </div>
+  <div style="text-align: center;">
+    "In 2 years, every major protocol will need quantum-safe infrastructure. We're building it today."
+  </div>
+  <div style="text-align: right;">
+    <!-- TODO: 実際の連絡先を記入 -->
+    <a href="#">[Email]</a> | <a href="#">[Twitter/X]</a>
+  </div>
+</div>
+
+</body>
+</html>
