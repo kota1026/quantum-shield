@@ -157,19 +157,28 @@ pub async fn create_unlock(
         .map_err(|e| ApiError::Internal(format!("VRF selection failed: {}", e)))?;
 
     // 7.4 Use VRF random value to select 2-of-N active provers (SEQUENCES §2.4)
+    // Selection is stake-weighted: P(i) = Stake_i / Sum(Stake)
     let active_provers = crate::db::ProverRepository::list_provers(
         state.db.pool(), Some("active"), None, 0, 100,
     ).await?;
-    let prover_addresses: Vec<String> = active_provers.iter()
-        .map(|p| p.prover_id.clone())
+    let prover_data: Vec<(String, u128)> = active_provers.iter()
+        .map(|p| {
+            let stake = p.stake_amount.to_string()
+                .split('.')
+                .next()
+                .unwrap_or("0")
+                .parse::<u128>()
+                .unwrap_or(0);
+            (p.prover_id.clone(), stake)
+        })
         .collect();
 
-    let selected_provers = if prover_addresses.len() >= 2 {
-        state.vrf.select_provers(&random_value, &prover_addresses)
-    } else if prover_addresses.len() == 1 {
+    let selected_provers = if prover_data.len() >= 2 {
+        state.vrf.select_provers(&random_value, &prover_data)
+    } else if prover_data.len() == 1 {
         // Only 1 prover available — use it (degraded mode)
         tracing::warn!("Only 1 active prover available — degraded 2-of-5 selection");
-        prover_addresses
+        vec![prover_data[0].0.clone()]
     } else {
         // No active provers — use fallback address
         tracing::warn!("No active provers in DB — using fallback address");

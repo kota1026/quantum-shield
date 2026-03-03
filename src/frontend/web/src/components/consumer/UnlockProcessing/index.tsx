@@ -20,6 +20,7 @@ import {
   requestEmergencyUnlock,
   constructUnlockMessage,
   calculateEmergencyBond,
+  waitForUnlockProgress,
   type UnlockResponse,
   type EmergencyUnlockResponse,
 } from '@/lib/api/unlock';
@@ -206,16 +207,27 @@ export function UnlockProcessing() {
       updateStep(3, 'complete');
 
       // ============================
-      // Step 4: VRF prover selection / bond verification
+      // Step 4: VRF prover selection + SPHINCS+ signature collection
       // ============================
       updateStep(4, 'active');
-      console.log('Step 4:', isEmergency ? 'Bond verification...' : 'VRF prover selection...');
+      console.log('Step 4:', isEmergency ? 'Bond verification...' : 'VRF prover selection + SPHINCS+ signatures...');
 
-      // Simulate waiting for prover selection or bond verification
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      if (!isEmergency && 'selected_provers' in response) {
-        console.log('Selected provers:', response.selected_provers);
+      if (!isEmergency) {
+        // Poll for VRF completion and prover signature collection (SEQUENCES.md §2.4-2.6)
+        const progressStatus = await waitForUnlockProgress(response.unlock_id, {
+          maxAttempts: 150, // 5 minutes at 2s intervals
+          intervalMs: 2000,
+          onProgress: (status) => {
+            console.log(
+              `Prover signatures: ${status.prover_signatures_collected}/${status.prover_signatures_required}`,
+              `VRF: ${status.vrf_status}`
+            );
+          },
+        });
+        console.log('Signature collection complete:', progressStatus.prover_signatures_collected);
+      } else {
+        // Emergency unlock: no prover signatures needed, brief wait for bond verification
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       updateStep(4, 'complete');

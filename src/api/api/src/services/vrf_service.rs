@@ -512,26 +512,69 @@ impl VRFService {
         }
     }
 
-    /// Select provers using VRF random value (2 of N)
+    /// Select provers using VRF random value (2 of N) - stake-weighted
     ///
-    /// Uses SHA3-256 hash of random value to deterministically select 2 provers
-    pub fn select_provers(&self, random_value: &str, provers: &[String]) -> Vec<String> {
+    /// Selection probability: P(i) = Stake_i / Sum(Stake)
+    /// Uses SHA3-256 hash of random value for deterministic weighted selection.
+    /// SEQUENCES.md §2.4: "P(i) = Stake_i / Sum(Stake)"
+    pub fn select_provers(&self, random_value: &str, provers: &[(String, u128)]) -> Vec<String> {
         if provers.is_empty() {
             return vec![];
+        }
+        if provers.len() == 1 {
+            return vec![provers[0].0.clone()];
         }
 
         let mut hasher = Sha3_256::new();
         hasher.update(random_value.as_bytes());
         let hash = hasher.finalize();
 
-        let total = provers.len();
-        let idx1 = (hash[0] as usize) % total;
-        let mut idx2 = (hash[1] as usize) % total;
-        if idx2 == idx1 {
-            idx2 = (idx2 + 1) % total;
+        let total_stake: u128 = provers.iter().map(|(_, s)| *s).sum();
+
+        // Fallback to uniform selection if all stakes are zero
+        if total_stake == 0 {
+            let total = provers.len();
+            let idx1 = (hash[0] as usize) % total;
+            let mut idx2 = (hash[1] as usize) % total;
+            if idx2 == idx1 {
+                idx2 = (idx2 + 1) % total;
+            }
+            return vec![provers[idx1].0.clone(), provers[idx2].0.clone()];
         }
 
-        vec![provers[idx1].clone(), provers[idx2].clone()]
+        // First selection: stake-weighted using first 16 bytes of hash
+        let rand1 = u128::from_be_bytes(hash[0..16].try_into().unwrap()) % total_stake;
+        let mut cumulative: u128 = 0;
+        let mut idx1 = 0;
+        for (i, (_, stake)) in provers.iter().enumerate() {
+            cumulative += *stake;
+            if rand1 < cumulative {
+                idx1 = i;
+                break;
+            }
+        }
+
+        // Second selection: stake-weighted, excluding first selected
+        let remaining_stake = total_stake - provers[idx1].1;
+        if remaining_stake == 0 {
+            // Only one prover has non-zero stake; pick any other as second
+            let idx2 = if idx1 == 0 { 1 } else { 0 };
+            return vec![provers[idx1].0.clone(), provers[idx2].0.clone()];
+        }
+
+        let rand2 = u128::from_be_bytes(hash[16..32].try_into().unwrap()) % remaining_stake;
+        let mut cumulative: u128 = 0;
+        let mut idx2 = 0;
+        for (i, (_, stake)) in provers.iter().enumerate() {
+            if i == idx1 { continue; }
+            cumulative += *stake;
+            if rand2 < cumulative {
+                idx2 = i;
+                break;
+            }
+        }
+
+        vec![provers[idx1].0.clone(), provers[idx2].0.clone()]
     }
 }
 
@@ -664,7 +707,7 @@ mod tests {
     }
 
     #[test]
-    fn test_select_provers() {
+    fn test_select_provers_stake_weighted() {
         let config = VRFConfig::default();
         let service = VRFService {
             config,
@@ -672,14 +715,21 @@ mod tests {
             read_contract: None,
         };
 
+        // Provers with different stake amounts
         let provers = vec![
-            "p1".to_string(), "p2".to_string(), "p3".to_string(),
-            "p4".to_string(), "p5".to_string(),
+            ("p1".to_string(), 100_000u128),
+            ("p2".to_string(), 200_000u128),
+            ("p3".to_string(), 300_000u128),
+            ("p4".to_string(), 150_000u128),
+            ("p5".to_string(), 250_000u128),
         ];
 
         let selected = service.select_provers("random123", &provers);
         assert_eq!(selected.len(), 2);
         assert_ne!(selected[0], selected[1]);
+        // Both must be valid prover IDs
+        assert!(provers.iter().any(|(id, _)| id == &selected[0]));
+        assert!(provers.iter().any(|(id, _)| id == &selected[1]));
     }
 
     #[test]
@@ -691,10 +741,63 @@ mod tests {
             read_contract: None,
         };
 
-        let provers = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+        let provers = vec![
+            ("a".to_string(), 100_000u128),
+            ("b".to_string(), 200_000u128),
+            ("c".to_string(), 300_000u128),
+        ];
         let s1 = service.select_provers("same_seed", &provers);
         let s2 = service.select_provers("same_seed", &provers);
         assert_eq!(s1, s2);
+    }
+
+    #[test]
+    fn test_select_provers_zero_stake_fallback() {
+        let config = VRFConfig::default();
+        let service = VRFService {
+            config,
+            contract: None,
+            read_contract: None,
+        };
+
+        // All stakes zero → falls back to uniform selection
+        let provers = vec![
+            ("p1".to_string(), 0u128),
+            ("p2".to_string(), 0u128),
+            ("p3".to_string(), 0u128),
+        ];
+
+        let selected = service.select_provers("random123", &provers);
+        assert_eq!(selected.len(), 2);
+        assert_ne!(selected[0], selected[1]);
+    }
+
+    #[test]
+    fn test_select_provers_high_stake_bias() {
+        let config = VRFConfig::default();
+        let service = VRFService {
+            config,
+            contract: None,
+            read_contract: None,
+        };
+
+        // p1 has 99% of total stake → should be selected most of the time
+        let provers = vec![
+            ("high_stake".to_string(), 99_000_000u128),
+            ("low_stake_1".to_string(), 500_000u128),
+            ("low_stake_2".to_string(), 500_000u128),
+        ];
+
+        // Run multiple seeds and count how often high_stake is selected
+        let mut high_count = 0;
+        for i in 0..100 {
+            let selected = service.select_provers(&format!("seed_{}", i), &provers);
+            if selected.contains(&"high_stake".to_string()) {
+                high_count += 1;
+            }
+        }
+        // With 99% stake, high_stake should be selected in the vast majority of cases
+        assert!(high_count > 80, "High-stake prover selected only {} times out of 100", high_count);
     }
 
     #[test]

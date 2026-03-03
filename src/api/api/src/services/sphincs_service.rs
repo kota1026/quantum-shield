@@ -11,6 +11,8 @@
 //! - SEQUENCES §5: Prover Registration
 //! - CORE_PRINCIPLES CP-1: 完全量子耐性
 
+use fips205::slh_dsa_shake_128s;
+use fips205::traits::{SerDes, Verifier};
 use sha3::{Digest, Sha3_256};
 
 /// SPHINCS+-128s public key size in bytes
@@ -153,10 +155,13 @@ impl SphincsService {
         Ok(true)
     }
 
-    /// Verify SPHINCS+-128s signature
+    /// Verify SPHINCS+-128s (SLH-DSA-SHAKE-128s) signature
     ///
-    /// Note: This is a placeholder for actual SPHINCS+ verification.
-    /// In production, this would use a SPHINCS+ library like pqcrypto-sphincsplus.
+    /// Uses NIST FIPS 205 compliant verification via the fips205 crate.
+    /// SLH-DSA-SHAKE-128s parameters:
+    /// - Public Key: 32 bytes
+    /// - Signature: 7,856 bytes
+    /// - Hash: SHAKE-256
     ///
     /// # Arguments
     /// * `message` - Message bytes that were signed
@@ -167,26 +172,49 @@ impl SphincsService {
     /// * `Ok(true)` if signature is valid
     /// * `Err(SphincsError)` if invalid
     pub fn verify_signature(
-        _message: &[u8],
+        message: &[u8],
         signature: &str,
         pubkey: &str,
     ) -> Result<bool, SphincsError> {
-        // Validate formats
+        // Validate formats first
         Self::validate_public_key(pubkey)?;
         Self::validate_signature_format(signature)?;
 
-        // TODO: Implement actual SPHINCS+ verification using pqcrypto-sphincsplus
-        // For now, we just validate the format
-        //
-        // In production:
-        // let pk = pqcrypto_sphincsplus::sphincsshake128ssimple::PublicKey::from_bytes(&pk_bytes)?;
-        // let sig = pqcrypto_sphincsplus::sphincsshake128ssimple::DetachedSignature::from_bytes(&sig_bytes)?;
-        // pqcrypto_sphincsplus::sphincsshake128ssimple::verify_detached_signature(&sig, message, &pk)?;
+        // Parse public key bytes
+        let pk_bytes = Self::parse_public_key(pubkey)?;
 
-        // For development: validate format only
-        tracing::debug!("SPHINCS+ signature format validated (actual verification pending)");
+        // Parse signature bytes
+        let sig_hex = &signature[2..]; // strip "0x"
+        let sig_bytes = hex::decode(sig_hex)
+            .map_err(|e| SphincsError::InvalidHex(e.to_string()))?;
 
-        Ok(true)
+        // Deserialize public key using FIPS 205 API
+        let public_key = slh_dsa_shake_128s::PublicKey::try_from_bytes(pk_bytes)
+            .map_err(|_| SphincsError::InvalidPublicKeyFormat(
+                "Failed to parse SLH-DSA-SHAKE-128s public key".to_string(),
+            ))?;
+
+        // Deserialize signature - convert Vec<u8> to fixed-size array
+        let sig_array: [u8; SPHINCS_SIGNATURE_BYTES] = sig_bytes
+            .try_into()
+            .map_err(|_| SphincsError::InvalidSignatureSize {
+                expected: SPHINCS_SIGNATURE_BYTES,
+                actual: 0, // already validated above
+            })?;
+
+        // Verify signature using FIPS 205 API
+        let result = public_key.try_verify_vt(message, &sig_array);
+
+        match result {
+            Ok(true) => {
+                tracing::debug!("SPHINCS+ signature verified successfully (FIPS 205)");
+                Ok(true)
+            }
+            _ => {
+                tracing::warn!("SPHINCS+ signature verification failed");
+                Err(SphincsError::VerificationFailed)
+            }
+        }
     }
 
     /// Validate HSM attestation for Prover registration
@@ -344,13 +372,20 @@ mod tests {
     }
 
     #[test]
-    fn test_verify_signature() {
+    fn test_verify_signature_rejects_invalid() {
+        // With real FIPS 205 verification, random data should fail verification
         let message = b"test message";
         let sig = valid_signature();
         let pubkey = valid_pubkey();
 
         let result = SphincsService::verify_signature(message, &sig, &pubkey);
-        assert!(result.is_ok());
+        // Random bytes will not form a valid signature, so verification should fail
+        assert!(result.is_err());
+        match result {
+            Err(SphincsError::VerificationFailed) |
+            Err(SphincsError::InvalidPublicKeyFormat(_)) => {}
+            other => panic!("Expected VerificationFailed or InvalidPublicKeyFormat, got {:?}", other),
+        }
     }
 
     #[test]

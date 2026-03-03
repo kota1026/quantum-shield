@@ -74,6 +74,22 @@ export type UnlockStatus = 'pending' | 'complete' | 'challenged';
 export interface ProverSignature {
   name: string;
   signed: boolean;
+  signedAt?: string;
+}
+
+export interface TimelineEvent {
+  event: 'requested' | 'timeLockStart' | 'proverApproval' | 'timeLockEnd' | 'executed' | 'challenged';
+  time: string;
+  completed: boolean;
+}
+
+export interface ChallengeInfo {
+  id: string;
+  shortId: string;
+  challenger: string;
+  challengerFull: string;
+  bond: string;
+  defenseDeadline: string;
 }
 
 export interface UnlockDetail {
@@ -83,8 +99,10 @@ export interface UnlockDetail {
   lockIdFull: string;
   type: UnlockType;
   status: UnlockStatus;
+  amount?: string;
   timeLock: string;
   timeLockProgress: number;
+  timeLockRemaining?: string;
   proverSigs: {
     signed: number;
     total: number;
@@ -93,7 +111,11 @@ export interface UnlockDetail {
   timeLockEnd: string;
   dilithiumSig: string;
   dilithiumVerified: boolean;
+  l2TxHash?: string;
+  l2TxHashFull?: string;
   provers: ProverSignature[];
+  challenge?: ChallengeInfo;
+  timeline?: TimelineEvent[];
 }
 
 // =============================================================================
