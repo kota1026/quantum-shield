@@ -22,8 +22,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AdminSidebarV2 } from '../AdminSidebarV2';
 
-// Mock data
-const mockRoles = [
+// Default roles data
+const DEFAULT_ROLES = [
   {
     id: 'role-admin',
     name: 'Admin',
@@ -92,7 +92,7 @@ const permissionCategories = [
 
 export function SettingsRoles() {
   const t = useTranslations('admin.settingsRoles');
-  const [selectedRole, setSelectedRole] = useState<typeof mockRoles[0] | null>(mockRoles[0]);
+  const [selectedRole, setSelectedRole] = useState<typeof DEFAULT_ROLES[0] | null>(DEFAULT_ROLES[0]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,7 +133,7 @@ export function SettingsRoles() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {mockRoles.map((role) => (
+                    {DEFAULT_ROLES.map((role) => (
                       <div
                         key={role.id}
                         onClick={() => setSelectedRole(role)}

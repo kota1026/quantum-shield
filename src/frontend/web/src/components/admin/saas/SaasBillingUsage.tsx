@@ -63,7 +63,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockOperatorUsage = [
+const SAMPLE_OPERATOR_USAGE = [
   {
     id: 'op-001',
     name: 'Mega Corp',
@@ -116,7 +116,7 @@ const mockOperatorUsage = [
   },
 ];
 
-const mockUsageMetrics = {
+const DEFAULT_USAGE_METRICS = {
   totalUsers: 3405,
   totalSignatures: 186330,
   totalApiCalls: 5240000,
@@ -212,30 +212,30 @@ export function SaasBillingUsage() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalUsers')}
-              value={mockUsageMetrics.totalUsers.toLocaleString()}
+              value={DEFAULT_USAGE_METRICS.totalUsers.toLocaleString()}
               trend={{ value: '+12%', direction: 'up' }}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalSignatures')}
-              value={formatNumber(mockUsageMetrics.totalSignatures)}
+              value={formatNumber(DEFAULT_USAGE_METRICS.totalSignatures)}
               trend={{ value: '+8%', direction: 'up' }}
               icon={<FileSignature className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalApiCalls')}
-              value={formatNumber(mockUsageMetrics.totalApiCalls)}
+              value={formatNumber(DEFAULT_USAGE_METRICS.totalApiCalls)}
               trend={{ value: '+15%', direction: 'up' }}
               icon={<Activity className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalStorage')}
-              value={`${mockUsageMetrics.totalStorage} GB`}
+              value={`${DEFAULT_USAGE_METRICS.totalStorage} GB`}
               icon={<Shield className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgUtilization')}
-              value={`${mockUsageMetrics.avgUtilization}%`}
+              value={`${DEFAULT_USAGE_METRICS.avgUtilization}%`}
               icon={<BarChart3 className="h-5 w-5" />}
               status="success"
             />
@@ -298,7 +298,7 @@ export function SaasBillingUsage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockOperatorUsage.map((operator) => {
+                    {SAMPLE_OPERATOR_USAGE.map((operator) => {
                       const usersPercent = getUsagePercentage(operator.users.used, operator.users.limit);
                       const signaturesPercent = getUsagePercentage(operator.signatures.used, operator.signatures.limit);
                       const apiPercent = getUsagePercentage(operator.apiCalls.used, operator.apiCalls.limit);

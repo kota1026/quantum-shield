@@ -16,7 +16,6 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useLicenseReports } from '@/hooks/enterprise';
-import { MOCK_AUDIT_REPORTS as MOCK_AUDIT_REPORTS_DATA } from '@/lib/api/enterprise/mock';
 
 interface AuditReport {
   id: string;
@@ -27,15 +26,6 @@ interface AuditReport {
   dueDate: string;
 }
 
-// Fallback data for when API is unavailable
-const FALLBACK_AUDIT_REPORTS: AuditReport[] = MOCK_AUDIT_REPORTS_DATA.map(r => ({
-  id: r.id,
-  name: r.name,
-  period: r.period,
-  status: r.status as 'submitted' | 'pending' | 'overdue',
-  submittedAt: r.submitted_at,
-  dueDate: r.due_date,
-}));
 
 export function LicenseTab() {
   const t = useTranslations('enterprise.settings.license');
@@ -49,7 +39,7 @@ export function LicenseTab() {
     status: r.status as 'submitted' | 'pending' | 'overdue',
     submittedAt: r.submitted_at,
     dueDate: r.due_date,
-  })) ?? FALLBACK_AUDIT_REPORTS;
+  })) ?? [];
 
   const getStatusIcon = (status: AuditReport['status']) => {
     switch (status) {

@@ -56,7 +56,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockProposals = [
+const SAMPLE_PROPOSALS = [
   {
     id: 'QIP-042',
     title: 'Increase Prover Minimum Stake to 50,000 QS',
@@ -114,7 +114,7 @@ const mockProposals = [
   },
 ];
 
-const mockExecutionQueue = [
+const SAMPLE_EXECUTION_QUEUE = [
   {
     id: 'QIP-040',
     title: 'Reduce Unlock Fee from 0.3% to 0.2%',
@@ -137,8 +137,8 @@ export function PublicGovernanceManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'proposals', label: t('tabs.proposals'), count: mockProposals.filter(p => p.status === 'active').length },
-    { key: 'execution', label: t('tabs.execution'), count: mockExecutionQueue.length },
+    { key: 'proposals', label: t('tabs.proposals'), count: SAMPLE_PROPOSALS.filter(p => p.status === 'active').length },
+    { key: 'execution', label: t('tabs.execution'), count: SAMPLE_EXECUTION_QUEUE.length },
     { key: 'parameters', label: t('tabs.parameters') },
     { key: 'emergency', label: t('tabs.emergency') },
   ];
@@ -177,7 +177,7 @@ export function PublicGovernanceManagement() {
     }
   };
 
-  const filteredProposals = mockProposals.filter(
+  const filteredProposals = SAMPLE_PROPOSALS.filter(
     (proposal) =>
       proposal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       proposal.id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -354,7 +354,7 @@ export function PublicGovernanceManagement() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockExecutionQueue.map((item) => (
+                  {SAMPLE_EXECUTION_QUEUE.map((item) => (
                     <div
                       key={item.id}
                       className={cn(

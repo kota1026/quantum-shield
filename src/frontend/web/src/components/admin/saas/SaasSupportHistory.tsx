@@ -69,7 +69,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockHistoryData = {
+const DEFAULT_HISTORY_DATA = {
   overview: {
     totalTickets: '1,234',
     resolvedTickets: '1,156',
@@ -159,7 +159,7 @@ const mockHistoryData = {
 
 export function SaasSupportHistory() {
   const t = useTranslations('admin.saasSupportHistory');
-  const [selectedTimeRange, setSelectedTimeRange] = useState<typeof mockHistoryData.timeRanges[number]>('30d');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<typeof DEFAULT_HISTORY_DATA.timeRanges[number]>('30d');
   const [searchQuery, setSearchQuery] = useState('');
 
   const getCategoryBadge = (category: string) => {
@@ -218,7 +218,7 @@ export function SaasSupportHistory() {
                 <p className="mt-1 text-sm text-foreground-secondary">{t('subtitle')}</p>
               </div>
               <div className="flex gap-2">
-                {mockHistoryData.timeRanges.map((range) => (
+                {DEFAULT_HISTORY_DATA.timeRanges.map((range) => (
                   <Button
                     key={range}
                     variant={selectedTimeRange === range ? 'primary' : 'outline'}
@@ -236,36 +236,36 @@ export function SaasSupportHistory() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.totalTickets')}
-              value={mockHistoryData.overview.totalTickets}
+              value={DEFAULT_HISTORY_DATA.overview.totalTickets}
               trend={{ value: '+8%', direction: 'up' }}
               icon={<MessageSquare className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.resolvedTickets')}
-              value={mockHistoryData.overview.resolvedTickets}
+              value={DEFAULT_HISTORY_DATA.overview.resolvedTickets}
               subValue="93.7%"
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgResolutionTime')}
-              value={mockHistoryData.overview.avgResolutionTime}
+              value={DEFAULT_HISTORY_DATA.overview.avgResolutionTime}
               trend={{ value: '-12%', direction: 'up' }}
               icon={<Clock className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgCsat')}
-              value={mockHistoryData.overview.avgCsat}
+              value={DEFAULT_HISTORY_DATA.overview.avgCsat}
               subValue="/5.0"
               icon={<Star className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.firstResponseTime')}
-              value={mockHistoryData.overview.firstResponseTime}
+              value={DEFAULT_HISTORY_DATA.overview.firstResponseTime}
               icon={<BarChart3 className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.slaCompliance')}
-              value={mockHistoryData.overview.slaCompliance}
+              value={DEFAULT_HISTORY_DATA.overview.slaCompliance}
               icon={<CheckCircle className="h-5 w-5" />}
             />
           </div>
@@ -306,7 +306,7 @@ export function SaasSupportHistory() {
                         </tr>
                       </thead>
                       <tbody>
-                        {mockHistoryData.tickets.map((ticket) => (
+                        {DEFAULT_HISTORY_DATA.tickets.map((ticket) => (
                           <tr
                             key={ticket.id}
                             className="border-b border-surface-tertiary/50 hover:bg-background-secondary/50"
@@ -353,7 +353,7 @@ export function SaasSupportHistory() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockHistoryData.categoryStats.map((cat, index) => (
+                    {DEFAULT_HISTORY_DATA.categoryStats.map((cat, index) => (
                       <div key={index}>
                         <div className="mb-1 flex items-center justify-between text-sm">
                           <span>{t(`categories.${cat.category}`)}</span>
@@ -378,7 +378,7 @@ export function SaasSupportHistory() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-end justify-between gap-2">
-                    {mockHistoryData.monthlyTrend.map((data, index) => (
+                    {DEFAULT_HISTORY_DATA.monthlyTrend.map((data, index) => (
                       <div key={index} className="flex flex-col items-center gap-1">
                         <div className="relative h-24 w-8">
                           <div

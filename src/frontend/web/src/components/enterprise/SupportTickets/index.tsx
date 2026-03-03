@@ -35,7 +35,7 @@ interface Ticket {
   updated: string;
 }
 
-const FALLBACK_TICKETS: Ticket[] = [
+const DEFAULT_TICKETS: Ticket[] = [
   {
     id: 'TKT-001',
     subject: 'API rate limit exceeded unexpectedly',
@@ -75,9 +75,9 @@ const FALLBACK_TICKETS: Ticket[] = [
 ];
 
 const STATS = {
-  open: FALLBACK_TICKETS.filter((t) => t.status === 'open').length,
-  inProgress: FALLBACK_TICKETS.filter((t) => t.status === 'inProgress').length,
-  resolved: FALLBACK_TICKETS.filter((t) => t.status === 'resolved').length,
+  open: DEFAULT_TICKETS.filter((t) => t.status === 'open').length,
+  inProgress: DEFAULT_TICKETS.filter((t) => t.status === 'inProgress').length,
+  resolved: DEFAULT_TICKETS.filter((t) => t.status === 'resolved').length,
   avgResponse: '2.4h',
 };
 
@@ -215,7 +215,7 @@ export function EnterpriseSupportTickets() {
   const tCommon = useTranslations('enterprise');
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tickets, setTickets] = useState(FALLBACK_TICKETS);
+  const [tickets, setTickets] = useState(DEFAULT_TICKETS);
 
   const filteredTickets = tickets.filter((ticket) =>
     ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||

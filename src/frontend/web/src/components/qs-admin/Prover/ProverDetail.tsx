@@ -30,8 +30,8 @@ interface ProverDetailProps {
   id: string;
 }
 
-// Fallback data - Used when API is unavailable
-interface FallbackProver {
+// Default data - Used when API is unavailable
+interface DefaultProver {
   id: string;
   name: string;
   wallet: string;
@@ -61,7 +61,7 @@ interface FallbackProver {
   }>;
 }
 
-const FALLBACK_PROVER: FallbackProver = {
+const DEFAULT_PROVER: DefaultProver = {
   id: 'PRV-001',
   name: 'Prover Alpha Corp',
   wallet: '0x1234567890abcdef1234567890abcdef12345678',
@@ -188,7 +188,7 @@ export function ProverDetail({ id }: ProverDetailProps) {
   const apiProver = proverQuery.data;
 
   // Build prover object from API data or fallback
-  const prover: FallbackProver = apiProver ? {
+  const prover: DefaultProver = apiProver ? {
     id: apiProver.id,
     name: apiProver.name,
     wallet: apiProver.operatorAddress,
@@ -210,7 +210,7 @@ export function ProverDetail({ id }: ProverDetailProps) {
     challengesPassed: 0,
     challengesFailed: 0,
     recentProofs: [],
-  } : { ...FALLBACK_PROVER, id };
+  } : { ...DEFAULT_PROVER, id };
 
   const statusConfig = STATUS_CONFIG[prover.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.active;
   const tierConfig = TIER_CONFIG[prover.tier as keyof typeof TIER_CONFIG] || TIER_CONFIG.standard;

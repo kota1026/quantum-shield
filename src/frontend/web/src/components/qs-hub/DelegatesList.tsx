@@ -19,7 +19,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 // Demo delegates data
-const FALLBACK_DELEGATES = [
+const DEFAULT_DELEGATES = [
   {
     id: '1',
     name: 'Watanabe DAO',
@@ -88,7 +88,7 @@ const FALLBACK_DELEGATES = [
 ];
 
 // User's current delegation
-const FALLBACK_MY_DELEGATIONS = [
+const DEFAULT_MY_DELEGATIONS = [
   { delegateId: '1', amount: 3000 },
   { delegateId: '2', amount: 2000 },
 ];
@@ -102,9 +102,9 @@ export function DelegatesList() {
 
   // Filter delegates
   const filteredDelegates = useMemo(() => {
-    if (!searchQuery) return FALLBACK_DELEGATES;
+    if (!searchQuery) return DEFAULT_DELEGATES;
     const query = searchQuery.toLowerCase();
-    return FALLBACK_DELEGATES.filter(
+    return DEFAULT_DELEGATES.filter(
       (d) =>
         d.name.toLowerCase().includes(query) ||
         d.address.toLowerCase().includes(query) ||
@@ -114,17 +114,17 @@ export function DelegatesList() {
 
   // Featured delegates
   const featuredDelegates = useMemo(() => {
-    return FALLBACK_DELEGATES.filter((d) => d.isFeatured);
+    return DEFAULT_DELEGATES.filter((d) => d.isFeatured);
   }, []);
 
   // Get my delegation for a delegate
   const getMyDelegation = (delegateId: string) => {
-    return FALLBACK_MY_DELEGATIONS.find((d) => d.delegateId === delegateId);
+    return DEFAULT_MY_DELEGATIONS.find((d) => d.delegateId === delegateId);
   };
 
   // Total delegated
   const totalDelegated = useMemo(() => {
-    return FALLBACK_MY_DELEGATIONS.reduce((sum, d) => sum + d.amount, 0);
+    return DEFAULT_MY_DELEGATIONS.reduce((sum, d) => sum + d.amount, 0);
   }, []);
 
   return (
@@ -191,7 +191,7 @@ export function DelegatesList() {
                 <div className="text-xs text-foreground-tertiary">{t('myDelegations.delegatedVeQS')}</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">{FALLBACK_MY_DELEGATIONS.length}</div>
+                <div className="text-2xl font-bold">{DEFAULT_MY_DELEGATIONS.length}</div>
                 <div className="text-xs text-foreground-tertiary">{t('myDelegations.delegates')}</div>
               </div>
             </div>

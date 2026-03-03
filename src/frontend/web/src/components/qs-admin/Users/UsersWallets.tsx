@@ -24,16 +24,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useWalletsStats, useWalletsList } from '@/hooks/admin/useUsers';
-import {
-  MOCK_WALLETS_STATS,
-  MOCK_USER_WALLETS,
-  type WalletsStats,
-  type UserWallet,
-} from '@/lib/api/admin/mock';
+import type { WalletsStats, UserWallet } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_WALLETS_STATS;
-const FALLBACK_WALLETS = MOCK_USER_WALLETS;
+// Empty defaults when API data is unavailable
+const DEFAULT_STATS: WalletsStats = { totalWallets: 0, walletsWithLocks: 0, totalLocked: '0 ETH', avgLockAmount: '0 ETH' };
+const DEFAULT_WALLETS: UserWallet[] = [];
 
 interface StatCardProps {
   title: string;
@@ -134,8 +129,8 @@ export function UsersWallets() {
   const hasError = statsError || walletsError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const wallets = walletsData?.wallets ?? FALLBACK_WALLETS;
+  const stats = apiStats ?? DEFAULT_STATS;
+  const wallets = walletsData?.wallets ?? DEFAULT_WALLETS;
 
   const lockFilters = [
     { key: 'all', label: t('userWallets.filters.all') },

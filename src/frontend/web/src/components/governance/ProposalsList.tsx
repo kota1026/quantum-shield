@@ -30,9 +30,6 @@ import { cn } from '@/lib/utils';
 import { useProposals } from '@/hooks/governance';
 import type { Proposal, ProposalStatus, ProposalType, UserVote } from '@/lib/api/governance/mock';
 
-// Empty initial state (no fake data)
-const FALLBACK_PROPOSALS: Proposal[] = [
-];
 
 type FilterType = 'all' | 'active' | 'passed' | 'defeated' | 'vetoed';
 
@@ -322,10 +319,43 @@ export function ProposalsList() {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch data using hooks
-  const { data: proposalsApi } = useProposals({ status: activeFilter, search: searchQuery });
+  const { data: proposalsApi, isLoading, error } = useProposals({ status: activeFilter, search: searchQuery });
 
   // Use API data with fallback
-  const proposals = proposalsApi?.proposals ?? FALLBACK_PROPOSALS;
+  const proposals = proposalsApi?.proposals ?? [];
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-background" role="main" aria-label={t('ariaLabel')}>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-8 animate-pulse space-y-6">
+          <div className="h-6 w-40 rounded bg-surface-secondary" />
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="h-10 w-64 rounded bg-surface-secondary" />
+            <div className="h-5 w-80 rounded bg-surface-secondary" />
+          </div>
+          <div className="h-12 w-full rounded-full bg-surface-secondary" />
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-40 rounded-2xl bg-surface-secondary" />
+            ))}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-background" role="main" aria-label={t('ariaLabel')}>
+        <div className="flex h-[50vh] items-center justify-center">
+          <div className="text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-danger" />
+            <p className="mt-4 text-lg font-semibold text-foreground">{t('error')}</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const filterCounts = useMemo(() => ({
     all: proposals.length,

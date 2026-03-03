@@ -73,7 +73,7 @@ export function SaasBillingPayments() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'overdue' | 'paid' | 'failed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const mockPayments: Payment[] = [
+  const SAMPLE_PAYMENTS: Payment[] = [
     {
       id: 'pay-001',
       invoiceId: 'INV-2026-001',
@@ -139,11 +139,11 @@ export function SaasBillingPayments() {
   ];
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockPayments.length },
-    { key: 'pending', label: t('tabs.pending'), count: mockPayments.filter(p => p.status === 'pending').length },
-    { key: 'overdue', label: t('tabs.overdue'), count: mockPayments.filter(p => p.status === 'overdue').length },
-    { key: 'paid', label: t('tabs.paid'), count: mockPayments.filter(p => p.status === 'paid').length },
-    { key: 'failed', label: t('tabs.failed'), count: mockPayments.filter(p => p.status === 'failed').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_PAYMENTS.length },
+    { key: 'pending', label: t('tabs.pending'), count: SAMPLE_PAYMENTS.filter(p => p.status === 'pending').length },
+    { key: 'overdue', label: t('tabs.overdue'), count: SAMPLE_PAYMENTS.filter(p => p.status === 'overdue').length },
+    { key: 'paid', label: t('tabs.paid'), count: SAMPLE_PAYMENTS.filter(p => p.status === 'paid').length },
+    { key: 'failed', label: t('tabs.failed'), count: SAMPLE_PAYMENTS.filter(p => p.status === 'failed').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -174,7 +174,7 @@ export function SaasBillingPayments() {
     }
   };
 
-  const filteredPayments = mockPayments.filter((payment) => {
+  const filteredPayments = SAMPLE_PAYMENTS.filter((payment) => {
     const matchesSearch =
       payment.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       payment.invoiceId.toLowerCase().includes(searchQuery.toLowerCase());
@@ -182,9 +182,9 @@ export function SaasBillingPayments() {
     return matchesSearch && matchesTab;
   });
 
-  const totalPaid = mockPayments.filter(p => p.status === 'paid').reduce((sum, p) => sum + parseFloat(p.amount.replace(/[$,]/g, '')), 0);
-  const totalPending = mockPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + parseFloat(p.amount.replace(/[$,]/g, '')), 0);
-  const totalOverdue = mockPayments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + parseFloat(p.amount.replace(/[$,]/g, '')), 0);
+  const totalPaid = SAMPLE_PAYMENTS.filter(p => p.status === 'paid').reduce((sum, p) => sum + parseFloat(p.amount.replace(/[$,]/g, '')), 0);
+  const totalPending = SAMPLE_PAYMENTS.filter(p => p.status === 'pending').reduce((sum, p) => sum + parseFloat(p.amount.replace(/[$,]/g, '')), 0);
+  const totalOverdue = SAMPLE_PAYMENTS.filter(p => p.status === 'overdue').reduce((sum, p) => sum + parseFloat(p.amount.replace(/[$,]/g, '')), 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -220,7 +220,7 @@ export function SaasBillingPayments() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalPayments')}
-              value={String(mockPayments.length)}
+              value={String(SAMPLE_PAYMENTS.length)}
               icon={<CreditCard className="h-5 w-5" />}
               status="info"
             />

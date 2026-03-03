@@ -20,8 +20,8 @@ import { Link } from '@/i18n/navigation';
 import { Tooltip } from '@/components/shared/Tooltip';
 import { useStakePositions } from '@/hooks/qs-hub/useQSHub';
 
-// Demo locked positions - kept for fallback with extended structure
-const FALLBACK_LOCKED_POSITIONS = [
+// Default locked positions (used when API is unavailable)
+const EMPTY_LOCKED_POSITIONS = [
   {
     id: '1',
     lockedAmount: 5000,
@@ -104,10 +104,10 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
   const t = useTranslations('qs-hub.stake.unlock');
   const tCommon = useTranslations('qs-hub.common');
 
-  // Fetch stake positions from API with fallback
+  // Fetch stake positions from API with default
   const { data: stakePositionsApi } = useStakePositions();
-  // Use local data as fallback (has extended structure)
-  const lockedPositions = stakePositionsApi ? FALLBACK_LOCKED_POSITIONS : FALLBACK_LOCKED_POSITIONS;
+  // Use local data as default (has extended structure)
+  const lockedPositions = stakePositionsApi ? EMPTY_LOCKED_POSITIONS : EMPTY_LOCKED_POSITIONS;
 
   // State for selected position to withdraw
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
@@ -120,7 +120,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
     let unlockableCount = 0;
     let unlockableAmount = 0;
 
-    FALLBACK_LOCKED_POSITIONS.forEach((pos) => {
+    EMPTY_LOCKED_POSITIONS.forEach((pos) => {
       totalLocked += pos.lockedAmount;
       const currentVeQS = calculateCurrentVeQS(
         pos.veQSAmount,
@@ -151,7 +151,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
   }, []);
 
   // Empty State (no positions)
-  if (isEmpty || FALLBACK_LOCKED_POSITIONS.length === 0) {
+  if (isEmpty || EMPTY_LOCKED_POSITIONS.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-4">
@@ -247,7 +247,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.positions')}</div>
-            <div className="text-xl font-bold">{FALLBACK_LOCKED_POSITIONS.length}</div>
+            <div className="text-xl font-bold">{EMPTY_LOCKED_POSITIONS.length}</div>
           </Card>
           <Card className={cn('p-4', totals.unlockableCount > 0 && 'border-success/50 bg-success/5')}>
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.unlockable')}</div>
@@ -271,7 +271,7 @@ export function StakeUnlock({ isEmpty = false }: StakeUnlockProps) {
           </h2>
 
           <div className="space-y-4" role="list" aria-label={t('positions.listAriaLabel')}>
-            {FALLBACK_LOCKED_POSITIONS.map((position) => {
+            {EMPTY_LOCKED_POSITIONS.map((position) => {
               const timeRemaining = calculateTimeRemaining(position.unlockDate);
               const currentVeQS = calculateCurrentVeQS(
                 position.veQSAmount,

@@ -21,8 +21,6 @@ import type { Notification } from '@/lib/api/consumer/mock';
 // Notification types
 type NotificationType = 'lockComplete' | 'unlockStarted' | 'unlockComplete' | 'emergencyStarted' | 'emergencyComplete' | 'securityAlert' | 'systemUpdate';
 
-// Empty initial state (no fake notifications)
-const FALLBACK_NOTIFICATIONS: Notification[] = [];
 
 const TYPE_CONFIG: Record<
   NotificationType,
@@ -68,7 +66,7 @@ export function Notifications() {
   const markReadMutation = useMarkNotificationRead();
 
   // Use API data with fallback (local state for optimistic updates)
-  const [localNotifications, setLocalNotifications] = useState<Notification[]>(FALLBACK_NOTIFICATIONS);
+  const [localNotifications, setLocalNotifications] = useState<Notification[]>([]);
   const notifications = notificationsData?.notifications ?? localNotifications;
 
   const unreadCount = notifications.filter((n) => !n.read).length;

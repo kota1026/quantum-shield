@@ -69,7 +69,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockDelegatesData = {
+const DEFAULT_DELEGATES_DATA = {
   overview: {
     totalDelegates: '156',
     activeDelegates: '124',
@@ -160,9 +160,9 @@ export function PublicDelegates() {
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'inactive'>('all');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockDelegatesData.delegates.length },
-    { key: 'active', label: t('tabs.active'), count: mockDelegatesData.delegates.filter(d => d.status === 'active').length },
-    { key: 'inactive', label: t('tabs.inactive'), count: mockDelegatesData.delegates.filter(d => d.status === 'inactive').length },
+    { key: 'all', label: t('tabs.all'), count: DEFAULT_DELEGATES_DATA.delegates.length },
+    { key: 'active', label: t('tabs.active'), count: DEFAULT_DELEGATES_DATA.delegates.filter(d => d.status === 'active').length },
+    { key: 'inactive', label: t('tabs.inactive'), count: DEFAULT_DELEGATES_DATA.delegates.filter(d => d.status === 'inactive').length },
   ];
 
   const getParticipationBadge = (rate: number) => {
@@ -171,7 +171,7 @@ export function PublicDelegates() {
     return <Badge variant="danger">{rate}%</Badge>;
   };
 
-  const filteredDelegates = mockDelegatesData.delegates.filter((delegate) => {
+  const filteredDelegates = DEFAULT_DELEGATES_DATA.delegates.filter((delegate) => {
     const matchesSearch =
       delegate.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (delegate.ensName && delegate.ensName.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -207,35 +207,35 @@ export function PublicDelegates() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.totalDelegates')}
-              value={mockDelegatesData.overview.totalDelegates}
+              value={DEFAULT_DELEGATES_DATA.overview.totalDelegates}
               trend={{ value: '+8', direction: 'up' }}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeDelegates')}
-              value={mockDelegatesData.overview.activeDelegates}
+              value={DEFAULT_DELEGATES_DATA.overview.activeDelegates}
               subValue="79%"
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalVotingPower')}
-              value={mockDelegatesData.overview.totalVotingPower}
+              value={DEFAULT_DELEGATES_DATA.overview.totalVotingPower}
               icon={<Vote className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgParticipation')}
-              value={mockDelegatesData.overview.avgParticipation}
+              value={DEFAULT_DELEGATES_DATA.overview.avgParticipation}
               icon={<Target className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.delegationsThisMonth')}
-              value={mockDelegatesData.overview.delegationsThisMonth}
+              value={DEFAULT_DELEGATES_DATA.overview.delegationsThisMonth}
               trend={{ value: '+23%', direction: 'up' }}
               icon={<TrendingUp className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.topDelegateShare')}
-              value={mockDelegatesData.overview.topDelegateShare}
+              value={DEFAULT_DELEGATES_DATA.overview.topDelegateShare}
               icon={<Award className="h-5 w-5" />}
               status="warning"
             />
@@ -351,7 +351,7 @@ export function PublicDelegates() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockDelegatesData.recentDelegations.map((delegation, index) => (
+                  {DEFAULT_DELEGATES_DATA.recentDelegations.map((delegation, index) => (
                     <div
                       key={index}
                       className="rounded-lg border border-surface-tertiary p-3"

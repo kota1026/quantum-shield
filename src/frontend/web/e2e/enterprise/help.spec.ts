@@ -52,10 +52,10 @@ test.describe('Enterprise Help', () => {
     });
 
     test('should display resource items', async ({ page }) => {
-      await expect(page.getByText('APIドキュメント')).toBeVisible();
-      await expect(page.getByText('サポート')).toBeVisible();
-      await expect(page.getByText('更新履歴')).toBeVisible();
-      await expect(page.getByText('システム状態')).toBeVisible();
+      await expect(page.getByRole('heading', { level: 3, name: 'APIドキュメント' })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 3, name: 'サポート' })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 3, name: '更新履歴' })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 3, name: 'システム状態' })).toBeVisible();
     });
   });
 
@@ -65,7 +65,7 @@ test.describe('Enterprise Help', () => {
     });
 
     test('should display contact button', async ({ page }) => {
-      await expect(page.getByRole('link', { name: 'サポートに連絡' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'サポートに連絡', exact: true })).toBeVisible();
     });
   });
 
@@ -79,7 +79,7 @@ test.describe('Enterprise Help', () => {
     });
 
     test('should have accessible navigation', async ({ page }) => {
-      await expect(page.getByRole('navigation')).toBeVisible();
+      await expect(page.getByRole('navigation').first()).toBeVisible();
       await expect(page.getByRole('main')).toBeVisible();
     });
 

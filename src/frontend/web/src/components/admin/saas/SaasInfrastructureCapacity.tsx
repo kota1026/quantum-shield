@@ -68,7 +68,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockCapacityData = {
+const DEFAULT_CAPACITY_DATA = {
   overview: {
     totalCapacity: '2,400 vCPU',
     usedCapacity: '1,680 vCPU',
@@ -176,34 +176,34 @@ export function SaasInfrastructureCapacity() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.totalCapacity')}
-              value={mockCapacityData.overview.totalCapacity}
+              value={DEFAULT_CAPACITY_DATA.overview.totalCapacity}
               icon={<Server className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.usedCapacity')}
-              value={mockCapacityData.overview.usedCapacity}
+              value={DEFAULT_CAPACITY_DATA.overview.usedCapacity}
               icon={<Cpu className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.availableCapacity')}
-              value={mockCapacityData.overview.availableCapacity}
+              value={DEFAULT_CAPACITY_DATA.overview.availableCapacity}
               icon={<HardDrive className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.utilizationRate')}
-              value={mockCapacityData.overview.utilizationRate}
+              value={DEFAULT_CAPACITY_DATA.overview.utilizationRate}
               icon={<Activity className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.projectedGrowth')}
-              value={mockCapacityData.overview.projectedGrowth}
+              value={DEFAULT_CAPACITY_DATA.overview.projectedGrowth}
               subValue={t('stats.nextQuarter')}
               icon={<TrendingUp className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.daysToCapacity')}
-              value={mockCapacityData.overview.daysToCapacity}
+              value={DEFAULT_CAPACITY_DATA.overview.daysToCapacity}
               subValue={t('stats.days')}
               icon={<BarChart3 className="h-5 w-5" />}
               status="warning"
@@ -211,7 +211,7 @@ export function SaasInfrastructureCapacity() {
           </div>
 
           {/* Alerts */}
-          {mockCapacityData.alerts.length > 0 && (
+          {DEFAULT_CAPACITY_DATA.alerts.length > 0 && (
             <Card className="mb-6 border-warning/50 bg-warning/5">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
@@ -219,7 +219,7 @@ export function SaasInfrastructureCapacity() {
                   <div>
                     <div className="font-medium text-warning">{t('alerts.title')}</div>
                     <div className="mt-2 space-y-2">
-                      {mockCapacityData.alerts.map((alert, index) => (
+                      {DEFAULT_CAPACITY_DATA.alerts.map((alert, index) => (
                         <div key={index} className="text-sm">
                           <span className="font-medium">{alert.region}</span>: {alert.message}
                         </div>
@@ -240,7 +240,7 @@ export function SaasInfrastructureCapacity() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {mockCapacityData.regions.map((region, index) => (
+                    {DEFAULT_CAPACITY_DATA.regions.map((region, index) => (
                       <div
                         key={index}
                         className="rounded-lg border border-surface-tertiary p-4"
@@ -325,7 +325,7 @@ export function SaasInfrastructureCapacity() {
                 </div>
 
                 <div className="space-y-3">
-                  {mockCapacityData.projections.map((proj, index) => (
+                  {DEFAULT_CAPACITY_DATA.projections.map((proj, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between rounded-lg border border-surface-tertiary p-3"

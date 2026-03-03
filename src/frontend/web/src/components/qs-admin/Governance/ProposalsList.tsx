@@ -23,16 +23,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useGovernanceStats, useGovernanceProposals } from '@/hooks/admin/useGovernance';
-import {
-  MOCK_GOVERNANCE_STATS,
-  MOCK_GOVERNANCE_PROPOSALS,
-  type GovernanceStats,
-  type GovernanceProposal,
-} from '@/lib/api/admin/mock';
+import type { GovernanceStats, GovernanceProposal } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_GOVERNANCE_STATS;
-const FALLBACK_PROPOSALS = MOCK_GOVERNANCE_PROPOSALS;
+// Empty defaults when API data is unavailable
+const DEFAULT_STATS: GovernanceStats = { activeProposals: 0, totalVotes: 0, participation: '0%', passedProposals: 0 };
+const DEFAULT_PROPOSALS: GovernanceProposal[] = [];
 
 const STATUS_COLORS = {
   active: 'bg-info/10 text-info',
@@ -150,8 +145,8 @@ export function ProposalsList() {
   const hasError = statsError || proposalsError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const proposals = proposalsData?.proposals ?? FALLBACK_PROPOSALS;
+  const stats = apiStats ?? DEFAULT_STATS;
+  const proposals = proposalsData?.proposals ?? DEFAULT_PROPOSALS;
 
   const filters = [
     { key: 'all', label: tCommon('all') },

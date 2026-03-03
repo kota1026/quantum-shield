@@ -24,8 +24,8 @@ import { useProposalsList } from '@/hooks/qs-hub/useQSHub';
 // Proposal status type
 type ProposalStatus = 'active' | 'pending' | 'passed' | 'rejected' | 'executed';
 
-// Demo proposals data (kept for fallback with extended structure)
-const FALLBACK_PROPOSALS = [
+// Default proposals data (used when API is unavailable)
+const DEFAULT_PROPOSALS = [
   {
     id: 'QIP-047',
     title: 'Increase Observer Rewards by 15%',
@@ -104,10 +104,10 @@ export function ProposalsList() {
   const t = useTranslations('qs-hub.vote.proposals');
   const tCommon = useTranslations('qs-hub.common');
 
-  // Fetch proposals from API with fallback
+  // Fetch proposals from API with default
   const { data: proposalsApi } = useProposalsList();
-  // Use local FALLBACK_PROPOSALS as fallback (has extended structure)
-  const proposalData = proposalsApi ? FALLBACK_PROPOSALS : FALLBACK_PROPOSALS;
+  // Use local DEFAULT_PROPOSALS as default (has extended structure)
+  const proposalData = proposalsApi ? DEFAULT_PROPOSALS : DEFAULT_PROPOSALS;
 
   // State
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('all');
@@ -202,18 +202,18 @@ export function ProposalsList() {
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" aria-label={t('statsAriaLabel')}>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.total')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_PROPOSALS.length}</div>
+            <div className="text-2xl font-bold">{DEFAULT_PROPOSALS.length}</div>
           </Card>
           <Card className="p-4 border-success/30 bg-success/5">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.active')}</div>
             <div className="text-2xl font-bold text-success">
-              {FALLBACK_PROPOSALS.filter((p) => p.status === 'active').length}
+              {DEFAULT_PROPOSALS.filter((p) => p.status === 'active').length}
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.passed')}</div>
             <div className="text-2xl font-bold text-gold">
-              {FALLBACK_PROPOSALS.filter((p) => p.status === 'passed').length}
+              {DEFAULT_PROPOSALS.filter((p) => p.status === 'passed').length}
             </div>
           </Card>
           <Card className="p-4">

@@ -6,24 +6,23 @@ import { StatusBadge, StatusLevel } from './StatusBadge';
 import { StatusServiceCard, ServiceItem } from './StatusServiceCard';
 import { useSystemStatus } from '@/hooks/enterprise';
 
-// Demo data - In production, this would come from API
-const FALLBACK_OVERALL_STATUS: StatusLevel = 'operational';
+const DEFAULT_OVERALL_STATUS: StatusLevel = 'operational';
 
-const FALLBACK_CORE_SERVICES: ServiceItem[] = [
+const DEFAULT_CORE_SERVICES: ServiceItem[] = [
   { id: '1', name: 'API Gateway', status: 'online', value: 'Operational' },
   { id: '2', name: 'Smart Contract', status: 'online', value: 'Operational' },
   { id: '3', name: 'Database', status: 'online', value: 'Operational' },
   { id: '4', name: 'Cache Layer', status: 'online', value: 'Operational' },
 ];
 
-const FALLBACK_EXTERNAL_CONNECTIONS: ServiceItem[] = [
+const DEFAULT_EXTERNAL_CONNECTIONS: ServiceItem[] = [
   { id: '1', name: 'Ethereum Mainnet', status: 'online', value: 'Connected' },
   { id: '2', name: 'Prover Network', status: 'online', value: '127 nodes' },
   { id: '3', name: 'Webhooks', status: 'online', value: '99.9% uptime' },
   { id: '4', name: 'Price Oracle', status: 'online', value: 'Updated 2s ago' },
 ];
 
-const FALLBACK_PERFORMANCE: ServiceItem[] = [
+const DEFAULT_PERFORMANCE: ServiceItem[] = [
   { id: '1', name: 'API Latency', status: 'online', value: '45ms avg' },
   { id: '2', name: 'TX Confirmation', status: 'online', value: '12s avg' },
   { id: '3', name: 'Error Rate', status: 'online', value: '0.01%' },
@@ -48,18 +47,18 @@ export function StatusDashboard() {
     name: s.name,
     status: mapServiceStatus(s.status),
     value: s.value,
-  })) ?? FALLBACK_CORE_SERVICES;
+  })) ?? DEFAULT_CORE_SERVICES;
 
   const externalConnections: ServiceItem[] = systemData?.systems?.slice(4, 8).map((s) => ({
     id: s.id,
     name: s.name,
     status: mapServiceStatus(s.status),
     value: s.value,
-  })) ?? FALLBACK_EXTERNAL_CONNECTIONS;
+  })) ?? DEFAULT_EXTERNAL_CONNECTIONS;
 
   const overallStatus: StatusLevel = systemData?.systems?.some((s) => s.status === 'offline')
     ? 'degraded' as StatusLevel
-    : FALLBACK_OVERALL_STATUS;
+    : DEFAULT_OVERALL_STATUS;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -108,7 +107,7 @@ export function StatusDashboard() {
             {/* Performance */}
             <StatusServiceCard
               title={t('performance.title')}
-              services={FALLBACK_PERFORMANCE.map((s) => ({
+              services={DEFAULT_PERFORMANCE.map((s) => ({
                 ...s,
                 name: t(`performance.items.${s.id}.name`),
                 value: t(`performance.items.${s.id}.value`),

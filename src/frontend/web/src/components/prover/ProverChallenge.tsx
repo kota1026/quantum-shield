@@ -22,9 +22,11 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from '@/i18n/navigation';
 import { ProverSidebar } from './ProverSidebar';
 import { cn } from '@/lib/utils';
+import { useProverChallenges } from '@/hooks/prover';
+import { useProverId } from '@/stores/proverAuthStore';
 
-// Empty initial state — TODO: integrate with useProverChallenges() hook
-const mockActiveChallenge = {
+// Default empty challenge state
+const EMPTY_CHALLENGE = {
   id: '-',
   applicant: '-',
   date: '-',
@@ -42,18 +44,54 @@ const mockActiveChallenge = {
   evidence: [] as { name: string; type: string }[],
 };
 
-const mockChallengeHistory: { id: string; date: string; type: string; status: string; slashing: number | null }[] = [];
-
-const mockUploadedFiles: { name: string }[] = [];
-
 type TabType = 'notification' | 'defense' | 'result';
 
 export function ProverChallenge() {
   const t = useTranslations('prover');
+  const proverId = useProverId();
+  const { data: challengesData, isLoading, error } = useProverChallenges(proverId || '');
+
+  // Derive active challenge (first pending challenge from API)
+  const pendingChallenge = challengesData?.challenges.find(c => c.status === 'pending');
+  const activeChallenge = pendingChallenge
+    ? {
+        id: pendingChallenge.challengeId.slice(0, 16),
+        applicant: `${pendingChallenge.challengerAddress.slice(0, 6)}...${pendingChallenge.challengerAddress.slice(-4)}`,
+        date: new Date(pendingChallenge.createdAt * 1000).toLocaleDateString(),
+        violationType: pendingChallenge.reason || 'signatureLength',
+        potentialSlashing: parseFloat(pendingChallenge.amountAtRisk) / 1e18,
+        slashingRate: 10,
+        timeRemaining: Math.max(0, pendingChallenge.defenseDeadline - Math.floor(Date.now() / 1000)),
+        accusation: {
+          requestId: pendingChallenge.lockId.slice(0, 16),
+          expectedLength: 7856,
+          actualLength: 0,
+          errorCode: 'SIG_VERIFY_FAILED',
+          verificationNodes: 3,
+        },
+        evidence: [] as { name: string; type: string }[],
+      }
+    : EMPTY_CHALLENGE;
+  const hasActiveChallenge = !!pendingChallenge;
+
+  // Challenge history for result tab
+  const challengeHistory = (challengesData?.challenges ?? []).map(c => ({
+    id: c.challengeId.slice(0, 16),
+    date: new Date(c.createdAt * 1000).toLocaleDateString(),
+    type: c.reason || 'signatureLength',
+    status: c.status === 'pending' ? 'pending' as const : c.status === 'dismissed' ? 'won' as const : 'lost' as const,
+    slashing: c.status === 'slashed' ? parseFloat(c.amountAtRisk) / 1e18 : 0,
+  }));
+
   const [activeTab, setActiveTab] = useState<TabType>('notification');
-  const [timeRemaining, setTimeRemaining] = useState(mockActiveChallenge.timeRemaining);
+  const [timeRemaining, setTimeRemaining] = useState(activeChallenge.timeRemaining);
   const [defenseText, setDefenseText] = useState('');
-  const [uploadedFiles, setUploadedFiles] = useState(mockUploadedFiles);
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; type: string }[]>([]);
+
+  // Sync timeRemaining when active challenge changes
+  useEffect(() => {
+    setTimeRemaining(activeChallenge.timeRemaining);
+  }, [activeChallenge.timeRemaining]);
 
   const formatTime = useCallback((seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -73,8 +111,40 @@ export function ProverChallenge() {
     setUploadedFiles((files) => files.filter((_, i) => i !== index));
   };
 
-  // Check if there's an active challenge
-  const hasActiveChallenge = mockActiveChallenge !== null;
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <ProverSidebar activePage="challenges" />
+        <main className="flex-1 p-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-surface rounded w-1/3" />
+            <div className="h-4 bg-surface rounded w-1/2" />
+            <div className="h-48 bg-surface rounded" />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <ProverSidebar activePage="challenges" />
+        <main className="flex-1 p-8 flex items-center justify-center">
+          <Card className="p-8 text-center max-w-md">
+            <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-danger" />
+            <h2 className="text-lg font-semibold mb-2">{t('challenge.title')}</h2>
+            <p className="text-foreground-secondary text-sm mb-4">{error.message}</p>
+            <Button variant="primary" onClick={() => window.location.reload()}>
+              {t('common.retry')}
+            </Button>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -196,7 +266,7 @@ export function ProverChallenge() {
                       </div>
                       <div>
                         <h2 className="text-xl font-bold">{t('challenge.notification.title')}</h2>
-                        <div className="text-sm font-mono text-foreground-tertiary">{mockActiveChallenge.id}</div>
+                        <div className="text-sm font-mono text-foreground-tertiary">{activeChallenge.id}</div>
                       </div>
                     </div>
                     <div className="p-4 bg-background rounded-xl text-center border border-danger/30">
@@ -223,22 +293,22 @@ export function ProverChallenge() {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <Card variant="hoverGradient" padding="sm">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.notification.applicant')}</div>
-                      <div className="font-semibold">{mockActiveChallenge.applicant}</div>
+                      <div className="font-semibold">{activeChallenge.applicant}</div>
                       <p className="text-xs text-foreground-tertiary mt-1">{t('challenge.notification.applicantHint')}</p>
                     </Card>
                     <Card variant="hoverGradient" padding="sm">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.notification.date')}</div>
-                      <div className="font-semibold">{mockActiveChallenge.date}</div>
+                      <div className="font-semibold">{activeChallenge.date}</div>
                     </Card>
                     <Card variant="hoverGradient" padding="sm">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.notification.violationType')}</div>
-                      <div className="font-semibold text-danger">{t(`challenge.violation.${mockActiveChallenge.violationType}`)}</div>
-                      <p className="text-xs text-foreground-tertiary mt-1">{t(`challenge.violation.${mockActiveChallenge.violationType}Hint`)}</p>
+                      <div className="font-semibold text-danger">{t(`challenge.violation.${activeChallenge.violationType}`)}</div>
+                      <p className="text-xs text-foreground-tertiary mt-1">{t(`challenge.violation.${activeChallenge.violationType}Hint`)}</p>
                     </Card>
                     <Card variant="hoverGradient" padding="sm" className="border-danger/50">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.notification.potentialSlashing')}</div>
                       <div className="font-semibold text-danger">
-                        {mockActiveChallenge.potentialSlashing.toLocaleString()} QS ({mockActiveChallenge.slashingRate}%)
+                        {activeChallenge.potentialSlashing.toLocaleString()} QS ({activeChallenge.slashingRate}%)
                       </div>
                       <p className="text-xs text-danger mt-1">{t('challenge.notification.slashingHint')}</p>
                     </Card>
@@ -253,17 +323,17 @@ export function ProverChallenge() {
                     <p className="text-xs text-foreground-tertiary mb-4">{t('challenge.notification.accusationContentHint')}</p>
 
                     <div className="p-4 bg-background-secondary rounded-lg text-sm text-foreground-secondary mb-4">
-                      <p className="mb-3">{t('challenge.notification.accusationText', { requestId: mockActiveChallenge.accusation.requestId })}</p>
+                      <p className="mb-3">{t('challenge.notification.accusationText', { requestId: activeChallenge.accusation.requestId })}</p>
                       <ul className="list-disc list-inside space-y-1 mb-3">
-                        <li>{t('challenge.notification.signatureLength', { expected: mockActiveChallenge.accusation.expectedLength, actual: mockActiveChallenge.accusation.actualLength })}</li>
-                        <li>{t('challenge.notification.errorCode')}: <code className="bg-background px-1 rounded">{mockActiveChallenge.accusation.errorCode}</code></li>
+                        <li>{t('challenge.notification.signatureLength', { expected: activeChallenge.accusation.expectedLength, actual: activeChallenge.accusation.actualLength })}</li>
+                        <li>{t('challenge.notification.errorCode')}: <code className="bg-background px-1 rounded">{activeChallenge.accusation.errorCode}</code></li>
                       </ul>
-                      <p>{t('challenge.notification.verificationNodes', { count: mockActiveChallenge.accusation.verificationNodes })}</p>
+                      <p>{t('challenge.notification.verificationNodes', { count: activeChallenge.accusation.verificationNodes })}</p>
                     </div>
 
                     <h5 className="text-sm font-semibold text-foreground-tertiary mb-3">{t('challenge.notification.attachedEvidence')}</h5>
                     <div className="space-y-2">
-                      {mockActiveChallenge.evidence.map((file, i) => (
+                      {activeChallenge.evidence.map((file, i) => (
                         <div key={i} className="flex items-center gap-3 p-3 bg-background-secondary rounded-lg">
                           <div className="w-8 h-8 bg-info/20 rounded-lg flex items-center justify-center">
                             <FileText className="h-4 w-4 text-info" aria-hidden="true" />
@@ -407,33 +477,56 @@ export function ProverChallenge() {
             aria-labelledby="result-tab"
             className={activeTab === 'result' ? '' : 'hidden'}
           >
-            {/* Result Card - Won */}
-            <Card className="p-8 mb-6 text-center border-success bg-gradient-to-br from-success/10 to-transparent">
-              <div className="w-24 h-24 mx-auto mb-6 bg-success/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-12 w-12 text-success" aria-hidden="true" />
-              </div>
-              <h2 className="text-2xl font-bold mb-2 text-success">{t('challenge.result.dismissed')}</h2>
-              <p className="text-foreground-secondary mb-6">{t('challenge.result.dismissedDescription')}</p>
+            {/* Latest resolved challenge result (or empty state) */}
+            {challengeHistory.length > 0 && challengeHistory.some(c => c.status !== 'pending') ? (
+              (() => {
+                const latestResolved = challengeHistory.find(c => c.status !== 'pending');
+                if (!latestResolved) return null;
+                const isWon = latestResolved.status === 'won';
+                return (
+                  <Card className={`p-8 mb-6 text-center ${isWon ? 'border-success bg-gradient-to-br from-success/10 to-transparent' : 'border-danger bg-gradient-to-br from-danger/10 to-transparent'}`}>
+                    <div className={`w-24 h-24 mx-auto mb-6 ${isWon ? 'bg-success/20' : 'bg-danger/20'} rounded-full flex items-center justify-center`}>
+                      {isWon ? <CheckCircle className="h-12 w-12 text-success" aria-hidden="true" /> : <XCircle className="h-12 w-12 text-danger" aria-hidden="true" />}
+                    </div>
+                    <h2 className={`text-2xl font-bold mb-2 ${isWon ? 'text-success' : 'text-danger'}`}>
+                      {isWon ? t('challenge.result.dismissed') : t('challenge.result.slashed')}
+                    </h2>
+                    <p className="text-foreground-secondary mb-6">
+                      {isWon ? t('challenge.result.dismissedDescription') : t('challenge.result.slashedDescription')}
+                    </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto mb-6">
-                <Card variant="hoverGradient" padding="sm" className="text-left">
-                  <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.result.challengeId')}</div>
-                  <div className="font-mono font-semibold">CHG-2026-000122</div>
-                </Card>
-                <Card variant="hoverGradient" padding="sm" className="text-left">
-                  <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.result.verdict')}</div>
-                  <div className="font-semibold text-success">{t('challenge.result.verdictWon')}</div>
-                </Card>
-                <Card variant="hoverGradient" padding="sm" className="text-left">
-                  <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.result.slashing')}</div>
-                  <div className="font-semibold text-success">0 QS</div>
-                </Card>
-              </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto mb-6">
+                      <Card variant="hoverGradient" padding="sm" className="text-left">
+                        <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.result.challengeId')}</div>
+                        <div className="font-mono font-semibold">{latestResolved.id}</div>
+                      </Card>
+                      <Card variant="hoverGradient" padding="sm" className="text-left">
+                        <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.result.verdict')}</div>
+                        <div className={`font-semibold ${isWon ? 'text-success' : 'text-danger'}`}>
+                          {isWon ? t('challenge.result.verdictWon') : t('challenge.result.verdictLost')}
+                        </div>
+                      </Card>
+                      <Card variant="hoverGradient" padding="sm" className="text-left">
+                        <div className="text-xs text-foreground-tertiary mb-1">{t('challenge.result.slashing')}</div>
+                        <div className={`font-semibold ${latestResolved.slashing === 0 ? 'text-success' : 'text-danger'}`}>
+                          {latestResolved.slashing.toLocaleString()} QS
+                        </div>
+                      </Card>
+                    </div>
 
-              <Link href="/prover/dashboard">
-                <Button variant="primary">{t('challenge.result.backToDashboard')}</Button>
-              </Link>
-            </Card>
+                    <Link href="/prover/dashboard">
+                      <Button variant="primary">{t('challenge.result.backToDashboard')}</Button>
+                    </Link>
+                  </Card>
+                );
+              })()
+            ) : (
+              <Card className="p-12 text-center mb-6">
+                <CheckCircle className="h-16 w-16 mx-auto mb-4 text-success" aria-hidden="true" />
+                <h3 className="text-xl font-semibold mb-2">{t('challenge.result.noChallenges')}</h3>
+                <p className="text-foreground-secondary">{t('challenge.result.noChallengesDesc')}</p>
+              </Card>
+            )}
 
             {/* Challenge History */}
             <Card className="p-6">
@@ -460,7 +553,7 @@ export function ProverChallenge() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockChallengeHistory.map((challenge) => (
+                  {challengeHistory.map((challenge) => (
                     <tr key={challenge.id} className="border-b border-surface-tertiary hover:bg-surface/50">
                       <td className="py-3 text-sm font-mono">{challenge.id}</td>
                       <td className="py-3 text-sm">{challenge.date}</td>

@@ -24,7 +24,7 @@ interface TransferDetailProps {
   id: string;
 }
 
-const FALLBACK_TRANSFER = {
+const DEFAULT_TRANSFER = {
   id: 'TXF-001',
   from: 'operational',
   to: 'grants',
@@ -53,7 +53,7 @@ export function TransferDetail({ id }: TransferDetailProps) {
   const tCommon = useTranslations('qsAdmin.common');
   const [comment, setComment] = useState('');
 
-  const transfer = { ...FALLBACK_TRANSFER, id };
+  const transfer = { ...DEFAULT_TRANSFER, id };
   const statusConfig = STATUS_CONFIG[transfer.status as keyof typeof STATUS_CONFIG];
   const StatusIcon = statusConfig.icon;
 

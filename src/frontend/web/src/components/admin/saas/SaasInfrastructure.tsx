@@ -66,7 +66,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockInfrastructure = {
+const DEFAULT_INFRASTRUCTURE = {
   regions: [
     {
       id: 'asia-northeast1',
@@ -118,7 +118,7 @@ const mockInfrastructure = {
   ],
 };
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   totalServers: 23,
   healthyServers: 21,
   avgCpuUsage: 52,
@@ -128,7 +128,7 @@ const mockMetrics = {
 
 export function SaasInfrastructure() {
   const t = useTranslations('admin.saasInfrastructure');
-  const [selectedRegion, setSelectedRegion] = useState<typeof mockInfrastructure.regions[0] | null>(mockInfrastructure.regions[0]);
+  const [selectedRegion, setSelectedRegion] = useState<typeof DEFAULT_INFRASTRUCTURE.regions[0] | null>(DEFAULT_INFRASTRUCTURE.regions[0]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -183,30 +183,30 @@ export function SaasInfrastructure() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalServers')}
-              value={String(mockMetrics.totalServers)}
+              value={String(DEFAULT_METRICS.totalServers)}
               icon={<Server className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.healthyServers')}
-              value={String(mockMetrics.healthyServers)}
-              subValue={`${Math.round((mockMetrics.healthyServers / mockMetrics.totalServers) * 100)}%`}
+              value={String(DEFAULT_METRICS.healthyServers)}
+              subValue={`${Math.round((DEFAULT_METRICS.healthyServers / DEFAULT_METRICS.totalServers) * 100)}%`}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgCpu')}
-              value={`${mockMetrics.avgCpuUsage}%`}
+              value={`${DEFAULT_METRICS.avgCpuUsage}%`}
               icon={<Cpu className="h-5 w-5" />}
-              status={mockMetrics.avgCpuUsage >= 70 ? 'warning' : 'success'}
+              status={DEFAULT_METRICS.avgCpuUsage >= 70 ? 'warning' : 'success'}
             />
             <StatCard
               label={t('stats.avgMemory')}
-              value={`${mockMetrics.avgMemoryUsage}%`}
+              value={`${DEFAULT_METRICS.avgMemoryUsage}%`}
               icon={<HardDrive className="h-5 w-5" />}
-              status={mockMetrics.avgMemoryUsage >= 70 ? 'warning' : 'success'}
+              status={DEFAULT_METRICS.avgMemoryUsage >= 70 ? 'warning' : 'success'}
             />
             <StatCard
               label={t('stats.totalBandwidth')}
-              value={mockMetrics.totalBandwidth}
+              value={DEFAULT_METRICS.totalBandwidth}
               icon={<Network className="h-5 w-5" />}
             />
           </div>
@@ -220,7 +220,7 @@ export function SaasInfrastructure() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {mockInfrastructure.regions.map((region) => (
+                    {DEFAULT_INFRASTRUCTURE.regions.map((region) => (
                       <div
                         key={region.id}
                         onClick={() => setSelectedRegion(region)}
@@ -291,7 +291,7 @@ export function SaasInfrastructure() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockInfrastructure.services.map((service, index) => (
+                    {DEFAULT_INFRASTRUCTURE.services.map((service, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between rounded-lg border border-surface-tertiary p-3"

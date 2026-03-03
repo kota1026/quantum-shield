@@ -21,6 +21,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AdminSidebarV2 } from '../AdminSidebarV2';
+import { useSlashings, useSlashingStats, useSlashingConfig, useExecuteSlashing, useRejectSlashing } from '@/hooks/admin/useSlashings';
+import type { SlashingEvent } from '@/lib/api/admin/types';
 
 interface StatCardProps {
   label: string;
@@ -52,87 +54,79 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
   );
 }
 
-// Mock data
-const mockSlashingEvents = [
-  {
-    id: 'slash-001',
-    proverId: 'prover-003',
-    operator: 'Gamma Security',
-    type: 'sla_violation',
-    amount: '5,000 QS',
-    reason: 'SLA 98.5% (target: 99.5%)',
-    status: 'executed',
-    createdAt: '2026-01-17 14:32',
-    executedAt: '2026-01-18 14:32',
-  },
-  {
-    id: 'slash-002',
-    proverId: 'prover-007',
-    operator: 'Zeta Network',
-    type: 'downtime',
-    amount: '10,000 QS',
-    reason: '4 hours consecutive downtime',
-    status: 'pending',
-    createdAt: '2026-01-18 09:15',
-    executedAt: null,
-  },
-  {
-    id: 'slash-003',
-    proverId: 'prover-012',
-    operator: 'Theta Validators',
-    type: 'invalid_signature',
-    amount: '25,000 QS',
-    reason: 'Invalid signature detected',
-    status: 'reviewing',
-    createdAt: '2026-01-18 11:42',
-    executedAt: null,
-  },
-  {
-    id: 'slash-004',
-    proverId: 'prover-005',
-    operator: 'Epsilon Infra',
-    type: 'sla_violation',
-    amount: '3,000 QS',
-    reason: 'SLA 97.2% (target: 99.5%)',
-    status: 'appealed',
-    createdAt: '2026-01-16 18:42',
-    executedAt: null,
-  },
-  {
-    id: 'slash-005',
-    proverId: 'prover-008',
-    operator: 'Eta Security',
-    type: 'downtime',
-    amount: '8,000 QS',
-    reason: '2 hours consecutive downtime',
-    status: 'rejected',
-    createdAt: '2026-01-15 12:20',
-    executedAt: null,
-  },
-];
-
-const mockSlashingConfig = {
-  slaThreshold: 99.5,
-  slaViolationPenalty: '5%',
-  downtimePenalty: '10,000 QS/hour',
-  invalidSignaturePenalty: '25,000 QS',
-  appealPeriod: '24 hours',
-  gracePeriod: '1 hour',
+const EMPTY_SLASHING_EVENT: SlashingEvent = {
+  id: '',
+  proverId: '',
+  operator: '',
+  type: 'sla_violation',
+  amount: '0',
+  reason: '',
+  status: 'pending',
+  createdAt: '',
+  executedAt: null,
 };
 
 export function PublicProverSlashing() {
   const t = useTranslations('admin.proverSlashing');
   const [activeTab, setActiveTab] = useState<'events' | 'pending' | 'config' | 'appeals'>('events');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedEvent, setSelectedEvent] = useState<typeof mockSlashingEvents[0] | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<SlashingEvent | null>(null);
 
-  const pendingCount = mockSlashingEvents.filter(e => e.status === 'pending' || e.status === 'reviewing').length;
-  const appealCount = mockSlashingEvents.filter(e => e.status === 'appealed').length;
+  const { data: slashingData, isLoading, error } = useSlashings();
+  const { data: statsData } = useSlashingStats();
+  const { data: configData } = useSlashingConfig();
+  const executeSlashing = useExecuteSlashing();
+  const rejectSlashing = useRejectSlashing();
+
+  const events = slashingData?.events ?? [];
+  const stats = statsData ?? { totalSlashed: '0', pendingCount: 0, appealsCount: 0, executedThisMonth: 0, rejectedThisMonth: 0 };
+  const config = configData ?? { slaThreshold: 99.5, slaViolationPenalty: '5%', downtimePenalty: '10,000 QS/hour', invalidSignaturePenalty: '25,000 QS', appealPeriod: '24 hours', gracePeriod: '1 hour' };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AdminSidebarV2 />
+        <main className="pl-[280px]" role="main">
+          <div className="p-6 lg:p-8">
+            <div className="animate-pulse space-y-6">
+              <div className="h-8 w-64 rounded bg-surface-secondary" />
+              <div className="grid grid-cols-5 gap-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-24 rounded-lg bg-surface-secondary" />
+                ))}
+              </div>
+              <div className="h-96 rounded-lg bg-surface-secondary" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AdminSidebarV2 />
+        <main className="pl-[280px]" role="main">
+          <div className="flex h-[60vh] items-center justify-center">
+            <div className="text-center">
+              <AlertTriangle className="mx-auto h-12 w-12 text-danger" />
+              <p className="mt-4 text-lg font-semibold text-foreground">{t('error.title')}</p>
+              <p className="mt-2 text-sm text-foreground-secondary">{t('error.description')}</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const pendingCount = events.filter(e => e.status === 'pending' || e.status === 'reviewing').length;
+  const appealCount = events.filter(e => e.status === 'appealed').length;
 
   const tabs = [
-    { key: 'events', label: t('tabs.events'), count: mockSlashingEvents.length },
-    { key: 'pending', label: t('tabs.pending'), count: pendingCount },
-    { key: 'appeals', label: t('tabs.appeals'), count: appealCount },
+    { key: 'events', label: t('tabs.events'), count: events.length },
+    { key: 'pending', label: t('tabs.pending'), count: stats.pendingCount },
+    { key: 'appeals', label: t('tabs.appeals'), count: stats.appealsCount },
     { key: 'config', label: t('tabs.config') },
   ];
 
@@ -166,7 +160,7 @@ export function PublicProverSlashing() {
     }
   };
 
-  const filteredEvents = mockSlashingEvents.filter(
+  const filteredEvents = events.filter(
     (event) =>
       event.operator.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.proverId.toLowerCase().includes(searchQuery.toLowerCase())
@@ -199,31 +193,31 @@ export function PublicProverSlashing() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalSlashed')}
-              value="51,000 QS"
+              value={stats.totalSlashed}
               icon={<Gavel className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.pendingReview')}
-              value={String(pendingCount)}
+              value={String(stats.pendingCount)}
               icon={<Clock className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.appealsActive')}
-              value={String(appealCount)}
+              value={String(stats.appealsCount)}
               icon={<Scale className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.executedThisMonth')}
-              value="2"
+              value={String(stats.executedThisMonth)}
               icon={<CheckCircle className="h-5 w-5" />}
               status="success"
             />
             <StatCard
               label={t('stats.rejectedThisMonth')}
-              value="1"
+              value={String(stats.rejectedThisMonth)}
               icon={<XCircle className="h-5 w-5" />}
               status="danger"
             />
@@ -374,10 +368,23 @@ export function PublicProverSlashing() {
 
                         {(selectedEvent.status === 'pending' || selectedEvent.status === 'reviewing') && (
                           <div className="flex gap-2 pt-4">
-                            <Button variant="outline" size="sm" className="flex-1" leftIcon={<XCircle className="h-4 w-4" />}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              leftIcon={<XCircle className="h-4 w-4" />}
+                              onClick={() => rejectSlashing.mutate(selectedEvent.id)}
+                              disabled={rejectSlashing.isPending}
+                            >
                               {t('detail.actions.reject')}
                             </Button>
-                            <Button size="sm" className="flex-1" leftIcon={<CheckCircle className="h-4 w-4" />}>
+                            <Button
+                              size="sm"
+                              className="flex-1"
+                              leftIcon={<CheckCircle className="h-4 w-4" />}
+                              onClick={() => executeSlashing.mutate(selectedEvent.id)}
+                              disabled={executeSlashing.isPending}
+                            >
                               {t('detail.actions.execute')}
                             </Button>
                           </div>
@@ -385,10 +392,21 @@ export function PublicProverSlashing() {
 
                         {selectedEvent.status === 'appealed' && (
                           <div className="flex gap-2 pt-4">
-                            <Button variant="outline" size="sm" className="flex-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => executeSlashing.mutate(selectedEvent.id)}
+                              disabled={executeSlashing.isPending}
+                            >
                               {t('detail.actions.denyAppeal')}
                             </Button>
-                            <Button size="sm" className="flex-1">
+                            <Button
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => rejectSlashing.mutate(selectedEvent.id)}
+                              disabled={rejectSlashing.isPending}
+                            >
                               {t('detail.actions.approveAppeal')}
                             </Button>
                           </div>
@@ -418,28 +436,28 @@ export function PublicProverSlashing() {
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                       <div className="rounded-lg border border-surface-tertiary p-4">
                         <div className="text-xs text-foreground-tertiary">{t('config.slaThreshold')}</div>
-                        <div className="mt-1 text-2xl font-bold">{mockSlashingConfig.slaThreshold}%</div>
+                        <div className="mt-1 text-2xl font-bold">{config.slaThreshold}%</div>
                       </div>
                       <div className="rounded-lg border border-surface-tertiary p-4">
                         <div className="text-xs text-foreground-tertiary">{t('config.slaViolationPenalty')}</div>
-                        <div className="mt-1 text-2xl font-bold">{mockSlashingConfig.slaViolationPenalty}</div>
+                        <div className="mt-1 text-2xl font-bold">{config.slaViolationPenalty}</div>
                         <div className="text-xs text-foreground-secondary">{t('config.ofStake')}</div>
                       </div>
                       <div className="rounded-lg border border-surface-tertiary p-4">
                         <div className="text-xs text-foreground-tertiary">{t('config.downtimePenalty')}</div>
-                        <div className="mt-1 text-2xl font-bold">{mockSlashingConfig.downtimePenalty}</div>
+                        <div className="mt-1 text-2xl font-bold">{config.downtimePenalty}</div>
                       </div>
                       <div className="rounded-lg border border-surface-tertiary p-4">
                         <div className="text-xs text-foreground-tertiary">{t('config.invalidSignaturePenalty')}</div>
-                        <div className="mt-1 text-2xl font-bold">{mockSlashingConfig.invalidSignaturePenalty}</div>
+                        <div className="mt-1 text-2xl font-bold">{config.invalidSignaturePenalty}</div>
                       </div>
                       <div className="rounded-lg border border-surface-tertiary p-4">
                         <div className="text-xs text-foreground-tertiary">{t('config.appealPeriod')}</div>
-                        <div className="mt-1 text-2xl font-bold">{mockSlashingConfig.appealPeriod}</div>
+                        <div className="mt-1 text-2xl font-bold">{config.appealPeriod}</div>
                       </div>
                       <div className="rounded-lg border border-surface-tertiary p-4">
                         <div className="text-xs text-foreground-tertiary">{t('config.gracePeriod')}</div>
-                        <div className="mt-1 text-2xl font-bold">{mockSlashingConfig.gracePeriod}</div>
+                        <div className="mt-1 text-2xl font-bold">{config.gracePeriod}</div>
                       </div>
                     </div>
                     <div className="mt-6">

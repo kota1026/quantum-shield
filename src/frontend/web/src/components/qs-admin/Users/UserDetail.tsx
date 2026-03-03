@@ -23,20 +23,26 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useUserDetail, useUserTransactions, useSuspendUser, useActivateUser } from '@/hooks/admin/useUsers';
-import {
-  MOCK_USER_DETAIL,
-  MOCK_USER_TRANSACTIONS,
-  type UserDetail as UserDetailType,
-  type UserTransaction,
-} from '@/lib/api/admin/mock';
+import type { UserDetail as UserDetailType, UserTransaction } from '@/lib/api/admin/mock';
 
 interface UserDetailProps {
   id: string;
 }
 
-// Fallback data
-const FALLBACK_USER = MOCK_USER_DETAIL;
-const FALLBACK_TRANSACTIONS = MOCK_USER_TRANSACTIONS;
+// Empty defaults when API data is unavailable
+const DEFAULT_USER: UserDetailType = {
+  id: '',
+  wallet: '0x0000000000000000000000000000000000000000',
+  email: '',
+  status: 'inactive',
+  joined: '',
+  lastActive: '',
+  locked: '0 ETH',
+  unlocked: '0 ETH',
+  totalValue: '0 ETH',
+  transactions: 0,
+};
+const DEFAULT_TRANSACTIONS: UserTransaction[] = [];
 
 const STATUS_CONFIG = {
   active: { icon: UserCheck, color: 'text-success', bg: 'bg-success/10', label: 'active' },
@@ -119,8 +125,8 @@ export function UserDetail({ id }: UserDetailProps) {
   const hasError = userError || txError;
 
   // Use API data with fallback
-  const user = apiUser ?? { ...FALLBACK_USER, id };
-  const transactions = txData?.transactions ?? FALLBACK_TRANSACTIONS;
+  const user = apiUser ?? { ...DEFAULT_USER, id };
+  const transactions = txData?.transactions ?? DEFAULT_TRANSACTIONS;
 
   const statusConfig = STATUS_CONFIG[user.status as keyof typeof STATUS_CONFIG];
   const StatusIcon = statusConfig.icon;
@@ -141,8 +147,7 @@ export function UserDetail({ id }: UserDetailProps) {
     return <UserDetailSkeleton />;
   }
 
-  // In development, use fallback data even when API fails
-  if (hasError && !apiUser && !FALLBACK_USER) {
+  if (hasError && !apiUser) {
     return <UserDetailError onRetry={() => { refetchUser(); refetchTx(); }} />;
   }
 

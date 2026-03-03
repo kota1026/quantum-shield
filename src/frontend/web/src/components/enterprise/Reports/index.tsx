@@ -7,11 +7,6 @@ import { cn } from '@/lib/utils';
 import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { Button } from '@/components/ui/button';
 import { useReports } from '@/hooks/enterprise';
-import {
-  MOCK_REPORT_STATS,
-  MOCK_TRANSACTION_SUMMARY as MOCK_TX_SUMMARY,
-  MOCK_TOP_USERS as MOCK_TOP_USERS_DATA,
-} from '@/lib/api/enterprise/mock';
 
 interface TransactionSummary {
   type: 'lock' | 'normalUnlock' | 'emergencyUnlock';
@@ -35,28 +30,12 @@ interface ReportStats {
   activeUsers: { value: number; change: number };
 }
 
-// Fallback data for when API is unavailable
-const FALLBACK_STATS: ReportStats = {
-  totalTransactions: { value: MOCK_REPORT_STATS.total_transactions.value, change: MOCK_REPORT_STATS.total_transactions.change },
-  totalVolume: { value: MOCK_REPORT_STATS.total_volume.value, change: MOCK_REPORT_STATS.total_volume.change },
-  avgTvl: { value: MOCK_REPORT_STATS.avg_tvl.value, change: MOCK_REPORT_STATS.avg_tvl.change },
-  activeUsers: { value: MOCK_REPORT_STATS.active_users.value, change: MOCK_REPORT_STATS.active_users.change },
+const EMPTY_STATS: ReportStats = {
+  totalTransactions: { value: 0, change: 0 },
+  totalVolume: { value: '$0', change: 0 },
+  avgTvl: { value: '$0', change: 0 },
+  activeUsers: { value: 0, change: 0 },
 };
-
-const FALLBACK_TRANSACTION_SUMMARY: TransactionSummary[] = MOCK_TX_SUMMARY.map(t => ({
-  type: t.type as 'lock' | 'normalUnlock' | 'emergencyUnlock',
-  count: t.count,
-  volume: t.volume,
-  avgSize: t.avg_size,
-  percentage: t.percentage,
-}));
-
-const FALLBACK_TOP_USERS: TopUser[] = MOCK_TOP_USERS_DATA.map((u, i) => ({
-  rank: i + 1,
-  address: u.address,
-  transactions: u.transactions,
-  volume: u.volume,
-}));
 
 interface ReportsProps {
   className?: string;
@@ -73,20 +52,20 @@ export function Reports({ className }: ReportsProps) {
     totalVolume: { value: reportsData.stats.total_volume.value, change: reportsData.stats.total_volume.change },
     avgTvl: { value: reportsData.stats.avg_tvl.value, change: reportsData.stats.avg_tvl.change },
     activeUsers: { value: reportsData.stats.active_users.value, change: reportsData.stats.active_users.change },
-  } : FALLBACK_STATS;
+  } : EMPTY_STATS;
   const transactionSummary: TransactionSummary[] = reportsData?.transaction_summary?.map(t => ({
     type: t.type as 'lock' | 'normalUnlock' | 'emergencyUnlock',
     count: t.count,
     volume: t.volume,
     avgSize: t.avg_size,
     percentage: t.percentage,
-  })) ?? FALLBACK_TRANSACTION_SUMMARY;
+  })) ?? [];
   const topUsers: TopUser[] = reportsData?.top_users?.map((u, i) => ({
     rank: i + 1,
     address: u.address,
     transactions: u.transactions,
     volume: u.volume,
-  })) ?? FALLBACK_TOP_USERS;
+  })) ?? [];
 
   return (
     <div className={cn('flex min-h-screen bg-background', className)}>

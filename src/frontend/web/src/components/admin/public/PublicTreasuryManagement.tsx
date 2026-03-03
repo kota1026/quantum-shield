@@ -54,7 +54,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockTransactions = [
+const SAMPLE_TRANSACTIONS = [
   {
     id: 'tx-001',
     type: 'expense',
@@ -107,7 +107,7 @@ const mockTransactions = [
   },
 ];
 
-const mockAllocations = [
+const SAMPLE_ALLOCATIONS = [
   { category: 'development', percentage: 35, amount: '2.1M USDC' },
   { category: 'security', percentage: 20, amount: '1.2M USDC' },
   { category: 'grants', percentage: 15, amount: '0.9M USDC' },
@@ -122,7 +122,7 @@ export function PublicTreasuryManagement() {
 
   const tabs = [
     { key: 'overview', label: t('tabs.overview') },
-    { key: 'expenses', label: t('tabs.expenses'), count: mockTransactions.filter(tx => tx.status === 'pending').length },
+    { key: 'expenses', label: t('tabs.expenses'), count: SAMPLE_TRANSACTIONS.filter(tx => tx.status === 'pending').length },
     { key: 'distribution', label: t('tabs.distribution') },
     { key: 'audit', label: t('tabs.audit') },
   ];
@@ -157,7 +157,7 @@ export function PublicTreasuryManagement() {
     }
   };
 
-  const filteredTransactions = mockTransactions.filter(
+  const filteredTransactions = SAMPLE_TRANSACTIONS.filter(
     (tx) =>
       tx.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tx.id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -252,7 +252,7 @@ export function PublicTreasuryManagement() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockTransactions.slice(0, 5).map((tx) => (
+                    {SAMPLE_TRANSACTIONS.slice(0, 5).map((tx) => (
                       <div
                         key={tx.id}
                         className="flex items-center justify-between rounded-lg border border-surface-tertiary p-3"
@@ -292,7 +292,7 @@ export function PublicTreasuryManagement() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockAllocations.map((allocation) => (
+                    {SAMPLE_ALLOCATIONS.map((allocation) => (
                       <div key={allocation.category}>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-foreground-secondary">

@@ -21,16 +21,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useSupportStats, useTicketsList } from '@/hooks/admin/useSupport';
-import {
-  MOCK_SUPPORT_STATS,
-  MOCK_TICKETS,
-  type SupportStats,
-  type Ticket,
-} from '@/lib/api/admin/mock';
+import type { SupportStats, Ticket } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_SUPPORT_STATS;
-const FALLBACK_TICKETS = MOCK_TICKETS;
+// Empty defaults when API data is unavailable
+const DEFAULT_STATS: SupportStats = { totalTickets: 0, openTickets: 0, avgResponseTime: '0h', satisfaction: '0%' };
+const DEFAULT_TICKETS: Ticket[] = [];
 
 const STATUS_COLORS = {
   open: 'bg-info/10 text-info',
@@ -142,8 +137,8 @@ export function SupportDashboard() {
   const hasError = statsError || ticketsError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const tickets = ticketsData?.tickets ?? FALLBACK_TICKETS;
+  const stats = apiStats ?? DEFAULT_STATS;
+  const tickets = ticketsData?.tickets ?? DEFAULT_TICKETS;
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },

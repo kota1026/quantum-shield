@@ -22,23 +22,23 @@ import { cn } from '@/lib/utils';
 import { ObserverHeader } from '../Dashboard/ObserverHeader';
 import { useObserverSettings } from '@/hooks/observer';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_SETTINGS = {
+// Default empty settings
+const DEFAULT_SETTINGS = {
   profile: {
-    observerId: 'OBS-2025-1842',
-    walletAddress: '0x5c3e2d9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e',
-    email: 'observer@example.com',
-    joinedDate: '2025-11-15',
+    observerId: '-',
+    walletAddress: '-',
+    email: '-',
+    joinedDate: '-',
   },
   notifications: {
-    emergencyUnlock: true,
-    highRiskAlert: true,
-    challengeUpdate: true,
-    rewardPayment: true,
+    emergencyUnlock: false,
+    highRiskAlert: false,
+    challengeUpdate: false,
+    rewardPayment: false,
   },
   security: {
-    lastLogin: '2026-01-17 09:15:42 UTC',
-    loginHistory: '24',
+    lastLogin: '-',
+    loginHistory: '0',
   },
 };
 
@@ -55,8 +55,8 @@ export function ObserverSettings() {
   // Fetch data using hooks
   const { data: settingsApi } = useObserverSettings();
 
-  // Use API data with fallback
-  const settings = settingsApi ?? FALLBACK_SETTINGS;
+  // Use API data with safe defaults
+  const settings = settingsApi ?? DEFAULT_SETTINGS;
 
   const [notifications, setNotifications] = useState(settings.notifications);
 

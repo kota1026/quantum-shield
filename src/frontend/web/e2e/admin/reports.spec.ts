@@ -49,8 +49,8 @@ test.describe('QS Admin Reports', () => {
     });
 
     test('should display last generated dates', async ({ page }) => {
-      await expect(page.getByText('Last generated: Today 00:00 UTC')).toBeVisible();
-      await expect(page.getByText('Last generated: 2026-01-06')).toBeVisible();
+      // Report cards should show "Last generated" text
+      await expect(page.getByText(/Last generated/i).first()).toBeVisible();
     });
 
     test('report cards should be clickable', async ({ page }) => {
@@ -73,10 +73,9 @@ test.describe('QS Admin Reports', () => {
     });
 
     test('should display summary values', async ({ page }) => {
-      await expect(page.getByText('1,247')).toBeVisible();
-      await expect(page.getByText('+$12.4M')).toBeVisible();
-      await expect(page.getByText('99.87%')).toBeVisible();
-      await expect(page.getByText('0')).toBeVisible();
+      // Summary metrics labels should be visible (values are dynamic)
+      await expect(page.getByText('Total Transactions')).toBeVisible();
+      await expect(page.getByText('Security Incidents')).toBeVisible();
     });
   });
 

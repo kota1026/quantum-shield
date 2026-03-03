@@ -27,16 +27,16 @@ import { useObserverStats, useObserverList } from '@/hooks/admin/useObservers';
 import type { ObserverStats } from '@/lib/api/admin/mock';
 import type { ObserverListItem } from '@/lib/api/admin/types';
 
-// Fallback stats - Used when API is unavailable
-const FALLBACK_STATS: ObserverStats = {
+// Default stats - Used when API is unavailable
+const DEFAULT_STATS: ObserverStats = {
   totalObservers: 156,
   activeObservers: 142,
   totalChallenges: 1234,
   successRate: '94.2%',
 };
 
-// Fallback observer type for UI display
-interface FallbackObserver {
+// Default observer type for UI display
+interface DefaultObserver {
   id: string;
   wallet: string;
   challenges: number;
@@ -49,7 +49,7 @@ interface FallbackObserver {
   failedChallenges: number;
 }
 
-const FALLBACK_OBSERVERS: FallbackObserver[] = [
+const DEFAULT_OBSERVERS: DefaultObserver[] = [
   { id: 'OB-001', wallet: '0x1234...5678', challenges: 125, successRate: '98.4%', earnings: '2,450 QS', bond: '500 QS', lastChallenge: '2024-01-27 14:30', status: 'active', successfulChallenges: 123, failedChallenges: 2 },
   { id: 'OB-002', wallet: '0x2345...6789', challenges: 89, successRate: '95.5%', earnings: '1,780 QS', bond: '500 QS', lastChallenge: '2024-01-27 13:15', status: 'active', successfulChallenges: 85, failedChallenges: 4 },
   { id: 'OB-003', wallet: '0x3456...7890', challenges: 234, successRate: '92.3%', earnings: '4,680 QS', bond: '1,000 QS', lastChallenge: '2024-01-27 12:00', status: 'active', successfulChallenges: 216, failedChallenges: 18 },
@@ -61,7 +61,7 @@ const FALLBACK_OBSERVERS: FallbackObserver[] = [
 ];
 
 // Union type for API data and fallback data
-type ObserverItem = ObserverListItem | FallbackObserver;
+type ObserverItem = ObserverListItem | DefaultObserver;
 
 // Loading skeleton component
 function ListSkeleton() {
@@ -175,7 +175,7 @@ export function ObserverList() {
   const listQuery = useObserverList();
 
   // Map API data to display format
-  const mapApiObserver = (apiObserver: ObserverListItem): FallbackObserver => ({
+  const mapApiObserver = (apiObserver: ObserverListItem): DefaultObserver => ({
     id: apiObserver.id,
     wallet: apiObserver.walletAddress,
     challenges: apiObserver.successfulChallenges + apiObserver.failedChallenges,
@@ -191,11 +191,11 @@ export function ObserverList() {
   });
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data ?? DEFAULT_STATS;
   const apiObservers = listQuery.data?.observers;
-  const observers: FallbackObserver[] = apiObservers
+  const observers: DefaultObserver[] = apiObservers
     ? apiObservers.map(mapApiObserver)
-    : FALLBACK_OBSERVERS;
+    : DEFAULT_OBSERVERS;
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },
@@ -205,7 +205,7 @@ export function ObserverList() {
   ];
 
   const filteredObservers = useMemo(() => {
-    return observers.filter((observer: FallbackObserver) => {
+    return observers.filter((observer: DefaultObserver) => {
       if (statusFilter !== 'all' && observer.status !== statusFilter) return false;
       if (searchQuery && !observer.wallet.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !observer.id.toLowerCase().includes(searchQuery.toLowerCase())) return false;

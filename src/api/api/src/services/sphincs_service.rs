@@ -167,7 +167,7 @@ impl SphincsService {
     /// * `Ok(true)` if signature is valid
     /// * `Err(SphincsError)` if invalid
     pub fn verify_signature(
-        message: &[u8],
+        _message: &[u8],
         signature: &str,
         pubkey: &str,
     ) -> Result<bool, SphincsError> {

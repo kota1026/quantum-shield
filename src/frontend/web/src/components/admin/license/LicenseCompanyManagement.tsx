@@ -55,7 +55,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockCompanies = [
+const SAMPLE_COMPANIES = [
   {
     id: 'lic-001',
     company: 'Mega Bank Japan',
@@ -113,7 +113,7 @@ const mockCompanies = [
   },
 ];
 
-const mockProjects = [
+const SAMPLE_PROJECTS = [
   {
     id: 'proj-001',
     name: 'Quantum Custody Integration',
@@ -149,9 +149,9 @@ export function LicenseCompanyManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'companies', label: t('tabs.companies'), count: mockCompanies.length },
-    { key: 'projects', label: t('tabs.projects'), count: mockProjects.filter(p => p.status === 'active').length },
-    { key: 'renewals', label: t('tabs.renewals'), count: mockCompanies.filter(c => c.status === 'renewal_pending').length },
+    { key: 'companies', label: t('tabs.companies'), count: SAMPLE_COMPANIES.length },
+    { key: 'projects', label: t('tabs.projects'), count: SAMPLE_PROJECTS.filter(p => p.status === 'active').length },
+    { key: 'renewals', label: t('tabs.renewals'), count: SAMPLE_COMPANIES.filter(c => c.status === 'renewal_pending').length },
     { key: 'documents', label: t('tabs.documents') },
   ];
 
@@ -183,7 +183,7 @@ export function LicenseCompanyManagement() {
     }
   };
 
-  const filteredCompanies = mockCompanies.filter(
+  const filteredCompanies = SAMPLE_COMPANIES.filter(
     (company) =>
       company.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
       company.id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -370,7 +370,7 @@ export function LicenseCompanyManagement() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockProjects.map((project) => (
+                  {SAMPLE_PROJECTS.map((project) => (
                     <div
                       key={project.id}
                       className="rounded-lg border border-surface-tertiary bg-background-secondary p-4"
@@ -415,7 +415,7 @@ export function LicenseCompanyManagement() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockCompanies
+                  {SAMPLE_COMPANIES
                     .filter((c) => c.status === 'renewal_pending' || new Date(c.renewalDate) < new Date('2026-06-30'))
                     .map((company) => (
                       <div

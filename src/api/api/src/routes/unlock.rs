@@ -12,7 +12,6 @@
 //! - NO keccak256, ECDSA, or pre-FIPS Dilithium
 
 use std::sync::Arc;
-use std::time::Duration;
 
 use axum::{Extension, Json};
 use sha3::{Digest, Sha3_256};
@@ -24,7 +23,7 @@ use crate::{
     crypto::verify_ml_dsa_65_signature,
     error::ApiError,
     services::AppState,
-    types::{ClaimUnlockRequest, ClaimUnlockResponse, EmergencyUnlockResponse, LockStatus, UnlockRequest, UnlockResponse, UnlockStatus, VRFStatus},
+    types::{ClaimUnlockRequest, ClaimUnlockResponse, EmergencyUnlockResponse, LockStatus, UnlockRequest, UnlockResponse, UnlockStatus},
 };
 
 /// Time lock constants from CORE_PRINCIPLES.md
@@ -72,17 +71,29 @@ pub async fn create_unlock(
 
     // 3. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
     let message = construct_unlock_message(&req.lock_id, &req.dest_addr, &req.amount);
-    let sig_valid = verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &lock.user_public_key)?;
-    if !sig_valid {
-        if state.config().security.skip_signature_verification {
-            tracing::warn!("SECURITY: ML-DSA-65 signature verification failed, skip_signature_verification=true");
-        } else {
-            return Err(ApiError::InvalidSignature(
-                "ML-DSA-65 (FIPS 204) verification failed".into(),
-            ));
+    let sig_result = verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &lock.user_public_key);
+    match sig_result {
+        Ok(true) => {
+            tracing::info!("ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
         }
-    } else {
-        tracing::info!("ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
+        Ok(false) => {
+            if state.config().security.skip_signature_verification {
+                tracing::warn!("SECURITY: ML-DSA-65 signature verification failed, skip_signature_verification=true");
+            } else {
+                return Err(ApiError::InvalidSignature(
+                    "ML-DSA-65 (FIPS 204) verification failed".into(),
+                ));
+            }
+        }
+        Err(e) => {
+            if state.config().security.skip_signature_verification {
+                tracing::warn!("SECURITY: ML-DSA-65 signature error: {}, skip_signature_verification=true", e);
+            } else {
+                return Err(ApiError::InvalidSignature(
+                    format!("ML-DSA-65 verification error: {}", e),
+                ));
+            }
+        }
     }
 
     // 4. Compute SR_1 using SHA3-256 (NOT keccak256)
@@ -252,17 +263,29 @@ pub async fn create_emergency_unlock(
 
     // 3. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
     let message = construct_unlock_message(&req.lock_id, &req.dest_addr, &req.amount);
-    let sig_valid = verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &lock.user_public_key)?;
-    if !sig_valid {
-        if state.config().security.skip_signature_verification {
-            tracing::warn!("SECURITY: ML-DSA-65 signature verification failed, skip_signature_verification=true");
-        } else {
-            return Err(ApiError::InvalidSignature(
-                "ML-DSA-65 (FIPS 204) verification failed".into(),
-            ));
+    let sig_result = verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &lock.user_public_key);
+    match sig_result {
+        Ok(true) => {
+            tracing::info!("ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
         }
-    } else {
-        tracing::info!("ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
+        Ok(false) => {
+            if state.config().security.skip_signature_verification {
+                tracing::warn!("SECURITY: ML-DSA-65 signature verification failed, skip_signature_verification=true");
+            } else {
+                return Err(ApiError::InvalidSignature(
+                    "ML-DSA-65 (FIPS 204) verification failed".into(),
+                ));
+            }
+        }
+        Err(e) => {
+            if state.config().security.skip_signature_verification {
+                tracing::warn!("SECURITY: ML-DSA-65 signature error: {}, skip_signature_verification=true", e);
+            } else {
+                return Err(ApiError::InvalidSignature(
+                    format!("ML-DSA-65 verification error: {}", e),
+                ));
+            }
+        }
     }
 
     // 4. Compute SR_1 using SHA3-256 (NOT keccak256)

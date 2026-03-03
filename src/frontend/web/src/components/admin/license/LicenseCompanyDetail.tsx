@@ -87,7 +87,7 @@ export function LicenseCompanyDetail({ companyId }: LicenseCompanyDetailProps) {
     accountManager: '田中 健一',
   };
 
-  const mockProjects = [
+  const SAMPLE_PROJECTS = [
     {
       id: 'proj-001',
       name: 'Main Platform Integration',
@@ -114,7 +114,7 @@ export function LicenseCompanyDetail({ companyId }: LicenseCompanyDetailProps) {
     },
   ];
 
-  const mockDocuments = [
+  const SAMPLE_DOCUMENTS = [
     { id: 'doc-001', name: 'License Agreement', type: 'contract', date: '2025-04-01' },
     { id: 'doc-002', name: 'Technical Specification', type: 'technical', date: '2025-04-15' },
     { id: 'doc-003', name: 'Deployment Guide', type: 'technical', date: '2025-05-01' },
@@ -347,7 +347,7 @@ export function LicenseCompanyDetail({ companyId }: LicenseCompanyDetailProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockProjects.map((project) => (
+                  {SAMPLE_PROJECTS.map((project) => (
                     <div
                       key={project.id}
                       className="rounded-lg border border-surface-tertiary bg-background-secondary p-4"
@@ -407,7 +407,7 @@ export function LicenseCompanyDetail({ companyId }: LicenseCompanyDetailProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockDocuments.map((doc) => (
+                  {SAMPLE_DOCUMENTS.map((doc) => (
                     <div
                       key={doc.id}
                       className="flex items-center justify-between rounded-lg border border-surface-tertiary bg-background-secondary p-4"

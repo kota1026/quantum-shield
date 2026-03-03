@@ -16,7 +16,7 @@ import { useUnlocks } from '@/hooks/explorer';
 import type { UnlockDetail } from '@/lib/api/explorer/mock';
 
 // Empty initial state (no fake data)
-const FALLBACK_UNLOCKS: UnlockDetail[] = [];
+const EMPTY_UNLOCKS: UnlockDetail[] = [];
 
 type UnlockStatus = 'pending' | 'complete' | 'challenged';
 type UnlockType = 'normal' | 'emergency';
@@ -40,7 +40,7 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
   });
 
   // Use API data with fallback
-  const mockUnlocks = unlocksApi?.unlocks ?? FALLBACK_UNLOCKS;
+  const unlocks = unlocksApi?.unlocks ?? EMPTY_UNLOCKS;
 
   const itemsPerPage = 5;
   const pendingCount = unlocksApi?.pending ?? 0;
@@ -49,7 +49,7 @@ export function ExplorerUnlocks({ locale = 'ja' }: ExplorerUnlocksProps) {
 
   // Filter unlocks
   const filteredUnlocks = useMemo(() => {
-    let result = [...mockUnlocks];
+    let result = [...unlocks];
 
     if (statusFilter !== 'all') {
       result = result.filter(unlock => unlock.status === statusFilter);

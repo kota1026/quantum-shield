@@ -65,7 +65,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockTickets = [
+const SAMPLE_TICKETS = [
   {
     id: 'TKT-001',
     subject: 'Prover APIのレスポンス遅延について',
@@ -133,7 +133,7 @@ const mockTickets = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   openTickets: 23,
   avgResponseTime: '2.5h',
   avgResolutionTime: '18h',
@@ -145,14 +145,14 @@ export function SaasSupport() {
   const t = useTranslations('admin.saasSupport');
   const [activeTab, setActiveTab] = useState<'all' | 'open' | 'in_progress' | 'waiting' | 'resolved'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTicket, setSelectedTicket] = useState<typeof mockTickets[0] | null>(mockTickets[0]);
+  const [selectedTicket, setSelectedTicket] = useState<typeof SAMPLE_TICKETS[0] | null>(SAMPLE_TICKETS[0]);
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockTickets.length },
-    { key: 'open', label: t('tabs.open'), count: mockTickets.filter(t => t.status === 'open').length },
-    { key: 'in_progress', label: t('tabs.inProgress'), count: mockTickets.filter(t => t.status === 'in_progress').length },
-    { key: 'waiting', label: t('tabs.waiting'), count: mockTickets.filter(t => t.status === 'waiting').length },
-    { key: 'resolved', label: t('tabs.resolved'), count: mockTickets.filter(t => t.status === 'resolved').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_TICKETS.length },
+    { key: 'open', label: t('tabs.open'), count: SAMPLE_TICKETS.filter(t => t.status === 'open').length },
+    { key: 'in_progress', label: t('tabs.inProgress'), count: SAMPLE_TICKETS.filter(t => t.status === 'in_progress').length },
+    { key: 'waiting', label: t('tabs.waiting'), count: SAMPLE_TICKETS.filter(t => t.status === 'waiting').length },
+    { key: 'resolved', label: t('tabs.resolved'), count: SAMPLE_TICKETS.filter(t => t.status === 'resolved').length },
   ];
 
   const getPriorityBadge = (priority: string) => {
@@ -187,7 +187,7 @@ export function SaasSupport() {
     return t(`categories.${category}`);
   };
 
-  const filteredTickets = mockTickets.filter((ticket) => {
+  const filteredTickets = SAMPLE_TICKETS.filter((ticket) => {
     const matchesSearch =
       ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -224,29 +224,29 @@ export function SaasSupport() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.openTickets')}
-              value={String(mockMetrics.openTickets)}
+              value={String(DEFAULT_METRICS.openTickets)}
               icon={<MessageSquare className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.avgResponseTime')}
-              value={mockMetrics.avgResponseTime}
+              value={DEFAULT_METRICS.avgResponseTime}
               trend={{ value: '-15%', direction: 'up' }}
               icon={<Clock className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgResolutionTime')}
-              value={mockMetrics.avgResolutionTime}
+              value={DEFAULT_METRICS.avgResolutionTime}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.csat')}
-              value={`${mockMetrics.csat}/5`}
+              value={`${DEFAULT_METRICS.csat}/5`}
               icon={<TrendingUp className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.ticketsToday')}
-              value={String(mockMetrics.ticketsToday)}
+              value={String(DEFAULT_METRICS.ticketsToday)}
               icon={<Headphones className="h-5 w-5" />}
             />
           </div>

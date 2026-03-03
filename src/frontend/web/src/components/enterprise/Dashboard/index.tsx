@@ -38,9 +38,7 @@ interface ActionItem {
   count?: number;
 }
 
-// Demo data - In production, this would come from API
-
-const FALLBACK_TRANSACTIONS: EnterpriseTransaction[] = [
+const DEFAULT_TRANSACTIONS: EnterpriseTransaction[] = [
   { id: '1', hash: '0x7a3f...9c2d', type: 'lock', amount: '5.00 ETH', status: 'complete', time: '2 min ago' },
   { id: '2', hash: '0x3b2e...1f4a', type: 'unlock', amount: '2.50 ETH', status: 'pending', time: '15 min ago' },
   { id: '3', hash: '0x9d1c...8e5b', type: 'lock', amount: '10.00 ETH', status: 'complete', time: '32 min ago' },
@@ -48,22 +46,21 @@ const FALLBACK_TRANSACTIONS: EnterpriseTransaction[] = [
   { id: '5', hash: '0x2f4a...6c3e', type: 'lock', amount: '15.00 ETH', status: 'complete', time: '2 hr ago' },
 ];
 
-const FALLBACK_ACTIVITIES: ActivityItem[] = [
+const DEFAULT_ACTIVITIES: ActivityItem[] = [
   { id: '1', type: 'lock', title: 'New lock transaction', meta: '5.00 ETH • 2 min ago' },
   { id: '2', type: 'user', title: 'User invited: tanaka@acme.co', meta: 'Admin • 15 min ago' },
   { id: '3', type: 'api', title: 'API key created', meta: 'Production • 1 hr ago' },
   { id: '4', type: 'unlock', title: 'Unlock completed', meta: '2.50 ETH • 3 hr ago' },
 ];
 
-const FALLBACK_SYSTEMS: SystemStatus[] = [
+const DEFAULT_SYSTEMS: SystemStatus[] = [
   { id: '1', name: 'API Gateway', status: 'online', value: 'Operational' },
   { id: '2', name: 'Prover Network', status: 'online', value: '127 nodes' },
   { id: '3', name: 'Ethereum RPC', status: 'online', value: 'Operational' },
   { id: '4', name: 'Webhooks', status: 'online', value: '99.9% uptime' },
 ];
 
-// Demo action items requiring attention
-const FALLBACK_ACTION_ITEMS: ActionItem[] = [
+const DEFAULT_ACTION_ITEMS: ActionItem[] = [
   {
     id: '1',
     type: 'critical',
@@ -109,7 +106,7 @@ export function EnterpriseDashboard() {
     amount: tx.amount,
     status: tx.status as EnterpriseTransaction['status'],
     time: tx.time,
-  })) ?? FALLBACK_TRANSACTIONS;
+  })) ?? DEFAULT_TRANSACTIONS;
 
   // Map activity type to component expected type (exclude 'system')
   const mapActivityType = (type: string): ActivityItem['type'] => {
@@ -122,7 +119,7 @@ export function EnterpriseDashboard() {
     type: mapActivityType(a.type),
     title: a.title,
     meta: a.meta,
-  })) ?? FALLBACK_ACTIVITIES;
+  })) ?? DEFAULT_ACTIVITIES;
 
   // Map system status to component expected type (exclude 'degraded')
   const mapSystemStatus = (status: string): SystemStatus['status'] => {
@@ -135,7 +132,7 @@ export function EnterpriseDashboard() {
     name: s.name,
     status: mapSystemStatus(s.status),
     value: s.value,
-  })) ?? FALLBACK_SYSTEMS;
+  })) ?? DEFAULT_SYSTEMS;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -162,17 +159,17 @@ export function EnterpriseDashboard() {
           <KPIGrid className="mb-8" />
 
           {/* Action Items Section */}
-          {FALLBACK_ACTION_ITEMS.length > 0 && (
+          {DEFAULT_ACTION_ITEMS.length > 0 && (
             <section className="mb-8" aria-label={t('actionItems.ariaLabel')}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-warning" aria-hidden="true" />
                 {t('actionItems.title')}
                 <Badge variant="warning" className="ml-2">
-                  {FALLBACK_ACTION_ITEMS.length}
+                  {DEFAULT_ACTION_ITEMS.length}
                 </Badge>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {FALLBACK_ACTION_ITEMS.map((item) => {
+                {DEFAULT_ACTION_ITEMS.map((item) => {
                   const getIcon = () => {
                     switch (item.type) {
                       case 'critical':

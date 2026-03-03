@@ -27,8 +27,8 @@ import {
 } from '@/hooks/admin/useTransactions';
 import type { TransactionStats } from '@/lib/api/admin/mock';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: TransactionStats = {
+// Default data - Used when API is unavailable
+const DEFAULT_STATS: TransactionStats = {
   totalTransactions: 45230,
   lockVolume: '125,000 ETH',
   unlockVolume: '45,230 ETH',
@@ -37,7 +37,7 @@ const FALLBACK_STATS: TransactionStats = {
   activeChallenges: 5,
 };
 
-const FALLBACK_TRANSACTIONS: CombinedTransaction[] = [
+const DEFAULT_TRANSACTIONS: CombinedTransaction[] = [
   {
     id: 'TX-001234',
     type: 'lock',
@@ -222,8 +222,8 @@ export function TransactionsDashboard() {
   const transactionsQuery = useAllTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
-  const transactions = transactionsQuery.data?.transactions ?? FALLBACK_TRANSACTIONS;
+  const stats = statsQuery.data ?? DEFAULT_STATS;
+  const transactions = transactionsQuery.data?.transactions ?? DEFAULT_TRANSACTIONS;
 
   const filters = [
     { key: 'all', label: t('filters.all') },

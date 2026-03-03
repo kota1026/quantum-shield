@@ -36,9 +36,8 @@ import { cn } from '@/lib/utils';
 import { useProverAlerts, useStakeData } from '@/hooks/prover';
 import type { ProverAlert } from '@/lib/api/prover/mock';
 
-// Empty initial state (no fake data)
-const FALLBACK_ALERTS: ProverAlert[] = [];
-const FALLBACK_STAKE_DATA = {
+// Default empty stake data
+const EMPTY_STAKE_DATA = {
   currentStake: 0,
   unlockDate: '-',
   daysRemaining: 0,
@@ -51,7 +50,7 @@ const FALLBACK_STAKE_DATA = {
   potentialSlashing: 0,
 };
 
-const mockSlashingTable = [
+const SLASHING_TABLE_DATA = [
   { violations: 1, rate: 10, loss: 40000 },
   { violations: 2, rate: 40, loss: 160000 },
   { violations: 3, rate: 90, loss: 360000 },
@@ -59,7 +58,7 @@ const mockSlashingTable = [
 ];
 
 // Enterprise-specific stake data
-const mockEnterpriseStakeData = {
+const DEFAULT_ENTERPRISE_STAKE = {
   operatorName: 'ACME Corporation',
   plan: 'Enterprise Plus',
   stakeRequirement: {
@@ -106,9 +105,9 @@ export function ProverAlerts() {
   const { data: alertsApi } = useProverAlerts();
   const { data: stakeDataApi } = useStakeData();
 
-  // Use API data with fallback
-  const alerts = alertsApi ?? FALLBACK_ALERTS;
-  const stakeData = stakeDataApi ?? FALLBACK_STAKE_DATA;
+  // Use API data with safe defaults
+  const alerts = alertsApi ?? [];
+  const stakeData = stakeDataApi ?? EMPTY_STAKE_DATA;
 
   // Handle URL query params for tab switching
   useEffect(() => {
@@ -456,7 +455,7 @@ export function ProverAlerts() {
                     <div>
                       <h2 className="font-semibold">{t('alerts.enterprise.stakeTitle')}</h2>
                       <div className="text-xs text-foreground-secondary">
-                        {mockEnterpriseStakeData.operatorName} • {mockEnterpriseStakeData.plan}
+                        {DEFAULT_ENTERPRISE_STAKE.operatorName} • {DEFAULT_ENTERPRISE_STAKE.plan}
                       </div>
                     </div>
                   </div>
@@ -468,21 +467,21 @@ export function ProverAlerts() {
                   <div className="p-3 bg-background/50 rounded-lg">
                     <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.enterprise.minimumRequired')}</div>
                     <div className="text-lg font-bold text-success">
-                      ${mockEnterpriseStakeData.stakeRequirement.minimumRequired.toLocaleString()}
+                      ${DEFAULT_ENTERPRISE_STAKE.stakeRequirement.minimumRequired.toLocaleString()}
                     </div>
                     <div className="text-[10px] text-foreground-tertiary">{t('alerts.enterprise.vsPublic')}</div>
                   </div>
                   <div className="p-3 bg-background/50 rounded-lg">
                     <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.enterprise.operatorContribution')}</div>
                     <div className="text-lg font-bold font-mono text-gold">
-                      ${mockEnterpriseStakeData.stakeRequirement.operatorContribution.toLocaleString()}
+                      ${DEFAULT_ENTERPRISE_STAKE.stakeRequirement.operatorContribution.toLocaleString()}
                     </div>
                     <div className="text-[10px] text-foreground-tertiary">{t('alerts.enterprise.partialCoverage')}</div>
                   </div>
                   <div className="p-3 bg-background/50 rounded-lg">
                     <div className="text-xs text-foreground-tertiary mb-1">{t('alerts.enterprise.yourStake')}</div>
                     <div className="text-lg font-bold font-mono">
-                      ${mockEnterpriseStakeData.stakeRequirement.personalContribution.toLocaleString()}
+                      ${DEFAULT_ENTERPRISE_STAKE.stakeRequirement.personalContribution.toLocaleString()}
                     </div>
                   </div>
                 </div>
@@ -496,10 +495,10 @@ export function ProverAlerts() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-success">
-                        {mockEnterpriseStakeData.slashingProtection.coverageRate}% {t('alerts.enterprise.coverage')}
+                        {DEFAULT_ENTERPRISE_STAKE.slashingProtection.coverageRate}% {t('alerts.enterprise.coverage')}
                       </span>
                       <span className="text-xs text-foreground-tertiary">
-                        ({t('alerts.enterprise.maxCoverage', { amount: mockEnterpriseStakeData.slashingProtection.maxCoverage.toLocaleString() })})
+                        ({t('alerts.enterprise.maxCoverage', { amount: DEFAULT_ENTERPRISE_STAKE.slashingProtection.maxCoverage.toLocaleString() })})
                       </span>
                     </div>
                   </div>
@@ -510,7 +509,7 @@ export function ProverAlerts() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-gold">
-                        {mockEnterpriseStakeData.contractTerms.unlockPeriod} {t('alerts.enterprise.days')}
+                        {DEFAULT_ENTERPRISE_STAKE.contractTerms.unlockPeriod} {t('alerts.enterprise.days')}
                       </span>
                       <span className="text-xs text-foreground-tertiary">({t('alerts.enterprise.vs180Days')})</span>
                     </div>
@@ -522,7 +521,7 @@ export function ProverAlerts() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-success">
-                        {mockEnterpriseStakeData.contractTerms.earlyExitPenalty}%
+                        {DEFAULT_ENTERPRISE_STAKE.contractTerms.earlyExitPenalty}%
                       </span>
                       <span className="text-xs text-foreground-tertiary">({t('alerts.enterprise.vs10Percent')})</span>
                     </div>
@@ -672,7 +671,7 @@ export function ProverAlerts() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockSlashingTable.map((row) => (
+                  {SLASHING_TABLE_DATA.map((row) => (
                     <tr key={row.violations} className="border-b border-surface-tertiary">
                       <td className="py-3 text-center text-sm">
                         {row.violations >= 4 ? t('alerts.slashing.fourPlus') : `${row.violations}${t('alerts.slashing.times')}`}

@@ -18,6 +18,7 @@ import {
   BarChart3,
   ExternalLink,
   ArrowLeft,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
@@ -32,18 +33,34 @@ import {
   useRewardsBreakdown,
   useEpoch,
 } from '@/hooks/token-hub/useTokenHub';
-import {
-  MOCK_REWARDS_SUMMARY,
-  MOCK_REWARDS_HISTORY,
-  MOCK_REWARDS_BREAKDOWN,
-  MOCK_EPOCH,
+import type {
+  RewardsSummary,
+  RewardsHistory,
+  RewardsBreakdown,
+  EpochInfo,
 } from '@/lib/api/token-hub/mock';
 
-// Fallback data for when API is unavailable
-const FALLBACK_REWARDS = MOCK_REWARDS_SUMMARY;
-const FALLBACK_HISTORY = MOCK_REWARDS_HISTORY;
-const FALLBACK_BREAKDOWN = MOCK_REWARDS_BREAKDOWN;
-const FALLBACK_EPOCH = MOCK_EPOCH;
+// Empty data for when API is unavailable
+const EMPTY_REWARDS: RewardsSummary = {
+  claimable: 0,
+  claimableUsd: 0,
+  totalEarned: 0,
+  totalEarnedChange: 0,
+  weeklyAverage: 0,
+  currentApy: 0,
+  nextReward: 0,
+};
+const EMPTY_HISTORY: RewardsHistory[] = [];
+const EMPTY_BREAKDOWN: RewardsBreakdown = {
+  veqsHolding: 0,
+  votingParticipation: 0,
+  delegationBonus: 0,
+};
+const EMPTY_EPOCH: EpochInfo = {
+  number: 0,
+  progress: 0,
+  remaining: '--',
+};
 
 // Weekly chart data (8 weeks)
 const CHART_DATA = [130, 150, 160, 140, 170, 155, 165, 175];
@@ -56,20 +73,52 @@ export function TokenHubRewards() {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   // Fetch data from API with fallback
-  const { data: rewardsApi } = useRewardsSummary();
+  const { data: rewardsApi, isLoading, error } = useRewardsSummary();
   const { data: historyApi } = useRewardsHistory();
   const { data: breakdownApi } = useRewardsBreakdown();
   const { data: epochApi } = useEpoch();
 
-  // Use API data or fallback
-  const rewardsSummary = rewardsApi ?? FALLBACK_REWARDS;
-  const history = historyApi ?? FALLBACK_HISTORY;
-  const breakdown = breakdownApi ?? FALLBACK_BREAKDOWN;
-  const epoch = epochApi ?? FALLBACK_EPOCH;
+  // Use API data or empty defaults
+  const rewardsSummary = rewardsApi ?? EMPTY_REWARDS;
+  const history = historyApi ?? EMPTY_HISTORY;
+  const breakdown = breakdownApi ?? EMPTY_BREAKDOWN;
+  const epoch = epochApi ?? EMPTY_EPOCH;
 
   const handleNavigate = useCallback((path: string) => {
     router.push(path);
   }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-8" aria-label={tCommon('loading.ariaLabel')}>
+        <div className="animate-pulse max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+          <div className="h-10 w-48 rounded bg-surface-secondary" />
+          <div className="h-32 rounded-2xl bg-surface-secondary" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 rounded-lg bg-surface-secondary" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <div className="h-96 rounded-lg bg-surface-secondary" />
+            <div className="h-64 rounded-lg bg-surface-secondary" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-danger" aria-hidden="true" />
+          <p className="mt-4 text-lg font-semibold text-foreground">{tCommon('error.loadFailed')}</p>
+          <p className="mt-2 text-sm text-foreground-secondary">{tCommon('error.tryAgain')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-8">

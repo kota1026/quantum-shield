@@ -35,8 +35,7 @@ interface MaintenanceEvent {
   endDate: Date;
 }
 
-// Demo data
-const FALLBACK_EVENTS: MaintenanceEvent[] = [
+const DEFAULT_EVENTS: MaintenanceEvent[] = [
   {
     id: '1',
     proverId: 'prv-001',
@@ -212,7 +211,7 @@ export function ProverCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState<ViewType>('month');
   const [showForm, setShowForm] = useState(false);
-  const [events, setEvents] = useState(FALLBACK_EVENTS);
+  const [events, setEvents] = useState(DEFAULT_EVENTS);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

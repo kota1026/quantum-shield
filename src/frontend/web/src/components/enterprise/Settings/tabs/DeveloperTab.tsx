@@ -19,7 +19,6 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useApiKeys, useWebhooks } from '@/hooks/enterprise';
-import { MOCK_API_KEYS as MOCK_API_KEYS_DATA, MOCK_WEBHOOKS as MOCK_WEBHOOKS_DATA } from '@/lib/api/enterprise/mock';
 
 interface ApiKey {
   id: string;
@@ -38,23 +37,6 @@ interface Webhook {
   lastTriggered: string | null;
 }
 
-// Fallback data for when API is unavailable
-const FALLBACK_API_KEYS: ApiKey[] = MOCK_API_KEYS_DATA.map(k => ({
-  id: k.id,
-  name: k.name,
-  prefix: k.maskedKey.split('...')[0] || 'qs_live_',
-  permissions: k.environment === 'production' ? ['read', 'write', 'delete'] : ['read'],
-  lastUsed: k.createdAt,
-  createdAt: k.createdAt,
-}));
-
-const FALLBACK_WEBHOOKS: Webhook[] = MOCK_WEBHOOKS_DATA.map(w => ({
-  id: w.id,
-  url: w.url,
-  events: w.events,
-  status: w.isActive ? 'active' : 'inactive',
-  lastTriggered: w.lastTriggered ?? null,
-}));
 
 export function DeveloperTab() {
   const t = useTranslations('enterprise.settings.developer');
@@ -70,7 +52,7 @@ export function DeveloperTab() {
     permissions: k.status === 'active' ? ['read', 'write', 'delete'] : ['read'],
     lastUsed: k.last_used ?? null,
     createdAt: k.created_at,
-  })) ?? FALLBACK_API_KEYS;
+  })) ?? [];
 
   const webhooks: Webhook[] = webhooksData?.webhooks?.map(w => ({
     id: w.id,
@@ -78,7 +60,7 @@ export function DeveloperTab() {
     events: w.events,
     status: w.is_active ? 'active' : 'inactive',
     lastTriggered: w.last_triggered ?? null,
-  })) ?? FALLBACK_WEBHOOKS;
+  })) ?? [];
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 

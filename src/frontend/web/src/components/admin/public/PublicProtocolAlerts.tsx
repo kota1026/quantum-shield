@@ -71,7 +71,7 @@ export function PublicProtocolAlerts() {
   const [activeTab, setActiveTab] = useState<'active' | 'acknowledged' | 'resolved' | 'all'>('active');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const mockAlerts: Alert[] = [
+  const SAMPLE_ALERTS: Alert[] = [
     {
       id: 'alert-001',
       type: 'critical',
@@ -120,10 +120,10 @@ export function PublicProtocolAlerts() {
   ];
 
   const tabs = [
-    { key: 'active', label: t('tabs.active'), count: mockAlerts.filter(a => a.status === 'active').length },
-    { key: 'acknowledged', label: t('tabs.acknowledged'), count: mockAlerts.filter(a => a.status === 'acknowledged').length },
-    { key: 'resolved', label: t('tabs.resolved'), count: mockAlerts.filter(a => a.status === 'resolved').length },
-    { key: 'all', label: t('tabs.all'), count: mockAlerts.length },
+    { key: 'active', label: t('tabs.active'), count: SAMPLE_ALERTS.filter(a => a.status === 'active').length },
+    { key: 'acknowledged', label: t('tabs.acknowledged'), count: SAMPLE_ALERTS.filter(a => a.status === 'acknowledged').length },
+    { key: 'resolved', label: t('tabs.resolved'), count: SAMPLE_ALERTS.filter(a => a.status === 'resolved').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_ALERTS.length },
   ];
 
   const getAlertIcon = (type: string) => {
@@ -180,7 +180,7 @@ export function PublicProtocolAlerts() {
     }
   };
 
-  const filteredAlerts = mockAlerts.filter((alert) => {
+  const filteredAlerts = SAMPLE_ALERTS.filter((alert) => {
     const matchesSearch =
       alert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       alert.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -218,25 +218,25 @@ export function PublicProtocolAlerts() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               label={t('stats.activeAlerts')}
-              value={String(mockAlerts.filter(a => a.status === 'active').length)}
+              value={String(SAMPLE_ALERTS.filter(a => a.status === 'active').length)}
               icon={<Bell className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.criticalAlerts')}
-              value={String(mockAlerts.filter(a => a.type === 'critical' && a.status === 'active').length)}
+              value={String(SAMPLE_ALERTS.filter(a => a.type === 'critical' && a.status === 'active').length)}
               icon={<AlertCircle className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.acknowledgedAlerts')}
-              value={String(mockAlerts.filter(a => a.status === 'acknowledged').length)}
+              value={String(SAMPLE_ALERTS.filter(a => a.status === 'acknowledged').length)}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.resolvedToday')}
-              value={String(mockAlerts.filter(a => a.status === 'resolved').length)}
+              value={String(SAMPLE_ALERTS.filter(a => a.status === 'resolved').length)}
               icon={<CheckCircle className="h-5 w-5" />}
               status="success"
             />

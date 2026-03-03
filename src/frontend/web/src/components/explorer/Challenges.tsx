@@ -27,14 +27,14 @@ import { useChallengeStats, useChallenges } from '@/hooks/explorer';
 import type { ChallengeStats, ChallengeDetail } from '@/lib/api/explorer/mock';
 
 // Empty initial state (no fake data)
-const FALLBACK_CHALLENGE_STATS: ChallengeStats = {
+const DEFAULT_CHALLENGE_STATS: ChallengeStats = {
   totalChallenges: 0,
   active: 0,
   resolved: 0,
   successRate: 0,
 };
 
-const FALLBACK_CHALLENGES: ChallengeDetail[] = [];
+const EMPTY_CHALLENGES: ChallengeDetail[] = [];
 
 interface ExplorerChallengesProps {
   locale?: string;
@@ -51,8 +51,8 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
   const { data: challengesApi } = useChallenges({ status: statusFilter });
 
   // Use API data with fallback
-  const mockStats = challengeStatsApi ?? FALLBACK_CHALLENGE_STATS;
-  const mockChallenges = challengesApi?.challenges ?? FALLBACK_CHALLENGES;
+  const stats = challengeStatsApi ?? DEFAULT_CHALLENGE_STATS;
+  const challenges = challengesApi?.challenges ?? EMPTY_CHALLENGES;
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -85,7 +85,7 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
     }
   };
 
-  const filteredChallenges = mockChallenges.filter((challenge) => {
+  const filteredChallenges = challenges.filter((challenge) => {
     if (statusFilter === 'all') return true;
     if (statusFilter === 'active') return challenge.status !== 'resolved';
     return challenge.status === statusFilter;
@@ -151,11 +151,11 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
             <h1 className="text-3xl font-bold">{t('challenges.pageTitle')}</h1>
             <div className="flex items-center gap-4 text-sm">
               <div className="text-right">
-                <span className="text-warning font-bold text-xl">{mockStats.active}</span>
+                <span className="text-warning font-bold text-xl">{stats.active}</span>
                 <span className="text-foreground-secondary ml-2">{t('challenges.stats.active')}</span>
               </div>
               <div className="text-right">
-                <span className="text-foreground font-bold text-xl">{mockStats.resolved}</span>
+                <span className="text-foreground font-bold text-xl">{stats.resolved}</span>
                 <span className="text-foreground-secondary ml-2">{t('challenges.stats.resolved')}</span>
               </div>
             </div>
@@ -168,28 +168,28 @@ export function ExplorerChallenges({ locale = 'ja' }: ExplorerChallengesProps) {
                 <AlertTriangle className="w-5 h-5 text-warning" />
                 <span className="text-sm text-foreground-secondary">{t('challenges.stats.totalChallenges')}</span>
               </div>
-              <div className="text-2xl font-bold">{mockStats.totalChallenges}</div>
+              <div className="text-2xl font-bold">{stats.totalChallenges}</div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <Clock className="w-5 h-5 text-gold" />
                 <span className="text-sm text-foreground-secondary">{t('challenges.stats.active')}</span>
               </div>
-              <div className="text-2xl font-bold text-warning">{mockStats.active}</div>
+              <div className="text-2xl font-bold text-warning">{stats.active}</div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <Gavel className="w-5 h-5 text-foreground-secondary" />
                 <span className="text-sm text-foreground-secondary">{t('challenges.stats.resolved')}</span>
               </div>
-              <div className="text-2xl font-bold">{mockStats.resolved}</div>
+              <div className="text-2xl font-bold">{stats.resolved}</div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <Shield className="w-5 h-5 text-success" />
                 <span className="text-sm text-foreground-secondary">{t('challenges.stats.successRate')}</span>
               </div>
-              <div className="text-2xl font-bold text-success">{mockStats.successRate}%</div>
+              <div className="text-2xl font-bold text-success">{stats.successRate}%</div>
             </Card>
           </div>
 

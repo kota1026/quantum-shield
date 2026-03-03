@@ -27,8 +27,8 @@ import { SettingsItem } from '@/components/consumer/Settings/SettingsItem';
 const VERSION = '1.0.0';
 const BUILD = '2026.01.16';
 
-// Fallback wallet address - In production, this comes from wallet connection
-const FALLBACK_WALLET_ADDRESS = '0x7a3f...9c2d';
+// Default wallet address - In production, this comes from wallet connection
+const DEFAULT_WALLET_ADDRESS = '0x7a3f...9c2d';
 
 export function GovernanceSettings() {
   const t = useTranslations('governance.settings');
@@ -133,7 +133,7 @@ export function GovernanceSettings() {
             description={t('account.connectedWallet.description')}
             action={{
               type: 'value',
-              value: FALLBACK_WALLET_ADDRESS,
+              value: DEFAULT_WALLET_ADDRESS,
               onClick: handleConnectedWallet,
             }}
           />

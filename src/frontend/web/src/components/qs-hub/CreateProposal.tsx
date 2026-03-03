@@ -18,7 +18,7 @@ import { Tooltip } from '@/components/shared/Tooltip';
 
 type Step = 'draft' | 'preview' | 'submit' | 'success';
 
-const FALLBACK_USER = {
+const DEFAULT_USER = {
   veQS: 125000,
   requiredVeQS: 100000,
 };
@@ -37,7 +37,7 @@ export function CreateProposal() {
     discussionLink: '',
   });
 
-  const canSubmit = FALLBACK_USER.veQS >= FALLBACK_USER.requiredVeQS;
+  const canSubmit = DEFAULT_USER.veQS >= DEFAULT_USER.requiredVeQS;
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -132,8 +132,8 @@ export function CreateProposal() {
                 <p className="font-medium text-warning">{t('requirements.notMet')}</p>
                 <p className="text-sm text-foreground-secondary">
                   {t('requirements.description', {
-                    required: FALLBACK_USER.requiredVeQS.toLocaleString(),
-                    current: FALLBACK_USER.veQS.toLocaleString(),
+                    required: DEFAULT_USER.requiredVeQS.toLocaleString(),
+                    current: DEFAULT_USER.veQS.toLocaleString(),
                   })}
                 </p>
               </div>
@@ -310,7 +310,7 @@ export function CreateProposal() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground-secondary">{t('submit.yourVeQS')}</span>
-                <span className="text-gold">{FALLBACK_USER.veQS.toLocaleString()} veQS</span>
+                <span className="text-gold">{DEFAULT_USER.veQS.toLocaleString()} veQS</span>
               </div>
             </div>
 

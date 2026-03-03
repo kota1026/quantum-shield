@@ -21,8 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AdminSidebarV2 } from '../AdminSidebarV2';
 
-// Mock data
-const mockSystemSettings = {
+// Default system settings
+const DEFAULT_SYSTEM_SETTINGS = {
   general: {
     siteName: 'Quantum Shield Admin',
     siteUrl: 'https://admin.quantumshield.io',
@@ -53,7 +53,7 @@ const mockSystemSettings = {
 
 export function SettingsSystem() {
   const t = useTranslations('admin.settingsSystem');
-  const [settings, setSettings] = useState(mockSystemSettings);
+  const [settings, setSettings] = useState(DEFAULT_SYSTEM_SETTINGS);
   const [hasChanges, setHasChanges] = useState(false);
 
   const handleToggle = (section: string, key: string) => {

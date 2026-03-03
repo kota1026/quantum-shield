@@ -22,8 +22,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AdminSidebarV2 } from '../AdminSidebarV2';
 
-// Mock data
-const mockMembers = [
+// Sample members data
+const SAMPLE_MEMBERS = [
   {
     id: 'member-001',
     name: '山田太郎',
@@ -76,7 +76,7 @@ const mockMembers = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   totalMembers: 5,
   activeMembers: 3,
   admins: 2,
@@ -89,10 +89,10 @@ export function SettingsMembers() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockMembers.length },
-    { key: 'active', label: t('tabs.active'), count: mockMembers.filter(m => m.status === 'active').length },
-    { key: 'invited', label: t('tabs.invited'), count: mockMembers.filter(m => m.status === 'invited').length },
-    { key: 'inactive', label: t('tabs.inactive'), count: mockMembers.filter(m => m.status === 'inactive').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_MEMBERS.length },
+    { key: 'active', label: t('tabs.active'), count: SAMPLE_MEMBERS.filter(m => m.status === 'active').length },
+    { key: 'invited', label: t('tabs.invited'), count: SAMPLE_MEMBERS.filter(m => m.status === 'invited').length },
+    { key: 'inactive', label: t('tabs.inactive'), count: SAMPLE_MEMBERS.filter(m => m.status === 'inactive').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -121,7 +121,7 @@ export function SettingsMembers() {
     }
   };
 
-  const filteredMembers = mockMembers.filter((member) => {
+  const filteredMembers = SAMPLE_MEMBERS.filter((member) => {
     const matchesSearch =
       member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.email.toLowerCase().includes(searchQuery.toLowerCase());
@@ -169,7 +169,7 @@ export function SettingsMembers() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.totalMembers')}</div>
-                  <div className="text-xl font-bold">{mockMetrics.totalMembers}</div>
+                  <div className="text-xl font-bold">{DEFAULT_METRICS.totalMembers}</div>
                 </div>
               </div>
             </Card>
@@ -180,7 +180,7 @@ export function SettingsMembers() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.activeMembers')}</div>
-                  <div className="text-xl font-bold">{mockMetrics.activeMembers}</div>
+                  <div className="text-xl font-bold">{DEFAULT_METRICS.activeMembers}</div>
                 </div>
               </div>
             </Card>
@@ -191,7 +191,7 @@ export function SettingsMembers() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.admins')}</div>
-                  <div className="text-xl font-bold">{mockMetrics.admins}</div>
+                  <div className="text-xl font-bold">{DEFAULT_METRICS.admins}</div>
                 </div>
               </div>
             </Card>
@@ -202,7 +202,7 @@ export function SettingsMembers() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.operators')}</div>
-                  <div className="text-xl font-bold">{mockMetrics.operators}</div>
+                  <div className="text-xl font-bold">{DEFAULT_METRICS.operators}</div>
                 </div>
               </div>
             </Card>

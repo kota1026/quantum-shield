@@ -24,16 +24,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuditLogStats, useAuditLogs } from '@/hooks/admin/useTreasury';
-import {
-  MOCK_AUDIT_LOG_STATS,
-  MOCK_AUDIT_LOGS,
-  type AuditLogStats,
-  type AuditLogEntry,
-} from '@/lib/api/admin/mock';
+import type { AuditLogStats, AuditLogEntry } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_AUDIT_LOG_STATS;
-const FALLBACK_LOGS = MOCK_AUDIT_LOGS;
+// Empty defaults when API data is unavailable
+const DEFAULT_STATS: AuditLogStats = { totalLogs: 0, logsThisWeek: 0, criticalEvents: 0, pendingReviews: 0 };
+const DEFAULT_LOGS: AuditLogEntry[] = [];
 
 const SEVERITY_COLORS = {
   info: 'bg-info/10 text-info',
@@ -136,8 +131,7 @@ function AuditLogError({ error, onRetry }: { error: Error; onRetry: () => void }
 
 // Map API log to component format
 function mapApiLog(data: unknown): AuditLogEntry {
-  if (!data || typeof data !== 'object') return FALLBACK_LOGS[0];
-  const d = data as Record<string, unknown>;
+  const d = (data && typeof data === 'object') ? data as Record<string, unknown> : {};
   return {
     id: (d.id as string) || '',
     action: (d.action as string) || '',
@@ -161,11 +155,11 @@ export function AuditLog() {
   const logsQuery = useAuditLogs();
 
   // Map API data or use fallback
-  const stats: AuditLogStats = statsQuery.data ?? FALLBACK_STATS;
+  const stats: AuditLogStats = statsQuery.data ?? DEFAULT_STATS;
   const apiLogs = logsQuery.data?.logs;
   const logs: AuditLogEntry[] = apiLogs
     ? apiLogs.map(mapApiLog)
-    : FALLBACK_LOGS;
+    : DEFAULT_LOGS;
 
   // Show skeleton only on initial load
   if (statsQuery.isLoading && !statsQuery.data && logsQuery.isLoading && !logsQuery.data) {

@@ -28,15 +28,15 @@ import { cn } from '@/lib/utils';
 import { useProverRequestStats, useProverRequests } from '@/hooks/admin/useProvers';
 import type { ProverApplication, ProverRequestStats } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: ProverRequestStats = {
+// Default data - Used when API is unavailable
+const DEFAULT_STATS: ProverRequestStats = {
   pendingRequests: 8,
   approvedThisMonth: 12,
   rejectedThisMonth: 3,
   avgProcessTime: '2.5 days',
 };
 
-interface FallbackRequest {
+interface DefaultRequest {
   id: string;
   applicant: string;
   wallet: string;
@@ -50,9 +50,9 @@ interface FallbackRequest {
 }
 
 // Union type for request items (API or fallback)
-type RequestItem = ProverApplication | FallbackRequest;
+type RequestItem = ProverApplication | DefaultRequest;
 
-const FALLBACK_REQUESTS: FallbackRequest[] = [
+const DEFAULT_REQUESTS: DefaultRequest[] = [
   { id: 'PR-001', applicant: 'Prover Alpha Corp', wallet: '0x1234...5678', stakeAmount: '10,000 QS', tier: 'enterprise', submittedAt: '2024-01-27 10:00', status: 'pending', documents: 5, infrastructure: 'AWS Tokyo' },
   { id: 'PR-002', applicant: 'Node Runner Ltd', wallet: '0x2345...6789', stakeAmount: '5,000 QS', tier: 'professional', submittedAt: '2024-01-26 14:30', status: 'pending', documents: 4, infrastructure: 'GCP Singapore' },
   { id: 'PR-003', applicant: 'Quantum Nodes Inc', wallet: '0x3456...7890', stakeAmount: '10,000 QS', tier: 'enterprise', submittedAt: '2024-01-25 09:15', status: 'under_review', documents: 6, infrastructure: 'Azure Japan' },
@@ -172,8 +172,8 @@ export function ProverRequests() {
   const requestsQuery = useProverRequests();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
-  const requests: RequestItem[] = requestsQuery.data?.applications ?? FALLBACK_REQUESTS;
+  const stats = statsQuery.data ?? DEFAULT_STATS;
+  const requests: RequestItem[] = requestsQuery.data?.applications ?? DEFAULT_REQUESTS;
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },

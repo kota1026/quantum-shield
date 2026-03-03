@@ -20,7 +20,7 @@ import { useCouncil } from '@/hooks/governance';
 import type { CouncilData } from '@/lib/api/governance/mock';
 
 // Empty initial state (no fake data)
-const FALLBACK_COUNCIL: CouncilData = {
+const EMPTY_COUNCIL: CouncilData = {
   securityCouncil: [],
   purposeCommittee: [],
   vetoHistory: [],
@@ -176,10 +176,40 @@ export function Council() {
   const [activeTab, setActiveTab] = useState<TabType>('status');
 
   // Fetch data using hooks
-  const { data: councilApi } = useCouncil();
+  const { data: councilApi, isLoading, error } = useCouncil();
+
+  if (isLoading) {
+    return (
+      <main className="relative min-h-screen bg-[#0a0a0c] pb-12" aria-label={t('ariaLabel')} role="main">
+        <div className="relative z-10 mx-auto max-w-6xl px-6 pt-8 animate-pulse space-y-6">
+          <div className="h-6 w-40 rounded bg-surface-secondary" />
+          <div className="h-10 w-64 rounded bg-surface-secondary" />
+          <div className="h-24 rounded-lg bg-surface-secondary" />
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div className="h-64 rounded-xl bg-surface-secondary" />
+            <div className="h-64 rounded-xl bg-surface-secondary" />
+          </div>
+          <div className="h-48 rounded-xl bg-surface-secondary" />
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="relative min-h-screen bg-[#0a0a0c] pb-12" aria-label={t('ariaLabel')} role="main">
+        <div className="flex h-[50vh] items-center justify-center">
+          <div className="text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-danger" />
+            <p className="mt-4 text-lg font-semibold text-foreground">{t('error')}</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   // Use API data with fallback
-  const councilData = councilApi ?? FALLBACK_COUNCIL;
+  const councilData = councilApi ?? EMPTY_COUNCIL;
   const securityCouncilMembers = councilData.securityCouncil;
   const purposeCommitteeMembers = councilData.purposeCommittee;
   const vetoHistory = councilData.vetoHistory;

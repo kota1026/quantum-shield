@@ -9,16 +9,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEmergencyResult } from '@/hooks/consumer';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_RESULT = {
-  txHash: '0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
-  amount: '12.5',
-  symbol: 'ETH',
-  bond: '0.625',
-  waitDays: 7,
-  completionDate: '2026-01-24 10:30 UTC',
-};
-
 function formatCountdown(totalSeconds: number): string {
   const days = Math.floor(totalSeconds / (24 * 3600));
   const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
@@ -34,10 +24,33 @@ export function EmergencySuccess() {
   const txId = searchParams.get('txId') || '';
 
   // Fetch data using hooks
-  const { data: resultDataApi } = useEmergencyResult(txId);
+  const { data: resultData, isLoading, error } = useEmergencyResult(txId);
 
-  // Use API data with fallback
-  const resultData = resultDataApi ?? FALLBACK_RESULT;
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-foreground-secondary">{t('success.title')}</div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !resultData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center px-6 max-w-md">
+          <AlertTriangle className="w-12 h-12 text-error mx-auto mb-4" />
+          <p className="text-foreground-secondary mb-4">
+            {error?.message || t('success.title')}
+          </p>
+          <Button variant="primary" asChild>
+            <Link href="/consumer/dashboard">{t('buttons.backToDashboard')}</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // 7 days countdown starting from ~6d 23:59:59
   const waitDays = resultData.waitDays;

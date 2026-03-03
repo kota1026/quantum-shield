@@ -33,8 +33,7 @@ interface ProverDetailProps {
   proverId: string;
 }
 
-// Demo prover data
-const FALLBACK_PROVER = {
+const DEFAULT_PROVER = {
   id: 'prv-001',
   name: 'Tokyo Primary',
   status: 'active' as ProverStatus,
@@ -53,7 +52,7 @@ const FALLBACK_PROVER = {
   publicEndpoint: 'https://prv-001.qs.acme.co',
 };
 
-const FALLBACK_METRICS = [
+const DEFAULT_METRICS = [
   { time: '00:00', signatures: 520, latency: 42 },
   { time: '04:00', signatures: 380, latency: 45 },
   { time: '08:00', signatures: 890, latency: 48 },
@@ -63,7 +62,7 @@ const FALLBACK_METRICS = [
   { time: '24:00', signatures: 620, latency: 43 },
 ];
 
-const FALLBACK_LOGS = [
+const DEFAULT_LOGS = [
   { timestamp: '2024-12-12 14:32:15', level: 'info', message: 'Signature batch processed successfully (256 signatures)' },
   { timestamp: '2024-12-12 14:30:00', level: 'info', message: 'Health check passed' },
   { timestamp: '2024-12-12 14:28:45', level: 'warn', message: 'Queue depth approaching threshold (85%)' },
@@ -88,7 +87,7 @@ export function ProverDetail({ proverId }: ProverDetailProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
 
-  const prover = FALLBACK_PROVER; // In production, fetch by proverId
+  const prover = DEFAULT_PROVER; // In production, fetch by proverId
 
   const tabs: { id: TabType; label: string }[] = [
     { id: 'overview', label: t('tabs.overview') },
@@ -288,7 +287,7 @@ export function ProverDetail({ proverId }: ProverDetailProps) {
               <h3 className="text-lg font-semibold mb-6">Performance Metrics (24h)</h3>
               {/* Simplified metrics visualization */}
               <div className="h-64 flex items-end gap-2 border-b border-l border-white/10 p-4">
-                {FALLBACK_METRICS.map((point, i) => (
+                {DEFAULT_METRICS.map((point, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-2">
                     <div
                       className="w-full bg-hinomaru/60 rounded-t"
@@ -313,7 +312,7 @@ export function ProverDetail({ proverId }: ProverDetailProps) {
                 </Button>
               </div>
               <div className="divide-y divide-white/5">
-                {FALLBACK_LOGS.map((log, i) => (
+                {DEFAULT_LOGS.map((log, i) => (
                   <div key={i} className="px-4 py-3 hover:bg-white/[0.02] transition-colors">
                     <div className="flex items-start gap-4">
                       <span className="text-xs text-foreground-tertiary font-mono whitespace-nowrap">

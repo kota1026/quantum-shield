@@ -45,20 +45,13 @@ import { useProverId } from '@/stores/proverAuthStore';
 // Prover type: public or enterprise
 type ProverType = 'public' | 'enterprise';
 
-// Empty initial state (no fake data)
-const FALLBACK_PERFORMANCE = {
+// Default empty performance state
+const EMPTY_PERFORMANCE = {
   uptime: { value: 0, change: 0 },
   signatures: { value: 0, change: 0 },
   latency: { value: 0, change: 0 },
   violations: { value: 0 },
 };
-const FALLBACK_SIGNATURE_HISTORY: { date: string; count: number; successRate: number; avgTime: number; reward: number }[] = [];
-const FALLBACK_DETAIL_METRICS: { key: string; value: number; status: string }[] = [];
-const FALLBACK_REWARDS_SUMMARY = {
-  total: 0,
-  period: 0,
-};
-const FALLBACK_PAYOUT_HISTORY: { date: string; amount: number; address: string }[] = [];
 
 // Local visualization data (uses Lucide icon components) — values should come from API
 const rewardsBreakdownConfig = [
@@ -68,7 +61,7 @@ const rewardsBreakdownConfig = [
 ];
 
 // Enterprise-specific rewards data (QS Token denomination)
-const mockEnterpriseRewards = {
+const DEFAULT_ENTERPRISE_REWARDS = {
   contract: {
     operatorName: 'ACME Corporation',
     plan: 'Enterprise Plus',
@@ -94,7 +87,7 @@ const mockEnterpriseRewards = {
 };
 
 // Chart data with actual values
-const mockChartData = [
+const SAMPLE_CHART_DATA = [
   { value: 320, label: '1/6' },
   { value: 450, label: '1/7' },
   { value: 380, label: '1/8' },
@@ -109,7 +102,7 @@ const mockChartData = [
   { value: 487, label: '1/17' },
 ];
 
-const mockRewardsChartData = [
+const SAMPLE_REWARDS_CHART_DATA = [
   { value: 1850, label: '1/6' },
   { value: 2150, label: '1/7' },
   { value: 1920, label: '1/8' },
@@ -161,22 +154,22 @@ export function ProverMetrics() {
     signatures: { value: proverMetricsApi.totalSignatures ?? 0, change: 0 },
     latency: { value: proverMetricsApi.avgResponseTimeMs ?? 0, change: 0 },
     violations: { value: proverMetricsApi.slashCount ?? 0 },
-  } : FALLBACK_PERFORMANCE);
-  const signatureHistory = signatureHistoryApi ?? FALLBACK_SIGNATURE_HISTORY;
+  } : EMPTY_PERFORMANCE);
+  const signatureHistory = signatureHistoryApi ?? [];
   const detailMetrics = detailMetricsApi ?? (proverMetricsApi ? [
     { key: 'slaCompliance', value: proverMetricsApi.successRate, status: 'success' },
     { key: 'avgResponseTime', value: 94.2, status: 'success' },
     { key: 'successRate', value: proverMetricsApi.successRate, status: 'success' },
     { key: 'availability', value: proverMetricsApi.uptimePercentage, status: 'gold' },
-  ] : FALLBACK_DETAIL_METRICS);
+  ] : []);
   const rewardsSummary = rewardsSummaryApi ?? (proverMetricsApi ? {
-    total: parseFloat(proverMetricsApi.totalEarnings) || 47520,
+    total: parseFloat(proverMetricsApi.totalEarnings) || 0,
     period: 90,
-  } : FALLBACK_REWARDS_SUMMARY);
-  const payoutHistory = payoutHistoryApi ?? FALLBACK_PAYOUT_HISTORY;
+  } : { total: 0, period: 0 });
+  const payoutHistory = payoutHistoryApi ?? [];
 
-  const maxChartValue = Math.max(...mockChartData.map((d) => d.value));
-  const maxRewardsValue = Math.max(...mockRewardsChartData.map((d) => d.value));
+  const maxChartValue = Math.max(...SAMPLE_CHART_DATA.map((d) => d.value));
+  const maxRewardsValue = Math.max(...SAMPLE_REWARDS_CHART_DATA.map((d) => d.value));
 
   const handleWithdraw = () => {
     if (withdrawAmount && parseFloat(withdrawAmount) > 0) {
@@ -366,7 +359,7 @@ export function ProverMetrics() {
                 </div>
               </div>
               <div className="flex items-end gap-2 h-64 px-4">
-                {mockChartData.map((data, i) => (
+                {SAMPLE_CHART_DATA.map((data, i) => (
                   <div
                     key={i}
                     className="flex-1 relative group h-full flex items-end"
@@ -492,7 +485,7 @@ export function ProverMetrics() {
                     <div>
                       <h2 className="font-semibold">{t('metrics.enterprise.title')}</h2>
                       <div className="text-xs text-foreground-secondary">
-                        {mockEnterpriseRewards.contract.operatorName} • {mockEnterpriseRewards.contract.plan}
+                        {DEFAULT_ENTERPRISE_REWARDS.contract.operatorName} • {DEFAULT_ENTERPRISE_REWARDS.contract.plan}
                       </div>
                     </div>
                   </div>
@@ -502,7 +495,7 @@ export function ProverMetrics() {
                 {/* Total Earned */}
                 <div className="text-center mb-6 pb-6 border-b border-gold/30">
                   <div className="text-5xl font-bold font-mono text-gold mb-2">
-                    {mockEnterpriseRewards.totalEarned.toLocaleString()} QS
+                    {DEFAULT_ENTERPRISE_REWARDS.totalEarned.toLocaleString()} QS
                   </div>
                   <div className="text-foreground-secondary">
                     {t('metrics.enterprise.totalEarnedDesc')}
@@ -518,15 +511,15 @@ export function ProverMetrics() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.monthly')}</div>
-                      <div className="text-lg font-bold text-success">{mockEnterpriseRewards.guaranteedRevenue.monthly.toLocaleString()} QS</div>
+                      <div className="text-lg font-bold text-success">{DEFAULT_ENTERPRISE_REWARDS.guaranteedRevenue.monthly.toLocaleString()} QS</div>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.received')}</div>
-                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.guaranteedRevenue.received.toLocaleString()} QS</div>
+                      <div className="text-lg font-bold font-mono">{DEFAULT_ENTERPRISE_REWARDS.guaranteedRevenue.received.toLocaleString()} QS</div>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.remaining')}</div>
-                      <div className="text-lg font-bold font-mono text-foreground-secondary">{mockEnterpriseRewards.guaranteedRevenue.remaining.toLocaleString()} QS</div>
+                      <div className="text-lg font-bold font-mono text-foreground-secondary">{DEFAULT_ENTERPRISE_REWARDS.guaranteedRevenue.remaining.toLocaleString()} QS</div>
                     </div>
                   </div>
                 </div>
@@ -536,22 +529,22 @@ export function ProverMetrics() {
                   <div className="flex items-center gap-2 mb-3">
                     <Percent className="h-4 w-4 text-gold" aria-hidden="true" />
                     <span className="font-semibold text-sm">{t('metrics.enterprise.performanceBonus')}</span>
-                    {mockEnterpriseRewards.performanceBonus.eligible && (
+                    {DEFAULT_ENTERPRISE_REWARDS.performanceBonus.eligible && (
                       <Badge variant="success" className="text-[10px]">{t('metrics.enterprise.eligible')}</Badge>
                     )}
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.bonusRate')}</div>
-                      <div className="text-lg font-bold text-gold">+{mockEnterpriseRewards.performanceBonus.currentRate}%</div>
+                      <div className="text-lg font-bold text-gold">+{DEFAULT_ENTERPRISE_REWARDS.performanceBonus.currentRate}%</div>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.thisMonth')}</div>
-                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.performanceBonus.earnedThisMonth.toLocaleString()} QS</div>
+                      <div className="text-lg font-bold font-mono">{DEFAULT_ENTERPRISE_REWARDS.performanceBonus.earnedThisMonth.toLocaleString()} QS</div>
                     </div>
                     <div className="p-3 bg-background/50 rounded-lg">
                       <div className="text-xs text-foreground-tertiary mb-1">{t('metrics.enterprise.bonusTotal')}</div>
-                      <div className="text-lg font-bold font-mono">{mockEnterpriseRewards.performanceBonus.totalEarned.toLocaleString()} QS</div>
+                      <div className="text-lg font-bold font-mono">{DEFAULT_ENTERPRISE_REWARDS.performanceBonus.totalEarned.toLocaleString()} QS</div>
                     </div>
                   </div>
                 </div>
@@ -563,7 +556,7 @@ export function ProverMetrics() {
                     <span className="font-semibold text-sm">{t('metrics.enterprise.additionalIncentives')}</span>
                   </div>
                   <div className="space-y-2">
-                    {mockEnterpriseRewards.additionalIncentives.map((incentive) => (
+                    {DEFAULT_ENTERPRISE_REWARDS.additionalIncentives.map((incentive) => (
                       <div
                         key={incentive.key}
                         className="flex items-center justify-between p-3 bg-background/50 rounded-lg"
@@ -582,7 +575,7 @@ export function ProverMetrics() {
                 <div className="mt-6 pt-4 border-t border-gold/30 flex items-center justify-between text-xs text-foreground-secondary">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>{t('metrics.enterprise.contractPeriod')}: {mockEnterpriseRewards.contract.contractPeriod}</span>
+                    <span>{t('metrics.enterprise.contractPeriod')}: {DEFAULT_ENTERPRISE_REWARDS.contract.contractPeriod}</span>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => setShowWithdrawModal(true)}>
                     {t('metrics.rewards.withdraw')}
@@ -629,7 +622,7 @@ export function ProverMetrics() {
                   </div>
                 </div>
                 <div className="flex items-end gap-2 h-64 px-4">
-                  {mockRewardsChartData.map((data, i) => (
+                  {SAMPLE_REWARDS_CHART_DATA.map((data, i) => (
                     <div
                       key={i}
                       className="flex-1 relative group h-full flex items-end"

@@ -31,15 +31,15 @@ import { useProverStats, useProverList } from '@/hooks/admin/useProvers';
 import type { ProverStats } from '@/lib/api/admin/mock';
 import type { ProverListItem } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: ProverStats = {
+// Default data - Used when API is unavailable
+const DEFAULT_STATS: ProverStats = {
   totalProvers: 156,
   activeProvers: 142,
   totalStaked: '1,250,000 QS',
   avgUptime: '99.2%',
 };
 
-interface FallbackProver {
+interface DefaultProver {
   id: string;
   name: string;
   wallet: string;
@@ -53,7 +53,7 @@ interface FallbackProver {
   memory: string;
 }
 
-const FALLBACK_PROVERS: FallbackProver[] = [
+const DEFAULT_PROVERS: DefaultProver[] = [
   { id: 'PV-001', name: 'Prover Alpha Corp', wallet: '0x1234...5678', staked: '50,000 QS', uptime: '99.9%', proofCount: 12450, lastProof: '2024-01-27 14:30', status: 'active', tier: 'enterprise', cpu: '85%', memory: '72%' },
   { id: 'PV-002', name: 'Node Runner Ltd', wallet: '0x2345...6789', staked: '25,000 QS', uptime: '99.5%', proofCount: 8920, lastProof: '2024-01-27 14:28', status: 'active', tier: 'professional', cpu: '65%', memory: '58%' },
   { id: 'PV-003', name: 'Quantum Nodes Inc', wallet: '0x3456...7890', staked: '50,000 QS', uptime: '98.8%', proofCount: 15600, lastProof: '2024-01-27 14:25', status: 'active', tier: 'enterprise', cpu: '78%', memory: '82%' },
@@ -179,8 +179,8 @@ export function ProverList() {
   const proversQuery = useProverList();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
-  const provers = proversQuery.data?.provers ?? FALLBACK_PROVERS;
+  const stats = statsQuery.data ?? DEFAULT_STATS;
+  const provers = proversQuery.data?.provers ?? DEFAULT_PROVERS;
 
   const statusFilters = [
     { key: 'all', label: tCommon('all') },

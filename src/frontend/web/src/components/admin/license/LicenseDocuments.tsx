@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { AdminSidebarV2 } from '../AdminSidebarV2';
 
 // Mock data
-const mockDocumentsData = {
+const DEFAULT_DOCUMENTS_DATA = {
   overview: {
     totalDocuments: '156',
     categories: '8',
@@ -121,7 +121,7 @@ export function LicenseDocuments() {
     }
   };
 
-  const filteredDocuments = mockDocumentsData.documents.filter((doc) => {
+  const filteredDocuments = DEFAULT_DOCUMENTS_DATA.documents.filter((doc) => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -159,7 +159,7 @@ export function LicenseDocuments() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.totalDocuments')}</div>
-                  <div className="text-xl font-bold">{mockDocumentsData.overview.totalDocuments}</div>
+                  <div className="text-xl font-bold">{DEFAULT_DOCUMENTS_DATA.overview.totalDocuments}</div>
                 </div>
               </div>
             </Card>
@@ -170,7 +170,7 @@ export function LicenseDocuments() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.categories')}</div>
-                  <div className="text-xl font-bold">{mockDocumentsData.overview.categories}</div>
+                  <div className="text-xl font-bold">{DEFAULT_DOCUMENTS_DATA.overview.categories}</div>
                 </div>
               </div>
             </Card>
@@ -181,7 +181,7 @@ export function LicenseDocuments() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.recentUpdates')}</div>
-                  <div className="text-xl font-bold">{mockDocumentsData.overview.recentUpdates}</div>
+                  <div className="text-xl font-bold">{DEFAULT_DOCUMENTS_DATA.overview.recentUpdates}</div>
                 </div>
               </div>
             </Card>
@@ -192,7 +192,7 @@ export function LicenseDocuments() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.pendingReviews')}</div>
-                  <div className="text-xl font-bold">{mockDocumentsData.overview.pendingReviews}</div>
+                  <div className="text-xl font-bold">{DEFAULT_DOCUMENTS_DATA.overview.pendingReviews}</div>
                 </div>
               </div>
             </Card>
@@ -218,11 +218,11 @@ export function LicenseDocuments() {
                     <div className="flex items-center justify-between">
                       <span>{t('categories.all')}</span>
                       <Badge size="sm" variant={selectedCategory === 'all' ? 'gold' : 'default'}>
-                        {mockDocumentsData.overview.totalDocuments}
+                        {DEFAULT_DOCUMENTS_DATA.overview.totalDocuments}
                       </Badge>
                     </div>
                   </button>
-                  {mockDocumentsData.categories.map((category) => (
+                  {DEFAULT_DOCUMENTS_DATA.categories.map((category) => (
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id)}
@@ -310,7 +310,7 @@ export function LicenseDocuments() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockDocumentsData.recentActivity.map((activity, index) => (
+                    {DEFAULT_DOCUMENTS_DATA.recentActivity.map((activity, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between rounded-lg border border-surface-tertiary p-3"

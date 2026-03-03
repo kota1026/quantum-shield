@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_ALERTS = [
+const DEFAULT_ALERTS = [
   { id: 1, level: 'warning', source: 'Prover Network', message: 'Prover node #12 response time degraded', timestamp: '2024-01-27 14:30', status: 'active', actionLink: '/qs-admin/prover/list/PRV-012', actionLabel: 'Prover詳細を確認' },
   { id: 2, level: 'info', source: 'System', message: 'System maintenance scheduled for tonight', timestamp: '2024-01-27 10:00', status: 'acknowledged', actionLink: '/qs-admin/system/maintenance', actionLabel: 'メンテナンス管理' },
   { id: 3, level: 'critical', source: 'API Server', message: 'High memory usage detected', timestamp: '2024-01-27 09:15', status: 'resolved', actionLink: '/qs-admin/system/logs', actionLabel: 'システムログ確認' },
@@ -59,7 +59,7 @@ export function AlertsList() {
     { key: 'resolved', label: t('status.resolved') },
   ];
 
-  const filteredAlerts = FALLBACK_ALERTS.filter(alert => {
+  const filteredAlerts = DEFAULT_ALERTS.filter(alert => {
     if (statusFilter !== 'all' && alert.status !== statusFilter) return false;
     if (searchQuery && !alert.message.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !alert.source.toLowerCase().includes(searchQuery.toLowerCase())) return false;

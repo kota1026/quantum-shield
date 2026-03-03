@@ -81,7 +81,7 @@ l1:
     enabled: false
     min_stake: "10000000000000000"         # 0.01 ETH (testnet default)
   slashing:
-    l1_execution: false
+    l1_execution: true                   # Enabled: quadratic slashing writes to L1 ProverRegistry
   # prover_registry_address: "0x..."      # Set when deployed to Sepolia/mainnet
 
 # L1 Sepolia Configuration (Phase 8-D)

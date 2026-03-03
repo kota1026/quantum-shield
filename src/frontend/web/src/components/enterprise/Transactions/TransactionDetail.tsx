@@ -10,8 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileText } from 'lucide-react';
 import Link from 'next/link';
 
-// Demo data - In production, this would come from API
-const FALLBACK_TRANSACTION: TransactionInfo = {
+const DEFAULT_TRANSACTION: TransactionInfo = {
   txHash: '0x7a3f9d2e4b1c8f5a6d3e2b1a0c9f8e7d6c5b4a3f9d2e4b1c8f5a6d3e2b1a0c9f',
   type: 'lock',
   amount: '5.00 ETH',
@@ -27,7 +26,7 @@ const FALLBACK_TRANSACTION: TransactionInfo = {
   signatureAlgorithm: 'CRYSTALS-Dilithium',
 };
 
-const FALLBACK_TIMELINE: TimelineEvent[] = [
+const DEFAULT_TIMELINE: TimelineEvent[] = [
   { id: '1', titleKey: 'submitted', timestamp: '2026-01-11 14:32:15 JST', status: 'complete' },
   { id: '2', titleKey: 'quantumVerified', timestamp: '2026-01-11 14:32:16 JST', status: 'complete' },
   { id: '3', titleKey: 'proverAttestation', timestamp: '2026-01-11 14:32:18 JST', status: 'complete' },
@@ -35,14 +34,14 @@ const FALLBACK_TIMELINE: TimelineEvent[] = [
   { id: '5', titleKey: 'complete', timestamp: '2026-01-11 14:32:45 JST', status: 'complete' },
 ];
 
-const FALLBACK_PROVER: ProverAttestation = {
+const DEFAULT_PROVER: ProverAttestation = {
   proverId: 'prover_001',
   attestationHash: '0xatt...789f',
   stakeAmount: '100 ETH',
   verificationTime: '1.2s',
 };
 
-const FALLBACK_AUDIT: AuditTrail = {
+const DEFAULT_AUDIT: AuditTrail = {
   organization: 'Acme Corp',
   apiKey: 'qs_live_...7a3f',
   ipAddress: '203.0.113.42',
@@ -92,14 +91,14 @@ export function TransactionDetail({ transactionId }: TransactionDetailProps) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - 2/3 width */}
             <div className="lg:col-span-2 space-y-8">
-              <TransactionInfoCard transaction={FALLBACK_TRANSACTION} />
-              <ProverAttestationCard attestation={FALLBACK_PROVER} />
+              <TransactionInfoCard transaction={DEFAULT_TRANSACTION} />
+              <ProverAttestationCard attestation={DEFAULT_PROVER} />
             </div>
 
             {/* Right Column - 1/3 width */}
             <div className="space-y-8">
-              <TransactionTimeline events={FALLBACK_TIMELINE} />
-              <AuditTrailCard audit={FALLBACK_AUDIT} />
+              <TransactionTimeline events={DEFAULT_TIMELINE} />
+              <AuditTrailCard audit={DEFAULT_AUDIT} />
             </div>
           </div>
         </main>

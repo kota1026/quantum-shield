@@ -15,7 +15,7 @@
 
 use ethers::prelude::*;
 use std::sync::Arc;
-use tracing::{info, warn};
+use tracing::info;
 
 use crate::error::ApiError;
 

@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useEmergencyStatus, useExecutePause, useExecuteUnpause } from '@/hooks/admin/useEmergencyPause';
 
 // Status Banner component
 function StatusBanner({ isOperational }: { isOperational: boolean }) {
@@ -276,7 +277,10 @@ function ConfirmModal({ isOpen, onClose, onConfirm }: ConfirmModalProps) {
 
 export function AdminEmergency() {
   const t = useTranslations('admin.emergency');
-  const [isOperational, setIsOperational] = useState(true);
+  const { data: emergencyStatus, isLoading, error } = useEmergencyStatus();
+  const executePause = useExecutePause();
+  const executeUnpause = useExecuteUnpause();
+  const isOperational = !emergencyStatus || emergencyStatus.state === 'active';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [checklist, setChecklist] = useState<Record<string, boolean>>({
     severity: false,
@@ -291,10 +295,35 @@ export function AdminEmergency() {
   };
 
   const handlePauseConfirm = () => {
-    setIsOperational(false);
-    setIsModalOpen(false);
-    // In production, this would trigger an API call
+    executePause.mutate(
+      { scope: 'full', reason: 'Emergency pause via admin console' },
+      {
+        onSuccess: () => {
+          setIsModalOpen(false);
+        },
+      }
+    );
   };
+
+  const handleResume = () => {
+    executeUnpause.mutate({ reason: 'System resume via admin console' });
+  };
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-background pl-[260px]" role="main">
+        <div className="p-6 lg:p-8">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 w-64 rounded bg-surface-secondary" />
+            <div className="grid grid-cols-2 gap-6">
+              <div className="h-80 rounded-lg bg-surface-secondary" />
+              <div className="h-80 rounded-lg bg-surface-secondary" />
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const recoverySteps = [
     { title: t('recovery.steps.step1.title'), description: t('recovery.steps.step1.description') },
@@ -313,12 +342,12 @@ export function AdminEmergency() {
     { id: 'recovery', label: t('checklist.items.recovery') },
   ];
 
-  const historyItems = [
-    { type: 'resume' as const, title: t('history.resumed'), time: '2025-12-15 16:42:00', duration: '4h 23m' },
-    { type: 'pause' as const, title: `${t('history.paused')} - L1 Gas Spike`, time: '2025-12-15 12:19:00' },
-    { type: 'resume' as const, title: t('history.resumed'), time: '2025-11-28 09:15:00', duration: '2h 45m' },
-    { type: 'pause' as const, title: t('history.maintenance'), time: '2025-11-28 06:30:00' },
-  ];
+  const historyItems = (emergencyStatus?.history ?? []).map(item => ({
+    type: item.type === 'pause' ? 'pause' as const : 'resume' as const,
+    title: item.type === 'pause' ? `${t('history.paused')} - ${item.reason}` : t('history.resumed'),
+    time: item.timestamp,
+    duration: item.duration,
+  }));
 
   return (
     <main
@@ -347,17 +376,17 @@ export function AdminEmergency() {
               <div className="py-6 text-center">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(true)}
-                  disabled={!isOperational}
+                  onClick={() => isOperational ? setIsModalOpen(true) : handleResume()}
+                  disabled={false}
                   className={cn(
                     'mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full border-[3px] transition-all',
                     isOperational
                       ? 'border-hinomaru bg-hinomaru/10 text-hinomaru hover:scale-105 hover:bg-hinomaru hover:text-white hover:shadow-[0_0_40px_rgba(188,0,45,0.4)]'
-                      : 'cursor-not-allowed border-foreground-tertiary bg-surface-secondary text-foreground-tertiary'
+                      : 'border-success bg-success/10 text-success hover:scale-105 hover:bg-success hover:text-white hover:shadow-[0_0_40px_rgba(34,197,94,0.4)]'
                   )}
-                  aria-label={t('pauseControl.executeButton')}
+                  aria-label={isOperational ? t('pauseControl.executeButton') : t('pauseControl.systemPause')}
                 >
-                  <Pause className="h-12 w-12" />
+                  {isOperational ? <Pause className="h-12 w-12" /> : <Play className="h-12 w-12" />}
                 </button>
                 <h3 className="mb-2 text-lg font-semibold text-foreground">
                   {t('pauseControl.systemPause')}

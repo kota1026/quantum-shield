@@ -12,19 +12,6 @@ import { BarChart3, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useTransactions } from '@/hooks/enterprise';
 
-// Demo data - In production, this would come from API
-const FALLBACK_TRANSACTIONS: Transaction[] = [
-  { id: '1', txHash: '0x7a3f...9c2d', type: 'lock', amount: '5.00 ETH', fromAddress: '0x1234...5678', status: 'complete', timestamp: '2026-01-11 14:32' },
-  { id: '2', txHash: '0x3b2e...1f4a', type: 'unlock', amount: '2.50 ETH', fromAddress: '0x9abc...def0', status: 'pending', statusLabel: '24h Lock', timestamp: '2026-01-11 14:17' },
-  { id: '3', txHash: '0x9d1c...8e5b', type: 'lock', amount: '10.00 ETH', fromAddress: '0x5678...9012', status: 'complete', timestamp: '2026-01-11 14:00' },
-  { id: '4', txHash: '0x5e7d...2a9f', type: 'emergency', amount: '1.25 ETH', fromAddress: '0x3456...7890', status: 'pending', statusLabel: '7d Lock', timestamp: '2026-01-11 13:32' },
-  { id: '5', txHash: '0x2f4a...6c3e', type: 'lock', amount: '15.00 ETH', fromAddress: '0x7890...1234', status: 'complete', timestamp: '2026-01-11 12:45' },
-  { id: '6', txHash: '0x8c3d...4b2a', type: 'unlock', amount: '3.75 ETH', fromAddress: '0xabcd...ef01', status: 'complete', timestamp: '2026-01-11 11:20' },
-  { id: '7', txHash: '0x1a5b...7d8e', type: 'lock', amount: '8.50 ETH', fromAddress: '0x2345...6789', status: 'complete', timestamp: '2026-01-11 10:15' },
-  { id: '8', txHash: '0x6e9f...3c1d', type: 'lock', amount: '20.00 ETH', fromAddress: '0x8901...2345', status: 'complete', timestamp: '2026-01-11 09:00' },
-];
-
-const TOTAL_TRANSACTIONS = 12847;
 const PAGE_SIZE = 20;
 
 export function TransactionList() {
@@ -60,9 +47,9 @@ export function TransactionList() {
     fromAddress: tx.user_address ?? '0x...',
     status: tx.status as Transaction['status'],
     timestamp: tx.time,
-  })) ?? FALLBACK_TRANSACTIONS;
+  })) ?? [];
 
-  const totalTransactions = transactionsData?.total ?? TOTAL_TRANSACTIONS;
+  const totalTransactions = transactionsData?.total ?? 0;
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {

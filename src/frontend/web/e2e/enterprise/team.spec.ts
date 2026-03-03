@@ -74,7 +74,7 @@ test.describe('Enterprise Team', () => {
     });
 
     test('should have accessible navigation', async ({ page }) => {
-      await expect(page.getByRole('navigation')).toBeVisible();
+      await expect(page.getByRole('navigation').first()).toBeVisible();
       await expect(page.getByRole('main')).toBeVisible();
     });
 

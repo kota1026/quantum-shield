@@ -21,12 +21,17 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod config;
+#[allow(dead_code)]
 pub mod crypto;
 pub mod db;
 mod error;
+#[allow(dead_code)]
 mod middleware;
+#[allow(dead_code)]
 mod routes;
+#[allow(dead_code)]
 mod services;
+#[allow(dead_code)]
 mod types;
 
 use config::Config;

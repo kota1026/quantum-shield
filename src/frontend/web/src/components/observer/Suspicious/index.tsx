@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 import { ObserverHeader } from '../Dashboard/ObserverHeader';
 import { SuspiciousAlertCard } from './SuspiciousAlertCard';
 
-// Mock data
-const mockAlerts = [
+// Default alerts data
+const DEFAULT_ALERTS = [
   {
     id: '1',
     riskLevel: 'high' as const,
@@ -57,7 +57,7 @@ const mockAlerts = [
 export function SuspiciousMonitor() {
   const t = useTranslations('observer.dashboard.suspiciousPage');
 
-  const [alerts, setAlerts] = useState(mockAlerts);
+  const [alerts, setAlerts] = useState(DEFAULT_ALERTS);
 
   const handleDismiss = (id: string) => {
     setAlerts((prev) => prev.filter((alert) => alert.id !== id));

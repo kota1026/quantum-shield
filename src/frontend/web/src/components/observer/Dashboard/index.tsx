@@ -19,14 +19,11 @@ import {
   useActiveChallenges,
 } from '@/hooks/observer';
 
-// Empty initial state (no fake data)
-const FALLBACK_OBSERVER_DATA = {
+// Default observer data for practice period calculation
+const DEFAULT_OBSERVER_DATA = {
   registrationDate: new Date().toISOString().split('T')[0],
   practicePeriodMonths: 3,
 };
-const FALLBACK_PENDING_UNLOCKS: { id: string; address: string; amount: string; type: 'normal' | 'emergency'; timeRemaining: string; riskScore: number; status: 'monitoring' | 'pending' }[] = [];
-const FALLBACK_SUSPICIOUS: { id: string; address: string; amount: string; type: 'normal' | 'emergency'; riskLevel: 'high' | 'medium' | 'low'; score: number; reason: string }[] = [];
-const FALLBACK_CHALLENGES: { id: string; challengeId: string; targetAddress: string; amount: string; status: 'defense' | 'judgment' | 'pending'; countdown: string; progress: number }[] = [];
 
 export function ObserverDashboard() {
   const t = useTranslations('observer.dashboard');
@@ -38,11 +35,11 @@ export function ObserverDashboard() {
   const { data: suspiciousApi } = useSuspiciousTransactions();
   const { data: activeChallengesApi } = useActiveChallenges();
 
-  // Use API data with fallback
-  const observerData = observerDataApi ?? FALLBACK_OBSERVER_DATA;
-  const pendingUnlocks = pendingUnlocksApi?.items ?? FALLBACK_PENDING_UNLOCKS;
-  const suspiciousTransactions = suspiciousApi ?? FALLBACK_SUSPICIOUS;
-  const activeChallenges = activeChallengesApi ?? FALLBACK_CHALLENGES;
+  // Use API data with safe defaults
+  const observerData = observerDataApi ?? DEFAULT_OBSERVER_DATA;
+  const pendingUnlocks = pendingUnlocksApi?.items ?? [];
+  const suspiciousTransactions = suspiciousApi ?? [];
+  const activeChallenges = activeChallengesApi ?? [];
 
   // Calculate practice mode from observer data
   const { isInPracticePeriod, daysRemaining } = useMemo(() => {

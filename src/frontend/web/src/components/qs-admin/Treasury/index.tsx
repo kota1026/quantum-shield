@@ -19,8 +19,8 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-// Demo data - In production, this would come from API
-const FALLBACK_STATS = {
+// Default data - In production, this would come from API
+const DEFAULT_STATS = {
   totalBalance: '125,000 ETH',
   totalUsd: '$312,500,000',
   walletsCount: 5,
@@ -28,7 +28,7 @@ const FALLBACK_STATS = {
   pendingApprovals: 2,
 };
 
-const FALLBACK_WALLETS = [
+const DEFAULT_WALLETS = [
   {
     id: 'main',
     name: 'main',
@@ -76,7 +76,7 @@ const FALLBACK_WALLETS = [
   },
 ];
 
-const FALLBACK_PENDING_TRANSFERS = [
+const DEFAULT_PENDING_TRANSFERS = [
   {
     id: 'TXF-001',
     from: 'operational',
@@ -99,7 +99,7 @@ const FALLBACK_PENDING_TRANSFERS = [
   },
 ];
 
-const FALLBACK_RECENT_TRANSFERS = [
+const DEFAULT_RECENT_TRANSFERS = [
   {
     id: 'TXF-100',
     from: 'main',
@@ -196,26 +196,26 @@ export function TreasuryDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title={t('wallets.balance')}
-          value={FALLBACK_STATS.totalBalance}
-          subValue={FALLBACK_STATS.totalUsd}
+          value={DEFAULT_STATS.totalBalance}
+          subValue={DEFAULT_STATS.totalUsd}
           icon={Wallet}
           trend={{ value: 5.2, isPositive: true, label: tCommon('trend.fromLastWeek') }}
         />
         <StatCard
           title={t('wallets.title')}
-          value={FALLBACK_STATS.walletsCount}
+          value={DEFAULT_STATS.walletsCount}
           icon={Shield}
           href="/qs-admin/treasury/wallets"
         />
         <StatCard
           title={t('transfers.pendingApprovals')}
-          value={FALLBACK_STATS.pendingApprovals}
+          value={DEFAULT_STATS.pendingApprovals}
           icon={Clock}
           href="/qs-admin/treasury/transfers"
         />
         <StatCard
           title={t('transfers.title')}
-          value={FALLBACK_STATS.pendingTransfers}
+          value={DEFAULT_STATS.pendingTransfers}
           icon={Send}
           href="/qs-admin/treasury/transfers"
         />
@@ -236,7 +236,7 @@ export function TreasuryDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {FALLBACK_WALLETS.map((wallet) => (
+              {DEFAULT_WALLETS.map((wallet) => (
                 <div
                   key={wallet.id}
                   className="flex items-center justify-between p-4 rounded-lg bg-surface hover:bg-surface/80 transition-colors"
@@ -268,9 +268,9 @@ export function TreasuryDashboard() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center">
               {t('transfers.pendingApprovals')}
-              {FALLBACK_PENDING_TRANSFERS.length > 0 && (
+              {DEFAULT_PENDING_TRANSFERS.length > 0 && (
                 <span className="ml-2 px-2 py-0.5 bg-warning/10 text-warning text-xs rounded-full">
-                  {FALLBACK_PENDING_TRANSFERS.length}
+                  {DEFAULT_PENDING_TRANSFERS.length}
                 </span>
               )}
             </CardTitle>
@@ -283,7 +283,7 @@ export function TreasuryDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {FALLBACK_PENDING_TRANSFERS.map((transfer) => (
+              {DEFAULT_PENDING_TRANSFERS.map((transfer) => (
                 <div
                   key={transfer.id}
                   className="p-4 rounded-lg border border-border hover:border-hinomaru/30 transition-colors"
@@ -315,7 +315,7 @@ export function TreasuryDashboard() {
                   </div>
                 </div>
               ))}
-              {FALLBACK_PENDING_TRANSFERS.length === 0 && (
+              {DEFAULT_PENDING_TRANSFERS.length === 0 && (
                 <p className="text-center py-8 text-foreground-secondary">
                   {t('empty')}
                 </p>
@@ -351,7 +351,7 @@ export function TreasuryDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {FALLBACK_RECENT_TRANSFERS.map((transfer) => (
+                {DEFAULT_RECENT_TRANSFERS.map((transfer) => (
                   <tr
                     key={transfer.id}
                     className="border-b border-border hover:bg-surface transition-colors"

@@ -64,7 +64,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockSlaData = [
+const SAMPLE_SLA_DATA = [
   {
     id: 'sla-001',
     operatorId: 'op-001',
@@ -142,7 +142,7 @@ const mockSlaData = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   avgSlaCompliance: 98.9,
   operatorsMeetingSla: 4,
   operatorsAtRisk: 1,
@@ -153,13 +153,13 @@ const mockMetrics = {
 export function SaasProverSla() {
   const t = useTranslations('admin.saasProverSla');
   const [activeTab, setActiveTab] = useState<'all' | 'meeting' | 'at_risk' | 'breach'>('all');
-  const [selectedSla, setSelectedSla] = useState<typeof mockSlaData[0] | null>(mockSlaData[0]);
+  const [selectedSla, setSelectedSla] = useState<typeof SAMPLE_SLA_DATA[0] | null>(SAMPLE_SLA_DATA[0]);
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockSlaData.length },
-    { key: 'meeting', label: t('tabs.meeting'), count: mockSlaData.filter(s => s.status === 'meeting' || s.status === 'exceeding').length },
-    { key: 'at_risk', label: t('tabs.atRisk'), count: mockSlaData.filter(s => s.status === 'at_risk').length },
-    { key: 'breach', label: t('tabs.breach'), count: mockSlaData.filter(s => s.status === 'breach').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_SLA_DATA.length },
+    { key: 'meeting', label: t('tabs.meeting'), count: SAMPLE_SLA_DATA.filter(s => s.status === 'meeting' || s.status === 'exceeding').length },
+    { key: 'at_risk', label: t('tabs.atRisk'), count: SAMPLE_SLA_DATA.filter(s => s.status === 'at_risk').length },
+    { key: 'breach', label: t('tabs.breach'), count: SAMPLE_SLA_DATA.filter(s => s.status === 'breach').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -191,7 +191,7 @@ export function SaasProverSla() {
     return 'bg-danger';
   };
 
-  const filteredSlaData = mockSlaData.filter((sla) => {
+  const filteredSlaData = SAMPLE_SLA_DATA.filter((sla) => {
     if (activeTab === 'all') return true;
     if (activeTab === 'meeting') return sla.status === 'meeting' || sla.status === 'exceeding';
     return sla.status === activeTab;
@@ -224,29 +224,29 @@ export function SaasProverSla() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.avgCompliance')}
-              value={`${mockMetrics.avgSlaCompliance}%`}
+              value={`${DEFAULT_METRICS.avgSlaCompliance}%`}
               icon={<Shield className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.meetingSla')}
-              value={String(mockMetrics.operatorsMeetingSla)}
+              value={String(DEFAULT_METRICS.operatorsMeetingSla)}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.atRisk')}
-              value={String(mockMetrics.operatorsAtRisk)}
+              value={String(DEFAULT_METRICS.operatorsAtRisk)}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.inBreach')}
-              value={String(mockMetrics.operatorsInBreach)}
+              value={String(DEFAULT_METRICS.operatorsInBreach)}
               icon={<AlertOctagon className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.totalIncidents')}
-              value={String(mockMetrics.totalIncidents)}
+              value={String(DEFAULT_METRICS.totalIncidents)}
               subValue={t('stats.thisMonth')}
               icon={<Clock className="h-5 w-5" />}
               status="warning"

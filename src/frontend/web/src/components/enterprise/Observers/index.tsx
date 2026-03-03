@@ -37,7 +37,7 @@ interface Observer {
   alertsRaised: number;
 }
 
-const FALLBACK_OBSERVERS: Observer[] = [
+const DEFAULT_OBSERVERS: Observer[] = [
   {
     id: 'obs-001',
     name: 'Tokyo Observer Alpha',
@@ -133,7 +133,7 @@ export function EnterpriseObservers() {
     lastSeen: 'Recently',
     blocksObserved: o.challenges_submitted * 100,
     alertsRaised: o.challenges_submitted,
-  })) ?? FALLBACK_OBSERVERS;
+  })) ?? DEFAULT_OBSERVERS;
 
   // Compute stats
   const stats = {

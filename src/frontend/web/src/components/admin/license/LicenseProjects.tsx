@@ -66,7 +66,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockProjects = [
+const SAMPLE_PROJECTS = [
   {
     id: 'proj-001',
     name: 'GFC初期導入プロジェクト',
@@ -139,7 +139,7 @@ const mockProjects = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   activeProjects: 4,
   completedProjects: 1,
   atRiskProjects: 1,
@@ -151,14 +151,14 @@ export function LicenseProjects() {
   const t = useTranslations('admin.licenseProjects');
   const [activeTab, setActiveTab] = useState<'all' | 'in_progress' | 'planning' | 'at_risk' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProject, setSelectedProject] = useState<typeof mockProjects[0] | null>(mockProjects[0]);
+  const [selectedProject, setSelectedProject] = useState<typeof SAMPLE_PROJECTS[0] | null>(SAMPLE_PROJECTS[0]);
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockProjects.length },
-    { key: 'in_progress', label: t('tabs.inProgress'), count: mockProjects.filter(p => p.status === 'in_progress').length },
-    { key: 'planning', label: t('tabs.planning'), count: mockProjects.filter(p => p.status === 'planning').length },
-    { key: 'at_risk', label: t('tabs.atRisk'), count: mockProjects.filter(p => p.status === 'at_risk').length },
-    { key: 'completed', label: t('tabs.completed'), count: mockProjects.filter(p => p.status === 'completed').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_PROJECTS.length },
+    { key: 'in_progress', label: t('tabs.inProgress'), count: SAMPLE_PROJECTS.filter(p => p.status === 'in_progress').length },
+    { key: 'planning', label: t('tabs.planning'), count: SAMPLE_PROJECTS.filter(p => p.status === 'planning').length },
+    { key: 'at_risk', label: t('tabs.atRisk'), count: SAMPLE_PROJECTS.filter(p => p.status === 'at_risk').length },
+    { key: 'completed', label: t('tabs.completed'), count: SAMPLE_PROJECTS.filter(p => p.status === 'completed').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -187,7 +187,7 @@ export function LicenseProjects() {
     return 'bg-warning';
   };
 
-  const filteredProjects = mockProjects.filter((project) => {
+  const filteredProjects = SAMPLE_PROJECTS.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.companyName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -230,28 +230,28 @@ export function LicenseProjects() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.activeProjects')}
-              value={String(mockMetrics.activeProjects)}
+              value={String(DEFAULT_METRICS.activeProjects)}
               icon={<FolderKanban className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.completedProjects')}
-              value={String(mockMetrics.completedProjects)}
+              value={String(DEFAULT_METRICS.completedProjects)}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.atRiskProjects')}
-              value={String(mockMetrics.atRiskProjects)}
+              value={String(DEFAULT_METRICS.atRiskProjects)}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.avgProgress')}
-              value={`${mockMetrics.avgProgress}%`}
+              value={`${DEFAULT_METRICS.avgProgress}%`}
               icon={<Target className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalTasks')}
-              value={String(mockMetrics.totalTasks)}
+              value={String(DEFAULT_METRICS.totalTasks)}
               icon={<Calendar className="h-5 w-5" />}
             />
           </div>

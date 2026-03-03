@@ -20,13 +20,13 @@ interface EarningItem {
   status: 'claimable' | 'claimed' | 'settled';
 }
 
-// Mock data
-const mockClaimableAmount = '1.24';
-const mockClaimableUsd = '4,340';
-const mockTotalEarned = '4.28';
-const mockTotalClaimed = '3.04';
+// Default earnings data
+const DEFAULT_CLAIMABLE_AMOUNT = '1.24';
+const DEFAULT_CLAIMABLE_USD = '4,340';
+const DEFAULT_TOTAL_EARNED = '4.28';
+const DEFAULT_TOTAL_CLAIMED = '3.04';
 
-const mockBreakdown = [
+const DEFAULT_BREAKDOWN = [
   {
     id: '1',
     type: 'reward' as const,
@@ -53,7 +53,7 @@ const mockBreakdown = [
   },
 ];
 
-const mockHistory: EarningItem[] = [
+const DEFAULT_HISTORY: EarningItem[] = [
   { id: '1', type: 'reward', challengeId: 'CHG-2831', amount: '+0.65', date: '2026-01-05', status: 'claimable' },
   { id: '2', type: 'reward', challengeId: 'CHG-2824', amount: '+0.24', date: '2026-01-03', status: 'claimable' },
   { id: '3', type: 'bond_lost', challengeId: 'CHG-2819', amount: '-0.10', date: '2026-01-01', status: 'settled' },
@@ -235,7 +235,7 @@ export function Earnings() {
                   <h2 id="claim-section-title" className="text-base text-foreground-secondary mb-2">
                     {t('claim.available')}
                   </h2>
-                  <div className="text-5xl font-bold text-success tabular-nums">{mockClaimableAmount} QS</div>
+                  <div className="text-5xl font-bold text-success tabular-nums">{DEFAULT_CLAIMABLE_AMOUNT} QS</div>
                   <div className="text-base text-foreground-tertiary mt-2">{t('claim.rewardToken')}</div>
                 </div>
                 <span className="px-4 py-2 bg-success/10 border border-success rounded-full text-success text-xs font-medium flex items-center gap-2">
@@ -247,7 +247,7 @@ export function Earnings() {
                 onClick={handleOpenClaimModal}
                 className="w-full py-5 bg-gradient-to-br from-success to-[#00a080] rounded-xl text-white text-lg font-semibold hover:shadow-xl hover:shadow-success/30 hover:-translate-y-0.5 transition-all"
               >
-                {t('claim.claimButton')} {mockClaimableAmount} QS
+                {t('claim.claimButton')} {DEFAULT_CLAIMABLE_AMOUNT} QS
               </button>
             </section>
 
@@ -255,11 +255,11 @@ export function Earnings() {
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div className="bg-card border border-border-subtle rounded-xl p-6">
                 <div className="text-xs text-text-tertiary mb-2">{t('summary.totalEarnings')}</div>
-                <div className="text-2xl font-bold text-accent-gold">{mockTotalEarned} QS</div>
+                <div className="text-2xl font-bold text-accent-gold">{DEFAULT_TOTAL_EARNED} QS</div>
               </div>
               <div className="bg-card border border-border-subtle rounded-xl p-6">
                 <div className="text-xs text-text-tertiary mb-2">{t('summary.claimed')}</div>
-                <div className="text-2xl font-bold">{mockTotalClaimed} QS</div>
+                <div className="text-2xl font-bold">{DEFAULT_TOTAL_CLAIMED} QS</div>
               </div>
             </div>
 
@@ -274,7 +274,7 @@ export function Earnings() {
                 </h2>
               </div>
               <div className="p-6">
-                {mockBreakdown.map((item) => (
+                {DEFAULT_BREAKDOWN.map((item) => (
                   <div
                     key={item.id}
                     className="flex justify-between items-center py-4 border-b border-border-subtle last:border-0"
@@ -337,7 +337,7 @@ export function Earnings() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockHistory.map((item) => (
+                    {DEFAULT_HISTORY.map((item) => (
                       <tr key={item.id} className="border-b border-border-subtle last:border-0">
                         <td className="px-6 py-4 text-sm">{item.date}</td>
                         <td className="px-6 py-4 text-sm">
@@ -468,7 +468,7 @@ export function Earnings() {
         onClose={handleCloseClaimModal}
         onConfirm={handleConfirmClaim}
         onDone={handleDone}
-        amount={mockClaimableAmount}
+        amount={DEFAULT_CLAIMABLE_AMOUNT}
         t={t}
       />
     </div>

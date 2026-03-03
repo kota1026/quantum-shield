@@ -15,11 +15,11 @@
 
 use std::sync::Arc;
 
-use bigdecimal::{BigDecimal, ToPrimitive};
+use bigdecimal::BigDecimal;
 use ethers::types::{Address, Bytes, U256};
 use sqlx::PgPool;
 use tokio::sync::watch;
-use tracing::{info, error, warn};
+use tracing::{info, error};
 
 use crate::config::AutoClaimConfig;
 use crate::types::LockStatus;

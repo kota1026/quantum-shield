@@ -9,14 +9,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEmergencyUnlockData, useSubmitEmergencyUnlock } from '@/hooks/consumer';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_UNLOCK_DATA = {
-  lockId: 'lock-1',
-  amount: '12.5',
-  symbol: 'ETH',
-  waitDays: 7,
-};
-
 // Bond calculation: MAX(0.5 ETH, amount × 5%)
 function calculateBond(amount: number): number {
   const minBond = 0.5;
@@ -31,11 +23,34 @@ export function EmergencyBond() {
   const lockId = searchParams.get('lockId') || '';
 
   // Fetch data using hooks
-  const { data: unlockDataApi } = useEmergencyUnlockData(lockId);
+  const { data: unlockData, isLoading, error } = useEmergencyUnlockData(lockId);
   const submitEmergencyMutation = useSubmitEmergencyUnlock();
 
-  // Use API data with fallback
-  const unlockData = unlockDataApi ?? FALLBACK_UNLOCK_DATA;
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-foreground-secondary">{t('header.title')}</div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !unlockData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center px-6 max-w-md">
+          <AlertTriangle className="w-12 h-12 text-error mx-auto mb-4" />
+          <p className="text-foreground-secondary mb-4">
+            {error?.message || t('header.title')}
+          </p>
+          <Button variant="secondary" asChild>
+            <Link href="/consumer/unlock">{t('buttons.cancel')}</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

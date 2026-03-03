@@ -603,6 +603,80 @@ export interface SupportStats {
   satisfaction: string;
 }
 
+// ============= Slashing Types =============
+
+export interface SlashingEvent {
+  id: string;
+  proverId: string;
+  operator: string;
+  type: 'sla_violation' | 'downtime' | 'invalid_signature';
+  amount: string;
+  reason: string;
+  status: 'pending' | 'reviewing' | 'executed' | 'appealed' | 'rejected';
+  createdAt: string;
+  executedAt: string | null;
+  challengeId?: string;
+  challengerReward?: string;
+  insuranceAmount?: string;
+  burnAmount?: string;
+}
+
+export interface SlashingStats {
+  totalSlashed: string;
+  pendingCount: number;
+  appealsCount: number;
+  executedThisMonth: number;
+  rejectedThisMonth: number;
+}
+
+export interface SlashingConfig {
+  slaThreshold: number;
+  slaViolationPenalty: string;
+  downtimePenalty: string;
+  invalidSignaturePenalty: string;
+  appealPeriod: string;
+  gracePeriod: string;
+}
+
+export interface SlashingListResponse {
+  events: SlashingEvent[];
+  total: number;
+  stats: SlashingStats;
+}
+
+// ============= Emergency Pause Types =============
+
+export type PauseState = 'active' | 'paused' | 'extension_pending';
+export type PauseScope = 'full' | 'locks_only' | 'unlocks_only';
+
+export interface EmergencyStatusResponse {
+  state: PauseState;
+  scope: PauseScope | null;
+  reason: string | null;
+  pausedAt: string | null;
+  pauseExpiresAt: string | null;
+  pausedBy: string | null;
+  history: PauseHistoryItem[];
+}
+
+export interface PauseHistoryItem {
+  type: 'pause' | 'unpause' | 'extension';
+  reason: string;
+  timestamp: string;
+  duration?: string;
+  executedBy: string;
+}
+
+export interface EmergencyPauseRequest {
+  scope: PauseScope;
+  reason: string;
+  duration?: number;
+}
+
+export interface EmergencyUnpauseRequest {
+  reason: string;
+}
+
 // ============= User Types (simplified for list views) =============
 // Note: These are simplified mock types used in UI components
 // For API response types, use UserListItem and UserDetail above
@@ -700,4 +774,104 @@ export interface FAQCategory {
   id: string;
   name: string;
   faqs: FAQ[];
+}
+
+// ============= Licensee Types =============
+
+export type LicenseStatus = 'active' | 'suspended' | 'pending' | 'expired';
+export type LicenseType = 'standard' | 'enterprise';
+
+export interface LicenseeListItem {
+  id: string;
+  companyName: string;
+  country: string;
+  type: LicenseType;
+  status: LicenseStatus;
+  contractDate: string;
+  expiryDate: string;
+  proverNodes: number;
+  observerNodes: number;
+  monthlyFee: number;
+  lastSyncDate: string;
+  supportTickets: number;
+}
+
+export interface LicenseeContact {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface LicenseeTechnical {
+  explorerUrl: string;
+  apiEndpoint: string;
+  version: string;
+  lastUpdate: string;
+}
+
+export interface LicenseeCompliance {
+  explorerPublic: boolean;
+  auditReportSubmitted: boolean;
+  lastAuditDate: string;
+  designSystemCompliant: boolean;
+}
+
+export interface LicenseeProverNode {
+  id: string;
+  status: 'online' | 'warning' | 'offline';
+  uptime: number;
+  lastActive: string;
+}
+
+export interface LicenseeObserverNode {
+  id: string;
+  status: 'online' | 'offline';
+  challenges: number;
+  lastActive: string;
+}
+
+export interface LicenseeNodes {
+  provers: LicenseeProverNode[];
+  observers: LicenseeObserverNode[];
+}
+
+export interface LicenseeActivity {
+  type: string;
+  message: string;
+  date: string;
+}
+
+export interface LicenseeDetail extends LicenseeListItem {
+  contact: LicenseeContact;
+  technical: LicenseeTechnical;
+  compliance: LicenseeCompliance;
+  nodes: LicenseeNodes;
+  recentActivity: LicenseeActivity[];
+}
+
+export interface LicenseeStats {
+  total: number;
+  active: number;
+  suspended: number;
+  pending: number;
+  totalRevenue: number;
+}
+
+export interface LicenseeSupportTicket {
+  id: string;
+  subject: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  createdAt: string;
+  updatedAt: string;
+  assignee: string;
+}
+
+export interface LicenseeSupportMessage {
+  id: string;
+  sender: 'licensee' | 'support';
+  senderName: string;
+  content: string;
+  timestamp: string;
+  attachments?: string[];
 }

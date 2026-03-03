@@ -25,8 +25,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-// Mock unlock data
-const mockUnlockData: Record<string, {
+// Default unlock data for initial state
+const DEFAULT_UNLOCK_DATA: Record<string, {
   id: string;
   shortId: string;
   lockId: string;
@@ -216,9 +216,9 @@ export function UnlockDetail({ locale, unlockId }: UnlockDetailProps) {
   const [copied, setCopied] = useState(false);
 
   // Find unlock by matching any part of the ID
-  const unlock = Object.values(mockUnlockData).find(
+  const unlock = Object.values(DEFAULT_UNLOCK_DATA).find(
     (u) => u.id.includes(unlockId) || u.shortId.includes(unlockId) || unlockId.includes(u.shortId.replace('...', ''))
-  ) || mockUnlockData[unlockId];
+  ) || DEFAULT_UNLOCK_DATA[unlockId];
 
   const handleCopyUnlockId = useCallback(async () => {
     if (unlock) {

@@ -14,6 +14,7 @@ import {
   Building2,
   ExternalLink,
   ArrowLeft,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
@@ -23,12 +24,12 @@ import { DelegateTooltip, ParticipationTooltip } from './DelegateTooltip';
 import { useUserDelegation, useDelegateList } from '@/hooks/token-hub/useTokenHub';
 import type { DelegateInfo } from '@/lib/api/token-hub/mock';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_USER_DELEGATION = {
+// Empty data (used when API is unavailable)
+const EMPTY_USER_DELEGATION = {
   totalDelegated: 25000,
   delegateCount: 2,
 };
-const FALLBACK_DELEGATES: DelegateInfo[] = [
+const EMPTY_DELEGATES: DelegateInfo[] = [
   {
     id: '1',
     name: 'delegates.watanabe',
@@ -87,16 +88,17 @@ function getTagIcon(tag: string) {
 
 export function TokenHubDelegate() {
   const t = useTranslations('token-hub.delegate');
+  const tCommon = useTranslations('token-hub.common');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   // Fetch data from API with fallback
-  const { data: userDelegationApi } = useUserDelegation();
+  const { data: userDelegationApi, isLoading, error } = useUserDelegation();
   const { data: delegatesApi } = useDelegateList();
 
   // Use API data or fallback
-  const userDelegation = userDelegationApi ?? FALLBACK_USER_DELEGATION;
-  const delegatesList = delegatesApi ?? FALLBACK_DELEGATES;
+  const userDelegation = userDelegationApi ?? EMPTY_USER_DELEGATION;
+  const delegatesList = delegatesApi ?? EMPTY_DELEGATES;
 
   const filters: { key: FilterType; label: string }[] = [
     { key: 'all', label: t('filters.all') },
@@ -133,6 +135,38 @@ export function TokenHubDelegate() {
 
     return result;
   }, [searchQuery, activeFilter, t]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-8" aria-label={tCommon('loading.ariaLabel')}>
+        <div className="animate-pulse max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+          <div className="h-10 w-48 rounded bg-surface-secondary" />
+          <div className="h-6 w-32 rounded bg-surface-secondary" />
+          <div className="flex justify-between items-center">
+            <div className="h-12 w-64 rounded bg-surface-secondary" />
+            <div className="h-20 w-60 rounded-xl bg-surface-secondary" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-72 rounded-2xl bg-surface-secondary" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-danger" aria-hidden="true" />
+          <p className="mt-4 text-lg font-semibold text-foreground">{tCommon('error.loadFailed')}</p>
+          <p className="mt-2 text-sm text-foreground-secondary">{tCommon('error.tryAgain')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-8">

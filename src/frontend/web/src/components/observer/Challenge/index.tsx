@@ -15,8 +15,8 @@ interface TargetTransaction {
   riskScore: number;
 }
 
-// Mock data for demonstration
-const mockTransaction: TargetTransaction = {
+// Default transaction data
+const DEFAULT_TRANSACTION: TargetTransaction = {
   address: '0x4b7c8a2e1f9d3c6b5a4e7f8d9c1b2a3e4f5d6c7b',
   amount: '45.00',
   unlockType: 'emergency',
@@ -121,7 +121,7 @@ export function ChallengeForm() {
   );
   const [supportingLinks, setSupportingLinks] = useState<string[]>(['']);
 
-  const bondAmount = calculateBond(parseFloat(mockTransaction.amount)).toFixed(2);
+  const bondAmount = calculateBond(parseFloat(DEFAULT_TRANSACTION.amount)).toFixed(2);
 
   const toggleFactor = (factor: string) => {
     setSelectedFactors((prev) =>
@@ -189,13 +189,13 @@ export function ChallengeForm() {
               <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.targetAddress')}
               </div>
-              <div className="font-mono text-sm break-all">{mockTransaction.address}</div>
+              <div className="font-mono text-sm break-all">{DEFAULT_TRANSACTION.address}</div>
             </div>
             <div className="space-y-1">
               <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.amount')}
               </div>
-              <div className="text-base font-semibold">{mockTransaction.amount} ETH</div>
+              <div className="text-base font-semibold">{DEFAULT_TRANSACTION.amount} ETH</div>
             </div>
             <div className="space-y-1">
               <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
@@ -210,21 +210,21 @@ export function ChallengeForm() {
                 {t('targetTransaction.timeRemaining')}
               </div>
               <div className="font-mono text-base font-semibold text-warning">
-                {mockTransaction.timeRemaining}
+                {DEFAULT_TRANSACTION.timeRemaining}
               </div>
             </div>
             <div className="space-y-1">
               <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.txHash')}
               </div>
-              <div className="font-mono text-sm break-all">{mockTransaction.txHash}</div>
+              <div className="font-mono text-sm break-all">{DEFAULT_TRANSACTION.txHash}</div>
             </div>
             <div className="space-y-1">
               <div className="text-[11px] text-foreground-tertiary uppercase tracking-widest">
                 {t('targetTransaction.riskScore')}
               </div>
               <div className="text-base font-semibold text-danger">
-                {mockTransaction.riskScore} / 100 <span className="text-sm">(High Risk)</span>
+                {DEFAULT_TRANSACTION.riskScore} / 100 <span className="text-sm">(High Risk)</span>
               </div>
             </div>
           </div>
@@ -322,7 +322,7 @@ export function ChallengeForm() {
             <div className="text-sm text-foreground-secondary mb-4 font-mono">
               {t('bond.calculation')}
               <br />
-              = MAX(0.1 ETH, {mockTransaction.amount} ETH × 1%)
+              = MAX(0.1 ETH, {DEFAULT_TRANSACTION.amount} ETH × 1%)
               <br />
               = MAX(0.1 ETH, {bondAmount} ETH)
             </div>
@@ -355,7 +355,7 @@ export function ChallengeForm() {
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleSubmit}
-        transaction={mockTransaction}
+        transaction={DEFAULT_TRANSACTION}
         bondAmount={bondAmount}
         t={t}
       />

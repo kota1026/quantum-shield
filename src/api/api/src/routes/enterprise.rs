@@ -2688,7 +2688,7 @@ pub async fn update_user_role_put(
 
 /// PUT /v1/enterprise/settings - Update settings (PUT variant)
 pub async fn update_settings_put(
-    Extension(state): Extension<Arc<AppState>>,
+    Extension(_state): Extension<Arc<AppState>>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
     tracing::info!("Enterprise update settings (PUT)");

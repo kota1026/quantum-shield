@@ -26,7 +26,7 @@ import { useProverStats, useProvers } from '@/hooks/explorer';
 import type { ProverStats, ProverSummary } from '@/lib/api/explorer/mock';
 
 // Empty initial state (no fake data)
-const FALLBACK_PROVER_STATS: ProverStats = {
+const DEFAULT_PROVER_STATS: ProverStats = {
   totalProvers: 0,
   activeProvers: 0,
   avgUptime: 0,
@@ -34,7 +34,7 @@ const FALLBACK_PROVER_STATS: ProverStats = {
   totalSignatures: 0,
 };
 
-const FALLBACK_PROVERS: ProverSummary[] = [];
+const EMPTY_PROVERS: ProverSummary[] = [];
 
 interface ExplorerProversProps {
   locale?: string;
@@ -49,8 +49,8 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
   const { data: proversApi } = useProvers();
 
   // Use API data with fallback
-  const mockStats = proverStatsApi ?? FALLBACK_PROVER_STATS;
-  const mockProvers = proversApi ?? FALLBACK_PROVERS;
+  const stats = proverStatsApi ?? DEFAULT_PROVER_STATS;
+  const provers = proversApi ?? EMPTY_PROVERS;
 
   const getUptimeColor = (uptime: number) => {
     if (uptime >= 99.9) return 'text-success';
@@ -120,7 +120,7 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
               <div className="flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/30 rounded-full">
                 <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
                 <span className="text-sm text-success font-medium">
-                  {mockStats.activeProvers}/{mockStats.totalProvers} {t('provers.stats.online')}
+                  {stats.activeProvers}/{stats.totalProvers} {t('provers.stats.online')}
                 </span>
               </div>
             </div>
@@ -133,34 +133,34 @@ export function ExplorerProvers({ locale = 'ja' }: ExplorerProversProps) {
                 <Server className="w-5 h-5 text-gold" />
                 <span className="text-sm text-foreground-secondary">{t('provers.stats.totalProvers')}</span>
               </div>
-              <div className="text-2xl font-bold">{mockStats.totalProvers}</div>
+              <div className="text-2xl font-bold">{stats.totalProvers}</div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <Activity className="w-5 h-5 text-success" />
                 <span className="text-sm text-foreground-secondary">{t('provers.stats.avgUptime')}</span>
               </div>
-              <div className="text-2xl font-bold text-success">{mockStats.avgUptime}%</div>
+              <div className="text-2xl font-bold text-success">{stats.avgUptime}%</div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <Clock className="w-5 h-5 text-foreground-secondary" />
                 <span className="text-sm text-foreground-secondary">{t('provers.stats.avgResponseTime')}</span>
               </div>
-              <div className="text-2xl font-bold">{mockStats.avgResponseTime}</div>
+              <div className="text-2xl font-bold">{stats.avgResponseTime}</div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <Shield className="w-5 h-5 text-hinomaru" />
                 <span className="text-sm text-foreground-secondary">{t('provers.stats.totalSignatures')}</span>
               </div>
-              <div className="text-2xl font-bold">{mockStats.totalSignatures.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{stats.totalSignatures.toLocaleString()}</div>
             </Card>
           </div>
 
           {/* Provers Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {mockProvers.map((prover) => (
+            {provers.map((prover) => (
               <Link
                 key={prover.id}
                 href={`/${locale}/explorer/provers/${prover.id}`}

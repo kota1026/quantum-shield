@@ -4,10 +4,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Clock, CheckCircle, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Clock, CheckCircle, ArrowRight, AlertTriangle, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useTransactionDetail } from '@/hooks/consumer';
+import { useTransactionDetail, useClaimUnlock } from '@/hooks/consumer';
 
 // Format remaining time as HH:MM:SS
 function formatRemainingTime(seconds: number): string {
@@ -89,6 +89,21 @@ export function UnlockSuccess() {
   }, [txDetail]);
 
   const isEmergency = method === 'emergency';
+  const isTimelockExpired = remainingSeconds === 0 && releaseTime > 0;
+
+  // Claim unlock mutation
+  const claimMutation = useClaimUnlock();
+  const [claimStatus, setClaimStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleClaim = async () => {
+    if (!lockId) return;
+    try {
+      await claimMutation.mutateAsync({ lockId });
+      setClaimStatus('success');
+    } catch {
+      setClaimStatus('error');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -167,6 +182,57 @@ export function UnlockSuccess() {
             {t('info.message')}
           </p>
         </div>
+
+        {/* Claim Section */}
+        {isTimelockExpired && claimStatus !== 'success' && (
+          <div className="mb-6">
+            <div className={cn(
+              'flex items-start gap-3 p-4 mb-4',
+              'bg-success/10 border border-success rounded-qs-lg'
+            )} role="status">
+              <Unlock className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-foreground-secondary text-left">
+                {t('claim.ready')}
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              fullWidth
+              onClick={handleClaim}
+              disabled={claimMutation.isPending}
+              aria-label={t('buttons.claimUnlock')}
+            >
+              {claimMutation.isPending ? t('buttons.claiming') : t('buttons.claimUnlock')}
+              {!claimMutation.isPending && <Unlock className="w-4 h-4 ml-2" />}
+            </Button>
+          </div>
+        )}
+
+        {/* Claim Success */}
+        {claimStatus === 'success' && (
+          <div className={cn(
+            'flex items-start gap-3 p-4 mb-6',
+            'bg-success/10 border border-success rounded-qs-lg'
+          )} role="status">
+            <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-foreground-secondary text-left">
+              {t('claim.success')}
+            </p>
+          </div>
+        )}
+
+        {/* Claim Error */}
+        {claimStatus === 'error' && (
+          <div className={cn(
+            'flex items-start gap-3 p-4 mb-6',
+            'bg-destructive/10 border border-destructive rounded-qs-lg'
+          )} role="alert">
+            <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-foreground-secondary text-left">
+              {t('claim.error')}
+            </p>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="space-y-3">

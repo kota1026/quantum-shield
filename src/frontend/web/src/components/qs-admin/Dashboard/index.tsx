@@ -51,8 +51,8 @@ import type {
   AlertItem,
 } from '@/lib/api/admin/types';
 
-// Local fallback stats type
-interface FallbackStats {
+// Local default stats type
+interface DefaultStats {
   totalUsers: number;
   totalLocked: string;
   activeProvers: number;
@@ -61,8 +61,8 @@ interface FallbackStats {
   treasuryBalance: string;
 }
 
-// Fallback mock data for development when API is unavailable
-const FALLBACK_STATS: FallbackStats = {
+// Default stats data for development when API is unavailable
+const DEFAULT_STATS: DefaultStats = {
   totalUsers: 12847,
   totalLocked: '45,230 ETH',
   activeProvers: 24,
@@ -71,7 +71,7 @@ const FALLBACK_STATS: FallbackStats = {
   treasuryBalance: '125,000 ETH',
 };
 
-const FALLBACK_TVL_DATA: ChartDataPoint[] = [
+const DEFAULT_TVL_DATA: ChartDataPoint[] = [
   { date: '01/21', value: 38500 },
   { date: '01/22', value: 39200 },
   { date: '01/23', value: 40100 },
@@ -81,7 +81,7 @@ const FALLBACK_TVL_DATA: ChartDataPoint[] = [
   { date: '01/27', value: 45230 },
 ];
 
-const FALLBACK_VOLUME_DATA: VolumeDataPoint[] = [
+const DEFAULT_VOLUME_DATA: VolumeDataPoint[] = [
   { date: '01/21', locks: 45, unlocks: 32 },
   { date: '01/22', locks: 52, unlocks: 38 },
   { date: '01/23', locks: 48, unlocks: 42 },
@@ -91,7 +91,7 @@ const FALLBACK_VOLUME_DATA: VolumeDataPoint[] = [
   { date: '01/27', locks: 68, unlocks: 58 },
 ];
 
-const FALLBACK_USER_DATA: ChartDataPoint[] = [
+const DEFAULT_USER_DATA: ChartDataPoint[] = [
   { date: '01/21', value: 11800 },
   { date: '01/22', value: 12050 },
   { date: '01/23', value: 12280 },
@@ -101,14 +101,14 @@ const FALLBACK_USER_DATA: ChartDataPoint[] = [
   { date: '01/27', value: 12847 },
 ];
 
-const FALLBACK_ACTIVITY: ActivityItem[] = [
+const DEFAULT_ACTIVITY: ActivityItem[] = [
   { id: '1', type: 'prover_request', message: 'New Prover application received', timestamp: '5 min ago' },
   { id: '2', type: 'unlock', message: 'Large unlock request (500 ETH)', timestamp: '12 min ago' },
   { id: '3', type: 'challenge', message: 'Challenge initiated on unlock #4521', timestamp: '25 min ago' },
   { id: '4', type: 'treasury', message: 'Treasury transfer approved', timestamp: '1 hour ago' },
 ];
 
-const FALLBACK_ALERTS: AlertItem[] = [
+const DEFAULT_ALERTS: AlertItem[] = [
   { id: '1', level: 'warning', message: 'Prover node #12 response time degraded', timestamp: '10 min ago', acknowledged: false },
   { id: '2', level: 'info', message: 'System maintenance scheduled for tonight', timestamp: '2 hours ago', acknowledged: true },
 ];
@@ -127,7 +127,7 @@ interface MetricsData {
   treasury: string;
 }
 
-const FALLBACK_METRICS: Record<string, MetricsData> = {
+const DEFAULT_METRICS: Record<string, MetricsData> = {
   daily: {
     users: 147,
     locks: 68,
@@ -366,18 +366,18 @@ export function Dashboard() {
     activeObservers: (dashboardData.health.totalNodes ?? 0) - (dashboardData.health.activeProvers ?? 0),
     pendingUnlocks: dashboardData.metrics.pendingChallenges ?? 0,
     treasuryBalance,
-  } : FALLBACK_STATS;
-  const tvlData = tvlQuery.data ?? FALLBACK_TVL_DATA;
-  const volumeData = volumeQuery.data ?? FALLBACK_VOLUME_DATA;
-  const userData = userGrowthQuery.data ?? FALLBACK_USER_DATA;
+  } : DEFAULT_STATS;
+  const tvlData = tvlQuery.data ?? DEFAULT_TVL_DATA;
+  const volumeData = volumeQuery.data ?? DEFAULT_VOLUME_DATA;
+  const userData = userGrowthQuery.data ?? DEFAULT_USER_DATA;
   // Activity data from API or fallback
   const activityData = activityQuery.data?.map((a, i) => ({
     id: a.id || String(i),
     type: a.type as 'prover_request' | 'unlock' | 'challenge' | 'treasury',
     message: a.message,
     timestamp: a.timestamp,
-  })) ?? FALLBACK_ACTIVITY;
-  const alertsData = alertsQuery.data ?? FALLBACK_ALERTS;
+  })) ?? DEFAULT_ACTIVITY;
+  const alertsData = alertsQuery.data ?? DEFAULT_ALERTS;
 
   // Stats data from API or fallback
   const currentMetrics = statsQuery.data ? {
@@ -391,7 +391,7 @@ export function Dashboard() {
     revenue: statsQuery.data.revenue,
     proposals: statsQuery.data.proposals,
     treasury: statsQuery.data.treasury,
-  } : FALLBACK_METRICS[statsPeriod];
+  } : DEFAULT_METRICS[statsPeriod];
 
   const tabs = [
     { key: 'overview', label: t('tabs.overview') },

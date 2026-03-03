@@ -95,14 +95,28 @@ export interface TransactionsResponse {
 
 // ==================== LOCK TYPES ====================
 
-export type LockStatus = 'locked' | 'pending' | 'unlocking';
+/** Matches backend LockStatus enum (serde rename_all = "snake_case") */
+export type LockStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'locked'
+  | 'unlock_pending'
+  | 'released'
+  | 'emergency_pending'
+  | 'challenged'
+  | 'slashed';
 
 export interface LockItem {
   id: string;
-  number: number;
+  lockId: string;
   amount: string;
-  timestamp: string;
+  asset: string;
+  chainId: number;
+  destAddr: string;
   status: LockStatus;
+  sr0: string;
+  createdAt: string;
+  releaseTime?: number;
   remainingTime?: string;
 }
 
@@ -111,29 +125,71 @@ export interface LocksResponse {
   total: number;
 }
 
+/** Matches backend LockRequest (POST /v1/lock) */
 export interface CreateLockRequest {
+  chain_id: number;
+  asset: string;
   amount: string;
-  token: string;
+  dest_addr: string;
+  pk_dilithium: string;
+  sig_dilithium: string;
+  expiry: number;
+  nonce: number;
 }
 
+/** Matches backend LockResponse */
 export interface CreateLockResponse {
-  lockId: string;
-  txHash: string;
+  lock_id: string;
+  sr_0: string;
+  smt_proof: string;
+  status: LockStatus;
+  l1_tx_hash?: string;
 }
 
 // ==================== UNLOCK TYPES ====================
 
+/** Matches backend UnlockRequest (POST /v1/unlock) */
 export interface UnlockRequest {
-  lockId: string;
+  lock_id: string;
+  dest_addr: string;
+  amount: string;
+  sig_dilithium: string;
 }
 
 export interface EmergencyUnlockRequest {
-  lockId: string;
-  bondAmount: string;
+  lock_id: string;
+  dest_addr: string;
+  amount: string;
+  sig_dilithium: string;
 }
 
+/** Matches backend UnlockResponse */
 export interface UnlockResponse {
-  unlockId: string;
+  unlock_id: string;
+  sr_1: string;
+  release_time: number;
+  time_lock_hours: number;
+  prover_signatures_required: number;
+  prover_signatures_collected: number;
+  status: string;
+  vrf_request_id?: string;
+  selected_provers: string[];
+  vrf_status: string;
+}
+
+/** Matches backend UnlockStatus enum */
+export type UnlockStatus = 'pending_signatures' | 'submitted' | 'emergency_pending';
+
+/** Matches backend ClaimUnlockRequest (POST /v1/unlock/claim) */
+export interface ClaimUnlockRequest {
+  lock_id: string;
+}
+
+/** Matches backend ClaimUnlockResponse */
+export interface ClaimUnlockResponse {
+  lock_id: string;
+  status: LockStatus;
+  l1_tx_hash?: string;
 }
 
 export interface EmergencyUnlockData {

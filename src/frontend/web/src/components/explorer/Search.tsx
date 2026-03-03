@@ -8,8 +8,8 @@ import { Search as SearchIcon, SearchX } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-// Mock search results
-const mockResults = {
+// Default search results for initial state
+const DEFAULT_RESULTS = {
   locks: [
     {
       id: '0x7a3f8b2c...e821d4f9',
@@ -84,29 +84,29 @@ export function ExplorerSearch({ locale = 'ja', initialQuery = '' }: ExplorerSea
   };
 
   const filterCounts = useMemo(() => ({
-    all: mockResults.locks.length + mockResults.unlocks.length + mockResults.addresses.length + mockResults.challenges.length,
-    locks: mockResults.locks.length,
-    unlocks: mockResults.unlocks.length,
-    addresses: mockResults.addresses.length,
-    challenges: mockResults.challenges.length,
+    all: DEFAULT_RESULTS.locks.length + DEFAULT_RESULTS.unlocks.length + DEFAULT_RESULTS.addresses.length + DEFAULT_RESULTS.challenges.length,
+    locks: DEFAULT_RESULTS.locks.length,
+    unlocks: DEFAULT_RESULTS.unlocks.length,
+    addresses: DEFAULT_RESULTS.addresses.length,
+    challenges: DEFAULT_RESULTS.challenges.length,
   }), []);
 
   const filteredResults = useMemo(() => {
     switch (activeFilter) {
       case 'locks':
-        return mockResults.locks;
+        return DEFAULT_RESULTS.locks;
       case 'unlocks':
-        return mockResults.unlocks;
+        return DEFAULT_RESULTS.unlocks;
       case 'addresses':
-        return mockResults.addresses;
+        return DEFAULT_RESULTS.addresses;
       case 'challenges':
-        return mockResults.challenges;
+        return DEFAULT_RESULTS.challenges;
       default:
         return [
-          ...mockResults.locks,
-          ...mockResults.unlocks,
-          ...mockResults.addresses,
-          ...mockResults.challenges,
+          ...DEFAULT_RESULTS.locks,
+          ...DEFAULT_RESULTS.unlocks,
+          ...DEFAULT_RESULTS.addresses,
+          ...DEFAULT_RESULTS.challenges,
         ];
     }
   }, [activeFilter]);

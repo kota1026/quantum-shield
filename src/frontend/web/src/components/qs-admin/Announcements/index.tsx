@@ -24,14 +24,14 @@ import {
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_STATS = {
+const DEFAULT_STATS = {
   totalAnnouncements: 45,
   published: 38,
   scheduled: 4,
   draft: 3,
 };
 
-const FALLBACK_ANNOUNCEMENTS = [
+const DEFAULT_ANNOUNCEMENTS = [
   { id: 1, title: 'System Maintenance Scheduled', type: 'maintenance', status: 'scheduled', publishDate: '2024-01-30 02:00', views: 0, excerpt: 'We will be performing scheduled maintenance...' },
   { id: 2, title: 'New Token Support: WBTC', type: 'update', status: 'published', publishDate: '2024-01-25 10:00', views: 3450, excerpt: 'We are excited to announce support for Wrapped Bitcoin...' },
   { id: 3, title: 'Enhanced Security Features', type: 'info', status: 'published', publishDate: '2024-01-20 14:00', views: 5200, excerpt: 'We have implemented additional security measures...' },
@@ -111,7 +111,7 @@ export function AnnouncementsDashboard() {
     { key: 'draft', label: t('status.draft') },
   ];
 
-  const filteredAnnouncements = FALLBACK_ANNOUNCEMENTS.filter(ann => {
+  const filteredAnnouncements = DEFAULT_ANNOUNCEMENTS.filter(ann => {
     if (statusFilter !== 'all' && ann.status !== statusFilter) return false;
     if (searchQuery && !ann.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -131,10 +131,10 @@ export function AnnouncementsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.totalAnnouncements')} value={FALLBACK_STATS.totalAnnouncements} icon={Megaphone} />
-        <StatCard title={t('stats.published')} value={FALLBACK_STATS.published} icon={CheckCircle} />
-        <StatCard title={t('stats.scheduled')} value={FALLBACK_STATS.scheduled} icon={Calendar} />
-        <StatCard title={t('stats.draft')} value={FALLBACK_STATS.draft} icon={FileText} />
+        <StatCard title={t('stats.totalAnnouncements')} value={DEFAULT_STATS.totalAnnouncements} icon={Megaphone} />
+        <StatCard title={t('stats.published')} value={DEFAULT_STATS.published} icon={CheckCircle} />
+        <StatCard title={t('stats.scheduled')} value={DEFAULT_STATS.scheduled} icon={Calendar} />
+        <StatCard title={t('stats.draft')} value={DEFAULT_STATS.draft} icon={FileText} />
       </div>
 
       <Card>

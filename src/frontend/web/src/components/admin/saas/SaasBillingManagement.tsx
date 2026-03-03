@@ -56,7 +56,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockInvoices = [
+const SAMPLE_INVOICES = [
   {
     id: 'inv-2026-001',
     operator: 'Acme Exchange',
@@ -95,7 +95,7 @@ const mockInvoices = [
   },
 ];
 
-const mockSubscriptions = [
+const SAMPLE_SUBSCRIPTIONS = [
   {
     id: 'sub-001',
     operator: 'Acme Exchange',
@@ -140,8 +140,8 @@ export function SaasBillingManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'invoices', label: t('tabs.invoices'), count: mockInvoices.length },
-    { key: 'subscriptions', label: t('tabs.subscriptions'), count: mockSubscriptions.length },
+    { key: 'invoices', label: t('tabs.invoices'), count: SAMPLE_INVOICES.length },
+    { key: 'subscriptions', label: t('tabs.subscriptions'), count: SAMPLE_SUBSCRIPTIONS.length },
     { key: 'revenue', label: t('tabs.revenue') },
     { key: 'reports', label: t('tabs.reports') },
   ];
@@ -178,11 +178,11 @@ export function SaasBillingManagement() {
     }
   };
 
-  const filteredInvoices = mockInvoices.filter(
+  const filteredInvoices = SAMPLE_INVOICES.filter(
     (inv) => inv.operator.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredSubscriptions = mockSubscriptions.filter(
+  const filteredSubscriptions = SAMPLE_SUBSCRIPTIONS.filter(
     (sub) => sub.operator.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

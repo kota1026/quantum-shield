@@ -53,7 +53,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockProvers = [
+const SAMPLE_PROVERS = [
   {
     id: 'prover-001',
     operator: 'Alpha Node Labs',
@@ -106,7 +106,7 @@ const mockProvers = [
   },
 ];
 
-const mockApplications = [
+const SAMPLE_APPLICATIONS = [
   {
     id: 'app-001',
     operator: 'Zeta Validators',
@@ -139,8 +139,8 @@ export function PublicProverManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockProvers.length },
-    { key: 'applications', label: t('tabs.applications'), count: mockApplications.length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_PROVERS.length },
+    { key: 'applications', label: t('tabs.applications'), count: SAMPLE_APPLICATIONS.length },
     { key: 'performance', label: t('tabs.performance') },
     { key: 'slashing', label: t('tabs.slashing') },
   ];
@@ -160,7 +160,7 @@ export function PublicProverManagement() {
     }
   };
 
-  const filteredProvers = mockProvers.filter(
+  const filteredProvers = SAMPLE_PROVERS.filter(
     (prover) =>
       prover.operator.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prover.address.toLowerCase().includes(searchQuery.toLowerCase())
@@ -343,7 +343,7 @@ export function PublicProverManagement() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockApplications.map((app) => (
+                  {SAMPLE_APPLICATIONS.map((app) => (
                     <div
                       key={app.id}
                       className="flex items-center justify-between rounded-lg border border-surface-tertiary bg-background-secondary p-4"

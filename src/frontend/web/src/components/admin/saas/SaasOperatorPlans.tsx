@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { AdminSidebarV2 } from '../AdminSidebarV2';
 
 // Mock data
-const mockPlans = [
+const SAMPLE_PLANS = [
   {
     id: 'starter',
     name: 'Starter',
@@ -83,7 +83,7 @@ const mockPlans = [
   },
 ];
 
-const mockPlanUsage = {
+const DEFAULT_PLAN_USAGE = {
   starter: { revenue: 72000000, mrr: 6000000 },
   professional: { revenue: 192000000, mrr: 16000000 },
   enterprise: { revenue: 180000000, mrr: 15000000 },
@@ -95,11 +95,11 @@ function formatPrice(amount: number): string {
 
 export function SaasOperatorPlans() {
   const t = useTranslations('admin.operatorPlans');
-  const [selectedPlan, setSelectedPlan] = useState<typeof mockPlans[0] | null>(mockPlans[1]);
+  const [selectedPlan, setSelectedPlan] = useState<typeof SAMPLE_PLANS[0] | null>(SAMPLE_PLANS[1]);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const totalMrr = Object.values(mockPlanUsage).reduce((sum, p) => sum + p.mrr, 0);
-  const totalSubscribers = mockPlans.reduce((sum, p) => sum + p.activeSubscribers, 0);
+  const totalMrr = Object.values(DEFAULT_PLAN_USAGE).reduce((sum, p) => sum + p.mrr, 0);
+  const totalSubscribers = SAMPLE_PLANS.reduce((sum, p) => sum + p.activeSubscribers, 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,7 +138,7 @@ export function SaasOperatorPlans() {
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('stats.activePlans')}</div>
-                  <div className="text-xl font-bold text-foreground">{mockPlans.length}</div>
+                  <div className="text-xl font-bold text-foreground">{SAMPLE_PLANS.length}</div>
                 </div>
               </div>
             </Card>
@@ -168,9 +168,9 @@ export function SaasOperatorPlans() {
 
           {/* Plan Cards */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {mockPlans.map((plan) => {
+            {SAMPLE_PLANS.map((plan) => {
               const PlanIcon = plan.icon;
-              const usage = mockPlanUsage[plan.id as keyof typeof mockPlanUsage];
+              const usage = DEFAULT_PLAN_USAGE[plan.id as keyof typeof DEFAULT_PLAN_USAGE];
 
               return (
                 <Card
@@ -296,7 +296,7 @@ export function SaasOperatorPlans() {
                       <th className="pb-3 text-left text-sm font-medium text-foreground-tertiary">
                         {t('comparison.feature')}
                       </th>
-                      {mockPlans.map((plan) => (
+                      {SAMPLE_PLANS.map((plan) => (
                         <th
                           key={plan.id}
                           className="pb-3 text-center text-sm font-medium text-foreground"
@@ -309,7 +309,7 @@ export function SaasOperatorPlans() {
                   <tbody>
                     <tr className="border-b border-surface-tertiary/50">
                       <td className="py-3 text-sm text-foreground-secondary">{t('comparison.rows.monthlyPrice')}</td>
-                      {mockPlans.map((plan) => (
+                      {SAMPLE_PLANS.map((plan) => (
                         <td key={plan.id} className="py-3 text-center font-mono text-sm">
                           {formatPrice(plan.monthlyPrice)}
                         </td>
@@ -317,7 +317,7 @@ export function SaasOperatorPlans() {
                     </tr>
                     <tr className="border-b border-surface-tertiary/50">
                       <td className="py-3 text-sm text-foreground-secondary">{t('comparison.rows.maxUsers')}</td>
-                      {mockPlans.map((plan) => (
+                      {SAMPLE_PLANS.map((plan) => (
                         <td key={plan.id} className="py-3 text-center text-sm">
                           {plan.features.maxUsers === -1 ? t('unlimited') : plan.features.maxUsers.toLocaleString()}
                         </td>
@@ -325,7 +325,7 @@ export function SaasOperatorPlans() {
                     </tr>
                     <tr className="border-b border-surface-tertiary/50">
                       <td className="py-3 text-sm text-foreground-secondary">{t('comparison.rows.maxProvers')}</td>
-                      {mockPlans.map((plan) => (
+                      {SAMPLE_PLANS.map((plan) => (
                         <td key={plan.id} className="py-3 text-center text-sm">
                           {plan.features.maxProvers === -1 ? t('unlimited') : plan.features.maxProvers}
                         </td>
@@ -333,7 +333,7 @@ export function SaasOperatorPlans() {
                     </tr>
                     <tr className="border-b border-surface-tertiary/50">
                       <td className="py-3 text-sm text-foreground-secondary">{t('comparison.rows.sla')}</td>
-                      {mockPlans.map((plan) => (
+                      {SAMPLE_PLANS.map((plan) => (
                         <td key={plan.id} className="py-3 text-center text-sm">
                           {plan.features.slaTarget}%
                         </td>
@@ -341,7 +341,7 @@ export function SaasOperatorPlans() {
                     </tr>
                     <tr className="border-b border-surface-tertiary/50">
                       <td className="py-3 text-sm text-foreground-secondary">{t('comparison.rows.support')}</td>
-                      {mockPlans.map((plan) => (
+                      {SAMPLE_PLANS.map((plan) => (
                         <td key={plan.id} className="py-3 text-center text-sm capitalize">
                           {t(`supportLevels.${plan.features.supportLevel}`)}
                         </td>
@@ -349,7 +349,7 @@ export function SaasOperatorPlans() {
                     </tr>
                     <tr className="border-b border-surface-tertiary/50">
                       <td className="py-3 text-sm text-foreground-secondary">{t('comparison.rows.customBranding')}</td>
-                      {mockPlans.map((plan) => (
+                      {SAMPLE_PLANS.map((plan) => (
                         <td key={plan.id} className="py-3 text-center">
                           {plan.features.customBranding ? (
                             <Check className="mx-auto h-4 w-4 text-success" />
@@ -361,7 +361,7 @@ export function SaasOperatorPlans() {
                     </tr>
                     <tr>
                       <td className="py-3 text-sm text-foreground-secondary">{t('comparison.rows.dedicatedProvers')}</td>
-                      {mockPlans.map((plan) => (
+                      {SAMPLE_PLANS.map((plan) => (
                         <td key={plan.id} className="py-3 text-center">
                           {plan.features.dedicatedProvers ? (
                             <Check className="mx-auto h-4 w-4 text-success" />

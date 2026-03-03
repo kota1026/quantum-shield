@@ -74,7 +74,7 @@ export function PublicProverApplications() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
-  const mockApplications: Application[] = [
+  const SAMPLE_APPLICATIONS: Application[] = [
     {
       id: 'app-001',
       operator: 'Zeta Validators Inc.',
@@ -133,11 +133,11 @@ export function PublicProverApplications() {
   ];
 
   const tabs = [
-    { key: 'pending', label: t('tabs.pending'), count: mockApplications.filter(a => a.status === 'pending').length },
-    { key: 'reviewing', label: t('tabs.reviewing'), count: mockApplications.filter(a => a.status === 'reviewing').length },
-    { key: 'approved', label: t('tabs.approved'), count: mockApplications.filter(a => a.status === 'approved').length },
-    { key: 'rejected', label: t('tabs.rejected'), count: mockApplications.filter(a => a.status === 'rejected').length },
-    { key: 'all', label: t('tabs.all'), count: mockApplications.length },
+    { key: 'pending', label: t('tabs.pending'), count: SAMPLE_APPLICATIONS.filter(a => a.status === 'pending').length },
+    { key: 'reviewing', label: t('tabs.reviewing'), count: SAMPLE_APPLICATIONS.filter(a => a.status === 'reviewing').length },
+    { key: 'approved', label: t('tabs.approved'), count: SAMPLE_APPLICATIONS.filter(a => a.status === 'approved').length },
+    { key: 'rejected', label: t('tabs.rejected'), count: SAMPLE_APPLICATIONS.filter(a => a.status === 'rejected').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_APPLICATIONS.length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -155,7 +155,7 @@ export function PublicProverApplications() {
     }
   };
 
-  const filteredApplications = mockApplications.filter((app) => {
+  const filteredApplications = SAMPLE_APPLICATIONS.filter((app) => {
     const matchesSearch =
       app.operator.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.address.toLowerCase().includes(searchQuery.toLowerCase());
@@ -194,25 +194,25 @@ export function PublicProverApplications() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               label={t('stats.totalApplications')}
-              value={String(mockApplications.length)}
+              value={String(SAMPLE_APPLICATIONS.length)}
               icon={<FileText className="h-5 w-5" />}
               status="info"
             />
             <StatCard
               label={t('stats.pendingReview')}
-              value={String(mockApplications.filter(a => a.status === 'pending').length)}
+              value={String(SAMPLE_APPLICATIONS.filter(a => a.status === 'pending').length)}
               icon={<Clock className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.approved')}
-              value={String(mockApplications.filter(a => a.status === 'approved').length)}
+              value={String(SAMPLE_APPLICATIONS.filter(a => a.status === 'approved').length)}
               icon={<CheckCircle className="h-5 w-5" />}
               status="success"
             />
             <StatCard
               label={t('stats.rejected')}
-              value={String(mockApplications.filter(a => a.status === 'rejected').length)}
+              value={String(SAMPLE_APPLICATIONS.filter(a => a.status === 'rejected').length)}
               icon={<XCircle className="h-5 w-5" />}
               status="danger"
             />

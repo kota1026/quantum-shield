@@ -36,8 +36,8 @@ import {
 } from '@/hooks/qs-hub/useQSHub';
 import type { QSHubStats, QSHubProposal, QSHubRewards, QSHubDelegate } from '@/lib/api/qs-hub/mock';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_STATS: QSHubStats = {
+// Default data (used when API is unavailable)
+const DEFAULT_STATS: QSHubStats = {
   qsBalance: 12450,
   lockedQS: 8500,
   veQSBalance: 6225,
@@ -52,7 +52,7 @@ const FALLBACK_STATS: QSHubStats = {
   councilMembers: 7,
 };
 
-const FALLBACK_PROPOSALS: QSHubProposal[] = [
+const DEFAULT_PROPOSALS: QSHubProposal[] = [
   {
     id: 'QIP-047',
     title: 'Increase Observer Rewards by 15%',
@@ -76,14 +76,14 @@ const FALLBACK_PROPOSALS: QSHubProposal[] = [
   },
 ];
 
-const FALLBACK_REWARDS: QSHubRewards = {
+const DEFAULT_REWARDS: QSHubRewards = {
   claimable: 847,
   usdValue: 4235,
   epochProgress: 65,
   nextEpoch: '3d 12h',
 };
 
-const FALLBACK_DELEGATES: QSHubDelegate[] = [
+const DEFAULT_DELEGATES: QSHubDelegate[] = [
   {
     id: '1',
     name: 'Watanabe Delegate',
@@ -206,17 +206,17 @@ export function QSHubDashboard({ isLoading = false, hasError = false, isEmpty = 
   const [isEcosystemMenuOpen, setIsEcosystemMenuOpen] = useState(false);
   const ecosystemMenuRef = useRef<HTMLDivElement>(null);
 
-  // Fetch data from API with fallback
+  // Fetch data from API with defaults
   const { data: statsApi } = useQSHubStats();
   const { data: proposalsApi } = useQSHubProposals();
   const { data: rewardsApi } = useQSHubRewards();
   const { data: delegatesApi } = useQSHubDelegates();
 
-  // Use API data or fallback (merge with fallback to ensure all fields exist)
-  const stats = statsApi ? { ...FALLBACK_STATS, ...statsApi } : FALLBACK_STATS;
-  const proposals = proposalsApi ?? FALLBACK_PROPOSALS;
-  const rewards = rewardsApi ? { ...FALLBACK_REWARDS, ...rewardsApi } : FALLBACK_REWARDS;
-  const delegates = delegatesApi ?? FALLBACK_DELEGATES;
+  // Use API data or defaults (merge with defaults to ensure all fields exist)
+  const stats = statsApi ? { ...DEFAULT_STATS, ...statsApi } : DEFAULT_STATS;
+  const proposals = proposalsApi ?? DEFAULT_PROPOSALS;
+  const rewards = rewardsApi ? { ...DEFAULT_REWARDS, ...rewardsApi } : DEFAULT_REWARDS;
+  const delegates = delegatesApi ?? DEFAULT_DELEGATES;
 
   // Close menu when clicking outside
   useEffect(() => {

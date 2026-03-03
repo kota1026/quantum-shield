@@ -19,7 +19,7 @@ use bigdecimal::BigDecimal;
 use sqlx::PgPool;
 use std::str::FromStr;
 use std::sync::Arc;
-use tracing::{info, warn, error, instrument};
+use tracing::{info, warn, instrument};
 
 use crate::error::ApiError;
 

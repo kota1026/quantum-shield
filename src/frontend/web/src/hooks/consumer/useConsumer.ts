@@ -262,6 +262,12 @@ interface EmergencyUnlockApiRequest {
   sig_dilithium: string;
 }
 
+interface ClaimUnlockApiResponse {
+  lock_id: string;
+  status: string;
+  l1_tx_hash?: string;
+}
+
 interface EmergencyUnlockApiResponse {
   unlock_id: string;
   sr_1: string;
@@ -343,21 +349,6 @@ export function useUserDashboard() {
           timestamp: a.timestamp,
         })),
       };
-    },
-    staleTime: 30_000,
-  });
-}
-
-/**
- * Legacy hook for backward compatibility
- * @deprecated Use useUserDashboard instead
- */
-export function useConsumerStats() {
-  return useQuery({
-    queryKey: consumerKeys.stats(),
-    queryFn: async () => {
-      const response = await fetchApi<StatsResponse>('/api/consumer/stats');
-      return response.stats;
     },
     staleTime: 30_000,
   });
@@ -451,88 +442,6 @@ export function useTransactionDetail(txId: string) {
     },
     enabled: !!txId,
     staleTime: 30_000,
-  });
-}
-
-/**
- * Legacy hook for backward compatibility
- * @deprecated Use useUserTransactions instead
- */
-export function useRecentTransactions() {
-  return useQuery({
-    queryKey: consumerKeys.transactions(),
-    queryFn: async () => {
-      return fetchApi<TransactionsResponse>('/api/consumer/transactions');
-    },
-    staleTime: 30_000,
-  });
-}
-
-// ==================== HISTORY HOOKS ====================
-
-/**
- * Legacy hook for backward compatibility
- * @deprecated Use useUserTransactions instead
- */
-export function useHistory() {
-  return useQuery({
-    queryKey: consumerKeys.history(),
-    queryFn: async () => {
-      return fetchApi<HistoryResponse>('/api/consumer/history');
-    },
-    staleTime: 30_000,
-  });
-}
-
-/**
- * Legacy hook for backward compatibility
- * @deprecated Use useTransactionDetail instead
- */
-export function useHistoryItem(id: string) {
-  return useQuery({
-    queryKey: consumerKeys.historyItem(id),
-    queryFn: async () => {
-      const response = await fetchApi<HistoryItemResponse>(
-        `/api/consumer/history/${id}`
-      );
-      return response.transaction;
-    },
-    staleTime: 60_000,
-    enabled: !!id,
-  });
-}
-
-// ==================== LOCKS HOOKS ====================
-
-/**
- * Legacy hook for backward compatibility
- * @deprecated Use useUserTransactions with txType filter instead
- */
-export function useLocks() {
-  return useQuery({
-    queryKey: consumerKeys.locks(),
-    queryFn: async () => {
-      return fetchApi<LocksResponse>('/api/consumer/locks');
-    },
-    staleTime: 30_000,
-  });
-}
-
-/**
- * Legacy hook for backward compatibility
- * @deprecated Use useTransactionDetail instead
- */
-export function useLock(id: string) {
-  return useQuery({
-    queryKey: consumerKeys.lock(id),
-    queryFn: async () => {
-      const response = await fetchApi<{ lock: LockItem }>(
-        `/api/consumer/locks/${id}`
-      );
-      return response.lock;
-    },
-    staleTime: 60_000,
-    enabled: !!id,
   });
 }
 
@@ -678,56 +587,34 @@ export function useRequestEmergencyUnlock() {
 }
 
 /**
- * Legacy hook for backward compatibility
- * @deprecated Use useCreateLock instead
+ * Claim unlock after timelock expiry
+ * Endpoint: POST /v1/unlock/claim
+ *
+ * Calls L1 Vault.executeUnlock() to release funds.
+ * Prerequisites: 2/5 SPHINCS+ signatures collected, timelock expired.
  */
-interface LockAssetInput {
-  amount: number;
-  duration?: number;
-}
-
-export function useLockAsset() {
+export function useClaimUnlock() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: LockAssetInput) => {
-      return fetchApi('/api/consumer/lock', {
+    mutationFn: async (data: { lockId: string }) => {
+      const response = await fetchApi<ClaimUnlockApiResponse>('/v1/unlock/claim', {
         method: 'POST',
-        body: JSON.stringify(input),
+        body: JSON.stringify({
+          lock_id: data.lockId,
+        }),
       });
+      return {
+        lockId: response.lock_id,
+        status: response.status,
+        l1TxHash: response.l1_tx_hash,
+      };
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: consumerKeys.dashboard() });
+      queryClient.invalidateQueries({ queryKey: consumerKeys.transactions() });
       queryClient.invalidateQueries({ queryKey: consumerKeys.stats() });
       queryClient.invalidateQueries({ queryKey: consumerKeys.locks() });
-      queryClient.invalidateQueries({ queryKey: consumerKeys.transactions() });
-    },
-  });
-}
-
-/**
- * Legacy hook for backward compatibility
- * @deprecated Use useRequestUnlock or useRequestEmergencyUnlock instead
- */
-interface UnlockAssetInput {
-  lockId: string;
-  method: 'normal' | 'emergency';
-}
-
-export function useUnlockAsset() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (input: UnlockAssetInput) => {
-      return fetchApi('/api/consumer/unlock', {
-        method: 'POST',
-        body: JSON.stringify(input),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: consumerKeys.stats() });
-      queryClient.invalidateQueries({ queryKey: consumerKeys.locks() });
-      queryClient.invalidateQueries({ queryKey: consumerKeys.transactions() });
-      queryClient.invalidateQueries({ queryKey: consumerKeys.history() });
     },
   });
 }

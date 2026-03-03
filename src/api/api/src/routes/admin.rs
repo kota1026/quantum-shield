@@ -19,11 +19,10 @@ use serde::{Deserialize, Serialize};
 use tracing::{info, warn, error, instrument};
 
 use crate::{
-    db::{AdminRepository, ProverRepository, ObserverRepository, ChallengeRepository, LockRepository, UserRepository, TreasuryRepository, GovernanceRepository, SupportRepository, DashboardCounts},
+    db::{AdminRepository, ProverRepository, ObserverRepository, ChallengeRepository, LockRepository, UserRepository, TreasuryRepository, GovernanceRepository, SupportRepository},
     error::ApiError,
     middleware::AuthUser,
     services::AppState,
-    types::{ProverStatus, Edition},
 };
 
 /// Extract admin_id from authenticated request extensions.
@@ -2474,7 +2473,7 @@ pub async fn get_admin_governance_votes(
 /// 
 /// List all providers for Admin Dashboard
 pub async fn list_providers(
-    Extension(state): Extension<Arc<AppState>>,
+    Extension(_state): Extension<Arc<AppState>>,
 ) -> Result<Json<ProviderListResponse>, ApiError> {
     tracing::debug!("Admin: Listing all providers");
 
@@ -2496,8 +2495,8 @@ pub async fn list_providers(
 /// 
 /// Register a new provider
 pub async fn register_provider(
-    Extension(state): Extension<Arc<AppState>>,
-    Json(req): Json<serde_json::Value>,
+    Extension(_state): Extension<Arc<AppState>>,
+    Json(_req): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
     tracing::info!("Admin: Registering new provider");
 
@@ -2692,7 +2691,7 @@ pub async fn get_analytics_overview(
 /// 
 /// Get current edition
 pub async fn get_current_edition(
-    Extension(state): Extension<Arc<AppState>>,
+    Extension(_state): Extension<Arc<AppState>>,
 ) -> Result<Json<EditionCurrentResponse>, ApiError> {
     tracing::debug!("Admin: Getting current edition");
 
@@ -2706,8 +2705,8 @@ pub async fn get_current_edition(
 ///
 /// Switch edition (Enterprise <-> Decentralized)
 pub async fn switch_edition(
-    Extension(state): Extension<Arc<AppState>>,
-    Json(req): Json<serde_json::Value>,
+    Extension(_state): Extension<Arc<AppState>>,
+    Json(_req): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
     tracing::info!("Admin: Edition switch requested");
 
@@ -7303,7 +7302,7 @@ pub async fn get_analytics_revenue(
     // BE-001: Real DB operations
     let latest_metrics = AdminRepository::get_latest_metrics(pool).await?;
 
-    let (revenue_today, lock_volume, unlock_volume) = if let Some(ref m) = latest_metrics {
+    let (revenue_today, _lock_volume, _unlock_volume) = if let Some(ref m) = latest_metrics {
         (
             m.fee_revenue.to_string(),
             m.lock_volume.to_string(),

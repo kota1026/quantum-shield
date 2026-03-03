@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { Button } from '@/components/ui/button';
 import { useWebhooks } from '@/hooks/enterprise';
-import { MOCK_WEBHOOKS } from '@/lib/api/enterprise/mock';
 
 type WebhookStatus = 'active' | 'inactive';
 
@@ -26,18 +25,6 @@ interface Webhook {
   totalDeliveries: number;
 }
 
-// Fallback data for when API is unavailable
-const FALLBACK_WEBHOOKS: Webhook[] = MOCK_WEBHOOKS.map(w => ({
-  id: w.id,
-  name: w.name,
-  url: w.url,
-  status: w.isActive ? 'active' as const : 'inactive' as const,
-  events: w.events.map(e => ({ type: e, label: e })),
-  lastDelivery: w.lastTriggered ? '2' : '0',
-  successRate: w.successRate,
-  totalDeliveries: 1000,
-}));
-
 interface WebhooksProps {
   className?: string;
 }
@@ -56,7 +43,7 @@ export function Webhooks({ className }: WebhooksProps) {
     lastDelivery: w.last_triggered ? '2' : '0',
     successRate: w.success_rate,
     totalDeliveries: 1000,
-  })) ?? FALLBACK_WEBHOOKS;
+  })) ?? [];
 
   const formatLastDelivery = (minutes: string) => {
     const mins = parseInt(minutes);

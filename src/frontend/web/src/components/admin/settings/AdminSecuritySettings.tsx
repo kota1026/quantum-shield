@@ -63,7 +63,7 @@ export function AdminSecuritySettings() {
   const [activeTab, setActiveTab] = useState<'overview' | 'mfa' | 'sessions' | 'api_keys' | 'audit'>('overview');
   const [showApiKey, setShowApiKey] = useState<string | null>(null);
 
-  const mockSessions = [
+  const SAMPLE_SESSIONS = [
     {
       id: 'session-001',
       device: 'Chrome on macOS',
@@ -90,7 +90,7 @@ export function AdminSecuritySettings() {
     },
   ];
 
-  const mockApiKeys = [
+  const SAMPLE_API_KEYS = [
     {
       id: 'key-001',
       name: 'Production API Key',
@@ -117,7 +117,7 @@ export function AdminSecuritySettings() {
     },
   ];
 
-  const mockAuditLogs = [
+  const SAMPLE_AUDIT_LOGS = [
     {
       id: 'log-001',
       action: 'ログイン成功',
@@ -371,7 +371,7 @@ export function AdminSecuritySettings() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockSessions.map((session) => (
+                  {SAMPLE_SESSIONS.map((session) => (
                     <div
                       key={session.id}
                       className={cn(
@@ -428,7 +428,7 @@ export function AdminSecuritySettings() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockApiKeys.map((apiKey) => (
+                  {SAMPLE_API_KEYS.map((apiKey) => (
                     <div
                       key={apiKey.id}
                       className="rounded-lg border border-surface-tertiary bg-background-secondary p-4"
@@ -491,7 +491,7 @@ export function AdminSecuritySettings() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockAuditLogs.map((log) => (
+                  {SAMPLE_AUDIT_LOGS.map((log) => (
                     <div
                       key={log.id}
                       className={cn(

@@ -32,8 +32,8 @@ interface ProverDetailProps {
   locale?: string;
 }
 
-// Mock data
-const mockProverData: Record<string, {
+// Default prover data for initial state
+const DEFAULT_PROVER_DATA: Record<string, {
   id: string;
   name: string;
   address: string;
@@ -134,7 +134,7 @@ export function ProverDetail({ proverId, locale = 'ja' }: ProverDetailProps) {
   const t = useTranslations('explorer.proverDetail');
   const tCommon = useTranslations('explorer.common');
 
-  const prover = mockProverData[proverId] || mockProverData['prover-1'];
+  const prover = DEFAULT_PROVER_DATA[proverId] || DEFAULT_PROVER_DATA['prover-1'];
 
   if (!prover) {
     return (

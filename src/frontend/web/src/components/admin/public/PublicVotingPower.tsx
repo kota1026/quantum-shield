@@ -68,7 +68,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockVotingPowerData = {
+const DEFAULT_VOTING_POWER_DATA = {
   overview: {
     totalVotingPower: '45M QS',
     activeVotingPower: '38.5M QS',
@@ -107,7 +107,7 @@ const mockVotingPowerData = {
 
 export function PublicVotingPower() {
   const t = useTranslations('admin.publicVotingPower');
-  const [selectedTimeRange, setSelectedTimeRange] = useState<typeof mockVotingPowerData.timeRanges[number]>('30d');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<typeof DEFAULT_VOTING_POWER_DATA.timeRanges[number]>('30d');
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -158,7 +158,7 @@ export function PublicVotingPower() {
                 <p className="mt-1 text-sm text-foreground-secondary">{t('subtitle')}</p>
               </div>
               <div className="flex gap-2">
-                {mockVotingPowerData.timeRanges.map((range) => (
+                {DEFAULT_VOTING_POWER_DATA.timeRanges.map((range) => (
                   <Button
                     key={range}
                     variant={selectedTimeRange === range ? 'primary' : 'outline'}
@@ -176,36 +176,36 @@ export function PublicVotingPower() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.totalVotingPower')}
-              value={mockVotingPowerData.overview.totalVotingPower}
+              value={DEFAULT_VOTING_POWER_DATA.overview.totalVotingPower}
               icon={<Vote className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeVotingPower')}
-              value={mockVotingPowerData.overview.activeVotingPower}
+              value={DEFAULT_VOTING_POWER_DATA.overview.activeVotingPower}
               subValue="85.5%"
               icon={<BarChart3 className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.delegatedPower')}
-              value={mockVotingPowerData.overview.delegatedPower}
+              value={DEFAULT_VOTING_POWER_DATA.overview.delegatedPower}
               trend={{ value: '+5.2%', direction: 'up' }}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.quorumThreshold')}
-              value={mockVotingPowerData.overview.quorumThreshold}
+              value={DEFAULT_VOTING_POWER_DATA.overview.quorumThreshold}
               subValue="10%"
               icon={<Scale className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgVoterTurnout')}
-              value={mockVotingPowerData.overview.avgVoterTurnout}
+              value={DEFAULT_VOTING_POWER_DATA.overview.avgVoterTurnout}
               trend={{ value: '+3%', direction: 'up' }}
               icon={<PieChart className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.nakamotoCoefficient')}
-              value={mockVotingPowerData.overview.nakamotoCoefficient}
+              value={DEFAULT_VOTING_POWER_DATA.overview.nakamotoCoefficient}
               icon={<Shield className="h-5 w-5" />}
               status="success"
             />
@@ -264,14 +264,14 @@ export function PublicVotingPower() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-bold">{mockVotingPowerData.overview.totalVotingPower}</span>
+                      <span className="text-2xl font-bold">{DEFAULT_VOTING_POWER_DATA.overview.totalVotingPower}</span>
                       <span className="text-xs text-foreground-tertiary">{t('powerDistribution.total')}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  {mockVotingPowerData.powerDistribution.map((item, index) => (
+                  {DEFAULT_VOTING_POWER_DATA.powerDistribution.map((item, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className={cn(
@@ -300,7 +300,7 @@ export function PublicVotingPower() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockVotingPowerData.decentralizationMetrics.map((metric, index) => (
+                  {DEFAULT_VOTING_POWER_DATA.decentralizationMetrics.map((metric, index) => (
                     <div
                       key={index}
                       className="rounded-lg border border-surface-tertiary p-4"
@@ -332,7 +332,7 @@ export function PublicVotingPower() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-end justify-between gap-2">
-                    {mockVotingPowerData.votingHistory.map((data, index) => (
+                    {DEFAULT_VOTING_POWER_DATA.votingHistory.map((data, index) => (
                       <div key={index} className="flex flex-col items-center gap-1">
                         <div className="relative h-24 w-8">
                           <div
@@ -355,7 +355,7 @@ export function PublicVotingPower() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockVotingPowerData.powerConcentrationAlerts.map((alert, index) => (
+                    {DEFAULT_VOTING_POWER_DATA.powerConcentrationAlerts.map((alert, index) => (
                       <div
                         key={index}
                         className="flex items-start gap-3 rounded-lg border border-surface-tertiary p-3"

@@ -23,16 +23,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useTransferStats, useTreasuryTransfers } from '@/hooks/admin/useTreasury';
-import {
-  MOCK_TRANSFER_STATS,
-  MOCK_TREASURY_TRANSFERS,
-  type TransferStats,
-  type TreasuryTransfer,
-} from '@/lib/api/admin/mock';
+import type { TransferStats, TreasuryTransfer } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_TRANSFER_STATS;
-const FALLBACK_TRANSFERS = MOCK_TREASURY_TRANSFERS;
+// Empty defaults when API data is unavailable
+const DEFAULT_STATS: TransferStats = { pendingApprovals: 0, transfersThisMonth: 0, totalVolume: '0 ETH', avgTransferSize: '0 ETH' };
+const DEFAULT_TRANSFERS: TreasuryTransfer[] = [];
 
 const STATUS_COLORS = {
   pending: 'bg-warning/10 text-warning',
@@ -123,8 +118,7 @@ function TransfersListError({ error, onRetry }: { error: Error; onRetry: () => v
 
 // Map API transfer to component format
 function mapApiTransfer(data: unknown): TreasuryTransfer {
-  if (!data || typeof data !== 'object') return FALLBACK_TRANSFERS[0];
-  const d = data as Record<string, unknown>;
+  const d = (data && typeof data === 'object') ? data as Record<string, unknown> : {};
   return {
     id: (d.id as string) || '',
     from: (d.from as string) || '',
@@ -150,11 +144,11 @@ export function TransfersList() {
   const transfersQuery = useTreasuryTransfers();
 
   // Map API data or use fallback
-  const stats: TransferStats = statsQuery.data ?? FALLBACK_STATS;
+  const stats: TransferStats = statsQuery.data ?? DEFAULT_STATS;
   const apiTransfers = transfersQuery.data?.transfers;
   const transfers: TreasuryTransfer[] = apiTransfers
     ? apiTransfers.map(mapApiTransfer)
-    : FALLBACK_TRANSFERS;
+    : DEFAULT_TRANSFERS;
 
   // Show skeleton only on initial load
   if (statsQuery.isLoading && !statsQuery.data && transfersQuery.isLoading && !transfersQuery.data) {

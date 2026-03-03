@@ -16,7 +16,6 @@ use std::sync::Arc;
 use axum::{Extension, Json, extract::Path};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
-use uuid::Uuid;
 
 use crate::{
     db::{TreasuryRepository, GovernanceRepository},

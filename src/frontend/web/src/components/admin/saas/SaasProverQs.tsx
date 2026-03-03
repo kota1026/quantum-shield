@@ -65,7 +65,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockQsProvers = [
+const SAMPLE_QS_PROVERS = [
   {
     id: 'qs-prover-001',
     name: 'QS-Prover-Tokyo-01',
@@ -133,7 +133,7 @@ const mockQsProvers = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   totalProvers: 5,
   activeProvers: 3,
   degradedProvers: 1,
@@ -145,13 +145,13 @@ export function SaasProverQs() {
   const t = useTranslations('admin.saasProverQs');
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'degraded' | 'maintenance'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProver, setSelectedProver] = useState<typeof mockQsProvers[0] | null>(mockQsProvers[0]);
+  const [selectedProver, setSelectedProver] = useState<typeof SAMPLE_QS_PROVERS[0] | null>(SAMPLE_QS_PROVERS[0]);
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockQsProvers.length },
-    { key: 'active', label: t('tabs.active'), count: mockQsProvers.filter(p => p.status === 'active').length },
-    { key: 'degraded', label: t('tabs.degraded'), count: mockQsProvers.filter(p => p.status === 'degraded').length },
-    { key: 'maintenance', label: t('tabs.maintenance'), count: mockQsProvers.filter(p => p.status === 'maintenance').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_QS_PROVERS.length },
+    { key: 'active', label: t('tabs.active'), count: SAMPLE_QS_PROVERS.filter(p => p.status === 'active').length },
+    { key: 'degraded', label: t('tabs.degraded'), count: SAMPLE_QS_PROVERS.filter(p => p.status === 'degraded').length },
+    { key: 'maintenance', label: t('tabs.maintenance'), count: SAMPLE_QS_PROVERS.filter(p => p.status === 'maintenance').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -175,7 +175,7 @@ export function SaasProverQs() {
     return 'bg-success';
   };
 
-  const filteredProvers = mockQsProvers.filter((prover) => {
+  const filteredProvers = SAMPLE_QS_PROVERS.filter((prover) => {
     const matchesSearch =
       prover.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prover.region.toLowerCase().includes(searchQuery.toLowerCase());
@@ -211,29 +211,29 @@ export function SaasProverQs() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalProvers')}
-              value={String(mockMetrics.totalProvers)}
+              value={String(DEFAULT_METRICS.totalProvers)}
               icon={<Server className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeProvers')}
-              value={String(mockMetrics.activeProvers)}
+              value={String(DEFAULT_METRICS.activeProvers)}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.degradedProvers')}
-              value={String(mockMetrics.degradedProvers)}
+              value={String(DEFAULT_METRICS.degradedProvers)}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.totalProofs')}
-              value={mockMetrics.totalProofs}
+              value={DEFAULT_METRICS.totalProofs}
               trend={{ value: '+15%', direction: 'up' }}
               icon={<Shield className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgProofTime')}
-              value={mockMetrics.avgProofTime}
+              value={DEFAULT_METRICS.avgProofTime}
               icon={<Zap className="h-5 w-5" />}
             />
           </div>

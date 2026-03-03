@@ -183,23 +183,71 @@ class ConsumerApiClient {
     return this.request<{ locks: unknown[]; total: number }>('/v1/user/locks', { params });
   }
 
-  async createLock(data: { amount: string; token: string }) {
-    return this.request<{ lockId: string; txHash: string }>('/v1/lock', {
+  async createLock(data: {
+    chain_id: number;
+    asset: string;
+    amount: string;
+    dest_addr: string;
+    pk_dilithium: string;
+    sig_dilithium: string;
+    expiry: number;
+    nonce: number;
+  }) {
+    return this.request<{
+      lock_id: string;
+      sr_0: string;
+      smt_proof: string;
+      status: string;
+      l1_tx_hash?: string;
+    }>('/v1/lock', {
       method: 'POST',
       body: data,
     });
   }
 
   // Unlock
-  async requestUnlock(data: { lockId: string }) {
-    return this.request<{ unlockId: string }>('/v1/unlock', {
+  async requestUnlock(data: {
+    lock_id: string;
+    dest_addr: string;
+    amount: string;
+    sig_dilithium: string;
+  }) {
+    return this.request<{
+      unlock_id: string;
+      sr_1: string;
+      release_time: number;
+      time_lock_hours: number;
+      status: string;
+    }>('/v1/unlock', {
       method: 'POST',
       body: data,
     });
   }
 
-  async requestEmergencyUnlock(data: { lockId: string; bondAmount: string }) {
-    return this.request<{ unlockId: string }>('/v1/unlock/emergency', {
+  async requestEmergencyUnlock(data: {
+    lock_id: string;
+    dest_addr: string;
+    amount: string;
+    sig_dilithium: string;
+  }) {
+    return this.request<{
+      unlock_id: string;
+      sr_1: string;
+      release_time: number;
+      bond_required: string;
+      status: string;
+    }>('/v1/unlock/emergency', {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  async claimUnlock(data: { lock_id: string }) {
+    return this.request<{
+      lock_id: string;
+      status: string;
+      l1_tx_hash?: string;
+    }>('/v1/unlock/claim', {
       method: 'POST',
       body: data,
     });
