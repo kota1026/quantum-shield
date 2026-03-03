@@ -1095,72 +1095,134 @@ async function startVRFDemo() {
   setRunning('btn-vrf', false);
 }
 
-// ===== DEMO 3: Unlock + Auto-Claim =====
+// ===== DEMO 3: Unlock + Auto-Claim (Full Flow: User→L3→VRF→Prover 2/N→L1→Auto-Claim) =====
 async function startUnlockDemo() {
   if (isRunning) return;
   setRunning('btn-unlock', true);
   switchScreen('consumer');
 
+  // Step 1: User submits unlock request to L3 Aegis
   addLog('fe', 'User requests unlock for <span class="hash">QS-2026-0847</span>');
-  await sleep(500);
-
-  pulseArrow('arrow-fe-api');
-  addLog('fe', 'POST <span class="val">/v1/locks/QS-2026-0847/unlock</span>');
   await sleep(400);
 
+  pulseArrow('arrow-fe-api');
+  addLog('fe', 'Signing Unlock Request with <span class="val">Dilithium (ML-DSA-65)</span>...');
+  await sleep(500);
+  addLog('api', '(1) Unlock Request received at <span class="val">L3 Aegis</span> (4-node BFT)');
+  await sleep(400);
+
+  // Step 2: L3 verifies Dilithium + computes SR_1
   highlightArch('arch-api');
-  addLog('api', 'Unlock request received. Checking 24h TimeLock...');
+  addLog('api', 'BFT consensus: Dilithium signature verified <span class="ok">&#10003;</span>');
+  await sleep(400);
+  addLog('api', 'Computing SR_1 = SHA3-256(QS_UNLOCK_V1 || SR_0 || lock_id || ...)');
+  await sleep(300);
+  addLog('api', 'Registry reference: checking active Provers...');
+  await sleep(400);
+
+  // Step 3: VRF seed request
+  addLog('vrf', '(2) Requesting VRF seed from <span class="val">Chainlink VRF v2</span>...');
+  await sleep(1000);
+  addLog('vrf', '(3) VRF seed received: <span class="hash">0x7f2a...91bc</span>');
+  await sleep(400);
+
+  // Step 4: Prover selection (2/N) and SPHINCS+ signing
+  addLog('vrf', 'Prover selection: 2/N from <span class="val">4 active provers</span>');
+  addLog('vrf', 'P(i) = Stake_i / &#931; Stake | Weights: P1=<span class="val">28%</span> P2=<span class="val">26%</span> P3=<span class="val">24%</span> P4=<span class="val">22%</span>');
+  await sleep(500);
+  addLog('vrf', '<span class="ok">&#10003;</span> Selected: <span class="val">Prover Alpha (P1)</span> + <span class="val">Prover Gamma (P3)</span>');
+  await sleep(400);
+
+  addLog('prover', '(4) Signing request sent to 2 Provers: { unlock_data, SR_0, SR_1 }');
   await sleep(600);
-  addLog('api', 'TimeLock status: <span class="val">23h 58m elapsed</span>. Remaining: <span class="val">2m</span>');
+  addLog('prover', 'Prover Alpha: Generating <span class="val">SPHINCS+ (SLH-DSA-SHAKE-128f)</span> signature...');
+  await sleep(500);
+  addLog('prover', 'Prover Gamma: Generating <span class="val">SPHINCS+ (SLH-DSA-SHAKE-128f)</span> signature...');
+  await sleep(800);
+  addLog('prover', '(5) Prover Alpha: sig_A = <span class="hash">0xb7e4...2a1f</span> (8,080 bytes)');
+  addLog('prover', '(5) Prover Gamma: sig_B = <span class="hash">0xd3c9...8e7b</span> (8,080 bytes)');
+  await sleep(400);
+  addLog('api', '2x SPHINCS+ signatures collected (total: 16 KB) <span class="ok">&#10003;</span>');
   await sleep(300);
 
-  // Show timelock progress
-  document.getElementById('time-remaining').textContent = '00:02:00';
+  // Step 6: Notify user
+  addLog('fe', '(6) Signatures ready. Preparing L1 submission...');
+  await sleep(400);
+
+  // Step 7: User submits to L1 Vault
+  pulseArrow('arrow-api-l1');
+  highlightArch('arch-l1');
+  addLog('l1', '(7) Submit Unlock to L1 Vault: { SR_0, SR_1, SMT_proof, 2x SPHINCS+ }');
+  await sleep(800);
+  addLog('l1', 'Fetching Prover public keys from Registry <span class="hash">0x08e1...8946</span>...');
+  await sleep(500);
+  addLog('l1', 'SPHINCS+ verify sig_A (Prover Alpha)... <span class="ok">&#10003;</span>');
+  await sleep(500);
+  addLog('l1', 'SPHINCS+ verify sig_B (Prover Gamma)... <span class="ok">&#10003;</span>');
+  await sleep(400);
+  addLog('l1', 'Gas used: <span class="val">~490K</span> (2-sig on-chain verify)');
+  await sleep(300);
+  addLog('l1', '<span class="val">24h TimeLock started</span>. Release at T+24h.');
+  await sleep(400);
+
+  // Step 8: Pending - user done
+  addLog('l1', '(8) Pending: <span class="hash">QS-2026-0847</span> | release_time = T+24h');
+  addLog('fe', '<span class="ok">&#10003;</span> User action complete. Auto-Claim will handle the rest.');
+
+  // Show timelock progress on UI
+  document.getElementById('time-remaining').textContent = '24:00:00';
   const lockList = document.getElementById('lock-list');
   lockList.innerHTML = `
-    <div class="card"><div class="card-title">Unlocking</div>
+    <div class="card"><div class="card-title">Unlocking (24h TimeLock)</div>
       <div class="lock-item">
         <div class="lock-status unlocking"></div>
         <div class="lock-info">
           <div class="lock-amount">2.500 ETH</div>
-          <div class="lock-meta">QS-2026-0847 | Unlock requested</div>
+          <div class="lock-meta">QS-2026-0847 | 2/N SPHINCS+ verified | TimeLock active</div>
         </div>
-        <div class="lock-time" style="color: var(--orange);">00:02:00</div>
+        <div class="lock-time" style="color: var(--orange);">24:00:00</div>
       </div>
       <div class="timelock-bar">
-        <div class="timelock-track"><div class="timelock-fill" id="timelock-fill" style="width: 99%;"></div></div>
-        <div class="timelock-labels"><span>Lock: 23h 58m ago</span><span>Auto-Claim in 2m</span></div>
+        <div class="timelock-track"><div class="timelock-fill" id="timelock-fill" style="width: 0%;"></div></div>
+        <div class="timelock-labels"><span>TimeLock started</span><span>Auto-Claim in 24h</span></div>
       </div>
     </div>`;
-
-  addLog('api', 'Unlock queued. Auto-Claim will trigger at TimeLock expiry.');
   await sleep(1500);
 
-  // Simulate auto-claim
-  addLog('api', '<span class="val">[Auto-Claim Service]</span> TimeLock expired for <span class="hash">QS-2026-0847</span>');
+  // Step 9: Auto-Claim service picks up the event
+  addLog('api', '(9) <span class="val">[Auto-Claim Service]</span> UnlockRequested event detected');
+  addLog('api', 'Registered: { lockId: QS-2026-0847, releaseAt: T+24h }');
+  await sleep(600);
+
+  // Fast-forward UI to show 24h passing
+  addLog('api', '<span class="val">[Auto-Claim]</span> Monitoring... Challenge check: <span class="ok">none</span>');
+  document.getElementById('time-remaining').textContent = '00:02:00';
+  document.getElementById('timelock-fill').style.width = '99%';
+  lockList.querySelector('.timelock-labels').innerHTML = '<span>Lock: 23h 58m ago</span><span>Auto-Claim in 2m</span>';
+  lockList.querySelector('.lock-time').textContent = '00:02:00';
+  await sleep(1200);
+
+  // Step 11: Auto-Claim executes
+  addLog('api', '<span class="val">[Auto-Claim]</span> 24h elapsed. No challenges found.');
   document.getElementById('time-remaining').textContent = '00:00:00';
   await sleep(500);
 
+  addLog('l1', '(11) Auto-Claim: executeUnlock(<span class="hash">QS-2026-0847</span>)');
+  await sleep(600);
+  addLog('l1', 'TimeLock verified. Releasing funds...');
+  await sleep(500);
+  addLog('l1', 'Funds released: <span class="val">2.5 ETH</span> -> <span class="hash">0x7a3b...f29c</span>');
+  await sleep(400);
+  addLog('l1', 'Tx confirmed: <span class="hash">0xc5d8...a3e1</span> <span class="ok">&#10003;</span>');
+  addLog('api', 'Gas paid by <span class="val">Protocol Treasury</span> (user cost: 0)');
+  await sleep(300);
+
   pulseArrow('arrow-api-db');
   highlightArch('arch-db');
-  addLog('db', 'UPDATE locks SET status = <span class="val">unlocking</span>');
-  await sleep(400);
-
-  pulseArrow('arrow-api-l1');
-  highlightArch('arch-l1');
-  addLog('l1', 'Calling Vault.unlock(<span class="hash">QS-2026-0847</span>)');
-  await sleep(800);
-  addLog('l1', 'SPHINCS+ verification on-chain... <span class="ok">&#10003;</span>');
-  await sleep(600);
-  addLog('l1', 'Funds released: <span class="val">2.5 ETH</span> -> <span class="hash">0x7a3b...f29c</span>');
-  await sleep(500);
-  addLog('l1', 'Tx confirmed: <span class="hash">0xc5d8...a3e1</span> <span class="ok">&#10003;</span>');
-
-  await sleep(300);
   addLog('db', 'UPDATE locks SET status = <span class="val">unlocked</span>, unlock_tx = <span class="hash">0xc5d8...a3e1</span>');
-  addLog('api', 'Auto-Claim complete. User notified. <span class="ok">&#10003;</span>');
+  addLog('api', '(12) Release complete. User notified. <span class="ok">&#10003;</span>');
 
-  // Update UI
+  // Update UI - done
   document.getElementById('total-locked').textContent = '0.00';
   document.getElementById('active-locks').textContent = '0';
   lockList.innerHTML = `
@@ -1169,7 +1231,7 @@ async function startUnlockDemo() {
         <div class="lock-status" style="background: var(--blue);"></div>
         <div class="lock-info">
           <div class="lock-amount" style="color: var(--green);">2.500 ETH Unlocked</div>
-          <div class="lock-meta">QS-2026-0847 | Auto-Claimed | 0 user actions required</div>
+          <div class="lock-meta">QS-2026-0847 | 2/N SPHINCS+ | Auto-Claimed | 0 user actions after submit</div>
         </div>
         <div class="lock-time" style="color: var(--green);">&#10003; Done</div>
       </div>
@@ -1244,67 +1306,91 @@ async function startChallengeDemo() {
   setRunning('btn-challenge', false);
 }
 
-// ===== DEMO 5: Emergency Unlock =====
+// ===== DEMO 5: Emergency Unlock (Prover障害 → 72h Timeout → Bond + 7-Day TimeLock) =====
 async function startEmergencyDemo() {
   if (isRunning) return;
   setRunning('btn-emergency', true);
   switchScreen('consumer');
 
-  addLog('fe', '<span class="err">&#9888; EMERGENCY UNLOCK</span> requested for <span class="hash">QS-2026-0847</span>');
-  await sleep(500);
-
-  addLog('fe', 'User reason: <span class="val">"Suspected compromise of prover keys"</span>');
+  // Step 1: User initially tries normal unlock
+  addLog('fe', 'User requests normal unlock for <span class="hash">QS-2026-0847</span>');
   await sleep(400);
 
   pulseArrow('arrow-fe-api');
-  addLog('fe', 'POST <span class="val">/v1/locks/QS-2026-0847/emergency-unlock</span>');
+  addLog('api', '(1) Unlock Request received at <span class="val">L3 Aegis</span>. Dilithium verified <span class="ok">&#10003;</span>');
+  await sleep(400);
+
+  // Step 2: VRF + Prover request fails
+  addLog('vrf', '(2) Requesting VRF + Prover signatures...');
+  await sleep(800);
+  addLog('prover', '<span class="err">&#9888; Prover Alpha: no response</span>');
+  await sleep(600);
+  addLog('prover', '<span class="err">&#9888; Prover Gamma: no response</span>');
+  await sleep(400);
+  addLog('api', 'Prover Pool unresponsive. Retry 1/3...');
+  await sleep(600);
+  addLog('api', '<span class="err">Retry 2/3 failed.</span> Retry 3/3...');
+  await sleep(600);
+  addLog('api', '<span class="err">All retries exhausted.</span> Prover timeout threshold: <span class="val">72 hours</span>');
   await sleep(500);
+
+  // Step 3: 72h timeout triggers Emergency Path
+  addLog('api', '<span class="err">&#9888; 72h TIMEOUT</span> - Emergency Path activated');
+  addLog('api', 'Conditions met: Prover응답なし > 72h / VRF障害');
+  await sleep(500);
+  addLog('fe', '(3) <span class="err">Emergency notification</span> sent to user: { emergency_mode: true }');
+  await sleep(600);
+
+  // User initiates emergency
+  addLog('fe', '<span class="err">&#9888; EMERGENCY UNLOCK</span> - Prover Pool failure detected');
+  addLog('fe', 'User must provide <span class="val">Emergency Bond</span> to proceed');
+  await sleep(400);
 
   highlightArch('arch-api');
-  addLog('api', 'Emergency unlock request received');
-  addLog('api', 'Checking emergency bond requirement...');
-  await sleep(400);
-  addLog('api', 'Bond required: <span class="val">max(0.5 ETH, 5% of 2.5 ETH) = 0.5 ETH</span>');
+  addLog('api', 'Computing bond: <span class="val">max(0.5 ETH, 5% of 2.5 ETH) = 0.5 ETH</span>');
   await sleep(300);
-  addLog('api', 'User bond: <span class="val">0.5 ETH</span> <span class="ok">&#10003;</span>');
 
-  await sleep(400);
-  pulseArrow('arrow-api-db');
-  highlightArch('arch-db');
-  addLog('db', 'INSERT INTO emergency_unlocks (lock_id, bond, timelock_days)');
-  addLog('db', 'Values: (<span class="hash">QS-2026-0847</span>, <span class="val">0.5 ETH</span>, <span class="val">7</span>)');
-  await sleep(400);
-
+  // Step 4: Emergency Submit to L1 (no SPHINCS+ signatures needed)
   pulseArrow('arrow-api-l1');
   highlightArch('arch-l1');
-  addLog('l1', 'Calling Vault.emergencyUnlock(<span class="hash">QS-2026-0847</span>)');
+  addLog('l1', '(4) Emergency Submit to L1 Vault (no SPHINCS+ sig required)');
+  addLog('l1', '{ SR_0, SR_1, SMT_proof, unlock_data } + Bond: <span class="val">0.5 ETH</span>');
   await sleep(600);
-  addLog('l1', 'Bond locked: <span class="val">0.5 ETH</span> in escrow');
-  addLog('l1', '<span class="val">7-day timelock</span> started. Expires: 2026-03-10T12:00:00Z');
+  addLog('l1', 'SR_0 verification... <span class="ok">&#10003;</span>');
+  await sleep(400);
+  addLog('l1', 'Emergency Mode flag set. Bond received: <span class="val">0.5 ETH</span>');
+  addLog('l1', '<span class="val">7-day TimeLock</span> started (vs 24h normal)');
   await sleep(500);
   addLog('l1', 'Tx confirmed: <span class="hash">0xd9f2...b4a7</span> <span class="ok">&#10003;</span>');
-
   await sleep(300);
-  addLog('api', 'Emergency unlock initiated. <span class="val">7-day</span> challenge period started.');
-  addLog('api', 'If no dispute: funds + bond returned automatically.');
-  addLog('api', 'If disputed: bond forfeited, lock reverted.');
+
+  // Step 5: Pending
+  addLog('l1', '(5) Pending: release_time = T+7d | emergency = true');
+  await sleep(300);
+
+  // Step 6: Enhanced monitoring
+  addLog('api', '(6) <span class="val">Enhanced Monitoring</span> activated: 24/7 for 7 days');
+  addLog('api', 'SR transition verification + lowered alert thresholds');
+  await sleep(400);
+  addLog('api', 'If disputed by Observer: bond <span class="val">0.5 ETH forfeited</span>, lock reverted');
+  addLog('api', 'If no dispute after 7d: <span class="val">funds + bond returned</span>');
 
   // Update UI
   const lockList = document.getElementById('lock-list');
   lockList.innerHTML = `
     <div class="card" style="border-color: var(--red);">
-      <div class="card-title" style="color: var(--red);">Emergency Unlock - 7 Day TimeLock</div>
+      <div class="card-title" style="color: var(--red);">Emergency Unlock - 7 Day TimeLock (Prover Failure)</div>
       <div class="lock-item" style="border-color: var(--red);">
         <div class="lock-status unlocking"></div>
         <div class="lock-info">
           <div class="lock-amount">2.500 ETH + 0.500 ETH Bond</div>
-          <div class="lock-meta" style="color: var(--red);">QS-2026-0847 | Emergency | Challenge period active</div>
+          <div class="lock-meta" style="color: var(--red);">QS-2026-0847 | Prover障害 | 24/7 enhanced monitoring</div>
         </div>
         <div class="lock-time" style="color: var(--red);">6d 23:59</div>
       </div>
       <div class="timelock-bar">
         <div class="timelock-track"><div class="timelock-fill" style="width: 1%; background: var(--red);"></div></div>
-        <div class="timelock-labels"><span>Started: now</span><span>Expires: 7 days</span></div>
+        <div class="timelock-labels"><span>Prover障害 → Emergency Path</span><span>7d challenge period</span></div>
       </div>
     </div>`;
 
