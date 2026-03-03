@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Shield - Interactive Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #C41E3A;
+    --red-dark: #9B1830;
+    --red-glow: rgba(196, 30, 58, 0.3);
+    --gold: #D4AF37;
+    --gold-light: #E8C84A;
+    --green: #22C55E;
+    --blue: #3B82F6;
+    --purple: #8B5CF6;
+    --orange: #F59E0B;
+    --dark: #0A0A14;
+    --dark-card: #12121F;
+    --dark-mid: #1A1A2E;
+    --dark-border: #2A2A42;
+    --text: #E8E8F0;
+    --text-muted: #8888A0;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--dark);
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+  }
+
+  /* Layout */
+  .app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Left: App Simulation */
+  .app-panel {
+    flex: 0 0 55%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--dark-border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Right: Backend Monitor */
+  .monitor-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--dark);
+  }
+
+  /* App Header */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--dark-card);
+    border-bottom: 1px solid var(--dark-border);
+  }
+  .app-logo {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--red);
+    letter-spacing: -0.5px;
+  }
+  .app-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .app-nav button {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .app-nav button.active {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+  }
+  .app-nav button:hover:not(.active) {
+    border-color: var(--dark-border);
+    color: var(--text);
+  }
+  .wallet-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--dark-mid);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+  }
+  .wallet-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  /* App Screen */
+  .app-screen {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .screen {
+    position: absolute;
+    inset: 0;
+    padding: 32px;
+    opacity: 0;
+    transform: translateX(30px);
+    transition: all 0.4s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+  .screen.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /* Screen Title */
+  .screen-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .screen-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  /* Form Elements */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--dark);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 18px;
+    font-family: var(--mono);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--red); }
+  .form-input-suffix {
+    display: flex;
+    align-items: center;
+  }
+  .form-input-suffix .suffix {
+    padding: 12px 16px;
+    background: var(--dark-mid);
+    border: 1px solid var(--dark-border);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .form-input-suffix .form-input {
+    border-radius: 8px 0 0 8px;
+  }
+
+  /* Duration Selector */
+  .duration-selector {
+    display: flex;
+    gap: 8px;
+  }
+  .duration-option {
+    flex: 1;
+    background: var(--dark);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    color: var(--text-muted);
+  }
+  .duration-option.selected {
+    border-color: var(--red);
+    background: rgba(196, 30, 58, 0.1);
+    color: var(--text);
+  }
+  .duration-option .dur-val { font-size: 20px; font-weight: 800; }
+  .duration-option .dur-label { font-size: 11px; margin-top: 2px; }
+
+  /* CTA Button */
+  .cta-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--red-glow); }
+  .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .cta-btn.loading {
+    color: transparent;
+  }
+  .cta-btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 24px; height: 24px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    margin: -12px 0 0 -12px;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* Success screen */
+  .success-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+    z-index: 10;
+  }
+  .success-overlay.visible { opacity: 1; pointer-events: auto; }
+  .success-check {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin-bottom: 24px;
+    animation: scaleIn 0.5s ease;
+  }
+  .success-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+  .success-detail { color: var(--text-muted); font-size: 14px; margin-bottom: 8px; font-family: var(--mono); }
+
+  /* Dashboard Stats */
+  .dash-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .dash-stat {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .dash-stat .ds-value {
+    font-size: 28px;
+    font-weight: 900;
+    font-family: var(--mono);
+  }
+  .dash-stat .ds-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* Lock List */
+  .lock-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--dark);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .lock-status {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .lock-status.locked { background: var(--green); }
+  .lock-status.unlocking { background: var(--orange); animation: pulse 1.5s infinite; }
+  .lock-info { flex: 1; }
+  .lock-amount { font-size: 16px; font-weight: 700; font-family: var(--mono); }
+  .lock-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .lock-time { font-size: 12px; color: var(--text-muted); font-family: var(--mono); text-align: right; }
+
+  /* Prover Card */
+  .prover-status-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--dark);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .prover-avatar {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .prover-avatar.active { background: rgba(34, 197, 94, 0.15); }
+  .prover-avatar.idle { background: rgba(136, 136, 160, 0.15); }
+  .prover-avatar.selected { background: rgba(212, 175, 55, 0.15); animation: pulse 1.5s infinite; }
+  .prover-info { flex: 1; }
+  .prover-name { font-size: 14px; font-weight: 600; }
+  .prover-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: var(--mono); }
+  .prover-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .prover-badge.active { background: rgba(34, 197, 94, 0.15); color: var(--green); }
+  .prover-badge.signing { background: rgba(212, 175, 55, 0.15); color: var(--gold); animation: pulse 1.5s infinite; }
+  .prover-badge.idle { background: rgba(136, 136, 160, 0.1); color: var(--text-muted); }
+
+  /* ======= MONITOR PANEL ======= */
+  .monitor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--dark-card);
+    border-bottom: 1px solid var(--dark-border);
+  }
+  .monitor-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+  }
+  .monitor-live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .monitor-live .blink {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 1.5s infinite;
+  }
+
+  .monitor-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Architecture Diagram */
+  .arch-diagram {
+    padding: 20px;
+    border-bottom: 1px solid var(--dark-border);
+    flex-shrink: 0;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .arch-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--dark-border);
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 110px;
+    transition: all 0.3s;
+  }
+  .arch-box .a-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .arch-box.highlight {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.08);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.15);
+  }
+  .arch-arrow {
+    flex: 1;
+    height: 2px;
+    background: var(--dark-border);
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-arrow .arrow-pulse {
+    position: absolute;
+    height: 100%;
+    width: 30px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    left: -30px;
+    opacity: 0;
+  }
+  .arch-arrow .arrow-pulse.animate {
+    animation: arrowMove 0.8s ease forwards;
+    opacity: 1;
+  }
+  .arch-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    min-width: 80px;
+    font-family: var(--mono);
+  }
+
+  /* Log Stream */
+  .log-stream {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    scrollbar-width: thin;
+    scrollbar-color: var(--dark-border) transparent;
+  }
+  .log-entry {
+    display: flex;
+    gap: 8px;
+    padding: 2px 0;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: logAppear 0.3s ease forwards;
+  }
+  .log-time { color: var(--text-muted); flex-shrink: 0; }
+  .log-source {
+    font-weight: 600;
+    flex-shrink: 0;
+    min-width: 56px;
+  }
+  .log-source.fe { color: var(--blue); }
+  .log-source.api { color: var(--green); }
+  .log-source.db { color: var(--purple); }
+  .log-source.l1 { color: var(--red); }
+  .log-source.l3 { color: var(--gold); }
+  .log-source.vrf { color: var(--orange); }
+  .log-source.prover { color: #06B6D4; }
+  .log-msg { color: var(--text-muted); }
+  .log-msg .val { color: var(--text); font-weight: 500; }
+  .log-msg .hash { color: var(--gold); }
+  .log-msg .ok { color: var(--green); }
+  .log-msg .err { color: var(--red); }
+
+  /* Demo Controls */
+  .demo-controls {
+    padding: 16px 20px;
+    border-top: 1px solid var(--dark-border);
+    background: var(--dark-card);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .demo-btn {
+    background: var(--dark-mid);
+    border: 1px solid var(--dark-border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .demo-btn:hover { border-color: var(--red); color: var(--text); }
+  .demo-btn.running { border-color: var(--gold); color: var(--gold); animation: pulse 1.5s infinite; }
+
+  /* Keyframes */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes scaleIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+  @keyframes logAppear {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes arrowMove {
+    to { left: calc(100% + 30px); }
+  }
+
+  /* Timelock Bar */
+  .timelock-bar {
+    margin: 16px 0;
+  }
+  .timelock-track {
+    height: 8px;
+    background: var(--dark);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .timelock-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--gold));
+    border-radius: 4px;
+    transition: width 1s linear;
+  }
+  .timelock-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+  }
+
+  /* Challenge Alert */
+  .challenge-alert {
+    background: rgba(196, 30, 58, 0.1);
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    animation: pulse 2s infinite;
+  }
+  .challenge-alert .ca-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--red);
+    margin-bottom: 4px;
+  }
+  .challenge-alert .ca-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- LEFT: App Simulation -->
+  <div class="app-panel">
+    <div class="app-header">
+      <div class="app-logo">QUANTUM SHIELD</div>
+      <div class="app-nav" id="app-nav">
+        <button class="active" data-screen="consumer">Consumer</button>
+        <button data-screen="prover">Prover</button>
+        <button data-screen="observer">Observer</button>
+      </div>
+      <div class="wallet-badge">
+        <div class="wallet-dot"></div>
+        0x7a3b...f29c
+      </div>
+    </div>
+
+    <div class="app-screen">
+
+      <!-- CONSUMER SCREEN -->
+      <div class="screen active" id="screen-consumer">
+        <div class="screen-title">Asset Lock</div>
+        <div class="screen-subtitle">Quantum-safe custody for your digital assets</div>
+
+        <div class="dash-stats">
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--gold);" id="total-locked">0.00</div>
+            <div class="ds-label">Total Locked (ETH)</div>
+          </div>
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--green);" id="active-locks">0</div>
+            <div class="ds-label">Active Locks</div>
+          </div>
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--text-muted);" id="time-remaining">--:--:--</div>
+            <div class="ds-label">Next Unlock</div>
+          </div>
+        </div>
+
+        <div class="card" id="lock-form">
+          <div class="card-title">New Lock</div>
+          <div class="form-group">
+            <div class="form-label">Amount</div>
+            <div class="form-input-suffix">
+              <input type="text" class="form-input" id="lock-amount" value="2.5" readonly>
+              <div class="suffix">ETH</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Lock Duration</div>
+            <div class="duration-selector">
+              <div class="duration-option" onclick="selectDuration(this)"><div class="dur-val">7</div><div class="dur-label">Days</div></div>
+              <div class="duration-option selected" onclick="selectDuration(this)"><div class="dur-val">30</div><div class="dur-label">Days</div></div>
+              <div class="duration-option" onclick="selectDuration(this)"><div class="dur-val">90</div><div class="dur-label">Days</div></div>
+              <div class="duration-option" onclick="selectDuration(this)"><div class="dur-val">365</div><div class="dur-label">Days</div></div>
+            </div>
+          </div>
+          <button class="cta-btn" id="lock-btn" onclick="startLockDemo()">
+            Lock 2.5 ETH with Quantum Shield
+          </button>
+        </div>
+
+        <div id="lock-list">
+          <!-- Filled by JS -->
+        </div>
+
+        <div class="success-overlay" id="lock-success">
+          <div class="success-check">&#10003;</div>
+          <div class="success-title">Lock Created Successfully</div>
+          <div class="success-detail">Lock ID: <span class="hash" id="success-lock-id">QS-2026-0847</span></div>
+          <div class="success-detail">Amount: 2.5 ETH | Duration: 30 days</div>
+          <div class="success-detail" style="margin-top: 8px;">L1 Tx: <span class="hash" id="success-tx">0x8f3a...c7d2</span></div>
+          <div class="success-detail" style="color: var(--green); margin-top: 12px;">&#9432; 24h TimeLock active. Auto-Claim enabled.</div>
+        </div>
+      </div>
+
+      <!-- PROVER SCREEN -->
+      <div class="screen" id="screen-prover">
+        <div class="screen-title">Prover Dashboard</div>
+        <div class="screen-subtitle">Node status, signature queue, and rewards</div>
+
+        <div class="dash-stats">
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--gold);">400K</div>
+            <div class="ds-label">Staked (QS)</div>
+          </div>
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--green);" id="prover-completed">247</div>
+            <div class="ds-label">Signed</div>
+          </div>
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--blue);" id="prover-uptime">99.7%</div>
+            <div class="ds-label">Uptime</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Active Provers</div>
+          <div id="prover-list">
+            <div class="prover-status-card">
+              <div class="prover-avatar active">P1</div>
+              <div class="prover-info">
+                <div class="prover-name">Prover Alpha</div>
+                <div class="prover-meta">0x1a2b...3c4d | Stake: 400K QS</div>
+              </div>
+              <div class="prover-badge active" id="p1-badge">Active</div>
+            </div>
+            <div class="prover-status-card">
+              <div class="prover-avatar active">P2</div>
+              <div class="prover-info">
+                <div class="prover-name">Prover Beta</div>
+                <div class="prover-meta">0x5e6f...7a8b | Stake: 400K QS</div>
+              </div>
+              <div class="prover-badge active" id="p2-badge">Active</div>
+            </div>
+            <div class="prover-status-card">
+              <div class="prover-avatar idle">P3</div>
+              <div class="prover-info">
+                <div class="prover-name">Prover Gamma</div>
+                <div class="prover-meta">0x9c0d...e1f2 | Stake: 400K QS</div>
+              </div>
+              <div class="prover-badge idle" id="p3-badge">Idle</div>
+            </div>
+            <div class="prover-status-card">
+              <div class="prover-avatar idle">P4</div>
+              <div class="prover-info">
+                <div class="prover-name">Prover Delta</div>
+                <div class="prover-meta">0x3a4b...5c6d | Stake: 400K QS</div>
+              </div>
+              <div class="prover-badge idle" id="p4-badge">Idle</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="vrf-card" style="display: none;">
+          <div class="card-title">VRF Selection in Progress</div>
+          <div id="vrf-status" style="font-family: var(--mono); font-size: 13px; color: var(--text-muted);">
+            Requesting VRF random seed...
+          </div>
+        </div>
+      </div>
+
+      <!-- OBSERVER SCREEN -->
+      <div class="screen" id="screen-observer">
+        <div class="screen-title">Observer Dashboard</div>
+        <div class="screen-subtitle">Monitor prover activity and submit challenges</div>
+
+        <div class="dash-stats">
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--green);">342</div>
+            <div class="ds-label">Verified</div>
+          </div>
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--red);" id="observer-challenges">2</div>
+            <div class="ds-label">Challenges</div>
+          </div>
+          <div class="dash-stat">
+            <div class="ds-value" style="color: var(--gold);">1.8 ETH</div>
+            <div class="ds-label">Rewards</div>
+          </div>
+        </div>
+
+        <div id="challenge-area">
+          <div class="card">
+            <div class="card-title">Recent Verifications</div>
+            <div class="lock-item">
+              <div class="lock-status locked"></div>
+              <div class="lock-info">
+                <div class="lock-amount">Lock QS-2026-0845</div>
+                <div class="lock-meta">Prover Alpha | Dilithium sig verified</div>
+              </div>
+              <div class="lock-time" style="color: var(--green);">&#10003; Valid</div>
+            </div>
+            <div class="lock-item">
+              <div class="lock-status locked"></div>
+              <div class="lock-info">
+                <div class="lock-amount">Lock QS-2026-0844</div>
+                <div class="lock-meta">Prover Beta | Dilithium sig verified</div>
+              </div>
+              <div class="lock-time" style="color: var(--green);">&#10003; Valid</div>
+            </div>
+            <div class="lock-item" id="suspicious-lock" style="display: none;">
+              <div class="lock-status" style="background: var(--red);"></div>
+              <div class="lock-info">
+                <div class="lock-amount" style="color: var(--red);">Lock QS-2026-0846</div>
+                <div class="lock-meta" style="color: var(--red);">Prover Gamma | SIGNATURE MISMATCH</div>
+              </div>
+              <div class="lock-time" style="color: var(--red);">&#9888; Invalid</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Backend Monitor -->
+  <div class="monitor-panel">
+    <div class="monitor-header">
+      <div class="monitor-title">Backend Monitor</div>
+      <div class="monitor-live">
+        <div class="blink"></div>
+        LIVE
+      </div>
+    </div>
+
+    <div class="monitor-content">
+      <!-- Architecture Flow -->
+      <div class="arch-diagram">
+        <div class="arch-row">
+          <div class="arch-box" id="arch-fe"><div class="a-dot" style="background: var(--blue);"></div>Frontend</div>
+          <div class="arch-arrow"><div class="arrow-pulse" id="arrow-fe-api"></div></div>
+          <div class="arch-box" id="arch-api"><div class="a-dot" style="background: var(--green);"></div>Rust API</div>
+          <div class="arch-arrow"><div class="arrow-pulse" id="arrow-api-db"></div></div>
+          <div class="arch-box" id="arch-db"><div class="a-dot" style="background: var(--purple);"></div>PostgreSQL</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-label">Port 3000</div>
+          <div class="arch-arrow" style="visibility: hidden;"></div>
+          <div class="arch-label">Port 8080</div>
+          <div class="arch-arrow"><div class="arrow-pulse" id="arrow-api-l1"></div></div>
+          <div class="arch-box" id="arch-l1"><div class="a-dot" style="background: var(--red);"></div>L1 Sepolia</div>
+        </div>
+      </div>
+
+      <!-- Log Stream -->
+      <div class="log-stream" id="log-stream">
+        <div class="log-entry" style="animation: none; opacity: 1; transform: none;">
+          <span class="log-time">00:00:00</span>
+          <span class="log-source api">API</span>
+          <span class="log-msg"><span class="ok">&#10003;</span> Server started on <span class="val">:8080</span></span>
+        </div>
+        <div class="log-entry" style="animation: none; opacity: 1; transform: none;">
+          <span class="log-time">00:00:01</span>
+          <span class="log-source db">DB</span>
+          <span class="log-msg"><span class="ok">&#10003;</span> PostgreSQL connected (<span class="val">17 migrations</span>)</span>
+        </div>
+        <div class="log-entry" style="animation: none; opacity: 1; transform: none;">
+          <span class="log-time">00:00:01</span>
+          <span class="log-source l1">L1</span>
+          <span class="log-msg"><span class="ok">&#10003;</span> Sepolia connected (chain <span class="val">11155111</span>)</span>
+        </div>
+        <div class="log-entry" style="animation: none; opacity: 1; transform: none;">
+          <span class="log-time">00:00:02</span>
+          <span class="log-source l3">L3</span>
+          <span class="log-msg"><span class="ok">&#10003;</span> Arbitrum Sepolia connected (chain <span class="val">421614</span>)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo Controls -->
+    <div class="demo-controls">
+      <div style="font-size: 11px; color: var(--text-muted); width: 100%; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Demo Scenarios</div>
+      <button class="demo-btn" id="btn-lock" onclick="startLockDemo()">1. Consumer Lock</button>
+      <button class="demo-btn" id="btn-vrf" onclick="startVRFDemo()">2. VRF + Prover Sign</button>
+      <button class="demo-btn" id="btn-unlock" onclick="startUnlockDemo()">3. Unlock + Auto-Claim</button>
+      <button class="demo-btn" id="btn-challenge" onclick="startChallengeDemo()">4. Observer Challenge</button>
+      <button class="demo-btn" id="btn-emergency" onclick="startEmergencyDemo()">5. Emergency Unlock</button>
+      <button class="demo-btn" onclick="resetDemo()" style="margin-left: auto; color: var(--red);">Reset</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// State
+let logCounter = 3;
+let isRunning = false;
+const logStream = document.getElementById('log-stream');
+
+// Utils
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function timestamp() {
+  logCounter++;
+  const s = logCounter % 60;
+  const m = Math.floor(logCounter / 60) % 60;
+  return `00:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function addLog(source, msg) {
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${timestamp()}</span><span class="log-source ${source}">${source.toUpperCase()}</span><span class="log-msg">${msg}</span>`;
+  logStream.appendChild(entry);
+  logStream.scrollTop = logStream.scrollHeight;
+}
+
+function highlightArch(id) {
+  document.getElementById(id).classList.add('highlight');
+  setTimeout(() => document.getElementById(id).classList.remove('highlight'), 1500);
+}
+
+function pulseArrow(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('animate');
+  void el.offsetWidth;
+  el.classList.add('animate');
+}
+
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  document.querySelectorAll('.app-nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === name);
+  });
+}
+
+function selectDuration(el) {
+  document.querySelectorAll('.duration-option').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function setRunning(btnId, running) {
+  isRunning = running;
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.toggle('running', running);
+}
+
+// Nav
+document.querySelectorAll('.app-nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!isRunning) switchScreen(btn.dataset.screen);
+  });
+});
+
+// ===== DEMO 1: Consumer Lock =====
+async function startLockDemo() {
+  if (isRunning) return;
+  setRunning('btn-lock', true);
+  switchScreen('consumer');
+
+  const lockBtn = document.getElementById('lock-btn');
+  lockBtn.classList.add('loading');
+  lockBtn.disabled = true;
+
+  // Step 1: Frontend
+  await sleep(500);
+  highlightArch('arch-fe');
+  addLog('fe', 'User clicked <span class="val">Lock 2.5 ETH</span> (duration: 30 days)');
+
+  // Step 2: Wallet signature
+  await sleep(800);
+  addLog('fe', 'Requesting <span class="val">Dilithium (FIPS 204)</span> signature...');
+  await sleep(600);
+  addLog('fe', 'Signature generated: <span class="hash">0xd4a3...8f2c</span> (ML-DSA-65)');
+
+  // Step 3: API call
+  await sleep(400);
+  pulseArrow('arrow-fe-api');
+  addLog('fe', 'POST <span class="val">/v1/locks</span> { amount: 2.5, duration: 30 }');
+
+  await sleep(800);
+  highlightArch('arch-api');
+  addLog('api', 'Received lock request from <span class="val">0x7a3b...f29c</span>');
+  await sleep(300);
+  addLog('api', 'Validating Dilithium signature... <span class="ok">&#10003; valid</span>');
+  await sleep(200);
+  addLog('api', 'Checking balance... <span class="val">2.5 ETH</span> >= 2.5 <span class="ok">&#10003;</span>');
+
+  // Step 4: DB
+  await sleep(400);
+  pulseArrow('arrow-api-db');
+  highlightArch('arch-db');
+  addLog('db', 'INSERT INTO locks (id, user_address, amount, duration_days, status)');
+  await sleep(400);
+  addLog('db', 'Lock <span class="hash">QS-2026-0847</span> created. Status: <span class="val">pending_l1</span>');
+
+  // Step 5: L1 submission
+  await sleep(400);
+  pulseArrow('arrow-api-l1');
+  highlightArch('arch-l1');
+  addLog('l1', 'Submitting to Vault <span class="hash">0x43aF...115B</span>');
+  await sleep(600);
+  addLog('l1', 'SPHINCS+ signature appended (FIPS 205)');
+  await sleep(800);
+  addLog('l1', 'Tx submitted: <span class="hash">0x8f3a...c7d2</span>');
+  await sleep(1000);
+  addLog('l1', 'Block confirmed: <span class="val">#19847523</span> <span class="ok">&#10003;</span>');
+
+  // Step 6: Update DB
+  await sleep(300);
+  pulseArrow('arrow-api-db');
+  addLog('db', 'UPDATE locks SET status = <span class="val">locked</span>, l1_tx_hash = <span class="hash">0x8f3a...c7d2</span>');
+
+  // Step 7: Response
+  await sleep(300);
+  pulseArrow('arrow-fe-api');
+  addLog('api', 'Response: 201 Created <span class="ok">&#10003;</span>');
+  addLog('api', 'TimeLock started: <span class="val">24h</span> (auto-claim enabled)');
+
+  // Show success
+  await sleep(500);
+  lockBtn.classList.remove('loading');
+  document.getElementById('lock-success').classList.add('visible');
+  document.getElementById('total-locked').textContent = '2.50';
+  document.getElementById('active-locks').textContent = '1';
+
+  await sleep(2000);
+  document.getElementById('lock-success').classList.remove('visible');
+  lockBtn.disabled = false;
+
+  // Add to lock list
+  const lockList = document.getElementById('lock-list');
+  lockList.innerHTML = `
+    <div class="card"><div class="card-title">Active Locks</div>
+      <div class="lock-item">
+        <div class="lock-status locked"></div>
+        <div class="lock-info">
+          <div class="lock-amount">2.500 ETH</div>
+          <div class="lock-meta">QS-2026-0847 | 30 days | Dilithium + SPHINCS+</div>
+        </div>
+        <div class="lock-time">23:59:48</div>
+      </div>
+    </div>`;
+
+  setRunning('btn-lock', false);
+}
+
+// ===== DEMO 2: VRF + Prover Selection =====
+async function startVRFDemo() {
+  if (isRunning) return;
+  setRunning('btn-vrf', true);
+  switchScreen('prover');
+
+  const vrfCard = document.getElementById('vrf-card');
+  vrfCard.style.display = 'block';
+  const vrfStatus = document.getElementById('vrf-status');
+
+  addLog('api', 'Lock <span class="hash">QS-2026-0847</span> requires Prover signature');
+  await sleep(500);
+
+  // VRF Request
+  addLog('vrf', 'Requesting VRF random seed from <span class="val">Chainlink VRF v2</span>...');
+  vrfStatus.innerHTML = '<span style="color:var(--orange);">&#9679;</span> Requesting VRF random seed...';
+  await sleep(1200);
+
+  addLog('vrf', 'VRF seed received: <span class="hash">0x7f2a...91bc</span>');
+  vrfStatus.innerHTML = '<span style="color:var(--gold);">&#9679;</span> Seed received. Computing prover selection...';
+  await sleep(800);
+
+  // Selection
+  addLog('vrf', 'Computing selection from <span class="val">4 active provers</span>...');
+  addLog('vrf', 'Weights: P1=<span class="val">25%</span> P2=<span class="val">25%</span> P3=<span class="val">25%</span> P4=<span class="val">25%</span>');
+  await sleep(600);
+
+  // Highlight selected prover
+  addLog('vrf', '<span class="ok">&#10003;</span> Selected: <span class="val">Prover Alpha (P1)</span>');
+  vrfStatus.innerHTML = '<span style="color:var(--green);">&#10003;</span> Selected: <strong>Prover Alpha</strong> | Awaiting signature...';
+
+  document.getElementById('p1-badge').className = 'prover-badge signing';
+  document.getElementById('p1-badge').textContent = 'Signing...';
+  document.querySelector('#prover-list .prover-avatar').className = 'prover-avatar selected';
+
+  await sleep(500);
+  addLog('prover', 'Prover Alpha received signing request for <span class="hash">QS-2026-0847</span>');
+  await sleep(800);
+  addLog('prover', 'Generating <span class="val">ML-DSA-65 (Dilithium)</span> signature...');
+  await sleep(1000);
+  addLog('prover', 'Signature: <span class="hash">0xb7e4...2a1f</span> (2420 bytes)');
+  await sleep(400);
+
+  // Submit to L3
+  pulseArrow('arrow-api-l1');
+  highlightArch('arch-l1');
+  addLog('l3', 'Submitting attestation to CoreLayer <span class="hash">0xb04F...EDBf0</span>');
+  await sleep(800);
+  addLog('l3', 'Attestation recorded on Arbitrum Sepolia <span class="ok">&#10003;</span>');
+
+  // Update status
+  document.getElementById('p1-badge').className = 'prover-badge active';
+  document.getElementById('p1-badge').textContent = 'Active';
+  document.querySelector('#prover-list .prover-avatar').className = 'prover-avatar active';
+  document.getElementById('prover-completed').textContent = '248';
+
+  await sleep(300);
+  addLog('db', 'UPDATE lock_attestations SET prover_sig = <span class="hash">0xb7e4...2a1f</span>');
+  addLog('api', 'Lock <span class="hash">QS-2026-0847</span> fully attested <span class="ok">&#10003;</span>');
+
+  vrfStatus.innerHTML = '<span style="color:var(--green);">&#10003;</span> Complete. Prover Alpha signed lock QS-2026-0847.';
+
+  setRunning('btn-vrf', false);
+}
+
+// ===== DEMO 3: Unlock + Auto-Claim =====
+async function startUnlockDemo() {
+  if (isRunning) return;
+  setRunning('btn-unlock', true);
+  switchScreen('consumer');
+
+  addLog('fe', 'User requests unlock for <span class="hash">QS-2026-0847</span>');
+  await sleep(500);
+
+  pulseArrow('arrow-fe-api');
+  addLog('fe', 'POST <span class="val">/v1/locks/QS-2026-0847/unlock</span>');
+  await sleep(400);
+
+  highlightArch('arch-api');
+  addLog('api', 'Unlock request received. Checking 24h TimeLock...');
+  await sleep(600);
+  addLog('api', 'TimeLock status: <span class="val">23h 58m elapsed</span>. Remaining: <span class="val">2m</span>');
+  await sleep(300);
+
+  // Show timelock progress
+  document.getElementById('time-remaining').textContent = '00:02:00';
+  const lockList = document.getElementById('lock-list');
+  lockList.innerHTML = `
+    <div class="card"><div class="card-title">Unlocking</div>
+      <div class="lock-item">
+        <div class="lock-status unlocking"></div>
+        <div class="lock-info">
+          <div class="lock-amount">2.500 ETH</div>
+          <div class="lock-meta">QS-2026-0847 | Unlock requested</div>
+        </div>
+        <div class="lock-time" style="color: var(--orange);">00:02:00</div>
+      </div>
+      <div class="timelock-bar">
+        <div class="timelock-track"><div class="timelock-fill" id="timelock-fill" style="width: 99%;"></div></div>
+        <div class="timelock-labels"><span>Lock: 23h 58m ago</span><span>Auto-Claim in 2m</span></div>
+      </div>
+    </div>`;
+
+  addLog('api', 'Unlock queued. Auto-Claim will trigger at TimeLock expiry.');
+  await sleep(1500);
+
+  // Simulate auto-claim
+  addLog('api', '<span class="val">[Auto-Claim Service]</span> TimeLock expired for <span class="hash">QS-2026-0847</span>');
+  document.getElementById('time-remaining').textContent = '00:00:00';
+  await sleep(500);
+
+  pulseArrow('arrow-api-db');
+  highlightArch('arch-db');
+  addLog('db', 'UPDATE locks SET status = <span class="val">unlocking</span>');
+  await sleep(400);
+
+  pulseArrow('arrow-api-l1');
+  highlightArch('arch-l1');
+  addLog('l1', 'Calling Vault.unlock(<span class="hash">QS-2026-0847</span>)');
+  await sleep(800);
+  addLog('l1', 'SPHINCS+ verification on-chain... <span class="ok">&#10003;</span>');
+  await sleep(600);
+  addLog('l1', 'Funds released: <span class="val">2.5 ETH</span> -> <span class="hash">0x7a3b...f29c</span>');
+  await sleep(500);
+  addLog('l1', 'Tx confirmed: <span class="hash">0xc5d8...a3e1</span> <span class="ok">&#10003;</span>');
+
+  await sleep(300);
+  addLog('db', 'UPDATE locks SET status = <span class="val">unlocked</span>, unlock_tx = <span class="hash">0xc5d8...a3e1</span>');
+  addLog('api', 'Auto-Claim complete. User notified. <span class="ok">&#10003;</span>');
+
+  // Update UI
+  document.getElementById('total-locked').textContent = '0.00';
+  document.getElementById('active-locks').textContent = '0';
+  lockList.innerHTML = `
+    <div class="card"><div class="card-title">Completed</div>
+      <div class="lock-item" style="border-color: var(--green);">
+        <div class="lock-status" style="background: var(--blue);"></div>
+        <div class="lock-info">
+          <div class="lock-amount" style="color: var(--green);">2.500 ETH Unlocked</div>
+          <div class="lock-meta">QS-2026-0847 | Auto-Claimed | 0 user actions required</div>
+        </div>
+        <div class="lock-time" style="color: var(--green);">&#10003; Done</div>
+      </div>
+    </div>`;
+
+  setRunning('btn-unlock', false);
+}
+
+// ===== DEMO 4: Observer Challenge =====
+async function startChallengeDemo() {
+  if (isRunning) return;
+  setRunning('btn-challenge', true);
+  switchScreen('observer');
+
+  addLog('api', 'New lock attestation for <span class="hash">QS-2026-0846</span>');
+  await sleep(600);
+
+  // Observer detects issue
+  addLog('fe', '<span class="val">[Observer Node]</span> Scanning attestation <span class="hash">QS-2026-0846</span>...');
+  await sleep(800);
+  addLog('fe', '<span class="err">&#9888; SIGNATURE MISMATCH</span> detected on Prover Gamma attestation');
+  await sleep(400);
+
+  // Show in UI
+  document.getElementById('suspicious-lock').style.display = 'flex';
+  document.getElementById('observer-challenges').textContent = '3';
+
+  addLog('fe', 'Expected Dilithium sig does not match committed hash');
+  await sleep(600);
+
+  // Submit challenge
+  addLog('fe', 'Submitting challenge to <span class="val">/v1/challenges</span>...');
+  pulseArrow('arrow-fe-api');
+  await sleep(400);
+
+  highlightArch('arch-api');
+  addLog('api', 'Challenge received for <span class="hash">QS-2026-0846</span> (Prover Gamma)');
+  await sleep(500);
+
+  addLog('api', 'Verifying observer evidence...');
+  await sleep(800);
+  addLog('api', 'Evidence verified: signature <span class="err">INVALID</span>. Challenge <span class="ok">ACCEPTED</span>.');
+  await sleep(400);
+
+  // Slashing
+  pulseArrow('arrow-api-l1');
+  highlightArch('arch-l1');
+  addLog('l1', 'Initiating <span class="val">Quadratic Slashing</span> on Prover Gamma');
+  await sleep(600);
+  addLog('l1', 'Colluders detected: <span class="val">N = 1</span>');
+  addLog('l1', 'Penalty: <span class="val">1&sup2; &times; 10% = 10%</span> of stake');
+  await sleep(400);
+  addLog('l1', 'Slashed: <span class="err">40,000 QS</span> from Prover Gamma');
+  addLog('l1', 'Challenger reward: <span class="ok">24,000 QS</span> (60% of slash)');
+  await sleep(500);
+  addLog('l1', 'Insurance Fund: <span class="val">16,000 QS</span> (40% of slash)');
+
+  await sleep(300);
+  pulseArrow('arrow-api-db');
+  addLog('db', 'UPDATE provers SET status = <span class="err">slashed</span> WHERE id = Prover Gamma');
+  addLog('db', 'INSERT INTO rewards (observer, amount, type) VALUES (<span class="hash">0x7a3b...f29c</span>, 24000, challenge)');
+
+  await sleep(300);
+  addLog('api', 'Slashing complete. Prover Gamma removed from pool. <span class="ok">&#10003;</span>');
+
+  // Update prover UI (if visible)
+  document.getElementById('p3-badge').className = 'prover-badge';
+  document.getElementById('p3-badge').textContent = 'Slashed';
+  document.getElementById('p3-badge').style.background = 'rgba(196,30,58,0.15)';
+  document.getElementById('p3-badge').style.color = 'var(--red)';
+
+  setRunning('btn-challenge', false);
+}
+
+// ===== DEMO 5: Emergency Unlock =====
+async function startEmergencyDemo() {
+  if (isRunning) return;
+  setRunning('btn-emergency', true);
+  switchScreen('consumer');
+
+  addLog('fe', '<span class="err">&#9888; EMERGENCY UNLOCK</span> requested for <span class="hash">QS-2026-0847</span>');
+  await sleep(500);
+
+  addLog('fe', 'User reason: <span class="val">"Suspected compromise of prover keys"</span>');
+  await sleep(400);
+
+  pulseArrow('arrow-fe-api');
+  addLog('fe', 'POST <span class="val">/v1/locks/QS-2026-0847/emergency-unlock</span>');
+  await sleep(500);
+
+  highlightArch('arch-api');
+  addLog('api', 'Emergency unlock request received');
+  addLog('api', 'Checking emergency bond requirement...');
+  await sleep(400);
+  addLog('api', 'Bond required: <span class="val">max(0.5 ETH, 5% of 2.5 ETH) = 0.5 ETH</span>');
+  await sleep(300);
+  addLog('api', 'User bond: <span class="val">0.5 ETH</span> <span class="ok">&#10003;</span>');
+
+  await sleep(400);
+  pulseArrow('arrow-api-db');
+  highlightArch('arch-db');
+  addLog('db', 'INSERT INTO emergency_unlocks (lock_id, bond, timelock_days)');
+  addLog('db', 'Values: (<span class="hash">QS-2026-0847</span>, <span class="val">0.5 ETH</span>, <span class="val">7</span>)');
+  await sleep(400);
+
+  pulseArrow('arrow-api-l1');
+  highlightArch('arch-l1');
+  addLog('l1', 'Calling Vault.emergencyUnlock(<span class="hash">QS-2026-0847</span>)');
+  await sleep(600);
+  addLog('l1', 'Bond locked: <span class="val">0.5 ETH</span> in escrow');
+  addLog('l1', '<span class="val">7-day timelock</span> started. Expires: 2026-03-10T12:00:00Z');
+  await sleep(500);
+  addLog('l1', 'Tx confirmed: <span class="hash">0xd9f2...b4a7</span> <span class="ok">&#10003;</span>');
+
+  await sleep(300);
+  addLog('api', 'Emergency unlock initiated. <span class="val">7-day</span> challenge period started.');
+  addLog('api', 'If no dispute: funds + bond returned automatically.');
+  addLog('api', 'If disputed: bond forfeited, lock reverted.');
+
+  // Update UI
+  const lockList = document.getElementById('lock-list');
+  lockList.innerHTML = `
+    <div class="card" style="border-color: var(--red);">
+      <div class="card-title" style="color: var(--red);">Emergency Unlock - 7 Day TimeLock</div>
+      <div class="lock-item" style="border-color: var(--red);">
+        <div class="lock-status unlocking"></div>
+        <div class="lock-info">
+          <div class="lock-amount">2.500 ETH + 0.500 ETH Bond</div>
+          <div class="lock-meta" style="color: var(--red);">QS-2026-0847 | Emergency | Challenge period active</div>
+        </div>
+        <div class="lock-time" style="color: var(--red);">6d 23:59</div>
+      </div>
+      <div class="timelock-bar">
+        <div class="timelock-track"><div class="timelock-fill" style="width: 1%; background: var(--red);"></div></div>
+        <div class="timelock-labels"><span>Started: now</span><span>Expires: 7 days</span></div>
+      </div>
+    </div>`;
+
+  setRunning('btn-emergency', false);
+}
+
+// Reset
+function resetDemo() {
+  if (isRunning) return;
+  switchScreen('consumer');
+  document.getElementById('lock-success').classList.remove('visible');
+  document.getElementById('lock-btn').classList.remove('loading');
+  document.getElementById('lock-btn').disabled = false;
+  document.getElementById('total-locked').textContent = '0.00';
+  document.getElementById('active-locks').textContent = '0';
+  document.getElementById('time-remaining').textContent = '--:--:--';
+  document.getElementById('lock-list').innerHTML = '';
+  document.getElementById('vrf-card').style.display = 'none';
+  document.getElementById('prover-completed').textContent = '247';
+  document.getElementById('observer-challenges').textContent = '2';
+  document.getElementById('suspicious-lock').style.display = 'none';
+
+  // Reset prover badges
+  ['p1','p2'].forEach(p => {
+    document.getElementById(`${p}-badge`).className = 'prover-badge active';
+    document.getElementById(`${p}-badge`).textContent = 'Active';
+  });
+  ['p3','p4'].forEach(p => {
+    const el = document.getElementById(`${p}-badge`);
+    el.className = 'prover-badge idle';
+    el.textContent = 'Idle';
+    el.style = '';
+  });
+
+  document.querySelectorAll('.arch-box').forEach(b => b.classList.remove('highlight'));
+
+  logCounter = 3;
+  logStream.innerHTML = `
+    <div class="log-entry" style="animation: none; opacity: 1; transform: none;">
+      <span class="log-time">00:00:00</span>
+      <span class="log-source api">API</span>
+      <span class="log-msg"><span class="ok">&#10003;</span> Server started on <span class="val">:8080</span></span>
+    </div>
+    <div class="log-entry" style="animation: none; opacity: 1; transform: none;">
+      <span class="log-time">00:00:01</span>
+      <span class="log-source db">DB</span>
+      <span class="log-msg"><span class="ok">&#10003;</span> PostgreSQL connected (<span class="val">17 migrations</span>)</span>
+    </div>
+    <div class="log-entry" style="animation: none; opacity: 1; transform: none;">
+      <span class="log-time">00:00:01</span>
+      <span class="log-source l1">L1</span>
+      <span class="log-msg"><span class="ok">&#10003;</span> Sepolia connected (chain <span class="val">11155111</span>)</span>
+    </div>
+    <div class="log-entry" style="animation: none; opacity: 1; transform: none;">
+      <span class="log-time">00:00:02</span>
+      <span class="log-source l3">L3</span>
+      <span class="log-msg"><span class="ok">&#10003;</span> Arbitrum Sepolia connected (chain <span class="val">421614</span>)</span>
+    </div>`;
+}
+</script>
+
+</body>
+</html>
