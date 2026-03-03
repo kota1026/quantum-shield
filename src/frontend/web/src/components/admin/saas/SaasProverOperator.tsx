@@ -66,7 +66,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockOperatorProvers = [
+const SAMPLE_OPERATOR_PROVERS = [
   {
     id: 'op-prover-001',
     operatorId: 'op-001',
@@ -134,7 +134,7 @@ const mockOperatorProvers = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   totalOperatorProvers: 5,
   activeProvers: 3,
   totalDedicatedNodes: 12,
@@ -146,13 +146,13 @@ export function SaasProverOperator() {
   const t = useTranslations('admin.saasProverOperator');
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'degraded' | 'provisioning'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProver, setSelectedProver] = useState<typeof mockOperatorProvers[0] | null>(mockOperatorProvers[0]);
+  const [selectedProver, setSelectedProver] = useState<typeof SAMPLE_OPERATOR_PROVERS[0] | null>(SAMPLE_OPERATOR_PROVERS[0]);
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockOperatorProvers.length },
-    { key: 'active', label: t('tabs.active'), count: mockOperatorProvers.filter(p => p.status === 'active').length },
-    { key: 'degraded', label: t('tabs.degraded'), count: mockOperatorProvers.filter(p => p.status === 'degraded').length },
-    { key: 'provisioning', label: t('tabs.provisioning'), count: mockOperatorProvers.filter(p => p.status === 'provisioning').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_OPERATOR_PROVERS.length },
+    { key: 'active', label: t('tabs.active'), count: SAMPLE_OPERATOR_PROVERS.filter(p => p.status === 'active').length },
+    { key: 'degraded', label: t('tabs.degraded'), count: SAMPLE_OPERATOR_PROVERS.filter(p => p.status === 'degraded').length },
+    { key: 'provisioning', label: t('tabs.provisioning'), count: SAMPLE_OPERATOR_PROVERS.filter(p => p.status === 'provisioning').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -176,7 +176,7 @@ export function SaasProverOperator() {
     return 'text-danger';
   };
 
-  const filteredProvers = mockOperatorProvers.filter((prover) => {
+  const filteredProvers = SAMPLE_OPERATOR_PROVERS.filter((prover) => {
     const matchesSearch =
       prover.proverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prover.operatorName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -212,27 +212,27 @@ export function SaasProverOperator() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalProvers')}
-              value={String(mockMetrics.totalOperatorProvers)}
+              value={String(DEFAULT_METRICS.totalOperatorProvers)}
               icon={<Server className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeProvers')}
-              value={String(mockMetrics.activeProvers)}
+              value={String(DEFAULT_METRICS.activeProvers)}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.dedicatedNodes')}
-              value={String(mockMetrics.totalDedicatedNodes)}
+              value={String(DEFAULT_METRICS.totalDedicatedNodes)}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgSlaCompliance')}
-              value={mockMetrics.avgSlaCompliance}
+              value={DEFAULT_METRICS.avgSlaCompliance}
               icon={<Shield className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalProofs')}
-              value={mockMetrics.totalProofs}
+              value={DEFAULT_METRICS.totalProofs}
               trend={{ value: '+22%', direction: 'up' }}
               icon={<Zap className="h-5 w-5" />}
             />

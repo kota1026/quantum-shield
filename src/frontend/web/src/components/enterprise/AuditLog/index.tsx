@@ -10,7 +10,6 @@ import { AdvancedSearch, type AuditSearchFilters } from './AdvancedSearch';
 import { SavedSearches } from './SavedSearches';
 import { SavedSearchProvider } from '../shared/SavedSearchProvider';
 import { useAuditLog } from '@/hooks/enterprise';
-import { MOCK_AUDIT_EVENTS as MOCK_AUDIT_EVENTS_DATA } from '@/lib/api/enterprise/mock';
 
 export type AuditCategory = 'auth' | 'transactions' | 'users' | 'api' | 'settings' | 'security';
 
@@ -35,18 +34,6 @@ const CATEGORY_ICONS: Record<AuditCategory, string> = {
   security: '🛡️',
 };
 
-// Fallback data for when API is unavailable
-const FALLBACK_AUDIT_EVENTS: AuditEvent[] = MOCK_AUDIT_EVENTS_DATA.map(e => ({
-  id: e.id,
-  category: e.category as AuditCategory,
-  icon: CATEGORY_ICONS[e.category as AuditCategory] || '📋',
-  actor: e.actor,
-  action: e.action,
-  details: e.details,
-  timestamp: e.timestamp,
-  ipAddress: e.ip_address,
-  severity: e.severity as 'info' | 'warning' | 'critical' | undefined,
-}));
 
 const CATEGORY_STYLES: Record<AuditCategory, string> = {
   auth: 'bg-info/10 text-info',
@@ -90,7 +77,7 @@ export function AuditLog({ className }: AuditLogProps) {
     timestamp: e.timestamp,
     ipAddress: e.ip_address,
     severity: e.severity as 'info' | 'warning' | 'critical' | undefined,
-  })) ?? FALLBACK_AUDIT_EVENTS;
+  })) ?? [];
 
   // Get unique users and actions for filter options
   const availableUsers = useMemo(

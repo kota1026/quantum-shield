@@ -29,8 +29,8 @@ import { useTokenHubStats } from '@/hooks/token-hub/useTokenHub';
 const VERSION = '1.0.0';
 const BUILD = '2026.01.16';
 
-// Fallback wallet address
-const FALLBACK_WALLET_ADDRESS = '0x7a3f...9c2d';
+// Default wallet address display
+const DEFAULT_WALLET_ADDRESS = '0x7a3f...9c2d';
 
 export function TokenHubSettings() {
   const t = useTranslations('token-hub.settings');
@@ -134,7 +134,7 @@ export function TokenHubSettings() {
             description={t('account.connectedWallet.description')}
             action={{
               type: 'value',
-              value: FALLBACK_WALLET_ADDRESS,
+              value: DEFAULT_WALLET_ADDRESS,
               onClick: handleConnectedWallet,
             }}
           />

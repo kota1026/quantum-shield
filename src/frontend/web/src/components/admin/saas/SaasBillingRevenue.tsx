@@ -64,13 +64,13 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockRevenueByPlan = [
+const SAMPLE_REVENUE_BY_PLAN = [
   { plan: 'Enterprise', revenue: 180000000, percentage: 48.6 },
   { plan: 'Professional', revenue: 160000000, percentage: 43.2 },
   { plan: 'Starter', revenue: 30000000, percentage: 8.2 },
 ];
 
-const mockMonthlyRevenue = [
+const SAMPLE_MONTHLY_REVENUE = [
   { month: '2025-08', revenue: 280000000, growth: 0 },
   { month: '2025-09', revenue: 295000000, growth: 5.4 },
   { month: '2025-10', revenue: 320000000, growth: 8.5 },
@@ -79,7 +79,7 @@ const mockMonthlyRevenue = [
   { month: '2026-01', revenue: 370000000, growth: 4.2 },
 ];
 
-const mockTopOperators = [
+const SAMPLE_TOP_OPERATORS = [
   { name: 'Mega Corp', plan: 'Enterprise', revenue: 60000000, growth: 12.5 },
   { name: 'Finance Corp', plan: 'Enterprise', revenue: 55000000, growth: 8.2 },
   { name: 'Tech Solutions', plan: 'Professional', revenue: 24000000, growth: 15.3 },
@@ -87,7 +87,7 @@ const mockTopOperators = [
   { name: 'Global Trade', plan: 'Enterprise', revenue: 45000000, growth: 5.8 },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   mrr: 37000000,
   arr: 444000000,
   avgRevenuePerOperator: 16086956,
@@ -165,32 +165,32 @@ export function SaasBillingRevenue() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.mrr')}
-              value={formatCurrency(mockMetrics.mrr)}
+              value={formatCurrency(DEFAULT_METRICS.mrr)}
               trend={{ value: '+4.2%', direction: 'up' }}
               icon={<DollarSign className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.arr')}
-              value={formatCurrency(mockMetrics.arr)}
+              value={formatCurrency(DEFAULT_METRICS.arr)}
               trend={{ value: '+8.5%', direction: 'up' }}
               icon={<Calendar className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.arpu')}
-              value={formatCurrency(mockMetrics.avgRevenuePerOperator)}
+              value={formatCurrency(DEFAULT_METRICS.avgRevenuePerOperator)}
               trend={{ value: '+2.1%', direction: 'up' }}
               icon={<TrendingUp className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.churnRate')}
-              value={`${mockMetrics.churnRate}%`}
+              value={`${DEFAULT_METRICS.churnRate}%`}
               trend={{ value: '-0.3%', direction: 'up' }}
               icon={<TrendingDown className="h-5 w-5" />}
               status="success"
             />
             <StatCard
               label={t('stats.ltv')}
-              value={formatCurrency(mockMetrics.ltv)}
+              value={formatCurrency(DEFAULT_METRICS.ltv)}
               icon={<BarChart3 className="h-5 w-5" />}
             />
           </div>
@@ -221,7 +221,7 @@ export function SaasBillingRevenue() {
                         </tr>
                       </thead>
                       <tbody>
-                        {mockMonthlyRevenue.map((month) => (
+                        {SAMPLE_MONTHLY_REVENUE.map((month) => (
                           <tr
                             key={month.month}
                             className="border-b border-surface-tertiary/50"
@@ -269,7 +269,7 @@ export function SaasBillingRevenue() {
                   </div>
 
                   <div className="mt-6 space-y-3">
-                    {mockRevenueByPlan.map((item) => (
+                    {SAMPLE_REVENUE_BY_PLAN.map((item) => (
                       <div
                         key={item.plan}
                         className="flex items-center justify-between rounded-lg border border-surface-tertiary p-3"
@@ -317,7 +317,7 @@ export function SaasBillingRevenue() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockTopOperators.map((operator, index) => (
+                    {SAMPLE_TOP_OPERATORS.map((operator, index) => (
                       <tr
                         key={operator.name}
                         className="border-b border-surface-tertiary/50 hover:bg-background-secondary/50"

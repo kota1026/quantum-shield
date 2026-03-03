@@ -20,9 +20,8 @@
 use ethers::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::{info, warn, instrument};
+use tracing::{info, instrument};
 
-use crate::error::ApiError;
 use crate::services::l1_client::L1Error;
 
 /// Withdrawal record from Treasury Vault

@@ -55,7 +55,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockObservers = [
+const SAMPLE_OBSERVERS = [
   {
     id: 'obs-001',
     operator: 'Watchdog Labs',
@@ -98,7 +98,7 @@ const mockObservers = [
   },
 ];
 
-const mockChallenges = [
+const SAMPLE_CHALLENGES = [
   {
     id: 'ch-001',
     observer: 'Watchdog Labs',
@@ -134,8 +134,8 @@ export function PublicObserverManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockObservers.length },
-    { key: 'challenges', label: t('tabs.challenges'), count: mockChallenges.filter(c => c.status === 'pending').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_OBSERVERS.length },
+    { key: 'challenges', label: t('tabs.challenges'), count: SAMPLE_CHALLENGES.filter(c => c.status === 'pending').length },
     { key: 'rewards', label: t('tabs.rewards') },
   ];
 
@@ -156,7 +156,7 @@ export function PublicObserverManagement() {
     }
   };
 
-  const filteredObservers = mockObservers.filter(
+  const filteredObservers = SAMPLE_OBSERVERS.filter(
     (obs) =>
       obs.operator.toLowerCase().includes(searchQuery.toLowerCase()) ||
       obs.address.toLowerCase().includes(searchQuery.toLowerCase())
@@ -337,7 +337,7 @@ export function PublicObserverManagement() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockChallenges.map((challenge) => (
+                  {SAMPLE_CHALLENGES.map((challenge) => (
                     <div
                       key={challenge.id}
                       className={cn(

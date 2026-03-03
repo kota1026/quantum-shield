@@ -19,19 +19,12 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useTreasuryBudget } from '@/hooks/admin/useTreasury';
-import {
-  MOCK_BUDGET_DATA,
-  MOCK_BUDGET_CATEGORIES,
-  MOCK_MONTHLY_BUDGET,
-  type BudgetData,
-  type BudgetCategory,
-  type MonthlyBudget,
-} from '@/lib/api/admin/mock';
+import type { BudgetData, BudgetCategory, MonthlyBudget } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_BUDGET = MOCK_BUDGET_DATA;
-const FALLBACK_CATEGORIES = MOCK_BUDGET_CATEGORIES;
-const FALLBACK_MONTHLY = MOCK_MONTHLY_BUDGET;
+// Empty defaults when API data is unavailable
+const DEFAULT_BUDGET: BudgetData = { period: '', totalBudget: '0 ETH', allocated: '0 ETH', spent: '0 ETH', remaining: '0 ETH' };
+const DEFAULT_CATEGORIES: BudgetCategory[] = [];
+const DEFAULT_MONTHLY: MonthlyBudget[] = [];
 
 interface StatCardProps {
   title: string;
@@ -136,9 +129,9 @@ export function BudgetManagement() {
 
   // Use API data or fallback
   const apiBudget = budgetQuery.data;
-  const budget: BudgetData = apiBudget ?? FALLBACK_BUDGET;
-  const categories: BudgetCategory[] = (apiBudget as { categories?: BudgetCategory[] })?.categories ?? FALLBACK_CATEGORIES;
-  const monthly: MonthlyBudget[] = (apiBudget as { monthly?: MonthlyBudget[] })?.monthly ?? FALLBACK_MONTHLY;
+  const budget: BudgetData = apiBudget ?? DEFAULT_BUDGET;
+  const categories: BudgetCategory[] = (apiBudget as { categories?: BudgetCategory[] })?.categories ?? DEFAULT_CATEGORIES;
+  const monthly: MonthlyBudget[] = (apiBudget as { monthly?: MonthlyBudget[] })?.monthly ?? DEFAULT_MONTHLY;
 
   // Show skeleton only on initial load
   if (budgetQuery.isLoading && !budgetQuery.data) {

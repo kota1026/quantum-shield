@@ -65,7 +65,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockInfraSla = {
+const DEFAULT_INFRA_SLA = {
   services: [
     {
       id: 'sla-infra-001',
@@ -163,7 +163,7 @@ const mockInfraSla = {
   ],
 };
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   overallSla: 99.89,
   servicesMeetingSla: 4,
   servicesAtRisk: 1,
@@ -173,7 +173,7 @@ const mockMetrics = {
 
 export function SaasInfrastructureSla() {
   const t = useTranslations('admin.saasInfraSla');
-  const [selectedService, setSelectedService] = useState<typeof mockInfraSla.services[0] | null>(mockInfraSla.services[0]);
+  const [selectedService, setSelectedService] = useState<typeof DEFAULT_INFRA_SLA.services[0] | null>(DEFAULT_INFRA_SLA.services[0]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -248,30 +248,30 @@ export function SaasInfrastructureSla() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.overallSla')}
-              value={`${mockMetrics.overallSla}%`}
+              value={`${DEFAULT_METRICS.overallSla}%`}
               icon={<Shield className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.meetingSla')}
-              value={String(mockMetrics.servicesMeetingSla)}
+              value={String(DEFAULT_METRICS.servicesMeetingSla)}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.atRisk')}
-              value={String(mockMetrics.servicesAtRisk)}
+              value={String(DEFAULT_METRICS.servicesAtRisk)}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.incidents')}
-              value={String(mockMetrics.totalIncidents)}
+              value={String(DEFAULT_METRICS.totalIncidents)}
               subValue={t('stats.thisMonth')}
               icon={<AlertOctagon className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.avgMttr')}
-              value={mockMetrics.avgMttr}
+              value={DEFAULT_METRICS.avgMttr}
               icon={<Clock className="h-5 w-5" />}
             />
           </div>
@@ -285,7 +285,7 @@ export function SaasInfrastructureSla() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockInfraSla.services.map((service) => (
+                    {DEFAULT_INFRA_SLA.services.map((service) => (
                       <div
                         key={service.id}
                         onClick={() => setSelectedService(service)}
@@ -343,7 +343,7 @@ export function SaasInfrastructureSla() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockInfraSla.incidentHistory.map((incident) => (
+                    {DEFAULT_INFRA_SLA.incidentHistory.map((incident) => (
                       <div
                         key={incident.id}
                         className="flex items-center justify-between rounded-lg border border-surface-tertiary p-3"

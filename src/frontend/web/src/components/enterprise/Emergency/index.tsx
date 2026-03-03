@@ -38,7 +38,7 @@ const EMERGENCY_ACTIONS: EmergencyAction[] = [
   { id: '3', key: 'revokeKeys', icon: Key, danger: true },
 ];
 
-const FALLBACK_LOGS: EmergencyLog[] = [
+const DEFAULT_LOGS: EmergencyLog[] = [
   {
     id: '1',
     action: 'System Pause',
@@ -125,14 +125,14 @@ export function EnterpriseEmergency() {
               <h3 className="font-semibold">{t('log.title')}</h3>
             </div>
 
-            {FALLBACK_LOGS.length === 0 ? (
+            {DEFAULT_LOGS.length === 0 ? (
               <div className="p-12 text-center">
                 <AlertCircle className="h-12 w-12 text-foreground-tertiary mx-auto mb-4" />
                 <p className="text-foreground-secondary">{t('log.noLogs')}</p>
               </div>
             ) : (
               <div className="divide-y divide-white/5">
-                {FALLBACK_LOGS.map((log) => (
+                {DEFAULT_LOGS.map((log) => (
                   <div key={log.id} className="px-6 py-4 flex items-center justify-between">
                     <div>
                       <div className="font-medium">{log.action}</div>

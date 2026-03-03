@@ -65,7 +65,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockTrainingData = {
+const DEFAULT_TRAINING_DATA = {
   overview: {
     totalCourses: '24',
     totalCompletions: '456',
@@ -178,33 +178,33 @@ export function LicenseTraining() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.totalCourses')}
-              value={mockTrainingData.overview.totalCourses}
+              value={DEFAULT_TRAINING_DATA.overview.totalCourses}
               icon={<GraduationCap className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalCompletions')}
-              value={mockTrainingData.overview.totalCompletions}
+              value={DEFAULT_TRAINING_DATA.overview.totalCompletions}
               trend={{ value: '+15%', direction: 'up' }}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeEnrollments')}
-              value={mockTrainingData.overview.activeEnrollments}
+              value={DEFAULT_TRAINING_DATA.overview.activeEnrollments}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgCompletionRate')}
-              value={mockTrainingData.overview.avgCompletionRate}
+              value={DEFAULT_TRAINING_DATA.overview.avgCompletionRate}
               icon={<TrendingUp className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalCertifications')}
-              value={mockTrainingData.overview.totalCertifications}
+              value={DEFAULT_TRAINING_DATA.overview.totalCertifications}
               icon={<Award className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.scheduledSessions')}
-              value={mockTrainingData.overview.scheduledSessions}
+              value={DEFAULT_TRAINING_DATA.overview.scheduledSessions}
               icon={<Calendar className="h-5 w-5" />}
               status="warning"
             />
@@ -234,7 +234,7 @@ export function LicenseTraining() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockTrainingData.courses.map((course) => (
+                    {DEFAULT_TRAINING_DATA.courses.map((course) => (
                       <div
                         key={course.id}
                         className="rounded-lg border border-surface-tertiary p-4"
@@ -295,7 +295,7 @@ export function LicenseTraining() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockTrainingData.upcomingSessions.map((session, index) => (
+                    {DEFAULT_TRAINING_DATA.upcomingSessions.map((session, index) => (
                       <div
                         key={index}
                         className="rounded-lg border border-surface-tertiary p-3"
@@ -330,7 +330,7 @@ export function LicenseTraining() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockTrainingData.certificationStats.map((cert, index) => (
+                    {DEFAULT_TRAINING_DATA.certificationStats.map((cert, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between"
@@ -354,7 +354,7 @@ export function LicenseTraining() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{t('certifications.total')}</span>
                       <span className="text-lg font-bold text-gold">
-                        {mockTrainingData.certificationStats.reduce((sum, c) => sum + c.count, 0)}
+                        {DEFAULT_TRAINING_DATA.certificationStats.reduce((sum, c) => sum + c.count, 0)}
                       </span>
                     </div>
                   </div>

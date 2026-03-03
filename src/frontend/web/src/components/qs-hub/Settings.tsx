@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 type Tab = 'profile' | 'notifications' | 'security';
 
 // Demo data
-const FALLBACK_USER = {
+const DEFAULT_USER = {
   address: '0x7a3f9c2d8e1b4f6a...3d4e',
   email: 'user@example.com',
   veQS: 125000,
@@ -145,7 +145,7 @@ export function QSHubSettings() {
                       {t('profile.walletAddress')}
                     </label>
                     <div className="px-4 py-3 bg-surface rounded-lg font-mono text-sm">
-                      {FALLBACK_USER.address}
+                      {DEFAULT_USER.address}
                     </div>
                   </div>
 
@@ -155,7 +155,7 @@ export function QSHubSettings() {
                     </label>
                     <input
                       type="email"
-                      defaultValue={FALLBACK_USER.email}
+                      defaultValue={DEFAULT_USER.email}
                       className={cn(
                         'w-full px-4 py-3 rounded-lg',
                         'bg-surface border border-border',
@@ -195,12 +195,12 @@ export function QSHubSettings() {
                     <div>
                       <div className="text-sm text-foreground-tertiary">{t('profile.veQSBalance')}</div>
                       <div className="text-lg font-semibold text-gold">
-                        {FALLBACK_USER.veQS.toLocaleString()} veQS
+                        {DEFAULT_USER.veQS.toLocaleString()} veQS
                       </div>
                     </div>
                     <div>
                       <div className="text-sm text-foreground-tertiary">{t('profile.memberSince')}</div>
-                      <div className="text-lg font-semibold">{FALLBACK_USER.joinedDate}</div>
+                      <div className="text-lg font-semibold">{DEFAULT_USER.joinedDate}</div>
                     </div>
                   </div>
                 </div>

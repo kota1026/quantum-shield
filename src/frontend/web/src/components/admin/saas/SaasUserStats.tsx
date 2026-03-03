@@ -68,7 +68,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockStatsData = {
+const DEFAULT_STATS_DATA = {
   overview: {
     totalUsers: '28,456',
     activeUsers: '24,891',
@@ -107,7 +107,7 @@ const mockStatsData = {
 
 export function SaasUserStats() {
   const t = useTranslations('admin.saasUserStats');
-  const [selectedTimeRange, setSelectedTimeRange] = useState<typeof mockStatsData.timeRanges[number]>('30d');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<typeof DEFAULT_STATS_DATA.timeRanges[number]>('30d');
 
   return (
     <div className="min-h-screen bg-background">
@@ -134,7 +134,7 @@ export function SaasUserStats() {
                 <p className="mt-1 text-sm text-foreground-secondary">{t('subtitle')}</p>
               </div>
               <div className="flex gap-2">
-                {mockStatsData.timeRanges.map((range) => (
+                {DEFAULT_STATS_DATA.timeRanges.map((range) => (
                   <Button
                     key={range}
                     variant={selectedTimeRange === range ? 'primary' : 'outline'}
@@ -152,35 +152,35 @@ export function SaasUserStats() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.totalUsers')}
-              value={mockStatsData.overview.totalUsers}
+              value={DEFAULT_STATS_DATA.overview.totalUsers}
               trend={{ value: '+8.2%', direction: 'up' }}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeUsers')}
-              value={mockStatsData.overview.activeUsers}
+              value={DEFAULT_STATS_DATA.overview.activeUsers}
               subValue="87.5%"
               icon={<Activity className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.newUsersThisMonth')}
-              value={mockStatsData.overview.newUsersThisMonth}
+              value={DEFAULT_STATS_DATA.overview.newUsersThisMonth}
               trend={{ value: '+15%', direction: 'up' }}
               icon={<UserPlus className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgSessionDuration')}
-              value={mockStatsData.overview.avgSessionDuration}
+              value={DEFAULT_STATS_DATA.overview.avgSessionDuration}
               icon={<Clock className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalOperators')}
-              value={mockStatsData.overview.totalOperators}
+              value={DEFAULT_STATS_DATA.overview.totalOperators}
               icon={<Building2 className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgUsersPerOperator')}
-              value={mockStatsData.overview.avgUsersPerOperator}
+              value={DEFAULT_STATS_DATA.overview.avgUsersPerOperator}
               icon={<BarChart3 className="h-5 w-5" />}
             />
           </div>
@@ -193,7 +193,7 @@ export function SaasUserStats() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockStatsData.usersByOperator.map((op, index) => (
+                  {DEFAULT_STATS_DATA.usersByOperator.map((op, index) => (
                     <div key={index}>
                       <div className="mb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -228,7 +228,7 @@ export function SaasUserStats() {
                   <div className="flex h-full flex-col justify-between">
                     <div className="text-xs text-foreground-tertiary">{t('userGrowth.chartLabel')}</div>
                     <div className="flex items-end justify-between gap-2">
-                      {mockStatsData.userGrowthByMonth.map((data, index) => (
+                      {DEFAULT_STATS_DATA.userGrowthByMonth.map((data, index) => (
                         <div key={index} className="flex flex-col items-center gap-1">
                           <div className="relative">
                             <div
@@ -266,7 +266,7 @@ export function SaasUserStats() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockStatsData.userActivity.map((activity, index) => (
+                  {DEFAULT_STATS_DATA.userActivity.map((activity, index) => (
                     <div key={index}>
                       <div className="mb-2 flex items-center justify-between">
                         <span className="text-sm text-foreground">{activity.label}</span>
@@ -294,7 +294,7 @@ export function SaasUserStats() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockStatsData.usersByPlan.map((plan, index) => (
+                  {DEFAULT_STATS_DATA.usersByPlan.map((plan, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between rounded-lg border border-surface-tertiary p-4"

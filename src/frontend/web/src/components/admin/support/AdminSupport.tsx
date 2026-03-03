@@ -6,105 +6,30 @@ import { Link } from '@/i18n/navigation';
 import {
   MessageSquare,
   Search,
-  Filter,
   Clock,
   CheckCircle2,
   AlertCircle,
   Building2,
-  User,
   ChevronRight,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { LoadingState, TableSkeleton } from '@/components/ui/loading-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { useTicketsList, useSupportStats } from '@/hooks/admin/useSupport';
+import type { Ticket } from '@/lib/api/admin/types';
 
-type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
-type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
-
-interface Ticket {
-  id: string;
-  subject: string;
-  licensee: string;
-  licenseeId: string;
-  status: TicketStatus;
-  priority: TicketPriority;
-  createdAt: string;
-  updatedAt: string;
-  assignee: string;
-  responseTime?: string;
-}
-
-// Demo data
-const FALLBACK_TICKETS: Ticket[] = [
-  {
-    id: 'tkt-001',
-    subject: 'Prover node sync issue after v2.4.1 update',
-    licensee: 'Tokyo Financial Group',
-    licenseeId: 'lic-001',
-    status: 'open',
-    priority: 'high',
-    createdAt: '2026-01-24T10:00:00Z',
-    updatedAt: '2026-01-24T14:30:00Z',
-    assignee: 'Support Team',
-    responseTime: '15m',
-  },
-  {
-    id: 'tkt-002',
-    subject: 'Question about audit report format',
-    licensee: 'Tokyo Financial Group',
-    licenseeId: 'lic-001',
-    status: 'in_progress',
-    priority: 'medium',
-    createdAt: '2026-01-20T09:00:00Z',
-    updatedAt: '2026-01-22T11:00:00Z',
-    assignee: 'Takahashi',
-    responseTime: '2h',
-  },
-  {
-    id: 'tkt-003',
-    subject: 'License renewal inquiry',
-    licensee: 'Singapore Quantum Labs',
-    licenseeId: 'lic-002',
-    status: 'resolved',
-    priority: 'low',
-    createdAt: '2026-01-15T08:00:00Z',
-    updatedAt: '2026-01-16T10:00:00Z',
-    assignee: 'Suzuki',
-    responseTime: '4h',
-  },
-  {
-    id: 'tkt-004',
-    subject: 'Critical: All nodes offline',
-    licensee: 'EU Crypto Holdings',
-    licenseeId: 'lic-003',
-    status: 'open',
-    priority: 'critical',
-    createdAt: '2026-01-24T08:00:00Z',
-    updatedAt: '2026-01-24T08:05:00Z',
-    assignee: 'Emergency Team',
-    responseTime: '5m',
-  },
-  {
-    id: 'tkt-005',
-    subject: 'API endpoint documentation request',
-    licensee: 'Swiss Digital Assets',
-    licenseeId: 'lic-004',
-    status: 'in_progress',
-    priority: 'low',
-    createdAt: '2026-01-22T14:00:00Z',
-    updatedAt: '2026-01-23T09:00:00Z',
-    assignee: 'Tanaka',
-    responseTime: '1h',
-  },
-];
+type TicketStatus = Ticket['status'];
+type TicketPriority = Ticket['priority'];
 
 function StatusBadge({ status }: { status: TicketStatus }) {
   const t = useTranslations('admin.support');
 
-  const config = {
+  const config: Record<TicketStatus, { color: string; icon: typeof AlertCircle }> = {
     open: { color: 'bg-warning/10 text-warning', icon: AlertCircle },
-    in_progress: { color: 'bg-info/10 text-info', icon: Clock },
+    pending: { color: 'bg-info/10 text-info', icon: Clock },
     resolved: { color: 'bg-success/10 text-success', icon: CheckCircle2 },
     closed: { color: 'bg-foreground-tertiary/10 text-foreground-tertiary', icon: CheckCircle2 },
   };
@@ -126,7 +51,6 @@ function PriorityBadge({ priority }: { priority: TicketPriority }) {
     low: 'default',
     medium: 'warning',
     high: 'danger',
-    critical: 'danger',
   };
 
   return (
@@ -142,21 +66,29 @@ export function AdminSupport() {
   const [statusFilter, setStatusFilter] = useState<TicketStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | 'all'>('all');
 
-  const filteredTickets = FALLBACK_TICKETS.filter((ticket) => {
-    const matchesSearch =
-      searchQuery === '' ||
-      ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.licensee.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
+  const {
+    data: statsData,
+    isLoading: statsLoading,
+  } = useSupportStats();
+
+  const {
+    data: ticketsData,
+    isLoading: ticketsLoading,
+    error: ticketsError,
+    refetch: refetchTickets,
+  } = useTicketsList({
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    priority: priorityFilter === 'all' ? undefined : priorityFilter,
+    search: searchQuery || undefined,
   });
 
+  const tickets = ticketsData?.tickets ?? [];
+
   const stats = {
-    total: FALLBACK_TICKETS.length,
-    open: FALLBACK_TICKETS.filter((t) => t.status === 'open').length,
-    inProgress: FALLBACK_TICKETS.filter((t) => t.status === 'in_progress').length,
-    avgResponseTime: '45m',
+    total: statsData?.totalTickets ?? 0,
+    open: statsData?.openTickets ?? 0,
+    inProgress: 0, // Derived from tickets if needed
+    avgResponseTime: statsData?.avgResponseTime ?? '-',
   };
 
   return (
@@ -165,19 +97,27 @@ export function AdminSupport() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="p-4">
           <div className="text-sm text-foreground-tertiary">{t('stats.total')}</div>
-          <div className="mt-1 text-2xl font-bold">{stats.total}</div>
+          <div className="mt-1 text-2xl font-bold">
+            {statsLoading ? '-' : stats.total}
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-foreground-tertiary">{t('stats.open')}</div>
-          <div className="mt-1 text-2xl font-bold text-warning">{stats.open}</div>
+          <div className="mt-1 text-2xl font-bold text-warning">
+            {statsLoading ? '-' : stats.open}
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-foreground-tertiary">{t('stats.inProgress')}</div>
-          <div className="mt-1 text-2xl font-bold text-info">{stats.inProgress}</div>
+          <div className="mt-1 text-2xl font-bold text-info">
+            {statsLoading ? '-' : stats.inProgress}
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-foreground-tertiary">{t('stats.avgResponseTime')}</div>
-          <div className="mt-1 text-2xl font-bold text-success">{stats.avgResponseTime}</div>
+          <div className="mt-1 text-2xl font-bold text-success">
+            {statsLoading ? '-' : stats.avgResponseTime}
+          </div>
         </Card>
       </div>
 
@@ -200,7 +140,7 @@ export function AdminSupport() {
           </div>
           <div className="flex flex-wrap gap-2">
             <div className="flex gap-1">
-              {(['all', 'open', 'in_progress', 'resolved'] as const).map((status) => (
+              {(['all', 'open', 'pending', 'resolved'] as const).map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
@@ -216,7 +156,7 @@ export function AdminSupport() {
               ))}
             </div>
             <div className="flex gap-1">
-              {(['all', 'critical', 'high', 'medium', 'low'] as const).map((priority) => (
+              {(['all', 'high', 'medium', 'low'] as const).map((priority) => (
                 <button
                   key={priority}
                   onClick={() => setPriorityFilter(priority)}
@@ -244,75 +184,81 @@ export function AdminSupport() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full" aria-label={t('tableAriaLabel')}>
-              <thead>
-                <tr className="border-b border-border text-left text-sm text-foreground-tertiary">
-                  <th className="pb-3 font-medium">{t('table.ticket')}</th>
-                  <th className="pb-3 font-medium">{t('table.licensee')}</th>
-                  <th className="pb-3 font-medium">{t('table.status')}</th>
-                  <th className="pb-3 font-medium">{t('table.priority')}</th>
-                  <th className="pb-3 font-medium">{t('table.assignee')}</th>
-                  <th className="pb-3 font-medium">{t('table.responseTime')}</th>
-                  <th className="pb-3 font-medium">{t('table.updated')}</th>
-                  <th className="pb-3 font-medium"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredTickets.map((ticket) => (
-                  <tr key={ticket.id} className="group hover:bg-surface/50">
-                    <td className="py-4">
-                      <div>
-                        <div className="font-mono text-xs text-foreground-tertiary">
-                          {ticket.id}
-                        </div>
-                        <div className="font-medium">{ticket.subject}</div>
-                      </div>
-                    </td>
-                    <td className="py-4">
-                      <Link
-                        href={`/admin/licensees/${ticket.licenseeId}`}
-                        className="flex items-center gap-2 text-gold hover:underline"
-                      >
-                        <Building2 className="h-4 w-4" />
-                        {ticket.licensee}
-                      </Link>
-                    </td>
-                    <td className="py-4">
-                      <StatusBadge status={ticket.status} />
-                    </td>
-                    <td className="py-4">
-                      <PriorityBadge priority={ticket.priority} />
-                    </td>
-                    <td className="py-4">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-foreground-tertiary" />
-                        <span className="text-sm">{ticket.assignee}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 text-sm">{ticket.responseTime}</td>
-                    <td className="py-4 text-sm text-foreground-tertiary">
-                      {new Date(ticket.updatedAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-4">
-                      <Link href={`/admin/support/${ticket.id}`}>
-                        <Button variant="ghost" size="sm">
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {ticketsLoading && (
+            <TableSkeleton rows={5} columns={7} />
+          )}
 
-          {filteredTickets.length === 0 && (
-            <div className="py-12 text-center">
-              <MessageSquare className="mx-auto h-12 w-12 text-foreground-tertiary" />
-              <h3 className="mt-4 font-medium">{t('empty.title')}</h3>
-              <p className="mt-1 text-sm text-foreground-tertiary">{t('empty.description')}</p>
-            </div>
+          {ticketsError && (
+            <ErrorState
+              title={t('errorLoading')}
+              description={ticketsError.message}
+              onRetry={() => refetchTickets()}
+            />
+          )}
+
+          {!ticketsLoading && !ticketsError && (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full" aria-label={t('tableAriaLabel')}>
+                  <thead>
+                    <tr className="border-b border-border text-left text-sm text-foreground-tertiary">
+                      <th className="pb-3 font-medium">{t('table.ticket')}</th>
+                      <th className="pb-3 font-medium">{t('table.licensee')}</th>
+                      <th className="pb-3 font-medium">{t('table.status')}</th>
+                      <th className="pb-3 font-medium">{t('table.priority')}</th>
+                      <th className="pb-3 font-medium">{t('table.category')}</th>
+                      <th className="pb-3 font-medium">{t('table.updated')}</th>
+                      <th className="pb-3 font-medium"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {tickets.map((ticket) => (
+                      <tr key={ticket.id} className="group hover:bg-surface/50">
+                        <td className="py-4">
+                          <div>
+                            <div className="font-mono text-xs text-foreground-tertiary">
+                              {ticket.id}
+                            </div>
+                            <div className="font-medium">{ticket.subject}</div>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <div className="flex items-center gap-2 text-foreground-secondary">
+                            <Building2 className="h-4 w-4" />
+                            {ticket.user}
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <StatusBadge status={ticket.status} />
+                        </td>
+                        <td className="py-4">
+                          <PriorityBadge priority={ticket.priority} />
+                        </td>
+                        <td className="py-4 text-sm">{ticket.category}</td>
+                        <td className="py-4 text-sm text-foreground-tertiary">
+                          {ticket.updated}
+                        </td>
+                        <td className="py-4">
+                          <Link href={`/admin/support/${ticket.id}`}>
+                            <Button variant="ghost" size="sm">
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {tickets.length === 0 && (
+                <div className="py-12 text-center">
+                  <MessageSquare className="mx-auto h-12 w-12 text-foreground-tertiary" />
+                  <h3 className="mt-4 font-medium">{t('empty.title')}</h3>
+                  <p className="mt-1 text-sm text-foreground-tertiary">{t('empty.description')}</p>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

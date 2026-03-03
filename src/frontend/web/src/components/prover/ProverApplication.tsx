@@ -41,7 +41,7 @@ import { useAccount, useDisconnect } from 'wagmi';
 type ApplicationType = 'public' | 'enterprise';
 
 // Empty initial state (no fake data)
-const FALLBACK_INVITATION = {
+const DEFAULT_INVITATION = {
   code: '',
   operatorName: '-',
   plan: '-',
@@ -145,7 +145,7 @@ export function ProverApplication() {
       setApplicationType('enterprise');
       setInvitationCode(code);
       // Auto-verify if matches mock
-      if (code === FALLBACK_INVITATION.code) {
+      if (code === DEFAULT_INVITATION.code) {
         setInvitationVerified(true);
       }
     }
@@ -153,7 +153,7 @@ export function ProverApplication() {
 
   const verifyInvitation = () => {
     // Mock verification - in production, this would call an API
-    if (invitationCode === FALLBACK_INVITATION.code) {
+    if (invitationCode === DEFAULT_INVITATION.code) {
       setInvitationVerified(true);
       setInvitationError(false);
     } else {
@@ -725,11 +725,11 @@ export function ProverApplication() {
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{t('application.enterprise.verified.title')}</span>
                   <Badge variant="gold" className="text-[10px]">
-                    {FALLBACK_INVITATION.plan}
+                    {DEFAULT_INVITATION.plan}
                   </Badge>
                 </div>
                 <div className="text-sm text-foreground-secondary">
-                  {t('application.enterprise.verified.operator')}: {FALLBACK_INVITATION.operatorName}
+                  {t('application.enterprise.verified.operator')}: {DEFAULT_INVITATION.operatorName}
                 </div>
               </div>
             </div>
@@ -746,11 +746,11 @@ export function ProverApplication() {
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Shield className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
-                <span>SLA {FALLBACK_INVITATION.benefits.slaGuarantee}</span>
+                <span>SLA {DEFAULT_INVITATION.benefits.slaGuarantee}</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Gift className="h-3.5 w-3.5 text-success" aria-hidden="true" />
-                <span>{t('application.enterprise.verified.minRevenue')}: {FALLBACK_INVITATION.benefits.minRevenue}</span>
+                <span>{t('application.enterprise.verified.minRevenue')}: {DEFAULT_INVITATION.benefits.minRevenue}</span>
               </div>
             </div>
           </Card>

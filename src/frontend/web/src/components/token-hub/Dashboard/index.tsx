@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   MessageCircleQuestion,
   Shield,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,34 +26,87 @@ import { TokenHubHeader } from './TokenHubHeader';
 import { VeQSTooltip } from './VeQSTooltip';
 import { VotingPowerTooltip } from './VotingPowerTooltip';
 import { useTokenHubStats, useDelegations, useDashboardRewards } from '@/hooks/token-hub/useTokenHub';
-import {
-  MOCK_STATS,
-  MOCK_DELEGATIONS,
-  MOCK_DASHBOARD_REWARDS,
+import type {
+  TokenHubStats,
+  Delegation,
+  DashboardRewards,
 } from '@/lib/api/token-hub/mock';
 
-// Fallback data for when API is unavailable
-const FALLBACK_STATS = MOCK_STATS;
-const FALLBACK_DELEGATIONS = MOCK_DELEGATIONS;
-const FALLBACK_REWARDS = MOCK_DASHBOARD_REWARDS;
+// Empty data for when API is unavailable
+const EMPTY_STATS: TokenHubStats = {
+  qsBalance: 0,
+  lockedQS: 0,
+  veQSBalance: 0,
+  votingPower: 0,
+  lockEndDate: '--',
+  lockDuration: '--',
+  timeRemaining: '--',
+  ratio: 0,
+};
+const EMPTY_DELEGATIONS: Delegation[] = [];
+const EMPTY_REWARDS: DashboardRewards = {
+  claimable: 0,
+  usdValue: 0,
+  epochProgress: 0,
+};
 
 export function TokenHubDashboard() {
   const t = useTranslations('token-hub.dashboard');
+  const tCommon = useTranslations('token-hub.common');
   const router = useRouter();
 
   // Fetch data from API with fallback
-  const { data: statsApi } = useTokenHubStats();
+  const { data: statsApi, isLoading, error } = useTokenHubStats();
   const { data: delegationsApi } = useDelegations();
   const { data: rewardsApi } = useDashboardRewards();
 
-  // Use API data or fallback
-  const stats = statsApi ?? FALLBACK_STATS;
-  const delegations = delegationsApi ?? FALLBACK_DELEGATIONS;
-  const rewards = rewardsApi ?? FALLBACK_REWARDS;
+  // Use API data or empty defaults
+  const stats = statsApi ?? EMPTY_STATS;
+  const delegations = delegationsApi ?? EMPTY_DELEGATIONS;
+  const rewards = rewardsApi ?? EMPTY_REWARDS;
 
   const handleNavigate = useCallback((path: string) => {
     router.push(path);
   }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-8" aria-label={tCommon('loading.ariaLabel')}>
+        <div className="animate-pulse max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+          <div className="h-10 w-48 rounded bg-surface-secondary" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 rounded-lg bg-surface-secondary" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-20 rounded-xl bg-surface-secondary" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+            <div className="h-96 rounded-lg bg-surface-secondary" />
+            <div className="space-y-6">
+              <div className="h-48 rounded-lg bg-surface-secondary" />
+              <div className="h-48 rounded-lg bg-surface-secondary" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-danger" aria-hidden="true" />
+          <p className="mt-4 text-lg font-semibold text-foreground">{tCommon('error.loadFailed')}</p>
+          <p className="mt-2 text-sm text-foreground-secondary">{tCommon('error.tryAgain')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-8">

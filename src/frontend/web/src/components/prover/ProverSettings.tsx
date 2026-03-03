@@ -22,8 +22,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ProverSidebar } from './ProverSidebar';
 
-// Empty initial state — TODO: integrate with useProverSettings() hook
-const mockSettings = {
+// Default initial state — TODO: integrate with useProverSettings() hook
+const DEFAULT_SETTINGS = {
   profile: {
     proverId: '-',
     organizationName: '-',
@@ -55,7 +55,7 @@ export function ProverSettings() {
   const router = useRouter();
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<TabType>('profile');
-  const [notifications, setNotifications] = useState(mockSettings.notifications);
+  const [notifications, setNotifications] = useState(DEFAULT_SETTINGS.notifications);
   const [saved, setSaved] = useState(false);
 
   const handleLanguageChange = (newLocale: string) => {
@@ -188,7 +188,7 @@ export function ProverSettings() {
                     <label className="block text-sm text-foreground-tertiary mb-1">
                       {t('settings.profile.proverId')}
                     </label>
-                    <div className="font-mono text-lg">{mockSettings.profile.proverId}</div>
+                    <div className="font-mono text-lg">{DEFAULT_SETTINGS.profile.proverId}</div>
                   </div>
                   <div>
                     <label className="block text-sm text-foreground-tertiary mb-1">
@@ -196,7 +196,7 @@ export function ProverSettings() {
                     </label>
                     <input
                       type="text"
-                      defaultValue={mockSettings.profile.organizationName}
+                      defaultValue={DEFAULT_SETTINGS.profile.organizationName}
                       className="w-full px-4 py-2 bg-background border border-surface-tertiary rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
                     />
                   </div>
@@ -206,7 +206,7 @@ export function ProverSettings() {
                     </label>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-foreground-tertiary" aria-hidden="true" />
-                      <span>{mockSettings.profile.email}</span>
+                      <span>{DEFAULT_SETTINGS.profile.email}</span>
                     </div>
                   </div>
                   <div>
@@ -215,7 +215,7 @@ export function ProverSettings() {
                     </label>
                     <div className="flex items-center gap-2">
                       <Globe className="h-4 w-4 text-foreground-tertiary" aria-hidden="true" />
-                      <span>{mockSettings.profile.country}</span>
+                      <span>{DEFAULT_SETTINGS.profile.country}</span>
                     </div>
                   </div>
                 </div>
@@ -231,7 +231,7 @@ export function ProverSettings() {
                   <div className="flex justify-between items-center p-3 bg-background rounded-lg">
                     <span className="text-sm text-foreground-secondary">{t('settings.profile.tier')}</span>
                     <Badge variant="success" className="text-[11px]">
-                      {mockSettings.profile.tier}
+                      {DEFAULT_SETTINGS.profile.tier}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-background rounded-lg">
@@ -243,7 +243,7 @@ export function ProverSettings() {
                   </div>
                   <div className="flex justify-between items-center p-3 bg-background rounded-lg">
                     <span className="text-sm text-foreground-secondary">{t('settings.profile.joinedDate')}</span>
-                    <span className="text-sm">{mockSettings.profile.joinedDate}</span>
+                    <span className="text-sm">{DEFAULT_SETTINGS.profile.joinedDate}</span>
                   </div>
                 </div>
               </Card>
@@ -397,7 +397,7 @@ export function ProverSettings() {
                     <span className="text-sm text-foreground-secondary">
                       {t('settings.security.apiKeys.active')}
                     </span>
-                    <Badge variant="info">{mockSettings.security.apiKeys}</Badge>
+                    <Badge variant="info">{DEFAULT_SETTINGS.security.apiKeys}</Badge>
                   </div>
                   <Button variant="outline" size="sm" className="w-full">
                     {t('settings.security.apiKeys.manage')}
@@ -415,7 +415,7 @@ export function ProverSettings() {
                   {t('settings.security.ipWhitelist.description')}
                 </p>
                 <div className="space-y-2">
-                  {mockSettings.security.allowedIps.map((ip, i) => (
+                  {DEFAULT_SETTINGS.security.allowedIps.map((ip, i) => (
                     <div
                       key={i}
                       className="flex items-center justify-between p-3 bg-background rounded-lg font-mono text-sm"

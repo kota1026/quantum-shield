@@ -35,8 +35,8 @@ const COLORS = {
   gold: '#C9A962',
 };
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: EmergencyStats = {
+// Default data - Used when API is unavailable
+const DEFAULT_STATS: EmergencyStats = {
   totalEmergency: 0,
   activeEmergency: 0,
   approvedRate: '-',
@@ -196,7 +196,7 @@ export function EmergencyTransactions() {
   const transactionsQuery = useEmergencyTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data ?? DEFAULT_STATS;
   const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [

@@ -55,7 +55,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockOperators = [
+const SAMPLE_OPERATORS = [
   {
     id: 'op-001',
     company: 'Acme Exchange',
@@ -108,7 +108,7 @@ const mockOperators = [
   },
 ];
 
-const mockApplications = [
+const SAMPLE_APPLICATIONS = [
   {
     id: 'app-001',
     company: 'Zeta Holdings',
@@ -135,8 +135,8 @@ export function SaasOperatorManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockOperators.length },
-    { key: 'applications', label: t('tabs.applications'), count: mockApplications.length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_OPERATORS.length },
+    { key: 'applications', label: t('tabs.applications'), count: SAMPLE_APPLICATIONS.length },
     { key: 'contracts', label: t('tabs.contracts') },
   ];
 
@@ -168,7 +168,7 @@ export function SaasOperatorManagement() {
     }
   };
 
-  const filteredOperators = mockOperators.filter(
+  const filteredOperators = SAMPLE_OPERATORS.filter(
     (op) => op.company.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -353,7 +353,7 @@ export function SaasOperatorManagement() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockApplications.map((app) => (
+                  {SAMPLE_APPLICATIONS.map((app) => (
                     <div
                       key={app.id}
                       className="flex items-center justify-between rounded-lg border border-surface-tertiary bg-background-secondary p-4"

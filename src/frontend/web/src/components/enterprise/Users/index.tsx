@@ -9,7 +9,6 @@ import { EnterpriseStatCard } from '../Dashboard/EnterpriseStatCard';
 import { UserTable, User } from './UserTable';
 import { Button } from '@/components/ui/button';
 import { useUsers } from '@/hooks/enterprise';
-import { MOCK_USERS as MOCK_USERS_DATA } from '@/lib/api/enterprise/mock';
 
 // Map mock roles to UI roles
 function mapRole(role: string): 'admin' | 'member' | 'viewer' {
@@ -17,21 +16,6 @@ function mapRole(role: string): 'admin' | 'member' | 'viewer' {
   if (role === 'member' || role === 'operator') return 'member';
   return 'viewer';
 }
-
-// Fallback data for when API is unavailable
-const FALLBACK_USERS: User[] = MOCK_USERS_DATA.map(u => ({
-  id: u.id,
-  name: u.name,
-  email: u.email,
-  initial: u.name.charAt(0),
-  role: mapRole(u.role),
-  status: u.status === 'suspended' ? 'active' : u.status === 'invited' ? 'invited' : 'active',
-  twoFaEnabled: u.twoFactorEnabled,
-  lastActive: u.lastActive || '不明',
-  kycStatus: 'verified' as const,
-  amlStatus: 'cleared' as const,
-  riskScore: 10,
-}));
 
 interface UserListProps {
   className?: string;
@@ -56,7 +40,7 @@ export function UserList({ className }: UserListProps) {
     kycStatus: 'verified' as const,
     amlStatus: 'cleared' as const,
     riskScore: 10,
-  })) ?? FALLBACK_USERS;
+  })) ?? [];
 
   // Filter users based on search query
   const filteredUsers = useMemo(() => {

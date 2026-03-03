@@ -54,7 +54,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockProvers = [
+const SAMPLE_PROVERS = [
   {
     id: 'prover-001',
     name: 'Primary Node - Tokyo',
@@ -93,9 +93,9 @@ export function EnterpriseProvers() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockProvers.length },
-    { key: 'dedicated', label: t('tabs.dedicated'), count: mockProvers.filter(p => p.type === 'dedicated').length },
-    { key: 'shared', label: t('tabs.shared'), count: mockProvers.filter(p => p.type === 'shared').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_PROVERS.length },
+    { key: 'dedicated', label: t('tabs.dedicated'), count: SAMPLE_PROVERS.filter(p => p.type === 'dedicated').length },
+    { key: 'shared', label: t('tabs.shared'), count: SAMPLE_PROVERS.filter(p => p.type === 'shared').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -122,7 +122,7 @@ export function EnterpriseProvers() {
     }
   };
 
-  const filteredProvers = mockProvers.filter((prover) => {
+  const filteredProvers = SAMPLE_PROVERS.filter((prover) => {
     const matchesSearch =
       prover.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prover.id.toLowerCase().includes(searchQuery.toLowerCase());

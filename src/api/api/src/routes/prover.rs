@@ -37,7 +37,7 @@ use crate::{
     types::{
         ProverRegisterRequest, ProverRegisterResponse, ProverInfoResponse, ProverStatus,
         // Prover Portal types (TASK-P5-022)
-        ProverDashboard, SigningQueueResponse, SigningQueueItem,
+        ProverDashboard, SigningQueueItem,
         ProverSignRequest, ProverSignResponse, ProverMetrics,
         ProverAlertsResponse, ProverChallengesResponse,
         ProverChallengeResponseRequest, ProverChallengeResponseResult,

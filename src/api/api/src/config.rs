@@ -1,4 +1,5 @@
 //! Configuration module
+#![allow(dead_code)]
 
 use serde::Deserialize;
 use config::{ConfigError, Environment, File};

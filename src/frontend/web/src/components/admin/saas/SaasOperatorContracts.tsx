@@ -73,7 +73,7 @@ export function SaasOperatorContracts() {
   const [activeTab, setActiveTab] = useState<'active' | 'expiring' | 'pending_renewal' | 'expired' | 'all'>('active');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const mockContracts: Contract[] = [
+  const SAMPLE_CONTRACTS: Contract[] = [
     {
       id: 'contract-001',
       companyName: 'Global Finance Corp.',
@@ -132,11 +132,11 @@ export function SaasOperatorContracts() {
   ];
 
   const tabs = [
-    { key: 'active', label: t('tabs.active'), count: mockContracts.filter(c => c.status === 'active').length },
-    { key: 'expiring', label: t('tabs.expiring'), count: mockContracts.filter(c => c.status === 'expiring').length },
-    { key: 'pending_renewal', label: t('tabs.pendingRenewal'), count: mockContracts.filter(c => c.status === 'pending_renewal').length },
-    { key: 'expired', label: t('tabs.expired'), count: mockContracts.filter(c => c.status === 'expired').length },
-    { key: 'all', label: t('tabs.all'), count: mockContracts.length },
+    { key: 'active', label: t('tabs.active'), count: SAMPLE_CONTRACTS.filter(c => c.status === 'active').length },
+    { key: 'expiring', label: t('tabs.expiring'), count: SAMPLE_CONTRACTS.filter(c => c.status === 'expiring').length },
+    { key: 'pending_renewal', label: t('tabs.pendingRenewal'), count: SAMPLE_CONTRACTS.filter(c => c.status === 'pending_renewal').length },
+    { key: 'expired', label: t('tabs.expired'), count: SAMPLE_CONTRACTS.filter(c => c.status === 'expired').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_CONTRACTS.length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -167,7 +167,7 @@ export function SaasOperatorContracts() {
     }
   };
 
-  const filteredContracts = mockContracts.filter((contract) => {
+  const filteredContracts = SAMPLE_CONTRACTS.filter((contract) => {
     const matchesSearch = contract.companyName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTab = activeTab === 'all' || contract.status === activeTab;
     return matchesSearch && matchesTab;
@@ -214,26 +214,26 @@ export function SaasOperatorContracts() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalContracts')}
-              value={String(mockContracts.length)}
+              value={String(SAMPLE_CONTRACTS.length)}
               icon={<FileText className="h-5 w-5" />}
               status="info"
             />
             <StatCard
               label={t('stats.activeContracts')}
-              value={String(mockContracts.filter(c => c.status === 'active').length)}
+              value={String(SAMPLE_CONTRACTS.filter(c => c.status === 'active').length)}
               icon={<CheckCircle className="h-5 w-5" />}
               status="success"
             />
             <StatCard
               label={t('stats.expiringContracts')}
-              value={String(mockContracts.filter(c => c.status === 'expiring').length)}
+              value={String(SAMPLE_CONTRACTS.filter(c => c.status === 'expiring').length)}
               subValue={t('stats.next30Days')}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.pendingRenewals')}
-              value={String(mockContracts.filter(c => c.status === 'pending_renewal').length)}
+              value={String(SAMPLE_CONTRACTS.filter(c => c.status === 'pending_renewal').length)}
               icon={<RefreshCw className="h-5 w-5" />}
               status="warning"
             />

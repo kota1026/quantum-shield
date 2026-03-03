@@ -23,16 +23,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useUsersStats, useUsersList } from '@/hooks/admin/useUsers';
-import {
-  MOCK_USERS_STATS,
-  MOCK_USERS,
-  type UsersStats,
-  type User,
-} from '@/lib/api/admin/mock';
+import type { UsersStats, User } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_STATS = MOCK_USERS_STATS;
-const FALLBACK_USERS = MOCK_USERS;
+// Empty defaults when API data is unavailable
+const DEFAULT_STATS: UsersStats = { totalUsers: 0, activeUsers: 0, newUsers: 0, lockedVolume: '0 ETH' };
+const DEFAULT_USERS: User[] = [];
 
 interface StatCardProps {
   title: string;
@@ -148,8 +143,8 @@ export function UsersDashboard() {
   const hasError = statsError || usersError;
 
   // Use API data with fallback
-  const stats = apiStats ?? FALLBACK_STATS;
-  const users = usersData?.users ?? FALLBACK_USERS;
+  const stats = apiStats ?? DEFAULT_STATS;
+  const users = usersData?.users ?? DEFAULT_USERS;
 
   const filters = [
     { key: 'all', label: t('common.all') },
@@ -168,9 +163,7 @@ export function UsersDashboard() {
     return <UsersDashboardSkeleton />;
   }
 
-  // In development, use fallback data even when API fails
-  // Only show error when no fallback data is available (edge case)
-  if (hasError && !apiStats && !usersData && !FALLBACK_STATS) {
+  if (hasError && !apiStats && !usersData) {
     return <UsersDashboardError onRetry={() => { refetchStats(); refetchUsers(); }} />;
   }
 

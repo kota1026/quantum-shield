@@ -51,7 +51,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockRenewals = [
+const SAMPLE_RENEWALS = [
   {
     id: 'renewal-001',
     companyId: 'company-001',
@@ -119,7 +119,7 @@ const mockRenewals = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   upcomingRenewals: 5,
   urgentRenewals: 1,
   confirmedRenewals: 1,
@@ -130,13 +130,13 @@ const mockMetrics = {
 export function LicenseRenewals() {
   const t = useTranslations('admin.licenseRenewals');
   const [activeTab, setActiveTab] = useState<'all' | 'urgent' | 'negotiating' | 'confirmed'>('all');
-  const [selectedRenewal, setSelectedRenewal] = useState<typeof mockRenewals[0] | null>(mockRenewals[0]);
+  const [selectedRenewal, setSelectedRenewal] = useState<typeof SAMPLE_RENEWALS[0] | null>(SAMPLE_RENEWALS[0]);
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockRenewals.length },
-    { key: 'urgent', label: t('tabs.urgent'), count: mockRenewals.filter(r => r.renewalStatus === 'urgent').length },
-    { key: 'negotiating', label: t('tabs.negotiating'), count: mockRenewals.filter(r => r.renewalStatus === 'negotiating').length },
-    { key: 'confirmed', label: t('tabs.confirmed'), count: mockRenewals.filter(r => r.renewalStatus === 'confirmed').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_RENEWALS.length },
+    { key: 'urgent', label: t('tabs.urgent'), count: SAMPLE_RENEWALS.filter(r => r.renewalStatus === 'urgent').length },
+    { key: 'negotiating', label: t('tabs.negotiating'), count: SAMPLE_RENEWALS.filter(r => r.renewalStatus === 'negotiating').length },
+    { key: 'confirmed', label: t('tabs.confirmed'), count: SAMPLE_RENEWALS.filter(r => r.renewalStatus === 'confirmed').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -162,7 +162,7 @@ export function LicenseRenewals() {
     return 'text-success';
   };
 
-  const filteredRenewals = mockRenewals.filter((renewal) => {
+  const filteredRenewals = SAMPLE_RENEWALS.filter((renewal) => {
     if (activeTab === 'all') return true;
     if (activeTab === 'urgent') return renewal.renewalStatus === 'urgent';
     if (activeTab === 'negotiating') return renewal.renewalStatus === 'negotiating';
@@ -197,30 +197,30 @@ export function LicenseRenewals() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.upcomingRenewals')}
-              value={String(mockMetrics.upcomingRenewals)}
+              value={String(DEFAULT_METRICS.upcomingRenewals)}
               subValue={t('stats.next90Days')}
               icon={<Calendar className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.urgentRenewals')}
-              value={String(mockMetrics.urgentRenewals)}
+              value={String(DEFAULT_METRICS.urgentRenewals)}
               subValue={t('stats.within14Days')}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.confirmedRenewals')}
-              value={String(mockMetrics.confirmedRenewals)}
+              value={String(DEFAULT_METRICS.confirmedRenewals)}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.renewalRate')}
-              value={`${mockMetrics.renewalRate}%`}
+              value={`${DEFAULT_METRICS.renewalRate}%`}
               icon={<RefreshCw className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalValue')}
-              value={mockMetrics.totalValue}
+              value={DEFAULT_METRICS.totalValue}
               icon={<FileText className="h-5 w-5" />}
             />
           </div>

@@ -24,7 +24,7 @@ interface ProposalDetailProps {
 }
 
 // Demo data
-const FALLBACK_PROPOSAL = {
+const DEFAULT_PROPOSAL = {
   id: 'QIP-47',
   title: 'Increase Prover Rewards by 10%',
   status: 'active' as const,
@@ -74,7 +74,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
   const [hasVoted, setHasVoted] = useState(false);
   const [selectedVote, setSelectedVote] = useState<'for' | 'against' | null>(null);
 
-  const proposal = FALLBACK_PROPOSAL;
+  const proposal = DEFAULT_PROPOSAL;
   const forPercentage = Math.round((proposal.votes.for / proposal.votes.total) * 100);
   const againstPercentage = 100 - forPercentage;
   const quorumPercentage = Math.round((proposal.votes.total / proposal.votes.quorum) * 100);

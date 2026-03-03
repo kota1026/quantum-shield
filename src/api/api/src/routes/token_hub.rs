@@ -26,7 +26,7 @@ use crate::{
     error::ApiError,
     services::AppState,
     types::{
-        HistoricalLock, LockPosition, MyDelegation, RewardHistory,
+        LockPosition,
         TokenHubClaimRequest, TokenHubClaimResponse, TokenHubDashboardResponse,
         TokenHubDelegateRequest, TokenHubDelegateResponse, TokenHubDelegatesResponse,
         TokenHubExtendRequest, TokenHubExtendResponse, TokenHubLockRequest,

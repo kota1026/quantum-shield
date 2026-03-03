@@ -1,8 +1,9 @@
 # Quantum Shield Launch Readiness
 
-> **Version**: 2.0
-> **Last Updated**: 2026-02-03
+> **Version**: 3.0
+> **Last Updated**: 2026-03-01
 > **Purpose**: サービスローンチまでの全体進捗を一元管理
+> **Note**: v3.0でコード実態調査に基づくスコア修正を実施。詳細は `docs/ACTUAL_STATE.md` 参照
 
 ---
 
@@ -10,22 +11,23 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    LAUNCH READINESS SCORE: 92%                          │
+│              LAUNCH READINESS SCORE: 72-75% (実態調査ベース)            │
+│              (v2.0自己申告: 92% → コード検証で修正)                     │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  UI Components      [████████████████████] 100%  ← 375 files           │
-│  React Hooks        [████████████████████] 100%  ← 9/9 apps ✅         │
-│  Hook Connection    [████████████████████] 100%  ← 9/9 apps connected  │
-│  Backend API        [████████████████████] 100%  ← 202 functions       │
-│  E2E Tests          [████████████████████] 100%  ← 144 test files ✅   │
-│  Screen Review      [██████████████████░░]  89%  ← 134/151 screens     │
-│  L1 Blockchain      [████████████████████] 100%  ← Sepolia connected   │
-│  L3 Blockchain      [████████████████████] 100%  ← Client implemented  │
+│  UI Components      [███████████████████░] 95%   ← 251 pages存在      │
+│  React Hooks        [███████████████████░] 95%   ← 9/9 apps ✅        │
+│  Hook Connection    [███████████████████░] 95%   ← 9/9 apps connected │
+│  Backend API        [███████████████████░] 95%   ← スタブ0, sqlx実装  │
+│  E2E Tests          [████████░░░░░░░░░░░░] 40%   ← 146本Smoke止まり❌│
+│  Screen Review      [██████████████████░░] 89%   ← 134/151 screens    │
+│  L1 Blockchain      [█████████████████░░░] 85%   ← Sepolia deployed   │
+│  L3 Blockchain      [██████░░░░░░░░░░░░░░] 30%   ← 実装あり,環境なし │
+│  MOCK/FALLBACK除去  [██████░░░░░░░░░░░░░░] 30%   ← 914箇所残存 ❌    │
+│  End-to-End統合     [████░░░░░░░░░░░░░░░░] 20%   ← 通しテスト未実施❌│
 │                                                                         │
-│  ALL 9 APPS INTEGRATED: Consumer, Prover, Observer, Explorer,         │
-│  Governance, Token Hub, QS Hub, QS Admin, Enterprise ✅               │
-│                                                                         │
-│  REMAINING: Enterprise MOCK_* cleanup (38), L3 env setup              │
+│  ★ 各層は個別に実装済み。繋がって動く状態は未検証                      │
+│  ★ 残り作業: 約10-17日（統合検証, E2E, FALLBACK除去, L3環境）         │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```

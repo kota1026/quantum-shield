@@ -670,7 +670,7 @@ pub async fn get_suspicious_txs(
     tracing::info!("Fetching suspicious transactions");
 
     let pool = state.db.pool();
-    let now = chrono::Utc::now().timestamp() as u64;
+    let _now = chrono::Utc::now().timestamp() as u64;
 
     // Emergency pending locks are treated as suspicious
     let rows = crate::db::LockRepository::list_locks_by_statuses(pool, &["emergency_pending"]).await?;

@@ -18,6 +18,7 @@ import {
   BookOpen,
   MessageCircleQuestion,
   Cpu,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,22 +36,20 @@ import {
 import type { GovernanceStats, VotingPowerBreakdown, ProposalSummary } from '@/lib/api/governance/mock';
 
 // Empty initial state (no fake data)
-const FALLBACK_STATS: GovernanceStats = {
+const DEFAULT_STATS: GovernanceStats = {
   activeProposals: 0,
   votingPower: 0,
   participationRate: 0,
   totalProposals: 0,
 };
 
-const FALLBACK_VOTING_POWER: VotingPowerBreakdown = {
+const DEFAULT_VOTING_POWER: VotingPowerBreakdown = {
   myVeqs: 0,
   delegatedToMe: 0,
   iDelegated: 0,
   delegators: 0,
   lockExpiry: '-',
 };
-
-const FALLBACK_PROPOSALS: ProposalSummary[] = [];
 
 // Hover card with gradient border effect
 function HoverCard({
@@ -253,14 +252,53 @@ export function GovernanceDashboard() {
   const t = useTranslations('governance.landing');
 
   // Fetch data using hooks
-  const { data: statsApi } = useGovernanceStats();
-  const { data: votingPowerApi } = useVotingPower();
-  const { data: proposalsApi } = useDashboardProposals();
+  const { data: statsApi, isLoading: statsLoading, error: statsError } = useGovernanceStats();
+  const { data: votingPowerApi, isLoading: vpLoading } = useVotingPower();
+  const { data: proposalsApi, isLoading: proposalsLoading } = useDashboardProposals();
+
+  const isLoading = statsLoading || vpLoading || proposalsLoading;
+  const error = statsError;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-7xl mx-auto animate-pulse space-y-6">
+          <div className="h-10 w-64 rounded bg-surface-secondary" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 rounded-xl bg-surface-secondary" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="h-64 rounded-xl bg-surface-secondary" />
+              <div className="h-48 rounded-xl bg-surface-secondary" />
+            </div>
+            <div className="space-y-6">
+              <div className="h-48 rounded-xl bg-surface-secondary" />
+              <div className="h-32 rounded-xl bg-surface-secondary" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-danger" />
+          <p className="mt-4 text-lg font-semibold text-foreground">{t('error')}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Use API data with fallback
-  const stats = statsApi ?? FALLBACK_STATS;
-  const votingPowerBreakdown = votingPowerApi ?? FALLBACK_VOTING_POWER;
-  const proposals = proposalsApi ?? FALLBACK_PROPOSALS;
+  const stats = statsApi ?? DEFAULT_STATS;
+  const votingPowerBreakdown = votingPowerApi ?? DEFAULT_VOTING_POWER;
+  const proposals = proposalsApi ?? [];
 
   return (
     <TooltipProvider>

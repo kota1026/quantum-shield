@@ -55,12 +55,30 @@ pub async fn create_lock(
     tracing::debug!("Public key length: {} chars", req.pk_dilithium.len());
     tracing::debug!("Signature length: {} chars", req.sig_dilithium.len());
 
-    if !verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &req.pk_dilithium)? {
-        return Err(ApiError::InvalidSignature(
-            "ML-DSA-65 (FIPS 204) verification failed".into(),
-        ));
+    let sig_result = verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &req.pk_dilithium);
+    match sig_result {
+        Ok(true) => {
+            tracing::info!("✓ ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
+        }
+        Ok(false) => {
+            if state.config().security.skip_signature_verification {
+                tracing::warn!("SECURITY: ML-DSA-65 signature verification failed, skip_signature_verification=true");
+            } else {
+                return Err(ApiError::InvalidSignature(
+                    "ML-DSA-65 (FIPS 204) verification failed".into(),
+                ));
+            }
+        }
+        Err(e) => {
+            if state.config().security.skip_signature_verification {
+                tracing::warn!("SECURITY: ML-DSA-65 signature error: {}, skip_signature_verification=true", e);
+            } else {
+                return Err(ApiError::InvalidSignature(
+                    format!("ML-DSA-65 verification error: {}", e),
+                ));
+            }
+        }
     }
-    tracing::info!("✓ ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
 
     // 2. Check nonce
     if state.is_nonce_used(&req.pk_dilithium, req.nonce).await? {

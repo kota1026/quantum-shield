@@ -24,8 +24,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-// Mock lock data
-const mockLockData: Record<string, {
+// Default lock data for initial state
+const DEFAULT_LOCK_DATA: Record<string, {
   id: string;
   shortId: string;
   amount: string;
@@ -126,9 +126,9 @@ export function LockDetail({ locale, lockId }: LockDetailProps) {
   const [copied, setCopied] = useState(false);
 
   // Find lock by matching any part of the ID
-  const lock = Object.values(mockLockData).find(
+  const lock = Object.values(DEFAULT_LOCK_DATA).find(
     (l) => l.id.includes(lockId) || l.shortId.includes(lockId) || lockId.includes(l.shortId.replace('...', ''))
-  ) || mockLockData[lockId];
+  ) || DEFAULT_LOCK_DATA[lockId];
 
   const handleCopyLockId = useCallback(async () => {
     if (lock) {

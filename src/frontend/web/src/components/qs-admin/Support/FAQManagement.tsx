@@ -19,10 +19,10 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useFAQCategories } from '@/hooks/admin/useSupport';
-import { MOCK_FAQ_CATEGORIES, type FAQCategory } from '@/lib/api/admin/mock';
+import type { FAQCategory } from '@/lib/api/admin/mock';
 
-// Fallback data
-const FALLBACK_FAQ_CATEGORIES = MOCK_FAQ_CATEGORIES;
+// Empty default when API data is unavailable
+const DEFAULT_FAQ_CATEGORIES: FAQCategory[] = [];
 
 // Loading Skeleton
 function FAQManagementSkeleton() {
@@ -80,7 +80,7 @@ export function FAQManagement() {
   const { data: categoriesData, isLoading, error, refetch } = useFAQCategories();
 
   // Use API data with fallback
-  const faqCategories = categoriesData?.categories ?? FALLBACK_FAQ_CATEGORIES;
+  const faqCategories = categoriesData?.categories ?? DEFAULT_FAQ_CATEGORIES;
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev =>

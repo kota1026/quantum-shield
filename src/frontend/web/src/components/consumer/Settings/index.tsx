@@ -36,9 +36,8 @@ interface UserSettings {
   locale: string;
 }
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_SETTINGS: UserSettings = {
-  walletAddress: '0x1234...5678',
+const DEFAULT_SETTINGS: UserSettings = {
+  walletAddress: '',
   pushNotifications: true,
   emailNotifications: false,
   darkMode: true,
@@ -69,7 +68,7 @@ export function Settings() {
     currency: 'JPY (¥)', // TODO: Add to API
     autoLockMinutes: 5, // TODO: Add to API
     locale: settingsData.language || 'ja',
-  } : FALLBACK_SETTINGS;
+  } : DEFAULT_SETTINGS;
 
   // Toggle states (initialized from API data)
   const [pushNotifications, setPushNotifications] = useState(settings.pushNotifications ?? true);

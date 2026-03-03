@@ -64,7 +64,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockStatusData = {
+const DEFAULT_STATUS_DATA = {
   overview: {
     overallHealth: '98.5%',
     activeMonitoring: '12/12',
@@ -151,33 +151,33 @@ export function SaasObserverStatus() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.overallHealth')}
-              value={mockStatusData.overview.overallHealth}
+              value={DEFAULT_STATUS_DATA.overview.overallHealth}
               icon={<Shield className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeMonitoring')}
-              value={mockStatusData.overview.activeMonitoring}
+              value={DEFAULT_STATUS_DATA.overview.activeMonitoring}
               icon={<Eye className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.pendingChallenges')}
-              value={mockStatusData.overview.pendingChallenges}
+              value={DEFAULT_STATUS_DATA.overview.pendingChallenges}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.resolvedToday')}
-              value={mockStatusData.overview.resolvedToday}
+              value={DEFAULT_STATUS_DATA.overview.resolvedToday}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgLatency')}
-              value={mockStatusData.overview.avgLatency}
+              value={DEFAULT_STATUS_DATA.overview.avgLatency}
               icon={<Zap className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.coverage')}
-              value={mockStatusData.overview.coverage}
+              value={DEFAULT_STATUS_DATA.overview.coverage}
               icon={<Globe className="h-5 w-5" />}
             />
           </div>
@@ -191,7 +191,7 @@ export function SaasObserverStatus() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockStatusData.regions.map((region, index) => (
+                    {DEFAULT_STATUS_DATA.regions.map((region, index) => (
                       <div
                         key={index}
                         className="rounded-lg border border-surface-tertiary p-4"
@@ -254,7 +254,7 @@ export function SaasObserverStatus() {
                 <CardContent>
                   <div className="h-48 rounded-lg bg-background-secondary p-4">
                     <div className="flex h-full items-end justify-between gap-4">
-                      {mockStatusData.healthHistory.map((data, index) => (
+                      {DEFAULT_STATUS_DATA.healthHistory.map((data, index) => (
                         <div key={index} className="flex flex-1 flex-col items-center gap-2">
                           <div className="relative h-32 w-full">
                             <div
@@ -284,7 +284,7 @@ export function SaasObserverStatus() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockStatusData.recentEvents.map((event, index) => (
+                  {DEFAULT_STATUS_DATA.recentEvents.map((event, index) => (
                     <div
                       key={index}
                       className="rounded-lg border border-surface-tertiary p-3"

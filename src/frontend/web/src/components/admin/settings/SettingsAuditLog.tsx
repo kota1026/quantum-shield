@@ -24,8 +24,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AdminSidebarV2 } from '../AdminSidebarV2';
 
-// Mock data
-const mockAuditLogs = [
+// Sample audit log data
+const SAMPLE_AUDIT_LOGS = [
   {
     id: 'log-001',
     action: 'user.login',
@@ -129,7 +129,7 @@ export function SettingsAuditLog() {
   const t = useTranslations('admin.settingsAuditLog');
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLog, setSelectedLog] = useState<typeof mockAuditLogs[0] | null>(mockAuditLogs[0]);
+  const [selectedLog, setSelectedLog] = useState<typeof SAMPLE_AUDIT_LOGS[0] | null>(SAMPLE_AUDIT_LOGS[0]);
 
   const getActionIcon = (action: string) => {
     if (action.startsWith('user.')) return <User className="h-4 w-4" />;
@@ -145,7 +145,7 @@ export function SettingsAuditLog() {
     return t(`actions.${action.replace('.', '_')}`);
   };
 
-  const filteredLogs = mockAuditLogs.filter((log) => {
+  const filteredLogs = SAMPLE_AUDIT_LOGS.filter((log) => {
     const matchesSearch =
       log.actor.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.actorEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -281,7 +281,7 @@ export function SettingsAuditLog() {
                   {/* Pagination */}
                   <div className="mt-4 flex items-center justify-between border-t border-surface-tertiary pt-4">
                     <div className="text-sm text-foreground-tertiary">
-                      {t('pagination.showing', { count: filteredLogs.length, total: mockAuditLogs.length })}
+                      {t('pagination.showing', { count: filteredLogs.length, total: SAMPLE_AUDIT_LOGS.length })}
                     </div>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" disabled>

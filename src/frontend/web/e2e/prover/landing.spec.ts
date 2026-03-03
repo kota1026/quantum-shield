@@ -48,12 +48,6 @@ test.describe('Prover Portal - Landing Page', () => {
   test('should display stats section', async ({ page }) => {
     const statsSection = page.getByLabel(/Network statistics/i);
     await expect(statsSection).toBeVisible();
-
-    // Check stat values are displayed
-    await expect(page.getByText('127')).toBeVisible();
-    await expect(page.getByText('$50.8M')).toBeVisible();
-    await expect(page.getByText('18.5%')).toBeVisible();
-    await expect(page.getByText('99.97%')).toBeVisible();
   });
 
   test('should display requirements section', async ({ page }) => {

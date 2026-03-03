@@ -16,7 +16,7 @@ import { useLocks } from '@/hooks/explorer';
 import type { LockDetail } from '@/lib/api/explorer/mock';
 
 // Empty initial state (no fake data)
-const FALLBACK_LOCKS: LockDetail[] = [];
+const EMPTY_LOCKS: LockDetail[] = [];
 
 type LockStatus = 'active' | 'unlocking' | 'unlocked';
 type SortOption = 'newest' | 'oldest' | 'amountHigh' | 'amountLow';
@@ -43,7 +43,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
   });
 
   // Use API data with fallback
-  const mockLocks = locksApi?.locks ?? FALLBACK_LOCKS;
+  const locks = locksApi?.locks ?? EMPTY_LOCKS;
 
   const itemsPerPage = 6;
   const totalLocks = locksApi?.total ?? 0;
@@ -51,7 +51,7 @@ export function ExplorerLocks({ locale = 'ja' }: ExplorerLocksProps) {
 
   // Filter and sort locks
   const filteredLocks = useMemo(() => {
-    let result = [...mockLocks];
+    let result = [...locks];
 
     // Filter by status
     if (statusFilter !== 'all') {

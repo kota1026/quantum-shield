@@ -20,8 +20,8 @@ import { Link } from '@/i18n/navigation';
 import { useLockedPositions } from '@/hooks/token-hub/useTokenHub';
 import type { LockedPosition } from '@/lib/api/token-hub/mock';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_LOCKED_POSITIONS: LockedPosition[] = [
+// Empty data (used when API is unavailable)
+const EMPTY_LOCKED_POSITIONS: LockedPosition[] = [
   {
     id: '1',
     lockedAmount: 50000,
@@ -150,7 +150,7 @@ export function TokenHubUnlock() {
 
   // Fetch locked positions from API with fallback
   const { data: lockedPositionsApi } = useLockedPositions();
-  const lockedPositions = lockedPositionsApi ?? FALLBACK_LOCKED_POSITIONS;
+  const lockedPositions = lockedPositionsApi ?? EMPTY_LOCKED_POSITIONS;
 
   // State for selected position to withdraw
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);

@@ -65,6 +65,7 @@
     "pageTitle": "ガバナンス",
     "pageSubtitle": "Quantum Shieldの将来を決める投票に参加しましょう",
     "ariaLabel": "ガバナンスダッシュボード",
+    "error": "ガバナンスデータの読み込みに失敗しました",
     "gettingStarted": {
       "ariaLabel": "はじめに",
       "title": "はじめに",
@@ -246,6 +247,7 @@
     "pageSubtitle": "Quantum Shieldの将来を決める提案に投票しましょう",
     "backToDashboard": "ダッシュボードに戻る",
     "ariaLabel": "提案一覧ページ",
+    "error": "提案の読み込みに失敗しました",
     "createProposal": "提案を作成",
     "filters": {
       "all": "すべて",
@@ -485,6 +487,7 @@
       "description": "セキュリティ評議会と目的委員会の概要を確認"
     },
     "ariaLabel": "評議会ページ",
+    "error": "評議会データの読み込みに失敗しました",
     "backToDashboard": "ダッシュボードに戻る",
     "pageTitle": "評議会",
     "pageSubtitle": "セキュリティ評議会と目的委員会の監督機能",

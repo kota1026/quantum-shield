@@ -17,7 +17,6 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{info, warn, instrument};
 
-use crate::error::ApiError;
 use crate::services::l1_client::L1Error;
 
 /// Verification status from Bridge Verifier contract

@@ -1011,7 +1011,7 @@ pub async fn search(
 
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(20);
-    let now = chrono::Utc::now().timestamp() as u64;
+    let _now = chrono::Utc::now().timestamp() as u64;
     let mut results = Vec::new();
 
     let q = &params.q;

@@ -72,7 +72,7 @@ export function EnterpriseApprovals() {
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const mockApprovals: ApprovalRequest[] = [
+  const SAMPLE_APPROVALS: ApprovalRequest[] = [
     {
       id: 'apr-001',
       type: 'transaction',
@@ -128,10 +128,10 @@ export function EnterpriseApprovals() {
   ];
 
   const tabs = [
-    { key: 'pending', label: t('tabs.pending'), count: mockApprovals.filter(a => a.status === 'pending').length },
-    { key: 'approved', label: t('tabs.approved'), count: mockApprovals.filter(a => a.status === 'approved').length },
-    { key: 'rejected', label: t('tabs.rejected'), count: mockApprovals.filter(a => a.status === 'rejected').length },
-    { key: 'all', label: t('tabs.all'), count: mockApprovals.length },
+    { key: 'pending', label: t('tabs.pending'), count: SAMPLE_APPROVALS.filter(a => a.status === 'pending').length },
+    { key: 'approved', label: t('tabs.approved'), count: SAMPLE_APPROVALS.filter(a => a.status === 'approved').length },
+    { key: 'rejected', label: t('tabs.rejected'), count: SAMPLE_APPROVALS.filter(a => a.status === 'rejected').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_APPROVALS.length },
   ];
 
   const getTypeIcon = (type: string) => {
@@ -175,7 +175,7 @@ export function EnterpriseApprovals() {
     }
   };
 
-  const filteredApprovals = mockApprovals.filter((approval) => {
+  const filteredApprovals = SAMPLE_APPROVALS.filter((approval) => {
     const matchesSearch =
       approval.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       approval.requestedBy.toLowerCase().includes(searchQuery.toLowerCase());
@@ -210,25 +210,25 @@ export function EnterpriseApprovals() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               label={t('stats.pending')}
-              value={String(mockApprovals.filter(a => a.status === 'pending').length)}
+              value={String(SAMPLE_APPROVALS.filter(a => a.status === 'pending').length)}
               icon={<Clock className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.approved')}
-              value={String(mockApprovals.filter(a => a.status === 'approved').length)}
+              value={String(SAMPLE_APPROVALS.filter(a => a.status === 'approved').length)}
               icon={<CheckCircle className="h-5 w-5" />}
               status="success"
             />
             <StatCard
               label={t('stats.rejected')}
-              value={String(mockApprovals.filter(a => a.status === 'rejected').length)}
+              value={String(SAMPLE_APPROVALS.filter(a => a.status === 'rejected').length)}
               icon={<XCircle className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.highRisk')}
-              value={String(mockApprovals.filter(a => a.risk === 'high' && a.status === 'pending').length)}
+              value={String(SAMPLE_APPROVALS.filter(a => a.risk === 'high' && a.status === 'pending').length)}
               icon={<AlertCircle className="h-5 w-5" />}
               status="danger"
             />

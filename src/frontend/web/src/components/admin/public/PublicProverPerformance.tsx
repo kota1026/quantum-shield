@@ -64,7 +64,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockProverPerformance = [
+const SAMPLE_PROVER_PERFORMANCE = [
   {
     id: 'prover-001',
     operator: 'Alpha Node Labs',
@@ -117,7 +117,7 @@ const mockProverPerformance = [
   },
 ];
 
-const mockNetworkMetrics = {
+const DEFAULT_NETWORK_METRICS = {
   avgSla: 99.65,
   avgResponseTime: 56,
   totalSignatures24h: 5873,
@@ -154,7 +154,7 @@ export function PublicProverPerformance() {
     }
   };
 
-  const sortedProvers = [...mockProverPerformance].sort((a, b) => {
+  const sortedProvers = [...SAMPLE_PROVER_PERFORMANCE].sort((a, b) => {
     switch (sortBy) {
       case 'sla':
         return b.sla - a.sla;
@@ -221,35 +221,35 @@ export function PublicProverPerformance() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.avgSla')}
-              value={`${mockNetworkMetrics.avgSla}%`}
+              value={`${DEFAULT_NETWORK_METRICS.avgSla}%`}
               trend={{ value: '+0.02%', direction: 'up' }}
               icon={<Shield className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgResponseTime')}
-              value={`${mockNetworkMetrics.avgResponseTime}ms`}
+              value={`${DEFAULT_NETWORK_METRICS.avgResponseTime}ms`}
               trend={{ value: '-3ms', direction: 'up' }}
               icon={<Clock className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalSignatures')}
-              value={mockNetworkMetrics.totalSignatures24h.toLocaleString()}
+              value={DEFAULT_NETWORK_METRICS.totalSignatures24h.toLocaleString()}
               trend={{ value: '+12%', direction: 'up' }}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeProvers')}
-              value={String(mockNetworkMetrics.activeProvers)}
+              value={String(DEFAULT_NETWORK_METRICS.activeProvers)}
               icon={<Activity className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgUptime')}
-              value={`${mockNetworkMetrics.avgUptime}%`}
+              value={`${DEFAULT_NETWORK_METRICS.avgUptime}%`}
               icon={<TrendingUp className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalErrors')}
-              value={String(mockNetworkMetrics.totalErrors24h)}
+              value={String(DEFAULT_NETWORK_METRICS.totalErrors24h)}
               trend={{ value: '-5', direction: 'up' }}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"

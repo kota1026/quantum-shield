@@ -27,8 +27,8 @@ import { useLockStats, useLockTransactions } from '@/hooks/admin/useTransactions
 import type { LockStats } from '@/lib/api/admin/mock';
 import type { LockTransaction } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: LockStats = {
+// Default data - Used when API is unavailable
+const DEFAULT_STATS: LockStats = {
   totalLocks: 0,
   lockVolume: '0 ETH',
   avgLockAmount: '0 ETH',
@@ -183,7 +183,7 @@ export function LockTransactions() {
   const transactionsQuery = useLockTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data ?? DEFAULT_STATS;
   const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [

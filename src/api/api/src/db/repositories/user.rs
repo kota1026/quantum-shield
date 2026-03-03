@@ -260,10 +260,10 @@ impl UserRepository {
         status: Option<&str>,
         offset: i64,
         limit: i64,
-    ) -> Result<Vec<AdminUserRow>, ApiError> {
+    ) -> Result<Vec<UserAdminRow>, ApiError> {
         info!("DB query: list_users_admin started");
 
-        let results = sqlx::query_as::<_, AdminUserRow>(
+        let results = sqlx::query_as::<_, UserAdminRow>(
             r#"
             SELECT u.wallet_address, u.pk_dilithium, u.created_at, u.last_active,
                    us.email, us.language,
@@ -398,7 +398,7 @@ impl UserRepository {
 use bigdecimal::BigDecimal;
 
 #[derive(Debug, Clone, FromRow)]
-pub struct AdminUserRow {
+pub struct UserAdminRow {
     pub wallet_address: String,
     pub pk_dilithium: Option<Vec<u8>>,
     pub created_at: DateTime<Utc>,

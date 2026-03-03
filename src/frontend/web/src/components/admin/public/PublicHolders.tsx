@@ -68,7 +68,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockHoldersData = {
+const DEFAULT_HOLDERS_DATA = {
   overview: {
     totalHolders: '12,456',
     totalSupply: '100M QS',
@@ -148,36 +148,36 @@ export function PublicHolders() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.totalHolders')}
-              value={mockHoldersData.overview.totalHolders}
+              value={DEFAULT_HOLDERS_DATA.overview.totalHolders}
               trend={{ value: '+3.2%', direction: 'up' }}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalSupply')}
-              value={mockHoldersData.overview.totalSupply}
+              value={DEFAULT_HOLDERS_DATA.overview.totalSupply}
               icon={<Coins className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.circulatingSupply')}
-              value={mockHoldersData.overview.circulatingSupply}
+              value={DEFAULT_HOLDERS_DATA.overview.circulatingSupply}
               subValue="45%"
               icon={<PieChart className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.topHoldersShare')}
-              value={mockHoldersData.overview.topHoldersShare}
+              value={DEFAULT_HOLDERS_DATA.overview.topHoldersShare}
               subValue={t('stats.top10')}
               icon={<BarChart3 className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.avgHolding')}
-              value={mockHoldersData.overview.avgHolding}
+              value={DEFAULT_HOLDERS_DATA.overview.avgHolding}
               icon={<Wallet className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.medianHolding')}
-              value={mockHoldersData.overview.medianHolding}
+              value={DEFAULT_HOLDERS_DATA.overview.medianHolding}
               icon={<BarChart3 className="h-5 w-5" />}
             />
           </div>
@@ -190,7 +190,7 @@ export function PublicHolders() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockHoldersData.distribution.map((item, index) => (
+                  {DEFAULT_HOLDERS_DATA.distribution.map((item, index) => (
                     <div key={index}>
                       <div className="mb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export function PublicHolders() {
                         </tr>
                       </thead>
                       <tbody>
-                        {mockHoldersData.topHolders.map((holder) => (
+                        {DEFAULT_HOLDERS_DATA.topHolders.map((holder) => (
                           <tr
                             key={holder.rank}
                             className="border-b border-surface-tertiary/50 hover:bg-background-secondary/50"

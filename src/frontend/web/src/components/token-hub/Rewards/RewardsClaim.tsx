@@ -20,8 +20,8 @@ import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { Link } from '@/i18n/navigation';
 import { useClaimableRewards, useClaimRewards } from '@/hooks/token-hub/useTokenHub';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_CLAIMABLE = {
+// Empty data (used when API is unavailable)
+const EMPTY_CLAIMABLE = {
   total: 847,
   usdValue: 2541,
   breakdown: {
@@ -39,7 +39,7 @@ export function RewardsClaim() {
 
   // Fetch claimable rewards from API with fallback
   const { data: claimableApi } = useClaimableRewards();
-  const claimable = claimableApi ?? FALLBACK_CLAIMABLE;
+  const claimable = claimableApi ?? EMPTY_CLAIMABLE;
 
   // Claim mutation
   const claimMutation = useClaimRewards();

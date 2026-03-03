@@ -1052,7 +1052,14 @@
       },
       "buttons": {
         "viewHistory": "View History",
-        "backToDashboard": "Back to Dashboard"
+        "backToDashboard": "Back to Dashboard",
+        "claimUnlock": "Claim Assets",
+        "claiming": "Claiming..."
+      },
+      "claim": {
+        "ready": "Time Lock has expired. You can now claim your assets.",
+        "success": "Assets have been successfully claimed.",
+        "error": "Claim failed. Please try again."
       }
     },
     "terms": {

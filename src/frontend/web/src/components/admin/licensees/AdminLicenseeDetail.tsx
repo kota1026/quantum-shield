@@ -6,81 +6,28 @@ import { Link } from '@/i18n/navigation';
 import {
   ArrowLeft,
   Building2,
-  Calendar,
   Server,
   Eye,
   FileText,
   MessageSquare,
-  Settings,
   CheckCircle2,
   AlertTriangle,
   Clock,
   Pause,
   Play,
   ExternalLink,
-  Copy,
-  RefreshCw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { LoadingState, CardSkeleton } from '@/components/ui/loading-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { useLicenseeDetail } from '@/hooks/admin/useLicensees';
 
 interface LicenseeDetailProps {
   licenseeId: string;
 }
-
-// Demo data
-const FALLBACK_LICENSEE = {
-  id: 'lic-001',
-  companyName: 'Tokyo Financial Group',
-  country: 'Japan',
-  type: 'enterprise' as const,
-  status: 'active' as const,
-  contractDate: '2024-06-15',
-  expiryDate: '2026-06-14',
-  proverNodes: 5,
-  observerNodes: 3,
-  monthlyFee: 50000,
-  lastSyncDate: '2026-01-24T14:30:00Z',
-  contact: {
-    name: 'Yamamoto Kenji',
-    email: 'k.yamamoto@tokyofg.co.jp',
-    phone: '+81-3-1234-5678',
-  },
-  technical: {
-    explorerUrl: 'https://explorer.tokyofg.co.jp',
-    apiEndpoint: 'https://api.tokyofg.co.jp/qs',
-    version: 'v2.4.1',
-    lastUpdate: '2026-01-20',
-  },
-  compliance: {
-    explorerPublic: true,
-    auditReportSubmitted: true,
-    lastAuditDate: '2025-12-15',
-    designSystemCompliant: true,
-  },
-  nodes: {
-    provers: [
-      { id: 'prover-1', status: 'online', uptime: 99.8, lastActive: '2026-01-24T14:30:00Z' },
-      { id: 'prover-2', status: 'online', uptime: 99.9, lastActive: '2026-01-24T14:28:00Z' },
-      { id: 'prover-3', status: 'online', uptime: 99.7, lastActive: '2026-01-24T14:29:00Z' },
-      { id: 'prover-4', status: 'warning', uptime: 98.5, lastActive: '2026-01-24T14:00:00Z' },
-      { id: 'prover-5', status: 'online', uptime: 99.6, lastActive: '2026-01-24T14:25:00Z' },
-    ],
-    observers: [
-      { id: 'observer-1', status: 'online', challenges: 3, lastActive: '2026-01-24T14:30:00Z' },
-      { id: 'observer-2', status: 'online', challenges: 1, lastActive: '2026-01-24T14:28:00Z' },
-      { id: 'observer-3', status: 'offline', challenges: 0, lastActive: '2026-01-23T10:00:00Z' },
-    ],
-  },
-  recentActivity: [
-    { type: 'sync', message: 'Protocol version synced to v2.4.1', date: '2026-01-20' },
-    { type: 'audit', message: 'Quarterly audit report submitted', date: '2025-12-15' },
-    { type: 'support', message: 'Support ticket #1234 resolved', date: '2025-12-10' },
-    { type: 'node', message: 'Prover node prover-5 added', date: '2025-11-01' },
-  ],
-};
 
 type Tab = 'overview' | 'nodes' | 'compliance' | 'activity';
 
@@ -88,7 +35,12 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
   const t = useTranslations('admin.licenseeDetail');
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  const licensee = FALLBACK_LICENSEE;
+  const {
+    data: licensee,
+    isLoading,
+    error,
+    refetch,
+  } = useLicenseeDetail(licenseeId);
 
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'overview', label: t('tabs.overview'), icon: Building2 },
@@ -96,6 +48,41 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
     { id: 'compliance', label: t('tabs.compliance'), icon: FileText },
     { id: 'activity', label: t('tabs.activity'), icon: Clock },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <CardSkeleton rows={4} />
+        <CardSkeleton rows={6} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title={t('errorLoading')}
+        description={error.message}
+        onRetry={() => refetch()}
+      />
+    );
+  }
+
+  if (!licensee) {
+    return (
+      <div className="py-12 text-center">
+        <Building2 className="mx-auto h-12 w-12 text-foreground-tertiary" />
+        <h3 className="mt-4 font-medium">{t('notFound')}</h3>
+        <p className="mt-1 text-sm text-foreground-tertiary">{t('notFoundDescription')}</p>
+        <Link href="/admin/licensees" className="mt-4 inline-block">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t('backToLicensees')}
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -295,37 +282,43 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {licensee.nodes.provers.map((node) => (
-                  <div
-                    key={node.id}
-                    className="flex items-center justify-between rounded-lg bg-surface p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          'h-2 w-2 rounded-full',
-                          node.status === 'online' ? 'bg-success' : 'bg-warning'
-                        )}
-                      />
-                      <span className="font-mono text-sm">{node.id}</span>
-                    </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div>
-                        <span className="text-foreground-tertiary">{t('nodes.uptime')}: </span>
-                        <span className={cn(
-                          node.uptime >= 99.5 ? 'text-success' : 'text-warning'
-                        )}>
-                          {node.uptime}%
-                        </span>
+              {licensee.nodes.provers.length === 0 ? (
+                <div className="py-8 text-center text-sm text-foreground-tertiary">
+                  {t('nodes.noProvers')}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {licensee.nodes.provers.map((node) => (
+                    <div
+                      key={node.id}
+                      className="flex items-center justify-between rounded-lg bg-surface p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={cn(
+                            'h-2 w-2 rounded-full',
+                            node.status === 'online' ? 'bg-success' : 'bg-warning'
+                          )}
+                        />
+                        <span className="font-mono text-sm">{node.id}</span>
                       </div>
-                      <div className="text-foreground-tertiary">
-                        {new Date(node.lastActive).toLocaleTimeString()}
+                      <div className="flex items-center gap-6 text-sm">
+                        <div>
+                          <span className="text-foreground-tertiary">{t('nodes.uptime')}: </span>
+                          <span className={cn(
+                            node.uptime >= 99.5 ? 'text-success' : 'text-warning'
+                          )}>
+                            {node.uptime}%
+                          </span>
+                        </div>
+                        <div className="text-foreground-tertiary">
+                          {new Date(node.lastActive).toLocaleTimeString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -338,33 +331,39 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {licensee.nodes.observers.map((node) => (
-                  <div
-                    key={node.id}
-                    className="flex items-center justify-between rounded-lg bg-surface p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          'h-2 w-2 rounded-full',
-                          node.status === 'online' ? 'bg-success' : 'bg-danger'
-                        )}
-                      />
-                      <span className="font-mono text-sm">{node.id}</span>
-                    </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div>
-                        <span className="text-foreground-tertiary">{t('nodes.challenges')}: </span>
-                        <span>{node.challenges}</span>
+              {licensee.nodes.observers.length === 0 ? (
+                <div className="py-8 text-center text-sm text-foreground-tertiary">
+                  {t('nodes.noObservers')}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {licensee.nodes.observers.map((node) => (
+                    <div
+                      key={node.id}
+                      className="flex items-center justify-between rounded-lg bg-surface p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={cn(
+                            'h-2 w-2 rounded-full',
+                            node.status === 'online' ? 'bg-success' : 'bg-danger'
+                          )}
+                        />
+                        <span className="font-mono text-sm">{node.id}</span>
                       </div>
-                      <div className="text-foreground-tertiary">
-                        {new Date(node.lastActive).toLocaleTimeString()}
+                      <div className="flex items-center gap-6 text-sm">
+                        <div>
+                          <span className="text-foreground-tertiary">{t('nodes.challenges')}: </span>
+                          <span>{node.challenges}</span>
+                        </div>
+                        <div className="text-foreground-tertiary">
+                          {new Date(node.lastActive).toLocaleTimeString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -427,19 +426,25 @@ export function AdminLicenseeDetail({ licenseeId }: LicenseeDetailProps) {
             <CardTitle className="text-base">{t('activity.title')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {licensee.recentActivity.map((activity, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-4 border-l-2 border-gold/30 pl-4"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium">{activity.message}</div>
-                    <div className="text-sm text-foreground-tertiary">{activity.date}</div>
+            {licensee.recentActivity.length === 0 ? (
+              <div className="py-8 text-center text-sm text-foreground-tertiary">
+                {t('activity.noActivity')}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {licensee.recentActivity.map((activity, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-4 border-l-2 border-gold/30 pl-4"
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium">{activity.message}</div>
+                      <div className="text-sm text-foreground-tertiary">{activity.date}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

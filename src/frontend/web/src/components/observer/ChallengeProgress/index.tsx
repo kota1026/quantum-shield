@@ -22,8 +22,8 @@ interface ChallengeData {
   result?: 'won' | 'lost';
 }
 
-// Mock data for demonstration
-const mockChallenge: ChallengeData = {
+// Default challenge data
+const DEFAULT_CHALLENGE: ChallengeData = {
   id: 'CHG-2847',
   targetAddress: '0x4b7c8a2e1f9d3c6b5a4e7f8d9c1b2a3e4f5d6c7b',
   targetAmount: '45.00',
@@ -121,7 +121,7 @@ export function ChallengeProgress() {
     },
   };
 
-  const currentStatus = statusBadge[mockChallenge.status];
+  const currentStatus = statusBadge[DEFAULT_CHALLENGE.status];
 
   return (
     <div className="min-h-screen bg-background-primary">
@@ -148,7 +148,7 @@ export function ChallengeProgress() {
           <div>
             <div className="font-semibold text-success">{t('submitted.title')}</div>
             <div className="text-sm text-text-secondary">
-              {t('submitted.description', { txHash: `${mockChallenge.txHash.slice(0, 6)}...${mockChallenge.txHash.slice(-4)}` })}
+              {t('submitted.description', { txHash: `${DEFAULT_CHALLENGE.txHash.slice(0, 6)}...${DEFAULT_CHALLENGE.txHash.slice(-4)}` })}
             </div>
           </div>
         </div>
@@ -156,10 +156,10 @@ export function ChallengeProgress() {
         {/* Challenge Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-2">{t('header.title', { id: mockChallenge.id })}</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('header.title', { id: DEFAULT_CHALLENGE.id })}</h1>
             <div className="font-mono text-sm text-text-tertiary">
-              {t('header.vs')} {mockChallenge.targetAddress.slice(0, 6)}...{mockChallenge.targetAddress.slice(-4)} •{' '}
-              {mockChallenge.targetAmount} ETH {t('header.emergencyUnlock')}
+              {t('header.vs')} {DEFAULT_CHALLENGE.targetAddress.slice(0, 6)}...{DEFAULT_CHALLENGE.targetAddress.slice(-4)} •{' '}
+              {DEFAULT_CHALLENGE.targetAmount} ETH {t('header.emergencyUnlock')}
             </div>
           </div>
           <div
@@ -218,13 +218,13 @@ export function ChallengeProgress() {
               status="completed"
               title={t('timeline.submitted')}
               time="2026-01-08 14:32:18 UTC"
-              description={t('timeline.submittedDesc', { address: `${mockChallenge.targetAddress.slice(0, 6)}...${mockChallenge.targetAddress.slice(-4)}`, bond: mockChallenge.yourBond })}
+              description={t('timeline.submittedDesc', { address: `${DEFAULT_CHALLENGE.targetAddress.slice(0, 6)}...${DEFAULT_CHALLENGE.targetAddress.slice(-4)}`, bond: DEFAULT_CHALLENGE.yourBond })}
             />
             <TimelineItem
               status="completed"
               title={t('timeline.bondLocked')}
               time="2026-01-08 14:32:20 UTC"
-              description={t('timeline.bondLockedDesc', { bond: mockChallenge.yourBond })}
+              description={t('timeline.bondLockedDesc', { bond: DEFAULT_CHALLENGE.yourBond })}
             />
             <TimelineItem
               status="current"
@@ -261,7 +261,7 @@ export function ChallengeProgress() {
             <div className="space-y-3">
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
                 <span className="text-text-secondary">{t('details.challengeId')}</span>
-                <span className="font-semibold font-mono">#{mockChallenge.id}</span>
+                <span className="font-semibold font-mono">#{DEFAULT_CHALLENGE.id}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
                 <span className="text-text-secondary">{t('details.submitted')}</span>
@@ -269,16 +269,16 @@ export function ChallengeProgress() {
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
                 <span className="text-text-secondary">{t('details.yourBond')}</span>
-                <span className="font-semibold text-warning">{mockChallenge.yourBond} ETH</span>
+                <span className="font-semibold text-warning">{DEFAULT_CHALLENGE.yourBond} ETH</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
                 <span className="text-text-secondary">{t('details.potentialReward')}</span>
-                <span className="font-semibold text-success">~{mockChallenge.potentialReward} ETH</span>
+                <span className="font-semibold text-success">~{DEFAULT_CHALLENGE.potentialReward} ETH</span>
               </div>
               <div className="flex justify-between py-2 text-sm">
                 <span className="text-text-secondary">{t('details.txHash')}</span>
                 <span className="font-semibold font-mono text-xs">
-                  {mockChallenge.txHash.slice(0, 6)}...{mockChallenge.txHash.slice(-4)}
+                  {DEFAULT_CHALLENGE.txHash.slice(0, 6)}...{DEFAULT_CHALLENGE.txHash.slice(-4)}
                 </span>
               </div>
             </div>
@@ -295,12 +295,12 @@ export function ChallengeProgress() {
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
                 <span className="text-text-secondary">{t('target.address')}</span>
                 <span className="font-semibold font-mono text-xs">
-                  {mockChallenge.targetAddress.slice(0, 6)}...{mockChallenge.targetAddress.slice(-4)}
+                  {DEFAULT_CHALLENGE.targetAddress.slice(0, 6)}...{DEFAULT_CHALLENGE.targetAddress.slice(-4)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
                 <span className="text-text-secondary">{t('target.amount')}</span>
-                <span className="font-semibold">{mockChallenge.targetAmount} ETH</span>
+                <span className="font-semibold">{DEFAULT_CHALLENGE.targetAmount} ETH</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
                 <span className="text-text-secondary">{t('target.type')}</span>
@@ -308,12 +308,12 @@ export function ChallengeProgress() {
               </div>
               <div className="flex justify-between py-2 border-b border-border-subtle text-sm">
                 <span className="text-text-secondary">{t('target.riskScore')}</span>
-                <span className="font-semibold text-error">{mockChallenge.riskScore}</span>
+                <span className="font-semibold text-error">{DEFAULT_CHALLENGE.riskScore}</span>
               </div>
               <div className="flex justify-between py-2 text-sm">
                 <span className="text-text-secondary">{t('target.originalTx')}</span>
                 <span className="font-semibold font-mono text-xs">
-                  {mockChallenge.originalTxHash.slice(0, 6)}...{mockChallenge.originalTxHash.slice(-4)}
+                  {DEFAULT_CHALLENGE.originalTxHash.slice(0, 6)}...{DEFAULT_CHALLENGE.originalTxHash.slice(-4)}
                 </span>
               </div>
             </div>

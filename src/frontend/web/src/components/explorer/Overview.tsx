@@ -31,7 +31,7 @@ import {
 import type { ExplorerStats, RecentLock, RecentUnlock, ActiveChallenge } from '@/lib/api/explorer/mock';
 
 // Empty initial state (no fake data)
-const FALLBACK_STATS: ExplorerStats = {
+const DEFAULT_STATS: ExplorerStats = {
   tvl: '$0',
   tvlChange: 0,
   totalLocks: 0,
@@ -42,11 +42,11 @@ const FALLBACK_STATS: ExplorerStats = {
   proverUptime: 0,
 };
 
-const FALLBACK_RECENT_LOCKS: RecentLock[] = [];
+const EMPTY_RECENT_LOCKS: RecentLock[] = [];
 
-const FALLBACK_RECENT_UNLOCKS: RecentUnlock[] = [];
+const EMPTY_RECENT_UNLOCKS: RecentUnlock[] = [];
 
-const FALLBACK_ACTIVE_CHALLENGES: ActiveChallenge[] = [];
+const EMPTY_ACTIVE_CHALLENGES: ActiveChallenge[] = [];
 
 interface ExplorerOverviewProps {
   locale?: string;
@@ -64,10 +64,10 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
   const { data: activeChallengesApi } = useActiveChallenges();
 
   // Use API data with fallback (ensure arrays are always arrays)
-  const mockStats = statsApi ? { ...FALLBACK_STATS, ...statsApi } : FALLBACK_STATS;
-  const mockRecentLocks = Array.isArray(recentLocksApi) ? recentLocksApi : FALLBACK_RECENT_LOCKS;
-  const mockRecentUnlocks = Array.isArray(recentUnlocksApi) ? recentUnlocksApi : FALLBACK_RECENT_UNLOCKS;
-  const mockActiveChallenges = Array.isArray(activeChallengesApi) ? activeChallengesApi : FALLBACK_ACTIVE_CHALLENGES;
+  const stats = statsApi ? { ...DEFAULT_STATS, ...statsApi } : DEFAULT_STATS;
+  const recentLocks = Array.isArray(recentLocksApi) ? recentLocksApi : EMPTY_RECENT_LOCKS;
+  const recentUnlocks = Array.isArray(recentUnlocksApi) ? recentUnlocksApi : EMPTY_RECENT_UNLOCKS;
+  const activeChallenges = Array.isArray(activeChallengesApi) ? activeChallengesApi : EMPTY_ACTIVE_CHALLENGES;
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -224,13 +224,13 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" aria-hidden="true" />
-                +{mockStats.tvlChange}%
+                +{stats.tvlChange}%
               </span>
             </div>
-            <div className="text-[28px] font-bold text-gold" data-testid="explorer-tvl-value">{mockStats.tvl}</div>
+            <div className="text-[28px] font-bold text-gold" data-testid="explorer-tvl-value">{stats.tvl}</div>
             <div className="text-xs text-success flex items-center gap-1 mt-1">
               <TrendingUp className="w-3 h-3" aria-hidden="true" />
-              {t('overview.stats.tvl.change', { change: mockStats.tvlChange })}
+              {t('overview.stats.tvl.change', { change: stats.tvlChange })}
             </div>
           </Card>
 
@@ -242,13 +242,13 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" aria-hidden="true" />
-                +{mockStats.locksChange}
+                +{stats.locksChange}
               </span>
             </div>
-            <div className="text-[28px] font-bold" data-testid="explorer-total-locks-value">{mockStats.totalLocks.toLocaleString()}</div>
+            <div className="text-[28px] font-bold" data-testid="explorer-total-locks-value">{stats.totalLocks.toLocaleString()}</div>
             <div className="text-xs text-success flex items-center gap-1 mt-1">
               <TrendingUp className="w-3 h-3" aria-hidden="true" />
-              {t('overview.stats.totalLocks.change', { count: mockStats.locksChange })}
+              {t('overview.stats.totalLocks.change', { count: stats.locksChange })}
             </div>
           </Card>
 
@@ -259,9 +259,9 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                 {t('overview.stats.pendingUnlocks.label')}
               </span>
             </div>
-            <div className="text-[28px] font-bold" data-testid="explorer-pending-unlocks-value">{mockStats.pendingUnlocks}</div>
+            <div className="text-[28px] font-bold" data-testid="explorer-pending-unlocks-value">{stats.pendingUnlocks}</div>
             <div className="text-xs text-foreground-secondary mt-1">
-              {t('overview.stats.pendingUnlocks.detail', { count: mockStats.pendingInTimeLock })}
+              {t('overview.stats.pendingUnlocks.detail', { count: stats.pendingInTimeLock })}
             </div>
           </Card>
 
@@ -282,9 +282,9 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                 </Tooltip>
               </span>
             </div>
-            <div className="text-[28px] font-bold" data-testid="explorer-active-provers-value">{mockStats.activeProvers}</div>
+            <div className="text-[28px] font-bold" data-testid="explorer-active-provers-value">{stats.activeProvers}</div>
             <div className="text-xs text-success mt-1">
-              {t('overview.stats.activeProvers.uptime', { uptime: mockStats.proverUptime })}
+              {t('overview.stats.activeProvers.uptime', { uptime: stats.proverUptime })}
             </div>
           </Card>
         </section>
@@ -325,7 +325,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockRecentLocks.map((lock, index) => (
+                  {recentLocks.map((lock, index) => (
                     <tr
                       key={lock.id}
                       className="border-b border-surface-tertiary last:border-b-0 hover:bg-background-tertiary cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-inset"
@@ -404,7 +404,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockRecentUnlocks.map((unlock, index) => (
+                  {recentUnlocks.map((unlock, index) => (
                     <tr
                       key={unlock.id}
                       className="border-b border-surface-tertiary last:border-b-0 hover:bg-background-tertiary cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-inset"
@@ -503,7 +503,7 @@ export function ExplorerOverview({ locale = 'ja' }: ExplorerOverviewProps) {
                 </tr>
               </thead>
               <tbody>
-                {mockActiveChallenges.map((challenge) => (
+                {activeChallenges.map((challenge) => (
                   <tr
                     key={challenge.id}
                     className="border-b border-surface-tertiary last:border-b-0 hover:bg-background-tertiary cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-hinomaru focus-visible:ring-inset"

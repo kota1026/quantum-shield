@@ -24,8 +24,8 @@ import { Link } from '@/i18n/navigation';
 import { TokenHubHeader } from '../Dashboard/TokenHubHeader';
 import { useExtendedRewardsHistory } from '@/hooks/token-hub/useTokenHub';
 
-// Fallback history data (used when API is unavailable)
-const FALLBACK_HISTORY = [
+// Empty history data (used when API is unavailable)
+const EMPTY_HISTORY = [
   {
     id: '1',
     epoch: 42,
@@ -76,7 +76,7 @@ export function RewardsHistory() {
 
   // Fetch history from API with fallback (uses extended local data for now)
   const { data: historyApi } = useExtendedRewardsHistory();
-  const history = historyApi ?? FALLBACK_HISTORY;
+  const history = historyApi ?? EMPTY_HISTORY;
 
   const chartData = timeView === 'weekly' ? WEEKLY_CHART_DATA : MONTHLY_CHART_DATA;
   const chartMax = Math.max(...chartData);

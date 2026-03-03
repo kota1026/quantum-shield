@@ -19,7 +19,7 @@
 
 use ethers::prelude::*;
 use std::sync::Arc;
-use tracing::{info, warn, instrument};
+use tracing::{info, instrument};
 
 use super::l1_client::L1Error;
 

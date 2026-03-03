@@ -68,7 +68,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockUsers = [
+const SAMPLE_USERS = [
   {
     id: 'saas-user-001',
     userId: 'USR-12345',
@@ -149,7 +149,7 @@ const mockUsers = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   totalUsers: 15892,
   activeUsers: 12456,
   suspendedUsers: 234,
@@ -163,11 +163,11 @@ export function SaasUserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockUsers.length },
-    { key: 'active', label: t('tabs.active'), count: mockUsers.filter(u => u.status === 'active').length },
-    { key: 'suspended', label: t('tabs.suspended'), count: mockUsers.filter(u => u.status === 'suspended').length },
-    { key: 'flagged', label: t('tabs.flagged'), count: mockUsers.filter(u => u.status === 'flagged').length },
-    { key: 'pending', label: t('tabs.pending'), count: mockUsers.filter(u => u.status === 'pending').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_USERS.length },
+    { key: 'active', label: t('tabs.active'), count: SAMPLE_USERS.filter(u => u.status === 'active').length },
+    { key: 'suspended', label: t('tabs.suspended'), count: SAMPLE_USERS.filter(u => u.status === 'suspended').length },
+    { key: 'flagged', label: t('tabs.flagged'), count: SAMPLE_USERS.filter(u => u.status === 'flagged').length },
+    { key: 'pending', label: t('tabs.pending'), count: SAMPLE_USERS.filter(u => u.status === 'pending').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -191,7 +191,7 @@ export function SaasUserManagement() {
     return <Badge variant="success">{t('risk.low')}</Badge>;
   };
 
-  const filteredUsers = mockUsers.filter((user) => {
+  const filteredUsers = SAMPLE_USERS.filter((user) => {
     const matchesSearch =
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.userId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -235,31 +235,31 @@ export function SaasUserManagement() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalUsers')}
-              value={mockMetrics.totalUsers.toLocaleString()}
+              value={DEFAULT_METRICS.totalUsers.toLocaleString()}
               trend={{ value: '+8.5%', direction: 'up' }}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeUsers')}
-              value={mockMetrics.activeUsers.toLocaleString()}
+              value={DEFAULT_METRICS.activeUsers.toLocaleString()}
               subValue="78.4%"
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.suspendedUsers')}
-              value={String(mockMetrics.suspendedUsers)}
+              value={String(DEFAULT_METRICS.suspendedUsers)}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.flaggedUsers')}
-              value={String(mockMetrics.flaggedUsers)}
+              value={String(DEFAULT_METRICS.flaggedUsers)}
               icon={<Shield className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.avgTransactions')}
-              value={String(mockMetrics.avgTransactions)}
+              value={String(DEFAULT_METRICS.avgTransactions)}
               subValue={t('stats.perUser')}
               icon={<Activity className="h-5 w-5" />}
             />
@@ -389,7 +389,7 @@ export function SaasUserManagement() {
               {/* Pagination */}
               <div className="mt-4 flex items-center justify-between border-t border-surface-tertiary pt-4">
                 <div className="text-sm text-foreground-tertiary">
-                  {t('pagination.showing', { count: filteredUsers.length, total: mockUsers.length })}
+                  {t('pagination.showing', { count: filteredUsers.length, total: SAMPLE_USERS.length })}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" disabled>

@@ -20,8 +20,8 @@ import { Link } from '@/i18n/navigation';
 import { Tooltip } from '@/components/shared/Tooltip';
 import { useQSBalance } from '@/hooks/qs-hub/useQSHub';
 
-// Fallback balance (used when API is unavailable)
-const FALLBACK_BALANCE = 15000;
+// Default balance (used when API is unavailable)
+const DEFAULT_BALANCE = 15000;
 
 // Maximum lock time: 4 years = 208 weeks (SEQUENCES.md §9.1)
 const MAX_LOCK_WEEKS = 208;
@@ -51,9 +51,9 @@ export function StakeLock() {
   const tCommon = useTranslations('qs-hub.common');
   const router = useRouter();
 
-  // Fetch balance from API with fallback
+  // Fetch balance from API with default
   const { data: balanceApi } = useQSBalance();
-  const balance = balanceApi ?? FALLBACK_BALANCE;
+  const balance = balanceApi ?? DEFAULT_BALANCE;
 
   // Form state
   const [amount, setAmount] = useState<string>('');

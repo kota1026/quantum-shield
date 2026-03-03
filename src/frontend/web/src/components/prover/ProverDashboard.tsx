@@ -46,41 +46,6 @@ import { useProverId } from '@/stores/proverAuthStore';
 // Prover type: public or enterprise
 type ProverType = 'public' | 'enterprise';
 
-// Empty initial state (no fake data)
-const FALLBACK_STATS = {
-  pendingSignatures: 0,
-  urgentCount: 0,
-  todaysProcessed: 0,
-  processedChange: 0,
-  avgProcessed: 0,
-  uptime: 0,
-  slaMinUptime: 99.5,
-  responseTime: 0,
-};
-const FALLBACK_QUEUE_ITEMS: { id: string; type: string; address: string; amount: string; time: string; urgent: boolean }[] = [];
-const FALLBACK_REWARDS = {
-  claimable: 0,
-  thisMonth: 0,
-  allTime: 0,
-};
-const FALLBACK_STAKE = {
-  amount: 0,
-  usdValue: 0,
-  challenges: 0,
-};
-const FALLBACK_CONTRACT = {
-  operatorName: '-',
-  contractId: '-',
-  plan: '-',
-  sla: '-',
-  guaranteedRevenue: 0,
-  startDate: '-',
-  endDate: '-',
-  supportLevel: '-',
-  infrastructureManaged: false,
-  contactPerson: '-',
-};
-
 export function ProverDashboard() {
   const t = useTranslations('prover');
   const router = useRouter();
@@ -93,18 +58,21 @@ export function ProverDashboard() {
   const [proverType] = useState<ProverType>('enterprise');
 
   // Fetch data using hooks - pass proverId
-  const { data: statsApi } = useProverStats(proverId ?? undefined);
-  const { data: queueApi } = useProverQueue(proverId ?? undefined);
-  const { data: rewardsApi } = useProverRewards(proverId ?? undefined);
-  const { data: stakeApi } = useProverStake(proverId ?? undefined);
-  const { data: contractApi } = useEnterpriseContract(proverId ?? undefined);
+  const { data: stats, isLoading: statsLoading, error: statsError } = useProverStats(proverId ?? undefined);
+  const { data: queueApi, isLoading: queueLoading } = useProverQueue(proverId ?? undefined);
+  const { data: rewards, isLoading: rewardsLoading } = useProverRewards(proverId ?? undefined);
+  const { data: stake, isLoading: stakeLoading } = useProverStake(proverId ?? undefined);
+  const { data: enterpriseContract, isLoading: contractLoading } = useEnterpriseContract(proverId ?? undefined);
 
-  // Use API data with fallback
-  const stats = statsApi ?? FALLBACK_STATS;
-  const queueItems = queueApi?.items ?? FALLBACK_QUEUE_ITEMS;
-  const rewards = rewardsApi ?? FALLBACK_REWARDS;
-  const stake = stakeApi ?? FALLBACK_STAKE;
-  const enterpriseContract = contractApi ?? FALLBACK_CONTRACT;
+  const isLoading = statsLoading;
+  const queueItems = queueApi?.items ?? [];
+  const safeRewards = rewards ?? { claimable: 0, thisMonth: 0, allTime: 0 };
+  const safeStake = stake ?? { amount: 0, usdValue: 0, challenges: 0 };
+  const safeContract = enterpriseContract ?? {
+    operatorName: '-', contractId: '-', plan: '-', sla: '-',
+    guaranteedRevenue: '0', startDate: '-', endDate: '-',
+    supportLevel: '-', infrastructureManaged: false, contactPerson: '-',
+  };
 
   const handleNavigate = useCallback(
     (path: string) => {
@@ -112,6 +80,36 @@ export function ProverDashboard() {
     },
     [router]
   );
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <ProverSidebar activePage="dashboard" />
+        <main className="flex-1 p-8 flex items-center justify-center">
+          <div className="animate-pulse text-foreground-secondary">{t('dashboard.title')}</div>
+        </main>
+      </div>
+    );
+  }
+
+  // Error state
+  if (statsError || !stats) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <ProverSidebar activePage="dashboard" />
+        <main className="flex-1 p-8 flex items-center justify-center">
+          <div className="text-center">
+            <AlertTriangle className="w-12 h-12 text-error mx-auto mb-4" />
+            <p className="text-foreground-secondary mb-4">{statsError?.message || t('dashboard.title')}</p>
+            <Button variant="primary" asChild>
+              <Link href="/prover/dashboard">{t('dashboard.title')}</Link>
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -229,7 +227,7 @@ export function ProverDashboard() {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs text-foreground-tertiary">{t('dashboard.rewards.claimable')}</span>
               </div>
-              <div className="text-3xl font-bold font-mono text-success">{rewards.claimable} QS</div>
+              <div className="text-3xl font-bold font-mono text-success">{safeRewards.claimable} QS</div>
               <div className="text-xs text-foreground-tertiary mt-1">{t('dashboard.rewards.claimableLabel')}</div>
             </Card>
 
@@ -307,7 +305,7 @@ export function ProverDashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="font-medium mb-1">{t('dashboard.quickActions.claimRewards.title')}</div>
                   <p className="text-sm text-foreground-tertiary line-clamp-2">
-                    {t('dashboard.quickActions.claimRewards.description', { amount: rewards.claimable })}
+                    {t('dashboard.quickActions.claimRewards.description', { amount: safeRewards.claimable })}
                   </p>
                 </div>
                 <ChevronRight
@@ -490,7 +488,7 @@ export function ProverDashboard() {
                         <span className="text-sm font-semibold">{t('dashboard.enterprise.contract.title')}</span>
                       </div>
                       <Badge variant="gold" className="text-[10px]">
-                        {enterpriseContract.plan}
+                        {safeContract.plan}
                       </Badge>
                     </div>
 
@@ -501,8 +499,8 @@ export function ProverDashboard() {
                           <Building2 className="h-5 w-5 text-gold" />
                         </div>
                         <div>
-                          <div className="text-sm font-semibold">{enterpriseContract.operatorName}</div>
-                          <div className="text-xs text-foreground-tertiary font-mono">{enterpriseContract.contractId}</div>
+                          <div className="text-sm font-semibold">{safeContract.operatorName}</div>
+                          <div className="text-xs text-foreground-tertiary font-mono">{safeContract.contractId}</div>
                         </div>
                       </div>
 
@@ -510,18 +508,18 @@ export function ProverDashboard() {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="p-3 bg-background/50 rounded-lg">
                           <div className="text-[10px] text-foreground-tertiary mb-1">{t('dashboard.enterprise.contract.sla')}</div>
-                          <div className="text-sm font-bold text-success">{enterpriseContract.sla}</div>
+                          <div className="text-sm font-bold text-success">{safeContract.sla}</div>
                         </div>
                         <div className="p-3 bg-background/50 rounded-lg">
                           <div className="text-[10px] text-foreground-tertiary mb-1">{t('dashboard.enterprise.contract.guaranteedRevenue')}</div>
-                          <div className="text-sm font-bold text-gold">{Number(enterpriseContract.guaranteedRevenue).toLocaleString()} QS/mo</div>
+                          <div className="text-sm font-bold text-gold">{Number(safeContract.guaranteedRevenue).toLocaleString()} QS/mo</div>
                         </div>
                       </div>
 
                       {/* Contract Period */}
                       <div className="flex items-center gap-2 text-xs text-foreground-secondary">
                         <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span>{enterpriseContract.startDate} 〜 {enterpriseContract.endDate}</span>
+                        <span>{safeContract.startDate} 〜 {safeContract.endDate}</span>
                       </div>
 
                       {/* Support & Infrastructure */}
@@ -529,9 +527,9 @@ export function ProverDashboard() {
                         <div className="flex items-center gap-2 text-xs">
                           <Headphones className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
                           <span className="text-foreground-secondary">{t('dashboard.enterprise.contract.support')}:</span>
-                          <span className="font-semibold text-gold">{enterpriseContract.supportLevel}</span>
+                          <span className="font-semibold text-gold">{safeContract.supportLevel}</span>
                         </div>
-                        {enterpriseContract.infrastructureManaged && (
+                        {safeContract.infrastructureManaged && (
                           <div className="flex items-center gap-2 text-xs">
                             <Server className="h-3.5 w-3.5 text-success" aria-hidden="true" />
                             <span className="text-success font-semibold">{t('dashboard.enterprise.contract.managedInfra')}</span>
@@ -542,7 +540,7 @@ export function ProverDashboard() {
                       {/* Contact Person */}
                       <div className="flex items-center justify-between pt-3 border-t border-surface-tertiary">
                         <div className="text-xs text-foreground-tertiary">
-                          {t('dashboard.enterprise.contract.contact')}: {enterpriseContract.contactPerson}
+                          {t('dashboard.enterprise.contract.contact')}: {safeContract.contactPerson}
                         </div>
                         <Button variant="outline" size="sm" asChild>
                           <Link href="/enterprise/support">{t('dashboard.enterprise.contract.contactSupport')}</Link>
@@ -560,12 +558,12 @@ export function ProverDashboard() {
                     <Lock className="h-5 w-5 text-gold" aria-hidden="true" />
                     <span className="text-sm font-semibold">{t('dashboard.stake.title')}</span>
                   </div>
-                  <div className="text-3xl font-bold font-mono mb-1">{stake.amount.toFixed(2)} ETH</div>
-                  <div className="text-sm text-foreground-tertiary mb-4">≈ ${stake.usdValue.toLocaleString()} USD</div>
+                  <div className="text-3xl font-bold font-mono mb-1">{safeStake.amount.toFixed(2)} ETH</div>
+                  <div className="text-sm text-foreground-tertiary mb-4">≈ ${safeStake.usdValue.toLocaleString()} USD</div>
                   <div className="flex items-center gap-2 pt-3 border-t border-surface-tertiary">
                     <div className="w-2 h-2 bg-success rounded-full" aria-hidden="true" />
                     <span className="text-xs text-success">
-                      {t('dashboard.stake.noRisk', { challenges: stake.challenges })}
+                      {t('dashboard.stake.noRisk', { challenges: safeStake.challenges })}
                     </span>
                   </div>
                 </div>
@@ -584,22 +582,22 @@ export function ProverDashboard() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-foreground-secondary">{t('dashboard.rewards.claimable')}</span>
                     </div>
-                    <div className="text-2xl font-bold font-mono text-success mb-1">{rewards.claimable} QS</div>
+                    <div className="text-2xl font-bold font-mono text-success mb-1">{safeRewards.claimable} QS</div>
                     <div className="text-xs text-foreground-tertiary">{t('dashboard.rewards.claimableLabel')}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="p-3 bg-background-secondary rounded-lg">
                       <div className="text-[11px] text-foreground-tertiary mb-1">{t('dashboard.rewards.thisMonth')}</div>
-                      <div className="text-base font-bold font-mono">{rewards.thisMonth} QS</div>
+                      <div className="text-base font-bold font-mono">{safeRewards.thisMonth} QS</div>
                     </div>
                     <div className="p-3 bg-background-secondary rounded-lg">
                       <div className="text-[11px] text-foreground-tertiary mb-1">{t('dashboard.rewards.allTime')}</div>
-                      <div className="text-base font-bold font-mono">{rewards.allTime} QS</div>
+                      <div className="text-base font-bold font-mono">{safeRewards.allTime} QS</div>
                     </div>
                   </div>
                   <Button variant="success" className="w-full" asChild>
                     <Link href="/prover/metrics">
-                      {t('dashboard.rewards.claimAmount', { amount: rewards.claimable })}
+                      {t('dashboard.rewards.claimAmount', { amount: safeRewards.claimable })}
                     </Link>
                   </Button>
                 </div>

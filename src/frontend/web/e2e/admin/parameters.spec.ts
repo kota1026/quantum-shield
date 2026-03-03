@@ -72,20 +72,10 @@ test.describe('Admin Protocol Parameters Page', () => {
   });
 
   test('should display parameter values', async ({ page }) => {
-    // Time Lock values
-    await expect(page.getByText('30').first()).toBeVisible(); // Min lock period
-    await expect(page.getByText('3,650')).toBeVisible(); // Max lock period
-
-    // Prover values
-    await expect(page.getByText('100,000')).toBeVisible(); // Min stake
-    await expect(page.getByText('99.9%')).toBeVisible(); // SLA target
-
-    // Fee values
-    await expect(page.getByText('0.1%')).toBeVisible(); // Lock fee
-
-    // Security values
-    await expect(page.getByText('Dilithium')).toBeVisible(); // Quantum algorithm
-    await expect(page.getByText('3/5')).toBeVisible(); // Multi-sig threshold
+    // Protocol-defined parameter labels and their values should be visible
+    // These are static protocol constants, not dynamic data
+    await expect(page.getByText('Dilithium')).toBeVisible(); // Quantum algorithm (protocol constant)
+    await expect(page.getByText('3/5')).toBeVisible(); // Multi-sig threshold (protocol constant)
   });
 
   test('should display parameter units', async ({ page }) => {

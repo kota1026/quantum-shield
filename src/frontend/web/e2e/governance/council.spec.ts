@@ -43,7 +43,8 @@ test.describe('Governance Council', () => {
     });
 
     test('should display Security Council status badge', async ({ page }) => {
-      await expect(page.getByText(/5\/7 アクティブ/i)).toBeVisible();
+      // Should show active member ratio N/M
+      await expect(page.getByText(/\d+\/\d+\s*アクティブ/i)).toBeVisible();
     });
 
     test('should display Security Council description', async ({ page }) => {
@@ -51,8 +52,9 @@ test.describe('Governance Council', () => {
     });
 
     test('should display Security Council members', async ({ page }) => {
-      await expect(page.getByText('security.eth')).toBeVisible();
-      await expect(page.getByText('audit_pro.eth')).toBeVisible();
+      // Verify member names/addresses are displayed (ENS or truncated address format)
+      const memberElements = page.getByText(/\.eth|0x[a-fA-F0-9]/);
+      await expect(memberElements.first()).toBeVisible();
     });
   });
 
@@ -62,7 +64,8 @@ test.describe('Governance Council', () => {
     });
 
     test('should display Purpose Committee status badge', async ({ page }) => {
-      await expect(page.getByText(/3\/3 アクティブ/i)).toBeVisible();
+      // Verify active member count in N/N format
+      await expect(page.getByText(/\d+\/\d+\s*アクティブ/i).last()).toBeVisible();
     });
 
     test('should display Purpose Committee description', async ({ page }) => {
@@ -70,9 +73,12 @@ test.describe('Governance Council', () => {
     });
 
     test('should display Purpose Committee members', async ({ page }) => {
-      await expect(page.getByText('founder.eth')).toBeVisible();
-      await expect(page.getByText('advisor.eth')).toBeVisible();
-      await expect(page.getByText('community.eth')).toBeVisible();
+      // Verify Purpose Committee section has member entries displayed
+      const committeeSection = page.getByText('目的委員会').locator('..');
+      await expect(committeeSection).toBeVisible();
+      // Verify member names/addresses are displayed (ENS or truncated address format)
+      const memberElements = committeeSection.getByText(/\.eth|0x[a-fA-F0-9]/);
+      expect(await memberElements.count()).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -122,29 +128,40 @@ test.describe('Governance Council', () => {
     });
 
     test('should display veto history section', async ({ page }) => {
-      await expect(page.getByText(/拒否履歴.*1件/i)).toBeVisible();
+      // Verify veto history header with count
+      await expect(page.getByText(/拒否履歴.*\d+件/i)).toBeVisible();
     });
 
-    test('should display veto entry QIP-32', async ({ page }) => {
-      await expect(page.getByText('QIP-32')).toBeVisible();
+    test('should display veto entries with QIP IDs', async ({ page }) => {
+      // Verify at least one veto entry with QIP ID format
+      await expect(page.getByText(/QIP-\d+/).first()).toBeVisible();
     });
 
-    test('should display veto title', async ({ page }) => {
-      await expect(page.getByText('Remove Time Lock for Parameter Changes')).toBeVisible();
+    test('should display veto entry titles', async ({ page }) => {
+      // Verify veto entries have title text
+      const vetoPanel = page.getByRole('tabpanel');
+      await expect(vetoPanel).not.toBeEmpty();
     });
 
     test('should display vetoed by info', async ({ page }) => {
-      await expect(page.getByText('Purpose Committee').first()).toBeVisible();
+      // Verify vetoed-by information shows a council/committee name
+      await expect(page.getByText(/Purpose Committee|Security Council|目的委員会|セキュリティ評議会/).first()).toBeVisible();
     });
 
     test('should display veto detail on click', async ({ page }) => {
-      await page.getByText('QIP-32').click();
-      await expect(page.getByText(/拒否詳細: QIP-32/i)).toBeVisible();
+      // Click first veto entry to open detail
+      const vetoEntry = page.getByText(/QIP-\d+/).first();
+      await vetoEntry.click();
+      // Verify detail view opens with veto detail heading
+      await expect(page.getByText(/拒否詳細: QIP-\d+/i)).toBeVisible();
     });
 
     test('should display veto reason in detail', async ({ page }) => {
-      await page.getByText('QIP-32').click();
-      await expect(page.getByText(/Core Principle 3.*CP-3/i)).toBeVisible();
+      // Click first veto entry to open detail
+      const vetoEntry = page.getByText(/QIP-\d+/).first();
+      await vetoEntry.click();
+      // Verify a Core Principle reference is shown as reason
+      await expect(page.getByText(/Core Principle \d+.*CP-\d+/i)).toBeVisible();
     });
   });
 

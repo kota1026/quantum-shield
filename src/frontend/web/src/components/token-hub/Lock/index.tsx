@@ -33,8 +33,8 @@ const DURATION_OPTIONS = [
 // Quick amount percentages
 const QUICK_AMOUNTS = [25, 50, 75, 100];
 
-// Fallback balance (used when API is unavailable)
-const FALLBACK_BALANCE = 125000;
+// Default balance (used when API is unavailable)
+const DEFAULT_BALANCE = 125000;
 
 // Step type
 type Step = 1 | 2 | 3;
@@ -45,8 +45,8 @@ export function TokenHubLock() {
   const router = useRouter();
 
   // Fetch balance from API with fallback
-  const { data: balanceApi } = useBalance();
-  const balance = balanceApi ?? FALLBACK_BALANCE;
+  const { data: balanceApi, isLoading, error } = useBalance();
+  const balance = balanceApi ?? DEFAULT_BALANCE;
 
   // Form state
   const [amount, setAmount] = useState<string>('');
@@ -118,6 +118,34 @@ export function TokenHubLock() {
     const numAmount = parseFloat(amount.replace(/,/g, '')) || 0;
     return numAmount > 0 && numAmount <= balance;
   }, [amount]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-8" aria-label={tCommon('loading.ariaLabel')}>
+        <div className="animate-pulse max-w-[700px] mx-auto px-4 sm:px-6 pt-6 space-y-6">
+          <div className="h-10 w-48 rounded bg-surface-secondary" />
+          <div className="flex justify-center gap-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-8 w-20 rounded-full bg-surface-secondary" />
+            ))}
+          </div>
+          <div className="h-[500px] rounded-lg bg-surface-secondary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-danger" aria-hidden="true" />
+          <p className="mt-4 text-lg font-semibold text-foreground">{tCommon('error.loadFailed')}</p>
+          <p className="mt-2 text-sm text-foreground-secondary">{tCommon('error.tryAgain')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-8">

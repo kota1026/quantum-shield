@@ -9,15 +9,14 @@ import { TimeFilter, TimePeriod } from './TimeFilter';
 import { TVLChart } from './TVLChart';
 import { AssetBreakdown, Asset } from './AssetBreakdown';
 
-// Demo data - In production, this would come from API
-const FALLBACK_STATS = {
+const DEFAULT_STATS = {
   totalTVL: { value: '$124.5', unit: 'M', change: { value: '12.4% vs last month', isPositive: true } },
   yourTVL: { value: '$8.2', unit: 'M', change: { value: '5.3% vs last month', isPositive: true } },
   marketShare: { value: '6.6', unit: '%', change: { value: '0.4% vs last month', isPositive: true } },
   depositors: { value: '1,847', change: { value: '124 this month', isPositive: true } },
 };
 
-const FALLBACK_ASSETS: Asset[] = [
+const DEFAULT_ASSETS: Asset[] = [
   { id: '1', symbol: 'ETH', name: 'Ethereum', value: '$78.5M', percentage: 63.1, iconType: 'eth' },
   { id: '2', symbol: 'WBTC', name: 'WBTC', value: '$32.4M', percentage: 26.0, iconType: 'btc' },
   { id: '3', symbol: 'USDC', name: 'USDC', value: '$13.6M', percentage: 10.9, iconType: 'usdc' },
@@ -55,33 +54,33 @@ export function TVLDashboard() {
           >
             <EnterpriseStatCard
               label={t('stats.totalTVL.label')}
-              value={FALLBACK_STATS.totalTVL.value}
-              unit={FALLBACK_STATS.totalTVL.unit}
+              value={DEFAULT_STATS.totalTVL.value}
+              unit={DEFAULT_STATS.totalTVL.unit}
               tooltip={t('stats.totalTVL.tooltip')}
-              change={FALLBACK_STATS.totalTVL.change}
+              change={DEFAULT_STATS.totalTVL.change}
               icon="wallet"
             />
             <EnterpriseStatCard
               label={t('stats.yourTVL.label')}
-              value={FALLBACK_STATS.yourTVL.value}
-              unit={FALLBACK_STATS.yourTVL.unit}
+              value={DEFAULT_STATS.yourTVL.value}
+              unit={DEFAULT_STATS.yourTVL.unit}
               tooltip={t('stats.yourTVL.tooltip')}
-              change={FALLBACK_STATS.yourTVL.change}
+              change={DEFAULT_STATS.yourTVL.change}
               icon="wallet"
             />
             <EnterpriseStatCard
               label={t('stats.marketShare.label')}
-              value={FALLBACK_STATS.marketShare.value}
-              unit={FALLBACK_STATS.marketShare.unit}
+              value={DEFAULT_STATS.marketShare.value}
+              unit={DEFAULT_STATS.marketShare.unit}
               tooltip={t('stats.marketShare.tooltip')}
-              change={FALLBACK_STATS.marketShare.change}
+              change={DEFAULT_STATS.marketShare.change}
               icon="chart"
             />
             <EnterpriseStatCard
               label={t('stats.depositors.label')}
-              value={FALLBACK_STATS.depositors.value}
+              value={DEFAULT_STATS.depositors.value}
               tooltip={t('stats.depositors.tooltip')}
-              change={FALLBACK_STATS.depositors.change}
+              change={DEFAULT_STATS.depositors.change}
               icon="users"
             />
           </section>
@@ -90,7 +89,7 @@ export function TVLDashboard() {
           <TVLChart className="mb-8" />
 
           {/* Asset Breakdown */}
-          <AssetBreakdown assets={FALLBACK_ASSETS} />
+          <AssetBreakdown assets={DEFAULT_ASSETS} />
         </main>
       </div>
     </div>

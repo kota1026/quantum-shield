@@ -16,7 +16,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_MAINTENANCE = [
+const DEFAULT_MAINTENANCE = [
   { id: 1, title: 'Database Optimization', description: 'Routine database maintenance and index optimization', status: 'scheduled', scheduledFor: '2024-01-30 02:00', duration: '2 hours' },
   { id: 2, title: 'Security Patch Deployment', description: 'Apply latest security patches to all services', status: 'scheduled', scheduledFor: '2024-02-01 03:00', duration: '1 hour' },
   { id: 3, title: 'API Server Upgrade', description: 'Upgrade API server to v2.5.0', status: 'completed', scheduledFor: '2024-01-15 02:00', duration: '3 hours' },
@@ -40,8 +40,8 @@ export function MaintenanceManagement() {
   const t = useTranslations('qsAdmin.system');
   const tCommon = useTranslations('qsAdmin.common');
 
-  const scheduledMaintenance = FALLBACK_MAINTENANCE.filter(m => m.status === 'scheduled');
-  const completedMaintenance = FALLBACK_MAINTENANCE.filter(m => m.status === 'completed');
+  const scheduledMaintenance = DEFAULT_MAINTENANCE.filter(m => m.status === 'scheduled');
+  const completedMaintenance = DEFAULT_MAINTENANCE.filter(m => m.status === 'completed');
 
   return (
     <div className="space-y-6">

@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_STATS = {
+const DEFAULT_STATS = {
   totalRevenue: '125,000 QS',
   lockFees: '85,000 QS',
   unlockFees: '35,000 QS',
@@ -106,10 +106,10 @@ export function RevenueAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.totalRevenue')} value={FALLBACK_STATS.totalRevenue} icon={DollarSign} trend={{ value: 15.2, isPositive: true }} />
-        <StatCard title="Lock Fees" value={FALLBACK_STATS.lockFees} icon={Coins} trend={{ value: 12.8, isPositive: true }} />
-        <StatCard title="Unlock Fees" value={FALLBACK_STATS.unlockFees} icon={Coins} trend={{ value: 8.5, isPositive: true }} />
-        <StatCard title="Emergency Fees" value={FALLBACK_STATS.emergencyFees} icon={Coins} trend={{ value: 5.1, isPositive: true }} />
+        <StatCard title={t('stats.totalRevenue')} value={DEFAULT_STATS.totalRevenue} icon={DollarSign} trend={{ value: 15.2, isPositive: true }} />
+        <StatCard title="Lock Fees" value={DEFAULT_STATS.lockFees} icon={Coins} trend={{ value: 12.8, isPositive: true }} />
+        <StatCard title="Unlock Fees" value={DEFAULT_STATS.unlockFees} icon={Coins} trend={{ value: 8.5, isPositive: true }} />
+        <StatCard title="Emergency Fees" value={DEFAULT_STATS.emergencyFees} icon={Coins} trend={{ value: 5.1, isPositive: true }} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

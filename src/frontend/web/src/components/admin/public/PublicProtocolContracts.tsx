@@ -52,7 +52,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockContracts = [
+const SAMPLE_CONTRACTS = [
   {
     id: 'core-vault',
     name: 'QuantumVault',
@@ -133,7 +133,7 @@ const mockContracts = [
   },
 ];
 
-const mockUpgrades = [
+const SAMPLE_UPGRADES = [
   {
     id: 'upgrade-001',
     contract: 'QuantumVault',
@@ -169,11 +169,11 @@ const mockUpgrades = [
 export function PublicProtocolContracts() {
   const t = useTranslations('admin.protocolContracts');
   const [activeTab, setActiveTab] = useState<'contracts' | 'upgrades' | 'audits'>('contracts');
-  const [selectedContract, setSelectedContract] = useState<typeof mockContracts[0] | null>(mockContracts[0]);
+  const [selectedContract, setSelectedContract] = useState<typeof SAMPLE_CONTRACTS[0] | null>(SAMPLE_CONTRACTS[0]);
 
   const tabs = [
-    { key: 'contracts', label: t('tabs.contracts'), count: mockContracts.length },
-    { key: 'upgrades', label: t('tabs.upgrades'), count: mockUpgrades.length },
+    { key: 'contracts', label: t('tabs.contracts'), count: SAMPLE_CONTRACTS.length },
+    { key: 'upgrades', label: t('tabs.upgrades'), count: SAMPLE_UPGRADES.length },
     { key: 'audits', label: t('tabs.audits') },
   ];
 
@@ -225,12 +225,12 @@ export function PublicProtocolContracts() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalContracts')}
-              value={String(mockContracts.length)}
+              value={String(SAMPLE_CONTRACTS.length)}
               icon={<FileCode className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeContracts')}
-              value={String(mockContracts.filter((c) => c.status === 'active').length)}
+              value={String(SAMPLE_CONTRACTS.filter((c) => c.status === 'active').length)}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
@@ -240,7 +240,7 @@ export function PublicProtocolContracts() {
             />
             <StatCard
               label={t('stats.pendingUpgrades')}
-              value={String(mockUpgrades.filter((u) => u.status === 'pending').length)}
+              value={String(SAMPLE_UPGRADES.filter((u) => u.status === 'pending').length)}
               icon={<Clock className="h-5 w-5" />}
               status="warning"
             />
@@ -285,7 +285,7 @@ export function PublicProtocolContracts() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {mockContracts.map((contract) => (
+                      {SAMPLE_CONTRACTS.map((contract) => (
                         <div
                           key={contract.id}
                           onClick={() => setSelectedContract(contract)}
@@ -458,7 +458,7 @@ export function PublicProtocolContracts() {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockUpgrades.map((upgrade) => (
+                      {SAMPLE_UPGRADES.map((upgrade) => (
                         <tr
                           key={upgrade.id}
                           className="border-b border-surface-tertiary/50 hover:bg-background-secondary/50"

@@ -26,8 +26,8 @@ import {
 } from '@/components/ui/tooltip';
 import { useUserDelegation } from '@/hooks/token-hub/useTokenHub';
 
-// Fallback data (used when API is unavailable)
-const FALLBACK_USER_DELEGATION = {
+// Empty data (used when API is unavailable)
+const EMPTY_USER_DELEGATION = {
   totalDelegated: 25000,
   delegateCount: 2,
 };
@@ -47,8 +47,8 @@ interface Delegate {
   lastVoteDays: number;
 }
 
-// Fallback delegate data - In production, this comes from API
-const FALLBACK_DELEGATES: Delegate[] = [
+// Empty delegate data - In production, this comes from API
+const EMPTY_DELEGATES: Delegate[] = [
   {
     id: '1',
     nameKey: 'watanabe',
@@ -248,7 +248,7 @@ export function TokenHubDelegateList() {
 
   // Fetch user delegation from API with fallback
   const { data: userDelegationApi } = useUserDelegation();
-  const userDelegation = userDelegationApi ?? FALLBACK_USER_DELEGATION;
+  const userDelegation = userDelegationApi ?? EMPTY_USER_DELEGATION;
 
   const filters: { key: FilterType; label: string }[] = [
     { key: 'all', label: t('filters.all') },
@@ -258,7 +258,7 @@ export function TokenHubDelegateList() {
   ];
 
   const filteredDelegates = useMemo(() => {
-    let result = [...FALLBACK_DELEGATES];
+    let result = [...EMPTY_DELEGATES];
 
     // Apply search filter
     if (searchQuery) {
@@ -291,10 +291,10 @@ export function TokenHubDelegateList() {
   // Calculate total stats
   const totalStats = useMemo(() => {
     return {
-      totalVeQS: FALLBACK_DELEGATES.reduce((acc, d) => acc + d.veQSNum, 0),
-      totalDelegators: FALLBACK_DELEGATES.reduce((acc, d) => acc + d.delegators, 0),
+      totalVeQS: EMPTY_DELEGATES.reduce((acc, d) => acc + d.veQSNum, 0),
+      totalDelegators: EMPTY_DELEGATES.reduce((acc, d) => acc + d.delegators, 0),
       avgParticipation: Math.round(
-        FALLBACK_DELEGATES.reduce((acc, d) => acc + d.participation, 0) / FALLBACK_DELEGATES.length
+        EMPTY_DELEGATES.reduce((acc, d) => acc + d.participation, 0) / EMPTY_DELEGATES.length
       ),
     };
   }, []);

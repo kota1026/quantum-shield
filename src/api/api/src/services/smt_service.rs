@@ -246,7 +246,7 @@ impl SparseMerkleTree {
         let key = Self::lock_id_to_key(&proof.leaf.lock_id);
 
         // Walk up the tree
-        for (i, (sibling_hex, is_left)) in proof.siblings.iter().enumerate() {
+        for (i, (sibling_hex, _is_left)) in proof.siblings.iter().enumerate() {
             let depth = SMT_DEPTH - 1 - i;
 
             // Parse sibling hash

@@ -37,8 +37,8 @@ const COLORS = {
   gold: '#C9A962',
 };
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: ChallengeStats = {
+// Default data - Used when API is unavailable
+const DEFAULT_STATS: ChallengeStats = {
   totalChallenges: 0,
   activeChallenges: 0,
   successRate: '-',
@@ -199,7 +199,7 @@ export function ChallengeTransactions() {
   const transactionsQuery = useChallengeTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data ?? DEFAULT_STATS;
   const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [

@@ -521,6 +521,13 @@
         "privacy": "Privacy Policy",
         "security": "Security",
         "disclaimer": "This is not investment advice. Investment in crypto assets carries risk. Please make investment decisions at your own responsibility."
+      },
+      "error": {
+        "loadFailed": "Failed to load data",
+        "tryAgain": "Please try again later"
+      },
+      "loading": {
+        "ariaLabel": "Loading content"
       }
     },
     "lock": {

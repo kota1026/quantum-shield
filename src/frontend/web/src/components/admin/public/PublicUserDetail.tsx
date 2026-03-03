@@ -31,7 +31,7 @@ interface PublicUserDetailProps {
 }
 
 // Mock data
-const mockUserDetail = {
+const SAMPLE_USER_DETAIL = {
   id: 'user-001',
   address: '0x7a3f4b8c9d2e1f0a5b6c7d8e9f0a1b2c3d4e5f6g',
   ensName: 'tanaka.eth',
@@ -46,7 +46,7 @@ const mockUserDetail = {
   keyGeneratedAt: '2025-10-15 14:32:00',
 };
 
-const mockLockHistory = [
+const SAMPLE_LOCK_HISTORY = [
   {
     id: 'lock-001',
     amount: '5.0 ETH',
@@ -85,7 +85,7 @@ const mockLockHistory = [
   },
 ];
 
-const mockActivityLog = [
+const SAMPLE_ACTIVITY_LOG = [
   { type: 'lock', amount: '5.0 ETH', timestamp: '2026-01-10 09:15', txHash: '0x1234...5678' },
   { type: 'signature', prover: 'Alpha Node Labs', timestamp: '2026-01-10 09:16', txHash: '0x2345...6789' },
   { type: 'lock', amount: '4.5 ETH', timestamp: '2025-12-20 14:30', txHash: '0x3456...7890' },
@@ -98,7 +98,7 @@ export function PublicUserDetail({ userId }: PublicUserDetailProps) {
   const [activeTab, setActiveTab] = useState<'locks' | 'activity' | 'signatures'>('locks');
 
   const tabs = [
-    { key: 'locks', label: t('tabs.locks'), count: mockLockHistory.length },
+    { key: 'locks', label: t('tabs.locks'), count: SAMPLE_LOCK_HISTORY.length },
     { key: 'activity', label: t('tabs.activity') },
     { key: 'signatures', label: t('tabs.signatures') },
   ];
@@ -165,7 +165,7 @@ export function PublicUserDetail({ userId }: PublicUserDetailProps) {
                 Users
               </Link>
               <ChevronRight className="h-4 w-4" />
-              <span className="text-foreground">{mockUserDetail.ensName || mockUserDetail.address.slice(0, 10)}...</span>
+              <span className="text-foreground">{SAMPLE_USER_DETAIL.ensName || SAMPLE_USER_DETAIL.address.slice(0, 10)}...</span>
             </div>
             <div className="mt-4 flex items-center gap-4">
               <Link
@@ -176,20 +176,20 @@ export function PublicUserDetail({ userId }: PublicUserDetailProps) {
               </Link>
               <div>
                 <h1 className="text-3xl font-bold text-foreground">
-                  {mockUserDetail.ensName || t('title')}
+                  {SAMPLE_USER_DETAIL.ensName || t('title')}
                 </h1>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="font-mono text-sm text-foreground-secondary">
-                    {mockUserDetail.address}
+                    {SAMPLE_USER_DETAIL.address}
                   </span>
                   <button
-                    onClick={() => copyToClipboard(mockUserDetail.address)}
+                    onClick={() => copyToClipboard(SAMPLE_USER_DETAIL.address)}
                     className="text-foreground-tertiary hover:text-gold"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
                   <a
-                    href={`https://etherscan.io/address/${mockUserDetail.address}`}
+                    href={`https://etherscan.io/address/${SAMPLE_USER_DETAIL.address}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-foreground-tertiary hover:text-gold"
@@ -217,13 +217,13 @@ export function PublicUserDetail({ userId }: PublicUserDetailProps) {
 
                   <div>
                     <div className="text-xs text-foreground-tertiary">{t('userInfo.status')}</div>
-                    <div className="mt-1">{getStatusBadge(mockUserDetail.status)}</div>
+                    <div className="mt-1">{getStatusBadge(SAMPLE_USER_DETAIL.status)}</div>
                   </div>
 
                   <div>
                     <div className="text-xs text-foreground-tertiary">{t('userInfo.totalLocked')}</div>
-                    <div className="font-mono text-xl font-bold text-gold">{mockUserDetail.totalLocked}</div>
-                    <div className="text-xs text-foreground-secondary">{mockUserDetail.totalLockedUsd}</div>
+                    <div className="font-mono text-xl font-bold text-gold">{SAMPLE_USER_DETAIL.totalLocked}</div>
+                    <div className="text-xs text-foreground-secondary">{SAMPLE_USER_DETAIL.totalLockedUsd}</div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -231,32 +231,32 @@ export function PublicUserDetail({ userId }: PublicUserDetailProps) {
                       <div className="text-xs text-foreground-tertiary">{t('userInfo.activeLocks')}</div>
                       <div className="flex items-center gap-2">
                         <Lock className="h-4 w-4 text-success" />
-                        <span className="font-medium">{mockUserDetail.activeLocks}</span>
+                        <span className="font-medium">{SAMPLE_USER_DETAIL.activeLocks}</span>
                       </div>
                     </div>
                     <div>
                       <div className="text-xs text-foreground-tertiary">{t('userInfo.completedLocks')}</div>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-foreground-tertiary" />
-                        <span className="font-medium">{mockUserDetail.completedLocks}</span>
+                        <span className="font-medium">{SAMPLE_USER_DETAIL.completedLocks}</span>
                       </div>
                     </div>
                   </div>
 
                   <div>
                     <div className="text-xs text-foreground-tertiary">{t('userInfo.registeredAt')}</div>
-                    <div className="text-sm">{mockUserDetail.registeredAt}</div>
+                    <div className="text-sm">{SAMPLE_USER_DETAIL.registeredAt}</div>
                   </div>
 
                   <div>
                     <div className="text-xs text-foreground-tertiary">{t('userInfo.lastActivity')}</div>
-                    <div className="text-sm">{mockUserDetail.lastActivity}</div>
+                    <div className="text-sm">{SAMPLE_USER_DETAIL.lastActivity}</div>
                   </div>
 
                   <div className="border-t border-surface-tertiary pt-4">
                     <div className="text-xs text-foreground-tertiary">{t('userInfo.dilithiumKey')}</div>
                     <div className="mt-1 flex items-center gap-2">
-                      {mockUserDetail.dilithiumKeyGenerated ? (
+                      {SAMPLE_USER_DETAIL.dilithiumKeyGenerated ? (
                         <>
                           <CheckCircle className="h-4 w-4 text-success" />
                           <span className="text-sm text-success">{t('userInfo.keyGenerated')}</span>
@@ -268,14 +268,14 @@ export function PublicUserDetail({ userId }: PublicUserDetailProps) {
                         </>
                       )}
                     </div>
-                    {mockUserDetail.dilithiumKeyGenerated && (
+                    {SAMPLE_USER_DETAIL.dilithiumKeyGenerated && (
                       <div className="mt-1 text-xs text-foreground-tertiary">
-                        {mockUserDetail.keyGeneratedAt}
+                        {SAMPLE_USER_DETAIL.keyGeneratedAt}
                       </div>
                     )}
                   </div>
 
-                  {mockUserDetail.status === 'flagged' && (
+                  {SAMPLE_USER_DETAIL.status === 'flagged' && (
                     <div className="rounded-lg border border-danger/30 bg-danger/5 p-3">
                       <div className="flex items-center gap-2 text-danger">
                         <AlertTriangle className="h-4 w-4" />
@@ -323,7 +323,7 @@ export function PublicUserDetail({ userId }: PublicUserDetailProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {mockLockHistory.map((lock) => (
+                      {SAMPLE_LOCK_HISTORY.map((lock) => (
                         <div
                           key={lock.id}
                           className="rounded-lg border border-surface-tertiary p-4"
@@ -381,7 +381,7 @@ export function PublicUserDetail({ userId }: PublicUserDetailProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {mockActivityLog.map((activity, index) => (
+                      {SAMPLE_ACTIVITY_LOG.map((activity, index) => (
                         <div
                           key={index}
                           className="flex items-start gap-4 border-b border-surface-tertiary/50 pb-4 last:border-0"

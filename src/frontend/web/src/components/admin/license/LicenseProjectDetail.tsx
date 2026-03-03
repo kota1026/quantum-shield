@@ -28,7 +28,7 @@ interface LicenseProjectDetailProps {
 }
 
 // Mock data
-const mockProject = {
+const SAMPLE_PROJECT = {
   id: 'proj-001',
   name: 'GFC初期導入プロジェクト',
   companyId: 'company-001',
@@ -125,7 +125,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                 {t('breadcrumb.projects')}
               </Link>
               <ChevronRight className="h-4 w-4" />
-              <span className="text-foreground">{mockProject.name}</span>
+              <span className="text-foreground">{SAMPLE_PROJECT.name}</span>
             </div>
             <div className="mt-4 flex items-start justify-between">
               <div className="flex items-center gap-4">
@@ -133,16 +133,16 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                   <FolderKanban className="h-7 w-7 text-gold" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">{mockProject.name}</h1>
+                  <h1 className="text-2xl font-bold text-foreground">{SAMPLE_PROJECT.name}</h1>
                   <div className="mt-1 flex items-center gap-3">
                     <Link
-                      href={`/admin/license/companies/${mockProject.companyId}`}
+                      href={`/admin/license/companies/${SAMPLE_PROJECT.companyId}`}
                       className="text-sm text-gold hover:underline"
                     >
-                      {mockProject.companyName}
+                      {SAMPLE_PROJECT.companyName}
                     </Link>
-                    <Badge variant="gold">{getPhaseLabel(mockProject.phase)}</Badge>
-                    {getStatusBadge(mockProject.status)}
+                    <Badge variant="gold">{getPhaseLabel(SAMPLE_PROJECT.phase)}</Badge>
+                    {getStatusBadge(SAMPLE_PROJECT.status)}
                   </div>
                 </div>
               </div>
@@ -159,12 +159,12 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('summary.progress')}</div>
                   <div className="mt-2 flex items-center gap-3">
-                    <span className="text-3xl font-bold">{mockProject.progress}%</span>
+                    <span className="text-3xl font-bold">{SAMPLE_PROJECT.progress}%</span>
                     <div className="flex-1">
                       <div className="h-3 rounded-full bg-background-secondary">
                         <div
-                          className={cn('h-3 rounded-full', getProgressColor(mockProject.progress))}
-                          style={{ width: `${mockProject.progress}%` }}
+                          className={cn('h-3 rounded-full', getProgressColor(SAMPLE_PROJECT.progress))}
+                          style={{ width: `${SAMPLE_PROJECT.progress}%` }}
                         />
                       </div>
                     </div>
@@ -174,14 +174,14 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                   <div className="text-xs text-foreground-tertiary">{t('summary.timeline')}</div>
                   <div className="mt-2 flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-foreground-tertiary" />
-                    <span className="text-sm">{mockProject.startDate} → {mockProject.targetDate}</span>
+                    <span className="text-sm">{SAMPLE_PROJECT.startDate} → {SAMPLE_PROJECT.targetDate}</span>
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-foreground-tertiary">{t('summary.team')}</div>
                   <div className="mt-2 flex items-center gap-2">
                     <Users className="h-4 w-4 text-foreground-tertiary" />
-                    <span className="text-sm">{mockProject.teamMembers.length} {t('summary.members')}</span>
+                    <span className="text-sm">{SAMPLE_PROJECT.teamMembers.length} {t('summary.members')}</span>
                   </div>
                 </div>
                 <div>
@@ -189,7 +189,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                   <div className="mt-2 flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-success" />
                     <span className="text-sm">
-                      {mockProject.tasks.filter(t => t.status === 'completed').length} / {mockProject.tasks.length}
+                      {SAMPLE_PROJECT.tasks.filter(t => t.status === 'completed').length} / {SAMPLE_PROJECT.tasks.length}
                     </span>
                   </div>
                 </div>
@@ -224,7 +224,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                     <CardTitle className="text-base">{t('overview.description')}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-foreground-secondary">{mockProject.description}</p>
+                    <p className="text-sm text-foreground-secondary">{SAMPLE_PROJECT.description}</p>
                   </CardContent>
                 </Card>
 
@@ -237,7 +237,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {mockProject.milestones.filter(m => m.status !== 'completed').slice(0, 3).map((milestone) => (
+                      {SAMPLE_PROJECT.milestones.filter(m => m.status !== 'completed').slice(0, 3).map((milestone) => (
                         <div key={milestone.id} className="flex items-center justify-between rounded-lg border border-surface-tertiary p-3">
                           <div className="flex items-center gap-3">
                             <div className={cn(
@@ -264,7 +264,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {mockProject.teamMembers.map((member, index) => (
+                      {SAMPLE_PROJECT.teamMembers.map((member, index) => (
                         <div key={index} className="flex items-center gap-3">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/10 text-xs font-medium text-gold">
                             {member.avatar}
@@ -285,7 +285,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {mockProject.recentActivity.slice(0, 4).map((activity, index) => (
+                      {SAMPLE_PROJECT.recentActivity.slice(0, 4).map((activity, index) => (
                         <div key={index} className="flex gap-3">
                           <div className="mt-1">
                             <Circle className="h-2 w-2 fill-gold text-gold" />
@@ -315,7 +315,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockProject.milestones.map((milestone, index) => (
+                  {SAMPLE_PROJECT.milestones.map((milestone, index) => (
                     <div key={milestone.id} className="flex items-center gap-4">
                       <div className="flex flex-col items-center">
                         <div className={cn(
@@ -330,7 +330,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                             <span className="text-xs font-medium">{index + 1}</span>
                           )}
                         </div>
-                        {index < mockProject.milestones.length - 1 && (
+                        {index < SAMPLE_PROJECT.milestones.length - 1 && (
                           <div className={cn(
                             'h-8 w-0.5',
                             milestone.status === 'completed' ? 'bg-success' : 'bg-surface-tertiary'
@@ -373,7 +373,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockProject.tasks.map((task) => (
+                      {SAMPLE_PROJECT.tasks.map((task) => (
                         <tr key={task.id} className="border-b border-surface-tertiary/50">
                           <td className="py-3">
                             <div className="flex items-center gap-3">
@@ -404,7 +404,7 @@ export function LicenseProjectDetail({ projectId }: LicenseProjectDetailProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockProject.recentActivity.map((activity, index) => (
+                  {SAMPLE_PROJECT.recentActivity.map((activity, index) => (
                     <div key={index} className="flex gap-4 rounded-lg border border-surface-tertiary p-4">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/10">
                         {activity.type === 'task_completed' && <CheckCircle className="h-4 w-4 text-success" />}

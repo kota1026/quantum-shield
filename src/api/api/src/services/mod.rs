@@ -68,18 +68,14 @@ use crate::{
 pub use redis_client::RedisClient;
 pub use rabbitmq_client::RabbitMQClient;
 pub use hsm_client::HsmClient;
-pub use vrf_service::{VRFService, VRFError};
-pub use sphincs_service::{SphincsService, SphincsError, SPHINCS_PUBLIC_KEY_BYTES, SPHINCS_SIGNATURE_BYTES};
+pub use vrf_service::VRFService;
+pub use sphincs_service::{SphincsService, SPHINCS_PUBLIC_KEY_BYTES};
 pub use auth_service::AuthService;
-pub use l3_client::{L3Client, L3Config, L3HealthStatus, L3Transaction, L3TxReceipt, L3TxStatus, L3TxType};
-pub use l1_client::{L1Client, L1Config, L1Error, L1Monitor, TxStatus, SEPOLIA_CHAIN_ID};
-pub use admin_l3_ops::{AdminL3OpsService, TreasuryTransferRequest, TreasuryTransferResult, ProverApprovalRequest, ProverApprovalResult, ProverApprovalAction};
-pub use bridge_verifier::{BridgeVerifierService, VerificationStatus, BridgeVerificationResult};
-pub use treasury_vault::{TreasuryVaultService, TreasuryBalance, TreasuryWithdrawRequest, TreasuryWithdrawResult, Withdrawal, WithdrawalStatus};
-pub use l3_l1_bridge::{L3L1BridgeService, E2EOperationStatus, E2EOperationResult, E2ETreasuryWithdrawRequest};
-pub use smt_service::{SmtService, SmtProof, SmtLeaf};
-pub use l1_vault::{L1VaultService, L1VaultLock, L1VaultUnlockRequest};
-pub use slashing::{SlashingService, SlashingResult};
+pub use l3_client::{L3Client, L3Config};
+pub use l1_client::{L1Client, L1Config, SEPOLIA_CHAIN_ID};
+pub use smt_service::SmtService;
+pub use l1_vault::L1VaultService;
+pub use slashing::SlashingService;
 pub use l1_prover_registry::L1ProverRegistryService;
 pub use l3_contracts::{L3Contracts, L3ContractAddresses};
 pub use auto_claim::AutoClaimService;
@@ -1473,7 +1469,7 @@ impl AppState {
         .await
         .map_err(|e| ApiError::Internal(format!("Database error: {}", e)))?;
 
-        use bigdecimal::ToPrimitive;
+        
         use std::collections::HashMap;
 
         let mut delegate_map: HashMap<String, (bigdecimal::BigDecimal, u32)> = HashMap::new();

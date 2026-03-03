@@ -7,14 +7,21 @@ import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { EnterpriseStatCard } from '../Dashboard/EnterpriseStatCard';
 import { Button } from '@/components/ui/button';
 import { useApiKeys } from '@/hooks/enterprise';
-import { MOCK_API_KEYS, type MockApiKey } from '@/lib/api/enterprise/mock';
 
 export type KeyEnvironment = 'production' | 'test';
 
-export type ApiKey = MockApiKey;
-
-// Fallback data for when API is unavailable
-const FALLBACK_API_KEYS = MOCK_API_KEYS;
+export interface ApiKey {
+  id: string;
+  name: string;
+  environment: KeyEnvironment;
+  maskedKey: string;
+  isActive: boolean;
+  createdAt: string;
+  expiresAt?: string;
+  revokedAt?: string;
+  callsToday: number;
+  createdBy: string;
+}
 
 interface ApiKeyListProps {
   className?: string;
@@ -36,7 +43,7 @@ export function ApiKeyList({ className }: ApiKeyListProps) {
     revokedAt: k.status === 'revoked' ? k.last_used : undefined,
     callsToday: 0,
     createdBy: '',
-  })) ?? FALLBACK_API_KEYS;
+  })) ?? [];
 
   const stats = {
     total: apiKeys.length,

@@ -72,7 +72,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockRiskAlerts = [
+const SAMPLE_RISK_ALERTS = [
   {
     id: 'risk-001',
     userId: 'USR-12350',
@@ -135,7 +135,7 @@ const mockRiskAlerts = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   totalAlerts: 156,
   criticalAlerts: 12,
   highAlerts: 34,
@@ -147,14 +147,14 @@ export function SaasUserRisks() {
   const t = useTranslations('admin.saasUserRisks');
   const [activeTab, setActiveTab] = useState<'all' | 'critical' | 'high' | 'medium' | 'resolved'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAlert, setSelectedAlert] = useState<typeof mockRiskAlerts[0] | null>(mockRiskAlerts[0]);
+  const [selectedAlert, setSelectedAlert] = useState<typeof SAMPLE_RISK_ALERTS[0] | null>(SAMPLE_RISK_ALERTS[0]);
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockRiskAlerts.length },
-    { key: 'critical', label: t('tabs.critical'), count: mockRiskAlerts.filter(a => a.severity === 'critical').length },
-    { key: 'high', label: t('tabs.high'), count: mockRiskAlerts.filter(a => a.severity === 'high').length },
-    { key: 'medium', label: t('tabs.medium'), count: mockRiskAlerts.filter(a => a.severity === 'medium').length },
-    { key: 'resolved', label: t('tabs.resolved'), count: mockRiskAlerts.filter(a => a.status === 'resolved').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_RISK_ALERTS.length },
+    { key: 'critical', label: t('tabs.critical'), count: SAMPLE_RISK_ALERTS.filter(a => a.severity === 'critical').length },
+    { key: 'high', label: t('tabs.high'), count: SAMPLE_RISK_ALERTS.filter(a => a.severity === 'high').length },
+    { key: 'medium', label: t('tabs.medium'), count: SAMPLE_RISK_ALERTS.filter(a => a.severity === 'medium').length },
+    { key: 'resolved', label: t('tabs.resolved'), count: SAMPLE_RISK_ALERTS.filter(a => a.status === 'resolved').length },
   ];
 
   const getSeverityBadge = (severity: string) => {
@@ -191,7 +191,7 @@ export function SaasUserRisks() {
     return t(`riskTypes.${type}`);
   };
 
-  const filteredAlerts = mockRiskAlerts.filter((alert) => {
+  const filteredAlerts = SAMPLE_RISK_ALERTS.filter((alert) => {
     const matchesSearch =
       alert.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
       alert.userId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -233,33 +233,33 @@ export function SaasUserRisks() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalAlerts')}
-              value={String(mockMetrics.totalAlerts)}
+              value={String(DEFAULT_METRICS.totalAlerts)}
               trend={{ value: '+12%', direction: 'up' }}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.criticalAlerts')}
-              value={String(mockMetrics.criticalAlerts)}
+              value={String(DEFAULT_METRICS.criticalAlerts)}
               icon={<AlertOctagon className="h-5 w-5" />}
               status="danger"
             />
             <StatCard
               label={t('stats.highAlerts')}
-              value={String(mockMetrics.highAlerts)}
+              value={String(DEFAULT_METRICS.highAlerts)}
               icon={<Shield className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.openAlerts')}
-              value={String(mockMetrics.openAlerts)}
+              value={String(DEFAULT_METRICS.openAlerts)}
               subValue={t('stats.needsReview')}
               icon={<Eye className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.resolvedToday')}
-              value={String(mockMetrics.resolvedToday)}
+              value={String(DEFAULT_METRICS.resolvedToday)}
               icon={<CheckCircle className="h-5 w-5" />}
             />
           </div>

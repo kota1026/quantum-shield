@@ -6,7 +6,6 @@ import { Server, Globe, Shield, Copy, Eye, EyeOff, Plus, Trash2, RefreshCw } fro
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useEnvironments } from '@/hooks/enterprise';
-import { MOCK_ENVIRONMENTS as MOCK_ENVIRONMENTS_DATA } from '@/lib/api/enterprise/mock';
 
 interface Environment {
   id: string;
@@ -18,16 +17,6 @@ interface Environment {
   createdAt: string;
 }
 
-// Fallback data for when API is unavailable
-const FALLBACK_ENVIRONMENTS: Environment[] = MOCK_ENVIRONMENTS_DATA.map(e => ({
-  id: e.id,
-  name: e.name,
-  type: e.type as 'production' | 'staging' | 'test',
-  endpoint: e.endpoint,
-  apiKey: e.api_key,
-  status: e.status as 'active' | 'inactive',
-  createdAt: e.created_at,
-}));
 
 const ENV_COLORS = {
   production: { bg: 'bg-hinomaru/10', text: 'text-hinomaru', border: 'border-hinomaru/30' },
@@ -48,7 +37,7 @@ export function EnvironmentsTab() {
     apiKey: e.api_key,
     status: e.status as 'active' | 'inactive',
     createdAt: e.created_at,
-  })) ?? FALLBACK_ENVIRONMENTS;
+  })) ?? [];
 
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [selectedEnv, setSelectedEnv] = useState<string | null>(null);

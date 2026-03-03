@@ -23,11 +23,11 @@ use tracing::{info, warn, error, instrument};
 
 use crate::error::ApiError;
 use crate::services::{
-    l3_client::{L3Client, L3TxReceipt, L3TxStatus},
-    l1_client::{L1Client, L1Monitor, TxStatus, L1Error},
+    l3_client::L3Client,
+    l1_client::L1Client,
     bridge_verifier::{BridgeVerifierService, VerificationStatus},
-    treasury_vault::{TreasuryVaultService, TreasuryWithdrawRequest, TreasuryWithdrawResult, WithdrawalStatus},
-    admin_l3_ops::{AdminL3OpsService, TreasuryTransferRequest, TreasuryTransferResult},
+    treasury_vault::{TreasuryVaultService, TreasuryWithdrawRequest, WithdrawalStatus},
+    admin_l3_ops::{AdminL3OpsService, TreasuryTransferRequest},
 };
 
 /// End-to-end operation status

@@ -1093,7 +1093,14 @@
       },
       "buttons": {
         "viewHistory": "履歴を確認",
-        "backToDashboard": "ダッシュボードに戻る"
+        "backToDashboard": "ダッシュボードに戻る",
+        "claimUnlock": "資産を受け取る",
+        "claiming": "受け取り処理中..."
+      },
+      "claim": {
+        "ready": "Time Lockが完了しました。資産を受け取れます。",
+        "success": "資産の受け取りが完了しました。",
+        "error": "受け取り処理に失敗しました。再度お試しください。"
       }
     },
     "terms": {

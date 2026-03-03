@@ -66,7 +66,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockUsers = [
+const SAMPLE_USERS = [
   {
     id: 'user-001',
     address: '0x7a3f...9c2d',
@@ -124,7 +124,7 @@ const mockUsers = [
   },
 ];
 
-const mockMetrics = {
+const DEFAULT_METRICS = {
   totalUsers: 4523,
   activeUsers: 3891,
   totalTvl: '45.2M',
@@ -138,10 +138,10 @@ export function PublicUserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockUsers.length },
-    { key: 'active', label: t('tabs.active'), count: mockUsers.filter(u => u.status === 'active').length },
-    { key: 'pending', label: t('tabs.pending'), count: mockUsers.filter(u => u.status === 'pending_unlock').length },
-    { key: 'flagged', label: t('tabs.flagged'), count: mockUsers.filter(u => u.status === 'flagged').length },
+    { key: 'all', label: t('tabs.all'), count: SAMPLE_USERS.length },
+    { key: 'active', label: t('tabs.active'), count: SAMPLE_USERS.filter(u => u.status === 'active').length },
+    { key: 'pending', label: t('tabs.pending'), count: SAMPLE_USERS.filter(u => u.status === 'pending_unlock').length },
+    { key: 'flagged', label: t('tabs.flagged'), count: SAMPLE_USERS.filter(u => u.status === 'flagged').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -157,7 +157,7 @@ export function PublicUserManagement() {
     }
   };
 
-  const filteredUsers = mockUsers.filter((user) => {
+  const filteredUsers = SAMPLE_USERS.filter((user) => {
     const matchesSearch =
       user.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (user.ensName && user.ensName.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -192,30 +192,30 @@ export function PublicUserManagement() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalUsers')}
-              value={mockMetrics.totalUsers.toLocaleString()}
+              value={DEFAULT_METRICS.totalUsers.toLocaleString()}
               trend={{ value: '+5.2%', direction: 'up' }}
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeUsers')}
-              value={mockMetrics.activeUsers.toLocaleString()}
+              value={DEFAULT_METRICS.activeUsers.toLocaleString()}
               subValue="86%"
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.totalTvl')}
-              value={`$${mockMetrics.totalTvl}`}
+              value={`$${DEFAULT_METRICS.totalTvl}`}
               trend={{ value: '+12.3%', direction: 'up' }}
               icon={<Wallet className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgLockAmount')}
-              value={mockMetrics.avgLockAmount}
+              value={DEFAULT_METRICS.avgLockAmount}
               icon={<Lock className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.pendingUnlocks')}
-              value={String(mockMetrics.pendingUnlocks)}
+              value={String(DEFAULT_METRICS.pendingUnlocks)}
               icon={<Clock className="h-5 w-5" />}
               status="warning"
             />

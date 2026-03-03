@@ -65,6 +65,7 @@
     "pageTitle": "Governance",
     "pageSubtitle": "Participate in voting to shape the future of Quantum Shield",
     "ariaLabel": "Governance Dashboard",
+    "error": "Failed to load governance data",
     "gettingStarted": {
       "ariaLabel": "Getting Started",
       "title": "Getting Started",
@@ -246,6 +247,7 @@
     "pageSubtitle": "Vote on proposals that shape the future of Quantum Shield",
     "backToDashboard": "Back to Dashboard",
     "ariaLabel": "Proposals list page",
+    "error": "Failed to load proposals",
     "createProposal": "Create Proposal",
     "filters": {
       "all": "All",
@@ -485,6 +487,7 @@
       "description": "View Security Council and Purpose Committee oversight"
     },
     "ariaLabel": "Council page",
+    "error": "Failed to load council data",
     "backToDashboard": "Back to Dashboard",
     "pageTitle": "Council",
     "pageSubtitle": "Security Council and Purpose Committee oversight",

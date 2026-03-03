@@ -54,7 +54,7 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
 }
 
 // Mock data
-const mockMetrics = [
+const SAMPLE_METRICS = [
   {
     name: 'Signature Throughput',
     value: '1,234',
@@ -85,7 +85,7 @@ const mockMetrics = [
   },
 ];
 
-const mockAlerts = [
+const SAMPLE_ALERTS = [
   {
     id: 'alert-001',
     type: 'warning',
@@ -112,7 +112,7 @@ const mockAlerts = [
   },
 ];
 
-const mockNodes = [
+const SAMPLE_NODES = [
   {
     id: 'node-001',
     region: 'Asia Pacific',
@@ -142,7 +142,7 @@ export function PublicProtocolMonitor() {
 
   const tabs = [
     { key: 'realtime', label: t('tabs.realtime') },
-    { key: 'alerts', label: t('tabs.alerts'), count: mockAlerts.filter(a => a.status === 'active').length },
+    { key: 'alerts', label: t('tabs.alerts'), count: SAMPLE_ALERTS.filter(a => a.status === 'active').length },
     { key: 'nodes', label: t('tabs.nodes') },
   ];
 
@@ -270,7 +270,7 @@ export function PublicProtocolMonitor() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    {mockMetrics.map((metric) => (
+                    {SAMPLE_METRICS.map((metric) => (
                       <div
                         key={metric.name}
                         className="rounded-lg border border-surface-tertiary bg-background-secondary p-4"
@@ -316,7 +316,7 @@ export function PublicProtocolMonitor() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockAlerts.map((alert) => (
+                  {SAMPLE_ALERTS.map((alert) => (
                     <div
                       key={alert.id}
                       className={cn(
@@ -372,7 +372,7 @@ export function PublicProtocolMonitor() {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockNodes.map((node) => (
+                      {SAMPLE_NODES.map((node) => (
                         <tr
                           key={node.id}
                           className="border-b border-surface-tertiary/50 hover:bg-background-secondary/50"

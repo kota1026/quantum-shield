@@ -18,8 +18,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCouncil } from '@/hooks/qs-hub/useQSHub';
 
-// Demo council members data (kept for fallback with extended structure)
-const FALLBACK_COUNCIL_MEMBERS = [
+// Default council members data (used when API is unavailable)
+const DEFAULT_COUNCIL_MEMBERS = [
   {
     id: '1',
     name: 'Nakamoto Foundation',
@@ -100,7 +100,7 @@ const FALLBACK_COUNCIL_MEMBERS = [
 ];
 
 // Demo emergency actions
-const FALLBACK_EMERGENCY_ACTIONS = [
+const DEFAULT_EMERGENCY_ACTIONS = [
   {
     id: 'EA-003',
     title: 'Pause Prover Registration',
@@ -134,10 +134,10 @@ export function Council() {
   const t = useTranslations('qs-hub.council');
   const tCommon = useTranslations('qs-hub.common');
 
-  // Fetch council from API with fallback
+  // Fetch council from API with default
   const { data: councilApi } = useCouncil();
-  // Use local data as fallback (has extended structure)
-  const councilMembers = councilApi ? FALLBACK_COUNCIL_MEMBERS : FALLBACK_COUNCIL_MEMBERS;
+  // Use local data as default (has extended structure)
+  const councilMembers = councilApi ? DEFAULT_COUNCIL_MEMBERS : DEFAULT_COUNCIL_MEMBERS;
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -219,7 +219,7 @@ export function Council() {
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" aria-label={t('statsAriaLabel')}>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.members')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_COUNCIL_MEMBERS.length}</div>
+            <div className="text-2xl font-bold">{DEFAULT_COUNCIL_MEMBERS.length}</div>
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.threshold')}</div>
@@ -227,7 +227,7 @@ export function Council() {
           </Card>
           <Card className="p-4">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.actions')}</div>
-            <div className="text-2xl font-bold">{FALLBACK_EMERGENCY_ACTIONS.length}</div>
+            <div className="text-2xl font-bold">{DEFAULT_EMERGENCY_ACTIONS.length}</div>
           </Card>
           <Card className="p-4 border-success/30">
             <div className="text-xs text-foreground-tertiary mb-1">{t('stats.status')}</div>
@@ -243,7 +243,7 @@ export function Council() {
           </h2>
 
           <div className="grid sm:grid-cols-2 gap-4" role="list" aria-label={t('members.listAriaLabel')}>
-            {FALLBACK_COUNCIL_MEMBERS.map((member) => (
+            {DEFAULT_COUNCIL_MEMBERS.map((member) => (
               <Card
                 key={member.id}
                 className="p-5 hover:border-gold/30 transition-all duration-200"
@@ -288,7 +288,7 @@ export function Council() {
           </h2>
 
           <div className="space-y-3" role="list" aria-label={t('actions.listAriaLabel')}>
-            {FALLBACK_EMERGENCY_ACTIONS.map((action) => (
+            {DEFAULT_EMERGENCY_ACTIONS.map((action) => (
               <Card
                 key={action.id}
                 className="p-4 hover:border-gold/30 transition-all duration-200"

@@ -69,7 +69,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockPerformanceData = {
+const DEFAULT_PERFORMANCE_DATA = {
   overview: {
     avgProofTime: '2.7s',
     p95ProofTime: '4.2s',
@@ -143,7 +143,7 @@ const mockPerformanceData = {
 
 export function SaasProverPerformance() {
   const t = useTranslations('admin.saasProverPerformance');
-  const [selectedTimeRange, setSelectedTimeRange] = useState<typeof mockPerformanceData.timeRanges[number]>('24h');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<typeof DEFAULT_PERFORMANCE_DATA.timeRanges[number]>('24h');
   const [selectedProverType, setSelectedProverType] = useState<'all' | 'qs' | 'operator'>('all');
 
   const getSuccessRateColor = (rate: number) => {
@@ -163,7 +163,7 @@ export function SaasProverPerformance() {
     }
   };
 
-  const filteredProvers = mockPerformanceData.proverPerformance.filter((prover) => {
+  const filteredProvers = DEFAULT_PERFORMANCE_DATA.proverPerformance.filter((prover) => {
     if (selectedProverType === 'all') return true;
     return prover.type === selectedProverType;
   });
@@ -193,7 +193,7 @@ export function SaasProverPerformance() {
                 <p className="mt-1 text-sm text-foreground-secondary">{t('subtitle')}</p>
               </div>
               <div className="flex gap-2">
-                {mockPerformanceData.timeRanges.map((range) => (
+                {DEFAULT_PERFORMANCE_DATA.timeRanges.map((range) => (
                   <Button
                     key={range}
                     variant={selectedTimeRange === range ? 'primary' : 'outline'}
@@ -211,38 +211,38 @@ export function SaasProverPerformance() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.avgProofTime')}
-              value={mockPerformanceData.overview.avgProofTime}
+              value={DEFAULT_PERFORMANCE_DATA.overview.avgProofTime}
               trend={{ value: '-8%', direction: 'up' }}
               icon={<Clock className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.p95ProofTime')}
-              value={mockPerformanceData.overview.p95ProofTime}
+              value={DEFAULT_PERFORMANCE_DATA.overview.p95ProofTime}
               icon={<Zap className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.p99ProofTime')}
-              value={mockPerformanceData.overview.p99ProofTime}
+              value={DEFAULT_PERFORMANCE_DATA.overview.p99ProofTime}
               icon={<BarChart3 className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.successRate')}
-              value={`${mockPerformanceData.overview.successRate}%`}
+              value={`${DEFAULT_PERFORMANCE_DATA.overview.successRate}%`}
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.throughput')}
-              value={mockPerformanceData.overview.throughput}
+              value={DEFAULT_PERFORMANCE_DATA.overview.throughput}
               subValue={t('stats.proofsPerHour')}
               trend={{ value: '+15%', direction: 'up' }}
               icon={<Activity className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.errorRate')}
-              value={`${mockPerformanceData.overview.errorRate}%`}
+              value={`${DEFAULT_PERFORMANCE_DATA.overview.errorRate}%`}
               icon={<AlertTriangle className="h-5 w-5" />}
-              status={mockPerformanceData.overview.errorRate < 1 ? 'success' : 'danger'}
+              status={DEFAULT_PERFORMANCE_DATA.overview.errorRate < 1 ? 'success' : 'danger'}
             />
           </div>
 
@@ -259,7 +259,7 @@ export function SaasProverPerformance() {
                     <div className="flex h-full flex-col justify-between">
                       <div className="text-xs text-foreground-tertiary">{t('chart.proofsOverTime')}</div>
                       <div className="flex items-end justify-between gap-2">
-                        {mockPerformanceData.hourlyData.map((data, index) => (
+                        {DEFAULT_PERFORMANCE_DATA.hourlyData.map((data, index) => (
                           <div key={index} className="flex flex-col items-center gap-1">
                             <div
                               className="w-8 rounded-t bg-gold"

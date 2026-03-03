@@ -64,7 +64,7 @@ function StatCard({ label, value, subValue, trend, icon, status = 'success' }: S
 }
 
 // Mock data
-const mockObserversData = {
+const DEFAULT_OBSERVERS_DATA = {
   overview: {
     totalObservers: '12',
     activeObservers: '10',
@@ -143,10 +143,10 @@ export function SaasObservers() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
-    { key: 'all', label: t('tabs.all'), count: mockObserversData.observers.length },
-    { key: 'active', label: t('tabs.active'), count: mockObserversData.observers.filter(o => o.status === 'active').length },
-    { key: 'degraded', label: t('tabs.degraded'), count: mockObserversData.observers.filter(o => o.status === 'degraded').length },
-    { key: 'standby', label: t('tabs.standby'), count: mockObserversData.observers.filter(o => o.status === 'standby').length },
+    { key: 'all', label: t('tabs.all'), count: DEFAULT_OBSERVERS_DATA.observers.length },
+    { key: 'active', label: t('tabs.active'), count: DEFAULT_OBSERVERS_DATA.observers.filter(o => o.status === 'active').length },
+    { key: 'degraded', label: t('tabs.degraded'), count: DEFAULT_OBSERVERS_DATA.observers.filter(o => o.status === 'degraded').length },
+    { key: 'standby', label: t('tabs.standby'), count: DEFAULT_OBSERVERS_DATA.observers.filter(o => o.status === 'standby').length },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -162,7 +162,7 @@ export function SaasObservers() {
     }
   };
 
-  const filteredObservers = mockObserversData.observers.filter((observer) => {
+  const filteredObservers = DEFAULT_OBSERVERS_DATA.observers.filter((observer) => {
     const matchesSearch = observer.name.toLowerCase().includes(searchQuery.toLowerCase());
     if (activeTab === 'all') return matchesSearch;
     return matchesSearch && observer.status === activeTab;
@@ -195,34 +195,34 @@ export function SaasObservers() {
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard
               label={t('stats.totalObservers')}
-              value={mockObserversData.overview.totalObservers}
+              value={DEFAULT_OBSERVERS_DATA.overview.totalObservers}
               icon={<Eye className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.activeObservers')}
-              value={mockObserversData.overview.activeObservers}
+              value={DEFAULT_OBSERVERS_DATA.overview.activeObservers}
               subValue="83%"
               icon={<CheckCircle className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.challengesThisMonth')}
-              value={mockObserversData.overview.challengesThisMonth}
+              value={DEFAULT_OBSERVERS_DATA.overview.challengesThisMonth}
               icon={<AlertTriangle className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.avgResponseTime')}
-              value={mockObserversData.overview.avgResponseTime}
+              value={DEFAULT_OBSERVERS_DATA.overview.avgResponseTime}
               icon={<Activity className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.detectionRate')}
-              value={mockObserversData.overview.detectionRate}
+              value={DEFAULT_OBSERVERS_DATA.overview.detectionRate}
               icon={<Shield className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.falsePositiveRate')}
-              value={mockObserversData.overview.falsePositiveRate}
+              value={DEFAULT_OBSERVERS_DATA.overview.falsePositiveRate}
               icon={<Server className="h-5 w-5" />}
             />
           </div>

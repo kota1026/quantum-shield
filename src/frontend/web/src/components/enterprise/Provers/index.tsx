@@ -40,8 +40,7 @@ interface Prover {
   stakeAmount: string;
 }
 
-// Demo data
-const FALLBACK_PROVERS: Prover[] = [
+const DEFAULT_PROVERS: Prover[] = [
   {
     id: 'prv-001',
     name: 'Tokyo Primary',
@@ -149,7 +148,7 @@ export function EnterpriseProvers() {
     uptime: `${p.success_rate}%`,
     signatures24h: p.jobs_completed,
     stakeAmount: p.stake_amount,
-  })) ?? FALLBACK_PROVERS;
+  })) ?? DEFAULT_PROVERS;
 
   const filteredProvers = provers.filter((prover) => {
     const matchesSearch = prover.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

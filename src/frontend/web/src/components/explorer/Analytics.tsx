@@ -39,13 +39,13 @@ import type {
 } from '@/lib/api/explorer/mock';
 
 // Empty initial state (no fake data)
-const FALLBACK_TVL_DATA: TvlDataPoint[] = [];
+const EMPTY_TVL_DATA: TvlDataPoint[] = [];
 
-const FALLBACK_VOLUME_DATA: VolumeDataPoint[] = [];
+const EMPTY_VOLUME_DATA: VolumeDataPoint[] = [];
 
-const FALLBACK_PROVER_PERFORMANCE: ProverPerformance[] = [];
+const EMPTY_PROVER_PERFORMANCE: ProverPerformance[] = [];
 
-const FALLBACK_ANALYTICS_STATS: AnalyticsStats = {
+const DEFAULT_ANALYTICS_STATS: AnalyticsStats = {
   currentTvl: '$0',
   tvlChange: '0%',
   tvlTrend: 'up',
@@ -59,13 +59,13 @@ const FALLBACK_ANALYTICS_STATS: AnalyticsStats = {
   pendingChallenges: 0,
 };
 
-const FALLBACK_LOCK_DISTRIBUTION: LockStatusDistribution = {
+const DEFAULT_LOCK_DISTRIBUTION: LockStatusDistribution = {
   active: 0,
   unlocking: 0,
   unlocked: 0,
 };
 
-const FALLBACK_UNLOCK_DISTRIBUTION: UnlockTypeDistribution = {
+const DEFAULT_UNLOCK_DISTRIBUTION: UnlockTypeDistribution = {
   normal: 0,
   emergency: 0,
 };
@@ -89,17 +89,17 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
   const { data: unlockDistributionApi } = useUnlockDistribution();
 
   // Use API data with fallback
-  const stats = analyticsStatsApi ?? FALLBACK_ANALYTICS_STATS;
-  const mockTvlData = tvlDataApi ?? FALLBACK_TVL_DATA;
-  const mockVolumeData = volumeDataApi ?? FALLBACK_VOLUME_DATA;
-  const mockProverData = proverPerformanceApi ?? FALLBACK_PROVER_PERFORMANCE;
-  const lockStatusData = lockDistributionApi ?? FALLBACK_LOCK_DISTRIBUTION;
-  const unlockTypeData = unlockDistributionApi ?? FALLBACK_UNLOCK_DISTRIBUTION;
+  const stats = analyticsStatsApi ?? DEFAULT_ANALYTICS_STATS;
+  const tvlData = tvlDataApi ?? EMPTY_TVL_DATA;
+  const volumeData = volumeDataApi ?? EMPTY_VOLUME_DATA;
+  const proverData = proverPerformanceApi ?? EMPTY_PROVER_PERFORMANCE;
+  const lockStatusData = lockDistributionApi ?? DEFAULT_LOCK_DISTRIBUTION;
+  const unlockTypeData = unlockDistributionApi ?? DEFAULT_UNLOCK_DISTRIBUTION;
 
   const timeRangeOptions: TimeRange[] = ['7d', '30d', '90d', '1y', 'all'];
 
-  const maxTvl = mockTvlData.length > 0 ? Math.max(...mockTvlData.map(d => d.value)) : 1;
-  const maxVolume = mockVolumeData.length > 0 ? Math.max(...mockVolumeData.map(d => Math.max(d.locks, d.unlocks))) : 1;
+  const maxTvl = tvlData.length > 0 ? Math.max(...tvlData.map(d => d.value)) : 1;
+  const maxVolume = volumeData.length > 0 ? Math.max(...volumeData.map(d => Math.max(d.locks, d.unlocks))) : 1;
 
   return (
     <div className="min-h-screen bg-background">
@@ -294,7 +294,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
             </div>
             {/* Simple bar chart visualization */}
             <div className="h-48 flex items-end gap-1" role="img" aria-label={t('analytics.charts.tvl.title')}>
-              {mockTvlData.map((d, i) => (
+              {tvlData.map((d, i) => (
                 <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
                   <div
                     className="w-full bg-gradient-to-t from-hinomaru to-gold rounded-t transition-all hover:opacity-80"
@@ -342,7 +342,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
             </div>
             {/* Grouped bar chart */}
             <div className="h-48 flex items-end gap-2" role="img" aria-label={t('analytics.charts.volume.title')}>
-              {mockVolumeData.map((d) => (
+              {volumeData.map((d) => (
                 <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full flex gap-0.5 items-end h-[180px]">
                     <div
@@ -464,14 +464,14 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
             </h2>
             <div className="text-center mb-4">
               <div className="text-3xl font-bold text-success">
-                {(mockProverData.reduce((a, b) => a + b.uptime, 0) / mockProverData.length).toFixed(1)}%
+                {(proverData.reduce((a, b) => a + b.uptime, 0) / proverData.length).toFixed(1)}%
               </div>
               <div className="text-xs text-foreground-secondary">{t('analytics.charts.proverUptime.uptime')}</div>
               <div className="text-[10px] text-success mt-1">{t('analytics.charts.proverUptime.target')}</div>
             </div>
             <div className="text-center">
               <div className="text-xl font-bold flex items-center justify-center gap-1">
-                {(mockProverData.reduce((a, b) => a + b.avgResponse, 0) / mockProverData.length).toFixed(1)}s
+                {(proverData.reduce((a, b) => a + b.avgResponse, 0) / proverData.length).toFixed(1)}s
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -512,7 +512,7 @@ export function ExplorerAnalytics({ locale = 'ja' }: ExplorerAnalyticsProps) {
                 </tr>
               </thead>
               <tbody>
-                {mockProverData.map((prover) => (
+                {proverData.map((prover) => (
                   <tr key={prover.name} className="border-b border-surface-tertiary last:border-0">
                     <td className="py-3">
                       <Link

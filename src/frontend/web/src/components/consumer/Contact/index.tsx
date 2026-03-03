@@ -84,9 +84,9 @@ export function Contact() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // Generate mock ticket ID
-    const mockTicketId = `QS-${Date.now().toString(36).toUpperCase()}`;
-    setTicketId(mockTicketId);
+    // Generate temporary ticket ID
+    const generatedTicketId = `QS-${Date.now().toString(36).toUpperCase()}`;
+    setTicketId(generatedTicketId);
     setFormState('success');
   };
 

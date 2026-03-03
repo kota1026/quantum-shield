@@ -14,11 +14,11 @@
 //! - BE-003: Full logging
 
 use serde::{Deserialize, Serialize};
-use tracing::{info, warn, instrument};
+use tracing::{info, instrument};
 
 use crate::error::ApiError;
 use crate::crypto::{sign_ml_dsa_65, build_admin_signing_message, verify_admin_signature};
-use crate::services::l3_client::{L3Client, L3Transaction, L3TxReceipt, L3TxType};
+use crate::services::l3_client::{L3Client, L3Transaction, L3TxType};
 
 /// Treasury transfer request
 #[derive(Debug, Clone, Serialize, Deserialize)]

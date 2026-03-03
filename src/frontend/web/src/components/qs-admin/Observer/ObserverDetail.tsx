@@ -27,8 +27,8 @@ interface ObserverDetailProps {
   id: string;
 }
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_OBSERVER: ObserverDetailData = {
+// Default data - Used when API is unavailable
+const DEFAULT_OBSERVER: ObserverDetailData = {
   id: 'OB-001',
   wallet: '0x1234567890abcdef1234567890abcdef12345678',
   challenges: 125,
@@ -148,30 +148,30 @@ export function ObserverDetail({ id }: ObserverDetailProps) {
 
   // Map API data to component format
   const mapApiData = (data: unknown): ObserverDetailData => {
-    if (!data || typeof data !== 'object') return { ...FALLBACK_OBSERVER, id };
+    if (!data || typeof data !== 'object') return { ...DEFAULT_OBSERVER, id };
     const d = data as Record<string, unknown>;
     return {
       id: (d.id as string) || id,
-      wallet: (d.wallet as string) || (d.walletAddress as string) || FALLBACK_OBSERVER.wallet,
+      wallet: (d.wallet as string) || (d.walletAddress as string) || DEFAULT_OBSERVER.wallet,
       challenges: (d.challenges as number) ||
         ((d.successfulChallenges as number) || 0) + ((d.failedChallenges as number) || 0) ||
-        FALLBACK_OBSERVER.challenges,
-      successRate: (d.successRate as string) || FALLBACK_OBSERVER.successRate,
-      earnings: (d.earnings as string) || (d.totalEarnings as string) || FALLBACK_OBSERVER.earnings,
-      bond: (d.bond as string) || FALLBACK_OBSERVER.bond,
-      lastChallenge: (d.lastChallenge as string) || FALLBACK_OBSERVER.lastChallenge,
-      status: (d.status as string) || FALLBACK_OBSERVER.status,
-      successfulChallenges: (d.successfulChallenges as number) ?? FALLBACK_OBSERVER.successfulChallenges,
-      failedChallenges: (d.failedChallenges as number) ?? FALLBACK_OBSERVER.failedChallenges,
+        DEFAULT_OBSERVER.challenges,
+      successRate: (d.successRate as string) || DEFAULT_OBSERVER.successRate,
+      earnings: (d.earnings as string) || (d.totalEarnings as string) || DEFAULT_OBSERVER.earnings,
+      bond: (d.bond as string) || DEFAULT_OBSERVER.bond,
+      lastChallenge: (d.lastChallenge as string) || DEFAULT_OBSERVER.lastChallenge,
+      status: (d.status as string) || DEFAULT_OBSERVER.status,
+      successfulChallenges: (d.successfulChallenges as number) ?? DEFAULT_OBSERVER.successfulChallenges,
+      failedChallenges: (d.failedChallenges as number) ?? DEFAULT_OBSERVER.failedChallenges,
       registeredAt: (d.registeredAt as string) ||
-        (typeof d.registeredAt === 'number' ? new Date(d.registeredAt).toLocaleString('ja-JP') : FALLBACK_OBSERVER.registeredAt),
-      avgResponseTime: (d.avgResponseTime as string) || FALLBACK_OBSERVER.avgResponseTime,
-      recentChallenges: (d.recentChallenges as ObserverDetailData['recentChallenges']) || FALLBACK_OBSERVER.recentChallenges,
+        (typeof d.registeredAt === 'number' ? new Date(d.registeredAt).toLocaleString('ja-JP') : DEFAULT_OBSERVER.registeredAt),
+      avgResponseTime: (d.avgResponseTime as string) || DEFAULT_OBSERVER.avgResponseTime,
+      recentChallenges: (d.recentChallenges as ObserverDetailData['recentChallenges']) || DEFAULT_OBSERVER.recentChallenges,
     };
   };
 
   // Use API data or fallback
-  const observer = observerQuery.data ? mapApiData(observerQuery.data) : { ...FALLBACK_OBSERVER, id };
+  const observer = observerQuery.data ? mapApiData(observerQuery.data) : { ...DEFAULT_OBSERVER, id };
 
   // Show loading skeleton only for initial load
   if (observerQuery.isLoading && !observerQuery.data) {

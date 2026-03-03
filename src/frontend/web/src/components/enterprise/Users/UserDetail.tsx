@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import { EnterpriseSidebar } from '../Dashboard/EnterpriseSidebar';
 import { Button } from '@/components/ui/button';
 import { useUserDetail, useUserActivity } from '@/hooks/enterprise';
-import { MOCK_USER_DETAIL, MOCK_USER_ACTIVITY } from '@/lib/api/enterprise/mock';
 
 export type UserRole = 'admin' | 'member' | 'viewer';
 export type KycStatus = 'verified' | 'pending' | 'rejected' | 'not_submitted';
@@ -40,25 +39,14 @@ const ACTIVITY_ICONS: Record<string, string> = {
   updateSettings: '⚙️',
 };
 
-// Fallback data for when API is unavailable
-const FALLBACK_USER: UserData = {
-  id: MOCK_USER_DETAIL.id,
-  name: MOCK_USER_DETAIL.name,
-  email: MOCK_USER_DETAIL.email,
-  initial: MOCK_USER_DETAIL.name.charAt(0),
-  role: (MOCK_USER_DETAIL.role === 'owner' ? 'admin' : MOCK_USER_DETAIL.role) as UserRole,
-  isActive: MOCK_USER_DETAIL.is_active,
-  kycStatus: MOCK_USER_DETAIL.kyc_status as KycStatus,
-  amlStatus: MOCK_USER_DETAIL.aml_status as AmlStatus,
-  riskScore: MOCK_USER_DETAIL.risk_score,
+const EMPTY_USER: UserData = {
+  id: '',
+  name: '',
+  email: '',
+  initial: '',
+  role: 'viewer',
+  isActive: false,
 };
-
-const FALLBACK_ACTIVITY: ActivityEvent[] = MOCK_USER_ACTIVITY.map(a => ({
-  id: a.id,
-  type: a.type as ActivityEvent['type'],
-  icon: ACTIVITY_ICONS[a.type] || '📋',
-  time: a.time,
-}));
 
 interface UserDetailProps {
   userId: string;
@@ -104,14 +92,14 @@ export function UserDetail({ userId, className }: UserDetailProps) {
     kycStatus: 'verified' as KycStatus,
     amlStatus: 'cleared' as AmlStatus,
     riskScore: 12,
-  } : FALLBACK_USER;
+  } : EMPTY_USER;
 
   const activityEvents: ActivityEvent[] = activityData?.activities?.map(a => ({
     id: a.id,
     type: a.type as ActivityEvent['type'],
     icon: ACTIVITY_ICONS[a.type] || '📋',
     time: a.time,
-  })) ?? FALLBACK_ACTIVITY;
+  })) ?? [];
 
   const [user, setUser] = useState<UserData>(initialUser);
   const [formData, setFormData] = useState({

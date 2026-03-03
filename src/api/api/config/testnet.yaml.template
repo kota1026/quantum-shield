@@ -1,0 +1,42 @@
+# Quantum Shield API - L3 Public Testnet Configuration
+#
+# These L3 contracts are deployed to Arbitrum Sepolia (chain 421614).
+# Deployed: 2026-03-03 via DeployTestnet.s.sol
+# Deployer: 0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3
+#
+# Usage: Override default.yaml L3 section for testnet mode:
+#   1. Copy these values to default.yaml (replacing local Anvil config)
+#   2. Or set via env vars:
+#      QS__L3_ENDPOINT=https://sepolia-rollup.arbitrum.io/rpc
+#      QS__L3_CHAIN_ID=421614
+#      QS__L3_CORE_LAYER_ADDRESS=0xb04F4DFe093dC80420117EDC8300f5EB6F6EDBf0
+#      (etc.)
+
+# ===== L3 Public Testnet: Arbitrum Sepolia (421614) =====
+l3_endpoint: "https://sepolia-rollup.arbitrum.io/rpc"
+l3_chain_id: 421614
+
+# L3 Core Contract Addresses (used by backend API)
+l3_core_layer_address: "0xb04F4DFe093dC80420117EDC8300f5EB6F6EDBf0"
+l3_ve_qs_address: "0xE72dFa97C9E452dC0b8E6aa026c910D21B20fCAE"
+l3_reward_router_address: "0x83E9818ead29B8884d2E49eA3c4b7d5d72824319"
+l3_governor_address: "0xe93b8129DC3dBD48E5d78C5A4C156DD1BFa8D65B"
+l3_insurance_fund_address: "0x9357e01Bf1ABdE8f3b32DEbaf853a0BAB9aaDfB6"
+l3_treasury_address: "0x9Dc3249c8BDcEA8693e73e3BaA071B17Dd84bD55"
+
+# L3 Additional Contract Addresses (not in backend config but deployed)
+# QSToken: 0xBD66beBE19E664dF143da54808d746192e4f2ee2
+# GovernanceSwitch: 0x898e26853675368AC051b74809Ac5d0b02f19937
+# SecurityCouncil: 0xE8278a98e6fe4ecBe19fC9192036C6FaCCD720FF
+# VeQSRewardDistributor: 0x904F0c22fAB3dfB193D482593BBFAdeE2FBae2FF
+# ProverRewardPool: 0x24A7958fa27ce160425a9D4204aFF53010e1f77E
+# ObserverRewardPool: 0xCDb0C88d6711c29ED25BA63888B91F216Acc6784
+
+# ===== Alternative L3 Testnets =====
+# Base Sepolia:
+#   l3_endpoint: "https://sepolia.base.org"
+#   l3_chain_id: 84532
+#
+# Optimism Sepolia:
+#   l3_endpoint: "https://sepolia.optimism.io"
+#   l3_chain_id: 11155420

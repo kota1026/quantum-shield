@@ -17,14 +17,14 @@ import {
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const FALLBACK_STATS = {
+const DEFAULT_STATS = {
   activeObservers: 156,
   totalChallenges: 1234,
   successRate: '94.2%',
   totalEarnings: '45,000 QS',
 };
 
-const FALLBACK_OBSERVERS = [
+const DEFAULT_OBSERVERS = [
   { id: '1', wallet: '0x1234...5678', challenges: 125, successRate: '98.4%', earnings: '2,450 QS', lastActive: '2024-01-27 14:30', status: 'active' },
   { id: '2', wallet: '0x2345...6789', challenges: 89, successRate: '95.5%', earnings: '1,780 QS', lastActive: '2024-01-27 13:15', status: 'active' },
   { id: '3', wallet: '0x3456...7890', challenges: 234, successRate: '92.3%', earnings: '4,680 QS', lastActive: '2024-01-27 12:00', status: 'active' },
@@ -80,7 +80,7 @@ export function ObserverDashboard() {
     { key: 'inactive', label: t('status.inactive') },
   ];
 
-  const filteredObservers = FALLBACK_OBSERVERS.filter(observer => {
+  const filteredObservers = DEFAULT_OBSERVERS.filter(observer => {
     if (activeFilter !== 'all' && observer.status !== activeFilter) return false;
     if (searchQuery && !observer.wallet.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -100,10 +100,10 @@ export function ObserverDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('stats.activeObservers')} value={FALLBACK_STATS.activeObservers} icon={Eye} trend={{ value: 5.2, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.totalChallenges')} value={FALLBACK_STATS.totalChallenges} icon={Shield} trend={{ value: 15.3, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
-        <StatCard title={t('stats.successRate')} value={FALLBACK_STATS.successRate} icon={TrendingUp} />
-        <StatCard title={t('stats.totalEarnings')} value={FALLBACK_STATS.totalEarnings} icon={Coins} trend={{ value: 8.7, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+        <StatCard title={t('stats.activeObservers')} value={DEFAULT_STATS.activeObservers} icon={Eye} trend={{ value: 5.2, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+        <StatCard title={t('stats.totalChallenges')} value={DEFAULT_STATS.totalChallenges} icon={Shield} trend={{ value: 15.3, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
+        <StatCard title={t('stats.successRate')} value={DEFAULT_STATS.successRate} icon={TrendingUp} />
+        <StatCard title={t('stats.totalEarnings')} value={DEFAULT_STATS.totalEarnings} icon={Coins} trend={{ value: 8.7, isPositive: true, label: tCommon('trend.fromLastWeek') }} />
       </div>
 
       <Card>

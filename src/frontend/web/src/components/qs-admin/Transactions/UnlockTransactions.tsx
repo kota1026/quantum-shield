@@ -27,8 +27,8 @@ import { useUnlockStats, useUnlockTransactions } from '@/hooks/admin/useTransact
 import type { UnlockStats } from '@/lib/api/admin/mock';
 import type { UnlockTransaction } from '@/lib/api/admin/types';
 
-// Fallback data - Used when API is unavailable
-const FALLBACK_STATS: UnlockStats = {
+// Default data - Used when API is unavailable
+const DEFAULT_STATS: UnlockStats = {
   totalUnlocks: 0,
   unlockVolume: '0 ETH',
   pendingUnlocks: 0,
@@ -205,7 +205,7 @@ export function UnlockTransactions() {
   const transactionsQuery = useUnlockTransactions();
 
   // Use API data or fallback
-  const stats = statsQuery.data ?? FALLBACK_STATS;
+  const stats = statsQuery.data ?? DEFAULT_STATS;
   const transactions = transactionsQuery.data?.transactions ?? [];
 
   const statusFilters = [
