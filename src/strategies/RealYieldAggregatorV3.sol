@@ -13,10 +13,17 @@ import {SwapRouter} from "./SwapRouter.sol";
 /// @notice Yearn V3 Strategy - Production Ready
 ///
 /// V2 → V3 の変更点:
-///   1. SwapRouter 統合 (マルチプール: 3pool + FRAXBP + USDe/USDC)
+///   1. SwapRouter 統合 (3pool + FRAX Metapool + USDe configurable)
 ///   2. Dynamic allocation (利回りベースの動的配分)
 ///   3. Withdrawal queue (流動性順に引出し)
 ///   4. Performance tracking (on-chain metrics)
+///
+/// Pool Routing (via SwapRouter):
+///   USDC ↔ DAI:  Curve 3pool (0xbEbc44...) - exchange()
+///   USDC ↔ FRAX: Curve FRAX Metapool (0x3175Df...) - exchange_underlying()
+///   USDC ↔ USDe: Configurable (setUsdePool) - デプロイ後にオンチェーン確認
+///
+/// ⚠️ USDe pool が確認できない場合は targets[3] = 0 で運用開始
 ///
 /// Mainnet Addresses:
 ///   Aave V3 Pool:  0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2
