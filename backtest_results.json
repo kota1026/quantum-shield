@@ -1,0 +1,674 @@
+[
+  {
+    "strategy": "Aave Only",
+    "initial": 100000.0,
+    "final": 103110.04,
+    "total_return_pct": 3.11,
+    "annualized_apy_pct": 3.11,
+    "max_drawdown_pct": 0.0,
+    "sharpe_ratio": 25.49,
+    "total_rebalance_cost": 608.34,
+    "monthly": [
+      {
+        "month": "2024-04",
+        "balance": 100300.0,
+        "profit": 350.0,
+        "monthly_apy": 4.2,
+        "rebalance_cost": 50.0
+      },
+      {
+        "month": "2024-05",
+        "balance": 100567.47,
+        "profit": 317.62,
+        "monthly_apy": 3.8,
+        "rebalance_cost": 50.15
+      },
+      {
+        "month": "2024-06",
+        "balance": 100810.5,
+        "profit": 293.32,
+        "monthly_apy": 3.5,
+        "rebalance_cost": 50.28
+      },
+      {
+        "month": "2024-07",
+        "balance": 101028.93,
+        "profit": 268.83,
+        "monthly_apy": 3.2,
+        "rebalance_cost": 50.41
+      },
+      {
+        "month": "2024-08",
+        "balance": 101214.15,
+        "profit": 235.73,
+        "monthly_apy": 2.8,
+        "rebalance_cost": 50.51
+      },
+      {
+        "month": "2024-09",
+        "balance": 101416.58,
+        "profit": 253.04,
+        "monthly_apy": 3.0,
+        "rebalance_cost": 50.61
+      },
+      {
+        "month": "2024-10",
+        "balance": 101661.67,
+        "profit": 295.8,
+        "monthly_apy": 3.5,
+        "rebalance_cost": 50.71
+      },
+      {
+        "month": "2024-11",
+        "balance": 101949.71,
+        "profit": 338.87,
+        "monthly_apy": 4.0,
+        "rebalance_cost": 50.83
+      },
+      {
+        "month": "2024-12",
+        "balance": 102281.04,
+        "profit": 382.31,
+        "monthly_apy": 4.5,
+        "rebalance_cost": 50.97
+      },
+      {
+        "month": "2025-01",
+        "balance": 102587.89,
+        "profit": 357.98,
+        "monthly_apy": 4.2,
+        "rebalance_cost": 51.14
+      },
+      {
+        "month": "2025-02",
+        "balance": 102861.45,
+        "profit": 324.86,
+        "monthly_apy": 3.8,
+        "rebalance_cost": 51.29
+      },
+      {
+        "month": "2025-03",
+        "balance": 103110.04,
+        "profit": 300.01,
+        "monthly_apy": 3.5,
+        "rebalance_cost": 51.43
+      }
+    ]
+  },
+  {
+    "strategy": "sDAI Only",
+    "initial": 100000.0,
+    "final": 105798.31,
+    "total_return_pct": 5.8,
+    "annualized_apy_pct": 5.8,
+    "max_drawdown_pct": 0.0,
+    "sharpe_ratio": 27.88,
+    "total_rebalance_cost": 616.82,
+    "monthly": [
+      {
+        "month": "2024-04",
+        "balance": 100616.67,
+        "profit": 666.67,
+        "monthly_apy": 8.0,
+        "rebalance_cost": 50.0
+      },
+      {
+        "month": "2024-05",
+        "balance": 101195.21,
+        "profit": 628.85,
+        "monthly_apy": 7.5,
+        "rebalance_cost": 50.31
+      },
+      {
+        "month": "2024-06",
+        "balance": 101734.92,
+        "profit": 590.31,
+        "monthly_apy": 7.0,
+        "rebalance_cost": 50.6
+      },
+      {
+        "month": "2024-07",
+        "balance": 102235.12,
+        "profit": 551.06,
+        "monthly_apy": 6.5,
+        "rebalance_cost": 50.87
+      },
+      {
+        "month": "2024-08",
+        "balance": 102695.18,
+        "profit": 511.18,
+        "monthly_apy": 6.0,
+        "rebalance_cost": 51.12
+      },
+      {
+        "month": "2024-09",
+        "balance": 103114.51,
+        "profit": 470.69,
+        "monthly_apy": 5.5,
+        "rebalance_cost": 51.35
+      },
+      {
+        "month": "2024-10",
+        "balance": 103492.6,
+        "profit": 429.64,
+        "monthly_apy": 5.0,
+        "rebalance_cost": 51.56
+      },
+      {
+        "month": "2024-11",
+        "balance": 103915.19,
+        "profit": 474.34,
+        "monthly_apy": 5.5,
+        "rebalance_cost": 51.75
+      },
+      {
+        "month": "2024-12",
+        "balance": 104382.81,
+        "profit": 519.58,
+        "monthly_apy": 6.0,
+        "rebalance_cost": 51.96
+      },
+      {
+        "month": "2025-01",
+        "balance": 104896.03,
+        "profit": 565.41,
+        "monthly_apy": 6.5,
+        "rebalance_cost": 52.19
+      },
+      {
+        "month": "2025-02",
+        "balance": 105368.06,
+        "profit": 524.48,
+        "monthly_apy": 6.0,
+        "rebalance_cost": 52.45
+      },
+      {
+        "month": "2025-03",
+        "balance": 105798.31,
+        "profit": 482.94,
+        "monthly_apy": 5.5,
+        "rebalance_cost": 52.68
+      }
+    ]
+  },
+  {
+    "strategy": "sUSDe Only",
+    "initial": 100000.0,
+    "final": 111689.29,
+    "total_return_pct": 11.69,
+    "annualized_apy_pct": 11.69,
+    "max_drawdown_pct": 0.0,
+    "sharpe_ratio": 17.67,
+    "total_rebalance_cost": 631.82,
+    "monthly": [
+      {
+        "month": "2024-04",
+        "balance": 101200.0,
+        "profit": 1250.0,
+        "monthly_apy": 15.0,
+        "rebalance_cost": 50.0
+      },
+      {
+        "month": "2024-05",
+        "balance": 102161.4,
+        "profit": 1012.0,
+        "monthly_apy": 12.0,
+        "rebalance_cost": 50.6
+      },
+      {
+        "month": "2024-06",
+        "balance": 103004.23,
+        "profit": 893.91,
+        "monthly_apy": 10.5,
+        "rebalance_cost": 51.08
+      },
+      {
+        "month": "2024-07",
+        "balance": 103725.26,
+        "profit": 772.53,
+        "monthly_apy": 9.0,
+        "rebalance_cost": 51.5
+      },
+      {
+        "month": "2024-08",
+        "balance": 104408.12,
+        "profit": 734.72,
+        "monthly_apy": 8.5,
+        "rebalance_cost": 51.86
+      },
+      {
+        "month": "2024-09",
+        "balance": 105312.99,
+        "profit": 957.07,
+        "monthly_apy": 11.0,
+        "rebalance_cost": 52.2
+      },
+      {
+        "month": "2024-10",
+        "balance": 106401.22,
+        "profit": 1140.89,
+        "monthly_apy": 13.0,
+        "rebalance_cost": 52.66
+      },
+      {
+        "month": "2024-11",
+        "balance": 107589.37,
+        "profit": 1241.35,
+        "monthly_apy": 14.0,
+        "rebalance_cost": 53.2
+      },
+      {
+        "month": "2024-12",
+        "balance": 108970.1,
+        "profit": 1434.52,
+        "monthly_apy": 16.0,
+        "rebalance_cost": 53.79
+      },
+      {
+        "month": "2025-01",
+        "balance": 110005.32,
+        "profit": 1089.7,
+        "monthly_apy": 12.0,
+        "rebalance_cost": 54.49
+      },
+      {
+        "month": "2025-02",
+        "balance": 110867.03,
+        "profit": 916.71,
+        "monthly_apy": 10.0,
+        "rebalance_cost": 55.0
+      },
+      {
+        "month": "2025-03",
+        "balance": 111689.29,
+        "profit": 877.7,
+        "monthly_apy": 9.5,
+        "rebalance_cost": 55.43
+      }
+    ]
+  },
+  {
+    "strategy": "Equal (25/25/25/25)",
+    "initial": 100000.0,
+    "final": 106138.87,
+    "total_return_pct": 6.14,
+    "annualized_apy_pct": 6.14,
+    "max_drawdown_pct": 0.0,
+    "sharpe_ratio": 28.12,
+    "total_rebalance_cost": 617.04,
+    "monthly": [
+      {
+        "month": "2024-04",
+        "balance": 100631.25,
+        "profit": 681.25,
+        "monthly_apy": 8.18,
+        "rebalance_cost": 50.0
+      },
+      {
+        "month": "2024-05",
+        "balance": 101178.43,
+        "profit": 597.5,
+        "monthly_apy": 7.12,
+        "rebalance_cost": 50.32
+      },
+      {
+        "month": "2024-06",
+        "balance": 101671.68,
+        "profit": 543.83,
+        "monthly_apy": 6.45,
+        "rebalance_cost": 50.59
+      },
+      {
+        "month": "2024-07",
+        "balance": 102112.25,
+        "profit": 491.41,
+        "monthly_apy": 5.8,
+        "rebalance_cost": 50.84
+      },
+      {
+        "month": "2024-08",
+        "balance": 102518.58,
+        "profit": 457.38,
+        "monthly_apy": 5.38,
+        "rebalance_cost": 51.06
+      },
+      {
+        "month": "2024-09",
+        "balance": 102969.23,
+        "profit": 501.91,
+        "monthly_apy": 5.88,
+        "rebalance_cost": 51.26
+      },
+      {
+        "month": "2024-10",
+        "balance": 103460.48,
+        "profit": 542.73,
+        "monthly_apy": 6.33,
+        "rebalance_cost": 51.48
+      },
+      {
+        "month": "2024-11",
+        "balance": 104012.27,
+        "profit": 603.52,
+        "monthly_apy": 7.0,
+        "rebalance_cost": 51.73
+      },
+      {
+        "month": "2024-12",
+        "balance": 104642.84,
+        "profit": 682.58,
+        "monthly_apy": 7.88,
+        "rebalance_cost": 52.01
+      },
+      {
+        "month": "2025-01",
+        "balance": 105198.76,
+        "profit": 608.24,
+        "monthly_apy": 6.97,
+        "rebalance_cost": 52.32
+      },
+      {
+        "month": "2025-02",
+        "balance": 105685.3,
+        "profit": 539.14,
+        "monthly_apy": 6.15,
+        "rebalance_cost": 52.6
+      },
+      {
+        "month": "2025-03",
+        "balance": 106138.87,
+        "profit": 506.41,
+        "monthly_apy": 5.75,
+        "rebalance_cost": 52.84
+      }
+    ]
+  },
+  {
+    "strategy": "RealYield (30/30/20/20)",
+    "initial": 100000.0,
+    "final": 105798.38,
+    "total_return_pct": 5.8,
+    "annualized_apy_pct": 5.8,
+    "max_drawdown_pct": 0.0,
+    "sharpe_ratio": 29.56,
+    "total_rebalance_cost": 616.14,
+    "monthly": [
+      {
+        "month": "2024-04",
+        "balance": 100596.67,
+        "profit": 646.67,
+        "monthly_apy": 7.76,
+        "rebalance_cost": 50.0
+      },
+      {
+        "month": "2024-05",
+        "balance": 101118.93,
+        "profit": 572.56,
+        "monthly_apy": 6.83,
+        "rebalance_cost": 50.3
+      },
+      {
+        "month": "2024-06",
+        "balance": 101591.66,
+        "profit": 523.29,
+        "monthly_apy": 6.21,
+        "rebalance_cost": 50.56
+      },
+      {
+        "month": "2024-07",
+        "balance": 102015.81,
+        "profit": 474.94,
+        "monthly_apy": 5.61,
+        "rebalance_cost": 50.8
+      },
+      {
+        "month": "2024-08",
+        "balance": 102405.17,
+        "profit": 440.37,
+        "monthly_apy": 5.18,
+        "rebalance_cost": 51.01
+      },
+      {
+        "month": "2024-09",
+        "balance": 102827.59,
+        "profit": 473.62,
+        "monthly_apy": 5.55,
+        "rebalance_cost": 51.2
+      },
+      {
+        "month": "2024-10",
+        "balance": 103282.6,
+        "profit": 506.43,
+        "monthly_apy": 5.91,
+        "rebalance_cost": 51.41
+      },
+      {
+        "month": "2024-11",
+        "balance": 103794.71,
+        "profit": 563.75,
+        "monthly_apy": 6.55,
+        "rebalance_cost": 51.64
+      },
+      {
+        "month": "2024-12",
+        "balance": 104378.56,
+        "profit": 635.74,
+        "monthly_apy": 7.35,
+        "rebalance_cost": 51.9
+      },
+      {
+        "month": "2025-01",
+        "balance": 104904.8,
+        "profit": 578.43,
+        "monthly_apy": 6.65,
+        "rebalance_cost": 52.19
+      },
+      {
+        "month": "2025-02",
+        "balance": 105368.13,
+        "profit": 515.78,
+        "monthly_apy": 5.9,
+        "rebalance_cost": 52.45
+      },
+      {
+        "month": "2025-03",
+        "balance": 105798.38,
+        "profit": 482.94,
+        "monthly_apy": 5.5,
+        "rebalance_cost": 52.68
+      }
+    ]
+  },
+  {
+    "strategy": "Conservative (40/30/20/10)",
+    "initial": 100000.0,
+    "final": 104954.76,
+    "total_return_pct": 4.95,
+    "annualized_apy_pct": 4.95,
+    "max_drawdown_pct": 0.0,
+    "sharpe_ratio": 31.9,
+    "total_rebalance_cost": 613.82,
+    "monthly": [
+      {
+        "month": "2024-04",
+        "balance": 100506.67,
+        "profit": 556.67,
+        "monthly_apy": 6.68,
+        "rebalance_cost": 50.0
+      },
+      {
+        "month": "2024-05",
+        "balance": 100959.78,
+        "profit": 503.37,
+        "monthly_apy": 6.01,
+        "rebalance_cost": 50.25
+      },
+      {
+        "month": "2024-06",
+        "balance": 101372.88,
+        "profit": 463.57,
+        "monthly_apy": 5.51,
+        "rebalance_cost": 50.48
+      },
+      {
+        "month": "2024-07",
+        "balance": 101747.11,
+        "profit": 424.92,
+        "monthly_apy": 5.03,
+        "rebalance_cost": 50.69
+      },
+      {
+        "month": "2024-08",
+        "balance": 102087.12,
+        "profit": 390.88,
+        "monthly_apy": 4.61,
+        "rebalance_cost": 50.87
+      },
+      {
+        "month": "2024-09",
+        "balance": 102440.17,
+        "profit": 404.09,
+        "monthly_apy": 4.75,
+        "rebalance_cost": 51.04
+      },
+      {
+        "month": "2024-10",
+        "balance": 102812.37,
+        "profit": 423.42,
+        "monthly_apy": 4.96,
+        "rebalance_cost": 51.22
+      },
+      {
+        "month": "2024-11",
+        "balance": 103236.47,
+        "profit": 475.51,
+        "monthly_apy": 5.55,
+        "rebalance_cost": 51.41
+      },
+      {
+        "month": "2024-12",
+        "balance": 103718.24,
+        "profit": 533.39,
+        "monthly_apy": 6.2,
+        "rebalance_cost": 51.62
+      },
+      {
+        "month": "2025-01",
+        "balance": 104173.74,
+        "profit": 507.36,
+        "monthly_apy": 5.87,
+        "rebalance_cost": 51.86
+      },
+      {
+        "month": "2025-02",
+        "balance": 104580.01,
+        "profit": 458.36,
+        "monthly_apy": 5.28,
+        "rebalance_cost": 52.09
+      },
+      {
+        "month": "2025-03",
+        "balance": 104954.76,
+        "profit": 427.04,
+        "monthly_apy": 4.9,
+        "rebalance_cost": 52.29
+      }
+    ]
+  },
+  {
+    "strategy": "Aggressive (20/20/20/40)",
+    "initial": 100000.0,
+    "final": 107228.47,
+    "total_return_pct": 7.23,
+    "annualized_apy_pct": 7.23,
+    "max_drawdown_pct": 0.0,
+    "sharpe_ratio": 24.38,
+    "total_rebalance_cost": 619.96,
+    "monthly": [
+      {
+        "month": "2024-04",
+        "balance": 100745.0,
+        "profit": 795.0,
+        "monthly_apy": 9.54,
+        "rebalance_cost": 50.0
+      },
+      {
+        "month": "2024-05",
+        "balance": 101374.66,
+        "profit": 680.03,
+        "monthly_apy": 8.1,
+        "rebalance_cost": 50.37
+      },
+      {
+        "month": "2024-06",
+        "balance": 101937.29,
+        "profit": 613.32,
+        "monthly_apy": 7.26,
+        "rebalance_cost": 50.69
+      },
+      {
+        "month": "2024-07",
+        "balance": 102433.38,
+        "profit": 547.06,
+        "monthly_apy": 6.44,
+        "rebalance_cost": 50.97
+      },
+      {
+        "month": "2024-08",
+        "balance": 102894.33,
+        "profit": 512.17,
+        "monthly_apy": 6.0,
+        "rebalance_cost": 51.22
+      },
+      {
+        "month": "2024-09",
+        "balance": 103434.53,
+        "profit": 591.64,
+        "monthly_apy": 6.9,
+        "rebalance_cost": 51.45
+      },
+      {
+        "month": "2024-10",
+        "balance": 104043.07,
+        "profit": 660.26,
+        "monthly_apy": 7.66,
+        "rebalance_cost": 51.72
+      },
+      {
+        "month": "2024-11",
+        "balance": 104719.35,
+        "profit": 728.3,
+        "monthly_apy": 8.4,
+        "rebalance_cost": 52.02
+      },
+      {
+        "month": "2024-12",
+        "balance": 105496.01,
+        "profit": 829.03,
+        "monthly_apy": 9.5,
+        "rebalance_cost": 52.36
+      },
+      {
+        "month": "2025-01",
+        "balance": 106144.81,
+        "profit": 701.55,
+        "monthly_apy": 7.98,
+        "rebalance_cost": 52.75
+      },
+      {
+        "month": "2025-02",
+        "balance": 106703.84,
+        "profit": 612.1,
+        "monthly_apy": 6.92,
+        "rebalance_cost": 53.07
+      },
+      {
+        "month": "2025-03",
+        "balance": 107228.47,
+        "profit": 577.98,
+        "monthly_apy": 6.5,
+        "rebalance_cost": 53.35
+      }
+    ]
+  }
+]
