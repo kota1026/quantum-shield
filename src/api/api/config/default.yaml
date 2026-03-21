@@ -85,7 +85,8 @@ l1:
   # prover_registry_address: "0x..."      # Set when deployed to Sepolia/mainnet
 
 # L1 Sepolia Configuration (Phase 8-D)
-l1_rpc_url: "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID"
+# Set via QS__L1_RPC_URL env var with your own Infura/Alchemy key
+l1_rpc_url: "https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID"
 l1_chain_id: 11155111
 # L1 Vault address on Sepolia (v3.0.0 - ProverRegistry + Auto-claim)
 l1_vault_address: "0x43aF0A4b58CC3f040eF05746e72021dE6D35115B"

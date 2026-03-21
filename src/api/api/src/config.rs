@@ -266,7 +266,7 @@ pub struct L1SyncConfig {
 fn default_l1_sync_enabled() -> bool { true }
 fn default_l1_sync_poll_interval() -> u64 { 300 } // 5 minutes
 fn default_l1_sync_rpc_url() -> String {
-    "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID".to_string()
+    std::env::var("QS__L1_RPC_URL").unwrap_or_else(|_| "https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID".to_string())
 }
 
 impl Default for L1SyncConfig {
