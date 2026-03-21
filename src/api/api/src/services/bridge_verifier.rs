@@ -13,6 +13,7 @@
 //! - BE-003: Full logging
 
 use ethers::prelude::*;
+use ethers::types::{H256, Filter};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{info, warn, instrument};
@@ -151,16 +152,19 @@ impl BridgeVerifierService {
     ) -> Result<BridgeVerificationResult, L1Error> {
         let status = self.get_verification_status(l3_tx_hash).await?;
 
-        // If verified, get additional details from events
+        // If verified, get additional details from VerificationCompleted events
         let (l1_tx_hash, verified_at, block_number) = if status == VerificationStatus::Verified {
-            // Query VerificationCompleted event
-            // In production, this would filter logs for the specific L3 tx hash
-            // For now, return placeholder values
-            (
-                Some(format!("0x{}", "0".repeat(64))), // Placeholder
-                Some(chrono::Utc::now().timestamp() as u64),
-                Some(0u64),
-            )
+            match self.fetch_verification_event(l3_tx_hash).await {
+                Ok(details) => details,
+                Err(e) => {
+                    warn!(
+                        l3_tx_hash = %l3_tx_hash,
+                        error = %e,
+                        "Failed to fetch VerificationCompleted event, returning status only"
+                    );
+                    (None, None, None)
+                }
+            }
         } else {
             (None, None, None)
         };
@@ -172,6 +176,69 @@ impl BridgeVerifierService {
             verified_at,
             block_number,
         })
+    }
+
+    /// Fetch VerificationCompleted event details for a given L3 tx hash
+    ///
+    /// Queries L1 logs for the VerificationCompleted event filtered by the L3 tx hash.
+    /// Returns (l1_tx_hash, verified_at_timestamp, block_number).
+    async fn fetch_verification_event(
+        &self,
+        l3_tx_hash: &str,
+    ) -> Result<(Option<String>, Option<u64>, Option<u64>), L1Error> {
+        let hash_bytes = hex::decode(l3_tx_hash.strip_prefix("0x").unwrap_or(l3_tx_hash))
+            .map_err(|_| L1Error::ContractCall("Invalid L3 tx hash".into()))?;
+
+        if hash_bytes.len() != 32 {
+            return Err(L1Error::ContractCall("L3 tx hash must be 32 bytes".into()));
+        }
+
+        // VerificationCompleted(bytes32 indexed l3TxHash, ...)
+        // Topic0 = keccak256("VerificationCompleted(bytes32)")
+        // Topic1 = l3TxHash (indexed)
+        let topic1 = H256::from_slice(&hash_bytes);
+
+        // Search recent blocks (last ~10000 blocks)
+        let current_block = self.provider
+            .get_block_number()
+            .await
+            .map_err(|e| L1Error::ContractCall(format!("Failed to get block number: {}", e)))?
+            .as_u64();
+
+        let from_block = current_block.saturating_sub(10000);
+
+        let filter = Filter::new()
+            .address(self.contract_address)
+            .from_block(from_block)
+            .to_block(current_block)
+            .topic1(topic1);
+
+        let logs = self.provider
+            .get_logs(&filter)
+            .await
+            .map_err(|e| L1Error::ContractCall(format!("Failed to fetch verification logs: {}", e)))?;
+
+        if let Some(log) = logs.first() {
+            let l1_tx_hash = log.transaction_hash
+                .map(|h| format!("0x{}", hex::encode(h.as_bytes())));
+            let block_number = log.block_number.map(|b| b.as_u64());
+
+            // Get block timestamp
+            let verified_at = if let Some(block_num) = log.block_number {
+                if let Ok(Some(block)) = self.provider.get_block(block_num).await {
+                    Some(block.timestamp.as_u64())
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
+            Ok((l1_tx_hash, verified_at, block_number))
+        } else {
+            info!(l3_tx_hash = %l3_tx_hash, "No VerificationCompleted event found yet");
+            Ok((None, None, None))
+        }
     }
 
     /// Wait for verification to complete

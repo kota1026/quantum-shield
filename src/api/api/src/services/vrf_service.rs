@@ -85,10 +85,20 @@ impl VRFService {
     ///
     /// If `private_key` is set and `contract_address` is not the zero address,
     /// creates real contract bindings. Otherwise, operates in dev/stub mode.
+    ///
+    /// In production mode (RUN_MODE=production), the service MUST have a real
+    /// contract connection. Dev mode stubs are not allowed in production.
     pub async fn new(config: &VRFConfig) -> Result<Self> {
         let is_zero_addr = config.contract_address == "0x0000000000000000000000000000000000000000";
+        let run_mode = std::env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
 
         if is_zero_addr || config.private_key.is_none() {
+            if run_mode == "production" {
+                anyhow::bail!(
+                    "VRF contract not configured in production mode. \
+                     Set vrf.contract_address and vrf.private_key for production deployment."
+                );
+            }
             info!(
                 contract_address = %config.contract_address,
                 "VRF Service initialized in DEV MODE (no contract connection)"

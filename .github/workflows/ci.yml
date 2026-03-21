@@ -80,6 +80,66 @@ jobs:
           path: src/crypto/circuits/dilithium-stark/*_output.txt
 
   # ========================================
+  # API Server Tests (Critical)
+  # ========================================
+  api-tests:
+    name: 🔧 API Server Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quantum
+          POSTGRES_PASSWORD: quantum_dev
+          POSTGRES_DB: quantum_shield
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-api-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run migrations
+        run: |
+          cd src/api/api
+          cargo install sqlx-cli --no-default-features --features postgres || true
+          DATABASE_URL="postgresql://quantum:quantum_dev@localhost:5432/quantum_shield" sqlx migrate run
+
+      - name: Build API Server
+        run: |
+          cd src/api/api
+          SQLX_OFFLINE=true cargo build -p quantum-shield-api
+
+      - name: Run API Tests
+        run: |
+          cd src/api/api
+          SQLX_OFFLINE=true cargo test
+        env:
+          DATABASE_URL: "postgresql://quantum:quantum_dev@localhost:5432/quantum_shield"
+
+  # ========================================
   # Lean4 Formal Proofs
   # ========================================
   lean4-proofs:
@@ -110,7 +170,6 @@ jobs:
           cd src/crypto/proofs/lean4
           lake update
           lake build
-        continue-on-error: true
 
   # ========================================
   # Solidity Tests
@@ -132,13 +191,11 @@ jobs:
         run: |
           cd src/l1/contracts
           forge build --force
-        continue-on-error: true
 
       - name: Run Tests
         run: |
           cd src/l1/contracts
           forge test -vv
-        continue-on-error: true
 
   # ========================================
   # Frontend E2E Tests
@@ -175,7 +232,6 @@ jobs:
         run: |
           cd src/frontend/web
           NO_SERVER=1 npx playwright test e2e/integration/ --project=chromium --reporter=list
-        continue-on-error: true
 
       - name: Upload E2E Report
         if: always()
@@ -225,5 +281,5 @@ jobs:
   notify:
     name: 📢 Notify
     runs-on: ubuntu-latest
-    needs: [rust-tests, lean4-proofs, solidity-tests, e2e-tests]
+    needs: [rust-tests, api-tests, lean4-proofs, solidity-tests, e2e-tests]
     if: always()

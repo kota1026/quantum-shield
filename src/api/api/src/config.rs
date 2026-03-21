@@ -461,6 +461,12 @@ impl Config {
             if cfg.security.skip_totp_verification {
                 panic!("SECURITY VIOLATION: skip_totp_verification=true in production mode. Aborting.");
             }
+            if cfg.jwt.secret == "development-secret-change-in-production" {
+                panic!("SECURITY VIOLATION: JWT secret is still the development default in production mode. Aborting.");
+            }
+            if !cfg.rate_limit.enabled {
+                panic!("SECURITY VIOLATION: rate_limit.enabled=false in production mode. Aborting.");
+            }
         }
 
         // L1 mainnet guard: min_stake must be >= 1 ETH

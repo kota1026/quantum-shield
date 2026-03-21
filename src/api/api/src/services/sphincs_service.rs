@@ -175,16 +175,28 @@ impl SphincsService {
         Self::validate_public_key(pubkey)?;
         Self::validate_signature_format(signature)?;
 
-        // TODO: Implement actual SPHINCS+ verification using pqcrypto-sphincsplus
-        // For now, we just validate the format
+        // Production guard: SPHINCS+ format-only validation is insufficient for production.
+        // When RUN_MODE=production, this will log a critical warning.
+        // Full cryptographic verification requires the pqcrypto-sphincsplus crate.
         //
-        // In production:
+        // Integration path:
         // let pk = pqcrypto_sphincsplus::sphincsshake128ssimple::PublicKey::from_bytes(&pk_bytes)?;
         // let sig = pqcrypto_sphincsplus::sphincsshake128ssimple::DetachedSignature::from_bytes(&sig_bytes)?;
         // pqcrypto_sphincsplus::sphincsshake128ssimple::verify_detached_signature(&sig, message, &pk)?;
 
-        // For development: validate format only
-        tracing::debug!("SPHINCS+ signature format validated (actual verification pending)");
+        let run_mode = std::env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
+        if run_mode == "production" {
+            tracing::error!(
+                "SPHINCS+ signature verification is format-only. \
+                 Production deployment requires pqcrypto-sphincsplus integration. \
+                 Set SPHINCS_VERIFY_MODE=format_only to explicitly accept this risk."
+            );
+            if std::env::var("SPHINCS_VERIFY_MODE").unwrap_or_default() != "format_only" {
+                return Err(SphincsError::VerificationFailed);
+            }
+        }
+
+        tracing::debug!("SPHINCS+ signature format validated (cryptographic verification pending pqcrypto-sphincsplus integration)");
 
         Ok(true)
     }
@@ -215,20 +227,34 @@ impl SphincsService {
         // Validate public key format
         Self::validate_public_key(pubkey)?;
 
-        // TODO: Implement actual HSM attestation verification
-        // This would verify:
+        // HSM attestation verification:
+        // Full implementation requires HSM vendor SDK integration to verify:
         // 1. Attestation signature from HSM vendor
         // 2. Key binding to the specific public key
         // 3. HSM security level meets requirements (FIPS 140-2 Level 3+)
 
-        // For development: basic format check
+        // Basic format check
         if !attestation.starts_with("HSM_ATT_") {
             return Err(SphincsError::InvalidHsmAttestation(
-                "Invalid attestation format".to_string(),
+                "Invalid attestation format: must start with HSM_ATT_ prefix".to_string(),
             ));
         }
 
-        tracing::debug!("HSM attestation format validated (actual verification pending)");
+        let run_mode = std::env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
+        if run_mode == "production" {
+            tracing::error!(
+                "HSM attestation verification is format-only. \
+                 Production deployment requires HSM vendor SDK integration. \
+                 Set HSM_VERIFY_MODE=format_only to explicitly accept this risk."
+            );
+            if std::env::var("HSM_VERIFY_MODE").unwrap_or_default() != "format_only" {
+                return Err(SphincsError::InvalidHsmAttestation(
+                    "HSM attestation cryptographic verification not implemented for production".to_string(),
+                ));
+            }
+        }
+
+        tracing::debug!("HSM attestation format validated (cryptographic verification pending HSM vendor SDK integration)");
 
         Ok(true)
     }

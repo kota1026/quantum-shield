@@ -190,27 +190,100 @@ impl L1Indexer {
         })
     }
 
+    /// Fetch UnlockExecuted events from L1
+    #[instrument(skip(self))]
+    pub async fn fetch_unlock_events(&self, from_block: u64, to_block: Option<u64>) -> Result<Vec<IndexedUnlock>, ApiError> {
+        let current_block = self.provider
+            .get_block_number()
+            .await
+            .map_err(|e| ApiError::Internal(format!("Failed to get block number: {}", e)))?
+            .as_u64();
+
+        let to = to_block.unwrap_or(current_block);
+
+        info!("Fetching UnlockExecuted events from block {} to {}", from_block, to);
+
+        let filter = Filter::new()
+            .address(self.vault_address)
+            .from_block(from_block)
+            .to_block(to)
+            .topic0(H256::from_str(UNLOCK_EXECUTED_SIGNATURE).unwrap_or_default());
+
+        let logs = self.provider
+            .get_logs(&filter)
+            .await
+            .map_err(|e| ApiError::Internal(format!("Failed to fetch unlock logs: {}", e)))?;
+
+        info!("Found {} UnlockExecuted events", logs.len());
+
+        let mut unlocks = Vec::new();
+        for log in logs {
+            if let Some(indexed) = self.parse_unlock_event(&log) {
+                unlocks.push(indexed);
+            }
+        }
+
+        Ok(unlocks)
+    }
+
+    /// Parse an UnlockExecuted event log
+    /// UnlockExecuted(bytes32 indexed lockId, address indexed recipient, uint256 amount)
+    fn parse_unlock_event(&self, log: &Log) -> Option<IndexedUnlock> {
+        if log.topics.len() < 3 {
+            warn!("Invalid UnlockExecuted event: not enough topics");
+            return None;
+        }
+
+        let lock_id = format!("0x{}", hex::encode(log.topics[1].as_bytes()));
+        let recipient = format!("0x{}", hex::encode(&log.topics[2].as_bytes()[12..32]));
+
+        let amount = if log.data.len() >= 32 {
+            let amount_bytes = &log.data[0..32];
+            let amount_u256 = U256::from_big_endian(amount_bytes);
+            BigDecimal::from_str(&amount_u256.to_string()).unwrap_or_default()
+        } else {
+            BigDecimal::from(0)
+        };
+
+        let tx_hash = log.transaction_hash
+            .map(|h| format!("0x{}", hex::encode(h.as_bytes())))
+            .unwrap_or_default();
+
+        let block_number = log.block_number.map(|b| b.as_u64()).unwrap_or(0);
+
+        Some(IndexedUnlock {
+            lock_id,
+            recipient,
+            amount,
+            tx_hash,
+            block_number,
+        })
+    }
+
     /// Get dashboard stats from L1
     #[instrument(skip(self))]
     pub async fn get_dashboard_stats(&self) -> Result<L1DashboardStats, ApiError> {
         // Get TVL
         let total_tvl_wei = self.get_total_locked().await?;
 
-        // Fetch all Locked events from deployment block
-        // L1Vault was deployed around block ~7000000 on Sepolia (estimate)
+        // Fetch all events from deployment block
         // L1Vault v2.0.0 deployed on Sepolia around block 10190000
         let deployment_block = 10190000u64;
         let locks = self.fetch_locked_events(deployment_block, None).await?;
+        let unlocks = self.fetch_unlock_events(deployment_block, None).await?;
 
-        // Count unique users
-        let unique_users: std::collections::HashSet<String> = locks
+        // Count unique users (from both locks and unlocks)
+        let mut unique_users: std::collections::HashSet<String> = locks
             .iter()
             .map(|l| l.sender.to_lowercase())
             .collect();
+        for unlock in &unlocks {
+            unique_users.insert(unlock.recipient.to_lowercase());
+        }
 
         Ok(L1DashboardStats {
             total_locks: locks.len() as u64,
-            total_unlocks: 0, // TODO: Fetch UnlockExecuted events
+            total_unlocks: unlocks.len() as u64,
             total_tvl_wei,
             unique_users: unique_users.len() as u64,
             locks,
