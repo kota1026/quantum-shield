@@ -24,12 +24,20 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 ///    TVL: ~$50M+ | Direct pair available
 ///
 ///  USDC ↔ USDe:
-///    Pool: USDe/USDC (0x02950460E2b9529D0E00284A5fA2d7bDF3fA4d72)
-///    Or via: USDe/DAI → DAI/USDC
-///    TVL: Growing | Ethena expanding liquidity
+///    ⚠️ 直接の Curve pool が存在しない可能性あり
+///    Option A: USDe/USDC pool (0x02950460...) が存在する場合はそれを使用
+///    Option B: USDe を Uniswap V3 等の外部 DEX 経由でスワップ
+///    Option C: 1inch/Paraswap 等の aggregator 経由
+///    → デプロイ前にオンチェーンで pool の存在確認が必須
+///
+///  FRAX ↔ USDC:
+///    ⚠️ FRAXBP (0xDcEF968d...) は Metapool (FRAX/3CRV)
+///    直接 FRAX↔USDC のスワップは exchange_underlying() で可能
+///    または FRAX metapool (0x3175df09...) を使用
 ///
 ///  Strategy: 直接プールがある場合はそれを使い、
-///            ない場合は最も流動性の高いルートを経由する。
+///            ない場合は fallback DEX を経由する。
+///            デプロイ時に setPool() で正しいアドレスを設定。
 ///
 contract SwapRouter {
     using SafeERC20 for IERC20;
@@ -44,22 +52,25 @@ contract SwapRouter {
     address public constant FRAX = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
     address public constant USDE = 0x4c9EDD5852cd905f086C759E8383e09bff1E68B3;
 
-    // Curve Pools
-    address public constant THREE_POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;  // DAI/USDC/USDT
-    address public constant FRAXBP = 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2;       // FRAX/USDC
-    address public constant USDE_USDC = 0x02950460E2b9529D0E00284A5fA2d7bDF3fA4d72;    // USDe/USDC
+    // Curve Pools (confirmed on-chain)
+    address public constant THREE_POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;  // DAI/USDC/USDT ($165M+ TVL)
+    address public constant FRAX_META = 0x3175Df0976dFA876431C2E9eE6bC45b65d3473CC;   // FRAX/3CRV Metapool
 
-    // 3pool indices
+    // USDe pool - configurable (may not exist on Curve, needs on-chain verification)
+    address public usdePool;
+
+    // 3pool indices (verified)
     int128 public constant THREE_POOL_DAI = 0;
     int128 public constant THREE_POOL_USDC = 1;
 
-    // FRAXBP indices
-    int128 public constant FRAXBP_FRAX = 0;
-    int128 public constant FRAXBP_USDC = 1;
+    // FRAX Metapool indices
+    // exchange_underlying: FRAX=0, DAI=1, USDC=2, USDT=3
+    int128 public constant FRAX_META_FRAX = 0;
+    int128 public constant FRAX_META_USDC = 2;  // underlying index for USDC
 
-    // USDe/USDC indices
-    int128 public constant USDE_POOL_USDE = 0;
-    int128 public constant USDE_POOL_USDC = 1;
+    // USDe pool indices (configurable)
+    int128 public usdeIndexUsde = 0;
+    int128 public usdeIndexUsdc = 1;
 
     // ═══════════════════════════════════════════════════════════════
     //  Types
@@ -69,6 +80,7 @@ contract SwapRouter {
         address pool;
         int128 fromIndex;
         int128 toIndex;
+        bool useUnderlying; // true = exchange_underlying (for metapools)
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -77,25 +89,51 @@ contract SwapRouter {
 
     address public owner;
     uint256 public defaultSlippageBps = 30; // 0.3%
+    bool public usdeEnabled;                // USDe pool が確認できたら true
 
     // ═══════════════════════════════════════════════════════════════
     //  Events / Errors
     // ═══════════════════════════════════════════════════════════════
 
     event Swapped(address indexed from, address indexed to, uint256 amountIn, uint256 amountOut);
+    event UsdePoolUpdated(address pool, int128 idxUsde, int128 idxUsdc);
     error UnsupportedPair(address from, address to);
+    error UsdeNotEnabled();
     error SlippageExceeded(uint256 expected, uint256 actual);
 
     constructor() {
         owner = msg.sender;
 
-        // Approve pools
+        // Approve confirmed pools
         IERC20(USDC).safeApprove(THREE_POOL, type(uint256).max);
-        IERC20(USDC).safeApprove(FRAXBP, type(uint256).max);
-        IERC20(USDC).safeApprove(USDE_USDC, type(uint256).max);
+        IERC20(USDC).safeApprove(FRAX_META, type(uint256).max);
         IERC20(DAI).safeApprove(THREE_POOL, type(uint256).max);
-        IERC20(FRAX).safeApprove(FRAXBP, type(uint256).max);
-        IERC20(USDE).safeApprove(USDE_USDC, type(uint256).max);
+        IERC20(FRAX).safeApprove(FRAX_META, type(uint256).max);
+        // USDe pool approval deferred until setUsdePool() is called
+    }
+
+    /// @notice USDe pool を設定（デプロイ後にオンチェーン確認してから）
+    /// @dev Curve に USDe/USDC pool が確認できたら呼ぶ。
+    ///      なければ sUSDe への配分を 0% にして運用する。
+    function setUsdePool(address _pool, int128 _idxUsde, int128 _idxUsdc) external {
+        require(msg.sender == owner, "!owner");
+        require(_pool != address(0), "zero address");
+
+        // Verify pool actually works by calling get_dy
+        (bool ok,) = _pool.staticcall(
+            abi.encodeWithSignature("get_dy(int128,int128,uint256)", _idxUsdc, _idxUsde, uint256(1e6))
+        );
+        require(ok, "pool verification failed");
+
+        usdePool = _pool;
+        usdeIndexUsde = _idxUsde;
+        usdeIndexUsdc = _idxUsdc;
+        usdeEnabled = true;
+
+        IERC20(USDC).safeApprove(_pool, type(uint256).max);
+        IERC20(USDE).safeApprove(_pool, type(uint256).max);
+
+        emit UsdePoolUpdated(_pool, _idxUsde, _idxUsdc);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -151,60 +189,57 @@ contract SwapRouter {
     // ═══════════════════════════════════════════════════════════════
 
     /// @notice トークンペアに最適なルートを返す
-    function _getRoute(address _from, address _to) internal pure returns (Route memory) {
-        // USDC → DAI (3pool)
+    function _getRoute(address _from, address _to) internal view returns (Route memory) {
+        // USDC ↔ DAI: 3pool (direct, highest liquidity)
         if (_from == USDC && _to == DAI) {
-            return Route(THREE_POOL, THREE_POOL_USDC, THREE_POOL_DAI);
+            return Route(THREE_POOL, THREE_POOL_USDC, THREE_POOL_DAI, false);
         }
-        // DAI → USDC (3pool)
         if (_from == DAI && _to == USDC) {
-            return Route(THREE_POOL, THREE_POOL_DAI, THREE_POOL_USDC);
+            return Route(THREE_POOL, THREE_POOL_DAI, THREE_POOL_USDC, false);
         }
-        // USDC → FRAX (FRAXBP)
+
+        // USDC ↔ FRAX: Metapool (exchange_underlying)
         if (_from == USDC && _to == FRAX) {
-            return Route(FRAXBP, FRAXBP_USDC, FRAXBP_FRAX);
+            return Route(FRAX_META, FRAX_META_USDC, FRAX_META_FRAX, true);
         }
-        // FRAX → USDC (FRAXBP)
         if (_from == FRAX && _to == USDC) {
-            return Route(FRAXBP, FRAXBP_FRAX, FRAXBP_USDC);
+            return Route(FRAX_META, FRAX_META_FRAX, FRAX_META_USDC, true);
         }
-        // USDC → USDe
-        if (_from == USDC && _to == USDE) {
-            return Route(USDE_USDC, USDE_POOL_USDC, USDE_POOL_USDE);
-        }
-        // USDe → USDC
-        if (_from == USDE && _to == USDC) {
-            return Route(USDE_USDC, USDE_POOL_USDE, USDE_POOL_USDC);
+
+        // USDC ↔ USDe: Configurable pool (must be set via setUsdePool)
+        if ((_from == USDC && _to == USDE) || (_from == USDE && _to == USDC)) {
+            if (!usdeEnabled) revert UsdeNotEnabled();
+            if (_from == USDC) {
+                return Route(usdePool, usdeIndexUsdc, usdeIndexUsde, false);
+            } else {
+                return Route(usdePool, usdeIndexUsde, usdeIndexUsdc, false);
+            }
         }
 
         revert UnsupportedPair(_from, _to);
     }
 
-    /// @notice Curve pool の get_dy を呼ぶ
+    /// @notice Curve pool の get_dy (or get_dy_underlying for metapools)
     function _getExpectedOutput(Route memory _route, uint256 _amount) internal view returns (uint256) {
-        // Curve pool の get_dy(i, j, dx)
+        string memory fn = _route.useUnderlying
+            ? "get_dy_underlying(int128,int128,uint256)"
+            : "get_dy(int128,int128,uint256)";
+
         (bool success, bytes memory data) = _route.pool.staticcall(
-            abi.encodeWithSignature(
-                "get_dy(int128,int128,uint256)",
-                _route.fromIndex,
-                _route.toIndex,
-                _amount
-            )
+            abi.encodeWithSignature(fn, _route.fromIndex, _route.toIndex, _amount)
         );
         require(success, "get_dy failed");
         return abi.decode(data, (uint256));
     }
 
-    /// @notice Curve pool の exchange を実行
+    /// @notice Curve pool の exchange (or exchange_underlying for metapools)
     function _executeSwap(Route memory _route, uint256 _amount, uint256 _minOut) internal returns (uint256) {
+        string memory fn = _route.useUnderlying
+            ? "exchange_underlying(int128,int128,uint256,uint256)"
+            : "exchange(int128,int128,uint256,uint256)";
+
         (bool success, bytes memory data) = _route.pool.call(
-            abi.encodeWithSignature(
-                "exchange(int128,int128,uint256,uint256)",
-                _route.fromIndex,
-                _route.toIndex,
-                _amount,
-                _minOut
-            )
+            abi.encodeWithSignature(fn, _route.fromIndex, _route.toIndex, _amount, _minOut)
         );
         require(success, "exchange failed");
 
