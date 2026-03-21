@@ -37,9 +37,9 @@ test.describe('SIWE Authentication API', () => {
   test('SIWE endpoint returns JWT for valid signature', async ({ request }) => {
     // This test validates the real SIWE flow using ethers.js
     const { ethers } = await import('ethers');
-    const wallet = new ethers.Wallet(
-      '0xREDACTED_ETH_PRIVATE_KEY'
-    );
+    const testKey = process.env.E2E_TEST_PRIVATE_KEY ||
+      '0x0000000000000000000000000000000000000000000000000000000000000001';
+    const wallet = new ethers.Wallet(testKey);
 
     const nonce = Math.random().toString(36).substring(2, 15);
     const issuedAt = new Date().toISOString();

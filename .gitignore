@@ -2,7 +2,26 @@
 **/target
 .DS_Store
 proofs/lean4/.lake/
+
+# Environment files (NEVER commit secrets)
 .env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Cryptographic keys
+*.key
+*.pem
+*.p12
+*.pfx
+src/l3/docker/keys/node*/
+
+# Production/testnet configs with secrets
+src/api/api/config/production.yaml
+src/api/api/config/testnet.yaml
+
 node_modules/
 **/node_modules/
 dist/

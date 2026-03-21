@@ -20,9 +20,11 @@
 import { ethers } from 'ethers';
 import type { Page } from '@playwright/test';
 
-// Test wallet private key from contracts/.env (Sepolia testnet)
+// Test wallet private key from environment (Sepolia testnet)
+// Set via E2E_TEST_PRIVATE_KEY env var or .env.test (never hardcode)
 const TEST_PRIVATE_KEY =
-  '0xREDACTED_ETH_PRIVATE_KEY';
+  process.env.E2E_TEST_PRIVATE_KEY ||
+  '0x0000000000000000000000000000000000000000000000000000000000000001';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
 
