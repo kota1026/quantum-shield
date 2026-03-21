@@ -1,0 +1,37 @@
+To: partners@fireblocks.com (or Technology Partner Program form)
+Subject: Post-Quantum Custody Technology — Partnership Proposal (NIST FIPS 204+205)
+---
+
+Hi Fireblocks Partnership Team,
+
+I'm the founder of Quantum Shield, the first production-ready post-quantum
+asset custody protocol using both NIST PQ standards (FIPS 204 + FIPS 205).
+
+I'm reaching out because integrating PQ signature support into Fireblocks'
+custody workflow would give your institutional clients quantum readiness
+before Ethereum's native PQ upgrade (estimated 2028-2029).
+
+What we've built (100% complete):
+- Dual NIST PQ signatures: ML-DSA-65 (Dilithium) + SLH-DSA-128s (SPHINCS+)
+- 15 smart contracts live on Ethereum Sepolia + Arbitrum Sepolia
+- 460+ REST API endpoints (Rust/Axum)
+- 24h timelock + VRF prover selection + Quadratic Slashing
+- 107 integration tests, 137/137 E2E tests passing
+
+Partnership proposal:
+1. Integrate Quantum Shield's PQ signing into Fireblocks' MPC workflow
+2. Offer "Quantum-Safe Vault" as a premium tier for institutional clients
+3. Joint marketing: "First quantum-resistant custody solution"
+
+Why now:
+- EF just elevated PQ security to top strategic priority (Jan 2026)
+- EU DORA mandates quantum-resistant crypto for financial infra
+- Your competitors (Copper, Anchorage) don't have PQ yet
+
+I'd love to schedule a 30-minute technical demo. We can show the full
+Lock → 24h Timelock → Auto-Claim → Unlock flow live on Sepolia.
+
+Best regards,
+[Your Name]
+[Email]
+GitHub: https://github.com/kota1026/quantum-shield

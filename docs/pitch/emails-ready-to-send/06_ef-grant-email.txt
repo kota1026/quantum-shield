@@ -1,0 +1,39 @@
+To: esp@ethereum.foundation (or submit via https://esp.ethereum.foundation/applicants)
+Subject: Grant Application — Quantum Shield: Post-Quantum Custody (100% Built, Seeking Audit + Launch)
+---
+
+Dear ESP Team,
+
+I'm submitting a grant application for Quantum Shield, a post-quantum
+asset protection protocol using both NIST FIPS 204 (ML-DSA) and
+FIPS 205 (SLH-DSA) on Ethereum.
+
+Unlike most applications proposing to build something, we're applying
+for funding to AUDIT and DEPLOY what's already 100% complete:
+
+What's built:
+- Dual NIST PQ signatures (Dilithium + SPHINCS+) — application layer
+- L1 Vault on Sepolia: 0x43aF0A4b58CC3f040eF05746e72021dE6D35115B
+- 12 L3 contracts on Arbitrum Sepolia (Sourcify verified)
+- 460+ API endpoints, 251 frontend pages, 107 integration tests
+- Novel Quadratic Slashing mechanism (N² penalty for collusion)
+- Zero mock/fallback data in production code
+
+What we need:
+- $200-300K for security audit + mainnet deployment
+- 6 months to Ethereum mainnet
+
+Alignment with EF priorities:
+- PQ security is now EF's top strategic priority (Jan 2026)
+- Complements Thomas Coratger's PQ team work at protocol level
+- Quadratic Slashing research applicable to Ethereum validator economics
+- All grant-funded work will be open-source (MIT License)
+
+Full application attached / available at:
+https://github.com/kota1026/quantum-shield/blob/master/docs/pitch/ef-grant-application-v2.md
+
+I'd welcome the opportunity to present a live demo to the ESP team.
+
+Best regards,
+[Your Name]
+[Email]

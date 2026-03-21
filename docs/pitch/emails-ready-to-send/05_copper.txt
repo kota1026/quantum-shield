@@ -1,0 +1,30 @@
+To: partnerships@copper.co (or website contact form)
+Subject: Post-Quantum Custody Integration — Technology Partnership
+---
+
+Hi Copper Team,
+
+I've built Quantum Shield — the first NIST FIPS 204 + 205 compliant
+post-quantum custody protocol on Ethereum. It's 100% complete with
+15 deployed contracts on Ethereum and Arbitrum testnets.
+
+Your institutional custody clients will inevitably need quantum
+readiness. I'd like to explore integrating our PQ signing technology
+into Copper's ClearLoop or standalone custody infrastructure.
+
+Quick facts:
+- Dual PQ: ML-DSA (Dilithium) + SLH-DSA (SPHINCS+)
+- 460+ API endpoints, 251 pages, full i18n
+- 24h timelock + VRF + Quadratic Slashing (N² collusion penalty)
+- 107 integration tests all passing
+
+Options:
+1. Technology partnership — integrate PQ signatures into Copper
+2. White-label licensing — Copper-branded PQ custody
+3. Acquisition — full IP transfer + technical support period
+
+15 minutes for a quick intro call?
+
+Best,
+[Your Name]
+[Email]

@@ -1,0 +1,41 @@
+To: [SBI VC Trade 問い合わせフォーム or 担当者メール]
+Subject: 【ご提案】NIST準拠 耐量子暗号カストディ技術のライセンス
+---
+
+SBI VC Trade ご担当者様
+
+突然のご連絡失礼いたします。
+耐量子暗号カストディプロトコル「Quantum Shield」を開発しております[Your Name]と申します。
+
+2024年8月のNIST耐量子暗号標準（FIPS 204/205）確定を受け、
+金融庁でもPQC対応のガイドライン策定が進んでいると伺っております。
+
+貴社はSBIグループのデジタルアセット戦略の中核として、
+規制対応とセキュリティに高い基準を持たれていると理解しております。
+
+弊プロトコルは以下の特長を持ちます：
+
+■ 技術仕様
+・NIST FIPS 204（ML-DSA Dilithium）+ FIPS 205（SLH-DSA SPHINCS+）デュアル署名
+・Ethereum L1 + Arbitrum L3 デュアルチェーン構成
+・24時間タイムロック + VRF Prover選出 + 二次罰則(Quadratic Slashing)
+・460+ APIエンドポイント、251ページのフルUI（日英対応）
+
+■ 実装状況（100%完成）
+・Ethereum Sepolia: 3コントラクトデプロイ済み
+・Arbitrum Sepolia: 12コントラクト（Sourcify検証済み）
+・統合テスト107件、E2Eテスト137/137パス
+
+■ 貴社にとっての価値
+・EU DORA / 米国Executive Order 14110への先行対応
+・「量子耐性カストディ」による顧客への差別化訴求
+・自社開発（2-3年/数億円）に対し、ライセンスで3ヶ月以内に導入可能
+
+30分のオンラインデモにて、実際のLock/Unlock/Emergency Unlockフローを
+ご覧いただけます。
+
+ご興味がございましたら、お気軽にご返信いただけますと幸いです。
+
+[Your Name]
+[Email]
+[Phone]
