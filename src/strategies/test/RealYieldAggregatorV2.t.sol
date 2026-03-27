@@ -18,11 +18,25 @@ contract RealYieldV2UnitTest is Test {
     address constant SDAI = 0x83F20F44975D03b1b09e64809B757c47f942BEeA;
     address constant SFRAX = 0xA663B02CF0a4b149d2aD41910CB81e23e1c41c32;
     address constant SUSDE = 0x9D39A5DE30e57443BfF2A8307A4256c8797A3497;
-    address constant CURVE = address(0xC04VE);
+    address constant CURVE = address(0xC04E);
 
     function setUp() public {
         // Mock Curve pool
         vm.mockCall(CURVE, abi.encodeWithSignature("get_dy(int128,int128,uint256)"), abi.encode(uint256(0)));
+
+        // Mock all token calls (required by OZ v5 forceApprove + balance checks)
+        vm.mockCall(USDC, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
+        vm.mockCall(DAI, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
+        vm.mockCall(FRAX, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
+        vm.mockCall(USDE, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
+        vm.mockCall(USDC, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(A_USDC, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(SDAI, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(SFRAX, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(SUSDE, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(SDAI, abi.encodeWithSignature("convertToAssets(uint256)"), abi.encode(uint256(0)));
+        vm.mockCall(SFRAX, abi.encodeWithSignature("convertToAssets(uint256)"), abi.encode(uint256(0)));
+        vm.mockCall(SUSDE, abi.encodeWithSignature("convertToAssets(uint256)"), abi.encode(uint256(0)));
 
         RealYieldAggregatorV2.Params memory p = RealYieldAggregatorV2.Params({
             usdc: USDC,

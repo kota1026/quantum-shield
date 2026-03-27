@@ -49,6 +49,20 @@ contract RealYieldAggregatorTest is Test {
     // ─── Setup ────────────────────────────────────────────────
 
     function setUp() public {
+        // Mock all token calls (required by OZ v5 forceApprove + balance checks)
+        vm.mockCall(USDC, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
+        vm.mockCall(DAI, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
+        vm.mockCall(FRAX, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
+        vm.mockCall(USDE, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
+        vm.mockCall(USDC, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(A_USDC, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(SDAI, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(SFRAX, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(SUSDE, abi.encodeWithSignature("balanceOf(address)"), abi.encode(uint256(0)));
+        vm.mockCall(SDAI, abi.encodeWithSignature("convertToAssets(uint256)"), abi.encode(uint256(0)));
+        vm.mockCall(SFRAX, abi.encodeWithSignature("convertToAssets(uint256)"), abi.encode(uint256(0)));
+        vm.mockCall(SUSDE, abi.encodeWithSignature("convertToAssets(uint256)"), abi.encode(uint256(0)));
+
         // Deploy with mock Curve pool (fork tests would use real pool)
         vm.mockCall(
             CURVE_POOL,
@@ -154,7 +168,7 @@ contract RealYieldAggregatorTest is Test {
     }
 
     function test_keeperCanHarvest() public {
-        address keeperAddr = address(0xKEEP);
+        address keeperAddr = address(0xBEEF);
         strategy.setKeeper(keeperAddr);
 
         // harvest should not revert for keeper (will revert on mock calls but that's ok)
@@ -221,13 +235,13 @@ contract RealYieldAggregatorTest is Test {
     // ═══════════════════════════════════════════════════════════
 
     function test_setManagement() public {
-        address newManager = address(0xNEW);
+        address newManager = address(0xABCD);
         strategy.setManagement(newManager);
         assertEq(strategy.management(), newManager);
     }
 
     function test_setKeeper() public {
-        address newKeeper = address(0xKEEP);
+        address newKeeper = address(0xBEEF);
         strategy.setKeeper(newKeeper);
         assertEq(strategy.keeper(), newKeeper);
     }

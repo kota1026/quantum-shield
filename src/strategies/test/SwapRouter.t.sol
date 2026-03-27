@@ -15,7 +15,7 @@ contract SwapRouterUnitTest is Test {
     address constant USDE = 0x4c9EDD5852cd905f086C759E8383e09bff1E68B3;
 
     function setUp() public {
-        // Mock token approvals (safeApprove calls in constructor)
+        // Mock token approvals (forceApprove calls in constructor)
         vm.mockCall(USDC, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
         vm.mockCall(DAI, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
         vm.mockCall(FRAX, abi.encodeWithSignature("approve(address,uint256)"), abi.encode(true));
@@ -36,7 +36,7 @@ contract SwapRouterUnitTest is Test {
         assertEq(router.FRAX(), FRAX);
         assertEq(router.USDE(), USDE);
         assertEq(router.THREE_POOL(), 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
-        assertEq(router.FRAX_META(), 0x3175Df0976dFA876431C2E9eE6bC45b65d3473CC);
+        assertEq(router.FRAX_META(), 0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC);
     }
 
     function test_usdeNotEnabledByDefault() public view {
@@ -137,7 +137,7 @@ contract SwapRouterUnitTest is Test {
         assertGt(out, 0);
     }
 
-    function test_swap_zeroAmount() public view {
+    function test_swap_zeroAmount() public {
         uint256 out = router.swap(USDC, DAI, 0, 0);
         assertEq(out, 0);
     }
@@ -166,7 +166,7 @@ contract SwapRouterUnitTest is Test {
 
     function test_unsupportedPair() public {
         address WETH = makeAddr("WETH");
-        vm.expectRevert(abi.encodeWithError(SwapRouter.UnsupportedPair.selector, (USDC, WETH)));
+        vm.expectRevert(abi.encodeWithSelector(SwapRouter.UnsupportedPair.selector, USDC, WETH));
         router.getExpectedOutput(USDC, WETH, 1000);
     }
 }

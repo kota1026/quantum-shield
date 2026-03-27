@@ -49,12 +49,10 @@ contract RealYieldAggregatorV3 is BaseStrategy {
     uint256 public constant YEAR = 365.25 days;
 
     // Withdrawal queue: 流動性が高い順に引出す
-    uint8[4] public constant WITHDRAW_QUEUE = [
-        0, // Aave: instant, no swap needed
-        1, // sDAI: instant, 1 swap
-        2, // sFRAX: instant, 1 swap
-        3  // sUSDe: 7d cooldown possible, 1 swap
-    ];
+    // Aave(0) → sDAI(1) → sFRAX(2) → sUSDe(3)
+    function withdrawQueue() public pure returns (uint8[4] memory q) {
+        q = [uint8(0), 1, 2, 3];
+    }
 
     // ═══════════════════════════════════════════════════════════════
     //  Immutables
@@ -147,16 +145,16 @@ contract RealYieldAggregatorV3 is BaseStrategy {
         targets = [uint256(3000), uint256(3000), uint256(2000), uint256(2000)];
 
         // Approvals: Aave + savings protocols
-        IERC20(p.usdc).safeApprove(p.aavePool, type(uint256).max);
-        IERC20(p.dai).safeApprove(p.sdai, type(uint256).max);
-        IERC20(p.frax).safeApprove(p.sfrax, type(uint256).max);
-        IERC20(p.usde).safeApprove(p.susde, type(uint256).max);
+        IERC20(p.usdc).forceApprove(p.aavePool, type(uint256).max);
+        IERC20(p.dai).forceApprove(p.sdai, type(uint256).max);
+        IERC20(p.frax).forceApprove(p.sfrax, type(uint256).max);
+        IERC20(p.usde).forceApprove(p.susde, type(uint256).max);
 
         // Approvals: SwapRouter
-        IERC20(p.usdc).safeApprove(p.router, type(uint256).max);
-        IERC20(p.dai).safeApprove(p.router, type(uint256).max);
-        IERC20(p.frax).safeApprove(p.router, type(uint256).max);
-        IERC20(p.usde).safeApprove(p.router, type(uint256).max);
+        IERC20(p.usdc).forceApprove(p.router, type(uint256).max);
+        IERC20(p.dai).forceApprove(p.router, type(uint256).max);
+        IERC20(p.frax).forceApprove(p.router, type(uint256).max);
+        IERC20(p.usde).forceApprove(p.router, type(uint256).max);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -197,8 +195,9 @@ contract RealYieldAggregatorV3 is BaseStrategy {
         remaining -= loose;
 
         // 2. Withdraw in queue order (most liquid first)
+        uint8[4] memory wq = withdrawQueue();
         for (uint8 q = 0; q < N && remaining > 0; q++) {
-            uint8 proto = WITHDRAW_QUEUE[q];
+            uint8 proto = wq[q];
             uint256 val = _protoValue(proto);
             if (val == 0) continue;
 

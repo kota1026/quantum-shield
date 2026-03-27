@@ -160,14 +160,14 @@ contract RealYieldAggregatorV2 is BaseStrategy {
         targets = [uint256(3000), uint256(3000), uint256(2000), uint256(2000)];
 
         // Approvals
-        IERC20(p.usdc).safeApprove(p.aavePool, type(uint256).max);
-        IERC20(p.usdc).safeApprove(p.curve_, type(uint256).max);
-        IERC20(p.dai).safeApprove(p.sdai_, type(uint256).max);
-        IERC20(p.dai).safeApprove(p.curve_, type(uint256).max);
-        IERC20(p.frax).safeApprove(p.sfrax_, type(uint256).max);
-        IERC20(p.frax).safeApprove(p.curve_, type(uint256).max);
-        IERC20(p.usde).safeApprove(p.susde_, type(uint256).max);
-        IERC20(p.usde).safeApprove(p.curve_, type(uint256).max);
+        IERC20(p.usdc).forceApprove(p.aavePool, type(uint256).max);
+        IERC20(p.usdc).forceApprove(p.curve_, type(uint256).max);
+        IERC20(p.dai).forceApprove(p.sdai_, type(uint256).max);
+        IERC20(p.dai).forceApprove(p.curve_, type(uint256).max);
+        IERC20(p.frax).forceApprove(p.sfrax_, type(uint256).max);
+        IERC20(p.frax).forceApprove(p.curve_, type(uint256).max);
+        IERC20(p.usde).forceApprove(p.susde_, type(uint256).max);
+        IERC20(p.usde).forceApprove(p.curve_, type(uint256).max);
     }
 
     // ═══════════════════════════════════════════════════════════════

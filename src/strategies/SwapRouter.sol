@@ -54,7 +54,7 @@ contract SwapRouter {
 
     // Curve Pools (confirmed on-chain)
     address public constant THREE_POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;  // DAI/USDC/USDT ($165M+ TVL)
-    address public constant FRAX_META = 0x3175Df0976dFA876431C2E9eE6bC45b65d3473CC;   // FRAX/3CRV Metapool
+    address public constant FRAX_META = 0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC;   // FRAX/3CRV Metapool
 
     // USDe pool - configurable (may not exist on Curve, needs on-chain verification)
     address public usdePool;
@@ -105,10 +105,10 @@ contract SwapRouter {
         owner = msg.sender;
 
         // Approve confirmed pools
-        IERC20(USDC).safeApprove(THREE_POOL, type(uint256).max);
-        IERC20(USDC).safeApprove(FRAX_META, type(uint256).max);
-        IERC20(DAI).safeApprove(THREE_POOL, type(uint256).max);
-        IERC20(FRAX).safeApprove(FRAX_META, type(uint256).max);
+        IERC20(USDC).forceApprove(THREE_POOL, type(uint256).max);
+        IERC20(USDC).forceApprove(FRAX_META, type(uint256).max);
+        IERC20(DAI).forceApprove(THREE_POOL, type(uint256).max);
+        IERC20(FRAX).forceApprove(FRAX_META, type(uint256).max);
         // USDe pool approval deferred until setUsdePool() is called
     }
 
@@ -130,8 +130,8 @@ contract SwapRouter {
         usdeIndexUsdc = _idxUsdc;
         usdeEnabled = true;
 
-        IERC20(USDC).safeApprove(_pool, type(uint256).max);
-        IERC20(USDE).safeApprove(_pool, type(uint256).max);
+        IERC20(USDC).forceApprove(_pool, type(uint256).max);
+        IERC20(USDE).forceApprove(_pool, type(uint256).max);
 
         emit UsdePoolUpdated(_pool, _idxUsde, _idxUsdc);
     }

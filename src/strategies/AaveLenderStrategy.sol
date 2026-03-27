@@ -61,7 +61,7 @@ contract AaveLenderStrategy {
         management = msg.sender;
 
         // Aave Pool に対して無制限 approve（初回のみ）
-        IERC20(_asset).safeApprove(_aavePool, type(uint256).max);
+        IERC20(_asset).forceApprove(_aavePool, type(uint256).max);
     }
 
     // ═══════════════════════════════════════════════════════════

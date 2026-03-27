@@ -16,7 +16,7 @@ import "forge-std/Script.sol";
 contract YieldSimulator is Script {
     // ─── Protocol Addresses (Ethereum Mainnet) ──────────────────
     address constant AAVE_POOL = 0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2;
-    address constant AAVE_DATA_PROVIDER = 0x7B4EB56E7CD4b454BA8ff71E4518426c84b5b7A5;
+    address constant AAVE_DATA_PROVIDER = 0x7b4eb56E7CD4B454BA8Ff71E4518426C84b5b7a5;
     address constant COMET_USDC = 0xc3d688B66703497DAA19211EEdff47f25384cdc3;
     address constant CURVE_3POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     address constant CURVE_GAUGE = 0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A;
@@ -190,11 +190,13 @@ contract YieldSimulator is Script {
                 + deposit * apyBps * apyBps * 3 / 100000000
                 + deposit * apyBps * apyBps * apyBps / 1000000000000;
 
-            console.log("  | $%s | $%s | $%s | $%s |",
-                _formatUSD(deposit),
-                _formatUSD(monthly),
-                _formatUSD(yearly),
-                _formatUSD(threeYear)
+            console.log(
+                string.concat(
+                    "  | $", _formatUSD(deposit),
+                    " | $", _formatUSD(monthly),
+                    " | $", _formatUSD(yearly),
+                    " | $", _formatUSD(threeYear), " |"
+                )
             );
         }
         console.log("");

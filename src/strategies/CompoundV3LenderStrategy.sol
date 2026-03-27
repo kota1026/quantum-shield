@@ -75,9 +75,9 @@ contract CompoundV3LenderStrategy {
         management = msg.sender;
 
         // Approve Comet for supply
-        IERC20(_asset).safeApprove(_comet, type(uint256).max);
+        IERC20(_asset).forceApprove(_comet, type(uint256).max);
         // Approve Router for COMP sells
-        IERC20(_comp).safeApprove(_swapRouter, type(uint256).max);
+        IERC20(_comp).forceApprove(_swapRouter, type(uint256).max);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -142,9 +142,9 @@ contract CompoundV3LenderStrategy {
         }
 
         // Step 4: 総資産を計算
-        uint256 cometBalance = comet.balanceOf(address(this)); // 元本 + 利息
+        uint256 cometBal = comet.balanceOf(address(this)); // 元本 + 利息
         uint256 loose = IERC20(asset).balanceOf(address(this));
-        totalAssets_ = cometBalance + loose;
+        totalAssets_ = cometBal + loose;
 
         emit Harvested(totalAssets_, compBalance, assetReceived);
     }

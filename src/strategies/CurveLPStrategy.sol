@@ -89,9 +89,9 @@ contract CurveLPStrategy {
         management = msg.sender;
 
         // Approvals
-        IERC20(_asset).safeApprove(_curvePool, type(uint256).max);  // USDC → 3pool
-        IERC20(_lpToken).safeApprove(_gauge, type(uint256).max);     // 3CRV → Gauge
-        IERC20(_crv).safeApprove(_swapRouter, type(uint256).max);    // CRV → Uniswap
+        IERC20(_asset).forceApprove(_curvePool, type(uint256).max);  // USDC → 3pool
+        IERC20(_lpToken).forceApprove(_gauge, type(uint256).max);     // 3CRV → Gauge
+        IERC20(_crv).forceApprove(_swapRouter, type(uint256).max);    // CRV → Uniswap
     }
 
     // ═══════════════════════════════════════════════════════════

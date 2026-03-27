@@ -48,7 +48,7 @@ contract GelatoResolver {
         if (strategy.needsRebalance()) {
             return (
                 true,
-                abi.encodeWithSelector(RealYieldAggregatorV2.harvestAndReport.selector)
+                abi.encodeWithSignature("report()")
             );
         }
 
@@ -57,7 +57,7 @@ contract GelatoResolver {
         if (lastHarvest > 0 && block.timestamp > lastHarvest + maxHarvestDelay) {
             return (
                 true,
-                abi.encodeWithSelector(RealYieldAggregatorV2.harvestAndReport.selector)
+                abi.encodeWithSignature("report()")
             );
         }
 
@@ -67,7 +67,7 @@ contract GelatoResolver {
         if (prevAssets > 0 && currentAssets > prevAssets + minProfitToHarvest) {
             return (
                 true,
-                abi.encodeWithSelector(RealYieldAggregatorV2.harvestAndReport.selector)
+                abi.encodeWithSignature("report()")
             );
         }
 
