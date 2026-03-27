@@ -40,6 +40,9 @@ l3-aegis/cache/
 # Claude worktrees
 .claude/worktrees/
 
+# Strategies Foundry artifacts
+out-strategies/
+
 # L3 Foundry artifacts
 src/l3/broadcast/
 src/l3/cache/
