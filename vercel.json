@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd src/frontend/web && pnpm install && pnpm build",
+  "installCommand": "npm i -g pnpm@9 && cd src/frontend/web && pnpm install",
+  "buildCommand": "cd src/frontend/web && pnpm build",
   "outputDirectory": "src/frontend/web/.next",
-  "installCommand": "corepack enable && corepack prepare pnpm@9 --activate && cd src/frontend/web && pnpm install",
   "framework": "nextjs"
 }
