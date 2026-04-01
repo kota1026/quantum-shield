@@ -5803,6 +5803,7 @@ packages:
 
   quantum-shield-wasm@file:../sdk/wasm/pkg:
     resolution: {directory: ../sdk/wasm/pkg, type: directory}
+    engines: {node: '>=18.0.0'}
 
   query-string@7.1.3:
     resolution: {integrity: sha512-hh2WYhq4fi8+b+/2Kg9CEge4fDPvHS534aOOvOZeQ3+Vf2mCFsaFBYj0i+iXcAq6I9Vzp5fjMFBlONvayDC1qg==}

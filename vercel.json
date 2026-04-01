@@ -1,6 +1,6 @@
 {
-  "installCommand": "corepack enable && cd src/frontend/web && pnpm install",
   "buildCommand": "cd src/frontend/web && pnpm build",
   "outputDirectory": "src/frontend/web/.next",
+  "installCommand": "cd src/frontend/web && pnpm install --no-frozen-lockfile",
   "framework": "nextjs"
 }
