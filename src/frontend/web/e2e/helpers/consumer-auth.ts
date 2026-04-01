@@ -20,9 +20,9 @@
 import { ethers } from 'ethers';
 import type { Page } from '@playwright/test';
 
-// Test wallet private key from contracts/.env (Sepolia testnet)
+// Test wallet private key - use env var or Anvil default account #0
 const TEST_PRIVATE_KEY =
-  '0xREDACTED_PRIVATE_KEY';
+  process.env.TEST_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
 

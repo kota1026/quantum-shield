@@ -1,318 +1,179 @@
-# Quantum Shield Bridge
+# Quantum Shield
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Rust](https://img.shields.io/badge/rust-1.70%2B-orange.svg)](https://www.rust-lang.org/)
-[![Solidity](https://img.shields.io/badge/solidity-0.8.20-blue.svg)](https://soliditylang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
+[![Solidity](https://img.shields.io/badge/solidity-0.8.24-blue.svg)](https://soliditylang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
 
-> **Post-Quantum Secure Cross-Chain Bridge using Dilithium Signatures and Zero-Knowledge Proofs**
+> Post-quantum asset protection protocol for Ethereum using NIST-standardized cryptography
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                         QUANTUM SHIELD BRIDGE                                ║
-║                                                                              ║
-║   "Quantum computers may break RSA, but they won't break Quantum Shield"    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+## What is Quantum Shield?
 
-## Overview
+Quantum Shield protects smart contract assets against quantum computing threats using **NIST FIPS 204 (ML-DSA/Dilithium)** and **FIPS 205 (SLH-DSA/SPHINCS+)** dual post-quantum signatures, combined with a decentralized Prover Pool, VRF-based selection, and time-locked custody.
 
-Quantum Shield Bridge is a production-ready framework that enables **quantum-resistant asset transfers** on Ethereum using:
+### Key Features
 
-- **Dilithium Signatures** (NIST FIPS 204) - Post-quantum digital signatures
-- **Plonky2 STARK** - Ultra-fast proof aggregation (~4ms for 8 signatures)
-- **SP1 zkVM** - Nested verification with Dilithium commitment checking
-- **Groth16 Proofs** - Constant 260-byte proofs for L1 submission
-
-### Key Achievement: 87.5% Gas Reduction
-
-| Metric | Individual (8x) | Aggregated (1x) | Savings |
-|--------|-----------------|-----------------|---------|
-| Proof Size | 2,080 bytes | 260 bytes | **87.5%** |
-| Gas Cost | ~2,033K gas | ~254K gas | **87.5%** |
-| USD Cost (@30 gwei) | ~$0.21 | ~$0.027 | **87.5%** |
+- **Dual PQC Signatures** — ML-DSA-65 + SLH-DSA for defense-in-depth
+- **Prover Pool** — Decentralized verification with stake-weighted selection via VRF
+- **Time-Locked Custody** — 24h normal unlock, 7-day emergency path with bond
+- **Observer Network** — Independent challenge system with quadratic slashing
+- **On-Chain Governance** — veQS token voting, security council, insurance fund
+- **11 Sub-Applications** — Consumer, Prover, Observer, Explorer, Enterprise, Governance, Admin
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Quantum Shield Pipeline                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   User Signs with Dilithium          Plonky2 Aggregation                   │
-│   ┌─────────────────────┐           ┌─────────────────────┐                │
-│   │  Dilithium-ML-DSA   │           │  STARK Aggregation  │                │
-│   │  (NIST FIPS 204)    │──────────▶│  8 sigs → 1 proof   │                │
-│   │  2,420 byte sig     │           │  92KB, ~4ms         │                │
-│   └─────────────────────┘           └──────────┬──────────┘                │
-│                                                │                            │
-│                                                ▼                            │
-│                              ┌─────────────────────────────┐               │
-│                              │      SP1 zkVM Verification   │               │
-│                              │  • Plonky2 commitment check  │               │
-│                              │  • Dilithium sig binding     │               │
-│                              │  • 492K cycles               │               │
-│                              └──────────────┬──────────────┘               │
-│                                             │                               │
-│                                             ▼                               │
-│   ┌─────────────────────┐           ┌─────────────────────┐                │
-│   │  Ethereum L1        │◀──────────│  Groth16 Wrapper    │                │
-│   │  QuantumShieldBridge│           │  260 bytes constant │                │
-│   │  ~254K gas          │           │  bn254 pairing      │                │
-│   └─────────────────────┘           └─────────────────────┘                │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  Frontend (Next.js 15)         11 apps, 136 routes, ja/en i18n │
+├─────────────────────────────────────────────────────────────────┤
+│  Backend API (Rust/Axum)       REST API, SIWE auth, Auto-Claim │
+├──────────────────┬──────────────────────────────────────────────┤
+│  L1: Sepolia     │  L3: Arbitrum Sepolia                       │
+│  • Vault         │  • CoreLayer    • Governor                  │
+│  • ProverRegistry│  • veQS         • RewardRouter              │
+│  • SPHINCS+ Vfy  │  • QSToken      • InsuranceFund             │
+└──────────────────┴──────────────────────────────────────────────┘
 ```
 
-## Features
+### 9 Core Sequences
 
-### Implemented (v1.0 MVP)
+| # | Flow | Path |
+|---|------|------|
+| 1 | Consumer Lock | Frontend → API → DB → L1 Vault |
+| 2 | Normal Unlock | 24h timelock → Prover verification → L1 claim |
+| 3 | Emergency Unlock | Bond deposit → 7-day lock → Emergency path |
+| 4 | Prover Registration | Stake → VRF selection → Proof generation |
+| 5 | Observer Challenge | Monitor → Challenge → VRF arbitration |
+| 6 | Slashing | Quadratic penalty → L1 ProverRegistry |
+| 7 | Governance | veQS voting → Proposal execution on L3 |
+| 8 | Emergency Pause | Security council → L1 pause |
+| 9 | Token Hub | Stake QS → veQS → Rewards |
 
-- [x] **Phase 1**: Dilithium NTT verification in Plonky2 STARK
-- [x] **Phase 2**: SP1 zkVM integration with commitment verification
-- [x] **Phase 3**: Two-stage proof pipeline (Plonky2 → SP1 → Groth16)
-- [x] **Phase 4**: Nested Plonky2 proof verification in SP1
-- [x] **Bridge Contract**: QuantumShieldBridge with lock/release mechanism
-- [x] **Negative Tests**: 13 poisoning tests (12/13 pass rate)
-- [x] **E2E Demo**: Complete integration demonstration
+## Tech Stack
 
-### Security Properties
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 15, TypeScript, Tailwind CSS, Wagmi, RainbowKit |
+| Backend | Rust, Axum, PostgreSQL, Redis, RabbitMQ |
+| Contracts | Solidity 0.8.24 (Foundry), deployed to Sepolia + Arbitrum Sepolia |
+| Cryptography | NIST FIPS 204 (ML-DSA-65), FIPS 205 (SLH-DSA), SHA3-256 |
+| SDK | WASM (Rust → wasm-pack), npm-publishable |
+| Testing | Playwright (E2E), Vitest, cargo test, Foundry forge test |
 
-| Property | Implementation | Status |
-|----------|---------------|--------|
-| Quantum-Resistant Signatures | Dilithium (NIST FIPS 204) | ✅ |
-| Zero-Knowledge | Plonky2 + SP1 + Groth16 | ✅ |
-| Replay Protection | Per-transfer nonce | ✅ |
-| Commitment Binding | batch_root + total_amount | ✅ |
-| 1-yen Manipulation Detection | Amount binding verification | ✅ |
+## Deployed Contracts
 
-## Benchmarks
+### L1: Ethereum Sepolia
 
-### Plonky2 Aggregation Performance
+| Contract | Address |
+|----------|---------|
+| Vault | `0x07012aeF87C6E423c32F2f8eaF81762f63337260` |
+| ProverRegistry | `0x08e1fc1A0d614bc132B48950760c7A291cCB8946` |
+| SPHINCS+ Verifier | `0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103` |
 
-```
-============================================================
-Plonky2 Production-Grade Dilithium NTT Benchmark
-============================================================
+### L3: Arbitrum Sepolia (12 contracts)
 
-NTT-256 | Build: 28.6ms | Prove: 25.5ms | Verify: 1.7ms
-        | Gates: 5 | Proof: 106,056 bytes
+| Contract | Address |
+|----------|---------|
+| CoreLayer | `0xb04F4DFe093dC80420117EDC8300f5EB6F6EDBf0` |
+| veQS | `0xE72dFa97C9E452dC0b8E6aa026c910D21B20fCAE` |
+| Governor | `0xe93b8129DC3dBD48E5d78C5A4C156DD1BFa8D65B` |
+| QSToken | `0xBD66beBE19E664dF143da54808d746192e4f2ee2` |
 
-Batch Verification (N=64):
-  Batch 1 | Prove: 8.5ms  | Proof: 96,712 bytes
-  Batch 4 | Prove: 15.7ms | Proof: 105,920 bytes
-  Batch 8 | Prove: 46.1ms | Proof: 110,536 bytes
-```
-
-### SP1 zkVM Performance
-
-```
-════════════════════════════════════════════════════════════════
-SP1 Dilithium Verification - Aggregation Benchmark
-════════════════════════════════════════════════════════════════
-
-┌───────────────┬────────────────┬────────────────┬──────────────┐
-│ Verifications │ Total Cycles   │ Exec Time (ms) │ Status       │
-├───────────────┼────────────────┼────────────────┼──────────────┤
-│             1 │         67.26K │              4 │    ✓ Success │
-│             2 │        127.70K │              4 │    ✓ Success │
-│             4 │        248.76K │              6 │    ✓ Success │
-│             8 │        491.89K │              9 │    ✓ Success │
-└───────────────┴────────────────┴────────────────┴──────────────┘
-
-Amortization benefit: 8.6%
-```
-
-### Negative Test Results
-
-```
-════════════════════════════════════════════════════════════════
-Phase 4: Negative Tests (Poisoning Tests)
-════════════════════════════════════════════════════════════════
-
-Results: 12/13 tests passed
-
-✓ total_amount_tamper      - Circuit REJECTED +1 manipulation
-✓ batch_root_tamper        - Circuit REJECTED XOR tampering
-✓ num_transfers_tamper     - Circuit REJECTED count mismatch
-✓ zero_proof_hash          - Circuit REJECTED zeroed hash
-✓ empty_wires_cap          - Circuit REJECTED empty cap
-✓ zero_final_poly_hash     - Circuit REJECTED zeroed FRI
-✓ invalid_fri_layers       - Circuit REJECTED >32 layers
-✓ amount_off_by_one        - Circuit REJECTED 1-yen manipulation
-✓ transfer_count_mismatch  - Circuit REJECTED extra transfer
-✓ nonce_manipulation       - Circuit REJECTED replay attempt
-✓ forged_dilithium_result  - Circuit REJECTED false verification
-✓ mismatched_sig_commitment- Circuit REJECTED sig mismatch
-ℹ wrong_pubkey_hash        - Accepted (pubkey binding optional)
-```
+All L3 contracts verified on [Sourcify](https://sourcify.dev/).
 
 ## Quick Start
 
 ### Prerequisites
 
+- Docker & Docker Compose
+- Rust 1.75+ with cargo
+- Node.js 20+ with pnpm
+- Foundry (forge, anvil)
+
+### Development Setup
+
 ```bash
-# Rust (stable)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# 1. Start infrastructure
+docker compose up -d postgres redis rabbitmq l3-node minio minio-init
 
-# Foundry
-curl -L https://foundry.paradigm.xyz | bash
-foundryup
+# 2. Run database migrations
+cd src/api/api
+DATABASE_URL="postgresql://quantum:quantum_dev@localhost:5432/quantum_shield" sqlx migrate run
 
-# SP1 (optional, for proof generation)
-curl -L https://sp1up.succinct.xyz | bash
-sp1up
+# 3. Start backend API (port 8080)
+cargo run --bin api-server
+
+# 4. Start frontend (port 3000)
+cd src/frontend/web
+pnpm install
+pnpm dev
 ```
 
-### Installation
+### Verify
 
 ```bash
-git clone https://github.com/pqc-zk/zk-dilithium-ntt.git
-cd zk-dilithium-ntt
-
-# Install Solidity dependencies
-forge install
-
-# Build Rust components
-cargo build --release
-```
-
-### Run E2E Demo
-
-```bash
-# Complete end-to-end demonstration
-./scripts/e2e/e2e_demo.sh
-```
-
-### Run Benchmarks
-
-```bash
-# Plonky2 aggregation benchmark
-cd plonky2-bench
-RUST_LOG=warn cargo run --release
-
-# SP1 verification benchmark
-cd sp1-bench
-cargo run --release
-
-# With proof generation
-GENERATE_PROOFS=1 cargo run --release
-
-# Negative tests
-RUN_NEGATIVE_TESTS=1 cargo run --release
-```
-
-### Deploy Contracts
-
-```bash
-# Start local node
-anvil
-
-# Deploy to local network
-forge script scripts/deploy/DeployBridge.s.sol:DeployBridge \
-    --rpc-url http://localhost:8545 \
-    --broadcast
+curl http://localhost:8080/v1/health
+# {"status":"healthy"}
 ```
 
 ## Project Structure
 
 ```
-zk-dilithium-ntt/
-├── contracts/                    # Solidity smart contracts
-│   ├── QuantumShieldBridge.sol   # Main bridge contract
-│   ├── interfaces/               # Contract interfaces
-│   └── verifiers/                # ZK verifier contracts
-├── plonky2-bench/                # Plonky2 STARK implementation
-│   └── src/
-│       ├── main.rs               # NTT benchmarks
-│       └── bridge_aggregation.rs # Bridge aggregation logic
-├── sp1-bench/                    # SP1 zkVM implementation
-│   ├── program/                  # Guest program (runs in zkVM)
-│   └── script/                   # Host script (generates proofs)
-├── plonky2-verifier-core/        # Lightweight no_std Plonky2 verifier
-├── shared-types/                 # Common type definitions
-├── scripts/
-│   ├── deploy/                   # Deployment scripts
-│   └── e2e/                      # End-to-end demo
-├── test/                         # Solidity tests
-├── docs/                         # Documentation
-├── TECHNICAL_SPEC.md             # Technical specification
-└── README.md                     # This file
+quantum-shield/
+├── src/
+│   ├── api/api/              # Rust/Axum backend
+│   │   ├── src/routes/       # API route handlers
+│   │   ├── src/services/     # Business logic
+│   │   ├── migrations/       # PostgreSQL migrations (17 files)
+│   │   └── config/           # YAML configuration
+│   ├── frontend/web/         # Next.js 15 frontend
+│   │   ├── src/app/          # App Router pages (11 apps)
+│   │   ├── src/components/   # 300+ React components
+│   │   ├── src/hooks/        # React Query hooks per app
+│   │   └── locales/          # ja/en translations
+│   ├── l1/contracts/         # L1 Solidity contracts (Foundry)
+│   ├── l3/                   # L3 governance contracts
+│   └── frontend/sdk/wasm/    # WASM SDK (Dilithium + SPHINCS+)
+├── docs/
+│   ├── core/SEQUENCES.md     # 9 core sequence specifications
+│   ├── ACTUAL_STATE.md       # Current implementation state
+│   └── pitch/                # Pitch deck, grant applications
+├── docker-compose.yml        # Development infrastructure
+└── .github/workflows/        # CI/CD pipelines
 ```
 
-## Documentation
+## Testing
 
-- [Technical Specification](TECHNICAL_SPEC.md) - Detailed architecture and cryptographic design
-- [Final Report (EN)](FINAL_REPORT.md) - Complete project report
-- [Final Report (JA)](FINAL_REPORT_JA.md) - 日本語版最終レポート
-- [Internal Milestone Report](INTERNAL_MILESTONE_REPORT.md) - Development milestones
+```bash
+# Backend
+cd src/api/api && cargo test
 
-## Roadmap
+# Frontend E2E
+cd src/frontend/web && npx playwright test
 
-### v1.0 (Current) - Quantum Shield MVP
-- [x] Dilithium signature verification in ZK
-- [x] Two-stage proof aggregation pipeline
-- [x] Smart contract bridge implementation
-- [x] E2E demonstration
+# Smart Contracts
+cd src/l1/contracts && forge test
+```
 
-### v2.0 (Planned) - Production Hardening
-- [ ] Full Groth16 verifier integration with SP1
-- [ ] Mainnet deployment with audit
-- [ ] Multi-chain support (Arbitrum, Optimism)
-- [ ] Hardware wallet integration for Dilithium
+**Test Coverage**: 137 E2E tests passing, 107 integration tests, 0 failures.
 
-### v3.0 (Vision 2030) - Full Quantum Resistance
-- [ ] STARK-only verification path
-- [ ] Kyber KEM for encrypted channels
-- [ ] SPHINCS+ for stateless signatures
-- [ ] Post-quantum threshold signatures
+## Security
 
-## Security Considerations
-
-### Threat Model
-
-1. **Quantum Adversary**: Groth16 wrapper is NOT quantum-resistant; upgrade path to STARK verifier is available
-2. **Front-running**: Protected by commitment scheme
-3. **Replay Attacks**: Per-transfer nonces prevent replays
-4. **1-yen Manipulation**: Binding verification detects any amount change
+- **Cryptography**: NIST FIPS 204 ML-DSA-65 + FIPS 205 SLH-DSA (post-quantum)
+- **Hashing**: SHA3-256 (no keccak256 in application layer)
+- **Authentication**: SIWE (Sign-In with Ethereum) + JWT
+- **Time Locks**: 24h normal, 7-day emergency with bond collateral
+- **Slashing**: Quadratic penalty for malicious provers
 
 ### Audit Status
 
-- [ ] Internal review: Complete
-- [ ] External audit: Pending
-- [ ] Formal verification: Partial (see `formal_proofs/`)
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting PRs.
-
-### Development Setup
-
-```bash
-# Run tests
-cargo test --all
-forge test
-
-# Format code
-cargo fmt --all
-forge fmt
-
-# Lint
-cargo clippy --all
-```
+- [x] Internal code review
+- [ ] External audit (planned)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [NIST PQC Standardization](https://csrc.nist.gov/projects/post-quantum-cryptography) - Dilithium/ML-DSA specification
-- [Plonky2](https://github.com/0xPolygonZero/plonky2) - STARK proving system
-- [SP1](https://github.com/succinctlabs/sp1) - zkVM implementation
-- [Foundry](https://github.com/foundry-rs/foundry) - Ethereum development framework
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with quantum resistance in mind.**
-
-*"The future of blockchain security starts today."*
+**Built for a post-quantum future.**

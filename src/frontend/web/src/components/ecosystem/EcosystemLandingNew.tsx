@@ -108,6 +108,13 @@ export function EcosystemLandingNew() {
 
   return (
     <div className="relative min-h-screen">
+      {/* Beta Banner */}
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-amber-500/10 border-b border-amber-500/20 text-center py-1.5">
+        <p className="text-xs text-amber-200/90">
+          {t('beta.banner')}
+        </p>
+      </div>
+
       {/* Background Effects */}
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
         <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial-hinomaru opacity-50" />
@@ -115,7 +122,7 @@ export function EcosystemLandingNew() {
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
+      <header className="fixed top-[33px] left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <Link
             href="/ecosystem"
@@ -125,6 +132,9 @@ export function EcosystemLandingNew() {
             <HinomaryLogo size="sm" />
             <span className="text-lg font-semibold text-foreground">
               Quantum Shield
+            </span>
+            <span className="px-2 py-0.5 text-[10px] font-bold bg-hinomaru/20 text-hinomaru rounded-full border border-hinomaru/30 uppercase tracking-wider">
+              Beta
             </span>
           </Link>
 

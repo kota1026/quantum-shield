@@ -7583,7 +7583,7 @@ pub async fn sync_l1_events(
 
     // Get L1 RPC URL from config
     let rpc_url = std::env::var("L1_RPC_URL")
-        .unwrap_or_else(|_| "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID".to_string());
+        .unwrap_or_else(|_| "https://rpc.sepolia.org".to_string());
 
     let indexer = L1Indexer::new(&rpc_url).await?;
     let pool = state.db.pool();
@@ -7622,7 +7622,7 @@ pub async fn get_l1_stats(
     info!("Admin: L1 stats - request started");
 
     let rpc_url = std::env::var("L1_RPC_URL")
-        .unwrap_or_else(|_| "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID".to_string());
+        .unwrap_or_else(|_| "https://rpc.sepolia.org".to_string());
 
     let indexer = L1Indexer::new(&rpc_url).await?;
     let stats = indexer.get_dashboard_stats().await?;
@@ -7987,7 +7987,7 @@ pub async fn get_dashboard_stats(
     let treasury = {
         use crate::services::l1_indexer::L1Indexer;
         let rpc_url = std::env::var("L1_RPC_URL")
-            .unwrap_or_else(|_| "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID".to_string());
+            .unwrap_or_else(|_| "https://rpc.sepolia.org".to_string());
 
         match L1Indexer::new(&rpc_url).await {
             Ok(indexer) => {

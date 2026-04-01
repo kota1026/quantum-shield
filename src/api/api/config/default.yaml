@@ -25,10 +25,10 @@ jwt:
   expiry_hours: 24
 
 security:
-  # SEQ#2: Normal Time Lock
-  normal_time_lock_hours: 24
-  # SEQ#3: Emergency Time Lock
-  emergency_time_lock_days: 7
+  # SEQ#2: Normal Time Lock (DEMO: 0 = use seconds in code, production: 24)
+  normal_time_lock_hours: 0
+  # SEQ#3: Emergency Time Lock (DEMO: 0 = use seconds in code, production: 7)
+  emergency_time_lock_days: 0
   # SEQ#3: Emergency Timeout (triggers emergency path)
   emergency_timeout_hours: 72
   # SEQ#8: Maximum Pause Duration
@@ -85,10 +85,10 @@ l1:
   # prover_registry_address: "0x..."      # Set when deployed to Sepolia/mainnet
 
 # L1 Sepolia Configuration (Phase 8-D)
-l1_rpc_url: "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID"
+l1_rpc_url: "https://rpc.sepolia.org"  # Override via QS__L1_RPC_URL env var for production
 l1_chain_id: 11155111
-# L1 Vault address on Sepolia (v3.0.0 - ProverRegistry + Auto-claim)
-l1_vault_address: "0x43aF0A4b58CC3f040eF05746e72021dE6D35115B"
+# L1 Vault address on Sepolia (v7.0.0 - 1min TimeLock DEMO + SHA3-256 domain separators)
+l1_vault_address: "0x07012aeF87C6E423c32F2f8eaF81762f63337260"
 # Prover Registry address on Sepolia (v3.0 architecture)
 l1_prover_registry_address: "0x08e1fc1A0d614bc132B48950760c7A291cCB8946"
 # SPHINCS+ Verifier on Sepolia

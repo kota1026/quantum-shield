@@ -38,7 +38,7 @@ test.describe('SIWE Authentication API', () => {
     // This test validates the real SIWE flow using ethers.js
     const { ethers } = await import('ethers');
     const wallet = new ethers.Wallet(
-      '0xREDACTED_PRIVATE_KEY'
+      process.env.TEST_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
     );
 
     const nonce = Math.random().toString(36).substring(2, 15);

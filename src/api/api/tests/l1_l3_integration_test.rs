@@ -26,7 +26,7 @@ const L1_SPHINCS_VERIFIER: &str = "0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103";
 
 // RPC Endpoints
 const L3_RPC: &str = "http://localhost:8545";
-const L1_RPC: &str = "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID";
+const L1_RPC: &str = "https://rpc.sepolia.org"; // Override via L1_RPC_URL env var
 
 // ABI bindings
 abigen!(

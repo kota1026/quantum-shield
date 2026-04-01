@@ -1,4 +1,7 @@
 {
+  "beta": {
+    "banner": "Beta Release on Sepolia Testnet — No real assets are used. Connect with a Sepolia wallet to try it out."
+  },
   "header": {
     "threat": "Quantum Threat",
     "howItWorks": "How it Works",

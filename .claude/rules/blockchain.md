@@ -6,8 +6,8 @@
 |------|-------|
 | Network | Ethereum Sepolia |
 | Chain ID | 11155111 |
-| RPC URL | https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID |
-| Vault | `0x43aF0A4b58CC3f040eF05746e72021dE6D35115B` |
+| RPC URL | Set via `QS__L1_RPC_URL` env var (default: `https://rpc.sepolia.org`) |
+| Vault | `0x07012aeF87C6E423c32F2f8eaF81762f63337260` |
 | ProverRegistry | `0x08e1fc1A0d614bc132B48950760c7A291cCB8946` |
 | SPHINCS+ Verifier | `0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103` |
 

@@ -40,7 +40,7 @@ const L1_VAULT: &str = "0x108A5CE65f927ACfAC55325f1c471010FdEC8599";
 
 // RPC Endpoints
 const L3_RPC: &str = "http://localhost:8545";
-const L1_RPC: &str = "https://sepolia.infura.io/v3/REDACTED_INFURA_PROJECT_ID";
+const L1_RPC: &str = "https://rpc.sepolia.org"; // Override via L1_RPC_URL env var
 
 // ABI bindings
 abigen!(
