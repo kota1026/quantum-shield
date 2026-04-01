@@ -1,0 +1,51 @@
+{
+  "name": "quantum-shield-wasm",
+  "type": "module",
+  "description": "Post-quantum cryptographic signatures (NIST FIPS 204 ML-DSA-65) compiled to WebAssembly",
+  "version": "0.1.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kota1026/quantum-shield",
+    "directory": "src/frontend/sdk/wasm"
+  },
+  "homepage": "https://github.com/kota1026/quantum-shield/tree/main/src/frontend/sdk/wasm#readme",
+  "bugs": {
+    "url": "https://github.com/kota1026/quantum-shield/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "quantum_shield_wasm_bg.wasm",
+    "quantum_shield_wasm_bg.wasm.d.ts",
+    "quantum_shield_wasm.js",
+    "quantum_shield_wasm.d.ts",
+    "README.md"
+  ],
+  "main": "quantum_shield_wasm.js",
+  "types": "quantum_shield_wasm.d.ts",
+  "exports": {
+    ".": {
+      "types": "./quantum_shield_wasm.d.ts",
+      "import": "./quantum_shield_wasm.js"
+    }
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "quantum",
+    "post-quantum",
+    "cryptography",
+    "dilithium",
+    "ml-dsa-65",
+    "fips-204",
+    "nist",
+    "wasm",
+    "webassembly",
+    "digital-signature",
+    "lattice-based"
+  ]
+}
