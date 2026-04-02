@@ -45,6 +45,9 @@ security:
 cors:
   allowed_origins:
     - "http://localhost:3000"
+    - "https://quantum-shield.xyz"
+    - "https://www.quantum-shield.xyz"
+    - "https://quantum-shield-local.vercel.app"
 
 # Rate Limiting
 rate_limit:
