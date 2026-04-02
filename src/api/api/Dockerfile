@@ -42,7 +42,8 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /app/target/release/api-server /app/api-server
 
-# Copy migrations for runtime migration support
+# Copy config and migrations
+COPY src/api/api/config/ /app/config/
 COPY src/api/api/migrations/ /app/migrations/
 
 ENV RUST_LOG=info
