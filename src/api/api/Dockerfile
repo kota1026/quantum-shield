@@ -3,21 +3,25 @@
 # Run:   docker run -p 8080:8080 --env-file .env qs-api
 
 # ---- Build Stage ----
-FROM rust:1.83-slim-bookworm AS builder
+FROM rust:1.85-slim-bookworm AS builder
 
 WORKDIR /app
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
-    pkg-config libssl-dev libpq-dev \
+    pkg-config libssl-dev libpq-dev git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy workspace files
+# Copy workspace root config
 COPY Cargo.toml Cargo.lock ./
+
+# Create a Docker-specific workspace that only includes API dependencies
+# (exclude plonky3-poc and dilithium-stark which need nightly features)
+RUN sed -i '/"src\/crypto\/circuits\/dilithium-stark"/d; /"src\/crypto\/circuits\/plonky3-poc"/d' Cargo.toml
+
+# Copy only the crates needed for the API
 COPY src/api/api/ src/api/api/
 COPY src/crypto/shared-types/ src/crypto/shared-types/
-COPY src/crypto/circuits/dilithium-stark/ src/crypto/circuits/dilithium-stark/
-COPY src/crypto/circuits/plonky3-poc/ src/crypto/circuits/plonky3-poc/
 COPY src/services/ src/services/
 
 # Build only the API binary
