@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y \
 COPY Cargo.toml Cargo.lock ./
 COPY src/api/api/ src/api/api/
 COPY src/crypto/shared-types/ src/crypto/shared-types/
+COPY src/crypto/circuits/dilithium-stark/ src/crypto/circuits/dilithium-stark/
+COPY src/crypto/circuits/plonky3-poc/ src/crypto/circuits/plonky3-poc/
 COPY src/services/ src/services/
 
 # Build only the API binary
