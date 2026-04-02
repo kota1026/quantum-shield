@@ -1,5 +1,5 @@
 {
-  "installCommand": "cd src/frontend/web && npm exec -- pnpm@10 install --no-frozen-lockfile",
+  "installCommand": "npm install && cd src/frontend/web && npm exec -- pnpm@10 install --no-frozen-lockfile",
   "buildCommand": "cd src/frontend/web && npm exec -- pnpm@10 build",
   "outputDirectory": "src/frontend/web/.next",
   "framework": "nextjs"
