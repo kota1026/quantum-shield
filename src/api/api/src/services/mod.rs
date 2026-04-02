@@ -901,16 +901,15 @@ impl AppState {
             tracing::info!("VRF request stored in PG: vrf_id={}", request.vrf_request_id);
         }
 
-        // Step 2: Redis cache (for fast access)
-        let key = format!("vrf:{}", request.vrf_request_id);
-        let unlock_key = format!("vrf:unlock:{}", request.unlock_request_id);
-        let value = serde_json::to_string(request).map_err(|e| ApiError::Internal(e.to_string()))?;
+        // Step 2: Redis cache (best-effort, non-fatal if Redis unavailable)
+        if let Ok(value) = serde_json::to_string(request) {
+            let key = format!("vrf:{}", request.vrf_request_id);
+            let unlock_key = format!("vrf:unlock:{}", request.unlock_request_id);
+            let _ = self.redis.set(&key, &value, 86400).await;
+            let _ = self.redis.set(&unlock_key, &request.vrf_request_id, 86400).await;
+        }
 
-        // Store VRF request
-        self.redis.set(&key, &value, 86400).await.map_err(|e| ApiError::Internal(e.to_string()))?;
-
-        // Map unlock_request_id -> vrf_request_id
-        self.redis.set(&unlock_key, &request.vrf_request_id, 86400).await.map_err(|e| ApiError::Internal(e.to_string()))
+        Ok(())
     }
 
     /// Get VRF request by unlock request ID
@@ -955,18 +954,20 @@ impl AppState {
             tracing::warn!("VRF PG status update failed (non-fatal): {}", e);
         }
 
-        // Step 2: Update Redis cache
+        // Step 2: Update Redis cache (best-effort, non-fatal if Redis unavailable)
         let key = format!("vrf:{}", vrf_request_id);
-        let value = self.redis.get(&key).await.map_err(|e| ApiError::Internal(e.to_string()))?
-            .ok_or_else(|| ApiError::Internal(format!("VRF request not found: {}", vrf_request_id)))?;
+        if let Ok(Some(value)) = self.redis.get(&key).await {
+            if let Ok(mut request) = serde_json::from_str::<VRFRequest>(&value) {
+                request.status = status;
+                request.selected_prover = selected_prover.map(|s| s.to_string());
+                request.random_value = random_value.map(|s| s.to_string());
+                if let Ok(new_value) = serde_json::to_string(&request) {
+                    let _ = self.redis.set(&key, &new_value, 86400).await;
+                }
+            }
+        }
 
-        let mut request: VRFRequest = serde_json::from_str(&value).map_err(|e| ApiError::Internal(e.to_string()))?;
-        request.status = status;
-        request.selected_prover = selected_prover.map(|s| s.to_string());
-        request.random_value = random_value.map(|s| s.to_string());
-
-        let new_value = serde_json::to_string(&request).map_err(|e| ApiError::Internal(e.to_string()))?;
-        self.redis.set(&key, &new_value, 86400).await.map_err(|e| ApiError::Internal(e.to_string()))
+        Ok(())
     }
 
     /// Request prover signatures for selected provers only
