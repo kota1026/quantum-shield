@@ -3,11 +3,14 @@
 # Run:   docker run -p 8080:8080 --env-file .env qs-api
 
 # ---- Build Stage ----
-FROM rust:1.85-bookworm AS builder
+FROM rust:1-trixie AS builder
 
 WORKDIR /app
 
-# Install build dependencies (rust:1.85-bookworm already has gcc/cc)
+# Ensure we have Rust 1.91+ (required by aws-sdk dependencies)
+RUN rustup update stable && rustup default stable
+
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     pkg-config libssl-dev libpq-dev git cmake \
     && rm -rf /var/lib/apt/lists/*
@@ -28,10 +31,10 @@ COPY src/services/ src/services/
 RUN cargo build --release -p quantum-shield-api
 
 # ---- Runtime Stage ----
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y \
-    ca-certificates libssl3 libpq5 curl \
+    ca-certificates libssl3t64 libpq5 curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
