@@ -34,7 +34,7 @@ RUN cargo build --release -p quantum-shield-api
 FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y \
-    ca-certificates libssl3t64 libpq5 curl \
+    ca-certificates libssl3t64 libpq5 curl postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -42,9 +42,10 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /app/target/release/api-server /app/api-server
 
-# Copy config and migrations
+# Copy config, migrations, and entrypoint
 COPY src/api/api/config/ /app/config/
 COPY src/api/api/migrations/ /app/migrations/
+COPY src/api/api/entrypoint.sh /app/entrypoint.sh
 
 ENV RUST_LOG=info
 ENV DATABASE_URL=postgresql://quantum:quantum_dev@postgres:5432/quantum_shield
@@ -55,4 +56,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/v1/health || exit 1
 
-CMD ["/app/api-server"]
+CMD ["/app/entrypoint.sh"]
