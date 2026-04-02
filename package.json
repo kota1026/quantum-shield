@@ -3,6 +3,6 @@
   "private": true,
   "description": "Post-quantum asset protection protocol - monorepo root",
   "dependencies": {
-    "next": "15.1.0"
+    "next": "15.1.11"
   }
 }
