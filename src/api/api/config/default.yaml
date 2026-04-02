@@ -48,6 +48,7 @@ cors:
     - "https://quantum-shield.xyz"
     - "https://www.quantum-shield.xyz"
     - "https://quantum-shield-local.vercel.app"
+    - "https://quantum-shield-production-8f2b.up.railway.app"
 
 # Rate Limiting
 rate_limit:

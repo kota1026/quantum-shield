@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   // Enable React strict mode
   reactStrictMode: true,
 
+  // Environment variables (defaults for production)
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://quantum-shield-production-8f2b.up.railway.app',
+  },
+
   // Experimental features
   experimental: {
     // Enable server actions
