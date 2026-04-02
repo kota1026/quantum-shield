@@ -54,9 +54,8 @@ pub async fn readiness_check(
     let redis_health = check_redis(&state).await;
     let l3_health = check_l3(&state).await;
 
-    let all_healthy = db_health.status == "up"
-        && redis_health.status == "up";
-    // L3 is optional — degraded mode is acceptable
+    // DB is required; Redis and L3 are optional (Beta/degraded mode acceptable)
+    let all_healthy = db_health.status == "up";
 
     let status = if all_healthy { "ready" } else { "degraded" };
 
