@@ -3,7 +3,7 @@
 # Run:   docker run -p 8080:8080 --env-file .env qs-api
 
 # ---- Build Stage ----
-FROM rust:1.85-slim-bookworm AS builder
+FROM rust:latest AS builder
 
 WORKDIR /app
 
