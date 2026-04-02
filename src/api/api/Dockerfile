@@ -3,13 +3,13 @@
 # Run:   docker run -p 8080:8080 --env-file .env qs-api
 
 # ---- Build Stage ----
-FROM rust:1.85-slim-bookworm AS builder
+FROM rust:1.85-bookworm AS builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies (rust:1.85-bookworm already has gcc/cc)
 RUN apt-get update && apt-get install -y \
-    pkg-config libssl-dev libpq-dev git \
+    pkg-config libssl-dev libpq-dev git cmake \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy workspace root config
