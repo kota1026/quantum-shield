@@ -61,7 +61,9 @@ export function LandingFooter() {
             <ul className="space-y-1">
               <li>
                 <a
-                  href="/whitepaper.pdf"
+                  href="https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm text-foreground-secondary hover:text-foreground transition-colors inline-flex items-center min-h-[44px] px-1"
                 >
                   {t('footer.resources.whitepaper')}
