@@ -58,7 +58,7 @@ export function ExplorerAbout({ locale = 'ja' }: ExplorerAboutProps) {
 
   const resources = [
     { key: 'docs', icon: FileText, href: '#' },
-    { key: 'github', icon: Github, href: 'https://github.com/quantum-shield' },
+    { key: 'github', icon: Github, href: 'https://github.com/kota1026/quantum-shield' },
     { key: 'discord', icon: MessageCircle, href: '#' },
   ];
 
