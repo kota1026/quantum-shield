@@ -19,7 +19,7 @@ use bigdecimal::BigDecimal;
 use ethers::types::{Address, Bytes, U256};
 use sqlx::PgPool;
 use tokio::sync::watch;
-use tracing::{info, error};
+use tracing::{info, warn, error};
 
 use crate::config::AutoClaimConfig;
 use crate::types::LockStatus;
@@ -80,11 +80,22 @@ impl AutoClaimService {
             std::time::Duration::from_secs(self.config.poll_interval_secs),
         );
 
+        let mut tick_count: u64 = 0;
+
         loop {
             tokio::select! {
                 _ = interval.tick() => {
+                    tick_count += 1;
+
                     if let Err(e) = self.process_claimable_unlocks().await {
                         error!("Auto-claim processing error: {}", e);
+                    }
+
+                    // Cleanup expired SIWE nonces every 10th iteration (~10 minutes)
+                    if tick_count % 10 == 0 {
+                        if let Err(e) = crate::db::NonceRepository::cleanup_expired(self.state.pool()).await {
+                            warn!("SIWE nonce cleanup failed: {}", e);
+                        }
                     }
                 }
                 _ = self.shutdown_rx.changed() => {
