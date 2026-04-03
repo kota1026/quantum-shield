@@ -106,6 +106,125 @@ async fn check_redis(state: &AppState) -> ComponentHealth {
     }
 }
 
+// ─── Prometheus Metrics Endpoint (Phase D) ────────────────────────────
+
+/// GET /v1/metrics — Prometheus-compatible metrics endpoint
+/// Returns business metrics + dependency health in Prometheus text format.
+/// No external crate needed — manual text/plain output.
+pub async fn prometheus_metrics(
+    Extension(state): Extension<Arc<AppState>>,
+) -> (axum::http::StatusCode, [(axum::http::header::HeaderName, &'static str); 1], String) {
+    let mut lines = Vec::new();
+
+    // Service info
+    lines.push(format!(
+        "# HELP qs_info Quantum Shield API information"));
+    lines.push(format!(
+        "# TYPE qs_info gauge"));
+    lines.push(format!(
+        "qs_info{{version=\"{}\"}} 1", env!("CARGO_PKG_VERSION")));
+
+    // Dependency health (1 = up, 0 = down)
+    let db_health = check_database(&state).await;
+    let redis_health = check_redis(&state).await;
+    let l3_health = check_l3(&state).await;
+
+    lines.push("# HELP qs_dependency_up Whether a dependency is healthy (1=up, 0=down)".to_string());
+    lines.push("# TYPE qs_dependency_up gauge".to_string());
+    lines.push(format!("qs_dependency_up{{dependency=\"database\"}} {}", if db_health.status == "up" { 1 } else { 0 }));
+    lines.push(format!("qs_dependency_up{{dependency=\"redis\"}} {}", if redis_health.status == "up" { 1 } else { 0 }));
+    lines.push(format!("qs_dependency_up{{dependency=\"l3\"}} {}", if l3_health.status == "up" { 1 } else { 0 }));
+
+    // Dependency latency
+    lines.push("# HELP qs_dependency_latency_ms Dependency check latency in milliseconds".to_string());
+    lines.push("# TYPE qs_dependency_latency_ms gauge".to_string());
+    if let Some(ms) = db_health.latency_ms {
+        lines.push(format!("qs_dependency_latency_ms{{dependency=\"database\"}} {}", ms));
+    }
+    if let Some(ms) = redis_health.latency_ms {
+        lines.push(format!("qs_dependency_latency_ms{{dependency=\"redis\"}} {}", ms));
+    }
+
+    // Business metrics from DB
+    let business = fetch_business_metrics(&state).await;
+    lines.push("# HELP qs_total_locks Total number of locks created".to_string());
+    lines.push("# TYPE qs_total_locks gauge".to_string());
+    lines.push(format!("qs_total_locks {}", business.total_locks));
+
+    lines.push("# HELP qs_pending_unlocks_count Number of pending unlock requests".to_string());
+    lines.push("# TYPE qs_pending_unlocks_count gauge".to_string());
+    lines.push(format!("qs_pending_unlocks_count {}", business.pending_unlocks));
+
+    lines.push("# HELP qs_active_provers Number of active provers".to_string());
+    lines.push("# TYPE qs_active_provers gauge".to_string());
+    lines.push(format!("qs_active_provers {}", business.active_provers));
+
+    lines.push("# HELP qs_active_challenges Number of active challenges".to_string());
+    lines.push("# TYPE qs_active_challenges gauge".to_string());
+    lines.push(format!("qs_active_challenges {}", business.active_challenges));
+
+    lines.push("# HELP qs_total_unlocks Total number of completed unlocks".to_string());
+    lines.push("# TYPE qs_total_unlocks gauge".to_string());
+    lines.push(format!("qs_total_unlocks {}", business.total_unlocks));
+
+    lines.push("# HELP qs_governance_proposals Total governance proposals".to_string());
+    lines.push("# TYPE qs_governance_proposals gauge".to_string());
+    lines.push(format!("qs_governance_proposals {}", business.governance_proposals));
+
+    let body = lines.join("\n") + "\n";
+
+    (
+        axum::http::StatusCode::OK,
+        [(axum::http::header::CONTENT_TYPE, "text/plain; version=0.0.4; charset=utf-8")],
+        body,
+    )
+}
+
+struct BusinessMetrics {
+    total_locks: i64,
+    pending_unlocks: i64,
+    active_provers: i64,
+    active_challenges: i64,
+    total_unlocks: i64,
+    governance_proposals: i64,
+}
+
+async fn fetch_business_metrics(state: &AppState) -> BusinessMetrics {
+    let pool = state.pool();
+
+    let total_locks = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM locks")
+        .fetch_one(pool).await.unwrap_or(0);
+
+    let pending_unlocks = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM unlock_requests WHERE status IN ('pending', 'unlock_pending')"
+    ).fetch_one(pool).await.unwrap_or(0);
+
+    let active_provers = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM provers WHERE status = 'active'"
+    ).fetch_one(pool).await.unwrap_or(0);
+
+    let active_challenges = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM challenges WHERE status = 'pending'"
+    ).fetch_one(pool).await.unwrap_or(0);
+
+    let total_unlocks = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM unlock_requests WHERE status = 'released'"
+    ).fetch_one(pool).await.unwrap_or(0);
+
+    let governance_proposals = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM governance_proposals"
+    ).fetch_one(pool).await.unwrap_or(0);
+
+    BusinessMetrics {
+        total_locks,
+        pending_unlocks,
+        active_provers,
+        active_challenges,
+        total_unlocks,
+        governance_proposals,
+    }
+}
+
 async fn check_l3(state: &AppState) -> ComponentHealth {
     if !state.l3_contracts.is_connected() {
         return ComponentHealth {
