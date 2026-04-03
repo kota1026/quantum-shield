@@ -80,18 +80,20 @@ test.describe('Sequence #9: Token Hub (veQS) — Deep Integration', () => {
 
     if (response.status() === 200 || response.status() === 201) {
       const data = await response.json();
-      expect(data.lock_id || data.lockId || data.position_id).toBeTruthy();
+      // Response has lockPosition with veQS details
+      expect(data.success || data.lockPosition || data.lock_id).toBeTruthy();
 
-      // Verify voting power calculation
-      if (data.voting_power || data.votingPower) {
-        const votingPower = parseFloat(
-          data.voting_power || data.votingPower
-        );
-        // 4 weeks / 4 years ≈ 0.019 ratio
+      if (data.lockPosition) {
+        expect(data.lockPosition.lockDuration).toBe(lockDuration);
+        // veQS multiplier should match time-decay model
+        const multiplier = data.lockPosition.multiplier;
         const expectedRatio = lockDuration / FOUR_YEARS_SECS;
-        console.log(
-          `[veQS Lock] votingPower=${votingPower}, expectedRatio=${expectedRatio.toFixed(4)}`
-        );
+        if (multiplier) {
+          expect(Math.abs(multiplier - expectedRatio)).toBeLessThan(0.001);
+          console.log(
+            `[veQS Lock] multiplier=${multiplier}, expected=${expectedRatio.toFixed(4)}`
+          );
+        }
       }
 
       console.log(`[veQS Lock] Created position for ${addr}`);

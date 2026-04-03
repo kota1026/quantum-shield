@@ -154,9 +154,9 @@ test.describe('Sequence #5: Prover Registration — Deep Integration', () => {
 
       if (provers.length > 0) {
         const prover = provers[0];
-        // Each prover should have key fields
-        expect(prover.address || prover.operator_addr).toBeTruthy();
-        console.log(`[Prover] First: ${prover.name || prover.address}`);
+        // Each prover should have key fields (camelCase from API)
+        expect(prover.operatorAddr || prover.address || prover.proverId).toBeTruthy();
+        console.log(`[Prover] First: ${prover.operatorAddr || prover.proverId}`);
       }
     } else if (response.status() === 404) {
       // Try alternative endpoint
@@ -172,8 +172,8 @@ test.describe('Sequence #5: Prover Registration — Deep Integration', () => {
       headers: { 'X-User-Address': hexBytes(20) },
     });
 
-    // 200 = data, 401/403 = auth required, both acceptable
-    expect([200, 401, 403]).toContain(response.status());
+    // 200 = data, 401/403 = auth required, 404 = prover not found, all acceptable
+    expect([200, 401, 403, 404]).toContain(response.status());
     if (response.status() === 200) {
       const data = await response.json();
       console.log(`[Prover Dashboard] Keys: ${Object.keys(data).join(', ')}`);
