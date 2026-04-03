@@ -28,6 +28,10 @@ contracts/cache/
 contracts/out/
 contracts/broadcast/
 
+# Redis
+dump.rdb
+*.rdb
+
 # L3 Aegis
 l3-aegis/cache/
 
