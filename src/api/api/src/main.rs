@@ -160,6 +160,8 @@ async fn main() -> anyhow::Result<()> {
         // Admin Dashboard API routes (JWT-protected)
         .nest("/api", routes::admin_routes(state.clone()))
         .layer(Extension(state))
+        // Security headers (outermost response layer = applied last to response)
+        .layer(axum::middleware::from_fn(middleware::security_headers))
         // Request ID + structured logging (innermost = first executed)
         .layer(axum::middleware::from_fn(middleware::request_id))
         // Rate limiting

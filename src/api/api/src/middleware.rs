@@ -327,6 +327,56 @@ pub async fn request_id(
     resp
 }
 
+// ─── Security Headers (Phase C) ───────────────────────────────────────
+
+/// Security headers middleware: adds OWASP-recommended headers to all responses.
+/// These headers protect against clickjacking, MIME sniffing, XSS, and other attacks.
+pub async fn security_headers(
+    request: Request,
+    next: Next,
+) -> Response {
+    let mut resp = next.run(request).await;
+    let headers = resp.headers_mut();
+
+    // Prevent clickjacking
+    headers.insert("X-Frame-Options", HeaderValue::from_static("DENY"));
+
+    // Prevent MIME type sniffing
+    headers.insert("X-Content-Type-Options", HeaderValue::from_static("nosniff"));
+
+    // Control referrer information
+    headers.insert(
+        "Referrer-Policy",
+        HeaderValue::from_static("strict-origin-when-cross-origin"),
+    );
+
+    // Enforce HTTPS (1 year, include subdomains)
+    headers.insert(
+        "Strict-Transport-Security",
+        HeaderValue::from_static("max-age=31536000; includeSubDomains"),
+    );
+
+    // Content Security Policy for API (JSON responses only, no inline scripts)
+    headers.insert(
+        "Content-Security-Policy",
+        HeaderValue::from_static("default-src 'none'; frame-ancestors 'none'"),
+    );
+
+    // Restrict browser features
+    headers.insert(
+        "Permissions-Policy",
+        HeaderValue::from_static("camera=(), microphone=(), geolocation=(), payment=()"),
+    );
+
+    // Prevent caching of sensitive API responses
+    headers.insert(
+        "Cache-Control",
+        HeaderValue::from_static("no-store, no-cache, must-revalidate"),
+    );
+
+    resp
+}
+
 // ─── Tests ─────────────────────────────────────────────────────────────
 
 #[cfg(test)]
