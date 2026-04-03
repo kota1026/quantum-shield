@@ -1,9 +1,34 @@
-# Quantum Shield - 実態調査レポート (2026-03-03 更新)
+# Quantum Shield - 実態調査レポート (2026-04-03 更新)
 
-> **目的**: LAUNCH_READINESS.md (92%) の自己申告値をコード実態と照合し、正確な現状を記録する
+> **目的**: コード実態と照合し、正確な現状を記録する
 > **手法**: 全レイヤーの実コードを調査。docsの記載は検証対象であり根拠としない
-> **ブランチ**: `claude/research-competitors-22xDC`
-> **更新履歴**: 2026-03-01 初版 / 2026-03-02 Phase 0-5完了 / 2026-03-02 L1検証+Enterprise E2E監査 / 2026-03-03 Phase 6全完了 (E2E監査+Auto-Claim+ウォレット+L3テストネット)
+> **更新履歴**: 2026-03-01 初版 / 2026-03-03 Phase 6全完了 / **2026-04-03 Public Beta Launch完了**
+
+---
+
+## 🌐 Public Beta Deployment (2026-04-03)
+
+| コンポーネント | URL / ステータス |
+|------------|-----------------|
+| **フロントエンド** | https://quantum-shield.xyz (Vercel) ✅ |
+| **バックエンドAPI** | https://quantum-shield-production-8f2b.up.railway.app (Railway) ✅ |
+| **PostgreSQL** | Railway PostgreSQL (18 migrations適用済み) ✅ |
+| **L1 Contracts** | Ethereum Sepolia (Vault, ProverRegistry, SPHINCS+ Verifier) ✅ |
+| **L3 Contracts** | Arbitrum Sepolia (12 governance contracts) ✅ |
+
+### 動作確認済みフロー
+- ✅ ウォレット接続 (MetaMask / Sepolia)
+- ✅ SIWE認証 (PostgreSQL-backed nonce)
+- ✅ Lock (Dilithium WASM署名 → DB → L1)
+- ✅ Unlock (VRF fallback → 24h time lock → Auto-Claim)
+- ✅ Health check: `{"status":"healthy"}`
+
+### 環境変数 (Railway: 13 Service Variables + 8 Railway-provided)
+- Infura RPC (L1 + L1 Sync)
+- L1 Private Key
+- Security: skip_signature_verification, skip_totp_verification
+- Rate limiting enabled
+- JWT secret
 
 ---
 
