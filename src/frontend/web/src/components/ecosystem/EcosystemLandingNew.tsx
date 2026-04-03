@@ -739,7 +739,7 @@ export function EcosystemLandingNew() {
                 </li>
                 <li>
                   <a
-                    href="https://blog.quantumshield.io"
+                    href="https://github.com/kota1026/quantum-shield"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-foreground-secondary hover:text-foreground transition-colors"

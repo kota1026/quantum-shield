@@ -569,7 +569,7 @@ export function TokenHubDelegateList() {
                 {t('footer.privacy')}
               </Link>
               <a
-                href="https://docs.quantumshield.io"
+                href="https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-foreground-tertiary hover:text-gold transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded inline-flex items-center gap-1"

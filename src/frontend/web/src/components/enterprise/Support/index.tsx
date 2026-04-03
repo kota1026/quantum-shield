@@ -16,21 +16,21 @@ export function Support() {
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
 
   const documentationItems = [
-    { key: 'api', icon: '📚', url: 'https://docs.quantumshield.io/api' },
+    { key: 'api', icon: '📚', url: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md' },
     {
       key: 'integration',
       icon: '🔧',
-      url: 'https://docs.quantumshield.io/integration',
+      url: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md',
     },
     {
       key: 'security',
       icon: '🛡️',
-      url: 'https://docs.quantumshield.io/security',
+      url: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md',
     },
     {
       key: 'compliance',
       icon: '📋',
-      url: 'https://docs.quantumshield.io/compliance',
+      url: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md',
     },
   ];
 
