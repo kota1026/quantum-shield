@@ -101,16 +101,17 @@ NO_SERVER=1 npx playwright test e2e/integration/ --project=chromium
 
 | SEQ | Name | テストファイル | 検証レベル | Status |
 |-----|------|---------------|-----------|--------|
-| #1 | Lock | `sequence-e2e.spec.ts` (Scenario A) | UI + API + DB delta | Shallow |
+| #1 | Lock | `lock.integration.spec.ts` | API + DB + SR_0 + nonce + Explorer delta | Deep |
 | #2 | Normal Unlock + Auto-Claim | `auto-claim.integration.spec.ts` | API + DB + Auto-trigger | Deep |
-| #3 | Emergency Unlock | `sequence-e2e.spec.ts` (Scenario C) | UI only | Shallow |
-| #3' | Resync | (未実装) | - | Missing |
+| #3 | Emergency Unlock | `emergency-unlock.integration.spec.ts` | Bond calc + 7d timelock + status | Deep |
+| #3' | Resync | `resync.integration.spec.ts` | Sync status + manual resync | Medium |
 | #4 | Challenge + Slashing | `challenge-slashing.integration.spec.ts` | API + DB + Slashing calc | Deep |
-| #5 | Prover Registration | `sequence-e2e.spec.ts` (Scenario D) | UI + API | Shallow |
-| #6 | Prover Exit | `sequence-e2e.spec.ts` (Scenario E) | UI only | Shallow |
+| #5 | Prover Registration | `prover-registration.integration.spec.ts` | SHA3 ID + Explorer delta + duplicate | Deep |
+| #6 | Prover Exit | `prover-exit.integration.spec.ts` | 7d unbonding + early withdraw reject | Deep |
 | #7 | Governance Proposal | `sequence-e2e.spec.ts` (Scenario F) | API + DB + count delta | Medium |
 | #8 | Emergency Pause | `emergency-pause.integration.spec.ts` | API + status verify | Deep |
-| #9 | Token Hub (veQS) | `sequence-e2e.spec.ts` (Scenario G) | UI only | Shallow |
+| #9 | Token Hub (veQS) | `token-hub.integration.spec.ts` | Lock/delegate/rewards + time bounds | Deep |
+| ALL | Cross-Sequence | `cross-sequence-chain.integration.spec.ts` | Lock->Unlock->Challenge full lifecycle | Deep |
 
 #### B-1 タスク
 
