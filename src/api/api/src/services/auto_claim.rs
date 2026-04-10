@@ -194,7 +194,8 @@ impl AutoClaimService {
             vec![]
         };
 
-        if !unlock.is_emergency && signatures.len() < 2 {
+        let skip_sig_check = self.state.config().security.skip_signature_verification;
+        if !unlock.is_emergency && signatures.len() < 2 && !skip_sig_check {
             return Err(format!(
                 "Insufficient signatures: {}/2 for lock_id={}",
                 signatures.len(), unlock.lock_id
