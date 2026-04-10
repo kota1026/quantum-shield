@@ -44,11 +44,19 @@ struct ProverSignature {
     sr_1: String, // Kept for reference, but we now compute SR_1 at submission time
 }
 
-/// Lock data needed for SR_1 computation
+/// Lock + unlock-request data needed for SR_1 computation and L1 submission.
+///
+/// NOTE: `dest_addr` is pulled from `unlock_requests.dest_addr` (BYTEA),
+/// which is the address the user specified as the destination of *this*
+/// unlock request. Using `locks.wallet_address` here is a bug — that is the
+/// lock creator, not necessarily the unlock recipient. The L1 Vault stores
+/// whatever recipient we pass into `requestUnlock` and then sends funds
+/// there in `executeUnlock` (L1Vault.sol:695), so an incorrect recipient
+/// here silently reroutes user funds.
 #[derive(Debug, sqlx::FromRow)]
 struct LockData {
     lock_id: String,
-    wallet_address: String,
+    dest_addr: Vec<u8>,
     amount: BigDecimal,
     sr_0: String,
 }
@@ -190,16 +198,35 @@ impl AutoClaimService {
             ));
         }
 
-        // Get lock data for SR_1 computation
+        // Get lock data + user's requested unlock destination for SR_1 computation.
+        //
+        // We must join against `unlock_requests` so that `dest_addr` is the
+        // address the user asked to receive funds on for THIS unlock — not
+        // the lock creator (`locks.wallet_address`). The L1 `executeUnlock`
+        // will transfer `request.amount` to whatever recipient we set here
+        // via `requestUnlock`, so getting this wrong reroutes user funds.
         let lock_data: LockData = sqlx::query_as::<_, LockData>(
-            "SELECT lock_id, wallet_address, amount, sr_0 FROM locks WHERE lock_id = $1",
+            r#"
+            SELECT l.lock_id, ur.dest_addr, l.amount, l.sr_0
+            FROM locks l
+            JOIN unlock_requests ur ON ur.lock_id = l.lock_id
+            WHERE l.lock_id = $1 AND ur.unlock_id = $2
+            "#,
         )
         .bind(&unlock.lock_id)
+        .bind(&unlock.unlock_id)
         .fetch_one(pool)
         .await
         .map_err(|e| format!("Lock data query failed: {}", e))?;
 
-        let recipient = &lock_data.wallet_address;
+        if lock_data.dest_addr.len() != 20 {
+            return Err(format!(
+                "Invalid dest_addr length {} for unlock_id={}",
+                lock_data.dest_addr.len(),
+                unlock.unlock_id
+            ));
+        }
+        let recipient = format!("0x{}", hex::encode(&lock_data.dest_addr));
 
         // Execute on L1 (skip in dev mode when l1_vault is None)
         if let Some(ref l1_vault) = self.state.l1_vault {
@@ -263,7 +290,7 @@ impl AutoClaimService {
                 // Step 5: Submit requestUnlock with computed SR_1
                 let req_tx = l1_vault.request_unlock(
                     &unlock.lock_id,
-                    recipient,
+                    &recipient,
                     smt_proof,
                     &sr1_hex,
                     sphincs_sigs,
