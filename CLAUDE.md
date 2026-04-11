@@ -73,6 +73,87 @@ See `docs/INTEGRATION_METHODOLOGY_v2.md` for full plan.
 - Verify Docker services are running before any integration work.
 - After implementation, run: `grep -rn "MOCK_\|FALLBACK_" src/ --include="*.ts" --include="*.tsx" | grep -v mock.ts | grep -v .test. | grep -v .spec.`
 
+## Development Workflow (MANDATORY)
+
+Adopted from [everything-claude-code](https://github.com/affaan-m/everything-claude-code).
+**Past failures (hardcoded vault address, silent fallback data, untested refactors) happened because we skipped these steps.** Follow them strictly.
+
+### 1. Plan FIRST — `/plan`
+Before ANY code change touching more than one file, invoke the `planner` agent:
+- Restate requirements in plain words
+- List affected files with line numbers
+- Identify risks and dependencies
+- **WAIT for user confirmation** before writing code
+
+Triggers: new feature, refactor across 2+ files, schema migration, L1/L3 contract change, new service.
+
+### 2. TDD — `/tdd` (skill: `tdd-workflow`)
+Write failing test BEFORE implementation. Red → Green → Refactor.
+- Rust: `cargo test` (unit + integration in `tests/`)
+- Frontend: Playwright E2E must verify DB record + UI state, NOT just HTTP 200
+- Minimum: 1 success + 1 error test per endpoint
+
+### 3. Silent-failure hunt — agent: `silent-failure-hunter`
+**ZERO tolerance for these anti-patterns** (they caused the vault split-brain):
+- Hardcoded constants that should be config-driven
+- `.catch(() => [])` / `unwrap_or_default()` that hides errors
+- Empty catch blocks
+- Fallback values masking real failures
+- Log-and-forget error handling
+
+Run this agent before committing any change to `services/`, `routes/`, or `lib/`.
+
+### 4. Verify — `/verify` (skill: `verification-loop`)
+Before marking a task complete, run the full loop:
+```bash
+# Rust
+cd src/api/api && SQLX_OFFLINE=true cargo check --bin api-server
+cd src/api/api && cargo test
+
+# Frontend
+cd src/frontend/web && npx tsc --noEmit
+cd src/frontend/web && npx playwright test --reporter=list
+
+# Stub detection
+grep -rn "MOCK_\|FALLBACK_\|DEMO_" src/ --include="*.ts" --include="*.tsx" | grep -v mock.ts | grep -v .test. | grep -v .spec.
+
+# L1 contract verification (if touched)
+cd src/l1/contracts && forge test
+```
+
+All MUST pass. No "I think it works" — only "build+types+tests+lints green".
+
+### 5. Code Review — `/code-review` (agent: `code-reviewer`)
+Before pushing to main:
+- Diff against `origin/main`
+- Check for silent failures (step 3 re-run)
+- Verify security (`security-reviewer` for auth/input/secrets)
+- Rust-specific (`rust-reviewer`) or TS-specific (`typescript-reviewer`)
+
+### Agents Available (`.claude/agents/`)
+| Agent | Use for |
+|-------|---------|
+| `planner` | Multi-file feature planning |
+| `tdd-guide` | Test-first enforcement |
+| `silent-failure-hunter` | Catch hidden errors, hardcoded values |
+| `code-reviewer` | Generic code review |
+| `rust-reviewer` | Rust ownership/lifetimes/error handling |
+| `typescript-reviewer` | TS types, React patterns |
+| `security-reviewer` | Auth, input validation, secrets |
+| `architect` | System-level design decisions |
+
+### Skills Available (`.claude/skills/`)
+| Skill | Use for |
+|-------|---------|
+| `tdd-workflow` | Red-Green-Refactor cycle |
+| `verification-loop` | Full build/type/test/lint/security check |
+| `security-review` | Vulnerability checklist |
+| `rust-patterns` | Idiomatic Rust |
+| `backend-patterns` | API design, DB, caching |
+| `frontend-patterns` | React/Next.js patterns |
+| `e2e-testing` | Playwright POM, flaky-test mitigation |
+| `plankton-code-quality` | Format/lint on every edit |
+
 ## Commit Convention
 
 ```
