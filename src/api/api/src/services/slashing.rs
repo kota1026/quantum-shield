@@ -23,7 +23,42 @@ use tracing::{info, warn, instrument};
 
 use crate::error::ApiError;
 use crate::db::{ChallengeRepository, InsuranceRepository, ProverRepository};
-use super::l1_prover_registry::{L1ProverRegistryService, hex_to_bytes32_or_zero};
+use super::l1_prover_registry::{L1ProverRegistryService, hex_to_bytes32};
+
+/// On-chain slashing status — tracks the lifecycle of the L1 `ProverRegistry.slash()` call.
+///
+/// Previously the L1 call was "best-effort": a failed submission silently logged a
+/// warning and returned `None`, leaving the DB marked as slashed while the on-chain
+/// stake was untouched. That is the exact silent-failure pattern we are eliminating.
+///
+/// With `L1SlashStatus`, every slashing has an explicit L1 lifecycle state that the
+/// caller, the UI, and the retry queue can observe.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum L1SlashStatus {
+    /// L1 `ProverRegistry.slash()` succeeded; `l1_tx_hash` is populated.
+    Submitted,
+    /// L1 call is disabled by feature flag (`l1.slashing.l1_execution=false`).
+    /// This is an operator decision, not a failure.
+    Disabled,
+    /// L1 slashing is enabled in config but the registry service is unavailable
+    /// (e.g., missing `l1_rpc_url` or `l1_private_key`). Operator action required.
+    Unavailable,
+    /// L1 call was attempted but failed. The slashing is recorded in the DB as
+    /// pending an on-chain retry. A retry service (future work) polls these and
+    /// resubmits. Never silently ignored.
+    PendingRetry { error: String },
+}
+
+impl L1SlashStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            L1SlashStatus::Submitted => "submitted",
+            L1SlashStatus::Disabled => "disabled",
+            L1SlashStatus::Unavailable => "unavailable",
+            L1SlashStatus::PendingRetry { .. } => "pending_retry",
+        }
+    }
+}
 
 /// Slashing distribution result
 #[derive(Debug, Clone)]
@@ -37,6 +72,36 @@ pub struct SlashingResult {
     pub burn_amount: String,
     pub prover_deactivated: bool,
     pub l1_tx_hash: Option<String>,
+    /// Explicit L1 lifecycle state (C-4 fix: replaces silent `None`).
+    pub l1_status: L1SlashStatus,
+}
+
+/// Validate and convert the `prover_id` / `challenge_id` hex strings to the
+/// `bytes32` format required by `ProverRegistry.slash()`.
+///
+/// Fail-fast: invalid hex returns `ApiError::InvalidRequest`. This runs BEFORE
+/// any DB writes so malformed input cannot leave a half-applied slashing record.
+///
+/// Previously this used `hex_to_bytes32_or_zero`, which silently converted
+/// garbage to `0x00..00` and then attempted to slash a non-existent prover on
+/// L1, hiding the real error from operators.
+fn prepare_l1_slash_args(
+    prover_id: &str,
+    challenge_id: &str,
+) -> Result<([u8; 32], [u8; 32]), ApiError> {
+    let prover_bytes = hex_to_bytes32(prover_id).map_err(|e| {
+        ApiError::InvalidRequest(format!(
+            "slashing: invalid prover_id hex '{}': {}",
+            prover_id, e
+        ))
+    })?;
+    let challenge_bytes = hex_to_bytes32(challenge_id).map_err(|e| {
+        ApiError::InvalidRequest(format!(
+            "slashing: invalid challenge_id hex '{}': {}",
+            challenge_id, e
+        ))
+    })?;
+    Ok((prover_bytes, challenge_bytes))
 }
 
 /// Slashing execution service
@@ -67,6 +132,18 @@ impl SlashingService {
             "Slashing: execute started, challenge_id={}, prover_id={}, colluding_count={}",
             challenge_id, prover_id, colluding_prover_count
         );
+
+        // Step 0: Validate hex inputs BEFORE any DB writes (C-4 fail-fast).
+        //
+        // If l1_slashing is enabled we MUST be able to produce valid bytes32
+        // arguments, otherwise we would silently record a slashing in the DB
+        // while L1 never sees it. Validate early so invalid input aborts the
+        // whole pipeline with InvalidRequest (HTTP 400), not a corrupted DB.
+        let l1_args = if l1_slashing_enabled {
+            Some(prepare_l1_slash_args(prover_id, challenge_id)?)
+        } else {
+            None
+        };
 
         // Step 1: Calculate amounts
         let total_slash = calculate_quadratic_slash(colluding_prover_count, lock_amount);
@@ -124,37 +201,59 @@ impl SlashingService {
             false
         };
 
-        // Step 6: L1 ProverRegistry.slash() — conditional on feature flag
-        // Triple-gate: (1) l1_slashing_enabled flag, (2) Option<Service>, (3) best-effort
-        let l1_tx_hash: Option<String> = if l1_slashing_enabled {
+        // Step 6: L1 ProverRegistry.slash() — now tracked explicitly (C-4 fix).
+        //
+        // Previously a failed L1 submission was silently swallowed (warn + None),
+        // letting the DB record the slashing as complete while the attacker's
+        // on-chain stake was untouched. Now every branch produces an explicit
+        // `L1SlashStatus` value that the caller and future retry service can act
+        // on.
+        let (l1_tx_hash, l1_status): (Option<String>, L1SlashStatus) = if l1_slashing_enabled {
             if let Some(registry) = l1_prover_registry {
-                let prover_id_bytes = hex_to_bytes32_or_zero(prover_id);
-                let reason_bytes = hex_to_bytes32_or_zero(challenge_id);
+                // Hex validation already happened in Step 0; safe to unwrap the Option.
+                let (prover_id_bytes, reason_bytes) = l1_args
+                    .expect("l1_args must be Some when l1_slashing_enabled is true");
                 match registry.slash(prover_id_bytes, colluding_prover_count, reason_bytes).await {
                     Ok(tx_hash) => {
                         info!(
                             l1_tx_hash = %tx_hash,
                             "L1 ProverRegistry.slash() submitted successfully"
                         );
-                        Some(format!("{:?}", tx_hash))
+                        (Some(format!("{:?}", tx_hash)), L1SlashStatus::Submitted)
                     }
                     Err(e) => {
-                        warn!("L1 ProverRegistry.slash() failed (best-effort): {}", e);
-                        None
+                        // No more silent warn — log at ERROR level and record
+                        // the pending state so operators notice and the retry
+                        // service can resubmit.
+                        tracing::error!(
+                            error = %e,
+                            slashing_id = %slashing_id,
+                            "L1 ProverRegistry.slash() failed — marking pending_retry"
+                        );
+                        (None, L1SlashStatus::PendingRetry { error: e.to_string() })
                     }
                 }
             } else {
-                warn!("L1 slashing enabled but no L1ProverRegistryService available");
-                None
+                // Slashing is enabled by flag but the service is not available.
+                // This is an operator configuration error, not a transient
+                // failure — surface it clearly.
+                tracing::error!(
+                    slashing_id = %slashing_id,
+                    "L1 slashing enabled but no L1ProverRegistryService available — \
+                     operator must configure QS__L1__PRIVATE_KEY and QS__L1_RPC_URL"
+                );
+                (None, L1SlashStatus::Unavailable)
             }
         } else {
-            info!("L1 slashing disabled, skipping on-chain execution");
-            None
+            info!("L1 slashing disabled by feature flag, skipping on-chain execution");
+            (None, L1SlashStatus::Disabled)
         };
 
         info!(
-            "Slashing: execute completed, slashing_id={}, deactivated={}",
-            slashing_id, prover_deactivated
+            slashing_id = %slashing_id,
+            deactivated = prover_deactivated,
+            l1_status = l1_status.as_str(),
+            "Slashing: execute completed"
         );
 
         Ok(SlashingResult {
@@ -167,6 +266,7 @@ impl SlashingService {
             burn_amount,
             prover_deactivated,
             l1_tx_hash,
+            l1_status,
         })
     }
 
@@ -311,5 +411,102 @@ mod tests {
         let amount = "1000000000000000000";
         let slash = calculate_quadratic_slash(0, amount);
         assert_eq!(slash, "0"); // 0² × 10% = 0%
+    }
+
+    // ========================================================================
+    // C-4 regression: prepare_l1_slash_args fail-fast on invalid hex
+    //
+    // Previously `hex_to_bytes32_or_zero` silently converted garbage to
+    // 0x00..00, letting the slashing DB write succeed while the L1 call
+    // attempted to slash a non-existent prover. These tests enforce fail-fast
+    // validation before any DB or L1 side effects.
+    // ========================================================================
+
+    const VALID_BYTES32_HEX: &str =
+        "0x7a3246d8fd465f83700c112d20acb07da57c9d25c00535e51a1f7d524cdabf04";
+    const VALID_BYTES32_HEX_2: &str =
+        "0x1111111111111111111111111111111111111111111111111111111111111111";
+
+    #[test]
+    fn test_prepare_l1_slash_args_accepts_valid_hex() {
+        let result = prepare_l1_slash_args(VALID_BYTES32_HEX, VALID_BYTES32_HEX_2);
+        assert!(result.is_ok(), "valid bytes32 hex must parse");
+        let (prover_bytes, challenge_bytes) = result.unwrap();
+        assert_eq!(prover_bytes[0], 0x7a);
+        assert_eq!(challenge_bytes[0], 0x11);
+    }
+
+    #[test]
+    fn test_prepare_l1_slash_args_rejects_garbage_prover_id() {
+        match prepare_l1_slash_args("not-hex", VALID_BYTES32_HEX) {
+            Err(ApiError::InvalidRequest(msg)) => {
+                assert!(
+                    msg.contains("prover_id"),
+                    "error must identify the bad field: {}",
+                    msg
+                );
+                assert!(msg.contains("not-hex"));
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prepare_l1_slash_args_rejects_garbage_challenge_id() {
+        match prepare_l1_slash_args(VALID_BYTES32_HEX, "xyz") {
+            Err(ApiError::InvalidRequest(msg)) => {
+                assert!(
+                    msg.contains("challenge_id"),
+                    "error must identify the bad field: {}",
+                    msg
+                );
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prepare_l1_slash_args_rejects_wrong_length() {
+        // 16 hex chars = 8 bytes, not 32. Previously this silently became
+        // 0x00..00; now it fails with a clear error.
+        match prepare_l1_slash_args("0x1234567890abcdef", VALID_BYTES32_HEX) {
+            Err(ApiError::InvalidRequest(msg)) => {
+                assert!(msg.contains("prover_id"));
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_prepare_l1_slash_args_rejects_empty() {
+        // The underlying hex_to_bytes32 treats an empty (or prefix-only)
+        // string as a wrong-length error, which prepare_l1_slash_args then
+        // surfaces as a field-scoped InvalidRequest. That is strictly better
+        // than the old `hex_to_bytes32_or_zero` which turned an empty prover_id
+        // into a zero-address slash target.
+        match prepare_l1_slash_args("", VALID_BYTES32_HEX) {
+            Err(ApiError::InvalidRequest(msg)) => assert!(msg.contains("prover_id")),
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    // ========================================================================
+    // L1SlashStatus semantics: verify every state has a distinct string
+    // ========================================================================
+
+    #[test]
+    fn test_l1_slash_status_strings_are_distinct() {
+        let states = [
+            L1SlashStatus::Submitted.as_str(),
+            L1SlashStatus::Disabled.as_str(),
+            L1SlashStatus::Unavailable.as_str(),
+            L1SlashStatus::PendingRetry { error: "x".to_string() }.as_str(),
+        ];
+        let unique: std::collections::HashSet<&&str> = states.iter().collect();
+        assert_eq!(
+            unique.len(),
+            states.len(),
+            "every L1SlashStatus variant must serialize to a distinct string"
+        );
     }
 }

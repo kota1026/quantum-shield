@@ -105,5 +105,15 @@
     "details": "詳細を見る",
     "accept": "同意する",
     "close": "閉じる"
+  },
+  "phaseOne": {
+    "title": "Phase 1 運用中 (正直な開示)",
+    "learnMore": "Phase 1 / Phase 2 の詳細を見る",
+    "scope": {
+      "sphincs-verify": "L1 Vault は現在 SPHINCS+ 署名の完全検証ではなく、恒等性ゲート (_verifySimplified) で運用しています。Phase 2 で FIPS 205 完全検証に切り替わります。",
+      "ai-prover": "プロバーの署名可否判断は AI Prover Agent (Claude) が実施しています。暗号演算は本物の FIPS 205 SLH-DSA ですが、「いつ署名するか」を LLM が決定します。Phase 2 で HSM 人間オペレータまたはルールベース決定論に切り替わります。",
+      "vrf-fallback": "VRF コントラクト未設定時、プロバー選出は block.prevrandao にフォールバックします。本番では Chainlink VRF v2.5 のみを使用する予定です。",
+      "bond-calc-only": "緊急アンロックのボンドは現在計算・表示のみで、実際のオンチェーン徴収は行っていません。Phase 2 で徴収 + slashing フローが連結されます。"
+    }
   }
 }

@@ -67,6 +67,16 @@ Between now and Ethereum's protocol-level quantum upgrade, **all ECDSA-secured a
 └─────────────────────────────────────────────────────────┘
 ```
 
+> **Phase 1 disclosure (2026-04-11)**: In the current Sepolia deployment, the
+> Prover Pool role is operated by an **AI Prover Agent** that uses an Anthropic
+> Claude model to compute a confidence score for each unlock request. If the
+> confidence score is ≥ 0.99, the agent signs with a real FIPS 205 SLH-DSA-SHAKE-128s
+> key pair; otherwise the request is escalated. The cryptography is real, but
+> the signing decision is LLM-driven. Phase 2 replaces this with HSM-bound
+> human operators (or rule-based automation with governance approval). See
+> [`docs/ACTUAL_STATE.md`](./ACTUAL_STATE.md) for the full Phase 1 vs Phase 2
+> matrix.
+
 ### 2.2 Dual Post-Quantum Algorithms
 
 | Algorithm | NIST Standard | Layer | Security Basis | Performance |
@@ -96,13 +106,32 @@ User generates Dilithium keypair in-browser (WASM) → signs lock request → L3
 
 User signs unlock → L3 verifies → VRF selects 2 random Provers → Provers co-sign with SPHINCS+ → 24h time lock → Auto-Claim releases assets.
 
+> **Phase 1 note**: VRF falls back to `block.prevrandao` when the Chainlink VRF
+> contract is not configured, and the Prover signing step is performed by the
+> AI Prover Agent (see §2.1 disclosure). When fewer than 2 active Provers are
+> available, the unlock request returns `InsufficientProvers` (HTTP 503) rather
+> than silently falling back to a placeholder address.
+
 ### 3.3 Emergency Unlock (7-day)
 
 User deposits bond (min 0.5 ETH or 5%) → 7-day time lock → if unchallenged, assets released + bond returned.
 
+> **Phase 1 note**: Emergency bond is currently *calculated and displayed* but
+> **not collected on-chain**. The full bond collection / challenge / slashing
+> pipeline ships in Phase 2. Users see the bond requirement in the response,
+> but no ETH actually leaves their wallet during emergency unlock as of
+> 2026-04-11.
+
 ### 3.4 Challenge & Quadratic Slashing
 
 Observers detect fraud → submit challenge → if valid, Prover slashed N² (quadratic penalty). Makes collusion exponentially expensive.
+
+> **Phase 1 note**: The slashing calculation (`N² × 10%`) is implemented and
+> tested, and the L1 `ProverRegistry.slash()` call is wired. However, the
+> current implementation treats the L1 write as "best-effort" — if the
+> on-chain call fails, the slashing is recorded in the backend database but
+> not on L1. Batch 2 of the 2026-04-11 spec-drift fix introduces fail-hard
+> semantics + a retry queue so this silent failure cannot persist.
 
 ---
 
@@ -124,14 +153,23 @@ Lock QS tokens (1-4 years) → receive veQS → governance voting + reward multi
 
 ## 5. Implementation Status
 
-| Component | Status |
-|-----------|--------|
-| L1 Smart Contracts (Sepolia) | Deployed & verified |
-| L3 Governance Contracts (Arbitrum Sepolia) | 12 contracts deployed |
-| Backend API (Rust/Axum) | 202 endpoints, PostgreSQL |
-| Frontend (Next.js) | 11 apps, 175+ pages |
-| WASM Signature Module | ML-DSA-65 keygen/sign/verify |
-| Dilithium + SPHINCS+ Integration | Complete |
+**Phase 1** is the current Sepolia deployment (2026-04-11) with honest operational
+trade-offs documented in [`docs/ACTUAL_STATE.md`](./ACTUAL_STATE.md).
+**Phase 2** targets the same feature surface but replaces every Phase 1 bridge
+with a production-grade implementation.
+
+| Component | Phase 1 (now) | Phase 2 (target) |
+|-----------|---------------|-------------------|
+| L1 Smart Contracts (Sepolia) | Deployed & verified, `_verifySimplified` identity gate | Full FIPS 205 on-chain verification (`useFullVerification=true`) |
+| L3 Governance Contracts (Arbitrum Sepolia) | 12 contracts deployed | Live voting via wagmi frontend |
+| Backend API (Rust/Axum) | 202 endpoints, PostgreSQL, config-driven time-locks with production guards | Same + Token Hub L3 writes, slashing fail-hard + retry queue |
+| Frontend (Next.js) | 11 apps, 175+ pages, Phase 1 disclosure badges | Real Governor data, VRF status badges, bond collection UI |
+| WASM Signature Module | ML-DSA-65 keygen/sign/verify in browser | Same |
+| Dilithium + SPHINCS+ Integration | Real FIPS 204 / 205 via `@noble/post-quantum` + `slh-dsa` Rust crate | Same + external audit |
+| Prover Pool | **AI Prover Agent (Claude-assisted confidence scoring + real SLH-DSA signing)** | HSM-bound human operators OR rule-based with governance approval |
+| VRF Prover Selection | Chainlink VRF v2.5 when configured, `block.prevrandao` fallback | Chainlink VRF v2.5 always |
+| Emergency Bond | Calculated & displayed only | Collected on-chain + slashing on failed challenges |
+| Token Hub Reward Claim | DB-only write (Phase 8-D placeholder) | L3 `RewardRouter.claimReward()` with auth context |
 
 ---
 

@@ -32,6 +32,73 @@
 
 ---
 
+## ⚠️ Phase 1 Honesty Disclosure (2026-04-11 追記)
+
+> **背景**: `everything-claude-code` メソドロジー導入後に実施したスペックドリフト監査で、
+> 白書の主張と実装の間に複数の重要なギャップが見つかりました。このセクションは
+> 「Phase 1 (現在の運用) で実際に動いているもの」と「Phase 2 (最終形) で約束されているもの」
+> を明示的に区別します。**監査・助成金申請前にステークホルダーに知っておいてほしい内容です。**
+
+### Phase 1 vs Phase 2 マトリクス
+
+| 領域 | 白書の主張 | Phase 1 (現在) | Phase 2 (最終形) |
+|------|----------|---------------|-----------------|
+| **L1 SPHINCS+ 検証** | FIPS 205 on-chain verify | `_verifySimplified()` 恒等性ゲート (SHA3 hash 非ゼロ判定) | Full `sphincsVerifier.verify()` — 8 KB 署名 on-chain 検証 |
+| **Prover 署名判断** | 経済ステークを持つ分散オペレータ | **AI Prover Agent (Claude Sonnet 4.6 LLM + ML-DSA 基本 check) が confidence ≥ 0.99 で auto-sign** | HSM-bound 人間オペレータ + 経済ステーク |
+| **VRF 乱数源** | Chainlink VRF v2.5 (2/5 加重選出) | contract 未設定時は `block.prevrandao` fallback (UI に非表示) | VRF deploy 完了後は常に Chainlink |
+| **Emergency bond** | L1 で徴収 + challenge 失敗時に没収 | 計算だけ実施、徴収・没収コード未実装 | Full bond collection + slashing connected |
+| **Token Hub reward claim** | L3 RewardRouter 経由で QS トークン支払い | DB only(L3 書き込みなし、`"caller"` リテラル hardcode) | L3 `claimReward()` 呼び出し + auth context から wallet 抽出 |
+| **Governance** | Governor contract 経由の BFT 投票 | フロントで `SAMPLE_PROPOSALS` ハードコード | wagmi 経由で L3 Governor 直読み |
+| **Slashing L1 execution** | `ProverRegistry.slash(N²×10%)` on-chain | **best-effort**: L1 呼び出し失敗時は warn ログのみ、DB は slashed と記録 | fail-hard + retry queue |
+| **Time-lock** | 24h normal / 7d emergency | ✅ fixed (2026-04-11) — config-driven, production guard enforced | (同じ) |
+| **Prover pool fallback** | N/A | ✅ fixed (2026-04-11) — `0x...0002` hardcode 除去、fail-fast | (同じ) |
+| **Signature verification guard** | 本番で必須 | ✅ fixed (2026-04-11) — `RUN_MODE` opt-in 廃止、chain_id 経由で強制 | (同じ) |
+
+### AI Prover の透明性について
+
+Phase 1 では `src/agents/ai-prover/src/verifier.ts` で Anthropic Claude API を直接呼び出し、
+unlock リクエストの「confidence score」を計算しています。判断基準:
+
+- **confidence ≥ 0.99**: auto_sign (SLH-DSA で実際に署名)
+- **confidence 0.80-0.99**: escalate (現在は人間レビュー待ちキューに入るだけ)
+- **confidence < 0.80**: reject
+
+つまり**「プロバーの署名可否判断を Claude Sonnet 4.6 が下している」**というのが現実です。
+SLH-DSA-SHAKE-128s の暗号演算自体は本物の FIPS 205 実装 (`@noble/post-quantum`) で動いていますが、
+「いつ署名するか」はLLMの判断に依存しています。
+
+**Phase 2 移行時に選択すべき設計**:
+1. AI を完全に除去し、純粋なルールベースに戻す (監査容易性が上がる)
+2. AI を「補助シグナル」に格下げし、決定権を決定論的ロジックに戻す
+3. AI-assisted を明示的に受け入れ、governance で合意する (透明性優先)
+
+この選択は経済モデル・白書・監査レポートに直接影響するため、次期バージョンで governance 提案にかけます。
+
+### silent-failure-hunter スキャン結果 (2026-04-11 実施)
+
+| パターン | 件数 | 残存場所 |
+|---------|-----|---------|
+| `unwrap_or_default()` on hex input | 0 ✅ | (fixed in 4b146869, 68b6fb5d) |
+| Hardcoded `0x0000...0002` / placeholder addresses | 0 ✅ | (fixed in 2a084b19) |
+| `NORMAL_TIME_LOCK_HOURS` hardcoded constant | 0 ✅ | (fixed in 2a084b19) |
+| `SAMPLE_PROPOSALS` in frontend (governance) | 1 🔴 | `PublicGovernanceManagement.tsx:59` |
+| `PLACEHOLDER_WALLET` / `"caller"` literal | 複数 🔴 | `qs_hub.rs`, `token_hub.rs` |
+| `best-effort` L1 write (silent warn) | 1 🔴 | `services/slashing.rs:142` |
+| `hex_to_bytes32_or_zero` (silent fallback to 0x0) | 使用箇所複数 🔴 | `services/l1_prover_registry.rs` |
+
+### Batch 1 完了 (2026-04-11)
+
+以下の致命的な silent-failure は修正済みです:
+
+- **C-1** (CRITICAL): Unlock の `0x...0002` fallback 削除
+- **H-1** (HIGH): `skip_signature_verification` production guard を chain_id 経由で強制
+- **H-2** (HIGH): unlock.rs の time-lock を config 読み込みに統一
+
+残りは Batch 2 (C-2 Token Hub claim / C-4 Slashing fail-hard) と Batch 3
+(C-3 AI Prover 白書更新 / H-5 SPHINCS+ Phase 1 バッジ) で対応中。
+
+---
+
 ## Executive Summary
 
 ```

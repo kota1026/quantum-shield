@@ -415,11 +415,47 @@ pub async fn get_rewards(
 /// POST /v1/token-hub/claim
 ///
 /// Claim accumulated rewards.
+/// Validate a wallet address string.
+///
+/// C-2 helper: ensures the caller provided a proper 0x-prefixed 42-char
+/// hex Ethereum address. Previously the handler used a literal `"caller"`
+/// string, meaning every user's claim collided into the same DB row.
+fn validate_wallet_address(addr: &str) -> Result<(), ApiError> {
+    if !addr.starts_with("0x") {
+        return Err(ApiError::InvalidRequest(
+            "wallet_address must start with 0x".to_string(),
+        ));
+    }
+    if addr.len() != 42 {
+        return Err(ApiError::InvalidRequest(format!(
+            "wallet_address must be 42 characters (got {})",
+            addr.len()
+        )));
+    }
+    // Body must be hex digits
+    if !addr[2..].chars().all(|c| c.is_ascii_hexdigit()) {
+        return Err(ApiError::InvalidRequest(
+            "wallet_address contains non-hex characters".to_string(),
+        ));
+    }
+    Ok(())
+}
+
 pub async fn claim_rewards(
     Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<TokenHubClaimRequest>,
 ) -> Result<Json<TokenHubClaimResponse>, ApiError> {
-    tracing::info!("Token Hub claim request: epochs={:?}", req.epochs);
+    // C-2 fix: reject hardcoded "caller" pattern — caller must supply a
+    // valid wallet address. Once JWT Extension<JwtClaims> middleware is wired,
+    // this will be replaced by server-side extraction from the auth token.
+    validate_wallet_address(&req.wallet_address)?;
+    let wallet = req.wallet_address.to_lowercase();
+
+    tracing::info!(
+        wallet = %wallet,
+        epochs = ?req.epochs,
+        "Token Hub claim request"
+    );
 
     // Get finalized epochs and user's claims from PG
     let finalized = crate::db::TokenHubRepository::get_finalized_epochs(
@@ -427,7 +463,7 @@ pub async fn claim_rewards(
     ).await?;
 
     let existing_claims = crate::db::TokenHubRepository::get_reward_claims_by_wallet(
-        state.pool(), "caller", // In production: extract from auth token
+        state.pool(), &wallet,
     ).await?;
     let claimed_epochs: std::collections::HashSet<i64> = existing_claims.iter().map(|c| c.epoch).collect();
 
@@ -443,7 +479,7 @@ pub async fn claim_rewards(
     };
 
     // Ensure user exists in users table to satisfy FK constraint on reward_claims
-    crate::db::UserRepository::ensure_exists(state.pool(), "caller").await?;
+    crate::db::UserRepository::ensure_exists(state.pool(), &wallet).await?;
 
     // Calculate total and create claim records
     use bigdecimal::ToPrimitive;
@@ -457,16 +493,24 @@ pub async fn claim_rewards(
             let claim_id = format!("claim-{}-{}", epoch, chrono::Utc::now().timestamp());
             let amount_bd = bigdecimal::BigDecimal::from(amount as i64);
             let _ = crate::db::TokenHubRepository::create_reward_claim(
-                state.pool(), &claim_id, "caller", epoch as i64, &amount_bd,
+                state.pool(), &claim_id, &wallet, epoch as i64, &amount_bd,
             ).await;
         }
     }
 
+    // C-2 Phase 1 disclosure: this endpoint currently only writes to PostgreSQL.
+    // No L3 RewardRouter.claimReward() call is made yet. Frontend MUST display
+    // a Phase 1 banner using the `phase` field below so users understand their
+    // QS tokens have not actually been transferred yet.
+    //
+    // Phase 2 will add: `state.l3_contracts.reward_router.claim_reward(&wallet,
+    // epochs_to_claim).await?` and set `phase = L3Submitted` with the tx hash.
     Ok(Json(TokenHubClaimResponse {
         success: true,
-        tx_hash: None, // BE-001: No mock tx_hash — real hash comes from L1 confirmation
+        tx_hash: None,
         amount_claimed: format!("{:.0}", total_amount),
         epochs_claimed: epochs_to_claim,
+        phase: crate::types::TokenHubClaimPhase::DbOnly,
     }))
 }
 
