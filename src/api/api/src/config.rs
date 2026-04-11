@@ -441,6 +441,76 @@ impl Default for SecurityConfig {
     }
 }
 
+/// Chain ID for local Anvil / Hardhat — the only chain where dev skips are
+/// allowed without a production guard triggering.
+const LOCAL_ANVIL_CHAIN_ID: u64 = 31337;
+
+/// Enforce production guards independently of RUN_MODE env var.
+///
+/// H-1 fix: Previously the guard ONLY fired when `RUN_MODE=production`.
+/// Forgetting to set that env var on Railway would silently bypass the
+/// verification guard — a classic silent failure. Now any non-local L1
+/// chain_id also triggers the guard.
+///
+/// H-2 fix: `default.yaml` has `normal_time_lock_hours: 0` for DEMO mode.
+/// If that config ever leaks into production, users would see a 0-second
+/// time lock — contradicting the 24h spec. Enforce minimums.
+///
+/// Panics if any production invariant is violated.
+pub fn enforce_production_guards(cfg: &Config, run_mode: &str) {
+    // A config is "production-like" if EITHER:
+    //   - RUN_MODE=production is explicitly set (old behavior), OR
+    //   - l1_chain_id is set to anything other than local Anvil (new behavior).
+    // This defence-in-depth means forgetting either env var still catches us.
+    let is_non_local_chain = matches!(
+        cfg.l1_chain_id,
+        Some(chain_id) if chain_id != LOCAL_ANVIL_CHAIN_ID
+    );
+    let is_production_like = run_mode == "production" || is_non_local_chain;
+
+    if is_production_like {
+        if cfg.security.skip_signature_verification {
+            panic!(
+                "SECURITY VIOLATION: skip_signature_verification=true on production-like \
+                 chain (run_mode={}, l1_chain_id={:?}). Aborting.",
+                run_mode, cfg.l1_chain_id
+            );
+        }
+        if cfg.security.skip_totp_verification {
+            panic!(
+                "SECURITY VIOLATION: skip_totp_verification=true on production-like \
+                 chain (run_mode={}, l1_chain_id={:?}). Aborting.",
+                run_mode, cfg.l1_chain_id
+            );
+        }
+        if cfg.security.normal_time_lock_hours < 1 {
+            panic!(
+                "SECURITY VIOLATION: normal_time_lock_hours={} on production-like \
+                 chain (minimum 1h). Aborting.",
+                cfg.security.normal_time_lock_hours
+            );
+        }
+        if cfg.security.emergency_time_lock_days < 1 {
+            panic!(
+                "SECURITY VIOLATION: emergency_time_lock_days={} on production-like \
+                 chain (minimum 1d). Aborting.",
+                cfg.security.emergency_time_lock_days
+            );
+        }
+    }
+
+    // L1 mainnet guard: min_stake must be >= 1 ETH
+    if cfg.l1.mode == "mainnet" {
+        let min_stake: u128 = cfg.l1.staking.min_stake.parse().unwrap_or(0);
+        if min_stake < 1_000_000_000_000_000_000u128 {
+            panic!(
+                "SECURITY VIOLATION: l1.staking.min_stake ({}) < 1 ETH in mainnet mode. Aborting.",
+                cfg.l1.staking.min_stake
+            );
+        }
+    }
+}
+
 impl Config {
     pub fn load() -> Result<Self, ConfigError> {
         let run_mode = std::env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
@@ -453,26 +523,8 @@ impl Config {
 
         let cfg: Self = config.try_deserialize()?;
 
-        // Security guard: production mode must NOT have verification skips enabled
-        if run_mode == "production" {
-            if cfg.security.skip_signature_verification {
-                panic!("SECURITY VIOLATION: skip_signature_verification=true in production mode. Aborting.");
-            }
-            if cfg.security.skip_totp_verification {
-                panic!("SECURITY VIOLATION: skip_totp_verification=true in production mode. Aborting.");
-            }
-        }
-
-        // L1 mainnet guard: min_stake must be >= 1 ETH
-        if cfg.l1.mode == "mainnet" {
-            let min_stake: u128 = cfg.l1.staking.min_stake.parse().unwrap_or(0);
-            if min_stake < 1_000_000_000_000_000_000u128 {
-                panic!(
-                    "SECURITY VIOLATION: l1.staking.min_stake ({}) < 1 ETH in mainnet mode. Aborting.",
-                    cfg.l1.staking.min_stake
-                );
-            }
-        }
+        // Run all production guards (panics on violation).
+        enforce_production_guards(&cfg, &run_mode);
 
         // Log L1 mode
         tracing::info!("L1 mode: {}, staking.enabled: {}, slashing.l1_execution: {}",
@@ -613,16 +665,117 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "SECURITY VIOLATION: skip_signature_verification=true in production")]
-    fn test_production_guard_rejects_skip_sig() {
-        std::env::set_var("RUN_MODE", "production");
-        // Load will panic because default config has skip_signature_verification=true
-        // We can't call Config::load() directly because it reads files,
-        // so we test the guard logic directly
-        let cfg = Config::default();
-        let run_mode = "production";
-        if run_mode == "production" && cfg.security.skip_signature_verification {
-            panic!("SECURITY VIOLATION: skip_signature_verification=true in production mode. Aborting.");
-        }
+    #[should_panic(expected = "SECURITY VIOLATION: skip_signature_verification=true")]
+    fn test_production_guard_rejects_skip_sig_via_run_mode() {
+        // Old behavior: RUN_MODE=production triggers the guard.
+        let cfg = Config::default(); // skip=true by default
+        enforce_production_guards(&cfg, "production");
+    }
+
+    // ============================================================================
+    // H-1: Production guard must not depend solely on RUN_MODE env var.
+    //
+    // Regression tests for the silent-failure we just discovered:
+    // forgetting to set RUN_MODE=production on Railway would silently bypass the
+    // signature verification guard. From now on, any non-local L1 chain_id
+    // triggers the guard regardless of run_mode.
+    // ============================================================================
+
+    #[test]
+    #[should_panic(expected = "SECURITY VIOLATION: skip_signature_verification=true")]
+    fn test_production_guard_triggers_on_sepolia_chain_id_without_run_mode() {
+        let cfg = Config {
+            l1_chain_id: Some(11155111), // Sepolia — non-local
+            ..Config::default()          // skip=true by default
+        };
+        // Note: run_mode = "development", yet guard must still fire.
+        enforce_production_guards(&cfg, "development");
+    }
+
+    #[test]
+    #[should_panic(expected = "SECURITY VIOLATION: skip_signature_verification=true")]
+    fn test_production_guard_triggers_on_mainnet_chain_id_without_run_mode() {
+        let cfg = Config {
+            l1_chain_id: Some(1), // Ethereum mainnet
+            ..Config::default()
+        };
+        enforce_production_guards(&cfg, "development");
+    }
+
+    #[test]
+    fn test_production_guard_allows_skip_on_local_anvil() {
+        // chain_id=31337 (local Anvil) is the only chain where dev mode skips are OK.
+        let cfg = Config {
+            l1_chain_id: Some(31337),
+            ..Config::default()
+        };
+        enforce_production_guards(&cfg, "development"); // must NOT panic
+    }
+
+    #[test]
+    fn test_production_guard_allows_skip_when_no_l1_configured() {
+        // No L1 chain configured at all — pure local dev, no production risk.
+        let cfg = Config {
+            l1_chain_id: None,
+            ..Config::default()
+        };
+        enforce_production_guards(&cfg, "development"); // must NOT panic
+    }
+
+    // ============================================================================
+    // H-2: Time-lock minimums for production.
+    //
+    // default.yaml has normal_time_lock_hours: 0 for DEMO mode. If that config
+    // ever leaks into a production deployment, users would see "release in 0
+    // hours" which contradicts the 24h spec. Add a minimum guard.
+    // ============================================================================
+
+    #[test]
+    #[should_panic(expected = "SECURITY VIOLATION: normal_time_lock_hours")]
+    fn test_production_guard_rejects_zero_normal_time_lock() {
+        let cfg = Config {
+            l1_chain_id: Some(11155111),
+            security: SecurityConfig {
+                skip_signature_verification: false, // pass the sig guard
+                skip_totp_verification: false,
+                normal_time_lock_hours: 0, // VIOLATION
+                ..SecurityConfig::default()
+            },
+            ..Config::default()
+        };
+        enforce_production_guards(&cfg, "development");
+    }
+
+    #[test]
+    #[should_panic(expected = "SECURITY VIOLATION: emergency_time_lock_days")]
+    fn test_production_guard_rejects_zero_emergency_time_lock() {
+        let cfg = Config {
+            l1_chain_id: Some(11155111),
+            security: SecurityConfig {
+                skip_signature_verification: false,
+                skip_totp_verification: false,
+                normal_time_lock_hours: 24,
+                emergency_time_lock_days: 0, // VIOLATION
+                ..SecurityConfig::default()
+            },
+            ..Config::default()
+        };
+        enforce_production_guards(&cfg, "development");
+    }
+
+    #[test]
+    fn test_production_guard_accepts_valid_time_locks() {
+        let cfg = Config {
+            l1_chain_id: Some(11155111),
+            security: SecurityConfig {
+                skip_signature_verification: false,
+                skip_totp_verification: false,
+                normal_time_lock_hours: 24,
+                emergency_time_lock_days: 7,
+                ..SecurityConfig::default()
+            },
+            ..Config::default()
+        };
+        enforce_production_guards(&cfg, "development"); // must NOT panic
     }
 }

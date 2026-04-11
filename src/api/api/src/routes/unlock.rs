@@ -26,9 +26,34 @@ use crate::{
     types::{ClaimUnlockRequest, ClaimUnlockResponse, EmergencyUnlockResponse, LockStatus, UnlockRequest, UnlockResponse, UnlockStatus},
 };
 
-/// Time lock constants from CORE_PRINCIPLES.md
-const NORMAL_TIME_LOCK_HOURS: u64 = 24; // SEQ#2
-const EMERGENCY_TIME_LOCK_DAYS: u64 = 7; // SEQ#3
+// Time-lock values are now config-driven (`security.normal_time_lock_hours` /
+// `security.emergency_time_lock_days`), not hardcoded constants. This closes the
+// split-brain where unlock.rs used 24/7 while observer.rs read from config.
+// A production-guard in config.rs enforces minimum values (>= 1h / >= 1d) on
+// any non-local chain so DEMO values (0) cannot leak into production.
+
+// ============================================================================
+// Prover pool validation (C-1 fix: no more silent 0x...0002 fallback)
+// ============================================================================
+
+/// Validate that enough active provers exist to satisfy the 2-of-N SEQUENCES
+/// requirement. Returns `ApiError::InsufficientProvers` if not.
+///
+/// Previously the call site fell back to a hardcoded `0x...0002` placeholder
+/// address, which let unlocks appear to succeed but could never collect valid
+/// signatures — a classic silent-failure pattern.
+fn validate_prover_count(active_count: usize) -> Result<(), ApiError> {
+    if active_count < 2 {
+        return Err(ApiError::InsufficientProvers { active: active_count });
+    }
+    Ok(())
+}
+
+/// Convert a config `normal_time_lock_hours` / `emergency_time_lock_days` value
+/// into a timestamp offset in seconds. Extracted for test coverage.
+fn release_offset_seconds(hours: u64) -> u64 {
+    hours * 3600
+}
 
 // ============================================================================
 // Input validation helpers (fail-fast on invalid user input)
@@ -161,9 +186,12 @@ pub async fn create_unlock(
     // 5. Generate unlock_id
     let unlock_id = generate_unlock_id(&req.lock_id, &sr_1);
 
-    // 6. Calculate release time (24h from now)
+    // 6. Calculate release time using config (H-2 fix: was hardcoded 24h).
+    //    Production guard in config::enforce_production_guards() ensures
+    //    `normal_time_lock_hours >= 1` on any non-local chain.
+    let time_lock_hours = state.config().security.normal_time_lock_hours;
     let now = chrono::Utc::now().timestamp() as u64;
-    let release_time = now + (NORMAL_TIME_LOCK_HOURS * 3600);
+    let release_time = now + release_offset_seconds(time_lock_hours);
 
     // 6b. Storage Migration: INSERT unlock_request into PostgreSQL (SM-001: PG first)
     {
@@ -217,6 +245,9 @@ pub async fn create_unlock(
         .map_err(|e| ApiError::Internal(format!("VRF selection failed: {}", e)))?;
 
     // 7.4 Use VRF random value to select 2-of-N active provers (SEQUENCES §2.4)
+    //
+    // C-1 fix: fail-fast instead of falling back to `0x...0002`. If fewer than
+    // 2 active provers exist, the spec cannot be satisfied and we must stop.
     let active_provers = crate::db::ProverRepository::list_provers(
         state.db.pool(), Some("active"), None, 0, 100,
     ).await?;
@@ -224,17 +255,14 @@ pub async fn create_unlock(
         .map(|p| p.prover_id.clone())
         .collect();
 
-    let selected_provers = if prover_addresses.len() >= 2 {
-        state.vrf.select_provers(&random_value, &prover_addresses)
-    } else if prover_addresses.len() == 1 {
-        // Only 1 prover available — use it (degraded mode)
-        tracing::warn!("Only 1 active prover available — degraded 2-of-5 selection");
-        prover_addresses
-    } else {
-        // No active provers — use fallback address
-        tracing::warn!("No active provers in DB — using fallback address");
-        vec!["0x0000000000000000000000000000000000000002".to_string()]
-    };
+    validate_prover_count(prover_addresses.len()).map_err(|e| {
+        tracing::error!(
+            active = prover_addresses.len(),
+            "Prover pool degraded: cannot satisfy 2-of-N signing threshold"
+        );
+        e
+    })?;
+    let selected_provers = state.vrf.select_provers(&random_value, &prover_addresses);
 
     tracing::info!(
         "VRF selection complete: provers={:?} (count={}), status={:?}",
@@ -278,7 +306,7 @@ pub async fn create_unlock(
         unlock_id,
         sr_1,
         release_time,
-        time_lock_hours: NORMAL_TIME_LOCK_HOURS,
+        time_lock_hours,
         prover_signatures_required: 2,
         prover_signatures_collected: 0,
         status: UnlockStatus::PendingSignatures,
@@ -354,9 +382,12 @@ pub async fn create_emergency_unlock(
     // 5. Generate unlock_id
     let unlock_id = generate_unlock_id(&req.lock_id, &sr_1);
 
-    // 6. Calculate release time (7 days from now)
+    // 6. Calculate release time using config (H-2 fix: was hardcoded 7d).
+    //    Production guard enforces `emergency_time_lock_days >= 1` on non-local
+    //    chains so DEMO values (0) cannot leak into production.
+    let time_lock_days = state.config().security.emergency_time_lock_days;
     let now = chrono::Utc::now().timestamp() as u64;
-    let release_time = now + (EMERGENCY_TIME_LOCK_DAYS * 24 * 3600);
+    let release_time = now + release_offset_seconds(time_lock_days * 24);
 
     // 7. Calculate emergency bond: MAX(0.5 ETH, amount × 5%)
     let bond_required = calculate_emergency_bond(&req.amount);
@@ -406,7 +437,7 @@ pub async fn create_emergency_unlock(
         unlock_id,
         sr_1,
         release_time,
-        time_lock_days: EMERGENCY_TIME_LOCK_DAYS,
+        time_lock_days,
         bond_required,
         bond_calculation: "MAX(0.5 ETH, amount × 5%)".to_string(),
         status: UnlockStatus::EmergencyPending,
@@ -583,12 +614,57 @@ mod tests {
     use fips204::ml_dsa_65;
     use fips204::traits::{SerDes, Signer};
 
+    // ========================================================================
+    // C-1 regression: prover count validation
+    // ========================================================================
+
     #[test]
-    fn test_time_lock_constants() {
-        // SEQ#2: 24h Normal Time Lock
-        assert_eq!(NORMAL_TIME_LOCK_HOURS, 24);
-        // SEQ#3: 7d Emergency Time Lock
-        assert_eq!(EMERGENCY_TIME_LOCK_DAYS, 7);
+    fn test_validate_prover_count_rejects_zero() {
+        match validate_prover_count(0) {
+            Err(ApiError::InsufficientProvers { active }) => assert_eq!(active, 0),
+            other => panic!("expected InsufficientProvers(0), got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_validate_prover_count_rejects_one() {
+        // Previously the code "degraded" to 1 prover. Spec says 2-of-N, so
+        // 1 is a violation and must error.
+        match validate_prover_count(1) {
+            Err(ApiError::InsufficientProvers { active }) => assert_eq!(active, 1),
+            other => panic!("expected InsufficientProvers(1), got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_validate_prover_count_accepts_two() {
+        validate_prover_count(2).expect("2 provers must be accepted");
+    }
+
+    #[test]
+    fn test_validate_prover_count_accepts_five() {
+        validate_prover_count(5).expect("5 provers must be accepted");
+    }
+
+    // ========================================================================
+    // H-2 regression: release_offset_seconds math
+    // ========================================================================
+
+    #[test]
+    fn test_release_offset_seconds_zero_hours() {
+        assert_eq!(release_offset_seconds(0), 0);
+    }
+
+    #[test]
+    fn test_release_offset_seconds_normal_24h() {
+        // 24h * 3600 = 86400s
+        assert_eq!(release_offset_seconds(24), 86400);
+    }
+
+    #[test]
+    fn test_release_offset_seconds_emergency_7d() {
+        // 7d * 24h * 3600s = 604800s
+        assert_eq!(release_offset_seconds(7 * 24), 604800);
     }
 
     #[test]

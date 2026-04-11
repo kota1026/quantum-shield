@@ -124,6 +124,10 @@ pub enum ApiError {
     // Rate limiting (Week 4)
     #[error("Rate limit exceeded")]
     RateLimitExceeded,
+
+    // Prover Pool operational errors (P0 fix: no more silent 0x...0002 fallback)
+    #[error("Insufficient active provers: {active} active, required 2")]
+    InsufficientProvers { active: usize },
 }
 
 #[derive(Serialize)]
@@ -179,6 +183,8 @@ impl ApiError {
             ApiError::AlreadyExists(_) => 7002,
             // Rate limiting (8xxx)
             ApiError::RateLimitExceeded => 8001,
+            // Prover pool operational errors (9xxx)
+            ApiError::InsufficientProvers { .. } => 9001,
         }
     }
 
@@ -228,6 +234,10 @@ impl ApiError {
             ApiError::AlreadyExists(_) => StatusCode::CONFLICT,
             // Rate limiting
             ApiError::RateLimitExceeded => StatusCode::TOO_MANY_REQUESTS,
+            // Prover pool operational errors
+            // 503 because it's a transient operational state, not a user error —
+            // retrying after operator adds provers will succeed.
+            ApiError::InsufficientProvers { .. } => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
 }
