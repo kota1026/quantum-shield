@@ -1,17 +1,25 @@
 //! SPHINCS+ Service for Public Key and Signature Verification
 //!
-//! Implements CP-1 compliant SPHINCS+-128s verification for Prover registration.
+//! Implements CP-1 compliant SLH-DSA-SHAKE-128s (NIST FIPS 205) verification
+//! for Prover signatures. Backed by the `slh-dsa` crate (Rust Crypto org)
+//! which is the canonical pure-Rust implementation of FIPS 205.
 //!
-//! SPHINCS+-128s Parameters (NIST Level 1):
+//! SLH-DSA-SHAKE-128s Parameters (NIST Level 1):
 //! - Public Key Size: 32 bytes
 //! - Signature Size: 7,856 bytes
+//! - Hash Function: SHAKE256
 //! - Security: 128-bit post-quantum
 //!
+//! Cross-language interop: signatures produced by `@noble/post-quantum`'s
+//! `slh_dsa_shake_128s` (the AI Prover) verify here, and vice versa.
+//!
 //! References:
+//! - NIST FIPS 205 (SLH-DSA, August 2024)
 //! - SEQUENCES §5: Prover Registration
 //! - CORE_PRINCIPLES CP-1: 完全量子耐性
 
 use sha3::{Digest, Sha3_256};
+use slh_dsa::{Shake128s, VerifyingKey, Signature, signature::Verifier};
 
 /// SPHINCS+-128s public key size in bytes
 pub const SPHINCS_PUBLIC_KEY_BYTES: usize = 32;
@@ -153,40 +161,69 @@ impl SphincsService {
         Ok(true)
     }
 
-    /// Verify SPHINCS+-128s signature
+    /// Verify a SLH-DSA-SHAKE-128s (SPHINCS+) signature.
     ///
-    /// Note: This is a placeholder for actual SPHINCS+ verification.
-    /// In production, this would use a SPHINCS+ library like pqcrypto-sphincsplus.
+    /// Performs **real cryptographic verification** using the `slh-dsa` crate.
+    /// Both the signature and public key must conform to FIPS 205 SHAKE-128s
+    /// (32-byte pubkey, 7856-byte signature). The message is the raw bytes
+    /// that were signed (typically a 32-byte SHA3-256 digest).
     ///
     /// # Arguments
     /// * `message` - Message bytes that were signed
-    /// * `signature` - Hex-encoded signature with "0x" prefix
-    /// * `pubkey` - Hex-encoded public key with "0x" prefix
+    /// * `signature` - Hex-encoded signature with "0x" prefix (7856 bytes)
+    /// * `pubkey` - Hex-encoded public key with "0x" prefix (32 bytes)
     ///
     /// # Returns
-    /// * `Ok(true)` if signature is valid
-    /// * `Err(SphincsError)` if invalid
+    /// * `Ok(true)` if the signature is cryptographically valid
+    /// * `Err(SphincsError::VerificationFailed)` if verification fails
+    /// * `Err(SphincsError::InvalidSignatureFormat | InvalidPublicKeyFormat)`
+    ///   if either input is malformed
     pub fn verify_signature(
-        _message: &[u8],
+        message: &[u8],
         signature: &str,
         pubkey: &str,
     ) -> Result<bool, SphincsError> {
-        // Validate formats
+        // Format validation first (cheap, gives clear error messages).
         Self::validate_public_key(pubkey)?;
         Self::validate_signature_format(signature)?;
 
-        // TODO: Implement actual SPHINCS+ verification using pqcrypto-sphincsplus
-        // For now, we just validate the format
-        //
-        // In production:
-        // let pk = pqcrypto_sphincsplus::sphincsshake128ssimple::PublicKey::from_bytes(&pk_bytes)?;
-        // let sig = pqcrypto_sphincsplus::sphincsshake128ssimple::DetachedSignature::from_bytes(&sig_bytes)?;
-        // pqcrypto_sphincsplus::sphincsshake128ssimple::verify_detached_signature(&sig, message, &pk)?;
+        let pk_bytes = Self::parse_public_key(pubkey)?;
 
-        // For development: validate format only
-        tracing::debug!("SPHINCS+ signature format validated (actual verification pending)");
+        let sig_hex = &signature[2..];
+        let sig_bytes = hex::decode(sig_hex)
+            .map_err(|e| SphincsError::InvalidHex(e.to_string()))?;
 
-        Ok(true)
+        // Reconstruct the SLH-DSA verifying key from the 32-byte public key.
+        let vk = VerifyingKey::<Shake128s>::try_from(pk_bytes.as_slice())
+            .map_err(|e| SphincsError::InvalidPublicKeyFormat(format!(
+                "slh-dsa rejected public key: {e}"
+            )))?;
+
+        // Reconstruct the signature.
+        let sig = Signature::<Shake128s>::try_from(sig_bytes.as_slice())
+            .map_err(|e| SphincsError::InvalidSignatureFormat(format!(
+                "slh-dsa rejected signature: {e}"
+            )))?;
+
+        // Cryptographic verification (FIPS 205).
+        match vk.verify(message, &sig) {
+            Ok(()) => {
+                tracing::debug!(
+                    "SLH-DSA-SHAKE-128s signature verified ok (msg_len={}, pk={})",
+                    message.len(),
+                    &pubkey[..14]
+                );
+                Ok(true)
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "SLH-DSA-SHAKE-128s verification failed: {} (pk={})",
+                    e,
+                    &pubkey[..14]
+                );
+                Err(SphincsError::VerificationFailed)
+            }
+        }
     }
 
     /// Validate HSM attestation for Prover registration
@@ -344,13 +381,141 @@ mod tests {
     }
 
     #[test]
-    fn test_verify_signature() {
+    fn test_verify_signature_rejects_garbage() {
+        // Right shape but garbage bytes - real SLH-DSA must reject this.
         let message = b"test message";
         let sig = valid_signature();
         let pubkey = valid_pubkey();
 
         let result = SphincsService::verify_signature(message, &sig, &pubkey);
-        assert!(result.is_ok());
+        assert!(matches!(result, Err(SphincsError::VerificationFailed)));
+    }
+
+    #[test]
+    fn test_verify_signature_real_roundtrip() {
+        use slh_dsa::SigningKey;
+        use slh_dsa::signature::{Keypair, Signer};
+
+        // Generate a real SLH-DSA-SHAKE-128s keypair from deterministic seeds.
+        // slh_keygen_internal is the FIPS-205 KAT-style constructor: public in
+        // the crate and takes three n=16-byte seed slices (sk_seed, sk_prf, pk_seed).
+        let sk_seed = [1u8; 16];
+        let sk_prf = [2u8; 16];
+        let pk_seed = [3u8; 16];
+        let sk = SigningKey::<Shake128s>::slh_keygen_internal(&sk_seed, &sk_prf, &pk_seed);
+        let vk = sk.verifying_key();
+        let pk_bytes = vk.to_bytes();
+        assert_eq!(pk_bytes.len(), SPHINCS_PUBLIC_KEY_BYTES);
+
+        let pubkey_hex = format!("0x{}", hex::encode(&pk_bytes));
+
+        // Sign a deterministic 32-byte message (matches what AI Prover sends).
+        let message = [0xab_u8; 32];
+        let sig = sk.sign(&message);
+        let sig_bytes = sig.to_bytes();
+        assert_eq!(sig_bytes.len(), SPHINCS_SIGNATURE_BYTES);
+
+        let sig_hex = format!("0x{}", hex::encode(&sig_bytes));
+
+        // Real verification must succeed.
+        let result = SphincsService::verify_signature(&message, &sig_hex, &pubkey_hex);
+        assert!(result.is_ok(), "valid sig should verify, got: {result:?}");
+
+        // Tampered signature must fail.
+        let mut tampered = sig_bytes.to_vec();
+        tampered[100] ^= 0xff;
+        let tampered_hex = format!("0x{}", hex::encode(&tampered));
+        assert!(matches!(
+            SphincsService::verify_signature(&message, &tampered_hex, &pubkey_hex),
+            Err(SphincsError::VerificationFailed)
+        ));
+
+        // Wrong message must fail.
+        let wrong_msg = [0xcd_u8; 32];
+        assert!(matches!(
+            SphincsService::verify_signature(&wrong_msg, &sig_hex, &pubkey_hex),
+            Err(SphincsError::VerificationFailed)
+        ));
+
+        // Wrong public key must fail.
+        let other_sk = SigningKey::<Shake128s>::slh_keygen_internal(
+            &[9u8; 16],
+            &[10u8; 16],
+            &[11u8; 16],
+        );
+        let other_pk_hex = format!("0x{}", hex::encode(other_sk.verifying_key().to_bytes()));
+        assert!(matches!(
+            SphincsService::verify_signature(&message, &sig_hex, &other_pk_hex),
+            Err(SphincsError::VerificationFailed)
+        ));
+    }
+
+    /// Cross-language interop test: a signature produced by `@noble/post-quantum`
+    /// `slh_dsa_shake_128s` on the TypeScript side must verify here.
+    ///
+    /// Fixture is generated deterministically by
+    /// `src/agents/ai-prover/src/gen-xlang-fixture.ts` from the seed
+    /// (0x01..16, 0x02..16, 0x03..16), which matches the seeds used by
+    /// `test_verify_signature_real_roundtrip` on the Rust side. If noble and
+    /// `slh-dsa` are both FIPS-205 conformant the public key bytes must match
+    /// exactly, and the signature must verify under either library.
+    ///
+    /// If this test starts failing after a noble / slh-dsa upgrade, it's a
+    /// *real* interop regression: the AI Prover signs with noble and the
+    /// backend verifies with slh-dsa, so divergence would break production.
+    #[test]
+    fn test_xlang_noble_signature_verifies() {
+        // Minimal JSON field extractor — avoids pulling serde_json into the
+        // test purely to read 3 string fields.
+        fn field<'a>(s: &'a str, key: &str) -> &'a str {
+            let needle = format!("\"{key}\": \"");
+            let start = s.find(&needle).expect("field missing") + needle.len();
+            let rest = &s[start..];
+            let end = rest.find('"').expect("unterminated string");
+            &rest[..end]
+        }
+
+        let fixture = include_str!("../../tests/fixtures/slh_dsa_shake_128s_noble.json");
+        let pk_hex = field(fixture, "public_key");
+        let sk_hex = field(fixture, "secret_key");
+        let msg_hex = field(fixture, "message");
+        let sig_hex = field(fixture, "signature");
+
+        // Sanity: sizes match FIPS 205 SHAKE-128s.
+        assert_eq!(pk_hex.len(), 64, "noble pk should be 32 bytes");
+        assert_eq!(sk_hex.len(), 128, "noble sk should be 64 bytes");
+        assert_eq!(sig_hex.len(), 15712, "noble sig should be 7856 bytes");
+        assert_eq!(msg_hex.len(), 64, "fixture msg should be 32 bytes");
+
+        // Confirm Rust's slh_keygen_internal derives the same public key from
+        // the same seeds. This is the byte-level interop proof.
+        use slh_dsa::SigningKey;
+        use slh_dsa::signature::Keypair;
+        let sk_rust = SigningKey::<Shake128s>::slh_keygen_internal(
+            &[1u8; 16],
+            &[2u8; 16],
+            &[3u8; 16],
+        );
+        let rust_pk_hex = hex::encode(sk_rust.verifying_key().to_bytes());
+        assert_eq!(
+            rust_pk_hex, pk_hex,
+            "noble and slh-dsa derived different public keys from identical seeds \
+             — libraries are NOT FIPS-205 interoperable"
+        );
+
+        // And verify the noble-produced signature using our Rust verify_signature.
+        let message = hex::decode(msg_hex).unwrap();
+        let sig_with_prefix = format!("0x{}", sig_hex);
+        let pk_with_prefix = format!("0x{}", pk_hex);
+        let ok = SphincsService::verify_signature(
+            &message,
+            &sig_with_prefix,
+            &pk_with_prefix,
+        );
+        assert!(
+            ok.is_ok(),
+            "Rust slh-dsa rejected a valid noble-produced signature: {ok:?}"
+        );
     }
 
     #[test]
