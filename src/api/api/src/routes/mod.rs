@@ -33,9 +33,10 @@ use crate::services::AppState;
 
 pub fn api_routes() -> Router {
     Router::new()
-        // Health check (liveness + readiness)
+        // Health check (liveness + readiness) + Prometheus metrics
         .route("/health", get(health::health_check))
         .route("/health/ready", get(health::readiness_check))
+        .route("/metrics", get(health::prometheus_metrics))
         // Lock API (API-002)
         .route("/lock", post(lock::create_lock))
         // Unlock API (API-003)

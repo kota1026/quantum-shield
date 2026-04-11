@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@noble/hashes": "^2.0.1",
+    "@noble/post-quantum": "^0.6.0",
     "dotenv": "^17.3.1",
     "node-fetch": "^3.3.2",
     "winston": "^3.11.0",

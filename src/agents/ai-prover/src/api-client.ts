@@ -83,27 +83,7 @@ export class APIClient {
     const url = `${this.baseUrl}/v1/prover/${this.proverId}/queue`;
     this.logger.debug(`Fetching signing queue: ${url}`);
 
-    const response = await this.fetch(url);
-
-    // snake_case → camelCase 変換
-    return {
-      items: response.items.map((item: Record<string, unknown>) => ({
-        queue_id: item.queue_id,
-        lock_id: item.lock_id,
-        unlock_type: item.unlock_type,
-        user_address: item.user_address,
-        amount: item.amount,
-        asset: item.asset,
-        sr_0: item.sr_0,
-        sr_1: item.sr_1,
-        created_at: item.created_at,
-        deadline: item.deadline,
-        priority: item.priority,
-        dilithium_verified: item.dilithium_verified,
-      })),
-      total: response.total,
-      pending_count: response.pending_count,
-    };
+    return this.fetch<SigningQueueResponse>(url);
   }
 
   /**
@@ -113,18 +93,10 @@ export class APIClient {
     const url = `${this.baseUrl}/v1/prover/${this.proverId}/sign`;
     this.logger.debug(`Submitting signature: ${url}`);
 
-    const response = await this.fetch(url, {
+    return this.fetch<SubmitSignatureResponse>(url, {
       method: 'POST',
       body: JSON.stringify(request),
     });
-
-    return {
-      queue_id: response.queue_id,
-      signature_accepted: response.signature_accepted,
-      total_signatures: response.total_signatures,
-      required_signatures: response.required_signatures,
-      tx_hash: response.tx_hash,
-    };
   }
 
   /**
@@ -136,14 +108,20 @@ export class APIClient {
     const url = `${this.baseUrl}/v1/prover/${this.proverId}/sign/batch`;
     this.logger.debug(`Submitting batch signatures: ${url} (${items.length} items)`);
 
-    const response = await this.fetch(url, {
+    type BatchResp = {
+      success_count?: number;
+      failure_count?: number;
+      successCount?: number;
+      failureCount?: number;
+    };
+    const response = await this.fetch<BatchResp>(url, {
       method: 'POST',
       body: JSON.stringify({ items }),
     });
 
     return {
-      success_count: response.success_count || response.successCount,
-      failure_count: response.failure_count || response.failureCount,
+      success_count: response.success_count ?? response.successCount ?? 0,
+      failure_count: response.failure_count ?? response.failureCount ?? 0,
     };
   }
 
@@ -154,16 +132,10 @@ export class APIClient {
     const url = `${this.baseUrl}/v1/prover/register`;
     this.logger.info(`Registering prover: ${url}`);
 
-    const response = await this.fetch(url, {
+    return this.fetch<ProverRegistrationResponse>(url, {
       method: 'POST',
       body: JSON.stringify(request),
     });
-
-    return {
-      prover_id: response.prover_id,
-      status: response.status,
-      stake_locked: response.stake_locked,
-    };
   }
 
   /**
@@ -173,18 +145,13 @@ export class APIClient {
     const url = `${this.baseUrl}/v1/prover/${this.proverId}/dashboard`;
     this.logger.debug(`Checking prover status: ${url}`);
 
-    const response = await this.fetch(url);
-
-    return {
-      status: response.status,
-      prover_id: response.prover_id,
-    };
+    return this.fetch<{ status: string; prover_id: string }>(url);
   }
 
   /**
    * HTTP リクエスト実行
    */
-  private async fetch(url: string, options?: RequestInit): Promise<Record<string, unknown>> {
+  private async fetch<T = unknown>(url: string, options?: RequestInit): Promise<T> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
@@ -204,7 +171,7 @@ export class APIClient {
         throw new Error(`API error ${response.status}: ${errorBody}`);
       }
 
-      return await response.json();
+      return (await response.json()) as T;
     } finally {
       clearTimeout(timeoutId);
     }

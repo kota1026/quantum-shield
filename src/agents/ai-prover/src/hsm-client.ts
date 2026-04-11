@@ -1,8 +1,14 @@
 /**
  * AI Prover Agent - HSM Client
  *
- * Hardware Security Module との連携
- * 本番環境ではAWS CloudHSM、Azure HSM、YubiHSMなどと連携
+ * Hardware Security Module との連携。
+ *
+ * - **Local mode** (HSM_ENDPOINT empty / localhost): real SLH-DSA-SHAKE-128s
+ *   signing using @noble/post-quantum, with the prover's secret key loaded
+ *   from PROVER_SPHINCS_SK env var. NO fake signatures.
+ * - **Remote HSM mode**: forwards the pre-computed message hash to a real HSM
+ *   (AWS CloudHSM / YubiHSM / Azure HSM) over HTTP. The HSM does the signing
+ *   and returns a verifiable SLH-DSA signature.
  *
  * ## Signature Message Format (v2.0)
  *
@@ -11,11 +17,16 @@
  * bytes32 message = SHA3_256.hashPair(lockId, expectedSR1);
  * ```
  *
- * This is computed as: SHA3_256(lockId || SR_1)
+ * Computed as: SHA3_256(lockId || SR_1)
  */
 
 import type { Logger } from 'winston';
-import { generateSphincsSignature, generateHsmAttestation, computeProverMessage } from './wallet.js';
+import {
+  generateSphincsSignature,
+  generateHsmAttestation,
+  computeProverMessage,
+  verifySphincsSignature,
+} from './wallet.js';
 
 export interface HSMConfig {
   endpoint: string;
@@ -38,49 +49,78 @@ export interface SignResponse {
 /**
  * HSM Client
  *
- * 開発環境ではローカルで署名を生成
- * 本番環境ではHSM APIを呼び出す
+ * Local mode: real SLH-DSA-SHAKE-128s signing with a key loaded from env.
+ * Remote mode: forwards to an HSM HTTP service.
  */
 export class HSMClient {
   private config: HSMConfig;
   private logger: Logger;
-  private isDevMode: boolean;
+  private isLocalMode: boolean;
+  private localSecretKey?: string;
+  private localPublicKey?: string;
 
   constructor(config: HSMConfig, logger: Logger) {
     this.config = config;
     this.logger = logger;
-    this.isDevMode = config.endpoint.includes('localhost') || !config.endpoint;
+    this.isLocalMode = !config.endpoint || config.endpoint.includes('localhost');
+
+    if (this.isLocalMode) {
+      const sk = process.env.PROVER_SPHINCS_SK;
+      const pk = process.env.PROVER_SPHINCS_PK;
+      if (!sk || !pk) {
+        this.logger.warn(
+          'PROVER_SPHINCS_SK / PROVER_SPHINCS_PK not set — HSM client will reject all sign requests until provided'
+        );
+      } else {
+        this.localSecretKey = sk;
+        this.localPublicKey = pk;
+        this.logger.info(
+          `HSM client: local SLH-DSA-SHAKE-128s mode (pk=${pk.slice(0, 14)}..., sk redacted)`
+        );
+      }
+    } else {
+      this.logger.info(`HSM client: remote mode (endpoint=${config.endpoint})`);
+    }
   }
 
   /**
    * Unlock リクエストに署名
    */
   async signUnlock(request: SignRequest): Promise<SignResponse> {
-    if (this.isDevMode) {
-      return this.signUnlockDev(request);
+    if (this.isLocalMode) {
+      return this.signUnlockLocal(request);
     } else {
       return this.signUnlockHSM(request);
     }
   }
 
   /**
-   * 開発モード: ローカルで署名生成
+   * Local mode: real SLH-DSA-SHAKE-128s signing with self-verify.
    *
    * v2.0: Message format matches L1 Vault contract verification:
-   * message = SHA3_256(lockId || SR_1)
+   *   message = SHA3_256(lockId || SR_1)
    */
-  private async signUnlockDev(request: SignRequest): Promise<SignResponse> {
-    this.logger.debug('DEV MODE: Generating signature locally');
+  private async signUnlockLocal(request: SignRequest): Promise<SignResponse> {
+    if (!this.localSecretKey || !this.localPublicKey) {
+      throw new Error(
+        'Local SLH-DSA signing requested but PROVER_SPHINCS_SK/PROVER_SPHINCS_PK are not configured'
+      );
+    }
 
-    // v2.0: 署名対象メッセージをL1コントラクトと同一形式で構築
-    // SHA3_256.hashPair(lockId, expectedSR1) と一致させる
     const message = computeProverMessage(request.lock_id, request.sr_1);
+    this.logger.debug(`Signing message ${message.substring(0, 20)}... locally`);
 
-    this.logger.debug(`Signing message: ${message.substring(0, 20)}...`);
+    const signature = generateSphincsSignature(message, this.localSecretKey);
 
-    // ローカルで署名生成（デモ用）
-    const signature = generateSphincsSignature(message, 'dev-secret-key');
-    const attestation = generateHsmAttestation(request.lock_id);
+    // Self-verify: never ship a sig that doesn't verify under our own pubkey.
+    const ok = verifySphincsSignature(signature, message, this.localPublicKey);
+    if (!ok) {
+      throw new Error(
+        'Self-verification of SLH-DSA-SHAKE-128s signature failed'
+      );
+    }
+
+    const attestation = generateHsmAttestation(request.lock_id, this.localPublicKey);
 
     return {
       signature,
@@ -132,12 +172,16 @@ export class HSMClient {
         throw new Error(`HSM error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        signature: string;
+        attestation: string;
+        timestamp?: number;
+      };
 
       return {
         signature: data.signature,
         attestation: data.attestation,
-        timestamp: data.timestamp || Date.now(),
+        timestamp: data.timestamp ?? Date.now(),
       };
     } finally {
       clearTimeout(timeoutId);
@@ -148,9 +192,9 @@ export class HSMClient {
    * HSMヘルスチェック
    */
   async healthCheck(): Promise<boolean> {
-    if (this.isDevMode) {
-      this.logger.debug('DEV MODE: HSM health check skipped');
-      return true;
+    if (this.isLocalMode) {
+      // Local mode is healthy iff we have a usable secret key.
+      return Boolean(this.localSecretKey && this.localPublicKey);
     }
 
     try {

@@ -62,3 +62,11 @@ codegen-units = 1
 
 [profile.dev]
 opt-level = 1
+
+# SLH-DSA (SPHINCS+) is hash-heavy post-quantum crypto. At opt-level=0 a single
+# keygen/sign can take minutes. Always build it optimized so tests finish in
+# seconds regardless of the ambient dev profile.
+[profile.dev.package.slh-dsa]
+opt-level = 3
+[profile.test.package.slh-dsa]
+opt-level = 3

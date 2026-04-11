@@ -137,9 +137,14 @@ async fn main() -> anyhow::Result<()> {
 
     // Start L1 sync background service
     if config.l1_sync.enabled {
+        // Use vault address from config (env: QS__L1_VAULT_ADDRESS).
+        // Default matches default.yaml / blockchain.md canonical address.
+        let l1_vault_addr = config.l1_vault_address.clone()
+            .unwrap_or_else(|| "0x07012aeF87C6E423c32F2f8eaF81762f63337260".to_string());
         let l1_sync = services::L1SyncService::new(
             std::sync::Arc::new(state.pool().clone()),
             config.l1_sync.clone(),
+            l1_vault_addr,
             shutdown_rx.clone(),
         );
         tokio::spawn(async move { l1_sync.run().await });
@@ -160,6 +165,8 @@ async fn main() -> anyhow::Result<()> {
         // Admin Dashboard API routes (JWT-protected)
         .nest("/api", routes::admin_routes(state.clone()))
         .layer(Extension(state))
+        // Security headers (outermost response layer = applied last to response)
+        .layer(axum::middleware::from_fn(middleware::security_headers))
         // Request ID + structured logging (innermost = first executed)
         .layer(axum::middleware::from_fn(middleware::request_id))
         // Rate limiting
