@@ -30,6 +30,65 @@ use crate::{
 const NORMAL_TIME_LOCK_HOURS: u64 = 24; // SEQ#2
 const EMERGENCY_TIME_LOCK_DAYS: u64 = 7; // SEQ#3
 
+// ============================================================================
+// Input validation helpers (fail-fast on invalid user input)
+//
+// Previously these sites used `unwrap_or_default()` which silently converted
+// invalid hex / amount strings to empty bytes / zero, allowing garbage to
+// reach the database. That is a silent-failure anti-pattern: every invalid
+// input MUST return ApiError::InvalidRequest (HTTP 400), never silently
+// succeed. See .claude/agents/silent-failure-hunter.md.
+// ============================================================================
+
+/// Parse a hex-encoded field (optionally prefixed with `0x`) into raw bytes.
+///
+/// Returns `ApiError::InvalidRequest` on any failure:
+/// - Empty string
+/// - Non-hex characters
+/// - Odd number of hex digits
+fn parse_hex_field(input: &str, field: &str) -> Result<Vec<u8>, ApiError> {
+    if input.is_empty() {
+        return Err(ApiError::InvalidRequest(format!(
+            "{} must not be empty",
+            field
+        )));
+    }
+    let stripped = input.trim_start_matches("0x");
+    if stripped.is_empty() {
+        return Err(ApiError::InvalidRequest(format!(
+            "{} must not be empty",
+            field
+        )));
+    }
+    hex::decode(stripped).map_err(|e| {
+        ApiError::InvalidRequest(format!("invalid hex in {}: {}", field, e))
+    })
+}
+
+/// Parse an amount string (wei, base-10 integer) into a BigDecimal.
+///
+/// Returns `ApiError::InvalidRequest` on any failure:
+/// - Empty string
+/// - Non-numeric characters
+/// - Negative values (amounts are always non-negative)
+fn parse_amount(input: &str) -> Result<BigDecimal, ApiError> {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return Err(ApiError::InvalidRequest(
+            "amount must not be empty".to_string(),
+        ));
+    }
+    // Reject negative amounts before parsing (defence in depth).
+    if trimmed.starts_with('-') {
+        return Err(ApiError::InvalidRequest(
+            "amount must be non-negative".to_string(),
+        ));
+    }
+    BigDecimal::from_str(trimmed).map_err(|e| {
+        ApiError::InvalidRequest(format!("invalid amount: {}", e))
+    })
+}
+
 /// POST /v1/unlock
 ///
 /// Request normal unlock with 24h time lock.
@@ -111,9 +170,10 @@ pub async fn create_unlock(
         // Ensure user exists (FK constraint on unlock_requests.wallet_address)
         crate::db::UserRepository::ensure_exists(state.pool(), &lock.dest_addr).await?;
 
-        let amount_bd = BigDecimal::from_str(&req.amount).unwrap_or_else(|_| BigDecimal::from(0));
-        let sig_bytes = hex::decode(req.sig_dilithium.trim_start_matches("0x")).unwrap_or_default();
-        let dest_bytes = hex::decode(req.dest_addr.trim_start_matches("0x")).unwrap_or_default();
+        // Fail-fast validation — never silently drop garbage into the DB.
+        let amount_bd = parse_amount(&req.amount)?;
+        let sig_bytes = parse_hex_field(&req.sig_dilithium, "sig_dilithium")?;
+        let dest_bytes = parse_hex_field(&req.dest_addr, "dest_addr")?;
         let release_dt = chrono::DateTime::from_timestamp(release_time as i64, 0);
 
         crate::db::LockRepository::create_unlock_request(
@@ -306,10 +366,13 @@ pub async fn create_emergency_unlock(
         // Ensure user exists (FK constraint on unlock_requests.wallet_address)
         crate::db::UserRepository::ensure_exists(state.pool(), &lock.dest_addr).await?;
 
-        let amount_bd = BigDecimal::from_str(&req.amount).unwrap_or_else(|_| BigDecimal::from(0));
-        let bond_bd = BigDecimal::from_str(&bond_required).unwrap_or_else(|_| BigDecimal::from(0));
-        let sig_bytes = hex::decode(req.sig_dilithium.trim_start_matches("0x")).unwrap_or_default();
-        let dest_bytes = hex::decode(req.dest_addr.trim_start_matches("0x")).unwrap_or_default();
+        // Fail-fast validation — never silently drop garbage into the DB.
+        let amount_bd = parse_amount(&req.amount)?;
+        // bond_required comes from calculate_emergency_bond() which produces a
+        // valid decimal string, but validate it anyway as defence in depth.
+        let bond_bd = parse_amount(&bond_required)?;
+        let sig_bytes = parse_hex_field(&req.sig_dilithium, "sig_dilithium")?;
+        let dest_bytes = parse_hex_field(&req.dest_addr, "dest_addr")?;
         let release_dt = chrono::DateTime::from_timestamp(release_time as i64, 0);
 
         crate::db::LockRepository::create_unlock_request(
@@ -680,5 +743,109 @@ mod tests {
         assert!(sr_1.starts_with("0x"));
         // SHA3-256 produces 32 bytes = 64 hex chars + 0x prefix
         assert_eq!(sr_1.len(), 66);
+    }
+
+    // ========================================================================
+    // Input validation tests (silent-failure-hunter regression suite)
+    //
+    // These tests enforce fail-fast behavior on invalid user input.
+    // Previously `unwrap_or_default()` silently converted garbage to empty
+    // bytes / zero — a classic silent failure pattern. Every case below MUST
+    // return ApiError::InvalidRequest, never silently succeed.
+    // ========================================================================
+
+    #[test]
+    fn test_parse_hex_field_accepts_valid_hex() {
+        let out = parse_hex_field("0x1234abcd", "sig_dilithium")
+            .expect("valid hex must parse");
+        assert_eq!(out, vec![0x12, 0x34, 0xab, 0xcd]);
+    }
+
+    #[test]
+    fn test_parse_hex_field_accepts_no_prefix() {
+        let out = parse_hex_field("1234abcd", "sig_dilithium")
+            .expect("valid hex without 0x must parse");
+        assert_eq!(out, vec![0x12, 0x34, 0xab, 0xcd]);
+    }
+
+    #[test]
+    fn test_parse_hex_field_rejects_invalid_hex() {
+        let err = parse_hex_field("0xZZZZ", "dest_addr")
+            .expect_err("invalid hex must be rejected");
+        match err {
+            ApiError::InvalidRequest(msg) => {
+                assert!(msg.contains("dest_addr"), "error must name the field: {}", msg);
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_hex_field_rejects_odd_length() {
+        let err = parse_hex_field("0x123", "sig_dilithium")
+            .expect_err("odd-length hex must be rejected");
+        match err {
+            ApiError::InvalidRequest(msg) => {
+                assert!(msg.contains("sig_dilithium"), "error must name the field: {}", msg);
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_hex_field_rejects_empty() {
+        // Empty string is not an acceptable hex input for required fields
+        let err = parse_hex_field("", "dest_addr")
+            .expect_err("empty string must be rejected");
+        match err {
+            ApiError::InvalidRequest(msg) => {
+                assert!(msg.contains("dest_addr"), "error must name the field: {}", msg);
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_amount_accepts_valid_wei() {
+        let bd = parse_amount("1000000000000000000")
+            .expect("valid wei amount must parse");
+        assert_eq!(bd.to_string(), "1000000000000000000");
+    }
+
+    #[test]
+    fn test_parse_amount_rejects_garbage() {
+        let err = parse_amount("not-a-number")
+            .expect_err("garbage amount must be rejected");
+        match err {
+            ApiError::InvalidRequest(msg) => {
+                assert!(msg.contains("amount"), "error must mention amount: {}", msg);
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_amount_rejects_empty() {
+        let err = parse_amount("")
+            .expect_err("empty amount must be rejected");
+        match err {
+            ApiError::InvalidRequest(msg) => {
+                assert!(msg.contains("amount"), "error must mention amount: {}", msg);
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_parse_amount_rejects_negative() {
+        // Negative amounts are never valid for unlock requests
+        let err = parse_amount("-1")
+            .expect_err("negative amount must be rejected");
+        match err {
+            ApiError::InvalidRequest(msg) => {
+                assert!(msg.contains("amount"), "error must mention amount: {}", msg);
+            }
+            other => panic!("expected InvalidRequest, got {:?}", other),
+        }
     }
 }
