@@ -31,8 +31,10 @@ contract ConfigureVaultAndProvers is Script {
     address constant PROVER_REGISTRY  = 0x08e1fc1A0d614bc132B48950760c7A291cCB8946;
 
     // ── Operator addresses (on-chain identifiers for AI Provers) ─────────────
-    address constant PROVER_001 = 0x0000000000000000000000000000000000000001;
-    address constant PROVER_002 = 0x0000000000000000000000000000000000000002;
+    // Fresh addresses — the legacy 0x...01 / 0x...02 placeholder slots are
+    // permanently claimed by non-exitable dummy registrations.
+    address constant PROVER_001 = 0x9b8D4139a12a916f9269dE6f2a019b36ea613A73;
+    address constant PROVER_002 = 0xECe5FC0d9C21a01ee736eEEC600DF7F81B10B6E5;
 
     // ── Real SLH-DSA-SHAKE-128s public keys (NIST FIPS 205) ─────────────────
     // Generated 2026-04-11 via keygen.ts; full keypairs in secrets/provers/*.env
