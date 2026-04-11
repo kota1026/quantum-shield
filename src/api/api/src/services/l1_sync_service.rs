@@ -20,6 +20,7 @@ use crate::services::l1_indexer::L1Indexer;
 pub struct L1SyncService {
     pool: Arc<PgPool>,
     config: L1SyncConfig,
+    vault_address: String,
     shutdown_rx: watch::Receiver<bool>,
 }
 
@@ -27,9 +28,10 @@ impl L1SyncService {
     pub fn new(
         pool: Arc<PgPool>,
         config: L1SyncConfig,
+        vault_address: String,
         shutdown_rx: watch::Receiver<bool>,
     ) -> Self {
-        Self { pool, config, shutdown_rx }
+        Self { pool, config, vault_address, shutdown_rx }
     }
 
     /// Run the background polling loop until shutdown
@@ -68,8 +70,8 @@ impl L1SyncService {
 
     /// Fetch L1 events and sync to database
     async fn sync_l1_events(&self) -> Result<(), String> {
-        // Create L1 indexer
-        let indexer = L1Indexer::new(&self.config.rpc_url)
+        // Create L1 indexer using config-driven vault address (not hardcoded)
+        let indexer = L1Indexer::new(&self.config.rpc_url, &self.vault_address)
             .await
             .map_err(|e| format!("Failed to create L1 indexer: {}", e))?;
 
