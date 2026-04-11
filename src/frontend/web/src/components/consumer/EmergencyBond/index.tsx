@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, AlertTriangle, Zap, Check, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { PhaseOneBadge } from '@/components/shared/PhaseOneBadge';
 import { useEmergencyUnlockData, useSubmitEmergencyUnlock } from '@/hooks/consumer';
 
 // Bond calculation: MAX(0.5 ETH, amount × 5%)
@@ -105,6 +106,12 @@ export function EmergencyBond() {
             {t('header.title')}
           </h1>
         </header>
+
+        {/* Phase 1 honest disclosure — emergency bond is calc-only in Phase 1 */}
+        <div className="mb-6 space-y-2">
+          <PhaseOneBadge scope="bond-calc-only" />
+          <PhaseOneBadge scope="ai-prover" />
+        </div>
 
         {/* Warning Banner */}
         <div

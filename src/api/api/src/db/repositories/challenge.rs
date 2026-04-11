@@ -43,6 +43,24 @@ pub struct SlashingRow {
     pub slashed_at: DateTime<Utc>,
 }
 
+/// Slim projection for the SlashingRetryService retry queue.
+///
+/// Only the columns needed to retry an L1 `ProverRegistry.slash()` call.
+#[derive(Debug, Clone, FromRow)]
+pub struct PendingRetrySlashing {
+    pub slashing_id: String,
+    pub challenge_id: String,
+    pub prover_id: String,
+    #[allow(dead_code)]
+    pub slash_amount: BigDecimal,
+    pub colluding_count: i32,
+    pub l1_retry_count: i32,
+    #[allow(dead_code)]
+    pub l1_last_retry_at: Option<DateTime<Utc>>,
+    #[allow(dead_code)]
+    pub l1_error: Option<String>,
+}
+
 // ============================================================================
 // Challenge Repository
 // ============================================================================
@@ -141,7 +159,14 @@ impl ChallengeRepository {
 
     /// Create a slashing record
     /// SM-001: PG first
+    ///
+    /// C-4 fix (2026-04-11): accepts `l1_status` explicitly. Previously the
+    /// column did not exist and the in-memory L1SlashStatus was discarded
+    /// when the SlashingResult fell out of scope. Now the DB is the source
+    /// of truth for L1 lifecycle so the SlashingRetryService can find rows
+    /// that need retrying.
     #[instrument(skip(pool))]
+    #[allow(clippy::too_many_arguments)]
     pub async fn create_slashing(
         pool: &PgPool,
         slashing_id: &str,
@@ -151,14 +176,25 @@ impl ChallengeRepository {
         challenger_reward: &BigDecimal,
         insurance_amount: &BigDecimal,
         burn_amount: &BigDecimal,
+        colluding_count: i32,
+        l1_status: &str,
+        l1_tx_hash: Option<&str>,
+        l1_error: Option<&str>,
     ) -> Result<(), ApiError> {
-        info!("DB insert: slashing create started, slashing_id={}", slashing_id);
+        info!(
+            slashing_id = %slashing_id,
+            l1_status = %l1_status,
+            "DB insert: slashing create started"
+        );
 
         sqlx::query(
             r#"
-            INSERT INTO slashings (slashing_id, challenge_id, prover_id, slash_amount,
-                                  challenger_reward, insurance_amount, burn_amount)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO slashings (
+                slashing_id, challenge_id, prover_id, slash_amount,
+                challenger_reward, insurance_amount, burn_amount,
+                colluding_count, l1_status, l1_tx_hash, l1_error
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             ON CONFLICT (slashing_id) DO NOTHING
             "#,
         )
@@ -169,6 +205,10 @@ impl ChallengeRepository {
         .bind(challenger_reward)
         .bind(insurance_amount)
         .bind(burn_amount)
+        .bind(colluding_count)
+        .bind(l1_status)
+        .bind(l1_tx_hash)
+        .bind(l1_error)
         .execute(pool)
         .await
         .map_err(|e| {
@@ -177,6 +217,134 @@ impl ChallengeRepository {
         })?;
 
         debug!("DB insert: slashing create completed, slashing_id={}", slashing_id);
+        Ok(())
+    }
+
+    /// Fetch slashings that need L1 retry.
+    ///
+    /// Returns rows where `l1_status = 'pending_retry'` and the retry count is
+    /// below `max_retries`. Ordered by oldest last_retry_at first (or NULL first)
+    /// so we don't starve new retries while old ones keep failing.
+    #[instrument(skip(pool))]
+    pub async fn fetch_pending_retry_slashings(
+        pool: &PgPool,
+        max_retries: i32,
+        limit: i64,
+    ) -> Result<Vec<PendingRetrySlashing>, ApiError> {
+        let rows = sqlx::query_as::<_, PendingRetrySlashing>(
+            r#"
+            SELECT slashing_id, challenge_id, prover_id, slash_amount,
+                   colluding_count, l1_retry_count, l1_last_retry_at, l1_error
+              FROM slashings
+             WHERE l1_status = 'pending_retry'
+               AND l1_retry_count < $1
+             ORDER BY l1_last_retry_at NULLS FIRST
+             LIMIT $2
+            "#,
+        )
+        .bind(max_retries)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: fetch_pending_retry_slashings failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        Ok(rows)
+    }
+
+    /// Record a successful L1 slash submission after a retry.
+    #[instrument(skip(pool))]
+    pub async fn mark_slashing_l1_submitted(
+        pool: &PgPool,
+        slashing_id: &str,
+        l1_tx_hash: &str,
+    ) -> Result<(), ApiError> {
+        sqlx::query(
+            r#"
+            UPDATE slashings
+               SET l1_status = 'submitted',
+                   l1_tx_hash = $2,
+                   l1_error = NULL,
+                   l1_last_retry_at = NOW()
+             WHERE slashing_id = $1
+            "#,
+        )
+        .bind(slashing_id)
+        .bind(l1_tx_hash)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: mark_slashing_l1_submitted failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        Ok(())
+    }
+
+    /// Update the L1 lifecycle state of a slashing after an initial L1 call.
+    ///
+    /// Used by `SlashingService::execute_slashing` to finalize the L1 status
+    /// after the on-chain call returns. Retry attempts should use
+    /// `mark_slashing_l1_submitted` / `mark_slashing_l1_retry_failed` instead
+    /// so the retry counter is not affected.
+    #[instrument(skip(pool))]
+    pub async fn update_slashing_l1_status(
+        pool: &PgPool,
+        slashing_id: &str,
+        l1_status: &str,
+        l1_tx_hash: Option<&str>,
+        l1_error: Option<&str>,
+    ) -> Result<(), ApiError> {
+        sqlx::query(
+            r#"
+            UPDATE slashings
+               SET l1_status = $2,
+                   l1_tx_hash = $3,
+                   l1_error = $4
+             WHERE slashing_id = $1
+            "#,
+        )
+        .bind(slashing_id)
+        .bind(l1_status)
+        .bind(l1_tx_hash)
+        .bind(l1_error)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: update_slashing_l1_status failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        Ok(())
+    }
+
+    /// Record a failed L1 retry attempt, incrementing the counter.
+    #[instrument(skip(pool))]
+    pub async fn mark_slashing_l1_retry_failed(
+        pool: &PgPool,
+        slashing_id: &str,
+        error: &str,
+    ) -> Result<(), ApiError> {
+        sqlx::query(
+            r#"
+            UPDATE slashings
+               SET l1_retry_count = l1_retry_count + 1,
+                   l1_last_retry_at = NOW(),
+                   l1_error = $2
+             WHERE slashing_id = $1
+            "#,
+        )
+        .bind(slashing_id)
+        .bind(error)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: mark_slashing_l1_retry_failed failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
         Ok(())
     }
 

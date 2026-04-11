@@ -31,7 +31,10 @@ pub mod l3_contracts;
 pub mod auto_claim;
 pub mod sr1_calculator;
 pub mod l1_sync_service;
+pub mod slashing_retry_service;
 pub mod storage;
+
+use std::sync::Arc;
 
 use anyhow::Result;
 use bigdecimal::BigDecimal;
@@ -80,6 +83,7 @@ pub use l1_prover_registry::L1ProverRegistryService;
 pub use l3_contracts::{L3Contracts, L3ContractAddresses};
 pub use auto_claim::AutoClaimService;
 pub use l1_sync_service::L1SyncService;
+pub use slashing_retry_service::{SlashingRetryConfig, SlashingRetryService};
 pub use storage::{StorageService, StorageError};
 
 /// Application state shared across handlers
@@ -103,7 +107,7 @@ pub struct AppState {
     /// L1 Vault Service for Lock/Unlock operations (Phase 1)
     pub l1_vault: Option<L1VaultService>,
     /// L1 ProverRegistry Service for slash/exit on L1 (Feature Flag controlled)
-    pub l1_prover_registry: Option<L1ProverRegistryService>,
+    pub l1_prover_registry: Option<Arc<L1ProverRegistryService>>,
     /// L3 Contract bindings for on-chain reads (veQS, Governor, etc.)
     pub l3_contracts: L3Contracts,
     /// Object storage service (MinIO/S3) for document uploads
@@ -235,7 +239,7 @@ impl AppState {
                 ).await {
                     Ok(service) => {
                         tracing::info!(registry_address = %registry_addr, "L1 ProverRegistry Service initialized");
-                        Some(service)
+                        Some(Arc::new(service))
                     }
                     Err(e) => {
                         tracing::warn!("L1 ProverRegistry Service initialization failed: {}", e);

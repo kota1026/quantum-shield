@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AdminSidebarV2 } from '../AdminSidebarV2';
+import { PhaseOneBadge } from '@/components/shared/PhaseOneBadge';
 
 // Stat card
 interface StatCardProps {
@@ -55,81 +56,41 @@ function StatCard({ label, value, subValue, icon, status = 'success' }: StatCard
   );
 }
 
-// Mock data
-const SAMPLE_PROPOSALS = [
-  {
-    id: 'QIP-042',
-    title: 'Increase Prover Minimum Stake to 50,000 QS',
-    type: 'parameter',
-    status: 'active',
-    forVotes: 2450000,
-    againstVotes: 850000,
-    quorum: 70,
-    endTime: '2日 14時間後',
-    proposer: '0x4a2f...8b1c',
-  },
-  {
-    id: 'QIP-041',
-    title: 'Add New Observer Reward Tier',
-    type: 'treasury',
-    status: 'pending',
-    forVotes: 0,
-    againstVotes: 0,
-    quorum: 0,
-    endTime: '開始待ち',
-    proposer: '0x7c3d...2e5f',
-  },
-  {
-    id: 'QIP-040',
-    title: 'Reduce Unlock Fee from 0.3% to 0.2%',
-    type: 'parameter',
-    status: 'passed',
-    forVotes: 3200000,
-    againstVotes: 480000,
-    quorum: 85,
-    endTime: '実行待ち',
-    proposer: '0x9e1a...4f7b',
-  },
-  {
-    id: 'QIP-039',
-    title: 'Update Emergency Pause Multi-sig Threshold',
-    type: 'security',
-    status: 'executed',
-    forVotes: 4100000,
-    againstVotes: 120000,
-    quorum: 92,
-    endTime: '実行済み',
-    proposer: '0x2b8c...6d9e',
-  },
-  {
-    id: 'QIP-038',
-    title: 'Reject: Disable Time Lock Period',
-    type: 'parameter',
-    status: 'rejected',
-    forVotes: 320000,
-    againstVotes: 4200000,
-    quorum: 88,
-    endTime: '否決',
-    proposer: '0x5f1d...3a7c',
-  },
-];
+// H-3 Phase 1 honesty fix:
+//
+// Previously this file shipped a large `SAMPLE_PROPOSALS` / `SAMPLE_EXECUTION_QUEUE`
+// hardcoded dataset that the UI rendered as if it were real on-chain governance
+// data. The L3 Governor contract (0xe93b8129... on Arbitrum Sepolia per
+// .claude/rules/blockchain.md) was never actually read. This violated both
+// `CLAUDE.md` rule #1 "NO mock/fallback data in non-test files" and the
+// whitepaper promise of "BFT consensus governance".
+//
+// Phase 1 fix: these are now empty arrays. The UI will show proper empty
+// states and a prominent PhaseOneBadge disclosure. Phase 2 wires this to the
+// real L3 Governor contract via wagmi (see `hooks/governance/useGovernorProposals`
+// — to be implemented).
+type Proposal = {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  forVotes: number;
+  againstVotes: number;
+  quorum: number;
+  endTime: string;
+  proposer: string;
+};
 
-const SAMPLE_EXECUTION_QUEUE = [
-  {
-    id: 'QIP-040',
-    title: 'Reduce Unlock Fee from 0.3% to 0.2%',
-    scheduledAt: '2026-01-20 10:00 UTC',
-    timelockRemaining: '1日 23時間',
-    status: 'queued',
-  },
-  {
-    id: 'QIP-037',
-    title: 'Increase Observer Challenge Window',
-    scheduledAt: '2026-01-19 14:00 UTC',
-    timelockRemaining: '12時間',
-    status: 'ready',
-  },
-];
+type ExecutionQueueItem = {
+  id: string;
+  title: string;
+  scheduledAt: string;
+  timelockRemaining: string;
+  status: string;
+};
+
+const SAMPLE_PROPOSALS: Proposal[] = [];
+const SAMPLE_EXECUTION_QUEUE: ExecutionQueueItem[] = [];
 
 export function PublicGovernanceManagement() {
   const t = useTranslations('admin.publicGovernance');
@@ -202,35 +163,46 @@ export function PublicGovernanceManagement() {
             <p className="mt-1 text-sm text-foreground-secondary">{t('subtitle')}</p>
           </div>
 
+          {/* H-3 Phase 1 disclosure: these numbers were hardcoded ("42", "3",
+              "2", "1,234", "78%") before the 2026-04-11 audit. They are now
+              rendered as "—" until the L3 Governor indexer ships in Phase 2. */}
+          <div className="mb-6">
+            <PhaseOneBadge scope="sphincs-verify" />
+          </div>
+
           {/* Stats */}
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard
               label={t('stats.totalProposals')}
-              value="42"
+              value="—"
+              subValue="Phase 2"
               icon={<FileText className="h-5 w-5" />}
               status="info"
             />
             <StatCard
               label={t('stats.activeProposals')}
-              value="3"
+              value="—"
+              subValue="Phase 2"
               icon={<Vote className="h-5 w-5" />}
               status="warning"
             />
             <StatCard
               label={t('stats.pendingExecution')}
-              value="2"
+              value="—"
+              subValue="Phase 2"
               icon={<Clock className="h-5 w-5" />}
               status="info"
             />
             <StatCard
               label={t('stats.totalVoters')}
-              value="1,234"
-              subValue="veQS holders"
+              value="—"
+              subValue="Phase 2"
               icon={<Users className="h-5 w-5" />}
             />
             <StatCard
               label={t('stats.avgQuorum')}
-              value="78%"
+              value="—"
+              subValue="Phase 2"
               icon={<Gauge className="h-5 w-5" />}
               status="success"
             />

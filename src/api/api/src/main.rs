@@ -156,6 +156,39 @@ async fn main() -> anyhow::Result<()> {
         tracing::warn!("L1 Sync service: DISABLED");
     }
 
+    // Start SlashingRetryService (C-4 Batch 3 fix).
+    //
+    // This service is the second half of the fail-hard slashing pipeline.
+    // `services::slashing::execute_slashing` now records `l1_status='pending_retry'`
+    // when the first L1 call fails, and this service polls the DB for those
+    // rows and resubmits. Without it, failed L1 slashings would stay stuck
+    // forever — still better than the old silent-failure behaviour, but not
+    // good enough.
+    //
+    // Only started if the L1ProverRegistryService is configured (i.e. we
+    // have an L1 signing key and RPC). If not, failed retries would just
+    // produce permanent errors.
+    if let Some(ref registry) = state.l1_prover_registry {
+        let retry_config = services::SlashingRetryConfig::default();
+        let retry_service = services::SlashingRetryService::new(
+            std::sync::Arc::new(state.pool().clone()),
+            registry.clone(), // Arc<L1ProverRegistryService> — cheap clone
+            retry_config.clone(),
+            shutdown_rx.clone(),
+        );
+        tokio::spawn(async move { retry_service.run().await });
+        tracing::info!(
+            "Slashing Retry service: enabled, polling every {}s (max_retries={})",
+            retry_config.poll_interval_secs,
+            retry_config.max_retries
+        );
+    } else {
+        tracing::warn!(
+            "Slashing Retry service: DISABLED (L1ProverRegistryService not configured). \
+             Failed L1 slashings will be stuck in pending_retry until operator intervenes."
+        );
+    }
+
     // Build router
     let app = Router::new()
         // V1 API routes (Lock/Unlock/Status/Prover/Edition)

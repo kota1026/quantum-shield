@@ -242,7 +242,7 @@ pub async fn auto_resolve(
             &prover_id,
             &lock.amount,
             colluding_count,
-            state.l1_prover_registry.as_ref(),
+            state.l1_prover_registry.as_deref(),
             state.config.l1.slashing.l1_execution,
             &state.config.l1.staking.min_stake,
         ).await?;

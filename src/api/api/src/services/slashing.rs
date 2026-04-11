@@ -163,6 +163,18 @@ impl SlashingService {
         let insurance_bd = BigDecimal::from_str(&insurance_amount).unwrap_or_else(|_| BigDecimal::from(0));
         let burn_bd = BigDecimal::from_str(&burn_amount).unwrap_or_else(|_| BigDecimal::from(0));
 
+        // Initial l1_status placeholder — the row is created with 'disabled' if
+        // L1 slashing is off, or 'pending' if it's on but the actual call has
+        // not happened yet. After Step 6 below, the row is UPDATEd with the
+        // terminal state. If the update is lost (process crash between L1 call
+        // and UPDATE), the retry service treats 'pending' rows older than
+        // RETRY_PENDING_STALE_SECS as abandoned and resubmits.
+        let initial_l1_status = if l1_slashing_enabled {
+            "pending"
+        } else {
+            "disabled"
+        };
+
         ChallengeRepository::create_slashing(
             pool,
             &slashing_id,
@@ -172,6 +184,10 @@ impl SlashingService {
             &reward_bd,
             &insurance_bd,
             &burn_bd,
+            colluding_prover_count as i32,
+            initial_l1_status,
+            None, // l1_tx_hash not known yet
+            None, // l1_error not known yet
         ).await?;
 
         // Step 3: Reduce prover stake
@@ -248,6 +264,32 @@ impl SlashingService {
             info!("L1 slashing disabled by feature flag, skipping on-chain execution");
             (None, L1SlashStatus::Disabled)
         };
+
+        // Step 7: Finalize the slashings row with the actual L1 status.
+        // This transitions the row from 'pending' / 'disabled' placeholder to
+        // its terminal value ('submitted' | 'pending_retry' | 'unavailable' |
+        // 'disabled'). The retry service will pick up 'pending_retry' rows
+        // and resubmit.
+        let l1_error_str = match &l1_status {
+            L1SlashStatus::PendingRetry { error } => Some(error.as_str()),
+            _ => None,
+        };
+        if let Err(e) = ChallengeRepository::update_slashing_l1_status(
+            pool,
+            &slashing_id,
+            l1_status.as_str(),
+            l1_tx_hash.as_deref(),
+            l1_error_str,
+        ).await {
+            // If the UPDATE fails, we log loudly so operators notice. The row
+            // is stuck in its initial state ('pending' or 'disabled') and
+            // the retry service will skip it. Operator intervention required.
+            tracing::error!(
+                slashing_id = %slashing_id,
+                error = %e,
+                "Failed to persist final L1 slash status to DB — row stuck in initial state"
+            );
+        }
 
         info!(
             slashing_id = %slashing_id,
