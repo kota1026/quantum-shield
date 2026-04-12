@@ -441,63 +441,108 @@ impl Default for SecurityConfig {
     }
 }
 
-/// Chain ID for local Anvil / Hardhat — the only chain where dev skips are
-/// allowed without a production guard triggering.
+/// Chain ID for local Anvil / Hardhat — dev skips always allowed.
 const LOCAL_ANVIL_CHAIN_ID: u64 = 31337;
+/// Ethereum mainnet — strictest guard level (panic).
+const MAINNET_CHAIN_ID: u64 = 1;
 
 /// Enforce production guards independently of RUN_MODE env var.
 ///
 /// H-1 fix: Previously the guard ONLY fired when `RUN_MODE=production`.
 /// Forgetting to set that env var on Railway would silently bypass the
-/// verification guard — a classic silent failure. Now any non-local L1
-/// chain_id also triggers the guard.
+/// verification guard — a classic silent failure.
+///
+/// Guard levels (2026-04-12 hotfix — the original guard was too aggressive
+/// and crashed the Railway Sepolia beta deployment):
+///
+/// - **Mainnet (chain_id=1) or RUN_MODE=production**: PANIC — never allow
+///   skip_signature_verification, skip_totp_verification, or zero time-locks.
+///
+/// - **Testnet (chain_id != 1 && != 31337)**: WARN loudly but do NOT crash.
+///   Sepolia beta testing legitimately needs skip=true while users don't have
+///   real ML-DSA keys yet. The warning ensures operators know this is a
+///   deliberate testnet compromise, not an accident.
+///
+/// - **Local Anvil (chain_id=31337) or no chain configured**: silent — dev mode.
 ///
 /// H-2 fix: `default.yaml` has `normal_time_lock_hours: 0` for DEMO mode.
-/// If that config ever leaks into production, users would see a 0-second
-/// time lock — contradicting the 24h spec. Enforce minimums.
-///
-/// Panics if any production invariant is violated.
+/// On mainnet this is a panic; on testnet it's a warning.
 pub fn enforce_production_guards(cfg: &Config, run_mode: &str) {
-    // A config is "production-like" if EITHER:
-    //   - RUN_MODE=production is explicitly set (old behavior), OR
-    //   - l1_chain_id is set to anything other than local Anvil (new behavior).
-    // This defence-in-depth means forgetting either env var still catches us.
-    let is_non_local_chain = matches!(
-        cfg.l1_chain_id,
-        Some(chain_id) if chain_id != LOCAL_ANVIL_CHAIN_ID
-    );
-    let is_production_like = run_mode == "production" || is_non_local_chain;
+    let chain_id = cfg.l1_chain_id;
 
-    if is_production_like {
+    // Level 1: Mainnet or explicit RUN_MODE=production → hard fail (panic).
+    let is_mainnet = matches!(chain_id, Some(id) if id == MAINNET_CHAIN_ID);
+    let is_production_mode = run_mode == "production";
+    let is_hard_production = is_mainnet || is_production_mode;
+
+    // Level 2: Any testnet (Sepolia, Goerli, etc.) → warn only, don't crash.
+    let is_testnet = matches!(
+        chain_id,
+        Some(id) if id != LOCAL_ANVIL_CHAIN_ID && id != MAINNET_CHAIN_ID
+    );
+
+    if is_hard_production {
+        // PANIC on any violation — production must be fully hardened.
         if cfg.security.skip_signature_verification {
             panic!(
-                "SECURITY VIOLATION: skip_signature_verification=true on production-like \
-                 chain (run_mode={}, l1_chain_id={:?}). Aborting.",
-                run_mode, cfg.l1_chain_id
+                "SECURITY VIOLATION: skip_signature_verification=true on MAINNET / \
+                 production (run_mode={}, l1_chain_id={:?}). Aborting.",
+                run_mode, chain_id
             );
         }
         if cfg.security.skip_totp_verification {
             panic!(
-                "SECURITY VIOLATION: skip_totp_verification=true on production-like \
-                 chain (run_mode={}, l1_chain_id={:?}). Aborting.",
-                run_mode, cfg.l1_chain_id
+                "SECURITY VIOLATION: skip_totp_verification=true on MAINNET / \
+                 production (run_mode={}, l1_chain_id={:?}). Aborting.",
+                run_mode, chain_id
             );
         }
         if cfg.security.normal_time_lock_hours < 1 {
             panic!(
-                "SECURITY VIOLATION: normal_time_lock_hours={} on production-like \
-                 chain (minimum 1h). Aborting.",
+                "SECURITY VIOLATION: normal_time_lock_hours={} on MAINNET / \
+                 production (minimum 1h). Aborting.",
                 cfg.security.normal_time_lock_hours
             );
         }
         if cfg.security.emergency_time_lock_days < 1 {
             panic!(
-                "SECURITY VIOLATION: emergency_time_lock_days={} on production-like \
-                 chain (minimum 1d). Aborting.",
+                "SECURITY VIOLATION: emergency_time_lock_days={} on MAINNET / \
+                 production (minimum 1d). Aborting.",
                 cfg.security.emergency_time_lock_days
             );
         }
+    } else if is_testnet {
+        // WARN loudly but do not crash — testnet beta may intentionally skip.
+        if cfg.security.skip_signature_verification {
+            tracing::warn!(
+                "⚠️ TESTNET: skip_signature_verification=true on chain {:?}. \
+                 This is acceptable for beta testing but MUST be disabled before mainnet.",
+                chain_id
+            );
+        }
+        if cfg.security.skip_totp_verification {
+            tracing::warn!(
+                "⚠️ TESTNET: skip_totp_verification=true on chain {:?}. \
+                 Acceptable for beta, must disable before mainnet.",
+                chain_id
+            );
+        }
+        if cfg.security.normal_time_lock_hours < 1 {
+            tracing::warn!(
+                "⚠️ TESTNET: normal_time_lock_hours={} on chain {:?}. \
+                 DEMO mode — must set >= 1h before mainnet.",
+                cfg.security.normal_time_lock_hours, chain_id
+            );
+        }
+        if cfg.security.emergency_time_lock_days < 1 {
+            tracing::warn!(
+                "⚠️ TESTNET: emergency_time_lock_days={} on chain {:?}. \
+                 DEMO mode — must set >= 1d before mainnet.",
+                cfg.security.emergency_time_lock_days, chain_id
+            );
+        }
     }
+    // Level 3: Local Anvil (31337) or no chain configured — silent. Dev mode.
 
     // L1 mainnet guard: min_stake must be >= 1 ETH
     if cfg.l1.mode == "mainnet" {
@@ -682,21 +727,24 @@ mod tests {
     // ============================================================================
 
     #[test]
-    #[should_panic(expected = "SECURITY VIOLATION: skip_signature_verification=true")]
-    fn test_production_guard_triggers_on_sepolia_chain_id_without_run_mode() {
+    fn test_production_guard_warns_on_sepolia_but_does_not_crash() {
+        // 2026-04-12 hotfix: Sepolia (testnet) should WARN, not PANIC.
+        // The original H-1 guard was too aggressive and crashed the Railway
+        // beta deployment. Testnets legitimately run with skip=true during
+        // beta while users don't have real ML-DSA keys.
         let cfg = Config {
-            l1_chain_id: Some(11155111), // Sepolia — non-local
+            l1_chain_id: Some(11155111), // Sepolia — testnet
             ..Config::default()          // skip=true by default
         };
-        // Note: run_mode = "development", yet guard must still fire.
+        // Must NOT panic — only warn (testnet level).
         enforce_production_guards(&cfg, "development");
     }
 
     #[test]
     #[should_panic(expected = "SECURITY VIOLATION: skip_signature_verification=true")]
-    fn test_production_guard_triggers_on_mainnet_chain_id_without_run_mode() {
+    fn test_production_guard_panics_on_mainnet_chain_id() {
         let cfg = Config {
-            l1_chain_id: Some(1), // Ethereum mainnet
+            l1_chain_id: Some(1), // Ethereum mainnet — must PANIC
             ..Config::default()
         };
         enforce_production_guards(&cfg, "development");
@@ -732,11 +780,12 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "SECURITY VIOLATION: normal_time_lock_hours")]
-    fn test_production_guard_rejects_zero_normal_time_lock() {
+    fn test_production_guard_rejects_zero_normal_time_lock_on_mainnet() {
+        // Mainnet (chain_id=1) must PANIC on zero time-lock.
         let cfg = Config {
-            l1_chain_id: Some(11155111),
+            l1_chain_id: Some(1), // mainnet
             security: SecurityConfig {
-                skip_signature_verification: false, // pass the sig guard
+                skip_signature_verification: false,
                 skip_totp_verification: false,
                 normal_time_lock_hours: 0, // VIOLATION
                 ..SecurityConfig::default()
@@ -748,9 +797,9 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "SECURITY VIOLATION: emergency_time_lock_days")]
-    fn test_production_guard_rejects_zero_emergency_time_lock() {
+    fn test_production_guard_rejects_zero_emergency_time_lock_on_mainnet() {
         let cfg = Config {
-            l1_chain_id: Some(11155111),
+            l1_chain_id: Some(1), // mainnet
             security: SecurityConfig {
                 skip_signature_verification: false,
                 skip_totp_verification: false,
@@ -764,9 +813,26 @@ mod tests {
     }
 
     #[test]
-    fn test_production_guard_accepts_valid_time_locks() {
+    fn test_testnet_warns_but_does_not_crash_with_zero_time_lock() {
+        // Sepolia testnet (chain_id=11155111) should WARN, not PANIC.
+        // This is the hotfix for the 2026-04-12 Railway crash.
         let cfg = Config {
-            l1_chain_id: Some(11155111),
+            l1_chain_id: Some(11155111), // testnet
+            security: SecurityConfig {
+                normal_time_lock_hours: 0, // DEMO mode — warn only on testnet
+                emergency_time_lock_days: 0,
+                ..SecurityConfig::default()
+            },
+            ..Config::default()
+        };
+        // Must NOT panic on testnet.
+        enforce_production_guards(&cfg, "development");
+    }
+
+    #[test]
+    fn test_production_guard_accepts_valid_time_locks_on_mainnet() {
+        let cfg = Config {
+            l1_chain_id: Some(1), // mainnet
             security: SecurityConfig {
                 skip_signature_verification: false,
                 skip_totp_verification: false,
