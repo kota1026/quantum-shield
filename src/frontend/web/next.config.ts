@@ -74,7 +74,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.quantum-shield.io https://*.vercel.app http://localhost:* wss:",
+              "connect-src 'self' https://*.quantum-shield.io https://*.vercel.app https://*.up.railway.app http://localhost:* wss: https://rpc.sepolia.org https://*.infura.io https://*.alchemyapi.io",
               "frame-ancestors 'none'",
             ].join('; '),
           },
