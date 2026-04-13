@@ -151,6 +151,19 @@ async fn main() -> anyhow::Result<()> {
         tracing::warn!("L1 Sync service: DISABLED");
     }
 
+    // Start L1 TX confirmation background service (checks pending lock L1 receipts)
+    if config.l1_sync.enabled {
+        let l1_confirm = services::L1TxConfirmationService::new(
+            std::sync::Arc::new(state.pool().clone()),
+            &config.l1_sync,
+            shutdown_rx.clone(),
+        );
+        tokio::spawn(async move { l1_confirm.run().await });
+        tracing::info!("L1 TX Confirmation service: enabled, polling every 15s");
+    } else {
+        tracing::warn!("L1 TX Confirmation service: DISABLED (l1_sync disabled)");
+    }
+
     // Build router
     let app = Router::new()
         // V1 API routes (Lock/Unlock/Status/Prover/Edition)

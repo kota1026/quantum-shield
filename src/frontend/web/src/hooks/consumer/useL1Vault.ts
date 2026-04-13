@@ -160,6 +160,7 @@ export function useLockL1(): UseLockL1Result {
 
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({
     hash,
+    chainId: SEPOLIA_CHAIN_ID,
   });
 
   /**
@@ -433,6 +434,7 @@ export function useLockL1Legacy(): {
 
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({
     hash,
+    chainId: SEPOLIA_CHAIN_ID,
   });
 
   const lock = useCallback(

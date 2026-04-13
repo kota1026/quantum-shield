@@ -76,6 +76,7 @@ export function LockProcessing() {
   // Wait for L1 transaction receipt
   const { data: receipt, error: receiptError, isError: isReceiptError } = useWaitForTransactionReceipt({
     hash: l1TxHash,
+    chainId: SEPOLIA_CHAIN_ID,
   });
 
   // 5 steps for SEQUENCES.md compliant flow

@@ -132,6 +132,18 @@ pub async fn create_lock(
                     lock_id = %lock_id,
                     "L1 lockWithSR0 submitted successfully"
                 );
+
+                // Persist l1_tx_hash to DB so confirmation service can track it
+                if let Err(e) = crate::db::LockRepository::update_l1_tx_hash(
+                    state.pool(), &lock_id, &tx_hash_str,
+                ).await {
+                    tracing::warn!(
+                        lock_id = %lock_id,
+                        error = %e,
+                        "Failed to persist l1_tx_hash (lock saved, L1 submitted)"
+                    );
+                }
+
                 Some(tx_hash_str)
             }
             Err(e) => {
