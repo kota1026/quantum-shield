@@ -254,10 +254,50 @@ export function LockProcessing() {
       updateStep(4, 'complete');
 
       // ============================
-      // Step 5: Wait for L1 confirmation (handled by useEffect below)
+      // Step 5: Wait for L1 confirmation (direct polling, no React state deps)
       // ============================
       updateStep(5, 'active');
-      console.log('Step 5: Waiting for L1 confirmation...');
+
+      // Use tx hash directly from function scope (not from React state)
+      const txHashToWait = l3Resp.l1_tx_hash || l1TxHashFromFrontend;
+      console.log('Step 5: Waiting for L1 confirmation, tx:', txHashToWait);
+
+      if (!txHashToWait) {
+        throw new Error('No L1 transaction hash available');
+      }
+
+      // Poll L1 RPC directly for receipt (5s intervals, max 10 min)
+      for (let attempt = 0; attempt < 120; attempt++) {
+        if (hasNavigated.current) return;
+
+        const receiptStatus = await checkL1Receipt(txHashToWait);
+        console.log(`L1 receipt poll #${attempt + 1}:`, receiptStatus);
+
+        if (receiptStatus === 'success') {
+          hasNavigated.current = true;
+          updateStep(5, 'complete');
+
+          setTimeout(() => {
+            const params = new URLSearchParams({
+              amount,
+              txHash: txHashToWait,
+              ...(l3Resp.lock_id && { lockId: l3Resp.lock_id }),
+              ...(l3Resp.sr_0 && { sr0: l3Resp.sr_0 }),
+            });
+            router.push(`/consumer/lock/success?${params.toString()}`);
+          }, 500);
+          return;
+        }
+
+        if (receiptStatus === 'reverted') {
+          throw new Error('Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH), TVL cap exceeded, or invalid lock_id/sr_0.');
+        }
+
+        // Wait 5 seconds before next poll
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+
+      throw new Error('L1 confirmation timed out after 10 minutes');
 
     } catch (err) {
       console.error('Lock failed:', err);
@@ -278,6 +318,8 @@ export function LockProcessing() {
     requestLockFromL3,
     submitToL1,
     updateStep,
+    router,
+    l1TxHashFromFrontend,
   ]);
 
   // Start lock process when Dilithium is ready
@@ -286,67 +328,6 @@ export function LockProcessing() {
       executeLock();
     }
   }, [isDilithiumReady, executeLock]);
-
-  // Direct RPC polling for L1 receipt (bypasses wagmi for reliability)
-  // Polls multiple Sepolia RPCs every 5 seconds until receipt is found
-  useEffect(() => {
-    if (!l1TxHash || hasNavigated.current) return;
-
-    // Only poll when step 5 is active
-    const step5 = steps.find(s => s.id === 5);
-    if (!step5 || step5.status !== 'active') return;
-
-    console.log('Starting direct RPC polling for L1 receipt:', l1TxHash);
-
-    let cancelled = false;
-
-    const poll = async () => {
-      let attempts = 0;
-      const maxAttempts = 120; // 10 minutes at 5s intervals
-
-      while (!cancelled && attempts < maxAttempts) {
-        try {
-          const status = await checkL1Receipt(l1TxHash);
-          console.log(`L1 receipt poll #${attempts + 1}:`, status);
-
-          if (status === 'success' && !hasNavigated.current) {
-            hasNavigated.current = true;
-            updateStep(5, 'complete');
-
-            setTimeout(() => {
-              const params = new URLSearchParams({
-                amount,
-                txHash: l1TxHash,
-                ...(l3Response?.lock_id && { lockId: l3Response.lock_id }),
-                ...(l3Response?.sr_0 && { sr0: l3Response.sr_0 }),
-              });
-              router.push(`/consumer/lock/success?${params.toString()}`);
-            }, 500);
-            return;
-          }
-
-          if (status === 'reverted' && !hasNavigated.current) {
-            hasNavigated.current = true;
-            setError('Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH), TVL cap exceeded, or invalid lock_id/sr_0.');
-            updateStep(5, 'error');
-            return;
-          }
-        } catch (err) {
-          console.warn('L1 receipt poll error:', err);
-        }
-
-        // Wait 5 seconds before next poll
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        attempts++;
-      }
-    };
-
-    poll();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [l1TxHash, steps, l3Response, amount, router, updateStep]);
 
   // Handle L1 error (submission errors, user rejection, etc.)
   useEffect(() => {
