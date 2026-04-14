@@ -65,9 +65,9 @@ export function Security() {
   ];
 
   const links: ExternalLink[] = [
-    { id: 'whitepaper', icon: '📖', title: t('links.whitepaper'), url: 'https://docs.quantumshield.io/security' },
-    { id: 'github', icon: '💻', title: t('links.github'), url: 'https://github.com/quantumshield/contracts' },
-    { id: 'audits', icon: '🔒', title: t('links.audits'), url: 'https://docs.quantumshield.io/audits' },
+    { id: 'whitepaper', icon: '📖', title: t('links.whitepaper'), url: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md' },
+    { id: 'github', icon: '💻', title: t('links.github'), url: 'https://github.com/kota1026/quantum-shield/tree/main/src/contracts' },
+    { id: 'audits', icon: '🔒', title: t('links.audits'), url: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md' },
   ];
 
   return (

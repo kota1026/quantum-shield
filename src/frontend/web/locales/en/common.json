@@ -105,5 +105,15 @@
     "details": "Learn more",
     "accept": "Accept",
     "close": "Close"
+  },
+  "phaseOne": {
+    "title": "Phase 1 Operational Mode (honest disclosure)",
+    "learnMore": "See the Phase 1 / Phase 2 matrix",
+    "scope": {
+      "sphincs-verify": "The L1 Vault currently runs the `_verifySimplified` identity gate rather than the full FIPS 205 SPHINCS+ on-chain verification. Phase 2 switches to full verification.",
+      "ai-prover": "Prover signing decisions are made by the AI Prover Agent (Claude). Cryptography is real FIPS 205 SLH-DSA, but *when* to sign is decided by an LLM. Phase 2 replaces this with HSM-bound human operators or deterministic rule-based automation.",
+      "vrf-fallback": "When the VRF contract is not configured, Prover selection falls back to block.prevrandao. Production will use Chainlink VRF v2.5 exclusively.",
+      "bond-calc-only": "The emergency unlock bond is currently only calculated and displayed; no ETH is collected on-chain. Phase 2 wires the full bond collection + slashing flow."
+    }
   }
 }

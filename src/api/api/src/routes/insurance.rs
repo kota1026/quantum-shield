@@ -450,8 +450,12 @@ pub async fn submit_claim(
         ApiError::InvalidRequest("Invalid amount format".to_string())
     })?;
 
-    // Decode hex signature to bytes
-    let sig_bytes = hex::decode(req.signature.trim_start_matches("0x")).unwrap_or_default();
+    // Decode hex signature to bytes (fail-fast; never silently store empty bytes)
+    if req.signature.is_empty() {
+        return Err(ApiError::InvalidRequest("signature must not be empty".to_string()));
+    }
+    let sig_bytes = hex::decode(req.signature.trim_start_matches("0x"))
+        .map_err(|e| ApiError::InvalidRequest(format!("invalid hex in signature: {}", e)))?;
 
     InsuranceRepository::create_claim(
         pool,

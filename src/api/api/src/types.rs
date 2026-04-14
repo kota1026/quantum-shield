@@ -1049,10 +1049,37 @@ pub struct RewardsInfo {
 }
 
 /// Request to claim rewards
+///
+/// C-2 fix: `wallet_address` is now required and validated. Previously the
+/// handler hardcoded `"caller"` as the literal wallet identifier, meaning
+/// every user's claim record collided into the same row. Until the JWT
+/// auth middleware is wired for Extension<JwtClaims>, the client must
+/// supply its own address (validated server-side).
 #[derive(Debug, Deserialize)]
 pub struct TokenHubClaimRequest {
+    /// Wallet address requesting the claim (0x-prefixed, 42 chars, lowercase
+    /// recommended). MUST be provided until Phase 2 auth extraction lands.
+    pub wallet_address: String,
     /// Optional: specific epochs to claim (None = claim all)
     pub epochs: Option<Vec<u64>>,
+}
+
+/// Execution phase of a reward claim.
+///
+/// C-2 fix: previously the handler returned `tx_hash: None` silently while
+/// writing only to the DB, giving users the impression their claim was
+/// on-chain. Now we return an explicit `phase` so the UI can surface
+/// whether any L3 transaction actually happened.
+#[derive(Debug, Serialize, Clone, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TokenHubClaimPhase {
+    /// Phase 1 (current): reward is recorded in PostgreSQL but no L3
+    /// `RewardRouter.claimReward()` transaction has been submitted. The user
+    /// sees the claim history but no QS token movement on-chain. The UI must
+    /// display a Phase 1 disclosure banner.
+    DbOnly,
+    /// Phase 2: L3 transaction submitted; `tx_hash` is populated.
+    L3Submitted,
 }
 
 /// Response after claiming rewards
@@ -1061,12 +1088,14 @@ pub struct TokenHubClaimRequest {
 pub struct TokenHubClaimResponse {
     /// Success status
     pub success: bool,
-    /// Transaction hash
+    /// Transaction hash (None in Phase 1 db-only mode)
     pub tx_hash: Option<String>,
     /// Amount claimed
     pub amount_claimed: String,
     /// Epochs claimed
     pub epochs_claimed: Vec<u64>,
+    /// Execution phase — frontend MUST surface this to users.
+    pub phase: TokenHubClaimPhase,
 }
 
 // ============================================================================

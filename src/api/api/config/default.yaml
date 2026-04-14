@@ -48,12 +48,16 @@ cors:
     - "https://quantum-shield.xyz"
     - "https://www.quantum-shield.xyz"
     - "https://quantum-shield-local.vercel.app"
+    - "https://quantum-shield-production-8f2b.up.railway.app"
 
-# Rate Limiting
+# Rate Limiting (global per-IP)
 rate_limit:
   max_requests: 100   # per window per IP
   window_secs: 60     # 1 minute
   enabled: false       # disabled in dev
+  # Per-endpoint limits (production recommended values in req/min)
+  # lock: 10, unlock: 5, emergency: 3, auth: 20, challenge: 5
+  # Enable in production by setting enabled: true
 
 # Object Storage (MinIO/S3-compatible)
 storage:

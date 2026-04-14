@@ -33,6 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { Tooltip } from '@/components/shared/Tooltip';
+import { PhaseOneBadge } from '@/components/shared/PhaseOneBadge';
 import { ProverSidebar } from './ProverSidebar';
 import {
   useProverStats,
@@ -139,6 +140,12 @@ export function ProverDashboard() {
         </div>
 
         <div className="relative z-10">
+          {/* Phase 1 honest disclosure — Prover signing is AI-assisted */}
+          <div className="mb-6 space-y-2">
+            <PhaseOneBadge scope="ai-prover" />
+            <PhaseOneBadge scope="sphincs-verify" />
+          </div>
+
           {/* Alert Banner */}
           {stats.responseTime > 25 && (
             <div

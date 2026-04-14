@@ -13,7 +13,7 @@ export function Help() {
   const gettingStartedItems = [
     { key: 'setup', icon: '🚀', href: '/enterprise/settings' },
     { key: 'apiKeys', icon: '🔑', href: '/enterprise/settings?tab=developer' },
-    { key: 'integration', icon: '🔧', href: 'https://docs.quantumshield.io/integration' },
+    { key: 'integration', icon: '🔧', href: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md' },
     { key: 'security', icon: '🛡️', href: '/enterprise/settings?tab=security' },
   ];
 
@@ -25,9 +25,9 @@ export function Help() {
   ];
 
   const resourceItems = [
-    { key: 'docs', icon: '📚', href: 'https://docs.quantumshield.io' },
+    { key: 'docs', icon: '📚', href: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md' },
     { key: 'support', icon: '🎧', href: '/enterprise/support' },
-    { key: 'changelog', icon: '📋', href: 'https://docs.quantumshield.io/changelog' },
+    { key: 'changelog', icon: '📋', href: 'https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md' },
     { key: 'status', icon: '⚡', href: '/enterprise/dashboard' },
   ];
 

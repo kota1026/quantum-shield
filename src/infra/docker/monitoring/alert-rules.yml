@@ -273,3 +273,97 @@ groups:
         annotations:
           summary: "Container {{ $labels.name }} is restarting frequently"
           description: "Container has restarted {{ $value }} times in the last hour."
+
+  # ===========================================================================
+  # Business Metric Alerts (Phase D)
+  # ===========================================================================
+  - name: business_metrics
+    interval: 30s
+    rules:
+      # Pending Unlocks Backlog
+      - alert: HighPendingUnlocks
+        expr: qs_pending_unlocks_count > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High number of pending unlocks"
+          description: "{{ $value }} unlocks pending — auto-claim service may be stuck."
+
+      # Pending Unlocks Critical
+      - alert: CriticalPendingUnlocks
+        expr: qs_pending_unlocks_count > 500
+        for: 2m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "Critical: pending unlocks backlog"
+          description: "{{ $value }} pending unlocks — immediate investigation required."
+
+      # Low Active Provers
+      - alert: LowProverCount
+        expr: qs_active_provers < 3
+        for: 5m
+        labels:
+          severity: warning
+          service: prover
+        annotations:
+          summary: "Low prover count"
+          description: "Only {{ $value }} active provers — minimum 3 recommended for VRF selection."
+
+      # No Active Provers (Critical)
+      - alert: NoActiveProvers
+        expr: qs_active_provers == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: prover
+        annotations:
+          summary: "No active provers available"
+          description: "All provers are offline — normal unlock path is blocked."
+
+      # Database Dependency Down
+      - alert: DatabaseDown
+        expr: qs_dependency_up{dependency="database"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database is unreachable"
+          description: "API cannot connect to PostgreSQL."
+
+      # Redis Dependency Down
+      - alert: RedisDown
+        expr: qs_dependency_up{dependency="redis"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis is unreachable"
+          description: "API cannot connect to Redis — caching and rate limiting may be affected."
+
+      # High Database Latency
+      - alert: HighDatabaseLatency
+        expr: qs_dependency_latency_ms{dependency="database"} > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High database latency"
+          description: "Database health check latency is {{ $value }}ms (threshold: 100ms)."
+
+      # Active Challenges Spike
+      - alert: ChallengeSpike
+        expr: qs_active_challenges > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "Unusual number of active challenges"
+          description: "{{ $value }} active challenges — possible coordinated attack."

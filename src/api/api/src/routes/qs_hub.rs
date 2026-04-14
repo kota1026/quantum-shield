@@ -307,9 +307,22 @@ pub struct VoteResponse {
 #[serde(rename_all = "camelCase")]
 pub struct ClaimRewardsResponse {
     pub claimed: f64,
-    pub transaction_hash: String,
+    /// Transaction hash — None in Phase 1 db-only mode.
+    ///
+    /// Previously this field was populated with `format!("0x{}", Uuid::new_v4())`
+    /// which produced a fake-looking hex string that the frontend treated as
+    /// a real L3 transaction hash — the exact silent-failure pattern we are
+    /// eliminating. Phase 2 will populate this with the real L3 tx hash from
+    /// `RewardRouter.claimReward()`.
+    pub transaction_hash: Option<String>,
     /// Claim currency: "QS" (QS Token on L3 Aegis)
     pub currency: String,
+    /// Execution phase — frontend MUST surface this to users.
+    ///
+    /// `DbOnly` means the claim is recorded in PostgreSQL only; no QS token
+    /// has actually moved on L3. `L3Submitted` means an L3 transaction was
+    /// submitted and `transaction_hash` is populated.
+    pub phase: crate::types::TokenHubClaimPhase,
 }
 
 // =============================================================================
@@ -968,8 +981,11 @@ pub async fn claim_rewards(
         info!("QS Hub: No rewards to claim");
         return Ok(Json(ClaimRewardsResponse {
             claimed: 0.0,
-            transaction_hash: format!("0x{}", Uuid::new_v4().simple()),
+            // No fake Uuid — return None and let the frontend badge show
+            // Phase 1 status.
+            transaction_hash: None,
             currency: "QS".to_string(),
+            phase: crate::types::TokenHubClaimPhase::DbOnly,
         }));
     }
 
@@ -996,11 +1012,15 @@ pub async fn claim_rewards(
         }
     }
 
-    let tx_hash = format!("0x{}", Uuid::new_v4().simple());
+    // No L3 RewardRouter.claimReward() in Phase 1. Previously this function
+    // returned `format!("0x{}", Uuid::new_v4().simple())` which looked like
+    // a real transaction hash but was client-side fiction. Now we return
+    // None + phase=DbOnly so the frontend can surface the truth.
     let response = ClaimRewardsResponse {
         claimed: total_claimed,
-        transaction_hash: tx_hash,
+        transaction_hash: None,
         currency: "QS".to_string(),
+        phase: crate::types::TokenHubClaimPhase::DbOnly,
     };
 
     info!("QS Hub: Claimed {} QS rewards across {} epochs", total_claimed, epochs.len());

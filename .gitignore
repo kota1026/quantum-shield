@@ -28,6 +28,10 @@ contracts/cache/
 contracts/out/
 contracts/broadcast/
 
+# Redis
+dump.rdb
+*.rdb
+
 # L3 Aegis
 l3-aegis/cache/
 
@@ -54,6 +58,11 @@ src/l3/out/
 
 # Environment files (secrets)
 .env.*
+
+# Prover secret keys (SLH-DSA / HSM-loaded material)
+# Never commit real keypairs to the repo.
+/secrets/
+secrets/
 !.env.example
 !.env.production.example
 .claude/settings.local.json

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { LockCard, LockItem } from './LockCard';
 import { MethodCard } from './MethodCard';
 import { TimeLockModal } from './TimeLockModal';
+import { PhaseOneBadge } from '@/components/shared/PhaseOneBadge';
 import { useUserTransactions } from '@/hooks/consumer';
 
 // Helper to convert amount to ETH string
@@ -115,6 +116,13 @@ export function Unlock() {
             {t('header.title')}
           </h1>
         </header>
+
+        {/* Phase 1 honest disclosure — never hide known bridges from users */}
+        <div className="mb-6 space-y-2">
+          <PhaseOneBadge scope="ai-prover" />
+          <PhaseOneBadge scope="vrf-fallback" />
+          <PhaseOneBadge scope="sphincs-verify" />
+        </div>
 
         {/* Select Lock Section */}
         <section className="mb-8" aria-labelledby="select-lock-label">

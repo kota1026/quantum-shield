@@ -58,17 +58,22 @@ pub async fn siwe_authenticate(
     // Parse SIWE message to extract nonce
     let siwe_message = crate::services::auth_service::AuthService::parse_siwe_message(&req.message)?;
 
-    // Check if nonce has been used (replay protection)
-    let nonce_key = format!("siwe_nonce:{}", siwe_message.nonce);
-    if state.redis.exists(&nonce_key).await.map_err(|e| ApiError::Internal(e.to_string()))? {
+    // Check if nonce has been used (replay protection — PostgreSQL-backed)
+    let pool = state.pool();
+    if crate::db::NonceRepository::is_nonce_used(pool, &siwe_message.nonce)
+        .await
+        .map_err(|e| ApiError::Internal(e.to_string()))?
+    {
         return Err(ApiError::NonceAlreadyUsed);
     }
 
     // Authenticate
     let response = state.auth_service.authenticate_siwe(&req)?;
 
-    // Mark nonce as used (expire after 1 hour to prevent replay attacks)
-    state.redis.set(&nonce_key, "1", 3600).await.map_err(|e| ApiError::Internal(e.to_string()))?;
+    // Mark nonce as used (expires after 1 hour)
+    crate::db::NonceRepository::mark_nonce_used(pool, &siwe_message.nonce)
+        .await
+        .map_err(|e| ApiError::Internal(e.to_string()))?;
 
     tracing::info!(
         address = %response.address,

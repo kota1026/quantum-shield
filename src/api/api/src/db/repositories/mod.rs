@@ -26,6 +26,7 @@ mod council;
 mod enterprise;
 mod system;
 pub mod document;
+mod nonce;
 
 pub use admin::*;
 pub use prover::*;
@@ -43,3 +44,4 @@ pub use insurance::*;
 pub use council::*;
 pub use enterprise::*;
 pub use system::*;
+pub use nonce::*;

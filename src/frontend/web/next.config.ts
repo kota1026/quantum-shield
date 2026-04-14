@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   // Enable React strict mode
   reactStrictMode: true,
 
+  // Environment variables (defaults for production)
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://quantum-shield-production-8f2b.up.railway.app',
+  },
+
   // Experimental features
   experimental: {
     // Enable server actions
@@ -35,7 +40,7 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // Headers for security
+  // Headers for security (OWASP recommended)
   async headers() {
     return [
       {
@@ -52,6 +57,26 @@ const nextConfig: NextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=()',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.quantum-shield.io https://*.vercel.app https://*.up.railway.app http://localhost:* wss: https://rpc.sepolia.org https://*.infura.io https://*.alchemyapi.io",
+              "frame-ancestors 'none'",
+            ].join('; '),
           },
         ],
       },

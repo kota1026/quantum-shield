@@ -476,7 +476,7 @@ export function Council() {
               {tFooter('governanceForum')}
             </a>
             <a
-              href="https://docs.quantumshield.io/"
+              href="https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md"
               target="_blank"
               rel="noopener noreferrer"
               className="transition-colors hover:text-white min-h-[44px] inline-flex items-center px-2"

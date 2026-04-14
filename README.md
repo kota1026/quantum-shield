@@ -7,6 +7,20 @@
 
 > Post-quantum asset protection protocol for Ethereum using NIST-standardized cryptography
 
+## Live Demo
+
+| | URL |
+|--|-----|
+| Frontend | [https://quantum-shield.xyz](https://quantum-shield.xyz) |
+| Backend API | [https://quantum-shield-production-8f2b.up.railway.app/v1/health](https://quantum-shield-production-8f2b.up.railway.app/v1/health) |
+| Network | Ethereum Sepolia (testnet) |
+
+## Quick Links
+
+- [Whitepaper](docs/WHITEPAPER.md)
+- [Launch Plan](docs/LAUNCH_MASTER_PLAN.md)
+- [GitHub](https://github.com/kota1026/quantum-shield)
+
 ## What is Quantum Shield?
 
 Quantum Shield protects smart contract assets against quantum computing threats using **NIST FIPS 204 (ML-DSA/Dilithium)** and **FIPS 205 (SLH-DSA/SPHINCS+)** dual post-quantum signatures, combined with a decentralized Prover Pool, VRF-based selection, and time-locked custody.

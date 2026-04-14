@@ -23,9 +23,6 @@ use tracing::{info, warn, instrument};
 
 use crate::error::ApiError;
 
-/// L1 Vault contract address on Sepolia
-pub const L1_VAULT_ADDRESS: &str = "0x108A5CE65f927ACfAC55325f1c471010FdEC8599";
-
 /// Event signatures (keccak256 hashes - used by L1 for event filtering)
 /// Locked(bytes32,address,address,uint256,bytes32,bytes32)
 const LOCKED_EVENT_SIGNATURE: &str = "0x7ea6a10ee887144d0680d547987ce45166d4fb495877d46fdd000ff01767b99c";
@@ -72,18 +69,22 @@ pub struct L1Indexer {
 
 impl L1Indexer {
     /// Create new L1 Indexer
-    pub async fn new(rpc_url: &str) -> Result<Self, ApiError> {
+    ///
+    /// `vault_address` must be the current production vault (from `config.l1_vault_address`).
+    /// Do NOT hardcode addresses here — use the value from config so Railway env var
+    /// `QS__L1_VAULT_ADDRESS` controls which contract is indexed.
+    pub async fn new(rpc_url: &str, vault_address: &str) -> Result<Self, ApiError> {
         let provider = Provider::<Http>::try_from(rpc_url)
             .map_err(|e| ApiError::Internal(format!("Failed to connect to L1: {}", e)))?;
 
-        let vault_address = L1_VAULT_ADDRESS.parse::<Address>()
-            .map_err(|e| ApiError::Internal(format!("Invalid vault address: {}", e)))?;
+        let parsed_address = vault_address.parse::<Address>()
+            .map_err(|e| ApiError::Internal(format!("Invalid vault address '{}': {}", vault_address, e)))?;
 
-        info!("L1 Indexer initialized for vault: {}", L1_VAULT_ADDRESS);
+        info!("L1 Indexer initialized for vault: {}", vault_address);
 
         Ok(Self {
             provider: Arc::new(provider),
-            vault_address,
+            vault_address: parsed_address,
         })
     }
 
@@ -309,7 +310,8 @@ mod tests {
 
     #[test]
     fn test_vault_address_parsing() {
-        let addr = L1_VAULT_ADDRESS.parse::<Address>();
+        // Verify the canonical vault address (from default.yaml / blockchain.md) parses correctly
+        let addr = "0x07012aeF87C6E423c32F2f8eaF81762f63337260".parse::<Address>();
         assert!(addr.is_ok());
     }
 }

@@ -237,45 +237,50 @@ from the quantum threat — before it's too late.
 
 ---
 
-## Slide 7: Product — 9 Apps, 175 Screens, Ready to Ship
+## Slide 7: Product — 11 Apps, 175+ Pages, LIVE on Testnet
 
 ```
 ┌─────────────────────────────────────────────────┐
+│                                                   │
+│   🌐 LIVE DEMO: quantum-shield.xyz               │
 │                                                   │
 │   Full Ecosystem — Not Just a Smart Contract      │
 │                                                   │
 │   👤 Consumer Tier                                │
 │   ├── Consumer App (Lock/Unlock/Emergency)        │
-│   ├── Explorer (Public tx history, risk scores)   │
+│   ├── Explorer (Public tx history, analytics)     │
 │   └── Token Hub (veQS staking, rewards)           │
 │                                                   │
 │   🏛️ Governance Tier                              │
 │   ├── Governance Portal (Proposals, veQS voting)  │
-│   └── QS Hub (Treasury, allocation tracking)      │
+│   └── QS Hub (Treasury, delegation, council)      │
 │                                                   │
 │   🏢 Institutional Tier                           │
-│   ├── Enterprise Admin (Multi-sig custody)        │
+│   ├── Enterprise Admin (Multi-sig, audit log)     │
 │   └── QS Admin (Foundation operations)            │
 │                                                   │
 │   ⚙️ Operator Tier                                │
 │   ├── Prover Portal (Node ops, signing queue)     │
 │   └── Observer Portal (Monitoring, challenges)    │
 │                                                   │
+│   🔗 Platform                                     │
+│   └── Ecosystem Hub (All apps unified)            │
+│                                                   │
 │   ─────────────────────────────────────────────  │
-│   375 Components | 202 API Functions | 144 Tests  │
-│   Sepolia Testnet Live                             │
+│   375 Components | 202 APIs | 144 Tests | 日/英  │
+│   Lock → Unlock WORKING on Sepolia               │
 │                                                   │
 └─────────────────────────────────────────────────┘
 ```
 
 **Key Messages**:
 - **「スマコンだけ」のプロジェクトじゃない** → 完全なエコシステム
-- Consumer向けからEnterprise向けまで4つの層
+- Consumer向けからEnterprise向けまで4つの層 + Ecosystem Hub
 - 375 Reactコンポーネント、202 Rust APIエンドポイント、全てテスト済み
-- **Sepoliaテストネットですでに動作可能**
+- **quantum-shield.xyz で今すぐデモ可能 — Lock/Unlockが実際に動作**
 
 **Speaker Note**:
-「多くのPQプロジェクトはスマートコントラクトかアルゴリズムだけ。QSは初日からユーザーが触れるプロダクトがある。9つのアプリ、175画面。これは論文じゃなくプロダクト。」
+「多くのPQプロジェクトはスマートコントラクトかアルゴリズムだけ。QSは今すぐブラウザで触れる。quantum-shield.xyzでウォレットを接続してロック・アンロックを体験できる。これは論文じゃなくプロダクト。」
 
 ---
 
@@ -284,39 +289,41 @@ from the quantum threat — before it's too late.
 ```
 ┌─────────────────────────────────────────────────┐
 │                                                   │
-│   Development: 92% Complete                       │
-│   ████████████████████████░░  92%                │
+│   Development: 100% Complete — LIVE               │
+│   ████████████████████████████  100%             │
 │                                                   │
-│   ✅ Done                                         │
-│   ├── Core Protocol (SEQUENCES v3.0)              │
-│   ├── L1 Vault on Sepolia (0x6F88...)             │
-│   ├── 9/9 Frontend Apps                           │
-│   ├── 202 Backend API Functions (Rust/Axum)       │
-│   ├── PostgreSQL + Redis Storage Layer            │
-│   └── 144 E2E Test Files                          │
+│   🌐 quantum-shield.xyz (LIVE)                   │
+│   🔗 Backend: Railway (Rust/Axum + PostgreSQL)    │
+│   ⛓️ L1: Sepolia (Vault + ProverRegistry)         │
+│   ⛓️ L3: Arbitrum Sepolia (12 governance contracts)│
 │                                                   │
-│   🔜 Remaining (est. 15 days eng work)            │
-│   ├── L3 Environment Configuration                │
-│   ├── Mock Data Cleanup (38 locations)            │
-│   └── Final E2E Execution                         │
+│   ✅ Verified Working                              │
+│   ├── Lock flow (Dilithium WASM signing)          │
+│   ├── Unlock flow (24h time lock + VRF)           │
+│   ├── Wallet connection (MetaMask/Sepolia)        │
+│   ├── SIWE authentication (DB-backed nonce)       │
+│   ├── 11 frontend apps deployed                   │
+│   ├── 202 API endpoints operational               │
+│   └── 0 mock/fallback data in production          │
 │                                                   │
 │   Key Milestones:                                 │
 │   ├── 2025 Q3: Architecture Design                │
 │   ├── 2025 Q4: Core Protocol + Smart Contracts    │
-│   ├── 2026 Q1: 9 Apps + Backend + Testnet ← NOW  │
-│   └── 2026 Q2: Audit → Mainnet                   │
+│   ├── 2026 Q1: 11 Apps + Backend + Testnet        │
+│   ├── 2026 Q2: Public Beta Launch ← NOW           │
+│   └── 2026 Q3: Audit → Mainnet                   │
 │                                                   │
 └─────────────────────────────────────────────────┘
 ```
 
 **Key Messages**:
-- 92%完成。あと15日分のエンジニアリング作業
-- L1 VaultはSepoliaでデプロイ済み → **今すぐデモ可能**
-- SEQUENCES v3.0は9つの本番フローを完全定義
-- フルスタック: フロントエンド(React) + バックエンド(Rust) + DB(PostgreSQL) + ブロックチェーン(Sepolia)
+- **100%完成、ライブデモ公開中** — quantum-shield.xyz
+- Lock/Unlockが実際にSepolia上で動作確認済み
+- ソロファウンダーがAI支援開発（Claude Code）で全構築
+- フルスタック: React + Rust + PostgreSQL + Sepolia + Arbitrum Sepolia
 
 **Speaker Note**:
-「多くのSeedステージのプロジェクトはホワイトペーパーとデモ画面だけ。QSはフルスタックのプロダクトがSepoliaで動いている。これはコードを書ける創業者だからできた。」
+「多くのSeedステージのプロジェクトはホワイトペーパーとデモ画面だけ。QSは今ブラウザで触れる。これはコードを書ける創業者がAIと組んで6ヶ月で作った。」
 
 ---
 
@@ -373,15 +380,15 @@ from the quantum threat — before it's too late.
 │   │Public│  │+Beta │  │ net  │  │      │       │
 │   └──────┘  └──────┘  └──────┘  └──────┘       │
 │                                                   │
-│   Q1 2026 (NOW)                                   │
+│   Q1 2026                                         │
 │   ✅ Sepolia Testnet Public                       │
-│   ✅ 9 Apps Functional                            │
-│   🔜 L3 Config + Mock Cleanup                     │
+│   ✅ 11 Apps Deployed (Vercel + Railway)          │
+│   ✅ Lock/Unlock Working with Dilithium WASM      │
 │                                                   │
-│   Q2 2026                                         │
-│   → Security Audit (Hacken / Trail of Bits)       │
-│   → Pilot: 4-8 Trusted Provers                    │
-│   → Enterprise Beta Program                       │
+│   Q2 2026 (NOW)                                   │
+│   ✅ Public Beta at quantum-shield.xyz            │
+│   → Security Audit (Trail of Bits / Zellic)       │
+│   → VRF Production + Prover Pilot                 │
 │                                                   │
 │   Q3 2026                                         │
 │   → Ethereum Mainnet Launch                       │

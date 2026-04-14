@@ -7581,11 +7581,12 @@ pub async fn sync_l1_events(
 
     info!("Admin: L1 sync - request started");
 
-    // Get L1 RPC URL from config
-    let rpc_url = std::env::var("L1_RPC_URL")
-        .unwrap_or_else(|_| "https://rpc.sepolia.org".to_string());
+    let rpc_url = state.config.l1_rpc_url.clone()
+        .unwrap_or_else(|| "https://rpc.sepolia.org".to_string());
+    let vault_addr = state.config.l1_vault_address.clone()
+        .unwrap_or_else(|| "0x07012aeF87C6E423c32F2f8eaF81762f63337260".to_string());
 
-    let indexer = L1Indexer::new(&rpc_url).await?;
+    let indexer = L1Indexer::new(&rpc_url, &vault_addr).await?;
     let pool = state.db.pool();
 
     match indexer.sync_to_database(pool).await {
@@ -7613,18 +7614,20 @@ pub async fn sync_l1_events(
 /// Get real-time L1 stats from the vault contract
 /// BE-001: Real L1 operations
 /// BE-003: Mandatory logging
-#[instrument(skip(_state))]
+#[instrument(skip(state))]
 pub async fn get_l1_stats(
-    Extension(_state): Extension<Arc<AppState>>,
+    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<L1StatsResponse>, ApiError> {
     use crate::services::l1_indexer::L1Indexer;
 
     info!("Admin: L1 stats - request started");
 
-    let rpc_url = std::env::var("L1_RPC_URL")
-        .unwrap_or_else(|_| "https://rpc.sepolia.org".to_string());
+    let rpc_url = state.config.l1_rpc_url.clone()
+        .unwrap_or_else(|| "https://rpc.sepolia.org".to_string());
+    let vault_addr = state.config.l1_vault_address.clone()
+        .unwrap_or_else(|| "0x07012aeF87C6E423c32F2f8eaF81762f63337260".to_string());
 
-    let indexer = L1Indexer::new(&rpc_url).await?;
+    let indexer = L1Indexer::new(&rpc_url, &vault_addr).await?;
     let stats = indexer.get_dashboard_stats().await?;
 
     info!("Admin: L1 stats - found {} locks, {} unique users, TVL: {} wei",
@@ -7986,10 +7989,12 @@ pub async fn get_dashboard_stats(
     // Treasury balance (from L1 vault - fetch realtime)
     let treasury = {
         use crate::services::l1_indexer::L1Indexer;
-        let rpc_url = std::env::var("L1_RPC_URL")
-            .unwrap_or_else(|_| "https://rpc.sepolia.org".to_string());
+        let rpc_url = state.config.l1_rpc_url.clone()
+            .unwrap_or_else(|| "https://rpc.sepolia.org".to_string());
+        let vault_addr = state.config.l1_vault_address.clone()
+            .unwrap_or_else(|| "0x07012aeF87C6E423c32F2f8eaF81762f63337260".to_string());
 
-        match L1Indexer::new(&rpc_url).await {
+        match L1Indexer::new(&rpc_url, &vault_addr).await {
             Ok(indexer) => {
                 match indexer.get_total_locked().await {
                     Ok(balance) => {

@@ -570,7 +570,7 @@ export function ProposalDetail({ proposalId }: ProposalDetailProps) {
                 {tFooter('governanceForum')}
               </a>
               <a
-                href="https://docs.quantumshield.io/"
+                href="https://github.com/kota1026/quantum-shield/blob/main/docs/WHITEPAPER.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-foreground-tertiary hover:text-gold transition-colors min-h-[44px] inline-flex items-center px-2"
