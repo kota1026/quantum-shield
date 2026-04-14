@@ -31,6 +31,7 @@ pub mod l3_contracts;
 pub mod auto_claim;
 pub mod sr1_calculator;
 pub mod l1_sync_service;
+pub mod l1_tx_confirmation;
 pub mod slashing_retry_service;
 pub mod storage;
 
@@ -83,6 +84,7 @@ pub use l1_prover_registry::L1ProverRegistryService;
 pub use l3_contracts::{L3Contracts, L3ContractAddresses};
 pub use auto_claim::AutoClaimService;
 pub use l1_sync_service::L1SyncService;
+pub use l1_tx_confirmation::L1TxConfirmationService;
 pub use slashing_retry_service::{SlashingRetryConfig, SlashingRetryService};
 pub use storage::{StorageService, StorageError};
 

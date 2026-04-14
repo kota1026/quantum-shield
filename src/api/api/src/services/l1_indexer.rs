@@ -267,7 +267,10 @@ impl L1Indexer {
                     $3, $4::bytea, 0, 0, ''::bytea, ''::bytea, '', 'confirmed',
                     $5, to_timestamp($6), NOW()
                 )
-                ON CONFLICT (lock_id) DO NOTHING
+                ON CONFLICT (lock_id) DO UPDATE SET
+                    status = CASE WHEN locks.status = 'pending' THEN 'confirmed' ELSE locks.status END,
+                    confirmed_at = CASE WHEN locks.status = 'pending' THEN NOW() ELSE locks.confirmed_at END,
+                    l1_tx_hash = COALESCE(locks.l1_tx_hash, EXCLUDED.l1_tx_hash)
                 "#
             )
             .bind(&lock.lock_id)

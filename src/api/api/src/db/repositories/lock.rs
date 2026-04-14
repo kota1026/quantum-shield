@@ -747,4 +747,33 @@ impl LockRepository {
         info!("DB query: list_locks_by_statuses completed, count={}", results.len());
         Ok(results)
     }
+
+    /// List locks with status='pending' that have an L1 transaction hash.
+    /// Used by L1TxConfirmationService to check pending L1 confirmations.
+    #[instrument(skip(pool))]
+    pub async fn list_pending_with_l1_tx_hash(
+        pool: &PgPool,
+    ) -> Result<Vec<LockRow>, ApiError> {
+        info!("DB query: list_pending_with_l1_tx_hash started");
+
+        let results = sqlx::query_as::<_, LockRow>(
+            r#"
+            SELECT lock_id, wallet_address, chain_id, asset, amount, dest_addr,
+                   expiry, nonce, pk_dilithium, sig_dilithium, sr_0, status,
+                   l1_tx_hash, created_at, confirmed_at
+            FROM locks
+            WHERE status = 'pending' AND l1_tx_hash IS NOT NULL
+            ORDER BY created_at ASC
+            "#,
+        )
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: list_pending_with_l1_tx_hash failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!("DB query: list_pending_with_l1_tx_hash completed, count={}", results.len());
+        Ok(results)
+    }
 }

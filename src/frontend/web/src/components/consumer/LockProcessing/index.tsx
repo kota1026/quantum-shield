@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { parseEther } from 'viem';
 import { Check, HelpCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,48 @@ import { Button } from '@/components/ui/button';
 import { useDilithium, useLockL1 } from '@/hooks/consumer';
 import { SEPOLIA_CHAIN_ID } from '@/lib/contracts/l1vault';
 import { constructLockMessage } from '@/lib/api/lock';
+
+// Reliable Sepolia RPC endpoints (fallback order)
+const SEPOLIA_RPCS = [
+  process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL,
+  'https://ethereum-sepolia-rpc.publicnode.com',
+  'https://rpc.sepolia.org',
+  'https://sepolia.drpc.org',
+].filter(Boolean) as string[];
+
+/**
+ * Direct RPC call to check transaction receipt on Sepolia.
+ * Tries multiple RPC endpoints for reliability.
+ * Returns 'success' | 'reverted' | null (pending).
+ */
+async function checkL1Receipt(txHash: string): Promise<'success' | 'reverted' | null> {
+  for (const rpcUrl of SEPOLIA_RPCS) {
+    try {
+      const resp = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_getTransactionReceipt',
+          params: [txHash],
+          id: 1,
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+      const data = await resp.json();
+      if (data.result) {
+        return data.result.status === '0x1' ? 'success' : 'reverted';
+      }
+      // Receipt not yet available (tx still pending)
+      return null;
+    } catch {
+      // Try next RPC
+      continue;
+    }
+  }
+  // All RPCs failed
+  return null;
+}
 
 type StepStatus = 'pending' | 'active' | 'complete' | 'error';
 
@@ -72,11 +114,6 @@ export function LockProcessing() {
   // Use tx hash from backend if available, otherwise from frontend
   // This handles the case where backend already submitted to L1
   const l1TxHash = (l3Response?.l1_tx_hash as `0x${string}` | undefined) || l1TxHashFromFrontend;
-
-  // Wait for L1 transaction receipt
-  const { data: receipt, error: receiptError, isError: isReceiptError } = useWaitForTransactionReceipt({
-    hash: l1TxHash,
-  });
 
   // 5 steps for SEQUENCES.md compliant flow
   const [steps, setSteps] = useState<Step[]>([
@@ -217,10 +254,50 @@ export function LockProcessing() {
       updateStep(4, 'complete');
 
       // ============================
-      // Step 5: Wait for L1 confirmation (handled by useEffect below)
+      // Step 5: Wait for L1 confirmation (direct polling, no React state deps)
       // ============================
       updateStep(5, 'active');
-      console.log('Step 5: Waiting for L1 confirmation...');
+
+      // Use tx hash directly from function scope (not from React state)
+      const txHashToWait = l3Resp.l1_tx_hash || l1TxHashFromFrontend;
+      console.log('Step 5: Waiting for L1 confirmation, tx:', txHashToWait);
+
+      if (!txHashToWait) {
+        throw new Error('No L1 transaction hash available');
+      }
+
+      // Poll L1 RPC directly for receipt (5s intervals, max 10 min)
+      for (let attempt = 0; attempt < 120; attempt++) {
+        if (hasNavigated.current) return;
+
+        const receiptStatus = await checkL1Receipt(txHashToWait);
+        console.log(`L1 receipt poll #${attempt + 1}:`, receiptStatus);
+
+        if (receiptStatus === 'success') {
+          hasNavigated.current = true;
+          updateStep(5, 'complete');
+
+          setTimeout(() => {
+            const params = new URLSearchParams({
+              amount,
+              txHash: txHashToWait,
+              ...(l3Resp.lock_id && { lockId: l3Resp.lock_id }),
+              ...(l3Resp.sr_0 && { sr0: l3Resp.sr_0 }),
+            });
+            router.push(`/consumer/lock/success?${params.toString()}`);
+          }, 500);
+          return;
+        }
+
+        if (receiptStatus === 'reverted') {
+          throw new Error('Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH), TVL cap exceeded, or invalid lock_id/sr_0.');
+        }
+
+        // Wait 5 seconds before next poll
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+
+      throw new Error('L1 confirmation timed out after 10 minutes');
 
     } catch (err) {
       console.error('Lock failed:', err);
@@ -241,6 +318,8 @@ export function LockProcessing() {
     requestLockFromL3,
     submitToL1,
     updateStep,
+    router,
+    l1TxHashFromFrontend,
   ]);
 
   // Start lock process when Dilithium is ready
@@ -250,36 +329,6 @@ export function LockProcessing() {
     }
   }, [isDilithiumReady, executeLock]);
 
-  // Update step 5 and navigate when confirmed OR show error if reverted
-  useEffect(() => {
-    console.log('Receipt effect:', { receipt, l1TxHash, hasNavigated: hasNavigated.current });
-    if (receipt && l1TxHash && !hasNavigated.current) {
-      console.log('Receipt status:', receipt.status);
-      // Check if transaction was successful (status === 'success') or reverted
-      if (receipt.status === 'success') {
-        hasNavigated.current = true;
-        updateStep(5, 'complete');
-
-        // Navigate to success page with L1 tx hash and L3 lock_id
-        setTimeout(() => {
-          const params = new URLSearchParams({
-            amount,
-            txHash: l1TxHash,
-            ...(l3Response?.lock_id && { lockId: l3Response.lock_id }),
-            ...(l3Response?.sr_0 && { sr0: l3Response.sr_0 }),
-          });
-          router.push(`/consumer/lock/success?${params.toString()}`);
-        }, 500);
-      } else {
-        // Transaction was reverted on L1
-        hasNavigated.current = true;
-        const revertError = 'Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH), TVL cap exceeded, or invalid lock_id/sr_0.';
-        setError(revertError);
-        updateStep(5, 'error');
-      }
-    }
-  }, [receipt, l1TxHash, l3Response, amount, router, updateStep]);
-
   // Handle L1 error (submission errors, user rejection, etc.)
   useEffect(() => {
     if (l1Error) {
@@ -287,18 +336,6 @@ export function LockProcessing() {
       setSteps(prev => prev.map(s => (s.status === 'active' ? { ...s, status: 'error' } : s)));
     }
   }, [l1Error]);
-
-  // Handle receipt error (transaction reverted on-chain)
-  useEffect(() => {
-    if (isReceiptError && receiptError && !hasNavigated.current) {
-      hasNavigated.current = true;
-      const errorMsg = receiptError.message.includes('reverted')
-        ? 'Transaction reverted on L1. The contract may have been upgraded - please try again.'
-        : `Transaction failed: ${receiptError.message}`;
-      setError(errorMsg);
-      updateStep(5, 'error');
-    }
-  }, [isReceiptError, receiptError, updateStep]);
 
   // Handle retry
   const handleRetry = useCallback(() => {
