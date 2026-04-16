@@ -1,0 +1,366 @@
+<!--
+## File Info
+- System: Observer/Challenger
+- Screen: Earnings & Claim
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-dashboard | click | 01_dashboard.html |
+| .nav-pending | click | 01_pending.html |
+| .nav-suspicious | click | 01_suspicious.html |
+| .nav-history | click | 01_history.html |
+| #btn-claim | click | showClaimModal() |
+| #btn-confirm-claim | click | showSuccessMessage() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings & Claim - Observer - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040; --error-dim: rgba(224, 112, 64, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-full: 9999px;
+            --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .red-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: var(--space-xl); }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-xl); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+        .nav { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: var(--space-sm) var(--space-lg); font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-full); transition: all 0.2s; text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .wallet-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-lg); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; cursor: pointer; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: var(--space-xl); }
+
+        /* Main Grid */
+        .main-grid { display: grid; grid-template-columns: 1fr 400px; gap: var(--space-xl); }
+
+        /* Claim Card */
+        .claim-card { background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary)); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-xl); position: relative; overflow: hidden; }
+        .claim-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--success), var(--accent-gold)); }
+        .claim-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-xl); }
+        .claim-title { font-size: 16px; color: var(--text-secondary); margin-bottom: var(--space-sm); }
+        .claim-amount { font-size: 48px; font-weight: 700; color: var(--success); }
+        .claim-usd { font-size: 16px; color: var(--text-tertiary); margin-top: var(--space-xs); }
+        .claim-badge { padding: var(--space-sm) var(--space-md); background: var(--success-dim); border: 1px solid var(--success); border-radius: var(--radius-full); color: var(--success); font-size: 12px; font-weight: 500; }
+        .btn-claim { width: 100%; padding: var(--space-lg); background: linear-gradient(135deg, var(--success), #00a080); border: none; border-radius: var(--radius-lg); color: white; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-claim:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 200, 150, 0.3); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-lg); }
+        .stat-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-sm); }
+        .stat-value { font-size: 24px; font-weight: 700; }
+        .stat-value.gold { color: var(--accent-gold); }
+
+        /* Earnings Breakdown */
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .card-header { padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 18px; font-weight: 600; }
+        .breakdown-list { padding: var(--space-lg); }
+        .breakdown-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; border-bottom: 1px solid var(--border-subtle); }
+        .breakdown-item:last-child { border-bottom: none; }
+        .breakdown-info { display: flex; align-items: center; gap: var(--space-md); }
+        .breakdown-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .breakdown-icon.success { background: var(--success-dim); }
+        .breakdown-icon.returned { background: var(--accent-gold-dim); }
+        .breakdown-details { }
+        .breakdown-title { font-weight: 600; font-size: 14px; }
+        .breakdown-desc { font-size: 12px; color: var(--text-tertiary); }
+        .breakdown-amount { font-family: var(--font-mono); font-weight: 600; color: var(--success); }
+
+        /* History Table */
+        .history-card { margin-top: var(--space-xl); }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; padding: var(--space-md) var(--space-lg); background: var(--bg-secondary); }
+        .data-table td { padding: var(--space-md) var(--space-lg); font-size: 14px; border-bottom: 1px solid var(--border-subtle); }
+        .badge { display: inline-flex; align-items: center; gap: var(--space-xs); padding: 2px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 500; }
+        .badge-success { background: var(--success-dim); color: var(--success); }
+        .badge-pending { background: var(--warning-dim); color: var(--warning); }
+        .amount-positive { color: var(--success); font-family: var(--font-mono); font-weight: 600; }
+        .amount-negative { color: var(--error); font-family: var(--font-mono); font-weight: 600; }
+
+        /* Sidebar */
+        .sidebar-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-lg); }
+        .sidebar-title { font-size: 16px; font-weight: 600; margin-bottom: var(--space-lg); }
+        .performance-stat { text-align: center; padding: var(--space-lg) 0; border-bottom: 1px solid var(--border-subtle); }
+        .performance-stat:last-child { border-bottom: none; }
+        .performance-value { font-size: 32px; font-weight: 700; }
+        .performance-label { font-size: 12px; color: var(--text-tertiary); margin-top: var(--space-xs); }
+        .performance-bar { height: 8px; background: var(--bg-primary); border-radius: var(--radius-full); overflow: hidden; margin-top: var(--space-md); }
+        .performance-fill { height: 100%; background: linear-gradient(90deg, var(--success), var(--accent-gold)); border-radius: var(--radius-full); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); padding: var(--space-xl); max-width: 450px; width: 90%; text-align: center; }
+        .modal-icon { font-size: 48px; margin-bottom: var(--space-md); }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: var(--space-sm); }
+        .modal-amount { font-size: 36px; font-weight: 700; color: var(--success); margin: var(--space-lg) 0; }
+        .modal-desc { color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-xl); }
+        .modal-actions { display: flex; gap: var(--space-md); }
+        .modal-actions button { flex: 1; padding: var(--space-md); border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-confirm { background: linear-gradient(135deg, var(--success), #00a080); border: none; color: white; }
+        .btn-cancel { background: transparent; border: 1px solid var(--border-default); color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="red-glow"></div></div>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-hinomaru"><div class="logo-circle-outer"></div><div class="logo-hinomaru-inner"></div></div>
+                <div class="logo-text"><div class="logo-main">Quantum Shield</div><div class="logo-sub">Observer Portal</div></div>
+            </div>
+            <nav class="nav">
+                <a href="01_dashboard.html" class="nav-item nav-dashboard">Dashboard</a>
+                <a href="01_pending.html" class="nav-item nav-pending">Pending</a>
+                <a href="01_suspicious.html" class="nav-item nav-suspicious">Suspicious</a>
+                <a href="01_history.html" class="nav-item nav-history">History</a>
+                <a href="03_earnings.html" class="nav-item active">Earnings</a>
+            </nav>
+            <button class="wallet-btn"><span class="wallet-dot"></span> 0x7a3f...9c2d</button>
+        </header>
+
+        <h1 class="page-title">Earnings & Rewards</h1>
+
+        <div class="main-grid">
+            <div>
+                <!-- Claim Card -->
+                <div class="claim-card">
+                    <div class="claim-header">
+                        <div>
+                            <div class="claim-title">Available to Claim</div>
+                            <div class="claim-amount">1.24 ETH</div>
+                            <div class="claim-usd">≈ $4,340 USD</div>
+                        </div>
+                        <div class="claim-badge">Ready to Claim</div>
+                    </div>
+                    <button class="btn-claim" id="btn-claim" onclick="showClaimModal()">
+                        Claim 1.24 ETH
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Earned (All Time)</div>
+                        <div class="stat-value gold">4.28 ETH</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Claimed to Date</div>
+                        <div class="stat-value">3.04 ETH</div>
+                    </div>
+                </div>
+
+                <!-- Breakdown -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Current Claimable Breakdown</div>
+                    </div>
+                    <div class="breakdown-list">
+                        <div class="breakdown-item">
+                            <div class="breakdown-info">
+                                <div class="breakdown-icon success">🏆</div>
+                                <div class="breakdown-details">
+                                    <div class="breakdown-title">Challenge #CHG-2831 Reward</div>
+                                    <div class="breakdown-desc">Won • 2026-01-05</div>
+                                </div>
+                            </div>
+                            <div class="breakdown-amount">+0.65 ETH</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-info">
+                                <div class="breakdown-icon returned">💰</div>
+                                <div class="breakdown-details">
+                                    <div class="breakdown-title">Challenge #CHG-2831 Bond Return</div>
+                                    <div class="breakdown-desc">Refunded • 2026-01-05</div>
+                                </div>
+                            </div>
+                            <div class="breakdown-amount">+0.35 ETH</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-info">
+                                <div class="breakdown-icon success">🏆</div>
+                                <div class="breakdown-details">
+                                    <div class="breakdown-title">Challenge #CHG-2824 Reward</div>
+                                    <div class="breakdown-desc">Won • 2026-01-03</div>
+                                </div>
+                            </div>
+                            <div class="breakdown-amount">+0.24 ETH</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History -->
+                <div class="card history-card">
+                    <div class="card-header">
+                        <div class="card-title">Earnings History</div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Challenge</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2026-01-05</td>
+                                <td>Reward</td>
+                                <td style="font-family: var(--font-mono);">#CHG-2831</td>
+                                <td class="amount-positive">+0.65 ETH</td>
+                                <td><span class="badge badge-pending">Pending Claim</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-01-03</td>
+                                <td>Reward</td>
+                                <td style="font-family: var(--font-mono);">#CHG-2824</td>
+                                <td class="amount-positive">+0.24 ETH</td>
+                                <td><span class="badge badge-pending">Pending Claim</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-01-01</td>
+                                <td>Bond Lost</td>
+                                <td style="font-family: var(--font-mono);">#CHG-2819</td>
+                                <td class="amount-negative">-0.10 ETH</td>
+                                <td><span class="badge badge-success">Settled</span></td>
+                            </tr>
+                            <tr>
+                                <td>2025-12-28</td>
+                                <td>Reward</td>
+                                <td style="font-family: var(--font-mono);">#CHG-2812</td>
+                                <td class="amount-positive">+1.10 ETH</td>
+                                <td><span class="badge badge-success">Claimed</span></td>
+                            </tr>
+                            <tr>
+                                <td>2025-12-25</td>
+                                <td>Reward</td>
+                                <td style="font-family: var(--font-mono);">#CHG-2805</td>
+                                <td class="amount-positive">+0.45 ETH</td>
+                                <td><span class="badge badge-success">Claimed</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <div class="sidebar-card">
+                    <div class="sidebar-title">Performance Statistics</div>
+                    <div class="performance-stat">
+                        <div class="performance-value" style="color: var(--success);">85.7%</div>
+                        <div class="performance-label">Success Rate</div>
+                        <div class="performance-bar">
+                            <div class="performance-fill" style="width: 85.7%"></div>
+                        </div>
+                    </div>
+                    <div class="performance-stat">
+                        <div class="performance-value">14</div>
+                        <div class="performance-label">Total Challenges</div>
+                    </div>
+                    <div class="performance-stat">
+                        <div class="performance-value" style="color: var(--success);">12</div>
+                        <div class="performance-label">Successful</div>
+                    </div>
+                    <div class="performance-stat">
+                        <div class="performance-value" style="color: var(--error);">2</div>
+                        <div class="performance-label">Failed</div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">Your Observer Stake</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                        <div>
+                            <div style="font-size: 24px; font-weight: 700;">5.00 ETH</div>
+                            <div style="font-size: 12px; color: var(--text-tertiary);">Staked Amount</div>
+                        </div>
+                        <span class="badge badge-success">Active</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">
+                        Active since: 2025-11-15<br>
+                        Days staked: 56
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">ROI Calculator</div>
+                    <div style="display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: 1px solid var(--border-subtle);">
+                        <span style="color: var(--text-secondary); font-size: 13px;">Total Invested</span>
+                        <span style="font-weight: 600;">5.00 ETH</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: 1px solid var(--border-subtle);">
+                        <span style="color: var(--text-secondary); font-size: 13px;">Total Earned</span>
+                        <span style="font-weight: 600; color: var(--success);">4.28 ETH</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: var(--space-sm) 0;">
+                        <span style="color: var(--text-secondary); font-size: 13px;">ROI</span>
+                        <span style="font-weight: 700; color: var(--success); font-size: 18px;">+85.6%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claim Modal -->
+    <div class="modal-overlay" id="claim-modal">
+        <div class="modal">
+            <div class="modal-icon">💰</div>
+            <div class="modal-title">Confirm Claim</div>
+            <div class="modal-amount">1.24 ETH</div>
+            <div class="modal-desc">
+                This amount will be transferred to your connected wallet:<br>
+                <span style="font-family: var(--font-mono); font-size: 12px;">0x7a3f...9c2d</span>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-confirm" id="btn-confirm-claim" onclick="confirmClaim()">Confirm Claim</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showClaimModal() {
+            document.getElementById('claim-modal').classList.add('active');
+        }
+        function closeModal() {
+            document.getElementById('claim-modal').classList.remove('active');
+        }
+        function confirmClaim() {
+            closeModal();
+            alert('Claim submitted! Transaction pending confirmation.');
+        }
+    </script>
+</body>
+</html>
