@@ -2,6 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TestWalletProvider } from './TestWalletProvider';
 
 interface Web3ProviderProps {
   children: ReactNode;
@@ -156,7 +157,9 @@ export function Web3Provider({ children }: Web3ProviderProps) {
           modalSize="compact"
           coolMode
         >
-          {children}
+          <TestWalletProvider>
+            {children}
+          </TestWalletProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
