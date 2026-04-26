@@ -18,7 +18,6 @@ import { useDilithium, useLockL1 } from '@/hooks/consumer';
 import { SEPOLIA_CHAIN_ID } from '@/lib/contracts/l1vault';
 import { constructLockMessage } from '@/lib/api/lock';
 
-// Reliable Sepolia RPC endpoints (fallback order)
 const SEPOLIA_RPCS = [
   process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL,
   'https://ethereum-sepolia-rpc.publicnode.com',
@@ -26,11 +25,6 @@ const SEPOLIA_RPCS = [
   'https://sepolia.drpc.org',
 ].filter(Boolean) as string[];
 
-/**
- * Direct RPC call to check transaction receipt on Sepolia.
- * Tries multiple RPC endpoints for reliability.
- * Returns 'success' | 'reverted' | null (pending).
- */
 async function checkL1Receipt(txHash: string): Promise<'success' | 'reverted' | null> {
   for (const rpcUrl of SEPOLIA_RPCS) {
     try {
@@ -49,15 +43,18 @@ async function checkL1Receipt(txHash: string): Promise<'success' | 'reverted' | 
       if (data.result) {
         return data.result.status === '0x1' ? 'success' : 'reverted';
       }
-      // Receipt not yet available (tx still pending)
-      return null;
+      // RPC responded but no receipt yet — try next RPC in case it has a newer view
+      continue;
     } catch {
-      // Try next RPC
       continue;
     }
   }
-  // All RPCs failed
   return null;
+}
+
+function ensureHexPrefix(hash: string | undefined): `0x${string}` | undefined {
+  if (!hash) return undefined;
+  return (hash.startsWith('0x') ? hash : `0x${hash}`) as `0x${string}`;
 }
 
 type StepStatus = 'pending' | 'active' | 'complete' | 'error';
@@ -67,28 +64,19 @@ interface Step {
   status: StepStatus;
 }
 
-/**
- * LockProcessing Component
- *
- * Implements SEQUENCES.md Sequence #1: Lock flow
- *
- * Steps:
- * 1. Generate/load Dilithium keys
- * 2. Sign lock message with Dilithium (ML-DSA-65)
- * 3. Submit to L3 Aegis (validates signature, computes SR_0)
- * 4. Submit to L1 Vault (using lock_id, sr_0 from L3)
- * 5. Wait for L1 confirmation
- */
 export function LockProcessing() {
   const t = useTranslations('consumer.lockProcessing');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address: walletAddress, isConnected } = useAccount();
 
-  // Get data from URL params
   const amount = searchParams.get('amount') || '0';
+  const unmountedRef = useRef(false);
 
-  // Dilithium hook for key generation and signing
+  useEffect(() => {
+    return () => { unmountedRef.current = true; };
+  }, []);
+
   const {
     isInitialized: isDilithiumReady,
     hasKeys,
@@ -98,9 +86,7 @@ export function LockProcessing() {
     error: dilithiumError,
   } = useDilithium();
 
-  // L1 Vault hook for SEQUENCES.md compliant lock flow
   const {
-    lock: lockFull,
     requestLockFromL3,
     submitToL1,
     txHash: l1TxHashFromFrontend,
@@ -111,53 +97,42 @@ export function LockProcessing() {
     reset: resetL1,
   } = useLockL1();
 
-  // Use tx hash from backend if available, otherwise from frontend
-  // This handles the case where backend already submitted to L1
-  const l1TxHash = (l3Response?.l1_tx_hash as `0x${string}` | undefined) || l1TxHashFromFrontend;
+  const l1TxHash = ensureHexPrefix(l3Response?.l1_tx_hash) || l1TxHashFromFrontend;
 
-  // 5 steps for SEQUENCES.md compliant flow
   const [steps, setSteps] = useState<Step[]>([
-    { id: 1, status: 'pending' }, // Generate Dilithium keys
-    { id: 2, status: 'pending' }, // Sign lock message
-    { id: 3, status: 'pending' }, // Submit to L3 Aegis
-    { id: 4, status: 'pending' }, // Submit to L1 Vault
-    { id: 5, status: 'pending' }, // Wait for L1 confirmation
+    { id: 1, status: 'pending' },
+    { id: 2, status: 'pending' },
+    { id: 3, status: 'pending' },
+    { id: 4, status: 'pending' },
+    { id: 5, status: 'pending' },
   ]);
 
   const [error, setError] = useState<string | null>(null);
   const lockStarted = useRef(false);
   const hasNavigated = useRef(false);
 
-  // Update step status helper
   const updateStep = useCallback((stepId: number, status: StepStatus) => {
-    setSteps(prev => prev.map(s => (s.id === stepId ? { ...s, status } : s)));
+    setSteps((prev: Step[]) => prev.map((s: Step) => (s.id === stepId ? { ...s, status } : s)));
   }, []);
 
-  // Minimum lock amount (must match L1Vault MIN_LOCK_AMOUNT = 0.01 ether)
   const MIN_LOCK_AMOUNT = 0.01;
 
-  // Execute SEQUENCES.md compliant lock flow
   const executeLock = useCallback(async () => {
     if (lockStarted.current) return;
     lockStarted.current = true;
 
     try {
-      // Validate amount before proceeding
       const numAmount = parseFloat(amount);
       if (isNaN(numAmount) || numAmount < MIN_LOCK_AMOUNT) {
-        throw new Error(`Minimum lock amount is ${MIN_LOCK_AMOUNT} ETH`);
+        throw new Error(t('errors.minimumAmount'));
       }
 
-      // Ensure wallet is connected
       if (!isConnected || !walletAddress) {
-        throw new Error('Wallet not connected. Please connect your wallet and try again.');
+        throw new Error(t('errors.walletNotConnected'));
       }
 
-      // ============================
       // Step 1: Generate/load Dilithium keys
-      // ============================
       updateStep(1, 'active');
-      console.log('Step 1: Generating/loading Dilithium keys...');
 
       let pk = publicKey;
       if (!hasKeys) {
@@ -166,112 +141,78 @@ export function LockProcessing() {
       }
 
       if (!pk) {
-        throw new Error('Failed to get Dilithium public key');
+        throw new Error(t('errors.dilithiumKeyFailed'));
       }
 
-      // Ensure public key has 0x prefix
       const dilithiumPubKey = pk.startsWith('0x') ? pk : `0x${pk}`;
-      console.log('Dilithium public key ready:', dilithiumPubKey.slice(0, 20) + '...');
-
       updateStep(1, 'complete');
 
-      // ============================
       // Step 2: Sign lock message with Dilithium
-      // ============================
       updateStep(2, 'active');
-      console.log('Step 2: Signing lock message with Dilithium...');
 
-      // Construct lock message (same format as L3 Aegis expects)
       const valueWei = parseEther(amount);
-      const expiry = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 24 hours from now
-      const nonce = Date.now(); // Use timestamp as nonce for uniqueness
+      const expiry = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+      const nonce = Date.now();
 
       const messageBytes = constructLockMessage({
         chainId: SEPOLIA_CHAIN_ID,
-        asset: '0x0000000000000000000000000000000000000000', // Native ETH
+        asset: '0x0000000000000000000000000000000000000000',
         amount: valueWei.toString(),
         destAddr: walletAddress,
         expiry,
         nonce,
       });
 
-      // Sign with Dilithium
       const signature = await signMessage(messageBytes);
       if (!signature) {
-        throw new Error('Failed to sign message with Dilithium');
+        throw new Error(t('errors.signFailed'));
       }
 
       const dilithiumSignature = signature.startsWith('0x') ? signature : `0x${signature}`;
-      console.log('Dilithium signature ready:', dilithiumSignature.slice(0, 20) + '...');
-
       updateStep(2, 'complete');
 
-      // ============================
       // Step 3: Submit to L3 Aegis
-      // ============================
       updateStep(3, 'active');
-      console.log('Step 3: Submitting to L3 Aegis...');
 
-      // IMPORTANT: Pass the same expiry and nonce used for signing
       const l3Resp = await requestLockFromL3({
         amount,
         dilithiumPubKey,
         dilithiumSignature,
-        expiry,  // Same value used when signing
-        nonce,   // Same value used when signing
-      });
-
-      console.log('L3 Response:', {
-        lock_id: l3Resp.lock_id,
-        sr_0: l3Resp.sr_0,
-        status: l3Resp.status,
+        expiry,
+        nonce,
       });
 
       updateStep(3, 'complete');
 
-      // ============================
       // Step 4: Submit to L1 Vault (if not already done by backend)
-      // ============================
       updateStep(4, 'active');
 
-      // Check if backend already submitted to L1
-      if (l3Resp.l1_tx_hash) {
-        console.log('Step 4: L1 submission already done by backend, tx:', l3Resp.l1_tx_hash);
-        console.log('Skipping frontend L1 submission to avoid duplicate transaction');
-        // Use the tx hash from backend - we need to set it manually since we're skipping submitToL1
-        // The l1TxHash will be available via l3Response.l1_tx_hash
-      } else {
-        console.log('Step 4: Submitting to L1 Vault (backend did not submit)...');
+      if (!l3Resp.l1_tx_hash) {
         await submitToL1({
           lockId: l3Resp.lock_id,
           sr0: l3Resp.sr_0,
           amount,
           expiry,
         });
-        console.log('L1 transaction submitted by frontend');
       }
 
       updateStep(4, 'complete');
 
-      // ============================
-      // Step 5: Wait for L1 confirmation (direct polling, no React state deps)
-      // ============================
+      // Step 5: Wait for L1 confirmation
       updateStep(5, 'active');
 
-      // Use tx hash directly from function scope (not from React state)
       const txHashToWait = l3Resp.l1_tx_hash || l1TxHashFromFrontend;
-      console.log('Step 5: Waiting for L1 confirmation, tx:', txHashToWait);
 
       if (!txHashToWait) {
-        throw new Error('No L1 transaction hash available');
+        throw new Error(t('errors.noTxHash'));
       }
 
-      // Poll L1 RPC directly for receipt (5s intervals, max 10 min)
       for (let attempt = 0; attempt < 120; attempt++) {
-        if (hasNavigated.current) return;
+        if (hasNavigated.current || unmountedRef.current) return;
 
         const receiptStatus = await checkL1Receipt(txHashToWait);
-        console.log(`L1 receipt poll #${attempt + 1}:`, receiptStatus);
+
+        if (unmountedRef.current) return;
 
         if (receiptStatus === 'success') {
           hasNavigated.current = true;
@@ -290,22 +231,19 @@ export function LockProcessing() {
         }
 
         if (receiptStatus === 'reverted') {
-          throw new Error('Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH), TVL cap exceeded, or invalid lock_id/sr_0.');
+          throw new Error(t('errors.txReverted'));
         }
 
-        // Wait 5 seconds before next poll
         await new Promise(resolve => setTimeout(resolve, 5000));
       }
 
-      throw new Error('L1 confirmation timed out after 10 minutes');
+      throw new Error(t('errors.confirmationTimeout'));
 
     } catch (err) {
-      console.error('Lock failed:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Lock failed';
+      if (unmountedRef.current) return;
+      const errorMessage = err instanceof Error ? err.message : t('errors.generic');
       setError(errorMessage);
-
-      // Mark current active step as error
-      setSteps(prev => prev.map(s => (s.status === 'active' ? { ...s, status: 'error' } : s)));
+      setSteps((prev: Step[]) => prev.map((s: Step) => (s.status === 'active' ? { ...s, status: 'error' } : s)));
     }
   }, [
     isConnected,
@@ -320,24 +258,22 @@ export function LockProcessing() {
     updateStep,
     router,
     l1TxHashFromFrontend,
+    t,
   ]);
 
-  // Start lock process when Dilithium is ready
   useEffect(() => {
     if (isDilithiumReady && !lockStarted.current) {
       executeLock();
     }
   }, [isDilithiumReady, executeLock]);
 
-  // Handle L1 error (submission errors, user rejection, etc.)
   useEffect(() => {
     if (l1Error) {
       setError(l1Error.message);
-      setSteps(prev => prev.map(s => (s.status === 'active' ? { ...s, status: 'error' } : s)));
+      setSteps((prev: Step[]) => prev.map((s: Step) => (s.status === 'active' ? { ...s, status: 'error' } : s)));
     }
   }, [l1Error]);
 
-  // Handle retry
   const handleRetry = useCallback(() => {
     lockStarted.current = false;
     hasNavigated.current = false;
@@ -353,12 +289,10 @@ export function LockProcessing() {
     executeLock();
   }, [executeLock, resetL1]);
 
-  // Handle cancel
   const handleCancel = useCallback(() => {
     router.push('/consumer/dashboard');
   }, [router]);
 
-  // Step labels for SEQUENCES.md compliant flow
   const stepLabels = [
     { label: t('steps.generateKeys'), tooltip: t('steps.generateKeysTooltip') },
     { label: t('steps.sign'), tooltip: t('steps.signTooltip') },
@@ -367,12 +301,11 @@ export function LockProcessing() {
     { label: t('steps.confirm'), tooltip: t('steps.confirmTooltip') },
   ];
 
-  // Current status message
   const getStatusMessage = () => {
     if (error) return error;
     if (isL1Pending) return t('waitingForWallet');
     if (isL1Confirming) return t('waitingForL1');
-    const activeStep = steps.find(s => s.status === 'active');
+    const activeStep = steps.find((s: Step) => s.status === 'active');
     if (activeStep) {
       switch (activeStep.id) {
         case 1: return t('generatingKeys');
@@ -394,9 +327,8 @@ export function LockProcessing() {
         </div>
 
         <main role="main" className="relative z-10 text-center px-6 max-w-md w-full">
-          {/* Animated spinner - only show when no error */}
           {!error && (
-            <div className="relative w-40 h-40 mx-auto mb-8">
+            <div className="relative w-40 h-40 mx-auto mb-8" role="status" aria-label={t('waitingForL1')}>
               <div
                 className="absolute inset-0 border-2 border-transparent border-t-gold rounded-full animate-spin"
                 style={{ animationDuration: '1.5s' }}
@@ -415,11 +347,10 @@ export function LockProcessing() {
             </div>
           )}
 
-          {/* Error icon */}
           {error && (
             <div className="relative w-32 h-32 mx-auto mb-8">
               <div className="absolute inset-0 bg-destructive/20 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-16 h-16 text-destructive" />
+                <AlertCircle className="w-16 h-16 text-destructive" aria-hidden="true" />
               </div>
             </div>
           )}
@@ -431,7 +362,6 @@ export function LockProcessing() {
             {getStatusMessage()}
           </p>
 
-          {/* Steps */}
           <div className="text-left space-y-2 mb-8">
             {steps.map((step, index) => (
               <div
@@ -470,7 +400,7 @@ export function LockProcessing() {
                     step.status === 'error' && 'text-destructive'
                   )}
                 >
-                  {stepLabels[index]?.label || `Step ${step.id}`}
+                  {stepLabels[index]?.label}
                   {stepLabels[index]?.tooltip && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -491,17 +421,15 @@ export function LockProcessing() {
             ))}
           </div>
 
-          {/* L3 Response display */}
           {l3Response && !error && (
             <div className="mb-4 p-3 bg-surface-secondary/30 rounded-qs text-left">
-              <p className="text-xs text-foreground-secondary mb-1">L3 Lock ID:</p>
+              <p className="text-xs text-foreground-secondary mb-1">{t('l3LockId')}:</p>
               <p className="text-xs font-mono text-gold break-all">
                 {l3Response.lock_id.slice(0, 20)}...{l3Response.lock_id.slice(-16)}
               </p>
             </div>
           )}
 
-          {/* TX Hash display */}
           {l1TxHash && !error && (
             <div className="mb-4">
               <p className="text-xs text-foreground-secondary font-mono">
@@ -512,13 +440,13 @@ export function LockProcessing() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-hinomaru hover:text-hinomaru/80 underline"
+                aria-label={t('viewOnEtherscan')}
               >
-                View on Etherscan
+                {t('viewOnEtherscan')}
               </a>
             </div>
           )}
 
-          {/* Error actions */}
           {error && (
             <div className="flex flex-col gap-3">
               <Button variant="primary" fullWidth onClick={handleRetry}>
@@ -530,7 +458,6 @@ export function LockProcessing() {
             </div>
           )}
 
-          {/* Dilithium error */}
           {dilithiumError && (
             <p className="text-xs text-destructive mt-4">{dilithiumError}</p>
           )}

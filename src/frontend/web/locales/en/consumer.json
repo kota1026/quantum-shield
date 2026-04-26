@@ -964,6 +964,18 @@
       "errorRevert": "Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH) or TVL cap exceeded.",
       "retry": "Retry",
       "cancel": "Cancel",
+      "l3LockId": "L3 Lock ID",
+      "viewOnEtherscan": "View on Etherscan",
+      "errors": {
+        "minimumAmount": "Minimum lock amount is 0.01 ETH",
+        "walletNotConnected": "Wallet not connected. Please connect your wallet and try again.",
+        "dilithiumKeyFailed": "Failed to get Dilithium public key",
+        "signFailed": "Failed to sign message with Dilithium",
+        "noTxHash": "No L1 transaction hash available",
+        "txReverted": "Transaction reverted on L1. This may be due to insufficient amount (minimum 0.01 ETH), TVL cap exceeded, or invalid lock_id/sr_0.",
+        "confirmationTimeout": "L1 confirmation timed out after 10 minutes",
+        "generic": "Lock processing failed"
+      },
       "steps": {
         "generateKeys": "Prepare Dilithium keys",
         "generateKeysTooltip": "Generate a Dilithium-III (ML-DSA-65) quantum-resistant key pair. These keys are securely stored in your browser.",

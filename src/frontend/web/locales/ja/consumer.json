@@ -1005,6 +1005,18 @@
       "errorRevert": "L1でトランザクションが失敗しました。金額が不足している（最低0.01 ETH）か、TVL上限を超えている可能性があります。",
       "retry": "再試行",
       "cancel": "キャンセル",
+      "l3LockId": "L3 Lock ID",
+      "viewOnEtherscan": "Etherscanで確認",
+      "errors": {
+        "minimumAmount": "最低ロック金額は0.01 ETHです",
+        "walletNotConnected": "ウォレットが接続されていません。ウォレットを接続して再試行してください。",
+        "dilithiumKeyFailed": "Dilithium鍵の取得に失敗しました",
+        "signFailed": "Dilithium署名に失敗しました",
+        "noTxHash": "L1トランザクションハッシュがありません",
+        "txReverted": "L1でトランザクションが失敗しました。金額が不足している（最低0.01 ETH）か、TVL上限を超えている可能性があります。",
+        "confirmationTimeout": "L1確認が10分以内に完了しませんでした",
+        "generic": "ロック処理に失敗しました"
+      },
       "steps": {
         "generateKeys": "Dilithium鍵を準備",
         "generateKeysTooltip": "量子耐性暗号のDilithium-III（ML-DSA-65）鍵ペアを生成します。この鍵はブラウザに安全に保存されます。",
