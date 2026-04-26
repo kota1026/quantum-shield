@@ -71,10 +71,10 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https:",
-              "font-src 'self' data:",
-              "connect-src 'self' https://*.quantum-shield.io https://*.vercel.app https://*.up.railway.app http://localhost:* wss: https://rpc.sepolia.org https://*.infura.io https://*.alchemyapi.io",
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "connect-src 'self' https://*.quantum-shield.io https://*.quantum-shield.xyz https://*.vercel.app https://*.up.railway.app http://localhost:* wss: https://rpc.sepolia.org https://*.infura.io https://*.alchemyapi.io https://*.walletconnect.org https://*.walletconnect.com https://*.web3modal.org https://*.web3modal.com https://ethereum-sepolia-rpc.publicnode.com https://sepolia.drpc.org https://*.reown.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },
