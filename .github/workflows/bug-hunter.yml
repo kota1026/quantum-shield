@@ -1,0 +1,179 @@
+name: Bug Hunter
+
+# Layer B of the autonomous improvement system.
+# Adversarial weekly code review: rather than checking that the code does what
+# it's supposed to do, the bot tries to find ways the code can fail that the
+# existing tests miss. Files Issues with `bug-hunt` label and proposed test
+# cases — does NOT edit code.
+#
+# Why a separate loop from CI auto-fix:
+#   CI auto-fix is reactive (CI failed → fix it). Bug Hunter is proactive
+#   (no CI failure, but find latent bugs before they bite us in production).
+#
+# Rotates through the 9 core sequences from docs/core/SEQUENCES.md, one per
+# week, so over 9 weeks every sequence gets a deep adversarial review.
+
+on:
+  schedule:
+    - cron: '0 9 * * 0'
+  workflow_dispatch:
+    inputs:
+      focus_index:
+        description: 'Override which of 9 sequences to focus on (1-9). Leave blank for auto-rotation.'
+        required: false
+      model:
+        description: 'Override model (claude-sonnet-4-6 or claude-opus-4-7)'
+        required: false
+        default: 'claude-sonnet-4-6'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  hunt:
+    name: Adversarial bug hunt
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust (read-only, for cargo metadata if needed)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Compute focus area
+        id: focus
+        env:
+          OVERRIDE: ${{ github.event.inputs.focus_index }}
+        run: |
+          set -euo pipefail
+          if [ -n "${OVERRIDE:-}" ]; then
+            INDEX="$OVERRIDE"
+          else
+            WEEK=$(date -u +%V | sed 's/^0//')
+            INDEX=$(( ((WEEK - 1) % 9) + 1 ))
+          fi
+          echo "focus_index=$INDEX" >> "$GITHUB_OUTPUT"
+          declare -a NAMES=(
+            "Consumer Lock (FE->BE->DB->L1)"
+            "Normal Unlock (24h timelock)"
+            "Emergency Unlock (7d + bond)"
+            "Prover Registration (stake)"
+            "Observer Challenge (VRF)"
+            "Slashing (quadratic)"
+            "Governance Proposal (L3)"
+            "Emergency Pause (Admin)"
+            "Token Hub / veQS (L3)"
+          )
+          NAME="${NAMES[$((INDEX - 1))]}"
+          echo "focus_name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "Hunting bugs in: $NAME (index $INDEX, week $(date -u +%V))"
+
+      - name: Run Bug Hunter (read-only)
+        uses: anthropics/claude-code-base-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: ${{ github.event.inputs.model || 'claude-sonnet-4-6' }}
+          timeout_minutes: '20'
+          allowed_tools: 'Read,Glob,Grep,Bash(git log:*),Bash(git diff:*),Bash(rg:*)'
+          prompt: |
+            You are the Bug Hunter Bot for Quantum Shield. Your job: find bugs that
+            existing tests do NOT catch in this week's focus area.
+
+            **This week's focus**: ${{ steps.focus.outputs.focus_name }}
+            **Week index**: ${{ steps.focus.outputs.focus_index }} of 9
+
+            ## What to look for (in priority order)
+
+            1. **Silent failures** — `unwrap_or_default()`, `.catch(() => [])`,
+               empty match arms, log-and-forget. These hide bugs in production.
+            2. **Hardcoded values** that should be config-driven (see CLAUDE.md
+               for the vault address bug that already happened — same class of bug
+               likely lurks elsewhere).
+            3. **Race conditions** — concurrent locks, double-spends, retry loops.
+            4. **Off-by-one / boundary bugs** — timelock edges, bond percentages,
+               slot indices, pagination cursors.
+            5. **Auth bypass** — paths that should require SIWE or admin but don't.
+            6. **State drift** — DB record exists but L1 tx never landed, or vice
+               versa. The 9 sequences in `docs/core/SEQUENCES.md` are full of
+               these.
+            7. **Unbounded inputs** — endpoints that accept arbitrarily large
+               bodies, no pagination caps, no rate limit.
+
+            ## Process
+
+            1. Read `docs/core/SEQUENCES.md` to understand the focus sequence.
+            2. Read `.claude/rules/integration.md` for the contract between layers.
+            3. Read the relevant source files (`src/api/api/src/routes/`, `src/api/api/src/services/`,
+               `src/frontend/web/src/hooks/`, `src/frontend/web/src/lib/api/`,
+               and matching contract files in `src/contracts/` or `src/l1/contracts/`).
+            4. Read the existing tests for this sequence and identify gaps.
+            5. For each bug candidate, write a structured finding:
+
+               ```
+               ## Finding N: <one-line title>
+
+               **Severity**: critical | high | medium | low
+               **Category**: silent_failure | hardcoded_value | race_condition |
+                            boundary | auth_bypass | state_drift | unbounded_input
+               **File:line**: `path/to/file.rs:42`
+
+               ### What
+
+               <2-3 sentences describing the bug>
+
+               ### How to reproduce
+
+               <concrete steps an engineer can run to see the bug>
+
+               ### Why existing tests miss it
+
+               <which test covers nearby behavior, why it doesn't trip on this>
+
+               ### Suggested test
+
+               <a fail-first test the engineer should add (proptest / playwright /
+                forge fuzz / cargo test snippet, depending on layer)>
+               ```
+
+            6. Write all findings to a single Markdown file `/tmp/bug-hunt-report.md`.
+               If you find zero bugs, still write a one-paragraph summary explaining
+               what you reviewed and why you believe it's solid.
+
+            ## Hard rules
+
+            - Read-only. Do NOT use Edit, Write, or any Bash command that writes.
+            - Quality over quantity. 3 well-specified findings > 20 vague guesses.
+            - Severity must be honest. Most findings should be `medium` or `low`.
+              Reserve `critical` for actual loss-of-funds / auth-bypass bugs.
+            - If you cannot write a concrete reproduction step, downgrade the
+              finding to `low` or drop it.
+
+            Write your report to /tmp/bug-hunt-report.md and stop.
+
+      - name: File Issues for findings
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          FOCUS_NAME: ${{ steps.focus.outputs.focus_name }}
+          FOCUS_INDEX: ${{ steps.focus.outputs.focus_index }}
+        run: |
+          set -euo pipefail
+          REPORT=/tmp/bug-hunt-report.md
+          if [ ! -f "$REPORT" ]; then
+            echo "No report written by bot — nothing to file"
+            exit 0
+          fi
+          DATE=$(date -u +%Y-%m-%d)
+          # Single umbrella issue containing the full report; per-finding triage
+          # happens in review. Keeps the issue count manageable.
+          gh issue create \
+            --repo "$REPO" \
+            --title "[Bug Hunt ${DATE}] ${FOCUS_NAME}" \
+            --body-file "$REPORT" \
+            --label "auto-generated,bug-hunt,needs-triage"
