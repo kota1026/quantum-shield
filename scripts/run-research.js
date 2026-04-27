@@ -24,8 +24,8 @@ Cover:
 Format as Markdown with ## headers. Be specific and actionable.`;
 
 const body = JSON.stringify({
-  model: 'claude-sonnet-4-20250514',
-  max_tokens: 4096,
+  model: 'claude-sonnet-4-6',
+  max_tokens: 8192,
   messages: [{ role: 'user', content: prompt }],
 });
 

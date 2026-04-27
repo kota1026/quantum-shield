@@ -1,0 +1,301 @@
+name: CI Auto-Fix
+
+# Layer A of the autonomous improvement system.
+# When the main CI workflow fails on a PR, this job spins up Claude
+# to analyze the failure and propose a fix as a Draft PR.
+#
+# Safety guardrails (do NOT relax without Founder approval):
+#   1. NEVER touches src/crypto/, src/contracts/, src/l1/, src/api/api/migrations/,
+#      or src/api/api/src/middleware/auth*  (cryptographic core, on-chain code,
+#      DB schema, auth — fixing these autonomously can cause loss of funds or
+#      security regressions).
+#   2. Always opens a *Draft* PR. Auto-merge is forbidden.
+#   3. Skips runs where the head PR already has the `no-autofix` label.
+#   4. Uses Claude Sonnet 4.6 — capable enough to read errors, cheap enough
+#      that we won't accidentally rack up bills on flaky tests.
+#   5. Hard timeout 20 minutes. If the model can't fix in that window, give up
+#      and just file an Issue with the failure analysis.
+
+on:
+  workflow_run:
+    workflows: ['Quantum Shield CI']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to attempt auto-fix on'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  guard:
+    name: Safety guard
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'failure' &&
+       github.event.workflow_run.event == 'pull_request')
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      pr_number: ${{ steps.check.outputs.pr_number }}
+      head_sha: ${{ steps.check.outputs.head_sha }}
+      head_branch: ${{ steps.check.outputs.head_branch }}
+    steps:
+      - name: Resolve PR context
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_PR: ${{ github.event.inputs.pr_number }}
+          RUN_PR_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_PR_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            PR_NUMBER="$MANUAL_PR"
+          else
+            # Find the PR for this head SHA
+            PR_NUMBER=$(gh api "repos/${REPO}/commits/${RUN_PR_HEAD_SHA}/pulls" --jq '.[0].number' || echo '')
+          fi
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+            echo "No PR associated with this run — skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Skip if PR is opted out
+          LABELS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json labels --jq '.labels[].name' || echo '')
+          if echo "$LABELS" | grep -qx "no-autofix"; then
+            echo "PR #${PR_NUMBER} has 'no-autofix' label — skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Skip if PR touches protected paths
+          PROTECTED='src/crypto/|src/contracts/|src/l1/|src/api/api/migrations/|src/api/api/src/middleware/auth'
+          CHANGED=$(gh pr diff "$PR_NUMBER" --repo "$REPO" --name-only 2>/dev/null || gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" --jq '.[].filename')
+          if echo "$CHANGED" | grep -E -q "$PROTECTED"; then
+            echo "PR #${PR_NUMBER} touches protected paths — skipping autofix"
+            echo "Changed files matching protected paths:"
+            echo "$CHANGED" | grep -E "$PROTECTED"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            # Leave a comment so the human knows why no auto-fix
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body "🛡️ CI failed on this PR but auto-fix is disabled because the PR modifies protected paths (crypto/contracts/migrations/auth). A human must investigate." || true
+            exit 0
+          fi
+
+          HEAD_BRANCH="${RUN_PR_HEAD_BRANCH:-}"
+          HEAD_SHA="${RUN_PR_HEAD_SHA:-}"
+          if [ -z "$HEAD_BRANCH" ] || [ -z "$HEAD_SHA" ]; then
+            HEAD_BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq '.headRefName')
+            HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq '.headRefOid')
+          fi
+
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          echo "head_branch=$HEAD_BRANCH" >> "$GITHUB_OUTPUT"
+
+  autofix:
+    name: Attempt auto-fix
+    needs: guard
+    if: needs.guard.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.guard.outputs.head_sha }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Download failed CI logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ci-logs
+          if [ -n "${RUN_ID:-}" ]; then
+            gh run view "$RUN_ID" --repo "$REPO" --log-failed > /tmp/ci-logs/failed.log 2>&1 || echo "(unable to fetch logs)" > /tmp/ci-logs/failed.log
+          else
+            echo "(manual dispatch — no specific run id)" > /tmp/ci-logs/failed.log
+          fi
+          # Truncate to last 8000 lines so we don't blow up the prompt
+          tail -n 8000 /tmp/ci-logs/failed.log > /tmp/ci-logs/failed.trimmed.log
+          mv /tmp/ci-logs/failed.trimmed.log /tmp/ci-logs/failed.log
+          wc -l /tmp/ci-logs/failed.log
+
+      - name: Configure git
+        run: |
+          git config user.name "Claude Auto-Fix Bot"
+          git config user.email "autofix@quantum-shield.xyz"
+
+      - name: Run Claude auto-fix
+        id: claude
+        uses: anthropics/claude-code-base-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-6
+          timeout_minutes: '15'
+          allowed_tools: 'Read,Edit,Write,Glob,Grep,Bash(cargo check:*),Bash(cargo test:*),Bash(pnpm:*),Bash(npx tsc:*),Bash(git diff:*),Bash(git status),Bash(git log:*)'
+          prompt: |
+            You are the CI Auto-Fix Bot for Quantum Shield. The CI workflow just failed
+            on PR #${{ needs.guard.outputs.pr_number }} (commit ${{ needs.guard.outputs.head_sha }}).
+
+            Your goal: produce a minimal patch that makes CI pass, then stop.
+
+            STRICT RULES (violating these is a critical failure):
+              1. Do NOT modify any of these paths:
+                 - src/crypto/**
+                 - src/contracts/**
+                 - src/l1/**
+                 - src/api/api/migrations/**
+                 - src/api/api/src/middleware/auth*
+              2. Do NOT add MOCK_, FALLBACK_, DEMO_ constants (project hooks block these).
+              3. Do NOT add placeholder/stub code (todo!(), unimplemented!(), Ok(Json(json!({}))).
+              4. Do NOT silence errors with .unwrap_or_default(), empty catches, or
+                 .catch(() => []) just to make the build green. Fix the root cause.
+              5. Keep the diff small and surgical. If the fix would touch more than
+                 ~5 files or 100 lines, STOP and write your analysis to
+                 /tmp/autofix-analysis.md instead of editing.
+              6. After editing, run the relevant local check (cargo check, tsc --noEmit,
+                 etc.) to verify your fix compiles. Don't push code that doesn't compile.
+
+            Process:
+              a. Read /tmp/ci-logs/failed.log to identify the failure.
+              b. Read the relevant source files. Confirm the root cause.
+              c. Apply minimal edits. Verify with local check command.
+              d. Write a one-paragraph explanation to /tmp/autofix-summary.md
+                 describing what you changed and why.
+
+            If you cannot determine a safe fix, write your analysis to
+            /tmp/autofix-analysis.md and exit without modifying any files.
+
+      - name: Commit and push fix
+        id: commit
+        env:
+          HEAD_BRANCH: ${{ needs.guard.outputs.head_branch }}
+          PR_NUMBER: ${{ needs.guard.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes from Claude — will file an analysis-only Issue"
+            echo "fix_committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Re-validate protected paths weren't touched (defense in depth)
+          PROTECTED='src/crypto/|src/contracts/|src/l1/|src/api/api/migrations/|src/api/api/src/middleware/auth'
+          if git diff --name-only HEAD | grep -E -q "$PROTECTED"; then
+            echo "❌ Claude attempted to modify protected paths — aborting"
+            git diff --name-only HEAD | grep -E "$PROTECTED"
+            git checkout -- .
+            exit 1
+          fi
+          BRANCH="autofix/pr-${PR_NUMBER}-$(date -u +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          git add -A
+          git commit -m "fix(autofix): proposed CI fix for PR #${PR_NUMBER}
+
+          Generated by ci-autofix.yml (Claude Sonnet 4.6).
+          See /tmp/autofix-summary.md for reasoning. Human review required before merge."
+          git push origin "$BRANCH"
+          echo "fix_committed=true" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Open draft PR with fix
+        if: steps.commit.outputs.fix_committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.guard.outputs.pr_number }}
+          BRANCH: ${{ steps.commit.outputs.branch }}
+          TARGET: ${{ needs.guard.outputs.head_branch }}
+        run: |
+          set -euo pipefail
+          SUMMARY="(no summary written)"
+          if [ -f /tmp/autofix-summary.md ]; then
+            SUMMARY=$(cat /tmp/autofix-summary.md)
+          fi
+          BODY=$(cat <<EOF
+          🤖 **Auto-generated fix attempt** for failing CI on #${PR_NUMBER}.
+
+          ## Summary
+
+          ${SUMMARY}
+
+          ## Reviewer checklist
+
+          - [ ] Diff is minimal and addresses the root cause (not silencing errors)
+          - [ ] No FALLBACK_ / MOCK_ / DEMO_ patterns introduced
+          - [ ] No protected path (crypto/contracts/migrations/auth) modified
+          - [ ] CI on this PR passes
+          - [ ] If merged, original PR #${PR_NUMBER} CI also passes
+
+          ---
+          _Generated by \`.github/workflows/ci-autofix.yml\` using Claude Sonnet 4.6._
+          _Add label \`no-autofix\` to the original PR to opt future CI failures out._
+          EOF
+          )
+          gh pr create \
+            --repo "$REPO" \
+            --base "$TARGET" \
+            --head "$BRANCH" \
+            --title "autofix: CI fix proposal for #${PR_NUMBER}" \
+            --body "$BODY" \
+            --draft \
+            --label "auto-generated,autofix"
+
+      - name: File analysis-only Issue (when no fix produced)
+        if: steps.commit.outputs.fix_committed != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.guard.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+          ANALYSIS="(no analysis written)"
+          if [ -f /tmp/autofix-analysis.md ]; then
+            ANALYSIS=$(cat /tmp/autofix-analysis.md)
+          fi
+          BODY=$(cat <<EOF
+          Auto-fix bot examined CI failure on PR #${PR_NUMBER} but did not produce a safe fix.
+
+          ## Bot Analysis
+
+          ${ANALYSIS}
+
+          ## Why no PR
+
+          - Either the failure was outside the bot's safe-edit scope (touched protected paths)
+          - Or the diff would have been too large/risky for autonomous application
+          - Or the bot was unable to determine the root cause
+
+          A human needs to investigate.
+          EOF
+          )
+          gh issue create \
+            --repo "$REPO" \
+            --title "[Auto-fix needed] CI failed on PR #${PR_NUMBER}" \
+            --body "$BODY" \
+            --label "auto-generated,ci-failure,needs-human"
