@@ -1,0 +1,149 @@
+name: Production Error Sync
+
+# Layer C of the autonomous improvement system (skeleton — Sentry/Axiom not
+# wired up yet; activate when production observability lands).
+#
+# When a production error fires, this workflow ingests the event and asks
+# Claude to:
+#   1. Triage severity (is this user-blocking? data-corrupting? or noise?)
+#   2. Search the codebase for the offending file:line
+#   3. Reproduce locally if a deterministic repro is feasible
+#   4. File an Issue with reproduction steps + suggested fix path
+#
+# Trigger via repository_dispatch from Sentry's webhook integration:
+#
+#   curl -X POST https://api.github.com/repos/kota1026/quantum-shield/dispatches \
+#     -H "Authorization: Bearer $GH_TOKEN" \
+#     -H "Accept: application/vnd.github+json" \
+#     -d '{
+#       "event_type": "production_error",
+#       "client_payload": {
+#         "fingerprint": "axum::routes::locks::create:42",
+#         "message": "panicked at unwrap on None",
+#         "stack": "...",
+#         "url": "https://sentry.io/issues/12345",
+#         "occurrences": 17,
+#         "first_seen": "2026-04-27T10:23:00Z",
+#         "environment": "production"
+#       }
+#     }'
+#
+# To activate after Sentry is wired up:
+#   1. Set the workflow file's `if:` guard to true
+#   2. Configure Sentry alert rules to POST repository_dispatch on new error
+#   3. Verify the GH_TOKEN has scope to dispatch (default github.token works
+#      from workflows; for external dispatch use a fine-grained PAT)
+
+on:
+  repository_dispatch:
+    types: [production_error]
+  workflow_dispatch:
+    inputs:
+      fingerprint:
+        description: 'Error fingerprint (file:line or signature)'
+        required: true
+      message:
+        description: 'Error message'
+        required: true
+      stack:
+        description: 'Stack trace (paste verbatim)'
+        required: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    name: Triage and investigate
+    # Skeleton guard: flip this to `true` when ready to go live.
+    if: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve payload
+        id: payload
+        env:
+          DISPATCH_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+          MANUAL_FP: ${{ github.event.inputs.fingerprint }}
+          MANUAL_MSG: ${{ github.event.inputs.message }}
+          MANUAL_STACK: ${{ github.event.inputs.stack }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/error
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "$MANUAL_FP" > /tmp/error/fingerprint.txt
+            echo "$MANUAL_MSG" > /tmp/error/message.txt
+            echo "$MANUAL_STACK" > /tmp/error/stack.txt
+          else
+            echo "$DISPATCH_PAYLOAD" | jq -r '.fingerprint // "unknown"' > /tmp/error/fingerprint.txt
+            echo "$DISPATCH_PAYLOAD" | jq -r '.message // ""' > /tmp/error/message.txt
+            echo "$DISPATCH_PAYLOAD" | jq -r '.stack // ""' > /tmp/error/stack.txt
+            echo "$DISPATCH_PAYLOAD" | jq -r '.url // ""' > /tmp/error/url.txt
+            echo "$DISPATCH_PAYLOAD" | jq -r '.occurrences // 0' > /tmp/error/occurrences.txt
+          fi
+          echo "fingerprint=$(cat /tmp/error/fingerprint.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Investigate with Claude
+        uses: anthropics/claude-code-base-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-6
+          timeout_minutes: '12'
+          allowed_tools: 'Read,Glob,Grep,Bash(rg:*),Bash(git log:*),Bash(git blame:*)'
+          prompt: |
+            A production error fired. Your job is triage + investigation, NOT a fix.
+
+            Error context (read these files):
+              /tmp/error/fingerprint.txt   — error fingerprint
+              /tmp/error/message.txt       — error message
+              /tmp/error/stack.txt         — stack trace (may be empty)
+              /tmp/error/url.txt           — Sentry URL (may be empty)
+              /tmp/error/occurrences.txt   — total occurrences
+
+            Process:
+              1. Read those files first.
+              2. Use Grep to locate the offending file:line referenced in the stack.
+                 Read 50 lines of surrounding context.
+              3. Use `git blame` and `git log` on the offending lines to understand
+                 when this was introduced and by which change.
+              4. Decide severity:
+                 - **critical**: data corruption, fund loss, auth bypass, panic in
+                   request hot path. Page someone immediately.
+                 - **high**: many users affected, no clean workaround.
+                 - **medium**: some users, has a workaround.
+                 - **low**: rare, cosmetic, or already handled gracefully.
+              5. Suggest a fix DIRECTION (not the actual diff). E.g., "Replace
+                 unwrap with ? and propagate as 400 with error code FOO_INVALID."
+              6. Write your full triage to /tmp/triage-report.md.
+
+            Hard rules:
+              - Read-only. No Edit, no Write to source files.
+              - If the offending file is in src/crypto/, src/contracts/, or
+                src/api/api/src/middleware/auth*, set severity to AT LEAST high
+                regardless of occurrence count.
+
+      - name: File triage Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          FP: ${{ steps.payload.outputs.fingerprint }}
+        run: |
+          set -euo pipefail
+          REPORT=/tmp/triage-report.md
+          if [ ! -f "$REPORT" ]; then
+            echo "No triage written — falling back to raw payload"
+            REPORT=/tmp/error/message.txt
+          fi
+          gh issue create \
+            --repo "$REPO" \
+            --title "[Prod Error] ${FP}" \
+            --body-file "$REPORT" \
+            --label "auto-generated,prod-error,needs-triage"

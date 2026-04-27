@@ -23,6 +23,8 @@ proposes, a human approves before anything ships.
 | `.github/workflows/daily-research.yml`  | cron `0 0 * * *` (00:00 UTC) | Haiku 4.5 | `docs/intelligence/daily/<date>.md` + Issue when score ≥ 7 |
 | `.github/workflows/weekly-research.yml` | cron `0 9 * * 1` (Mon 09:00 UTC) | Sonnet 4.6 | `docs/intelligence/<date>-weekly.md` + PR |
 | `.github/workflows/ci-autofix.yml`      | `workflow_run` after CI failure on a PR | Sonnet 4.6 | Draft PR with fix, OR Issue if no safe fix |
+| `.github/workflows/bug-hunter.yml`      | cron `0 9 * * 0` (Sun 09:00 UTC) | Sonnet 4.6 | Issue with adversarial findings, rotates through 9 sequences |
+| `.github/workflows/prod-error-sync.yml` | `repository_dispatch` from Sentry **(skeleton — not yet active)** | Sonnet 4.6 | Triage Issue with reproduction + fix direction |
 
 ## Required Secrets
 
@@ -42,8 +44,10 @@ The default `${{ github.token }}` is enough for Issue/PR creation.
 | Daily research | 30/mo | ~3k + 4k | ~$0.04 | ~$1.20 |
 | Weekly research | 4/mo | ~3k + 8k | ~$0.20 | ~$0.80 |
 | CI auto-fix | ~30/mo (assume 1/day on PR-active days) | varies, capped 15min | ~$1-3 | ~$30-90 |
+| Bug Hunter | 4/mo | full code-read, ~30k + 6k | ~$0.50-1.00 | ~$2-4 |
+| Prod error sync | event-driven (skeleton off) | varies | ~$0.20-0.50 | $0 until activated |
 
-**Total monthly target: $30-100**. Add a hard `max_spend` alert in the Anthropic
+**Total monthly target: $35-110**. Add a hard `max_spend` alert in the Anthropic
 console to cut off runaway loops.
 
 ## Safety Rules
@@ -87,7 +91,19 @@ gh workflow run weekly-research.yml -R kota1026/quantum-shield
 
 # CI auto-fix — manual trigger on a specific PR
 gh workflow run ci-autofix.yml -R kota1026/quantum-shield -f pr_number=139
+
+# Bug Hunter — manual trigger, optionally pin to a specific sequence (1-9)
+gh workflow run bug-hunter.yml -R kota1026/quantum-shield -f focus_index=1
+
+# Prod error sync (workflow_dispatch path, since repository_dispatch needs Sentry)
+gh workflow run prod-error-sync.yml -R kota1026/quantum-shield \
+  -f fingerprint="example::route::handler:42" \
+  -f message="test panic"
 ```
+
+> Bug Hunter rotation: the bot picks the focus sequence from the ISO week
+> number modulo 9. Week 1, 10, 19, ... → Consumer Lock. Week 2, 11, 20, ... →
+> Normal Unlock. And so on through the 9 sequences in `docs/core/SEQUENCES.md`.
 
 After each run, verify:
 
@@ -102,6 +118,8 @@ After each run, verify:
 3. Review any `pivot-alert` Issues and decide: act, defer, or close
 4. Review the Weekly Research PR; merge or extract action items
 5. Triage open `autofix` Draft PRs: merge the good ones, close the bad ones
+6. Read Sunday's `bug-hunt` Issue; triage findings into the backlog (or close
+   as false positives — track ratio over time as a quality signal)
 
 ### Pausing the loops
 
@@ -125,10 +143,12 @@ gh workflow disable ci-autofix.yml   -R kota1026/quantum-shield
 
 ## Future expansions (not yet built)
 
-- **Layer 3: Bi-weekly auto-implement bot** — picks an Issue with label
-  `auto-implementable` and writes an implementation PR. Higher risk; gated
-  behind 4 weeks of clean Layer A track record.
-- **Bug Hunter Bot** — runs adversarial property-based testing weekly.
-- **Production error sync** — Sentry/Axiom webhooks → auto-investigate Issues.
+- **Auto-implement bot** — picks an Issue with label `auto-implementable` and
+  writes an implementation PR. Higher risk; gated behind 4 weeks of clean
+  CI auto-fix track record.
+- **UX regression hunter** — Playwright + Claude vision: take screenshots,
+  diff against baseline, file Issues for visual regressions or a11y violations.
+- **Activate prod-error-sync.yml** — flip `if: false` to `if: true` once Sentry
+  (or Axiom) is configured to dispatch `production_error` events.
 
 These are documented in `docs/INTEGRATION_METHODOLOGY_v2.md` for sequencing.
