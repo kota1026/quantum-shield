@@ -73,6 +73,37 @@ See `docs/INTEGRATION_METHODOLOGY_v2.md` for full plan.
 - Verify Docker services are running before any integration work.
 - After implementation, run: `grep -rn "MOCK_\|FALLBACK_" src/ --include="*.ts" --include="*.tsx" | grep -v mock.ts | grep -v .test. | grep -v .spec.`
 
+## Autonomous Research & Strategy (EVERY SESSION)
+
+**At the start of every session**, Claude MUST automatically:
+
+### 1. Industry Intelligence (Web Search)
+Search and report on (spend max 2 minutes):
+- **NIST PQC updates**: New standards, algorithm changes, migration guidance
+- **Ethereum PQC**: New EIPs, Vitalik statements, EF research, precompile proposals
+- **Competitors**: QRL, PQShield, StarkNet PQC, any new PQC-on-Ethereum projects
+- **Quantum computing milestones**: IBM, Google, Microsoft hardware advances
+- **Academic papers**: arxiv.org PQC + blockchain papers from last 30 days
+
+### 2. Strategic Recommendations
+Based on findings, propose (in 3-5 bullet points):
+- Feature priorities that strengthen competitive position
+- Technical improvements based on new research
+- Grant/partnership opportunities
+- Risk alerts (new competitors, algorithm concerns)
+
+### 3. Output
+- Brief summary to user (5-10 lines)
+- If significant findings: update `docs/intelligence/LATEST.md`
+- Reference `docs/grants/EF_ESP_APPLICATION.md` for grant alignment
+
+### 4. Monitoring Data Sources
+- https://csrc.nist.gov/projects/post-quantum-cryptography
+- https://ethresear.ch (PQC topics)
+- https://eips.ethereum.org (new proposals)
+- https://arxiv.org/list/cs.CR/recent (cryptography papers)
+- https://github.com/topics/post-quantum (new repos)
+
 ## Development Workflow (MANDATORY)
 
 Adopted from [everything-claude-code](https://github.com/affaan-m/everything-claude-code).
