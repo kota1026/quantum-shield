@@ -1,0 +1,175 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/frontend/web/**'
+      - 'src/api/api/**'
+  schedule:
+    - cron: '0 0 * * *' # Daily at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: 🎭 Full E2E Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quantum
+          POSTGRES_PASSWORD: quantum_dev
+          POSTGRES_DB: quantum_shield
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+        run: |
+          cd src/api/api
+          for f in $(ls migrations/*.sql | sort); do
+            psql "$DATABASE_URL" -f "$f" 2>&1 | tail -1
+          done
+
+      - name: Build and start backend
+        env:
+          DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+          SQLX_OFFLINE: "true"
+        run: |
+          cd src/api/api
+          cargo build --release -p quantum-shield-api
+          DATABASE_URL="postgresql://quantum:quantum_dev@localhost:5432/quantum_shield" \
+            ./../../target/release/api-server &
+          # Wait for backend to be ready
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:8080/v1/health | grep -q healthy; then
+              echo "Backend ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10
+
+      - name: Install frontend dependencies
+        working-directory: src/frontend/web
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Start frontend dev server
+        working-directory: src/frontend/web
+        env:
+          NEXT_PUBLIC_TEST_WALLET: "true"
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+        run: |
+          pnpm dev &
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:3000 > /dev/null; then
+              echo "Frontend ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run E2E tests
+        run: |
+          node -e "
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const BASE = 'http://localhost:3000';
+            const API = 'http://localhost:8080';
+            const R = [];
+            let failures = 0;
+
+            async function t(name, fn) {
+              try { const r = await fn(); R.push({name, s:'PASS', d:r}); console.log('✅', name); }
+              catch(e) { R.push({name, s:'FAIL', d:e.message.slice(0,150)}); console.error('❌', name, '—', e.message.slice(0,150)); failures++; }
+            }
+
+            const browser = await chromium.launch({ headless: true });
+            const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+
+            // Auth
+            const ethers = require('ethers');
+            const wallet = new ethers.Wallet('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80');
+            let jwt = null;
+            await t('SIWE Auth', async () => {
+              const nonce = Math.random().toString(36).substring(2);
+              const msg = ['localhost:3000 wants you to sign in with your Ethereum account:', wallet.address, '', 'Sign in to Quantum Shield Consumer App', '', 'URI: http://localhost:3000', 'Version: 1', 'Chain ID: 11155111', 'Nonce: ' + nonce, 'Issued At: ' + new Date().toISOString()].join('\n');
+              const sig = await wallet.signMessage(msg);
+              const r = await fetch(API + '/v1/auth/siwe', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({message:msg, signature:sig, public_key:wallet.address}) });
+              if (!r.ok) throw new Error('Auth failed: ' + r.status);
+              jwt = (await r.json()).access_token;
+              return 'OK';
+            });
+
+            const h = jwt ? {Authorization:'Bearer '+jwt,'Content-Type':'application/json'} : {};
+
+            // API endpoints
+            await t('Health', async () => { const r = await fetch(API+'/v1/health'); if(!r.ok) throw new Error(r.status); return 'OK'; });
+            await t('Lock API', async () => { const r = await fetch(API+'/v1/lock',{method:'POST',headers:h,body:JSON.stringify({chain_id:11155111,asset:'0x0000000000000000000000000000000000000000',amount:'10000000000000000',dest_addr:wallet.address,expiry:Math.floor(Date.now()/1000)+86400,nonce:Date.now(),pk_dilithium:'0x'+'ab'.repeat(1952),sig_dilithium:'0x'+'cd'.repeat(3309)})}); const d=await r.json(); if(d.lock_id) return 'lock_id='+d.lock_id.slice(0,16); return r.status+' '+JSON.stringify(d).slice(0,80); });
+            await t('Prover List', async () => { const r = await fetch(API+'/v1/prover/list',{headers:h}); if(!r.ok) throw new Error(r.status); return 'OK'; });
+            await t('Observer', async () => { const r = await fetch(API+'/v1/observer/pending-unlocks',{headers:h}); if(!r.ok) throw new Error(r.status); return 'OK'; });
+            await t('Governance', async () => { const r = await fetch(API+'/v1/governance/proposals',{headers:h}); if(!r.ok) throw new Error(r.status); return 'OK'; });
+            await t('Edition', async () => { const r = await fetch(API+'/v1/edition',{headers:h}); if(!r.ok) throw new Error(r.status); return 'OK'; });
+
+            // Pages
+            for (const [p,n] of [['/ja','Landing'],['/ja/consumer/dashboard','Dashboard'],['/ja/consumer/lock','Lock'],['/ja/prover/landing','Prover'],['/ja/observer/landing','Observer'],['/ja/governance','Governance']]) {
+              await t('Page: '+n, async () => { const pg=await ctx.newPage(); const r=await pg.goto(BASE+p,{timeout:20000,waitUntil:'domcontentloaded'}); await pg.close(); if(r.status()>=400) throw new Error('HTTP '+r.status()); return 'OK'; });
+            }
+
+            await browser.close();
+            console.log('\nTotal:', R.length, '| Pass:', R.filter(r=>r.s==='PASS').length, '| Fail:', failures);
+            process.exit(failures > 0 ? 1 : 0);
+          })();
+          "
+
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: /tmp/*.png
