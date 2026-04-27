@@ -161,11 +161,36 @@ This project directly addresses the ESP Wishlist priority for **cryptography** r
 
 1. **Post-quantum readiness**: Provides a working implementation that Ethereum users can adopt today to protect against future quantum threats
 
-2. **NIST compliance**: First Ethereum protocol to implement FIPS 204 (ML-DSA-65) and FIPS 205 (SPHINCS+) — the final NIST post-quantum standards
+2. **NIST compliance**: First Ethereum protocol to implement FIPS 204 (ML-DSA-65) and FIPS 205 (SPHINCS+) — the final NIST post-quantum standards (published August 13, 2024)
 
 3. **Gas optimization research**: The SR₀/SR₁ design pattern can be generalized for other PQC schemes on EVM chains
 
 4. **Open source**: All code is open source under MIT license, enabling the broader ecosystem to build on this work
+
+5. **ERC-4337 aligned**: Architecture leverages account abstraction, consistent with EF's PQC migration path as outlined by Vitalik Buterin
+
+## Competitive Landscape & Urgency
+
+### Why Now
+
+- **Google Willow chip (Dec 2024)**: Demonstrated significant advances in quantum error correction, bringing the CRQC timeline forward
+- **IBM Quantum Roadmap**: Targets 100,000+ qubit systems by 2033
+- **NSA CNSA 2.0**: Requires PQC for all national security systems by 2033-2035
+- **"Harvest now, decrypt later"**: ~60% of all ETH value is in addresses with exposed public keys — already vulnerable to future quantum attacks
+
+### Competitive Gap
+
+| Project | Limitation |
+|---------|-----------|
+| QRL | Separate L1 (not EVM-compatible), uses stateful XMSS |
+| PQShield | Enterprise-focused, no blockchain products |
+| StarkNet | STARK proofs are PQC, but user signatures still ECDSA |
+| Other chains | Discussion only, no production PQC custody |
+| **Quantum Shield** | **Production PQC custody on Ethereum with dual NIST signatures** |
+
+### Vitalik's Quantum Emergency Plan (March 2024)
+
+Vitalik outlined a hard-fork recovery plan for quantum attacks. Quantum Shield provides the **proactive** alternative: protect assets *before* the emergency, not after. Our dual-signature approach (ML-DSA + SLH-DSA from two distinct mathematical families) ensures defense-in-depth — even if lattice assumptions are broken, hash-based signatures remain secure.
 
 5. **Precompile pathway**: Research into EVM precompiles for PQC verification could benefit all Ethereum users
 
