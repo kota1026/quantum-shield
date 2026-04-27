@@ -5,7 +5,7 @@
 [![Solidity](https://img.shields.io/badge/solidity-0.8.24-blue.svg)](https://soliditylang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
 
-> Post-quantum asset protection protocol for Ethereum using NIST-standardized cryptography
+> The PQ-Secure Custody-Bridge Convergence Pattern for Ethereum — using NIST-standardized cryptography (FIPS 204 / 205), a decentralized Prover Pool, and a roadmap aligned with EIP-8141 / EIP-8051.
 
 ## Live Demo
 
@@ -23,15 +23,32 @@
 
 ## What is Quantum Shield?
 
-Quantum Shield protects smart contract assets against quantum computing threats using **NIST FIPS 204 (ML-DSA/Dilithium)** and **FIPS 205 (SLH-DSA/SPHINCS+)** dual post-quantum signatures, combined with a decentralized Prover Pool, VRF-based selection, and time-locked custody.
+Quantum Shield is a **production-deployed, dual-NIST PQC custody runtime on Ethereum Sepolia** that doubles as a **reusable design pattern** for post-quantum cross-chain bridges. It protects smart contract assets using **NIST FIPS 204 (ML-DSA/Dilithium)** and **FIPS 205 (SLH-DSA/SPHINCS+)** dual post-quantum signatures, combined with a decentralized Prover Pool, VRF-based selection, and time-locked custody.
+
+### Why the Convergence Pattern?
+
+Bridge protocols lost **$3B in H1 2025 alone** ([Chainalysis](https://www.chainalysis.com/) tracking) and **$2.8B over 4 years** — yet none publishes a post-quantum roadmap, because direct ML-DSA on a typical guardian network is economically infeasible (~$/swap). Quantum Shield's **SR₀/SR₁ commitment + Prover Pool architecture** solves this: a 32-byte on-chain commitment plus off-chain dual-signature verification reduces lock cost to ~200k gas while providing PQ-grade security.
+
+The same pattern that secures user custody also secures bridge messaging. We call this the **Custody-Bridge Convergence Pattern**.
+
+### Three-Tier Moat
+
+| Tier | Asset | Strategic stance |
+|---|---|---|
+| **1. Cryptography** | ML-DSA + SLH-DSA + NTT implementation | Adopt EIP-8051 / EIP-7885 / EIP-8141 when shipped — do not defend our impl |
+| **2. Pattern** | SR₀/SR₁ + Prover Pool + VRF arbitration | License as SDK + reference implementation |
+| **3. Network** | EF/NIST channels, Sepolia operational record, RFP relationships | Primary durable moat |
+
+See [`docs/intelligence/STRATEGY_2026-04-27_v3.md`](docs/intelligence/STRATEGY_2026-04-27_v3.md) for the full Convergence Strategy.
 
 ### Key Features
 
-- **Dual PQC Signatures** — ML-DSA-65 + SLH-DSA for defense-in-depth
-- **Prover Pool** — Decentralized verification with stake-weighted selection via VRF
+- **Dual PQC Signatures** — ML-DSA-65 + SLH-DSA-128s for defense-in-depth across two distinct mathematical families
+- **Prover Pool** — Decentralized verification with stake-weighted selection via VRF; reusable as bridge-guardian replacement
 - **Time-Locked Custody** — 24h normal unlock, 7-day emergency path with bond
 - **Observer Network** — Independent challenge system with quadratic slashing
 - **On-Chain Governance** — veQS token voting, security council, insurance fund
+- **EIP-8141 / EIP-8051 ready** — architecture designed for native account abstraction + ML-DSA precompile adoption
 - **11 Sub-Applications** — Consumer, Prover, Observer, Explorer, Enterprise, Governance, Admin
 
 ## Architecture
@@ -187,6 +204,16 @@ cd src/l1/contracts && forge test
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+---
+
+## Roadmap & Strategy
+
+- [Convergence Strategy v3 (2026-04-27)](docs/intelligence/STRATEGY_2026-04-27_v3.md) — current strategic plan
+- [Competitive Landscape](docs/intelligence/COMPETITIVE_LANDSCAPE.md) — bridge / custodian / chain mapping
+- [Constitution v2 Draft](docs/CONSTITUTION_v2_DRAFT.md) — CP-1 through CP-6 codification
+- [Latest PQC Intelligence](docs/intelligence/LATEST.md) — weekly auto-refreshed (via `weekly-research.yml`)
+- [EF ESP Application](docs/grants/EF_ESP_APPLICATION.md) — grant draft
 
 ---
 

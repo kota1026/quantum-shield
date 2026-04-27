@@ -173,6 +173,46 @@ with a production-grade implementation.
 
 ---
 
+## 5.5. The Convergence Pattern (added v3, 2026-04-27)
+
+Quantum Shield's core architecture — **off-chain dual signature + on-chain SR₀ commitment + Prover Pool attestation** — was originally designed for asset custody. Strategic re-evaluation in April 2026 revealed that the same pattern resolves a structurally identical problem in cross-chain bridges:
+
+### Bridge problem (2025–2026 reality)
+
+- $2.8B+ stolen from bridges since 2021; $3B in H1 2025 alone (Web3's largest single attack surface).
+- Every leading bridge depends on ECDSA / Schnorr.
+- Direct PQ adoption is impractical: an ML-DSA signature is ~3,300 bytes; multiplied by N guardians and Ethereum calldata pricing, the per-swap cost reaches several USD on L1.
+- No major bridge publishes a PQ roadmap.
+
+### Convergence: same pattern, different domain
+
+| Custody (current) | Bridge (proposed via the same pattern) |
+|---|---|
+| User signs lock with ML-DSA-65 | Source-chain message signed with ML-DSA-65 |
+| Off-chain backend computes SR₀ = SHA3-256(params ‖ pk) | Off-chain bridge relayer computes SR₀ over the source message |
+| 32-byte SR₀ stored on L1 vault | 32-byte SR₀ stored on destination chain |
+| Prover Pool (VRF-selected) co-signs SLH-DSA on unlock | Bridge guardians (= Prover Pool members) co-sign SLH-DSA on dest-chain release |
+| Quadratic slashing on observer challenge | Same slashing curve secures bridge guardians |
+| 24h time-lock + 7d emergency path | Configurable per source/destination pair |
+
+### Implication
+
+The same SR₀/SR₁ pipeline + Prover Pool runtime that protects user funds today is the **architecture-level answer** to the bridge security crisis. Quantum Shield's strategic positioning therefore expands from _"PQ custody on Ethereum"_ to _**"the PQ-Secure Custody-Bridge Convergence Pattern"**_.
+
+The Q2–Q3 2026 roadmap (see `docs/intelligence/STRATEGY_2026-04-27_v3.md`) includes a 3-chain bridge demo (Track 6) and outreach to bridge protocols and institutional custodians (Tracks 7 + 8) to validate this pattern beyond custody.
+
+### Three-Tier Moat under Constitution v2
+
+| Tier | Asset | Strategic posture |
+|---|---|---|
+| 1. Cryptography (ML-DSA / SLH-DSA / NTT impls) | Adopt EIP-8051 / EIP-7885 / EIP-8141 when shipped |
+| 2. Pattern (SR₀/SR₁ + Prover Pool + VRF) | License as SDK + reference implementation |
+| 3. Network (EF/NIST channels, operational record, RFP relationships) | Primary durable moat |
+
+Constitution v2 (`docs/CONSTITUTION_v2_DRAFT.md`) introduces **CP-6 (Network Principle)** to formalize this layering.
+
+---
+
 ## 6. Comparison
 
 | Feature | Quantum Shield | AA-based PQ | Consensus PQ |
@@ -190,10 +230,12 @@ with a production-grade implementation.
 | Phase | Timeline | Milestones |
 |-------|----------|-----------|
 | Beta (Current) | Q1-Q2 2026 | Sepolia testnet, 11 apps, core flows |
-| Security Audit | Q2 2026 | External audit, VRF production |
+| Convergence Validation | Q2 2026 | EF Grant, arxiv draft, 3-chain bridge demo, EIP-8141/8051 readiness spike |
+| Security Audit | Q2-Q3 2026 | External audit, VRF production |
 | Mainnet Alpha | Q3 2026 | Ethereum mainnet, limited TVL |
 | Mainnet Production | Q4 2026 | Full mainnet, multi-chain |
 | Institutional | 2027 | HSM, enterprise API, compliance |
+| Bridge / Custodian Partnerships | 2027+ | Pattern-license pilots, M&A conversations (see Strategy v3) |
 
 ---
 

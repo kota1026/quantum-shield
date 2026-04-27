@@ -10,7 +10,7 @@
   },
   "ecosystemLink": {
     "title": "Quantum Shieldとは？",
-    "description": "量子耐性技術で暗号資産を守るエコシステムの全体像を見る",
+    "description": "Ethereum向け「PQ-Secure カストディ・ブリッジ統合パターン」— 二重NIST署名、Prover Pool、EIP-8141対応設計",
     "cta": "詳しく見る",
     "footerText": "Quantum Shieldについて"
   },

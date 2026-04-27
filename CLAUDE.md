@@ -1,6 +1,10 @@
 # Quantum Shield
 
-Post-quantum asset custody protocol: Dilithium + SPHINCS+ dual NIST signatures, Prover Pool, VRF, Time Lock.
+The PQ-Secure Custody-Bridge Convergence Pattern for Ethereum: Dilithium + SPHINCS+ dual NIST signatures, Prover Pool, VRF, Time Lock — with a roadmap aligned to EIP-8141 / EIP-8051 / EIP-7885.
+
+**Active Strategy**: [`docs/intelligence/STRATEGY_2026-04-27_v3.md`](docs/intelligence/STRATEGY_2026-04-27_v3.md) — Convergence Strategy v3
+**Constitution**: [`docs/CONSTITUTION_v2_DRAFT.md`](docs/CONSTITUTION_v2_DRAFT.md) — CP-1 through **CP-6 (Network Principle)**
+**Competitive Landscape**: [`docs/intelligence/COMPETITIVE_LANDSCAPE.md`](docs/intelligence/COMPETITIVE_LANDSCAPE.md)
 
 ## Project Structure
 
