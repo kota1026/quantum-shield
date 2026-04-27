@@ -1,1 +1,46 @@
-bmFtZTogV2Vla2x5IFBRQyBSZXNlYXJjaAoKb246CiAgc2NoZWR1bGU6CiAgICAtIGNyb246ICcwIDkgKiAqIDEnCiAgd29ya2Zsb3dfZGlzcGF0Y2g6Cgpqb2JzOgogIHJlc2VhcmNoOgogICAgbmFtZTogUFFDIEluZHVzdHJ5IFJlc2VhcmNoCiAgICBydW5zLW9uOiB1YnVudHUtbGF0ZXN0CiAgICB0aW1lb3V0LW1pbnV0ZXM6IDEwCgogICAgc3RlcHM6CiAgICAgIC0gdXNlczogYWN0aW9ucy9jaGVja291dEB2NAoKICAgICAgLSBuYW1lOiBTZXR1cCBOb2RlLmpzCiAgICAgICAgdXNlczogYWN0aW9ucy9zZXR1cC1ub2RlQHY0CiAgICAgICAgd2l0aDoKICAgICAgICAgIG5vZGUtdmVyc2lvbjogMjAKCiAgICAgIC0gbmFtZTogUnVuIFBRQyByZXNlYXJjaAogICAgICAgIGVudjoKICAgICAgICAgIEFOVEhST1BJQ19BUElfS0VZOiAke3sgc2VjcmV0cy5BTlRIUk9QSUNfQVBJX0tFWSB9fQogICAgICAgICAgU0xBQ0tfV0VCSE9PS19VUkw6ICR7eyBzZWNyZXRzLlNMQUNLX1dFQkhPT0tfVVJMIH19CiAgICAgICAgcnVuOiB8CiAgICAgICAgICBub2RlIHNjcmlwdHMvcnVuLXJlc2VhcmNoLmpzCgogICAgICAtIG5hbWU6IENvbW1pdCBhbmQgY3JlYXRlIFBSCiAgICAgICAgZW52OgogICAgICAgICAgR0hfVE9LRU46ICR7eyBnaXRodWIudG9rZW4gfX0KICAgICAgICBydW46IHwKICAgICAgICAgIGdpdCBjb25maWcgdXNlci5uYW1lICJDbGF1ZGUgUmVzZWFyY2ggQm90IgogICAgICAgICAgZ2l0IGNvbmZpZyB1c2VyLmVtYWlsICJyZXNlYXJjaEBxdWFudHVtLXNoaWVsZC54eXoiCiAgICAgICAgICBEQVRFPSQoZGF0ZSArJVktJW0tJWQpCiAgICAgICAgICBCUkFOQ0g9InJlc2VhcmNoL3dlZWtseS0ke0RBVEV9IgogICAgICAgICAgaWYgWyAtZiAiZG9jcy9pbnRlbGxpZ2VuY2UvJHtEQVRFfS13ZWVrbHkubWQiIF07IHRoZW4KICAgICAgICAgICAgZ2l0IGNoZWNrb3V0IC1iICIkQlJBTkNIIgogICAgICAgICAgICBnaXQgYWRkIGRvY3MvaW50ZWxsaWdlbmNlLwogICAgICAgICAgICBnaXQgY29tbWl0IC1tICJyZXNlYXJjaDogd2Vla2x5IFBRQyBpbnRlbGxpZ2VuY2UgcmVwb3J0ICR7REFURX0iCiAgICAgICAgICAgIGdpdCBwdXNoIG9yaWdpbiAiJEJSQU5DSCIKICAgICAgICAgICAgZ2ggcHIgY3JlYXRlIFwKICAgICAgICAgICAgICAtLXRpdGxlICJXZWVrbHkgUFFDIEludGVsbGlnZW5jZSAtICR7REFURX0iIFwKICAgICAgICAgICAgICAtLWJvZHkgIkF1dG8tZ2VuZXJhdGVkIHdlZWtseSByZXNlYXJjaCByZXBvcnQuIFJldmlldyBmaW5kaW5ncyBhbmQgc3RyYXRlZ2ljIHJlY29tbWVuZGF0aW9ucy4iIFwKICAgICAgICAgICAgICAtLWJhc2UgbWFpbiBcCiAgICAgICAgICAgICAgLS1oZWFkICIkQlJBTkNIIgogICAgICAgICAgZmkK
+name: Weekly PQC Research
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  research:
+    name: PQC Industry Research
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run PQC research
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: node scripts/run-research.js
+
+      - name: Commit and create PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "Claude Research Bot"
+          git config user.email "research@quantum-shield.xyz"
+          DATE=$(date +%Y-%m-%d)
+          BRANCH="research/weekly-${DATE}"
+          if [ -f "docs/intelligence/${DATE}-weekly.md" ]; then
+            git checkout -b "$BRANCH"
+            git add docs/intelligence/
+            git commit -m "research: weekly PQC intelligence report ${DATE}"
+            git push origin "$BRANCH"
+            gh pr create \
+              --title "Weekly PQC Intelligence - ${DATE}" \
+              --body "Auto-generated weekly research report." \
+              --base main \
+              --head "$BRANCH"
+          fi
