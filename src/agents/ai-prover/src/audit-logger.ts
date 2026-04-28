@@ -102,7 +102,7 @@ export function createLogger(logFile?: string): winston.Logger {
  */
 export interface AuditLogEntry {
   timestamp: string;
-  action: 'AUTO_SIGN' | 'ESCALATE' | 'REJECT' | 'ERROR';
+  action: 'ESCALATE' | 'REJECT' | 'ERROR';
   queue_id: string;
   lock_id: string;
   amount: string;
