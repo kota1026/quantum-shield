@@ -77,6 +77,8 @@ jobs:
 
       - name: Run UX orchestrator
         working-directory: src/agents/ux-orchestrator
+        env:
+          REPO_ROOT: ${{ github.workspace }}
         run: |
           pnpm verify --route ${{ inputs.route || 'home-ja' }} \
             ${{ inputs.auto_fix && '--auto-fix' || '' }}

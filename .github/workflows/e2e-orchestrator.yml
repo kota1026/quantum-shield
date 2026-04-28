@@ -100,6 +100,8 @@ jobs:
 
       - name: Run orchestrator
         working-directory: src/agents/e2e-orchestrator
+        env:
+          REPO_ROOT: ${{ github.workspace }}
         run: pnpm verify --sequence ${{ inputs.sequence || 'lock' }}
 
       - name: Upload report
