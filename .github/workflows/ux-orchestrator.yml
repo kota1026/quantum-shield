@@ -1,0 +1,109 @@
+name: UX Orchestrator
+
+on:
+  pull_request:
+    paths:
+      - 'src/frontend/web/**'
+      - 'src/agents/ux-orchestrator/**'
+  workflow_dispatch:
+    inputs:
+      route:
+        description: 'Route id from src/frontend/web/e2e/visual-regression/routes.ts, or "all"'
+        required: false
+        default: 'home-ja'
+        type: string
+      auto_fix:
+        description: 'Apply healer-proposed patches (i18n catalog / route registry / test code only)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      QS_BASE_URL: ${{ secrets.QS_STAGING_URL || 'http://localhost:3000' }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip if no API key
+        if: env.ANTHROPIC_API_KEY == ''
+        run: |
+          echo "::warning::ANTHROPIC_API_KEY not set; UX orchestrator skipped."
+          exit 0
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+
+      - name: Install Playwright browsers
+        working-directory: src/frontend/web
+        run: |
+          pnpm install --frozen-lockfile
+          npx playwright install --with-deps chromium
+
+      - name: Start Next.js dev server
+        working-directory: src/frontend/web
+        run: |
+          pnpm dev &
+          for i in {1..30}; do
+            curl -sf http://localhost:3000 > /dev/null && break
+            sleep 2
+          done
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+
+      - name: Install ux-orchestrator deps
+        working-directory: src/agents/ux-orchestrator
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check ux-orchestrator
+        working-directory: src/agents/ux-orchestrator
+        run: pnpm lint
+
+      - name: Run UX orchestrator
+        working-directory: src/agents/ux-orchestrator
+        run: |
+          pnpm verify --route ${{ inputs.route || 'home-ja' }} \
+            ${{ inputs.auto_fix && '--auto-fix' || '' }}
+
+      - name: Upload UX orchestrator report + patches
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ux-orchestrator-report
+          path: |
+            src/agents/ux-orchestrator/reports/
+          retention-days: 14
+
+      - name: Comment PR with verdict
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const reportsDir = 'src/agents/ux-orchestrator/reports';
+            if (!fs.existsSync(reportsDir)) return;
+            const dirs = fs.readdirSync(reportsDir).filter((d) => !d.startsWith('.'));
+            for (const dir of dirs) {
+              const archivePath = path.join(reportsDir, dir, 'archive.json');
+              if (!fs.existsSync(archivePath)) continue;
+              const archive = JSON.parse(fs.readFileSync(archivePath, 'utf8'));
+              if (archive.pr_comment_md) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: archive.pr_comment_md,
+                });
+              }
+            }

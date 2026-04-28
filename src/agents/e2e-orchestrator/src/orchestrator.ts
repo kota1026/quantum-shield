@@ -19,6 +19,9 @@ import {
 import { runStep } from './exec.js';
 import { runAgent, runAgentsInParallel } from './agent-runner.js';
 import type { Config } from './config.js';
+import { applyPatch, filterAutoApplicable, type ApplyOutcome } from './apply-patches.js';
+
+const MAX_LOOP_ATTEMPTS = 3;
 
 function ts(): string {
   return new Date().toISOString().replace(/[:.]/g, '-');
@@ -33,13 +36,17 @@ function ok(msg: string): void { console.log(kleur.green('✓ ') + msg); }
 function warn(msg: string): void { console.log(kleur.yellow('! ') + msg); }
 function err(msg: string): void { console.log(kleur.red('✗ ') + msg); }
 
-export async function runSequence(sequenceId: string, config: Config): Promise<RunReport> {
+export async function runSequence(
+  sequenceId: string,
+  config: Config,
+  attempt: number = 1,
+): Promise<RunReport> {
   const startedAt = nowIso();
   const startMs = Date.now();
-  const runDir = resolve(config.REPORTS_DIR, `${sequenceId}-${ts()}`);
+  const runDir = resolve(config.REPORTS_DIR, `${sequenceId}-${ts()}-attempt${attempt}`);
   await mkdir(runDir, { recursive: true });
 
-  info(`Sequence: ${sequenceId}`);
+  info(`Sequence: ${sequenceId} (attempt ${attempt}/${MAX_LOOP_ATTEMPTS})`);
   info(`Run dir:  ${runDir}`);
 
   // Stage 1: spec-runner
@@ -313,6 +320,45 @@ export async function runSequence(sequenceId: string, config: Config): Promise<R
         baselinePath,
         JSON.stringify({ per_layer_ms: Object.fromEntries(layerResults.map((r) => [r.layer, r.duration_ms])) }, null, 2),
       );
+    }
+  }
+
+  // Verify → fix → re-verify loop (true autonomous closing of the loop).
+  // If the verdict is FIXABLE and AUTO_FIX is enabled and we have not yet
+  // hit MAX_LOOP_ATTEMPTS, attempt to apply the auto-applicable fixer
+  // proposals via `git apply`. Patches that touch L1 contracts or DB
+  // migrations are filtered out by `filterAutoApplicable`. If any patch
+  // applies cleanly, recurse to re-verify; if none apply or all are
+  // high-risk, exit with the FIXABLE verdict and let a human handle it.
+  if (
+    finalVerdict.verdict === 'FIXABLE' &&
+    config.AUTO_FIX &&
+    attempt < MAX_LOOP_ATTEMPTS &&
+    fixerProposals.length > 0
+  ) {
+    const applicable = filterAutoApplicable(fixerProposals);
+    if (applicable.length > 0) {
+      info(`Auto-fix: applying ${applicable.length} patch(es) and re-verifying (attempt ${attempt} → ${attempt + 1})`);
+      const outcomes: ApplyOutcome[] = [];
+      let allApplied = true;
+      for (const p of applicable) {
+        const outcome = await applyPatch(config.REPO_ROOT, p, runDir);
+        outcomes.push(outcome);
+        if (outcome.status === 'applied') {
+          ok(`applied ${p.id} (risk=${p.risk}, files=${p.affected_files.join(',')})`);
+        } else {
+          err(`rejected ${p.id}: ${outcome.reason}`);
+          allApplied = false;
+        }
+      }
+      await writeFile(resolve(runDir, 'apply-outcomes.json'), JSON.stringify(outcomes, null, 2));
+      if (allApplied) {
+        return runSequence(sequenceId, config, attempt + 1);
+      } else {
+        warn(`Auto-fix halted: ${outcomes.filter((o) => o.status === 'rejected').length} patch(es) rejected; not recursing`);
+      }
+    } else {
+      info(`Auto-fix: 0 of ${fixerProposals.length} fixer proposals are auto-applicable (all high-risk or sensitive paths)`);
     }
   }
 
