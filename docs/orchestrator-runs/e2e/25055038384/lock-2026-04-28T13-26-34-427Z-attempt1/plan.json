@@ -1,0 +1,44 @@
+{
+  "sequence_id": "seq-1",
+  "sequence_name": "Consumer Lock",
+  "layers": [
+    "backend",
+    "frontend",
+    "db",
+    "l1"
+  ],
+  "steps": [
+    {
+      "layer": "backend",
+      "description": "Rust integration test for Lock flow",
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture",
+      "expected": "Test output confirms: (1) Dilithium signature verified, (2) nonce accepted, (3) expiry accepted, (4) SR_0 computed via SHA3-256 over QS_LOCK_V1||chain_id||asset||amount||dest_addr||expiry||nonce||pk_dilithium, (5) lock_id issued, (6) L1 lockWithSR0 transaction submitted, (7) all assertions pass with exit code 0 and no FAILED lines in output"
+    },
+    {
+      "layer": "frontend",
+      "description": "Playwright integration spec for Consumer Lock",
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+      "expected": "Playwright JSON reporter shows 0 failed tests, all lock.integration.spec.ts test cases pass, UI reaches success state after lock creation, and a corresponding DB row is confirmed to exist"
+    },
+    {
+      "layer": "db",
+      "description": "Verify lock row was created and pk_dilithium populated",
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+      "expected": "Exactly one row is returned with status=locked and pk_dilithium length=1952; any other status value, any NULL, or zero-length pk_dilithium is a failure"
+    },
+    {
+      "layer": "l1",
+      "description": "Verify totalLocked increased on Sepolia Vault",
+      "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+      "expected": "Returned uint256 value is strictly greater than 0 wei; a return of 0 is a hard failure"
+    }
+  ],
+  "acceptance_criteria": [
+    "Backend integration test exits with code 0 and zero FAILED assertions in output",
+    "Playwright lock.integration.spec.ts reports 0 failed tests and UI success state is reached",
+    "The most recently created locks row has status=locked and pk_dilithium byte length equal to exactly 1952",
+    "Sepolia Vault totalLocked() returns a value strictly greater than 0 wei",
+    "No silent fallback or hardcoded address appears in the execution trace"
+  ],
+  "spec_section": "SEQUENCES.md §1 Consumer Lock"
+}

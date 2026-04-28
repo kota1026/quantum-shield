@@ -1,0 +1,98 @@
+[
+  {
+    "layer": "backend",
+    "status": "fail",
+    "observations": [
+      "exit_code=1 indicates test execution failure",
+      "stderr_excerpt contains only compilation output (Compiling zerocopy, futures-channel, tracing, etc.)",
+      "stdout_excerpt is empty string",
+      "No test result markers ('test result: ok', 'PASSED', 'FAILED') visible in provided output",
+      "Compilation completed successfully (no compiler errors in stderr)",
+      "Test appears to have failed at runtime or during execution phase after compilation"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Test execution failed with exit code 1",
+        "detail": "The cargo test command exited with code 1, indicating test failure. No stdout excerpt was provided, making root cause analysis impossible. The stderr contains only compilation artifacts, suggesting the failure occurred during test runtime after successful build.",
+        "location": null
+      },
+      {
+        "severity": "high",
+        "title": "Empty stdout_excerpt prevents result verification",
+        "detail": "Cannot verify any of the 7 expected success criteria: (1) Dilithium signature verification, (2) nonce acceptance, (3) expiry acceptance, (4) SR_0 computation, (5) lock_id issuance, (6) L1 transaction submission, (7) assertion pass/fail status. The test runner must capture and provide stdout to diagnose failure.",
+        "location": null
+      },
+      {
+        "severity": "high",
+        "title": "Test panicked or assertion failed without captured output",
+        "detail": "Given exit code 1 and empty stdout, the test likely panicked, had an unhandled error, or encountered a database/connection issue. SQLX_OFFLINE=true suggests offline mode but no indication of sqlx::query errors or schema mismatches.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs"
+      },
+      {
+        "severity": "medium",
+        "title": "SQLX_OFFLINE mode with no visible database errors",
+        "detail": "While SQLX_OFFLINE=true is set, there's no stderr indication of schema validation failures or missing .sqlx metadata files, which would typically appear. This suggests either the failure is upstream of database checks or error output was truncated.",
+        "location": null
+      }
+    ],
+    "confidence": 0.92
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, flaky: 0",
+      "Exit code: 0",
+      "Playwright JSON reporter: unexpected=0, all tests in 'expected' status",
+      "Test suite: integration/lock.integration.spec.ts",
+      "Projects: Desktop Chrome, Mobile Chrome, Mobile Safari (all passing)",
+      "Core lock functionality verified: lock creation (POST /v1/lock), persistence (GET /v1/explorer/locks), nonce reuse rejection, expiration validation, missing field validation, multi-lock distinctness",
+      "Health check confirms backend readiness",
+      "Lock IDs and SR_0 values generated and validated",
+      "Explorer totalLocks counter incremented correctly",
+      "SMT proof generation verified (17030 chars)",
+      "DB persistence confirmed with active status"
+    ],
+    "issues": [],
+    "confidence": 0.98
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "psql exit code 0 (success)",
+      "stdout_excerpt is empty — no rows returned",
+      "Expected exactly one row with status=locked and pk_dilithium length=1952",
+      "Query: SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "No lock record found",
+        "detail": "Query returned zero rows. Expected exactly one row with status=locked and pk_dilithium length=1952. This indicates either the locks table is empty, the consumer lock creation failed, or the lock was not persisted to the database.",
+        "location": "locks table"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast exited with code 1",
+      "RPC endpoint rpc.sepolia.org returned HTTP 522 (Connection timed out)",
+      "Cloudflare error page indicates origin web server timeout",
+      "No contract data retrieved; unable to evaluate expected condition"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC Infrastructure Outage",
+        "detail": "The L1 RPC endpoint (rpc.sepolia.org via Cloudflare) is unavailable. HTTP 522 error indicates the connection between Cloudflare and the origin server timed out. This is an infrastructure issue, not a contract or code regression.",
+        "location": "rpc.sepolia.org"
+      }
+    ],
+    "confidence": 0.95
+  }
+]
