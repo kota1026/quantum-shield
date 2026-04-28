@@ -1,0 +1,44 @@
+{
+  "sequence_id": "seq-1",
+  "sequence_name": "Consumer Lock",
+  "layers": [
+    "backend",
+    "frontend",
+    "db",
+    "l1"
+  ],
+  "steps": [
+    {
+      "layer": "backend",
+      "description": "Rust integration test for Lock flow",
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture",
+      "expected": "Lock created in DB, SR0 computed, L1 lockWithSR0 submitted"
+    },
+    {
+      "layer": "frontend",
+      "description": "Playwright integration spec for Consumer Lock",
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+      "expected": "UI lock creation produces success state and DB row"
+    },
+    {
+      "layer": "db",
+      "description": "Verify lock row was created and pk_dilithium populated",
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+      "expected": "one row, status=locked, pk_dilithium length=1952"
+    },
+    {
+      "layer": "l1",
+      "description": "Verify totalLocked increased on Sepolia Vault",
+      "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+      "expected": "value > 0 wei"
+    }
+  ],
+  "acceptance_criteria": [
+    "Backend integration test passes",
+    "Playwright lock.integration.spec.ts passes",
+    "A new locks row exists with status=locked and Dilithium pk len 1952",
+    "Sepolia Vault totalLocked is non-zero",
+    "No silent fallback or hardcoded address in the trace"
+  ],
+  "spec_section": "SEQUENCES.md §1 Consumer Lock"
+}

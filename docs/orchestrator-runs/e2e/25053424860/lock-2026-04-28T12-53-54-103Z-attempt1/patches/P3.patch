@@ -1,0 +1,42 @@
+--- a/src/api/api/tests/sequence_e2e_test.rs
++++ b/src/api/api/tests/sequence_e2e_test.rs
+@@ -30,6 +30,30 @@ async fn sequence_lock() {
+     // After triggering lock creation, verify the DB row:
+     let row = sqlx::query!(
+-        "SELECT lock_id, status, length(pk_dilithium) AS pk_len FROM locks ORDER BY created_at DESC LIMIT 1"
++        r#"
++        SELECT
++            lock_id,
++            status,
++            length(pk_dilithium)            AS pk_len,
++            pk_dilithium = repeat('\x00', length(pk_dilithium))::bytea AS is_zero_filled
++        FROM locks
++        ORDER BY created_at DESC
++        LIMIT 1
++        "#
+     )
+     .fetch_one(&pool)
+     .await
+-    .unwrap_or_default();
++    .expect("Expected one row in locks table — lock was never written to DB");
++
++    assert_eq!(
++        row.status.as_deref(),
++        Some("locked"),
++        "Lock row status must be 'locked', got {:?}",
++        row.status
++    );
++
++    assert_eq!(
++        row.pk_len,
++        Some(1952),
++        "pk_dilithium must be exactly 1952 bytes (Dilithium-3 public key), got {:?} bytes",
++        row.pk_len
++    );
++
++    assert!(
++        !row.is_zero_filled.unwrap_or(true),
++        "pk_dilithium is all-zero bytes — hex/byte parse silently fell back to zeroes"
++    );
+ 
+     // existing assertions continue below

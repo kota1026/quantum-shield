@@ -1,0 +1,13 @@
+--- a/src/frontend/web/package.json
++++ b/src/frontend/web/package.json
+@@ -18,7 +18,8 @@
+   "devDependencies": {
+-    "playwright": "1.59.1"
++    "@playwright/test": "1.44.1",
++    "@types/node": "^20.0.0"
+   },
+   "scripts": {
+     "test:e2e": "playwright test",
++    "pretest:e2e": "npx playwright install --with-deps chromium"
+   }
+ }

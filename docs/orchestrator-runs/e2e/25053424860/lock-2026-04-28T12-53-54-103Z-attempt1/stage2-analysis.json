@@ -1,0 +1,99 @@
+[
+  {
+    "layer": "backend",
+    "status": "fail",
+    "observations": [
+      "exit_code is 1, indicating test execution failed",
+      "stdout_excerpt is empty; no test output captured",
+      "stderr_excerpt shows only compilation output with no test execution trace",
+      "No 'test result:' marker found in any output",
+      "No panic or assertion failure details visible in stderr",
+      "Compilation completed successfully (many crates compiled), but test did not run or crashed before producing output"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Test execution failed with no output",
+        "detail": "cargo test exited with code 1 but produced no stdout and only compilation logs in stderr. The test binary likely failed to execute, panicked during setup, or crashed with output suppressed. Cannot verify any part of the expected behavior: 'Lock created in DB, SR0 computed, L1 lockWithSR0 submitted'.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs::sequence_lock"
+      },
+      {
+        "severity": "high",
+        "title": "Missing test result assertion",
+        "detail": "Expected to find 'test result: ok' or similar success marker in stdout, but stdout is empty. This indicates the test either did not complete, was skipped, or panicked before completion.",
+        "location": null
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "skipped",
+    "observations": [
+      "Playwright test execution failed due to missing '@playwright/test' module",
+      "npm attempted to install playwright@1.59.1 but dependencies were not properly resolved",
+      "Test spec: e2e/integration/lock.integration.spec.ts could not be loaded or executed",
+      "Expected behavior: UI lock creation produces success state and DB row"
+    ],
+    "issues": [
+      {
+        "severity": "high",
+        "title": "Missing Playwright test dependency",
+        "detail": "The '@playwright/test' module could not be resolved in the playwright.config.ts. This indicates that either node_modules are not installed in src/frontend/web, or the Playwright installation is incomplete. The npx fallback installation of playwright@1.59.1 did not include the required test package.",
+        "location": "src/frontend/web/playwright.config.ts:1"
+      },
+      {
+        "severity": "medium",
+        "title": "Frontend dependencies not installed before test run",
+        "detail": "The test environment requires npm install (or yarn/pnpm install) to be run in src/frontend/web before executing Playwright tests. The npx on-demand installation strategy is insufficient for config file resolution.",
+        "location": "src/frontend/web"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "psql exited with code 0 (query executed)",
+      "stdout_excerpt is empty — no rows returned",
+      "expected one row with status=locked and pk_dilithium length=1952",
+      "actual result set is empty"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "No lock record found",
+        "detail": "Expected one row from locks table ordered by created_at DESC LIMIT 1, but query returned zero rows. This indicates either the locks table is empty or the Consumer Lock creation failed.",
+        "location": "locks table"
+      },
+      {
+        "severity": "critical",
+        "title": "Missing pk_dilithium cryptographic material",
+        "detail": "Cannot verify pk_dilithium length because no lock record exists. The cryptographic write path may be broken.",
+        "location": "locks.pk_dilithium"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast exited with code 1",
+      "RPC endpoint returned HTTP 522 (Connection timed out)",
+      "Cloudflare reports origin server (rpc.sepolia.org) did not complete the request",
+      "No contract state data available",
+      "Address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 is a legitimate L1Vault contract"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC Infrastructure Outage",
+        "detail": "The Sepolia RPC endpoint is experiencing connectivity issues. Cloudflare 522 error indicates the origin server is not responding within timeout window. This is an infrastructure issue, not a contract state failure.",
+        "location": "rpc.sepolia.org"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

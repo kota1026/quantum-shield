@@ -1,0 +1,60 @@
+--- a/src/api/api/tests/sequence_e2e_test.rs
++++ b/src/api/api/tests/sequence_e2e_test.rs
+@@ -1,10 +1,20 @@
+ use std::time::Duration;
++use tokio::time::timeout;
+ 
+ #[tokio::test]
+ async fn sequence_lock() {
+-    let pool = setup_db_pool().await;
+-    let rpc  = setup_rpc_client().await;
++    let pool = timeout(
++        Duration::from_secs(15),
++        setup_db_pool(),
++    )
++    .await
++    .expect("DB pool setup timed out after 15 s — is DATABASE_URL reachable?")
++    .expect("DB pool setup returned an error");
++
++    let rpc = timeout(
++        Duration::from_secs(10),
++        setup_rpc_client(),
++    )
++    .await
++    .expect("RPC client setup timed out after 10 s — is L1_RPC_URL reachable?")
++    .expect("RPC client setup returned an error");
+ 
+     // existing test body unchanged below
+--- a/src/api/api/src/db/pool.rs
++++ b/src/api/api/src/db/pool.rs
+@@ -12,8 +12,15 @@ use sqlx::postgres::PgPoolOptions;
+ 
+ pub async fn create_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {
+     PgPoolOptions::new()
+         .max_connections(5)
+-        .connect(database_url)
+-        .await
+-        .unwrap_or_default()
++        .acquire_timeout(std::time::Duration::from_secs(10))
++        .connect(database_url)
++        .await
+ }
+--- a/src/api/api/src/rpc/client.rs
++++ b/src/api/api/src/rpc/client.rs
+@@ -8,9 +8,14 @@ use ethers::providers::{Http, Provider};
+ 
+-pub async fn setup_rpc_client() -> Result<Provider<Http>, anyhow::Error> {
++pub async fn setup_rpc_client() -> Result<Provider<Http>, anyhow::Error> {
+     let url = std::env::var("L1_RPC_URL")
+-        .unwrap_or_default();
+-    let provider = Provider::<Http>::try_from(url.as_str())
+-        .map_err(|_| anyhow::anyhow!("bad rpc url"))?;
+-    Ok(provider)
++        .map_err(|_| anyhow::anyhow!("L1_RPC_URL environment variable is not set"))?;
++    if url.is_empty() {
++        anyhow::bail!("L1_RPC_URL is set but empty");
++    }
++    let provider = Provider::<Http>::try_from(url.as_str())
++        .map_err(|e| anyhow::anyhow!("Failed to construct RPC provider from L1_RPC_URL: {e}"))?;
++    Ok(provider)
+ }

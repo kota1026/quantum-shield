@@ -1,0 +1,102 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "Cross-layer silent failure: backend test crashed with no output AND DB is empty — lock was never created",
+    "detail": "The backend test exited with code 1 and produced zero stdout. The DB layer independently confirmed zero rows in the locks table. Together these prove the Consumer Lock creation path failed entirely — not merely a test-harness flake. Because the DB query itself succeeded (exit 0) but returned no rows, the failure is in the application code or its setup, not in the query. The L1 call could not be verified due to RPC outage (HTTP 522), but the DB emptiness alone is sufficient to conclude that SR0 was never computed and `lockWithSR0` was never submitted.",
+    "evidence": [
+      "backend: exit_code=1, stdout_excerpt='', stderr shows only compilation output — no test execution trace at all",
+      "db: exit_code=0 (psql ran fine), stdout_excerpt='' — zero rows returned from `SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1`",
+      "l1: HTTP 522 from rpc.sepolia.org — totalLocked() unverifiable, consistent with no lock having been submitted",
+      "SEQUENCES.md §1 requires: Lock created in DB, SR0 computed, L1 lockWithSR0 submitted — none of these can be confirmed"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "Backend test binary never executed — likely panic or link failure in test setup, not a test assertion failure",
+    "detail": "A normal cargo test failure (assertion mismatch, timeout, etc.) still prints 'test result: FAILED' to stdout. Here stdout is completely empty despite compilation succeeding. This matches one of three silent-failure patterns: (a) the test binary panicked during global/async setup before any test ran, (b) a background task swallowed an error via `Ok(())` or similar and the test harness received a non-zero exit from the runtime, or (c) a `unwrap_or_default()` / silent fallback silently corrupted state before the first assertion. All three are on the Quantum Shield silent-failure watch-list (items 5, 3, 4). The duration of 300 032 ms (exactly 5 minutes) strongly suggests a timeout — the test binary hung waiting for a resource (DB connection pool, RabbitMQ, or an L1 RPC call that also timed out) and was killed by the test runner.",
+    "evidence": [
+      "backend: duration_ms=300032 — exactly 5-minute wall-clock timeout; cargo test default timeout is not 5 min, so an external runner killed the process",
+      "backend: exit_code=1 with empty stdout — no 'running N tests', no 'test result:' line",
+      "Compilation succeeded fully ('Compiling' lines end normally); the binary was produced but hung or panicked in setup",
+      "Known silent-failure pattern #5: `Ok(())` swallowing background task errors — a background Ethereum/RPC task timing out could cause this exact symptom"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "L1 RPC outage masks whether vault address regression exists — cannot clear item #1 from silent-failure checklist",
+    "detail": "The vault address `0x07012aeF87C6E423c32F2f8eaF81762f63337260` is the correct known-good address and was correctly used in the cast call. However, because the RPC returned HTTP 522, we have no confirmation that `totalLocked()` is non-zero. Combined with the DB being empty, it is impossible to rule out that a hardcoded wrong address or `0x...0002` placeholder (silent-failure items #1 and #2) is present in the backend code path and the lock call silently went to the wrong contract. This must be verified by a code search before this sequence is marked green.",
+    "evidence": [
+      "l1: `cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 'totalLocked()(uint256)' --rpc-url $L1_RPC_URL` → HTTP 522, exit_code=1",
+      "db: zero rows — backend never wrote a lock row, meaning the L1 submission step was never reached, but the address used in the submission code is unverified",
+      "Silent-failure history items #1 (`0x07012aeF87C6E423c32F2f8eaF81762f63337260` is the only correct address) and #2 (`0x...0002` placeholder) require positive L1 confirmation, which is unavailable"
+    ],
+    "suggested_owner": "contracts"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "Frontend test environment is broken — `@playwright/test` not installed, lock UI flow completely unverified",
+    "detail": "The frontend layer failed before running a single test because `@playwright/test` is not installed in `src/frontend/web/node_modules`. This is not merely a CI inconvenience: it means the entire UI lock-creation flow (button state, wallet connection, success/error display) is unverified for this sequence run. Critically, it also means frontend-side bugs such as `SAMPLE_PROPOSALS` hardcoding (silent-failure item #12) or `wallet_address = 'caller'` (item #7) in the lock path cannot be detected by this layer.",
+    "evidence": [
+      "frontend: `Error: Cannot find module '@playwright/test'` — requireStack shows playwright.config.ts:1 as the entry point",
+      "frontend: exit_code=1, duration_ms=6087 — failed at config load, zero tests executed",
+      "`npm warn exec The following package was not found and will be installed: playwright@1.59.1` — npx used wrong package (playwright vs @playwright/test)"
+    ],
+    "suggested_owner": "frontend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "pk_dilithium cryptographic material never written — Dilithium key storage path may be silently broken",
+    "detail": "The DB query specifically checks `length(pk_dilithium)` and the expected value is 1952 bytes (Dilithium-3 public key). The table is empty, so we cannot confirm the key was generated or stored. However, this column is a known regression target: if `hex_to_bytes32_or_zero` (silent-failure item #4) or `unwrap_or_default()` (item #3) is used anywhere in the Dilithium key serialization path, a bad key would be stored as zeroes rather than raising an error. With zero rows the failure is upstream, but when the write path is fixed, this specific column must be asserted to be exactly 1952 bytes — not merely non-null and not zero-filled.",
+    "evidence": [
+      "db: zero rows from `SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1` — pk_dilithium unverifiable",
+      "Silent-failure items #3 and #4 specifically target hex/byte parse errors being silently swallowed in cryptographic material paths",
+      "Spec §1 requires pk_dilithium to be present and valid in the DB row before L1 submission proceeds"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). All findings in this run are initial observations, not regressions. Current run has 3 failing layers (backend, frontend, l1) and 1 passing layer (db, though it returned no rows).",
+    "evidence": [
+      "last_green_run is null",
+      "backend: exit_code=1, duration_ms=300032",
+      "frontend: exit_code=1, duration_ms=6087, MODULE_NOT_FOUND for @playwright/test",
+      "db: exit_code=0 but empty result set (no lock record)",
+      "l1: exit_code=1, HTTP 522 from rpc.sepolia.org"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "Baseline established for seq-1: backend 300.032s, frontend 6.087s, db 0.329s, l1 19.883s. Total orchestrator cost $0.020.",
+    "evidence": [
+      "backend-runner: $0.0090",
+      "frontend-runner: $0.0035",
+      "db-verifier: $0.0019",
+      "l1-verifier: $0.0047"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "high",
+    "title": "Backend layer exceeds 5-minute threshold",
+    "detail": "backend layer consumed 300.032s (5.0 minutes), approaching practical developer tolerance. Sequential runs of this sequence will accumulate friction.",
+    "evidence": [
+      "per_layer_ms.backend = 300032ms",
+      "Exceeds 5min = 300000ms"
+    ],
+    "suggested_owner": "backend"
+  }
+]

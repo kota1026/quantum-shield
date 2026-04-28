@@ -1,0 +1,19 @@
+{
+  "verdict": "BLOCKED",
+  "summary": "The Consumer Lock sequence failed across three of four layers with no single fixable root-cause patch covering all issues. The backend test binary timed out at exactly 300 s (killed by the runner) without emitting any test output, and the DB independently confirms zero lock rows were written — meaning the full creation path (SR0 computation, Dilithium key storage, L1 submission) never executed. The frontend is broken due to missing node_modules (@playwright/test not installed), and the L1 layer is unverifiable due to a Cloudflare 522 RPC outage on rpc.sepolia.org; while the L1 failure is infrastructure-only and would normally permit a downgrade, the backend hang and empty DB are code-level failures that cannot be auto-resolved. No fixer proposals were produced, so there is nothing to apply.",
+  "must_fix_before_merge": [
+    "Backend test binary hangs for 5 minutes and is killed — identify and fix blocking resource acquisition (DB pool, RabbitMQ, or L1 RPC call) in test setup or add explicit timeouts",
+    "Zero rows in locks table — Consumer Lock creation path is entirely non-functional; lock row, SR0, and pk_dilithium are never written",
+    "pk_dilithium storage path unverified — once write path is restored, assert column is exactly 1952 bytes and not zero-filled (guard against unwrap_or_default / hex_to_bytes32_or_zero silent failures)",
+    "Frontend node_modules not installed — @playwright/test missing; run npm install in src/frontend/web before any Playwright test execution",
+    "L1 vault address correctness unverifiable — RPC outage prevents confirming totalLocked() > 0 and that no hardcoded wrong address (0x...0002 placeholder) is present in backend submission path; code-search required as compensating control",
+    "Backend test timeout suggests silent-swallowed error in async setup — audit for Ok(()) returns in background tasks and ensure all setup errors propagate and fail-fast"
+  ],
+  "fixer_recommendation": "reject",
+  "unresolved_questions": [
+    "What specific resource is the backend test binary blocking on during setup that causes it to hang for exactly 300 s before being killed — DB connection pool exhaustion, RabbitMQ unavailability, or an outbound L1 RPC call in test initialization?",
+    "Is the L1 vault submission address in the backend code actually 0x07012aeF87C6E423c32F2f8eaF81762f63337260 (correct) or a placeholder — cannot be confirmed from test output alone and RPC outage prevents runtime verification?",
+    "The db layer reports exit_code=0 (pass) but returned zero rows — is this a pre-existing empty test database or evidence that a prior run partially succeeded and cleaned up, or has the locks table never been populated in this environment?"
+  ],
+  "confidence": 0.65
+}
