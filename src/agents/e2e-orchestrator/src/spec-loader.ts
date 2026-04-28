@@ -110,10 +110,27 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
         description: 'ProverRegistry stake check',
         command: `cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "getProverCount()(uint256)" --rpc-url "$L1_RPC_URL"`,
       },
+      // 2026-04-28 follow-up #2 from the slashing E2E run
+      // (docs/e2e-demos/slashing-2026-04-28/report.md): the prior binding
+      // only checked `getProverCount()`, which doesn't prove the slash
+      // actually landed. Now also assert the prover's stake decreased
+      // (via stakeOf) — a non-zero return from a previously-staked prover
+      // means the slash didn't take effect. The test fixture seeds a
+      // known prover at `0x...0001`; the orchestrator verifies its post-
+      // slash stake is below the pre-slash value.
+      {
+        layer: 'l1',
+        description: 'ProverRegistry slashed-stake check (assert slash actually landed)',
+        command: `cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "stakeOf(bytes32)(uint256)" 0x0000000000000000000000000000000000000000000000000000000000000001 --rpc-url "$L1_RPC_URL"`,
+        expected: 'stake of test prover < pre-slash baseline (proves slash landed on-chain, not just in DB)',
+      },
     ],
     acceptance_criteria: [
       'No best-effort silent warn — every L1 call surfaces a terminal L1SlashStatus',
       'pending_retry rows are observable; retry service picks them up',
+      'colluding_count is derived from signing_queue evidence (signed_at IS NOT NULL), not hardcoded',
+      'L1 verification asserts the slash actually landed on-chain (stakeOf decreased), not just that ProverRegistry is reachable',
+      'Distribution math holds 60/20/20 within ≤2 wei rounding loss',
     ],
   },
 };
