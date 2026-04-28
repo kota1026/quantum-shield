@@ -43,13 +43,13 @@
 
 | 領域 | 白書の主張 | Phase 1 (現在) | Phase 2 (最終形) |
 |------|----------|---------------|-----------------|
-| **L1 SPHINCS+ 検証** | FIPS 205 on-chain verify | `_verifySimplified()` 恒等性ゲート (SHA3 hash 非ゼロ判定) | Full `sphincsVerifier.verify()` — 8 KB 署名 on-chain 検証 |
-| **Prover 署名判断** | 経済ステークを持つ分散オペレータ | **AI Prover Agent (Claude Sonnet 4.6 LLM + ML-DSA 基本 check) が confidence ≥ 0.99 で auto-sign** | HSM-bound 人間オペレータ + 経済ステーク |
+| **L1 SPHINCS+ 検証** | FIPS 205 on-chain verify | `_verifySimplified()` 恒等性ゲート (SHA3 hash 非ゼロ判定) — Phase 1 placeholder、`docs/ROADMAP_PQ_VERIFIER.md` で公開 | ZK proof 経由の on-chain verify (sp1/Halo2) + EIP-8141 alignment |
+| **Prover 署名判断** | 経済ステークを持つ分散オペレータ | ✅ AI Prover は **advisory に降格** (2026-04-27) — `verifier.ts` から AUTO_SIGN 列挙値を削除、全 `ESCALATE` は人間/HSM 経路。`docs/governance/AI_ADVISORY_ROLE.md` 参照 | HSM-bound 人間オペレータ + 経済ステーク |
 | **VRF 乱数源** | Chainlink VRF v2.5 (2/5 加重選出) | contract 未設定時は `block.prevrandao` fallback (UI に非表示) | VRF deploy 完了後は常に Chainlink |
 | **Emergency bond** | L1 で徴収 + challenge 失敗時に没収 | 計算だけ実施、徴収・没収コード未実装 | Full bond collection + slashing connected |
 | **Token Hub reward claim** | L3 RewardRouter 経由で QS トークン支払い | DB only(L3 書き込みなし、`"caller"` リテラル hardcode) | L3 `claimReward()` 呼び出し + auth context から wallet 抽出 |
 | **Governance** | Governor contract 経由の BFT 投票 | フロントで `SAMPLE_PROPOSALS` ハードコード | wagmi 経由で L3 Governor 直読み |
-| **Slashing L1 execution** | `ProverRegistry.slash(N²×10%)` on-chain | **best-effort**: L1 呼び出し失敗時は warn ログのみ、DB は slashed と記録 | fail-hard + retry queue |
+| **Slashing L1 execution** | `ProverRegistry.slash(N²×10%)` on-chain | ✅ **fail-hard 化済み** (Batch 2): `L1SlashStatus` enum (Submitted/Disabled/Unavailable/PendingRetry) + `slashing_retry_service.rs` (max 10 retries, 5min poll) — main.rs:172 で起動。silent warn は完全に除去 | (同じ) |
 | **Time-lock** | 24h normal / 7d emergency | ✅ fixed (2026-04-11) — config-driven, production guard enforced | (同じ) |
 | **Prover pool fallback** | N/A | ✅ fixed (2026-04-11) — `0x...0002` hardcode 除去、fail-fast | (同じ) |
 | **Signature verification guard** | 本番で必須 | ✅ fixed (2026-04-11) — `RUN_MODE` opt-in 廃止、chain_id 経由で強制 | (同じ) |
@@ -94,8 +94,15 @@ SLH-DSA-SHAKE-128s の暗号演算自体は本物の FIPS 205 実装 (`@noble/po
 - **H-1** (HIGH): `skip_signature_verification` production guard を chain_id 経由で強制
 - **H-2** (HIGH): unlock.rs の time-lock を config 読み込みに統一
 
-残りは Batch 2 (C-2 Token Hub claim / C-4 Slashing fail-hard) と Batch 3
-(C-3 AI Prover 白書更新 / H-5 SPHINCS+ Phase 1 バッジ) で対応中。
+### Batch 2 完了 (2026-04-XX)
+
+- **C-4** (CRITICAL): Slashing fail-hard — `L1SlashStatus` enum + `slashing_retry_service.rs`、`main.rs:172` で起動、retry 10回上限、permanently-invalid hex は skip + ERROR ログ
+
+### Batch 3 進行中 (2026-04-27)
+
+- ✅ **C-3** (CRITICAL): AI Prover 白書更新 — `verifier.ts` で `AUTO_SIGN` enum 値削除、`agent.ts` から `handleAutoSign()` メソッド削除、新 policy doc `docs/governance/AI_ADVISORY_ROLE.md` 配置
+- ✅ **H-5** (HIGH): SPHINCS+ Phase 1 バッジ — `docs/ROADMAP_PQ_VERIFIER.md` で Phase 1/2 マイルストーン + ZK migration plan を公開
+- ⬜ **C-2** (CRITICAL, deferred): Token Hub L3 claim — Phase 3 後送り (内部 DB 完結ゆえ外部リスク低、Sherlock 監査優先)
 
 ---
 
