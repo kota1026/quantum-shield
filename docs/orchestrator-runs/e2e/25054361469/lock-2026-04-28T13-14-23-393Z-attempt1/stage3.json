@@ -1,0 +1,103 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "DB empty + backend failure = Consumer Lock sequence produces no persisted state (end-to-end silent failure)",
+    "detail": "The DB layer query returned zero rows (empty stdout, exit code 0 = connection fine, no data). The backend test exited with code 1. Together these confirm the lock record was never written to the `locks` table. Because the backend stderr was entirely consumed by compilation output (truncated at 14145 bytes), the actual runtime error or panic is invisible — this is a silent-failure pattern: the test harness reports a build/run anomaly but swallows the real error. The sequence cannot be considered passing at any layer: no lock_id, no status='locked', no pk_dilithium (expected 1952 bytes), no SR_0 stored, and no L1 transaction verifiable.",
+    "evidence": [
+      "db layer: stdout_excerpt is empty, exit_code=0 — query succeeded but returned zero rows",
+      "backend layer: exit_code=1, stderr_excerpt contains only compilation messages ending at ethers-middleware/aws-smithy — actual test panic/assertion output was truncated or swallowed",
+      "backend layer observation: 'No actual test execution output present in stderr'",
+      "l1 layer: RPC 522 timeout means on-chain state cannot be confirmed even if the tx was sent"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "Backend test stderr truncated at compile-phase output — runtime error is silently dropped (Ok(())-class swallowing)",
+    "detail": "The full stderr was truncated to 14145 bytes of dependency compilation lines. The last visible compilation unit is `ethers-middleware v2.0.14`. No test runner output, no `FAILED`, no `panicked at`, no assertion message is present. This matches the known silent-failure pattern #5 (`Ok(())` swallowing background task errors): the test process exited 1 but the failure reason was never surfaced to the log consumer. Without the actual error, any code path involving `unwrap_or_default()` on hex inputs (pattern #3), `hex_to_bytes32_or_zero` (pattern #4), or a background task returning `Ok(())` on error (pattern #5) cannot be ruled out as the root cause. This must be fixed at the CI capture level AND investigated in the source to ensure errors propagate.",
+    "evidence": [
+      "stderr_excerpt ends with 'Compiling ethers-middleware v2.0.14' — no test execution lines follow",
+      "backend layer: exit_code=1 with '[truncated 14145 bytes]' prefix — truncation occurred before runtime output",
+      "backend observation: 'Compilation appears to have progressed through many dependencies … but stderr truncation suggests build or runtime failure occurred after compilation'"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "Frontend test suite cannot execute due to missing @playwright/test — lock UI behaviour is completely unverified",
+    "detail": "The frontend layer failed before a single test ran: `playwright.config.ts` could not import `@playwright/test` (MODULE_NOT_FOUND). This means the entire E2E UI path for Consumer Lock — wallet connect, amount input, lock button, and success confirmation — is unverified for this run. Combined with the DB being empty and the backend exiting 1, there is no layer at all that has verified a successful lock. This is not merely an environment nuisance; a missing dependency in CI is a recurring pattern that masks regressions (e.g. `SAMPLE_PROPOSALS` on the frontend, pattern #12, could re-appear without detection).",
+    "evidence": [
+      "frontend stderr: 'Error: Cannot find module \\'@playwright/test\\''",
+      "frontend stderr: 'npm warn exec The following package was not found and will be installed: playwright@1.59.1' — npx installed the runner but not the test library",
+      "frontend layer: exit_code=1, status=fail, all observations note zero tests executed"
+    ],
+    "suggested_owner": "frontend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "L1 vault address is correct but RPC outage means lockWithSR0 transaction confirmation is unverifiable — must not be treated as passing",
+    "detail": "The `cast call` targeted the correct vault address `0x07012aeF87C6E423c32F2f8eaF81762f63337260` (pattern #1 OK), but received HTTP 522 from rpc.sepolia.org. The l1 layer analysis classified this as 'info / transient'. However, given that (a) the DB has no lock row and (b) the backend exited 1, this RPC failure means there is also no fallback confirmation that `totalLocked()` changed. If the backend is coded to warn-and-continue on L1 call failure (regression pattern #13 — best-effort L1 calls), the sequence could silently succeed on the backend side without an on-chain record. The RPC outage must be treated as blocking until a successful L1 read is obtained.",
+    "evidence": [
+      "l1 layer: 'Error: HTTP error 522 with body: … Connection timed out' from rpc.sepolia.org",
+      "l1 layer: exit_code=1",
+      "db layer: zero rows — no lock record present, consistent with no L1 transaction having been anchored",
+      "l1 layer analysis classified severity as 'info' — this under-reports given the db-empty cross-layer context"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "pk_dilithium absent from DB — post-quantum key material never stored; SR_0 computation unverifiable",
+    "detail": "The `locks` table query `SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1` returned empty. This means `pk_dilithium` (the Dilithium-2 public key, expected 1952 bytes) was never persisted. The SR_0 value is derived from this key material via SHA3-256; if the key is absent, SR_0 either was never computed or was computed from a zero/default byte array — exactly the `hex_to_bytes32_or_zero` silent-failure pattern (#4). Any downstream verification of the lock (including L1 `lockWithSR0`) would use a garbage or zero SR_0 value.",
+    "evidence": [
+      "db layer: stdout_excerpt is empty — no row with pk_dilithium returned",
+      "db layer analysis: 'pk_dilithium field is absent from result. The post-quantum cryptographic public key must be present and exactly 1952 bytes in length'",
+      "known silent-failure pattern #4: hex_to_bytes32_or_zero silently turning bad input into 0x00..00"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "CI log capture pipeline truncates stderr at 14145 bytes — backend runtime failures are structurally invisible",
+    "detail": "The truncation of backend stderr to exactly 14145 bytes is not random; it indicates a fixed buffer or pipe limit in the test harness. Every future backend test that takes longer to compile will have its runtime output silently dropped. This is a systemic observability gap that enables all of the silent-failure patterns (#3–#6) to go undetected in CI. The buffer limit must be raised or the compilation output must be redirected separately from test output.",
+    "evidence": [
+      "backend stderr_excerpt: '[truncated 14145 bytes]' at the start of the captured output",
+      "backend layer: exit_code=1 with no runtime output visible after truncation point",
+      "backend observation: 'stderr_excerpt contains only partial compilation logs (truncated to 14145 bytes)'"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "last_green_run is null for sequence 'Consumer Lock' (SEQUENCES.md §1). No prior green run exists to compare against. All current findings are initial observations, not regressions. Summary of current state: backend=fail (test execution failure / truncated output), frontend=fail (missing @playwright/test dependency), db=fail (zero rows returned from locks table), l1=fail (RPC 522 timeout on rpc.sepolia.org).",
+    "evidence": [
+      "last_green_run: null",
+      "backend exit_code=1, duration_ms=300023",
+      "frontend exit_code=1, stderr: Cannot find module '@playwright/test'",
+      "db exit_code=0 but stdout_excerpt empty (no lock record found)",
+      "l1 exit_code=1, HTTP 522 Connection timed out from rpc.sepolia.org"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "Baseline metrics for seq-1 have been recorded. Future runs will be compared against: backend 300023ms, frontend 6730ms, db 394ms, l1 19804ms. Total orchestrator cost: $0.02.",
+    "evidence": [
+      "backend-runner: $0.0099",
+      "frontend-runner: $0.0034",
+      "db-verifier: $0.0020",
+      "l1-verifier: $0.0048"
+    ],
+    "suggested_owner": "backend"
+  }
+]

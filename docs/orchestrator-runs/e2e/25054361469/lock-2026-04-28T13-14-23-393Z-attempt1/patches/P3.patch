@@ -1,0 +1,69 @@
+--- a/src/api/api/src/routes/lock.rs
++++ b/src/api/api/src/routes/lock.rs
+@@ -1,6 +1,7 @@
+ use axum::{extract::State, Json};
+ use serde::{Deserialize, Serialize};
++use tracing::error;
+ 
+ use crate::{
+     db::LockRepository,
+@@ -20,30 +21,42 @@ pub async fn create_lock(
+     State(state): State<AppState>,
+     Json(req): Json<CreateLockRequest>,
+ ) -> Result<Json<CreateLockResponse>, AppError> {
+-    // Generate Dilithium-2 keypair
+-    let keypair = DilithiumKeypair::generate();
++    // Generate Dilithium-2 keypair.
++    let keypair = DilithiumKeypair::generate()
++        .map_err(|e| {
++            error!(error = %e, "Dilithium keypair generation failed");
++            AppError::Internal("keypair generation failed".into())
++        })?;
+ 
+-    // Derive SR_0 = SHA3-256(pk_dilithium)
+-    let sr0 = compute_sr0(keypair.public_key_bytes());
++    // Derive SR_0 = SHA3-256(pk_dilithium).
++    // pk_bytes must be exactly 1952 bytes; reject any other length immediately.
++    let pk_bytes = keypair.public_key_bytes();
++    if pk_bytes.len() != 1952 {
++        error!(actual_len = pk_bytes.len(), expected = 1952, "pk_dilithium has wrong length");
++        return Err(AppError::Internal(
++            format!("pk_dilithium length {} != 1952", pk_bytes.len()).into()
++        ));
++    }
++    let sr0 = compute_sr0(&pk_bytes);
+ 
+-    // Persist lock record
+-    let lock = state
++    // Persist lock record; propagate DB errors — do not swallow.
++    let lock = state
+         .lock_repo
+-        .create_lock(CreateLockParams {
++        .create_lock(CreateLockParams {
+             amount:        req.amount,
+-            pk_dilithium:  keypair.public_key_bytes().to_vec(),
++            pk_dilithium:  pk_bytes.to_vec(),
+             sr0:           sr0.clone(),
+             status:        "locked".to_string(),
+         })
+         .await
+-        .unwrap_or_default();
++        .map_err(|e| {
++            error!(error = %e, "Failed to persist lock record to DB");
++            AppError::Internal("db insert failed".into())
++        })?;
+ 
+-    // Submit lockWithSR0 to L1 (best-effort)
+-    let _ = state.l1_client.lock_with_sr0(lock.lock_id, sr0).await;
++    // Submit lockWithSR0 to L1; failure is fatal — do not treat as best-effort.
++    state
++        .l1_client
++        .lock_with_sr0(lock.lock_id, sr0)
++        .await
++        .map_err(|e| {
++            error!(error = %e, lock_id = %lock.lock_id, "L1 lockWithSR0 submission failed");
++            AppError::Internal("L1 submission failed".into())
++        })?;
+ 
+     Ok(Json(CreateLockResponse { lock_id: lock.lock_id }))
+ }

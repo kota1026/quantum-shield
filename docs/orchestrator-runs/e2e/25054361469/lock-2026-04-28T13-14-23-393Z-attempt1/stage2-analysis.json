@@ -1,0 +1,111 @@
+[
+  {
+    "layer": "backend",
+    "status": "fail",
+    "observations": [
+      "Command executed: cargo test for sequence_lock in e2e_test suite",
+      "Exit code: 1 (non-zero, indicates test failure)",
+      "stdout_excerpt: empty (no test output captured)",
+      "stderr_excerpt: contains only compilation output (14145 bytes of dependency compilation messages)",
+      "No actual test execution output present in stderr",
+      "Compilation appears to have progressed through many dependencies (ethers-middleware, aws-smithy, sqlx, etc.) but stderr truncation suggests build or runtime failure occurred after compilation"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Test Execution Failed",
+        "detail": "Exit code 1 indicates test failure. The entire stderr excerpt contains only compilation output with no test results, panic traces, or assertion failures visible. This suggests the test either failed to run, panicked during execution, or the output was truncated before capturing the actual failure.",
+        "location": null
+      },
+      {
+        "severity": "high",
+        "title": "Missing Test Output",
+        "detail": "stdout_excerpt is empty and stderr_excerpt contains only partial compilation logs (truncated to 14145 bytes). The actual test failure reason is not visible. Cannot verify whether Lock record creation, SR_0 computation, or transaction submission occurred.",
+        "location": null
+      },
+      {
+        "severity": "high",
+        "title": "No Verification of Expected Behavior",
+        "detail": "Expected behavior requires: (1) Lock record in DB, (2) SR_0 computed as SHA3-256 hash with specific format, (3) lockWithSR0 transaction submitted to L1 Vault. None of these can be confirmed from the provided output.",
+        "location": null
+      },
+      {
+        "severity": "medium",
+        "title": "Truncated Error Output",
+        "detail": "stderr is truncated (14145 bytes) and only shows compilation. The actual runtime error or test assertion failure occurred after this point and is not captured.",
+        "location": null
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "skipped",
+    "observations": [
+      "Playwright test execution failed before any tests could run",
+      "Module resolution error: @playwright/test not found in playwright.config.ts",
+      "Dependencies not properly installed in test environment",
+      "No test results available to evaluate"
+    ],
+    "issues": [
+      {
+        "severity": "high",
+        "title": "Missing @playwright/test dependency",
+        "detail": "The playwright.config.ts file cannot import @playwright/test. This indicates either node_modules is not installed, or the wrong version of Playwright was installed via npx. The error occurs during config loading, before any tests can execute.",
+        "location": "src/frontend/web/playwright.config.ts:1"
+      },
+      {
+        "severity": "high",
+        "title": "Test environment setup incomplete",
+        "detail": "npx attempted to install playwright@1.59.1 but dependencies were not resolved. The command requires 'npm install' to have been run in src/frontend/web/ directory first, or the working environment is missing node_modules.",
+        "location": "src/frontend/web"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "psql exited with code 0 (connection successful)",
+      "stdout_excerpt is empty — no rows returned",
+      "Expected exactly one row with status='locked' and pk_dilithium length=1952",
+      "Result set is empty despite successful connection"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "No lock record found",
+        "detail": "Query returned zero rows. Expected exactly one row with status='locked' and pk_dilithium of length 1952. This indicates the Consumer Lock sequence did not persist a lock record to the database, or the record was not created.",
+        "location": "locks table"
+      },
+      {
+        "severity": "critical",
+        "title": "Missing cryptographic material",
+        "detail": "pk_dilithium field is absent from result. The post-quantum cryptographic public key must be present and exactly 1952 bytes in length for a valid lock.",
+        "location": "locks.pk_dilithium"
+      }
+    ],
+    "confidence": 0.99
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast invocation targeted legitimate L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260",
+      "RPC endpoint rpc.sepolia.org returned HTTP 522 (Connection timed out)",
+      "Cloudflare reports origin server error; infrastructure unavailable",
+      "No contract state data could be retrieved; call did not execute",
+      "Exit code 1 consistent with RPC connectivity failure"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC infrastructure timeout",
+        "detail": "The Sepolia RPC endpoint is unreachable (HTTP 522). This is a transient infrastructure issue, not a contract logic failure. Retry when RPC service recovers.",
+        "location": "rpc.sepolia.org:L1Vault"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

@@ -1,0 +1,17 @@
+--- a/src/frontend/web/run_e2e.sh
++++ b/src/frontend/web/run_e2e.sh
+@@ -1,6 +1,13 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+ 
+-npx playwright test
++# Ensure all node_modules (including @playwright/test) are present.
++# Using 'npm ci' (not 'npm install') to enforce lockfile reproducibility.
++if [ ! -d node_modules ]; then
++  echo "[run_e2e] node_modules absent — running npm ci"
++  npm ci
++else
++  echo "[run_e2e] node_modules present — skipping npm ci"
++fi
++
++npx playwright test

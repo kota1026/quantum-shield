@@ -1,0 +1,18 @@
+--- a/src/api/api/tests/e2e_test/run_tests.sh
++++ b/src/api/api/tests/e2e_test/run_tests.sh
+@@ -1,8 +1,18 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+ 
+-cargo test for sequence_lock --test e2e_test -- --nocapture 2>&1
++# Build first, redirecting all compilation output to a dedicated log so that
++# the test-runner stderr pipe is not consumed by cargo dependency compilation.
++# This prevents the fixed-buffer truncation that silently drops runtime panics.
++BUILD_LOG="$(mktemp /tmp/cargo_build_XXXXXX.log)"
++echo "[run_tests] pre-building; build output -> ${BUILD_LOG}"
++cargo test --test e2e_test --no-run 2>"${BUILD_LOG}" \
++  || { echo "[run_tests] BUILD FAILED — see ${BUILD_LOG}"; cat "${BUILD_LOG}"; exit 1; }
++
++echo "[run_tests] build succeeded; running tests"
++# Only test runtime output reaches stderr from this point forward.
++cargo test --test e2e_test sequence_lock -- --nocapture 2>&1

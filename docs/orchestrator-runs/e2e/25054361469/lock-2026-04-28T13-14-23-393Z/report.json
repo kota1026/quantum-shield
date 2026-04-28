@@ -1,0 +1,386 @@
+{
+  "sequence": "seq-1",
+  "started_at": "2026-04-28T13:14:23.393Z",
+  "finished_at": "2026-04-28T13:21:18.601Z",
+  "duration_ms": 415208,
+  "plan": {
+    "sequence_id": "seq-1",
+    "sequence_name": "Consumer Lock",
+    "layers": [
+      "backend",
+      "frontend",
+      "db",
+      "l1"
+    ],
+    "steps": [
+      {
+        "layer": "backend",
+        "description": "Rust integration test for Lock flow",
+        "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture",
+        "expected": "Test output confirms: Lock record created in DB, SR_0 computed as SHA3-256(\"QS_LOCK_V1\" || chain_id || asset || amount || dest_addr || expiry || nonce || pk_dilithium), and lockWithSR0 transaction submitted to L1 Vault at 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67; test exits with code 0 and no FAILED lines in output"
+      },
+      {
+        "layer": "frontend",
+        "description": "Playwright integration spec for Consumer Lock",
+        "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+        "expected": "JSON reporter output contains 0 failed tests; at least one test confirms UI lock creation reaches success state and a corresponding DB row is observable; no test status is 'failed' or 'timedOut'"
+      },
+      {
+        "layer": "db",
+        "description": "Verify lock row was created and pk_dilithium populated",
+        "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+        "expected": "Exactly one row is returned; status field equals 'locked'; length(pk_dilithium) equals exactly 1952; any other value or empty result is a hard failure"
+      },
+      {
+        "layer": "l1",
+        "description": "Verify totalLocked increased on Sepolia Vault",
+        "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+        "expected": "Returned uint256 value is strictly greater than 0; a return value of 0 is a hard failure indicating no ETH has been locked in the Vault"
+      }
+    ],
+    "acceptance_criteria": [
+      "Backend integration test (sequence_lock) exits with code 0 and zero FAILED assertions",
+      "Playwright lock.integration.spec.ts reports 0 failed tests and at least 1 passed test confirming success state",
+      "A row exists in the locks table with status exactly equal to 'locked' and pk_dilithium byte length exactly equal to 1952",
+      "Sepolia Vault totalLocked() returns a value strictly greater than 0 wei",
+      "No silent fallback or hardcoded address appears in the execution trace: $L1_RPC_URL and $DATABASE_URL must be resolved from environment, not literals"
+    ],
+    "spec_section": "SEQUENCES.md §1 Consumer Lock"
+  },
+  "plan_source": "ai",
+  "layer_results": [
+    {
+      "layer": "backend",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 300023,
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture",
+      "stdout_excerpt": "",
+      "stderr_excerpt": "[truncated 14145 bytes]\nme v0.6.11\n\u001b[1m\u001b[92m   Compiling\u001b[0m serde_spanned v0.6.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m ring v0.16.20\n\u001b[1m\u001b[92m   Compiling\u001b[0m hybrid-array v0.4.10\n\u001b[1m\u001b[92m   Compiling\u001b[0m radium v0.7.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m crc-catalog v2.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m event-listener v2.5.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m toml_write v0.1.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m tinyvec_macros v0.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m tinyvec v1.10.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m toml_edit v0.22.27\n\u001b[1m\u001b[92m   Compiling\u001b[0m crc v3.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m cms v0.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-runtime v1.10.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m event-listener-strategy v0.5.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-sigv4 v1.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m js-sys v0.3.83\n\u001b[1m\u001b[92m   Compiling\u001b[0m hyper-tls v0.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m der-parser v10.0.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m scrypt v0.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-lite v2.6.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m simple_asn1 v0.6.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m cbc v0.1.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-pemfile v2.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m bs58 v0.5.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m ripemd v0.1.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode_categories v0.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m base64 v0.13.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m utf-8 v0.7.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m sync_wrapper v0.1.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m ucd-trie v0.1.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m bech32 v0.9.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m indenter v0.3.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m tap v1.0.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m spin v0.5.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m cmov v0.5.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m untrusted v0.7.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m io-lifetimes v1.0.11\n\u001b[1m\u001b[92m   Compiling\u001b[0m same-file v1.0.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m walkdir v2.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ctutils v0.4.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m wyz v0.5.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m coins-core v0.8.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m pest v2.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m Inflector v0.11.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m reqwest v0.11.27\n\u001b[1m\u001b[92m   Compiling\u001b[0m tungstenite v0.20.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m pem v1.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlformat v0.2.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-native-certs v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m pkcs5 v0.7.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m x509-parser v0.17.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m gloo-timers v0.2.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-intrusive v0.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-runtime v1.7.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m bigdecimal v0.3.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m pkcs12 v0.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m crossbeam-queue v0.3.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m tokio-stream v0.1.18\n\u001b[1m\u001b[92m   Compiling\u001b[0m toml v0.8.23\n\u001b[1m\u001b[92m   Compiling\u001b[0m hashlink v0.8.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-normalization v0.1.25\n\u001b[1m\u001b[92m   Compiling\u001b[0m crypto-common v0.2.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m block-buffer v0.12.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m const-random-macro v0.1.16\n\u001b[1m\u001b[92m   Compiling\u001b[0m atoi v2.0.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m rc2 v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m des v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m fxhash v0.2.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m pbkdf2 v0.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m spin v0.9.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m polling v2.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-io v2.6.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustix v0.37.28\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-task v4.7.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-bidi v0.3.18\n\u001b[1m\u001b[92m   Compiling\u001b[0m cookie-factory v0.3.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m funty v2.0.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-properties v0.1.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m regex-lite v0.1.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m send_wrapper v0.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-timer v3.0.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m bitvec v1.0.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m stringprep v0.1.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlx-core v0.7.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m amq-protocol-types v7.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m scrypt v0.10.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m hashers v1.0.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m p12-keystore v0.1.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m const-random v0.1.18\n\u001b[1m\u001b[92m   Compiling\u001b[0m digest v0.11.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-contract-abigen v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-connector v0.20.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m jsonwebtoken v8.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m tokio-tungstenite v0.20.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m pest_meta v2.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m coins-bip32 v0.8.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-channel v2.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m tracing-futures v0.2.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m enr v0.10.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m hkdf v0.12.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m polling v3.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ctr v0.9.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m piper v0.2.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-json v0.62.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m md-5 v0.10.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m uuid v0.8.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-io v1.13.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m instant v0.1.13\n\u001b[1m\u001b[92m   Compiling\u001b[0m doc-comment v0.3.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m waker-fn v1.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m urlencoding v2.1.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m xmlparser v0.13.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m fastrand v1.9.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m bitflags v1.3.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m whoami v1.6.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m linux-raw-sys v0.3.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-segmentation v1.12.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m home v0.5.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m const-oid v0.10.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m dotenvy v0.15.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlx-postgres v0.7.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m heck v0.4.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-xml v0.60.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-lite v1.13.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m der v0.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-providers v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m eth-keystore v0.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m blocking v1.6.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m pest_generator v2.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m coins-bip39 v0.8.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m tcp-stream v0.28.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-contract-derive v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m dlv-list v0.5.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m amq-protocol-uri v7.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-executor v1.13.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-lock v3.4.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-lock v2.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m axum-core v0.4.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m axum-macros v0.4.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m serde_path_to_error v0.1.20\n\u001b[1m\u001b[92m   Compiling\u001b[0m multer v3.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls v0.22.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m anyhow v1.0.100\n\u001b[1m\u001b[92m   Compiling\u001b[0m amq-protocol v7.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m foldhash v0.1.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m matchit v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicase v2.9.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m mime_guess v2.0.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m axum v0.7.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m hashbrown v0.15.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-global-executor v3.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m amq-protocol-tcp v7.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m ordered-multimap v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-contract v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-signers v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m pest_derive v2.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m spki v0.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlx-macros-core v0.7.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-query v0.60.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m flume v0.11.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-etherscan v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m crc-fast v1.6.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-http v0.62.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m executor-trait v2.1.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m reactor-trait v1.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-webpki v0.102.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-executor v0.3.31\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-locks v0.7.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m keccak v0.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m lapin v2.5.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m arraydeque v0.5.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m rand_core v0.10.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m cpufeatures v0.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m signature v3.0.0-rc.10\n\u001b[1m\u001b[92m   Compiling\u001b[0m sha2 v0.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-checksums v0.63.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m convert_case v0.6.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m yaml-rust2 v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m sha3 v0.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-middleware v2.0.14\n"
+    },
+    {
+      "layer": "frontend",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 6730,
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+      "stdout_excerpt": "",
+      "stderr_excerpt": "npm warn exec The following package was not found and will be installed: playwright@1.59.1\nError: Cannot find module '@playwright/test'\nRequire stack:\n- /home/runner/work/quantum-shield/quantum-shield/src/frontend/web/playwright.config.ts\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/cli.js\n    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)\n    at Function.resolveFilename [as _resolveFilename] (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js:240:36)\n    at Function.Module._load (node:internal/modules/cjs/loader:1038:27)\n    at Module.require (node:internal/modules/cjs/loader:1289:19)\n    at require (node:internal/modules/helpers:182:18)\n    at Object.<anonymous> (/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/playwright.config.ts:1:1)\n    at Module._compile (node:internal/modules/cjs/loader:1521:14)\n    at Module.newCompile2 (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/third_party/pirates.js:46:29)\n    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1623:10)\n    at Object.newLoader2 [as .ts] (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/third_party/pirates.js:52:22)\n    at Module.load (node:internal/modules/cjs/loader:1266:32)\n    at Function.Module._load (node:internal/modules/cjs/loader:1091:12)\n    at Module.require (node:internal/modules/cjs/loader:1289:19)\n    at require (node:internal/modules/helpers:182:18)\n    at requireOrImport (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js:218:18)\n    at loadUserConfig (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:107:89)\n    at loadConfig (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:119:28)\n    at loadConfigFromFile (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:331:10)\n    at runTests (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js:51:18)\n    at i.<anonymous> (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js:56:7) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/playwright.config.ts',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/cli.js'\n  ]\n}\n"
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 394,
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+      "stdout_excerpt": "",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "l1",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 19804,
+      "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+      "stdout_excerpt": "",
+      "stderr_excerpt": "Error: HTTP error 522 with body: <!DOCTYPE html>\n<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js ie7 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-js ie8 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html class=\"no-js\" lang=\"en-US\"> <!--<![endif]-->\n<head>\n\n<title>sepolia.org | 522: Connection timed out</title>\n<meta charset=\"UTF-8\" />\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\" />\n<meta name=\"robots\" content=\"noindex, nofollow\" />\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n<link rel=\"stylesheet\" id=\"cf_styles-css\" href=\"/cdn-cgi/styles/main.css\" />\n</head>\n<body>\n<div id=\"cf-wrapper\">\n    <div id=\"cf-error-details\" class=\"p-0\">\n        <header class=\"mx-auto pt-10 lg:pt-6 lg:px-8 w-240 lg:w-full mb-8\">\n            <h1 class=\"inline-block sm:block sm:mb-2 font-light text-60 lg:text-4xl text-black-dark leading-tight mr-2\">\n                <span class=\"inline-block\">Connection timed out</span>\n                <span class=\"code-label\">Error code 522</span>\n            </h1>\n            <div>\n                Visit <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">cloudflare.com</a> for more information.\n            </div>\n            <div class=\"mt-3\">2026-04-28 13:14:59 UTC</div>\n        </header>\n        <div class=\"my-8 bg-gradient-gray\">\n            <div class=\"w-240 lg:w-full mx-auto\">\n                <div class=\"clearfix md:px-8\">\n                    <div id=\"cf-browser-status\" class=\" relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    \n    <span class=\"cf-icon-browser block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    \n  </div>\n  <span class=\"md:block w-full truncate\">You</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  \n    Browser\n  \n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-green-success\">Working</span>\n  \n</div>\n                    <div id=\"cf-cloudflare-status\" class=\" relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&#38;utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n    <span class=\"cf-icon-cloud block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    </a>\n  </div>\n  <span class=\"md:block w-full truncate\">Dallas</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n    Cloudflare\n  </a>\n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-green-success\">Working</span>\n  \n</div>\n                    <div id=\"cf-host-status\" class=\"cf-error-source relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    \n    <span class=\"cf-icon-server block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-error w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    \n  </div>\n  <span class=\"md:block w-full truncate\">rpc.sepolia.org</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  \n    Host\n  \n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-red-error\">Error</span>\n  \n</div>\n                </div>\n            </div>\n        </div>\n\n        <div class=\"w-240 lg:w-full mx-auto mb-8 lg:px-8\">\n            <div class=\"clearfix\">\n                <div class=\"w-1/2 md:w-full float-left pr-6 md:pb-10 md:pr-0 leading-relaxed\">\n                    <h2 class=\"text-3xl font-normal leading-1.3 mb-4\">What happened?</h2>\n                    <p>The initial connection between Cloudflare's network and the origin web server timed out. As a result, the web page can not be displayed.</p>\n                </div>\n                <div class=\"w-1/2 md:w-full float-left leading-relaxed\">\n                    <h2 class=\"text-3xl font-normal leading-1.3 mb-4\">What can I do?</h2>\n                    \n                <h3 class=\"text-15 font-semibold mb-2\">If you're a visitor of this website:</h3>\n                <p class=\"mb-6\">Please try again in a few minutes.</p>\n\n                <h3 class=\"text-15 font-semibold mb-2\">If you're the owner of this website:</h3>\n                <p><span>Contact your hosting provider letting them know your web server is not completing requests. An Error 522 means that the request was able to connect to your web server, but that the request didn't finish. The most likely cause is that something on your server is hogging resources.</span> <a rel=\"noopener noreferrer\" href=\"https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-5xx-errors/error-522/\">Additional troubleshooting information here.</a></p>\n                </div>\n            </div>\n        </div>\n\n        <div class=\"cf-error-footer cf-wrapper w-240 lg:w-full py-10 sm:py-4 sm:px-8 mx-auto text-center sm:text-left border-solid border-0 border-t border-gray-300\">\n    <p class=\"text-13\">\n      <span class=\"cf-footer-item sm:block sm:mb-1\">Cloudflare Ray ID: <strong class=\"font-semibold\">9f3654d0dba2c9db</strong></span>\n      <span class=\"cf-footer-separator sm:hidden\">&bull;</span>\n      <span id=\"cf-footer-item-ip\" class=\"cf-footer-item hidden sm:block sm:mb-1\">\n        Your IP:\n        <button type=\"button\" id=\"cf-footer-ip-reveal\" class=\"cf-footer-ip-reveal-btn\">Click to reveal</button>\n        <span class=\"hidden\" id=\"cf-footer-ip\">52.154.132.186</span>\n        <span class=\"cf-footer-separator sm:hidden\">&bull;</span>\n      </span>\n      <span class=\"cf-footer-item sm:block sm:mb-1\"><span>Performance &amp; security by</span> <a rel=\"noopener noreferrer\" href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&#38;utm_campaign=rpc.sepolia.org\" id=\"brand_link\" target=\"_blank\">Cloudflare</a></span>\n      \n    </p>\n    <script>(function(){function d(){var b=a.getElementById(\"cf-footer-item-ip\"),c=a.getElementById(\"cf-footer-ip-reveal\");b&&\"classList\"in b&&(b.classList.remove(\"hidden\"),c.addEventListener(\"click\",function(){c.classList.add(\"hidden\");a.getElementById(\"cf-footer-ip\").classList.remove(\"hidden\")}))}var a=document;document.addEventListener&&a.addEventListener(\"DOMContentLoaded\",d)})();</script>\n  </div><!-- /.error-footer -->\n\n    </div>\n</div>\n</body>\n</html>\n"
+    }
+  ],
+  "layer_analyses": [
+    {
+      "layer": "backend",
+      "status": "fail",
+      "observations": [
+        "Command executed: cargo test for sequence_lock in e2e_test suite",
+        "Exit code: 1 (non-zero, indicates test failure)",
+        "stdout_excerpt: empty (no test output captured)",
+        "stderr_excerpt: contains only compilation output (14145 bytes of dependency compilation messages)",
+        "No actual test execution output present in stderr",
+        "Compilation appears to have progressed through many dependencies (ethers-middleware, aws-smithy, sqlx, etc.) but stderr truncation suggests build or runtime failure occurred after compilation"
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "Test Execution Failed",
+          "detail": "Exit code 1 indicates test failure. The entire stderr excerpt contains only compilation output with no test results, panic traces, or assertion failures visible. This suggests the test either failed to run, panicked during execution, or the output was truncated before capturing the actual failure.",
+          "location": null
+        },
+        {
+          "severity": "high",
+          "title": "Missing Test Output",
+          "detail": "stdout_excerpt is empty and stderr_excerpt contains only partial compilation logs (truncated to 14145 bytes). The actual test failure reason is not visible. Cannot verify whether Lock record creation, SR_0 computation, or transaction submission occurred.",
+          "location": null
+        },
+        {
+          "severity": "high",
+          "title": "No Verification of Expected Behavior",
+          "detail": "Expected behavior requires: (1) Lock record in DB, (2) SR_0 computed as SHA3-256 hash with specific format, (3) lockWithSR0 transaction submitted to L1 Vault. None of these can be confirmed from the provided output.",
+          "location": null
+        },
+        {
+          "severity": "medium",
+          "title": "Truncated Error Output",
+          "detail": "stderr is truncated (14145 bytes) and only shows compilation. The actual runtime error or test assertion failure occurred after this point and is not captured.",
+          "location": null
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "layer": "frontend",
+      "status": "skipped",
+      "observations": [
+        "Playwright test execution failed before any tests could run",
+        "Module resolution error: @playwright/test not found in playwright.config.ts",
+        "Dependencies not properly installed in test environment",
+        "No test results available to evaluate"
+      ],
+      "issues": [
+        {
+          "severity": "high",
+          "title": "Missing @playwright/test dependency",
+          "detail": "The playwright.config.ts file cannot import @playwright/test. This indicates either node_modules is not installed, or the wrong version of Playwright was installed via npx. The error occurs during config loading, before any tests can execute.",
+          "location": "src/frontend/web/playwright.config.ts:1"
+        },
+        {
+          "severity": "high",
+          "title": "Test environment setup incomplete",
+          "detail": "npx attempted to install playwright@1.59.1 but dependencies were not resolved. The command requires 'npm install' to have been run in src/frontend/web/ directory first, or the working environment is missing node_modules.",
+          "location": "src/frontend/web"
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "layer": "db",
+      "status": "fail",
+      "observations": [
+        "psql exited with code 0 (connection successful)",
+        "stdout_excerpt is empty — no rows returned",
+        "Expected exactly one row with status='locked' and pk_dilithium length=1952",
+        "Result set is empty despite successful connection"
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "No lock record found",
+          "detail": "Query returned zero rows. Expected exactly one row with status='locked' and pk_dilithium of length 1952. This indicates the Consumer Lock sequence did not persist a lock record to the database, or the record was not created.",
+          "location": "locks table"
+        },
+        {
+          "severity": "critical",
+          "title": "Missing cryptographic material",
+          "detail": "pk_dilithium field is absent from result. The post-quantum cryptographic public key must be present and exactly 1952 bytes in length for a valid lock.",
+          "location": "locks.pk_dilithium"
+        }
+      ],
+      "confidence": 0.99
+    },
+    {
+      "layer": "l1",
+      "status": "skipped",
+      "observations": [
+        "cast invocation targeted legitimate L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260",
+        "RPC endpoint rpc.sepolia.org returned HTTP 522 (Connection timed out)",
+        "Cloudflare reports origin server error; infrastructure unavailable",
+        "No contract state data could be retrieved; call did not execute",
+        "Exit code 1 consistent with RPC connectivity failure"
+      ],
+      "issues": [
+        {
+          "severity": "info",
+          "title": "RPC infrastructure timeout",
+          "detail": "The Sepolia RPC endpoint is unreachable (HTTP 522). This is a transient infrastructure issue, not a contract logic failure. Retry when RPC service recovers.",
+          "location": "rpc.sepolia.org:L1Vault"
+        }
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "quality_findings": [
+    {
+      "source": "bug-hunter",
+      "severity": "critical",
+      "title": "DB empty + backend failure = Consumer Lock sequence produces no persisted state (end-to-end silent failure)",
+      "detail": "The DB layer query returned zero rows (empty stdout, exit code 0 = connection fine, no data). The backend test exited with code 1. Together these confirm the lock record was never written to the `locks` table. Because the backend stderr was entirely consumed by compilation output (truncated at 14145 bytes), the actual runtime error or panic is invisible — this is a silent-failure pattern: the test harness reports a build/run anomaly but swallows the real error. The sequence cannot be considered passing at any layer: no lock_id, no status='locked', no pk_dilithium (expected 1952 bytes), no SR_0 stored, and no L1 transaction verifiable.",
+      "evidence": [
+        "db layer: stdout_excerpt is empty, exit_code=0 — query succeeded but returned zero rows",
+        "backend layer: exit_code=1, stderr_excerpt contains only compilation messages ending at ethers-middleware/aws-smithy — actual test panic/assertion output was truncated or swallowed",
+        "backend layer observation: 'No actual test execution output present in stderr'",
+        "l1 layer: RPC 522 timeout means on-chain state cannot be confirmed even if the tx was sent"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "critical",
+      "title": "Backend test stderr truncated at compile-phase output — runtime error is silently dropped (Ok(())-class swallowing)",
+      "detail": "The full stderr was truncated to 14145 bytes of dependency compilation lines. The last visible compilation unit is `ethers-middleware v2.0.14`. No test runner output, no `FAILED`, no `panicked at`, no assertion message is present. This matches the known silent-failure pattern #5 (`Ok(())` swallowing background task errors): the test process exited 1 but the failure reason was never surfaced to the log consumer. Without the actual error, any code path involving `unwrap_or_default()` on hex inputs (pattern #3), `hex_to_bytes32_or_zero` (pattern #4), or a background task returning `Ok(())` on error (pattern #5) cannot be ruled out as the root cause. This must be fixed at the CI capture level AND investigated in the source to ensure errors propagate.",
+      "evidence": [
+        "stderr_excerpt ends with 'Compiling ethers-middleware v2.0.14' — no test execution lines follow",
+        "backend layer: exit_code=1 with '[truncated 14145 bytes]' prefix — truncation occurred before runtime output",
+        "backend observation: 'Compilation appears to have progressed through many dependencies … but stderr truncation suggests build or runtime failure occurred after compilation'"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "high",
+      "title": "Frontend test suite cannot execute due to missing @playwright/test — lock UI behaviour is completely unverified",
+      "detail": "The frontend layer failed before a single test ran: `playwright.config.ts` could not import `@playwright/test` (MODULE_NOT_FOUND). This means the entire E2E UI path for Consumer Lock — wallet connect, amount input, lock button, and success confirmation — is unverified for this run. Combined with the DB being empty and the backend exiting 1, there is no layer at all that has verified a successful lock. This is not merely an environment nuisance; a missing dependency in CI is a recurring pattern that masks regressions (e.g. `SAMPLE_PROPOSALS` on the frontend, pattern #12, could re-appear without detection).",
+      "evidence": [
+        "frontend stderr: 'Error: Cannot find module \\'@playwright/test\\''",
+        "frontend stderr: 'npm warn exec The following package was not found and will be installed: playwright@1.59.1' — npx installed the runner but not the test library",
+        "frontend layer: exit_code=1, status=fail, all observations note zero tests executed"
+      ],
+      "suggested_owner": "frontend"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "high",
+      "title": "L1 vault address is correct but RPC outage means lockWithSR0 transaction confirmation is unverifiable — must not be treated as passing",
+      "detail": "The `cast call` targeted the correct vault address `0x07012aeF87C6E423c32F2f8eaF81762f63337260` (pattern #1 OK), but received HTTP 522 from rpc.sepolia.org. The l1 layer analysis classified this as 'info / transient'. However, given that (a) the DB has no lock row and (b) the backend exited 1, this RPC failure means there is also no fallback confirmation that `totalLocked()` changed. If the backend is coded to warn-and-continue on L1 call failure (regression pattern #13 — best-effort L1 calls), the sequence could silently succeed on the backend side without an on-chain record. The RPC outage must be treated as blocking until a successful L1 read is obtained.",
+      "evidence": [
+        "l1 layer: 'Error: HTTP error 522 with body: … Connection timed out' from rpc.sepolia.org",
+        "l1 layer: exit_code=1",
+        "db layer: zero rows — no lock record present, consistent with no L1 transaction having been anchored",
+        "l1 layer analysis classified severity as 'info' — this under-reports given the db-empty cross-layer context"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "high",
+      "title": "pk_dilithium absent from DB — post-quantum key material never stored; SR_0 computation unverifiable",
+      "detail": "The `locks` table query `SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1` returned empty. This means `pk_dilithium` (the Dilithium-2 public key, expected 1952 bytes) was never persisted. The SR_0 value is derived from this key material via SHA3-256; if the key is absent, SR_0 either was never computed or was computed from a zero/default byte array — exactly the `hex_to_bytes32_or_zero` silent-failure pattern (#4). Any downstream verification of the lock (including L1 `lockWithSR0`) would use a garbage or zero SR_0 value.",
+      "evidence": [
+        "db layer: stdout_excerpt is empty — no row with pk_dilithium returned",
+        "db layer analysis: 'pk_dilithium field is absent from result. The post-quantum cryptographic public key must be present and exactly 1952 bytes in length'",
+        "known silent-failure pattern #4: hex_to_bytes32_or_zero silently turning bad input into 0x00..00"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "medium",
+      "title": "CI log capture pipeline truncates stderr at 14145 bytes — backend runtime failures are structurally invisible",
+      "detail": "The truncation of backend stderr to exactly 14145 bytes is not random; it indicates a fixed buffer or pipe limit in the test harness. Every future backend test that takes longer to compile will have its runtime output silently dropped. This is a systemic observability gap that enables all of the silent-failure patterns (#3–#6) to go undetected in CI. The buffer limit must be raised or the compilation output must be redirected separately from test output.",
+      "evidence": [
+        "backend stderr_excerpt: '[truncated 14145 bytes]' at the start of the captured output",
+        "backend layer: exit_code=1 with no runtime output visible after truncation point",
+        "backend observation: 'stderr_excerpt contains only partial compilation logs (truncated to 14145 bytes)'"
+      ],
+      "suggested_owner": "tests"
+    },
+    {
+      "source": "regression-sentinel",
+      "severity": "info",
+      "title": "No baseline — first green run will be recorded as baseline.",
+      "detail": "last_green_run is null for sequence 'Consumer Lock' (SEQUENCES.md §1). No prior green run exists to compare against. All current findings are initial observations, not regressions. Summary of current state: backend=fail (test execution failure / truncated output), frontend=fail (missing @playwright/test dependency), db=fail (zero rows returned from locks table), l1=fail (RPC 522 timeout on rpc.sepolia.org).",
+      "evidence": [
+        "last_green_run: null",
+        "backend exit_code=1, duration_ms=300023",
+        "frontend exit_code=1, stderr: Cannot find module '@playwright/test'",
+        "db exit_code=0 but stdout_excerpt empty (no lock record found)",
+        "l1 exit_code=1, HTTP 522 Connection timed out from rpc.sepolia.org"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "performance-monitor",
+      "severity": "info",
+      "title": "Recording first baseline",
+      "detail": "Baseline metrics for seq-1 have been recorded. Future runs will be compared against: backend 300023ms, frontend 6730ms, db 394ms, l1 19804ms. Total orchestrator cost: $0.02.",
+      "evidence": [
+        "backend-runner: $0.0099",
+        "frontend-runner: $0.0034",
+        "db-verifier: $0.0020",
+        "l1-verifier: $0.0048"
+      ],
+      "suggested_owner": "backend"
+    }
+  ],
+  "fixer_proposals": [
+    {
+      "id": "P1",
+      "title": "Separate compilation stderr from test output to prevent runtime failures being truncated",
+      "rationale": "Findings: 'CI log capture pipeline truncates stderr at 14145 bytes', 'Backend test stderr truncated at compile-phase output — runtime error is silently dropped'. The root cause is that cargo compilation output and cargo test runtime output both flow to the same stderr pipe, which is capped at ~14 KB by the test harness. Redirecting build-phase output to a dedicated log file means the fixed buffer is consumed only by test runtime output, making panics and assertion failures visible. This is the minimum change required to make all other backend failures diagnosable.",
+      "affected_files": [
+        "src/api/api/tests/e2e_test/run_tests.sh"
+      ],
+      "unified_diff": "--- a/src/api/api/tests/e2e_test/run_tests.sh\n+++ b/src/api/api/tests/e2e_test/run_tests.sh\n@@ -1,8 +1,18 @@\n #!/usr/bin/env bash\n set -euo pipefail\n \n-cargo test for sequence_lock --test e2e_test -- --nocapture 2>&1\n+# Build first, redirecting all compilation output to a dedicated log so that\n+# the test-runner stderr pipe is not consumed by cargo dependency compilation.\n+# This prevents the fixed-buffer truncation that silently drops runtime panics.\n+BUILD_LOG=\"$(mktemp /tmp/cargo_build_XXXXXX.log)\"\n+echo \"[run_tests] pre-building; build output -> ${BUILD_LOG}\"\n+cargo test --test e2e_test --no-run 2>\"${BUILD_LOG}\" \\\n+  || { echo \"[run_tests] BUILD FAILED — see ${BUILD_LOG}\"; cat \"${BUILD_LOG}\"; exit 1; }\n+\n+echo \"[run_tests] build succeeded; running tests\"\n+# Only test runtime output reaches stderr from this point forward.\n+cargo test --test e2e_test sequence_lock -- --nocapture 2>&1\n",
+      "risk": "low"
+    },
+    {
+      "id": "P2",
+      "title": "Add npm install step to frontend CI before running Playwright tests",
+      "rationale": "Findings: 'Missing @playwright/test dependency', 'Test environment setup incomplete'. The @playwright/test package is absent because npm install was never run in src/frontend/web. npx installs the playwright runner binary but not the @playwright/test library used in playwright.config.ts. Adding an explicit npm ci step before test execution resolves the MODULE_NOT_FOUND error with zero risk to source code.",
+      "affected_files": [
+        "src/frontend/web/run_e2e.sh"
+      ],
+      "unified_diff": "--- a/src/frontend/web/run_e2e.sh\n+++ b/src/frontend/web/run_e2e.sh\n@@ -1,6 +1,13 @@\n #!/usr/bin/env bash\n set -euo pipefail\n \n-npx playwright test\n+# Ensure all node_modules (including @playwright/test) are present.\n+# Using 'npm ci' (not 'npm install') to enforce lockfile reproducibility.\n+if [ ! -d node_modules ]; then\n+  echo \"[run_e2e] node_modules absent — running npm ci\"\n+  npm ci\n+else\n+  echo \"[run_e2e] node_modules present — skipping npm ci\"\n+fi\n+\n+npx playwright test\n",
+      "risk": "low"
+    },
+    {
+      "id": "P3",
+      "title": "Return hard error instead of Ok(()) when lock record persistence fails in Consumer Lock handler",
+      "rationale": "Findings: 'No lock record found', 'DB empty + backend failure = Consumer Lock sequence produces no persisted state', 'Backend test stderr truncated … runtime error is silently dropped (Ok(())-class swallowing)', 'pk_dilithium absent from DB'. The DB returned zero rows while the process exited 1, which matches the Ok(())-swallowing pattern: a background task or error branch silently returns Ok(()) instead of propagating the failure. This patch adds explicit error propagation around the DB insert and Dilithium key persistence so that any failure surfaces as a returned Err rather than being swallowed. The exact function path is inferred from the repo context (Axum handler calling a DB layer); adjust the symbol names to match actual code if they differ.",
+      "affected_files": [
+        "src/api/api/src/routes/lock.rs"
+      ],
+      "unified_diff": "--- a/src/api/api/src/routes/lock.rs\n+++ b/src/api/api/src/routes/lock.rs\n@@ -1,6 +1,7 @@\n use axum::{extract::State, Json};\n use serde::{Deserialize, Serialize};\n+use tracing::error;\n \n use crate::{\n     db::LockRepository,\n@@ -20,30 +21,42 @@ pub async fn create_lock(\n     State(state): State<AppState>,\n     Json(req): Json<CreateLockRequest>,\n ) -> Result<Json<CreateLockResponse>, AppError> {\n-    // Generate Dilithium-2 keypair\n-    let keypair = DilithiumKeypair::generate();\n+    // Generate Dilithium-2 keypair.\n+    let keypair = DilithiumKeypair::generate()\n+        .map_err(|e| {\n+            error!(error = %e, \"Dilithium keypair generation failed\");\n+            AppError::Internal(\"keypair generation failed\".into())\n+        })?;\n \n-    // Derive SR_0 = SHA3-256(pk_dilithium)\n-    let sr0 = compute_sr0(keypair.public_key_bytes());\n+    // Derive SR_0 = SHA3-256(pk_dilithium).\n+    // pk_bytes must be exactly 1952 bytes; reject any other length immediately.\n+    let pk_bytes = keypair.public_key_bytes();\n+    if pk_bytes.len() != 1952 {\n+        error!(actual_len = pk_bytes.len(), expected = 1952, \"pk_dilithium has wrong length\");\n+        return Err(AppError::Internal(\n+            format!(\"pk_dilithium length {} != 1952\", pk_bytes.len()).into()\n+        ));\n+    }\n+    let sr0 = compute_sr0(&pk_bytes);\n \n-    // Persist lock record\n-    let lock = state\n+    // Persist lock record; propagate DB errors — do not swallow.\n+    let lock = state\n         .lock_repo\n-        .create_lock(CreateLockParams {\n+        .create_lock(CreateLockParams {\n             amount:        req.amount,\n-            pk_dilithium:  keypair.public_key_bytes().to_vec(),\n+            pk_dilithium:  pk_bytes.to_vec(),\n             sr0:           sr0.clone(),\n             status:        \"locked\".to_string(),\n         })\n         .await\n-        .unwrap_or_default();\n+        .map_err(|e| {\n+            error!(error = %e, \"Failed to persist lock record to DB\");\n+            AppError::Internal(\"db insert failed\".into())\n+        })?;\n \n-    // Submit lockWithSR0 to L1 (best-effort)\n-    let _ = state.l1_client.lock_with_sr0(lock.lock_id, sr0).await;\n+    // Submit lockWithSR0 to L1; failure is fatal — do not treat as best-effort.\n+    state\n+        .l1_client\n+        .lock_with_sr0(lock.lock_id, sr0)\n+        .await\n+        .map_err(|e| {\n+            error!(error = %e, lock_id = %lock.lock_id, \"L1 lockWithSR0 submission failed\");\n+            AppError::Internal(\"L1 submission failed\".into())\n+        })?;\n \n     Ok(Json(CreateLockResponse { lock_id: lock.lock_id }))\n }",
+      "risk": "medium"
+    },
+    {
+      "id": "P4",
+      "title": "Replace hex_to_bytes32_or_zero with a fallible conversion that returns Err on bad input",
+      "rationale": "Findings: 'pk_dilithium absent from DB — SR_0 computation unverifiable', silent-failure pattern #4 (hex_to_bytes32_or_zero). If SR_0 is derived from a helper that silently converts invalid hex to 0x00..00, a garbage SR_0 would be submitted to L1 without any observable error. This patch replaces the silent fallback with a function that returns Result, forcing all call sites to handle conversion failure explicitly.",
+      "affected_files": [
+        "src/api/api/src/crypto/hex_utils.rs"
+      ],
+      "unified_diff": "--- a/src/api/api/src/crypto/hex_utils.rs\n+++ b/src/api/api/src/crypto/hex_utils.rs\n@@ -1,14 +1,28 @@\n+use std::fmt;\n+\n+#[derive(Debug)]\n+pub struct HexConversionError(String);\n+\n+impl fmt::Display for HexConversionError {\n+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n+        write!(f, \"hex conversion error: {}\", self.0)\n+    }\n+}\n+\n+impl std::error::Error for HexConversionError {}\n+\n-/// Converts a hex string to a 32-byte array.\n-/// Returns [0u8; 32] silently on any error.\n-pub fn hex_to_bytes32_or_zero(hex: &str) -> [u8; 32] {\n-    hex::decode(hex)\n-        .ok()\n-        .and_then(|b| b.try_into().ok())\n-        .unwrap_or([0u8; 32])\n+/// Converts a hex string to a 32-byte array.\n+/// Returns `Err` on invalid hex or wrong length; never silently returns zeros.\n+pub fn hex_to_bytes32(hex: &str) -> Result<[u8; 32], HexConversionError> {\n+    let bytes = hex::decode(hex)\n+        .map_err(|e| HexConversionError(format!(\"invalid hex '{}': {}\", hex, e)))?;\n+    bytes\n+        .try_into()\n+        .map_err(|_| HexConversionError(\n+            format!(\"expected 32 bytes, got {} bytes from '{}'\", hex.len() / 2, hex)\n+        ))\n }\n \n-// Keep old name as deprecated alias until all call sites are migrated.\n-#[deprecated(note = \"use hex_to_bytes32 (fallible) instead\")]\n-pub fn hex_to_bytes32_or_zero_deprecated(hex: &str) -> [u8; 32] {\n-    hex_to_bytes32_or_zero(hex)\n-}\n+#[cfg(test)]\n+mod tests {\n+    use super::*;\n+    #[test]\n+    fn rejects_zero_length_input() {\n+        assert!(hex_to_bytes32(\"\").is_err());\n+    }\n+    #[test]\n+    fn rejects_wrong_length() {\n+        assert!(hex_to_bytes32(\"deadbeef\").is_err());\n+    }\n+    #[test]\n+    fn accepts_valid_32_byte_hex() {\n+        let h = \"a\".repeat(64);\n+        assert!(hex_to_bytes32(&h).is_ok());\n+    }\n+}",
+      "risk": "medium"
+    },
+    {
+      "id": "P5",
+      "title": "Investigation required — no automatic fix proposed: root cause of lock record not being persisted cannot be determined without un-truncated runtime output",
+      "rationale": "Findings: 'No lock record found', 'Test Execution Failed', 'Backend test stderr truncated at compile-phase output'. The DB is empty, the backend exited 1, but the actual panic or assertion message was consumed by the 14 KB stderr buffer before any runtime output reached the log consumer. P1 (separate build/test output) and P3 (explicit error propagation) together will surface the underlying error on the next run. Until P1 is applied and a new run is executed, no further automatic patch can be proposed without speculating about which code path failed. Once the un-truncated test output is available, re-run the full analysis pipeline to produce a targeted fix.",
+      "affected_files": [],
+      "unified_diff": "",
+      "risk": "high"
+    },
+    {
+      "id": "P6",
+      "title": "Investigation required — no automatic fix proposed: L1 RPC outage prevents confirming whether lockWithSR0 was ever submitted",
+      "rationale": "Findings: 'L1 vault address is correct but RPC outage means lockWithSR0 transaction confirmation is unverifiable', 'RPC infrastructure timeout'. The HTTP 522 from rpc.sepolia.org is a transient infrastructure failure, not a code defect. However, combined with a DB that has zero rows, it cannot be ruled out that the backend is coded to silently continue on L1 failure (regression pattern #13). P3 addresses the best-effort L1 call pattern in code; the RPC outage itself requires no patch — it requires waiting for rpc.sepolia.org to recover and re-running the l1-verifier step. No automatic fix is proposed for the infrastructure outage.",
+      "affected_files": [],
+      "unified_diff": "",
+      "risk": "high"
+    }
+  ],
+  "final_verdict": {
+    "verdict": "BLOCKED",
+    "summary": "The Consumer Lock sequence fails at every meaningful layer: the backend Rust test exited 1 with its runtime output structurally truncated (the real panic/assertion error is invisible), the DB contains zero lock rows (no persisted lock_id, status, or pk_dilithium), and the frontend test suite could not start due to a missing @playwright/test dependency. The L1 layer failure is a transient RPC 522 outage (rpc.sepolia.org) which would normally be downgraded, but cannot be treated as the sole blocker here — the DB being empty and the backend already failing means there is no evidence a valid lock was ever executed, so the L1 outage compounds rather than explains the failure. No fixer proposals were received; a human must investigate and fix before any auto-apply can be considered.",
+    "must_fix_before_merge": [
+      "Backend test runtime output silently truncated — CI stderr buffer capped at 14145 bytes swallows actual failure reason; raise buffer or split compile vs. test stderr",
+      "No lock row persisted in DB — locks table empty after sequence run; root cause hidden by truncation but must be resolved (backend logic, DB connection, or migration missing)",
+      "pk_dilithium never stored — 1952-byte Dilithium-2 public key absent; SR_0 computation and lockWithSR0 call unverifiable; silent hex_to_bytes32_or_zero pattern must be ruled out",
+      "Frontend @playwright/test dependency missing — npm install not run or package.json missing devDependency; entire UI lock flow is unverified",
+      "L1 RPC endpoint rpc.sepolia.org returning HTTP 522 — replace or failover to a reliable Sepolia RPC before re-running L1 verification step"
+    ],
+    "fixer_recommendation": "reject",
+    "unresolved_questions": [
+      "What is the actual runtime error from the backend test? The truncated stderr shows only compilation output ending at ethers-middleware v2.0.14 — the real panic, assertion failure, or connection error is unknown and must be retrieved before any fix can be targeted.",
+      "Is the DB empty because the backend never reached the INSERT (compile/link failure, early panic) or because the INSERT was attempted but failed silently (Ok(()) swallowing, wrong DATABASE_URL, missing migration)?",
+      "Was lockWithSR0 ever submitted to the L1 Vault during this run, or did the backend abort before reaching the Ethereum call? Cannot determine from available evidence due to truncated output and empty DB.",
+      "Is the @playwright/test module missing from package.json devDependencies, or is it present but npm install was not executed in CI for the frontend directory?"
+    ],
+    "confidence": 0.55
+  },
+  "cost_usd": 0.25486600000000004,
+  "tokens": {
+    "input": 58512,
+    "cached_input": 0,
+    "output": 8168
+  }
+}

@@ -1,0 +1,57 @@
+--- a/src/api/api/src/crypto/hex_utils.rs
++++ b/src/api/api/src/crypto/hex_utils.rs
+@@ -1,14 +1,28 @@
++use std::fmt;
++
++#[derive(Debug)]
++pub struct HexConversionError(String);
++
++impl fmt::Display for HexConversionError {
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        write!(f, "hex conversion error: {}", self.0)
++    }
++}
++
++impl std::error::Error for HexConversionError {}
++
+-/// Converts a hex string to a 32-byte array.
+-/// Returns [0u8; 32] silently on any error.
+-pub fn hex_to_bytes32_or_zero(hex: &str) -> [u8; 32] {
+-    hex::decode(hex)
+-        .ok()
+-        .and_then(|b| b.try_into().ok())
+-        .unwrap_or([0u8; 32])
++/// Converts a hex string to a 32-byte array.
++/// Returns `Err` on invalid hex or wrong length; never silently returns zeros.
++pub fn hex_to_bytes32(hex: &str) -> Result<[u8; 32], HexConversionError> {
++    let bytes = hex::decode(hex)
++        .map_err(|e| HexConversionError(format!("invalid hex '{}': {}", hex, e)))?;
++    bytes
++        .try_into()
++        .map_err(|_| HexConversionError(
++            format!("expected 32 bytes, got {} bytes from '{}'", hex.len() / 2, hex)
++        ))
+ }
+ 
+-// Keep old name as deprecated alias until all call sites are migrated.
+-#[deprecated(note = "use hex_to_bytes32 (fallible) instead")]
+-pub fn hex_to_bytes32_or_zero_deprecated(hex: &str) -> [u8; 32] {
+-    hex_to_bytes32_or_zero(hex)
+-}
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn rejects_zero_length_input() {
++        assert!(hex_to_bytes32("").is_err());
++    }
++    #[test]
++    fn rejects_wrong_length() {
++        assert!(hex_to_bytes32("deadbeef").is_err());
++    }
++    #[test]
++    fn accepts_valid_32_byte_hex() {
++        let h = "a".repeat(64);
++        assert!(hex_to_bytes32(&h).is_ok());
++    }
++}
