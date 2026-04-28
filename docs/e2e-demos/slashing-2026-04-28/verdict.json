@@ -1,0 +1,21 @@
+{
+  "verdict": "FIXABLE",
+  "summary": "All three layers (backend/db/L1) reported pass and CRITICAL-2 (colluding_count derived from signing_queue) is verified, but bug-hunter surfaced two HIGH findings that materially undermine confidence: the L1 tx_hash '0x_l1slash_tx_abcd' looks like a stub literal (suggesting the L1 verification is a false-positive), and colluding_count can undercount under mid-flow status mutation. The pending_retry / fail-hard path was not exercised and L1 verification only reads getProverCount() rather than asserting on-chain slashed state, so the green run does not yet prove end-to-end correctness. Verdict is FIXABLE: tighten test infra (assert real tx_hash format + on-chain slashed flag + 60/20/20 recipients) and lock the colluding_count snapshot before treating this as a true PASS.",
+  "must_fix_before_merge": [
+    "L1 tx_hash appears to be stub literal — assert real 0x[64hex] and on-chain slashed state",
+    "colluding_count race: snapshot signing_queue atomically before status mutation",
+    "Exercise PendingRetry / fail-hard path (not covered in this run)",
+    "L1 verification must check slashed flag, not just getProverCount()",
+    "Assert 60/20/20 distribution recipient addresses on-chain"
+  ],
+  "fixer_recommendation": "review_required",
+  "unresolved_questions": [
+    "Is '0x_l1slash_tx_abcd' produced by a mock L1 client or by the real submission path? If mock, the L1 layer pass is invalid and verdict should escalate to BLOCKED.",
+    "Does the SlashingRetryService have any test coverage at all, or is pending_retry purely theoretical in this run?"
+  ],
+  "confidence": 0.70,
+  "patches_applied_in_followup_commit": [
+    "P1: count_signed_provers_for_lock filters on signed_at IS NOT NULL (append-only evidence) instead of mutable status='signed'",
+    "P2: update_slashing_l1_status validates canonical 0x[64 hex] format; stub literals rewritten to pending_retry with explanatory l1_error"
+  ]
+}

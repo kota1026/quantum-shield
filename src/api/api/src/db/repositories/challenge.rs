@@ -289,6 +289,14 @@ impl ChallengeRepository {
     /// after the on-chain call returns. Retry attempts should use
     /// `mark_slashing_l1_submitted` / `mark_slashing_l1_retry_failed` instead
     /// so the retry counter is not affected.
+    ///
+    /// 2026-04-28 hardening: validates that any l1_tx_hash recorded with
+    /// status='submitted' is a canonical 0x-prefixed 32-byte (66-char) hex
+    /// string. Stub literals like `"0x_l1slash_tx_abcd"` are rejected and
+    /// rewritten to status='pending_retry' with an explanatory error so a
+    /// mocked L1 client cannot masquerade as a real on-chain submission.
+    /// The error is logged at ERROR (loud, not silent) and surfaced via
+    /// the `l1_error` column.
     #[instrument(skip(pool))]
     pub async fn update_slashing_l1_status(
         pool: &PgPool,
@@ -297,6 +305,37 @@ impl ChallengeRepository {
         l1_tx_hash: Option<&str>,
         l1_error: Option<&str>,
     ) -> Result<(), ApiError> {
+        let is_canonical_tx_hash = |s: &str| -> bool {
+            s.len() == 66
+                && s.starts_with("0x")
+                && s[2..].chars().all(|c| c.is_ascii_hexdigit())
+        };
+        let (effective_status, effective_hash, effective_error): (String, Option<String>, Option<String>) =
+            match (l1_status, l1_tx_hash) {
+                ("submitted", Some(h)) if !is_canonical_tx_hash(h) => {
+                    tracing::error!(
+                        slashing_id = %slashing_id,
+                        rejected_hash = %h,
+                        "L1 slash tx_hash is not a canonical 32-byte hex hash — \
+                         refusing to record as 'submitted'. Likely cause: l1.mode=mock \
+                         or stubbed L1 client. Forcing pending_retry."
+                    );
+                    (
+                        "pending_retry".to_string(),
+                        None,
+                        Some(format!(
+                            "non-canonical tx_hash rejected: {} (expected 0x + 64 hex chars)",
+                            h
+                        )),
+                    )
+                }
+                _ => (
+                    l1_status.to_string(),
+                    l1_tx_hash.map(str::to_string),
+                    l1_error.map(str::to_string),
+                ),
+            };
+
         sqlx::query(
             r#"
             UPDATE slashings
@@ -307,9 +346,9 @@ impl ChallengeRepository {
             "#,
         )
         .bind(slashing_id)
-        .bind(l1_status)
-        .bind(l1_tx_hash)
-        .bind(l1_error)
+        .bind(&effective_status)
+        .bind(effective_hash.as_deref())
+        .bind(effective_error.as_deref())
         .execute(pool)
         .await
         .map_err(|e| {
@@ -363,6 +402,13 @@ impl ChallengeRepository {
     /// result indicates a data-consistency issue and we conservatively use 1
     /// (the legacy behavior) rather than 0 (no slash) so the slashing
     /// pipeline still triggers.
+    ///
+    /// 2026-04-28 hardening (E2E orchestrator bug-hunter HIGH finding):
+    /// filter on `signed_at IS NOT NULL` (append-only evidence) rather than
+    /// `status = 'signed'` (mutable). A colluding prover that is later
+    /// slashed, revoked, or exits would otherwise silently drop out of the
+    /// count and reduce the quadratic slash mid-flow — a re-introduction
+    /// of CRITICAL-2's spirit through a different vector.
     #[instrument(skip(pool), fields(lock_id = %lock_id))]
     pub async fn count_signed_provers_for_lock(
         pool: &PgPool,
@@ -376,7 +422,7 @@ impl ChallengeRepository {
             FROM signing_queue sq
             INNER JOIN unlock_requests ur ON sq.unlock_id = ur.unlock_id
             WHERE ur.lock_id = $1
-              AND sq.status = 'signed'
+              AND sq.signed_at IS NOT NULL
             "#,
         )
         .bind(lock_id)
