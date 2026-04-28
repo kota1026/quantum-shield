@@ -1,0 +1,88 @@
+name: E2E Orchestrator
+
+on:
+  pull_request:
+    paths:
+      - 'src/api/api/**'
+      - 'src/frontend/web/**'
+      - 'src/contracts/**'
+      - 'src/agents/e2e-orchestrator/**'
+      - 'docs/core/SEQUENCES.md'
+  workflow_dispatch:
+    inputs:
+      sequence:
+        description: 'Sequence to verify (lock | unlock | slashing | all)'
+        required: false
+        default: 'lock'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quantum
+          POSTGRES_PASSWORD: quantum_dev
+          POSTGRES_DB: quantum_shield
+        ports: [5432:5432]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7
+        ports: [6379:6379]
+
+    env:
+      DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+      L1_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org' }}
+      L3_RPC_URL: http://localhost:8545
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip if no API key
+        if: env.ANTHROPIC_API_KEY == ''
+        run: |
+          echo "::warning::ANTHROPIC_API_KEY not set; orchestrator skipped."
+          exit 0
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+
+      - name: Install Foundry (cast)
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install orchestrator deps
+        working-directory: src/agents/e2e-orchestrator
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check orchestrator
+        working-directory: src/agents/e2e-orchestrator
+        run: pnpm lint
+
+      - name: Run migrations
+        working-directory: src/api/api
+        run: cargo install sqlx-cli --no-default-features --features postgres,native-tls --locked && sqlx migrate run
+
+      - name: Run orchestrator
+        working-directory: src/agents/e2e-orchestrator
+        run: pnpm verify --sequence ${{ inputs.sequence || 'lock' }}
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-orchestrator-report
+          path: src/agents/e2e-orchestrator/reports/
+          retention-days: 14
