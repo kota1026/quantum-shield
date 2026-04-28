@@ -56,6 +56,11 @@ src/l3/out/
 # API server logs
 *.log
 
+# Orchestrator diagnostic logs ARE checked in — they're how Claude reads
+# what happened in CI without artifact downloads. Negation must come AFTER
+# the *.log pattern above.
+!docs/orchestrator-runs/**/*.log
+
 # Environment files (secrets)
 .env.*
 
