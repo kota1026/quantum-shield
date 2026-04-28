@@ -42,7 +42,12 @@ jobs:
       - uses: pnpm/action-setup@v4
         with: { version: 10 }
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: |
+            src/frontend/web/pnpm-lock.yaml
+            src/agents/ux-orchestrator/pnpm-lock.yaml
 
       - name: Install Playwright browsers
         working-directory: src/frontend/web
@@ -54,8 +59,9 @@ jobs:
         working-directory: src/frontend/web
         run: |
           pnpm dev &
-          for i in {1..30}; do
-            curl -sf http://localhost:3000 > /dev/null && break
+          echo "Waiting for Next.js on :3000..."
+          for i in {1..60}; do
+            curl -sf http://localhost:3000 > /dev/null && echo "frontend ready" && break
             sleep 2
           done
         env:

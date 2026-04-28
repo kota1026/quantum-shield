@@ -55,13 +55,18 @@ jobs:
       - uses: pnpm/action-setup@v4
         with: { version: 10 }
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: 'src/agents/e2e-orchestrator/pnpm-lock.yaml'
 
       - name: Install Foundry (cast)
         uses: foundry-rs/foundry-toolchain@v1
 
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: 'src/api/api'
 
       - name: Install orchestrator deps
         working-directory: src/agents/e2e-orchestrator
@@ -71,9 +76,27 @@ jobs:
         working-directory: src/agents/e2e-orchestrator
         run: pnpm lint
 
+      - name: Build backend (release)
+        working-directory: src/api/api
+        run: SQLX_OFFLINE=true cargo build --bin api-server --release
+        env:
+          DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+
       - name: Run migrations
         working-directory: src/api/api
-        run: cargo install sqlx-cli --no-default-features --features postgres,native-tls --locked && sqlx migrate run
+        run: cargo install sqlx-cli --version 0.7.4 --no-default-features --features postgres,native-tls --locked && sqlx migrate run
+
+      - name: Start backend API server
+        working-directory: src/api/api
+        run: |
+          QS__DATABASE__URL=postgresql://quantum:quantum_dev@localhost:5432/quantum_shield \
+          QS__L1__RPC_URL=${{ env.L1_RPC_URL }} \
+            ../../../target/release/api-server &
+          echo "Waiting for backend on :8080..."
+          for i in {1..60}; do
+            curl -sf http://localhost:8080/v1/health > /dev/null && echo "backend ready" && break
+            sleep 2
+          done
 
       - name: Run orchestrator
         working-directory: src/agents/e2e-orchestrator
