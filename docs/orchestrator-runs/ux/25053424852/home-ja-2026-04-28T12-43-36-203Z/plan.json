@@ -1,0 +1,18 @@
+{
+  "route_id": "home-ja",
+  "route_label": "Home (JA)",
+  "path": "/ja",
+  "viewports": [
+    "desktop",
+    "mobile"
+  ],
+  "locales": [
+    "ja",
+    "en"
+  ],
+  "acceptance_criteria": [
+    "Page loads within 5s with no console errors",
+    "No hardcoded JA/EN strings outside t() in rendered DOM",
+    "WCAG 2.1 AA a11y tree has no critical findings"
+  ]
+}
