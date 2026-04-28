@@ -5,7 +5,14 @@ import type { LayerResult, TestStep } from './types.js';
 
 const STDOUT_LIMIT = 16_000;
 const STDERR_LIMIT = 8_000;
-const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+// 2 min default. Was 5 min, but the orchestrator's first credit-enabled
+// run (25053424860) showed cargo test sequence_lock hanging the full
+// 300s without producing output — likely a setup-time resource block
+// (DB pool, RabbitMQ, or L1 RPC). Cap at 2 min so a hang surfaces
+// faster as a layer failure with diagnostic stderr instead of consuming
+// the workflow's whole budget. Tests that genuinely need >2 min should
+// override per-step.
+const DEFAULT_TIMEOUT_MS = 2 * 60 * 1000;
 
 function tail(buf: string, limit: number): string {
   if (buf.length <= limit) return buf;
