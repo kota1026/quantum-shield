@@ -115,33 +115,40 @@ jobs:
         working-directory: src/agents/e2e-orchestrator
         env:
           REPO_ROOT: ${{ github.workspace }}
-          # Pin REPORTS_DIR to the package's own reports/ so the
-          # commit step (next) can find the artifacts. Without this,
-          # `./reports` resolves against REPO_ROOT (workspace root)
-          # and the orchestrator writes to <workspace>/reports/, which
-          # the commit step doesn't look in. Discovered after PR #144's
-          # first run produced run-info.json but no actual reports.
           REPORTS_DIR: ${{ github.workspace }}/src/agents/e2e-orchestrator/reports
-        # Informational mode: orchestrator verdicts are reported to the PR
-        # comment + artifact + step summary, but a non-PASS verdict does NOT
-        # block the workflow. This matches how visual-regression hunters and
-        # Lighthouse-CI typically operate during the warm-up phase. Flip to
-        # `continue-on-error: false` once we have a stable last-green corpus
-        # and want regressions to fail required checks.
         continue-on-error: true
-        # Tee stdout+stderr to a log file so the commit step can preserve
-        # the orchestrator's output even when it crashes before writing
-        # any structured artifacts. Without this we have no visibility
-        # into what failed when reports/ ends up empty.
         run: |
           set -o pipefail
+          LOG=/tmp/e2e-orchestrator-stdout.log
+
+          {
+            echo "=== diagnostic ==="
+            echo "pwd: $(pwd)"
+            echo "REPO_ROOT: $REPO_ROOT"
+            echo "REPORTS_DIR: $REPORTS_DIR"
+            echo "ANTHROPIC_API_KEY length: ${#ANTHROPIC_API_KEY} (prefix: ${ANTHROPIC_API_KEY:0:8}...)"
+            echo "DATABASE_URL: $DATABASE_URL"
+            echo "L1_RPC_URL: $L1_RPC_URL"
+            echo ""
+            echo "=== :8080 backend reachability ==="
+            curl -sv --max-time 5 "http://localhost:8080/v1/health" 2>&1 | head -25 || echo "(curl failed)"
+            echo ""
+            echo "=== node + pnpm ==="
+            node --version
+            pnpm --version
+            echo ""
+            echo "=== orchestrator run ==="
+          } | tee "$LOG"
+
           mkdir -p reports
           pnpm verify --sequence ${{ inputs.sequence || 'lock' }} \
-            2>&1 | tee reports/orchestrator-stdout.log
+            2>&1 | tee -a "$LOG"
           EXIT_CODE=${PIPESTATUS[0]}
-          echo "orchestrator exit code: $EXIT_CODE" | tee -a reports/orchestrator-stdout.log
-          # `continue-on-error: true` means we don't propagate the exit code,
-          # but we record it in the log for the commit step.
+          echo "" | tee -a "$LOG"
+          echo "=== orchestrator exit code: $EXIT_CODE ===" | tee -a "$LOG"
+
+          cp "$LOG" reports/orchestrator-stdout.log || true
+          ls -la reports/ | tee -a "$LOG"
           exit 0
 
       - name: Summarize orchestrator verdict
@@ -186,9 +193,11 @@ jobs:
           set -e
           DEST="docs/orchestrator-runs/e2e/${{ github.run_id }}"
           mkdir -p "$DEST"
-          # Copy whatever the orchestrator produced (may be empty if it crashed)
           if [ -d src/agents/e2e-orchestrator/reports ]; then
             cp -r src/agents/e2e-orchestrator/reports/. "$DEST/" 2>/dev/null || true
+          fi
+          if [ -f /tmp/e2e-orchestrator-stdout.log ]; then
+            cp /tmp/e2e-orchestrator-stdout.log "$DEST/orchestrator-stdout.log"
           fi
           # Always write a run-info marker so Claude can find this run via the
           # filesystem even if reports/ is empty.
