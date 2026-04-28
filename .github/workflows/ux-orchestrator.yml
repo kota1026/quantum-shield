@@ -89,6 +89,13 @@ jobs:
         working-directory: src/agents/ux-orchestrator
         env:
           REPO_ROOT: ${{ github.workspace }}
+          # Pin REPORTS_DIR to the package's own reports/ so the
+          # commit step (next) can find the artifacts. Without this,
+          # `./reports` resolves against REPO_ROOT (workspace root)
+          # and the orchestrator writes to <workspace>/reports/, which
+          # the commit step doesn't look in. Discovered after PR #144's
+          # first run produced run-info.json but no actual reports.
+          REPORTS_DIR: ${{ github.workspace }}/src/agents/ux-orchestrator/reports
         # Informational mode: UX verdicts (regression / broken / etc) are
         # reported to the PR comment + artifact + step summary, but do NOT
         # block the workflow. Visual + copy + a11y agents have known
@@ -96,9 +103,17 @@ jobs:
         # noise than signal. Flip to false once we have a stable baseline
         # corpus.
         continue-on-error: true
+        # Tee stdout+stderr so the commit step preserves the orchestrator
+        # output even when it crashes before writing structured artifacts.
         run: |
+          set -o pipefail
+          mkdir -p reports
           pnpm verify --route ${{ inputs.route || 'home-ja' }} \
-            ${{ inputs.auto_fix && '--auto-fix' || '' }}
+            ${{ inputs.auto_fix && '--auto-fix' || '' }} \
+            2>&1 | tee reports/orchestrator-stdout.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "orchestrator exit code: $EXIT_CODE" | tee -a reports/orchestrator-stdout.log
+          exit 0
 
       - name: Summarize UX orchestrator verdict
         if: always()
