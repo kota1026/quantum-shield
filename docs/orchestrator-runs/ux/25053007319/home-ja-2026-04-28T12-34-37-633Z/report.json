@@ -1,0 +1,74 @@
+{
+  "route_id": "home-ja",
+  "started_at": "2026-04-28T12:34:37.633Z",
+  "finished_at": "2026-04-28T12:34:40.979Z",
+  "duration_ms": 3345,
+  "plan": {
+    "route_id": "home-ja",
+    "route_label": "Home (JA)",
+    "path": "/ja",
+    "viewports": [
+      "desktop",
+      "mobile"
+    ],
+    "locales": [
+      "ja",
+      "en"
+    ],
+    "acceptance_criteria": [
+      "Page loads within 5s with no console errors",
+      "No hardcoded JA/EN strings outside t() in rendered DOM",
+      "WCAG 2.1 AA a11y tree has no critical findings"
+    ]
+  },
+  "plan_source": "fallback",
+  "captures": [
+    {
+      "viewport": "desktop",
+      "screenshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T12-34-37-634Z/stage2-capture/home-ja/desktop.png",
+      "baseline_path": null,
+      "a11y_tree_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T12-34-37-634Z/stage2-capture/home-ja/desktop.a11y.json",
+      "copy_snapshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T12-34-37-634Z/stage2-capture/home-ja/desktop.copy.txt",
+      "perf_metrics": {
+        "lcp_ms": null,
+        "cls": null,
+        "inp_ms": null,
+        "tbt_ms": null
+      },
+      "pixel_hash_match": null,
+      "load_status": "http_error"
+    },
+    {
+      "viewport": "mobile",
+      "screenshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T12-34-37-634Z/stage2-capture/home-ja/mobile.png",
+      "baseline_path": null,
+      "a11y_tree_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T12-34-37-634Z/stage2-capture/home-ja/mobile.a11y.json",
+      "copy_snapshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T12-34-37-634Z/stage2-capture/home-ja/mobile.copy.txt",
+      "perf_metrics": {
+        "lcp_ms": null,
+        "cls": null,
+        "inp_ms": null,
+        "tbt_ms": null
+      },
+      "pixel_hash_match": null,
+      "load_status": "http_error"
+    }
+  ],
+  "reviews": [],
+  "judge": {
+    "verdict": "none",
+    "summary": "",
+    "must_fix_before_ship": [],
+    "designer_review_required": false,
+    "unresolved_questions": [],
+    "confidence": 1
+  },
+  "healer_proposals": [],
+  "final_verifier_status": "pass",
+  "cost_usd": 0,
+  "tokens": {
+    "input": 0,
+    "cached_input": 0,
+    "output": 0
+  }
+}
