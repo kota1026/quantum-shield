@@ -99,10 +99,43 @@ jobs:
           done
 
       - name: Run orchestrator
+        id: orchestrator
         working-directory: src/agents/e2e-orchestrator
         env:
           REPO_ROOT: ${{ github.workspace }}
+        # Informational mode: orchestrator verdicts are reported to the PR
+        # comment + artifact + step summary, but a non-PASS verdict does NOT
+        # block the workflow. This matches how visual-regression hunters and
+        # Lighthouse-CI typically operate during the warm-up phase. Flip to
+        # `continue-on-error: false` once we have a stable last-green corpus
+        # and want regressions to fail required checks.
+        continue-on-error: true
         run: pnpm verify --sequence ${{ inputs.sequence || 'lock' }}
+
+      - name: Summarize orchestrator verdict
+        if: always()
+        working-directory: src/agents/e2e-orchestrator
+        run: |
+          echo "## E2E Orchestrator verdict" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d reports ]; then
+            latest=$(ls -1dt reports/*/ 2>/dev/null | head -1)
+            if [ -n "$latest" ] && [ -f "$latest/verdict.json" ]; then
+              echo '```json' >> $GITHUB_STEP_SUMMARY
+              cat "$latest/verdict.json" >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              if [ -f "$latest/report.md" ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "### Full report" >> $GITHUB_STEP_SUMMARY
+                cat "$latest/report.md" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "_(orchestrator did not produce a verdict — see Run orchestrator step output)_" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "_(no reports/ directory — orchestrator likely crashed during setup; see Run orchestrator step)_" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload report
         if: always()

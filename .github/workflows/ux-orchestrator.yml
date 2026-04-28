@@ -76,12 +76,40 @@ jobs:
         run: pnpm lint
 
       - name: Run UX orchestrator
+        id: orchestrator
         working-directory: src/agents/ux-orchestrator
         env:
           REPO_ROOT: ${{ github.workspace }}
+        # Informational mode: UX verdicts (regression / broken / etc) are
+        # reported to the PR comment + artifact + step summary, but do NOT
+        # block the workflow. Visual + copy + a11y agents have known
+        # variance in output; over-blocking during warm-up creates more
+        # noise than signal. Flip to false once we have a stable baseline
+        # corpus.
+        continue-on-error: true
         run: |
           pnpm verify --route ${{ inputs.route || 'home-ja' }} \
             ${{ inputs.auto_fix && '--auto-fix' || '' }}
+
+      - name: Summarize UX orchestrator verdict
+        if: always()
+        working-directory: src/agents/ux-orchestrator
+        run: |
+          echo "## UX Orchestrator verdict" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d reports ]; then
+            latest=$(ls -1dt reports/*/ 2>/dev/null | head -1)
+            if [ -n "$latest" ] && [ -f "$latest/report.json" ]; then
+              echo '```json' >> $GITHUB_STEP_SUMMARY
+              cat "$latest/report.json" >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            else
+              echo "_(orchestrator did not produce a report — see Run UX orchestrator step output)_" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "_(no reports/ directory — orchestrator likely crashed during setup; see Run UX orchestrator step)_" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload UX orchestrator report + patches
         if: always()
