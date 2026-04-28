@@ -87,6 +87,8 @@ export type RunReport = {
   finished_at: string;
   duration_ms: number;
   plan: TestPlan;
+  /** Whether Stage 1's spec-runner produced the plan, or the orchestrator fell back to the static binding. */
+  plan_source: 'ai' | 'fallback';
   layer_results: LayerResult[];
   layer_analyses: LayerAnalysis[];
   quality_findings: QualityFinding[];

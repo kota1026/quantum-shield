@@ -44,8 +44,13 @@ export async function runStep(
       clearTimeout(timer);
       resolveCode(code ?? 1);
     });
-    child.on('error', () => {
+    // Pre-Sherlock blocker fix (2026-04-28): capture the spawn-error message
+    // into stderr so layer agents can distinguish "binary not found" from
+    // "test failed." Previously a missing `cast` / `psql` produced an exit-1
+    // result with empty stderr, masking the real cause.
+    child.on('error', (spawnErr) => {
       clearTimeout(timer);
+      stderr += `\n[exec] spawn error: ${spawnErr.message}`;
       resolveCode(1);
     });
   });

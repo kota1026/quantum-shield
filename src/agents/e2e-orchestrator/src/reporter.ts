@@ -39,6 +39,7 @@ export async function writeReport(runDir: string, report: RunReport): Promise<st
 **Started**: ${report.started_at}
 **Finished**: ${report.finished_at}
 **Duration**: ${(report.duration_ms / 1000).toFixed(1)}s
+**Plan source**: ${report.plan_source} ${report.plan_source === 'fallback' ? '(⚠ AI-refined plan unavailable; static binding used)' : ''}
 **Cost**: $${report.cost_usd.toFixed(4)} (input ${report.tokens.input}, cached ${report.tokens.cached_input}, output ${report.tokens.output})
 
 ## Verdict: ${report.final_verdict.verdict}

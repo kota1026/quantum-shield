@@ -348,6 +348,50 @@ impl ChallengeRepository {
         Ok(())
     }
 
+    /// Count distinct provers who have actually signed for the unlock(s) of a
+    /// given lock. Used to derive `colluding_count` for the quadratic slashing
+    /// formula (`N² × 10%`).
+    ///
+    /// Pre-Sherlock blocker (CRITICAL-2, 2026-04-28): the previous code in
+    /// `routes/challenge.rs::auto_resolve` hardcoded `colluding_count = 1`,
+    /// collapsing the quadratic formula to a flat 10% slash regardless of
+    /// how many provers actually colluded. This function returns the real
+    /// count from the `signing_queue` table joined through `unlock_requests`.
+    ///
+    /// The minimum returned is 1 — a challenge cannot reach `auto_resolve`
+    /// without at least one prover having processed the unlock, so a 0
+    /// result indicates a data-consistency issue and we conservatively use 1
+    /// (the legacy behavior) rather than 0 (no slash) so the slashing
+    /// pipeline still triggers.
+    #[instrument(skip(pool), fields(lock_id = %lock_id))]
+    pub async fn count_signed_provers_for_lock(
+        pool: &PgPool,
+        lock_id: &str,
+    ) -> Result<u64, ApiError> {
+        info!("DB query: count_signed_provers_for_lock started, lock_id={}", lock_id);
+
+        let row: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COUNT(DISTINCT sq.prover_id)::BIGINT
+            FROM signing_queue sq
+            INNER JOIN unlock_requests ur ON sq.unlock_id = ur.unlock_id
+            WHERE ur.lock_id = $1
+              AND sq.status = 'signed'
+            "#,
+        )
+        .bind(lock_id)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: count_signed_provers_for_lock failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        let count = row.0.max(1) as u64;
+        info!("DB query: count_signed_provers_for_lock completed, count={}", count);
+        Ok(count)
+    }
+
     /// Get challenge by lock_id
     #[instrument(skip(pool), fields(lock_id = %lock_id))]
     pub async fn get_by_lock_id(

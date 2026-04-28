@@ -42,14 +42,33 @@ export type TokenUsage = {
   output: number;
 };
 
-export type AgentRunResult = {
-  agent: AgentName;
-  raw_text: string;
-  parsed_json: unknown;
-  usage: TokenUsage;
-  duration_ms: number;
-  cost_usd: number;
-};
+/**
+ * Discriminated result type so a parse failure or API timeout cannot be
+ * silently coerced into "successful" downstream. Pre-Sherlock blocker
+ * HIGH-2/HIGH-3 fix (2026-04-28): the previous shape stored `_parse_error`
+ * inside `parsed_json` and let downstream readers find a fake successful
+ * result. With `ok: false`, every consumer must explicitly handle the
+ * failure branch.
+ */
+export type AgentRunResult =
+  | {
+      ok: true;
+      agent: AgentName;
+      raw_text: string;
+      parsed_json: unknown;
+      usage: TokenUsage;
+      duration_ms: number;
+      cost_usd: number;
+    }
+  | {
+      ok: false;
+      agent: AgentName;
+      error: string;
+      raw_text: string;
+      usage: TokenUsage;
+      duration_ms: number;
+      cost_usd: number;
+    };
 
 const PRICING_USD_PER_MTOK: Record<AgentTier, { input: number; cached: number; output: number }> = {
   sonnet: { input: 3, cached: 0.3, output: 15 },
@@ -64,6 +83,21 @@ function priceUsage(tier: AgentTier, usage: TokenUsage): number {
     (usage.output * p.output) / 1_000_000
   );
 }
+
+/**
+ * Single Anthropic client instance reused across all agent calls. Pre-Sherlock
+ * blocker HIGH-1 fix (2026-04-28): previously each `runAgent` invocation
+ * constructed a new client, which had no shared connection pool and required
+ * the API key to be re-read every call.
+ */
+let sharedClient: Anthropic | null = null;
+function getClient(apiKey: string): Anthropic {
+  if (!sharedClient) sharedClient = new Anthropic({ apiKey });
+  return sharedClient;
+}
+
+/** Per-request hard timeout (ms). A hung Anthropic call cannot stall the orchestrator past this. */
+const REQUEST_TIMEOUT_MS = 90_000;
 
 let promptCache: Map<AgentName, string> | null = null;
 
@@ -110,27 +144,43 @@ export async function runAgent(
 
   const tier = AGENT_TIERS[agent];
   const model = tier === 'sonnet' ? config.SONNET_MODEL : config.HAIKU_MODEL;
-  const client = new Anthropic({ apiKey: config.ANTHROPIC_API_KEY });
+  const client = getClient(config.ANTHROPIC_API_KEY);
 
   const started = Date.now();
-  const message = await client.messages.create({
-    model,
-    max_tokens: 4096,
-    system: [
-      { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
-    ],
-    messages: [{ role: 'user', content: userPrompt }],
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let message: Anthropic.Message;
+  try {
+    message = await client.messages.create(
+      {
+        model,
+        max_tokens: 4096,
+        system: [
+          { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
+        ],
+        messages: [{ role: 'user', content: userPrompt }],
+      },
+      { signal: controller.signal, timeout: REQUEST_TIMEOUT_MS },
+    );
+  } catch (err) {
+    clearTimeout(timer);
+    const isAbort = (err as { name?: string })?.name === 'AbortError';
+    return {
+      ok: false,
+      agent,
+      error: isAbort
+        ? `Anthropic request timed out after ${REQUEST_TIMEOUT_MS}ms`
+        : `Anthropic request failed: ${(err as Error).message}`,
+      raw_text: '',
+      usage: { input: 0, cached_input: 0, output: 0 },
+      duration_ms: Date.now() - started,
+      cost_usd: 0,
+    };
+  }
+  clearTimeout(timer);
 
   const textBlocks = message.content.filter((b): b is Anthropic.TextBlock => b.type === 'text');
   const raw_text = textBlocks.map((b) => b.text).join('\n');
-
-  let parsed_json: unknown = null;
-  try {
-    parsed_json = extractJson(raw_text);
-  } catch (err) {
-    parsed_json = { _parse_error: (err as Error).message, _raw: raw_text.slice(0, 2000) };
-  }
 
   const u = message.usage;
   const usage: TokenUsage = {
@@ -139,7 +189,23 @@ export async function runAgent(
     output: u.output_tokens ?? 0,
   };
 
+  let parsed_json: unknown;
+  try {
+    parsed_json = extractJson(raw_text);
+  } catch (err) {
+    return {
+      ok: false,
+      agent,
+      error: `Agent returned unparseable output: ${(err as Error).message}`,
+      raw_text,
+      usage,
+      duration_ms: Date.now() - started,
+      cost_usd: priceUsage(tier, usage),
+    };
+  }
+
   return {
+    ok: true,
     agent,
     raw_text,
     parsed_json,

@@ -47,6 +47,10 @@ export async function runSequence(sequenceId: string, config: Config): Promise<R
   const binding = getSequenceBinding(sequenceId);
   const baseline = bindingToPlan(binding);
   let plan: TestPlan = baseline;
+  // Pre-Sherlock blocker HIGH-2 fix: track whether the AI-refined plan was
+  // used or the static binding fallback. Surfaced in report.md so a silent
+  // degradation cannot hide behind a green verdict.
+  let planSource: 'ai' | 'fallback' = 'fallback';
   try {
     const spec = await loadSpec(config.REPO_ROOT);
     const planAgent = await runAgent(
@@ -59,12 +63,17 @@ export async function runSequence(sequenceId: string, config: Config): Promise<R
       }),
       config,
     );
-    const parsed = TestPlan.safeParse(planAgent.parsed_json);
-    if (parsed.success) {
-      plan = parsed.data;
-      ok(`spec-runner produced plan with ${plan.steps.length} steps across ${plan.layers.length} layers`);
+    if (!planAgent.ok) {
+      warn(`spec-runner failed: ${planAgent.error}; using binding fallback`);
     } else {
-      warn(`spec-runner output didn't match schema, using binding fallback (${parsed.error.issues.length} issues)`);
+      const parsed = TestPlan.safeParse(planAgent.parsed_json);
+      if (parsed.success) {
+        plan = parsed.data;
+        planSource = 'ai';
+        ok(`spec-runner produced plan with ${plan.steps.length} steps across ${plan.layers.length} layers`);
+      } else {
+        warn(`spec-runner output didn't match schema, using binding fallback (${parsed.error.issues.length} issues)`);
+      }
     }
   } catch (e) {
     warn(`spec-runner failed (${(e as Error).message}); using binding fallback`);
@@ -115,7 +124,20 @@ export async function runSequence(sequenceId: string, config: Config): Promise<R
     };
   });
   const analyzerResults = await runAgentsInParallel(analyzerJobs, config);
-  const layerAnalyses: LayerAnalysis[] = analyzerResults.map((r): LayerAnalysis => {
+  // Pre-Sherlock blocker HIGH-3 fix: agents that returned `ok: false`
+  // (timeout / parse failure) become explicit critical findings rather than
+  // silently coercing to a "fail" status with zero issues.
+  const layerAnalyses: LayerAnalysis[] = analyzerResults.map((r, idx): LayerAnalysis => {
+    const layer = analyzerJobs[idx]?.agent.replace('-runner', '').replace('-verifier', '') as LayerAnalysis['layer'];
+    if (!r.ok) {
+      return {
+        layer: layer ?? 'backend',
+        status: 'fail',
+        observations: [`Agent ${r.agent} did not return a parseable result`],
+        issues: [{ severity: 'critical', title: `Layer agent failure: ${r.agent}`, detail: r.error }],
+        confidence: 0,
+      };
+    }
     const obj = (r.parsed_json ?? {}) as Partial<LayerAnalysis>;
     return {
       layer: (obj.layer ?? 'backend'),
@@ -131,8 +153,21 @@ export async function runSequence(sequenceId: string, config: Config): Promise<R
   info('Stage 3: bug-hunter / regression-sentinel / performance-monitor (parallel)');
   const lastGreenPath = resolve(config.REPORTS_DIR, '.last-green', `${sequenceId}.json`);
   const baselinePath = resolve(config.REPORTS_DIR, '.baseline', `${sequenceId}.json`);
-  const lastGreen = existsSync(lastGreenPath) ? JSON.parse(await readFile(lastGreenPath, 'utf8')) : null;
-  const baselineMetrics = existsSync(baselinePath) ? JSON.parse(await readFile(baselinePath, 'utf8')) : null;
+  // Pre-Sherlock blocker fix (HIGH severity): a corrupt or truncated
+  // last-green / baseline JSON used to throw an unhandled exception that
+  // killed the entire run. Now each load is wrapped — failure logs and
+  // falls back to null (regression-sentinel handles null as "first run").
+  const safeLoadJson = async (path: string): Promise<unknown | null> => {
+    if (!existsSync(path)) return null;
+    try {
+      return JSON.parse(await readFile(path, 'utf8'));
+    } catch (e) {
+      warn(`could not parse ${path}: ${(e as Error).message}; treating as missing`);
+      return null;
+    }
+  };
+  const lastGreen = await safeLoadJson(lastGreenPath);
+  const baselineMetrics = await safeLoadJson(baselinePath);
 
   const qualityResults = await runAgentsInParallel(
     [
@@ -166,9 +201,24 @@ export async function runSequence(sequenceId: string, config: Config): Promise<R
     ],
     config,
   );
-  const qualityFindings: QualityFinding[] = qualityResults.flatMap((r) => {
-    const arr = Array.isArray(r.parsed_json) ? r.parsed_json : [];
-    return arr as QualityFinding[];
+  // Pre-Sherlock blocker fix: a parse-failure from bug-hunter etc. becomes a
+  // critical synthetic finding instead of being silently dropped as `[]`.
+  const qualityFindings: QualityFinding[] = qualityResults.flatMap((r): QualityFinding[] => {
+    if (!r.ok) {
+      const sourceMap: Record<string, QualityFinding['source']> = {
+        'bug-hunter': 'bug-hunter',
+        'regression-sentinel': 'regression-sentinel',
+        'performance-monitor': 'performance-monitor',
+      };
+      return [{
+        source: sourceMap[r.agent] ?? 'bug-hunter',
+        severity: 'critical',
+        title: `Quality agent failure: ${r.agent}`,
+        detail: r.error,
+        evidence: [r.error],
+      }];
+    }
+    return Array.isArray(r.parsed_json) ? (r.parsed_json as QualityFinding[]) : [];
   });
   await writeFile(resolve(runDir, 'stage3.json'), JSON.stringify(qualityFindings, null, 2));
 
@@ -213,8 +263,12 @@ export async function runSequence(sequenceId: string, config: Config): Promise<R
     config,
   );
 
-  const fixerProposals: FixerProposal[] = (Array.isArray(stage4[0]?.parsed_json) ? stage4[0]!.parsed_json : []) as FixerProposal[];
-  const verdictRaw = (stage4[1]?.parsed_json ?? {}) as Partial<FinalVerdict>;
+  const fixerResult = stage4[0];
+  const reviewerResult = stage4[1];
+  const fixerProposals: FixerProposal[] = fixerResult && fixerResult.ok && Array.isArray(fixerResult.parsed_json)
+    ? (fixerResult.parsed_json as FixerProposal[])
+    : [];
+  const verdictRaw = (reviewerResult && reviewerResult.ok ? reviewerResult.parsed_json : {}) as Partial<FinalVerdict>;
   const finalVerdict: FinalVerdict = {
     verdict: verdictRaw.verdict ?? 'BLOCKED',
     summary: verdictRaw.summary ?? 'cross-reviewer did not return a parseable verdict',
@@ -268,6 +322,7 @@ export async function runSequence(sequenceId: string, config: Config): Promise<R
     finished_at: nowIso(),
     duration_ms: Date.now() - startMs,
     plan,
+    plan_source: planSource,
     layer_results: layerResults,
     layer_analyses: layerAnalyses,
     quality_findings: qualityFindings,
