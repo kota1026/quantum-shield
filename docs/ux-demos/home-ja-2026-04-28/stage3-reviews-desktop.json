@@ -1,0 +1,123 @@
+[
+  {
+    "reviewer": "accessibility",
+    "status": "concern",
+    "findings": [
+      {
+        "severity": "high",
+        "concern": "accessibility",
+        "title": "Untranslated English CTA on Japanese route",
+        "detail": "/ja renders primary action button with accessible name 'Get Started' in English while sibling button uses Japanese ('ライブデモを見る'). Page lang=ja but CTA name is en — hurts JA screen-reader experience.",
+        "evidence": ["main > button \"Get Started\"", "main > button \"ライブデモを見る\""],
+        "suggested_owner": "translation"
+      },
+      {
+        "severity": "low",
+        "concern": "accessibility",
+        "title": "Primary CTA count cannot be confirmed from a11y tree alone",
+        "detail": "Two buttons above fold; tree doesn't expose CSS classes to verify single primary.",
+        "evidence": ["main > button \"Get Started\"", "main > button \"ライブデモを見る\""],
+        "suggested_owner": "test"
+      },
+      {
+        "severity": "info",
+        "concern": "accessibility",
+        "title": "Tap target / contrast not in tree dump",
+        "detail": "WCAG 2.1 AA contrast (>=4.5:1) and 44x44 tap targets cannot be evaluated from accessibility tree alone — needs axe-core / bbox assertions.",
+        "evidence": ["a11y_tree_excerpt contains role/name only, no bbox or color data"],
+        "suggested_owner": "test"
+      }
+    ],
+    "confidence": 0.7
+  },
+  {
+    "reviewer": "visual",
+    "status": "concern",
+    "findings": [
+      {
+        "severity": "low",
+        "concern": "visual",
+        "title": "Primary CTA 'Get Started' button background changed from gradient to flat solid",
+        "detail": "Above-fold CTA changed from Hinomaru Red gradient (#C41E3A → #9F0F1A) in baseline to flat solid #C41E3D in current. Hue within ~1, no layout shift, no contrast loss > 0.1.",
+        "evidence": ["above-the-fold primary CTA region", "baseline gradient #C41E3A→#9F0F1A vs current solid #C41E3D"],
+        "suggested_owner": "design"
+      },
+      {
+        "severity": "info",
+        "concern": "visual",
+        "title": "All non-CTA regions pixel-identical to baseline",
+        "detail": "Outside the primary CTA, the 1440x900 capture is pixel-identical. No layout shift, no font regression, no broken images.",
+        "evidence": ["full-frame diff outside CTA bounding box"],
+        "suggested_owner": "test"
+      }
+    ],
+    "confidence": 0.85
+  },
+  {
+    "reviewer": "copy",
+    "status": "fail",
+    "findings": [
+      {
+        "severity": "critical",
+        "concern": "copy",
+        "title": "Hardcoded English CTA on /ja route ('Get Started')",
+        "detail": "Hardcoded in components/marketing/HomeHero.tsx line 47. No t() wrapper, no ja key. Violates 'no untranslated English on /ja' acceptance criterion.",
+        "evidence": ["[Get Started]"],
+        "suggested_owner": "component"
+      },
+      {
+        "severity": "critical",
+        "concern": "copy",
+        "title": "Missing i18n key 'home.cta.primary' in ja/marketing.json",
+        "detail": "Catalog lacks JA translation for primary CTA. Add 'home.cta.primary': 'はじめる' (or brand-approved equivalent) plus en/marketing.json entry.",
+        "evidence": ["home.cta.demo present", "no key found for 'Get Started' in ja/marketing.json"],
+        "suggested_owner": "translation"
+      },
+      {
+        "severity": "medium",
+        "concern": "copy",
+        "title": "Trust signals 'verified' / 'Vault contract' untranslated",
+        "detail": "EN qualifiers on JA page: 'NIST FIPS 204 verified · NIST FIPS 205 verified · Sepolia Vault contract'. Localize to '検証済み' / 'Vault コントラクト'.",
+        "evidence": ["NIST FIPS 204 verified · NIST FIPS 205 verified · Sepolia Vault contract"],
+        "suggested_owner": "translation"
+      },
+      {
+        "severity": "medium",
+        "concern": "copy",
+        "title": "Top navigation: confirm items use t()",
+        "detail": "'プロダクト テクノロジー ドキュメント GitHub' — verify all except 'GitHub' come from locales/ja/marketing.json.",
+        "evidence": ["プロダクト テクノロジー ドキュメント GitHub"],
+        "suggested_owner": "component"
+      },
+      {
+        "severity": "medium",
+        "concern": "copy",
+        "title": "Footer items: confirm via t()",
+        "detail": "'プライバシーポリシー · 利用規約 · X / Twitter' — verify via footer.privacy / footer.terms keys.",
+        "evidence": ["プライバシーポリシー · 利用規約 · X / Twitter"],
+        "suggested_owner": "component"
+      },
+      {
+        "severity": "low",
+        "concern": "copy",
+        "title": "Subtitle '+' between FIPS numbers — JA typography nit",
+        "detail": "'NIST FIPS 204 + 205 デュアル署名で…'. JA convention prefers '・' or '／'.",
+        "evidence": ["NIST FIPS 204 + 205 デュアル署名で、ECDSA を超えた次の標準へ。"],
+        "suggested_owner": "translation"
+      }
+    ],
+    "confidence": 0.82
+  },
+  {
+    "reviewer": "performance",
+    "status": "pass",
+    "findings": [
+      {"severity": "info", "concern": "performance", "title": "LCP within budget", "detail": "lcp_ms=1820 under 2500ms desktop budget", "evidence": ["lcp_ms=1820 / threshold=2500 / delta=-27%"], "suggested_owner": "component"},
+      {"severity": "info", "concern": "performance", "title": "CLS within budget", "detail": "cls=0.04 under 0.10 budget", "evidence": ["cls=0.04 / threshold=0.10 / delta=-60%"], "suggested_owner": "component"},
+      {"severity": "info", "concern": "performance", "title": "INP within budget", "detail": "inp_ms=118 under 200ms budget", "evidence": ["inp_ms=118 / threshold=200 / delta=-41%"], "suggested_owner": "component"},
+      {"severity": "info", "concern": "performance", "title": "TBT within budget", "detail": "tbt_ms=180 under 300ms budget", "evidence": ["tbt_ms=180 / threshold=300 / delta=-40%"], "suggested_owner": "component"},
+      {"severity": "info", "concern": "performance", "title": "Baseline recorded", "detail": "First run for home-ja desktop; current metrics recorded as baseline.", "evidence": ["baseline_metrics=null"], "suggested_owner": "infra"}
+    ],
+    "confidence": 0.92
+  }
+]

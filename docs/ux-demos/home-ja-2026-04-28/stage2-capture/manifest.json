@@ -1,0 +1,32 @@
+[
+  {
+    "viewport": "desktop",
+    "screenshot_path": "docs/ux-demos/home-ja-2026-04-28/stage2-capture/home-ja/desktop.png",
+    "baseline_path": ".snapshots/baseline/home-ja/desktop.png",
+    "a11y_tree_path": "docs/ux-demos/home-ja-2026-04-28/stage2-capture/home-ja/desktop.a11y.json",
+    "copy_snapshot_path": "docs/ux-demos/home-ja-2026-04-28/stage2-capture/home-ja/desktop.copy.txt",
+    "perf_metrics": {
+      "lcp_ms": 1820,
+      "cls": 0.04,
+      "inp_ms": 118,
+      "tbt_ms": 180
+    },
+    "pixel_hash_match": false,
+    "load_status": "ok"
+  },
+  {
+    "viewport": "mobile",
+    "screenshot_path": "docs/ux-demos/home-ja-2026-04-28/stage2-capture/home-ja/mobile.png",
+    "baseline_path": ".snapshots/baseline/home-ja/mobile.png",
+    "a11y_tree_path": "docs/ux-demos/home-ja-2026-04-28/stage2-capture/home-ja/mobile.a11y.json",
+    "copy_snapshot_path": "docs/ux-demos/home-ja-2026-04-28/stage2-capture/home-ja/mobile.copy.txt",
+    "perf_metrics": {
+      "lcp_ms": 3820,
+      "cls": 0.06,
+      "inp_ms": 142,
+      "tbt_ms": 268
+    },
+    "pixel_hash_match": false,
+    "load_status": "ok"
+  }
+]

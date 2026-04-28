@@ -1,0 +1,146 @@
+name: E2E Orchestrator
+
+on:
+  pull_request:
+    paths:
+      - 'src/api/api/**'
+      - 'src/frontend/web/**'
+      - 'src/contracts/**'
+      - 'src/agents/e2e-orchestrator/**'
+      - 'docs/core/SEQUENCES.md'
+  workflow_dispatch:
+    inputs:
+      sequence:
+        description: 'Sequence to verify (lock | unlock | slashing | all)'
+        required: false
+        default: 'lock'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quantum
+          POSTGRES_PASSWORD: quantum_dev
+          POSTGRES_DB: quantum_shield
+        ports: [5432:5432]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7
+        ports: [6379:6379]
+
+    env:
+      DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+      L1_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org' }}
+      L3_RPC_URL: http://localhost:8545
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip if no API key
+        if: env.ANTHROPIC_API_KEY == ''
+        run: |
+          echo "::warning::ANTHROPIC_API_KEY not set; orchestrator skipped."
+          exit 0
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: 'src/agents/e2e-orchestrator/pnpm-lock.yaml'
+
+      - name: Install Foundry (cast)
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: 'src/api/api'
+
+      - name: Install orchestrator deps
+        working-directory: src/agents/e2e-orchestrator
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check orchestrator
+        working-directory: src/agents/e2e-orchestrator
+        run: pnpm lint
+
+      - name: Build backend (release)
+        working-directory: src/api/api
+        run: SQLX_OFFLINE=true cargo build --bin api-server --release
+        env:
+          DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+
+      - name: Run migrations
+        working-directory: src/api/api
+        run: cargo install sqlx-cli --version 0.7.4 --no-default-features --features postgres,native-tls --locked && sqlx migrate run
+
+      - name: Start backend API server
+        working-directory: src/api/api
+        run: |
+          QS__DATABASE__URL=postgresql://quantum:quantum_dev@localhost:5432/quantum_shield \
+          QS__L1__RPC_URL=${{ env.L1_RPC_URL }} \
+            ../../../target/release/api-server &
+          echo "Waiting for backend on :8080..."
+          for i in {1..60}; do
+            curl -sf http://localhost:8080/v1/health > /dev/null && echo "backend ready" && break
+            sleep 2
+          done
+
+      - name: Run orchestrator
+        id: orchestrator
+        working-directory: src/agents/e2e-orchestrator
+        env:
+          REPO_ROOT: ${{ github.workspace }}
+        # Informational mode: orchestrator verdicts are reported to the PR
+        # comment + artifact + step summary, but a non-PASS verdict does NOT
+        # block the workflow. This matches how visual-regression hunters and
+        # Lighthouse-CI typically operate during the warm-up phase. Flip to
+        # `continue-on-error: false` once we have a stable last-green corpus
+        # and want regressions to fail required checks.
+        continue-on-error: true
+        run: pnpm verify --sequence ${{ inputs.sequence || 'lock' }}
+
+      - name: Summarize orchestrator verdict
+        if: always()
+        working-directory: src/agents/e2e-orchestrator
+        run: |
+          echo "## E2E Orchestrator verdict" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d reports ]; then
+            latest=$(ls -1dt reports/*/ 2>/dev/null | head -1)
+            if [ -n "$latest" ] && [ -f "$latest/verdict.json" ]; then
+              echo '```json' >> $GITHUB_STEP_SUMMARY
+              cat "$latest/verdict.json" >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              if [ -f "$latest/report.md" ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "### Full report" >> $GITHUB_STEP_SUMMARY
+                cat "$latest/report.md" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "_(orchestrator did not produce a verdict — see Run orchestrator step output)_" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "_(no reports/ directory — orchestrator likely crashed during setup; see Run orchestrator step)_" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-orchestrator-report
+          path: src/agents/e2e-orchestrator/reports/
+          retention-days: 14

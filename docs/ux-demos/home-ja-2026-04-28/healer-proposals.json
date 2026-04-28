@@ -1,0 +1,34 @@
+[
+  {
+    "id": "P1",
+    "title": "Add home.cta.primary translation key to ja and en marketing catalogs",
+    "rationale": "Judge identified missing i18n key 'home.cta.primary' in ja/marketing.json (and by symmetry en is needed too). Adding the key unblocks the component fix that swaps the hardcoded 'Get Started' string for t('home.cta.primary'). In-scope for healer (i18n_catalog target).",
+    "target": "i18n_catalog",
+    "affected_files": [
+      "src/frontend/web/locales/ja/marketing.json",
+      "src/frontend/web/locales/en/marketing.json"
+    ],
+    "risk": "low",
+    "patch_path": "patches/P1.patch"
+  },
+  {
+    "id": "INV1",
+    "title": "Investigation required — HomeHero.tsx hardcoded CTA fix is outside healer scope",
+    "rationale": "The judge's primary must-fix is replacing the hardcoded English 'Get Started' literal in components/marketing/HomeHero.tsx:47 with t('home.cta.primary'), and similarly wiring trust-signal qualifiers through next-intl. Editing .tsx component files is forbidden for the healer per healer.md (component fixes go through DesignerGate). Human required for: (a) import useTranslations in HomeHero.tsx, (b) replace literal CTA with t('home.cta.primary'), (c) replace trust-signal literals with t('home.trust.verified') / t('home.trust.vaultContract'), (d) audit nav and footer to confirm t() coverage.",
+    "target": "(component)",
+    "affected_files": [],
+    "risk": "high",
+    "patch_path": null
+  },
+  {
+    "id": "P2",
+    "title": "Add Playwright assertion that /ja hero CTA renders Japanese text",
+    "rationale": "Copy reviewer flagged 6 untranslated strings on /ja and the regression slipped past existing visual coverage. Adding a text-content assertion in the visual-regression suite (test_code target) gives a deterministic guard so any future hardcoded English literal on the JA route fails CI before ship, independent of pixel diff thresholds.",
+    "target": "test_code",
+    "affected_files": [
+      "src/frontend/web/e2e/visual-regression/home-ja.spec.ts"
+    ],
+    "risk": "medium",
+    "patch_path": "patches/P2.patch"
+  }
+]

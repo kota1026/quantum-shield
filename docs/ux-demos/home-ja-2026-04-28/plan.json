@@ -1,0 +1,15 @@
+{
+  "route_id": "home-ja",
+  "route_label": "Home (JA)",
+  "path": "/ja",
+  "viewports": ["desktop", "mobile"],
+  "locales": ["ja", "en"],
+  "acceptance_criteria": [
+    "Page reaches network idle and primary above-the-fold content renders within 5 seconds without console errors.",
+    "All visible text is rendered via next-intl translations (no raw i18n keys like 'home.hero.title' or untranslated English on the /ja path, and no untranslated Japanese on the /en path).",
+    "Exactly one primary CTA (bg-gradient-hinomaru) is present above the fold, and it has an accessible name and a tap target of at least 44x44px.",
+    "All interactive elements meet WCAG 2.1 AA contrast (>=4.5:1 for text) and have aria-labels or visible labels; no element uses forbidden utilities (border-border, duration-250).",
+    "Mobile viewport (375px) has no horizontal scroll, no overlapping/clipped hero text, and navigation is reachable (hamburger or visible nav).",
+    "Desktop and mobile screenshots match the prior baseline within tolerance, with no layout shift, missing images, or broken fonts."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "pr_comment_md": "🔴 **UX Regression — Home (JA)** `/ja` @ `9da7f44d`\n\nDesktop verdict: regression (confidence 0.75). Hardcoded English `Get Started` CTA in `HomeHero.tsx:47` bypasses next-intl on the JA route; trust-signal qualifiers also render in English.\n\nHealer auto-applied **2 of 3** fixes (P1: i18n catalog keys, P2: Playwright assertion). The 3rd (INV1: `HomeHero.tsx` component edit) was deferred — **human required**. Final verifier: `regressed`.\n\nCost $0.18 · 124s · 39.3k tokens.\n\nReport: [`docs/ux-demos/home-ja-2026-04-28/report.md`](docs/ux-demos/home-ja-2026-04-28/report.md)",
+  "baseline_update_recommended": false,
+  "follow_up_actions": [
+    "kota: apply INV1 — replace hardcoded 'Get Started' in components/marketing/HomeHero.tsx:47 with t('home.cta.primary')",
+    "kota: replace English trust-signal strings ('verified', 'Vault contract') with t() lookups in HomeHero.tsx",
+    "kota: verify nav and footer items use t() (per judge must-fix #4)",
+    "kota: re-run UX orchestrator on /ja after component fix to clear regression verdict",
+    "kota: confirm ja/marketing.json catalog additions (P1) match keys consumed by HomeHero.tsx"
+  ],
+  "tags": ["ux", "home-ja", "regression", "applied"]
+}

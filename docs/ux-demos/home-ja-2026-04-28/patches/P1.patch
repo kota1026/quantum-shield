@@ -1,0 +1,42 @@
+--- a/src/frontend/web/locales/ja/marketing.json
++++ b/src/frontend/web/locales/ja/marketing.json
+@@ -1,10 +1,13 @@
+ {
+   "home": {
+     "hero": {
+       "title": "...",
+       "subtitle": "..."
+     },
+     "cta": {
++      "primary": "はじめる",
+       "demo": "..."
+     },
+     "trust": {
+-      "title": "..."
++      "title": "...",
++      "verified": "検証済み",
++      "vaultContract": "Vaultコントラクト"
+     }
+   }
+ }
+--- a/src/frontend/web/locales/en/marketing.json
++++ b/src/frontend/web/locales/en/marketing.json
+@@ -1,10 +1,13 @@
+ {
+   "home": {
+     "hero": {
+       "title": "...",
+       "subtitle": "..."
+     },
+     "cta": {
++      "primary": "Get Started",
+       "demo": "..."
+     },
+     "trust": {
+-      "title": "..."
++      "title": "...",
++      "verified": "Verified",
++      "vaultContract": "Vault contract"
+     }
+   }
+ }

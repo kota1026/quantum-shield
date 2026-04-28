@@ -149,8 +149,8 @@ Without verifiable randomness, a malicious actor could predict which provers wil
 ### Application Notes
 
 **Current blocker**: QS is deployed on Arbitrum Sepolia, not Optimism/Superchain.
-**Path forward**: If we deploy L3 contracts to OP Mainnet or Base, we become eligible.
-**Action**: Consider deploying to Base (Superchain) to qualify. Our contracts are chain-agnostic Solidity.
+**Path forward**: ~~If we deploy L3 contracts to OP Mainnet or Base, we become eligible.~~ Re-evaluate Q4 2026.
+**Action**: ~~Consider deploying to Base (Superchain) to qualify. Our contracts are chain-agnostic Solidity.~~ **Refused per `docs/strategy/COUNCIL_2026-04-28.md` Seat 11 no-ledger** (no Base / Optimism / Polygon / Solana / XRPL integrations this quarter).
 
 *Defer this application until/unless we deploy to Superchain.*
 

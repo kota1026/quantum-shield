@@ -1,0 +1,7 @@
+node_modules/
+dist/
+reports/
+.snapshots/
+.env
+.env.local
+*.log

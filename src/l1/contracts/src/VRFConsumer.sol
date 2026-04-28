@@ -146,11 +146,16 @@ contract VRFConsumer is IVRFConsumer {
     }
     
     /// @notice Modifier for Chainlink VRF callback security
-    /// @dev In production, only VRF Coordinator can call rawFulfillRandomWords
+    /// @dev In production, only VRF Coordinator can call rawFulfillRandomWords.
+    ///      Pre-Sherlock blocker (CRITICAL-1, 2026-04-28): the previous form
+    ///      `if (vrfCoordinator != address(0) && ...)` made the callback
+    ///      callable by ANY EOA when the coordinator was unset, allowing an
+    ///      attacker to inject `randomValue` and steer prover selection.
+    ///      The fix is fail-fast: an unset coordinator means VRF is not
+    ///      operational and the callback must revert.
     modifier onlyVRFCoordinator() {
-        if (vrfCoordinator != address(0) && msg.sender != vrfCoordinator) {
-            revert NotVRFCoordinator();
-        }
+        if (vrfCoordinator == address(0)) revert NotVRFCoordinator();
+        if (msg.sender != vrfCoordinator) revert NotVRFCoordinator();
         _;
     }
 

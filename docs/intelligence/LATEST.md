@@ -1,8 +1,28 @@
 # PQC Intelligence — Latest
 
-_Last updated: 2026-04-27 (manual session research)_
+_Last updated: 2026-04-28 (delta refresh; see "April 2026 Delta" section below)_
 
-## Executive Summary
+## April 2026 Delta (since 2026-04-27)
+
+Material new signals that change strategy. Each is dated and sourced.
+
+| # | Signal | Date | Strategic implication |
+|---|---|---|---|
+| ① | **EF Checkpoint #9 demoted EIP-8141** to CFI (non-headliner). FOCIL (EIP-7805) is now the sole confirmed Hegotá CL headliner. EF cited "lack of consensus" on AA implementation. [blog.ethereum.org](https://blog.ethereum.org/2026/04/10/checkpoint-9) | 2026-04-10 | Custody-first PQC has 6+ more months of relevance. Reframe pitch from "EIP-8141-ready" to "EIP-8141-when-it-ships, custody-now." |
+| ② | **Coinbase Independent Advisory Board on Quantum Computing & Blockchain** published a 50-page paper. Members: Boneh, Aaronson, Drake, Lindell, Malkhi, Kannan. Verdict: "not imminent but clearly on the horizon." Flags **6.9M BTC with exposed pubkeys**. Armstrong called it "urgent" 2026-04-02. [coindesk.com](https://www.coindesk.com/tech/2026/04/21/coinbase-advisory-board-says-quantum-computing-threat-is-on-the-horizon-crypto-needs-a-plan) | 2026-04-21–25 | Marketing wedge of the year. Ship Quantum Shield response post within 7 days (deadline 2026-05-04). Anchor on the 6.9M BTC number. |
+| ③ | **StarkNet S2morrow PQ wallet** shipped using Falcon-512 via native AA. First production PQ wallet on a major L2. [starknet.io](https://www.starknet.io/blog/bitcoin-has-a-quantum-problem-starknet-has-the-answer/) | 2026-04-01 | Speed pressure on Quantum Shield's consumer Lock E2E. Different niche (L2 AA wallet vs L1 custody) — competitive but not direct. |
+| ④ | **StarkWare layoffs**, revenue down 99% from peak. Shinobi v0.14.2 released. [coindesk.com](https://www.coindesk.com/markets/2026/04/13/starkware-cuts-jobs-in-reorganization-as-starknet-revenue-plunges-99-from-peak) | 2026-04-13 | Reduces near-term competitive threat. Don't over-react to S2morrow. |
+| ⑤ | **Quantinuum 94 protected logical qubits** with ~10⁻⁴ logical-gate error. Beats Microsoft Magne 50-LQ target on paper. [thequantuminsider.com](https://thequantuminsider.com/2026/03/10/quantinuum-researchers-demonstrates-quantum-computations-with-dozens-of-protected-logical-qubits/) | 2026-03-10 | Threat model anchor moves forward. Update `docs/threat-model.md` to Q-Day 2028-2030 (was 2030+). |
+| ⑥ | **Trezor Safe 7** — first hardware wallet shipping **SLH-DSA-128** in production (firmware/auth/boot). [cryptoslate.com](https://cryptoslate.com/what-trezors-new-quantum-ready-hardware-wallet-really-means-for-bitcoin/) | 2026-04 | Validates SPHINCS+ as retail-grade. Cite in pitch: "same SLH-DSA-128 parameter set as Trezor Safe 7." |
+| ⑦ | **QRL 2.0 Testnet V2 publicly active** with Hyperion (PQ Solidity fork) + QRVM. Mainnet 2026 unscheduled. [theqrl.org](https://www.theqrl.org/press/qrl-launches-testnet-v2-for-its-postquantum-evmfriendly-blockchain/) | 2026-03-31 | Confirms our "PQ-on-ETH custody" niche is uncontested. QRL is a separate chain, not an L1 ETH primitive. |
+| ⑧ | **Ripple/XRPL Project Eleven** — PQ validator rollout Phase 3 in H2 2026; "quantum-proof by 2028." [coindesk.com](https://www.coindesk.com/markets/2026/04/21/ripple-wants-the-xrp-ledger-to-be-quantum-proof-by-2028-here-is-its-plan) | 2026-04-21 | Different ecosystem; not a direct competitor. Use as "industry consensus is forming" signal. |
+| ⑨ | **No new EF ESP PQC-specific RFP** in April. PhD Fellowship phdfp26 only adjacent open call. [esp.ethereum.foundation](https://esp.ethereum.foundation/rounds/phdfp26) | 2026-04 | Existing ESP application quality matters more than waiting. Submit now (planned in `docs/grants/SUBMISSION_CHECKLIST.md`). |
+
+**Strategic synthesis** is in `docs/strategy/STRATEGY_2026-04-28.md`.
+
+---
+
+## Executive Summary (legacy, 2026-04-27)
 
 The PQC landscape moved decisively in Q1 2026: **Vitalik backed EIP-8141** (account-level signature switching), the **Ethereum Foundation launched a Post-Quantum Security team** with $2M in research prizes, and **ETH2030 devnet** demonstrated 13 PQC-related precompiles including an NTT precompile at `0x15`. Hardware milestones (Microsoft Magne 50 logical qubits, IBM Nighthawk 120 qubits with 10x error-correction speedup, Google Willow below-threshold) compress the threat timeline. Quantum-resistant token market cap reached **$9.37B**, validating the thesis but inviting competition.
 

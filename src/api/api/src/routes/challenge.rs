@@ -233,7 +233,19 @@ pub async fn auto_resolve(
         let prover_id = challenge.defender.clone()
             .unwrap_or_else(|| "unknown_prover".to_string());
 
-        let colluding_count = 1u64; // Single prover by default
+        // Pre-Sherlock blocker CRITICAL-2 fix: derive colluding_count from the
+        // count of distinct provers who actually signed for this unlock, NOT
+        // a hardcoded 1. Quadratic slashing (N² × 10%) only works when N
+        // reflects reality.
+        let colluding_count = crate::db::ChallengeRepository::count_signed_provers_for_lock(
+            state.pool(),
+            &lock_id,
+        ).await?;
+        tracing::info!(
+            lock_id = %lock_id,
+            colluding_count,
+            "auto_resolve: derived colluding_count from signing_queue evidence"
+        );
 
         // Execute full slashing pipeline via SlashingService
         let result = SlashingService::execute_slashing(
