@@ -1,0 +1,32 @@
+[
+  {
+    "viewport": "desktop",
+    "screenshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T13-03-11-994Z/stage2-capture/home-ja/desktop.png",
+    "baseline_path": null,
+    "a11y_tree_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T13-03-11-994Z/stage2-capture/home-ja/desktop.a11y.json",
+    "copy_snapshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T13-03-11-994Z/stage2-capture/home-ja/desktop.copy.txt",
+    "perf_metrics": {
+      "lcp_ms": null,
+      "cls": null,
+      "inp_ms": null,
+      "tbt_ms": null
+    },
+    "pixel_hash_match": null,
+    "load_status": "http_error"
+  },
+  {
+    "viewport": "mobile",
+    "screenshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T13-03-11-994Z/stage2-capture/home-ja/mobile.png",
+    "baseline_path": null,
+    "a11y_tree_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T13-03-11-994Z/stage2-capture/home-ja/mobile.a11y.json",
+    "copy_snapshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-04-28T13-03-11-994Z/stage2-capture/home-ja/mobile.copy.txt",
+    "perf_metrics": {
+      "lcp_ms": null,
+      "cls": null,
+      "inp_ms": null,
+      "tbt_ms": null
+    },
+    "pixel_hash_match": null,
+    "load_status": "http_error"
+  }
+]

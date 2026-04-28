@@ -1,0 +1,21 @@
+{
+  "route_id": "home-ja",
+  "route_label": "Home (JA)",
+  "path": "/ja",
+  "viewports": [
+    "desktop",
+    "mobile"
+  ],
+  "locales": [
+    "ja",
+    "en"
+  ],
+  "acceptance_criteria": [
+    "Does the page load without console errors?",
+    "Are all Japanese text elements rendered with correct characters (no mojibake)?",
+    "Is the hero section visible and properly centered on desktop viewport?",
+    "Is the hero section properly stacked and readable on mobile viewport?",
+    "Are all interactive elements (buttons, links) clickable and responsive to hover/tap?",
+    "Is the page viewport-responsive with no horizontal scrollbars on mobile?"
+  ]
+}

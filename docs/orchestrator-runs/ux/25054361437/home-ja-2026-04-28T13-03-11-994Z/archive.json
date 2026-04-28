@@ -1,0 +1,11 @@
+{
+  "pr_comment_md": "✅ **home-ja** passed verification with no visual changes detected across viewports. No healing required. [View report](./reports/home-ja.md)",
+  "baseline_update_recommended": false,
+  "follow_up_actions": [],
+  "tags": [
+    "ux",
+    "home-ja",
+    "pass",
+    "none"
+  ]
+}
