@@ -70,7 +70,9 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: 'src/agents/e2e-orchestrator/pnpm-lock.yaml'
+          cache-dependency-path: |
+            src/agents/e2e-orchestrator/pnpm-lock.yaml
+            src/frontend/web/pnpm-lock.yaml
 
       - name: Install Foundry (cast)
         uses: foundry-rs/foundry-toolchain@v1
@@ -82,6 +84,15 @@ jobs:
 
       - name: Install orchestrator deps
         working-directory: src/agents/e2e-orchestrator
+        run: pnpm install --frozen-lockfile
+
+      # Orchestrator finding (run 25053424860 verdict.json):
+      # frontend layer skipped because @playwright/test was missing in
+      # src/frontend/web/node_modules. The Lock sequence binding
+      # invokes `npx playwright test e2e/integration/lock.integration.spec.ts`
+      # from src/frontend/web, but we never ran `pnpm install` there.
+      - name: Install frontend deps (for Playwright integration tests)
+        working-directory: src/frontend/web
         run: pnpm install --frozen-lockfile
 
       - name: Type-check orchestrator
