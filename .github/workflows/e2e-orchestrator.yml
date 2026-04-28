@@ -1,6 +1,15 @@
 name: E2E Orchestrator
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/api/api/**'
+      - 'src/frontend/web/**'
+      - 'src/contracts/**'
+      - 'src/agents/e2e-orchestrator/**'
+      - 'docs/core/SEQUENCES.md'
+      - '.github/workflows/e2e-orchestrator.yml'
   pull_request:
     paths:
       - 'src/api/api/**'
@@ -15,9 +24,12 @@ on:
         required: false
         default: 'lock'
         type: string
+  schedule:
+    # Daily 21:17 UTC = 06:17 JST. Off-peak so we don't compete with morning PRs.
+    - cron: '17 21 * * *'
 
 permissions:
-  contents: read
+  contents: write   # auto-commit run outputs to docs/orchestrator-runs/
 
 jobs:
   verify:
@@ -144,3 +156,38 @@ jobs:
           name: e2e-orchestrator-report
           path: src/agents/e2e-orchestrator/reports/
           retention-days: 14
+
+      - name: Commit run output to docs/orchestrator-runs/
+        # Skip on pull_request (would push to PR branch from the PR runner —
+        # noisy and conflicts with branch-protection in many setups). Run on
+        # push/schedule/dispatch where we have a stable target branch.
+        if: always() && github.event_name != 'pull_request'
+        run: |
+          set -e
+          DEST="docs/orchestrator-runs/e2e/${{ github.run_id }}"
+          mkdir -p "$DEST"
+          # Copy whatever the orchestrator produced (may be empty if it crashed)
+          if [ -d src/agents/e2e-orchestrator/reports ]; then
+            cp -r src/agents/e2e-orchestrator/reports/. "$DEST/" 2>/dev/null || true
+          fi
+          # Always write a run-info marker so Claude can find this run via the
+          # filesystem even if reports/ is empty.
+          cat > "$DEST/run-info.json" <<EOF
+          {
+            "run_id": "${{ github.run_id }}",
+            "workflow": "e2e-orchestrator",
+            "sequence": "${{ inputs.sequence || 'lock' }}",
+            "sha": "${{ github.sha }}",
+            "trigger": "${{ github.event_name }}",
+            "actor": "${{ github.actor }}",
+            "started_at": "$(date -u -Iseconds)"
+          }
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/orchestrator-runs/
+          # `[skip ci]` prevents the commit from re-triggering this workflow.
+          git diff --cached --quiet || git commit -m "ci(e2e-orchestrator): run ${{ github.run_id }} [skip ci]"
+          # Pull --rebase in case main moved during the long cargo build.
+          git pull --rebase origin main 2>/dev/null || true
+          git push origin HEAD:main || echo "::warning::could not push run output (likely branch protection); artifact still available"

@@ -1,6 +1,12 @@
 name: UX Orchestrator
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/frontend/web/**'
+      - 'src/agents/ux-orchestrator/**'
+      - '.github/workflows/ux-orchestrator.yml'
   pull_request:
     paths:
       - 'src/frontend/web/**'
@@ -17,9 +23,12 @@ on:
         required: false
         default: false
         type: boolean
+  schedule:
+    # Daily 21:23 UTC = 06:23 JST. Slightly offset from e2e to avoid concurrent quota.
+    - cron: '23 21 * * *'
 
 permissions:
-  contents: read
+  contents: write   # auto-commit run outputs to docs/orchestrator-runs/
 
 jobs:
   verify:
@@ -143,3 +152,32 @@ jobs:
                 });
               }
             }
+
+      - name: Commit run output to docs/orchestrator-runs/
+        # Skip on pull_request — keep PR runs as artifact-only. Run on
+        # push/schedule/dispatch where we have a stable target branch.
+        if: always() && github.event_name != 'pull_request'
+        run: |
+          set -e
+          DEST="docs/orchestrator-runs/ux/${{ github.run_id }}"
+          mkdir -p "$DEST"
+          if [ -d src/agents/ux-orchestrator/reports ]; then
+            cp -r src/agents/ux-orchestrator/reports/. "$DEST/" 2>/dev/null || true
+          fi
+          cat > "$DEST/run-info.json" <<EOF
+          {
+            "run_id": "${{ github.run_id }}",
+            "workflow": "ux-orchestrator",
+            "route": "${{ inputs.route || 'home-ja' }}",
+            "sha": "${{ github.sha }}",
+            "trigger": "${{ github.event_name }}",
+            "actor": "${{ github.actor }}",
+            "started_at": "$(date -u -Iseconds)"
+          }
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/orchestrator-runs/
+          git diff --cached --quiet || git commit -m "ci(ux-orchestrator): run ${{ github.run_id }} [skip ci]"
+          git pull --rebase origin main 2>/dev/null || true
+          git push origin HEAD:main || echo "::warning::could not push run output (likely branch protection); artifact still available"
