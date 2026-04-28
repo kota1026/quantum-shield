@@ -1,0 +1,195 @@
+{
+  "sequence": "seq-1",
+  "started_at": "2026-04-28T12:44:12.222Z",
+  "finished_at": "2026-04-28T12:49:13.042Z",
+  "duration_ms": 300820,
+  "plan": {
+    "sequence_id": "seq-1",
+    "sequence_name": "Consumer Lock",
+    "layers": [
+      "backend",
+      "frontend",
+      "db",
+      "l1"
+    ],
+    "steps": [
+      {
+        "layer": "backend",
+        "description": "Rust integration test for Lock flow",
+        "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture",
+        "expected": "Lock created in DB, SR0 computed, L1 lockWithSR0 submitted"
+      },
+      {
+        "layer": "frontend",
+        "description": "Playwright integration spec for Consumer Lock",
+        "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+        "expected": "UI lock creation produces success state and DB row"
+      },
+      {
+        "layer": "db",
+        "description": "Verify lock row was created and pk_dilithium populated",
+        "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+        "expected": "one row, status=locked, pk_dilithium length=1952"
+      },
+      {
+        "layer": "l1",
+        "description": "Verify totalLocked increased on Sepolia Vault",
+        "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+        "expected": "value > 0 wei"
+      }
+    ],
+    "acceptance_criteria": [
+      "Backend integration test passes",
+      "Playwright lock.integration.spec.ts passes",
+      "A new locks row exists with status=locked and Dilithium pk len 1952",
+      "Sepolia Vault totalLocked is non-zero",
+      "No silent fallback or hardcoded address in the trace"
+    ],
+    "spec_section": "SEQUENCES.md §1 Consumer Lock"
+  },
+  "plan_source": "fallback",
+  "layer_results": [
+    {
+      "layer": "backend",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 300038,
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture",
+      "stdout_excerpt": "",
+      "stderr_excerpt": "[truncated 15627 bytes]\n[1m\u001b[92m   Compiling\u001b[0m indenter v0.3.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m same-file v1.0.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode_categories v0.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m spin v0.5.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlformat v0.2.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m walkdir v2.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m coins-core v0.8.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m pest v2.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m pem v1.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m tungstenite v0.20.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m wyz v0.5.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m ctutils v0.4.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m Inflector v0.11.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m reqwest v0.11.27\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-native-certs v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m pkcs5 v0.7.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m x509-parser v0.17.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m gloo-timers v0.2.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-intrusive v0.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-runtime v1.7.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m bigdecimal v0.3.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m pkcs12 v0.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m crossbeam-queue v0.3.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m tokio-stream v0.1.18\n\u001b[1m\u001b[92m   Compiling\u001b[0m toml v0.8.23\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-normalization v0.1.25\n\u001b[1m\u001b[92m   Compiling\u001b[0m hashlink v0.8.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m block-buffer v0.12.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m crypto-common v0.2.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m const-random-macro v0.1.16\n\u001b[1m\u001b[92m   Compiling\u001b[0m atoi v2.0.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m rc2 v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m des v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m fxhash v0.2.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m pbkdf2 v0.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m spin v0.9.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m polling v2.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-io v2.6.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m cookie-factory v0.3.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-bidi v0.3.18\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-properties v0.1.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustix v0.37.28\n\u001b[1m\u001b[92m   Compiling\u001b[0m regex-lite v0.1.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m funty v2.0.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-task v4.7.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m send_wrapper v0.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-timer v3.0.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m bitvec v1.0.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m stringprep v0.1.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlx-core v0.7.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m amq-protocol-types v7.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m scrypt v0.10.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m hashers v1.0.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m p12-keystore v0.1.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m digest v0.11.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m const-random v0.1.18\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-contract-abigen v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-connector v0.20.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m tokio-tungstenite v0.20.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m pest_meta v2.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m jsonwebtoken v8.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m coins-bip32 v0.8.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-channel v2.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m tracing-futures v0.2.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m enr v0.10.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m hkdf v0.12.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m polling v3.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ctr v0.9.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m piper v0.2.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-json v0.62.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m md-5 v0.10.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m uuid v0.8.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-io v1.13.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m instant v0.1.13\n\u001b[1m\u001b[92m   Compiling\u001b[0m dotenvy v0.15.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m whoami v1.6.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m doc-comment v0.3.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m xmlparser v0.13.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m waker-fn v1.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m urlencoding v2.1.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m linux-raw-sys v0.3.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-segmentation v1.12.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m const-oid v0.10.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m fastrand v1.9.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m bitflags v1.3.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m home v0.5.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlx-postgres v0.7.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-lite v1.13.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m heck v0.4.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-xml v0.60.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m der v0.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-providers v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m eth-keystore v0.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m blocking v1.6.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m coins-bip39 v0.8.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m pest_generator v2.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m tcp-stream v0.28.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-contract-derive v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m dlv-list v0.5.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m amq-protocol-uri v7.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-executor v1.13.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-lock v3.4.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-lock v2.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m axum-core v0.4.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m axum-macros v0.4.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m serde_path_to_error v0.1.20\n\u001b[1m\u001b[92m   Compiling\u001b[0m multer v3.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m foldhash v0.1.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m matchit v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicase v2.9.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m anyhow v1.0.100\n\u001b[1m\u001b[92m   Compiling\u001b[0m amq-protocol v7.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls v0.22.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m mime_guess v2.0.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m axum v0.7.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m hashbrown v0.15.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-global-executor v3.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-contract v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m amq-protocol-tcp v7.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m ordered-multimap v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m pest_derive v2.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-signers v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m spki v0.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlx-macros-core v0.7.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-query v0.60.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m flume v0.11.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-etherscan v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m crc-fast v1.6.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-http v0.62.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m executor-trait v2.1.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m reactor-trait v1.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-webpki v0.102.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-executor v0.3.31\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-locks v0.7.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m keccak v0.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m arraydeque v0.5.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m cpufeatures v0.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m rand_core v0.10.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m lapin v2.5.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m signature v3.0.0-rc.10\n\u001b[1m\u001b[92m   Compiling\u001b[0m sha2 v0.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-checksums v0.63.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m yaml-rust2 v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m convert_case v0.6.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m sha3 v0.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-middleware v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures v0.3.31\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-reactor-trait v1.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-global-executor-trait v2.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m sqlx-macros v0.7.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m pinky-swear v6.2.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-sdk-sts v1.98.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m pkcs8 v0.11.0-rc.11\n\u001b[1m\u001b[92m   Compiling\u001b[0m json5 v0.4.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m rust-ini v0.20.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m lru v0.12.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-sdk-ssooidc v1.96.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-sdk-sso v1.94.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m hmac v0.13.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ethers-addressbook v2.0.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m tower v0.4.13\n\u001b[1m\u001b[92m   Compiling\u001b[0m tokio-retry v0.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m sharded-slab v0.1.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m pem v3.0.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m matchers v0.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m ron v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-json v0.61.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m combine v4.6.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m tracing-log v0.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m arc-swap v1.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m cookie v0.18.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m thread_local v1.1.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m constant_time_eq v0.3.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m pathdiff v0.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m base32 v0.5.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m predicates-core v1.0.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m sha1_smol v1.0.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m nu-ansi-term v0.50.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m tracing-subscriber v0.3.22\n"
+    },
+    {
+      "layer": "frontend",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 5381,
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+      "stdout_excerpt": "",
+      "stderr_excerpt": "npm warn exec The following package was not found and will be installed: playwright@1.59.1\nError: Cannot find module '@playwright/test'\nRequire stack:\n- /home/runner/work/quantum-shield/quantum-shield/src/frontend/web/playwright.config.ts\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js\n- /home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/cli.js\n    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)\n    at Function.resolveFilename [as _resolveFilename] (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js:240:36)\n    at Function.Module._load (node:internal/modules/cjs/loader:1038:27)\n    at Module.require (node:internal/modules/cjs/loader:1289:19)\n    at require (node:internal/modules/helpers:182:18)\n    at Object.<anonymous> (/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/playwright.config.ts:1:1)\n    at Module._compile (node:internal/modules/cjs/loader:1521:14)\n    at Module.newCompile2 (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/third_party/pirates.js:46:29)\n    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1623:10)\n    at Object.newLoader2 [as .ts] (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/third_party/pirates.js:52:22)\n    at Module.load (node:internal/modules/cjs/loader:1266:32)\n    at Function.Module._load (node:internal/modules/cjs/loader:1091:12)\n    at Module.require (node:internal/modules/cjs/loader:1289:19)\n    at require (node:internal/modules/helpers:182:18)\n    at requireOrImport (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js:218:18)\n    at loadUserConfig (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:107:89)\n    at loadConfig (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:119:28)\n    at loadConfigFromFile (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:331:10)\n    at runTests (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js:51:18)\n    at i.<anonymous> (/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js:56:7) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/playwright.config.ts',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js',\n    '/home/runner/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/cli.js'\n  ]\n}\n"
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 384,
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+      "stdout_excerpt": "",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "l1",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 20133,
+      "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+      "stdout_excerpt": "",
+      "stderr_excerpt": "Error: HTTP error 522 with body: <!DOCTYPE html>\n<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js ie7 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-js ie8 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html class=\"no-js\" lang=\"en-US\"> <!--<![endif]-->\n<head>\n\n<title>sepolia.org | 522: Connection timed out</title>\n<meta charset=\"UTF-8\" />\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\" />\n<meta name=\"robots\" content=\"noindex, nofollow\" />\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n<link rel=\"stylesheet\" id=\"cf_styles-css\" href=\"/cdn-cgi/styles/main.css\" />\n</head>\n<body>\n<div id=\"cf-wrapper\">\n    <div id=\"cf-error-details\" class=\"p-0\">\n        <header class=\"mx-auto pt-10 lg:pt-6 lg:px-8 w-240 lg:w-full mb-8\">\n            <h1 class=\"inline-block sm:block sm:mb-2 font-light text-60 lg:text-4xl text-black-dark leading-tight mr-2\">\n                <span class=\"inline-block\">Connection timed out</span>\n                <span class=\"code-label\">Error code 522</span>\n            </h1>\n            <div>\n                Visit <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">cloudflare.com</a> for more information.\n            </div>\n            <div class=\"mt-3\">2026-04-28 12:44:32 UTC</div>\n        </header>\n        <div class=\"my-8 bg-gradient-gray\">\n            <div class=\"w-240 lg:w-full mx-auto\">\n                <div class=\"clearfix md:px-8\">\n                    <div id=\"cf-browser-status\" class=\" relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    \n    <span class=\"cf-icon-browser block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    \n  </div>\n  <span class=\"md:block w-full truncate\">You</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  \n    Browser\n  \n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-green-success\">Working</span>\n  \n</div>\n                    <div id=\"cf-cloudflare-status\" class=\" relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&#38;utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n    <span class=\"cf-icon-cloud block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    </a>\n  </div>\n  <span class=\"md:block w-full truncate\">Chicago</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n    Cloudflare\n  </a>\n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-green-success\">Working</span>\n  \n</div>\n                    <div id=\"cf-host-status\" class=\"cf-error-source relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    \n    <span class=\"cf-icon-server block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-error w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    \n  </div>\n  <span class=\"md:block w-full truncate\">rpc.sepolia.org</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  \n    Host\n  \n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-red-error\">Error</span>\n  \n</div>\n                </div>\n            </div>\n        </div>\n\n        <div class=\"w-240 lg:w-full mx-auto mb-8 lg:px-8\">\n            <div class=\"clearfix\">\n                <div class=\"w-1/2 md:w-full float-left pr-6 md:pb-10 md:pr-0 leading-relaxed\">\n                    <h2 class=\"text-3xl font-normal leading-1.3 mb-4\">What happened?</h2>\n                    <p>The initial connection between Cloudflare's network and the origin web server timed out. As a result, the web page can not be displayed.</p>\n                </div>\n                <div class=\"w-1/2 md:w-full float-left leading-relaxed\">\n                    <h2 class=\"text-3xl font-normal leading-1.3 mb-4\">What can I do?</h2>\n                    \n                <h3 class=\"text-15 font-semibold mb-2\">If you're a visitor of this website:</h3>\n                <p class=\"mb-6\">Please try again in a few minutes.</p>\n\n                <h3 class=\"text-15 font-semibold mb-2\">If you're the owner of this website:</h3>\n                <p><span>Contact your hosting provider letting them know your web server is not completing requests. An Error 522 means that the request was able to connect to your web server, but that the request didn't finish. The most likely cause is that something on your server is hogging resources.</span> <a rel=\"noopener noreferrer\" href=\"https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-5xx-errors/error-522/\">Additional troubleshooting information here.</a></p>\n                </div>\n            </div>\n        </div>\n\n        <div class=\"cf-error-footer cf-wrapper w-240 lg:w-full py-10 sm:py-4 sm:px-8 mx-auto text-center sm:text-left border-solid border-0 border-t border-gray-300\">\n    <p class=\"text-13\">\n      <span class=\"cf-footer-item sm:block sm:mb-1\">Cloudflare Ray ID: <strong class=\"font-semibold\">9f3628336f700ef9</strong></span>\n      <span class=\"cf-footer-separator sm:hidden\">&bull;</span>\n      <span id=\"cf-footer-item-ip\" class=\"cf-footer-item hidden sm:block sm:mb-1\">\n        Your IP:\n        <button type=\"button\" id=\"cf-footer-ip-reveal\" class=\"cf-footer-ip-reveal-btn\">Click to reveal</button>\n        <span class=\"hidden\" id=\"cf-footer-ip\">135.232.208.133</span>\n        <span class=\"cf-footer-separator sm:hidden\">&bull;</span>\n      </span>\n      <span class=\"cf-footer-item sm:block sm:mb-1\"><span>Performance &amp; security by</span> <a rel=\"noopener noreferrer\" href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&#38;utm_campaign=rpc.sepolia.org\" id=\"brand_link\" target=\"_blank\">Cloudflare</a></span>\n      \n    </p>\n    <script>(function(){function d(){var b=a.getElementById(\"cf-footer-item-ip\"),c=a.getElementById(\"cf-footer-ip-reveal\");b&&\"classList\"in b&&(b.classList.remove(\"hidden\"),c.addEventListener(\"click\",function(){c.classList.add(\"hidden\");a.getElementById(\"cf-footer-ip\").classList.remove(\"hidden\")}))}var a=document;document.addEventListener&&a.addEventListener(\"DOMContentLoaded\",d)})();</script>\n  </div><!-- /.error-footer -->\n\n    </div>\n</div>\n</body>\n</html>\n"
+    }
+  ],
+  "layer_analyses": [
+    {
+      "layer": "backend",
+      "status": "fail",
+      "observations": [
+        "Agent backend-runner did not return a parseable result"
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "Layer agent failure: backend-runner",
+          "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMP7FJGQiCsa9dRANR\"}"
+        }
+      ],
+      "confidence": 0
+    },
+    {
+      "layer": "frontend",
+      "status": "fail",
+      "observations": [
+        "Agent frontend-runner did not return a parseable result"
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "Layer agent failure: frontend-runner",
+          "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMP32pfsEuG952HkfZ\"}"
+        }
+      ],
+      "confidence": 0
+    },
+    {
+      "layer": "db",
+      "status": "fail",
+      "observations": [
+        "Agent db-verifier did not return a parseable result"
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "Layer agent failure: db-verifier",
+          "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMP3XYnBxEmjspK1AK\"}"
+        }
+      ],
+      "confidence": 0
+    },
+    {
+      "layer": "l1",
+      "status": "fail",
+      "observations": [
+        "Agent l1-verifier did not return a parseable result"
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "Layer agent failure: l1-verifier",
+          "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMPBTcMcs6CUgHLhJZ\"}"
+        }
+      ],
+      "confidence": 0
+    }
+  ],
+  "quality_findings": [
+    {
+      "source": "bug-hunter",
+      "severity": "critical",
+      "title": "Quality agent failure: bug-hunter",
+      "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMPWomxVCnj9jDroeL\"}",
+      "evidence": [
+        "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMPWomxVCnj9jDroeL\"}"
+      ]
+    },
+    {
+      "source": "regression-sentinel",
+      "severity": "critical",
+      "title": "Quality agent failure: regression-sentinel",
+      "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMPXoKqZwgrPRN2twf\"}",
+      "evidence": [
+        "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMPXoKqZwgrPRN2twf\"}"
+      ]
+    },
+    {
+      "source": "performance-monitor",
+      "severity": "critical",
+      "title": "Quality agent failure: performance-monitor",
+      "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMPdkXYHGffC4prrh6\"}",
+      "evidence": [
+        "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaWCMPdkXYHGffC4prrh6\"}"
+      ]
+    }
+  ],
+  "fixer_proposals": [],
+  "final_verdict": {
+    "verdict": "BLOCKED",
+    "summary": "cross-reviewer did not return a parseable verdict",
+    "must_fix_before_merge": [],
+    "fixer_recommendation": "review_required",
+    "unresolved_questions": [],
+    "confidence": 0.5
+  },
+  "cost_usd": 0,
+  "tokens": {
+    "input": 0,
+    "cached_input": 0,
+    "output": 0
+  }
+}
