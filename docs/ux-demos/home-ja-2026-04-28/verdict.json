@@ -1,0 +1,18 @@
+{
+  "verdict": "regression",
+  "summary": "Hardcoded English 'Get Started' CTA on the Japanese route bypasses next-intl and lacks a JA catalog entry, and trust-signal qualifiers ('verified', 'Vault contract') also render in English on /ja. Visual diff is a minor CTA gradient-to-solid change (cosmetic) and performance is within budget. Translator/component owner must add t() wrapper plus ja keys; designer arbitration is not required for the copy fix, but the gradient change should be confirmed against design intent.",
+  "must_fix_before_ship": [
+    "Hardcoded English CTA on /ja ('Get Started') in components/marketing/HomeHero.tsx:47",
+    "Missing i18n key 'home.cta.primary' in ja/marketing.json",
+    "Untranslated English CTA on Japanese route (a11y impact for JA screen readers)",
+    "Trust signals 'verified' / 'Vault contract' untranslated on /ja",
+    "Confirm nav items use t()",
+    "Confirm footer items use t()"
+  ],
+  "designer_review_required": false,
+  "unresolved_questions": [
+    "Is the CTA gradient->solid (#C41E3A->#9F0F1A gradient -> flat #C41E3D) an intentional design update or an unintended regression? Needs design sign-off to either accept new baseline or revert.",
+    "Primary-CTA-count rule (exactly one bg-gradient-hinomaru above the fold) cannot be verified from a11y tree alone — needs DOM/class-level check."
+  ],
+  "confidence": 0.75
+}

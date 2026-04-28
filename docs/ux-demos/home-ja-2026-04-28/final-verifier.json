@@ -1,0 +1,12 @@
+{
+  "status": "regressed",
+  "summary": "Patches P1 (i18n catalog) and P2 (Playwright assertion) were applied, but INV1 (the actual HomeHero.tsx:47 component fix) was not — Healer is forbidden from editing .tsx components. The root-cause regression (hardcoded English 'Get Started' on /ja) persists, copy reviewer fails critical, accessibility reviewer flags high severity, and the new P2 test now fails as designed. Human/DesignerGate intervention required to apply INV1.",
+  "introduced_findings": [
+    "P2 Playwright assertion not.toHaveText(/Get Started/i) now fails in CI — intended behavior (silent regression converted to hard failure), but it is a NEW failing check not present in previous_verdict"
+  ],
+  "resolved_findings": [
+    "Missing i18n key 'home.cta.primary' in ja/marketing.json (resolved by P1)",
+    "Trust signals 'verified' / 'Vault contract' missing translations in ja catalog (catalog side resolved by P1; component-side rendering still pending INV1)"
+  ],
+  "confidence": 0.9
+}

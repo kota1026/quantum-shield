@@ -1,0 +1,21 @@
+--- a/src/frontend/web/e2e/visual-regression/home-ja.spec.ts
++++ b/src/frontend/web/e2e/visual-regression/home-ja.spec.ts
+@@ -1,8 +1,19 @@
+ import { test, expect } from '@playwright/test';
+
+ test('home-ja visual', async ({ page }) => {
+   await page.goto('/ja');
+   await page.waitForLoadState('networkidle');
+   await expect(page).toHaveScreenshot('home-ja.png');
+ });
++
++test('home-ja hero CTA and trust signals are localized (not English)', async ({ page }) => {
++  await page.goto('/ja');
++  await page.waitForLoadState('networkidle');
++  const cta = page.getByTestId('home-cta-primary');
++  await expect(cta).toBeVisible();
++  await expect(cta).not.toHaveText(/Get Started/i);
++  const trust = page.getByTestId('home-trust');
++  await expect(trust).not.toContainText(/verified/i);
++  await expect(trust).not.toContainText(/Vault contract/i);
++});
