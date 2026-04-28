@@ -91,13 +91,17 @@ jobs:
           REPO_ROOT: ${{ github.workspace }}
           REPORTS_DIR: ${{ github.workspace }}/src/agents/ux-orchestrator/reports
         continue-on-error: true
-        # Diagnostic + run + log capture. Log file is at an ABSOLUTE path
-        # (/tmp/...) so it is unambiguously outside reports/ and can't be
-        # touched by the orchestrator's runDir creation. The commit step
-        # below explicitly copies it into DEST.
+        # Write the diagnostic log DIRECTLY into the docs/orchestrator-runs/
+        # tree (the same tree the commit step git-adds). This bypasses every
+        # intermediate `cp` step that has been losing the log file in PRs
+        # #145 and #146. Even if the orchestrator crashes immediately,
+        # this log file exists at the path the commit step is going to
+        # `git add`. There is no other indirection.
         run: |
           set -o pipefail
-          LOG=/tmp/ux-orchestrator-stdout.log
+          LOG_DIR="${{ github.workspace }}/docs/orchestrator-runs/ux/${{ github.run_id }}"
+          mkdir -p "$LOG_DIR"
+          LOG="$LOG_DIR/orchestrator-stdout.log"
 
           {
             echo "=== diagnostic ==="
@@ -111,8 +115,8 @@ jobs:
             curl -sv --max-time 5 "$QS_BASE_URL" 2>&1 | head -25 || echo "(curl failed)"
             echo ""
             echo "=== node + pnpm ==="
-            node --version
-            pnpm --version
+            node --version || echo "node missing"
+            pnpm --version || echo "pnpm missing"
             echo ""
             echo "=== orchestrator run ==="
           } | tee "$LOG"
@@ -124,10 +128,9 @@ jobs:
           EXIT_CODE=${PIPESTATUS[0]}
           echo "" | tee -a "$LOG"
           echo "=== orchestrator exit code: $EXIT_CODE ===" | tee -a "$LOG"
-
-          # Also copy log into reports/ so existing commit step picks it up.
-          cp "$LOG" reports/orchestrator-stdout.log || true
-          ls -la reports/ | tee -a "$LOG"
+          echo "=== final ls reports/ ===" | tee -a "$LOG"
+          ls -la reports/ 2>&1 | tee -a "$LOG"
+          echo "=== END LOG ===" | tee -a "$LOG"
           exit 0
 
       - name: Summarize UX orchestrator verdict
