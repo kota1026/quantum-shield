@@ -36,6 +36,47 @@ function ok(msg: string): void { console.log(kleur.green('✓ ') + msg); }
 function warn(msg: string): void { console.log(kleur.yellow('! ') + msg); }
 function err(msg: string): void { console.log(kleur.red('✗ ') + msg); }
 
+/**
+ * Re-derive each step's `phase` from the static binding rather than trusting
+ * the AI plan. The spec-runner prompt's schema doesn't include `phase`, so
+ * the AI silently drops it and every step ends up at the `drive` default.
+ *
+ * Observed in run 25147313400: orchestrator-stdout.log showed
+ *   ▸ Stage 2a: 4 drive step(s) in parallel
+ *   ▸ Stage 2b: 0 verify step(s) in parallel (after drive completes)
+ * even though the lock binding has 2 drive + 2 verify. The cross-phase race
+ * the previous PR meant to fix re-emerged because the AI flattened the
+ * classification.
+ *
+ * The binding is human-curated and encodes the producer/consumer
+ * relationship (backend test writes locks; psql reads them). Match by
+ * (layer, command) — the spec-runner prompt instructs the AI to copy
+ * commands verbatim, so identity match is reliable. Fall back to the single
+ * step in a layer if commands differ; otherwise keep the AI's value.
+ */
+function reconcilePhasesFromBinding(
+  aiPlan: TestPlan,
+  binding: TestPlan,
+): { plan: TestPlan; corrected: number } {
+  let corrected = 0;
+  const reconciled = aiPlan.steps.map((step) => {
+    const exact = binding.steps.find(
+      (b) => b.layer === step.layer && b.command === step.command,
+    );
+    if (exact) {
+      if (exact.phase !== step.phase) corrected++;
+      return { ...step, phase: exact.phase };
+    }
+    const sameLayer = binding.steps.filter((b) => b.layer === step.layer);
+    if (sameLayer.length === 1 && sameLayer[0]) {
+      if (sameLayer[0].phase !== step.phase) corrected++;
+      return { ...step, phase: sameLayer[0].phase };
+    }
+    return step;
+  });
+  return { plan: { ...aiPlan, steps: reconciled }, corrected };
+}
+
 export async function runSequence(
   sequenceId: string,
   config: Config,
@@ -75,9 +116,13 @@ export async function runSequence(
     } else {
       const parsed = TestPlan.safeParse(planAgent.parsed_json);
       if (parsed.success) {
-        plan = parsed.data;
+        const { plan: reconciled, corrected } = reconcilePhasesFromBinding(parsed.data, baseline);
+        plan = reconciled;
         planSource = 'ai';
         ok(`spec-runner produced plan with ${plan.steps.length} steps across ${plan.layers.length} layers`);
+        if (corrected > 0) {
+          info(`reconciled ${corrected}/${plan.steps.length} step phase(s) from binding (AI omitted phase classification)`);
+        }
       } else {
         warn(`spec-runner output didn't match schema, using binding fallback (${parsed.error.issues.length} issues)`);
       }
