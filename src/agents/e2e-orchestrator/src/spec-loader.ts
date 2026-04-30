@@ -24,7 +24,14 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
       {
         layer: 'backend',
         description: 'Rust integration test for Lock flow',
-        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture',
+        // 2026-04-30: filter substring `sequence_lock` did not match any real
+        // test (modules are seq1_lock / seq2_unlock_normal / seq4_challenge),
+        // so cargo test ran zero tests and exited 1 after the orchestrator
+        // killed the still-compiling binary at 120s. Use the actual module
+        // name as the filter so all four `seq1_lock::test_lock_*` tests run.
+        // The CI workflow now pre-compiles this binary so the per-step
+        // 120s budget is enough to run the tests, not compile them.
+        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq1_lock -- --nocapture',
         expected: 'Lock created in DB, SR0 computed, L1 lockWithSR0 submitted',
         // Backend test creates rows in `locks`, sends to L1. Must run before
         // verify steps can observe state. (note: status will be 'pending'
@@ -76,7 +83,7 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
       {
         layer: 'backend',
         description: 'Unlock + auto-claim Rust test',
-        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_unlock_normal -- --nocapture',
+        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq2_unlock_normal -- --nocapture',
         expected: '24h time-lock honored, Auto-Claim service finalizes',
         phase: 'drive',
       },
@@ -114,7 +121,16 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
       {
         layer: 'backend',
         description: 'Challenge -> Slashing pipeline test',
-        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_slashing -- --nocapture',
+        // 2026-04-30: there is no `sequence_slashing` test in the codebase;
+        // the closest covered module is `seq4_challenge`, which exercises
+        // the challenge endpoint that *feeds* the slashing pipeline. A
+        // dedicated slashing-pipeline integration test (one that triggers
+        // the L1 slash submission and asserts L1SlashStatus transitions) is
+        // not yet written, and the orchestrator should surface that gap
+        // rather than silently run zero tests. See acceptance_criteria
+        // below — the `pending_retry` row check still applies once a real
+        // pipeline test exists.
+        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq4_challenge -- --nocapture',
         expected: 'L1SlashStatus enum transitions; pending_retry path tested',
         phase: 'drive',
       },

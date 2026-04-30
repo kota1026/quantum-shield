@@ -105,6 +105,18 @@ jobs:
         env:
           DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
 
+      # Pre-compile the e2e test binary so the orchestrator's per-step
+      # 120s timeout (DEFAULT_TIMEOUT_MS in exec.ts) doesn't get burned on
+      # a fresh debug compile of axum + sqlx + ethers. Observed in run
+      # 25149846972: backend layer exited 1 at exactly 120s with empty
+      # stdout because the binary was still being built when SIGTERM hit.
+      # Subsequent runs are cached by Swatinem/rust-cache@v2 above.
+      - name: Pre-compile e2e test binary
+        working-directory: src/api/api
+        run: SQLX_OFFLINE=true cargo test --test sequence_e2e_test --no-run
+        env:
+          DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+
       - name: Run migrations
         working-directory: src/api/api
         run: cargo install sqlx-cli --version 0.7.4 --no-default-features --features postgres,native-tls --locked && sqlx migrate run
