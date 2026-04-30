@@ -1,0 +1,18 @@
+{
+  "verdict": "FIXABLE",
+  "summary": "The Consumer Lock sequence fails at the backend and db layers: the Rust integration test exited after exactly 120 s with no test output (likely a timeout/hang), and the locks table is empty confirming no write occurred. The frontend's 40/40 pass result is against a test-double that diverges from the real backend, making it misleading rather than a true signal. The L1 layer failure is an infrastructure outage (HTTP 522 from rpc.sepolia.org) and not a code defect — per override rule 2 this is downgraded to FIXABLE rather than BLOCKED. No fixer proposals were received, so the recommendation is review_required pending human diagnosis of the backend hang.",
+  "must_fix_before_merge": [
+    "Backend Rust test hangs/panics at 120 s — root cause hidden by output truncation; actual error must be surfaced and resolved",
+    "Lock write path broken — zero rows in locks table after full sequence run; DB INSERT never executes or is silently swallowed",
+    "pk_dilithium column unverified — 1952-byte Dilithium key storage cannot be confirmed until backend writes a real row",
+    "Frontend integration tests target a stub/mock backend, not the real service — test isolation must be corrected so Playwright hits the real API",
+    "L1 RPC endpoint (rpc.sepolia.org) is down (HTTP 522) — switch to a reliable fallback RPC before retrying L1 verification"
+  ],
+  "fixer_recommendation": "review_required",
+  "unresolved_questions": [
+    "What is the actual panic/error inside the backend test? The 2507-byte stderr was truncated before any test output appeared — the real failure message is invisible.",
+    "Is the Playwright suite intentionally configured to hit a mock server, or is this an accidental misconfiguration? The 'lock is persisted in DB and visible via GET /v1/explorer/locks' test returned status=active yet the DB is empty — these cannot both be true against the same real backend.",
+    "Did the backend test timeout because of a missing environment variable (e.g. DATABASE_URL not set despite SQLX_OFFLINE=true), a network dependency on the Sepolia RPC that also timed out, or an internal deadlock?"
+  ],
+  "confidence": 0.65
+}

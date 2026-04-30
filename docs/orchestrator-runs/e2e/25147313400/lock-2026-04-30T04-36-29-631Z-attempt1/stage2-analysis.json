@@ -1,0 +1,96 @@
+[
+  {
+    "layer": "backend",
+    "status": "fail",
+    "observations": [
+      "exit_code is 1, indicating test failure",
+      "stdout_excerpt is empty; stderr contains only compilation output",
+      "No test execution output found in provided excerpts",
+      "stderr shows successful compilation of dependencies but test result unknown",
+      "SQLX_OFFLINE=true set, suggesting offline database mode",
+      "No evidence of lock_id assignment, SR_0 computation, or transaction submission"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Test execution failed with non-zero exit code",
+        "detail": "exit_code=1 indicates the test did not pass. The provided stderr excerpt contains only dependency compilation output and no actual test result or error message. The stdout excerpt is empty, preventing assessment of test behavior.",
+        "location": null
+      },
+      {
+        "severity": "high",
+        "title": "Missing test execution output",
+        "detail": "Neither stdout nor stderr contain test result summary, assertion failures, or panic messages. The truncated 2507 bytes of stderr shows only compilation headers. Without the actual test output, cannot verify lock_id assignment, SR_0 hash computation, or L1 vault transaction submission.",
+        "location": null
+      },
+      {
+        "severity": "high",
+        "title": "Expected spec conditions not verified",
+        "detail": "Required behavior not found in output: (1) lock_id assignment, (2) SR_0 computation via SHA3-256(QS_LOCK_V1 || ...), (3) lockWithSR0 transaction to 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 on Sepolia, (4) confirmation of no panic/FAILED lines.",
+        "location": null
+      },
+      {
+        "severity": "medium",
+        "title": "Incomplete test output collection",
+        "detail": "Stderr excerpt appears truncated mid-compilation (ending with AWS/ICU/crypto dependencies). The actual test failure reason is not captured in the provided excerpts. Full stderr and stdout should be rerun to diagnose root cause.",
+        "location": null
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, unexpected: 0",
+      "Exit code: 0",
+      "All test results have status 'expected' with expectedStatus 'passed'",
+      "Lock creation flow validated: lock_id and sr_0 generated correctly",
+      "Database persistence confirmed: lock visible via GET /v1/explorer/locks",
+      "Explorer integration verified: totalLocks count incremented after lock creation",
+      "Validation scenarios all pass: nonce reuse rejected (409), expiration rejected (400), missing fields rejected (422)",
+      "Multi-lock scenario passes: 3 distinct locks created with unique lock_ids and SR_0s",
+      "Health check passes across Mobile Chrome and Mobile Safari projects",
+      "Tests run across multiple browser projects (Mobile Chrome, Mobile Safari) with consistent results"
+    ],
+    "issues": [],
+    "confidence": 0.98
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "psql exited with code 0 (connection successful)",
+      "stdout_excerpt is empty — no rows returned",
+      "expected exactly one row with status in ('pending', 'locked') and pk_dilithium length = 1952"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "No locks found in database",
+        "detail": "Query returned zero rows. Either the locks table is empty or the INSERT failed silently. Consumer Lock sequence did not complete the cryptographic write path.",
+        "location": "locks.lock_id"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast invocation against legitimate L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260",
+      "RPC endpoint (rpc.sepolia.org) returned HTTP 522 Connection Timeout",
+      "Cloudflare infrastructure reported host error; origin server unresponsive",
+      "No blockchain state data retrieved; cannot evaluate expected condition"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC Infrastructure Outage",
+        "detail": "The Sepolia RPC endpoint (rpc.sepolia.org) is experiencing connectivity issues. HTTP 522 indicates Cloudflare could not reach the origin server. This is an infrastructure problem, not a code regression.",
+        "location": "rpc.sepolia.org"
+      }
+    ],
+    "confidence": 0.95
+  }
+]
