@@ -1,0 +1,92 @@
+[
+  {
+    "layer": "backend",
+    "status": "fail",
+    "observations": [
+      "Exit code is 1, indicating test execution failure",
+      "stderr_excerpt contains only compilation output with no actual test execution results",
+      "stdout_excerpt is empty - no test output captured",
+      "Expected behavior includes lock_id assignment, SR_0 computation via SHA3-256, and L1 Vault transaction submission, but none of this can be verified",
+      "No 'test result: ok' line present in captured output",
+      "Compilation appears to have succeeded (various crates compiled without error), but test binary execution failed or was not reached"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Test execution failure - non-zero exit code",
+        "detail": "Command exited with code 1. The test binary either failed to run, panicked, or returned a runtime error. No actual test output was captured in stdout.",
+        "location": null
+      },
+      {
+        "severity": "critical",
+        "title": "Missing test output",
+        "detail": "stdout_excerpt is empty, making it impossible to verify that the Consumer Lock sequence produced the expected lock_id, SR_0 hash computation, or L1 Vault transaction submission. stderr contains only compilation logs, no test execution trace.",
+        "location": null
+      },
+      {
+        "severity": "high",
+        "title": "Unable to verify specification compliance",
+        "detail": "Cannot confirm that lock_id was assigned, SR_0 was computed via SHA3-256(\"QS_LOCK_V1\" || ...), or lockWithSR0 transaction was submitted to L1 Vault at 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 due to missing test output.",
+        "location": null
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, flaky: 0",
+      "All 40 tests across Mobile Chrome and Mobile Safari projects completed with expected status",
+      "Lock creation lifecycle verified: POST /v1/lock creates lock with valid SR_0 and lock_id",
+      "DB persistence confirmed: lock visible via GET /v1/explorer/locks with active status",
+      "Explorer state mutation verified: totalLocks count incremented correctly",
+      "Error handling validated: nonce reuse (409), expired requests (400), missing fields (422) all rejected correctly",
+      "Multi-lock distinctness verified: 3 separate locks create distinct lock_ids and SR_0s",
+      "Health check passed on backend readiness",
+      "Exit code: 0, no errors reported"
+    ],
+    "issues": [],
+    "confidence": 0.99
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "psql exit code 0 — connection successful",
+      "Exactly one row returned as expected",
+      "lock_id present: 0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d",
+      "status value is 'pending' — matches expected set {pending, locked}",
+      "pk_dilithium length is 32 bytes — CRITICAL MISMATCH: expected 1952 bytes"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "pk_dilithium truncated or corrupted",
+        "detail": "pk_dilithium length 32 bytes is far below the expected 1952 bytes for a Dilithium public key. This indicates either truncation during storage, corruption, or the cryptographic write path failed to store the full key material.",
+        "location": "locks.pk_dilithium"
+      }
+    ],
+    "confidence": 0.99
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast exit code 1 indicates RPC call failed",
+      "HTTP 522 error from Cloudflare: connection timeout to rpc.sepolia.org",
+      "This is an infrastructure/RPC provider issue, not a contract or code regression",
+      "No contract state data available to evaluate against specification",
+      "L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 is legitimate (matches whitelist)"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC Provider Unavailable",
+        "detail": "The Sepolia RPC endpoint (rpc.sepolia.org) is timing out. Cloudflare reports connection timeout to origin server. This is a transient infrastructure issue; retry the sequence after RPC recovery.",
+        "location": "external:rpc-endpoint"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

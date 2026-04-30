@@ -1,0 +1,80 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "pk_dilithium stored as 32 bytes instead of expected 1952 bytes — full key material silently lost",
+    "detail": "The DB layer reports `length(pk_dilithium) = 32` for the most-recently written lock row. A Dilithium-2/3/5 public key is 1312–1952 bytes; 32 bytes is exactly the size of a SHA-256/SHA3-256 hash or a truncated bytes32 field. This is a textbook instance of silent-failure pattern #4 (`hex_to_bytes32_or_zero` / a bytes32 coercion eating the real key). The write path is almost certainly either (a) hashing or truncating the key to 32 bytes before storage, or (b) a BYTEA column that was accidentally defined as CHAR(32)/BYTEA with a 32-byte limit. Because the frontend tests pass and the backend Rust tests fail to produce any output, no layer caught this at runtime — the row was written silently with wrong data. Downstream signature-verification against this stored key will either always fail (locking users out) or, if verification is skipped on the 'no key found' path, always pass — both are security-critical outcomes.",
+    "evidence": [
+      "DB stdout: '0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d|pending|32' — length(pk_dilithium)=32, expected ~1952",
+      "DB layer analysis: 'pk_dilithium length 32 bytes — CRITICAL MISMATCH: expected 1952 bytes'",
+      "Frontend multi-lock test stdout: '[Multi-Lock] 3 distinct locks created: 0x5b7b12051340f957f4f04722930c456f908a665111221ac501c6b68877059ecf, ...' — locks were accepted and persisted despite corrupted key material",
+      "Backend exit code 1 with empty stdout — the Rust unit tests that would normally catch key-length assertions never ran, allowing the truncated write to go undetected"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "Cross-layer inconsistency: frontend reports lock status='active' but DB shows status='pending' for same sequence run",
+    "detail": "The frontend test 'lock is persisted in DB and visible via GET /v1/explorer/locks' explicitly logs `status=active` for lock_id `0x7bf4c1a9be4fe66b3a9067f7e3e7960182268ed4f6448d70755c1cba32bd59a9`. However, the DB query returns `status=pending` for the most-recently written lock (`0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d`). While these are different lock_ids (the DB query shows the last inserted row from the multi-lock test batch), the spec requires that a successfully created lock transitions to or is stored as 'active' once the L1 Vault call is enqueued/confirmed. The presence of 'pending' in the DB suggests the L1 submission step either never ran or silently failed and the status was never updated — consistent with the L1 RPC being unreachable (HTTP 522). If the system is designed to write 'pending' first and update to 'active' only after L1 confirmation, then the 'active' status returned by the API/explorer endpoint is being read from an in-memory or cached state rather than ground-truth DB state, which means the API is lying about lock finality.",
+    "evidence": [
+      "Frontend stdout: '[Lock Persisted] lock_id=0x7bf4c1a9be4fe66b3a9067f7e3e7960182268ed4f6448d70755c1cba32bd59a9, status=active'",
+      "DB stdout: '0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d|pending|32' — status is 'pending', not 'active'",
+      "L1 layer stderr: 'Error: HTTP error 522 with body: ... Connection timed out ... rpc.sepolia.org' — L1 confirmation cannot have occurred",
+      "Frontend test 'lock increases Explorer totalLocks count' stdout: '[Explorer] totalLocks: 30 -> 31' — UI believes lock is fully committed while L1 is unreachable"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "Backend Rust e2e test binary fails entirely (exit code 1, empty stdout) — all server-side invariant checks are unverified",
+    "detail": "The backend test command exited with code 1 and produced zero stdout. The stderr contains only compilation traces with no `test result:` line, meaning the test binary either panicked before running any test, failed to link, or encountered a runtime startup error. This is not merely a test-environment issue: the Consumer Lock sequence spec requires verification of SR_0 computation (`SHA3-256('QS_LOCK_V1' || ...)`), lock_id assignment, and L1 Vault transaction submission. None of these were verified. The frontend and DB layers ran against a live backend that may be in a broken state — the frontend's 40/40 pass rate cannot be trusted as proof of correctness when the backend's own test suite cannot execute. This also means silent-failure patterns (unwrap_or_default, hex_to_bytes32_or_zero, Ok(()) swallowing) in the lock path were not exercised by any automated check this run.",
+    "evidence": [
+      "Backend exit_code=1, stdout_excerpt='' (empty), duration_ms=120043",
+      "Backend stderr contains only crate compilation lines ending at 'Compiling parking v2.2.1' — no 'running N tests', no 'test result: ok/FAILED'",
+      "Backend layer analysis: 'stdout_excerpt is empty - no actual test output captured' and 'Cannot confirm that lock_id was assigned, SR_0 was computed via SHA3-256'",
+      "Frontend 40/40 pass with backend exit_code=1 — frontend is testing against a live server whose internal correctness is unconfirmed"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "L1 Vault state unverifiable while frontend claims successful lock commits — no circuit-breaker or fallback guard detected",
+    "detail": "The L1 check against the correct vault address `0x07012aeF87C6E423c32F2f8eaF81762f63337260` returned HTTP 522 (RPC timeout). The frontend simultaneously reports `totalLocks: 30 -> 31` and locks with `status=active`. If the system increments the explorer counter and marks locks active without waiting for L1 confirmation (or without a reliable retry/queue mechanism), then user-facing state diverges from on-chain state silently. Per the Quantum Shield silent-failure history, item #13 ('best-effort L1 calls that warn-and-continue'), this pattern — where an L1 call failure causes a warn-and-continue rather than a hard failure — is a known critical regression. The DB status='pending' on the last lock row is a weak signal that the L1 path may already be in warn-and-continue mode: the lock was accepted and counted by the explorer but never confirmed on-chain.",
+    "evidence": [
+      "L1 stderr: 'Error: HTTP error 522 ... Connection timed out ... rpc.sepolia.org'",
+      "Frontend stdout: '[Explorer] totalLocks: 30 -> 31' — counter incremented despite L1 being unreachable",
+      "DB stdout: 'status=pending' — lock never transitioned to a confirmed state",
+      "Silent-failure pattern #13: 'best-effort L1 calls that warn-and-continue on failure (the Slashing fail-hard path was fixed in Batch 2; regression here is critical)'"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run is not green (backend layer failed, db layer has a critical issue, l1 layer failed due to RPC timeout). A baseline will only be recorded once a fully green run completes.",
+    "evidence": [
+      "last_green_run: null",
+      "current_run backend layer: status=fail, exit_code=1",
+      "current_run db layer: pk_dilithium length=32 bytes (expected 1952 bytes)",
+      "current_run l1 layer: status=fail, HTTP 522 from rpc.sepolia.org"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "Baseline metrics captured for seq-1. Backend: 120043ms, Frontend: 84222ms, DB: 500ms, L1: 40128ms. Total orchestrator cost: $0.0303.",
+    "evidence": [
+      "backend-runner: $0.0096 (7262 input tokens, 469 output tokens)",
+      "frontend-runner: $0.0069 (5645 input tokens, 245 output tokens)",
+      "db-verifier: $0.0021 (635 input tokens, 283 output tokens)",
+      "l1-verifier: $0.0049 (3529 input tokens, 266 output tokens)"
+    ],
+    "suggested_owner": "tests"
+  }
+]

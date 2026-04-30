@@ -1,0 +1,291 @@
+{
+  "sequence": "seq-1",
+  "started_at": "2026-04-30T06:06:05.219Z",
+  "finished_at": "2026-04-30T06:10:34.404Z",
+  "duration_ms": 269185,
+  "plan": {
+    "sequence_id": "seq-1",
+    "sequence_name": "Consumer Lock",
+    "layers": [
+      "backend",
+      "frontend",
+      "db",
+      "l1"
+    ],
+    "steps": [
+      {
+        "layer": "backend",
+        "description": "Rust integration test for Lock flow",
+        "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture",
+        "expected": "Test exits with code 0; stdout confirms lock_id assigned, SR_0 computed via SHA3-256(\"QS_LOCK_V1\" || ...), and lockWithSR0 transaction submitted to L1 Vault at 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67; no ERROR or FAIL lines present",
+        "phase": "drive"
+      },
+      {
+        "layer": "frontend",
+        "description": "Playwright integration spec for Consumer Lock",
+        "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+        "expected": "All Playwright test cases pass (status: \"passed\" in JSON output); UI lock creation transitions to success state and a corresponding locks row is confirmed in the DB; zero failed or flaky tests reported",
+        "phase": "drive"
+      },
+      {
+        "layer": "db",
+        "description": "Verify lock row was created and pk_dilithium populated",
+        "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+        "expected": "Exactly one row returned; status column value is either 'pending' or 'locked'; pk_dilithium length is exactly 1952 bytes",
+        "phase": "verify"
+      },
+      {
+        "layer": "l1",
+        "description": "Verify totalLocked increased on Sepolia Vault",
+        "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+        "expected": "Returned uint256 value is strictly greater than 0 wei; the L1 Vault must have received the asset transfer and emitted a Locked event corresponding to the lock_id from the current test run",
+        "phase": "verify"
+      }
+    ],
+    "acceptance_criteria": [
+      "Backend integration test exits with code 0 and stdout confirms SR_0 computation and L1 lockWithSR0 submission",
+      "Playwright lock.integration.spec.ts reports all cases as passed with zero failures",
+      "A row exists in the locks table with status='locked' and pk_dilithium byte length exactly equal to 1952",
+      "Sepolia Vault totalLocked() returns a value strictly greater than 0 wei",
+      "No silent fallback or hardcoded address appears in any layer's execution trace"
+    ],
+    "spec_section": "SEQUENCES.md §1 Consumer Lock"
+  },
+  "plan_source": "ai",
+  "layer_results": [
+    {
+      "layer": "backend",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 120043,
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture",
+      "stdout_excerpt": "",
+      "stderr_excerpt": "[truncated 2258 bytes]\n  Compiling\u001b[0m displaydoc v0.2.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m bytes v1.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m yoke-derive v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m zerocopy v0.8.33\n\u001b[1m\u001b[92m   Compiling\u001b[0m tokio v1.49.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m zerocopy-derive v0.8.33\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-channel v0.3.31\n\u001b[1m\u001b[92m   Compiling\u001b[0m tracing-core v0.1.36\n\u001b[1m\u001b[92m   Compiling\u001b[0m zerovec-derive v0.11.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m tracing v0.1.44\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-task v0.3.31\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-macro v0.3.31\n\u001b[1m\u001b[92m   Compiling\u001b[0m cpufeatures v0.2.17\n\u001b[1m\u001b[92m   Compiling\u001b[0m ring v0.17.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m equivalent v1.0.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m hashbrown v0.16.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m futures-util v0.3.31\n\u001b[1m\u001b[92m   Compiling\u001b[0m fnv v1.0.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m indexmap v2.13.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m base64ct v1.8.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m zmij v1.0.13\n\u001b[1m\u001b[92m   Compiling\u001b[0m time-core v0.1.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m powerfmt v0.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m num-conv v0.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m time-macros v0.2.24\n\u001b[1m\u001b[92m   Compiling\u001b[0m deranged v0.5.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m tokio-util v0.7.18\n\u001b[1m\u001b[92m   Compiling\u001b[0m num-integer v0.1.46\n\u001b[1m\u001b[92m   Compiling\u001b[0m serde_json v1.0.149\n\u001b[1m\u001b[92m   Compiling\u001b[0m time v0.3.44\n\u001b[1m\u001b[92m   Compiling\u001b[0m hmac v0.12.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m untrusted v0.9.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m getrandom v0.3.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m ppv-lite86 v0.2.21\n\u001b[1m\u001b[92m   Compiling\u001b[0m sha2 v0.10.9\n\u001b[1m\u001b[92m   Compiling\u001b[0m winnow v0.7.14\n\u001b[1m\u001b[92m   Compiling\u001b[0m percent-encoding v2.3.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m http v0.2.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m icu_properties_data v2.1.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m crunchy v0.2.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m icu_normalizer_data v2.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m toml_parser v1.0.6+spec-1.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m thiserror v1.0.69\n\u001b[1m\u001b[92m   Compiling\u001b[0m toml_datetime v0.7.5+spec-1.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m hex v0.4.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m toml_edit v0.23.10+spec-1.0.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m syn v1.0.109\n\u001b[1m\u001b[92m   Compiling\u001b[0m proc-macro-crate v3.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m http v1.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m zerofrom v0.1.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m thiserror-impl v1.0.69\n\u001b[1m\u001b[92m   Compiling\u001b[0m ryu v1.0.22\n\u001b[1m\u001b[92m   Compiling\u001b[0m stable_deref_trait v1.2.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m yoke v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m unicode-xid v0.2.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m const_format_proc_macros v0.2.34\n\u001b[1m\u001b[92m   Compiling\u001b[0m zerovec v0.11.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m http-body v1.0.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m http-body v0.4.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m parity-scale-codec v3.7.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m form_urlencoded v1.2.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m parity-scale-codec-derive v3.7.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m pem-rfc7468 v0.7.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m impl-trait-for-tuples v0.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m der_derive v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m httparse v1.10.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m dunce v1.0.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m flagset v0.4.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m rlp-derive v0.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m der v0.7.10\n\u001b[1m\u001b[92m   Compiling\u001b[0m tinystr v0.8.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m rand_chacha v0.3.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m litemap v0.8.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m writeable v0.6.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m icu_locale_core v2.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m rand v0.8.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m potential_utf v0.1.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m http-body-util v0.1.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m zerotrie v0.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m derive_more-impl v1.0.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m bitflags v2.10.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m tower-service v0.3.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m crossbeam-utils v0.8.21\n\u001b[1m\u001b[92m   Compiling\u001b[0m fastrand v2.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m icu_provider v2.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m icu_collections v2.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m spki v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m either v1.15.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m scale-info-derive v2.11.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m try-lock v0.2.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m icu_properties v2.1.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m want v0.3.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m icu_normalizer v2.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-pki-types v1.13.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m cmake v0.1.57\n\u001b[1m\u001b[92m   Compiling\u001b[0m httpdate v1.0.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m fs_extra v1.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls v0.21.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m byteorder v1.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-lc-sys v0.37.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m idna_adapter v1.2.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m sct v0.7.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls-webpki v0.101.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m crypto-bigint v0.5.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m vsimd v0.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m outref v0.5.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m utf8_iter v1.0.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m base64-simd v0.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m idna v1.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m bytes-utils v0.1.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m socket2 v0.4.10\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-types v1.4.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m url v2.5.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m block-padding v0.3.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-lc-rs v1.15.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m atomic-waker v1.1.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m thiserror v2.0.17\n\u001b[1m\u001b[92m   Compiling\u001b[0m inout v0.1.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m thiserror-impl v2.0.17\n\u001b[1m\u001b[92m   Compiling\u001b[0m ahash v0.8.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m ipnet v2.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m cipher v0.4.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m num-bigint v0.4.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m aho-corasick v1.1.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m base64 v0.21.7\n\u001b[1m\u001b[92m   Compiling\u001b[0m camino v1.2.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustc-hex v2.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m tiny-keccak v2.0.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m minimal-lexical v0.2.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m regex-syntax v0.8.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m regex-automata v0.4.13\n\u001b[1m\u001b[92m   Compiling\u001b[0m nom v7.1.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m const_format v0.2.35\n\u001b[1m\u001b[92m   Compiling\u001b[0m h2 v0.3.27\n\u001b[1m\u001b[92m   Compiling\u001b[0m semver v1.0.27\n\u001b[1m\u001b[92m   Compiling\u001b[0m arrayvec v0.7.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m keccak v0.1.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustls v0.23.36\n\u001b[1m\u001b[92m   Compiling\u001b[0m rustix v1.1.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m byte-slice-cast v1.2.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m hyper v0.14.32\n\u001b[1m\u001b[92m   Compiling\u001b[0m sha3 v0.10.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m rlp v0.5.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m tokio-rustls v0.24.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-async v1.2.12\n\u001b[1m\u001b[92m   Compiling\u001b[0m ff v0.13.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m async-trait v0.1.89\n\u001b[1m\u001b[92m   Compiling\u001b[0m linux-raw-sys v0.11.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m static_assertions v1.1.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m base16ct v0.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m sec1 v0.7.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m group v0.13.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m aws-smithy-runtime-api v1.11.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m pkcs8 v0.10.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m derive_more v1.0.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m heck v0.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m openssl-probe v0.1.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m pkg-config v0.3.32\n\u001b[1m\u001b[92m   Compiling\u001b[0m tower-layer v0.3.3\n\u001b[1m\u001b[92m   Compiling\u001b[0m wasm-bindgen-shared v0.2.106\n\u001b[1m\u001b[92m   Compiling\u001b[0m base64 v0.22.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m vcpkg v0.2.15\n\u001b[1m\u001b[92m   Compiling\u001b[0m openssl-sys v0.9.111\n\u001b[1m\u001b[92m   Compiling\u001b[0m strum_macros v0.26.4\n\u001b[1m\u001b[92m   Compiling\u001b[0m scale-info v2.11.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m elliptic-curve v0.13.8\n\u001b[1m\u001b[92m   Compiling\u001b[0m fixed-hash v0.8.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m hyper-rustls v0.24.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m impl-rlp v0.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m impl-codec v0.6.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m regex v1.12.2\n\u001b[1m\u001b[92m   Compiling\u001b[0m h2 v0.4.13\n\u001b[1m\u001b[92m   Compiling\u001b[0m open-fastrlp-derive v0.1.1\n\u001b[1m\u001b[92m   Compiling\u001b[0m num_enum_derive v0.7.5\n\u001b[1m\u001b[92m   Compiling\u001b[0m rfc6979 v0.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m sha1 v0.10.6\n\u001b[1m\u001b[92m   Compiling\u001b[0m impl-serde v0.4.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m signature v2.2.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m auto_impl v1.3.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m lazy_static v1.5.0\n\u001b[1m\u001b[92m   Compiling\u001b[0m parking v2.2.1\n"
+    },
+    {
+      "layer": "frontend",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 84222,
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+      "stdout_excerpt": "[truncated 52702 bytes]\ne\": \"integration/lock.integration.spec.ts\",\n              \"line\": 156,\n              \"column\": 7\n            },\n            {\n              \"title\": \"expired lock request is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 13,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Expired] Correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:38.966Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-75a7ca2fc571cf8dbc70\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 180,\n              \"column\": 7\n            },\n            {\n              \"title\": \"lock with missing required fields is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 10,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Missing Field] Correctly rejected with status 422\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:38.998Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-f0736da9f90650f32f2a\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 198,\n              \"column\": 7\n            },\n            {\n              \"title\": \"multiple locks create distinct lock_ids and SR_0s\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 72,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Multi-Lock] 3 distinct locks created: 0x8aea87417d31e22452c25a171da3b9d60eef2b10573f6b41b7958a7300d045cb, 0xcf13cfb78cffde2ff96995ce82f3c55fb781bad79933eafeab2267763a09fc04, 0x4398ff88a1d730851ed8c5f5619c57bd44a7ffbb781061605035fe182342641d\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:39.027Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-6599e110834aab03fdeb\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 217,\n              \"column\": 7\n            },\n            {\n              \"title\": \"health check confirms backend is ready\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 369,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:40.225Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-65af1f13c125590b1046\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 34,\n              \"column\": 7\n            },\n            {\n              \"title\": \"POST /v1/lock creates lock with valid SR_0 and lock_id\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 58,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Lock] lock_id=0xe7fad04e5806f280fac229d3d79dfa183f74c992c5d8d3c8a93bd2071c858e4c\\n\"\n                        },\n                        {\n                          \"text\": \"[Lock] sr_0=0x399ad52699c995e4b6f9a1674bc8642bb033d5a4429051b54ec13ebc4c5506a2\\n\"\n                        },\n                        {\n                          \"text\": \"[Lock] smt_proof length=17030 chars\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:40.650Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-1ae72b95dcbf3a3278f8\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 41,\n              \"column\": 7\n            },\n            {\n              \"title\": \"lock is persisted in DB and visible via GET /v1/explorer/locks\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 130,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Lock Persisted] lock_id=0x7bf4c1a9be4fe66b3a9067f7e3e7960182268ed4f6448d70755c1cba32bd59a9, status=active\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:40.741Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-133621605b726ca98e46\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 87,\n              \"column\": 7\n            },\n            {\n              \"title\": \"lock increases Explorer totalLocks count\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 70,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Explorer] totalLocks: 30 -> 31\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:40.901Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-e89eae9ab958115b5c67\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 123,\n              \"column\": 7\n            },\n            {\n              \"title\": \"nonce reuse is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 31,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Nonce Reuse] Correctly rejected with status 409\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:40.997Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-df1c51ed389e9be9b8fb\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 156,\n              \"column\": 7\n            },\n            {\n              \"title\": \"expired lock request is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 21,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Expired] Correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:41.046Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-83923d00673896deee40\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 180,\n              \"column\": 7\n            },\n            {\n              \"title\": \"lock with missing required fields is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 11,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Missing Field] Correctly rejected with status 422\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:41.092Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-653011916c07f7a1a202\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 198,\n              \"column\": 7\n            },\n            {\n              \"title\": \"multiple locks create distinct lock_ids and SR_0s\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 74,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Multi-Lock] 3 distinct locks created: 0x5b7b12051340f957f4f04722930c456f908a665111221ac501c6b68877059ecf, 0x6db95432d3c3f19d89d3c4d8e88a3cf9d94e0f8d064a29f1942d6cbced393651, 0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-04-30T06:07:41.120Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-1056a23b7a8093b3e8ff\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 217,\n              \"column\": 7\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"errors\": [],\n  \"stats\": {\n    \"startTime\": \"2026-04-30T06:06:19.870Z\",\n    \"duration\": 81498.915,\n    \"expected\": 40,\n    \"skipped\": 0,\n    \"unexpected\": 0,\n    \"flaky\": 0\n  }\n}\n",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 500,
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+      "stdout_excerpt": "0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d|pending|32\n",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "l1",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 40128,
+      "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+      "stdout_excerpt": "",
+      "stderr_excerpt": "Error: HTTP error 522 with body: <!DOCTYPE html>\n<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js ie7 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-js ie8 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html class=\"no-js\" lang=\"en-US\"> <!--<![endif]-->\n<head>\n\n<title>sepolia.org | 522: Connection timed out</title>\n<meta charset=\"UTF-8\" />\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\" />\n<meta name=\"robots\" content=\"noindex, nofollow\" />\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n<link rel=\"stylesheet\" id=\"cf_styles-css\" href=\"/cdn-cgi/styles/main.css\" />\n</head>\n<body>\n<div id=\"cf-wrapper\">\n    <div id=\"cf-error-details\" class=\"p-0\">\n        <header class=\"mx-auto pt-10 lg:pt-6 lg:px-8 w-240 lg:w-full mb-8\">\n            <h1 class=\"inline-block sm:block sm:mb-2 font-light text-60 lg:text-4xl text-black-dark leading-tight mr-2\">\n                <span class=\"inline-block\">Connection timed out</span>\n                <span class=\"code-label\">Error code 522</span>\n            </h1>\n            <div>\n                Visit <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">cloudflare.com</a> for more information.\n            </div>\n            <div class=\"mt-3\">2026-04-30 06:08:57 UTC</div>\n        </header>\n        <div class=\"my-8 bg-gradient-gray\">\n            <div class=\"w-240 lg:w-full mx-auto\">\n                <div class=\"clearfix md:px-8\">\n                    <div id=\"cf-browser-status\" class=\" relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    \n    <span class=\"cf-icon-browser block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    \n  </div>\n  <span class=\"md:block w-full truncate\">You</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  \n    Browser\n  \n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-green-success\">Working</span>\n  \n</div>\n                    <div id=\"cf-cloudflare-status\" class=\" relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&#38;utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n    <span class=\"cf-icon-cloud block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    </a>\n  </div>\n  <span class=\"md:block w-full truncate\">Los Angeles</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  <a href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&utm_campaign=rpc.sepolia.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n    Cloudflare\n  </a>\n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-green-success\">Working</span>\n  \n</div>\n                    <div id=\"cf-host-status\" class=\"cf-error-source relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center\">\n  <div class=\"relative mb-10 md:m-0\">\n    \n    <span class=\"cf-icon-server block md:hidden h-20 bg-center bg-no-repeat\"></span>\n    <span class=\"cf-icon-error w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4\"></span>\n    \n  </div>\n  <span class=\"md:block w-full truncate\">rpc.sepolia.org</span>\n  <h3 class=\"md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3\">\n  \n    Host\n  \n  </h3>\n  \n  <span class=\"leading-1.3 text-2xl text-red-error\">Error</span>\n  \n</div>\n                </div>\n            </div>\n        </div>\n\n        <div class=\"w-240 lg:w-full mx-auto mb-8 lg:px-8\">\n            <div class=\"clearfix\">\n                <div class=\"w-1/2 md:w-full float-left pr-6 md:pb-10 md:pr-0 leading-relaxed\">\n                    <h2 class=\"text-3xl font-normal leading-1.3 mb-4\">What happened?</h2>\n                    <p>The initial connection between Cloudflare's network and the origin web server timed out. As a result, the web page can not be displayed.</p>\n                </div>\n                <div class=\"w-1/2 md:w-full float-left leading-relaxed\">\n                    <h2 class=\"text-3xl font-normal leading-1.3 mb-4\">What can I do?</h2>\n                    \n                <h3 class=\"text-15 font-semibold mb-2\">If you're a visitor of this website:</h3>\n                <p class=\"mb-6\">Please try again in a few minutes.</p>\n\n                <h3 class=\"text-15 font-semibold mb-2\">If you're the owner of this website:</h3>\n                <p><span>Contact your hosting provider letting them know your web server is not completing requests. An Error 522 means that the request was able to connect to your web server, but that the request didn't finish. The most likely cause is that something on your server is hogging resources.</span> <a rel=\"noopener noreferrer\" href=\"https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-5xx-errors/error-522/\">Additional troubleshooting information here.</a></p>\n                </div>\n            </div>\n        </div>\n\n        <div class=\"cf-error-footer cf-wrapper w-240 lg:w-full py-10 sm:py-4 sm:px-8 mx-auto text-center sm:text-left border-solid border-0 border-t border-gray-300\">\n    <p class=\"text-13\">\n      <span class=\"cf-footer-item sm:block sm:mb-1\">Cloudflare Ray ID: <strong class=\"font-semibold\">9f445f7a9b7fc4d5</strong></span>\n      <span class=\"cf-footer-separator sm:hidden\">&bull;</span>\n      <span id=\"cf-footer-item-ip\" class=\"cf-footer-item hidden sm:block sm:mb-1\">\n        Your IP:\n        <button type=\"button\" id=\"cf-footer-ip-reveal\" class=\"cf-footer-ip-reveal-btn\">Click to reveal</button>\n        <span class=\"hidden\" id=\"cf-footer-ip\">172.182.212.2</span>\n        <span class=\"cf-footer-separator sm:hidden\">&bull;</span>\n      </span>\n      <span class=\"cf-footer-item sm:block sm:mb-1\"><span>Performance &amp; security by</span> <a rel=\"noopener noreferrer\" href=\"https://www.cloudflare.com/5xx-error-landing?utm_source=errorcode_522&#38;utm_campaign=rpc.sepolia.org\" id=\"brand_link\" target=\"_blank\">Cloudflare</a></span>\n      \n    </p>\n    <script>(function(){function d(){var b=a.getElementById(\"cf-footer-item-ip\"),c=a.getElementById(\"cf-footer-ip-reveal\");b&&\"classList\"in b&&(b.classList.remove(\"hidden\"),c.addEventListener(\"click\",function(){c.classList.add(\"hidden\");a.getElementById(\"cf-footer-ip\").classList.remove(\"hidden\")}))}var a=document;document.addEventListener&&a.addEventListener(\"DOMContentLoaded\",d)})();</script>\n  </div><!-- /.error-footer -->\n\n    </div>\n</div>\n</body>\n</html>\n\nHTTP diagnostics:\ncf-ray: 9f445f7a9b7fc4d5-LAX\nserver: cloudflare\n"
+    }
+  ],
+  "layer_analyses": [
+    {
+      "layer": "backend",
+      "status": "fail",
+      "observations": [
+        "Exit code is 1, indicating test execution failure",
+        "stderr_excerpt contains only compilation output with no actual test execution results",
+        "stdout_excerpt is empty - no test output captured",
+        "Expected behavior includes lock_id assignment, SR_0 computation via SHA3-256, and L1 Vault transaction submission, but none of this can be verified",
+        "No 'test result: ok' line present in captured output",
+        "Compilation appears to have succeeded (various crates compiled without error), but test binary execution failed or was not reached"
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "Test execution failure - non-zero exit code",
+          "detail": "Command exited with code 1. The test binary either failed to run, panicked, or returned a runtime error. No actual test output was captured in stdout.",
+          "location": null
+        },
+        {
+          "severity": "critical",
+          "title": "Missing test output",
+          "detail": "stdout_excerpt is empty, making it impossible to verify that the Consumer Lock sequence produced the expected lock_id, SR_0 hash computation, or L1 Vault transaction submission. stderr contains only compilation logs, no test execution trace.",
+          "location": null
+        },
+        {
+          "severity": "high",
+          "title": "Unable to verify specification compliance",
+          "detail": "Cannot confirm that lock_id was assigned, SR_0 was computed via SHA3-256(\"QS_LOCK_V1\" || ...), or lockWithSR0 transaction was submitted to L1 Vault at 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 due to missing test output.",
+          "location": null
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "layer": "frontend",
+      "status": "pass",
+      "observations": [
+        "Total tests: 40, passed: 40, failed: 0, skipped: 0, flaky: 0",
+        "All 40 tests across Mobile Chrome and Mobile Safari projects completed with expected status",
+        "Lock creation lifecycle verified: POST /v1/lock creates lock with valid SR_0 and lock_id",
+        "DB persistence confirmed: lock visible via GET /v1/explorer/locks with active status",
+        "Explorer state mutation verified: totalLocks count incremented correctly",
+        "Error handling validated: nonce reuse (409), expired requests (400), missing fields (422) all rejected correctly",
+        "Multi-lock distinctness verified: 3 separate locks create distinct lock_ids and SR_0s",
+        "Health check passed on backend readiness",
+        "Exit code: 0, no errors reported"
+      ],
+      "issues": [],
+      "confidence": 0.99
+    },
+    {
+      "layer": "db",
+      "status": "fail",
+      "observations": [
+        "psql exit code 0 — connection successful",
+        "Exactly one row returned as expected",
+        "lock_id present: 0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d",
+        "status value is 'pending' — matches expected set {pending, locked}",
+        "pk_dilithium length is 32 bytes — CRITICAL MISMATCH: expected 1952 bytes"
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "pk_dilithium truncated or corrupted",
+          "detail": "pk_dilithium length 32 bytes is far below the expected 1952 bytes for a Dilithium public key. This indicates either truncation during storage, corruption, or the cryptographic write path failed to store the full key material.",
+          "location": "locks.pk_dilithium"
+        }
+      ],
+      "confidence": 0.99
+    },
+    {
+      "layer": "l1",
+      "status": "skipped",
+      "observations": [
+        "cast exit code 1 indicates RPC call failed",
+        "HTTP 522 error from Cloudflare: connection timeout to rpc.sepolia.org",
+        "This is an infrastructure/RPC provider issue, not a contract or code regression",
+        "No contract state data available to evaluate against specification",
+        "L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 is legitimate (matches whitelist)"
+      ],
+      "issues": [
+        {
+          "severity": "info",
+          "title": "RPC Provider Unavailable",
+          "detail": "The Sepolia RPC endpoint (rpc.sepolia.org) is timing out. Cloudflare reports connection timeout to origin server. This is a transient infrastructure issue; retry the sequence after RPC recovery.",
+          "location": "external:rpc-endpoint"
+        }
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "quality_findings": [
+    {
+      "source": "bug-hunter",
+      "severity": "critical",
+      "title": "pk_dilithium stored as 32 bytes instead of expected 1952 bytes — full key material silently lost",
+      "detail": "The DB layer reports `length(pk_dilithium) = 32` for the most-recently written lock row. A Dilithium-2/3/5 public key is 1312–1952 bytes; 32 bytes is exactly the size of a SHA-256/SHA3-256 hash or a truncated bytes32 field. This is a textbook instance of silent-failure pattern #4 (`hex_to_bytes32_or_zero` / a bytes32 coercion eating the real key). The write path is almost certainly either (a) hashing or truncating the key to 32 bytes before storage, or (b) a BYTEA column that was accidentally defined as CHAR(32)/BYTEA with a 32-byte limit. Because the frontend tests pass and the backend Rust tests fail to produce any output, no layer caught this at runtime — the row was written silently with wrong data. Downstream signature-verification against this stored key will either always fail (locking users out) or, if verification is skipped on the 'no key found' path, always pass — both are security-critical outcomes.",
+      "evidence": [
+        "DB stdout: '0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d|pending|32' — length(pk_dilithium)=32, expected ~1952",
+        "DB layer analysis: 'pk_dilithium length 32 bytes — CRITICAL MISMATCH: expected 1952 bytes'",
+        "Frontend multi-lock test stdout: '[Multi-Lock] 3 distinct locks created: 0x5b7b12051340f957f4f04722930c456f908a665111221ac501c6b68877059ecf, ...' — locks were accepted and persisted despite corrupted key material",
+        "Backend exit code 1 with empty stdout — the Rust unit tests that would normally catch key-length assertions never ran, allowing the truncated write to go undetected"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "critical",
+      "title": "Cross-layer inconsistency: frontend reports lock status='active' but DB shows status='pending' for same sequence run",
+      "detail": "The frontend test 'lock is persisted in DB and visible via GET /v1/explorer/locks' explicitly logs `status=active` for lock_id `0x7bf4c1a9be4fe66b3a9067f7e3e7960182268ed4f6448d70755c1cba32bd59a9`. However, the DB query returns `status=pending` for the most-recently written lock (`0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d`). While these are different lock_ids (the DB query shows the last inserted row from the multi-lock test batch), the spec requires that a successfully created lock transitions to or is stored as 'active' once the L1 Vault call is enqueued/confirmed. The presence of 'pending' in the DB suggests the L1 submission step either never ran or silently failed and the status was never updated — consistent with the L1 RPC being unreachable (HTTP 522). If the system is designed to write 'pending' first and update to 'active' only after L1 confirmation, then the 'active' status returned by the API/explorer endpoint is being read from an in-memory or cached state rather than ground-truth DB state, which means the API is lying about lock finality.",
+      "evidence": [
+        "Frontend stdout: '[Lock Persisted] lock_id=0x7bf4c1a9be4fe66b3a9067f7e3e7960182268ed4f6448d70755c1cba32bd59a9, status=active'",
+        "DB stdout: '0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d|pending|32' — status is 'pending', not 'active'",
+        "L1 layer stderr: 'Error: HTTP error 522 with body: ... Connection timed out ... rpc.sepolia.org' — L1 confirmation cannot have occurred",
+        "Frontend test 'lock increases Explorer totalLocks count' stdout: '[Explorer] totalLocks: 30 -> 31' — UI believes lock is fully committed while L1 is unreachable"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "critical",
+      "title": "Backend Rust e2e test binary fails entirely (exit code 1, empty stdout) — all server-side invariant checks are unverified",
+      "detail": "The backend test command exited with code 1 and produced zero stdout. The stderr contains only compilation traces with no `test result:` line, meaning the test binary either panicked before running any test, failed to link, or encountered a runtime startup error. This is not merely a test-environment issue: the Consumer Lock sequence spec requires verification of SR_0 computation (`SHA3-256('QS_LOCK_V1' || ...)`), lock_id assignment, and L1 Vault transaction submission. None of these were verified. The frontend and DB layers ran against a live backend that may be in a broken state — the frontend's 40/40 pass rate cannot be trusted as proof of correctness when the backend's own test suite cannot execute. This also means silent-failure patterns (unwrap_or_default, hex_to_bytes32_or_zero, Ok(()) swallowing) in the lock path were not exercised by any automated check this run.",
+      "evidence": [
+        "Backend exit_code=1, stdout_excerpt='' (empty), duration_ms=120043",
+        "Backend stderr contains only crate compilation lines ending at 'Compiling parking v2.2.1' — no 'running N tests', no 'test result: ok/FAILED'",
+        "Backend layer analysis: 'stdout_excerpt is empty - no actual test output captured' and 'Cannot confirm that lock_id was assigned, SR_0 was computed via SHA3-256'",
+        "Frontend 40/40 pass with backend exit_code=1 — frontend is testing against a live server whose internal correctness is unconfirmed"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "high",
+      "title": "L1 Vault state unverifiable while frontend claims successful lock commits — no circuit-breaker or fallback guard detected",
+      "detail": "The L1 check against the correct vault address `0x07012aeF87C6E423c32F2f8eaF81762f63337260` returned HTTP 522 (RPC timeout). The frontend simultaneously reports `totalLocks: 30 -> 31` and locks with `status=active`. If the system increments the explorer counter and marks locks active without waiting for L1 confirmation (or without a reliable retry/queue mechanism), then user-facing state diverges from on-chain state silently. Per the Quantum Shield silent-failure history, item #13 ('best-effort L1 calls that warn-and-continue'), this pattern — where an L1 call failure causes a warn-and-continue rather than a hard failure — is a known critical regression. The DB status='pending' on the last lock row is a weak signal that the L1 path may already be in warn-and-continue mode: the lock was accepted and counted by the explorer but never confirmed on-chain.",
+      "evidence": [
+        "L1 stderr: 'Error: HTTP error 522 ... Connection timed out ... rpc.sepolia.org'",
+        "Frontend stdout: '[Explorer] totalLocks: 30 -> 31' — counter incremented despite L1 being unreachable",
+        "DB stdout: 'status=pending' — lock never transitioned to a confirmed state",
+        "Silent-failure pattern #13: 'best-effort L1 calls that warn-and-continue on failure (the Slashing fail-hard path was fixed in Batch 2; regression here is critical)'"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "regression-sentinel",
+      "severity": "info",
+      "title": "No baseline — first green run will be recorded as baseline.",
+      "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run is not green (backend layer failed, db layer has a critical issue, l1 layer failed due to RPC timeout). A baseline will only be recorded once a fully green run completes.",
+      "evidence": [
+        "last_green_run: null",
+        "current_run backend layer: status=fail, exit_code=1",
+        "current_run db layer: pk_dilithium length=32 bytes (expected 1952 bytes)",
+        "current_run l1 layer: status=fail, HTTP 522 from rpc.sepolia.org"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "performance-monitor",
+      "severity": "info",
+      "title": "Recording first baseline",
+      "detail": "Baseline metrics captured for seq-1. Backend: 120043ms, Frontend: 84222ms, DB: 500ms, L1: 40128ms. Total orchestrator cost: $0.0303.",
+      "evidence": [
+        "backend-runner: $0.0096 (7262 input tokens, 469 output tokens)",
+        "frontend-runner: $0.0069 (5645 input tokens, 245 output tokens)",
+        "db-verifier: $0.0021 (635 input tokens, 283 output tokens)",
+        "l1-verifier: $0.0049 (3529 input tokens, 266 output tokens)"
+      ],
+      "suggested_owner": "tests"
+    }
+  ],
+  "fixer_proposals": [],
+  "final_verdict": {
+    "verdict": "BLOCKED",
+    "summary": "Three independent critical failures prevent merge: (1) the pk_dilithium column stores only 32 bytes instead of the required 1952 bytes, indicating the Dilithium public key is being silently truncated or hashed before persistence; (2) the backend Rust e2e test binary exited with code 1 and produced no stdout, meaning all server-side invariants (SR_0 computation, lock_id assignment, L1 submission) are entirely unverified; (3) the frontend reports lock status='active' while the DB shows 'pending' and L1 is unreachable, suggesting the system is marking locks active in-memory without on-chain confirmation — a known critical silent-failure pattern. The L1 failure is an infra/RPC outage (HTTP 522 from rpc.sepolia.org) and alone would be downgraded, but it cannot be separated from finding #3 which depends on L1 state to resolve. No fixer proposals were received; human review is mandatory.",
+    "must_fix_before_merge": [
+      "pk_dilithium silently truncated to 32 bytes — full 1952-byte Dilithium public key is lost on write (DB critical)",
+      "Backend Rust e2e test binary fails entirely (exit code 1, empty stdout) — SR_0, lock_id, and L1 submission invariants unverified",
+      "Status divergence: API/explorer reports status='active' while DB shows 'pending' and L1 is unconfirmed — possible warn-and-continue on L1 failure",
+      "L1 Vault totalLocked() unverifiable due to rpc.sepolia.org HTTP 522 outage — rerun required after RPC recovery to confirm on-chain state"
+    ],
+    "fixer_recommendation": "reject",
+    "unresolved_questions": [
+      "Is pk_dilithium being truncated by a BYTEA column size constraint, a bytes32 coercion in the ORM/write path, or a hash substitution before INSERT? Root cause must be identified before any patch.",
+      "Why did the backend Rust test binary produce no stdout and exit 1 — is this a linker failure, a runtime panic at startup, or a missing environment variable (DATABASE_URL, L1_RPC_URL) that causes early exit before any test runs?",
+      "Is the status='active' returned by GET /v1/explorer/locks sourced from an in-memory cache or event queue rather than the DB, and if so, is there a guaranteed reconciliation path that will update the DB once L1 confirms?",
+      "Does the system have a hard-fail circuit-breaker on L1 submission failures, or does it warn-and-continue (silent-failure pattern #13)? The DB status='pending' with frontend showing 'active' is consistent with warn-and-continue.",
+      "The frontend lock_id persisted in DB (0xeecabb8d50365c6ad8afa53b8e2392dd325c86ee4a707ac441fcbd4e66c23d4d) differs from the lock_id the frontend test logged as 'active' (0x7bf4c1a9be4fe66b3a9067f7e3e7960182268ed4f6448d70755c1cba32bd59a9) — are these the same run's locks, and does the DB query reflect the correct row?"
+    ],
+    "confidence": 0.45
+  },
+  "cost_usd": 0.301975,
+  "tokens": {
+    "input": 73803,
+    "cached_input": 0,
+    "output": 8724
+  }
+}
