@@ -26,24 +26,38 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
         description: 'Rust integration test for Lock flow',
         command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_lock -- --nocapture',
         expected: 'Lock created in DB, SR0 computed, L1 lockWithSR0 submitted',
+        // Backend test creates rows in `locks`, sends to L1. Must run before
+        // verify steps can observe state. (note: status will be 'pending'
+        // until the L1 confirmation service updates it; the verifier expects
+        // either status, see expected note below.)
+        phase: 'drive',
       },
       {
         layer: 'frontend',
         description: 'Playwright integration spec for Consumer Lock',
         command: 'cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json',
         expected: 'UI lock creation produces success state and DB row',
+        // Playwright tests POST /v1/lock against the running backend, so
+        // they also produce DB rows. Drive phase.
+        phase: 'drive',
       },
       {
         layer: 'db',
+        // The backend's locks table INSERT writes status='pending' (see
+        // src/api/api/src/db/repositories/lock.rs:90). status='locked' is
+        // set later by the L1 confirmation service. Until that flow is
+        // wired in CI we accept either, and just assert presence + pk len.
         description: 'Verify lock row was created and pk_dilithium populated',
         command: `psql "$DATABASE_URL" -t -A -c "SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;"`,
-        expected: 'one row, status=locked, pk_dilithium length=1952',
+        expected: 'one row, status in {pending, locked}, pk_dilithium length 1952',
+        phase: 'verify',
       },
       {
         layer: 'l1',
         description: 'Verify totalLocked increased on Sepolia Vault',
         command: `cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url "$L1_RPC_URL"`,
         expected: 'value > 0 wei',
+        phase: 'verify',
       },
     ],
     acceptance_criteria: [
@@ -64,22 +78,26 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
         description: 'Unlock + auto-claim Rust test',
         command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_unlock_normal -- --nocapture',
         expected: '24h time-lock honored, Auto-Claim service finalizes',
+        phase: 'drive',
       },
       {
         layer: 'frontend',
         description: 'Playwright unlock integration spec',
         command: 'cd src/frontend/web && npx playwright test e2e/integration/unlock.integration.spec.ts --reporter=json',
+        phase: 'drive',
       },
       {
         layer: 'db',
         description: 'Verify unlocks row and time_lock_until is 24h ahead of created_at',
         command: `psql "$DATABASE_URL" -t -A -c "SELECT unlock_id, status, EXTRACT(EPOCH FROM (time_lock_until - created_at))/3600 FROM unlocks ORDER BY created_at DESC LIMIT 1;"`,
         expected: 'status=requested or finalized, hours = 24',
+        phase: 'verify',
       },
       {
         layer: 'l1',
         description: 'Verify L1 lock is unlocked or scheduled',
         command: `cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url "$L1_RPC_URL"`,
+        phase: 'verify',
       },
     ],
     acceptance_criteria: [
@@ -98,17 +116,20 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
         description: 'Challenge -> Slashing pipeline test',
         command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test sequence_slashing -- --nocapture',
         expected: 'L1SlashStatus enum transitions; pending_retry path tested',
+        phase: 'drive',
       },
       {
         layer: 'db',
         description: 'Verify slashings row and l1_status',
         command: `psql "$DATABASE_URL" -t -A -c "SELECT slashing_id, l1_status, l1_tx_hash IS NOT NULL FROM slashings ORDER BY slashed_at DESC LIMIT 1;"`,
         expected: 'l1_status in (submitted, pending_retry, disabled, unavailable)',
+        phase: 'verify',
       },
       {
         layer: 'l1',
         description: 'ProverRegistry stake check',
         command: `cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "getProverCount()(uint256)" --rpc-url "$L1_RPC_URL"`,
+        phase: 'verify',
       },
       // 2026-04-28 follow-up #2 from the slashing E2E run
       // (docs/e2e-demos/slashing-2026-04-28/report.md): the prior binding
@@ -123,6 +144,7 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
         description: 'ProverRegistry slashed-stake check (assert slash actually landed)',
         command: `cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "stakeOf(bytes32)(uint256)" 0x0000000000000000000000000000000000000000000000000000000000000001 --rpc-url "$L1_RPC_URL"`,
         expected: 'stake of test prover < pre-slash baseline (proves slash landed on-chain, not just in DB)',
+        phase: 'verify',
       },
     ],
     acceptance_criteria: [

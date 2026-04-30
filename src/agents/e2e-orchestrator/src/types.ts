@@ -3,11 +3,39 @@ import { z } from 'zod';
 export const Layer = z.enum(['backend', 'frontend', 'db', 'l1', 'l3']);
 export type Layer = z.infer<typeof Layer>;
 
+/**
+ * Each step belongs to one of two phases. The orchestrator runs all `drive`
+ * steps in parallel, waits for them to complete, then runs all `verify`
+ * steps in parallel.
+ *
+ * - `drive`: produces state (e.g., `cargo test sequence_lock` creates rows
+ *   in the locks table; `playwright test lock.integration.spec.ts` POSTs
+ *   to /v1/lock).
+ * - `verify`: reads state (e.g., `psql ... SELECT FROM locks` checks the
+ *   row exists; `cast call totalLocked()` checks on-chain state).
+ *
+ * Steps default to `drive` for back-compat — if a step is unspecified, it
+ * runs in the first phase. Sequences without observable state dependencies
+ * (e.g., a pure smoke test) can leave everything as `drive` and still
+ * benefit from full parallelism.
+ *
+ * Discovered in the 2026-04-28 e2e run 25055038384: the orchestrator was
+ * running cargo test (drive, ~120s), playwright (drive, ~80s), psql
+ * (verify, ~0.4s), and cast (verify, ~20s) all in parallel. The psql query
+ * returned at T=0.4s with zero rows because the drive steps hadn't finished
+ * writing yet. The cross-reviewer correctly identified the symptom but
+ * misdiagnosed the cause as "Playwright lying about persistence" — the
+ * real cause was a race in the orchestrator itself.
+ */
+export const StepPhase = z.enum(['drive', 'verify']);
+export type StepPhase = z.infer<typeof StepPhase>;
+
 export const TestStep = z.object({
   layer: Layer,
   description: z.string(),
   command: z.string(),
   expected: z.string().optional(),
+  phase: StepPhase.default('drive'),
 });
 export type TestStep = z.infer<typeof TestStep>;
 
