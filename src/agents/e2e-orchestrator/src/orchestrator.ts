@@ -87,22 +87,63 @@ export async function runSequence(
   }
   await writeFile(resolve(runDir, 'plan.json'), JSON.stringify(plan, null, 2));
 
-  // Stage 2: parallel layer execution + parallel layer analysis
-  info(`Stage 2: executing ${plan.steps.length} layer commands in parallel`);
-  const layerResults: LayerResult[] = await Promise.all(
-    plan.steps.map((step) =>
-      runStep(
-        step,
-        config.REPO_ROOT,
-        {
-          DATABASE_URL: config.DATABASE_URL,
-          L1_RPC_URL: config.L1_RPC_URL,
-          L3_RPC_URL: config.L3_RPC_URL,
-        },
-        runDir,
-      ),
-    ),
+  // Stage 2: two-phase layer execution (drive → verify) + parallel analysis.
+  //
+  // Bug discovered in run 25055038384 (cross-reviewer's "Playwright is lying
+  // about persistence" finding): Promise.all on every step ran cargo test,
+  // playwright, psql, and cast concurrently. The psql verify-step returned
+  // at T=0.4s with zero rows because the drive steps (cargo test ~120s,
+  // playwright ~80s) hadn't finished writing yet. The verifier then reported
+  // a contradiction — "frontend pass but DB empty" — that didn't actually
+  // exist; both the test and the persistence were fine, but the orchestrator
+  // sampled DB state before either had run.
+  //
+  // Fix: drive steps (those that produce state — backend tests, Playwright)
+  // run in parallel as a group, and only after they all finish do verify
+  // steps (those that read state — psql, cast call) run. Within each phase
+  // there's still full parallelism, so we keep the speed advantage where it's
+  // safe.
+  const driveSteps = plan.steps.filter((s) => s.phase === 'drive');
+  const verifySteps = plan.steps.filter((s) => s.phase === 'verify');
+  const stepEnv = {
+    DATABASE_URL: config.DATABASE_URL,
+    L1_RPC_URL: config.L1_RPC_URL,
+    L3_RPC_URL: config.L3_RPC_URL,
+  };
+
+  info(`Stage 2a: ${driveSteps.length} drive step(s) in parallel`);
+  const driveResults = await Promise.all(
+    driveSteps.map((step) => runStep(step, config.REPO_ROOT, stepEnv, runDir)),
   );
+
+  info(`Stage 2b: ${verifySteps.length} verify step(s) in parallel (after drive completes)`);
+  const verifyResults = await Promise.all(
+    verifySteps.map((step) => runStep(step, config.REPO_ROOT, stepEnv, runDir)),
+  );
+
+  // Preserve original plan.steps order so layer_results indexing matches the
+  // plan elsewhere (analyzer dispatch, fixer payload).
+  const allResults = [...driveResults, ...verifyResults];
+  const layerResults: LayerResult[] = plan.steps.map((step) => {
+    const r = allResults.find(
+      (res) => res.layer === step.layer && res.command === step.command,
+    );
+    if (!r) {
+      // Should never happen — every step was passed to runStep. If a step
+      // somehow had neither phase, surface it explicitly rather than silently
+      // dropping a layer.
+      return {
+        layer: step.layer,
+        status: 'fail',
+        exit_code: 1,
+        duration_ms: 0,
+        command: step.command,
+        stdout_excerpt: '',
+        stderr_excerpt: `[orchestrator] step missing phase classification: ${step.description}`,
+      };
+    }
+    return r;
+  });
   for (const r of layerResults) {
     const tag = r.status === 'pass' ? ok : r.status === 'skipped' ? warn : err;
     tag(`layer ${r.layer.padEnd(8)} ${r.status} (exit=${r.exit_code}, ${r.duration_ms}ms)`);
