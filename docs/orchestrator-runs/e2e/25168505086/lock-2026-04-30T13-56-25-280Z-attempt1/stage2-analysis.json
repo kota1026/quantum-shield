@@ -1,0 +1,100 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "exit_code = 0",
+      "test result: ok. 4 passed; 0 failed",
+      "Two test cases executed: test_lock_creates_successfully and test_lock_rejects_invalid_signature",
+      "No panic markers detected",
+      "No FAILED test lines in stdout",
+      "SR_0 value present in output: 0xee85a25e93f4fa56878d0a6916e2123d1922f52adf0eb2906e8a45565878e4df",
+      "Status field shows 'pending' (expected for L1 submission workflow)",
+      "Invalid signature rejection test passed (SEQ#1-03 400 response)",
+      "Six compiler warnings about unused variables (body not prefixed with underscore) - minor linting issue",
+      "Future incompatibility warnings from redis and sqlx-postgres dependencies - not test-blocking"
+    ],
+    "issues": [
+      {
+        "severity": "low",
+        "title": "Unused variable warnings",
+        "detail": "Six instances of `let body: Value = resp.json().await.unwrap_or_default()` where body is declared but never used. Should be prefixed with underscore (_body) to suppress warnings.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs:671,1217,1235,1479,1499,1517"
+      },
+      {
+        "severity": "info",
+        "title": "Future incompatibility notices",
+        "detail": "Dependencies redis v0.24.0 and sqlx-postgres v0.7.4 contain code rejected by future Rust versions. Not immediately blocking but should be tracked for updates.",
+        "location": null
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "fail",
+    "observations": [
+      "Total tests: 40 (15 expected, 25 unexpected)",
+      "Exit code: 1 indicates test failure",
+      "Multiple test cases failed across retries (3 retries each for some)",
+      "Tests failing at line 172 and 234: POST to /v1/lock returns 400 (Bad Request) instead of expected 200",
+      "Some tests passed: 'expired lock request is rejected' and 'lock with missing required fields is rejected' both passed",
+      "Tests ran across multiple projects (Mobile Safari)"
+    ],
+    "issues": [
+      {
+        "severity": "high",
+        "title": "Lock API endpoint returns 400 instead of 200",
+        "detail": "Multiple test cases expect POST /v1/lock to return status 200 but receive 400. This occurs at:\n- Line 172: 'duplicate nonce prevents lock replay' test\n- Line 234: 'multiple locks create distinct lock_ids and SR_0s' test\n\nThe API is rejecting valid lock requests. This may indicate:\n1. Missing or incorrect request body validation\n2. API implementation not yet accepting lock data in expected format\n3. Backend validation logic too strict or incorrectly implemented",
+        "location": "e2e/integration/lock.integration.spec.ts:172, :234"
+      },
+      {
+        "severity": "high",
+        "title": "Test retries exhausted without pass",
+        "detail": "Tests failed across all 3 retry attempts (retry 0, 1, 2), indicating consistent failure—not a flaky test. This is a systemic issue with the lock API endpoint.",
+        "location": "e2e/integration/lock.integration.spec.ts"
+      },
+      {
+        "severity": "medium",
+        "title": "Partial test suite pass masks integration failure",
+        "detail": "While validation tests (expired lock, missing fields) correctly pass, the core positive-path lock creation tests fail. This suggests the test suite may have inconsistent coverage or the API partially implements the lock interface.",
+        "location": "e2e/integration/lock.integration.spec.ts:180, :198"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "db",
+    "status": "pass",
+    "observations": [
+      "Query executed successfully (exit code 0)",
+      "Exactly one row returned as expected",
+      "lock_id: 0xaaf8a180a4289fa12b9950e1807a5cb650829c2766ee9401bb13de62d6926d65",
+      "status column value is 'pending' (matches expected: 'pending' or 'locked')",
+      "pk_dilithium length is 1952 bytes (exact match to expected)",
+      "No NULL or empty cryptographic material detected"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast exit code 1 indicates command failure",
+      "RPC endpoint rpc.sepolia.org returned HTTP 522 (Connection timed out)",
+      "Cloudflare error page indicates origin server timeout, not contract or address issue",
+      "L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 is legitimate",
+      "No stdout data available to evaluate against expected predicate"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC infrastructure timeout",
+        "detail": "The Sepolia RPC endpoint (rpc.sepolia.org) failed to respond within timeout window. Cloudflare reports the origin host at rpc.sepolia.org did not complete the request (HTTP 522). This is a transient infrastructure issue, not a contract or code regression.",
+        "location": "RPC layer"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

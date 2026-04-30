@@ -1,0 +1,48 @@
+{
+  "sequence_id": "seq-1",
+  "sequence_name": "Consumer Lock",
+  "layers": [
+    "backend",
+    "frontend",
+    "db",
+    "l1"
+  ],
+  "steps": [
+    {
+      "layer": "backend",
+      "description": "Rust integration test for Lock flow",
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq1_lock -- --nocapture",
+      "expected": "Test exits with code 0; stdout confirms: lock record created in DB, SR_0 computed via SHA3-256(\"QS_LOCK_V1\" || chain_id || asset || amount || dest_addr || expiry || nonce || pk_dilithium), and lockWithSR0 transaction submitted to L1 Vault at 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 on Sepolia; no panic or FAILED lines present",
+      "phase": "drive"
+    },
+    {
+      "layer": "frontend",
+      "description": "Playwright integration spec for Consumer Lock",
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+      "expected": "All Playwright test cases pass (status: passed) with zero failures; JSON reporter output confirms UI lock creation transitions to a success state and a corresponding DB row is observable; no test is skipped or timed out",
+      "phase": "drive"
+    },
+    {
+      "layer": "db",
+      "description": "Verify lock row was created and pk_dilithium populated",
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;\"",
+      "expected": "Exactly one row is returned; status column value is either 'pending' or 'locked'; length(pk_dilithium) equals exactly 1952 bytes",
+      "phase": "verify"
+    },
+    {
+      "layer": "l1",
+      "description": "Verify totalLocked increased on Sepolia Vault",
+      "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+      "expected": "Returned uint256 value is strictly greater than 0 wei; the call must succeed without revert; the value must reflect the locked amount from the most recent Lock sequence execution",
+      "phase": "verify"
+    }
+  ],
+  "acceptance_criteria": [
+    "Backend integration test exits with code 0 and stdout confirms SR_0 computation and L1 submission with no FAILED or panic output",
+    "Playwright lock.integration.spec.ts reports all tests passed with zero failures and zero skips",
+    "A row exists in the locks table with status equal to 'locked' and pk_dilithium byte length equal to exactly 1952",
+    "Sepolia Vault totalLocked() returns a value strictly greater than 0 wei",
+    "No silent fallback or hardcoded address appears in the execution trace"
+  ],
+  "spec_section": "SEQUENCES.md §1 Consumer Lock"
+}

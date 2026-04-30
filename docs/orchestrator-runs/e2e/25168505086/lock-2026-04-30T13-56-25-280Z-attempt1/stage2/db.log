@@ -1,0 +1,9 @@
+# db step
+# command: psql "$DATABASE_URL" -t -A -c "SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;"
+# exit: 0
+
+# STDOUT
+0xaaf8a180a4289fa12b9950e1807a5cb650829c2766ee9401bb13de62d6926d65|pending|1952
+
+
+# STDERR

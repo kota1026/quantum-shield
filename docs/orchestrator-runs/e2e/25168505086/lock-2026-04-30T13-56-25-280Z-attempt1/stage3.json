@@ -1,0 +1,82 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "Cross-layer inconsistency: backend passes 4/4 but frontend lock-creation tests fail with HTTP 400 across all retries",
+    "detail": "The backend unit/integration tests (SQLX_OFFLINE mode) pass cleanly, and the DB layer confirms a valid lock row was written (lock_id present, pk_dilithium=1952 bytes, status=pending). However, the Playwright e2e tests that hit the live API endpoint consistently receive HTTP 400 for valid positive-path lock creation requests — both the 'duplicate nonce prevents replay' test (line 172) and the 'multiple locks create distinct lock_ids and SR_0s' test (line 234) fail on every retry across every browser project. The backend tests pass because they exercise a mocked/offline path (SQLX_OFFLINE=true), meaning the real request-handling pipeline — including request parsing, body deserialization, or a validation middleware layer — differs from what the unit tests cover. The 400 is returned before any DB write can occur for those requests. This is a classic backend-pass + frontend-fail split: the offline test harness does not exercise the same validation code path as the live API.",
+    "evidence": [
+      "Backend: 'test result: ok. 4 passed; 0 failed' with command flag SQLX_OFFLINE=true",
+      "Frontend line 172: 'Expected: 200 / Received: 400' for test 'duplicate nonce prevents lock replay' — failed on retry 0, 1, 2",
+      "Frontend line 234: 'Expected: 200 / Received: 400' for test 'multiple locks create distinct lock_ids and SR_0s' — failed on retry 0, 1, 2",
+      "DB layer: lock row exists with status=pending and pk_dilithium length 1952, but this row likely originated from the backend unit test run, not from the failing e2e requests",
+      "Playwright stats: 25 unexpected failures, 15 expected passes; zero flaky — indicates a deterministic rejection of valid requests at the live API layer"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "DB row presence does not confirm e2e lock success — single row may be stale from unit test run, masking zero e2e writes",
+    "detail": "The DB check queries 'ORDER BY created_at DESC LIMIT 1' and finds exactly one row with status=pending. But the backend tests run first (SQLX_OFFLINE=true, duration 1108ms) and the frontend e2e tests run separately and fail with 400s. The single DB row is most likely written by the backend unit test fixture, not by any successful e2e call. Because the e2e requests return 400, no new rows are written during the Playwright run. This means the DB 'pass' verdict is misleading: it is validating a pre-existing row, not confirming that the e2e consumer lock flow actually persists data. A correct cross-layer check would assert row count increased after the e2e suite, or compare created_at timestamps against the e2e run window (2026-04-30T13:56:40 – 13:58:58).",
+    "evidence": [
+      "DB stdout: '0xaaf8a180a4289fa12b9950e1807a5cb650829c2766ee9401bb13de62d6926d65|pending|1952' — single row, no timestamp shown",
+      "Backend test completed at ~0.13s, well before Playwright start time 2026-04-30T13:56:40.266Z",
+      "All 25 frontend lock creation requests returned 400 — no successful POST that could produce a DB row during the e2e window",
+      "DB command uses 'LIMIT 1' with no time-window filter, making it unable to distinguish unit-test rows from e2e rows"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "unwrap_or_default() on response JSON body hides parse/deserialization errors in test assertions",
+    "detail": "Six separate locations in sequence_e2e_test.rs use the pattern 'let body: Value = resp.json().await.unwrap_or_default()'. This matches silent-failure pattern #3: unwrap_or_default() on a fallback that can mask real errors. If the API returns a non-JSON body (e.g., a plain-text error, an empty body on 400/422, or a binary response), the parse failure is silently converted to Value::Null (the default). Because 'body' is then also unused (triggering the compiler warnings), the test neither inspects nor asserts on the response body for those code paths. Any body-level error — wrong content-type, truncated JSON, error message schema — goes completely undetected. This is especially dangerous in the invalid-signature and nonce-replay rejection paths where the error payload should be inspected.",
+    "evidence": [
+      "Compiler warning: 'unused variable: body' at sequence_e2e_test.rs:671 — 'let body: Value = resp.json().await.unwrap_or_default()'",
+      "Same pattern repeated at lines 1217, 1235, 1479, 1499, 1517 (6 total occurrences)",
+      "Silent-failure pattern #3 from project history: 'unwrap_or_default() on hex inputs hiding parse errors' — same class of silent swallow applied to HTTP response bodies",
+      "Backend stderr: 'warning: unused variable: body ... help: if this is intentional, prefix it with an underscore' — compiler itself flags these as suspect"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "L1 vault state unverifiable — lock marked 'pending' in DB with no confirmed L1 write, and RPC is down",
+    "detail": "The Consumer Lock sequence requires that a successful lock eventually results in a state change on the L1 vault contract at 0x07012aeF87C6E423c32F2f8eaF81762f63337260 (totalLocked incremented). The DB row is correctly in 'pending' status, meaning the L1 submission has not yet been confirmed. However, the L1 layer check failed with HTTP 522 (RPC endpoint timeout), so there is no way to verify whether any prior lock transactions have actually landed on-chain. While the 522 is an infrastructure issue, the combination of: (a) all e2e lock POSTs returning 400, (b) DB showing only one pending row of uncertain origin, and (c) L1 RPC being unreachable means the end-to-end Consumer Lock sequence has zero confirmed successful paths in this run. If the RPC timeout is persistent (not transient), background L1 submission tasks may also be silently failing — and per silent-failure pattern #5, if those tasks use Ok(()) error swallowing, failures will not surface.",
+    "evidence": [
+      "L1 stderr: 'Error: HTTP error 522 with body: ... Connection timed out ... rpc.sepolia.org ... Host: Error'",
+      "DB: status='pending' — L1 submission not confirmed",
+      "Frontend: 25/40 tests failed with 400 — no successful lock creation confirmed from e2e path",
+      "cast command target address '0x07012aeF87C6E423c32F2f8eaF81762f63337260' is correct (matches canonical vault address), so the timeout is infrastructure, not address regression — but the unverifiable state is still a risk for this run"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run cannot be evaluated as a regression; it establishes the reference point once it goes green. Current run has a failing frontend layer (25 unexpected tests) and a failing l1 layer (RPC 522 timeout), so this run will NOT be recorded as the green baseline.",
+    "evidence": [
+      "last_green_run: null",
+      "frontend layer status: fail (exit_code 1, 25 unexpected tests out of 40)",
+      "l1 layer status: fail (exit_code 1, HTTP 522 from rpc.sepolia.org)"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "No baseline exists for seq-1. Current metrics recorded as baseline for future comparison.",
+    "evidence": [
+      "backend: 1108 ms",
+      "frontend: 100902 ms",
+      "db: 268 ms",
+      "l1: 40251 ms",
+      "total sequence wall-clock: 142529 ms (~2.4 min)",
+      "orchestrator cost: $0.0301 total"
+    ],
+    "suggested_owner": "tests"
+  }
+]
