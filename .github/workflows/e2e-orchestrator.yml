@@ -54,6 +54,21 @@ jobs:
       L1_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org' }}
       L3_RPC_URL: http://localhost:8545
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      # The orchestrator is the closest thing we have to a production
+      # smoke check, so it must run with real signature/TOTP verification
+      # and real (non-zero) time-locks. Default config has DEMO values
+      # (skip=true, time-lock=0) which is fine on local Anvil but unsafe
+      # on Sepolia (chain_id=11155111, the CI L1). The hardened
+      # `enforce_production_guards` (config.rs::enforce_production_guards)
+      # panics on testnet boot if any of these are unsafe — these env
+      # overrides keep the CI runner inside the safe regime. Run
+      # 25155587002's "signature bypass" finding came from the orchestrator
+      # submitting a wrong-key signature and getting HTTP 200 because
+      # skip=true was the testnet default.
+      QS__SECURITY__SKIP_SIGNATURE_VERIFICATION: "false"
+      QS__SECURITY__SKIP_TOTP_VERIFICATION: "false"
+      QS__SECURITY__NORMAL_TIME_LOCK_HOURS: "24"
+      QS__SECURITY__EMERGENCY_TIME_LOCK_DAYS: "7"
 
     steps:
       - uses: actions/checkout@v4

@@ -362,14 +362,44 @@ impl AppState {
         crate::db::UserRepository::ensure_exists(self.pool(), &req.dest_addr.to_lowercase()).await?;
 
         // ===== Step 1: PG INSERT (Source of Truth) - MUST succeed =====
+        // 2026-04-30 fix: previously each `hex::decode(...).unwrap_or_else(|_| raw_bytes)`
+        // silently fell back to the raw UTF-8 bytes of the input string when hex
+        // decode failed — masking client bugs (e.g. a 32-byte hex key being
+        // accepted as a 1952-byte ML-DSA-65 key) and persisting garbage. The
+        // orchestrator's run 25155587002 saw `length(pk_dilithium)=32` for the
+        // most-recent row and (mis-)blamed a `hex_to_bytes32_or_zero` truncation
+        // in the lock path — the actual mechanism was a malformed client payload
+        // surviving these silent fallbacks. Now: strict decode + explicit length
+        // guards. ML-DSA-65 sizes per FIPS 204: pk = 1952B, sig = 3309B.
+        const ML_DSA_65_PK_BYTES: usize = 1952;
+        const ML_DSA_65_SIG_BYTES: usize = 3309;
+
         let amount_bd = req.amount.parse::<bigdecimal::BigDecimal>()
-            .unwrap_or_else(|_| bigdecimal::BigDecimal::from(0));
+            .map_err(|e| ApiError::BadRequest(format!("invalid amount '{}': {}", req.amount, e)))?;
         let dest_addr_bytes = hex::decode(req.dest_addr.trim_start_matches("0x"))
-            .unwrap_or_else(|_| req.dest_addr.as_bytes().to_vec());
+            .map_err(|e| ApiError::BadRequest(format!("dest_addr is not valid hex: {}", e)))?;
+        if dest_addr_bytes.len() != 20 {
+            return Err(ApiError::BadRequest(format!(
+                "dest_addr must be 20 bytes (Ethereum address); got {}",
+                dest_addr_bytes.len()
+            )));
+        }
         let pk_bytes = hex::decode(req.pk_dilithium.trim_start_matches("0x"))
-            .unwrap_or_else(|_| req.pk_dilithium.as_bytes().to_vec());
+            .map_err(|e| ApiError::BadRequest(format!("pk_dilithium is not valid hex: {}", e)))?;
+        if pk_bytes.len() != ML_DSA_65_PK_BYTES {
+            return Err(ApiError::BadRequest(format!(
+                "pk_dilithium must be {} bytes (ML-DSA-65 / FIPS 204); got {}",
+                ML_DSA_65_PK_BYTES, pk_bytes.len()
+            )));
+        }
         let sig_bytes = hex::decode(req.sig_dilithium.trim_start_matches("0x"))
-            .unwrap_or_else(|_| req.sig_dilithium.as_bytes().to_vec());
+            .map_err(|e| ApiError::BadRequest(format!("sig_dilithium is not valid hex: {}", e)))?;
+        if sig_bytes.len() != ML_DSA_65_SIG_BYTES {
+            return Err(ApiError::BadRequest(format!(
+                "sig_dilithium must be {} bytes (ML-DSA-65 / FIPS 204); got {}",
+                ML_DSA_65_SIG_BYTES, sig_bytes.len()
+            )));
+        }
 
         if let Err(e) = crate::db::LockRepository::create(
             self.pool(),

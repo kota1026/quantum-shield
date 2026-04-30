@@ -512,34 +512,73 @@ pub fn enforce_production_guards(cfg: &Config, run_mode: &str) {
             );
         }
     } else if is_testnet {
-        // WARN loudly but do not crash — testnet beta may intentionally skip.
+        // 2026-04-30 hardening: previously this branch only emitted warn!()
+        // and continued. The orchestrator's run 25155587002 caught a CI
+        // signature-bypass: CI runs Sepolia (chain_id=11155111) with
+        // skip_signature_verification=true (the default), and the warn was
+        // ignored — invalid signatures got HTTP 200. Tighten so testnet now
+        // also panics by default. The legitimate "Sepolia beta with no real
+        // keys" use case must be acknowledged explicitly with
+        // RUN_MODE=testnet_beta — the env var leaves a paper trail, the
+        // silent default did not.
+        let is_testnet_beta = run_mode == "testnet_beta";
         if cfg.security.skip_signature_verification {
-            tracing::warn!(
-                "⚠️ TESTNET: skip_signature_verification=true on chain {:?}. \
-                 This is acceptable for beta testing but MUST be disabled before mainnet.",
-                chain_id
-            );
+            if is_testnet_beta {
+                tracing::warn!(
+                    "⚠️ TESTNET BETA: skip_signature_verification=true on chain {:?} \
+                     (RUN_MODE=testnet_beta). Acceptable for beta, must disable before mainnet.",
+                    chain_id
+                );
+            } else {
+                panic!(
+                    "SECURITY VIOLATION: skip_signature_verification=true on testnet chain {:?} \
+                     without RUN_MODE=testnet_beta. Set RUN_MODE=testnet_beta to acknowledge \
+                     the compromise, or set skip_signature_verification=false. Aborting.",
+                    chain_id
+                );
+            }
         }
         if cfg.security.skip_totp_verification {
-            tracing::warn!(
-                "⚠️ TESTNET: skip_totp_verification=true on chain {:?}. \
-                 Acceptable for beta, must disable before mainnet.",
-                chain_id
-            );
+            if is_testnet_beta {
+                tracing::warn!(
+                    "⚠️ TESTNET BETA: skip_totp_verification=true on chain {:?} (RUN_MODE=testnet_beta).",
+                    chain_id
+                );
+            } else {
+                panic!(
+                    "SECURITY VIOLATION: skip_totp_verification=true on testnet chain {:?} \
+                     without RUN_MODE=testnet_beta. Aborting.",
+                    chain_id
+                );
+            }
         }
         if cfg.security.normal_time_lock_hours < 1 {
-            tracing::warn!(
-                "⚠️ TESTNET: normal_time_lock_hours={} on chain {:?}. \
-                 DEMO mode — must set >= 1h before mainnet.",
-                cfg.security.normal_time_lock_hours, chain_id
-            );
+            if is_testnet_beta {
+                tracing::warn!(
+                    "⚠️ TESTNET BETA: normal_time_lock_hours={} on chain {:?} (RUN_MODE=testnet_beta).",
+                    cfg.security.normal_time_lock_hours, chain_id
+                );
+            } else {
+                panic!(
+                    "SECURITY VIOLATION: normal_time_lock_hours={} on testnet chain {:?} \
+                     without RUN_MODE=testnet_beta. Aborting.",
+                    cfg.security.normal_time_lock_hours, chain_id
+                );
+            }
         }
         if cfg.security.emergency_time_lock_days < 1 {
-            tracing::warn!(
-                "⚠️ TESTNET: emergency_time_lock_days={} on chain {:?}. \
-                 DEMO mode — must set >= 1d before mainnet.",
-                cfg.security.emergency_time_lock_days, chain_id
-            );
+            if is_testnet_beta {
+                tracing::warn!(
+                    "⚠️ TESTNET BETA: emergency_time_lock_days={} on chain {:?} (RUN_MODE=testnet_beta).",
+                    cfg.security.emergency_time_lock_days, chain_id
+                );
+            } else {
+                panic!(
+                    "SECURITY VIOLATION: emergency_time_lock_days={} on testnet chain {:?} \
+                     without RUN_MODE=testnet_beta. Aborting.",
+                    cfg.security.emergency_time_lock_days, chain_id
+                );
+            }
         }
     }
     // Level 3: Local Anvil (31337) or no chain configured — silent. Dev mode.

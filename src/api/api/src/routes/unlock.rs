@@ -154,6 +154,9 @@ pub async fn create_unlock(
     }
 
     // 3. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
+    // Err(e) (malformed input) is never bypassed by skip_signature_verification.
+    // The skip flag is for "users don't have real ML-DSA keys yet" (testnet
+    // beta), not for "we accept garbage input."
     let message = construct_unlock_message(&req.lock_id, &req.dest_addr, &req.amount);
     let sig_result = verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &lock.user_public_key);
     match sig_result {
@@ -170,13 +173,9 @@ pub async fn create_unlock(
             }
         }
         Err(e) => {
-            if state.config().security.skip_signature_verification {
-                tracing::warn!("SECURITY: ML-DSA-65 signature error: {}, skip_signature_verification=true", e);
-            } else {
-                return Err(ApiError::InvalidSignature(
-                    format!("ML-DSA-65 verification error: {}", e),
-                ));
-            }
+            return Err(ApiError::InvalidSignature(
+                format!("ML-DSA-65 verification error: {}", e),
+            ));
         }
     }
 
@@ -350,6 +349,9 @@ pub async fn create_emergency_unlock(
     }
 
     // 3. Validate ML-DSA-65 signature (NIST FIPS 204 - CP-1 Compliant)
+    // Err(e) (malformed input) is never bypassed by skip_signature_verification.
+    // The skip flag is for "users don't have real ML-DSA keys yet" (testnet
+    // beta), not for "we accept garbage input."
     let message = construct_unlock_message(&req.lock_id, &req.dest_addr, &req.amount);
     let sig_result = verify_ml_dsa_65_signature(&message, &req.sig_dilithium, &lock.user_public_key);
     match sig_result {
@@ -366,13 +368,9 @@ pub async fn create_emergency_unlock(
             }
         }
         Err(e) => {
-            if state.config().security.skip_signature_verification {
-                tracing::warn!("SECURITY: ML-DSA-65 signature error: {}, skip_signature_verification=true", e);
-            } else {
-                return Err(ApiError::InvalidSignature(
-                    format!("ML-DSA-65 verification error: {}", e),
-                ));
-            }
+            return Err(ApiError::InvalidSignature(
+                format!("ML-DSA-65 verification error: {}", e),
+            ));
         }
     }
 
