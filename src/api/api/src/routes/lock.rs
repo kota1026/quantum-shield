@@ -61,6 +61,9 @@ pub async fn create_lock(
             tracing::info!("✓ ML-DSA-65 signature verified (NIST FIPS 204 compliant)");
         }
         Ok(false) => {
+            // Mathematically-invalid signature. The skip flag exists for testnet
+            // beta where users don't yet hold real ML-DSA keys; only this branch
+            // honors it.
             if state.config().security.skip_signature_verification {
                 tracing::warn!("SECURITY: ML-DSA-65 signature verification failed, skip_signature_verification=true");
             } else {
@@ -70,13 +73,14 @@ pub async fn create_lock(
             }
         }
         Err(e) => {
-            if state.config().security.skip_signature_verification {
-                tracing::warn!("SECURITY: ML-DSA-65 signature error: {}, skip_signature_verification=true", e);
-            } else {
-                return Err(ApiError::InvalidSignature(
-                    format!("ML-DSA-65 verification error: {}", e),
-                ));
-            }
+            // Malformed input (hex parse, wrong-length pk/sig, etc.). This is a
+            // client bug, not a key-availability issue, so the skip flag MUST
+            // NOT bypass it. The orchestrator's run 25155587002 showed an
+            // invalid-signature test getting HTTP 200 partly because Err(_)
+            // was being lumped in with Ok(false) under skip=true.
+            return Err(ApiError::InvalidSignature(
+                format!("ML-DSA-65 verification error: {}", e),
+            ));
         }
     }
 
