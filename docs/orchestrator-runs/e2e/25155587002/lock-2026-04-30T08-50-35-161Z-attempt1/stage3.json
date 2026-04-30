@@ -1,0 +1,92 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "Signature validation completely bypassed — invalid signatures accepted with HTTP 200",
+    "detail": "The lock endpoint accepts requests carrying an invalid Dilithium signature and returns HTTP 200 OK instead of rejecting them. This is not merely a test assertion failure: it means any attacker can submit a lock request with a forged or malformed signature and the backend will process it as legitimate. The backend layer test panicked with 'Invalid signature should be rejected, got 200' (line 218), and the frontend layer tests all passed — meaning the frontend integration tests never exercised the invalid-signature path, leaving the production endpoint silently open. This violates the core Quantum Shield protocol invariant that every lock must carry a valid post-quantum signature before state is mutated.",
+    "evidence": [
+      "backend stdout: 'SEQ#1-03 Invalid sig response: status=200'",
+      "backend stderr: 'thread seq1_lock::test_lock_rejects_invalid_signature panicked at src/api/api/tests/sequence_e2e_test.rs:218:9: Invalid signature should be rejected, got 200'",
+      "frontend stats: expected=40, unexpected=0 — frontend test suite contains no invalid-signature test, so the bypass is invisible to it",
+      "Cross-layer: backend FAIL (exit 101) + frontend PASS (exit 0) = silent production exposure"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "Dilithium public key stored as 32 bytes instead of 1952 bytes — cryptographic key truncated",
+    "detail": "The DB layer query returned `length(pk_dilithium) = 32` for the most recently created lock. The standard Dilithium2 public key is 1312 bytes; Dilithium3 is 1952 bytes; neither is 32 bytes. 32 bytes is the size of a SHA-256 hash or a bytes32 field — strongly suggesting the code is either (a) storing only a hash/commitment of the key rather than the key itself, (b) calling `hex_to_bytes32_or_zero` (silent-failure pattern #4) and truncating the key to a 32-byte zero-padded value, or (c) writing to the wrong column. Because the signature validation endpoint already fails to reject invalid signatures (finding above), and the stored public key is not a valid Dilithium key, the system cannot perform any real post-quantum verification at any layer. The combination of these two bugs means the entire cryptographic security guarantee of the Consumer Lock flow is absent.",
+    "evidence": [
+      "db stdout: '0x5f846e6c90c9230bdbbe5c13ea0c93ff79d0d9bd841678108e66e8d15e995a64|pending|32'",
+      "Expected pk_dilithium length: 1312–1952 bytes (Dilithium2/3); actual: 32 bytes",
+      "Cross-layer: frontend reports 'smt_proof length=17030 chars' confirming a large proof is generated, yet the public key stored is only 32 bytes — proof data and key data are inconsistent",
+      "Silent-failure pattern #4 (hex_to_bytes32_or_zero) is a known regression target for this codebase"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "DB status recorded as 'pending' but frontend explorer shows lock as 'active' — state inconsistency",
+    "detail": "The DB layer query against the most recent lock row returns `status = pending`. However, the frontend integration test for 'lock is persisted in DB and visible via GET /v1/explorer/locks' logs '[Lock Persisted] lock_id=..., status=active'. These are different rows (different lock_ids), but both were created during the same test run without any intervening release/confirmation step. If the explorer endpoint is reading a derived or cached status field rather than the canonical DB column, or if the status transition logic promotes some locks to 'active' and not others non-deterministically, this is a silent data-consistency failure. The spec (SEQUENCES.md §1) must clarify whether newly created locks are 'pending' or 'active'; if 'pending' is correct, the explorer API is returning stale/wrong state.",
+    "evidence": [
+      "db stdout: '...0x5f846e6c90c9230bdbbe5c13ea0c93ff79d0d9bd841678108e66e8d15e995a64|pending|32'",
+      "frontend stdout: '[Lock Persisted] lock_id=0x9b96d27ef79df10d3b056d8912bf97fbb770ec8772d905791f293a30bf9edd72, status=active'",
+      "Both locks created in the same test run with no explicit state-transition step between creation and the explorer query",
+      "Cross-layer: DB says 'pending', explorer API says 'active' for a freshly created lock"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "unwrap_or_default() on response JSON silently swallows parse errors in 6 test locations",
+    "detail": "Six locations in sequence_e2e_test.rs use the pattern `let body: Value = resp.json().await.unwrap_or_default()` and then never use `body`. This matches silent-failure pattern #3 from the high-priority regression list. If the server returns a non-JSON body (e.g., an HTML error page, a 500 with plain text, or a truncated response), `unwrap_or_default()` silently substitutes `Value::Null` and the test continues without ever inspecting the response body. Tests that should catch malformed server responses will pass green while the server is broken. The `body` variable being unused (compiler warnings at lines 671, 1217, 1235, 1479, 1499, 1517) compounds this: even if parsing succeeded, nothing asserts on the content.",
+    "evidence": [
+      "backend stderr: 'warning: unused variable: `body`' at sequence_e2e_test.rs:671, 1217, 1235, 1479, 1499, 1517",
+      "Pattern: 'let body: Value = resp.json().await.unwrap_or_default()' — matches known silent-failure pattern #3",
+      "6 separate occurrences across the test file, suggesting a copy-paste anti-pattern propagation"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "L1 Vault state unverifiable — lock accepted by backend+DB but on-chain totalLocked unconfirmable",
+    "detail": "The L1 layer failed with HTTP 522 (RPC endpoint timeout), so it is impossible to confirm whether the on-chain Vault at 0x07012aeF87C6E423c32F2f8eaF81762f63337260 actually recorded the lock. The frontend reported 'totalLocks: 33 -> 34', but this counter is served by the backend/explorer, not read directly from the chain. If the backend increments an off-chain counter independently of the on-chain call (or if the on-chain call is fire-and-forget with `Ok(())` swallowing errors — silent-failure pattern #5), the UI can show a successful lock increment while the Vault state never moved. The RPC failure prevents ruling this out for this run.",
+    "evidence": [
+      "l1 stderr: 'Error: HTTP error 522 with body: ... sepolia.org | 522: Connection timed out'",
+      "frontend stdout: '[Explorer] totalLocks: 33 -> 34' — counter incremented in explorer without L1 confirmation",
+      "l1 stdout: '' (empty) — no on-chain value retrieved",
+      "Cross-layer: frontend PASS + L1 FAIL = on-chain state unverified for this run"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run is not green (backend layer failed due to signature validation bug, db layer shows dilithium key truncation, l1 layer has RPC connectivity failure). No baseline will be recorded until a fully passing run is achieved.",
+    "evidence": [
+      "last_green_run: null",
+      "backend layer status: fail (exit_code 101) — test_lock_rejects_invalid_signature panicked at line 218: 'Invalid signature should be rejected, got 200'",
+      "db layer: pk_dilithium length=32 bytes, expected 1952 bytes",
+      "l1 layer status: fail (exit_code 1) — HTTP 522 Connection timed out from rpc.sepolia.org"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "No baseline exists for seq-1. Current metrics recorded: backend 829ms, frontend 33862ms, db 316ms, l1 39553ms. Total orchestrator cost $0.029 USD.",
+    "evidence": [
+      "backend-runner: $0.015 (11949 input tokens, 608 output)",
+      "frontend-runner: $0.007 (5631 input tokens, 263 output)",
+      "db-verifier: $0.002 (656 input tokens, 296 output)",
+      "l1-verifier: $0.005 (3525 input tokens, 267 output)"
+    ],
+    "suggested_owner": "tests"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "verdict": "BLOCKED",
+  "summary": "The Consumer Lock sequence has two critical cryptographic failures that together eliminate all post-quantum security guarantees: (1) the lock endpoint accepts requests carrying invalid Dilithium signatures and returns HTTP 200 instead of rejecting them, and (2) the Dilithium public key is stored as only 32 bytes instead of the required 1952 bytes, indicating the key is being truncated or hashed before persistence. These are not test harness issues — the production endpoint is provably bypassing signature enforcement, and the stored key material is not a valid Dilithium key. Additionally, the DB layer agent reports pk_dilithium length=32 while the spec mandates exactly 1952 bytes, and the L1 RPC is unreachable (HTTP 522) making on-chain state unverifiable; the frontend passing all 40 tests provides no cover because it never exercised the invalid-signature code path. No fixer proposals were received, so auto-apply is not possible; human review and production-safe fixes are required before merge.",
+  "must_fix_before_merge": [
+    "Signature validation bypassed: lock endpoint accepts invalid Dilithium signatures with HTTP 200 — enforce signature verification before any state mutation",
+    "Dilithium public key truncated to 32 bytes: pk_dilithium must be stored as full 1952-byte Dilithium3 key — identify and fix the write path (likely hex_to_bytes32_or_zero truncation)",
+    "DB acceptance criterion violated: pk_dilithium length must equal exactly 1952 bytes per spec and acceptance criteria",
+    "status inconsistency between DB layer ('pending') and explorer API ('active') for freshly created locks — clarify canonical state machine and fix the inconsistent field",
+    "Six test locations use unwrap_or_default() on response JSON and discard the body variable — replace with explicit assertions to prevent silent parse-error masking",
+    "L1 RPC endpoint (rpc.sepolia.org) returning HTTP 522: rerun L1 verification against a healthy RPC endpoint to confirm on-chain totalLocked > 0 and lockWithSR0 submission"
+  ],
+  "fixer_recommendation": "reject",
+  "unresolved_questions": [
+    "Is pk_dilithium being truncated to 32 bytes by a hex_to_bytes32_or_zero call, or is it storing only a commitment/hash of the key? The code path must be audited to determine the exact write site.",
+    "Does the lock endpoint have any signature validation code that is conditionally compiled out, feature-flagged off, or short-circuited by a middleware bypass? The HTTP 200 response to an invalid signature suggests validation is either absent or skipped entirely.",
+    "The DB layer reports the most recent lock as status='pending' while the frontend explorer API reports a different lock_id (created in the same run) as status='active': is 'active' a legitimate initial state for some code path, or is the explorer reading a stale/cached/derived field? This must be resolved against SEQUENCES.md §1.",
+    "The L1 layer queried address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 but the canonical Vault address per the spec and acceptance criteria is 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 — these differ; the test plan's L1 step and the spec address must be reconciled before the L1 verification can be considered valid.",
+    "No fixer proposals were received ('awaiting parallel fixer output'): are fixes in progress, and if so, do any touch src/contracts/l1/ or migrations?"
+  ],
+  "confidence": 0.45
+}

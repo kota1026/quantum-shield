@@ -1,0 +1,95 @@
+[
+  {
+    "layer": "backend",
+    "status": "fail",
+    "observations": [
+      "Exit code 101 indicates test failure",
+      "3 tests passed: test_lock_creates_successfully, test_lock_status_retrievable both OK",
+      "1 test FAILED: test_lock_rejects_invalid_signature",
+      "Panic detected at src/api/api/tests/sequence_e2e_test.rs:218:9 with message: 'Invalid signature should be rejected, got 200'",
+      "The test expected HTTP 400/401 rejection for invalid signature but received 200 OK",
+      "stdout shows 'test result: FAILED. 3 passed; 1 failed'",
+      "Lock creation and status retrieval work correctly (SR_0 computed, lock_id issued, pending status set)",
+      "Multiple unused variable warnings in stderr (body variables), severity=low",
+      "Signature validation endpoint is broken: accepts invalid signatures when it should reject them"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Signature validation not enforced",
+        "detail": "test_lock_rejects_invalid_signature failed because invalid signatures are accepted (HTTP 200) instead of being rejected. This is a critical security flaw in the lock endpoint that violates the Quantum Shield protocol requirement to validate dilithium signatures.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs:218"
+      },
+      {
+        "severity": "high",
+        "title": "Test assertion failure",
+        "detail": "Panic at line 218 confirms endpoint did not validate the invalid signature and returned 200 instead of error status. This causes the entire sequence test to fail.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs:218"
+      },
+      {
+        "severity": "medium",
+        "title": "Unused variable with unwrap_or_default pattern",
+        "detail": "Multiple instances of 'let body: Value = resp.json().await.unwrap_or_default()' at lines 671, 1217, 1235, 1479, 1499, 1517. Pattern silently swallows JSON parsing errors.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs:671,1217,1235,1479,1499,1517"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0",
+      "Exit code: 0",
+      "JSON reporter stats: expected=40, unexpected=0, flaky=0",
+      "Test suites: Mobile Chrome and Mobile Safari both passed all scenarios",
+      "Key scenarios validated: lock creation with valid SR_0 and lock_id, lock persistence in DB, explorer integration, nonce reuse rejection, expiration rejection, missing field validation, multi-lock distinctness",
+      "Lock creation flow confirmed: lock_id and sr_0 generated correctly, SMT proof generated (17030 chars)",
+      "Database persistence confirmed: lock visible via GET /v1/explorer/locks with active status",
+      "Explorer integration confirmed: totalLocks count incremented after lock creation",
+      "All edge cases tested: nonce reuse (409), expired requests (400), missing fields (422)"
+    ],
+    "issues": [],
+    "confidence": 0.99
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "psql exited with code 0 (success)",
+      "Exactly one row returned as expected",
+      "lock_id is non-null and non-empty: 0x5f846e6c90c9230bdbbe5c13ea0c93ff79d0d9bd841678108e66e8d15e995a64",
+      "status value is 'pending' (acceptable per spec)",
+      "pk_dilithium length is 32 bytes, not 1952 bytes"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Dilithium public key truncated or corrupted",
+        "detail": "Expected length(pk_dilithium) = 1952 bytes (standard Dilithium public key size), but got 32 bytes. This indicates either the cryptographic key was not written correctly, was truncated during storage, or is using an incompatible key format. The cryptographic write path is compromised.",
+        "location": "locks.pk_dilithium"
+      }
+    ],
+    "confidence": 0.98
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast invoked against legitimate L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260",
+      "Command exited with code 1 (non-zero)",
+      "RPC endpoint (rpc.sepolia.org) returned HTTP 522 Connection timed out",
+      "No contract state data retrieved; stdout empty",
+      "Infrastructure failure (Cloudflare), not application logic failure"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC endpoint unavailable",
+        "detail": "rpc.sepolia.org returned HTTP 522 (Connection timed out). The origin server failed to respond within Cloudflare's timeout window. This is a transient infrastructure issue, not a contract or sequence defect.",
+        "location": "L1RPC:rpc.sepolia.org"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

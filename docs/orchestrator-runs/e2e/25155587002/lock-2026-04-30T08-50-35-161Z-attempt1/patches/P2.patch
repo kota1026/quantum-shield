@@ -1,0 +1,77 @@
+--- a/src/api/api/src/db/locks.rs
++++ b/src/api/api/src/db/locks.rs
+@@ -12,6 +12,8 @@ impl LockStore {
+     pub async fn create_lock(&self, req: &CreateLockRequest) -> Result<Lock, DbError> {
+-        // BUG: was calling hex_to_bytes32_or_zero which silently truncated to 32 bytes
+-        let pk_bytes = hex_to_bytes32_or_zero(&req.pk_dilithium_hex);
++        // Use the full raw key bytes — do NOT hash or truncate.
++        // pk_dilithium is BYTEA and must hold the complete Dilithium public key
++        // (1312 bytes for Dilithium2, 1952 bytes for Dilithium3).
++        let pk_bytes: &[u8] = &req.pk_dilithium;
++        if pk_bytes.len() < 1312 {
++            return Err(DbError::Validation(format!(
++                "pk_dilithium too short: got {} bytes, expected >= 1312",
++                pk_bytes.len()
++            )));
++        }
+ 
+         let row = sqlx::query_as::<_, Lock>(
+             r#"
+             INSERT INTO locks (pk_dilithium, owner, status)
+             VALUES ($1, $2, 'pending')
+             RETURNING *
+             "#,
+         )
+-        .bind(&pk_bytes[..])
++        .bind(pk_bytes)
+         .bind(&req.owner)
+         .fetch_one(&self.pool)
+         .await
+         .map_err(DbError::Sqlx)?;
+ 
++        // Invariant check: confirm the DB round-tripped the full key length.
++        if row.pk_dilithium.len() < 1312 {
++            return Err(DbError::Validation(format!(
++                "pk_dilithium persisted as {} bytes — write was truncated",
++                row.pk_dilithium.len()
++            )));
++        }
++
+         Ok(row)
+     }
+ }
+--- a/src/api/api/src/models/lock.rs
++++ b/src/api/api/src/models/lock.rs
+@@ -4,8 +4,14 @@ use serde::{Deserialize, Serialize};
+ 
+ #[derive(Debug, Deserialize, Serialize, Clone)]
+ pub struct CreateLockRequest {
+     pub owner: String,
+-    /// Hex-encoded Dilithium public key — historically decoded via hex_to_bytes32_or_zero.
+-    pub pk_dilithium_hex: String,
++    /// Raw Dilithium public key bytes (full length, 1312 or 1952 bytes).
++    /// Clients must base64-encode this field in JSON.
++    #[serde(with = "serde_bytes_base64")]
++    pub pk_dilithium: Vec<u8>,
+     /// Raw Dilithium detached-signature bytes over the canonical lock message.
++    #[serde(with = "serde_bytes_base64")]
++    pub signature_dilithium: Vec<u8>,
++    /// The canonical lock message that was signed.
++    pub lock_message: String,
+ }
+ 
++impl CreateLockRequest {
++    /// Returns the canonical byte representation of the lock message for signature verification.
++    pub fn lock_message_bytes(&self) -> Vec<u8> {
++        self.lock_message.as_bytes().to_vec()
++    }
++}
++
+ #[derive(Debug, Serialize, sqlx::FromRow)]
+ pub struct Lock {
+     pub id: String,
+     pub owner: String,
++    #[sqlx(rename = "pk_dilithium")]
++    pub pk_dilithium: Vec<u8>,
+     pub status: String,
+ }

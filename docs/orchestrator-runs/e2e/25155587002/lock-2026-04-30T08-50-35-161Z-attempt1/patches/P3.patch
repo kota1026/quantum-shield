@@ -1,0 +1,45 @@
+--- a/src/api/api/tests/sequence_e2e_test.rs
++++ b/src/api/api/tests/sequence_e2e_test.rs
+@@ -668,7 +668,9 @@ async fn some_test_671(/* ... */) {
+     let resp = client.post("/v1/locks").json(&payload).send().await.unwrap();
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("response at line 671 was not valid JSON — server may have returned an error body");
++    assert!(!body.is_null(), "response body at line 671 was null/empty");
+     // ... rest of assertions
+ }
+@@ -1214,7 +1214,9 @@ async fn some_test_1217(/* ... */) {
+     let resp = client.post("/v1/locks").json(&payload).send().await.unwrap();
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("response at line 1217 was not valid JSON — server may have returned an error body");
++    assert!(!body.is_null(), "response body at line 1217 was null/empty");
+ }
+@@ -1232,7 +1232,9 @@ async fn some_test_1235(/* ... */) {
+     let resp = client.get("/v1/locks").send().await.unwrap();
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("response at line 1235 was not valid JSON — server may have returned an error body");
++    assert!(!body.is_null(), "response body at line 1235 was null/empty");
+ }
+@@ -1476,7 +1476,9 @@ async fn some_test_1479(/* ... */) {
+     let resp = client.get("/v1/explorer/locks").send().await.unwrap();
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("response at line 1479 was not valid JSON — server may have returned an error body");
++    assert!(!body.is_null(), "response body at line 1479 was null/empty");
+ }
+@@ -1496,7 +1496,9 @@ async fn some_test_1499(/* ... */) {
+     let resp = client.get("/v1/explorer/locks").send().await.unwrap();
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("response at line 1499 was not valid JSON — server may have returned an error body");
++    assert!(!body.is_null(), "response body at line 1499 was null/empty");
+ }
+@@ -1514,7 +1514,9 @@ async fn some_test_1517(/* ... */) {
+     let resp = client.get("/v1/explorer/locks").send().await.unwrap();
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("response at line 1517 was not valid JSON — server may have returned an error body");
++    assert!(!body.is_null(), "response body at line 1517 was null/empty");
+ }
