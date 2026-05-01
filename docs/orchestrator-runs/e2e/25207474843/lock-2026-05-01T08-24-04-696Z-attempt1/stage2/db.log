@@ -1,0 +1,9 @@
+# db step
+# command: psql "$DATABASE_URL" -t -A -c "SELECT lock_id, status, length(pk_dilithium) FROM locks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"
+# exit: 0
+
+# STDOUT
+0x8dd964bde1712da94a31c51c4b7d30ba63bae4b02f17f1b1b7a51f3875e6accb|pending|1952
+
+
+# STDERR

@@ -1,0 +1,98 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "exit_code = 0",
+      "test result: ok. 4 passed; 0 failed; 0 ignored",
+      "no panic markers detected",
+      "SR0 value present in stdout: 0x9424d236d153cc5b0d4285640d151acbfd9c7df6d1f2330931baad03a60a0ba4",
+      "status field shows 'pending' (expected for pre-confirmation state)",
+      "test_lock_creates_successfully passed",
+      "SQLX_OFFLINE=true mode used for deterministic test execution"
+    ],
+    "issues": [
+      {
+        "severity": "low",
+        "title": "Unused variable with unwrap_or_default",
+        "detail": "Multiple instances of `let body: Value = resp.json().await.unwrap_or_default()` where body is never used. Pattern appears 6 times (lines 671, 1217, 1235, 1479, 1499, 1517). While unwrap_or_default is not critical here (returns empty Value on deserialization failure), it masks potential deserialization errors silently.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs:671,1217,1235,1479,1499,1517"
+      },
+      {
+        "severity": "info",
+        "title": "Future Rust incompatibilities",
+        "detail": "Dependencies redis v0.24.0 and sqlx-postgres v0.7.4 contain code that will be rejected by a future Rust version. Should upgrade these crates in next iteration.",
+        "location": null
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "fail",
+    "observations": [
+      "Total tests: 0 (expected: 0, unexpected: 0, skipped: 0)",
+      "Exit code: 1 (expected: 0)",
+      "Playwright JSON parsing: successful",
+      "Test file load failed due to module resolution error",
+      "No tests executed"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Module import error prevents test execution",
+        "detail": "Package subpath './ml-dsa' is not defined by \"exports\" in @noble/post-quantum/package.json. The spec imports `ml_dsa65` from '@noble/post-quantum/ml-dsa' at line 28, but the package does not expose this subpath. This is a dependency configuration issue, not a test failure.",
+        "location": "e2e/integration/lock.integration.spec.ts:28"
+      },
+      {
+        "severity": "high",
+        "title": "No tests found",
+        "detail": "Due to the import error, Playwright could not load the spec file and therefore found zero tests to run. The test suite never reached execution.",
+        "location": "e2e/integration/lock.integration.spec.ts"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "db",
+    "status": "partial",
+    "observations": [
+      "psql exit code 0: query executed successfully",
+      "Exactly one row returned as expected",
+      "lock_id present: 0x8dd964bde1712da94a31c51c4b7d30ba63bae4b02f17f1b1b7a51f3875e6accb",
+      "pk_dilithium length is 1952 bytes (matches expected)",
+      "Status is 'pending', which is acceptable per spec (awaiting L1 confirmation)",
+      "Row created within last 5 minutes (query filter satisfied)"
+    ],
+    "issues": [
+      {
+        "severity": "low",
+        "title": "Status state mismatch",
+        "detail": "Expected status to be 'locked' (terminal confirmed state) or 'pending' (awaiting L1 confirmation). Got 'pending', which is acceptable but not the strongly preferred terminal state 'locked'. If this lock was created >5 minutes ago, investigate why it hasn't reached terminal confirmation.",
+        "location": "locks.status"
+      }
+    ],
+    "confidence": 0.92
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast exited with code 1",
+      "RPC endpoint returned HTTP 522 (Connection timed out)",
+      "Cloudflare error page indicates origin server (rpc.sepolia.org) failed to respond within timeout window",
+      "No stdout data available; stderr contains full HTTP error response",
+      "Contract address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 is valid (L1Vault)",
+      "Unable to evaluate totalLocked() state due to RPC infrastructure failure"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC Connection Timeout",
+        "detail": "The L1 RPC endpoint (rpc.sepolia.org) did not respond within the connection timeout window. This is an infrastructure issue, not a contract or code regression. Cloudflare returned HTTP 522 indicating the origin server was unreachable.",
+        "location": "l1:rpc"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

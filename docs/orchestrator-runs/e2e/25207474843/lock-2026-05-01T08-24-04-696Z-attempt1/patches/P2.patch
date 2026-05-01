@@ -1,0 +1,71 @@
+--- a/src/api/api/tests/sequence_e2e_test.rs
++++ b/src/api/api/tests/sequence_e2e_test.rs
+@@ -668,7 +668,8 @@
+     let resp = client
+         .post(&url)
+         .json(&payload)
+         .send()
+         .await
+         .expect("request failed");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("step-completion response at line 671 was not valid JSON");
++    assert!(!body.is_null(), "step-completion response body must not be null");
+     assert_eq!(status, expected_status);
+@@ -1214,7 +1215,8 @@
+     let resp = client
+         .post(&lock_url)
+         .json(&lock_payload)
+         .send()
+         .await
+         .expect("lock request failed");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("lock creation response at line 1217 was not valid JSON");
++    assert!(!body.is_null(), "lock creation response body must not be null");
+     assert_eq!(resp_status, StatusCode::OK);
+@@ -1232,7 +1233,8 @@
+     let resp = client
+         .get(&status_url)
+         .send()
+         .await
+         .expect("status request failed");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("lock status response at line 1235 was not valid JSON");
++    assert!(!body.is_null(), "lock status response body must not be null");
+     assert_eq!(resp_status, StatusCode::OK);
+@@ -1476,7 +1477,8 @@
+     let resp = client
+         .post(&confirm_url)
+         .json(&confirm_payload)
+         .send()
+         .await
+         .expect("confirm request failed");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("lock confirm response at line 1479 was not valid JSON");
++    assert!(!body.is_null(), "lock confirm response body must not be null");
+     assert_eq!(resp_status, StatusCode::OK);
+@@ -1496,7 +1497,8 @@
+     let resp = client
+         .get(&final_status_url)
+         .send()
+         .await
+         .expect("final status request failed");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("final lock status response at line 1499 was not valid JSON");
++    assert!(!body.is_null(), "final lock status response body must not be null");
+     assert_eq!(resp_status, StatusCode::OK);
+@@ -1514,7 +1515,8 @@
+     let resp = client
+         .get(&locked_url)
+         .send()
+         .await
+         .expect("locked state request failed");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await
++        .expect("locked state response at line 1517 was not valid JSON");
++    assert!(!body.is_null(), "locked state response body must not be null");
+     assert_eq!(resp_status, StatusCode::OK);

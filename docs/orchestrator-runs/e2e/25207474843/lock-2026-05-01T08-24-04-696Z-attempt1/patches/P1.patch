@@ -1,0 +1,32 @@
+--- a/src/frontend/web/package.json
++++ b/src/frontend/web/package.json
+@@ -10,7 +10,7 @@
+   "dependencies": {
+     "next": "14.2.3",
+     "react": "^18",
+     "react-dom": "^18",
+-    "@noble/post-quantum": "^0.1.0",
++    "@noble/post-quantum": "^0.2.0",
+     "@noble/hashes": "^1.4.0"
+   },
+   "devDependencies": {
+--- a/src/frontend/web/package-lock.json
++++ b/src/frontend/web/package-lock.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "web",
+-  "lockfileVersion": 3,
++  "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+@@ -9,7 +9,7 @@
+       "dependencies": {
+         "next": "14.2.3",
+         "react": "^18",
+         "react-dom": "^18",
+-        "@noble/post-quantum": "^0.1.0",
++        "@noble/post-quantum": "^0.2.0",
+         "@noble/hashes": "^1.4.0"
+       }
+     }

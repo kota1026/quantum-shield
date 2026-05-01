@@ -1,0 +1,18 @@
+{
+  "verdict": "FIXABLE",
+  "summary": "The Consumer Lock sequence has two concrete failures: (1) the frontend Playwright spec crashes at import time because the installed @noble/post-quantum package does not export the './ml-dsa' subpath — zero tests ran, the ML-DSA signature path is entirely unverified by CI; (2) the L1 layer could not call totalLocked() due to an HTTP 522 RPC timeout on rpc.sepolia.org, which is a transient infrastructure outage (override rule 2 applied: downgrading this from a blocking failure to a retriable infra issue). The backend passed cleanly (4/4 tests, SR0 computed, exit 0), and the DB confirms a lock row with status='pending' and pk_dilithium=1952 bytes within the 5-minute window. The frontend package version bug is deterministic and will reproduce every run until corrected; the L1 failure should be retried with a healthy RPC endpoint.",
+  "must_fix_before_merge": [
+    "Upgrade or pin @noble/post-quantum to a version that exports './ml-dsa' subpath (≥0.2.0) and commit the updated lockfile — frontend suite is completely dead without this",
+    "Verify and fix ML-DSA-65 signature generation and submission path in the frontend lock flow, which has never been exercised by CI in this run",
+    "Replace all six `let body: Value = resp.json().await.unwrap_or_default()` dead-variable patterns in sequence_e2e_test.rs with actual assertions on the response body to eliminate silent API failure masking",
+    "Retry L1 totalLocked() verification against a healthy Sepolia RPC endpoint to confirm vault balance increased and stranded-pending fix is effective",
+    "Confirm DB lock status transitions from 'pending' to 'locked' after L1 confirmation — stranded-pending fix from the merge commit cannot be validated until L1 RPC is reachable"
+  ],
+  "fixer_recommendation": "review_required",
+  "unresolved_questions": [
+    "What exact version of @noble/post-quantum is currently pinned in package.json and package-lock.json, and why was it not updated when the ml-dsa import was introduced?",
+    "Is the stranded-pending background confirmation task actually fixed, or does it swallow errors silently (Ok(()) pattern)? Cannot confirm from this run because L1 RPC was unreachable.",
+    "Does the API have a skip_signature_verification environment variable or stub path that could accept unsigned/incorrectly-signed lock requests — the frontend signature path has never been validated by CI?"
+  ],
+  "confidence": 0.65
+}

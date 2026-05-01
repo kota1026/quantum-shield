@@ -1,0 +1,80 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "Frontend ML-DSA signature test suite completely dead — real signature verification bypassed in E2E",
+    "detail": "The frontend E2E integration test for the Consumer Lock sequence fails before a single test runs due to `'@noble/post-quantum/ml-dsa'` not being exported by the installed package version. This means the ML-DSA signature that should be constructed and verified as part of the lock flow has NEVER been exercised by CI in this run. The backend passed and the DB row exists with `pk_dilithium` length 1952 — but the cross-layer contract that the frontend actually generates a valid ML-DSA-65 signature over the correct payload, submits it to the API, and the API verifies it, is untested. This is a direct path to silent signature-bypass: if the API's signature verification has a latent bug (e.g. skip_signature_verification env override, or the verification stub pattern from high-priority item #8), it would never be caught here. The 'real ML-DSA' fix referenced in the merge commit subject (`fix(e2e): close 3 follow-on findings … real ML-DSA`) is the exact feature that is now broken.",
+    "evidence": [
+      "Error: Package subpath './ml-dsa' is not defined by \"exports\" in /home/runner/work/quantum-shield/quantum-shield/src/frontend/web/node_modules/@noble/post-quantum/package.json",
+      "at Object.<anonymous> (e2e/integration/lock.integration.spec.ts:28:1) — import { ml_dsa65 } from '@noble/post-quantum/ml-dsa'",
+      "stats: expected=0, unexpected=0 — zero tests ran, exit_code=1",
+      "DB layer shows lock row created with pk_dilithium length=1952 and status=pending — backend accepted the request, but the frontend test that was supposed to produce and validate the real ML-DSA signature never executed",
+      "Merge commit subject: 'fix(e2e): close 3 follow-on findings (DB window + real ML-DSA + stranded-pending)' — the ML-DSA fix regressed in the same PR"
+    ],
+    "suggested_owner": "frontend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "unwrap_or_default() on resp.json() silently masks API response deserialization failures in E2E tests",
+    "detail": "Six locations in the E2E test suite use `let body: Value = resp.json().await.unwrap_or_default()` where the variable `body` is then never read. This matches high-priority silent-failure pattern #3 (`unwrap_or_default()` hiding parse errors). If the API returns a malformed JSON body (e.g. due to an internal error that still produces HTTP 200), the test will silently succeed with an empty `Value::Null` body and assert nothing. In the Consumer Lock sequence this is particularly dangerous: step completions, lock IDs, and status fields returned from the API are never validated against the actual response body in these code paths. The compiler itself flagged all six instances as unused variables.",
+    "evidence": [
+      "sequence_e2e_test.rs:671: `let body: Value = resp.json().await.unwrap_or_default();` — compiler warning: unused variable `body`",
+      "Same pattern repeated at lines 1217, 1235, 1479, 1499, 1517 — 6 total occurrences",
+      "Compiler: `warning: unused variable: body` (6 warnings, all same pattern)",
+      "Backend test still passes (exit_code=0) despite none of these response bodies being asserted"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "L1 vault state unverifiable — DB shows pending lock but on-chain totalLocked() confirmation is missing",
+    "detail": "The DB layer confirms a lock row exists with status='pending' and pk_dilithium=1952 bytes, but the L1 layer could not execute `totalLocked()` on the correct vault address (0x07012aeF87C6E423c32F2f8eaF81762f63337260) due to RPC timeout. The cross-layer invariant for Consumer Lock requires: DB row created → L1 vault balance increased → status transitions to 'locked'. With L1 unreachable, the full sequence cannot be validated and the lock may be permanently stranded in 'pending'. This is not merely an infra flap — the merge commit explicitly references fixing 'stranded-pending' as one of three regressions, and that fix cannot be verified here. If the background confirmation task swallows errors (`Ok(())` pattern, high-priority item #5), stranded-pending locks would accumulate silently.",
+    "evidence": [
+      "DB output: `0x8dd964bde1712da94a31c51c4b7d30ba63bae4b02f17f1b1b7a51f3875e6accb|pending|1952` — status is pending, not locked",
+      "L1 stderr: `Error: HTTP error 522 with body: ... Connection timed out` against rpc.sepolia.org",
+      "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 totalLocked() returned no stdout — vault state unknown",
+      "Merge commit: 'fix(e2e): close 3 follow-on findings (DB window + real ML-DSA + stranded-pending)' — stranded-pending was a known regression; cannot confirm it is fixed this run"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "@noble/post-quantum package version missing ml-dsa export — wrong package version pinned",
+    "detail": "The installed version of `@noble/post-quantum` in the frontend does not export the `./ml-dsa` subpath. The `@noble/post-quantum` package only added named subpath exports (including `ml-dsa`) in version 0.2.0+. The currently installed version appears to predate this. Since the merge commit claims to have introduced 'real ML-DSA' support, the package was either not upgraded, or was upgraded but `package-lock.json` / the lockfile was not committed correctly. This is a dependency pinning bug, not a transient failure.",
+    "evidence": [
+      "Error: Package subpath './ml-dsa' is not defined by \"exports\" in node_modules/@noble/post-quantum/package.json",
+      "import { ml_dsa65 } from '@noble/post-quantum/ml-dsa' — the import was written for the newer API",
+      "The error is deterministic (not a network/timing issue) — it will reproduce on every CI run until the package version is corrected"
+    ],
+    "suggested_owner": "frontend"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run cannot be green due to the frontend layer failure and l1 layer failure. Once those are resolved and a fully passing run completes, it will become the baseline for future regression comparisons.",
+    "evidence": [
+      "last_green_run: null",
+      "frontend layer: fail (exit_code 1, 0 tests executed)",
+      "l1 layer: fail (exit_code 1, HTTP 522 RPC timeout)"
+    ],
+    "suggested_owner": "frontend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "seq-1: backend 928ms, frontend 27694ms, db 278ms, l1 39670ms. Total orchestrator cost: $0.0295. No baseline to compare against.",
+    "evidence": [
+      "backend-runner: $0.0141",
+      "frontend-runner: $0.0081",
+      "db-verifier: $0.0022",
+      "l1-verifier: $0.0050",
+      "Total wall-clock: 68,570ms (~1.1 min)"
+    ],
+    "suggested_owner": "tests"
+  }
+]

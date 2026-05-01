@@ -1,0 +1,12 @@
+[
+  {
+    "proposal_id": "P1",
+    "status": "rejected",
+    "reason": "git apply --check failed (exit 128): error: corrupt patch at line 23\n"
+  },
+  {
+    "proposal_id": "P2",
+    "status": "rejected",
+    "reason": "git apply --check failed (exit 128): error: patch fragment without header at line 15: @@ -1214,7 +1215,8 @@\n"
+  }
+]
