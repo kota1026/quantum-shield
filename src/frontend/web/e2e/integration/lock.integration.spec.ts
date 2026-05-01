@@ -25,7 +25,13 @@
  * HTTP 400, so the test fixture must produce real keys.
  */
 import { test, expect } from '@playwright/test';
-import { ml_dsa65 } from '@noble/post-quantum/ml-dsa';
+// `.js` extension is required by @noble/post-quantum's exports map
+// (`"./ml-dsa.js": "./ml-dsa.js"`). TS's moduleResolution lets the
+// extensionless form type-check, but Node ESM at Playwright runtime
+// honors the exports map strictly and fails at import. Run 25207474843
+// caught this — frontend layer crashed at module load with
+// "ERR_PACKAGE_PATH_NOT_EXPORTED" and zero tests ran.
+import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js';
 import { randomBytes } from 'node:crypto';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
