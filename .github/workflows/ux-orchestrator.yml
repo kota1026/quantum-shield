@@ -28,7 +28,14 @@ on:
     - cron: '23 21 * * *'
 
 permissions:
-  contents: write   # auto-commit run outputs to docs/orchestrator-runs/
+  contents: write        # auto-commit run outputs to docs/orchestrator-runs/
+  # 2026-05-01: PR #153 (the first PR to touch src/frontend/web/) exposed
+  # that the "Comment PR with verdict" step at line 165 calls
+  # github.rest.issues.createComment, which needs issues:write or
+  # pull-requests:write. With contents:write alone the API returns
+  # "Resource not accessible by integration" and the entire job fails
+  # even though the orchestrator itself ran fine.
+  pull-requests: write   # post UX verdict comment on PRs
 
 jobs:
   verify:
@@ -164,6 +171,11 @@ jobs:
 
       - name: Comment PR with verdict
         if: github.event_name == 'pull_request' && always()
+        # Defense-in-depth: even with the right permission set, transient
+        # API failures (rate limit, network blip) shouldn't fail the whole
+        # workflow — the verdict has already been written to the artifact
+        # and step summary.
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |

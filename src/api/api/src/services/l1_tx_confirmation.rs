@@ -27,6 +27,11 @@ pub struct L1TxConfirmationService {
     rpc_url: String,
     shutdown_rx: watch::Receiver<bool>,
     poll_interval_secs: u64,
+    /// A lock that's been `status='pending'` with NULL `l1_tx_hash` for
+    /// longer than this is considered stranded — the inline L1 submission
+    /// in routes/lock.rs failed (RPC outage, vault not configured, etc.)
+    /// and no retry path picked it up. Surfaced in CI run 25168505086.
+    stale_pending_threshold_secs: i64,
 }
 
 impl L1TxConfirmationService {
@@ -41,6 +46,10 @@ impl L1TxConfirmationService {
             shutdown_rx,
             // Poll every 15 seconds for faster user feedback
             poll_interval_secs: 15,
+            // 5 minutes — long enough that a slow but successful L1 submission
+            // doesn't get flagged as stranded, short enough that a real
+            // RPC-outage stranding shows up before the operator notices.
+            stale_pending_threshold_secs: 5 * 60,
         }
     }
 
@@ -48,6 +57,7 @@ impl L1TxConfirmationService {
     pub async fn run(mut self) {
         info!(
             poll_interval_secs = self.poll_interval_secs,
+            stale_pending_threshold_secs = self.stale_pending_threshold_secs,
             rpc_url = %self.rpc_url,
             "L1 TX Confirmation service started"
         );
@@ -61,6 +71,14 @@ impl L1TxConfirmationService {
                 _ = interval.tick() => {
                     if let Err(e) = self.check_pending_confirmations().await {
                         error!("L1 TX Confirmation check error: {}", e);
+                    }
+                    // Surface stranded NULL-tx-hash pending locks. This is
+                    // observability-only; a future PR can plug in the
+                    // L1Vault to actually re-submit them. Even alone, the
+                    // warning + count converts a silent stranding into a
+                    // log line operators can grep for.
+                    if let Err(e) = self.check_stale_pending_without_tx().await {
+                        error!("L1 TX Confirmation stale-pending check error: {}", e);
                     }
                 }
                 _ = self.shutdown_rx.changed() => {
@@ -116,6 +134,42 @@ impl L1TxConfirmationService {
                     );
                 }
             }
+        }
+
+        Ok(())
+    }
+
+    /// Surface locks that are stuck `pending` with no L1 tx hash. Logs one
+    /// warning per row (so each one is grep-able) plus a single summary
+    /// metric line. Does NOT mutate state — re-submission requires the
+    /// L1Vault wiring and is left to a follow-up PR.
+    async fn check_stale_pending_without_tx(&self) -> Result<(), String> {
+        let stranded = LockRepository::list_stale_pending_without_l1_tx_hash(
+            &self.pool,
+            self.stale_pending_threshold_secs,
+        )
+        .await
+        .map_err(|e| format!("Failed to query stranded pending locks: {}", e))?;
+
+        if stranded.is_empty() {
+            return Ok(());
+        }
+
+        warn!(
+            stranded_count = stranded.len(),
+            threshold_secs = self.stale_pending_threshold_secs,
+            "L1 stranded-pending locks detected (status=pending, l1_tx_hash IS NULL, older than threshold) — \
+             inline L1 submission likely failed and no retry has run; manual intervention or follow-up retry service required"
+        );
+
+        for lock in &stranded {
+            warn!(
+                lock_id = %lock.lock_id,
+                wallet_address = %lock.wallet_address,
+                created_at = %lock.created_at,
+                amount = %lock.amount,
+                "stranded pending lock — never reached L1"
+            );
         }
 
         Ok(())

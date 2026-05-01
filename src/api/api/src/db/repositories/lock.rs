@@ -776,4 +776,49 @@ impl LockRepository {
         info!("DB query: list_pending_with_l1_tx_hash completed, count={}", results.len());
         Ok(results)
     }
+
+    /// List locks that are stuck in `status='pending'` with NO L1 transaction
+    /// hash for longer than `older_than_seconds`. These are locks where the
+    /// inline L1 submission in routes/lock.rs failed (e.g. L1 RPC down) and
+    /// no retry mechanism ever picked them up — the verifier in orchestrator
+    /// run 25168505086 flagged this as a silent-stranding pattern. Used by
+    /// L1TxConfirmationService to log a per-row warning and emit a count
+    /// metric so operators can intervene rather than have the rows sit
+    /// invisible.
+    #[instrument(skip(pool))]
+    pub async fn list_stale_pending_without_l1_tx_hash(
+        pool: &PgPool,
+        older_than_seconds: i64,
+    ) -> Result<Vec<LockRow>, ApiError> {
+        info!(
+            "DB query: list_stale_pending_without_l1_tx_hash started, older_than_seconds={}",
+            older_than_seconds
+        );
+
+        let results = sqlx::query_as::<_, LockRow>(
+            r#"
+            SELECT lock_id, wallet_address, chain_id, asset, amount, dest_addr,
+                   expiry, nonce, pk_dilithium, sig_dilithium, sr_0, status,
+                   l1_tx_hash, created_at, confirmed_at
+            FROM locks
+            WHERE status = 'pending'
+              AND l1_tx_hash IS NULL
+              AND created_at < NOW() - make_interval(secs => $1::DOUBLE PRECISION)
+            ORDER BY created_at ASC
+            "#,
+        )
+        .bind(older_than_seconds as f64)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            warn!("DB error: list_stale_pending_without_l1_tx_hash failed: {}", e);
+            ApiError::Internal(format!("Database error: {}", e))
+        })?;
+
+        info!(
+            "DB query: list_stale_pending_without_l1_tx_hash completed, count={}",
+            results.len()
+        );
+        Ok(results)
+    }
 }

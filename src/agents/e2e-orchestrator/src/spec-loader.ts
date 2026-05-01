@@ -54,9 +54,17 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
         // src/api/api/src/db/repositories/lock.rs:90). status='locked' is
         // set later by the L1 confirmation service. Until that flow is
         // wired in CI we accept either, and just assert presence + pk len.
-        description: 'Verify lock row was created and pk_dilithium populated',
-        command: `psql "$DATABASE_URL" -t -A -c "SELECT lock_id, status, length(pk_dilithium) FROM locks ORDER BY created_at DESC LIMIT 1;"`,
-        expected: 'one row, status in {pending, locked}, pk_dilithium length 1952',
+        //
+        // 2026-04-30 (run 25168505086): added created_at timestamp guard.
+        // The previous LIMIT-1 ORDER-BY query couldn't distinguish a row
+        // created during this run from a stale row left by an earlier
+        // backend unit-test fixture, so the cross-reviewer correctly
+        // flagged the DB pass as "misleading." 5-minute window covers
+        // the longest realistic drive step (cargo test ~120s + Playwright
+        // ~100s = ~3.5 min) plus margin.
+        description: 'Verify lock row was created during this run window and pk_dilithium populated',
+        command: `psql "$DATABASE_URL" -t -A -c "SELECT lock_id, status, length(pk_dilithium) FROM locks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"`,
+        expected: 'one row from this run window, status in {pending, locked}, pk_dilithium length 1952',
         phase: 'verify',
       },
       {
