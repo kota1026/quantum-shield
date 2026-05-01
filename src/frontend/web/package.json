@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
+    "@noble/post-quantum": "^0.6.1",
     "@playwright/test": "^1.49.0",
     "@storybook/addon-a11y": "^8.4.0",
     "@storybook/addon-essentials": "^8.4.0",
