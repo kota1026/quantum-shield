@@ -1,0 +1,77 @@
+{
+  "route_id": "home-ja",
+  "started_at": "2026-05-01T08:06:09.133Z",
+  "finished_at": "2026-05-01T08:06:16.582Z",
+  "duration_ms": 7449,
+  "plan": {
+    "route_id": "home-ja",
+    "route_label": "Home (JA)",
+    "path": "/ja",
+    "viewports": [
+      "desktop",
+      "mobile"
+    ],
+    "locales": [
+      "ja",
+      "en"
+    ],
+    "acceptance_criteria": [
+      "Does the page load without console errors?",
+      "Are all Japanese text strings rendered correctly without encoding issues?",
+      "Does the hero section display and center properly on desktop?",
+      "Does the hero section stack vertically on mobile without overflow?",
+      "Are interactive elements (buttons, links) accessible and clickable on both viewports?",
+      "Does the page respond correctly to viewport resize from desktop to mobile?"
+    ]
+  },
+  "plan_source": "ai",
+  "captures": [
+    {
+      "viewport": "desktop",
+      "screenshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-05-01T08-06-09-133Z/stage2-capture/home-ja/desktop.png",
+      "baseline_path": null,
+      "a11y_tree_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-05-01T08-06-09-133Z/stage2-capture/home-ja/desktop.a11y.json",
+      "copy_snapshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-05-01T08-06-09-133Z/stage2-capture/home-ja/desktop.copy.txt",
+      "perf_metrics": {
+        "lcp_ms": null,
+        "cls": null,
+        "inp_ms": null,
+        "tbt_ms": null
+      },
+      "pixel_hash_match": null,
+      "load_status": "http_error"
+    },
+    {
+      "viewport": "mobile",
+      "screenshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-05-01T08-06-09-133Z/stage2-capture/home-ja/mobile.png",
+      "baseline_path": null,
+      "a11y_tree_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-05-01T08-06-09-133Z/stage2-capture/home-ja/mobile.a11y.json",
+      "copy_snapshot_path": "/home/runner/work/quantum-shield/quantum-shield/src/agents/ux-orchestrator/reports/home-ja-2026-05-01T08-06-09-133Z/stage2-capture/home-ja/mobile.copy.txt",
+      "perf_metrics": {
+        "lcp_ms": null,
+        "cls": null,
+        "inp_ms": null,
+        "tbt_ms": null
+      },
+      "pixel_hash_match": null,
+      "load_status": "http_error"
+    }
+  ],
+  "reviews": [],
+  "judge": {
+    "verdict": "none",
+    "summary": "",
+    "must_fix_before_ship": [],
+    "designer_review_required": false,
+    "unresolved_questions": [],
+    "confidence": 1
+  },
+  "healer_proposals": [],
+  "final_verifier_status": "pass",
+  "cost_usd": 0.0032630000000000003,
+  "tokens": {
+    "input": 1408,
+    "cached_input": 0,
+    "output": 371
+  }
+}
