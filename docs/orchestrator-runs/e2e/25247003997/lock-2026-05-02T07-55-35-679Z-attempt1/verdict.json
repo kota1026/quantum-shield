@@ -1,0 +1,17 @@
+{
+  "verdict": "BLOCKED",
+  "summary": "The Consumer Lock sequence has a critical cross-layer silent-failure: the backend and frontend layers both exit 0 and the DB row is created with valid pk_dilithium (1952 bytes), but l1_tx_hash is NULL because the L1 anchor was never submitted — most likely due to QS__L1_PRIVATE_KEY being absent from the environment. The failure is architectural: the lock creation API commits the DB row and returns a success response even when L1 submission is impossible, making unanchored locks indistinguishable from valid ones in the Explorer UI (totalLocks incremented 32→33 for an orphan lock). No fixer proposals were received for evaluation, and the root cause touches the core lock-creation control flow and potentially L1 submission code under src/contracts/l1/, both of which require human review before any auto-apply.",
+  "must_fix_before_merge": [
+    "L1 anchor submission silently no-ops when QS__L1_PRIVATE_KEY is absent — lock creation must hard-fail or service must refuse to start without signing key",
+    "Lock creation API returns HTTP 200 and commits DB row before L1 anchor is confirmed — either make L1 submission synchronous-and-required or gate the success response on anchor submission",
+    "Orphaned locks (l1_tx_hash IS NULL, status=pending) are surfaced as valid locks in Explorer and totalLocks counter — add distinct status (e.g. anchor_failed/unanchored) and filter from healthy counts",
+    "No application-level error log or alarm raised when L1 submission is skipped — add startup key-presence check and submission-failure alerting in backend"
+  ],
+  "fixer_recommendation": "review_required",
+  "unresolved_questions": [
+    "Is QS__L1_PRIVATE_KEY genuinely absent in this CI environment (infra misconfiguration) or does the backend code contain an unconditional Ok(()) / warn-and-continue path that would silently skip L1 even when the key is present under certain error conditions?",
+    "Does the lock creation handler spawn L1 submission as a background/fire-and-forget task (explaining why backend exits 0 while L1 never fires), and if so, is there any mechanism to roll back or invalidate the DB row on anchor failure?",
+    "The fixer_proposals field contains no actual patches — it is unclear whether a fixer agent ran and produced no proposals, or whether proposals are pending; verdict cannot be downgraded to FIXABLE without reviewed patches."
+  ],
+  "confidence": 0.65
+}

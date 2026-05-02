@@ -1,0 +1,88 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "exit_code == 0",
+      "4 tests passed; 0 failed",
+      "test result: ok confirmed in stdout",
+      "All four subtests executed: test_lock_creates_successfully, test_lock_status_retrievable, test_lock_rejects_invalid_signature, test_lock_rejects_expired",
+      "SR_0 hash present in output: 0xc44dc19ced6299a5640e48e58827e2a26027bbed2561518d3189207920ac0e07",
+      "Lock creation and validation logic working (success responses for valid lock, 400 status for invalid signature and expired locks)",
+      "No panic markers or unexpected error lines in stdout/stderr",
+      "Test completed in 0.15s with proper Rust test harness output"
+    ],
+    "issues": [
+      {
+        "severity": "low",
+        "title": "Future Rust incompatibilities in dependencies",
+        "detail": "Cargo warnings indicate redis v0.24.0 and sqlx-postgres v0.7.4 contain code that will be rejected by a future Rust version. Not blocking current build but should be addressed in dependency updates.",
+        "location": null
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0",
+      "Exit code: 0",
+      "JSON report stats: expected=40, unexpected=0, flaky=0",
+      "All test suites passed across Mobile Chrome and Mobile Safari projects",
+      "Lock creation flow verified: POST /v1/lock creates lock with valid SR_0 and lock_id",
+      "Database persistence confirmed: lock visible via GET /v1/explorer/locks with status=pending",
+      "Explorer integration tested: totalLocks count incremented correctly",
+      "Error handling validated: nonce reuse (409), expired requests (400), missing fields (422)",
+      "Multi-lock uniqueness confirmed: 3 distinct lock_ids and SR_0s generated per test"
+    ],
+    "issues": [],
+    "confidence": 0.99
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "Exit code 0 and exactly one row returned within the last 5 minutes",
+      "lock_id: 0x0e03cd3cca9b035827e946a51ed85e3d987825d602508e5c0b85fc2e11e1c0d4",
+      "status: pending (valid state, within expected set {pending, locked, confirmed})",
+      "pk_dilithium length: 1952 bytes (matches expected Dilithium public key size)",
+      "l1_submitted: false (l1_tx_hash IS NOT NULL returned 'f')"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "L1 submission failed",
+        "detail": "Expected l1_submitted='t' (L1 Vault reachable and transaction submitted), but l1_tx_hash is NULL. The lock cannot progress to confirmed without L1 settlement. This indicates either L1 RPC is unreachable or the submission transaction failed.",
+        "location": "locks.l1_tx_hash"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [
+      "Lock record exists in database (lock_id: 0x0e03cd3cca9b035827e946a51ed85e3d987825d602508e5c0b85fc2e11e1c0d4)",
+      "L1 anchoring transaction was NOT created: l1_tx_hash field is NULL or empty",
+      "L1Vault totalLocked() call succeeded: returned 120000000000000000 wei (1.2e17)",
+      "totalLocked value is non-zero, indicating vault state exists and is accessible",
+      "Script explicitly reports: 'L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset'"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "L1 anchoring transaction not submitted",
+        "detail": "The lock record was created in the database but no corresponding L1 transaction hash was recorded. This indicates the L1 anchor mechanism either failed to execute or was never invoked. The diagnostic message suggests QS__L1_PRIVATE_KEY environment variable may be missing or unset, preventing the system from signing and submitting L1 transactions.",
+        "location": "L1Vault:lock_anchoring_flow"
+      },
+      {
+        "severity": "high",
+        "title": "Missing L1 transaction for consumer lock",
+        "detail": "Expected test sequence 'Consumer Lock' to result in a valid L1 transaction with receipt status 0x1 (success). Instead, no transaction was submitted at all. The lock exists only in the consumer database layer with no L1 settlement.",
+        "location": "system:l1_anchor_submission"
+      }
+    ],
+    "confidence": 0.95
+  }
+]
