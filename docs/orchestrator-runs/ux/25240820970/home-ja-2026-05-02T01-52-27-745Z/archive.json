@@ -1,0 +1,10 @@
+{
+  "pr_comment_md": "✅ **Home (JA)** route passed verification with no visual changes detected across all viewports. No healing required. [View report](./reports/home-ja.md)",
+  "baseline_update_recommended": false,
+  "follow_up_actions": [],
+  "tags": [
+    "home-ja",
+    "pass",
+    "none"
+  ]
+}
