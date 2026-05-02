@@ -1,0 +1,49 @@
+--- a/src/api/api/tests/sequence_e2e_test.rs
++++ b/src/api/api/tests/sequence_e2e_test.rs
+@@ -668,7 +668,8 @@ async fn test_lock_creates_successfully() {
+     let resp = client.post(&url).json(&payload).send().await.expect("request failed");
+     assert_eq!(resp.status(), StatusCode::CREATED, "expected 201 Created");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await.expect("response body must be valid JSON");
++    assert!(body.get("lock_id").is_some(), "response must contain lock_id; got: {body}");
+ }
+ 
+@@ -1214,7 +1214,8 @@ async fn test_lock_status_retrievable() {
+     let resp = client.get(&url).send().await.expect("request failed");
+     assert_eq!(resp.status(), StatusCode::OK, "expected 200 OK");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await.expect("response body must be valid JSON");
++    assert!(body.get("status").is_some(), "response must contain status field; got: {body}");
+ }
+ 
+@@ -1232,7 +1232,8 @@ async fn test_lock_status_retrievable_detail() {
+     let resp = client.get(&url).send().await.expect("request failed");
+     assert_eq!(resp.status(), StatusCode::OK, "expected 200 OK");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await.expect("response body must be valid JSON");
++    assert_eq!(body["status"], "locked", "lock status must be 'locked' after creation; got: {body}");
+ }
+ 
+@@ -1476,7 +1476,8 @@ async fn test_lock_rejects_invalid_signature_detail() {
+     let resp = client.post(&url).json(&bad_payload).send().await.expect("request failed");
+     assert_eq!(resp.status(), StatusCode::BAD_REQUEST, "expected 400 for invalid sig");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await.expect("error response body must be valid JSON");
++    assert!(body.get("error").is_some(), "error response must contain error field; got: {body}");
+ }
+ 
+@@ -1496,7 +1496,8 @@ async fn test_lock_rejects_invalid_signature_message() {
+     let resp = client.post(&url).json(&bad_payload).send().await.expect("request failed");
+     assert_eq!(resp.status(), StatusCode::BAD_REQUEST, "expected 400 for invalid sig");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await.expect("error response body must be valid JSON");
++    assert!(body["error"].as_str().map(|s| !s.is_empty()).unwrap_or(false), "error message must be non-empty; got: {body}");
+ }
+ 
+@@ -1514,7 +1514,8 @@ async fn test_lock_rejects_invalid_signature_no_lock_created() {
+     let resp = client.post(&url).json(&bad_payload).send().await.expect("request failed");
+     assert_eq!(resp.status(), StatusCode::BAD_REQUEST, "expected 400 for invalid sig");
+-    let body: Value = resp.json().await.unwrap_or_default();
++    let body: Value = resp.json().await.expect("error response body must be valid JSON");
++    assert!(body.get("error").is_some(), "error response must contain error field; got: {body}");
+ }

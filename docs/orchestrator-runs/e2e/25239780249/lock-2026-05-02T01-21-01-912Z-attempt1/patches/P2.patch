@@ -1,0 +1,12 @@
+--- a/src/api/api/src/errors.rs
++++ b/src/api/api/src/errors.rs
+@@ -5,6 +5,7 @@ use thiserror::Error;
+ #[derive(Debug, Error)]
+ pub enum AppError {
+     #[error("validation error: {0}")]
+     ValidationError(String),
++    #[error("L1 unavailable: {0}")]
++    L1Unavailable(String),
+     #[error("database error: {0}")]
+     DbError(#[from] sqlx::Error),
+     #[error("internal error: {0}")]

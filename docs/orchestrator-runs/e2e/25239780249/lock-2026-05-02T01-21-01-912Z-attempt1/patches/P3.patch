@@ -1,0 +1,15 @@
+--- a/src/api/api/src/routes/explorer.rs
++++ b/src/api/api/src/routes/explorer.rs
+@@ -20,10 +20,9 @@ pub async fn list_locks(
+     let locks = state.db.list_locks().await?;
+ 
+     let response: Vec<LockView> = locks
+         .into_iter()
+         .map(|lock| LockView {
+             lock_id: lock.id.clone(),
+-            // BUG: was hardcoding 'active' for any persisted row
+-            status: "active".to_string(),
++            status: lock.status.to_string(),
+             created_at: lock.created_at,
+         })
+         .collect();

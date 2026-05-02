@@ -1,0 +1,12 @@
+# l1 step
+# command: cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url "$L1_RPC_URL"
+# exit: 1
+
+# STDOUT
+
+
+# STDERR
+Error: error sending request for url (https://rpc.sepolia.org/)
+
+Context:
+- operation timed out

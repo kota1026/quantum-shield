@@ -1,0 +1,57 @@
+--- a/src/api/api/src/services/lock_service.rs
++++ b/src/api/api/src/services/lock_service.rs
+@@ -1,6 +1,7 @@
+ use crate::errors::AppError;
+ use crate::models::lock::{Lock, LockStatus};
+ use crate::l1::vault_client::VaultClient;
++use tracing::error;
+ 
+ impl LockService {
+     pub async fn create_lock(
+@@ -20,12 +21,14 @@ impl LockService {
+         // Persist the lock row as 'pending' before submitting to L1
+         let lock = self.db.insert_lock(&payload, LockStatus::Pending).await?;
+ 
+-        // Best-effort L1 submission — warn and continue on failure
+-        if let Err(e) = self.vault_client.register_lock(&lock).await {
+-            tracing::warn!(lock_id = %lock.id, error = %e, "L1 registration failed, continuing");
+-        }
+-
+-        Ok(lock)
++        // L1 submission is required for a lock to be valid.
++        // If the RPC call fails, roll back the pending row and surface the
++        // error to the caller so no false-success is returned.
++        self.vault_client.register_lock(&lock).await.map_err(|e| {
++            error!(lock_id = %lock.id, error = %e, "L1 registration failed — aborting lock creation");
++            AppError::L1Unavailable(e.to_string())
++        })?;
++
++        // Only transition to 'locked' after confirmed L1 submission
++        let lock = self.db.update_lock_status(&lock.id, LockStatus::Locked).await?;
++
++        Ok(lock)
+     }
+ }
+--- a/src/api/api/src/routes/locks.rs
++++ b/src/api/api/src/routes/locks.rs
+@@ -1,5 +1,6 @@
+ use axum::{
+     extract::State,
++    http::StatusCode,
+     response::IntoResponse,
+     Json,
+ };
+@@ -18,6 +19,10 @@ pub async fn create_lock(
+     match state.lock_service.create_lock(payload).await {
+         Ok(lock) => (StatusCode::CREATED, Json(lock)).into_response(),
+         Err(AppError::ValidationError(msg)) => {
+             (StatusCode::BAD_REQUEST, Json(json!({ "error": msg }))).into_response()
+         }
++        Err(AppError::L1Unavailable(msg)) => {
++            (StatusCode::SERVICE_UNAVAILABLE,
++             Json(json!({ "error": "L1 registration unavailable", "detail": msg })))
++                .into_response()
++        }
+         Err(e) => {
+             (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))).into_response()
+         }

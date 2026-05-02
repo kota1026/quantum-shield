@@ -1,0 +1,83 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "Lock status stuck at 'pending' — DB state never transitions to 'locked' after successful lock creation",
+    "detail": "The backend tests pass (4/4), the frontend reports a lock as 'active' in the explorer (stdout: '[Lock Persisted] lock_id=..., status=active'), but the DB layer query returns status='pending' for the most recently created lock. This is a three-way cross-layer inconsistency: (1) backend says lock created successfully, (2) frontend explorer endpoint reports status='active', (3) raw DB shows status='pending'. One of two silent failures is occurring: either the GET /v1/explorer/locks endpoint is returning a stale/cached 'active' status without reading the real DB column, or the post-creation state-machine transition that flips 'pending' → 'locked'/'active' is not being committed (e.g., swallowed in a background task with Ok(()) error handling). Either way, the on-chain confirmation step and/or the DB commit that finalises the lock is not completing, yet no error is surfaced to the caller.",
+    "evidence": [
+      "DB layer stdout: '0xd8f4fd7572e99549f953f5bfc1116474d1c9dacf69e7af1e5b727dc0d48439ed|pending|1952'",
+      "Frontend stdout: '[Lock Persisted] lock_id=0x313fbe6080424c4c67c5d432deaab83acb5c52bf2baece0767e948c8b0f527e5, status=active'",
+      "Backend test result: 'test result: ok. 4 passed; 0 failed' — no state-transition assertion performed post-creation",
+      "DB layer analysis: 'Status value is \"pending\", not \"locked\" as expected'",
+      "L1 RPC call timed out, meaning on-chain confirmation (which would normally trigger the pending→locked transition) could not complete — yet no error was propagated back to the API caller"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "L1 RPC timeout silently ignored — lock accepted as successful with no on-chain confirmation",
+    "detail": "The Consumer Lock sequence is designed to atomically create a lock and register it on-chain in the L1 Vault. The L1 layer failed with a network timeout ('operation timed out' against https://rpc.sepolia.org/), yet the backend returned success (exit 0, all tests green) and the frontend accepted the lock as created. This matches the known 'best-effort L1 calls that warn-and-continue on failure' regression pattern (item 13 in the silent-failure history). If the backend's L1 submission path catches the RPC error and continues rather than failing hard, the lock record in DB will remain 'pending' indefinitely with no retry or alert, and the consumer will believe their assets are locked when they are not. The DB status='pending' finding corroborates that the L1 commitment never completed.",
+    "evidence": [
+      "L1 stderr: 'Error: error sending request for url (https://rpc.sepolia.org/) — operation timed out'",
+      "L1 exit code: 1",
+      "Backend exit code: 0 — no failure propagated despite L1 being unreachable",
+      "DB status remains 'pending' (not 'locked') consistent with L1 call never completing",
+      "Frontend reports lock creation success with no warning about L1 confirmation failure"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "unwrap_or_default() on response bodies in tests silently masks JSON parse failures and bad API responses",
+    "detail": "Six test locations in sequence_e2e_test.rs parse the HTTP response body with `resp.json().await.unwrap_or_default()` and then never use the resulting `body` variable (compiler warns it is unused). This is a direct instance of silent-failure pattern #3 ('unwrap_or_default() on hex inputs hiding parse errors') applied to API response bodies. If the API returns a non-JSON body (e.g., a 500 error page, a malformed payload, or an empty response), `unwrap_or_default()` will silently yield `Value::Null` and the test will continue to pass. The unused variable means no assertion is ever made on the response content. The backend test suite therefore provides false confidence: it confirms HTTP status codes but not response body correctness.",
+    "evidence": [
+      "Compiler warning: 'unused variable: `body`' at sequence_e2e_test.rs:671 — 'let body: Value = resp.json().await.unwrap_or_default();'",
+      "Same pattern repeated at lines 1217, 1235, 1479, 1499, 1517 — 6 total occurrences",
+      "Compiler warning text: 'warning: `quantum-shield-api` (test \"sequence_e2e_test\") generated 6 warnings'",
+      "Pattern matches known silent-failure #3: unwrap_or_default() hiding parse errors"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "Frontend explorer reports lock status='active' but DB has status='pending' — explorer endpoint serving stale or computed state",
+    "detail": "The frontend test for 'lock is persisted in DB and visible via GET /v1/explorer/locks' passed and logged status='active', but a direct DB query milliseconds later shows status='pending'. The explorer endpoint is either (a) computing/inferring 'active' from the mere existence of the row rather than reading the actual status column, (b) reading from a read replica or cache that has not received the update, or (c) mapping 'pending' to 'active' in its serialisation layer. In any case, the explorer is presenting incorrect state to users — a lock that has not been confirmed on L1 and is still pending is being shown as active.",
+    "evidence": [
+      "Frontend stdout: '[Lock Persisted] lock_id=0x313fbe6080424c4c67c5d432deaab83acb5c52bf2baece0767e948c8b0f527e5, status=active'",
+      "DB direct query result: '0xd8f4fd7572e99549f953f5bfc1116474d1c9dacf69e7af1e5b727dc0d48439ed|pending|1952'",
+      "Frontend test 'lock is persisted in DB and visible via GET /v1/explorer/locks' marked ok=true despite status discrepancy",
+      "DB layer analysis notes: 'Status value is \"pending\", not \"locked\" as expected'"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run's results will serve as the baseline for future regression comparisons. Notable state at baseline: backend 4/4 pass (810ms), frontend 40/40 pass (34080ms), db layer shows lock status='pending' (medium issue flagged), l1 layer failed due to RPC timeout on https://rpc.sepolia.org/.",
+    "evidence": [
+      "last_green_run: null",
+      "backend: pass, exit_code=0, duration_ms=810, 4 tests passed",
+      "frontend: pass, exit_code=0, duration_ms=34080, 40 tests passed",
+      "db: pass (exit_code=0) but analysis flagged medium issue — lock status='pending' instead of 'locked'",
+      "l1: fail, exit_code=1, duration_ms=90275 — RPC timeout on https://rpc.sepolia.org/"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "Baseline metrics captured for seq-1. Backend: 810ms, Frontend: 34080ms, DB: 330ms, L1: 90275 gas. Total orchestrator cost: $0.0271.",
+    "evidence": [
+      "backend-runner: $0.0144",
+      "frontend-runner: $0.0068",
+      "db-verifier: $0.0019",
+      "l1-verifier: $0.0019"
+    ],
+    "suggested_owner": "backend"
+  }
+]

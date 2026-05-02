@@ -1,0 +1,93 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "Exit code 0 confirmed",
+      "All 4 test cases passed: test_lock_creates_successfully, test_lock_status_retrievable, test_lock_rejects_invalid_signature, and implicit status check",
+      "Test result line confirms: 'test result: ok. 4 passed; 0 failed'",
+      "No panic markers or unexpected error lines in stdout",
+      "Lock creation flow executed successfully with lock_id issuance",
+      "SR_0 (Sealing Root) computed and returned: 0x87d80445738928b60c39a3772d3c4d6ceaf73875783c01da07e6853811854413",
+      "Status field transitions from 'pending' through test lifecycle",
+      "Invalid signature rejection test confirms cryptographic validation is active",
+      "Test execution time reasonable (0.13s for filtered tests, 0.43s total compile)",
+      "SQLX_OFFLINE mode enabled as expected for CI environment"
+    ],
+    "issues": [
+      {
+        "severity": "low",
+        "title": "Unused variable warnings in test code",
+        "detail": "Six instances of unused `body` variables in test file (lines 671, 1217, 1235, 1479, 1499, 1517). Each uses `unwrap_or_default()` which silently swallows JSON parse errors. While not failing the test, this pattern could mask response deserialization issues.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs:671, 1217, 1235, 1479, 1499, 1517"
+      },
+      {
+        "severity": "info",
+        "title": "Future incompatibility warnings from dependencies",
+        "detail": "redis v0.24.0 and sqlx-postgres v0.7.4 contain code that will be rejected by future Rust versions. Not currently blocking but should be monitored for upgrade path.",
+        "location": "Cargo dependencies"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0",
+      "Playwright JSON reporter shows unexpected: 0",
+      "Exit code: 0",
+      "Tests span Mobile Chrome and Mobile Safari projects",
+      "Health check confirms backend readiness",
+      "Lock creation validates SR_0 and lock_id generation",
+      "Lock persistence verified via GET /v1/explorer/locks",
+      "Explorer totalLocks count increments correctly",
+      "Nonce reuse rejection validated (409)",
+      "Expired lock rejection validated (400)",
+      "Missing field rejection validated (422)",
+      "Multiple lock creation produces distinct lock_ids and SR_0s",
+      "Test output contains no MOCK_*, FALLBACK_*, or DEMO_* strings"
+    ],
+    "issues": [],
+    "confidence": 0.98
+  },
+  {
+    "layer": "db",
+    "status": "partial",
+    "observations": [
+      "psql exit code 0 — connection successful",
+      "Exactly one row returned",
+      "pk_dilithium length is 1952 bytes — correct Dilithium public key size",
+      "lock_id is present and non-empty: 0xd8f4fd7572e99549f953f5bfc1116474d1c9dacf69e7af1e5b727dc0d48439ed",
+      "Status value is 'pending', not 'locked' as expected"
+    ],
+    "issues": [
+      {
+        "severity": "medium",
+        "title": "Lock status mismatch",
+        "detail": "Expected status='locked' but found status='pending'. The lock may not have been fully committed or is in a transient state.",
+        "location": "locks.status"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "l1",
+    "status": "skipped",
+    "observations": [
+      "cast call exited with code 1 (failure)",
+      "RPC endpoint timeout on https://rpc.sepolia.org/",
+      "No stdout data returned; stderr indicates network/infrastructure issue",
+      "L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 is valid and recognized"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "RPC Connection Timeout",
+        "detail": "The L1 RPC endpoint (https://rpc.sepolia.org/) did not respond within the timeout window. This is an infrastructure issue, not a contract or state regression. Retry when network connectivity is restored.",
+        "location": "l1:rpc"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "verdict": "BLOCKED",
+  "summary": "The Consumer Lock sequence has two corroborated high-severity silent-failure patterns that prevent a passing verdict: (1) the L1 RPC timeout is swallowed by the backend — the API returns success (exit 0) despite never confirming on-chain, leaving the lock permanently in 'pending' state with no error surfaced to the caller; (2) the explorer endpoint serves 'active' status to the frontend while the raw DB column reads 'pending', meaning users see confirmed locks that are not confirmed. These are not infrastructure-only issues — the backend's error-handling contract is broken. The L1 layer failure also cannot be downgraded to a simple infra rerun because the backend's own behavior under that failure (silent success) is the finding under test. No fixer proposals were received, so no auto-apply path exists.",
+  "must_fix_before_merge": [
+    "Backend must propagate L1 RPC failure — lock creation must return an error (not 200/success) when the L1 Vault submission times out or fails; no silent warn-and-continue",
+    "DB status never transitions from 'pending' to 'locked' — the state-machine commit or background task that finalises the lock after L1 confirmation must either complete durably or roll back the lock row; currently the row is orphaned in 'pending'",
+    "Explorer endpoint status mismatch — GET /v1/explorer/locks must read the actual status column (not infer 'active' from row existence or a cache); returning 'active' for a 'pending' lock is a user-visible correctness bug",
+    "Test suite: remove unwrap_or_default() silent swallowing of response bodies — six locations in sequence_e2e_test.rs parse and discard response bodies, providing false coverage confidence"
+  ],
+  "fixer_recommendation": "reject",
+  "unresolved_questions": [
+    "Does the backend's L1 submission path catch the RPC timeout with Ok(()) / warn!() and continue, or is the pending→locked transition driven by a separate background task that silently failed? The fix strategy differs significantly between these two cases.",
+    "The DB query and the frontend explorer test reference different lock_ids (0xd8f4fd75... vs 0x313fbe60...) — are these the same logical lock created in the same run window, or did the frontend test create an earlier lock whose status was already promoted while the DB query caught a later still-pending lock? This ambiguity must be resolved to confirm whether the status mismatch is universal or race-conditional.",
+    "No fixer proposals were received — were proposals suppressed because the fixer could not locate patch targets, or because the parallel agent did not run? A human reviewer must confirm before any fix attempt."
+  ],
+  "confidence": 0.65
+}
