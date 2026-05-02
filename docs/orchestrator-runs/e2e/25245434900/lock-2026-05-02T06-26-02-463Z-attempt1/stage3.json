@@ -1,0 +1,78 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "L1 anchoring silently skipped — lock created in DB but never submitted to vault (best-effort / warn-and-continue regression)",
+    "detail": "The Consumer Lock sequence completed HTTP 200 and all backend/frontend/DB checks pass, yet the lock was never anchored on L1. The DB row shows `l1_tx_hash IS NULL` and the L1 layer script confirms 'L1 anchoring did not occur'. The vault's `totalLocked()` returned 120000000000000000 (unchanged), proving no funds moved on-chain. This is the definition of the 'best-effort L1 call that warns and continues' silent-failure pattern listed as high-priority regression #13. A lock that exists only in the DB but not in the vault is unenforceable — the consumer believes their assets are locked while the vault has no record. The mention of 'QS__L1_PRIVATE_KEY may be unset' in the script output suggests the backend's L1 submission path is either (a) gated behind an env-var check that silently no-ops when the key is absent instead of failing hard, or (b) the submission task swallowed its error (silent Ok(()) pattern, regression #5). Either way, the API returned 200 and wrote a 'pending' DB row without verifying or guaranteeing the L1 call was even attempted — a textbook silent failure.",
+    "evidence": [
+      "L1 layer stdout: 'FAIL: lock 0xf45259bda8158c0b424e8ac6b78b8dd384006820866df7e4043c5ae94b7faa3b has no l1_tx_hash (L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset)'",
+      "DB layer stdout: '0xf45259bda8158c0b424e8ac6b78b8dd384006820866df7e4043c5ae94b7faa3b|pending|1952|f' — l1_submitted column = f (false/NULL)",
+      "L1 layer stdout: 'Total locked snapshot for context (should be unchanged from prior runs): 120000000000000000 [1.2e17]' — vault balance did not increase",
+      "Backend layer: 'test seq1_lock::test_lock_creates_successfully ... ok' — API returned HTTP 200 with lock_id despite no L1 anchoring",
+      "Backend layer status response body: '\"status\": \"pending\"' with '\"l1_tx_hash\": null equivalent (release_time: null, time_lock_remaining: null)' — no on-chain reference surfaced to caller"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "Cross-layer inconsistency: API 200 + DB write with no L1 submission is an atomic-guarantee violation",
+    "detail": "Backend reports all 4 tests passing (exit 0), frontend reports all 40 tests passing, yet L1 exit code is 1 and vault state is unchanged. The system is presenting a false positive: callers and monitoring tooling see 'ok' at every layer except L1, which is the layer that actually matters for fund safety. There is no compensating mechanism visible in the logs — the lock stays 'pending' indefinitely with no retry, no alert, and no user-facing error. This cross-layer pass/fail split is only visible by comparing outputs across layers, which is exactly the bug class that per-layer agents miss. The spec (SEQUENCES.md §1 Consumer Lock) requires L1 anchoring as part of the sequence; a 200 response without it means the sequence definition is not being enforced at the API boundary.",
+    "evidence": [
+      "Backend exit_code=0, frontend exit_code=1 (non-zero but all tests pass), db exit_code=0, l1 exit_code=1",
+      "Backend: 'test result: ok. 4 passed; 0 failed'",
+      "L1: 'FAIL: lock … has no l1_tx_hash'",
+      "DB: 'l1_submitted=f' confirming the mismatch is persistent, not a timing issue"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "QS__L1_PRIVATE_KEY absence causes silent no-op instead of hard failure in L1 submission path",
+    "detail": "The L1 check script itself states 'QS__L1_PRIVATE_KEY may be unset' as the probable cause. If the backend's L1 submission logic checks for this variable and simply skips submission (returning Ok(()) or equivalent) when it is absent, this is a direct instance of regression pattern #5 ('Ok(()) swallowing background task errors'). In a CI/CD pipeline this means any accidental environment misconfiguration causes locks to be created without on-chain anchoring, with no error surfaced to the caller or to monitoring. The correct behaviour is to refuse lock creation (or fail the background task with a hard error that prevents the 200 response) when the L1 key is not available.",
+    "evidence": [
+      "L1 stdout: 'QS__L1_PRIVATE_KEY may be unset' — backend itself emits this as a known fallback condition",
+      "DB: l1_tx_hash IS NULL for lock created within last 5 minutes",
+      "No error, no 5xx, no retry log visible in backend stdout or stderr despite L1 submission not occurring"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "Frontend Playwright exit code 1 with all 40 tests passing — unexplained process-level failure",
+    "detail": "The frontend layer exited with code 1 but the JSON stats show expected=40, unexpected=0. This discrepancy means something outside the test runner itself failed (e.g., a teardown script, a report upload, a type-check step, or a Playwright global teardown hook). If this is a teardown hook it could mask cleanup failures — for example, a test fixture that creates real locks but fails to clean them up, leaving the DB in a dirty state that could affect subsequent sequence runs. It should not be dismissed as 'just a runner config issue' without identifying the root cause.",
+    "evidence": [
+      "Frontend exit_code=1",
+      "Frontend JSON stats: 'expected: 40, unexpected: 0, flaky: 0'",
+      "Frontend stderr_excerpt: '' (empty — no clue about what caused non-zero exit)"
+    ],
+    "suggested_owner": "frontend"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run cannot be green due to failing layers (frontend exit-code anomaly, l1 anchoring failure). Once those are resolved and a run fully passes, that run will serve as the regression baseline.",
+    "evidence": [
+      "last_green_run: null",
+      "current_run layer statuses: backend=pass, frontend=fail (exit_code=1), db=pass (partial), l1=fail (exit_code=1)"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "Baseline metrics are null. Current run metrics have been recorded as the new baseline for seq-1.",
+    "evidence": [
+      "backend: 5867 ms",
+      "frontend: 186621 ms",
+      "db: 277 ms",
+      "l1: 338 ms",
+      "total orchestrator cost: $0.0325"
+    ],
+    "suggested_owner": "tests"
+  }
+]

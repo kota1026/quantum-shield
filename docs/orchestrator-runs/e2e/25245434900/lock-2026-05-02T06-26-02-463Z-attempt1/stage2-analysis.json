@@ -1,0 +1,90 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "Exit code 0 confirmed",
+      "Test output contains 'test result: ok. 4 passed; 0 failed'",
+      "seq1_lock::test_lock_creates_successfully passed",
+      "seq1_lock::test_lock_status_retrievable passed",
+      "Lock creation returned HTTP 200 with valid lock_id: 0xcaf7abb23d94cc1bc60218c288bc41cab4a7225644585d8924d6e202ac36ea22",
+      "Status response shows lock in 'pending' state with correct asset (ETH) and amount (500000000000000000 wei)",
+      "sr_0 value present: 0x1621ceb71558b1bdf24ebd0c763cd694f9a775ad42c56f3b3e8e84716f510cba",
+      "No panicked markers detected",
+      "No unexpected error lines in stdout",
+      "Stderr contains only expected compiler warnings (future-incompat redis/sqlx-postgres)",
+      "Test completed in 5.20s",
+      "All core L3 operations appear functional: lock creation, status retrieval, SR_0 computation"
+    ],
+    "issues": [],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, flaky: 0",
+      "JSON reporter stats: unexpected=0, expected=40",
+      "Exit code: 1 (non-zero)",
+      "All individual test results show status='passed' and ok=true across both Desktop Chrome and Mobile Safari projects",
+      "Test suite: lock.integration.spec.ts with comprehensive lock creation, validation, and persistence scenarios",
+      "Key passing tests: lock creation with valid SR_0 and lock_id, DB persistence, Explorer count increment, nonce reuse rejection, expired request rejection, missing field validation, multi-lock distinctness"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "Exit code mismatch: 1 vs expected 0",
+        "detail": "Playwright exited with code 1 despite all 40 tests passing (unexpected=0, expected=40 in JSON stats). This may indicate a non-test process error (e.g., cleanup, report generation) or a playwright runner configuration issue. The actual test results are conclusive and passing.",
+        "location": "exit code: 1"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "db",
+    "status": "partial",
+    "observations": [
+      "Exit code 0 and exactly one row returned from locks table",
+      "lock_id is present and non-null (0xf45259bda8158c0b424e8ac6b78b8dd384006820866df7e4043c5ae94b7faa3b)",
+      "status='pending' is valid (within {pending, locked, confirmed})",
+      "pk_dilithium length is exactly 1952 bytes (correct Dilithium public key size)",
+      "l1_submitted=f (false) indicates L1 transaction hash is NULL"
+    ],
+    "issues": [
+      {
+        "severity": "medium",
+        "title": "L1 submission not yet recorded",
+        "detail": "l1_submitted is false (l1_tx_hash IS NULL), meaning the lock has not been submitted to L1 Vault yet. Expected condition requires l1_submitted=t when L1 Vault is reachable. This indicates either: (1) L1 Vault is unreachable/unavailable, or (2) the L1 submission workflow has not yet executed for this newly created lock. If L1 Vault is reachable, this is a hard failure in the submission path.",
+        "location": "locks.l1_tx_hash"
+      }
+    ],
+    "confidence": 0.78
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [
+      "Script executed and exited with code 1 (expected 0)",
+      "Database query found a recent lock with ID 0xf45259bda8158c0b424e8ac6b78b8dd384006820866df7e4043c5ae94b7faa3b",
+      "The lock row has no l1_tx_hash value (NULL or empty string in database)",
+      "L1 anchoring did not occur; transaction was never submitted to Sepolia",
+      "Snapshot cast call to L1Vault (0x07012aeF87C6E423c32F2f8eaF81762f63337260) succeeded: totalLocked() = 120000000000000000 wei (0x1.2e17)",
+      "No receipt lookup was attempted because the lock lacks an L1 transaction hash"
+    ],
+    "issues": [
+      {
+        "severity": "high",
+        "title": "L1 Anchoring Not Triggered",
+        "detail": "The Consumer Lock sequence created a lock record in the database but failed to anchor it on L1 Sepolia. The l1_tx_hash field is empty, indicating the transaction was never submitted. Root cause is likely missing QS__L1_PRIVATE_KEY environment variable or L1 submission logic failure.",
+        "location": "sequence:Consumer Lock"
+      },
+      {
+        "severity": "medium",
+        "title": "Missing L1 Transaction",
+        "detail": "Expected the most recent lock (0xf45259bda8158c0b424e8ac6b78b8dd384006820866df7e4043c5ae94b7faa3b) to have a corresponding Sepolia transaction hash, but the database field is empty. Cannot verify receipt status without a hash.",
+        "location": "L1Vault:lock submission"
+      }
+    ],
+    "confidence": 0.95
+  }
+]
